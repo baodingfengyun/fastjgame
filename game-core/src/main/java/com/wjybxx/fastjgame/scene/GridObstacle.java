@@ -40,10 +40,6 @@ public enum GridObstacle implements NumberEnum {
      */
     FREE(1),
 
-    /**
-     * 安全区
-     */
-    SAFE_AREA(2)
     ;
 
     private final int number;

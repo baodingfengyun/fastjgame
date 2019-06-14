@@ -24,7 +24,7 @@ import com.wjybxx.fastjgame.utils.MathUtils;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * 2D坐标系，采用左下角为(0,0);
+ * 2D坐标系，采用左下角为(0,0)， 右方为x轴正方向，上方为y轴正方向;
  * 涉及到方向的(上下左右，顺时针，逆时针)的东西都需要在这里处理；
  * 因为在不同的坐标系下，左右和顺逆时针不一样；
  *
@@ -145,23 +145,45 @@ public final class CoordinateSystem2D {
 
     /**
      * 向右旋转一定角度
-     * (左加右减)
+     * (顺时针旋转)
      * @param angle 当前弧度角
      * @param delta Δ用来表示增量
      * @return float (-PI,PI]
      */
     public static float turnRight(float angle, float delta){
-        return MathUtils.radAngleSub(angle,delta);
+        return clockwise(angle, delta);
     }
 
     /**
      * 向左旋转一定角度
-     * (左加右减)
+     * (逆时针旋转)
      * @param angle 当前弧度角
      * @param delta Δ用来表示增量
      * @return float (-PI,PI]
      */
     public static float turnLeft(float angle, float delta){
+        return counterClockwise(angle, delta);
+    }
+
+    /**
+     * 顺时针旋转
+     * （加）
+     * @param angle 当前弧度角
+     * @param delta Δ用来表示增量
+     * @return
+     */
+    public static float clockwise(float angle, float delta){
+        return MathUtils.radAngleSub(angle,delta);
+    }
+
+    /**
+     * 逆时针旋转
+     * （加）
+     * @param angle 当前弧度角
+     * @param delta Δ用来表示增量
+     * @return float (-PI,PI]
+     */
+    public static float counterClockwise(float angle, float delta){
         return MathUtils.radAngleAdd(angle,delta);
     }
 

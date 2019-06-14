@@ -16,11 +16,12 @@
 
 package com.wjybxx.fastjgame.scene;
 
+import com.wjybxx.fastjgame.shape.Grid2D;
 import com.wjybxx.fastjgame.shape.Point2D;
 import com.wjybxx.fastjgame.utils.GameConstant;
 import com.wjybxx.fastjgame.utils.MathUtils;
 
-import java.util.EnumSet;
+import javax.annotation.concurrent.Immutable;
 
 /**
  * 地图格子。
@@ -36,7 +37,8 @@ import java.util.EnumSet;
  * @date 2019/6/1 18:29
  * @github - https://github.com/hl845740757
  */
-public class MapGrid {
+@Immutable
+public class MapGrid implements Grid2D {
 
     /**
      * 行索引（y索引）
@@ -52,30 +54,49 @@ public class MapGrid {
      */
     private final Point2D center;
 
-    // 其它，如遮挡标记等
+    /**
+     * 格子遮挡标记
+     */
+    private final GridObstacle obstacleValue;
 
     /**
-     * 地图格子特征值，遮挡标记等
+     * 是否处于安全区
      */
-    private final EnumSet<GridObstacle> obstacleValues = EnumSet.noneOf(GridObstacle.class);
+    private final boolean safeArea;
 
-    public MapGrid(int rowIndex, int colIndex,int[] obstacleInts) {
+    // TODO 其他标记
+
+    public MapGrid(int rowIndex, int colIndex, int obstacleValue, boolean safeArea) {
+        this(rowIndex, colIndex, GridObstacle.forNumber(obstacleValue), safeArea);
+    }
+
+    public MapGrid(int rowIndex, int colIndex, GridObstacle obstacleValue, boolean safeArea) {
         this.rowIndex = rowIndex;
         this.colIndex = colIndex;
+        this.obstacleValue = obstacleValue;
+        this.safeArea = safeArea;
 
         this.center = MathUtils.gridCenterLocation(rowIndex,colIndex, GameConstant.MAP_GRID_WIDTH)
                 .unmodifiable();
-
-        for (int number :obstacleInts){
-            obstacleValues.add(GridObstacle.forNumber(number));
-        }
     }
 
+    @Override
     public int getColIndex() {
         return colIndex;
     }
 
+    @Override
     public int getRowIndex() {
+        return rowIndex;
+    }
+
+    @Override
+    public int getX() {
+        return colIndex;
+    }
+
+    @Override
+    public int getY() {
         return rowIndex;
     }
 
@@ -91,7 +112,11 @@ public class MapGrid {
         return center.getY();
     }
 
-    public EnumSet<GridObstacle> getObstacleValues() {
-        return obstacleValues;
+    public GridObstacle getObstacleValue() {
+        return obstacleValue;
+    }
+
+    public boolean isSafeArea() {
+        return safeArea;
     }
 }

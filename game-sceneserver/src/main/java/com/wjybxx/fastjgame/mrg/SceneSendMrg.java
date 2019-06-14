@@ -104,7 +104,7 @@ public class SceneSendMrg {
      * @param msg 消息
      */
     public void broadcastPlayer(List<ViewGrid> viewGrids, Object msg){
-        for (ViewGrid  viewGrid: viewGrids){
+        for (ViewGrid viewGrid: viewGrids){
             if (viewGrid.getPlayerNum() <= 0){
                 continue;
             }
@@ -132,7 +132,7 @@ public class SceneSendMrg {
      * @param exceptPlayer 去除的玩家
      */
     public void broadcastPlayerExcept(List<ViewGrid> viewGrids,Object msg,Player exceptPlayer){
-        for (ViewGrid  viewGrid: viewGrids){
+        for (ViewGrid viewGrid: viewGrids){
             if (viewGrid.getPlayerNum() <= 0){
                 continue;
             }
@@ -166,7 +166,7 @@ public class SceneSendMrg {
      * {@link com.wjybxx.fastjgame.misc.SceneBroadcastFilters}可能会有帮助
      */
     public void broadcastPlayerExcept(List<ViewGrid> viewGrids, Object msg, Predicate<Player> except){
-        for (ViewGrid  viewGrid: viewGrids){
+        for (ViewGrid viewGrid: viewGrids){
             if (viewGrid.getPlayerNum() <= 0){
                 continue;
             }

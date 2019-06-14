@@ -126,11 +126,13 @@ public class Sector implements Shape2D, RedrawShape {
 
     private void refreshCache(){
         float delta = this.angle / 2;
-        Point2D startPoint = MathUtils.directionPoint(getCenter(), MathUtils.radAngleSub(direction, delta), getRadius());
+        // 顺时针旋转
+        Point2D startPoint = MathUtils.directionPoint(getCenter(), CoordinateSystem2D.clockwise(direction, delta), getRadius());
         // 转换为以center为起点的向量
         MathUtils.sub(startPoint, getCenter(), startVector);
 
-        Point2D endPoint = MathUtils.directionPoint(getCenter(), MathUtils.radAngleAdd(direction, delta), getRadius());
+        // 逆时针旋转
+        Point2D endPoint = MathUtils.directionPoint(getCenter(), CoordinateSystem2D.counterClockwise(direction, delta), getRadius());
         // 转换为以center为起点的向量
         MathUtils.sub(endPoint, getCenter(), endVector);
     }

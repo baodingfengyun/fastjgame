@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.scene;
 
+import com.wjybxx.fastjgame.shape.Grid2DContainer;
 import com.wjybxx.fastjgame.shape.Point2D;
 import com.wjybxx.fastjgame.utils.GameConstant;
 import com.wjybxx.fastjgame.utils.MathUtils;
@@ -50,7 +51,7 @@ import static com.wjybxx.fastjgame.utils.GameConstant.VIEWABLE_RANGE_GRID_NUM;
  * @date 2019/5/31 22:59
  * @github - https://github.com/hl845740757
  */
-public class ViewGridSet {
+public class ViewGridSet implements Grid2DContainer<ViewGrid> {
 
     private static final Logger logger= LoggerFactory.getLogger(ViewGridSet.class);
 
@@ -72,10 +73,10 @@ public class ViewGridSet {
 
     /**
      * 该地图对应的视野格子;
-     * [colIndex][rowIndex]
+     * [rowIndex][colIndex]
      * 这里需要习惯一下，行对应的y，列对应的是x；
      */
-    private final ViewGrid[][] allViewGrids;
+    private final ViewGrid[][] allGrids;
 
     /**
      * 划分的总行数
@@ -112,20 +113,20 @@ public class ViewGridSet {
         rowCount = MathUtils.rowCount(mapHeight,viewGridWidth);
         colCount = MathUtils.colCount(mapWidth,viewGridWidth);
 
-        allViewGrids=new ViewGrid[rowCount][colCount];
+        allGrids =new ViewGrid[rowCount][colCount];
 
         // 初始化视野格子
         for (int rowIndex=0; rowIndex<rowCount; rowIndex++){
             for (int colIndex=0; colIndex<colCount; colIndex++){
                 ViewGrid viewGrid = new ViewGrid(rowIndex, colIndex, viewGridWidth,capacityHolder);
-                allViewGrids[rowIndex][colIndex]=viewGrid;
+                allGrids[rowIndex][colIndex]=viewGrid;
             }
         }
 
         // 索引每个格子可以看见的格子
         for (int rowIndex=0; rowIndex<rowCount; rowIndex++) {
             for (int colIndex = 0; colIndex < colCount; colIndex++) {
-                ViewGrid viewGrid = allViewGrids[rowIndex][colIndex];
+                ViewGrid viewGrid = allGrids[rowIndex][colIndex];
                 indexViewableGrids(viewGrid,rowIndex,colIndex);
             }
         }
@@ -152,7 +153,7 @@ public class ViewGridSet {
                 if (curColIndex < 0 || curColIndex >= colCount){
                     continue;
                 }
-                viewGrid.getViewableGrids().add(allViewGrids[curRowIndex][curColIndex]);
+                viewGrid.getViewableGrids().add(allGrids[curRowIndex][curColIndex]);
             }
         }
     }
@@ -165,6 +166,21 @@ public class ViewGridSet {
         return mapHeight;
     }
 
+    @Override
+    public ViewGrid[][] getAllGrids() {
+        return allGrids;
+    }
+
+    @Override
+    public int getRowCount() {
+        return rowCount;
+    }
+
+    @Override
+    public int getColCount() {
+        return colCount;
+    }
+
     public int getViewableRange() {
         return viewableRange;
     }
@@ -173,8 +189,15 @@ public class ViewGridSet {
         return viewGridWidth;
     }
 
-    public ViewGrid[][] getAllViewGrids() {
-        return allViewGrids;
+    /**
+     * 查询地图坐标是否在地图视野格子内
+     * （该方法应该用不上）
+     * @param point2D 坐标
+     * @return 视野格子
+     */
+    public boolean inside(Point2D point2D){
+        return MathUtils.withinRangeClosed(0, mapWidth, (int)point2D.getX()) &&
+                MathUtils.withinRangeClosed(0, mapHeight, (int)point2D.getY());
     }
 
     /**
@@ -182,20 +205,10 @@ public class ViewGridSet {
      * @param point2D 坐标
      * @return 视野格子
      */
-    public ViewGrid findViewGrid(Point2D point2D){
+    public ViewGrid getGrid(Point2D point2D){
         int rowIndex = MathUtils.rowIndex(rowCount, viewGridWidth, point2D.getY());
         int colIndex = MathUtils.colIndex(colCount, viewGridWidth, point2D.getX());
-        return allViewGrids[rowIndex][colIndex];
-    }
-
-    /**
-     * 查找视野格子
-     * @param rowIndex 行索引
-     * @param colIndex 列索引
-     * @return 视野格子
-     */
-    public ViewGrid findViewGrid(int rowIndex, int colIndex){
-        return allViewGrids[rowIndex][colIndex];
+        return allGrids[rowIndex][colIndex];
     }
 
     /**
@@ -224,7 +237,7 @@ public class ViewGridSet {
      * @return
      */
     public boolean visible(Point2D a,Point2D b){
-        return visible(findViewGrid(a),findViewGrid(b));
+        return visible(getGrid(a), getGrid(b));
     }
 
     @Override

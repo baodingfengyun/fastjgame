@@ -83,6 +83,10 @@ public abstract class Point2D implements Point<Point2D>{
         return new DefaultPoint2D(x,y);
     }
 
+    public static Point2D newPoint2D(Point2D point2D){
+        return new DefaultPoint2D(point2D.getX(), point2D.getY());
+    }
+
     /**
      * 返回一个不可修改的2d坐标视图
      * @param point2D 原始坐标点

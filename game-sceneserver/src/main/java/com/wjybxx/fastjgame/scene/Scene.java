@@ -260,7 +260,7 @@ public abstract class Scene extends TriggerSystem {
      */
     protected final <T extends GameObject> void updateViewableGrid(T gameObject){
         final ViewGrid preViewGrid = gameObject.getViewGrid();
-        final ViewGrid curViewGrid = viewGridSet.findViewGrid(gameObject.getPosition());
+        final ViewGrid curViewGrid = viewGridSet.getGrid(gameObject.getPosition());
 
         // 视野范围未发生改变
         if (preViewGrid == curViewGrid){

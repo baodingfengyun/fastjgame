@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.scene;
 
 import com.wjybxx.fastjgame.dsl.CoordinateSystem2D;
+import com.wjybxx.fastjgame.shape.Grid2D;
 import com.wjybxx.fastjgame.shape.Point2D;
 import com.wjybxx.fastjgame.shape.shape2d.Rectangle;
 import com.wjybxx.fastjgame.shape.shape2d.Shape2D;
@@ -41,7 +42,7 @@ import static com.wjybxx.fastjgame.utils.GameConstant.VIEWABLE_GRID_NUM;
  * @github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class ViewGrid extends GameObjectContainer implements Shape2D {
+public class ViewGrid extends GameObjectContainer implements Shape2D, Grid2D {
 
     /**
      * 行索引（y索引）
@@ -65,7 +66,7 @@ public class ViewGrid extends GameObjectContainer implements Shape2D {
     /**
      * 周围的视野格子(可见的视野格子，周围的格子和自己)
      */
-    private final List<ViewGrid> viewableGrids = new ArrayList<>(VIEWABLE_GRID_NUM);
+    private final ArrayList<ViewGrid> viewableGrids = new ArrayList<>(VIEWABLE_GRID_NUM);
 
     public ViewGrid(int rowIndex, int colIndex, int gridWidth) {
         this(rowIndex,colIndex,gridWidth,InitCapacityHolder.EMPTY);
@@ -79,19 +80,31 @@ public class ViewGrid extends GameObjectContainer implements Shape2D {
         this.region= CoordinateSystem2D.buildGridRegion(rowIndex,colIndex, gridWidth);
     }
 
+    @Override
     public int getRowIndex() {
         return rowIndex;
     }
 
+    @Override
     public int getColIndex() {
         return colIndex;
+    }
+
+    @Override
+    public int getX() {
+        return colIndex;
+    }
+
+    @Override
+    public int getY() {
+        return rowIndex;
     }
 
     public int getGridWidth() {
         return gridWidth;
     }
 
-    public List<ViewGrid> getViewableGrids() {
+    public ArrayList<ViewGrid> getViewableGrids() {
         return viewableGrids;
     }
 

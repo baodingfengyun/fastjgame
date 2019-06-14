@@ -14,25 +14,30 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.misc;
+package com.wjybxx.fastjgame.findpath;
 
 import com.wjybxx.fastjgame.scene.GridObstacle;
-import com.wjybxx.fastjgame.scene.MapGrid;
 
-import java.util.EnumSet;
-import java.util.List;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * 跳跃点寻路策略
+ * 可行走格子策略；
+ *
+ * 用于实现特定类型的格子
+ *
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/3 15:34
+ * @date 2019/6/10 21:24
  * @github - https://github.com/hl845740757
  */
-public class JumpPointSearchStrategy implements FindPathStrategy{
+@ThreadSafe
+@FunctionalInterface
+public interface WalkableGridStrategy {
 
-    @Override
-    public List<MapGrid> findPath(MapGrid[][] allMapGrids, MapGrid startGrid, MapGrid endGrid, EnumSet<GridObstacle> movableGrids) {
-        return null;
-    }
+    /**
+     * 该遮挡值的格子是否可以走
+     * @param obstacleValue
+     * @return
+     */
+    boolean walkable(GridObstacle obstacleValue);
 }

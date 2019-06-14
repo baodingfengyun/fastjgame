@@ -70,12 +70,12 @@ public class MapDataLoadMrg {
     private MapData loadMapDataImp(int mapId){
         // TODO 真正加载地图资源，现在随机生成吧
         final int rowCount = 100;
-        final int colCount = 80;
+        final int colCount = 100;
 
         MapGrid[][] allMapGrids = new MapGrid[rowCount][colCount];
         for (int rowIndex = 0; rowIndex < rowCount; rowIndex++){
             for (int colIndex = 0; colIndex < colCount; colIndex++){
-                allMapGrids[rowIndex][colIndex] = new MapGrid(rowIndex,colIndex,new int[]{GridObstacle.FREE.getNumber()});
+                allMapGrids[rowIndex][colIndex] = new MapGrid(rowIndex,colIndex,GridObstacle.FREE, true);
             }
         }
 

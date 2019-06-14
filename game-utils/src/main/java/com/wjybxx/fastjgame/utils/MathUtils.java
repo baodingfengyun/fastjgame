@@ -125,18 +125,28 @@ public class MathUtils {
     }
 
     /**
-     * 是否在区间段内，包含边界值
+     * 是否在区间段内，左闭右开，包含左边界，不包含右边界
      * @param start 区间起始值 inclusive
-     * @param end 区间结束值 inclusive
+     * @param end 区间结束值 exclusive
      * @param value 待检测的值
      * @return
      */
     public static boolean withinRange(int start, int end, int value){
+        return value >= start && value < end;
+    }
+
+    /**
+     * 是否在区间段内，闭区间，包含双端边界
+     * @param start 区间起始值 inclusive
+     * @param end 区间结束值 inclusive
+     * @param value 待检测的值
+     */
+    public static boolean withinRangeClosed(int start, int end, int value){
         return value >= start && value <= end;
     }
 
     /**
-     * 是否在区间段内，不包含边界值
+     * 是否在区间段内，不包含双端边界值
      * @param start 区间起始值 exclusive
      * @param end 区间结束值 exclusive
      * @param value 待检测的值

@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.scene;
 
+import com.wjybxx.fastjgame.shape.Grid2DContainer;
 import com.wjybxx.fastjgame.shape.Point2D;
 import com.wjybxx.fastjgame.utils.GameConstant;
 import com.wjybxx.fastjgame.utils.MathUtils;
@@ -29,7 +30,7 @@ import com.wjybxx.fastjgame.utils.MathUtils;
  * @date 2019/6/1 18:32
  * @github - https://github.com/hl845740757
  */
-public class MapData {
+public class MapData implements Grid2DContainer<MapGrid> {
 
     /**
      * 地图id，与资源唯一对应
@@ -39,7 +40,7 @@ public class MapData {
     /**
      * 所有的格子数据
      */
-    private final MapGrid[][] allMapGrids;
+    private final MapGrid[][] allGrids;
     private final int rowCount;
     private final int colCount;
 
@@ -53,11 +54,11 @@ public class MapData {
      */
     private final int mapHeight;
 
-    public MapData(int mapId, MapGrid[][] allMapGrids) {
+    public MapData(int mapId, MapGrid[][] allGrids) {
         this.mapId = mapId;
-        this.allMapGrids = allMapGrids;
-        this.rowCount = allMapGrids.length;
-        this.colCount = allMapGrids[0].length;
+        this.allGrids = allGrids;
+        this.rowCount = allGrids.length;
+        this.colCount = allGrids[0].length;
         this.mapWidth = colCount * GameConstant.MAP_GRID_WIDTH;
         this.mapHeight = rowCount * GameConstant.MAP_GRID_WIDTH;
     }
@@ -74,26 +75,40 @@ public class MapData {
         return mapHeight;
     }
 
-    public MapGrid[][] getAllMapGrids() {
-        return allMapGrids;
+    @Override
+    public MapGrid[][] getAllGrids() {
+        return allGrids;
     }
 
+    @Override
     public int getRowCount(){
         return rowCount;
     }
 
+    @Override
     public int getColCount(){
         return colCount;
     }
 
+    /**
+     * 地图坐标是否在地图内部
+     * @param point2D 地图坐标
+     * @return
+     */
+    public boolean inside(Point2D point2D){
+        return MathUtils.withinRangeClosed(0, mapWidth, (int)point2D.getX()) &&
+                MathUtils.withinRangeClosed(0, mapHeight, (int)point2D.getY());
+    }
+
+    /**
+     * 通过地图内坐标，获取对应的地图格子
+     * @param point2D
+     * @return
+     */
     public MapGrid getGrid(Point2D point2D){
         int rowIndex = MathUtils.rowIndex(rowCount, GameConstant.MAP_GRID_WIDTH, point2D.getY());
         int colIndex = MathUtils.colIndex(colCount, GameConstant.MAP_GRID_WIDTH, point2D.getX());
-        return allMapGrids[rowIndex][colIndex];
-    }
-
-    public MapGrid getGrid(int rowIndex, int colIndex){
-        return allMapGrids[rowIndex][colIndex];
+        return allGrids[rowIndex][colIndex];
     }
 
     /**
@@ -115,15 +130,6 @@ public class MapData {
         } else if (y >= mapHeight){
             point2D.setY(mapHeight - 1);
         }
-    }
-
-    /**
-     * 坐标是否溢出了
-     * @param point2D 一个坐标
-     */
-    public boolean isLocationOverflow(Point2D point2D){
-        return !MathUtils.withinRange(0, mapWidth, (int)point2D.getX()) ||
-                !MathUtils.withinRange(0, mapHeight, (int)point2D.getY());
     }
 
 }
