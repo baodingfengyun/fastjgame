@@ -14,21 +14,24 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.findpath;
+package com.wjybxx.fastjgame.findpath.jps;
 
+import com.wjybxx.fastjgame.findpath.FindPathContext;
+import com.wjybxx.fastjgame.findpath.WalkableGridStrategy;
 import com.wjybxx.fastjgame.scene.MapData;
 import com.wjybxx.fastjgame.scene.MapGrid;
 
 /**
- * A* 寻路上下文
+ * jps寻路上下文
+ *
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/12 16:20
+ * @date 2019/6/12 16:16
  * @github - https://github.com/hl845740757
  */
-public class AStarFindPathContext extends FindPathContext{
+public class JPSFindPathContext extends FindPathContext {
 
-    public AStarFindPathContext(MapData mapData, MapGrid startGrid, MapGrid endGrid, WalkableGridStrategy walkableGridStrategy) {
+    public JPSFindPathContext(MapData mapData, MapGrid startGrid, MapGrid endGrid, WalkableGridStrategy walkableGridStrategy) {
         super(mapData, startGrid, endGrid, walkableGridStrategy);
     }
 

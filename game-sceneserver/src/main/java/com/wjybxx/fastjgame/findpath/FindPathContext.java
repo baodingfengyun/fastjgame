@@ -31,35 +31,19 @@ import javax.annotation.Nonnull;
  */
 public abstract class FindPathContext {
 
-    protected final MapData mapData;
+    public final MapData mapData;
 
-    protected final MapGrid startGrid;
+    public final MapGrid startGrid;
 
-    protected final MapGrid endGrid;
+    public final MapGrid endGrid;
 
-    protected final WalkableGridStrategy walkableGridStrategy;
+    public final WalkableGridStrategy walkableGridStrategy;
 
     protected FindPathContext(MapData mapData, MapGrid startGrid, MapGrid endGrid, WalkableGridStrategy walkableGridStrategy) {
         this.mapData = mapData;
         this.startGrid = startGrid;
         this.endGrid = endGrid;
         this.walkableGridStrategy = walkableGridStrategy;
-    }
-
-    public MapData getMapData() {
-        return mapData;
-    }
-
-    public MapGrid getStartGrid() {
-        return startGrid;
-    }
-
-    public MapGrid getEndGrid() {
-        return endGrid;
-    }
-
-    public WalkableGridStrategy getWalkableGridStrategy() {
-        return walkableGridStrategy;
     }
 
     /**
@@ -93,5 +77,15 @@ public abstract class FindPathContext {
      */
     public boolean isWalkable(int x, int y){
         return mapData.inside(x, y) && walkableGridStrategy.walkable(mapData.getGrid(x, y).getObstacleValue());
+    }
+
+    /**
+     * 指定坐标的格子是否在地图内
+     * @param x x坐标，列索引
+     * @param y y坐标，行索引
+     * @return
+     */
+    public boolean isInside(int x, int y){
+        return mapData.inside(x, y);
     }
 }

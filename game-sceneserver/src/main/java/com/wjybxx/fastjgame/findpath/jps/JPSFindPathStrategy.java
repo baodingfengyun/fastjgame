@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.findpath;
+package com.wjybxx.fastjgame.findpath.jps;
 
+import com.wjybxx.fastjgame.findpath.FindPathNode;
+import com.wjybxx.fastjgame.findpath.FindPathStrategy;
+import com.wjybxx.fastjgame.findpath.FindPathUtils;
 import com.wjybxx.fastjgame.scene.MapGrid;
 import com.wjybxx.fastjgame.shape.Point2D;
 
@@ -79,7 +82,7 @@ public class JPSFindPathStrategy extends FindPathStrategy<JPSFindPathContext> {
     /**
      * 对角线处理策略
      */
-    private static final DiagonalMoveStrategy diagonalMoveStrategy = new AtLeastOneWalkableStrategy();
+    private static final JumpStrategy JUMP_STRATEGY = new AtLeastOneWalkableJumpStrategy();
 
     /**
      * 路径节点比较器
@@ -169,14 +172,14 @@ public class JPSFindPathStrategy extends FindPathStrategy<JPSFindPathContext> {
         FindPathNode existNode, newNode;
 
         try{
-            diagonalMoveStrategy.findNeighbors(context, curNode, neighbors);
+            JUMP_STRATEGY.findNeighbors(context, curNode, neighbors);
 
             // 朝着可到的邻居方向跳跃(循环遍历次数太多，使用fori的形式性能是最好的)
             for (int index=0,end=neighbors.size();index<end;index++){
                 neighbor = neighbors.get(index);
 
                 // curGrid朝着neighbor方向进行跳跃
-                jumpNode = diagonalMoveStrategy.jump(context, curNode.getX(), curNode.getY(), neighbor.getX(), neighbor.getY());
+                jumpNode = JUMP_STRATEGY.jump(context, curNode.getX(), curNode.getY(), neighbor.getX(), neighbor.getY());
                 // 遇见遮挡或超出地图了
                 if (null == jumpNode){
                     continue;
@@ -187,15 +190,16 @@ public class JPSFindPathStrategy extends FindPathStrategy<JPSFindPathContext> {
                 }
 
                 g = curNode.getG() + distanceFunction.apply(curGrid, jumpNode);
-                h = heuristicDistanceFunction.apply(jumpNode, context.endGrid);
-                f = g + h;
 
                 existNode = findGrid(openNodes, jumpNode.getX(), jumpNode.getY());
                 if (null == existNode){
                     // 这是一个新的跳点
                     newNode = new FindPathNode(jumpNode.getX(), jumpNode.getY());
-                    newNode.setF(f);
                     newNode.setG(g);
+
+                    h = heuristicDistanceFunction.apply(jumpNode, context.endGrid);
+                    f = g + h;
+                    newNode.setF(f);
                     newNode.setH(h);
                     newNode.setParent(curNode);
 
@@ -204,8 +208,11 @@ public class JPSFindPathStrategy extends FindPathStrategy<JPSFindPathContext> {
                     // 需要比较到达跳点的消耗，
                     // 如果存在的路径消耗大于新的值，则需要进行替换
                     if (existNode.getG() > g){
-                        existNode.setF(f);
                         existNode.setG(g);
+
+                        h = heuristicDistanceFunction.apply(jumpNode, context.endGrid);
+                        f = g + h;
+                        existNode.setF(f);
                         existNode.setH(h);
                         existNode.setParent(curNode);
 
@@ -219,4 +226,5 @@ public class JPSFindPathStrategy extends FindPathStrategy<JPSFindPathContext> {
             neighbors.clear();
         }
     }
+
 }

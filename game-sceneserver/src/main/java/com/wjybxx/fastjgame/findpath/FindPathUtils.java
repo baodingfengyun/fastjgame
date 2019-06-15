@@ -20,7 +20,6 @@ import com.wjybxx.fastjgame.scene.MapData;
 import com.wjybxx.fastjgame.scene.MapGrid;
 import com.wjybxx.fastjgame.shape.Point2D;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -43,24 +42,37 @@ public class FindPathUtils {
     };
 
     private FindPathUtils() {
-    }
 
-    public static boolean isWalkableAt(MapData mapData, int x, int y, WalkableGridStrategy walkableGridStrategy){
-        return mapData.inside(x, y) && walkableGridStrategy.walkable(mapData.getGrid(x, y).getObstacleValue());
     }
 
     /**
-     * 获取当前节点的令居节点
-     * @param mapData 地图数据
+     * 如果指定格子可行走，则添加到neighbor中
+     * @param context
+     * @param nx neighborX
+     * @param ny neighborY
+     * @param neighbors
+     * @return true/false 添加成功则返回true，失败返回false
+     */
+    public static boolean addNeighborIfWalkable(FindPathContext context, int nx, int ny, List<MapGrid> neighbors){
+        if (context.isWalkable(nx, ny)){
+            neighbors.add(context.getGrid(nx, ny));
+            return true;
+        }else {
+            return false;
+        }
+    }
+
+    /**
+     * 获取当前节点的所有邻居节点
+     * @param context 寻路上下文
      * @param curNode 当前节点
      * @param diagonalMovement 对角线行走策略
-     * @param walkableGridStrategy 可行走节点策略
      * @param neighbors 邻居节点容器，传入以方便子类使用缓存
      */
-    protected static void statisticsNeighbors(MapData mapData, FindPathNode curNode,
-                                              DiagonalMovement diagonalMovement,
-                                              WalkableGridStrategy walkableGridStrategy,
-                                              List<MapGrid> neighbors) {
+    public static void statisticsNeighbors(FindPathContext context,
+                                           FindPathNode curNode,
+                                           DiagonalMovement diagonalMovement,
+                                           List<MapGrid> neighbors) {
         boolean up    = false, leftUpper  = false,
                 right = false, rightUpper = false,
                 down  = false, rightLower = false,
@@ -70,26 +82,26 @@ public class FindPathUtils {
         final int y = curNode.getY();
 
         // 上
-        if (isWalkableAt(mapData, x, y + 1, walkableGridStrategy)) {
-            neighbors.add(mapData.getGrid(x, y + 1));
+        if (context.isWalkable(x, y + 1)) {
+            neighbors.add(context.getGrid(x, y + 1));
             up = true;
         }
 
         // 右
-        if (isWalkableAt(mapData, x + 1, y, walkableGridStrategy)) {
-            neighbors.add(mapData.getGrid(x + 1, y));
+        if (context.isWalkable(x + 1, y)) {
+            neighbors.add(context.getGrid(x + 1, y));
             right = true;
         }
 
         // 下
-        if (isWalkableAt(mapData, x, y - 1, walkableGridStrategy)) {
-            neighbors.add(mapData.getGrid(x, y - 1));
+        if (context.isWalkable(x, y - 1)) {
+            neighbors.add(context.getGrid(x, y - 1));
             down = true;
         }
 
         // 左
-        if (isWalkableAt(mapData, x - 1, y, walkableGridStrategy)) {
-            neighbors.add(mapData.getGrid(x - 1, y));
+        if (context.isWalkable(x - 1, y)) {
+            neighbors.add(context.getGrid(x - 1, y));
             left = true;
         }
 
@@ -125,23 +137,23 @@ public class FindPathUtils {
         }
 
         // 左上
-        if (leftUpper && isWalkableAt(mapData, x - 1, y + 1, walkableGridStrategy)) {
-            neighbors.add(mapData.getGrid(x - 1, y + 1));
+        if (leftUpper && context.isWalkable(x - 1, y + 1)) {
+            neighbors.add(context.getGrid(x - 1, y + 1));
         }
 
         // 右上
-        if (rightUpper && isWalkableAt(mapData, x + 1, y + 1, walkableGridStrategy)) {
-            neighbors.add(mapData.getGrid(x + 1, y + 1));
+        if (rightUpper && context.isWalkable(x + 1, y + 1)) {
+            neighbors.add(context.getGrid(x + 1, y + 1));
         }
 
         // 右下
-        if (rightLower && isWalkableAt(mapData, x + 1, y - 1, walkableGridStrategy)) {
-            neighbors.add(mapData.getGrid(x + 1, y - 1));
+        if (rightLower && context.isWalkable(x + 1, y - 1)) {
+            neighbors.add(context.getGrid(x + 1, y - 1));
         }
 
         // 左下
-        if (leftLower && isWalkableAt(mapData, x - 1, y - 1, walkableGridStrategy)) {
-            neighbors.add(mapData.getGrid(x - 1, y - 1));
+        if (leftLower && context.isWalkable(x - 1, y - 1)) {
+            neighbors.add(context.getGrid(x - 1, y - 1));
         }
     }
 

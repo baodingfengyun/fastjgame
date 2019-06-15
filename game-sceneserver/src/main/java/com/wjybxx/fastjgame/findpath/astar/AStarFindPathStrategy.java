@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.findpath;
+package com.wjybxx.fastjgame.findpath.astar;
 
+import com.wjybxx.fastjgame.findpath.FindPathStrategy;
 import com.wjybxx.fastjgame.shape.Point2D;
 
 import java.util.List;
