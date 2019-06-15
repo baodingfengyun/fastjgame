@@ -49,13 +49,12 @@ import java.util.PriorityQueue;
  * 其它优化：
  * - https://cloud.tencent.com/developer/article/1006844
  *
- * 最全寻路算法实现，包括演示demo：
+ * 最全寻路算法实现，代码可读性也还不错，包括演示demo：
  * (js)
  * - https://github.com/qiao/PathFinding.js
  *
- * java版，代码可读性还是很好的(我这里是实现也主要参考自该项目):
+ * java版：
  * - https://github.com/kevinsheehan/jps
- * (java)
  *
  * C#的一个star最多的看的我都要吐了，代码写的太烂。
  *
@@ -75,7 +74,7 @@ import java.util.PriorityQueue;
 public class JPSFindPathStrategy extends FindPathStrategy<JPSFindPathContext> {
 
     /**
-     * 当前线程令居节点缓存，最多8个邻居
+     * 当前线程邻居节点缓存，最多8个邻居
      */
     private static final ThreadLocal<ArrayList<MapGrid>> localNeighbors = ThreadLocal.withInitial(() -> new ArrayList<>(8));
 
