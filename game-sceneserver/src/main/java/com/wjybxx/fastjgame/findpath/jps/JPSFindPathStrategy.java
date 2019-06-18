@@ -81,7 +81,11 @@ public class JPSFindPathStrategy extends FindPathStrategy<JPSFindPathContext> {
     /**
      * 对角线处理策略
      */
-    private static final JumpStrategy JUMP_STRATEGY = new AtLeastOneWalkableJumpStrategy();
+    private static final JumpStrategy JUMP_STRATEGY =
+//            new NoneObstacleJumpStrategy();
+//            new AlwaysDiagonalJumStrategy();
+//            new NeverDiagonalJumStrategy();
+            new AtLeastOneWalkableJumpStrategy();
 
     /**
      * 路径节点比较器
@@ -127,7 +131,7 @@ public class JPSFindPathStrategy extends FindPathStrategy<JPSFindPathContext> {
 
                 if (minCostNode.getX() == targetX && minCostNode.getY() == targetY){
                     // 找到目标点，寻路完成
-                    return FindPathUtils.buildFinalPath(context.mapData, minCostNode);
+                    return FindPathUtils.buildFinalPath(context, minCostNode);
                 }
 
                 // 确定下一步
@@ -143,8 +147,9 @@ public class JPSFindPathStrategy extends FindPathStrategy<JPSFindPathContext> {
     }
 
     private boolean isClosed(ArrayList<FindPathNode> closeNodes, int x, int y){
+        FindPathNode pathNode;
         for (int index=0,end=closeNodes.size(); index<end; index++){
-            FindPathNode pathNode= closeNodes.get(index);
+            pathNode= closeNodes.get(index);
             if (pathNode.getX() == x && pathNode.getY() == y){
                 return true;
             }

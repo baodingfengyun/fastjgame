@@ -56,7 +56,11 @@ public abstract class TableReader<T> implements AutoCloseable{
             // 缓存前面的行
             List<T> cacheRows=new ArrayList<>(nameRowIndex);
 
-            for (int rowIndex = 0; rowItr.hasNext(); rowIndex++){
+            for (int rowIndex = 0; ; rowIndex++){
+                if (!rowItr.hasNext()){
+                    break;
+                }
+
                 T row=rowItr.next();
                 // 前面的行
                 if (rowIndex<nameRowIndex){

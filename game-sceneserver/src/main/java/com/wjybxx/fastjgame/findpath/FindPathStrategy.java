@@ -31,6 +31,17 @@ import java.util.List;
  * 咱们不是要做一个支持各种情况的全面的寻路算法，只需要一个符合游戏需求的算法就可以。
  * 考虑的越多，越复杂，性能也会降低；
  *
+ * 其它优化：预处理每个地图，索引每种{@link WalkableGridStrategy}所有联通区域;
+ * <p>
+ *       Step1. 当前连通区域编号num初始化为0
+ *       Step2. 对Grid网格每个点current重复以下工作：
+ *          一、 num++。
+ *          二、 如果current是阻挡点，跳过。
+ *          三、 如果current被访问过，跳过。
+ *          四、 current的连通区域编号记为num，标记已访问过。
+ *          五、 宽度优先搜索和current四连通的所有Grid网格点，连通区域编号均记为num，
+ *            并标记已访问过。
+ * </p>
  *
  * @author wjybxx
  * @version 1.0

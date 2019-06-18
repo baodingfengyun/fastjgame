@@ -157,12 +157,12 @@ public class MathUtils {
     }
 
     /**
-     * 计算直线函数
+     * 计算直线函数(直线函数不一定存在)
      * @param start 起始点
      * @param end 结束点
      * @return 两点所在的直线
      */
-    public static StraightLine calStraightLine(Point2D start, Point2D end){
+    public static StraightLine calStraightLine(Point2D start, Point2D end) {
         float dx = end.getX() - start.getX();
         // x的差值不能为0
         if (Float.compare(dx,0.0f) == 0){
@@ -190,8 +190,20 @@ public class MathUtils {
      * @param x x坐标
      * @return Point2D(x,y)
      */
-    public static Point2D calStraightLine(StraightLine straightLine, float x){
+    public static Point2D calStraightLinePoint(StraightLine straightLine, float x){
         return Point2D.newPoint2D(x,straightLine.apply(x));
+    }
+
+    /**
+     * 三点是否共线
+     */
+    public static boolean isOneLine(Point2D a, Point2D b, Point2D c){
+        Point2D v1 = sub(b, a);
+        Point2D v2 = sub(c, a);
+        // B(向量) = λ * A(向量)
+        // <=> X1Y2 - X2Y1 == 0
+        // <=> X1Y2 == X2Y1
+        return Float.compare(v1.getX() * v2.getY(), v2.getX() * v1.getY()) == 0;
     }
 
     // region 格子索引计算

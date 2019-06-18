@@ -19,23 +19,27 @@ package com.wjybxx.fastjgame.findpath.jps;
 import com.wjybxx.fastjgame.findpath.DiagonalMovement;
 
 /**
- * 当存在非遮挡格子可达对角线时，可走对角线；
- * 水平和垂直方向至少有一个可行走节点才可以走对角线！
- *
+ * 只要对角线非遮挡，总是允许走对角线
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/12 15:54
+ * @date 2019/6/16 17:27
  * @github - https://github.com/hl845740757
  */
-public class AtLeastOneWalkableJumpStrategy extends DiagonalJumStrategy {
+public class AlwaysDiagonalJumStrategy extends DiagonalJumStrategy{
 
+    /**
+     * 对角线非遮挡时，总是允许对角线移动
+     * @param horizontalWalkable 水平方向是否可行走
+     * @param verticalWalkable 垂直方向是否可行走
+     * @return
+     */
     @Override
     protected boolean allowMovingAlongDiagonal(boolean horizontalWalkable, boolean verticalWalkable) {
-        return horizontalWalkable || verticalWalkable;
+        return true;
     }
 
     @Override
     protected DiagonalMovement diagonalMovement() {
-        return DiagonalMovement.AtLeastOneWalkable;
+        return DiagonalMovement.Always;
     }
 }

@@ -53,12 +53,6 @@ public class FindPathNode {
      */
     private FindPathNode parent;
 
-    /**
-     * 深度；
-     * 缓存值，消除递归
-     */
-    private int depth = 0;
-
     public FindPathNode(int x, int y) {
         this.x = x;
         this.y = y;
@@ -102,10 +96,15 @@ public class FindPathNode {
 
     public void setParent(FindPathNode parent) {
         this.parent = parent;
-        this.depth = parent.getDepth() + 1;
     }
 
     public int getDepth() {
+        int depth = 0;
+        FindPathNode node = this;
+        while (node.parent != null){
+            depth++;
+            node = node.parent;
+        }
         return depth;
     }
 }
