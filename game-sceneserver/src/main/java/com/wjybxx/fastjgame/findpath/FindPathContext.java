@@ -88,4 +88,14 @@ public abstract class FindPathContext {
     public boolean isInside(int x, int y){
         return mapData.inside(x, y);
     }
+
+    /**
+     * 是否是目标格子
+     * @param x x坐标，列索引
+     * @param y y坐标，行索引
+     * @return
+     */
+    public boolean isEndGrid(int x, int y){
+        return x == endGrid.getX() && y == endGrid.getY();
+    }
 }

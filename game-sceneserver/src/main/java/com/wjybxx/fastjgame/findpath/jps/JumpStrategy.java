@@ -133,18 +133,15 @@ public abstract class JumpStrategy {
         final int dx = currentX - parentX;
         final int dy = currentY - parentY;
 
-        final int endX = context.endGrid.getX();
-        final int endY = context.endGrid.getY();
-
         if (dx != 0 && dy != 0){
             // 对角线移动
-            return diagonalJump(context, currentX, currentY, dx, dy, endX, endY);
+            return diagonalJump(context, currentX, currentY, dx, dy);
         }else if (dx != 0){
             // 水平跳跃
-            return horizontalJump(context, currentX, currentY, dx, endX, endY);
+            return horizontalJump(context, currentX, currentY, dx);
         }else {
             // dy != 0，垂直移动
-            return verticalJump(context, currentX, currentY, dy, endX, endY);
+            return verticalJump(context, currentX, currentY, dy);
         }
     }
 
@@ -156,11 +153,9 @@ public abstract class JumpStrategy {
      * @param startY 起点y坐标
      * @param dx deltaX x增量
      * @param dy deltaY y增量
-     * @param endX 目标节点x坐标
-     * @param endY 目标节点y坐标
      * @return jump point(拐点)
      */
-    protected abstract MapGrid diagonalJump(JPSFindPathContext context, final int startX, final int startY, int dx, int dy, int endX, int endY);
+    protected abstract MapGrid diagonalJump(JPSFindPathContext context, final int startX, final int startY, int dx, int dy);
 
     /**
      * 水平方向跳跃(moving along x)
@@ -169,11 +164,9 @@ public abstract class JumpStrategy {
      * @param startX 起点x坐标
      * @param currentY 水平方向移动，y坐标不变
      * @param dx deltaX x增量
-     * @param endX 目标节点x坐标
-     * @param endY 目标节点y坐标
      * @return jump point(拐点)
      */
-    protected abstract MapGrid horizontalJump(JPSFindPathContext context, final int startX, final int currentY, int dx, int endX, int endY);
+    protected abstract MapGrid horizontalJump(JPSFindPathContext context, final int startX, final int currentY, int dx);
 
     /**
      * 垂直方向跳跃(moving along y)
@@ -182,9 +175,7 @@ public abstract class JumpStrategy {
      * @param currentX 垂直方向移动，x坐标不变
      * @param startY 起点y坐标
      * @param dy deltaY y增量
-     * @param endX 目标节点x坐标
-     * @param endY 目标节点y坐标
      * @return jump point(拐点)
      */
-    protected abstract MapGrid verticalJump(JPSFindPathContext context,final int currentX,final int startY, int dy, int endX, int endY);
+    protected abstract MapGrid verticalJump(JPSFindPathContext context, final int currentX, final int startY, int dy);
 }

@@ -80,12 +80,12 @@ public class JPSFindPathStrategy extends FindPathStrategy<JPSFindPathContext> {
 
     /**
      * 对角线处理策略
+     * {@link NoneObstacleJumpStrategy} 可以防止边界情况下的穿墙
      */
-    private static final JumpStrategy JUMP_STRATEGY =
-//            new NoneObstacleJumpStrategy();
+    private static final JumpStrategy JUMP_STRATEGY = new NoneObstacleJumpStrategy();
 //            new AlwaysDiagonalJumStrategy();
 //            new NeverDiagonalJumStrategy();
-            new AtLeastOneWalkableJumpStrategy();
+//            new AtLeastOneWalkableJumpStrategy();
 
     /**
      * 路径节点比较器
@@ -116,9 +116,6 @@ public class JPSFindPathStrategy extends FindPathStrategy<JPSFindPathContext> {
         PriorityQueue<FindPathNode> openNodes = localOpenNodes.get();
         ArrayList<FindPathNode> closeNodes = localCloseNodes.get();
 
-        final int targetX = endGrid.getX();
-        final int targetY = endGrid.getY();
-
         try {
             // 将初始节点纳入openSet
             FindPathNode firstFindPathNode = new FindPathNode(context.startGrid.getX(), context.startGrid.getY());
@@ -129,7 +126,7 @@ public class JPSFindPathStrategy extends FindPathStrategy<JPSFindPathContext> {
             while ((minCostNode = openNodes.poll()) != null){
                 closeNodes.add(minCostNode);
 
-                if (minCostNode.getX() == targetX && minCostNode.getY() == targetY){
+                if (context.isEndGrid(minCostNode.getX(), minCostNode.getY())) {
                     // 找到目标点，寻路完成
                     return FindPathUtils.buildFinalPath(context, minCostNode);
                 }

@@ -93,18 +93,20 @@ public class NoneObstacleJumpStrategy extends JumpStrategy{
      * 不会直接遇见拐点
      */
     @Override
-    protected MapGrid diagonalJump(JPSFindPathContext context, int startX, int startY, int dx, int dy, int endX, int endY) {
+    protected MapGrid diagonalJump(JPSFindPathContext context, int startX, int startY, int dx, int dy) {
         for (int currentX = startX, currentY = startY; ; currentX+=dx, currentY+=dy){
             // 当前节点为目标节点
             // 如果点y是起点或目标点，则y是跳点
-            if (currentX == endX && currentY == endY){
-                return context.getGrid(currentX, currentY);
+            if (context.isEndGrid(currentX, currentY)){
+                return context.endGrid;
             }
 
             // 水平或垂直方向遇见跳点，则将当前节点加入open集合（当前节点也是跳点）
             // 如果parent(y)到y是对角线移动，并且y经过水平或垂直方向移动可以到达跳点，则y是跳点
-            if (horizontalJump(context, currentX, currentY, dx, endX, endY) != null ||
-                    verticalJump(context, currentX, currentY, dy, endX, endY) != null){
+            if (context.isWalkable(currentX + dx, currentY) && horizontalJump(context, currentX + dx, currentY, dx) != null){
+                return context.getGrid(currentX, currentY);
+            }
+            if (context.isWalkable(currentX, currentY + dy) && verticalJump(context, currentX, currentY + dy, dy) != null){
                 return context.getGrid(currentX, currentY);
             }
 
@@ -114,20 +116,19 @@ public class NoneObstacleJumpStrategy extends JumpStrategy{
             }
 
             // 是否可以继续对角线移动
-            if (!context.isWalkable(currentX + dx, currentY)
-                    || !context.isWalkable(currentX, currentY + dy)) {
+            if (!context.isWalkable(currentX + dx, currentY) || !context.isWalkable(currentX, currentY + dy)) {
                 return null;
             }
         }
     }
 
     @Override
-    protected MapGrid horizontalJump(JPSFindPathContext context, int startX, int currentY, int dx, int endX, int endY) {
+    protected MapGrid horizontalJump(JPSFindPathContext context, int startX, int currentY, int dx) {
         // 水平移动
         for (int currentX=startX; ; currentX+=dx){
             // 当前节点为目标节点
-            if (currentX == endX && currentY == endY){
-                return context.getGrid(currentX, currentY);
+            if (context.isEndGrid(currentX, currentY)){
+                return context.endGrid;
             }
 
             // 是否是跳点（是否包含强迫邻居）
@@ -191,11 +192,11 @@ public class NoneObstacleJumpStrategy extends JumpStrategy{
     }
 
     @Override
-    protected MapGrid verticalJump(JPSFindPathContext context, int currentX, int startY, int dy, int endX, int endY) {
+    protected MapGrid verticalJump(JPSFindPathContext context, int currentX, int startY, int dy) {
         for (int currentY = startY; ; currentY += dy){
             // 当前节点为目标节点
-            if (currentX == endX && currentY == endY){
-                return context.getGrid(currentX, currentY);
+            if (context.isEndGrid(currentX, currentY)){
+                return context.endGrid;
             }
             // 不可对角线移动，那么只能左右拐，那么什么是时候拐方向？
             // （从parent(x)、x、n的路径长度比其他任何从parent(x)到n且不经过x的路径短，）（存在左右强迫邻居）

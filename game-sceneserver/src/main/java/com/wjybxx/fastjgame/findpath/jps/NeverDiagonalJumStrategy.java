@@ -25,6 +25,7 @@ import static com.wjybxx.fastjgame.findpath.FindPathUtils.addNeighborIfWalkable;
 
 /**
  * 禁止对角线移动
+ *
  * @author wjybxx
  * @version 1.0
  * @date 2019/6/16 15:45
@@ -65,17 +66,17 @@ public class NeverDiagonalJumStrategy extends JumpStrategy{
     }
 
     @Override
-    protected MapGrid diagonalJump(JPSFindPathContext context, int startX, int startY, int dx, int dy, int endX, int endY) {
+    protected MapGrid diagonalJump(JPSFindPathContext context, int startX, int startY, int dx, int dy) {
         throw new IllegalStateException("unreachable");
     }
 
     @Override
-    protected MapGrid horizontalJump(JPSFindPathContext context, int startX, int currentY, int dx, int endX, int endY) {
+    protected MapGrid horizontalJump(JPSFindPathContext context, int startX, int currentY, int dx) {
         // 水平移动
         for (int currentX=startX; ; currentX+=dx){
             // 当前节点为目标节点
-            if (currentX == endX && currentY == endY){
-                return context.getGrid(currentX, currentY);
+            if (context.isEndGrid(currentX, currentY)){
+                return context.endGrid;
             }
             // 不可以对角线移动，那么只能上下拐，什么时候拐？
             // （从parent(x)、x、n的路径长度比其他任何从parent(x)到n且不经过x的路径短）（存在上下强迫邻居）
@@ -139,11 +140,11 @@ public class NeverDiagonalJumStrategy extends JumpStrategy{
     }
 
     @Override
-    protected MapGrid verticalJump(JPSFindPathContext context, int currentX, int startY, int dy, int endX, int endY) {
+    protected MapGrid verticalJump(JPSFindPathContext context, int currentX, int startY, int dy) {
         for (int currentY = startY; ; currentY += dy){
             // 当前节点为目标节点
-            if (currentX == endX && currentY == endY){
-                return context.getGrid(currentX, currentY);
+            if (context.isEndGrid(currentX, currentY)){
+                return context.endGrid;
             }
             // 不可对角线移动，那么只能左右拐，那么什么是时候拐方向？
             // （从parent(x)、x、n的路径长度比其他任何从parent(x)到n且不经过x的路径短，）（存在左右强迫邻居）
@@ -155,13 +156,11 @@ public class NeverDiagonalJumStrategy extends JumpStrategy{
             // 不可以对角线移动的时候，水平和垂直方向，必须有一个方向要双向跳跃(否则无法处理到探索区域的所有地图格子)
             // When moving vertically, must check for horizontal jump points
             // 向左跳跃
-            if (context.isWalkable(currentX - 1, currentY) &&
-                    horizontalJump(context, currentX - 1, currentY, -1, endX, endY) != null){
+            if (context.isWalkable(currentX - 1, currentY) && horizontalJump(context, currentX - 1, currentY, -1) != null){
                 return context.getGrid(currentX, currentY);
             }
             // 向右跳跃
-            if (context.isWalkable(currentX + 1, currentY) &&
-                    horizontalJump(context, currentX + 1, currentY, 1, endX, endY) != null){
+            if (context.isWalkable(currentX + 1, currentY) && horizontalJump(context, currentX + 1, currentY, 1) != null){
                 return context.getGrid(currentX, currentY);
             }
             // 前进遇见遮挡
