@@ -113,11 +113,5 @@
             <version>3.6.1</version>
         </dependency>
 
-        <dependency>
-            <groupId>com.wjybxx.fastjgame</groupId>
-            <artifactId>game-auto</artifactId>
-            <version>1.0</version>
-        </dependency>
-
     </dependencies>
 </project>
