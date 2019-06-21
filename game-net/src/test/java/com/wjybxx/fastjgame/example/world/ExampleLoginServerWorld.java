@@ -51,8 +51,8 @@ import java.util.function.Supplier;
  * 示例游戏世界
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/28 0:33
- * @github - https://github.com/hl845740757
+ * date - 2019/4/28 0:33
+ * github - https://github.com/hl845740757
  */
 public class ExampleLoginServerWorld extends World {
 

@@ -22,8 +22,8 @@ package com.wjybxx.fastjgame.scene;
  * {@link GameObjectContainer}
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/4 21:57
- * @github - https://github.com/hl845740757
+ * date - 2019/6/4 21:57
+ * github - https://github.com/hl845740757
  */
 public class InitCapacityHolder {
 

@@ -57,8 +57,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/6 11:56
- * @github - https://github.com/hl845740757
+ * date - 2019/5/6 11:56
+ * github - https://github.com/hl845740757
  */
 public class SyncS2CSessionMrg {
 

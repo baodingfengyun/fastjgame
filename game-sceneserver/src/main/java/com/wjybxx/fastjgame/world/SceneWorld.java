@@ -29,8 +29,8 @@ import static com.wjybxx.fastjgame.protobuffer.p_sync_center_scene.p_center_comm
  * SceneServer
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/15 21:45
- * @github - https://github.com/hl845740757
+ * date - 2019/5/15 21:45
+ * github - https://github.com/hl845740757
  */
 public class SceneWorld extends WorldCore {
 

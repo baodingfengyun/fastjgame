@@ -29,8 +29,8 @@ import java.util.Map;
  * 基于 反射扫描+ hash 的消息映射。
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/28 13:54
- * @github - https://github.com/hl845740757
+ * date - 2019/4/28 13:54
+ * github - https://github.com/hl845740757
  */
 public class ExampleMappingStrategy implements MessageMappingStrategy {
 

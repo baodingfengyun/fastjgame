@@ -19,8 +19,8 @@ package com.wjybxx.fastjgame.shape;
 /**
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/31 23:22
- * @github - https://github.com/hl845740757
+ * date - 2019/5/31 23:22
+ * github - https://github.com/hl845740757
  */
 public class UnmodifiablePoint2D extends Point2D{
 

@@ -20,8 +20,8 @@ package com.wjybxx.fastjgame.findpath;
  * 寻路过程中的中间节点
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/11 22:19
- * @github - https://github.com/hl845740757
+ * date - 2019/6/11 22:19
+ * github - https://github.com/hl845740757
  */
 public class FindPathNode {
     // 对应的格子坐标

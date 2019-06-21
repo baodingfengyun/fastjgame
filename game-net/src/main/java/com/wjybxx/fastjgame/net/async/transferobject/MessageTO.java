@@ -27,8 +27,8 @@ import jdk.nashorn.internal.ir.annotations.Immutable;
  * 子类实现也必须是不可变对象，保证线程安全。
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 9:26
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 9:26
+ * github - https://github.com/hl845740757
  */
 @Immutable
 public abstract class MessageTO implements TransferObject {

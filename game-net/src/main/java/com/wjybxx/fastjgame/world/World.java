@@ -41,8 +41,8 @@ import org.slf4j.LoggerFactory;
  * 游戏世界顶层类(World)
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 23:00
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 23:00
+ * github - https://github.com/hl845740757
  */
 public abstract class World {
 

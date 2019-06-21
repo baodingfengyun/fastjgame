@@ -19,8 +19,8 @@ package com.wjybxx.fastjgame.function;
  * 资源申请函数
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/14 10:58
- * @github - https://github.com/hl845740757
+ * date - 2019/5/14 10:58
+ * github - https://github.com/hl845740757
  */
 @FunctionalInterface
 public interface AcquireFun<T> {

@@ -27,8 +27,8 @@ import java.util.Map;
  * 适用于全部是字符串键值对的{@link Document}
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/22 11:13
- * @github - https://github.com/hl845740757
+ * date - 2019/5/22 11:13
+ * github - https://github.com/hl845740757
  */
 public class DocumentConfigWrapper extends ConfigWrapper {
 

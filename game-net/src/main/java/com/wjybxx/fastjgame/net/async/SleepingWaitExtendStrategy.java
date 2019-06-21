@@ -28,8 +28,8 @@ import java.util.concurrent.locks.LockSupport;
  * 消费者等待策略 (也就是我们的游戏世界等待网络事件时的策略)。
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 10:06
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 10:06
+ * github - https://github.com/hl845740757
  */
 public class SleepingWaitExtendStrategy<T> implements WaitStrategy {
 

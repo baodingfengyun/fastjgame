@@ -32,8 +32,8 @@ import java.util.Objects;
  * 反射工具类
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 10:30
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 10:30
+ * github - https://github.com/hl845740757
  */
 public class ReflectionUtils {
 

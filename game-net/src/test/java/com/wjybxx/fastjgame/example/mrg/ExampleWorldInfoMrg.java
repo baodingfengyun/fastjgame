@@ -24,8 +24,8 @@ import com.wjybxx.fastjgame.mrg.WorldInfoMrg;
  * 简单的游戏世界信息控制器
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/6 10:52
- * @github - https://github.com/hl845740757
+ * date - 2019/5/6 10:52
+ * github - https://github.com/hl845740757
  */
 public abstract class ExampleWorldInfoMrg extends WorldInfoMrg {
 

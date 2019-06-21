@@ -31,8 +31,8 @@ import org.apache.zookeeper.CreateMode;
 /**
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/17 20:11
- * @github - https://github.com/hl845740757
+ * date - 2019/5/17 20:11
+ * github - https://github.com/hl845740757
  */
 public class LoginWorld extends WorldCore{
 

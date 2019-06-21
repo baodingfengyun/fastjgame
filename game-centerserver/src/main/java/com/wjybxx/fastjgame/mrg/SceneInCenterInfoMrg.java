@@ -46,8 +46,8 @@ import static com.wjybxx.fastjgame.protobuffer.p_sync_center_scene.*;
  * SceneServer在CenterServer中的连接等控制器。
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/15 23:11
- * @github - https://github.com/hl845740757
+ * date - 2019/5/15 23:11
+ * github - https://github.com/hl845740757
  */
 public class SceneInCenterInfoMrg {
 

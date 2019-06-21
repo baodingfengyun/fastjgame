@@ -42,8 +42,8 @@ import java.util.concurrent.TimeUnit;
  * 该控制器负责请求和响应的线程安全。
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/28 19:56
- * @github - https://github.com/hl845740757
+ * date - 2019/4/28 19:56
+ * github - https://github.com/hl845740757
  */
 @ThreadSafe
 public class HttpClientMrg extends AbstractThreadLifeCycleHelper {

@@ -23,8 +23,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 类似{@link LongSequencer}。
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/6 20:58
- * @github - https://github.com/hl845740757
+ * date - 2019/5/6 20:58
+ * github - https://github.com/hl845740757
  */
 @NotThreadSafe
 public class IntSequencer {

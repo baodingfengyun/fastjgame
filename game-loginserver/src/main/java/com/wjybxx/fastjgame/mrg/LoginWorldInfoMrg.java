@@ -26,8 +26,8 @@ import com.wjybxx.fastjgame.net.common.RoleType;
  * 而且如果用Nginx，每次都可能要改配置。
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/17 20:18
- * @github - https://github.com/hl845740757
+ * date - 2019/5/17 20:18
+ * github - https://github.com/hl845740757
  */
 public class LoginWorldInfoMrg extends WorldCoreInfoMrg{
 

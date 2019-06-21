@@ -27,8 +27,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 11:51
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 11:51
+ * github - https://github.com/hl845740757
  */
 @NotThreadSafe
 public class AckPingPongMessage extends Message{

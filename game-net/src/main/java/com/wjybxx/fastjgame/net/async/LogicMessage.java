@@ -27,8 +27,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 11:50
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 11:50
+ * github - https://github.com/hl845740757
  */
 @NotThreadSafe
 public class LogicMessage extends Message{

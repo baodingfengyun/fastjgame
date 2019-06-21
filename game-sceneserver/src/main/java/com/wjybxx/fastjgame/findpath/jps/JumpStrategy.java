@@ -30,8 +30,8 @@ import java.util.List;
  * 子类必须是无状态的，以实现线程安全;
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/12 14:22
- * @github - https://github.com/hl845740757
+ * date - 2019/6/12 14:22
+ * github - https://github.com/hl845740757
  */
 @Stateless
 public abstract class JumpStrategy {

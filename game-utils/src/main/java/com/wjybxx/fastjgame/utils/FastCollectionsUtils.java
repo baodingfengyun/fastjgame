@@ -31,8 +31,8 @@ import java.util.Map;
  * 针对fastUtil集合的帮助类
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/9 12:36
- * @github - https://github.com/hl845740757
+ * date - 2019/5/9 12:36
+ * github - https://github.com/hl845740757
  */
 public class FastCollectionsUtils {
 

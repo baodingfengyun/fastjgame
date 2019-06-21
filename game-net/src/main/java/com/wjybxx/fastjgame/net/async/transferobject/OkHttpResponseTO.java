@@ -29,8 +29,8 @@ import java.io.IOException;
  * okHttpClient的异步响应结果
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/10 8:49
- * @github - https://github.com/hl845740757
+ * date - 2019/5/10 8:49
+ * github - https://github.com/hl845740757
  */
 public class OkHttpResponseTO implements NetEventParam, TransferObject {
 

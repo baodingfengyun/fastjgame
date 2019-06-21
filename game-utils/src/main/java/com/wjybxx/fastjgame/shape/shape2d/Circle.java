@@ -26,8 +26,8 @@ import javax.annotation.Nonnull;
  * 2D圆形
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/31 23:20
- * @github - https://github.com/hl845740757
+ * date - 2019/5/31 23:20
+ * github - https://github.com/hl845740757
  */
 public class Circle implements Shape2D, RedrawShape {
 

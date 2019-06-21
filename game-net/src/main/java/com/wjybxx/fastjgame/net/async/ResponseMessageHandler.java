@@ -23,8 +23,8 @@ import javax.annotation.Nonnull;
  * 在连接中，当前world作为客户端角色，另一方作为服务端角色。
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/6 15:57
- * @github - https://github.com/hl845740757
+ * date - 2019/5/6 15:57
+ * github - https://github.com/hl845740757
  */
 public interface ResponseMessageHandler<T> extends MessageHandler<C2SSession,T>{
     /**

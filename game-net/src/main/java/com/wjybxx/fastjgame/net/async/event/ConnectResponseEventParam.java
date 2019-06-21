@@ -24,8 +24,8 @@ import javax.annotation.concurrent.Immutable;
  * 连接响应事件参数
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/7 13:08
- * @github - https://github.com/hl845740757
+ * date - 2019/5/7 13:08
+ * github - https://github.com/hl845740757
  */
 @Immutable
 public class ConnectResponseEventParam implements NetEventParam{

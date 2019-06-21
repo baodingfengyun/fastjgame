@@ -56,8 +56,8 @@ import static com.wjybxx.fastjgame.utils.GameUtils.isNullOrEmptyString;
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/20 19:42
- * @github - https://github.com/hl845740757
+ * date - 2019/5/20 19:42
+ * github - https://github.com/hl845740757
  */
 public class MongoDBMrg extends AbstractThreadLifeCycleHelper {
     /**

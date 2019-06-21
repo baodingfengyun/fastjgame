@@ -40,8 +40,8 @@ import java.io.IOException;
  * 只判断发送连接请求与收到消息之间的顺序。
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/30 11:54
- * @github - https://github.com/hl845740757
+ * date - 2019/4/30 11:54
+ * github - https://github.com/hl845740757
  */
 @NotThreadSafe
 public class ClientSyncRpcCodec extends BaseSyncRpcCodec {

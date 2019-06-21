@@ -19,8 +19,8 @@ package com.wjybxx.fastjgame.core.onlinenode;
 /**
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/17 21:28
- * @github - https://github.com/hl845740757
+ * date - 2019/5/17 21:28
+ * github - https://github.com/hl845740757
  */
 public class LoginNodeData {
 

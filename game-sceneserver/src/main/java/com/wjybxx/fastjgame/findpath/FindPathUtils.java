@@ -27,8 +27,8 @@ import java.util.List;
  * 寻路过程中的一些辅助方法
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/12 15:13
- * @github - https://github.com/hl845740757
+ * date - 2019/6/12 15:13
+ * github - https://github.com/hl845740757
  */
 public class FindPathUtils {
 

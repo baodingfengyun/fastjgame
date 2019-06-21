@@ -77,8 +77,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/1 0:21
- * @github - https://github.com/hl845740757
+ * date - 2019/6/1 0:21
+ * github - https://github.com/hl845740757
  */
 @NotThreadSafe
 public class Triangle implements Shape2D, RedrawShape {

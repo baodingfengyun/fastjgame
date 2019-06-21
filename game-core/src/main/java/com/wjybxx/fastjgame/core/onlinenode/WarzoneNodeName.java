@@ -20,8 +20,8 @@ package com.wjybxx.fastjgame.core.onlinenode;
  * 战区服也必须总是生成相同的名字，以使得同时只能有一个战区服存在。
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/16 0:14
- * @github - https://github.com/hl845740757
+ * date - 2019/5/16 0:14
+ * github - https://github.com/hl845740757
  */
 public class WarzoneNodeName {
     /**

@@ -20,8 +20,8 @@ package com.wjybxx.fastjgame.constants;
  * 工具包的常量
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/9 20:10
- * @github - https://github.com/hl845740757
+ * date - 2019/5/9 20:10
+ * github - https://github.com/hl845740757
  */
 public class UtilConstants {
 

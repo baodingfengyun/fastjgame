@@ -41,8 +41,8 @@ import static org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent.
  * CenterServer需要探测所有的scene和warzone，并派发事件与之建立链接
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/15 23:06
- * @github - https://github.com/hl845740757
+ * date - 2019/5/15 23:06
+ * github - https://github.com/hl845740757
  */
 public class CenterDiscoverMrg extends AbstractThreadLifeCycleHelper {
 

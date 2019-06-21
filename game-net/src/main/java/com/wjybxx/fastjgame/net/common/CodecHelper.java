@@ -27,8 +27,8 @@ package com.wjybxx.fastjgame.net.common;
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/28 10:47
- * @github - https://github.com/hl845740757
+ * date - 2019/4/28 10:47
+ * github - https://github.com/hl845740757
  */
 public final class CodecHelper {
     /**

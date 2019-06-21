@@ -37,8 +37,8 @@ import io.netty.handler.codec.http.HttpObject;
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 10:32
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 10:32
+ * github - https://github.com/hl845740757
  */
 public interface TypeParameterFinder {
 

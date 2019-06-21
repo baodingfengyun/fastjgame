@@ -46,8 +46,8 @@ import org.slf4j.LoggerFactory;
  * baseCodec作为解码过程的最后一步和编码过程的第一步
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/7 12:26
- * @github - https://github.com/hl845740757
+ * date - 2019/5/7 12:26
+ * github - https://github.com/hl845740757
  */
 public abstract class BaseCodec extends ChannelDuplexHandler {
 

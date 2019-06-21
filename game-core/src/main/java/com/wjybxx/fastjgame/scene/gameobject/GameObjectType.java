@@ -24,8 +24,8 @@ import com.wjybxx.fastjgame.utils.ReflectionUtils;
  * 游戏对象类型
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/2 22:59
- * @github - https://github.com/hl845740757
+ * date - 2019/6/2 22:59
+ * github - https://github.com/hl845740757
  */
 public enum GameObjectType implements NumberEnum {
 

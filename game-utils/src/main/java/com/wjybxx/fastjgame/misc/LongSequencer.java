@@ -24,8 +24,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 由于使用的地方还挺多，整合出一个类来。
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/6 20:42
- * @github - https://github.com/hl845740757
+ * date - 2019/5/6 20:42
+ * github - https://github.com/hl845740757
  */
 @NotThreadSafe
 public final class LongSequencer {

@@ -20,8 +20,8 @@ package com.wjybxx.fastjgame.net.common;
  * token禁用信息，禁止特定时间点之前的token使用
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/8 22:58
- * @github - https://github.com/hl845740757
+ * date - 2019/5/8 22:58
+ * github - https://github.com/hl845740757
  */
 public class ForbiddenTokenInfo {
     /**

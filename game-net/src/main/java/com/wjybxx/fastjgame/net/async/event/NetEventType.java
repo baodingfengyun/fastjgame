@@ -26,7 +26,7 @@ import java.util.Arrays;
  * 网络事件类型
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/26 23:14
+ * date - 2019/4/26 23:14
  */
 public enum NetEventType implements NumberEnum {
 

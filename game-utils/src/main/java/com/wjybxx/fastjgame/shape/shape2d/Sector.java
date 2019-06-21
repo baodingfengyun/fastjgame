@@ -27,8 +27,8 @@ import javax.annotation.Nonnull;
  * 扇形。
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/2 14:46
- * @github - https://github.com/hl845740757
+ * date - 2019/6/2 14:46
+ * github - https://github.com/hl845740757
  */
 public class Sector implements Shape2D, RedrawShape {
 

@@ -25,8 +25,8 @@ import javax.annotation.concurrent.Immutable;
  * 业务逻辑包事件参数
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 12:06
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 12:06
+ * github - https://github.com/hl845740757
  */
 @Immutable
 public class LogicMessageEventParam implements MessageEventParam {

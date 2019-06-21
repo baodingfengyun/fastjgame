@@ -22,8 +22,8 @@ package com.wjybxx.fastjgame.shape;
  * @param <T> the type of this
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/31 22:29
- * @github - https://github.com/hl845740757
+ * date - 2019/5/31 22:29
+ * github - https://github.com/hl845740757
  */
 public interface Point<T extends Point<T>> {
 

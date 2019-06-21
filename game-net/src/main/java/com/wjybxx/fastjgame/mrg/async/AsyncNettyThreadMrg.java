@@ -33,8 +33,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 22:08
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 22:08
+ * github - https://github.com/hl845740757
  */
 public class AsyncNettyThreadMrg extends NettyThreadMrg {
 

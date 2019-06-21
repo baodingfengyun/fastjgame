@@ -33,8 +33,8 @@ import java.util.Map;
  * 消息分发器，用于业务逻辑线程。
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 22:04
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 22:04
+ * github - https://github.com/hl845740757
  */
 public class MessageDispatcherMrg {
 

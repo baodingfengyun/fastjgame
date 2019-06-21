@@ -20,8 +20,8 @@ package com.wjybxx.fastjgame.findpath;
  * 邻居节点的坐标偏移量
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/12 18:54
- * @github - https://github.com/hl845740757
+ * date - 2019/6/12 18:54
+ * github - https://github.com/hl845740757
  */
 public class NeighborOffSet {
 

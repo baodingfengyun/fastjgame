@@ -28,8 +28,8 @@ import static com.wjybxx.fastjgame.findpath.FindPathUtils.addNeighborIfWalkable;
  * （不会因为对角线节点导致拐点，而只有水平和垂直方向会生成拐点，导致了拐点算法很不一样）
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/16 23:13
- * @github - https://github.com/hl845740757
+ * date - 2019/6/16 23:13
+ * github - https://github.com/hl845740757
  */
 public class NoneObstacleJumpStrategy extends JumpStrategy{
 

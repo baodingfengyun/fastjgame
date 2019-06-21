@@ -33,8 +33,8 @@ import java.util.Enumeration;
  * 网络包工具类
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 10:28
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 10:28
+ * github - https://github.com/hl845740757
  */
 public class NetUtils {
 

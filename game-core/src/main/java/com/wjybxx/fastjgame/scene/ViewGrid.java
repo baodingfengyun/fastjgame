@@ -38,8 +38,8 @@ import static com.wjybxx.fastjgame.utils.GameConstant.VIEWABLE_GRID_NUM;
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/31 23:13
- * @github - https://github.com/hl845740757
+ * date - 2019/5/31 23:13
+ * github - https://github.com/hl845740757
  */
 @NotThreadSafe
 public class ViewGrid extends GameObjectContainer implements Shape2D, Grid2D {

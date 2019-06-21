@@ -40,8 +40,8 @@ import java.util.Objects;
  * 注意：http请求主要是用于GM之类的后台请求的，因此最好在InboundHandler中加过滤。
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/28 19:15
- * @github - https://github.com/hl845740757
+ * date - 2019/4/28 19:15
+ * github - https://github.com/hl845740757
  */
 public class HttpDispatcherMrg {
 

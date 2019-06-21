@@ -43,8 +43,8 @@ import static com.wjybxx.fastjgame.protobuffer.p_center_warzone.*;
  * WarzoneServer
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/15 18:31
- * @github - https://github.com/hl845740757
+ * date - 2019/5/15 18:31
+ * github - https://github.com/hl845740757
  */
 public class WarzoneWorld extends WorldCore {
 

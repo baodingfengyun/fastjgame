@@ -24,8 +24,8 @@ import java.util.Map;
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/11 16:11
- * @github - https://github.com/hl845740757
+ * date - 2019/5/11 16:11
+ * github - https://github.com/hl845740757
  */
 public class TableRow extends ConfigHelper {
 

@@ -31,8 +31,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 由于地图资源信息可能很大，加载到内存浪费内存，也会拖慢启动速度；
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/5 14:13
- * @github - https://github.com/hl845740757
+ * date - 2019/6/5 14:13
+ * github - https://github.com/hl845740757
  */
 @NotThreadSafe
 public class MapDataLoadMrg {

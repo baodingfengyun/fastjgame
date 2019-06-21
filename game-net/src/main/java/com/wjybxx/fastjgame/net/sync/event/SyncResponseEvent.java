@@ -22,8 +22,8 @@ import io.netty.channel.Channel;
  * 同步响应事件
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/7 13:57
- * @github - https://github.com/hl845740757
+ * date - 2019/5/7 13:57
+ * github - https://github.com/hl845740757
  */
 public abstract class SyncResponseEvent extends SyncEvent{
 

@@ -26,8 +26,8 @@ import static com.wjybxx.fastjgame.findpath.FindPathUtils.addNeighborIfWalkable;
  * 遇见拐点可对角线拐的策略，可对角线进行跳跃的跳跃的策略。
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/16 21:52
- * @github - https://github.com/hl845740757
+ * date - 2019/6/16 21:52
+ * github - https://github.com/hl845740757
  */
 public abstract class DiagonalJumStrategy extends JumpStrategy{
 

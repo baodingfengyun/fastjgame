@@ -20,8 +20,8 @@ package com.wjybxx.fastjgame.net.common;
  * Token 客户端请求与服务器建立连接时的验证信息
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 15:03
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 15:03
+ * github - https://github.com/hl845740757
  */
 public class Token {
     // ---------------------不变量--------------------

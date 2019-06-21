@@ -24,8 +24,8 @@ import com.wjybxx.fastjgame.utils.ReflectionUtils;
  * 用于标识会话对方的角色类型
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 10:01
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 10:01
+ * github - https://github.com/hl845740757
  */
 public enum RoleType implements NumberEnum {
     /**

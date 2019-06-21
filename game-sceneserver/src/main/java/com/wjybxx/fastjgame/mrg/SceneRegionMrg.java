@@ -34,8 +34,8 @@ import static com.wjybxx.fastjgame.protobuffer.p_sync_center_scene.*;
  * 场景区域管理器
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/16 11:35
- * @github - https://github.com/hl845740757
+ * date - 2019/5/16 11:35
+ * github - https://github.com/hl845740757
  */
 public class SceneRegionMrg {
 

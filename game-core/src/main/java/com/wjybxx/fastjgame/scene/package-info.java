@@ -18,7 +18,7 @@
  * scene的部分组件，其它module也需要使用他们
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/31 22:46
- * @github - https://github.com/hl845740757
+ * date - 2019/5/31 22:46
+ * github - https://github.com/hl845740757
  */
 package com.wjybxx.fastjgame.scene;

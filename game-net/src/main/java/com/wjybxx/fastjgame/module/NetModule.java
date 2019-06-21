@@ -34,7 +34,7 @@ import com.wjybxx.fastjgame.mrg.sync.SyncS2CSessionMrg;
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/26 23:11
+ * date - 2019/4/26 23:11
  */
 public final class NetModule extends AbstractModule {
 

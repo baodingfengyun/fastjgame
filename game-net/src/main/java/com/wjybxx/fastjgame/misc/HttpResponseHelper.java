@@ -28,8 +28,8 @@ import java.util.Objects;
  * http响应帮助类
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/29 9:20
- * @github - https://github.com/hl845740757
+ * date - 2019/4/29 9:20
+ * github - https://github.com/hl845740757
  */
 public final class HttpResponseHelper {
 

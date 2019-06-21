@@ -20,8 +20,8 @@ package com.wjybxx.fastjgame.net.common;
  * 会话生命周期观察者
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 11:48
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 11:48
+ * github - https://github.com/hl845740757
  */
 public interface SessionLifecycleAware<Session> {
 

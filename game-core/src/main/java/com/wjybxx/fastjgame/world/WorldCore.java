@@ -23,8 +23,8 @@ import com.wjybxx.fastjgame.mrg.*;
  * 名字真心不好起，超类负责一些公共的核心逻辑。
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/12 12:25
- * @github - https://github.com/hl845740757
+ * date - 2019/5/12 12:25
+ * github - https://github.com/hl845740757
  */
 public abstract class WorldCore extends World{
 

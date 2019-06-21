@@ -42,8 +42,8 @@ import java.util.Map;
  * http请求参数解码器，为上层提供统一视图
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/28 17:43
- * @github - https://github.com/hl845740757
+ * date - 2019/4/28 17:43
+ * github - https://github.com/hl845740757
  */
 public class HttpRequestParamDecoder extends SimpleChannelInboundHandler<FullHttpRequest> {
 

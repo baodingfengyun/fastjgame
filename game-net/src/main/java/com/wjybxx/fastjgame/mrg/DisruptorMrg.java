@@ -39,8 +39,8 @@ import java.util.concurrent.ThreadFactory;
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 12:50
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 12:50
+ * github - https://github.com/hl845740757
  */
 @NotThreadSafe
 public class DisruptorMrg extends AbstractThreadLifeCycleHelper {

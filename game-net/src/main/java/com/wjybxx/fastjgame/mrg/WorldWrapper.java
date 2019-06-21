@@ -28,8 +28,8 @@ import com.wjybxx.fastjgame.mrg.sync.SyncS2CSessionMrg;
  * world需要的控制器的包装类，避免子类的构造方法出现大量对象
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 22:12
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 22:12
+ * github - https://github.com/hl845740757
  */
 public class WorldWrapper {
 

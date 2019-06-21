@@ -24,8 +24,8 @@ import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
  * 文本帧->ByteBuf解码器
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 22:36
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 22:36
+ * github - https://github.com/hl845740757
  */
 public class TextWebSocketFrameToBytesDecoder extends SimpleChannelInboundHandler<TextWebSocketFrame> {
 

@@ -22,8 +22,8 @@ import java.util.Arrays;
  * 同步包类型
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/30 0:56
- * @github - https://github.com/hl845740757
+ * date - 2019/4/30 0:56
+ * github - https://github.com/hl845740757
  */
 public enum SyncPkgType {
     /**

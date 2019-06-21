@@ -38,8 +38,8 @@ import java.net.URISyntaxException;
  * 使用websocket时使用
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/28 10:59
- * @github - https://github.com/hl845740757
+ * date - 2019/4/28 10:59
+ * github - https://github.com/hl845740757
  */
 @ThreadSafe
 public class WsClientChannelInitializer extends ChannelInitializer<SocketChannel> {

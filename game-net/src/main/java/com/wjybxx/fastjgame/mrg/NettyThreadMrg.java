@@ -33,8 +33,8 @@ import org.slf4j.LoggerFactory;
  * 抽象网络服务器控制器
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/29 20:02
- * @github - https://github.com/hl845740757
+ * date - 2019/4/29 20:02
+ * github - https://github.com/hl845740757
  */
 public abstract class NettyThreadMrg extends AbstractThreadLifeCycleHelper {
 

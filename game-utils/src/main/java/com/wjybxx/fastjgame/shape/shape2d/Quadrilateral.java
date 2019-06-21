@@ -30,8 +30,8 @@ import javax.annotation.Nonnull;
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/1 14:39
- * @github - https://github.com/hl845740757
+ * date - 2019/6/1 14:39
+ * github - https://github.com/hl845740757
  */
 public class Quadrilateral implements Shape2D, RedrawShape {
 

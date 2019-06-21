@@ -41,8 +41,8 @@ import java.util.function.Predicate;
  * codec不可构造的时候缓存，因为构造的时候能还未注册。
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/16 11:00
- * @github - https://github.com/hl845740757
+ * date - 2019/5/16 11:00
+ * github - https://github.com/hl845740757
  */
 public class InnerAcceptorMrg {
 

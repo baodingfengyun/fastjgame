@@ -23,8 +23,8 @@ import io.netty.channel.Channel;
  * 连接响应参数
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/5 19:58
- * @github - https://github.com/hl845740757
+ * date - 2019/5/5 19:58
+ * github - https://github.com/hl845740757
  */
 public class SyncConnectResponseEvent extends SyncResponseEvent {
 

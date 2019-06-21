@@ -24,8 +24,8 @@ import com.wjybxx.fastjgame.utils.ReflectionUtils;
  * 运行平台类型，平台问题最终还是会遇见，这里先处理。
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/17 22:02
- * @github - https://github.com/hl845740757
+ * date - 2019/5/17 22:02
+ * github - https://github.com/hl845740757
  */
 public enum PlatformType implements NumberEnum {
     /**

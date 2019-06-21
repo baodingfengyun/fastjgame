@@ -43,8 +43,8 @@ import java.io.IOException;
  * 同步消息解码器基类。
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/5 19:19
- * @github - https://github.com/hl845740757
+ * date - 2019/5/5 19:19
+ * github - https://github.com/hl845740757
  */
 @NotThreadSafe
 public abstract class BaseSyncRpcCodec extends ChannelDuplexHandler {

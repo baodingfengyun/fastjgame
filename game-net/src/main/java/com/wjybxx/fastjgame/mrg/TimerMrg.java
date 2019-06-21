@@ -23,8 +23,8 @@ import com.wjybxx.fastjgame.trigger.TriggerSystem;
  * 全局定时器管理器
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 22:13
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 22:13
+ * github - https://github.com/hl845740757
  */
 public class TimerMrg extends TriggerSystem {
 

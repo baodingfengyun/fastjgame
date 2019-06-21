@@ -20,8 +20,8 @@ package com.wjybxx.fastjgame.shape.shape2d;
  * 默认直线实现，如果不想使用lambda表达式
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/6 11:04
- * @github - https://github.com/hl845740757
+ * date - 2019/6/6 11:04
+ * github - https://github.com/hl845740757
  */
 public class StraightLineImp implements StraightLine{
 

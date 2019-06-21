@@ -30,8 +30,8 @@ import java.util.Map;
  * protoBuf 生成的类都有一个静态的parser。
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 10:26
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 10:26
+ * github - https://github.com/hl845740757
  */
 public class ProtoBufMessageSerializer implements MessageSerializer {
 

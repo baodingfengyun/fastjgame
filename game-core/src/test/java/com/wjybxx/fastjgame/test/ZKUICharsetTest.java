@@ -29,8 +29,8 @@ import java.nio.charset.StandardCharsets;
  * 测试ZKUI的中文是否ok
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/18 11:20
- * @github - https://github.com/hl845740757
+ * date - 2019/5/18 11:20
+ * github - https://github.com/hl845740757
  */
 public class ZKUICharsetTest {
     public static void main(String[] args) throws Exception {

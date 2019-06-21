@@ -25,8 +25,8 @@ import io.netty.handler.codec.http.HttpResponse;
  * http会话信息
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/29 9:49
- * @github - https://github.com/hl845740757
+ * date - 2019/4/29 9:49
+ * github - https://github.com/hl845740757
  */
 public final class HttpSession {
     /**

@@ -22,8 +22,8 @@ import io.netty.channel.Channel;
 /**
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/5 19:44
- * @github - https://github.com/hl845740757
+ * date - 2019/5/5 19:44
+ * github - https://github.com/hl845740757
  */
 public class SyncLogicRequestEvent extends SyncRequestEvent {
 

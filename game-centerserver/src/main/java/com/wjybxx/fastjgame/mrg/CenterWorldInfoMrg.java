@@ -27,8 +27,8 @@ import com.wjybxx.fastjgame.utils.ZKPathUtils;
 /**
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/15 23:30
- * @github - https://github.com/hl845740757
+ * date - 2019/5/15 23:30
+ * github - https://github.com/hl845740757
  */
 public class CenterWorldInfoMrg extends WorldCoreInfoMrg{
 

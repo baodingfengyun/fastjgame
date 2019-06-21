@@ -30,8 +30,8 @@ import org.apache.curator.utils.PathUtils;
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/16 20:49
- * @github - https://github.com/hl845740757
+ * date - 2019/5/16 20:49
+ * github - https://github.com/hl845740757
  */
 public class ZKPathUtils {
 

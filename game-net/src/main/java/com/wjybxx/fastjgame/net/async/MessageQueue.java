@@ -32,8 +32,8 @@ import java.util.LinkedList;
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 11:43
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 11:43
+ * github - https://github.com/hl845740757
  */
 public final class MessageQueue {
     /**

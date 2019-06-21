@@ -23,8 +23,8 @@ import com.wjybxx.fastjgame.core.SceneRegion;
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/4 13:14
- * @github - https://github.com/hl845740757
+ * date - 2019/6/4 13:14
+ * github - https://github.com/hl845740757
  */
 public class TemplateSceneConfig {
 

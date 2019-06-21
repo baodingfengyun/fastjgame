@@ -24,8 +24,8 @@ import javax.annotation.concurrent.Immutable;
  * 服务器连接请求的响应的传输对象
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 11:55
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 11:55
+ * github - https://github.com/hl845740757
  */
 @Immutable
 public class ConnectResponseTO implements TransferObject {

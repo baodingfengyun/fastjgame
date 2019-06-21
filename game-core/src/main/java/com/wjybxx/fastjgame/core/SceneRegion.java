@@ -26,8 +26,8 @@ import com.wjybxx.fastjgame.utils.ReflectionUtils;
  * 没有城镇也是可以的，传图时需要指定要传入的地图id。
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/15 11:33
- * @github - https://github.com/hl845740757
+ * date - 2019/5/15 11:33
+ * github - https://github.com/hl845740757
  */
 public enum SceneRegion implements NumberEnum {
 

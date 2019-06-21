@@ -35,8 +35,8 @@ import static com.wjybxx.fastjgame.protobuffer.p_center_warzone.*;
  * Warzone在Game中的连接管理等控制器
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/15 23:11
- * @github - https://github.com/hl845740757
+ * date - 2019/5/15 23:11
+ * github - https://github.com/hl845740757
  */
 public class WarzoneInCenterInfoMrg {
 

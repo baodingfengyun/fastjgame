@@ -25,8 +25,8 @@ import javax.annotation.concurrent.Immutable;
  * 客户端发起连接请求的传输对象
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 11:54
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 11:54
+ * github - https://github.com/hl845740757
  */
 @Immutable
 public class ConnectRequestTO implements TransferObject, NetEventParam {

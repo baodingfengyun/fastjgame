@@ -36,8 +36,8 @@ import java.io.IOException;
  * 服务端使用的编解码器
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/7 13:23
- * @github - https://github.com/hl845740757
+ * date - 2019/5/7 13:23
+ * github - https://github.com/hl845740757
  */
 public class ServerCodec extends BaseCodec{
 

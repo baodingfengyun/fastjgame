@@ -18,7 +18,7 @@
  * 该包中的类是辅助IO线程编解码的，是网络中的重要部分。
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/5 16:52
- * @github - https://github.com/hl845740757
+ * date - 2019/5/5 16:52
+ * github - https://github.com/hl845740757
  */
 package com.wjybxx.fastjgame.net.common;

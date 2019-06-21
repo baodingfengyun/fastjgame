@@ -28,8 +28,8 @@ import java.util.HashMap;
  * 数组的每一个元素都是一个键值对 key=value，如：[a=1,b=2]
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 13:36
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 13:36
+ * github - https://github.com/hl845740757
  */
 @Immutable
 public class ArrayConfigWrapper extends ConfigWrapper {

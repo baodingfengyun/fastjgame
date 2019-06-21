@@ -28,8 +28,8 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
  * 扫描生成的枚举文件，而不必扫描生成的类文件，扫描生成的类文件不友好。
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/15 15:21
- * @github - https://github.com/hl845740757
+ * date - 2019/5/15 15:21
+ * github - https://github.com/hl845740757
  */
 public class ProtoBufHashMappingStrategy implements MessageMappingStrategy {
 

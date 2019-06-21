@@ -32,8 +32,8 @@ import java.util.Iterator;
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/11 16:17
- * @github - https://github.com/hl845740757
+ * date - 2019/5/11 16:17
+ * github - https://github.com/hl845740757
  */
 public class CSVReader extends TableReader<CSVRecord> {
 

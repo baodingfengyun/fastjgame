@@ -22,8 +22,8 @@ import com.wjybxx.fastjgame.net.async.transferobject.MessageTO;
  * 消息事件参数
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/9 9:09
- * @github - https://github.com/hl845740757
+ * date - 2019/5/9 9:09
+ * github - https://github.com/hl845740757
  */
 public interface MessageEventParam extends NetEventParam{
     /**

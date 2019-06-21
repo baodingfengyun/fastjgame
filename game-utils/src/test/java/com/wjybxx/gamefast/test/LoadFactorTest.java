@@ -51,8 +51,8 @@ import java.util.Map;
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/4 23:26
- * @github - https://github.com/hl845740757
+ * date - 2019/6/4 23:26
+ * github - https://github.com/hl845740757
  */
 public class LoadFactorTest {
 

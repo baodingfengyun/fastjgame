@@ -33,8 +33,8 @@ import java.util.*;
  * @param <T> the type of row
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/11 16:16
- * @github - https://github.com/hl845740757
+ * date - 2019/5/11 16:16
+ * github - https://github.com/hl845740757
  */
 public abstract class TableReader<T> implements AutoCloseable{
 

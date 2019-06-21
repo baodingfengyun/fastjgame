@@ -22,8 +22,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 2D坐标点。
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/31 22:30
- * @github - https://github.com/hl845740757
+ * date - 2019/5/31 22:30
+ * github - https://github.com/hl845740757
  */
 @NotThreadSafe
 public abstract class Point2D implements Point<Point2D>{

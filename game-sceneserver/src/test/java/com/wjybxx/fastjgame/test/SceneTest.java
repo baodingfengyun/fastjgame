@@ -24,8 +24,8 @@ import com.wjybxx.fastjgame.scene.Scene;
 /**
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/4 19:53
- * @github - https://github.com/hl845740757
+ * date - 2019/6/4 19:53
+ * github - https://github.com/hl845740757
  */
 public class SceneTest {
 

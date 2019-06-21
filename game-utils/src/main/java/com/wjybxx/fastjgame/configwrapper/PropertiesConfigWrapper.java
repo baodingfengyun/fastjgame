@@ -24,8 +24,8 @@ import java.util.Properties;
  * 基于Properties的配置的包装器。
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 12:56
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 12:56
+ * github - https://github.com/hl845740757
  */
 @Immutable
 public final class PropertiesConfigWrapper extends ConfigWrapper {

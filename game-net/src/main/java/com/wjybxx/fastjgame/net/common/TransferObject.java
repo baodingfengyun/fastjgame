@@ -24,7 +24,7 @@ import javax.annotation.concurrent.Immutable;
  * 要求子类实现都是不可变的，以保证线程安全。
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 9:23
+ * date - 2019/4/27 9:23
  */
 @Immutable
 public interface TransferObject {

@@ -26,7 +26,7 @@ import java.io.IOException;
  * configLoader测试(测试是否是将两个配置文件合并了)
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/26 22:54
+ * date - 2019/4/26 22:54
  */
 public class ConfigLoaderTest {
 

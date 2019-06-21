@@ -26,8 +26,8 @@ import javax.annotation.Nonnull;
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/30 12:22
- * @github - https://github.com/hl845740757
+ * date - 2019/4/30 12:22
+ * github - https://github.com/hl845740757
  */
 @FunctionalInterface
 public interface SyncRequestHandler<T,R> {

@@ -20,8 +20,8 @@ package com.wjybxx.fastjgame.core;
  * WarzoneServer在CenterServer中的信息
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/15 13:51
- * @github - https://github.com/hl845740757
+ * date - 2019/5/15 13:51
+ * github - https://github.com/hl845740757
  */
 public class WarzoneInCenterInfo {
     /**

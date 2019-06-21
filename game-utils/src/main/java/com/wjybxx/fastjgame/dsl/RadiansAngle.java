@@ -24,8 +24,8 @@ import com.wjybxx.fastjgame.utils.MathUtils;
  * 一般没有额外说明时都是弧度角。
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/2 15:01
- * @github - https://github.com/hl845740757
+ * date - 2019/6/2 15:01
+ * github - https://github.com/hl845740757
  */
 public final class RadiansAngle {
 

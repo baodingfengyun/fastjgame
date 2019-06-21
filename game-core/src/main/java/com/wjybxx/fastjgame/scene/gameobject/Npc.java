@@ -20,8 +20,8 @@ package com.wjybxx.fastjgame.scene.gameobject;
  * npc
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/4 17:00
- * @github - https://github.com/hl845740757
+ * date - 2019/6/4 17:00
+ * github - https://github.com/hl845740757
  */
 public class Npc extends GameObject{
 

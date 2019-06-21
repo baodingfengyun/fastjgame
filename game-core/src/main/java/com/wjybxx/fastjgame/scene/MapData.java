@@ -27,8 +27,8 @@ import com.wjybxx.fastjgame.utils.MathUtils;
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/1 18:32
- * @github - https://github.com/hl845740757
+ * date - 2019/6/1 18:32
+ * github - https://github.com/hl845740757
  */
 public class MapData implements Grid2DContainer<MapGrid> {
 

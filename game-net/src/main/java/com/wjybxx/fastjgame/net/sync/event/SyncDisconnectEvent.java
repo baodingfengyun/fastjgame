@@ -22,8 +22,8 @@ import io.netty.channel.Channel;
  * channel断开连接
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/7 23:04
- * @github - https://github.com/hl845740757
+ * date - 2019/5/7 23:04
+ * github - https://github.com/hl845740757
  */
 public class SyncDisconnectEvent extends SyncEvent{
 

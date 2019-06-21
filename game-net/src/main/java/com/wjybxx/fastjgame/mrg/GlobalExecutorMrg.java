@@ -27,8 +27,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * 全局的线程池管理器，用于执行一些不是那么大型的任务。
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/10 0:34
- * @github - https://github.com/hl845740757
+ * date - 2019/5/10 0:34
+ * github - https://github.com/hl845740757
  */
 public class GlobalExecutorMrg extends AbstractThreadLifeCycleHelper {
 

@@ -21,8 +21,8 @@ package com.wjybxx.fastjgame.net.async;
  * @param <T> 消息类型
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 22:05
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 22:05
+ * github - https://github.com/hl845740757
  */
 @FunctionalInterface
 public interface MessageHandler<Session,T> {

@@ -21,8 +21,8 @@ package com.wjybxx.fastjgame.core;
  * 为了尽量使人员分散，本服和跨服还是独立启动好一点，虽然也能设计为既是跨服也是本服。
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/15 11:56
- * @github - https://github.com/hl845740757
+ * date - 2019/5/15 11:56
+ * github - https://github.com/hl845740757
  */
 public enum SceneProcessType {
     /**

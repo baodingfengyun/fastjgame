@@ -27,8 +27,8 @@ import java.nio.charset.Charset;
  * Excel和Csv表格的辅助工具
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/11 16:18
- * @github - https://github.com/hl845740757
+ * date - 2019/5/11 16:18
+ * github - https://github.com/hl845740757
  */
 public final class ExcelCsvUtils {
 

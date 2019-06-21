@@ -32,8 +32,8 @@ import java.io.IOException;
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/28 19:53
- * @github - https://github.com/hl845740757
+ * date - 2019/4/28 19:53
+ * github - https://github.com/hl845740757
  */
 public interface OkHttpResponseHandler extends Callback {
     /**

@@ -37,8 +37,8 @@ import java.util.Objects;
  * 它可以为别的服务器分配token，不只是服务于当前服务器(当前world)
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 22:12
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 22:12
+ * github - https://github.com/hl845740757
  */
 public class TokenMrg {
 

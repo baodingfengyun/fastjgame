@@ -24,8 +24,8 @@ import com.wjybxx.fastjgame.constants.UtilConstants;
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/11 16:05
- * @github - https://github.com/hl845740757
+ * date - 2019/5/11 16:05
+ * github - https://github.com/hl845740757
  */
 public abstract class ConfigHelper {
 

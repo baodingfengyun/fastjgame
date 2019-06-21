@@ -24,8 +24,8 @@ import com.wjybxx.fastjgame.mrg.*;
  * CoreModule
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/12 12:06
- * @github - https://github.com/hl845740757
+ * date - 2019/5/12 12:06
+ * github - https://github.com/hl845740757
  */
 public abstract class CoreModule extends AbstractModule {
 

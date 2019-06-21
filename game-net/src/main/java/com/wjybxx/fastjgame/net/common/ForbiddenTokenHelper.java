@@ -29,8 +29,8 @@ import org.slf4j.LoggerFactory;
  * 注意：不能是单例，否则会出现冲突
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/8 23:00
- * @github - https://github.com/hl845740757
+ * date - 2019/5/8 23:00
+ * github - https://github.com/hl845740757
  */
 public final class ForbiddenTokenHelper {
 

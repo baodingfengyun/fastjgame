@@ -34,8 +34,8 @@ import javax.annotation.concurrent.Immutable;
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/1 18:29
- * @github - https://github.com/hl845740757
+ * date - 2019/6/1 18:29
+ * github - https://github.com/hl845740757
  */
 @Immutable
 public class MapGrid implements Grid2D {

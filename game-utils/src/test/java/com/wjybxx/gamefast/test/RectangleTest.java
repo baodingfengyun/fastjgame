@@ -23,8 +23,8 @@ import com.wjybxx.fastjgame.shape.shape2d.Rectangle;
  * 矩形创建测试
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/3 20:10
- * @github - https://github.com/hl845740757
+ * date - 2019/6/3 20:10
+ * github - https://github.com/hl845740757
  */
 public class RectangleTest {
 

@@ -24,8 +24,8 @@ import com.wjybxx.fastjgame.shape.shape2d.StraightLine;
  * 数学计算辅助类
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/12 16:08
- * @github - https://github.com/hl845740757
+ * date - 2019/5/12 16:08
+ * github - https://github.com/hl845740757
  */
 public class MathUtils {
 

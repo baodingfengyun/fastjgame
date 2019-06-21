@@ -22,8 +22,8 @@ import io.netty.channel.Channel;
  * 同步调用事件参数。
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/5 19:42
- * @github - https://github.com/hl845740757
+ * date - 2019/5/5 19:42
+ * github - https://github.com/hl845740757
  */
 public abstract class SyncEvent {
 

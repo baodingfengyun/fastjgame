@@ -27,8 +27,8 @@ import java.io.File;
  * 虚拟机参数，强烈建议打开断言，并以服务器模式运行 -ea -server
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/17 19:12
- * @github - https://github.com/hl845740757
+ * date - 2019/5/17 19:12
+ * github - https://github.com/hl845740757
  */
 public class WarzoneWorldTest {
 

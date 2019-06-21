@@ -30,8 +30,8 @@ import java.util.Map;
  * 同步消息处理器
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/6 15:03
- * @github - https://github.com/hl845740757
+ * date - 2019/5/6 15:03
+ * github - https://github.com/hl845740757
  */
 public class SyncRequestDispatcherMrg {
 

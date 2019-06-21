@@ -30,8 +30,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * 客户端initializer示例
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 22:20
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 22:20
+ * github - https://github.com/hl845740757
  */
 @ThreadSafe
 public class TCPClientChannelInitializer extends ChannelInitializer<SocketChannel> {

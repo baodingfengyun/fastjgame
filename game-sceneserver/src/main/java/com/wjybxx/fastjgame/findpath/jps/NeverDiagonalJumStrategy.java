@@ -28,8 +28,8 @@ import static com.wjybxx.fastjgame.findpath.FindPathUtils.addNeighborIfWalkable;
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/16 15:45
- * @github - https://github.com/hl845740757
+ * date - 2019/6/16 15:45
+ * github - https://github.com/hl845740757
  */
 public class NeverDiagonalJumStrategy extends JumpStrategy{
 

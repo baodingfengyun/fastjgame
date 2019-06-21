@@ -40,8 +40,8 @@ import java.util.concurrent.atomic.AtomicLong;
  * @param <T> the type of this
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/9 20:36
- * @github - https://github.com/hl845740757
+ * date - 2019/5/9 20:36
+ * github - https://github.com/hl845740757
  */
 public class NetBootstrap<T extends NetBootstrap<T>> extends AbstractThreadLifeCycleHelper {
     /**

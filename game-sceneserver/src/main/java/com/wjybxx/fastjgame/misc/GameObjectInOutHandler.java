@@ -23,8 +23,8 @@ import com.wjybxx.fastjgame.scene.gameobject.GameObject;
  * 在Scene对象内部进行实现，因为可能涉及大量场景对象之间的交互；
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/4 19:35
- * @github - https://github.com/hl845740757
+ * date - 2019/6/4 19:35
+ * github - https://github.com/hl845740757
  */
 @Stateless
 public interface GameObjectInOutHandler<T extends GameObject> {

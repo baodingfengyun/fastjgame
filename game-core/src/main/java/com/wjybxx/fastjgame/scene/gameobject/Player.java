@@ -23,8 +23,8 @@ import com.wjybxx.fastjgame.misc.PlatformType;
  * 暂时先直接继承GameObject；
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/4 16:58
- * @github - https://github.com/hl845740757
+ * date - 2019/6/4 16:58
+ * github - https://github.com/hl845740757
  */
 public class Player extends GameObject{
 

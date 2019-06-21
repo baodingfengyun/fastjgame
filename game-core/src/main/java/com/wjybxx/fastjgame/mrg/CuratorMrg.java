@@ -80,8 +80,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/12 12:05
- * @github - https://github.com/hl845740757
+ * date - 2019/5/12 12:05
+ * github - https://github.com/hl845740757
  */
 @NotThreadSafe
 public class CuratorMrg extends AbstractThreadLifeCycleHelper {

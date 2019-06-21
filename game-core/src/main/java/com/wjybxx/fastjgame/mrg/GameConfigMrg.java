@@ -26,8 +26,8 @@ import java.io.IOException;
  * 游戏配置控制器，除网络层配置以外的游戏配置都在这
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/12 12:13
- * @github - https://github.com/hl845740757
+ * date - 2019/5/12 12:13
+ * github - https://github.com/hl845740757
  */
 public class GameConfigMrg {
 

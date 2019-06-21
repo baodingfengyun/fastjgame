@@ -22,8 +22,8 @@ import com.wjybxx.fastjgame.utils.MathUtils;
  * 2D格子容器
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/11 17:08
- * @github - https://github.com/hl845740757
+ * date - 2019/6/11 17:08
+ * github - https://github.com/hl845740757
  */
 public interface Grid2DContainer<T extends Grid2D> {
 

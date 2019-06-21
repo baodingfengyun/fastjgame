@@ -22,8 +22,8 @@ import io.netty.channel.Channel;
  * 客户端发来的ping包事件
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/9 15:51
- * @github - https://github.com/hl845740757
+ * date - 2019/5/9 15:51
+ * github - https://github.com/hl845740757
  */
 public class SyncPingEvent extends SyncRequestEvent{
 

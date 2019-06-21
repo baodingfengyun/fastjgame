@@ -62,8 +62,8 @@ import java.util.function.Supplier;
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 22:10
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 22:10
+ * github - https://github.com/hl845740757
  */
 public class C2SSessionMrg {
 

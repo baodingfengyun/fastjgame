@@ -20,8 +20,8 @@ package com.wjybxx.fastjgame.constants;
  * 网络模块中的一些常量
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 12:59
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 12:59
+ * github - https://github.com/hl845740757
  */
 public final class NetConstants {
 

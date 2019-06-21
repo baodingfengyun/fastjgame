@@ -67,8 +67,8 @@ import java.util.PriorityQueue;
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/3 15:34
- * @github - https://github.com/hl845740757
+ * date - 2019/6/3 15:34
+ * github - https://github.com/hl845740757
  */
 @ThreadSafe
 public class JPSFindPathStrategy extends FindPathStrategy<JPSFindPathContext> {

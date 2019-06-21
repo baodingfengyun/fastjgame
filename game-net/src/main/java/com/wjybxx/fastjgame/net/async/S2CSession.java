@@ -23,8 +23,8 @@ import com.wjybxx.fastjgame.net.common.RoleType;
  * 只暴露一部分关键信息。
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 10:18
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 10:18
+ * github - https://github.com/hl845740757
  */
 public class S2CSession {
 

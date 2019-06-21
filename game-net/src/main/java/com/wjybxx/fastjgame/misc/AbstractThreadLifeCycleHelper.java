@@ -27,8 +27,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * (真正的线程生命周期由netty、disruptor等等它们自己管理)
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/29 16:22
- * @github - https://github.com/hl845740757
+ * date - 2019/4/29 16:22
+ * github - https://github.com/hl845740757
  */
 public abstract class AbstractThreadLifeCycleHelper {
 

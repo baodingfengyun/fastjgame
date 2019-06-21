@@ -33,7 +33,7 @@ import java.util.Properties;
  * => 旨在可以使用外部配置文件代替jar包内配置。
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/26 22:36
+ * date - 2019/4/26 22:36
  */
 public final class ConfigLoader {
 
@@ -62,7 +62,7 @@ public final class ConfigLoader {
      * @throws IOException
      */
     public static ConfigWrapper loadConfig(String fileName) throws IOException {
-        return loadConfig(ConfigLoader.class.getClassLoader(),fileName);
+        return loadConfig(Thread.currentThread().getContextClassLoader(),fileName);
     }
 
     /**

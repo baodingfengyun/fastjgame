@@ -30,8 +30,8 @@ import javax.annotation.concurrent.ThreadSafe;
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/3 17:30
- * @github - https://github.com/hl845740757
+ * date - 2019/6/3 17:30
+ * github - https://github.com/hl845740757
  */
 @ThreadSafe
 public final class CoordinateSystem2D {

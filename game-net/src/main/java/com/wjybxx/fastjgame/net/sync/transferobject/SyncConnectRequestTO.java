@@ -24,8 +24,8 @@ import javax.annotation.concurrent.Immutable;
  * 建立连接请求传输对象
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/5 19:48
- * @github - https://github.com/hl845740757
+ * date - 2019/5/5 19:48
+ * github - https://github.com/hl845740757
  */
 @Immutable
 public class SyncConnectRequestTO implements TransferObject {

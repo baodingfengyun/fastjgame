@@ -70,8 +70,8 @@ package com.wjybxx.fastjgame.findpath;
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/10 19:30
- * @github - https://github.com/hl845740757
+ * date - 2019/6/10 19:30
+ * github - https://github.com/hl845740757
  */
 public class HeuristicFunctions {
 

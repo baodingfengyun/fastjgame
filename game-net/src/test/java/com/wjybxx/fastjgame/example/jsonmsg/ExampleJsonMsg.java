@@ -20,8 +20,8 @@ package com.wjybxx.fastjgame.example.jsonmsg;
  * json消息外部内
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/28 13:50
- * @github - https://github.com/hl845740757
+ * date - 2019/4/28 13:50
+ * github - https://github.com/hl845740757
  */
 public final class ExampleJsonMsg {
 

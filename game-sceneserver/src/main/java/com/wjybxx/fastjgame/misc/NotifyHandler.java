@@ -26,8 +26,8 @@ import java.util.List;
  * （来源于之前做项目时做的笔记）
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/2 22:04
- * @github - https://github.com/hl845740757
+ * date - 2019/6/2 22:04
+ * github - https://github.com/hl845740757
  */
 @Stateless
 public interface NotifyHandler<T extends GameObject> {

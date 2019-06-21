@@ -20,8 +20,8 @@ package com.wjybxx.fastjgame.function;
  * Map构造器函数
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/4 22:52
- * @github - https://github.com/hl845740757
+ * date - 2019/6/4 22:52
+ * github - https://github.com/hl845740757
  */
 @FunctionalInterface
 public interface MapConstructor<T> {

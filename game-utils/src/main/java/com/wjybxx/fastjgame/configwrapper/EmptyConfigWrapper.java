@@ -22,8 +22,8 @@ import javax.annotation.concurrent.Immutable;
  * 空配置文件Wrapper
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 15:23
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 15:23
+ * github - https://github.com/hl845740757
  */
 @Immutable
 public class EmptyConfigWrapper extends ConfigWrapper {

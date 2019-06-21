@@ -25,8 +25,8 @@ import javax.annotation.concurrent.Immutable;
  * 同步调用逻辑消息传输对象
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/30 11:44
- * @github - https://github.com/hl845740757
+ * date - 2019/4/30 11:44
+ * github - https://github.com/hl845740757
  */
 @Immutable
 public class SyncLogicRequestTO implements TransferObject {

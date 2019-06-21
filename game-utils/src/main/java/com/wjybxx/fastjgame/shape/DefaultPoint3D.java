@@ -24,8 +24,8 @@ package com.wjybxx.fastjgame.shape;
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/31 23:34
- * @github - https://github.com/hl845740757
+ * date - 2019/5/31 23:34
+ * github - https://github.com/hl845740757
  */
 public class DefaultPoint3D extends Point3D{
 

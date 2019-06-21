@@ -24,8 +24,8 @@ package com.wjybxx.fastjgame.shape.shape2d;
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/1 22:16
- * @github - https://github.com/hl845740757
+ * date - 2019/6/1 22:16
+ * github - https://github.com/hl845740757
  */
 @FunctionalInterface
 public interface StraightLine {

@@ -28,8 +28,8 @@ import com.wjybxx.fastjgame.world.World;
  * 登录服module
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/28 15:35
- * @github - https://github.com/hl845740757
+ * date - 2019/4/28 15:35
+ * github - https://github.com/hl845740757
  */
 public class ExampleLoginServerModule extends AbstractModule {
 

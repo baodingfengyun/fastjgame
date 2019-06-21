@@ -22,8 +22,8 @@ import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
  * http请求处理器
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/28 19:16
- * @github - https://github.com/hl845740757
+ * date - 2019/4/28 19:16
+ * github - https://github.com/hl845740757
  */
 public interface HttpRequestHandler{
     /**

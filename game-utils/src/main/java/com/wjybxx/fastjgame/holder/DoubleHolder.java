@@ -20,8 +20,8 @@ package com.wjybxx.fastjgame.holder;
  * double数值holder，用于lambda表达式
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/22 11:11
- * @github - https://github.com/hl845740757
+ * date - 2019/5/22 11:11
+ * github - https://github.com/hl845740757
  */
 public class DoubleHolder {
 

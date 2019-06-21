@@ -36,8 +36,8 @@ import java.util.function.Predicate;
  * 集合帮助类
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/29 10:19
- * @github - https://github.com/hl845740757
+ * date - 2019/4/29 10:19
+ * github - https://github.com/hl845740757
  */
 public final class CollectionUtils {
 

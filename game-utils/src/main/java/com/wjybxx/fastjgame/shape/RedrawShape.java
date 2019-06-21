@@ -22,8 +22,8 @@ package com.wjybxx.fastjgame.shape;
  * 该接口只是个契约。
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/2 15:17
- * @github - https://github.com/hl845740757
+ * date - 2019/6/2 15:17
+ * github - https://github.com/hl845740757
  */
 public interface RedrawShape {
 

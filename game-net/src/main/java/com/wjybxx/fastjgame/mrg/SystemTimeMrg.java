@@ -25,8 +25,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 目的为了减少频繁地调用{@link System#currentTimeMillis()}
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 22:06
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 22:06
+ * github - https://github.com/hl845740757
  */
 @NotThreadSafe
 public class SystemTimeMrg {

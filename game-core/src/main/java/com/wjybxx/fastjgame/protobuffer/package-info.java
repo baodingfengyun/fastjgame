@@ -19,7 +19,7 @@
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/15 14:30
- * @github - https://github.com/hl845740757
+ * date - 2019/5/15 14:30
+ * github - https://github.com/hl845740757
  */
 package com.wjybxx.fastjgame.protobuffer;

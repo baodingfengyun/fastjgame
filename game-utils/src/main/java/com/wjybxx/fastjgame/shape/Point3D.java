@@ -28,8 +28,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * （和平时数学课本的xyz不一致，一般书本中z是高）
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/31 22:30
- * @github - https://github.com/hl845740757
+ * date - 2019/5/31 22:30
+ * github - https://github.com/hl845740757
  */
 @NotThreadSafe
 public abstract class Point3D implements Point<Point3D>{

@@ -23,8 +23,8 @@ import io.netty.channel.Channel;
  * 逻辑消息响应事件
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/5 20:03
- * @github - https://github.com/hl845740757
+ * date - 2019/5/5 20:03
+ * github - https://github.com/hl845740757
  */
 public class SyncLogicResponseEvent extends SyncResponseEvent {
 

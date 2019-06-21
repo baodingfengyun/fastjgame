@@ -24,8 +24,8 @@ import com.wjybxx.fastjgame.mrg.SceneWrapper;
  * 城镇场景，不销毁；
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/5 19:59
- * @github - https://github.com/hl845740757
+ * date - 2019/6/5 19:59
+ * github - https://github.com/hl845740757
  */
 public abstract class Town extends Scene{
 

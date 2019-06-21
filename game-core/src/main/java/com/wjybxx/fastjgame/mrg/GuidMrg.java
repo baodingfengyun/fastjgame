@@ -30,8 +30,8 @@ package com.wjybxx.fastjgame.mrg;
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/12 11:47
- * @github - https://github.com/hl845740757
+ * date - 2019/5/12 11:47
+ * github - https://github.com/hl845740757
  */
 public interface GuidMrg {
 

@@ -22,8 +22,8 @@ import javax.annotation.concurrent.Immutable;
  * ack心跳包的传输对象
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 11:54
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 11:54
+ * github - https://github.com/hl845740757
  */
 @Immutable
 public class AckPingPongMessageTO extends MessageTO{

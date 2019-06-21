@@ -28,8 +28,8 @@ import java.nio.charset.StandardCharsets;
  * 使用Google的Gson序列化。
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 10:23
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 10:23
+ * github - https://github.com/hl845740757
  */
 @ThreadSafe
 public class JsonMessageSerializer implements MessageSerializer {

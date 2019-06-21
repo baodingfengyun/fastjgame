@@ -24,8 +24,8 @@ import java.util.Map;
  * 消息映射策略，自己决定消息类到消息id的映射。
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/5 17:21
- * @github - https://github.com/hl845740757
+ * date - 2019/5/5 17:21
+ * github - https://github.com/hl845740757
  */
 public interface MessageMappingStrategy {
 

@@ -22,8 +22,8 @@ import io.netty.channel.Channel;
  * 同步Rpc调用请求事件
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/6 14:16
- * @github - https://github.com/hl845740757
+ * date - 2019/5/6 14:16
+ * github - https://github.com/hl845740757
  */
 public abstract class SyncRequestEvent extends SyncEvent {
 

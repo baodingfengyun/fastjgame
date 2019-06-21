@@ -23,8 +23,8 @@ import java.util.*;
  * 基于map的配置的包装器
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 13:35
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 13:35
+ * github - https://github.com/hl845740757
  */
 @Immutable
 public class MapConfigWrapper extends ConfigWrapper {

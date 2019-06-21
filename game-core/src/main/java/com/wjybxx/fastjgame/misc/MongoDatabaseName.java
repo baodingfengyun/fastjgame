@@ -20,8 +20,8 @@ package com.wjybxx.fastjgame.misc;
  * 使用到的数据库名字枚举，避免直接使用字符串
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/21 17:50
- * @github - https://github.com/hl845740757
+ * date - 2019/5/21 17:50
+ * github - https://github.com/hl845740757
  */
 public enum MongoDatabaseName {
     /**

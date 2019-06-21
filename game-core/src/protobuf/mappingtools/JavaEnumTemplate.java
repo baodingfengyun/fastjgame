@@ -22,7 +22,7 @@ package com.wjybxx.fastjgame.protobuffer;
  *
  * @author wjybxx
  * @version 1.0
- * @github - https://github.com/hl845740757
+ * github - https://github.com/hl845740757
  */
 public enum MessageEnum {
 

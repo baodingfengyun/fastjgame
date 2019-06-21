@@ -23,7 +23,7 @@ import javax.annotation.concurrent.Immutable;
  * 子类实现必须是不可变对象，以保证线程安全性。
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 9:16
+ * date - 2019/4/27 9:16
  */
 @Immutable
 public interface NetEventParam {

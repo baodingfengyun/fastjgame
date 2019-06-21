@@ -28,8 +28,8 @@ import java.util.EnumMap;
  * gameObject的容器
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/4 21:52
- * @github - https://github.com/hl845740757
+ * date - 2019/6/4 21:52
+ * github - https://github.com/hl845740757
  */
 @NotThreadSafe
 public class GameObjectContainer {

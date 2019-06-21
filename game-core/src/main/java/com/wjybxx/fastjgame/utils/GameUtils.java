@@ -31,8 +31,8 @@ import java.util.Map;
  * (不知道放哪儿的方法就放这里)
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/12 15:33
- * @github - https://github.com/hl845740757
+ * date - 2019/5/12 15:33
+ * github - https://github.com/hl845740757
  */
 public class GameUtils {
 

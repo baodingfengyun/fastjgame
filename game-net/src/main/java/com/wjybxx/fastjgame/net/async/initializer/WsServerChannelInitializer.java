@@ -36,8 +36,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * 使用websocket时使用
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 22:25
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 22:25
+ * github - https://github.com/hl845740757
  */
 @ThreadSafe
 public class WsServerChannelInitializer extends ChannelInitializer<SocketChannel> {

@@ -24,8 +24,8 @@ import com.wjybxx.fastjgame.world.World;
 /**
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/15 23:07
- * @github - https://github.com/hl845740757
+ * date - 2019/5/15 23:07
+ * github - https://github.com/hl845740757
  */
 public class CenterModule extends CoreModule {
 

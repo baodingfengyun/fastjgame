@@ -24,8 +24,8 @@ import com.wjybxx.fastjgame.net.common.TransferObject;
  * http请求
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/28 18:55
- * @github - https://github.com/hl845740757
+ * date - 2019/4/28 18:55
+ * github - https://github.com/hl845740757
  */
 public final class HttpRequestTO implements NetEventParam, TransferObject {
 

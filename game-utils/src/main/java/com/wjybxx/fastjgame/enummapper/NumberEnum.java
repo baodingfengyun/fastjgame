@@ -20,8 +20,8 @@ package com.wjybxx.fastjgame.enummapper;
  * 数字枚举，枚举可以转换为数字，通过数字也可以找到对应的枚举
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/4 13:35
- * @github - https://github.com/hl845740757
+ * date - 2019/6/4 13:35
+ * github - https://github.com/hl845740757
  */
 public interface NumberEnum {
 

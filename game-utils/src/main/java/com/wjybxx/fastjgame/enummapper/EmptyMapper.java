@@ -23,8 +23,8 @@ import javax.annotation.Nullable;
  * @param <T>
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/4 15:49
- * @github - https://github.com/hl845740757
+ * date - 2019/6/4 15:49
+ * github - https://github.com/hl845740757
  */
 public class EmptyMapper<T extends NumberEnum> implements NumberEnumMapper<T>{
 

@@ -27,8 +27,8 @@ import com.wjybxx.fastjgame.world.World;
 /**
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/17 20:09
- * @github - https://github.com/hl845740757
+ * date - 2019/5/17 20:09
+ * github - https://github.com/hl845740757
  */
 public class LoginModule extends CoreModule{
 

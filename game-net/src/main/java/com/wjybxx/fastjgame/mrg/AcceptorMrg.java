@@ -39,8 +39,8 @@ import java.net.BindException;
  * 起名真实太难了，我之前项目就是这名，感觉不是很准确，但是又找不到更准确的。
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/16 11:00
- * @github - https://github.com/hl845740757
+ * date - 2019/5/16 11:00
+ * github - https://github.com/hl845740757
  */
 public class AcceptorMrg {
 

@@ -31,8 +31,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * 客户端通过检测读写空闲判断是否网络异常，同时保持活性。
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/5 22:46
- * @github - https://github.com/hl845740757
+ * date - 2019/5/5 22:46
+ * github - https://github.com/hl845740757
  */
 @ThreadSafe
 public class ClientSyncRpcInitializer extends ChannelInitializer<SocketChannel> {

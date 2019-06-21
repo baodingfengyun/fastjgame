@@ -10,8 +10,8 @@ import com.wjybxx.fastjgame.mrg.WorldInfoMrg;
 /**
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/13 12:28
- * @github - https://github.com/hl845740757
+ * date - 2019/5/13 12:28
+ * github - https://github.com/hl845740757
  */
 public class WorldInfoTest {
 

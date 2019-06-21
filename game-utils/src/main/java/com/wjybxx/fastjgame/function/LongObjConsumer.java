@@ -21,8 +21,8 @@ import java.util.Objects;
 /**
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/9 12:11
- * @github - https://github.com/hl845740757
+ * date - 2019/5/9 12:11
+ * github - https://github.com/hl845740757
  */
 @FunctionalInterface
 public interface LongObjConsumer<V> {

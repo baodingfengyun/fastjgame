@@ -23,8 +23,8 @@ import com.wjybxx.fastjgame.net.common.RoleType;
  * (接收到的连接请求)
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/5 22:54
- * @github - https://github.com/hl845740757
+ * date - 2019/5/5 22:54
+ * github - https://github.com/hl845740757
  */
 public class SyncS2CSession {
     /**

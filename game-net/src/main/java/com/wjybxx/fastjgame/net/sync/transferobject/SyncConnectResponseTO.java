@@ -22,8 +22,8 @@ import com.wjybxx.fastjgame.net.common.TransferObject;
  * 建立连接响应传输对象
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/5 19:52
- * @github - https://github.com/hl845740757
+ * date - 2019/5/5 19:52
+ * github - https://github.com/hl845740757
  */
 public class SyncConnectResponseTO implements TransferObject {
     /**

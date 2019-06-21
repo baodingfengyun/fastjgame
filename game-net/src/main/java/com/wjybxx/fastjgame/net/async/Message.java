@@ -24,8 +24,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 逻辑线程待发送的消息对象，它是非线程安全的
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 11:42
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 11:42
+ * github - https://github.com/hl845740757
  */
 @NotThreadSafe
 public abstract class Message {

@@ -33,8 +33,8 @@ import java.util.function.Predicate;
  * 对会话信息的封装，提供良好的接口，方便使用；
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/4 18:22
- * @github - https://github.com/hl845740757
+ * date - 2019/6/4 18:22
+ * github - https://github.com/hl845740757
  */
 public class SceneSendMrg {
 

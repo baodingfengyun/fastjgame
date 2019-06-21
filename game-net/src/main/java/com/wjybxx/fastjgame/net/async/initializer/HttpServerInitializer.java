@@ -30,8 +30,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * 作为http服务器时的channel初始化器
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/28 22:13
- * @github - https://github.com/hl845740757
+ * date - 2019/4/28 22:13
+ * github - https://github.com/hl845740757
  */
 @ThreadSafe
 public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {

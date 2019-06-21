@@ -25,8 +25,8 @@ import javax.annotation.concurrent.Immutable;
  * 但是觉得这个名好像没取好
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 13:30
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 13:30
+ * github - https://github.com/hl845740757
  */
 @Immutable
 public abstract class ConfigWrapper extends ConfigHelper{

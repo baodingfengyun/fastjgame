@@ -21,8 +21,8 @@ import com.lmax.disruptor.EventFactory;
 /**
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 9:47
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 9:47
+ * github - https://github.com/hl845740757
  */
 public class NetEventFactory implements EventFactory<NetEvent> {
 

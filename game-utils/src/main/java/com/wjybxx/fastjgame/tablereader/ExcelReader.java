@@ -30,8 +30,8 @@ import java.util.Iterator;
  * Excel文件的Reader
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/11 16:18
- * @github - https://github.com/hl845740757
+ * date - 2019/5/11 16:18
+ * github - https://github.com/hl845740757
  */
 public class ExcelReader extends TableReader<Row> {
 

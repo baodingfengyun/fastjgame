@@ -29,8 +29,8 @@ import java.nio.charset.StandardCharsets;
  * 网络层配置管理器，不做热加载，网络层本身不需要经常修改，而且很多配置也无法热加载。
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 15:09
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 15:09
+ * github - https://github.com/hl845740757
  */
 public class NetConfigMrg {
 

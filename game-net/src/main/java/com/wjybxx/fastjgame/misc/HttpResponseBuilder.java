@@ -25,8 +25,8 @@ import io.netty.handler.codec.http.*;
  * @param <T> the Type of this
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/28 22:51
- * @github - https://github.com/hl845740757
+ * date - 2019/4/28 22:51
+ * github - https://github.com/hl845740757
  */
 public abstract class HttpResponseBuilder<T extends HttpResponseBuilder<T>> {
 

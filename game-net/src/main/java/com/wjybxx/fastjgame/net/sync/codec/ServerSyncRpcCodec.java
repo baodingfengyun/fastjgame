@@ -39,8 +39,8 @@ import java.io.IOException;
  * 不处理太多逻辑，只管理读顺序。
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/5 19:18
- * @github - https://github.com/hl845740757
+ * date - 2019/5/5 19:18
+ * github - https://github.com/hl845740757
  */
 @NotThreadSafe
 public class ServerSyncRpcCodec extends BaseSyncRpcCodec {

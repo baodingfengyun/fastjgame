@@ -25,8 +25,8 @@ import com.wjybxx.fastjgame.mrg.SceneWrapper;
  * (副本这个词很难翻译的贴切)
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/5 19:59
- * @github - https://github.com/hl845740757
+ * date - 2019/6/5 19:59
+ * github - https://github.com/hl845740757
  */
 public abstract class Dungeon extends Scene{
 

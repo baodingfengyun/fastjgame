@@ -30,8 +30,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * 服务器不关注读写空闲，因为服务器只关注session超时。
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/5 22:47
- * @github - https://github.com/hl845740757
+ * date - 2019/5/5 22:47
+ * github - https://github.com/hl845740757
  */
 @ThreadSafe
 public class ServerSyncRpcInitializer extends ChannelInitializer<SocketChannel> {

@@ -45,8 +45,8 @@ import java.util.List;
  *
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/3 15:18
- * @github - https://github.com/hl845740757
+ * date - 2019/6/3 15:18
+ * github - https://github.com/hl845740757
  */
 @ThreadSafe
 public abstract class FindPathStrategy<T extends FindPathContext> {

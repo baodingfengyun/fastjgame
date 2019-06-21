@@ -33,8 +33,8 @@ import java.util.Map;
  * CenterServer在LoginServer端的信息
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/17 21:23
- * @github - https://github.com/hl845740757
+ * date - 2019/5/17 21:23
+ * github - https://github.com/hl845740757
  */
 public class CenterInLoginInfoMrg {
 

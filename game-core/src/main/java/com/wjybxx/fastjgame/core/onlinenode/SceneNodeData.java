@@ -20,8 +20,8 @@ package com.wjybxx.fastjgame.core.onlinenode;
  * zookeeper上在线SceneServer节点信息
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/15 17:21
- * @github - https://github.com/hl845740757
+ * date - 2019/5/15 17:21
+ * github - https://github.com/hl845740757
  */
 public class SceneNodeData extends OnlineNodeData {
     /**

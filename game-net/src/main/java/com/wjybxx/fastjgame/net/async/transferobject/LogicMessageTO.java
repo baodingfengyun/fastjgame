@@ -23,8 +23,8 @@ import javax.annotation.concurrent.Immutable;
  * 业务逻辑包传输对象
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 11:53
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 11:53
+ * github - https://github.com/hl845740757
  */
 @Immutable
 public class LogicMessageTO extends MessageTO{

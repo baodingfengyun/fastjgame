@@ -25,8 +25,8 @@ import org.slf4j.LoggerFactory;
  * NetEventHandler的具体实现，负责管理world的启动、关闭、tick。
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 23:55
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 23:55
+ * github - https://github.com/hl845740757
  */
 public class NetEventHandlerImp implements NetEventHandler{
 

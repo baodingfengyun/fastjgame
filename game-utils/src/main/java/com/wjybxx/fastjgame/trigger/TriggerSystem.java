@@ -25,8 +25,8 @@ import java.util.PriorityQueue;
  * 触发器系统，使用优先级队列存储timer，以获得更好的性能。
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 15:06
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 15:06
+ * github - https://github.com/hl845740757
  */
 public class TriggerSystem implements TriggerInterface{
 

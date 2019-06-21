@@ -27,8 +27,8 @@ import java.util.concurrent.TimeUnit;
  * 并发工具包
  * @author wjybxx
  * @version 1.0
- * @date 2019/5/14 1:02
- * @github - https://github.com/hl845740757
+ * date - 2019/5/14 1:02
+ * github - https://github.com/hl845740757
  */
 public class ConcurrentUtils {
 

@@ -20,8 +20,8 @@ package com.wjybxx.fastjgame.scene.gameobject;
  * 宠物对象
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/4 16:59
- * @github - https://github.com/hl845740757
+ * date - 2019/6/4 16:59
+ * github - https://github.com/hl845740757
  */
 public class Pet extends GameObject{
 

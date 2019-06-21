@@ -24,8 +24,8 @@ import com.wjybxx.fastjgame.shape.shape2d.Sector;
  * 其实最好写一个简单的图形化界面。
  * @author wjybxx
  * @version 1.0
- * @date 2019/6/2 17:28
- * @github - https://github.com/hl845740757
+ * date - 2019/6/2 17:28
+ * github - https://github.com/hl845740757
  */
 public class SectorTest {
 

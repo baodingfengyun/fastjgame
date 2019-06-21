@@ -24,8 +24,8 @@ import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
  * websocket二进制帧 -> ByteBuf 解码器，取出内容传递给下一个handler {@link io.netty.handler.codec.LengthFieldBasedFrameDecoder}
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 22:31
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 22:31
+ * github - https://github.com/hl845740757
  */
 public class BinaryWebSocketFrameToBytesDecoder extends SimpleChannelInboundHandler<BinaryWebSocketFrame> {
 

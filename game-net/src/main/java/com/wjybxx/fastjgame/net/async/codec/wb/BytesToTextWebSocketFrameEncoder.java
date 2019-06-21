@@ -27,8 +27,8 @@ import java.util.List;
  * 将二进制数据编码为WebSocket的文本帧
  * @author wjybxx
  * @version 1.0
- * @date 2019/4/27 22:47
- * @github - https://github.com/hl845740757
+ * date - 2019/4/27 22:47
+ * github - https://github.com/hl845740757
  */
 public class BytesToTextWebSocketFrameEncoder extends MessageToMessageEncoder<ByteBuf> {
 
