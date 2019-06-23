@@ -234,8 +234,8 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
 
     /**
      * 关闭channel
-     * @param ctx
-     * @param reason
+     * @param ctx 待关闭的context
+     * @param reason 关闭context的原因
      */
     protected final void closeCtx(ChannelHandlerContext ctx,String reason){
         logger.warn("close channel by reason of {}",reason);
@@ -251,8 +251,8 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
     /**
      * 创建一个初始化好的byteBuf
      * 设置包总长度 和 校验和
-     * @param ctx
-     * @param contentLength
+     * @param ctx handlerContext，用于获取allocator
+     * @param contentLength 有效内容的长度
      * @return
      */
     protected final ByteBuf newInitializedByteBuf(ChannelHandlerContext ctx, int contentLength,NetEventType netEventType){
@@ -261,10 +261,9 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
 
     /**
      * 添加校验和并发送
-     * @param ctx
-     * @param byteBuf
-     * @param promise
-     * @throws Exception
+     * @param ctx handlerContext，用于将数据发送出去
+     * @param byteBuf 待发送的数据包
+     * @param promise 操作回执
      */
     protected final void appendSumAndWrite(ChannelHandlerContext ctx, ByteBuf byteBuf, ChannelPromise promise) {
         NetUtils.appendCheckSum(byteBuf);

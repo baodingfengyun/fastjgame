@@ -37,11 +37,11 @@ public class IndexDocument {
     /**
      * 在mongo中升序使用1表示
      */
-    private static final int ASCENDING_INDEX=1;
+    private static final int ASCENDING_INDEX = 1;
     /**
      * 在mongo中降序使用-1表示
      */
-    private static final int DESCENDING_INDEX=-1;
+    private static final int DESCENDING_INDEX = -1;
 
     private final Document document=new Document();
 

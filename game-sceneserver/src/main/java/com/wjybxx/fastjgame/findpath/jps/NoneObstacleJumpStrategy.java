@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.findpath.jps;
 
 import com.wjybxx.fastjgame.findpath.DiagonalMovement;
+import com.wjybxx.fastjgame.misc.Stateless;
 import com.wjybxx.fastjgame.scene.MapGrid;
 
 import java.util.List;
@@ -31,6 +32,7 @@ import static com.wjybxx.fastjgame.findpath.FindPathUtils.addNeighborIfWalkable;
  * date - 2019/6/16 23:13
  * github - https://github.com/hl845740757
  */
+@Stateless
 public class NoneObstacleJumpStrategy extends JumpStrategy{
 
     @Override
@@ -103,10 +105,8 @@ public class NoneObstacleJumpStrategy extends JumpStrategy{
 
             // 水平或垂直方向遇见跳点，则将当前节点加入open集合（当前节点也是跳点）
             // 如果parent(y)到y是对角线移动，并且y经过水平或垂直方向移动可以到达跳点，则y是跳点
-            if (context.isWalkable(currentX + dx, currentY) && horizontalJump(context, currentX + dx, currentY, dx) != null){
-                return context.getGrid(currentX, currentY);
-            }
-            if (context.isWalkable(currentX, currentY + dy) && verticalJump(context, currentX, currentY + dy, dy) != null){
+            if (tryHorizontalJump(context, currentX, currentY, dx) != null ||
+                    tryVerticalJump(context, currentX, currentY, dy) != null) {
                 return context.getGrid(currentX, currentY);
             }
 

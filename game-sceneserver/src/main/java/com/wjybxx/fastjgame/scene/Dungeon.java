@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.scene;
 
-import com.wjybxx.fastjgame.config.TemplateSceneConfig;
+import com.wjybxx.fastjgame.config.SceneConfig;
 import com.wjybxx.fastjgame.misc.SceneType;
 import com.wjybxx.fastjgame.mrg.SceneWrapper;
 
@@ -30,7 +30,7 @@ import com.wjybxx.fastjgame.mrg.SceneWrapper;
  */
 public abstract class Dungeon extends Scene{
 
-    public Dungeon(long guid, TemplateSceneConfig sceneConfig, SceneWrapper sceneWrapper) {
+    public Dungeon(long guid, SceneConfig sceneConfig, SceneWrapper sceneWrapper) {
         super(guid, sceneConfig, sceneWrapper);
     }
 

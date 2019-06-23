@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.scene.gameobject;
+package com.wjybxx.fastjgame.gameobject;
 
+import com.wjybxx.fastjgame.misc.ViewGrid;
+import com.wjybxx.fastjgame.scene.gameobjectdata.GameObjectData;
+import com.wjybxx.fastjgame.scene.gameobjectdata.GameObjectType;
 import com.wjybxx.fastjgame.shape.Point2D;
-import com.wjybxx.fastjgame.scene.ViewGrid;
 
 import javax.annotation.Nonnull;
 
@@ -28,12 +30,8 @@ import javax.annotation.Nonnull;
  * date - 2019/5/31 22:48
  * github - https://github.com/hl845740757
  */
-public abstract class GameObject {
+public abstract class GameObject<T extends GameObjectData> {
 
-    /**
-     * 每一个场景对象都有一个唯一的guid。
-     */
-    private final long guid;
     /**
      * 游戏对象的坐标
      * 先写波2D的，练手AOI
@@ -45,14 +43,6 @@ public abstract class GameObject {
      * 游戏对象进入视野时需要立即初始化，离开后需要删除；
      */
     private ViewGrid viewGrid;
-
-    protected GameObject(long guid) {
-        this.guid = guid;
-    }
-
-    public long getGuid() {
-        return guid;
-    }
 
     public Point2D getPosition() {
         return position;
@@ -67,5 +57,22 @@ public abstract class GameObject {
         this.viewGrid = viewGrid;
     }
 
-    public abstract GameObjectType getObjectType();
+    public final long getGuid() {
+        return getData().getGuid();
+    }
+
+    /**
+     * 返回该场景对象对应的枚举类型
+     * @return {@link GameObjectType}
+     */
+    @Nonnull
+    public final GameObjectType getObjectType() {
+        return getData().getObjectType();
+    }
+    /**
+     * 获取该场景对象的非场景数据
+     * @return data
+     */
+    @Nonnull
+    public abstract T getData();
 }

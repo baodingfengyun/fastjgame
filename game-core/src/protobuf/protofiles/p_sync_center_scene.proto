@@ -2,8 +2,7 @@
 syntax = "proto3";
 package fastjgame;
 
-import "p_enum.proto";
-import "p_struct.proto";
+import "p_common.proto";
 
 // optimize_for (file option): Can be set to SPEED, CODE_SIZE, or LITE_RUNTIME.
 option optimize_for=SPEED;

@@ -46,7 +46,6 @@ public abstract class CoreModule extends AbstractModule {
         bind(GuidMrg.class).to(ZkGuidMrg.class).in(Singleton.class);
         bind(WorldCoreWrapper.class).in(Singleton.class);
         bind(InnerAcceptorMrg.class).in(Singleton.class);
-        bind(MongoDBMrg.class).in(Singleton.class);
     }
 
     /**

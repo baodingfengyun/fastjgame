@@ -142,7 +142,7 @@ public class CenterInSceneInfoMrg {
      * @param hello 简单信息
      */
     public void p_center_single_scene_hello_handler(S2CSession session, p_center_single_scene_hello hello) {
-        PlatformType platformType=PlatformType.forNumber(hello.getPlatfomNumber());
+        PlatformType platformType=PlatformType.forNumber(hello.getPlatformNumber());
         assert !guid2InfoMap.containsKey(session.getClientGuid());
         assert !platInfoMap.containsKey(platformType) || !platInfoMap.get(platformType).containsKey(hello.getServerId());
 
@@ -162,7 +162,7 @@ public class CenterInSceneInfoMrg {
      * @param hello 简单信息
      */
     public void p_center_cross_scene_hello_handler(S2CSession session,p_center_cross_scene_hello hello){
-        PlatformType platformType=PlatformType.forNumber(hello.getPlatfomNumber());
+        PlatformType platformType=PlatformType.forNumber(hello.getPlatformNumber());
         assert !guid2InfoMap.containsKey(session.getClientGuid());
         assert !platInfoMap.containsKey(platformType) || !platInfoMap.get(platformType).containsKey(hello.getServerId());
 

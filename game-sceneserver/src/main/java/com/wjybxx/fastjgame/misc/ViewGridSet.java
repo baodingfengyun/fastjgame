@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.scene;
+package com.wjybxx.fastjgame.misc;
 
 import com.wjybxx.fastjgame.shape.Grid2DContainer;
 import com.wjybxx.fastjgame.shape.Point2D;
@@ -89,7 +89,7 @@ public class ViewGridSet implements Grid2DContainer<ViewGrid> {
     private final int colCount;
 
     public ViewGridSet(int mapWidth, int mapHeight, int viewableRange) {
-        this(mapWidth,mapHeight,viewableRange,InitCapacityHolder.EMPTY);
+        this(mapWidth,mapHeight,viewableRange, InitCapacityHolder.EMPTY);
     }
 
     /**

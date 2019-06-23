@@ -17,13 +17,9 @@
 package com.wjybxx.fastjgame.world;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.core.onlinenode.CenterNodeData;
 import com.wjybxx.fastjgame.core.onlinenode.WarzoneNodeData;
 import com.wjybxx.fastjgame.misc.HostAndPort;
-import com.wjybxx.fastjgame.mrg.CenterInWarzoneInfoMrg;
-import com.wjybxx.fastjgame.mrg.WarzoneWorldInfoMrg;
-import com.wjybxx.fastjgame.mrg.WorldCoreWrapper;
-import com.wjybxx.fastjgame.mrg.WorldWrapper;
+import com.wjybxx.fastjgame.mrg.*;
 import com.wjybxx.fastjgame.mrg.async.S2CSessionMrg;
 import com.wjybxx.fastjgame.mrg.sync.SyncS2CSessionMrg;
 import com.wjybxx.fastjgame.net.async.S2CSession;
@@ -50,13 +46,15 @@ public class WarzoneWorld extends WorldCore {
 
     private final WarzoneWorldInfoMrg warzoneWorldInfoMrg;
     private final CenterInWarzoneInfoMrg centerInWarzoneInfoMrg;
+    private final WarzoneSendMrg sendMrg;
 
     @Inject
     public WarzoneWorld(WorldWrapper worldWrapper, WorldCoreWrapper coreWrapper, WarzoneWorldInfoMrg warzoneWorldInfoMrg,
-                        CenterInWarzoneInfoMrg centerInWarzoneInfoMrg) {
+                        CenterInWarzoneInfoMrg centerInWarzoneInfoMrg, WarzoneSendMrg sendMrg) {
         super(worldWrapper, coreWrapper);
         this.warzoneWorldInfoMrg = warzoneWorldInfoMrg;
         this.centerInWarzoneInfoMrg = centerInWarzoneInfoMrg;
+        this.sendMrg = sendMrg;
     }
 
     @Override

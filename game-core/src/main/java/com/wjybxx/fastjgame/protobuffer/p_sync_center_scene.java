@@ -2077,16 +2077,15 @@ public final class p_sync_center_scene {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\031p_sync_center_scene.proto\022\tfastjgame\032\014" +
-      "p_enum.proto\032\016p_struct.proto\"A\n#p_center" +
-      "_command_single_scene_start\022\032\n\022activeMut" +
-      "exRegions\030\001 \003(\005\",\n*p_center_command_sing" +
-      "le_scene_start_result\"E\n,p_center_comman" +
-      "d_single_scene_active_regions\022\025\n\ractiveR" +
-      "egions\030\002 \003(\005\"5\n3p_center_command_single_" +
-      "scene_active_regions_resultB9\n com.wjybx" +
-      "x.fastjgame.protobufferB\023p_sync_center_s" +
-      "ceneH\001b\006proto3"
+      "\n\031p_sync_center_scene.proto\022\tfastjgame\032\016" +
+      "p_common.proto\"A\n#p_center_command_singl" +
+      "e_scene_start\022\032\n\022activeMutexRegions\030\001 \003(" +
+      "\005\",\n*p_center_command_single_scene_start" +
+      "_result\"E\n,p_center_command_single_scene" +
+      "_active_regions\022\025\n\ractiveRegions\030\002 \003(\005\"5" +
+      "\n3p_center_command_single_scene_active_r" +
+      "egions_resultB9\n com.wjybxx.fastjgame.pr" +
+      "otobufferB\023p_sync_center_sceneH\001b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -2099,8 +2098,7 @@ public final class p_sync_center_scene {
     com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
-          com.wjybxx.fastjgame.protobuffer.p_enum.getDescriptor(),
-          com.wjybxx.fastjgame.protobuffer.p_struct.getDescriptor(),
+          com.wjybxx.fastjgame.protobuffer.p_common.getDescriptor(),
         }, assigner);
     internal_static_fastjgame_p_center_command_single_scene_start_descriptor =
       getDescriptor().getMessageTypes().get(0);
@@ -2126,8 +2124,7 @@ public final class p_sync_center_scene {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_fastjgame_p_center_command_single_scene_active_regions_result_descriptor,
         new java.lang.String[] { });
-    com.wjybxx.fastjgame.protobuffer.p_enum.getDescriptor();
-    com.wjybxx.fastjgame.protobuffer.p_struct.getDescriptor();
+    com.wjybxx.fastjgame.protobuffer.p_common.getDescriptor();
   }
 
   // @@protoc_insertion_point(outer_class_scope)

@@ -28,7 +28,8 @@ public interface TriggerInterface {
     /**
      * 添加一个timer。
      * 由子类选择如何存储timer。
-     * @param timer
+     * @param timer 定时器
+     * @param curMillTime 当前时间
      */
     void addTimer(Timer timer,long curMillTime);
 
@@ -36,4 +37,11 @@ public interface TriggerInterface {
      * 检查timer执行
      */
     void tickTrigger(long curMillTime);
+
+    /**
+     * 指定timer的执行间隔被修改了，优先级发生了改变。
+     * 它的拥有者可能需要进行一些操作，以保证timer优先级的正确性。
+     * @param timer 该定时器的延迟时间被修改；
+     */
+    void priorityChanged(Timer timer);
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.scene;
+package com.wjybxx.fastjgame.misc;
 
 /**
  * 游戏对象容器初始化容量信息holder；

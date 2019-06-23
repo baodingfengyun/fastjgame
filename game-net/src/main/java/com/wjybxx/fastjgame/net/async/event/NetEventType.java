@@ -18,9 +18,7 @@ package com.wjybxx.fastjgame.net.async.event;
 
 import com.wjybxx.fastjgame.enummapper.NumberEnum;
 import com.wjybxx.fastjgame.enummapper.NumberEnumMapper;
-import com.wjybxx.fastjgame.utils.ReflectionUtils;
-
-import java.util.Arrays;
+import com.wjybxx.fastjgame.utils.EnumUtils;
 
 /**
  * 网络事件类型
@@ -88,7 +86,7 @@ public enum NetEventType implements NumberEnum {
     /**
      * 排序号的枚举数组，方便查找
      */
-    private static final NumberEnumMapper<NetEventType> mapper = ReflectionUtils.indexNumberEnum(values());
+    private static final NumberEnumMapper<NetEventType> mapper = EnumUtils.indexNumberEnum(values());
 
     /**
      * 通过网络包中的pkgType找到对应的枚举。

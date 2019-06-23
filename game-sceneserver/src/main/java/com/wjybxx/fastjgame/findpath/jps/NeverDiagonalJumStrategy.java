@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.findpath.jps;
 
 import com.wjybxx.fastjgame.findpath.DiagonalMovement;
+import com.wjybxx.fastjgame.misc.Stateless;
 import com.wjybxx.fastjgame.scene.MapGrid;
 
 import java.util.List;
@@ -31,6 +32,7 @@ import static com.wjybxx.fastjgame.findpath.FindPathUtils.addNeighborIfWalkable;
  * date - 2019/6/16 15:45
  * github - https://github.com/hl845740757
  */
+@Stateless
 public class NeverDiagonalJumStrategy extends JumpStrategy{
 
     @Override
@@ -155,14 +157,12 @@ public class NeverDiagonalJumStrategy extends JumpStrategy{
 
             // 不可以对角线移动的时候，水平和垂直方向，必须有一个方向要双向跳跃(否则无法处理到探索区域的所有地图格子)
             // When moving vertically, must check for horizontal jump points
-            // 向左跳跃
-            if (context.isWalkable(currentX - 1, currentY) && horizontalJump(context, currentX - 1, currentY, -1) != null){
+            // 左右跳跃(探索)
+            if (tryHorizontalJump(context, currentX, currentY, -1) != null ||
+                    tryHorizontalJump(context, currentX, currentY, 1) != null) {
                 return context.getGrid(currentX, currentY);
             }
-            // 向右跳跃
-            if (context.isWalkable(currentX + 1, currentY) && horizontalJump(context, currentX + 1, currentY, 1) != null){
-                return context.getGrid(currentX, currentY);
-            }
+
             // 前进遇见遮挡
             if (!context.isWalkable(currentX, currentY + dy)) {
                 return null;

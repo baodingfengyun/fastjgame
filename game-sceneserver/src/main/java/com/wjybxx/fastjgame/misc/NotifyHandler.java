@@ -16,8 +16,7 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.scene.ViewGrid;
-import com.wjybxx.fastjgame.scene.gameobject.GameObject;
+import com.wjybxx.fastjgame.gameobject.GameObject;
 
 import java.util.List;
 
@@ -35,6 +34,7 @@ public interface NotifyHandler<T extends GameObject> {
     // 我要准备执行的逻辑
     /**
      * 通知gameObject，newVisibleGrids这些格子进入了我的视野；
+     * （gameObject可能在newVisibleGrids这些格子中）
      *
      * @param gameObject 游戏对象
      * @param newVisibleGrids gameObject当前能看见的新格子
@@ -54,6 +54,7 @@ public interface NotifyHandler<T extends GameObject> {
     // 其他人要执行的逻辑
     /**
      * 通知(range)这些格子里的对象，有一个gameObject进入了它们的视野格子
+     * （gameObject可能在newVisibleGrids这些格子中）
      *
      * @param range 视野格子
      * @param gameObject 进入这些视野格子的对象

@@ -24,20 +24,23 @@ package com.wjybxx.fastjgame.shape;
  */
 public class UnmodifiablePoint2D extends Point2D{
 
-    private final Point2D point2D;
+    private final float x;
+
+    private final float y;
 
     public UnmodifiablePoint2D(Point2D point2D) {
-        this.point2D = point2D;
+        this.x = point2D.getX();
+        this.y = point2D.getY();
     }
 
     @Override
     public float getX() {
-        return point2D.getX();
+        return x;
     }
 
     @Override
     public float getY() {
-        return point2D.getY();
+        return y;
     }
 
     @Override
@@ -63,7 +66,8 @@ public class UnmodifiablePoint2D extends Point2D{
     @Override
     public String toString() {
         return "UnmodifiablePoint2D{" +
-                "point2D=" + point2D +
+                "x=" + x +
+                ", y=" + y +
                 '}';
     }
 }

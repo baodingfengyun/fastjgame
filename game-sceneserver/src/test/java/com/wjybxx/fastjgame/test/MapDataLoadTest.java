@@ -22,7 +22,7 @@ import com.wjybxx.fastjgame.module.NetModule;
 import com.wjybxx.fastjgame.module.SceneModule;
 import com.wjybxx.fastjgame.mrg.MapDataLoadMrg;
 import com.wjybxx.fastjgame.scene.MapData;
-import com.wjybxx.fastjgame.scene.ViewGridSet;
+import com.wjybxx.fastjgame.misc.ViewGridSet;
 
 /**
  * @author wjybxx

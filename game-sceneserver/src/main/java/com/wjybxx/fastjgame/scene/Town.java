@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.scene;
 
-import com.wjybxx.fastjgame.config.TemplateSceneConfig;
+import com.wjybxx.fastjgame.config.SceneConfig;
 import com.wjybxx.fastjgame.misc.SceneType;
 import com.wjybxx.fastjgame.mrg.SceneWrapper;
 
@@ -29,7 +29,7 @@ import com.wjybxx.fastjgame.mrg.SceneWrapper;
  */
 public abstract class Town extends Scene{
 
-    public Town(long guid, TemplateSceneConfig sceneConfig, SceneWrapper sceneWrapper) {
+    public Town(long guid, SceneConfig sceneConfig, SceneWrapper sceneWrapper) {
         super(guid, sceneConfig, sceneWrapper);
     }
 

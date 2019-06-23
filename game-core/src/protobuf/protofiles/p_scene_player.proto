@@ -1,0 +1,56 @@
+// 该文件是场景中与玩家交互的协议，各个玩法功能可以新建文件，也可以放在这
+syntax = "proto3";
+package fastjgame;
+
+import "p_common.proto";
+
+// optimize_for (file option): Can be set to SPEED, CODE_SIZE, or LITE_RUNTIME.
+option optimize_for=SPEED;
+
+option java_package="com.wjybxx.fastjgame.protobuffer";
+option java_outer_classname="p_scene_player";
+
+
+// 对于进入视野时场景中的广播数据，必须是少量的必须要告知的数据，
+// 对于数据量大的部分，如果没有必要，不要主动推送，客户端有默认显示逻辑，
+// 进入到一定范围内后，客户端再主动请求这部分数据，它的表现仅仅是显示不及时
+
+// player在进入视野时，需要广播的数据
+message p_scene_player_data {
+	// 玩家的唯一标识，一定是不变的
+	int64 playerGuid = 1;
+	int32 logicServerId = 2;
+	int32 actualServerId = 3;
+}
+
+// npc在进入视野时，需要广播的数据
+message p_scene_npc_data {
+	// npc的guid，同一个npc根据规则的不同，guid可能是变化的，也可能是不变的，尽量保持不变
+	int64 npcGuid = 1;
+	// 对应npc配置
+	int32 npcId = 2;
+}
+
+// pet在进入视野时，需要广播的数据
+message p_scene_pet_data {
+	// 宠物的主人guid
+	int64 ownerGuid = 1;
+	// 宠物的guid，guid可能是变化的，也可能是不变的，尽量保持不变
+	int64 petGuid = 2;
+	// 对应宠物配置
+	int32 petId = 3;
+}
+
+// 通知玩家，这些对象进入了视野
+message p_notify_player_others_in {
+	// 进入视野的玩家
+	repeated p_scene_player_data players = 1;
+	// 进入视野的npc
+	repeated p_scene_npc_data npcs = 2;
+	// 进入视野的宠物
+	repeated p_scene_pet_data pets = 3;
+}
+// 通知玩家，这些对象离开了视野
+message p_notify_player_others_out {
+	repeated int64 guids = 1;
+}

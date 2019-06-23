@@ -990,12 +990,12 @@ public final class p_center_warzone {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\026p_center_warzone.proto\022\tfastjgame\032\014p_e" +
-      "num.proto\032\016p_struct.proto\"A\n\026p_center_wa" +
-      "rzone_hello\022\025\n\rplatfomNumber\030\001 \001(\005\022\020\n\010se" +
-      "rverId\030\002 \001(\005\"\037\n\035p_center_warzone_hello_r" +
-      "esultB6\n com.wjybxx.fastjgame.protobuffe" +
-      "rB\020p_center_warzoneH\001b\006proto3"
+      "\n\026p_center_warzone.proto\022\tfastjgame\032\016p_c" +
+      "ommon.proto\"A\n\026p_center_warzone_hello\022\025\n" +
+      "\rplatfomNumber\030\001 \001(\005\022\020\n\010serverId\030\002 \001(\005\"\037" +
+      "\n\035p_center_warzone_hello_resultB6\n com.w" +
+      "jybxx.fastjgame.protobufferB\020p_center_wa" +
+      "rzoneH\001b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -1008,8 +1008,7 @@ public final class p_center_warzone {
     com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
-          com.wjybxx.fastjgame.protobuffer.p_enum.getDescriptor(),
-          com.wjybxx.fastjgame.protobuffer.p_struct.getDescriptor(),
+          com.wjybxx.fastjgame.protobuffer.p_common.getDescriptor(),
         }, assigner);
     internal_static_fastjgame_p_center_warzone_hello_descriptor =
       getDescriptor().getMessageTypes().get(0);
@@ -1023,8 +1022,7 @@ public final class p_center_warzone {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_fastjgame_p_center_warzone_hello_result_descriptor,
         new java.lang.String[] { });
-    com.wjybxx.fastjgame.protobuffer.p_enum.getDescriptor();
-    com.wjybxx.fastjgame.protobuffer.p_struct.getDescriptor();
+    com.wjybxx.fastjgame.protobuffer.p_common.getDescriptor();
   }
 
   // @@protoc_insertion_point(outer_class_scope)

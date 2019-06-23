@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.scene;
 
 import com.wjybxx.fastjgame.enummapper.NumberEnum;
 import com.wjybxx.fastjgame.enummapper.NumberEnumMapper;
-import com.wjybxx.fastjgame.utils.ReflectionUtils;
+import com.wjybxx.fastjgame.utils.EnumUtils;
 
 /**
  * 格子遮挡标记；
@@ -53,7 +53,7 @@ public enum GridObstacle implements NumberEnum {
         return number;
     }
 
-    private static final NumberEnumMapper<GridObstacle> mapper = ReflectionUtils.indexNumberEnum(values());
+    private static final NumberEnumMapper<GridObstacle> mapper = EnumUtils.indexNumberEnum(values());
 
     public static GridObstacle forNumber(int number){
         return mapper.forNumber(number);

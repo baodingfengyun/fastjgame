@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.scene.gameobject.GameObject;
+import com.wjybxx.fastjgame.gameobject.GameObject;
 
 /**
  * 场景游戏对象刷帧逻辑

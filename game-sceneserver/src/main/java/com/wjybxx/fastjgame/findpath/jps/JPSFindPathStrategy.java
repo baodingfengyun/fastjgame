@@ -62,7 +62,10 @@ import java.util.PriorityQueue;
  *
  * <h3>跳点</h3>
  * <p>
- *   什么是跳点？存在强制邻居，无法继续跳跃(前进方向的两侧不对称)
+ *   什么是跳点？
+ *   1.起始点 和 目标点
+ *   2.如果当前方向的对角线移动，如果水平方向或垂直方向存在跳点，这当前点是跳点
+ *   3.存在强制邻居，无法继续跳跃(前进方向的两侧不对称)
  * </p>
  *
  * @author wjybxx
@@ -118,8 +121,8 @@ public class JPSFindPathStrategy extends FindPathStrategy<JPSFindPathContext> {
 
         try {
             // 将初始节点纳入openSet
-            FindPathNode firstFindPathNode = new FindPathNode(context.startGrid.getX(), context.startGrid.getY());
-            openNodes.add(firstFindPathNode);
+            FindPathNode startNode = new FindPathNode(context.startGrid.getX(), context.startGrid.getY());
+            openNodes.add(startNode);
 
             // 最小代价节点，当前可到达的消耗最低的节点(跳点)
             FindPathNode minCostNode;

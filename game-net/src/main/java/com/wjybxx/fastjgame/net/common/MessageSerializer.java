@@ -43,16 +43,16 @@ public interface MessageSerializer {
 
     /**
      * 序列化对象
-     * @param message
-     * @return
+     * @param message 一个具体的消息对象
+     * @return 序列化后的字节数组
      */
     byte[] serialize(Object message) throws IOException;
 
     /**
      * 反序列化对象
-     * @param messageClazz
-     * @param messageBytes
-     * @return
+     * @param messageClazz 消息对应的class
+     * @param messageBytes 消息对应的字节数组
+     * @return 反序列化之后的消息对象
      */
     <T> T deserialize(Class<T> messageClazz,byte[] messageBytes) throws IOException;
 }

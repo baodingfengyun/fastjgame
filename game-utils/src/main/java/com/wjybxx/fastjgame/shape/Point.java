@@ -34,8 +34,8 @@ public interface Point<T extends Point<T>> {
     void updateLocation(T anotherPoint);
 
     /**
-     * 返回一个不可修改的视图
-     * @return an unmodifiable view
+     * 保存一个当前坐标的快照
+     * @return an snapshot
      */
     T unmodifiable();
 }

@@ -22,11 +22,13 @@ import com.wjybxx.fastjgame.misc.PlatformType;
 import com.wjybxx.fastjgame.net.common.RoleType;
 import org.apache.curator.utils.PathUtils;
 
+import java.io.File;
+
 /**
  * zookeeper节点路径辅助类。
  * 注意区分： 节点名字和节点路径的概念。
- * 节点路径：从根节点到当前节点的完整路径。
- * 节点名字：节点路径的最后一部分。
+ * 节点路径 NodePath：从根节点到当前节点的完整路径。 参考{@link File#getAbsolutePath()}
+ * 节点名字 NodeName：节点路径的最后一部分。 参考{@link File#getName()}
  *
  * @author wjybxx
  * @version 1.0
@@ -65,7 +67,7 @@ public class ZKPathUtils {
 
     /**
      * 获取父节点的名字
-     * @param path
+     * @param path 节点路径
      * @return
      */
     private static String findParentNodeName(String path){

@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.misc;
 
 import com.wjybxx.fastjgame.enummapper.NumberEnum;
 import com.wjybxx.fastjgame.enummapper.NumberEnumMapper;
-import com.wjybxx.fastjgame.utils.ReflectionUtils;
+import com.wjybxx.fastjgame.utils.EnumUtils;
 
 /**
  * 运行平台类型，平台问题最终还是会遇见，这里先处理。
@@ -35,7 +35,8 @@ public enum PlatformType implements NumberEnum {
     ;
 
     /**
-     * 平台数字标记
+     * 平台数字标记，不可以修改。
+     * 枚举的名字可以修改。
      */
     private final int number;
 
@@ -48,7 +49,7 @@ public enum PlatformType implements NumberEnum {
         return number;
     }
 
-    private static final NumberEnumMapper<PlatformType> mapper = ReflectionUtils.indexNumberEnum(values());
+    private static final NumberEnumMapper<PlatformType> mapper = EnumUtils.indexNumberEnum(values());
 
     public static PlatformType forNumber(int number){
         PlatformType platformType = mapper.forNumber(number);

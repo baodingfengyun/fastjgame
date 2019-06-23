@@ -31,16 +31,14 @@ public class WorldCoreWrapper {
     private final GuidMrg guidMrg;
     private final GameConfigMrg gameConfigMrg;
     private final InnerAcceptorMrg innerAcceptorMrg;
-    private final MongoDBMrg mongoDBMrg;
 
     @Inject
     public WorldCoreWrapper(CuratorMrg curatorMrg, GuidMrg guidMrg, GameConfigMrg gameConfigMrg,
-                            InnerAcceptorMrg innerAcceptorMrg, MongoDBMrg mongoDBMrg) {
+                            InnerAcceptorMrg innerAcceptorMrg) {
         this.curatorMrg = curatorMrg;
         this.guidMrg = guidMrg;
         this.gameConfigMrg = gameConfigMrg;
         this.innerAcceptorMrg = innerAcceptorMrg;
-        this.mongoDBMrg = mongoDBMrg;
     }
 
     public CuratorMrg getCuratorMrg() {
@@ -59,7 +57,4 @@ public class WorldCoreWrapper {
         return innerAcceptorMrg;
     }
 
-    public MongoDBMrg getMongoDBMrg() {
-        return mongoDBMrg;
-    }
 }

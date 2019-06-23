@@ -1,0 +1,36 @@
+// 测试文件
+syntax = "proto3";
+package fastjgame;
+
+import "p_common.proto";
+
+// optimize_for (file option): Can be set to SPEED, CODE_SIZE, or LITE_RUNTIME.
+option optimize_for=SPEED;
+
+option java_package="com.wjybxx.fastjgame.protobuffer";
+option java_outer_classname="p_test";
+
+// 测试各种情况，在编译时是什么情况
+message p_helloworld {
+	int32 a = 1;
+	int64 b = 2;
+	repeated int32 c = 3;
+	map<int32,int64> d = 4;
+	string e = 5;
+	bool f = 6;
+	float g = 7;
+	double h = 8;
+	bytes i = 9;
+	p_ss j = 10;
+	ERole k = 11;
+}
+
+message p_ss {
+	int32 sa = 1;
+	int64 sb = 2;
+}
+
+enum ERole {
+	NAME = 0;
+	AGE = 1;
+}

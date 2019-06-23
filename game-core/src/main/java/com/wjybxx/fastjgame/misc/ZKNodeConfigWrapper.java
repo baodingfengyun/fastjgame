@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.misc;
 
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
 import com.wjybxx.fastjgame.configwrapper.MapConfigWrapper;
+import com.wjybxx.fastjgame.utils.CollectionUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 
 import java.nio.charset.StandardCharsets;
@@ -64,7 +65,7 @@ public class ZKNodeConfigWrapper extends ConfigWrapper {
     }
 
     private static Map<String, byte[]> getRealMap(Map<String,byte[]> childrenData){
-        Map<String,byte[]> realChildrenData=new HashMap<>(childrenData.size()+1,1);
+        Map<String,byte[]> realChildrenData = CollectionUtils.newEnoughCapacityHashMap(childrenData.size());
         for (Map.Entry<String,byte[]> entry:childrenData.entrySet()){
             String childName = ZKPathUtils.findNodeName(entry.getKey());
             byte[] childData = entry.getValue();

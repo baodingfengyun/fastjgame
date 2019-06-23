@@ -131,6 +131,11 @@ public class FastCollectionsUtils {
             throw new IllegalArgumentException("duplicate " + msg + "-" + key);
         }
     }
+    public static <V> void requireContains(Int2ObjectMap<V> map,int key,String msg){
+        if (!map.containsKey(key)){
+            throw new IllegalArgumentException("nonexistent " + msg + "-" + key);
+        }
+    }
 
     public static <V> void requireNotContains(Long2ObjectMap<V> map,long key,String msg){
         if (map.containsKey(key)){
@@ -138,21 +143,15 @@ public class FastCollectionsUtils {
         }
     }
 
-    public static <V> void requireNotContains(Short2ObjectMap<V> map,short key,String msg){
-        if (map.containsKey(key)){
-            throw new IllegalArgumentException("duplicate " + msg + "-" + key);
-        }
-    }
-
-    public static <V> void requireContains(Int2ObjectMap<V> map,int key,String msg){
-        if (!map.containsKey(key)){
-            throw new IllegalArgumentException("nonexistent " + msg + "-" + key);
-        }
-    }
-
     public static <V> void requireContains(Long2ObjectMap<V> map,long key,String msg){
         if (!map.containsKey(key)){
             throw new IllegalArgumentException("nonexistent " + msg + "-" + key);
+        }
+    }
+
+    public static <V> void requireNotContains(Short2ObjectMap<V> map,short key,String msg){
+        if (map.containsKey(key)){
+            throw new IllegalArgumentException("duplicate " + msg + "-" + key);
         }
     }
 
@@ -170,6 +169,9 @@ public class FastCollectionsUtils {
      * 创建足够容量的Map，容量到达指定容量之后才会开始扩容；
      * 适合用在能估算最大容量的时候;
      * 和JDK的loadFactor有区别，FastUtil无法使得大于{@code initCapacity}时才扩容
+     * FastUtil的集合是基于数组的，解决冲突采用的是线性探测法！因此不扩容的情况下能存储的元素个数是确定的；
+     * 而Jdk的集合特殊基于数组的，但是解决冲突采用的是链表/树，因此能存储大于数组容量的元素。
+     *
      * @param constructor map的构造器函数
      * @param initCapacity 初始容量 大于0有效
      * @param <K> key的类型

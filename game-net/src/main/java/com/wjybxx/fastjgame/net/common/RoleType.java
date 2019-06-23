@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.net.common;
 
 import com.wjybxx.fastjgame.enummapper.NumberEnum;
 import com.wjybxx.fastjgame.enummapper.NumberEnumMapper;
-import com.wjybxx.fastjgame.utils.ReflectionUtils;
+import com.wjybxx.fastjgame.utils.EnumUtils;
 
 /**
  * 用于标识会话对方的角色类型
@@ -75,7 +75,7 @@ public enum RoleType implements NumberEnum {
         this.number = roleType;
     }
 
-    private static final NumberEnumMapper<RoleType> mapper = ReflectionUtils.indexNumberEnum(values());
+    private static final NumberEnumMapper<RoleType> mapper = EnumUtils.indexNumberEnum(values());
 
     public static RoleType forNumber(int number){
         RoleType roleType = mapper.forNumber(number);

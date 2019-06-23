@@ -16,9 +16,6 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.scene.GameObjectContainer;
-import com.wjybxx.fastjgame.scene.InitCapacityHolder;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

@@ -45,5 +45,7 @@ public class SceneModule extends CoreModule {
         bind(MapDataLoadMrg.class).in(Singleton.class);
         bind(SceneWrapper.class).in(Singleton.class);
         bind(SceneMrg.class).in(Singleton.class);
+        bind(TemplateMrg.class).in(Singleton.class);
+        bind(PlayerSessionMrg.class).in(Singleton.class);
     }
 }

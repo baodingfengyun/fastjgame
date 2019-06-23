@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.scene;
+package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.scene.gameobject.*;
+import com.wjybxx.fastjgame.gameobject.GameObject;
+import com.wjybxx.fastjgame.gameobject.Npc;
+import com.wjybxx.fastjgame.gameobject.Pet;
+import com.wjybxx.fastjgame.gameobject.Player;
+import com.wjybxx.fastjgame.scene.gameobjectdata.GameObjectType;
 import com.wjybxx.fastjgame.utils.FastCollectionsUtils;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectCollection;

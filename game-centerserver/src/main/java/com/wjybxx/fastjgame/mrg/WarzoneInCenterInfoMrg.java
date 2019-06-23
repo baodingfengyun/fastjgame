@@ -66,6 +66,10 @@ public class WarzoneInCenterInfoMrg {
         this.centerWorldInfoMrg = centerWorldInfoMrg;
     }
 
+    public WarzoneInCenterInfo getWarzoneInCenterInfo() {
+        return warzoneInCenterInfo;
+    }
+
     /**
      * 发现战区出现(zk上出现了该服务器对应的战区节点)
      * @param warzoneNodeName 战区节点名字信息

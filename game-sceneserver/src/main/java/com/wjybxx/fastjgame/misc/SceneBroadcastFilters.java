@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.scene.gameobject.Player;
+import com.wjybxx.fastjgame.gameobject.Player;
 
 import java.util.Arrays;
 import java.util.List;

@@ -26,6 +26,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 /**
  * protoBuffer消息hash映射策略。
  * 扫描生成的枚举文件，而不必扫描生成的类文件，扫描生成的类文件不友好。
+ * 需要有一个工具为服务端和客户端各自生成一份儿文件。
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/15 15:21

@@ -23,9 +23,9 @@ public final class p_center_scene {
      * 所属的平台号
      * </pre>
      *
-     * <code>int32 platfomNumber = 1;</code>
+     * <code>int32 platformNumber = 1;</code>
      */
-    int getPlatfomNumber();
+    int getPlatformNumber();
 
     /**
      * <pre>
@@ -54,7 +54,7 @@ public final class p_center_scene {
       super(builder);
     }
     private p_center_single_scene_hello() {
-      platfomNumber_ = 0;
+      platformNumber_ = 0;
       serverId_ = 0;
     }
 
@@ -91,7 +91,7 @@ public final class p_center_scene {
             }
             case 8: {
 
-              platfomNumber_ = input.readInt32();
+              platformNumber_ = input.readInt32();
               break;
             }
             case 16: {
@@ -123,17 +123,17 @@ public final class p_center_scene {
               com.wjybxx.fastjgame.protobuffer.p_center_scene.p_center_single_scene_hello.class, com.wjybxx.fastjgame.protobuffer.p_center_scene.p_center_single_scene_hello.Builder.class);
     }
 
-    public static final int PLATFOMNUMBER_FIELD_NUMBER = 1;
-    private int platfomNumber_;
+    public static final int PLATFORMNUMBER_FIELD_NUMBER = 1;
+    private int platformNumber_;
     /**
      * <pre>
      * 所属的平台号
      * </pre>
      *
-     * <code>int32 platfomNumber = 1;</code>
+     * <code>int32 platformNumber = 1;</code>
      */
-    public int getPlatfomNumber() {
-      return platfomNumber_;
+    public int getPlatformNumber() {
+      return platformNumber_;
     }
 
     public static final int SERVERID_FIELD_NUMBER = 2;
@@ -161,8 +161,8 @@ public final class p_center_scene {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (platfomNumber_ != 0) {
-        output.writeInt32(1, platfomNumber_);
+      if (platformNumber_ != 0) {
+        output.writeInt32(1, platformNumber_);
       }
       if (serverId_ != 0) {
         output.writeInt32(2, serverId_);
@@ -175,9 +175,9 @@ public final class p_center_scene {
       if (size != -1) return size;
 
       size = 0;
-      if (platfomNumber_ != 0) {
+      if (platformNumber_ != 0) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(1, platfomNumber_);
+          .computeInt32Size(1, platformNumber_);
       }
       if (serverId_ != 0) {
         size += com.google.protobuf.CodedOutputStream
@@ -199,8 +199,8 @@ public final class p_center_scene {
       com.wjybxx.fastjgame.protobuffer.p_center_scene.p_center_single_scene_hello other = (com.wjybxx.fastjgame.protobuffer.p_center_scene.p_center_single_scene_hello) obj;
 
       boolean result = true;
-      result = result && (getPlatfomNumber()
-          == other.getPlatfomNumber());
+      result = result && (getPlatformNumber()
+          == other.getPlatformNumber());
       result = result && (getServerId()
           == other.getServerId());
       result = result && unknownFields.equals(other.unknownFields);
@@ -214,8 +214,8 @@ public final class p_center_scene {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + PLATFOMNUMBER_FIELD_NUMBER;
-      hash = (53 * hash) + getPlatfomNumber();
+      hash = (37 * hash) + PLATFORMNUMBER_FIELD_NUMBER;
+      hash = (53 * hash) + getPlatformNumber();
       hash = (37 * hash) + SERVERID_FIELD_NUMBER;
       hash = (53 * hash) + getServerId();
       hash = (29 * hash) + unknownFields.hashCode();
@@ -352,7 +352,7 @@ public final class p_center_scene {
       }
       public Builder clear() {
         super.clear();
-        platfomNumber_ = 0;
+        platformNumber_ = 0;
 
         serverId_ = 0;
 
@@ -378,7 +378,7 @@ public final class p_center_scene {
 
       public com.wjybxx.fastjgame.protobuffer.p_center_scene.p_center_single_scene_hello buildPartial() {
         com.wjybxx.fastjgame.protobuffer.p_center_scene.p_center_single_scene_hello result = new com.wjybxx.fastjgame.protobuffer.p_center_scene.p_center_single_scene_hello(this);
-        result.platfomNumber_ = platfomNumber_;
+        result.platformNumber_ = platformNumber_;
         result.serverId_ = serverId_;
         onBuilt();
         return result;
@@ -421,8 +421,8 @@ public final class p_center_scene {
 
       public Builder mergeFrom(com.wjybxx.fastjgame.protobuffer.p_center_scene.p_center_single_scene_hello other) {
         if (other == com.wjybxx.fastjgame.protobuffer.p_center_scene.p_center_single_scene_hello.getDefaultInstance()) return this;
-        if (other.getPlatfomNumber() != 0) {
-          setPlatfomNumber(other.getPlatfomNumber());
+        if (other.getPlatformNumber() != 0) {
+          setPlatformNumber(other.getPlatformNumber());
         }
         if (other.getServerId() != 0) {
           setServerId(other.getServerId());
@@ -454,27 +454,27 @@ public final class p_center_scene {
         return this;
       }
 
-      private int platfomNumber_ ;
+      private int platformNumber_ ;
       /**
        * <pre>
        * 所属的平台号
        * </pre>
        *
-       * <code>int32 platfomNumber = 1;</code>
+       * <code>int32 platformNumber = 1;</code>
        */
-      public int getPlatfomNumber() {
-        return platfomNumber_;
+      public int getPlatformNumber() {
+        return platformNumber_;
       }
       /**
        * <pre>
        * 所属的平台号
        * </pre>
        *
-       * <code>int32 platfomNumber = 1;</code>
+       * <code>int32 platformNumber = 1;</code>
        */
-      public Builder setPlatfomNumber(int value) {
+      public Builder setPlatformNumber(int value) {
         
-        platfomNumber_ = value;
+        platformNumber_ = value;
         onChanged();
         return this;
       }
@@ -483,11 +483,11 @@ public final class p_center_scene {
        * 所属的平台号
        * </pre>
        *
-       * <code>int32 platfomNumber = 1;</code>
+       * <code>int32 platformNumber = 1;</code>
        */
-      public Builder clearPlatfomNumber() {
+      public Builder clearPlatformNumber() {
         
-        platfomNumber_ = 0;
+        platformNumber_ = 0;
         onChanged();
         return this;
       }
@@ -1209,9 +1209,9 @@ public final class p_center_scene {
      * 所属的平台号
      * </pre>
      *
-     * <code>int32 platfomNumber = 1;</code>
+     * <code>int32 platformNumber = 1;</code>
      */
-    int getPlatfomNumber();
+    int getPlatformNumber();
 
     /**
      * <pre>
@@ -1239,7 +1239,7 @@ public final class p_center_scene {
       super(builder);
     }
     private p_center_cross_scene_hello() {
-      platfomNumber_ = 0;
+      platformNumber_ = 0;
       serverId_ = 0;
     }
 
@@ -1276,7 +1276,7 @@ public final class p_center_scene {
             }
             case 8: {
 
-              platfomNumber_ = input.readInt32();
+              platformNumber_ = input.readInt32();
               break;
             }
             case 16: {
@@ -1308,17 +1308,17 @@ public final class p_center_scene {
               com.wjybxx.fastjgame.protobuffer.p_center_scene.p_center_cross_scene_hello.class, com.wjybxx.fastjgame.protobuffer.p_center_scene.p_center_cross_scene_hello.Builder.class);
     }
 
-    public static final int PLATFOMNUMBER_FIELD_NUMBER = 1;
-    private int platfomNumber_;
+    public static final int PLATFORMNUMBER_FIELD_NUMBER = 1;
+    private int platformNumber_;
     /**
      * <pre>
      * 所属的平台号
      * </pre>
      *
-     * <code>int32 platfomNumber = 1;</code>
+     * <code>int32 platformNumber = 1;</code>
      */
-    public int getPlatfomNumber() {
-      return platfomNumber_;
+    public int getPlatformNumber() {
+      return platformNumber_;
     }
 
     public static final int SERVERID_FIELD_NUMBER = 2;
@@ -1346,8 +1346,8 @@ public final class p_center_scene {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (platfomNumber_ != 0) {
-        output.writeInt32(1, platfomNumber_);
+      if (platformNumber_ != 0) {
+        output.writeInt32(1, platformNumber_);
       }
       if (serverId_ != 0) {
         output.writeInt32(2, serverId_);
@@ -1360,9 +1360,9 @@ public final class p_center_scene {
       if (size != -1) return size;
 
       size = 0;
-      if (platfomNumber_ != 0) {
+      if (platformNumber_ != 0) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(1, platfomNumber_);
+          .computeInt32Size(1, platformNumber_);
       }
       if (serverId_ != 0) {
         size += com.google.protobuf.CodedOutputStream
@@ -1384,8 +1384,8 @@ public final class p_center_scene {
       com.wjybxx.fastjgame.protobuffer.p_center_scene.p_center_cross_scene_hello other = (com.wjybxx.fastjgame.protobuffer.p_center_scene.p_center_cross_scene_hello) obj;
 
       boolean result = true;
-      result = result && (getPlatfomNumber()
-          == other.getPlatfomNumber());
+      result = result && (getPlatformNumber()
+          == other.getPlatformNumber());
       result = result && (getServerId()
           == other.getServerId());
       result = result && unknownFields.equals(other.unknownFields);
@@ -1399,8 +1399,8 @@ public final class p_center_scene {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + PLATFOMNUMBER_FIELD_NUMBER;
-      hash = (53 * hash) + getPlatfomNumber();
+      hash = (37 * hash) + PLATFORMNUMBER_FIELD_NUMBER;
+      hash = (53 * hash) + getPlatformNumber();
       hash = (37 * hash) + SERVERID_FIELD_NUMBER;
       hash = (53 * hash) + getServerId();
       hash = (29 * hash) + unknownFields.hashCode();
@@ -1536,7 +1536,7 @@ public final class p_center_scene {
       }
       public Builder clear() {
         super.clear();
-        platfomNumber_ = 0;
+        platformNumber_ = 0;
 
         serverId_ = 0;
 
@@ -1562,7 +1562,7 @@ public final class p_center_scene {
 
       public com.wjybxx.fastjgame.protobuffer.p_center_scene.p_center_cross_scene_hello buildPartial() {
         com.wjybxx.fastjgame.protobuffer.p_center_scene.p_center_cross_scene_hello result = new com.wjybxx.fastjgame.protobuffer.p_center_scene.p_center_cross_scene_hello(this);
-        result.platfomNumber_ = platfomNumber_;
+        result.platformNumber_ = platformNumber_;
         result.serverId_ = serverId_;
         onBuilt();
         return result;
@@ -1605,8 +1605,8 @@ public final class p_center_scene {
 
       public Builder mergeFrom(com.wjybxx.fastjgame.protobuffer.p_center_scene.p_center_cross_scene_hello other) {
         if (other == com.wjybxx.fastjgame.protobuffer.p_center_scene.p_center_cross_scene_hello.getDefaultInstance()) return this;
-        if (other.getPlatfomNumber() != 0) {
-          setPlatfomNumber(other.getPlatfomNumber());
+        if (other.getPlatformNumber() != 0) {
+          setPlatformNumber(other.getPlatformNumber());
         }
         if (other.getServerId() != 0) {
           setServerId(other.getServerId());
@@ -1638,27 +1638,27 @@ public final class p_center_scene {
         return this;
       }
 
-      private int platfomNumber_ ;
+      private int platformNumber_ ;
       /**
        * <pre>
        * 所属的平台号
        * </pre>
        *
-       * <code>int32 platfomNumber = 1;</code>
+       * <code>int32 platformNumber = 1;</code>
        */
-      public int getPlatfomNumber() {
-        return platfomNumber_;
+      public int getPlatformNumber() {
+        return platformNumber_;
       }
       /**
        * <pre>
        * 所属的平台号
        * </pre>
        *
-       * <code>int32 platfomNumber = 1;</code>
+       * <code>int32 platformNumber = 1;</code>
        */
-      public Builder setPlatfomNumber(int value) {
+      public Builder setPlatformNumber(int value) {
         
-        platfomNumber_ = value;
+        platformNumber_ = value;
         onChanged();
         return this;
       }
@@ -1667,11 +1667,11 @@ public final class p_center_scene {
        * 所属的平台号
        * </pre>
        *
-       * <code>int32 platfomNumber = 1;</code>
+       * <code>int32 platformNumber = 1;</code>
        */
-      public Builder clearPlatfomNumber() {
+      public Builder clearPlatformNumber() {
         
-        platfomNumber_ = 0;
+        platformNumber_ = 0;
         onChanged();
         return this;
       }
@@ -2638,17 +2638,17 @@ public final class p_center_scene {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\024p_center_scene.proto\022\tfastjgame\032\014p_enu" +
-      "m.proto\032\016p_struct.proto\"F\n\033p_center_sing" +
-      "le_scene_hello\022\025\n\rplatfomNumber\030\001 \001(\005\022\020\n" +
-      "\010serverId\030\002 \001(\005\"?\n\"p_center_single_scene" +
-      "_hello_result\022\031\n\021configuredRegions\030\001 \003(\005" +
-      "\"E\n\032p_center_cross_scene_hello\022\025\n\rplatfo" +
-      "mNumber\030\001 \001(\005\022\020\n\010serverId\030\002 \001(\005\"U\n!p_cen" +
-      "ter_cross_scene_hello_result\022\031\n\021configur" +
-      "edRegions\030\001 \003(\005\022\025\n\ractiveRegions\030\002 \003(\005B4" +
-      "\n com.wjybxx.fastjgame.protobufferB\016p_ce" +
-      "nter_sceneH\001b\006proto3"
+      "\n\024p_center_scene.proto\022\tfastjgame\032\016p_com" +
+      "mon.proto\"G\n\033p_center_single_scene_hello" +
+      "\022\026\n\016platformNumber\030\001 \001(\005\022\020\n\010serverId\030\002 \001" +
+      "(\005\"?\n\"p_center_single_scene_hello_result" +
+      "\022\031\n\021configuredRegions\030\001 \003(\005\"F\n\032p_center_" +
+      "cross_scene_hello\022\026\n\016platformNumber\030\001 \001(" +
+      "\005\022\020\n\010serverId\030\002 \001(\005\"U\n!p_center_cross_sc" +
+      "ene_hello_result\022\031\n\021configuredRegions\030\001 " +
+      "\003(\005\022\025\n\ractiveRegions\030\002 \003(\005B4\n com.wjybxx" +
+      ".fastjgame.protobufferB\016p_center_sceneH\001" +
+      "b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -2661,15 +2661,14 @@ public final class p_center_scene {
     com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
-          com.wjybxx.fastjgame.protobuffer.p_enum.getDescriptor(),
-          com.wjybxx.fastjgame.protobuffer.p_struct.getDescriptor(),
+          com.wjybxx.fastjgame.protobuffer.p_common.getDescriptor(),
         }, assigner);
     internal_static_fastjgame_p_center_single_scene_hello_descriptor =
       getDescriptor().getMessageTypes().get(0);
     internal_static_fastjgame_p_center_single_scene_hello_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_fastjgame_p_center_single_scene_hello_descriptor,
-        new java.lang.String[] { "PlatfomNumber", "ServerId", });
+        new java.lang.String[] { "PlatformNumber", "ServerId", });
     internal_static_fastjgame_p_center_single_scene_hello_result_descriptor =
       getDescriptor().getMessageTypes().get(1);
     internal_static_fastjgame_p_center_single_scene_hello_result_fieldAccessorTable = new
@@ -2681,15 +2680,14 @@ public final class p_center_scene {
     internal_static_fastjgame_p_center_cross_scene_hello_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_fastjgame_p_center_cross_scene_hello_descriptor,
-        new java.lang.String[] { "PlatfomNumber", "ServerId", });
+        new java.lang.String[] { "PlatformNumber", "ServerId", });
     internal_static_fastjgame_p_center_cross_scene_hello_result_descriptor =
       getDescriptor().getMessageTypes().get(3);
     internal_static_fastjgame_p_center_cross_scene_hello_result_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_fastjgame_p_center_cross_scene_hello_result_descriptor,
         new java.lang.String[] { "ConfiguredRegions", "ActiveRegions", });
-    com.wjybxx.fastjgame.protobuffer.p_enum.getDescriptor();
-    com.wjybxx.fastjgame.protobuffer.p_struct.getDescriptor();
+    com.wjybxx.fastjgame.protobuffer.p_common.getDescriptor();
   }
 
   // @@protoc_insertion_point(outer_class_scope)

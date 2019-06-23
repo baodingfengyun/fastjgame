@@ -70,7 +70,7 @@ public class SceneInCenterInfo {
      * 在线玩家数量计数器。
      * 本服玩家在当前scene的数量。
      */
-    private final IntSequencer onlinePlayerSequencer=new IntSequencer(0);
+    private final IntSequencer onlinePlayerSequencer = new IntSequencer(0);
 
     public SceneInCenterInfo(long sceneProcessGuid, int chanelId, SceneProcessType processType, String outerTcpAddress, String outerWsAddress) {
         this.sceneProcessGuid = sceneProcessGuid;
@@ -116,4 +116,7 @@ public class SceneInCenterInfo {
         return this.activeRegions.add(sceneRegion);
     }
 
+    public int getOnlinePlayerNum() {
+        return onlinePlayerSequencer.get();
+    }
 }

@@ -31,9 +31,25 @@ public class MongoDBTest {
     public static void main(String[] args) throws Exception {
         GameConfigMrg gameConfigMrg = new GameConfigMrg();
         CuratorMrg curatorMrg = new CuratorMrg(gameConfigMrg);
-        MongoDBMrg mongoDBMrg=new MongoDBMrg(gameConfigMrg,curatorMrg);
+        MongoDBMrg mongoDBMrg=new MongoDBMrgImp(gameConfigMrg,curatorMrg);
 
         System.out.println("在这里打个断点,使用idea debug 界面测试");
     }
 
+    private static class MongoDBMrgImp extends MongoDBMrg{
+
+        public MongoDBMrgImp(GameConfigMrg gameConfigMrg, CuratorMrg curatorMrg) throws Exception {
+            super(gameConfigMrg, curatorMrg);
+        }
+
+        @Override
+        protected void cacheDB() {
+
+        }
+
+        @Override
+        protected void createIndex() {
+
+        }
+    }
 }

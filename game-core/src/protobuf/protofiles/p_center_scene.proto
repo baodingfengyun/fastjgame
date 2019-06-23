@@ -2,8 +2,7 @@
 syntax = "proto3";
 package fastjgame;
 
-import "p_enum.proto";
-import "p_struct.proto";
+import "p_common.proto";
 
 // optimize_for (file option): Can be set to SPEED, CODE_SIZE, or LITE_RUNTIME.
 option optimize_for=SPEED;
@@ -18,7 +17,7 @@ option java_outer_classname = "p_center_scene";
 // 为何要主动告诉scene地址呢，减少scene使用zookeeper的压力
 message p_center_single_scene_hello{
 	// 所属的平台号
-	int32 platfomNumber=1;
+	int32 platformNumber=1;
 	// 服务器id
 	int32 serverId=2;
 }
@@ -32,7 +31,7 @@ message p_center_single_scene_hello_result{
 //centerserver向跨服scene进程打招呼
 message p_center_cross_scene_hello{
 	// 所属的平台号
-	int32 platfomNumber=1;
+	int32 platformNumber=1;
 	// 服务器id
 	int32 serverId=2;
 }

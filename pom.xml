@@ -9,12 +9,11 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
-        <game-version>1.0</game-version>
     </properties>
 
     <groupId>com.wjybxx.fastjgame</groupId>
     <artifactId>game-parent</artifactId>
-    <version>${game-version}</version>
+    <version>1.0</version>
 
     <!-- 子模块 -->
     <modules>

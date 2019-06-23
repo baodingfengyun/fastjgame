@@ -17,14 +17,12 @@
 package com.wjybxx.fastjgame.module;
 
 import com.google.inject.Singleton;
-import com.wjybxx.fastjgame.mrg.CenterInLoginInfoMrg;
-import com.wjybxx.fastjgame.mrg.LoginDiscoverMrg;
-import com.wjybxx.fastjgame.mrg.LoginWorldInfoMrg;
-import com.wjybxx.fastjgame.mrg.WorldInfoMrg;
+import com.wjybxx.fastjgame.mrg.*;
 import com.wjybxx.fastjgame.world.LoginWorld;
 import com.wjybxx.fastjgame.world.World;
 
 /**
+ * 登录服模块
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/17 20:09
@@ -43,5 +41,6 @@ public class LoginModule extends CoreModule{
         bind(LoginWorldInfoMrg.class).in(Singleton.class);
         bind(LoginDiscoverMrg.class).in(Singleton.class);
         bind(CenterInLoginInfoMrg.class).in(Singleton.class);
+        bind(LoginMongoDBMrg.class).in(Singleton.class);
     }
 }

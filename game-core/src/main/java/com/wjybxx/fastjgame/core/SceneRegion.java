@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.core;
 
 import com.wjybxx.fastjgame.enummapper.NumberEnum;
 import com.wjybxx.fastjgame.enummapper.NumberEnumMapper;
-import com.wjybxx.fastjgame.utils.ReflectionUtils;
+import com.wjybxx.fastjgame.utils.EnumUtils;
 
 /**
  * 场景区域划分。
@@ -71,7 +71,7 @@ public enum SceneRegion implements NumberEnum {
     /**
      * 数字id到枚举的映射
      */
-    private static final NumberEnumMapper<SceneRegion> mapper = ReflectionUtils.indexNumberEnum(values());
+    private static final NumberEnumMapper<SceneRegion> mapper = EnumUtils.indexNumberEnum(values());
 
     public static SceneRegion forNumber(int number){
         SceneRegion sceneRegion = mapper.forNumber(number);

@@ -14,45 +14,40 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.scene.gameobject;
+package com.wjybxx.fastjgame.gameobject;
 
-import com.wjybxx.fastjgame.enummapper.NumberEnum;
-import com.wjybxx.fastjgame.enummapper.NumberEnumMapper;
-import com.wjybxx.fastjgame.utils.ReflectionUtils;
+import com.wjybxx.fastjgame.config.NpcConfig;
+import com.wjybxx.fastjgame.scene.gameobjectdata.GameObjectType;
+
+import javax.annotation.Nonnull;
 
 /**
- * 游戏对象类型
+ * npc
  * @author wjybxx
  * @version 1.0
- * date - 2019/6/2 22:59
+ * date - 2019/6/4 17:00
  * github - https://github.com/hl845740757
  */
-public enum GameObjectType implements NumberEnum {
+public class Npc extends GameObject<NpcData>{
 
-    /**
-     * 玩家
-     */
-    PLAYER,
+    private final NpcData npcData;
 
-    /**
-     * 宠物
-     */
-    PET,
+    public Npc(NpcData npcData) {
+        this.npcData = npcData;
+    }
 
-    /**
-     * 普通NPC
-     */
-    NPC,
-    ;
-
+    @Nonnull
     @Override
-    public int getNumber() {
-        return ordinal();
+    public NpcData getData() {
+        return npcData;
     }
 
-    private static final NumberEnumMapper<GameObjectType> mapper = ReflectionUtils.indexNumberEnum(values());
-
-    public static GameObjectType forNumber(int number){
-        return mapper.forNumber(number);
+    public NpcConfig getNpcConfig() {
+        return npcData.getConfig();
     }
+
+    public int getNpcId(){
+        return npcData.getNpcId();
+    }
+
 }

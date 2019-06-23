@@ -29,17 +29,10 @@ package com.wjybxx.fastjgame.shape;
  */
 public class DefaultPoint3D extends Point3D{
 
-    /**
-     * x 从左到右
-     */
     private float x;
-    /**
-     * y 从上到下
-     */
+
     private float y;
-    /**
-     * z 从里到外
-     */
+
     private float z;
 
     public DefaultPoint3D() {

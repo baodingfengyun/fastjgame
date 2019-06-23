@@ -28,6 +28,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -65,16 +66,19 @@ public class CenterInWarzoneInfoMrg {
     private void addInfo(CenterInWarzoneInfo centerInWarzoneInfo){
         guid2InfoMap.put(centerInWarzoneInfo.getGameProcessGuid(),centerInWarzoneInfo);
 
-        Int2ObjectMap<CenterInWarzoneInfo> serverId2InfoMap = platInfoMap.computeIfAbsent(centerInWarzoneInfo.getPlatformType(),
-                platformType -> new Int2ObjectOpenHashMap<>());
+        Int2ObjectMap<CenterInWarzoneInfo> serverId2InfoMap = getServerId2InfoMap(centerInWarzoneInfo.getPlatformType());
         serverId2InfoMap.put(centerInWarzoneInfo.getServerId(),centerInWarzoneInfo);
 
         logger.info("server {}-{} register success.",centerInWarzoneInfo.getPlatformType(),centerInWarzoneInfo.getServerId());
     }
 
+    private Int2ObjectMap<CenterInWarzoneInfo> getServerId2InfoMap(PlatformType platformType) {
+        return platInfoMap.computeIfAbsent(platformType, k -> new Int2ObjectOpenHashMap<>());
+    }
+
     private void removeInfo(CenterInWarzoneInfo centerInWarzoneInfo){
         guid2InfoMap.remove(centerInWarzoneInfo.getGameProcessGuid());
-        platInfoMap.get(centerInWarzoneInfo.getPlatformType()).remove(centerInWarzoneInfo.getServerId());
+        getServerId2InfoMap(centerInWarzoneInfo.getPlatformType()).remove(centerInWarzoneInfo.getServerId());
 
         logger.info("server {}-{} disconnect.",centerInWarzoneInfo.getPlatformType(),centerInWarzoneInfo.getServerId());
     }
@@ -95,5 +99,16 @@ public class CenterInWarzoneInfoMrg {
             return;
         }
         removeInfo(centerInWarzoneInfo);
+    }
+
+    /**
+     * 获取center服信息
+     * @param platformType center服所属的平台
+     * @param serverId 服务器id
+     * @return centerInfo
+     */
+    @Nullable
+    public CenterInWarzoneInfo getCenterInfo(PlatformType platformType, int serverId){
+        return getServerId2InfoMap(platformType).get(serverId);
     }
 }

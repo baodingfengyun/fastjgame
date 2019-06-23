@@ -16,9 +16,7 @@
 
 package com.wjybxx.fastjgame.test;
 
-import com.wjybxx.fastjgame.scene.ViewGridSet;
-
-import java.util.Arrays;
+import com.wjybxx.fastjgame.misc.ViewGridSet;
 
 /**
  * @author wjybxx

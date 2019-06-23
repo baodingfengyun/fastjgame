@@ -17,6 +17,10 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
+import com.wjybxx.fastjgame.initializer.InnerClientSyncRpcInitializer;
+import com.wjybxx.fastjgame.initializer.InnerServerSyncRpcInitializer;
+import com.wjybxx.fastjgame.initializer.InnerTCPClientChannelInitializer;
+import com.wjybxx.fastjgame.initializer.InnerTCPServerChannelInitializer;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.ProtoBufHashMappingStrategy;
 import com.wjybxx.fastjgame.mrg.async.C2SSessionMrg;
@@ -25,12 +29,8 @@ import com.wjybxx.fastjgame.mrg.sync.SyncC2SSessionMrg;
 import com.wjybxx.fastjgame.mrg.sync.SyncS2CSessionMrg;
 import com.wjybxx.fastjgame.net.async.C2SSession;
 import com.wjybxx.fastjgame.net.async.initializer.HttpServerInitializer;
-import com.wjybxx.fastjgame.net.async.initializer.TCPClientChannelInitializer;
-import com.wjybxx.fastjgame.net.async.initializer.TCPServerChannelInitializer;
 import com.wjybxx.fastjgame.net.common.*;
 import com.wjybxx.fastjgame.net.sync.SyncC2SSession;
-import com.wjybxx.fastjgame.net.sync.initializer.ClientSyncRpcInitializer;
-import com.wjybxx.fastjgame.net.sync.initializer.ServerSyncRpcInitializer;
 import com.wjybxx.fastjgame.utils.GameUtils;
 
 import java.net.BindException;
@@ -77,7 +77,7 @@ public class InnerAcceptorMrg {
 
     /**
      * 在worldCore创建时调用
-     * @throws Exception
+     * @throws Exception mapping error , or init exception
      */
     public void registerInnerCodecHelper() throws Exception {
         codecHelperMrg.registerCodecHelper(GameUtils.INNER_CODEC_NAME,
@@ -95,7 +95,7 @@ public class InnerAcceptorMrg {
      * @return
      */
     public HostAndPort bindInnerTcpPort(boolean outer) throws BindException {
-        TCPServerChannelInitializer tcpServerChannelInitializer = new TCPServerChannelInitializer(netConfigMrg.maxFrameLength(),
+        InnerTCPServerChannelInitializer tcpServerChannelInitializer = new InnerTCPServerChannelInitializer(netConfigMrg.maxFrameLength(),
                 getInnerCodecHelper(),
                 disruptorMrg);
 
@@ -114,7 +114,7 @@ public class InnerAcceptorMrg {
                 serverGuid,serverRoleType);
         byte[] tokenBytes = tokenMrg.encryptToken(loginToken);
 
-        TCPClientChannelInitializer tcpClientChannelInitializer = new TCPClientChannelInitializer(netConfigMrg.maxFrameLength(),
+        InnerTCPClientChannelInitializer tcpClientChannelInitializer = new InnerTCPClientChannelInitializer(netConfigMrg.maxFrameLength(),
                 disruptorMrg, getInnerCodecHelper());
 
         c2SSessionMrg.register(serverGuid,serverRoleType,
@@ -130,7 +130,7 @@ public class InnerAcceptorMrg {
      * @return
      */
     public HostAndPort bindInnerSyncRpcPort(boolean outer) throws BindException {
-        ServerSyncRpcInitializer serverSyncRpcInitializer = new ServerSyncRpcInitializer(netConfigMrg.maxFrameLength(),
+        InnerServerSyncRpcInitializer serverSyncRpcInitializer = new InnerServerSyncRpcInitializer(netConfigMrg.maxFrameLength(),
                 getInnerCodecHelper(), syncS2CSessionMrg);
         return syncS2CSessionMrg.bindRange(outer,GameUtils.INNER_SYNC_PORT_RANGE, serverSyncRpcInitializer);
     }
@@ -143,8 +143,9 @@ public class InnerAcceptorMrg {
      * @param syncRpcHostAndPort syncRpc端口信息
      * @param reRegisterMatcher 重新注册的条件
      */
-    public void registerSyncRpcSession(long serverGuid,RoleType serverRoleType, HostAndPort syncRpcHostAndPort,Predicate<SyncC2SSession> reRegisterMatcher){
-        ClientSyncRpcInitializer syncRpcInitializer = new ClientSyncRpcInitializer(netConfigMrg.maxFrameLength(),
+    public void registerSyncRpcSession(long serverGuid,RoleType serverRoleType, HostAndPort syncRpcHostAndPort,
+                                       Predicate<SyncC2SSession> reRegisterMatcher){
+        InnerClientSyncRpcInitializer syncRpcInitializer = new InnerClientSyncRpcInitializer(netConfigMrg.maxFrameLength(),
                 netConfigMrg.syncRpcPingInterval(),
                 getInnerCodecHelper(),
                 syncC2SSessionMrg);
@@ -158,14 +159,6 @@ public class InnerAcceptorMrg {
     public HostAndPort bindInnerHttpPort() throws BindException {
         HttpServerInitializer httpServerInitializer = new HttpServerInitializer(disruptorMrg);
         return httpClientMrg.bindRange(true,GameUtils.INNER_HTTP_PORT_RANGE,httpServerInitializer);
-    }
-
-    /**
-     * 创建一个只是简单重新注册的通知器
-     * @param matcher 满足重新注册的条件
-     */
-    public SessionLifecycleAware<SyncC2SSession> newReRegisterAware(Predicate<SyncC2SSession> matcher){
-        return new ReRegisterAware(matcher);
     }
 
     /**

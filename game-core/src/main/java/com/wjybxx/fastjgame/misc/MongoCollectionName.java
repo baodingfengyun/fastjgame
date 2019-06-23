@@ -27,5 +27,10 @@ public enum MongoCollectionName {
     /**
      * 测试用，和集合名字一致
      */
-    order
+    order,
+
+    /**
+     * 玩家数据库
+     */
+    PLAYER,
 }

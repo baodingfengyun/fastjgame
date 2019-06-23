@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.scene.gameobject.GameObject;
-import com.wjybxx.fastjgame.scene.gameobject.GameObjectType;
+import com.wjybxx.fastjgame.gameobject.GameObject;
+import com.wjybxx.fastjgame.scene.gameobjectdata.GameObjectType;
 import com.wjybxx.fastjgame.utils.CollectionUtils;
 
 import java.util.EnumMap;

@@ -16,10 +16,10 @@
 
 package com.wjybxx.fastjgame.test;
 
-import com.wjybxx.fastjgame.findpath.jps.JPSFindPathContext;
-import com.wjybxx.fastjgame.findpath.jps.JPSFindPathStrategy;
 import com.wjybxx.fastjgame.findpath.WalkableGridStrategy;
 import com.wjybxx.fastjgame.findpath.WalkableGridStrategys;
+import com.wjybxx.fastjgame.findpath.jps.JPSFindPathContext;
+import com.wjybxx.fastjgame.findpath.jps.JPSFindPathStrategy;
 import com.wjybxx.fastjgame.scene.GridObstacle;
 import com.wjybxx.fastjgame.scene.MapData;
 import com.wjybxx.fastjgame.scene.MapGrid;

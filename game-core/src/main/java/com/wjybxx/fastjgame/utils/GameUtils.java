@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.utils;
 
 import com.google.gson.GsonBuilder;
+import com.wjybxx.fastjgame.misc.PlatformType;
 import com.wjybxx.fastjgame.misc.PortRange;
 import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import org.slf4j.Logger;
@@ -193,6 +194,36 @@ public class GameUtils {
      */
     public static boolean isNullOrEmptyString(String str) {
         return null == str || str.length() == 0 || str.trim().length() == 0;
+    }
+
+    // db
+
+    /**
+     * 获取中心服的数据库名字
+     * @param platformType 运营平台
+     * @param actualServerId 服id
+     * @return dbName
+     */
+    public static String centerDBName(PlatformType platformType, int actualServerId){
+        // platform的名字可能被修改，但是数字标记不可以被修改
+        return "center_" + platformType.getNumber() + "_" + actualServerId;
+    }
+
+    /**
+     * 战区数据库
+     * @param warzoneId 战区id
+     * @return dbName
+     */
+    public static String warzoneDBName(int warzoneId){
+        return "warzone_" + warzoneId;
+    }
+
+    /**
+     * 全局数据库名字
+     * @return dbName
+     */
+    public static String globalDBName(){
+        return "global";
     }
 
 }

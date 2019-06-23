@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.enummapper.NumberEnumMapper;
 import com.wjybxx.fastjgame.net.async.event.NetEventType;
 import com.wjybxx.fastjgame.net.common.RoleType;
 import com.wjybxx.fastjgame.scene.GridObstacle;
+import com.wjybxx.fastjgame.utils.EnumUtils;
 import com.wjybxx.fastjgame.utils.ReflectionUtils;
 
 /**
@@ -57,7 +58,7 @@ public class NumberEnumTest {
             return ordinal() + 1;
         }
 
-        private static final NumberEnumMapper<EEE> mapping = ReflectionUtils.indexNumberEnum(values());
+        private static final NumberEnumMapper<EEE> mapping = EnumUtils.indexNumberEnum(values());
 
         public static EEE forNumber(int number){
             return mapping.forNumber(number);

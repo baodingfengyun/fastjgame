@@ -14,18 +14,23 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.misc;
+package com.wjybxx.fastjgame.config;
 
 /**
- * 使用到的数据库名字枚举，避免直接使用字符串
+ * npc的配置属性
  * @author wjybxx
  * @version 1.0
- * date - 2019/5/21 17:50
+ * date - 2019/6/23 16:46
  * github - https://github.com/hl845740757
  */
-public enum MongoDatabaseName {
+public class NpcConfig {
+
     /**
-     * 测试用，和数据库名字一致
+     * npc的id，索引
      */
-    test,
+    public final int npcId;
+
+    public NpcConfig(int npcId) {
+        this.npcId = npcId;
+    }
 }

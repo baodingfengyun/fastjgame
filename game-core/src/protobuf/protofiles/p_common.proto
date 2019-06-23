@@ -1,0 +1,19 @@
+// 公共数据结构，枚举定义的地方
+syntax = "proto3";
+package fastjgame;
+
+// optimize_for (file option): Can be set to SPEED, CODE_SIZE, or LITE_RUNTIME.
+option optimize_for=SPEED;
+
+option java_package="com.wjybxx.fastjgame.protobuffer";
+option java_outer_classname="p_common";
+
+// 玩家需要序列化的数据
+message p_player_data{
+	int64 playerGuid = 1;
+	// 所属的平台号
+	int32 platformNumber=2;
+	// 逻辑服，注册时的服务器
+	int32 logicServerId = 3;
+}
+

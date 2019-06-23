@@ -27,8 +27,8 @@ public interface AcquireRemoteFun<T> {
 
     /**
      * 申请资源，直到成功或中断
-     * @param resource
-     * @throws Exception
+     * @param resource 代表资源的句柄
+     * @throws Exception 申请资源失败，可能是超时，也可能是其它异常
      */
     void acquire(T resource) throws Exception;
 }

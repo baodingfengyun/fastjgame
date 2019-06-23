@@ -25,25 +25,31 @@ package com.wjybxx.fastjgame.shape;
  */
 public class UnmodifiablePoint3D extends Point3D{
 
-    private final Point3D point3D;
+    private final float x;
+
+    private final float y;
+
+    private final float z;
 
     public UnmodifiablePoint3D(Point3D point3D) {
-        this.point3D = point3D;
+        this.x = point3D.getX();
+        this.y = point3D.getY();
+        this.z = point3D.getZ();
     }
 
     @Override
     public float getX() {
-        return point3D.getX();
+        return x;
     }
 
     @Override
     public float getY() {
-        return point3D.getY();
+        return y;
     }
 
     @Override
     public float getZ() {
-        return point3D.getZ();
+        return z;
     }
 
     @Override

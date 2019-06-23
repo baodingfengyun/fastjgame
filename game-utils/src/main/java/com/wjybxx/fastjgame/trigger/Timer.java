@@ -16,24 +16,29 @@
 
 package com.wjybxx.fastjgame.trigger;
 
+import javax.annotation.concurrent.NotThreadSafe;
+import java.util.Set;
+
 /**
+ * 定时器，目前一个timer不允许添加到多个{@link TriggerInterface}
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/4/27 15:01
  * github - https://github.com/hl845740757
  */
+@NotThreadSafe
 public class Timer {
     /**
      * 上次执行的时间戳
      */
     private long lastExecuteMillTime;
+
     /**
      * 执行间隔(毫秒)
-     * 只有在执行回调的时候修改delayTime是安全的，
-     * 其它时候修改delayTime都是不安全的，它会可能破坏存储结构,因此禁止随意的修改timer延迟时间
-     * 若需要修改延迟时间，要么回调的时候修改，要么删除原timer，添加新timer
      */
-    private long delayTime;
+    private long interval;
+
     /**
      * 剩余执行次数
      */
@@ -45,31 +50,50 @@ public class Timer {
     private final TimerCallBack callBack;
 
     /**
+     * 该timer当前的所有者
+     */
+    private TriggerInterface owner;
+
+    /**
      * 创建一个定时器实例
-     * @param delayTime 执行间隔(毫秒)
+     * @param interval 执行间隔(毫秒)
      * @param executeNum 执行次数
      * @param callBack 回调函数
      */
-    public Timer(long delayTime, int executeNum, TimerCallBack callBack) {
-        this.delayTime = delayTime;
+    public Timer(long interval, int executeNum, TimerCallBack callBack) {
+        this.interval = interval;
         this.executeNum = executeNum;
         this.callBack = callBack;
     }
 
-    long getLastExecuteMillTime() {
-        return lastExecuteMillTime;
+    /**
+     * 获取timer当前的执行间隔
+     * @return interval
+     */
+    public long getInterval() {
+        return interval;
     }
 
-    void setLastExecuteMillTime(long lastExecuteMillTime) {
-        this.lastExecuteMillTime = lastExecuteMillTime;
+    /**
+     * 更新timer的执行间隔
+     * @param interval 执行间隔
+     */
+    public void setInterval(long interval) {
+        if (this.interval == interval){
+            return;
+        }
+        this.interval = interval;
+        // 执行间隔发生改变，需要通知它的主人进行调整
+        if (null != owner){
+            owner.priorityChanged(this);
+        }
     }
 
-    public long getDelayTime() {
-        return delayTime;
-    }
-
-    public void setDelayTime(long delayTime) {
-        this.delayTime = delayTime;
+    /**
+     * 关闭timer
+     */
+    public void closeTimer(){
+        this.executeNum =0;
     }
 
     public int getExecuteNum() {
@@ -85,21 +109,6 @@ public class Timer {
     }
 
     /**
-     * 获取下次执行的时间戳
-     * @return
-     */
-    public long getNextExecuteMillTime(){
-        return lastExecuteMillTime + delayTime;
-    }
-
-    /**
-     * 关闭timer
-     */
-    public void closeTimer(){
-        this.executeNum =0;
-    }
-
-    /**
      * 创建一个无限执行的timer
      * @see #Timer(long, int, TimerCallBack)
      * @return executeNum == Integer.MAX_VALUE
@@ -107,4 +116,32 @@ public class Timer {
     public static Timer newInfiniteTimer(long delayTime,TimerCallBack callBack){
         return new Timer(delayTime,Integer.MAX_VALUE,callBack);
     }
+
+    // ------------------------------------- internal ---------------------------------
+
+    TriggerInterface getOwner() {
+        return owner;
+    }
+
+    void setOwner(TriggerInterface owner) {
+        this.owner = owner;
+    }
+
+    /**
+     * 获取下次执行的时间戳
+     * @return
+     */
+    long getNextExecuteMillTime(){
+        return lastExecuteMillTime + interval;
+    }
+
+
+    long getLastExecuteMillTime() {
+        return lastExecuteMillTime;
+    }
+
+    void setLastExecuteMillTime(long lastExecuteMillTime) {
+        this.lastExecuteMillTime = lastExecuteMillTime;
+    }
+
 }

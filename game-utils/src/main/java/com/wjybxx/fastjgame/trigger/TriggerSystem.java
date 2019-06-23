@@ -19,6 +19,8 @@ package com.wjybxx.fastjgame.trigger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.NotThreadSafe;
+import java.util.Comparator;
 import java.util.PriorityQueue;
 
 /**
@@ -28,32 +30,40 @@ import java.util.PriorityQueue;
  * date - 2019/4/27 15:06
  * github - https://github.com/hl845740757
  */
+@NotThreadSafe
 public class TriggerSystem implements TriggerInterface{
 
-    private static final Logger logger= LoggerFactory.getLogger(TriggerSystem.class);
+    private static final Logger logger = LoggerFactory.getLogger(TriggerSystem.class);
 
-    private final PriorityQueue<Timer> timerQueue;
+    private static final Comparator<Timer> timerComparator = Comparator.comparingLong(Timer::getNextExecuteMillTime);
+
+    private final PriorityQueue<Timer> timerQueue = new PriorityQueue<>(timerComparator);
 
     public TriggerSystem() {
-        timerQueue = new PriorityQueue<>(((o1, o2) -> {
-            // 存在缺陷：
-            // 在执行timer的时候修改delayTime是安全的,会重新插入
-            // 但是随意修改delayTime,修改不会立即生效，还可能导致其它问题
-            return Long.compare(o1.getNextExecuteMillTime(),o2.getNextExecuteMillTime());
-        }));
+
     }
 
-
-    public final void removeTimer(Timer timer){
-        timerQueue.remove(timer);
+    /**
+     * 移除指定定时器
+     * @param timer 要删除的定时器
+     * @return 如果删除成功(timer存在于触发器系统中)则返回true，否则返回false；
+     */
+    public final boolean removeTimer(Timer timer){
+        return timerQueue.remove(timer);
     }
 
     @Override
     public final void addTimer(Timer timer,long curMillTime) {
         timer.setLastExecuteMillTime(curMillTime);
+        timer.setOwner(this);
         timerQueue.offer(timer);
     }
 
+
+    /**
+     * 检查所有的定时器，执行哪些可以执行的定时器。
+     * @param curMillTime 当前时间戳
+     */
     @Override
     public final void tickTrigger(long curMillTime) {
         while (timerQueue.size()>0){
@@ -62,11 +72,13 @@ public class TriggerSystem implements TriggerInterface{
             if (curMillTime<timer.getNextExecuteMillTime()){
                 break;
             }
+
             //时间到了，先弹出
             timerQueue.poll();//poll若没有元素，则返回null
 
             //已执行完毕(取消执行)，无需重新压入
             if (timer.getExecuteNum()<=0){
+                timer.setOwner(null);
                 continue;
             }
 
@@ -79,6 +91,7 @@ public class TriggerSystem implements TriggerInterface{
 
             //已执行完毕，无需重新压入
             if (timer.getExecuteNum()<=0){
+                timer.setOwner(null);
                 continue;
             }
 
@@ -86,5 +99,12 @@ public class TriggerSystem implements TriggerInterface{
             timer.setLastExecuteMillTime(curMillTime);
             timerQueue.offer(timer);//若超过队列上限，则返回false
         }
+    }
+
+    @Override
+    public void priorityChanged(Timer timer) {
+        // 重新放入堆结构，这是比较笨的方法
+        timerQueue.remove(timer);
+        timerQueue.add(timer);
     }
 }

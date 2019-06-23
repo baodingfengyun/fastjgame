@@ -197,8 +197,7 @@ public class ExampleLoginServerWorld extends World {
             ExampleJsonMsg.LoginRequest syncRequest = new ExampleJsonMsg.LoginRequest("syncRequest",
                     serverInfo.getSyncRpcSequencer().incAndGet());
             long startTime=System.currentTimeMillis();
-            Optional<ExampleJsonMsg.LoginResponse> response = syncC2SSessionMrg.request(serverInfo.getServerGuid(), syncRequest,
-                    ExampleJsonMsg.LoginResponse.class);
+            Optional<ExampleJsonMsg.LoginResponse> response = syncC2SSessionMrg.call(serverInfo.getServerGuid(), syncRequest);
             if (response.isPresent()){
                 long costTime=System.currentTimeMillis()-startTime;
                 logger.info("serverGuid {} syncRpc request success,cost {} millTimes, response {}",serverInfo.getServerGuid(),costTime,response.get());

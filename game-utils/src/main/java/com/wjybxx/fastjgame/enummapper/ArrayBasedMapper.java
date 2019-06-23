@@ -32,10 +32,9 @@ import java.lang.reflect.Array;
 public class ArrayBasedMapper<T extends NumberEnum> implements NumberEnumMapper<T>{
 
     /**
-     * 支持的最大大小，越大越容易浪费空间
-     * (inclusive)
+     * 最小空间资源利用率，小于该值空间浪费太大
      */
-    private static final int MAX_SIZE = 32;
+    private static final float THRESHOLD = 0.7f;
 
     private final T[] elements;
 
@@ -44,20 +43,20 @@ public class ArrayBasedMapper<T extends NumberEnum> implements NumberEnumMapper<
 
     /**
      * new instance
-     * 构造对象之前必须调用{@link #available(int, int)}
+     * 构造对象之前必须调用{@link #available(int, int, int)}
      * @param values 枚举的所有元素
      * @param minNumber 枚举中的最小number
      * @param maxNumber 枚举中的最大number
      */
     @SuppressWarnings("unchecked")
     public ArrayBasedMapper(T[] values,int minNumber,int maxNumber) {
-        assert available(minNumber,maxNumber);
+        assert available(minNumber,maxNumber, values.length);
 
         this.minNumber = minNumber;
         this.maxNumber = maxNumber;
 
         // 数组真实长度
-        int capacity = maxNumber - minNumber + 1;
+        int capacity = capacity(minNumber, maxNumber);
         this.elements = (T[]) Array.newInstance(values.getClass().getComponentType(),capacity);
 
         // 存入数组
@@ -83,11 +82,20 @@ public class ArrayBasedMapper<T extends NumberEnum> implements NumberEnumMapper<
      * 是否可以使用基于数组的映射
      * @param minNumber num的最小值
      * @param maxNumber num的最大值
-     * @return
+     * @param length 元素个数
+     * @return 如果空间利用率能达到期望的话，返回true。
      */
-    public static boolean available(int minNumber, int maxNumber){
-        // maxNumber - minNumber 为最大下标
-        // 由于枚举的数字不可以重复，因此枚举数组的长度也不会大于 MAX_SIZE
-        return maxNumber - minNumber < MAX_SIZE;
+    public static boolean available(int minNumber, int maxNumber, int length){
+        return length >= Math.ceil(capacity(minNumber, maxNumber) * THRESHOLD);
+    }
+
+    /**
+     * 计算需要的容量
+     * @param minNumber num的最小值
+     * @param maxNumber num的最大值
+     * @return capacity
+     */
+    private static int capacity(int minNumber, int maxNumber) {
+        return maxNumber - minNumber + 1;
     }
 }

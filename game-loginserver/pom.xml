@@ -13,13 +13,12 @@
     <artifactId>game-loginserver</artifactId>
 
     <dependencies>
-
+        <!-- core包依赖 -->
         <dependency>
             <groupId>com.wjybxx.fastjgame</groupId>
             <artifactId>game-core</artifactId>
-            <version>${game-version}</version>
+            <version>1.0</version>
         </dependency>
-
     </dependencies>
 
 </project>

@@ -46,12 +46,6 @@ public abstract class Point3D implements Point<Point3D>{
      */
     public abstract void updateLocation(float x, float y, float z);
 
-    public abstract void setX(float x);
-
-    public abstract void setY(float y);
-
-    public abstract void setZ(float z);
-
     /**
      * 重新绘制坐标，并返回自己，用于复用对象时。
      */
@@ -61,22 +55,28 @@ public abstract class Point3D implements Point<Point3D>{
     }
 
     /**
-     * x 从左到右
+     * x 正方向从左到右
      * @return float
      */
     public abstract float getX();
 
     /**
-     * y 从上到下
-     * @return
+     * y 正方向从下到上
+     * @return float
      */
     public abstract float getY();
 
     /**
-     * z 从里到外
-     * @return
+     * z 正方向朝向屏幕后方
+     * @return float
      */
     public abstract float getZ();
+
+    public abstract void setX(float x);
+
+    public abstract void setY(float y);
+
+    public abstract void setZ(float z);
 
     /**
      * 创建一个默认坐标的3d坐标点

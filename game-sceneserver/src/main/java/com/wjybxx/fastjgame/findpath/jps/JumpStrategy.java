@@ -169,6 +169,20 @@ public abstract class JumpStrategy {
     protected abstract MapGrid horizontalJump(JPSFindPathContext context, final int startX, final int currentY, int dx);
 
     /**
+     * 尝试向水平方向跳跃
+     * @param context 寻路上下文
+     * @param currentX 当前x坐标
+     * @param currentY 当前y坐标
+     * @param dx deltaX x增量
+     */
+    protected final MapGrid tryHorizontalJump(JPSFindPathContext context, final int currentX, int currentY, int dx) {
+        if (!context.isWalkable(currentX + dx, currentY)){
+            return null;
+        }
+        return horizontalJump(context, currentX + dx, currentY, dx);
+    }
+
+    /**
      * 垂直方向跳跃(moving along y)
      * （我们以向上（北方）走进行表述）
      * @param context 寻路上下文
@@ -178,4 +192,18 @@ public abstract class JumpStrategy {
      * @return jump point(拐点)
      */
     protected abstract MapGrid verticalJump(JPSFindPathContext context, final int currentX, final int startY, int dy);
+
+    /**
+     * 尝试向垂直方向跳跃
+     * @param context 寻路上下文
+     * @param currentX 当前x坐标
+     * @param currentY 当前y坐标
+     * @param dy deltaY y增量
+     */
+    protected final MapGrid tryVerticalJump(JPSFindPathContext context, final int currentX, int currentY, int dy) {
+        if (!context.isWalkable(currentX, currentY + dy)){
+            return null;
+        }
+        return verticalJump(context, currentX, currentY + dy, dy);
+    }
 }

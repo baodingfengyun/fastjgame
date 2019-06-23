@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.test;
 
-import com.wjybxx.fastjgame.config.TemplateSceneConfig;
+import com.wjybxx.fastjgame.config.SceneConfig;
 import com.wjybxx.fastjgame.misc.SceneType;
 import com.wjybxx.fastjgame.mrg.SceneWrapper;
 import com.wjybxx.fastjgame.scene.Scene;
@@ -29,10 +29,14 @@ import com.wjybxx.fastjgame.scene.Scene;
  */
 public class SceneTest {
 
+    public static void main(String[] args) {
+
+    }
+
 
     private static class ExampleScene extends Scene{
 
-        public ExampleScene(long guid, TemplateSceneConfig mapConfig, SceneWrapper sceneWrapper) {
+        public ExampleScene(long guid, SceneConfig mapConfig, SceneWrapper sceneWrapper) {
             super(guid, mapConfig, sceneWrapper);
         }
 

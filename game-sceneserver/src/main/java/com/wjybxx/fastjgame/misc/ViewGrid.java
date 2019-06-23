@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.scene;
+package com.wjybxx.fastjgame.misc;
 
 import com.wjybxx.fastjgame.dsl.CoordinateSystem2D;
 import com.wjybxx.fastjgame.shape.Grid2D;
@@ -25,7 +25,6 @@ import com.wjybxx.fastjgame.shape.shape2d.Shape2D;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.ArrayList;
-import java.util.List;
 
 import static com.wjybxx.fastjgame.utils.GameConstant.VIEWABLE_GRID_NUM;
 
@@ -69,7 +68,7 @@ public class ViewGrid extends GameObjectContainer implements Shape2D, Grid2D {
     private final ArrayList<ViewGrid> viewableGrids = new ArrayList<>(VIEWABLE_GRID_NUM);
 
     public ViewGrid(int rowIndex, int colIndex, int gridWidth) {
-        this(rowIndex,colIndex,gridWidth,InitCapacityHolder.EMPTY);
+        this(rowIndex,colIndex,gridWidth, InitCapacityHolder.EMPTY);
     }
 
     public ViewGrid(int rowIndex, int colIndex, int gridWidth,InitCapacityHolder initCapacityHolder) {

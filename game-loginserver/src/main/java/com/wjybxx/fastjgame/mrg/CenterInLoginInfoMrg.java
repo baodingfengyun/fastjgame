@@ -42,32 +42,33 @@ public class CenterInLoginInfoMrg {
     /**
      * 平台 -> 服id-> 服信息的映射，暂时未涉及跨平台
      */
-    private final Map<PlatformType,Int2ObjectMap<CenterInLoginInfo>> platInfoMap=new EnumMap<>(PlatformType.class);
+    private final Map<PlatformType,Int2ObjectMap<CenterInLoginInfo>> platInfoMap = new EnumMap<>(PlatformType.class);
 
     @Inject
     public CenterInLoginInfoMrg() {
 
     }
 
-    public void onDiscoverCenterServer(CenterNodeName nodeName, CenterNodeData centerNode){
-        Int2ObjectMap<CenterInLoginInfo> serverId2InfoMap = platInfoMap.computeIfAbsent(nodeName.getPlatformType()
-                , platformType -> new Int2ObjectOpenHashMap<>());
-        assert !serverId2InfoMap.containsKey(nodeName.getServerId());
-
-        CenterInLoginInfo centerInLoginInfo=new CenterInLoginInfo(centerNode.getProcessGuid(),nodeName.getPlatformType(),
-                nodeName.getServerId(),centerNode.getInnerHttpAddress());
-        serverId2InfoMap.put(nodeName.getServerId(),centerInLoginInfo);
-        logger.info("{}-{} centerNode added.",nodeName.getPlatformType(),nodeName.getServerId());
+    private Int2ObjectMap<CenterInLoginInfo> getServerId2InfoMap(PlatformType platformType){
+        return platInfoMap.computeIfAbsent(platformType, type -> new Int2ObjectOpenHashMap<>());
     }
 
-    public void onCenterServerNodeRemove(CenterNodeName nodeName, CenterNodeData centerNode){
-        Int2ObjectMap<CenterInLoginInfo> serverId2InfoMap = platInfoMap.computeIfAbsent(nodeName.getPlatformType()
-                , platformType -> new Int2ObjectOpenHashMap<>());
+    public void onDiscoverCenterServer(CenterNodeName nodeName, CenterNodeData nodeData){
+        Int2ObjectMap<CenterInLoginInfo> serverId2InfoMap = getServerId2InfoMap(nodeName.getPlatformType());
+        assert !serverId2InfoMap.containsKey(nodeName.getServerId());
 
+        CenterInLoginInfo centerInLoginInfo=new CenterInLoginInfo(nodeData.getProcessGuid(),nodeName.getPlatformType(),
+                nodeName.getServerId(),nodeData.getInnerHttpAddress());
+        serverId2InfoMap.put(nodeName.getServerId(),centerInLoginInfo);
+        logger.info("{}-{} nodeData added.",nodeName.getPlatformType(),nodeName.getServerId());
+    }
+
+    public void onCenterServerNodeRemove(CenterNodeName nodeName, CenterNodeData nodeData){
+        Int2ObjectMap<CenterInLoginInfo> serverId2InfoMap = getServerId2InfoMap(nodeName.getPlatformType());
         assert serverId2InfoMap.containsKey(nodeName.getServerId());
 
         serverId2InfoMap.remove(nodeName.getServerId());
-        logger.info("{}-{} centerNode removed.",nodeName.getPlatformType(),nodeName.getServerId());
+        logger.info("{}-{} nodeData removed.",nodeName.getPlatformType(),nodeName.getServerId());
     }
 
 }

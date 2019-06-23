@@ -30,7 +30,6 @@ import java.util.Set;
  * 消息对象映射器，存储消息id到消息类的映射关系。
  * 它是不可变对象，是天然的线程安全的；
  *
- *
  * @author wjybxx
  * @version 1.0
  * date - 2019/4/27 13:47

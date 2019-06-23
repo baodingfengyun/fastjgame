@@ -17,12 +17,14 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
+import com.google.protobuf.Message;
+import com.google.protobuf.Message.Builder;
 import com.wjybxx.fastjgame.constants.NetConstants;
+import com.wjybxx.fastjgame.gameobject.GameObject;
+import com.wjybxx.fastjgame.gameobject.Player;
 import com.wjybxx.fastjgame.misc.PlatformType;
+import com.wjybxx.fastjgame.misc.ViewGrid;
 import com.wjybxx.fastjgame.mrg.async.S2CSessionMrg;
-import com.wjybxx.fastjgame.scene.ViewGrid;
-import com.wjybxx.fastjgame.scene.gameobject.GameObject;
-import com.wjybxx.fastjgame.scene.gameobject.Player;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +33,10 @@ import java.util.function.Predicate;
 
 /**
  * 对会话信息的封装，提供良好的接口，方便使用；
+ * 
+ * 注意：广播消息，避免造成错误，必须是构建完成的消息对象。
+ * 只对单个玩家发送时，这里提供发送builder对象的接口；
+ * 
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/4 18:22
@@ -48,11 +54,13 @@ public class SceneSendMrg {
      * center服在scene服中的信息
      */
     private final CenterInSceneInfoMrg centerInSceneInfoMrg;
+    private final PlayerSessionMrg playerSessionMrg;
 
     @Inject
-    public SceneSendMrg(S2CSessionMrg s2CSessionMrg, CenterInSceneInfoMrg centerInSceneInfoMrg) {
+    public SceneSendMrg(S2CSessionMrg s2CSessionMrg, CenterInSceneInfoMrg centerInSceneInfoMrg, PlayerSessionMrg playerSessionMrg) {
         this.s2CSessionMrg = s2CSessionMrg;
         this.centerInSceneInfoMrg = centerInSceneInfoMrg;
+        this.playerSessionMrg = playerSessionMrg;
     }
 
     /**
@@ -60,8 +68,17 @@ public class SceneSendMrg {
      * @param player 玩家
      * @param msg 消息
      */
-    public void sendToPlayer(Player player,Object msg){
+    public void sendToPlayer(Player player, Message msg){
         s2CSessionMrg.send(player.getGuid(),msg);
+    }
+
+    /**
+     * 发送消息给玩家
+     * @param player 玩家
+     * @param builder 还未真正构造的消息对象
+     */
+    public void sendToPlayer(Player player, Builder builder){
+        sendToPlayer(player, builder.build());
     }
 
     /**
@@ -69,7 +86,7 @@ public class SceneSendMrg {
      * @param player 玩家
      * @param msg 消息
      */
-    public void sendToCenter(Player player,Object msg){
+    public void sendToCenter(Player player, Message msg){
         sendToCenter(player.getPlatformType(),player.getActualServerId(),msg);
     }
 
@@ -79,7 +96,7 @@ public class SceneSendMrg {
      * @param serverId 中心服的id
      * @param msg 消息
      */
-    public void sendToCenter(PlatformType platformType,int serverId,Object msg){
+    public void sendToCenter(PlatformType platformType, int serverId, Message msg){
         long centerGuid = centerInSceneInfoMrg.getCenterGuid(platformType, serverId);
         if (NetConstants.isInvalid(centerGuid)){
             logger.warn("send to disconnected center {}-{}",platformType,serverId);
@@ -93,7 +110,7 @@ public class SceneSendMrg {
      * @param gameObject 广播中心对象
      * @param msg 广播消息
      */
-    public void broadcastPlayer(GameObject gameObject,Object msg){
+    public void broadcastPlayer(GameObject gameObject, Message msg){
         ViewGrid centerViewGrid = gameObject.getViewGrid();
         broadcastPlayer(centerViewGrid.getViewableGrids(), msg);
     }
@@ -103,7 +120,7 @@ public class SceneSendMrg {
      * @param viewGrids 视野格子
      * @param msg 消息
      */
-    public void broadcastPlayer(List<ViewGrid> viewGrids, Object msg){
+    public void broadcastPlayer(List<ViewGrid> viewGrids, Message msg){
         for (ViewGrid viewGrid: viewGrids){
             if (viewGrid.getPlayerNum() <= 0){
                 continue;
@@ -120,7 +137,7 @@ public class SceneSendMrg {
      * @param msg 消息对象
      * @param exceptPlayer 不广播该玩家
      */
-    public void broadcastPlayerExcept(GameObject gameObject,Object msg,Player exceptPlayer){
+    public void broadcastPlayerExcept(GameObject gameObject, Message msg, Player exceptPlayer){
         ViewGrid centerViewGrid = gameObject.getViewGrid();
         broadcastPlayerExcept(centerViewGrid.getViewableGrids(), msg, exceptPlayer);
     }
@@ -131,7 +148,7 @@ public class SceneSendMrg {
      * @param msg 消息
      * @param exceptPlayer 去除的玩家
      */
-    public void broadcastPlayerExcept(List<ViewGrid> viewGrids,Object msg,Player exceptPlayer){
+    public void broadcastPlayerExcept(List<ViewGrid> viewGrids, Message msg, Player exceptPlayer){
         for (ViewGrid viewGrid: viewGrids){
             if (viewGrid.getPlayerNum() <= 0){
                 continue;
@@ -153,7 +170,7 @@ public class SceneSendMrg {
      * @param except 排除条件，true的不广播
      * {@link com.wjybxx.fastjgame.misc.SceneBroadcastFilters}可能会有帮助
      */
-    public void broadcastPlayerExcept(GameObject gameObject, Object msg, Predicate<Player> except){
+    public void broadcastPlayerExcept(GameObject gameObject, Message msg, Predicate<Player> except){
         ViewGrid centerViewGrid = gameObject.getViewGrid();
         broadcastPlayerExcept(centerViewGrid.getViewableGrids(), msg, except);
     }
@@ -165,7 +182,7 @@ public class SceneSendMrg {
      * @param except 排除条件，true的不广播
      * {@link com.wjybxx.fastjgame.misc.SceneBroadcastFilters}可能会有帮助
      */
-    public void broadcastPlayerExcept(List<ViewGrid> viewGrids, Object msg, Predicate<Player> except){
+    public void broadcastPlayerExcept(List<ViewGrid> viewGrids, Message msg, Predicate<Player> except){
         for (ViewGrid viewGrid: viewGrids){
             if (viewGrid.getPlayerNum() <= 0){
                 continue;

@@ -48,15 +48,17 @@ public class CenterWorld extends WorldCore {
     private final SceneInCenterInfoMrg sceneInCenterInfoMrg;
     private final CenterWorldInfoMrg centerWorldInfoMrg;
     private final WarzoneInCenterInfoMrg warzoneInCenterInfoMrg;
+    private final CenterSendMrg sendMrg;
 
     @Inject
     public CenterWorld(WorldWrapper worldWrapper, WorldCoreWrapper coreWrapper, CenterDiscoverMrg centerDiscoverMrg,
-                       SceneInCenterInfoMrg sceneInCenterInfoMrg, WarzoneInCenterInfoMrg warzoneInCenterInfoMrg) {
+                       SceneInCenterInfoMrg sceneInCenterInfoMrg, WarzoneInCenterInfoMrg warzoneInCenterInfoMrg, CenterSendMrg sendMrg) {
         super(worldWrapper, coreWrapper);
         this.centerDiscoverMrg = centerDiscoverMrg;
         this.sceneInCenterInfoMrg = sceneInCenterInfoMrg;
         centerWorldInfoMrg = (CenterWorldInfoMrg) worldWrapper.getWorldInfoMrg();
         this.warzoneInCenterInfoMrg = warzoneInCenterInfoMrg;
+        this.sendMrg = sendMrg;
     }
 
     @Override

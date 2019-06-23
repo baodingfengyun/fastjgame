@@ -17,9 +17,7 @@
 package com.wjybxx.fastjgame.module;
 
 import com.google.inject.Singleton;
-import com.wjybxx.fastjgame.mrg.CenterInWarzoneInfoMrg;
-import com.wjybxx.fastjgame.mrg.WarzoneWorldInfoMrg;
-import com.wjybxx.fastjgame.mrg.WorldInfoMrg;
+import com.wjybxx.fastjgame.mrg.*;
 import com.wjybxx.fastjgame.world.WarzoneWorld;
 import com.wjybxx.fastjgame.world.World;
 
@@ -42,5 +40,8 @@ public class WarzoneModule extends CoreModule{
         // 方便子类直接使用
         bind(WarzoneWorldInfoMrg.class).in(Singleton.class);
         bind(CenterInWarzoneInfoMrg.class).in(Singleton.class);
+        bind(TemplateMrg.class).in(Singleton.class);
+        bind(WarzoneMongoDBMrg.class).in(Singleton.class);
+        bind(WarzoneSendMrg.class).in(Singleton.class);
     }
 }

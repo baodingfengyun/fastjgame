@@ -242,16 +242,15 @@ public class SyncC2SSessionMrg {
     }
 
     /**
-     * 发起同步RPC调用请求
+     * 发起同步RPC调用
      * @param serverGuid 服务器id，向哪个服务器发起请求
      * @param request 请求内容。本质是rpc，只不过不是标准的rpc调用形式，对象的类型就决定了要调用的方法
-     * @param responseClazz 响应消息的类型(帮助强转)
-     * @param <T>
+     * @param <T> 帮助强转
      * @return 注意查看Optional的文档 {@link Optional#isPresent()} {@link Optional#get()}
      * {@link Optional#ifPresent(Consumer)}
      */
     @SuppressWarnings("unchecked")
-    public <T> Optional<T> request(long serverGuid, @Nonnull Object request, Class<T> responseClazz){
+    public <T> Optional<T> call(long serverGuid, @Nonnull Object request){
         SessionWrapper sessionWrapper = sessionMap.get(serverGuid);
         if (null == sessionWrapper){
             throw new IllegalArgumentException("server " +serverGuid + " is not registered or removed");

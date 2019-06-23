@@ -24,9 +24,9 @@ public final class p_sync_center_warzone {
   static {
     java.lang.String[] descriptorData = {
       "\n\033p_sync_center_warzone.proto\022\tfastjgame" +
-      "\032\014p_enum.proto\032\016p_struct.protoB;\n com.wj" +
-      "ybxx.fastjgame.protobufferB\025p_sync_cente" +
-      "r_warzoneH\001b\006proto3"
+      "\032\016p_common.protoB;\n com.wjybxx.fastjgame" +
+      ".protobufferB\025p_sync_center_warzoneH\001b\006p" +
+      "roto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -39,11 +39,9 @@ public final class p_sync_center_warzone {
     com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
-          com.wjybxx.fastjgame.protobuffer.p_enum.getDescriptor(),
-          com.wjybxx.fastjgame.protobuffer.p_struct.getDescriptor(),
+          com.wjybxx.fastjgame.protobuffer.p_common.getDescriptor(),
         }, assigner);
-    com.wjybxx.fastjgame.protobuffer.p_enum.getDescriptor();
-    com.wjybxx.fastjgame.protobuffer.p_struct.getDescriptor();
+    com.wjybxx.fastjgame.protobuffer.p_common.getDescriptor();
   }
 
   // @@protoc_insertion_point(outer_class_scope)

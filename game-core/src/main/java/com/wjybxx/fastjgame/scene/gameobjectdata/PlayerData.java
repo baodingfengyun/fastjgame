@@ -14,29 +14,30 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.scene.gameobject;
+package com.wjybxx.fastjgame.scene.gameobjectdata;
 
 import com.wjybxx.fastjgame.misc.PlatformType;
 
+import javax.annotation.Nonnull;
+
 /**
- * 玩家对象，也是机器人对象；
- * 暂时先直接继承GameObject；
+ * 玩家数据
  * @author wjybxx
  * @version 1.0
- * date - 2019/6/4 16:58
+ * date - 2019/6/23 0:19
  * github - https://github.com/hl845740757
  */
-public class Player extends GameObject{
+public class PlayerData extends GameObjectData{
 
     /**
      * 玩家所在的平台
      */
     private PlatformType platformType;
     /**
-     * 玩家所在的服，逻辑服；
-     * 注册时决定；
+     * 玩家注册账号时的服务器id。
+     * 是玩家的逻辑服，它并不一定是一个真实的服务器。
      */
-    private int serverId;
+    private int logicServerId;
 
     /**
      * 玩家当前真正所属的服务器（合服之后的服）；
@@ -44,8 +45,14 @@ public class Player extends GameObject{
      */
     private int actualServerId;
 
-    public Player(long guid) {
+    public PlayerData(long guid) {
         super(guid);
+    }
+
+    @Nonnull
+    @Override
+    public GameObjectType getObjectType() {
+        return GameObjectType.PLAYER;
     }
 
     public PlatformType getPlatformType() {
@@ -56,12 +63,12 @@ public class Player extends GameObject{
         this.platformType = platformType;
     }
 
-    public int getServerId() {
-        return serverId;
+    public int getLogicServerId() {
+        return logicServerId;
     }
 
-    public void setServerId(int serverId) {
-        this.serverId = serverId;
+    public void setLogicServerId(int logicServerId) {
+        this.logicServerId = logicServerId;
     }
 
     public int getActualServerId() {
@@ -70,10 +77,5 @@ public class Player extends GameObject{
 
     public void setActualServerId(int actualServerId) {
         this.actualServerId = actualServerId;
-    }
-
-    @Override
-    public GameObjectType getObjectType() {
-        return GameObjectType.PLAYER;
     }
 }

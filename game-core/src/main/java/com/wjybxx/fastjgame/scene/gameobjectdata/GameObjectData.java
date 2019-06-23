@@ -14,23 +14,33 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.scene.gameobject;
+package com.wjybxx.fastjgame.scene.gameobjectdata;
+
+import javax.annotation.Nonnull;
 
 /**
- * npc
+ * 场景对象都有一份与场景无关的数据
  * @author wjybxx
  * @version 1.0
- * date - 2019/6/4 17:00
+ * date - 2019/6/23 0:19
  * github - https://github.com/hl845740757
  */
-public class Npc extends GameObject{
+public abstract class GameObjectData {
 
-    public Npc(long guid) {
-        super(guid);
+    /**
+     * 每个对象都有一个唯一的guid。
+     */
+    private final long guid;
+
+    protected GameObjectData(long guid) {
+        this.guid = guid;
     }
 
-    @Override
-    public GameObjectType getObjectType() {
-        return GameObjectType.NPC;
+    public long getGuid() {
+        return guid;
     }
+
+    @Nonnull
+    public abstract GameObjectType getObjectType();
+
 }

@@ -18,9 +18,7 @@ package com.wjybxx.fastjgame.utils;
 
 import com.google.protobuf.MessageLite;
 import com.google.protobuf.Parser;
-import com.wjybxx.fastjgame.enummapper.*;
 import com.wjybxx.fastjgame.ref.NettyTypeParameterFinderAdapter;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +40,6 @@ public class ReflectionUtils {
     private ReflectionUtils(){
         // close
     }
-
 
     /**
      * 查找父类/父接口定义的且被子类声明为具体类型的泛型参数的具体类型
@@ -103,36 +100,4 @@ public class ReflectionUtils {
         return (Class<T>)Class.forName(classFullName);
     }
 
-    /**
-     * 根据枚举的values建立索引；
-     * 该方法的开销相对小，代码量也能省下；
-     * @param values 枚举数组
-     * @param <T> 枚举类型
-     * @return unmodifiable
-     */
-    @SuppressWarnings("unchecked")
-    public static <T extends NumberEnum> NumberEnumMapper<T> indexNumberEnum(T[] values){
-        if (values.length == 0){
-            return (NumberEnumMapper<T>) EmptyMapper.INSTANCE;
-        }
-
-        // 存在一定的浪费，判定重复用
-        Int2ObjectMap<T> result = FastCollectionsUtils.newEnoughCapacityIntMap(values.length);
-        int minNumber = values[0].getNumber();
-        int maxNumber = values[0].getNumber();
-
-        for (T t : values){
-            FastCollectionsUtils.requireNotContains(result,t.getNumber(),"number");
-            result.put(t.getNumber(),t);
-
-            minNumber = Math.min(minNumber,t.getNumber());
-            maxNumber = Math.max(maxNumber,t.getNumber());
-        }
-
-        if (ArrayBasedMapper.available(minNumber,maxNumber)){
-            return new ArrayBasedMapper<>(values,minNumber,maxNumber);
-        }else {
-            return new MapBasedMapper<>(result);
-        }
-    }
 }

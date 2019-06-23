@@ -26,7 +26,12 @@ import com.wjybxx.fastjgame.core.SceneRegion;
  * date - 2019/6/4 13:14
  * github - https://github.com/hl845740757
  */
-public class TemplateSceneConfig {
+public class SceneConfig {
+
+    /**
+     * 场景配置索引
+     */
+    public final int sceneId;
 
     /**
      * 对应的地图资源
@@ -45,7 +50,8 @@ public class TemplateSceneConfig {
 
     // 地图元数据，遮挡信息等，由于文件较大，按需加载，不在加载配置阶段进行加载
 
-    public TemplateSceneConfig(int mapId, int viewableRange, SceneRegion sceneRegion) {
+    public SceneConfig(int sceneId, int mapId, int viewableRange, SceneRegion sceneRegion) {
+        this.sceneId = sceneId;
         this.sceneRegion = sceneRegion;
         this.viewableRange = viewableRange;
         this.mapId = mapId;
