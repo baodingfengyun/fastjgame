@@ -17,10 +17,9 @@
 package com.wjybxx.fastjgame.trigger;
 
 import javax.annotation.concurrent.NotThreadSafe;
-import java.util.Set;
 
 /**
- * 定时器，目前一个timer不允许添加到多个{@link TriggerInterface}
+ * 定时器，目前一个timer不允许添加到多个{@link TriggerSystem}
  *
  * @author wjybxx
  * @version 1.0
@@ -52,7 +51,7 @@ public class Timer {
     /**
      * 该timer当前的所有者
      */
-    private TriggerInterface owner;
+    private TriggerSystem owner;
 
     /**
      * 创建一个定时器实例
@@ -119,11 +118,11 @@ public class Timer {
 
     // ------------------------------------- internal ---------------------------------
 
-    TriggerInterface getOwner() {
+    TriggerSystem getOwner() {
         return owner;
     }
 
-    void setOwner(TriggerInterface owner) {
+    void setOwner(TriggerSystem owner) {
         this.owner = owner;
     }
 

@@ -16,95 +16,32 @@
 
 package com.wjybxx.fastjgame.trigger;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.concurrent.NotThreadSafe;
-import java.util.Comparator;
-import java.util.PriorityQueue;
-
 /**
- * 触发器系统，使用优先级队列存储timer，以获得更好的性能。
+ * 触发器接口
  * @author wjybxx
  * @version 1.0
- * date - 2019/4/27 15:06
+ * date - 2019/4/27 15:05
  * github - https://github.com/hl845740757
  */
-@NotThreadSafe
-public class TriggerSystem implements TriggerInterface{
-
-    private static final Logger logger = LoggerFactory.getLogger(TriggerSystem.class);
-
-    private static final Comparator<Timer> timerComparator = Comparator.comparingLong(Timer::getNextExecuteMillTime);
-
-    private final PriorityQueue<Timer> timerQueue = new PriorityQueue<>(timerComparator);
-
-    public TriggerSystem() {
-
-    }
+public interface TriggerSystem {
 
     /**
-     * 移除指定定时器
-     * @param timer 要删除的定时器
-     * @return 如果删除成功(timer存在于触发器系统中)则返回true，否则返回false；
+     * 添加一个timer。
+     * 由子类选择如何存储timer。
+     * @param timer 定时器
+     * @param curMillTime 当前时间
      */
-    public final boolean removeTimer(Timer timer){
-        return timerQueue.remove(timer);
-    }
-
-    @Override
-    public final void addTimer(Timer timer,long curMillTime) {
-        timer.setLastExecuteMillTime(curMillTime);
-        timer.setOwner(this);
-        timerQueue.offer(timer);
-    }
-
+    void addTimer(Timer timer,long curMillTime);
 
     /**
-     * 检查所有的定时器，执行哪些可以执行的定时器。
-     * @param curMillTime 当前时间戳
+     * 检查timer执行
      */
-    @Override
-    public final void tickTrigger(long curMillTime) {
-        while (timerQueue.size()>0){
-            //取出优先级最高的timer，若不满足执行时间，则直接返回(peek查询首元素若没有元素则返回null)
-            Timer timer=timerQueue.peek();
-            if (curMillTime<timer.getNextExecuteMillTime()){
-                break;
-            }
+    void tickTrigger(long curMillTime);
 
-            //时间到了，先弹出
-            timerQueue.poll();//poll若没有元素，则返回null
-
-            //已执行完毕(取消执行)，无需重新压入
-            if (timer.getExecuteNum()<=0){
-                timer.setOwner(null);
-                continue;
-            }
-
-            try{
-                timer.setExecuteNum(timer.getExecuteNum()-1);
-                timer.getCallBack().callBack(timer);
-            }catch (Exception e){
-                logger.warn("timer callback caught exception",e);
-            }
-
-            //已执行完毕，无需重新压入
-            if (timer.getExecuteNum()<=0){
-                timer.setOwner(null);
-                continue;
-            }
-
-            //修改上次执行的时间戳，必须重新压入
-            timer.setLastExecuteMillTime(curMillTime);
-            timerQueue.offer(timer);//若超过队列上限，则返回false
-        }
-    }
-
-    @Override
-    public void priorityChanged(Timer timer) {
-        // 重新放入堆结构，这是比较笨的方法
-        timerQueue.remove(timer);
-        timerQueue.add(timer);
-    }
+    /**
+     * 指定timer的执行间隔被修改了，优先级发生了改变。
+     * 它的拥有者可能需要进行一些操作，以保证timer优先级的正确性。
+     * @param timer 该定时器的延迟时间被修改；
+     */
+    void priorityChanged(Timer timer);
 }

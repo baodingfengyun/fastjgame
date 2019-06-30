@@ -28,7 +28,7 @@ import com.wjybxx.fastjgame.mrg.MapDataLoadMrg;
 import com.wjybxx.fastjgame.mrg.SceneSendMrg;
 import com.wjybxx.fastjgame.mrg.SceneWrapper;
 import com.wjybxx.fastjgame.scene.gameobjectdata.GameObjectType;
-import com.wjybxx.fastjgame.trigger.TriggerSystem;
+import com.wjybxx.fastjgame.trigger.TriggerSystemImp;
 import com.wjybxx.fastjgame.utils.GameConstant;
 import com.wjybxx.fastjgame.utils.MathUtils;
 import it.unimi.dsi.fastutil.objects.ObjectCollection;
@@ -51,7 +51,7 @@ import static com.wjybxx.fastjgame.scene.gameobjectdata.GameObjectType.*;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public abstract class Scene extends TriggerSystem {
+public abstract class Scene extends TriggerSystemImp {
 
     private static final Logger logger = LoggerFactory.getLogger(Scene.class);
 

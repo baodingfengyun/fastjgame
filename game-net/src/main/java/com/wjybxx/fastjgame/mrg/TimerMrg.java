@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.trigger.TriggerSystem;
+import com.wjybxx.fastjgame.trigger.TriggerSystemImp;
 
 /**
  * 全局定时器管理器
@@ -26,7 +26,7 @@ import com.wjybxx.fastjgame.trigger.TriggerSystem;
  * date - 2019/4/27 22:13
  * github - https://github.com/hl845740757
  */
-public class TimerMrg extends TriggerSystem {
+public class TimerMrg extends TriggerSystemImp {
 
     @Inject
     public TimerMrg() {
