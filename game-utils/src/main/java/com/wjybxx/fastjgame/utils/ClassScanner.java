@@ -34,6 +34,7 @@ import java.util.jar.JarFile;
 import static com.wjybxx.fastjgame.utils.ClassScannerFilters.*;
 
 /**
+ * 类扫描器
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/20 13:57

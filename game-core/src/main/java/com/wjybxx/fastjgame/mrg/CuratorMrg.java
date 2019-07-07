@@ -26,6 +26,7 @@ import com.wjybxx.fastjgame.utils.GameUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.framework.recipes.barriers.DistributedBarrier;
 import org.apache.curator.framework.recipes.cache.*;
 import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 import org.apache.curator.utils.CloseableExecutorService;
@@ -473,11 +474,8 @@ public class CuratorMrg extends AbstractThreadLifeCycleHelper {
      * @throws Exception zk errors
      */
     public void waitForNodeDelete(String path) throws Exception {
-        // 使用NodeCache的话，主要是当前节点不存在的时候，不会产生事件，无法基于事件优雅的等待
-        // 轮询虽然不雅观，但是正确性易保证
-        ConcurrentUtils.awaitRemoteWithSleepingRetry(path,
-                resource -> !isPathExist(resource),
-                1,TimeUnit.SECONDS);
+        final DistributedBarrier barrier = new DistributedBarrier(client, path);
+        ConcurrentUtils.awaitRemoteUninterruptibly(barrier, DistributedBarrier::waitOnBarrier);
     }
 
     /**

@@ -19,6 +19,9 @@ package com.wjybxx.fastjgame.utils;
 import com.wjybxx.fastjgame.enummapper.*;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 
+import javax.annotation.Nullable;
+import java.util.function.ToIntFunction;
+
 /**
  * 枚举辅助类
  * @author wjybxx
@@ -30,6 +33,71 @@ public class EnumUtils {
 
     private EnumUtils() {
         // close
+    }
+
+    /**
+     * 查找指定数字的数字枚举
+     * @param values 数字枚举集合
+     * @param number 要查找的数字
+     * @param <T> 对象类型
+     * @return T
+     */
+    @Nullable
+    public static <T extends NumberEnum> T forNumber(T[] values, int number) {
+        return forNumber(values, NumberEnum::getNumber, number);
+    }
+
+    /**
+     * 查找对应数字的对象
+     * @param values 对象集合
+     * @param func 类型到数字的映射
+     * @param number 要查找的数字
+     * @param <T> 对象类型
+     * @return T
+     */
+    @Nullable
+    public static <T> T forNumber(T[] values, ToIntFunction<T> func, int number) {
+        for (T t : values){
+            if (func.applyAsInt(t) == number){
+                return t;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 通过名字查找枚举。
+     * 与{@link Enum#valueOf(Class, String)}区别在于返回null代替抛出异常。
+     * @param values 枚举集合
+     * @param name 要查找的枚举名字
+     * @param <T> 枚举类型
+     * @return T
+     */
+    @Nullable
+    public static <T extends Enum<T>> T forName(T[] values, String name) {
+        for (T t : values){
+            if (t.name().equals(name)){
+                return t;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 通过名字查找枚举(忽略名字的大小写)。
+     * 与{@link Enum#valueOf(Class, String)}区别在于返回null代替抛出异常。
+     * @param values 枚举集合
+     * @param name 要查找的枚举名字
+     * @param <T> 枚举类型
+     * @return T
+     */
+    public static <T extends Enum<T>> T forNameIgnoreCase(T[] values, String name) {
+        for (T t : values){
+            if (t.name().equalsIgnoreCase(name)){
+                return t;
+            }
+        }
+        return null;
     }
 
     /**
