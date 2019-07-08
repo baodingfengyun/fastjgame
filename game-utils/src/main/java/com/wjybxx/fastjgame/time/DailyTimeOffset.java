@@ -17,7 +17,10 @@
 package com.wjybxx.fastjgame.time;
 
 
-import com.wjybxx.fastjgame.utils.LocalNumberUtils;
+import com.wjybxx.fastjgame.utils.ConfigUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.time.LocalTime;
 
 /**
  * 每日时间，一天内的时间偏移量。
@@ -33,21 +36,18 @@ import com.wjybxx.fastjgame.utils.LocalNumberUtils;
  */
 public class DailyTimeOffset implements TimeOffset{
 
-	/** 小时 0-23 */
-	public final int hour;
-	/** 分钟 0-59 */
-	public final int min;
-	/** 秒 0-59 */
-	public final int sec;
+	private final LocalTime time;
 
 	public DailyTimeOffset(int hour, int min) {
 		this(hour, min, 0);
 	}
 
 	public DailyTimeOffset(int hour, int min, int sec) {
-		this.hour = hour;
-		this.min = min;
-		this.sec = sec;
+		this(LocalTime.of(hour, min, sec));
+	}
+
+	public DailyTimeOffset(LocalTime time) {
+		this.time = time;
 	}
 
 	/**
@@ -56,15 +56,13 @@ public class DailyTimeOffset implements TimeOffset{
 	 */
 	@Override
 	public long toOffset() {
-		return hour * TimeUtils.HOUR + min * TimeUtils.MIN + sec * TimeUtils.SEC;
+		return time.toSecondOfDay() * TimeUtils.SEC;
 	}
 
 	@Override
 	public String toString() {
 		return "DailyTimeOffset{" +
-				"hour=" + hour +
-				", min=" + min +
-				", sec=" + sec +
+				"time=" + time +
 				'}';
 	}
 
@@ -74,16 +72,13 @@ public class DailyTimeOffset implements TimeOffset{
 	 * @return HourAndMin
 	 */
 	public static DailyTimeOffset parseFromConf(String confParam) {
-		String[] split = confParam.split(":");
-		if (split.length == 2) {
-			int hour = LocalNumberUtils.toInt(split[0]);
-			int minute = LocalNumberUtils.toInt(split[1]);
-			return new DailyTimeOffset(hour, minute, 0);
-		} else if (split.length == 3){
-			int hour = LocalNumberUtils.toInt(split[0]);
-			int minute = LocalNumberUtils.toInt(split[1]);
-			int sec = LocalNumberUtils.toInt(split[2]);
-			return new DailyTimeOffset(hour, minute, sec);
+		int count = StringUtils.countMatches(confParam, ':');
+		if (count == 1) {
+			// count == 1 表示两段
+			return new DailyTimeOffset(LocalTime.parse(confParam, TimeUtils.HH_MM));
+		} else if (count == 2){
+			// count ==2 表示3段
+			return new DailyTimeOffset(LocalTime.parse(confParam, TimeUtils.HH_MM_SS));
 		} else {
 			throw new ConfigFormatException("Unsupported HourAndMin format " + confParam);
 		}

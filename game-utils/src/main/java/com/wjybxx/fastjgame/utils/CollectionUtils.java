@@ -17,18 +17,15 @@
 package com.wjybxx.fastjgame.utils;
 
 import com.wjybxx.fastjgame.function.MapConstructor;
-import it.unimi.dsi.fastutil.HashCommon;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
-import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.function.*;
+import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * 集合帮助类
@@ -261,78 +258,4 @@ public final class CollectionUtils {
         return newEnoughCapacityMap(LinkedHashMap::new, initCapacity);
     }
 
-
-    /**
-     * 分隔键值对数组。
-     * @param content 字符串内容
-     * @param arrayDelimiter 数组分隔符
-     * @param kvDelimiter 键值对分隔符
-     * @return
-     */
-    public static Map<String,String> parseKeyValueArray(String content, String arrayDelimiter, String kvDelimiter) {
-        return parseKeyValueArray(content, arrayDelimiter, kvDelimiter, Function.identity(), Function.identity());
-    }
-
-    /**
-     * 分隔键值对数组;
-     * 配合{@link #toKeyValueArray(Map, String, String, Function, Function)}
-     * @param content 字符串内容
-     * @param arrayDelimiter 数组分隔符
-     * @param kvDelimiter 键值对分隔符
-     * @param keyMapper 键类型映射
-     * @param valueMapper 值类型映射
-     * @param <K> 键类型
-     * @param <V> 值类型
-     * @return Map NonNull
-     */
-    public static <K,V> Map<K,V> parseKeyValueArray(String content, String arrayDelimiter, String kvDelimiter,
-                                                    Function<String,K> keyMapper, Function<String, V> valueMapper) {
-        if (StringUtils.isBlank(content)) {
-            return new LinkedHashMap<>();
-        }
-        String[] kvPairArray = content.split(arrayDelimiter);
-        Map<K, V> result = new LinkedHashMap<>(kvPairArray.length, 1);
-        for (String kvPairStr: kvPairArray){
-            String[] kvPair = kvPairStr.split(kvDelimiter, 2);
-            K key = keyMapper.apply(kvPair[0]);
-            // 校验重复
-            if (result.containsKey(key)) {
-                throw new RuntimeException(content + " find duplicate key " + kvPair[0]);
-            }
-            // 解析成功
-            result.put(key, valueMapper.apply(kvPair[1]));
-        }
-        return result;
-    }
-
-    /**
-     * 将键值对数组格式化为键值对的数组字符串；
-     * 配合{@link #parseKeyValueArray(String, String, String, Function, Function)}
-     * @param map 键值对
-     * @param arrayDelimiter 数组分隔符
-     * @param kvDelimiter 键值对分隔符
-     * @param keyMapper 键类型映射
-     * @param valueMapper 值类型映射
-     * @param <K> 键类型
-     * @param <V> 值类型
-     * @return String NonNull
-     */
-    public static <K,V> String toKeyValueArray(Map<K,V> map, String arrayDelimiter, String kvDelimiter,
-                                               Function<K,String> keyMapper, Function<V,String> valueMapper) {
-        if (null == map || map.isEmpty()){
-            return "";
-        }
-        StringBuilder sb = new StringBuilder();
-        for (Map.Entry<K,V> entry : map.entrySet()){
-            // eg: k=v;
-            if (sb.length() > 0){
-                sb.append(arrayDelimiter);
-            }
-            // eg: k=v 这里其实校验是否产生了重复的key字符串会更好
-            sb.append(keyMapper.apply(entry.getKey()));
-            sb.append(kvDelimiter);
-            sb.append(valueMapper.apply(entry.getValue()));
-        }
-        return sb.toString();
-    }
 }

@@ -29,12 +29,13 @@ public class UtilConstants {
     }
 
     /**
-     * 数组分割符 '|'
+     * 默认数组分隔符 '|'
      * 逗号在某些场合下效果不好，逗号使用面太广。
      */
-    public static final String ARRAY_DELIMITER="\\|";
+    public static final String DEFAULT_ARRAY_DELIMITER ="\\|";
+
     /**
-     * 键值对分割符
+     * 默认键值对分隔符
      */
-    public static final String KEY_VALUE_DELIMITER="=";
+    public static final String DEFAULT_KEY_VALUE_DELIMITER = "=";
 }

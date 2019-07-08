@@ -61,6 +61,10 @@ public class TimeUtils {
 
 	/** 默认时间格式器 */
 	public static final DateTimeFormatter DEFAULT_FORMATTER = DateTimeFormatter.ofPattern(DEFAULT_PATTERN);
+	/** 时分秒的格式化器 */
+	public static final DateTimeFormatter HH_MM_SS = DateTimeFormatter.ofPattern("HH:mm:ss");
+	/** 时分的格式化器 */
+	public static final DateTimeFormatter HH_MM = DateTimeFormatter.ofPattern("HH:mm");
 
 	/**
 	 * 将毫秒时间转换为{@link LocalDateTime}

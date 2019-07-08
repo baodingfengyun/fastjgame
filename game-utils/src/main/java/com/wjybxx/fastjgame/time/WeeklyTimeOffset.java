@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.time;
 
 
-import com.wjybxx.fastjgame.utils.LocalNumberUtils;
+import com.wjybxx.fastjgame.utils.ConfigUtils;
 
 import java.time.DayOfWeek;
 
@@ -86,7 +86,7 @@ public class WeeklyTimeOffset implements TimeOffset{
 		if (params.length != 2){
 			throw new ConfigFormatException("Unsupported DayOfWeekTime format " + confParam);
 		}
-		int dayOfWeek = LocalNumberUtils.toInt(params[0]);
+		int dayOfWeek = ConfigUtils.getAsInt(params[0]);
 		DailyTimeOffset dailyTimeOffset = DailyTimeOffset.parseFromConf(params[1]);
 		return new WeeklyTimeOffset(DayOfWeek.of(dayOfWeek), dailyTimeOffset);
 	}

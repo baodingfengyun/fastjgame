@@ -20,7 +20,7 @@ import com.wjybxx.fastjgame.constants.UtilConstants;
 /**
  * 基于字符串键值对配置的帮助类。
  *
- * 注意：数组分隔为{@link UtilConstants#ARRAY_DELIMITER} 即'|'
+ * 注意：数组分隔为{@link UtilConstants#DEFAULT_ARRAY_DELIMITER} 即'|'
  *
  * @author wjybxx
  * @version 1.0
@@ -133,7 +133,7 @@ public abstract class ConfigHelper {
 
     // region 获取为数组类型
     public String[] getAsStringArray(String key){
-        return getAsString(key).split(UtilConstants.ARRAY_DELIMITER);
+        return getAsString(key).split(UtilConstants.DEFAULT_ARRAY_DELIMITER);
     }
 
     public int[] getAsIntArray(String key){
