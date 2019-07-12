@@ -40,12 +40,12 @@
             <optional>true</optional>
         </dependency>
 
-        <!--json支持-->
-        <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
+        <!-- json支持，还是jackson好一点 -->
+        <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
         <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.8.5</version>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.9.9</version>
         </dependency>
 
         <!--protoBuf支持-->

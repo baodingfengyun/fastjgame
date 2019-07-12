@@ -21,7 +21,7 @@ import com.wjybxx.fastjgame.core.onlinenode.CenterNodeData;
 import com.wjybxx.fastjgame.core.onlinenode.CenterNodeName;
 import com.wjybxx.fastjgame.misc.AbstractThreadLifeCycleHelper;
 import com.wjybxx.fastjgame.net.common.RoleType;
-import com.wjybxx.fastjgame.utils.GameUtils;
+import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.curator.framework.recipes.cache.*;
 
@@ -101,7 +101,7 @@ public class LoginDiscoverMrg extends AbstractThreadLifeCycleHelper {
         assert serverType == RoleType.CENTER;
 
         CenterNodeName centerNodeName = ZKPathUtils.parseCenterNodeName(childData.getPath());
-        CenterNodeData centerNode=GameUtils.parseFromJsonBytes(childData.getData(), CenterNodeData.class);
+        CenterNodeData centerNode= JsonUtils.parseJsonBytes(childData.getData(), CenterNodeData.class);
         if (event.getType() == TreeCacheEvent.Type.NODE_ADDED){
             centerInLoginInfoMrg.onDiscoverCenterServer(centerNodeName,centerNode);
         } else if (event.getType() == TreeCacheEvent.Type.NODE_REMOVED){

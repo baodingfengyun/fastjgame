@@ -24,7 +24,7 @@ import com.wjybxx.fastjgame.mrg.*;
 import com.wjybxx.fastjgame.mrg.async.S2CSessionMrg;
 import com.wjybxx.fastjgame.mrg.sync.SyncS2CSessionMrg;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-import com.wjybxx.fastjgame.utils.GameUtils;
+import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.CreateMode;
@@ -116,7 +116,7 @@ public class CenterWorld extends WorldCore {
         final String path = ZKPaths.makePath(parentPath, nodeName);
         curatorMrg.waitForNodeDelete(path);
 
-        final byte[] initData = GameUtils.serializeToJsonBytes(centerNodeData);
+        final byte[] initData = JsonUtils.toJsonBytes(centerNodeData);
         ConcurrentUtils.awaitRemoteWithSleepingRetry(path,resource -> {
             return curatorMrg.createNodeIfAbsent(path,CreateMode.EPHEMERAL,initData);
         },3, TimeUnit.SECONDS);

@@ -16,6 +16,9 @@
 
 package com.wjybxx.fastjgame.constants;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+
 /**
  * 工具包的常量
  * @author wjybxx
@@ -38,4 +41,9 @@ public class UtilConstants {
      * 默认键值对分隔符
      */
     public static final String DEFAULT_KEY_VALUE_DELIMITER = "=";
+
+    /**
+     * 游戏默认的字符编码集
+     */
+    public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 }

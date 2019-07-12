@@ -21,7 +21,7 @@ import com.wjybxx.fastjgame.core.SceneProcessType;
 import com.wjybxx.fastjgame.core.onlinenode.*;
 import com.wjybxx.fastjgame.misc.AbstractThreadLifeCycleHelper;
 import com.wjybxx.fastjgame.net.common.RoleType;
-import com.wjybxx.fastjgame.utils.GameUtils;
+import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
@@ -125,7 +125,7 @@ public class CenterDiscoverMrg extends AbstractThreadLifeCycleHelper {
      */
     private void onSceneEvent(Type type, ChildData childData) {
         SceneProcessType sceneProcessType = ZKPathUtils.parseSceneType(childData.getPath());
-        SceneNodeData sceneNodeData =GameUtils.parseFromJsonBytes(childData.getData(), SceneNodeData.class);
+        SceneNodeData sceneNodeData = JsonUtils.parseJsonBytes(childData.getData(), SceneNodeData.class);
         if (sceneProcessType==SceneProcessType.SINGLE){
             // 单服场景
             SingleSceneNodeName singleSceneNodeName = ZKPathUtils.parseSingleSceneNodeName(childData.getPath());
@@ -167,7 +167,7 @@ public class CenterDiscoverMrg extends AbstractThreadLifeCycleHelper {
      */
     private void onWarzoneEvent(Type type, ChildData childData) {
         WarzoneNodeName warzoneNodeName = ZKPathUtils.parseWarzoneNodeName(childData.getPath());
-        WarzoneNodeData warzoneNodeData =GameUtils.parseFromJsonBytes(childData.getData(), WarzoneNodeData.class);
+        WarzoneNodeData warzoneNodeData = JsonUtils.parseJsonBytes(childData.getData(), WarzoneNodeData.class);
         if (type== Type.CHILD_ADDED){
             warzoneInCenterInfoMrg.onDiscoverWarzone(warzoneNodeName, warzoneNodeData);
             logger.debug("discover warzone {}", warzoneNodeName.getWarzoneId());

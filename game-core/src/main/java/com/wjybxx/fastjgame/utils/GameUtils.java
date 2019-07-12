@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.utils;
 
-import com.google.gson.GsonBuilder;
 import com.wjybxx.fastjgame.misc.PlatformType;
 import com.wjybxx.fastjgame.misc.PortRange;
 import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
@@ -104,49 +103,6 @@ public class GameUtils {
     }
 
     /**
-     * 序列化为json
-     * @param obj 普通对象，若包含复杂对象需要自己管理
-     * @return 序列化后的json字符串
-     */
-    public static String serializeToJson(Object obj){
-        return new GsonBuilder()
-                .create()
-                .toJson(obj);
-    }
-
-    /**
-     * 将json对象序列化为字节数组
-     * @param obj json对象，如果是复杂对象，请自己管理
-     * @return UTF-8编码的json字符
-     */
-    public static byte[] serializeToJsonBytes(Object obj){
-        return serializeToJson(obj).getBytes(StandardCharsets.UTF_8);
-    }
-
-    /**
-     * 从json字符串中解析对象，如果是复杂对象，需要自己管理
-     * @param json json字符串
-     * @param clazz json字符串对应的类
-     * @param <T> 对象类型
-     * @return 反序列化得到的对象
-     */
-    public static <T> T parseFromJson(String json,Class<T> clazz){
-        return new GsonBuilder()
-                .create()
-                .fromJson(json,clazz);
-    }
-    /**
-     * 从json字符串UTF-8编码后的字节数组中解析对象，如果是复杂对象，需要自己管理
-     * @param json json字符串UTF-8编码后的字节数组
-     * @param clazz json字节数组对应的类
-     * @param <T> 对象类型
-     * @return 反序列化得到的对象
-     */
-    public static <T> T parseFromJsonBytes(byte[] json, Class<T> clazz){
-        return parseFromJson(new String(json,StandardCharsets.UTF_8),clazz);
-    }
-
-    /**
      * 使用UTF-8字符集创建字符串
      * @param utf8Bytes 使用UTF-8编码的字节数组
      * @return
@@ -162,7 +118,7 @@ public class GameUtils {
      */
     @SuppressWarnings("unchecked")
     public static Map<String,String> newJsonMap(byte[] jsonBytes){
-        return parseFromJsonBytes(jsonBytes, LinkedHashMap.class);
+        return JsonUtils.parseJsonBytesToMap(jsonBytes, LinkedHashMap.class, String.class,String.class);
     }
 
     /**

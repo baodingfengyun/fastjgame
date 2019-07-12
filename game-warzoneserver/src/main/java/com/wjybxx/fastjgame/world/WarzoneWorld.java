@@ -26,7 +26,7 @@ import com.wjybxx.fastjgame.net.async.S2CSession;
 import com.wjybxx.fastjgame.net.common.RoleType;
 import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-import com.wjybxx.fastjgame.utils.GameUtils;
+import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.CreateMode;
@@ -115,7 +115,7 @@ public class WarzoneWorld extends WorldCore {
         final String path = ZKPaths.makePath(parentPath, nodeName);
         curatorMrg.waitForNodeDelete(path);
 
-        final byte[] initData = GameUtils.serializeToJsonBytes(centerNodeData);
+        final byte[] initData = JsonUtils.toJsonBytes(centerNodeData);
         ConcurrentUtils.awaitRemoteWithSleepingRetry(path, resource -> {
             return curatorMrg.createNodeIfAbsent(path, CreateMode.EPHEMERAL,initData);
         },3, TimeUnit.SECONDS);

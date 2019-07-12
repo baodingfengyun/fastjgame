@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.net.common;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+
+import com.wjybxx.fastjgame.utils.JsonUtils;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
@@ -41,13 +41,11 @@ public class JsonMessageSerializer implements MessageSerializer {
 
     @Override
     public <T> T deserialize(Class<T> messageClazz, byte[] messageBytes) throws IOException {
-        Gson gson=new GsonBuilder().create();
-        return gson.fromJson(new String(messageBytes, StandardCharsets.UTF_8), messageClazz);
+        return JsonUtils.parseJsonBytes(messageBytes, messageClazz);
     }
 
     @Override
     public byte[] serialize(Object message) {
-        Gson gson=new GsonBuilder().create();
-        return gson.toJson(message).getBytes(StandardCharsets.UTF_8);
+        return JsonUtils.toJsonBytes(message);
     }
 }

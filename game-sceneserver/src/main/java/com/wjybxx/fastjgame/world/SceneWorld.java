@@ -14,6 +14,7 @@ import com.wjybxx.fastjgame.net.common.CodecHelper;
 import com.wjybxx.fastjgame.net.common.RoleType;
 import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.utils.GameUtils;
+import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.CreateMode;
@@ -135,7 +136,7 @@ public class SceneWorld extends WorldCore {
         }else {
             nodeName= ZKPathUtils.buildCrossSceneNodeName(sceneWorldInfoMrg.getProcessGuid());
         }
-        curatorMrg.createNode(ZKPaths.makePath(parentPath,nodeName), CreateMode.EPHEMERAL,GameUtils.serializeToJsonBytes(sceneNodeData));
+        curatorMrg.createNode(ZKPaths.makePath(parentPath,nodeName), CreateMode.EPHEMERAL, JsonUtils.toJsonBytes(sceneNodeData));
     }
 
     @Override

@@ -25,7 +25,7 @@ import com.wjybxx.fastjgame.scene.MapData;
 import com.wjybxx.fastjgame.scene.MapGrid;
 import com.wjybxx.fastjgame.shape.Point2D;
 import com.wjybxx.fastjgame.utils.GameConstant;
-import com.wjybxx.fastjgame.utils.GameUtils;
+import com.wjybxx.fastjgame.utils.JsonUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -360,7 +360,7 @@ public class JPSTest {
                 obstacles.add(new Pos(rowIndex, colIndex));
             }
         });
-        byte[] jsonBytes = GameUtils.serializeToJsonBytes(new MapInfoBean(start, end, obstacles));
+        byte[] jsonBytes = JsonUtils.toJsonBytes(new MapInfoBean(start, end, obstacles));
 
         File file = new File(OBSTACLE_FILE_NAME);
         if (file.exists()){
@@ -386,7 +386,7 @@ public class JPSTest {
         try (BufferedInputStream buffer=new BufferedInputStream(new FileInputStream(file))){
             byte[] jsonBytes = new byte[buffer.available()];
             buffer.read(jsonBytes);
-            MapInfoBean mapInfoBean = GameUtils.parseFromJsonBytes(jsonBytes, MapInfoBean.class);
+            MapInfoBean mapInfoBean = JsonUtils.parseJsonBytes(jsonBytes, MapInfoBean.class);
 
             forEachGrid((mapGrid, rowIndex, colIndex) -> {
                 if (mapInfoBean.isObstacle(rowIndex, colIndex)){
