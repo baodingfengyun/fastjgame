@@ -17,6 +17,8 @@
 package com.wjybxx.fastjgame.utils;
 
 import com.wjybxx.fastjgame.function.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.CountDownLatch;
@@ -24,13 +26,15 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 并发工具包
+ * 常用并发工具包
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/14 1:02
  * github - https://github.com/hl845740757
  */
 public class ConcurrentUtils {
+
+    private static final Logger logger = LoggerFactory.getLogger(ConcurrentUtils.class);
 
     private ConcurrentUtils() {
 
@@ -59,7 +63,7 @@ public class ConcurrentUtils {
      * @param <T> 资源的类型
      */
     public static <T> void awaitUninterruptibly(T resource, AcquireFun<T> acquireFun){
-        boolean interrupted=false;
+        boolean interrupted = Thread.interrupted();
         try {
             while (true){
                 try {
@@ -70,9 +74,7 @@ public class ConcurrentUtils {
                 }
             }
         }finally {
-            if(interrupted){
-                Thread.currentThread().interrupt();
-            }
+            recoveryInterrupted(interrupted);
         }
     }
 
@@ -105,7 +107,7 @@ public class ConcurrentUtils {
      * @param <T> 资源的类型
      */
     public static <T> void awaitWithRetry(T resource, TryAcquireFun<T> tryAcquireFun, long heartbeat, TimeUnit timeUnit){
-        boolean interrupted=false;
+        boolean interrupted = Thread.interrupted();
         try {
             while (true){
                 try {
@@ -117,9 +119,7 @@ public class ConcurrentUtils {
                 }
             }
         }finally {
-            if(interrupted){
-                Thread.currentThread().interrupt();
-            }
+            recoveryInterrupted(interrupted);
         }
     }
 
@@ -144,7 +144,7 @@ public class ConcurrentUtils {
      * @throws Exception
      */
     public static <T> void awaitRemoteUninterruptibly(T resource, AcquireRemoteFun<T> acquireFun) throws Exception {
-        boolean interrupted=false;
+        boolean interrupted = Thread.interrupted();
         try {
             while (true){
                 try {
@@ -155,9 +155,7 @@ public class ConcurrentUtils {
                 }
             }
         }finally {
-            if(interrupted){
-                Thread.currentThread().interrupt();
-            }
+            recoveryInterrupted(interrupted);
         }
     }
 
@@ -172,7 +170,7 @@ public class ConcurrentUtils {
      */
     public static <T> void awaitRemoteWithRetry(T resource, TryAcquireRemoteFun<T> tryAcquireFun, long heartbeat, TimeUnit timeUnit) throws Exception {
         // 虽然是重复代码，但是不好消除
-        boolean interrupted=false;
+        boolean interrupted = Thread.interrupted();
         try {
             while (true){
                 try {
@@ -184,9 +182,7 @@ public class ConcurrentUtils {
                 }
             }
         }finally {
-            if(interrupted){
-                Thread.currentThread().interrupt();
-            }
+            recoveryInterrupted(interrupted);
         }
     }
 
@@ -236,5 +232,104 @@ public class ConcurrentUtils {
             }
         };
     }
+
+    // ---------------------------------------- 中断处理 ---------------------------
+
+    /**
+     * 恢复中断
+     * @param interrupted 是否出现了中断
+     */
+    public static void recoveryInterrupted(boolean interrupted) {
+        if (interrupted) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    /**
+     * 恢复中断。
+     * 如果是中断异常，则恢复线程中断状态。
+     * @param e 异常
+     * @return ture if is InterruptedException
+     */
+    public static boolean recoveryInterrupted(Exception e) {
+        if (isInterrupted(e)) {
+            Thread.currentThread().interrupt();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * 检查线程中断状态。
+     * @throws InterruptedException 如果线程被中断，则抛出中断异常
+     */
+    public static void checkInterrupted() throws InterruptedException{
+        if (Thread.interrupted()) {
+            throw new InterruptedException();
+        }
+    }
+
+    /**
+     * 是否是中断异常
+     * @param e exception
+     * @return true/false
+     */
+    public static boolean isInterrupted(Exception e) {
+        return e instanceof InterruptedException;
+    }
+
+    /**
+     * 将一个可能抛出异常的任务包装为一个不抛出受检异常的runnable。
+     * @param r 可能抛出异常的任务
+     * @param exceptionHandler 异常处理器
+     * @return Runnable
+     */
+    public static Runnable adapterRunnable(AnyRunnable r, ExceptionHandler exceptionHandler){
+        return () -> {
+            try {
+                r.run();
+            } catch (Exception e){
+                exceptionHandler.handleException(e);
+            }
+        };
+    }
+
+    /**
+     * 安全的执行一个任务，只是将错误打印到日志，不抛出异常。
+     * 对于不甚频繁的方法调用可以进行封装，如果大量的调用可能会对性能有所影响；
+     * {@code io.netty.channel.SingleThreadEventLoop#safeExecute(Runnable)}
+     * @param task 要执行的任务，可以将要执行的方法封装为 ()-> safeExecute()
+     * @return true if is interrupted
+     */
+    public static boolean safeExecute(Runnable task){
+        boolean interrupted = false;
+        try {
+            task.run();
+        } catch (Exception e) {
+            interrupted = isInterrupted(e);
+            logger.warn("A task raised an exception. Task: {}", task, e);
+        }
+        return interrupted;
+    }
+
+    /**
+     * 安全的执行一个任务，只是将错误打印到日志，不抛出异常。
+     * 对于不甚频繁的方法调用可以进行封装，如果大量的调用可能会对性能有所影响；
+     * {@code io.netty.channel.SingleThreadEventLoop#safeExecute(Runnable)}
+     * @param task 要执行的任务，可以将要执行的方法封装为 ()-> safeExecute()
+     * @return true if is interrupted
+     */
+    public static boolean safeExecute(AnyRunnable task) {
+        boolean interrupted = false;
+        try {
+            task.run();
+        } catch (Exception e) {
+            interrupted = isInterrupted(e);
+            logger.warn("A task raised an exception. Task: {}", task, e);
+        }
+        return interrupted;
+    }
+
     // endregion
 }

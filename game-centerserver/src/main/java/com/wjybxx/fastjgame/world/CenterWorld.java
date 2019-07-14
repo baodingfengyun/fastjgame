@@ -117,7 +117,7 @@ public class CenterWorld extends WorldCore {
         curatorMrg.waitForNodeDelete(path);
 
         final byte[] initData = JsonUtils.toJsonBytes(centerNodeData);
-        ConcurrentUtils.awaitRemoteWithSleepingRetry(path,resource -> {
+        ConcurrentUtils.awaitRemoteWithSleepingRetry(path, resource -> {
             return curatorMrg.createNodeIfAbsent(path,CreateMode.EPHEMERAL,initData);
         },3, TimeUnit.SECONDS);
     }
