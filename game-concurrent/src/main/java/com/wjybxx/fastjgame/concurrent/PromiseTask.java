@@ -22,6 +22,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.RunnableFuture;
 
 /**
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/7/14 20:32
@@ -42,8 +43,31 @@ public class PromiseTask<V> extends DefaultPromise<V> implements RunnableFuture<
     }
 
     @Override
+    public void run() {
+        try {
+            if (setUncancellableInternal()) {
+                V result = callable.call();
+                setSuccessInternal(result);
+            }
+        } catch (Exception e) {
+            setFailureInternal(e);
+        }
+    }
+
+    // --------------- 禁用这些方法，因为PromiseTask既是Promise，也是Task，结果由它自己来赋值
+    @Override
+    public void setSuccess(V result) {
+        throw new IllegalStateException();
+    }
+
+    @Override
     public boolean trySuccess(V result) {
         return false;
+    }
+
+    @Override
+    public void setFailure(@Nonnull Throwable cause) {
+        throw new IllegalStateException();
     }
 
     @Override
@@ -52,12 +76,28 @@ public class PromiseTask<V> extends DefaultPromise<V> implements RunnableFuture<
     }
 
     @Override
-    public void run() {
-        try {
-            V result = callable.call();
-            setSuccess(result);
-        } catch (Exception e) {
-            setFailure(e);
-        }
+    public boolean setUncancellable() {
+        return false;
+    }
+    // --------------  由这些protected方法替代（需要支持子类调用）
+
+    protected final void setSuccessInternal(V result) {
+        super.setSuccess(result);
+    }
+
+    protected final boolean trySuccessInternal(V result) {
+        return super.trySuccess(result);
+    }
+
+    protected final void setFailureInternal(Throwable cause) {
+        super.setFailure(cause);
+    }
+
+    protected final boolean tryFailureInternal(Throwable cause) {
+        return super.tryFailure(cause);
+    }
+
+    protected final boolean setUncancellableInternal() {
+        return super.setUncancellable();
     }
 }

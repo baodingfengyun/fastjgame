@@ -113,13 +113,6 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         return _executor;
     }
 
-    @Override
-    public void setSuccess(V result) {
-        if (!trySuccess(result)){
-            throw new IllegalStateException("complete already, discard result " + result);
-        }
-    }
-
     // ----------------------------------------- state begin --------------------------------------------
 
     /**
@@ -172,21 +165,45 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         return getCause0(result) instanceof CancellationException;
     }
 
+    // ------------------------------------------------ logic -----------------------------------------------
+
+    @Override
+    public void setSuccess(V result) {
+        // 如果调用trySuccess，会导致子类覆盖 setSuccess和trySuccess出现问题。
+        if (!setSuccess0(result)){
+            throw new IllegalStateException("complete already, discard result " + result);
+        }
+    }
+
     @Override
     public boolean trySuccess(V result) {
-        // 当future关联的task没有返回值时，使用SUCCESS代替
-        return tryCompleted(result == null ? SUCCESS : result, false);
+        return setSuccess0(result);
     }
 
     @Override
     public void setFailure(@Nonnull Throwable cause) {
-        if (!tryFailure(cause)){
+        // 如果调用tryFailure，会导致子类覆盖 setFailure 和 tryFailure 出现问题。
+        if (!setFailure0(cause)){
             throw new IllegalStateException("complete already, discard cause " + cause);
         }
     }
 
     @Override
     public boolean tryFailure(@Nonnull Throwable cause) {
+        return setFailure0(cause);
+    }
+
+    /**
+     * Q:为什么要这么写？
+     * A:为了支持子类重写 {@link #setSuccess(Object)} {@link #setFailure(Throwable)}
+     * {@link #trySuccess(Object)} {@link #tryFailure(Throwable)}
+     */
+    private boolean setSuccess0(V result) {
+        // 当future关联的task成功，但是没有返回值时，使用SUCCESS代替
+        return tryCompleted(result == null ? SUCCESS : result, false);
+    }
+
+    private boolean setFailure0(@Nonnull Throwable cause) {
         return tryCompleted(new CauseHolder(cause), false);
     }
 
