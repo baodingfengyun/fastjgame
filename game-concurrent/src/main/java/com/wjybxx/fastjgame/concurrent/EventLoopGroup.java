@@ -28,6 +28,9 @@ import java.util.concurrent.TimeUnit;
  * 目前来说不需要实现schedule，就游戏而言，用到的地方并不多，可以换别的方式实现。
  *
  * (它是组合模式中的容器组件)
+ * @version 1.0
+ * date - 2019/7/14 14:53
+ * github - https://github.com/hl845740757
  */
 public interface EventLoopGroup extends ExecutorService, Iterable<EventLoop> {
 

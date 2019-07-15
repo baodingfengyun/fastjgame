@@ -36,15 +36,17 @@ import java.util.concurrent.atomic.AtomicReference;
  *
  * 任务状态迁移：
  * <pre>
- *       (setUncancellabl) (result == UNCANCELLABLE)
- *                   --------> 不可取消状态 -----|
- *                   |         (未完成)         |
- *  初始状态 ---------|                         | ----> 完成状态(isDown() == true)
- * (result == null)  |                         |
- *  (未完成)          |-------------------------|
- *                         (取消/异常/成功)
- *       (cancel, tryFailure,setFailure,trySuccess,setSuccess)
+ *       (setUncancellabl) (result == UNCANCELLABLE)     (异常/成功)
+ *                   --------> 不可取消状态 ------------------------|
+ *                   |         (未完成)                            |
+ *  初始状态 ---------|                                            | ----> 完成状态(isDown() == true)
+ * (result == null)  |                                            |
+ *  (未完成)          |--------------------------------------------|
+ *                                 (取消/异常/成功)
+ *                 (cancel, tryFailure,setFailure,trySuccess,setSuccess)
  * </pre>
+ *
+ * 建议使用 {@link EventLoop#newPromise()}代替构造方法。
  *
  * @author wjybxx
  * @version 1.0
@@ -54,6 +56,8 @@ import java.util.concurrent.atomic.AtomicReference;
 public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Promise<V> {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultPromise.class);
+
+    private static final int NANO_PER_MILLSECOND = (int) TimeUnit.MILLISECONDS.toNanos(1);
 
     /**
      * 表示任务已成功完成。
@@ -73,8 +77,8 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     private final AtomicReference<Object> resultHolder = new AtomicReference<>();
 
     /**
-     * 默认的通知用的executor。
-     * 如果不是固定的executor，则需要重写{@link #executor()}，以返回最新的executor。
+     * 创建Promise的EventLoop，也是任务执行的线程，也是默认的通知用的executor。
+     * 如果任务执行期间可能改变executor，那么需要重写{@link #executor()}，以返回最新的executor。
      */
     private final EventLoop _executor;
 
@@ -383,14 +387,14 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         // 即将等待之前检查中断标记（在耗时操作开始前，检查中断 -- 要养成习惯）
         ConcurrentUtils.checkInterrupted();
 
-        long remainNano = unit.toNanos(timeout);
-        final long endTime = System.nanoTime() + remainNano;
+        final long endTime = System.nanoTime() + unit.toNanos(timeout);
         synchronized (this){
-            for (; remainNano > 0; remainNano = endTime - System.nanoTime()) {
+            // 获取锁需要时间，因此应该在获取锁之后计算剩余时间
+            for (long remainNano = endTime - System.nanoTime(); remainNano > 0; remainNano = endTime - System.nanoTime()) {
                 if (isDone()){
                     return true;
                 }
-                this.wait(remainNano / 1000000, (int) (remainNano % 1000000));
+                this.wait(remainNano / NANO_PER_MILLSECOND, (int) (remainNano % NANO_PER_MILLSECOND));
             }
         }
         // 再努力尝试一次
@@ -411,10 +415,11 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         // 先清除当前中断状态(避免无谓的中断异常)
         boolean interrupted = Thread.interrupted();
         try {
-            long remainNano = unit.toNanos(timeout);
-            final long endTime = System.nanoTime() + remainNano;
+
+            final long endTime = System.nanoTime() + unit.toNanos(timeout);
             synchronized (this){
-                for (; remainNano > 0; remainNano = endTime - System.nanoTime()) {
+                // 获取锁需要时间
+                for (long remainNano = endTime - System.nanoTime(); remainNano > 0; remainNano = endTime - System.nanoTime()) {
                     if (isDone()){
                         return true;
                     }

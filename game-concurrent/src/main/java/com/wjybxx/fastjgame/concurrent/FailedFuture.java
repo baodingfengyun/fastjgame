@@ -16,12 +16,14 @@
 package com.wjybxx.fastjgame.concurrent;
 
 import javax.annotation.Nonnull;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
 
 /**
  * 表示Future关联的task早已失败。
  * 推荐使用{@link EventLoop#newFailedFuture(Throwable)} 代替使用该future的构造方法。
+ *
+ * @version 1.0
+ * date - 2019/7/14 14:53
+ * github - https://github.com/hl845740757
  */
 public final class FailedFuture<V> extends CompleteFuture<V> {
 
@@ -41,6 +43,7 @@ public final class FailedFuture<V> extends CompleteFuture<V> {
         this.cause = cause;
     }
 
+
     @Nonnull
     @Override
     public Throwable cause() {
@@ -55,13 +58,5 @@ public final class FailedFuture<V> extends CompleteFuture<V> {
     @Override
     public V tryGet() {
         return null;
-    }
-
-    /** 重新抛出异常 */
-    private void rethrow() throws ExecutionException {
-        if (cause instanceof CancellationException) {
-            throw (CancellationException) cause;
-        }
-        throw new ExecutionException(cause);
     }
 }

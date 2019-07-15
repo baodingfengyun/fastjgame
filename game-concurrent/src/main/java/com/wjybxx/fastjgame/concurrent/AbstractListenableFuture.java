@@ -16,8 +16,9 @@
 
 package com.wjybxx.fastjgame.concurrent;
 
+import com.wjybxx.fastjgame.utils.ConcurrentUtils;
+
 import javax.annotation.Nonnull;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -25,6 +26,9 @@ import java.util.concurrent.TimeoutException;
 /**
  * ListenableFuture的抽象实现
  * @param <V>
+ * @version 1.0
+ * date - 2019/7/14 14:53
+ * github - https://github.com/hl845740757
  */
 public abstract class AbstractListenableFuture<V> implements ListenableFuture<V>{
 
@@ -32,31 +36,21 @@ public abstract class AbstractListenableFuture<V> implements ListenableFuture<V>
 	public V get() throws InterruptedException, ExecutionException {
 		await();
 
-		Throwable cause = cause();
-		if (cause == null) {
-			return tryGet();
-		}
-		if (cause instanceof CancellationException) {
-			throw (CancellationException) cause;
-		}
-		throw new ExecutionException(cause);
+		ConcurrentUtils.rethrowCause(cause());
+
+		return tryGet();
 	}
 
 	@Override
 	public V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
 		if (await(timeout, unit)) {
-			Throwable cause = cause();
-			if (cause == null) {
-				return tryGet();
-			}
-			if (cause instanceof CancellationException) {
-				throw (CancellationException) cause;
-			}
-			throw new ExecutionException(cause);
+
+			ConcurrentUtils.rethrowCause(cause());
+
+			return tryGet();
 		}
 		throw new TimeoutException();
 	}
-
 
 	/**
 	 * {@link #await(long, TimeUnit)}的一个快捷方法。固定时间单位为毫秒。

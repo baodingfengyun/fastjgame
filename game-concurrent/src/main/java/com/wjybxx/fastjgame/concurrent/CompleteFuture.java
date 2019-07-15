@@ -29,6 +29,10 @@ import java.util.concurrent.TimeUnit;
 /**
  * {@link AbstractListenableFuture}的一个实现，表示它关联的操作早已完成。
  * 任何添加到上面的监听器将立即收到通知。
+ * @param <V> the type of value
+ * @version 1.0
+ * date - 2019/7/14 14:53
+ * github - https://github.com/hl845740757
  */
 public abstract class CompleteFuture<V> extends AbstractListenableFuture<V> {
 
@@ -70,6 +74,7 @@ public abstract class CompleteFuture<V> extends AbstractListenableFuture<V> {
      * @param e exception
      */
     private static void handleException(Exception e){
+        ConcurrentUtils.recoveryInterrupted(e);
         logger.warn("", e);
     }
 
@@ -107,6 +112,11 @@ public abstract class CompleteFuture<V> extends AbstractListenableFuture<V> {
 
     @Override
     public boolean isCancelled() {
+        return false;
+    }
+
+    @Override
+    public boolean isCancellable() {
         return false;
     }
 

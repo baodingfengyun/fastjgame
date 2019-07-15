@@ -22,6 +22,10 @@ import javax.annotation.Nullable;
 /**
  * EventLoop是一个游戏线程。
  * (它是组合模式中的叶子组件，它不能增加子组件)
+ *
+ * @version 1.0
+ * date - 2019/7/14 14:53
+ * github - https://github.com/hl845740757
  */
 public interface EventLoop extends EventLoopGroup {
 
@@ -48,6 +52,15 @@ public interface EventLoop extends EventLoopGroup {
 	 * @return true/false
 	 */
 	boolean inEventLoop();
+
+	/**
+	 * 创建一个{@link Promise}(一个可写的Future)。
+	 * 用户提交一个任务之后，返回给客户端一个Promise，
+	 * 使得用户可以获取操作结果和添加监听器。
+	 * @param <V> the type of value
+	 * @return Promise
+	 */
+	<V> Promise<V> newPromise();
 
 	/**
 	 * 创建一个{@link ListenableFuture}，该future表示它关联的任务早已失败。因此{@link ListenableFuture#isSuccess()}总是返回false。
