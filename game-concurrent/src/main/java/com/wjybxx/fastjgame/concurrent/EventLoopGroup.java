@@ -20,6 +20,7 @@ package com.wjybxx.fastjgame.concurrent;
 import javax.annotation.Nonnull;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -35,11 +36,14 @@ import java.util.concurrent.TimeUnit;
 public interface EventLoopGroup extends ExecutorService, Iterable<EventLoop> {
 
 	/**
-	 * 查询{@link EventLoopGroup}是否处于正在关闭状态。
-	 *
-	 * @return 如果该{@link EventLoopGroup}管理的所有{@link EventLoop}正在优雅的关闭或已关闭则返回true
+	 * 默认的关闭前的安静期 2S
 	 */
-	boolean isShuttingDown();
+	long DEFAULT_SHUTDOWN_QUIET_PERIOD = 2;
+	/**
+	 * 默认的等待关闭超时的时间， 15秒
+	 */
+	long DEFAULT_SHUTDOWN_TIMEOUT = 15;
+
 
 	/**
 	 * {@link #shutdownGracefully(long, long, TimeUnit)}的快捷调用方式，参数为合理的默认值。
@@ -48,26 +52,41 @@ public interface EventLoopGroup extends ExecutorService, Iterable<EventLoop> {
 	ListenableFuture<?> shutdownGracefully();
 
 	/**
+	 * 通知当前{@link EventLoopGroup} 关闭。
+	 * 一旦该方法被调用，{@link #isShuttingDown()}将开始返回true,并且当前 executor准备开始关闭自己。
+	 * 和{@link #shutdown()}方法不同的是，优雅的关闭将保证在关闭前的安静期没有任务提交。
+	 * 如果在安静期提交了一个任务，那么它一定会接受它并重新进入安静期。
+	 * (也就是说不推荐使用 {@link ExecutorService#shutdown()} 和 {@link ExecutorService#shutdownNow()}方法。
+	 *
 	 * Signals this executor that the caller wants the executor to be shut down.  Once this method is called,
 	 * {@link #isShuttingDown()} starts to return {@code true}, and the executor prepares to shut itself down.
 	 * Unlike {@link #shutdown()}, graceful shutdown ensures that no tasks are submitted for <i>'the quiet period'</i>
 	 * (usually a couple seconds) before it shuts itself down.  If a task is submitted during the quiet period,
 	 * it is guaranteed to be accepted and the quiet period will start over.
 	 *
-	 * @param quietPeriod the quiet period as described in the documentation
+	 * @param quietPeriod the quiet period as described in the documentation 默认的安静时间(秒)
 	 * @param timeout     the maximum amount of time to wait until the executor is {@linkplain #shutdown()}
 	 *                    regardless if a task was submitted during the quiet period
+	 *                    等待当前executor成功关闭的超时时间，而不管是否有任务在关闭前的安静期提交。
 	 * @param unit        the unit of {@code quietPeriod} and {@code timeout}
+	 *                    quietPeriod 和 timeout 的时间单位。
 	 *
 	 * @return the {@link #terminationFuture()}
 	 */
 	ListenableFuture<?> shutdownGracefully(long quietPeriod, long timeout, TimeUnit unit);
 
 	/**
-	 * Returns the {@link ListenableFuture} which is notified when all {@link EventLoop}s managed by this
-	 * {@link EventLoopGroup} have been terminated.
+	 * 返回等待线程终止的future。
+	 * 返回的{@link ListenableFuture}会在该Group管理的所有{@link EventLoop}终止后收到通知.
 	 */
 	ListenableFuture<?> terminationFuture();
+
+	/**
+	 * 查询{@link EventLoopGroup}是否处于正在关闭状态。
+	 *
+	 * @return 如果该{@link EventLoopGroup}管理的所有{@link EventLoop}正在优雅的关闭或已关闭则返回true
+	 */
+	boolean isShuttingDown();
 
 	/**
 	 * @deprecated {@link #shutdownGracefully(long, long, TimeUnit)} or {@link #shutdownGracefully()} instead.
@@ -92,4 +111,20 @@ public interface EventLoopGroup extends ExecutorService, Iterable<EventLoop> {
 	@Nonnull
 	@Override
 	Iterator<EventLoop> iterator();
+
+	// ------------------------------------ 修改返回类型 -------------------------
+
+
+
+	@Nonnull
+	@Override
+	ListenableFuture<?> submit(@Nonnull Runnable task);
+
+	@Nonnull
+	@Override
+	<V> ListenableFuture<V> submit(@Nonnull Runnable task, V result);
+
+	@Nonnull
+	@Override
+	<V> ListenableFuture<V> submit(@Nonnull Callable<V> task);
 }

@@ -23,13 +23,11 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.function.Consumer;
 
 public class SingleThreadEventLoop extends AbstractExecutorService implements EventLoop {
 
@@ -57,6 +55,8 @@ public class SingleThreadEventLoop extends AbstractExecutorService implements Ev
 	private static final Runnable NOOP_TASK = () -> {};
 
 	private final EventLoopGroup parent;
+
+	/** 自己实例的封装，将迭代等相关工作进行委托 */
 	private final Collection<EventLoop> selfCollection = Collections.<EventLoop>singleton(this);
 
 	/** 持有的线程 */
@@ -94,6 +94,7 @@ public class SingleThreadEventLoop extends AbstractExecutorService implements Ev
 		this.taskQueue = newTaskQueue();
 	}
 
+
 	protected BlockingQueue<Runnable> newTaskQueue() {
 		return new LinkedBlockingQueue<>();
 	}
@@ -114,17 +115,17 @@ public class SingleThreadEventLoop extends AbstractExecutorService implements Ev
 	}
 
 	@Override
-	public ListenableFuture<?> shutdownGracefully() {
+	public <V> ListenableFuture<V> shutdownGracefully() {
 		return null;
 	}
 
 	@Override
-	public ListenableFuture<?> shutdownGracefully(long quietPeriod, long timeout, TimeUnit unit) {
+	public <V> ListenableFuture<V> shutdownGracefully(long quietPeriod, long timeout, TimeUnit unit) {
 		return null;
 	}
 
 	@Override
-	public ListenableFuture<?> terminationFuture() {
+	public <V> ListenableFuture<V> terminationFuture() {
 		return null;
 	}
 
@@ -162,6 +163,11 @@ public class SingleThreadEventLoop extends AbstractExecutorService implements Ev
 	}
 
 	@Override
+	public <V> Promise<V> newPromise() {
+		return null;
+	}
+
+	@Override
 	public <V> ListenableFuture<V> newFailedFuture(@Nonnull Throwable e) {
 		return new FailedFuture<>(this, e);
 	}
@@ -169,6 +175,37 @@ public class SingleThreadEventLoop extends AbstractExecutorService implements Ev
 	@Override
 	public <V> ListenableFuture<V> newSucceededFuture(@Nullable V value) {
 		return new SucceededFuture<>(this, value);
+	}
+
+	@Override
+	public ListenableFuture<?> submit(Runnable task) {
+		return super.submit(task);
+	}
+
+	@Override
+	public <T> ListenableFuture<T> submit(Runnable task, T result) {
+		return super.submit(task, result);
+	}
+
+	@Override
+	public <T> ListenableFuture<T> submit(Callable<T> task) {
+		return super.submit(task);
+	}
+
+	@Nonnull
+	@Override
+	public EventLoop next() {
+		return this;
+	}
+
+	@Override
+	public void forEach(Consumer<? super EventLoop> action) {
+		selfCollection.forEach(action);
+	}
+
+	@Override
+	public Spliterator<EventLoop> spliterator() {
+		return selfCollection.spliterator();
 	}
 
 	/**

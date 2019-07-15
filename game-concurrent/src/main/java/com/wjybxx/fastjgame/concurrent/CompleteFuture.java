@@ -17,12 +17,15 @@
 package com.wjybxx.fastjgame.concurrent;
 
 
+import com.google.common.base.Preconditions;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.EventLoopUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
@@ -45,7 +48,7 @@ public abstract class CompleteFuture<V> extends AbstractListenableFuture<V> {
      * 创建一个实例
      * @param executor 该future用于通知的线程,Listener的执行环境。
      */
-    protected CompleteFuture(EventLoop executor) {
+    protected CompleteFuture(@Nullable EventLoop executor) {
         this._executor = executor;
     }
 
@@ -60,13 +63,18 @@ public abstract class CompleteFuture<V> extends AbstractListenableFuture<V> {
 
     @Override
     public void addListener(@Nonnull FutureListener<? super V> listener) {
-        EventLoopUtils.submitOrRun(executor(), ()-> listener.onComplete(this), CompleteFuture::handleException);
+        notifyListener(listener, executor());
     }
 
     @Override
-    public void addListener(@Nonnull FutureListener<? super V> listener, EventLoop bindExecutor) {
+    public void addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor) {
+        Objects.requireNonNull(bindExecutor, "bindExecutor");
         // notify
-        EventLoopUtils.submitOrRun(bindExecutor, ()-> listener.onComplete(this), CompleteFuture::handleException);
+        notifyListener(listener, bindExecutor);
+    }
+
+    private void notifyListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop executor) {
+        EventLoopUtils.submitOrRun(executor, () -> listener.onComplete(this), CompleteFuture::handleException);
     }
 
     /**

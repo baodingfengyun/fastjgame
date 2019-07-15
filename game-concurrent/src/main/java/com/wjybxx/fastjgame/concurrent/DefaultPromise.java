@@ -441,11 +441,20 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     @Override
     public void addListener(@Nonnull FutureListener<? super V> listener) {
         // null is safe
-        addListener(listener, null);
+        addListener0(listener, null);
     }
 
     @Override
-    public void addListener(@Nonnull FutureListener<? super V> listener, EventLoop bindExecutor) {
+    public void addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor) {
+        addListener0(listener, bindExecutor);
+    }
+
+    /**
+     * 真正的添加监听器，可以不指定executor
+     * @param listener 监听器
+     * @param bindExecutor 监听器绑定的executor，可能为null
+     */
+    private void addListener0(@Nonnull FutureListener<? super V> listener, @Nullable EventLoop bindExecutor) {
         // 认为尚未完成，加入等待通知集合
         synchronized (this) {
             if (waitListeners == null) {
@@ -473,7 +482,6 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
             }
         }
     }
-
 
     /**
      * 异常holder，只有该类型表示失败。
