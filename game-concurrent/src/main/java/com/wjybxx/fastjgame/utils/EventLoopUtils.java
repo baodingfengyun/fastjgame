@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import java.util.function.Supplier;
 
 /**
  * 事件循环辅助方法。
@@ -41,15 +42,22 @@ public class EventLoopUtils {
     }
 
     /**
-     * 检查死锁，由于EventLoop是单线程的，因此不能在当前EventLoop上等待另一个任务完成。
+     * 检查死锁，由于EventLoop是单线程的，因此不能在当前EventLoop上等待另一个任务完成，很可能导致死锁。
      * @param e executor
-     * @param msg error msg
+     *
      */
-    public static void checkDeadLock(EventLoop e, String msg) {
+    public static void checkDeadLock(EventLoop e) {
         if (e != null && e.inEventLoop()) {
-            throw new BlockingOperationException(msg);
+            throw new BlockingOperationException();
         }
     }
+
+    public static void checkDeadLock(EventLoop e, Supplier<String> msgSupplier) {
+        if (e != null && e.inEventLoop()) {
+            throw new BlockingOperationException(msgSupplier.get());
+        }
+    }
+
 
     public static void submitOrRun(@Nonnull EventLoop eventLoop, Runnable task) {
         if (eventLoop.inEventLoop()){

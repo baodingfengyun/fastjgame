@@ -371,6 +371,9 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
             return;
         }
 
+        // 检查死锁可能
+        EventLoopUtils.checkDeadLock(executor());
+
         // 即将等待之前检查中断标记
         ConcurrentUtils.checkInterrupted();
 
@@ -401,6 +404,9 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
             return true;
         }
 
+        // 检查死锁可能
+        EventLoopUtils.checkDeadLock(executor());
+
         // 即将等待之前检查中断标记（在耗时操作开始前，检查中断 -- 要养成习惯）
         ConcurrentUtils.checkInterrupted();
 
@@ -429,6 +435,10 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         if (isDone()) {
             return true;
         }
+
+        // 检查死锁可能
+        EventLoopUtils.checkDeadLock(executor());
+
         // 先清除当前中断状态(避免无谓的中断异常)
         boolean interrupted = Thread.interrupted();
         try {

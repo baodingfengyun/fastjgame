@@ -45,7 +45,6 @@ public abstract class CompleteFuture<V> extends AbstractListenableFuture<V> {
     private final EventLoop _executor;
 
     /**
-     * 创建一个实例
      * @param executor 该future用于通知的线程,Listener的执行环境。
      */
     protected CompleteFuture(@Nullable EventLoop executor) {
@@ -68,7 +67,6 @@ public abstract class CompleteFuture<V> extends AbstractListenableFuture<V> {
 
     @Override
     public void addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor) {
-        Objects.requireNonNull(bindExecutor, "bindExecutor");
         // notify
         notifyListener(listener, bindExecutor);
     }

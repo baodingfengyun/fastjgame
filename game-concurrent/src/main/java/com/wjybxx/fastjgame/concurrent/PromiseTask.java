@@ -22,6 +22,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.RunnableFuture;
 
 /**
+ * 与{@link java.util.concurrent.FutureTask}相似。
  *
  * @author wjybxx
  * @version 1.0

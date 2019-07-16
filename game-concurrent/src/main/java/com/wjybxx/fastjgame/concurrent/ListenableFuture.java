@@ -29,6 +29,7 @@ import java.util.concurrent.*;
  */
 public interface ListenableFuture<V> extends Future<V>{
 
+	// ----------------------------------------  查询 ----------------------------------------
 	/**
 	 * 查询任务是否已完成。
 	 * 任务可能由于 正常完成，出现异常，或 被取消 进入完成状态 -- 这些情况都会返回true，他们都表示完成状态。
@@ -53,31 +54,6 @@ public interface ListenableFuture<V> extends Future<V>{
 	@Override
 	boolean isCancelled();
 
-    /**
-     * 尝试非阻塞的获取当前结果，当前仅当任务正常完成时返回期望的结果，否则返回null，即：
-	 * 1. 如果future关联的task还未完成 {@link #isDone() false}，则返回null。
-	 * 2. 如果任务被取消或失败，则返回null。
-     *
-     * 注意：
-     * 如果future关联的task没有返回值(操作完成返回null)，此时不能根据返回值做任何判断。对于这种情况，
-     * 1. 你可以调用{@link #isDone()} 检查task是否已真正的完成，然后才尝试获取结果。
-     * 2. 你也可以使用{@link #isSuccess()},作为更好的选择。
-	 *
-	 * @return task执行结果
-     */
-    V tryGet();
-
-	/**
-	 * 非阻塞获取导致任务失败的原因。
-	 * 当future关联的任务由于取消或异常进入完成状态后，该方法将返回操作失败的原因。
-	 *
-	 * @return  失败的原因。{@link CancellationException} 或 {@link ExecutionException}。
-	 * 			如果future关联的task已正常完成，则返回null。
-	 * 			如果future关联的task还未进入完成状态，则返回null。
-	 */
-	@Nullable
-	Throwable cause();
-
 	/**
 	 * 查询future关联的任务是否可以被取消。
 	 *
@@ -85,15 +61,7 @@ public interface ListenableFuture<V> extends Future<V>{
 	 */
 	boolean isCancellable();
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * 如果取消成功，会使得Future进入完成状态，并且{@link #cause()}将返回{@link CancellationException}。
-	 *
-	 * If the cancellation was successful it will fail the future with an {@link CancellationException}.
-	 */
-	@Override
-	boolean cancel(boolean mayInterruptIfRunning);
+	// ------------------------------------------ 操作 -------------------------------------------
 
 	/**
 	 * 获取task的结果。
@@ -134,6 +102,42 @@ public interface ListenableFuture<V> extends Future<V>{
 	@Override
 	V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException;
 
+
+	/**
+	 * 尝试非阻塞的获取当前结果，当前仅当任务正常完成时返回期望的结果，否则返回null，即：
+	 * 1. 如果future关联的task还未完成 {@link #isDone() false}，则返回null。
+	 * 2. 如果任务被取消或失败，则返回null。
+	 *
+	 * 注意：
+	 * 如果future关联的task没有返回值(操作完成返回null)，此时不能根据返回值做任何判断。对于这种情况，
+	 * 1. 你可以调用{@link #isDone()} 检查task是否已真正的完成，然后才尝试获取结果。
+	 * 2. 你也可以使用{@link #isSuccess()},作为更好的选择。
+	 *
+	 * @return task执行结果
+	 */
+	V tryGet();
+
+	/**
+	 * 非阻塞获取导致任务失败的原因。
+	 * 当future关联的任务由于取消或异常进入完成状态后，该方法将返回操作失败的原因。
+	 *
+	 * @return  失败的原因。{@link CancellationException} 或 {@link ExecutionException}。
+	 * 			如果future关联的task已正常完成，则返回null。
+	 * 			如果future关联的task还未进入完成状态，则返回null。
+	 */
+	@Nullable
+	Throwable cause();
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * 如果取消成功，会使得Future进入完成状态，并且{@link #cause()}将返回{@link CancellationException}。
+	 *
+	 * If the cancellation was successful it will fail the future with an {@link CancellationException}.
+	 */
+	@Override
+	boolean cancel(boolean mayInterruptIfRunning);
+
 	// -------------------------------- 等待进入完成状态  --------------------------------------
 	/**
 	 * 等待future进入完成状态。
@@ -166,12 +170,11 @@ public interface ListenableFuture<V> extends Future<V>{
 	 *
 	 * @param timeout 等待的最大时间。如果等于0，等效于{@link #awaitUninterruptibly()}
 	 * @param unit 时间单位
-	 * @return {@code true} if and only if the future was completed within
-	 *         the specified time limit
+	 * @return 当且仅当future关联的任务，在特定时间范围内进入完成状态时返回true。
 	 */
 	boolean awaitUninterruptibly(long timeout, TimeUnit unit);
 
-	// ---------------------------------- 监听器 --------------------------------------
+	// ------------------------------------- 监听 --------------------------------------
 	/**
 	 * 添加一个监听器，该监听器将在默认的事件分发线程中执行。
 	 * 当你的代码支持并发调用的时候，那么使用该方法注册监听器即可。
