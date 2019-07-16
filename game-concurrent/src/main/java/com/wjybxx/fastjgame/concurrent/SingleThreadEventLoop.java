@@ -22,19 +22,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.*;
+import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-import java.util.function.Consumer;
 
-public class SingleThreadEventLoop extends AbstractExecutorService implements EventLoop {
+/**
+ * 单线程的事件循环，该类负责线程的生命周期管理
+ * 事件循环架构如果不是单线程的将没有意义。
+ */
+public class SingleThreadEventLoop extends AbstractEventLoop {
 
 	private static final Logger logger = LoggerFactory.getLogger(SingleThreadEventLoop.class);
-
-	static final long DEFAULT_SHUTDOWN_QUIET_PERIOD = 2;
-	static final long DEFAULT_SHUTDOWN_TIMEOUT = 15;
 
 	// 线程的状态
 	/** 初始状态，未启动状态 */
@@ -48,16 +47,11 @@ public class SingleThreadEventLoop extends AbstractExecutorService implements Ev
 	/** 终止状态(二阶段终止模式 - 已关闭状态下进行最后的清理，然后进入终止状态) */
 	private static final int ST_TERMINATED = 5;
 
-	// 毒药任务，特殊的任务
+	// 毒药任务
 	/** 唤醒线程的任务 */
 	private static final Runnable WAKEUP_TASK = () ->{};
 	/** 填充用的任务 */
 	private static final Runnable NOOP_TASK = () -> {};
-
-	private final EventLoopGroup parent;
-
-	/** 自己实例的封装，将迭代等相关工作进行委托 */
-	private final Collection<EventLoop> selfCollection = Collections.<EventLoop>singleton(this);
 
 	/** 持有的线程 */
 	private volatile Thread thread;
@@ -89,7 +83,7 @@ public class SingleThreadEventLoop extends AbstractExecutorService implements Ev
 	}
 
 	public SingleThreadEventLoop(EventLoopGroup parent, Executor executor) {
-		this.parent = parent;
+		super(parent);
 		this.executor = executor;
 		this.taskQueue = newTaskQueue();
 	}
@@ -100,51 +94,29 @@ public class SingleThreadEventLoop extends AbstractExecutorService implements Ev
 	}
 
 	@Override
-	public EventLoopGroup parent() {
-		return parent;
-	}
-
-	@Override
 	public boolean inEventLoop() {
 		return thread == Thread.currentThread();
 	}
 
-	@Override
-	public boolean isShuttingDown() {
-		return false;
-	}
-
-	@Override
-	public <V> ListenableFuture<V> shutdownGracefully() {
-		return null;
-	}
-
-	@Override
-	public <V> ListenableFuture<V> shutdownGracefully(long quietPeriod, long timeout, TimeUnit unit) {
-		return null;
-	}
-
-	@Override
-	public <V> ListenableFuture<V> terminationFuture() {
-		return null;
-	}
-
-	@Nonnull
-	@Override
-	public Iterator<EventLoop> iterator() {
-		return selfCollection.iterator();
-	}
 
 	@Override
 	public void shutdown() {
 
 	}
 
-	@Nonnull
 	@Override
-	public List<Runnable> shutdownNow() {
-		// TODO
+	public ListenableFuture<?> shutdownGracefully(long quietPeriod, long timeout, TimeUnit unit) {
 		return null;
+	}
+
+	@Override
+	public ListenableFuture<?> terminationFuture() {
+		return null;
+	}
+
+	@Override
+	public boolean isShuttingDown() {
+		return false;
 	}
 
 	@Override
@@ -163,70 +135,9 @@ public class SingleThreadEventLoop extends AbstractExecutorService implements Ev
 	}
 
 	@Override
-	public <V> Promise<V> newPromise() {
-		return null;
-	}
-
-	@Override
-	public <V> ListenableFuture<V> newFailedFuture(@Nonnull Throwable e) {
-		return new FailedFuture<>(this, e);
-	}
-
-	@Override
-	public <V> ListenableFuture<V> newSucceededFuture(@Nullable V value) {
-		return new SucceededFuture<>(this, value);
-	}
-
-	@Override
-	public ListenableFuture<?> submit(Runnable task) {
-		return super.submit(task);
-	}
-
-	@Override
-	public <T> ListenableFuture<T> submit(Runnable task, T result) {
-		return super.submit(task, result);
-	}
-
-	@Override
-	public <T> ListenableFuture<T> submit(Callable<T> task) {
-		return super.submit(task);
-	}
-
-	@Nonnull
-	@Override
-	public EventLoop next() {
-		return this;
-	}
-
-	@Override
-	public void forEach(Consumer<? super EventLoop> action) {
-		selfCollection.forEach(action);
-	}
-
-	@Override
-	public Spliterator<EventLoop> spliterator() {
-		return selfCollection.spliterator();
-	}
-
-	/**
-	 * Interrupt the current running {@link Thread}.
-	 */
-	protected void interruptThread() {
-		Thread currentThread = thread;
-		if (currentThread == null) {
-			// 线程还未启动，先将请求保存下来
-			interrupted = true;
-		} else {
-			currentThread.interrupt();
-		}
-	}
-
-
-	@Override
 	public void execute(@Nonnull Runnable command) {
-		// TODO 真正做事情的地方
+		// TODO 真正执行任务的地方
 	}
-
 
 	/**
 	 * Try to execute the given {@link Runnable} and just log if it throws a {@link Throwable}.

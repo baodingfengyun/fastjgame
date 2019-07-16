@@ -20,7 +20,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * EventLoop是一个游戏线程。
+ * 事件循环线程。
+ *
  * (它是组合模式中的叶子组件，它不能增加子组件)
  *
  * @version 1.0
@@ -60,6 +61,7 @@ public interface EventLoop extends EventLoopGroup {
 	 * @param <V> the type of value
 	 * @return Promise
 	 */
+	@Nonnull
 	<V> Promise<V> newPromise();
 
 	/**
@@ -70,6 +72,7 @@ public interface EventLoop extends EventLoopGroup {
 	 * @param <V> the type of value
 	 * @return ListenableFuture
 	 */
+	@Nonnull
 	<V> ListenableFuture<V> newFailedFuture(@Nonnull Throwable e);
 
 	/**
@@ -80,5 +83,6 @@ public interface EventLoop extends EventLoopGroup {
 	 * @param <V> the type of value
 	 * @return ListenableFuture
 	 */
+	@Nonnull
 	<V> ListenableFuture<V> newSucceededFuture(@Nullable V value);
 }

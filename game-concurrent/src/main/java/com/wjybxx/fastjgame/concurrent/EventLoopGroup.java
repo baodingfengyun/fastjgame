@@ -18,15 +18,16 @@ package com.wjybxx.fastjgame.concurrent;
 
 
 import javax.annotation.Nonnull;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
- * 游戏线程组。
+ * 事件循环线程组。
+ *
  * 目前来说不需要实现schedule，就游戏而言，用到的地方并不多，可以换别的方式实现。
+ * 此外，虽然{@link EventLoopGroup}继承自{@link ExecutorService}，其中有些方法并不是很想实现，最好少用。
  *
  * (它是组合模式中的容器组件)
  * @version 1.0
@@ -43,7 +44,6 @@ public interface EventLoopGroup extends ExecutorService, Iterable<EventLoop> {
 	 * 默认的等待关闭超时的时间， 15秒
 	 */
 	long DEFAULT_SHUTDOWN_TIMEOUT = 15;
-
 
 	/**
 	 * {@link #shutdownGracefully(long, long, TimeUnit)}的快捷调用方式，参数为合理的默认值。
@@ -74,6 +74,9 @@ public interface EventLoopGroup extends ExecutorService, Iterable<EventLoop> {
 	 * @return the {@link #terminationFuture()}
 	 */
 	ListenableFuture<?> shutdownGracefully(long quietPeriod, long timeout, TimeUnit unit);
+
+	@Override
+	boolean isTerminated();
 
 	/**
 	 * 返回等待线程终止的future。
@@ -112,9 +115,10 @@ public interface EventLoopGroup extends ExecutorService, Iterable<EventLoop> {
 	@Override
 	Iterator<EventLoop> iterator();
 
-	// ------------------------------------ 修改返回类型 -------------------------
+	// ----------------------------- 这是我想要支持的任务调度 ------------------------
 
-
+	@Override
+	void execute(@Nonnull Runnable command);
 
 	@Nonnull
 	@Override
@@ -127,4 +131,20 @@ public interface EventLoopGroup extends ExecutorService, Iterable<EventLoop> {
 	@Nonnull
 	@Override
 	<V> ListenableFuture<V> submit(@Nonnull Callable<V> task);
+
+	// ---------------------------- 这是我不想支持的任务调度 ---------------------------------
+	@Nonnull
+	@Override
+	<T> List<Future<T>> invokeAll(@Nonnull Collection<? extends Callable<T>> tasks) throws InterruptedException;
+
+	@Nonnull
+	@Override
+	<T> List<Future<T>> invokeAll(@Nonnull Collection<? extends Callable<T>> tasks, long timeout, @Nonnull TimeUnit unit) throws InterruptedException;
+
+	@Nonnull
+	@Override
+	<T> T invokeAny(@Nonnull Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException;
+
+	@Override
+	<T> T invokeAny(@Nonnull Collection<? extends Callable<T>> tasks, long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException;
 }

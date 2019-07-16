@@ -42,6 +42,16 @@ import java.util.concurrent.TimeoutException;
 public abstract class AbstractEventLoopGroup implements EventLoopGroup {
 
 	// ------------------------------------- 主要是为了支持 execute和submit --------------------
+
+	/**
+	 * 将任务分配到某一个子节点上
+	 * @param command 任务
+	 */
+	@Override
+	public void execute(@Nonnull Runnable command) {
+		next().execute(command);
+	}
+
 	@Nonnull
 	@Override
 	public ListenableFuture<?> submit(@Nonnull Runnable task) {
@@ -65,16 +75,7 @@ public abstract class AbstractEventLoopGroup implements EventLoopGroup {
 		return shutdownGracefully(DEFAULT_SHUTDOWN_QUIET_PERIOD, DEFAULT_SHUTDOWN_TIMEOUT, TimeUnit.SECONDS);
 	}
 
-	/**
-	 * 将任务分配到某一个子节点上
-	 * @param command 任务
-	 */
-	@Override
-	public void execute(@Nonnull Runnable command) {
-		next().execute(command);
-	}
-
-	// ------------------------------------------------- 不是很想支持的方法 ---------------------------------------
+	// -------------------------------------------- 不是很想支持的方法 ---------------------------------------
 
 	/**
 	 * @deprecated {@link #shutdownGracefully(long, long, TimeUnit)} or {@link #shutdownGracefully()} instead.
@@ -93,6 +94,8 @@ public abstract class AbstractEventLoopGroup implements EventLoopGroup {
 		shutdown();
 		return Collections.emptyList();
 	}
+
+	// 仅仅是简单的将任务分配给某一个线程
 
 	@Nonnull
 	@Override
