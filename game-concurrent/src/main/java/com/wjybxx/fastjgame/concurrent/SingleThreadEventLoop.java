@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
@@ -66,6 +66,7 @@ public class SingleThreadEventLoop extends AbstractEventLoop {
 	 * 本次循环要执行的任务
 	 */
 	private final BlockingQueue<Runnable> taskQueue;
+	private final RejectedExecutionHandler rejectedExecutionHandler;
 
 	/**
 	 * 创建{@link #thread}的executor。
@@ -75,16 +76,19 @@ public class SingleThreadEventLoop extends AbstractEventLoop {
 
 	/** 是否有请求中断当前线程 */
 	private volatile boolean interrupted = false;
+	/** 线程终止future */
+	private final Promise<?> terminationFuture = new DefaultPromise(GlobalEventLoop.INSTANCE);
 
 	public SingleThreadEventLoop(EventLoopGroup parent, ThreadFactory threadFactory) {
 		// 为何可以使用ThreadPerTaskExecutor？因为必须要能够创建一个新线程给当前对象
 		// 限定线程数的线程池，会导致异常
-		this(parent, new ThreadPerTaskExecutor(threadFactory));
+		this(parent, new ThreadPerTaskExecutor(threadFactory), RejectedExecutionHandlers.reject());
 	}
 
-	public SingleThreadEventLoop(EventLoopGroup parent, Executor executor) {
+	public SingleThreadEventLoop(EventLoopGroup parent, Executor executor, RejectedExecutionHandler rejectedExecutionHandler) {
 		super(parent);
 		this.executor = executor;
+		this.rejectedExecutionHandler = rejectedExecutionHandler;
 		this.taskQueue = newTaskQueue();
 	}
 
@@ -98,7 +102,6 @@ public class SingleThreadEventLoop extends AbstractEventLoop {
 		return thread == Thread.currentThread();
 	}
 
-
 	@Override
 	public void shutdown() {
 
@@ -111,22 +114,22 @@ public class SingleThreadEventLoop extends AbstractEventLoop {
 
 	@Override
 	public ListenableFuture<?> terminationFuture() {
-		return null;
+		return terminationFuture;
 	}
 
 	@Override
 	public boolean isShuttingDown() {
-		return false;
+		return state.get() >= ST_SHUTTING_DOWN;
 	}
 
 	@Override
 	public boolean isShutdown() {
-		return false;
+		return state.get() >= ST_SHUTDOWN;
 	}
 
 	@Override
 	public boolean isTerminated() {
-		return false;
+		return state.get() == ST_TERMINATED;
 	}
 
 	@Override
@@ -138,6 +141,92 @@ public class SingleThreadEventLoop extends AbstractEventLoop {
 	public void execute(@Nonnull Runnable command) {
 		// TODO 真正执行任务的地方
 	}
+
+
+	/**
+	 * @see Queue#poll()
+	 */
+	protected Runnable pollTask() {
+		assert inEventLoop();
+		return pollTaskFrom(taskQueue);
+	}
+
+	protected static Runnable pollTaskFrom(Queue<Runnable> taskQueue) {
+		for (;;) {
+			Runnable task = taskQueue.poll();
+			if (task == WAKEUP_TASK) {
+				continue;
+			}
+			return task;
+		}
+	}
+
+	/**
+	 * @see Queue#peek()
+	 */
+	protected Runnable peekTask() {
+		assert inEventLoop();
+		return taskQueue.peek();
+	}
+
+	/**
+	 * @see Queue#isEmpty()
+	 */
+	protected boolean hasTasks() {
+		assert inEventLoop();
+		return !taskQueue.isEmpty();
+	}
+
+	/**
+	 * Add a task to the task queue, or throws a {@link RejectedExecutionException} if this instance was shutdown
+	 * before.
+	 */
+	protected void addTask(Runnable task) {
+		if (task == null) {
+			throw new NullPointerException("task");
+		}
+		if (!offerTask(task)) {
+			reject(task);
+		}
+	}
+
+	final boolean offerTask(Runnable task) {
+		if (isShutdown()) {
+			reject();
+		}
+		return taskQueue.offer(task);
+	}
+
+	@SuppressWarnings("unused")
+	protected boolean wakesUpForTask(Runnable task) {
+		return true;
+	}
+
+	protected static void reject() {
+		throw new RejectedExecutionException("event executor terminated");
+	}
+
+	/**
+	 * Offers the task to the associated {@link RejectedExecutionHandler}.
+	 *
+	 * @param task to reject.
+	 */
+	protected final void reject(Runnable task) {
+		rejectedExecutionHandler.rejected(task, this);
+	}
+
+	/**
+	 * @see Queue#remove(Object)
+	 */
+	protected boolean removeTask(Runnable task) {
+		if (task == null) {
+			throw new NullPointerException("task");
+		}
+		return taskQueue.remove(task);
+	}
+
+
+
 
 	/**
 	 * Try to execute the given {@link Runnable} and just log if it throws a {@link Throwable}.

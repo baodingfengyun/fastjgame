@@ -36,14 +36,6 @@ import java.util.concurrent.*;
  */
 public interface EventLoopGroup extends ExecutorService, Iterable<EventLoop> {
 
-	/**
-	 * 默认的关闭前的安静期 2S
-	 */
-	long DEFAULT_SHUTDOWN_QUIET_PERIOD = 2;
-	/**
-	 * 默认的等待关闭超时的时间， 15秒
-	 */
-	long DEFAULT_SHUTDOWN_TIMEOUT = 15;
 
 	/**
 	 * {@link #shutdownGracefully(long, long, TimeUnit)}的快捷调用方式，参数为合理的默认值。

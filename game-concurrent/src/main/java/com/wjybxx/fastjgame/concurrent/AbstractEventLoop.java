@@ -38,12 +38,21 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
 	private static final Logger logger = LoggerFactory.getLogger(AbstractEventLoop.class);
 
 	/**
+	 * 默认的关闭前的安静期 2S
+	 */
+	protected static final long DEFAULT_SHUTDOWN_QUIET_PERIOD = 2;
+	/**
+	 * 默认的等待关闭超时的时间， 15秒
+	 */
+	protected static final long DEFAULT_SHUTDOWN_TIMEOUT = 15;
+
+	/**
 	 * 父节点的引用。
 	 * 可能为null
 	 */
 	private final EventLoopGroup parent;
 	/**
-	 * 封装一个只包含自己的集合。方便实现跌打查询等等。
+	 * 封装一个只包含自己的集合。方便实现迭代查询等等。
 	 */
 	private final Collection<EventLoop> selfCollection = Collections.<EventLoop>singleton(this);
 
