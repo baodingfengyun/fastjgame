@@ -35,6 +35,13 @@ public class SingleThreadEventLoop extends AbstractEventLoop {
 
 	private static final Logger logger = LoggerFactory.getLogger(SingleThreadEventLoop.class);
 
+	// 毒药任务
+	/** 唤醒线程的任务 */
+	private static final Runnable WAKEUP_TASK = () ->{};
+
+	/** 填充用的任务 */
+	private static final Runnable NOOP_TASK = () -> {};
+
 	// 线程的状态
 	/** 初始状态，未启动状态 */
 	private static final int ST_NOT_STARTED = 1;
@@ -47,11 +54,14 @@ public class SingleThreadEventLoop extends AbstractEventLoop {
 	/** 终止状态(二阶段终止模式 - 已关闭状态下进行最后的清理，然后进入终止状态) */
 	private static final int ST_TERMINATED = 5;
 
-	// 毒药任务
-	/** 唤醒线程的任务 */
-	private static final Runnable WAKEUP_TASK = () ->{};
-	/** 填充用的任务 */
-	private static final Runnable NOOP_TASK = () -> {};
+	/** 本次循环要执行的任务 */
+	private final BlockingQueue<Runnable> taskQueue;
+
+	/**
+	 * 创建{@link #thread}的executor。
+	 * 不直接创建线程，而是通过提交一个死循环任务获得线程。
+	 */
+	private final Executor executor;
 
 	/** 持有的线程 */
 	private volatile Thread thread;
@@ -62,19 +72,11 @@ public class SingleThreadEventLoop extends AbstractEventLoop {
 	 * 首先保证正确性，易分析。
 	 */
 	private final AtomicInteger state = new AtomicInteger(ST_NOT_STARTED);
-	/**
-	 * 本次循环要执行的任务
-	 */
-	private final BlockingQueue<Runnable> taskQueue;
 
-	/**
-	 * 创建{@link #thread}的executor。
-	 * 不直接创建线程，而是通过提交一个死循环任务获得线程。
-	 */
-	private final Executor executor;
 
 	/** 是否有请求中断当前线程 */
 	private volatile boolean interrupted = false;
+
 
 	public SingleThreadEventLoop(EventLoopGroup parent, ThreadFactory threadFactory) {
 		// 为何可以使用ThreadPerTaskExecutor？因为必须要能够创建一个新线程给当前对象

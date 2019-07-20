@@ -36,9 +36,7 @@ public interface EventLoop extends EventLoopGroup {
 	 */
 	@Nonnull
 	@Override
-	default EventLoop next() {
-		return this;
-	}
+	EventLoop next();
 
 	/**
 	 * 返回该EventLoop线程所在的线程组（管理该EventLoop的容器）。
