@@ -43,9 +43,14 @@ public class SingleThreadEventLoop extends AbstractEventLoop {
 	private static final Runnable WAKEUP_TASK = () ->{};
 	/** 填充用的任务 */
 	private static final Runnable NOOP_TASK = () -> {};
-	/** 有界线程池 */
-	private static final int DEFAULT_MAX_TASKS = SystemPropertiesUtils.getSystemConfig().getAsInt("fastjgame.max.tasknum", 8192*8);
 
+	/**
+	 * 当允许的任务数小于等于该值时使用{@link ArrayBlockingQueue}，能提高部分性能。
+	 * 过大时浪费内存
+	 */
+	private static final int ARRAy_BLOCKING_QUEUE_SIZE = 8192;
+	/** 有界线程池 */
+	private static final int DEFAULT_MAX_TASKS = SystemPropertiesUtils.getSystemConfig().getAsInt("fastjgame.max.tasknum", ARRAy_BLOCKING_QUEUE_SIZE);
 
 	// 线程的状态
 	/** 初始状态，未启动状态 */
@@ -76,7 +81,7 @@ public class SingleThreadEventLoop extends AbstractEventLoop {
 	/**
 	 * 本次循环要执行的任务
 	 */
-	private final BlockingQueue<Runnable> taskQueue;
+	private final Queue<Runnable> taskQueue;
 	/** 任务被拒绝时的处理策略 */
 	private final RejectedExecutionHandler rejectedExecutionHandler;
 
@@ -96,11 +101,16 @@ public class SingleThreadEventLoop extends AbstractEventLoop {
 		super(parent);
 		this.executor = executor;
 		this.rejectedExecutionHandler = rejectedExecutionHandler;
-		this.taskQueue = newTaskQueue();
+		this.taskQueue = newTaskQueue(DEFAULT_MAX_TASKS);
 	}
 
-	protected BlockingQueue<Runnable> newTaskQueue(int maxTaskNum) {
-		return new LinkedBlockingQueue<>();
+	/**
+	 * 闯江湖
+	 * @param maxTaskNum 允许压入的最大任务数
+	 * @return queue
+	 */
+	protected Queue<Runnable> newTaskQueue(int maxTaskNum) {
+		return maxTaskNum > ARRAy_BLOCKING_QUEUE_SIZE ? new LinkedBlockingQueue<>(maxTaskNum): new ArrayBlockingQueue<>(maxTaskNum);
 	}
 
 	@Override
@@ -140,7 +150,7 @@ public class SingleThreadEventLoop extends AbstractEventLoop {
 
 	@Override
 	public boolean awaitTermination(long timeout, @Nonnull TimeUnit unit) throws InterruptedException {
-		return false;
+		return terminationFuture.await(timeout, unit);
 	}
 
 	@Override
