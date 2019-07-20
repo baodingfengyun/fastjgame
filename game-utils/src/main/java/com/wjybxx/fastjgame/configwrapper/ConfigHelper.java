@@ -16,6 +16,7 @@
 package com.wjybxx.fastjgame.configwrapper;
 
 import com.wjybxx.fastjgame.constants.UtilConstants;
+import com.wjybxx.fastjgame.utils.ConfigUtils;
 
 /**
  * 基于字符串键值对配置的帮助类。
@@ -38,96 +39,75 @@ public abstract class ConfigHelper {
     public abstract String getAsString(String key);
 
     public String getAsString(String key,String defaultValue){
-        String stringValue = getAsString(key);
-        return null==stringValue?defaultValue:stringValue;
+        return ConfigUtils.getAsString(getAsString(key), defaultValue);
     }
 
     // region 对基本类型的支持
     public int getAsInt(String key){
-        return Integer.parseInt(getAsString(key));
+        return ConfigUtils.getAsInt(getAsString(key));
     }
 
     public int getAsInt(String key,int defaultValue){
-        String stringValue = getAsString(key);
-        return null==stringValue?defaultValue:Integer.parseInt(stringValue);
+        return ConfigUtils.getAsInt(getAsString(key), defaultValue);
     }
 
     public long getAsLong(String key){
-        return Long.parseLong(getAsString(key));
+        return ConfigUtils.getAsLong(getAsString(key));
     }
 
     public long getAsLong(String key,long defaultValue){
-        String stringValue = getAsString(key);
-        return null==stringValue?defaultValue:Long.parseLong(stringValue);
+        return ConfigUtils.getAsLong(getAsString(key), defaultValue);
     }
 
     public double getAsDouble(String key){
-        return Double.parseDouble(getAsString(key));
+        return ConfigUtils.getAsDouble(getAsString(key));
     }
 
     public double getAsDouble(String key,double defaultValue){
-        String stringValue = getAsString(key);
-        return null==stringValue?defaultValue:Double.parseDouble(stringValue);
+        return ConfigUtils.getAsDouble(getAsString(key), defaultValue);
     }
 
     public byte getAsByte(String key){
-        return Byte.parseByte(getAsString(key));
+        return ConfigUtils.getAsByte(getAsString(key));
     }
 
     public byte getAsByte(String key,byte defaultValue){
-        String stringValue = getAsString(key);
-        return null==stringValue?defaultValue:Byte.parseByte(stringValue);
+        return ConfigUtils.getAsByte(getAsString(key), defaultValue);
     }
 
     public short getAsShort(String key){
-        return Short.parseShort(getAsString(key));
+        return ConfigUtils.getAsShort(getAsString(key));
     }
 
     public short getAsShort(String key,short defaultValue){
-        String stringValue = getAsString(key);
-        return null==stringValue?defaultValue:Short.parseShort(stringValue);
+        return ConfigUtils.getAsShort(getAsString(key), defaultValue);
     }
 
     public float getAsFloat(String key){
-        return Float.parseFloat(getAsString(key));
+        return ConfigUtils.getAsFloat(getAsString(key));
     }
 
     public float getAsFloat(String key,float defaultValue){
-        String stringValue = getAsString(key);
-        return null==stringValue?defaultValue:Float.parseFloat(stringValue);
+        return ConfigUtils.getAsFloat(getAsString(key), defaultValue);
     }
 
     /**
-     *
-     * @param key
+     * 字符串是否表示true
+     * @param key name
      * @return true,yes,1,y表示为真，其余为假。
      */
     public boolean getAsBool(String key){
-        return isTrueString(getAsString(key));
+        return ConfigUtils.getAsBool(getAsString(key));
     }
 
     /**
-     * 字符串是否表示true。
-     * true,yes,1,y表示为真，其余为假。
-     * @param value
-     * @return
-     */
-    private boolean isTrueString(String value){
-        return value.equalsIgnoreCase("true")
-                || value.equalsIgnoreCase("yes")
-                || value.equalsIgnoreCase("1")
-                || value.equalsIgnoreCase("y");
-    }
-
-    /**
-     *
-     * @param key
-     * @param defaultValue
+     * 字符串是否表示true
+     * @param key name
+     * @param defaultValue 如果不存在指定名字的属性，则返回默认值
      * @return true,yes,1,y表示为真，其余为假。
      */
     public boolean getAsBool(String key,boolean defaultValue){
-        String stringValue = getAsString(key);
-        return null==stringValue?defaultValue:isTrueString(stringValue);
+        return ConfigUtils.getAsBool(key, defaultValue);
     }
     // endregion
 

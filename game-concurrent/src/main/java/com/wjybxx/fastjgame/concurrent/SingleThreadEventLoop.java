@@ -17,6 +17,9 @@
 package com.wjybxx.fastjgame.concurrent;
 
 
+import com.wjybxx.fastjgame.configwrapper.PropertiesConfigWrapper;
+import com.wjybxx.fastjgame.utils.ConfigUtils;
+import com.wjybxx.fastjgame.utils.SystemPropertiesUtils;
 import io.netty.util.concurrent.ThreadPerTaskExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,9 +41,11 @@ public class SingleThreadEventLoop extends AbstractEventLoop {
 	// 毒药任务
 	/** 唤醒线程的任务 */
 	private static final Runnable WAKEUP_TASK = () ->{};
-
 	/** 填充用的任务 */
 	private static final Runnable NOOP_TASK = () -> {};
+	/** 有界线程池 */
+	private static final int DEFAULT_MAX_TASKS = SystemPropertiesUtils.getSystemConfig().getAsInt("fastjgame.max.tasknum", 8192*8);
+
 
 	// 线程的状态
 	/** 初始状态，未启动状态 */
@@ -67,7 +72,7 @@ public class SingleThreadEventLoop extends AbstractEventLoop {
 	 * 未何netty一样使用{@link AtomicIntegerFieldUpdater}，需要更多的理解成本，对于不熟悉的人来说容易用错。
 	 * 首先保证正确性，易分析。
 	 */
-	private final AtomicInteger state = new AtomicInteger(ST_NOT_STARTED);
+	private final AtomicInteger stateHolder = new AtomicInteger(ST_NOT_STARTED);
 	/**
 	 * 本次循环要执行的任务
 	 */
@@ -94,8 +99,7 @@ public class SingleThreadEventLoop extends AbstractEventLoop {
 		this.taskQueue = newTaskQueue();
 	}
 
-
-	protected BlockingQueue<Runnable> newTaskQueue() {
+	protected BlockingQueue<Runnable> newTaskQueue(int maxTaskNum) {
 		return new LinkedBlockingQueue<>();
 	}
 
@@ -121,17 +125,17 @@ public class SingleThreadEventLoop extends AbstractEventLoop {
 
 	@Override
 	public boolean isShuttingDown() {
-		return state.get() >= ST_SHUTTING_DOWN;
+		return stateHolder.get() >= ST_SHUTTING_DOWN;
 	}
 
 	@Override
 	public boolean isShutdown() {
-		return state.get() >= ST_SHUTDOWN;
+		return stateHolder.get() >= ST_SHUTDOWN;
 	}
 
 	@Override
 	public boolean isTerminated() {
-		return state.get() == ST_TERMINATED;
+		return stateHolder.get() == ST_TERMINATED;
 	}
 
 	@Override

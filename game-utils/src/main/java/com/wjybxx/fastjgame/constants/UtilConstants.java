@@ -38,7 +38,7 @@ public class UtilConstants {
     public static final String DEFAULT_ARRAY_DELIMITER ="\\|";
 
     /**
-     * 默认键值对分隔符
+     * 默认键值对分隔符, '=' 与 ':' 都是不错的选择， ':'更贴近于json
      */
     public static final String DEFAULT_KEY_VALUE_DELIMITER = "=";
 

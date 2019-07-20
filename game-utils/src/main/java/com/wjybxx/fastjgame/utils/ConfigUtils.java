@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.constants.UtilConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
+import javax.annotation.Nonnull;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -84,8 +85,16 @@ public class ConfigUtils {
      * @return 校验后的字符串
      */
     private static String tryTrim(String content){
-        return null == content? null : content.trim();
+        return null == content ? null : content.trim();
     }
+
+
+    @Nonnull
+    public static String getAsString(String content, String defaultValue) {
+        return null != content ? content : defaultValue ;
+    }
+
+    // ------------------------------------------------------- 基本类型支持 ------------------------------------------
 
     /**
      * 解析一个int值，会自动调用{@link String#trim()}
@@ -158,12 +167,59 @@ public class ConfigUtils {
     }
 
     public static boolean getAsBool(String value, final boolean defaultValue) {
+        if (null == value) {
+            return defaultValue;
+        }
         try {
             return getAsBool(value);
         } catch (Exception e){
             return defaultValue;
         }
     }
+    // ----------------------------------------------- 基本类型数组支持 -------------------------------------------
+
+    public static String[] getAsStringArray(String value){
+        return value.split(UtilConstants.DEFAULT_ARRAY_DELIMITER);
+    }
+
+    /**
+     * @see it.unimi.dsi.fastutil.ints.IntArrayList#IntArrayList(int[])
+     */
+    public static int[] getAsIntArray(String value){
+        String[] stringArray = getAsStringArray(value);
+        int[] intArray=new int[stringArray.length];
+        for (int index=0;index<stringArray.length;index++){
+            intArray[index] = getAsInt(stringArray[index]);
+        }
+        return intArray;
+    }
+
+    /**
+     * @see it.unimi.dsi.fastutil.longs.LongArrayList#LongArrayList(long[])
+     */
+    public static long[] getAsLongArray(String value){
+        String[] stringArray = getAsStringArray(value);
+        long[] longArray=new long[stringArray.length];
+        for (int index=0;index<stringArray.length;index++){
+            longArray[index] = getAsLong(stringArray[index]);
+        }
+        return longArray;
+    }
+
+    /**
+     * @see it.unimi.dsi.fastutil.doubles.DoubleArrayList#DoubleArrayList(double[])
+     */
+    public static double[] getAsDoubleArray(String value){
+        String[] stringArray = getAsStringArray(value);
+        double[] doubleArray=new double[stringArray.length];
+        for (int index=0;index<stringArray.length;index++){
+            doubleArray[index] = getAsDouble(stringArray[index]);
+        }
+        return doubleArray;
+    }
+
+
+    // ------------------------------------------------ map支持 -------------------------------------------
 
     /**
      * 使用默认的数组分隔符和键值对分隔符解析字符串。
