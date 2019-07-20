@@ -130,10 +130,8 @@ public final class CollectionUtils {
      * 特意重载是为了表明针对并发队列使用的。
      */
     public static <E> void pollToList(BlockingQueue<E> blockingQueue, List<E> out){
-        E e;
-        while ((e=blockingQueue.poll())!=null){
-            out.add(e);
-        }
+        // 2019年7月20日 我才发现drainTo这么个方法。。。。
+        blockingQueue.drainTo(out);
     }
 
     /**

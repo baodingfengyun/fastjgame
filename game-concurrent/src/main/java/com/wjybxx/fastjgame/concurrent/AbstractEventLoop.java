@@ -38,15 +38,6 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
 	private static final Logger logger = LoggerFactory.getLogger(AbstractEventLoop.class);
 
 	/**
-	 * 默认的关闭前的安静期 2S
-	 */
-	protected static final long DEFAULT_SHUTDOWN_QUIET_PERIOD = 2;
-	/**
-	 * 默认的等待关闭超时的时间， 15秒
-	 */
-	protected static final long DEFAULT_SHUTDOWN_TIMEOUT = 15;
-
-	/**
 	 * 父节点的引用。
 	 * 可能为null
 	 */
@@ -73,29 +64,6 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
 		return this;
 	}
 
-	@Override
-	public ListenableFuture<?> shutdownGracefully() {
-		return shutdownGracefully(DEFAULT_SHUTDOWN_QUIET_PERIOD, DEFAULT_SHUTDOWN_TIMEOUT, TimeUnit.SECONDS);
-	}
-
-	/**
-	 * @deprecated {@link #shutdownGracefully(long, long, TimeUnit)} or {@link #shutdownGracefully()} instead.
-	 */
-	@Override
-	@Deprecated
-	public abstract void shutdown();
-
-	/**
-	 * @deprecated {@link #shutdownGracefully(long, long, TimeUnit)} or {@link #shutdownGracefully()} instead.
-	 */
-	@Nonnull
-	@Override
-	@Deprecated
-	public List<Runnable> shutdownNow() {
-		shutdown();
-		return Collections.emptyList();
-	}
-
 	@Nonnull
 	@Override
 	public <V> Promise<V> newPromise() {
@@ -114,6 +82,7 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
 		return new FailedFuture<V>(this, cause);
 	}
 
+	// --------------------------------------- 任务提交 ----------------------------------------
 	// region 重写 AbstractExecutorService中的部分方法,返回特定的Future类型
 	@Nonnull
 	@Override
@@ -145,7 +114,7 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
 	}
 	// endregion
 
-	// --------------------------------------- 迭代 -------------------------------
+	// ---------------------------------------- 迭代 ---------------------------------------
 	@Nonnull
 	@Override
 	public Iterator<EventLoop> iterator() {

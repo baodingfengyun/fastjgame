@@ -70,31 +70,7 @@ public abstract class AbstractEventLoopGroup implements EventLoopGroup {
 		return next().submit(task);
 	}
 
-	@Override
-	public ListenableFuture<?> shutdownGracefully() {
-		return shutdownGracefully(DEFAULT_SHUTDOWN_QUIET_PERIOD, DEFAULT_SHUTDOWN_TIMEOUT, TimeUnit.SECONDS);
-	}
-
-	// -------------------------------------------- 不是很想支持的方法 ---------------------------------------
-
-	/**
-	 * @deprecated {@link #shutdownGracefully(long, long, TimeUnit)} or {@link #shutdownGracefully()} instead.
-	 */
-	@Override
-	@Deprecated
-	public abstract void shutdown();
-
-	/**
-	 * @deprecated {@link #shutdownGracefully(long, long, TimeUnit)} or {@link #shutdownGracefully()} instead.
-	 */
-	@Nonnull
-	@Override
-	@Deprecated
-	public List<Runnable> shutdownNow() {
-		shutdown();
-		return Collections.emptyList();
-	}
-
+	// ---------------------------------- 不是很想支持的方法 ------------------------------------
 	// 仅仅是简单的将任务分配给某一个线程
 
 	@Nonnull

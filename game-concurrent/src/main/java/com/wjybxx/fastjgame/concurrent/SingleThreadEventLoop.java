@@ -17,15 +17,13 @@
 package com.wjybxx.fastjgame.concurrent;
 
 
-import com.wjybxx.fastjgame.configwrapper.PropertiesConfigWrapper;
-import com.wjybxx.fastjgame.utils.ConfigUtils;
 import com.wjybxx.fastjgame.utils.SystemPropertiesUtils;
 import io.netty.util.concurrent.ThreadPerTaskExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
@@ -50,7 +48,7 @@ public class SingleThreadEventLoop extends AbstractEventLoop {
 	 */
 	private static final int ARRAy_BLOCKING_QUEUE_SIZE = 8192;
 	/** 有界线程池 */
-	private static final int DEFAULT_MAX_TASKS = SystemPropertiesUtils.getSystemConfig().getAsInt("fastjgame.max.tasknum", ARRAy_BLOCKING_QUEUE_SIZE);
+	private static final int DEFAULT_MAX_TASKS = SystemPropertiesUtils.getSystemConfig().getAsInt("fastjgame.SingleThreadEventLoop.tasknum", ARRAy_BLOCKING_QUEUE_SIZE);
 
 	// 线程的状态
 	/** 初始状态，未启动状态 */
@@ -81,7 +79,8 @@ public class SingleThreadEventLoop extends AbstractEventLoop {
 	/**
 	 * 本次循环要执行的任务
 	 */
-	private final Queue<Runnable> taskQueue;
+	private final BlockingQueue<Runnable> taskQueue;
+
 	/** 任务被拒绝时的处理策略 */
 	private final RejectedExecutionHandler rejectedExecutionHandler;
 
@@ -109,7 +108,7 @@ public class SingleThreadEventLoop extends AbstractEventLoop {
 	 * @param maxTaskNum 允许压入的最大任务数
 	 * @return queue
 	 */
-	protected Queue<Runnable> newTaskQueue(int maxTaskNum) {
+	protected BlockingQueue<Runnable> newTaskQueue(int maxTaskNum) {
 		return maxTaskNum > ARRAy_BLOCKING_QUEUE_SIZE ? new LinkedBlockingQueue<>(maxTaskNum): new ArrayBlockingQueue<>(maxTaskNum);
 	}
 
@@ -118,14 +117,35 @@ public class SingleThreadEventLoop extends AbstractEventLoop {
 		return thread == Thread.currentThread();
 	}
 
+	// 进入正在关闭状态
 	@Override
 	public void shutdown() {
-
+		for (;;){
+			// 需要存为临时变量，否则compareAndSet会出问题(先检查后执行，检查结果会有问题)
+			int curState = stateHolder.get();
+			if (isShuttingDown0(curState)) {
+				return;
+			}
+			if (stateHolder.compareAndSet(curState, ST_SHUTTING_DOWN)) {
+				return;
+			}
+		}
 	}
 
+	@Nonnull
 	@Override
-	public ListenableFuture<?> shutdownGracefully(long quietPeriod, long timeout, TimeUnit unit) {
-		return null;
+	public List<Runnable> shutdownNow() {
+		for (;;){
+			int curState = stateHolder.get();
+			if (isShutdown0(curState)) {
+				return Collections.emptyList();
+			}
+			if (stateHolder.compareAndSet(curState, ST_SHUTTING_DOWN)) {
+				List<Runnable> haltTasks = new ArrayList<>(taskQueue.size());
+				taskQueue.drainTo(haltTasks);
+				return haltTasks;
+			}
+		}
 	}
 
 	@Override
@@ -135,12 +155,20 @@ public class SingleThreadEventLoop extends AbstractEventLoop {
 
 	@Override
 	public boolean isShuttingDown() {
-		return stateHolder.get() >= ST_SHUTTING_DOWN;
+		return isShuttingDown0(stateHolder.get());
+	}
+
+	private static boolean isShuttingDown0(int state) {
+		return state >= ST_SHUTTING_DOWN;
 	}
 
 	@Override
 	public boolean isShutdown() {
-		return stateHolder.get() >= ST_SHUTDOWN;
+		return isShutdown0(stateHolder.get());
+	}
+
+	private static boolean isShutdown0(int state) {
+		return state >= ST_SHUTDOWN;
 	}
 
 	@Override
@@ -155,9 +183,9 @@ public class SingleThreadEventLoop extends AbstractEventLoop {
 
 	@Override
 	public void execute(@Nonnull Runnable command) {
-		// TODO 真正执行任务的地方
-	}
+		// TODO 提交任务的真正地方
 
+	}
 
 	/**
 	 * @see Queue#poll()
@@ -201,21 +229,17 @@ public class SingleThreadEventLoop extends AbstractEventLoop {
 		if (task == null) {
 			throw new NullPointerException("task");
 		}
-		if (!offerTask(task)) {
+		// 在检测到未关闭的状态下尝试压入队列
+		if (!isShuttingDown() && taskQueue.offer(task)) {
+			// 在压入队列的过程中，executor的状态是可能改变的,executor可能被关闭了。--- 检查结果可能失效
+			// remove失败表示executor已经执行了该任务，或者被强制停止了 -- shutdownNow
+			if (isShuttingDown() && taskQueue.remove(task)) {
+				reject(task);
+			}
+		} else {
+			// executor已关闭 或 压入队列失败，拒绝
 			reject(task);
 		}
-	}
-
-	final boolean offerTask(Runnable task) {
-		if (isShutdown()) {
-			reject();
-		}
-		return taskQueue.offer(task);
-	}
-
-	@SuppressWarnings("unused")
-	protected boolean wakesUpForTask(Runnable task) {
-		return true;
 	}
 
 	protected static void reject() {
@@ -240,9 +264,6 @@ public class SingleThreadEventLoop extends AbstractEventLoop {
 		}
 		return taskQueue.remove(task);
 	}
-
-
-
 
 	/**
 	 * Try to execute the given {@link Runnable} and just log if it throws a {@link Throwable}.

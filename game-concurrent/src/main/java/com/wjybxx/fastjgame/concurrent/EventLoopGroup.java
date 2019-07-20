@@ -36,77 +36,57 @@ import java.util.concurrent.*;
  */
 public interface EventLoopGroup extends ExecutorService, Iterable<EventLoop> {
 
+	// ------------------------------ 生命周期相关方法 ----------------------------
 
 	/**
-	 * {@link #shutdownGracefully(long, long, TimeUnit)}的快捷调用方式，参数为合理的默认值。
-	 * (该方法就不详细解释了，见带参方法)
+	 * 请求关闭 ExecutorService，不再接收新的任务。
+	 * ExecutorService在执行完现有任务后，进入关闭状态。
+	 * 如果 ExecutorService 正在关闭，或已经关闭，则方法不产生任何效果。
+	 *
+	 * 该方法会立即返回，如果想等待 ExecutorService 进入终止状态，
+	 * 可以使用{@link #awaitTermination(long, TimeUnit)}或{@link #terminationFuture()} 进行等待
 	 */
-	ListenableFuture<?> shutdownGracefully();
+	@Override
+	void shutdown();
 
 	/**
-	 * 通知当前{@link EventLoopGroup} 关闭。
-	 * 一旦该方法被调用，{@link #isShuttingDown()}将开始返回true,并且当前 executor准备开始关闭自己。
-	 * 和{@link #shutdown()}方法不同的是，优雅的关闭将保证在关闭前的安静期没有任务提交。
-	 * 如果在安静期提交了一个任务，那么它一定会接受它并重新进入安静期。
-	 * (也就是说不推荐使用 {@link ExecutorService#shutdown()} 和 {@link ExecutorService#shutdownNow()}方法。
+	 * 请求关闭 ExecutorService，<b>尝试取消所有正在执行的任务，停止所有待执行的任务，并不再接收新的任务。</b>
+	 * 如果 ExecutorService 已经关闭，则方法不产生任何效果。
 	 *
-	 * Signals this executor that the caller wants the executor to be shut down.  Once this method is called,
-	 * {@link #isShuttingDown()} starts to return {@code true}, and the executor prepares to shut itself down.
-	 * Unlike {@link #shutdown()}, graceful shutdown ensures that no tasks are submitted for <i>'the quiet period'</i>
-	 * (usually a couple seconds) before it shuts itself down.  If a task is submitted during the quiet period,
-	 * it is guaranteed to be accepted and the quiet period will start over.
+	 * 该方法会立即返回，如果想等待 ExecutorService 进入终止状态，可以使用{@link #awaitTermination(long, TimeUnit)}
+	 * 或{@link #terminationFuture()} 进行等待
 	 *
-	 * @param quietPeriod the quiet period as described in the documentation 默认的安静时间(秒)
-	 * @param timeout     the maximum amount of time to wait until the executor is {@linkplain #shutdown()}
-	 *                    regardless if a task was submitted during the quiet period
-	 *                    等待当前executor成功关闭的超时时间，而不管是否有任务在关闭前的安静期提交。
-	 * @param unit        the unit of {@code quietPeriod} and {@code timeout}
-	 *                    quietPeriod 和 timeout 的时间单位。
-	 *
-	 * @return the {@link #terminationFuture()}
+	 * @return 当前待执行的任务列表。
 	 */
-	ListenableFuture<?> shutdownGracefully(long quietPeriod, long timeout, TimeUnit unit);
+	@Nonnull
+	@Override
+	List<Runnable> shutdownNow();
+
+	/**
+	 * 查询{@link EventLoopGroup}是否处于正在关闭状态。
+	 *
+	 * @return 如果该{@link EventLoopGroup}管理的所有{@link EventLoop}正在关闭或已关闭则返回true
+	 */
+	boolean isShuttingDown();
+
+	/**
+	 * 查询{@link EventLoopGroup}是否处于关闭状态。
+	 * @return 如果已关闭，则返回true
+	 */
+	@Override
+	boolean isShutdown();
 
 	@Override
 	boolean isTerminated();
+
+	@Override
+	boolean awaitTermination(long timeout, @Nonnull TimeUnit unit) throws InterruptedException;
 
 	/**
 	 * 返回等待线程终止的future。
 	 * 返回的{@link ListenableFuture}会在该Group管理的所有{@link EventLoop}终止后收到通知.
 	 */
 	ListenableFuture<?> terminationFuture();
-
-	/**
-	 * 查询{@link EventLoopGroup}是否处于正在关闭状态。
-	 *
-	 * @return 如果该{@link EventLoopGroup}管理的所有{@link EventLoop}正在优雅的关闭或已关闭则返回true
-	 */
-	boolean isShuttingDown();
-
-	/**
-	 * @deprecated {@link #shutdownGracefully(long, long, TimeUnit)} or {@link #shutdownGracefully()} instead.
-	 */
-	@Override
-	@Deprecated
-	void shutdown();
-
-	/**
-	 * @deprecated {@link #shutdownGracefully(long, long, TimeUnit)} or {@link #shutdownGracefully()} instead.
-	 */
-	@Nonnull
-	@Override
-	@Deprecated
-	List<Runnable> shutdownNow();
-
-	/**
-	 * 返回一个EventLoop用于接下来的调度
-	 */
-	EventLoop next();
-
-	@Nonnull
-	@Override
-	Iterator<EventLoop> iterator();
-
 	// ----------------------------- 这是我想要支持的任务调度 ------------------------
 
 	@Override
@@ -125,6 +105,7 @@ public interface EventLoopGroup extends ExecutorService, Iterable<EventLoop> {
 	<V> ListenableFuture<V> submit(@Nonnull Callable<V> task);
 
 	// ---------------------------- 这是我不想支持的任务调度 ---------------------------------
+
 	@Nonnull
 	@Override
 	<T> List<Future<T>> invokeAll(@Nonnull Collection<? extends Callable<T>> tasks) throws InterruptedException;
@@ -139,4 +120,15 @@ public interface EventLoopGroup extends ExecutorService, Iterable<EventLoop> {
 
 	@Override
 	<T> T invokeAny(@Nonnull Collection<? extends Callable<T>> tasks, long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException;
+
+
+	// --------------------------------- EventLoop管理   --------------------------------
+	/**
+	 * 返回一个EventLoop用于接下来的调度
+	 */
+	EventLoop next();
+
+	@Nonnull
+	@Override
+	Iterator<EventLoop> iterator();
 }

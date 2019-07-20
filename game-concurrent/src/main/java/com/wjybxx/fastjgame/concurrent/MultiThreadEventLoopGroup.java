@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 /**
- *
+ * 多线程的EventLoopGroup，它的本质是容器，它负责管理持有的EventLoop的生命周期。
  * @version 1.0
  * date - 2019/7/15 13:29
  * github - https://github.com/hl845740757
@@ -42,10 +42,6 @@ public abstract class MultiThreadEventLoopGroup extends AbstractEventLoopGroup {
 	 * 只读的子节点集合，封装为一个集合，方便迭代，用于实现{@link Iterable}接口
 	 */
 	private final List<EventLoop> readonlyChildren;
-	/**
-	 * 进入终止状态的子节点数量
-	 */
-	private final AtomicInteger terminatedChildren = new AtomicInteger();
 	/**
 	 * 监听所有子节点关闭的Listener，当所有的子节点关闭时，会收到关闭成功事件
 	 */
@@ -85,14 +81,7 @@ public abstract class MultiThreadEventLoopGroup extends AbstractEventLoopGroup {
 		this.chooser = chooserFactory.newChooser(children);
 
 		// 监听子节点关闭的Listener，可以看做回调式的CountDownLatch.
-		final FutureListener<Object> terminationListener = new FutureListener<Object>() {
-			@Override
-			public <F extends ListenableFuture<? extends Object>> void onComplete(F future) throws Exception {
-				if (terminatedChildren.incrementAndGet() == children.length) {
-					terminationFuture.setSuccess(null);
-				}
-			}
-		};
+		final FutureListener<Object> terminationListener = new ChildrenTerminateListener(terminationFuture, children.length);
 
 		// 在所有的子节点上监听 它们的关闭事件，当所有的child关闭时，可以获得通知
 		for (EventLoop e: children) {
@@ -117,22 +106,23 @@ public abstract class MultiThreadEventLoopGroup extends AbstractEventLoopGroup {
 	// -------------------------------------  子类生命周期管理 --------------------------------
 
 	@Override
-	public ListenableFuture<?> shutdownGracefully(long quietPeriod, long timeout, TimeUnit unit) {
-		// 它不真正的管理线程内逻辑，只是管理持有的线程的生命周期，由child自己管理自己的生命周期。
-		for (EventLoop l: children) {
-			l.shutdownGracefully(quietPeriod, timeout, unit);
+	public void shutdown() {
+		forEach(EventLoop::shutdown);
+	}
+
+	@Nonnull
+	@Override
+	public List<Runnable> shutdownNow() {
+		List<Runnable> tasks = new ArrayList<>();
+		for (EventLoop eventLoop:children) {
+			tasks.addAll(eventLoop.shutdownNow());
 		}
-		return terminationFuture();
+		return tasks;
 	}
 
 	@Override
 	public ListenableFuture<?>  terminationFuture() {
 		return terminationFuture;
-	}
-
-	@Override
-	public EventLoop next() {
-		return chooser.next();
 	}
 
 	@Override
@@ -152,26 +142,15 @@ public abstract class MultiThreadEventLoopGroup extends AbstractEventLoopGroup {
 
 	@Override
 	public boolean awaitTermination(long timeout, @Nonnull TimeUnit unit) throws InterruptedException {
-		// 这代码来自netty，虽然我能看明白
-		long deadline = System.nanoTime() + unit.toNanos(timeout);
-		loop: for (EventLoop l: children) {
-			for (;;) {
-				long timeLeft = deadline - System.nanoTime();
-				// 超时了，跳出loop标签对应的循环，即查询是否所有child都终止了
-				if (timeLeft <= 0) {
-					break loop;
-				}
-				// 当前child进入了终止状态，跳出死循环检查下一个child
-				if (l.awaitTermination(timeLeft, TimeUnit.NANOSECONDS)) {
-					break;
-				}
-			}
-		}
-		// 可能是超时了，可能时限内成功终止了
-		return isTerminated();
+		return terminationFuture.await(timeout, unit);
 	}
 
 	// ------------------------------------- 迭代 ----------------------------
+
+	@Override
+	public EventLoop next() {
+		return chooser.next();
+	}
 
 	@Nonnull
 	@Override
@@ -188,4 +167,27 @@ public abstract class MultiThreadEventLoopGroup extends AbstractEventLoopGroup {
 	public Spliterator<EventLoop> spliterator() {
 		return readonlyChildren.spliterator();
 	}
+
+	/**
+	 * 子节点终结状态监听器
+	 */
+	private static class ChildrenTerminateListener implements FutureListener<Object> {
+
+		private final AtomicInteger terminatedChildren = new AtomicInteger(0);
+		private final Promise<?> parentPromise;
+		private final int numChildren;
+
+		private ChildrenTerminateListener(Promise<?> parentPromise, int numChildren) {
+			this.parentPromise = parentPromise;
+			this.numChildren = numChildren;
+		}
+
+		@Override
+		public void onComplete(ListenableFuture<?> future) throws Exception {
+			if (terminatedChildren.incrementAndGet() == numChildren){
+				parentPromise.setSuccess(null);
+			}
+		}
+	}
+
 }
