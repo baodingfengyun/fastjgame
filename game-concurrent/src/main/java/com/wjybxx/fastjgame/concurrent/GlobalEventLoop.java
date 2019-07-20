@@ -28,7 +28,7 @@ public class GlobalEventLoop extends SingleThreadEventLoop{
 	}
 
 	public GlobalEventLoop(EventLoopGroup parent, Executor executor) {
-		super(parent, executor);
+		super(parent, executor, rejectedExecutionHandler);
 	}
 
 }

@@ -31,7 +31,7 @@ import java.util.function.Consumer;
  * date - 2019/7/15 13:29
  * github - https://github.com/hl845740757
  */
-public abstract class MultithreadEventLoopGroup extends AbstractEventLoopGroup {
+public abstract class MultiThreadEventLoopGroup extends AbstractEventLoopGroup {
 
 	/**
 	 * 包含的子节点们，用数组，方便分配下一个EventExecutor(通过计算索引来分配)
@@ -60,11 +60,11 @@ public abstract class MultithreadEventLoopGroup extends AbstractEventLoopGroup {
 	 */
 	private final Object context;
 
-	protected MultithreadEventLoopGroup(int nThreads, @Nonnull ThreadFactory threadFactory, @Nullable Object context) {
+	protected MultiThreadEventLoopGroup(int nThreads, @Nonnull ThreadFactory threadFactory, @Nullable Object context) {
 		this(nThreads, threadFactory, null, context);
 	}
 
-	protected MultithreadEventLoopGroup(int nThreads, ThreadFactory threadFactory, @Nullable EventLoopChooserFactory chooserFactory, @Nullable Object context) {
+	protected MultiThreadEventLoopGroup(int nThreads, ThreadFactory threadFactory, @Nullable EventLoopChooserFactory chooserFactory, @Nullable Object context) {
 		if (nThreads <= 0){
 			throw new IllegalArgumentException("nThreads must greater than 0");
 		}
