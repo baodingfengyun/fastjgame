@@ -25,7 +25,11 @@ import java.util.concurrent.*;
  * 可监听的future。
  * 在Netty和Curator里面见着了一些好的设计，但是他们的设计有很多用不上的或易错误使用的东西，进行简化。
  * @param <V> 值类型
+ *
  * @author wjybxx
+ * @version 1.0
+ * date - 2019/7/14
+ * github - https://github.com/hl845740757
  */
 public interface ListenableFuture<V> extends Future<V>{
 

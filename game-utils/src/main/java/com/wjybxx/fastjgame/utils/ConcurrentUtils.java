@@ -241,7 +241,10 @@ public class ConcurrentUtils {
      */
     public static void recoveryInterrupted(boolean interrupted) {
         if (interrupted) {
-            Thread.currentThread().interrupt();
+            try {
+                Thread.currentThread().interrupt();
+            } catch (SecurityException ignore) {
+            }
         }
     }
 
@@ -253,7 +256,10 @@ public class ConcurrentUtils {
      */
     public static boolean recoveryInterrupted(Exception e) {
         if (isInterrupted(e)) {
-            Thread.currentThread().interrupt();
+            try {
+                Thread.currentThread().interrupt();
+            } catch (SecurityException ignore) {
+            }
             return true;
         } else {
             return false;
@@ -275,7 +281,7 @@ public class ConcurrentUtils {
      * @param e exception
      * @return true/false
      */
-    public static boolean isInterrupted(Exception e) {
+    public static boolean isInterrupted(Throwable e) {
         return e instanceof InterruptedException;
     }
 
@@ -285,7 +291,7 @@ public class ConcurrentUtils {
      * @param exceptionHandler 异常处理器
      * @return Runnable
      */
-    public static Runnable adapterRunnable(AnyRunnable r, ExceptionHandler exceptionHandler){
+    public static Runnable safeRunnable(AnyRunnable r, ExceptionHandler exceptionHandler){
         return () -> {
             try {
                 r.run();

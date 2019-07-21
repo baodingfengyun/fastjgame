@@ -75,7 +75,7 @@ public class EventLoopUtils {
                 exceptionHandler.handleException(e);
             }
         } else {
-            eventLoop.execute(ConcurrentUtils.adapterRunnable(task, exceptionHandler));
+            eventLoop.execute(ConcurrentUtils.safeRunnable(task, exceptionHandler));
         }
     }
 }

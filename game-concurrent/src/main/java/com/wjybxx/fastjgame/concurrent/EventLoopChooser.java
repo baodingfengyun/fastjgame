@@ -17,6 +17,13 @@
 package com.wjybxx.fastjgame.concurrent;
 
 
+/**
+ * EventLoop选择器，用于负载均衡算法
+ * @author wjybxx
+ * @version 1.0
+ * date - 2019/7/14
+ * github - https://github.com/hl845740757
+ */
 public interface EventLoopChooser {
 
 	EventLoop next();

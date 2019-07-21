@@ -19,18 +19,37 @@ package com.wjybxx.fastjgame.utils;
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
 import com.wjybxx.fastjgame.configwrapper.PropertiesConfigWrapper;
 
+import java.util.Locale;
+
 /**
  * 系统属性工具类
+ * @author wjybxx
+ * @version 1.0
+ * date - 2019/7/20 14:53
+ * github - https://github.com/hl845740757
  */
-public class SystemPropertiesUtils {
+public class SystemUtils {
 
-	private static final ConfigWrapper systemConfig = new PropertiesConfigWrapper(System.getProperties());
+	private static final ConfigWrapper properties = new PropertiesConfigWrapper(System.getProperties());
+	/** 是否是windows系统 */
+	private static final boolean IS_WINDOWS = isWindows0();
 
-	private SystemPropertiesUtils() {
+	private SystemUtils() {
 
 	}
 
-	public static ConfigWrapper getSystemConfig() {
-		return systemConfig;
+	public static ConfigWrapper getProperties() {
+		return properties;
 	}
+
+	public static boolean isWindows() {
+		return IS_WINDOWS;
+	}
+
+	// private method
+
+	private static boolean isWindows0() {
+		return properties.getAsString("os.name", "").toLowerCase(Locale.US).contains("win");
+	}
+
 }

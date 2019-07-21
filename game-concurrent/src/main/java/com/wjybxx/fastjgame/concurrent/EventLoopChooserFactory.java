@@ -19,7 +19,11 @@ package com.wjybxx.fastjgame.concurrent;
 import javax.annotation.Nonnull;
 
 /**
- * chooser工厂。
+ * EventLoop选择器工厂
+ * @author wjybxx
+ * @version 1.0
+ * date - 2019/7/14
+ * github - https://github.com/hl845740757
  */
 public interface EventLoopChooserFactory {
 

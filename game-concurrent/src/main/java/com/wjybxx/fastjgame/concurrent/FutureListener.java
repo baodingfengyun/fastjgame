@@ -31,6 +31,11 @@ package com.wjybxx.fastjgame.concurrent;
  * </pre>
  *
  * @param <V> Listener期望消费的类型，也是Future生产的类型。
+ *
+ * @author wjybxx
+ * @version 1.0
+ * date - 2019/7/14
+ * github - https://github.com/hl845740757
  */
 @FunctionalInterface
 public interface FutureListener<V> {

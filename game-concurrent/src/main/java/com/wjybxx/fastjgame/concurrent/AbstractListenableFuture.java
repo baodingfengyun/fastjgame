@@ -26,6 +26,7 @@ import java.util.concurrent.TimeoutException;
 /**
  * ListenableFuture的抽象实现
  * @param <V>
+ * @author wjybxx
  * @version 1.0
  * date - 2019/7/14 14:53
  * github - https://github.com/hl845740757

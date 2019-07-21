@@ -27,6 +27,11 @@ import javax.annotation.Nonnull;
  * 完成的含义：future关联的任务生命周期已结束。不论操作成功，失败，取消（取消是失败的一种），都表示完成状态。
  *
  * @param <V>
+ *
+ * @author wjybxx
+ * @version 1.0
+ * date - 2019/7/14
+ * github - https://github.com/hl845740757
  */
 public interface Promise<V> extends ListenableFuture<V> {
 

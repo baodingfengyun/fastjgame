@@ -17,38 +17,52 @@
 package com.wjybxx.fastjgame.concurrent;
 
 
-import com.wjybxx.fastjgame.utils.SystemPropertiesUtils;
-import io.netty.util.concurrent.ThreadPerTaskExecutor;
+import com.wjybxx.fastjgame.holder.ObjectHolder;
+import com.wjybxx.fastjgame.utils.CollectionUtils;
+import com.wjybxx.fastjgame.utils.ConcurrentUtils;
+import com.wjybxx.fastjgame.utils.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.concurrent.locks.LockSupport;
 
 /**
  * 单线程的事件循环，该类负责线程的生命周期管理
  * 事件循环架构如果不是单线程的将没有意义。
+ *
+ * @author wjybxx
+ * @version 1.0
+ * date - 2019/7/14
+ * github - https://github.com/hl845740757
  */
-public class SingleThreadEventLoop extends AbstractEventLoop {
+public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 
 	private static final Logger logger = LoggerFactory.getLogger(SingleThreadEventLoop.class);
 
-	// 毒药任务
-	/** 唤醒线程的任务 */
-	private static final Runnable WAKEUP_TASK = () ->{};
-	/** 填充用的任务 */
-	private static final Runnable NOOP_TASK = () -> {};
+	/**
+	 * 当允许的任务数小于等于该值时使用{@link ArrayBlockingQueue}，能提高部分性能（空间换时间）。
+	 * 过大时浪费内存。
+	 */
+	private static final int ARRAy_BLOCKING_QUEUE_CAPACITY = 8192;
 
 	/**
-	 * 当允许的任务数小于等于该值时使用{@link ArrayBlockingQueue}，能提高部分性能。
-	 * 过大时浪费内存
+	 * 缓存队列的大小，不宜过大，但也不能过小。
+	 * 过大容易造成内存浪费，过小对于性能无太大意义。
 	 */
-	private static final int ARRAy_BLOCKING_QUEUE_SIZE = 8192;
-	/** 有界线程池 */
-	private static final int DEFAULT_MAX_TASKS = SystemPropertiesUtils.getSystemConfig().getAsInt("fastjgame.SingleThreadEventLoop.tasknum", ARRAy_BLOCKING_QUEUE_SIZE);
+	private static final int CACHE_QUEUE_CAPACITY = 128;
+
+	/**
+	 * 默认的最大任务数，默认无上限。
+	 * 但是最小为{@link #ARRAy_BLOCKING_QUEUE_CAPACITY}
+	 */
+	private static final int DEFAULT_MAX_TASKS =
+			Math.max(ARRAy_BLOCKING_QUEUE_CAPACITY, SystemUtils.getProperties().getAsInt("SingleThreadEventLoop.maxTasks", Integer.MAX_VALUE));
 
 	// 线程的状态
 	/** 初始状态，未启动状态 */
@@ -61,14 +75,12 @@ public class SingleThreadEventLoop extends AbstractEventLoop {
 	private static final int ST_SHUTDOWN = 4;
 	/** 终止状态(二阶段终止模式 - 已关闭状态下进行最后的清理，然后进入终止状态) */
 	private static final int ST_TERMINATED = 5;
-	/**
-	 * 创建{@link #thread}的executor。
-	 * 不直接创建线程，而是通过提交一个死循环任务获得线程。
-	 */
-	private final Executor executor;
+
+	/** 线程工厂 */
+	private final ThreadFactory threadFactory;
 
 	/** 持有的线程 */
-	private volatile Thread thread;
+	private final Thread thread;
 
 	/**
 	 * 线程的生命周期标识。
@@ -77,28 +89,50 @@ public class SingleThreadEventLoop extends AbstractEventLoop {
 	 */
 	private final AtomicInteger stateHolder = new AtomicInteger(ST_NOT_STARTED);
 	/**
-	 * 本次循环要执行的任务
+	 * 所有提交的任务
 	 */
 	private final BlockingQueue<Runnable> taskQueue;
+
+	/**
+	 * 缓存队列，用于批量的将{@link #taskQueue}中的任务拉取到本地线程线程下，减少锁竞争，
+	 */
+	private final List<Runnable> cacheQueue = new ArrayList<>(CACHE_QUEUE_CAPACITY);
 
 	/** 任务被拒绝时的处理策略 */
 	private final RejectedExecutionHandler rejectedExecutionHandler;
 
-	/** 是否有请求中断当前线程 */
-	private volatile boolean interrupted = false;
 	/** 线程终止future */
 	private final Promise<?> terminationFuture = new DefaultPromise(GlobalEventLoop.INSTANCE);
 
-
-	public SingleThreadEventLoop(EventLoopGroup parent, ThreadFactory threadFactory) {
+	/**
+	 * @param parent EventLoop所属的容器，nullable
+	 * @param threadFactory 线程工厂，创建的线程不要直接启动，建议调用
+	 * {@link Thread#setUncaughtExceptionHandler(Thread.UncaughtExceptionHandler)}设置异常处理器
+	 */
+	public SingleThreadEventLoop(@Nullable EventLoopGroup parent, @Nonnull ThreadFactory threadFactory) {
 		// 为何可以使用ThreadPerTaskExecutor？因为必须要能够创建一个新线程给当前对象
 		// 限定线程数的线程池，会导致异常
-		this(parent, new ThreadPerTaskExecutor(threadFactory), RejectedExecutionHandlers.reject());
+		this(parent, threadFactory, RejectedExecutionHandlers.reject());
 	}
 
-	public SingleThreadEventLoop(EventLoopGroup parent, Executor executor, RejectedExecutionHandler rejectedExecutionHandler) {
+	/**
+	 * @param parent EventLoop所属的容器，nullable
+	 * @param threadFactory 线程工厂，创建的线程不要直接启动，建议调用
+	 * {@link Thread#setUncaughtExceptionHandler(Thread.UncaughtExceptionHandler)}设置异常处理器
+	 * @param rejectedExecutionHandler 拒绝任务的策略
+	 */
+	public SingleThreadEventLoop(@Nullable EventLoopGroup parent, @Nonnull ThreadFactory threadFactory, @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
 		super(parent);
-		this.executor = executor;
+		this.threadFactory = threadFactory;
+		this.thread = Objects.requireNonNull(threadFactory.newThread(new Worker()), "newThread");
+
+		// 记录异常退出日志
+		if (thread.getUncaughtExceptionHandler() == null) {
+			thread.setUncaughtExceptionHandler((t, e) -> {
+				logger.error("thread {} exit due to uncaughtException", t, e);
+			});
+		}
+
 		this.rejectedExecutionHandler = rejectedExecutionHandler;
 		this.taskQueue = newTaskQueue(DEFAULT_MAX_TASKS);
 	}
@@ -109,24 +143,26 @@ public class SingleThreadEventLoop extends AbstractEventLoop {
 	 * @return queue
 	 */
 	protected BlockingQueue<Runnable> newTaskQueue(int maxTaskNum) {
-		return maxTaskNum > ARRAy_BLOCKING_QUEUE_SIZE ? new LinkedBlockingQueue<>(maxTaskNum): new ArrayBlockingQueue<>(maxTaskNum);
+		return maxTaskNum > ARRAy_BLOCKING_QUEUE_CAPACITY ? new LinkedBlockingQueue<>(maxTaskNum): new ArrayBlockingQueue<>(maxTaskNum);
 	}
 
 	@Override
 	public boolean inEventLoop() {
 		return thread == Thread.currentThread();
 	}
+	// ------------------------------------------------ 线程生命周期 -------------------------------------
 
 	// 进入正在关闭状态
 	@Override
 	public void shutdown() {
 		for (;;){
-			// 需要存为临时变量，否则compareAndSet会出问题(先检查后执行，检查结果会有问题)
-			int curState = stateHolder.get();
-			if (isShuttingDown0(curState)) {
+			// 为何要存为临时变量？表示我们是基于特定的状态执行代码，compareAndSet才有意义
+			int state = stateHolder.get();
+			if (isShuttingDown0(state)) {
 				return;
 			}
-			if (stateHolder.compareAndSet(curState, ST_SHUTTING_DOWN)) {
+			// 尝试切换为正在关闭状态，不再接收新任务
+			if (stateHolder.compareAndSet(state, ST_SHUTTING_DOWN)) {
 				return;
 			}
 		}
@@ -136,14 +172,18 @@ public class SingleThreadEventLoop extends AbstractEventLoop {
 	@Override
 	public List<Runnable> shutdownNow() {
 		for (;;){
-			int curState = stateHolder.get();
-			if (isShutdown0(curState)) {
+			int state = stateHolder.get();
+			if (isShutdown0(state)) {
 				return Collections.emptyList();
 			}
-			if (stateHolder.compareAndSet(curState, ST_SHUTTING_DOWN)) {
-				List<Runnable> haltTasks = new ArrayList<>(taskQueue.size());
-				taskQueue.drainTo(haltTasks);
-				return haltTasks;
+			if (stateHolder.compareAndSet(state, ST_SHUTDOWN)) {
+				// 尝试中断EventLoop拥有的线程，似乎不太友好，以后可能会删除这行代码
+				// 等待当前任务执行完毕似乎好一点，虽然关闭的不那么及时，但是更安全。
+//				thread.interrupt();
+
+				// 停止所有任务
+			 	// 注意：这个时候仍然可能有线程尝试添加任务，需要在添加任务那里进行处理
+				return CollectionUtils.drainQueue(taskQueue, new LinkedList<>());
 			}
 		}
 	}
@@ -181,33 +221,154 @@ public class SingleThreadEventLoop extends AbstractEventLoop {
 		return terminationFuture.await(timeout, unit);
 	}
 
+	// -------------------------------------------- 任务调度，事件循环 -----------------------------------
+
+	/**
+	 * 子类自己决定如何实现事件循环.
+	 * @apiNote
+	 * 子类实现应该是一个死循环方法，并在适当的时候调用{@link #confirmShutdown()}确认是否需要退出循环。
+	 * 子类可以有更多的判断，但是至少需要调用{@link #confirmShutdown()}确定是否需要退出。
+	 */
+	protected abstract void loop();
+
+	/**
+	 * 确认是否需要立即退出事件循环，即是否退出{@link #loop()}方法。
+	 *
+	 * Confirm that the shutdown if the instance should be done now!
+	 */
+	protected final boolean confirmShutdown() {
+		// 用于EventLoop确认自己是否应该退出，不应该由外部线程调用
+		assert inEventLoop();
+
+		if (!isShuttingDown()) {
+			return false;
+		}
+		// shuttingDown状态下，已不会接收新的任务，执行完当前所有未执行的任务就可以退出了。
+		// 由于taskQueue可能存在竞争，退出前等待1MS
+		LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(1));
+
+		runAllTasks();
+
+		return true;
+	}
+
+	/**
+	 * 在线程退出前进行必要的清理。
+	 */
+	protected void clean() {
+
+	}
+
+	/**
+	 * 工作者线程
+	 */
+	private class Worker implements Runnable{
+
+		@Override
+		public void run() {
+			try {
+				loop();
+			} catch (Throwable e) {
+				if (ConcurrentUtils.isInterrupted(e)) {
+					logger.info("thread exit due to interrupted!", e);
+				} else {
+					logger.error("thread exit due to exception!", e);
+				}
+			} finally {
+				// 两阶段终止模式 --- 在终止前进行清理操作
+				// 如果是非正常退出，切换到关闭状态
+				for (;;) {
+					int oldState = stateHolder.get();
+					if (oldState >= ST_SHUTTING_DOWN) {
+						break;
+					}
+					if (stateHolder.compareAndSet(oldState, ST_SHUTTING_DOWN)) {
+						// 执行所有剩下的任务
+						runAllTasks();
+						break;
+					}
+				}
+				// 退出前进行必要的清理，释放系统资源
+				try {
+					clean();
+				} finally {
+					terminationFuture.setSuccess(null);
+				}
+			}
+		}
+	}
+
+
 	@Override
 	public void execute(@Nonnull Runnable command) {
-		// TODO 提交任务的真正地方
+		addTask(command);
 
+		// 添加任务成功，需要保证线程启动
+		if (!inEventLoop()) {
+			// 确保线程启动
+			ensureStarted();
+
+			// 线程启动后，需要再次校验,remove成功表示还未执行
+			if (isShuttingDown() && taskQueue.remove(command)) {
+				reject(command);
+			}
+		}
+	}
+
+	/**
+	 * 尝试将任务压入队列
+	 * @param command task
+	 */
+	private void addTask(@Nonnull Runnable command) {
+		// 在检测到未关闭的状态下尝试压入队列
+		if (!isShuttingDown() && taskQueue.offer(command)) {
+			// 压入队列是一个过程！在压入队列的过程中，executor的状态是可能改变的，因此必须再次校验
+			// remove失败表示executor已经执行了该任务 -- shutdownNow
+			if (isShuttingDown() && taskQueue.remove(command)) {
+				reject(command);
+			}
+		} else {
+			// executor已关闭 或 压入队列失败，拒绝
+			reject(command);
+		}
+	}
+
+	// 外部线程提交任务后需要保证线程已启动
+	private void ensureStarted() {
+		int state = stateHolder.get();
+		if (state == ST_NOT_STARTED) {
+			if (stateHolder.compareAndSet(ST_NOT_STARTED, ST_STARTED)) {
+				thread.start();
+			}
+		}
+	}
+
+	/**
+	 * @return {@code null} if the executor thread has been interrupted or waken up.
+	 */
+	@Nullable
+	protected Runnable takeTask() {
+		assert inEventLoop();
+		try {
+			return taskQueue.take();
+		} catch (InterruptedException ignore) {
+		}
+		return null;
 	}
 
 	/**
 	 * @see Queue#poll()
 	 */
+	@Nullable
 	protected Runnable pollTask() {
 		assert inEventLoop();
-		return pollTaskFrom(taskQueue);
-	}
-
-	protected static Runnable pollTaskFrom(Queue<Runnable> taskQueue) {
-		for (;;) {
-			Runnable task = taskQueue.poll();
-			if (task == WAKEUP_TASK) {
-				continue;
-			}
-			return task;
-		}
+		return taskQueue.poll();
 	}
 
 	/**
 	 * @see Queue#peek()
 	 */
+	@Nullable
 	protected Runnable peekTask() {
 		assert inEventLoop();
 		return taskQueue.peek();
@@ -222,47 +383,64 @@ public class SingleThreadEventLoop extends AbstractEventLoop {
 	}
 
 	/**
-	 * Add a task to the task queue, or throws a {@link RejectedExecutionException} if this instance was shutdown
-	 * before.
-	 */
-	protected void addTask(Runnable task) {
-		if (task == null) {
-			throw new NullPointerException("task");
-		}
-		// 在检测到未关闭的状态下尝试压入队列
-		if (!isShuttingDown() && taskQueue.offer(task)) {
-			// 在压入队列的过程中，executor的状态是可能改变的,executor可能被关闭了。--- 检查结果可能失效
-			// remove失败表示executor已经执行了该任务，或者被强制停止了 -- shutdownNow
-			if (isShuttingDown() && taskQueue.remove(task)) {
-				reject(task);
-			}
-		} else {
-			// executor已关闭 或 压入队列失败，拒绝
-			reject(task);
-		}
-	}
-
-	protected static void reject() {
-		throw new RejectedExecutionException("event executor terminated");
-	}
-
-	/**
 	 * Offers the task to the associated {@link RejectedExecutionHandler}.
 	 *
 	 * @param task to reject.
 	 */
-	protected final void reject(Runnable task) {
+	protected final void reject(@Nonnull Runnable task) {
 		rejectedExecutionHandler.rejected(task, this);
 	}
 
 	/**
 	 * @see Queue#remove(Object)
 	 */
-	protected boolean removeTask(Runnable task) {
-		if (task == null) {
-			throw new NullPointerException("task");
-		}
+	protected boolean removeTask(@Nonnull Runnable task) {
 		return taskQueue.remove(task);
+	}
+
+	/**
+	 * 运行任务队列中当前所有的任务
+	 *
+	 * @return 至少有一个任务执行时返回true。
+	 */
+	protected boolean runAllTasks() {
+		assert inEventLoop();
+
+		boolean ranAtLeastOne = false;
+		while (taskQueue.drainTo(cacheQueue, CACHE_QUEUE_CAPACITY) > 0) {
+			for (Runnable runnable : cacheQueue) {
+				safeExecute(runnable);
+			}
+			ranAtLeastOne = true;
+			cacheQueue.clear();
+		}
+		return ranAtLeastOne;
+	}
+
+	/**
+	 * 尝试运行任务队列中当前所有的任务。
+	 *
+	 * @param max 执行的最大任务数，避免执行任务耗费太多时间。
+	 * @return 至少有一个任务执行时返回true。
+	 */
+	protected boolean runAllTasks(int max) {
+		assert inEventLoop();
+
+		boolean ranAtLeastOne = false;
+		int runTaskNum = 0;
+		while (taskQueue.drainTo(cacheQueue, CACHE_QUEUE_CAPACITY) > 0) {
+			for (Runnable runnable : cacheQueue) {
+				safeExecute(runnable);
+				runTaskNum++;
+			}
+			ranAtLeastOne = true;
+			cacheQueue.clear();
+
+			if (runTaskNum >= max) {
+				break;
+			}
+		}
+		return ranAtLeastOne;
 	}
 
 	/**

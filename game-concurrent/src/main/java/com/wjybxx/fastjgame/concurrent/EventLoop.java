@@ -24,8 +24,9 @@ import javax.annotation.Nullable;
  *
  * (它是组合模式中的叶子组件，它不能增加子组件)
  *
+ * @author wjybxx
  * @version 1.0
- * date - 2019/7/14 14:53
+ * date - 2019/7/14
  * github - https://github.com/hl845740757
  */
 public interface EventLoop extends EventLoopGroup {

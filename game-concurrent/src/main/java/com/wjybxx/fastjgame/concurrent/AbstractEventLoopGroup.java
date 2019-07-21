@@ -35,8 +35,10 @@ import java.util.concurrent.TimeoutException;
  *
  * 因为它是一个容器节点，自身并不真正的处理逻辑，而是简单的将任务分配到每一个EventLoop。
  * 其主要作用是管理EventLoop节点的生命周期等等。
+ *
+ * @author wjybxx
  * @version 1.0
- * date - 2019/7/15 13:53
+ * date - 2019/7/15
  * github - https://github.com/hl845740757
  */
 public abstract class AbstractEventLoopGroup implements EventLoopGroup {

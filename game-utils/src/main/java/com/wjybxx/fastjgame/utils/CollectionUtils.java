@@ -111,27 +111,69 @@ public final class CollectionUtils {
     }
 
     /**
-     * 将并发队列中的元素全部收集到指定list中。
+     * 将并发队列中的元素全部收集到指定集合中。
      * 解决的问题是什么？
-     * 如果遍历之后调用clear()，clear删除的元素可能比你遍历的并不一致。 可参考竞态条件之 '先检查再执行'
+     * 如果遍历之后调用clear()，clear删除的元素可能比你遍历的并不一致。 可参考竞态条件之 '先检查再执行'。
+     * {@link BlockingQueue}支持{@code drainTo(Collection)}，但是{@link ConcurrentLinkedQueue}并不支持。
+     *
      * @param concurrentLinkedQueue 并发队列
      * @param out 目标list，并发队列弹出的元素会放入该list
      * @param <E> 元素的类型
+     * @return the number of elements transferred
      */
-    public static <E> void pollToList(ConcurrentLinkedQueue<E> concurrentLinkedQueue, List<E> out){
+    public static <E> int drainTo(ConcurrentLinkedQueue<E> concurrentLinkedQueue, Collection<E> out){
         E e;
+        int num = 0;
         while ((e=concurrentLinkedQueue.poll())!=null){
             out.add(e);
+            num++;
         }
+        return num;
     }
 
     /**
-     * 将并发队列中的元素全部收集到指定list中。
-     * 特意重载是为了表明针对并发队列使用的。
+     * 删除阻塞队列当前所有元素，并添加到指定集合中。
+     * 如果在这期间没有线程向blockingQueue中添加元素的话，返回之后blockingQueue中的size == 0
+     *
+     * <h3>drainTo方法介绍</h3>
+     * Removes all available elements from this queue and adds them
+     * to the given collection.  This operation may be more
+     * efficient than repeatedly polling this queue.  A failure
+     * encountered while attempting to add elements to
+     * collection {@code c} may result in elements being in neither,
+     * either or both collections when the associated exception is
+     * thrown.  Attempts to drain a queue to itself result in
+     * {@code IllegalArgumentException}. Further, the behavior of
+     * this operation is undefined if the specified collection is
+     * modified while the operation is in progress.
+     *
+     * 将阻塞队列中的所有可用元素全部收集到指定集合中。
+     * 注意：drainTo方法返回之后，不代表{@link BlockingQueue}中没有元素！
+     *
+     * <h3>available elements</h3>
+     * 可用元素：是指队列中可通过poll删除的元素。
+     *
+     * <h3>special queue</h3>
+     * 某些队列中的元素只有在满足一定条件之后，才能从队列中poll，因此该方法返回之后，队列中仍然可能有元素存在。
+     *
+     * <b> 该方法参考自JDK {@link java.util.concurrent.ThreadPoolExecutor} </b>
+     * Drains the task queue into a new list, normally using
+     * drainTo. But if the queue is a DelayQueue or any other kind of
+     * queue for which poll or drainTo may fail to remove some
+     * elements, it deletes them one by one.
+     *
+     * @param blockingQueue 期望删除元素的阻塞队列
+     * @param out 输出集
+     * @param <E> the type of element
+     * @param <T> the type of collection
+     * @return out
      */
-    public static <E> void pollToList(BlockingQueue<E> blockingQueue, List<E> out){
-        // 2019年7月20日 我才发现drainTo这么个方法。。。。
+    public static <E,T extends Collection<E>> T drainQueue(BlockingQueue<E> blockingQueue, T out) {
         blockingQueue.drainTo(out);
+        if (!blockingQueue.isEmpty()){
+            removeIfAndThen(blockingQueue, e -> true, out::add);
+        }
+        return out;
     }
 
     /**
@@ -174,7 +216,6 @@ public final class CollectionUtils {
         return null;
     }
 
-
     /**
      * 使用poll方式等待blockingQueue中出现某个元素
      * @param blockingQueue 元素队列，元素中除了期望的一个元素以外都无用
@@ -184,12 +225,12 @@ public final class CollectionUtils {
      * @return 未在限定时间内等到期望的元素，则返回null
      */
     public static  <E> E waitElementWithPoll(BlockingQueue<E> blockingQueue, Predicate<E> matcher, int maxWaitTime) {
-        boolean interrupted=false;
+        boolean interrupted = false;
         long endTime=System.currentTimeMillis()+maxWaitTime;
         try {
             for(long remainTime=maxWaitTime;remainTime>0;remainTime=endTime-System.currentTimeMillis()){
                 try{
-                    E e =blockingQueue.poll(remainTime, TimeUnit.MILLISECONDS);
+                    E e = blockingQueue.poll(remainTime, TimeUnit.MILLISECONDS);
                     // 超时
                     if (null == e){
                         return null;

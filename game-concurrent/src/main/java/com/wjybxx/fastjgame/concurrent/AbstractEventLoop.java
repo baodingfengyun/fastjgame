@@ -32,6 +32,11 @@ import java.util.function.Consumer;
  * {@link EventLoop}的抽象实现。这里负责一些简单的方法实现。
  *
  * Abstract base class for {@link EventLoop} implementations.
+ *
+ * @author wjybxx
+ * @version 1.0
+ * date - 2019/7/14
+ * github - https://github.com/hl845740757
  */
 public abstract class AbstractEventLoop extends AbstractExecutorService implements EventLoop {
 	

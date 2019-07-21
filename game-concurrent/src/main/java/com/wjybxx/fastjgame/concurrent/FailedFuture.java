@@ -21,8 +21,9 @@ import javax.annotation.Nonnull;
  * 表示Future关联的task早已失败。
  * 推荐使用{@link EventLoop#newFailedFuture(Throwable)} 代替使用该future的构造方法。
  *
+ * @author wjybxx
  * @version 1.0
- * date - 2019/7/14 14:53
+ * date - 2019/7/14
  * github - https://github.com/hl845740757
  */
 public final class FailedFuture<V> extends CompleteFuture<V> {

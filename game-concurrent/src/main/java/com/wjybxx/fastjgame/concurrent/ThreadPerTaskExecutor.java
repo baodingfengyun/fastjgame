@@ -8,6 +8,11 @@ import java.util.concurrent.ThreadFactory;
  * ThreadPerMessage Design Pattern
  * 正常情况下不推荐使用，会造成大量的资源浪费。
  * 这里是为了保证能创建足够的线程用的。
+ *
+ * @author wjybxx
+ * @version 1.0
+ * date - 2019/7/14
+ * github - https://github.com/hl845740757
  */
 public final class ThreadPerTaskExecutor implements Executor {
 

@@ -50,7 +50,7 @@ import java.util.concurrent.atomic.AtomicReference;
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/7/14 14:53
+ * date - 2019/7/14
  * github - https://github.com/hl845740757
  */
 public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Promise<V> {

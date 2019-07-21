@@ -27,8 +27,10 @@ import java.util.function.Consumer;
 
 /**
  * 多线程的EventLoopGroup，它的本质是容器，它负责管理持有的EventLoop的生命周期。
+ *
+ * @author wjybxx
  * @version 1.0
- * date - 2019/7/15 13:29
+ * date - 2019/7/14
  * github - https://github.com/hl845740757
  */
 public abstract class MultiThreadEventLoopGroup extends AbstractEventLoopGroup {
@@ -52,15 +54,15 @@ public abstract class MultiThreadEventLoopGroup extends AbstractEventLoopGroup {
 	 */
 	private final EventLoopChooser chooser;
 	/**
-	 * 子类构造时传入的context
+	 * 子类构造时传入的context，由子类自己决定如何解析，父类不做处理。
 	 */
-	private final Object context;
+	protected final Object context;
 
 	protected MultiThreadEventLoopGroup(int nThreads, @Nonnull ThreadFactory threadFactory, @Nullable Object context) {
 		this(nThreads, threadFactory, null, context);
 	}
 
-	protected MultiThreadEventLoopGroup(int nThreads, ThreadFactory threadFactory, @Nullable EventLoopChooserFactory chooserFactory, @Nullable Object context) {
+	protected MultiThreadEventLoopGroup(int nThreads, @Nonnull ThreadFactory threadFactory, @Nullable EventLoopChooserFactory chooserFactory, @Nullable Object context) {
 		if (nThreads <= 0){
 			throw new IllegalArgumentException("nThreads must greater than 0");
 		}
@@ -68,26 +70,22 @@ public abstract class MultiThreadEventLoopGroup extends AbstractEventLoopGroup {
 			chooserFactory = new DefaultChooserFactory();
 		}
 
-
-		Executor executor = new ThreadPerTaskExecutor(threadFactory);
 		children = new EventLoop[nThreads];
 
 		// 创建指定数目的child，(其实就是创建指定数目的EventLoop，只不过是更高级的封装)
 		for (int i = 0; i < nThreads; i ++) {
-			children[i] = newChild(executor, context);
+			children[i] = newChild(threadFactory, context);
 		}
 
 		this.context = context;
 		this.chooser = chooserFactory.newChooser(children);
 
-		// 监听子节点关闭的Listener，可以看做回调式的CountDownLatch.
-		final FutureListener<Object> terminationListener = new ChildrenTerminateListener(terminationFuture, children.length);
-
+		// 监听子节点关闭的Listener，可以看做CountDownLatch.
 		// 在所有的子节点上监听 它们的关闭事件，当所有的child关闭时，可以获得通知
+		final FutureListener<Object> terminationListener = new ChildrenTerminateListener(terminationFuture, children.length);
 		for (EventLoop e: children) {
 			e.terminationFuture().addListener(terminationListener);
 		}
-
 
 		// 将子节点数组封装为不可变集合，方便迭代(不允许外部改变持有的线程)
 		List<EventLoop> modifiable = new ArrayList<>();
@@ -97,11 +95,12 @@ public abstract class MultiThreadEventLoopGroup extends AbstractEventLoopGroup {
 
 	/**
 	 * 子类自己决定创建EventLoop的方式和具体的类型
-	 * @param executor 用于创建线程
+	 * @param threadFactory 线程工厂，用于创建线程
 	 * @param context 构造方法中传入的上下文
-	 * @return
+	 * @return EventLoop
 	 */
-	protected abstract EventLoop newChild(Executor executor, Object context);
+	@Nonnull
+	protected abstract EventLoop newChild(ThreadFactory threadFactory, Object context);
 
 	// -------------------------------------  子类生命周期管理 --------------------------------
 

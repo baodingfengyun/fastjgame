@@ -13,21 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.wjybxx.fastjgame.function;
+
+package com.wjybxx.fastjgame.concurrent;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * 资源申请函数
+ * 默认的导致线程退出的未捕获异常处理器。
+ *
  * @author wjybxx
  * @version 1.0
- * date - 2019/5/14 10:58
+ * date - 2019/7/21
  * github - https://github.com/hl845740757
  */
-@FunctionalInterface
-public interface AcquireFun<T> {
-    /**
-     * 申请资源，直到成功或中断
-     * @param resource 资源
-     * @throws InterruptedException 如果在申请资源期间被中断，则可能抛出该异常
-     */
-    void acquire(T resource) throws InterruptedException;
+public class DefaultUncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
+
+    private static final Logger logger = LoggerFactory.getLogger(DefaultUncaughtExceptionHandler.class);
+
+    @Override
+    public void uncaughtException(Thread t, Throwable e) {
+        logger.error("uncaughtException, thread = {}", t.toString(), e);
+    }
 }

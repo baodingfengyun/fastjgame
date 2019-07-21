@@ -22,6 +22,11 @@ import javax.annotation.Nullable;
 /**
  * 表示Future关联的操作早已正常完成。
  * 推荐使用{@link EventLoop#newSucceededFuture(Object)}代替使用该future的构造方法。
+ *
+ * @author wjybxx
+ * @version 1.0
+ * date - 2019/7/14
+ * github - https://github.com/hl845740757
  */
 public final class SucceededFuture<V> extends CompleteFuture<V> {
 

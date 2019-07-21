@@ -31,7 +31,7 @@ import java.util.concurrent.*;
  *
  * (它是组合模式中的容器组件)
  * @version 1.0
- * date - 2019/7/14 14:53
+ * date - 2019/7/14
  * github - https://github.com/hl845740757
  */
 public interface EventLoopGroup extends ExecutorService, Iterable<EventLoop> {

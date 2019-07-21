@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.concurrent;
 
 
-import com.google.common.base.Preconditions;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.EventLoopUtils;
 import org.slf4j.Logger;
@@ -25,7 +24,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
@@ -33,8 +31,9 @@ import java.util.concurrent.TimeUnit;
  * {@link AbstractListenableFuture}的一个实现，表示它关联的操作早已完成。
  * 任何添加到上面的监听器将立即收到通知。
  * @param <V> the type of value
+ * @author wjybxx
  * @version 1.0
- * date - 2019/7/14 14:53
+ * date - 2019/7/14
  * github - https://github.com/hl845740757
  */
 public abstract class CompleteFuture<V> extends AbstractListenableFuture<V> {

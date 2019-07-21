@@ -16,10 +16,19 @@
 
 package com.wjybxx.fastjgame.concurrent;
 
+import javax.annotation.Nonnull;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * 默认的选择EventLoop选择器工厂
+ * @author wjybxx
+ * @version 1.0
+ * date - 2019/7/14
+ * github - https://github.com/hl845740757
+ */
 public class DefaultChooserFactory implements EventLoopChooserFactory{
 
+	@Nonnull
 	@Override
 	public EventLoopChooser newChooser(EventLoop[] children) {
 		return new RoundRobinEventLoopChooser(children);
