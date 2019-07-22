@@ -51,12 +51,16 @@ public class GlobalEventLoop extends AbstractEventLoop{
 
 	private GlobalEventLoop(InnerThreadFactory threadFacotry) {
 		super(null);
-		delegatedExecutorService = new ThreadPoolExecutor(1, 1 ,
+
+		// 采用代理实现比较省心啊，注意拒绝策略不能使用 Caller Runs，否则会导致补货的线程不对。
+		ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(1, 1 ,
 				QUIET_PERIOD_INTERVAL, TimeUnit.SECONDS,
 				new LinkedBlockingQueue<>(),
 				threadFacotry,
-				new ThreadPoolExecutor.CallerRunsPolicy());
-		((ThreadPoolExecutor) delegatedExecutorService).allowCoreThreadTimeOut(true);
+				new ThreadPoolExecutor.AbortPolicy());
+		threadPoolExecutor.allowCoreThreadTimeOut(true);
+
+		delegatedExecutorService = threadPoolExecutor;
 	}
 
 	@Override
