@@ -124,11 +124,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 		this.thread = Objects.requireNonNull(threadFactory.newThread(new Worker()), "newThread");
 
 		// 记录异常退出日志
-		if (thread.getUncaughtExceptionHandler() == null) {
-			thread.setUncaughtExceptionHandler((t, e) -> {
-				logger.error("thread {} exit due to uncaughtException", t, e);
-			});
-		}
+		UncaughtExceptionHandlers.logIfAbsent(thread, logger);
 
 		this.rejectedExecutionHandler = rejectedExecutionHandler;
 		this.taskQueue = newTaskQueue(DEFAULT_MAX_TASKS);
@@ -206,11 +202,14 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 
 				// 尝试中断EventLoop拥有的线程，似乎不太友好，以后可能会删除这行代码
 				// 等待当前任务执行完毕似乎好一点，虽然关闭的不那么及时，但是更安全。
+				// 而且线程可能不一定真的会启动
 //				thread.interrupt();
 
 				// 停止所有任务
 			 	// 注意：这个时候仍然可能有线程尝试添加任务，需要在添加任务那里进行处理
-				return CollectionUtils.drainQueue(taskQueue, new LinkedList<>());
+				LinkedList<Runnable> haltTasks = new LinkedList<>();
+				CollectionUtils.drainQueue(taskQueue, haltTasks);
+				return haltTasks;
 			}
 		}
 	}
@@ -282,6 +281,8 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 
 		runAllTasks();
 
+		advanceRunState(ST_SHUTDOWN);
+
 		return true;
 	}
 
@@ -313,15 +314,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 				}
 			} finally {
 				// 如果是非正常退出，需要切换到关闭状态
-				for (;;) {
-					int oldState = stateHolder.get();
-					if (isShuttingDown0(oldState)) {
-						break;
-					}
-					if (stateHolder.compareAndSet(oldState, ST_SHUTTING_DOWN)) {
-						break;
-					}
-				}
+				advanceRunState(ST_SHUTTING_DOWN);
 				try {
 					// 非正常退出下也尝试执行完所有的任务 - 当然这也不是很安全
 					// Run all remaining tasks and shutdown hooks.
@@ -343,11 +336,10 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 	}
 
 	/**
-	 * Transitions runState to given target, or leaves it alone if
-	 * already at least the given target.
+	 * 将运行状态转换为给定目标，或者至少保留给定状态。
+	 * 参考自{@code ThreadPoolExecutor#advanceRunState}
 	 *
-	 * @param targetState the desired state, either SHUTDOWN or STOP
-	 *        (but not TIDYING or TERMINATED -- use tryTerminate for that)
+	 * @param targetState 期望的目标状态， {@link #ST_SHUTTING_DOWN} 或者 {@link #ST_SHUTDOWN}
 	 */
 	private void advanceRunState(int targetState) {
 		for (;;) {
@@ -406,22 +398,10 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 	 * - terminable
 	 * @param oldState 切换到shutdown之前的状态
 	 */
-	private boolean ensureThreadStarted(int oldState) {
+	private void ensureThreadStarted(int oldState) {
 		if (oldState == ST_NOT_STARTED) {
-			try {
-				thread.start();
-			} catch (Throwable cause) {
-				stateHolder.set(ST_TERMINATED);
-				terminationFuture.tryFailure(cause);
-
-				if (!(cause instanceof Exception)) {
-					// Also rethrow as it may be an OOME for example
-					throw cause;
-				}
-				return true;
-			}
+			terminationFuture.trySuccess(null);
 		}
-		return false;
 	}
 
 

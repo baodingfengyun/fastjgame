@@ -16,6 +16,9 @@
 
 package com.wjybxx.fastjgame.concurrent;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.annotation.Nonnull;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -37,13 +40,15 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class GlobalEventLoop extends AbstractEventLoop{
 
+	private static final Logger logger = LoggerFactory.getLogger(GlobalEventLoop.class);
+
 	public static final GlobalEventLoop INSTANCE = new GlobalEventLoop(new InnerThreadFactory());
 
 	/** 线程自动关闭的安静期,3秒 */
 	private static final long QUIET_PERIOD_INTERVAL = 3;
-
+	/** GlobalEventLoop当前使用的线程 */
 	private volatile Thread thread;
-
+	/** 真正管理线程的executorService */
 	private final ExecutorService delegatedExecutorService;
 
 	/** 不可以在GlobalEventLoop上等待其关闭 */
@@ -52,7 +57,7 @@ public class GlobalEventLoop extends AbstractEventLoop{
 	private GlobalEventLoop(InnerThreadFactory threadFacotry) {
 		super(null);
 
-		// 采用代理实现比较省心啊，注意拒绝策略不能使用 Caller Runs，否则会导致补货的线程不对。
+		// 采用代理实现比较省心啊，注意拒绝策略不能使用 Caller Runs，否则会导致捕获的线程不对。
 		ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(1, 1 ,
 				QUIET_PERIOD_INTERVAL, TimeUnit.SECONDS,
 				new LinkedBlockingQueue<>(),
@@ -116,6 +121,8 @@ public class GlobalEventLoop extends AbstractEventLoop{
 		@Override
 		public Thread newThread(@Nonnull Runnable r) {
 			Thread thread = new Thread(r, "GLOBAL_EVENT_LOOP_" + index.getAndIncrement());
+			UncaughtExceptionHandlers.logIfAbsent(thread, logger);
+
 			// classLoader泄漏：
 			// 如果创建线程的时候，未指定contextClassLoader,那么将会继承父线程(创建当前线程的线程)的contextClassLoader，见Thread.init()方法。
 			// 如果创建线程的线程contextClassLoader是自定义类加载器，那么新创建的线程将继承(使用)该contextClassLoader，在线程未回收期间，将导致自定义类加载器无法回收。
@@ -148,7 +155,7 @@ public class GlobalEventLoop extends AbstractEventLoop{
 
 		@Override
 		public void run() {
-			// capture thread
+			// capture thread，似乎会多一点点消耗
 			thread = Thread.currentThread();
 
 			task.run();

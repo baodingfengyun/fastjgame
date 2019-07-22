@@ -33,6 +33,10 @@ public class IntSequencer {
      */
     private int value;
 
+    public IntSequencer() {
+        this(0);
+    }
+
     public IntSequencer(int initSequence) {
         this.value = initSequence;
     }

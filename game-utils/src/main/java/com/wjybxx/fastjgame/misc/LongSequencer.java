@@ -34,6 +34,10 @@ public final class LongSequencer {
      */
     private long value;
 
+    public LongSequencer() {
+        this(0L);
+    }
+
     public LongSequencer(long initSequence) {
         this.value = initSequence;
     }

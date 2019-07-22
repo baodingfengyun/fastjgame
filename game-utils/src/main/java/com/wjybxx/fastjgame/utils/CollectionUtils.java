@@ -17,6 +17,8 @@
 package com.wjybxx.fastjgame.utils;
 
 import com.wjybxx.fastjgame.function.MapConstructor;
+import com.wjybxx.fastjgame.holder.IntHolder;
+import com.wjybxx.fastjgame.misc.IntSequencer;
 
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
@@ -166,14 +168,18 @@ public final class CollectionUtils {
      * @param out 输出集
      * @param <E> the type of element
      * @param <T> the type of collection
-     * @return out
+     * @return the number of elements transferred
      */
-    public static <E,T extends Collection<E>> T drainQueue(BlockingQueue<E> blockingQueue, T out) {
+    public static <E,T extends Collection<E>> int drainQueue(BlockingQueue<E> blockingQueue, T out) {
         blockingQueue.drainTo(out);
+        IntSequencer counter = new IntSequencer(0);
         if (!blockingQueue.isEmpty()){
-            removeIfAndThen(blockingQueue, e -> true, out::add);
+            removeIfAndThen(blockingQueue, e -> true, e -> {
+                out.add(e);
+                counter.incAndGet();
+            });
         }
-        return out;
+        return counter.get();
     }
 
     /**
