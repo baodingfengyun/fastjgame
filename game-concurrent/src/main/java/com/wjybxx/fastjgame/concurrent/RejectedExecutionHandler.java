@@ -19,6 +19,8 @@ package com.wjybxx.fastjgame.concurrent;
 import java.util.concurrent.RejectedExecutionException;
 
 /**
+ * 当提交的任务被拒绝时的处理策略，修改自JDK的或者说Netty的拒绝策略。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/7/19 23:54

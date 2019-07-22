@@ -451,7 +451,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
                         return true;
                     }
                     try {
-                        this.wait(remainNano / 1000000, (int) (remainNano % 1000000));
+                        this.wait(remainNano / NANO_PER_MILLSECOND, (int) (remainNano % NANO_PER_MILLSECOND));
                     } catch (InterruptedException e){
                         interrupted = true;
                     }
