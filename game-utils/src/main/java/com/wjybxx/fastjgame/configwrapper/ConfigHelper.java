@@ -113,34 +113,19 @@ public abstract class ConfigHelper {
 
     // region 获取为数组类型
     public String[] getAsStringArray(String key){
-        return getAsString(key).split(UtilConstants.DEFAULT_ARRAY_DELIMITER);
+        return ConfigUtils.getAsStringArray(getAsString(key));
     }
 
     public int[] getAsIntArray(String key){
-        String[] stringArray = getAsStringArray(key);
-        int[] intArray=new int[stringArray.length];
-        for (int index=0;index<stringArray.length;index++){
-            intArray[index] = Integer.parseInt(stringArray[index]);
-        }
-        return intArray;
+        return ConfigUtils.getAsIntArray(getAsString(key));
     }
 
     public long[] getAsLongArray(String key){
-        String[] stringArray = getAsStringArray(key);
-        long[] intArray=new long[stringArray.length];
-        for (int index=0;index<stringArray.length;index++){
-            intArray[index] = Long.parseLong(stringArray[index]);
-        }
-        return intArray;
+        return ConfigUtils.getAsLongArray(getAsString(key));
     }
 
     public double[] getAsDoubleArray(String key){
-        String[] stringArray = getAsStringArray(key);
-        double[] doubleArray=new double[stringArray.length];
-        for (int index=0;index<stringArray.length;index++){
-            doubleArray[index] = Double.parseDouble(stringArray[index]);
-        }
-        return doubleArray;
+        return ConfigUtils.getAsDoubleArray(getAsString(key));
     }
     // endregion
 }

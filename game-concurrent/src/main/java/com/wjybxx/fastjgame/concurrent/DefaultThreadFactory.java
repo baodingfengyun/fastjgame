@@ -16,6 +16,9 @@
 
 package com.wjybxx.fastjgame.concurrent;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.annotation.Nonnull;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -31,6 +34,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class DefaultThreadFactory implements ThreadFactory {
 
+	private static final Logger logger = LoggerFactory.getLogger(DefaultThreadFactory.class);
 	/**
 	 * 线程池id，避免name相同时的冲突
 	 */
@@ -77,6 +81,7 @@ public class DefaultThreadFactory implements ThreadFactory {
 			if (t.getPriority() != priority) {
 				t.setPriority(priority);
 			}
+			UncaughtExceptionHandlers.logIfAbsent(t, logger);
 		} catch (Exception ignored) {
 			// Doesn't matter even if failed to set.
 		}

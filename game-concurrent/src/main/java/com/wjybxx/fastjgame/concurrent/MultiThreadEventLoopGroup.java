@@ -112,7 +112,7 @@ public abstract class MultiThreadEventLoopGroup extends AbstractEventLoopGroup {
 	@Nonnull
 	@Override
 	public List<Runnable> shutdownNow() {
-		List<Runnable> tasks = new ArrayList<>();
+		List<Runnable> tasks = new LinkedList<>();
 		for (EventLoop eventLoop:children) {
 			tasks.addAll(eventLoop.shutdownNow());
 		}

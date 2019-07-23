@@ -42,7 +42,7 @@ public class SystemUtils {
 		return properties;
 	}
 
-	public static boolean isWindows() {
+	public static boolean isWindows()	{
 		return IS_WINDOWS;
 	}
 

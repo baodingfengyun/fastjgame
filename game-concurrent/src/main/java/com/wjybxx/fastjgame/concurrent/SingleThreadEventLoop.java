@@ -95,7 +95,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 	private final BlockingQueue<Runnable> taskQueue;
 
 	/**
-	 * 缓存队列，用于批量的将{@link #taskQueue}中的任务拉取到本地线程线程下，减少锁竞争，
+	 * 缓存队列，用于批量的将{@link #taskQueue}中的任务拉取到本地线程下，减少锁竞争，
 	 */
 	private final List<Runnable> cacheQueue = new ArrayList<>(CACHE_QUEUE_CAPACITY);
 
@@ -230,6 +230,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 			 	// 注意：这个时候仍然可能有线程尝试添加任务，需要在添加任务那里进行处理
 				LinkedList<Runnable> haltTasks = new LinkedList<>();
 				CollectionUtils.drainQueue(taskQueue, haltTasks);
+				haltTasks.removeIf(task -> task == WAKE_UP_TASK);
 
 				// 确保线程可进入终止状态
 				ensureThreadTerminable(oldState);
@@ -373,7 +374,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 
 	@Override
 	public void execute(@Nonnull Runnable task) {
-		// 其它线程添加任务，需要先确保executor已启动过,自己添加的任务自然已经启动过了
+		// 其它线程添加任务，需要先确保executor已启动过,自己添加任务的话，自然已经启动过了
 		if (!inEventLoop()) {
 			// 确保线程启动
 			ensureStarted();
@@ -418,12 +419,12 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 	/**
 	 * 确保线程可终止。
 	 * - terminable
-	 * TODO
+	 * TODO 这个需要仔细思考
 	 * @param oldState 切换到shutdown之前的状态
 	 */
 	private void ensureThreadTerminable(int oldState) {
 		if (oldState == ST_NOT_STARTED) {
-			advanceRunState(ST_TERMINATED);
+			stateHolder.set(ST_TERMINATED);
 			terminationFuture.trySuccess(null);
 		} else if (oldState == ST_STARTED) {
 			if (!inEventLoop()) {
@@ -435,7 +436,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 	}
 
 	/**
-	 * 从阻塞队列中尝试获取一个任务。
+	 * 阻塞式地从阻塞队列中获取一个任务。
 	 *
 	 * @return 如果executor被唤醒或被中断，则返回null
 	 */
@@ -444,7 +445,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 		assert inEventLoop();
 		try {
 			Runnable task = taskQueue.take();
-			// 被任务唤醒
+			// 被唤醒
 			if (task == WAKE_UP_TASK) {
 				return null;
 			} else {

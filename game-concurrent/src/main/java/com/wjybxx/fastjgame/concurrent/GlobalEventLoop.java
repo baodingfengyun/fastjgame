@@ -24,7 +24,6 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.List;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
@@ -116,16 +115,20 @@ public class GlobalEventLoop extends AbstractEventLoop{
 
 	private static final class InnerThreadFactory implements ThreadFactory {
 
-		private AtomicInteger index = new AtomicInteger(0);
+		private final DefaultThreadFactory threadFactory;
+
+		private InnerThreadFactory() {
+			this.threadFactory = new DefaultThreadFactory("GLOBAL_EVENT_LOOP");
+		}
 
 		@Override
 		public Thread newThread(@Nonnull Runnable r) {
-			Thread thread = new Thread(r, "GLOBAL_EVENT_LOOP_" + index.getAndIncrement());
-			UncaughtExceptionHandlers.logIfAbsent(thread, logger);
+			Thread thread = threadFactory.newThread(r);
 
+			// 这部分内容是在netty的GlobalEventExecutor中看见的，这个问题我确实没想到过。
 			// classLoader泄漏：
 			// 如果创建线程的时候，未指定contextClassLoader,那么将会继承父线程(创建当前线程的线程)的contextClassLoader，见Thread.init()方法。
-			// 如果创建线程的线程contextClassLoader是自定义类加载器，那么新创建的线程将继承(使用)该contextClassLoader，在线程未回收期间，将导致自定义类加载器无法回收。
+			// 如果父线程contextClassLoader是自定义类加载器，那么新创建的线程将继承(使用)该contextClassLoader，在线程未回收期间，将导致自定义类加载器无法回收。
 			// 从而导致ClassLoader内存泄漏，基于自定义类加载器的某些设计可能失效。
 			// 我们显式的将其设置为null，表示使用系统类加载器进行加载，避免造成内存泄漏。
 

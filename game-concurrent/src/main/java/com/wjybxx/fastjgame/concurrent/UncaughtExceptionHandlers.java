@@ -52,7 +52,11 @@ public class UncaughtExceptionHandlers {
      */
     public static void logIfAbsent(Thread thread, Logger logger) {
         if (thread.getUncaughtExceptionHandler() == null){
-            thread.setUncaughtExceptionHandler(justLog(logger));
+            try {
+                thread.setUncaughtExceptionHandler(justLog(logger));
+            } catch (SecurityException ignore) {
+
+            }
         }
     }
 

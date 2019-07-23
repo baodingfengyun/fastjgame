@@ -88,8 +88,6 @@ public class ConfigUtils {
         return null == content ? null : content.trim();
     }
 
-
-    @Nonnull
     public static String getAsString(String content, String defaultValue) {
         return null != content ? content : defaultValue ;
     }

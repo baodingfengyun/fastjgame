@@ -38,6 +38,9 @@ public class DefaultEventLoop extends SingleThreadEventLoop{
         super(parent, threadFactory, rejectedExecutionHandler);
     }
 
+    /**
+     * 它的事件循环仅仅是拉取提交的任务并执行
+     */
     @Override
     protected void loop() {
         Runnable task;

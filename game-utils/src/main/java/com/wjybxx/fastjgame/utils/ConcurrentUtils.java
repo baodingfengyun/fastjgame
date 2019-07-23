@@ -22,10 +22,12 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.concurrent.*;
 
 /**
- * 常用并发工具包
+ * 并发工具包，常用并发工具方法。
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/14 1:02

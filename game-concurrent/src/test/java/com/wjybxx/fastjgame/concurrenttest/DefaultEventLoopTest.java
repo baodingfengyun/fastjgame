@@ -32,7 +32,7 @@ public class DefaultEventLoopTest {
 
 	public static void main(String[] args) {
 		DefaultEventLoopGroup defaultEventLoopGroup = new DefaultEventLoopGroup(2, new DefaultThreadFactory("test"));
-		ListenableFuture<String> future = defaultEventLoopGroup.submit((Callable<String>) () -> {
+		ListenableFuture<String> future = defaultEventLoopGroup.submit(() -> {
 			System.out.println("before task1 return.");
 			Thread.sleep(200);
 			return "-hello world.";
