@@ -192,8 +192,14 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 	}
 
 	/**
-	 * 用于其它线程友好的唤醒线程，默认实现是想taskQueue中填充任务。
+	 * 用于其它线程友好的唤醒executor的线程，默认实现是向taskQueue中填充一个任务。
 	 * 如果填充任务不能唤醒线程，则子类需要复写该方法
+	 *
+	 * Q: 为什么默认实现是向taskQueue中插入一个任务，而不是中断线程{@link #interruptThread()} ?
+	 * A: 我先不说这里能不能唤醒线程这个问题。
+	 *    中断最致命的一点是：向目标线程发出中断请求以后，你并不知道目标线程接收到中断信号的时候正在做什么！！！
+	 *    因此它并不是一种唤醒/停止目标线程的最佳方式，它可能导致一些需要原子执行的操作失败，也可能导致其它的问题。
+	 *    因此最好是对症下药，默认实现里认为线程可能阻塞在taskQueue上，因此我们尝试压入一个任务以尝试唤醒它。
 	 */
 	protected void wakeUp() {
 		assert !inEventLoop();
@@ -298,8 +304,6 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 		// shuttingDown状态下，已不会接收新的任务，执行完当前所有未执行的任务就可以退出了。
 
 		runAllTasks();
-
-		advanceRunState(ST_SHUTDOWN);
 
 		return true;
 	}
@@ -412,8 +416,9 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 	}
 
 	/**
-	 * 确保线程可终止
+	 * 确保线程可终止。
 	 * - terminable
+	 * TODO
 	 * @param oldState 切换到shutdown之前的状态
 	 */
 	private void ensureThreadTerminable(int oldState) {
@@ -430,31 +435,43 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 	}
 
 	/**
-	 * @return {@code null} if the executor thread has been interrupted or waken up.
+	 * 从阻塞队列中尝试获取一个任务。
+	 *
+	 * @return 如果executor被唤醒或被中断，则返回null
 	 */
 	@Nullable
 	protected final Runnable takeTask() {
 		assert inEventLoop();
 		try {
 			Runnable task = taskQueue.take();
+			// 被任务唤醒
 			if (task == WAKE_UP_TASK) {
 				return null;
 			} else {
 				return task;
 			}
 		} catch (InterruptedException ignore) {
-			// wake up
+			// 被中断唤醒 wake up
 		}
 		return null;
 	}
 
 	/**
+	 * 从任务队列中尝试获取一个有效任务
+	 *
 	 * @see Queue#poll()
+	 * @return 如果没有课执行任务则返回null
 	 */
 	@Nullable
 	protected Runnable pollTask() {
 		assert inEventLoop();
-		return taskQueue.poll();
+		for (;;) {
+			Runnable task = taskQueue.poll();
+			if (task == WAKE_UP_TASK) {
+				continue;
+			}
+			return task;
+		}
 	}
 
 	/**
@@ -491,6 +508,15 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 	}
 
 	/**
+	 * 将任务队列中的任务拉取到线程本地缓存队列中
+	 * @param taskQueue 任务队列
+	 * @return the number of elements transferred
+	 */
+	protected final int pollTaskFrom(BlockingQueue<Runnable> taskQueue) {
+		return taskQueue.drainTo(cacheQueue, CACHE_QUEUE_CAPACITY);
+	}
+
+	/**
 	 * 运行任务队列中当前所有的任务
 	 *
 	 * @return 至少有一个任务执行时返回true。
@@ -499,11 +525,14 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 		assert inEventLoop();
 
 		boolean ranAtLeastOne = false;
-		while (taskQueue.drainTo(cacheQueue, CACHE_QUEUE_CAPACITY) > 0) {
+		while (pollTaskFrom(taskQueue) > 0){
 			for (Runnable runnable : cacheQueue) {
+				if (runnable == WAKE_UP_TASK) {
+					continue;
+				}
 				safeExecute(runnable);
+				ranAtLeastOne = true;
 			}
-			ranAtLeastOne = true;
 			cacheQueue.clear();
 		}
 		return ranAtLeastOne;
@@ -520,12 +549,15 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 
 		boolean ranAtLeastOne = false;
 		int runTaskNum = 0;
-		while (taskQueue.drainTo(cacheQueue, CACHE_QUEUE_CAPACITY) > 0) {
+		while (pollTaskFrom(taskQueue) > 0) {
 			for (Runnable runnable : cacheQueue) {
+				if (runnable == WAKE_UP_TASK) {
+					continue;
+				}
 				safeExecute(runnable);
+				ranAtLeastOne = true;
 				runTaskNum++;
 			}
-			ranAtLeastOne = true;
 			cacheQueue.clear();
 
 			if (runTaskNum >= max) {

@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.concurrenttest;
 
-import com.wjybxx.fastjgame.concurrent.DefaultEventLoop;
 import com.wjybxx.fastjgame.concurrent.DefaultEventLoopGroup;
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
@@ -32,16 +31,25 @@ import java.util.concurrent.Callable;
 public class DefaultEventLoopTest {
 
 	public static void main(String[] args) {
-		DefaultEventLoopGroup defaultEventLoopGroup = new DefaultEventLoopGroup(1, new DefaultThreadFactory("test"));
+		DefaultEventLoopGroup defaultEventLoopGroup = new DefaultEventLoopGroup(2, new DefaultThreadFactory("test"));
 		ListenableFuture<String> future = defaultEventLoopGroup.submit((Callable<String>) () -> {
-			System.out.println("before return.");
-			return "hello world.";
+			System.out.println("before task1 return.");
+			Thread.sleep(200);
+			return "-hello world.";
 		});
+		ListenableFuture<String> future2 = defaultEventLoopGroup.submit(() -> {
+			System.out.println("before task2  return.");
+			Thread.sleep(200);
+			return "-java";
+		});
+
 
 		System.out.println("before await");
 		future.awaitUninterruptibly();
+		future2.awaitUninterruptibly();
 
 		System.out.println(future.tryGet());
+		System.out.println(future2.tryGet());
 
 		defaultEventLoopGroup.shutdown();
 	}
