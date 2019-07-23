@@ -16,23 +16,31 @@
 
 package com.wjybxx.fastjgame.concurrent;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.concurrent.ThreadFactory;
 
 /**
- * 默认的导致线程退出的未捕获异常处理器。
+ * 默认的事件循环组
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/7/21
+ * date - 2019/7/23
  * github - https://github.com/hl845740757
  */
-public class DefaultUncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
+public class DefaultEventLoopGroup extends MultiThreadEventLoopGroup{
 
-    private static final Logger logger = LoggerFactory.getLogger(DefaultUncaughtExceptionHandler.class);
+	public DefaultEventLoopGroup(int nThreads, @Nonnull ThreadFactory threadFactory) {
+		super(nThreads, threadFactory, null);
+	}
 
-    @Override
-    public void uncaughtException(Thread t, Throwable e) {
-        logger.error("uncaughtException, thread = {}", t.toString(), e);
-    }
+	public DefaultEventLoopGroup(int nThreads, @Nonnull ThreadFactory threadFactory, @Nullable EventLoopChooserFactory chooserFactory) {
+		super(nThreads, threadFactory, chooserFactory, null);
+	}
+
+	@Nonnull
+	@Override
+	protected EventLoop newChild(ThreadFactory threadFactory, Object context) {
+		return new DefaultEventLoop(this, threadFactory);
+	}
 }

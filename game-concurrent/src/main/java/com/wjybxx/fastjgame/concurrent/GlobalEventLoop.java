@@ -145,6 +145,9 @@ public class GlobalEventLoop extends AbstractEventLoop{
 		}
 	}
 
+	/**
+	 * Runnable包装对象，用于捕获(记录)运行时的线程
+	 */
 	private final class ThreadCapture implements Runnable {
 
 		private final Runnable task;

@@ -38,15 +38,17 @@ public class DefaultChooserFactory implements EventLoopChooserFactory{
 	 * 简单轮询的方式进行EventExecutor的负载均衡。
 	 */
 	private static final class RoundRobinEventLoopChooser implements EventLoopChooser {
-
+		/** 索引计数，保证线程安全 */
 		private final AtomicInteger idx = new AtomicInteger();
-
+		/** 管理的children */
 		private final EventLoop[] executors;
 
 		RoundRobinEventLoopChooser(EventLoop[] executors) {
+			assert executors.length > 0;
 			this.executors = executors;
 		}
 
+		@Nonnull
 		@Override
 		public EventLoop next() {
 			return executors[Math.abs(idx.getAndIncrement() % executors.length)];

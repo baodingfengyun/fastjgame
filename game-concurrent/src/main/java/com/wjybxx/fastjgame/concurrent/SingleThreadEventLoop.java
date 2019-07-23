@@ -43,6 +43,9 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 
 	private static final Logger logger = LoggerFactory.getLogger(SingleThreadEventLoop.class);
 
+	/** 用于友好的唤醒当前线程的任务 */
+	private static final Runnable WAKE_UP_TASK = () -> {};
+
 	/**
 	 * 当允许的任务数小于等于该值时使用{@link ArrayBlockingQueue}，能提高部分性能（空间换时间）。
 	 * 过大时浪费内存。
@@ -181,11 +184,31 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 			}
 			// 尝试切换为正在关闭状态，不再接收新任务
 			if (stateHolder.compareAndSet(oldState, ST_SHUTTING_DOWN)) {
-				// 确保线程已启动，否则无法进入终止状态
-				ensureThreadStarted(oldState);
+				// 确保线程可进入终止状态
+				ensureThreadTerminable(oldState);
 				return;
 			}
 		}
+	}
+
+	/**
+	 * 用于其它线程友好的唤醒线程，默认实现是想taskQueue中填充任务。
+	 * 如果填充任务不能唤醒线程，则子类需要复写该方法
+	 */
+	protected void wakeUp() {
+		assert !inEventLoop();
+		taskQueue.offer(WAKE_UP_TASK);
+	}
+
+	/**
+	 * 中断当前运行的线程，用于唤醒线程。
+	 * 如果子类阻塞在taskQueue之外的的地方，但是可以通过中断唤醒线程时，那么可以选择中断。
+	 *
+	 * Interrupt the current running {@link Thread}.
+	 */
+	protected void interruptThread() {
+		assert !inEventLoop();
+		thread.interrupt();
 	}
 
 	@Nonnull
@@ -197,18 +220,13 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 				return Collections.emptyList();
 			}
 			if (stateHolder.compareAndSet(oldState, ST_SHUTDOWN)) {
-				// 确保线程已启动，否则无法进入终止状态
-				ensureThreadStarted(oldState);
-
-				// 尝试中断EventLoop拥有的线程，似乎不太友好，以后可能会删除这行代码
-				// 等待当前任务执行完毕似乎好一点，虽然关闭的不那么及时，但是更安全。
-				// 而且线程可能不一定真的会启动
-//				thread.interrupt();
-
 				// 停止所有任务
 			 	// 注意：这个时候仍然可能有线程尝试添加任务，需要在添加任务那里进行处理
 				LinkedList<Runnable> haltTasks = new LinkedList<>();
 				CollectionUtils.drainQueue(taskQueue, haltTasks);
+
+				// 确保线程可进入终止状态
+				ensureThreadTerminable(oldState);
 				return haltTasks;
 			}
 		}
@@ -394,26 +412,38 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 	}
 
 	/**
-	 * 确保线程已启动(可终止)
+	 * 确保线程可终止
 	 * - terminable
 	 * @param oldState 切换到shutdown之前的状态
 	 */
-	private void ensureThreadStarted(int oldState) {
+	private void ensureThreadTerminable(int oldState) {
 		if (oldState == ST_NOT_STARTED) {
+			advanceRunState(ST_TERMINATED);
 			terminationFuture.trySuccess(null);
+		} else if (oldState == ST_STARTED) {
+			if (!inEventLoop()) {
+				// 不确定是活跃状态
+				wakeUp();
+			}
+			// else 当前是活跃状态
 		}
 	}
-
 
 	/**
 	 * @return {@code null} if the executor thread has been interrupted or waken up.
 	 */
 	@Nullable
-	protected Runnable takeTask() {
+	protected final Runnable takeTask() {
 		assert inEventLoop();
 		try {
-			return taskQueue.take();
+			Runnable task = taskQueue.take();
+			if (task == WAKE_UP_TASK) {
+				return null;
+			} else {
+				return task;
+			}
 		} catch (InterruptedException ignore) {
+			// wake up
 		}
 		return null;
 	}
