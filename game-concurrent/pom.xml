@@ -47,6 +47,15 @@
             <artifactId>game-utils</artifactId>
             <version>1.0</version>
         </dependency>
+
+        <!-- 无锁并发框架disruptor -->
+        <!-- https://mvnrepository.com/artifact/com.lmax/disruptor -->
+        <dependency>
+            <groupId>com.lmax</groupId>
+            <artifactId>disruptor</artifactId>
+            <version>3.4.2</version>
+        </dependency>
+
     </dependencies>
 
 </project>

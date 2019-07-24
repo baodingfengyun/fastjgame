@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.concurrent.*;
 
 /**
- * 事件循环线程组。
+ * 事件循环线程组，它表示拥有一个或多个事件循环线程。
  *
  * 目前来说不需要实现schedule，就游戏而言，用到的地方并不多，可以换别的方式实现。
  * 此外，虽然{@link EventLoopGroup}继承自{@link ExecutorService}，其中有些方法并不是很想实现，最好少用。

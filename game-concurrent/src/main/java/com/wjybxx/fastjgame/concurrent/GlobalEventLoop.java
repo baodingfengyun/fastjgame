@@ -48,7 +48,7 @@ public class GlobalEventLoop extends AbstractEventLoop{
 	/** GlobalEventLoop当前使用的线程 */
 	private volatile Thread thread;
 	/** 真正管理线程的executorService */
-	private final ExecutorService delegatedExecutorService;
+	private final ExecutorService executorService;
 
 	/** 不可以在GlobalEventLoop上等待其关闭 */
 	private final ListenableFuture<?> terminationFuture = new FailedFuture<Object>(this, new UnsupportedOperationException());
@@ -64,7 +64,7 @@ public class GlobalEventLoop extends AbstractEventLoop{
 				new ThreadPoolExecutor.AbortPolicy());
 		threadPoolExecutor.allowCoreThreadTimeOut(true);
 
-		delegatedExecutorService = threadPoolExecutor;
+		executorService = threadPoolExecutor;
 	}
 
 	@Override
@@ -110,7 +110,7 @@ public class GlobalEventLoop extends AbstractEventLoop{
 
 	@Override
 	public void execute(@Nonnull Runnable task) {
-		delegatedExecutorService.execute(new ThreadCapture(task));
+		executorService.execute(new ThreadCapture(task));
 	}
 
 	private static final class InnerThreadFactory implements ThreadFactory {

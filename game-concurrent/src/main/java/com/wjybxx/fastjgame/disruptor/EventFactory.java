@@ -14,15 +14,20 @@
  * limitations under the License.
  */
 
+package com.wjybxx.fastjgame.disruptor;
+
 /**
- * 并发工具包，游戏多线程化的方向。
- * 整体来说是参考的Netty的EventLoop实现，Netty的并发包较为庞大，支持的东西较多，
- * 这里只取需要的部分，将其简化。有部分类就是Netty的，之所以进行拷贝，是因为希望这个包不引入Netty。
- *
+ * 事件工厂。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/7/13 0:40
+ * date - 2019/7/24
  * github - https://github.com/hl845740757
  */
-package com.wjybxx.fastjgame.concurrent;
+public class EventFactory implements com.lmax.disruptor.EventFactory<Event> {
+
+	@Override
+	public Event newInstance() {
+		return new Event();
+	}
+}

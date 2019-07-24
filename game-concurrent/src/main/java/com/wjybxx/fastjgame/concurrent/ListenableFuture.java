@@ -24,6 +24,7 @@ import java.util.concurrent.*;
 /**
  * 可监听的future。
  * 在Netty和Curator里面见着了一些好的设计，但是他们的设计有很多用不上的或易错误使用的东西，进行简化。
+ * guava里也有类似的。
  * @param <V> 值类型
  *
  * @author wjybxx

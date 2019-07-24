@@ -112,12 +112,12 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
 	// 重要，重写newTaskFor方法，返回具体的future类型
 	@Override
 	protected final <T> RunnableFuture<T> newTaskFor(Runnable runnable, T value) {
-		return new PromiseTask<T>(this, runnable, value);
+		return new PromiseTask<>(this, runnable, value);
 	}
 
 	@Override
 	protected final <T> RunnableFuture<T> newTaskFor(Callable<T> callable) {
-		return new PromiseTask<T>(this, callable);
+		return new PromiseTask<>(this, callable);
 	}
 	// endregion
 

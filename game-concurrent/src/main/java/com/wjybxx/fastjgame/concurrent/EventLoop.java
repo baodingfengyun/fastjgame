@@ -20,7 +20,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * 事件循环线程。
+ * 事件循环，它是一个线程的抽象，它一定是单线程的，事件循环如果实现为多线程的，将失去意义。
  *
  * (它是组合模式中的叶子组件，它不能增加子组件)
  *

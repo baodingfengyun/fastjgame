@@ -38,7 +38,7 @@ import java.util.Enumeration;
  */
 public class NetUtils {
 
-    private static final Logger logger= LoggerFactory.getLogger(NetUtils.class);
+    private static final Logger logger = LoggerFactory.getLogger(NetUtils.class);
     /**
      * 本机内网地址
      */

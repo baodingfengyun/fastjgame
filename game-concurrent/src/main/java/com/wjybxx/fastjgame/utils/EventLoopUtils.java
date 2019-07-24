@@ -16,10 +16,10 @@
 
 package com.wjybxx.fastjgame.utils;
 
+import com.wjybxx.fastjgame.concurrent.BlockingOperationException;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.function.AnyRunnable;
 import com.wjybxx.fastjgame.function.ExceptionHandler;
-import io.netty.util.concurrent.BlockingOperationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,12 +52,16 @@ public class EventLoopUtils {
         }
     }
 
-    public static void checkDeadLock(EventLoop e, Supplier<String> msgSupplier) {
+    /**
+     * 检查死锁，由于EventLoop是单线程的，因此不能在当前EventLoop上等待另一个任务完成，很可能导致死锁。
+     * @param e executor
+     * @param msg 造成死锁的信息，尽量少拼接字符串。
+     */
+    public static void checkDeadLock(EventLoop e, String msg) {
         if (e != null && e.inEventLoop()) {
-            throw new BlockingOperationException(msgSupplier.get());
+            throw new BlockingOperationException(msg);
         }
     }
-
 
     public static void submitOrRun(@Nonnull EventLoop eventLoop, Runnable task) {
         if (eventLoop.inEventLoop()){

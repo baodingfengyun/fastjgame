@@ -56,12 +56,12 @@ import java.util.concurrent.atomic.AtomicReference;
 public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Promise<V> {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultPromise.class);
-
-    private static final int NANO_PER_MILLSECOND = (int) TimeUnit.MILLISECONDS.toNanos(1);
+    /** 1毫秒多少纳秒，编译时常量优于运行时常量 */
+    private static final int NANO_PER_MILLSECOND = 1000000;
 
     /**
      * 表示任务已成功完成。
-     * 如果一个任务成功时没有返回值{@link #setSuccess(Object) null}，使用该对象代替。
+     * 如果一个任务成功时没有结果{@link #setSuccess(Object) null}，使用该对象代替。
      */
     private static final Object SUCCESS = new Object();
     /**
@@ -216,8 +216,10 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     private boolean tryCompleted(@Nonnull Object value, boolean cancel) {
         boolean success;
         if (cancel) {
+            // 执行取消操作，只能由初始状态切换为完成状态
             success = resultHolder.compareAndSet(null, value);
         } else {
+            // 正常完成，可能由初始状态或不可取消状态切换为结束状态
             success = resultHolder.compareAndSet(null, value) || resultHolder.compareAndSet(UNCANCELLABLE, value);
         }
 
@@ -253,7 +255,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         }
 
         for (;;) {
-            // 通知当前批次的监听器(此时不需要获得锁)
+            // 通知当前批次的监听器(此时不需要获得锁) -- 但是这里不能抛出异常，否则可能死锁 -- notifyingListeners无法恢复
             for (ListenerEntry<? super V> listenerEntry:listeners) {
                 notifyListener(listenerEntry.listener, listenerEntry.bindExecutor);
             }
@@ -262,7 +264,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
                 if (null == this.waitListeners) {
                     // 通知完毕
                     this.notifyingListeners = false;
-                    return;
+                    break;
                 }
                 // 有新的监听器加入，拉取最新的监听器，继续通知
                 listeners = this.waitListeners;
@@ -280,6 +282,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
             EventLoop executor = null == bindExecutor ? executor() : bindExecutor;
             EventLoopUtils.submitOrRun(executor, () -> listener.onComplete(this), this::handleException);
         } catch (Exception e) {
+            // 提交被拒绝或其它异常
             logger.warn("execute notify task caught exception.", e);
         }
     }
@@ -349,7 +352,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     /**
      * 尝试取消任务。
      * @param mayInterruptIfRunning 该参数对该promise而言是无效的。
-     *                              对该promise而言，在它定义的抽象中，它只是获取结果的凭据，它并不真正执行任务，因此它不也不能真正取消任务。
+     *                              对该promise而言，在它定义的抽象中，它只是获取结果的凭据，它并不真正执行任务，因此也不能真正取消任务。
      *                              因此该参数对该promise而言是无效的。
      *                              这里的取消并不是真正意义上的取消，它不能取消过程，只能取消结果。
      * @return true if succeed
