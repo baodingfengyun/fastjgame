@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.holder.ObjectHolder;
+import com.wjybxx.fastjgame.misc.ObjectHolder;
 import com.wjybxx.fastjgame.misc.AbstractThreadLifeCycleHelper;
 import com.wjybxx.fastjgame.misc.BackoffRetryForever;
 import com.wjybxx.fastjgame.misc.LockPathAction;

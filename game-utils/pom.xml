@@ -70,6 +70,14 @@
             <version>8.2.2</version>
         </dependency>
 
+        <!-- 无锁并发框架disruptor -->
+        <!-- https://mvnrepository.com/artifact/com.lmax/disruptor -->
+        <dependency>
+            <groupId>com.lmax</groupId>
+            <artifactId>disruptor</artifactId>
+            <version>3.4.2</version>
+        </dependency>
+
         <!-- 之所以引入netty，是因为对netty的部分代码做了增强 -->
         <!-- https://mvnrepository.com/artifact/io.netty/netty-all -->
         <dependency>

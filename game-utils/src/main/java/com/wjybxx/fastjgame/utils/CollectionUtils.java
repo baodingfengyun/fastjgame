@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.utils;
 
 import com.wjybxx.fastjgame.function.MapConstructor;
-import com.wjybxx.fastjgame.holder.IntHolder;
 import com.wjybxx.fastjgame.misc.IntSequencer;
 
 import java.util.*;
