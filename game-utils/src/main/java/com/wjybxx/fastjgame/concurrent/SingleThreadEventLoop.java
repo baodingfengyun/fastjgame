@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.concurrent;
 
 
-import com.wjybxx.fastjgame.utils.CollectionUtils;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.SystemUtils;
 import org.slf4j.Logger;
@@ -25,7 +24,10 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Queue;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
@@ -173,6 +175,20 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 		return oldState >= targetState;
 	}
 
+	/**
+	 * 将运行状态转换为给定目标，或者至少保留给定状态。
+	 * 参考自{@code ThreadPoolExecutor#advanceRunState}
+	 *
+	 * @param targetState 期望的目标状态， {@link #ST_SHUTTING_DOWN} 或者 {@link #ST_SHUTDOWN}
+	 */
+	private void advanceRunState(int targetState) {
+		for (;;) {
+			int oldState = stateHolder.get();
+			if (runStateAtLeast(oldState, targetState) || stateHolder.compareAndSet(oldState, targetState))
+				break;
+		}
+	}
+
 	// 进入正在关闭状态
 	@Override
 	public void shutdown() {
@@ -303,8 +319,10 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 		}
 
 		// shuttingDown状态下，已不会接收新的任务，执行完当前所有未执行的任务就可以退出了。
-
 		runAllTasks();
+
+		// 切换至SHUTDOWN状态，准备执行最后的清理动作
+		advanceRunState(ST_SHUTDOWN);
 
 		return true;
 	}
@@ -358,20 +376,6 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 		}
 	}
 
-	/**
-	 * 将运行状态转换为给定目标，或者至少保留给定状态。
-	 * 参考自{@code ThreadPoolExecutor#advanceRunState}
-	 *
-	 * @param targetState 期望的目标状态， {@link #ST_SHUTTING_DOWN} 或者 {@link #ST_SHUTDOWN}
-	 */
-	private void advanceRunState(int targetState) {
-		for (;;) {
-			int oldState = stateHolder.get();
-			if (runStateAtLeast(oldState, targetState) || stateHolder.compareAndSet(oldState, targetState))
-				break;
-		}
-	}
-
 	@Override
 	public void execute(@Nonnull Runnable task) {
 		// 其它线程添加任务，需要先确保executor已启动过,自己添加任务的话，自然已经启动过了
@@ -392,7 +396,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 		// 1. 在检测到未关闭的状态下尝试压入队列
 		if (!isShuttingDown() && taskQueue.offer(task)) {
 			// 2. 压入队列是一个过程！在压入队列的过程中，executor的状态可能改变，因此必须再次校验 - 以判断线程是否在任务压入队列之后已经开始关闭了
-			// remove失败表示executor已经处理了该任务或已经被强制停止(shutdownNow)
+			// remove失败表示executor已经处理了该任务或已经被强制停止(shutdownNow) --- shutdownNow方法已删除
 			if (isShuttingDown() && taskQueue.remove(task)) {
 				reject(task);
 			}
@@ -431,8 +435,9 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 				// 不确定是活跃状态
 				wakeUp();
 			}
-			// else 当前是活跃状态
+			// else 当前是活跃状态(自己调用，当然是活跃状态)
 		}
+		// else 其它状态下不应该阻塞，不需要唤醒
 	}
 
 	/**
@@ -461,7 +466,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 	 * 从任务队列中尝试获取一个有效任务
 	 *
 	 * @see Queue#poll()
-	 * @return 如果没有课执行任务则返回null
+	 * @return 如果没有可执行任务则返回null
 	 */
 	@Nullable
 	protected Runnable pollTask() {

@@ -21,10 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Spliterator;
+import java.util.*;
 import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.Callable;
 import java.util.concurrent.RunnableFuture;
@@ -70,6 +67,16 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
 		// 因为 EventExecutor 是叶子节点，是没有子节点的，因此请求的事件处理器都是自己
 		return this;
 	}
+
+	@Deprecated
+	@Nonnull
+	@Override
+	public List<Runnable> shutdownNow() {
+		shutdown();
+		return Collections.emptyList();
+	}
+
+	// -------------------------------------- promise --------------------------------------
 
 	@Nonnull
 	@Override

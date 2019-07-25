@@ -97,13 +97,6 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 		}
 	}
 
-	@Nonnull
-	@Override
-	public List<Runnable> shutdownNow() {
-		shutdown();
-		return Collections.emptyList();
-	}
-
 	@Override
 	public boolean isShutdown() {
 		return stateHolder.get() >= ST_SHUTDOWN;

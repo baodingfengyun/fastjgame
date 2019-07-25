@@ -87,12 +87,6 @@ public class GlobalEventLoop extends AbstractEventLoop{
 		throw new UnsupportedOperationException("shutdown");
 	}
 
-	@Nonnull
-	@Override
-	public List<Runnable> shutdownNow() {
-		throw new UnsupportedOperationException("shutdownNow");
-	}
-
 	@Override
 	public boolean isShutdown() {
 		return false;
