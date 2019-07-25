@@ -369,7 +369,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
 
     @Override
     public void await() throws InterruptedException {
-        // 先检查一次是否已完成，减小锁竞争
+        // 先检查一次是否已完成，减小锁竞争，同时在完成的情况下，等待不会死锁。
         if (isDone()){
             return;
         }
@@ -402,7 +402,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
             return true;
         }
 
-        // 先检查一次是否已完成，减小锁锁竞争
+        // 先检查一次是否已完成，减小锁锁竞争，同时在完成的情况下，等待不会死锁。
         if (isDone()) {
             return true;
         }
@@ -434,7 +434,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
             return true;
         }
 
-        // 先检查一次是否已完成，减小锁锁竞争
+        // 先检查一次是否已完成，减小锁锁竞争，同时在完成的情况下，等待不会死锁。
         if (isDone()) {
             return true;
         }
@@ -506,7 +506,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
             if (waitListeners == null) {
                 return;
             }
-            waitListeners.removeIf(entry -> entry.listener.equals(listener));
+            waitListeners.removeIf(entry -> entry.listener == listener);
             if (waitListeners.size() == 0){
                 waitListeners = null;
             }
