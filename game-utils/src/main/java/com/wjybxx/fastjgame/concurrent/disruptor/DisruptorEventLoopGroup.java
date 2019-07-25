@@ -45,6 +45,6 @@ public class DisruptorEventLoopGroup extends MultiThreadEventLoopGroup {
 	@Nonnull
 	@Override
 	protected EventLoop newChild(ThreadFactory threadFactory, Object context) {
-		return new DisruptorEventLoop(this, threadFactory);
+		return new DisruptorEventLoop(this, threadFactory, eventHandler);
 	}
 }

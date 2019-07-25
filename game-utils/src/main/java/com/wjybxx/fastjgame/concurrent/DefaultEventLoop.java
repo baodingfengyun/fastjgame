@@ -49,6 +49,7 @@ public class DefaultEventLoop extends SingleThreadEventLoop{
             if (null != task) {
                 safeExecute(task);
             }
+            // 检查是否需要退出
             if (confirmShutdown()) {
                 break;
             }
