@@ -20,13 +20,18 @@ import com.wjybxx.fastjgame.concurrent.GlobalEventLoop;
 
 public class GlobalEventLoopTest {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InterruptedException {
 		GlobalEventLoop globalEventLoop = GlobalEventLoop.INSTANCE;
 
-		globalEventLoop.submit(() -> {
-			System.out.println("task - inEventLoop = " + globalEventLoop.inEventLoop());
-		});
+		for (int index=0; index<10; index++) {
+			globalEventLoop.submit(() -> {
+				System.out.println("thread " + Thread.currentThread().getName() + ", task - inEventLoop = " + globalEventLoop.inEventLoop());
+			});
 
-		System.out.println("main - inEventLoop = " + globalEventLoop.inEventLoop());
+			System.out.println("thread " + Thread.currentThread().getName() + ", main - inEventLoop = " + globalEventLoop.inEventLoop());
+
+			// 睡眠5秒，等待GlobalEvent关闭
+			Thread.sleep(5000);
+		}
 	}
 }
