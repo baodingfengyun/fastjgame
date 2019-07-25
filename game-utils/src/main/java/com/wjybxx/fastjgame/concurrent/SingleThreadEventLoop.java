@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.concurrent;
 
 
+import com.wjybxx.fastjgame.utils.CollectionUtils;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.SystemUtils;
 import org.slf4j.Logger;
@@ -24,10 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
@@ -233,6 +231,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 		thread.interrupt();
 	}
 
+	@Deprecated
 	@Nonnull
 	@Override
 	public List<Runnable> shutdownNow() {
