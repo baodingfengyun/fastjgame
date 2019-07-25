@@ -16,12 +16,16 @@
 
 package com.wjybxx.fastjgame.concurrent.disruptor;
 
+import com.lmax.disruptor.LifecycleAware;
+import com.lmax.disruptor.dsl.Disruptor;
+import com.lmax.disruptor.dsl.ProducerType;
 import com.wjybxx.fastjgame.concurrent.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -39,6 +43,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class DisruptorEventLoop extends AbstractEventLoop {
 
+	private static final Logger logger = LoggerFactory.getLogger(DisruptorEventLoop.class);
+
 	private static final int CACHE_QUEUE_CAPACITY = 6 * 84;
 
 	private static final int ST_NOT_START = 1;
@@ -51,7 +57,8 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 	private final ThreadFactory threadFactory;
 	/** 事件处理器 */
 	private final EventHandler eventHandler;
-	private final EventHandler threadCapture;
+	private final ThreadCaptureHandler threadCapture;
+	private final Disruptor<Event> disruptor;
 
 	/** execute提交的任务 */
 	private final BlockingQueue<Runnable> taskQueue = new LinkedBlockingQueue<>();
@@ -71,6 +78,10 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 		this.threadFactory = threadFactory;
 		this.eventHandler = eventHandler;
 		this.threadCapture = new ThreadCaptureHandler(this);
+		// 临时
+		this.disruptor = new Disruptor<Event>(new EventFactory(), 8 * 1024, threadFactory,
+				ProducerType.MULTI,
+				new SleepingWaitExtendStrategy(this));
 	}
 
 	@Override
@@ -91,7 +102,9 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 	@Override
 	public void shutdown() {
 		if (inEventLoop()) {
-
+			eventHandler.shutdown();
+			// shutdown是阻塞方法，当前线程调用会导致死锁
+			disruptor.halt();
 		} else {
 
 		}
@@ -124,7 +137,12 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 	 * @param eventParam 事件对应的参数
 	 */
 	public void publishEvent(EventType eventType, EventParam eventParam) {
-
+		if (inEventLoop()) {
+			// 防止死锁，自己发布事件时，如果没有足够空间，会导致死锁
+			taskQueue.offer(new EventTask(new Event(eventType, eventParam)));
+		} else {
+			// TODO
+		}
 	}
 
 	// ----------------------------- 生命周期begin ------------------------------
@@ -132,17 +150,23 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 	private void onStart() {
 		// 捕获线程
 		thread = Thread.currentThread();
-		eventHandler.onStart();
+		eventHandler.startUp();
 	}
 
 	private void onEvent(Event event, long sequence, boolean endOfBatch) throws Exception {
+		onEvent(event);
+		if (endOfBatch) {
+			runAllTasks();
+		}
+	}
+
+	private void onEvent(Event event) {
 		try {
-			eventHandler.onEvent(event, sequence, endOfBatch);
+			eventHandler.onEvent(event);
+		} catch (Exception e) {
+			logger.warn("onEvent caught exception.", e);
 		} finally {
 			event.close();
-			if (endOfBatch) {
-				runAllTasks();
-			}
 		}
 	}
 
@@ -173,18 +197,15 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 		return ranAtLeastOne;
 	}
 
-	private void tryLoop() {
-		eventHandler.tryLoop();
-	}
-
-	private void onWaitEvent() {
-		runAllTasks();
+	void onWaitEvent() {
 		eventHandler.onWaitEvent();
+		runAllTasks();
 	}
 
 	private void onShutdown() {
-		eventHandler.onShutdown();
+		eventHandler.shutdown();
 		clean();
+
 	}
 
 	private void clean() {
@@ -193,7 +214,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 	// ------------------------------ 生命周期end --------------------------------
 
 	/** EventHandler内部实现，避免{@link DisruptorEventLoop}对外暴露这些接口 */
-	private static class ThreadCaptureHandler implements EventHandler{
+	private static class ThreadCaptureHandler implements com.lmax.disruptor.EventHandler<Event>, LifecycleAware {
 
 		private final DisruptorEventLoop disruptorEventLoop;
 
@@ -209,16 +230,6 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 		@Override
 		public void onEvent(Event event, long sequence, boolean endOfBatch) throws Exception {
 			disruptorEventLoop.onEvent(event, sequence, endOfBatch);
-		}
-
-		@Override
-		public void tryLoop() {
-			disruptorEventLoop.tryLoop();
-		}
-
-		@Override
-		public void onWaitEvent() {
-			disruptorEventLoop.onWaitEvent();
 		}
 
 		@Override
@@ -238,11 +249,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 
 		@Override
 		public void run() {
-			try {
-				onEvent(event, -1, false);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+			onEvent(event);
 		}
 	}
 }

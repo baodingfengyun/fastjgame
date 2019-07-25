@@ -38,6 +38,14 @@ public final class Event implements AutoCloseable{
 	 */
 	private EventParam param;
 
+	public Event() {
+	}
+
+	public Event(EventType type, EventParam param) {
+		this.type = type;
+		this.param = param;
+	}
+
 	@Nonnull
 	public EventType getType() {
 		return type;

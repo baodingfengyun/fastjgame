@@ -313,16 +313,18 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 		// 用于EventLoop确认自己是否应该退出，不应该由外部线程调用
 		assert inEventLoop();
 
+		// 它放前面是因为更可能出现
 		if (!isShuttingDown()) {
 			return false;
 		}
-
+		// 它只在关闭阶段出现
+		if (isShutdown()) {
+			return true;
+		}
 		// shuttingDown状态下，已不会接收新的任务，执行完当前所有未执行的任务就可以退出了。
 		runAllTasks();
-
 		// 切换至SHUTDOWN状态，准备执行最后的清理动作
 		advanceRunState(ST_SHUTDOWN);
-
 		return true;
 	}
 

@@ -33,16 +33,16 @@ import java.util.concurrent.locks.LockSupport;
 public class SleepingWaitExtendStrategy implements WaitStrategy {
 
     private static final int DEFAULT_RETRIES = 200;
-    private static final long DEFAULT_SLEEP = 10*10000;
+    private static final long DEFAULT_SLEEP = 10 * 10000;
 
     private final int retries;
     private final long sleepTimeNs;
 
-    private final EventHandler eventHandler;
+    private final DisruptorEventLoop eventLoop;
 
-    public SleepingWaitExtendStrategy(EventHandler eventHandler)
+    public SleepingWaitExtendStrategy(DisruptorEventLoop eventLoop)
     {
-        this.eventHandler = eventHandler;
+        this.eventLoop = eventLoop;
         this.retries = DEFAULT_RETRIES;
         this.sleepTimeNs = DEFAULT_SLEEP;
     }
@@ -58,7 +58,7 @@ public class SleepingWaitExtendStrategy implements WaitStrategy {
         // 在等待生产者生产数据的过程中，尝试执行游戏世界循环
         while ((availableSequence = dependentSequence.get()) < sequence)
         {
-            eventHandler.onWaitEvent();
+            eventLoop.onWaitEvent();
             counter = applyWaitMethod(barrier, counter);
         }
 

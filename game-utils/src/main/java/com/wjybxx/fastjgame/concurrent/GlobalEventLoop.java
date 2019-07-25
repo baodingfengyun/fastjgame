@@ -41,7 +41,7 @@ public class GlobalEventLoop extends AbstractEventLoop{
 
 	private static final Logger logger = LoggerFactory.getLogger(GlobalEventLoop.class);
 
-	public static final GlobalEventLoop INSTANCE = new GlobalEventLoop(new InnerThreadFactory());
+	public static final GlobalEventLoop INSTANCE = new GlobalEventLoop();
 
 	/** 线程自动关闭的安静期,3秒 */
 	private static final long QUIET_PERIOD_INTERVAL = 3;
@@ -53,14 +53,14 @@ public class GlobalEventLoop extends AbstractEventLoop{
 	/** 不可以在GlobalEventLoop上等待其关闭 */
 	private final ListenableFuture<?> terminationFuture = new FailedFuture<Object>(this, new UnsupportedOperationException());
 
-	private GlobalEventLoop(InnerThreadFactory threadFacotry) {
+	private GlobalEventLoop() {
 		super(null);
 
 		// 采用代理实现比较省心啊，注意拒绝策略不能使用 Caller Runs，否则会导致捕获的线程不对。
 		ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(1, 1 ,
 				QUIET_PERIOD_INTERVAL, TimeUnit.SECONDS,
 				new LinkedBlockingQueue<>(),
-				threadFacotry,
+				new InnerThreadFactory(),
 				new ThreadPoolExecutor.AbortPolicy());
 		threadPoolExecutor.allowCoreThreadTimeOut(true);
 
@@ -104,10 +104,10 @@ public class GlobalEventLoop extends AbstractEventLoop{
 
 	@Override
 	public void execute(@Nonnull Runnable task) {
-		executorService.execute(new ThreadCapture(task));
+		executorService.execute(task);
 	}
 
-	private static final class InnerThreadFactory implements ThreadFactory {
+	private final class InnerThreadFactory implements ThreadFactory {
 
 		private final DefaultThreadFactory threadFactory;
 
@@ -138,27 +138,10 @@ public class GlobalEventLoop extends AbstractEventLoop{
 					return null;
 				}
 			});
+
+			// executor是单线程的，那么创建的线程就是我们EventLoop的线程
+			GlobalEventLoop.this.thread = thread;
 			return thread;
-		}
-	}
-
-	/**
-	 * Runnable包装对象，用于捕获(记录)运行时的线程
-	 */
-	private final class ThreadCapture implements Runnable {
-
-		private final Runnable task;
-
-		private ThreadCapture(Runnable task) {
-			this.task = task;
-		}
-
-		@Override
-		public void run() {
-			// capture thread，似乎会多一点点消耗
-			thread = Thread.currentThread();
-
-			task.run();
 		}
 	}
 }

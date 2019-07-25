@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.concurrent.disruptor;
 
-import com.lmax.disruptor.LifecycleAware;
-
 /**
  * 事件处理器
  *
@@ -26,40 +24,25 @@ import com.lmax.disruptor.LifecycleAware;
  * date - 2019/7/24
  * github - https://github.com/hl845740757
  */
-public interface EventHandler extends com.lmax.disruptor.EventHandler<Event>, LifecycleAware {
+public interface EventHandler {
 
 	/**
-	 * 线程启动时，完成初始化工作
+	 * 通知EventHandler启动
 	 */
-	@Override
-	void onStart();
+	void startUp();
 
 	/**
-	 * 当产生一个网络事件的时候。
-	 * 注意：即使网络事件很多，也需要在某个时候调用loop，不能一直处理网络事件。
-	 * @param event 事件
-	 * @param sequence event对应的序号
-	 * @param endOfBatch 是否是本批次事件的最后一个事件
-	 * @throws Exception error
+	 * 接收到一个事件
 	 */
-	@Override
-	void onEvent(Event event, long sequence, boolean endOfBatch) throws Exception;
+	void onEvent(Event event) throws Exception;
 
 	/**
-	 * 尝试执行游戏世界循环。
-	 * 处理网络事件和游戏世界循环需要交替执行。
-	 * 注意：子类实现需要保证loop的间隔。
-	 */
-	void tryLoop();
-
-	/**
-	 * 当游戏世界线程没有新的事件消费时
+	 * 等待事件期间 -- 在一定时间内没有事件时会被调用
 	 */
 	void onWaitEvent();
 
 	/**
-	 * 线程关闭时，释放资源等
+	 * 命令EventHandler关闭
 	 */
-	@Override
-	void onShutdown();
+	void shutdown();
 }
