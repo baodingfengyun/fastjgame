@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.concurrent;
 
 import javax.annotation.Nonnull;
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -37,6 +38,7 @@ public class DefaultChooserFactory implements EventLoopChooserFactory{
 	/**
 	 * 简单轮询的方式进行EventExecutor的负载均衡。
 	 */
+	@ThreadSafe
 	private static final class RoundRobinEventLoopChooser implements EventLoopChooser {
 		/** 索引计数，保证线程安全 */
 		private final AtomicInteger idx = new AtomicInteger();

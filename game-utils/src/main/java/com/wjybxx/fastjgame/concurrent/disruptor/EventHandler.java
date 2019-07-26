@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.concurrent.disruptor;
 
 /**
- * 事件处理器
+ * 事件处理器，注意该处理器不可以执行长时间的阻塞逻辑。
  *
  * @author wjybxx
  * @version 1.0
@@ -28,8 +28,9 @@ public interface EventHandler {
 
 	/**
 	 * 通知EventHandler启动
+	 * @param eventLoop eventHandler所在的事件循环，可以保存下来
 	 */
-	void startUp();
+	void startUp(DisruptorEventLoop eventLoop);
 
 	/**
 	 * 接收到一个事件

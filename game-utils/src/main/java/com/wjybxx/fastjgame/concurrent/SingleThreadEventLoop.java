@@ -70,9 +70,9 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 	private static final int ST_NOT_STARTED = 1;
 	/** 已启动状态，运行状态 */
 	private static final int ST_STARTED = 2;
-	/** 正在关闭状态 */
+	/** 正在关闭状态，正在尝试执行最后的任务 */
 	private static final int ST_SHUTTING_DOWN = 3;
-	/** 已关闭状态 */
+	/** 已关闭状态，正在进行最后的清理 */
 	private static final int ST_SHUTDOWN = 4;
 	/** 终止状态(二阶段终止模式 - 已关闭状态下进行最后的清理，然后进入终止状态) */
 	private static final int ST_TERMINATED = 5;
@@ -187,6 +187,39 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 		}
 	}
 
+	@Override
+	public boolean isShuttingDown() {
+		return isShuttingDown0(stateHolder.get());
+	}
+
+	private static boolean isShuttingDown0(int state) {
+		return state >= ST_SHUTTING_DOWN;
+	}
+
+	@Override
+	public boolean isShutdown() {
+		return isShutdown0(stateHolder.get());
+	}
+
+	private static boolean isShutdown0(int state) {
+		return state >= ST_SHUTDOWN;
+	}
+
+	@Override
+	public boolean isTerminated() {
+		return stateHolder.get() == ST_TERMINATED;
+	}
+
+	@Override
+	public boolean awaitTermination(long timeout, @Nonnull TimeUnit unit) throws InterruptedException {
+		return terminationFuture.await(timeout, unit);
+	}
+
+	@Override
+	public ListenableFuture<?> terminationFuture() {
+		return terminationFuture;
+	}
+
 	// 进入正在关闭状态
 	@Override
 	public void shutdown() {
@@ -242,7 +275,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 			}
 			if (stateHolder.compareAndSet(oldState, ST_SHUTDOWN)) {
 				// 停止所有任务
-			 	// 注意：这个时候仍然可能有线程尝试添加任务，需要在添加任务那里进行处理
+				// 注意：这个时候仍然可能有线程尝试添加任务，需要在添加任务那里进行处理
 				LinkedList<Runnable> haltTasks = new LinkedList<>();
 				CollectionUtils.drainQueue(taskQueue, haltTasks);
 				haltTasks.removeIf(task -> task == WAKE_UP_TASK);
@@ -253,40 +286,6 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 			}
 		}
 	}
-
-	@Override
-	public boolean isShuttingDown() {
-		return isShuttingDown0(stateHolder.get());
-	}
-
-	private static boolean isShuttingDown0(int state) {
-		return state >= ST_SHUTTING_DOWN;
-	}
-
-	@Override
-	public boolean isShutdown() {
-		return isShutdown0(stateHolder.get());
-	}
-
-	private static boolean isShutdown0(int state) {
-		return state >= ST_SHUTDOWN;
-	}
-
-	@Override
-	public boolean isTerminated() {
-		return stateHolder.get() == ST_TERMINATED;
-	}
-
-	@Override
-	public boolean awaitTermination(long timeout, @Nonnull TimeUnit unit) throws InterruptedException {
-		return terminationFuture.await(timeout, unit);
-	}
-
-	@Override
-	public ListenableFuture<?> terminationFuture() {
-		return terminationFuture;
-	}
-
 	// -------------------------------------------- 任务调度，事件循环 -----------------------------------
 
 	/**

@@ -26,4 +26,5 @@ package com.wjybxx.fastjgame.concurrent.disruptor;
  */
 public enum EventType {
 
+	TASK,
 }

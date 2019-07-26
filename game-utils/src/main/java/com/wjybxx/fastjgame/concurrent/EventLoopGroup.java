@@ -39,34 +39,6 @@ public interface EventLoopGroup extends ExecutorService, Iterable<EventLoop> {
 	// ------------------------------ 生命周期相关方法 ----------------------------
 
 	/**
-	 * 请求关闭 ExecutorService，不再接收新的任务。
-	 * ExecutorService在执行完现有任务后，进入关闭状态。
-	 * 如果 ExecutorService 正在关闭，或已经关闭，则方法不产生任何效果。
-	 *
-	 * 该方法会立即返回，如果想等待 ExecutorService 进入终止状态，
-	 * 可以使用{@link #awaitTermination(long, TimeUnit)}或{@link #terminationFuture()} 进行等待
-	 */
-	@Override
-	void shutdown();
-
-	/**
-	 * JDK文档：
-	 * 请求关闭 ExecutorService，<b>尝试取消所有正在执行的任务，停止所有待执行的任务，并不再接收新的任务。</b>
-	 * 如果 ExecutorService 已经关闭，则方法不产生任何效果。
-	 *
-	 * 该方法会立即返回，如果想等待 ExecutorService 进入终止状态，可以使用{@link #awaitTermination(long, TimeUnit)}
-	 * 或{@link #terminationFuture()} 进行等待
-	 *
-	 * @deprecated 该方法关闭并不友好，因此不推荐使用，也不保证标准的实现。
-	 *
-	 * @return 当前待执行的任务列表。
-	 */
-	@Deprecated
-	@Nonnull
-	@Override
-	List<Runnable> shutdownNow();
-
-	/**
 	 * 查询{@link EventLoopGroup}是否处于正在关闭状态。
 	 * 正在关闭状态下，拒绝接收新任务，当执行完所有任务后，进入关闭状态。
 	 *
@@ -100,6 +72,34 @@ public interface EventLoopGroup extends ExecutorService, Iterable<EventLoop> {
 	 * 返回的{@link ListenableFuture}会在该Group管理的所有{@link EventLoop}终止后收到通知.
 	 */
 	ListenableFuture<?> terminationFuture();
+
+	/**
+	 * 请求关闭 ExecutorService，不再接收新的任务。
+	 * ExecutorService在执行完现有任务后，进入关闭状态。
+	 * 如果 ExecutorService 正在关闭，或已经关闭，则方法不产生任何效果。
+	 *
+	 * 该方法会立即返回，如果想等待 ExecutorService 进入终止状态，
+	 * 可以使用{@link #awaitTermination(long, TimeUnit)}或{@link #terminationFuture()} 进行等待
+	 */
+	@Override
+	void shutdown();
+
+	/**
+	 * JDK文档：
+	 * 请求关闭 ExecutorService，<b>尝试取消所有正在执行的任务，停止所有待执行的任务，并不再接收新的任务。</b>
+	 * 如果 ExecutorService 已经关闭，则方法不产生任何效果。
+	 *
+	 * 该方法会立即返回，如果想等待 ExecutorService 进入终止状态，可以使用{@link #awaitTermination(long, TimeUnit)}
+	 * 或{@link #terminationFuture()} 进行等待
+	 *
+	 * @deprecated 该方法关闭并不友好，因此不推荐使用，也不保证标准的实现。
+	 *
+	 * @return 当前待执行的任务列表。
+	 */
+	@Deprecated
+	@Nonnull
+	@Override
+	List<Runnable> shutdownNow();
 	// ----------------------------- 这是我想要支持的任务调度 ------------------------
 
 	@Override

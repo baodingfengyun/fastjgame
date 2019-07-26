@@ -312,7 +312,7 @@ public class ConcurrentUtils {
         boolean interrupted = false;
         try {
             task.run();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             interrupted = isInterrupted(e);
             logger.warn("A task raised an exception. Task: {}", task, e);
         }
@@ -330,7 +330,7 @@ public class ConcurrentUtils {
         boolean interrupted = false;
         try {
             task.run();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             interrupted = isInterrupted(e);
             logger.warn("A task raised an exception. Task: {}", task, e);
         }

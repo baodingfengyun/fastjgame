@@ -104,22 +104,6 @@ public abstract class MultiThreadEventLoopGroup extends AbstractEventLoopGroup {
 	// -------------------------------------  子类生命周期管理 --------------------------------
 
 	@Override
-	public void shutdown() {
-		forEach(EventLoop::shutdown);
-	}
-
-	@Deprecated
-	@Nonnull
-	@Override
-	public List<Runnable> shutdownNow() {
-		List<Runnable> tasks = new LinkedList<>();
-		for (EventLoop eventLoop:children) {
-			tasks.addAll(eventLoop.shutdownNow());
-		}
-		return tasks;
-	}
-
-	@Override
 	public ListenableFuture<?>  terminationFuture() {
 		return terminationFuture;
 	}
@@ -144,6 +128,21 @@ public abstract class MultiThreadEventLoopGroup extends AbstractEventLoopGroup {
 		return terminationFuture.await(timeout, unit);
 	}
 
+	@Override
+	public void shutdown() {
+		forEach(EventLoop::shutdown);
+	}
+
+	@Deprecated
+	@Nonnull
+	@Override
+	public List<Runnable> shutdownNow() {
+		List<Runnable> tasks = new LinkedList<>();
+		for (EventLoop eventLoop:children) {
+			tasks.addAll(eventLoop.shutdownNow());
+		}
+		return tasks;
+	}
 	// ------------------------------------- 迭代 ----------------------------
 
 	@Override

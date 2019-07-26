@@ -22,6 +22,7 @@ import com.wjybxx.fastjgame.concurrent.MultiThreadEventLoopGroup;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.concurrent.ThreadFactory;
 
 /**
@@ -34,17 +35,29 @@ import java.util.concurrent.ThreadFactory;
  */
 public class DisruptorEventLoopGroup extends MultiThreadEventLoopGroup {
 
-	public DisruptorEventLoopGroup(int nThreads, @Nonnull ThreadFactory threadFactory, @Nullable Object context) {
-		super(nThreads, threadFactory, context);
+	private DisruptorEventLoopGroup(@Nonnull ThreadFactory threadFactory, List<BuildContext> contextList) {
+		super(contextList.size(), threadFactory, contextList);
 	}
 
-	public DisruptorEventLoopGroup(int nThreads, @Nonnull ThreadFactory threadFactory, @Nullable EventLoopChooserFactory chooserFactory, @Nullable Object context) {
-		super(nThreads, threadFactory, chooserFactory, context);
+	private DisruptorEventLoopGroup(int nThreads, @Nonnull ThreadFactory threadFactory, @Nullable EventLoopChooserFactory chooserFactory,
+									List<BuildContext> contextList) {
+		super(contextList.size(), threadFactory, chooserFactory, contextList);
 	}
 
 	@Nonnull
 	@Override
 	protected EventLoop newChild(ThreadFactory threadFactory, Object context) {
-		return new DisruptorEventLoop(this, threadFactory, null);
+		BuildContext buildContext = ((List<BuildContext>)context).remove(0);
+		if (buildContext.ringBufferSize > 0){
+			return new DisruptorEventLoop(this, threadFactory, buildContext.eventHandler, buildContext.ringBufferSize);
+		} else {
+			return new DisruptorEventLoop(this, threadFactory, buildContext.eventHandler);
+		}
+	}
+
+	// TODO 这里临时为了报错
+	public static class BuildContext {
+		private int ringBufferSize = 0;
+		private EventHandler eventHandler;
 	}
 }
