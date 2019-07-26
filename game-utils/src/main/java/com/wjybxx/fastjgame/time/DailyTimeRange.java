@@ -17,6 +17,8 @@
 package com.wjybxx.fastjgame.time;
 
 
+import com.wjybxx.fastjgame.utils.TimeUtils;
+
 /**
  * 每天的时间段。
  * 无天数概念的几点几分到几点几分。可以跨天。

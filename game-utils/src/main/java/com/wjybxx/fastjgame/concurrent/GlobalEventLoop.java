@@ -56,7 +56,7 @@ public class GlobalEventLoop extends AbstractEventLoop{
 	private GlobalEventLoop() {
 		super(null);
 
-		// 采用代理实现比较省心啊，注意拒绝策略不能使用 Caller Runs，否则会导致捕获的线程不对。
+		// 采用代理实现比较省心啊
 		ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(1, 1 ,
 				QUIET_PERIOD_INTERVAL, TimeUnit.SECONDS,
 				new LinkedBlockingQueue<>(),

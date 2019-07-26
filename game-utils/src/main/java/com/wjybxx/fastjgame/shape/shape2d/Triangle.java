@@ -83,13 +83,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class Triangle implements Shape2D, RedrawShape {
 
-    // 三个缓存向量(为何要做缓存？ 在MMO游戏中，技能等存在大量的选中判断，一个技能可能需要做几十次的判断)
-    private static final Point2D cacheV0 =Point2D.newPoint2D();
-    private static final Point2D cacheV1 =Point2D.newPoint2D();
-    private static final Point2D cacheV2 =Point2D.newPoint2D();
-
-    private static final Point3D cacheV4 = Point3D.newPoint3D();
-    private static final Point3D cacheV5 = Point3D.newPoint3D();
+    private static final ThreadLocal<TriangleCache> localCache = ThreadLocal.withInitial(TriangleCache::new);
 
     private final Point2D a;
 
@@ -119,10 +113,11 @@ public class Triangle implements Shape2D, RedrawShape {
      */
     @Override
     public boolean hasPoint(@Nonnull Point2D p) {
+        TriangleCache cache = localCache.get();
         // Compute vectors
-        Point2D v0 = MathUtils.sub(c,a, cacheV0);
-        Point2D v1 = MathUtils.sub(b,a, cacheV1);
-        Point2D v2 = MathUtils.sub(p,a, cacheV2);
+        Point2D v0 = MathUtils.sub(c,a, cache.cacheV0);
+        Point2D v1 = MathUtils.sub(b,a, cache.cacheV1);
+        Point2D v2 = MathUtils.sub(p,a, cache.cacheV2);
 
         float dot00 = MathUtils.dotProduct(v0, v0);
         float dot01 = MathUtils.dotProduct(v0, v1);
@@ -168,23 +163,40 @@ public class Triangle implements Shape2D, RedrawShape {
      * 判断 p1 和 p2 是否在 ab 向量的同侧
      * @return true/false
      */
-    private static boolean sameSide(Point2D p1,Point2D p2,Point2D a,Point2D b){
-        Point2D ab = MathUtils.sub(b, a, cacheV0);
-        Point2D ap1 = MathUtils.sub(p1, a, cacheV1);
-        Point2D ap2 = MathUtils.sub(p2, a, cacheV2);
+    private static boolean sameSide(Point2D p1, Point2D p2, Point2D a, Point2D b){
+        TriangleCache cache = localCache.get();
 
-        Point3D cp1 = MathUtils.crossProduct(ab,ap1,cacheV4);
-        Point3D cp2 = MathUtils.crossProduct(ab,ap2,cacheV5);
-        return MathUtils.dotProduct(cp1,cp2) >= 0;
+        Point2D ab = MathUtils.sub(b, a, cache.cacheV0);
+        Point2D ap1 = MathUtils.sub(p1, a, cache.cacheV1);
+        Point2D ap2 = MathUtils.sub(p2, a, cache.cacheV2);
+
+        Point3D cp1 = MathUtils.crossProduct(ab, ap1, cache.cacheV4);
+        Point3D cp2 = MathUtils.crossProduct(ab, ap2, cache.cacheV5);
+        return MathUtils.dotProduct(cp1, cp2) >= 0;
     }
 
     /**
      * 同向法求p是否在三角形内，p和任意顶点都在另外两个顶点构成的向量的同侧。
      * @return true/false
      */
-    private static boolean pointInTriangle(Point2D p,Point2D a,Point2D b,Point2D c){
-        return sameSide(p,a, b,c)
-                && sameSide(p,b, a,c)
-                && sameSide(p,c, a,b);
+    private static boolean pointInTriangle(Point2D p, Point2D a, Point2D b, Point2D c){
+        return sameSide(p, a, b, c)
+                && sameSide(p, b, a, c)
+                && sameSide(p, c, a, b);
+    }
+
+    /**
+     * 为何要做缓存？
+     * 在MMO游戏中，技能等存在大量的选中判断，一个技能可能需要做几十次的判断，这些对象虽小，一帧太多也不是很合适。
+     * 当然也可以具体的测试下，如果没有压力就不拥护缓存
+     */
+    private static class TriangleCache {
+        // 不能是静态缓存
+        private final Point2D cacheV0 = Point2D.newPoint2D();
+        private final Point2D cacheV1 = Point2D.newPoint2D();
+        private final Point2D cacheV2 = Point2D.newPoint2D();
+
+        private final Point3D cacheV4 = Point3D.newPoint3D();
+        private final Point3D cacheV5 = Point3D.newPoint3D();
     }
 }

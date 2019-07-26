@@ -32,8 +32,6 @@ import javax.annotation.Nonnull;
  */
 public class Sector implements Shape2D, RedrawShape {
 
-    private static final Point2D cacheP =Point2D.newPoint2D();
-
     private final Circle circle;
     /**
      * 扇形中心朝向，弧度角
@@ -102,7 +100,7 @@ public class Sector implements Shape2D, RedrawShape {
             return false;
         }
         // 转换为以center为起点的向量
-        Point2D p = MathUtils.sub(point2D, getCenter(), cacheP);
+        Point2D p = MathUtils.sub(point2D, getCenter());
         // 同向法，start到p为逆时针，p到end也为逆时针
         return CoordinateSystem2D.isCounterClockwiseOrOrCollinear(startVector,p) &&
                 CoordinateSystem2D.isCounterClockwiseOrOrCollinear(p,endVector);

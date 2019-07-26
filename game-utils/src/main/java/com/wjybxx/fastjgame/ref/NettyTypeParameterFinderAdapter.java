@@ -64,11 +64,11 @@ public class NettyTypeParameterFinderAdapter implements TypeParameterFinder{
     /**
      * 从instance所属的类开始，寻找最近通向泛型接口的通路。
      *
-     * @param instance
-     * @param parametrizedSuperInterface
-     * @param typeParamName
-     * @return
-     * @throws Exception
+     * @param instance 拥有泛型具体类型的子类实例
+     * @param parametrizedSuperInterface 定义泛型参数的超类或接口
+     * @param typeParamName 泛型参数的名字
+     * @return 泛型参数的距离类型
+     * @throws Exception error
      */
     private <T> Class<?> findInterfaceTypeParameter(T instance, Class<? super T> parametrizedSuperInterface, String typeParamName) throws Exception {
         ensureTypeParameterExist(parametrizedSuperInterface,typeParamName);

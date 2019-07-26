@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.time;
+package com.wjybxx.fastjgame.utils;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -47,6 +47,8 @@ public class TimeUtils {
 	public static final long DAY = 24 * HOUR;
 	/** 一周的毫秒数 */
 	public static final long WEEK = 7 * DAY;
+	/** 1毫秒多少纳秒 */
+	public static final long NANO_PER_MILLISECOND = 1000000;
 
 	/**
 	 * 午夜 00:00:00

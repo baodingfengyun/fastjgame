@@ -28,7 +28,7 @@ import javax.annotation.concurrent.Immutable;
 @Immutable
 public class EmptyConfigWrapper extends ConfigWrapper {
 
-    public static EmptyConfigWrapper INSTANCE=new EmptyConfigWrapper();
+    public static EmptyConfigWrapper INSTANCE = new EmptyConfigWrapper();
 
     private EmptyConfigWrapper() {
 

@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.time;
 
 
-import com.wjybxx.fastjgame.utils.ConfigUtils;
+import com.wjybxx.fastjgame.utils.TimeUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalTime;

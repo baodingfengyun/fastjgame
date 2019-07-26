@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.concurrent;
 
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.EventLoopUtils;
+import com.wjybxx.fastjgame.utils.TimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,8 +57,9 @@ import java.util.concurrent.atomic.AtomicReference;
 public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Promise<V> {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultPromise.class);
+
     /** 1毫秒多少纳秒，编译时常量优于运行时常量 */
-    private static final int NANO_PER_MILLSECOND = 1000000;
+    private static final int NANO_PER_MILLISECOND = (int) TimeUtils.NANO_PER_MILLISECOND;
 
     /**
      * 表示任务已成功完成。
@@ -420,7 +422,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
                 if (isDone()){
                     return true;
                 }
-                this.wait(remainNano / NANO_PER_MILLSECOND, (int) (remainNano % NANO_PER_MILLSECOND));
+                this.wait(remainNano / NANO_PER_MILLISECOND, (int) (remainNano % NANO_PER_MILLISECOND));
             }
         }
         // 再努力尝试一次
@@ -454,7 +456,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
                         return true;
                     }
                     try {
-                        this.wait(remainNano / NANO_PER_MILLSECOND, (int) (remainNano % NANO_PER_MILLSECOND));
+                        this.wait(remainNano / NANO_PER_MILLISECOND, (int) (remainNano % NANO_PER_MILLISECOND));
                     } catch (InterruptedException e){
                         interrupted = true;
                     }
