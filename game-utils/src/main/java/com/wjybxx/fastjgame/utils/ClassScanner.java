@@ -177,7 +177,7 @@ public class ClassScanner {
             // 获取jar里的一个实体 可以是目录 和一些jar包里的其他文件 如META-INF等文
             JarEntry jarEntry = entry.nextElement();
 
-            // 这里不是特别明白
+            // 包也是一个entry
             if (jarEntry.isDirectory()){
                 continue;
             }
@@ -207,10 +207,20 @@ public class ClassScanner {
                 if (classFilter.test(clazz)){
                     classes.add(clazz);
                 }
-            } catch (ClassNotFoundException e){
+            } catch (ClassNotFoundException | NoClassDefFoundError e){
+                // jdk 1.7的新语法还没用过...
                 logger.error("load class {} from jar {} caught exception", className, jar.getName(), e);
             }
         }
     }
 
+    public static void main(String[] args) {
+        Set<Class<?>> allClass = findAllClass("com.wjybxx.fastjgame");
+        allClass.forEach(System.out::println);
+
+        System.out.println(" ------------------------------------- ");
+
+        Set<Class<?>> allClass2 = findAllClass("io.netty.util.concurrent");
+        allClass2.forEach(System.out::println);
+    }
 }
