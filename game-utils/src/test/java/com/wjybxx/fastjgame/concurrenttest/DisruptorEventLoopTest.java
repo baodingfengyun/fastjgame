@@ -33,9 +33,11 @@ public class DisruptorEventLoopTest {
 		DisruptorEventLoop eventLoop = new DisruptorEventLoop(null, new DefaultThreadFactory("Disruptor-Thread"), new EventHandlerImp());
 		eventLoop.publishEvent(EventType.TEST, new StringEventParam("hello world!"));
 
-		eventLoop.terminationFuture().awaitUninterruptibly(10, TimeUnit.SECONDS);
+		eventLoop.terminationFuture().awaitUninterruptibly(5, TimeUnit.SECONDS);
 
 		eventLoop.shutdown();
+
+		eventLoop.terminationFuture().awaitUninterruptibly();
 	}
 
 	private static class EventHandlerImp implements EventHandler {

@@ -49,8 +49,8 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 
 	private static final Logger logger = LoggerFactory.getLogger(DisruptorEventLoop.class);
 
-	/** 默认ringBuffer大小 8192 */
-	static final int DEFAULT_RING_BUFFER_SIZE = SystemUtils.getProperties().getAsInt("DisruptorEventLoop.ringBufferSize", 8192);
+	/** 默认ringBuffer大小 */
+	static final int DEFAULT_RING_BUFFER_SIZE = SystemUtils.getProperties().getAsInt("DisruptorEventLoop.ringBufferSize", 16 * 1024);
 
 	// 线程的状态
 	/** 初始状态，未启动状态 */
@@ -110,7 +110,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 	 * @param parent 容器节点
 	 * @param threadFactory 线程工厂
 	 * @param eventHandler 事件处理器
-	 * @param ringBufferSize 事件缓冲区大小，当ringBuffer填充满以后，{@link #publishEvent(EventType, EventParam)}会阻塞
+	 * @param ringBufferSize 事件缓冲区大小，当ringBuffer填充满以后，{@link #publishEvent(EventType, EventParam)}会阻塞。
 	 * @param rejectedExecutionHandler {@link #execute(Runnable)}提交任务失败时的处理策略
 	 */
 	public DisruptorEventLoop(@Nullable EventLoopGroup parent, ThreadFactory threadFactory, EventHandler eventHandler, int ringBufferSize, RejectedExecutionHandler rejectedExecutionHandler) {
@@ -215,7 +215,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 	}
 
 	/**
-	 * 发布一个事件。
+	 * 发布一个事件，当没有足够空间时会阻塞直到有空间可用。
 	 * (待优化)
 	 * @param eventType 事件类型
 	 * @param eventParam 事件对应的参数

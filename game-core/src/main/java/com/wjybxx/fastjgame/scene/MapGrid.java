@@ -61,6 +61,7 @@ public class MapGrid implements Grid2D {
 
     /**
      * 是否处于安全区
+     * (更好的方式是创建Area场景对象，可以在地图编辑器编辑，也可以程序生成)
      */
     private final boolean safeArea;
 

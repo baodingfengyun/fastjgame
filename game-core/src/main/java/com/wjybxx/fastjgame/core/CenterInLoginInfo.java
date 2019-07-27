@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.core;
 import com.wjybxx.fastjgame.misc.PlatformType;
 
 /**
+ * 中心服在登录服的信息
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/17 21:24

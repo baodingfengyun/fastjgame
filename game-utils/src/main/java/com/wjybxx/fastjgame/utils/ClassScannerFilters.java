@@ -95,11 +95,7 @@ public class ClassScannerFilters {
      * @return
      */
     public static Predicate<String> exceptPkgs(@Nonnull String... pkgNameArray) {
-        List<String> pkgNameList = Arrays.asList(pkgNameArray);
-        return className -> {
-            String myPkgName = className.substring(0, className.lastIndexOf("."));
-            return !pkgNameList.contains(myPkgName);
-        };
+        return className -> Arrays.stream(pkgNameArray).anyMatch(pkgName -> className.startsWith(pkgName + "."));
     }
 
     /**

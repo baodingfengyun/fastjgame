@@ -50,6 +50,7 @@ public class ZkGuidMrg implements GuidMrg {
 
     /**
      * guid区间索引
+     * (32位好像有点多哈)
      */
     private int guidIndex=0;
     /**

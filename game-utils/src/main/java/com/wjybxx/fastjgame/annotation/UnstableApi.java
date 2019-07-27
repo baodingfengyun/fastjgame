@@ -19,6 +19,11 @@ package com.wjybxx.fastjgame.annotation;
 import java.lang.annotation.*;
 
 /**
+ * 不稳定的API，或者说测试API。
+ * (Beta)
+ *
+ * copy from netty
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/7/27

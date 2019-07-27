@@ -33,17 +33,24 @@ import java.util.HashMap;
  */
 @Immutable
 public class ArrayConfigWrapper extends ConfigWrapper {
-
+    /** 键值对的数组 */
     private final String[] pairsArray;
+    /** key-value分隔符 */
+    private final String kvDelimiter;
 
     public ArrayConfigWrapper(String[] pairsArray) {
+        this(pairsArray, UtilConstants.DEFAULT_KEY_VALUE_DELIMITER);
+    }
+
+    public ArrayConfigWrapper(String[] pairsArray, String kvDelimiter) {
         this.pairsArray = pairsArray;
+        this.kvDelimiter = kvDelimiter;
     }
 
     @Override
     public String getAsString(String key) {
         for (String pair:pairsArray){
-            String[] keyValuePair = pair.split(UtilConstants.DEFAULT_KEY_VALUE_DELIMITER,2);
+            String[] keyValuePair = pair.split(kvDelimiter, 2);
             if (keyValuePair[0].equals(key)){
                 return keyValuePair.length==2?keyValuePair[1]:null;
             }
@@ -55,7 +62,7 @@ public class ArrayConfigWrapper extends ConfigWrapper {
     public MapConfigWrapper convert2MapWrapper() {
         HashMap<String,String> map=new HashMap<>();
         for (String pair:pairsArray){
-            String[] keyValuePair = pair.split(UtilConstants.DEFAULT_KEY_VALUE_DELIMITER,2);
+            String[] keyValuePair = pair.split(kvDelimiter, 2);
             if (keyValuePair.length==2){
                 map.put(keyValuePair[0],keyValuePair[1]);
             }else {

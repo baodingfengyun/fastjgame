@@ -62,6 +62,12 @@ public class EventLoopUtils {
         }
     }
 
+    /**
+     * 如果当前线程就是EventLoop线程，则直接执行任务，否则进行提交
+     *
+     * @param eventLoop 事件循环
+     * @param task 任务
+     */
     public static void submitOrRun(@Nonnull EventLoop eventLoop, Runnable task) {
         if (eventLoop.inEventLoop()){
             task.run();
@@ -70,6 +76,13 @@ public class EventLoopUtils {
         }
     }
 
+    /**
+     * 如果当前线程就是EventLoop线程，则直接执行任务，否则进行提交
+     *
+     * @param eventLoop 事件循环
+     * @param task 任务
+     * @param exceptionHandler 异常处理器
+     */
     public static void submitOrRun(@Nonnull EventLoop eventLoop, AnyRunnable task, ExceptionHandler exceptionHandler) {
         if (eventLoop.inEventLoop()){
             try {
