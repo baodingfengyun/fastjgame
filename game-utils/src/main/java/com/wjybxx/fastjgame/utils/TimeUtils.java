@@ -48,7 +48,7 @@ public class TimeUtils {
 	/** 一周的毫秒数 */
 	public static final long WEEK = 7 * DAY;
 	/** 1毫秒多少纳秒 */
-	public static final long NANO_PER_MILLISECOND = 1000000;
+	public static final long NANO_PER_MILLISECOND = 100_0000;
 
 	/**
 	 * 午夜 00:00:00

@@ -16,12 +16,14 @@
 
 package com.wjybxx.fastjgame.concurrent.disruptor;
 
+import com.lmax.disruptor.InsufficientCapacityException;
 import com.lmax.disruptor.LifecycleAware;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
-import com.wjybxx.fastjgame.concurrent.*;
+import com.wjybxx.fastjgame.annotation.UnstableApi;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
+import com.wjybxx.fastjgame.concurrent.*;
 import com.wjybxx.fastjgame.utils.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +32,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.LockSupport;
 
 /**
  * 基于Disruptor的事件循环，<b>该事件循环不会阻塞</b>。
@@ -63,14 +66,10 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 
 	/** Disruptor线程 */
 	private volatile Thread thread;
-	/** 线程工厂 */
-	private final ThreadFactory threadFactory;
 	/** 任务拒绝策略 */
 	private final RejectedExecutionHandler rejectedExecutionHandler;
 	/** 事件处理器 */
 	private final EventHandler eventHandler;
-	/** 用于捕获线程 */
-	private final InnerEventHandler threadCapture;
 	/** disruptor */
 	private final Disruptor<Event> disruptor;
 
@@ -118,18 +117,17 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 	 */
 	public DisruptorEventLoop(@Nullable EventLoopGroup parent, ThreadFactory threadFactory, EventHandler eventHandler, int ringBufferSize, RejectedExecutionHandler rejectedExecutionHandler) {
 		super(parent);
-		this.threadFactory = threadFactory;
 		this.rejectedExecutionHandler = rejectedExecutionHandler;
 		this.eventHandler = eventHandler;
-		this.threadCapture = new InnerEventHandler(this);
 
 		this.disruptor = new Disruptor<Event>(new EventFactory(),
 				ringBufferSize,
-				threadFactory,
+				new InnerThreadFactory(threadFactory),
 				ProducerType.MULTI,
 				new SleepingWaitExtendStrategy(this));
 
-		disruptor.handleEventsWith(threadCapture);
+		// 加一层封装，避免EventLoop暴露Disruptor相关接口
+		disruptor.handleEventsWith(new InnerEventHandler(this));
 
 		this.ringBuffer = disruptor.getRingBuffer();
 	}
@@ -223,21 +221,36 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 	 * @param eventType 事件类型
 	 * @param eventParam 事件对应的参数
 	 */
+	@UnstableApi
 	public void publishEvent(EventType eventType, EventParam eventParam) {
 		if (inEventLoop()) {
 			// 防止死锁，自己发布事件时，如果没有足够空间，会导致死锁，需要压入队列
 			taskQueue.offer(new EventTask(new Event(eventType, eventParam)));
 		} else {
-			ensureThreadStarted();
-
-			long sequence = ringBuffer.next();
-			try {
-				Event event = ringBuffer.get(sequence);
-				event.setType(eventType);
-				event.setParam(eventParam);
-			} finally {
-				ringBuffer.publish(sequence);
+			if (eventType == EventType.TASK) {
+				throw new IllegalArgumentException("Not allow EventTask");
 			}
+
+			ensureThreadStarted();
+			// 直接调用next()的情况下，如果disruptor已关闭则可能死锁
+			for (int tryTimes = 1; !isShuttingDown(); tryTimes++) {
+				try {
+					long sequence = ringBuffer.tryNext();
+					try {
+						Event event = ringBuffer.get(sequence);
+						event.setType(eventType);
+						event.setParam(eventParam);
+					} finally {
+						ringBuffer.publish(sequence);
+					}
+					return;
+				} catch (InsufficientCapacityException ignore) {
+					// 最多睡眠1毫秒
+					int sleepTimes = ThreadLocalRandom.current().nextInt(Math.min(100, tryTimes), 101) * 10000;
+					LockSupport.parkNanos(sleepTimes);
+				}
+			}
+			throw new RejectedExecutionException("EventType " + eventType.name());
 		}
 	}
 
@@ -312,8 +325,11 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 	}
 
 	private void onStart() {
-		// 捕获线程
-		thread = Thread.currentThread();
+		if (!inEventLoop()){
+			// 非真正启动，earlyExit
+			return;
+		}
+
 		init();
 		eventHandler.startUp(this);
 	}
@@ -357,6 +373,11 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 	}
 
 	private void onShutdown() {
+		if (!inEventLoop()){
+			// 非真正退出，earlyExit
+			return;
+		}
+
 		try {
 			eventHandler.shutdown();
 		} finally {
@@ -406,7 +427,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 		// 切换至SHUTDOWN状态，准备执行最后的清理动作
 		advanceRunState(ST_SHUTDOWN);
 
-		// 真正关闭disruptor，不可以调用shutdown，否则会导致死锁
+		// 真正关闭disruptor，不可以调用shutdown，否则可能导致死锁
 		disruptor.halt();
 
 		return true;
@@ -430,6 +451,23 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 	}
 
 	// ------------------------------ 生命周期end --------------------------------
+
+	private class InnerThreadFactory implements ThreadFactory {
+
+		private final ThreadFactory threadFactory;
+
+		private InnerThreadFactory(ThreadFactory threadFactory) {
+			this.threadFactory = threadFactory;
+		}
+
+		@Override
+		public Thread newThread(@Nonnull Runnable r) {
+			Thread thread = threadFactory.newThread(r);
+			// 捕获运行线程
+			DisruptorEventLoop.this.thread = thread;
+			return thread;
+		}
+	}
 
 	/** EventHandler内部实现，避免{@link DisruptorEventLoop}对外暴露这些接口 */
 	private static class InnerEventHandler implements com.lmax.disruptor.EventHandler<Event>, LifecycleAware {

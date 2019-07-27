@@ -14,25 +14,26 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.concurrent.disruptor;
+package com.wjybxx.fastjgame.annotation;
+
+import java.lang.annotation.*;
 
 /**
- * 事件类型，发现不能用枚举，得用常量对象
- *
  * @author wjybxx
  * @version 1.0
- * date - 2019/7/24
+ * date - 2019/7/27
  * github - https://github.com/hl845740757
  */
-public enum EventType {
-
-	/**
-	 * 测试使用的
-	 */
-	TEST,
-
-	/**
-	 * 任务事件，仅限于EventLoop线程使用
-	 */
-	TASK,
+@Retention(RetentionPolicy.SOURCE)
+@Target({
+		ElementType.ANNOTATION_TYPE,
+		ElementType.CONSTRUCTOR,
+		ElementType.FIELD,
+		ElementType.METHOD,
+		ElementType.PACKAGE,
+		ElementType.TYPE
+})
+@Documented
+public @interface UnstableApi {
 }
+

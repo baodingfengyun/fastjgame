@@ -20,6 +20,7 @@ import com.lmax.disruptor.AlertException;
 import com.lmax.disruptor.Sequence;
 import com.lmax.disruptor.SequenceBarrier;
 import com.lmax.disruptor.WaitStrategy;
+import com.wjybxx.fastjgame.utils.TimeUtils;
 
 import java.util.concurrent.locks.LockSupport;
 
@@ -33,7 +34,7 @@ import java.util.concurrent.locks.LockSupport;
 public class SleepingWaitExtendStrategy implements WaitStrategy {
 
     private static final int DEFAULT_RETRIES = 200;
-    private static final long DEFAULT_SLEEP = 10 * 10000;
+    private static final long DEFAULT_SLEEP = TimeUtils.NANO_PER_MILLISECOND;
 
     private final int retries;
     private final long sleepTimeNs;
@@ -76,15 +77,16 @@ public class SleepingWaitExtendStrategy implements WaitStrategy {
         barrier.checkAlert();
 
         if (counter > 100) {
-            --counter;// 大于100时自旋
+            // 大于100时自旋
+            --counter;
         }
         else if (counter > 0) {
+            //大于0时尝试让出Cpu
             --counter;
-            Thread.yield();//大于0时尝试让出Cpu
-        }
-        else
-        {
-            LockSupport.parkNanos(sleepTimeNs);//等到最大次数了，睡眠等待
+            Thread.yield();
+        } else {
+            //等到最大次数了，睡眠等待
+            LockSupport.parkNanos(sleepTimeNs);
         }
         return counter;
     }

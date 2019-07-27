@@ -47,6 +47,7 @@ public class DisruptorEventLoopGroup extends MultiThreadEventLoopGroup {
 	@Nonnull
 	@Override
 	protected EventLoop newChild(ThreadFactory threadFactory, Object context) {
+		@SuppressWarnings("unchecked")
 		BuildContext buildContext = ((List<BuildContext>)context).remove(0);
 		if (buildContext.ringBufferSize > 0){
 			return new DisruptorEventLoop(this, threadFactory, buildContext.eventHandler, buildContext.ringBufferSize);

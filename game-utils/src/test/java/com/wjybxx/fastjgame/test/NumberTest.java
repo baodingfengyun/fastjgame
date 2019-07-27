@@ -14,25 +14,19 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.concurrent.disruptor;
+package com.wjybxx.fastjgame.test;
 
 /**
- * 事件类型，发现不能用枚举，得用常量对象
- *
  * @author wjybxx
  * @version 1.0
- * date - 2019/7/24
+ * date - 2019/7/27
  * github - https://github.com/hl845740757
  */
-public enum EventType {
+public class NumberTest {
 
-	/**
-	 * 测试使用的
-	 */
-	TEST,
+	public static void main(String[] args) {
+		System.out.println("1000 == 1_000 " + (1000 == 1_000));
 
-	/**
-	 * 任务事件，仅限于EventLoop线程使用
-	 */
-	TASK,
+		System.out.println("1000000 == 1000_000 " + (1000000 == 1000_000));
+	}
 }
