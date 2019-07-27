@@ -30,9 +30,4 @@ public enum EventType {
 	 * 测试使用的
 	 */
 	TEST,
-
-	/**
-	 * 任务事件，仅限于EventLoop线程使用
-	 */
-	TASK,
 }

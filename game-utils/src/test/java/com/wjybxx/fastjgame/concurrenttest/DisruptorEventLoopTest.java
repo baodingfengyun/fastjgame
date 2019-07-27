@@ -19,6 +19,8 @@ package com.wjybxx.fastjgame.concurrenttest;
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.disruptor.*;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * @author wjybxx
  * @version 1.0
@@ -31,11 +33,7 @@ public class DisruptorEventLoopTest {
 		DisruptorEventLoop eventLoop = new DisruptorEventLoop(null, new DefaultThreadFactory("Disruptor-Thread"), new EventHandlerImp());
 		eventLoop.publishEvent(EventType.TEST, new StringEventParam("hello world!"));
 
-		try {
-			Thread.sleep(10000);
-		} catch (InterruptedException ignore) {
-
-		}
+		eventLoop.terminationFuture().awaitUninterruptibly(10, TimeUnit.SECONDS);
 
 		eventLoop.shutdown();
 	}

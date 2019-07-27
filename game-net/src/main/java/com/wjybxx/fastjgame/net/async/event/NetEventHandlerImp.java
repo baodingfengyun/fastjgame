@@ -90,7 +90,7 @@ public class NetEventHandlerImp implements NetEventHandler{
         }finally {
             event.close();
             handleEventTimes++;
-            if (handleEventTimes == LOOP_PER_EVENT_TIMES){
+            if (handleEventTimes >= LOOP_PER_EVENT_TIMES){
                 tryLoop();
             }
         }

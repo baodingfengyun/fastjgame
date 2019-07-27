@@ -16,9 +16,10 @@
 
 package com.wjybxx.fastjgame.concurrent.disruptor;
 
-import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.EventLoopChooserFactory;
 import com.wjybxx.fastjgame.concurrent.MultiThreadEventLoopGroup;
+import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
+import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -35,30 +36,45 @@ import java.util.concurrent.ThreadFactory;
  */
 public class DisruptorEventLoopGroup extends MultiThreadEventLoopGroup {
 
-	private DisruptorEventLoopGroup(@Nonnull ThreadFactory threadFactory, List<BuildContext> contextList) {
+	public DisruptorEventLoopGroup(@Nonnull ThreadFactory threadFactory, List<BuildContext> contextList) {
 		super(contextList.size(), threadFactory, contextList);
 	}
 
-	private DisruptorEventLoopGroup(int nThreads, @Nonnull ThreadFactory threadFactory, @Nullable EventLoopChooserFactory chooserFactory,
+	public DisruptorEventLoopGroup(int nThreads, @Nonnull ThreadFactory threadFactory, @Nullable EventLoopChooserFactory chooserFactory,
 									List<BuildContext> contextList) {
 		super(contextList.size(), threadFactory, chooserFactory, contextList);
 	}
 
 	@Nonnull
 	@Override
-	protected EventLoop newChild(ThreadFactory threadFactory, Object context) {
+	protected DisruptorEventLoop newChild(ThreadFactory threadFactory, Object context) {
 		@SuppressWarnings("unchecked")
 		BuildContext buildContext = ((List<BuildContext>)context).remove(0);
-		if (buildContext.ringBufferSize > 0){
-			return new DisruptorEventLoop(this, threadFactory, buildContext.eventHandler, buildContext.ringBufferSize);
-		} else {
-			return new DisruptorEventLoop(this, threadFactory, buildContext.eventHandler);
-		}
+		int ringBufferSize = buildContext.ringBufferSize > 0 ? buildContext.ringBufferSize : DisruptorEventLoop.DEFAULT_RING_BUFFER_SIZE;
+		RejectedExecutionHandler rejectedExecutionHandler = buildContext.rejectedExecutionHandler == null ? RejectedExecutionHandlers.reject() : buildContext.rejectedExecutionHandler;
+		return new DisruptorEventLoop(this, threadFactory,  buildContext.eventHandler, ringBufferSize, rejectedExecutionHandler);
 	}
 
-	// TODO 这里临时为了报错
+	/**
+	 * 待优化
+	 */
 	public static class BuildContext {
-		private int ringBufferSize = 0;
-		private EventHandler eventHandler;
+		private final int ringBufferSize;
+		private final EventHandler eventHandler;
+		private final RejectedExecutionHandler rejectedExecutionHandler;
+
+		public BuildContext(EventHandler eventHandler) {
+			this(-1, eventHandler, RejectedExecutionHandlers.reject());
+		}
+
+		public BuildContext(int ringBufferSize, EventHandler eventHandler) {
+			this(ringBufferSize, eventHandler, RejectedExecutionHandlers.reject());
+		}
+
+		public BuildContext(int ringBufferSize, EventHandler eventHandler, RejectedExecutionHandler rejectedExecutionHandler) {
+			this.ringBufferSize = ringBufferSize;
+			this.eventHandler = eventHandler;
+			this.rejectedExecutionHandler = rejectedExecutionHandler;
+		}
 	}
 }

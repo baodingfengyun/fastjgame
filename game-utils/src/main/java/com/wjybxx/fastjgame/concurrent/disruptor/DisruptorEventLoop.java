@@ -49,8 +49,8 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 
 	private static final Logger logger = LoggerFactory.getLogger(DisruptorEventLoop.class);
 
-	/** 默认ringBuffer大小 */
-	private static final int DEFAULT_RING_BUFFER_SIZE = SystemUtils.getProperties().getAsInt("DisruptorEventLoop.ringBufferSize", 8192);
+	/** 默认ringBuffer大小 8192 */
+	static final int DEFAULT_RING_BUFFER_SIZE = SystemUtils.getProperties().getAsInt("DisruptorEventLoop.ringBufferSize", 8192);
 
 	// 线程的状态
 	/** 初始状态，未启动状态 */
@@ -88,7 +88,6 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 	private final Promise<?> terminationFuture = new DefaultPromise(GlobalEventLoop.INSTANCE);
 
 	/**
-	 *
 	 * @param parent 容器节点
 	 * @param threadFactory 线程工厂
 	 * @param eventHandler 事件处理器
@@ -98,7 +97,6 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 	}
 
 	/**
-	 *
 	 * @param parent 容器节点
 	 * @param threadFactory 线程工厂
 	 * @param eventHandler 事件处理器
@@ -172,6 +170,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 
 	@Override
 	public void shutdown() {
+		// 减少volatile操作
 		boolean inEventLoop = inEventLoop();
 		for (;;) {
 			int oldState = stateHolder.get();
@@ -216,8 +215,8 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 	}
 
 	/**
-	 * 发布一个事件
-	 *
+	 * 发布一个事件。
+	 * (待优化)
 	 * @param eventType 事件类型
 	 * @param eventParam 事件对应的参数
 	 */
@@ -227,12 +226,8 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 			// 防止死锁，自己发布事件时，如果没有足够空间，会导致死锁，需要压入队列
 			taskQueue.offer(new EventTask(new Event(eventType, eventParam)));
 		} else {
-			if (eventType == EventType.TASK) {
-				throw new IllegalArgumentException("Not allow EventTask");
-			}
-
 			ensureThreadStarted();
-			// 直接调用next()的情况下，如果disruptor已关闭则可能死锁
+			// 直接调用next()的情况下，如果disruptor已关闭则可能死锁，消费者不再消费，生产者继续放就会死锁
 			for (int tryTimes = 1; !isShuttingDown(); tryTimes++) {
 				try {
 					long sequence = ringBuffer.tryNext();
@@ -246,7 +241,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 					return;
 				} catch (InsufficientCapacityException ignore) {
 					// 最多睡眠1毫秒
-					int sleepTimes = ThreadLocalRandom.current().nextInt(Math.min(100, tryTimes), 101) * 10000;
+					int sleepTimes = (1 + ThreadLocalRandom.current().nextInt(Math.min(100, tryTimes))) * 10000;
 					LockSupport.parkNanos(sleepTimes);
 				}
 			}

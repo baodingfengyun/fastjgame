@@ -81,11 +81,11 @@ public class SleepingWaitExtendStrategy implements WaitStrategy {
             --counter;
         }
         else if (counter > 0) {
-            //大于0时尝试让出Cpu
+            // 大于0时尝试让出Cpu
             --counter;
             Thread.yield();
         } else {
-            //等到最大次数了，睡眠等待
+            // 等到最大次数了，睡眠等待
             LockSupport.parkNanos(sleepTimeNs);
         }
         return counter;
