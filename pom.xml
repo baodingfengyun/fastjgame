@@ -18,7 +18,6 @@
     <!-- 子模块 -->
     <modules>
         <module>game-utils</module>
-        <module>game-concurrent</module>
         <module>game-net</module>
         <module>game-core</module>
         <module>game-centerserver</module>
