@@ -74,7 +74,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 	private final Disruptor<Event> disruptor;
 
 	/**
-	 * execute提交的任务，主要使用的event，这里不应该堆积大量的任务。
+	 * execute提交的任务，主要使用event，这里不应该堆积大量的任务。
 	 */
 	private final ConcurrentLinkedQueue<Runnable> taskQueue = new ConcurrentLinkedQueue<>();
 
@@ -170,15 +170,14 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 
 	@Override
 	public void shutdown() {
-		// 减少volatile操作
-		boolean inEventLoop = inEventLoop();
 		for (;;) {
 			int oldState = stateHolder.get();
 			if (isShuttingDown0(oldState)) {
 				return;
 			}
 			if (stateHolder.compareAndSet(oldState, ST_SHUTTING_DOWN)){
-				if (!inEventLoop) {
+				// 其它线程关闭EventLoop时需要确保EventLoop可关闭
+				if (!inEventLoop()) {
 					// 确保
 					ensureThreadTerminable(oldState);
 				}
@@ -190,6 +189,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 	@Override
 	public void execute(@Nonnull Runnable task) {
 		if (!inEventLoop()) {
+			// 其它线程提交任务时，需要确保线程已启动
 			ensureThreadStarted();
 		}
 
@@ -228,6 +228,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 		} else {
 			ensureThreadStarted();
 			// 直接调用next()的情况下，如果disruptor已关闭则可能死锁，消费者不再消费，生产者继续放就会死锁
+			// TODO 优化？还是说就用next()，关闭的时候注意点？
 			for (int tryTimes = 1; !isShuttingDown(); tryTimes++) {
 				try {
 					long sequence = ringBuffer.tryNext();
@@ -253,7 +254,6 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 		rejectedExecutionHandler.rejected(task, this);
 	}
 	// ----------------------------- 生命周期begin ------------------------------
-
 
 	/**
 	 * 查询运行状态是否还没到指定状态。
@@ -417,7 +417,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 		// shuttingDown状态下，已不会接收新的任务，执行完当前所有未执行的任务就可以退出了。
 		runAllTasks();
 
-		// TODO 对于未处理完的事件，还没想到好的办法处理，继续执行好像很危险，因为会影响生产者继续生产
+		// TODO 对于未处理完的事件，还没想到好的办法处理，继续执行好像很危险，可能导致生产者继续生产
 
 		// 切换至SHUTDOWN状态，准备执行最后的清理动作
 		advanceRunState(ST_SHUTDOWN);

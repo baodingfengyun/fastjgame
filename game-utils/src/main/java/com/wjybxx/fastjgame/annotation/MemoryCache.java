@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.concurrent.disruptor;
+package com.wjybxx.fastjgame.annotation;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * 事件类型，发现不能用枚举，得用常量对象
- *
+ * 用该注解注解的属性为内存缓存属性，不需要入库
  * @author wjybxx
  * @version 1.0
- * date - 2019/7/24
+ * date - 2019/7/28
  * github - https://github.com/hl845740757
  */
-public enum EventType {
+@Retention(RetentionPolicy.CLASS)
+@Target(ElementType.FIELD)
+public @interface MemoryCache {
 
-	/**
-	 * 自定义事件
-	 */
-	CUSTOM,
 }

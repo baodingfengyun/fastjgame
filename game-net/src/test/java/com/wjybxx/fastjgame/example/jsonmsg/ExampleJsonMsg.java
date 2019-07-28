@@ -16,6 +16,9 @@
 
 package com.wjybxx.fastjgame.example.jsonmsg;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * json消息外部内
  * @author wjybxx
@@ -30,9 +33,13 @@ public final class ExampleJsonMsg {
      */
     public static class LoginRequest{
 
-        private final String name;
+        private String name;
 
-        private final int accountId;
+        private int accountId;
+
+        // 用于jackson构造
+        private LoginRequest() {
+        }
 
         public LoginRequest(String name, int accountId) {
             this.name = name;
@@ -46,6 +53,7 @@ public final class ExampleJsonMsg {
         public int getAccountId() {
             return accountId;
         }
+
 
         @Override
         public String toString() {
@@ -67,7 +75,10 @@ public final class ExampleJsonMsg {
 
         private final boolean success;
 
-        public LoginResponse(String name, int accountId, boolean success) {
+        @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
+        public LoginResponse(@JsonProperty("name") String name,
+                             @JsonProperty("accountId") int accountId,
+                             @JsonProperty("success") boolean success) {
             this.name = name;
             this.accountId = accountId;
             this.success = success;

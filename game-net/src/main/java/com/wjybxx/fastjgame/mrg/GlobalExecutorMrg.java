@@ -40,8 +40,8 @@ public class GlobalExecutorMrg extends AbstractThreadLifeCycleHelper {
         executorService =new ThreadPoolExecutor(1,netConfigMrg.globalExecutorThreadNum(),
                 5, TimeUnit.SECONDS,new LinkedBlockingQueue<>(),
                 new DefaultThreadFactory());
-        // 允许核心线程销毁
-        executorService.allowCoreThreadTimeOut(true);
+        // 手动关闭，核心线程不销毁，避免每次创建的开销
+        executorService.allowCoreThreadTimeOut(false);
     }
 
     @Nonnull

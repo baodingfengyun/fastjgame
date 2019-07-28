@@ -31,7 +31,7 @@ public class DisruptorEventLoopTest {
 
 	public static void main(String[] args) {
 		DisruptorEventLoop eventLoop = new DisruptorEventLoop(null, new DefaultThreadFactory("Disruptor-Thread"), new EventHandlerImp());
-		eventLoop.publishEvent(EventType.TEST, new StringEventParam("hello world!"));
+		eventLoop.publishEvent(EventType.CUSTOM, new StringEventParam("hello world!"));
 
 		eventLoop.terminationFuture().awaitUninterruptibly(5, TimeUnit.SECONDS);
 
