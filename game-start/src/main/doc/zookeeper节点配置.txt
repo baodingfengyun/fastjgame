@@ -1,0 +1,26 @@
+#App Config Dashboard (ACD) dump created on :Mon Aug 05 00:41:14 CST 2019
+/fastjgame/config/mongodb=authdb=admin
+/fastjgame/config/mongodb=password=
+/fastjgame/config/mongodb=serveraddress=127.0.0.1:27017
+/fastjgame/config/mongodb=user=admin
+/fastjgame/config/mongodb=说明=这里是mongodb的配置
+/fastjgame/config/platform/TEST/actualserver=1={"warzoneId":"1"}
+/fastjgame/config/platform/TEST/actualserver=2={"warzoneId":"1"}
+/fastjgame/config/platform/TEST/actualserver=说明=这里是真实服的配置，合服后现存服信息。后期会拓展信息，如开服时间等
+/fastjgame/config/platform/TEST/logicserver=1={"actualServerId":"1","name":"初出茅庐"}
+/fastjgame/config/platform/TEST/logicserver=2={"actualServerId":"2","name":"梦幻无极"}
+/fastjgame/config/platform/TEST/logicserver=说明=这里是逻辑服(合服前的服)的配置，包含逻辑服到真实服的映射，逻辑服名字等。此外，真实服也需要在这里存在。
+/fastjgame/config/platform/TEST=foo=bar
+/fastjgame/config/platform/TEST=platname=这里是平台名字
+/fastjgame/config/platform=name=这里是运营平台名字
+/fastjgame/config/platform=说明=这里的是test平台的配置
+/fastjgame/config/warzone=1={"name":"一往无前"}
+/fastjgame/config/warzone=配置说明=这里是各个战区的配置，全部使用字符串键值对的形式配置
+/fastjgame/config=foo=bar
+/fastjgame/config=redisAddress=127.0.0.1:8989
+/fastjgame/config=这里是公共配置=也采用字符串键值对形式(json)配置，如{"a":"1","b":"2"}
+/fastjgame/mutex/channel/cross=1=
+/fastjgame/mutex/channel/single=1-1=
+/fastjgame/mutex/guid=guidIndex=164
+/fastjgame/online=warzone-1=
+/fastjgame=注意=只有config下节点可以导出和导入，mutex和online下面有许多临时节点，导出可能存在问题
