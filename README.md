@@ -1,6 +1,5 @@
 ### fastjgame
-fastjgame 为 fast java game framework的缩写，如名字一样，该项目的目标是一个高性能，高稳定性的游戏架构。
-它将是一个分布式多进程架构，游戏逻辑线程为单线程。 游戏逻辑运行在Disruptor消费者线程中，其它线程都为辅助线程，整体为多生产者单消费者模式。  
+fastjgame 为 fast java game framework的缩写，如名字一样，该项目的目标是一个高性能，高稳定性的游戏架构。  它将是一个分布式多线程架构，它有着良好的多线程模型。  高性能从网络层开始： 支持异步消息，异步rpc调用，同步rpc调用;  IO框架为Netty,HttpClient为OkHttp3; 支持断线重连，支持websocket和tcp同时接入。 支持google protoBuf，json以及自定义消息序列化方式。 支持自定义消息映射;  分布式协调框架：zookeeper 作为配置中心，节点发现，以及不时的分布式锁需要 NoSQL数据库： mongodb 习惯了mongodb回不去MySQL
 
 ### 全新版本
 2019年8月5日 迎来了fastjgame的全新版本，线程模型大改，底层通信重写，网络层与逻辑层独立。
