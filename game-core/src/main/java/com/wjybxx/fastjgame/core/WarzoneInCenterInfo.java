@@ -31,10 +31,11 @@ public class WarzoneInCenterInfo {
      */
     private final long warzoneWorldGuid;
 
-    private Session session;
+    private final Session session;
 
-    public WarzoneInCenterInfo(long warzoneWorldGuid) {
+    public WarzoneInCenterInfo(long warzoneWorldGuid, Session session) {
         this.warzoneWorldGuid = warzoneWorldGuid;
+        this.session = session;
     }
 
     public long getWarzoneWorldGuid() {
@@ -45,7 +46,4 @@ public class WarzoneInCenterInfo {
         return session;
     }
 
-    public void setSession(Session session) {
-        this.session = session;
-    }
 }

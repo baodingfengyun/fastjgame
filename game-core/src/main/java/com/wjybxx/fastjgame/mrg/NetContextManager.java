@@ -39,7 +39,6 @@ public class NetContextManager extends AbstractThreadLifeCycleHelper {
     @Inject
     public NetContextManager(WorldInfoMrg worldInfoMrg, GameEventLoopMrg gameEventLoopMrg) {
         this.worldInfoMrg = worldInfoMrg;
-
         this.gameEventLoopMrg = gameEventLoopMrg;
     }
 

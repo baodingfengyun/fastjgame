@@ -36,7 +36,7 @@ public interface GameEventLoopGroup extends EventLoopGroup {
     /**
      * 注册一个游戏World到某一个GameEventLoop上。
      * 在注册到EventLoop之前，world必须要先初始化guid!
-     * 可以保证的是该方法happens-before于{@link World#startUp(GameEventLoop)}。
+     * 可以保证的是该方法happens-before于{@link World#startUp(GameEventLoop, com.wjybxx.fastjgame.eventloop.NetEventLoopGroup)}。
      * 注意：当World不再使用时，应该主动取消注册。
      * 可以调用{@link World#deregister()} 或 {@link GameEventLoop#deregisterWorld(long)}。
      *
@@ -44,5 +44,5 @@ public interface GameEventLoopGroup extends EventLoopGroup {
      * @param frameInterval 游戏世界帧间隔(tick间隔)
      * @return future
      */
-    ListenableFuture<?> registerWorld(World world, int frameInterval);
+    ListenableFuture<?> registerWorld(World world, long frameInterval);
 }

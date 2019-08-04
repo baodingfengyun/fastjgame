@@ -80,7 +80,7 @@ public class WarzoneWorld extends AbstractWorld {
 
     private void bindAndRegisterToZK() throws Exception {
         // 绑定3个内部交互的端口(还有一个其实是local类型，现在还没支持)
-        HostAndPort tcpHostAndPort = innerAcceptorMrg.bindInnerTcpPort(true, new CenterLifeAware());
+        HostAndPort tcpHostAndPort = innerAcceptorMrg.bindInnerTcpPort(new CenterLifeAware());
         HostAndPort httpHostAndPort = innerAcceptorMrg.bindInnerHttpPort();
 
         // 注册到zk

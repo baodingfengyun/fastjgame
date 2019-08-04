@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.world;
 
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.net.RoleType;
 
 import javax.annotation.Nonnull;
@@ -45,9 +46,10 @@ public interface World {
      * 启动world，注意：world出现任何异常，都会停止执行并开始关闭
      *
      * @param gameEventLoop world所属的EventLoop，可以保存下来。
+     * @param netEventLoopGroup 网络模块
      * @throws Exception errors
      */
-    void startUp(GameEventLoop gameEventLoop) throws Exception;
+    void startUp(GameEventLoop gameEventLoop, NetEventLoopGroup netEventLoopGroup) throws Exception;
 
     /**
      * 游戏世界刷帧

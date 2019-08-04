@@ -16,6 +16,9 @@
 
 package com.wjybxx.fastjgame.core.onlinenode;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  *
  * @author wjybxx
@@ -36,7 +39,9 @@ public abstract class OnlineNodeData {
      */
     private final String innerHttpAddress;
 
-    public OnlineNodeData(String innerTcpAddress, String innerHttpAddress) {
+    @JsonCreator
+    public OnlineNodeData(@JsonProperty("innerTcpAddress") String innerTcpAddress,
+                          @JsonProperty("innerHttpAddress") String innerHttpAddress) {
         this.innerTcpAddress = innerTcpAddress;
         this.innerHttpAddress = innerHttpAddress;
     }

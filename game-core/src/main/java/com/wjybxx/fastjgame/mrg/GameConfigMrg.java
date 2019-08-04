@@ -20,6 +20,7 @@ import com.google.inject.Inject;
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
 import com.wjybxx.fastjgame.utils.ConfigLoader;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 
 /**
@@ -29,6 +30,7 @@ import java.io.IOException;
  * date - 2019/5/12 12:13
  * github - https://github.com/hl845740757
  */
+@ThreadSafe
 public class GameConfigMrg {
 
     private final ConfigWrapper configWrapper;

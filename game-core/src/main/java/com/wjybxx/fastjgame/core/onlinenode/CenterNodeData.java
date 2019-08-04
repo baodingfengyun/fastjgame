@@ -16,6 +16,9 @@
 
 package com.wjybxx.fastjgame.core.onlinenode;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * zookeeper上在线CenterServer节点信息
  * @author wjybxx
@@ -31,7 +34,9 @@ public class CenterNodeData {
      */
     private final long worldGuid;
 
-    public CenterNodeData(String innerHttpAddress, long worldGuid) {
+    @JsonCreator
+    public CenterNodeData(@JsonProperty("innerHttpAddress") String innerHttpAddress,
+                          @JsonProperty("worldGuid") long worldGuid) {
         this.innerHttpAddress = innerHttpAddress;
         this.worldGuid = worldGuid;
     }

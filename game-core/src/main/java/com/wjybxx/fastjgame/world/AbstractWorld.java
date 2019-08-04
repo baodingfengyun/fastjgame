@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.world;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.misc.OneWayMessageHandler;
 import com.wjybxx.fastjgame.misc.RpcRequestHandler1;
 import com.wjybxx.fastjgame.misc.RpcRequestHandler2;
@@ -166,8 +167,9 @@ public abstract class AbstractWorld implements World{
         return worldInfoMrg.getWorldType();
     }
 
-    public final void startUp(GameEventLoop eventLoop) throws Exception{
+    public final void startUp(GameEventLoop eventLoop, NetEventLoopGroup netEventLoopGroup) throws Exception{
         gameEventLoopMrg.setEventLoop(eventLoop);
+        netContextManager.setNetEventLoopGroup(netEventLoopGroup);
 
         // 初始化网络层需要的组件(codec帮助类)
         registerCodecHelpers();

@@ -16,32 +16,29 @@
 
 package com.wjybxx.fastjgame.module;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
-import com.wjybxx.fastjgame.mrg.*;
-import com.wjybxx.fastjgame.world.LoginWorld;
-import com.wjybxx.fastjgame.world.World;
+import com.wjybxx.fastjgame.mrg.CuratorClientMrg;
+import com.wjybxx.fastjgame.mrg.GameConfigMrg;
+import com.wjybxx.fastjgame.mrg.GlobalExecutorMrg;
 
 /**
- * 登录服模块
+ * 一个进程下全局共用的module。
+ * 这里的类必须都是线程安全的。
+ *
  * @author wjybxx
  * @version 1.0
- * date - 2019/5/17 20:09
+ * date - 2019/8/4
  * github - https://github.com/hl845740757
  */
-public class LoginModule extends CoreModule{
+public class GlobalModule extends AbstractModule {
 
     @Override
-    protected void bindWorldAndWorldInfoMrg() {
-        bind(World.class).to(LoginWorld.class).in(Singleton.class);
-        bind(WorldInfoMrg.class).to(LoginWorldInfoMrg.class).in(Singleton.class);
-    }
+    protected void configure() {
+        binder().requireExplicitBindings();
 
-    @Override
-    protected void bindOthers() {
-        // 再调用，方便直接使用
-        bind(LoginWorldInfoMrg.class).in(Singleton.class);
-        bind(LoginDiscoverMrg.class).in(Singleton.class);
-        bind(CenterInLoginInfoMrg.class).in(Singleton.class);
-        bind(LoginMongoDBMrg.class).in(Singleton.class);
+        bind(GlobalExecutorMrg.class).in(Singleton.class);
+        bind(GameConfigMrg.class).in(Singleton.class);
+        bind(CuratorClientMrg.class).in(Singleton.class);
     }
 }

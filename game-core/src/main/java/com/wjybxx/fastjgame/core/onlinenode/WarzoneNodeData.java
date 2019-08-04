@@ -16,6 +16,9 @@
 
 package com.wjybxx.fastjgame.core.onlinenode;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * zookeeper在线WarzoneServer节点信息
  *
@@ -28,7 +31,10 @@ public class WarzoneNodeData extends OnlineNodeData {
 
     private final long worldGuid;
 
-    public WarzoneNodeData(String innerTcpAddress, String innerHttpAddress, long worldGuid) {
+    @JsonCreator
+    public WarzoneNodeData(@JsonProperty("innerTcpAddress") String innerTcpAddress,
+                           @JsonProperty("innerHttpAddres") String innerHttpAddress,
+                           @JsonProperty("worldGuid") long worldGuid) {
         super(innerTcpAddress, innerHttpAddress);
         this.worldGuid = worldGuid;
     }

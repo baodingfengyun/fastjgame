@@ -125,9 +125,6 @@ public class WarzoneInCenterInfoMrg {
 
         @Override
         public void onSessionConnected(C2SSession session) {
-            // 保存session
-            warzoneInCenterInfo.setSession(session);
-
             p_center_warzone_hello hello = p_center_warzone_hello
                     .newBuilder()
                     .setPlatfomNumber(centerWorldInfoMrg.getPlatformType().getNumber())
@@ -150,7 +147,7 @@ public class WarzoneInCenterInfoMrg {
      */
     public void p_center_warzone_hello_result_handler(Session session, p_center_warzone_hello_result result){
         assert null==warzoneInCenterInfo;
-        warzoneInCenterInfo=new WarzoneInCenterInfo(session.remoteGuid());
+        warzoneInCenterInfo = new WarzoneInCenterInfo(session.remoteGuid(), session);
 
         // TODO 战区连接成功逻辑(eg.恢复特殊玩法)
         logger.info("connect WARZONE-{} success",centerWorldInfoMrg.getWarzoneId());

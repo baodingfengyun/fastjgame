@@ -13,6 +13,7 @@ import com.wjybxx.fastjgame.net.initializer.TCPServerChannelInitializer;
 import com.wjybxx.fastjgame.net.initializer.WsServerChannelInitializer;
 import com.wjybxx.fastjgame.utils.GameUtils;
 import com.wjybxx.fastjgame.utils.JsonUtils;
+import com.wjybxx.fastjgame.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.CreateMode;
@@ -87,7 +88,7 @@ public class SceneWorld extends AbstractWorld {
 
     private void bindAndRegisterToZK() throws Exception {
         // 绑定3个内部交互的端口
-        HostAndPort innerTcpAddress = innerAcceptorMrg.bindInnerTcpPort(true, new CenterLifeAware());
+        HostAndPort innerTcpAddress = innerAcceptorMrg.bindInnerTcpPort(new CenterLifeAware());
         HostAndPort innerHttpAddress = innerAcceptorMrg.bindInnerHttpPort();
 
         // 绑定与玩家交互的两个端口
@@ -96,11 +97,11 @@ public class SceneWorld extends AbstractWorld {
         CodecHelper codecHelper = codecHelperMrg.getCodecHelper(GameUtils.INNER_CODEC_NAME);
         TCPServerChannelInitializer tcplInitializer = netContext.newTcpServerInitializer(codecHelper);
 
-        HostAndPort outerTcpHostAndPort = netContext.bindRange(true, GameUtils.OUTER_TCP_PORT_RANGE,
+        HostAndPort outerTcpHostAndPort = netContext.bindRange(NetUtils.getOuterIp(), GameUtils.OUTER_TCP_PORT_RANGE,
                 tcplInitializer, new PlayerLifeAware(), messageDispatcherMrg).get();
 
         WsServerChannelInitializer wsInitializer = netContext.newWsServerInitializer("/ws", codecHelper);
-        HostAndPort outerWebsocketHostAndPort = netContext.bindRange(true, GameUtils.OUTER_WS_PORT_RANGE,
+        HostAndPort outerWebsocketHostAndPort = netContext.bindRange(NetUtils.getOuterIp(), GameUtils.OUTER_WS_PORT_RANGE,
                 wsInitializer, new PlayerLifeAware(), messageDispatcherMrg).get();
 
         SceneNodeData sceneNodeData =new SceneNodeData(innerTcpAddress.toString(), innerHttpAddress.toString(), sceneWorldInfoMrg.getChannelId(),

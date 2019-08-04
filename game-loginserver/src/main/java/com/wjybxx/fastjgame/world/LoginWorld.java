@@ -22,6 +22,7 @@ import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.NetContext;
 import com.wjybxx.fastjgame.mrg.*;
 import com.wjybxx.fastjgame.utils.JsonUtils;
+import com.wjybxx.fastjgame.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.CreateMode;
@@ -73,7 +74,7 @@ public class LoginWorld extends AbstractWorld {
         HostAndPort innerHttpAddress = innerAcceptorMrg.bindInnerHttpPort();
         NetContext netContext = netContextManager.getNetContext();
 
-        HostAndPort outerHttpAddress = netContext.bind(true, loginWorldInfoMrg.getPort(),
+        HostAndPort outerHttpAddress = netContext.bind(NetUtils.getOuterIp(), loginWorldInfoMrg.getPort(),
                 netContext.newHttpServerInitializer(), httpDispatcherMrg).get();
 
         String parentPath= ZKPathUtils.onlineRootPath();

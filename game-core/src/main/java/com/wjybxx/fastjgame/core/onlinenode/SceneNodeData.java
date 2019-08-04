@@ -16,6 +16,9 @@
 
 package com.wjybxx.fastjgame.core.onlinenode;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * zookeeper上在线SceneServer节点信息
  * @author wjybxx
@@ -37,8 +40,12 @@ public class SceneNodeData extends OnlineNodeData {
      */
     private final String outerWebsocketAddress;
 
-    public SceneNodeData(String innerTcpAddress, String innerHttpAddress,
-                         int channelId, String outerTcpAddress, String outerWebsocketAddress) {
+    @JsonCreator
+    public SceneNodeData(@JsonProperty("innerTcpAddress") String innerTcpAddress,
+                         @JsonProperty("innerHttpAddress") String innerHttpAddress,
+                         @JsonProperty("channelId") int channelId,
+                         @JsonProperty("outerTcpAddress") String outerTcpAddress,
+                         @JsonProperty("outerWebsocketAddress") String outerWebsocketAddress) {
         super(innerTcpAddress, innerHttpAddress);
         this.channelId = channelId;
         this.outerTcpAddress = outerTcpAddress;

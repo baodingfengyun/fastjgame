@@ -28,6 +28,7 @@ import com.wjybxx.fastjgame.net.initializer.HttpServerInitializer;
 import com.wjybxx.fastjgame.net.initializer.TCPClientChannelInitializer;
 import com.wjybxx.fastjgame.net.initializer.TCPServerChannelInitializer;
 import com.wjybxx.fastjgame.utils.GameUtils;
+import com.wjybxx.fastjgame.utils.NetUtils;
 
 /**
  * 内部通信建立连接的辅助类
@@ -52,11 +53,11 @@ public class InnerAcceptorMrg {
         this.netContextManager = netContextManager;
     }
 
-    public HostAndPort bindInnerTcpPort(boolean outer, SessionLifecycleAware<S2CSession> lifecycleAware) {
+    public HostAndPort bindInnerTcpPort(SessionLifecycleAware<S2CSession> lifecycleAware) {
         NetContext netContext = netContextManager.getNetContext();
         TCPServerChannelInitializer serverChannelInitializer = netContext.newTcpServerInitializer(codecHelperMrg.getInnerCodecHolder());
 
-        ListenableFuture<HostAndPort> bindFuture = netContext.bindRange(outer, GameUtils.INNER_TCP_PORT_RANGE,
+        ListenableFuture<HostAndPort> bindFuture = netContext.bindRange(NetUtils.getLocalIp(), GameUtils.INNER_TCP_PORT_RANGE,
                 serverChannelInitializer, lifecycleAware, messageDispatcherMrg);
 
         bindFuture.awaitUninterruptibly();
@@ -67,7 +68,7 @@ public class InnerAcceptorMrg {
         NetContext netContext = netContextManager.getNetContext();
         HttpServerInitializer httpServerInitializer = netContext.newHttpServerInitializer();
 
-        ListenableFuture<HostAndPort> bindFuture = netContext.bindRange(false, GameUtils.INNER_HTTP_PORT_RANGE, httpServerInitializer, httpDispatcherMrg);
+        ListenableFuture<HostAndPort> bindFuture = netContext.bindRange(NetUtils.getLocalIp(), GameUtils.INNER_HTTP_PORT_RANGE, httpServerInitializer, httpDispatcherMrg);
         bindFuture.awaitUninterruptibly();
         return bindFuture.tryGet();
     }
