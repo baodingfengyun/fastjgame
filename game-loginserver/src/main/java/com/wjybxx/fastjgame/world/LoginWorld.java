@@ -19,10 +19,8 @@ package com.wjybxx.fastjgame.world;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.onlinenode.LoginNodeData;
 import com.wjybxx.fastjgame.misc.HostAndPort;
+import com.wjybxx.fastjgame.misc.NetContext;
 import com.wjybxx.fastjgame.mrg.*;
-import com.wjybxx.fastjgame.mrg.async.S2CSessionMrg;
-import com.wjybxx.fastjgame.mrg.sync.SyncS2CSessionMrg;
-import com.wjybxx.fastjgame.net.async.initializer.HttpServerInitializer;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.curator.utils.ZKPaths;
@@ -34,16 +32,16 @@ import org.apache.zookeeper.CreateMode;
  * date - 2019/5/17 20:11
  * github - https://github.com/hl845740757
  */
-public class LoginWorld extends WorldCore{
+public class LoginWorld extends AbstractWorld {
 
     private final LoginDiscoverMrg loginDiscoverMrg;
     private final LoginWorldInfoMrg loginWorldInfoMrg;
     private final CenterInLoginInfoMrg centerInLoginInfoMrg;
 
     @Inject
-    public LoginWorld(WorldWrapper worldWrapper, WorldCoreWrapper coreWrapper, LoginDiscoverMrg loginDiscoverMrg,
+    public LoginWorld(WorldWrapper worldWrapper, LoginDiscoverMrg loginDiscoverMrg,
                       CenterInLoginInfoMrg centerInLoginInfoMrg) {
-        super(worldWrapper, coreWrapper);
+        super(worldWrapper);
         this.loginDiscoverMrg = loginDiscoverMrg;
         this.loginWorldInfoMrg = (LoginWorldInfoMrg) worldWrapper.getWorldInfoMrg();
         this.centerInLoginInfoMrg = centerInLoginInfoMrg;
@@ -55,40 +53,33 @@ public class LoginWorld extends WorldCore{
     }
 
     @Override
+    protected void registerRpcRequestHandlers() {
+
+    }
+
+    @Override
     protected void registerHttpRequestHandlers() {
 
     }
 
-    @Override
-    protected void registerSyncRequestHandlers() {
-
-    }
-
-    @Override
-    protected void registerAsyncSessionLifeAware(S2CSessionMrg s2CSessionMrg) {
-
-    }
-
-    @Override
-    protected void registerSyncSessionLifeAware(SyncS2CSessionMrg syncS2CSessionMrg) {
-
-    }
 
     @Override
     protected void startHook() throws Exception {
         bindAndregisterToZK();
-
         loginDiscoverMrg.start();
     }
 
     private void bindAndregisterToZK() throws Exception {
         HostAndPort innerHttpAddress = innerAcceptorMrg.bindInnerHttpPort();
-        HostAndPort outerHttpAddress = httpClientMrg.bind(true, loginWorldInfoMrg.getPort(), new HttpServerInitializer(disruptorMrg));
+        NetContext netContext = netContextManager.getNetContext();
+
+        HostAndPort outerHttpAddress = netContext.bind(true, loginWorldInfoMrg.getPort(),
+                netContext.newHttpServerInitializer(), httpDispatcherMrg).get();
 
         String parentPath= ZKPathUtils.onlineRootPath();
-        String nodeName = ZKPathUtils.buildLoginNodeName(loginWorldInfoMrg.getPort(),loginWorldInfoMrg.getProcessGuid());
+        String nodeName = ZKPathUtils.buildLoginNodeName(loginWorldInfoMrg.getPort(),loginWorldInfoMrg.getWorldGuid());
 
-        LoginNodeData loginNodeData =new LoginNodeData(innerHttpAddress.toString(),
+        LoginNodeData loginNodeData = new LoginNodeData(innerHttpAddress.toString(),
                 outerHttpAddress.toString());
 
         final String path = ZKPaths.makePath(parentPath, nodeName);
@@ -98,7 +89,7 @@ public class LoginWorld extends WorldCore{
 
     @Override
     protected void tickHook() {
-        loginDiscoverMrg.tick();
+
     }
 
     @Override

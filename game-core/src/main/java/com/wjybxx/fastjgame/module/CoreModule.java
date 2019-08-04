@@ -41,11 +41,26 @@ public abstract class CoreModule extends AbstractModule {
     }
 
     private void configCore() {
+        bind(CodecHelperMrg.class).in(Singleton.class);
+        // TODO CuratorClientMrg 需要放在全局module
+        bind(CuratorClientMrg.class).in(Singleton.class);
         bind(CuratorMrg.class).in(Singleton.class);
+
         bind(GameConfigMrg.class).in(Singleton.class);
-        bind(GuidMrg.class).to(ZkGuidMrg.class).in(Singleton.class);
-        bind(WorldCoreWrapper.class).in(Singleton.class);
+        bind(GameEventLoopMrg.class).in(Singleton.class);
+        bind(GlobalExecutorMrg.class).in(Singleton.class);
+
+        bind(HttpDispatcherMrg.class).in(Singleton.class);
+        bind(MessageDispatcherMrg.class).in(Singleton.class);
+
         bind(InnerAcceptorMrg.class).in(Singleton.class);
+        bind(NetContextManager.class).in(Singleton.class);
+        bind(SystemTimeMrg.class).in(Singleton.class);
+        bind(TemplateMrg.class).in(Singleton.class);
+        bind(TimerMrg.class).in(Singleton.class);
+
+        bind(WorldWrapper.class).in(Singleton.class);
+        bind(GuidMrg.class).to(ZkGuidMrg.class).in(Singleton.class);
     }
 
     /**

@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.test;
 
 import com.wjybxx.fastjgame.mrg.CuratorMrg;
-import com.wjybxx.fastjgame.mrg.GameConfigMrg;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import org.apache.curator.framework.api.CuratorWatcher;
 import org.apache.zookeeper.CreateMode;
@@ -41,8 +40,7 @@ public class WatcherTest {
     private static final CountDownLatch countDownLatch = new CountDownLatch(1);
 
     public static void main(String[] args) throws Exception {
-        GameConfigMrg gameConfigMrg = new GameConfigMrg();
-        CuratorMrg curatorMrg = new CuratorMrg(gameConfigMrg);
+        CuratorMrg curatorMrg = CuratorTest.newCuratorMrg();
         curatorMrg.start();
 
         // checkExist 使用watcher之后

@@ -42,13 +42,13 @@ public class SingleSceneNodeName {
     /**
      * guid
      */
-    private final long sceneProcessGuid;
+    private final long worldGuid;
 
-    public SingleSceneNodeName(int warzoneId, PlatformType platformType, int serverId, long sceneProcessGuid) {
+    public SingleSceneNodeName(int warzoneId, PlatformType platformType, int serverId, long worldGuid) {
         this.warzoneId = warzoneId;
         this.platformType = platformType;
         this.serverId = serverId;
-        this.sceneProcessGuid = sceneProcessGuid;
+        this.worldGuid = worldGuid;
     }
 
     public int getWarzoneId() {
@@ -63,8 +63,8 @@ public class SingleSceneNodeName {
         return serverId;
     }
 
-    public long getSceneProcessGuid() {
-        return sceneProcessGuid;
+    public long getWorldGuid() {
+        return worldGuid;
     }
 
     @Override
@@ -72,7 +72,7 @@ public class SingleSceneNodeName {
         return "SingleSceneNodeName{" +
                 "warzoneId=" + warzoneId +
                 ", serverId=" + serverId +
-                ", sceneProcessGuid=" + sceneProcessGuid +
+                ", worldGuid=" + worldGuid +
                 '}';
     }
 }

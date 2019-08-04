@@ -1,7 +1,6 @@
 package com.wjybxx.fastjgame.test;
 
 import com.wjybxx.fastjgame.mrg.CuratorMrg;
-import com.wjybxx.fastjgame.mrg.GameConfigMrg;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
 import java.util.concurrent.TimeUnit;
@@ -15,8 +14,7 @@ import java.util.concurrent.TimeUnit;
 public class ZKLockTest {
 
     public static void main(String[] args) throws Exception {
-        GameConfigMrg gameConfigMrg = new GameConfigMrg();
-        CuratorMrg curatorMrg = new CuratorMrg(gameConfigMrg);
+        CuratorMrg curatorMrg = CuratorTest.newCuratorMrg();
         curatorMrg.start();
 
         curatorMrg.lock("/mutex/guid");

@@ -24,7 +24,7 @@ package com.wjybxx.fastjgame.core;
  * date - 2019/5/15 11:56
  * github - https://github.com/hl845740757
  */
-public enum SceneProcessType {
+public enum SceneWorldType {
     /**
      * 单服场景
      */
@@ -39,10 +39,10 @@ public enum SceneProcessType {
      * @param name 枚举对应的名字，忽略大小写
      * @return
      */
-    public static SceneProcessType forName(String name){
-        for (SceneProcessType processType:values()){
-            if (processType.name().equalsIgnoreCase(name)){
-                return processType;
+    public static SceneWorldType forName(String name){
+        for (SceneWorldType worldType:values()){
+            if (worldType.name().equalsIgnoreCase(name)){
+                return worldType;
             }
         }
         throw new IllegalArgumentException("invalid name " + name);

@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.findpath.jps;
 
 import com.wjybxx.fastjgame.findpath.DiagonalMovement;
-import com.wjybxx.fastjgame.misc.Stateless;
 import com.wjybxx.fastjgame.scene.MapGrid;
 
 import java.util.List;
@@ -32,7 +31,6 @@ import static com.wjybxx.fastjgame.findpath.FindPathUtils.addNeighborIfWalkable;
  * date - 2019/6/16 15:45
  * github - https://github.com/hl845740757
  */
-@Stateless
 public class NeverDiagonalJumStrategy extends JumpStrategy{
 
     @Override

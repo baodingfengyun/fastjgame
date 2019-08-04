@@ -37,9 +37,9 @@ public class SceneNodeData extends OnlineNodeData {
      */
     private final String outerWebsocketAddress;
 
-    public SceneNodeData(String innerTcpAddress, String innerRpcAddress, String innerHttpAddress,
+    public SceneNodeData(String innerTcpAddress, String innerHttpAddress,
                          int channelId, String outerTcpAddress, String outerWebsocketAddress) {
-        super(innerTcpAddress, innerRpcAddress, innerHttpAddress);
+        super(innerTcpAddress, innerHttpAddress);
         this.channelId = channelId;
         this.outerTcpAddress = outerTcpAddress;
         this.outerWebsocketAddress = outerWebsocketAddress;

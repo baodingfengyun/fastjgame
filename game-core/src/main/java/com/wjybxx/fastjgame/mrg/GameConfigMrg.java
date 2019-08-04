@@ -33,6 +33,10 @@ public class GameConfigMrg {
 
     private final ConfigWrapper configWrapper;
     /**
+     * 全局线程池最大线程数
+     */
+    private final int globalExecutorThreadNum;
+    /**
      * zookeeper集群地址
      */
     private final String zkConnectString;
@@ -60,6 +64,7 @@ public class GameConfigMrg {
     @Inject
     public GameConfigMrg() throws IOException {
         configWrapper= ConfigLoader.loadConfig(GameConfigMrg.class.getClassLoader(),"game_config.properties");
+        globalExecutorThreadNum = configWrapper.getAsInt("globalExecutorThreadNum", 5);
         zkConnectString = configWrapper.getAsString("zkConnectString");
         zkConnectionTimeoutMs=configWrapper.getAsInt("zkConnectionTimeoutMs");
         zkSessionTimeoutMs=configWrapper.getAsInt("zkSessionTimeoutMs");
@@ -94,5 +99,9 @@ public class GameConfigMrg {
 
     public int getMongoConnectionsPerHost() {
         return mongoConnectionsPerHost;
+    }
+
+    public int getGlobalExecutorThreadNum() {
+        return globalExecutorThreadNum;
     }
 }

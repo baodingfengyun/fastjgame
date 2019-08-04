@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
-import com.wjybxx.fastjgame.net.common.RoleType;
+import com.wjybxx.fastjgame.net.RoleType;
 
 /**
  * 登录服需要启动参数吗？
@@ -29,7 +29,7 @@ import com.wjybxx.fastjgame.net.common.RoleType;
  * date - 2019/5/17 20:18
  * github - https://github.com/hl845740757
  */
-public class LoginWorldInfoMrg extends WorldCoreInfoMrg{
+public class LoginWorldInfoMrg extends WorldInfoMrg{
 
     private int port;
 
@@ -44,7 +44,7 @@ public class LoginWorldInfoMrg extends WorldCoreInfoMrg{
     }
 
     @Override
-    public RoleType getProcessType() {
+    public RoleType getWorldType() {
         return RoleType.LOGIN;
     }
 

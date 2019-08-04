@@ -1,15 +1,15 @@
 package com.wjybxx.fastjgame.test;
 
+import com.wjybxx.fastjgame.mrg.CuratorClientMrg;
 import com.wjybxx.fastjgame.mrg.CuratorMrg;
 import com.wjybxx.fastjgame.mrg.GameConfigMrg;
+import com.wjybxx.fastjgame.mrg.GameEventLoopMrg;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
-import org.apache.zookeeper.CreateMode;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author wjybxx
@@ -19,9 +19,15 @@ import java.util.Map;
  */
 public class CuratorTest {
 
-    public static void main(String[] args) throws Exception {
+    public static CuratorMrg newCuratorMrg() throws Exception {
         GameConfigMrg gameConfigMrg = new GameConfigMrg();
-        CuratorMrg curatorMrg = new CuratorMrg(gameConfigMrg);
+        CuratorClientMrg curatorClientMrg = new CuratorClientMrg(gameConfigMrg);
+        GameEventLoopMrg gameEventLoopMrg = new GameEventLoopMrg();
+        return new CuratorMrg(curatorClientMrg, gameEventLoopMrg);
+    }
+
+    public static void main(String[] args) throws Exception {
+        CuratorMrg curatorMrg = newCuratorMrg();
         curatorMrg.start();
 
         List<ChildData> childrenData = curatorMrg.watchChildren("/", CuratorTest::onEvent);

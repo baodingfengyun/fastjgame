@@ -28,7 +28,6 @@ import java.util.List;
  * date - 2019/6/2 22:04
  * github - https://github.com/hl845740757
  */
-@Stateless
 public interface NotifyHandler<T extends GameObject> {
 
     // 我要准备执行的逻辑

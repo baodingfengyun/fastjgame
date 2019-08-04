@@ -20,7 +20,6 @@ import com.google.inject.Inject;
 import com.google.protobuf.Message;
 import com.wjybxx.fastjgame.core.CenterInWarzoneInfo;
 import com.wjybxx.fastjgame.misc.PlatformType;
-import com.wjybxx.fastjgame.mrg.async.S2CSessionMrg;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,12 +35,10 @@ public class WarzoneSendMrg {
     private static final Logger logger = LoggerFactory.getLogger(WarzoneSendMrg.class);
 
     private final CenterInWarzoneInfoMrg centerInWarzoneInfoMrg;
-    private final S2CSessionMrg s2CSessionMrg;
 
     @Inject
-    public WarzoneSendMrg(CenterInWarzoneInfoMrg centerInWarzoneInfoMrg, S2CSessionMrg s2CSessionMrg) {
+    public WarzoneSendMrg(CenterInWarzoneInfoMrg centerInWarzoneInfoMrg) {
         this.centerInWarzoneInfoMrg = centerInWarzoneInfoMrg;
-        this.s2CSessionMrg = s2CSessionMrg;
     }
 
     /**
@@ -52,7 +49,7 @@ public class WarzoneSendMrg {
     public void sendToCenter(PlatformType platformType, int serverId, Message msg) {
         CenterInWarzoneInfo centerInfo = centerInWarzoneInfoMrg.getCenterInfo(platformType, serverId);
         if (null != centerInfo){
-            s2CSessionMrg.send(centerInfo.getGameProcessGuid(), msg);
+            centerInfo.getSession().sendMessage(msg);
         } else {
             logger.info("try send msg to {}-{}, but already disconnect", platformType, serverId);
         }

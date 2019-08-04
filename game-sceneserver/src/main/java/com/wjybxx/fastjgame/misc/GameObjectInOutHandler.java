@@ -26,7 +26,6 @@ import com.wjybxx.fastjgame.gameobject.GameObject;
  * date - 2019/6/4 19:35
  * github - https://github.com/hl845740757
  */
-@Stateless
 public interface GameObjectInOutHandler<T extends GameObject> {
 
     /**

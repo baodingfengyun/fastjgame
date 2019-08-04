@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.misc;
 
 import com.google.protobuf.MessageLite;
-import com.wjybxx.fastjgame.net.common.MessageMappingStrategy;
+import com.wjybxx.fastjgame.net.MessageMappingStrategy;
 import com.wjybxx.fastjgame.protobuffer.MessageEnum;
 import com.wjybxx.fastjgame.utils.ReflectionUtils;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;

@@ -39,6 +39,6 @@ public interface GuidMrg {
      * 生成一个全局唯一的id
      * @return unique
      */
-    long generateGuid();
+    long next();
 
 }

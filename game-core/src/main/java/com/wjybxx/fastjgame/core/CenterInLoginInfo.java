@@ -29,7 +29,7 @@ public class CenterInLoginInfo {
     /**
      * 进程guid
      */
-    private final long processGuid;
+    private final long worldGuid;
     /**
      * 平台
      */
@@ -43,15 +43,15 @@ public class CenterInLoginInfo {
      */
     private final String innerHttpAddress;
 
-    public CenterInLoginInfo(long processGuid, PlatformType platformType, int serverId, String innerHttpAddress) {
-        this.processGuid = processGuid;
+    public CenterInLoginInfo(long worldGuid, PlatformType platformType, int serverId, String innerHttpAddress) {
+        this.worldGuid = worldGuid;
         this.platformType = platformType;
         this.serverId = serverId;
         this.innerHttpAddress = innerHttpAddress;
     }
 
-    public long getProcessGuid() {
-        return processGuid;
+    public long getWorldGuid() {
+        return worldGuid;
     }
 
     public PlatformType getPlatformType() {

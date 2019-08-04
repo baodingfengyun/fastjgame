@@ -16,29 +16,24 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.core.SceneInCenterInfo;
-
-import javax.annotation.Nonnull;
-import javax.annotation.concurrent.NotThreadSafe;
-import java.util.List;
+import com.wjybxx.fastjgame.net.Session;
 
 /**
- * 场景进程选择器,不提供线程安全性，因为设计里只有主线程使用；
- * 内部可能会有一些状态；
+ * Rpc请求处理器1类型，可以直接返回结果的方法。
+ * (1类型rpc处理器，立即返回结果)
  * @author wjybxx
  * @version 1.0
- * date - 2019/6/23 19:10
+ * date - 2019/8/4
  * github - https://github.com/hl845740757
  */
-@NotThreadSafe
-public interface SceneProcessChooser {
+@FunctionalInterface
+public interface RpcRequestHandler1<T,R> {
 
     /**
-     * 从多个可用场景进程中选择一个进程。
-     * @param availableProcesses size >= 2
-     * @return selection
+     * 当接收到一个rpc请求时
+     * @param session 发送方的信息
+     * @param request rpc请求内容
+     * @return 返回的结果类型，会自动返回给远程
      */
-    @Nonnull
-    SceneInCenterInfo choose(List<SceneInCenterInfo> availableProcesses);
-
+    R onRequest(Session session, T request);
 }

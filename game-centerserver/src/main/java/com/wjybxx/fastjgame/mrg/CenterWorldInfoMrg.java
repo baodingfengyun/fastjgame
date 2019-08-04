@@ -20,7 +20,7 @@ import com.google.inject.Inject;
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
 import com.wjybxx.fastjgame.configwrapper.MapConfigWrapper;
 import com.wjybxx.fastjgame.misc.PlatformType;
-import com.wjybxx.fastjgame.net.common.RoleType;
+import com.wjybxx.fastjgame.net.RoleType;
 import com.wjybxx.fastjgame.utils.GameUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 
@@ -30,7 +30,7 @@ import com.wjybxx.fastjgame.utils.ZKPathUtils;
  * date - 2019/5/15 23:30
  * github - https://github.com/hl845740757
  */
-public class CenterWorldInfoMrg extends WorldCoreInfoMrg{
+public class CenterWorldInfoMrg extends WorldInfoMrg{
 
     private final CuratorMrg curatorMrg;
     /**
@@ -75,7 +75,7 @@ public class CenterWorldInfoMrg extends WorldCoreInfoMrg{
     }
 
     @Override
-    public RoleType getProcessType() {
+    public RoleType getWorldType() {
         return RoleType.CENTER;
     }
 

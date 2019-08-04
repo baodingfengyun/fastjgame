@@ -30,8 +30,8 @@ public class MongoDBTest {
 
     public static void main(String[] args) throws Exception {
         GameConfigMrg gameConfigMrg = new GameConfigMrg();
-        CuratorMrg curatorMrg = new CuratorMrg(gameConfigMrg);
-        MongoDBMrg mongoDBMrg=new MongoDBMrgImp(gameConfigMrg,curatorMrg);
+        CuratorMrg curatorMrg = CuratorTest.newCuratorMrg();
+        MongoDBMrg mongoDBMrg = new MongoDBMrgImp(gameConfigMrg, curatorMrg);
 
         System.out.println("在这里打个断点,使用idea debug 界面测试");
     }

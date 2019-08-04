@@ -26,14 +26,14 @@ package com.wjybxx.fastjgame.core.onlinenode;
  */
 public class WarzoneNodeData extends OnlineNodeData {
 
-    private final long processGuid;
+    private final long worldGuid;
 
-    public WarzoneNodeData(String innerTcpAddress, String innerRpcAddress, String innerHttpAddress, long processGuid) {
-        super(innerTcpAddress, innerRpcAddress, innerHttpAddress);
-        this.processGuid=processGuid;
+    public WarzoneNodeData(String innerTcpAddress, String innerHttpAddress, long worldGuid) {
+        super(innerTcpAddress, innerHttpAddress);
+        this.worldGuid = worldGuid;
     }
 
-    public long getProcessGuid() {
-        return processGuid;
+    public long getWorldGuid() {
+        return worldGuid;
     }
 }

@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
-import com.wjybxx.fastjgame.net.common.RoleType;
+import com.wjybxx.fastjgame.net.RoleType;
 
 /**
  * @author wjybxx
@@ -26,7 +26,7 @@ import com.wjybxx.fastjgame.net.common.RoleType;
  * date - 2019/5/17 15:40
  * github - https://github.com/hl845740757
  */
-public class WarzoneWorldInfoMrg extends WorldCoreInfoMrg{
+public class WarzoneWorldInfoMrg extends WorldInfoMrg{
 
     private int warzoneId;
 
@@ -41,7 +41,7 @@ public class WarzoneWorldInfoMrg extends WorldCoreInfoMrg{
     }
 
     @Override
-    public RoleType getProcessType() {
+    public RoleType getWorldType() {
         return RoleType.WARZONE;
     }
 

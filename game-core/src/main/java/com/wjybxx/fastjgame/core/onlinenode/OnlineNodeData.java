@@ -30,28 +30,19 @@ public abstract class OnlineNodeData {
      * (可以和对外开放的端口是同一个，如果与前端通信也用protoBuffer)
      */
     private final String innerTcpAddress;
-    /**
-     * 服务器之间同步rpc调用端口信息
-     */
-    private final String innerRpcAddress;
 
     /**
      * 用于GM等工具而绑定的http端口信息
      */
     private final String innerHttpAddress;
 
-    public OnlineNodeData(String innerTcpAddress, String innerRpcAddress, String innerHttpAddress) {
+    public OnlineNodeData(String innerTcpAddress, String innerHttpAddress) {
         this.innerTcpAddress = innerTcpAddress;
-        this.innerRpcAddress = innerRpcAddress;
         this.innerHttpAddress = innerHttpAddress;
     }
 
     public String getInnerTcpAddress() {
         return innerTcpAddress;
-    }
-
-    public String getInnerRpcAddress() {
-        return innerRpcAddress;
     }
 
     public String getInnerHttpAddress() {

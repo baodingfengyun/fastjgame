@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.core;
 
 import com.wjybxx.fastjgame.misc.IntSequencer;
+import com.wjybxx.fastjgame.net.Session;
 
 import java.util.EnumSet;
 import java.util.Set;
@@ -34,7 +35,7 @@ public class SceneInCenterInfo {
     /**
      * scene进程会话guid
      */
-    private final long sceneProcessGuid;
+    private final long sceneWorldGuid;
     /**
      * 分配该场景进程的频道id。
      * 该channel和IO什么的没任何关系，别混淆了。
@@ -44,7 +45,7 @@ public class SceneInCenterInfo {
     /**
      * 进程类型(本服/跨服)
      */
-    private final SceneProcessType processType;
+    private final SceneWorldType worldType;
     /**
      * 对玩家开放的tcp端口
      */
@@ -71,25 +72,29 @@ public class SceneInCenterInfo {
      * 本服玩家在当前scene的数量。
      */
     private final IntSequencer onlinePlayerSequencer = new IntSequencer(0);
+    /**
+     * 会话信息
+     */
+    private Session session;
 
-    public SceneInCenterInfo(long sceneProcessGuid, int chanelId, SceneProcessType processType, String outerTcpAddress, String outerWsAddress) {
-        this.sceneProcessGuid = sceneProcessGuid;
+    public SceneInCenterInfo(long sceneWorldGuid, int chanelId, SceneWorldType worldType, String outerTcpAddress, String outerWsAddress) {
+        this.sceneWorldGuid = sceneWorldGuid;
         this.chanelId = chanelId;
-        this.processType = processType;
+        this.worldType = worldType;
         this.outerTcpAddress = outerTcpAddress;
         this.outerWsAddress = outerWsAddress;
     }
 
-    public long getSceneProcessGuid() {
-        return sceneProcessGuid;
+    public long getSceneWorldGuid() {
+        return sceneWorldGuid;
     }
 
     public int getChanelId() {
         return chanelId;
     }
 
-    public SceneProcessType getProcessType() {
-        return processType;
+    public SceneWorldType getWorldType() {
+        return worldType;
     }
 
     public String getOuterTcpAddress() {
@@ -118,5 +123,13 @@ public class SceneInCenterInfo {
 
     public int getOnlinePlayerNum() {
         return onlinePlayerSequencer.get();
+    }
+
+    public Session getSession() {
+        return session;
+    }
+
+    public void setSession(Session session) {
+        this.session = session;
     }
 }

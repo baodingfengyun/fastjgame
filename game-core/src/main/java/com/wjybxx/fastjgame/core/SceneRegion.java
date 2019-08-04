@@ -34,24 +34,24 @@ public enum SceneRegion implements NumberEnum {
     /**
      * 本服普通区域，不互斥，大多数地图都应该属于它。
      */
-    LOCAL_NORMAL(1, SceneProcessType.SINGLE,false),
+    LOCAL_NORMAL(1, SceneWorldType.SINGLE,false),
     /**
      * 本服竞技场(DNF玩习惯了，习惯叫PKC)，互斥
      */
-    LOCAL_PKC(2, SceneProcessType.SINGLE,true),
+    LOCAL_PKC(2, SceneWorldType.SINGLE,true),
     /**
      * 安徒恩，跨服，不互斥。
      */
-    WARZONE_ANTON(3, SceneProcessType.CROSS, false),
+    WARZONE_ANTON(3, SceneWorldType.CROSS, false),
     /**
      * 卢克，跨服，不互斥。
      */
-    WARZONE_LUKE(4, SceneProcessType.CROSS, false);
+    WARZONE_LUKE(4, SceneWorldType.CROSS, false);
 
     /**
      * 区域所在的进程类型(是否是跨服区域)
      */
-    private final SceneProcessType sceneProcessType;
+    private final SceneWorldType sceneWorldType;
 
     /**
      * 数字标记，不使用ordinal
@@ -62,9 +62,9 @@ public enum SceneRegion implements NumberEnum {
      */
     private final boolean mutex;
 
-    SceneRegion(int number, SceneProcessType sceneProcessType, boolean mutex) {
+    SceneRegion(int number, SceneWorldType sceneWorldType, boolean mutex) {
         this.number=number;
-        this.sceneProcessType = sceneProcessType;
+        this.sceneWorldType = sceneWorldType;
         this.mutex = mutex;
     }
 
@@ -84,8 +84,8 @@ public enum SceneRegion implements NumberEnum {
         return number;
     }
 
-    public SceneProcessType getSceneProcessType(){
-        return sceneProcessType;
+    public SceneWorldType getSceneWorldType(){
+        return sceneWorldType;
     }
 
     public boolean isMutex(){

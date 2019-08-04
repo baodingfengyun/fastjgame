@@ -18,7 +18,6 @@ package com.wjybxx.fastjgame.utils;
 
 import com.wjybxx.fastjgame.misc.PlatformType;
 import com.wjybxx.fastjgame.misc.PortRange;
-import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,22 +35,30 @@ import java.util.Map;
  */
 public class GameUtils {
 
-    private static final Logger logger= LoggerFactory.getLogger(GameUtils.class);
+    private static final Logger logger = LoggerFactory.getLogger(GameUtils.class);
+
     /**
      * 内部通信用的codec名字
      */
-    public static final String INNER_CODEC_NAME = "protoBufCodec";
+    public static final String INNER_CODEC_NAME = "PROTO_BUF_CODEC";
     /**
-     * 服务器之间通信端口
+     * TCP监听端口
      */
-    public static final PortRange INNER_TCP_PORT_RANGE=new PortRange(10001,10500);
-    public static final PortRange INNER_HTTP_PORT_RANGE=new PortRange(12001,12500);
-    public static final PortRange INNER_SYNC_PORT_RANGE=new PortRange(14001,14500);
+    public static final PortRange INNER_TCP_PORT_RANGE = new PortRange(10001,10500);
+    /**
+     * http监听端口
+     */
+    public static final PortRange INNER_HTTP_PORT_RANGE = new PortRange(12001,12500);
+    /**
+     * 127.0.0.1:X类型地址
+     * (当两个world在同一个机器上时可以来点骚操作？)
+     */
+    public static final PortRange LOCAL_TCP_PORT_RANGE = new PortRange(14001,14500);
     /**
      * 与玩家之间通信端口
      */
-    public static final PortRange OUTER_TCP_PORT_RANGE=new PortRange(16001,16500);
-    public static final PortRange OUTER_WS_PORT_RANGE=new PortRange(18001,18500);
+    public static final PortRange OUTER_TCP_PORT_RANGE = new PortRange(16001,16500);
+    public static final PortRange OUTER_WS_PORT_RANGE = new PortRange(18001,18500);
 
     private GameUtils() {
     }
@@ -107,27 +114,6 @@ public class GameUtils {
         return JsonUtils.parseJsonBytesToMap(jsonBytes, LinkedHashMap.class, String.class,String.class);
     }
 
-    /**
-     * 返回控制的会话生命周期通知器
-     * @param <T> 会话参数类型
-     * @return
-     */
-    @SuppressWarnings("unchecked")
-    public static <T> SessionLifecycleAware<T> emptyAware(){
-        return (SessionLifecycleAware<T>) emptyAware;
-    }
-
-    private static SessionLifecycleAware<Object> emptyAware=new SessionLifecycleAware<Object>() {
-        @Override
-        public void onSessionConnected(Object t) {
-
-        }
-
-        @Override
-        public void onSessionDisconnected(Object t) {
-
-        }
-    };
 
     /**
      * 是否是null字符串或空字符串

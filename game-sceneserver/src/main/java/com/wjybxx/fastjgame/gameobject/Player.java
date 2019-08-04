@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.gameobject;
 
 import com.wjybxx.fastjgame.misc.PlatformType;
+import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.scene.gameobjectdata.GameObjectType;
 import com.wjybxx.fastjgame.scene.gameobjectdata.PlayerData;
 
@@ -36,6 +37,11 @@ public class Player extends GameObject<PlayerData>{
      * player的一些与场景无关的数据
      */
     private final PlayerData playerData;
+
+    /**
+     * 玩家身上的session
+     */
+    private Session session;
 
     public Player(PlayerData playerData) {
         this.playerData = playerData;
@@ -68,4 +74,11 @@ public class Player extends GameObject<PlayerData>{
         return playerData.getActualServerId();
     }
 
+    public Session getSession() {
+        return session;
+    }
+
+    public void setSession(Session session) {
+        this.session = session;
+    }
 }

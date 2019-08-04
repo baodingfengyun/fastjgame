@@ -19,12 +19,12 @@ package com.wjybxx.fastjgame.world;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.onlinenode.WarzoneNodeData;
 import com.wjybxx.fastjgame.misc.HostAndPort;
-import com.wjybxx.fastjgame.mrg.*;
-import com.wjybxx.fastjgame.mrg.async.S2CSessionMrg;
-import com.wjybxx.fastjgame.mrg.sync.SyncS2CSessionMrg;
-import com.wjybxx.fastjgame.net.async.S2CSession;
-import com.wjybxx.fastjgame.net.common.RoleType;
-import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
+import com.wjybxx.fastjgame.mrg.CenterInWarzoneInfoMrg;
+import com.wjybxx.fastjgame.mrg.WarzoneSendMrg;
+import com.wjybxx.fastjgame.mrg.WarzoneWorldInfoMrg;
+import com.wjybxx.fastjgame.mrg.WorldWrapper;
+import com.wjybxx.fastjgame.net.S2CSession;
+import com.wjybxx.fastjgame.net.SessionLifecycleAware;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
@@ -33,7 +33,7 @@ import org.apache.zookeeper.CreateMode;
 
 import java.util.concurrent.TimeUnit;
 
-import static com.wjybxx.fastjgame.protobuffer.p_center_warzone.*;
+import static com.wjybxx.fastjgame.protobuffer.p_center_warzone.p_center_warzone_hello;
 
 /**
  * WarzoneServer
@@ -42,16 +42,16 @@ import static com.wjybxx.fastjgame.protobuffer.p_center_warzone.*;
  * date - 2019/5/15 18:31
  * github - https://github.com/hl845740757
  */
-public class WarzoneWorld extends WorldCore {
+public class WarzoneWorld extends AbstractWorld {
 
     private final WarzoneWorldInfoMrg warzoneWorldInfoMrg;
     private final CenterInWarzoneInfoMrg centerInWarzoneInfoMrg;
     private final WarzoneSendMrg sendMrg;
 
     @Inject
-    public WarzoneWorld(WorldWrapper worldWrapper, WorldCoreWrapper coreWrapper, WarzoneWorldInfoMrg warzoneWorldInfoMrg,
+    public WarzoneWorld(WorldWrapper worldWrapper, WarzoneWorldInfoMrg warzoneWorldInfoMrg,
                         CenterInWarzoneInfoMrg centerInWarzoneInfoMrg, WarzoneSendMrg sendMrg) {
-        super(worldWrapper, coreWrapper);
+        super(worldWrapper);
         this.warzoneWorldInfoMrg = warzoneWorldInfoMrg;
         this.centerInWarzoneInfoMrg = centerInWarzoneInfoMrg;
         this.sendMrg = sendMrg;
@@ -59,7 +59,12 @@ public class WarzoneWorld extends WorldCore {
 
     @Override
     protected void registerMessageHandlers() {
-        registerRequestMessageHandler(p_center_warzone_hello.class,centerInWarzoneInfoMrg::p_center_warzone_hello_handler);
+        registerMessageHandler(p_center_warzone_hello.class,centerInWarzoneInfoMrg::p_center_warzone_hello_handler);
+    }
+
+    @Override
+    protected void registerRpcRequestHandlers() {
+
     }
 
     @Override
@@ -67,30 +72,6 @@ public class WarzoneWorld extends WorldCore {
 
     }
 
-    @Override
-    protected void registerSyncRequestHandlers() {
-
-    }
-
-    @Override
-    protected void registerAsyncSessionLifeAware(S2CSessionMrg s2CSessionMrg) {
-        this.s2CSessionMrg.registerLifeCycleAware(RoleType.CENTER, new SessionLifecycleAware<S2CSession>() {
-            @Override
-            public void onSessionConnected(S2CSession session) {
-
-            }
-
-            @Override
-            public void onSessionDisconnected(S2CSession session) {
-                centerInWarzoneInfoMrg.onCenterServerDisconnect(session);
-            }
-        });
-    }
-
-    @Override
-    protected void registerSyncSessionLifeAware(SyncS2CSessionMrg syncS2CSessionMrg) {
-
-    }
 
     @Override
     protected void startHook() throws Exception {
@@ -98,9 +79,8 @@ public class WarzoneWorld extends WorldCore {
     }
 
     private void bindAndRegisterToZK() throws Exception {
-        // 绑定3个内部交互的端口
-        HostAndPort tcpHostAndPort = innerAcceptorMrg.bindInnerTcpPort(true);
-        HostAndPort syncRpcHostAndPort = innerAcceptorMrg.bindInnerSyncRpcPort(true);
+        // 绑定3个内部交互的端口(还有一个其实是local类型，现在还没支持)
+        HostAndPort tcpHostAndPort = innerAcceptorMrg.bindInnerTcpPort(true, new CenterLifeAware());
         HostAndPort httpHostAndPort = innerAcceptorMrg.bindInnerHttpPort();
 
         // 注册到zk
@@ -108,9 +88,8 @@ public class WarzoneWorld extends WorldCore {
         String nodeName= ZKPathUtils.buildWarzoneNodeName(warzoneWorldInfoMrg.getWarzoneId());
 
         WarzoneNodeData centerNodeData =new WarzoneNodeData(tcpHostAndPort.toString(),
-                syncRpcHostAndPort.toString(),
                 httpHostAndPort.toString(),
-                warzoneWorldInfoMrg.getProcessGuid());
+                warzoneWorldInfoMrg.getWorldGuid());
 
         final String path = ZKPaths.makePath(parentPath, nodeName);
         curatorMrg.waitForNodeDelete(path);
@@ -129,5 +108,17 @@ public class WarzoneWorld extends WorldCore {
     @Override
     protected void shutdownHook() {
 
+    }
+
+    private class CenterLifeAware implements SessionLifecycleAware<S2CSession> {
+        @Override
+        public void onSessionConnected(S2CSession session) {
+
+        }
+
+        @Override
+        public void onSessionDisconnected(S2CSession session) {
+            centerInWarzoneInfoMrg.onCenterServerDisconnect(session);
+        }
     }
 }

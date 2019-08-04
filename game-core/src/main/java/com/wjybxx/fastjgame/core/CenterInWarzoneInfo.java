@@ -16,6 +16,7 @@
 package com.wjybxx.fastjgame.core;
 
 import com.wjybxx.fastjgame.misc.PlatformType;
+import com.wjybxx.fastjgame.net.Session;
 
 /**
  * CenterServer在WarzoneServer信息
@@ -26,20 +27,23 @@ import com.wjybxx.fastjgame.misc.PlatformType;
  */
 public class CenterInWarzoneInfo {
 
-    private final long gameProcessGuid;
+    private final long gameWorldGuid;
 
     private final PlatformType platformType;
 
     private final int serverId;
 
-    public CenterInWarzoneInfo(long gameProcessGuid, PlatformType platformType, int serverId) {
-        this.gameProcessGuid = gameProcessGuid;
+    private final Session session;
+
+    public CenterInWarzoneInfo(long gameWorldGuid, PlatformType platformType, int serverId, Session session) {
+        this.gameWorldGuid = gameWorldGuid;
         this.platformType = platformType;
         this.serverId = serverId;
+        this.session = session;
     }
 
-    public long getGameProcessGuid() {
-        return gameProcessGuid;
+    public long getGameWorldGuid() {
+        return gameWorldGuid;
     }
 
     public PlatformType getPlatformType() {
@@ -49,4 +53,9 @@ public class CenterInWarzoneInfo {
     public int getServerId() {
         return serverId;
     }
+
+    public Session getSession() {
+        return session;
+    }
+
 }

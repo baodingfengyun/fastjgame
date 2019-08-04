@@ -17,15 +17,14 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
+import com.wjybxx.fastjgame.concurrent.misc.AbstractThreadLifeCycleHelper;
 import com.wjybxx.fastjgame.core.onlinenode.CenterNodeData;
 import com.wjybxx.fastjgame.core.onlinenode.CenterNodeName;
-import com.wjybxx.fastjgame.misc.AbstractThreadLifeCycleHelper;
-import com.wjybxx.fastjgame.net.common.RoleType;
+import com.wjybxx.fastjgame.net.RoleType;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.curator.framework.recipes.cache.*;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -47,14 +46,15 @@ public class LoginDiscoverMrg extends AbstractThreadLifeCycleHelper {
 
     private final CuratorMrg curatorMrg;
     private final CenterInLoginInfoMrg centerInLoginInfoMrg;
+    private final GameEventLoopMrg gameEventLoopMrg;
 
-    private final ConcurrentLinkedQueue<TreeCacheEvent> eventQueue=new ConcurrentLinkedQueue<>();
     private TreeCache treeCache;
 
     @Inject
-    public LoginDiscoverMrg(CuratorMrg curatorMrg, CenterInLoginInfoMrg centerInLoginInfoMrg) {
+    public LoginDiscoverMrg(CuratorMrg curatorMrg, CenterInLoginInfoMrg centerInLoginInfoMrg, GameEventLoopMrg gameEventLoopMrg) {
         this.curatorMrg = curatorMrg;
         this.centerInLoginInfoMrg = centerInLoginInfoMrg;
+        this.gameEventLoopMrg = gameEventLoopMrg;
     }
 
     @Override
@@ -65,20 +65,13 @@ public class LoginDiscoverMrg extends AbstractThreadLifeCycleHelper {
                 .setExecutor(new LoginWatcherThreadFactory())
                 .setSelector(new LoginCacheSelector())
                 .build();
-        treeCache.getListenable().addListener((client, event) -> eventQueue.offer(event));
+        treeCache.getListenable().addListener((client, event) -> onEvent(event), gameEventLoopMrg.getEventLoop());
         treeCache.start();
     }
 
     @Override
     protected void shutdownImp() {
         treeCache.close();
-    }
-
-    public void tick(){
-        TreeCacheEvent e;
-        while ((e=eventQueue.poll())!=null){
-            onEvent(e);
-        }
     }
 
     private void onEvent(TreeCacheEvent event){
@@ -129,8 +122,6 @@ public class LoginDiscoverMrg extends AbstractThreadLifeCycleHelper {
 
         /**
          * 只取回warzone下的节点
-         * @param fullPath
-         * @return
          */
         @Override
         public boolean traverseChildren(String fullPath) {
@@ -143,8 +134,6 @@ public class LoginDiscoverMrg extends AbstractThreadLifeCycleHelper {
 
         /**
          * 只取回CenterServer节点
-         * @param fullPath
-         * @return
          */
         @Override
         public boolean acceptChild(String fullPath) {

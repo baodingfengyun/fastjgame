@@ -19,7 +19,6 @@ package com.wjybxx.fastjgame.findpath.jps;
 import com.wjybxx.fastjgame.findpath.DiagonalMovement;
 import com.wjybxx.fastjgame.findpath.FindPathNode;
 import com.wjybxx.fastjgame.findpath.FindPathUtils;
-import com.wjybxx.fastjgame.misc.Stateless;
 import com.wjybxx.fastjgame.scene.MapGrid;
 
 import java.util.List;
@@ -33,7 +32,6 @@ import java.util.List;
  * date - 2019/6/12 14:22
  * github - https://github.com/hl845740757
  */
-@Stateless
 public abstract class JumpStrategy {
 
     /**

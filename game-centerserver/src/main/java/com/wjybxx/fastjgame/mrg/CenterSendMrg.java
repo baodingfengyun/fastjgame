@@ -21,10 +21,9 @@ import com.google.protobuf.Message;
 import com.google.protobuf.Message.Builder;
 import com.google.protobuf.MessageLite;
 import com.wjybxx.fastjgame.core.SceneInCenterInfo;
-import com.wjybxx.fastjgame.core.SceneProcessType;
+import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.core.WarzoneInCenterInfo;
-import com.wjybxx.fastjgame.mrg.async.C2SSessionMrg;
-import com.wjybxx.fastjgame.mrg.sync.SyncC2SSessionMrg;
+import com.wjybxx.fastjgame.net.RpcResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,40 +46,28 @@ public class CenterSendMrg {
     private final SceneInCenterInfoMrg sceneInCenterInfoMrg;
     private final WarzoneInCenterInfoMrg warzoneInCenterInfoMrg;
 
-    /**
-     * center主动连接scene和warzone，
-     * 因此scene和warzone是服务器端，center是会话的客户端。
-     */
-    private final C2SSessionMrg c2SSessionMrg;
-    /**
-     * center主动连接scene，因此scene是服务端，center是客户端。
-     */
-    private final SyncC2SSessionMrg syncC2SSessionMrg;
-
     @Inject
-    public CenterSendMrg(SceneInCenterInfoMrg sceneInCenterInfoMrg, WarzoneInCenterInfoMrg warzoneInCenterInfoMrg, C2SSessionMrg c2SSessionMrg, SyncC2SSessionMrg syncC2SSessionMrg) {
+    public CenterSendMrg(SceneInCenterInfoMrg sceneInCenterInfoMrg, WarzoneInCenterInfoMrg warzoneInCenterInfoMrg) {
         this.sceneInCenterInfoMrg = sceneInCenterInfoMrg;
         this.warzoneInCenterInfoMrg = warzoneInCenterInfoMrg;
-        this.c2SSessionMrg = c2SSessionMrg;
-        this.syncC2SSessionMrg = syncC2SSessionMrg;
     }
 
     /**
      * 发送异步消息到指定guid的场景进程;
-     * @param processGuid 场景进程guid
+     * @param worldGuid 场景进程guid
      * @param msg 发送的消息
      */
-    public void sendToScene(long processGuid, @Nonnull Message msg){
-        SceneInCenterInfo sceneInfo = sceneInCenterInfoMrg.getSceneInfo(processGuid);
-        if (null != sceneInfo){
-            c2SSessionMrg.send(processGuid, msg);
+    public void sendToScene(long worldGuid, @Nonnull Message msg){
+        SceneInCenterInfo sceneInfo = sceneInCenterInfoMrg.getSceneInfo(worldGuid);
+        if (null != sceneInfo && sceneInfo.getSession() != null){
+            sceneInfo.getSession().sendMessage(msg);
         } else {
-            logger.info("scene process {} is disconnect already. just discard msg.", processGuid);
+            logger.info("scene process {} is disconnect already. just discard msg.", worldGuid);
         }
     }
 
-    public void sendToScene(long processGuid, @Nonnull Builder builder){
-        sendToScene(processGuid, builder.build());
+    public void sendToScene(long worldGuid, @Nonnull Builder builder){
+        sendToScene(worldGuid, builder.build());
     }
 
     /**
@@ -90,8 +77,8 @@ public class CenterSendMrg {
      */
     public void sendToScene(int channelId, @Nonnull Message msg){
         SceneInCenterInfo sceneInfo = sceneInCenterInfoMrg.getSceneInfo(channelId);
-        if (null != sceneInfo){
-            c2SSessionMrg.send(sceneInfo.getSceneProcessGuid(), msg);
+        if (null != sceneInfo && sceneInfo.getSession() != null){
+            sceneInfo.getSession().sendMessage(msg);
         } else {
             logger.info("channel {} is disconnect already.", channelId);
         }
@@ -107,7 +94,10 @@ public class CenterSendMrg {
      */
     public void broadcastScene(Message msg){
         for (SceneInCenterInfo sceneInCenterInfo:sceneInCenterInfoMrg.getAllSceneInfo()){
-            c2SSessionMrg.send(sceneInCenterInfo.getSceneProcessGuid(), msg);
+            if (null == sceneInCenterInfo.getSession()) {
+                continue;
+            }
+            sceneInCenterInfo.getSession().sendMessage(msg);
         }
     }
 
@@ -117,8 +107,11 @@ public class CenterSendMrg {
      */
     public void broadcastSingleScene(Message msg){
         for (SceneInCenterInfo sceneInCenterInfo:sceneInCenterInfoMrg.getAllSceneInfo()){
-            if (sceneInCenterInfo.getProcessType() == SceneProcessType.SINGLE){
-                c2SSessionMrg.send(sceneInCenterInfo.getSceneProcessGuid(), msg);
+            if (null == sceneInCenterInfo.getSession()) {
+                continue;
+            }
+            if (sceneInCenterInfo.getWorldType() == SceneWorldType.SINGLE){
+                sceneInCenterInfo.getSession().sendMessage(msg);
             }
         }
     }
@@ -129,43 +122,46 @@ public class CenterSendMrg {
      */
     public void broadcastCrossScene(Message msg){
         for (SceneInCenterInfo sceneInCenterInfo:sceneInCenterInfoMrg.getAllSceneInfo()){
-            if (sceneInCenterInfo.getProcessType() == SceneProcessType.CROSS){
-                c2SSessionMrg.send(sceneInCenterInfo.getSceneProcessGuid(), msg);
+            if (null == sceneInCenterInfo.getSession()) {
+                continue;
+            }
+            if (sceneInCenterInfo.getWorldType() == SceneWorldType.CROSS){
+                sceneInCenterInfo.getSession().sendMessage(msg);
             }
         }
     }
 
     /**
      * 同步rpc scene
-     * @param processGuid 场景进程guid
-     * @param msg 发送的消息(请求)
      * @param <T> 帮助外部强转
+     * @param worldGuid 场景进程guid
+     * @param msg 发送的消息(请求)
      * @return rpc调用结果 如果{@link Optional#isPresent()} 为true，表示调用成功，否则表示失败
      */
-    public <T extends MessageLite> Optional<T> callScene(long processGuid, @Nonnull Message msg){
-        SceneInCenterInfo sceneInfo = sceneInCenterInfoMrg.getSceneInfo(processGuid);
-        if (null != sceneInfo){
-            return syncC2SSessionMrg.call(processGuid, msg);
+    public <T extends MessageLite> RpcResponse syncRpcScene(long worldGuid, @Nonnull Message msg){
+        SceneInCenterInfo sceneInfo = sceneInCenterInfoMrg.getSceneInfo(worldGuid);
+        if (null != sceneInfo && sceneInfo.getSession() != null){
+            return sceneInfo.getSession().syncRpc(msg);
         } else {
-            logger.info("scene process {} is disconnect already.", processGuid);
-            return Optional.empty();
+            logger.info("scene process {} is disconnect already.", worldGuid);
+            return RpcResponse.SESSION_CLOSED;
         }
     }
 
     /**
      * 同步rpc scene
+     * @param <T> 帮助外部强转
      * @param channelId 场景频道
      * @param msg 发送的消息(请求)
-     * @param <T> 帮助外部强转
      * @return rpc调用结果 如果{@link Optional#isPresent()} 为true，表示调用成功，否则表示失败
      */
-    public <T extends MessageLite> Optional<T> callScene(int channelId, @Nonnull Message msg){
+    public <T extends MessageLite> RpcResponse callScene(int channelId, @Nonnull Message msg){
         SceneInCenterInfo sceneInfo = sceneInCenterInfoMrg.getSceneInfo(channelId);
-        if (null != sceneInfo){
-            return syncC2SSessionMrg.call(sceneInfo.getSceneProcessGuid(), msg);
+        if (null != sceneInfo && sceneInfo.getSession() != null){
+            return sceneInfo.getSession().syncRpc(msg);
         } else {
             logger.info("channel {} is disconnect already.", channelId);
-            return Optional.empty();
+            return RpcResponse.SESSION_CLOSED;
         }
     }
 
@@ -175,8 +171,8 @@ public class CenterSendMrg {
      */
     public void sendToWarzone(@Nonnull Message msg){
         WarzoneInCenterInfo warzoneInCenterInfo = warzoneInCenterInfoMrg.getWarzoneInCenterInfo();
-        if (null != warzoneInCenterInfo){
-            c2SSessionMrg.send(warzoneInCenterInfo.getWarzoneProcessGuid(), msg);
+        if (null != warzoneInCenterInfo && warzoneInCenterInfo.getSession() != null){
+            warzoneInCenterInfo.getSession().sendMessage(msg);
         } else {
             logger.info("warzone is disconnect already.");
         }

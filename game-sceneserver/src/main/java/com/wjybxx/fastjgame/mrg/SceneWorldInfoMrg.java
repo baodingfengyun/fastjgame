@@ -19,10 +19,10 @@ package com.wjybxx.fastjgame.mrg;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
 import com.wjybxx.fastjgame.configwrapper.MapConfigWrapper;
-import com.wjybxx.fastjgame.core.SceneProcessType;
 import com.wjybxx.fastjgame.core.SceneRegion;
+import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.misc.PlatformType;
-import com.wjybxx.fastjgame.net.common.RoleType;
+import com.wjybxx.fastjgame.net.RoleType;
 import com.wjybxx.fastjgame.utils.GameUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.zookeeper.CreateMode;
@@ -37,7 +37,7 @@ import java.util.Set;
  * date - 2019/5/16 10:47
  * github - https://github.com/hl845740757
  */
-public class SceneWorldInfoMrg extends WorldCoreInfoMrg{
+public class SceneWorldInfoMrg extends WorldInfoMrg{
 
     private static final int SINGLE_SCENE_MIN_CHANNEL_ID = 1;
     private static final int CROSS_SCENE_MIN_CHANNEL_ID = 10001;
@@ -45,7 +45,7 @@ public class SceneWorldInfoMrg extends WorldCoreInfoMrg{
     /**
      * scene进程类型
      */
-    private SceneProcessType sceneProcessType;
+    private SceneWorldType sceneWorldType;
     /**
      * 所属的战区
      */
@@ -79,9 +79,9 @@ public class SceneWorldInfoMrg extends WorldCoreInfoMrg{
     @Override
     protected void initImp(ConfigWrapper startArgs) throws Exception {
         // 场景进程类型决定参数配置
-        sceneProcessType = SceneProcessType.forName(startArgs.getAsString("sceneType"));
+        sceneWorldType = SceneWorldType.forName(startArgs.getAsString("sceneType"));
 
-        if(sceneProcessType == SceneProcessType.SINGLE){
+        if(sceneWorldType == SceneWorldType.SINGLE){
             // 本服场景配置平台和服id，战区id由zookeeper配置指定
             platformType = PlatformType.valueOf(startArgs.getAsString("platform"));
             serverId = startArgs.getAsInt("serverId");
@@ -107,8 +107,8 @@ public class SceneWorldInfoMrg extends WorldCoreInfoMrg{
         Set<SceneRegion> modifiableRegionSet=EnumSet.noneOf(SceneRegion.class);
         for (String regionName:configuredRegionArray){
             SceneRegion sceneRegion = SceneRegion.valueOf(regionName);
-            if (sceneRegion.getSceneProcessType()!= sceneProcessType){
-                throw new IllegalArgumentException(sceneProcessType + " doesn't support " + sceneRegion);
+            if (sceneRegion.getSceneWorldType()!= sceneWorldType){
+                throw new IllegalArgumentException(sceneWorldType + " doesn't support " + sceneRegion);
             }
             modifiableRegionSet.add(sceneRegion);
         }
@@ -116,12 +116,12 @@ public class SceneWorldInfoMrg extends WorldCoreInfoMrg{
     }
 
     @Override
-    public RoleType getProcessType() {
+    public RoleType getWorldType() {
         return RoleType.SCENE;
     }
 
-    public SceneProcessType getSceneProcessType() {
-        return sceneProcessType;
+    public SceneWorldType getSceneWorldType() {
+        return sceneWorldType;
     }
 
     public PlatformType getPlatformType() {
@@ -137,7 +137,7 @@ public class SceneWorldInfoMrg extends WorldCoreInfoMrg{
      * @return 如果是本服场景，则存在，否则抛出异常
      */
     public int getServerId() {
-        if (sceneProcessType == SceneProcessType.SINGLE){
+        if (sceneWorldType == SceneWorldType.SINGLE){
             return serverId;
         }
         throw new UnsupportedOperationException("cross scene serverId");

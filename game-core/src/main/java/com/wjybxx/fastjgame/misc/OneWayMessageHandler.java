@@ -16,27 +16,25 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.core.SceneInCenterInfo;
-
-import javax.annotation.Nonnull;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import com.wjybxx.fastjgame.net.RoleType;
+import com.wjybxx.fastjgame.net.Session;
 
 /**
- * 选择玩家最少的进程
+ * 单向消息处理器
  * @author wjybxx
  * @version 1.0
- * date - 2019/6/23 19:38
+ * date - 2019/8/4
  * github - https://github.com/hl845740757
  */
-public class LeastPlayerProcessChooser implements SceneProcessChooser{
+@FunctionalInterface
+public interface OneWayMessageHandler<T> {
 
-    private static final Comparator<SceneInCenterInfo> comparator = Comparator.comparingInt(SceneInCenterInfo::getOnlinePlayerNum);
+    /**
+     * 当接收到指定单向消息时。
+     *
+     * @param session 发送方的信息，可以通过session返回消息，发起rpc请求等。
+     * @param message 单向消息内容
+     */
+    void onMessage(Session session, T message);
 
-    @Nonnull
-    @Override
-    public SceneInCenterInfo choose(List<SceneInCenterInfo> availableProcesses) {
-        return Collections.min(availableProcesses, comparator);
-    }
 }

@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.test;
 
 import com.wjybxx.fastjgame.mrg.CuratorMrg;
-import com.wjybxx.fastjgame.mrg.GameConfigMrg;
 
 /**
  * @author wjybxx
@@ -30,8 +29,7 @@ public class BarrierTest {
     private static final String path = "/watcher/checkExists";
 
     public static void main(String[] args) throws Exception {
-        GameConfigMrg gameConfigMrg = new GameConfigMrg();
-        CuratorMrg curatorMrg = new CuratorMrg(gameConfigMrg);
+        CuratorMrg curatorMrg = CuratorTest.newCuratorMrg();
         curatorMrg.start();
 
         System.out.println("------start wait------");

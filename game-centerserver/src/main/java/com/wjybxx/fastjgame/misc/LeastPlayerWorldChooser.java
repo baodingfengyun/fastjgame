@@ -16,13 +16,27 @@
 
 package com.wjybxx.fastjgame.misc;
 
+import com.wjybxx.fastjgame.core.SceneInCenterInfo;
+
+import javax.annotation.Nonnull;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
 /**
- * 标记注解，该注解注解的对象必须是无状态的
+ * 选择玩家最少的进程
  * @author wjybxx
  * @version 1.0
- * date - 2019/6/2 23:33
+ * date - 2019/6/23 19:38
  * github - https://github.com/hl845740757
  */
-public @interface Stateless {
+public class LeastPlayerWorldChooser implements SceneWorldChooser {
 
+    private static final Comparator<SceneInCenterInfo> comparator = Comparator.comparingInt(SceneInCenterInfo::getOnlinePlayerNum);
+
+    @Nonnull
+    @Override
+    public SceneInCenterInfo choose(List<SceneInCenterInfo> availableProcesses) {
+        return Collections.min(availableProcesses, comparator);
+    }
 }

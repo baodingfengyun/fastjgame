@@ -17,9 +17,9 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.core.SceneProcessType;
 import com.wjybxx.fastjgame.core.SceneRegion;
-import com.wjybxx.fastjgame.net.sync.SyncS2CSession;
+import com.wjybxx.fastjgame.core.SceneWorldType;
+import com.wjybxx.fastjgame.net.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +53,7 @@ public class SceneRegionMrg {
     }
 
     public void onWorldStart(){
-        if (sceneWorldInfoMrg.getSceneProcessType() == SceneProcessType.SINGLE){
+        if (sceneWorldInfoMrg.getSceneWorldType() == SceneWorldType.SINGLE){
             activeSingleSceneNormalRegions();
         }else {
             activeAllCrossSceneRegions();
@@ -108,8 +108,8 @@ public class SceneRegionMrg {
      * @return 启动成功
      */
     @Nonnull
-    public p_center_command_single_scene_start_result p_center_command_single_scene_start_handler(SyncS2CSession session, p_center_command_single_scene_start command){
-        assert sceneWorldInfoMrg.getSceneProcessType() == SceneProcessType.SINGLE;
+    public p_center_command_single_scene_start_result p_center_command_single_scene_start_handler(Session session, p_center_command_single_scene_start command){
+        assert sceneWorldInfoMrg.getSceneWorldType() == SceneWorldType.SINGLE;
         for (int regionId:command.getActiveMutexRegionsList()){
             SceneRegion sceneRegion=SceneRegion.forNumber(regionId);
             if (activeRegions.contains(sceneRegion)){
@@ -127,8 +127,8 @@ public class SceneRegionMrg {
      * @return 启动成功
      */
     @Nonnull
-    public p_center_command_single_scene_active_regions_result p_center_command_scene_active_regions_handler(SyncS2CSession session,p_center_command_single_scene_active_regions command){
-        assert sceneWorldInfoMrg.getSceneProcessType() == SceneProcessType.SINGLE;
+    public p_center_command_single_scene_active_regions_result p_center_command_scene_active_regions_handler(Session session,p_center_command_single_scene_active_regions command){
+        assert sceneWorldInfoMrg.getSceneWorldType() == SceneWorldType.SINGLE;
         for (int regionId:command.getActiveRegionsList()){
             SceneRegion sceneRegion=SceneRegion.forNumber(regionId);
             if (activeRegions.contains(sceneRegion)){

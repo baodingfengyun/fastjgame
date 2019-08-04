@@ -21,8 +21,6 @@ import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.onlinenode.CenterNodeData;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.mrg.*;
-import com.wjybxx.fastjgame.mrg.async.S2CSessionMrg;
-import com.wjybxx.fastjgame.mrg.sync.SyncS2CSessionMrg;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
@@ -31,9 +29,9 @@ import org.apache.zookeeper.CreateMode;
 
 import java.util.concurrent.TimeUnit;
 
-import static com.wjybxx.fastjgame.protobuffer.p_center_scene.*;
+import static com.wjybxx.fastjgame.protobuffer.p_center_scene.p_center_cross_scene_hello_result;
 import static com.wjybxx.fastjgame.protobuffer.p_center_scene.p_center_single_scene_hello_result;
-import static com.wjybxx.fastjgame.protobuffer.p_center_warzone.*;
+import static com.wjybxx.fastjgame.protobuffer.p_center_warzone.p_center_warzone_hello_result;
 
 /**
  * CENTER
@@ -42,7 +40,7 @@ import static com.wjybxx.fastjgame.protobuffer.p_center_warzone.*;
  * date - 2019/5/15 22:43
  * github - https://github.com/hl845740757
  */
-public class CenterWorld extends WorldCore {
+public class CenterWorld extends AbstractWorld {
 
     private final CenterDiscoverMrg centerDiscoverMrg;
     private final SceneInCenterInfoMrg sceneInCenterInfoMrg;
@@ -51,9 +49,9 @@ public class CenterWorld extends WorldCore {
     private final CenterSendMrg sendMrg;
 
     @Inject
-    public CenterWorld(WorldWrapper worldWrapper, WorldCoreWrapper coreWrapper, CenterDiscoverMrg centerDiscoverMrg,
+    public CenterWorld(WorldWrapper worldWrapper, CenterDiscoverMrg centerDiscoverMrg,
                        SceneInCenterInfoMrg sceneInCenterInfoMrg, WarzoneInCenterInfoMrg warzoneInCenterInfoMrg, CenterSendMrg sendMrg) {
-        super(worldWrapper, coreWrapper);
+        super(worldWrapper);
         this.centerDiscoverMrg = centerDiscoverMrg;
         this.sceneInCenterInfoMrg = sceneInCenterInfoMrg;
         centerWorldInfoMrg = (CenterWorldInfoMrg) worldWrapper.getWorldInfoMrg();
@@ -63,29 +61,18 @@ public class CenterWorld extends WorldCore {
 
     @Override
     protected void registerMessageHandlers() {
-        registerResponseMessageHandler(p_center_single_scene_hello_result.class, sceneInCenterInfoMrg::p_center_single_scene_hello_result_handler);
-        registerResponseMessageHandler(p_center_cross_scene_hello_result.class, sceneInCenterInfoMrg::p_center_cross_scene_hello_result_handler);
-        registerResponseMessageHandler(p_center_warzone_hello_result.class,warzoneInCenterInfoMrg::p_center_warzone_hello_result_handler);
+        registerMessageHandler(p_center_single_scene_hello_result.class, sceneInCenterInfoMrg::p_center_single_scene_hello_result_handler);
+        registerMessageHandler(p_center_cross_scene_hello_result.class, sceneInCenterInfoMrg::p_center_cross_scene_hello_result_handler);
+        registerMessageHandler(p_center_warzone_hello_result.class,warzoneInCenterInfoMrg::p_center_warzone_hello_result_handler);
     }
 
+    @Override
+    protected void registerRpcRequestHandlers() {
+
+    }
 
     @Override
     protected void registerHttpRequestHandlers() {
-
-    }
-
-    @Override
-    protected void registerSyncRequestHandlers() {
-
-    }
-
-    @Override
-    protected void registerAsyncSessionLifeAware(S2CSessionMrg s2CSessionMrg) {
-
-    }
-
-    @Override
-    protected void registerSyncSessionLifeAware(SyncS2CSessionMrg syncS2CSessionMrg) {
 
     }
 
@@ -99,19 +86,15 @@ public class CenterWorld extends WorldCore {
     }
 
     private void bindAndRegisterToZK() throws Exception {
-        // 绑定3个内部交互的端口
-        HostAndPort tcpHostAndPort = innerAcceptorMrg.bindInnerTcpPort(true);
-        HostAndPort syncRpcHostAndPort = innerAcceptorMrg.bindInnerSyncRpcPort(true);
+        // 它主动发起连接，不监听tcp，只监听http即可
         HostAndPort httpHostAndPort = innerAcceptorMrg.bindInnerHttpPort();
 
         // 注册到zk
         String parentPath= ZKPathUtils.onlineParentPath(centerWorldInfoMrg.getWarzoneId());
         String nodeName= ZKPathUtils.buildCenterNodeName(centerWorldInfoMrg.getPlatformType(), centerWorldInfoMrg.getServerId());
 
-        CenterNodeData centerNodeData =new CenterNodeData(tcpHostAndPort.toString(),
-                syncRpcHostAndPort.toString(),
-                httpHostAndPort.toString(),
-                centerWorldInfoMrg.getProcessGuid());
+        CenterNodeData centerNodeData =new CenterNodeData(httpHostAndPort.toString(),
+                centerWorldInfoMrg.getWorldGuid());
 
         final String path = ZKPaths.makePath(parentPath, nodeName);
         curatorMrg.waitForNodeDelete(path);
@@ -124,7 +107,7 @@ public class CenterWorld extends WorldCore {
 
     @Override
     protected void tickHook() {
-        centerDiscoverMrg.tick();
+
     }
 
     @Override

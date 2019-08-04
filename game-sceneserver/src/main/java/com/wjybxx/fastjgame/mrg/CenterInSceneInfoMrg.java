@@ -18,14 +18,11 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.constants.NetConstants;
 import com.wjybxx.fastjgame.core.CenterInSceneInfo;
-import com.wjybxx.fastjgame.core.SceneProcessType;
 import com.wjybxx.fastjgame.core.SceneRegion;
+import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.misc.PlatformType;
-import com.wjybxx.fastjgame.mrg.async.S2CSessionMrg;
-import com.wjybxx.fastjgame.mrg.sync.SyncS2CSessionMrg;
-import com.wjybxx.fastjgame.net.async.S2CSession;
+import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.world.SceneWorld;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -34,6 +31,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -51,11 +49,6 @@ import static com.wjybxx.fastjgame.protobuffer.p_center_scene.*;
 public class CenterInSceneInfoMrg {
 
     private static final Logger logger= LoggerFactory.getLogger(CenterInSceneInfoMrg.class);
-    /**
-     * scene接收其它服务器的连接，因此它作为连接的服务器方
-     */
-    private final S2CSessionMrg s2CSessionMrg;
-    private final SyncS2CSessionMrg syncS2CSessionMrg;
     private final SceneWorldInfoMrg sceneWorldInfoMrg;
     private final SceneRegionMrg sceneRegionMrg;
 
@@ -69,16 +62,13 @@ public class CenterInSceneInfoMrg {
     private final Map<PlatformType,Int2ObjectMap<CenterInSceneInfo>> platInfoMap=new EnumMap<>(PlatformType.class);
 
     @Inject
-    public CenterInSceneInfoMrg(S2CSessionMrg s2CSessionMrg, SyncS2CSessionMrg syncS2CSessionMrg,
-                                SceneWorldInfoMrg sceneWorldInfoMrg, SceneRegionMrg sceneRegionMrg) {
-        this.s2CSessionMrg = s2CSessionMrg;
-        this.syncS2CSessionMrg = syncS2CSessionMrg;
+    public CenterInSceneInfoMrg(SceneWorldInfoMrg sceneWorldInfoMrg, SceneRegionMrg sceneRegionMrg) {
         this.sceneWorldInfoMrg = sceneWorldInfoMrg;
         this.sceneRegionMrg = sceneRegionMrg;
     }
 
     private void addInfo(CenterInSceneInfo centerInSceneInfo){
-        guid2InfoMap.put(centerInSceneInfo.getCenterProcessGuid(),centerInSceneInfo);
+        guid2InfoMap.put(centerInSceneInfo.getCenterWorldGuid(),centerInSceneInfo);
         Int2ObjectMap<CenterInSceneInfo> serverId2InfoMap = platInfoMap.computeIfAbsent(centerInSceneInfo.getPlatformType(),
                         platformType -> new Int2ObjectOpenHashMap<>());
         serverId2InfoMap.put(centerInSceneInfo.getServerId(),centerInSceneInfo);
@@ -87,7 +77,7 @@ public class CenterInSceneInfoMrg {
     }
 
     private void removeInfo(CenterInSceneInfo centerInSceneInfo){
-        guid2InfoMap.remove(centerInSceneInfo.getCenterProcessGuid());
+        guid2InfoMap.remove(centerInSceneInfo.getCenterWorldGuid());
         platInfoMap.get(centerInSceneInfo.getPlatformType()).remove(centerInSceneInfo.getServerId());
 
         logger.info("remove center server {}-{}",centerInSceneInfo.getPlatformType(),centerInSceneInfo.getServerId());
@@ -95,17 +85,17 @@ public class CenterInSceneInfoMrg {
 
     /**
      * 检测到center服进程会话断开
-     * @param centerProcessGuid center服务器进程guid
+     * @param centerWorldGuid center服务器进程guid
      */
-    public void onDisconnect(long centerProcessGuid, SceneWorld sceneWorld){
-        CenterInSceneInfo centerInSceneInfo = guid2InfoMap.get(centerProcessGuid);
+    public void onDisconnect(long centerWorldGuid, SceneWorld sceneWorld){
+        CenterInSceneInfo centerInSceneInfo = guid2InfoMap.get(centerWorldGuid);
         if (null == centerInSceneInfo){
             return;
         }
         removeInfo(centerInSceneInfo);
 
         // 跨服场景，收到某个center服宕机，无所谓(跨服场景会链接很多个center服)
-        if (sceneWorldInfoMrg.getSceneProcessType() == SceneProcessType.CROSS){
+        if (sceneWorldInfoMrg.getSceneWorldType() == SceneWorldType.CROSS){
             // 将该服的玩家下线
             offlineSpecialCenterPlayer(centerInSceneInfo.getPlatformType(),centerInSceneInfo.getServerId());
 
@@ -117,7 +107,8 @@ public class CenterInSceneInfoMrg {
         assert centerInSceneInfo.getPlatformType() == sceneWorldInfoMrg.getPlatformType();
         assert centerInSceneInfo.getServerId() == sceneWorldInfoMrg.getServerId();
         offlineAllOnlinePlayer();
-        sceneWorld.requestShutdown();
+
+        sceneWorld.deregister();
     }
 
     /**
@@ -141,19 +132,19 @@ public class CenterInSceneInfoMrg {
      * @param session 会话信息
      * @param hello 简单信息
      */
-    public void p_center_single_scene_hello_handler(S2CSession session, p_center_single_scene_hello hello) {
+    public void p_center_single_scene_hello_handler(Session session, p_center_single_scene_hello hello) {
         PlatformType platformType=PlatformType.forNumber(hello.getPlatformNumber());
-        assert !guid2InfoMap.containsKey(session.getClientGuid());
+        assert !guid2InfoMap.containsKey(session.remoteGuid());
         assert !platInfoMap.containsKey(platformType) || !platInfoMap.get(platformType).containsKey(hello.getServerId());
 
-        CenterInSceneInfo centerInSceneInfo=new CenterInSceneInfo(session.getClientGuid(), platformType, hello.getServerId());
+        CenterInSceneInfo centerInSceneInfo = new CenterInSceneInfo(session.remoteGuid(), platformType, hello.getServerId(), session);
         addInfo(centerInSceneInfo);
 
         p_center_single_scene_hello_result.Builder builder = p_center_single_scene_hello_result.newBuilder();
         for (SceneRegion sceneRegion:sceneWorldInfoMrg.getConfiguredRegions()){
             builder.addConfiguredRegions(sceneRegion.getNumber());
         }
-        s2CSessionMrg.send(session.getClientGuid(),builder.build());
+        session.sendMessage(builder.build());
     }
 
     /**
@@ -161,12 +152,12 @@ public class CenterInSceneInfoMrg {
      * @param session 会话信息
      * @param hello 简单信息
      */
-    public void p_center_cross_scene_hello_handler(S2CSession session,p_center_cross_scene_hello hello){
+    public void p_center_cross_scene_hello_handler(Session session,p_center_cross_scene_hello hello){
         PlatformType platformType=PlatformType.forNumber(hello.getPlatformNumber());
-        assert !guid2InfoMap.containsKey(session.getClientGuid());
+        assert !guid2InfoMap.containsKey(session.remoteGuid());
         assert !platInfoMap.containsKey(platformType) || !platInfoMap.get(platformType).containsKey(hello.getServerId());
 
-        CenterInSceneInfo centerInSceneInfo=new CenterInSceneInfo(session.getClientGuid(), platformType, hello.getServerId());
+        CenterInSceneInfo centerInSceneInfo=new CenterInSceneInfo(session.remoteGuid(), platformType, hello.getServerId(), session);
         addInfo(centerInSceneInfo);
 
         p_center_cross_scene_hello_result.Builder builder = p_center_cross_scene_hello_result.newBuilder();
@@ -178,15 +169,23 @@ public class CenterInSceneInfoMrg {
         for (SceneRegion sceneRegion:sceneRegionMrg.getActiveRegions()){
             builder.addConfiguredRegions(sceneRegion.getNumber());
         }
-        s2CSessionMrg.send(session.getClientGuid(),builder.build());
+        session.sendMessage(builder.build());
     }
 
-    public long getCenterGuid(PlatformType platformType,int serverId){
+    /**
+     * 获取中心服的session
+     * @param platformType 平台
+     * @param serverId 区服
+     * @return session
+     */
+    @Nullable
+    public Session getCenterSession(PlatformType platformType,int serverId) {
         Int2ObjectMap<CenterInSceneInfo> serverId2InfoMap = platInfoMap.get(platformType);
         if (null == serverId2InfoMap){
-            return NetConstants.INVALID_SESSION_ID;
+            return null;
         }
         CenterInSceneInfo centerInSceneInfo = serverId2InfoMap.get(serverId);
-        return null == centerInSceneInfo? NetConstants.INVALID_SESSION_ID : centerInSceneInfo.getCenterProcessGuid();
+        return centerInSceneInfo.getSession();
     }
+
 }

@@ -32,26 +32,26 @@ public class CrossSceneNodeName {
     /**
      * guid
      */
-    private final long sceneProcessGuid;
+    private final long worldGuid;
 
-    public CrossSceneNodeName(int warzoneId, long sceneProcessGuid) {
+    public CrossSceneNodeName(int warzoneId, long worldGuid) {
         this.warzoneId = warzoneId;
-        this.sceneProcessGuid = sceneProcessGuid;
+        this.worldGuid = worldGuid;
     }
 
     public int getWarzoneId() {
         return warzoneId;
     }
 
-    public long getSceneProcessGuid() {
-        return sceneProcessGuid;
+    public long getWorldGuid() {
+        return worldGuid;
     }
 
     @Override
     public String toString() {
         return "CrossSceneNodeName{" +
                 "warzoneId=" + warzoneId +
-                ", sceneProcessGuid=" + sceneProcessGuid +
+                ", worldGuid=" + worldGuid +
                 '}';
     }
 }

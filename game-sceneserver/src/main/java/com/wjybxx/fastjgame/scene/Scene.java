@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.scene;
 
 import com.wjybxx.fastjgame.config.SceneConfig;
-import com.wjybxx.fastjgame.core.SceneProcessType;
+import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.core.SceneRegion;
 import com.wjybxx.fastjgame.gameobject.GameObject;
 import com.wjybxx.fastjgame.gameobject.Npc;
@@ -210,7 +210,7 @@ public abstract class Scene extends TriggerSystemImp {
     public abstract SceneType sceneType();
 
     public boolean isCross() {
-        return sceneConfig.sceneRegion.getSceneProcessType() == SceneProcessType.CROSS;
+        return sceneConfig.sceneRegion.getSceneWorldType() == SceneWorldType.CROSS;
     }
 
     // ----------------------------------------核心逻辑开始------------------------------

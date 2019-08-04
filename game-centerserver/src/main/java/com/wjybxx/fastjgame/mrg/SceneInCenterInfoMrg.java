@@ -19,19 +19,17 @@ package com.wjybxx.fastjgame.mrg;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.config.SceneConfig;
 import com.wjybxx.fastjgame.core.SceneInCenterInfo;
-import com.wjybxx.fastjgame.core.SceneProcessType;
+import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.core.SceneRegion;
 import com.wjybxx.fastjgame.core.onlinenode.CrossSceneNodeName;
 import com.wjybxx.fastjgame.core.onlinenode.SceneNodeData;
 import com.wjybxx.fastjgame.core.onlinenode.SingleSceneNodeName;
 import com.wjybxx.fastjgame.misc.HostAndPort;
-import com.wjybxx.fastjgame.misc.LeastPlayerProcessChooser;
-import com.wjybxx.fastjgame.misc.SceneProcessChooser;
-import com.wjybxx.fastjgame.mrg.async.C2SSessionMrg;
-import com.wjybxx.fastjgame.mrg.sync.SyncC2SSessionMrg;
-import com.wjybxx.fastjgame.net.async.C2SSession;
-import com.wjybxx.fastjgame.net.common.RoleType;
-import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
+import com.wjybxx.fastjgame.misc.LeastPlayerWorldChooser;
+import com.wjybxx.fastjgame.misc.NetContext;
+import com.wjybxx.fastjgame.misc.SceneWorldChooser;
+import com.wjybxx.fastjgame.net.*;
+import com.wjybxx.fastjgame.net.initializer.TCPClientChannelInitializer;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -40,11 +38,12 @@ import it.unimi.dsi.fastutil.objects.ObjectCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 import static com.wjybxx.fastjgame.protobuffer.p_center_scene.*;
 import static com.wjybxx.fastjgame.protobuffer.p_sync_center_scene.p_center_command_single_scene_start;
-import static com.wjybxx.fastjgame.protobuffer.p_sync_center_scene.p_center_command_single_scene_start_result;
 
 /**
  * SceneServer在CenterServer中的连接等控制器。
@@ -62,13 +61,10 @@ public class SceneInCenterInfoMrg {
     /**
      * center主动连接scene，因此scene是服务器端，center是会话的客户端。
      */
-    private final C2SSessionMrg c2SSessionMrg;
-    private final SyncC2SSessionMrg syncC2SSessionMrg;
     private final CenterWorldInfoMrg centerWorldInfoMrg;
-    private final InnerAcceptorMrg innerAcceptorMrg;
     private final TemplateMrg templateMrg;
 
-    private final SceneProcessChooser sceneProcessChooser = new LeastPlayerProcessChooser();
+    private final SceneWorldChooser sceneWorldChooser = new LeastPlayerWorldChooser();
     /**
      * scene信息集合（我的私有场景和跨服场景）
      * sceneGuid->sceneInfo
@@ -79,33 +75,35 @@ public class SceneInCenterInfoMrg {
      */
     private final Int2ObjectMap<SceneInCenterInfo> channelId2InfoMap=new Int2ObjectOpenHashMap<>();
 
-    @Inject
-    public SceneInCenterInfoMrg(C2SSessionMrg c2SSessionMrg, SyncC2SSessionMrg syncC2SSessionMrg,
-                                CenterWorldInfoMrg centerWorldInfoMrg, InnerAcceptorMrg innerAcceptorMrg, TemplateMrg templateMrg) {
+    private final NetContextManager netContextManager;
+    private final CodecHelperMrg codecHelperMrg;
+    private final MessageDispatcherMrg messageDispatcherMrg;
 
-        this.c2SSessionMrg = c2SSessionMrg;
-        this.syncC2SSessionMrg = syncC2SSessionMrg;
+    @Inject
+    public SceneInCenterInfoMrg(CenterWorldInfoMrg centerWorldInfoMrg, TemplateMrg templateMrg, NetContextManager netContextManager, CodecHelperMrg codecHelperMrg, MessageDispatcherMrg messageDispatcherMrg) {
         this.centerWorldInfoMrg = centerWorldInfoMrg;
-        this.innerAcceptorMrg = innerAcceptorMrg;
         this.templateMrg = templateMrg;
+        this.netContextManager = netContextManager;
+        this.codecHelperMrg = codecHelperMrg;
+        this.messageDispatcherMrg = messageDispatcherMrg;
     }
 
     private void addSceneInfo(SceneInCenterInfo sceneInCenterInfo) {
-        guid2InfoMap.put(sceneInCenterInfo.getSceneProcessGuid(), sceneInCenterInfo);
+        guid2InfoMap.put(sceneInCenterInfo.getSceneWorldGuid(), sceneInCenterInfo);
         channelId2InfoMap.put(sceneInCenterInfo.getChanelId(), sceneInCenterInfo);
 
-        logger.info("add {} scene ,channelId={}",sceneInCenterInfo.getProcessType(),sceneInCenterInfo.getChanelId());
+        logger.info("add {} scene ,channelId={}",sceneInCenterInfo.getWorldType(),sceneInCenterInfo.getChanelId());
     }
 
     private void removeSceneInfo(SceneInCenterInfo sceneInCenterInfo) {
-        guid2InfoMap.remove(sceneInCenterInfo.getSceneProcessGuid());
+        guid2InfoMap.remove(sceneInCenterInfo.getSceneWorldGuid());
         channelId2InfoMap.remove(sceneInCenterInfo.getChanelId());
 
-        logger.info("remove {} scene ,channelId={}",sceneInCenterInfo.getProcessType(),sceneInCenterInfo.getChanelId());
+        logger.info("remove {} scene ,channelId={}",sceneInCenterInfo.getWorldType(),sceneInCenterInfo.getChanelId());
     }
 
-    public SceneInCenterInfo getSceneInfo(long processGuid) {
-        return guid2InfoMap.get(processGuid);
+    public SceneInCenterInfo getSceneInfo(long worldGuid) {
+        return guid2InfoMap.get(worldGuid);
     }
 
     public SceneInCenterInfo getSceneInfo(int channelId) {
@@ -124,19 +122,20 @@ public class SceneInCenterInfoMrg {
     public void onDiscoverSingleScene(SingleSceneNodeName singleSceneNodeName, SceneNodeData onlineSceneNode){
         // 注册异步tcp会话
         HostAndPort tcpHostAndPort=HostAndPort.parseHostAndPort(onlineSceneNode.getInnerTcpAddress());
-        innerAcceptorMrg.registerAsyncTcpSession(singleSceneNodeName.getSceneProcessGuid(),RoleType.SCENE,
-                tcpHostAndPort,new SingleSceneAware());
 
-        // 注册同步rpc会话
-        HostAndPort syncRpcHostAndPort=HostAndPort.parseHostAndPort(onlineSceneNode.getInnerRpcAddress());
-        innerAcceptorMrg.registerSyncRpcSession(singleSceneNodeName.getSceneProcessGuid(), RoleType.SCENE,
-                syncRpcHostAndPort,
-                session -> guid2InfoMap.containsKey(session.getServerGuid()));
+        NetContext netContext = netContextManager.getNetContext();
+        TCPClientChannelInitializer tcpClientChannelInitializer = netContext.
+                newTcpClientInitializer(singleSceneNodeName.getWorldGuid(), codecHelperMrg.getInnerCodecHolder());
+
+        netContext.connect(singleSceneNodeName.getWorldGuid(), RoleType.SCENE, tcpHostAndPort,
+                () -> tcpClientChannelInitializer,
+                new SingleSceneAware(),
+                messageDispatcherMrg);
 
         // 保存信息
-        SceneInCenterInfo sceneInCenterInfo = new SceneInCenterInfo(singleSceneNodeName.getSceneProcessGuid(),
+        SceneInCenterInfo sceneInCenterInfo = new SceneInCenterInfo(singleSceneNodeName.getWorldGuid(),
                 onlineSceneNode.getChannelId(),
-                SceneProcessType.SINGLE,
+                SceneWorldType.SINGLE,
                 onlineSceneNode.getOuterTcpAddress(),
                 onlineSceneNode.getOuterWebsocketAddress());
 
@@ -148,7 +147,7 @@ public class SceneInCenterInfoMrg {
      * @param singleSceneNodeName 单服节点名字
      */
     public void onSingleSceneNodeRemoved(SingleSceneNodeName singleSceneNodeName){
-        onSceneDisconnect(singleSceneNodeName.getSceneProcessGuid());
+        onSceneDisconnect(singleSceneNodeName.getWorldGuid());
     }
 
     /**
@@ -159,20 +158,20 @@ public class SceneInCenterInfoMrg {
     public void onDiscoverCrossScene(CrossSceneNodeName crossSceneNodeName, SceneNodeData onlineSceneNode){
         // 注册异步会话
         HostAndPort tcpHostAndPort=HostAndPort.parseHostAndPort(onlineSceneNode.getInnerTcpAddress());
-        innerAcceptorMrg.registerAsyncTcpSession(crossSceneNodeName.getSceneProcessGuid(), RoleType.SCENE,
-                tcpHostAndPort,
-                new CrossSceneAware());
 
-        // 注册同步rpc会话
-        HostAndPort syncRpcHostAndPort=HostAndPort.parseHostAndPort(onlineSceneNode.getInnerRpcAddress());
-        innerAcceptorMrg.registerSyncRpcSession(crossSceneNodeName.getSceneProcessGuid(), RoleType.SCENE,
-                syncRpcHostAndPort,
-                session -> guid2InfoMap.containsKey(session.getServerGuid()));
+        NetContext netContext = netContextManager.getNetContext();
+        TCPClientChannelInitializer tcpClientChannelInitializer = netContext.
+                newTcpClientInitializer(crossSceneNodeName.getWorldGuid(), codecHelperMrg.getInnerCodecHolder());
+
+        netContext.connect(crossSceneNodeName.getWorldGuid(), RoleType.SCENE, tcpHostAndPort,
+                () -> tcpClientChannelInitializer,
+                new CrossSceneAware(),
+                messageDispatcherMrg);
 
         // 保存信息
-        SceneInCenterInfo sceneInCenterInfo = new SceneInCenterInfo(crossSceneNodeName.getSceneProcessGuid(),
+        SceneInCenterInfo sceneInCenterInfo = new SceneInCenterInfo(crossSceneNodeName.getWorldGuid(),
                 onlineSceneNode.getChannelId(),
-                SceneProcessType.CROSS,
+                SceneWorldType.CROSS,
                 onlineSceneNode.getOuterTcpAddress(),
                 onlineSceneNode.getOuterWebsocketAddress());
 
@@ -184,27 +183,29 @@ public class SceneInCenterInfoMrg {
      * @param crossSceneNodeName 跨服节点名字
      */
     public void onCrossSceneNodeRemoved(CrossSceneNodeName crossSceneNodeName){
-        onSceneDisconnect(crossSceneNodeName.getSceneProcessGuid());
+        onSceneDisconnect(crossSceneNodeName.getWorldGuid());
     }
 
     /**
      * 当与scene断开连接(异步tcp会话断掉，或zk节点消失)
      */
-    private void onSceneDisconnect(long sceneProcessGuid){
-        // 移除会话
-        c2SSessionMrg.removeSession(sceneProcessGuid,"node removed or disconnect");
-        syncC2SSessionMrg.removeSession(sceneProcessGuid,"node removed or disconnect");
-        SceneInCenterInfo sceneInCenterInfo = guid2InfoMap.get(sceneProcessGuid);
+    private void onSceneDisconnect(long sceneWorldGuid){
+        SceneInCenterInfo sceneInCenterInfo = guid2InfoMap.get(sceneWorldGuid);
         // 可能是一个无效的会话
         if (null== sceneInCenterInfo){
             return;
         }
+        // 关闭会话
+        if (null != sceneInCenterInfo.getSession()) {
+            sceneInCenterInfo.getSession().close();
+        }
+
         removeSceneInfo(sceneInCenterInfo);
 
         offlinePlayer(sceneInCenterInfo);
 
         // 跨服场景就此打住
-        if (sceneInCenterInfo.getProcessType()== SceneProcessType.CROSS){
+        if (sceneInCenterInfo.getWorldType()== SceneWorldType.CROSS){
             return;
         }
         // 本服场景
@@ -218,16 +219,18 @@ public class SceneInCenterInfoMrg {
     /**
      * 本服scene会话信息
      */
-    private class SingleSceneAware implements SessionLifecycleAware<C2SSession>{
+    private class SingleSceneAware implements SessionLifecycleAware<C2SSession> {
 
         @Override
         public void onSessionConnected(C2SSession session) {
+            getSceneInfo(session.remoteGuid()).setSession(session);
+
             p_center_single_scene_hello hello = p_center_single_scene_hello
                     .newBuilder()
                     .setPlatformNumber(centerWorldInfoMrg.getPlatformType().getNumber())
                     .setServerId(centerWorldInfoMrg.getServerId())
                     .build();
-            c2SSessionMrg.send(session.getServerGuid(), hello);
+            session.sendMessage(hello);
         }
 
         @Override
@@ -243,12 +246,14 @@ public class SceneInCenterInfoMrg {
 
         @Override
         public void onSessionConnected(C2SSession session) {
+            getSceneInfo(session.remoteGuid()).setSession(session);
+
             p_center_cross_scene_hello hello = p_center_cross_scene_hello
                     .newBuilder()
                     .setPlatformNumber(centerWorldInfoMrg.getPlatformType().getNumber())
                     .setServerId(centerWorldInfoMrg.getServerId())
                     .build();
-            c2SSessionMrg.send(session.getServerGuid(), hello);
+            session.sendMessage(hello);
         }
 
         @Override
@@ -262,9 +267,9 @@ public class SceneInCenterInfoMrg {
      * @param session scene会话信息
      * @param result
      */
-    public void p_center_single_scene_hello_result_handler(C2SSession session, p_center_single_scene_hello_result result) {
-        assert guid2InfoMap.containsKey(session.getServerGuid());
-        SceneInCenterInfo sceneInCenterInfo=guid2InfoMap.get(session.getServerGuid());
+    public void p_center_single_scene_hello_result_handler(Session session, p_center_single_scene_hello_result result) {
+        assert guid2InfoMap.containsKey(session.remoteGuid());
+        SceneInCenterInfo sceneInCenterInfo=guid2InfoMap.get(session.remoteGuid());
 
         Set<SceneRegion> configuredRegions = sceneInCenterInfo.getConfiguredRegions();
         Set<SceneRegion> activeRegions = sceneInCenterInfo.getActiveRegions();
@@ -282,8 +287,9 @@ public class SceneInCenterInfoMrg {
         p_center_command_single_scene_start command = p_center_command_single_scene_start.newBuilder()
                 .addActiveMutexRegions(SceneRegion.LOCAL_PKC.getNumber())
                 .build();
-        Optional<p_center_command_single_scene_start_result> response = syncC2SSessionMrg.call(session.getServerGuid(), command);
-        if (response.isPresent()){
+
+        RpcResponse rpcResponse = sceneInCenterInfo.getSession().syncRpc(command);
+        if (rpcResponse.isSuccess()){
             activeRegions.add(SceneRegion.LOCAL_PKC);
         }else {
             // 遇见这个需要好好处理(适当增加超时时间)，尽量不能失败
@@ -296,9 +302,9 @@ public class SceneInCenterInfoMrg {
      * @param session 与跨服场景的会话
      * @param result 响应结果
      */
-    public void p_center_cross_scene_hello_result_handler(C2SSession session, p_center_cross_scene_hello_result result) {
-        assert guid2InfoMap.containsKey(session.getServerGuid());
-        SceneInCenterInfo sceneInCenterInfo=guid2InfoMap.get(session.getServerGuid());
+    public void p_center_cross_scene_hello_result_handler(Session session, p_center_cross_scene_hello_result result) {
+        assert guid2InfoMap.containsKey(session.remoteGuid());
+        SceneInCenterInfo sceneInCenterInfo=guid2InfoMap.get(session.remoteGuid());
         // 配置的区域
         Set<SceneRegion> configuredRegions = sceneInCenterInfo.getConfiguredRegions();
         for (int regionId:result.getConfiguredRegionsList()){
@@ -331,10 +337,10 @@ public class SceneInCenterInfoMrg {
         }
         try {
             if (availableSceneProcessList.size() == 1){
-                return availableSceneProcessList.get(0).getSceneProcessGuid();
+                return availableSceneProcessList.get(0).getSceneWorldGuid();
             }
-            SceneInCenterInfo choose = sceneProcessChooser.choose(availableSceneProcessList);
-            return choose.getSceneProcessGuid();
+            SceneInCenterInfo choose = sceneWorldChooser.choose(availableSceneProcessList);
+            return choose.getSceneWorldGuid();
         }finally {
             availableSceneProcessList.clear();
         }

@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.test;
 
 import com.wjybxx.fastjgame.mrg.CuratorMrg;
-import com.wjybxx.fastjgame.mrg.GameConfigMrg;
 import org.apache.zookeeper.CreateMode;
 
 /**
@@ -33,8 +32,7 @@ import org.apache.zookeeper.CreateMode;
 public class SequentialNodeTest {
 
     public static void main(String[] args) throws Exception {
-        GameConfigMrg gameConfigMrg = new GameConfigMrg();
-        CuratorMrg curatorMrg = new CuratorMrg(gameConfigMrg);
+        CuratorMrg curatorMrg = CuratorTest.newCuratorMrg();
         curatorMrg.start();
 
         String nodeName = curatorMrg.createNode("/online/channel/lock-", CreateMode.EPHEMERAL_SEQUENTIAL);

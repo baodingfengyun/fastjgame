@@ -19,8 +19,7 @@ package com.wjybxx.fastjgame.mrg;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.CenterInWarzoneInfo;
 import com.wjybxx.fastjgame.misc.PlatformType;
-import com.wjybxx.fastjgame.mrg.async.S2CSessionMrg;
-import com.wjybxx.fastjgame.net.async.S2CSession;
+import com.wjybxx.fastjgame.net.Session;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -46,10 +45,6 @@ public class CenterInWarzoneInfoMrg {
 
     private static final Logger logger= LoggerFactory.getLogger(CenterInWarzoneInfoMrg.class);
     /**
-     * 由于是center发起的连接，因此warzone作为服务方。
-     */
-    private final S2CSessionMrg s2CSessionMrg;
-    /**
      * guid -> info
      */
     private final Long2ObjectMap<CenterInWarzoneInfo> guid2InfoMap=new Long2ObjectOpenHashMap<>();
@@ -59,12 +54,12 @@ public class CenterInWarzoneInfoMrg {
     private final Map<PlatformType,Int2ObjectMap<CenterInWarzoneInfo>> platInfoMap=new EnumMap<>(PlatformType.class);
 
     @Inject
-    public CenterInWarzoneInfoMrg(S2CSessionMrg s2CSessionMrg) {
-        this.s2CSessionMrg = s2CSessionMrg;
+    public CenterInWarzoneInfoMrg() {
+
     }
 
     private void addInfo(CenterInWarzoneInfo centerInWarzoneInfo){
-        guid2InfoMap.put(centerInWarzoneInfo.getGameProcessGuid(),centerInWarzoneInfo);
+        guid2InfoMap.put(centerInWarzoneInfo.getGameWorldGuid(),centerInWarzoneInfo);
 
         Int2ObjectMap<CenterInWarzoneInfo> serverId2InfoMap = getServerId2InfoMap(centerInWarzoneInfo.getPlatformType());
         serverId2InfoMap.put(centerInWarzoneInfo.getServerId(),centerInWarzoneInfo);
@@ -77,24 +72,24 @@ public class CenterInWarzoneInfoMrg {
     }
 
     private void removeInfo(CenterInWarzoneInfo centerInWarzoneInfo){
-        guid2InfoMap.remove(centerInWarzoneInfo.getGameProcessGuid());
+        guid2InfoMap.remove(centerInWarzoneInfo.getGameWorldGuid());
         getServerId2InfoMap(centerInWarzoneInfo.getPlatformType()).remove(centerInWarzoneInfo.getServerId());
 
         logger.info("server {}-{} disconnect.",centerInWarzoneInfo.getPlatformType(),centerInWarzoneInfo.getServerId());
     }
 
-    public void p_center_warzone_hello_handler(S2CSession session, p_center_warzone_hello hello) {
+    public void p_center_warzone_hello_handler(Session session, p_center_warzone_hello hello) {
         PlatformType platformType=PlatformType.forNumber(hello.getPlatfomNumber());
-        assert !guid2InfoMap.containsKey(session.getClientGuid());
+        assert !guid2InfoMap.containsKey(session.remoteGuid());
         assert !platInfoMap.containsKey(platformType) || !platInfoMap.get(platformType).containsKey(hello.getServerId());
 
-        CenterInWarzoneInfo centerInWarzoneInfo=new CenterInWarzoneInfo(session.getClientGuid(), platformType, hello.getServerId());
+        CenterInWarzoneInfo centerInWarzoneInfo = new CenterInWarzoneInfo(session.remoteGuid(), platformType, hello.getServerId(), session);
         addInfo(centerInWarzoneInfo);
-        s2CSessionMrg.send(session.getClientGuid(), p_center_warzone_hello_result.newBuilder().build());
+        session.sendMessage(p_center_warzone_hello_result.newBuilder().build());
     }
 
-    public void onCenterServerDisconnect(S2CSession session){
-        CenterInWarzoneInfo centerInWarzoneInfo = guid2InfoMap.get(session.getClientGuid());
+    public void onCenterServerDisconnect(Session session){
+        CenterInWarzoneInfo centerInWarzoneInfo = guid2InfoMap.get(session.remoteGuid());
         if (null==centerInWarzoneInfo){
             return;
         }

@@ -57,7 +57,7 @@ public class CenterInLoginInfoMrg {
         Int2ObjectMap<CenterInLoginInfo> serverId2InfoMap = getServerId2InfoMap(nodeName.getPlatformType());
         assert !serverId2InfoMap.containsKey(nodeName.getServerId());
 
-        CenterInLoginInfo centerInLoginInfo=new CenterInLoginInfo(nodeData.getProcessGuid(),nodeName.getPlatformType(),
+        CenterInLoginInfo centerInLoginInfo=new CenterInLoginInfo(nodeData.getWorldGuid(),nodeName.getPlatformType(),
                 nodeName.getServerId(),nodeData.getInnerHttpAddress());
         serverId2InfoMap.put(nodeName.getServerId(),centerInLoginInfo);
         logger.info("{}-{} nodeData added.",nodeName.getPlatformType(),nodeName.getServerId());

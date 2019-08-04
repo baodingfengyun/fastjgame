@@ -14,30 +14,31 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.mrg;
+package com.wjybxx.fastjgame.misc;
 
-import com.google.inject.Inject;
+import com.wjybxx.fastjgame.core.SceneInCenterInfo;
+
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.NotThreadSafe;
+import java.util.List;
 
 /**
- * WorldCore的processGuid通过guidMrg生成
+ * 场景进程选择器,不提供线程安全性，因为设计里只有主线程使用；
+ * 内部可能会有一些状态；
  * @author wjybxx
  * @version 1.0
- * date - 2019/5/13 10:30
+ * date - 2019/6/23 19:10
  * github - https://github.com/hl845740757
  */
-public abstract class WorldCoreInfoMrg extends WorldInfoMrg{
+@NotThreadSafe
+public interface SceneWorldChooser {
+
     /**
-     * 游戏世界进程guid
+     * 从多个可用场景进程中选择一个进程。
+     * @param availableProcesses size >= 2
+     * @return selection
      */
-    private long processGuid;
+    @Nonnull
+    SceneInCenterInfo choose(List<SceneInCenterInfo> availableProcesses);
 
-    @Inject
-    public WorldCoreInfoMrg(GuidMrg guidMrg) {
-        processGuid =guidMrg.generateGuid();
-    }
-
-    @Override
-    public final long getProcessGuid() {
-        return processGuid;
-    }
 }

@@ -17,17 +17,16 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.misc.ObjectHolder;
-import com.wjybxx.fastjgame.misc.AbstractThreadLifeCycleHelper;
-import com.wjybxx.fastjgame.misc.BackoffRetryForever;
+import com.wjybxx.fastjgame.concurrent.misc.AbstractThreadLifeCycleHelper;
 import com.wjybxx.fastjgame.misc.LockPathAction;
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-import com.wjybxx.fastjgame.utils.GameUtils;
-import com.wjybxx.fastjgame.utils.ZKPathUtils;
+import com.wjybxx.fastjgame.misc.ObjectHolder;
+import com.wjybxx.fastjgame.utils.*;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.barriers.DistributedBarrier;
-import org.apache.curator.framework.recipes.cache.*;
+import org.apache.curator.framework.recipes.cache.ChildData;
+import org.apache.curator.framework.recipes.cache.NodeCache;
+import org.apache.curator.framework.recipes.cache.PathChildrenCache;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 import org.apache.curator.utils.CloseableExecutorService;
 import org.apache.curator.utils.ZKPaths;
@@ -41,8 +40,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <h3>Curator</h3>
@@ -87,20 +85,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 @NotThreadSafe
 public class CuratorMrg extends AbstractThreadLifeCycleHelper {
 
-    private static final Logger logger= LoggerFactory.getLogger(CuratorMrg.class);
+    private static final Logger logger = LoggerFactory.getLogger(CuratorMrg.class);
 
-    private final GameConfigMrg gameConfigMrg;
-    /**
-     * CuratorFramework instances are fully thread-safe.
-     * You should share one CuratorFramework per ZooKeeper cluster in your application.
-     */
-    private final CuratorFramework client;
-    /**
-     * curator事件监听线程池,减少创建的线程数;
-     * 不可共享，因为它必须是单线程的，以保持事件顺序。
-     * 如果共享，如果有人修改线程数将出现问题。
-     */
-    private final ThreadPoolExecutor watcherExecutor;
     /**
      * 每个路径的锁信息
      */
@@ -110,26 +96,15 @@ public class CuratorMrg extends AbstractThreadLifeCycleHelper {
      */
     private final List<PathChildrenCache> allocateNodeCache=new ArrayList<>(10);
 
+    private final CuratorClientMrg clientMrg;
+    private final CuratorFramework client;
+    private final GameEventLoopMrg gameEventLoopMrg;
+
     @Inject
-    public CuratorMrg(GameConfigMrg gameConfigMrg) throws InterruptedException {
-        this.gameConfigMrg = gameConfigMrg;
-        client= newStartedClient();
-
-        // 该线程池不要共享的好，它必须是单线程的，如果放在外部容易出问题
-        watcherExecutor =new ThreadPoolExecutor(1,1,
-                5, TimeUnit.SECONDS,
-                new LinkedBlockingQueue<>(),
-                new WatcherThreadFactory());
-    }
-
-    private static class WatcherThreadFactory implements ThreadFactory{
-
-        private final AtomicInteger globalIndex=new AtomicInteger(0);
-
-        @Override
-        public Thread newThread(Runnable r) {
-            return new Thread(r,"watcher_thread_"+globalIndex.getAndIncrement());
-        }
+    public CuratorMrg(CuratorClientMrg curatorClientMrg, GameEventLoopMrg gameEventLoopMrg) {
+        this.clientMrg = curatorClientMrg;
+        this.client = curatorClientMrg.getClient();
+        this.gameEventLoopMrg = gameEventLoopMrg;
     }
 
     /**
@@ -139,24 +114,6 @@ public class CuratorMrg extends AbstractThreadLifeCycleHelper {
         return client;
     }
 
-    /**
-     * 为外部提供创建client的工厂方法。
-     * 注意：创建的client在使用完之后必须调用{@link CuratorFramework#close()}关闭
-     * @return 已调用启动方法的客户端
-     */
-    private CuratorFramework newStartedClient() throws InterruptedException {
-        CuratorFramework framework = CuratorFrameworkFactory.builder()
-                .namespace(gameConfigMrg.getZkNameSpace())
-                .connectString(gameConfigMrg.getZkConnectString())
-                .connectionTimeoutMs(gameConfigMrg.getZkConnectionTimeoutMs())
-                .sessionTimeoutMs(gameConfigMrg.getZkSessionTimeoutMs())
-                .retryPolicy(newForeverRetry())
-                .build();
-        framework.start();
-        framework.blockUntilConnected();
-        return framework;
-    }
-
     @Override
     protected void startImp() throws Exception {
         // 在构造方法中启动
@@ -164,30 +121,7 @@ public class CuratorMrg extends AbstractThreadLifeCycleHelper {
 
     @Override
     protected void shutdownImp() {
-        client.close();
-        allocateNodeCache.forEach(GameUtils::closeQuietly);
-        watcherExecutor.shutdownNow();
-    }
-
-    /**
-     * 使用默认的参数创建一个带退避算法的永久尝试策略。
-     * 默认最小等待时间50ms;
-     * 默认最大等待时间3s;
-     * @return
-     */
-    public BackoffRetryForever newForeverRetry(){
-        // 50ms - 3s 默认时间是很难调整和确定的
-        return newForeverRetry(50,3000);
-    }
-
-    /**
-     * 使用指定参数创建一个带退避算法的永久尝试策略
-     * @param baseSleepTimeMs 起始等待时间(最小等待时间)(毫秒)
-     * @param maxSleepTimeMs 最大等待时间(毫秒)
-     * @return
-     */
-    public BackoffRetryForever newForeverRetry(int baseSleepTimeMs, int maxSleepTimeMs){
-        return new BackoffRetryForever(baseSleepTimeMs,maxSleepTimeMs);
+        CollectionUtils.removeIfAndThen(allocateNodeCache, FunctionUtils::TRUE, GameUtils::closeQuietly);
     }
 
     /**
@@ -430,41 +364,42 @@ public class CuratorMrg extends AbstractThreadLifeCycleHelper {
      * 如果你忘记关闭，那么会在curator关闭的时候统一关闭。
      * 更多线程安全问题，请查看类文档中提到的笔记。
      * @param path 父节点
-     * @param listener 缓存初始化之后的事件，listener中的处理是事件一定后于
+     * @param listener 缓存事件监听器，运行在逻辑线程，不必考虑线程安全。
      * @return 当前孩子节点数据
-     * @throws Exception
+     * @throws Exception zk errors
      */
     public List<ChildData> watchChildren(String path, @Nonnull PathChildrenCacheListener listener) throws Exception {
         // CloseableExecutorService这个还是不共享的好
-        CloseableExecutorService watcherService = new CloseableExecutorService(watcherExecutor, false);
+        CloseableExecutorService watcherService = clientMrg.newClosableExecutorService();
         // 指定pathChildrenCache接收事件的线程，复用线程池，以节省开销。
         PathChildrenCache pathChildrenCache = new PathChildrenCache(client, path, true, false, watcherService);
-        // 捕获初始化之前的事件，并将其保存到初始化数据中
-        InitCaptureListener initCaptureListener = new InitCaptureListener(listener);
-        // 先添加listener以确保不会遗漏事件
-        pathChildrenCache.getListenable().addListener(initCaptureListener);
+
+        // 先添加listener以确保不会遗漏事件 --- 使用EventLoop线程监听，消除同步，listener不必考虑线程安全问题。
+        pathChildrenCache.getListenable().addListener(listener, gameEventLoopMrg.getEventLoop());
         this.allocateNodeCache.add(pathChildrenCache);
 
-        pathChildrenCache.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
-
-        // 等待初始化数据完毕
-        initCaptureListener.awaitWithRetry(1,TimeUnit.SECONDS);
-        return initCaptureListener.getInitChildData();
+        // 启动缓存
+        pathChildrenCache.start(PathChildrenCache.StartMode.BUILD_INITIAL_CACHE);
+        // TODO 潜在的竞争风险
+        // 说实话getCurrentData和后面的事件是有竞争风险的， 这种方式没有地方能安全获取初始化数据
+        return pathChildrenCache.getCurrentData();
     }
 
     /**
      * 等待节点出现。
      * @param path 节点路径
      * @return 节点的数据
+     * @deprecated 尽量不要阻塞线程，会导致该线程上的其它world也阻塞！
      */
+    @Deprecated
     public byte[] waitForNodeCreate(String path) throws Exception {
         // 使用NodeCache的话，写了太多代码，搞得复杂了，不利于维护，使用简单的轮询代替。
         // 轮询虽然不雅观，但是正确性易保证
-        ObjectHolder<byte[]> resultHolder=new ObjectHolder<>();
+        ObjectHolder<byte[]> resultHolder = new ObjectHolder<>();
         ConcurrentUtils.awaitRemoteWithSleepingRetry(path, resource->{
             resultHolder.setValue(getDataIfPresent(resource));
             return resultHolder.getValue() != null;
-            },1,TimeUnit.SECONDS);
+            }, 1, TimeUnit.SECONDS);
         return resultHolder.getValue();
     }
 
@@ -472,7 +407,9 @@ public class CuratorMrg extends AbstractThreadLifeCycleHelper {
      * 等待节点删除，当节点不存在，立即返回（注意先检查后执行的原子性问题）。
      * @param path 节点路径
      * @throws Exception zk errors
+     * @deprecated 尽量不要阻塞线程，会导致该线程上的其它world也阻塞！
      */
+    @Deprecated
     public void waitForNodeDelete(String path) throws Exception {
         final DistributedBarrier barrier = new DistributedBarrier(client, path);
         ConcurrentUtils.awaitRemoteUninterruptibly(barrier, DistributedBarrier::waitOnBarrier);
@@ -487,68 +424,6 @@ public class CuratorMrg extends AbstractThreadLifeCycleHelper {
         List<String> children = getChildren(path);
         if (children.size()==0){
             delete(path);
-        }
-    }
-
-    /**
-     * 初始化数据捕获监听器，运行在PathChildrenCache的线程池中，它通过事件恢复数据，以和main-EventThread产生事件时的状态一致。
-     */
-    private static class InitCaptureListener implements PathChildrenCacheListener{
-        /**
-         * pathChildrenCache的数据更新是在main-EventThread中，但是事件在我们的线程中。
-         * 这不是坑爹吗....
-         */
-        private final PathChildrenCacheListener after;
-        private boolean inited=false;
-
-        private final CountDownLatch countDownLatch=new CountDownLatch(1);
-        private List<ChildData> initChildData;
-
-        private InitCaptureListener(PathChildrenCacheListener after) {
-            this.after = after;
-        }
-
-        @Override
-        public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
-            if (event.getType() == PathChildrenCacheEvent.Type.INITIALIZED){
-                inited=true;
-                initChildData=event.getInitialData();
-                countDownLatch.countDown();
-                // 在这里移除自己，注册after的话会导致after也收到init事件.
-                return;
-            }
-
-            if (inited){
-                after.childEvent(client,event);
-                return;
-            }
-
-            switch (event.getType()){
-                case CHILD_ADDED:
-                case CHILD_UPDATED:
-                case CHILD_REMOVED:
-                    break;
-                    default:
-                        after.childEvent(client,event);
-                        break;
-            }
-        }
-
-        /**
-         * 等待结果期间保持心跳，以维持线程活性(避免资源socket等关闭)
-         * @param heartBeat 心跳间隔
-         * @param timeUnit 时间单位
-         */
-        void awaitWithRetry(long heartBeat, TimeUnit timeUnit) {
-            ConcurrentUtils.awaitWithRetry(countDownLatch,heartBeat,timeUnit);
-        }
-
-        /**
-         * 当你从{@link #awaitWithRetry(long, TimeUnit)}成功返回后，可获取初始化数据
-         * @return 初始化的数据的一个快照
-         */
-        List<ChildData> getInitChildData() {
-            return initChildData;
         }
     }
 

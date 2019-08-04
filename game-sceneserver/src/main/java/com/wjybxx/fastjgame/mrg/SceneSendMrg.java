@@ -19,12 +19,11 @@ package com.wjybxx.fastjgame.mrg;
 import com.google.inject.Inject;
 import com.google.protobuf.Message;
 import com.google.protobuf.Message.Builder;
-import com.wjybxx.fastjgame.constants.NetConstants;
 import com.wjybxx.fastjgame.gameobject.GameObject;
 import com.wjybxx.fastjgame.gameobject.Player;
 import com.wjybxx.fastjgame.misc.PlatformType;
 import com.wjybxx.fastjgame.misc.ViewGrid;
-import com.wjybxx.fastjgame.mrg.async.S2CSessionMrg;
+import com.wjybxx.fastjgame.net.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,11 +44,6 @@ import java.util.function.Predicate;
 public class SceneSendMrg {
 
     private static final Logger logger = LoggerFactory.getLogger(SceneSendMrg.class);
-
-    /**
-     * CenterServer 和 Player 连接Scene，而scene不主动发起连接，因此作为服务器方
-     */
-    private final S2CSessionMrg s2CSessionMrg;
     /**
      * center服在scene服中的信息
      */
@@ -57,8 +51,7 @@ public class SceneSendMrg {
     private final PlayerSessionMrg playerSessionMrg;
 
     @Inject
-    public SceneSendMrg(S2CSessionMrg s2CSessionMrg, CenterInSceneInfoMrg centerInSceneInfoMrg, PlayerSessionMrg playerSessionMrg) {
-        this.s2CSessionMrg = s2CSessionMrg;
+    public SceneSendMrg(CenterInSceneInfoMrg centerInSceneInfoMrg, PlayerSessionMrg playerSessionMrg) {
         this.centerInSceneInfoMrg = centerInSceneInfoMrg;
         this.playerSessionMrg = playerSessionMrg;
     }
@@ -69,7 +62,9 @@ public class SceneSendMrg {
      * @param msg 消息
      */
     public void sendToPlayer(Player player, Message msg){
-        s2CSessionMrg.send(player.getGuid(),msg);
+        if (null != player.getSession()) {
+            player.getSession().sendMessage(msg);
+        }
     }
 
     /**
@@ -97,12 +92,12 @@ public class SceneSendMrg {
      * @param msg 消息
      */
     public void sendToCenter(PlatformType platformType, int serverId, Message msg){
-        long centerGuid = centerInSceneInfoMrg.getCenterGuid(platformType, serverId);
-        if (NetConstants.isInvalid(centerGuid)){
-            logger.warn("send to disconnected center {}-{}",platformType,serverId);
+        Session session = centerInSceneInfoMrg.getCenterSession(platformType, serverId);
+        if (session == null){
+            logger.warn("send to disconnected center {}-{}", platformType, serverId);
             return;
         }
-        s2CSessionMrg.send(centerGuid,msg);
+        session.sendMessage(msg);
     }
 
     /**

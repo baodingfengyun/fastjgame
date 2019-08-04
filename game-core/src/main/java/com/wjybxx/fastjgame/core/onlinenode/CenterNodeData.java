@@ -23,20 +23,24 @@ package com.wjybxx.fastjgame.core.onlinenode;
  * date - 2019/5/15 17:21
  * github - https://github.com/hl845740757
  */
-public class CenterNodeData extends OnlineNodeData {
+public class CenterNodeData {
 
+    private final String innerHttpAddress;
     /**
-     * 进程唯一标识
+     * world唯一标识
      */
-    private final long processGuid;
+    private final long worldGuid;
 
-    public CenterNodeData(String innerTcpAddress, String innerRpcAddress, String innerHttpAddress, long processGuid) {
-        super(innerTcpAddress, innerRpcAddress, innerHttpAddress);
-        this.processGuid=processGuid;
+    public CenterNodeData(String innerHttpAddress, long worldGuid) {
+        this.innerHttpAddress = innerHttpAddress;
+        this.worldGuid = worldGuid;
     }
 
+    public String getInnerHttpAddress() {
+        return innerHttpAddress;
+    }
 
-    public long getProcessGuid() {
-        return processGuid;
+    public long getWorldGuid() {
+        return worldGuid;
     }
 }

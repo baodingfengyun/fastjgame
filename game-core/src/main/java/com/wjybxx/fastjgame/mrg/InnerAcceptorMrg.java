@@ -17,174 +17,67 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.initializer.InnerClientSyncRpcInitializer;
-import com.wjybxx.fastjgame.initializer.InnerServerSyncRpcInitializer;
-import com.wjybxx.fastjgame.initializer.InnerTCPClientChannelInitializer;
-import com.wjybxx.fastjgame.initializer.InnerTCPServerChannelInitializer;
+import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.misc.HostAndPort;
-import com.wjybxx.fastjgame.misc.ProtoBufHashMappingStrategy;
-import com.wjybxx.fastjgame.mrg.async.C2SSessionMrg;
-import com.wjybxx.fastjgame.mrg.async.S2CSessionMrg;
-import com.wjybxx.fastjgame.mrg.sync.SyncC2SSessionMrg;
-import com.wjybxx.fastjgame.mrg.sync.SyncS2CSessionMrg;
-import com.wjybxx.fastjgame.net.async.C2SSession;
-import com.wjybxx.fastjgame.net.async.initializer.HttpServerInitializer;
-import com.wjybxx.fastjgame.net.common.*;
-import com.wjybxx.fastjgame.net.sync.SyncC2SSession;
+import com.wjybxx.fastjgame.misc.NetContext;
+import com.wjybxx.fastjgame.net.C2SSession;
+import com.wjybxx.fastjgame.net.RoleType;
+import com.wjybxx.fastjgame.net.S2CSession;
+import com.wjybxx.fastjgame.net.SessionLifecycleAware;
+import com.wjybxx.fastjgame.net.initializer.HttpServerInitializer;
+import com.wjybxx.fastjgame.net.initializer.TCPClientChannelInitializer;
+import com.wjybxx.fastjgame.net.initializer.TCPServerChannelInitializer;
 import com.wjybxx.fastjgame.utils.GameUtils;
 
-import java.net.BindException;
-import java.util.function.Predicate;
-
 /**
- * 服务器之间建立链接的帮助类,对{@link AcceptorMrg}的封装。
- * codec不可构造的时候缓存，因为构造的时候能还未注册。
+ * 内部通信建立连接的辅助类
  * @author wjybxx
  * @version 1.0
- * date - 2019/5/16 11:00
+ * date - 2019/8/4
  * github - https://github.com/hl845740757
  */
 public class InnerAcceptorMrg {
 
     private final CodecHelperMrg codecHelperMrg;
-    private final NetConfigMrg netConfigMrg;
-    private final DisruptorMrg disruptorMrg;
-    private final WorldInfoMrg worldInfoMrg;
-    private final TokenMrg tokenMrg;
-
-    private final C2SSessionMrg c2SSessionMrg;
-    private final S2CSessionMrg s2CSessionMrg;
-    private final SyncC2SSessionMrg syncC2SSessionMrg;
-    private final SyncS2CSessionMrg syncS2CSessionMrg;
-    private final HttpClientMrg httpClientMrg;
+    private final MessageDispatcherMrg messageDispatcherMrg;
+    private final HttpDispatcherMrg httpDispatcherMrg;
+    private final NetContextManager netContextManager;
 
     @Inject
-    public InnerAcceptorMrg(CodecHelperMrg codecHelperMrg, NetConfigMrg netConfigMrg,
-                            DisruptorMrg disruptorMrg, S2CSessionMrg s2CSessionMrg, C2SSessionMrg c2SSessionMrg,
-                            WorldInfoMrg worldInfoMrg, TokenMrg tokenMrg, SyncC2SSessionMrg syncC2SSessionMrg,
-                            SyncS2CSessionMrg syncS2CSessionMrg, HttpClientMrg httpClientMrg) {
+    public InnerAcceptorMrg(CodecHelperMrg codecHelperMrg, MessageDispatcherMrg messageDispatcherMrg, HttpDispatcherMrg httpDispatcherMrg, NetContextManager netContextManager) {
         this.codecHelperMrg = codecHelperMrg;
-        this.netConfigMrg = netConfigMrg;
-        this.disruptorMrg = disruptorMrg;
-        this.s2CSessionMrg = s2CSessionMrg;
-        this.c2SSessionMrg = c2SSessionMrg;
-        this.worldInfoMrg = worldInfoMrg;
-        this.tokenMrg = tokenMrg;
-        this.syncC2SSessionMrg = syncC2SSessionMrg;
-        this.syncS2CSessionMrg = syncS2CSessionMrg;
-        this.httpClientMrg = httpClientMrg;
+        this.messageDispatcherMrg = messageDispatcherMrg;
+
+        this.httpDispatcherMrg = httpDispatcherMrg;
+        this.netContextManager = netContextManager;
     }
 
-    /**
-     * 在worldCore创建时调用
-     * @throws Exception mapping error , or init exception
-     */
-    public void registerInnerCodecHelper() throws Exception {
-        codecHelperMrg.registerCodecHelper(GameUtils.INNER_CODEC_NAME,
-                new ProtoBufHashMappingStrategy(),
-                new ProtoBufMessageSerializer());
+    public HostAndPort bindInnerTcpPort(boolean outer, SessionLifecycleAware<S2CSession> lifecycleAware) {
+        NetContext netContext = netContextManager.getNetContext();
+        TCPServerChannelInitializer serverChannelInitializer = netContext.newTcpServerInitializer(codecHelperMrg.getInnerCodecHolder());
+
+        ListenableFuture<HostAndPort> bindFuture = netContext.bindRange(outer, GameUtils.INNER_TCP_PORT_RANGE,
+                serverChannelInitializer, lifecycleAware, messageDispatcherMrg);
+
+        bindFuture.awaitUninterruptibly();
+        return bindFuture.tryGet();
     }
 
-    private CodecHelper getInnerCodecHelper() {
-        return codecHelperMrg.getCodecHelper(GameUtils.INNER_CODEC_NAME);
+    public HostAndPort bindInnerHttpPort() {
+        NetContext netContext = netContextManager.getNetContext();
+        HttpServerInitializer httpServerInitializer = netContext.newHttpServerInitializer();
+
+        ListenableFuture<HostAndPort> bindFuture = netContext.bindRange(false, GameUtils.INNER_HTTP_PORT_RANGE, httpServerInitializer, httpDispatcherMrg);
+        bindFuture.awaitUninterruptibly();
+        return bindFuture.tryGet();
     }
 
-    /**
-     * 绑定异步tcp请求
-     * @param outer 是否外网
-     * @return
-     */
-    public HostAndPort bindInnerTcpPort(boolean outer) throws BindException {
-        InnerTCPServerChannelInitializer tcpServerChannelInitializer = new InnerTCPServerChannelInitializer(netConfigMrg.maxFrameLength(),
-                getInnerCodecHelper(),
-                disruptorMrg);
+    public ListenableFuture<?> connect(long remoteGuid, RoleType remoteRole, HostAndPort hostAndPort, SessionLifecycleAware<C2SSession> lifecycleAware) {
+        NetContext netContext = netContextManager.getNetContext();
+        TCPClientChannelInitializer clientChannelInitializer = netContext.newTcpClientInitializer(remoteGuid, codecHelperMrg.getInnerCodecHolder());
 
-        return s2CSessionMrg.bindRange(outer,GameUtils.INNER_TCP_PORT_RANGE,tcpServerChannelInitializer);
-    }
-
-    /**
-     * 注册异步tcp会话
-     * @param serverGuid 服务器guid
-     * @param serverRoleType 服务器类型
-     * @param tcpHostAndPort 服务器地址
-     * @param lifecycleAware 会话生命周期通知
-     */
-    public void registerAsyncTcpSession(long serverGuid, RoleType serverRoleType, HostAndPort tcpHostAndPort, SessionLifecycleAware<C2SSession> lifecycleAware){
-        Token loginToken = tokenMrg.newLoginToken(worldInfoMrg.getProcessGuid(),worldInfoMrg.getProcessType(),
-                serverGuid,serverRoleType);
-        byte[] tokenBytes = tokenMrg.encryptToken(loginToken);
-
-        InnerTCPClientChannelInitializer tcpClientChannelInitializer = new InnerTCPClientChannelInitializer(netConfigMrg.maxFrameLength(),
-                disruptorMrg, getInnerCodecHelper());
-
-        c2SSessionMrg.register(serverGuid,serverRoleType,
-                tcpHostAndPort,
-                () -> tcpClientChannelInitializer,
-                lifecycleAware,
-                tokenBytes);
-    }
-
-    /**
-     * 绑定一个同步会话断开
-     * @param outer 是否外网
-     * @return
-     */
-    public HostAndPort bindInnerSyncRpcPort(boolean outer) throws BindException {
-        InnerServerSyncRpcInitializer serverSyncRpcInitializer = new InnerServerSyncRpcInitializer(netConfigMrg.maxFrameLength(),
-                getInnerCodecHelper(), syncS2CSessionMrg);
-        return syncS2CSessionMrg.bindRange(outer,GameUtils.INNER_SYNC_PORT_RANGE, serverSyncRpcInitializer);
-    }
-
-    /**
-     * 注册同步会话信息。
-     * 内部通信全部以异步会话为主，同步为辅，只要异步会话未删除，同步会话就可以保持重试。
-     * @param serverGuid 服务器guid
-     * @param serverRoleType 服务器角色类型
-     * @param syncRpcHostAndPort syncRpc端口信息
-     * @param reRegisterMatcher 重新注册的条件
-     */
-    public void registerSyncRpcSession(long serverGuid,RoleType serverRoleType, HostAndPort syncRpcHostAndPort,
-                                       Predicate<SyncC2SSession> reRegisterMatcher){
-        InnerClientSyncRpcInitializer syncRpcInitializer = new InnerClientSyncRpcInitializer(netConfigMrg.maxFrameLength(),
-                netConfigMrg.syncRpcPingInterval(),
-                getInnerCodecHelper(),
-                syncC2SSessionMrg);
-
-        syncC2SSessionMrg.registerServer(serverGuid,serverRoleType,
-                syncRpcHostAndPort,
-                () -> syncRpcInitializer,
-                new ReRegisterAware(reRegisterMatcher));
-    }
-
-    public HostAndPort bindInnerHttpPort() throws BindException {
-        HttpServerInitializer httpServerInitializer = new HttpServerInitializer(disruptorMrg);
-        return httpClientMrg.bindRange(true,GameUtils.INNER_HTTP_PORT_RANGE,httpServerInitializer);
-    }
-
-    /**
-     * 当会话断开时，如果符合条件，则重新注册的通知器
-     */
-    private class ReRegisterAware implements SessionLifecycleAware<SyncC2SSession>{
-
-        private final Predicate<SyncC2SSession> matcher;
-
-        private ReRegisterAware(Predicate<SyncC2SSession> matcher) {
-            this.matcher = matcher;
-        }
-
-        @Override
-        public void onSessionConnected(SyncC2SSession syncC2SSession) {
-
-        }
-
-        @Override
-        public void onSessionDisconnected(SyncC2SSession syncC2SSession) {
-            if (matcher.test(syncC2SSession)){
-                syncC2SSessionMrg.registerServer(syncC2SSession.getServerGuid(), syncC2SSession.getRoleType(),
-                        syncC2SSession.getHostAndPort(),
-                        syncC2SSession.getInitializerSupplier(),
-                        syncC2SSession.getLifeCycleAware());
-            }
-        }
+        return netContext.connect(remoteGuid, remoteRole, hostAndPort,
+                () -> clientChannelInitializer,
+                lifecycleAware, messageDispatcherMrg);
     }
 }

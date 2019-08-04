@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.findpath.jps;
 
-import com.wjybxx.fastjgame.misc.Stateless;
 import com.wjybxx.fastjgame.scene.MapGrid;
 
 import java.util.List;
@@ -30,7 +29,6 @@ import static com.wjybxx.fastjgame.findpath.FindPathUtils.addNeighborIfWalkable;
  * date - 2019/6/16 21:52
  * github - https://github.com/hl845740757
  */
-@Stateless
 public abstract class DiagonalJumStrategy extends JumpStrategy{
 
     // --------------------------------查找邻居------------------------------

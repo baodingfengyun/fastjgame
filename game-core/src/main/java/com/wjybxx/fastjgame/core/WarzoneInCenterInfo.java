@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.core;
 
+import com.wjybxx.fastjgame.net.Session;
+
 /**
  * WarzoneServer在CenterServer中的信息
  * @author wjybxx
@@ -27,13 +29,23 @@ public class WarzoneInCenterInfo {
     /**
      * 战区进程guid，也是会话id
      */
-    private final long warzoneProcessGuid;
+    private final long warzoneWorldGuid;
 
-    public WarzoneInCenterInfo(long warzoneProcessGuid) {
-        this.warzoneProcessGuid = warzoneProcessGuid;
+    private Session session;
+
+    public WarzoneInCenterInfo(long warzoneWorldGuid) {
+        this.warzoneWorldGuid = warzoneWorldGuid;
     }
 
-    public long getWarzoneProcessGuid() {
-        return warzoneProcessGuid;
+    public long getWarzoneWorldGuid() {
+        return warzoneWorldGuid;
+    }
+
+    public Session getSession() {
+        return session;
+    }
+
+    public void setSession(Session session) {
+        this.session = session;
     }
 }

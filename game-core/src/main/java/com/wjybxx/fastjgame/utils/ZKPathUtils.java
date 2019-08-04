@@ -16,10 +16,10 @@
 
 package com.wjybxx.fastjgame.utils;
 
-import com.wjybxx.fastjgame.core.SceneProcessType;
+import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.core.onlinenode.*;
 import com.wjybxx.fastjgame.misc.PlatformType;
-import com.wjybxx.fastjgame.net.common.RoleType;
+import com.wjybxx.fastjgame.net.RoleType;
 import org.apache.curator.utils.PathUtils;
 
 import java.io.File;
@@ -288,20 +288,20 @@ public class ZKPathUtils {
      * 为指定本服scene进程创建一个有意义的节点名字，用于注册到zookeeper
      * @param platformType 所属的平台
      * @param serverId 几服
-     * @param processGuid 进程guid
+     * @param worldGuid worldGuid
      * @return 唯一的有意义的名字
      */
-    public static String buildSingleSceneNodeName(PlatformType platformType, int serverId, long processGuid){
-        return RoleType.SCENE + "-" + SceneProcessType.SINGLE.name() + "-" + platformType + "-" + serverId + "-" + processGuid;
+    public static String buildSingleSceneNodeName(PlatformType platformType, int serverId, long worldGuid){
+        return RoleType.SCENE + "-" + SceneWorldType.SINGLE.name() + "-" + platformType + "-" + serverId + "-" + worldGuid;
     }
 
     /**
      * 为跨服节点创建一个有意义的节点名字，用于注册到zookeeper
-     * @param processGuid 进程guid
+     * @param worldGuid worldGuid
      * @return 唯一的有意义的名字
      */
-    public static String buildCrossSceneNodeName(long processGuid){
-        return RoleType.SCENE + "-" + SceneProcessType.CROSS.name() + "-" + processGuid;
+    public static String buildCrossSceneNodeName(long worldGuid){
+        return RoleType.SCENE + "-" + SceneWorldType.CROSS.name() + "-" + worldGuid;
     }
 
     /**
@@ -309,9 +309,9 @@ public class ZKPathUtils {
      * @param sceneNodePath scene节点的名字
      * @return scene进程的类型
      */
-    public static SceneProcessType parseSceneType(String sceneNodePath){
+    public static SceneWorldType parseSceneType(String sceneNodePath){
         String[] params = findNodeName(sceneNodePath).split("-", 3);
-        return SceneProcessType.valueOf(params[1]);
+        return SceneWorldType.valueOf(params[1]);
     }
 
     /**
@@ -324,8 +324,8 @@ public class ZKPathUtils {
         String[] params = findNodeName(path).split("-");
         PlatformType platformType = PlatformType.valueOf(params[2]);
         int serverId = Integer.parseInt(params[3]);
-        long processGuid = Long.parseLong(params[4]);
-        return new SingleSceneNodeName(warzoneId, platformType, serverId,processGuid);
+        long worldGuid = Long.parseLong(params[4]);
+        return new SingleSceneNodeName(warzoneId, platformType, serverId,worldGuid);
     }
 
     /**
@@ -336,18 +336,18 @@ public class ZKPathUtils {
     public static CrossSceneNodeName parseCrossSceneNodeName(String path){
         int warzoneId = findWarzoneId(path);
         String[] params = findNodeName(path).split("-");
-        long processGuid = Long.parseLong(params[2]);
-        return new CrossSceneNodeName(warzoneId,processGuid);
+        long worldGuid = Long.parseLong(params[2]);
+        return new CrossSceneNodeName(warzoneId,worldGuid);
     }
 
     /**
      * 为loginserver创建一个节点名字
      * @param port 端口号
-     * @param processGuid 进程guid
+     * @param worldGuid worldGuid
      * @return 一个唯一的有意义的名字
      */
-    public static String buildLoginNodeName(int port,long processGuid){
-        return RoleType.LOGIN + "-" + port + "-"+processGuid;
+    public static String buildLoginNodeName(int port,long worldGuid){
+        return RoleType.LOGIN + "-" + port + "-"+worldGuid;
     }
 
     /**
@@ -358,8 +358,8 @@ public class ZKPathUtils {
     public static LoginNodeName parseLoginNodeName(String path){
         String[] params = findNodeName(path).split("-");
         int port=Integer.parseInt(params[1]);
-        long processGuid = Long.parseLong(params[2]);
-        return new LoginNodeName(port,processGuid);
+        long worldGuid = Long.parseLong(params[2]);
+        return new LoginNodeName(port,worldGuid);
     }
     // endregion
 }

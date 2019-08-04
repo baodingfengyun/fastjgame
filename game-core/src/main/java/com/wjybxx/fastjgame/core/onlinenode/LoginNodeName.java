@@ -32,18 +32,18 @@ public class LoginNodeName {
     /**
      * 登录服进程guid
      */
-    private final long loginProcessGuid;
+    private final long loginWorldGuid;
 
-    public LoginNodeName(int port, long loginProcessGuid) {
+    public LoginNodeName(int port, long loginWorldGuid) {
         this.port = port;
-        this.loginProcessGuid = loginProcessGuid;
+        this.loginWorldGuid = loginWorldGuid;
     }
 
     public int getPort() {
         return port;
     }
 
-    public long getLoginProcessGuid() {
-        return loginProcessGuid;
+    public long getLoginWorldGuid() {
+        return loginWorldGuid;
     }
 }

@@ -17,10 +17,10 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.core.SceneProcessType;
+import com.wjybxx.fastjgame.concurrent.misc.AbstractThreadLifeCycleHelper;
+import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.core.onlinenode.*;
-import com.wjybxx.fastjgame.misc.AbstractThreadLifeCycleHelper;
-import com.wjybxx.fastjgame.net.common.RoleType;
+import com.wjybxx.fastjgame.net.RoleType;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.curator.framework.recipes.cache.ChildData;
@@ -54,13 +54,9 @@ public class CenterDiscoverMrg extends AbstractThreadLifeCycleHelper {
     private final SceneInCenterInfoMrg sceneInCenterInfoMrg;
 
     /**
-     * zk事件队列，由逻辑线程和watcher线程共同使用
-     */
-    private final ConcurrentLinkedQueue<PathChildrenCacheEvent> eventQueue=new ConcurrentLinkedQueue<>();
-    /**
      * 当前在先节点信息，只在逻辑线程使用
      */
-    private Map<String, ChildData> onlineNodeInfoMap=new HashMap<>();
+    private Map<String, ChildData> onlineNodeInfoMap = new HashMap<>();
 
     @Inject
     public CenterDiscoverMrg(CuratorMrg curatorMrg,CenterWorldInfoMrg centerWorldInfoMrg,
@@ -74,7 +70,9 @@ public class CenterDiscoverMrg extends AbstractThreadLifeCycleHelper {
     @Override
     protected void startImp() throws Exception {
         String watchPath = ZKPathUtils.onlineParentPath(centerWorldInfoMrg.getWarzoneId());
-        List<ChildData> childrenData = curatorMrg.watchChildren(watchPath, (client, event) -> eventQueue.offer(event));
+        // 新版本：回调就在world所在线程
+        List<ChildData> childrenData = curatorMrg.watchChildren(watchPath,
+                (client, event) -> onEvent(event.getType(), event.getData()));
 
         // 初始监听
         childrenData.forEach(e->onEvent(Type.CHILD_ADDED,e));
@@ -83,13 +81,6 @@ public class CenterDiscoverMrg extends AbstractThreadLifeCycleHelper {
     @Override
     protected void shutdownImp() {
 
-    }
-
-    public void tick(){
-        PathChildrenCacheEvent e;
-        while ((e=eventQueue.poll())!=null){
-            onEvent(e.getType(),e.getData());
-        }
     }
 
     private void onEvent(Type type,ChildData childData){
@@ -124,9 +115,9 @@ public class CenterDiscoverMrg extends AbstractThreadLifeCycleHelper {
      * @param childData 场景数据
      */
     private void onSceneEvent(Type type, ChildData childData) {
-        SceneProcessType sceneProcessType = ZKPathUtils.parseSceneType(childData.getPath());
+        SceneWorldType sceneWorldType = ZKPathUtils.parseSceneType(childData.getPath());
         SceneNodeData sceneNodeData = JsonUtils.parseJsonBytes(childData.getData(), SceneNodeData.class);
-        if (sceneProcessType==SceneProcessType.SINGLE){
+        if (sceneWorldType == SceneWorldType.SINGLE){
             // 单服场景
             SingleSceneNodeName singleSceneNodeName = ZKPathUtils.parseSingleSceneNodeName(childData.getPath());
             if (singleSceneNodeName.getPlatformType() != centerWorldInfoMrg.getPlatformType()
