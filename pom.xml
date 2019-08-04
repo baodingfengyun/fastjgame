@@ -17,8 +17,6 @@
 
     <!-- 子模块 -->
     <modules>
-        <module>game-utils</module>
-        <module>game-net</module>
         <module>game-core</module>
         <module>game-centerserver</module>
         <module>game-sceneserver</module>
@@ -39,7 +37,23 @@
                     <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
+
+            <!-- 源码插件 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
+
     </build>
 
     <dependencyManagement>
