@@ -16,14 +16,11 @@
 
 package com.wjybxx.fastjgame.test;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 import com.wjybxx.fastjgame.Bootstrap;
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupImp;
 import com.wjybxx.fastjgame.module.CenterModule;
-import com.wjybxx.fastjgame.module.GlobalModule;
 import com.wjybxx.fastjgame.world.GameEventLoopGroup;
 import com.wjybxx.fastjgame.world.GameEventLoopGroupImp;
 
@@ -41,16 +38,15 @@ import java.io.File;
 public class CenterWorldTest {
 
     public static void main(String[] args) throws Exception {
-        Injector globalModule = Guice.createInjector(new GlobalModule());
-        NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET"));
-        GameEventLoopGroup gameEventLoopGroup = new GameEventLoopGroupImp(1,
-                new DefaultThreadFactory("LOGIC-WORLD"), netEventLoopGroup);
-
         String logDir=new File("").getAbsolutePath() + File.separator + "log";
         String logFilePath = logDir + File.separator + "center.log";
         System.setProperty("logFilePath",logFilePath);
 
-        new Bootstrap<>(globalModule, gameEventLoopGroup)
+
+        NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET"));
+        GameEventLoopGroup gameEventLoopGroup = new GameEventLoopGroupImp(1, new DefaultThreadFactory("LOGIC-WORLD"), netEventLoopGroup);
+
+        new Bootstrap<>(gameEventLoopGroup)
                 .setArgs(args)
                 .setFramesPerSecond(5)
                 .addModule(new CenterModule())

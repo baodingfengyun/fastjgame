@@ -45,12 +45,10 @@ public class WarzoneWorldTest {
         String logFilePath = logDir + File.separator + "warzone.log";
         System.setProperty("logFilePath",logFilePath);
 
-        Injector globalModule = Guice.createInjector(new GlobalModule());
         NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET"));
-        GameEventLoopGroup gameEventLoopGroup = new GameEventLoopGroupImp(1,
-                new DefaultThreadFactory("LOGIC-WORLD"), netEventLoopGroup);
+        GameEventLoopGroup gameEventLoopGroup = new GameEventLoopGroupImp(1, new DefaultThreadFactory("LOGIC-WORLD"), netEventLoopGroup);
 
-        new Bootstrap<>(globalModule, gameEventLoopGroup)
+        new Bootstrap<>(gameEventLoopGroup)
                 .setArgs(args)
                 .setFramesPerSecond(5)
                 .addModule(new WarzoneModule())

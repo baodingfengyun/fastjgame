@@ -23,6 +23,7 @@ import com.wjybxx.fastjgame.concurrent.misc.AbstractThreadLifeCycleHelper;
 import com.wjybxx.fastjgame.configwrapper.ArrayConfigWrapper;
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
 import com.wjybxx.fastjgame.configwrapper.MapConfigWrapper;
+import com.wjybxx.fastjgame.module.GlobalModule;
 import com.wjybxx.fastjgame.mrg.WorldInfoMrg;
 import com.wjybxx.fastjgame.utils.MathUtils;
 import com.wjybxx.fastjgame.world.GameEventLoopGroup;
@@ -40,7 +41,9 @@ import java.util.Set;
  */
 public class Bootstrap<T extends Bootstrap<T>> extends AbstractThreadLifeCycleHelper {
 
-    private final Injector globalModule;
+    /** 全局单例，必须都是线程安全的类 */
+    private static final Injector globalModule = Guice.createInjector(new GlobalModule());
+
     private final GameEventLoopGroup gameEventLoopGroup;
 
     private ConfigWrapper startArgs = MapConfigWrapper.EMPTY_MAP_WRAPPER;
@@ -48,8 +51,7 @@ public class Bootstrap<T extends Bootstrap<T>> extends AbstractThreadLifeCycleHe
 
     private Set<AbstractModule> childrenModules = new HashSet<>();
 
-    public Bootstrap(Injector globalModule, GameEventLoopGroup gameEventLoopGroup) {
-        this.globalModule = globalModule;
+    public Bootstrap(GameEventLoopGroup gameEventLoopGroup) {
         this.gameEventLoopGroup = gameEventLoopGroup;
     }
 
