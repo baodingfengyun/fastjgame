@@ -17,6 +17,8 @@
 package com.wjybxx.fastjgame.start;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import com.wjybxx.fastjgame.Bootstrap;
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.core.SceneRegion;
@@ -71,7 +73,7 @@ public class StartUp {
 
     public static void main(String[] args) throws Exception {
         // 试一试ALL IN ONE
-        GlobalModule globalModule = new GlobalModule();
+        Injector globalModule = Guice.createInjector(new GlobalModule());
         // NET线程数最少1个
         NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupImp(4, new DefaultThreadFactory("NET"));
         // Game线程数需要多一点，因为目前部分启动实现是阻塞方式的，zookeeper节点不存在/存在的情况下回阻塞，后期会改动
@@ -92,7 +94,7 @@ public class StartUp {
         start(globalModule, gameEventLoopGroup, new LoginModule(), loginArgs, 10);
     }
 
-    private static void start(GlobalModule globalModule, GameEventLoopGroup gameEventLoopGroup,
+    private static void start(Injector globalModule, GameEventLoopGroup gameEventLoopGroup,
                               AbstractModule module, String[] args, int framesPerSecond) throws Exception {
 
         new Bootstrap<>(globalModule, gameEventLoopGroup)

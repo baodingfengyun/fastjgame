@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.test;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import com.wjybxx.fastjgame.Bootstrap;
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
@@ -39,7 +41,7 @@ import java.io.File;
 public class CenterWorldTest {
 
     public static void main(String[] args) throws Exception {
-        GlobalModule globalModule = new GlobalModule();
+        Injector globalModule = Guice.createInjector(new GlobalModule());
         NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET"));
         GameEventLoopGroup gameEventLoopGroup = new GameEventLoopGroupImp(1,
                 new DefaultThreadFactory("LOGIC-WORLD"), netEventLoopGroup);

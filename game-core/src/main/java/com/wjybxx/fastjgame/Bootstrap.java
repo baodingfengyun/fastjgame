@@ -40,17 +40,17 @@ import java.util.Set;
  */
 public class Bootstrap<T extends Bootstrap<T>> extends AbstractThreadLifeCycleHelper {
 
-    private final AbstractModule globalModule;
+    private final Injector globalModule;
     private final GameEventLoopGroup gameEventLoopGroup;
 
     private ConfigWrapper startArgs = MapConfigWrapper.EMPTY_MAP_WRAPPER;
     private int framesPerSecond = 20;
-    private Set<AbstractModule> moduleSet = new HashSet<>();
 
-    public Bootstrap(AbstractModule globalModule, GameEventLoopGroup gameEventLoopGroup) {
+    private Set<AbstractModule> childrenModules = new HashSet<>();
+
+    public Bootstrap(Injector globalModule, GameEventLoopGroup gameEventLoopGroup) {
         this.globalModule = globalModule;
         this.gameEventLoopGroup = gameEventLoopGroup;
-        moduleSet.add(globalModule);
     }
 
     @SuppressWarnings("unchecked")
@@ -82,13 +82,13 @@ public class Bootstrap<T extends Bootstrap<T>> extends AbstractThreadLifeCycleHe
     }
 
     public T addModule(AbstractModule module) {
-        moduleSet.add(module);
+        childrenModules.add(module);
         return self();
     }
 
     @Override
     protected void startImp() throws Exception {
-        Injector injector = Guice.createInjector(moduleSet);
+        Injector injector = globalModule.createChildInjector(childrenModules);
         WorldInfoMrg worldInfoMrg = injector.getInstance(WorldInfoMrg.class);
         worldInfoMrg.init(startArgs, framesPerSecond);
 
