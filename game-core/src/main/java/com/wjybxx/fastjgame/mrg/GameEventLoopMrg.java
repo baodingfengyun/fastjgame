@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
+import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.world.GameEventLoop;
 
 import javax.annotation.Nonnull;
@@ -44,6 +45,10 @@ public class GameEventLoopMrg {
             throw new IllegalStateException();
         }
         return eventLoop;
+    }
+
+    public NetEventLoopGroup getNetEventLoopGroup() {
+        return getEventLoop().netEventLoopGroup();
     }
 
     public void setEventLoop(@Nonnull GameEventLoop eventLoop) {

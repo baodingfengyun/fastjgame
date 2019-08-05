@@ -42,19 +42,19 @@ public class InnerAcceptorMrg {
     private final CodecHelperMrg codecHelperMrg;
     private final MessageDispatcherMrg messageDispatcherMrg;
     private final HttpDispatcherMrg httpDispatcherMrg;
-    private final NetContextManager netContextManager;
+    private final NetContextMrg netContextMrg;
 
     @Inject
-    public InnerAcceptorMrg(CodecHelperMrg codecHelperMrg, MessageDispatcherMrg messageDispatcherMrg, HttpDispatcherMrg httpDispatcherMrg, NetContextManager netContextManager) {
+    public InnerAcceptorMrg(CodecHelperMrg codecHelperMrg, MessageDispatcherMrg messageDispatcherMrg, HttpDispatcherMrg httpDispatcherMrg, NetContextMrg netContextMrg) {
         this.codecHelperMrg = codecHelperMrg;
         this.messageDispatcherMrg = messageDispatcherMrg;
 
         this.httpDispatcherMrg = httpDispatcherMrg;
-        this.netContextManager = netContextManager;
+        this.netContextMrg = netContextMrg;
     }
 
     public HostAndPort bindInnerTcpPort(SessionLifecycleAware<S2CSession> lifecycleAware) {
-        NetContext netContext = netContextManager.getNetContext();
+        NetContext netContext = netContextMrg.getNetContext();
         TCPServerChannelInitializer serverChannelInitializer = netContext.newTcpServerInitializer(codecHelperMrg.getInnerCodecHolder());
 
         ListenableFuture<HostAndPort> bindFuture = netContext.bindRange(NetUtils.getLocalIp(), GameUtils.INNER_TCP_PORT_RANGE,
@@ -65,7 +65,7 @@ public class InnerAcceptorMrg {
     }
 
     public HostAndPort bindInnerHttpPort() {
-        NetContext netContext = netContextManager.getNetContext();
+        NetContext netContext = netContextMrg.getNetContext();
         HttpServerInitializer httpServerInitializer = netContext.newHttpServerInitializer();
 
         ListenableFuture<HostAndPort> bindFuture = netContext.bindRange(NetUtils.getLocalIp(), GameUtils.INNER_HTTP_PORT_RANGE, httpServerInitializer, httpDispatcherMrg);
@@ -74,7 +74,7 @@ public class InnerAcceptorMrg {
     }
 
     public ListenableFuture<?> connect(long remoteGuid, RoleType remoteRole, HostAndPort hostAndPort, SessionLifecycleAware<C2SSession> lifecycleAware) {
-        NetContext netContext = netContextManager.getNetContext();
+        NetContext netContext = netContextMrg.getNetContext();
         TCPClientChannelInitializer clientChannelInitializer = netContext.newTcpClientInitializer(remoteGuid, codecHelperMrg.getInnerCodecHolder());
 
         return netContext.connect(remoteGuid, remoteRole, hostAndPort,

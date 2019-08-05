@@ -45,7 +45,7 @@ public class WarzoneInCenterInfoMrg {
     private static final Logger logger= LoggerFactory.getLogger(WarzoneInCenterInfoMrg.class);
 
     private final CenterWorldInfoMrg centerWorldInfoMrg;
-    private final NetContextManager netContextManager;
+    private final NetContextMrg netContextMrg;
     private final CodecHelperMrg codecHelperMrg;
     private final MessageDispatcherMrg messageDispatcherMrg;
 
@@ -55,8 +55,8 @@ public class WarzoneInCenterInfoMrg {
     private WarzoneInCenterInfo warzoneInCenterInfo;
 
     @Inject
-    public WarzoneInCenterInfoMrg(CenterWorldInfoMrg centerWorldInfoMrg, NetContextManager netContextManager, CodecHelperMrg codecHelperMrg, MessageDispatcherMrg messageDispatcherMrg) {
-        this.netContextManager = netContextManager;
+    public WarzoneInCenterInfoMrg(CenterWorldInfoMrg centerWorldInfoMrg, NetContextMrg netContextMrg, CodecHelperMrg codecHelperMrg, MessageDispatcherMrg messageDispatcherMrg) {
+        this.netContextMrg = netContextMrg;
         this.codecHelperMrg = codecHelperMrg;
         this.centerWorldInfoMrg = centerWorldInfoMrg;
         this.messageDispatcherMrg = messageDispatcherMrg;
@@ -80,7 +80,7 @@ public class WarzoneInCenterInfoMrg {
         // 注册异步tcp会话
         HostAndPort tcpHostAndPort = HostAndPort.parseHostAndPort(warzoneNodeData.getInnerTcpAddress());
 
-        NetContext netContext = netContextManager.getNetContext();
+        NetContext netContext = netContextMrg.getNetContext();
         TCPClientChannelInitializer tcpClientChannelInitializer = netContext.
                 newTcpClientInitializer(warzoneNodeData.getWorldGuid(), codecHelperMrg.getInnerCodecHolder());
 

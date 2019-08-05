@@ -18,10 +18,13 @@ package com.wjybxx.fastjgame.world;
 
 import com.wjybxx.fastjgame.concurrent.EventLoopGroup;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 
 import javax.annotation.Nonnull;
 
 /**
+ * 游戏循环组
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/4
@@ -44,5 +47,13 @@ public interface GameEventLoopGroup extends EventLoopGroup {
      * @param frameInterval 游戏世界帧间隔(tick间隔)
      * @return future
      */
+    @Nonnull
     ListenableFuture<?> registerWorld(World world, long frameInterval);
+
+    /**
+     * 获取游戏循环依赖的网络模块组件
+     * @return 游戏模块依赖的网络模块
+     */
+    @Nonnull
+    NetEventLoopGroup netEventLoopGroup();
 }

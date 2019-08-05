@@ -75,15 +75,15 @@ public class SceneInCenterInfoMrg {
      */
     private final Int2ObjectMap<SceneInCenterInfo> channelId2InfoMap=new Int2ObjectOpenHashMap<>();
 
-    private final NetContextManager netContextManager;
+    private final NetContextMrg netContextMrg;
     private final CodecHelperMrg codecHelperMrg;
     private final MessageDispatcherMrg messageDispatcherMrg;
 
     @Inject
-    public SceneInCenterInfoMrg(CenterWorldInfoMrg centerWorldInfoMrg, TemplateMrg templateMrg, NetContextManager netContextManager, CodecHelperMrg codecHelperMrg, MessageDispatcherMrg messageDispatcherMrg) {
+    public SceneInCenterInfoMrg(CenterWorldInfoMrg centerWorldInfoMrg, TemplateMrg templateMrg, NetContextMrg netContextMrg, CodecHelperMrg codecHelperMrg, MessageDispatcherMrg messageDispatcherMrg) {
         this.centerWorldInfoMrg = centerWorldInfoMrg;
         this.templateMrg = templateMrg;
-        this.netContextManager = netContextManager;
+        this.netContextMrg = netContextMrg;
         this.codecHelperMrg = codecHelperMrg;
         this.messageDispatcherMrg = messageDispatcherMrg;
     }
@@ -123,7 +123,7 @@ public class SceneInCenterInfoMrg {
         // 注册异步tcp会话
         HostAndPort tcpHostAndPort=HostAndPort.parseHostAndPort(onlineSceneNode.getInnerTcpAddress());
 
-        NetContext netContext = netContextManager.getNetContext();
+        NetContext netContext = netContextMrg.getNetContext();
         TCPClientChannelInitializer tcpClientChannelInitializer = netContext.
                 newTcpClientInitializer(singleSceneNodeName.getWorldGuid(), codecHelperMrg.getInnerCodecHolder());
 
@@ -159,7 +159,7 @@ public class SceneInCenterInfoMrg {
         // 注册异步会话
         HostAndPort tcpHostAndPort=HostAndPort.parseHostAndPort(onlineSceneNode.getInnerTcpAddress());
 
-        NetContext netContext = netContextManager.getNetContext();
+        NetContext netContext = netContextMrg.getNetContext();
         TCPClientChannelInitializer tcpClientChannelInitializer = netContext.
                 newTcpClientInitializer(crossSceneNodeName.getWorldGuid(), codecHelperMrg.getInnerCodecHolder());
 

@@ -55,8 +55,15 @@ public class GameEventLoopGroupImp extends MultiThreadEventLoopGroup implements 
         return new GameEventLoopImp(this, threadFactory, (NetEventLoopGroup)context);
     }
 
+    @Nonnull
     @Override
     public ListenableFuture<?> registerWorld(World world, long frameInterval) {
         return next().registerWorld(world, frameInterval);
+    }
+
+    @Nonnull
+    @Override
+    public NetEventLoopGroup netEventLoopGroup() {
+        return (NetEventLoopGroup) context;
     }
 }

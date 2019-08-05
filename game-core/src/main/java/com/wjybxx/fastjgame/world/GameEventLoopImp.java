@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.world;
 
 import com.wjybxx.fastjgame.concurrent.*;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
+import com.wjybxx.fastjgame.utils.EventLoopUtils;
 import com.wjybxx.fastjgame.utils.TimeUtils;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -42,18 +43,20 @@ public class GameEventLoopImp extends SingleThreadEventLoop implements GameEvent
 
     private static final Logger logger = LoggerFactory.getLogger(GameEventLoopImp.class);
     /** 最多执行多少个任务，必须检测一次world循环 */
-    private static final int FORCE_LOOP_TASK = 1000;
+    private static final int MAX_BATCH_SIZE = 1000;
 
     private final Long2ObjectMap<WorldFrameInfo> worldFrameInfoMap = new Long2ObjectOpenHashMap<>();
     /** 游戏世界需要的网络模块 */
     private final NetEventLoopGroup netEventLoopGroup;
 
-    public GameEventLoopImp(@Nullable EventLoopGroup parent, @Nonnull ThreadFactory threadFactory,
+    public GameEventLoopImp(@Nullable EventLoopGroup parent,
+                            @Nonnull ThreadFactory threadFactory,
                             @Nonnull NetEventLoopGroup netEventLoopGroup) {
         this(parent, threadFactory, RejectedExecutionHandlers.reject(), netEventLoopGroup);
     }
 
-    public GameEventLoopImp(@Nullable EventLoopGroup parent, @Nonnull ThreadFactory threadFactory,
+    public GameEventLoopImp(@Nullable EventLoopGroup parent,
+                            @Nonnull ThreadFactory threadFactory,
                             @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
                             @Nonnull NetEventLoopGroup netEventLoopGroup) {
         super(parent, threadFactory, rejectedExecutionHandler);
@@ -81,7 +84,9 @@ public class GameEventLoopImp extends SingleThreadEventLoop implements GameEvent
     protected void loop() {
         long curTimeMills;
         for (;;) {
-            runAllTasks(FORCE_LOOP_TASK);
+            // 指定执行任务最大数，避免导致world延迟过高
+            runAllTasks(MAX_BATCH_SIZE);
+
             curTimeMills = System.currentTimeMillis();
 
             // 游戏世界刷帧
@@ -110,16 +115,25 @@ public class GameEventLoopImp extends SingleThreadEventLoop implements GameEvent
         }
     }
 
+    @Nonnull
     @Override
     public ListenableFuture<?> registerWorld(World world, long frameInterval) {
-        return submit(() -> {
+        // world可能注册一个world，因此可能是本地线程调用
+        return EventLoopUtils.submitOrRun(this, () -> {
             registerWorldInternal(world, frameInterval);
         });
     }
 
+    @Nonnull
+    @Override
+    public NetEventLoopGroup netEventLoopGroup() {
+        return netEventLoopGroup;
+    }
+
     @Override
     public ListenableFuture<?> deregisterWorld(long worldGuid) {
-        return submit(() -> {
+        // 可能是world线程自己取消注册，因此可能是本地线程调用
+        return EventLoopUtils.submitOrRun(this, () -> {
             deregisterWorldInternal(worldGuid);
         });
     }
@@ -129,7 +143,7 @@ public class GameEventLoopImp extends SingleThreadEventLoop implements GameEvent
             throw new IllegalArgumentException("world " + world.worldGuid() + " already registered");
         }
         try {
-            world.startUp(this, netEventLoopGroup);
+            world.startUp(this);
             // 启动成功才放入
             WorldFrameInfo worldFrameInfo = new WorldFrameInfo(world, frameInterval);
             worldFrameInfoMap.put(world.worldGuid(), worldFrameInfo);

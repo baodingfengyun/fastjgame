@@ -49,7 +49,7 @@ public abstract class CoreModule extends AbstractModule {
         bind(MessageDispatcherMrg.class).in(Singleton.class);
 
         bind(InnerAcceptorMrg.class).in(Singleton.class);
-        bind(NetContextManager.class).in(Singleton.class);
+        bind(NetContextMrg.class).in(Singleton.class);
         bind(SystemTimeMrg.class).in(Singleton.class);
         bind(TemplateMrg.class).in(Singleton.class);
         bind(TimerMrg.class).in(Singleton.class);

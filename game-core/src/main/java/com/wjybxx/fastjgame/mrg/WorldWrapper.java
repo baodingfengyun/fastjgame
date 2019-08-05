@@ -36,7 +36,7 @@ public class WorldWrapper {
     private final HttpDispatcherMrg httpDispatcherMrg;
     private final MessageDispatcherMrg messageDispatcherMrg;
     private final InnerAcceptorMrg innerAcceptorMrg;
-    private final NetContextManager netContextManager;
+    private final NetContextMrg netContextMrg;
     private final SystemTimeMrg systemTimeMrg;
     private final TemplateMrg templateMrg;
     private final TimerMrg timerMrg;
@@ -45,9 +45,9 @@ public class WorldWrapper {
 
     @Inject
     public WorldWrapper(GameEventLoopMrg gameEventLoopMrg, WorldInfoMrg worldInfoMrg, SystemTimeMrg systemTimeMrg,
-                        MessageDispatcherMrg messageDispatcherMrg, HttpDispatcherMrg httpDispatcherMrg,
-                        CodecHelperMrg codecHelperMrg, TimerMrg timerMrg, GlobalExecutorMrg globalExecutorMrg,
-                        CuratorMrg curatorMrg, GuidMrg guidMrg, GameConfigMrg gameConfigMrg, NetContextManager netContextManager, CuratorClientMrg curatorClientMrg, TemplateMrg templateMrg, InnerAcceptorMrg innerAcceptorMrg) {
+						MessageDispatcherMrg messageDispatcherMrg, HttpDispatcherMrg httpDispatcherMrg,
+						CodecHelperMrg codecHelperMrg, TimerMrg timerMrg, GlobalExecutorMrg globalExecutorMrg,
+						CuratorMrg curatorMrg, GuidMrg guidMrg, GameConfigMrg gameConfigMrg, NetContextMrg netContextMrg, CuratorClientMrg curatorClientMrg, TemplateMrg templateMrg, InnerAcceptorMrg innerAcceptorMrg) {
         this.gameEventLoopMrg = gameEventLoopMrg;
         this.worldInfoMrg = worldInfoMrg;
         this.systemTimeMrg = systemTimeMrg;
@@ -59,7 +59,7 @@ public class WorldWrapper {
         this.curatorMrg = curatorMrg;
         this.guidMrg = guidMrg;
         this.gameConfigMrg = gameConfigMrg;
-        this.netContextManager = netContextManager;
+        this.netContextMrg = netContextMrg;
         this.curatorClientMrg = curatorClientMrg;
         this.templateMrg = templateMrg;
         this.innerAcceptorMrg = innerAcceptorMrg;
@@ -109,8 +109,8 @@ public class WorldWrapper {
         return gameConfigMrg;
     }
 
-    public NetContextManager getNetContextManager() {
-        return netContextManager;
+    public NetContextMrg getNetContextMrg() {
+        return netContextMrg;
     }
 
     public CuratorClientMrg getCuratorClientMrg() {

@@ -118,12 +118,12 @@ public class MessageDispatcherMrg implements MessageHandler {
         // 分发请求
         try {
             if (handlerWrapper.handler1 != null) {
-                // 返回成功结果
+                // 1类型处理器，可以立即返回结果
                 Object result = handlerWrapper.handler1.onRequest(session, request);
                 responseChannel.writeSuccess(result);
             } else {
                 assert handlerWrapper.handler2 != null;
-                // 处理器自己决定什么时候返回结果
+                // 2类型处理器，不一定能立即返回结果，需要使用结果通道。
                 handlerWrapper.handler2.onRequest(session, request, responseChannel);
             }
         } catch (Exception e) {

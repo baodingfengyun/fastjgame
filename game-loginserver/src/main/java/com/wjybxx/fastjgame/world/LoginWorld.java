@@ -72,7 +72,7 @@ public class LoginWorld extends AbstractWorld {
 
     private void bindAndregisterToZK() throws Exception {
         HostAndPort innerHttpAddress = innerAcceptorMrg.bindInnerHttpPort();
-        NetContext netContext = netContextManager.getNetContext();
+        NetContext netContext = netContextMrg.getNetContext();
 
         HostAndPort outerHttpAddress = netContext.bind(NetUtils.getOuterIp(), loginWorldInfoMrg.getPort(),
                 netContext.newHttpServerInitializer(), httpDispatcherMrg).get();

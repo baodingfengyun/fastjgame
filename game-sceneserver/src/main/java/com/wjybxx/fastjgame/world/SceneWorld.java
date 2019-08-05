@@ -93,7 +93,7 @@ public class SceneWorld extends AbstractWorld {
 
         // 绑定与玩家交互的两个端口
         // TODO 这里需要和前端确定到底使用什么通信方式，暂时使用服务器之间机制
-        NetContext netContext = netContextManager.getNetContext();
+        NetContext netContext = netContextMrg.getNetContext();
         CodecHelper codecHelper = codecHelperMrg.getCodecHelper(GameUtils.INNER_CODEC_NAME);
         TCPServerChannelInitializer tcplInitializer = netContext.newTcpServerInitializer(codecHelper);
 

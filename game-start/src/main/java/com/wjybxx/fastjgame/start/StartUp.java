@@ -88,7 +88,7 @@ public class StartUp {
 
         new Bootstrap<>(globalModule, gameEventLoopGroup)
                 .setArgs(args)
-                .setFramesPerSecond(5)
+                .setFramesPerSecond(framesPerSecond)
                 .addModule(module)
                 .start();
     }

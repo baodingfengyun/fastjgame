@@ -29,39 +29,32 @@ import com.wjybxx.fastjgame.misc.NetContext;
  * date - 2019/8/4
  * github - https://github.com/hl845740757
  */
-public class NetContextManager extends AbstractThreadLifeCycleHelper {
+public class NetContextMrg extends AbstractThreadLifeCycleHelper {
 
-    private NetEventLoopGroup netEventLoopGroup;
     private NetContext netContext;
     private final WorldInfoMrg worldInfoMrg;
     private final GameEventLoopMrg gameEventLoopMrg;
 
     @Inject
-    public NetContextManager(WorldInfoMrg worldInfoMrg, GameEventLoopMrg gameEventLoopMrg) {
+    public NetContextMrg(WorldInfoMrg worldInfoMrg, GameEventLoopMrg gameEventLoopMrg) {
         this.worldInfoMrg = worldInfoMrg;
         this.gameEventLoopMrg = gameEventLoopMrg;
     }
 
     @Override
     protected void startImp() throws Exception {
-
+        // 创建上下文
+        ListenableFuture<NetContext> contextFuture = gameEventLoopMrg.getNetEventLoopGroup().createContext(worldInfoMrg.getWorldGuid(),
+                worldInfoMrg.getWorldType(), gameEventLoopMrg.getEventLoop());
+        contextFuture.awaitUninterruptibly();
+        netContext = contextFuture.tryGet();
     }
 
     @Override
     protected void shutdownImp() {
-
-    }
-
-    public void setNetEventLoopGroup(NetEventLoopGroup netEventLoopGroup) {
-        if (null != this.netEventLoopGroup) {
-            throw new IllegalStateException();
+        if (null != netContext) {
+            netContext.deregister();
         }
-        this.netEventLoopGroup = netEventLoopGroup;
-        // 创建上下文
-        ListenableFuture<NetContext> contextFuture = netEventLoopGroup.createContext(worldInfoMrg.getWorldGuid(),
-                worldInfoMrg.getWorldType(), gameEventLoopMrg.getEventLoop());
-        contextFuture.awaitUninterruptibly();
-        netContext = contextFuture.tryGet();
     }
 
     public NetContext getNetContext() {
