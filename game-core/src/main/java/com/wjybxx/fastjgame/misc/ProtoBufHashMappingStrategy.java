@@ -16,12 +16,14 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.google.protobuf.MessageLite;
+import com.google.protobuf.AbstractMessage;
 import com.wjybxx.fastjgame.net.MessageMappingStrategy;
-import com.wjybxx.fastjgame.protobuffer.MessageEnum;
-import com.wjybxx.fastjgame.utils.ReflectionUtils;
+import com.wjybxx.fastjgame.utils.ClassScanner;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Set;
 
 /**
  * protoBuffer消息hash映射策略。
@@ -34,16 +36,24 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
  */
 public class ProtoBufHashMappingStrategy implements MessageMappingStrategy {
 
+    private static final String protoBufferPkg = "com.wjybxx.fastjgame.protobuffer";
+
+    private static final Object2IntMap<Class<?>> messageClass2IdMap;
+
+    static {
+        // 只有一层内部类
+        messageClass2IdMap = new Object2IntOpenHashMap<>();
+        Set<Class<?>> allClass = ClassScanner.findAllClass(protoBufferPkg,
+                name -> StringUtils.countMatches(name, "$") == 1,
+                AbstractMessage.class::isAssignableFrom);
+
+        for (Class<?> messageClass:allClass) {
+            messageClass2IdMap.put(messageClass, messageClass.getCanonicalName().hashCode());
+        }
+    }
+
     @Override
     public Object2IntMap<Class<?>> mapping() throws Exception {
-        Object2IntMap<Class<?>> messageClass2IdMap=new Object2IntOpenHashMap<>();
-        for (MessageEnum messageEnum : MessageEnum.values()){
-            Class<? extends MessageLite> messageClass = ReflectionUtils.findMessageClass(messageEnum.getJavaPackageName(),
-                    messageEnum.getJavaOuterClassName(),
-                    messageEnum.getMessageName());
-
-            messageClass2IdMap.put(messageClass,messageEnum.getMessageId());
-        }
         return messageClass2IdMap;
     }
 }

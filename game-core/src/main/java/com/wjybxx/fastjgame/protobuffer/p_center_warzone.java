@@ -53,8 +53,6 @@ public final class p_center_warzone {
       super(builder);
     }
     private p_center_warzone_hello() {
-      platfomNumber_ = 0;
-      serverId_ = 0;
     }
 
     @java.lang.Override
@@ -81,13 +79,6 @@ public final class p_center_warzone {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
 
               platfomNumber_ = input.readInt32();
@@ -96,6 +87,13 @@ public final class p_center_warzone {
             case 16: {
 
               serverId_ = input.readInt32();
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -115,6 +113,7 @@ public final class p_center_warzone {
       return com.wjybxx.fastjgame.protobuffer.p_center_warzone.internal_static_fastjgame_p_center_warzone_hello_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return com.wjybxx.fastjgame.protobuffer.p_center_warzone.internal_static_fastjgame_p_center_warzone_hello_fieldAccessorTable
@@ -149,6 +148,7 @@ public final class p_center_warzone {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -158,6 +158,7 @@ public final class p_center_warzone {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (platfomNumber_ != 0) {
@@ -169,6 +170,7 @@ public final class p_center_warzone {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -197,13 +199,12 @@ public final class p_center_warzone {
       }
       com.wjybxx.fastjgame.protobuffer.p_center_warzone.p_center_warzone_hello other = (com.wjybxx.fastjgame.protobuffer.p_center_warzone.p_center_warzone_hello) obj;
 
-      boolean result = true;
-      result = result && (getPlatfomNumber()
-          == other.getPlatfomNumber());
-      result = result && (getServerId()
-          == other.getServerId());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (getPlatfomNumber()
+          != other.getPlatfomNumber()) return false;
+      if (getServerId()
+          != other.getServerId()) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -292,6 +293,7 @@ public final class p_center_warzone {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -299,6 +301,7 @@ public final class p_center_warzone {
     public static Builder newBuilder(com.wjybxx.fastjgame.protobuffer.p_center_warzone.p_center_warzone_hello prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -326,6 +329,7 @@ public final class p_center_warzone {
         return com.wjybxx.fastjgame.protobuffer.p_center_warzone.internal_static_fastjgame_p_center_warzone_hello_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return com.wjybxx.fastjgame.protobuffer.p_center_warzone.internal_static_fastjgame_p_center_warzone_hello_fieldAccessorTable
@@ -348,6 +352,7 @@ public final class p_center_warzone {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         platfomNumber_ = 0;
@@ -357,15 +362,18 @@ public final class p_center_warzone {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return com.wjybxx.fastjgame.protobuffer.p_center_warzone.internal_static_fastjgame_p_center_warzone_hello_descriptor;
       }
 
+      @java.lang.Override
       public com.wjybxx.fastjgame.protobuffer.p_center_warzone.p_center_warzone_hello getDefaultInstanceForType() {
         return com.wjybxx.fastjgame.protobuffer.p_center_warzone.p_center_warzone_hello.getDefaultInstance();
       }
 
+      @java.lang.Override
       public com.wjybxx.fastjgame.protobuffer.p_center_warzone.p_center_warzone_hello build() {
         com.wjybxx.fastjgame.protobuffer.p_center_warzone.p_center_warzone_hello result = buildPartial();
         if (!result.isInitialized()) {
@@ -374,6 +382,7 @@ public final class p_center_warzone {
         return result;
       }
 
+      @java.lang.Override
       public com.wjybxx.fastjgame.protobuffer.p_center_warzone.p_center_warzone_hello buildPartial() {
         com.wjybxx.fastjgame.protobuffer.p_center_warzone.p_center_warzone_hello result = new com.wjybxx.fastjgame.protobuffer.p_center_warzone.p_center_warzone_hello(this);
         result.platfomNumber_ = platfomNumber_;
@@ -382,32 +391,39 @@ public final class p_center_warzone {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof com.wjybxx.fastjgame.protobuffer.p_center_warzone.p_center_warzone_hello) {
           return mergeFrom((com.wjybxx.fastjgame.protobuffer.p_center_warzone.p_center_warzone_hello)other);
@@ -430,10 +446,12 @@ public final class p_center_warzone {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -527,11 +545,13 @@ public final class p_center_warzone {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -553,6 +573,7 @@ public final class p_center_warzone {
 
     private static final com.google.protobuf.Parser<p_center_warzone_hello>
         PARSER = new com.google.protobuf.AbstractParser<p_center_warzone_hello>() {
+      @java.lang.Override
       public p_center_warzone_hello parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -570,6 +591,7 @@ public final class p_center_warzone {
       return PARSER;
     }
 
+    @java.lang.Override
     public com.wjybxx.fastjgame.protobuffer.p_center_warzone.p_center_warzone_hello getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -623,7 +645,7 @@ public final class p_center_warzone {
               done = true;
               break;
             default: {
-              if (!parseUnknownFieldProto3(
+              if (!parseUnknownField(
                   input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
@@ -646,6 +668,7 @@ public final class p_center_warzone {
       return com.wjybxx.fastjgame.protobuffer.p_center_warzone.internal_static_fastjgame_p_center_warzone_hello_result_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return com.wjybxx.fastjgame.protobuffer.p_center_warzone.internal_static_fastjgame_p_center_warzone_hello_result_fieldAccessorTable
@@ -654,6 +677,7 @@ public final class p_center_warzone {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -663,11 +687,13 @@ public final class p_center_warzone {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -688,9 +714,8 @@ public final class p_center_warzone {
       }
       com.wjybxx.fastjgame.protobuffer.p_center_warzone.p_center_warzone_hello_result other = (com.wjybxx.fastjgame.protobuffer.p_center_warzone.p_center_warzone_hello_result) obj;
 
-      boolean result = true;
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -775,6 +800,7 @@ public final class p_center_warzone {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -782,6 +808,7 @@ public final class p_center_warzone {
     public static Builder newBuilder(com.wjybxx.fastjgame.protobuffer.p_center_warzone.p_center_warzone_hello_result prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -809,6 +836,7 @@ public final class p_center_warzone {
         return com.wjybxx.fastjgame.protobuffer.p_center_warzone.internal_static_fastjgame_p_center_warzone_hello_result_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return com.wjybxx.fastjgame.protobuffer.p_center_warzone.internal_static_fastjgame_p_center_warzone_hello_result_fieldAccessorTable
@@ -831,20 +859,24 @@ public final class p_center_warzone {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return com.wjybxx.fastjgame.protobuffer.p_center_warzone.internal_static_fastjgame_p_center_warzone_hello_result_descriptor;
       }
 
+      @java.lang.Override
       public com.wjybxx.fastjgame.protobuffer.p_center_warzone.p_center_warzone_hello_result getDefaultInstanceForType() {
         return com.wjybxx.fastjgame.protobuffer.p_center_warzone.p_center_warzone_hello_result.getDefaultInstance();
       }
 
+      @java.lang.Override
       public com.wjybxx.fastjgame.protobuffer.p_center_warzone.p_center_warzone_hello_result build() {
         com.wjybxx.fastjgame.protobuffer.p_center_warzone.p_center_warzone_hello_result result = buildPartial();
         if (!result.isInitialized()) {
@@ -853,38 +885,46 @@ public final class p_center_warzone {
         return result;
       }
 
+      @java.lang.Override
       public com.wjybxx.fastjgame.protobuffer.p_center_warzone.p_center_warzone_hello_result buildPartial() {
         com.wjybxx.fastjgame.protobuffer.p_center_warzone.p_center_warzone_hello_result result = new com.wjybxx.fastjgame.protobuffer.p_center_warzone.p_center_warzone_hello_result(this);
         onBuilt();
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof com.wjybxx.fastjgame.protobuffer.p_center_warzone.p_center_warzone_hello_result) {
           return mergeFrom((com.wjybxx.fastjgame.protobuffer.p_center_warzone.p_center_warzone_hello_result)other);
@@ -901,10 +941,12 @@ public final class p_center_warzone {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -922,11 +964,13 @@ public final class p_center_warzone {
         }
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -948,6 +992,7 @@ public final class p_center_warzone {
 
     private static final com.google.protobuf.Parser<p_center_warzone_hello_result>
         PARSER = new com.google.protobuf.AbstractParser<p_center_warzone_hello_result>() {
+      @java.lang.Override
       public p_center_warzone_hello_result parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -965,6 +1010,7 @@ public final class p_center_warzone {
       return PARSER;
     }
 
+    @java.lang.Override
     public com.wjybxx.fastjgame.protobuffer.p_center_warzone.p_center_warzone_hello_result getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }

@@ -242,13 +242,8 @@ public final class p_test {
       super(builder);
     }
     private p_helloworld() {
-      a_ = 0;
-      b_ = 0L;
-      c_ = java.util.Collections.emptyList();
+      c_ = emptyIntList();
       e_ = "";
-      f_ = false;
-      g_ = 0F;
-      h_ = 0D;
       i_ = com.google.protobuf.ByteString.EMPTY;
       k_ = 0;
     }
@@ -277,13 +272,6 @@ public final class p_test {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
 
               a_ = input.readInt32();
@@ -295,28 +283,28 @@ public final class p_test {
               break;
             }
             case 24: {
-              if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
-                c_ = new java.util.ArrayList<java.lang.Integer>();
+              if (!((mutable_bitField0_ & 0x00000004) != 0)) {
+                c_ = newIntList();
                 mutable_bitField0_ |= 0x00000004;
               }
-              c_.add(input.readInt32());
+              c_.addInt(input.readInt32());
               break;
             }
             case 26: {
               int length = input.readRawVarint32();
               int limit = input.pushLimit(length);
-              if (!((mutable_bitField0_ & 0x00000004) == 0x00000004) && input.getBytesUntilLimit() > 0) {
-                c_ = new java.util.ArrayList<java.lang.Integer>();
+              if (!((mutable_bitField0_ & 0x00000004) != 0) && input.getBytesUntilLimit() > 0) {
+                c_ = newIntList();
                 mutable_bitField0_ |= 0x00000004;
               }
               while (input.getBytesUntilLimit() > 0) {
-                c_.add(input.readInt32());
+                c_.addInt(input.readInt32());
               }
               input.popLimit(limit);
               break;
             }
             case 34: {
-              if (!((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+              if (!((mutable_bitField0_ & 0x00000008) != 0)) {
                 d_ = com.google.protobuf.MapField.newMapField(
                     DDefaultEntryHolder.defaultEntry);
                 mutable_bitField0_ |= 0x00000008;
@@ -373,6 +361,13 @@ public final class p_test {
               k_ = rawValue;
               break;
             }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -381,8 +376,8 @@ public final class p_test {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
-          c_ = java.util.Collections.unmodifiableList(c_);
+        if (((mutable_bitField0_ & 0x00000004) != 0)) {
+          c_.makeImmutable(); // C
         }
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -394,6 +389,7 @@ public final class p_test {
     }
 
     @SuppressWarnings({"rawtypes"})
+    @java.lang.Override
     protected com.google.protobuf.MapField internalGetMapField(
         int number) {
       switch (number) {
@@ -404,6 +400,7 @@ public final class p_test {
               "Invalid map field number: " + number);
       }
     }
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return com.wjybxx.fastjgame.protobuffer.p_test.internal_static_fastjgame_p_helloworld_fieldAccessorTable
@@ -431,7 +428,7 @@ public final class p_test {
     }
 
     public static final int C_FIELD_NUMBER = 3;
-    private java.util.List<java.lang.Integer> c_;
+    private com.google.protobuf.Internal.IntList c_;
     /**
      * <code>repeated int32 c = 3;</code>
      */
@@ -449,7 +446,7 @@ public final class p_test {
      * <code>repeated int32 c = 3;</code>
      */
     public int getC(int index) {
-      return c_.get(index);
+      return c_.getInt(index);
     }
     private int cMemoizedSerializedSize = -1;
 
@@ -632,11 +629,13 @@ public final class p_test {
      * <code>.fastjgame.ERole k = 11;</code>
      */
     public com.wjybxx.fastjgame.protobuffer.p_test.ERole getK() {
+      @SuppressWarnings("deprecation")
       com.wjybxx.fastjgame.protobuffer.p_test.ERole result = com.wjybxx.fastjgame.protobuffer.p_test.ERole.valueOf(k_);
       return result == null ? com.wjybxx.fastjgame.protobuffer.p_test.ERole.UNRECOGNIZED : result;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -646,6 +645,7 @@ public final class p_test {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       getSerializedSize();
@@ -660,7 +660,7 @@ public final class p_test {
         output.writeUInt32NoTag(cMemoizedSerializedSize);
       }
       for (int i = 0; i < c_.size(); i++) {
-        output.writeInt32NoTag(c_.get(i));
+        output.writeInt32NoTag(c_.getInt(i));
       }
       com.google.protobuf.GeneratedMessageV3
         .serializeIntegerMapTo(
@@ -692,6 +692,7 @@ public final class p_test {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -709,7 +710,7 @@ public final class p_test {
         int dataSize = 0;
         for (int i = 0; i < c_.size(); i++) {
           dataSize += com.google.protobuf.CodedOutputStream
-            .computeInt32SizeNoTag(c_.get(i));
+            .computeInt32SizeNoTag(c_.getInt(i));
         }
         size += dataSize;
         if (!getCList().isEmpty()) {
@@ -771,37 +772,34 @@ public final class p_test {
       }
       com.wjybxx.fastjgame.protobuffer.p_test.p_helloworld other = (com.wjybxx.fastjgame.protobuffer.p_test.p_helloworld) obj;
 
-      boolean result = true;
-      result = result && (getA()
-          == other.getA());
-      result = result && (getB()
-          == other.getB());
-      result = result && getCList()
-          .equals(other.getCList());
-      result = result && internalGetD().equals(
-          other.internalGetD());
-      result = result && getE()
-          .equals(other.getE());
-      result = result && (getF()
-          == other.getF());
-      result = result && (
-          java.lang.Float.floatToIntBits(getG())
-          == java.lang.Float.floatToIntBits(
-              other.getG()));
-      result = result && (
-          java.lang.Double.doubleToLongBits(getH())
-          == java.lang.Double.doubleToLongBits(
-              other.getH()));
-      result = result && getI()
-          .equals(other.getI());
-      result = result && (hasJ() == other.hasJ());
+      if (getA()
+          != other.getA()) return false;
+      if (getB()
+          != other.getB()) return false;
+      if (!getCList()
+          .equals(other.getCList())) return false;
+      if (!internalGetD().equals(
+          other.internalGetD())) return false;
+      if (!getE()
+          .equals(other.getE())) return false;
+      if (getF()
+          != other.getF()) return false;
+      if (java.lang.Float.floatToIntBits(getG())
+          != java.lang.Float.floatToIntBits(
+              other.getG())) return false;
+      if (java.lang.Double.doubleToLongBits(getH())
+          != java.lang.Double.doubleToLongBits(
+              other.getH())) return false;
+      if (!getI()
+          .equals(other.getI())) return false;
+      if (hasJ() != other.hasJ()) return false;
       if (hasJ()) {
-        result = result && getJ()
-            .equals(other.getJ());
+        if (!getJ()
+            .equals(other.getJ())) return false;
       }
-      result = result && k_ == other.k_;
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (k_ != other.k_) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -918,6 +916,7 @@ public final class p_test {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -925,6 +924,7 @@ public final class p_test {
     public static Builder newBuilder(com.wjybxx.fastjgame.protobuffer.p_test.p_helloworld prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -974,6 +974,7 @@ public final class p_test {
                 "Invalid map field number: " + number);
         }
       }
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return com.wjybxx.fastjgame.protobuffer.p_test.internal_static_fastjgame_p_helloworld_fieldAccessorTable
@@ -996,13 +997,14 @@ public final class p_test {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         a_ = 0;
 
         b_ = 0L;
 
-        c_ = java.util.Collections.emptyList();
+        c_ = emptyIntList();
         bitField0_ = (bitField0_ & ~0x00000004);
         internalGetMutableD().clear();
         e_ = "";
@@ -1026,15 +1028,18 @@ public final class p_test {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return com.wjybxx.fastjgame.protobuffer.p_test.internal_static_fastjgame_p_helloworld_descriptor;
       }
 
+      @java.lang.Override
       public com.wjybxx.fastjgame.protobuffer.p_test.p_helloworld getDefaultInstanceForType() {
         return com.wjybxx.fastjgame.protobuffer.p_test.p_helloworld.getDefaultInstance();
       }
 
+      @java.lang.Override
       public com.wjybxx.fastjgame.protobuffer.p_test.p_helloworld build() {
         com.wjybxx.fastjgame.protobuffer.p_test.p_helloworld result = buildPartial();
         if (!result.isInitialized()) {
@@ -1043,14 +1048,15 @@ public final class p_test {
         return result;
       }
 
+      @java.lang.Override
       public com.wjybxx.fastjgame.protobuffer.p_test.p_helloworld buildPartial() {
         com.wjybxx.fastjgame.protobuffer.p_test.p_helloworld result = new com.wjybxx.fastjgame.protobuffer.p_test.p_helloworld(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
         result.a_ = a_;
         result.b_ = b_;
-        if (((bitField0_ & 0x00000004) == 0x00000004)) {
-          c_ = java.util.Collections.unmodifiableList(c_);
+        if (((bitField0_ & 0x00000004) != 0)) {
+          c_.makeImmutable();
           bitField0_ = (bitField0_ & ~0x00000004);
         }
         result.c_ = c_;
@@ -1072,32 +1078,39 @@ public final class p_test {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof com.wjybxx.fastjgame.protobuffer.p_test.p_helloworld) {
           return mergeFrom((com.wjybxx.fastjgame.protobuffer.p_test.p_helloworld)other);
@@ -1154,10 +1167,12 @@ public final class p_test {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1229,10 +1244,10 @@ public final class p_test {
         return this;
       }
 
-      private java.util.List<java.lang.Integer> c_ = java.util.Collections.emptyList();
+      private com.google.protobuf.Internal.IntList c_ = emptyIntList();
       private void ensureCIsMutable() {
-        if (!((bitField0_ & 0x00000004) == 0x00000004)) {
-          c_ = new java.util.ArrayList<java.lang.Integer>(c_);
+        if (!((bitField0_ & 0x00000004) != 0)) {
+          c_ = mutableCopy(c_);
           bitField0_ |= 0x00000004;
          }
       }
@@ -1241,7 +1256,8 @@ public final class p_test {
        */
       public java.util.List<java.lang.Integer>
           getCList() {
-        return java.util.Collections.unmodifiableList(c_);
+        return ((bitField0_ & 0x00000004) != 0) ?
+                 java.util.Collections.unmodifiableList(c_) : c_;
       }
       /**
        * <code>repeated int32 c = 3;</code>
@@ -1253,7 +1269,7 @@ public final class p_test {
        * <code>repeated int32 c = 3;</code>
        */
       public int getC(int index) {
-        return c_.get(index);
+        return c_.getInt(index);
       }
       /**
        * <code>repeated int32 c = 3;</code>
@@ -1261,7 +1277,7 @@ public final class p_test {
       public Builder setC(
           int index, int value) {
         ensureCIsMutable();
-        c_.set(index, value);
+        c_.setInt(index, value);
         onChanged();
         return this;
       }
@@ -1270,7 +1286,7 @@ public final class p_test {
        */
       public Builder addC(int value) {
         ensureCIsMutable();
-        c_.add(value);
+        c_.addInt(value);
         onChanged();
         return this;
       }
@@ -1289,7 +1305,7 @@ public final class p_test {
        * <code>repeated int32 c = 3;</code>
        */
       public Builder clearC() {
-        c_ = java.util.Collections.emptyList();
+        c_ = emptyIntList();
         bitField0_ = (bitField0_ & ~0x00000004);
         onChanged();
         return this;
@@ -1594,7 +1610,7 @@ public final class p_test {
         return this;
       }
 
-      private com.wjybxx.fastjgame.protobuffer.p_test.p_ss j_ = null;
+      private com.wjybxx.fastjgame.protobuffer.p_test.p_ss j_;
       private com.google.protobuf.SingleFieldBuilderV3<
           com.wjybxx.fastjgame.protobuffer.p_test.p_ss, com.wjybxx.fastjgame.protobuffer.p_test.p_ss.Builder, com.wjybxx.fastjgame.protobuffer.p_test.p_ssOrBuilder> jBuilder_;
       /**
@@ -1730,6 +1746,7 @@ public final class p_test {
        * <code>.fastjgame.ERole k = 11;</code>
        */
       public com.wjybxx.fastjgame.protobuffer.p_test.ERole getK() {
+        @SuppressWarnings("deprecation")
         com.wjybxx.fastjgame.protobuffer.p_test.ERole result = com.wjybxx.fastjgame.protobuffer.p_test.ERole.valueOf(k_);
         return result == null ? com.wjybxx.fastjgame.protobuffer.p_test.ERole.UNRECOGNIZED : result;
       }
@@ -1754,11 +1771,13 @@ public final class p_test {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -1780,6 +1799,7 @@ public final class p_test {
 
     private static final com.google.protobuf.Parser<p_helloworld>
         PARSER = new com.google.protobuf.AbstractParser<p_helloworld>() {
+      @java.lang.Override
       public p_helloworld parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1797,6 +1817,7 @@ public final class p_test {
       return PARSER;
     }
 
+    @java.lang.Override
     public com.wjybxx.fastjgame.protobuffer.p_test.p_helloworld getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -1830,8 +1851,6 @@ public final class p_test {
       super(builder);
     }
     private p_ss() {
-      sa_ = 0;
-      sb_ = 0L;
     }
 
     @java.lang.Override
@@ -1858,13 +1877,6 @@ public final class p_test {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
 
               sa_ = input.readInt32();
@@ -1873,6 +1885,13 @@ public final class p_test {
             case 16: {
 
               sb_ = input.readInt64();
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -1892,6 +1911,7 @@ public final class p_test {
       return com.wjybxx.fastjgame.protobuffer.p_test.internal_static_fastjgame_p_ss_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return com.wjybxx.fastjgame.protobuffer.p_test.internal_static_fastjgame_p_ss_fieldAccessorTable
@@ -1918,6 +1938,7 @@ public final class p_test {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -1927,6 +1948,7 @@ public final class p_test {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (sa_ != 0) {
@@ -1938,6 +1960,7 @@ public final class p_test {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -1966,13 +1989,12 @@ public final class p_test {
       }
       com.wjybxx.fastjgame.protobuffer.p_test.p_ss other = (com.wjybxx.fastjgame.protobuffer.p_test.p_ss) obj;
 
-      boolean result = true;
-      result = result && (getSa()
-          == other.getSa());
-      result = result && (getSb()
-          == other.getSb());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (getSa()
+          != other.getSa()) return false;
+      if (getSb()
+          != other.getSb()) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -2062,6 +2084,7 @@ public final class p_test {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -2069,6 +2092,7 @@ public final class p_test {
     public static Builder newBuilder(com.wjybxx.fastjgame.protobuffer.p_test.p_ss prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -2092,6 +2116,7 @@ public final class p_test {
         return com.wjybxx.fastjgame.protobuffer.p_test.internal_static_fastjgame_p_ss_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return com.wjybxx.fastjgame.protobuffer.p_test.internal_static_fastjgame_p_ss_fieldAccessorTable
@@ -2114,6 +2139,7 @@ public final class p_test {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         sa_ = 0;
@@ -2123,15 +2149,18 @@ public final class p_test {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return com.wjybxx.fastjgame.protobuffer.p_test.internal_static_fastjgame_p_ss_descriptor;
       }
 
+      @java.lang.Override
       public com.wjybxx.fastjgame.protobuffer.p_test.p_ss getDefaultInstanceForType() {
         return com.wjybxx.fastjgame.protobuffer.p_test.p_ss.getDefaultInstance();
       }
 
+      @java.lang.Override
       public com.wjybxx.fastjgame.protobuffer.p_test.p_ss build() {
         com.wjybxx.fastjgame.protobuffer.p_test.p_ss result = buildPartial();
         if (!result.isInitialized()) {
@@ -2140,6 +2169,7 @@ public final class p_test {
         return result;
       }
 
+      @java.lang.Override
       public com.wjybxx.fastjgame.protobuffer.p_test.p_ss buildPartial() {
         com.wjybxx.fastjgame.protobuffer.p_test.p_ss result = new com.wjybxx.fastjgame.protobuffer.p_test.p_ss(this);
         result.sa_ = sa_;
@@ -2148,32 +2178,39 @@ public final class p_test {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof com.wjybxx.fastjgame.protobuffer.p_test.p_ss) {
           return mergeFrom((com.wjybxx.fastjgame.protobuffer.p_test.p_ss)other);
@@ -2196,10 +2233,12 @@ public final class p_test {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -2269,11 +2308,13 @@ public final class p_test {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -2295,6 +2336,7 @@ public final class p_test {
 
     private static final com.google.protobuf.Parser<p_ss>
         PARSER = new com.google.protobuf.AbstractParser<p_ss>() {
+      @java.lang.Override
       public p_ss parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -2312,6 +2354,7 @@ public final class p_test {
       return PARSER;
     }
 
+    @java.lang.Override
     public com.wjybxx.fastjgame.protobuffer.p_test.p_ss getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }

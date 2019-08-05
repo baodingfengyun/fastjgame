@@ -54,9 +54,6 @@ public final class p_scene_player {
       super(builder);
     }
     private p_scene_player_data() {
-      playerGuid_ = 0L;
-      logicServerId_ = 0;
-      actualServerId_ = 0;
     }
 
     @java.lang.Override
@@ -83,13 +80,6 @@ public final class p_scene_player {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
 
               playerGuid_ = input.readInt64();
@@ -103,6 +93,13 @@ public final class p_scene_player {
             case 24: {
 
               actualServerId_ = input.readInt32();
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -122,6 +119,7 @@ public final class p_scene_player {
       return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_player_data_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_player_data_fieldAccessorTable
@@ -161,6 +159,7 @@ public final class p_scene_player {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -170,6 +169,7 @@ public final class p_scene_player {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (playerGuid_ != 0L) {
@@ -184,6 +184,7 @@ public final class p_scene_player {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -216,15 +217,14 @@ public final class p_scene_player {
       }
       com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data other = (com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data) obj;
 
-      boolean result = true;
-      result = result && (getPlayerGuid()
-          == other.getPlayerGuid());
-      result = result && (getLogicServerId()
-          == other.getLogicServerId());
-      result = result && (getActualServerId()
-          == other.getActualServerId());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (getPlayerGuid()
+          != other.getPlayerGuid()) return false;
+      if (getLogicServerId()
+          != other.getLogicServerId()) return false;
+      if (getActualServerId()
+          != other.getActualServerId()) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -316,6 +316,7 @@ public final class p_scene_player {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -323,6 +324,7 @@ public final class p_scene_player {
     public static Builder newBuilder(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -350,6 +352,7 @@ public final class p_scene_player {
         return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_player_data_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_player_data_fieldAccessorTable
@@ -372,6 +375,7 @@ public final class p_scene_player {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         playerGuid_ = 0L;
@@ -383,15 +387,18 @@ public final class p_scene_player {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_player_data_descriptor;
       }
 
+      @java.lang.Override
       public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data getDefaultInstanceForType() {
         return com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.getDefaultInstance();
       }
 
+      @java.lang.Override
       public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data build() {
         com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data result = buildPartial();
         if (!result.isInitialized()) {
@@ -400,6 +407,7 @@ public final class p_scene_player {
         return result;
       }
 
+      @java.lang.Override
       public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data buildPartial() {
         com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data result = new com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data(this);
         result.playerGuid_ = playerGuid_;
@@ -409,32 +417,39 @@ public final class p_scene_player {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data) {
           return mergeFrom((com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data)other);
@@ -460,10 +475,12 @@ public final class p_scene_player {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -571,11 +588,13 @@ public final class p_scene_player {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -597,6 +616,7 @@ public final class p_scene_player {
 
     private static final com.google.protobuf.Parser<p_scene_player_data>
         PARSER = new com.google.protobuf.AbstractParser<p_scene_player_data>() {
+      @java.lang.Override
       public p_scene_player_data parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -614,6 +634,7 @@ public final class p_scene_player {
       return PARSER;
     }
 
+    @java.lang.Override
     public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -659,8 +680,6 @@ public final class p_scene_player {
       super(builder);
     }
     private p_scene_npc_data() {
-      npcGuid_ = 0L;
-      npcId_ = 0;
     }
 
     @java.lang.Override
@@ -687,13 +706,6 @@ public final class p_scene_player {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
 
               npcGuid_ = input.readInt64();
@@ -702,6 +714,13 @@ public final class p_scene_player {
             case 16: {
 
               npcId_ = input.readInt32();
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -721,6 +740,7 @@ public final class p_scene_player {
       return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_npc_data_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_npc_data_fieldAccessorTable
@@ -755,6 +775,7 @@ public final class p_scene_player {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -764,6 +785,7 @@ public final class p_scene_player {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (npcGuid_ != 0L) {
@@ -775,6 +797,7 @@ public final class p_scene_player {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -803,13 +826,12 @@ public final class p_scene_player {
       }
       com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data other = (com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data) obj;
 
-      boolean result = true;
-      result = result && (getNpcGuid()
-          == other.getNpcGuid());
-      result = result && (getNpcId()
-          == other.getNpcId());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (getNpcGuid()
+          != other.getNpcGuid()) return false;
+      if (getNpcId()
+          != other.getNpcId()) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -899,6 +921,7 @@ public final class p_scene_player {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -906,6 +929,7 @@ public final class p_scene_player {
     public static Builder newBuilder(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -933,6 +957,7 @@ public final class p_scene_player {
         return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_npc_data_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_npc_data_fieldAccessorTable
@@ -955,6 +980,7 @@ public final class p_scene_player {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         npcGuid_ = 0L;
@@ -964,15 +990,18 @@ public final class p_scene_player {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_npc_data_descriptor;
       }
 
+      @java.lang.Override
       public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data getDefaultInstanceForType() {
         return com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.getDefaultInstance();
       }
 
+      @java.lang.Override
       public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data build() {
         com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data result = buildPartial();
         if (!result.isInitialized()) {
@@ -981,6 +1010,7 @@ public final class p_scene_player {
         return result;
       }
 
+      @java.lang.Override
       public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data buildPartial() {
         com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data result = new com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data(this);
         result.npcGuid_ = npcGuid_;
@@ -989,32 +1019,39 @@ public final class p_scene_player {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data) {
           return mergeFrom((com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data)other);
@@ -1037,10 +1074,12 @@ public final class p_scene_player {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1134,11 +1173,13 @@ public final class p_scene_player {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -1160,6 +1201,7 @@ public final class p_scene_player {
 
     private static final com.google.protobuf.Parser<p_scene_npc_data>
         PARSER = new com.google.protobuf.AbstractParser<p_scene_npc_data>() {
+      @java.lang.Override
       public p_scene_npc_data parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1177,6 +1219,7 @@ public final class p_scene_player {
       return PARSER;
     }
 
+    @java.lang.Override
     public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -1231,9 +1274,6 @@ public final class p_scene_player {
       super(builder);
     }
     private p_scene_pet_data() {
-      ownerGuid_ = 0L;
-      petGuid_ = 0L;
-      petId_ = 0;
     }
 
     @java.lang.Override
@@ -1260,13 +1300,6 @@ public final class p_scene_player {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
 
               ownerGuid_ = input.readInt64();
@@ -1280,6 +1313,13 @@ public final class p_scene_player {
             case 24: {
 
               petId_ = input.readInt32();
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -1299,6 +1339,7 @@ public final class p_scene_player {
       return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_pet_data_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_pet_data_fieldAccessorTable
@@ -1346,6 +1387,7 @@ public final class p_scene_player {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -1355,6 +1397,7 @@ public final class p_scene_player {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (ownerGuid_ != 0L) {
@@ -1369,6 +1412,7 @@ public final class p_scene_player {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -1401,15 +1445,14 @@ public final class p_scene_player {
       }
       com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data other = (com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data) obj;
 
-      boolean result = true;
-      result = result && (getOwnerGuid()
-          == other.getOwnerGuid());
-      result = result && (getPetGuid()
-          == other.getPetGuid());
-      result = result && (getPetId()
-          == other.getPetId());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (getOwnerGuid()
+          != other.getOwnerGuid()) return false;
+      if (getPetGuid()
+          != other.getPetGuid()) return false;
+      if (getPetId()
+          != other.getPetId()) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -1502,6 +1545,7 @@ public final class p_scene_player {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -1509,6 +1553,7 @@ public final class p_scene_player {
     public static Builder newBuilder(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -1536,6 +1581,7 @@ public final class p_scene_player {
         return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_pet_data_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_pet_data_fieldAccessorTable
@@ -1558,6 +1604,7 @@ public final class p_scene_player {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         ownerGuid_ = 0L;
@@ -1569,15 +1616,18 @@ public final class p_scene_player {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_pet_data_descriptor;
       }
 
+      @java.lang.Override
       public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data getDefaultInstanceForType() {
         return com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.getDefaultInstance();
       }
 
+      @java.lang.Override
       public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data build() {
         com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data result = buildPartial();
         if (!result.isInitialized()) {
@@ -1586,6 +1636,7 @@ public final class p_scene_player {
         return result;
       }
 
+      @java.lang.Override
       public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data buildPartial() {
         com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data result = new com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data(this);
         result.ownerGuid_ = ownerGuid_;
@@ -1595,32 +1646,39 @@ public final class p_scene_player {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data) {
           return mergeFrom((com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data)other);
@@ -1646,10 +1704,12 @@ public final class p_scene_player {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1781,11 +1841,13 @@ public final class p_scene_player {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -1807,6 +1869,7 @@ public final class p_scene_player {
 
     private static final com.google.protobuf.Parser<p_scene_pet_data>
         PARSER = new com.google.protobuf.AbstractParser<p_scene_pet_data>() {
+      @java.lang.Override
       public p_scene_pet_data parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1824,6 +1887,7 @@ public final class p_scene_player {
       return PARSER;
     }
 
+    @java.lang.Override
     public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -2012,15 +2076,8 @@ public final class p_scene_player {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
-              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+              if (!((mutable_bitField0_ & 0x00000001) != 0)) {
                 players_ = new java.util.ArrayList<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data>();
                 mutable_bitField0_ |= 0x00000001;
               }
@@ -2029,7 +2086,7 @@ public final class p_scene_player {
               break;
             }
             case 18: {
-              if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+              if (!((mutable_bitField0_ & 0x00000002) != 0)) {
                 npcs_ = new java.util.ArrayList<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data>();
                 mutable_bitField0_ |= 0x00000002;
               }
@@ -2038,12 +2095,19 @@ public final class p_scene_player {
               break;
             }
             case 26: {
-              if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+              if (!((mutable_bitField0_ & 0x00000004) != 0)) {
                 pets_ = new java.util.ArrayList<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data>();
                 mutable_bitField0_ |= 0x00000004;
               }
               pets_.add(
                   input.readMessage(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.parser(), extensionRegistry));
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -2054,13 +2118,13 @@ public final class p_scene_player {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((mutable_bitField0_ & 0x00000001) != 0)) {
           players_ = java.util.Collections.unmodifiableList(players_);
         }
-        if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+        if (((mutable_bitField0_ & 0x00000002) != 0)) {
           npcs_ = java.util.Collections.unmodifiableList(npcs_);
         }
-        if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+        if (((mutable_bitField0_ & 0x00000004) != 0)) {
           pets_ = java.util.Collections.unmodifiableList(pets_);
         }
         this.unknownFields = unknownFields.build();
@@ -2072,6 +2136,7 @@ public final class p_scene_player {
       return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_notify_player_others_in_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_notify_player_others_in_fieldAccessorTable
@@ -2245,6 +2310,7 @@ public final class p_scene_player {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -2254,6 +2320,7 @@ public final class p_scene_player {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       for (int i = 0; i < players_.size(); i++) {
@@ -2268,6 +2335,7 @@ public final class p_scene_player {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -2300,15 +2368,14 @@ public final class p_scene_player {
       }
       com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in other = (com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in) obj;
 
-      boolean result = true;
-      result = result && getPlayersList()
-          .equals(other.getPlayersList());
-      result = result && getNpcsList()
-          .equals(other.getNpcsList());
-      result = result && getPetsList()
-          .equals(other.getPetsList());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getPlayersList()
+          .equals(other.getPlayersList())) return false;
+      if (!getNpcsList()
+          .equals(other.getNpcsList())) return false;
+      if (!getPetsList()
+          .equals(other.getPetsList())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -2405,6 +2472,7 @@ public final class p_scene_player {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -2412,6 +2480,7 @@ public final class p_scene_player {
     public static Builder newBuilder(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -2439,6 +2508,7 @@ public final class p_scene_player {
         return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_notify_player_others_in_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_notify_player_others_in_fieldAccessorTable
@@ -2464,6 +2534,7 @@ public final class p_scene_player {
           getPetsFieldBuilder();
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         if (playersBuilder_ == null) {
@@ -2487,15 +2558,18 @@ public final class p_scene_player {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_notify_player_others_in_descriptor;
       }
 
+      @java.lang.Override
       public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in getDefaultInstanceForType() {
         return com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in.getDefaultInstance();
       }
 
+      @java.lang.Override
       public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in build() {
         com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in result = buildPartial();
         if (!result.isInitialized()) {
@@ -2504,11 +2578,12 @@ public final class p_scene_player {
         return result;
       }
 
+      @java.lang.Override
       public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in buildPartial() {
         com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in result = new com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in(this);
         int from_bitField0_ = bitField0_;
         if (playersBuilder_ == null) {
-          if (((bitField0_ & 0x00000001) == 0x00000001)) {
+          if (((bitField0_ & 0x00000001) != 0)) {
             players_ = java.util.Collections.unmodifiableList(players_);
             bitField0_ = (bitField0_ & ~0x00000001);
           }
@@ -2517,7 +2592,7 @@ public final class p_scene_player {
           result.players_ = playersBuilder_.build();
         }
         if (npcsBuilder_ == null) {
-          if (((bitField0_ & 0x00000002) == 0x00000002)) {
+          if (((bitField0_ & 0x00000002) != 0)) {
             npcs_ = java.util.Collections.unmodifiableList(npcs_);
             bitField0_ = (bitField0_ & ~0x00000002);
           }
@@ -2526,7 +2601,7 @@ public final class p_scene_player {
           result.npcs_ = npcsBuilder_.build();
         }
         if (petsBuilder_ == null) {
-          if (((bitField0_ & 0x00000004) == 0x00000004)) {
+          if (((bitField0_ & 0x00000004) != 0)) {
             pets_ = java.util.Collections.unmodifiableList(pets_);
             bitField0_ = (bitField0_ & ~0x00000004);
           }
@@ -2538,32 +2613,39 @@ public final class p_scene_player {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in) {
           return mergeFrom((com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in)other);
@@ -2658,10 +2740,12 @@ public final class p_scene_player {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -2684,7 +2768,7 @@ public final class p_scene_player {
       private java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data> players_ =
         java.util.Collections.emptyList();
       private void ensurePlayersIsMutable() {
-        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+        if (!((bitField0_ & 0x00000001) != 0)) {
           players_ = new java.util.ArrayList<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data>(players_);
           bitField0_ |= 0x00000001;
          }
@@ -2985,7 +3069,7 @@ public final class p_scene_player {
           playersBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
               com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.Builder, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_dataOrBuilder>(
                   players_,
-                  ((bitField0_ & 0x00000001) == 0x00000001),
+                  ((bitField0_ & 0x00000001) != 0),
                   getParentForChildren(),
                   isClean());
           players_ = null;
@@ -2996,7 +3080,7 @@ public final class p_scene_player {
       private java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data> npcs_ =
         java.util.Collections.emptyList();
       private void ensureNpcsIsMutable() {
-        if (!((bitField0_ & 0x00000002) == 0x00000002)) {
+        if (!((bitField0_ & 0x00000002) != 0)) {
           npcs_ = new java.util.ArrayList<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data>(npcs_);
           bitField0_ |= 0x00000002;
          }
@@ -3297,7 +3381,7 @@ public final class p_scene_player {
           npcsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
               com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.Builder, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_dataOrBuilder>(
                   npcs_,
-                  ((bitField0_ & 0x00000002) == 0x00000002),
+                  ((bitField0_ & 0x00000002) != 0),
                   getParentForChildren(),
                   isClean());
           npcs_ = null;
@@ -3308,7 +3392,7 @@ public final class p_scene_player {
       private java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data> pets_ =
         java.util.Collections.emptyList();
       private void ensurePetsIsMutable() {
-        if (!((bitField0_ & 0x00000004) == 0x00000004)) {
+        if (!((bitField0_ & 0x00000004) != 0)) {
           pets_ = new java.util.ArrayList<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data>(pets_);
           bitField0_ |= 0x00000004;
          }
@@ -3609,18 +3693,20 @@ public final class p_scene_player {
           petsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
               com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.Builder, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_dataOrBuilder>(
                   pets_,
-                  ((bitField0_ & 0x00000004) == 0x00000004),
+                  ((bitField0_ & 0x00000004) != 0),
                   getParentForChildren(),
                   isClean());
           pets_ = null;
         }
         return petsBuilder_;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -3642,6 +3728,7 @@ public final class p_scene_player {
 
     private static final com.google.protobuf.Parser<p_notify_player_others_in>
         PARSER = new com.google.protobuf.AbstractParser<p_notify_player_others_in>() {
+      @java.lang.Override
       public p_notify_player_others_in parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -3659,6 +3746,7 @@ public final class p_scene_player {
       return PARSER;
     }
 
+    @java.lang.Override
     public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -3699,7 +3787,7 @@ public final class p_scene_player {
       super(builder);
     }
     private p_notify_player_others_out() {
-      guids_ = java.util.Collections.emptyList();
+      guids_ = emptyLongList();
     }
 
     @java.lang.Override
@@ -3726,32 +3814,32 @@ public final class p_scene_player {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
-              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-                guids_ = new java.util.ArrayList<java.lang.Long>();
+              if (!((mutable_bitField0_ & 0x00000001) != 0)) {
+                guids_ = newLongList();
                 mutable_bitField0_ |= 0x00000001;
               }
-              guids_.add(input.readInt64());
+              guids_.addLong(input.readInt64());
               break;
             }
             case 10: {
               int length = input.readRawVarint32();
               int limit = input.pushLimit(length);
-              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001) && input.getBytesUntilLimit() > 0) {
-                guids_ = new java.util.ArrayList<java.lang.Long>();
+              if (!((mutable_bitField0_ & 0x00000001) != 0) && input.getBytesUntilLimit() > 0) {
+                guids_ = newLongList();
                 mutable_bitField0_ |= 0x00000001;
               }
               while (input.getBytesUntilLimit() > 0) {
-                guids_.add(input.readInt64());
+                guids_.addLong(input.readInt64());
               }
               input.popLimit(limit);
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -3762,8 +3850,8 @@ public final class p_scene_player {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-          guids_ = java.util.Collections.unmodifiableList(guids_);
+        if (((mutable_bitField0_ & 0x00000001) != 0)) {
+          guids_.makeImmutable(); // C
         }
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -3774,6 +3862,7 @@ public final class p_scene_player {
       return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_notify_player_others_out_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_notify_player_others_out_fieldAccessorTable
@@ -3782,7 +3871,7 @@ public final class p_scene_player {
     }
 
     public static final int GUIDS_FIELD_NUMBER = 1;
-    private java.util.List<java.lang.Long> guids_;
+    private com.google.protobuf.Internal.LongList guids_;
     /**
      * <code>repeated int64 guids = 1;</code>
      */
@@ -3800,11 +3889,12 @@ public final class p_scene_player {
      * <code>repeated int64 guids = 1;</code>
      */
     public long getGuids(int index) {
-      return guids_.get(index);
+      return guids_.getLong(index);
     }
     private int guidsMemoizedSerializedSize = -1;
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -3814,6 +3904,7 @@ public final class p_scene_player {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       getSerializedSize();
@@ -3822,11 +3913,12 @@ public final class p_scene_player {
         output.writeUInt32NoTag(guidsMemoizedSerializedSize);
       }
       for (int i = 0; i < guids_.size(); i++) {
-        output.writeInt64NoTag(guids_.get(i));
+        output.writeInt64NoTag(guids_.getLong(i));
       }
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -3836,7 +3928,7 @@ public final class p_scene_player {
         int dataSize = 0;
         for (int i = 0; i < guids_.size(); i++) {
           dataSize += com.google.protobuf.CodedOutputStream
-            .computeInt64SizeNoTag(guids_.get(i));
+            .computeInt64SizeNoTag(guids_.getLong(i));
         }
         size += dataSize;
         if (!getGuidsList().isEmpty()) {
@@ -3861,11 +3953,10 @@ public final class p_scene_player {
       }
       com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out other = (com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out) obj;
 
-      boolean result = true;
-      result = result && getGuidsList()
-          .equals(other.getGuidsList());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getGuidsList()
+          .equals(other.getGuidsList())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -3954,6 +4045,7 @@ public final class p_scene_player {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -3961,6 +4053,7 @@ public final class p_scene_player {
     public static Builder newBuilder(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -3988,6 +4081,7 @@ public final class p_scene_player {
         return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_notify_player_others_out_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_notify_player_others_out_fieldAccessorTable
@@ -4010,22 +4104,26 @@ public final class p_scene_player {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
-        guids_ = java.util.Collections.emptyList();
+        guids_ = emptyLongList();
         bitField0_ = (bitField0_ & ~0x00000001);
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_notify_player_others_out_descriptor;
       }
 
+      @java.lang.Override
       public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out getDefaultInstanceForType() {
         return com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out.getDefaultInstance();
       }
 
+      @java.lang.Override
       public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out build() {
         com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out result = buildPartial();
         if (!result.isInitialized()) {
@@ -4034,11 +4132,12 @@ public final class p_scene_player {
         return result;
       }
 
+      @java.lang.Override
       public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out buildPartial() {
         com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out result = new com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out(this);
         int from_bitField0_ = bitField0_;
-        if (((bitField0_ & 0x00000001) == 0x00000001)) {
-          guids_ = java.util.Collections.unmodifiableList(guids_);
+        if (((bitField0_ & 0x00000001) != 0)) {
+          guids_.makeImmutable();
           bitField0_ = (bitField0_ & ~0x00000001);
         }
         result.guids_ = guids_;
@@ -4046,32 +4145,39 @@ public final class p_scene_player {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out) {
           return mergeFrom((com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out)other);
@@ -4098,10 +4204,12 @@ public final class p_scene_player {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -4121,10 +4229,10 @@ public final class p_scene_player {
       }
       private int bitField0_;
 
-      private java.util.List<java.lang.Long> guids_ = java.util.Collections.emptyList();
+      private com.google.protobuf.Internal.LongList guids_ = emptyLongList();
       private void ensureGuidsIsMutable() {
-        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
-          guids_ = new java.util.ArrayList<java.lang.Long>(guids_);
+        if (!((bitField0_ & 0x00000001) != 0)) {
+          guids_ = mutableCopy(guids_);
           bitField0_ |= 0x00000001;
          }
       }
@@ -4133,7 +4241,8 @@ public final class p_scene_player {
        */
       public java.util.List<java.lang.Long>
           getGuidsList() {
-        return java.util.Collections.unmodifiableList(guids_);
+        return ((bitField0_ & 0x00000001) != 0) ?
+                 java.util.Collections.unmodifiableList(guids_) : guids_;
       }
       /**
        * <code>repeated int64 guids = 1;</code>
@@ -4145,7 +4254,7 @@ public final class p_scene_player {
        * <code>repeated int64 guids = 1;</code>
        */
       public long getGuids(int index) {
-        return guids_.get(index);
+        return guids_.getLong(index);
       }
       /**
        * <code>repeated int64 guids = 1;</code>
@@ -4153,7 +4262,7 @@ public final class p_scene_player {
       public Builder setGuids(
           int index, long value) {
         ensureGuidsIsMutable();
-        guids_.set(index, value);
+        guids_.setLong(index, value);
         onChanged();
         return this;
       }
@@ -4162,7 +4271,7 @@ public final class p_scene_player {
        */
       public Builder addGuids(long value) {
         ensureGuidsIsMutable();
-        guids_.add(value);
+        guids_.addLong(value);
         onChanged();
         return this;
       }
@@ -4181,16 +4290,18 @@ public final class p_scene_player {
        * <code>repeated int64 guids = 1;</code>
        */
       public Builder clearGuids() {
-        guids_ = java.util.Collections.emptyList();
+        guids_ = emptyLongList();
         bitField0_ = (bitField0_ & ~0x00000001);
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -4212,6 +4323,7 @@ public final class p_scene_player {
 
     private static final com.google.protobuf.Parser<p_notify_player_others_out>
         PARSER = new com.google.protobuf.AbstractParser<p_notify_player_others_out>() {
+      @java.lang.Override
       public p_notify_player_others_out parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -4229,6 +4341,7 @@ public final class p_scene_player {
       return PARSER;
     }
 
+    @java.lang.Override
     public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
