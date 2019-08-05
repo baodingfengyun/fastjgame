@@ -72,15 +72,24 @@ public class StartUp {
     public static void main(String[] args) throws Exception {
         // 试一试ALL IN ONE
         GlobalModule globalModule = new GlobalModule();
-        NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupImp(4, new DefaultThreadFactory("NET"));
-        GameEventLoopGroup gameEventLoopGroup = new GameEventLoopGroupImp(4, new DefaultThreadFactory("WORLD"), netEventLoopGroup);
+        // NET线程数最少1个
+        NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET"));
+        // Game线程数需要多一点，因为目前部分启动实现是阻塞方式的，zookeeper节点不存在/存在的情况下回阻塞，后期会改动
+        // center warzone 启动可能阻塞(同一个战区只能启动一个)
+        GameEventLoopGroup gameEventLoopGroup = new GameEventLoopGroupImp(3, new DefaultThreadFactory("WORLD"), netEventLoopGroup);
+
+        start(globalModule, gameEventLoopGroup, new WarzoneModule(), warzoneArgs, 10);
+        start(globalModule, gameEventLoopGroup, new CenterModule(), centerArgs, 10);
 
         start(globalModule, gameEventLoopGroup, new SceneModule(), singleSceneArgs, 20);
-        start(globalModule, gameEventLoopGroup, new SceneModule(), crossSceneArgs, 20);
-        start(globalModule, gameEventLoopGroup, new LoginModule(), loginArgs, 10);
-        start(globalModule, gameEventLoopGroup, new CenterModule(), centerArgs, 10);
-        start(globalModule, gameEventLoopGroup, new WarzoneModule(), warzoneArgs, 10);
 
+        start(globalModule, gameEventLoopGroup, new SceneModule(), crossSceneArgs, 20);
+        start(globalModule, gameEventLoopGroup, new SceneModule(), crossSceneArgs, 20);
+        start(globalModule, gameEventLoopGroup, new SceneModule(), crossSceneArgs, 20);
+        start(globalModule, gameEventLoopGroup, new SceneModule(), crossSceneArgs, 20);
+        start(globalModule, gameEventLoopGroup, new SceneModule(), crossSceneArgs, 20);
+
+        start(globalModule, gameEventLoopGroup, new LoginModule(), loginArgs, 10);
     }
 
     private static void start(GlobalModule globalModule, GameEventLoopGroup gameEventLoopGroup,
