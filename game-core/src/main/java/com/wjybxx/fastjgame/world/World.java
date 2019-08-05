@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.world;
 
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
-import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.net.RoleType;
 
 import javax.annotation.Nonnull;
@@ -64,6 +63,8 @@ public interface World {
 
     /**
      * 获取world绑定到的GameEventLoop
+     *
+     * (如果world外部调用：必须得在register执行完成之后)
      * @return gameEventLoop
      */
     @Nonnull

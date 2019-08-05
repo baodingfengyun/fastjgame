@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
+import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.misc.AbstractThreadLifeCycleHelper;
 import com.wjybxx.fastjgame.core.onlinenode.CenterNodeData;
 import com.wjybxx.fastjgame.core.onlinenode.CenterNodeName;
@@ -62,7 +63,7 @@ public class LoginDiscoverMrg extends AbstractThreadLifeCycleHelper {
         treeCache = TreeCache.newBuilder(curatorMrg.getClient(), ZKPathUtils.onlineRootPath())
                 .setCreateParentNodes(true)
                 .setMaxDepth(2)
-                .setExecutor(new LoginWatcherThreadFactory())
+                .setExecutor(new DefaultThreadFactory("LOGIN_DISCOVERY_THREAD"))
                 .setSelector(new LoginCacheSelector())
                 .build();
         treeCache.getListenable().addListener((client, event) -> onEvent(event), gameEventLoopMrg.getEventLoop());
@@ -99,19 +100,6 @@ public class LoginDiscoverMrg extends AbstractThreadLifeCycleHelper {
             centerInLoginInfoMrg.onDiscoverCenterServer(centerNodeName,centerNode);
         } else if (event.getType() == TreeCacheEvent.Type.NODE_REMOVED){
             centerInLoginInfoMrg.onCenterServerNodeRemove(centerNodeName,centerNode);
-        }
-    }
-
-    /**
-     * loginServer专用的watcherThread
-     */
-    private static class LoginWatcherThreadFactory implements ThreadFactory {
-
-        private final AtomicInteger globalIndex=new AtomicInteger(0);
-
-        @Override
-        public Thread newThread(Runnable r) {
-            return new Thread(r,"login_watcher_thread_"+globalIndex.getAndIncrement());
         }
     }
 
