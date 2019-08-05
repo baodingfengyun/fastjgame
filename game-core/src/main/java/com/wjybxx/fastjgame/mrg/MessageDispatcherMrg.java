@@ -116,20 +116,27 @@ public class MessageDispatcherMrg implements MessageHandler {
             return;
         }
         // 分发请求
-        try {
-            if (handlerWrapper.handler1 != null) {
-                // 1类型处理器，可以立即返回结果
+        if (handlerWrapper.handler1 != null) {
+            // 1类型处理器，可以立即返回结果
+            try {
                 Object result = handlerWrapper.handler1.onRequest(session, request);
                 responseChannel.writeSuccess(result);
-            } else {
+            } catch (Exception e){
+                // 这里能将其标记为失败
+                responseChannel.writeFailure(RpcResultCode.ERROR);
+                logger.warn("handle message caught exception,sessionId={},roleType={},message clazz={}",
+                        session.remoteRole(), session.remoteGuid(), request.getClass().getSimpleName(),e);
+            }
+        } else {
+            try {
                 assert handlerWrapper.handler2 != null;
                 // 2类型处理器，不一定能立即返回结果，需要使用结果通道。
                 handlerWrapper.handler2.onRequest(session, request, responseChannel);
+            } catch (Exception e){
+                // 这里不能尝试赋值，因为不能推断出responseChannel没有被写回结果
+                logger.warn("handle message caught exception,sessionId={},roleType={},message clazz={}",
+                        session.remoteRole(), session.remoteGuid(), request.getClass().getSimpleName(),e);
             }
-        } catch (Exception e) {
-            responseChannel.writeFailure(RpcResultCode.ERROR);
-            logger.warn("handle message caught exception,sessionId={},roleType={},message clazz={}",
-                    session.remoteRole(), session.remoteGuid(), request.getClass().getSimpleName(),e);
         }
     }
 
