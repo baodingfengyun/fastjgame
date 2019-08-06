@@ -27,7 +27,7 @@ import com.wjybxx.fastjgame.world.World;
  * date - 2019/5/15 23:07
  * github - https://github.com/hl845740757
  */
-public class CenterModule extends CoreModule {
+public class CenterModule extends WorldModule {
 
     @Override
     protected void bindWorldAndWorldInfoMrg() {
@@ -37,11 +37,10 @@ public class CenterModule extends CoreModule {
 
     @Override
     protected void bindOthers() {
+        bind(CenterWorldInfoMrg.class).in(Singleton.class);
         bind(CenterDiscoverMrg.class).in(Singleton.class);
         bind(SceneInCenterInfoMrg.class).in(Singleton.class);
         bind(WarzoneInCenterInfoMrg.class).in(Singleton.class);
-        bind(CenterWorldInfoMrg.class).in(Singleton.class);
-        bind(TemplateMrg.class).in(Singleton.class);
         bind(CenterMongoDBMrg.class).in(Singleton.class);
         bind(CenterSendMrg.class).in(Singleton.class);
     }

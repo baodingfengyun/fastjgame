@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
+import com.wjybxx.fastjgame.annotation.WorldSingleton;
 import com.wjybxx.fastjgame.misc.PlatformType;
 import com.wjybxx.fastjgame.protobuffer.p_common;
 import com.wjybxx.fastjgame.scene.gameobjectdata.PlayerData;
@@ -34,6 +35,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * date - 2019/6/23 12:18
  * github - https://github.com/hl845740757
  */
+@WorldSingleton
 @NotThreadSafe
 public class PlayerDataSerializeMrg {
 

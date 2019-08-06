@@ -14,25 +14,31 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.test;
+package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.mrg.CuratorMrg;
+import org.apache.curator.framework.recipes.cache.PathChildrenCache;
+
+import java.io.Closeable;
+import java.io.IOException;
 
 /**
+ * 资源句柄，不提供访问数据的方法，只提供关闭功能。
+ *
  * @author wjybxx
  * @version 1.0
- * date - 2019/7/2 13:15
+ * date - 2019/8/6
  * github - https://github.com/hl845740757
  */
-public class BarrierTest {
+public class ResourceCloseHandle implements Closeable {
 
-    private static final String path = "/watcher/checkExists";
+	private final Closeable resource;
 
-    public static void main(String[] args) throws Exception {
-        CuratorMrg curatorMrg = CuratorTest.newCuratorMrg();
+	public ResourceCloseHandle(PathChildrenCache resource) {
+		this.resource = resource;
+	}
 
-        System.out.println("------start wait------");
-        curatorMrg.waitForNodeDelete(path);
-        System.out.println("------ weak  up ------");
-    }
+	@Override
+	public void close() throws IOException {
+		resource.close();
+	}
 }

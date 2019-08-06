@@ -19,15 +19,18 @@ package com.wjybxx.fastjgame.module;
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import com.wjybxx.fastjgame.mrg.*;
+import com.wjybxx.fastjgame.world.World;
 
 /**
- * CoreModule
+ * WorldModule，游戏world的顶层module。
+ * 这里都是{@link World}级别的单例。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/12 12:06
  * github - https://github.com/hl845740757
  */
-public abstract class CoreModule extends AbstractModule {
+public abstract class WorldModule extends AbstractModule {
 
     // 这样改造之后为典型的模板方法
     @Override
@@ -42,24 +45,20 @@ public abstract class CoreModule extends AbstractModule {
 
     private void configCore() {
         bind(CodecHelperMrg.class).in(Singleton.class);
-        bind(CuratorMrg.class).in(Singleton.class);
+        bind(InnerAcceptorMrg.class).in(Singleton.class);
 
-        bind(GameEventLoopMrg.class).in(Singleton.class);
+        bind(NetContextMrg.class).in(Singleton.class);
         bind(HttpDispatcherMrg.class).in(Singleton.class);
         bind(MessageDispatcherMrg.class).in(Singleton.class);
 
-        bind(InnerAcceptorMrg.class).in(Singleton.class);
-        bind(NetContextMrg.class).in(Singleton.class);
-        bind(SystemTimeMrg.class).in(Singleton.class);
-        bind(TemplateMrg.class).in(Singleton.class);
-        bind(TimerMrg.class).in(Singleton.class);
+        bind(WorldTimeMrg.class).in(Singleton.class);
+        bind(WorldTimerMrg.class).in(Singleton.class);
 
         bind(WorldWrapper.class).in(Singleton.class);
-        bind(GuidMrg.class).to(ZkGuidMrg.class).in(Singleton.class);
     }
 
     /**
-     * 请注意绑定{@link com.wjybxx.fastjgame.world.World}类和
+     * 请注意绑定{@link World}类和
      * {@link WorldInfoMrg}
      */
     protected abstract void bindWorldAndWorldInfoMrg();

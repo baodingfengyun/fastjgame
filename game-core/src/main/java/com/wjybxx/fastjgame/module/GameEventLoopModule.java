@@ -14,25 +14,32 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.mrg;
+package com.wjybxx.fastjgame.module;
 
-import com.google.inject.Inject;
-import com.wjybxx.fastjgame.trigger.SystemTimeHelper;
-
-import javax.annotation.concurrent.NotThreadSafe;
+import com.google.inject.AbstractModule;
+import com.google.inject.Singleton;
+import com.wjybxx.fastjgame.mrg.*;
+import com.wjybxx.fastjgame.world.GameEventLoop;
+import com.wjybxx.fastjgame.world.GameEventLoopMrg;
 
 /**
- * 系统时间控制器，非线程安全。
- * 目的为了减少频繁地调用{@link System#currentTimeMillis()}
+ * {@link GameEventLoop}级别的单例
+ *
  * @author wjybxx
  * @version 1.0
- * date - 2019/4/27 22:06
+ * date - 2019/8/6
  * github - https://github.com/hl845740757
  */
-@NotThreadSafe
-public class SystemTimeMrg extends SystemTimeHelper {
+public class GameEventLoopModule extends AbstractModule {
 
-    @Inject
-    public SystemTimeMrg() {
-    }
+	@Override
+	protected void configure() {
+		binder().requireExplicitBindings();
+
+		bind(GameEventLoopMrg.class).in(Singleton.class);
+		bind(CuratorMrg.class).in(Singleton.class);
+		bind(GuidMrg.class).to(ZkGuidMrg.class).in(Singleton.class);
+
+		bind(TemplateMrg.class).in(Singleton.class);
+	}
 }

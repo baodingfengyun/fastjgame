@@ -15,7 +15,6 @@ public class ZKLockTest {
 
     public static void main(String[] args) throws Exception {
         CuratorMrg curatorMrg = CuratorTest.newCuratorMrg();
-        curatorMrg.start();
 
         curatorMrg.lock("/mutex/guid");
 

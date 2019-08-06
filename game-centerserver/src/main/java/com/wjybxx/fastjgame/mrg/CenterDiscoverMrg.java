@@ -17,21 +17,20 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.concurrent.misc.AbstractThreadLifeCycleHelper;
 import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.core.onlinenode.*;
+import com.wjybxx.fastjgame.misc.ResourceCloseHandle;
 import com.wjybxx.fastjgame.net.RoleType;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.curator.framework.recipes.cache.ChildData;
-import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent.Type;
 
@@ -44,7 +43,7 @@ import static org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent.
  * date - 2019/5/15 23:06
  * github - https://github.com/hl845740757
  */
-public class CenterDiscoverMrg extends AbstractThreadLifeCycleHelper {
+public class CenterDiscoverMrg {
 
     private static final Logger logger= LoggerFactory.getLogger(CenterDiscoverMrg.class);
 
@@ -53,6 +52,7 @@ public class CenterDiscoverMrg extends AbstractThreadLifeCycleHelper {
     private final WarzoneInCenterInfoMrg warzoneInCenterInfoMrg;
     private final SceneInCenterInfoMrg sceneInCenterInfoMrg;
 
+    private ResourceCloseHandle resourceCloseHandle;
     /**
      * 当前在先节点信息，只在逻辑线程使用
      */
@@ -67,22 +67,20 @@ public class CenterDiscoverMrg extends AbstractThreadLifeCycleHelper {
         this.sceneInCenterInfoMrg = sceneInCenterInfoMrg;
     }
 
-    @Override
-    protected void startImp() throws Exception {
+    public void start() throws Exception {
         String watchPath = ZKPathUtils.onlineParentPath(centerWorldInfoMrg.getWarzoneId());
-        // 新版本：回调就在world所在线程
-        List<ChildData> childrenData = curatorMrg.watchChildren(watchPath,
-                (client, event) -> onEvent(event.getType(), event.getData()));
-
-        // 初始监听
-        childrenData.forEach(e->onEvent(Type.CHILD_ADDED,e));
+        resourceCloseHandle = curatorMrg.watchChildren(watchPath, (client, event) -> onEvent(event.getType(), event.getData()));
     }
 
-    @Override
-    protected void shutdownImp() {
-
+    public void shutdown() throws IOException {
+        if (resourceCloseHandle != null) {
+            resourceCloseHandle.close();
+        }
     }
 
+    /**
+     * 新版本：回调就在world所在线程，不必考虑线程安全性。
+     */
     private void onEvent(Type type,ChildData childData){
         // 只处理节点增加和移除两件事情
         if (type != Type.CHILD_ADDED && type != Type.CHILD_REMOVED){

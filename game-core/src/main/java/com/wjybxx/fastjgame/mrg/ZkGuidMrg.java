@@ -16,6 +16,7 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
+import com.wjybxx.fastjgame.annotation.EventLoopSingleton;
 import com.wjybxx.fastjgame.utils.GameUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.curator.framework.recipes.atomic.DistributedAtomicLong;
@@ -41,6 +42,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * date - 2019/5/12 11:59
  * github - https://github.com/hl845740757
  */
+@EventLoopSingleton
 @NotThreadSafe
 public class ZkGuidMrg implements GuidMrg {
 

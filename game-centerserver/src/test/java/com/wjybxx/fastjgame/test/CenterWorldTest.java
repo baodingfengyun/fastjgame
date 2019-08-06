@@ -16,8 +16,10 @@
 
 package com.wjybxx.fastjgame.test;
 
-import com.wjybxx.fastjgame.Bootstrap;
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
+import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
+import com.wjybxx.fastjgame.configwrapper.ArrayConfigWrapper;
+import com.wjybxx.fastjgame.configwrapper.MapConfigWrapper;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupImp;
 import com.wjybxx.fastjgame.module.CenterModule;
@@ -43,13 +45,12 @@ public class CenterWorldTest {
         System.setProperty("logFilePath",logFilePath);
 
 
-        NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET"));
-        GameEventLoopGroup gameEventLoopGroup = new GameEventLoopGroupImp(1, new DefaultThreadFactory("LOGIC-WORLD"), netEventLoopGroup);
+        NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET"),
+                RejectedExecutionHandlers.reject());
+        GameEventLoopGroup gameEventLoopGroup = new GameEventLoopGroupImp(1, new DefaultThreadFactory("LOGIC-WORLD"),
+                RejectedExecutionHandlers.reject(), netEventLoopGroup);
 
-        new Bootstrap<>(gameEventLoopGroup)
-                .setArgs(args)
-                .setFramesPerSecond(5)
-                .addModule(new CenterModule())
-                .start();
+        gameEventLoopGroup.registerWorld(new CenterModule(), new ArrayConfigWrapper(args), 5);
+
     }
 }

@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
+import com.wjybxx.fastjgame.annotation.EventLoopGroupSingleton;
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
 import com.wjybxx.fastjgame.utils.ConfigLoader;
 
@@ -30,6 +31,7 @@ import java.io.IOException;
  * date - 2019/5/12 12:13
  * github - https://github.com/hl845740757
  */
+@EventLoopGroupSingleton
 @ThreadSafe
 public class GameConfigMrg {
 

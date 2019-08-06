@@ -17,8 +17,11 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
+import com.wjybxx.fastjgame.annotation.WorldSingleton;
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
 import com.wjybxx.fastjgame.net.RoleType;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * 游戏世界基本信息控制器，用于逻辑线程(游戏世界线程)，它会在游戏世界线程启动之前初始化。
@@ -30,6 +33,8 @@ import com.wjybxx.fastjgame.net.RoleType;
  * date - 2019/5/6 10:23
  * github - https://github.com/hl845740757
  */
+@WorldSingleton
+@NotThreadSafe
 public abstract class WorldInfoMrg {
 
     /**
@@ -92,7 +97,7 @@ public abstract class WorldInfoMrg {
     }
 
     /**
-     * 获取服务器类型(进程类型)
+     * 获取服务器类型(World类型)
      */
     public abstract RoleType getWorldType();
 

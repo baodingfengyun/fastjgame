@@ -14,25 +14,24 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.test;
+package com.wjybxx.fastjgame.annotation;
 
-import com.wjybxx.fastjgame.mrg.CuratorMrg;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
+ * World级别的单例。
+ * 该级别的单例不要求是线程安全的，它的作用是world间的数据隔离。
+ *
  * @author wjybxx
  * @version 1.0
- * date - 2019/7/2 13:15
+ * date - 2019/8/6
  * github - https://github.com/hl845740757
  */
-public class BarrierTest {
+@Retention(RetentionPolicy.SOURCE)
+@Target(ElementType.TYPE)
+public @interface WorldSingleton {
 
-    private static final String path = "/watcher/checkExists";
-
-    public static void main(String[] args) throws Exception {
-        CuratorMrg curatorMrg = CuratorTest.newCuratorMrg();
-
-        System.out.println("------start wait------");
-        curatorMrg.waitForNodeDelete(path);
-        System.out.println("------ weak  up ------");
-    }
 }

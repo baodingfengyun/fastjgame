@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.world;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
 import com.wjybxx.fastjgame.misc.OneWayMessageHandler;
 import com.wjybxx.fastjgame.misc.RpcRequestHandler1;
 import com.wjybxx.fastjgame.misc.RpcRequestHandler2;
@@ -30,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
 
 /**
  * 游戏World的模板实现
@@ -45,9 +47,9 @@ public abstract class AbstractWorld implements World{
     protected final WorldWrapper worldWrapper;
     protected final GameEventLoopMrg gameEventLoopMrg;
     protected final MessageDispatcherMrg messageDispatcherMrg;
-    protected final SystemTimeMrg systemTimeMrg;
+    protected final WorldTimeMrg worldTimeMrg;
     protected final CodecHelperMrg codecHelperMrg;
-    protected final TimerMrg timerMrg;
+    protected final WorldTimerMrg worldTimerMrg;
     protected final HttpDispatcherMrg httpDispatcherMrg;
     protected final WorldInfoMrg worldInfoMrg;
     protected final GlobalExecutorMrg globalExecutorMrg;
@@ -62,9 +64,9 @@ public abstract class AbstractWorld implements World{
         this.worldWrapper = worldWrapper;
         this.gameEventLoopMrg = worldWrapper.getGameEventLoopMrg();
         messageDispatcherMrg = worldWrapper.getMessageDispatcherMrg();
-        systemTimeMrg = worldWrapper.getSystemTimeMrg();
+        worldTimeMrg = worldWrapper.getWorldTimeMrg();
         codecHelperMrg = worldWrapper.getCodecHelperMrg();
-        timerMrg = worldWrapper.getTimerMrg();
+        worldTimerMrg = worldWrapper.getWorldTimerMrg();
         httpDispatcherMrg = worldWrapper.getHttpDispatcherMrg();
         worldInfoMrg = worldWrapper.getWorldInfoMrg();
         globalExecutorMrg = worldWrapper.getGlobalExecutorMrg();
@@ -154,7 +156,6 @@ public abstract class AbstractWorld implements World{
 
     // ----------------------------------------- 接口模板实现 ------------------------------------
 
-
     @Override
     public final long worldGuid() {
         return worldInfoMrg.getWorldGuid();
@@ -166,9 +167,9 @@ public abstract class AbstractWorld implements World{
         return worldInfoMrg.getWorldType();
     }
 
-    public final void startUp(GameEventLoop eventLoop) throws Exception{
-        // 保存EventLoop
-        gameEventLoopMrg.setEventLoop(eventLoop);
+    public final void startUp(ConfigWrapper startArgs, int framesPerSecond) throws Exception{
+        // 必须先初始world信息
+        worldInfoMrg.init(startArgs, framesPerSecond);
         // 初始化网络上下文
         netContextMrg.start();
 
@@ -184,7 +185,7 @@ public abstract class AbstractWorld implements World{
         startHook();
 
         // 启动成功，时间切换到缓存策略
-        systemTimeMrg.changeToCacheStrategy();
+        worldTimeMrg.changeToCacheStrategy();
     }
 
     /**
@@ -198,7 +199,6 @@ public abstract class AbstractWorld implements World{
      */
     public final void tick(long curMillTime){
         tickCore(curMillTime);
-
         tickHook();
     }
 
@@ -207,8 +207,8 @@ public abstract class AbstractWorld implements World{
      */
     private void tickCore(long curMillTime){
         // 优先更新系统时间缓存
-        systemTimeMrg.update(curMillTime);
-        timerMrg.tickTrigger();
+        worldTimeMrg.update(curMillTime);
+        worldTimerMrg.tickTrigger();
     }
 
     /**
@@ -219,7 +219,7 @@ public abstract class AbstractWorld implements World{
     @Override
     public final void shutdown() throws Exception {
         // 关闭期间可能较为耗时，切换到实时策略
-        systemTimeMrg.changeToRealTimeStrategy();
+        worldTimeMrg.changeToRealTimeStrategy();
 
         try {
             shutdownHook();
@@ -235,15 +235,13 @@ public abstract class AbstractWorld implements World{
      * 关闭公共服务
      */
     private void shutdownCore(){
-        curatorMrg.shutdown();
-        globalExecutorMrg.shutdown();
         netContextMrg.shutdown();
     }
 
     /**
      * 子类自己的关闭动作
      */
-    protected abstract void shutdownHook();
+    protected abstract void shutdownHook() throws Exception;
 
     @Nonnull
     @Override

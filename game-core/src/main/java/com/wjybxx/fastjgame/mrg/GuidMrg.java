@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.mrg;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * 64位的GUID生成器。
  * GUID，Globally Unique Identifier，全局唯一标识符。
@@ -28,11 +30,15 @@ package com.wjybxx.fastjgame.mrg;
  *
  * 缓存越大越安全(对方挂掉的影响越小)，但容易造成资源浪费，缓存过小又降低了缓存的意义；这个全凭自己估量。
  *
+ * @apiNote
+ * 并不强求实现为线程安全，根据自己的需要确定为什么级别。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/12 11:47
  * github - https://github.com/hl845740757
  */
+@NotThreadSafe
 public interface GuidMrg {
 
     /**

@@ -19,6 +19,8 @@ package com.wjybxx.fastjgame.misc;
 import com.wjybxx.fastjgame.trigger.Timer;
 
 /**
+ * World使用的定时器系统
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/4

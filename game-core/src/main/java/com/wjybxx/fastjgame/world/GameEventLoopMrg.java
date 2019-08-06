@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.mrg;
+package com.wjybxx.fastjgame.world;
 
 import com.google.inject.Inject;
+import com.wjybxx.fastjgame.annotation.EventLoopSingleton;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
-import com.wjybxx.fastjgame.world.GameEventLoop;
 
 import javax.annotation.Nonnull;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * 管理World所属的{@link GameEventLoop}。
@@ -30,6 +31,8 @@ import javax.annotation.Nonnull;
  * date - 2019/8/4
  * github - https://github.com/hl845740757
  */
+@EventLoopSingleton
+@NotThreadSafe
 public class GameEventLoopMrg {
 
     private GameEventLoop eventLoop;
@@ -51,7 +54,7 @@ public class GameEventLoopMrg {
         return getEventLoop().netEventLoopGroup();
     }
 
-    public void setEventLoop(@Nonnull GameEventLoop eventLoop) {
+    void publish(@Nonnull GameEventLoop eventLoop) {
         if (this.eventLoop != null) {
             // 重复赋值？
             throw new IllegalStateException();

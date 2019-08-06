@@ -41,7 +41,6 @@ public class WatcherTest {
 
     public static void main(String[] args) throws Exception {
         CuratorMrg curatorMrg = CuratorTest.newCuratorMrg();
-        curatorMrg.start();
 
         // checkExist 使用watcher之后
         // 1. 如果当前节点不存在，会在节点创建之后收到通知

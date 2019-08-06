@@ -17,6 +17,10 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
+import com.wjybxx.fastjgame.annotation.WorldSingleton;
+import com.wjybxx.fastjgame.world.GameEventLoopMrg;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * world需要的控制器的包装类，避免子类的构造方法出现大量对象
@@ -25,6 +29,8 @@ import com.google.inject.Inject;
  * date - 2019/4/27 22:12
  * github - https://github.com/hl845740757
  */
+@WorldSingleton
+@NotThreadSafe
 public class WorldWrapper {
 
     private final CodecHelperMrg codecHelperMrg;
@@ -37,24 +43,24 @@ public class WorldWrapper {
     private final MessageDispatcherMrg messageDispatcherMrg;
     private final InnerAcceptorMrg innerAcceptorMrg;
     private final NetContextMrg netContextMrg;
-    private final SystemTimeMrg systemTimeMrg;
+    private final WorldTimeMrg worldTimeMrg;
     private final TemplateMrg templateMrg;
-    private final TimerMrg timerMrg;
+    private final WorldTimerMrg worldTimerMrg;
     private final WorldInfoMrg worldInfoMrg;
     private final GuidMrg guidMrg;
 
     @Inject
-    public WorldWrapper(GameEventLoopMrg gameEventLoopMrg, WorldInfoMrg worldInfoMrg, SystemTimeMrg systemTimeMrg,
-						MessageDispatcherMrg messageDispatcherMrg, HttpDispatcherMrg httpDispatcherMrg,
-						CodecHelperMrg codecHelperMrg, TimerMrg timerMrg, GlobalExecutorMrg globalExecutorMrg,
-						CuratorMrg curatorMrg, GuidMrg guidMrg, GameConfigMrg gameConfigMrg, NetContextMrg netContextMrg, CuratorClientMrg curatorClientMrg, TemplateMrg templateMrg, InnerAcceptorMrg innerAcceptorMrg) {
+    public WorldWrapper(GameEventLoopMrg gameEventLoopMrg, WorldInfoMrg worldInfoMrg, WorldTimeMrg worldTimeMrg,
+                        MessageDispatcherMrg messageDispatcherMrg, HttpDispatcherMrg httpDispatcherMrg,
+                        CodecHelperMrg codecHelperMrg, WorldTimerMrg worldTimerMrg, GlobalExecutorMrg globalExecutorMrg,
+                        CuratorMrg curatorMrg, GuidMrg guidMrg, GameConfigMrg gameConfigMrg, NetContextMrg netContextMrg, CuratorClientMrg curatorClientMrg, TemplateMrg templateMrg, InnerAcceptorMrg innerAcceptorMrg) {
         this.gameEventLoopMrg = gameEventLoopMrg;
         this.worldInfoMrg = worldInfoMrg;
-        this.systemTimeMrg = systemTimeMrg;
+        this.worldTimeMrg = worldTimeMrg;
         this.messageDispatcherMrg = messageDispatcherMrg;
         this.httpDispatcherMrg = httpDispatcherMrg;
         this.codecHelperMrg = codecHelperMrg;
-        this.timerMrg = timerMrg;
+        this.worldTimerMrg = worldTimerMrg;
         this.globalExecutorMrg = globalExecutorMrg;
         this.curatorMrg = curatorMrg;
         this.guidMrg = guidMrg;
@@ -73,8 +79,8 @@ public class WorldWrapper {
         return worldInfoMrg;
     }
 
-    public SystemTimeMrg getSystemTimeMrg() {
-        return systemTimeMrg;
+    public WorldTimeMrg getWorldTimeMrg() {
+        return worldTimeMrg;
     }
 
     public MessageDispatcherMrg getMessageDispatcherMrg() {
@@ -89,8 +95,8 @@ public class WorldWrapper {
         return codecHelperMrg;
     }
 
-    public TimerMrg getTimerMrg() {
-        return timerMrg;
+    public WorldTimerMrg getWorldTimerMrg() {
+        return worldTimerMrg;
     }
 
     public GlobalExecutorMrg getGlobalExecutorMrg() {

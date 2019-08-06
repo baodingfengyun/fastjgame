@@ -21,24 +21,24 @@ import com.google.inject.Singleton;
 import com.wjybxx.fastjgame.mrg.CuratorClientMrg;
 import com.wjybxx.fastjgame.mrg.GameConfigMrg;
 import com.wjybxx.fastjgame.mrg.GlobalExecutorMrg;
+import com.wjybxx.fastjgame.world.GameEventLoopGroup;
 
 /**
- * 一个进程下全局共用的module。
- * 这里的类必须都是线程安全的。
+ * {@link GameEventLoopGroup}级别的单例。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/4
  * github - https://github.com/hl845740757
  */
-public class GlobalModule extends AbstractModule {
+public class GameEventLoopGroupModule extends AbstractModule {
 
     @Override
     protected void configure() {
         binder().requireExplicitBindings();
 
-        bind(GlobalExecutorMrg.class).in(Singleton.class);
         bind(GameConfigMrg.class).in(Singleton.class);
+        bind(GlobalExecutorMrg.class).in(Singleton.class);
         bind(CuratorClientMrg.class).in(Singleton.class);
     }
 }

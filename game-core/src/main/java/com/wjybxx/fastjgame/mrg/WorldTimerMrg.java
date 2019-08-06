@@ -17,20 +17,26 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
+import com.wjybxx.fastjgame.annotation.WorldSingleton;
 import com.wjybxx.fastjgame.misc.WorldTriggerSystemImp;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
- * 全局定时器管理器
+ * World级别的全局定时器管理器
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/4/27 22:13
  * github - https://github.com/hl845740757
  */
-public class TimerMrg extends WorldTriggerSystemImp {
+@WorldSingleton
+@NotThreadSafe
+public class WorldTimerMrg extends WorldTriggerSystemImp {
 
     @Inject
-    public TimerMrg(SystemTimeMrg systemTimeMrg) {
-        super(systemTimeMrg);
+    public WorldTimerMrg(WorldTimeMrg worldTimeMrg) {
+        super(worldTimeMrg);
     }
 
 }

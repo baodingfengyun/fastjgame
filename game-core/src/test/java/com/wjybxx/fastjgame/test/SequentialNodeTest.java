@@ -33,7 +33,6 @@ public class SequentialNodeTest {
 
     public static void main(String[] args) throws Exception {
         CuratorMrg curatorMrg = CuratorTest.newCuratorMrg();
-        curatorMrg.start();
 
         String nodeName = curatorMrg.createNode("/online/channel/lock-", CreateMode.EPHEMERAL_SEQUENTIAL);
         System.out.println(nodeName);

@@ -27,6 +27,7 @@ import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.CreateMode;
 
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import static com.wjybxx.fastjgame.protobuffer.p_center_scene.p_center_cross_scene_hello_result;
@@ -111,7 +112,7 @@ public class CenterWorld extends AbstractWorld {
     }
 
     @Override
-    protected void shutdownHook() {
+    protected void shutdownHook() throws IOException {
         centerDiscoverMrg.shutdown();
     }
 }

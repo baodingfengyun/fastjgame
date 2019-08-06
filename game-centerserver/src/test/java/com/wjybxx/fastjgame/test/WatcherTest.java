@@ -18,8 +18,9 @@ package com.wjybxx.fastjgame.test;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.wjybxx.fastjgame.module.CenterModule;
-import com.wjybxx.fastjgame.module.NetModule;
+import com.wjybxx.fastjgame.misc.ResourceCloseHandle;
+import com.wjybxx.fastjgame.module.GameEventLoopGroupModule;
+import com.wjybxx.fastjgame.module.GameEventLoopModule;
 import com.wjybxx.fastjgame.mrg.CuratorMrg;
 import com.wjybxx.fastjgame.utils.GameUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
@@ -28,7 +29,6 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent.Type;
 
 import java.io.File;
-import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -67,20 +67,17 @@ public class WatcherTest {
         String logFilePath = logDir + File.separator + "watcher.log";
         System.setProperty("logFilePath",logFilePath);
 
-        Injector injector= Guice.createInjector(new NetModule(),new CenterModule());
+        Injector injector= Guice.createInjector(new GameEventLoopGroupModule(), new GameEventLoopModule());
         CuratorMrg curatorMrg=injector.getInstance(CuratorMrg.class);
-        curatorMrg.start();
 
         String watchPath = ZKPathUtils.onlineParentPath(1);
-        List<ChildData> childrenData = curatorMrg.watchChildren(watchPath, (client, event) -> eventQueue.offer(event));
+        ResourceCloseHandle closeHandle = curatorMrg.watchChildren(watchPath, (client, event) -> eventQueue.offer(event));
 
-        // 初始监听
-        childrenData.forEach(e->onEvent(Type.CHILD_ADDED,e));
-
-        while (true){
+        for (int index = 0; index<10000; index++) {
             Thread.sleep(50);
             tick();
         }
+        closeHandle.close();
     }
 
     private static void tick(){

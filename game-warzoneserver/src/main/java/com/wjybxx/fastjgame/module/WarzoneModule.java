@@ -27,7 +27,7 @@ import com.wjybxx.fastjgame.world.World;
  * date - 2019/5/17 15:38
  * github - https://github.com/hl845740757
  */
-public class WarzoneModule extends CoreModule{
+public class WarzoneModule extends WorldModule {
 
     @Override
     protected void bindWorldAndWorldInfoMrg() {
@@ -40,7 +40,6 @@ public class WarzoneModule extends CoreModule{
         // 方便子类直接使用
         bind(WarzoneWorldInfoMrg.class).in(Singleton.class);
         bind(CenterInWarzoneInfoMrg.class).in(Singleton.class);
-        bind(TemplateMrg.class).in(Singleton.class);
         bind(WarzoneMongoDBMrg.class).in(Singleton.class);
         bind(WarzoneSendMrg.class).in(Singleton.class);
     }

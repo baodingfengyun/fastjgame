@@ -17,10 +17,12 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
+import com.wjybxx.fastjgame.annotation.WorldSingleton;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
-import com.wjybxx.fastjgame.concurrent.misc.AbstractThreadLifeCycleHelper;
-import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.misc.NetContext;
+import com.wjybxx.fastjgame.world.GameEventLoopMrg;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * 管理当前World拥有的NetContext
@@ -29,7 +31,9 @@ import com.wjybxx.fastjgame.misc.NetContext;
  * date - 2019/8/4
  * github - https://github.com/hl845740757
  */
-public class NetContextMrg extends AbstractThreadLifeCycleHelper {
+@WorldSingleton
+@NotThreadSafe
+public class NetContextMrg {
 
     private NetContext netContext;
     private final WorldInfoMrg worldInfoMrg;
@@ -41,17 +45,16 @@ public class NetContextMrg extends AbstractThreadLifeCycleHelper {
         this.gameEventLoopMrg = gameEventLoopMrg;
     }
 
-    @Override
-    protected void startImp() throws Exception {
+    public void start() {
         // 创建上下文
-        ListenableFuture<NetContext> contextFuture = gameEventLoopMrg.getNetEventLoopGroup().createContext(worldInfoMrg.getWorldGuid(),
+        ListenableFuture<NetContext> future = gameEventLoopMrg.getNetEventLoopGroup().createContext(worldInfoMrg.getWorldGuid(),
                 worldInfoMrg.getWorldType(), gameEventLoopMrg.getEventLoop());
-        contextFuture.awaitUninterruptibly();
-        netContext = contextFuture.tryGet();
+
+        future.awaitUninterruptibly();
+        netContext = future.tryGet();
     }
 
-    @Override
-    protected void shutdownImp() {
+    public void shutdown() {
         if (null != netContext) {
             netContext.deregister();
         }

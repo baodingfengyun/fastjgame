@@ -14,25 +14,27 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.test;
+package com.wjybxx.fastjgame.mrg;
 
-import com.wjybxx.fastjgame.mrg.CuratorMrg;
+import com.google.inject.Inject;
+import com.wjybxx.fastjgame.annotation.WorldSingleton;
+import com.wjybxx.fastjgame.trigger.SystemTimeHelper;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
+ * World级别系统时间控制器，非线程安全。
+ * 目的为了减少频繁地调用{@link System#currentTimeMillis()}
  * @author wjybxx
  * @version 1.0
- * date - 2019/7/2 13:15
+ * date - 2019/4/27 22:06
  * github - https://github.com/hl845740757
  */
-public class BarrierTest {
+@WorldSingleton
+@NotThreadSafe
+public class WorldTimeMrg extends SystemTimeHelper {
 
-    private static final String path = "/watcher/checkExists";
-
-    public static void main(String[] args) throws Exception {
-        CuratorMrg curatorMrg = CuratorTest.newCuratorMrg();
-
-        System.out.println("------start wait------");
-        curatorMrg.waitForNodeDelete(path);
-        System.out.println("------ weak  up ------");
+    @Inject
+    public WorldTimeMrg() {
     }
 }

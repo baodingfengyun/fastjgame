@@ -20,7 +20,8 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.wjybxx.fastjgame.misc.IntSequencer;
 import com.wjybxx.fastjgame.module.CenterModule;
-import com.wjybxx.fastjgame.module.NetModule;
+import com.wjybxx.fastjgame.module.GameEventLoopGroupModule;
+import com.wjybxx.fastjgame.module.GameEventLoopModule;
 import com.wjybxx.fastjgame.mrg.CuratorMrg;
 import com.wjybxx.fastjgame.utils.GameUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
@@ -43,9 +44,8 @@ public class UpdateEventTest {
         String logFilePath = logDir + File.separator + "updater.log";
         System.setProperty("logFilePath",logFilePath);
 
-        Injector injector= Guice.createInjector(new NetModule(),new CenterModule());
+        Injector injector= Guice.createInjector(new GameEventLoopGroupModule(), new GameEventLoopModule(), new CenterModule());
         CuratorMrg curatorMrg=injector.getInstance(CuratorMrg.class);
-        curatorMrg.start();
 
         // 注册到zk
         String parentPath= ZKPathUtils.onlineParentPath(1);

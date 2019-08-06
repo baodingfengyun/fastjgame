@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
+import com.wjybxx.fastjgame.annotation.WorldSingleton;
 import com.wjybxx.fastjgame.misc.OneWayMessageHandler;
 import com.wjybxx.fastjgame.misc.RpcRequestHandler1;
 import com.wjybxx.fastjgame.misc.RpcRequestHandler2;
@@ -27,19 +28,23 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
 /**
  * 实现TCP/Ws长链接的 [单向消息] 和 [rpc请求] 的分发。
- *
  * 不算标准的RPC，但是其本质是rpc，只不过相当于我们限定了方法参数只能是一个，不同的请求参数对应不同的方法。
+ *
+ * 注意：不同的world有不同的消息处理器，单例级别为world级别。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/4
  * github - https://github.com/hl845740757
  */
+@WorldSingleton
+@NotThreadSafe
 public class MessageDispatcherMrg implements MessageHandler {
 
     private static final Logger logger= LoggerFactory.getLogger(MessageDispatcherMrg.class);

@@ -17,13 +17,14 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.concurrent.misc.AbstractThreadLifeCycleHelper;
+import com.wjybxx.fastjgame.annotation.EventLoopSingleton;
 import com.wjybxx.fastjgame.misc.LockPathAction;
 import com.wjybxx.fastjgame.misc.ObjectHolder;
+import com.wjybxx.fastjgame.misc.ResourceCloseHandle;
 import com.wjybxx.fastjgame.utils.*;
+import com.wjybxx.fastjgame.world.GameEventLoopMrg;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.barriers.DistributedBarrier;
-import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.NodeCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
@@ -43,6 +44,8 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * 2019年8月6日 归入线程级别管理器。
+ *
  * <h3>Curator</h3>
  * 官网：http://curator.apache.org/getting-started.html<br>
  * 使用zookeeper建议配合ZKUI。
@@ -82,8 +85,9 @@ import java.util.concurrent.TimeUnit;
  * date - 2019/5/12 12:05
  * github - https://github.com/hl845740757
  */
+@EventLoopSingleton
 @NotThreadSafe
-public class CuratorMrg extends AbstractThreadLifeCycleHelper {
+public class CuratorMrg {
 
     private static final Logger logger = LoggerFactory.getLogger(CuratorMrg.class);
 
@@ -92,7 +96,7 @@ public class CuratorMrg extends AbstractThreadLifeCycleHelper {
      */
     private final Map<String, InterProcessMutex> lockMap=new HashMap<>();
     /**
-     * 已分配的节点缓存，以方便统一关闭
+     * 已分配的节点缓存，以方便统一关闭（避免使用者忘记关闭之后导致泄漏）
      */
     private final List<PathChildrenCache> allocateNodeCache=new ArrayList<>(10);
 
@@ -114,13 +118,8 @@ public class CuratorMrg extends AbstractThreadLifeCycleHelper {
         return client;
     }
 
-    @Override
-    protected void startImp() throws Exception {
-        // 在构造方法中启动
-    }
 
-    @Override
-    protected void shutdownImp() {
+    public void shutdown() {
         CollectionUtils.removeIfAndThen(allocateNodeCache, FunctionUtils::TRUE, GameUtils::closeQuietly);
     }
 
@@ -365,10 +364,10 @@ public class CuratorMrg extends AbstractThreadLifeCycleHelper {
      * 更多线程安全问题，请查看类文档中提到的笔记。
      * @param path 父节点
      * @param listener 缓存事件监听器，运行在逻辑线程，不必考虑线程安全。
-     * @return 当前孩子节点数据
+     * @return PathChildrenCache 不再使用时需要手动关闭！不要使用{@link PathChildrenCache}获取数据
      * @throws Exception zk errors
      */
-    public List<ChildData> watchChildren(String path, @Nonnull PathChildrenCacheListener listener) throws Exception {
+    public ResourceCloseHandle watchChildren(String path, @Nonnull PathChildrenCacheListener listener) throws Exception {
         // CloseableExecutorService这个还是不共享的好
         CloseableExecutorService watcherService = clientMrg.newClosableExecutorService();
         // 指定pathChildrenCache接收事件的线程，复用线程池，以节省开销。
@@ -376,13 +375,12 @@ public class CuratorMrg extends AbstractThreadLifeCycleHelper {
 
         // 先添加listener以确保不会遗漏事件 --- 使用EventLoop线程监听，消除同步，listener不必考虑线程安全问题。
         pathChildrenCache.getListenable().addListener(listener, gameEventLoopMrg.getEventLoop());
+        // 避免外部忘记关闭
         this.allocateNodeCache.add(pathChildrenCache);
 
         // 启动缓存
-        pathChildrenCache.start(PathChildrenCache.StartMode.BUILD_INITIAL_CACHE);
-        // TODO 潜在的竞争风险
-        // 说实话getCurrentData和后面的事件是有竞争风险的， 这种方式没有地方能安全获取初始化数据
-        return pathChildrenCache.getCurrentData();
+        pathChildrenCache.start(PathChildrenCache.StartMode.NORMAL);
+        return new ResourceCloseHandle(pathChildrenCache);
     }
 
     /**

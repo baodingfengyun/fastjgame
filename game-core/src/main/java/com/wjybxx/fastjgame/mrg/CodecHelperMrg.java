@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
+import com.wjybxx.fastjgame.annotation.WorldSingleton;
 import com.wjybxx.fastjgame.misc.ProtoBufHashMappingStrategy;
 import com.wjybxx.fastjgame.net.CodecHelper;
 import com.wjybxx.fastjgame.net.MessageMappingStrategy;
@@ -30,12 +31,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * CodecHelper管理器。
+ * CodecHelper管理器。World级别单例，不同的world可能有不同的需求。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/4/27 22:01
  * github - https://github.com/hl845740757
  */
+@WorldSingleton
 @NotThreadSafe
 public final class CodecHelperMrg {
 

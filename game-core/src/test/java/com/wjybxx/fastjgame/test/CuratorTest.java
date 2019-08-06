@@ -1,15 +1,18 @@
 package com.wjybxx.fastjgame.test;
 
+import com.wjybxx.fastjgame.misc.ResourceCloseHandle;
 import com.wjybxx.fastjgame.mrg.CuratorClientMrg;
 import com.wjybxx.fastjgame.mrg.CuratorMrg;
 import com.wjybxx.fastjgame.mrg.GameConfigMrg;
-import com.wjybxx.fastjgame.mrg.GameEventLoopMrg;
+import com.wjybxx.fastjgame.utils.TimeUtils;
+import com.wjybxx.fastjgame.world.GameEventLoopMrg;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.concurrent.locks.LockSupport;
 
 /**
  * @author wjybxx
@@ -28,10 +31,11 @@ public class CuratorTest {
 
     public static void main(String[] args) throws Exception {
         CuratorMrg curatorMrg = newCuratorMrg();
-        curatorMrg.start();
+        ResourceCloseHandle closeHandle = curatorMrg.watchChildren("/", CuratorTest::onEvent);
 
-        List<ChildData> childrenData = curatorMrg.watchChildren("/", CuratorTest::onEvent);
-        childrenData.forEach(CuratorTest::printChild);
+        LockSupport.parkNanos(TimeUtils.NANO_PER_MILLISECOND * TimeUtils.MIN);
+
+        closeHandle.close();
     }
 
     private static void onEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception{

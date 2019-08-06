@@ -25,7 +25,7 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.*;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
-import com.wjybxx.fastjgame.concurrent.misc.AbstractThreadLifeCycleHelper;
+import com.wjybxx.fastjgame.annotation.WorldSingleton;
 import com.wjybxx.fastjgame.misc.*;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.bson.BsonDocument;
@@ -39,6 +39,7 @@ import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
 
 import javax.annotation.Nonnull;
+import javax.annotation.concurrent.NotThreadSafe;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -46,7 +47,7 @@ import static com.mongodb.client.model.Projections.*;
 import static com.wjybxx.fastjgame.utils.GameUtils.isNullOrEmptyString;
 
 /**
- * MongoDB驱动封装类。
+ * MongoDB驱动封装类。World级别的单例，不同的world有不同的需求
  *
  * 几个重要的类:
  * {@link Updates}
@@ -59,7 +60,9 @@ import static com.wjybxx.fastjgame.utils.GameUtils.isNullOrEmptyString;
  * date - 2019/5/20 19:42
  * github - https://github.com/hl845740757
  */
-public abstract class MongoDBMrg extends AbstractThreadLifeCycleHelper {
+@WorldSingleton
+@NotThreadSafe
+public abstract class MongoDBMrg {
     /**
      * 批量查询时，每次返回的数据量大小
      */
@@ -80,7 +83,7 @@ public abstract class MongoDBMrg extends AbstractThreadLifeCycleHelper {
     protected final EnumMap<MongoDBType,MongoDatabase> dbMap = new EnumMap<>(MongoDBType.class);
     
     @Inject
-    public MongoDBMrg(GameConfigMrg gameConfigMrg,CuratorMrg curatorMrg) throws Exception {
+    public MongoDBMrg(GameConfigMrg gameConfigMrg, CuratorMrg curatorMrg) throws Exception {
         MongoClientOptions mongoClientOptions = MongoClientOptions
                 .builder()
                 .connectTimeout(gameConfigMrg.getMongoConnectionTimeoutMs())
@@ -129,15 +132,10 @@ public abstract class MongoDBMrg extends AbstractThreadLifeCycleHelper {
     protected abstract void createIndex();
 
 
-    @Override
-    protected void startImp() throws Exception {
-
-    }
-
-    @Override
-    protected void shutdownImp() {
+    public void close() {
         mongoClient.close();
     }
+
 
     /**
      * 构建codecRegistry

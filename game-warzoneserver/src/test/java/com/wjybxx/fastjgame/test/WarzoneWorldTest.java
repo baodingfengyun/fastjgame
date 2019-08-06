@@ -16,13 +16,11 @@
 
 package com.wjybxx.fastjgame.test;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.wjybxx.fastjgame.Bootstrap;
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
+import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
+import com.wjybxx.fastjgame.configwrapper.ArrayConfigWrapper;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupImp;
-import com.wjybxx.fastjgame.module.GlobalModule;
 import com.wjybxx.fastjgame.module.WarzoneModule;
 import com.wjybxx.fastjgame.world.GameEventLoopGroup;
 import com.wjybxx.fastjgame.world.GameEventLoopGroupImp;
@@ -45,13 +43,10 @@ public class WarzoneWorldTest {
         String logFilePath = logDir + File.separator + "warzone.log";
         System.setProperty("logFilePath",logFilePath);
 
-        NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET"));
-        GameEventLoopGroup gameEventLoopGroup = new GameEventLoopGroupImp(1, new DefaultThreadFactory("LOGIC-WORLD"), netEventLoopGroup);
 
-        new Bootstrap<>(gameEventLoopGroup)
-                .setArgs(args)
-                .setFramesPerSecond(5)
-                .addModule(new WarzoneModule())
-                .start();
+        NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET"), RejectedExecutionHandlers.reject());
+        GameEventLoopGroup gameEventLoopGroup = new GameEventLoopGroupImp(1, new DefaultThreadFactory("LOGIC-WORLD"), RejectedExecutionHandlers.reject(), netEventLoopGroup);
+
+        gameEventLoopGroup.registerWorld(new WarzoneModule(), new ArrayConfigWrapper(args), 5);
     }
 }

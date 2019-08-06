@@ -16,9 +16,20 @@
 
 package com.wjybxx.fastjgame.world;
 
-import com.wjybxx.fastjgame.concurrent.*;
+import com.google.inject.Injector;
+import com.wjybxx.fastjgame.concurrent.EventLoopGroup;
+import com.wjybxx.fastjgame.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
+import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
+import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
+import com.wjybxx.fastjgame.function.AnyRunnable;
+import com.wjybxx.fastjgame.module.GameEventLoopModule;
+import com.wjybxx.fastjgame.module.WorldModule;
+import com.wjybxx.fastjgame.mrg.CuratorMrg;
+import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.EventLoopUtils;
+import com.wjybxx.fastjgame.utils.MathUtils;
 import com.wjybxx.fastjgame.utils.TimeUtils;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -43,24 +54,29 @@ public class GameEventLoopImp extends SingleThreadEventLoop implements GameEvent
 
     private static final Logger logger = LoggerFactory.getLogger(GameEventLoopImp.class);
     /** 最多执行多少个任务，必须检测一次world循环 */
-    private static final int MAX_BATCH_SIZE = 1000;
+    private static final int MAX_BATCH_SIZE = 1024;
 
     private final Long2ObjectMap<WorldFrameInfo> worldFrameInfoMap = new Long2ObjectOpenHashMap<>();
+
     /** 游戏世界需要的网络模块 */
     private final NetEventLoopGroup netEventLoopGroup;
+    /** EventLoop需要使用的模块 */
+    private final Injector eventLoopInjector;
+    /** 需要管理的资源 */
+    private final CuratorMrg curatorMrg;
+    private final GameEventLoopMrg gameEventLoopMrg;
 
-    public GameEventLoopImp(@Nullable EventLoopGroup parent,
-                            @Nonnull ThreadFactory threadFactory,
-                            @Nonnull NetEventLoopGroup netEventLoopGroup) {
-        this(parent, threadFactory, RejectedExecutionHandlers.reject(), netEventLoopGroup);
-    }
+    GameEventLoopImp(@Nonnull GameEventLoopGroup parent,
+                     @Nonnull ThreadFactory threadFactory,
+                     @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
+                     @Nonnull NetEventLoopGroup netEventLoopGroup, Injector groupInjector) {
 
-    public GameEventLoopImp(@Nullable EventLoopGroup parent,
-                            @Nonnull ThreadFactory threadFactory,
-                            @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
-                            @Nonnull NetEventLoopGroup netEventLoopGroup) {
         super(parent, threadFactory, rejectedExecutionHandler);
         this.netEventLoopGroup = netEventLoopGroup;
+
+        eventLoopInjector = groupInjector.createChildInjector(new GameEventLoopModule());
+        curatorMrg = eventLoopInjector.getInstance(CuratorMrg.class);
+        gameEventLoopMrg = eventLoopInjector.getInstance(GameEventLoopMrg.class);
     }
 
     @Override
@@ -78,6 +94,12 @@ public class GameEventLoopImp extends SingleThreadEventLoop implements GameEvent
     @Override
     public GameEventLoop next() {
         return (GameEventLoop) super.next();
+    }
+
+    @Override
+    protected void init() throws Exception {
+        super.init();
+        gameEventLoopMrg.publish(this);
     }
 
     @Override
@@ -115,13 +137,24 @@ public class GameEventLoopImp extends SingleThreadEventLoop implements GameEvent
         }
     }
 
+    @Override
+    protected void clean() throws Exception {
+        super.clean();
+        // 关闭所有游戏world
+        for (WorldFrameInfo worldFrameInfo:worldFrameInfoMap.values()) {
+            ConcurrentUtils.safeExecute((AnyRunnable) worldFrameInfo.world::shutdown);
+        }
+        // 关闭线程级资源
+        curatorMrg.shutdown();
+    }
+
     @Nonnull
     @Override
-    public ListenableFuture<?> registerWorld(World world, long frameInterval) {
+    public ListenableFuture<World> registerWorld(WorldModule worldModule, ConfigWrapper startArgs, int framesPerSecond) {
+        // 校验帧率
+        final long frameInterval = MathUtils.frameInterval(framesPerSecond);
         // world可能注册一个world，因此可能是本地线程调用
-        return EventLoopUtils.submitOrRun(this, () -> {
-            registerWorldInternal(world, frameInterval);
-        });
+        return EventLoopUtils.submitOrRun(this, () -> registerWorldInternal(worldModule, startArgs, framesPerSecond, frameInterval));
     }
 
     @Nonnull
@@ -138,22 +171,27 @@ public class GameEventLoopImp extends SingleThreadEventLoop implements GameEvent
         });
     }
 
-    private void registerWorldInternal(World world, long frameInterval) {
-        if (worldFrameInfoMap.containsKey(world.worldGuid())) {
-            throw new IllegalArgumentException("world " + world.worldGuid() + " already registered");
-        }
+    private World registerWorldInternal(WorldModule worldModule, ConfigWrapper startArgs, int framesPerSecond, long frameInterval) {
+        final Injector worldInjector = eventLoopInjector.createChildInjector(worldModule);
+        final World world = worldInjector.getInstance(World.class);
         try {
-            world.startUp(this);
+            world.startUp(startArgs, framesPerSecond);
             // 启动成功才放入
             WorldFrameInfo worldFrameInfo = new WorldFrameInfo(world, frameInterval);
             worldFrameInfoMap.put(world.worldGuid(), worldFrameInfo);
+            return world;
         } catch (Exception e){
+            // 出现任何异常，都尝试关闭world
             logger.warn("world startUp caught exception. will deregister.", e);
             try {
                 world.shutdown();
             } catch (Exception ex) {
                 logger.warn("world register shutdown caught exception.", ex);
             }
+            // 重新抛出异常，避免用户对启动失败的world进行操作。
+            ConcurrentUtils.rethrow(e);
+            // unreachable
+            return null;
         }
     }
 

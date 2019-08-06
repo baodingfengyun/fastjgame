@@ -28,7 +28,7 @@ import com.wjybxx.fastjgame.world.World;
  * date - 2019/5/17 20:09
  * github - https://github.com/hl845740757
  */
-public class LoginModule extends CoreModule{
+public class LoginModule extends WorldModule {
 
     @Override
     protected void bindWorldAndWorldInfoMrg() {

@@ -28,7 +28,7 @@ import com.wjybxx.fastjgame.world.World;
  * date - 2019/5/16 21:20
  * github - https://github.com/hl845740757
  */
-public class SceneModule extends CoreModule {
+public class SceneModule extends WorldModule {
 
     @Override
     protected void bindWorldAndWorldInfoMrg() {
@@ -45,7 +45,6 @@ public class SceneModule extends CoreModule {
         bind(MapDataLoadMrg.class).in(Singleton.class);
         bind(SceneWrapper.class).in(Singleton.class);
         bind(SceneMrg.class).in(Singleton.class);
-        bind(TemplateMrg.class).in(Singleton.class);
         bind(PlayerSessionMrg.class).in(Singleton.class);
     }
 }

@@ -16,17 +16,19 @@
 
 package com.wjybxx.fastjgame.start;
 
-import com.google.inject.AbstractModule;
-import com.wjybxx.fastjgame.Bootstrap;
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
+import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
+import com.wjybxx.fastjgame.configwrapper.ArrayConfigWrapper;
 import com.wjybxx.fastjgame.core.SceneRegion;
 import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupImp;
 import com.wjybxx.fastjgame.misc.PlatformType;
 import com.wjybxx.fastjgame.module.*;
+import com.wjybxx.fastjgame.utils.TimeUtils;
 import com.wjybxx.fastjgame.world.GameEventLoopGroup;
 import com.wjybxx.fastjgame.world.GameEventLoopGroupImp;
+import com.wjybxx.fastjgame.world.World;
 
 /**
  * 启动器
@@ -72,10 +74,10 @@ public class StartUp {
     public static void main(String[] args) throws Exception {
         // 试一试ALL IN ONE
         // NET线程数最少1个
-        final NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupImp(2, new DefaultThreadFactory("NET"));
+        final NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupImp(2, new DefaultThreadFactory("NET"), RejectedExecutionHandlers.reject());
         // Game线程数需要多一点，因为目前部分启动实现是阻塞方式的，zookeeper节点不存在/存在的情况下回阻塞，后期会改动
         // center warzone 启动可能阻塞(同一个战区只能启动一个)
-        final GameEventLoopGroup gameEventLoopGroup = new GameEventLoopGroupImp(3, new DefaultThreadFactory("WORLD"), netEventLoopGroup);
+        final GameEventLoopGroup gameEventLoopGroup = new GameEventLoopGroupImp(3, new DefaultThreadFactory("WORLD"), RejectedExecutionHandlers.reject(), netEventLoopGroup);
 
         start(gameEventLoopGroup, new WarzoneModule(), warzoneArgs, 10);
         start(gameEventLoopGroup, new CenterModule(), centerArgs, 10);
@@ -89,14 +91,19 @@ public class StartUp {
         start(gameEventLoopGroup, new SceneModule(), crossSceneArgs, 20);
 
         start(gameEventLoopGroup, new LoginModule(), loginArgs, 10);
+
+
+        try {
+            Thread.sleep(1 * TimeUtils.MIN);
+        } catch (InterruptedException ignore){
+        }
+        // 试一试能否安全关闭
+        gameEventLoopGroup.shutdown();
+        netEventLoopGroup.shutdown();
+        System.out.println(" ******* invoked shutdown *******");
     }
 
-    private static void start(GameEventLoopGroup gameEventLoopGroup, AbstractModule module, String[] args, int framesPerSecond) throws Exception {
-
-        new Bootstrap<>(gameEventLoopGroup)
-                .setArgs(args)
-                .setFramesPerSecond(framesPerSecond)
-                .addModule(module)
-                .start();
+    private static World start(GameEventLoopGroup gameEventLoopGroup, WorldModule module, String[] args, int framesPerSecond) throws Exception {
+        return gameEventLoopGroup.registerWorld(module, new ArrayConfigWrapper(args), framesPerSecond).get();
     }
 }

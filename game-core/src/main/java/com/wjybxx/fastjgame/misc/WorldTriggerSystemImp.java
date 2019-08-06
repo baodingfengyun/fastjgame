@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.trigger.Timer;
 import com.wjybxx.fastjgame.trigger.TriggerSystemImp;
 
 /**
+ * World使用的定时器系统基本实现。
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/4

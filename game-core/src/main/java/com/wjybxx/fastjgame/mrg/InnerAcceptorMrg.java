@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
+import com.wjybxx.fastjgame.annotation.WorldSingleton;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.NetContext;
@@ -30,6 +31,8 @@ import com.wjybxx.fastjgame.net.initializer.TCPServerChannelInitializer;
 import com.wjybxx.fastjgame.utils.GameUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * 内部通信建立连接的辅助类
  * @author wjybxx
@@ -37,6 +40,8 @@ import com.wjybxx.fastjgame.utils.NetUtils;
  * date - 2019/8/4
  * github - https://github.com/hl845740757
  */
+@WorldSingleton
+@NotThreadSafe
 public class InnerAcceptorMrg {
 
     private final CodecHelperMrg codecHelperMrg;

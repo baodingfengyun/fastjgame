@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
+import com.wjybxx.fastjgame.annotation.WorldSingleton;
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
 import com.wjybxx.fastjgame.misc.HttpResponseHelper;
 import com.wjybxx.fastjgame.net.HttpRequestHandler;
@@ -25,16 +26,21 @@ import com.wjybxx.fastjgame.utils.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 实现http请求的分发操作
+ * 实现http请求的分发操作。
+ * 注意：不同的world有不同的消息处理器，单例级别为World级别。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/4
  * github - https://github.com/hl845740757
  */
+@WorldSingleton
+@NotThreadSafe
 public class HttpDispatcherMrg implements HttpRequestHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpDispatcherMrg.class);

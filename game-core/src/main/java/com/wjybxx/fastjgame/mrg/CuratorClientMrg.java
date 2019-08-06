@@ -17,8 +17,8 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
+import com.wjybxx.fastjgame.annotation.EventLoopGroupSingleton;
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
-import com.wjybxx.fastjgame.concurrent.misc.AbstractThreadLifeCycleHelper;
 import com.wjybxx.fastjgame.misc.BackoffRetryForever;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import org.apache.curator.framework.CuratorFramework;
@@ -39,8 +39,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * date - 2019/8/4
  * github - https://github.com/hl845740757
  */
+@EventLoopGroupSingleton
 @ThreadSafe
-public class CuratorClientMrg extends AbstractThreadLifeCycleHelper {
+public class CuratorClientMrg {
 
     /**
      * CuratorFramework instances are fully thread-safe.
@@ -60,7 +61,7 @@ public class CuratorClientMrg extends AbstractThreadLifeCycleHelper {
 
     @Inject
     public CuratorClientMrg(GameConfigMrg gameConfigMrg) throws InterruptedException {
-        client= newStartedClient(gameConfigMrg);
+        client = newStartedClient(gameConfigMrg);
 
         // 该线程池不要共享的好，它必须是单线程的，如果放在外部容易出问题
         backgroundExecutor = new ThreadPoolExecutor(1,1,
@@ -69,13 +70,7 @@ public class CuratorClientMrg extends AbstractThreadLifeCycleHelper {
                 new DefaultThreadFactory("curator-backround"));
     }
 
-    @Override
-    protected void startImp() throws Exception {
-
-    }
-
-    @Override
-    protected void shutdownImp() {
+    public void shutdown() {
         ConcurrentUtils.safeExecute((Runnable) client::close);
         backgroundExecutor.shutdownNow();
     }

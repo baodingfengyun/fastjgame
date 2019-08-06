@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.world;
 
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
 import com.wjybxx.fastjgame.net.RoleType;
 
 import javax.annotation.Nonnull;
@@ -31,7 +32,7 @@ import javax.annotation.Nonnull;
 public interface World {
 
     /**
-     * world的guid
+     * world的guid，在{@link #startUp(ConfigWrapper, int)}之后必须已完成赋值。
      */
     long worldGuid();
 
@@ -44,10 +45,11 @@ public interface World {
     /**
      * 启动world，注意：world出现任何异常，都会停止执行并开始关闭
      *
-     * @param gameEventLoop world所属的EventLoop，可以保存下来。
      * @throws Exception errors
+     * @param startArgs 注册world时指定的启动参数
+     * @param framesPerSecond 游戏世界帧率
      */
-    void startUp(GameEventLoop gameEventLoop) throws Exception;
+    void startUp(ConfigWrapper startArgs, int framesPerSecond) throws Exception;
 
     /**
      * 游戏世界刷帧
@@ -62,9 +64,9 @@ public interface World {
     void shutdown() throws Exception;
 
     /**
-     * 获取world绑定到的GameEventLoop
+     * 获取world绑定到的GameEventLoop，注册完成之后可以获取。
+     * 这样可以将有关联的world注册到同一个GameEventLoop上。
      *
-     * (如果world外部调用：必须得在register执行完成之后)
      * @return gameEventLoop
      */
     @Nonnull

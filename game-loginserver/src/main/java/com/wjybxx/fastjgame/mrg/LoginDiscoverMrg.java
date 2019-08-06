@@ -18,16 +18,13 @@ package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
-import com.wjybxx.fastjgame.concurrent.misc.AbstractThreadLifeCycleHelper;
 import com.wjybxx.fastjgame.core.onlinenode.CenterNodeData;
 import com.wjybxx.fastjgame.core.onlinenode.CenterNodeName;
 import com.wjybxx.fastjgame.net.RoleType;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
+import com.wjybxx.fastjgame.world.GameEventLoopMrg;
 import org.apache.curator.framework.recipes.cache.*;
-
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 登录服，用于发现所有的CenterServer。
@@ -43,7 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * date - 2019/5/17 20:29
  * github - https://github.com/hl845740757
  */
-public class LoginDiscoverMrg extends AbstractThreadLifeCycleHelper {
+public class LoginDiscoverMrg {
 
     private final CuratorMrg curatorMrg;
     private final CenterInLoginInfoMrg centerInLoginInfoMrg;
@@ -58,8 +55,7 @@ public class LoginDiscoverMrg extends AbstractThreadLifeCycleHelper {
         this.gameEventLoopMrg = gameEventLoopMrg;
     }
 
-    @Override
-    protected void startImp() throws Exception {
+    public void start() throws Exception {
         treeCache = TreeCache.newBuilder(curatorMrg.getClient(), ZKPathUtils.onlineRootPath())
                 .setCreateParentNodes(true)
                 .setMaxDepth(2)
@@ -70,9 +66,10 @@ public class LoginDiscoverMrg extends AbstractThreadLifeCycleHelper {
         treeCache.start();
     }
 
-    @Override
-    protected void shutdownImp() {
-        treeCache.close();
+    public void shutdown() {
+        if (treeCache != null) {
+            treeCache.close();
+        }
     }
 
     private void onEvent(TreeCacheEvent event){
