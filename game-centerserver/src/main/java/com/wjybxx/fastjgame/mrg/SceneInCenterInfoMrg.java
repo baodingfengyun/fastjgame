@@ -235,7 +235,7 @@ public class SceneInCenterInfoMrg {
 
         @Override
         public void onSessionDisconnected(C2SSession session) {
-            onSceneDisconnect(session.getServerGuid());
+            onSceneDisconnect(session.remoteGuid());
         }
     }
 
@@ -258,7 +258,7 @@ public class SceneInCenterInfoMrg {
 
         @Override
         public void onSessionDisconnected(C2SSession session) {
-            onSceneDisconnect(session.getServerGuid());
+            onSceneDisconnect(session.remoteGuid());
         }
     }
 

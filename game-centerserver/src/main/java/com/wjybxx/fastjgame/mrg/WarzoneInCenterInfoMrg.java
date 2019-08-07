@@ -136,7 +136,7 @@ public class WarzoneInCenterInfoMrg {
 
         @Override
         public void onSessionDisconnected(C2SSession session) {
-            onWarzoneDisconnect(session.getServerGuid());
+            onWarzoneDisconnect(session.remoteGuid());
         }
     }
 

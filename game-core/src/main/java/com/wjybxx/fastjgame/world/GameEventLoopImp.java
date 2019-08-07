@@ -55,9 +55,8 @@ public class GameEventLoopImp extends SingleThreadEventLoop implements GameEvent
     private static final Logger logger = LoggerFactory.getLogger(GameEventLoopImp.class);
     /** 最多执行多少个任务，必须检测一次world循环 */
     private static final int MAX_BATCH_SIZE = 1024;
-
+    /** 该EventLoop上注册的World */
     private final Long2ObjectMap<WorldFrameInfo> worldFrameInfoMap = new Long2ObjectOpenHashMap<>();
-
     /** 游戏世界需要的网络模块 */
     private final NetEventLoopGroup netEventLoopGroup;
     /** EventLoop需要使用的模块 */

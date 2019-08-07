@@ -21,7 +21,7 @@ import com.wjybxx.fastjgame.annotation.WorldSingleton;
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
 import com.wjybxx.fastjgame.misc.HttpResponseHelper;
 import com.wjybxx.fastjgame.net.HttpRequestHandler;
-import com.wjybxx.fastjgame.net.IHttpSession;
+import com.wjybxx.fastjgame.net.HttpSession;
 import com.wjybxx.fastjgame.utils.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +58,7 @@ public class HttpDispatcherMrg implements HttpRequestHandler {
     }
 
     @Override
-    public void onHttpRequest(IHttpSession httpSession, String path, ConfigWrapper requestParams) throws Exception {
+    public void onHttpRequest(HttpSession httpSession, String path, ConfigWrapper requestParams) throws Exception {
         // 未注册的路径
         HttpRequestHandler httpRequestHandler = handlerMap.get(path);
         if (null == httpRequestHandler){

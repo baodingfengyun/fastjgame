@@ -74,10 +74,10 @@ public class StartUp {
     public static void main(String[] args) throws Exception {
         // 试一试ALL IN ONE
         // NET线程数最少1个
-        final NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupImp(2, new DefaultThreadFactory("NET"), RejectedExecutionHandlers.reject());
+        final NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupImp(2, new DefaultThreadFactory("NET"), RejectedExecutionHandlers.log());
         // Game线程数需要多一点，因为目前部分启动实现是阻塞方式的，zookeeper节点不存在/存在的情况下回阻塞，后期会改动
         // center warzone 启动可能阻塞(同一个战区只能启动一个)
-        final GameEventLoopGroup gameEventLoopGroup = new GameEventLoopGroupImp(3, new DefaultThreadFactory("WORLD"), RejectedExecutionHandlers.reject(), netEventLoopGroup);
+        final GameEventLoopGroup gameEventLoopGroup = new GameEventLoopGroupImp(3, new DefaultThreadFactory("WORLD"), RejectedExecutionHandlers.log(), netEventLoopGroup);
 
         start(gameEventLoopGroup, new WarzoneModule(), warzoneArgs, 10);
         start(gameEventLoopGroup, new CenterModule(), centerArgs, 10);
@@ -94,7 +94,7 @@ public class StartUp {
 
 
         try {
-            Thread.sleep(1 * TimeUtils.MIN);
+            Thread.sleep(2 * TimeUtils.MIN);
         } catch (InterruptedException ignore){
         }
         // 试一试能否安全关闭

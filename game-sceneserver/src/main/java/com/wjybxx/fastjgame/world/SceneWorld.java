@@ -135,7 +135,7 @@ public class SceneWorld extends AbstractWorld {
 
         @Override
         public void onSessionDisconnected(S2CSession session) {
-            centerInSceneInfoMrg.onDisconnect(session.getClientGuid(), SceneWorld.this);
+            centerInSceneInfoMrg.onDisconnect(session.remoteGuid(), SceneWorld.this);
         }
     }
 

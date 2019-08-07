@@ -38,7 +38,7 @@ public class LoginModule extends WorldModule {
 
     @Override
     protected void bindOthers() {
-        // 再调用，方便直接使用
+        // 再显式绑定一次，方便直接使用
         bind(LoginWorldInfoMrg.class).in(Singleton.class);
         bind(LoginDiscoverMrg.class).in(Singleton.class);
         bind(CenterInLoginInfoMrg.class).in(Singleton.class);
