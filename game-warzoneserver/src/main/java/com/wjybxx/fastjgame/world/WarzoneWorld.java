@@ -95,9 +95,9 @@ public class WarzoneWorld extends AbstractWorld {
         curatorMrg.waitForNodeDelete(path);
 
         final byte[] initData = JsonUtils.toJsonBytes(centerNodeData);
-        ConcurrentUtils.awaitRemoteWithSleepingRetry(path, resource -> {
-            return curatorMrg.createNodeIfAbsent(path, CreateMode.EPHEMERAL,initData);
-        },3, TimeUnit.SECONDS);
+        ConcurrentUtils.awaitRemoteWithSleepingRetry(
+                () -> curatorMrg.createNodeIfAbsent(path, CreateMode.EPHEMERAL,initData),
+                3, TimeUnit.SECONDS);
     }
 
     @Override

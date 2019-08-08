@@ -92,7 +92,7 @@ public class ZkGuidMrg implements GuidMrg {
         if (guidSequence == Integer.MAX_VALUE){
             String guidIndexPath = ZKPathUtils.guidIndexPath();
             String lockPath= ZKPathUtils.findAppropriateLockPath(guidIndexPath);
-            curatorMrg.actionWhitLock(lockPath,lockPath1 -> incGuidIndex());
+            curatorMrg.actionWhitLock(lockPath, this::incGuidIndex);
         }
     }
 
@@ -114,7 +114,7 @@ public class ZkGuidMrg implements GuidMrg {
         String guidIndexPath = ZKPathUtils.guidIndexPath();
         String lockPath= ZKPathUtils.findAppropriateLockPath(guidIndexPath);
 
-        curatorMrg.actionWhitLock(lockPath,lockPath1 -> {
+        curatorMrg.actionWhitLock(lockPath, () -> {
             if (!curatorMrg.isPathExist(guidIndexPath)){
                 // 初始化为1 并据为己有，序列化为字符串字节数组具有更好的可读性
                 byte[] initData = GameUtils.serializeToStringBytes(1);

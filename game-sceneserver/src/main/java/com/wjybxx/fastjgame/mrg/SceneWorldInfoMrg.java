@@ -162,7 +162,7 @@ public class SceneWorldInfoMrg extends WorldInfoMrg{
         final String lockPath = ZKPathUtils.findAppropriateLockPath(parent);
         // 如果父节点存在，且没有子节点，则先删除，让序号初始化为0,再创建节点
         // 整个是一个先检查后执行的逻辑，因此需要加锁，保证整个操作的原子性
-        curatorMrg.actionWhitLock(lockPath,lockPath1 -> {
+        curatorMrg.actionWhitLock(lockPath, () -> {
             curatorMrg.deleteNodeIfNoChild(parent);
             String realPath=curatorMrg.createNode(originPath,CreateMode.EPHEMERAL_SEQUENTIAL);
             this.channelId = startChannelId + ZKPathUtils.parseSequentialId(realPath);

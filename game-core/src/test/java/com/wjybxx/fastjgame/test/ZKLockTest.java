@@ -19,8 +19,7 @@ public class ZKLockTest {
         curatorMrg.lock("/mutex/guid");
 
         // 始终占用锁
-        ConcurrentUtils.awaitRemoteWithRetry(null,
-                (resource, timeout, timeUnit) -> false,
+        ConcurrentUtils.awaitRemoteWithRetry((timeout, timeUnit) -> false,
                 500, TimeUnit.MILLISECONDS);
 
     }

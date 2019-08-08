@@ -27,7 +27,6 @@ package com.wjybxx.fastjgame.misc;
 public interface LockPathAction {
     /**
      * 执行操作
-     * @param lockPath 锁定的节点
      */
-    void doAction(String lockPath) throws Exception;
+    void doAction() throws Exception;
 }

@@ -171,7 +171,7 @@ public class CuratorMrg {
     public void actionWhitLock(String lockPath, LockPathAction action) throws Exception {
         lock(lockPath);
         try {
-            action.doAction(lockPath);
+            action.doAction();
         }finally {
             unlock(lockPath);
         }
@@ -390,12 +390,12 @@ public class CuratorMrg {
      * @deprecated 尽量不要阻塞线程，会导致该线程上的其它world也阻塞！
      */
     @Deprecated
-    public byte[] waitForNodeCreate(String path) throws Exception {
+    public byte[] waitForNodeCreate(final String path) throws Exception {
         // 使用NodeCache的话，写了太多代码，搞得复杂了，不利于维护，使用简单的轮询代替。
         // 轮询虽然不雅观，但是正确性易保证
         ObjectHolder<byte[]> resultHolder = new ObjectHolder<>();
-        ConcurrentUtils.awaitRemoteWithSleepingRetry(path, resource->{
-            resultHolder.setValue(getDataIfPresent(resource));
+        ConcurrentUtils.awaitRemoteWithSleepingRetry(() -> {
+            resultHolder.setValue(getDataIfPresent(path));
             return resultHolder.getValue() != null;
             }, 1, TimeUnit.SECONDS);
         return resultHolder.getValue();
@@ -410,7 +410,7 @@ public class CuratorMrg {
     @Deprecated
     public void waitForNodeDelete(String path) throws Exception {
         final DistributedBarrier barrier = new DistributedBarrier(client, path);
-        ConcurrentUtils.awaitRemoteUninterruptibly(barrier, DistributedBarrier::waitOnBarrier);
+        ConcurrentUtils.awaitRemoteUninterruptibly(barrier::waitOnBarrier);
     }
 
     /**
