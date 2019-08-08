@@ -116,7 +116,7 @@ public class SceneInCenterInfoMrg {
         // 建立tcp连接
         innerAcceptorMrg.connect(singleSceneNodeName.getWorldGuid(), RoleType.SCENE,
                 onlineSceneNode.getInnerTcpAddress(),
-                onlineSceneNode.getLoopbackAddress(),
+                onlineSceneNode.getLocalAddress(),
                 onlineSceneNode.getMacAddress(),
                 new SingleSceneAware());
 
@@ -147,7 +147,7 @@ public class SceneInCenterInfoMrg {
         // 建立tcp连接
         innerAcceptorMrg.connect(crossSceneNodeName.getWorldGuid(), RoleType.SCENE,
                 onlineSceneNode.getInnerTcpAddress(),
-                onlineSceneNode.getLoopbackAddress(),
+                onlineSceneNode.getLocalAddress(),
                 onlineSceneNode.getMacAddress(),
                 new SingleSceneAware());
 

@@ -50,8 +50,8 @@ public class GameUtils {
      */
     public static final PortRange INNER_HTTP_PORT_RANGE = new PortRange(12001,12500);
     /**
-     * 127.0.0.1:X类型地址
-     * (当两个world在同一个机器上时可以来点骚操作？)
+     * localhost:X类型地址
+     * 两台服务器在同一台机器上时，不走网卡。
      */
     public static final PortRange LOCAL_TCP_PORT_RANGE = new PortRange(14001,14500);
     /**

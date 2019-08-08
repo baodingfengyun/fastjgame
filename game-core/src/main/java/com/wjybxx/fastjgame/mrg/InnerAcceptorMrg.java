@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.annotation.WorldSingleton;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.NetContext;
+import com.wjybxx.fastjgame.misc.PortRange;
 import com.wjybxx.fastjgame.net.C2SSession;
 import com.wjybxx.fastjgame.net.RoleType;
 import com.wjybxx.fastjgame.net.S2CSession;
@@ -61,14 +62,14 @@ public class InnerAcceptorMrg {
     }
 
     public HostAndPort bindInnerTcpPort(SessionLifecycleAware<S2CSession> lifecycleAware) {
-        return bindTcpPort(NetUtils.getLocalIp(), lifecycleAware);
+        return bindTcpPort(NetUtils.getLocalIp(), GameUtils.INNER_TCP_PORT_RANGE, lifecycleAware);
     }
 
-    private HostAndPort bindTcpPort(String host, SessionLifecycleAware<S2CSession> lifecycleAware) {
+    private HostAndPort bindTcpPort(String host, PortRange portRange, SessionLifecycleAware<S2CSession> lifecycleAware) {
         NetContext netContext = netContextMrg.getNetContext();
         TCPServerChannelInitializer serverChannelInitializer = netContext.newTcpServerInitializer(codecHelperMrg.getInnerCodecHolder());
 
-        ListenableFuture<HostAndPort> bindFuture = netContext.bindRange(host, GameUtils.INNER_TCP_PORT_RANGE,
+        ListenableFuture<HostAndPort> bindFuture = netContext.bindRange(host, portRange,
                 serverChannelInitializer, lifecycleAware, messageDispatcherMrg);
 
         bindFuture.awaitUninterruptibly();
@@ -76,7 +77,7 @@ public class InnerAcceptorMrg {
     }
 
     public HostAndPort bindLocalTcpPort(SessionLifecycleAware<S2CSession> lifecycleAware) {
-        return bindTcpPort("127.0.0.1", lifecycleAware);
+        return bindTcpPort("localhost", GameUtils.LOCAL_TCP_PORT_RANGE, lifecycleAware);
     }
 
     public HostAndPort bindInnerHttpPort() {
@@ -88,9 +89,9 @@ public class InnerAcceptorMrg {
         return bindFuture.tryGet();
     }
 
-    public ListenableFuture<?> connect(long remoteGuid, RoleType remoteRole, String innerTcpAddress, String loopbackAddress, String macAddress, SessionLifecycleAware<C2SSession> lifecycleAware) {
+    public ListenableFuture<?> connect(long remoteGuid, RoleType remoteRole, String innerTcpAddress, String localAddress, String macAddress, SessionLifecycleAware<C2SSession> lifecycleAware) {
         if (Objects.equals(macAddress, SystemUtils.getMAC())) {
-            return connect(remoteGuid, remoteRole, HostAndPort.parseHostAndPort(loopbackAddress), lifecycleAware);
+            return connect(remoteGuid, remoteRole, HostAndPort.parseHostAndPort(localAddress), lifecycleAware);
         } else {
             return connect(remoteGuid, remoteRole, HostAndPort.parseHostAndPort(innerTcpAddress), lifecycleAware);
         }

@@ -72,7 +72,7 @@ public class WarzoneInCenterInfoMrg {
         // 注册tcp会话
         innerAcceptorMrg.connect(warzoneNodeData.getWorldGuid(), RoleType.WARZONE,
                 warzoneNodeData.getInnerTcpAddress(),
-                warzoneNodeData.getLoopbackAddress(),
+                warzoneNodeData.getLocalAddress(),
                 warzoneNodeData.getMacAddress(),
                 new WarzoneSessionLifeAware());
     }

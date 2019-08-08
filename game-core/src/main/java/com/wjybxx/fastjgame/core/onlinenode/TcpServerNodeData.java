@@ -40,9 +40,9 @@ public abstract class TcpServerNodeData {
      */
     private final String innerHttpAddress;
     /**
-     * 127.0.0.1:x类型地址
+     * localhost:x类型地址(不走网卡)
      */
-    private final String loopbackAddress;
+    private final String localAddress;
     /**
      * 机器mac地址
      */
@@ -51,11 +51,11 @@ public abstract class TcpServerNodeData {
     @JsonCreator
     public TcpServerNodeData(@JsonProperty("innerTcpAddress") String innerTcpAddress,
                              @JsonProperty("innerHttpAddress") String innerHttpAddress,
-                             @JsonProperty("loopbackAddress") String loopbackAddress,
+                             @JsonProperty("localAddress") String localAddress,
                              @JsonProperty("macAddress") String macAddress) {
         this.innerTcpAddress = innerTcpAddress;
         this.innerHttpAddress = innerHttpAddress;
-        this.loopbackAddress = loopbackAddress;
+        this.localAddress = localAddress;
         this.macAddress = macAddress;
     }
 
@@ -67,8 +67,8 @@ public abstract class TcpServerNodeData {
         return innerHttpAddress;
     }
 
-    public String getLoopbackAddress() {
-        return loopbackAddress;
+    public String getLocalAddress() {
+        return localAddress;
     }
 
     public String getMacAddress() {

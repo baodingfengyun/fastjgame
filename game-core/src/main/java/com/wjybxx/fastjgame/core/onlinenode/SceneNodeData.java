@@ -43,12 +43,12 @@ public class SceneNodeData extends TcpServerNodeData {
     @JsonCreator
     public SceneNodeData(@JsonProperty("innerTcpAddress") String innerTcpAddress,
                          @JsonProperty("innerHttpAddress") String innerHttpAddress,
-                         @JsonProperty("loopbackAddress") String loopbackAddress,
+                         @JsonProperty("localAddress") String localAddress,
                          @JsonProperty("macAddress") String macAddress,
                          @JsonProperty("channelId") int channelId,
                          @JsonProperty("outerTcpAddress") String outerTcpAddress,
                          @JsonProperty("outerWebsocketAddress") String outerWebsocketAddress) {
-        super(innerTcpAddress, innerHttpAddress, loopbackAddress, macAddress);
+        super(innerTcpAddress, innerHttpAddress, localAddress, macAddress);
         this.channelId = channelId;
         this.outerTcpAddress = outerTcpAddress;
         this.outerWebsocketAddress = outerWebsocketAddress;

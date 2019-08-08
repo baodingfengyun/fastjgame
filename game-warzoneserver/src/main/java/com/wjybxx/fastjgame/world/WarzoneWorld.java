@@ -83,13 +83,13 @@ public class WarzoneWorld extends AbstractWorld {
         // 绑定3个内部交互的端口
         HostAndPort tcpHostAndPort = innerAcceptorMrg.bindInnerTcpPort(new CenterLifeAware());
         HostAndPort httpHostAndPort = innerAcceptorMrg.bindInnerHttpPort();
-        HostAndPort loopbackAddress = innerAcceptorMrg.bindLocalTcpPort(new CenterLifeAware());
+        HostAndPort localAddress = innerAcceptorMrg.bindLocalTcpPort(new CenterLifeAware());
 
         // 注册到zk
         String parentPath= ZKPathUtils.onlineParentPath(warzoneWorldInfoMrg.getWarzoneId());
         String nodeName= ZKPathUtils.buildWarzoneNodeName(warzoneWorldInfoMrg.getWarzoneId());
 
-        WarzoneNodeData centerNodeData =new WarzoneNodeData(tcpHostAndPort.toString(), httpHostAndPort.toString(), loopbackAddress.toString(), SystemUtils.getMAC(),
+        WarzoneNodeData centerNodeData =new WarzoneNodeData(tcpHostAndPort.toString(), httpHostAndPort.toString(), localAddress.toString(), SystemUtils.getMAC(),
                 warzoneWorldInfoMrg.getWorldGuid());
 
         final String path = ZKPaths.makePath(parentPath, nodeName);

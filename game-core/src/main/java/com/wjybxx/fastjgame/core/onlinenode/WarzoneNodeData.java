@@ -35,10 +35,10 @@ public class WarzoneNodeData extends TcpServerNodeData {
     @JsonCreator
     public WarzoneNodeData(@JsonProperty("innerTcpAddress") String innerTcpAddress,
                            @JsonProperty("innerHttpAddres") String innerHttpAddress,
-                           @JsonProperty("loopbackAddress") String loopbackAddress,
+                           @JsonProperty("localAddress") String localAddress,
                            @JsonProperty("macAddress") String macAddress,
                            @JsonProperty("worldGuid") long worldGuid) {
-        super(innerTcpAddress, innerHttpAddress, loopbackAddress, macAddress);
+        super(innerTcpAddress, innerHttpAddress, localAddress, macAddress);
         this.worldGuid = worldGuid;
     }
 
