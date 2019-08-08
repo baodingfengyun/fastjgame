@@ -18,8 +18,9 @@ package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.annotation.WorldSingleton;
-import com.wjybxx.fastjgame.misc.WorldTriggerSystemImp;
+import com.wjybxx.fastjgame.trigger.*;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -32,11 +33,58 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @WorldSingleton
 @NotThreadSafe
-public class WorldTimerMrg extends WorldTriggerSystemImp {
+public class WorldTimerMrg implements TimerSystem {
+
+    private final TimerSystem timerSystem;
 
     @Inject
     public WorldTimerMrg(WorldTimeMrg worldTimeMrg) {
-        super(worldTimeMrg);
+        timerSystem = new DefaultTimerSystem(worldTimeMrg);
+    }
+
+    @Override
+    public void tick() {
+        timerSystem.tick();
+    }
+
+    @Override
+    public boolean isClosed() {
+        return false;
+    }
+
+    @Override
+    public void close() {
+        timerSystem.close();
+    }
+
+    @Override
+    @Nonnull
+    public TimeoutHandle newTimeout(long timeout, @Nonnull TimerTask<TimeoutHandle> task) {
+        return timerSystem.newTimeout(timeout, task);
+    }
+
+    @Override
+    @Nonnull
+    public FixedDelayHandle newFixedDelay(long initialDelay, long delay, @Nonnull TimerTask<FixedDelayHandle> timerTask) {
+        return timerSystem.newFixedDelay(initialDelay, delay, timerTask);
+    }
+
+    @Override
+    @Nonnull
+    public FixedDelayHandle newFixedDelay(long delay, @Nonnull TimerTask<FixedDelayHandle> timerTask) {
+        return timerSystem.newFixedDelay(delay, timerTask);
+    }
+
+    @Override
+    @Nonnull
+    public FixedRateHandle newFixRate(long initialDelay, long period, @Nonnull TimerTask<FixedRateHandle> timerTask) {
+        return timerSystem.newFixRate(initialDelay, period, timerTask);
+    }
+
+    @Override
+    @Nonnull
+    public FixedRateHandle newFixRate(long period, @Nonnull TimerTask<FixedRateHandle> timerTask) {
+        return timerSystem.newFixRate(period, timerTask);
     }
 
 }

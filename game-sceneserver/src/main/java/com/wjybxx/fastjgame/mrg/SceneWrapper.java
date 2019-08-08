@@ -29,11 +29,17 @@ public class SceneWrapper {
 
     private final SceneSendMrg sendMrg;
     private final MapDataLoadMrg mapDataLoadMrg;
+    private final WorldTimeMrg worldTimeMrg;
+    private final WorldTimerMrg worldTimerMrg;
+    private final GuidMrg guidMrg;
 
     @Inject
-    public SceneWrapper(SceneSendMrg sendMrg, MapDataLoadMrg mapDataLoadMrg) {
+    public SceneWrapper(SceneSendMrg sendMrg, MapDataLoadMrg mapDataLoadMrg, WorldTimeMrg worldTimeMrg, WorldTimerMrg worldTimerMrg, GuidMrg guidMrg) {
         this.sendMrg = sendMrg;
         this.mapDataLoadMrg = mapDataLoadMrg;
+        this.worldTimeMrg = worldTimeMrg;
+        this.worldTimerMrg = worldTimerMrg;
+        this.guidMrg = guidMrg;
     }
 
     public SceneSendMrg getSendMrg() {
@@ -42,5 +48,17 @@ public class SceneWrapper {
 
     public MapDataLoadMrg getMapDataLoadMrg() {
         return mapDataLoadMrg;
+    }
+
+    public WorldTimeMrg getWorldTimeMrg() {
+        return worldTimeMrg;
+    }
+
+    public WorldTimerMrg getWorldTimerMrg() {
+        return worldTimerMrg;
+    }
+
+    public GuidMrg getGuidMrg() {
+        return guidMrg;
     }
 }

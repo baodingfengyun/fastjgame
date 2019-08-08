@@ -36,5 +36,6 @@ public class WorldTimeMrg extends SystemTimeHelper {
 
     @Inject
     public WorldTimeMrg() {
+
     }
 }

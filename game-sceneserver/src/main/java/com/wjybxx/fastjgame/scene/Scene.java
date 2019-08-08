@@ -17,8 +17,8 @@
 package com.wjybxx.fastjgame.scene;
 
 import com.wjybxx.fastjgame.config.SceneConfig;
-import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.core.SceneRegion;
+import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.gameobject.GameObject;
 import com.wjybxx.fastjgame.gameobject.Npc;
 import com.wjybxx.fastjgame.gameobject.Pet;
@@ -28,13 +28,14 @@ import com.wjybxx.fastjgame.mrg.MapDataLoadMrg;
 import com.wjybxx.fastjgame.mrg.SceneSendMrg;
 import com.wjybxx.fastjgame.mrg.SceneWrapper;
 import com.wjybxx.fastjgame.scene.gameobjectdata.GameObjectType;
-import com.wjybxx.fastjgame.trigger.TriggerSystemImp;
+import com.wjybxx.fastjgame.trigger.*;
 import com.wjybxx.fastjgame.utils.GameConstant;
 import com.wjybxx.fastjgame.utils.MathUtils;
 import it.unimi.dsi.fastutil.objects.ObjectCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +44,7 @@ import static com.wjybxx.fastjgame.protobuffer.p_scene_player.*;
 import static com.wjybxx.fastjgame.scene.gameobjectdata.GameObjectType.*;
 
 /**
- * 场景基类，所有的场景都继承该类
+ * 场景基类，所有的场景都继承该类。
  *
  * @author wjybxx
  * @version 1.0
@@ -51,7 +52,7 @@ import static com.wjybxx.fastjgame.scene.gameobjectdata.GameObjectType.*;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public abstract class Scene extends TriggerSystemImp {
+public abstract class Scene {
 
     private static final Logger logger = LoggerFactory.getLogger(Scene.class);
 
@@ -74,6 +75,8 @@ public abstract class Scene extends TriggerSystemImp {
     private final SceneSendMrg sendMrg;
     private final MapDataLoadMrg mapDataLoadMrg;
 
+    /** 该对象上绑定的timer，会随着场景对象的删除而删除 */
+    private final TimerSystem timerSystem;
     /**
      * 下次刷新视野的时间戳；
      */
@@ -115,6 +118,8 @@ public abstract class Scene extends TriggerSystemImp {
     private final GameObjectHandlerMapper<GameObjectSerializer<?>> serializerMapper = new GameObjectHandlerMapper<>();
 
     public Scene(long guid, SceneConfig sceneConfig, SceneWrapper sceneWrapper) {
+        timerSystem = new DefaultTimerSystem(sceneWrapper.getWorldTimeMrg());
+
         this.guid = guid;
         this.sceneConfig = sceneConfig;
         this.sendMrg = sceneWrapper.getSendMrg();
@@ -221,6 +226,8 @@ public abstract class Scene extends TriggerSystemImp {
      * @param curMillTime 当前系统时间戳
      */
     public void tick(long curMillTime) throws Exception{
+        // 检查timer执行
+        timerSystem.tick();
 
         // 场景对象刷帧(场景对象之间刷帧最好也是没有依赖的)
         for (GameObjectType gameObjectType : GameObjectType.values()){
@@ -709,6 +716,37 @@ public abstract class Scene extends TriggerSystemImp {
         }
     }
     // endregion
+
+    // ------------------------------------------ 代理timerSystem的方法，只暴露需要暴露的口 -------------------------
+    @Nonnull
+    protected final TimeoutHandle newTimeout(long timeout, @Nonnull TimerTask<TimeoutHandle> task) {
+        return timerSystem.newTimeout(timeout, task);
+    }
+
+    @Nonnull
+    protected final FixedDelayHandle newFixedDelay(long initialDelay, long delay, @Nonnull TimerTask<FixedDelayHandle> timerTask) {
+        return timerSystem.newFixedDelay(initialDelay, delay, timerTask);
+    }
+
+    @Nonnull
+    protected FixedDelayHandle newFixedDelay(long delay, @Nonnull TimerTask<FixedDelayHandle> timerTask) {
+        return timerSystem.newFixedDelay(delay, timerTask);
+    }
+
+    @Nonnull
+    protected final FixedRateHandle newFixRate(long initialDelay, long period, @Nonnull TimerTask<FixedRateHandle> timerTask) {
+        return timerSystem.newFixRate(initialDelay, period, timerTask);
+    }
+
+    @Nonnull
+    protected final FixedRateHandle newFixRate(long period, @Nonnull TimerTask<FixedRateHandle> timerTask) {
+        return timerSystem.newFixRate(period, timerTask);
+    }
+
+    /** 清空定时器 */
+    private void cleanTimer() {
+        timerSystem.close();
+    }
 }
 
 

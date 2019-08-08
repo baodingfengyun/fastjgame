@@ -31,7 +31,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 
 /**
  * 游戏World的模板实现
@@ -208,7 +207,7 @@ public abstract class AbstractWorld implements World{
     private void tickCore(long curMillTime){
         // 优先更新系统时间缓存
         worldTimeMrg.update(curMillTime);
-        worldTimerMrg.tickTrigger();
+        worldTimerMrg.tick();
     }
 
     /**
