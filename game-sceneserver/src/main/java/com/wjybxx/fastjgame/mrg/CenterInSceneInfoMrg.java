@@ -53,7 +53,7 @@ public class CenterInSceneInfoMrg {
     private final SceneRegionMrg sceneRegionMrg;
 
     /**
-     * 进程guid到信息的映射
+     * wolrdguid到信息的映射
      */
     private final Long2ObjectMap<CenterInSceneInfo> guid2InfoMap=new Long2ObjectOpenHashMap<>();
     /**
@@ -85,7 +85,7 @@ public class CenterInSceneInfoMrg {
 
     /**
      * 检测到center服进程会话断开
-     * @param centerWorldGuid center服务器进程guid
+     * @param centerWorldGuid center服务器worldGuid
      */
     public void onDisconnect(long centerWorldGuid, SceneWorld sceneWorld){
         CenterInSceneInfo centerInSceneInfo = guid2InfoMap.get(centerWorldGuid);

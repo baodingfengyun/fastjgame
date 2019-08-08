@@ -127,7 +127,7 @@ public class SceneRegionMrg {
      * @return 启动成功
      */
     @Nonnull
-    public p_center_command_single_scene_active_regions_result p_center_command_scene_active_regions_handler(Session session,p_center_command_single_scene_active_regions command){
+    public p_center_command_single_scene_active_regions_result p_center_command_scene_active_regions_handler(Session session, p_center_command_single_scene_active_regions command){
         assert sceneWorldInfoMrg.getSceneWorldType() == SceneWorldType.SINGLE;
         for (int regionId:command.getActiveRegionsList()){
             SceneRegion sceneRegion=SceneRegion.forNumber(regionId);

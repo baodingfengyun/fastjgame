@@ -30,6 +30,8 @@ import com.wjybxx.fastjgame.world.GameEventLoopGroup;
 import com.wjybxx.fastjgame.world.GameEventLoopGroupImp;
 import com.wjybxx.fastjgame.world.World;
 
+import java.io.File;
+
 /**
  * 启动器
  * @author wjybxx
@@ -72,6 +74,12 @@ public class StartUp {
 
 
     public static void main(String[] args) throws Exception {
+        // 指定一下日志文件
+        String logDir=new File("").getAbsolutePath() + File.separator + "log";
+        String logPath = logDir + File.separator + "fastjgame.log";
+        System.out.println("logPath " + logPath);
+        System.setProperty("logPath", logPath);
+
         // 试一试ALL IN ONE
         // NET线程数最少1个
         final NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupImp(2, new DefaultThreadFactory("NET"), RejectedExecutionHandlers.log());

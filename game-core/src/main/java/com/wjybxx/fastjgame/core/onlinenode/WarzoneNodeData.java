@@ -27,15 +27,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * date - 2019/5/15 17:22
  * github - https://github.com/hl845740757
  */
-public class WarzoneNodeData extends OnlineNodeData {
+public class WarzoneNodeData extends TcpServerNodeData {
 
+    /** 战区节点必须互斥，因此guid在data里面，而不在名字里。 */
     private final long worldGuid;
 
     @JsonCreator
     public WarzoneNodeData(@JsonProperty("innerTcpAddress") String innerTcpAddress,
                            @JsonProperty("innerHttpAddres") String innerHttpAddress,
+                           @JsonProperty("loopbackAddress") String loopbackAddress,
+                           @JsonProperty("macAddress") String macAddress,
                            @JsonProperty("worldGuid") long worldGuid) {
-        super(innerTcpAddress, innerHttpAddress);
+        super(innerTcpAddress, innerHttpAddress, loopbackAddress, macAddress);
         this.worldGuid = worldGuid;
     }
 

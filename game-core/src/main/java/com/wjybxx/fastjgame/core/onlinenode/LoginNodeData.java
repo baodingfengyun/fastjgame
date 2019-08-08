@@ -20,6 +20,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
+ * LoginServer在zookeeper上的节点数据。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/17 21:28

@@ -11,10 +11,7 @@ import com.wjybxx.fastjgame.net.S2CSession;
 import com.wjybxx.fastjgame.net.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.initializer.TCPServerChannelInitializer;
 import com.wjybxx.fastjgame.net.initializer.WsServerChannelInitializer;
-import com.wjybxx.fastjgame.utils.GameUtils;
-import com.wjybxx.fastjgame.utils.JsonUtils;
-import com.wjybxx.fastjgame.utils.NetUtils;
-import com.wjybxx.fastjgame.utils.ZKPathUtils;
+import com.wjybxx.fastjgame.utils.*;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
@@ -90,6 +87,7 @@ public class SceneWorld extends AbstractWorld {
         // 绑定3个内部交互的端口
         HostAndPort innerTcpAddress = innerAcceptorMrg.bindInnerTcpPort(new CenterLifeAware());
         HostAndPort innerHttpAddress = innerAcceptorMrg.bindInnerHttpPort();
+        HostAndPort loopbackAddress = innerAcceptorMrg.bindLocalTcpPort(new CenterLifeAware());
 
         // 绑定与玩家交互的两个端口
         // TODO 这里需要和前端确定到底使用什么通信方式，暂时使用服务器之间机制
@@ -104,8 +102,8 @@ public class SceneWorld extends AbstractWorld {
         HostAndPort outerWebsocketHostAndPort = netContext.bindRange(NetUtils.getOuterIp(), GameUtils.OUTER_WS_PORT_RANGE,
                 wsInitializer, new PlayerLifeAware(), messageDispatcherMrg).get();
 
-        SceneNodeData sceneNodeData =new SceneNodeData(innerTcpAddress.toString(), innerHttpAddress.toString(), sceneWorldInfoMrg.getChannelId(),
-                outerTcpHostAndPort.toString(),outerWebsocketHostAndPort.toString());
+        SceneNodeData sceneNodeData =new SceneNodeData(innerTcpAddress.toString(), innerHttpAddress.toString(), loopbackAddress.toString(), SystemUtils.getMAC(),
+                sceneWorldInfoMrg.getChannelId(), outerTcpHostAndPort.toString(),outerWebsocketHostAndPort.toString());
 
         String parentPath= ZKPathUtils.onlineParentPath(sceneWorldInfoMrg.getWarzoneId());
         String nodeName;

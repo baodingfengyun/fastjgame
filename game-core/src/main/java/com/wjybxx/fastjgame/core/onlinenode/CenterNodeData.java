@@ -30,7 +30,8 @@ public class CenterNodeData {
 
     private final String innerHttpAddress;
     /**
-     * world唯一标识
+     * world唯一标识。
+     * 因为center节点需要互斥存在，因此guid不在名字里，而是在这里。
      */
     private final long worldGuid;
 

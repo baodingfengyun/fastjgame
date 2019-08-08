@@ -20,13 +20,10 @@ import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.WarzoneInCenterInfo;
 import com.wjybxx.fastjgame.core.onlinenode.WarzoneNodeData;
 import com.wjybxx.fastjgame.core.onlinenode.WarzoneNodeName;
-import com.wjybxx.fastjgame.misc.HostAndPort;
-import com.wjybxx.fastjgame.misc.NetContext;
 import com.wjybxx.fastjgame.net.C2SSession;
 import com.wjybxx.fastjgame.net.RoleType;
 import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.net.SessionLifecycleAware;
-import com.wjybxx.fastjgame.net.initializer.TCPClientChannelInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,21 +42,16 @@ public class WarzoneInCenterInfoMrg {
     private static final Logger logger= LoggerFactory.getLogger(WarzoneInCenterInfoMrg.class);
 
     private final CenterWorldInfoMrg centerWorldInfoMrg;
-    private final NetContextMrg netContextMrg;
-    private final CodecHelperMrg codecHelperMrg;
-    private final MessageDispatcherMrg messageDispatcherMrg;
-
+    private final InnerAcceptorMrg innerAcceptorMrg;
     /**
      * 连接的战区信息，一定是发现的那个节点的session。
      */
     private WarzoneInCenterInfo warzoneInCenterInfo;
 
     @Inject
-    public WarzoneInCenterInfoMrg(CenterWorldInfoMrg centerWorldInfoMrg, NetContextMrg netContextMrg, CodecHelperMrg codecHelperMrg, MessageDispatcherMrg messageDispatcherMrg) {
-        this.netContextMrg = netContextMrg;
-        this.codecHelperMrg = codecHelperMrg;
+    public WarzoneInCenterInfoMrg(CenterWorldInfoMrg centerWorldInfoMrg, InnerAcceptorMrg innerAcceptorMrg) {
         this.centerWorldInfoMrg = centerWorldInfoMrg;
-        this.messageDispatcherMrg = messageDispatcherMrg;
+        this.innerAcceptorMrg = innerAcceptorMrg;
     }
 
     public WarzoneInCenterInfo getWarzoneInCenterInfo() {
@@ -77,17 +69,12 @@ public class WarzoneInCenterInfoMrg {
             logger.error("my loss childRemove event");
             onWarzoneDisconnect(warzoneInCenterInfo.getWarzoneWorldGuid());
         }
-        // 注册异步tcp会话
-        HostAndPort tcpHostAndPort = HostAndPort.parseHostAndPort(warzoneNodeData.getInnerTcpAddress());
-
-        NetContext netContext = netContextMrg.getNetContext();
-        TCPClientChannelInitializer tcpClientChannelInitializer = netContext.
-                newTcpClientInitializer(warzoneNodeData.getWorldGuid(), codecHelperMrg.getInnerCodecHolder());
-
-        netContext.connect(warzoneNodeData.getWorldGuid(), RoleType.WARZONE, tcpHostAndPort,
-                () -> tcpClientChannelInitializer,
-                new WarzoneSessionLifeAware(),
-                messageDispatcherMrg);
+        // 注册tcp会话
+        innerAcceptorMrg.connect(warzoneNodeData.getWorldGuid(), RoleType.WARZONE,
+                warzoneNodeData.getInnerTcpAddress(),
+                warzoneNodeData.getLoopbackAddress(),
+                warzoneNodeData.getMacAddress(),
+                new WarzoneSessionLifeAware());
     }
 
     /**

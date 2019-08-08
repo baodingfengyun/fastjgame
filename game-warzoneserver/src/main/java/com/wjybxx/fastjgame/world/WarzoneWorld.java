@@ -27,6 +27,7 @@ import com.wjybxx.fastjgame.net.S2CSession;
 import com.wjybxx.fastjgame.net.SessionLifecycleAware;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.JsonUtils;
+import com.wjybxx.fastjgame.utils.SystemUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.CreateMode;
@@ -79,16 +80,16 @@ public class WarzoneWorld extends AbstractWorld {
     }
 
     private void bindAndRegisterToZK() throws Exception {
-        // 绑定3个内部交互的端口(还有一个其实是local类型，现在还没支持)
+        // 绑定3个内部交互的端口
         HostAndPort tcpHostAndPort = innerAcceptorMrg.bindInnerTcpPort(new CenterLifeAware());
         HostAndPort httpHostAndPort = innerAcceptorMrg.bindInnerHttpPort();
+        HostAndPort loopbackAddress = innerAcceptorMrg.bindLocalTcpPort(new CenterLifeAware());
 
         // 注册到zk
         String parentPath= ZKPathUtils.onlineParentPath(warzoneWorldInfoMrg.getWarzoneId());
         String nodeName= ZKPathUtils.buildWarzoneNodeName(warzoneWorldInfoMrg.getWarzoneId());
 
-        WarzoneNodeData centerNodeData =new WarzoneNodeData(tcpHostAndPort.toString(),
-                httpHostAndPort.toString(),
+        WarzoneNodeData centerNodeData =new WarzoneNodeData(tcpHostAndPort.toString(), httpHostAndPort.toString(), loopbackAddress.toString(), SystemUtils.getMAC(),
                 warzoneWorldInfoMrg.getWorldGuid());
 
         final String path = ZKPaths.makePath(parentPath, nodeName);

@@ -19,17 +19,14 @@ package com.wjybxx.fastjgame.mrg;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.config.SceneConfig;
 import com.wjybxx.fastjgame.core.SceneInCenterInfo;
-import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.core.SceneRegion;
+import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.core.onlinenode.CrossSceneNodeName;
 import com.wjybxx.fastjgame.core.onlinenode.SceneNodeData;
 import com.wjybxx.fastjgame.core.onlinenode.SingleSceneNodeName;
-import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.LeastPlayerWorldChooser;
-import com.wjybxx.fastjgame.misc.NetContext;
 import com.wjybxx.fastjgame.misc.SceneWorldChooser;
 import com.wjybxx.fastjgame.net.*;
-import com.wjybxx.fastjgame.net.initializer.TCPClientChannelInitializer;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -75,17 +72,13 @@ public class SceneInCenterInfoMrg {
      */
     private final Int2ObjectMap<SceneInCenterInfo> channelId2InfoMap=new Int2ObjectOpenHashMap<>();
 
-    private final NetContextMrg netContextMrg;
-    private final CodecHelperMrg codecHelperMrg;
-    private final MessageDispatcherMrg messageDispatcherMrg;
+    private final InnerAcceptorMrg innerAcceptorMrg;
 
     @Inject
-    public SceneInCenterInfoMrg(CenterWorldInfoMrg centerWorldInfoMrg, TemplateMrg templateMrg, NetContextMrg netContextMrg, CodecHelperMrg codecHelperMrg, MessageDispatcherMrg messageDispatcherMrg) {
+    public SceneInCenterInfoMrg(CenterWorldInfoMrg centerWorldInfoMrg, TemplateMrg templateMrg, InnerAcceptorMrg innerAcceptorMrg) {
         this.centerWorldInfoMrg = centerWorldInfoMrg;
         this.templateMrg = templateMrg;
-        this.netContextMrg = netContextMrg;
-        this.codecHelperMrg = codecHelperMrg;
-        this.messageDispatcherMrg = messageDispatcherMrg;
+        this.innerAcceptorMrg = innerAcceptorMrg;
     }
 
     private void addSceneInfo(SceneInCenterInfo sceneInCenterInfo) {
@@ -120,17 +113,12 @@ public class SceneInCenterInfoMrg {
      * @param onlineSceneNode 本服scene节点其它信息
      */
     public void onDiscoverSingleScene(SingleSceneNodeName singleSceneNodeName, SceneNodeData onlineSceneNode){
-        // 注册异步tcp会话
-        HostAndPort tcpHostAndPort=HostAndPort.parseHostAndPort(onlineSceneNode.getInnerTcpAddress());
-
-        NetContext netContext = netContextMrg.getNetContext();
-        TCPClientChannelInitializer tcpClientChannelInitializer = netContext.
-                newTcpClientInitializer(singleSceneNodeName.getWorldGuid(), codecHelperMrg.getInnerCodecHolder());
-
-        netContext.connect(singleSceneNodeName.getWorldGuid(), RoleType.SCENE, tcpHostAndPort,
-                () -> tcpClientChannelInitializer,
-                new SingleSceneAware(),
-                messageDispatcherMrg);
+        // 建立tcp连接
+        innerAcceptorMrg.connect(singleSceneNodeName.getWorldGuid(), RoleType.SCENE,
+                onlineSceneNode.getInnerTcpAddress(),
+                onlineSceneNode.getLoopbackAddress(),
+                onlineSceneNode.getMacAddress(),
+                new SingleSceneAware());
 
         // 保存信息
         SceneInCenterInfo sceneInCenterInfo = new SceneInCenterInfo(singleSceneNodeName.getWorldGuid(),
@@ -156,17 +144,12 @@ public class SceneInCenterInfoMrg {
      * @param onlineSceneNode  跨服场景其它信息
      */
     public void onDiscoverCrossScene(CrossSceneNodeName crossSceneNodeName, SceneNodeData onlineSceneNode){
-        // 注册异步会话
-        HostAndPort tcpHostAndPort=HostAndPort.parseHostAndPort(onlineSceneNode.getInnerTcpAddress());
-
-        NetContext netContext = netContextMrg.getNetContext();
-        TCPClientChannelInitializer tcpClientChannelInitializer = netContext.
-                newTcpClientInitializer(crossSceneNodeName.getWorldGuid(), codecHelperMrg.getInnerCodecHolder());
-
-        netContext.connect(crossSceneNodeName.getWorldGuid(), RoleType.SCENE, tcpHostAndPort,
-                () -> tcpClientChannelInitializer,
-                new CrossSceneAware(),
-                messageDispatcherMrg);
+        // 建立tcp连接
+        innerAcceptorMrg.connect(crossSceneNodeName.getWorldGuid(), RoleType.SCENE,
+                onlineSceneNode.getInnerTcpAddress(),
+                onlineSceneNode.getLoopbackAddress(),
+                onlineSceneNode.getMacAddress(),
+                new SingleSceneAware());
 
         // 保存信息
         SceneInCenterInfo sceneInCenterInfo = new SceneInCenterInfo(crossSceneNodeName.getWorldGuid(),

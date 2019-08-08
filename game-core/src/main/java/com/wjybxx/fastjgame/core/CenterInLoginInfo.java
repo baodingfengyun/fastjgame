@@ -27,7 +27,7 @@ import com.wjybxx.fastjgame.misc.PlatformType;
  */
 public class CenterInLoginInfo {
     /**
-     * 进程guid
+     * worldGuid
      */
     private final long worldGuid;
     /**

@@ -30,7 +30,7 @@ import com.wjybxx.fastjgame.net.Session;
 public class CenterInSceneInfo {
 
     /**
-     * CenterServer进程guid
+     * CenterServer的worldguid
      */
     private final long centerWorldGuid;
     /**

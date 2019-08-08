@@ -30,7 +30,7 @@ public class LoginNodeName {
      */
     private final int port;
     /**
-     * 登录服进程guid
+     * 登录服worldGuid
      */
     private final long loginWorldGuid;
 

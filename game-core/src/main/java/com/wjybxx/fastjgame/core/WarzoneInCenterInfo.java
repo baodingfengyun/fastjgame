@@ -27,7 +27,7 @@ import com.wjybxx.fastjgame.net.Session;
  */
 public class WarzoneInCenterInfo {
     /**
-     * 战区进程guid，也是会话id
+     * 战区worldguid，也是会话id
      */
     private final long warzoneWorldGuid;
 

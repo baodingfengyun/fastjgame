@@ -40,8 +40,8 @@ public class WarzoneWorldTest {
 
     public static void main(String[] args) throws Exception {
         String logDir=new File("").getAbsolutePath() + File.separator + "log";
-        String logFilePath = logDir + File.separator + "warzone.log";
-        System.setProperty("logFilePath",logFilePath);
+        String logPath = logDir + File.separator + "warzone.log";
+        System.setProperty("logPath", logPath);
 
 
         NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET"), RejectedExecutionHandlers.reject());

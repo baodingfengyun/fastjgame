@@ -54,7 +54,7 @@ public class CenterSendMrg {
 
     /**
      * 发送异步消息到指定guid的场景进程;
-     * @param worldGuid 场景进程guid
+     * @param worldGuid 场景worldGuid
      * @param msg 发送的消息
      */
     public void sendToScene(long worldGuid, @Nonnull Message msg){
@@ -134,7 +134,7 @@ public class CenterSendMrg {
     /**
      * 同步rpc scene
      * @param <T> 帮助外部强转
-     * @param worldGuid 场景进程guid
+     * @param worldGuid 场景worldGuid
      * @param msg 发送的消息(请求)
      * @return rpc调用结果 如果{@link Optional#isPresent()} 为true，表示调用成功，否则表示失败
      */

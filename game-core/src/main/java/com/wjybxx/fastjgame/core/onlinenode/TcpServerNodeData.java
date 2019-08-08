@@ -20,13 +20,14 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
+ * 监听了内网tcp端口的节点。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/15 17:23
  * github - https://github.com/hl845740757
  */
-public abstract class OnlineNodeData {
+public abstract class TcpServerNodeData {
 
     /**
      * 服务器之间通信用的tcp端口信息，格式  host:port
@@ -38,12 +39,24 @@ public abstract class OnlineNodeData {
      * 用于GM等工具而绑定的http端口信息
      */
     private final String innerHttpAddress;
+    /**
+     * 127.0.0.1:x类型地址
+     */
+    private final String loopbackAddress;
+    /**
+     * 机器mac地址
+     */
+    private final String macAddress;
 
     @JsonCreator
-    public OnlineNodeData(@JsonProperty("innerTcpAddress") String innerTcpAddress,
-                          @JsonProperty("innerHttpAddress") String innerHttpAddress) {
+    public TcpServerNodeData(@JsonProperty("innerTcpAddress") String innerTcpAddress,
+                             @JsonProperty("innerHttpAddress") String innerHttpAddress,
+                             @JsonProperty("loopbackAddress") String loopbackAddress,
+                             @JsonProperty("macAddress") String macAddress) {
         this.innerTcpAddress = innerTcpAddress;
         this.innerHttpAddress = innerHttpAddress;
+        this.loopbackAddress = loopbackAddress;
+        this.macAddress = macAddress;
     }
 
     public String getInnerTcpAddress() {
@@ -54,4 +67,11 @@ public abstract class OnlineNodeData {
         return innerHttpAddress;
     }
 
+    public String getLoopbackAddress() {
+        return loopbackAddress;
+    }
+
+    public String getMacAddress() {
+        return macAddress;
+    }
 }

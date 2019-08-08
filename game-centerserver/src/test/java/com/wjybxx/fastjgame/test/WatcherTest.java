@@ -64,8 +64,8 @@ public class WatcherTest {
 
     public static void main(String[] args) throws Exception {
         String logDir=new File("").getAbsolutePath() + File.separator + "log";
-        String logFilePath = logDir + File.separator + "watcher.log";
-        System.setProperty("logFilePath",logFilePath);
+        String logPath = logDir + File.separator + "watcher.log";
+        System.setProperty("logPath", logPath);
 
         Injector injector= Guice.createInjector(new GameEventLoopGroupModule(), new GameEventLoopModule());
         CuratorMrg curatorMrg=injector.getInstance(CuratorMrg.class);

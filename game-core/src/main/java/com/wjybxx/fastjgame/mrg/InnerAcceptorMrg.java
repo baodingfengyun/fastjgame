@@ -30,8 +30,10 @@ import com.wjybxx.fastjgame.net.initializer.TCPClientChannelInitializer;
 import com.wjybxx.fastjgame.net.initializer.TCPServerChannelInitializer;
 import com.wjybxx.fastjgame.utils.GameUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
+import com.wjybxx.fastjgame.utils.SystemUtils;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import java.util.Objects;
 
 /**
  * 内部通信建立连接的辅助类
@@ -59,14 +61,22 @@ public class InnerAcceptorMrg {
     }
 
     public HostAndPort bindInnerTcpPort(SessionLifecycleAware<S2CSession> lifecycleAware) {
+        return bindTcpPort(NetUtils.getLocalIp(), lifecycleAware);
+    }
+
+    private HostAndPort bindTcpPort(String host, SessionLifecycleAware<S2CSession> lifecycleAware) {
         NetContext netContext = netContextMrg.getNetContext();
         TCPServerChannelInitializer serverChannelInitializer = netContext.newTcpServerInitializer(codecHelperMrg.getInnerCodecHolder());
 
-        ListenableFuture<HostAndPort> bindFuture = netContext.bindRange(NetUtils.getLocalIp(), GameUtils.INNER_TCP_PORT_RANGE,
+        ListenableFuture<HostAndPort> bindFuture = netContext.bindRange(host, GameUtils.INNER_TCP_PORT_RANGE,
                 serverChannelInitializer, lifecycleAware, messageDispatcherMrg);
 
         bindFuture.awaitUninterruptibly();
         return bindFuture.tryGet();
+    }
+
+    public HostAndPort bindLocalTcpPort(SessionLifecycleAware<S2CSession> lifecycleAware) {
+        return bindTcpPort("127.0.0.1", lifecycleAware);
     }
 
     public HostAndPort bindInnerHttpPort() {
@@ -76,6 +86,14 @@ public class InnerAcceptorMrg {
         ListenableFuture<HostAndPort> bindFuture = netContext.bindRange(NetUtils.getLocalIp(), GameUtils.INNER_HTTP_PORT_RANGE, httpServerInitializer, httpDispatcherMrg);
         bindFuture.awaitUninterruptibly();
         return bindFuture.tryGet();
+    }
+
+    public ListenableFuture<?> connect(long remoteGuid, RoleType remoteRole, String innerTcpAddress, String loopbackAddress, String macAddress, SessionLifecycleAware<C2SSession> lifecycleAware) {
+        if (Objects.equals(macAddress, SystemUtils.getMAC())) {
+            return connect(remoteGuid, remoteRole, HostAndPort.parseHostAndPort(loopbackAddress), lifecycleAware);
+        } else {
+            return connect(remoteGuid, remoteRole, HostAndPort.parseHostAndPort(innerTcpAddress), lifecycleAware);
+        }
     }
 
     public ListenableFuture<?> connect(long remoteGuid, RoleType remoteRole, HostAndPort hostAndPort, SessionLifecycleAware<C2SSession> lifecycleAware) {

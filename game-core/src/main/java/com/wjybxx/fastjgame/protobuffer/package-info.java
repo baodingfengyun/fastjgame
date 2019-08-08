@@ -15,7 +15,7 @@
  */
 
 /**
- * 这里存放的是protoBuffer文件导出的java类，和方便解析的枚举类
+ * 这里存放的是protoBuffer文件导出的java类
  *
  * @author wjybxx
  * @version 1.0
