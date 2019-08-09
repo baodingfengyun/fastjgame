@@ -61,11 +61,11 @@ public class InnerAcceptorMrg {
         this.netContextMrg = netContextMrg;
     }
 
-    public HostAndPort bindInnerTcpPort(SessionLifecycleAware<S2CSession> lifecycleAware) {
+    public HostAndPort bindInnerTcpPort(SessionLifecycleAware lifecycleAware) {
         return bindTcpPort(NetUtils.getLocalIp(), GameUtils.INNER_TCP_PORT_RANGE, lifecycleAware);
     }
 
-    private HostAndPort bindTcpPort(String host, PortRange portRange, SessionLifecycleAware<S2CSession> lifecycleAware) {
+    private HostAndPort bindTcpPort(String host, PortRange portRange, SessionLifecycleAware lifecycleAware) {
         NetContext netContext = netContextMrg.getNetContext();
         TCPServerChannelInitializer serverChannelInitializer = netContext.newTcpServerInitializer(codecHelperMrg.getInnerCodecHolder());
 
@@ -76,7 +76,7 @@ public class InnerAcceptorMrg {
         return bindFuture.tryGet();
     }
 
-    public HostAndPort bindLocalTcpPort(SessionLifecycleAware<S2CSession> lifecycleAware) {
+    public HostAndPort bindLocalTcpPort(SessionLifecycleAware lifecycleAware) {
         return bindTcpPort("localhost", GameUtils.LOCAL_TCP_PORT_RANGE, lifecycleAware);
     }
 
@@ -89,7 +89,7 @@ public class InnerAcceptorMrg {
         return bindFuture.tryGet();
     }
 
-    public ListenableFuture<?> connect(long remoteGuid, RoleType remoteRole, String innerTcpAddress, String localAddress, String macAddress, SessionLifecycleAware<C2SSession> lifecycleAware) {
+    public ListenableFuture<?> connect(long remoteGuid, RoleType remoteRole, String innerTcpAddress, String localAddress, String macAddress, SessionLifecycleAware lifecycleAware) {
         if (Objects.equals(macAddress, SystemUtils.getMAC())) {
             return connect(remoteGuid, remoteRole, HostAndPort.parseHostAndPort(localAddress), lifecycleAware);
         } else {
@@ -97,7 +97,7 @@ public class InnerAcceptorMrg {
         }
     }
 
-    public ListenableFuture<?> connect(long remoteGuid, RoleType remoteRole, HostAndPort hostAndPort, SessionLifecycleAware<C2SSession> lifecycleAware) {
+    public ListenableFuture<?> connect(long remoteGuid, RoleType remoteRole, HostAndPort hostAndPort, SessionLifecycleAware lifecycleAware) {
         NetContext netContext = netContextMrg.getNetContext();
         TCPClientChannelInitializer clientChannelInitializer = netContext.newTcpClientInitializer(remoteGuid, codecHelperMrg.getInnerCodecHolder());
 

@@ -7,7 +7,7 @@ import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.NetContext;
 import com.wjybxx.fastjgame.mrg.*;
 import com.wjybxx.fastjgame.net.CodecHelper;
-import com.wjybxx.fastjgame.net.S2CSession;
+import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.net.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.initializer.TCPServerChannelInitializer;
 import com.wjybxx.fastjgame.net.initializer.WsServerChannelInitializer;
@@ -125,26 +125,27 @@ public class SceneWorld extends AbstractWorld {
 
     }
 
-    private class CenterLifeAware implements SessionLifecycleAware<S2CSession> {
+    private class CenterLifeAware implements SessionLifecycleAware {
         @Override
-        public void onSessionConnected(S2CSession session) {
+        public void onSessionConnected(Session session) {
 
         }
 
         @Override
-        public void onSessionDisconnected(S2CSession session) {
+        public void onSessionDisconnected(Session session) {
             centerInSceneInfoMrg.onDisconnect(session.remoteGuid(), SceneWorld.this);
         }
     }
 
-    private class PlayerLifeAware implements SessionLifecycleAware<S2CSession> {
+    private class PlayerLifeAware implements SessionLifecycleAware {
+
         @Override
-        public void onSessionConnected(S2CSession session) {
+        public void onSessionConnected(Session session) {
 
         }
 
         @Override
-        public void onSessionDisconnected(S2CSession session) {
+        public void onSessionDisconnected(Session session) {
 
         }
     }

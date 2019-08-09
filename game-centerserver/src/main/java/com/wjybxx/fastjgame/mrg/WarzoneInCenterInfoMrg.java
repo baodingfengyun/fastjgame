@@ -108,10 +108,10 @@ public class WarzoneInCenterInfoMrg {
         // TODO 战区宕机需要处理的逻辑
     }
 
-    private class WarzoneSessionLifeAware implements SessionLifecycleAware<C2SSession> {
+    private class WarzoneSessionLifeAware implements SessionLifecycleAware {
 
         @Override
-        public void onSessionConnected(C2SSession session) {
+        public void onSessionConnected(Session session) {
             p_center_warzone_hello hello = p_center_warzone_hello
                     .newBuilder()
                     .setPlatfomNumber(centerWorldInfoMrg.getPlatformType().getNumber())
@@ -122,7 +122,7 @@ public class WarzoneInCenterInfoMrg {
         }
 
         @Override
-        public void onSessionDisconnected(C2SSession session) {
+        public void onSessionDisconnected(Session session) {
             onWarzoneDisconnect(session.remoteGuid());
         }
     }

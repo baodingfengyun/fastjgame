@@ -23,7 +23,7 @@ import com.wjybxx.fastjgame.mrg.CenterInWarzoneInfoMrg;
 import com.wjybxx.fastjgame.mrg.WarzoneSendMrg;
 import com.wjybxx.fastjgame.mrg.WarzoneWorldInfoMrg;
 import com.wjybxx.fastjgame.mrg.WorldWrapper;
-import com.wjybxx.fastjgame.net.S2CSession;
+import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.net.SessionLifecycleAware;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.JsonUtils;
@@ -111,14 +111,14 @@ public class WarzoneWorld extends AbstractWorld {
 
     }
 
-    private class CenterLifeAware implements SessionLifecycleAware<S2CSession> {
+    private class CenterLifeAware implements SessionLifecycleAware {
         @Override
-        public void onSessionConnected(S2CSession session) {
+        public void onSessionConnected(Session session) {
 
         }
 
         @Override
-        public void onSessionDisconnected(S2CSession session) {
+        public void onSessionDisconnected(Session session) {
             centerInWarzoneInfoMrg.onCenterServerDisconnect(session);
         }
     }

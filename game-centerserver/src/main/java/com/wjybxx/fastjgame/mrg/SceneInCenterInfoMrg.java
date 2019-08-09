@@ -202,10 +202,10 @@ public class SceneInCenterInfoMrg {
     /**
      * 本服scene会话信息
      */
-    private class SingleSceneAware implements SessionLifecycleAware<C2SSession> {
+    private class SingleSceneAware implements SessionLifecycleAware {
 
         @Override
-        public void onSessionConnected(C2SSession session) {
+        public void onSessionConnected(Session session) {
             getSceneInfo(session.remoteGuid()).setSession(session);
 
             p_center_single_scene_hello hello = p_center_single_scene_hello
@@ -217,7 +217,7 @@ public class SceneInCenterInfoMrg {
         }
 
         @Override
-        public void onSessionDisconnected(C2SSession session) {
+        public void onSessionDisconnected(Session session) {
             onSceneDisconnect(session.remoteGuid());
         }
     }
@@ -225,10 +225,10 @@ public class SceneInCenterInfoMrg {
     /**
      * 跨服会话信息
      */
-    private class CrossSceneAware implements SessionLifecycleAware<C2SSession>{
+    private class CrossSceneAware implements SessionLifecycleAware{
 
         @Override
-        public void onSessionConnected(C2SSession session) {
+        public void onSessionConnected(Session session) {
             getSceneInfo(session.remoteGuid()).setSession(session);
 
             p_center_cross_scene_hello hello = p_center_cross_scene_hello
@@ -240,7 +240,7 @@ public class SceneInCenterInfoMrg {
         }
 
         @Override
-        public void onSessionDisconnected(C2SSession session) {
+        public void onSessionDisconnected(Session session) {
             onSceneDisconnect(session.remoteGuid());
         }
     }
