@@ -35,7 +35,7 @@ import static com.wjybxx.fastjgame.protobuffer.p_center_scene.p_center_single_sc
 import static com.wjybxx.fastjgame.protobuffer.p_center_warzone.p_center_warzone_hello_result;
 
 /**
- * CENTER
+ * 中心服World
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/15 22:43

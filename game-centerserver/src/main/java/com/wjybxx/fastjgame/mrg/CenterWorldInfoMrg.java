@@ -25,6 +25,7 @@ import com.wjybxx.fastjgame.utils.GameUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 
 /**
+ * 中心服信息管理器
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/15 23:30

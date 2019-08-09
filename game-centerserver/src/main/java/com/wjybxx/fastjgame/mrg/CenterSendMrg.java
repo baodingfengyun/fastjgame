@@ -155,7 +155,7 @@ public class CenterSendMrg {
      * @param msg 发送的消息(请求)
      * @return rpc调用结果 如果{@link Optional#isPresent()} 为true，表示调用成功，否则表示失败
      */
-    public <T extends MessageLite> RpcResponse callScene(int channelId, @Nonnull Message msg){
+    public <T extends MessageLite> RpcResponse syncRpcScene(int channelId, @Nonnull Message msg){
         SceneInCenterInfo sceneInfo = sceneInCenterInfoMrg.getSceneInfo(channelId);
         if (null != sceneInfo && sceneInfo.getSession() != null){
             return sceneInfo.getSession().syncRpc(msg);
