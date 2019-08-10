@@ -44,21 +44,21 @@ public class GameUtils {
     /**
      * TCP监听端口
      */
-    public static final PortRange INNER_TCP_PORT_RANGE = new PortRange(10001,10500);
+    public static final PortRange INNER_TCP_PORT_RANGE = new PortRange(20001, 20500);
     /**
      * http监听端口
      */
-    public static final PortRange INNER_HTTP_PORT_RANGE = new PortRange(12001,12500);
+    public static final PortRange INNER_HTTP_PORT_RANGE = new PortRange(21001, 21500);
     /**
      * localhost:X类型地址
      * 两台服务器在同一台机器上时，不走网卡。
      */
-    public static final PortRange LOCAL_TCP_PORT_RANGE = new PortRange(14001,14500);
+    public static final PortRange LOCAL_TCP_PORT_RANGE = new PortRange(22001, 22500);
     /**
      * 与玩家之间通信端口
      */
-    public static final PortRange OUTER_TCP_PORT_RANGE = new PortRange(16001,16500);
-    public static final PortRange OUTER_WS_PORT_RANGE = new PortRange(18001,18500);
+    public static final PortRange OUTER_TCP_PORT_RANGE = new PortRange(23001, 23500);
+    public static final PortRange OUTER_WS_PORT_RANGE = new PortRange(24001, 24500);
 
     private GameUtils() {
     }
