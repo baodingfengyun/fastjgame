@@ -17,7 +17,9 @@
 package com.wjybxx.fastjgame.gameobject;
 
 import com.wjybxx.fastjgame.config.NpcConfig;
+import com.wjybxx.fastjgame.scene.Scene;
 import com.wjybxx.fastjgame.scene.gameobjectdata.GameObjectType;
+import com.wjybxx.fastjgame.trigger.SystemTimeProvider;
 
 import javax.annotation.Nonnull;
 
@@ -32,7 +34,8 @@ public class Npc extends GameObject<NpcData>{
 
     private final NpcData npcData;
 
-    public Npc(NpcData npcData) {
+    public Npc(Scene scene, SystemTimeProvider timeProvider, NpcData npcData) {
+        super(scene, timeProvider);
         this.npcData = npcData;
     }
 

@@ -105,8 +105,13 @@ public class MessageDispatcherMrg implements MessageHandler {
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
+    public void onRpcRequest(Session session, @Nullable Object request, RpcRequestContext context) throws Exception {
+        RpcResponseChannel responseChannel = session.newResponseChannel(context);
+        onRpcRequest(session, request, responseChannel);
+    }
+
+    @SuppressWarnings("unchecked")
     public void onRpcRequest(Session session, @Nullable Object request, RpcResponseChannel responseChannel) throws Exception {
         // 未成功解码的消息，做个记录并丢弃(不影响其它请求)
         if (null == request){

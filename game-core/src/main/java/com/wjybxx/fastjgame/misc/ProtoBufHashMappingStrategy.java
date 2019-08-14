@@ -43,7 +43,7 @@ public class ProtoBufHashMappingStrategy implements MessageMappingStrategy {
     static {
         // 只有一层内部类
         messageClass2IdMap = new Object2IntOpenHashMap<>();
-        Set<Class<?>> allClass = ClassScanner.findAllClass(protoBufferPkg,
+        Set<Class<?>> allClass = ClassScanner.findClasses(protoBufferPkg,
                 name -> StringUtils.countMatches(name, "$") == 1,
                 AbstractMessage.class::isAssignableFrom);
 

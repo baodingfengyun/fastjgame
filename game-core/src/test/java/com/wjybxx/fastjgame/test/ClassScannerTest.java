@@ -32,7 +32,7 @@ import static com.wjybxx.fastjgame.utils.ClassScannerFilters.exceptInnerClass;
 public class ClassScannerTest {
 
     public static void main(String[] args) {
-        Set<Class<?>> allClass = ClassScanner.findAllClass("com.wjybxx.fastjgame",
+        Set<Class<?>> allClass = ClassScanner.findClasses("com.wjybxx.fastjgame",
                 exceptInnerClass(),
                 all());
 

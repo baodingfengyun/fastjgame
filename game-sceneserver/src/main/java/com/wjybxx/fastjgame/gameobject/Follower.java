@@ -16,7 +16,9 @@
 
 package com.wjybxx.fastjgame.gameobject;
 
+import com.wjybxx.fastjgame.scene.Scene;
 import com.wjybxx.fastjgame.scene.gameobjectdata.GameObjectData;
+import com.wjybxx.fastjgame.trigger.SystemTimeProvider;
 
 import javax.annotation.Nullable;
 
@@ -31,11 +33,8 @@ public abstract class Follower<T extends GameObjectData> extends GameObject<T>{
 
     protected GameObject owner;
 
-    public Follower() {
-        this(null);
-    }
-
-    protected Follower(GameObject owner) {
+    public Follower(Scene scene, SystemTimeProvider timeProvider, GameObject owner) {
+        super(scene, timeProvider);
         this.owner = owner;
     }
 

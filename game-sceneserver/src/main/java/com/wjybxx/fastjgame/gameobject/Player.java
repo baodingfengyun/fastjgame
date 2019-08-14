@@ -18,8 +18,10 @@ package com.wjybxx.fastjgame.gameobject;
 
 import com.wjybxx.fastjgame.misc.PlatformType;
 import com.wjybxx.fastjgame.net.Session;
+import com.wjybxx.fastjgame.scene.Scene;
 import com.wjybxx.fastjgame.scene.gameobjectdata.GameObjectType;
 import com.wjybxx.fastjgame.scene.gameobjectdata.PlayerData;
+import com.wjybxx.fastjgame.trigger.SystemTimeProvider;
 
 import javax.annotation.Nonnull;
 
@@ -43,8 +45,10 @@ public class Player extends GameObject<PlayerData>{
      */
     private Session session;
 
-    public Player(PlayerData playerData) {
+    public Player(Scene scene, SystemTimeProvider timeProvider, PlayerData playerData, Session session) {
+        super(scene, timeProvider);
         this.playerData = playerData;
+        this.session = session;
     }
 
     @Nonnull
