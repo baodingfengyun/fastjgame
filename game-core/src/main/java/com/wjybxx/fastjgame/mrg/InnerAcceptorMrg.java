@@ -73,7 +73,7 @@ public class InnerAcceptorMrg {
                 serverChannelInitializer, lifecycleAware, messageDispatcherMrg);
 
         bindFuture.awaitUninterruptibly();
-        return bindFuture.tryGet();
+        return bindFuture.getNow();
     }
 
     public HostAndPort bindLocalTcpPort(SessionLifecycleAware lifecycleAware) {
@@ -86,7 +86,7 @@ public class InnerAcceptorMrg {
 
         ListenableFuture<HostAndPort> bindFuture = netContext.bindRange(NetUtils.getLocalIp(), GameUtils.INNER_HTTP_PORT_RANGE, httpServerInitializer, httpDispatcherMrg);
         bindFuture.awaitUninterruptibly();
-        return bindFuture.tryGet();
+        return bindFuture.getNow();
     }
 
     public ListenableFuture<?> connect(long remoteGuid, RoleType remoteRole, String innerTcpAddress, String localAddress, String macAddress, SessionLifecycleAware lifecycleAware) {

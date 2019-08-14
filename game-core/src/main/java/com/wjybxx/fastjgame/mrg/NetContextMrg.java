@@ -51,7 +51,7 @@ public class NetContextMrg {
                 worldInfoMrg.getWorldType(), gameEventLoopMrg.getEventLoop());
 
         future.awaitUninterruptibly();
-        netContext = future.tryGet();
+        netContext = future.getNow();
     }
 
     public void shutdown() {
