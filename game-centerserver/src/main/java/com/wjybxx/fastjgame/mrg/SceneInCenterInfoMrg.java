@@ -271,7 +271,7 @@ public class SceneInCenterInfoMrg {
                 .addActiveMutexRegions(SceneRegion.LOCAL_PKC.getNumber())
                 .build();
 
-        RpcResponse rpcResponse = sceneInCenterInfo.getSession().syncRpc(command);
+        RpcResponse rpcResponse = sceneInCenterInfo.getSession().syncRpcUninterruptibly(command);
         if (rpcResponse.isSuccess()){
             activeRegions.add(SceneRegion.LOCAL_PKC);
         }else {
