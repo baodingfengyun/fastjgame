@@ -19,10 +19,7 @@ package com.wjybxx.fastjgame.mrg;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.annotation.WorldSingleton;
 import com.wjybxx.fastjgame.misc.ProtoBufHashMappingStrategy;
-import com.wjybxx.fastjgame.net.CodecHelper;
-import com.wjybxx.fastjgame.net.MessageMappingStrategy;
-import com.wjybxx.fastjgame.net.MessageSerializer;
-import com.wjybxx.fastjgame.net.ProtoBufMessageSerializer;
+import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.utils.GameUtils;
 
 import javax.annotation.Nonnull;
@@ -42,12 +39,17 @@ import java.util.Map;
 @NotThreadSafe
 public final class CodecHelperMrg {
 
+    // 进程内共用数据，不必每个实例一份儿
+    private static final MessageMapper INNER_MESSAGE_MAPPER = MessageMapper.newInstance(new ProtoBufHashMappingStrategy());
+    private static final MessageSerializer INNER_SERIALIZER = new ProtoBufMessageSerializer();
+    private static final CodecHelper INNER_CODEC_HELPER = CodecHelper.newInstance(INNER_MESSAGE_MAPPER, INNER_SERIALIZER);
+
     private final Map<String, CodecHelper> codecMapper = new HashMap<>();
 
     @Inject
     public CodecHelperMrg() throws Exception {
         // 注册内部通信的CodecHelper
-        registerCodecHelper(GameUtils.INNER_CODEC_NAME, new ProtoBufHashMappingStrategy(), new ProtoBufMessageSerializer());
+        registerCodecHelper(GameUtils.INNER_CODEC_NAME, INNER_CODEC_HELPER);
     }
 
     public CodecHelper getInnerCodecHolder() {

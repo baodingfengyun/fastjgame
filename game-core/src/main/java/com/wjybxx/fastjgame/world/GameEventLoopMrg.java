@@ -43,10 +43,6 @@ public class GameEventLoopMrg {
     }
 
     public GameEventLoop getEventLoop() {
-        if (eventLoop == null) {
-            // world内的代码启动顺序错误
-            throw new IllegalStateException();
-        }
         return eventLoop;
     }
 

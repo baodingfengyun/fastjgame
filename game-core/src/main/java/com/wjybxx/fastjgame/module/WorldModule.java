@@ -58,8 +58,7 @@ public abstract class WorldModule extends AbstractModule {
     }
 
     /**
-     * 请注意绑定{@link World}类和
-     * {@link WorldInfoMrg}
+     * 请注意绑定{@link World}类和{@link WorldInfoMrg}
      */
     protected abstract void bindWorldAndWorldInfoMrg();
 

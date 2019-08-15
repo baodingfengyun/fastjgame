@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
 import com.google.protobuf.Message;
-import com.wjybxx.fastjgame.core.CenterInWarzoneInfo;
+import com.wjybxx.fastjgame.misc.CenterInWarzoneInfo;
 import com.wjybxx.fastjgame.misc.PlatformType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

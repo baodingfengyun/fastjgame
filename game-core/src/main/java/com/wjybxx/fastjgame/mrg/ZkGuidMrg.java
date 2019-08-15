@@ -34,7 +34,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 但是现在好像还没有必要引入redis，而zookeeper是必须引入的，因此暂时还是使用zookeeper实现；
  * 尝试过{@link DistributedAtomicLong}，但是确实有点复杂，最后还是使用了分布式锁{@link InterProcessMutex}。
  *
- * 实现方式和我们项目中的一致，缓存的是整个int正整数区间，它的缺点是资源浪费(但是也狗眼)，
+ * 实现方式和我们项目中的一致，缓存的是整个int正整数区间，它的缺点是资源浪费(但是也更安全)，
  * 优点是，基本上进程运行期间只需要缓存一次，会减小出现错误的几率。
  *
  * @author wjybxx

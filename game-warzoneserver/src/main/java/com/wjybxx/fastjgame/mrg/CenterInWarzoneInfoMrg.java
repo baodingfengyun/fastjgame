@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.core.CenterInWarzoneInfo;
+import com.wjybxx.fastjgame.misc.CenterInWarzoneInfo;
 import com.wjybxx.fastjgame.misc.PlatformType;
 import com.wjybxx.fastjgame.net.Session;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -78,14 +78,14 @@ public class CenterInWarzoneInfoMrg {
         logger.info("server {}-{} disconnect.",centerInWarzoneInfo.getPlatformType(),centerInWarzoneInfo.getServerId());
     }
 
-    public void p_center_warzone_hello_handler(Session session, p_center_warzone_hello hello) {
+    public p_center_warzone_hello_result p_center_warzone_hello_handler(Session session, p_center_warzone_hello hello) {
         PlatformType platformType=PlatformType.forNumber(hello.getPlatfomNumber());
         assert !guid2InfoMap.containsKey(session.remoteGuid());
         assert !platInfoMap.containsKey(platformType) || !platInfoMap.get(platformType).containsKey(hello.getServerId());
 
         CenterInWarzoneInfo centerInWarzoneInfo = new CenterInWarzoneInfo(session.remoteGuid(), platformType, hello.getServerId(), session);
         addInfo(centerInWarzoneInfo);
-        session.sendMessage(p_center_warzone_hello_result.newBuilder().build());
+        return p_center_warzone_hello_result.newBuilder().build();
     }
 
     public void onCenterServerDisconnect(Session session){

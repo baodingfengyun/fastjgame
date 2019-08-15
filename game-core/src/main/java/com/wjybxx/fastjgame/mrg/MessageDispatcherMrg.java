@@ -112,7 +112,7 @@ public class MessageDispatcherMrg implements MessageHandler {
     }
 
     @SuppressWarnings("unchecked")
-    public void onRpcRequest(Session session, @Nullable Object request, RpcResponseChannel responseChannel) throws Exception {
+    private void onRpcRequest(Session session, @Nullable Object request, RpcResponseChannel responseChannel) throws Exception {
         // 未成功解码的消息，做个记录并丢弃(不影响其它请求)
         if (null == request){
             logger.warn("roleType={} sessionId={} send null message", session.remoteRole(), session.remoteGuid());

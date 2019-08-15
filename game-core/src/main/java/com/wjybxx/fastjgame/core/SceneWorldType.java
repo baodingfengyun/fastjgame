@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.core;
 
+import com.wjybxx.fastjgame.utils.EnumUtils;
+
 /**
  * 场景进程类型。
  * 为了尽量使人员分散，本服和跨服还是独立启动好一点，虽然也能设计为既是跨服也是本服。
@@ -26,26 +28,25 @@ package com.wjybxx.fastjgame.core;
  */
 public enum SceneWorldType {
     /**
-     * 单服场景
+     * 单服SceneWorld
      */
     SINGLE,
     /**
-     * 跨服进程
+     * 跨服SceneWorld
      */
     CROSS;
 
     /**
      * 通过名字获取进程枚举
      * @param name 枚举对应的名字，忽略大小写
-     * @return
+     * @return SceneWorldType
      */
     public static SceneWorldType forName(String name){
-        for (SceneWorldType worldType:values()){
-            if (worldType.name().equalsIgnoreCase(name)){
-                return worldType;
-            }
+        SceneWorldType sceneWorldType = EnumUtils.forNameIgnoreCase(values(), name);
+        if (null == sceneWorldType) {
+            throw new IllegalArgumentException("invalid name " + name);
         }
-        throw new IllegalArgumentException("invalid name " + name);
+        return sceneWorldType;
     }
 
 }

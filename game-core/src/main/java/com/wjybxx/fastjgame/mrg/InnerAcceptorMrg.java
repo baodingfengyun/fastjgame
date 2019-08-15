@@ -22,9 +22,7 @@ import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.NetContext;
 import com.wjybxx.fastjgame.misc.PortRange;
-import com.wjybxx.fastjgame.net.C2SSession;
 import com.wjybxx.fastjgame.net.RoleType;
-import com.wjybxx.fastjgame.net.S2CSession;
 import com.wjybxx.fastjgame.net.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.initializer.HttpServerInitializer;
 import com.wjybxx.fastjgame.net.initializer.TCPClientChannelInitializer;
@@ -91,13 +89,15 @@ public class InnerAcceptorMrg {
 
     public ListenableFuture<?> connect(long remoteGuid, RoleType remoteRole, String innerTcpAddress, String localAddress, String macAddress, SessionLifecycleAware lifecycleAware) {
         if (Objects.equals(macAddress, SystemUtils.getMAC())) {
+            // 两个world在同一台机器，不走网卡
             return connect(remoteGuid, remoteRole, HostAndPort.parseHostAndPort(localAddress), lifecycleAware);
         } else {
+            // 两个world在不同机器，走正常socket
             return connect(remoteGuid, remoteRole, HostAndPort.parseHostAndPort(innerTcpAddress), lifecycleAware);
         }
     }
 
-    public ListenableFuture<?> connect(long remoteGuid, RoleType remoteRole, HostAndPort hostAndPort, SessionLifecycleAware lifecycleAware) {
+    private ListenableFuture<?> connect(long remoteGuid, RoleType remoteRole, HostAndPort hostAndPort, SessionLifecycleAware lifecycleAware) {
         NetContext netContext = netContextMrg.getNetContext();
         TCPClientChannelInitializer clientChannelInitializer = netContext.newTcpClientInitializer(remoteGuid, codecHelperMrg.getInnerCodecHolder());
 

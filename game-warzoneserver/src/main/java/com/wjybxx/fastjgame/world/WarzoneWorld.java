@@ -60,19 +60,18 @@ public class WarzoneWorld extends AbstractWorld {
 
     @Override
     protected void registerMessageHandlers() {
-        registerMessageHandler(p_center_warzone_hello.class,centerInWarzoneInfoMrg::p_center_warzone_hello_handler);
+
     }
 
     @Override
     protected void registerRpcRequestHandlers() {
-
+        registerRpcRequestHandler(p_center_warzone_hello.class, centerInWarzoneInfoMrg::p_center_warzone_hello_handler);
     }
 
     @Override
     protected void registerHttpRequestHandlers() {
 
     }
-
 
     @Override
     protected void startHook() throws Exception {

@@ -18,7 +18,7 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.core.CenterInSceneInfo;
+import com.wjybxx.fastjgame.misc.CenterInSceneInfo;
 import com.wjybxx.fastjgame.core.SceneRegion;
 import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.misc.PlatformType;
@@ -132,7 +132,7 @@ public class CenterInSceneInfoMrg {
      * @param session 会话信息
      * @param hello 简单信息
      */
-    public void p_center_single_scene_hello_handler(Session session, p_center_single_scene_hello hello) {
+    public p_center_single_scene_hello_result p_center_single_scene_hello_handler(Session session, p_center_single_scene_hello hello) {
         PlatformType platformType=PlatformType.forNumber(hello.getPlatformNumber());
         assert !guid2InfoMap.containsKey(session.remoteGuid());
         assert !platInfoMap.containsKey(platformType) || !platInfoMap.get(platformType).containsKey(hello.getServerId());
@@ -144,7 +144,7 @@ public class CenterInSceneInfoMrg {
         for (SceneRegion sceneRegion:sceneWorldInfoMrg.getConfiguredRegions()){
             builder.addConfiguredRegions(sceneRegion.getNumber());
         }
-        session.sendMessage(builder.build());
+        return builder.build();
     }
 
     /**
@@ -152,7 +152,7 @@ public class CenterInSceneInfoMrg {
      * @param session 会话信息
      * @param hello 简单信息
      */
-    public void p_center_cross_scene_hello_handler(Session session,p_center_cross_scene_hello hello){
+    public p_center_cross_scene_hello_result p_center_cross_scene_hello_handler(Session session, p_center_cross_scene_hello hello){
         PlatformType platformType=PlatformType.forNumber(hello.getPlatformNumber());
         assert !guid2InfoMap.containsKey(session.remoteGuid());
         assert !platInfoMap.containsKey(platformType) || !platInfoMap.get(platformType).containsKey(hello.getServerId());
@@ -169,7 +169,7 @@ public class CenterInSceneInfoMrg {
         for (SceneRegion sceneRegion:sceneRegionMrg.getActiveRegions()){
             builder.addConfiguredRegions(sceneRegion.getNumber());
         }
-        session.sendMessage(builder.build());
+        return builder.build();
     }
 
     /**

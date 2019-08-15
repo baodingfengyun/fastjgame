@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.config.SceneConfig;
-import com.wjybxx.fastjgame.core.SceneInCenterInfo;
+import com.wjybxx.fastjgame.misc.SceneInCenterInfo;
 import com.wjybxx.fastjgame.core.SceneRegion;
 import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.core.onlinenode.CrossSceneNodeName;
@@ -55,22 +55,21 @@ public class SceneInCenterInfoMrg {
 
     private static final List<SceneInCenterInfo> availableSceneProcessListCache = new ArrayList<>(8);
 
-    /**
-     * center主动连接scene，因此scene是服务器端，center是会话的客户端。
-     */
     private final CenterWorldInfoMrg centerWorldInfoMrg;
     private final TemplateMrg templateMrg;
-
+    /**
+     * 负载均衡策略，当玩家请求进入某个场景的时候，由chooser负责选择。
+     */
     private final SceneWorldChooser sceneWorldChooser = new LeastPlayerWorldChooser();
     /**
      * scene信息集合（我的私有场景和跨服场景）
      * sceneGuid->sceneInfo
      */
-    private final Long2ObjectMap<SceneInCenterInfo> guid2InfoMap=new Long2ObjectOpenHashMap<>();
+    private final Long2ObjectMap<SceneInCenterInfo> guid2InfoMap = new Long2ObjectOpenHashMap<>();
     /**
      * channelId->sceneInfo
      */
-    private final Int2ObjectMap<SceneInCenterInfo> channelId2InfoMap=new Int2ObjectOpenHashMap<>();
+    private final Int2ObjectMap<SceneInCenterInfo> channelId2InfoMap = new Int2ObjectOpenHashMap<>();
 
     private final InnerAcceptorMrg innerAcceptorMrg;
 
@@ -149,7 +148,7 @@ public class SceneInCenterInfoMrg {
                 onlineSceneNode.getInnerTcpAddress(),
                 onlineSceneNode.getLocalAddress(),
                 onlineSceneNode.getMacAddress(),
-                new SingleSceneAware());
+                new CrossSceneAware());
 
         // 保存信息
         SceneInCenterInfo sceneInCenterInfo = new SceneInCenterInfo(crossSceneNodeName.getWorldGuid(),
@@ -175,7 +174,7 @@ public class SceneInCenterInfoMrg {
     private void onSceneDisconnect(long sceneWorldGuid){
         SceneInCenterInfo sceneInCenterInfo = guid2InfoMap.get(sceneWorldGuid);
         // 可能是一个无效的会话
-        if (null== sceneInCenterInfo){
+        if (null == sceneInCenterInfo){
             return;
         }
         // 关闭会话
@@ -196,7 +195,7 @@ public class SceneInCenterInfoMrg {
     }
 
     private void offlinePlayer(SceneInCenterInfo sceneInCenterInfo){
-        // TODO 需要帮本服在这些进程的玩家下线处理
+        // TODO 需要把本服在这些进程的玩家下线处理
     }
 
     /**
@@ -213,6 +212,14 @@ public class SceneInCenterInfoMrg {
                     .setPlatformNumber(centerWorldInfoMrg.getPlatformType().getNumber())
                     .setServerId(centerWorldInfoMrg.getServerId())
                     .build();
+
+            session.rpc(hello, rpcResponse -> {
+                if (!rpcResponse.isSuccess()) {
+                    return;
+                }
+                p_center_single_scene_hello_result_handler(session, (p_center_single_scene_hello_result) rpcResponse.getBody());
+            });
+
             session.sendMessage(hello);
         }
 
@@ -236,7 +243,13 @@ public class SceneInCenterInfoMrg {
                     .setPlatformNumber(centerWorldInfoMrg.getPlatformType().getNumber())
                     .setServerId(centerWorldInfoMrg.getServerId())
                     .build();
-            session.sendMessage(hello);
+
+            session.rpc(hello, rpcResponse -> {
+                if (!rpcResponse.isSuccess()) {
+                    return;
+                }
+                p_center_cross_scene_hello_result_handler(session, (p_center_cross_scene_hello_result) rpcResponse.getBody());
+            });
         }
 
         @Override
@@ -250,7 +263,7 @@ public class SceneInCenterInfoMrg {
      * @param session scene会话信息
      * @param result
      */
-    public void p_center_single_scene_hello_result_handler(Session session, p_center_single_scene_hello_result result) {
+    private void p_center_single_scene_hello_result_handler(Session session, p_center_single_scene_hello_result result) {
         assert guid2InfoMap.containsKey(session.remoteGuid());
         SceneInCenterInfo sceneInCenterInfo=guid2InfoMap.get(session.remoteGuid());
 
@@ -266,6 +279,7 @@ public class SceneInCenterInfoMrg {
         }
 
         // TODO 检查该场景可以启动哪些互斥场景
+        // TODO 如果目标World和当前World在一个EventLoop还可能死锁？
         // 会话id是相同的(使用同步方法调用，会大大简化逻辑)
         p_center_command_single_scene_start command = p_center_command_single_scene_start.newBuilder()
                 .addActiveMutexRegions(SceneRegion.LOCAL_PKC.getNumber())
@@ -285,7 +299,7 @@ public class SceneInCenterInfoMrg {
      * @param session 与跨服场景的会话
      * @param result 响应结果
      */
-    public void p_center_cross_scene_hello_result_handler(Session session, p_center_cross_scene_hello_result result) {
+    private void p_center_cross_scene_hello_result_handler(Session session, p_center_cross_scene_hello_result result) {
         assert guid2InfoMap.containsKey(session.remoteGuid());
         SceneInCenterInfo sceneInCenterInfo=guid2InfoMap.get(session.remoteGuid());
         // 配置的区域

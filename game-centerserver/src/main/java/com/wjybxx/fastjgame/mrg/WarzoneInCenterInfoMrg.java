@@ -17,10 +17,9 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.core.WarzoneInCenterInfo;
+import com.wjybxx.fastjgame.misc.WarzoneInCenterInfo;
 import com.wjybxx.fastjgame.core.onlinenode.WarzoneNodeData;
 import com.wjybxx.fastjgame.core.onlinenode.WarzoneNodeName;
-import com.wjybxx.fastjgame.net.C2SSession;
 import com.wjybxx.fastjgame.net.RoleType;
 import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.net.SessionLifecycleAware;
@@ -118,7 +117,12 @@ public class WarzoneInCenterInfoMrg {
                     .setServerId(centerWorldInfoMrg.getServerId())
                     .build();
 
-            session.sendMessage(hello);
+            session.rpc(hello, rpcResponse -> {
+                if (!rpcResponse.isSuccess()) {
+                    return;
+                }
+                p_center_warzone_hello_result_handler(session, (p_center_warzone_hello_result) rpcResponse.getBody());
+            });
         }
 
         @Override
@@ -132,7 +136,7 @@ public class WarzoneInCenterInfoMrg {
      * @param session 与战区的会话
      * @param result 战区返回的信息
      */
-    public void p_center_warzone_hello_result_handler(Session session, p_center_warzone_hello_result result){
+    private void p_center_warzone_hello_result_handler(Session session, p_center_warzone_hello_result result){
         assert null==warzoneInCenterInfo;
         warzoneInCenterInfo = new WarzoneInCenterInfo(session.remoteGuid(), session);
 

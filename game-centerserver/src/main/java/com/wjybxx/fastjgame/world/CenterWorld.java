@@ -62,9 +62,7 @@ public class CenterWorld extends AbstractWorld {
 
     @Override
     protected void registerMessageHandlers() {
-        registerMessageHandler(p_center_single_scene_hello_result.class, sceneInCenterInfoMrg::p_center_single_scene_hello_result_handler);
-        registerMessageHandler(p_center_cross_scene_hello_result.class, sceneInCenterInfoMrg::p_center_cross_scene_hello_result_handler);
-        registerMessageHandler(p_center_warzone_hello_result.class,warzoneInCenterInfoMrg::p_center_warzone_hello_result_handler);
+
     }
 
     @Override

@@ -65,7 +65,7 @@ public class GameEventLoopImp extends SingleThreadEventLoop implements GameEvent
     private final CuratorMrg curatorMrg;
     private final GameEventLoopMrg gameEventLoopMrg;
 
-    GameEventLoopImp(@Nonnull GameEventLoopGroup parent,
+    GameEventLoopImp(@Nullable GameEventLoopGroup parent,
                      @Nonnull ThreadFactory threadFactory,
                      @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
                      @Nonnull NetEventLoopGroup netEventLoopGroup, Injector groupInjector) {
@@ -153,7 +153,9 @@ public class GameEventLoopImp extends SingleThreadEventLoop implements GameEvent
         // 校验帧率
         final long frameInterval = MathUtils.frameInterval(framesPerSecond);
         // world可能注册一个world，因此可能是本地线程调用
-        return EventLoopUtils.submitOrRun(this, () -> registerWorldInternal(worldModule, startArgs, framesPerSecond, frameInterval));
+        return EventLoopUtils.submitOrRun(this, () -> {
+            return registerWorldInternal(worldModule, startArgs, framesPerSecond, frameInterval);
+        });
     }
 
     @Nonnull

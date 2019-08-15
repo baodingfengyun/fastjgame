@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.core;
+package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.misc.IntSequencer;
+import com.wjybxx.fastjgame.core.SceneRegion;
+import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.net.Session;
 
 import java.util.EnumSet;

@@ -59,9 +59,9 @@ public class HttpDispatcherMrg implements HttpRequestHandler {
 
     @Override
     public void onHttpRequest(HttpSession httpSession, String path, ConfigWrapper requestParams) throws Exception {
-        // 未注册的路径
         HttpRequestHandler httpRequestHandler = handlerMap.get(path);
         if (null == httpRequestHandler){
+            // 未注册的路径
             httpSession.writeAndFlush(HttpResponseHelper.newNotFoundResponse());
             logger.warn("unregistered path {}", path);
             return;

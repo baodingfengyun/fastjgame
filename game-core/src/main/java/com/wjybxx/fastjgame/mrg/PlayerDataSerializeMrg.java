@@ -27,7 +27,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * 玩家数据序列化控制器。
  * center与scene之间传递玩家数据是通过序列化的方式发送的。
- * 如果采用redis，也避免
  *
  * 这里的代码最好是想办法自动生成;
  * @author wjybxx

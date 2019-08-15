@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent.Type;
@@ -52,6 +51,7 @@ public class CenterDiscoverMrg {
     private final WarzoneInCenterInfoMrg warzoneInCenterInfoMrg;
     private final SceneInCenterInfoMrg sceneInCenterInfoMrg;
 
+    /** 资源句柄，提供关闭关联的资源的方法 */
     private ResourceCloseHandle resourceCloseHandle;
     /**
      * 当前在先节点信息，只在逻辑线程使用
@@ -125,11 +125,11 @@ public class CenterDiscoverMrg {
             }
             if (type==Type.CHILD_ADDED) {
                 sceneInCenterInfoMrg.onDiscoverSingleScene(singleSceneNodeName, sceneNodeData);
-                logger.debug("discover single scene {}-{}-{}", singleSceneNodeName.getPlatformType(),singleSceneNodeName.getServerId(),sceneNodeData.getChannelId());
+                logger.info("discover single scene {}-{}-{}", singleSceneNodeName.getPlatformType(),singleSceneNodeName.getServerId(),sceneNodeData.getChannelId());
             } else {
                 // remove
                 sceneInCenterInfoMrg.onSingleSceneNodeRemoved(singleSceneNodeName);
-                logger.debug("child remove single scene {}-{}-{}", singleSceneNodeName.getPlatformType(),singleSceneNodeName.getServerId(),sceneNodeData.getChannelId());
+                logger.info("remove single scene {}-{}-{}", singleSceneNodeName.getPlatformType(),singleSceneNodeName.getServerId(),sceneNodeData.getChannelId());
             }
         }else {
             // 跨服场景
@@ -140,7 +140,7 @@ public class CenterDiscoverMrg {
             }else {
                 // remove
                 sceneInCenterInfoMrg.onCrossSceneNodeRemoved(crossSceneNodeName);
-                logger.debug("child remove,cross scene {}", sceneNodeData.getChannelId());
+                logger.debug("remove cross scene {}", sceneNodeData.getChannelId());
             }
         }
     }
@@ -163,7 +163,7 @@ public class CenterDiscoverMrg {
         }else {
             // child remove
             warzoneInCenterInfoMrg.onWarzoneNodeRemoved(warzoneNodeName, warzoneNodeData);
-            logger.debug("child remove,warzone {}", warzoneNodeName.getWarzoneId());
+            logger.debug("remove warzone {}", warzoneNodeName.getWarzoneId());
         }
     }
 }

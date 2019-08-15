@@ -59,14 +59,15 @@ public class SceneWorld extends AbstractWorld {
 
     @Override
     protected void registerMessageHandlers() {
-        registerMessageHandler(p_center_single_scene_hello.class,centerInSceneInfoMrg::p_center_single_scene_hello_handler);
-        registerMessageHandler(p_center_cross_scene_hello.class,centerInSceneInfoMrg::p_center_cross_scene_hello_handler);
+
     }
 
     @Override
     protected void registerRpcRequestHandlers() {
-        registerRpcRequestHandler(p_center_command_single_scene_start.class,sceneRegionMrg::p_center_command_single_scene_start_handler);
-        registerRpcRequestHandler(p_center_command_single_scene_active_regions.class,sceneRegionMrg::p_center_command_scene_active_regions_handler);
+        registerRpcRequestHandler(p_center_single_scene_hello.class, centerInSceneInfoMrg::p_center_single_scene_hello_handler);
+        registerRpcRequestHandler(p_center_cross_scene_hello.class, centerInSceneInfoMrg::p_center_cross_scene_hello_handler);
+        registerRpcRequestHandler(p_center_command_single_scene_start.class, sceneRegionMrg::p_center_command_single_scene_start_handler);
+        registerRpcRequestHandler(p_center_command_single_scene_active_regions.class, sceneRegionMrg::p_center_command_scene_active_regions_handler);
     }
 
     @Override

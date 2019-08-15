@@ -16,15 +16,14 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.core.SceneInCenterInfo;
-
 import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 /**
- * 选择玩家最少的进程
+ * 选择玩家最少的SceneWorld.
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/23 19:38

@@ -95,7 +95,7 @@ public abstract class MongoDBMrg {
         // mongodb在zookeeper中的配置
         Map<String, byte[]> childrenData = curatorMrg.getChildrenData(mongoConfigPath());
 
-        ZKNodeConfigWrapper zkMongoConfig =new ZKNodeConfigWrapper(childrenData);
+        ZKNodeConfigWrapper zkMongoConfig = new ZKNodeConfigWrapper(childrenData);
 
         HostAndPort serverHostAndPort = HostAndPort.parseHostAndPort(zkMongoConfig.getAsString("serveraddress"));
         ServerAddress addr = new ServerAddress(serverHostAndPort.getHost(), serverHostAndPort.getPort());
@@ -618,7 +618,7 @@ public abstract class MongoDBMrg {
     }
 
     /**
-     * 删除某个复合索引，若索引不存在，则什么也操作(它是一个原子操作，非先检查后执行)
+     * 删除某个复合索引，若索引不存在，则什么也不操作(它是一个原子操作，非先检查后执行)
      * @param databaseType 数据库名字
      * @param collectionName 集合名字
      * @param indexDocument 复杂索引(怎么创建的就怎么删)
