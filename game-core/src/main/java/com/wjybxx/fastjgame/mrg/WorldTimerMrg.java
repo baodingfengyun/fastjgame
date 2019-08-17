@@ -33,58 +33,66 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @WorldSingleton
 @NotThreadSafe
-public class WorldTimerMrg implements TimerSystem {
+public class WorldTimerMrg {
 
+    private final WorldTimeMrg worldTimeMrg;
     private final TimerSystem timerSystem;
 
     @Inject
     public WorldTimerMrg(WorldTimeMrg worldTimeMrg) {
+        this.worldTimeMrg = worldTimeMrg;
         timerSystem = new DefaultTimerSystem(worldTimeMrg);
     }
 
-    @Override
     public void tick() {
         timerSystem.tick();
     }
 
-    @Override
-    public boolean isClosed() {
-        return false;
-    }
-
-    @Override
     public void close() {
         timerSystem.close();
     }
 
-    @Override
     @Nonnull
     public TimeoutHandle newTimeout(long timeout, @Nonnull TimerTask<TimeoutHandle> task) {
         return timerSystem.newTimeout(timeout, task);
     }
 
-    @Override
-    @Nonnull
-    public FixedDelayHandle newFixedDelay(long initialDelay, long delay, @Nonnull TimerTask<FixedDelayHandle> timerTask) {
-        return timerSystem.newFixedDelay(initialDelay, delay, timerTask);
+    public TimeoutHandle nextTick(@Nonnull TimerTask<TimeoutHandle> task) {
+        return timerSystem.nextTick(task);
     }
 
-    @Override
     @Nonnull
-    public FixedDelayHandle newFixedDelay(long delay, @Nonnull TimerTask<FixedDelayHandle> timerTask) {
-        return timerSystem.newFixedDelay(delay, timerTask);
+    public FixedDelayHandle newFixedDelay(long initialDelay, long delay, @Nonnull TimerTask<FixedDelayHandle> task) {
+        return timerSystem.newFixedDelay(initialDelay, delay, task);
     }
 
-    @Override
     @Nonnull
-    public FixedRateHandle newFixRate(long initialDelay, long period, @Nonnull TimerTask<FixedRateHandle> timerTask) {
-        return timerSystem.newFixRate(initialDelay, period, timerTask);
+    public FixedDelayHandle newFixedDelay(long delay, @Nonnull TimerTask<FixedDelayHandle> task) {
+        return timerSystem.newFixedDelay(delay, task);
     }
 
-    @Override
     @Nonnull
-    public FixedRateHandle newFixRate(long period, @Nonnull TimerTask<FixedRateHandle> timerTask) {
-        return timerSystem.newFixRate(period, timerTask);
+    public FixedRateHandle newFixRate(long initialDelay, long period, @Nonnull TimerTask<FixedRateHandle> task) {
+        return timerSystem.newFixRate(initialDelay, period, task);
     }
 
+    @Nonnull
+    public FixedRateHandle newFixRate(long period, @Nonnull TimerTask<FixedRateHandle> task) {
+        return timerSystem.newFixRate(period, task);
+    }
+
+    /**
+     * @return 一个全新的timerSystem
+     */
+    public TimerSystem newTimerSystem() {
+        return new DefaultTimerSystem(worldTimeMrg);
+    }
+
+    /**
+     * @param initCapacity 初始容量，如果只会添加很少的timer，那么可以有更小的空间
+     * @return 一个全新的timerSystem
+     */
+    public TimerSystem newTimerSystem(int initCapacity) {
+        return new DefaultTimerSystem(worldTimeMrg, initCapacity);
+    }
 }

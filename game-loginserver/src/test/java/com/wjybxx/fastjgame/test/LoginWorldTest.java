@@ -31,7 +31,7 @@ import java.io.File;
  * loginserver测试用例。
  *
  * 启动参数：
- port=8989
+ * port=8989
  *
  * @author wjybxx
  * @version 1.0

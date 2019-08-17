@@ -54,7 +54,7 @@
                 </exclusion>
                 <!-- netty 排除 -->
                 <exclusion>
-                    <groupId>io.nettServerPayloady</groupId>
+                    <groupId>io.netty</groupId>
                     <artifactId>netty</artifactId>
                 </exclusion>
             </exclusions>

@@ -29,7 +29,8 @@ import java.io.File;
 
 /**
  * wazone启动参数：
- warzoneId=1
+ * warzoneId=1
+ *
  * 虚拟机参数，强烈建议打开断言，并以服务器模式运行 -ea -server
  * @author wjybxx
  * @version 1.0
