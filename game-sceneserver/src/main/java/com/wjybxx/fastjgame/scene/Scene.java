@@ -28,7 +28,7 @@ import com.wjybxx.fastjgame.mrg.MapDataLoadMrg;
 import com.wjybxx.fastjgame.mrg.SceneSendMrg;
 import com.wjybxx.fastjgame.mrg.SceneWrapper;
 import com.wjybxx.fastjgame.scene.gameobjectdata.GameObjectType;
-import com.wjybxx.fastjgame.trigger.*;
+import com.wjybxx.fastjgame.timer.*;
 import com.wjybxx.fastjgame.utils.GameConstant;
 import com.wjybxx.fastjgame.utils.MathUtils;
 import it.unimi.dsi.fastutil.objects.ObjectCollection;

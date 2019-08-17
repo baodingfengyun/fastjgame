@@ -21,7 +21,7 @@ import com.wjybxx.fastjgame.scene.Scene;
 import com.wjybxx.fastjgame.scene.gameobjectdata.GameObjectData;
 import com.wjybxx.fastjgame.scene.gameobjectdata.GameObjectType;
 import com.wjybxx.fastjgame.shape.Point2D;
-import com.wjybxx.fastjgame.trigger.*;
+import com.wjybxx.fastjgame.timer.*;
 
 import javax.annotation.Nonnull;
 

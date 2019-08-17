@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.annotation.WorldSingleton;
-import com.wjybxx.fastjgame.trigger.*;
+import com.wjybxx.fastjgame.timer.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;

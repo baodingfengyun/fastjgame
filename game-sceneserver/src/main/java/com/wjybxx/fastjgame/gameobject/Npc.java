@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.gameobject;
 import com.wjybxx.fastjgame.config.NpcConfig;
 import com.wjybxx.fastjgame.scene.Scene;
 import com.wjybxx.fastjgame.scene.gameobjectdata.GameObjectType;
-import com.wjybxx.fastjgame.trigger.SystemTimeProvider;
+import com.wjybxx.fastjgame.timer.SystemTimeProvider;
 
 import javax.annotation.Nonnull;
 

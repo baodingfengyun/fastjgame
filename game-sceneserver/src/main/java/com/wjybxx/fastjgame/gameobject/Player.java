@@ -21,7 +21,7 @@ import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.scene.Scene;
 import com.wjybxx.fastjgame.scene.gameobjectdata.GameObjectType;
 import com.wjybxx.fastjgame.scene.gameobjectdata.PlayerData;
-import com.wjybxx.fastjgame.trigger.SystemTimeProvider;
+import com.wjybxx.fastjgame.timer.SystemTimeProvider;
 
 import javax.annotation.Nonnull;
 
