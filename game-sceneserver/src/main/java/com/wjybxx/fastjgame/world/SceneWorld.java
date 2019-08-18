@@ -6,7 +6,6 @@ import com.wjybxx.fastjgame.core.onlinenode.SceneNodeData;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.NetContext;
 import com.wjybxx.fastjgame.mrg.*;
-import com.wjybxx.fastjgame.net.CodecHelper;
 import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.net.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.initializer.TCPServerChannelInitializer;
@@ -93,13 +92,12 @@ public class SceneWorld extends AbstractWorld {
         // 绑定与玩家交互的两个端口
         // TODO 这里需要和前端确定到底使用什么通信方式，暂时使用服务器之间机制
         NetContext netContext = netContextMrg.getNetContext();
-        CodecHelper codecHelper = codecHelperMrg.getCodecHelper(GameUtils.INNER_CODEC_NAME);
-        TCPServerChannelInitializer tcplInitializer = netContext.newTcpServerInitializer(codecHelper);
+        TCPServerChannelInitializer tcplInitializer = netContext.newTcpServerInitializer(codecHelperMrg.getInnerProtocolCodec());
 
         HostAndPort outerTcpHostAndPort = netContext.bindRange(NetUtils.getOuterIp(), GameUtils.OUTER_TCP_PORT_RANGE,
                 tcplInitializer, new PlayerLifeAware(), messageDispatcherMrg).get();
 
-        WsServerChannelInitializer wsInitializer = netContext.newWsServerInitializer("/ws", codecHelper);
+        WsServerChannelInitializer wsInitializer = netContext.newWsServerInitializer("/ws", codecHelperMrg.getInnerProtocolCodec());
         HostAndPort outerWebsocketHostAndPort = netContext.bindRange(NetUtils.getOuterIp(), GameUtils.OUTER_WS_PORT_RANGE,
                 wsInitializer, new PlayerLifeAware(), messageDispatcherMrg).get();
 

@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.annotation.WorldSingleton;
-import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
+import com.wjybxx.fastjgame.configwrapper.Params;
 import com.wjybxx.fastjgame.misc.HttpResponseHelper;
 import com.wjybxx.fastjgame.net.HttpRequestHandler;
 import com.wjybxx.fastjgame.net.HttpSession;
@@ -58,7 +58,7 @@ public class HttpDispatcherMrg implements HttpRequestHandler {
     }
 
     @Override
-    public void onHttpRequest(HttpSession httpSession, String path, ConfigWrapper requestParams) throws Exception {
+    public void onHttpRequest(HttpSession httpSession, String path, Params params) throws Exception {
         HttpRequestHandler httpRequestHandler = handlerMap.get(path);
         if (null == httpRequestHandler){
             // 未注册的路径
@@ -69,7 +69,7 @@ public class HttpDispatcherMrg implements HttpRequestHandler {
 
         // 分发请求
         try {
-            httpRequestHandler.onHttpRequest(httpSession, path, requestParams);
+            httpRequestHandler.onHttpRequest(httpSession, path, params);
         } catch (Exception e) {
             logger.warn("handle path {} caught exception.", path, e);
         }

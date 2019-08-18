@@ -18,8 +18,8 @@ package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.annotation.WorldSingleton;
-import com.wjybxx.fastjgame.misc.ProtoBufHashMappingStrategy;
-import com.wjybxx.fastjgame.net.*;
+import com.wjybxx.fastjgame.misc.*;
+import com.wjybxx.fastjgame.net.ProtocolCodec;
 import com.wjybxx.fastjgame.utils.GameUtils;
 
 import javax.annotation.Nonnull;
@@ -43,6 +43,7 @@ public final class CodecHelperMrg {
     private static final MessageMapper INNER_MESSAGE_MAPPER = MessageMapper.newInstance(new ProtoBufHashMappingStrategy());
     private static final MessageSerializer INNER_SERIALIZER = new ProtoBufMessageSerializer();
     private static final CodecHelper INNER_CODEC_HELPER = CodecHelper.newInstance(INNER_MESSAGE_MAPPER, INNER_SERIALIZER);
+    private static final ProtocolCodec INNER_PROTOCOL_CODEC = new SimpleProtocolCodec(INNER_CODEC_HELPER);
 
     private final Map<String, CodecHelper> codecMapper = new HashMap<>();
 
@@ -54,6 +55,10 @@ public final class CodecHelperMrg {
 
     public CodecHelper getInnerCodecHolder() {
         return getCodecHelper(GameUtils.INNER_CODEC_NAME);
+    }
+
+    public ProtocolCodec getInnerProtocolCodec() {
+        return INNER_PROTOCOL_CODEC;
     }
 
     /**

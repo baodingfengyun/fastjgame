@@ -19,13 +19,9 @@ package com.wjybxx.fastjgame.world;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
-import com.wjybxx.fastjgame.misc.OneWayMessageHandler;
-import com.wjybxx.fastjgame.misc.RpcRequestHandler1;
-import com.wjybxx.fastjgame.misc.RpcRequestHandler2;
+import com.wjybxx.fastjgame.misc.*;
 import com.wjybxx.fastjgame.mrg.*;
 import com.wjybxx.fastjgame.net.HttpRequestHandler;
-import com.wjybxx.fastjgame.net.MessageMappingStrategy;
-import com.wjybxx.fastjgame.net.MessageSerializer;
 import com.wjybxx.fastjgame.net.RoleType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,7 +87,7 @@ public abstract class AbstractWorld implements World{
      * @param messageSerializer 消息序列化反序列化实现类
      */
     protected final void registerCodecHelper(String name, MessageMappingStrategy mappingStrategy, MessageSerializer messageSerializer) throws Exception {
-        codecHelperMrg.registerCodecHelper(name,mappingStrategy,messageSerializer);
+        codecHelperMrg.registerCodecHelper(name, mappingStrategy, messageSerializer);
     }
 
     // --------------------------------- 消息、请求处理器注册，未来可以考虑使用注解和注解处理器自动注册(生成代码) --------------------------

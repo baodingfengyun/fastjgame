@@ -65,7 +65,7 @@ public class InnerAcceptorMrg {
 
     private HostAndPort bindTcpPort(String host, PortRange portRange, SessionLifecycleAware lifecycleAware) {
         NetContext netContext = netContextMrg.getNetContext();
-        TCPServerChannelInitializer serverChannelInitializer = netContext.newTcpServerInitializer(codecHelperMrg.getInnerCodecHolder());
+        TCPServerChannelInitializer serverChannelInitializer = netContext.newTcpServerInitializer(codecHelperMrg.getInnerProtocolCodec());
 
         ListenableFuture<HostAndPort> bindFuture = netContext.bindRange(host, portRange,
                 serverChannelInitializer, lifecycleAware, messageDispatcherMrg);
@@ -99,7 +99,7 @@ public class InnerAcceptorMrg {
 
     private ListenableFuture<?> connect(long remoteGuid, RoleType remoteRole, HostAndPort hostAndPort, SessionLifecycleAware lifecycleAware) {
         NetContext netContext = netContextMrg.getNetContext();
-        TCPClientChannelInitializer clientChannelInitializer = netContext.newTcpClientInitializer(remoteGuid, codecHelperMrg.getInnerCodecHolder());
+        TCPClientChannelInitializer clientChannelInitializer = netContext.newTcpClientInitializer(remoteGuid, codecHelperMrg.getInnerProtocolCodec());
 
         return netContext.connect(remoteGuid, remoteRole, hostAndPort,
                 () -> clientChannelInitializer,
