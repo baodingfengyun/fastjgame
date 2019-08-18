@@ -20,7 +20,7 @@ import com.google.inject.Inject;
 import com.wjybxx.fastjgame.annotation.WorldSingleton;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.misc.HostAndPort;
-import com.wjybxx.fastjgame.misc.NetContext;
+import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.misc.PortRange;
 import com.wjybxx.fastjgame.net.RoleType;
 import com.wjybxx.fastjgame.net.SessionLifecycleAware;

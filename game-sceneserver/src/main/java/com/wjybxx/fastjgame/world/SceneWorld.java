@@ -4,7 +4,7 @@ import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.core.onlinenode.SceneNodeData;
 import com.wjybxx.fastjgame.misc.HostAndPort;
-import com.wjybxx.fastjgame.misc.NetContext;
+import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.mrg.*;
 import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.net.SessionLifecycleAware;
