@@ -92,12 +92,12 @@ public class SceneWorld extends AbstractWorld {
         // 绑定与玩家交互的两个端口
         // TODO 这里需要和前端确定到底使用什么通信方式，暂时使用服务器之间机制
         NetContext netContext = netContextMrg.getNetContext();
-        TCPServerChannelInitializer tcplInitializer = netContext.newTcpServerInitializer(codecHelperMrg.getInnerProtocolCodec());
+        TCPServerChannelInitializer tcplInitializer = netContext.newTcpServerInitializer(protocolCodecMrg.getInnerProtocolCodec());
 
         HostAndPort outerTcpHostAndPort = netContext.bindRange(NetUtils.getOuterIp(), GameUtils.OUTER_TCP_PORT_RANGE,
                 tcplInitializer, new PlayerLifeAware(), messageDispatcherMrg).get();
 
-        WsServerChannelInitializer wsInitializer = netContext.newWsServerInitializer("/ws", codecHelperMrg.getInnerProtocolCodec());
+        WsServerChannelInitializer wsInitializer = netContext.newWsServerInitializer("/ws", protocolCodecMrg.getInnerProtocolCodec());
         HostAndPort outerWebsocketHostAndPort = netContext.bindRange(NetUtils.getOuterIp(), GameUtils.OUTER_WS_PORT_RANGE,
                 wsInitializer, new PlayerLifeAware(), messageDispatcherMrg).get();
 

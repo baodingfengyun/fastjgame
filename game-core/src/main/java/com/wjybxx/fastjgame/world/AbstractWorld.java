@@ -43,7 +43,7 @@ public abstract class AbstractWorld implements World{
     protected final GameEventLoopMrg gameEventLoopMrg;
     protected final MessageDispatcherMrg messageDispatcherMrg;
     protected final WorldTimeMrg worldTimeMrg;
-    protected final CodecHelperMrg codecHelperMrg;
+    protected final ProtocolCodecMrg protocolCodecMrg;
     protected final WorldTimerMrg worldTimerMrg;
     protected final HttpDispatcherMrg httpDispatcherMrg;
     protected final WorldInfoMrg worldInfoMrg;
@@ -60,7 +60,7 @@ public abstract class AbstractWorld implements World{
         this.gameEventLoopMrg = worldWrapper.getGameEventLoopMrg();
         messageDispatcherMrg = worldWrapper.getMessageDispatcherMrg();
         worldTimeMrg = worldWrapper.getWorldTimeMrg();
-        codecHelperMrg = worldWrapper.getCodecHelperMrg();
+        protocolCodecMrg = worldWrapper.getProtocolCodecMrg();
         worldTimerMrg = worldWrapper.getWorldTimerMrg();
         httpDispatcherMrg = worldWrapper.getHttpDispatcherMrg();
         worldInfoMrg = worldWrapper.getWorldInfoMrg();
@@ -74,7 +74,7 @@ public abstract class AbstractWorld implements World{
 
     /**
      * 注册需要的编解码辅助类(序列化类，消息映射的初始化)
-     * use {@link #registerCodecHelper(String, MessageMappingStrategy, MessageSerializer)} to register.
+     * use {@link #registerCodecHelper(String, MessageMappingStrategy)} to register.
      */
     protected void registerCodecHelpers() throws Exception {
 
@@ -84,10 +84,9 @@ public abstract class AbstractWorld implements World{
      * 注册codec的模板方法
      * @param name codec的名字
      * @param mappingStrategy 消息id到消息映射策略
-     * @param messageSerializer 消息序列化反序列化实现类
      */
-    protected final void registerCodecHelper(String name, MessageMappingStrategy mappingStrategy, MessageSerializer messageSerializer) throws Exception {
-        codecHelperMrg.registerCodecHelper(name, mappingStrategy, messageSerializer);
+    protected final void registerCodecHelper(String name, MessageMappingStrategy mappingStrategy) throws Exception {
+        protocolCodecMrg.registerProtocolCodec(name, mappingStrategy);
     }
 
     // --------------------------------- 消息、请求处理器注册，未来可以考虑使用注解和注解处理器自动注册(生成代码) --------------------------

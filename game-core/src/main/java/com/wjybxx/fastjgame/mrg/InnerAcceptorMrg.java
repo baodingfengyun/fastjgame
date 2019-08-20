@@ -45,14 +45,14 @@ import java.util.Objects;
 @NotThreadSafe
 public class InnerAcceptorMrg {
 
-    private final CodecHelperMrg codecHelperMrg;
+    private final ProtocolCodecMrg protocolCodecMrg;
     private final MessageDispatcherMrg messageDispatcherMrg;
     private final HttpDispatcherMrg httpDispatcherMrg;
     private final NetContextMrg netContextMrg;
 
     @Inject
-    public InnerAcceptorMrg(CodecHelperMrg codecHelperMrg, MessageDispatcherMrg messageDispatcherMrg, HttpDispatcherMrg httpDispatcherMrg, NetContextMrg netContextMrg) {
-        this.codecHelperMrg = codecHelperMrg;
+    public InnerAcceptorMrg(ProtocolCodecMrg protocolCodecMrg, MessageDispatcherMrg messageDispatcherMrg, HttpDispatcherMrg httpDispatcherMrg, NetContextMrg netContextMrg) {
+        this.protocolCodecMrg = protocolCodecMrg;
         this.messageDispatcherMrg = messageDispatcherMrg;
 
         this.httpDispatcherMrg = httpDispatcherMrg;
@@ -65,7 +65,7 @@ public class InnerAcceptorMrg {
 
     private HostAndPort bindTcpPort(String host, PortRange portRange, SessionLifecycleAware lifecycleAware) {
         NetContext netContext = netContextMrg.getNetContext();
-        TCPServerChannelInitializer serverChannelInitializer = netContext.newTcpServerInitializer(codecHelperMrg.getInnerProtocolCodec());
+        TCPServerChannelInitializer serverChannelInitializer = netContext.newTcpServerInitializer(protocolCodecMrg.getInnerProtocolCodec());
 
         ListenableFuture<HostAndPort> bindFuture = netContext.bindRange(host, portRange,
                 serverChannelInitializer, lifecycleAware, messageDispatcherMrg);
@@ -99,7 +99,7 @@ public class InnerAcceptorMrg {
 
     private ListenableFuture<?> connect(long remoteGuid, RoleType remoteRole, HostAndPort hostAndPort, SessionLifecycleAware lifecycleAware) {
         NetContext netContext = netContextMrg.getNetContext();
-        TCPClientChannelInitializer clientChannelInitializer = netContext.newTcpClientInitializer(remoteGuid, codecHelperMrg.getInnerProtocolCodec());
+        TCPClientChannelInitializer clientChannelInitializer = netContext.newTcpClientInitializer(remoteGuid, protocolCodecMrg.getInnerProtocolCodec());
 
         return netContext.connect(remoteGuid, remoteRole, hostAndPort,
                 () -> clientChannelInitializer,

@@ -44,7 +44,7 @@ public abstract class WorldModule extends AbstractModule {
     }
 
     private void configCore() {
-        bind(CodecHelperMrg.class).in(Singleton.class);
+        bind(ProtocolCodecMrg.class).in(Singleton.class);
         bind(InnerAcceptorMrg.class).in(Singleton.class);
 
         bind(NetContextMrg.class).in(Singleton.class);

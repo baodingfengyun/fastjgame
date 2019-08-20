@@ -33,7 +33,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class WorldWrapper {
 
-    private final CodecHelperMrg codecHelperMrg;
+    private final ProtocolCodecMrg protocolCodecMrg;
     private final CuratorClientMrg curatorClientMrg;
     private final CuratorMrg curatorMrg;
     private final GameConfigMrg gameConfigMrg;
@@ -51,15 +51,15 @@ public class WorldWrapper {
 
     @Inject
     public WorldWrapper(GameEventLoopMrg gameEventLoopMrg, WorldInfoMrg worldInfoMrg, WorldTimeMrg worldTimeMrg,
-                        MessageDispatcherMrg messageDispatcherMrg, HttpDispatcherMrg httpDispatcherMrg,
-                        CodecHelperMrg codecHelperMrg, WorldTimerMrg worldTimerMrg, GlobalExecutorMrg globalExecutorMrg,
-                        CuratorMrg curatorMrg, GuidMrg guidMrg, GameConfigMrg gameConfigMrg, NetContextMrg netContextMrg, CuratorClientMrg curatorClientMrg, TemplateMrg templateMrg, InnerAcceptorMrg innerAcceptorMrg) {
+						MessageDispatcherMrg messageDispatcherMrg, HttpDispatcherMrg httpDispatcherMrg,
+						ProtocolCodecMrg protocolCodecMrg, WorldTimerMrg worldTimerMrg, GlobalExecutorMrg globalExecutorMrg,
+						CuratorMrg curatorMrg, GuidMrg guidMrg, GameConfigMrg gameConfigMrg, NetContextMrg netContextMrg, CuratorClientMrg curatorClientMrg, TemplateMrg templateMrg, InnerAcceptorMrg innerAcceptorMrg) {
         this.gameEventLoopMrg = gameEventLoopMrg;
         this.worldInfoMrg = worldInfoMrg;
         this.worldTimeMrg = worldTimeMrg;
         this.messageDispatcherMrg = messageDispatcherMrg;
         this.httpDispatcherMrg = httpDispatcherMrg;
-        this.codecHelperMrg = codecHelperMrg;
+        this.protocolCodecMrg = protocolCodecMrg;
         this.worldTimerMrg = worldTimerMrg;
         this.globalExecutorMrg = globalExecutorMrg;
         this.curatorMrg = curatorMrg;
@@ -91,8 +91,8 @@ public class WorldWrapper {
         return httpDispatcherMrg;
     }
 
-    public CodecHelperMrg getCodecHelperMrg() {
-        return codecHelperMrg;
+    public ProtocolCodecMrg getProtocolCodecMrg() {
+        return protocolCodecMrg;
     }
 
     public WorldTimerMrg getWorldTimerMrg() {
