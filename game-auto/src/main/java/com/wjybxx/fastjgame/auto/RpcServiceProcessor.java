@@ -47,7 +47,6 @@ import javax.lang.model.util.SimpleTypeVisitor8;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -90,6 +89,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 	private static final String session = "session";
 	private static final String methodParams = "methodParams";
 	private static final String responseChannel = "responseChannel";
+	private static final String result = "result";
 
 	// 工具类
 	private Types types;
@@ -453,8 +453,9 @@ public class RpcServiceProcessor extends AbstractProcessor {
 		if (!isVoidType(executableElement.getReturnType())) {
 			// 同步返回结果
 			builder.addCode("    try {\n");
-			builder.addCode("        $L.writeSuccess(", responseChannel);
-			builder.addCode(genInvokeStatement(classParamName, executableElement) + ");\n");
+			final InvokeStatement invokeStatement = genInvokeStatement(executableElement.getReturnType(), classParamName, executableElement);
+			builder.addStatement("    " +invokeStatement.format, invokeStatement.params.toArray());
+			builder.addStatement("        $L.writeSuccess($L)", responseChannel, result);
 			builder.addCode("    } catch (Exception e) {\n");
 			builder.addCode("        // 失败立即返回结果，防止对方超时\n");
 			builder.addStatement("        $L.write($T.ERROR)", responseChannel, RpcResponse.class);
@@ -462,7 +463,8 @@ public class RpcServiceProcessor extends AbstractProcessor {
 			builder.addCode("    }");
 		} else  {
 			// 异步返回结果 或 没有结果
-			builder.addStatement("    " + genInvokeStatement(classParamName, executableElement));
+			final InvokeStatement invokeStatement = genInvokeStatement(null, classParamName, executableElement);
+			builder.addStatement(invokeStatement.format, invokeStatement.params.toArray());
 		}
 		builder.addStatement("})");
 		return builder.build();
@@ -471,23 +473,34 @@ public class RpcServiceProcessor extends AbstractProcessor {
 	/**
 	 * 生成方法调用代码，没有分号和换行符。
 	 */
-	private CodeBlock genInvokeStatement(String classParamName, ExecutableElement executableElement) {
-		final CodeBlock.Builder builder = CodeBlock.builder();
-		builder.add("$L.$L(", classParamName, executableElement.getSimpleName());
+	private InvokeStatement genInvokeStatement(TypeMirror returnType,String classParamName, ExecutableElement executableElement) {
+		// 缩进
+		StringBuilder format = new StringBuilder("    ");
+		List<Object> params = new ArrayList<>(10);
+
+		if (null != returnType) {
+			format.append("$T $L = ");
+			params.add(TypeName.get(returnType));
+			params.add(result);
+		}
+
+		format.append("$L.$L(");
+		params.add(classParamName);
+		params.add(executableElement.getSimpleName().toString());
 
 		boolean needDelimiter = false;
 		int index = 0;
 		for (VariableElement variableElement:executableElement.getParameters()) {
 			if (needDelimiter) {
-				builder.add(", ");
+				format.append(", ");
 			} else {
 				needDelimiter = true;
 			}
 
 			if (isResponseChannel(variableElement)) {
-				builder.add(responseChannel);
+				format.append(responseChannel);
 			} else if (isSession(variableElement)){
-				builder.add(session);
+				format.append(session);
 			} else {
 				TypeName typeName = ParameterizedTypeName.get(variableElement.asType());
 				if (typeName.isPrimitive()) {
@@ -495,13 +508,27 @@ public class RpcServiceProcessor extends AbstractProcessor {
 					typeName = typeName.box();
 				}
 				// 这里的T不导包有点坑爹
-				builder.add("($T)($L.get($L))", typeName, methodParams, index);
+				format.append("($T)($L.get($L))");
+				params.add(typeName);
+				params.add(methodParams);
+				params.add(index);
 				index++;
 			}
 		}
-		builder.add(")");
-		return builder.build();
+		format.append(")");
+		return new InvokeStatement(format.toString(), params);
 	}
+
+	private static class InvokeStatement {
+		private final String format;
+		private final List<Object> params;
+
+		private InvokeStatement(String format, List<Object> params) {
+			this.format = format;
+			this.params = params;
+		}
+	}
+
 
 	private static class ParseResult {
 		// 除去特殊参数余下的参数
