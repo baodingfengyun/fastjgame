@@ -47,6 +47,7 @@ import javax.lang.model.util.SimpleTypeVisitor8;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -189,9 +190,14 @@ public class RpcServiceProcessor extends AbstractProcessor {
 		for (ExecutableElement method:proxyMethods) {
 			final String methodName = method.getSimpleName().toString();
 			if (method.isVarArgs()) {
-				messager.printMessage(Diagnostic.Kind.ERROR,  className + " - " + methodName + " contains varArgs", method);
-				return;
+				messager.printMessage(Diagnostic.Kind.ERROR,  className + " - " + methodName + " contains varArgs!", method);
+				continue;
 			}
+			if (!method.getModifiers().contains(Modifier.PUBLIC)) {
+				messager.printMessage(Diagnostic.Kind.ERROR,  className + " - " + methodName + " is not public！", method);
+				continue;
+			}
+
 			// 方法id
 			final short methodId = method.getAnnotation(RpcMethod.class).methodId();
 			// 方法的唯一键，乘以1W比位移有更好的可读性
@@ -426,7 +432,6 @@ public class RpcServiceProcessor extends AbstractProcessor {
 	 * 		    });
 	 * 		}
 	 * }
-	 * 在这里的时候已经已经导入了所有需要的类了。（生成客户端代码的时候）
 	 * @param executableElement rpcMethod
 	 * @return methodName
 	 */
@@ -489,16 +494,14 @@ public class RpcServiceProcessor extends AbstractProcessor {
 					// 基本类型需要转换为包装类型
 					typeName = typeName.box();
 				}
-				// 在这里的时候都是ClassName
-				ClassName className = (ClassName) typeName;
-				builder.add("($L)($L.get($L))", className.simpleName(), methodParams, index);
+				// 这里的T不导包有点坑爹
+				builder.add("($T)($L.get($L))", typeName, methodParams, index);
 				index++;
 			}
 		}
 		builder.add(")");
 		return builder.build();
 	}
-
 
 	private static class ParseResult {
 		// 除去特殊参数余下的参数

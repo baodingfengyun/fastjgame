@@ -39,7 +39,10 @@ import java.lang.annotation.Target;
  *		void oneWayMethod(long id);
  * }
  * </pre>
- * 注意：RpcResponseChannel不参与生成的代理方法的参数列表，因此上面 1，2生成的代理方法前面是一致的！你必须避免这种情况。
+ *
+ * 注意：
+ * 1.RpcResponseChannel不参与生成的代理方法的参数列表，因此上面 1，2生成的代理方法前面是一致的！你必须避免这种情况。
+ * 2.方法必须是public，否则可能无法代理。
  *
  * @author wjybxx
  * @version 1.0
