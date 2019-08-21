@@ -15,24 +15,21 @@
 	
     <dependencies>
 
-        <!-- 网络包依赖 -->
-        <!-- 地址 https://github.com/hl845740757/fastjgame-net -->
-        <dependency>
-            <groupId>com.wjybxx.fastjgame</groupId>
-            <artifactId>game-net</artifactId>
-            <version>1.0</version>
-        </dependency>
-
         <!-- utils包，避免每次修改util都要打包一次net包 -->
-        <!-- 地址 https://github.com/hl845740757/fastjgame-utils -->
         <dependency>
             <groupId>com.wjybxx.fastjgame</groupId>
             <artifactId>game-utils</artifactId>
             <version>1.0</version>
         </dependency>
 
+        <!-- 网络包依赖 -->
+        <dependency>
+            <groupId>com.wjybxx.fastjgame</groupId>
+            <artifactId>game-net</artifactId>
+            <version>1.0</version>
+        </dependency>
+
         <!-- Rpc代理生成工具 -->
-        <!-- 地址 https://github.com/hl845740757/fastjgame-auto -->
         <dependency>
             <groupId>com.wjybxx.fastjgame</groupId>
             <artifactId>game-auto</artifactId>
