@@ -18,24 +18,21 @@ package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.annotation.WorldSingleton;
-import com.wjybxx.fastjgame.misc.OneWayMessageHandler;
-import com.wjybxx.fastjgame.misc.RpcRequestHandler1;
-import com.wjybxx.fastjgame.misc.RpcRequestHandler2;
-import com.wjybxx.fastjgame.net.*;
-import com.wjybxx.fastjgame.utils.CollectionUtils;
+import com.wjybxx.fastjgame.misc.DefaultRpcFunctionRepository;
+import com.wjybxx.fastjgame.misc.RpcCall;
+import com.wjybxx.fastjgame.misc.VoidRpcResponseChannel;
+import com.wjybxx.fastjgame.net.MessageHandler;
+import com.wjybxx.fastjgame.net.RpcRequestContext;
+import com.wjybxx.fastjgame.net.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
-import java.util.IdentityHashMap;
-import java.util.Map;
 
 /**
  * 实现TCP/Ws长链接的 [单向消息] 和 [rpc请求] 的分发。
- * 不算标准的RPC，但是其本质是rpc，只不过相当于我们限定了方法参数只能是一个，不同的请求参数对应不同的方法。
- *
  * 注意：不同的world有不同的消息处理器，单例级别为world级别。
  *
  * @author wjybxx
@@ -45,120 +42,46 @@ import java.util.Map;
  */
 @WorldSingleton
 @NotThreadSafe
-public class MessageDispatcherMrg implements MessageHandler {
+public class MessageDispatcherMrg extends DefaultRpcFunctionRepository implements MessageHandler {
 
-    private static final Logger logger= LoggerFactory.getLogger(MessageDispatcherMrg.class);
-
-    /**
-     * 单向消息处理器
-     */
-    private final Map<Class<?>, OneWayMessageHandler<?>> messageHandlerMap = new IdentityHashMap<>();
-
-    /**
-     * Rpc请求处理器
-     */
-    private final Map<Class<?>, RpcHandlerWrapper<?>> requestHandlerMap = new IdentityHashMap<>();
+    private static final Logger logger = LoggerFactory.getLogger(MessageDispatcherMrg.class);
 
     @Inject
     public MessageDispatcherMrg() {
 
     }
 
-    public <T> void registerMessageHandler(@Nonnull Class<T> messageClazz, @Nonnull OneWayMessageHandler<? super T> messageHandler) {
-        CollectionUtils.requireNotContains(messageHandlerMap, messageClazz, "messageClazz");
-        messageHandlerMap.put(messageClazz, messageHandler);
-    }
-
-    public <T,R> void registerMessageHandler(@Nonnull Class<T> requestClazz, @Nonnull RpcRequestHandler1<? super T, R> rpcRequestHandler) {
-        CollectionUtils.requireNotContains(requestHandlerMap, requestClazz, "requestClazz");
-        requestHandlerMap.put(requestClazz, new RpcHandlerWrapper<>(rpcRequestHandler, null));
-    }
-
-    public <T> void registerMessageHandler(@Nonnull Class<T> requestClazz, @Nonnull RpcRequestHandler2<? super T> rpcRequestHandler) {
-        CollectionUtils.requireNotContains(requestHandlerMap, requestClazz, "requestClazz");
-        requestHandlerMap.put(requestClazz, new RpcHandlerWrapper<>(null, rpcRequestHandler));
-    }
-
-    // ---------------------------------------------- 消息、Rpc请求分发 ----------------------------------------
-
-    @SuppressWarnings("unchecked")
     @Override
-    public void onMessage(Session session, @Nullable Object message) throws Exception {
-        // 未成功解码的消息，做个记录并丢弃(不影响其它请求)
+    public final void onMessage(Session session, @Nullable Object message) throws Exception {
         if (null == message){
-            logger.warn("roleType={} sessionId={} send null message", session.remoteRole(), session.remoteGuid());
+            logger.warn("{} - {} send null message", session.remoteRole(), session.remoteGuid());
             return;
         }
-        // 未注册的消息，做个记录并丢弃(不影响其它请求)
-        OneWayMessageHandler messageHandler = messageHandlerMap.get(message.getClass());
-        if (null == messageHandler){
-            logger.warn("roleType={} sessionId={} send unregistered message {}",
-                    session.remoteRole(), session.remoteGuid(), message.getClass().getSimpleName());
-            return;
+        if (message instanceof RpcCall) {
+            dispatchRpcRequest(session, (RpcCall) message, VoidRpcResponseChannel.INSTANCE);
+        } else {
+            onMessage0(session, message);
         }
-        // 分发请求
-        try {
-            messageHandler.onMessage(session, message);
-        } catch (Exception e) {
-            logger.warn("handle message caught exception,sessionId={},roleType={},message clazz={}",
-                    session.remoteRole(), session.remoteGuid(), message.getClass().getSimpleName(),e);
-        }
+    }
+
+    /**
+     * 接收到一个单向消息
+     * @param session 所在的会话
+     * @param message 单向消息
+     * @throws Exception error
+     */
+    protected void onMessage0(Session session, @Nonnull Object message) throws Exception {
+        logger.info("unhandled {}-{} message {}", session.remoteRole(), session.remoteGuid(), message.getClass().getSimpleName());
     }
 
     @Override
-    public void onRpcRequest(Session session, @Nullable Object request, RpcRequestContext context) throws Exception {
-        RpcResponseChannel responseChannel = session.newResponseChannel(context);
-        onRpcRequest(session, request, responseChannel);
-    }
-
-    @SuppressWarnings("unchecked")
-    private void onRpcRequest(Session session, @Nullable Object request, RpcResponseChannel responseChannel) throws Exception {
-        // 未成功解码的消息，做个记录并丢弃(不影响其它请求)
+    public final void onRpcRequest(Session session, @Nullable Object request, RpcRequestContext context) throws Exception {
         if (null == request){
-            logger.warn("roleType={} sessionId={} send null message", session.remoteRole(), session.remoteGuid());
+            logger.warn("{} - {} send null request", session.remoteRole(), session.remoteGuid());
             return;
         }
-        // 未注册的消息，做个记录并丢弃(不影响其它请求)
-        RpcHandlerWrapper handlerWrapper = requestHandlerMap.get(request.getClass());
-        if (null == handlerWrapper){
-            logger.warn("roleType={} sessionId={} send unregistered message {}",
-                    session.remoteRole(), session.remoteGuid(), request.getClass().getSimpleName());
-            return;
-        }
-        // 分发请求
-        if (handlerWrapper.handler1 != null) {
-            // 1类型处理器，可以立即返回结果
-            try {
-                Object result = handlerWrapper.handler1.onRequest(session, request);
-                responseChannel.writeSuccess(result);
-            } catch (Exception e){
-                // 这里能将其标记为失败
-                responseChannel.writeFailure(RpcResultCode.ERROR);
-                logger.warn("handle message caught exception,sessionId={},roleType={},message clazz={}",
-                        session.remoteRole(), session.remoteGuid(), request.getClass().getSimpleName(),e);
-            }
-        } else {
-            try {
-                assert handlerWrapper.handler2 != null;
-                // 2类型处理器，不一定能立即返回结果，需要使用结果通道。
-                handlerWrapper.handler2.onRequest(session, request, responseChannel);
-            } catch (Exception e){
-                // 这里不能尝试赋值，因为不能推断出responseChannel没有被写回结果
-                logger.warn("handle message caught exception,sessionId={},roleType={},message clazz={}",
-                        session.remoteRole(), session.remoteGuid(), request.getClass().getSimpleName(),e);
-            }
-        }
+        // 目前版本直接session创建responseChannel，后期再考虑缓存的事情
+        dispatchRpcRequest(session, (RpcCall) request, session.newResponseChannel(context));
     }
 
-    private static class RpcHandlerWrapper<T> {
-        /** 1类型rpc处理器，立即返回结果 */
-        private final RpcRequestHandler1<? super T,?> handler1;
-        /** 2类型rpc处理器，不一定能立即返回结果 */
-        private final RpcRequestHandler2<? super T> handler2;
-
-        private RpcHandlerWrapper(@Nullable RpcRequestHandler1<? super T, ?> handler1, @Nullable RpcRequestHandler2<? super T> handler2) {
-            this.handler1 = handler1;
-            this.handler2 = handler2;
-        }
-    }
 }

@@ -39,7 +39,7 @@ import java.util.List;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public final class DefaultRpcFunctionRepository implements RpcFunctionRepository, MessageHandler {
+public class DefaultRpcFunctionRepository implements RpcFunctionRepository {
 
 	private static final Logger logger = LoggerFactory.getLogger(DefaultRpcFunctionRepository.class);
 
@@ -48,39 +48,6 @@ public final class DefaultRpcFunctionRepository implements RpcFunctionRepository
 	 */
 	private final Int2ObjectMap<RpcFunction> functionInfoMap = new Int2ObjectOpenHashMap<>(512);
 
-	@Override
-	public final void onMessage(Session session, @Nullable Object message) throws Exception {
-		if (null == message){
-			logger.warn("{} - {} send null message", session.remoteRole(), session.remoteGuid());
-			return;
-		}
-		if (message instanceof RpcCall) {
-			dispatchRpcRequest(session, (RpcCall) message, VoidRpcResponseChannel.INSTANCE);
-		} else {
-			onMessage0(session, message);
-		}
-	}
-
-	/**
-	 * 接收到一个单向消息
-	 * @param session 所在的会话
-	 * @param message 单向消息
-	 * @throws Exception error
-	 */
-	protected void onMessage0(Session session, @Nonnull Object message) throws Exception {
-		logger.info("unhandled {}-{} message {}", session.remoteRole(), session.remoteGuid(), message.getClass().getSimpleName());
-	}
-
-	@Override
-	public final void onRpcRequest(Session session, @Nullable Object request, RpcRequestContext context) throws Exception {
-		if (null == request){
-			logger.warn("{} - {} send null request", session.remoteRole(), session.remoteGuid());
-			return;
-		}
-		// 目前版本直接session创建responseChannel，后期再考虑缓存的事情
-		dispatchRpcRequest(session, (RpcCall) request, session.newResponseChannel(context));
-	}
-
 	/**
 	 * 分发一个rpc调用
 	 * @param session 所在的会话
@@ -88,7 +55,7 @@ public final class DefaultRpcFunctionRepository implements RpcFunctionRepository
 	 * @param rpcResponseChannel 如果需要返回结果的话，使用该对象返回值。
 	 */
 	@SuppressWarnings("unchecked")
-	public final void dispatchRpcRequest(Session session, RpcCall rpcCall, RpcResponseChannel<?> rpcResponseChannel) {
+	protected final void dispatchRpcRequest(Session session, RpcCall rpcCall, RpcResponseChannel<?> rpcResponseChannel) {
 		final int methodKey = rpcCall.getMethodKey();
 		final List<Object> params = rpcCall.getMethodParams();
 		final RpcFunction rpcFunction = functionInfoMap.get(methodKey);

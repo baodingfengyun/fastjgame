@@ -17,9 +17,6 @@
 package com.wjybxx.fastjgame.misc;
 
 
-import com.wjybxx.fastjgame.annotation.RpcMethod;
-import com.wjybxx.fastjgame.annotation.RpcService;
-
 import java.util.Collections;
 import java.util.List;
 
@@ -38,8 +35,6 @@ public class RpcCall<V> {
 	/**
 	 * 调用的远程方法，用于确定一个唯一的方法。不使用类名 + 方法具体参数信息，内容量过于庞大，性能不好。
 	 * 不过要做映射需要想一些可靠的方法。
-	 * 在这里的实现中，使用{@link RpcService#serviceId()} 和 {@link RpcMethod#methodId()}构成唯一key。
-	 * 在写代码的时候，需要手动进行标注一下。
 	 */
 	@SerializableField(number = 1)
 	private final int methodKey;

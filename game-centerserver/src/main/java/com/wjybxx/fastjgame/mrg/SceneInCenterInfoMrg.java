@@ -27,6 +27,7 @@ import com.wjybxx.fastjgame.core.onlinenode.SingleSceneNodeName;
 import com.wjybxx.fastjgame.misc.LeastPlayerWorldChooser;
 import com.wjybxx.fastjgame.misc.SceneWorldChooser;
 import com.wjybxx.fastjgame.net.*;
+import com.wjybxx.fastjgame.serializebale.ConnectCrossSceneResult;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -39,8 +40,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static com.wjybxx.fastjgame.protobuffer.p_center_scene.*;
-import static com.wjybxx.fastjgame.protobuffer.p_sync_center_scene.p_center_command_single_scene_start;
 
 /**
  * SceneServer在CenterServer中的连接等控制器。
@@ -207,20 +206,20 @@ public class SceneInCenterInfoMrg {
         public void onSessionConnected(Session session) {
             getSceneInfo(session.remoteGuid()).setSession(session);
 
-            p_center_single_scene_hello hello = p_center_single_scene_hello
-                    .newBuilder()
-                    .setPlatformNumber(centerWorldInfoMrg.getPlatformType().getNumber())
-                    .setServerId(centerWorldInfoMrg.getServerId())
-                    .build();
-
-            session.rpc(hello, rpcResponse -> {
-                if (!rpcResponse.isSuccess()) {
-                    return;
-                }
-                p_center_single_scene_hello_result_handler(session, (p_center_single_scene_hello_result) rpcResponse.getBody());
-            });
-
-            session.sendMessage(hello);
+//            p_center_single_scene_hello hello = p_center_single_scene_hello
+//                    .newBuilder()
+//                    .setPlatformNumber(centerWorldInfoMrg.getPlatformType().getNumber())
+//                    .setServerId(centerWorldInfoMrg.getServerId())
+//                    .build();
+//
+//            session.rpc(hello, rpcResponse -> {
+//                if (!rpcResponse.isSuccess()) {
+//                    return;
+//                }
+//                connectSingleSuccessResult(session, (p_center_single_scene_hello_result) rpcResponse.getBody());
+//            });
+//
+//            session.sendMessage(hello);
         }
 
         @Override
@@ -238,18 +237,18 @@ public class SceneInCenterInfoMrg {
         public void onSessionConnected(Session session) {
             getSceneInfo(session.remoteGuid()).setSession(session);
 
-            p_center_cross_scene_hello hello = p_center_cross_scene_hello
-                    .newBuilder()
-                    .setPlatformNumber(centerWorldInfoMrg.getPlatformType().getNumber())
-                    .setServerId(centerWorldInfoMrg.getServerId())
-                    .build();
-
-            session.rpc(hello, rpcResponse -> {
-                if (!rpcResponse.isSuccess()) {
-                    return;
-                }
-                p_center_cross_scene_hello_result_handler(session, (p_center_cross_scene_hello_result) rpcResponse.getBody());
-            });
+//            p_center_cross_scene_hello hello = p_center_cross_scene_hello
+//                    .newBuilder()
+//                    .setPlatformNumber(centerWorldInfoMrg.getPlatformType().getNumber())
+//                    .setServerId(centerWorldInfoMrg.getServerId())
+//                    .build();
+//
+//            session.rpc(hello, rpcResponse -> {
+//                if (!rpcResponse.isSuccess()) {
+//                    return;
+//                }
+//                p_center_cross_scene_hello_result_handler(session, (p_center_cross_scene_hello_result) rpcResponse.getBody());
+//            });
         }
 
         @Override
@@ -261,15 +260,15 @@ public class SceneInCenterInfoMrg {
     /**
      * 收到单服场景的响应信息
      * @param session scene会话信息
-     * @param result
+     * @param configuredRegionsList 配置的区域
      */
-    private void p_center_single_scene_hello_result_handler(Session session, p_center_single_scene_hello_result result) {
+    private void connectSingleSuccessResult(Session session, List<Integer> configuredRegionsList) {
         assert guid2InfoMap.containsKey(session.remoteGuid());
         SceneInCenterInfo sceneInCenterInfo=guid2InfoMap.get(session.remoteGuid());
 
         Set<SceneRegion> configuredRegions = sceneInCenterInfo.getConfiguredRegions();
         Set<SceneRegion> activeRegions = sceneInCenterInfo.getActiveRegions();
-        for (int regionId:result.getConfiguredRegionsList()){
+        for (int regionId:configuredRegionsList){
             SceneRegion sceneRegion=SceneRegion.forNumber(regionId);
             configuredRegions.add(sceneRegion);
             // 非互斥的区域已经启动了
@@ -281,17 +280,19 @@ public class SceneInCenterInfoMrg {
         // TODO 检查该场景可以启动哪些互斥场景
         // TODO 如果目标World和当前World在一个EventLoop还可能死锁？
         // 会话id是相同的(使用同步方法调用，会大大简化逻辑)
-        p_center_command_single_scene_start command = p_center_command_single_scene_start.newBuilder()
-                .addActiveMutexRegions(SceneRegion.LOCAL_PKC.getNumber())
-                .build();
 
-        RpcResponse rpcResponse = sceneInCenterInfo.getSession().syncRpcUninterruptibly(command);
-        if (rpcResponse.isSuccess()){
-            activeRegions.add(SceneRegion.LOCAL_PKC);
-        }else {
-            // 遇见这个需要好好处理(适当增加超时时间)，尽量不能失败
-            logger.error("syncRpc request active region failed.");
-        }
+
+//        p_center_command_single_scene_start command = p_center_command_single_scene_start.newBuilder()
+//                .addActiveMutexRegions(SceneRegion.LOCAL_PKC.getNumber())
+//                .build();
+//
+//        RpcResponse rpcResponse = sceneInCenterInfo.getSession().syncRpcUninterruptibly(command);
+//        if (rpcResponse.isSuccess()){
+//            activeRegions.add(SceneRegion.LOCAL_PKC);
+//        }else {
+//            // 遇见这个需要好好处理(适当增加超时时间)，尽量不能失败
+//            logger.error("syncRpc request active region failed.");
+//        }
     }
 
     /**
@@ -299,17 +300,17 @@ public class SceneInCenterInfoMrg {
      * @param session 与跨服场景的会话
      * @param result 响应结果
      */
-    private void p_center_cross_scene_hello_result_handler(Session session, p_center_cross_scene_hello_result result) {
+    private void p_center_cross_scene_hello_result_handler(Session session, ConnectCrossSceneResult result) {
         assert guid2InfoMap.containsKey(session.remoteGuid());
         SceneInCenterInfo sceneInCenterInfo=guid2InfoMap.get(session.remoteGuid());
         // 配置的区域
         Set<SceneRegion> configuredRegions = sceneInCenterInfo.getConfiguredRegions();
-        for (int regionId:result.getConfiguredRegionsList()){
+        for (int regionId:result.getConfiguredRegions()){
             configuredRegions.add(SceneRegion.forNumber(regionId));
         }
         // 成功启动的区域
         Set<SceneRegion> activeRegions = sceneInCenterInfo.getActiveRegions();
-        for (int regionId:result.getActiveRegionsList()){
+        for (int regionId:result.getActiveRegions()){
             activeRegions.add(SceneRegion.forNumber(regionId));
         }
     }

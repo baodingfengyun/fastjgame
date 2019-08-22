@@ -29,9 +29,6 @@ import org.apache.zookeeper.CreateMode;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import static com.wjybxx.fastjgame.protobuffer.p_center_scene.p_center_cross_scene_hello_result;
-import static com.wjybxx.fastjgame.protobuffer.p_center_scene.p_center_single_scene_hello_result;
-import static com.wjybxx.fastjgame.protobuffer.p_center_warzone.p_center_warzone_hello_result;
 
 /**
  * 中心服World

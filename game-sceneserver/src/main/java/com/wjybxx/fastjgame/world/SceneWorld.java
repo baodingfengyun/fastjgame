@@ -4,8 +4,8 @@ import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.core.onlinenode.SceneNodeData;
 import com.wjybxx.fastjgame.misc.HostAndPort;
-import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.mrg.*;
+import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.net.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.initializer.TCPServerChannelInitializer;
@@ -16,10 +16,6 @@ import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.wjybxx.fastjgame.protobuffer.p_center_scene.p_center_cross_scene_hello;
-import static com.wjybxx.fastjgame.protobuffer.p_center_scene.p_center_single_scene_hello;
-import static com.wjybxx.fastjgame.protobuffer.p_sync_center_scene.p_center_command_single_scene_active_regions;
-import static com.wjybxx.fastjgame.protobuffer.p_sync_center_scene.p_center_command_single_scene_start;
 
 /**
  * SceneServer
@@ -50,8 +46,8 @@ public class SceneWorld extends AbstractWorld {
     }
 
     @Override
-    protected void registerCodecHelpers() throws Exception {
-        super.registerCodecHelpers();
+    protected void registerProtocolCodecs() throws Exception {
+        super.registerProtocolCodecs();
         // 这里没有使用模板方法是因为不是都有额外的codec要注册，导致太多钩子方法也不好
         // TODO 注册与玩家交互的codec帮助类
     }
@@ -63,10 +59,9 @@ public class SceneWorld extends AbstractWorld {
 
     @Override
     protected void registerRpcRequestHandlers() {
-        registerRpcRequestHandler(p_center_single_scene_hello.class, centerInSceneInfoMrg::p_center_single_scene_hello_handler);
-        registerRpcRequestHandler(p_center_cross_scene_hello.class, centerInSceneInfoMrg::p_center_cross_scene_hello_handler);
-        registerRpcRequestHandler(p_center_command_single_scene_start.class, sceneRegionMrg::p_center_command_single_scene_start_handler);
-        registerRpcRequestHandler(p_center_command_single_scene_active_regions.class, sceneRegionMrg::p_center_command_scene_active_regions_handler);
+        // 以后在管理器里自己进行注册
+//        SceneRegionMrgProxy.register(messageDispatcherMrg, sceneRegionMrg);
+//        CenterInSceneInfoMrgProxy.register(messageDispatcherMrg, centerInSceneInfoMrg);
     }
 
     @Override

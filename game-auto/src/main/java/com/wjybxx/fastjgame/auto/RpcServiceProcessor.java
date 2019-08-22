@@ -22,6 +22,7 @@ import com.wjybxx.fastjgame.annotation.RpcMethod;
 import com.wjybxx.fastjgame.annotation.RpcMethodProxy;
 import com.wjybxx.fastjgame.annotation.RpcService;
 import com.wjybxx.fastjgame.annotation.RpcServiceProxy;
+import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
 import com.wjybxx.fastjgame.misc.RpcCall;
 import com.wjybxx.fastjgame.misc.RpcFunctionRepository;
 import com.wjybxx.fastjgame.net.RpcResponse;
@@ -29,6 +30,7 @@ import com.wjybxx.fastjgame.net.RpcResponseChannel;
 import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.utils.AutoUtils;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
+import com.wjybxx.fastjgame.utils.ConfigLoader;
 import com.wjybxx.fastjgame.utils.MathUtils;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
@@ -46,6 +48,7 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.SimpleTypeVisitor8;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Predicate;
@@ -74,6 +77,8 @@ import java.util.stream.Collectors;
  *    {@code types.isSubType(RpcResponseChannel<String>, RpcResponseChannel)  true}
  *
  * 2. 在注解中引用另一个类时，这个类可能还未被编译，需要通过捕获异常获取到未编译的类的{@link TypeMirror}.
+ *
+ * 3. 我太难了，这Rpc代理得生成两个文件，一个生成在core包，一个生成在自己的包...
  *
  * {@link DeclaredType}是变量、参数的声明类型。
  *
@@ -119,6 +124,10 @@ public class RpcServiceProcessor extends AbstractProcessor {
 	/** 生成信息 */
 	private AnnotationSpec generatedAnnotation;
 
+	private String proxy_our_dir;
+	private String proxy_package_name;
+	private String register_package_name;
+
 	@Override
 	public synchronized void init(ProcessingEnvironment processingEnv) {
 		super.init(processingEnv);
@@ -136,6 +145,19 @@ public class RpcServiceProcessor extends AbstractProcessor {
 		generatedAnnotation = AnnotationSpec.builder(Generated.class)
 				.addMember("value", "$S", RpcServiceProcessor.class.getCanonicalName())
 				.build();
+
+		try {
+			final ConfigWrapper configWrapper = ConfigLoader.loadConfig("game-auto.properties");
+			proxy_our_dir = configWrapper.getAsString("proxy_out_dir");
+			proxy_package_name = configWrapper.getAsString("proxy_package_name");
+			register_package_name = configWrapper.getAsString("register_package_name");
+		} catch (IOException e) {
+			messager.printMessage(Diagnostic.Kind.ERROR, "game-auto.properties is missing");
+
+			proxy_our_dir = null;
+			proxy_package_name = "com.wjybxx.fastjagme.rpcproxy";
+			register_package_name = "com.wjybxx.fastjagme.rpcregister";
+		}
 	}
 
 	@Override
@@ -215,33 +237,64 @@ public class RpcServiceProcessor extends AbstractProcessor {
 		AnnotationSpec proxyAnnotation = AnnotationSpec.builder(RpcServiceProxy.class)
 				.addMember("serviceId", "$L", serviceId).build();
 
-		// 代理类不可以继承
-		TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(className + "Proxy")
-				.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-				.addAnnotation(generatedAnnotation)
-				.addAnnotation(proxyAnnotation);
+		// 客户端代理，生成在core包下
+		{
+			// 代理类不可以继承
+			TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(className + "Proxy")
+					.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+					.addAnnotation(generatedAnnotation)
+					.addAnnotation(proxyAnnotation);
 
-		// 添加客户端代理方法，在最上面
-		typeBuilder.addMethods(clientMethodProxyList);
-		// 添加注册方法
-		typeBuilder.addMethod(genRegisterMethod(typeElement, serverMethodProxyList));
-		// 添加服务器的代理方法，私有方法在最下面
-		typeBuilder.addMethods(serverMethodProxyList);
+			// 添加客户端代理方法，在最上面
+			typeBuilder.addMethods(clientMethodProxyList);
 
-		TypeSpec typeSpec = typeBuilder.build();
-		JavaFile javaFile = JavaFile
-				.builder(pkgName, typeSpec)
-				// 不用导入java.lang包
-				.skipJavaLangImports(true)
-				// 4空格缩进
-				.indent("    ")
-				.build();
-		try {
-			// 输出到注解处理器配置的路径下，这样才可以在下一轮检测到并进行编译 输出到processingEnv.getFiler()会立即参与编译
-			// 如果自己指定路径，可以生成源码到指定路径，但是可能无法被编译器检测到，本轮无法参与编译，需要再进行一次编译
-			javaFile.writeTo(processingEnv.getFiler());
-		} catch (IOException e) {
-			processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, e.toString());
+			TypeSpec typeSpec = typeBuilder.build();
+			JavaFile javaFile = JavaFile
+					.builder(proxy_package_name, typeSpec)
+					// 不用导入java.lang包
+					.skipJavaLangImports(true)
+					// 4空格缩进
+					.indent("    ")
+					.build();
+
+			try {
+				if (proxy_our_dir == null) {
+					// 输出到编译路径
+					javaFile.writeTo(processingEnv.getFiler());
+				} else {
+					// 生成源码到指定路径，但是可能无法被编译器检测到，本轮无法参与编译，需要再进行一次编译
+					javaFile.writeTo(new File(proxy_our_dir));
+				}
+			} catch (Exception e) {
+				processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, e.toString());
+			}
+		}
+
+		// 服务器代理，生成在自己模块
+		{
+			TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(className + "Register")
+					.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+					.addAnnotation(generatedAnnotation)
+					.addAnnotation(proxyAnnotation);
+
+			typeBuilder.addMethod(genRegisterMethod(typeElement, serverMethodProxyList));
+			typeBuilder.addMethods(serverMethodProxyList);
+
+			TypeSpec typeSpec = typeBuilder.build();
+			JavaFile javaFile = JavaFile
+					.builder(pkgName, typeSpec)
+					// 不用导入java.lang包
+					.skipJavaLangImports(true)
+					// 4空格缩进
+					.indent("    ")
+					.build();
+			try {
+				// 输出到注解处理器配置的路径下，这样才可以在下一轮检测到并进行编译 输出到processingEnv.getFiler()会立即参与编译
+				// 如果自己指定路径，可以生成源码到指定路径，但是可能无法被编译器检测到，本轮无法参与编译，需要再进行一次编译
+				javaFile.writeTo(processingEnv.getFiler());
+			} catch (IOException e) {
+				processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, e.toString());
+			}
 		}
 	}
 
@@ -480,7 +533,12 @@ public class RpcServiceProcessor extends AbstractProcessor {
 
 		if (null != returnType) {
 			format.append("$T $L = ");
-			params.add(TypeName.get(returnType));
+			// 对返回值进行包装
+			TypeName typeName = ParameterizedTypeName.get(returnType);
+			if (typeName.isPrimitive()) {
+				typeName = typeName.box();
+			}
+			params.add(typeName);
 			params.add(result);
 		}
 

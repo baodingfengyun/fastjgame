@@ -18,14 +18,20 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.misc.CenterInSceneInfo;
+import com.wjybxx.fastjgame.annotation.RpcMethod;
+import com.wjybxx.fastjgame.annotation.RpcService;
 import com.wjybxx.fastjgame.core.SceneRegion;
 import com.wjybxx.fastjgame.core.SceneWorldType;
+import com.wjybxx.fastjgame.misc.CenterInSceneInfo;
 import com.wjybxx.fastjgame.misc.PlatformType;
+import com.wjybxx.fastjgame.misc.ServiceTable;
 import com.wjybxx.fastjgame.net.Session;
+import com.wjybxx.fastjgame.serializebale.ConnectCrossSceneResult;
 import com.wjybxx.fastjgame.world.SceneWorld;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.slf4j.Logger;
@@ -33,9 +39,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
-
-import static com.wjybxx.fastjgame.protobuffer.p_center_scene.*;
 
 /**
  * CenterServer在SceneServer中的连接管理等。
@@ -46,9 +51,10 @@ import static com.wjybxx.fastjgame.protobuffer.p_center_scene.*;
  * date - 2019/5/15 22:08
  * github - https://github.com/hl845740757
  */
+@RpcService(serviceId = ServiceTable.CENTER_IN_SCENE_INFO_MRG)
 public class CenterInSceneInfoMrg {
 
-    private static final Logger logger= LoggerFactory.getLogger(CenterInSceneInfoMrg.class);
+    private static final Logger logger = LoggerFactory.getLogger(CenterInSceneInfoMrg.class);
     private final SceneWorldInfoMrg sceneWorldInfoMrg;
     private final SceneRegionMrg sceneRegionMrg;
 
@@ -128,48 +134,62 @@ public class CenterInSceneInfoMrg {
     }
 
     /**
-     * 收到center打的招呼(认为我是单服节点)
+     * 中心服请求与scene建立连接 (认为我是本服节点)
+     * 返回配置(或启动参数)中的支持的区域(非互斥区域已启动)，互斥区域是否启动由center协调。
+     *
      * @param session 会话信息
-     * @param hello 简单信息
+     * @param platformNumber 中心服所属的平台
+     * @param serverId 中心服id
+     * @return scene配置的区域
      */
-    public p_center_single_scene_hello_result p_center_single_scene_hello_handler(Session session, p_center_single_scene_hello hello) {
-        PlatformType platformType=PlatformType.forNumber(hello.getPlatformNumber());
+    @RpcMethod(methodId = 1)
+    public List<Integer> connectSingleScene(Session session, int platformNumber, int serverId) {
+        PlatformType platformType=PlatformType.forNumber(platformNumber);
         assert !guid2InfoMap.containsKey(session.remoteGuid());
-        assert !platInfoMap.containsKey(platformType) || !platInfoMap.get(platformType).containsKey(hello.getServerId());
+        assert !platInfoMap.containsKey(platformType) || !platInfoMap.get(platformType).containsKey(serverId);
 
-        CenterInSceneInfo centerInSceneInfo = new CenterInSceneInfo(session.remoteGuid(), platformType, hello.getServerId(), session);
+        CenterInSceneInfo centerInSceneInfo = new CenterInSceneInfo(session.remoteGuid(), platformType, serverId, session);
         addInfo(centerInSceneInfo);
 
-        p_center_single_scene_hello_result.Builder builder = p_center_single_scene_hello_result.newBuilder();
+        //
+        IntList configuredRegions = new IntArrayList(sceneWorldInfoMrg.getConfiguredRegions().size());
         for (SceneRegion sceneRegion:sceneWorldInfoMrg.getConfiguredRegions()){
-            builder.addConfiguredRegions(sceneRegion.getNumber());
+            configuredRegions.add(sceneRegion.getNumber());
         }
-        return builder.build();
+        return configuredRegions;
     }
 
     /**
-     * 收到center打的招呼(认为我是跨服节点)
+     * 中心服请求与scene建立连接 (认为我是跨服节点)
+     * 跨服scene通知该centerserver我启动了哪些区域
+     * 跨服场景暂时不做互斥，即使做，也不由centerserver协调(由它们自己协调，抢占zk节点)
+     *
      * @param session 会话信息
-     * @param hello 简单信息
+     * @param platformNumber 中心服所属的平台
+     * @param serverId 中心服id
+     * @return 配置的区域和激活的区域
      */
-    public p_center_cross_scene_hello_result p_center_cross_scene_hello_handler(Session session, p_center_cross_scene_hello hello){
-        PlatformType platformType=PlatformType.forNumber(hello.getPlatformNumber());
+    @RpcMethod(methodId = 2)
+    public ConnectCrossSceneResult connectCrossScene(Session session, int platformNumber, int serverId) {
+        PlatformType platformType=PlatformType.forNumber(platformNumber);
         assert !guid2InfoMap.containsKey(session.remoteGuid());
-        assert !platInfoMap.containsKey(platformType) || !platInfoMap.get(platformType).containsKey(hello.getServerId());
+        assert !platInfoMap.containsKey(platformType) || !platInfoMap.get(platformType).containsKey(serverId);
 
-        CenterInSceneInfo centerInSceneInfo=new CenterInSceneInfo(session.remoteGuid(), platformType, hello.getServerId(), session);
+        CenterInSceneInfo centerInSceneInfo=new CenterInSceneInfo(session.remoteGuid(), platformType, serverId, session);
         addInfo(centerInSceneInfo);
 
-        p_center_cross_scene_hello_result.Builder builder = p_center_cross_scene_hello_result.newBuilder();
         // 配置的区域
+        IntList configuredRegions = new IntArrayList(sceneWorldInfoMrg.getConfiguredRegions().size());
         for (SceneRegion sceneRegion:sceneWorldInfoMrg.getConfiguredRegions()){
-            builder.addConfiguredRegions(sceneRegion.getNumber());
+            configuredRegions.add(sceneRegion.getNumber());
         }
+
         // 实际激活的区域
+        IntList activeRegions = new IntArrayList(sceneRegionMrg.getActiveRegions().size());
         for (SceneRegion sceneRegion:sceneRegionMrg.getActiveRegions()){
-            builder.addConfiguredRegions(sceneRegion.getNumber());
+            activeRegions.add(sceneRegion.getNumber());
         }
-        return builder.build();
+        return new ConnectCrossSceneResult(configuredRegions, activeRegions);
     }
 
     /**

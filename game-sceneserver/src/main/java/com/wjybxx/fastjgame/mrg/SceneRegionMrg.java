@@ -17,18 +17,18 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
+import com.wjybxx.fastjgame.annotation.RpcMethod;
+import com.wjybxx.fastjgame.annotation.RpcService;
 import com.wjybxx.fastjgame.core.SceneRegion;
 import com.wjybxx.fastjgame.core.SceneWorldType;
-import com.wjybxx.fastjgame.net.Session;
+import com.wjybxx.fastjgame.misc.ServiceTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
-
-import static com.wjybxx.fastjgame.protobuffer.p_sync_center_scene.*;
 
 /**
  * 场景区域管理器
@@ -37,6 +37,7 @@ import static com.wjybxx.fastjgame.protobuffer.p_sync_center_scene.*;
  * date - 2019/5/16 11:35
  * github - https://github.com/hl845740757
  */
+@RpcService(serviceId = ServiceTable.SCENE_REGION_MRG)
 public class SceneRegionMrg {
 
     private static final Logger logger= LoggerFactory.getLogger(SceneRegionMrg.class);
@@ -102,40 +103,39 @@ public class SceneRegionMrg {
     }
 
     /**
-     * 收到game的启动命令
-     * @param session 与game的会话
-     * @param command game发来的启动命令
+     * 建收到中心服启动互斥区域的命令 (立连接后)
+     * @param activeMutexRegionsList 需要启动的互斥区域
      * @return 启动成功
      */
-    @Nonnull
-    public p_center_command_single_scene_start_result p_center_command_single_scene_start_handler(Session session, p_center_command_single_scene_start command){
+    @RpcMethod(methodId = 1)
+    public boolean startMutexRegion(List<Integer> activeMutexRegionsList) {
         assert sceneWorldInfoMrg.getSceneWorldType() == SceneWorldType.SINGLE;
-        for (int regionId:command.getActiveMutexRegionsList()){
-            SceneRegion sceneRegion=SceneRegion.forNumber(regionId);
+        for (int regionId:activeMutexRegionsList){
+            SceneRegion sceneRegion = SceneRegion.forNumber(regionId);
             if (activeRegions.contains(sceneRegion)){
                 continue;
             }
             activeOneRegion(sceneRegion);
         }
-        return p_center_command_single_scene_start_result.newBuilder().build();
+        return true;
     }
 
     /**
      * 收到game的激活区域命名(宕机恢复，挂载其他场景进程宕掉的区域)
-     * @param session 与game的会话
-     * @param command game发来的命令
+     * @param activeRegionsList 需要启动的区域(可能包含互斥和非互斥区域)
      * @return 启动成功
      */
-    @Nonnull
-    public p_center_command_single_scene_active_regions_result p_center_command_scene_active_regions_handler(Session session, p_center_command_single_scene_active_regions command){
+    @RpcMethod(methodId = 2)
+    public boolean activeRegions(List<Integer> activeRegionsList) {
         assert sceneWorldInfoMrg.getSceneWorldType() == SceneWorldType.SINGLE;
-        for (int regionId:command.getActiveRegionsList()){
+        for (int regionId:activeRegionsList){
             SceneRegion sceneRegion=SceneRegion.forNumber(regionId);
             if (activeRegions.contains(sceneRegion)){
                 continue;
             }
             activeOneRegion(sceneRegion);
         }
-        return p_center_command_single_scene_active_regions_result.newBuilder().build();
+        return true;
     }
+
 }

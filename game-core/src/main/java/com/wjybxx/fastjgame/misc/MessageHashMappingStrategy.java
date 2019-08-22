@@ -17,6 +17,8 @@
 package com.wjybxx.fastjgame.misc;
 
 import com.google.protobuf.AbstractMessage;
+import com.google.protobuf.ProtocolMessageEnum;
+import com.wjybxx.fastjgame.enummapper.NumberEnum;
 import com.wjybxx.fastjgame.utils.ClassScanner;
 import com.wjybxx.fastjgame.utils.FunctionUtils;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -39,45 +41,28 @@ public class MessageHashMappingStrategy implements MessageMappingStrategy {
     private static final String serializablePkg = "com.wjybxx.fastjgame.serializebale";
 
     /** 同一个进程下使用是的相同的消息类，不必反复扫描 */
-    private static final Object2IntMap<Class<?>> messageClass2IdMap;
+    private static final Object2IntMap<Class<?>> messageClass2IdMap = new Object2IntOpenHashMap<>(512);
 
     static {
-        messageClass2IdMap = new Object2IntOpenHashMap<>();
-        // RpcCall必须索引
-        messageClass2IdMap.put(RpcCall.class, getClassHashCode(RpcCall.class));
+        // 先统计一下所有的吧 所有的带有注解的类，或 protoBuf类
+        final Set<Class<?>> allClass = ClassScanner.findClasses("com.wjybxx.fastjgame",
+                name -> StringUtils.countMatches(name, "$") <= 1,
+                MessageHashMappingStrategy::isSerializable);
 
-        statisticProtoBufMessage();
+        for (Class<?> messageClass:allClass) {
+            messageClass2IdMap.put(messageClass, getClassHashCode(messageClass));
+        }
+    }
 
-        statisticSerializableMessage();
+    private static boolean isSerializable(Class<?> clazz) {
+        return clazz.isAnnotationPresent(SerializableClass.class)
+                || AbstractMessage.class.isAssignableFrom(clazz)
+                || ProtocolMessageEnum.class.isAssignableFrom(clazz)
+                || NumberEnum.class.isAssignableFrom(clazz);
     }
 
     private static int getClassHashCode(Class<?> rpcCallClass) {
         return rpcCallClass.hashCode();
-    }
-
-    /**
-     * 统计所有带{@link SerializableClass}注解的类
-     */
-    private static void statisticSerializableMessage() {
-        Set<Class<?>> allClass = ClassScanner.findClasses(serializablePkg, FunctionUtils::TRUE,
-                clazz -> clazz.isAnnotationPresent(SerializableClass.class));
-
-        for (Class<?> messageClass:allClass) {
-            messageClass2IdMap.put(messageClass, getClassHashCode(messageClass));
-        }
-    }
-
-    /**
-     * 统计所有的protoBuf类
-     */
-    private static void statisticProtoBufMessage() {
-        // 只有一层内部类
-        Set<Class<?>> allClass = ClassScanner.findClasses(protoBufferPkg,
-                name -> StringUtils.countMatches(name, "$") == 1,
-                AbstractMessage.class::isAssignableFrom);
-        for (Class<?> messageClass:allClass) {
-            messageClass2IdMap.put(messageClass, getClassHashCode(messageClass));
-        }
     }
 
     @Override

@@ -74,9 +74,9 @@ public abstract class AbstractWorld implements World{
 
     /**
      * 注册需要的编解码辅助类(序列化类，消息映射的初始化)
-     * use {@link #registerCodecHelper(String, MessageMappingStrategy)} to register.
+     * use {@link #registerProtocolCodec(String, MessageMappingStrategy)} to register.
      */
-    protected void registerCodecHelpers() throws Exception {
+    protected void registerProtocolCodecs() throws Exception {
 
     }
 
@@ -85,7 +85,7 @@ public abstract class AbstractWorld implements World{
      * @param name codec的名字
      * @param mappingStrategy 消息id到消息映射策略
      */
-    protected final void registerCodecHelper(String name, MessageMappingStrategy mappingStrategy) throws Exception {
+    protected final void registerProtocolCodec(String name, MessageMappingStrategy mappingStrategy) throws Exception {
         protocolCodecMrg.registerProtocolCodec(name, mappingStrategy);
     }
 
@@ -93,45 +93,15 @@ public abstract class AbstractWorld implements World{
 
     /**
      * 注册自己要处理的消息。也可以在自己的类中使用messageDispatcherMrg自己注册，不一定需要在world中注册。
-     * use {@link #registerMessageHandler(Class, OneWayMessageHandler)} to register
+     * use {@link MessageDispatcherMrg#register(int, RpcFunction)} to register
      */
     protected abstract void registerMessageHandlers();
 
     /**
-     * 注册客户端发来的消息的处理器
-     * @param messageClazz 消息类
-     * @param messageHandler 消息处理器
-     * @param <T> 消息类型
-     */
-    protected final <T> void registerMessageHandler(Class<T> messageClazz, OneWayMessageHandler<? super T> messageHandler){
-        messageDispatcherMrg.registerMessageHandler(messageClazz, messageHandler);
-    }
-
-    /**
      * 注册rpc请求处理器。
-     * use {@link #registerRpcRequestHandler(Class, RpcRequestHandler1)}and
-     * {@link #registerRpcRequestHandler(Class, RpcRequestHandler2)} to register.
+     * use {@link MessageDispatcherMrg#register(int, RpcFunction)} to register
      */
     protected abstract void registerRpcRequestHandlers();
-
-    /**
-     * @param requestClazz rpc请求内容
-     * @param rpcRequestHandler 请求处理器
-     * @param <T> rpc请求类型
-     * @param <R> 结果类型
-     */
-    protected final <T,R> void registerRpcRequestHandler(@Nonnull Class<T> requestClazz, @Nonnull RpcRequestHandler1<? super T, R> rpcRequestHandler) {
-        messageDispatcherMrg.registerMessageHandler(requestClazz, rpcRequestHandler);
-    }
-
-    /**
-     * @param requestClazz rpc请求内容
-     * @param rpcRequestHandler 请求处理器
-     * @param <T> rpc请求类型
-     */
-    protected final <T> void registerRpcRequestHandler(@Nonnull Class<T> requestClazz, @Nonnull RpcRequestHandler2<? super T> rpcRequestHandler) {
-        messageDispatcherMrg.registerMessageHandler(requestClazz, rpcRequestHandler);
-    }
 
     /**
      * 注册自己要处理的http请求
@@ -168,7 +138,7 @@ public abstract class AbstractWorld implements World{
         netContextMrg.start();
 
         // 初始化网络层需要的组件(codec帮助类)
-        registerCodecHelpers();
+        registerProtocolCodecs();
 
         // 注册要处理的异步普通消息和http请求和同步rpc请求
         registerMessageHandlers();

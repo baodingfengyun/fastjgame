@@ -19,10 +19,7 @@ package com.wjybxx.fastjgame.world;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.onlinenode.WarzoneNodeData;
 import com.wjybxx.fastjgame.misc.HostAndPort;
-import com.wjybxx.fastjgame.mrg.CenterInWarzoneInfoMrg;
-import com.wjybxx.fastjgame.mrg.WarzoneSendMrg;
-import com.wjybxx.fastjgame.mrg.WarzoneWorldInfoMrg;
-import com.wjybxx.fastjgame.mrg.WorldWrapper;
+import com.wjybxx.fastjgame.mrg.*;
 import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.net.SessionLifecycleAware;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
@@ -34,7 +31,6 @@ import org.apache.zookeeper.CreateMode;
 
 import java.util.concurrent.TimeUnit;
 
-import static com.wjybxx.fastjgame.protobuffer.p_center_warzone.p_center_warzone_hello;
 
 /**
  * WarzoneServer
@@ -65,7 +61,7 @@ public class WarzoneWorld extends AbstractWorld {
 
     @Override
     protected void registerRpcRequestHandlers() {
-        registerRpcRequestHandler(p_center_warzone_hello.class, centerInWarzoneInfoMrg::p_center_warzone_hello_handler);
+//        CenterInWarzoneInfoMrgProxy.register(messageDispatcherMrg, centerInWarzoneInfoMrg);
     }
 
     @Override

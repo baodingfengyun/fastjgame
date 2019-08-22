@@ -26,8 +26,6 @@ import com.wjybxx.fastjgame.net.SessionLifecycleAware;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.wjybxx.fastjgame.protobuffer.p_center_warzone.p_center_warzone_hello;
-import static com.wjybxx.fastjgame.protobuffer.p_center_warzone.p_center_warzone_hello_result;
 
 /**
  * Warzone在Game中的连接管理等控制器
@@ -111,18 +109,18 @@ public class WarzoneInCenterInfoMrg {
 
         @Override
         public void onSessionConnected(Session session) {
-            p_center_warzone_hello hello = p_center_warzone_hello
-                    .newBuilder()
-                    .setPlatfomNumber(centerWorldInfoMrg.getPlatformType().getNumber())
-                    .setServerId(centerWorldInfoMrg.getServerId())
-                    .build();
-
-            session.rpc(hello, rpcResponse -> {
-                if (!rpcResponse.isSuccess()) {
-                    return;
-                }
-                p_center_warzone_hello_result_handler(session, (p_center_warzone_hello_result) rpcResponse.getBody());
-            });
+//            p_center_warzone_hello hello = p_center_warzone_hello
+//                    .newBuilder()
+//                    .setPlatfomNumber(centerWorldInfoMrg.getPlatformType().getNumber())
+//                    .setServerId(centerWorldInfoMrg.getServerId())
+//                    .build();
+//
+//            session.rpc(hello, rpcResponse -> {
+//                if (!rpcResponse.isSuccess()) {
+//                    return;
+//                }
+//                connectWarzoneSuccess(session);
+//            });
         }
 
         @Override
@@ -132,11 +130,10 @@ public class WarzoneInCenterInfoMrg {
     }
 
     /**
-     * 收到了战区的响应信息。
+     * 连接争取安全成功(收到了战区的响应信息)。
      * @param session 与战区的会话
-     * @param result 战区返回的信息
      */
-    private void p_center_warzone_hello_result_handler(Session session, p_center_warzone_hello_result result){
+    private void connectWarzoneSuccess(Session session){
         assert null==warzoneInCenterInfo;
         warzoneInCenterInfo = new WarzoneInCenterInfo(session.remoteGuid(), session);
 

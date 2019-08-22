@@ -29,4 +29,6 @@ public final class ServiceTable {
 	public static final short CENTER_IN_WARZONE_INFO_MRG = 1;
 	/** 中心服在场景服的信息管理 */
 	public static final short CENTER_IN_SCENE_INFO_MRG = 2;
+	/** 场景服区域管理器 */
+	public static final short SCENE_REGION_MRG = 3;
 }
