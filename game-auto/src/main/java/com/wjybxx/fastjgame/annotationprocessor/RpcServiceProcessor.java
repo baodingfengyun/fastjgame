@@ -47,7 +47,6 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.SimpleTypeVisitor8;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Predicate;

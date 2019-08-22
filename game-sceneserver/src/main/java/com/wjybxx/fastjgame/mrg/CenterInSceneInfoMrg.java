@@ -18,14 +18,11 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.annotation.RpcMethod;
-import com.wjybxx.fastjgame.annotation.RpcService;
 import com.wjybxx.fastjgame.core.SceneRegion;
 import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.misc.CenterInSceneInfo;
 import com.wjybxx.fastjgame.misc.PlatformType;
 import com.wjybxx.fastjgame.rpcservice.ICenterInSceneInfoMrg;
-import com.wjybxx.fastjgame.rpcservice.ServiceTable;
 import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.serializebale.ConnectCrossSceneResult;
 import com.wjybxx.fastjgame.world.SceneWorld;

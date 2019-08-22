@@ -17,12 +17,9 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.annotation.RpcMethod;
-import com.wjybxx.fastjgame.annotation.RpcService;
 import com.wjybxx.fastjgame.core.SceneRegion;
 import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.rpcservice.ISceneRegionMrg;
-import com.wjybxx.fastjgame.rpcservice.ServiceTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
