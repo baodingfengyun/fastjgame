@@ -96,7 +96,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 	private static final String result = "result";
 
 	// 客户端代理类的输出目录
-	private static String proxy_out_dir = "./../game-core/target/generated-sources/annotation";
+	private static String proxy_out_dir = "./game-core/target/generated-sources/annotations";
 	//rpc客户端代理包名
 	private static final String proxy_package_name = "com.wjybxx.fastjgame.rpcproxy";
 

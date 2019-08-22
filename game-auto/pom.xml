@@ -56,6 +56,13 @@
             <version>1.11.1</version>
         </dependency>
 
+        <!-- 基本工具包 -->
+        <dependency>
+            <groupId>com.wjybxx.fastjgame</groupId>
+            <artifactId>game-utils</artifactId>
+            <version>1.0</version>
+        </dependency>
+
         <!-- 网络包 -->
         <dependency>
             <groupId>com.wjybxx.fastjgame</groupId>
