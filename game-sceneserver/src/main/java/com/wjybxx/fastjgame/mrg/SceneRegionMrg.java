@@ -21,7 +21,8 @@ import com.wjybxx.fastjgame.annotation.RpcMethod;
 import com.wjybxx.fastjgame.annotation.RpcService;
 import com.wjybxx.fastjgame.core.SceneRegion;
 import com.wjybxx.fastjgame.core.SceneWorldType;
-import com.wjybxx.fastjgame.misc.ServiceTable;
+import com.wjybxx.fastjgame.rpcservice.ISceneRegionMrg;
+import com.wjybxx.fastjgame.rpcservice.ServiceTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,8 +38,7 @@ import java.util.Set;
  * date - 2019/5/16 11:35
  * github - https://github.com/hl845740757
  */
-@RpcService(serviceId = ServiceTable.SCENE_REGION_MRG)
-public class SceneRegionMrg {
+public class SceneRegionMrg implements ISceneRegionMrg {
 
     private static final Logger logger= LoggerFactory.getLogger(SceneRegionMrg.class);
 
@@ -102,12 +102,6 @@ public class SceneRegionMrg {
         }
     }
 
-    /**
-     * 建收到中心服启动互斥区域的命令 (立连接后)
-     * @param activeMutexRegionsList 需要启动的互斥区域
-     * @return 启动成功
-     */
-    @RpcMethod(methodId = 1)
     public boolean startMutexRegion(List<Integer> activeMutexRegionsList) {
         assert sceneWorldInfoMrg.getSceneWorldType() == SceneWorldType.SINGLE;
         for (int regionId:activeMutexRegionsList){
@@ -120,12 +114,6 @@ public class SceneRegionMrg {
         return true;
     }
 
-    /**
-     * 收到game的激活区域命名(宕机恢复，挂载其他场景进程宕掉的区域)
-     * @param activeRegionsList 需要启动的区域(可能包含互斥和非互斥区域)
-     * @return 启动成功
-     */
-    @RpcMethod(methodId = 2)
     public boolean activeRegions(List<Integer> activeRegionsList) {
         assert sceneWorldInfoMrg.getSceneWorldType() == SceneWorldType.SINGLE;
         for (int regionId:activeRegionsList){

@@ -23,6 +23,8 @@ import com.wjybxx.fastjgame.net.ProtocolCodec;
 import com.wjybxx.fastjgame.utils.*;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -75,6 +77,8 @@ import java.util.*;
  * github - https://github.com/hl845740757
  */
 public class ReflectBasedProtocolCodec implements ProtocolCodec {
+
+	private static final Logger logger = LoggerFactory.getLogger(ReflectBasedProtocolCodec.class);
 
 	private final MessageMapper messageMapper;
 	/** proto message 解析方法 */
@@ -1045,10 +1049,14 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
 				// protoBufEnum 和 NumberEnum
 				if (ProtocolMessageEnum.class.isAssignableFrom(messageClazz) || NumberEnum.class.isAssignableFrom(messageClazz)) {
 					// 取消检测
-					Method forNumberMethod = messageClazz.getMethod("forNumber", int.class);
-					forNumberMethod.setAccessible(true);
-					EnumDescriptor enumDescriptor = new EnumDescriptor(forNumberMethod);
-					enumDescriptorMap.put(messageClazz, enumDescriptor);
+					try {
+						Method forNumberMethod = messageClazz.getMethod("forNumber", int.class);
+						forNumberMethod.setAccessible(true);
+						EnumDescriptor enumDescriptor = new EnumDescriptor(forNumberMethod);
+						enumDescriptorMap.put(messageClazz, enumDescriptor);
+					} catch (Exception ignore) {
+						// 实现了numberEnum但是并不是想被序列化的类
+					}
 					continue;
 				}
 				// 带有注解的类 - 缓存所有的字段描述
@@ -1065,7 +1073,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
 							.toArray(FieldDescriptor[]::new);
 
 					// 必须提供无参构造方法
-					Constructor constructor = messageClazz.getConstructor();
+					Constructor constructor = messageClazz.getDeclaredConstructor();
 					constructor.setAccessible(true);
 					ClassDescriptor classDescriptor = new ClassDescriptor(fieldDescriptors, constructor);
 					classDescriptorMap.put(messageClazz, classDescriptor);

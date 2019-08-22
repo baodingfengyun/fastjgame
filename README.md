@@ -3,7 +3,7 @@ fastjgame 为 fast java game framework的缩写，如名字一样，该项目的
 
 ### 全新版本 2019-08-05
 2019年8月5日 迎来了fastjgame的全新版本，线程模型大改，底层通信重写，网络层与逻辑层独立。
-1. 更强大的网络层，异步rpc调用，同步rpc调用使用起来很简单。旧版本的session管理器，真的是我自己都觉得难受，但还是坚持完成了初版。
+1. 更强大的网络层，异步rpc调用，同步rpc调用使用起来很简单。旧版本的session管理器真的很难用。
 2. 线程模型改动，由最开始的单线程模型变为多线程模型，而且是变成模型很友好的多线程模型(并发包主要参考了Netty的思路)。
 3. 支持一个进程启动所有类型服务器！在game-start模块中，**StartUp**类是一个测试用例。可以启动所有服务器
    （你需要安装zookeeper，在doc文件夹下有我zookeeper导出的配置）。
@@ -12,6 +12,13 @@ fastjgame 为 fast java game framework的缩写，如名字一样，该项目的
 1. Rpc调用更加标准化。
 2. 编解码更快，功能支持更强，请查看**SerializableClass**和**SerializableField**注解。
 3. RpcService代码自动生成，你必须将game-auto打为jar包才可以使用代码生成工具，请确保所有模块都启用了注解处理器。
+
+### 如何打包 Rpc注解处理器？
+1. install game-utils 到本地仓库
+2. install game-net 到本地仓库
+3. install game-auto 到本地仓库
+4. 将game-auto从项目project-structure中移除，然后就可以正常使用注解处理器了。
+5. 重新编译，此时应该不会出现报错。
 
 ### 高性能从网络层开始  
 1. IO框架为Netty,HttpClient为OkHttp3;   

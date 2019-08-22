@@ -95,8 +95,6 @@ public class RpcServiceProcessor extends AbstractProcessor {
 	private static final String responseChannel = "responseChannel";
 	private static final String result = "result";
 
-	// 客户端代理类的输出目录
-	private static String proxy_out_dir = "./game-core/target/generated-sources/annotations";
 	//rpc客户端代理包名
 	private static final String proxy_package_name = "com.wjybxx.fastjgame.rpcproxy";
 
@@ -148,8 +146,6 @@ public class RpcServiceProcessor extends AbstractProcessor {
 		generatedAnnotation = AnnotationSpec.builder(Generated.class)
 				.addMember("value", "$S", RpcServiceProcessor.class.getCanonicalName())
 				.build();
-
-		new File(proxy_out_dir).mkdirs();
 	}
 
 	@Override
@@ -172,7 +168,6 @@ public class RpcServiceProcessor extends AbstractProcessor {
 		// 该注解只有类才可以使用
 		@SuppressWarnings("unchecked")
 		Set<TypeElement> typeElementSet = (Set<TypeElement>) roundEnv.getElementsAnnotatedWith(RpcService.class);
-
 		for (TypeElement typeElement:typeElementSet) {
 			genProxyClass(typeElement);
 		}
@@ -250,8 +245,8 @@ public class RpcServiceProcessor extends AbstractProcessor {
 			try {
 				// 输出到注解处理器配置的路径下，这样才可以在下一轮检测到并进行编译 输出到processingEnv.getFiler()会立即参与编译
 				// 如果自己指定路径，可以生成源码到指定路径，但是可能无法被编译器检测到，本轮无法参与编译，需要再进行一次编译
-				javaFile.writeTo(new File(proxy_out_dir));
-//				javaFile.writeTo(processingEnv.getFiler());
+//				javaFile.writeTo(new File(proxy_out_dir));
+				javaFile.writeTo(processingEnv.getFiler());
 			} catch (Exception e) {
 				processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "writeToFile caught exception!", typeElement);
 			}

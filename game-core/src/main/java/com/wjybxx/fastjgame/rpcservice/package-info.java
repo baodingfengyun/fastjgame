@@ -15,9 +15,10 @@
  */
 
 /**
- * 该文件夹存放生成的rpc客户端代理类。
+ * 所有的Rpc调用都放在这里声明
+ *
  * @author houlei
  * @version 1.0
  * date - 2019/8/22
  */
-package com.wjybxx.fastjgame.rpcproxy;
+package com.wjybxx.fastjgame.rpcservice;

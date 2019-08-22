@@ -17,12 +17,15 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.misc.WarzoneInCenterInfo;
 import com.wjybxx.fastjgame.core.onlinenode.WarzoneNodeData;
 import com.wjybxx.fastjgame.core.onlinenode.WarzoneNodeName;
+import com.wjybxx.fastjgame.misc.RpcCall;
+import com.wjybxx.fastjgame.misc.SucceedRpcCallback;
+import com.wjybxx.fastjgame.misc.WarzoneInCenterInfo;
 import com.wjybxx.fastjgame.net.RoleType;
 import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.net.SessionLifecycleAware;
+import com.wjybxx.fastjgame.rpcproxy.ICenterInWarzoneInfoMrgProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,18 +112,9 @@ public class WarzoneInCenterInfoMrg {
 
         @Override
         public void onSessionConnected(Session session) {
-//            p_center_warzone_hello hello = p_center_warzone_hello
-//                    .newBuilder()
-//                    .setPlatfomNumber(centerWorldInfoMrg.getPlatformType().getNumber())
-//                    .setServerId(centerWorldInfoMrg.getServerId())
-//                    .build();
-//
-//            session.rpc(hello, rpcResponse -> {
-//                if (!rpcResponse.isSuccess()) {
-//                    return;
-//                }
-//                connectWarzoneSuccess(session);
-//            });
+            final RpcCall<Boolean> call = ICenterInWarzoneInfoMrgProxy.
+                    connectWarzone(centerWorldInfoMrg.getPlatformType().getNumber(), centerWorldInfoMrg.getServerId());
+            session.rpc(call, (SucceedRpcCallback<Boolean>) (result)-> connectWarzoneSuccess(session));
         }
 
         @Override

@@ -17,12 +17,10 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.annotation.RpcMethod;
-import com.wjybxx.fastjgame.annotation.RpcService;
 import com.wjybxx.fastjgame.misc.CenterInWarzoneInfo;
 import com.wjybxx.fastjgame.misc.PlatformType;
-import com.wjybxx.fastjgame.misc.ServiceTable;
 import com.wjybxx.fastjgame.net.Session;
+import com.wjybxx.fastjgame.rpcservice.ICenterInWarzoneInfoMrg;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -41,8 +39,7 @@ import java.util.Map;
  * date - 2019/5/17 15:43
  * github - https://github.com/hl845740757
  */
-@RpcService(serviceId = ServiceTable.CENTER_IN_WARZONE_INFO_MRG)
-public class CenterInWarzoneInfoMrg {
+public class CenterInWarzoneInfoMrg implements ICenterInWarzoneInfoMrg {
 
     private static final Logger logger= LoggerFactory.getLogger(CenterInWarzoneInfoMrg.class);
     /**
@@ -79,14 +76,7 @@ public class CenterInWarzoneInfoMrg {
         logger.info("server {}-{} disconnect.",centerInWarzoneInfo.getPlatformType(),centerInWarzoneInfo.getServerId());
     }
 
-    /**
-     * 中心服请求注册到战区服
-     * @param session 关联的会话
-     * @param platfomNumber 中心服的平台
-     * @param serverId 中心服的服ID
-     * @return 返回一个结果告知已完成
-     */
-    @RpcMethod(methodId = 1)
+    @Override
     public boolean connectWarzone(Session session, int platfomNumber, int serverId) {
         PlatformType platformType = PlatformType.forNumber(platfomNumber);
         assert !guid2InfoMap.containsKey(session.remoteGuid());

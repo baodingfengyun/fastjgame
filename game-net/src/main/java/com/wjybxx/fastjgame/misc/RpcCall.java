@@ -51,6 +51,13 @@ public class RpcCall<V> {
 	 */
 	private final boolean allowCallback;
 
+	// 反射创建对象
+	private RpcCall() {
+		methodKey = -1;
+		methodParams = null;
+		allowCallback = false;
+	}
+
 	public RpcCall(int methodKey, List<Object> methodParams, boolean allowCallback) {
 		this.methodKey = methodKey;
 		this.methodParams = methodParams;

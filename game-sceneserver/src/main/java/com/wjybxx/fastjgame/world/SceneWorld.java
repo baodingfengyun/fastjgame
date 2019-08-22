@@ -10,8 +10,8 @@ import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.net.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.initializer.TCPServerChannelInitializer;
 import com.wjybxx.fastjgame.net.initializer.WsServerChannelInitializer;
-import com.wjybxx.fastjgame.rpcregister.CenterInSceneInfoMrgRegister;
-import com.wjybxx.fastjgame.rpcregister.SceneRegionMrgRegister;
+import com.wjybxx.fastjgame.rpcregister.ICenterInSceneInfoMrgRegister;
+import com.wjybxx.fastjgame.rpcregister.ISceneRegionMrgRegister;
 import com.wjybxx.fastjgame.utils.*;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.CreateMode;
@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
  */
 public class SceneWorld extends AbstractWorld {
 
-    private static final Logger logger= LoggerFactory.getLogger(SceneWorld.class);
+    private static final Logger logger = LoggerFactory.getLogger(SceneWorld.class);
 
     private final CenterInSceneInfoMrg centerInSceneInfoMrg;
     private final SceneRegionMrg sceneRegionMrg;
@@ -62,8 +62,8 @@ public class SceneWorld extends AbstractWorld {
     @Override
     protected void registerRpcRequestHandlers() {
         // 以后在管理器里自己进行注册
-        SceneRegionMrgRegister.register(messageDispatcherMrg, sceneRegionMrg);
-        CenterInSceneInfoMrgRegister.register(messageDispatcherMrg, centerInSceneInfoMrg);
+        ISceneRegionMrgRegister.register(messageDispatcherMrg, sceneRegionMrg);
+        ICenterInSceneInfoMrgRegister.register(messageDispatcherMrg, centerInSceneInfoMrg);
     }
 
     @Override

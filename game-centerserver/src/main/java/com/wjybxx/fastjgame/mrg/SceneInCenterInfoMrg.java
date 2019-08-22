@@ -18,15 +18,18 @@ package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.config.SceneConfig;
-import com.wjybxx.fastjgame.misc.SceneInCenterInfo;
 import com.wjybxx.fastjgame.core.SceneRegion;
 import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.core.onlinenode.CrossSceneNodeName;
 import com.wjybxx.fastjgame.core.onlinenode.SceneNodeData;
 import com.wjybxx.fastjgame.core.onlinenode.SingleSceneNodeName;
-import com.wjybxx.fastjgame.misc.LeastPlayerWorldChooser;
-import com.wjybxx.fastjgame.misc.SceneWorldChooser;
-import com.wjybxx.fastjgame.net.*;
+import com.wjybxx.fastjgame.misc.*;
+import com.wjybxx.fastjgame.net.RoleType;
+import com.wjybxx.fastjgame.net.RpcResponse;
+import com.wjybxx.fastjgame.net.Session;
+import com.wjybxx.fastjgame.net.SessionLifecycleAware;
+import com.wjybxx.fastjgame.rpcproxy.ICenterInSceneInfoMrgProxy;
+import com.wjybxx.fastjgame.rpcproxy.ISceneRegionMrgProxy;
 import com.wjybxx.fastjgame.serializebale.ConnectCrossSceneResult;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -37,6 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -205,21 +209,11 @@ public class SceneInCenterInfoMrg {
         @Override
         public void onSessionConnected(Session session) {
             getSceneInfo(session.remoteGuid()).setSession(session);
-
-//            p_center_single_scene_hello hello = p_center_single_scene_hello
-//                    .newBuilder()
-//                    .setPlatformNumber(centerWorldInfoMrg.getPlatformType().getNumber())
-//                    .setServerId(centerWorldInfoMrg.getServerId())
-//                    .build();
-//
-//            session.rpc(hello, rpcResponse -> {
-//                if (!rpcResponse.isSuccess()) {
-//                    return;
-//                }
-//                connectSingleSuccessResult(session, (p_center_single_scene_hello_result) rpcResponse.getBody());
-//            });
-//
-//            session.sendMessage(hello);
+            final RpcCall<List<Integer>> call = ICenterInSceneInfoMrgProxy.connectSingleScene(centerWorldInfoMrg.getPlatformType().getNumber(),
+                    centerWorldInfoMrg.getServerId());
+            session.rpc(call, (SucceedRpcCallback<List<Integer>>) result -> {
+                connectSingleSuccessResult(session, result);
+            });
         }
 
         @Override
@@ -236,19 +230,12 @@ public class SceneInCenterInfoMrg {
         @Override
         public void onSessionConnected(Session session) {
             getSceneInfo(session.remoteGuid()).setSession(session);
+            final RpcCall<ConnectCrossSceneResult> call = ICenterInSceneInfoMrgProxy.connectCrossScene(centerWorldInfoMrg.getPlatformType().getNumber(),
+                    centerWorldInfoMrg.getServerId());
 
-//            p_center_cross_scene_hello hello = p_center_cross_scene_hello
-//                    .newBuilder()
-//                    .setPlatformNumber(centerWorldInfoMrg.getPlatformType().getNumber())
-//                    .setServerId(centerWorldInfoMrg.getServerId())
-//                    .build();
-//
-//            session.rpc(hello, rpcResponse -> {
-//                if (!rpcResponse.isSuccess()) {
-//                    return;
-//                }
-//                p_center_cross_scene_hello_result_handler(session, (p_center_cross_scene_hello_result) rpcResponse.getBody());
-//            });
+            session.rpc(call, (SucceedRpcCallback<ConnectCrossSceneResult>) result -> {
+                connectCrossSceneSuccess(session, result);
+            });
         }
 
         @Override
@@ -276,23 +263,20 @@ public class SceneInCenterInfoMrg {
                 activeRegions.add(sceneRegion);
             }
         }
-
         // TODO 检查该场景可以启动哪些互斥场景
         // TODO 如果目标World和当前World在一个EventLoop还可能死锁？
         // 会话id是相同的(使用同步方法调用，会大大简化逻辑)
 
 
-//        p_center_command_single_scene_start command = p_center_command_single_scene_start.newBuilder()
-//                .addActiveMutexRegions(SceneRegion.LOCAL_PKC.getNumber())
-//                .build();
-//
-//        RpcResponse rpcResponse = sceneInCenterInfo.getSession().syncRpcUninterruptibly(command);
-//        if (rpcResponse.isSuccess()){
-//            activeRegions.add(SceneRegion.LOCAL_PKC);
-//        }else {
-//            // 遇见这个需要好好处理(适当增加超时时间)，尽量不能失败
-//            logger.error("syncRpc request active region failed.");
-//        }
+        // TODO 这里现在是测试的
+        final RpcCall<Boolean> call = ISceneRegionMrgProxy.startMutexRegion(Collections.singletonList(SceneRegion.LOCAL_PKC.getNumber()));
+        final RpcResponse rpcResponse = session.syncRpcUninterruptibly(call);
+        if (rpcResponse.isSuccess()){
+            activeRegions.add(SceneRegion.LOCAL_PKC);
+        }else {
+            // 遇见这个需要好好处理(适当增加超时时间)，尽量不能失败
+            logger.error("syncRpc request active region failed.");
+        }
     }
 
     /**
@@ -300,7 +284,7 @@ public class SceneInCenterInfoMrg {
      * @param session 与跨服场景的会话
      * @param result 响应结果
      */
-    private void p_center_cross_scene_hello_result_handler(Session session, ConnectCrossSceneResult result) {
+    private void connectCrossSceneSuccess(Session session, ConnectCrossSceneResult result) {
         assert guid2InfoMap.containsKey(session.remoteGuid());
         SceneInCenterInfo sceneInCenterInfo=guid2InfoMap.get(session.remoteGuid());
         // 配置的区域

@@ -24,9 +24,7 @@ import java.io.IOException;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.util.Enumeration;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -43,8 +41,14 @@ import static com.wjybxx.fastjgame.utils.ClassScannerFilters.*;
 public class ClassScanner {
 
     private static final Logger logger = LoggerFactory.getLogger(ClassScanner.class);
+    /**
+     * 工程项目文件夹
+     * target为生成的class文件目录
+     */
+    private static final Set<String> ignoreDirs = new HashSet<>(Arrays.asList(".git", ".svn", ".idea"));
 
     private ClassScanner() {
+
     }
 
     /**
@@ -114,7 +118,7 @@ public class ClassScanner {
      * @param classNameFilter 过滤要加载的类，避免加载过多无用的类
      * @param classFilter 对加载后的类进行再次确认
      */
-    private static void findClassesByFile(ClassLoader classLoader, String pkgName, String pkgPath, Set<Class<?>> classes,
+    public static void findClassesByFile(ClassLoader classLoader, String pkgName, String pkgPath, Set<Class<?>> classes,
                                           Predicate<String> classNameFilter, Predicate<Class<?>> classFilter) {
         // 获取此包的目录 建立一个File
         File dir = new File(pkgPath);
@@ -135,6 +139,10 @@ public class ClassScanner {
         for (File file : dirFiles) {
             // 如果是目录 则继续扫描
             if (file.isDirectory()) {
+                if (ignoreDirs.contains(file.getName())) {
+                    // 被忽略的文件夹
+                    continue;
+                }
                 findClassesByFile(classLoader, pkgName + "." + file.getName(),pkgPath + "/" + file.getName(),classes,
                         classNameFilter, classFilter);
                 continue;
@@ -168,7 +176,7 @@ public class ClassScanner {
      * @param classNameFilter 过滤要加载的类，避免加载过多无用的类
      * @param classFilter 对加载后的类进行再次确认
      */
-    private static void findClassesByJar(ClassLoader classLoader, String pkgName, JarFile jar, Set<Class<?>> classes,
+    public static void findClassesByJar(ClassLoader classLoader, String pkgName, JarFile jar, Set<Class<?>> classes,
                                          Predicate<String> classNameFilter, Predicate<Class<?>> classFilter) {
         String pkgDir = pkgName.replace(".", "/");
         Enumeration<JarEntry> entry = jar.entries();
