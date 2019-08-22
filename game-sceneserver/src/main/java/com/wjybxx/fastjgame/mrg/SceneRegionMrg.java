@@ -43,7 +43,7 @@ public class SceneRegionMrg implements ISceneRegionMrg {
     /**
      * 已激活的场景区域
      */
-    private final Set<SceneRegion> activeRegions= EnumSet.noneOf(SceneRegion.class);
+    private final Set<SceneRegion> activeRegions = EnumSet.noneOf(SceneRegion.class);
 
     @Inject
     public SceneRegionMrg(SceneWorldInfoMrg sceneWorldInfoMrg) {
@@ -92,6 +92,7 @@ public class SceneRegionMrg implements ISceneRegionMrg {
         logger.info("try active region {}.",sceneRegion);
         try{
             // TODO 激活区域
+            activeRegions.add(sceneRegion);
             logger.info("active region {} success.",sceneRegion);
         }catch (Exception e){
             // 这里一定不能出现异常
@@ -99,6 +100,7 @@ public class SceneRegionMrg implements ISceneRegionMrg {
         }
     }
 
+    @Override
     public boolean startMutexRegion(List<Integer> activeMutexRegionsList) {
         assert sceneWorldInfoMrg.getSceneWorldType() == SceneWorldType.SINGLE;
         for (int regionId:activeMutexRegionsList){
@@ -111,10 +113,11 @@ public class SceneRegionMrg implements ISceneRegionMrg {
         return true;
     }
 
+    @Override
     public boolean activeRegions(List<Integer> activeRegionsList) {
         assert sceneWorldInfoMrg.getSceneWorldType() == SceneWorldType.SINGLE;
         for (int regionId:activeRegionsList){
-            SceneRegion sceneRegion=SceneRegion.forNumber(regionId);
+            SceneRegion sceneRegion = SceneRegion.forNumber(regionId);
             if (activeRegions.contains(sceneRegion)){
                 continue;
             }

@@ -40,7 +40,7 @@ public interface SucceedRpcCallback<V> extends RpcCallback {
 		if (rpcResponse.isSuccess()) {
 			onSuccess((V) rpcResponse.getBody());
 		} else {
-			logger.warn("rpc call failure." + rpcResponse.getResultCode());
+			logger.warn("rpc call failure, code = {}", rpcResponse.getResultCode());
 		}
 	}
 

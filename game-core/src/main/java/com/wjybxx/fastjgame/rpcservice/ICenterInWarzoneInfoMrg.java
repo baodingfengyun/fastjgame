@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.annotation.RpcService;
 import com.wjybxx.fastjgame.net.Session;
 
 /**
+ * 中心服在战区服的信息管理器
  * @author houlei
  * @version 1.0
  * date - 2019/8/22

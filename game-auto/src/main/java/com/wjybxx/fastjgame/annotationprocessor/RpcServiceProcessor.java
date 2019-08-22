@@ -477,13 +477,19 @@ public class RpcServiceProcessor extends AbstractProcessor {
 		final TypeElement typeElement = (TypeElement) executableElement.getEnclosingElement();
 		final String classParamName = AutoUtils.firstCharToLowerCase(typeElement.getSimpleName().toString());
 
-		// 加上methodKey防止重复
+		// 加上methodKey防止签名重复
 		final String methodName = "_register" + AutoUtils.firstCharToUpperCase(executableElement.getSimpleName().toString()) + "_" + methodKey;
 		MethodSpec.Builder builder = MethodSpec.methodBuilder(methodName)
 				.addModifiers(Modifier.PRIVATE, Modifier.STATIC)
 				.returns(TypeName.VOID)
 				.addParameter(RpcFunctionRepository.class, repository)
 				.addParameter(TypeName.get(typeElement.asType()), classParamName);
+
+		// 注明方法键值
+		AnnotationSpec annotationSpec = AnnotationSpec.builder(RpcMethodProxy.class)
+				.addMember("methodKey", "$L", methodKey)
+				.build();
+		builder.addAnnotation(annotationSpec);
 
 		builder.addCode("$L.register($L, ($L, $L, $L) -> {\n", repository, methodKey,
 				session, methodParams, responseChannel);

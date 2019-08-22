@@ -70,7 +70,11 @@ public enum RpcResultCode implements NumberEnum {
 	/**
 	 * 提交给用户失败(用户线程已关闭)
 	 */
-	COMMIT_FAILED(8)
+	COMMIT_FAILED(8),
+	/**
+	 * Session不存在
+	 */
+	SESSION_NULL(9),
 	;
 
 	/** 唯一标识，不可随意修改 */

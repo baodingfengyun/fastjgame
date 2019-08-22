@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * 远程方法调用，通过代理工具生成。
+ * 较为标准的rpc调用，推荐格式，但是仍然不限制rpc调用的形式！
  *
  * @param <V> 远程调用的返回值类型
  * @author wjybxx
