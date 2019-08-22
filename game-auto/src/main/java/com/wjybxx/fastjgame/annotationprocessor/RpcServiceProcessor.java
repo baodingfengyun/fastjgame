@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.auto;
+package com.wjybxx.fastjgame.annotationprocessor;
 
 import com.google.auto.service.AutoService;
 import com.squareup.javapoet.*;
@@ -22,7 +22,6 @@ import com.wjybxx.fastjgame.annotation.RpcMethod;
 import com.wjybxx.fastjgame.annotation.RpcMethodProxy;
 import com.wjybxx.fastjgame.annotation.RpcService;
 import com.wjybxx.fastjgame.annotation.RpcServiceProxy;
-import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
 import com.wjybxx.fastjgame.misc.RpcCall;
 import com.wjybxx.fastjgame.misc.RpcFunctionRepository;
 import com.wjybxx.fastjgame.net.RpcResponse;
@@ -30,7 +29,6 @@ import com.wjybxx.fastjgame.net.RpcResponseChannel;
 import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.utils.AutoUtils;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-import com.wjybxx.fastjgame.utils.ConfigLoader;
 import com.wjybxx.fastjgame.utils.MathUtils;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
@@ -42,6 +40,7 @@ import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
@@ -96,6 +95,14 @@ public class RpcServiceProcessor extends AbstractProcessor {
 	private static final String responseChannel = "responseChannel";
 	private static final String result = "result";
 
+	// 客户端代理类的输出目录
+	private static String proxy_out_dir = "./../game-core/target/generated-sources/annotation";
+	//rpc客户端代理包名
+	private static final String proxy_package_name = "com.wjybxx.fastjgame.rpcproxy";
+
+	// rpc服务器注册辅助类生成包名
+	private static final String register_package_name = "com.wjybxx.fastjgame.rpcregister";
+
 	// 工具类
 	private Types types;
 	private Elements elements;
@@ -124,10 +131,6 @@ public class RpcServiceProcessor extends AbstractProcessor {
 	/** 生成信息 */
 	private AnnotationSpec generatedAnnotation;
 
-	private String proxy_our_dir;
-	private String proxy_package_name;
-	private String register_package_name;
-
 	@Override
 	public synchronized void init(ProcessingEnvironment processingEnv) {
 		super.init(processingEnv);
@@ -146,18 +149,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 				.addMember("value", "$S", RpcServiceProcessor.class.getCanonicalName())
 				.build();
 
-		try {
-			final ConfigWrapper configWrapper = ConfigLoader.loadConfig("game-auto.properties");
-			proxy_our_dir = configWrapper.getAsString("proxy_out_dir");
-			proxy_package_name = configWrapper.getAsString("proxy_package_name");
-			register_package_name = configWrapper.getAsString("register_package_name");
-		} catch (IOException e) {
-			messager.printMessage(Diagnostic.Kind.ERROR, "game-auto.properties is missing");
-
-			proxy_our_dir = null;
-			proxy_package_name = "com.wjybxx.fastjagme.rpcproxy";
-			register_package_name = "com.wjybxx.fastjagme.rpcregister";
-		}
+		new File(proxy_out_dir).mkdirs();
 	}
 
 	@Override
@@ -188,8 +180,6 @@ public class RpcServiceProcessor extends AbstractProcessor {
 	}
 
 	private void genProxyClass(TypeElement typeElement) {
-		final String pkgName = ((PackageElement)(typeElement.getEnclosingElement())).getQualifiedName().toString();
-		final String className = typeElement.getSimpleName().toString();
 		// 筛选rpc方法
 		final List<ExecutableElement> proxyMethods = typeElement.getEnclosedElements().stream()
 				.filter(element -> element.getKind() == ElementKind.METHOD)
@@ -202,7 +192,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 		final short serviceId = typeElement.getAnnotation(RpcService.class).serviceId();
 		if (!serviceIdSet.add(serviceId)) {
 			// 打印重复serviceId
-			messager.printMessage(Diagnostic.Kind.ERROR, className + " serviceId " + serviceId + " is duplicate!");
+			messager.printMessage(Diagnostic.Kind.ERROR, " serviceId " + serviceId + " is duplicate!", typeElement);
 		}
 
 		List<MethodSpec> clientMethodProxyList = new ArrayList<>(proxyMethods.size());
@@ -210,13 +200,12 @@ public class RpcServiceProcessor extends AbstractProcessor {
 
 		// 生成代理方法
 		for (ExecutableElement method:proxyMethods) {
-			final String methodName = method.getSimpleName().toString();
 			if (method.isVarArgs()) {
-				messager.printMessage(Diagnostic.Kind.ERROR,  className + " - " + methodName + " contains varArgs!", method);
+				messager.printMessage(Diagnostic.Kind.ERROR, "RpcMethod is not support varArgs!", method);
 				continue;
 			}
 			if (!method.getModifiers().contains(Modifier.PUBLIC)) {
-				messager.printMessage(Diagnostic.Kind.ERROR,  className + " - " + methodName + " is not public！", method);
+				messager.printMessage(Diagnostic.Kind.ERROR, "RpcMethod must be public！", method);
 				continue;
 			}
 
@@ -226,7 +215,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 			final int methodKey = MathUtils.safeMultiplyShort(serviceId, (short) 10000) + methodId;
 			// 重复检测
 			if (!methodKeySet.add(methodKey)) {
-				messager.printMessage(Diagnostic.Kind.ERROR, className + " - " + methodName + " methodKey " + methodKey + " is duplicate!");
+				messager.printMessage(Diagnostic.Kind.ERROR," methodKey " + methodKey + " is duplicate!", method);
 			}
 			// 生成双方的代理代码
 			clientMethodProxyList.add(genClientMethodProxy(methodKey, method));
@@ -237,6 +226,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 		AnnotationSpec proxyAnnotation = AnnotationSpec.builder(RpcServiceProxy.class)
 				.addMember("serviceId", "$L", serviceId).build();
 
+		final String className = typeElement.getSimpleName().toString();
 		// 客户端代理，生成在core包下
 		{
 			// 代理类不可以继承
@@ -258,15 +248,12 @@ public class RpcServiceProcessor extends AbstractProcessor {
 					.build();
 
 			try {
-				if (proxy_our_dir == null) {
-					// 输出到编译路径
-					javaFile.writeTo(processingEnv.getFiler());
-				} else {
-					// 生成源码到指定路径，但是可能无法被编译器检测到，本轮无法参与编译，需要再进行一次编译
-					javaFile.writeTo(new File(proxy_our_dir));
-				}
+				// 输出到注解处理器配置的路径下，这样才可以在下一轮检测到并进行编译 输出到processingEnv.getFiler()会立即参与编译
+				// 如果自己指定路径，可以生成源码到指定路径，但是可能无法被编译器检测到，本轮无法参与编译，需要再进行一次编译
+				javaFile.writeTo(new File(proxy_out_dir));
+//				javaFile.writeTo(processingEnv.getFiler());
 			} catch (Exception e) {
-				processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, e.toString());
+				processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "writeToFile caught exception!", typeElement);
 			}
 		}
 
@@ -282,23 +269,26 @@ public class RpcServiceProcessor extends AbstractProcessor {
 
 			TypeSpec typeSpec = typeBuilder.build();
 			JavaFile javaFile = JavaFile
-					.builder(pkgName, typeSpec)
+					.builder(register_package_name, typeSpec)
 					// 不用导入java.lang包
 					.skipJavaLangImports(true)
 					// 4空格缩进
 					.indent("    ")
 					.build();
 			try {
-				// 输出到注解处理器配置的路径下，这样才可以在下一轮检测到并进行编译 输出到processingEnv.getFiler()会立即参与编译
-				// 如果自己指定路径，可以生成源码到指定路径，但是可能无法被编译器检测到，本轮无法参与编译，需要再进行一次编译
 				javaFile.writeTo(processingEnv.getFiler());
+//				javaFile.writeTo(new File(register_out_dir));
 			} catch (IOException e) {
-				processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, e.toString());
+				processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "writeToFile caught exception!", typeElement);
 			}
 		}
 	}
 
 	// ----------------------------------------- 为客户端生成代理方法 -------------------------------------------
+
+	private void writeTOCore(JavaFile javaFile) {
+
+	}
 
 	private MethodSpec genClientMethodProxy(int methodKey, ExecutableElement method) {
 		// 工具方法 public static RpcCall<V>
@@ -342,8 +332,6 @@ public class RpcServiceProcessor extends AbstractProcessor {
 
 	@SuppressWarnings("unchecked")
 	private ParseResult parseParameters(ExecutableElement method) {
-		final String className = method.getEnclosingElement().getSimpleName().toString();
-		final String methodName = method.getSimpleName().toString();
 		// 原始参数列表
 		final List<VariableElement> originParameters = (List<VariableElement>) method.getParameters();
 		// 有效参数列表
@@ -354,11 +342,10 @@ public class RpcServiceProcessor extends AbstractProcessor {
 		boolean allowCallback;
 
 		// 筛选参数
-		for (int index = 0; index < originParameters.size(); index ++) {
-			VariableElement variableElement = originParameters.get(index);
+		for (VariableElement variableElement : originParameters) {
 			// rpcResponseChannel需要从参数列表删除，并捕获泛型类型
 			if (callReturenType == null && isResponseChannel(variableElement)) {
-				callReturenType = getResponseChannelReturnType(className, methodName, variableElement.asType());
+				callReturenType = getResponseChannelReturnType(variableElement);
 				continue;
 			}
 			// session需要从参数列表删除
@@ -373,7 +360,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 		} else {
 			// 如果参数列表中存在responseChannel，那么返回值必须是void
 			if (!isVoidType(method.getReturnType())){
-				messager.printMessage(Diagnostic.Kind.ERROR, "callReturnType is not void, and parameters contains responseChannel!", method);
+				messager.printMessage(Diagnostic.Kind.ERROR, "callReturnType is not void, but parameters contains responseChannel!", method);
 			}
 		}
 		if (isVoidType(callReturenType)) {
@@ -382,6 +369,10 @@ public class RpcServiceProcessor extends AbstractProcessor {
 			callReturenType = voidType;
 		} else {
 			allowCallback = true;
+			// 基本类型转包装类型
+			if (callReturenType.getKind().isPrimitive()) {
+				callReturenType = types.boxedClass((PrimitiveType) callReturenType).asType();
+			}
 		}
 		return new ParseResult(availableParameters, callReturenType, allowCallback);
 	}
@@ -430,8 +421,8 @@ public class RpcServiceProcessor extends AbstractProcessor {
 	/**
 	 * 获取RpcResponseChannel的泛型参数
 	 */
-	private TypeMirror getResponseChannelReturnType(String className, String methodName, TypeMirror typeMirror) {
-		return typeMirror.accept(new SimpleTypeVisitor8<TypeMirror, Void>(){
+	private TypeMirror getResponseChannelReturnType(final VariableElement variableElement) {
+		return variableElement.asType().accept(new SimpleTypeVisitor8<TypeMirror, Void>(){
 			@Override
 			public TypeMirror visitDeclared(DeclaredType t, Void aVoid) {
 				if (t.getTypeArguments().size() > 0) {
@@ -439,7 +430,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 					return t.getTypeArguments().get(0);
 				} else {
 					// 声明类型木有泛型参数，返回Object类型，并打印一个警告
-					messager.printMessage(Diagnostic.Kind.WARNING, className + "-" + methodName + "RpcResponseChannel missing  type parameter.");
+					messager.printMessage(Diagnostic.Kind.WARNING, "RpcResponseChannel missing type parameter.", variableElement);
 					return elements.getTypeElement(Object.class.getCanonicalName()).asType();
 				}
 			}
@@ -510,7 +501,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 			builder.addStatement("    " +invokeStatement.format, invokeStatement.params.toArray());
 			builder.addStatement("        $L.writeSuccess($L)", responseChannel, result);
 			builder.addCode("    } catch (Exception e) {\n");
-			builder.addCode("        // 失败立即返回结果，防止对方超时\n");
+			builder.addCode("        // prevent timeout\n");
 			builder.addStatement("        $L.write($T.ERROR)", responseChannel, RpcResponse.class);
 			builder.addStatement("        $T.rethrow(e)", ConcurrentUtils.class);
 			builder.addCode("    }");

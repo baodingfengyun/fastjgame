@@ -84,6 +84,7 @@ public final class ConfigLoader {
         ConfigWrapper cfgFromGameConfigDir=null;
         try{
             cfgFromGameConfigDir = loadCfgFromGameConfigDir(fileName);
+            logger.info("load {} from gameConfigDir success!",fileName);
         }catch (IOException e){
             // ignore e
             logger.info("load {} from gameConfigDir failed",fileName);
@@ -91,7 +92,8 @@ public final class ConfigLoader {
         // jar包环境下寻找
         ConfigWrapper cfgFromJarResources=null;
         try {
-            cfgFromJarResources=loadCfgFromJarResources(classLoader,fileName);
+            cfgFromJarResources = loadCfgFromJarResources(classLoader,fileName);
+            logger.info("load {} from jarResources success!",fileName);
         }catch (IOException e){
             logger.info("load {} from jarResources failed",fileName);
         }
@@ -119,7 +121,7 @@ public final class ConfigLoader {
      */
     public static ConfigWrapper loadCfgFromGameConfigDir(String fileName) throws IOException {
         String path= GAME_CONFIG_DIR + File.separator + fileName;
-        logger.info("loadCfgFromGameConfigDir {}",path);
+        logger.info("loadCfgFromGameConfigDir {}", path);
 
         File file=new File(path);
         if (file.exists() && file.isFile()){
@@ -141,11 +143,12 @@ public final class ConfigLoader {
      * @throws IOException 找不到文件或加载文件错误
      */
     public static ConfigWrapper loadCfgFromJarResources(ClassLoader classLoader, String fileName) throws IOException {
-        logger.info("loadCfgFromJarResources {}",fileName);
+        logger.info("-Step1 loadCfgFromJarResources {}", fileName);
         URL resource = classLoader.getResource(fileName);
-        if (resource==null){
+        if (resource == null){
             throw new FileNotFoundException(fileName);
         }
+        logger.info("-Step2 loadCfgFromJarResources {}", resource.getPath());
         try (InputStream inputStream=resource.openStream()){
             Properties properties=new Properties();
             properties.load(inputStream);

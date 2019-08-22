@@ -28,6 +28,7 @@ public class BarrierTest {
 
     private static final String path = "/watcher/checkExists";
 
+    @SuppressWarnings("deprecation")
     public static void main(String[] args) throws Exception {
         CuratorMrg curatorMrg = CuratorTest.newCuratorMrg();
 
