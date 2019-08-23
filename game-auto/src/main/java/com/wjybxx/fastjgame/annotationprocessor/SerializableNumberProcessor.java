@@ -17,8 +17,8 @@
 package com.wjybxx.fastjgame.annotationprocessor;
 
 import com.google.auto.service.AutoService;
-import com.wjybxx.fastjgame.misc.SerializableClass;
-import com.wjybxx.fastjgame.misc.SerializableField;
+import com.wjybxx.fastjgame.annotation.SerializableClass;
+import com.wjybxx.fastjgame.annotation.SerializableField;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 

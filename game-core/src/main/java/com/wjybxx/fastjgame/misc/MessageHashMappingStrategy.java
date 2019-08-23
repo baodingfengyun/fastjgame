@@ -18,14 +18,13 @@ package com.wjybxx.fastjgame.misc;
 
 import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.ProtocolMessageEnum;
+import com.wjybxx.fastjgame.annotation.SerializableClass;
 import com.wjybxx.fastjgame.enummapper.NumberEnum;
 import com.wjybxx.fastjgame.utils.ClassScanner;
-import com.wjybxx.fastjgame.utils.FunctionUtils;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.apache.commons.lang3.StringUtils;
 
-import java.lang.reflect.Method;
 import java.util.Set;
 
 /**

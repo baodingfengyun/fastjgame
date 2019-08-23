@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.misc;
 
 import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.ProtocolMessageEnum;
+import com.wjybxx.fastjgame.annotation.SerializableClass;
 import com.wjybxx.fastjgame.enummapper.NumberEnum;
 
 import javax.annotation.Nonnull;

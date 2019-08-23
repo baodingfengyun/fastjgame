@@ -17,8 +17,8 @@ package com.wjybxx.fastjgame.example;
 
 import com.wjybxx.fastjgame.enummapper.NumberEnum;
 import com.wjybxx.fastjgame.enummapper.NumberEnumMapper;
-import com.wjybxx.fastjgame.misc.SerializableClass;
-import com.wjybxx.fastjgame.misc.SerializableField;
+import com.wjybxx.fastjgame.annotation.SerializableClass;
+import com.wjybxx.fastjgame.annotation.SerializableField;
 import com.wjybxx.fastjgame.utils.EnumUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;

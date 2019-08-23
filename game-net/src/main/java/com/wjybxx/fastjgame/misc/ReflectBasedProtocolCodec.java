@@ -17,6 +17,8 @@
 package com.wjybxx.fastjgame.misc;
 
 import com.google.protobuf.*;
+import com.wjybxx.fastjgame.annotation.SerializableClass;
+import com.wjybxx.fastjgame.annotation.SerializableField;
 import com.wjybxx.fastjgame.enummapper.NumberEnum;
 import com.wjybxx.fastjgame.enummapper.NumberEnumMapper;
 import com.wjybxx.fastjgame.net.ProtocolCodec;
@@ -29,7 +31,6 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.lang.Enum;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
