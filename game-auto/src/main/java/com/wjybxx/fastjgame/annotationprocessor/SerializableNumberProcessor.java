@@ -69,7 +69,7 @@ public class SerializableNumberProcessor extends AbstractProcessor {
 		for (TypeElement typeElement:typeElementSet) {
 			checkNumber(typeElement);
 		}
-		return true;
+		return false;
 	}
 
 	private void checkNumber(TypeElement typeElement) {

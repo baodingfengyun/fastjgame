@@ -28,8 +28,6 @@ import javax.annotation.Nullable;
  */
 public final class Event implements AutoCloseable{
 
-	private static final int INVALID_TYPE = Integer.MIN_VALUE;
-
 	/**
 	 * 事件类型，只有用int才是能无限扩展的,不然就不能放在UtilS包了。
 	 */
@@ -71,7 +69,6 @@ public final class Event implements AutoCloseable{
 	 */
 	@Override
 	public void close() {
-		this.type = INVALID_TYPE;
 		this.param = null;
 	}
 }
