@@ -79,6 +79,9 @@ import java.util.stream.Collectors;
  *
  * 3. 我太难了，这Rpc代理得生成两个文件，一个生成在core包，一个生成在自己的包...
  *
+ * 4. {@link Types#isSameType(TypeMirror, TypeMirror)}、{@link Types#isSubtype(TypeMirror, TypeMirror)} 、
+ * {@link Types#isAssignable(TypeMirror, TypeMirror)} 必须是{@link DeclaredType}才可以。
+ *
  * {@link DeclaredType}是变量、参数的声明类型。
  *
  * @author wjybxx
@@ -121,13 +124,20 @@ public class RpcServiceProcessor extends AbstractProcessor {
 	 * {@link com.wjybxx.fastjgame.net.Session}对应的类型
 	 */
 	private DeclaredType sessionType;
+	/**
+	 * {@link List}对应的类型
+	 */
+	private DeclaredType listType;
 
 	/** 所有的serviceId集合，判断重复 */
 	private final ShortSet serviceIdSet = new ShortOpenHashSet(128);
 	/** 所有的methodKey集合，判断重复 */
 	private final IntSet methodKeySet = new IntOpenHashSet(1024);
+
 	/** 生成信息 */
 	private AnnotationSpec generatedAnnotation;
+	/** unchecked注解 */
+	private AnnotationSpec uncheckedAnnotation;
 
 	@Override
 	public synchronized void init(ProcessingEnvironment processingEnv) {
@@ -142,9 +152,14 @@ public class RpcServiceProcessor extends AbstractProcessor {
 
 		responseChannelType = types.getDeclaredType(elements.getTypeElement(RpcResponseChannel.class.getCanonicalName()));
 		sessionType = types.getDeclaredType(elements.getTypeElement(Session.class.getCanonicalName()));
+		listType = types.getDeclaredType(elements.getTypeElement(List.class.getCanonicalName()));
 
 		generatedAnnotation = AnnotationSpec.builder(Generated.class)
 				.addMember("value", "$S", RpcServiceProcessor.class.getCanonicalName())
+				.build();
+
+		uncheckedAnnotation = AnnotationSpec.builder(SuppressWarnings.class)
+				.addMember("value", "$S", "unchecked")
 				.build();
 	}
 
@@ -311,10 +326,19 @@ public class RpcServiceProcessor extends AbstractProcessor {
 
 		// 搜集参数代码块
 		if (availableParameters.size() == 0) {
+			// 如果没有参数，则使用emptyList，且需要加上suppressWarning注解
+			builder.addAnnotation(uncheckedAnnotation);
 			builder.addStatement("return new $T<>($L, $T.emptyList(), $L)", DefaultRpcBuilder.class, methodKey, Collections.class, allowCallback);
 		} else if (availableParameters.size() == 1) {
-			final String firstParameterName = availableParameters.get(0).getSimpleName().toString();
-			builder.addStatement("return new $T<>($L, $T.singletonList($L), $L)", DefaultRpcBuilder.class, methodKey, Collections.class, firstParameterName, allowCallback);
+			final VariableElement firstVariableElement = availableParameters.get(0);
+			final String firstParameterName = firstVariableElement.getSimpleName().toString();
+			if (isList(firstVariableElement)) {
+				// 只有一个参数时，如果参数就是list，那么只需要unmodifiable即可
+				builder.addStatement("return new $T<>($L, $T.unmodifiableList($L), $L)", DefaultRpcBuilder.class, methodKey, Collections.class, firstParameterName, allowCallback);
+			} else {
+				// 否则封装为list
+				builder.addStatement("return new $T<>($L, $T.singletonList($L), $L)", DefaultRpcBuilder.class, methodKey, Collections.class, firstParameterName, allowCallback);
+			}
 		} else {
 			builder.addStatement("$T<Object> $L = new $T<>($L)", List.class, methodParams, ArrayList.class, availableParameters.size());
 			for (VariableElement variableElement:availableParameters) {
@@ -376,28 +400,35 @@ public class RpcServiceProcessor extends AbstractProcessor {
 	 * 判断指定类型是否是void 或Void类型
 	 */
 	private boolean isVoidType(TypeMirror typeMirror) {
-		return typeMirror.getKind() == TypeKind.VOID || types.isSameType(typeMirror, voidType);
+		return typeMirror.getKind() == TypeKind.VOID || isTargetType(typeMirror, declaredType -> types.isSameType(declaredType, voidType));
 	}
 
 	/**
 	 * 是否是 {@link RpcResponseChannel} 类型。
 	 */
 	private boolean isResponseChannel(VariableElement variableElement) {
-		return isTargetType(variableElement, declaredType -> types.isAssignable(declaredType, responseChannelType));
+		return isTargetType(variableElement.asType(), declaredType -> types.isAssignable(declaredType, responseChannelType));
 	}
 
 	/**
 	 * 是否是 {@link Session}类型
 	 */
 	private boolean isSession(VariableElement variableElement) {
-		return isTargetType(variableElement, declaredType -> types.isSubtype(declaredType, sessionType));
+		return isTargetType(variableElement.asType(), declaredType -> types.isSubtype(declaredType, sessionType));
+	}
+
+	/**
+	 * 是否是 {@link List}类型
+	 */
+	private boolean isList(VariableElement variableElement) {
+		return isTargetType(variableElement.asType(), declaredType -> types.isSubtype(declaredType, listType));
 	}
 
 	/**
 	 * 不能访问{@link VariableElement}，会死循环，必须转换成typeMirror访问，否则无法访问到详细信息。
 	 */
-	private boolean isTargetType(final VariableElement variableElement, final Predicate<DeclaredType> matcher) {
-		return variableElement.asType().accept(new SimpleTypeVisitor8<Boolean, Void>(){
+	private boolean isTargetType(final TypeMirror typeMirror, final Predicate<DeclaredType> matcher) {
+		return typeMirror.accept(new SimpleTypeVisitor8<Boolean, Void>(){
 
 			@Override
 			public Boolean visitDeclared(DeclaredType t, Void aVoid) {

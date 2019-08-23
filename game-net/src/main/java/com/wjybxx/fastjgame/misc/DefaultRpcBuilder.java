@@ -207,7 +207,7 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
         } else {
             response = POLICY.sync(session, call);
         }
-        // 返回之前，先执行添加到回调
+        // 返回之前，先执行添加的回调
         if (callback != EmptyRpcCallback.INSTANCE) {
             ConcurrentUtils.safeExecute((Runnable)() -> callback.onComplete(response));
         }
