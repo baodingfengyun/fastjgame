@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.misc;
 
+import com.wjybxx.fastjgame.function.AnyRunnable;
 import com.wjybxx.fastjgame.net.RpcCallback;
 import com.wjybxx.fastjgame.net.RpcResponse;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
@@ -45,7 +46,7 @@ public class CompositeRpcCallback<V> implements RpcCallback {
 	@Override
 	public void onComplete(RpcResponse rpcResponse) {
 		for (RpcCallback rpcCallback : rpcCallbackList) {
-			ConcurrentUtils.safeExecute((Runnable)() -> rpcCallback.onComplete(rpcResponse));
+			ConcurrentUtils.safeExecute((Runnable) () -> rpcCallback.onComplete(rpcResponse));
 		}
 	}
 

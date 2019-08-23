@@ -36,7 +36,7 @@ public final class RpcResponse {
 	public static final RpcResponse CANCELLED = newFailResponse(RpcResultCode.CANCELLED);
 	public static final RpcResponse COMMIT_FAILED = newFailResponse(RpcResultCode.COMMIT_FAILED);
 	public static final RpcResponse ERROR = newFailResponse(RpcResultCode.ERROR);
-	public static final RpcResponse SESSION_NULL = newFailResponse(RpcResultCode.ERROR);
+	public static final RpcResponse SESSION_NULL = newFailResponse(RpcResultCode.SESSION_NULL);
 
 	/**
 	 * 结果标识

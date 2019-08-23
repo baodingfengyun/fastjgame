@@ -16,7 +16,10 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.net.*;
+import com.wjybxx.fastjgame.net.RpcCallback;
+import com.wjybxx.fastjgame.net.RpcFuture;
+import com.wjybxx.fastjgame.net.RpcResponse;
+import com.wjybxx.fastjgame.net.Session;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -48,55 +51,59 @@ public interface RpcBuilder<V> {
     RpcCall<V> getCall();
 
     /**
-     * 设置要进行rpc调用所在的session，你最好是获取session，session存在的情况下再通过代理工具类生成该builder。
+     * 设置要进行rpc调用所在的session。
+     *
+     * @apiNote
+     * 由于用户可能并不清楚对应的session存在与否，因此当session为null时，必须安全的失败。
      * @param session 关联的session
      * @return this
      */
-    RpcBuilder<V> setSession(@Nonnull Session session);
+    RpcBuilder<V> setSession(@Nullable Session session);
 
     /**
-     * 设置成功时执行的回调
+     * 设置成功时执行的回调。
+     *
      * @param callback 回调逻辑
      * @return this
+     * @throws UnsupportedOperationException 如果返回值类型为void或Void则抛出该异常。
      */
-    RpcBuilder<V> ifSuccess(@Nonnull SucceedRpcCallback<V> callback);
+    RpcBuilder<V> ifSuccess(@Nonnull SucceedRpcCallback<V> callback) throws UnsupportedOperationException;
 
     /**
      * 设置失败时执行的回调
      * @param callback 回调逻辑
      * @return this
+     * @throws UnsupportedOperationException 如果返回值类型为void或Void则抛出该异常。
      */
-    RpcBuilder<V> ifFailure(@Nonnull FailedRpcCallback callback);
+    RpcBuilder<V> ifFailure(@Nonnull FailedRpcCallback callback) throws UnsupportedOperationException;
 
     /**
      * 设置无论成功还是失败都会执行的回调
      * @param callback 回调逻辑
      * @return this
+     * @throws UnsupportedOperationException 如果返回值类型为void或Void则抛出该异常。
      */
-    RpcBuilder<V> any(@Nonnull RpcCallback callback);
+    RpcBuilder<V> any(@Nonnull RpcCallback callback) throws UnsupportedOperationException;
 
     /**
-     * 发送一个单向消息(通知)。
+     * 执行调用，如果添加了回调，则发起rpc调用，如果没有回调(不关心返回值)，则发起通知。
+     * @throws IllegalStateException 一个builder不可以反复调用发送接口。
      */
-    void send();
+    void execute() throws IllegalStateException;
 
     /**
-     * 执行异步rpc调用。
-     * 注意：请确保设置了Session。
-     */
-    void invoke();
-
-    /**
-     * 执行异步调用并返回一个future。
-     * 注意：请确保设置了Session。
+     * 执行异步Rpc调用并返回一个future。
      * @return future
+     * @throws IllegalStateException 一个builder不可以反复调用发送接口。
+     * @throws UnsupportedOperationException 如果返回值类型为void或Void则抛出该异常。
      */
-    RpcFuture execute();
+    RpcFuture submit() throws IllegalStateException, UnsupportedOperationException;
 
     /**
-     * 执行同步rpc调用，并直接获得结果。
-     * 注意：请确保设置了Session。
+     * 执行同步rpc调用，并直接获得结果。如果添加了回调，回调会在返回前执行。
      * @return result
+     * @throws IllegalStateException 一个builder不可以反复调用发送接口。
+     * @throws UnsupportedOperationException 如果返回值类型为void或Void则抛出该异常。
      */
-    RpcResponse sync();
+    RpcResponse sync() throws IllegalStateException, UnsupportedOperationException;
 }

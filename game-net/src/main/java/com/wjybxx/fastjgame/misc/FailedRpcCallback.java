@@ -20,20 +20,22 @@ import com.wjybxx.fastjgame.net.RpcCallback;
 import com.wjybxx.fastjgame.net.RpcResponse;
 
 /**
- * 只有失败才执行的回调
+ * 只有失败才执行的回调。
+ * 声明为接口而不是抽象类，是为了方便使用lambda表达式。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/19
  * github - https://github.com/hl845740757
  */
+@FunctionalInterface
 public interface FailedRpcCallback extends RpcCallback {
 
 	@Override
 	default void onComplete(RpcResponse rpcResponse) {
-		if (rpcResponse.isSuccess()) {
-			return;
+		if (!rpcResponse.isSuccess()) {
+			onFailure(rpcResponse);
 		}
-		onFailure(rpcResponse);
 	}
 
 	/**

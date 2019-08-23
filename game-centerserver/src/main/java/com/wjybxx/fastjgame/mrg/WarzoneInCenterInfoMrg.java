@@ -112,9 +112,10 @@ public class WarzoneInCenterInfoMrg {
 
         @Override
         public void onSessionConnected(Session session) {
-            final RpcCall<Boolean> call = ICenterInWarzoneInfoMrgProxy.
-                    connectWarzone(centerWorldInfoMrg.getPlatformType().getNumber(), centerWorldInfoMrg.getServerId());
-            session.rpc(call, (SucceedRpcCallback<Boolean>) (result)-> connectWarzoneSuccess(session));
+            ICenterInWarzoneInfoMrgProxy.connectWarzone(centerWorldInfoMrg.getPlatformType().getNumber(), centerWorldInfoMrg.getServerId())
+                    .setSession(session)
+                    .ifSuccess(result -> connectWarzoneSuccess(session))
+                    .execute();;
         }
 
         @Override

@@ -23,13 +23,12 @@ import java.util.List;
 
 /**
  * 可以立即返回结果的Rpc调用函数，。
- * 参数超过7个的请重构。
  *
  * 1. 当返回值类型不为void或Void时，表明可以立即返回结果，代码生成工具会捕获返回值类型。
  * 2. 当返回值为void或Void时，如果参数中有 {@link com.wjybxx.fastjgame.net.RpcResponseChannel}，表明需要异步返回结果，
- * 代码生成工具会那么会捕获其返回值类型作为Rpc调用结果。
+ * 代码生成工具会那么会捕获泛型参数类型作为Rpc调用结果类型。
  * 3. 如果返回值为为void或Void，且参数中没有{@link com.wjybxx.fastjgame.net.RpcResponseChannel}，那么表示没有返回值。
- * 4. 由代码生成工具为{@link com.wjybxx.fastjgame.annotation.RpcMethod}生成对应lambda表达式，以代理反射调用。
+ * 4. 由代码生成工具为{@link com.wjybxx.fastjgame.annotation.RpcMethod}生成对应lambda表达式，以代替反射调用。
  *
  * @author wjybxx
  * @version 1.0

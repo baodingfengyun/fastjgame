@@ -45,23 +45,15 @@ public class RpcCall<V> {
 	@SerializableField(number = 2)
 	private final List<Object> methodParams;
 
-	/**
-	 * 是否允许添加回调，不序列化。
-	 * 不允许添加回调，也就是单向消息。
-	 */
-	private final boolean allowCallback;
-
 	// 反射创建对象
 	private RpcCall() {
 		methodKey = -1;
 		methodParams = null;
-		allowCallback = false;
 	}
 
-	public RpcCall(int methodKey, List<Object> methodParams, boolean allowCallback) {
+	public RpcCall(int methodKey, List<Object> methodParams) {
 		this.methodKey = methodKey;
 		this.methodParams = methodParams;
-		this.allowCallback = allowCallback;
 	}
 
 	public int getMethodKey() {
@@ -72,7 +64,5 @@ public class RpcCall<V> {
 		return methodParams;
 	}
 
-	public boolean isAllowCallback() {
-		return allowCallback;
-	}
+
 }

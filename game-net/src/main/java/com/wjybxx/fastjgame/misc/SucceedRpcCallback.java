@@ -18,11 +18,10 @@ package com.wjybxx.fastjgame.misc;
 
 import com.wjybxx.fastjgame.net.RpcCallback;
 import com.wjybxx.fastjgame.net.RpcResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
- * 调用成功才执行的Rpc回调。失败时仅仅打印一条日志。
+ * 调用成功才执行的Rpc回调。
+ * 声明为接口而不是抽象类，是为了方便使用lambda表达式。
  *
  * @author wjybxx
  * @version 1.0
@@ -32,21 +31,17 @@ import org.slf4j.LoggerFactory;
 @FunctionalInterface
 public interface SucceedRpcCallback<V> extends RpcCallback {
 
-	Logger logger = LoggerFactory.getLogger(SucceedRpcCallback.class);
-
 	@SuppressWarnings("unchecked")
 	@Override
 	default void onComplete(RpcResponse rpcResponse) {
 		if (rpcResponse.isSuccess()) {
 			onSuccess((V) rpcResponse.getBody());
-		} else {
-			logger.warn("rpc call failure, code = {}", rpcResponse.getResultCode());
 		}
 	}
 
 	/**
 	 * 当执行成功时
-	 * @param value 调用结果
+	 * @param result 调用结果
 	 */
-	 void onSuccess(V value);
+	 void onSuccess(V result);
 }

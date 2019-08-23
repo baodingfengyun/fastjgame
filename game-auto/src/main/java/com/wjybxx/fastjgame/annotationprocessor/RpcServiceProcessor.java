@@ -22,7 +22,8 @@ import com.wjybxx.fastjgame.annotation.RpcMethod;
 import com.wjybxx.fastjgame.annotation.RpcMethodProxy;
 import com.wjybxx.fastjgame.annotation.RpcService;
 import com.wjybxx.fastjgame.annotation.RpcServiceProxy;
-import com.wjybxx.fastjgame.misc.RpcCall;
+import com.wjybxx.fastjgame.misc.DefaultRpcBuilder;
+import com.wjybxx.fastjgame.misc.RpcBuilder;
 import com.wjybxx.fastjgame.misc.RpcFunctionRepository;
 import com.wjybxx.fastjgame.net.RpcResponse;
 import com.wjybxx.fastjgame.net.RpcResponseChannel;
@@ -105,9 +106,9 @@ public class RpcServiceProcessor extends AbstractProcessor {
 	private Elements elements;
 	private Messager messager;
 	/**
-	 * {@link RpcCall}对应的类型
+	 * {@link RpcBuilder}对应的类型
 	 */
-	private TypeElement rpcCallElement;
+	private TypeElement builderElement;
 	/**
 	 * {@link Void}对应的类型
 	 */
@@ -136,7 +137,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 		elements = processingEnv.getElementUtils();
 		messager = processingEnv.getMessager();
 
-		rpcCallElement = elements.getTypeElement(RpcCall.class.getCanonicalName());
+		builderElement = elements.getTypeElement(RpcBuilder.class.getCanonicalName());
 		voidType = types.getDeclaredType(elements.getTypeElement(Void.class.getCanonicalName()));
 
 		responseChannelType = types.getDeclaredType(elements.getTypeElement(RpcResponseChannel.class.getCanonicalName()));
@@ -285,7 +286,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 	}
 
 	private MethodSpec genClientMethodProxy(int methodKey, ExecutableElement method) {
-		// 工具方法 public static RpcCall<V>
+		// 工具方法 public static RpcBuilder<V>
 		MethodSpec.Builder builder = MethodSpec.methodBuilder(method.getSimpleName().toString());
 		builder.addModifiers(Modifier.PUBLIC, Modifier.STATIC);
 		// 拷贝泛型参数
@@ -298,7 +299,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 		final boolean allowCallback = parseResult.allowCallback;
 
 		// 添加返回类型
-		DeclaredType realReturnType = types.getDeclaredType(rpcCallElement, callReturnType);
+		DeclaredType realReturnType = types.getDeclaredType(builderElement, callReturnType);
 		builder.returns(ClassName.get(realReturnType));
 		// 拷贝参数列表
 		AutoUtils.copyParameters(builder, availableParameters);
@@ -310,16 +311,16 @@ public class RpcServiceProcessor extends AbstractProcessor {
 
 		// 搜集参数代码块
 		if (availableParameters.size() == 0) {
-			builder.addStatement("return new $T($L, $T.emptyList(), $L)", RpcCall.class, methodKey, Collections.class, allowCallback);
+			builder.addStatement("return new $T<>($L, $T.emptyList(), $L)", DefaultRpcBuilder.class, methodKey, Collections.class, allowCallback);
 		} else if (availableParameters.size() == 1) {
 			final String firstParameterName = availableParameters.get(0).getSimpleName().toString();
-			builder.addStatement("return new $T($L, $T.singletonList($L), $L)", RpcCall.class, methodKey, Collections.class, firstParameterName, allowCallback);
+			builder.addStatement("return new $T<>($L, $T.singletonList($L), $L)", DefaultRpcBuilder.class, methodKey, Collections.class, firstParameterName, allowCallback);
 		} else {
 			builder.addStatement("$T<Object> $L = new $T<>($L)", List.class, methodParams, ArrayList.class, availableParameters.size());
 			for (VariableElement variableElement:availableParameters) {
 				builder.addStatement("$L.add($L)", methodParams, variableElement.getSimpleName());
 			}
-			builder.addStatement("return new $T($L, $L, $L)", RpcCall.class, methodKey, "methodParams", allowCallback);
+			builder.addStatement("return new $T<>($L, $L, $L)", DefaultRpcBuilder.class, methodKey, "methodParams", allowCallback);
 		}
 		return builder.build();
 	}
