@@ -218,7 +218,6 @@ public class RpcServiceProcessor extends AbstractProcessor {
 				messager.printMessage(Diagnostic.Kind.ERROR, "RpcMethod must be public！", method);
 				continue;
 			}
-
 			// 方法id
 			final short methodId = method.getAnnotation(RpcMethod.class).methodId();
 			// 方法的唯一键，乘以1W比位移有更好的可读性
@@ -273,6 +272,8 @@ public class RpcServiceProcessor extends AbstractProcessor {
 					.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
 					.addAnnotation(generatedAnnotation)
 					.addAnnotation(proxyAnnotation);
+			// register类涉及大量的类型转换，全部取消警告
+			typeBuilder.addAnnotation(uncheckedAnnotation);
 
 			typeBuilder.addMethod(genRegisterMethod(typeElement, serverMethodProxyList));
 			typeBuilder.addMethods(serverMethodProxyList);
@@ -336,8 +337,6 @@ public class RpcServiceProcessor extends AbstractProcessor {
 
 		// 搜集参数代码块
 		if (availableParameters.size() == 0) {
-			// 如果没有参数，则使用emptyList，且需要加上suppressWarning注解
-			builder.addAnnotation(uncheckedAnnotation);
 			builder.addStatement("return new $T<>($L, $T.emptyList(), $L)", DefaultRpcBuilder.class, methodKey, Collections.class, allowCallback);
 		} else if (availableParameters.size() == 1) {
 			final VariableElement firstVariableElement = availableParameters.get(0);
@@ -460,7 +459,8 @@ public class RpcServiceProcessor extends AbstractProcessor {
 					return t.getTypeArguments().get(0);
 				} else {
 					// 声明类型木有泛型参数，返回Object类型，并打印一个警告
-					messager.printMessage(Diagnostic.Kind.WARNING, "RpcResponseChannel missing type parameter.", variableElement);
+					// 2019年8月23日21:13:35 改为编译错误
+					messager.printMessage(Diagnostic.Kind.ERROR, "RpcResponseChannel missing type parameter.", variableElement);
 					return elements.getTypeElement(Object.class.getCanonicalName()).asType();
 				}
 			}
@@ -613,7 +613,6 @@ public class RpcServiceProcessor extends AbstractProcessor {
 			this.params = params;
 		}
 	}
-
 
 	private static class ParseResult {
 		// 除去特殊参数余下的参数
