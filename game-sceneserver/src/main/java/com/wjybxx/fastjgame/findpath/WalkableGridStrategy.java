@@ -36,8 +36,8 @@ public interface WalkableGridStrategy {
 
     /**
      * 该遮挡值的格子是否可以走
-     * @param obstacleValue
-     * @return
+     * @param obstacleValue 遮挡值
+     * @return true/false
      */
     boolean walkable(GridObstacle obstacleValue);
 }

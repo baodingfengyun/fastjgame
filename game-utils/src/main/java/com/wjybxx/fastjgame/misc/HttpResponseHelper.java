@@ -36,19 +36,19 @@ public final class HttpResponseHelper {
     /**
      * text/plain（纯文本）
      */
-    public static final String TEXT_PLAIN="text/plain;charset=utf-8";
+    public static final String TEXT_PLAIN = "text/plain;charset=utf-8";
     /**
      * text/json（json文本）
      */
-    public static final String TEXT_JSON="text/json;charset=utf-8";
+    public static final String TEXT_JSON = "text/json;charset=utf-8";
     /**
      * text/html（HTML文档）
      */
-    public static final String TEXT_HTML="text/html;charset=utf-8";
+    public static final String TEXT_HTML = "text/html;charset=utf-8";
     /**
      * image/jpeg（JPEG图像）
      */
-    public static final String IMAGE_JPG="image/jpeg";
+    public static final String IMAGE_JPG = "image/jpeg";
     /**
      * image/png（PNG图像）
      */

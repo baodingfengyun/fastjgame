@@ -57,8 +57,8 @@ public abstract class Scene {
     private static final Logger logger = LoggerFactory.getLogger(Scene.class);
 
     // 更新单个对象时，缓存对象，避免大量的创建list
-    private static final List<ViewGrid> invisibleGridsCache = new ArrayList<>(GameConstant.VIEWABLE_GRID_NUM);
-    private static final List<ViewGrid> visibleGridsCache = new ArrayList<>(GameConstant.VIEWABLE_GRID_NUM);
+    private static final ThreadLocal<List<ViewGrid>> invisibleGridsCache = ThreadLocal.withInitial(() -> new ArrayList<>(GameConstant.VIEWABLE_GRID_NUM));
+    private static final ThreadLocal<List<ViewGrid>> visibleGridsCache = ThreadLocal.withInitial(() -> new ArrayList<>(GameConstant.VIEWABLE_GRID_NUM));
 
     /**
      * 刷新视野格子的间隔
@@ -113,7 +113,7 @@ public abstract class Scene {
     private final GameObjectHandlerMapper<GameObjectTickContext<?>> tickContextMapper = new GameObjectHandlerMapper<>();
 
     /**
-     * 场景对鞋序列号handler
+     * 场景对序列化handler
      */
     private final GameObjectHandlerMapper<GameObjectSerializer<?>> serializerMapper = new GameObjectHandlerMapper<>();
 
@@ -173,7 +173,7 @@ public abstract class Scene {
 
     /**
      * 获取创建视野格子的默认容量信息，子类在需要的时候可以覆盖它;
-     * @return empty
+     * @return 默认empty
      */
     protected InitCapacityHolder getViewGridInitCapacityHolder(){
         return InitCapacityHolder.EMPTY;
@@ -182,7 +182,7 @@ public abstract class Scene {
     /**
      * 获取SceneGameObjectManager创建时的初始容量信息，子类在需要的时候可以覆盖它;
      * 名字是长了点...
-     * @return empty
+     * @return 默认empty
      */
     protected InitCapacityHolder getGameObjectManagerInitCapacityHolder(){
         return InitCapacityHolder.EMPTY;
@@ -256,6 +256,7 @@ public abstract class Scene {
             try {
                 handler.tick(gameObject);
             }catch (Exception e){
+                // 避免某一个对象报错导致其它对象tick不到
                 logger.error("tick {}-{} caught exception", gameObjectType, gameObject.getGuid(), e);
             }
         }
@@ -280,6 +281,7 @@ public abstract class Scene {
                 try {
                     updateViewableGrid(gameObject);
                 }catch (Exception e){
+                    // 避免某一个对象报错导致其它对象tick不到
                     logger.error("update {}-{} viewableGrids caught exception", gameObjectType, gameObject.getGuid(), e);
                 }
             }
@@ -305,8 +307,8 @@ public abstract class Scene {
         List<ViewGrid> curViewableGrids = curViewGrid.getViewableGrids();
 
         // 视野更新会频繁的执行，不可以大量创建list，因此使用缓存
-        List<ViewGrid> invisibleGrids = invisibleGridsCache;
-        List<ViewGrid> visibleGrids = visibleGridsCache;
+        List<ViewGrid> invisibleGrids = invisibleGridsCache.get();
+        List<ViewGrid> visibleGrids = visibleGridsCache.get();
         try{
             // 旧的哪些看不见了
             for (ViewGrid preViewableGrid : preViewableGrids){

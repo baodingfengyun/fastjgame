@@ -25,6 +25,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.apache.commons.lang3.StringUtils;
 
+import java.lang.reflect.Method;
 import java.util.Set;
 
 /**
@@ -58,7 +59,21 @@ public class MessageHashMappingStrategy implements MessageMappingStrategy {
         return clazz.isAnnotationPresent(SerializableClass.class)
                 || AbstractMessage.class.isAssignableFrom(clazz)
                 || ProtocolMessageEnum.class.isAssignableFrom(clazz)
-                || NumberEnum.class.isAssignableFrom(clazz);
+                || NumberEnum.class.isAssignableFrom(clazz) && hasForNumberMethod(clazz);
+    }
+
+    private static boolean hasForNumberMethod(Class<?> clazz) {
+        try {
+            clazz.getDeclaredMethod("forNumber", int.class);
+            return true;
+        } catch (NoSuchMethodException ignore) {
+        }
+        try {
+            clazz.getDeclaredMethod("forNumber", Integer.class);
+            return true;
+        } catch (NoSuchMethodException ignore) {
+        }
+        return false;
     }
 
     private static int getClassHashCode(Class<?> rpcCallClass) {

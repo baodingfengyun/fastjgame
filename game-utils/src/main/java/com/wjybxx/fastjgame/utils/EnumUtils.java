@@ -119,11 +119,11 @@ public class EnumUtils {
         int maxNumber = values[0].getNumber();
 
         for (T t : values){
-            FastCollectionsUtils.requireNotContains(result,t.getNumber(),"number");
-            result.put(t.getNumber(),t);
+            FastCollectionsUtils.requireNotContains(result,t.getNumber(), "number");
+            result.put(t.getNumber(), t);
 
-            minNumber = Math.min(minNumber,t.getNumber());
-            maxNumber = Math.max(maxNumber,t.getNumber());
+            minNumber = Math.min(minNumber, t.getNumber());
+            maxNumber = Math.max(maxNumber, t.getNumber());
         }
 
         if (ArrayBasedMapper.available(minNumber, maxNumber, values.length)){

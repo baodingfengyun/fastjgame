@@ -34,9 +34,7 @@ public abstract class HttpResponseBuilder<T extends HttpResponseBuilder<T>> {
 
     /**
      * 添加一个HttpHeader
-     * @param headerName
-     * @param headerValue
-     * @return
+     * @return this
      */
     public T addHttpHeader(CharSequence headerName,Object headerValue){
         if (httpHeaders == EmptyHttpHeaders.INSTANCE){
@@ -58,7 +56,7 @@ public abstract class HttpResponseBuilder<T extends HttpResponseBuilder<T>> {
     /**
      * 构建最终响应。
      * 这是一个模板方法(若真不满足需要可重写)。
-     * @return
+     * @return HttpResponse
      */
     public HttpResponse build(){
         beforeBuild();
@@ -77,19 +75,19 @@ public abstract class HttpResponseBuilder<T extends HttpResponseBuilder<T>> {
     protected abstract void beforeBuild();
     /**
      * 子类指定响应状态
-     * @return
+     * @return status
      */
     protected abstract HttpResponseStatus responseStatus();
 
     /**
      * 获取内容类型
-     * @return
+     * @return content-type
      */
     protected abstract String contentType();
 
     /**
      * 构建内容
-     * @return
+     * @return content
      */
     protected abstract ByteBuf buildContent();
 }

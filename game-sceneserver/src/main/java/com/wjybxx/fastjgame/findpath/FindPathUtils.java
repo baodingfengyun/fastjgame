@@ -47,10 +47,10 @@ public class FindPathUtils {
 
     /**
      * 如果指定格子可行走，则添加到neighbor中
-     * @param context
+     * @param context 寻路上下文
      * @param nx neighborX
      * @param ny neighborY
-     * @param neighbors
+     * @param neighbors 邻居节点容器，传入以方便使用缓存
      * @return true/false 添加成功则返回true，失败返回false
      */
     public static boolean addNeighborIfWalkable(FindPathContext context, int nx, int ny, List<MapGrid> neighbors){
@@ -68,7 +68,7 @@ public class FindPathUtils {
      * @param x 当前x坐标
      * @param y 当前y坐标
      * @param diagonalMovement 对角线行走策略
-     * @param neighbors 邻居节点容器，传入以方便子类使用缓存
+     * @param neighbors 邻居节点容器，传入以方便使用缓存
      */
     public static void statisticsNeighbors(FindPathContext context,
                                            final int x, final int y,
@@ -158,8 +158,8 @@ public class FindPathUtils {
     /**
      * 构建最终路径
      * @param context 寻路信息
-     * @param finalPathNode
-     * @return
+     * @param finalPathNode 寻到的最终节点
+     * @return 去除了冗余节点的路径
      */
     public static List<Point2D> buildFinalPath(FindPathContext context, final FindPathNode finalPathNode){
         Point2D[] pathArray = new Point2D[finalPathNode.getDepth() + 1];

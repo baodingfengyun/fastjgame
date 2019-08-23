@@ -296,10 +296,20 @@ public class RpcServiceProcessor extends AbstractProcessor {
 
 	// ----------------------------------------- 为客户端生成代理方法 -------------------------------------------
 
-	private void writeTOCore(JavaFile javaFile) {
-
-	}
-
+	/**
+	 * 为客户端生成代理方法
+	 * <pre>{@code
+	 * 		public static RpcBuilder<String> method1(int id, String param) {
+	 * 			List<Object> methodParams = new ArrayList<>(2);
+	 * 			methodParams.add(id);
+	 * 			methodParams.add(param);
+	 * 			return new RpcBuilder<>(1, methodParams, true);
+	 * 		}
+	 * }
+	 * </pre>
+	 *
+	 *
+	 */
 	private MethodSpec genClientMethodProxy(int methodKey, ExecutableElement method) {
 		// 工具方法 public static RpcBuilder<V>
 		MethodSpec.Builder builder = MethodSpec.methodBuilder(method.getSimpleName().toString());
@@ -332,13 +342,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 		} else if (availableParameters.size() == 1) {
 			final VariableElement firstVariableElement = availableParameters.get(0);
 			final String firstParameterName = firstVariableElement.getSimpleName().toString();
-			if (isList(firstVariableElement)) {
-				// 只有一个参数时，如果参数就是list，那么只需要unmodifiable即可
-				builder.addStatement("return new $T<>($L, $T.unmodifiableList($L), $L)", DefaultRpcBuilder.class, methodKey, Collections.class, firstParameterName, allowCallback);
-			} else {
-				// 否则封装为list
-				builder.addStatement("return new $T<>($L, $T.singletonList($L), $L)", DefaultRpcBuilder.class, methodKey, Collections.class, firstParameterName, allowCallback);
-			}
+			builder.addStatement("return new $T<>($L, $T.singletonList($L), $L)", DefaultRpcBuilder.class, methodKey, Collections.class, firstParameterName, allowCallback);
 		} else {
 			builder.addStatement("$T<Object> $L = new $T<>($L)", List.class, methodParams, ArrayList.class, availableParameters.size());
 			for (VariableElement variableElement:availableParameters) {

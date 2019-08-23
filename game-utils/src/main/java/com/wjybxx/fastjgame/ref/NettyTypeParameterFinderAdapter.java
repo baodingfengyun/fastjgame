@@ -32,7 +32,7 @@ import java.util.Objects;
  */
 public class NettyTypeParameterFinderAdapter implements TypeParameterFinder{
 
-    public static final NettyTypeParameterFinderAdapter DEFAULT_INSTANCE=new NettyTypeParameterFinderAdapter();
+    public static final NettyTypeParameterFinderAdapter DEFAULT_INSTANCE = new NettyTypeParameterFinderAdapter();
 
     private NettyTypeParameterFinderAdapter() {
     }
@@ -90,7 +90,8 @@ public class NettyTypeParameterFinderAdapter implements TypeParameterFinder{
                 return;
             }
         }
-        throw new IllegalArgumentException("typeParamName "  + typeParamName + " is not declared in superClazz " + superClazz.getSimpleName());
+        throw new IllegalArgumentException("typeParamName "  + typeParamName +
+                " is not declared in superClazz/interface " + superClazz.getSimpleName());
     }
 
     /**
@@ -102,7 +103,7 @@ public class NettyTypeParameterFinderAdapter implements TypeParameterFinder{
      *
      * @param currentClazzOrInterface 递归到的当前类或接口
      * @param parametrizedSuperInterface 起始class继承的接口或实现的接口
-     * @return
+     * @return actualType
      */
     private <T> Class<? super T> findInterfaceDirectChildClass(T instance, Class<? super T> currentClazzOrInterface, Class<? super T> parametrizedSuperInterface){
         if (!parametrizedSuperInterface.isAssignableFrom(currentClazzOrInterface)){
@@ -147,7 +148,7 @@ public class NettyTypeParameterFinderAdapter implements TypeParameterFinder{
      * @param currentClass 直接孩子(子接口或实现类)
      * @param parametrizedSuperInterface 显示声明指定泛型参数typeParamName的接口
      * @param typeParamName 泛型名字
-     * @return
+     * @return actualType
      */
     private <T> Class<?> parseTypeParameter(final T instance,Class<? super T> currentClass,final Class<? super T> parametrizedSuperInterface,final String typeParamName) throws Exception {
         int typeParamIndex = -1;
@@ -162,8 +163,7 @@ public class NettyTypeParameterFinderAdapter implements TypeParameterFinder{
 
         // 这里其实不可达，因为上面有检查，这是netty源码，保持最少改动
         if (typeParamIndex < 0) {
-            throw new IllegalStateException(
-                    "unknown type parameter '" + typeParamName + "': " + parametrizedSuperInterface);
+            throw new IllegalStateException("unknown type parameter " + typeParamName + " : " + parametrizedSuperInterface);
         }
 
         // 这里的实现是在接口中查找，而netty的实现是在超类中查找
@@ -216,7 +216,7 @@ public class NettyTypeParameterFinderAdapter implements TypeParameterFinder{
             // Resolved type parameter points to another type parameter.
             TypeVariable<?> v = (TypeVariable<?>) actualTypeParam;
             if (!(v.getGenericDeclaration() instanceof Class)) {
-                // 7.声明新泛型参数(换名后的参数名)的对象如果不是class返回object。 好像不会出现？ 暂时保留，这里还想不到情况
+                // 7.新泛型参数(换名后的参数名)的类型如果不是class/interface，则返回Object。
                 // 科普：可以声明(定义)泛型变量的有：类/接口 方法 构造器
                 return Object.class;
             }
@@ -228,7 +228,7 @@ public class NettyTypeParameterFinderAdapter implements TypeParameterFinder{
                 Class<? super T> newSuperClazzOrInerface = (Class<? super T>) genericDeclarationClass;
                 return findTypeParameter(instance, newSuperClazzOrInerface,v.getName());
             } else {
-                // 9.泛型参数来自另一个继承体系？没搞太明白，保留
+                // 9.泛型参数来自另一个继承体系,停止查找
                 return Object.class;
             }
         }

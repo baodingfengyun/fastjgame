@@ -93,13 +93,13 @@ public abstract class AbstractWorld implements World{
 
     /**
      * 注册自己要处理的消息。也可以在自己的类中使用messageDispatcherMrg自己注册，不一定需要在world中注册。
-     * use {@link MessageDispatcherMrg#register(int, RpcFunction)} to register
+     * 使用对应的Register辅助类进行注册。
      */
     protected abstract void registerMessageHandlers();
 
     /**
      * 注册rpc请求处理器。
-     * use {@link MessageDispatcherMrg#register(int, RpcFunction)} to register
+     * 使用对应的Register辅助类进行注册。
      */
     protected abstract void registerRpcRequestHandlers();
 
@@ -115,7 +115,7 @@ public abstract class AbstractWorld implements World{
      * @param httpRequestHandler 对应的处理器
      */
     protected final void registerHttpRequestHandler(String path, HttpRequestHandler httpRequestHandler){
-        httpDispatcherMrg.registerHandler(path,httpRequestHandler);
+        httpDispatcherMrg.registerHandler(path, httpRequestHandler);
     }
 
     // ----------------------------------------- 接口模板实现 ------------------------------------

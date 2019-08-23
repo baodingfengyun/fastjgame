@@ -36,8 +36,8 @@ import java.lang.annotation.Target;
 public @interface SerializableField {
 
 	/**
-	 * 该属性对应的number，不要进行修改，取值范围，正整数或0。
-	 * 尽量在[0, 127]，正常情况完全够用。
+	 * 该属性对应的number，在同一个类中不可以重复，尽量不要进行修改。
+	 * 取值范围：[0, 127]，正常情况完全够用，超过该范围编译会报错。
 	 * @return >= 0
 	 */
 	int number();

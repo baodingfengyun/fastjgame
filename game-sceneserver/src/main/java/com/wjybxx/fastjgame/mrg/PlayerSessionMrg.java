@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.mrg;
 
-import com.wjybxx.fastjgame.gameobject.Player;
+import com.wjybxx.fastjgame.annotation.WorldSingleton;
 import com.wjybxx.fastjgame.misc.PlayerSession;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -30,6 +30,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * date - 2019/6/23 0:10
  * github - https://github.com/hl845740757
  */
+@WorldSingleton
 @NotThreadSafe
 public class PlayerSessionMrg {
 
@@ -54,7 +55,7 @@ public class PlayerSessionMrg {
 
     /**
      * 当玩家断开连接
-     * @param playerGuid
+     * @param playerGuid 玩家guid
      */
     public void onPlayerDisconnect(long playerGuid){
         // TODO 处理玩家掉线的情况

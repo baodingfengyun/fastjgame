@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.ref.NettyTypeParameterFinderAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Objects;
@@ -49,8 +50,8 @@ public class ReflectionUtils {
      * @param <T> 约束必须有继承关系或实现关系
      * @return 如果定义的泛型存在，则返回对应的泛型clazz
      */
-    public static <T> Class<?> findTypeParameter(T instance, Class<? super T> superClazzOrInterface, String typeParamName) throws Exception {
-        return NettyTypeParameterFinderAdapter.DEFAULT_INSTANCE.findTypeParameter(instance,superClazzOrInterface,typeParamName);
+    public static <T> Class<?> findTypeParameter(@Nonnull T instance, Class<? super T> superClazzOrInterface, String typeParamName) throws Exception {
+        return NettyTypeParameterFinderAdapter.DEFAULT_INSTANCE.findTypeParameter(instance, superClazzOrInterface, typeParamName);
     }
 
     /**
