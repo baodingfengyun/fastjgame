@@ -53,6 +53,10 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
         }
     }
 
+    private static final int ST_INIT = 0;
+    private static final int ST_PREPARED = 1;
+    private static final int ST_TERMINATED = 2;
+
     /**
      * 远程方法信息
      */
@@ -70,9 +74,9 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
      */
     private RpcCallback callback = EmptyRpcCallback.INSTANCE;
     /**
-     * 是否已执行远程调用
+     * 当前的状态
      */
-    private boolean invoked = false;
+    private int state = ST_INIT;
 
     public DefaultRpcBuilder(int methodKey, List<Object> methodParams, boolean allowCallback) {
         this.call = new RpcCall<>(methodKey, methodParams);
@@ -87,6 +91,10 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
 
     @Override
     public final RpcBuilder<V> setSession(@Nullable Session session) {
+        if (state != ST_INIT) {
+            throw new IllegalStateException("session is already set!");
+        }
+        state = ST_PREPARED;
         this.session = session;
         return this;
     }
@@ -128,11 +136,17 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
     /**
      * 确认状态是否正确
      */
-    private void ensureState() {
-        if (invoked) {
-            throw new IllegalStateException("builder can't be reused!");
+    private void ensurePrepareState() {
+        if (state == ST_PREPARED) {
+            state = ST_TERMINATED;
+            return;
         }
-        invoked = true;
+        if (state == ST_INIT) {
+            throw new IllegalStateException("Session is not set!");
+        }
+        if (state == ST_TERMINATED) {
+            throw new IllegalStateException("Builder does not support reuse!");
+        }
     }
 
     /**
@@ -146,7 +160,7 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
 
     @Override
     public final void execute() {
-        ensureState();
+        ensurePrepareState();
         if (session == null) {
             // session不存在，安全的失败
             if (callback != EmptyRpcCallback.INSTANCE) {
@@ -164,7 +178,7 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
 
     @Override
     public final RpcFuture submit() {
-        ensureState();
+        ensurePrepareState();
         ensureAllowCallback();
 
         final RpcFuture future;
@@ -183,7 +197,7 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
 
     @Override
     public final RpcResponse sync() {
-        ensureState();
+        ensurePrepareState();
         ensureAllowCallback();
 
         final RpcResponse response;

@@ -35,6 +35,16 @@ import javax.annotation.concurrent.NotThreadSafe;
  *
  * 注意：它并不是线程安全的，而只是提供更加容易使用的接口而已。
  *
+ * 使用示例：
+ * <pre>
+ * {@code
+ *      Proxy.methodName(a, b, c)
+ *          .setSession(session)
+ *          .ifSuccess(result -> onSuccess(result))
+ *          .execute();
+ * }
+ * </pre>
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/22
@@ -51,7 +61,7 @@ public interface RpcBuilder<V> {
     RpcCall<V> getCall();
 
     /**
-     * 设置要进行rpc调用所在的session。
+     * 设置要进行rpc调用所在的session，必须调用一次进行赋值(即使设置为null)，否则发送时抛出异常。
      *
      * @apiNote
      * 由于用户可能并不清楚对应的session存在与否，因此当session为null时，必须安全的失败。
@@ -81,13 +91,13 @@ public interface RpcBuilder<V> {
      * 设置无论成功还是失败都会执行的回调
      * @param callback 回调逻辑
      * @return this
-     * @throws UnsupportedOperationException 如果返回值类型为void或Void则抛出该异常。
+     * @throws UnsupportedOperationException 如果未调用{@link #setSession(Session)}或重复发送请求则抛出异常。
      */
     RpcBuilder<V> any(@Nonnull RpcCallback callback) throws UnsupportedOperationException;
 
     /**
      * 执行调用，如果添加了回调，则发起rpc调用，如果没有回调(不关心返回值)，则发起通知。
-     * @throws IllegalStateException 一个builder不可以反复调用发送接口。
+     * @throws IllegalStateException 如果未调用{@link #setSession(Session)}或重复发送请求则抛出异常。
      */
     void execute() throws IllegalStateException;
 
@@ -102,7 +112,7 @@ public interface RpcBuilder<V> {
     /**
      * 执行同步rpc调用，并直接获得结果。如果添加了回调，回调会在返回前执行。
      * @return result
-     * @throws IllegalStateException 一个builder不可以反复调用发送接口。
+     * @throws IllegalStateException 如果未调用{@link #setSession(Session)}或重复发送请求则抛出异常。
      * @throws UnsupportedOperationException 如果返回值类型为void或Void则抛出该异常。
      */
     RpcResponse sync() throws IllegalStateException, UnsupportedOperationException;

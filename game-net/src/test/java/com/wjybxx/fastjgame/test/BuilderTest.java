@@ -31,6 +31,7 @@ public class BuilderTest {
 	public static void main(String[] args) {
 		@SuppressWarnings("unchecked")
 		final DefaultRpcBuilder<String> builder = new DefaultRpcBuilder<>(1, Collections.EMPTY_LIST, true);
+		builder.setSession(null);
 		final RpcResponse sync = builder.sync();
 		System.out.println(sync);
 		builder.execute();
