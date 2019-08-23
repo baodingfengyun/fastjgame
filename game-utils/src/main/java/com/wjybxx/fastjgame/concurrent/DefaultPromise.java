@@ -447,7 +447,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     }
 
     /**
-     * 检查死锁可能，定义为方法是为了方便子类可以不检查
+     * 检查死锁可能，定义为方法是为了方便子类特殊逻辑
      */
     protected void checkDeadlock() {
         EventLoopUtils.checkDeadLock(executor());

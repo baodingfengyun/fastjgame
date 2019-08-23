@@ -24,6 +24,7 @@ import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * zookeeper节点下的配置包装器。
@@ -40,6 +41,11 @@ public class ZKNodeConfigWrapper extends ConfigWrapper {
 
     public ZKNodeConfigWrapper(Map<String, byte[]> childrenData) {
         this.childrenData = getRealMap(childrenData);
+    }
+
+    @Override
+    public Set<String> keys() {
+        return childrenData.keySet();
     }
 
     @Override

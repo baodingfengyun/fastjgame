@@ -20,6 +20,7 @@ import com.google.inject.Inject;
 import com.google.protobuf.Message;
 import com.wjybxx.fastjgame.misc.CenterInWarzoneInfo;
 import com.wjybxx.fastjgame.misc.PlatformType;
+import com.wjybxx.fastjgame.net.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,9 +48,9 @@ public class WarzoneSendMrg {
      * @param serverId 服id
      */
     public void sendToCenter(PlatformType platformType, int serverId, Message msg) {
-        CenterInWarzoneInfo centerInfo = centerInWarzoneInfoMrg.getCenterInfo(platformType, serverId);
-        if (null != centerInfo){
-            centerInfo.getSession().sendMessage(msg);
+        Session session = centerInWarzoneInfoMrg.getCenterSession(platformType, serverId);
+        if (null != session){
+            session.sendMessage(msg);
         } else {
             logger.info("try send msg to {}-{}, but already disconnect", platformType, serverId);
         }

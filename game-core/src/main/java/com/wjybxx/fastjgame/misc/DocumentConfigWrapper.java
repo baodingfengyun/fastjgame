@@ -22,6 +22,7 @@ import org.bson.Document;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 适用于全部是字符串键值对的{@link Document}
@@ -36,6 +37,11 @@ public class DocumentConfigWrapper extends ConfigWrapper {
 
     public DocumentConfigWrapper(Document document) {
         this.document = document;
+    }
+
+    @Override
+    public Set<String> keys() {
+        return document.keySet();
     }
 
     @Override

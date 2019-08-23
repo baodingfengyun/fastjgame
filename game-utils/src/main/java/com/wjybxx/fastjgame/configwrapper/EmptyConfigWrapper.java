@@ -17,6 +17,8 @@
 package com.wjybxx.fastjgame.configwrapper;
 
 import javax.annotation.concurrent.Immutable;
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * 空配置文件Wrapper
@@ -32,6 +34,11 @@ public class EmptyConfigWrapper extends ConfigWrapper {
 
     private EmptyConfigWrapper() {
 
+    }
+
+    @Override
+    public Set<String> keys() {
+        return Collections.emptySet();
     }
 
     @Override

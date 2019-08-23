@@ -18,6 +18,8 @@ package com.wjybxx.fastjgame.configwrapper;
 import com.wjybxx.fastjgame.constants.UtilConstants;
 import com.wjybxx.fastjgame.utils.ConfigUtils;
 
+import java.util.Set;
+
 /**
  * 基于字符串键值对配置的帮助类。
  *
@@ -29,6 +31,11 @@ import com.wjybxx.fastjgame.utils.ConfigUtils;
  * github - https://github.com/hl845740757
  */
 public abstract class Params {
+
+    /**
+     * 返回所有的键的集合。
+     */
+    public abstract Set<String> keys();
 
     /**
      * 如果属性名获取属性的值，如果不存在则返回null

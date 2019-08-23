@@ -35,6 +35,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.EnumMap;
 import java.util.List;
@@ -78,9 +79,14 @@ public class CenterInSceneInfoMrg implements ICenterInSceneInfoMrg {
         logger.info("connect center server {}-{}",centerInSceneInfo.getPlatformType(),centerInSceneInfo.getServerId());
     }
 
+    @Nonnull
+    private Int2ObjectMap<CenterInSceneInfo> getServerId2InfoMap(PlatformType platformType) {
+        return platInfoMap.computeIfAbsent(platformType, k -> new Int2ObjectOpenHashMap<>());
+    }
+
     private void removeInfo(CenterInSceneInfo centerInSceneInfo){
         guid2InfoMap.remove(centerInSceneInfo.getCenterWorldGuid());
-        platInfoMap.get(centerInSceneInfo.getPlatformType()).remove(centerInSceneInfo.getServerId());
+        getServerId2InfoMap(centerInSceneInfo.getPlatformType()).remove(centerInSceneInfo.getServerId());
 
         logger.info("remove center server {}-{}",centerInSceneInfo.getPlatformType(),centerInSceneInfo.getServerId());
     }
@@ -114,7 +120,7 @@ public class CenterInSceneInfoMrg implements ICenterInSceneInfoMrg {
     }
 
     /**
-     * 将制定平台制定服的玩家下线
+     * 将特定平台特定服的玩家下线
      * @param platformType 平台
      * @param serverId 区服
      */
@@ -138,7 +144,7 @@ public class CenterInSceneInfoMrg implements ICenterInSceneInfoMrg {
         CenterInSceneInfo centerInSceneInfo = new CenterInSceneInfo(session.remoteGuid(), platformType, serverId, session);
         addInfo(centerInSceneInfo);
 
-        //
+        // 返回配置的所有区域即可，非互斥区域已启动
         IntList configuredRegions = new IntArrayList(sceneWorldInfoMrg.getConfiguredRegions().size());
         for (SceneRegion sceneRegion:sceneWorldInfoMrg.getConfiguredRegions()){
             configuredRegions.add(sceneRegion.getNumber());
@@ -176,13 +182,21 @@ public class CenterInSceneInfoMrg implements ICenterInSceneInfoMrg {
      * @return session
      */
     @Nullable
-    public Session getCenterSession(PlatformType platformType,int serverId) {
-        Int2ObjectMap<CenterInSceneInfo> serverId2InfoMap = platInfoMap.get(platformType);
-        if (null == serverId2InfoMap){
-            return null;
-        }
+    public Session getCenterSession(PlatformType platformType, int serverId) {
+        Int2ObjectMap<CenterInSceneInfo> serverId2InfoMap = getServerId2InfoMap(platformType);
         CenterInSceneInfo centerInSceneInfo = serverId2InfoMap.get(serverId);
-        return centerInSceneInfo.getSession();
+        return null == centerInSceneInfo? null : centerInSceneInfo.getSession();
+    }
+
+    /**
+     * 获取中心服的session
+     * @param worldGuid 中心服的worldGuid
+     * @return session
+     */
+    @Nullable
+    public Session getCenterSession(long worldGuid) {
+        CenterInSceneInfo centerInSceneInfo = guid2InfoMap.get(worldGuid);
+        return null == centerInSceneInfo? null : centerInSceneInfo.getSession();
     }
 
 }

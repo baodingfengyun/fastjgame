@@ -19,6 +19,7 @@ import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
 import com.wjybxx.fastjgame.configwrapper.MapConfigWrapper;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Excel或CSV表格中的一行(内容行)
@@ -49,6 +50,11 @@ public class TableRow extends ConfigWrapper {
     public TableRow(int rowIndex, Map<String,String> colName2Value) {
         this.rowIndex = rowIndex;
         this.colName2Value = colName2Value;
+    }
+
+    @Override
+    public Set<String> keys() {
+        return colName2Value.keySet();
     }
 
     @Override

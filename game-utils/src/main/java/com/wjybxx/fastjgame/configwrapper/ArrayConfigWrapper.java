@@ -18,10 +18,12 @@ package com.wjybxx.fastjgame.configwrapper;
 
 
 import com.wjybxx.fastjgame.constants.UtilConstants;
+import com.wjybxx.fastjgame.utils.CollectionUtils;
 
 import javax.annotation.concurrent.Immutable;
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 基于数组的键值对配置的包装器。
@@ -33,34 +35,48 @@ import java.util.HashMap;
  */
 @Immutable
 public class ArrayConfigWrapper extends ConfigWrapper {
-    /** 键值对的数组 */
-    private final String[] pairsArray;
-    /** key-value分隔符 */
-    private final String kvDelimiter;
+
+    /**
+     * 索引好的数据
+     */
+    private Map<String,String> indexedMap;
 
     public ArrayConfigWrapper(String[] pairsArray) {
         this(pairsArray, UtilConstants.DEFAULT_KEY_VALUE_DELIMITER);
     }
 
+    /**
+     * @param pairsArray 键值对数组
+     * @param kvDelimiter 键值对分隔符
+     */
     public ArrayConfigWrapper(String[] pairsArray, String kvDelimiter) {
-        this.pairsArray = pairsArray;
-        this.kvDelimiter = kvDelimiter;
+        this.indexedMap = index(pairsArray, kvDelimiter);
+    }
+
+    @Override
+    public Set<String> keys() {
+        return indexedMap.keySet();
     }
 
     @Override
     public String getAsString(String key) {
-        for (String pair:pairsArray){
-            String[] keyValuePair = pair.split(kvDelimiter, 2);
-            if (keyValuePair[0].equals(key)){
-                return keyValuePair.length==2?keyValuePair[1]:null;
-            }
-        }
-        return null;
+        return indexedMap.get(key);
     }
 
     @Override
     public MapConfigWrapper convert2MapWrapper() {
-        HashMap<String,String> map=new HashMap<>();
+        return new MapConfigWrapper(indexedMap);
+    }
+
+    @Override
+    public String toString() {
+        return "ArrayConfigWrapper{" +
+                "indexedMap=" + indexedMap +
+                '}';
+    }
+
+    private static Map<String, String> index(String[] pairsArray, String kvDelimiter) {
+        HashMap<String,String> map = CollectionUtils.newEnoughCapacityHashMap(pairsArray.length);
         for (String pair:pairsArray){
             String[] keyValuePair = pair.split(kvDelimiter, 2);
             if (keyValuePair.length==2){
@@ -69,13 +85,6 @@ public class ArrayConfigWrapper extends ConfigWrapper {
                 map.put(keyValuePair[0],null);
             }
         }
-        return new MapConfigWrapper(map);
-    }
-
-    @Override
-    public String toString() {
-        return "ArrayConfigWrapper{" +
-                "pairsArray=" + Arrays.toString(pairsArray) +
-                '}';
+        return map;
     }
 }

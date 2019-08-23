@@ -39,13 +39,13 @@ public abstract class ConfigWrapper extends Params {
 
     /**
      * 基于map的配置是最容易理解的，最容易使用的，需要提供转换方法。
-     * @return
+     * @return MapConfigWrapper
      */
     public abstract MapConfigWrapper convert2MapWrapper();
 
     /**
      * 主要用于打印自己的数据结构，用于debug
-     * @return
+     * @return debug info
      */
     @Override
     public abstract String toString();

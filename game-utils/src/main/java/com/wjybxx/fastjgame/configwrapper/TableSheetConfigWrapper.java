@@ -17,10 +17,11 @@ package com.wjybxx.fastjgame.configwrapper;
 
 import com.wjybxx.fastjgame.tablereader.TableRow;
 import com.wjybxx.fastjgame.tablereader.TableSheet;
+import com.wjybxx.fastjgame.utils.CollectionUtils;
 
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 基于Excel或CSV的配置包装对象。
@@ -51,6 +52,11 @@ public class TableSheetConfigWrapper extends ConfigWrapper{
         this.keyColName = keyColName;
         this.valueColName = valueColName;
         this.indexedContent = Collections.unmodifiableMap(indexedContent);
+    }
+
+    @Override
+    public Set<String> keys() {
+        return indexedContent.keySet();
     }
 
     @Override
@@ -109,7 +115,7 @@ public class TableSheetConfigWrapper extends ConfigWrapper{
      */
     private static Map<String,String> createIndex(TableSheet tableSheet, String keyColName, String valueColName){
         // 使用LinkedHashMap保持原顺序
-        Map<String,String> result=new LinkedHashMap<>();
+        Map<String,String> result = CollectionUtils.newEnoughCapacityLinkedHashMap(tableSheet.getTotalRowNum());
         for (TableRow tableRow:tableSheet.getContentRows()){
             String key = tableRow.getAsString(keyColName);
             // 不可以有重复键

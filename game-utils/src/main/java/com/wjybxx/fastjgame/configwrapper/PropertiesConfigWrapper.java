@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.configwrapper;
 import javax.annotation.concurrent.Immutable;
 import java.util.HashMap;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * 基于Properties的配置的包装器。
@@ -34,6 +35,13 @@ public final class PropertiesConfigWrapper extends ConfigWrapper {
 
     public PropertiesConfigWrapper(Properties properties) {
         this.properties = properties;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Set<String> keys() {
+        final Set<?> strings = properties.keySet();
+        return (Set<String>) strings;
     }
 
     @Override

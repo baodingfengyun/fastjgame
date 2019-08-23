@@ -28,6 +28,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.EnumMap;
 import java.util.Map;
@@ -65,6 +66,7 @@ public class CenterInWarzoneInfoMrg implements ICenterInWarzoneInfoMrg {
         logger.info("server {}-{} register success.",centerInWarzoneInfo.getPlatformType(),centerInWarzoneInfo.getServerId());
     }
 
+    @Nonnull
     private Int2ObjectMap<CenterInWarzoneInfo> getServerId2InfoMap(PlatformType platformType) {
         return platInfoMap.computeIfAbsent(platformType, k -> new Int2ObjectOpenHashMap<>());
     }
@@ -96,13 +98,25 @@ public class CenterInWarzoneInfoMrg implements ICenterInWarzoneInfoMrg {
     }
 
     /**
-     * 获取center服信息
+     * 获取center服的会话
      * @param platformType center服所属的平台
      * @param serverId 服务器id
-     * @return centerInfo
+     * @return session
      */
     @Nullable
-    public CenterInWarzoneInfo getCenterInfo(PlatformType platformType, int serverId){
-        return getServerId2InfoMap(platformType).get(serverId);
+    public Session getCenterSession(PlatformType platformType, int serverId){
+        final CenterInWarzoneInfo centerInWarzoneInfo = getServerId2InfoMap(platformType).get(serverId);
+        return null == centerInWarzoneInfo ? null : centerInWarzoneInfo.getSession();
+    }
+
+    /**
+     * 获取center服的会话
+     * @param worldGuid 中心服对应的worldGuid
+     * @return session
+     */
+    @Nullable
+    public Session getCenterSession(long worldGuid){
+        final CenterInWarzoneInfo centerInWarzoneInfo = guid2InfoMap.get(worldGuid);
+        return null == centerInWarzoneInfo ? null : centerInWarzoneInfo.getSession();
     }
 }
