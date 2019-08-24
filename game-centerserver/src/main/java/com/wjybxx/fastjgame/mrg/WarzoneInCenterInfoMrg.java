@@ -25,7 +25,7 @@ import com.wjybxx.fastjgame.misc.WarzoneInCenterInfo;
 import com.wjybxx.fastjgame.net.RoleType;
 import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.net.SessionLifecycleAware;
-import com.wjybxx.fastjgame.rpcproxy.ICenterInWarzoneInfoMrgProxy;
+import com.wjybxx.fastjgame.rpcproxy.ICenterInWarzoneInfoMrgRpcProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -112,7 +112,7 @@ public class WarzoneInCenterInfoMrg {
 
         @Override
         public void onSessionConnected(Session session) {
-            ICenterInWarzoneInfoMrgProxy.connectWarzone(centerWorldInfoMrg.getPlatformType().getNumber(), centerWorldInfoMrg.getServerId())
+            ICenterInWarzoneInfoMrgRpcProxy.connectWarzone(centerWorldInfoMrg.getPlatformType().getNumber(), centerWorldInfoMrg.getServerId())
                     .setSession(session)
                     .ifSuccess(result -> connectWarzoneSuccess(session))
                     .execute();

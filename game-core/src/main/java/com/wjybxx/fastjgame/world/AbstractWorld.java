@@ -101,7 +101,7 @@ public abstract class AbstractWorld implements World{
      * 注册rpc请求处理器。
      * 使用对应的Register辅助类进行注册。
      */
-    protected abstract void registerRpcRequestHandlers();
+    protected abstract void registerRpcService();
 
     /**
      * 注册自己要处理的http请求
@@ -142,7 +142,7 @@ public abstract class AbstractWorld implements World{
 
         // 注册要处理的异步普通消息和http请求和同步rpc请求
         registerMessageHandlers();
-        registerRpcRequestHandlers();
+        registerRpcService();
         registerHttpRequestHandlers();
 
         // 子类自己的其它启动逻辑

@@ -21,11 +21,15 @@ import com.squareup.javapoet.*;
 import com.wjybxx.fastjgame.eventbus.EventBus;
 import com.wjybxx.fastjgame.eventbus.Subscribe;
 
+import javax.annotation.Generated;
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
-import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.type.TypeVariable;
+import javax.lang.model.util.SimpleTypeVisitor8;
 import javax.tools.Diagnostic;
 import java.util.Collections;
 import java.util.List;
@@ -40,24 +44,21 @@ import java.util.stream.Collectors;
  * @version 1.0
  * date - 2019/8/23
  */
+@AutoService(Processor.class)
 public class EventBusProcessor extends AbstractProcessor {
 
 	// 工具类
 	private Messager messager;
-	private Types types;
-	private Elements elements;
-	/** unchecked注解 */
-	private AnnotationSpec uncheckedAnnotation;
+	/** 生成信息 */
+	private AnnotationSpec generatedAnnotation;
 
 	@Override
 	public synchronized void init(ProcessingEnvironment processingEnv) {
 		super.init(processingEnv);
 		messager = processingEnv.getMessager();
-		types = processingEnv.getTypeUtils();
-		elements = processingEnv.getElementUtils();
 
-		uncheckedAnnotation = AnnotationSpec.builder(SuppressWarnings.class)
-				.addMember("value", "$S", "unchecked")
+		generatedAnnotation = AnnotationSpec.builder(Generated.class)
+				.addMember("value", "$S", EventBusProcessor.class.getCanonicalName())
 				.build();
 	}
 
@@ -82,12 +83,14 @@ public class EventBusProcessor extends AbstractProcessor {
 		collect.forEach((element, object) -> {
 			genProxyClass((TypeElement) element, object);
 		});
-		return false;
+		return true;
 	}
 
 	private void genProxyClass(TypeElement typeElement, List<? extends Element> methodList) {
-		final String proxyClassName = typeElement.getSimpleName().toString() + "EventRegister";
-		TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(proxyClassName);
+		final String proxyClassName = typeElement.getSimpleName().toString() + "BusRegister";
+		TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(proxyClassName)
+				.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+				.addAnnotation(generatedAnnotation);
 
 		final MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("register")
 				.addModifiers(Modifier.PUBLIC, Modifier.STATIC)
@@ -96,16 +99,33 @@ public class EventBusProcessor extends AbstractProcessor {
 
 		for (Element element:methodList) {
 			ExecutableElement method = (ExecutableElement) element;
+			// 访问权限必须是public
+			if (!method.getModifiers().contains(Modifier.PUBLIC)) {
+				messager.printMessage(Diagnostic.Kind.ERROR, "Subscriber method must be public！", method);
+				continue;
+			}
+			// 返回值类型必须是void
+			if (method.getReturnType().getKind() != TypeKind.VOID) {
+				messager.printMessage(Diagnostic.Kind.ERROR, "ReturnType must be void!", method);
+				continue;
+			}
+			// 保证有且仅有一个参数
 			if (method.getParameters().size() != 1) {
 				messager.printMessage(Diagnostic.Kind.ERROR, "subscribe method must have one and only one parameter!", method);
+				continue;
 			}
 			final VariableElement variableElement = method.getParameters().get(0);
-			TypeName typeName = ParameterizedTypeName.get(variableElement.asType());
-			if (typeName.isPrimitive()) {
-				// 基本类型需要转换为包装类型
-				typeName = typeName.box();
+			// 参数不可以是基本类型
+			if (variableElement.asType().getKind().isPrimitive()) {
+				messager.printMessage(Diagnostic.Kind.ERROR, "PrimitiveType is not allowed here!", method);
+				continue;
 			}
-
+			// 参数不可以包含泛型
+			if (containsTypeVariable(variableElement)) {
+				messager.printMessage(Diagnostic.Kind.ERROR, "TypeParameter is not allowed here!", method);
+				continue;
+			}
+			TypeName typeName = ParameterizedTypeName.get(variableElement.asType());
 			// bus.register(EventA.class, event -> instance.method(event));
 			methodBuilder.addStatement("bus.register($T.class, event -> instance.$L(event))", typeName, method.getSimpleName().toString());
 		}
@@ -114,7 +134,7 @@ public class EventBusProcessor extends AbstractProcessor {
 
 		TypeSpec typeSpec = typeBuilder.build();
 		JavaFile javaFile = JavaFile
-				.builder("com.wjybxx.fastjgame.rpcregister", typeSpec)
+				.builder("com.wjybxx.fastjgame.busregister", typeSpec)
 				// 不用导入java.lang包
 				.skipJavaLangImports(true)
 				// 4空格缩进
@@ -125,5 +145,32 @@ public class EventBusProcessor extends AbstractProcessor {
 		} catch (Exception e) {
 			processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "writeToFile caught exception!", typeElement);
 		}
+	}
+
+	/**
+	 * 判断一个变量的声明类型是否包含泛型
+	 */
+	private boolean containsTypeVariable(final VariableElement variableElement) {
+		return variableElement.asType().accept(new SimpleTypeVisitor8<Boolean, Void>(){
+
+			@Override
+			public Boolean visitDeclared(DeclaredType t, Void aVoid) {
+				// eg:
+				// method(Set<String> value)
+				return t.getTypeArguments().size() > 0;
+			}
+
+			@Override
+			public Boolean visitTypeVariable(TypeVariable t, Void aVoid) {
+				// eg:
+				// method(T value)
+				return true;
+			}
+
+			@Override
+			protected Boolean defaultAction(TypeMirror e, Void aVoid) {
+				return false;
+			}
+		},  null);
 	}
 }

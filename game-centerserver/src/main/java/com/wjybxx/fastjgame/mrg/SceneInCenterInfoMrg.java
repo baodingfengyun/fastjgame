@@ -28,8 +28,8 @@ import com.wjybxx.fastjgame.net.RoleType;
 import com.wjybxx.fastjgame.net.RpcResponse;
 import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.net.SessionLifecycleAware;
-import com.wjybxx.fastjgame.rpcproxy.ICenterInSceneInfoMrgProxy;
-import com.wjybxx.fastjgame.rpcproxy.ISceneRegionMrgProxy;
+import com.wjybxx.fastjgame.rpcproxy.ICenterInSceneInfoMrgRpcProxy;
+import com.wjybxx.fastjgame.rpcproxy.ISceneRegionMrgRpcProxy;
 import com.wjybxx.fastjgame.serializebale.ConnectCrossSceneResult;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -209,7 +209,7 @@ public class SceneInCenterInfoMrg {
         @Override
         public void onSessionConnected(Session session) {
             getSceneInfo(session.remoteGuid()).setSession(session);
-            ICenterInSceneInfoMrgProxy.connectSingleScene(centerWorldInfoMrg.getPlatformType().getNumber(), centerWorldInfoMrg.getServerId())
+            ICenterInSceneInfoMrgRpcProxy.connectSingleScene(centerWorldInfoMrg.getPlatformType().getNumber(), centerWorldInfoMrg.getServerId())
                     .setSession(session)
                     .ifSuccess(result -> connectSingleSuccessResult(session, result))
                     .execute();;
@@ -229,7 +229,7 @@ public class SceneInCenterInfoMrg {
         @Override
         public void onSessionConnected(Session session) {
             getSceneInfo(session.remoteGuid()).setSession(session);
-            ICenterInSceneInfoMrgProxy.connectCrossScene(centerWorldInfoMrg.getPlatformType().getNumber(), centerWorldInfoMrg.getServerId())
+            ICenterInSceneInfoMrgRpcProxy.connectCrossScene(centerWorldInfoMrg.getPlatformType().getNumber(), centerWorldInfoMrg.getServerId())
                     .setSession(session)
                     .ifSuccess(result -> connectCrossSceneSuccess(session, result))
                     .execute();
@@ -266,7 +266,7 @@ public class SceneInCenterInfoMrg {
 
 
         // TODO 这里现在是测试的
-        final RpcResponse rpcResponse = ISceneRegionMrgProxy.startMutexRegion(Collections.singletonList(SceneRegion.LOCAL_PKC.getNumber()))
+        final RpcResponse rpcResponse = ISceneRegionMrgRpcProxy.startMutexRegion(Collections.singletonList(SceneRegion.LOCAL_PKC.getNumber()))
                 .setSession(session)
                 .sync();
         if (rpcResponse.isSuccess()){

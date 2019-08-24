@@ -55,7 +55,7 @@ public class LoginWorld extends AbstractWorld {
     }
 
     @Override
-    protected void registerRpcRequestHandlers() {
+    protected void registerRpcService() {
 
     }
 
@@ -63,7 +63,6 @@ public class LoginWorld extends AbstractWorld {
     protected void registerHttpRequestHandlers() {
 
     }
-
 
     @Override
     protected void startHook() throws Exception {

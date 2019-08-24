@@ -17,13 +17,13 @@
 package com.wjybxx.fastjgame.misc;
 
 /**
- * 函数仓库，本质是发布订阅/观察者的一种
+ * Rpc调用函数注册表，本质是发布订阅/观察者的一种
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/21
  * github - https://github.com/hl845740757
  */
-public interface RpcFunctionRepository {
+public interface RpcFunctionRegistry {
 
 	/**
 	 * 注册一个rpc请求处理函数

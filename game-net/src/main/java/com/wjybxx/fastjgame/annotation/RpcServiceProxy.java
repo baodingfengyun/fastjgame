@@ -33,7 +33,7 @@ import java.lang.annotation.Target;
 public @interface RpcServiceProxy {
 
 	/**
-	 * 该类对应的serviceId,由该id和methodId构成唯一索引
+	 * 该类对应的serviceId，由该id和methodId构成唯一索引
 	 * @return short
 	 */
 	short serviceId();

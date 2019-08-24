@@ -24,7 +24,7 @@ import com.wjybxx.fastjgame.annotation.RpcService;
 import com.wjybxx.fastjgame.annotation.RpcServiceProxy;
 import com.wjybxx.fastjgame.misc.DefaultRpcBuilder;
 import com.wjybxx.fastjgame.misc.RpcBuilder;
-import com.wjybxx.fastjgame.misc.RpcFunctionRepository;
+import com.wjybxx.fastjgame.misc.RpcFunctionRegistry;
 import com.wjybxx.fastjgame.net.RpcResponse;
 import com.wjybxx.fastjgame.net.RpcResponseChannel;
 import com.wjybxx.fastjgame.net.Session;
@@ -92,7 +92,7 @@ import java.util.stream.Collectors;
 @AutoService(Processor.class)
 public class RpcServiceProcessor extends AbstractProcessor {
 
-	private static final String repository = "repository";
+	private static final String registry = "registry";
 	private static final String session = "session";
 	private static final String methodParams = "methodParams";
 	private static final String responseChannel = "responseChannel";
@@ -132,7 +132,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 	/** 所有的serviceId集合，判断重复 */
 	private final ShortSet serviceIdSet = new ShortOpenHashSet(128);
 	/** 所有的methodKey集合，判断重复 */
-	private final IntSet methodKeySet = new IntOpenHashSet(1024);
+	private final IntSet methodKeySet = new IntOpenHashSet(512);
 
 	/** 生成信息 */
 	private AnnotationSpec generatedAnnotation;
@@ -239,7 +239,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 		// 客户端代理，生成在core包下
 		{
 			// 代理类不可以继承
-			TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(className + "Proxy")
+			TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(className + "RpcProxy")
 					.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
 					.addAnnotation(generatedAnnotation)
 					.addAnnotation(proxyAnnotation);
@@ -259,7 +259,6 @@ public class RpcServiceProcessor extends AbstractProcessor {
 			try {
 				// 输出到注解处理器配置的路径下，这样才可以在下一轮检测到并进行编译 输出到processingEnv.getFiler()会立即参与编译
 				// 如果自己指定路径，可以生成源码到指定路径，但是可能无法被编译器检测到，本轮无法参与编译，需要再进行一次编译
-//				javaFile.writeTo(new File(proxy_out_dir));
 				javaFile.writeTo(processingEnv.getFiler());
 			} catch (Exception e) {
 				processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "writeToFile caught exception!", typeElement);
@@ -268,7 +267,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 
 		// 服务器代理，生成在自己模块
 		{
-			TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(className + "Register")
+			TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(className + "RpcRegister")
 					.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
 					.addAnnotation(generatedAnnotation)
 					.addAnnotation(proxyAnnotation);
@@ -288,7 +287,6 @@ public class RpcServiceProcessor extends AbstractProcessor {
 					.build();
 			try {
 				javaFile.writeTo(processingEnv.getFiler());
-//				javaFile.writeTo(new File(register_out_dir));
 			} catch (IOException e) {
 				processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "writeToFile caught exception!", typeElement);
 			}
@@ -472,9 +470,9 @@ public class RpcServiceProcessor extends AbstractProcessor {
 	/**
 	 * 生成注册方法
 	 * {@code
-	 * 		public static void register(RpcFunctionRepository repository, T className) {
-	 * 		 	registerGetMethod1(repository, t);
-	 * 		 	registerGetMethod2(repository, t);
+	 * 		public static void register(RpcFunctionRegistry registry, T instance) {
+	 * 		 	registerGetMethod1(registry, instance);
+	 * 		 	registerGetMethod2(registry, instance);
 	 * 		}
 	 * }
 	 * @param typeElement 类信息
@@ -486,12 +484,12 @@ public class RpcServiceProcessor extends AbstractProcessor {
 		MethodSpec.Builder builder = MethodSpec.methodBuilder("register")
 				.addModifiers(Modifier.PUBLIC, Modifier.STATIC)
 				.returns(TypeName.VOID)
-				.addParameter(RpcFunctionRepository.class, repository)
+				.addParameter(RpcFunctionRegistry.class, registry)
 				.addParameter(TypeName.get(typeElement.asType()), classParamName);
 
 		// 添加调用
 		for (MethodSpec method:serverProxyMethodList) {
-			builder.addStatement("$L($L, $L)", method.name, repository, classParamName);
+			builder.addStatement("$L($L, $L)", method.name, registry, classParamName);
 		}
 		return builder.build();
 	}
@@ -499,10 +497,10 @@ public class RpcServiceProcessor extends AbstractProcessor {
 	/**
 	 * 为某个具体方法生成注册方法
 	 * {@code
-	 * 		private static void registerGetMethod1(RpcFunctionRepository repository, T className) {
-	 * 		    repository.register(10001, (session, methodParams, responseChannel) -> {
+	 * 		private static void registerGetMethod1(RpcFunctionRegistry registry, T instance) {
+	 * 		    registry.register(10001, (session, methodParams, responseChannel) -> {
 	 * 		       // code-
-	 * 		       className.method1(method.get(0), method.get(1), responseChannel);
+	 * 		       instance.method1(methodParams.get(0), methodParams.get(1), responseChannel);
 	 * 		    });
 	 * 		}
 	 * }
@@ -518,7 +516,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 		MethodSpec.Builder builder = MethodSpec.methodBuilder(methodName)
 				.addModifiers(Modifier.PRIVATE, Modifier.STATIC)
 				.returns(TypeName.VOID)
-				.addParameter(RpcFunctionRepository.class, repository)
+				.addParameter(RpcFunctionRegistry.class, registry)
 				.addParameter(TypeName.get(typeElement.asType()), classParamName);
 
 		// 注明方法键值
@@ -527,7 +525,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 				.build();
 		builder.addAnnotation(annotationSpec);
 
-		builder.addCode("$L.register($L, ($L, $L, $L) -> {\n", repository, methodKey,
+		builder.addCode("$L.register($L, ($L, $L, $L) -> {\n", registry, methodKey,
 				session, methodParams, responseChannel);
 
 		if (!isVoidType(executableElement.getReturnType())) {
@@ -560,11 +558,8 @@ public class RpcServiceProcessor extends AbstractProcessor {
 
 		if (null != returnType) {
 			format.append("$T $L = ");
-			// 对返回值进行包装
+			// 返回值是什么类型就是什么类型，不需要包装
 			TypeName typeName = ParameterizedTypeName.get(returnType);
-			if (typeName.isPrimitive()) {
-				typeName = typeName.box();
-			}
 			params.add(typeName);
 			params.add(result);
 		}
@@ -589,12 +584,19 @@ public class RpcServiceProcessor extends AbstractProcessor {
 			} else {
 				TypeName typeName = ParameterizedTypeName.get(variableElement.asType());
 				if (typeName.isPrimitive()) {
-					// 基本类型需要转换为包装类型
-					typeName = typeName.box();
+					// 基本类型需要两次转换，否则可能导致重载问题
+					// (int)((Integer)methodParams.get(index))
+					// eg:
+					// getName(int age);
+					// getName(Integer age);
+					format.append("($T)(($T)$L.get($L))");
+					params.add(typeName);
+					params.add(typeName.box());
+				} else {
+					format.append("($T)$L.get($L)");
+					params.add(typeName);
+
 				}
-				// 这里的T不导包有点坑爹
-				format.append("($T)($L.get($L))");
-				params.add(typeName);
 				params.add(methodParams);
 				params.add(index);
 				index++;

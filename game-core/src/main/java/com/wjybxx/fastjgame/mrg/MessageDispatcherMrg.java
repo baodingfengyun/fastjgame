@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.annotation.WorldSingleton;
-import com.wjybxx.fastjgame.misc.DefaultRpcFunctionRepository;
+import com.wjybxx.fastjgame.misc.DefaultRpcFunctionRegistry;
 import com.wjybxx.fastjgame.misc.RpcCall;
 import com.wjybxx.fastjgame.misc.VoidRpcResponseChannel;
 import com.wjybxx.fastjgame.net.MessageHandler;
@@ -42,7 +42,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @WorldSingleton
 @NotThreadSafe
-public class MessageDispatcherMrg extends DefaultRpcFunctionRepository implements MessageHandler {
+public class MessageDispatcherMrg extends DefaultRpcFunctionRegistry implements MessageHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(MessageDispatcherMrg.class);
 

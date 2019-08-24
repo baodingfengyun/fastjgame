@@ -22,6 +22,8 @@ import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.mrg.*;
 import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.net.SessionLifecycleAware;
+import com.wjybxx.fastjgame.rpcproxy.ICenterInWarzoneInfoMrgRpcProxy;
+import com.wjybxx.fastjgame.rpcregister.ICenterInWarzoneInfoMrgRpcRegister;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.SystemUtils;
@@ -60,8 +62,8 @@ public class WarzoneWorld extends AbstractWorld {
     }
 
     @Override
-    protected void registerRpcRequestHandlers() {
-//        CenterInWarzoneInfoMrgProxy.register(messageDispatcherMrg, centerInWarzoneInfoMrg);
+    protected void registerRpcService() {
+        ICenterInWarzoneInfoMrgRpcRegister.register(messageDispatcherMrg, centerInWarzoneInfoMrg);
     }
 
     @Override
