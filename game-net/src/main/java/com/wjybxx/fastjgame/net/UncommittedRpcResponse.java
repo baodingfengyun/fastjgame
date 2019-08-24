@@ -34,7 +34,7 @@ public class UncommittedRpcResponse implements UncommittedMessage{
 	}
 
 	@Override
-	public void commit(Session session, MessageHandler messageHandler) throws Exception {
+	public void commit(Session session, ProtocolDispatcher protocolDispatcher) throws Exception {
 		rpcCallback.onComplete(rpcResponse);
 	}
 

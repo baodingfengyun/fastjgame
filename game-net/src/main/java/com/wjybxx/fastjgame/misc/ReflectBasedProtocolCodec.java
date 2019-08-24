@@ -116,16 +116,16 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
 				new ReferenceCodec(),
 
 				new ListCodec(),
-				new SetCodec(),
 				new MapCodec(),
+				new SetCodec(),
 
 				new ProtoEnumCodec(),
 				new NumberEnumCodec(),
 
+				new BoolCodec(),
+				new DoubleCodec(),
 				new ByteCodec(),
 				new ShortCodec(),
-				new DoubleCodec(),
-				new BoolCodec(),
 
 				// 正常情况很少使用char
 				new CharCodec(),

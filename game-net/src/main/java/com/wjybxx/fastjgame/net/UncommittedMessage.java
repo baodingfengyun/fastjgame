@@ -29,10 +29,10 @@ public interface UncommittedMessage {
 	/**
 	 * 执行提交操作，此时运行在用户线程下。
 	 * @param session 所在的session
-	 * @param messageHandler 该会话上的消息处理器
+	 * @param protocolDispatcher 该会话上的消息处理器
 	 * @throws Exception error
 	 */
-	void commit(Session session, MessageHandler messageHandler) throws Exception;
+	void commit(Session session, ProtocolDispatcher protocolDispatcher) throws Exception;
 
 	/**
 	 * 被拒绝时的处理，此时运行在网络线程下。

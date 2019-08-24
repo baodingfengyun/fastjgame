@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * 客户端到服务器的会话信息
+ * 连接的发起方建立的会话信息
  *
  * @author wjybxx
  * @version 1.0

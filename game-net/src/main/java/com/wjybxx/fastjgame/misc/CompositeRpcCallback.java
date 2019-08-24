@@ -16,10 +16,10 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.function.AnyRunnable;
 import com.wjybxx.fastjgame.net.RpcCallback;
 import com.wjybxx.fastjgame.net.RpcResponse;
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -31,22 +31,31 @@ import java.util.List;
  * date - 2019/8/19
  * github - https://github.com/hl845740757
  */
-public class CompositeRpcCallback<V> implements RpcCallback {
+public final class CompositeRpcCallback<V> implements RpcCallback {
 
-	private final List<RpcCallback> rpcCallbackList = new LinkedList<>();
+	private static final Logger logger = LoggerFactory.getLogger(CompositeRpcCallback.class);
+	/**
+	 * 该节点管理的所有子节点
+	 */
+	private final List<RpcCallback> children = new LinkedList<>();
 
 	public CompositeRpcCallback() {
+
 	}
 
 	public CompositeRpcCallback(RpcCallback first, RpcCallback second) {
-		rpcCallbackList.add(first);
-		rpcCallbackList.add(second);
+		children.add(first);
+		children.add(second);
 	}
 
 	@Override
 	public void onComplete(RpcResponse rpcResponse) {
-		for (RpcCallback rpcCallback : rpcCallbackList) {
-			ConcurrentUtils.safeExecute((Runnable) () -> rpcCallback.onComplete(rpcResponse));
+		for (RpcCallback rpcCallback : children) {
+			try {
+				rpcCallback.onComplete(rpcResponse);
+			} catch (Exception e){
+				logger.warn("Child {} callback caught exception!", rpcCallback.getClass().getName(), e);
+			}
 		}
 	}
 
@@ -55,7 +64,7 @@ public class CompositeRpcCallback<V> implements RpcCallback {
 	 * @return this
 	 */
 	public CompositeRpcCallback<V> ifSuccess(SucceedRpcCallback<V> rpcCallback) {
-		rpcCallbackList.add(rpcCallback);
+		children.add(rpcCallback);
 		return this;
 	}
 
@@ -64,7 +73,7 @@ public class CompositeRpcCallback<V> implements RpcCallback {
 	 * @return this
 	 */
 	public CompositeRpcCallback<V> ifFailure(FailedRpcCallback rpcCallback) {
-		rpcCallbackList.add(rpcCallback);
+		children.add(rpcCallback);
 		return this;
 	}
 
@@ -73,7 +82,7 @@ public class CompositeRpcCallback<V> implements RpcCallback {
 	 * @return this
 	 */
 	public CompositeRpcCallback<V> any(RpcCallback rpcCallback) {
-		rpcCallbackList.add(rpcCallback);
+		children.add(rpcCallback);
 		return this;
 	}
 
@@ -82,6 +91,6 @@ public class CompositeRpcCallback<V> implements RpcCallback {
 	 * @param callback 回调
 	 */
 	public boolean remove(RpcCallback callback) {
-		return rpcCallbackList.remove(callback);
+		return children.remove(callback);
 	}
 }

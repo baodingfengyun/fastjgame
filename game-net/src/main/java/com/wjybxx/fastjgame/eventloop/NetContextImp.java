@@ -126,12 +126,12 @@ class NetContextImp implements NetContext {
 	}
 
 	@Override
-	public ListenableFuture<HostAndPort> bindRange(String host, PortRange portRange, ChannelInitializer<SocketChannel> initializer, SessionLifecycleAware lifecycleAware, MessageHandler messageHandler) {
+	public ListenableFuture<HostAndPort> bindRange(String host, PortRange portRange, ChannelInitializer<SocketChannel> initializer, SessionLifecycleAware lifecycleAware, ProtocolDispatcher protocolDispatcher) {
 		// 这里一定不是网络层，只有逻辑层才会调用bind
 		return netEventLoop.submit(() -> {
 			try {
 				return managerWrapper.getS2CSessionManager().bindRange(this, host, portRange,
-						initializer, lifecycleAware, messageHandler);
+						initializer, lifecycleAware, protocolDispatcher);
 			} catch (BindException e){
 				ConcurrentUtils.rethrow(e);
 				// unreachable
@@ -141,11 +141,11 @@ class NetContextImp implements NetContext {
 	}
 
 	@Override
-	public ListenableFuture<?> connect(long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress, ChannelInitializerSupplier initializerSupplier, SessionLifecycleAware lifecycleAware, MessageHandler messageHandler) {
+	public ListenableFuture<?> connect(long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress, ChannelInitializerSupplier initializerSupplier, SessionLifecycleAware lifecycleAware, ProtocolDispatcher protocolDispatcher) {
 		// 这里一定不是网络层，只有逻辑层才会调用connect
 		return netEventLoop.submit(() -> {
 			managerWrapper.getC2SSessionManager().connect(this, remoteGuid, remoteRole, remoteAddress,
-					initializerSupplier, lifecycleAware, messageHandler);
+					initializerSupplier, lifecycleAware, protocolDispatcher);
 		});
 	}
 

@@ -40,7 +40,7 @@ public class WorldWrapper {
     private final GameEventLoopMrg gameEventLoopMrg;
     private final GlobalExecutorMrg globalExecutorMrg;
     private final HttpDispatcherMrg httpDispatcherMrg;
-    private final MessageDispatcherMrg messageDispatcherMrg;
+    private final ProtocolDispatcherMrg protocolDispatcherMrg;
     private final InnerAcceptorMrg innerAcceptorMrg;
     private final NetContextMrg netContextMrg;
     private final WorldTimeMrg worldTimeMrg;
@@ -51,13 +51,13 @@ public class WorldWrapper {
 
     @Inject
     public WorldWrapper(GameEventLoopMrg gameEventLoopMrg, WorldInfoMrg worldInfoMrg, WorldTimeMrg worldTimeMrg,
-						MessageDispatcherMrg messageDispatcherMrg, HttpDispatcherMrg httpDispatcherMrg,
+						ProtocolDispatcherMrg protocolDispatcherMrg, HttpDispatcherMrg httpDispatcherMrg,
 						ProtocolCodecMrg protocolCodecMrg, WorldTimerMrg worldTimerMrg, GlobalExecutorMrg globalExecutorMrg,
 						CuratorMrg curatorMrg, GuidMrg guidMrg, GameConfigMrg gameConfigMrg, NetContextMrg netContextMrg, CuratorClientMrg curatorClientMrg, TemplateMrg templateMrg, InnerAcceptorMrg innerAcceptorMrg) {
         this.gameEventLoopMrg = gameEventLoopMrg;
         this.worldInfoMrg = worldInfoMrg;
         this.worldTimeMrg = worldTimeMrg;
-        this.messageDispatcherMrg = messageDispatcherMrg;
+        this.protocolDispatcherMrg = protocolDispatcherMrg;
         this.httpDispatcherMrg = httpDispatcherMrg;
         this.protocolCodecMrg = protocolCodecMrg;
         this.worldTimerMrg = worldTimerMrg;
@@ -83,8 +83,8 @@ public class WorldWrapper {
         return worldTimeMrg;
     }
 
-    public MessageDispatcherMrg getMessageDispatcherMrg() {
-        return messageDispatcherMrg;
+    public ProtocolDispatcherMrg getProtocolDispatcherMrg() {
+        return protocolDispatcherMrg;
     }
 
     public HttpDispatcherMrg getHttpDispatcherMrg() {

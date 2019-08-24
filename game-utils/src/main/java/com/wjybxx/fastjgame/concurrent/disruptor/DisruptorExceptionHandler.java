@@ -38,16 +38,16 @@ public class DisruptorExceptionHandler implements ExceptionHandler<Event> {
 
 	@Override
 	public void handleEventException(Throwable ex, long sequence, Event event) {
-		logger.warn("onEvent caught exception " , ex);
+		logger.warn("onEvent caught exception!" , ex);
 	}
 
 	@Override
 	public void handleOnStartException(Throwable ex) {
-		logger.error("onStart caught exception " , ex);
+		logger.error("onStart caught exception!" , ex);
 	}
 
 	@Override
 	public void handleOnShutdownException(Throwable ex) {
-		logger.error("onShutdown caught exception " , ex);
+		logger.error("onShutdown caught exception!" , ex);
 	}
 }

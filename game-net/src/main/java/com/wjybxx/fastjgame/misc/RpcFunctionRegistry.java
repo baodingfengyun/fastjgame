@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.misc;
 
+import javax.annotation.Nonnull;
+
 /**
  * Rpc调用函数注册表，本质是发布订阅/观察者的一种
  * @author wjybxx
@@ -30,6 +32,6 @@ public interface RpcFunctionRegistry {
 	 * @param methodKey 方法唯一键
 	 * @param function 处理函数，该函数由代理代码生成工具自动生成，当然你也可以闲得蛋疼自己写。
 	 */
-	void register(int methodKey, RpcFunction function);
+	void register(int methodKey, @Nonnull RpcFunction function);
 
 }

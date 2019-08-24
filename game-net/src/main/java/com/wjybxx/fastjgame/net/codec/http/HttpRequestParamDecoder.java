@@ -66,7 +66,7 @@ public class HttpRequestParamDecoder extends SimpleChannelInboundHandler<FullHtt
         if (!decoderResult.isSuccess()){
             ctx.writeAndFlush(HttpResponseHelper.newBadRequestResponse())
                     .addListener(ChannelFutureListener.CLOSE);
-            logger.warn("decode failed.");
+            logger.warn("decode failed.", decoderResult.cause());
             return;
         }
         HttpMethod method = msg.method();
@@ -74,15 +74,15 @@ public class HttpRequestParamDecoder extends SimpleChannelInboundHandler<FullHtt
         if (method != HttpMethod.GET && method !=HttpMethod.POST){
             ctx.writeAndFlush(HttpResponseHelper.newBadRequestResponse())
                     .addListener(ChannelFutureListener.CLOSE);
-            logger.info("unsupported method {}",method);
+            logger.info("unsupported method {}", method.name());
             return;
         }
 
         QueryStringDecoder queryStringDecoder=new QueryStringDecoder(msg.uri());
         String path=queryStringDecoder.path();
-        Map<String,String> paramsMap=new LinkedHashMap<>();
+        Map<String,String> paramsMap = new LinkedHashMap<>();
 
-        if (method==HttpMethod.GET){
+        if (method == HttpMethod.GET){
             for (Map.Entry<String, List<String>> entry:queryStringDecoder.parameters().entrySet()){
                 paramsMap.put(entry.getKey(),entry.getValue().get(0));
             }
@@ -92,8 +92,8 @@ public class HttpRequestParamDecoder extends SimpleChannelInboundHandler<FullHtt
             try {
                 for (InterfaceHttpData httpData:postRequestDecoder.getBodyHttpDatas()){
                     if (httpData.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute){
-                        Attribute attribute= (Attribute) httpData;
-                        paramsMap.put(attribute.getName(),attribute.getValue());
+                        Attribute attribute = (Attribute) httpData;
+                        paramsMap.put(attribute.getName(), attribute.getValue());
                     }
                 }
             }finally {

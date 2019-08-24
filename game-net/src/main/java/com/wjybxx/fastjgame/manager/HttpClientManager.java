@@ -188,7 +188,7 @@ public class HttpClientManager {
                 try {
                     responseCallback.onResponse(call, response);
                 } catch (Exception e) {
-                    logger.warn("{} onResponse caught exception", call.request().url());
+                    logger.warn("{} onResponse caught exception", call.request().url(), e);
                 } finally {
                     // 必须调用close释放资源
                     NetUtils.closeQuietly(response);

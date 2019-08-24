@@ -19,22 +19,15 @@ package com.wjybxx.fastjgame.net;
 import javax.annotation.Nullable;
 
 /**
- * 业务逻辑消息处理器，包括单向消息，rpc请求
+ * 协议分发器，将。
+ * {@link ProtocolCodec}在网络层，而{@link ProtocolDispatcher}在应用层，在用户线程。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/4/27 22:05
  * github - https://github.com/hl845740757
  */
-public interface MessageHandler {
-
-    /**
-     * 处理该会话发来单向的消息
-     * @param session 会话信息
-     * @param message 业务逻辑消息，如果编解码异常，则可能为null。
-     * @throws Exception error
-     */
-    void onMessage(Session session, @Nullable Object message) throws Exception;
+public interface ProtocolDispatcher {
 
     /**
      * 处理该会话发来的Rpc请求
@@ -45,5 +38,13 @@ public interface MessageHandler {
      * @throws Exception error
      */
     void onRpcRequest(Session session, @Nullable Object request, RpcRequestContext context) throws Exception;
+
+    /**
+     * 处理该会话发来单向的消息
+     * @param session 会话信息
+     * @param message 业务逻辑消息，如果编解码异常，则可能为null。
+     * @throws Exception error
+     */
+    void onMessage(Session session, @Nullable Object message) throws Exception;
 
 }

@@ -107,7 +107,7 @@ public class C2SSessionManager extends SessionManager {
 
     /** 提交rpc结果 */
     private void commitRpcResponse(SessionWrapper sessionWrapper, RpcPromiseInfo rpcPromiseInfo, RpcResponse rpcResponse) {
-        commitRpcResponse(sessionWrapper.userInfo.netContext, sessionWrapper.session, sessionWrapper.messageQueue, sessionWrapper.messageHandler,
+        commitRpcResponse(sessionWrapper.userInfo.netContext, sessionWrapper.session, sessionWrapper.messageQueue, sessionWrapper.protocolDispatcher,
                 rpcPromiseInfo, rpcResponse);
     }
 
@@ -134,12 +134,12 @@ public class C2SSessionManager extends SessionManager {
      * @param hostAndPort 服务器地址
      * @param initializerSupplier 初始化器提供者，如果initializer是线程安全的，可以始终返回同一个对象
      * @param lifecycleAware 作为客户端，链接不同的服务器时，可能有不同的生命周期事件处理
-     * @param messageHandler 消息处理器
+     * @param protocolDispatcher 消息处理器
      */
     public void connect(NetContext netContext, long serverGuid, RoleType serverType, HostAndPort hostAndPort,
                         @Nonnull ChannelInitializerSupplier initializerSupplier,
                         @Nonnull SessionLifecycleAware lifecycleAware,
-                        @Nonnull MessageHandler messageHandler) throws IllegalArgumentException{
+                        @Nonnull ProtocolDispatcher protocolDispatcher) throws IllegalArgumentException{
         long localGuid = netContext.localGuid();
         // 已注册
         if (getSessionWrapper(localGuid, serverGuid) != null){
@@ -151,7 +151,7 @@ public class C2SSessionManager extends SessionManager {
         // 创建会话
         C2SSessionImp session = new C2SSessionImp(netContext, managerWrapper, serverGuid, serverType, hostAndPort);
         byte[] encryptedLoginToken = tokenManager.newEncryptedLoginToken(netContext.localGuid(), netContext.localRole(), serverGuid, serverType);
-        SessionWrapper sessionWrapper = new SessionWrapper(userInfo, initializerSupplier, lifecycleAware, messageHandler, session, encryptedLoginToken);
+        SessionWrapper sessionWrapper = new SessionWrapper(userInfo, initializerSupplier, lifecycleAware, protocolDispatcher, session, encryptedLoginToken);
         // 保存会话
         userInfo.sessionWrapperMap.put(session.remoteGuid(), sessionWrapper);
         // 初始为连接状态
@@ -496,8 +496,8 @@ public class C2SSessionManager extends SessionManager {
             return sessionWrapper.getSndTokenSequencer();
         }
 
-        MessageHandler getMessageHandler() {
-            return sessionWrapper.messageHandler;
+        ProtocolDispatcher getMessageHandler() {
+            return sessionWrapper.protocolDispatcher;
         }
 
         protected abstract void enter();
@@ -1045,7 +1045,7 @@ public class C2SSessionManager extends SessionManager {
         /**
          * 消息处理器
          */
-        private final MessageHandler messageHandler;
+        private final ProtocolDispatcher protocolDispatcher;
 
         /**
          * 客户端与服务器之间的会话信息
@@ -1074,12 +1074,12 @@ public class C2SSessionManager extends SessionManager {
         private C2SSessionState state;
 
         SessionWrapper(UserInfo userInfo, ChannelInitializerSupplier initializerSupplier,
-					   SessionLifecycleAware lifecycleAware, MessageHandler messageHandler,
+					   SessionLifecycleAware lifecycleAware, ProtocolDispatcher protocolDispatcher,
 					   C2SSessionImp session, byte[] encryptedToken) {
             this.userInfo = userInfo;
             this.initializerSupplier = initializerSupplier;
             this.lifecycleAware = lifecycleAware;
-            this.messageHandler = messageHandler;
+            this.protocolDispatcher = protocolDispatcher;
             this.session = session;
             this.encryptedToken = encryptedToken;
         }

@@ -25,7 +25,7 @@ import java.util.LinkedList;
 /**
  * 消息队列，可与tcp的收发缓冲区比较
  * （知识点：滑动窗口，捎带确认）
- *
+ * <pre>
  * 消息队列的视图大致如下：
  *
  *              ↓nextSequence
@@ -34,7 +34,7 @@ import java.util.LinkedList;
  * | --------------------------|
  * |    0~n    |      0~n      |
  * |---------------------------
- *
+ * </pre>
  * @author wjybxx
  * @version 1.0
  * date - 2019/4/27 11:43

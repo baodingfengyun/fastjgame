@@ -23,6 +23,7 @@ import java.io.IOException;
 
 /**
  * 协议编解码器。
+ * {@link ProtocolCodec}在网络层，而{@link ProtocolDispatcher}在应用层，在用户线程。
  *
  * @author wjybxx
  * @version 1.0
@@ -53,7 +54,6 @@ public interface ProtocolCodec {
 	/**
 	 * 编码rpc响应结果。
 	 * 当且仅当{@link RpcResultCode#hasBody() true}时才会调用。
-	 *
 	 *
 	 * @param bufAllocator buf分配器
 	 * @param body rpc响应内容

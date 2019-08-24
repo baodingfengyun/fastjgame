@@ -60,7 +60,7 @@ public class EventBus {
 			} catch (Exception e){
 				// 不能因为某个异常导致其它监听器接收不到事件
 				logger.warn("onEvent caught exception! EventInfo {}, handler info {}",
-						event.getClass().getName(), eventHandler.getClass().getName());
+						event.getClass().getName(), eventHandler.getClass().getName(), e);
 			}
 		}
 	}

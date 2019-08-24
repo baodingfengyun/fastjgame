@@ -62,8 +62,8 @@ public class SceneWorld extends AbstractWorld {
     @Override
     protected void registerRpcService() {
         // 也可以在管理器里进行注册
-        ISceneRegionMrgRpcRegister.register(messageDispatcherMrg, sceneRegionMrg);
-        ICenterInSceneInfoMrgRpcRegister.register(messageDispatcherMrg, centerInSceneInfoMrg);
+        ISceneRegionMrgRpcRegister.register(protocolDispatcherMrg, sceneRegionMrg);
+        ICenterInSceneInfoMrgRpcRegister.register(protocolDispatcherMrg, centerInSceneInfoMrg);
     }
 
     @Override
@@ -92,11 +92,11 @@ public class SceneWorld extends AbstractWorld {
         TCPServerChannelInitializer tcplInitializer = netContext.newTcpServerInitializer(protocolCodecMrg.getInnerProtocolCodec());
 
         HostAndPort outerTcpHostAndPort = netContext.bindRange(NetUtils.getOuterIp(), GameUtils.OUTER_TCP_PORT_RANGE,
-                tcplInitializer, new PlayerLifeAware(), messageDispatcherMrg).get();
+                tcplInitializer, new PlayerLifeAware(), protocolDispatcherMrg).get();
 
         WsServerChannelInitializer wsInitializer = netContext.newWsServerInitializer("/ws", protocolCodecMrg.getInnerProtocolCodec());
         HostAndPort outerWebsocketHostAndPort = netContext.bindRange(NetUtils.getOuterIp(), GameUtils.OUTER_WS_PORT_RANGE,
-                wsInitializer, new PlayerLifeAware(), messageDispatcherMrg).get();
+                wsInitializer, new PlayerLifeAware(), protocolDispatcherMrg).get();
 
         SceneNodeData sceneNodeData =new SceneNodeData(innerTcpAddress.toString(), innerHttpAddress.toString(), localAddress.toString(), SystemUtils.getMAC(),
                 sceneWorldInfoMrg.getChannelId(), outerTcpHostAndPort.toString(),outerWebsocketHostAndPort.toString());

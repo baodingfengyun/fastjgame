@@ -54,7 +54,7 @@ public class PipelineEchoClientLoop extends SingleThreadEventLoop {
 				ExampleConstants.jsonBasedCodec);
 		final HostAndPort address = new HostAndPort(NetUtils.getLocalIp(), ExampleConstants.tcpPort);
 		netContext.connect(ExampleConstants.serverGuid, ExampleConstants.serverRole, address, () -> initializer,
-				new ServerLifeAward(), new EchoMessageHandler());
+				new ServerLifeAward(), new EchoProtocolDispatcher());
 	}
 
 	public void loop() {
@@ -183,7 +183,7 @@ public class PipelineEchoClientLoop extends SingleThreadEventLoop {
 		}
 	}
 
-	private class EchoMessageHandler implements MessageHandler {
+	private class EchoProtocolDispatcher implements ProtocolDispatcher {
 
 		@Override
 		public void onMessage(Session session, @Nullable Object message) throws Exception {

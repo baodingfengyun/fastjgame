@@ -21,7 +21,7 @@ import com.wjybxx.fastjgame.annotation.WorldSingleton;
 import com.wjybxx.fastjgame.misc.DefaultRpcFunctionRegistry;
 import com.wjybxx.fastjgame.misc.RpcCall;
 import com.wjybxx.fastjgame.misc.VoidRpcResponseChannel;
-import com.wjybxx.fastjgame.net.MessageHandler;
+import com.wjybxx.fastjgame.net.ProtocolDispatcher;
 import com.wjybxx.fastjgame.net.RpcRequestContext;
 import com.wjybxx.fastjgame.net.Session;
 import org.slf4j.Logger;
@@ -32,8 +32,9 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
+ * 协议分发管理器。
  * 实现TCP/Ws长链接的 [单向消息] 和 [rpc请求] 的分发。
- * 注意：不同的world有不同的消息处理器，单例级别为world级别。
+ * 注意：不同的world有不同的协议处理器，单例级别为world级别。
  *
  * @author wjybxx
  * @version 1.0
@@ -42,12 +43,12 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @WorldSingleton
 @NotThreadSafe
-public class MessageDispatcherMrg extends DefaultRpcFunctionRegistry implements MessageHandler {
+public class ProtocolDispatcherMrg extends DefaultRpcFunctionRegistry implements ProtocolDispatcher {
 
-    private static final Logger logger = LoggerFactory.getLogger(MessageDispatcherMrg.class);
+    private static final Logger logger = LoggerFactory.getLogger(ProtocolDispatcherMrg.class);
 
     @Inject
-    public MessageDispatcherMrg() {
+    public ProtocolDispatcherMrg() {
 
     }
 

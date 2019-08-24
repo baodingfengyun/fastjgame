@@ -46,14 +46,14 @@ import java.util.Objects;
 public class InnerAcceptorMrg {
 
     private final ProtocolCodecMrg protocolCodecMrg;
-    private final MessageDispatcherMrg messageDispatcherMrg;
+    private final ProtocolDispatcherMrg protocolDispatcherMrg;
     private final HttpDispatcherMrg httpDispatcherMrg;
     private final NetContextMrg netContextMrg;
 
     @Inject
-    public InnerAcceptorMrg(ProtocolCodecMrg protocolCodecMrg, MessageDispatcherMrg messageDispatcherMrg, HttpDispatcherMrg httpDispatcherMrg, NetContextMrg netContextMrg) {
+    public InnerAcceptorMrg(ProtocolCodecMrg protocolCodecMrg, ProtocolDispatcherMrg protocolDispatcherMrg, HttpDispatcherMrg httpDispatcherMrg, NetContextMrg netContextMrg) {
         this.protocolCodecMrg = protocolCodecMrg;
-        this.messageDispatcherMrg = messageDispatcherMrg;
+        this.protocolDispatcherMrg = protocolDispatcherMrg;
 
         this.httpDispatcherMrg = httpDispatcherMrg;
         this.netContextMrg = netContextMrg;
@@ -68,7 +68,7 @@ public class InnerAcceptorMrg {
         TCPServerChannelInitializer serverChannelInitializer = netContext.newTcpServerInitializer(protocolCodecMrg.getInnerProtocolCodec());
 
         ListenableFuture<HostAndPort> bindFuture = netContext.bindRange(host, portRange,
-                serverChannelInitializer, lifecycleAware, messageDispatcherMrg);
+                serverChannelInitializer, lifecycleAware, protocolDispatcherMrg);
 
         bindFuture.awaitUninterruptibly();
         return bindFuture.getNow();
@@ -103,6 +103,6 @@ public class InnerAcceptorMrg {
 
         return netContext.connect(remoteGuid, remoteRole, hostAndPort,
                 () -> clientChannelInitializer,
-                lifecycleAware, messageDispatcherMrg);
+                lifecycleAware, protocolDispatcherMrg);
     }
 }

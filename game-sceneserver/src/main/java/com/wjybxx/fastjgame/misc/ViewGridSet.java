@@ -106,7 +106,7 @@ public class ViewGridSet implements Grid2DContainer<ViewGrid> {
 
         // 视野格子宽度最好是整数个地图格子宽度，这样一个地图格子可以完全属于一块视野格子
         if (viewGridWidth % GameConstant.MAP_GRID_WIDTH != 0){
-            logger.warn("bad viewableRange {}",viewableRange);
+            logger.warn("bad viewableRange {}", viewableRange);
         }
 
         // 行数由高度决定，列由宽度决定 (格子宽高一致)

@@ -114,7 +114,7 @@ public class S2CSessionManager extends SessionManager {
 
     /** 提交rpc结果 */
     private void commitRpcResponse(SessionWrapper sessionWrapper, RpcPromiseInfo rpcPromiseInfo, RpcResponse rpcResponse) {
-        commitRpcResponse(sessionWrapper.userInfo.netContext, sessionWrapper.session, sessionWrapper.messageQueue, sessionWrapper.userInfo.messageHandler,
+        commitRpcResponse(sessionWrapper.userInfo.netContext, sessionWrapper.session, sessionWrapper.messageQueue, sessionWrapper.userInfo.protocolDispatcher,
                 rpcPromiseInfo, rpcResponse);
     }
 
@@ -135,12 +135,12 @@ public class S2CSessionManager extends SessionManager {
     public HostAndPort bindRange(NetContext netContext, String host, PortRange portRange,
                                  ChannelInitializer<SocketChannel> initializer,
                                  SessionLifecycleAware lifecycleAware,
-                                 MessageHandler messageHandler) throws BindException {
+                                 ProtocolDispatcher protocolDispatcher) throws BindException {
 
         final BindResult bindResult = acceptorManager.bindRange(host, portRange, initializer);
         // 由于是监听方，因此方法参数是针对该用户的所有客户端的
         userInfoMap.computeIfAbsent(netContext.localGuid(),
-                localGuid -> new UserInfo(netContext, bindResult, initializer, lifecycleAware, messageHandler, netTimeManager, timerManager ,netConfigManager));
+                localGuid -> new UserInfo(netContext, bindResult, initializer, lifecycleAware, protocolDispatcher, netTimeManager, timerManager ,netConfigManager));
         return bindResult.getHostAndPort();
     }
 
@@ -734,7 +734,7 @@ public class S2CSessionManager extends SessionManager {
         /** 如何初始新接入的channel */
         private final ChannelInitializer<SocketChannel> initializer;
         /** 该端口上的消息处理器 */
-        private final MessageHandler messageHandler;
+        private final ProtocolDispatcher protocolDispatcher;
         /** 该用户关联的所有会话信息 */
         private final Long2ObjectMap<SessionWrapper> sessionWrapperMap = new Long2ObjectOpenHashMap<>();
         /** 该用户禁用的所有客户端token信息 */
@@ -743,7 +743,7 @@ public class S2CSessionManager extends SessionManager {
         private UserInfo(NetContext netContext, BindResult bindResult,
                          @Nonnull ChannelInitializer<SocketChannel> initializer,
                          @Nonnull SessionLifecycleAware lifecycleAware,
-                         @Nonnull MessageHandler messageHandler,
+                         @Nonnull ProtocolDispatcher protocolDispatcher,
                          NetTimeManager netTimeManager,
                          NetTimerManager timerManager,
                          NetConfigManager netConfigManager) {
@@ -751,7 +751,7 @@ public class S2CSessionManager extends SessionManager {
             this.bindResult = bindResult;
             this.lifecycleAware = lifecycleAware;
             this.initializer = initializer;
-            this.messageHandler = messageHandler;
+            this.protocolDispatcher = protocolDispatcher;
             this.forbiddenTokenHelper = new ForbiddenTokenHelper(netTimeManager, timerManager, netConfigManager.tokenForbiddenTimeout());
         }
     }
@@ -917,18 +917,18 @@ public class S2CSessionManager extends SessionManager {
 
         /** 提交一个网络消息 */
         void commit(UncommittedMessage uncommittedMessage) {
-            s2CSessionManager.commit(userInfo.netContext, session, messageQueue, uncommittedMessage, userInfo.messageHandler);
+            s2CSessionManager.commit(userInfo.netContext, session, messageQueue, uncommittedMessage, userInfo.protocolDispatcher);
         }
 
         /** 清空所有未提交的消息 */
         private void flushAllUncommittedMessage() {
-            s2CSessionManager.flushAllUncommittedMessage(userInfo.netContext, session, messageQueue, userInfo.messageHandler);
+            s2CSessionManager.flushAllUncommittedMessage(userInfo.netContext, session, messageQueue, userInfo.protocolDispatcher);
         }
 
 
         /** 立即提交到应用层 */
         void commitImmediately(UncommittedMessage uncommittedMessage) {
-            s2CSessionManager.commitImmediately(userInfo.netContext, session, uncommittedMessage, userInfo.messageHandler);
+            s2CSessionManager.commitImmediately(userInfo.netContext, session, uncommittedMessage, userInfo.protocolDispatcher);
         }
     }
 

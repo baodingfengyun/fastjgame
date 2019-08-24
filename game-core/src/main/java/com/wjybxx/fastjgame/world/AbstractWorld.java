@@ -41,7 +41,7 @@ public abstract class AbstractWorld implements World{
 
     protected final WorldWrapper worldWrapper;
     protected final GameEventLoopMrg gameEventLoopMrg;
-    protected final MessageDispatcherMrg messageDispatcherMrg;
+    protected final ProtocolDispatcherMrg protocolDispatcherMrg;
     protected final WorldTimeMrg worldTimeMrg;
     protected final ProtocolCodecMrg protocolCodecMrg;
     protected final WorldTimerMrg worldTimerMrg;
@@ -58,7 +58,7 @@ public abstract class AbstractWorld implements World{
     public AbstractWorld(WorldWrapper worldWrapper) {
         this.worldWrapper = worldWrapper;
         this.gameEventLoopMrg = worldWrapper.getGameEventLoopMrg();
-        messageDispatcherMrg = worldWrapper.getMessageDispatcherMrg();
+        protocolDispatcherMrg = worldWrapper.getProtocolDispatcherMrg();
         worldTimeMrg = worldWrapper.getWorldTimeMrg();
         protocolCodecMrg = worldWrapper.getProtocolCodecMrg();
         worldTimerMrg = worldWrapper.getWorldTimerMrg();

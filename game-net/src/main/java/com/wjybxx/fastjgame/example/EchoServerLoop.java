@@ -60,7 +60,7 @@ public class EchoServerLoop extends SingleThreadEventLoop {
 
 		// 监听tcp端口
 		TCPServerChannelInitializer initializer = netContext.newTcpServerInitializer(ExampleConstants.jsonBasedCodec);
-		netContext.bind(NetUtils.getLocalIp(), ExampleConstants.tcpPort, initializer, new ClientLifeAware(), new EchoMessageHandler());
+		netContext.bind(NetUtils.getLocalIp(), ExampleConstants.tcpPort, initializer, new ClientLifeAware(), new EchoProtocolDispatcher());
 
 		// 监听http端口
 		HttpServerInitializer httpServerInitializer = netContext.newHttpServerInitializer();
@@ -109,7 +109,7 @@ public class EchoServerLoop extends SingleThreadEventLoop {
 		}
 	}
 
-	private static class EchoMessageHandler implements MessageHandler {
+	private static class EchoProtocolDispatcher implements ProtocolDispatcher {
 
 		@Override
 		public void onMessage(Session session, @Nullable Object message) throws Exception {

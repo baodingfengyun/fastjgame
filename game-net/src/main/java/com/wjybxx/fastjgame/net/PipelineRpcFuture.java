@@ -17,7 +17,7 @@ package com.wjybxx.fastjgame.net;
 
 /**
  * 通过Pipeline发起Rpc请求时返回的Future，不支持发起Rpc请求的用户在该Future上进行阻塞操作（为了确保用户线程能把消息发送出去）。
- * (未完成的情况下，用户在future上面阻塞会抛出{@link com.wjybxx.fastjgame.concurrent.BlockingOperationException}异常)
+ * (未发送的情况下，用户在future上面阻塞会抛出{@link com.wjybxx.fastjgame.concurrent.BlockingOperationException}异常)
  *
  * @author wjybxx
  * @version 1.0

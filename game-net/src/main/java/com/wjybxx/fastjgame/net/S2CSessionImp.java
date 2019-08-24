@@ -27,8 +27,7 @@ import com.wjybxx.fastjgame.utils.EventLoopUtils;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * 服务器存储的与客户端建立的会话信息。
- * 只暴露一部分关键信息。
+ * 连接的接收方建立的会话信息。
  * @author wjybxx
  * @version 1.0
  * date - 2019/4/27 10:18

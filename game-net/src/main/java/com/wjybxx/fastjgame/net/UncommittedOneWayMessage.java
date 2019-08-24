@@ -32,8 +32,8 @@ public class UncommittedOneWayMessage implements UncommittedMessage{
 	}
 
 	@Override
-	public void commit(Session session, MessageHandler messageHandler) throws Exception {
-		messageHandler.onMessage(session, message);
+	public void commit(Session session, ProtocolDispatcher protocolDispatcher) throws Exception {
+		protocolDispatcher.onMessage(session, message);
 	}
 
 	@Override

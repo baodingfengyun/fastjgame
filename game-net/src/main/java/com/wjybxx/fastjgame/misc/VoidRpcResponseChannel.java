@@ -16,17 +16,14 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.net.RpcResponse;
-import com.wjybxx.fastjgame.net.RpcResponseChannel;
-import com.wjybxx.fastjgame.net.RpcResultCode;
-import com.wjybxx.fastjgame.net.Session;
+import com.wjybxx.fastjgame.net.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * 没有返回值的Channel，占位符。
- * 主要是{@link com.wjybxx.fastjgame.net.MessageHandler#onMessage(Session, Object)}用的，
+ * 主要是{@link ProtocolDispatcher#onMessage(Session, Object)}用的，
  * 可以将一个onMessage伪装成 RpcRequest，这样应用层可以使用相同的接口对待单向消息和rpc请求。
  *
  * @author wjybxx

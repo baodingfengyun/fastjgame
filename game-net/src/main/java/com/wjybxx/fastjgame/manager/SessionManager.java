@@ -236,20 +236,20 @@ public abstract class SessionManager {
      * @param session 会话信息
      * @param messageQueue 未提交的信息所在的队列
      * @param uncommittedMessage 准备提交的消息
-     * @param messageHandler 用户绑定的消息处理器
+     * @param protocolDispatcher 用户绑定的消息处理器
      * @return 是否真正的执行了提交操作
      */
-    protected final void commit(NetContext netContext, Session session, MessageQueue messageQueue, UncommittedMessage uncommittedMessage, MessageHandler messageHandler) {
+    protected final void commit(NetContext netContext, Session session, MessageQueue messageQueue, UncommittedMessage uncommittedMessage, ProtocolDispatcher protocolDispatcher) {
         if (netConfigManager.commitThreshold() <= 0) {
             // 禁用了接收缓冲区
-            commitImmediately(netContext, session, uncommittedMessage, messageHandler);
+            commitImmediately(netContext, session, uncommittedMessage, protocolDispatcher);
             return;
         }
         // 启用了接收缓冲区
         messageQueue.getUncommittedQueue().add(uncommittedMessage);
         if (messageQueue.getUncommittedQueue().size() >= netConfigManager.commitThreshold()) {
             // 到达阈值，清空缓冲区
-            flushAllUncommittedMessage(netContext, session, messageQueue, messageHandler);
+            flushAllUncommittedMessage(netContext, session, messageQueue, protocolDispatcher);
         }
     }
 
@@ -258,9 +258,9 @@ public abstract class SessionManager {
      * @param netContext 用户的网络上下文
      * @param session 会话信息
      * @param uncommittedMessage 准备提交的消息
-     * @param messageHandler 用户绑定的消息处理器
+     * @param protocolDispatcher 用户绑定的消息处理器
      */
-    protected final void commitImmediately(NetContext netContext, Session session, UncommittedMessage uncommittedMessage, MessageHandler messageHandler) {
+    protected final void commitImmediately(NetContext netContext, Session session, UncommittedMessage uncommittedMessage, ProtocolDispatcher protocolDispatcher) {
         // 应用层请求了关闭，等待remove任务到达，注意这不代表用户在关闭之后收不到消息请求
         if (!session.isActive()){
             uncommittedMessage.onRejected(session);
@@ -269,7 +269,7 @@ public abstract class SessionManager {
         // 直接提交到应用层
         boolean commitSuccess = ConcurrentUtils.tryCommit(netContext.localEventLoop(), () -> {
             try {
-                uncommittedMessage.commit(session, messageHandler);
+                uncommittedMessage.commit(session, protocolDispatcher);
             } catch (Exception e) {
                 ConcurrentUtils.rethrow(e);
             }
@@ -285,14 +285,14 @@ public abstract class SessionManager {
      * @param netContext 用户的网络上下文
      * @param session 会话信息
      * @param messageQueue 未提交的信息所在的队列
-     * @param messageHandler 用户绑定的消息处理器
+     * @param protocolDispatcher 用户绑定的消息处理器
      */
-    protected final void flushAllUncommittedMessage(NetContext netContext, Session session, MessageQueue messageQueue, MessageHandler messageHandler) {
+    protected final void flushAllUncommittedMessage(NetContext netContext, Session session, MessageQueue messageQueue, ProtocolDispatcher protocolDispatcher) {
         // 落单的一个消息
         if (messageQueue.getUncommittedQueue().size() == 1){
-            commitImmediately(netContext, session, messageQueue.getUncommittedQueue().pollFirst(), messageHandler);
+            commitImmediately(netContext, session, messageQueue.getUncommittedQueue().pollFirst(), protocolDispatcher);
         } else {
-            batchCommitImmediately(netContext, session, messageQueue.exchangeUncommittedMessages(), messageHandler);
+            batchCommitImmediately(netContext, session, messageQueue.exchangeUncommittedMessages(), protocolDispatcher);
         }
     }
 
@@ -301,9 +301,9 @@ public abstract class SessionManager {
      * @param netContext 用户的网络上下文
      * @param session 会话信息
      * @param uncommittedMessages 未提交的消息
-     * @param messageHandler 用户绑定的消息处理器
+     * @param protocolDispatcher 用户绑定的消息处理器
      */
-    private void batchCommitImmediately(NetContext netContext, Session session, final LinkedList<UncommittedMessage> uncommittedMessages, MessageHandler messageHandler) {
+    private void batchCommitImmediately(NetContext netContext, Session session, final LinkedList<UncommittedMessage> uncommittedMessages, ProtocolDispatcher protocolDispatcher) {
         // 应用层请求了关闭，等待remove任务到达，注意这不代表用户在关闭之后收不到消息请求
         if (!session.isActive()){
             onBatchCommitFailure(session, uncommittedMessages);
@@ -314,7 +314,7 @@ public abstract class SessionManager {
             Exception cause = null;
             for (UncommittedMessage uncommittedMessage : uncommittedMessages) {
                 try {
-                    uncommittedMessage.commit(session, messageHandler);
+                    uncommittedMessage.commit(session, protocolDispatcher);
                 } catch (Exception ex) {
                     // 压缩为一个异常
                     if (cause == null) {
@@ -346,11 +346,11 @@ public abstract class SessionManager {
      * @param netContext 用户的网络上下文
      * @param session 会话信息
      * @param messageQueue 未提交的信息所在的队列
-     * @param messageHandler 会话上的消息处理器
+     * @param protocolDispatcher 会话上的消息处理器
      * @param rpcPromiseInfo rpc请求的一些信息
      * @param rpcResponse rpc结果
      */
-    protected final void commitRpcResponse(NetContext netContext, Session session, MessageQueue messageQueue, MessageHandler messageHandler,
+    protected final void commitRpcResponse(NetContext netContext, Session session, MessageQueue messageQueue, ProtocolDispatcher protocolDispatcher,
                                            RpcPromiseInfo rpcPromiseInfo, RpcResponse rpcResponse) {
         // 为什么不能有UncommittedRpcResponse? 因为用户线程可能正在阻塞中，提交成功也得不到执行
         if (rpcPromiseInfo.sync) {
@@ -360,11 +360,11 @@ public abstract class SessionManager {
             // 如果回调式的，那么没有promise，也就没有线程在上面阻塞，可以稍后提交
             if (rpcPromiseInfo.rpcCallback != null) {
                 UncommittedRpcResponse uncommittedRpcResponse = new UncommittedRpcResponse(rpcResponse, rpcPromiseInfo.rpcCallback);
-                commit(netContext, session, messageQueue, uncommittedRpcResponse, messageHandler);
+                commit(netContext, session, messageQueue, uncommittedRpcResponse, protocolDispatcher);
             } else {
                 // 清空缓冲区，以保证顺序
                 if (messageQueue.getUncommittedQueue().size() > 0){
-                    flushAllUncommittedMessage(netContext, session, messageQueue, messageHandler);
+                    flushAllUncommittedMessage(netContext, session, messageQueue, protocolDispatcher);
                 }
                 // 提交自己
                 rpcPromiseInfo.rpcPromise.trySuccess(rpcResponse);

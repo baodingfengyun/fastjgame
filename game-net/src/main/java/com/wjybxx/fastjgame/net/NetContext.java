@@ -21,7 +21,6 @@ import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.PortRange;
-import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.net.initializer.*;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
@@ -56,7 +55,7 @@ public interface NetContext {
 
 	/**
 	 * 本地角色的运行环境，用于实现线程安全，
-	 * 可以保证{@link MessageHandler}运行在该{@link EventLoop}上。
+	 * 可以保证{@link ProtocolDispatcher}运行在该{@link EventLoop}上。
 	 * (也就是说所有的网络事件处理最终都会运行在该EventLoop上)
 	 */
 	EventLoop localEventLoop();
@@ -80,13 +79,13 @@ public interface NetContext {
 	 * @param port 指定端口号
 	 * @param initializer 如何初始化channel
 	 * @param lifecycleAware 生命周期监听器
-	 * @param messageHandler 消息处理器
+	 * @param protocolDispatcher 协议处理器
 	 * @return future 可以等待绑定完成。
 	 */
 	default ListenableFuture<HostAndPort> bind(String host, int port, ChannelInitializer<SocketChannel> initializer,
 											   SessionLifecycleAware lifecycleAware,
-											   MessageHandler messageHandler) {
-		return this.bindRange(host, new PortRange(port, port), initializer, lifecycleAware, messageHandler);
+											   ProtocolDispatcher protocolDispatcher) {
+		return this.bindRange(host, new PortRange(port, port), initializer, lifecycleAware, protocolDispatcher);
 	}
 
 	/**
@@ -95,12 +94,12 @@ public interface NetContext {
 	 * @param portRange 端口范围
 	 * @param initializer 如何初始化channel
 	 * @param lifecycleAware 生命周期监听器
-	 * @param messageHandler 消息处理器
+	 * @param protocolDispatcher 协议处理器
 	 * @return future 可以等待绑定完成。
 	 */
 	ListenableFuture<HostAndPort> bindRange(String host, PortRange portRange, ChannelInitializer<SocketChannel> initializer,
 											SessionLifecycleAware lifecycleAware,
-											MessageHandler messageHandler);
+											ProtocolDispatcher protocolDispatcher);
 
 	/**
 	 * 连接远程某个端口
@@ -109,12 +108,12 @@ public interface NetContext {
 	 * @param remoteAddress 远程地址
 	 * @param initializerSupplier 如何初始化channel，supplier是因为断线重连可能需要新的initializer。
 	 * @param lifecycleAware 生命周期监听器
-	 * @param messageHandler 消息处理器
+	 * @param protocolDispatcher 协议处理器
 	 * @return future，它并不是连接真正建立的future，而且连接操作是否被NetEventLoop响应的future
 	 */
 	ListenableFuture<?> connect(long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress, ChannelInitializerSupplier initializerSupplier,
 								SessionLifecycleAware lifecycleAware,
-								MessageHandler messageHandler);
+								ProtocolDispatcher protocolDispatcher);
 
 	/**
 	 * 工厂方法，创建一个用于tcp监听的Initializer.

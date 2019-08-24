@@ -6,6 +6,7 @@ fastjgame 为 fast java game framework的缩写，如名字一样，该项目的
 4. 支持google protoBuf，json以及自定义消息序列化方式。 支持自定义消息映射;  
 5. 分布式协调框架：zookeeper 作为配置中心，节点发现，以及不时的分布式锁需要  
 6. NoSQL数据库： mongodb 习惯了mongodb回不去MySQL
+7. 代码自动生成: RpcService、Subscribe相应代码自动生成。代码生成一时爽，一直生成一直爽。
 
 ### 全新版本 2019-08-05
 2019年8月5日 迎来了fastjgame的全新版本，线程模型大改，底层通信重写，网络层与逻辑层独立。
@@ -19,13 +20,19 @@ fastjgame 为 fast java game framework的缩写，如名字一样，该项目的
 2. 编解码更快，功能支持更强，请查看**SerializableClass**和**SerializableField**注解。
 3. RpcService代码自动生成，你必须将game-auto打为jar包才可以使用代码生成工具(注解处理器必须是jar包形式)，请确保所有模块都启用了注解处理器。
 
-### 如何打包 Rpc注解处理器？
+### 如何打包注解处理器？
 1. 将game-auto添加到project-structure
 2. install game-utils 到本地仓库
 3. install game-net 到本地仓库
 4. install game-auto 到本地仓库
 5. 将game-auto从项目project-structure中移除（game-auto）。
-6. Ok，此时Rpc注解处理器已经可用，重新编译，可消除缺少类文件的报错。
+6. Ok，此时game-auto中所有注解处理器已经可用。
+7. 在game-parent下 先clean，再compile，可消除缺少类文件的报错。
+
+### 编译出现找不到符号问题怎么解决？
+1. 确保注解处理器已install到本地仓库。
+2. clean
+3. compile
 
 ### 高性能从网络层开始  
 1. IO框架为Netty,HttpClient为OkHttp3;   
