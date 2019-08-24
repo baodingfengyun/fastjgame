@@ -39,29 +39,29 @@ import java.util.Map;
 public class EventBus {
 
 	private static final Logger logger = LoggerFactory.getLogger(EventBus.class);
-
-	private final Map<Class<?>, List<EventHandler<?>>> handlerMap = new IdentityHashMap<>(512);
+	/**
+	 * 事件类型到处理器的映射
+	 */
+	private final Map<Class<?>, EventHandler<?>> handlerMap = new IdentityHashMap<>(512);
 
 	/**
 	 * 发布一个事件
 	 * @param event 要发布的事件
 	 */
 	@SuppressWarnings("unchecked")
-	public void post(@Nonnull Object event) {
-		final List<EventHandler<?>> handlerList = handlerMap.get(event.getClass());
-		if (null == handlerList) {
+	public <T> void post(@Nonnull T event) {
+		final EventHandler<T> eventHandler = (EventHandler<T>) handlerMap.get(event.getClass());
+		if (null == eventHandler) {
 			// 对应的事件处理器可能忘记了注册
 			logger.warn("{}'s listeners may forgot register!", event.getClass().getName());
 			return;
 		}
-		for (EventHandler eventHandler:handlerList) {
-			try {
-				eventHandler.onEvent(event);
-			} catch (Exception e){
-				// 不能因为某个异常导致其它监听器接收不到事件
-				logger.warn("onEvent caught exception! EventInfo {}, handler info {}",
-						event.getClass().getName(), eventHandler.getClass().getName(), e);
-			}
+		try {
+			eventHandler.onEvent(event);
+		} catch (Exception e){
+			// 不能因为某个异常导致其它监听器接收不到事件
+			logger.warn("onEvent caught exception! EventInfo {}, handler info {}",
+					event.getClass().getName(), eventHandler.getClass().getName(), e);
 		}
 	}
 
@@ -73,9 +73,17 @@ public class EventBus {
 	 * @param handler 事件处理器
 	 * @param <T> 事件的类型
 	 */
-	public <T> void register(@Nonnull Class<T> eventType, EventHandler<T> handler) {
-		// 如果选用arrayList会有大量空间浪费，最好一点点开始扩容，而且注册应该发送启动阶段。大多数事件类型只有很少的观察者
-		final List<EventHandler<?>> handlerList = handlerMap.computeIfAbsent(eventType, clazz -> new ArrayList<>(4));
-		handlerList.add(handler);
+	public <T> void register(@Nonnull Class<T> eventType, @Nonnull EventHandler<T> handler) {
+		@SuppressWarnings("unchecked")
+		final EventHandler<T> existHandler = (EventHandler<T>) handlerMap.get(eventType);
+		if (null == existHandler) {
+			handlerMap.put(eventType, handler);
+		} else {
+			if (existHandler instanceof CompositeEventHandler) {
+				((CompositeEventHandler<T>) existHandler).addHandler(handler);
+			} else {
+				handlerMap.put(eventType, new CompositeEventHandler<>(existHandler, handler));
+			}
+		}
 	}
 }
