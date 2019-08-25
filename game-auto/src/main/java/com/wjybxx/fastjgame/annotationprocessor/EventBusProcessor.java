@@ -76,7 +76,6 @@ public class EventBusProcessor extends AbstractProcessor {
 	public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 		// 只有方法可以带有该注解 METHOD只有普通方法，不包含构造方法， 按照外部类进行分类
 		final Map<Element, ? extends List<? extends Element>> collect = roundEnv.getElementsAnnotatedWith(Subscribe.class).stream()
-				.filter(element -> ((Element) element).getKind() == ElementKind.METHOD)
 				.filter(element -> ((Element) element).getEnclosingElement().getKind() == ElementKind.CLASS)
 				.collect(Collectors.groupingBy(element -> ((Element) element).getEnclosingElement()));
 

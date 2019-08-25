@@ -40,10 +40,7 @@ import javax.annotation.Generated;
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.PrimitiveType;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
+import javax.lang.model.type.*;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.SimpleTypeVisitor8;
 import javax.lang.model.util.Types;
@@ -71,9 +68,9 @@ import java.util.stream.Collectors;
  * {@link Elements} 代码结构信息
  *
  * 遇见的坑，先记一笔：
- * 1. {@code types.isSameType(RpcResponseChannel<String>, RpcResponseChannel)  false} 带泛型和不带泛型的不是同一个类型。
- *    {@code types.isAssignable(RpcResponseChannel<String>, RpcResponseChannel)  true}
- *    {@code types.isSubType(RpcResponseChannel<String>, RpcResponseChannel)  true}
+ * 1. {@code typeUtils.isSameType(RpcResponseChannel<String>, RpcResponseChannel)  false} 带泛型和不带泛型的不是同一个类型。
+ *    {@code typeUtils.isAssignable(RpcResponseChannel<String>, RpcResponseChannel)  true}
+ *    {@code typeUtils.isSubType(RpcResponseChannel<String>, RpcResponseChannel)  true}
  *
  * 2. 在注解中引用另一个类时，这个类可能还未被编译，需要通过捕获异常获取到未编译的类的{@link TypeMirror}.
  *
@@ -105,8 +102,8 @@ public class RpcServiceProcessor extends AbstractProcessor {
 	private static final String register_package_name = "com.wjybxx.fastjgame.rpcregister";
 
 	// 工具类
-	private Types types;
-	private Elements elements;
+	private Types typeUtils;
+	private Elements elementUtils;
 	private Messager messager;
 	/**
 	 * {@link RpcBuilder}对应的类型
@@ -143,16 +140,16 @@ public class RpcServiceProcessor extends AbstractProcessor {
 	public synchronized void init(ProcessingEnvironment processingEnv) {
 		super.init(processingEnv);
 
-		types = processingEnv.getTypeUtils();
-		elements = processingEnv.getElementUtils();
+		typeUtils = processingEnv.getTypeUtils();
+		elementUtils = processingEnv.getElementUtils();
 		messager = processingEnv.getMessager();
 
-		builderElement = elements.getTypeElement(RpcBuilder.class.getCanonicalName());
-		voidType = types.getDeclaredType(elements.getTypeElement(Void.class.getCanonicalName()));
+		builderElement = elementUtils.getTypeElement(RpcBuilder.class.getCanonicalName());
+		voidType = typeUtils.getDeclaredType(elementUtils.getTypeElement(Void.class.getCanonicalName()));
 
-		responseChannelType = types.getDeclaredType(elements.getTypeElement(RpcResponseChannel.class.getCanonicalName()));
-		sessionType = types.getDeclaredType(elements.getTypeElement(Session.class.getCanonicalName()));
-		listType = types.getDeclaredType(elements.getTypeElement(List.class.getCanonicalName()));
+		responseChannelType = typeUtils.getDeclaredType(elementUtils.getTypeElement(RpcResponseChannel.class.getCanonicalName()));
+		sessionType = typeUtils.getDeclaredType(elementUtils.getTypeElement(Session.class.getCanonicalName()));
+		listType = typeUtils.getDeclaredType(elementUtils.getTypeElement(List.class.getCanonicalName()));
 
 		generatedAnnotation = AnnotationSpec.builder(Generated.class)
 				.addMember("value", "$S", RpcServiceProcessor.class.getCanonicalName())
@@ -323,7 +320,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 		final boolean allowCallback = parseResult.allowCallback;
 
 		// 添加返回类型
-		DeclaredType realReturnType = types.getDeclaredType(builderElement, callReturnType);
+		DeclaredType realReturnType = typeUtils.getDeclaredType(builderElement, callReturnType);
 		builder.returns(ClassName.get(realReturnType));
 		// 拷贝参数列表
 		AutoUtils.copyParameters(builder, availableParameters);
@@ -391,7 +388,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 			allowCallback = true;
 			// 基本类型转包装类型
 			if (callReturenType.getKind().isPrimitive()) {
-				callReturenType = types.boxedClass((PrimitiveType) callReturenType).asType();
+				callReturenType = typeUtils.boxedClass((PrimitiveType) callReturenType).asType();
 			}
 		}
 		return new ParseResult(availableParameters, callReturenType, allowCallback);
@@ -401,28 +398,28 @@ public class RpcServiceProcessor extends AbstractProcessor {
 	 * 判断指定类型是否是void 或Void类型
 	 */
 	private boolean isVoidType(TypeMirror typeMirror) {
-		return typeMirror.getKind() == TypeKind.VOID || isTargetType(typeMirror, declaredType -> types.isSameType(declaredType, voidType));
+		return typeMirror.getKind() == TypeKind.VOID || isTargetType(typeMirror, declaredType -> typeUtils.isSameType(declaredType, voidType));
 	}
 
 	/**
 	 * 是否是 {@link RpcResponseChannel} 类型。
 	 */
 	private boolean isResponseChannel(VariableElement variableElement) {
-		return isTargetType(variableElement.asType(), declaredType -> types.isAssignable(declaredType, responseChannelType));
+		return isTargetType(variableElement.asType(), declaredType -> typeUtils.isAssignable(declaredType, responseChannelType));
 	}
 
 	/**
 	 * 是否是 {@link Session}类型
 	 */
 	private boolean isSession(VariableElement variableElement) {
-		return isTargetType(variableElement.asType(), declaredType -> types.isSubtype(declaredType, sessionType));
+		return isTargetType(variableElement.asType(), declaredType -> typeUtils.isSubtype(declaredType, sessionType));
 	}
 
 	/**
 	 * 是否是 {@link List}类型
 	 */
 	private boolean isList(VariableElement variableElement) {
-		return isTargetType(variableElement.asType(), declaredType -> types.isSubtype(declaredType, listType));
+		return isTargetType(variableElement.asType(), declaredType -> typeUtils.isSubtype(declaredType, listType));
 	}
 
 	/**
@@ -433,8 +430,14 @@ public class RpcServiceProcessor extends AbstractProcessor {
 
 			@Override
 			public Boolean visitDeclared(DeclaredType t, Void aVoid) {
-				// 访问声明的类型
+				// 访问声明的类型 eg: String str
 				return matcher.test(t);
+			}
+
+			@Override
+			public Boolean visitTypeVariable(TypeVariable t, Void aVoid) {
+				// 泛型变量 eg: E element
+				return false;
 			}
 
 			@Override
@@ -459,7 +462,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 					// 声明类型木有泛型参数，返回Object类型，并打印一个警告
 					// 2019年8月23日21:13:35 改为编译错误
 					messager.printMessage(Diagnostic.Kind.ERROR, "RpcResponseChannel missing type parameter.", variableElement);
-					return elements.getTypeElement(Object.class.getCanonicalName()).asType();
+					return elementUtils.getTypeElement(Object.class.getCanonicalName()).asType();
 				}
 			}
 		}, null);

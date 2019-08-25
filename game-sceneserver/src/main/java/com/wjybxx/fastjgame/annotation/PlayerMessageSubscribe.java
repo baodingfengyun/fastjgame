@@ -16,6 +16,11 @@
 
 package com.wjybxx.fastjgame.annotation;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
  * 玩家消息订阅者，表示处理玩家发来的该类型消息。<br>
  * 要使用该注解，方法必须满足以下条件：
@@ -37,6 +42,8 @@ package com.wjybxx.fastjgame.annotation;
  * date - 2019/8/25
  * github - https://github.com/hl845740757
  */
+@Retention(RetentionPolicy.SOURCE)
+@Target(ElementType.METHOD)
 public @interface PlayerMessageSubscribe {
 
 }
