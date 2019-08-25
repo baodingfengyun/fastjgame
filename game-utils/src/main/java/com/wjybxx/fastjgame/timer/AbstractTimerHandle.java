@@ -119,7 +119,7 @@ public abstract class AbstractTimerHandle implements TimerHandle{
 	}
 
 	@SuppressWarnings("WeakerAccess")
-	final long getTimerId() {
+	public final long getTimerId() {
 		return timerId;
 	}
 

@@ -42,7 +42,7 @@ public abstract class TableReader<T> implements AutoCloseable{
      * 读取表格的模板方法
      * @param file 要读取的表格文件
      * @param sheetIndex 表格页索引(0开始)
-     * @param nameRowIndex 属性名索引(0开始)
+     * @param nameRowIndex 属性名索引(0开始) 前面的行表示注释行或者标记行
      * @return {@link TableSheet}
      * @throws Exception
      */
@@ -50,8 +50,8 @@ public abstract class TableReader<T> implements AutoCloseable{
         String fileName = file.getName();
         Iterator<T> rowItr = toIterator(file,sheetIndex);
         try {
-            List<TableRow> tableRows=new ArrayList<>();
-            ColNameRow colNameRow =null;
+            List<TableRow> tableRows = new ArrayList<>();
+            ColNameRow colNameRow = null;
 
             // 缓存前面的行
             List<T> cacheRows=new ArrayList<>(nameRowIndex);

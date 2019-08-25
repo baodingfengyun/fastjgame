@@ -28,7 +28,7 @@ import java.util.Properties;
 
 /**
  * 配置文件加载器(properties文件)
- * 注意：会在 本地文件夹(GameConfigDir) 和 classPath(resources文件夹)尝试加载配置文件。
+ * 注意：会在 本地文件夹(./config) 和 classPath(resources文件夹)尝试加载配置文件。
  * 当一个参数在两个配置文件都存在时，本地文件夹中的参数生效。
  * => 旨在可以使用外部配置文件代替jar包内配置。
  *

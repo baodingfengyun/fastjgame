@@ -96,7 +96,7 @@ public abstract class AbstractFixRateHandle extends AbstractTimerHandle implemen
 	@SuppressWarnings("JavaDoc")
 	protected abstract void adjust();
 
-	static void ensurePeriod(long period) {
+	public static void ensurePeriod(long period) {
 		if (period <= 0) {
 			throw new IllegalArgumentException("period " + period);
 		}

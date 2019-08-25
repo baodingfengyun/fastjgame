@@ -29,7 +29,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 import java.util.List;
 
 /**
- * 默认的Rpc函数仓库。
+ * 默认的Rpc函数注册表。
  *
  * @author wjybxx
  * @version 1.0

@@ -93,7 +93,7 @@ public abstract class AbstractFixedDelayHandle extends AbstractTimerHandle imple
 		setNextExecuteTimeMs(logicLastExecuteTimeMs + delay);
 	}
 
-	static void ensureDelay(long delay) {
+	public static void ensureDelay(long delay) {
 		if (delay <= 0) {
 			throw new IllegalArgumentException("delay " + delay);
 		}

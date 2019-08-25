@@ -56,6 +56,11 @@ public class SubscriberExample {
 
 	}
 
+	@Subscribe
+	public void hello(String name) {
+
+	}
+
 //	@Subscribe
 	public <T> void illegalMethod() {
 		// 如果打开注解，编译会报错

@@ -56,17 +56,23 @@ public class DefaultTimerSystem implements TimerSystem{
 		this(DEFAULT_TIME_PROVIDER, DEFAULT_INITIAL_CAPACITY);
 	}
 
+	/**
+	 * @see DefaultTimerSystem#DefaultTimerSystem(SystemTimeProvider, int)
+	 */
 	public DefaultTimerSystem(int initCapacity) {
 		this(DEFAULT_TIME_PROVIDER, initCapacity);
 	}
 
+	/**
+	 * @see DefaultTimerSystem#DefaultTimerSystem(SystemTimeProvider, int)
+	 */
 	public DefaultTimerSystem(SystemTimeProvider timeProvider) {
 		this(timeProvider, DEFAULT_INITIAL_CAPACITY);
 	}
 
 	/**
 	 * @param timeProvider 时间提供函数
-	 * @param initCapacity 初始timer空间
+	 * @param initCapacity 初始timer空间，当你能预见timer的空间大小时，指定空间大小能提高性能和空间利用率
 	 */
 	public DefaultTimerSystem(SystemTimeProvider timeProvider, int initCapacity) {
 		timerQueue = new PriorityQueue<>(initCapacity, AbstractTimerHandle.timerComparator);
