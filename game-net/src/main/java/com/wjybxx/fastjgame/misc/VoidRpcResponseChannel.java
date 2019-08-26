@@ -55,4 +55,9 @@ public class VoidRpcResponseChannel implements RpcResponseChannel<Void> {
 	public void write(@Nonnull RpcResponse rpcResponse) {
 		throw new UnsupportedOperationException();
 	}
+
+	@Override
+	public boolean isVoid() {
+		return true;
+	}
 }

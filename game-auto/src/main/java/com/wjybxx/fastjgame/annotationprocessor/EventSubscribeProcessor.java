@@ -29,7 +29,6 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.SimpleTypeVisitor8;
-import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import java.util.Collections;
 import java.util.List;
@@ -45,7 +44,7 @@ import java.util.stream.Collectors;
  * date - 2019/8/23
  */
 @AutoService(Processor.class)
-public class EventBusProcessor extends AbstractProcessor {
+public class EventSubscribeProcessor extends AbstractProcessor {
 
 	private static final String EVENT_BUS_CANONICAL_NAME = "com.wjybxx.fastjgame.eventbus.EventBus";
 	private static final String SUBSCRIBE_CANONICAL_NAME = "com.wjybxx.fastjgame.eventbus.Subscribe";
@@ -68,7 +67,7 @@ public class EventBusProcessor extends AbstractProcessor {
 		elementUtils = processingEnv.getElementUtils();
 
 		generatedAnnotation = AnnotationSpec.builder(Generated.class)
-				.addMember("value", "$S", EventBusProcessor.class.getCanonicalName())
+				.addMember("value", "$S", EventSubscribeProcessor.class.getCanonicalName())
 				.build();
 	}
 

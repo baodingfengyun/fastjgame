@@ -51,9 +51,15 @@ public interface RpcResponseChannel<T> {
 	void write(@Nonnull RpcResultCode resultCode, @Nonnull Object body);
 
 	/**
-	 * 返回rpc调用结果。
+	 * 返回rpc调用结果，如果是返回错误结果，能使用静态常量的使用常量{@link RpcResponse}
+	 *
 	 * @param rpcResponse rpc调用结果
 	 */
 	void write(@Nonnull RpcResponse rpcResponse);
 
+	/**
+	 * 是否是没有结果的调用
+	 * @return true/false
+	 */
+	boolean isVoid();
 }

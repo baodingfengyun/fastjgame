@@ -17,11 +17,13 @@
 package com.wjybxx.fastjgame.example;
 
 import com.wjybxx.fastjgame.busregister.SubscriberExampleBusRegister;
+import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.eventbus.EventBus;
 import com.wjybxx.fastjgame.eventbus.Subscribe;
 
 import java.util.HashSet;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * {@link com.wjybxx.fastjgame.eventbus.EventBus}的注册者例子。
@@ -61,6 +63,11 @@ public class SubscriberExample {
 		System.out.println("hello-" + name);
 	}
 
+	@Subscribe
+	public void onEvent(DefaultThreadFactory defaultThreadFactory) {
+		System.out.println(defaultThreadFactory);
+	}
+
 //	@Subscribe
 	public <T> void illegalMethod() {
 		// 如果打开注解，编译会报错
@@ -82,5 +89,7 @@ public class SubscriberExample {
 
 		bus.post("String");
 		bus.post(250);
+
+		bus.post(new DefaultThreadFactory("bus"));
 	}
 }

@@ -36,45 +36,49 @@ public enum RpcResultCode implements NumberEnum {
 	 * 成功
 	 */
 	SUCCESS(0),
-	/**
-	 * 会话已关闭
-	 */
-	SESSION_CLOSED(1),
-	/**
-	 * 用户取消了rpc调用
-	 */
-	CANCELLED(2),
-	/**
-	 * 请求超时
-	 */
-	TIMEOUT(3),
-	/**
-	 * 出现异常(本地异常)
-	 * 这个比较特殊，其实有body，但是不序列化，{@link #hasBody(RpcResultCode)}返回的是false。
-	 * 如果需要查看异常，可以获取body。
-	 */
-	LOCAL_EXCEPTION(4),
-	/**
-	 * 请求被禁止
-	 */
-	FORBID(5),
-	/**
-	 * 请求错误
-	 */
-	BAD_REQUEST(6),
 
-	/**
-	 * 错误（对方执行请求时发生错误）
-	 */
-	ERROR(7),
-	/**
-	 * 提交给用户失败(用户线程已关闭)
-	 */
-	COMMIT_FAILED(8),
 	/**
 	 * Session不存在
 	 */
-	SESSION_NULL(9),
+	SESSION_NULL(10),
+	/**
+	 * 会话已关闭
+	 */
+	SESSION_CLOSED(11),
+
+	/**
+	 * 用户取消了rpc调用
+	 */
+	CANCELLED(21),
+	/**
+	 * 请求超时
+	 */
+	TIMEOUT(22),
+	/**
+	 * 出现异常(本地异常)，有body，body在本地赋值，不序列化。
+	 * 如果需要查看异常，可以获取body。
+	 */
+	LOCAL_EXCEPTION(23),
+
+	/**
+	 * 提交给用户失败(用户线程已关闭)
+	 */
+	COMMIT_FAILED(31),
+
+	/**
+	 * 请求被禁止
+	 */
+	FORBID(41),
+	/**
+	 * 请求错误
+	 */
+	BAD_REQUEST(42),
+
+	/**
+	 * 错误(对方执行请求时发生错误)，没有body
+	 */
+	ERROR(51),
+
 	;
 
 	/** 唯一标识，不可随意修改 */
@@ -97,7 +101,11 @@ public enum RpcResultCode implements NumberEnum {
 	private static final NumberEnumMapper<RpcResultCode> mapper = EnumUtils.indexNumberEnum(values());
 
 	/** 调用失败但是有body的错误码 */
-	private static final EnumSet<RpcResultCode> hasBodyFailCodes = EnumSet.noneOf(RpcResultCode.class);
+	private static final EnumSet<RpcResultCode> hasBodyFailureCodeSet = EnumSet.noneOf(RpcResultCode.class);
+
+	static {
+		hasBodyFailureCodeSet.add(LOCAL_EXCEPTION);
+	}
 
 	public static RpcResultCode forNumber(int number) {
 		return mapper.forNumber(number);
@@ -109,7 +117,7 @@ public enum RpcResultCode implements NumberEnum {
 	 * @return 如果返回true，表示包含一个body.
 	 */
 	public static boolean hasBody(RpcResultCode resultCode) {
-		return isSuccess(resultCode) || hasBodyFailCodes.contains(resultCode);
+		return isSuccess(resultCode) || hasBodyFailureCodeSet.contains(resultCode);
 	}
 
 	/**

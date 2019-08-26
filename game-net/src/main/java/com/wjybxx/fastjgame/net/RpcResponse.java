@@ -31,12 +31,17 @@ import javax.annotation.concurrent.Immutable;
 @Immutable
 public final class RpcResponse {
 
-	public static final RpcResponse TIMEOUT = newFailResponse(RpcResultCode.TIMEOUT);
-	public static final RpcResponse SESSION_CLOSED = newFailResponse(RpcResultCode.SESSION_CLOSED);
-	public static final RpcResponse CANCELLED = newFailResponse(RpcResultCode.CANCELLED);
-	public static final RpcResponse COMMIT_FAILED = newFailResponse(RpcResultCode.COMMIT_FAILED);
-	public static final RpcResponse ERROR = newFailResponse(RpcResultCode.ERROR);
 	public static final RpcResponse SESSION_NULL = newFailResponse(RpcResultCode.SESSION_NULL);
+	public static final RpcResponse SESSION_CLOSED = newFailResponse(RpcResultCode.SESSION_CLOSED);
+
+	public static final RpcResponse CANCELLED = newFailResponse(RpcResultCode.CANCELLED);
+	public static final RpcResponse TIMEOUT = newFailResponse(RpcResultCode.TIMEOUT);
+	public static final RpcResponse COMMIT_FAILED = newFailResponse(RpcResultCode.COMMIT_FAILED);
+
+	public static final RpcResponse FORBID = newFailResponse(RpcResultCode.FORBID);
+	public static final RpcResponse BAD_REQUEST = newFailResponse(RpcResultCode.BAD_REQUEST);
+
+	public static final RpcResponse ERROR = newFailResponse(RpcResultCode.ERROR);
 
 	/**
 	 * 结果标识

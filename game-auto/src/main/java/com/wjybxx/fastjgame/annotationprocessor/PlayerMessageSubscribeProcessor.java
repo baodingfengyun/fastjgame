@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
  * github - https://github.com/hl845740757
  */
 @AutoService(Processor.class)
-public class PlayerMessageFunctionProcessor extends AbstractProcessor {
+public class PlayerMessageSubscribeProcessor extends AbstractProcessor {
 
     private static final String SUBSCRIBE_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.PlayerMessageSubscribe";
     private static final String FUNCTION_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.PlayerMessageFunction";
@@ -78,7 +78,7 @@ public class PlayerMessageFunctionProcessor extends AbstractProcessor {
         elementUtils = processingEnv.getElementUtils();
 
         generatedAnnotation = AnnotationSpec.builder(Generated.class)
-                .addMember("value", "$S", PlayerMessageFunctionProcessor.class.getCanonicalName())
+                .addMember("value", "$S", PlayerMessageSubscribeProcessor.class.getCanonicalName())
                 .build();
         // 不能在这里初始化别的数据，因为可能不存在
     }
@@ -100,10 +100,6 @@ public class PlayerMessageFunctionProcessor extends AbstractProcessor {
     private boolean isEnvAvailable() {
         // scene包依赖
         if (elementUtils.getTypeElement(PLAYER_CANONICAL_NAME) == null) {
-            return false;
-        }
-        // protobuf依赖
-        if (elementUtils.getTypeElement(MESSAGE_CANONICAL_NAME) == null) {
             return false;
         }
         return true;

@@ -16,11 +16,11 @@
 
 package com.wjybxx.fastjgame.misc;
 
+import com.wjybxx.fastjgame.net.RpcResponse;
 import com.wjybxx.fastjgame.net.RpcResponseChannel;
 import com.wjybxx.fastjgame.net.Session;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +47,7 @@ public class DefaultRpcFunctionRegistry implements RpcFunctionRegistry {
 	private final Int2ObjectMap<RpcFunction> functionInfoMap = new Int2ObjectOpenHashMap<>(512);
 
 	@Override
-	public void register(int methodKey, @NotNull RpcFunction function) {
+	public void register(int methodKey, @Nonnull RpcFunction function) {
 		// rpc请求id不可以重复，编译时保证了生成的代码不会重复，但是手动注册不在检测范围内
 		if (functionInfoMap.containsKey(methodKey)) {
 			throw new IllegalArgumentException("methodKey " + methodKey + " is already registered!");
@@ -62,6 +62,9 @@ public class DefaultRpcFunctionRegistry implements RpcFunctionRegistry {
 		final List<Object> params = rpcCall.getMethodParams();
 		final RpcFunction rpcFunction = functionInfoMap.get(methodKey);
 		if (null == rpcFunction) {
+			if (!rpcResponseChannel.isVoid()) {
+				rpcResponseChannel.write(RpcResponse.BAD_REQUEST);
+			}
 			// 不打印参数详情，消耗可能较大，注意：这里的参数大小和真实的方法参数大小不一定一样，主要是ResponseChannel和Session不需要客户端传。
 			logger.warn("{} - {} send unregistered request, methodKey={}, parameters size={}",
 					session.remoteRole(), session.remoteGuid(), methodKey, params.size());

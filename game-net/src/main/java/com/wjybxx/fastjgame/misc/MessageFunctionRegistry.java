@@ -43,5 +43,5 @@ public interface MessageFunctionRegistry {
 	 * @param message 消息内容
 	 * @param <T> 消息类型
 	 */
-	<T extends AbstractMessage> void dispatchMessage(@Nonnull Session session, T message);
+	<T extends AbstractMessage> void dispatchMessage(@Nonnull Session session, @Nonnull T message);
 }

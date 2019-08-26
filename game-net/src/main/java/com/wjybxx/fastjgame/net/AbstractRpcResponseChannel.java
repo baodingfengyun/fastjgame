@@ -64,4 +64,9 @@ public abstract class AbstractRpcResponseChannel<T> implements RpcResponseChanne
 	 * @param rpcResponse rpc响应
 	 */
 	protected abstract void doWrite(RpcResponse rpcResponse);
+
+	@Override
+	public final boolean isVoid() {
+		return false;
+	}
 }

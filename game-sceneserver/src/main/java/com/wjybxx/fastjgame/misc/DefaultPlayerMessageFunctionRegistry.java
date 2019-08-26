@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.misc;
 
 import com.google.protobuf.AbstractMessage;
-import com.wjybxx.fastjgame.net.Session;
+import com.wjybxx.fastjgame.gameobject.Player;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,48 +26,47 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 
 /**
- * {@link MessageFunctionRegistry}的默认实现。
+ * 玩家消息处理函数注册器的默认实现
  * @author houlei
  * @version 1.0
- * date - 2019/8/24
+ * date - 2019/8/26
  */
-public class DefaultMessageFunctionRegistry implements MessageFunctionRegistry {
+public class DefaultPlayerMessageFunctionRegistry implements PlayerMessageFunctionRegistry{
 
-	private static final Logger logger = LoggerFactory.getLogger(DefaultMessageFunctionRegistry.class);
+	private static final Logger logger = LoggerFactory.getLogger(DefaultPlayerMessageFunctionRegistry.class);
 
 	/**
 	 * 类型到处理器的映射。
 	 */
-	private final Map<Class<?>, MessageFunction<?>> handlerMap = new IdentityHashMap<>(512);
+	private final Map<Class<?>, PlayerMessageFunction<?>> handlerMap = new IdentityHashMap<>(512);
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T extends AbstractMessage> void register(@Nonnull Class<T> clazz, @Nonnull MessageFunction<T> handler) {
-		final MessageFunction<?> existHandler = handlerMap.get(clazz);
+	public <T extends AbstractMessage> void register(@Nonnull Class<T> clazz, @Nonnull PlayerMessageFunction<T> handler) {
+		final PlayerMessageFunction<?> existHandler = handlerMap.get(clazz);
 		// 该类型目前还没有被注册
 		if (existHandler == null) {
 			handlerMap.put(clazz, handler);
 			return;
 		}
-		if (existHandler instanceof CompositeMessageFunction) {
-			((CompositeMessageFunction)existHandler).addHandler(handler);
+		if (existHandler instanceof CompositePlayerMessageFunction) {
+			((CompositePlayerMessageFunction)existHandler).addHandler(handler);
 		} else {
 			// 已存在该类型的处理器了，我们提供CompositeMessageHandler将其封装为统一结构
-			handlerMap.put(clazz, new CompositeMessageFunction(existHandler, handler));
+			handlerMap.put(clazz, new CompositePlayerMessageFunction(existHandler, handler));
 		}
 	}
 
 	@Override
-	public final <T extends AbstractMessage> void dispatchMessage(@Nonnull Session session, @Nonnull T message) {
+	public final <T extends AbstractMessage> void dispatchMessage(@Nonnull Player player, @Nonnull T message) {
 		@SuppressWarnings("unchecked")
-		final MessageFunction<T> messageFunction = (MessageFunction<T>) handlerMap.get(message.getClass());
+		final PlayerMessageFunction<T> messageFunction = (PlayerMessageFunction<T>) handlerMap.get(message.getClass());
 		if (null == messageFunction) {
-			logger.warn("{} - {} send unregistered message {}",
-					session.remoteRole(), session.remoteGuid(), message.getClass().getName());
+			logger.warn("{} send unregistered message {}", player.getGuid(), message.getClass().getName());
 			return;
 		}
 		try {
-			messageFunction.onMessage(session, message);
+			messageFunction.onMessage(player, message);
 		} catch (Exception e){
 			logger.warn("Handler onMessage caught exception!, handler {}, message {}",
 					messageFunction.getClass().getName(), message.getClass().getName(), e);

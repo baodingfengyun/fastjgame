@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.example;
 
 import com.wjybxx.fastjgame.annotation.PlayerMessageSubscribe;
 import com.wjybxx.fastjgame.gameobject.Player;
+import com.wjybxx.fastjgame.misc.DefaultPlayerMessageFunctionRegistry;
 import com.wjybxx.fastjgame.misc.PlayerMessageFunctionRegistry;
 import com.wjybxx.fastjgame.msgfunregister.MessageSubscriberExampleMsgFunRegister;
 import com.wjybxx.fastjgame.protobuffer.p_common;
@@ -31,7 +32,7 @@ import com.wjybxx.fastjgame.protobuffer.p_common;
 public class MessageSubscriberExample {
 
     public static void main(String[] args) {
-        MessageSubscriberExampleMsgFunRegister.register(new PlayerMessageFunctionRegistry(),
+        MessageSubscriberExampleMsgFunRegister.register(new DefaultPlayerMessageFunctionRegistry(),
                 new MessageSubscriberExample());
     }
 

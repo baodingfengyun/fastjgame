@@ -18,13 +18,8 @@ package com.wjybxx.fastjgame.misc;
 
 import com.google.protobuf.AbstractMessage;
 import com.wjybxx.fastjgame.gameobject.Player;
-import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import java.util.IdentityHashMap;
-import java.util.Map;
 
 /**
  * 玩家消息处理器登记处
@@ -34,49 +29,22 @@ import java.util.Map;
  * date - 2019/8/25
  * github - https://github.com/hl845740757
  */
-public class PlayerMessageFunctionRegistry {
+public interface PlayerMessageFunctionRegistry {
 
-    private static final Logger logger = LoggerFactory.getLogger(PlayerMessageFunctionRegistry.class);
 
     /**
-     * 类型到处理器的映射。
+     * 注册一个消息对应的处理函数
+     * @param clazz 消息类
+     * @param handler 消息对应的处理函数
+     * @param <T> 消息的类型
      */
-    private final Map<Class<?>, PlayerMessageFunction<?>> handlerMap = new IdentityHashMap<>(512);
-
-    @SuppressWarnings("unchecked")
-    public <T extends AbstractMessage> void register(@NotNull Class<T> clazz, @NotNull PlayerMessageFunction<T> handler) {
-        final PlayerMessageFunction<?> existHandler = handlerMap.get(clazz);
-        // 该类型目前还没有被注册
-        if (existHandler == null) {
-            handlerMap.put(clazz, handler);
-            return;
-        }
-        if (existHandler instanceof CompositePlayerMessageFunction) {
-            ((CompositePlayerMessageFunction)existHandler).addHandler(handler);
-        } else {
-            // 已存在该类型的处理器了，我们提供CompositeMessageHandler将其封装为统一结构
-            handlerMap.put(clazz, new CompositePlayerMessageFunction(existHandler, handler));
-        }
-    }
+    <T extends AbstractMessage> void register(@Nonnull Class<T> clazz, @Nonnull PlayerMessageFunction<T> handler);
 
     /**
-     * 发布一个消息
+     * 接收到一个玩家发来的消息
      * @param player 消息所在的会话
      * @param message 消息内容
      * @param <T> 消息类型
      */
-    public final <T extends AbstractMessage> void dispatchMessage(@Nonnull Player player, T message) {
-        @SuppressWarnings("unchecked")
-        final PlayerMessageFunction<T> messageFunction = (PlayerMessageFunction<T>) handlerMap.get(message.getClass());
-        if (null == messageFunction) {
-            logger.warn("{} send unregistered message {}", player.getGuid(), message.getClass().getName());
-            return;
-        }
-        try {
-            messageFunction.onMessage(player, message);
-        } catch (Exception e){
-            logger.warn("Handler onMessage caught exception!, handler {}, message {}",
-                    messageFunction.getClass().getName(), message.getClass().getName(), e);
-        }
-    }
+    <T extends AbstractMessage> void dispatchMessage(@Nonnull Player player, @Nonnull T message);
 }

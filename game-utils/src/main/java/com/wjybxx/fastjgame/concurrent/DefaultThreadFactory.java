@@ -91,4 +91,13 @@ public class DefaultThreadFactory implements ThreadFactory {
 		}
 		return t;
 	}
+
+	@Override
+	public String toString() {
+		return "DefaultThreadFactory{" +
+				"prefix='" + prefix + '\'' +
+				", daemon=" + daemon +
+				", priority=" + priority +
+				'}';
+	}
 }
