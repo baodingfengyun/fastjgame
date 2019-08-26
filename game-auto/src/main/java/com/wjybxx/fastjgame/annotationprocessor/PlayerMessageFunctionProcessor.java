@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.annotationprocessor;
 
 import com.google.auto.service.AutoService;
-import com.google.protobuf.AbstractMessage;
 import com.squareup.javapoet.*;
 
 import javax.annotation.Generated;
@@ -51,9 +50,10 @@ import java.util.stream.Collectors;
 public class PlayerMessageFunctionProcessor extends AbstractProcessor {
 
     private static final String SUBSCRIBE_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.PlayerMessageSubscribe";
-    private static final String REGISTRY_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.PlayerMessageFunctionRegistry";
     private static final String FUNCTION_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.PlayerMessageFunction";
+    private static final String REGISTRY_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.PlayerMessageFunctionRegistry";
     private static final String PLAYER_CANONICAL_NAME = "com.wjybxx.fastjgame.gameobject.Player";
+    private static final String MESSAGE_CANONICAL_NAME = "com.google.protobuf.AbstractMessage";
 
     /** 输出编译信息 */
     private Messager messager;
@@ -62,8 +62,9 @@ public class PlayerMessageFunctionProcessor extends AbstractProcessor {
     /** 处理器信息 */
     private AnnotationSpec generatedAnnotation;
 
-    private TypeElement registryType;
+    private TypeElement subscribeElement;
     private TypeElement functionType;
+
     private DeclaredType playerType;
     private DeclaredType messageType;
 
@@ -92,32 +93,51 @@ public class PlayerMessageFunctionProcessor extends AbstractProcessor {
         return SourceVersion.RELEASE_8;
     }
 
-    private void init() {
-        if (null != registryType) {
-            // 已初始化
-            return;
+    /**
+     * 当前编译环境是否可用，测试关键属性
+     * @return 如果可用，则可以进行初始化
+     */
+    private boolean isEnvAvailable() {
+        // scene包依赖
+        if (elementUtils.getTypeElement(PLAYER_CANONICAL_NAME) == null) {
+            return false;
+        }
+        // protobuf依赖
+        if (elementUtils.getTypeElement(MESSAGE_CANONICAL_NAME) == null) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean tryInit() {
+        // 已初始化
+        if (null != subscribeElement) {
+            return true;
+        }
+        // 当前环境尚不可用
+        if (!isEnvAvailable()) {
+            return false;
         }
 
-        registryType = elementUtils.getTypeElement(REGISTRY_CANONICAL_NAME);
+        subscribeElement = elementUtils.getTypeElement(SUBSCRIBE_CANONICAL_NAME);
         functionType = elementUtils.getTypeElement(FUNCTION_CANONICAL_NAME);
-        playerType = typeUtils.getDeclaredType(elementUtils.getTypeElement(PLAYER_CANONICAL_NAME));
-        messageType = typeUtils.getDeclaredType(elementUtils.getTypeElement(AbstractMessage.class.getCanonicalName()));
 
-        registryTypeName = TypeName.get(registryType.asType());
+        playerType = typeUtils.getDeclaredType(elementUtils.getTypeElement(PLAYER_CANONICAL_NAME));
+        messageType = typeUtils.getDeclaredType(elementUtils.getTypeElement(MESSAGE_CANONICAL_NAME));
+
+        registryTypeName = TypeName.get(elementUtils.getTypeElement(REGISTRY_CANONICAL_NAME).asType());
+        return true;
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        TypeElement annotationElement = elementUtils.getTypeElement(SUBSCRIBE_CANONICAL_NAME);
-        if (null == annotationElement) {
+        if (!tryInit()) {
             // 不在scene模块
             return false;
         }
-        // 初始化
-        init();
 
-        Map<Element, ? extends List<? extends Element>> elementListMap = roundEnv.getElementsAnnotatedWith(annotationElement)
+        Map<Element, ? extends List<? extends Element>> elementListMap = roundEnv.getElementsAnnotatedWith(subscribeElement)
                 .stream()
                 .filter(element -> ((Element) element).getEnclosingElement().getKind() == ElementKind.CLASS)
                 .collect(Collectors.groupingBy(element -> ((Element) element).getEnclosingElement()));
@@ -191,9 +211,6 @@ public class PlayerMessageFunctionProcessor extends AbstractProcessor {
         }
     }
 
-    /**
-     * 判定声明的类型是否是指定类型
-     */
     private boolean isTargetType(VariableElement variableElement, Predicate<DeclaredType> matcher) {
         return variableElement.asType().accept(new SimpleTypeVisitor8<Boolean, Void>(){
 

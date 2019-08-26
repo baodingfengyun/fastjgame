@@ -19,14 +19,15 @@ package com.wjybxx.fastjgame.utils;
 import com.squareup.javapoet.*;
 
 import javax.annotation.Nonnull;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.TypeParameterElement;
-import javax.lang.model.element.VariableElement;
+import javax.lang.model.element.*;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
+import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Optional;
 
 
 /**
@@ -244,5 +245,52 @@ public class AutoUtils {
 			builder.addException(TypeName.get(thrownType));
 		};
 	}
+
+	// ----------------------------------------------------- 分割线 -----------------------------------------------
+
+	/**
+	 * 查找出现的第一个注解，不是default类型
+	 * @param typeUtils 类型工具
+	 * @param element 要查询的element
+	 * @param targetType 目标注解类型
+	 * @return optional
+	 */
+	public static Optional<? extends AnnotationMirror> findFirstAnnotationNotDefault(Types typeUtils, Element element, DeclaredType targetType) {
+		// 查找该字段上的注解
+		return element.getAnnotationMirrors().stream()
+				.filter(annotationMirror -> typeUtils.isSameType(annotationMirror.getAnnotationType(), targetType))
+				.findFirst();
+	}
+
+	/**
+	 * 查找出现的第一个注解，包含default类型
+	 * @param typeUtils 类型工具
+	 * @param elementUtils 元素工具
+	 * @param element 要查询的element
+	 * @param targetType 目标注解类型
+	 * @return optional
+	 */
+	public static Optional<? extends AnnotationMirror> findFirstAnnotation(Types typeUtils, Elements elementUtils, Element element, DeclaredType targetType) {
+		// 查找该字段上的注解
+		return elementUtils.getAllAnnotationMirrors(element).stream()
+				.filter(annotationMirror -> typeUtils.isSameType(annotationMirror.getAnnotationType(), targetType))
+				.findFirst();
+	}
+
+	/**
+	 * 获取注解上的某一个属性的值。
+	 * @param annotationMirror 注解编译信息
+	 * @param propertyName 属性的名字
+	 * @return object
+	 */
+	public static Object getAnnotationValue(AnnotationMirror annotationMirror, String propertyName) {
+		final Optional<Object> property = annotationMirror.getElementValues().entrySet().stream()
+				.filter(entry -> entry.getKey().getSimpleName().toString().equals(propertyName))
+				.map(entry -> entry.getValue().getValue())
+				.findFirst();
+		assert property.isPresent();
+		return property.get();
+	}
+
 
 }

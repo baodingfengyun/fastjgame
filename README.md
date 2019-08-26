@@ -20,14 +20,14 @@ fastjgame 为 fast java game framework的缩写，如名字一样，该项目的
 2. 编解码更快，功能支持更强，请查看**SerializableClass**和**SerializableField**注解。
 3. RpcService代码自动生成，你必须将game-auto打为jar包才可以使用代码生成工具(注解处理器必须是jar包形式)，请确保所有模块都启用了注解处理器。
 
-### 如何打包注解处理器？
+### 注解处理器优化 2019-08-26
+注解处理器不再依赖utils和net模块，而是utils依赖auto模块，这样utils和net模块也可以使用自己定义的注解了。
+
+### 如何使用注解处理器？
 1. 将game-auto添加到project-structure
-2. install game-utils 到本地仓库
-3. install game-net 到本地仓库
-4. install game-auto 到本地仓库
-5. 将game-auto从项目project-structure中移除（game-auto）。
-6. Ok，此时game-auto中所有注解处理器已经可用。
-7. 在game-parent下 先clean，再compile，可消除缺少类文件的报错。
+2. install game-auto 到本地仓库
+3. 将game-auto从项目project-structure中移除，注解处理器必须以jar包形式工作。
+4. 在game-parent下clean，再compile，可消除缺少类文件的报错。
 
 ### 编译出现找不到符号问题怎么解决？
 1. 确保注解处理器已install到本地仓库。

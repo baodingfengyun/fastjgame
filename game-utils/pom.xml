@@ -174,5 +174,12 @@
             <version>1.13</version>
         </dependency>
 
+        <!-- 代码生成工具，最新版将依赖交换 -->
+        <dependency>
+            <groupId>com.wjybxx.fastjgame</groupId>
+            <artifactId>game-auto</artifactId>
+            <version>1.0</version>
+        </dependency>
+
     </dependencies>
 </project>

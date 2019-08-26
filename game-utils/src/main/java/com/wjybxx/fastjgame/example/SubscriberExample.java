@@ -38,12 +38,12 @@ public class SubscriberExample {
 
 	@Subscribe
 	public void onEvent(String name) {
-
+		System.out.println("onEvent-" + name);
 	}
 
 	@Subscribe
 	public void onEvent(Integer age) {
-
+		System.out.println("onEvent-" + age);
 	}
 
 	@Subscribe
@@ -58,7 +58,7 @@ public class SubscriberExample {
 
 	@Subscribe
 	public void hello(String name) {
-
+		System.out.println("hello-" + name);
 	}
 
 //	@Subscribe
@@ -76,4 +76,11 @@ public class SubscriberExample {
 		// 如果打开注解，编译会报错
 	}
 
+	public static void main(String[] args) {
+		final EventBus bus = new EventBus();
+		new SubscriberExample(bus);
+
+		bus.post("String");
+		bus.post(250);
+	}
 }

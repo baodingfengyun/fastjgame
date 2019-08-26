@@ -17,24 +17,23 @@
 package com.wjybxx.fastjgame.annotationprocessor;
 
 import com.google.auto.service.AutoService;
-import com.wjybxx.fastjgame.annotation.SerializableClass;
-import com.wjybxx.fastjgame.annotation.SerializableField;
+import com.wjybxx.fastjgame.utils.AutoUtils;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
+import javax.lang.model.element.*;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import java.util.Collections;
-import java.util.List;
+import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
- * 分析{@link SerializableField#number()}是否重复，以及是否在 [0,127之间]
+ * 分析{@code SerializableField#number()}是否重复，以及是否在 [0,127之间]
  *
  * @author houlei
  * @version 1.0
@@ -43,18 +42,31 @@ import java.util.stream.Collectors;
 @AutoService(Processor.class)
 public class SerializableNumberProcessor extends AbstractProcessor {
 
+	// 使用这种方式可以脱离对utils，net包的依赖
+	private static final String SERIALIZABLE_CLASS_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.SerializableClass";
+	private static final String SERIALIZABLE_FIELD_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.SerializableField";
+	private static final String NUMBER_METHOD_NAME = "number";
+
 	// 工具类
 	private Messager messager;
+	private Elements elementUtils;
+	private Types typeUtils;
+
+	private TypeElement serializableClassElement;
+	private DeclaredType serializableFieldType;
 
 	@Override
 	public synchronized void init(ProcessingEnvironment processingEnv) {
 		super.init(processingEnv);
 		messager = processingEnv.getMessager();
+		elementUtils = processingEnv.getElementUtils();
+		typeUtils = processingEnv.getTypeUtils();
+		// 不能再这里初始化别的信息，因为对应的注解可能还未存在
 	}
 
 	@Override
 	public Set<String> getSupportedAnnotationTypes() {
-		return Collections.singleton(SerializableClass.class.getCanonicalName());
+		return Collections.singleton(SERIALIZABLE_CLASS_CANONICAL_NAME);
 	}
 
 	@Override
@@ -62,10 +74,36 @@ public class SerializableNumberProcessor extends AbstractProcessor {
 		return SourceVersion.RELEASE_8;
 	}
 
+	/**
+	 * 当前环境是否可用，测试关键属性即可。
+	 */
+	private boolean isEnvAvailable() {
+		if (elementUtils.getTypeElement(SERIALIZABLE_CLASS_CANONICAL_NAME) == null) {
+			return false;
+		}
+		return true;
+	}
+
+	private boolean tryInit() {
+		if (serializableClassElement != null) {
+			return true;
+		}
+		if (!isEnvAvailable()){
+			return false;
+		}
+		serializableClassElement = elementUtils.getTypeElement(SERIALIZABLE_CLASS_CANONICAL_NAME);
+		serializableFieldType = typeUtils.getDeclaredType(elementUtils.getTypeElement(SERIALIZABLE_FIELD_CANONICAL_NAME));
+		return true;
+	}
+
 	@Override
 	public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+		if (!tryInit()) {
+			return false;
+		}
+		// 该注解只有类可以使用
 		@SuppressWarnings("unchecked")
-		Set<TypeElement> typeElementSet = (Set<TypeElement>) roundEnv.getElementsAnnotatedWith(SerializableClass.class);
+		Set<TypeElement> typeElementSet = (Set<TypeElement>) roundEnv.getElementsAnnotatedWith(serializableClassElement);
 		for (TypeElement typeElement:typeElementSet) {
 			checkNumber(typeElement);
 		}
@@ -73,15 +111,22 @@ public class SerializableNumberProcessor extends AbstractProcessor {
 	}
 
 	private void checkNumber(TypeElement typeElement) {
-		@SuppressWarnings("unchecked")
-		final List<VariableElement> serializableFields = (List<VariableElement>) typeElement.getEnclosedElements().stream()
-				.filter(element -> element.getKind() == ElementKind.FIELD)
-				.filter(element -> element.getAnnotation(SerializableField.class) != null)
-				.collect(Collectors.toList());
-		IntSet numberSet = new IntOpenHashSet(serializableFields.size());
-		for (VariableElement variableElement:serializableFields) {
-			final SerializableField annotation = variableElement.getAnnotation(SerializableField.class);
-			final int number = annotation.number();
+		final IntSet numberSet = new IntOpenHashSet(typeElement.getEnclosedElements().size());
+		for (Element element:typeElement.getEnclosedElements()) {
+			// 非成员属性
+			if (element.getKind() != ElementKind.FIELD) {
+				continue;
+			}
+			// 该注解只有Field可以使用
+			VariableElement variableElement = (VariableElement) element;
+			// 查找该字段上的注解
+			final Optional<? extends AnnotationMirror> first = AutoUtils.findFirstAnnotationNotDefault(typeUtils, variableElement, serializableFieldType);
+			// 该成员属性没有serializableField注解
+			if (!first.isPresent()) {
+				continue;
+			}
+			// value中，基本类型会被封装为包装类型，number是int类型
+			final int number = (Integer) AutoUtils.getAnnotationValue(first.get(), NUMBER_METHOD_NAME);
 			// 取值范围检测
 			if (number <0 || number > 127) {
 				messager.printMessage(Diagnostic.Kind.ERROR, "number " + number + " must between [0, 127]", variableElement);

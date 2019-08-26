@@ -18,8 +18,6 @@ package com.wjybxx.fastjgame.annotationprocessor;
 
 import com.google.auto.service.AutoService;
 import com.squareup.javapoet.*;
-import com.wjybxx.fastjgame.eventbus.EventBus;
-import com.wjybxx.fastjgame.eventbus.Subscribe;
 
 import javax.annotation.Generated;
 import javax.annotation.processing.*;
@@ -29,7 +27,9 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
+import javax.lang.model.util.Elements;
 import javax.lang.model.util.SimpleTypeVisitor8;
+import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import java.util.Collections;
 import java.util.List;
@@ -38,7 +38,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * 为带有{@link Subscribe}注解的方法生成代理。
+ * 为带有{@code Subscribe}注解的方法生成代理。
  *
  * @author houlei
  * @version 1.0
@@ -47,15 +47,25 @@ import java.util.stream.Collectors;
 @AutoService(Processor.class)
 public class EventBusProcessor extends AbstractProcessor {
 
+	private static final String EVENT_BUS_CANONICAL_NAME = "com.wjybxx.fastjgame.eventbus.EventBus";
+	private static final String SUBSCRIBE_CANONICAL_NAME = "com.wjybxx.fastjgame.eventbus.Subscribe";
+
 	// 工具类
 	private Messager messager;
+	private Elements elementUtils;
+
 	/** 生成信息 */
 	private AnnotationSpec generatedAnnotation;
+
+	/** {@code Subscribe对应的注解元素} */
+	private TypeElement subscribeElement;
+	private TypeName eventBusTypeName;
 
 	@Override
 	public synchronized void init(ProcessingEnvironment processingEnv) {
 		super.init(processingEnv);
 		messager = processingEnv.getMessager();
+		elementUtils = processingEnv.getElementUtils();
 
 		generatedAnnotation = AnnotationSpec.builder(Generated.class)
 				.addMember("value", "$S", EventBusProcessor.class.getCanonicalName())
@@ -64,7 +74,7 @@ public class EventBusProcessor extends AbstractProcessor {
 
 	@Override
 	public Set<String> getSupportedAnnotationTypes() {
-		return Collections.singleton(Subscribe.class.getCanonicalName());
+		return Collections.singleton(SUBSCRIBE_CANONICAL_NAME);
 	}
 
 	@Override
@@ -72,10 +82,42 @@ public class EventBusProcessor extends AbstractProcessor {
 		return SourceVersion.RELEASE_8;
 	}
 
+	/**
+	 * 当前环境是否可用，如果可用则表示可以进行初始化
+	 * 测试关键属性即可。
+	 */
+	private boolean isEnvAvailable() {
+		if (elementUtils.getTypeElement(SUBSCRIBE_CANONICAL_NAME) == null) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * 尝试初始化环境，也就是依赖的类都已经出现
+	 */
+	private boolean tryInit() {
+		if (subscribeElement != null){
+			// 已初始化
+			return true;
+		}
+		if (!isEnvAvailable()) {
+			// 当前环境不可用
+			return false;
+		}
+		subscribeElement = elementUtils.getTypeElement(SUBSCRIBE_CANONICAL_NAME);
+		eventBusTypeName = TypeName.get(elementUtils.getTypeElement(EVENT_BUS_CANONICAL_NAME).asType());
+		return true;
+	}
+
 	@Override
 	public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+		if (!tryInit()) {
+			return false;
+		}
+
 		// 只有方法可以带有该注解 METHOD只有普通方法，不包含构造方法， 按照外部类进行分类
-		final Map<Element, ? extends List<? extends Element>> collect = roundEnv.getElementsAnnotatedWith(Subscribe.class).stream()
+		final Map<Element, ? extends List<? extends Element>> collect = roundEnv.getElementsAnnotatedWith(subscribeElement).stream()
 				.filter(element -> ((Element) element).getEnclosingElement().getKind() == ElementKind.CLASS)
 				.collect(Collectors.groupingBy(element -> ((Element) element).getEnclosingElement()));
 
@@ -93,7 +135,7 @@ public class EventBusProcessor extends AbstractProcessor {
 
 		final MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("register")
 				.addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-				.addParameter(EventBus.class, "bus")
+				.addParameter(eventBusTypeName, "bus")
 				.addParameter(TypeName.get(typeElement.asType()), "instance");
 
 		for (Element element:methodList) {

@@ -77,6 +77,10 @@ public final class RpcResponse {
 		return new RpcResponse(resultCode, null);
 	}
 
+	public static RpcResponse newSucceedResponse(Object body) {
+		return new RpcResponse(RpcResultCode.SUCCESS, body);
+	}
+
 	@Override
 	public String toString() {
 		return "RpcResponse{" +
