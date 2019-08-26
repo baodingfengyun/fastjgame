@@ -24,6 +24,7 @@ import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupImp;
 import com.wjybxx.fastjgame.misc.DefaultRpcFunctionRegistry;
 import com.wjybxx.fastjgame.misc.RpcFunctionRegistry;
 import com.wjybxx.fastjgame.net.NetContext;
+import com.wjybxx.fastjgame.net.RpcResponseChannel;
 import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.net.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.initializer.TCPServerChannelInitializer;
@@ -58,6 +59,34 @@ public class ExampleRpcService {
 	@RpcMethod(methodId = 3)
 	public int inc(final int number) {
 		return number + 1;
+	}
+
+	/**
+	 *
+	 * @param number 待加的数
+	 * @param session 会话信息。
+	 *                该参数不会出现在客户端的代理中，Session参数可以出现在任意位置，注解处理器会处理，不要求在特定位置
+	 * @return 增加后的值
+	 */
+	@RpcMethod(methodId = 4)
+	public int incWithSession(final int number, Session session) {
+		return number + 2;
+	}
+
+	/**
+	 *
+	 * @param number 待加的数
+	 * @param responseChannel 返回结果的通道，表示该方法可能不能立即返回结果，需要持有channel以便在未来返回结果。
+	 *                        该参数不会出现在客户端的代理中，Channel参数可以出现在任意位置，注解处理器会处理，不要求在特定位置
+	 */
+	@RpcMethod(methodId = 5)
+	public void incWithChannel(final int number, RpcResponseChannel<Integer> responseChannel) {
+		responseChannel.writeSuccess(number + 3);
+	}
+
+	@RpcMethod(methodId = 6)
+	public void incWithSessionAndChannel(Session session, final int number, RpcResponseChannel<Integer> responseChannel) {
+		responseChannel.writeSuccess(number + 4);
 	}
 
 	private static class ServiceLoop extends SingleThreadEventLoop {
@@ -129,7 +158,6 @@ public class ExampleRpcService {
 			System.out.println("----------------onSessionDisconnected---------------------");
 		}
 	}
-
 
 	public static void main(String[] args) {
 		final DefaultRpcFunctionRegistry registry = new DefaultRpcFunctionRegistry();
