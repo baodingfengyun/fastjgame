@@ -88,7 +88,7 @@ public class ExampleRpcClientLoop extends SingleThreadEventLoop {
 				break;
 			}
 			// X秒一个循环
-			LockSupport.parkNanos(TimeUtils.NANO_PER_MILLISECOND * TimeUtils.SEC);
+			LockSupport.parkNanos(TimeUtils.NANO_PER_MILLISECOND * TimeUtils.SEC * 2);
 		}
 	}
 
@@ -98,7 +98,7 @@ public class ExampleRpcClientLoop extends SingleThreadEventLoop {
 				.ifSuccess(result -> System.out.println("hello - " + index + " - " + result))
 				.execute();
 
-		ExampleRpcServiceRpcProxy.queryId("wjybyxx-" + index)
+		ExampleRpcServiceRpcProxy.queryId("wjybxx-" + index)
 				.setSession(session)
 				.ifSuccess(result -> System.out.println("queryId - " + index + " - " + result))
 				.execute();

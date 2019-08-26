@@ -19,6 +19,13 @@ fastjgame 为 fast java game framework的缩写，如名字一样，该项目的
 1. Rpc调用更加标准化。
 2. 编解码更快，功能支持更强，请查看**SerializableClass**和**SerializableField**注解。
 3. RpcService代码自动生成，你必须将game-auto打为jar包才可以使用代码生成工具(注解处理器必须是jar包形式)，请确保所有模块都启用了注解处理器。
+4. 在net模块下，example下有几个测试用例，其中： **ExampleRpcClientLoop**是一个Rpc客户端，**ExampleRpcService**是一个Rpc服务，编译后可直接运行。
+5. 还有一些别的测试用例，并没有使用自动生成的代码，用法很原始，更贴近底层。
+
+### EventBus 2019-08-24
+1. 在utils包下有一套基础的EventBus实现。
+2. 订阅方法代码自动生成。
+3. 在example目录下同样提供了一个测试用例，编译后可运行。
 
 ### 注解处理器优化 2019-08-26
 注解处理器不再依赖utils和net模块，而是utils依赖auto模块，这样utils和net模块也可以使用自己定义的注解了。

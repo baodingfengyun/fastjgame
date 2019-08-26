@@ -39,6 +39,21 @@ public class SubscriberExample {
 	}
 
 	@Subscribe
+	public void hello(String name) {
+		System.out.println("hello-" + name);
+	}
+
+	@Subscribe
+	public void hello2(String name) {
+		System.out.println("hello2-" + name);
+	}
+
+	@Subscribe
+	public void hello3(String name) {
+		System.out.println("hello3-" + name);
+	}
+
+	@Subscribe
 	public void onEvent(String name) {
 		System.out.println("onEvent-" + name);
 	}
@@ -56,11 +71,6 @@ public class SubscriberExample {
 	@Subscribe
 	public void onEvent(Object name) {
 
-	}
-
-	@Subscribe
-	public void hello(String name) {
-		System.out.println("hello-" + name);
 	}
 
 	@Subscribe
