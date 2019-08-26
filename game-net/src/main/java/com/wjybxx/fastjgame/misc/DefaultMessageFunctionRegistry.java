@@ -58,12 +58,7 @@ public class DefaultMessageFunctionRegistry implements MessageFunctionRegistry {
 		}
 	}
 
-	/**
-	 * 发布一个消息
-	 * @param session 消息所在的会话
-	 * @param message 消息内容
-	 * @param <T> 消息类型
-	 */
+	@Override
 	public final <T extends AbstractMessage> void dispatchMessage(@Nonnull Session session, T message) {
 		@SuppressWarnings("unchecked")
 		final MessageFunction<T> messageFunction = (MessageFunction<T>) handlerMap.get(message.getClass());

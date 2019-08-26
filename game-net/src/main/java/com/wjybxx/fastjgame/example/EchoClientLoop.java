@@ -53,7 +53,7 @@ public class EchoClientLoop extends SingleThreadEventLoop {
 
 	private NetContext netContext;
 
-	/** 是否已建立tcp连接？ */
+	/** 是否已建立tcp连接 */
 	private Session session;
 
 	public EchoClientLoop(@Nonnull ThreadFactory threadFactory,

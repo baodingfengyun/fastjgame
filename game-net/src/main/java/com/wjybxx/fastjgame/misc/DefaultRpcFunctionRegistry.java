@@ -55,13 +55,8 @@ public class DefaultRpcFunctionRegistry implements RpcFunctionRegistry {
 		functionInfoMap.put(methodKey, function);
 	}
 
-	/**
-	 * 分发一个rpc调用
-	 * @param session 所在的会话
-	 * @param rpcCall rpc调用信息
-	 * @param rpcResponseChannel 如果需要返回结果的话，使用该对象返回值。
-	 */
 	@SuppressWarnings("unchecked")
+	@Override
 	public final void dispatchRpcRequest(@Nonnull Session session, @Nonnull RpcCall rpcCall, @Nonnull RpcResponseChannel<?> rpcResponseChannel) {
 		final int methodKey = rpcCall.getMethodKey();
 		final List<Object> params = rpcCall.getMethodParams();
@@ -79,4 +74,5 @@ public class DefaultRpcFunctionRegistry implements RpcFunctionRegistry {
 					session.remoteRole(), session.remoteGuid(), methodKey, e);
 		}
 	}
+
 }

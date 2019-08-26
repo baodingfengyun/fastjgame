@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.example;
 
 import com.wjybxx.fastjgame.misc.MessageMappingStrategy;
+import com.wjybxx.fastjgame.misc.RpcCall;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
@@ -37,6 +38,7 @@ public class ExampleHashMappingStrategy implements MessageMappingStrategy {
         for (Class<?> messageClass:allClass) {
             result.put(messageClass, messageClass.getCanonicalName().hashCode());
         }
+        result.put(RpcCall.class, RpcCall.class.getCanonicalName().hashCode());
         return result;
     }
 }

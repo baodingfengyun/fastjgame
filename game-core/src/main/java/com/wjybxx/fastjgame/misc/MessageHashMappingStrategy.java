@@ -50,7 +50,7 @@ public class MessageHashMappingStrategy implements MessageMappingStrategy {
                 MessageHashMappingStrategy::isSerializable);
 
         for (Class<?> messageClass:allClass) {
-            messageClass2IdMap.put(messageClass, getClassHashCode(messageClass));
+            messageClass2IdMap.put(messageClass, getUniqueId(messageClass));
         }
     }
 
@@ -75,8 +75,9 @@ public class MessageHashMappingStrategy implements MessageMappingStrategy {
         return false;
     }
 
-    private static int getClassHashCode(Class<?> rpcCallClass) {
-        return rpcCallClass.hashCode();
+    private static int getUniqueId(Class<?> rpcCallClass) {
+        // 不能直接使用hashCode，直接使用hashCode，在不同的进程的值是不一样的
+        return rpcCallClass.getCanonicalName().hashCode();
     }
 
     @Override
