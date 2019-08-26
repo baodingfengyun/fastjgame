@@ -41,7 +41,7 @@ import java.util.concurrent.locks.LockSupport;
  * @version 1.0
  * date - 2019/8/26
  */
-public class EchoRpcClientLoop extends SingleThreadEventLoop {
+public class ExampleRpcClientLoop extends SingleThreadEventLoop {
 
 	private final NetEventLoopGroup netGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET-EVENT-LOOP"),
 			RejectedExecutionHandlers.log());
@@ -50,9 +50,9 @@ public class EchoRpcClientLoop extends SingleThreadEventLoop {
 	/** 是否已建立tcp连接 */
 	private Session session;
 
-	public EchoRpcClientLoop(@Nullable EventLoopGroup parent,
-							 @Nonnull ThreadFactory threadFactory,
-							 @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
+	public ExampleRpcClientLoop(@Nullable EventLoopGroup parent,
+								@Nonnull ThreadFactory threadFactory,
+								@Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
 		super(parent, threadFactory, rejectedExecutionHandler);
 	}
 
@@ -123,20 +123,20 @@ public class EchoRpcClientLoop extends SingleThreadEventLoop {
 		@Override
 		public void onSessionConnected(Session session) {
 			System.out.println(" ============ onSessionConnected ===============");
-			EchoRpcClientLoop.this.session = session;
+			ExampleRpcClientLoop.this.session = session;
 		}
 
 		@Override
 		public void onSessionDisconnected(Session session) {
 			System.out.println(" =========== onSessionDisconnected ==============");
-			EchoRpcClientLoop.this.session = null;
+			ExampleRpcClientLoop.this.session = null;
 			// 断开连接后关闭
 			shutdown();
 		}
 	}
 
 	public static void main(String[] args) throws ExecutionException, InterruptedException {
-		EchoRpcClientLoop echoClientLoop = new EchoRpcClientLoop(null,
+		ExampleRpcClientLoop echoClientLoop = new ExampleRpcClientLoop(null,
 				new DefaultThreadFactory("CLIENT"),
 				RejectedExecutionHandlers.log());
 

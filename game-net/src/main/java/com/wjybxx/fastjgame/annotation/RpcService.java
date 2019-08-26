@@ -34,7 +34,10 @@ import java.lang.annotation.Target;
 public @interface RpcService {
 
 	/**
-	 * 该类对应的serviceId,由该id和methodId构成唯一索引
+	 * 该类对应的serviceId,由该id和methodId构成唯一索引。
+	 * 注意：
+	 * 1. 该值必须大于0。
+	 * 2. 32000 - 32767作为测试代码使用()
 	 * @return short
 	 */
 	short serviceId();

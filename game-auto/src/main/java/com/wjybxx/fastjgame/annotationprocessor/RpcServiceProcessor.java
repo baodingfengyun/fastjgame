@@ -241,11 +241,18 @@ public class RpcServiceProcessor extends AbstractProcessor {
 		assert serviceAnnotationOption.isPresent();
 		// 基本类型会被包装，Object不能直接转short
 		final short serviceId = (Short) AutoUtils.getAnnotationValue(serviceAnnotationOption.get(), SERVICE_ID_METHOD_NAME);
+
+		if (serviceId <= 0) {
+			messager.printMessage(Diagnostic.Kind.ERROR, " serviceId " + serviceId + " must greater than 0!", typeElement);
+			return;
+		}
+
 		if (!serviceIdSet.add(serviceId)) {
 			// 打印重复serviceId
 			messager.printMessage(Diagnostic.Kind.ERROR, " serviceId " + serviceId + " is duplicate!", typeElement);
 			return;
 		}
+
 		// 筛选rpc方法
 		final List<ExecutableElement> allMethods = typeElement.getEnclosedElements().stream()
 				.filter(element -> element.getKind() == ElementKind.METHOD)
@@ -273,6 +280,10 @@ public class RpcServiceProcessor extends AbstractProcessor {
 			}
 			// 方法id，基本类型会被封装为包装类型，Object并不能直接转换到基本类型
 			final short methodId = (Short) AutoUtils.getAnnotationValue(rpcMethodAnnotation.get(), METHOD_ID_METHOD_NAME);
+			if (methodId <= 0) {
+				messager.printMessage(Diagnostic.Kind.ERROR, " methodId " + methodId + " must greater than 0!", method);
+				return;
+			}
 			// 方法的唯一键，乘以1W比位移有更好的可读性
 			final int methodKey = (int)serviceId * 10000 + methodId;
 			// 重复检测

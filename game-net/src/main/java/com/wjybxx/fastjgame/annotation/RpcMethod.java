@@ -54,7 +54,8 @@ import java.lang.annotation.Target;
 public @interface RpcMethod {
 
 	/**
-	 * 该方法在该类中的唯一id
+	 * 该方法在该类中的唯一id。
+	 * 注意：该值必须大于0。
 	 * @return 由该id和serviceId构成唯一索引。
 	 */
 	short methodId();
