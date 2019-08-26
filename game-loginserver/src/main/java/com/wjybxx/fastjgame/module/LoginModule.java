@@ -34,6 +34,7 @@ public class LoginModule extends WorldModule {
     protected void bindWorldAndWorldInfoMrg() {
         bind(World.class).to(LoginWorld.class).in(Singleton.class);
         bind(WorldInfoMrg.class).to(LoginWorldInfoMrg.class).in(Singleton.class);
+        bind(ProtocolDispatcherMrg.class).in(Singleton.class);
     }
 
     @Override

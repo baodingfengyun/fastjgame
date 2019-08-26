@@ -35,16 +35,19 @@ public class SceneWorld extends AbstractWorld {
     private final SceneWorldInfoMrg sceneWorldInfoMrg;
     private final SceneSendMrg sendMrg;
     private final SceneMrg sceneMrg;
+    private final SceneProtocolDispatcherMrg sceneProtocolDispatcherMrg;
 
     @Inject
-    public SceneWorld(WorldWrapper worldWrapper, CenterInSceneInfoMrg centerInSceneInfoMrg, SceneRegionMrg sceneRegionMrg,
-                      SceneSendMrg sendMrg, SceneMrg sceneMrg) {
+    public SceneWorld(WorldWrapper worldWrapper, CenterInSceneInfoMrg centerInSceneInfoMrg,
+                      SceneRegionMrg sceneRegionMrg, SceneSendMrg sendMrg, SceneMrg sceneMrg,
+                      SceneProtocolDispatcherMrg sceneProtocolDispatcherMrg) {
         super(worldWrapper);
         this.centerInSceneInfoMrg = centerInSceneInfoMrg;
         this.sceneRegionMrg = sceneRegionMrg;
         this.sceneWorldInfoMrg= (SceneWorldInfoMrg) worldWrapper.getWorldInfoMrg();
         this.sendMrg = sendMrg;
         this.sceneMrg = sceneMrg;
+        this.sceneProtocolDispatcherMrg = sceneProtocolDispatcherMrg;
     }
 
     @Override

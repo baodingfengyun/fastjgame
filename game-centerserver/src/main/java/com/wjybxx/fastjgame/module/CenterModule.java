@@ -33,6 +33,7 @@ public class CenterModule extends WorldModule {
     protected void bindWorldAndWorldInfoMrg() {
         bind(World.class).to(CenterWorld.class).in(Singleton.class);
         bind(WorldInfoMrg.class).to(CenterWorldInfoMrg.class).in(Singleton.class);
+        bind(ProtocolDispatcherMrg.class).in(Singleton.class);
     }
 
     @Override

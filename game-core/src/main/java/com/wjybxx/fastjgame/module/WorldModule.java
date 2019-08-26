@@ -49,7 +49,6 @@ public abstract class WorldModule extends AbstractModule {
 
         bind(NetContextMrg.class).in(Singleton.class);
         bind(HttpDispatcherMrg.class).in(Singleton.class);
-        bind(ProtocolDispatcherMrg.class).in(Singleton.class);
 
         bind(WorldTimeMrg.class).in(Singleton.class);
         bind(WorldTimerMrg.class).in(Singleton.class);

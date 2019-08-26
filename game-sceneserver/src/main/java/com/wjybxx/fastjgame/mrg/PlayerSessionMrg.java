@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.wjybxx.fastjgame.annotation.WorldSingleton;
+import com.wjybxx.fastjgame.gameobject.Player;
 import com.wjybxx.fastjgame.misc.PlayerSession;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -37,7 +38,7 @@ public class PlayerSessionMrg {
     /**
      * playerGuid -> session
      */
-    private final Long2ObjectMap<PlayerSession> guid2SessionMap = new Long2ObjectOpenHashMap<>();
+    private final Long2ObjectMap<Player> guid2SessionMap = new Long2ObjectOpenHashMap<>();
 
     /**
      * 玩家是否登录scene进程成功了，玩家连接上scene这个事件是请求登录scene。
@@ -49,7 +50,7 @@ public class PlayerSessionMrg {
         return guid2SessionMap.containsKey(playerGuid);
     }
 
-    public PlayerSession getPlayerSession(long playerGuid){
+    public Player getPlayer(long playerGuid){
         return guid2SessionMap.get(playerGuid);
     }
 

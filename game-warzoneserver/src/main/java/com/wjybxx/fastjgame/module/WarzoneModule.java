@@ -33,6 +33,7 @@ public class WarzoneModule extends WorldModule {
     protected void bindWorldAndWorldInfoMrg() {
         bind(World.class).to(WarzoneWorld.class).in(Singleton.class);
         bind(WorldInfoMrg.class).to(WarzoneWorldInfoMrg.class).in(Singleton.class);
+        bind(ProtocolDispatcherMrg.class).in(Singleton.class);
     }
 
     @Override

@@ -34,6 +34,7 @@ public class SceneModule extends WorldModule {
     protected void bindWorldAndWorldInfoMrg() {
         bind(WorldInfoMrg.class).to(SceneWorldInfoMrg.class).in(Singleton.class);
         bind(World.class).to(SceneWorld.class).in(Singleton.class);
+        bind(ProtocolDispatcherMrg.class).to(SceneProtocolDispatcherMrg.class).in(Singleton.class);
     }
 
     @Override
@@ -46,5 +47,7 @@ public class SceneModule extends WorldModule {
         bind(SceneWrapper.class).in(Singleton.class);
         bind(SceneMrg.class).in(Singleton.class);
         bind(PlayerSessionMrg.class).in(Singleton.class);
+        // 再绑一次方便食用
+        bind(SceneProtocolDispatcherMrg.class).in(Singleton.class);
     }
 }
