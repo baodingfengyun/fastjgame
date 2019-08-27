@@ -24,10 +24,12 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
 import javax.lang.model.util.Elements;
+import javax.lang.model.util.SimpleTypeVisitor8;
 import javax.lang.model.util.Types;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 
 /**
@@ -249,13 +251,13 @@ public class AutoUtils {
 	// ----------------------------------------------------- 分割线 -----------------------------------------------
 
 	/**
-	 * 查找出现的第一个注解，不是default类型
+	 * 查找出现的第一个注解，不包含继承的部分
 	 * @param typeUtils 类型工具
 	 * @param element 要查询的element
 	 * @param targetType 目标注解类型
 	 * @return optional
 	 */
-	public static Optional<? extends AnnotationMirror> findFirstAnnotationNotDefault(Types typeUtils, Element element, DeclaredType targetType) {
+	public static Optional<? extends AnnotationMirror> findFirstAnnotationNotInheritance(Types typeUtils, Element element, DeclaredType targetType) {
 		// 查找该字段上的注解
 		return element.getAnnotationMirrors().stream()
 				.filter(annotationMirror -> typeUtils.isSameType(annotationMirror.getAnnotationType(), targetType))
@@ -263,7 +265,7 @@ public class AutoUtils {
 	}
 
 	/**
-	 * 查找出现的第一个注解，包含default类型
+	 * 查找出现的第一个注解，包含继承的注解
 	 * @param typeUtils 类型工具
 	 * @param elementUtils 元素工具
 	 * @param element 要查询的element
@@ -278,12 +280,12 @@ public class AutoUtils {
 	}
 
 	/**
-	 * 获取注解上的某一个属性的值。
+	 * 获取注解上的某一个属性的值，不包含default值
 	 * @param annotationMirror 注解编译信息
 	 * @param propertyName 属性的名字
 	 * @return object
 	 */
-	public static Object getAnnotationValue(AnnotationMirror annotationMirror, String propertyName) {
+	public static Object getAnnotationValueNotDefault(AnnotationMirror annotationMirror, String propertyName) {
 		final Optional<Object> property = annotationMirror.getElementValues().entrySet().stream()
 				.filter(entry -> entry.getKey().getSimpleName().toString().equals(propertyName))
 				.map(entry -> entry.getValue().getValue())
@@ -292,5 +294,47 @@ public class AutoUtils {
 		return property.get();
 	}
 
+	/**
+	 * 获取注解上的某一个属性的值，包含default值
+	 * @param annotationMirror 注解编译信息
+	 * @param propertyName 属性的名字
+	 * @return object
+	 */
+	public static Object getAnnotationValue(Elements elementUtils, AnnotationMirror annotationMirror, String propertyName) {
+		final Optional<Object> property = elementUtils.getElementValuesWithDefaults(annotationMirror).entrySet().stream()
+				.filter(entry -> entry.getKey().getSimpleName().toString().equals(propertyName))
+				.map(entry -> entry.getValue().getValue())
+				.findFirst();
+		assert property.isPresent();
+		return property.get();
+	}
 
+	/**
+	 * 检查变量是否是指定类型
+	 * @param variableElement 变量
+	 * @param matcher 变量的声明类型匹配器
+	 * @return 满足条件则返回true
+	 */
+	public static boolean isTargetDeclaredType(VariableElement variableElement, Predicate<DeclaredType> matcher) {
+		return variableElement.asType().accept(new SimpleTypeVisitor8<Boolean, Void>(){
+
+			@Override
+			public Boolean visitDeclared(DeclaredType t, Void aVoid) {
+				// 访问声明的类型 eg: String str
+				return matcher.test(t);
+			}
+
+			@Override
+			public Boolean visitTypeVariable(TypeVariable t, Void aVoid) {
+				// 泛型变量 eg: E element
+				return false;
+			}
+
+			@Override
+			protected Boolean defaultAction(TypeMirror e, Void aVoid) {
+				return false;
+			}
+
+		}, null);
+	}
 }

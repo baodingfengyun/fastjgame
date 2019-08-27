@@ -74,33 +74,17 @@ public class SerializableNumberProcessor extends AbstractProcessor {
 		return SourceVersion.RELEASE_8;
 	}
 
-	/**
-	 * 当前环境是否可用，测试关键属性即可。
-	 */
-	private boolean isEnvAvailable() {
-		if (elementUtils.getTypeElement(SERIALIZABLE_CLASS_CANONICAL_NAME) == null) {
-			return false;
-		}
-		return true;
-	}
-
-	private boolean tryInit() {
+	private void ensureInited() {
 		if (serializableClassElement != null) {
-			return true;
-		}
-		if (!isEnvAvailable()){
-			return false;
+			return;
 		}
 		serializableClassElement = elementUtils.getTypeElement(SERIALIZABLE_CLASS_CANONICAL_NAME);
 		serializableFieldType = typeUtils.getDeclaredType(elementUtils.getTypeElement(SERIALIZABLE_FIELD_CANONICAL_NAME));
-		return true;
 	}
 
 	@Override
 	public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-		if (!tryInit()) {
-			return false;
-		}
+		ensureInited();
 		// 该注解只有类可以使用
 		@SuppressWarnings("unchecked")
 		Set<TypeElement> typeElementSet = (Set<TypeElement>) roundEnv.getElementsAnnotatedWith(serializableClassElement);
@@ -120,13 +104,13 @@ public class SerializableNumberProcessor extends AbstractProcessor {
 			// 该注解只有Field可以使用
 			VariableElement variableElement = (VariableElement) element;
 			// 查找该字段上的注解
-			final Optional<? extends AnnotationMirror> first = AutoUtils.findFirstAnnotationNotDefault(typeUtils, variableElement, serializableFieldType);
+			final Optional<? extends AnnotationMirror> first = AutoUtils.findFirstAnnotationNotInheritance(typeUtils, variableElement, serializableFieldType);
 			// 该成员属性没有serializableField注解
 			if (!first.isPresent()) {
 				continue;
 			}
 			// value中，基本类型会被封装为包装类型，number是int类型
-			final int number = (Integer) AutoUtils.getAnnotationValue(first.get(), NUMBER_METHOD_NAME);
+			final int number = (Integer) AutoUtils.getAnnotationValueNotDefault(first.get(), NUMBER_METHOD_NAME);
 			// 取值范围检测
 			if (number <0 || number > 127) {
 				messager.printMessage(Diagnostic.Kind.ERROR, "number " + number + " must between [0, 127]", variableElement);

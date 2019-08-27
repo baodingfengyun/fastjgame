@@ -82,38 +82,21 @@ public class EventSubscribeProcessor extends AbstractProcessor {
 	}
 
 	/**
-	 * 当前环境是否可用，如果可用则表示可以进行初始化
-	 * 测试关键属性即可。
-	 */
-	private boolean isEnvAvailable() {
-		if (elementUtils.getTypeElement(SUBSCRIBE_CANONICAL_NAME) == null) {
-			return false;
-		}
-		return true;
-	}
-
-	/**
 	 * 尝试初始化环境，也就是依赖的类都已经出现
 	 */
-	private boolean tryInit() {
+	private void ensureInited() {
 		if (subscribeElement != null){
 			// 已初始化
-			return true;
+			return;
 		}
-		if (!isEnvAvailable()) {
-			// 当前环境不可用
-			return false;
-		}
+
 		subscribeElement = elementUtils.getTypeElement(SUBSCRIBE_CANONICAL_NAME);
 		eventBusTypeName = TypeName.get(elementUtils.getTypeElement(EVENT_BUS_CANONICAL_NAME).asType());
-		return true;
 	}
 
 	@Override
 	public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-		if (!tryInit()) {
-			return false;
-		}
+		ensureInited();
 
 		// 只有方法可以带有该注解 METHOD只有普通方法，不包含构造方法， 按照外部类进行分类
 		final Map<Element, ? extends List<? extends Element>> collect = roundEnv.getElementsAnnotatedWith(subscribeElement).stream()
@@ -127,6 +110,7 @@ public class EventSubscribeProcessor extends AbstractProcessor {
 	}
 
 	private void genProxyClass(TypeElement typeElement, List<? extends Element> methodList) {
+		final String packageName = elementUtils.getPackageOf(typeElement).getQualifiedName().toString();
 		final String proxyClassName = typeElement.getSimpleName().toString() + "BusRegister";
 		TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(proxyClassName)
 				.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
@@ -174,7 +158,7 @@ public class EventSubscribeProcessor extends AbstractProcessor {
 
 		TypeSpec typeSpec = typeBuilder.build();
 		JavaFile javaFile = JavaFile
-				.builder("com.wjybxx.fastjgame.busregister", typeSpec)
+				.builder(packageName, typeSpec)
 				// 不用导入java.lang包
 				.skipJavaLangImports(true)
 				// 4空格缩进

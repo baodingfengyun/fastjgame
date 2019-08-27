@@ -104,12 +104,6 @@ public class RpcServiceProcessor extends AbstractProcessor {
 	private static final String responseChannel = "responseChannel";
 	private static final String result = "result";
 
-	//rpc客户端代理包名
-	private static final String proxy_package_name = "com.wjybxx.fastjgame.rpcproxy";
-
-	// rpc服务器注册辅助类生成包名
-	private static final String register_package_name = "com.wjybxx.fastjgame.rpcregister";
-
 	// 工具类
 	private Types typeUtils;
 	private Elements elementUtils;
@@ -178,22 +172,10 @@ public class RpcServiceProcessor extends AbstractProcessor {
 		return SourceVersion.RELEASE_8;
 	}
 
-	private boolean isEnvAvailable() {
-		// 只需要依赖net包即可
-		if (elementUtils.getTypeElement(RPC_SERVICE_CANONICAL_NAME) == null) {
-			return false;
-		}
-		return true;
-	}
-
-	private boolean tryInit() {
+	private void ensureInited() {
 		if (rpcServiceElement != null) {
 			// 已初始化
-			return true;
-		}
-		if (!isEnvAvailable()) {
-			// 不存在net包，且当前不是net包
-			return false;
+			return;
 		}
 		rpcServiceElement = elementUtils.getTypeElement(RPC_SERVICE_CANONICAL_NAME);
 		rpcServiceDeclaredType = typeUtils.getDeclaredType(rpcServiceElement);
@@ -212,20 +194,19 @@ public class RpcServiceProcessor extends AbstractProcessor {
 		sessionType = typeUtils.getDeclaredType(elementUtils.getTypeElement(SESSION_CANONICAL_NAME));
 
 		defaultBuilderRawTypeName = TypeName.get(typeUtils.getDeclaredType(elementUtils.getTypeElement(DEFAULT_BUILDER_CANONICAL_NAME)));
-		return true;
 	}
 
 
 	/**
+	 * 只有代码中出现指定的注解时才会走到该方法，而{@link #init(ProcessingEnvironment)}每次编译都会执行，不论是否出现指定注解。
+	 *
 	 * 处理源自前一轮的类型元素的一组注解类型，并返回此处理器是否声明了这些注解类型。
 	 * 如果返回true，则声明注释类型，并且不会要求后续处理器处理它们;
 	 * 如果返回false，则注释类型无人认领，并且可能要求后续处理器处理它们。 处理器可以始终返回相同的布尔值，或者可以基于所选择的标准改变结果。
 	 */
 	@Override
 	public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-		if (!tryInit()) {
-			return false;
-		}
+		ensureInited();
 
 		// 该注解只有类才可以使用
 		@SuppressWarnings("unchecked")
@@ -237,10 +218,10 @@ public class RpcServiceProcessor extends AbstractProcessor {
 	}
 
 	private void genProxyClass(TypeElement typeElement) {
-		final Optional<? extends AnnotationMirror> serviceAnnotationOption = AutoUtils.findFirstAnnotationNotDefault(typeUtils, typeElement, rpcServiceDeclaredType);
+		final Optional<? extends AnnotationMirror> serviceAnnotationOption = AutoUtils.findFirstAnnotationNotInheritance(typeUtils, typeElement, rpcServiceDeclaredType);
 		assert serviceAnnotationOption.isPresent();
 		// 基本类型会被包装，Object不能直接转short
-		final short serviceId = (Short) AutoUtils.getAnnotationValue(serviceAnnotationOption.get(), SERVICE_ID_METHOD_NAME);
+		final short serviceId = (Short) AutoUtils.getAnnotationValueNotDefault(serviceAnnotationOption.get(), SERVICE_ID_METHOD_NAME);
 
 		if (serviceId <= 0) {
 			messager.printMessage(Diagnostic.Kind.ERROR, " serviceId " + serviceId + " must greater than 0!", typeElement);
@@ -265,7 +246,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 
 		// 生成代理方法
 		for (ExecutableElement method:allMethods) {
-			final Optional<? extends AnnotationMirror> rpcMethodAnnotation = AutoUtils.findFirstAnnotationNotDefault(typeUtils, method, rpcMethodDeclaredType);
+			final Optional<? extends AnnotationMirror> rpcMethodAnnotation = AutoUtils.findFirstAnnotationNotInheritance(typeUtils, method, rpcMethodDeclaredType);
 			if (!rpcMethodAnnotation.isPresent()) {
 				// 不是rpc方法，跳过
 				continue;
@@ -279,7 +260,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 				continue;
 			}
 			// 方法id，基本类型会被封装为包装类型，Object并不能直接转换到基本类型
-			final short methodId = (Short) AutoUtils.getAnnotationValue(rpcMethodAnnotation.get(), METHOD_ID_METHOD_NAME);
+			final short methodId = (Short) AutoUtils.getAnnotationValueNotDefault(rpcMethodAnnotation.get(), METHOD_ID_METHOD_NAME);
 			if (methodId <= 0) {
 				messager.printMessage(Diagnostic.Kind.ERROR, " methodId " + methodId + " must greater than 0!", method);
 				return;
@@ -300,6 +281,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 				.addMember("serviceId", "$L", serviceId).build();
 
 		final String className = typeElement.getSimpleName().toString();
+		final String packageName = elementUtils.getPackageOf(typeElement).getQualifiedName().toString();
 		// 客户端代理，生成在core包下
 		{
 			// 代理类不可以继承
@@ -313,7 +295,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 
 			TypeSpec typeSpec = typeBuilder.build();
 			JavaFile javaFile = JavaFile
-					.builder(proxy_package_name, typeSpec)
+					.builder(packageName, typeSpec)
 					// 不用导入java.lang包
 					.skipJavaLangImports(true)
 					// 4空格缩进
@@ -343,7 +325,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 
 			TypeSpec typeSpec = typeBuilder.build();
 			JavaFile javaFile = JavaFile
-					.builder(register_package_name, typeSpec)
+					.builder(packageName, typeSpec)
 					// 不用导入java.lang包
 					.skipJavaLangImports(true)
 					// 4空格缩进
