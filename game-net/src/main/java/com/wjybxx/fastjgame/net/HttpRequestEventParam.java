@@ -29,12 +29,20 @@ public class HttpRequestEventParam implements NetEventParam{
 
 	private final Channel channel;
 	private final long localGuid;
-	private final HttpRequestTO httpRequestTO;
+	/**
+	 * 请求的资源路径
+	 */
+	private final String path;
+	/**
+	 * 请求参数
+	 */
+	private final HttpRequestParam params;
 
-	public HttpRequestEventParam(Channel channel, long localGuid, HttpRequestTO httpRequestTO) {
-		this.localGuid = localGuid;
+	public HttpRequestEventParam(Channel channel, long localGuid, String path, HttpRequestParam params) {
 		this.channel = channel;
-		this.httpRequestTO = httpRequestTO;
+		this.localGuid = localGuid;
+		this.path = path;
+		this.params = params;
 	}
 
 	@Override
@@ -53,14 +61,10 @@ public class HttpRequestEventParam implements NetEventParam{
 	}
 
 	public String getPath() {
-		return httpRequestTO.getPath();
+		return path;
 	}
 
 	public HttpRequestParam getParams() {
-		return httpRequestTO.getParams();
-	}
-
-	public HttpRequestTO getHttpRequestTO() {
-		return httpRequestTO;
+		return params;
 	}
 }

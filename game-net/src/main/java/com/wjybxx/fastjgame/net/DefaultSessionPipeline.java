@@ -39,7 +39,7 @@ public class DefaultSessionPipeline implements SessionPipeline{
 	private final AbstractSession session;
 
 	/** 不是线程安全的，只由用户线程访问 */
-	private LinkedList<NetTask> buffer = new LinkedList<>();
+	private LinkedList<PipelineTask> buffer = new LinkedList<>();
 
 	public DefaultSessionPipeline(AbstractSession session) {
 		this.session = session;
@@ -126,7 +126,7 @@ public class DefaultSessionPipeline implements SessionPipeline{
 	 * 添加一个任务
 	 * @param task 添加的任务
 	 */
-	private void addTask(NetTask task) {
+	private void addTask(PipelineTask task) {
 		buffer.add(task);
 		checkFlush();
 	}
@@ -168,11 +168,11 @@ public class DefaultSessionPipeline implements SessionPipeline{
 	 */
 	private void flushBuffer() {
 		// 此时在用户线程
-		final LinkedList<NetTask> oldBuffer = exchangeBuffer();
+		final LinkedList<PipelineTask> oldBuffer = exchangeBuffer();
 		session.netContext().netEventLoop().execute(()-> {
 			// 此时在网络线程
-			for (NetTask netTask:oldBuffer) {
-				netTask.send();
+			for (PipelineTask pipelineTask :oldBuffer) {
+				pipelineTask.send();
 			}
 		});
 	}
@@ -182,9 +182,9 @@ public class DefaultSessionPipeline implements SessionPipeline{
 	 */
 	private void cancelTasks() {
 		// 此时在用户线程
-		final LinkedList<NetTask> oldBuffer = exchangeBuffer();
-		for (NetTask netTask:oldBuffer) {
-			ConcurrentUtils.safeExecute((Runnable)netTask::cancel);
+		final LinkedList<PipelineTask> oldBuffer = exchangeBuffer();
+		for (PipelineTask pipelineTask :oldBuffer) {
+			ConcurrentUtils.safeExecute((Runnable) pipelineTask::cancel);
 		}
 	}
 
@@ -192,8 +192,8 @@ public class DefaultSessionPipeline implements SessionPipeline{
 	 * 交换缓冲区
 	 * @return oldBuffer
 	 */
-	private LinkedList<NetTask> exchangeBuffer() {
-		LinkedList<NetTask> result = this.buffer;
+	private LinkedList<PipelineTask> exchangeBuffer() {
+		LinkedList<PipelineTask> result = this.buffer;
 		this.buffer = new LinkedList<>();
 		return result;
 	}
@@ -264,7 +264,7 @@ public class DefaultSessionPipeline implements SessionPipeline{
 		return session.isActive();
 	}
 
-	private interface NetTask {
+	private interface PipelineTask {
 
 		/**
 		 * 执行发送操作，运行在网络线程下
@@ -277,7 +277,7 @@ public class DefaultSessionPipeline implements SessionPipeline{
 		void cancel();
 	}
 
-	private static class OneWayMessageTask implements NetTask {
+	private static class OneWayMessageTask implements PipelineTask {
 
 		private final AbstractSession session;
 		private final Object message;
@@ -298,7 +298,7 @@ public class DefaultSessionPipeline implements SessionPipeline{
 		}
 	}
 
-	private static class RpcRequestTask implements NetTask {
+	private static class RpcRequestTask implements PipelineTask {
 
 		private final AbstractSession session;
 		private final Object request;
@@ -335,7 +335,7 @@ public class DefaultSessionPipeline implements SessionPipeline{
 		}
 	}
 
-	private static class RpcResponseTask implements NetTask {
+	private static class RpcResponseTask implements PipelineTask {
 
 		private final AbstractSession session;
 		private final DefaultRpcRequestContext context;

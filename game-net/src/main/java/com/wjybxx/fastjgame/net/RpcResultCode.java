@@ -75,7 +75,8 @@ public enum RpcResultCode implements NumberEnum {
 	BAD_REQUEST(42),
 
 	/**
-	 * 错误(对方执行请求时发生错误)，没有body
+	 * 错误(对方执行请求时发生错误)，没有body。
+	 * (注解处理器使用了该对象，不要轻易重命名)
 	 */
 	ERROR(51),
 

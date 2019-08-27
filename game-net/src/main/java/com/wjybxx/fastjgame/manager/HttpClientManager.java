@@ -191,7 +191,9 @@ public class HttpClientManager {
                     logger.warn("{} onResponse caught exception", call.request().url(), e);
                 } finally {
                     // 必须调用close释放资源
-                    NetUtils.closeQuietly(response);
+                    if (response.body() != null){
+                        NetUtils.closeQuietly(response);
+                    }
                 }
             });
         }

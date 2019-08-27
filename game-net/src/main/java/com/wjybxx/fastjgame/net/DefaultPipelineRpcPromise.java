@@ -43,7 +43,7 @@ public class DefaultPipelineRpcPromise extends DefaultRpcPromise implements Pipe
 	@Override
 	protected void checkDeadlock() {
 		if (sent) {
-			super.checkDeadlock();
+			EventLoopUtils.checkDeadLock(executor());
 		} else {
 			// 还未发送出去，禁止在上面等待
 			EventLoopUtils.checkDeadLock(getUserEventLoop());

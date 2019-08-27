@@ -22,8 +22,6 @@ import com.wjybxx.fastjgame.manager.NetManagerWrapper;
 import com.wjybxx.fastjgame.manager.SessionManager;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.utils.EventLoopUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -36,8 +34,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * github - https://github.com/hl845740757
  */
 public class C2SSessionImp extends AbstractSession implements C2SSession {
-
-    private static final Logger logger = LoggerFactory.getLogger(C2SSessionImp.class);
 
     /** 未激活状态 */
     private static final int ST_INACTIVE = 0;
