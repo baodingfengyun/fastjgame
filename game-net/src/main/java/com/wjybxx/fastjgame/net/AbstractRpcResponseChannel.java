@@ -29,29 +29,8 @@ public abstract class AbstractRpcResponseChannel<T> implements RpcResponseChanne
 
 	private final AtomicBoolean writable = new AtomicBoolean(true);
 
-	/**
-	 * 返回rpc调用结果，表示调用成功。
-	 * @param body rpc调用结果
-	 */
-	public void writeSuccess(@Nonnull T body) {
-		write(new RpcResponse(RpcResultCode.SUCCESS, body));
-	}
-
-	/**
-	 * 返回rpc调用结果，表示调用失败。
-	 * @param errorCode rpc调用错误码，注意：{@link RpcResultCode#hasBody(RpcResultCode)}必须返回false。
-	 */
-	public void writeFailure(@Nonnull RpcResultCode errorCode) {
-		write(RpcResponse.newFailResponse(errorCode));
-	}
-
 	@Override
-	public void write(@Nonnull RpcResultCode resultCode, @Nonnull Object body) {
-		write(new RpcResponse(resultCode, body));
-	}
-
-	@Override
-	public void write(@Nonnull RpcResponse rpcResponse) {
+	public final void write(@Nonnull RpcResponse rpcResponse) {
 		if (writable.compareAndSet(true, false)) {
 			doWrite(rpcResponse);
 		} else {

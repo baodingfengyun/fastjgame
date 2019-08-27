@@ -37,21 +37,6 @@ public class VoidRpcResponseChannel implements RpcResponseChannel<Void> {
 	public static final RpcResponseChannel INSTANCE = new VoidRpcResponseChannel();
 
 	@Override
-	public void writeSuccess(@Nonnull Void body) {
-		// do nothing
-	}
-
-	@Override
-	public void writeFailure(@Nonnull RpcResultCode errorCode) {
-		// do nothing
-	}
-
-	@Override
-	public void write(@Nonnull RpcResultCode resultCode, @Nonnull Object body) {
-		// do nothing
-	}
-
-	@Override
 	public void write(@Nonnull RpcResponse rpcResponse) {
 		// do nothing
 	}

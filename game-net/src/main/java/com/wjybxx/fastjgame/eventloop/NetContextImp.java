@@ -20,6 +20,7 @@ import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
 import com.wjybxx.fastjgame.misc.HostAndPort;
+import com.wjybxx.fastjgame.misc.LocalResponseChannel;
 import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.misc.PortRange;
 import com.wjybxx.fastjgame.net.*;
@@ -191,4 +192,15 @@ class NetContextImp implements NetContext {
 		managerWrapper.getHttpClientManager().asyncPost(url, params, localEventLoop, okHttpCallback);
 	}
 
+	// ----------------------------------------------- 本地调用支持 --------------------------------------------
+
+	@Override
+	public <T> LocalResponseChannel<T> newLocalResponseChannel() {
+		return new LocalResponseChannel<>(netEventLoop, localEventLoop, managerWrapper.getNetConfigManager().rpcCallbackTimeoutMs());
+	}
+
+	@Override
+	public <T> LocalResponseChannel<T> newLocalResponseChannel(long timeoutMs) {
+		return new LocalResponseChannel<>(netEventLoop, localEventLoop, timeoutMs);
+	}
 }

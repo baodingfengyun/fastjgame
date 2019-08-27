@@ -34,13 +34,17 @@ public interface RpcResponseChannel<T> {
 	 * 返回rpc调用结果，表示调用成功，{@link #write(RpcResponse)}的快捷方式。
 	 * @param body rpc调用结果
 	 */
-	void writeSuccess(@Nonnull T body);
+	default void writeSuccess(@Nonnull T body) {
+		write(new RpcResponse(RpcResultCode.SUCCESS, body));
+	}
 
 	/**
 	 * 返回rpc调用结果，表示调用失败，{@link #write(RpcResponse)}的快捷方式。
 	 * @param errorCode rpc调用错误码，注意：{@link RpcResultCode#hasBody()}必须返回false。
 	 */
-	void writeFailure(@Nonnull RpcResultCode errorCode);
+	default void writeFailure(@Nonnull RpcResultCode errorCode) {
+		write(RpcResponse.newFailResponse(errorCode));
+	}
 
 	/**
 	 * 返回rpc调用结果，{@link #write(RpcResponse)}的快捷方式
@@ -48,7 +52,9 @@ public interface RpcResponseChannel<T> {
 	 * @param resultCode rpc调用结果码,注意：{@link RpcResultCode#hasBody()}必须返回true。
 	 * @param body body
 	 */
-	void write(@Nonnull RpcResultCode resultCode, @Nonnull Object body);
+	default void write(@Nonnull RpcResultCode resultCode, @Nonnull Object body) {
+		write(new RpcResponse(resultCode, body));
+	}
 
 	/**
 	 * 返回rpc调用结果，如果是返回错误结果，能使用静态常量的使用常量{@link RpcResponse}
