@@ -158,12 +158,12 @@ public interface NetContext {
 	 * @param host 地址
 	 * @param port 指定端口号
 	 * @param initializer 如何初始化channel
-	 * @param httpRequestHandler http请求处理器
+	 * @param httpRequestDispatcher http请求处理器
 	 * @return future 可以等待绑定完成。
 	 */
 	default ListenableFuture<HostAndPort> bind(String host, int port, ChannelInitializer<SocketChannel> initializer,
-							 HttpRequestHandler httpRequestHandler) {
-		return this.bindRange(host, new PortRange(port, port), initializer, httpRequestHandler);
+											   HttpRequestDispatcher httpRequestDispatcher) {
+		return this.bindRange(host, new PortRange(port, port), initializer, httpRequestDispatcher);
 	}
 
 	/**
@@ -172,11 +172,11 @@ public interface NetContext {
 	 * @param host 地址
 	 * @param portRange 端口范围
 	 * @param initializer 如何初始化channel
-	 * @param httpRequestHandler http请求处理器
+	 * @param httpRequestDispatcher http请求处理器
 	 * @return future 可以等待绑定完成。
 	 */
 	ListenableFuture<HostAndPort> bindRange(String host, PortRange portRange, ChannelInitializer<SocketChannel> initializer,
-											HttpRequestHandler httpRequestHandler);
+											HttpRequestDispatcher httpRequestDispatcher);
 
 	/**
 	 * 同步get请求

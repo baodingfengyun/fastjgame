@@ -21,22 +21,20 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
-import java.util.ArrayList;
 import java.util.IdentityHashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
  * EventBus的一个简单实现。
  * 1. 它并不是一个线程安全的对象
- * 2. 它也不是一个标准的EventBus实现，比如就没有取消注册的接口，也没有dispatcher、Registry
+ * 2. 它也不是一个标准的EventBus实现，比如就没有取消注册的接口，也没有单独的dispatcher、Registry
  *
  * @author houlei
  * @version 1.0
  * date - 2019/8/23
  */
 @NotThreadSafe
-public class EventBus {
+public class EventBus implements EventHandlerRegistry,EventDispatcher {
 
 	private static final Logger logger = LoggerFactory.getLogger(EventBus.class);
 	/**
@@ -44,11 +42,8 @@ public class EventBus {
 	 */
 	private final Map<Class<?>, EventHandler<?>> handlerMap = new IdentityHashMap<>(512);
 
-	/**
-	 * 发布一个事件
-	 * @param event 要发布的事件
-	 */
 	@SuppressWarnings("unchecked")
+	@Override
 	public <T> void post(@Nonnull T event) {
 		final EventHandler<T> eventHandler = (EventHandler<T>) handlerMap.get(event.getClass());
 		if (null == eventHandler) {
@@ -65,14 +60,7 @@ public class EventBus {
 		}
 	}
 
-	/**
-	 * 注册一个事件的观察者，正常情况下，该方法由生成的代码调用。
-	 * 当然也可以手动注册一些事件，即不使用注解。
-	 *
-	 * @param eventType 关注的事件类型
-	 * @param handler 事件处理器
-	 * @param <T> 事件的类型
-	 */
+	@Override
 	public <T> void register(@Nonnull Class<T> eventType, @Nonnull EventHandler<T> handler) {
 		@SuppressWarnings("unchecked")
 		final EventHandler<T> existHandler = (EventHandler<T>) handlerMap.get(eventType);

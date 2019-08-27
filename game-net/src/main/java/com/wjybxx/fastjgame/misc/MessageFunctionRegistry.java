@@ -37,11 +37,4 @@ public interface MessageFunctionRegistry {
 	 */
 	<T extends AbstractMessage> void register(@Nonnull Class<T> clazz, @Nonnull MessageFunction<T> handler);
 
-	/**
-	 * 发布一个消息
-	 * @param session 消息所在的会话
-	 * @param message 消息内容
-	 * @param <T> 消息类型
-	 */
-	<T extends AbstractMessage> void dispatchMessage(@Nonnull Session session, @Nonnull T message);
 }

@@ -21,7 +21,8 @@ import com.wjybxx.fastjgame.annotation.RpcService;
 import com.wjybxx.fastjgame.concurrent.*;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupImp;
-import com.wjybxx.fastjgame.misc.DefaultRpcFunctionRegistry;
+import com.wjybxx.fastjgame.misc.DefaultRpcCallDispatcher;
+import com.wjybxx.fastjgame.misc.RpcCallDispatcher;
 import com.wjybxx.fastjgame.misc.RpcFunctionRegistry;
 import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.net.RpcResponseChannel;
@@ -93,16 +94,16 @@ public class ExampleRpcService {
 
 		private final NetEventLoopGroup netGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET-EVENT-LOOP"),
 				RejectedExecutionHandlers.log());
-		private final RpcFunctionRegistry registry;
+		private final RpcCallDispatcher dispatcher;
 
 		private NetContext netContext;
 
 		public ServiceLoop(@Nullable EventLoopGroup parent,
 						   @Nonnull ThreadFactory threadFactory,
 						   @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
-						   @Nonnull RpcFunctionRegistry registry) {
+						   @Nonnull RpcCallDispatcher dispatcher) {
 			super(parent, threadFactory, rejectedExecutionHandler);
-			this.registry = registry;
+			this.dispatcher = dispatcher;
 		}
 
 		@Override
@@ -114,7 +115,7 @@ public class ExampleRpcService {
 			// 监听tcp端口
 			TCPServerChannelInitializer initializer = netContext.newTcpServerInitializer(ExampleConstants.reflectBasedCodec);
 			netContext.bind(NetUtils.getLocalIp(), ExampleConstants.tcpPort, initializer, new ClientLifeAware(),
-					new ExampleRpcDispatcher(registry));
+					new ExampleRpcDispatcher(dispatcher));
 		}
 
 		@Override
@@ -160,9 +161,10 @@ public class ExampleRpcService {
 	}
 
 	public static void main(String[] args) {
-		final DefaultRpcFunctionRegistry registry = new DefaultRpcFunctionRegistry();
-		ExampleRpcServiceRpcRegister.register(registry, new ExampleRpcService());
-		final ServiceLoop serviceLoop = new ServiceLoop(null, new DefaultThreadFactory("SERVICE"), RejectedExecutionHandlers.log(), registry);
+		final DefaultRpcCallDispatcher dispatcher = new DefaultRpcCallDispatcher();
+		ExampleRpcServiceRpcRegister.register(dispatcher, new ExampleRpcService());
+		final ServiceLoop serviceLoop = new ServiceLoop(null, new DefaultThreadFactory("SERVICE"),
+				RejectedExecutionHandlers.log(), dispatcher);
 		// 唤醒线程
 		serviceLoop.execute(() -> {});
 	}

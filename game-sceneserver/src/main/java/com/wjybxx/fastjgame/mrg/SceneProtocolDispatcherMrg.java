@@ -19,7 +19,8 @@ package com.wjybxx.fastjgame.mrg;
 import com.google.inject.Inject;
 import com.google.protobuf.AbstractMessage;
 import com.wjybxx.fastjgame.gameobject.Player;
-import com.wjybxx.fastjgame.misc.DefaultPlayerMessageFunctionRegistry;
+import com.wjybxx.fastjgame.misc.DefaultPlayerMessageDispatcher;
+import com.wjybxx.fastjgame.misc.PlayerMessageDispatcher;
 import com.wjybxx.fastjgame.misc.PlayerMessageFunction;
 import com.wjybxx.fastjgame.misc.PlayerMessageFunctionRegistry;
 import com.wjybxx.fastjgame.net.RoleType;
@@ -33,10 +34,10 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2019/8/26
  */
-public class SceneProtocolDispatcherMrg extends ProtocolDispatcherMrg implements PlayerMessageFunctionRegistry {
+public class SceneProtocolDispatcherMrg extends ProtocolDispatcherMrg implements PlayerMessageFunctionRegistry, PlayerMessageDispatcher {
 
 	private final PlayerSessionMrg playerSessionMrg;
-	private final DefaultPlayerMessageFunctionRegistry playerMessageFunctionRegistry = new DefaultPlayerMessageFunctionRegistry();
+	private final DefaultPlayerMessageDispatcher messageDispatcher = new DefaultPlayerMessageDispatcher();
 
 	@Inject
 	public SceneProtocolDispatcherMrg(PlayerSessionMrg playerSessionMrg) {
@@ -44,12 +45,12 @@ public class SceneProtocolDispatcherMrg extends ProtocolDispatcherMrg implements
 	}
 
 	@Override
-	protected final void onMessage0(Session session, @Nonnull Object message) throws Exception {
+	protected final void dispatchOneWayMessage0(Session session, @Nonnull Object message) throws Exception {
 		if (session.remoteRole() == RoleType.PLAYER) {
 			Player player = playerSessionMrg.getPlayer(session.remoteGuid());
 			if (player != null) {
 				// 玩家已成功连入场景
-				dispatchMessage(player, (AbstractMessage) message);
+				dispatch(player, (AbstractMessage) message);
 			} else {
 				// TODO 玩家登录
 			}
@@ -58,11 +59,11 @@ public class SceneProtocolDispatcherMrg extends ProtocolDispatcherMrg implements
 
 	@Override
 	public <T extends AbstractMessage> void register(@Nonnull Class<T> clazz, @Nonnull PlayerMessageFunction<T> handler) {
-		playerMessageFunctionRegistry.register(clazz, handler);
+		messageDispatcher.register(clazz, handler);
 	}
 
 	@Override
-	public <T extends AbstractMessage> void dispatchMessage(@Nonnull Player player, @Nonnull T message) {
-		playerMessageFunctionRegistry.dispatchMessage(player, message);
+	public <T extends AbstractMessage> void dispatch(@Nonnull Player player, @Nonnull T message) {
+		messageDispatcher.dispatch(player, message);
 	}
 }

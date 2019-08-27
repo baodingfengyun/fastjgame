@@ -37,9 +37,9 @@ import java.util.List;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class DefaultRpcFunctionRegistry implements RpcFunctionRegistry {
+public class DefaultRpcCallDispatcher implements RpcFunctionRegistry, RpcCallDispatcher {
 
-	private static final Logger logger = LoggerFactory.getLogger(DefaultRpcFunctionRegistry.class);
+	private static final Logger logger = LoggerFactory.getLogger(DefaultRpcCallDispatcher.class);
 
 	/**
 	 * 所有的Rpc请求处理函数, methodKey -> rpcFunction

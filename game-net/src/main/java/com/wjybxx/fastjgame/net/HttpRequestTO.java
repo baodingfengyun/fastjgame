@@ -16,9 +16,6 @@
 
 package com.wjybxx.fastjgame.net;
 
-import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
-import com.wjybxx.fastjgame.configwrapper.Params;
-
 import javax.annotation.concurrent.Immutable;
 
 /**
@@ -39,9 +36,9 @@ public final class HttpRequestTO {
     /**
      * 请求参数
      */
-    private final Params params;
+    private final HttpRequestParam params;
 
-    public HttpRequestTO(String path, Params params) {
+    public HttpRequestTO(String path, HttpRequestParam params) {
         this.path = path;
         this.params = params;
     }
@@ -50,7 +47,7 @@ public final class HttpRequestTO {
         return path;
     }
 
-    public Params getParams() {
+    public HttpRequestParam getParams() {
         return params;
     }
 }

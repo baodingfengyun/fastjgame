@@ -107,7 +107,6 @@ public class C2SSessionImp extends AbstractSession implements C2SSession {
 
     /** 标记为已关闭 */
     public void setClosed() {
-        assert netContext.netEventLoop().inEventLoop();
         stateHolder.set(ST_CLOSED);
     }
 

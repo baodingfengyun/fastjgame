@@ -22,8 +22,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * 没有返回值的Channel，占位符。
- * 主要是{@link ProtocolDispatcher#onMessage(Session, Object)}用的，
+ * 没有返回值的Channel，占位符，表示用户不关心返回值或方法本身无返回值
+ * 主要是{@link ProtocolDispatcher#dispatchOneWayMessage(Session, Object)}用的，
  * 可以将一个onMessage伪装成 RpcRequest，这样应用层可以使用相同的接口对待单向消息和rpc请求。
  *
  * @author wjybxx
@@ -38,22 +38,22 @@ public class VoidRpcResponseChannel implements RpcResponseChannel<Void> {
 
 	@Override
 	public void writeSuccess(@Nonnull Void body) {
-		throw new UnsupportedOperationException();
+		// do nothing
 	}
 
 	@Override
 	public void writeFailure(@Nonnull RpcResultCode errorCode) {
-		throw new UnsupportedOperationException();
+		// do nothing
 	}
 
 	@Override
 	public void write(@Nonnull RpcResultCode resultCode, @Nonnull Object body) {
-		throw new UnsupportedOperationException();
+		// do nothing
 	}
 
 	@Override
 	public void write(@Nonnull RpcResponse rpcResponse) {
-		throw new UnsupportedOperationException();
+		// do nothing
 	}
 
 	@Override

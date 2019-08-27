@@ -14,23 +14,21 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net;
+package com.wjybxx.fastjgame.eventbus;
+
+import javax.annotation.Nonnull;
 
 /**
- * http请求处理器
- * @author wjybxx
+ * 事件分发器
+ * @author houlei
  * @version 1.0
- * date - 2019/4/28 19:16
- * github - https://github.com/hl845740757
+ * date - 2019/8/27
  */
-public interface HttpRequestHandler{
+public interface EventDispatcher {
 
-    /**
-     * 处理Http请求
-     * @param httpSession 该http对应的session
-     * @param path 请求路径
-     * @param params 请求参数
-     */
-    void onHttpRequest(HttpSession httpSession, String path, HttpRequestParam params) throws Exception;
-
+	/**
+	 * 发布一个事件
+	 * @param event 要发布的事件
+	 */
+	<T> void post(@Nonnull T event);
 }

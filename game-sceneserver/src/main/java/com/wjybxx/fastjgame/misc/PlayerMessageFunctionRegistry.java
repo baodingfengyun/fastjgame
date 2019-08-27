@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.misc;
 
 import com.google.protobuf.AbstractMessage;
-import com.wjybxx.fastjgame.gameobject.Player;
 
 import javax.annotation.Nonnull;
 
@@ -31,7 +30,6 @@ import javax.annotation.Nonnull;
  */
 public interface PlayerMessageFunctionRegistry {
 
-
     /**
      * 注册一个消息对应的处理函数
      * @param clazz 消息类
@@ -40,11 +38,4 @@ public interface PlayerMessageFunctionRegistry {
      */
     <T extends AbstractMessage> void register(@Nonnull Class<T> clazz, @Nonnull PlayerMessageFunction<T> handler);
 
-    /**
-     * 接收到一个玩家发来的消息
-     * @param player 消息所在的会话
-     * @param message 消息内容
-     * @param <T> 消息类型
-     */
-    <T extends AbstractMessage> void dispatchMessage(@Nonnull Player player, @Nonnull T message);
 }

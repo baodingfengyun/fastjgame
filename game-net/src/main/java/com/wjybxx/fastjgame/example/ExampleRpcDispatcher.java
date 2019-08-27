@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.example;
 
 import com.wjybxx.fastjgame.misc.RpcCall;
+import com.wjybxx.fastjgame.misc.RpcCallDispatcher;
 import com.wjybxx.fastjgame.misc.RpcFunctionRegistry;
 import com.wjybxx.fastjgame.misc.VoidRpcResponseChannel;
 import com.wjybxx.fastjgame.net.ProtocolDispatcher;
@@ -33,23 +34,23 @@ import javax.annotation.Nullable;
  */
 public class ExampleRpcDispatcher implements ProtocolDispatcher {
 
-	private final RpcFunctionRegistry registry;
+	private final RpcCallDispatcher dispatcher;
 
-	public ExampleRpcDispatcher(RpcFunctionRegistry registry) {
-		this.registry = registry;
+	public ExampleRpcDispatcher(RpcCallDispatcher dispatcher) {
+		this.dispatcher = dispatcher;
 	}
 
 	@Override
-	public void onRpcRequest(Session session, @Nullable Object request, RpcRequestContext context) throws Exception {
+	public void dispatchRpcRequest(Session session, @Nullable Object request, RpcRequestContext context) throws Exception {
 		if (request instanceof RpcCall) {
-			registry.dispatchRpcRequest(session, (RpcCall) request, session.newResponseChannel(context));
+			dispatcher.dispatchRpcRequest(session, (RpcCall) request, session.newResponseChannel(context));
 		}
 	}
 
 	@Override
-	public void onMessage(Session session, @Nullable Object message) throws Exception {
+	public void dispatchOneWayMessage(Session session, @Nullable Object message) throws Exception {
 		if (message instanceof RpcCall) {
-			registry.dispatchRpcRequest(session, (RpcCall) message, VoidRpcResponseChannel.INSTANCE);
+			dispatcher.dispatchRpcRequest(session, (RpcCall) message, VoidRpcResponseChannel.INSTANCE);
 		}
 	}
 }

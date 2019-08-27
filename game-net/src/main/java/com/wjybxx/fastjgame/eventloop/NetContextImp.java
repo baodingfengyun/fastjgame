@@ -157,12 +157,12 @@ class NetContextImp implements NetContext {
 	}
 
 	@Override
-	public ListenableFuture<HostAndPort> bindRange(String host, PortRange portRange, ChannelInitializer<SocketChannel> initializer, HttpRequestHandler httpRequestHandler) {
+	public ListenableFuture<HostAndPort> bindRange(String host, PortRange portRange, ChannelInitializer<SocketChannel> initializer, HttpRequestDispatcher httpRequestDispatcher) {
 		// 这里一定不是网络层，只有逻辑层才会调用bind
 		return netEventLoop.submit(() -> {
 			try {
 				return managerWrapper.getHttpSessionManager().bindRange(this, host, portRange,
-						initializer, httpRequestHandler);
+						initializer, httpRequestDispatcher);
 			} catch (Exception e){
 				ConcurrentUtils.rethrow(e);
 				// unreachable

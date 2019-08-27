@@ -200,12 +200,12 @@ public class EchoClientLoop extends SingleThreadEventLoop {
 	private class EchoProtocolDispatcher implements ProtocolDispatcher {
 
 		@Override
-		public void onMessage(Session session, @Nullable Object message) throws Exception {
+		public void dispatchOneWayMessage(Session session, @Nullable Object message) throws Exception {
 			System.out.println("\nonMessage - " + JsonUtils.toJson(message));
 		}
 
 		@Override
-		public void onRpcRequest(Session session, @Nullable Object request, RpcRequestContext context) throws Exception {
+		public void dispatchRpcRequest(Session session, @Nullable Object request, RpcRequestContext context) throws Exception {
 			// unreachable
 		}
 	}

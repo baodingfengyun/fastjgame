@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.annotation.WorldSingleton;
-import com.wjybxx.fastjgame.misc.DefaultRpcFunctionRegistry;
+import com.wjybxx.fastjgame.misc.DefaultRpcCallDispatcher;
 import com.wjybxx.fastjgame.misc.RpcCall;
 import com.wjybxx.fastjgame.misc.VoidRpcResponseChannel;
 import com.wjybxx.fastjgame.net.ProtocolDispatcher;
@@ -43,7 +43,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @WorldSingleton
 @NotThreadSafe
-public class ProtocolDispatcherMrg extends DefaultRpcFunctionRegistry implements ProtocolDispatcher {
+public class ProtocolDispatcherMrg extends DefaultRpcCallDispatcher implements ProtocolDispatcher {
 
     private static final Logger logger = LoggerFactory.getLogger(ProtocolDispatcherMrg.class);
 
@@ -53,7 +53,7 @@ public class ProtocolDispatcherMrg extends DefaultRpcFunctionRegistry implements
     }
 
     @Override
-    public final void onMessage(Session session, @Nullable Object message) throws Exception {
+    public final void dispatchOneWayMessage(Session session, @Nullable Object message) throws Exception {
         if (null == message){
             logger.warn("{} - {} send null message", session.remoteRole(), session.remoteGuid());
             return;
@@ -61,22 +61,22 @@ public class ProtocolDispatcherMrg extends DefaultRpcFunctionRegistry implements
         if (message instanceof RpcCall) {
             dispatchRpcRequest(session, (RpcCall) message, VoidRpcResponseChannel.INSTANCE);
         } else {
-            onMessage0(session, message);
+            dispatchOneWayMessage0(session, message);
         }
     }
 
     /**
-     * 接收到一个单向消息
+     * 分发一个单向消息
      * @param session 所在的会话
      * @param message 单向消息
      * @throws Exception error
      */
-    protected void onMessage0(Session session, @Nonnull Object message) throws Exception {
+    protected void dispatchOneWayMessage0(Session session, @Nonnull Object message) throws Exception {
         logger.info("unhandled {}-{} message {}", session.remoteRole(), session.remoteGuid(), message.getClass().getSimpleName());
     }
 
     @Override
-    public final void onRpcRequest(Session session, @Nullable Object request, RpcRequestContext context) throws Exception {
+    public final void dispatchRpcRequest(Session session, @Nullable Object request, RpcRequestContext context) throws Exception {
         if (null == request){
             logger.warn("{} - {} send null request", session.remoteRole(), session.remoteGuid());
             return;

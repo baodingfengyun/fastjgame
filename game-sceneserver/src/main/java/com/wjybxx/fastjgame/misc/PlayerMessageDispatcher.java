@@ -14,23 +14,25 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net;
+package com.wjybxx.fastjgame.misc;
+
+import com.google.protobuf.AbstractMessage;
+import com.wjybxx.fastjgame.gameobject.Player;
+
+import javax.annotation.Nonnull;
 
 /**
- * http请求处理器
- * @author wjybxx
+ * 玩家消息分发器
+ * @author houlei
  * @version 1.0
- * date - 2019/4/28 19:16
- * github - https://github.com/hl845740757
+ * date - 2019/8/27
  */
-public interface HttpRequestHandler{
-
-    /**
-     * 处理Http请求
-     * @param httpSession 该http对应的session
-     * @param path 请求路径
-     * @param params 请求参数
-     */
-    void onHttpRequest(HttpSession httpSession, String path, HttpRequestParam params) throws Exception;
-
+public interface PlayerMessageDispatcher {
+	/**
+	 * 接收到一个玩家发来的消息
+	 * @param player 消息所在的会话
+	 * @param message 消息内容
+	 * @param <T> 消息类型
+	 */
+	<T extends AbstractMessage> void dispatch(@Nonnull Player player, @Nonnull T message);
 }

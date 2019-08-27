@@ -82,7 +82,6 @@ public final class HttpSessionImp implements HttpSession {
     }
 
     public void setClosed() {
-        assert netContext.netEventLoop().inEventLoop();
         stateHolder.set(true);
     }
 

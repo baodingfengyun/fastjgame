@@ -16,9 +16,9 @@
 package com.wjybxx.fastjgame.example;
 
 import com.wjybxx.fastjgame.concurrent.*;
-import com.wjybxx.fastjgame.configwrapper.Params;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupImp;
+import com.wjybxx.fastjgame.net.HttpRequestHandler;
 import com.wjybxx.fastjgame.misc.HttpResponseHelper;
 import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.net.*;
@@ -64,7 +64,7 @@ public class EchoServerLoop extends SingleThreadEventLoop {
 
 		// 监听http端口
 		HttpServerInitializer httpServerInitializer = netContext.newHttpServerInitializer();
-		netContext.bind(NetUtils.getLocalIp(), ExampleConstants.httpPort, httpServerInitializer, new EchoHttpRequestHandler());
+		netContext.bind(NetUtils.getLocalIp(), ExampleConstants.httpPort, httpServerInitializer, new EchoHttpRequestDispatcher());
 	}
 
 
@@ -112,25 +112,26 @@ public class EchoServerLoop extends SingleThreadEventLoop {
 	private static class EchoProtocolDispatcher implements ProtocolDispatcher {
 
 		@Override
-		public void onMessage(Session session, @Nullable Object message) throws Exception {
+		public void dispatchOneWayMessage(Session session, @Nullable Object message) throws Exception {
 			assert null != message;
 			session.sendMessage(message);
 		}
 
 		@Override
-		public void onRpcRequest(Session session, @Nullable Object request, RpcRequestContext context) throws Exception {
+		public void dispatchRpcRequest(Session session, @Nullable Object request, RpcRequestContext context) throws Exception {
 			assert null != request;
 			RpcResponseChannel<Object> responseChannel = session.newResponseChannel(context);
 			responseChannel.writeSuccess(request);
 		}
 	}
 
-	private static class EchoHttpRequestHandler implements HttpRequestHandler {
+	private static class EchoHttpRequestDispatcher implements HttpRequestDispatcher {
 
 		@Override
-		public void onHttpRequest(HttpSession httpSession, String path, Params params) throws Exception {
+		public void dispatch(HttpSession httpSession, String path, HttpRequestParam params) throws Exception {
 			httpSession.writeAndFlush(HttpResponseHelper.newStringResponse("path - " + path + ", params - " + params.toString()));
 		}
+
 	}
 
 	public static void main(String[] args) throws ExecutionException, InterruptedException {

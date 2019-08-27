@@ -18,17 +18,9 @@ package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.annotation.WorldSingleton;
-import com.wjybxx.fastjgame.configwrapper.Params;
-import com.wjybxx.fastjgame.misc.HttpResponseHelper;
-import com.wjybxx.fastjgame.net.HttpRequestHandler;
-import com.wjybxx.fastjgame.net.HttpSession;
-import com.wjybxx.fastjgame.utils.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.wjybxx.fastjgame.misc.DefaultHttpRequestDispatcher;
 
 import javax.annotation.concurrent.NotThreadSafe;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * 实现http请求的分发操作。
@@ -41,37 +33,11 @@ import java.util.Map;
  */
 @WorldSingleton
 @NotThreadSafe
-public class HttpDispatcherMrg implements HttpRequestHandler {
-
-    private static final Logger logger = LoggerFactory.getLogger(HttpDispatcherMrg.class);
-
-    private final Map<String, HttpRequestHandler> handlerMap = new HashMap<>();
+public class HttpDispatcherMrg extends DefaultHttpRequestDispatcher {
 
     @Inject
     public HttpDispatcherMrg() {
 
     }
 
-    public void registerHandler(String path, HttpRequestHandler httpRequestHandler) {
-        CollectionUtils.requireNotContains(handlerMap, path, "path");
-        handlerMap.put(path, httpRequestHandler);
-    }
-
-    @Override
-    public void onHttpRequest(HttpSession httpSession, String path, Params params) throws Exception {
-        HttpRequestHandler httpRequestHandler = handlerMap.get(path);
-        if (null == httpRequestHandler){
-            // 未注册的路径
-            httpSession.writeAndFlush(HttpResponseHelper.newNotFoundResponse());
-            logger.warn("unregistered path {}", path);
-            return;
-        }
-
-        // 分发请求
-        try {
-            httpRequestHandler.onHttpRequest(httpSession, path, params);
-        } catch (Exception e) {
-            logger.warn("handle path {} caught exception.", path, e);
-        }
-    }
 }

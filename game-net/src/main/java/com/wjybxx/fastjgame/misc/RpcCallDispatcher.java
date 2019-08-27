@@ -14,23 +14,26 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net;
+package com.wjybxx.fastjgame.misc;
+
+import com.wjybxx.fastjgame.net.RpcResponseChannel;
+import com.wjybxx.fastjgame.net.Session;
+
+import javax.annotation.Nonnull;
 
 /**
- * http请求处理器
- * @author wjybxx
+ * rpc调用分发器
+ * @author houlei
  * @version 1.0
- * date - 2019/4/28 19:16
- * github - https://github.com/hl845740757
+ * date - 2019/8/27
  */
-public interface HttpRequestHandler{
+public interface RpcCallDispatcher {
 
-    /**
-     * 处理Http请求
-     * @param httpSession 该http对应的session
-     * @param path 请求路径
-     * @param params 请求参数
-     */
-    void onHttpRequest(HttpSession httpSession, String path, HttpRequestParam params) throws Exception;
-
+	/**
+	 * 分发一个rpc调用
+	 * @param session 所在的会话
+	 * @param rpcCall rpc调用信息
+	 * @param rpcResponseChannel 如果需要返回结果的话，使用该对象返回值。
+	 */
+	void dispatchRpcRequest(@Nonnull Session session, @Nonnull RpcCall rpcCall, @Nonnull RpcResponseChannel<?> rpcResponseChannel);
 }

@@ -37,7 +37,7 @@ public interface ProtocolDispatcher {
      *                注意：该context不可以共享，不可以用在其它请求上。
      * @throws Exception error
      */
-    void onRpcRequest(Session session, @Nullable Object request, RpcRequestContext context) throws Exception;
+    void dispatchRpcRequest(Session session, @Nullable Object request, RpcRequestContext context) throws Exception;
 
     /**
      * 处理该会话发来单向的消息
@@ -45,6 +45,6 @@ public interface ProtocolDispatcher {
      * @param message 业务逻辑消息，如果编解码异常，则可能为null。
      * @throws Exception error
      */
-    void onMessage(Session session, @Nullable Object message) throws Exception;
+    void dispatchOneWayMessage(Session session, @Nullable Object message) throws Exception;
 
 }

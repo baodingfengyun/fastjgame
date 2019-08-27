@@ -17,20 +17,18 @@
 package com.wjybxx.fastjgame.net;
 
 /**
- * http请求处理器
- * @author wjybxx
+ * http请求分发器
+ * @author houlei
  * @version 1.0
- * date - 2019/4/28 19:16
- * github - https://github.com/hl845740757
+ * date - 2019/8/27
  */
-public interface HttpRequestHandler{
+public interface HttpRequestDispatcher {
 
-    /**
-     * 处理Http请求
-     * @param httpSession 该http对应的session
-     * @param path 请求路径
-     * @param params 请求参数
-     */
-    void onHttpRequest(HttpSession httpSession, String path, HttpRequestParam params) throws Exception;
-
+	/**
+	 * 分发一个Http请求
+	 * @param httpSession 该http对应的session
+	 * @param path 请求路径
+	 * @param params 请求参数
+	 */
+	void dispatch(HttpSession httpSession, String path, HttpRequestParam params) throws Exception;
 }

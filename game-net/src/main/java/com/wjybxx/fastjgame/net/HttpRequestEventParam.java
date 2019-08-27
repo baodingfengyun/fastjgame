@@ -52,6 +52,14 @@ public class HttpRequestEventParam implements NetEventParam{
 		return channel;
 	}
 
+	public String getPath() {
+		return httpRequestTO.getPath();
+	}
+
+	public HttpRequestParam getParams() {
+		return httpRequestTO.getParams();
+	}
+
 	public HttpRequestTO getHttpRequestTO() {
 		return httpRequestTO;
 	}

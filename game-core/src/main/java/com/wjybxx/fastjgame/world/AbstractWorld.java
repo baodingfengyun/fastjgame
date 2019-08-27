@@ -115,7 +115,7 @@ public abstract class AbstractWorld implements World{
      * @param httpRequestHandler 对应的处理器
      */
     protected final void registerHttpRequestHandler(String path, HttpRequestHandler httpRequestHandler){
-        httpDispatcherMrg.registerHandler(path, httpRequestHandler);
+        httpDispatcherMrg.register(path, httpRequestHandler);
     }
 
     // ----------------------------------------- 接口模板实现 ------------------------------------

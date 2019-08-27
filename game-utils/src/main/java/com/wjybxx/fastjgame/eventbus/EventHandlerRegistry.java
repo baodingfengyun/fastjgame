@@ -14,23 +14,25 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net;
+package com.wjybxx.fastjgame.eventbus;
+
+import javax.annotation.Nonnull;
 
 /**
- * http请求处理器
- * @author wjybxx
+ * 事件处理器注册表
+ * @author houlei
  * @version 1.0
- * date - 2019/4/28 19:16
- * github - https://github.com/hl845740757
+ * date - 2019/8/27
  */
-public interface HttpRequestHandler{
+public interface EventHandlerRegistry {
 
-    /**
-     * 处理Http请求
-     * @param httpSession 该http对应的session
-     * @param path 请求路径
-     * @param params 请求参数
-     */
-    void onHttpRequest(HttpSession httpSession, String path, HttpRequestParam params) throws Exception;
-
+	/**
+	 * 注册一个事件的观察者，正常情况下，该方法由生成的代码调用。
+	 * 当然也可以手动注册一些事件，即不使用注解。
+	 *
+	 * @param eventType 关注的事件类型
+	 * @param handler 事件处理器
+	 * @param <T> 事件的类型
+	 */
+	<T> void register(@Nonnull Class<T> eventType, @Nonnull EventHandler<T> handler);
 }

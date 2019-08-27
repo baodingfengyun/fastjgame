@@ -60,7 +60,7 @@ public class CompositePlayerMessageFunction<T extends AbstractMessage> implement
             try {
                 function.onMessage(player, message);
             } catch (Exception e) {
-                logger.warn("onMessage caught exception, playerGuid = {}, message = {}",
+                logger.warn("Child onMessage caught exception, playerGuid = {}, message = {}",
                         player.getGuid(), message.getClass().getName(), e);
             }
         }

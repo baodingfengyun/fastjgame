@@ -37,11 +37,4 @@ public interface RpcFunctionRegistry {
 	 */
 	void register(int methodKey, @Nonnull RpcFunction function);
 
-	/**
-	 * 分发一个rpc调用
-	 * @param session 所在的会话
-	 * @param rpcCall rpc调用信息
-	 * @param rpcResponseChannel 如果需要返回结果的话，使用该对象返回值。
-	 */
-	void dispatchRpcRequest(@Nonnull Session session, @Nonnull RpcCall rpcCall, @Nonnull RpcResponseChannel<?> rpcResponseChannel);
 }

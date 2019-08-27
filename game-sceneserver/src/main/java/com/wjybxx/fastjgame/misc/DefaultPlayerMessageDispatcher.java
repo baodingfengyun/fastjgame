@@ -31,9 +31,9 @@ import java.util.Map;
  * @version 1.0
  * date - 2019/8/26
  */
-public class DefaultPlayerMessageFunctionRegistry implements PlayerMessageFunctionRegistry{
+public class DefaultPlayerMessageDispatcher implements PlayerMessageFunctionRegistry,PlayerMessageDispatcher {
 
-	private static final Logger logger = LoggerFactory.getLogger(DefaultPlayerMessageFunctionRegistry.class);
+	private static final Logger logger = LoggerFactory.getLogger(DefaultPlayerMessageDispatcher.class);
 
 	/**
 	 * 类型到处理器的映射。
@@ -58,7 +58,7 @@ public class DefaultPlayerMessageFunctionRegistry implements PlayerMessageFuncti
 	}
 
 	@Override
-	public final <T extends AbstractMessage> void dispatchMessage(@Nonnull Player player, @Nonnull T message) {
+	public final <T extends AbstractMessage> void dispatch(@Nonnull Player player, @Nonnull T message) {
 		@SuppressWarnings("unchecked")
 		final PlayerMessageFunction<T> messageFunction = (PlayerMessageFunction<T>) handlerMap.get(message.getClass());
 		if (null == messageFunction) {

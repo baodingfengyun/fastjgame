@@ -53,8 +53,9 @@ public class DocumentConfigWrapper extends ConfigWrapper {
     @Override
     public MapConfigWrapper convert2MapWrapper() {
         Map<String,String> result=new LinkedHashMap<>();
-        for (String key:document.keySet()){
-            result.put(key,getAsString(key));
+        for (Map.Entry<String,Object> entry:document.entrySet()) {
+            // 这里的value不为null
+            result.put(entry.getKey(), String.valueOf(entry.getValue()));
         }
         return new MapConfigWrapper(result);
     }

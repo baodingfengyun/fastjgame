@@ -31,9 +31,9 @@ import java.util.Map;
  * @version 1.0
  * date - 2019/8/24
  */
-public class DefaultMessageFunctionRegistry implements MessageFunctionRegistry {
+public class DefaultMessageDispatcher implements MessageFunctionRegistry, MessageDispatcher {
 
-	private static final Logger logger = LoggerFactory.getLogger(DefaultMessageFunctionRegistry.class);
+	private static final Logger logger = LoggerFactory.getLogger(DefaultMessageDispatcher.class);
 
 	/**
 	 * 类型到处理器的映射。
@@ -58,7 +58,7 @@ public class DefaultMessageFunctionRegistry implements MessageFunctionRegistry {
 	}
 
 	@Override
-	public final <T extends AbstractMessage> void dispatchMessage(@Nonnull Session session, @Nonnull T message) {
+	public final <T extends AbstractMessage> void dispatch(@Nonnull Session session, @Nonnull T message) {
 		@SuppressWarnings("unchecked")
 		final MessageFunction<T> messageFunction = (MessageFunction<T>) handlerMap.get(message.getClass());
 		if (null == messageFunction) {

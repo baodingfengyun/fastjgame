@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.example;
 import com.wjybxx.fastjgame.concurrent.*;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupImp;
-import com.wjybxx.fastjgame.misc.DefaultRpcFunctionRegistry;
+import com.wjybxx.fastjgame.misc.DefaultRpcCallDispatcher;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.net.Session;
@@ -69,7 +69,7 @@ public class ExampleRpcClientLoop extends SingleThreadEventLoop {
 				ExampleConstants.serverRole, address,
 				() -> initializer,
 				new ServerLifeAward(),
-				new ExampleRpcDispatcher(new DefaultRpcFunctionRegistry()));
+				new ExampleRpcDispatcher(new DefaultRpcCallDispatcher()));
 	}
 
 	@Override

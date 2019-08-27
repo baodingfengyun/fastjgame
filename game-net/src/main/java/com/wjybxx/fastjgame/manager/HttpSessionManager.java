@@ -18,14 +18,9 @@ package com.wjybxx.fastjgame.manager;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
-import com.wjybxx.fastjgame.configwrapper.Params;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopManager;
 import com.wjybxx.fastjgame.misc.*;
-import com.wjybxx.fastjgame.net.HttpRequestEventParam;
-import com.wjybxx.fastjgame.net.HttpRequestHandler;
-import com.wjybxx.fastjgame.net.HttpSessionImp;
-import com.wjybxx.fastjgame.net.NetContext;
+import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.timer.FixedDelayHandle;
 import com.wjybxx.fastjgame.utils.*;
 import io.netty.channel.Channel;
@@ -82,12 +77,12 @@ public class HttpSessionManager {
 	 */
 	public HostAndPort bindRange(NetContext netContext, String host, PortRange portRange,
 								 ChannelInitializer<SocketChannel> initializer,
-								 HttpRequestHandler httpRequestHandler) throws BindException {
+								 HttpRequestDispatcher httpRequestDispatcher) throws BindException {
 		assert netEventLoopManager.inEventLoop();
 		// 绑定端口
 		BindResult bindResult = acceptorManager.bindRange(host, portRange, initializer);
 		// 保存用户信息
-		userInfoMap.computeIfAbsent(netContext.localGuid(), localGuid -> new UserInfo(netContext, bindResult, initializer, httpRequestHandler));
+		userInfoMap.computeIfAbsent(netContext.localGuid(), localGuid -> new UserInfo(netContext, bindResult, initializer, httpRequestDispatcher));
 
 		return bindResult.getHostAndPort();
 	}
@@ -154,13 +149,13 @@ public class HttpSessionManager {
 		sessionWrapper.setSessionTimeout(netConfigManager.httpSessionTimeout() + netTimeManager.getSystemSecTime());
 
 		final HttpSessionImp httpSession = sessionWrapper.session;
-		final String path = requestEventParam.getHttpRequestTO().getPath();
-		final Params param = requestEventParam.getHttpRequestTO().getParams();
+		final String path = requestEventParam.getPath();
+		final HttpRequestParam param = requestEventParam.getParams();
 
 		// 处理请求，提交到用户所在的线程，实现线程安全
 		ConcurrentUtils.tryCommit(userInfo.netContext.localEventLoop(), () -> {
 			try {
-				userInfo.httpRequestHandler.onHttpRequest(httpSession, path, param);
+				userInfo.httpRequestDispatcher.dispatch(httpSession, path, param);
 			} catch (Exception e) {
 				ConcurrentUtils.rethrow(e);
 			}
@@ -198,18 +193,18 @@ public class HttpSessionManager {
 		/** 端口初始化类 */
 		private final ChannelInitializer<SocketChannel>  initializer;
 		/** http请求处理器 */
-		private final HttpRequestHandler httpRequestHandler;
+		private final HttpRequestDispatcher httpRequestDispatcher;
 
 		/** 该用户关联的所有的会话 */
 		private final Map<Channel, SessionWrapper> sessionWrapperMap = new IdentityHashMap<>();
 
 		private UserInfo(NetContext netContext, BindResult bindResult,
 						 ChannelInitializer<SocketChannel> initializer,
-						 HttpRequestHandler httpRequestHandler) {
+						 HttpRequestDispatcher httpRequestDispatcher) {
 			this.netContext = netContext;
 			this.bindResult = bindResult;
 			this.initializer = initializer;
-			this.httpRequestHandler = httpRequestHandler;
+			this.httpRequestDispatcher = httpRequestDispatcher;
 		}
 	}
 

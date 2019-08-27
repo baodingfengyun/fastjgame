@@ -1,8 +1,8 @@
 ### fastjgame
 fastjgame 为 fast java game framework的缩写，如名字一样，该项目的目标是一个高性能，高稳定性的游戏架构。  
 1. 它将是一个分布式多线程架构，它有着良好的多线程模型。  
-2. 高性能从网络层开始： 支持异步消息，异步rpc调用，同步rpc调用;  
-3. IO框架为Netty,HttpClient为OkHttp3; 支持断线重连，支持websocket和tcp同时接入。 
+2. 高性能从网络层开始： 支持异步消息，异步rpc调用，同步rpc调用，以及良好的接口。 
+3. IO框架为Netty,HttpClient为OkHttp3; 防闪断/自动断线重连，支持websocket和tcp同时接入。 
 4. 支持google protoBuf，json以及自定义消息序列化方式。 支持自定义消息映射;  
 5. 分布式协调框架：zookeeper 作为配置中心，节点发现，以及不时的分布式锁需要  
 6. NoSQL数据库： mongodb 习惯了mongodb回不去MySQL
@@ -43,7 +43,7 @@ fastjgame 为 fast java game framework的缩写，如名字一样，该项目的
 
 ### 高性能从网络层开始  
 1. IO框架为Netty,HttpClient为OkHttp3;   
-2. 支持断线重连，支持websocket和tcp同时接入。  
+2. 支持断线重连/防闪断，支持websocket和tcp同时接入。  
 3. 支持自定义协议解析-实现**ProtocolCodec**。
 4. 有基于protoBuf的协议传输，也有基于json的协议传输，都是ProtocolCodec的实现类。
 5. 实现了一套完整的rpc，支持异步消息，异步rpc调用，同步rpc调用。

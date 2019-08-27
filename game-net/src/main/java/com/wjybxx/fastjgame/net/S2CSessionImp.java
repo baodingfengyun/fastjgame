@@ -102,7 +102,6 @@ public class S2CSessionImp extends AbstractSession implements S2CSession {
     }
 
     public void setClosed() {
-        assert netContext.netEventLoop().inEventLoop();
         stateHolder.set(false);
     }
 
