@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/27
+ * github - https://github.com/hl845740757
  */
 @AutoService(Processor.class)
 public class HttpRequestMapProcessor extends AbstractProcessor {

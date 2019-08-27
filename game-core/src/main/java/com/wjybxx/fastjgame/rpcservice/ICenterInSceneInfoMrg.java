@@ -28,6 +28,7 @@ import java.util.List;
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/22
+ * github - https://github.com/hl845740757
  */
 @RpcService(serviceId = ServiceTable.CENTER_IN_SCENE_INFO_MRG)
 public interface ICenterInSceneInfoMrg {

@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.rpcservice;
 
 /**
- * 所有的{@link }
+ * 所有的rpcServiceId,方便管理
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/20
