@@ -35,7 +35,7 @@ import java.util.Set;
 /**
  * 分析{@code SerializableField#number()}是否重复，以及是否在 [0,127之间]
  *
- * @author houlei
+ * @author wjybxx
  * @version 1.0
  * date - 2019/8/23
  */

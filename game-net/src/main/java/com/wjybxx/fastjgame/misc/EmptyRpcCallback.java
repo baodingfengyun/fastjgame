@@ -21,9 +21,10 @@ import com.wjybxx.fastjgame.net.RpcResponse;
 
 /**
  * 什么也不做的rpc回调
- * @author houlei
+ * @author wjybxx
  * @version 1.0
  * date - 2019/8/23
+ * github - https://github.com/hl845740757
  */
 public class EmptyRpcCallback implements RpcCallback {
 

@@ -26,9 +26,10 @@ import java.util.Set;
 
 /**
  * http请求参数
- * @author houlei
+ * @author wjybxx
  * @version 1.0
  * date - 2019/8/27
+ * github - https://github.com/hl845740757
  */
 @Immutable
 public class HttpRequestParam extends Params {

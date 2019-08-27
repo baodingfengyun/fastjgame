@@ -26,9 +26,10 @@ import java.lang.annotation.Target;
  * 该注解可以用在类/接口上，也可以用在方法上。当类上存在该注解时，那么该类中的所有方法都在该路径之下。
  *
  * 没想到啥好名字，参考下常见的spring的RequestMapping，也打算做个类似的支持。
- * @author houlei
+ * @author wjybxx
  * @version 1.0
  * date - 2019/8/27
+ * github - https://github.com/hl845740757
  */
 @Retention(RetentionPolicy.SOURCE)
 @Target({ElementType.TYPE, ElementType.METHOD})
@@ -42,4 +43,11 @@ public @interface HttpRequestMapping {
 	 */
 	String path();
 
+	/**
+	 * 是否继承父节点的路径，默认支持.。
+	 * 如果不继承父节点路径，则使用指定的路径，否则使用父节点路径和当前路径拼接完的路径。
+	 *
+	 * @return true/false
+	 */
+	boolean inherit() default true;
 }

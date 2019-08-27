@@ -22,7 +22,7 @@ import com.wjybxx.fastjgame.net.RpcResponse;
 import java.util.Collections;
 
 /**
- * @author houlei
+ * @author wjybxx
  * @version 1.0
  * date - 2019/8/23
  */

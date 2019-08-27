@@ -33,7 +33,7 @@ public class UncommittedOneWayMessage implements UncommittedMessage{
 
 	@Override
 	public void commit(Session session, ProtocolDispatcher protocolDispatcher) throws Exception {
-		protocolDispatcher.dispatchOneWayMessage(session, message);
+		protocolDispatcher.postOneWayMessage(session, message);
 	}
 
 	@Override

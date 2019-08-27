@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
  * http请求注解处理器。
  * 写习惯了，越来越容易了。
  *
- * @author houlei
+ * @author wjybxx
  * @version 1.0
  * date - 2019/8/27
  */
@@ -52,6 +52,8 @@ public class HttpRequestMapProcessor extends AbstractProcessor {
 	private static final String REGISTRY_CANONICAL_NAME = "com.wjybxx.fastjgame.net.HttpRequestHandlerRegistry";
 
 	private static final String PATH_METHOD_NAME = "path";
+	private static final String INHERIT_METHOD_NAME = "inherit";
+
 	private static final char PATH_PREFIX = '/';
 
 	private Types typeUtils;
@@ -184,9 +186,13 @@ public class HttpRequestMapProcessor extends AbstractProcessor {
 				messager.printMessage(Diagnostic.Kind.ERROR, "HttpRequestMapping method third parameter type must be HttpRequestParam!", method);
 				continue;
 			}
+			// 是否继承父节点路径，如果继承，则使用组合路径，否则使用方法指定的路径
+			final boolean inherit = (Boolean) AutoUtils.getAnnotationValue(elementUtils, methodAnnotation.get(), INHERIT_METHOD_NAME);
+			String finalPath = inherit ? makePath(parentPath, childPath) : childPath;
+
 			// 生成lambda表达式
 			methodBuilder.addStatement("registry.register($S, (httpSession, path, params) -> instance.$L(httpSession, path, params))",
-					makePath(parentPath, childPath),
+					finalPath,
 					method.getSimpleName().toString());
 		}
 

@@ -66,6 +66,10 @@ public class NetUtils {
      * 本机外网地址
      */
     private static final String outerIp;
+    /**
+     * 请求图标的路径
+     */
+    public static final String FAVICON_PATH = "/favicon.ico";
 
     static {
         String tempLocalIp = null;

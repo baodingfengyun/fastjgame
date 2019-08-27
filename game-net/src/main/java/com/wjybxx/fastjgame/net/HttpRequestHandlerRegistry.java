@@ -20,9 +20,10 @@ import javax.annotation.Nonnull;
 
 /**
  * http请求处理器注册表
- * @author houlei
+ * @author wjybxx
  * @version 1.0
  * date - 2019/8/27
+ * github - https://github.com/hl845740757
  */
 public interface HttpRequestHandlerRegistry {
 

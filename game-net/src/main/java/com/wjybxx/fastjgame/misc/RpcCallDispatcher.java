@@ -23,9 +23,10 @@ import javax.annotation.Nonnull;
 
 /**
  * rpc调用分发器
- * @author houlei
+ * @author wjybxx
  * @version 1.0
  * date - 2019/8/27
+ * github - https://github.com/hl845740757
  */
 public interface RpcCallDispatcher {
 
@@ -35,5 +36,5 @@ public interface RpcCallDispatcher {
 	 * @param rpcCall rpc调用信息
 	 * @param rpcResponseChannel 如果需要返回结果的话，使用该对象返回值。
 	 */
-	void dispatchRpcRequest(@Nonnull Session session, @Nonnull RpcCall rpcCall, @Nonnull RpcResponseChannel<?> rpcResponseChannel);
+	void postRpcRequest(@Nonnull Session session, @Nonnull RpcCall rpcCall, @Nonnull RpcResponseChannel<?> rpcResponseChannel);
 }

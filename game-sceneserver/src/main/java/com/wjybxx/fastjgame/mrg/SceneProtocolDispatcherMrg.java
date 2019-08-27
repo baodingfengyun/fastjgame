@@ -30,7 +30,7 @@ import javax.annotation.Nonnull;
 
 /**
  *
- * @author houlei
+ * @author wjybxx
  * @version 1.0
  * date - 2019/8/26
  */
@@ -50,7 +50,7 @@ public class SceneProtocolDispatcherMrg extends ProtocolDispatcherMrg implements
 			Player player = playerSessionMrg.getPlayer(session.remoteGuid());
 			if (player != null) {
 				// 玩家已成功连入场景
-				dispatch(player, (AbstractMessage) message);
+				post(player, (AbstractMessage) message);
 			} else {
 				// TODO 玩家登录
 			}
@@ -63,7 +63,7 @@ public class SceneProtocolDispatcherMrg extends ProtocolDispatcherMrg implements
 	}
 
 	@Override
-	public <T extends AbstractMessage> void dispatch(@Nonnull Player player, @Nonnull T message) {
-		messageDispatcher.dispatch(player, message);
+	public <T extends AbstractMessage> void post(@Nonnull Player player, @Nonnull T message) {
+		messageDispatcher.post(player, message);
 	}
 }

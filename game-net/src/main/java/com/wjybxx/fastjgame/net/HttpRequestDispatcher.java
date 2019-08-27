@@ -18,9 +18,10 @@ package com.wjybxx.fastjgame.net;
 
 /**
  * http请求分发器
- * @author houlei
+ * @author wjybxx
  * @version 1.0
  * date - 2019/8/27
+ * github - https://github.com/hl845740757
  */
 public interface HttpRequestDispatcher {
 
@@ -30,5 +31,5 @@ public interface HttpRequestDispatcher {
 	 * @param path 请求路径
 	 * @param params 请求参数
 	 */
-	void dispatch(HttpSession httpSession, String path, HttpRequestParam params) throws Exception;
+	void post(HttpSession httpSession, String path, HttpRequestParam params) throws Exception;
 }

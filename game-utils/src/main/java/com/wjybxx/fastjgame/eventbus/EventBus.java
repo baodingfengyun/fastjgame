@@ -29,9 +29,10 @@ import java.util.Map;
  * 1. 它并不是一个线程安全的对象
  * 2. 它也不是一个标准的EventBus实现，比如就没有取消注册的接口，也没有单独的dispatcher、Registry
  *
- * @author houlei
+ * @author wjybxx
  * @version 1.0
  * date - 2019/8/23
+ * github - https://github.com/hl845740757
  */
 @NotThreadSafe
 public class EventBus implements EventHandlerRegistry,EventDispatcher {

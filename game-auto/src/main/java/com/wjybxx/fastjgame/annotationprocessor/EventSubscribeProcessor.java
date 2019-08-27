@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 /**
  * 为带有{@code Subscribe}注解的方法生成代理。
  *
- * @author houlei
+ * @author wjybxx
  * @version 1.0
  * date - 2019/8/23
  */

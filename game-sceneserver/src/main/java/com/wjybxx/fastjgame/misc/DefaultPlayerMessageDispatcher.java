@@ -27,9 +27,10 @@ import java.util.Map;
 
 /**
  * 玩家消息处理函数注册器的默认实现
- * @author houlei
+ * @author wjybxx
  * @version 1.0
  * date - 2019/8/26
+ * github - https://github.com/hl845740757
  */
 public class DefaultPlayerMessageDispatcher implements PlayerMessageFunctionRegistry,PlayerMessageDispatcher {
 
@@ -58,7 +59,7 @@ public class DefaultPlayerMessageDispatcher implements PlayerMessageFunctionRegi
 	}
 
 	@Override
-	public final <T extends AbstractMessage> void dispatch(@Nonnull Player player, @Nonnull T message) {
+	public final <T extends AbstractMessage> void post(@Nonnull Player player, @Nonnull T message) {
 		@SuppressWarnings("unchecked")
 		final PlayerMessageFunction<T> messageFunction = (PlayerMessageFunction<T>) handlerMap.get(message.getClass());
 		if (null == messageFunction) {

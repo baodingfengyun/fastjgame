@@ -27,9 +27,10 @@ import java.util.Map;
 
 /**
  * {@link MessageFunctionRegistry}的默认实现。
- * @author houlei
+ * @author wjybxx
  * @version 1.0
  * date - 2019/8/24
+ * github - https://github.com/hl845740757
  */
 public class DefaultMessageDispatcher implements MessageFunctionRegistry, MessageDispatcher {
 
@@ -58,7 +59,7 @@ public class DefaultMessageDispatcher implements MessageFunctionRegistry, Messag
 	}
 
 	@Override
-	public final <T extends AbstractMessage> void dispatch(@Nonnull Session session, @Nonnull T message) {
+	public final <T extends AbstractMessage> void post(@Nonnull Session session, @Nonnull T message) {
 		@SuppressWarnings("unchecked")
 		final MessageFunction<T> messageFunction = (MessageFunction<T>) handlerMap.get(message.getClass());
 		if (null == messageFunction) {

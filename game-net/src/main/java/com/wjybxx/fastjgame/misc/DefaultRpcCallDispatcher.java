@@ -57,7 +57,7 @@ public class DefaultRpcCallDispatcher implements RpcFunctionRegistry, RpcCallDis
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public final void dispatchRpcRequest(@Nonnull Session session, @Nonnull RpcCall rpcCall, @Nonnull RpcResponseChannel<?> rpcResponseChannel) {
+	public final void postRpcRequest(@Nonnull Session session, @Nonnull RpcCall rpcCall, @Nonnull RpcResponseChannel<?> rpcResponseChannel) {
 		final int methodKey = rpcCall.getMethodKey();
 		final List<Object> params = rpcCall.getMethodParams();
 		final RpcFunction rpcFunction = functionInfoMap.get(methodKey);

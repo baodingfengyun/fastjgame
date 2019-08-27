@@ -19,13 +19,11 @@ package com.wjybxx.fastjgame.mrg;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.onlinenode.WarzoneNodeData;
 import com.wjybxx.fastjgame.core.onlinenode.WarzoneNodeName;
-import com.wjybxx.fastjgame.misc.RpcCall;
-import com.wjybxx.fastjgame.misc.SucceedRpcCallback;
 import com.wjybxx.fastjgame.misc.WarzoneInCenterInfo;
 import com.wjybxx.fastjgame.net.RoleType;
 import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.net.SessionLifecycleAware;
-import com.wjybxx.fastjgame.rpcproxy.ICenterInWarzoneInfoMrgRpcProxy;
+import com.wjybxx.fastjgame.rpcservice.ICenterInWarzoneInfoMrgRpcProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

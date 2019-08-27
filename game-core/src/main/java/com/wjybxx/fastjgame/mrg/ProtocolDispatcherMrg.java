@@ -53,13 +53,13 @@ public class ProtocolDispatcherMrg extends DefaultRpcCallDispatcher implements P
     }
 
     @Override
-    public final void dispatchOneWayMessage(Session session, @Nullable Object message) throws Exception {
+    public final void postOneWayMessage(Session session, @Nullable Object message) throws Exception {
         if (null == message){
             logger.warn("{} - {} send null message", session.remoteRole(), session.remoteGuid());
             return;
         }
         if (message instanceof RpcCall) {
-            dispatchRpcRequest(session, (RpcCall) message, VoidRpcResponseChannel.INSTANCE);
+            postRpcRequest(session, (RpcCall) message, VoidRpcResponseChannel.INSTANCE);
         } else {
             dispatchOneWayMessage0(session, message);
         }
@@ -76,13 +76,13 @@ public class ProtocolDispatcherMrg extends DefaultRpcCallDispatcher implements P
     }
 
     @Override
-    public final void dispatchRpcRequest(Session session, @Nullable Object request, RpcRequestContext context) throws Exception {
+    public final void postRpcRequest(Session session, @Nullable Object request, RpcRequestContext context) throws Exception {
         if (null == request){
             logger.warn("{} - {} send null request", session.remoteRole(), session.remoteGuid());
             return;
         }
         // 目前版本直接session创建responseChannel，后期再考虑缓存的事情
-        dispatchRpcRequest(session, (RpcCall) request, session.newResponseChannel(context));
+        postRpcRequest(session, (RpcCall) request, session.newResponseChannel(context));
     }
 
 }

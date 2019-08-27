@@ -19,7 +19,6 @@ package com.wjybxx.fastjgame.example;
 import com.wjybxx.fastjgame.annotation.PlayerMessageSubscribe;
 import com.wjybxx.fastjgame.gameobject.Player;
 import com.wjybxx.fastjgame.misc.DefaultPlayerMessageDispatcher;
-import com.wjybxx.fastjgame.msgfunregister.MessageSubscriberExampleMsgFunRegister;
 import com.wjybxx.fastjgame.protobuffer.p_common;
 
 /**
@@ -31,12 +30,18 @@ import com.wjybxx.fastjgame.protobuffer.p_common;
 public class MessageSubscriberExample {
 
     public static void main(String[] args) {
-        MessageSubscriberExampleMsgFunRegister.register(new DefaultPlayerMessageDispatcher(),
+        final DefaultPlayerMessageDispatcher dispatcher = new DefaultPlayerMessageDispatcher();
+        MessageSubscriberExampleMsgFunRegister.register(dispatcher,
                 new MessageSubscriberExample());
+
+        Player player = new Player(null, null, null, null);
+        final p_common.p_player_data.Builder builder = p_common.p_player_data.newBuilder();
+        builder.setPlayerGuid(10000);
+        dispatcher.post(player, builder.build());
     }
 
     @PlayerMessageSubscribe
     public void onMessage(Player player, p_common.p_player_data data) {
-
+        System.out.println("onMessage " + data.toString());
     }
 }

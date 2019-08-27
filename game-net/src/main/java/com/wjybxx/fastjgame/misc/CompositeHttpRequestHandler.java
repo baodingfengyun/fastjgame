@@ -27,9 +27,10 @@ import java.util.List;
 
 /**
  * 为多个http请求处理器提供一个单一的视图
- * @author houlei
+ * @author wjybxx
  * @version 1.0
  * date - 2019/8/27
+ * github - https://github.com/hl845740757
  */
 public class CompositeHttpRequestHandler implements HttpRequestHandler {
 

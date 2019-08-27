@@ -16,20 +16,19 @@
 
 package com.wjybxx.fastjgame.example;
 
-import com.wjybxx.fastjgame.busregister.SubscriberExampleBusRegister;
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.eventbus.EventBus;
 import com.wjybxx.fastjgame.eventbus.Subscribe;
 
 import java.util.HashSet;
-import java.util.concurrent.ThreadFactory;
 
 /**
  * {@link com.wjybxx.fastjgame.eventbus.EventBus}的注册者例子。
- * @author houlei
+ * @author wjybxx
  * @version 1.0
  * date - 2019/8/24
+ * github - https://github.com/hl845740757
  */
 public class SubscriberExample {
 

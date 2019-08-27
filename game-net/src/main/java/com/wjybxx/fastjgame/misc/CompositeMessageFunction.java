@@ -29,9 +29,10 @@ import java.util.List;
  * 为多个MessageHandler提供一个抽象视图。
  * 当一个消息被多个地方监听处理时，使用该对象进行简化。
  *
- * @author houlei
+ * @author wjybxx
  * @version 1.0
  * date - 2019/8/24
+ * github - https://github.com/hl845740757
  */
 public final class CompositeMessageFunction<T extends AbstractMessage> implements MessageFunction<T> {
 

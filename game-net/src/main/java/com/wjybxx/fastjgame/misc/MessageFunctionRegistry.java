@@ -17,15 +17,15 @@
 package com.wjybxx.fastjgame.misc;
 
 import com.google.protobuf.AbstractMessage;
-import com.wjybxx.fastjgame.net.Session;
 
 import javax.annotation.Nonnull;
 
 /**
  * {@link MessageFunction}注册器。
- * @author houlei
+ * @author wjybxx
  * @version 1.0
  * date - 2019/8/24
+ * github - https://github.com/hl845740757
  */
 public interface MessageFunctionRegistry {
 

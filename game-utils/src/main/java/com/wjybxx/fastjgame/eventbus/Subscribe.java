@@ -33,9 +33,10 @@ import java.lang.annotation.Target;
  * auto:
  * 会为拥有{@link Subscribe}方法的类生成一个代理文件，需要手动注册到EventBus上。生成的文件名字为 XXXBusRegister
  *
- * @author houlei
+ * @author wjybxx
  * @version 1.0
  * date - 2019/8/23
+ * github - https://github.com/hl845740757
  */
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.METHOD)

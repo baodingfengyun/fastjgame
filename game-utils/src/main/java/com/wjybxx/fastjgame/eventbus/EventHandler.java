@@ -21,9 +21,10 @@ import javax.annotation.Nonnull;
 /**
  * 事件处理器，主要用于实验Lambda表达式代替反射调用，lambda表达式由注解处理器生成
  *
- * @author houlei
+ * @author wjybxx
  * @version 1.0
  * date - 2019/8/23
+ * github - https://github.com/hl845740757
  */
 public interface EventHandler<T> {
 

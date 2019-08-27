@@ -37,7 +37,7 @@ public class UncommittedRpcRequest implements UncommittedMessage{
 
 	@Override
 	public void commit(Session session, ProtocolDispatcher protocolDispatcher) throws Exception {
-		protocolDispatcher.dispatchRpcRequest(session, request, context);
+		protocolDispatcher.postRpcRequest(session, request, context);
 	}
 
 	@Override

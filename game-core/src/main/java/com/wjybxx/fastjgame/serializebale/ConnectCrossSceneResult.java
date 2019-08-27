@@ -8,7 +8,7 @@ import java.util.List;
 
 /**
  * 连接跨服节点结果
- * @author houlei
+ * @author wjybxx
  * @version 1.0
  * date - 2019/8/22
  */

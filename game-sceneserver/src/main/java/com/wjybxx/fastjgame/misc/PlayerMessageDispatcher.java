@@ -23,9 +23,10 @@ import javax.annotation.Nonnull;
 
 /**
  * 玩家消息分发器
- * @author houlei
+ * @author wjybxx
  * @version 1.0
  * date - 2019/8/27
+ * github - https://github.com/hl845740757
  */
 public interface PlayerMessageDispatcher {
 	/**
@@ -34,5 +35,5 @@ public interface PlayerMessageDispatcher {
 	 * @param message 消息内容
 	 * @param <T> 消息类型
 	 */
-	<T extends AbstractMessage> void dispatch(@Nonnull Player player, @Nonnull T message);
+	<T extends AbstractMessage> void post(@Nonnull Player player, @Nonnull T message);
 }

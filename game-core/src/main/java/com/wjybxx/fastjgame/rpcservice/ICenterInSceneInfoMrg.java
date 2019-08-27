@@ -25,7 +25,7 @@ import java.util.List;
 
 /**
  * CenterServer在SceneServer中的连接管理等。
- * @author houlei
+ * @author wjybxx
  * @version 1.0
  * date - 2019/8/22
  */

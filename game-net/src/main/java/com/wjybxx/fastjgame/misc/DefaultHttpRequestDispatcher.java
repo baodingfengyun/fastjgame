@@ -26,9 +26,10 @@ import java.util.Map;
 
 /**
  * 默认的Http请求分发器实现
- * @author houlei
+ * @author wjybxx
  * @version 1.0
  * date - 2019/8/27
+ * github - https://github.com/hl845740757
  */
 public class DefaultHttpRequestDispatcher implements HttpRequestHandlerRegistry, HttpRequestDispatcher {
 
@@ -51,7 +52,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestHandlerRegistry,
 	}
 
 	@Override
-	public void dispatch(HttpSession httpSession, String path, HttpRequestParam params) throws Exception {
+	public void post(HttpSession httpSession, String path, HttpRequestParam params) throws Exception {
 		HttpRequestHandler httpRequestHandler = handlerMap.get(path);
 		if (null == httpRequestHandler){
 			// 未注册的路径

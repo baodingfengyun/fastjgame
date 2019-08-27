@@ -22,9 +22,10 @@ import com.wjybxx.fastjgame.net.Session;
 /**
  * 当基于protoBuf对象进行通信时，通过该接口进行处理。
  *
- * @author houlei
+ * @author wjybxx
  * @version 1.0
  * date - 2019/8/24
+ * github - https://github.com/hl845740757
  */
 @FunctionalInterface
 public interface MessageFunction<T extends AbstractMessage> {

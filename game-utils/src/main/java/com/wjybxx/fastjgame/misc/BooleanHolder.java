@@ -18,9 +18,10 @@ package com.wjybxx.fastjgame.misc;
 
 /**
  * Bool值持对象，用于lambda表达式
- * @author houlei
+ * @author wjybxx
  * @version 1.0
  * date - 2019/8/24
+ * github - https://github.com/hl845740757
  */
 public class BooleanHolder {
 

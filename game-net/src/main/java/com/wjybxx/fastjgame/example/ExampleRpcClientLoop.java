@@ -25,7 +25,6 @@ import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.net.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.initializer.TCPClientChannelInitializer;
-import com.wjybxx.fastjgame.rpcproxy.ExampleRpcServiceRpcProxy;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.TimeUtils;
 
@@ -37,7 +36,7 @@ import java.util.concurrent.locks.LockSupport;
 
 /**
  * rpc请求客户端示例
- * @author houlei
+ * @author wjybxx
  * @version 1.0
  * date - 2019/8/26
  */

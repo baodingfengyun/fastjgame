@@ -23,9 +23,10 @@ import javax.annotation.Nonnull;
 
 /**
  * 消息分发器
- * @author houlei
+ * @author wjybxx
  * @version 1.0
  * date - 2019/8/27
+ * github - https://github.com/hl845740757
  */
 public interface MessageDispatcher {
 
@@ -35,5 +36,5 @@ public interface MessageDispatcher {
 	 * @param message 消息内容
 	 * @param <T> 消息类型
 	 */
-	<T extends AbstractMessage> void dispatch(@Nonnull Session session, @Nonnull T message);
+	<T extends AbstractMessage> void post(@Nonnull Session session, @Nonnull T message);
 }

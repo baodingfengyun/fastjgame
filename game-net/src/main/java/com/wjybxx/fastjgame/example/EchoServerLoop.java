@@ -112,13 +112,13 @@ public class EchoServerLoop extends SingleThreadEventLoop {
 	private static class EchoProtocolDispatcher implements ProtocolDispatcher {
 
 		@Override
-		public void dispatchOneWayMessage(Session session, @Nullable Object message) throws Exception {
+		public void postOneWayMessage(Session session, @Nullable Object message) throws Exception {
 			assert null != message;
 			session.sendMessage(message);
 		}
 
 		@Override
-		public void dispatchRpcRequest(Session session, @Nullable Object request, RpcRequestContext context) throws Exception {
+		public void postRpcRequest(Session session, @Nullable Object request, RpcRequestContext context) throws Exception {
 			assert null != request;
 			RpcResponseChannel<Object> responseChannel = session.newResponseChannel(context);
 			responseChannel.writeSuccess(request);
@@ -128,7 +128,7 @@ public class EchoServerLoop extends SingleThreadEventLoop {
 	private static class EchoHttpRequestDispatcher implements HttpRequestDispatcher {
 
 		@Override
-		public void dispatch(HttpSession httpSession, String path, HttpRequestParam params) throws Exception {
+		public void post(HttpSession httpSession, String path, HttpRequestParam params) throws Exception {
 			httpSession.writeAndFlush(HttpResponseHelper.newStringResponse("path - " + path + ", params - " + params.toString()));
 		}
 

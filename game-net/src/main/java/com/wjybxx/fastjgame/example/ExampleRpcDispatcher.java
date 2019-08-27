@@ -18,7 +18,6 @@ package com.wjybxx.fastjgame.example;
 
 import com.wjybxx.fastjgame.misc.RpcCall;
 import com.wjybxx.fastjgame.misc.RpcCallDispatcher;
-import com.wjybxx.fastjgame.misc.RpcFunctionRegistry;
 import com.wjybxx.fastjgame.misc.VoidRpcResponseChannel;
 import com.wjybxx.fastjgame.net.ProtocolDispatcher;
 import com.wjybxx.fastjgame.net.RpcRequestContext;
@@ -28,9 +27,10 @@ import javax.annotation.Nullable;
 
 /**
  * rpc请求分发器示例
- * @author houlei
+ * @author wjybxx
  * @version 1.0
  * date - 2019/8/26
+ * github - https://github.com/hl845740757
  */
 public class ExampleRpcDispatcher implements ProtocolDispatcher {
 
@@ -41,16 +41,16 @@ public class ExampleRpcDispatcher implements ProtocolDispatcher {
 	}
 
 	@Override
-	public void dispatchRpcRequest(Session session, @Nullable Object request, RpcRequestContext context) throws Exception {
+	public void postRpcRequest(Session session, @Nullable Object request, RpcRequestContext context) throws Exception {
 		if (request instanceof RpcCall) {
-			dispatcher.dispatchRpcRequest(session, (RpcCall) request, session.newResponseChannel(context));
+			dispatcher.postRpcRequest(session, (RpcCall) request, session.newResponseChannel(context));
 		}
 	}
 
 	@Override
-	public void dispatchOneWayMessage(Session session, @Nullable Object message) throws Exception {
+	public void postOneWayMessage(Session session, @Nullable Object message) throws Exception {
 		if (message instanceof RpcCall) {
-			dispatcher.dispatchRpcRequest(session, (RpcCall) message, VoidRpcResponseChannel.INSTANCE);
+			dispatcher.postRpcRequest(session, (RpcCall) message, VoidRpcResponseChannel.INSTANCE);
 		}
 	}
 }

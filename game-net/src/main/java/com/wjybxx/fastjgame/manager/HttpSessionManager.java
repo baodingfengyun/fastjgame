@@ -155,7 +155,7 @@ public class HttpSessionManager {
 		// 处理请求，提交到用户所在的线程，实现线程安全
 		ConcurrentUtils.tryCommit(userInfo.netContext.localEventLoop(), () -> {
 			try {
-				userInfo.httpRequestDispatcher.dispatch(httpSession, path, param);
+				userInfo.httpRequestDispatcher.post(httpSession, path, param);
 			} catch (Exception e) {
 				ConcurrentUtils.rethrow(e);
 			}

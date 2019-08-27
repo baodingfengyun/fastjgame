@@ -23,13 +23,11 @@ import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupImp;
 import com.wjybxx.fastjgame.misc.DefaultRpcCallDispatcher;
 import com.wjybxx.fastjgame.misc.RpcCallDispatcher;
-import com.wjybxx.fastjgame.misc.RpcFunctionRegistry;
 import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.net.RpcResponseChannel;
 import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.net.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.initializer.TCPServerChannelInitializer;
-import com.wjybxx.fastjgame.rpcregister.ExampleRpcServiceRpcRegister;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.TimeUtils;
 
@@ -40,9 +38,10 @@ import java.util.concurrent.locks.LockSupport;
 
 /**
  * 示例rpcService
- * @author houlei
+ * @author wjybxx
  * @version 1.0
  * date - 2019/8/26
+ * github - https://github.com/hl845740757
  */
 @RpcService(serviceId = 32700)
 public class ExampleRpcService {

@@ -23,7 +23,7 @@ import java.util.List;
 
 /**
  * 场景服区域管理器，Center会与该管理器进行通信。
- * @author houlei
+ * @author wjybxx
  * @version 1.0
  * date - 2019/8/22
  */
