@@ -94,27 +94,27 @@ public class ExampleRpcClientLoop extends SingleThreadEventLoop {
 	private void sendRequest(final int index) {
 		ExampleRpcServiceRpcProxy.hello("wjybxx- " + index)
 				.ifSuccess(result -> System.out.println("hello - " + index + " - " + result))
-				.execute(session);
+				.call(session);
 
 		ExampleRpcServiceRpcProxy.queryId("wjybxx-" + index)
 				.ifSuccess(result -> System.out.println("queryId - " + index + " - " + result))
-				.execute(session);
+				.call(session);
 
 		ExampleRpcServiceRpcProxy.inc(index)
 				.ifSuccess(result -> System.out.println("inc - " + index + " - " + result))
-				.execute(session);
+				.call(session);
 
 		ExampleRpcServiceRpcProxy.incWithSession(index)
 				.ifSuccess(result -> System.out.println("incWithSession - " + index + " - " + result))
-				.execute(session);
+				.call(session);
 
 		ExampleRpcServiceRpcProxy.incWithChannel(index)
 				.ifSuccess(result -> System.out.println("incWithChannel - " + index + " - " + result))
-				.execute(session);
+				.call(session);
 
 		ExampleRpcServiceRpcProxy.incWithSessionAndChannel(index)
 				.ifSuccess(result -> System.out.println("incWithSessionAndChannel - " + index + " - " + result))
-				.execute(session);
+				.call(session);
 	}
 
 	@Override

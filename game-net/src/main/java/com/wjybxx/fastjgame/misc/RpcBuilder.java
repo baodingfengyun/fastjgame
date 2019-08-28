@@ -48,7 +48,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * {@code
  *      Proxy.methodName(a, b, c)
  *          .ifSuccess(result -> onSuccess(result))
- *          .execute(session);
+ *          .call(session);
  * }
  * </pre>
  *
@@ -108,39 +108,13 @@ public interface RpcBuilder<V> {
     void send(@Nullable Session session) throws IllegalStateException;
 
     /**
-     * 执行异步rpc调用。
-     * (名字实在不好起)
+     * 执行rpc调用。
+     * call是不是很好记住？那就多用它。
      *
      * @param session rpc请求的目的地，可以为null，以省却调用时的外部检查。
      * @throws IllegalStateException 如果重用一个可监听的rpcBuilder，则会抛出异常！
      */
-    void execute(@Nullable Session session) throws IllegalStateException;
-
-    /**
-     * 执行异步Rpc调用并返回一个future。
-     * (名字实在不好起)
-     *
-     * @return future
-     * @throws IllegalStateException 如果重用一个可监听的rpcBuilder，则会抛出异常！
-     * @throws UnsupportedOperationException 如果没有返回值(不可以监听)将抛出该异常。
-     * @param session rpc请求的目的地，可以为null。
-     */
-    RpcFuture submit(@Nullable Session session) throws IllegalStateException, UnsupportedOperationException;
-
-    /**
-     * 执行同步rpc调用，如果执行成功，则返回对应的调用结果，否则返回null。
-     * 注意：
-     * 1. 如果null是一个合理的返回值，那么你不能基于调用结果做出任何判断。这种情况下，建议你使用{@link #sync(Session)}，可以获得调用的结果码。
-     * 2. 如果添加了回调，回调会在返回前执行。
-     * (其实也纠结，调用失败是返回null还是抛出异常好)
-	 *
-     * @param session rpc请求的目的地，可以为null，以省却调用时的外部检查。
-     * @return result
-     * @throws IllegalStateException 如果重用一个可监听的rpcBuilder，则会抛出异常！
-     * @throws UnsupportedOperationException 如果没有返回值(不可以监听)将抛出该异常。
-     */
-    @Nullable
-    V call(@Nullable Session session) throws IllegalStateException, UnsupportedOperationException;
+    void call(@Nullable Session session) throws IllegalStateException;
 
     /**
      * 执行同步rpc调用，并直接获得结果。如果添加了回调，回调会在返回前执行。
@@ -150,4 +124,31 @@ public interface RpcBuilder<V> {
      * @throws UnsupportedOperationException 如果没有返回值(不可以监听)将抛出该异常。
      */
     RpcResponse sync(@Nullable Session session) throws IllegalStateException, UnsupportedOperationException;
+
+    /**
+     * 执行同步rpc调用，如果执行成功，则返回对应的调用结果，否则返回null。
+     * 注意：
+     * 1. 如果null是一个合理的返回值，那么你不能基于调用结果做出任何判断。这种情况下，建议你使用{@link #sync(Session)}，可以获得调用的结果码。
+     * 2. 如果添加了回调，回调会在返回前执行。
+     * (其实也纠结，调用失败是返回null还是抛出异常好)
+     *
+     * @param session rpc请求的目的地，可以为null，以省却调用时的外部检查。
+     * @return result
+     * @throws IllegalStateException 如果重用一个可监听的rpcBuilder，则会抛出异常！
+     * @throws UnsupportedOperationException 如果没有返回值(不可以监听)将抛出该异常。
+     */
+    @Nullable
+    V syncCall(@Nullable Session session) throws IllegalStateException, UnsupportedOperationException;
+
+    /**
+     * 执行异步Rpc调用并返回一个future。
+     * 这名字是不是有点不容易记住？那就少用它。
+     *
+     * @return future
+     * @throws IllegalStateException 如果重用一个可监听的rpcBuilder，则会抛出异常！
+     * @throws UnsupportedOperationException 如果没有返回值(不可以监听)将抛出该异常。
+     * @param session rpc请求的目的地，可以为null。
+     */
+    RpcFuture submit(@Nullable Session session) throws IllegalStateException, UnsupportedOperationException;
+
 }

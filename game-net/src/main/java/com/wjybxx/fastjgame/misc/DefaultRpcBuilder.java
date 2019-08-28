@@ -146,7 +146,7 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
     }
 
     @Override
-    public final void execute(@Nullable Session session) {
+    public final void call(@Nullable Session session) {
         ensureState();
         ensureListenable();
 
@@ -160,39 +160,8 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
             if (callback == EmptyRpcCallback.INSTANCE) {
                 POLICY.send(session, call);
             } else {
-                POLICY.execute(session, call, callback);
+                POLICY.rpc(session, call, callback);
             }
-        }
-    }
-
-    @Override
-    public final RpcFuture submit(@Nullable Session session) {
-        ensureState();
-        ensureListenable();
-
-        final RpcFuture future;
-        if (session == null) {
-            // session不存在，安全的失败
-            future = new CompletedRpcFuture(ImmediateEventLoop.INSTANCE, RpcResponse.SESSION_NULL);
-        } else {
-            future = POLICY.submit(session, call);
-        }
-        // 添加之前设置的回调
-        if (callback != EmptyRpcCallback.INSTANCE) {
-            future.addCallback(callback);
-        }
-        return future;
-    }
-
-    @SuppressWarnings("unchecked")
-    @Nullable
-    @Override
-    public V call(@Nullable Session session) {
-        final RpcResponse rpcResponse = sync(session);
-        if (rpcResponse.isSuccess()) {
-            return (V) rpcResponse.getBody();
-        } else {
-            return null;
         }
     }
 
@@ -215,6 +184,37 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
         return response;
     }
 
+    @SuppressWarnings("unchecked")
+    @Nullable
+    @Override
+    public V syncCall(@Nullable Session session) {
+        final RpcResponse rpcResponse = sync(session);
+        if (rpcResponse.isSuccess()) {
+            return (V) rpcResponse.getBody();
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public final RpcFuture submit(@Nullable Session session) {
+        ensureState();
+        ensureListenable();
+
+        final RpcFuture future;
+        if (session == null) {
+            // session不存在，安全的失败
+            future = new CompletedRpcFuture(ImmediateEventLoop.INSTANCE, RpcResponse.SESSION_NULL);
+        } else {
+            future = POLICY.rpc(session, call);
+        }
+        // 添加之前设置的回调
+        if (callback != EmptyRpcCallback.INSTANCE) {
+            future.addCallback(callback);
+        }
+        return future;
+    }
+
     /**
      * 发送消息的策略
      */
@@ -228,13 +228,13 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
         /**
          * 执行异步rpc调用
          */
-        void execute(@Nonnull Session session, @Nonnull RpcCall call, @Nonnull RpcCallback callback);
+        void rpc(@Nonnull Session session, @Nonnull RpcCall call, @Nonnull RpcCallback callback);
 
         /**
          * 执行异步调用并返回一个future
          * @return future
          */
-        RpcFuture submit(@Nonnull Session session, @Nonnull RpcCall call);
+        RpcFuture rpc(@Nonnull Session session, @Nonnull RpcCall call);
 
         /**
          * 执行同步rpc调用，并直接获得结果。
@@ -254,12 +254,12 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
         }
 
         @Override
-        public void execute(@Nonnull Session session, @Nonnull RpcCall call, @Nonnull RpcCallback callback) {
+        public void rpc(@Nonnull Session session, @Nonnull RpcCall call, @Nonnull RpcCallback callback) {
             session.rpc(call, callback);
         }
 
         @Override
-        public RpcFuture submit(@Nonnull Session session, @Nonnull RpcCall call) {
+        public RpcFuture rpc(@Nonnull Session session, @Nonnull RpcCall call) {
             return session.rpc(call);
         }
 
@@ -280,12 +280,12 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
         }
 
         @Override
-        public void execute(@Nonnull Session session, @Nonnull RpcCall call, @Nonnull RpcCallback callback) {
+        public void rpc(@Nonnull Session session, @Nonnull RpcCall call, @Nonnull RpcCallback callback) {
             session.pipeline().enqueueRpc(call, callback);
         }
 
         @Override
-        public RpcFuture submit(@Nonnull Session session, @Nonnull RpcCall call) {
+        public RpcFuture rpc(@Nonnull Session session, @Nonnull RpcCall call) {
             return session.pipeline().enqueueRpc(call);
         }
 

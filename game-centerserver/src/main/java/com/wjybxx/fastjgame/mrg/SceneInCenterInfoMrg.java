@@ -211,7 +211,7 @@ public class SceneInCenterInfoMrg {
             getSceneInfo(session.remoteGuid()).setSession(session);
             ICenterInSceneInfoMrgRpcProxy.connectSingleScene(centerWorldInfoMrg.getPlatformType().getNumber(), centerWorldInfoMrg.getServerId())
                     .ifSuccess(result -> connectSingleSuccessResult(session, result))
-                    .execute(session);;
+                    .call(session);;
         }
 
         @Override
@@ -230,7 +230,7 @@ public class SceneInCenterInfoMrg {
             getSceneInfo(session.remoteGuid()).setSession(session);
             ICenterInSceneInfoMrgRpcProxy.connectCrossScene(centerWorldInfoMrg.getPlatformType().getNumber(), centerWorldInfoMrg.getServerId())
                     .ifSuccess(result -> connectCrossSceneSuccess(session, result))
-                    .execute(session);
+                    .call(session);
         }
 
         @Override
