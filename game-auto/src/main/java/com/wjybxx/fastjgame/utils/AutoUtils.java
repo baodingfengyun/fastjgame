@@ -310,7 +310,14 @@ public class AutoUtils {
 	}
 
 	/**
-	 * 检查变量是否是指定类型
+	 * 检查变量的声明类型是否是指定类型
+	 * 对于一个Type：
+	 * 1. 如果其声明类型是具体类型，eg: {@code String}， 那么会走到{@code visitDeclared}。
+	 * 2. 如果其声明类型是泛型类型，eg: {@code E}， 那么会走到{@code visitTypeVariable}
+	 *
+	 * {@link SimpleTypeVisitor8#visitDeclared(DeclaredType, Object)} 访问类型的声明类型
+	 * {@link SimpleTypeVisitor8#visitTypeVariable(TypeVariable, Object)} 访问类型的泛型类型
+	 *
 	 * @param variableElement 变量
 	 * @param matcher 变量的声明类型匹配器
 	 * @return 满足条件则返回true
@@ -337,4 +344,5 @@ public class AutoUtils {
 
 		}, null);
 	}
+
 }

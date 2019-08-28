@@ -61,7 +61,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 public interface RpcBuilder<V> {
 
     /**
-     * 是否可以监听。当且仅当泛型参数为'?'的时候表示没有返回值，此时不可以监听。
+     * 是否可以监听，当rpc方法没有返回值时不可以监听。
+     * 当方法参数中没有{@link com.wjybxx.fastjgame.net.RpcResponseChannel}，且方法的返回值类型为void时，该调用不可以监听。
      * 注意：如果可监听，那么该{@link RpcBuilder}不可以重用，如果不可以监听，那么该{@link RpcBuilder}可以重用。
      *
      * @return 当且仅当该调用没有返回值的时候返回false。

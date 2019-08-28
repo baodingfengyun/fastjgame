@@ -35,7 +35,6 @@ import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import java.io.IOException;
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -66,9 +65,7 @@ import java.util.stream.Collectors;
  *
  * 2. 在注解中引用另一个类时，这个类可能还未被编译，需要通过捕获异常获取到未编译的类的{@link TypeMirror}.
  *
- * 3. 我太难了，这Rpc代理得生成两个文件，一个生成在core包，一个生成在自己的包...
- *
- * 4. {@link Types#isSameType(TypeMirror, TypeMirror)}、{@link Types#isSubtype(TypeMirror, TypeMirror)} 、
+ * 3. {@link Types#isSameType(TypeMirror, TypeMirror)}、{@link Types#isSubtype(TypeMirror, TypeMirror)} 、
  * {@link Types#isAssignable(TypeMirror, TypeMirror)} 必须是{@link DeclaredType}才可以。
  *
  * {@link DeclaredType}是变量、参数的声明类型。
@@ -114,9 +111,11 @@ public class RpcServiceProcessor extends AbstractProcessor {
 	/** unchecked注解 */
 	private AnnotationSpec uncheckedAnnotation;
 	/** 所有的serviceId集合，判断重复 */
-	private final ShortSet serviceIdSet = new ShortOpenHashSet(128);
-	/** 所有的methodKey集合，判断重复 */
-	private final IntSet methodKeySet = new IntOpenHashSet(512);
+	private final ShortSet serviceIdSet = new ShortOpenHashSet(64);
+	/** 所有的methodKey集合，判断重复，只能检测当前模块的重复 */
+	private final IntSet methodKeySet = new IntOpenHashSet(256);
+	/** 无界泛型通配符 */
+	private WildcardType wildcardType;
 
 	/**
 	 * {@code RpcBuilder}对应的类型
@@ -160,6 +159,8 @@ public class RpcServiceProcessor extends AbstractProcessor {
 		uncheckedAnnotation = AnnotationSpec.builder(SuppressWarnings.class)
 				.addMember("value", "$S", "unchecked")
 				.build();
+
+		wildcardType = typeUtils.getWildcardType(null, null);
 	}
 
 	@Override
@@ -207,7 +208,6 @@ public class RpcServiceProcessor extends AbstractProcessor {
 	@Override
 	public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 		ensureInited();
-
 		// 该注解只有类才可以使用
 		@SuppressWarnings("unchecked")
 		Set<TypeElement> typeElementSet = (Set<TypeElement>) roundEnv.getElementsAnnotatedWith(rpcServiceElement);
@@ -256,7 +256,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 				continue;
 			}
 			if (!method.getModifiers().contains(Modifier.PUBLIC)) {
-				messager.printMessage(Diagnostic.Kind.ERROR, "RpcMethod must be public！", method);
+				messager.printMessage(Diagnostic.Kind.ERROR, "RpcMethod must be public!", method);
 				continue;
 			}
 			// 方法id，基本类型会被封装为包装类型，Object并不能直接转换到基本类型
@@ -277,7 +277,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 		}
 
 		// 保存serviceId
-		AnnotationSpec proxyAnnotation = AnnotationSpec.builder(rpcServiceProxyTypeName)
+		final AnnotationSpec proxyAnnotation = AnnotationSpec.builder(rpcServiceProxyTypeName)
 				.addMember("serviceId", "$L", serviceId).build();
 
 		final String className = typeElement.getSimpleName().toString();
@@ -352,8 +352,6 @@ public class RpcServiceProcessor extends AbstractProcessor {
 	 * 		}
 	 * }
 	 * </pre>
-	 *
-	 *
 	 */
 	private MethodSpec genClientMethodProxy(int methodKey, ExecutableElement method) {
 		// 工具方法 public static RpcBuilder<V>
@@ -366,9 +364,9 @@ public class RpcServiceProcessor extends AbstractProcessor {
 		final ParseResult parseResult = parseParameters(method);
 		final List<VariableElement> availableParameters = parseResult.availableParameters;
 		final TypeMirror callReturnType = parseResult.callReturnType;
-		final boolean allowCallback = parseResult.allowCallback;
+		final boolean allowCallback = parseResult.listenable;
 
-		// 添加返回类型
+		// 添加返回类型-带泛型
 		DeclaredType realReturnType = typeUtils.getDeclaredType(builderElement, callReturnType);
 		builder.returns(ClassName.get(realReturnType));
 		// 拷贝参数列表
@@ -405,7 +403,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 		// 返回值类型
 		TypeMirror callReturenType = null;
 		// 是否允许回调--是否是单向消息，返回类型是否是void/Void
-		boolean allowCallback;
+		boolean listenable;
 
 		// 筛选参数
 		for (VariableElement variableElement : originParameters) {
@@ -425,29 +423,22 @@ public class RpcServiceProcessor extends AbstractProcessor {
 			callReturenType = method.getReturnType();
 		} else {
 			// 如果参数列表中存在responseChannel，那么返回值必须是void
-			if (!isVoidType(method.getReturnType())){
-				messager.printMessage(Diagnostic.Kind.ERROR, "callReturnType is not void, but parameters contains responseChannel!", method);
+			if (method.getReturnType().getKind() != TypeKind.VOID) {
+				messager.printMessage(Diagnostic.Kind.ERROR, "ReturnType is not void, but parameters contains responseChannel!", method);
 			}
 		}
-		if (isVoidType(callReturenType)) {
-			allowCallback = false;
-			// void转Void
-			callReturenType = voidType;
+		if (callReturenType.getKind() == TypeKind.VOID) {
+			// 返回值类型为void，不可以监听，且rpcBuilder泛型参数为泛型通配符
+			listenable = false;
+			callReturenType = wildcardType;
 		} else {
-			allowCallback = true;
+			listenable = true;
 			// 基本类型转包装类型
 			if (callReturenType.getKind().isPrimitive()) {
 				callReturenType = typeUtils.boxedClass((PrimitiveType) callReturenType).asType();
 			}
 		}
-		return new ParseResult(availableParameters, callReturenType, allowCallback);
-	}
-
-	/**
-	 * 判断指定类型是否是void 或Void类型
-	 */
-	private boolean isVoidType(TypeMirror typeMirror) {
-		return typeMirror.getKind() == TypeKind.VOID || isTargetType(typeMirror, declaredType -> typeUtils.isSameType(declaredType, voidType));
+		return new ParseResult(availableParameters, callReturenType, listenable);
 	}
 
 	/**
@@ -455,46 +446,14 @@ public class RpcServiceProcessor extends AbstractProcessor {
 	 * (带泛型的和不带泛型的 isSameType返回false)
 	 */
 	private boolean isResponseChannel(VariableElement variableElement) {
-		return isTargetType(variableElement.asType(), declaredType -> typeUtils.isAssignable(declaredType, responseChannelType));
+		return AutoUtils.isTargetDeclaredType(variableElement, declaredType -> typeUtils.isAssignable(declaredType, responseChannelType));
 	}
 
 	/**
 	 * 是否是 {@code Session}类型
 	 */
 	private boolean isSession(VariableElement variableElement) {
-		return isTargetType(variableElement.asType(), declaredType -> typeUtils.isSubtype(declaredType, sessionType));
-	}
-
-	/**
-	 * 判定声明的类型是否是指定类型
-	 * 对于一个Type：
-	 * 1. 如果其声明类型是具体类型，eg: {@code String}， 那么会走到{@code visitDeclared}。
-	 * 2. 如果其声明类型是泛型类型，eg: {@code E}， 那么会走到{@code visitTypeVariable}
-	 *
-	 * {@link SimpleTypeVisitor8#visitDeclared(DeclaredType, Object)} 访问类型的声明类型
-	 * {@link SimpleTypeVisitor8#visitTypeVariable(TypeVariable, Object)} 访问类型的泛型类型
-	 */
-	private boolean isTargetType(final TypeMirror typeMirror, final Predicate<DeclaredType> matcher) {
-		return typeMirror.accept(new SimpleTypeVisitor8<Boolean, Void>(){
-
-			@Override
-			public Boolean visitDeclared(DeclaredType t, Void aVoid) {
-				// 访问声明的类型 eg: String str
-				return matcher.test(t);
-			}
-
-			@Override
-			public Boolean visitTypeVariable(TypeVariable t, Void aVoid) {
-				// 泛型变量 eg: E element
-				return false;
-			}
-
-			@Override
-			protected Boolean defaultAction(TypeMirror e, Void aVoid) {
-				return false;
-			}
-
-		}, null);
+		return AutoUtils.isTargetDeclaredType(variableElement, declaredType -> typeUtils.isSubtype(declaredType, sessionType));
 	}
 
 	/**
@@ -505,12 +464,12 @@ public class RpcServiceProcessor extends AbstractProcessor {
 			@Override
 			public TypeMirror visitDeclared(DeclaredType t, Void aVoid) {
 				if (t.getTypeArguments().size() > 0) {
-					// 第一个参数就是返回值类型
+					// 第一个参数就是返回值类型，这里的泛型也可能是'?'
 					return t.getTypeArguments().get(0);
 				} else {
 					// 声明类型木有泛型参数，返回Object类型，并打印一个警告
 					// 2019年8月23日21:13:35 改为编译错误
-					messager.printMessage(Diagnostic.Kind.ERROR, "RpcResponseChannel missing type parameter.", variableElement);
+					messager.printMessage(Diagnostic.Kind.ERROR, "RpcResponseChannel missing type parameter!", variableElement);
 					return elementUtils.getTypeElement(Object.class.getCanonicalName()).asType();
 				}
 			}
@@ -599,7 +558,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 		builder.addCode("$L.register($L, ($L, $L, $L) -> {\n", registry, methodKey,
 				session, methodParams, responseChannel);
 
-		if (!isVoidType(executableElement.getReturnType())) {
+		if (executableElement.getReturnType().getKind() !=  TypeKind.VOID) {
 			builder.addStatement("    $T response = $T.ERROR", rpcResponseTypeName, rpcResponseTypeName);
 			// 同步返回结果
 			builder.addCode("    try {\n");
@@ -692,12 +651,12 @@ public class RpcServiceProcessor extends AbstractProcessor {
 		// 远程调用的返回值类型
 		private final TypeMirror callReturnType;
 		// 是否允许回调
-		private final boolean allowCallback;
+		private final boolean listenable;
 
-		ParseResult(List<VariableElement> availableParameters, TypeMirror callReturnType, boolean allowCallback) {
+		ParseResult(List<VariableElement> availableParameters, TypeMirror callReturnType, boolean listenable) {
 			this.availableParameters = availableParameters;
 			this.callReturnType = callReturnType;
-			this.allowCallback = allowCallback;
+			this.listenable = listenable;
 		}
 	}
 }
