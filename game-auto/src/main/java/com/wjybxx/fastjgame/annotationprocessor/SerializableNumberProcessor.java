@@ -113,7 +113,7 @@ public class SerializableNumberProcessor extends AbstractProcessor {
 			// value中，基本类型会被封装为包装类型，number是int类型
 			final int number = (Integer) AutoUtils.getAnnotationValueNotDefault(first.get(), NUMBER_METHOD_NAME);
 			// 取值范围检测
-			if (number <0 || number > 127) {
+			if (number < 0 || number > 127) {
 				messager.printMessage(Diagnostic.Kind.ERROR, "number " + number + " must between [0, 127]", variableElement);
 			}
 			// 重复检测

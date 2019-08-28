@@ -56,7 +56,7 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
     /**
      * 远程方法信息
      */
-    private final RpcCall<V> call;
+    private final RpcCall call;
     /**
      * 如果返回值类型为void/Void，那么表示不允许添加回调。
      */
@@ -71,7 +71,7 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
     private boolean available = true;
 
     public DefaultRpcBuilder(int methodKey, List<Object> methodParams, boolean listenable) {
-        this.call = new RpcCall<>(methodKey, methodParams);
+        this.call = new RpcCall(methodKey, methodParams);
         this.listenable = listenable;
     }
 
@@ -223,24 +223,24 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
         /**
          * 发送一个单向通知。
          */
-        void send(@Nonnull Session session, @Nonnull RpcCall<?> call);
+        void send(@Nonnull Session session, @Nonnull RpcCall call);
 
         /**
-         * 执行异步rpc调用，请确保设置了回调，没有设置回调也不会进行警告。
+         * 执行异步rpc调用
          */
-        void execute(@Nonnull Session session, @Nonnull RpcCall<?> call, @Nonnull RpcCallback callback);
+        void execute(@Nonnull Session session, @Nonnull RpcCall call, @Nonnull RpcCallback callback);
 
         /**
          * 执行异步调用并返回一个future
          * @return future
          */
-        RpcFuture submit(@Nonnull Session session, @Nonnull RpcCall<?> call);
+        RpcFuture submit(@Nonnull Session session, @Nonnull RpcCall call);
 
         /**
          * 执行同步rpc调用，并直接获得结果。
          * @return result
          */
-        RpcResponse sync(@Nonnull Session session, @Nonnull RpcCall<?> call);
+        RpcResponse sync(@Nonnull Session session, @Nonnull RpcCall call);
     }
 
     /**
@@ -249,22 +249,22 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
     private static class SessionPolicy implements InvokePolicy {
 
         @Override
-        public void send(@Nonnull Session session, @Nonnull RpcCall<?> call) {
+        public void send(@Nonnull Session session, @Nonnull RpcCall call) {
             session.sendMessage(call);
         }
 
         @Override
-        public void execute(@Nonnull Session session, @Nonnull RpcCall<?> call, @Nonnull RpcCallback callback) {
+        public void execute(@Nonnull Session session, @Nonnull RpcCall call, @Nonnull RpcCallback callback) {
             session.rpc(call, callback);
         }
 
         @Override
-        public RpcFuture submit(@Nonnull Session session, @Nonnull RpcCall<?> call) {
+        public RpcFuture submit(@Nonnull Session session, @Nonnull RpcCall call) {
             return session.rpc(call);
         }
 
         @Override
-        public RpcResponse sync(@Nonnull Session session, @Nonnull RpcCall<?> call) {
+        public RpcResponse sync(@Nonnull Session session, @Nonnull RpcCall call) {
             return session.syncRpcUninterruptibly(call);
         }
     }
@@ -275,22 +275,22 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
     private static class PipelinePolicy implements InvokePolicy {
 
         @Override
-        public void send(@Nonnull Session session, @Nonnull RpcCall<?> call) {
+        public void send(@Nonnull Session session, @Nonnull RpcCall call) {
             session.pipeline().enqueueMessage(call);
         }
 
         @Override
-        public void execute(@Nonnull Session session, @Nonnull RpcCall<?> call, @Nonnull RpcCallback callback) {
+        public void execute(@Nonnull Session session, @Nonnull RpcCall call, @Nonnull RpcCallback callback) {
             session.pipeline().enqueueRpc(call, callback);
         }
 
         @Override
-        public RpcFuture submit(@Nonnull Session session, @Nonnull RpcCall<?> call) {
+        public RpcFuture submit(@Nonnull Session session, @Nonnull RpcCall call) {
             return session.pipeline().enqueueRpc(call);
         }
 
         @Override
-        public RpcResponse sync(@Nonnull Session session, @Nonnull RpcCall<?> call) {
+        public RpcResponse sync(@Nonnull Session session, @Nonnull RpcCall call) {
             return session.pipeline().syncRpcUninterruptibly(call);
         }
     }

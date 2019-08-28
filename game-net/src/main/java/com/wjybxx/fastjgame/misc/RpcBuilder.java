@@ -38,7 +38,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Q: 为何需要手动指定session？不能像常见的rpc那样直接获得一个proxy就行吗？
  * A: 对于一般应用而言，当出现多个服务提供者的时候，可以使用任意一个服务提供者，这样可以实现负载均衡。但是对于游戏而言，不行！
  * 对于游戏而言，每一个请求，每一个消息都是要发给确定的服务提供者的（另一个确定的服务器），因此你要获得一个正确的proxy并不容易，
- * 你必定指定一些额外参数才能获得正确的proxy。由于要获得正确的proxy，必定要获取正确的session，因此干脆不创建proxy，而是指定session。
+ * 你必定需要指定一些额外参数才能获得正确的proxy。由于要获得正确的proxy，必定要获取正确的session，因此干脆不创建proxy，而是指定session。
  *
  * Q: 为什么指定Session的时候可以为null？
  * A: 可以省却外部的检查。
@@ -63,6 +63,7 @@ public interface RpcBuilder<V> {
     /**
      * 是否可以监听，当rpc方法没有返回值时不可以监听。
      * 当方法参数中没有{@link com.wjybxx.fastjgame.net.RpcResponseChannel}，且方法的返回值类型为void时，该调用不可以监听。
+     * 或者查看生成的代理中是true还是false。
      * 注意：如果可监听，那么该{@link RpcBuilder}不可以重用，如果不可以监听，那么该{@link RpcBuilder}可以重用。
      *
      * @return 当且仅当该调用没有返回值的时候返回false。
@@ -117,6 +118,8 @@ public interface RpcBuilder<V> {
 
     /**
      * 执行异步Rpc调用并返回一个future。
+     * (名字实在不好起)
+     *
      * @return future
      * @throws IllegalStateException 如果重用一个可监听的rpcBuilder，则会抛出异常！
      * @throws UnsupportedOperationException 如果没有返回值(不可以监听)将抛出该异常。
@@ -129,7 +132,6 @@ public interface RpcBuilder<V> {
      * 注意：
      * 1. 如果null是一个合理的返回值，那么你不能基于调用结果做出任何判断。这种情况下，建议你使用{@link #sync(Session)}，可以获得调用的结果码。
      * 2. 如果添加了回调，回调会在返回前执行。
-     * (名字实在不好起)
      *
      * @param session rpc请求的目的地，可以为null，以省却调用时的外部检查。
      * @return result

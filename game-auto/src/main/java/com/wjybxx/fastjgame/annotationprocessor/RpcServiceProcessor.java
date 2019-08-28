@@ -261,9 +261,9 @@ public class RpcServiceProcessor extends AbstractProcessor {
 			}
 			// 方法id，基本类型会被封装为包装类型，Object并不能直接转换到基本类型
 			final short methodId = (Short) AutoUtils.getAnnotationValueNotDefault(rpcMethodAnnotation.get(), METHOD_ID_METHOD_NAME);
-			if (methodId <= 0) {
-				messager.printMessage(Diagnostic.Kind.ERROR, " methodId " + methodId + " must greater than 0!", method);
-				return;
+			if (methodId < 0 || methodId > 9999) {
+				messager.printMessage(Diagnostic.Kind.ERROR, " methodId " + methodId + " must between [0,9999]!", method);
+				continue;
 			}
 			// 方法的唯一键，乘以1W比位移有更好的可读性
 			final int methodKey = (int)serviceId * 10000 + methodId;
@@ -580,7 +580,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 	/**
 	 * 生成方法调用代码，没有分号和换行符。
 	 */
-	private InvokeStatement genInvokeStatement(TypeMirror returnType,String classParamName, ExecutableElement executableElement) {
+	private InvokeStatement genInvokeStatement(TypeMirror returnType, String classParamName, ExecutableElement executableElement) {
 		// 缩进
 		StringBuilder format = new StringBuilder("    ");
 		List<Object> params = new ArrayList<>(10);

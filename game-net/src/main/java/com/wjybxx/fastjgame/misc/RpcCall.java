@@ -26,14 +26,13 @@ import java.util.List;
 /**
  * 较为标准的rpc调用，推荐格式，但是仍然不限制rpc调用的形式！
  *
- * @param <V> 远程调用的返回值类型
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/19
  * github - https://github.com/hl845740757
  */
 @SerializableClass
-public class RpcCall<V> {
+public class RpcCall {
 
 	/**
 	 * 调用的远程方法，用于确定一个唯一的方法。不使用类名 + 方法具体参数信息，内容量过于庞大，性能不好。
