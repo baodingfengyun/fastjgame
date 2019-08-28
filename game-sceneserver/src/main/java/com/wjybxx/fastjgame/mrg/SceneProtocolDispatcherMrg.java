@@ -29,7 +29,7 @@ import com.wjybxx.fastjgame.net.Session;
 import javax.annotation.Nonnull;
 
 /**
- *
+ * 场景服派发协议的实现
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/26
@@ -46,7 +46,7 @@ public class SceneProtocolDispatcherMrg extends ProtocolDispatcherMrg implements
 
 	@Override
 	protected final void dispatchOneWayMessage0(Session session, @Nonnull Object message) throws Exception {
-		if (session.remoteRole() == RoleType.PLAYER) {
+		if (session.remoteRole() == RoleType.PLAYER && message instanceof AbstractMessage) {
 			Player player = playerSessionMrg.getPlayer(session.remoteGuid());
 			if (player != null) {
 				// 玩家已成功连入场景

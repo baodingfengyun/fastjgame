@@ -27,7 +27,9 @@ import javax.annotation.Nonnull;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * 用于本地调用异步方法的responseChannel，不可以在上面等待。
+ * 用于本地调用异步方法的responseChannel，不可以在上面阻塞。
+ * (其实不推荐使用该方式，你一定可以有别的方式替代)
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/27

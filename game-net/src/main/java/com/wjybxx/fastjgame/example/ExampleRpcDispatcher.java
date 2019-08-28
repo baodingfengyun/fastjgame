@@ -43,14 +43,14 @@ public class ExampleRpcDispatcher implements ProtocolDispatcher {
 	@Override
 	public void postRpcRequest(Session session, @Nullable Object request, RpcRequestContext context) throws Exception {
 		if (request instanceof RpcCall) {
-			dispatcher.postRpcRequest(session, (RpcCall) request, session.newResponseChannel(context));
+			dispatcher.post(session, (RpcCall) request, session.newResponseChannel(context));
 		}
 	}
 
 	@Override
 	public void postOneWayMessage(Session session, @Nullable Object message) throws Exception {
 		if (message instanceof RpcCall) {
-			dispatcher.postRpcRequest(session, (RpcCall) message, VoidRpcResponseChannel.INSTANCE);
+			dispatcher.post(session, (RpcCall) message, VoidRpcResponseChannel.INSTANCE);
 		}
 	}
 }

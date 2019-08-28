@@ -132,7 +132,8 @@ public interface RpcBuilder<V> {
      * 注意：
      * 1. 如果null是一个合理的返回值，那么你不能基于调用结果做出任何判断。这种情况下，建议你使用{@link #sync(Session)}，可以获得调用的结果码。
      * 2. 如果添加了回调，回调会在返回前执行。
-     *
+     * (其实也纠结，调用失败是返回null还是抛出异常好)
+	 *
      * @param session rpc请求的目的地，可以为null，以省却调用时的外部检查。
      * @return result
      * @throws IllegalStateException 如果重用一个可监听的rpcBuilder，则会抛出异常！

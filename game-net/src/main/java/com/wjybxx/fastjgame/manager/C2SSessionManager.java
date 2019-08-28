@@ -496,7 +496,7 @@ public class C2SSessionManager extends SessionManager {
             return sessionWrapper.getSndTokenSequencer();
         }
 
-        ProtocolDispatcher getMessageHandler() {
+        ProtocolDispatcher getProtocolDispatcher() {
             return sessionWrapper.protocolDispatcher;
         }
 
@@ -987,12 +987,12 @@ public class C2SSessionManager extends SessionManager {
          * @param uncommittedMessage 尚未提交的消息
          */
         void commit(UncommittedMessage uncommittedMessage) {
-            C2SSessionManager.this.commit(getNetContext(), session, getMessageQueue(), uncommittedMessage, getMessageHandler());
+            C2SSessionManager.this.commit(getNetContext(), session, getMessageQueue(), uncommittedMessage, getProtocolDispatcher());
         }
 
         /** 情况所有的未提交的消息 */
         void flushAllUncommittedMessage() {
-            C2SSessionManager.this.flushAllUncommittedMessage(getNetContext(), session, getMessageQueue(), getMessageHandler());
+            C2SSessionManager.this.flushAllUncommittedMessage(getNetContext(), session, getMessageQueue(), getProtocolDispatcher());
         }
 
         /**
@@ -1000,7 +1000,7 @@ public class C2SSessionManager extends SessionManager {
          * @param uncommittedMessage 尚未提交的消息
          */
         void commitImmediately(UncommittedMessage uncommittedMessage) {
-            C2SSessionManager.this.commitImmediately(getNetContext(), session, uncommittedMessage, getMessageHandler());
+            C2SSessionManager.this.commitImmediately(getNetContext(), session, uncommittedMessage, getProtocolDispatcher());
         }
     }
 

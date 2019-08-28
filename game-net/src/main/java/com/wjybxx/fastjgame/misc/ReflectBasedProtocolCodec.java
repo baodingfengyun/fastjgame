@@ -25,8 +25,6 @@ import com.wjybxx.fastjgame.net.ProtocolCodec;
 import com.wjybxx.fastjgame.utils.*;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -63,13 +61,13 @@ import java.util.*;
  *
  * 编码格式：
  * <pre>
- *     	基本数据类型		type + value
- *     	String          type + length + bytes
- * 		List/Set 		type + size + element,element....              element 编解码 -- 递归
- * 		Map      		type + size + key,value,key,value.....         key/Value 编解码 -- 递归
- * 		Message  		type + messageId + length + bytes
- * 	    Serializable	type + messageId + field,field.... endTag       field 构成: type + number + data
- * 	    枚举				type + messageId + number
+ *     	基本数据类型		tag + value
+ *     	String          tag + length + bytes
+ * 		List/Set 		tag + size + element,element....              element 编解码 -- 递归
+ * 		Map      		tag + size + key,value,key,value.....         key/Value 编解码 -- 递归
+ * 		Message  		tag + messageId + length + bytes
+ * 	    Serializable	tag + messageId + field,field.... endTag       field 构成: type + number + data
+ * 	    枚举				tag + messageId + number
  * </pre>
  * 其中messageId用于确定一个唯一的类！也就是{@link MessageMapper}的重要作用。
  *
@@ -79,8 +77,6 @@ import java.util.*;
  * github - https://github.com/hl845740757
  */
 public class ReflectBasedProtocolCodec implements ProtocolCodec {
-
-	private static final Logger logger = LoggerFactory.getLogger(ReflectBasedProtocolCodec.class);
 
 	private final MessageMapper messageMapper;
 	/** proto message 解析方法 */

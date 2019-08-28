@@ -65,7 +65,7 @@ public interface RpcResponseChannel<T> {
 	void write(@Nonnull RpcResponse rpcResponse);
 
 	/**
-	 * 是否是没有结果的调用
+	 * 是否不关心结果，true表示不关心结果
 	 * @return true/false
 	 */
 	boolean isVoid();

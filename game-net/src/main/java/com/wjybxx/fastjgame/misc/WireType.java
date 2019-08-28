@@ -111,7 +111,7 @@ public class WireType {
 	public static final int NULL = 16;
 	/**
 	 * 可序列化的普通对象，最好是简单的Bean -- POJO，必须带有{@link SerializableClass}注解。
-	 * 如果有带有参数的构造方法，构造方法内部请不要有特殊逻辑，支持起来费劲。。
+	 * 必须有无参构造方法，可以是private。
 	 */
 	public static final int REFERENCE = 17;
 	/**

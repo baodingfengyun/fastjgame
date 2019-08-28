@@ -16,9 +16,6 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.net.RpcResponseChannel;
-import com.wjybxx.fastjgame.net.Session;
-
 import javax.annotation.Nonnull;
 
 /**

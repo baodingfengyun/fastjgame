@@ -59,7 +59,7 @@ public class ProtocolDispatcherMrg extends DefaultRpcCallDispatcher implements P
             return;
         }
         if (message instanceof RpcCall) {
-            postRpcRequest(session, (RpcCall) message, VoidRpcResponseChannel.INSTANCE);
+            post(session, (RpcCall) message, VoidRpcResponseChannel.INSTANCE);
         } else {
             dispatchOneWayMessage0(session, message);
         }
@@ -82,7 +82,7 @@ public class ProtocolDispatcherMrg extends DefaultRpcCallDispatcher implements P
             return;
         }
         // 目前版本直接session创建responseChannel，后期再考虑缓存的事情
-        postRpcRequest(session, (RpcCall) request, session.newResponseChannel(context));
+        post(session, (RpcCall) request, session.newResponseChannel(context));
     }
 
 }
