@@ -210,9 +210,8 @@ public class SceneInCenterInfoMrg {
         public void onSessionConnected(Session session) {
             getSceneInfo(session.remoteGuid()).setSession(session);
             ICenterInSceneInfoMrgRpcProxy.connectSingleScene(centerWorldInfoMrg.getPlatformType().getNumber(), centerWorldInfoMrg.getServerId())
-                    .setSession(session)
                     .ifSuccess(result -> connectSingleSuccessResult(session, result))
-                    .execute();;
+                    .execute(session);;
         }
 
         @Override
@@ -230,9 +229,8 @@ public class SceneInCenterInfoMrg {
         public void onSessionConnected(Session session) {
             getSceneInfo(session.remoteGuid()).setSession(session);
             ICenterInSceneInfoMrgRpcProxy.connectCrossScene(centerWorldInfoMrg.getPlatformType().getNumber(), centerWorldInfoMrg.getServerId())
-                    .setSession(session)
                     .ifSuccess(result -> connectCrossSceneSuccess(session, result))
-                    .execute();
+                    .execute(session);
         }
 
         @Override
@@ -267,8 +265,7 @@ public class SceneInCenterInfoMrg {
 
         // TODO 这里现在是测试的
         final RpcResponse rpcResponse = ISceneRegionMrgRpcProxy.startMutexRegion(Collections.singletonList(SceneRegion.LOCAL_PKC.getNumber()))
-                .setSession(session)
-                .sync();
+                .sync(session);
         if (rpcResponse.isSuccess()){
             activeRegions.add(SceneRegion.LOCAL_PKC);
         }else {

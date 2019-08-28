@@ -93,34 +93,28 @@ public class ExampleRpcClientLoop extends SingleThreadEventLoop {
 
 	private void sendRequest(final int index) {
 		ExampleRpcServiceRpcProxy.hello("wjybxx- " + index)
-				.setSession(session)
 				.ifSuccess(result -> System.out.println("hello - " + index + " - " + result))
-				.execute();
+				.execute(session);
 
 		ExampleRpcServiceRpcProxy.queryId("wjybxx-" + index)
-				.setSession(session)
 				.ifSuccess(result -> System.out.println("queryId - " + index + " - " + result))
-				.execute();
+				.execute(session);
 
 		ExampleRpcServiceRpcProxy.inc(index)
-				.setSession(session)
 				.ifSuccess(result -> System.out.println("inc - " + index + " - " + result))
-				.execute();
+				.execute(session);
 
 		ExampleRpcServiceRpcProxy.incWithSession(index)
-				.setSession(session)
 				.ifSuccess(result -> System.out.println("incWithSession - " + index + " - " + result))
-				.execute();
+				.execute(session);
 
 		ExampleRpcServiceRpcProxy.incWithChannel(index)
-				.setSession(session)
 				.ifSuccess(result -> System.out.println("incWithChannel - " + index + " - " + result))
-				.execute();
+				.execute(session);
 
 		ExampleRpcServiceRpcProxy.incWithSessionAndChannel(index)
-				.setSession(session)
 				.ifSuccess(result -> System.out.println("incWithSessionAndChannel - " + index + " - " + result))
-				.execute();
+				.execute(session);
 	}
 
 	@Override

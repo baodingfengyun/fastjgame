@@ -53,10 +53,6 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
         }
     }
 
-    private static final int ST_INIT = 0;
-    private static final int ST_PREPARED = 1;
-    private static final int ST_TERMINATED = 2;
-
     /**
      * 远程方法信息
      */
@@ -64,39 +60,24 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
     /**
      * 如果返回值类型为void/Void，那么表示不允许添加回调。
      */
-    private final boolean allowCallback;
-    /**
-     * 发送消息的目的放
-     */
-    private Session session;
+    private final boolean listenable;
     /**
      * 默认为空回调，代替null判断
      */
     private RpcCallback callback = EmptyRpcCallback.INSTANCE;
     /**
-     * 当前的状态
+     * 是否可用
      */
-    private int state = ST_INIT;
+    private boolean available = true;
 
-    public DefaultRpcBuilder(int methodKey, List<Object> methodParams, boolean allowCallback) {
+    public DefaultRpcBuilder(int methodKey, List<Object> methodParams, boolean listenable) {
         this.call = new RpcCall<>(methodKey, methodParams);
-        this.allowCallback = allowCallback;
-    }
-
-    @Nonnull
-    @Override
-    public final RpcCall<V> getCall() {
-        return call;
+        this.listenable = listenable;
     }
 
     @Override
-    public final RpcBuilder<V> setSession(@Nullable Session session) {
-        if (state != ST_INIT) {
-            throw new IllegalStateException("session is already set!");
-        }
-        state = ST_PREPARED;
-        this.session = session;
-        return this;
+    public boolean isListenable() {
+        return listenable;
     }
 
     @Override
@@ -118,7 +99,7 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
     }
 
     private void addCallback(final RpcCallback newCallback) {
-        ensureAllowCallback();
+        ensureListenable();
         // 多数情况下我们都只有一个回调
         if (callback == EmptyRpcCallback.INSTANCE) {
             callback = newCallback;
@@ -134,42 +115,50 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
     }
 
     /**
-     * 确认状态是否正确
-     */
-    private void ensurePrepareState() {
-        if (state == ST_PREPARED) {
-            state = ST_TERMINATED;
-            return;
-        }
-        if (state == ST_INIT) {
-            throw new IllegalStateException("Session is not set!");
-        }
-        if (state == ST_TERMINATED) {
-            throw new IllegalStateException("Builder does not support reuse!");
-        }
-    }
-
-    /**
      * 确保允许添加rpc回调
      */
-    private void ensureAllowCallback() {
-        if (!allowCallback) {
+    private void ensureListenable() {
+        if (!listenable) {
             throw new UnsupportedOperationException("this call " + call.getMethodKey() + " is not support callback!");
         }
     }
 
+    /**
+     * 确认状态是否正确
+     */
+    private void ensureState() {
+        if (!available) {
+            throw new IllegalStateException("this builder does not support reuse!");
+        }
+        // 如果是可监听的，则只能使用一次
+        if (listenable) {
+            available = false;
+        }
+    }
+
     @Override
-    public final void execute() {
-        ensurePrepareState();
+    public void send(@Nullable Session session) throws IllegalStateException {
+        ensureState();
+        if (session != null) {
+            POLICY.send(session, call);
+        }
+        // else do nothing
+    }
+
+    @Override
+    public final void execute(@Nullable Session session) {
+        ensureState();
+        ensureListenable();
+
         if (session == null) {
             // session不存在，安全的失败
             if (callback != EmptyRpcCallback.INSTANCE) {
                 callback.onComplete(RpcResponse.SESSION_NULL);
             }
         } else {
-            // 根据是否存在回调调用不同接口
+            // 根据是否存在回调调用不同接口 - 可以减少不必要的传输
             if (callback == EmptyRpcCallback.INSTANCE) {
-                POLICY.sendMessage(session, call);
+                POLICY.send(session, call);
             } else {
                 POLICY.execute(session, call, callback);
             }
@@ -177,9 +166,9 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
     }
 
     @Override
-    public final RpcFuture submit() {
-        ensurePrepareState();
-        ensureAllowCallback();
+    public final RpcFuture submit(@Nullable Session session) {
+        ensureState();
+        ensureListenable();
 
         final RpcFuture future;
         if (session == null) {
@@ -195,10 +184,22 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
         return future;
     }
 
+    @SuppressWarnings("unchecked")
+    @Nullable
     @Override
-    public final RpcResponse sync() {
-        ensurePrepareState();
-        ensureAllowCallback();
+    public V call(@Nullable Session session) {
+        final RpcResponse rpcResponse = sync(session);
+        if (rpcResponse.isSuccess()) {
+            return (V) rpcResponse.getBody();
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public final RpcResponse sync(@Nullable Session session) {
+        ensureState();
+        ensureListenable();
 
         final RpcResponse response;
         if (session == null) {
@@ -222,7 +223,7 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
         /**
          * 发送一个单向通知。
          */
-        void sendMessage(@Nonnull Session session, @Nonnull RpcCall<?> call);
+        void send(@Nonnull Session session, @Nonnull RpcCall<?> call);
 
         /**
          * 执行异步rpc调用，请确保设置了回调，没有设置回调也不会进行警告。
@@ -248,7 +249,7 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
     private static class SessionPolicy implements InvokePolicy {
 
         @Override
-        public void sendMessage(@Nonnull Session session, @Nonnull RpcCall<?> call) {
+        public void send(@Nonnull Session session, @Nonnull RpcCall<?> call) {
             session.sendMessage(call);
         }
 
@@ -274,7 +275,7 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
     private static class PipelinePolicy implements InvokePolicy {
 
         @Override
-        public void sendMessage(@Nonnull Session session, @Nonnull RpcCall<?> call) {
+        public void send(@Nonnull Session session, @Nonnull RpcCall<?> call) {
             session.pipeline().enqueueMessage(call);
         }
 

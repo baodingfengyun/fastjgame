@@ -45,19 +45,14 @@ public final class RpcResponse {
 
 	/**
 	 * 结果标识
-	 * 注意：{@link RpcResultCode#hasBody(RpcResultCode)}
 	 */
 	private final RpcResultCode resultCode;
 	/**
-	 * rpc响应结果，网络层不对其做限制
+	 * rpc响应结果，可能为null
 	 */
 	private final Object body;
 
 	public RpcResponse(@Nonnull RpcResultCode resultCode, @Nullable Object body) {
-		// 必要的校验
-		if (RpcResultCode.hasBody(resultCode) && null == body) {
-			throw new IllegalStateException(resultCode.name() + " require body.");
-		}
 		this.resultCode = resultCode;
 		this.body = body;
 	}
@@ -70,19 +65,15 @@ public final class RpcResponse {
 		return body;
 	}
 
-	public boolean hasBody() {
-		return RpcResultCode.hasBody(resultCode);
-	}
-
 	public boolean isSuccess() {
-		return RpcResultCode.isSuccess(resultCode);
+		return resultCode == RpcResultCode.SUCCESS;
 	}
 
-	public static RpcResponse newFailResponse(RpcResultCode resultCode) {
+	public static RpcResponse newFailResponse(@Nonnull RpcResultCode resultCode) {
 		return new RpcResponse(resultCode, null);
 	}
 
-	public static RpcResponse newSucceedResponse(Object body) {
+	public static RpcResponse newSucceedResponse(@Nullable Object body) {
 		return new RpcResponse(RpcResultCode.SUCCESS, body);
 	}
 

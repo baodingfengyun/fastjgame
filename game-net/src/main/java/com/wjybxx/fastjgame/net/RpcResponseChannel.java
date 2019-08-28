@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.net;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * 返回rpc结果的通道。
@@ -32,15 +33,15 @@ public interface RpcResponseChannel<T> {
 
 	/**
 	 * 返回rpc调用结果，表示调用成功，{@link #write(RpcResponse)}的快捷方式。
-	 * @param body rpc调用结果
+	 * @param body rpc调用结果/可能为null
 	 */
-	default void writeSuccess(@Nonnull T body) {
+	default void writeSuccess(@Nullable T body) {
 		write(new RpcResponse(RpcResultCode.SUCCESS, body));
 	}
 
 	/**
 	 * 返回rpc调用结果，表示调用失败，{@link #write(RpcResponse)}的快捷方式。
-	 * @param errorCode rpc调用错误码，注意：{@link RpcResultCode#hasBody()}必须返回false。
+	 * @param errorCode rpc调用错误码，能使用静态常量的使用常量{@link RpcResponse}
 	 */
 	default void writeFailure(@Nonnull RpcResultCode errorCode) {
 		write(RpcResponse.newFailResponse(errorCode));
@@ -49,10 +50,10 @@ public interface RpcResponseChannel<T> {
 	/**
 	 * 返回rpc调用结果，{@link #write(RpcResponse)}的快捷方式
 	 *
-	 * @param resultCode rpc调用结果码,注意：{@link RpcResultCode#hasBody()}必须返回true。
-	 * @param body body
+	 * @param resultCode rpc调用结果码
+	 * @param body 调用结果/额外信息
 	 */
-	default void write(@Nonnull RpcResultCode resultCode, @Nonnull Object body) {
+	default void write(@Nonnull RpcResultCode resultCode, @Nullable Object body) {
 		write(new RpcResponse(resultCode, body));
 	}
 

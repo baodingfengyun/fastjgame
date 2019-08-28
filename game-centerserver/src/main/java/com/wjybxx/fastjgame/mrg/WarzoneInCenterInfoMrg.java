@@ -111,9 +111,8 @@ public class WarzoneInCenterInfoMrg {
         @Override
         public void onSessionConnected(Session session) {
             ICenterInWarzoneInfoMrgRpcProxy.connectWarzone(centerWorldInfoMrg.getPlatformType().getNumber(), centerWorldInfoMrg.getServerId())
-                    .setSession(session)
                     .ifSuccess(result -> connectWarzoneSuccess(session))
-                    .execute();
+                    .execute(session);
         }
 
         @Override

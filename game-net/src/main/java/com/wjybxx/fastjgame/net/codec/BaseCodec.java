@@ -200,7 +200,7 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
         head.writeInt(messageTO.getResultCode().getNumber());
 
         ByteBuf byteBuf;
-        if (RpcResultCode.hasBody(messageTO.getResultCode())) {
+        if (messageTO.getBody() != null) {
             // 合并之后发送
             byteBuf = tryMergeBody(ctx.alloc(), head, messageTO.getBody(), codec::encodeRpcResponse);
         } else {
@@ -220,7 +220,8 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
         long requestGuid = msg.readLong();
         RpcResultCode resultCode = RpcResultCode.forNumber(msg.readInt());
         Object body = null;
-        if (RpcResultCode.hasBody(resultCode)) {
+        // 有可读的内容，证明有body
+        if (msg.readableBytes() > 0) {
             body = tryDecodeBody(msg, codec::decodeRpcResponse);
         }
         return new RpcResponseTO(ack, sequence, requestGuid, new RpcResponse(resultCode, body));

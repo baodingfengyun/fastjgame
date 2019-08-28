@@ -52,8 +52,8 @@ public interface ProtocolCodec {
 	// ----------------------------------------- RPC响应 -------------------------------------
 
 	/**
-	 * 编码rpc响应结果。
-	 * 当且仅当{@link RpcResultCode#hasBody() true}时才会调用。
+	 * 编码rpc响应结果
+	 * 当且仅当{@link RpcResponse#getBody() != null}时才会调用。
 	 *
 	 * @param bufAllocator buf分配器
 	 * @param body rpc响应内容
@@ -63,7 +63,7 @@ public interface ProtocolCodec {
 
 	/**
 	 * 解码rpc响应内容。
-	 * 当且仅当{@link RpcResultCode#hasBody() true}时才会调用。
+	 * 当且仅当{@link ByteBuf#readableBytes() > 0}时才会调用。
 	 *
 	 * @param data byteBuf数据
 	 * @return rpc响应内容

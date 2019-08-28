@@ -20,8 +20,6 @@ import com.wjybxx.fastjgame.enummapper.NumberEnum;
 import com.wjybxx.fastjgame.enummapper.NumberEnumMapper;
 import com.wjybxx.fastjgame.utils.EnumUtils;
 
-import java.util.EnumSet;
-
 /**
  * RPC结果码。
  *
@@ -75,7 +73,7 @@ public enum RpcResultCode implements NumberEnum {
 	BAD_REQUEST(42),
 
 	/**
-	 * 错误(对方执行请求时发生错误)，没有body。
+	 * 错误(对方执行请求时发生错误)，现阶段不返回额外信息。
 	 * (注解处理器使用了该对象，不要轻易重命名)
 	 */
 	ERROR(51),
@@ -94,39 +92,10 @@ public enum RpcResultCode implements NumberEnum {
 		return number;
 	}
 
-	public boolean hasBody() {
-		return hasBody(this);
-	}
-
 	/** number到枚举的映射 */
 	private static final NumberEnumMapper<RpcResultCode> mapper = EnumUtils.indexNumberEnum(values());
 
-	/** 调用失败但是有body的错误码 */
-	private static final EnumSet<RpcResultCode> hasBodyFailureCodeSet = EnumSet.noneOf(RpcResultCode.class);
-
-	static {
-		hasBodyFailureCodeSet.add(LOCAL_EXCEPTION);
-	}
-
 	public static RpcResultCode forNumber(int number) {
 		return mapper.forNumber(number);
-	}
-
-	/**
-	 * 该结果码是否有返回值
-	 * @param resultCode 结果码
-	 * @return 如果返回true，表示包含一个body.
-	 */
-	public static boolean hasBody(RpcResultCode resultCode) {
-		return isSuccess(resultCode) || hasBodyFailureCodeSet.contains(resultCode);
-	}
-
-	/**
-	 * 该结果码是否表示成功
-	 * @param resultCode 结果码
-	 * @return 如果返回true，表示调用成功。 （这种情况下，一定有一个body）
-	 */
-	public static boolean isSuccess(RpcResultCode resultCode) {
-		return resultCode == SUCCESS;
 	}
 }

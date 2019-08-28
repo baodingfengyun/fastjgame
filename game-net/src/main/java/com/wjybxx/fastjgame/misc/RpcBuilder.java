@@ -35,13 +35,20 @@ import javax.annotation.concurrent.NotThreadSafe;
  *
  * 注意：它并不是线程安全的，而只是提供更加容易使用的接口而已。
  *
+ * Q: 为何需要手动指定session？不能像常见的rpc那样直接获得一个proxy就行吗？
+ * A: 对于一般应用而言，当出现多个服务提供者的时候，可以使用任意一个服务提供者，这样可以实现负载均衡。但是对于游戏而言，不行！
+ * 对于游戏而言，每一个请求，每一个消息都是要发给确定的服务提供者的（另一个确定的服务器），因此你要获得一个正确的proxy并不容易，
+ * 你必定指定一些额外参数才能获得正确的proxy。由于要获得正确的proxy，必定要获取正确的session，因此干脆不创建proxy，而是指定session。
+ *
+ * Q: 为什么指定Session的时候可以为null？
+ * A: 可以省却外部的检查。
+ *
  * 使用示例：
  * <pre>
  * {@code
  *      Proxy.methodName(a, b, c)
- *          .setSession(session)
  *          .ifSuccess(result -> onSuccess(result))
- *          .execute();
+ *          .execute(session);
  * }
  * </pre>
  *
@@ -54,28 +61,20 @@ import javax.annotation.concurrent.NotThreadSafe;
 public interface RpcBuilder<V> {
 
     /**
-     * 查看该builder绑定的{@link RpcCall}的信息，不可以修改。
-     * @return call
-     */
-    @Nonnull
-    RpcCall<V> getCall();
-
-    /**
-     * 设置要进行rpc调用所在的session，必须调用一次进行赋值(即使设置为null)，否则发送时抛出异常。
+     * 是否可以监听。当且仅当泛型参数为'?'的时候表示没有返回值，此时不可以监听。
+     * 注意：如果可监听，那么该{@link RpcBuilder}不可以重用，如果不可以监听，那么该{@link RpcBuilder}可以重用。
      *
-     * @apiNote
-     * 由于用户可能并不清楚对应的session存在与否，因此当session为null时，必须安全的失败。
-     * @param session 关联的session
-     * @return this
+     * @return 当且仅当该调用没有返回值的时候返回false。
      */
-    RpcBuilder<V> setSession(@Nullable Session session);
+    boolean isListenable();
 
+    // ------------------------------------------- 添加回调 ----------------------------------------------
     /**
      * 设置成功时执行的回调。
      *
      * @param callback 回调逻辑
      * @return this
-     * @throws UnsupportedOperationException 如果返回值类型为void或Void则抛出该异常。
+     * @throws UnsupportedOperationException 如果没有返回值(不可以监听)将抛出该异常。
      */
     RpcBuilder<V> ifSuccess(@Nonnull SucceedRpcCallback<V> callback) throws UnsupportedOperationException;
 
@@ -83,7 +82,7 @@ public interface RpcBuilder<V> {
      * 设置失败时执行的回调
      * @param callback 回调逻辑
      * @return this
-     * @throws UnsupportedOperationException 如果返回值类型为void或Void则抛出该异常。
+     * @throws UnsupportedOperationException 如果没有返回值(不可以监听)将抛出该异常。
      */
     RpcBuilder<V> ifFailure(@Nonnull FailedRpcCallback callback) throws UnsupportedOperationException;
 
@@ -91,29 +90,60 @@ public interface RpcBuilder<V> {
      * 设置无论成功还是失败都会执行的回调
      * @param callback 回调逻辑
      * @return this
-     * @throws UnsupportedOperationException 如果未调用{@link #setSession(Session)}或重复发送请求则抛出异常。
+     * @throws UnsupportedOperationException 如果没有返回值(不可以监听)将抛出该异常。
      */
     RpcBuilder<V> any(@Nonnull RpcCallback callback) throws UnsupportedOperationException;
 
+    // --------------------------------------------- 真正执行 --------------------------------------------------
+
     /**
-     * 执行调用，如果添加了回调，则发起rpc调用，如果没有回调(不关心返回值)，则发起通知。
-     * @throws IllegalStateException 如果未调用{@link #setSession(Session)}或重复发送请求则抛出异常。
+     * 发送一个单向通知，不关心返回结果。
+     * 注意：即使发送前添加了回调，这些回调也会被忽略。
+     *
+     * @param session rpc请求的目的地，可以为null，以省却调用时的外部检查。
+     * @throws IllegalStateException 如果重用一个可监听的rpcBuilder，则会抛出异常！
      */
-    void execute() throws IllegalStateException;
+    void send(@Nullable Session session) throws IllegalStateException;
+
+    /**
+     * 执行异步rpc调用。
+     * (名字实在不好起)
+     *
+     * @param session rpc请求的目的地，可以为null，以省却调用时的外部检查。
+     * @throws IllegalStateException 如果重用一个可监听的rpcBuilder，则会抛出异常！
+     */
+    void execute(@Nullable Session session) throws IllegalStateException;
 
     /**
      * 执行异步Rpc调用并返回一个future。
      * @return future
-     * @throws IllegalStateException 一个builder不可以反复调用发送接口。
-     * @throws UnsupportedOperationException 如果返回值类型为void或Void则抛出该异常。
+     * @throws IllegalStateException 如果重用一个可监听的rpcBuilder，则会抛出异常！
+     * @throws UnsupportedOperationException 如果没有返回值(不可以监听)将抛出该异常。
+     * @param session rpc请求的目的地，可以为null。
      */
-    RpcFuture submit() throws IllegalStateException, UnsupportedOperationException;
+    RpcFuture submit(@Nullable Session session) throws IllegalStateException, UnsupportedOperationException;
+
+    /**
+     * 执行同步rpc调用，如果执行成功，则返回对应的调用结果，否则返回null。
+     * 注意：
+     * 1. 如果null是一个合理的返回值，那么你不能基于调用结果做出任何判断。这种情况下，建议你使用{@link #sync(Session)}，可以获得调用的结果码。
+     * 2. 如果添加了回调，回调会在返回前执行。
+     * (名字实在不好起)
+     *
+     * @param session rpc请求的目的地，可以为null，以省却调用时的外部检查。
+     * @return result
+     * @throws IllegalStateException 如果重用一个可监听的rpcBuilder，则会抛出异常！
+     * @throws UnsupportedOperationException 如果没有返回值(不可以监听)将抛出该异常。
+     */
+    @Nullable
+    V call(@Nullable Session session) throws IllegalStateException, UnsupportedOperationException;
 
     /**
      * 执行同步rpc调用，并直接获得结果。如果添加了回调，回调会在返回前执行。
+     * @param session rpc请求的目的地，可以为null，以省却调用时的外部检查。
      * @return result
-     * @throws IllegalStateException 如果未调用{@link #setSession(Session)}或重复发送请求则抛出异常。
-     * @throws UnsupportedOperationException 如果返回值类型为void或Void则抛出该异常。
+     * @throws IllegalStateException 如果重用一个可监听的rpcBuilder，则会抛出异常！
+     * @throws UnsupportedOperationException 如果没有返回值(不可以监听)将抛出该异常。
      */
-    RpcResponse sync() throws IllegalStateException, UnsupportedOperationException;
+    RpcResponse sync(@Nullable Session session) throws IllegalStateException, UnsupportedOperationException;
 }
