@@ -29,7 +29,7 @@ import io.netty.channel.Channel;
 public class RpcResponseEventParam extends MessageEventParam{
 
 	/**
-	 * 服务器回话id，从channelHandler上取出来的
+	 * 服务器会话id，从channelHandler上取出来的
 	 */
 	private final long remoteGuid;
 	/**

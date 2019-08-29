@@ -77,7 +77,7 @@ public final class MessageQueue {
      *
      * Q:为何选用{@link LinkedList}?
      * A:它不会占用太多的冗余空间，节点{@code Node}也是很轻量级的。 {@link java.util.ArrayList}会占用额外的空间，扩容更会增加内存使用量，扩容性能也是问题。
-     * 此外，我们有大量的插入操作，却只有一次遍历操作，此外也没有随机访问的需要。
+     * 此外，我们有大量的插入操作，却只有一次遍历操作，此外也没有随机访问的需求。
      */
     private LinkedList<UncommittedMessage> uncommittedQueue = new LinkedList<>();
 

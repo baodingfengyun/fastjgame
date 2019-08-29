@@ -31,6 +31,9 @@ import javax.annotation.concurrent.Immutable;
 @Immutable
 public final class RpcResponse {
 
+	/** 执行成功但是没有返回值的body */
+	public static final RpcResponse SUCCESS = newSucceedResponse(null);
+
 	public static final RpcResponse SESSION_NULL = newFailResponse(RpcResultCode.SESSION_NULL);
 	public static final RpcResponse SESSION_CLOSED = newFailResponse(RpcResultCode.SESSION_CLOSED);
 
@@ -74,7 +77,11 @@ public final class RpcResponse {
 	}
 
 	public static RpcResponse newSucceedResponse(@Nullable Object body) {
-		return new RpcResponse(RpcResultCode.SUCCESS, body);
+		if (null == body) {
+			return SUCCESS;
+		} else {
+			return new RpcResponse(RpcResultCode.SUCCESS, body);
+		}
 	}
 
 	@Override

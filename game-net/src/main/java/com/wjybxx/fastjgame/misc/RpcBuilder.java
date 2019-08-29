@@ -26,7 +26,8 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * 封装Rpc请求的一些细节，方便实现统一管控。
+ * 封装Rpc请求的一些细节，方便实现统一管控。其实把rpc调用看做多线程调用，就很容易理顺这些东西了。
+ *
  * Q: 为何提供该对象？
  * A:1. Net包提供的Rpc过于底层，很多接口并不为某一个具体的应用设计，虽然可以推荐某些使用方式，
  *      当仍然保留用户自定义的方式。
@@ -45,10 +46,21 @@ import javax.annotation.concurrent.NotThreadSafe;
  *
  * 使用示例：
  * <pre>
+ * 1. rpc调用：
  * {@code
  *      Proxy.methodName(a, b, c)
  *          .ifSuccess(result -> onSuccess(result))
  *          .call(session);
+ * }
+ * </pre>
+ *
+ * <pre>
+ * 2. 广播:
+ * {@code
+ *      RpcBuilder<?> builder = Proxy.methodName(a, b, c);
+ *      for(Session session:sessionCollection) {
+ *          builder.send(session);
+ *      }
  * }
  * </pre>
  *
@@ -60,56 +72,49 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public interface RpcBuilder<V> {
 
-    /**
-     * 是否可以监听，当rpc方法没有返回值时不可以监听。
-     * 当方法参数中没有{@link com.wjybxx.fastjgame.net.RpcResponseChannel}，且方法的返回值类型为void时，该调用不可以监听。
-     * 或者查看生成的代理中是true还是false。
-     * 注意：如果可监听，那么该{@link RpcBuilder}不可以重用，如果不可以监听，那么该{@link RpcBuilder}可以重用。
-     *
-     * @return 当且仅当该调用没有返回值的时候返回false。
-     */
-    boolean isListenable();
-
     // ------------------------------------------- 添加回调 ----------------------------------------------
     /**
      * 设置成功时执行的回调。
-     *
+     * 注意：如果你最后调用的是{@link #send(Session)}方法，那么该回调会被忽略。
      * @param callback 回调逻辑
      * @return this
-     * @throws UnsupportedOperationException 如果没有返回值(不可以监听)将抛出该异常。
      */
-    RpcBuilder<V> ifSuccess(@Nonnull SucceedRpcCallback<V> callback) throws UnsupportedOperationException;
+    RpcBuilder<V> ifSuccess(@Nonnull SucceedRpcCallback<V> callback);
 
     /**
      * 设置失败时执行的回调
      * @param callback 回调逻辑
      * @return this
-     * @throws UnsupportedOperationException 如果没有返回值(不可以监听)将抛出该异常。
      */
-    RpcBuilder<V> ifFailure(@Nonnull FailedRpcCallback callback) throws UnsupportedOperationException;
+    RpcBuilder<V> ifFailure(@Nonnull FailedRpcCallback callback);
 
     /**
      * 设置无论成功还是失败都会执行的回调
      * @param callback 回调逻辑
      * @return this
-     * @throws UnsupportedOperationException 如果没有返回值(不可以监听)将抛出该异常。
      */
-    RpcBuilder<V> any(@Nonnull RpcCallback callback) throws UnsupportedOperationException;
+    RpcBuilder<V> any(@Nonnull RpcCallback callback);
 
     // --------------------------------------------- 真正执行 --------------------------------------------------
 
     /**
-     * 发送一个单向通知，不关心返回结果。
-     * 注意：即使发送前添加了回调，这些回调也会被忽略。
+     * 1. 发送一个通知。
+     * 2. 发起一个异步rpc调用，但是不关心返回值，也不关心调用的方法是否真的有返回值。
+     *
+     * 注意：
+     * 1. 一旦调用了send方法，那么便不可以调用<b>send</b>以外的请求方法。
+     * 2. 即使添加了回调，这些回调也会被忽略。
      *
      * @param session rpc请求的目的地，可以为null，以省却调用时的外部检查。
-     * @throws IllegalStateException 如果重用一个可监听的rpcBuilder，则会抛出异常！
+     * @throws IllegalStateException 如果调用过send以外的请求方法，则会抛出异常。
      */
     void send(@Nullable Session session) throws IllegalStateException;
 
     /**
-     * 执行rpc调用。
+     * 执行异步rpc调用，无论如何对方都会返回一个结果。
      * call是不是很好记住？那就多用它。
+     *
+     * 注意：一旦调用了call方法，那么该builder便不可以再使用。
      *
      * @param session rpc请求的目的地，可以为null，以省却调用时的外部检查。
      * @throws IllegalStateException 如果重用一个可监听的rpcBuilder，则会抛出异常！
@@ -118,37 +123,44 @@ public interface RpcBuilder<V> {
 
     /**
      * 执行同步rpc调用，并直接获得结果。如果添加了回调，回调会在返回前执行。
+     *
+     * 注意：
+     * 1. 一旦调用了sync方法，那么该builder便不可以再使用。
+     * 2. 如果添加了回调，回调会在返回前执行。(其实也纠结，调用失败是返回null还是抛出异常好)
+     * 3. 少使用同步调用，必要的时候使用同步可以降低编程复杂度，但是大量使用会大大降低吞吐量。
+     *
      * @param session rpc请求的目的地，可以为null，以省却调用时的外部检查。
      * @return result
      * @throws IllegalStateException 如果重用一个可监听的rpcBuilder，则会抛出异常！
-     * @throws UnsupportedOperationException 如果没有返回值(不可以监听)将抛出该异常。
      */
-    RpcResponse sync(@Nullable Session session) throws IllegalStateException, UnsupportedOperationException;
+    RpcResponse sync(@Nullable Session session) throws IllegalStateException;
 
     /**
      * 执行同步rpc调用，如果执行成功，则返回对应的调用结果，否则返回null。
+     *
      * 注意：
      * 1. 如果null是一个合理的返回值，那么你不能基于调用结果做出任何判断。这种情况下，建议你使用{@link #sync(Session)}，可以获得调用的结果码。
-     * 2. 如果添加了回调，回调会在返回前执行。
-     * (其实也纠结，调用失败是返回null还是抛出异常好)
+     * 2. 如果添加了回调，回调会在返回前执行。(其实也纠结，调用失败是返回null还是抛出异常好)
+     * 3. 少使用同步调用，必要的时候使用同步可以降低编程复杂度，但是大量使用会大大降低吞吐量。
+     * 4. 一旦调用了syncCall方法，那么该builder便不可以再使用。
      *
      * @param session rpc请求的目的地，可以为null，以省却调用时的外部检查。
      * @return result
      * @throws IllegalStateException 如果重用一个可监听的rpcBuilder，则会抛出异常！
-     * @throws UnsupportedOperationException 如果没有返回值(不可以监听)将抛出该异常。
      */
     @Nullable
-    V syncCall(@Nullable Session session) throws IllegalStateException, UnsupportedOperationException;
+    V syncCall(@Nullable Session session) throws IllegalStateException;
 
     /**
-     * 执行异步Rpc调用并返回一个future。
+     * 执行异步Rpc调用并返回一个future，无论如何对方都会返回一个结果。
      * 这名字是不是有点不容易记住？那就少用它。
+     *
+     * 注意：一旦调用了submit方法，那么该builder便不可以再使用。
      *
      * @return future
      * @throws IllegalStateException 如果重用一个可监听的rpcBuilder，则会抛出异常！
-     * @throws UnsupportedOperationException 如果没有返回值(不可以监听)将抛出该异常。
      * @param session rpc请求的目的地，可以为null。
      */
-    RpcFuture submit(@Nullable Session session) throws IllegalStateException, UnsupportedOperationException;
+    RpcFuture submit(@Nullable Session session) throws IllegalStateException;
 
 }

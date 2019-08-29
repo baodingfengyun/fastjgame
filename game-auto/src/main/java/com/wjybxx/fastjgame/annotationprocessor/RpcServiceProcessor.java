@@ -364,7 +364,6 @@ public class RpcServiceProcessor extends AbstractProcessor {
 		final ParseResult parseResult = parseParameters(method);
 		final List<VariableElement> availableParameters = parseResult.availableParameters;
 		final TypeMirror callReturnType = parseResult.callReturnType;
-		final boolean allowCallback = parseResult.listenable;
 
 		// 添加返回类型-带泛型
 		DeclaredType realReturnType = typeUtils.getDeclaredType(builderElement, callReturnType);
@@ -379,17 +378,17 @@ public class RpcServiceProcessor extends AbstractProcessor {
 
 		// 搜集参数代码块
 		if (availableParameters.size() == 0) {
-			builder.addStatement("return new $T<>($L, $T.emptyList(), $L)", defaultBuilderRawTypeName, methodKey, Collections.class, allowCallback);
+			builder.addStatement("return new $T<>($L, $T.emptyList())", defaultBuilderRawTypeName, methodKey, Collections.class);
 		} else if (availableParameters.size() == 1) {
 			final VariableElement firstVariableElement = availableParameters.get(0);
 			final String firstParameterName = firstVariableElement.getSimpleName().toString();
-			builder.addStatement("return new $T<>($L, $T.singletonList($L), $L)", defaultBuilderRawTypeName, methodKey, Collections.class, firstParameterName, allowCallback);
+			builder.addStatement("return new $T<>($L, $T.singletonList($L))", defaultBuilderRawTypeName, methodKey, Collections.class, firstParameterName);
 		} else {
 			builder.addStatement("$T<Object> $L = new $T<>($L)", List.class, methodParams, ArrayList.class, availableParameters.size());
 			for (VariableElement variableElement:availableParameters) {
 				builder.addStatement("$L.add($L)", methodParams, variableElement.getSimpleName());
 			}
-			builder.addStatement("return new $T<>($L, $L, $L)", defaultBuilderRawTypeName, methodKey, "methodParams", allowCallback);
+			builder.addStatement("return new $T<>($L, $L)", defaultBuilderRawTypeName, methodKey, methodParams);
 		}
 		return builder.build();
 	}
@@ -402,8 +401,6 @@ public class RpcServiceProcessor extends AbstractProcessor {
 		final List<VariableElement> availableParameters = new ArrayList<>(originParameters.size());
 		// 返回值类型
 		TypeMirror callReturenType = null;
-		// 是否允许回调--是否是单向消息，返回类型是否是void/Void
-		boolean listenable;
 
 		// 筛选参数
 		for (VariableElement variableElement : originParameters) {
@@ -428,17 +425,15 @@ public class RpcServiceProcessor extends AbstractProcessor {
 			}
 		}
 		if (callReturenType.getKind() == TypeKind.VOID) {
-			// 返回值类型为void，不可以监听，且rpcBuilder泛型参数为泛型通配符
-			listenable = false;
+			// 返回值类型为void，rpcBuilder泛型参数为泛型通配符
 			callReturenType = wildcardType;
 		} else {
-			listenable = true;
 			// 基本类型转包装类型
 			if (callReturenType.getKind().isPrimitive()) {
 				callReturenType = typeUtils.boxedClass((PrimitiveType) callReturenType).asType();
 			}
 		}
-		return new ParseResult(availableParameters, callReturenType, listenable);
+		return new ParseResult(availableParameters, callReturenType);
 	}
 
 	/**
@@ -506,27 +501,46 @@ public class RpcServiceProcessor extends AbstractProcessor {
 	}
 
 	/**
-	 * 为某个具体方法生成注册方法
+	 * 为某个具体方法生成注册方法，方法分为两类
+	 * 1. 异步方法 -- 异步方法是指需要responseChannel的方法，由应用层代码告知远程执行结果。
+	 * 2. 同步方法 -- 同步方法是指不需要responseChannel的方法，由生成的代码告知远程执行结果。
+	 *
+	 * 1. 异步方法，那么返回结果的职责就完全交给应用层
 	 * <pre>
 	 * {@code
 	 * 		private static void registerGetMethod1(RpcFunctionRegistry registry, T instance) {
 	 * 		    registry.register(10001, (session, methodParams, responseChannel) -> {
-	 * 		       // code-
 	 * 		       instance.method1(methodParams.get(0), methodParams.get(1), responseChannel);
 	 * 		    });
 	 * 		}
 	 * }
 	 * </pre>
-	 *
+	 * 2. 同步方法，同步方法又分为：有结果和无结果类型，有结果的。
+	 * 2.1 有结果的，返回直接结果
 	 * <pre>
 	 * {@code
 	 * 		private static void registerGetMethod2(RpcFunctionRegistry registry, T instance) {
 	 * 		    registry.register(10002, (session, methodParams, responseChannel) -> {
-	 * 		       // code-
 	 * 		       RpcResponse response = RpcResponse.ERROR;
 	 * 		       try {
 	 * 		     		V result = instance.method2(methodParams.get(0), methodParams.get(1));
 	 *					response = RpcResponse.newSucceedResponse(result);
+	 * 		       } finally {
+	 * 		           responseChannel.write(response);
+	 * 		       }
+	 * 		    });
+	 * 		}
+	 * }
+	 * </pre>
+	 * 2.2 无结果的，返回null，表示执行成功
+	 * <pre>
+	 * {@code
+	 * 		private static void registerGetMethod2(RpcFunctionRegistry registry, T instance) {
+	 * 		    registry.register(10002, (session, methodParams, responseChannel) -> {
+	 * 		       RpcResponse response = RpcResponse.ERROR;
+	 * 		       try {
+	 * 		       		instance.method1(methodParams.get(0), methodParams.get(1), responseChannel);
+	 *					response = RpcResponse.SUCCESS;
 	 * 		       } finally {
 	 * 		           responseChannel.write(response);
 	 * 		       }
@@ -569,9 +583,22 @@ public class RpcServiceProcessor extends AbstractProcessor {
 			builder.addStatement("        $L.write(response)", responseChannel);
 			builder.addCode("    }\n");
 		} else  {
-			// 异步返回结果 或 没有结果
+			// 方法声明的返回值类型为void，可能为异步方法，也可能是真没有返回值，但是没有返回值也需要告知对方是否成功了，如果对方发的是rpc调用。
 			final InvokeStatement invokeStatement = genInvokeStatement(null, classParamName, executableElement);
-			builder.addStatement(invokeStatement.format, invokeStatement.params.toArray());
+			if (invokeStatement.asyncMethod) {
+				// 有异步返回值，交给应用层返回结果
+				builder.addStatement(invokeStatement.format, invokeStatement.params.toArray());
+			} else {
+				// 确实没有结果，返回null给远程
+				builder.addStatement("    $T response = $T.ERROR", rpcResponseTypeName, rpcResponseTypeName);
+				// 同步返回结果
+				builder.addCode("    try {\n");
+				builder.addStatement("    " +invokeStatement.format, invokeStatement.params.toArray());
+				builder.addStatement("        response = $T.SUCCESS", rpcResponseTypeName);
+				builder.addCode("    } finally {\n");
+				builder.addStatement("        $L.write(response)", responseChannel);
+				builder.addCode("    }\n");
+			}
 		}
 		builder.addStatement("})");
 		return builder.build();
@@ -597,6 +624,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 		params.add(classParamName);
 		params.add(executableElement.getSimpleName().toString());
 
+		boolean asyncMethod = false;
 		boolean needDelimiter = false;
 		int index = 0;
 		for (VariableElement variableElement:executableElement.getParameters()) {
@@ -608,6 +636,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 
 			if (isResponseChannel(variableElement)) {
 				format.append(responseChannel);
+				asyncMethod = true;
 			} else if (isSession(variableElement)){
 				format.append(session);
 			} else {
@@ -632,16 +661,19 @@ public class RpcServiceProcessor extends AbstractProcessor {
 			}
 		}
 		format.append(")");
-		return new InvokeStatement(format.toString(), params);
+		return new InvokeStatement(format.toString(), params, asyncMethod);
 	}
 
 	private static class InvokeStatement {
+
 		private final String format;
 		private final List<Object> params;
+		private final boolean asyncMethod;
 
-		private InvokeStatement(String format, List<Object> params) {
+		private InvokeStatement(String format, List<Object> params, boolean asyncMethod) {
 			this.format = format;
 			this.params = params;
+			this.asyncMethod = asyncMethod;
 		}
 	}
 
@@ -650,13 +682,10 @@ public class RpcServiceProcessor extends AbstractProcessor {
 		private final List<VariableElement> availableParameters;
 		// 远程调用的返回值类型
 		private final TypeMirror callReturnType;
-		// 是否允许回调
-		private final boolean listenable;
 
-		ParseResult(List<VariableElement> availableParameters, TypeMirror callReturnType, boolean listenable) {
+		ParseResult(List<VariableElement> availableParameters, TypeMirror callReturnType) {
 			this.availableParameters = availableParameters;
 			this.callReturnType = callReturnType;
-			this.listenable = listenable;
 		}
 	}
 }

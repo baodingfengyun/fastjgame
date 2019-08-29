@@ -26,7 +26,7 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * Rpc调用的future。
- * 注意：在该Future上<b>主动获取结果</b>会打乱对方发送的消息的处理时序，你必须清除它可能带来的影响，否则不要轻易的主动获取结果！
+ * 注意：在该Future上<b>主动获取结果</b>会打乱对方发送的消息之间的处理时序，你必须清除它可能带来的影响，否则不要轻易的主动获取结果！
  * 方法：{@link #get()}{@link #get(long, TimeUnit)} {@link #getNow()}
  *
  * @apiNote

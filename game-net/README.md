@@ -1,11 +1,15 @@
 ### fastjgame-net
 
-fastjgame-net模块独立，一个高性能的可扩展底层通信框架。支持断线重连(防闪断)，负载均衡，使用简单。提供双向的消息发送，异步rpc调用，同步rpc调用。
+fastjgame-net模块独立，一个高性能的可扩展底层通信框架。支持断线重连(防闪断)，负载均衡，使用简单。提供双向的消息通知，异步rpc调用，同步rpc调用。
 
 ### 本模块到底提没提供RPC?
-   严格的说，本模块提供了对RPC的支持，但是如何解析RPC包的内容，并调用到指定方法，这个是用户自定义的！没有限定rpc的解析方式，用户可以通过**MessageHandler**实现自定义的单向消息和RPC的解析方式。
-   在**fastjgame**项目中 [MessageDispatcherMrg](https://github.com/hl845740757/fastjgame/blob/master/game-core/src/main/java/com/wjybxx/fastjgame/mrg/MessageDispatcherMrg.java)是一个消息结构对应一个唯一的方法调用，但其本质还是rpc。
-
+   严格的说，本模块提供了对RPC的支持，但是如何解析RPC包的内容，并调用到指定方法，这个是可以自定义的，没有限定rpc的解析方式！  
+   本模块提供了一种rpc的实现，包括对应的注解、注解处理器。但这不限制你添加自己的rpc实现。你可以从**RpcCall**和**RpcBuilder**入手。
+   
+### Rpc到底理解会好点呢？
+   我在实现rpc的时候，进行抽象的时候，其实走了不少弯路，后来才发现，其实把rpc调用当做多线程调用就好了，什么时候应该返回值，什么时候不需要返回值？  
+   其实**单向通知**或**不关心结果的rpc调用**就相当于**Runnable**，而**需要结果的rpc调用**，相当于**Callable**.
+   
 ### 消息分类
 1. 异步消息：单向消息、异步Rpc请求、异步Rpc调用的结果
 2. 同步消息：同步rpc请求、同步Rpc调用的结果
@@ -53,8 +57,11 @@ fastjgame-net模块独立，一个高性能的可扩展底层通信框架。支�
 ### 数据包传输过程
 ![image](https://github.com/hl845740757/fastjgame-net/blob/master/src/doc/%E6%95%B0%E6%8D%AE%E5%8C%85%E4%BC%A0%E8%BE%93%E8%BF%87%E7%A8%8B.png)
 
-### 测试用例
-   在example下有**EchoServerLoop**和**EchoLCientLoop**，可以直接启动。 不过你可能需要先下载[game-utils模块](https://github.com/hl845740757/fastjgame-utils.git)，
-   下载完成以后，install到本地maven仓库即可，然后就可以启动了。
+### rpc注解处理器
+    请查看项目总目录下的readMe。
+
+### example下的测试用例
+   Rpc测试用例： 有**ExampleRpcService** 和 **ExampleRpcClientLoop**。
+   贴近底层的示例：有**EchoServerLoop**和**EchoLCientLoop**和**PipelineEchoClientLoop**，可以直接启动。 
 ### Bugs
-   刚刚重构完，可能有一些遗漏的地方，会慢慢补全，如果发现bug，欢迎提出。
+   码多必失，如果发现bug，欢迎提出。

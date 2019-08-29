@@ -53,31 +53,25 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
         }
     }
 
+    private static final int SHARE_MODE_ANY = 0;
+    private static final int SHARE_MODE_SEND = 1;
+    private static final int SHARE_MODE_NONE = 2;
+
     /**
      * 远程方法信息
      */
     private final RpcCall call;
     /**
-     * 如果返回值类型为void/Void，那么表示不允许添加回调。
+     * 添加的回调
      */
-    private final boolean listenable;
+    private RpcCallback callback = null;
     /**
-     * 默认为空回调，代替null判断
+     * 共享模式
      */
-    private RpcCallback callback = EmptyRpcCallback.INSTANCE;
-    /**
-     * 是否可用
-     */
-    private boolean available = true;
+    private int shareMode = SHARE_MODE_ANY;
 
-    public DefaultRpcBuilder(int methodKey, List<Object> methodParams, boolean listenable) {
+    public DefaultRpcBuilder(int methodKey, List<Object> methodParams) {
         this.call = new RpcCall(methodKey, methodParams);
-        this.listenable = listenable;
-    }
-
-    @Override
-    public boolean isListenable() {
-        return listenable;
     }
 
     @Override
@@ -99,9 +93,8 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
     }
 
     private void addCallback(final RpcCallback newCallback) {
-        ensureListenable();
         // 多数情况下我们都只有一个回调
-        if (callback == EmptyRpcCallback.INSTANCE) {
+        if (callback == null) {
             callback = newCallback;
             return;
         }
@@ -114,62 +107,58 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
         }
     }
 
-    /**
-     * 确保允许添加rpc回调
-     */
-    private void ensureListenable() {
-        if (!listenable) {
-            throw new UnsupportedOperationException("this call " + call.getMethodKey() + " is not support callback!");
-        }
-    }
-
-    /**
-     * 确认状态是否正确
-     */
-    private void ensureState() {
-        if (!available) {
-            throw new IllegalStateException("this builder does not support reuse!");
-        }
-        // 如果是可监听的，则只能使用一次
-        if (listenable) {
-            available = false;
-        }
-    }
-
     @Override
     public void send(@Nullable Session session) throws IllegalStateException {
-        ensureState();
+        ensureSendAvailable();
         if (session != null) {
             POLICY.send(session, call);
         }
         // else do nothing
     }
 
+    /**
+     * 确保可发送send请求
+     */
+    private void ensureSendAvailable() {
+        if (shareMode > SHARE_MODE_SEND) {
+            throw new IllegalStateException("this builder does not support reuse!");
+        }
+        shareMode = SHARE_MODE_SEND;
+    }
+
+    /**
+     * 确保可发送rpc请求
+     */
+    private void ensureRpcAvailable() {
+        if (shareMode > SHARE_MODE_ANY) {
+            throw new IllegalStateException("this builder does not support reuse!");
+        }
+        shareMode = SHARE_MODE_NONE;
+    }
+
     @Override
     public final void call(@Nullable Session session) {
-        ensureState();
-        ensureListenable();
-
+        // 可监听，并且设置了回调
+        ensureRpcAvailable();
         if (session == null) {
-            // session不存在，安全的失败
-            if (callback != EmptyRpcCallback.INSTANCE) {
+            if (callback != null) {
+                // session不存在，安全的失败
                 callback.onComplete(RpcResponse.SESSION_NULL);
             }
         } else {
-            // 根据是否存在回调调用不同接口 - 可以减少不必要的传输
-            if (callback == EmptyRpcCallback.INSTANCE) {
+            if (callback == null) {
+                // 没有设置回调，使用通知代替rpc调用，对方不会返回结果
                 POLICY.send(session, call);
             } else {
+                // 设置了回调，走rpc，对方一定会返回一个值
                 POLICY.rpc(session, call, callback);
             }
         }
     }
 
     @Override
-    public final RpcResponse sync(@Nullable Session session) {
-        ensureState();
-        ensureListenable();
-
+    public final RpcResponse sync(@Nullable Session session) throws IllegalStateException {
+        ensureRpcAvailable();
         final RpcResponse response;
         if (session == null) {
             // session不存在，安全的失败
@@ -178,7 +167,7 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
             response = POLICY.sync(session, call);
         }
         // 返回之前，先执行添加的回调
-        if (callback != EmptyRpcCallback.INSTANCE) {
+        if (callback != null) {
             ConcurrentUtils.safeExecute((Runnable)() -> callback.onComplete(response));
         }
         return response;
@@ -198,9 +187,7 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
 
     @Override
     public final RpcFuture submit(@Nullable Session session) {
-        ensureState();
-        ensureListenable();
-
+        ensureRpcAvailable();
         final RpcFuture future;
         if (session == null) {
             // session不存在，安全的失败
@@ -209,7 +196,7 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
             future = POLICY.rpc(session, call);
         }
         // 添加之前设置的回调
-        if (callback != EmptyRpcCallback.INSTANCE) {
+        if (callback != null) {
             future.addCallback(callback);
         }
         return future;

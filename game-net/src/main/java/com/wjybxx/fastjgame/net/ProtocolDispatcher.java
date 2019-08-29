@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.net;
 import javax.annotation.Nullable;
 
 /**
- * 协议分发器，将。
+ * 协议分发器，接收到请求派发出去。
  * {@link ProtocolCodec}在网络层，而{@link ProtocolDispatcher}在应用层，在用户线程。
  *
  * @author wjybxx

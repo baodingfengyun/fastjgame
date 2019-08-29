@@ -89,6 +89,16 @@ public class ExampleRpcService {
 		responseChannel.writeSuccess(number + 4);
 	}
 
+	@RpcMethod(methodId = 7)
+	public void notifySuccess(long id) {
+
+	}
+
+	@RpcMethod(methodId = 8)
+	public void notifySuccess2(long id, RpcResponseChannel<Void> responseChannel) {
+
+	}
+
 	private static class ServiceLoop extends SingleThreadEventLoop {
 
 		private final NetEventLoopGroup netGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET-EVENT-LOOP"),

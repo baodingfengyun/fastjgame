@@ -36,7 +36,7 @@ public interface RpcResponseChannel<T> {
 	 * @param body rpc调用结果/可能为null
 	 */
 	default void writeSuccess(@Nullable T body) {
-		write(new RpcResponse(RpcResultCode.SUCCESS, body));
+		write(RpcResponse.newSucceedResponse(body));
 	}
 
 	/**

@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.net;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * 它是网络层已发送但是对方还未确认收到的消息包，它是非线程安全的（因为它不能有可写的ack）。
+ * 它是网络层已发送但是对方还未确认收到的消息包，它是非线程安全的。
  * 它由网络层构建，网络层使用，且不会共享，因此字段不必是final(final有一定消耗)。
  *
  * 一个包的{@link #sequence}不会改变，但是ack会在每次发送的时候改变。
