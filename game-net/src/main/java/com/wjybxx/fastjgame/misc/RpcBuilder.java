@@ -101,16 +101,25 @@ public interface RpcBuilder<V> {
 
     /**
      * 1. 发送一个通知。
-     * 2. 发起一个异步rpc调用，但是不关心返回值，也不关心调用的方法是否真的有返回值。
+     * 2. 发起一个异步rpc调用，但是不关心返回值，不论调用的方法是否真的有返回值。
      *
      * 注意：
-     * 1. 一旦调用了send方法，那么便不可以调用<b>send</b>以外的请求方法。
+     * 1. 一旦调用了send方法，那么便不可以调用<b>send、broadcast</b>以外的请求方法。
      * 2. 即使添加了回调，这些回调也会被忽略。
      *
      * @param session rpc请求的目的地，可以为null，以省却调用时的外部检查。
-     * @throws IllegalStateException 如果调用过send以外的请求方法，则会抛出异常。
+     * @throws IllegalStateException 如果调用过send、broadcast以外的请求方法，则会抛出异常。
      */
     void send(@Nullable Session session) throws IllegalStateException;
+
+    /**
+     * 广播一个通知，它是对{@link #send(Session)}的一个包装。
+     * 注意事项同{@link #send(Session)}。
+     *
+     * @param sessionIterable 要广播的所有session
+     * @throws IllegalStateException 如果调用过send、broadcast以外的请求方法，则会抛出异常。
+     */
+    void broadcast(@Nullable Iterable<Session> sessionIterable) throws IllegalStateException;
 
     /**
      * 执行异步rpc调用，无论如何对方都会返回一个结果。

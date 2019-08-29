@@ -96,7 +96,7 @@ public class ExampleRpcService {
 
 	@RpcMethod(methodId = 8)
 	public String combine(String prefix, String content) {
-		return prefix + "_" + content;
+		return prefix + "-" + content;
  	}
 
 	private static class ServiceLoop extends SingleThreadEventLoop {

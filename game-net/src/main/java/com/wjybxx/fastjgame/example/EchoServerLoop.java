@@ -18,7 +18,6 @@ package com.wjybxx.fastjgame.example;
 import com.wjybxx.fastjgame.concurrent.*;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupImp;
-import com.wjybxx.fastjgame.net.HttpRequestHandler;
 import com.wjybxx.fastjgame.misc.HttpResponseHelper;
 import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.net.*;
@@ -114,7 +113,7 @@ public class EchoServerLoop extends SingleThreadEventLoop {
 		@Override
 		public void postOneWayMessage(Session session, @Nullable Object message) throws Exception {
 			assert null != message;
-			session.sendMessage(message);
+			session.send(message);
 		}
 
 		@Override

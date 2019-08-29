@@ -124,7 +124,7 @@ public interface Session {
      * 发送一个单向消息给对方
      * @param message 单向消息
      */
-    void sendMessage(@Nonnull Object message);
+    void send(@Nonnull Object message);
 
     // ------------------------------------------------ 异步Rpc请求 ---------------------------------------------
     /**
@@ -178,7 +178,7 @@ public interface Session {
      * 发送一个**同步**rpc请求给对方，并阻塞到结果返回或超时，会使用默认的超时时间（配置文件中指定）。
      *
      * @apiNote
-     * 注意：同步rpc调用会尽可能地立即发送，它的结果对方也会尽可能地立即返回，因此它与{@link #sendMessage(Object)}{@link #rpc(Object)}之间
+     * 注意：同步rpc调用会尽可能地立即发送，它的结果对方也会尽可能地立即返回，因此它与{@link #send(Object)}{@link #rpc(Object)}之间
      * 没有顺序保证，只保证与其它的**同步**rpc调用之间的顺序！
      *
      * @param request rpc请求对象

@@ -60,7 +60,7 @@ public class CenterSendMrg {
     public void sendToScene(long worldGuid, @Nonnull Message msg){
         SceneInCenterInfo sceneInfo = sceneInCenterInfoMrg.getSceneInfo(worldGuid);
         if (null != sceneInfo && sceneInfo.getSession() != null){
-            sceneInfo.getSession().sendMessage(msg);
+            sceneInfo.getSession().send(msg);
         } else {
             logger.info("scene process {} is disconnect already. just discard msg.", worldGuid);
         }
@@ -78,7 +78,7 @@ public class CenterSendMrg {
     public void sendToScene(int channelId, @Nonnull Message msg){
         SceneInCenterInfo sceneInfo = sceneInCenterInfoMrg.getSceneInfo(channelId);
         if (null != sceneInfo && sceneInfo.getSession() != null){
-            sceneInfo.getSession().sendMessage(msg);
+            sceneInfo.getSession().send(msg);
         } else {
             logger.info("channel {} is disconnect already.", channelId);
         }
@@ -97,7 +97,7 @@ public class CenterSendMrg {
             if (null == sceneInCenterInfo.getSession()) {
                 continue;
             }
-            sceneInCenterInfo.getSession().sendMessage(msg);
+            sceneInCenterInfo.getSession().send(msg);
         }
     }
 
@@ -111,7 +111,7 @@ public class CenterSendMrg {
                 continue;
             }
             if (sceneInCenterInfo.getWorldType() == SceneWorldType.SINGLE){
-                sceneInCenterInfo.getSession().sendMessage(msg);
+                sceneInCenterInfo.getSession().send(msg);
             }
         }
     }
@@ -126,7 +126,7 @@ public class CenterSendMrg {
                 continue;
             }
             if (sceneInCenterInfo.getWorldType() == SceneWorldType.CROSS){
-                sceneInCenterInfo.getSession().sendMessage(msg);
+                sceneInCenterInfo.getSession().send(msg);
             }
         }
     }
@@ -172,7 +172,7 @@ public class CenterSendMrg {
     public void sendToWarzone(@Nonnull Message msg){
         WarzoneInCenterInfo warzoneInCenterInfo = warzoneInCenterInfoMrg.getWarzoneInCenterInfo();
         if (null != warzoneInCenterInfo && warzoneInCenterInfo.getSession() != null){
-            warzoneInCenterInfo.getSession().sendMessage(msg);
+            warzoneInCenterInfo.getSession().send(msg);
         } else {
             logger.info("warzone is disconnect already.");
         }

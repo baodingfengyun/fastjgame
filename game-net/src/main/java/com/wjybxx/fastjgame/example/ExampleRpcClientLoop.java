@@ -120,10 +120,10 @@ public class ExampleRpcClientLoop extends SingleThreadEventLoop {
 				.call(session);
 
 		// --- 如果关闭netEventLoop的帧间隔控制，一次同步调用耗时应该在10ms左右
-		// 在保持现有机制的情况下，只能说平均最差情况下需要等待4次，最好的情况是完全不阻塞， 10ms是最快极限，90ms是最差极限。 50-60应该更多
+		// 在保持现有机制的情况下，只能说最差情况下需要等待4次，最好的情况是完全不阻塞， 10ms是最快极限，90ms是最差极限。 50-60应该更多
 		final long start = System.currentTimeMillis();
 		final String callResult = ExampleRpcServiceRpcProxy.combine("wjybxx", String.valueOf(index)).syncCall(session);
-		System.out.println("SyncCall - " + callResult + " , cost timeMs " + (System.currentTimeMillis() - start));
+		System.out.println("SyncCall - " + index + " - " + callResult + " , cost timeMs " + (System.currentTimeMillis() - start));
 
 		// 模拟广播X次
 		final RpcBuilder<?> builder = ExampleRpcServiceRpcProxy.notifySuccess(index);

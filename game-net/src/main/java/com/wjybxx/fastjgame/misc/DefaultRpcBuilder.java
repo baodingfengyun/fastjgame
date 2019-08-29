@@ -116,6 +116,19 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
         // else do nothing
     }
 
+    @Override
+    public void broadcast(@Nullable Iterable<Session> sessionIterable) throws IllegalStateException {
+        ensureSendAvailable();
+        if (sessionIterable == null) {
+            return;
+        }
+        for (Session session:sessionIterable) {
+            if (session != null) {
+                POLICY.send(session, call);
+            }
+        }
+    }
+
     /**
      * 确保可发送send请求
      */
@@ -237,7 +250,7 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
 
         @Override
         public void send(@Nonnull Session session, @Nonnull RpcCall call) {
-            session.sendMessage(call);
+            session.send(call);
         }
 
         @Override

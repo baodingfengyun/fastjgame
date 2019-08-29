@@ -77,7 +77,7 @@ public abstract class AbstractSession implements Session{
     }
 
     @Override
-    public final void sendMessage(@Nonnull Object message) {
+    public final void send(@Nonnull Object message) {
         // 逻辑层检测，会话已关闭，立即返回
         if (!isActive()) {
             logger.info("session is already closed, send message failed.");

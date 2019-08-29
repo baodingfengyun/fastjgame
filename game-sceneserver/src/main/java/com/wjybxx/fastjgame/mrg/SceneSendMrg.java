@@ -63,7 +63,7 @@ public class SceneSendMrg {
      */
     public void sendToPlayer(Player player, Message msg){
         if (null != player.getSession()) {
-            player.getSession().sendMessage(msg);
+            player.getSession().send(msg);
         }
     }
 
@@ -97,7 +97,7 @@ public class SceneSendMrg {
             logger.warn("send to disconnected center {}-{}", platformType, serverId);
             return;
         }
-        session.sendMessage(msg);
+        session.send(msg);
     }
 
     /**
