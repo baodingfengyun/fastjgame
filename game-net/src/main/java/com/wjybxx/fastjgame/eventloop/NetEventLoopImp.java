@@ -174,6 +174,7 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
 	@Override
 	protected void loop() {
 		for (;;) {
+			long frameStart = System.currentTimeMillis();
 			// 批量执行任务，避免任务太多时导致session得不到及时更新
 			runAllTasks(MAX_BATCH_SIZE);
 
@@ -190,12 +191,18 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
 			}
 
 			// 每次循环休息一下下，避免CPU占有率过高
-			sleepQuietly();
+			sleepQuietly(System.currentTimeMillis() - frameStart);
 		}
 	}
 
-	private void sleepQuietly() {
-		LockSupport.parkNanos(TimeUtils.NANO_PER_MILLISECOND * netConfigManager.frameInterval());
+	private void sleepQuietly(long loopCostMs) {
+		// 未启用帧间隔控制
+		if (netConfigManager.frameInterval() <= 0){
+			return;
+		}
+		// 最小睡眠1毫秒
+		final long sleepTimeMs = Math.max(1, netConfigManager.frameInterval() - loopCostMs);
+		LockSupport.parkNanos(TimeUtils.NANO_PER_MILLISECOND * sleepTimeMs);
 	}
 
 	@Override
