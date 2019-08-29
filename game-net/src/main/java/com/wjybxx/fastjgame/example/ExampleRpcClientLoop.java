@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupImp;
 import com.wjybxx.fastjgame.misc.DefaultRpcCallDispatcher;
 import com.wjybxx.fastjgame.misc.HostAndPort;
+import com.wjybxx.fastjgame.misc.RpcBuilder;
 import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.net.SessionLifecycleAware;
@@ -33,6 +34,7 @@ import javax.annotation.Nullable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.locks.LockSupport;
+import java.util.stream.IntStream;
 
 /**
  * rpc请求客户端示例
@@ -92,6 +94,7 @@ public class ExampleRpcClientLoop extends SingleThreadEventLoop {
 	}
 
 	private void sendRequest(final int index) {
+		// 方法无返回值，但是还是可以监听，只要调用的是call, sync, syncCall都可以获知调用结果
 		ExampleRpcServiceRpcProxy.hello("wjybxx- " + index)
 				.ifSuccess(result -> System.out.println("hello - " + index + " - " + result))
 				.call(session);
@@ -119,8 +122,12 @@ public class ExampleRpcClientLoop extends SingleThreadEventLoop {
 		// --- 如果关闭netEventLoop的帧间隔控制，一次同步调用耗时应该在10ms左右
 		// 在保持现有机制的情况下，只能说平均最差情况下需要等待4次，最好的情况是完全不阻塞， 10ms是最快极限，90ms是最差极限。 50-60应该更多
 		final long start = System.currentTimeMillis();
-		final String callResult = ExampleRpcServiceRpcProxy.hello("wjybxx- " + index).syncCall(session);
-		System.out.println("SyncCall - " + index + " - " + callResult + " , cost timeMs " + (System.currentTimeMillis() - start));
+		final String callResult = ExampleRpcServiceRpcProxy.combine("wjybxx", String.valueOf(index)).syncCall(session);
+		System.out.println("SyncCall - " + callResult + " , cost timeMs " + (System.currentTimeMillis() - start));
+
+		// 模拟广播X次
+		final RpcBuilder<?> builder = ExampleRpcServiceRpcProxy.notifySuccess(index);
+		IntStream.rangeClosed(1, 3).forEach(i -> builder.send(session));
 	}
 
 	@Override

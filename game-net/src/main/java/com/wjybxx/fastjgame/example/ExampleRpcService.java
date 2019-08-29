@@ -47,8 +47,8 @@ import java.util.concurrent.locks.LockSupport;
 public class ExampleRpcService {
 
 	@RpcMethod(methodId = 1)
-	public String hello(String name) {
-		return name;
+	public void hello(String name) {
+		System.out.println(name);
 	}
 
 	@RpcMethod(methodId = 2)
@@ -91,13 +91,13 @@ public class ExampleRpcService {
 
 	@RpcMethod(methodId = 7)
 	public void notifySuccess(long id) {
-
+		System.out.println(id);
 	}
 
 	@RpcMethod(methodId = 8)
-	public void notifySuccess2(long id, RpcResponseChannel<Void> responseChannel) {
-
-	}
+	public String combine(String prefix, String content) {
+		return prefix + "_" + content;
+ 	}
 
 	private static class ServiceLoop extends SingleThreadEventLoop {
 

@@ -82,14 +82,16 @@ public interface RpcBuilder<V> {
     RpcBuilder<V> ifSuccess(@Nonnull SucceedRpcCallback<V> callback);
 
     /**
-     * 设置失败时执行的回调
+     * 设置失败时执行的回调。
+     * 注意：如果你最后调用的是{@link #send(Session)}方法，那么该回调会被忽略。
      * @param callback 回调逻辑
      * @return this
      */
     RpcBuilder<V> ifFailure(@Nonnull FailedRpcCallback callback);
 
     /**
-     * 设置无论成功还是失败都会执行的回调
+     * 设置无论成功还是失败都会执行的回调。
+     * 注意：如果你最后调用的是{@link #send(Session)}方法，那么该回调会被忽略。
      * @param callback 回调逻辑
      * @return this
      */
