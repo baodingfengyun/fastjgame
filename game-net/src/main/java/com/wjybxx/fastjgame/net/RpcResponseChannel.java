@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.net;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * 返回rpc结果的通道。
@@ -29,6 +30,7 @@ import javax.annotation.Nullable;
  * date - 2019/8/3
  * github - https://github.com/hl845740757
  */
+@ThreadSafe
 public interface RpcResponseChannel<T> {
 
 	/**

@@ -20,9 +20,10 @@ import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 
 import javax.annotation.Nonnull;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * 会话信息，用于获取远程的基本信息，和提供发送异步消息和同步消息的接口。
+ * 会话信息，用于获取一个链接的双方的基本信息 和 提供发送异步消息和同步消息的接口。
  *
  * <h3>消息分类</h3>
  * 异步消息：单向消息、异步Rpc请求、异步Rpc调用的结果<br>
@@ -66,24 +67,32 @@ import javax.annotation.Nonnull;
  *
  * <p><br>
  * Q: Netty线程和用户线程之间会竞争NetEventLoop资源，这个竞争可能非常激烈，如何降低Netty线程和用户线程之间的竞争？<br>
- * A: Session接口中的所有方法都不会对请求进行缓存，都会立即发送到网络层。为了解决这个问题，设计了{@link SessionPipeline}，
- * pipeline会对用户的异步消息进行一定的缓存，使得可以进行批量发送，可以有效的降低竞争。
+ * A: Session接口中的所有方法都不会对请求进行缓存，都会立即发送到网络层。为了解决这个问题，提炼{@link Sender}，你可以使用带有缓冲的sender，
+ * 可以对用户的异步消息进行一定的缓存，使得可以进行批量发送，可以有效的降低竞争。
+ * (之前设计了pipeline，但是发现出现多个发送消息的接口以后，会导致使用复杂度的提升，不安全！)
  *
  * <p><br>
  * Q:为何抽象层没有提供address之类的信息？<br>
  * A:因为底层会自动处理断线重连等等，这些信息可能会变化，暂时不提供。
  *
  * <p><br>
+ * Q: {@link RpcCallback}一定执行在用户线程吗？
+ * A: 是的，所有的{@link RpcCallback}都执行在用户线程，如果你在其它线程执行rpc调用，请使用{@link #rpc(Object)}，通过rpcFuture添加回调。
+ * rpcFuture添加回调时可以指定运行环境。
+ *
+ * <p><br>
  * 注意事项：
- * 1. 该Session的口较原始，应用层应该提供更简单的封装，最好不要直接使用Session。<br>
- * 2. 特定的 localGuid 和 remoteGuid 在同一个NetEventLoop下只能建立一个链接！！！它俩确定唯一的一个session。
+ * 注意：
+ * 1. 特定的 localGuid 和 remoteGuid 在同一个NetEventLoop下只能建立一个链接！！！它俩确定唯一的一个session。
  * 并不支持在不同的端口的上以相同的id再建立连接，只能存在于不同于的{@link NetEventLoop}。<br>
+ * 2. 这里提供的接口并不是那么的清晰易懂，偏原始、偏底层，应用层可以提供更良好的封装。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/7/29
  * github - https://github.com/hl845740757
  */
+@ThreadSafe
 public interface Session {
 
     // ------------------------------------------------ 注册消息 -----------------------------------------
@@ -112,12 +121,21 @@ public interface Session {
      */
     RoleType remoteRole();
 
+    // ----------------------------------------------- 生命周期 ----------------------------------------------
     /**
-     * 或取该Session上的pipeline，该pipeline上的方法只可以由用户线程使用。
-     * @return pipeline
+     * 当前仅当session已成功和对方建立连接，且未断开的情况下返回true。
      */
-    @Nonnull
-    SessionPipeline pipeline();
+    boolean isActive();
+
+    /**
+     * 关闭当前session
+     *
+     * 注意：
+     * 逻辑层的校验+网络层的校验并不能保证在session活跃的状态下才有事件！
+     * 因为事件会被提交到session所在的executor，因此即使 {@link #isActive() false}，也仍然可能收到该session的消息或事件。
+     * 逻辑层必须加以处理，因为网络层并不知道这时候逻辑层到底需不需要这些消息。
+     */
+    ListenableFuture<?> close();
 
     // ------------------------------------------------ 发送消息 ------------------------------------------
     /**
@@ -175,7 +193,7 @@ public interface Session {
 
     // ------------------------------------------------ 同步Rpc请求 ---------------------------------------------
     /**
-     * 发送一个**同步**rpc请求给对方，并阻塞到结果返回或超时，会使用默认的超时时间（配置文件中指定）。
+     * 发送一个**同步**rpc请求给对方，并阻塞到结果返回或超时，或中断，会使用默认的超时时间（配置文件中指定）。
      *
      * @apiNote
      * 注意：同步rpc调用会尽可能地立即发送，它的结果对方也会尽可能地立即返回，因此它与{@link #send(Object)}{@link #rpc(Object)}之间
@@ -229,19 +247,11 @@ public interface Session {
     @Nonnull
     <T> RpcResponseChannel<T> newResponseChannel(@Nonnull RpcRequestContext context);
 
-    // ----------------------------------------------- 生命周期 ----------------------------------------------
-    /**
-     * 当前仅当session已成功和对方建立连接，且未断开的情况下返回true。
-     */
-    boolean isActive();
+    // --------------------------------------------  缓冲区处理 -------------------------------------------------
 
     /**
-     * 关闭当前session
-     *
-     * 注意：
-     * 逻辑层的校验+网络层的校验并不能保证在session活跃的状态下才有事件！
-     * 因为事件会被提交到session所在的executor，因此即使 {@link #isActive() false}，也仍然可能收到该session的消息或事件。
-     * 逻辑层必须加以处理，因为网络层并不知道这时候逻辑层到底需不需要这些消息。
+     * 如果存在缓冲，则清空缓冲区。
+     * 注意：如果为session创建的是带有缓冲的sender，那么必须调用flush，否则可能有消息残留。
      */
-    ListenableFuture<?> close();
+    void flush();
 }

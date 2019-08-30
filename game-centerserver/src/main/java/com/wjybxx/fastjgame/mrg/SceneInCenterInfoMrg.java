@@ -184,7 +184,7 @@ public class SceneInCenterInfoMrg {
         if (null != sceneInCenterInfo.getSession()) {
             sceneInCenterInfo.getSession().close();
         }
-
+        // 真正删除信息
         removeSceneInfo(sceneInCenterInfo);
 
         offlinePlayer(sceneInCenterInfo);

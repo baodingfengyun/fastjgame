@@ -101,11 +101,6 @@ public class C2SSessionImp extends AbstractSession implements C2SSession {
         return remoteAddress;
     }
 
-    /** 标记为已关闭 */
-    public void setClosed() {
-        stateHolder.set(ST_CLOSED);
-    }
-
     /**
      * 尝试激活会话，由于可能与{@link #close()}没有竞争。因为用户在激活之前其它线程是无法获取到该Session对象的。
      * @return 如果成功设置为激活状态则返回true(激活方法只应该调用一次)
@@ -113,6 +108,27 @@ public class C2SSessionImp extends AbstractSession implements C2SSession {
     public boolean tryActive() {
         assert netContext.netEventLoop().inEventLoop();
         return stateHolder.compareAndSet(ST_INACTIVE, ST_ACTIVE);
+    }
+
+    @Override
+    public boolean isActive() {
+        return stateHolder.get() == ST_ACTIVE;
+    }
+
+    /** 标记为已关闭 */
+    public void setClosed() {
+        stateHolder.set(ST_CLOSED);
+    }
+
+    @Override
+    protected ListenableFuture<?> close0() {
+        // 为什么不对它做优化了？ 因为他本身调用的频率就很低，平白无故的增加复杂度不值得。
+        // 设置状态
+        setClosed();
+        // 可能是自己关闭，因此可能是当前线程，重复调用也必须发送NetEventLoop，否则可能看似关闭，实则还未关闭
+        return EventLoopUtils.submitOrRun(netContext.netEventLoop(), () -> {
+            netManagerWrapper.getC2SSessionManager().removeSession(localGuid(), remoteGuid(), "close method");
+        });
     }
 
     @Override
@@ -125,21 +141,5 @@ public class C2SSessionImp extends AbstractSession implements C2SSession {
                 ", remoteAddress=" + remoteAddress +
                 ", active=" + stateHolder.get() +
                 '}';
-    }
-
-    @Override
-    public boolean isActive() {
-        return stateHolder.get() == ST_ACTIVE;
-    }
-
-    @Override
-    public ListenableFuture<?> close() {
-        // 为什么不对它做优化了？ 因为他本身调用的频率就很低，平白无故的增加复杂度不值得。
-        // 设置状态
-        setClosed();
-        // 可能是自己关闭，因此可能是当前线程，重复调用也必须发送NetEventLoop，否则可能看似关闭，实则还未关闭
-        return EventLoopUtils.submitOrRun(netContext.netEventLoop(), () -> {
-            netManagerWrapper.getC2SSessionManager().removeSession(localGuid(), remoteGuid(), "close method");
-        });
     }
 }

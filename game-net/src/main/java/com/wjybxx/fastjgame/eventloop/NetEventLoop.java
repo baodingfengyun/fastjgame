@@ -18,7 +18,9 @@ package com.wjybxx.fastjgame.eventloop;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
-import com.wjybxx.fastjgame.net.*;
+import com.wjybxx.fastjgame.net.RpcFuture;
+import com.wjybxx.fastjgame.net.RpcPromise;
+import com.wjybxx.fastjgame.net.RpcResponse;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -59,25 +61,6 @@ public interface NetEventLoop extends NetEventLoopGroup, EventLoop {
 	 */
 	@Nonnull
 	RpcFuture newCompletedRpcFuture(@Nonnull EventLoop userEventLoop, @Nonnull RpcResponse rpcResponse);
-
-
-	/**
-	 * 创建一个RpcPromise
-	 * @param userEventLoop 用户所在的EventLoop
-	 * @param timeoutMs 指定的过期时间
-	 * @return promise
-	 */
-	@Nonnull
-	PipelineRpcPromise newPipelineRpcPromise(@Nonnull EventLoop userEventLoop, long timeoutMs);
-
-	/**
-	 * 创建rpcFuture，它关联的rpc操作早已完成。在它上面的监听会立即执行。
-	 *
-	 * @param userEventLoop 用户所在的EventLoop
-	 * @param rpcResponse rpc调用结果
-	 * @return rpcFuture
-	 */
-	PipelineRpcFuture newCompletedPipelineRpcFuture(@Nonnull EventLoop userEventLoop, @Nonnull RpcResponse rpcResponse);
 
 	/**
 	 * 取消context的注册

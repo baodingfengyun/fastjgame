@@ -22,7 +22,6 @@ import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
 import com.wjybxx.fastjgame.manager.*;
-import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.module.NetEventLoopModule;
 import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
@@ -128,17 +127,6 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
 	@Override
 	public RpcFuture newCompletedRpcFuture(@Nonnull EventLoop userEventLoop, @Nonnull RpcResponse rpcResponse) {
 		return new CompletedRpcFuture(userEventLoop, rpcResponse);
-	}
-
-	@Nonnull
-	@Override
-	public PipelineRpcPromise newPipelineRpcPromise(@Nonnull EventLoop userEventLoop, long timeoutMs) {
-		return new DefaultPipelineRpcPromise(this, userEventLoop, timeoutMs);
-	}
-
-	@Override
-	public PipelineRpcFuture newCompletedPipelineRpcFuture(@Nonnull EventLoop userEventLoop, @Nonnull RpcResponse rpcResponse) {
-		return new CompletedPipelineRpcFuture(userEventLoop, rpcResponse);
 	}
 
 	@Override

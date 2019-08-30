@@ -904,7 +904,7 @@ public class C2SSessionManager extends SessionManager {
             final RpcRequestTO requestTO = rpcRequestEventParam.messageTO();
             ifSequenceAndAckOk(requestTO, ()-> {
                 DefaultRpcRequestContext context = new DefaultRpcRequestContext(requestTO.isSync(), requestTO.getRequestGuid());
-                UncommittedRpcRequest uncommittedMessage = new UncommittedRpcRequest(requestTO.getRequest(), context);
+                UncommittedRpcRequest uncommittedMessage = new UncommittedRpcRequest(requestTO.getRequest(), context, C2SSessionManager.this);
                 if (requestTO.isSync()) {
                     // 同步调用，立即提交
                     commitImmediately(uncommittedMessage);

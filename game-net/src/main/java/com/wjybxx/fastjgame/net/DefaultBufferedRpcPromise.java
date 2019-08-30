@@ -15,23 +15,23 @@
  */
 package com.wjybxx.fastjgame.net;
 
+import com.wjybxx.fastjgame.concurrent.BlockingOperationException;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.utils.EventLoopUtils;
 
 /**
- * 默认的PipelineRpcRromise实现
- *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/16
  * github - https://github.com/hl845740757
  */
-public class DefaultPipelineRpcPromise extends DefaultRpcPromise implements PipelineRpcPromise{
+public class DefaultBufferedRpcPromise extends DefaultRpcPromise implements BufferedRpcPromise {
 
+	/** rpc请求是否已发送出去，是否已提交到网络层 */
 	private volatile boolean sent = false;
 
-	public DefaultPipelineRpcPromise(NetEventLoop workerEventLoop, EventLoop userEventLoop, long timeoutMs) {
+	public DefaultBufferedRpcPromise(NetEventLoop workerEventLoop, EventLoop userEventLoop, long timeoutMs) {
 		super(workerEventLoop, userEventLoop, timeoutMs);
 	}
 
@@ -42,11 +42,11 @@ public class DefaultPipelineRpcPromise extends DefaultRpcPromise implements Pipe
 
 	@Override
 	protected void checkDeadlock() {
-		if (sent) {
-			EventLoopUtils.checkDeadLock(executor());
+		if (getUserEventLoop().inEventLoop() && !sent) {
+			// 如果用户线程，且尚未发送出去，则抛出阻塞异常
+			throw new BlockingOperationException();
 		} else {
-			// 还未发送出去，禁止在上面等待
-			EventLoopUtils.checkDeadLock(getUserEventLoop());
+			EventLoopUtils.checkDeadLock(executor());
 		}
 	}
 }

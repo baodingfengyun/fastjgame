@@ -680,7 +680,7 @@ public class S2CSessionManager extends SessionManager {
         final RpcRequestTO requestMessageTO = rpcRequestEventParam.messageTO();
         tryUpdateMessageQueue(eventChannel, rpcRequestEventParam, sessionWrapper -> {
             DefaultRpcRequestContext context = new DefaultRpcRequestContext(requestMessageTO.isSync(), requestMessageTO.getRequestGuid());
-            UncommittedRpcRequest uncommittedRpcRequest = new UncommittedRpcRequest(requestMessageTO.getRequest(), context);
+            UncommittedRpcRequest uncommittedRpcRequest = new UncommittedRpcRequest(requestMessageTO.getRequest(), context, S2CSessionManager.this);
             if (requestMessageTO.isSync()) {
                 // 同步请求，立即提交
                 sessionWrapper.commitImmediately(uncommittedRpcRequest);

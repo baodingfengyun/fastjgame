@@ -16,13 +16,14 @@
 package com.wjybxx.fastjgame.net;
 
 /**
- * 通过Pipeline发起Rpc请求对应的Promise
+ * {@link BufferedSender}发起rpc请求时返回的future
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/16
  * github - https://github.com/hl845740757
  */
-public interface PipelineRpcPromise extends PipelineRpcFuture, RpcPromise{
+public interface BufferedRpcPromise extends RpcPromise{
 
 	/**
 	 * 设置为已发送，已发送之后用户可以在该promise上等待了。

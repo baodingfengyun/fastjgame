@@ -15,6 +15,8 @@
  */
 package com.wjybxx.fastjgame.net;
 
+import com.wjybxx.fastjgame.manager.SessionManager;
+
 /**
  * 接收缓冲区中未提交的异步Rpc请求。
  *
@@ -28,11 +30,14 @@ public class UncommittedRpcRequest implements UncommittedMessage{
 	/** Rpc请求内容 */
 	private final Object request;
 	/** 该请求对应的上下文 */
-	private final RpcRequestContext context;
+	private final DefaultRpcRequestContext context;
+	/** 会话管理器 */
+	private final SessionManager sessionManager;
 
-	public UncommittedRpcRequest(Object request, RpcRequestContext context) {
+	public UncommittedRpcRequest(Object request, DefaultRpcRequestContext context, SessionManager sessionManager) {
 		this.request = request;
 		this.context = context;
+		this.sessionManager = sessionManager;
 	}
 
 	@Override
@@ -43,6 +48,7 @@ public class UncommittedRpcRequest implements UncommittedMessage{
 	@Override
 	public void onRejected(Session session) {
 		// 立即返回失败结果
-		session.newResponseChannel(context).write(RpcResponse.COMMIT_FAILED);
+		sessionManager.sendRpcResponse(session.localGuid(), session.remoteGuid(), context.requestGuid, context.sync,
+				RpcResponse.COMMIT_FAILED);
 	}
 }
