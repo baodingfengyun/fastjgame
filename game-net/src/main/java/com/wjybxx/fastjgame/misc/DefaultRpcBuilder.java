@@ -17,12 +17,8 @@
 package com.wjybxx.fastjgame.misc;
 
 import com.wjybxx.fastjgame.concurrent.ImmediateEventLoop;
-import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
-import com.wjybxx.fastjgame.configwrapper.EmptyConfigWrapper;
-import com.wjybxx.fastjgame.manager.NetConfigManager;
 import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-import com.wjybxx.fastjgame.utils.ConfigLoader;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -36,22 +32,6 @@ import java.util.List;
  * github - https://github.com/hl845740757
  */
 public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
-
-    private static final InvokePolicy POLICY;
-
-    static {
-        ConfigWrapper configWrapper;
-        try {
-            configWrapper = ConfigLoader.loadConfig(ClassLoader.getSystemClassLoader(), NetConfigManager.NET_CONFIG_NAME);
-        } catch (Exception ignore) {
-            configWrapper = EmptyConfigWrapper.INSTANCE;
-        }
-        if (configWrapper.getAsBool("DefaultRpcBuilder.POLICY.PIPELINE", false)){
-            POLICY = new PipelinePolicy();
-        } else {
-            POLICY = new SessionPolicy();
-        }
-    }
 
     private static final int SHARE_MODE_ANY = 0;
     private static final int SHARE_MODE_SEND = 1;
@@ -111,7 +91,7 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
     public void send(@Nullable Session session) throws IllegalStateException {
         ensureSendAvailable();
         if (session != null) {
-            POLICY.send(session, call);
+            session.send(call);
         }
         // else do nothing
     }
@@ -124,7 +104,7 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
         }
         for (Session session:sessionIterable) {
             if (session != null) {
-                POLICY.send(session, call);
+                session.send(call);
             }
         }
     }
@@ -161,10 +141,10 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
         } else {
             if (callback == null) {
                 // 没有设置回调，使用通知代替rpc调用，对方不会返回结果
-                POLICY.send(session, call);
+                session.send(call);
             } else {
                 // 设置了回调，走rpc，对方一定会返回一个值
-                POLICY.rpc(session, call, callback);
+                session.rpc(call, callback);
             }
         }
     }
@@ -177,7 +157,7 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
             // session不存在，安全的失败
             response = RpcResponse.SESSION_NULL;
         } else {
-            response = POLICY.sync(session, call);
+            response = session.syncRpcUninterruptibly(call);
         }
         // 返回之前，先执行添加的回调
         if (callback != null) {
@@ -206,92 +186,12 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
             // session不存在，安全的失败
             future = new CompletedRpcFuture(ImmediateEventLoop.INSTANCE, RpcResponse.SESSION_NULL);
         } else {
-            future = POLICY.rpc(session, call);
+            future = session.rpc(call);
         }
         // 添加之前设置的回调
         if (callback != null) {
             future.addCallback(callback);
         }
         return future;
-    }
-
-    /**
-     * 发送消息的策略
-     */
-    private interface InvokePolicy {
-
-        /**
-         * 发送一个单向通知。
-         */
-        void send(@Nonnull Session session, @Nonnull RpcCall call);
-
-        /**
-         * 执行异步rpc调用
-         */
-        void rpc(@Nonnull Session session, @Nonnull RpcCall call, @Nonnull RpcCallback callback);
-
-        /**
-         * 执行异步调用并返回一个future
-         * @return future
-         */
-        RpcFuture rpc(@Nonnull Session session, @Nonnull RpcCall call);
-
-        /**
-         * 执行同步rpc调用，并直接获得结果。
-         * @return result
-         */
-        RpcResponse sync(@Nonnull Session session, @Nonnull RpcCall call);
-    }
-
-    /**
-     * 直接通过session发送消息的策略
-     */
-    private static class SessionPolicy implements InvokePolicy {
-
-        @Override
-        public void send(@Nonnull Session session, @Nonnull RpcCall call) {
-            session.send(call);
-        }
-
-        @Override
-        public void rpc(@Nonnull Session session, @Nonnull RpcCall call, @Nonnull RpcCallback callback) {
-            session.rpc(call, callback);
-        }
-
-        @Override
-        public RpcFuture rpc(@Nonnull Session session, @Nonnull RpcCall call) {
-            return session.rpc(call);
-        }
-
-        @Override
-        public RpcResponse sync(@Nonnull Session session, @Nonnull RpcCall call) {
-            return session.syncRpcUninterruptibly(call);
-        }
-    }
-
-    /**
-     * 通过pipeline发送消息的策略
-     */
-    private static class PipelinePolicy implements InvokePolicy {
-
-        @Override
-        public void send(@Nonnull Session session, @Nonnull RpcCall call) {
-            session.pipeline().enqueueMessage(call);
-        }
-
-        @Override
-        public void rpc(@Nonnull Session session, @Nonnull RpcCall call, @Nonnull RpcCallback callback) {
-            session.pipeline().enqueueRpc(call, callback);
-        }
-
-        @Override
-        public RpcFuture rpc(@Nonnull Session session, @Nonnull RpcCall call) {
-            return session.pipeline().enqueueRpc(call);
-        }
-
-        @Override
-        public RpcResponse sync(@Nonnull Session session, @Nonnull RpcCall call) {
-            return session.pipeline().syncRpcUninterruptibly(call);
-        }
     }
 }
