@@ -16,15 +16,15 @@
 package com.wjybxx.fastjgame.net;
 
 /**
- * 接收缓冲区中未提交的异步Rpc请求。
- *
+ * rpc请求任务
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/8
  * github - https://github.com/hl845740757
  */
-public class RpcRequestCommitTask extends AbstractCommitTask {
+public class RpcRequestCommitTask implements CommitTask {
 
+	private final Session session;
 	/** 消息分发器 */
 	private final ProtocolDispatcher protocolDispatcher;
 	/** rpc请求编号，用于返回消息 */
@@ -35,7 +35,7 @@ public class RpcRequestCommitTask extends AbstractCommitTask {
 	private final Object request;
 
 	public RpcRequestCommitTask(Session session, ProtocolDispatcher protocolDispatcher, long requestGuid, boolean sync, Object request) {
-		super(session);
+		this.session = session;
 		this.protocolDispatcher = protocolDispatcher;
 		this.requestGuid = requestGuid;
 		this.sync = sync;
@@ -43,7 +43,7 @@ public class RpcRequestCommitTask extends AbstractCommitTask {
 	}
 
 	@Override
-	public void doCommit() {
+	public void run() {
 		final RpcResponseChannel<?> responseChannel = session.sender().newResponseChannel(requestGuid, sync);
 		protocolDispatcher.postRpcRequest(session, request, responseChannel);
 	}

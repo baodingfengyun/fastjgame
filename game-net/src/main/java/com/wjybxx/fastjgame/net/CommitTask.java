@@ -16,7 +16,7 @@
 package com.wjybxx.fastjgame.net;
 
 /**
- * 网络层已收到，但是需要在用户线程执行的逻辑。
+ * 网络层已收到的消息包，但是需要提交到用户线程执行。
  *
  * @author wjybxx
  * @version 1.0

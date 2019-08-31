@@ -16,26 +16,28 @@
 package com.wjybxx.fastjgame.net;
 
 /**
- * 接收缓冲区中未提交的单向消息
+ * 单向消息任务
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/8
  * github - https://github.com/hl845740757
  */
-public class OneWayMessageCommitTask extends AbstractCommitTask {
+public class OneWayMessageCommitTask implements CommitTask {
+
+	private final Session session;
 	/** 消息分发器 */
 	private final ProtocolDispatcher protocolDispatcher;
 	/** 单向消息的内容 */
 	private final Object message;
 
 	public OneWayMessageCommitTask(Session session, ProtocolDispatcher protocolDispatcher, Object message) {
-		super(session);
+		this.session = session;
 		this.protocolDispatcher = protocolDispatcher;
 		this.message = message;
 	}
 
 	@Override
-	public void doCommit() {
+	public void run() {
 		protocolDispatcher.postOneWayMessage(session, message);
 	}
 }

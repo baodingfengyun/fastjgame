@@ -16,26 +16,24 @@
 package com.wjybxx.fastjgame.net;
 
 /**
- * 已接收但还未提交给应用层的异步Rpc的响应
- *
+ * rpc响应任务
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/13
  * github - https://github.com/hl845740757
  */
-public class RpcResponseCommitTask extends AbstractCommitTask {
+public class RpcResponseCommitTask implements CommitTask {
 
 	private final RpcResponse rpcResponse;
 	private final RpcCallback rpcCallback;
 
-	public RpcResponseCommitTask(Session session, RpcResponse rpcResponse, RpcCallback rpcCallback) {
-		super(session);
+	public RpcResponseCommitTask(RpcResponse rpcResponse, RpcCallback rpcCallback) {
 		this.rpcResponse = rpcResponse;
 		this.rpcCallback = rpcCallback;
 	}
 
 	@Override
-	public void doCommit() {
+	public void run() {
 		rpcCallback.onComplete(rpcResponse);
 	}
 }

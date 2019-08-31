@@ -256,7 +256,7 @@ public abstract class SessionManager {
             rpcPromiseInfo.rpcPromise.trySuccess(rpcResponse);
         } else {
             // 异步rpc调用
-            RpcResponseCommitTask rpcResponseCommitTask = new RpcResponseCommitTask(session, rpcResponse, rpcPromiseInfo.rpcCallback);
+            RpcResponseCommitTask rpcResponseCommitTask = new RpcResponseCommitTask(rpcResponse, rpcPromiseInfo.rpcCallback);
             commit(netContext, session, rpcResponseCommitTask);
         }
     }
