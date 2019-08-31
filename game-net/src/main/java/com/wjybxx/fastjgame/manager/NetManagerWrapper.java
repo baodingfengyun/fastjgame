@@ -17,10 +17,13 @@
 package com.wjybxx.fastjgame.manager;
 
 import com.google.inject.Inject;
+import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopManager;
 
 /**
+ * 封装{@link NetEventLoop}可能使用到的所有管理器。
  * NetEventLoop不是依赖注入的，一个个获取实例实在有点麻烦...
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/3

@@ -121,7 +121,7 @@ public class ExampleRpcService {
 			// 监听tcp端口
 			TCPServerChannelInitializer initializer = netContext.newTcpServerInitializer(ExampleConstants.reflectBasedCodec);
 			netContext.bind(NetUtils.getLocalIp(), ExampleConstants.tcpPort, initializer, new ClientLifeAware(),
-					new ExampleRpcDispatcher(dispatcher), SenderMode.DIRECT);
+					new ExampleRpcDispatcher(dispatcher), SessionSenderMode.DIRECT);
 		}
 
 		@Override

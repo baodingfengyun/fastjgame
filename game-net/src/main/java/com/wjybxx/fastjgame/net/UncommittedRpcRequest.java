@@ -25,7 +25,7 @@ import com.wjybxx.fastjgame.manager.SessionManager;
  * date - 2019/8/8
  * github - https://github.com/hl845740757
  */
-public class UncommittedRpcRequest implements UncommittedMessage{
+public class UncommittedRpcRequest extends AbstractUncommittedMessage{
 
 	/** Rpc请求内容 */
 	private final Object request;
@@ -41,7 +41,7 @@ public class UncommittedRpcRequest implements UncommittedMessage{
 	}
 
 	@Override
-	public void commit(Session session, ProtocolDispatcher protocolDispatcher) throws Exception {
+	public void doCommit(Session session, ProtocolDispatcher protocolDispatcher) throws Exception {
 		protocolDispatcher.postRpcRequest(session, request, context);
 	}
 

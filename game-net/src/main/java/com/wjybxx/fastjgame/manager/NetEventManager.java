@@ -58,7 +58,7 @@ public class NetEventManager {
 	 * @param eventParam 事件参数。类型决定参数
 	 */
 	public void publishEvent(NetEventType netEventType, NetEventParam eventParam){
-		// 一定不在NetEventLoop中，提交到netEventLoop线程
+		// netty线程执行，一定不在NetEventLoop中，提交到netEventLoop线程
 		try {
 			netEventLoopManager.eventLoop().execute(() -> {
 				onNetEvent(netEventType, eventParam);

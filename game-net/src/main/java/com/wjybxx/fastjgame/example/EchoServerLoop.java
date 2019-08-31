@@ -59,7 +59,7 @@ public class EchoServerLoop extends SingleThreadEventLoop {
 
 		// 监听tcp端口
 		TCPServerChannelInitializer initializer = netContext.newTcpServerInitializer(ExampleConstants.jsonBasedCodec);
-		netContext.bind(NetUtils.getLocalIp(), ExampleConstants.tcpPort, initializer, new ClientLifeAware(), new EchoProtocolDispatcher(), SenderMode.DIRECT);
+		netContext.bind(NetUtils.getLocalIp(), ExampleConstants.tcpPort, initializer, new ClientLifeAware(), new EchoProtocolDispatcher(), SessionSenderMode.DIRECT);
 
 		// 监听http端口
 		HttpServerInitializer httpServerInitializer = netContext.newHttpServerInitializer();
@@ -111,13 +111,13 @@ public class EchoServerLoop extends SingleThreadEventLoop {
 	private static class EchoProtocolDispatcher implements ProtocolDispatcher {
 
 		@Override
-		public void postOneWayMessage(Session session, @Nullable Object message) throws Exception {
+		public void postOneWayMessage(Session session, @Nullable Object message) {
 			assert null != message;
 			session.send(message);
 		}
 
 		@Override
-		public void postRpcRequest(Session session, @Nullable Object request, RpcRequestContext context) throws Exception {
+		public void postRpcRequest(Session session, @Nullable Object request, RpcRequestContext context) {
 			assert null != request;
 			RpcResponseChannel<Object> responseChannel = session.newResponseChannel(context);
 			responseChannel.writeSuccess(request);
@@ -127,7 +127,7 @@ public class EchoServerLoop extends SingleThreadEventLoop {
 	private static class EchoHttpRequestDispatcher implements HttpRequestDispatcher {
 
 		@Override
-		public void post(HttpSession httpSession, String path, HttpRequestParam params) throws Exception {
+		public void post(HttpSession httpSession, String path, HttpRequestParam params) {
 			httpSession.writeAndFlush(HttpResponseHelper.newStringResponse("path - " + path + ", params - " + params.toString()));
 		}
 

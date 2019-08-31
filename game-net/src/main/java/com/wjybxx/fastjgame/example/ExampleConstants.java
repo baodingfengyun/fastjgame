@@ -18,7 +18,6 @@ package com.wjybxx.fastjgame.example;
 import com.wjybxx.fastjgame.misc.JsonBasedProtocolCodec;
 import com.wjybxx.fastjgame.misc.MessageMapper;
 import com.wjybxx.fastjgame.misc.ReflectBasedProtocolCodec;
-import com.wjybxx.fastjgame.net.ProtocolCodec;
 import com.wjybxx.fastjgame.net.RoleType;
 
 /**
@@ -36,9 +35,6 @@ public final class ExampleConstants {
 	/** 客户端信息 */
 	public static final long clientGuid = 11111;
 	public static final RoleType clientRole = RoleType.TEST_CLIENT;
-	/** 客户端信息 */
-	public static final long pipelineClientGuid = 33333;
-	public static final RoleType pipelineClientRole = RoleType.TEST_CLIENT;
 
 	/** 测试用例使用的codec */
 	public static final MessageMapper messageMapper = MessageMapper.newInstance(new ExampleHashMappingStrategy());

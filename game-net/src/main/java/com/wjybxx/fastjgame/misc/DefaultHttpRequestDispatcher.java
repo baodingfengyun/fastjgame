@@ -52,7 +52,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestHandlerRegistry,
 	}
 
 	@Override
-	public void post(HttpSession httpSession, String path, HttpRequestParam params) throws Exception {
+	public void post(HttpSession httpSession, String path, HttpRequestParam params) {
 		HttpRequestHandler httpRequestHandler = handlerMap.get(path);
 		if (null == httpRequestHandler){
 			// 未注册的路径

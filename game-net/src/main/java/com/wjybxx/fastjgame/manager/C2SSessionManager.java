@@ -49,7 +49,7 @@ import java.util.function.Consumer;
  * 2.外部调用{@link #removeSession(long, long, String)}
  * 3.消息缓存数超过限制
  * 4.限定时间内无法连接到服务器
- * 5.验证结果表明服务器的sequence和ack异常时。
+ * 5.验证结果表明服务器的sequence和ack异常时（重连无法恢复到正常状态时）。
  *
  * 什么时候会关闭channel？
  * {@link #removeSession(long, long, String)}
@@ -135,12 +135,13 @@ public class C2SSessionManager extends SessionManager {
      * @param initializerSupplier 初始化器提供者，如果initializer是线程安全的，可以始终返回同一个对象
      * @param lifecycleAware 作为客户端，链接不同的服务器时，可能有不同的生命周期事件处理
      * @param protocolDispatcher 消息处理器
-     * @param senderMode session发送消息的方式
+     * @param sessionSenderMode session发送消息的方式
      */
     public void connect(NetContext netContext, long serverGuid, RoleType serverType, HostAndPort hostAndPort,
                         @Nonnull ChannelInitializerSupplier initializerSupplier,
                         @Nonnull SessionLifecycleAware lifecycleAware,
-                        @Nonnull ProtocolDispatcher protocolDispatcher, SenderMode senderMode) throws IllegalArgumentException{
+                        @Nonnull ProtocolDispatcher protocolDispatcher,
+                        @Nonnull SessionSenderMode sessionSenderMode) throws IllegalArgumentException{
         long localGuid = netContext.localGuid();
         // 已注册
         if (getSessionWrapper(localGuid, serverGuid) != null){
@@ -150,7 +151,7 @@ public class C2SSessionManager extends SessionManager {
         UserInfo userInfo = userInfoMap.computeIfAbsent(localGuid, k -> new UserInfo(netContext));
 
         // 创建会话
-        C2SSessionImp session = new C2SSessionImp(netContext, managerWrapper, serverGuid, serverType, hostAndPort, senderMode);
+        C2SSessionImp session = new C2SSessionImp(netContext, managerWrapper, serverGuid, serverType, hostAndPort, sessionSenderMode);
         byte[] encryptedLoginToken = tokenManager.newEncryptedLoginToken(netContext.localGuid(), netContext.localRole(), serverGuid, serverType);
         SessionWrapper sessionWrapper = new SessionWrapper(userInfo, initializerSupplier, lifecycleAware, protocolDispatcher, session, encryptedLoginToken);
         // 保存会话
@@ -196,7 +197,7 @@ public class C2SSessionManager extends SessionManager {
     public void send(long localGuid, long serverGuid, @Nonnull Object message){
         SessionWrapper sessionWrapper = getAliveSession(localGuid, serverGuid);
         if (sessionWrapper == null) {
-            logger.info("session {}-{} is inactive, but try send message.", localGuid, serverGuid);
+            logger.debug("session {}-{} is inactive, but try send message.", localGuid, serverGuid);
             return;
         }
         // 添加到待发送队列
@@ -208,7 +209,7 @@ public class C2SSessionManager extends SessionManager {
     public void rpc(long localGuid, long serverGuid, @Nonnull Object request, long timeoutMs, EventLoop userEventLoop, RpcCallback rpcCallback) {
         SessionWrapper sessionWrapper = getAliveSession(localGuid, serverGuid);
         if (sessionWrapper == null) {
-            logger.info("session {}-{} is inactive, but try send rpcRequest.", localGuid, serverGuid);
+            logger.debug("session {}-{} is inactive, but try send rpcRequest.", localGuid, serverGuid);
             userEventLoop.execute(() -> {
                 rpcCallback.onComplete(RpcResponse.SESSION_CLOSED);
             });
@@ -236,7 +237,7 @@ public class C2SSessionManager extends SessionManager {
     public void rpc(long localGuid, long serverGuid, @Nonnull Object request, final long timeoutMs, boolean sync, RpcPromise rpcPromise){
         SessionWrapper sessionWrapper = getAliveSession(localGuid, serverGuid);
         if (sessionWrapper == null) {
-            logger.info("session {}-{} is inactive, but try send rpcRequest.", localGuid, serverGuid);
+            logger.debug("session {}-{} is inactive, but try send rpcRequest.", localGuid, serverGuid);
             rpcPromise.trySuccess(RpcResponse.SESSION_CLOSED);
             return;
         }
@@ -265,7 +266,7 @@ public class C2SSessionManager extends SessionManager {
     public void sendRpcResponse(long localGuid, long serverGuid, long requestGuid, boolean sync, @Nonnull RpcResponse response) {
         SessionWrapper sessionWrapper = getAliveSession(localGuid, serverGuid);
         if (sessionWrapper == null) {
-            logger.info("session {}-{} is inactive, but try send rpcResponse.", localGuid, serverGuid);
+            logger.debug("session {}-{} is inactive, but try send rpcResponse.", localGuid, serverGuid);
             return;
         }
         UnsentRpcResponse unsentRpcResponse = new UnsentRpcResponse(requestGuid, response);
@@ -693,7 +694,7 @@ public class C2SSessionManager extends SessionManager {
         final void reconnect(String reason){
             NetUtils.closeQuietly(channel);
             changeState(sessionWrapper,new ConnectingState(sessionWrapper));
-            logger.info("reconnect by reason of {}",reason);
+            logger.debug("reconnect by reason of {}",reason);
         }
 
     }
@@ -1044,7 +1045,7 @@ public class C2SSessionManager extends SessionManager {
          */
         private final SessionLifecycleAware lifecycleAware;
         /**
-         * 消息处理器
+         * 该会话关联的消息处理器
          */
         private final ProtocolDispatcher protocolDispatcher;
 
@@ -1053,7 +1054,7 @@ public class C2SSessionManager extends SessionManager {
          */
         private final C2SSessionImp session;
         /**
-         * 客户端是消息队列
+         * 该会话关联的消息队列
          */
         private final MessageQueue messageQueue = new MessageQueue();
         /**

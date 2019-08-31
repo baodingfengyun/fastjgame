@@ -70,7 +70,7 @@ public class EchoClientLoop extends SingleThreadEventLoop {
 				ExampleConstants.jsonBasedCodec);
 		final HostAndPort address = new HostAndPort(NetUtils.getLocalIp(), ExampleConstants.tcpPort);
 		netContext.connect(ExampleConstants.serverGuid, ExampleConstants.serverRole, address, () -> initializer,
-				new ServerLifeAward(), new EchoProtocolDispatcher(), SenderMode.DIRECT);
+				new ServerLifeAward(), new EchoProtocolDispatcher(), SessionSenderMode.DIRECT);
 	}
 
 	public void loop() {
@@ -200,12 +200,12 @@ public class EchoClientLoop extends SingleThreadEventLoop {
 	private class EchoProtocolDispatcher implements ProtocolDispatcher {
 
 		@Override
-		public void postOneWayMessage(Session session, @Nullable Object message) throws Exception {
+		public void postOneWayMessage(Session session, @Nullable Object message) {
 			System.out.println("\nonMessage - " + JsonUtils.toJson(message));
 		}
 
 		@Override
-		public void postRpcRequest(Session session, @Nullable Object request, RpcRequestContext context) throws Exception {
+		public void postRpcRequest(Session session, @Nullable Object request, RpcRequestContext context) {
 			// unreachable
 		}
 	}

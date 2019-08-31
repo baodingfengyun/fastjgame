@@ -156,7 +156,6 @@ public class NetConfigManager  {
     }
     /**
      * 作为客户端时的发送缓冲区
-     * @return
      */
     public int sndBufferAsClient(){
         return sndBufferAsClient;
@@ -170,7 +169,6 @@ public class NetConfigManager  {
 
     /**
      * 获取服务器最大可缓存消息数
-     * @return
      */
     public int serverMaxCacheNum(){
         return serverMaxCacheNum;

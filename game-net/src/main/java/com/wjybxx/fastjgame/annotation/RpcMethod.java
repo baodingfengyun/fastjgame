@@ -31,18 +31,19 @@ import java.lang.annotation.Target;
  * 即：
  * <pre>
  * {@code
- * 		// 1. 可以立即返回结果，代理方法返回值 RpcCall<String>
+ * 		// 1. 可以立即返回结果，代理方法返回值 RpcBuilder<String>
  * 		String rpcMethod(long id);
- * 		// 2. 不能立即返回结果，代理方法返回值 RpcCall<String>
+ * 		// 2. 不能立即返回结果，代理方法返回值 RpcBuilder<String>
  *		void rpcMethod(RpcResponseChannel<String> channel, ling id);
- *		// 3. 不返回结果，代理方法返回值 RpcCall<Void>
+ *		// 3. 不返回结果，代理方法返回值 RpcBuilder<Void>
  *		void oneWayMethod(long id);
  * }
  * </pre>
  *
  * 注意：
- * 1.RpcResponseChannel不参与生成的代理方法的参数列表，因此上面 1，2生成的代理方法前面是一致的！你必须避免这种情况。
+ * 1.RpcResponseChannel不参与生成的代理方法的参数列表，因此上面 1，2生成的代理方法签名是一致的！你必须避免这种情况。
  * 2.方法必须是public
+ * 3. methodId必须
  *
  * @author wjybxx
  * @version 1.0
@@ -55,7 +56,7 @@ public @interface RpcMethod {
 
 	/**
 	 * 该方法在该类中的唯一id。
-	 * 注意：该值必须大于0。
+	 * 注意：取值范围为闭区间[0, 9999]。
 	 * @return 由该id和serviceId构成唯一索引。
 	 */
 	short methodId();

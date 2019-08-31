@@ -23,9 +23,9 @@ import java.lang.annotation.Target;
 
 /**
  * http请求路由。
- * 该注解可以用在类/接口上，也可以用在方法上。当类上存在该注解时，那么该类中的所有方法都在该路径之下。
+ * 该注解可以用在类/接口上，也可以用在方法上。当类上存在该注解时，那么该类中的所有方法默认都在该路径之下。
  *
- * 没想到啥好名字，参考下常见的spring的RequestMapping，也打算做个类似的支持。
+ * 没想到啥好名字，参考下了常见的spring的RequestMapping，也打算做个类似的支持。
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/27

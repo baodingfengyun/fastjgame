@@ -6,7 +6,7 @@ import com.wjybxx.fastjgame.core.onlinenode.SceneNodeData;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.mrg.*;
 import com.wjybxx.fastjgame.net.NetContext;
-import com.wjybxx.fastjgame.net.SenderMode;
+import com.wjybxx.fastjgame.net.SessionSenderMode;
 import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.net.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.initializer.TCPServerChannelInitializer;
@@ -96,11 +96,11 @@ public class SceneWorld extends AbstractWorld {
         TCPServerChannelInitializer tcplInitializer = netContext.newTcpServerInitializer(protocolCodecMrg.getInnerProtocolCodec());
 
         HostAndPort outerTcpHostAndPort = netContext.bindRange(NetUtils.getOuterIp(), GameUtils.OUTER_TCP_PORT_RANGE,
-                tcplInitializer, new PlayerLifeAware(), protocolDispatcherMrg, SenderMode.DIRECT).get();
+                tcplInitializer, new PlayerLifeAware(), protocolDispatcherMrg, SessionSenderMode.DIRECT).get();
 
         WsServerChannelInitializer wsInitializer = netContext.newWsServerInitializer("/ws", protocolCodecMrg.getInnerProtocolCodec());
         HostAndPort outerWebsocketHostAndPort = netContext.bindRange(NetUtils.getOuterIp(), GameUtils.OUTER_WS_PORT_RANGE,
-                wsInitializer, new PlayerLifeAware(), protocolDispatcherMrg, SenderMode.DIRECT).get();
+                wsInitializer, new PlayerLifeAware(), protocolDispatcherMrg, SessionSenderMode.DIRECT).get();
 
         SceneNodeData sceneNodeData =new SceneNodeData(innerTcpAddress.toString(), innerHttpAddress.toString(), localAddress.toString(), SystemUtils.getMAC(),
                 sceneWorldInfoMrg.getChannelId(), outerTcpHostAndPort.toString(),outerWebsocketHostAndPort.toString());

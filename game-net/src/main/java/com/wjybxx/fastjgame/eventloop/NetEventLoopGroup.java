@@ -49,6 +49,6 @@ public interface NetEventLoopGroup extends EventLoopGroup {
 	 * @param localEventLoop 方法的调用者所在的eventLoop
 	 * @return NetContext 创建的context可以用于监听，建立连接，和http请求
 	 */
-	ListenableFuture<NetContext> createContext(long localGuid, RoleType localRole, EventLoop localEventLoop);
+	ListenableFuture<NetContext> createContext(long localGuid, RoleType localRole, @Nonnull EventLoop localEventLoop);
 
 }

@@ -35,21 +35,21 @@ import javax.annotation.Nonnull;
 public abstract class AbstractSession implements Session{
 
     /** 消息发送模式 */
-    private final SenderMode senderMode;
+    private final SessionSenderMode sessionSenderMode;
 
     /**
      * 真正执行消息发送组件
      */
     private final Sender sender;
 
-    protected AbstractSession(SenderMode senderMode) {
-        this.senderMode = senderMode;
-        if (senderMode == SenderMode.DIRECT) {
+    protected AbstractSession(SessionSenderMode sessionSenderMode) {
+        this.sessionSenderMode = sessionSenderMode;
+        if (sessionSenderMode == SessionSenderMode.DIRECT) {
             sender = new DirectSender(this);
-        } else if (senderMode == SenderMode.BUFFERED) {
+        } else if (sessionSenderMode == SessionSenderMode.BUFFERED) {
             sender = new BufferedSender(this);
         } else {
-            throw new IllegalArgumentException("Unsupported senderMode " + senderMode);
+            throw new IllegalArgumentException("Unsupported sessionSenderMode " + sessionSenderMode);
         }
     }
 
@@ -76,8 +76,8 @@ public abstract class AbstractSession implements Session{
     }
 
     @Override
-    public SenderMode senderMode() {
-        return senderMode;
+    public SessionSenderMode senderMode() {
+        return sessionSenderMode;
     }
 
     public NetEventLoop netEventLoop() {

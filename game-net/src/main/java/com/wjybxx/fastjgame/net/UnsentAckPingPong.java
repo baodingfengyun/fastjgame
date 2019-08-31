@@ -34,4 +34,5 @@ public class UnsentAckPingPong implements UnsentMessage{
 	public SentAckPingPong build(long sequence, MessageQueue messageQueue) {
 		return new SentAckPingPong(sequence);
 	}
+
 }

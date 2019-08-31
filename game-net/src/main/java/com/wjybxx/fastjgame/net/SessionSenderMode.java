@@ -25,7 +25,7 @@ import com.wjybxx.fastjgame.eventloop.NetEventLoop;
  * date - 2019/8/31
  * github - https://github.com/hl845740757
  */
-public enum SenderMode {
+public enum SessionSenderMode {
 
 	/**
 	 * 直接发送的{@link Sender}，该模式下的{@link Sender}不会对任何消息进行缓存，会立即提交到网络层。
@@ -37,7 +37,7 @@ public enum SenderMode {
 	/**
 	 * 带缓冲区的消息{@link Sender}，该模式下的{@link Sender}只会对Session所属的用户所在的线程发送的消息进行缓存。
 	 * 该模式在数据量较少的时候，延迟上差于{@link #DIRECT}，且吞吐量上没有明显优势。但是在数据量较多的时候，能够有效降低竞争，
-	 * 从而拥有更高的吞吐量，延迟变化较小，较为稳定。整体来说该模式的表现更为稳定。
+	 * 从而拥有更高的吞吐量，延迟变化较小，较为稳定。
 	 * 用户需要定时调用{@link Session#flush()}以确保没有消息残留在缓冲区中。
 	 */
 	BUFFERED,

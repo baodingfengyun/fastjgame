@@ -53,7 +53,7 @@ public class ProtocolDispatcherMrg extends DefaultRpcCallDispatcher implements P
     }
 
     @Override
-    public final void postOneWayMessage(Session session, @Nullable Object message) throws Exception {
+    public final void postOneWayMessage(Session session, @Nullable Object message) {
         if (null == message){
             logger.warn("{} - {} send null message", session.remoteRole(), session.remoteGuid());
             return;
@@ -71,12 +71,12 @@ public class ProtocolDispatcherMrg extends DefaultRpcCallDispatcher implements P
      * @param message 单向消息
      * @throws Exception error
      */
-    protected void dispatchOneWayMessage0(Session session, @Nonnull Object message) throws Exception {
+    protected void dispatchOneWayMessage0(Session session, @Nonnull Object message) {
         logger.info("unhandled {}-{} message {}", session.remoteRole(), session.remoteGuid(), message.getClass().getSimpleName());
     }
 
     @Override
-    public final void postRpcRequest(Session session, @Nullable Object request, RpcRequestContext context) throws Exception {
+    public final void postRpcRequest(Session session, @Nullable Object request, RpcRequestContext context) {
         if (null == request){
             logger.warn("{} - {} send null request", session.remoteRole(), session.remoteGuid());
             return;

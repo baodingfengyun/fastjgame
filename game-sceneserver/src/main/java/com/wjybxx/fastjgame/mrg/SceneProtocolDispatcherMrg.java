@@ -45,7 +45,7 @@ public class SceneProtocolDispatcherMrg extends ProtocolDispatcherMrg implements
 	}
 
 	@Override
-	protected final void dispatchOneWayMessage0(Session session, @Nonnull Object message) throws Exception {
+	protected final void dispatchOneWayMessage0(Session session, @Nonnull Object message) {
 		if (session.remoteRole() == RoleType.PLAYER && message instanceof AbstractMessage) {
 			Player player = playerSessionMrg.getPlayer(session.remoteGuid());
 			if (player != null) {

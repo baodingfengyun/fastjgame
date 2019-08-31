@@ -17,19 +17,22 @@
 package com.wjybxx.fastjgame.net;
 
 /**
- * http请求分发器
+ * {@link UncommittedMessage}的抽象实现，确保所有操作只在{@link Session#isActive() true}的情况下执行。
+ * 在用户已关闭session的情况下，如果提交消息，可能导致应用层逻辑错误。
+ *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/27
+ * date - 2019/8/31
  * github - https://github.com/hl845740757
  */
-public interface HttpRequestDispatcher {
+public abstract class AbstractUncommittedMessage implements UncommittedMessage{
 
-	/**
-	 * 分发一个Http请求
-	 * @param httpSession 该http对应的session
-	 * @param path 请求路径
-	 * @param params 请求参数
-	 */
-	void post(HttpSession httpSession, String path, HttpRequestParam params);
+	@Override
+	public final void commit(Session session, ProtocolDispatcher protocolDispatcher) throws Exception {
+		if (session.isActive()) {
+			doCommit(session, protocolDispatcher);
+		}
+	}
+
+	protected abstract void doCommit(Session session, ProtocolDispatcher protocolDispatcher) throws Exception;
 }

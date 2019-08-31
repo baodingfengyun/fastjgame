@@ -44,7 +44,7 @@ public @interface SerializableField {
 
 	/**
 	 * 是否可能为负数？
-	 * 如果可能为负，将会使用{@code sint32} {@code sint64}进行编码。
+	 * 如果可能为负，将会使用{@code sint32} {@code sint64}进行编码。否则使用{@code varInt32} {@code varInt64}进行编码。
 	 * 该属于适用于byte,short,int,long 及其包装类型。
 	 * @return 如果返回true将会得到优化
 	 */

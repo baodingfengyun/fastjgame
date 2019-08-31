@@ -19,7 +19,10 @@ package com.wjybxx.fastjgame.manager;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopManager;
-import com.wjybxx.fastjgame.misc.*;
+import com.wjybxx.fastjgame.misc.BindResult;
+import com.wjybxx.fastjgame.misc.HostAndPort;
+import com.wjybxx.fastjgame.misc.HttpResponseHelper;
+import com.wjybxx.fastjgame.misc.PortRange;
 import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.timer.FixedDelayHandle;
 import com.wjybxx.fastjgame.utils.*;
@@ -29,6 +32,7 @@ import io.netty.channel.socket.SocketChannel;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.net.BindException;
 import java.util.IdentityHashMap;
@@ -76,8 +80,8 @@ public class HttpSessionManager {
 	 * @see AcceptorManager#bindRange(String, PortRange, ChannelInitializer)
 	 */
 	public HostAndPort bindRange(NetContext netContext, String host, PortRange portRange,
-								 ChannelInitializer<SocketChannel> initializer,
-								 HttpRequestDispatcher httpRequestDispatcher) throws BindException {
+								 @Nonnull ChannelInitializer<SocketChannel> initializer,
+								 @Nonnull HttpRequestDispatcher httpRequestDispatcher) throws BindException {
 		assert netEventLoopManager.inEventLoop();
 		// 绑定端口
 		BindResult bindResult = acceptorManager.bindRange(host, portRange, initializer);
@@ -154,11 +158,7 @@ public class HttpSessionManager {
 
 		// 处理请求，提交到用户所在的线程，实现线程安全
 		ConcurrentUtils.tryCommit(userInfo.netContext.localEventLoop(), () -> {
-			try {
-				userInfo.httpRequestDispatcher.post(httpSession, path, param);
-			} catch (Exception e) {
-				ConcurrentUtils.rethrow(e);
-			}
+			userInfo.httpRequestDispatcher.post(httpSession, path, param);
 		});
 	}
 

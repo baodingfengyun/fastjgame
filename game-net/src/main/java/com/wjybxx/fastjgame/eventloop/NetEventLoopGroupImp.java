@@ -69,7 +69,7 @@ public class NetEventLoopGroupImp extends MultiThreadEventLoopGroup implements N
     }
 
     @Override
-    public ListenableFuture<NetContext> createContext(long localGuid, RoleType localRole, EventLoop localEventLoop) {
+    public ListenableFuture<NetContext> createContext(long localGuid, RoleType localRole, @Nonnull EventLoop localEventLoop) {
         return next().createContext(localGuid, localRole, localEventLoop);
     }
 

@@ -20,6 +20,9 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 
 /**
  * 消息映射策略，自己决定消息类到消息id的映射。
+ * @apiNote
+ * 1. 必须保证同一个类在所有机器上的映射结果是相同的。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/5 17:21

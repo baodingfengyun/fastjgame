@@ -22,7 +22,7 @@ package com.wjybxx.fastjgame.net;
  * date - 2019/8/8
  * github - https://github.com/hl845740757
  */
-public class UncommittedOneWayMessage implements UncommittedMessage{
+public class UncommittedOneWayMessage extends AbstractUncommittedMessage{
 
 	/** 单向消息的内容 */
 	private final Object message;
@@ -32,7 +32,7 @@ public class UncommittedOneWayMessage implements UncommittedMessage{
 	}
 
 	@Override
-	public void commit(Session session, ProtocolDispatcher protocolDispatcher) throws Exception {
+	public void doCommit(Session session, ProtocolDispatcher protocolDispatcher) throws Exception {
 		protocolDispatcher.postOneWayMessage(session, message);
 	}
 

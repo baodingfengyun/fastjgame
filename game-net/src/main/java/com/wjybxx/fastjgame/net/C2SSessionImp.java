@@ -64,8 +64,8 @@ public class C2SSessionImp extends AbstractSession implements C2SSession {
 
     public C2SSessionImp(NetContext netContext, NetManagerWrapper netManagerWrapper,
                          long serverGuid, RoleType serverType, HostAndPort remoteAddress,
-                         SenderMode senderMode) {
-		super(senderMode);
+                         SessionSenderMode sessionSenderMode) {
+		super(sessionSenderMode);
 		this.netContext = netContext;
         this.netManagerWrapper = netManagerWrapper;
         this.serverGuid = serverGuid;

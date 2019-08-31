@@ -131,12 +131,12 @@ class NetContextImp implements NetContext {
 												   @Nonnull ChannelInitializer<SocketChannel> initializer,
 												   @Nonnull SessionLifecycleAware lifecycleAware,
 												   @Nonnull ProtocolDispatcher protocolDispatcher,
-												   @Nonnull SenderMode senderMode) {
+												   @Nonnull SessionSenderMode sessionSenderMode) {
 		// 这里一定不是网络层，只有逻辑层才会调用bind
 		return netEventLoop.submit(() -> {
 			try {
 				return managerWrapper.getS2CSessionManager().bindRange(this, host, portRange,
-						initializer, lifecycleAware, protocolDispatcher, senderMode);
+						initializer, lifecycleAware, protocolDispatcher, sessionSenderMode);
 			} catch (BindException e){
 				ConcurrentUtils.rethrow(e);
 				// unreachable
@@ -151,11 +151,11 @@ class NetContextImp implements NetContext {
 									   @Nonnull ChannelInitializerSupplier initializerSupplier,
 									   @Nonnull SessionLifecycleAware lifecycleAware,
 									   @Nonnull ProtocolDispatcher protocolDispatcher,
-									   @Nonnull SenderMode senderMode) {
+									   @Nonnull SessionSenderMode sessionSenderMode) {
 		// 这里一定不是网络层，只有逻辑层才会调用connect
 		return netEventLoop.submit(() -> {
 			managerWrapper.getC2SSessionManager().connect(this, remoteGuid, remoteRole, remoteAddress,
-					initializerSupplier, lifecycleAware, protocolDispatcher, senderMode);
+					initializerSupplier, lifecycleAware, protocolDispatcher, sessionSenderMode);
 		});
 	}
 
@@ -167,12 +167,13 @@ class NetContextImp implements NetContext {
 	}
 
 	@Override
-	public ListenableFuture<HostAndPort> bindRange(String host, PortRange portRange, ChannelInitializer<SocketChannel> initializer, HttpRequestDispatcher httpRequestDispatcher) {
+	public ListenableFuture<HostAndPort> bindRange(String host, PortRange portRange,
+												   @Nonnull ChannelInitializer<SocketChannel> initializer,
+												   @Nonnull HttpRequestDispatcher httpRequestDispatcher) {
 		// 这里一定不是网络层，只有逻辑层才会调用bind
 		return netEventLoop.submit(() -> {
 			try {
-				return managerWrapper.getHttpSessionManager().bindRange(this, host, portRange,
-						initializer, httpRequestDispatcher);
+				return managerWrapper.getHttpSessionManager().bindRange(this, host, portRange, initializer, httpRequestDispatcher);
 			} catch (Exception e){
 				ConcurrentUtils.rethrow(e);
 				// unreachable
@@ -182,22 +183,22 @@ class NetContextImp implements NetContext {
 	}
 
 	@Override
-	public Response syncGet(String url, Map<String, String> params) throws IOException {
+	public Response syncGet(String url, @Nonnull Map<String, String> params) throws IOException {
 		return managerWrapper.getHttpClientManager().syncGet(url, params);
 	}
 
 	@Override
-	public void asyncGet(String url, Map<String, String> params, OkHttpCallback okHttpCallback) {
+	public void asyncGet(String url, @Nonnull Map<String, String> params, @Nonnull OkHttpCallback okHttpCallback) {
 		managerWrapper.getHttpClientManager().asyncGet(url, params, localEventLoop, okHttpCallback);
 	}
 
 	@Override
-	public Response syncPost(String url, Map<String, String> params) throws IOException {
+	public Response syncPost(String url, @Nonnull Map<String, String> params) throws IOException {
 		return managerWrapper.getHttpClientManager().syncPost(url, params);
 	}
 
 	@Override
-	public void asyncPost(String url, Map<String, String> params, OkHttpCallback okHttpCallback) {
+	public void asyncPost(String url, @Nonnull Map<String, String> params, @Nonnull OkHttpCallback okHttpCallback) {
 		managerWrapper.getHttpClientManager().asyncPost(url, params, localEventLoop, okHttpCallback);
 	}
 

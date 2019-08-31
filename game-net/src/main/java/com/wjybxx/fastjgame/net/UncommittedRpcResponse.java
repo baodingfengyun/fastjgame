@@ -23,7 +23,7 @@ package com.wjybxx.fastjgame.net;
  * date - 2019/8/13
  * github - https://github.com/hl845740757
  */
-public class UncommittedRpcResponse implements UncommittedMessage{
+public class UncommittedRpcResponse extends AbstractUncommittedMessage{
 
 	private final RpcResponse rpcResponse;
 	private final RpcCallback rpcCallback;
@@ -34,7 +34,7 @@ public class UncommittedRpcResponse implements UncommittedMessage{
 	}
 
 	@Override
-	public void commit(Session session, ProtocolDispatcher protocolDispatcher) throws Exception {
+	public void doCommit(Session session, ProtocolDispatcher protocolDispatcher) throws Exception {
 		rpcCallback.onComplete(rpcResponse);
 	}
 

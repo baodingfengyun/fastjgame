@@ -23,7 +23,7 @@ import com.wjybxx.fastjgame.misc.DefaultRpcCallDispatcher;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.RpcBuilder;
 import com.wjybxx.fastjgame.net.NetContext;
-import com.wjybxx.fastjgame.net.SenderMode;
+import com.wjybxx.fastjgame.net.SessionSenderMode;
 import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.net.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.initializer.TCPClientChannelInitializer;
@@ -71,7 +71,7 @@ public class ExampleRpcClientLoop extends SingleThreadEventLoop {
 				ExampleConstants.serverRole, address,
 				() -> initializer,
 				new ServerLifeAward(),
-				new ExampleRpcDispatcher(new DefaultRpcCallDispatcher()), SenderMode.DIRECT);
+				new ExampleRpcDispatcher(new DefaultRpcCallDispatcher()), SessionSenderMode.DIRECT);
 	}
 
 	@Override

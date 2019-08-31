@@ -135,12 +135,12 @@ public class S2CSessionManager extends SessionManager {
     public HostAndPort bindRange(NetContext netContext, String host, PortRange portRange,
                                  ChannelInitializer<SocketChannel> initializer,
                                  SessionLifecycleAware lifecycleAware,
-                                 ProtocolDispatcher protocolDispatcher, SenderMode senderMode) throws BindException {
+                                 ProtocolDispatcher protocolDispatcher, SessionSenderMode sessionSenderMode) throws BindException {
 
         final BindResult bindResult = acceptorManager.bindRange(host, portRange, initializer);
         // 由于是监听方，因此方法参数是针对该用户的所有客户端的
         userInfoMap.computeIfAbsent(netContext.localGuid(),
-                localGuid -> new UserInfo(netContext, bindResult, initializer, lifecycleAware, protocolDispatcher, senderMode, netTimeManager, timerManager ,netConfigManager));
+                localGuid -> new UserInfo(netContext, bindResult, initializer, lifecycleAware, protocolDispatcher, sessionSenderMode, netTimeManager, timerManager ,netConfigManager));
         return bindResult.getHostAndPort();
     }
 
@@ -494,7 +494,7 @@ public class S2CSessionManager extends SessionManager {
 
         // 登录成功
         S2CSessionImp session = new S2CSessionImp(userInfo.netContext, userInfo.bindResult.getHostAndPort(), managerWrapper,
-                requestParam.getClientGuid(), clientToken.getClientRoleType(), userInfo.senderMode);
+                requestParam.getClientGuid(), clientToken.getClientRoleType(), userInfo.sessionSenderMode);
 
         SessionWrapper sessionWrapper = new SessionWrapper(userInfo, session, this);
         userInfo.sessionWrapperMap.put(requestParam.getClientGuid(),sessionWrapper);
@@ -736,7 +736,7 @@ public class S2CSessionManager extends SessionManager {
         /** 该端口上的消息处理器 */
         private final ProtocolDispatcher protocolDispatcher;
         /** 该端口上的消息发送方式 */
-        private final SenderMode senderMode;
+        private final SessionSenderMode sessionSenderMode;
         /** 该用户关联的所有会话信息 */
         private final Long2ObjectMap<SessionWrapper> sessionWrapperMap = new Long2ObjectOpenHashMap<>();
         /** 该用户禁用的所有客户端token信息 */
@@ -746,7 +746,7 @@ public class S2CSessionManager extends SessionManager {
                          @Nonnull ChannelInitializer<SocketChannel> initializer,
                          @Nonnull SessionLifecycleAware lifecycleAware,
                          @Nonnull ProtocolDispatcher protocolDispatcher,
-                         SenderMode senderMode, NetTimeManager netTimeManager,
+                         SessionSenderMode sessionSenderMode, NetTimeManager netTimeManager,
                          NetTimerManager timerManager,
                          NetConfigManager netConfigManager) {
             this.netContext = netContext;
@@ -754,7 +754,7 @@ public class S2CSessionManager extends SessionManager {
             this.lifecycleAware = lifecycleAware;
             this.initializer = initializer;
             this.protocolDispatcher = protocolDispatcher;
-            this.senderMode = senderMode;
+            this.sessionSenderMode = sessionSenderMode;
             this.forbiddenTokenHelper = new ForbiddenTokenHelper(netTimeManager, timerManager, netConfigManager.tokenForbiddenTimeout());
         }
     }

@@ -124,7 +124,7 @@ public interface Session {
     /**
      * 创建会话时指定的消息发送方式。
      */
-    SenderMode senderMode();
+    SessionSenderMode senderMode();
 
     // ----------------------------------------------- 生命周期 ----------------------------------------------
     /**

@@ -82,15 +82,15 @@ public interface NetContext {
 	 * @param initializer 如何初始化channel
 	 * @param lifecycleAware 生命周期监听器
 	 * @param protocolDispatcher 协议处理器
-	 * @param senderMode session发送消息的方式
+	 * @param sessionSenderMode session发送消息的方式
 	 * @return future 可以等待绑定完成。
 	 */
 	default ListenableFuture<HostAndPort> bind(String host, int port,
 											   @Nonnull ChannelInitializer<SocketChannel> initializer,
 											   @Nonnull SessionLifecycleAware lifecycleAware,
 											   @Nonnull ProtocolDispatcher protocolDispatcher,
-											   @Nonnull SenderMode senderMode) {
-		return this.bindRange(host, new PortRange(port, port), initializer, lifecycleAware, protocolDispatcher, senderMode);
+											   @Nonnull SessionSenderMode sessionSenderMode) {
+		return this.bindRange(host, new PortRange(port, port), initializer, lifecycleAware, protocolDispatcher, sessionSenderMode);
 	}
 
 	/**
@@ -100,14 +100,14 @@ public interface NetContext {
 	 * @param initializer 如何初始化channel
 	 * @param lifecycleAware 生命周期监听器
 	 * @param protocolDispatcher 协议处理器
-	 * @param senderMode session发送消息的方式
+	 * @param sessionSenderMode session发送消息的方式
 	 * @return future 可以等待绑定完成。
 	 */
 	ListenableFuture<HostAndPort> bindRange(String host, @Nonnull PortRange portRange,
 											@Nonnull ChannelInitializer<SocketChannel> initializer,
 											@Nonnull SessionLifecycleAware lifecycleAware,
 											@Nonnull ProtocolDispatcher protocolDispatcher,
-											@Nonnull SenderMode senderMode);
+											@Nonnull SessionSenderMode sessionSenderMode);
 
 	/**
 	 * 连接远程某个端口
@@ -117,7 +117,7 @@ public interface NetContext {
 	 * @param initializerSupplier 如何初始化channel，supplier是因为断线重连可能需要新的initializer。
 	 * @param lifecycleAware 生命周期监听器
 	 * @param protocolDispatcher 协议处理器
-	 * @param senderMode
+	 * @param sessionSenderMode session发送消息的方式
 	 * @return future，它并不是连接真正建立的future，而且连接操作是否被NetEventLoop响应的future
 	 */
 	ListenableFuture<?> connect(long remoteGuid, RoleType remoteRole,
@@ -125,7 +125,7 @@ public interface NetContext {
 								@Nonnull ChannelInitializerSupplier initializerSupplier,
 								@Nonnull SessionLifecycleAware lifecycleAware,
 								@Nonnull ProtocolDispatcher protocolDispatcher,
-								@Nonnull SenderMode senderMode);
+								@Nonnull SessionSenderMode sessionSenderMode);
 
 	/**
 	 * 工厂方法，创建一个用于tcp监听的Initializer.
@@ -173,8 +173,9 @@ public interface NetContext {
 	 * @param httpRequestDispatcher http请求处理器
 	 * @return future 可以等待绑定完成。
 	 */
-	default ListenableFuture<HostAndPort> bind(String host, int port, ChannelInitializer<SocketChannel> initializer,
-											   HttpRequestDispatcher httpRequestDispatcher) {
+	default ListenableFuture<HostAndPort> bind(String host, int port,
+											   @Nonnull ChannelInitializer<SocketChannel> initializer,
+											   @Nonnull HttpRequestDispatcher httpRequestDispatcher) {
 		return this.bindRange(host, new PortRange(port, port), initializer, httpRequestDispatcher);
 	}
 
@@ -187,29 +188,30 @@ public interface NetContext {
 	 * @param httpRequestDispatcher http请求处理器
 	 * @return future 可以等待绑定完成。
 	 */
-	ListenableFuture<HostAndPort> bindRange(String host, PortRange portRange, ChannelInitializer<SocketChannel> initializer,
-											HttpRequestDispatcher httpRequestDispatcher);
+	ListenableFuture<HostAndPort> bindRange(String host, PortRange portRange,
+											@Nonnull ChannelInitializer<SocketChannel> initializer,
+											@Nonnull HttpRequestDispatcher httpRequestDispatcher);
 
 	/**
 	 * 同步get请求
 	 * @param url url
 	 * @param params get参数
 	 */
-	Response syncGet(String url, Map<String,String> params) throws IOException;
+	Response syncGet(String url, @Nonnull Map<String,String> params) throws IOException;
 	/**
 	 * 异步get请求
 	 * @param url url
 	 * @param params get参数
 	 * @param okHttpCallback 回调
 	 */
-	void asyncGet(String url, Map<String,String> params, OkHttpCallback okHttpCallback);
+	void asyncGet(String url, @Nonnull Map<String,String> params, @Nonnull OkHttpCallback okHttpCallback);
 
 	/**
 	 * 同步post请求
 	 * @param url url
 	 * @param params post参数
 	 */
-	Response syncPost(String url, Map<String,String> params) throws IOException;
+	Response syncPost(String url, @Nonnull Map<String,String> params) throws IOException;
 
 	/**
 	 * 异步post请求
@@ -217,7 +219,7 @@ public interface NetContext {
 	 * @param params post参数
 	 * @param okHttpCallback 回调
 	 */
-	void asyncPost(String url, Map<String,String> params, OkHttpCallback okHttpCallback);
+	void asyncPost(String url, @Nonnull Map<String,String> params, @Nonnull OkHttpCallback okHttpCallback);
 
 	/**
 	 * 工厂方法，创建一个用于http监听的Initializer.

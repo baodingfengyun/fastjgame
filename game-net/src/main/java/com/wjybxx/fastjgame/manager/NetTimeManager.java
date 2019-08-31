@@ -20,7 +20,7 @@ import com.google.inject.Inject;
 import com.wjybxx.fastjgame.timer.SystemTimeHelper;
 
 /**
- * 如果net层逻辑是单线程的话，这里后期可能会修改。
+ * NetEventLoop时间管理器
  *
  * @author wjybxx
  * @version 1.0

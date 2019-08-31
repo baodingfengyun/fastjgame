@@ -26,7 +26,6 @@ import com.wjybxx.fastjgame.module.NetEventLoopModule;
 import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.FastCollectionsUtils;
-import com.wjybxx.fastjgame.utils.TimeUtils;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
@@ -37,7 +36,6 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.locks.LockSupport;
 
 /**
  * 网络事件循环
@@ -130,7 +128,7 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
 	}
 
 	@Override
-	public ListenableFuture<NetContext> createContext(long localGuid, RoleType localRole, EventLoop localEventLoop) {
+	public ListenableFuture<NetContext> createContext(long localGuid, RoleType localRole, @Nonnull EventLoop localEventLoop) {
 		if (localEventLoop instanceof NetEventLoop) {
 			throw new IllegalArgumentException("Unexpected invoke.");
 		}
@@ -190,7 +188,10 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
 		}
 		// 最小睡眠1毫秒
 		final long sleepTimeMs = Math.max(1, netConfigManager.frameInterval() - loopCostMs);
-		LockSupport.parkNanos(TimeUtils.NANO_PER_MILLISECOND * sleepTimeMs);
+		try {
+			Thread.sleep(sleepTimeMs);
+		} catch (InterruptedException ignore) {
+		}
 	}
 
 	@Override
