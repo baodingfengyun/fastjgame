@@ -34,13 +34,20 @@ import javax.annotation.concurrent.ThreadSafe;
 public interface Sender {
 
 	/**
+	 * 返回sender关联的session
+	 */
+	Session session();
+
+	/**
 	 * 发送一个单向消息/通知
 	 * @param message 待发送的消息
 	 */
 	void send(@Nonnull Object message);
 
 	/**
-	 * 发送一个**异步**rpc请求给对方。
+	 * 发送一个**异步**rpc请求给对方，并阻塞到结果返回或超时或被中断。
+	 * @apiNote
+	 * 必须保证回调执行在用户线程。
 	 *
 	 * @param request rpc请求对象
 	 * @param callback 回调函数
@@ -72,6 +79,7 @@ public interface Sender {
 	 * 创建一个特定rpc请求对应的结果通道。
 	 * @param requestGuid 请求对应的id
 	 * @param sync 是否是同步rpc调用
+	 * @return responseChannel
 	 */
 	<T> RpcResponseChannel<T> newResponseChannel(long requestGuid, boolean sync);
 

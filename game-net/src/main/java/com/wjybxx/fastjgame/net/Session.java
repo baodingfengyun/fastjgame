@@ -135,9 +135,7 @@ public interface Session {
     /**
      * 发送一个**异步**rpc请求给对方，会使用默认的超时时间（配置文件中指定）。
      * 注意：
-     * 1. 它不返回{@link RpcFuture}，该调用可以被优化，有更好的吞吐量。
-     * 2. 表示用户默认，即使RpcCallback内部是多个RpcCallback，那么发起请求的用户收不到响应，其他用户也收不到响应。
-     * 3. {@link RpcCallback}执行在当前线程或用户线程。如果是用户线程发起rpc请求，则不必担心线程安全问题。否则需要注意callback的线程安全问题。
+     * 1. {@link RpcCallback}执行在用户线程。如果是用户线程发起rpc请求，则不必担心线程安全问题。否则需要注意callback的线程安全问题。
      *
      * @param request rpc请求对象
      * @param callback 回调函数

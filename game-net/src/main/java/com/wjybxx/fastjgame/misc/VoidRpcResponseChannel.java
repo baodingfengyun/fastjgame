@@ -24,7 +24,7 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * 没有返回值的Channel，占位符，表示用户不关心返回值或方法本身无返回值
  * 主要是{@link ProtocolDispatcher#postOneWayMessage(Session, Object)}用的，
- * 可以将一个onMessage伪装成 RpcRequest，这样应用层可以使用相同的接口对待单向消息和rpc请求。
+ * 可以将一个onMessage伪装成 RpcRequest，这样应用层可以使用相同的接口对待需要结果和不需要结果的rpc请求。
  *
  * @author wjybxx
  * @version 1.0

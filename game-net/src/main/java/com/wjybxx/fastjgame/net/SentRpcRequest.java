@@ -42,7 +42,7 @@ public class SentRpcRequest extends SentMessage {
 
 	@Override
 	public RpcRequestTO build(long ack) {
-		return new RpcRequestTO(ack, sequence, sync, requestGuid,  request);
+		return new RpcRequestTO(ack, sequence, requestGuid, sync, request);
 	}
 
 }

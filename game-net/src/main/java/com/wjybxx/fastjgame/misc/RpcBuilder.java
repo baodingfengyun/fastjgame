@@ -29,9 +29,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  *
  * Q: 为何提供该对象？
  * A:1. Net包提供的Rpc过于底层，很多接口并不为某一个具体的应用设计，虽然可以推荐某些使用方式，
- *      当仍然保留用户自定义的方式。
- *   2. 用户可以通过Builder进行在pipeline模式与session模式之间方便的切换，
- *      而不破坏既有代码。
+ *      但仍然保留用户自定义的方式。{@link RpcBuilder}提供了一套更良好的api.
  *
  * 注意：它并不是线程安全的，而只是提供更加容易使用的接口而已。
  *
@@ -54,9 +52,14 @@ import javax.annotation.concurrent.NotThreadSafe;
  * </pre>
  *
  * <pre>
- * 2. 广播:
+ * 2.广播:
  * {@code
- *      RpcBuilder<?> builder = Proxy.methodName(a, b, c);
+ *     Proxy.methodName(a, b, c)
+ *          .broadcast(sessionCollection);
+ * }
+ * 等价于
+ * {@code
+ *      RpcBuilder builder = Proxy.methodName(a, b, c);
  *      for(Session session:sessionCollection) {
  *          builder.send(session);
  *      }

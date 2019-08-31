@@ -184,7 +184,7 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
         boolean sync = msg.readByte() == 1;
         // 请求内容
         Object request = tryDecodeBody(msg, codec::decodeRpcRequest);
-        return new RpcRequestTO(ack, sequence, sync, requestGuid, request);
+        return new RpcRequestTO(ack, sequence, requestGuid, sync, request);
     }
 
     /**

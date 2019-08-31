@@ -136,6 +136,5 @@ public final class ForbiddenTokenHelper {
             this.forbiddenCreateTime = forbiddenCreateTime;
             this.releaseTime = releaseTime;
         }
-
     }
 }

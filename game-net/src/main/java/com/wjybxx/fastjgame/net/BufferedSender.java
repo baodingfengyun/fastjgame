@@ -67,12 +67,17 @@ public class BufferedSender extends AbstractSender{
 			buffer.add(task);
 			// 检查是否需要清空缓冲区
 			if (buffer.size() >= session.getNetConfigManager().flushThreshold()) {
-				flush();
+				flushBuffer();
 			}
 		} else {
 			// 直接提交到网络线程执行
 			netEventLoop().execute(task);
 		}
+	}
+
+	@Override
+	protected <T> RpcResponseChannel<T> newAsyncRpcResponseChannel(long requestGuid) {
+		return new BufferedResponseChannel<>(this, requestGuid);
 	}
 
 	@Override
@@ -103,16 +108,6 @@ public class BufferedSender extends AbstractSender{
 	}
 
 	/**
-	 * 交换缓冲区(用户线程下)
-	 * @return oldBuffer
-	 */
-	private LinkedList<SenderTask> exchangeBuffer() {
-		LinkedList<SenderTask> result = this.buffer;
-		this.buffer = new LinkedList<>();
-		return result;
-	}
-
-	/**
 	 * 清空缓冲区(用户线程下)
 	 */
 	private void flushBuffer() {
@@ -134,9 +129,14 @@ public class BufferedSender extends AbstractSender{
 		}
 	}
 
-	@Override
-	protected <T> RpcResponseChannel<T> newAsyncRpcResponseChannel(long requestGuid) {
-		return new BufferedResponseChannel<>(this, requestGuid);
+	/**
+	 * 交换缓冲区(用户线程下)
+	 * @return oldBuffer
+	 */
+	private LinkedList<SenderTask> exchangeBuffer() {
+		LinkedList<SenderTask> result = this.buffer;
+		this.buffer = new LinkedList<>();
+		return result;
 	}
 
 	private interface SenderTask extends Runnable{

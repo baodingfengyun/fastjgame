@@ -35,8 +35,7 @@ import java.util.List;
 public class RpcCall {
 
 	/**
-	 * 调用的远程方法，用于确定一个唯一的方法。不使用类名 + 方法具体参数信息，内容量过于庞大，性能不好。
-	 * 不过要做映射需要想一些可靠的方法。
+	 * 调用的远程方法，用于确定一个唯一的方法。不使用 服务名 + 方法名 + 方法具体参数信息，传输的内容量过于庞大，性能不好。
 	 */
 	@SerializableField(number = 1)
 	private final int methodKey;

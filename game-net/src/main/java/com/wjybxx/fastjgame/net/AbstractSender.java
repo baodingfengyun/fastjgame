@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.net;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
+import com.wjybxx.fastjgame.utils.EventLoopUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +46,10 @@ public abstract class AbstractSender implements Sender{
 	}
 
 	@Override
+	public final Session session() {
+		return session;
+	}
+	@Override
 	public final void send(@Nonnull Object message) {
 		// 逻辑层检测，会话已关闭，立即返回
 		if (!isActive()) {
@@ -66,10 +71,12 @@ public abstract class AbstractSender implements Sender{
 		if (timeoutMs <= 0) {
 			throw new IllegalArgumentException("timeoutMs");
 		}
-		// 逻辑层校验，会话已关闭，提交回调
+		// 逻辑层校验，会话已关闭
 		if (!isActive()) {
-			// 直接执行回调，执行在发起请求的线程，是安全的
-			callback.onComplete(RpcResponse.SESSION_CLOSED);
+			// 始终保持回调执行在用户线程
+			EventLoopUtils.executeOrRun(userEventLoop(), () -> {
+				callback.onComplete(RpcResponse.SESSION_CLOSED);
+			});
 			return;
 		}
 		doAsyncRpc(request, callback, timeoutMs);

@@ -59,11 +59,6 @@ public enum RpcResultCode implements NumberEnum {
 	LOCAL_EXCEPTION(23),
 
 	/**
-	 * 提交给用户失败(用户线程已关闭)
-	 */
-	COMMIT_FAILED(31),
-
-	/**
 	 * 请求被禁止
 	 */
 	FORBID(41),
