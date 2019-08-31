@@ -34,12 +34,7 @@ public class UncommittedRpcResponse extends AbstractUncommittedMessage{
 	}
 
 	@Override
-	public void doCommit(Session session, ProtocolDispatcher protocolDispatcher) throws Exception {
+	public void doCommit(Session session, ProtocolDispatcher protocolDispatcher) {
 		rpcCallback.onComplete(rpcResponse);
-	}
-
-	@Override
-	public void onRejected(Session session) {
-		// do nothing
 	}
 }

@@ -42,6 +42,6 @@ public class UnsentRpcRequest implements UnsentMessage{
 		long requestGuid = messageQueue.nextRpcRequestGuid();
 		// 发送前保存信息
 		messageQueue.getRpcPromiseInfoMap().put(requestGuid, rpcPromiseInfo);
-		return new SentRpcRequest(sequence, requestGuid, rpcPromiseInfo.sync, request);
+		return new SentRpcRequest(sequence, requestGuid, rpcPromiseInfo.isSync(), request);
 	}
 }

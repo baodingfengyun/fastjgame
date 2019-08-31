@@ -29,30 +29,37 @@ import javax.annotation.Nonnull;
  */
 public class RpcPromiseInfo {
 
-	/** 是否是同步rpc调用 */
-	public final boolean sync;
-
 	// promise与callback二者存一
-	/** promise */
+	/**
+	 * promise，如果promise不为null，则表示同步rpc调用，否则表示异步rpc调用
+	 */
 	public final Promise<RpcResponse> rpcPromise;
-	/** 回调 */
+	/**
+	 * 回调，如果回调存在的话，表示是一个异步rpc调用。
+	 */
 	public final RpcCallback rpcCallback;
 
 	/** rpc超时时间 */
 	public final long timeoutMs;
 
-	private RpcPromiseInfo(boolean sync, Promise<RpcResponse> rpcPromise, RpcCallback rpcCallback, long timeoutMs) {
-		this.sync = sync;
+	private RpcPromiseInfo(Promise<RpcResponse> rpcPromise, RpcCallback rpcCallback, long timeoutMs) {
 		this.rpcPromise = rpcPromise;
 		this.rpcCallback = rpcCallback;
 		this.timeoutMs = timeoutMs;
 	}
 
-	public static RpcPromiseInfo newInstance(boolean sync, @Nonnull Promise<RpcResponse> rpcPromise, long timeoutMs) {
-		return new RpcPromiseInfo(sync, rpcPromise, null, timeoutMs);
+	/** 是否是同步rpc调用 */
+	public boolean isSync() {
+		return null != rpcPromise;
+	}
+
+	public static RpcPromiseInfo newInstance(@Nonnull Promise<RpcResponse> rpcPromise, long timeoutMs) {
+		return new RpcPromiseInfo(rpcPromise, null, timeoutMs);
 	}
 
 	public static RpcPromiseInfo newInstance(@Nonnull RpcCallback rpcCallback, long timeoutMs) {
-		return new RpcPromiseInfo(false, null, rpcCallback, timeoutMs);
+		return new RpcPromiseInfo(null, rpcCallback, timeoutMs);
 	}
+
+
 }

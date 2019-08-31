@@ -16,9 +16,9 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.concurrent.ImmediateEventLoop;
-import com.wjybxx.fastjgame.net.*;
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
+import com.wjybxx.fastjgame.net.RpcCallback;
+import com.wjybxx.fastjgame.net.RpcResponse;
+import com.wjybxx.fastjgame.net.Session;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -161,7 +161,7 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
         }
         // 返回之前，先执行添加的回调
         if (callback != null) {
-            ConcurrentUtils.safeExecute((Runnable)() -> callback.onComplete(response));
+            callback.onComplete(response);
         }
         return response;
     }
@@ -178,20 +178,4 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
         }
     }
 
-    @Override
-    public final RpcFuture submit(@Nullable Session session) {
-        ensureRpcAvailable();
-        final RpcFuture future;
-        if (session == null) {
-            // session不存在，安全的失败
-            future = new CompletedRpcFuture(ImmediateEventLoop.INSTANCE, RpcResponse.SESSION_NULL);
-        } else {
-            future = session.rpc(call);
-        }
-        // 添加之前设置的回调
-        if (callback != null) {
-            future.addCallback(callback);
-        }
-        return future;
-    }
 }

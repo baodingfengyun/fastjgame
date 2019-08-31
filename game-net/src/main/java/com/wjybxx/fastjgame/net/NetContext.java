@@ -20,7 +20,6 @@ import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.misc.HostAndPort;
-import com.wjybxx.fastjgame.misc.LocalResponseChannel;
 import com.wjybxx.fastjgame.misc.PortRange;
 import com.wjybxx.fastjgame.net.initializer.*;
 import io.netty.channel.ChannelInitializer;
@@ -228,21 +227,4 @@ public interface NetContext {
 	 */
 	HttpServerInitializer newHttpServerInitializer();
 
-	// -------------------------------------------- 本地调用其它异步方法支持 ----------------------------------
-	// 其实不推荐，建议提炼要调用的方法
-
-	/**
-	 * 创建一个用于本地调用其它异步方法的Channel
-	 * @param <T> 返回结果类型
-	 * @return responseChannel
-	 */
-	<T> LocalResponseChannel<T> newLocalResponseChannel();
-
-	/**
-	 * 创建一个用于本地调用其它异步方法的Channel
-	 * @param timeoutMs 超时时间
-	 * @param <T> 返回结果类型
-	 * @return responseChannel
-	 */
-	<T> LocalResponseChannel<T> newLocalResponseChannel(long timeoutMs);
 }

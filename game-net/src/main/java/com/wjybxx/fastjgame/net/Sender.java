@@ -49,16 +49,6 @@ public interface Sender {
 	void rpc(@Nonnull Object request, @Nonnull RpcCallback callback, long timeoutMs);
 
 	/**
-	 * 发送一个**异步**rpc请求给对方。
-	 *
-	 * @param request rpc请求对象
-	 * @param timeoutMs 超时时间，毫秒，必须大于0，必须有超时时间。
-	 * @return rpc结果的future，用户线程可以在上面添加回调
-	 */
-	@Nonnull
-	RpcFuture rpc(@Nonnull Object request, long timeoutMs);
-
-	/**
 	 * 发送一个**同步**rpc请求给对方，并阻塞到结果返回或超时或被中断。
 	 *
 	 * @param request rpc请求对象

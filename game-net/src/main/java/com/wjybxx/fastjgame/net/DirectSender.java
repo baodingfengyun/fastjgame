@@ -46,23 +46,11 @@ public class DirectSender extends AbstractSender {
 	}
 
 	@Override
-	public void doRpcWithCallback(@Nonnull Object request, @Nonnull RpcCallback callback, long timeoutMs) {
+	public void doAsyncRpc(@Nonnull Object request, @Nonnull RpcCallback callback, long timeoutMs) {
 		// 直接提交到网络层执行
 		netEventLoop().execute(() -> {
 			session.sendAsyncRpcRequest(request, timeoutMs, userEventLoop(), callback);
 		});
-	}
-
-	@Nonnull
-	@Override
-	public final RpcFuture doRpc(@Nonnull Object request, long timeoutMs) {
-		final RpcPromise rpcPromise = netEventLoop().newRpcPromise(userEventLoop(), timeoutMs);
-		// 直接提交到网络层执行
-		netEventLoop().execute(() -> {
-			session.sendAsyncRpcRequest(request, timeoutMs, rpcPromise);
-		});
-		// 返回给调用者
-		return rpcPromise;
 	}
 
 	@Override

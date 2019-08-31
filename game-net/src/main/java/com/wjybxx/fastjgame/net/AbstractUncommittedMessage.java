@@ -28,11 +28,11 @@ package com.wjybxx.fastjgame.net;
 public abstract class AbstractUncommittedMessage implements UncommittedMessage{
 
 	@Override
-	public final void commit(Session session, ProtocolDispatcher protocolDispatcher) throws Exception {
+	public final void commit(Session session, ProtocolDispatcher protocolDispatcher) {
 		if (session.isActive()) {
 			doCommit(session, protocolDispatcher);
 		}
 	}
 
-	protected abstract void doCommit(Session session, ProtocolDispatcher protocolDispatcher) throws Exception;
+	protected abstract void doCommit(Session session, ProtocolDispatcher protocolDispatcher);
 }

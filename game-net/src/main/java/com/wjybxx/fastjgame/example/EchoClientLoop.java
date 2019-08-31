@@ -100,16 +100,7 @@ public class EchoClientLoop extends SingleThreadEventLoop {
 			hello.setMessage("SentOneWayMessage - " + System.currentTimeMillis());
 			session.send(hello);
 		}
-		// 发送rpc请求
-		{
-			ExampleMessages.Hello hello = new ExampleMessages.Hello();
-			hello.setId(index);
-			hello.setMessage("asyncRpcRequest - " + System.currentTimeMillis());
-			session.rpc(hello).addCallback(rpcResponse -> {
-				System.out.println("\nasyncRpcResponse - " + JsonUtils.toJson(rpcResponse));
-			});
-		}
-		// 发送rpc请求
+		// 发送异步rpc请求
 		{
 			ExampleMessages.Hello hello = new ExampleMessages.Hello();
 			hello.setId(index);
@@ -117,18 +108,6 @@ public class EchoClientLoop extends SingleThreadEventLoop {
 			session.rpc(hello, rpcResponse -> {
 				System.out.println("\nasyncRpcResponse without future - " + JsonUtils.toJson(rpcResponse));
 			});
-		}
-		// 异步rpc请求，使用阻塞方式到完成
-		{
-			try {
-				ExampleMessages.Hello hello = new ExampleMessages.Hello();
-				hello.setId(index);
-				hello.setMessage("asyncRpcRequest with block - " + System.currentTimeMillis());
-				RpcResponse rpcResponse = session.rpc(hello).get();
-				System.out.println("\nasyncRpcRequest with block response - " + JsonUtils.toJson(rpcResponse));
-			} catch (Exception e){
-				e.printStackTrace();
-			}
 		}
 		// 发送同步rpc请求
 		{

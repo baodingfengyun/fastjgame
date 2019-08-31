@@ -48,7 +48,7 @@ public abstract class AbstractSender implements Sender{
 	public final void send(@Nonnull Object message) {
 		// 逻辑层检测，会话已关闭，立即返回
 		if (!isActive()) {
-			logger.info("session is already closed, send message failed.");
+			logger.debug("session is already closed, send message failed.");
 			return;
 		}
 		doSend(message);
@@ -72,7 +72,7 @@ public abstract class AbstractSender implements Sender{
 			callback.onComplete(RpcResponse.SESSION_CLOSED);
 			return;
 		}
-		doRpcWithCallback(request, callback, timeoutMs);
+		doAsyncRpc(request, callback, timeoutMs);
 	}
 
 	/**
@@ -82,29 +82,7 @@ public abstract class AbstractSender implements Sender{
 	 * @param callback 回调函数
 	 * @param timeoutMs 超时时间，毫秒，必须大于0，必须有超时时间。
 	 */
-	protected abstract void doRpcWithCallback(Object request, RpcCallback callback, long timeoutMs);
-
-	@Nonnull
-	@Override
-	public final RpcFuture rpc(@Nonnull Object request, long timeoutMs) {
-		// 参数校验，必须有过期时间
-		if (timeoutMs <= 0) {
-			throw new IllegalArgumentException("timeoutMs");
-		}
-		// 逻辑层校验，会话已关闭，立即返回结果
-		if (!isActive()) {
-			return netEventLoop().newCompletedRpcFuture(userEventLoop(), RpcResponse.SESSION_CLOSED);
-		}
-		return doRpc(request, timeoutMs);
-	}
-
-	/**
-	 * 当满足发送rpc请求条件时，子类执行真正的发送操作。
-	 *
-	 * @param request rpc请求对象
-	 * @param timeoutMs 超时时间，毫秒，必须大于0，必须有超时时间。
-	 */
-	protected abstract RpcFuture doRpc(Object request, long timeoutMs);
+	protected abstract void doAsyncRpc(Object request, RpcCallback callback, long timeoutMs);
 
 	@Nonnull
 	@Override
@@ -163,7 +141,6 @@ public abstract class AbstractSender implements Sender{
 	 * @return channel
 	 */
 	protected abstract <T> RpcResponseChannel<T> newAsyncRpcResponseChannel(DefaultRpcRequestContext context);
-
 
 	protected boolean isActive() {
 		return session.isActive();

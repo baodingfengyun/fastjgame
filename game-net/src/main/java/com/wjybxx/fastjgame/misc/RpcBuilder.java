@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.misc;
 
 import com.wjybxx.fastjgame.net.RpcCallback;
-import com.wjybxx.fastjgame.net.RpcFuture;
 import com.wjybxx.fastjgame.net.RpcResponse;
 import com.wjybxx.fastjgame.net.Session;
 
@@ -161,17 +160,4 @@ public interface RpcBuilder<V> {
      */
     @Nullable
     V syncCall(@Nullable Session session) throws IllegalStateException;
-
-    /**
-     * 执行异步Rpc调用并返回一个future，无论如何对方都会返回一个结果。
-     * 这名字是不是有点不容易记住？那就少用它。
-     *
-     * 注意：一旦调用了submit方法，那么该builder便不可以再使用。
-     *
-     * @return future
-     * @throws IllegalStateException 如果重用一个可监听的rpcBuilder，则会抛出异常！
-     * @param session rpc请求的目的地，可以为null。
-     */
-    RpcFuture submit(@Nullable Session session) throws IllegalStateException;
-
 }

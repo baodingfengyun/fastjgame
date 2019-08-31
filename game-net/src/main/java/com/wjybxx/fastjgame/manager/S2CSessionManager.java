@@ -224,11 +224,10 @@ public class S2CSessionManager extends SessionManager {
      * @param clientGuid 远程节点标识
      * @param request rpc请求内容
      * @param timeoutMs 超时时间
-     * @param sync 是否是同步rpc调用
      * @param rpcPromise 用于监听结果
      */
     @Override
-    public void rpc(long localGuid, long clientGuid, @Nonnull Object request, long timeoutMs, boolean sync, RpcPromise rpcPromise){
+    public void syncRpc(long localGuid, long clientGuid, @Nonnull Object request, long timeoutMs, RpcPromise rpcPromise){
         SessionWrapper sessionWrapper = getAliveSession(localGuid, clientGuid);
         if (null == sessionWrapper){
             logger.warn("client {} is removed, but try send rpcRequest.",clientGuid);
@@ -236,15 +235,9 @@ public class S2CSessionManager extends SessionManager {
             return;
         }
         long deadline = netTimeManager.getSystemMillTime() + timeoutMs;
-        RpcPromiseInfo rpcPromiseInfo = RpcPromiseInfo.newInstance(sync, rpcPromise, deadline);
+        RpcPromiseInfo rpcPromiseInfo = RpcPromiseInfo.newInstance(rpcPromise, deadline);
         UnsentRpcRequest rpcRequest = new UnsentRpcRequest(request, rpcPromiseInfo);
-        if (sync) {
-            // 同步调用，尝试立即发送
-            sessionWrapper.writeAndFlush(rpcRequest);
-        } else {
-            // 添加到缓存队列，稍后发送
-            sessionWrapper.write(rpcRequest);
-        }
+        sessionWrapper.writeAndFlush(rpcRequest);
     }
 
     /**
@@ -303,7 +296,7 @@ public class S2CSessionManager extends SessionManager {
         session.setClosed();
 
         // 清理消息队列(需要先执行)
-        cleanMessageQueue(session, sessionWrapper.messageQueue);
+        cleanMessageQueue(sessionWrapper.messageQueue);
 
         // 通知客户端退出
         notifyClientExit(sessionWrapper.getChannel(),sessionWrapper);
@@ -680,7 +673,7 @@ public class S2CSessionManager extends SessionManager {
         final RpcRequestTO requestMessageTO = rpcRequestEventParam.messageTO();
         tryUpdateMessageQueue(eventChannel, rpcRequestEventParam, sessionWrapper -> {
             DefaultRpcRequestContext context = new DefaultRpcRequestContext(requestMessageTO.isSync(), requestMessageTO.getRequestGuid());
-            UncommittedRpcRequest uncommittedRpcRequest = new UncommittedRpcRequest(requestMessageTO.getRequest(), context, S2CSessionManager.this);
+            UncommittedRpcRequest uncommittedRpcRequest = new UncommittedRpcRequest(requestMessageTO.getRequest(), context);
             if (requestMessageTO.isSync()) {
                 // 同步请求，立即提交
                 sessionWrapper.commitImmediately(uncommittedRpcRequest);

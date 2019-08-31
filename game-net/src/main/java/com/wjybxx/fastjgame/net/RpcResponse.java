@@ -39,7 +39,6 @@ public final class RpcResponse {
 
 	public static final RpcResponse CANCELLED = newFailResponse(RpcResultCode.CANCELLED);
 	public static final RpcResponse TIMEOUT = newFailResponse(RpcResultCode.TIMEOUT);
-	public static final RpcResponse COMMIT_FAILED = newFailResponse(RpcResultCode.COMMIT_FAILED);
 
 	public static final RpcResponse FORBID = newFailResponse(RpcResultCode.FORBID);
 	public static final RpcResponse BAD_REQUEST = newFailResponse(RpcResultCode.BAD_REQUEST);

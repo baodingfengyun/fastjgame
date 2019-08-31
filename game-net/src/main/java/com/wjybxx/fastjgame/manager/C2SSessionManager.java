@@ -205,11 +205,20 @@ public class C2SSessionManager extends SessionManager {
         sessionWrapper.state.write(unsentOneWayMessage);
     }
 
+    /**
+     * 发送一个异步rpc请求
+     * @param localGuid 我的标识
+     * @param serverGuid 远程guid
+     * @param request rpc请求内容
+     * @param timeoutMs 超时时间，大于0
+     * @param userEventLoop 用户线程
+     * @param rpcCallback rpc回调
+     */
     @Override
     public void rpc(long localGuid, long serverGuid, @Nonnull Object request, long timeoutMs, EventLoop userEventLoop, RpcCallback rpcCallback) {
         SessionWrapper sessionWrapper = getAliveSession(localGuid, serverGuid);
         if (sessionWrapper == null) {
-            logger.debug("session {}-{} is inactive, but try send rpcRequest.", localGuid, serverGuid);
+            logger.debug("session {}-{} is inactive, but try send asyncRpcRequest.", localGuid, serverGuid);
             userEventLoop.execute(() -> {
                 rpcCallback.onComplete(RpcResponse.SESSION_CLOSED);
             });
@@ -225,34 +234,27 @@ public class C2SSessionManager extends SessionManager {
     }
 
     /**
-     * 发送一个rpc调用
+     * 发送一个同步rpc调用
      * @param localGuid 我的标识
      * @param serverGuid 远程标识
      * @param request rpc请求内容
      * @param timeoutMs 超时时间
-     * @param sync 是否是同步调用，同步调用会立即发送(会插队)，而非同步调用可能会先缓存，不是立即发送。
      * @param rpcPromise 接收结果的promise
      */
     @Override
-    public void rpc(long localGuid, long serverGuid, @Nonnull Object request, final long timeoutMs, boolean sync, RpcPromise rpcPromise){
+    public void syncRpc(long localGuid, long serverGuid, @Nonnull Object request, final long timeoutMs, RpcPromise rpcPromise){
         SessionWrapper sessionWrapper = getAliveSession(localGuid, serverGuid);
         if (sessionWrapper == null) {
-            logger.debug("session {}-{} is inactive, but try send rpcRequest.", localGuid, serverGuid);
+            logger.debug("session {}-{} is inactive, but try send syncRpcRequest.", localGuid, serverGuid);
             rpcPromise.trySuccess(RpcResponse.SESSION_CLOSED);
             return;
         }
 
         long deadline = netTimeManager.getSystemMillTime() + timeoutMs;
-        RpcPromiseInfo rpcPromiseInfo = RpcPromiseInfo.newInstance(sync, rpcPromise, deadline);
+        RpcPromiseInfo rpcPromiseInfo = RpcPromiseInfo.newInstance(rpcPromise, deadline);
         UnsentRpcRequest rpcRequest = new UnsentRpcRequest(request, rpcPromiseInfo);
-
-        if (sync) {
-            // 同步调用，尝试立即发送
-            sessionWrapper.state.writeAndFlush(rpcRequest);
-        } else {
-            // 添加到缓存队列，稍后发送
-            sessionWrapper.state.write(rpcRequest);
-        }
+        // 同步调用，尝试立即发送
+        sessionWrapper.state.writeAndFlush(rpcRequest);
     }
 
     /**
@@ -313,7 +315,7 @@ public class C2SSessionManager extends SessionManager {
         }
 
         // 清理消息队列
-        cleanMessageQueue(session, sessionWrapper.messageQueue);
+        cleanMessageQueue(sessionWrapper.messageQueue);
 
         // 验证成功过才执行断开回调操作(调用过onSessionConnected方法)
         if (sessionWrapper.getVerifiedSequencer().get() > 0){
@@ -906,7 +908,7 @@ public class C2SSessionManager extends SessionManager {
             final RpcRequestTO requestTO = rpcRequestEventParam.messageTO();
             ifSequenceAndAckOk(requestTO, ()-> {
                 DefaultRpcRequestContext context = new DefaultRpcRequestContext(requestTO.isSync(), requestTO.getRequestGuid());
-                UncommittedRpcRequest uncommittedMessage = new UncommittedRpcRequest(requestTO.getRequest(), context, C2SSessionManager.this);
+                UncommittedRpcRequest uncommittedMessage = new UncommittedRpcRequest(requestTO.getRequest(), context);
                 if (requestTO.isSync()) {
                     // 同步调用，立即提交
                     commitImmediately(uncommittedMessage);

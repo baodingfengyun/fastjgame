@@ -109,18 +109,6 @@ public abstract class AbstractSession implements Session{
 
     @Override
     @Nonnull
-    public RpcFuture rpc(@Nonnull Object request) {
-        return sender.rpc(request, getNetConfigManager().rpcCallbackTimeoutMs());
-    }
-
-    @Override
-    @Nonnull
-    public RpcFuture rpc(@Nonnull Object request, long timeoutMs) {
-        return sender.rpc(request, timeoutMs);
-    }
-
-    @Override
-    @Nonnull
     public RpcResponse syncRpc(@Nonnull Object request) throws InterruptedException {
         return sender.syncRpc(request, getNetConfigManager().syncRpcTimeoutMs());
     }
@@ -181,23 +169,13 @@ public abstract class AbstractSession implements Session{
     }
 
     /**
-     * 发送异步rpc请求
-     * @param request 请求内容
-     * @param timeoutMs 超时时间
-     * @param rpcPromise 存储结果的promise
-     */
-    final void sendAsyncRpcRequest(@Nonnull Object request, long timeoutMs, @Nonnull RpcPromise rpcPromise) {
-        getSessionManager().rpc(localGuid(), remoteGuid(), request, timeoutMs, false, rpcPromise);
-    }
-
-    /**
      * 发送同步rpc请求
      * @param request 请求内容
      * @param timeoutMs 超时时间
      * @param rpcResponsePromise 存储结果的promise
      */
     final void sendSyncRpcRequest(@Nonnull Object request, long timeoutMs, RpcPromise rpcResponsePromise) {
-        getSessionManager().rpc(localGuid(), remoteGuid(), request, timeoutMs, true, rpcResponsePromise);
+        getSessionManager().syncRpc(localGuid(), remoteGuid(), request, timeoutMs, rpcResponsePromise);
     }
 
     /**

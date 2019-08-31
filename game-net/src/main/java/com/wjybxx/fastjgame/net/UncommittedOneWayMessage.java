@@ -32,12 +32,7 @@ public class UncommittedOneWayMessage extends AbstractUncommittedMessage{
 	}
 
 	@Override
-	public void doCommit(Session session, ProtocolDispatcher protocolDispatcher) throws Exception {
+	public void doCommit(Session session, ProtocolDispatcher protocolDispatcher) {
 		protocolDispatcher.postOneWayMessage(session, message);
-	}
-
-	@Override
-	public void onRejected(Session session) {
-		// do noting
 	}
 }

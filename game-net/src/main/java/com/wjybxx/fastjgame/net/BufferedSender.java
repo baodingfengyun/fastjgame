@@ -51,17 +51,8 @@ public class BufferedSender extends AbstractSender{
 	}
 
 	@Override
-	protected void doRpcWithCallback(Object request, RpcCallback callback, long timeoutMs) {
-		addTask(new RpcRequestTask(session, request, timeoutMs, null, callback));
-	}
-
-	@Override
-	protected RpcFuture doRpc(Object request, long timeoutMs) {
-		// 需要特殊的RpcPromise
-		final BufferedRpcPromise rpcResponsePromise = new DefaultBufferedRpcPromise(netEventLoop(), userEventLoop(), timeoutMs, this);
-		RpcRequestTask rpcRequestTask = new RpcRequestTask(session, request, timeoutMs, rpcResponsePromise, null);
-		addTask(rpcRequestTask);
-		return rpcResponsePromise;
+	protected void doAsyncRpc(Object request, RpcCallback callback, long timeoutMs) {
+		addTask(new RpcRequestTask(session, request, timeoutMs, callback));
 	}
 
 	/**
@@ -156,7 +147,7 @@ public class BufferedSender extends AbstractSender{
 		void run();
 
 		/**
-		 * 执行取消操作，运行在用户线程下
+		 * 执行取消操作，运行在用户线程下（未来可能被删除）
 		 */
 		void cancel();
 	}
@@ -187,35 +178,23 @@ public class BufferedSender extends AbstractSender{
 		private final AbstractSession session;
 		private final Object request;
 		private final long timeoutMs;
-		private final BufferedRpcPromise rpcPromise;
 		private final RpcCallback rpcCallback;
 
-		private RpcRequestTask(AbstractSession session, Object request, long timeoutMs, BufferedRpcPromise rpcPromise, RpcCallback rpcCallback) {
+		private RpcRequestTask(AbstractSession session, Object request, long timeoutMs, RpcCallback rpcCallback) {
 			this.session = session;
 			this.request = request;
 			this.timeoutMs = timeoutMs;
-			this.rpcPromise = rpcPromise;
 			this.rpcCallback = rpcCallback;
 		}
 
 		@Override
 		public void run() {
-			if (rpcPromise != null) {
-				session.sendAsyncRpcRequest(request, timeoutMs, rpcPromise);
-				rpcPromise.setSent();
-			} else {
-				session.sendAsyncRpcRequest(request, timeoutMs, session.localEventLoop(), rpcCallback);
-			}
+			session.sendAsyncRpcRequest(request, timeoutMs, session.localEventLoop(), rpcCallback);
 		}
 
 		@Override
 		public void cancel() {
-			if (rpcPromise != null) {
-				rpcPromise.trySuccess(RpcResponse.SESSION_CLOSED);
-				rpcPromise.setSent();
-			} else {
-				rpcCallback.onComplete(RpcResponse.SESSION_CLOSED);
-			}
+			rpcCallback.onComplete(RpcResponse.SESSION_CLOSED);
 		}
 	}
 

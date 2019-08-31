@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.manager;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.FastCollectionsUtils;
@@ -79,15 +78,14 @@ public abstract class SessionManager {
     public abstract void rpc(long localGuid, long remoteGuid, @Nonnull Object request, long timeoutMs, EventLoop userEventLoop, RpcCallback rpcCallback);
 
     /**
-     * 向远程发送一个rpc请求
+     * 向远程发送一个同步rpc请求
      * @param localGuid 我的标识
      * @param remoteGuid 远程节点标识
      * @param request rpc请求内容
      * @param timeoutMs 超时时间，大于0
-     * @param sync 是否是同步rpc调用，如果是同步rpc调用，需要立即发送，不进入缓存。
      * @param rpcPromise 用于监听结果
      */
-    public abstract void rpc(long localGuid, long remoteGuid, @Nonnull Object request, long timeoutMs, boolean sync, RpcPromise rpcPromise);
+    public abstract void syncRpc(long localGuid, long remoteGuid, @Nonnull Object request, long timeoutMs, RpcPromise rpcPromise);
 
     /**
      * 发送rpc响应
@@ -261,23 +259,14 @@ public abstract class SessionManager {
      * @param protocolDispatcher 用户绑定的消息处理器
      */
     protected final void commitImmediately(NetContext netContext, Session session, UncommittedMessage uncommittedMessage, ProtocolDispatcher protocolDispatcher) {
-        // 应用层请求了关闭，等待remove任务到达，注意这不代表用户在关闭之后收不到消息请求
+        // 应用层请求了关闭，可以减少提交的无效消息数量
         if (!session.isActive()){
-            uncommittedMessage.onRejected(session);
             return;
         }
         // 直接提交到应用层
-        boolean commitSuccess = ConcurrentUtils.tryCommit(netContext.localEventLoop(), () -> {
-            try {
-                uncommittedMessage.commit(session, protocolDispatcher);
-            } catch (Exception e) {
-                ConcurrentUtils.rethrow(e);
-            }
+        ConcurrentUtils.tryCommit(netContext.localEventLoop(), () -> {
+            uncommittedMessage.commit(session, protocolDispatcher);
         });
-        // 提交失败处理
-        if (!commitSuccess) {
-            uncommittedMessage.onRejected(session);
-        }
     }
 
     /**
@@ -306,11 +295,10 @@ public abstract class SessionManager {
     private void batchCommitImmediately(NetContext netContext, Session session, final LinkedList<UncommittedMessage> uncommittedMessages, ProtocolDispatcher protocolDispatcher) {
         // 应用层请求了关闭，等待remove任务到达，注意这不代表用户在关闭之后收不到消息请求
         if (!session.isActive()){
-            onBatchCommitFailure(session, uncommittedMessages);
             return;
         }
         // 提交到应用层
-        boolean commitSuccess = ConcurrentUtils.tryCommit(netContext.localEventLoop(), () -> {
+        ConcurrentUtils.tryCommit(netContext.localEventLoop(), () -> {
             Exception cause = null;
             for (UncommittedMessage uncommittedMessage : uncommittedMessages) {
                 try {
@@ -329,16 +317,6 @@ public abstract class SessionManager {
                 ConcurrentUtils.rethrow(cause);
             }
         });
-        // 提交失败处理
-        if (!commitSuccess) {
-            onBatchCommitFailure(session, uncommittedMessages);
-        }
-    }
-
-    private void onBatchCommitFailure(Session session, LinkedList<UncommittedMessage> uncommittedMessages) {
-        for (UncommittedMessage uncommittedMessage : uncommittedMessages) {
-            uncommittedMessage.onRejected(session);
-        }
     }
 
     /**
@@ -352,23 +330,13 @@ public abstract class SessionManager {
      */
     protected final void commitRpcResponse(NetContext netContext, Session session, MessageQueue messageQueue, ProtocolDispatcher protocolDispatcher,
                                            RpcPromiseInfo rpcPromiseInfo, RpcResponse rpcResponse) {
-        // 为什么不能有UncommittedRpcResponse? 因为用户线程可能正在阻塞中，提交成功也得不到执行
-        if (rpcPromiseInfo.sync) {
-            // 唤醒可能在该Future上阻塞的线程，由于可能被用户取消，因此需要trySuccess
+        if (rpcPromiseInfo.rpcPromise != null) {
+            // 同步rpc调用
             rpcPromiseInfo.rpcPromise.trySuccess(rpcResponse);
         } else {
-            // 如果回调式的，那么没有promise，也就没有线程在上面阻塞，可以稍后提交
-            if (rpcPromiseInfo.rpcCallback != null) {
-                UncommittedRpcResponse uncommittedRpcResponse = new UncommittedRpcResponse(rpcResponse, rpcPromiseInfo.rpcCallback);
-                commit(netContext, session, messageQueue, uncommittedRpcResponse, protocolDispatcher);
-            } else {
-                // 清空缓冲区，以保证顺序
-                if (messageQueue.getUncommittedQueue().size() > 0){
-                    flushAllUncommittedMessage(netContext, session, messageQueue, protocolDispatcher);
-                }
-                // 提交自己
-                rpcPromiseInfo.rpcPromise.trySuccess(rpcResponse);
-            }
+            // 异步rpc调用
+            UncommittedRpcResponse uncommittedRpcResponse = new UncommittedRpcResponse(rpcResponse, rpcPromiseInfo.rpcCallback);
+            commit(netContext, session, messageQueue, uncommittedRpcResponse, protocolDispatcher);
         }
     }
 
@@ -376,19 +344,11 @@ public abstract class SessionManager {
 
     /**
      * 清理消息队列
-     * @param session 关联的session
      * @param messageQueue 消息队列
      */
-    protected final void cleanMessageQueue(Session session, MessageQueue messageQueue) {
-        // 未提交的消息，也必须执行相应的处理策略
-        LinkedList<UncommittedMessage> uncommittedMessages = messageQueue.exchangeUncommittedMessages();
-        onBatchCommitFailure(session, uncommittedMessages);
-
-        // TODO 如果有必要的话，未发送的消息，也执行相应的处理策略
-
+    protected final void cleanMessageQueue(MessageQueue messageQueue) {
         // rpcPromise处理
         cleanRpcPromiseInfo(messageQueue.getRpcPromiseInfoMap());
-
         messageQueue.clean();
     }
 
