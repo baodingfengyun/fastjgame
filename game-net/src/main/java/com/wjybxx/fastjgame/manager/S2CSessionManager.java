@@ -183,7 +183,7 @@ public class S2CSessionManager extends SessionManager {
      * @param message 消息内容
      */
     @Override
-    public void send(long localGuid, long clientGuid, @Nonnull Object message){
+    public void sendOneWayMessage(long localGuid, long clientGuid, @Nonnull Object message){
         SessionWrapper sessionWrapper = getAliveSession(localGuid, clientGuid);
         if (null == sessionWrapper){
             logger.warn("client {} is removed, but try send message.",clientGuid);
@@ -202,11 +202,11 @@ public class S2CSessionManager extends SessionManager {
      * @param rpcCallback rpc回调
      */
     @Override
-    public void rpc(long localGuid, long clientGuid, @Nonnull Object request, long timeoutMs, EventLoop userEventLoop, RpcCallback rpcCallback) {
+    public void sendRpcRequest(long localGuid, long clientGuid, @Nonnull Object request, long timeoutMs, EventLoop userEventLoop, RpcCallback rpcCallback) {
         SessionWrapper sessionWrapper = getAliveSession(localGuid, clientGuid);
         if (null == sessionWrapper){
             logger.warn("client {} is removed, but try send rpcRequest.",clientGuid);
-            userEventLoop.execute(() -> {
+            ConcurrentUtils.tryCommit(userEventLoop, () -> {
                 rpcCallback.onComplete(RpcResponse.SESSION_CLOSED);
             });
             return;
@@ -227,7 +227,7 @@ public class S2CSessionManager extends SessionManager {
      * @param rpcPromise 用于监听结果
      */
     @Override
-    public void syncRpc(long localGuid, long clientGuid, @Nonnull Object request, long timeoutMs, RpcPromise rpcPromise){
+    public void sendSyncRpcRequest(long localGuid, long clientGuid, @Nonnull Object request, long timeoutMs, RpcPromise rpcPromise){
         SessionWrapper sessionWrapper = getAliveSession(localGuid, clientGuid);
         if (null == sessionWrapper){
             logger.warn("client {} is removed, but try send rpcRequest.",clientGuid);

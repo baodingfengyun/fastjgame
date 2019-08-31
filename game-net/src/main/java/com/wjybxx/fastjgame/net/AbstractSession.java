@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.net;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.manager.NetConfigManager;
 import com.wjybxx.fastjgame.manager.SessionManager;
@@ -140,7 +139,7 @@ public abstract class AbstractSession implements Session{
 
     /** 发送单向消息 */
     final void sendOneWayMessage(@Nonnull Object message) {
-        getSessionManager().send(localGuid(), remoteGuid(), message);
+        getSessionManager().sendOneWayMessage(localGuid(), remoteGuid(), message);
     }
 
     /**
@@ -151,7 +150,7 @@ public abstract class AbstractSession implements Session{
      * @param rpcCallback 回调函数
      */
     final void sendAsyncRpcRequest(@Nonnull Object request, long timeoutMs, @Nonnull EventLoop userEventLoop, @Nonnull RpcCallback rpcCallback) {
-        getSessionManager().rpc(localGuid(), remoteGuid(), request, timeoutMs, userEventLoop, rpcCallback);
+        getSessionManager().sendRpcRequest(localGuid(), remoteGuid(), request, timeoutMs, userEventLoop, rpcCallback);
     }
 
     /**
@@ -161,7 +160,7 @@ public abstract class AbstractSession implements Session{
      * @param rpcResponsePromise 存储结果的promise
      */
     final void sendSyncRpcRequest(@Nonnull Object request, long timeoutMs, RpcPromise rpcResponsePromise) {
-        getSessionManager().syncRpc(localGuid(), remoteGuid(), request, timeoutMs, rpcResponsePromise);
+        getSessionManager().sendSyncRpcRequest(localGuid(), remoteGuid(), request, timeoutMs, rpcResponsePromise);
     }
 
     /**

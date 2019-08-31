@@ -64,7 +64,7 @@ public abstract class SessionManager {
      * @param remoteGuid 远程节点标识
      * @param message 单向消息内容
      */
-    public abstract void send(long localGuid, long remoteGuid, @Nonnull Object message);
+    public abstract void sendOneWayMessage(long localGuid, long remoteGuid, @Nonnull Object message);
 
     /**
      * 向远程发送一个异步rpc请求
@@ -75,7 +75,7 @@ public abstract class SessionManager {
      * @param userEventLoop 用户线程
      * @param rpcCallback rpc回调
      */
-    public abstract void rpc(long localGuid, long remoteGuid, @Nonnull Object request, long timeoutMs, EventLoop userEventLoop, RpcCallback rpcCallback);
+    public abstract void sendRpcRequest(long localGuid, long remoteGuid, @Nonnull Object request, long timeoutMs, EventLoop userEventLoop, RpcCallback rpcCallback);
 
     /**
      * 向远程发送一个同步rpc请求
@@ -85,7 +85,7 @@ public abstract class SessionManager {
      * @param timeoutMs 超时时间，大于0
      * @param rpcPromise 用于监听结果
      */
-    public abstract void syncRpc(long localGuid, long remoteGuid, @Nonnull Object request, long timeoutMs, RpcPromise rpcPromise);
+    public abstract void sendSyncRpcRequest(long localGuid, long remoteGuid, @Nonnull Object request, long timeoutMs, RpcPromise rpcPromise);
 
     /**
      * 发送rpc响应
@@ -271,26 +271,36 @@ public abstract class SessionManager {
     protected final void clear(Session session, MessageQueue messageQueue) {
         // 清空发送缓冲区
         session.sender().clearBuffer();
-        // 完成所有同步rpc调用
-        cleanRpcPromiseInfo(messageQueue.getRpcPromiseInfoMap());
-        // 释放能释放的对象
-        messageQueue.clear();
+        // 清理消息队列
+        messageQueue.detachMessageQueue();
+        // 完成所有rpc调用
+        cleanRpcPromiseInfo(session.netContext().localEventLoop(), messageQueue.detachRpcPromiseInfoMap());
     }
 
     /**
      * 清理Rpc请求信息
+     * @param localEventLoop 用户线程
      * @param rpcPromiseInfoMap 未完成的Rpc请求
      */
-    private void cleanRpcPromiseInfo(Long2ObjectMap<RpcPromiseInfo> rpcPromiseInfoMap) {
-        // 取消所有的rpcPromise
+    private void cleanRpcPromiseInfo(final EventLoop localEventLoop, final Long2ObjectMap<RpcPromiseInfo> rpcPromiseInfoMap) {
+        if (rpcPromiseInfoMap.size() == 0) {
+            return;
+        }
+        // 立即执行所有同步rpc调用
         FastCollectionsUtils.removeIfAndThen(rpcPromiseInfoMap,
-                (k, rpcPromiseInfo) -> true,
-                (k, rpcPromiseInfo) ->
-                {
-                    if (rpcPromiseInfo.rpcPromise != null) {
-                        rpcPromiseInfo.rpcPromise.trySuccess(RpcResponse.SESSION_CLOSED);
-                    }
-                });
+                (k, rpcPromiseInfo) -> rpcPromiseInfo.rpcPromise != null,
+                (k, rpcPromiseInfo) -> rpcPromiseInfo.rpcPromise.trySuccess(RpcResponse.SESSION_CLOSED));
+        // 减少不必要的提交
+        if (rpcPromiseInfoMap.size() == 0) {
+            return;
+        }
+        // 异步rpc回调，需要提交到用户线程才能执行。
+        // 这里批量提交的影响较小，因此选择批量提交
+        ConcurrentUtils.tryCommit(localEventLoop, () -> {
+            for (RpcPromiseInfo rpcPromiseInfo:rpcPromiseInfoMap.values()) {
+                ConcurrentUtils.safeExecute((Runnable)() -> rpcPromiseInfo.rpcCallback.onComplete(RpcResponse.SESSION_CLOSED));
+            }
+        });
     }
 
 }

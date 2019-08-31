@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.net;
 
+import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.EventLoopUtils;
 
 import javax.annotation.Nonnull;
@@ -95,9 +96,7 @@ public class BufferedSender extends AbstractSender{
 	@Override
 	public void clearBuffer() {
 		// 这是在关闭session时调用的，需要确保用户能取消掉所有的任务。
-		EventLoopUtils.executeOrRun(userEventLoop(), () -> {
-			buffer.clear();
-		});
+		EventLoopUtils.executeOrRun(userEventLoop(), this::cancelAll);
 	}
 
 	/**
@@ -113,6 +112,16 @@ public class BufferedSender extends AbstractSender{
 	}
 
 	/**
+	 * 取消所有的任务(用户线程下)
+	 */
+	private void cancelAll() {
+		for (SenderTask senderTask : buffer) {
+			ConcurrentUtils.safeExecute((Runnable) senderTask::cancel);
+		}
+        buffer.clear();
+	}
+
+	/**
 	 * 交换缓冲区(用户线程下)
 	 * @return oldBuffer
 	 */
@@ -123,10 +132,16 @@ public class BufferedSender extends AbstractSender{
 	}
 
 	private interface SenderTask extends Runnable{
+
 		/**
 		 * 执行发送操作，运行在网络线程下
 		 */
 		void run();
+
+		/**
+		 * 执行取消操作，运行在用户线程下（未来可能被删除）
+		 */
+		void cancel();
 	}
 
 	private static class OneWayMessageTask implements SenderTask {
@@ -144,6 +159,10 @@ public class BufferedSender extends AbstractSender{
 			session.sendOneWayMessage(message);
 		}
 
+		@Override
+		public void cancel() {
+			// do nothing
+		}
 	}
 
 	private static class RpcRequestTask implements SenderTask {
@@ -165,6 +184,10 @@ public class BufferedSender extends AbstractSender{
 			session.sendAsyncRpcRequest(request, timeoutMs, session.localEventLoop(), rpcCallback);
 		}
 
+		@Override
+		public void cancel() {
+			rpcCallback.onComplete(RpcResponse.SESSION_CLOSED);
+		}
 	}
 
 	private static class RpcResponseTask implements SenderTask {
@@ -184,6 +207,10 @@ public class BufferedSender extends AbstractSender{
 			session.sendRpcResponse(requestGuid, false, rpcResponse);
 		}
 
+		@Override
+		public void cancel() {
+			// do nothing
+		}
 	}
 
 	/**

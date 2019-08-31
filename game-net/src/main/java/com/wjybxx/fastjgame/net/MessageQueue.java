@@ -175,13 +175,17 @@ public final class MessageQueue {
         return result;
     }
 
-    /**
-     * 执行清理操作
-     */
-    public void clear() {
+    /** 删除rpcPromiseInfoMap并返回 */
+    public Long2ObjectMap<RpcPromiseInfo> detachRpcPromiseInfoMap() {
+        Long2ObjectMap<RpcPromiseInfo> result = rpcPromiseInfoMap;
+        rpcPromiseInfoMap = null;
+        return result;
+    }
+
+    /** 删除已发送和未发送的消息队列 */
+    public void detachMessageQueue() {
         sentQueue = null;
         unsentQueue = null;
-        rpcPromiseInfoMap = null;
     }
 
     /**

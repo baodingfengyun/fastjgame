@@ -270,7 +270,7 @@ public class SceneInCenterInfoMrg {
             activeRegions.add(SceneRegion.LOCAL_PKC);
         }else {
             // 遇见这个需要好好处理(适当增加超时时间)，尽量不能失败
-            logger.error("syncRpc request active region failed, code={}", rpcResponse.getResultCode());
+            logger.error("active region failed, code={}", rpcResponse.getResultCode());
         }
     }
 
