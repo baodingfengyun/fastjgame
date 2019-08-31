@@ -23,6 +23,7 @@ import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.misc.PortRange;
 import com.wjybxx.fastjgame.net.RoleType;
+import com.wjybxx.fastjgame.net.SenderMode;
 import com.wjybxx.fastjgame.net.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.initializer.HttpServerInitializer;
 import com.wjybxx.fastjgame.net.initializer.TCPClientChannelInitializer;
@@ -68,7 +69,7 @@ public class InnerAcceptorMrg {
         TCPServerChannelInitializer serverChannelInitializer = netContext.newTcpServerInitializer(protocolCodecMrg.getInnerProtocolCodec());
 
         ListenableFuture<HostAndPort> bindFuture = netContext.bindRange(host, portRange,
-                serverChannelInitializer, lifecycleAware, protocolDispatcherMrg);
+                serverChannelInitializer, lifecycleAware, protocolDispatcherMrg, SenderMode.DIRECT);
 
         bindFuture.awaitUninterruptibly();
         return bindFuture.getNow();
@@ -103,6 +104,6 @@ public class InnerAcceptorMrg {
 
         return netContext.connect(remoteGuid, remoteRole, hostAndPort,
                 () -> clientChannelInitializer,
-                lifecycleAware, protocolDispatcherMrg);
+                lifecycleAware, protocolDispatcherMrg, SenderMode.DIRECT);
     }
 }

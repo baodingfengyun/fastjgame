@@ -20,7 +20,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Session发送消息的真正实现
+ * Session发送消息的真正实现。sender负责将消息传输到网络层(UserEventLoop -> NetEventLoop)。
+ *
  * @apiNote
  * 实现类必须是线程安全的。
  *
@@ -32,22 +33,67 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public interface Sender {
 
+	/**
+	 * 发送一个单向消息/通知
+	 * @param message 待发送的消息
+	 */
 	void send(@Nonnull Object message);
 
+	/**
+	 * 发送一个**异步**rpc请求给对方。
+	 *
+	 * @param request rpc请求对象
+	 * @param callback 回调函数
+	 * @param timeoutMs 超时时间，毫秒，必须大于0，必须有超时时间。
+	 */
 	void rpc(@Nonnull Object request, @Nonnull RpcCallback callback, long timeoutMs);
 
+	/**
+	 * 发送一个**异步**rpc请求给对方。
+	 *
+	 * @param request rpc请求对象
+	 * @param timeoutMs 超时时间，毫秒，必须大于0，必须有超时时间。
+	 * @return rpc结果的future，用户线程可以在上面添加回调
+	 */
 	@Nonnull
 	RpcFuture rpc(@Nonnull Object request, long timeoutMs);
 
+	/**
+	 * 发送一个**同步**rpc请求给对方，并阻塞到结果返回或超时或被中断。
+	 *
+	 * @param request rpc请求对象
+	 * @param timeoutMs 超时时间，毫秒，必须大于0，否则死锁可能！！！
+	 * @return rpc返回结果
+	 */
 	@Nonnull
 	RpcResponse syncRpc(@Nonnull Object request, long timeoutMs) throws InterruptedException;
 
+	/**
+	 * 发送一个**同步**rpc请求给对方，并阻塞到结果返回或超时。
+	 *
+	 * @param request rpc请求对象
+	 * @param timeoutMs 超时时间，毫秒，必须大于0，否则死锁可能！！！
+	 * @return rpc返回结果
+	 */
 	@Nonnull
 	RpcResponse syncRpcUninterruptibly(@Nonnull Object request, long timeoutMs);
 
+	/**
+	 * 创建一个特定rpc请求对应的结果通道。
+	 *
+	 * @param context rpc请求对应的上下文，注意必须是{@link ProtocolDispatcher#postRpcRequest(Session, Object, RpcRequestContext)}中的context。
+	 *                一个请求的context，不可以用在其它请求上。
+	 * @return 用于返回结果的通道
+	 */
 	<T> RpcResponseChannel<T> newResponseChannel(RpcRequestContext context);
 
+	/**
+	 * 如果存在缓冲，则清空缓冲区。
+	 */
 	void flush();
 
+	/**
+	 * 取消缓冲区中的所有消息
+	 */
 	void cancelAll();
 }

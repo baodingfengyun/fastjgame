@@ -23,10 +23,7 @@ import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupImp;
 import com.wjybxx.fastjgame.misc.DefaultRpcCallDispatcher;
 import com.wjybxx.fastjgame.misc.RpcCallDispatcher;
-import com.wjybxx.fastjgame.net.NetContext;
-import com.wjybxx.fastjgame.net.RpcResponseChannel;
-import com.wjybxx.fastjgame.net.Session;
-import com.wjybxx.fastjgame.net.SessionLifecycleAware;
+import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.net.initializer.TCPServerChannelInitializer;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.TimeUtils;
@@ -124,7 +121,7 @@ public class ExampleRpcService {
 			// 监听tcp端口
 			TCPServerChannelInitializer initializer = netContext.newTcpServerInitializer(ExampleConstants.reflectBasedCodec);
 			netContext.bind(NetUtils.getLocalIp(), ExampleConstants.tcpPort, initializer, new ClientLifeAware(),
-					new ExampleRpcDispatcher(dispatcher));
+					new ExampleRpcDispatcher(dispatcher), SenderMode.DIRECT);
 		}
 
 		@Override

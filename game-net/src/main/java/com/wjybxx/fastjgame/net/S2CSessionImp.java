@@ -58,7 +58,8 @@ public class S2CSessionImp extends AbstractSession implements S2CSession {
     private final AtomicBoolean stateHolder = new AtomicBoolean(true);
 
     public S2CSessionImp(NetContext netContext, HostAndPort localAddress, NetManagerWrapper netManagerWrapper,
-                         long clientGuid, RoleType clientType) {
+                         long clientGuid, RoleType clientType, SenderMode senderMode) {
+        super(senderMode);
         this.netContext = netContext;
         this.netManagerWrapper = netManagerWrapper;
         this.localAddress = localAddress;

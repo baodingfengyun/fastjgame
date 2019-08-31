@@ -26,6 +26,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * {@link Sender}的抽象实现，实现了一些不变的方法。
+ * 同步消息的发送都由这里来实现，子类只负责异步消息的发送。
  *
  * @author wjybxx
  * @version 1.0
@@ -74,6 +75,13 @@ public abstract class AbstractSender implements Sender{
 		doRpcWithCallback(request, callback, timeoutMs);
 	}
 
+	/**
+	 * 当满足发送rpc请求条件时，子类执行真正的发送操作。
+	 *
+	 * @param request rpc请求对象
+	 * @param callback 回调函数
+	 * @param timeoutMs 超时时间，毫秒，必须大于0，必须有超时时间。
+	 */
 	protected abstract void doRpcWithCallback(Object request, RpcCallback callback, long timeoutMs);
 
 	@Nonnull
@@ -90,6 +98,12 @@ public abstract class AbstractSender implements Sender{
 		return doRpc(request, timeoutMs);
 	}
 
+	/**
+	 * 当满足发送rpc请求条件时，子类执行真正的发送操作。
+	 *
+	 * @param request rpc请求对象
+	 * @param timeoutMs 超时时间，毫秒，必须大于0，必须有超时时间。
+	 */
 	protected abstract RpcFuture doRpc(Object request, long timeoutMs);
 
 	@Nonnull
@@ -132,6 +146,25 @@ public abstract class AbstractSender implements Sender{
 		return rpcPromise.getNow();
 	}
 
+	@Override
+	public final <T> RpcResponseChannel<T> newResponseChannel(RpcRequestContext context) {
+		DefaultRpcRequestContext realContext = (DefaultRpcRequestContext) context;
+		if (realContext.sync) {
+			return new SyncRpcResponseChannel<>(session, realContext);
+		} else {
+			return newAsyncRpcResponseChannel(realContext);
+		}
+	}
+
+	/**
+	 * 创建一个返回异步rpc结果的channel
+	 * @param context rpc请求上下文
+	 * @param <T> 结果的类型
+	 * @return channel
+	 */
+	protected abstract <T> RpcResponseChannel<T> newAsyncRpcResponseChannel(DefaultRpcRequestContext context);
+
+
 	protected boolean isActive() {
 		return session.isActive();
 	}
@@ -144,4 +177,25 @@ public abstract class AbstractSender implements Sender{
 		return session.netContext().localEventLoop();
 	}
 
+	/**
+	 * 同步Rpc结果返回通道
+	 */
+	private static class SyncRpcResponseChannel<T> extends AbstractRpcResponseChannel<T> {
+
+		private final AbstractSession session;
+		private final DefaultRpcRequestContext context;
+
+		private SyncRpcResponseChannel(AbstractSession session, DefaultRpcRequestContext context) {
+			this.session = session;
+			this.context = context;
+		}
+
+		@Override
+		protected void doWrite(RpcResponse rpcResponse) {
+			// 立即提交到网络层
+			session.netEventLoop().execute(() -> {
+				session.sendRpcResponse(context.sync, context.requestGuid, rpcResponse);
+			});
+		}
+	}
 }

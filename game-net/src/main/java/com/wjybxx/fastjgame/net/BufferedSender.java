@@ -58,7 +58,7 @@ public class BufferedSender extends AbstractSender{
 	@Override
 	protected RpcFuture doRpc(Object request, long timeoutMs) {
 		// 需要特殊的RpcPromise
-		final BufferedRpcPromise rpcResponsePromise = new DefaultBufferedRpcPromise(netEventLoop(), userEventLoop(), timeoutMs);
+		final BufferedRpcPromise rpcResponsePromise = new DefaultBufferedRpcPromise(netEventLoop(), userEventLoop(), timeoutMs, this);
 		RpcRequestTask rpcRequestTask = new RpcRequestTask(session, request, timeoutMs, rpcResponsePromise, null);
 		addTask(rpcRequestTask);
 		return rpcResponsePromise;
@@ -66,6 +66,7 @@ public class BufferedSender extends AbstractSender{
 
 	/**
 	 * 添加一个任务，先添加到用户缓存队列中。
+	 * 该方法是{@link BufferedSender}的核心。
 	 * @param task 添加的任务
 	 */
 	private void addTask(SenderTask task) {
@@ -102,9 +103,10 @@ public class BufferedSender extends AbstractSender{
 
 	@Override
 	public void cancelAll() {
+		// 这是在关闭session时调用的，需要确保用户能取消掉所有的任务。
 		EventLoopUtils.executeOrRun(userEventLoop(), () -> {
 			if (buffer.size() > 0) {
-				cancelAll();
+				cancelTasks();
 			}
 		});
 	}
@@ -141,17 +143,9 @@ public class BufferedSender extends AbstractSender{
 		}
 	}
 
-	@Nonnull
 	@Override
-	public <T> RpcResponseChannel<T> newResponseChannel(@Nonnull RpcRequestContext context) {
-		DefaultRpcRequestContext realContext = (DefaultRpcRequestContext) context;
-		if (realContext.sync) {
-			// 同步调用，立即返回
-			return DirectSender.newDirectResponseChannel(session, realContext);
-		} else {
-			// 非同步调用，可以压入缓冲区
-			return new BufferedResponseChannel<>(this, realContext);
-		}
+	protected <T> RpcResponseChannel<T> newAsyncRpcResponseChannel(DefaultRpcRequestContext context) {
+		return new BufferedResponseChannel<>(this, context);
 	}
 
 	private interface SenderTask extends Runnable{

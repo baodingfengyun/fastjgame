@@ -63,8 +63,10 @@ public class C2SSessionImp extends AbstractSession implements C2SSession {
     private final AtomicInteger stateHolder = new AtomicInteger(ST_INACTIVE);
 
     public C2SSessionImp(NetContext netContext, NetManagerWrapper netManagerWrapper,
-                         long serverGuid, RoleType serverType, HostAndPort remoteAddress) {
-        this.netContext = netContext;
+                         long serverGuid, RoleType serverType, HostAndPort remoteAddress,
+                         SenderMode senderMode) {
+		super(senderMode);
+		this.netContext = netContext;
         this.netManagerWrapper = netManagerWrapper;
         this.serverGuid = serverGuid;
         this.serverType = serverType;

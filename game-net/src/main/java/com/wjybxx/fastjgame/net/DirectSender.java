@@ -65,10 +65,9 @@ public class DirectSender extends AbstractSender {
 		return rpcPromise;
 	}
 
-	@Nonnull
 	@Override
-	public <T> RpcResponseChannel<T> newResponseChannel(@Nonnull RpcRequestContext context) {
-		return new DirectRpcResponseChannel<>(session, (DefaultRpcRequestContext) context);
+	protected <T> RpcResponseChannel<T> newAsyncRpcResponseChannel(DefaultRpcRequestContext context) {
+		return new DirectRpcResponseChannel<>(session, context);
 	}
 
 	@Override
@@ -79,16 +78,6 @@ public class DirectSender extends AbstractSender {
 	@Override
 	public void cancelAll() {
 		// do nothing
-	}
-
-	/**
-	 * 创建一个立即返回结果的通道
-	 * @param context rpc请求对应的上下文
-	 * @param <T> 返回值类型
-	 * @return channel
-	 */
-	public static <T> DirectRpcResponseChannel<T> newDirectResponseChannel(@Nonnull AbstractSession session, @Nonnull DefaultRpcRequestContext context) {
-		return new DirectRpcResponseChannel<>(session, context);
 	}
 
 	/**

@@ -34,10 +34,24 @@ import javax.annotation.Nonnull;
  */
 public abstract class AbstractSession implements Session{
 
+    /** 消息发送模式 */
+    private final SenderMode senderMode;
+
     /**
      * 真正执行消息发送组件
      */
-    private final Sender sender = new DirectSender(this);
+    private final Sender sender;
+
+    protected AbstractSession(SenderMode senderMode) {
+        this.senderMode = senderMode;
+        if (senderMode == SenderMode.DIRECT) {
+            sender = new DirectSender(this);
+        } else if (senderMode == SenderMode.BUFFERED) {
+            sender = new BufferedSender(this);
+        } else {
+            throw new IllegalArgumentException("Unsupported senderMode " + senderMode);
+        }
+    }
 
     /**
      * 获取网络配置管理器
@@ -61,12 +75,21 @@ public abstract class AbstractSession implements Session{
         return netContext().localRole();
     }
 
+    @Override
+    public SenderMode senderMode() {
+        return senderMode;
+    }
+
     public NetEventLoop netEventLoop() {
         return netContext().netEventLoop();
     }
 
     public EventLoop localEventLoop() {
         return netContext().localEventLoop();
+    }
+
+    public Sender getSender() {
+        return sender;
     }
 
     @Override

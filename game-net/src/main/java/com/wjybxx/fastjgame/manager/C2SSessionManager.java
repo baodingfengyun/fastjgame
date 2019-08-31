@@ -135,11 +135,12 @@ public class C2SSessionManager extends SessionManager {
      * @param initializerSupplier 初始化器提供者，如果initializer是线程安全的，可以始终返回同一个对象
      * @param lifecycleAware 作为客户端，链接不同的服务器时，可能有不同的生命周期事件处理
      * @param protocolDispatcher 消息处理器
+     * @param senderMode session发送消息的方式
      */
     public void connect(NetContext netContext, long serverGuid, RoleType serverType, HostAndPort hostAndPort,
                         @Nonnull ChannelInitializerSupplier initializerSupplier,
                         @Nonnull SessionLifecycleAware lifecycleAware,
-                        @Nonnull ProtocolDispatcher protocolDispatcher) throws IllegalArgumentException{
+                        @Nonnull ProtocolDispatcher protocolDispatcher, SenderMode senderMode) throws IllegalArgumentException{
         long localGuid = netContext.localGuid();
         // 已注册
         if (getSessionWrapper(localGuid, serverGuid) != null){
@@ -149,7 +150,7 @@ public class C2SSessionManager extends SessionManager {
         UserInfo userInfo = userInfoMap.computeIfAbsent(localGuid, k -> new UserInfo(netContext));
 
         // 创建会话
-        C2SSessionImp session = new C2SSessionImp(netContext, managerWrapper, serverGuid, serverType, hostAndPort);
+        C2SSessionImp session = new C2SSessionImp(netContext, managerWrapper, serverGuid, serverType, hostAndPort, senderMode);
         byte[] encryptedLoginToken = tokenManager.newEncryptedLoginToken(netContext.localGuid(), netContext.localRole(), serverGuid, serverType);
         SessionWrapper sessionWrapper = new SessionWrapper(userInfo, initializerSupplier, lifecycleAware, protocolDispatcher, session, encryptedLoginToken);
         // 保存会话

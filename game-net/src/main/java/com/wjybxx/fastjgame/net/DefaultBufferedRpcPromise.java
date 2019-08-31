@@ -28,11 +28,14 @@ import com.wjybxx.fastjgame.utils.EventLoopUtils;
  */
 public class DefaultBufferedRpcPromise extends DefaultRpcPromise implements BufferedRpcPromise {
 
-	/** rpc请求是否已发送出去，是否已提交到网络层 */
+	/** rpc请求是否已发送出去，是否已提交到网络层，其实可以是非volatile的，因为只有用户线程会访问 */
 	private volatile boolean sent = false;
+	/** 所属的Sender */
+	private BufferedSender bufferedSender;
 
-	public DefaultBufferedRpcPromise(NetEventLoop workerEventLoop, EventLoop userEventLoop, long timeoutMs) {
+	public DefaultBufferedRpcPromise(NetEventLoop workerEventLoop, EventLoop userEventLoop, long timeoutMs, BufferedSender bufferedSender) {
 		super(workerEventLoop, userEventLoop, timeoutMs);
+		this.bufferedSender = bufferedSender;
 	}
 
 	@Override
@@ -42,9 +45,15 @@ public class DefaultBufferedRpcPromise extends DefaultRpcPromise implements Buff
 
 	@Override
 	protected void checkDeadlock() {
+		// 注意：如果sent不是volatile的，那么getUserEventLoop().inEventLoop()必须放前面
 		if (getUserEventLoop().inEventLoop() && !sent) {
-			// 如果用户线程，且尚未发送出去，则抛出阻塞异常
-			throw new BlockingOperationException();
+			// 讲道理这里一定能发送出去
+			bufferedSender.flush();
+			// 如果没发送出去，抛出阻塞异常
+			if (!sent) {
+				throw new BlockingOperationException();
+
+			}
 		} else {
 			EventLoopUtils.checkDeadLock(executor());
 		}

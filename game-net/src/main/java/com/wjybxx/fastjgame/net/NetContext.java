@@ -27,6 +27,7 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import okhttp3.Response;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.Map;
@@ -81,12 +82,15 @@ public interface NetContext {
 	 * @param initializer 如何初始化channel
 	 * @param lifecycleAware 生命周期监听器
 	 * @param protocolDispatcher 协议处理器
+	 * @param senderMode session发送消息的方式
 	 * @return future 可以等待绑定完成。
 	 */
-	default ListenableFuture<HostAndPort> bind(String host, int port, ChannelInitializer<SocketChannel> initializer,
-											   SessionLifecycleAware lifecycleAware,
-											   ProtocolDispatcher protocolDispatcher) {
-		return this.bindRange(host, new PortRange(port, port), initializer, lifecycleAware, protocolDispatcher);
+	default ListenableFuture<HostAndPort> bind(String host, int port,
+											   @Nonnull ChannelInitializer<SocketChannel> initializer,
+											   @Nonnull SessionLifecycleAware lifecycleAware,
+											   @Nonnull ProtocolDispatcher protocolDispatcher,
+											   @Nonnull SenderMode senderMode) {
+		return this.bindRange(host, new PortRange(port, port), initializer, lifecycleAware, protocolDispatcher, senderMode);
 	}
 
 	/**
@@ -96,11 +100,14 @@ public interface NetContext {
 	 * @param initializer 如何初始化channel
 	 * @param lifecycleAware 生命周期监听器
 	 * @param protocolDispatcher 协议处理器
+	 * @param senderMode session发送消息的方式
 	 * @return future 可以等待绑定完成。
 	 */
-	ListenableFuture<HostAndPort> bindRange(String host, PortRange portRange, ChannelInitializer<SocketChannel> initializer,
-											SessionLifecycleAware lifecycleAware,
-											ProtocolDispatcher protocolDispatcher);
+	ListenableFuture<HostAndPort> bindRange(String host, @Nonnull PortRange portRange,
+											@Nonnull ChannelInitializer<SocketChannel> initializer,
+											@Nonnull SessionLifecycleAware lifecycleAware,
+											@Nonnull ProtocolDispatcher protocolDispatcher,
+											@Nonnull SenderMode senderMode);
 
 	/**
 	 * 连接远程某个端口
@@ -110,11 +117,15 @@ public interface NetContext {
 	 * @param initializerSupplier 如何初始化channel，supplier是因为断线重连可能需要新的initializer。
 	 * @param lifecycleAware 生命周期监听器
 	 * @param protocolDispatcher 协议处理器
+	 * @param senderMode
 	 * @return future，它并不是连接真正建立的future，而且连接操作是否被NetEventLoop响应的future
 	 */
-	ListenableFuture<?> connect(long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress, ChannelInitializerSupplier initializerSupplier,
-								SessionLifecycleAware lifecycleAware,
-								ProtocolDispatcher protocolDispatcher);
+	ListenableFuture<?> connect(long remoteGuid, RoleType remoteRole,
+								@Nonnull HostAndPort remoteAddress,
+								@Nonnull ChannelInitializerSupplier initializerSupplier,
+								@Nonnull SessionLifecycleAware lifecycleAware,
+								@Nonnull ProtocolDispatcher protocolDispatcher,
+								@Nonnull SenderMode senderMode);
 
 	/**
 	 * 工厂方法，创建一个用于tcp监听的Initializer.

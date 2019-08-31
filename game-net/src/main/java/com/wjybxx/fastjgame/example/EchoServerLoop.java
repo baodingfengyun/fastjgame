@@ -59,7 +59,7 @@ public class EchoServerLoop extends SingleThreadEventLoop {
 
 		// 监听tcp端口
 		TCPServerChannelInitializer initializer = netContext.newTcpServerInitializer(ExampleConstants.jsonBasedCodec);
-		netContext.bind(NetUtils.getLocalIp(), ExampleConstants.tcpPort, initializer, new ClientLifeAware(), new EchoProtocolDispatcher());
+		netContext.bind(NetUtils.getLocalIp(), ExampleConstants.tcpPort, initializer, new ClientLifeAware(), new EchoProtocolDispatcher(), SenderMode.DIRECT);
 
 		// 监听http端口
 		HttpServerInitializer httpServerInitializer = netContext.newHttpServerInitializer();

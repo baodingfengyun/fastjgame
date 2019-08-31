@@ -21,7 +21,6 @@ import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.LocalResponseChannel;
-import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.misc.PortRange;
 import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.net.initializer.*;
@@ -32,6 +31,7 @@ import okhttp3.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.net.BindException;
@@ -127,12 +127,16 @@ class NetContextImp implements NetContext {
 	}
 
 	@Override
-	public ListenableFuture<HostAndPort> bindRange(String host, PortRange portRange, ChannelInitializer<SocketChannel> initializer, SessionLifecycleAware lifecycleAware, ProtocolDispatcher protocolDispatcher) {
+	public ListenableFuture<HostAndPort> bindRange(String host, @Nonnull PortRange portRange,
+												   @Nonnull ChannelInitializer<SocketChannel> initializer,
+												   @Nonnull SessionLifecycleAware lifecycleAware,
+												   @Nonnull ProtocolDispatcher protocolDispatcher,
+												   @Nonnull SenderMode senderMode) {
 		// 这里一定不是网络层，只有逻辑层才会调用bind
 		return netEventLoop.submit(() -> {
 			try {
 				return managerWrapper.getS2CSessionManager().bindRange(this, host, portRange,
-						initializer, lifecycleAware, protocolDispatcher);
+						initializer, lifecycleAware, protocolDispatcher, senderMode);
 			} catch (BindException e){
 				ConcurrentUtils.rethrow(e);
 				// unreachable
@@ -142,11 +146,16 @@ class NetContextImp implements NetContext {
 	}
 
 	@Override
-	public ListenableFuture<?> connect(long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress, ChannelInitializerSupplier initializerSupplier, SessionLifecycleAware lifecycleAware, ProtocolDispatcher protocolDispatcher) {
+	public ListenableFuture<?> connect(long remoteGuid, RoleType remoteRole,
+									   @Nonnull HostAndPort remoteAddress,
+									   @Nonnull ChannelInitializerSupplier initializerSupplier,
+									   @Nonnull SessionLifecycleAware lifecycleAware,
+									   @Nonnull ProtocolDispatcher protocolDispatcher,
+									   @Nonnull SenderMode senderMode) {
 		// 这里一定不是网络层，只有逻辑层才会调用connect
 		return netEventLoop.submit(() -> {
 			managerWrapper.getC2SSessionManager().connect(this, remoteGuid, remoteRole, remoteAddress,
-					initializerSupplier, lifecycleAware, protocolDispatcher);
+					initializerSupplier, lifecycleAware, protocolDispatcher, senderMode);
 		});
 	}
 
