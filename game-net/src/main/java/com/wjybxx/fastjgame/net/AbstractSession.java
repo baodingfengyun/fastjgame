@@ -88,7 +88,7 @@ public abstract class AbstractSession implements Session{
         return netContext().localEventLoop();
     }
 
-    public Sender getSender() {
+    public Sender sender() {
         return sender;
     }
 
@@ -129,12 +129,6 @@ public abstract class AbstractSession implements Session{
     @Nonnull
     public RpcResponse syncRpcUninterruptibly(@Nonnull Object request, long timeoutMs) {
         return sender.syncRpcUninterruptibly(request, timeoutMs);
-    }
-
-    @Override
-    @Nonnull
-    public <T> RpcResponseChannel<T> newResponseChannel(@Nonnull RpcRequestContext context) {
-        return sender.newResponseChannel(context);
     }
 
     @Override
@@ -180,11 +174,11 @@ public abstract class AbstractSession implements Session{
 
     /**
      * 发送rpc响应
-     * @param sync 是否是同步rpc请求
      * @param requestGuid 请求对应的id
+     * @param sync 是否是同步rpc请求
      * @param rpcResponse 请求对应的响应
      */
-    final void sendRpcResponse(boolean sync, long requestGuid, RpcResponse rpcResponse) {
+    final void sendRpcResponse(long requestGuid, boolean sync, RpcResponse rpcResponse) {
         getSessionManager().sendRpcResponse(localGuid(), remoteGuid(), requestGuid, sync, rpcResponse);
     }
 }

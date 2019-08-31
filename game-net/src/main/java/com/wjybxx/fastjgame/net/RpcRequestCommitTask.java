@@ -23,20 +23,28 @@ package com.wjybxx.fastjgame.net;
  * date - 2019/8/8
  * github - https://github.com/hl845740757
  */
-public class UncommittedRpcRequest extends AbstractUncommittedMessage{
+public class RpcRequestCommitTask extends AbstractCommitTask {
 
+	/** 消息分发器 */
+	private final ProtocolDispatcher protocolDispatcher;
+	/** rpc请求编号，用于返回消息 */
+	public final long requestGuid;
+	/** 是否rpc同步调用，是否加急 */
+	public final boolean sync;
 	/** Rpc请求内容 */
 	private final Object request;
-	/** 该请求对应的上下文 */
-	private final DefaultRpcRequestContext context;
 
-	public UncommittedRpcRequest(Object request, DefaultRpcRequestContext context) {
+	public RpcRequestCommitTask(Session session, ProtocolDispatcher protocolDispatcher, long requestGuid, boolean sync, Object request) {
+		super(session);
+		this.protocolDispatcher = protocolDispatcher;
+		this.requestGuid = requestGuid;
+		this.sync = sync;
 		this.request = request;
-		this.context = context;
 	}
 
 	@Override
-	public void doCommit(Session session, ProtocolDispatcher protocolDispatcher) {
-		protocolDispatcher.postRpcRequest(session, request, context);
+	public void doCommit() {
+		final RpcResponseChannel<?> responseChannel = session.sender().newResponseChannel(requestGuid, sync);
+		protocolDispatcher.postRpcRequest(session, request, responseChannel);
 	}
 }

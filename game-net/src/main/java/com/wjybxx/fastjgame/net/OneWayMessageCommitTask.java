@@ -16,25 +16,26 @@
 package com.wjybxx.fastjgame.net;
 
 /**
- * 网络层已收到，但是还未提交给应用层的消息。
- * 网络层可以批量的将消息网络包提交给应用层，减少 网络层与网络层，网络层与应用层之间的竞争。
- *
- * 2019年8月31日17:22:20
- * Q: 我为什么删除了{@code onReject}方法？<br>
- * A: 网络层操心操太多了，造成了错误的耦合。数据包的形式是不限定的，任何一个消息，网络层都不能代替应用层处理！
- *
+ * 接收缓冲区中未提交的单向消息
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/8
  * github - https://github.com/hl845740757
  */
-public interface UncommittedMessage {
+public class OneWayMessageCommitTask extends AbstractCommitTask {
+	/** 消息分发器 */
+	private final ProtocolDispatcher protocolDispatcher;
+	/** 单向消息的内容 */
+	private final Object message;
 
-	/**
-	 * 执行提交操作，此时运行在用户线程下。
-	 * @param session 所在的session
-	 * @param protocolDispatcher 该会话上的消息处理器
-	 */
-	void commit(Session session, ProtocolDispatcher protocolDispatcher);
+	public OneWayMessageCommitTask(Session session, ProtocolDispatcher protocolDispatcher, Object message) {
+		super(session);
+		this.protocolDispatcher = protocolDispatcher;
+		this.message = message;
+	}
 
+	@Override
+	public void doCommit() {
+		protocolDispatcher.postOneWayMessage(session, message);
+	}
 }

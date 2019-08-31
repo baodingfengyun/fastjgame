@@ -16,23 +16,26 @@
 package com.wjybxx.fastjgame.net;
 
 /**
- * 接收缓冲区中未提交的单向消息
+ * 已接收但还未提交给应用层的异步Rpc的响应
+ *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/8
+ * date - 2019/8/13
  * github - https://github.com/hl845740757
  */
-public class UncommittedOneWayMessage extends AbstractUncommittedMessage{
+public class RpcResponseCommitTask extends AbstractCommitTask {
 
-	/** 单向消息的内容 */
-	private final Object message;
+	private final RpcResponse rpcResponse;
+	private final RpcCallback rpcCallback;
 
-	public UncommittedOneWayMessage(Object message) {
-		this.message = message;
+	public RpcResponseCommitTask(Session session, RpcResponse rpcResponse, RpcCallback rpcCallback) {
+		super(session);
+		this.rpcResponse = rpcResponse;
+		this.rpcCallback = rpcCallback;
 	}
 
 	@Override
-	public void doCommit(Session session, ProtocolDispatcher protocolDispatcher) {
-		protocolDispatcher.postOneWayMessage(session, message);
+	public void doCommit() {
+		rpcCallback.onComplete(rpcResponse);
 	}
 }

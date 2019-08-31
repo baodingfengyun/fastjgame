@@ -107,7 +107,7 @@ public class C2SSessionManager extends SessionManager {
 
     /** 提交rpc结果 */
     private void commitRpcResponse(SessionWrapper sessionWrapper, RpcPromiseInfo rpcPromiseInfo, RpcResponse rpcResponse) {
-        commitRpcResponse(sessionWrapper.userInfo.netContext, sessionWrapper.session, sessionWrapper.messageQueue, sessionWrapper.protocolDispatcher,
+        commitRpcResponse(sessionWrapper.userInfo.netContext, sessionWrapper.session,
                 rpcPromiseInfo, rpcResponse);
     }
 
@@ -839,11 +839,6 @@ public class C2SSessionManager extends SessionManager {
         @Override
         protected void execute() {
             MessageQueue messageQueue= getMessageQueue();
-            // 有待提交的消息则提交
-            if (messageQueue.getUncommittedQueue().size() > 0){
-                flushAllUncommittedMessage();
-            }
-
             // 检查消息超时
             if (messageQueue.getSentQueue().size()>0){
                 long firstMessageTimeout=messageQueue.getSentQueue().getFirst().getTimeout();
@@ -907,15 +902,9 @@ public class C2SSessionManager extends SessionManager {
             // 大量的lambda表达式可能影响性能，目前先不优化，先注意可维护性。
             final RpcRequestTO requestTO = rpcRequestEventParam.messageTO();
             ifSequenceAndAckOk(requestTO, ()-> {
-                DefaultRpcRequestContext context = new DefaultRpcRequestContext(requestTO.isSync(), requestTO.getRequestGuid());
-                UncommittedRpcRequest uncommittedMessage = new UncommittedRpcRequest(requestTO.getRequest(), context);
-                if (requestTO.isSync()) {
-                    // 同步调用，立即提交
-                    commitImmediately(uncommittedMessage);
-                } else {
-                    // 否则不着急提交，等待下一帧
-                    commit(uncommittedMessage);
-                }
+                RpcRequestCommitTask requestCommitTask = new RpcRequestCommitTask(session, sessionWrapper.protocolDispatcher,
+                        requestTO.getRequestGuid(), requestTO.isSync(), requestTO.getRequest());
+                commit(requestCommitTask);
             });
         }
 
@@ -937,7 +926,7 @@ public class C2SSessionManager extends SessionManager {
             final OneWayMessageTO oneWayMessageTO = oneWayMessageEventParam.messageTO();
             final Object message = oneWayMessageTO.getMessage();
             ifSequenceAndAckOk(oneWayMessageTO, () -> {
-                commit(new UncommittedOneWayMessage(message));
+                commit(new OneWayMessageCommitTask(session, sessionWrapper.protocolDispatcher, message));
             });
         }
 
@@ -987,24 +976,11 @@ public class C2SSessionManager extends SessionManager {
         }
 
         /**
-         * 提交一个消息给应用层
-         * @param uncommittedMessage 尚未提交的消息
+         * 提交到消息到应用层
+         * @param commitTask 尚未提交的消息
          */
-        void commit(UncommittedMessage uncommittedMessage) {
-            C2SSessionManager.this.commit(getNetContext(), session, getMessageQueue(), uncommittedMessage, getProtocolDispatcher());
-        }
-
-        /** 情况所有的未提交的消息 */
-        void flushAllUncommittedMessage() {
-            C2SSessionManager.this.flushAllUncommittedMessage(getNetContext(), session, getMessageQueue(), getProtocolDispatcher());
-        }
-
-        /**
-         * 立即提交消息给应用层
-         * @param uncommittedMessage 尚未提交的消息
-         */
-        void commitImmediately(UncommittedMessage uncommittedMessage) {
-            C2SSessionManager.this.commitImmediately(getNetContext(), session, uncommittedMessage, getProtocolDispatcher());
+        void commit(CommitTask commitTask) {
+            C2SSessionManager.this.commit(getNetContext(), session, commitTask);
         }
     }
 

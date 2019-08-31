@@ -135,8 +135,8 @@ public class BufferedSender extends AbstractSender{
 	}
 
 	@Override
-	protected <T> RpcResponseChannel<T> newAsyncRpcResponseChannel(DefaultRpcRequestContext context) {
-		return new BufferedResponseChannel<>(this, context);
+	protected <T> RpcResponseChannel<T> newAsyncRpcResponseChannel(long requestGuid) {
+		return new BufferedResponseChannel<>(this, requestGuid);
 	}
 
 	private interface SenderTask extends Runnable{
@@ -201,18 +201,18 @@ public class BufferedSender extends AbstractSender{
 	private static class RpcResponseTask implements SenderTask {
 
 		private final AbstractSession session;
-		private final DefaultRpcRequestContext context;
+		private final long requestGuid;
 		private final RpcResponse rpcResponse;
 
-		private RpcResponseTask(AbstractSession session, DefaultRpcRequestContext context, RpcResponse rpcResponse) {
+		private RpcResponseTask(AbstractSession session, long requestGuid, RpcResponse rpcResponse) {
 			this.session = session;
-			this.context = context;
+			this.requestGuid = requestGuid;
 			this.rpcResponse = rpcResponse;
 		}
 
 		@Override
 		public void run() {
-			session.sendRpcResponse(context.sync, context.requestGuid, rpcResponse);
+			session.sendRpcResponse(requestGuid, false, rpcResponse);
 		}
 
 		@Override
@@ -227,16 +227,16 @@ public class BufferedSender extends AbstractSender{
 	private static class BufferedResponseChannel<T> extends AbstractRpcResponseChannel<T> {
 
 		private final BufferedSender bufferedSender;
-		private final DefaultRpcRequestContext context;
+		private final long requestGuid;
 
-		private BufferedResponseChannel(BufferedSender bufferedSender, DefaultRpcRequestContext context) {
+		public BufferedResponseChannel(BufferedSender bufferedSender, long requestGuid) {
 			this.bufferedSender = bufferedSender;
-			this.context = context;
+			this.requestGuid = requestGuid;
 		}
 
 		@Override
 		protected void doWrite(RpcResponse rpcResponse) {
-			bufferedSender.addTask(new RpcResponseTask(bufferedSender.session, context, rpcResponse));
+			bufferedSender.addTask(new RpcResponseTask(bufferedSender.session, requestGuid, rpcResponse));
 		}
 	}
 }

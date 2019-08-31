@@ -155,7 +155,7 @@ public abstract class SessionManager {
     }
 
     /**
-     * 情况发送缓冲区
+     * 清空发送缓冲区
      * 因何想到了不用再申请空间的骚操作的？因为之前看Collectors的源码的时候看见了。。。
      * {@link java.util.stream.Collectors#groupingBy(Function, Supplier, Collector)}。
      * @param channel 会话关联的channel
@@ -226,117 +226,38 @@ public abstract class SessionManager {
             channel.writeAndFlush(new BatchMessageTO(messageTOS), channel.voidPromise());
         }
     }
-    // -----------------------------------------------------------  接收缓冲区 --------------------------------------------------------------
-
-    /**
-     * 提交一个消息给应用层
-     * @param netContext 用户的网络上下文
-     * @param session 会话信息
-     * @param messageQueue 未提交的信息所在的队列
-     * @param uncommittedMessage 准备提交的消息
-     * @param protocolDispatcher 用户绑定的消息处理器
-     * @return 是否真正的执行了提交操作
-     */
-    protected final void commit(NetContext netContext, Session session, MessageQueue messageQueue, UncommittedMessage uncommittedMessage, ProtocolDispatcher protocolDispatcher) {
-        if (netConfigManager.commitThreshold() <= 0) {
-            // 禁用了接收缓冲区
-            commitImmediately(netContext, session, uncommittedMessage, protocolDispatcher);
-            return;
-        }
-        // 启用了接收缓冲区
-        messageQueue.getUncommittedQueue().add(uncommittedMessage);
-        if (messageQueue.getUncommittedQueue().size() >= netConfigManager.commitThreshold()) {
-            // 到达阈值，清空缓冲区
-            flushAllUncommittedMessage(netContext, session, messageQueue, protocolDispatcher);
-        }
-    }
+    // ----------------------------------------------------------- 提交消息 --------------------------------------------------------------
 
     /**
      * 立即提交一个消息给应用层
      * @param netContext 用户的网络上下文
      * @param session 会话信息
-     * @param uncommittedMessage 准备提交的消息
-     * @param protocolDispatcher 用户绑定的消息处理器
+     * @param commitTask 准备提交的消息
      */
-    protected final void commitImmediately(NetContext netContext, Session session, UncommittedMessage uncommittedMessage, ProtocolDispatcher protocolDispatcher) {
+    protected final void commit(NetContext netContext, Session session, CommitTask commitTask) {
         // 应用层请求了关闭，可以减少提交的无效消息数量
         if (!session.isActive()){
             return;
         }
         // 直接提交到应用层
-        ConcurrentUtils.tryCommit(netContext.localEventLoop(), () -> {
-            uncommittedMessage.commit(session, protocolDispatcher);
-        });
-    }
-
-    /**
-     * 清空未提交信息队列
-     * @param netContext 用户的网络上下文
-     * @param session 会话信息
-     * @param messageQueue 未提交的信息所在的队列
-     * @param protocolDispatcher 用户绑定的消息处理器
-     */
-    protected final void flushAllUncommittedMessage(NetContext netContext, Session session, MessageQueue messageQueue, ProtocolDispatcher protocolDispatcher) {
-        // 落单的一个消息
-        if (messageQueue.getUncommittedQueue().size() == 1){
-            commitImmediately(netContext, session, messageQueue.getUncommittedQueue().pollFirst(), protocolDispatcher);
-        } else {
-            batchCommitImmediately(netContext, session, messageQueue.exchangeUncommittedMessages(), protocolDispatcher);
-        }
-    }
-
-    /**
-     * 立即执行批量提交操作
-     * @param netContext 用户的网络上下文
-     * @param session 会话信息
-     * @param uncommittedMessages 未提交的消息
-     * @param protocolDispatcher 用户绑定的消息处理器
-     */
-    private void batchCommitImmediately(NetContext netContext, Session session, final LinkedList<UncommittedMessage> uncommittedMessages, ProtocolDispatcher protocolDispatcher) {
-        // 应用层请求了关闭，等待remove任务到达，注意这不代表用户在关闭之后收不到消息请求
-        if (!session.isActive()){
-            return;
-        }
-        // 提交到应用层
-        ConcurrentUtils.tryCommit(netContext.localEventLoop(), () -> {
-            Exception cause = null;
-            for (UncommittedMessage uncommittedMessage : uncommittedMessages) {
-                try {
-                    uncommittedMessage.commit(session, protocolDispatcher);
-                } catch (Exception ex) {
-                    // 压缩为一个异常
-                    if (cause == null) {
-                        cause = ex;
-                    } else {
-                        cause.addSuppressed(ex);
-                    }
-                }
-            }
-            // 只能抛出一个异常
-            if (cause != null) {
-                ConcurrentUtils.rethrow(cause);
-            }
-        });
+        ConcurrentUtils.tryCommit(netContext.localEventLoop(), commitTask);
     }
 
     /**
      * 提交一个rpc响应结果
      * @param netContext 用户的网络上下文
      * @param session 会话信息
-     * @param messageQueue 未提交的信息所在的队列
-     * @param protocolDispatcher 会话上的消息处理器
      * @param rpcPromiseInfo rpc请求的一些信息
      * @param rpcResponse rpc结果
      */
-    protected final void commitRpcResponse(NetContext netContext, Session session, MessageQueue messageQueue, ProtocolDispatcher protocolDispatcher,
-                                           RpcPromiseInfo rpcPromiseInfo, RpcResponse rpcResponse) {
+    protected final void commitRpcResponse(NetContext netContext, Session session, RpcPromiseInfo rpcPromiseInfo, RpcResponse rpcResponse) {
         if (rpcPromiseInfo.rpcPromise != null) {
             // 同步rpc调用
             rpcPromiseInfo.rpcPromise.trySuccess(rpcResponse);
         } else {
             // 异步rpc调用
-            UncommittedRpcResponse uncommittedRpcResponse = new UncommittedRpcResponse(rpcResponse, rpcPromiseInfo.rpcCallback);
-            commit(netContext, session, messageQueue, uncommittedRpcResponse, protocolDispatcher);
+            RpcResponseCommitTask rpcResponseCommitTask = new RpcResponseCommitTask(session, rpcResponse, rpcPromiseInfo.rpcCallback);
+            commit(netContext, session, rpcResponseCommitTask);
         }
     }
 

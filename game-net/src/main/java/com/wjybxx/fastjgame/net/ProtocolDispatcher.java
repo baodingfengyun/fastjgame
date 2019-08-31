@@ -33,10 +33,9 @@ public interface ProtocolDispatcher {
      * 处理该会话发来的Rpc请求
      * @param session 会话信息
      * @param request rpc请求，如果编解码异常，则可能为null。
-     * @param context 该rpc请求的特定上下文，可以用于创建返回结果的channel {@link Session#newResponseChannel(RpcRequestContext)}。
-     *                注意：该context不可以共享，不可以用在其它请求上。
+     * @param responseChannel 用于返回结果的通道
      */
-    void postRpcRequest(Session session, @Nullable Object request, RpcRequestContext context);
+    void postRpcRequest(Session session, @Nullable Object request, RpcResponseChannel<?> responseChannel);
 
     /**
      * 处理该会话发来单向的消息

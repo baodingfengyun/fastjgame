@@ -70,12 +70,10 @@ public interface Sender {
 
 	/**
 	 * 创建一个特定rpc请求对应的结果通道。
-	 *
-	 * @param context rpc请求对应的上下文，注意必须是{@link ProtocolDispatcher#postRpcRequest(Session, Object, RpcRequestContext)}中的context。
-	 *                一个请求的context，不可以用在其它请求上。
-	 * @return 用于返回结果的通道
+	 * @param requestGuid 请求对应的id
+	 * @param sync 是否是同步rpc调用
 	 */
-	<T> RpcResponseChannel<T> newResponseChannel(RpcRequestContext context);
+	<T> RpcResponseChannel<T> newResponseChannel(long requestGuid, boolean sync);
 
 	/**
 	 * 如果存在缓冲，则清空缓冲区。

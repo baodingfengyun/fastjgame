@@ -20,7 +20,7 @@ import com.wjybxx.fastjgame.misc.RpcCall;
 import com.wjybxx.fastjgame.misc.RpcCallDispatcher;
 import com.wjybxx.fastjgame.misc.VoidRpcResponseChannel;
 import com.wjybxx.fastjgame.net.ProtocolDispatcher;
-import com.wjybxx.fastjgame.net.RpcRequestContext;
+import com.wjybxx.fastjgame.net.RpcResponseChannel;
 import com.wjybxx.fastjgame.net.Session;
 
 import javax.annotation.Nullable;
@@ -41,9 +41,9 @@ public class ExampleRpcDispatcher implements ProtocolDispatcher {
 	}
 
 	@Override
-	public void postRpcRequest(Session session, @Nullable Object request, RpcRequestContext context) {
+	public void postRpcRequest(Session session, @Nullable Object request, RpcResponseChannel<?> responseChannel) {
 		if (request instanceof RpcCall) {
-			dispatcher.post(session, (RpcCall) request, session.newResponseChannel(context));
+			dispatcher.post(session, (RpcCall) request, responseChannel);
 		}
 	}
 

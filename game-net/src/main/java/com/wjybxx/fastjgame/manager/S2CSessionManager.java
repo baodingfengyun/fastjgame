@@ -114,7 +114,7 @@ public class S2CSessionManager extends SessionManager {
 
     /** 提交rpc结果 */
     private void commitRpcResponse(SessionWrapper sessionWrapper, RpcPromiseInfo rpcPromiseInfo, RpcResponse rpcResponse) {
-        commitRpcResponse(sessionWrapper.userInfo.netContext, sessionWrapper.session, sessionWrapper.messageQueue, sessionWrapper.userInfo.protocolDispatcher,
+        commitRpcResponse(sessionWrapper.userInfo.netContext, sessionWrapper.session,
                 rpcPromiseInfo, rpcResponse);
     }
 
@@ -672,15 +672,9 @@ public class S2CSessionManager extends SessionManager {
         final Channel eventChannel = rpcRequestEventParam.channel();
         final RpcRequestTO requestMessageTO = rpcRequestEventParam.messageTO();
         tryUpdateMessageQueue(eventChannel, rpcRequestEventParam, sessionWrapper -> {
-            DefaultRpcRequestContext context = new DefaultRpcRequestContext(requestMessageTO.isSync(), requestMessageTO.getRequestGuid());
-            UncommittedRpcRequest uncommittedRpcRequest = new UncommittedRpcRequest(requestMessageTO.getRequest(), context);
-            if (requestMessageTO.isSync()) {
-                // 同步请求，立即提交
-                sessionWrapper.commitImmediately(uncommittedRpcRequest);
-            } else {
-                // 异步请求，稍后提交
-                sessionWrapper.commit(uncommittedRpcRequest);
-            }
+            RpcRequestCommitTask requestCommitTask = new RpcRequestCommitTask(sessionWrapper.session, sessionWrapper.userInfo.protocolDispatcher,
+                    requestMessageTO.getRequestGuid(), requestMessageTO.isSync(), requestMessageTO.getRequest());
+            sessionWrapper.commit(requestCommitTask);
         });
     }
 
@@ -710,7 +704,7 @@ public class S2CSessionManager extends SessionManager {
 
         tryUpdateMessageQueue(eventChannel, oneWayMessageEventParam, sessionWrapper -> {
             // 尽量少的捕获对象
-            sessionWrapper.commit(new UncommittedOneWayMessage(message));
+            sessionWrapper.commit(new OneWayMessageCommitTask(sessionWrapper.session, sessionWrapper.userInfo.protocolDispatcher, message));
         });
     }
 
@@ -886,9 +880,6 @@ public class S2CSessionManager extends SessionManager {
             if (messageQueue.getUnsentQueue().size() > 0) {
                 flushAllUnsentMessage();
             }
-            if (messageQueue.getUncommittedQueue().size() > 0) {
-                flushAllUncommittedMessage();
-            }
         }
 
         /**
@@ -911,20 +902,9 @@ public class S2CSessionManager extends SessionManager {
             return userInfo.initializer;
         }
 
-        /** 提交一个网络消息 */
-        void commit(UncommittedMessage uncommittedMessage) {
-            s2CSessionManager.commit(userInfo.netContext, session, messageQueue, uncommittedMessage, userInfo.protocolDispatcher);
-        }
-
-        /** 清空所有未提交的消息 */
-        private void flushAllUncommittedMessage() {
-            s2CSessionManager.flushAllUncommittedMessage(userInfo.netContext, session, messageQueue, userInfo.protocolDispatcher);
-        }
-
-
-        /** 立即提交到应用层 */
-        void commitImmediately(UncommittedMessage uncommittedMessage) {
-            s2CSessionManager.commitImmediately(userInfo.netContext, session, uncommittedMessage, userInfo.protocolDispatcher);
+        /** 提交到消息到应用层 */
+        void commit(CommitTask commitTask) {
+            s2CSessionManager.commit(userInfo.netContext, session, commitTask);
         }
     }
 

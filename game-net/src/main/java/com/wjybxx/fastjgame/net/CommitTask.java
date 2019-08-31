@@ -16,12 +16,18 @@
 package com.wjybxx.fastjgame.net;
 
 /**
- * 提供给用户层的窄接口，不希望用户依赖该context的实现。
+ * 网络层已收到，但是需要在用户线程执行的逻辑。
+ *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/13
+ * date - 2019/8/8
  * github - https://github.com/hl845740757
  */
-public interface RpcRequestContext {
+public interface CommitTask extends Runnable{
+
+	/**
+	 * 执行提交操作，此时运行在用户线程下。
+	 */
+	void run();
 
 }

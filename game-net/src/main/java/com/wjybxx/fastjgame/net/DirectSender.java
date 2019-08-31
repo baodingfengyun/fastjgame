@@ -54,8 +54,8 @@ public class DirectSender extends AbstractSender {
 	}
 
 	@Override
-	protected <T> RpcResponseChannel<T> newAsyncRpcResponseChannel(DefaultRpcRequestContext context) {
-		return new DirectRpcResponseChannel<>(session, context);
+	protected <T> RpcResponseChannel<T> newAsyncRpcResponseChannel(long requestGuid) {
+		return new DirectRpcResponseChannel<>(session, requestGuid);
 	}
 
 	@Override
@@ -74,18 +74,18 @@ public class DirectSender extends AbstractSender {
 	private static class DirectRpcResponseChannel<T> extends AbstractRpcResponseChannel<T> {
 
 		private final AbstractSession session;
-		private final DefaultRpcRequestContext context;
+		private final long requestGuid;
 
-		private DirectRpcResponseChannel(AbstractSession session, DefaultRpcRequestContext context) {
+		public DirectRpcResponseChannel(AbstractSession session, long requestGuid) {
 			this.session = session;
-			this.context = context;
+			this.requestGuid = requestGuid;
 		}
 
 		@Override
 		protected void doWrite(RpcResponse rpcResponse) {
 			// 直接提交到网络层
 			session.netEventLoop().execute(() -> {
-				session.sendRpcResponse(context.sync, context.requestGuid, rpcResponse);
+				session.sendRpcResponse(requestGuid, false, rpcResponse);
 			});
 		}
 	}

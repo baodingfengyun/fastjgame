@@ -184,9 +184,10 @@ public class EchoClientLoop extends SingleThreadEventLoop {
 		}
 
 		@Override
-		public void postRpcRequest(Session session, @Nullable Object request, RpcRequestContext context) {
+		public void postRpcRequest(Session session, @Nullable Object request, RpcResponseChannel<?> responseChannel) {
 			// unreachable
 		}
+
 	}
 
 	public static void main(String[] args) throws ExecutionException, InterruptedException {

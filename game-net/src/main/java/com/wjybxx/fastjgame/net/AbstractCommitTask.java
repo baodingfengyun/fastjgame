@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.net;
 
 /**
- * {@link UncommittedMessage}的抽象实现，确保所有操作只在{@link Session#isActive() true}的情况下执行。
+ * {@link CommitTask}的抽象实现，确保所有操作只在{@link Session#isActive() true}的情况下执行。
  * 在用户已关闭session的情况下，如果提交消息，可能导致应用层逻辑错误。
  *
  * @author wjybxx
@@ -25,14 +25,20 @@ package com.wjybxx.fastjgame.net;
  * date - 2019/8/31
  * github - https://github.com/hl845740757
  */
-public abstract class AbstractUncommittedMessage implements UncommittedMessage{
+public abstract class AbstractCommitTask implements CommitTask {
+
+	protected final Session session;
+
+	public AbstractCommitTask(Session session) {
+		this.session = session;
+	}
 
 	@Override
-	public final void commit(Session session, ProtocolDispatcher protocolDispatcher) {
+	public final void run() {
 		if (session.isActive()) {
-			doCommit(session, protocolDispatcher);
+			doCommit();
 		}
 	}
 
-	protected abstract void doCommit(Session session, ProtocolDispatcher protocolDispatcher);
+	protected abstract void doCommit();
 }

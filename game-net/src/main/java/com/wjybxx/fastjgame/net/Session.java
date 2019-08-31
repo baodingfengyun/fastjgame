@@ -103,6 +103,11 @@ public interface Session {
      */
     SessionSenderMode senderMode();
 
+    /**
+     * 获取该session关联的消息发送器，不建议应用层使用。
+     */
+    Sender sender();
+
     // ----------------------------------------------- 生命周期 ----------------------------------------------
     /**
      * 当前仅当session已成功和对方建立连接，且未断开的情况下返回true。
@@ -193,17 +198,6 @@ public interface Session {
      */
     @Nonnull
     RpcResponse syncRpcUninterruptibly(@Nonnull Object request, long timeoutMs);
-
-    // ---------------------------------------------- Rpc结果处理 ---------------------------------------------
-    /**
-     * 创建一个特定rpc请求对应的结果通道。
-     *
-     * @param context rpc请求对应的上下文，注意必须是{@link ProtocolDispatcher#postRpcRequest(Session, Object, RpcRequestContext)}中的context。
-     *                一个请求的context，不可以用在其它请求上。
-     * @return 用于返回结果的通道
-     */
-    @Nonnull
-    <T> RpcResponseChannel<T> newResponseChannel(@Nonnull RpcRequestContext context);
 
     // --------------------------------------------  缓冲区处理 -------------------------------------------------
 

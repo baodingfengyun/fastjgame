@@ -68,7 +68,6 @@ public class NetConfigManager  {
     private final int clientMaxCacheNum;
 
     private final int flushThreshold;
-    private final int commitThreshold;
 
     private final int httpRequestTimeout;
     private final int httpSessionTimeout;
@@ -96,7 +95,6 @@ public class NetConfigManager  {
         clientMaxCacheNum = configWrapper.getAsInt("clientMaxCacheNum");
 
         flushThreshold = configWrapper.getAsInt("flushThreshold", 50);
-        commitThreshold = configWrapper.getAsInt("commitThreshold", 50);
 
         connectMaxTryTimes = configWrapper.getAsInt("connectMaxTryTimes");
         connectTimeout = configWrapper.getAsInt("connectTimeout");
@@ -259,14 +257,6 @@ public class NetConfigManager  {
      */
     public int flushThreshold() {
         return flushThreshold;
-    }
-
-    /**
-     * 当接收缓冲区的消息数到达该值时，立即提交给应用层
-     * 该值等于0表示关闭缓冲区，异步请求也立即提交
-     */
-    public int commitThreshold() {
-        return commitThreshold;
     }
 
 }

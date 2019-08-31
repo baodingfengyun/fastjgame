@@ -125,22 +125,21 @@ public abstract class AbstractSender implements Sender{
 	}
 
 	@Override
-	public final <T> RpcResponseChannel<T> newResponseChannel(RpcRequestContext context) {
-		DefaultRpcRequestContext realContext = (DefaultRpcRequestContext) context;
-		if (realContext.sync) {
-			return new SyncRpcResponseChannel<>(session, realContext);
+	public final <T> RpcResponseChannel<T> newResponseChannel(long requestGuid, boolean sync) {
+		if (sync) {
+			return new SyncRpcResponseChannel<>(session, requestGuid);
 		} else {
-			return newAsyncRpcResponseChannel(realContext);
+			return newAsyncRpcResponseChannel(requestGuid);
 		}
 	}
 
 	/**
 	 * 创建一个返回异步rpc结果的channel
-	 * @param context rpc请求上下文
+	 * @param requestGuid rpc请求对应的id
 	 * @param <T> 结果的类型
 	 * @return channel
 	 */
-	protected abstract <T> RpcResponseChannel<T> newAsyncRpcResponseChannel(DefaultRpcRequestContext context);
+	protected abstract <T> RpcResponseChannel<T> newAsyncRpcResponseChannel(long requestGuid);
 
 	protected boolean isActive() {
 		return session.isActive();
@@ -160,18 +159,18 @@ public abstract class AbstractSender implements Sender{
 	private static class SyncRpcResponseChannel<T> extends AbstractRpcResponseChannel<T> {
 
 		private final AbstractSession session;
-		private final DefaultRpcRequestContext context;
+		private final long requestGuid;
 
-		private SyncRpcResponseChannel(AbstractSession session, DefaultRpcRequestContext context) {
+		public SyncRpcResponseChannel(AbstractSession session, long requestGuid) {
 			this.session = session;
-			this.context = context;
+			this.requestGuid = requestGuid;
 		}
 
 		@Override
 		protected void doWrite(RpcResponse rpcResponse) {
 			// 立即提交到网络层
 			session.netEventLoop().execute(() -> {
-				session.sendRpcResponse(context.sync, context.requestGuid, rpcResponse);
+				session.sendRpcResponse(requestGuid, true, rpcResponse);
 			});
 		}
 	}

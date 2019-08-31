@@ -68,19 +68,6 @@ public final class MessageQueue {
      */
     private LinkedList<UnsentMessage> unsentQueue = new LinkedList<>();
 
-    /**
-     * 未提交的消息队列，已接收但是还未提交给应用层的消息。
-     * 该缓存是干嘛的？减少网络层与网络层，网络层与应用层之间的线程竞争。每一次commit都是一次竞争。
-     * 实时性不是很强的消息不立即提交。
-     *
-     * 是否能够提升吞吐量是需要测试的！如果不能达到目的，那么需要去除该设计。
-     *
-     * Q:为何选用{@link LinkedList}?
-     * A:它不会占用太多的冗余空间，节点{@code Node}也是很轻量级的。 {@link java.util.ArrayList}会占用额外的空间，扩容更会增加内存使用量，扩容性能也是问题。
-     * 此外，我们有大量的插入操作，却只有一次遍历操作，此外也没有随机访问的需求。
-     */
-    private LinkedList<UncommittedMessage> uncommittedQueue = new LinkedList<>();
-
     // ---------------------------------------------- 已发送的rpc信息 -----------------------------------
     /**
      * RpcRequestId分配器
@@ -173,10 +160,6 @@ public final class MessageQueue {
         return unsentQueue;
     }
 
-    public LinkedList<UncommittedMessage> getUncommittedQueue() {
-        return uncommittedQueue;
-    }
-
     public Long2ObjectMap<RpcPromiseInfo> getRpcPromiseInfoMap() {
         return rpcPromiseInfoMap;
     }
@@ -192,20 +175,12 @@ public final class MessageQueue {
         return result;
     }
 
-    /** 交换未提交的缓冲区 */
-    public LinkedList<UncommittedMessage> exchangeUncommittedMessages() {
-        LinkedList<UncommittedMessage> result = uncommittedQueue;
-        uncommittedQueue = new LinkedList<>();
-        return result;
-    }
-
     /**
      * 执行清理操作
      */
     public void clean() {
         sentQueue = null;
         unsentQueue = null;
-        uncommittedQueue = null;
     }
 
     /**

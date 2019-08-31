@@ -117,10 +117,11 @@ public class EchoServerLoop extends SingleThreadEventLoop {
 		}
 
 		@Override
-		public void postRpcRequest(Session session, @Nullable Object request, RpcRequestContext context) {
+		public void postRpcRequest(Session session, @Nullable Object request, RpcResponseChannel<?> responseChannel) {
 			assert null != request;
-			RpcResponseChannel<Object> responseChannel = session.newResponseChannel(context);
-			responseChannel.writeSuccess(request);
+			@SuppressWarnings("unchecked")
+			RpcResponseChannel<Object> channel = (RpcResponseChannel<Object>) responseChannel;
+			channel.writeSuccess(request);
 		}
 	}
 

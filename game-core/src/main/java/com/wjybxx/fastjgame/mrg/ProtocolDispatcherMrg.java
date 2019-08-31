@@ -22,7 +22,7 @@ import com.wjybxx.fastjgame.misc.DefaultRpcCallDispatcher;
 import com.wjybxx.fastjgame.misc.RpcCall;
 import com.wjybxx.fastjgame.misc.VoidRpcResponseChannel;
 import com.wjybxx.fastjgame.net.ProtocolDispatcher;
-import com.wjybxx.fastjgame.net.RpcRequestContext;
+import com.wjybxx.fastjgame.net.RpcResponseChannel;
 import com.wjybxx.fastjgame.net.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,13 +76,12 @@ public class ProtocolDispatcherMrg extends DefaultRpcCallDispatcher implements P
     }
 
     @Override
-    public final void postRpcRequest(Session session, @Nullable Object request, RpcRequestContext context) {
+    public void postRpcRequest(Session session, @Nullable Object request, RpcResponseChannel<?> responseChannel) {
         if (null == request){
             logger.warn("{} - {} send null request", session.remoteRole(), session.remoteGuid());
             return;
         }
-        // 目前版本直接session创建responseChannel，后期再考虑缓存的事情
-        post(session, (RpcCall) request, session.newResponseChannel(context));
+        post(session, (RpcCall) request, responseChannel);
     }
 
 }
