@@ -136,14 +136,6 @@ public abstract class AbstractSession implements Session{
         sender.flush();
     }
 
-    @Override
-    public final ListenableFuture<?> close() {
-        sender.cancelAll();
-        return close0();
-    }
-
-    protected abstract ListenableFuture<?> close0();
-
     // ------------------------------------------- 发送消息接口，必须运行在网络线程下 ---------------------------------------
 
     /** 发送单向消息 */

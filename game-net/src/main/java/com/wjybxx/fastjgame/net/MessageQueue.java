@@ -78,7 +78,7 @@ public final class MessageQueue {
      * 当前会话上的rpc请求
      * (提供顺序保证，先发起的请求先超时)
      */
-    private final Long2ObjectMap<RpcPromiseInfo> rpcPromiseInfoMap = new Long2ObjectLinkedOpenHashMap<>();
+    private Long2ObjectMap<RpcPromiseInfo> rpcPromiseInfoMap = new Long2ObjectLinkedOpenHashMap<>();
 
     /**
      * 对方发送过来的ack是否有效。
@@ -178,9 +178,10 @@ public final class MessageQueue {
     /**
      * 执行清理操作
      */
-    public void clean() {
+    public void clear() {
         sentQueue = null;
         unsentQueue = null;
+        rpcPromiseInfoMap = null;
     }
 
     /**

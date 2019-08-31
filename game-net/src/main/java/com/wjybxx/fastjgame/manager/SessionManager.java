@@ -265,12 +265,16 @@ public abstract class SessionManager {
 
     /**
      * 清理消息队列
+     * @param session session上也有需要清理的东西
      * @param messageQueue 消息队列
      */
-    protected final void cleanMessageQueue(MessageQueue messageQueue) {
-        // rpcPromise处理
+    protected final void clear(Session session, MessageQueue messageQueue) {
+        // 清空发送缓冲区
+        session.sender().clearBuffer();
+        // 完成所有同步rpc调用
         cleanRpcPromiseInfo(messageQueue.getRpcPromiseInfoMap());
-        messageQueue.clean();
+        // 释放能释放的对象
+        messageQueue.clear();
     }
 
     /**

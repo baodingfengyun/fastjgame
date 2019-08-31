@@ -315,7 +315,7 @@ public class C2SSessionManager extends SessionManager {
         }
 
         // 清理消息队列
-        cleanMessageQueue(sessionWrapper.messageQueue);
+        clear(session, sessionWrapper.messageQueue);
 
         // 验证成功过才执行断开回调操作(调用过onSessionConnected方法)
         if (sessionWrapper.getVerifiedSequencer().get() > 0){

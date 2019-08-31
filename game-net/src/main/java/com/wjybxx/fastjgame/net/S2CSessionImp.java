@@ -107,7 +107,7 @@ public class S2CSessionImp extends AbstractSession implements S2CSession {
     }
 
     @Override
-    protected ListenableFuture<?> close0() {
+    public ListenableFuture<?> close() {
         // 为什么不对它做优化了？ 因为他本身调用的频率就很低，平白无故的增加复杂度不值得。
         // 设置状态
         setClosed();

@@ -296,10 +296,10 @@ public class S2CSessionManager extends SessionManager {
         session.setClosed();
 
         // 清理消息队列(需要先执行)
-        cleanMessageQueue(sessionWrapper.messageQueue);
+        clear(session, sessionWrapper.messageQueue);
 
-        // 通知客户端退出
-        notifyClientExit(sessionWrapper.getChannel(),sessionWrapper);
+        // 通知客户端退出(这里会关闭channel)
+        notifyClientExit(sessionWrapper.getChannel(), sessionWrapper);
 
         // 避免捕获SessionWrapper，导致内存泄漏
         final SessionLifecycleAware lifecycleAware = sessionWrapper.getLifecycleAware();

@@ -89,7 +89,7 @@ public interface Sender {
 	void flush();
 
 	/**
-	 * 取消缓冲区中的所有消息
+	 * 关闭sender，也就是清空缓冲区中的所有消息
 	 */
-	void cancelAll();
+	void clearBuffer();
 }

@@ -60,11 +60,11 @@ public class DirectSender extends AbstractSender {
 
 	@Override
 	public void flush() {
-		// 没有缓冲区，因此什么都不做
+		// 没有缓存，因此什么都不做
 	}
 
 	@Override
-	public void cancelAll() {
+	public void clearBuffer() {
 		// do nothing
 	}
 
