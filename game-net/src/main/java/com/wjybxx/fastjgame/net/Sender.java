@@ -46,8 +46,7 @@ public interface Sender {
 
 	/**
 	 * 发送一个**异步**rpc请求给对方，并阻塞到结果返回或超时或被中断。
-	 * @apiNote
-	 * 必须保证回调执行在用户线程。
+	 * 注意：回调执行在session的用户线程。
 	 *
 	 * @param request rpc请求对象
 	 * @param callback 回调函数

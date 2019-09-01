@@ -84,13 +84,14 @@ public class BufferedSender extends AbstractSender{
 			if (session.isActive()) {
 				flushBuffer();
 			}
+			// else 等待清除
 		});
 	}
 
 	@Override
 	public void clearBuffer() {
-		// 这是在关闭session时调用的，需要确保用户能取消掉所有的任务。
-		EventLoopUtils.executeOrRun(userEventLoop(), this::cancelAll);
+		// 这是在关闭session时调用的，需要确保用户能取消掉所有的任务。用户线程可能关闭了，所以是tryCommit
+		ConcurrentUtils.tryCommit(userEventLoop(), this::cancelAll);
 	}
 
 	/**
@@ -175,7 +176,7 @@ public class BufferedSender extends AbstractSender{
 
 		@Override
 		public void run() {
-			session.sendAsyncRpcRequest(request, timeoutMs, session.localEventLoop(), rpcCallback);
+			session.sendAsyncRpcRequest(request, timeoutMs, rpcCallback);
 		}
 
 		@Override

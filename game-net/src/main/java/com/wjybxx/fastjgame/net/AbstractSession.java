@@ -79,14 +79,17 @@ public abstract class AbstractSession implements Session{
         return sessionSenderMode;
     }
 
+    @Override
     public NetEventLoop netEventLoop() {
         return netContext().netEventLoop();
     }
 
+    @Override
     public EventLoop localEventLoop() {
         return netContext().localEventLoop();
     }
 
+    @Override
     public Sender sender() {
         return sender;
     }
@@ -146,11 +149,10 @@ public abstract class AbstractSession implements Session{
      * 发送异步rpc请求
      * @param request 请求内容
      * @param timeoutMs 超时时间
-     * @param userEventLoop 用户线程
      * @param rpcCallback 回调函数
      */
-    final void sendAsyncRpcRequest(@Nonnull Object request, long timeoutMs, @Nonnull EventLoop userEventLoop, @Nonnull RpcCallback rpcCallback) {
-        getSessionManager().sendRpcRequest(localGuid(), remoteGuid(), request, timeoutMs, userEventLoop, rpcCallback);
+    final void sendAsyncRpcRequest(@Nonnull Object request, long timeoutMs, @Nonnull RpcCallback rpcCallback) {
+        getSessionManager().sendRpcRequest(localGuid(), remoteGuid(), request, timeoutMs, localEventLoop(), rpcCallback);
     }
 
     /**

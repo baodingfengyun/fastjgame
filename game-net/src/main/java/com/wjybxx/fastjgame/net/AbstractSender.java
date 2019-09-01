@@ -153,11 +153,11 @@ public abstract class AbstractSender implements Sender{
 	}
 
 	protected NetEventLoop netEventLoop() {
-		return session.netContext().netEventLoop();
+		return session.netEventLoop();
 	}
 
 	protected EventLoop userEventLoop() {
-		return session.netContext().localEventLoop();
+		return session.localEventLoop();
 	}
 
 	/**

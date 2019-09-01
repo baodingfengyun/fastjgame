@@ -60,6 +60,4 @@ public class RpcPromiseInfo {
 	public static RpcPromiseInfo newInstance(@Nonnull RpcCallback rpcCallback, long timeoutMs) {
 		return new RpcPromiseInfo(null, rpcCallback, timeoutMs);
 	}
-
-
 }

@@ -297,12 +297,12 @@ public class C2SSessionManager extends SessionManager {
         if (null == sessionWrapper){
             return true;
         }
-        afterRemoved(sessionWrapper, reason);
+        afterRemoved(sessionWrapper, reason, true);
         return true;
     }
 
     /** 当会话删除之后 */
-    private void afterRemoved(SessionWrapper sessionWrapper, String reason) {
+    private void afterRemoved(SessionWrapper sessionWrapper, String reason, final boolean postEvent) {
         // 避免捕获SessionWrapper，导致内存泄漏
         final C2SSessionImp session = sessionWrapper.getSession();
         // 标记为已关闭，这里不能调用close，否则死循环了。
@@ -318,7 +318,7 @@ public class C2SSessionManager extends SessionManager {
         clear(session, sessionWrapper.messageQueue);
 
         // 验证成功过才执行断开回调操作(调用过onSessionConnected方法)
-        if (sessionWrapper.getVerifiedSequencer().get() > 0){
+        if (postEvent && sessionWrapper.getVerifiedSequencer().get() > 0){
             // 避免捕获SessionWrapper，导致内存泄漏
             final SessionLifecycleAware lifecycleAware = sessionWrapper.lifecycleAware;
             // 提交到用户线程
@@ -341,28 +341,29 @@ public class C2SSessionManager extends SessionManager {
         if (null == userInfo) {
             return;
         }
-        removeUserSession(userInfo, reason);
+        removeUserSession(userInfo, reason, true);
     }
 
     /**
      * 删除某个用户的所有会话，(赶脚不必发送通知)
      * @param userInfo 用户信息
      * @param reason 移除会话的原因
+     * @param postEvent 是否提交session移除事件
      */
-    private void removeUserSession(UserInfo userInfo, String reason) {
+    private void removeUserSession(UserInfo userInfo, String reason, final boolean postEvent) {
         FastCollectionsUtils.removeIfAndThen(userInfo.sessionWrapperMap,
                 (k, sessionWrapper) -> true,
-                (k, sessionWrapper) -> afterRemoved(sessionWrapper, reason));
+                (k, sessionWrapper) -> afterRemoved(sessionWrapper, reason, postEvent));
     }
 
     /**
-     * 当用户所在的EventLoop关闭
+     * 当用户所在的EventLoop关闭，不比上报连接断开事件，一定报不成功。
      */
     @Override
     public void onUserEventLoopTerminal(EventLoop userEventLoop) {
         FastCollectionsUtils.removeIfAndThen(userInfoMap,
                 (k, userInfo) -> userInfo.netContext.localEventLoop() == userEventLoop,
-                (k, userInfo) -> removeUserSession(userInfo, "onUserEventLoopTerminal"));
+                (k, userInfo) -> removeUserSession(userInfo, "onUserEventLoopTerminal", false));
     }
 
     // region  --------------------------------- 网络事件处理 ---------------------------------
@@ -980,7 +981,7 @@ public class C2SSessionManager extends SessionManager {
          * @param commitTask 尚未提交的消息
          */
         void commit(CommitTask commitTask) {
-            C2SSessionManager.this.commit(getNetContext(), session, commitTask);
+            C2SSessionManager.this.commit(session, commitTask);
         }
     }
 

@@ -49,7 +49,7 @@ public class DirectSender extends AbstractSender {
 	public void doAsyncRpc(@Nonnull Object request, @Nonnull RpcCallback callback, long timeoutMs) {
 		// 直接提交到网络层执行
 		netEventLoop().execute(() -> {
-			session.sendAsyncRpcRequest(request, timeoutMs, userEventLoop(), callback);
+			session.sendAsyncRpcRequest(request, timeoutMs, callback);
 		});
 	}
 

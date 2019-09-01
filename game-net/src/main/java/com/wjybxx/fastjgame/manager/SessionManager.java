@@ -35,7 +35,7 @@ import java.util.stream.Collector;
 /**
  * session管理器，定义要实现的接口。
  *
- * Q: 为何要做发送缓冲区与接收缓冲区？
+ * Q: 为何要做发送缓冲区？
  * A: 减少竞争，对于实时性不高的操作，我们进行批量提交，可以大大减少竞争次数，提高吞吐量。
  * eg: 有50个网络包，我们提交50次和提交1次差距是很大的，网络包越多，差距越明显。
  *
@@ -230,17 +230,12 @@ public abstract class SessionManager {
 
     /**
      * 立即提交一个消息给应用层
-     * @param netContext 用户的网络上下文
      * @param session 会话信息
      * @param commitTask 准备提交的消息
      */
-    protected final void commit(NetContext netContext, Session session, CommitTask commitTask) {
-        // 应用层请求了关闭，可以减少提交的无效消息数量
-        if (!session.isActive()){
-            return;
-        }
+    protected final void commit(Session session, CommitTask commitTask) {
         // 直接提交到应用层
-        ConcurrentUtils.tryCommit(netContext.localEventLoop(), commitTask);
+        ConcurrentUtils.tryCommit(session.localEventLoop(), commitTask);
     }
 
     /**
@@ -257,7 +252,7 @@ public abstract class SessionManager {
         } else {
             // 异步rpc调用
             RpcResponseCommitTask rpcResponseCommitTask = new RpcResponseCommitTask(rpcResponse, rpcPromiseInfo.rpcCallback);
-            commit(netContext, session, rpcResponseCommitTask);
+            commit(session, rpcResponseCommitTask);
         }
     }
 
@@ -274,7 +269,7 @@ public abstract class SessionManager {
         // 清理消息队列
         messageQueue.detachMessageQueue();
         // 完成所有rpc调用
-        cleanRpcPromiseInfo(session.netContext().localEventLoop(), messageQueue.detachRpcPromiseInfoMap());
+        cleanRpcPromiseInfo(session.localEventLoop(), messageQueue.detachRpcPromiseInfoMap());
     }
 
     /**

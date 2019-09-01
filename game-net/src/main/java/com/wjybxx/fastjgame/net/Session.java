@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.net;
 
+import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 
@@ -72,12 +73,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public interface Session {
 
-    // ------------------------------------------------ 注册消息 -----------------------------------------
-    /**
-     * 该session所在的上下文
-     */
-    NetContext netContext();
-
     /**
      * 会话关联的本地对象guid
      */
@@ -103,11 +98,26 @@ public interface Session {
      */
     SessionSenderMode senderMode();
 
+    // ------------------------------------------------ session运行的网络环境 -----------------------------------------
+    /**
+     * 该session所在的上下文
+     */
+    NetContext netContext();
+
+    /**
+     * session所属的网络线程。
+     */
+    NetEventLoop netEventLoop();
+
+    /**
+     * session所属的用户线程
+     */
+    EventLoop localEventLoop();
+
     /**
      * 获取该session关联的消息发送器，不建议应用层使用。
      */
     Sender sender();
-
     // ----------------------------------------------- 生命周期 ----------------------------------------------
     /**
      * 当前仅当session已成功和对方建立连接，且未断开的情况下返回true。
@@ -204,4 +214,5 @@ public interface Session {
      * 注意：如果为session创建的是带有缓冲的sender，那么必须调用flush，否则可能有消息残留。
      */
     void flush();
+
 }

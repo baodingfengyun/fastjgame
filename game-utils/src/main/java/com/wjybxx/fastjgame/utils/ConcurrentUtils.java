@@ -352,7 +352,7 @@ public class ConcurrentUtils {
         } catch (Exception e){
             // may reject
             if (e instanceof RejectedExecutionException) {
-                logger.info("Target executor may shutdown, task is rejected.");
+                logger.info("Try commit failure, target executor may shutdown.");
             } else {
                 logger.warn("execute caught exception!", e);
             }

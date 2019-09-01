@@ -125,7 +125,7 @@ public class S2CSessionManager extends SessionManager {
         for(UserInfo userInfo : userInfoMap.values()) {
             FastCollectionsUtils.removeIfAndThen(userInfo.sessionWrapperMap,
                     (k, sessionWrapper) -> netTimeManager.getSystemSecTime() >= sessionWrapper.getSessionTimeout(),
-                    (k, sessionWrapper) -> afterRemoved(sessionWrapper, "session time out!"));
+                    (k, sessionWrapper) -> afterRemoved(sessionWrapper, "session time out!", true));
         }
     }
 
@@ -280,14 +280,14 @@ public class S2CSessionManager extends SessionManager {
         if (null == sessionWrapper){
             return true;
         }
-        afterRemoved(sessionWrapper, reason);
+        afterRemoved(sessionWrapper, reason, true);
         return true;
     }
 
     /**
      * 会话删除之后
      */
-    private void afterRemoved(SessionWrapper sessionWrapper, String reason) {
+    private void afterRemoved(SessionWrapper sessionWrapper, String reason, boolean postEvent) {
         // 禁用该token及之前的token
         sessionWrapper.userInfo.forbiddenTokenHelper.forbiddenCurToken(sessionWrapper.getToken());
         // 避免捕获SessionWrapper，导致内存泄漏
@@ -301,12 +301,15 @@ public class S2CSessionManager extends SessionManager {
         // 通知客户端退出(这里会关闭channel)
         notifyClientExit(sessionWrapper.getChannel(), sessionWrapper);
 
-        // 避免捕获SessionWrapper，导致内存泄漏
-        final SessionLifecycleAware lifecycleAware = sessionWrapper.getLifecycleAware();
-        // 尝试提交到用户线程
-        ConcurrentUtils.tryCommit(sessionWrapper.userInfo.netContext.localEventLoop(), () -> {
-            lifecycleAware.onSessionDisconnected(session);
-        });
+        if (postEvent) {
+            // 避免捕获SessionWrapper，导致内存泄漏
+            final SessionLifecycleAware lifecycleAware = sessionWrapper.getLifecycleAware();
+            // 尝试提交到用户线程
+            ConcurrentUtils.tryCommit(sessionWrapper.userInfo.netContext.localEventLoop(), () -> {
+                lifecycleAware.onSessionDisconnected(session);
+            });
+        }
+        
         logger.info("remove session by reason of {}, session info={}.",reason, session);
     }
 
@@ -321,18 +324,19 @@ public class S2CSessionManager extends SessionManager {
         if (null == userInfo) {
             return;
         }
-        removeUserSession(userInfo, reason);
+        removeUserSession(userInfo, reason, true);
     }
 
     /**
      * 删除某个用户的所有会话，(赶脚不必发送通知)
      * @param userInfo 用户信息
      * @param reason 移除会话的原因
+     * @param postEvent 是否上报session移除事件
      */
-    private void removeUserSession(UserInfo userInfo, String reason) {
+    private void removeUserSession(UserInfo userInfo, String reason, boolean postEvent) {
         FastCollectionsUtils.removeIfAndThen(userInfo.sessionWrapperMap,
                 (k, sessionWrapper) -> true,
-                (k, sessionWrapper) -> afterRemoved(sessionWrapper, reason));
+                (k, sessionWrapper) -> afterRemoved(sessionWrapper, reason, postEvent));
         // 绑定的端口需要释放
         NetUtils.closeQuietly(userInfo.bindResult.getChannel());
     }
@@ -344,7 +348,7 @@ public class S2CSessionManager extends SessionManager {
     public void onUserEventLoopTerminal(EventLoop userEventLoop) {
         FastCollectionsUtils.removeIfAndThen(userInfoMap,
                 (k, userInfo) -> userInfo.netContext.localEventLoop() == userEventLoop,
-                (k, userInfo) -> removeUserSession(userInfo, "onUserEventLoopTerminal"));
+                (k, userInfo) -> removeUserSession(userInfo, "onUserEventLoopTerminal", false));
     }
     // ------------------------------------------------- 网络事件处理 ---------------------------------------
 
@@ -904,7 +908,7 @@ public class S2CSessionManager extends SessionManager {
 
         /** 提交到消息到应用层 */
         void commit(CommitTask commitTask) {
-            s2CSessionManager.commit(userInfo.netContext, session, commitTask);
+            s2CSessionManager.commit(session, commitTask);
         }
     }
 

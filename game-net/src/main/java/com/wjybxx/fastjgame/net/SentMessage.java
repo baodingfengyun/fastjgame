@@ -58,8 +58,9 @@ public abstract class SentMessage {
     }
 
     /**
-     * 构建传输对象
-     * @param ack 捎带确认
+     * 构建传输对象，一个消息被重复发送时，只有ack会更新，其它数据都不应该更新。
+     *
+     * @param ack 捎带确认的ack。
      * @return transferObj
      */
     public abstract MessageTO build(long ack);
