@@ -159,12 +159,19 @@ public class S2CSessionManager extends SessionManager {
     }
 
     /**
-     * 获取活跃的session
+     * 获取一个可写的session。
+     * @param localGuid from
+     * @param clientGuid to
+     * @return sessionWrapper
      */
-    private SessionWrapper getAliveSession(long localGuid, long clientGuid) {
+    private SessionWrapper getWritableSession(long localGuid, long clientGuid) {
         SessionWrapper sessionWrapper = getSessionWrapper(localGuid, clientGuid);
         // 会话已被删除
         if (null== sessionWrapper){
+            return null;
+        }
+        // 会话已关闭
+        if (!sessionWrapper.session.isActive()) {
             return null;
         }
         // 缓存需要排除正常缓存阈值
@@ -172,8 +179,9 @@ public class S2CSessionManager extends SessionManager {
             // 缓存过多，删除会话
             removeSession(localGuid, clientGuid, "cacheMessageNum is too much! cacheMessageNum="+sessionWrapper.getCacheMessageNum());
             return null;
+        } else {
+            return sessionWrapper;
         }
-        return sessionWrapper;
     }
 
     /**
@@ -184,7 +192,7 @@ public class S2CSessionManager extends SessionManager {
      */
     @Override
     public void sendOneWayMessage(long localGuid, long clientGuid, @Nonnull Object message){
-        SessionWrapper sessionWrapper = getAliveSession(localGuid, clientGuid);
+        SessionWrapper sessionWrapper = getWritableSession(localGuid, clientGuid);
         if (null == sessionWrapper){
             logger.warn("client {} is removed, but try send message.",clientGuid);
             return;
@@ -203,7 +211,7 @@ public class S2CSessionManager extends SessionManager {
      */
     @Override
     public void sendRpcRequest(long localGuid, long clientGuid, @Nonnull Object request, long timeoutMs, EventLoop userEventLoop, RpcCallback rpcCallback) {
-        SessionWrapper sessionWrapper = getAliveSession(localGuid, clientGuid);
+        SessionWrapper sessionWrapper = getWritableSession(localGuid, clientGuid);
         if (null == sessionWrapper){
             logger.warn("client {} is removed, but try send rpcRequest.",clientGuid);
             ConcurrentUtils.tryCommit(userEventLoop, () -> {
@@ -228,7 +236,7 @@ public class S2CSessionManager extends SessionManager {
      */
     @Override
     public void sendSyncRpcRequest(long localGuid, long clientGuid, @Nonnull Object request, long timeoutMs, RpcPromise rpcPromise){
-        SessionWrapper sessionWrapper = getAliveSession(localGuid, clientGuid);
+        SessionWrapper sessionWrapper = getWritableSession(localGuid, clientGuid);
         if (null == sessionWrapper){
             logger.warn("client {} is removed, but try send rpcRequest.",clientGuid);
             rpcPromise.setSuccess(RpcResponse.SESSION_CLOSED);
@@ -250,7 +258,7 @@ public class S2CSessionManager extends SessionManager {
      */
     @Override
     public void sendRpcResponse(long localGuid, long clientGuid, long requestGuid, boolean sync, @Nonnull RpcResponse response) {
-        SessionWrapper sessionWrapper = getAliveSession(localGuid, clientGuid);
+        SessionWrapper sessionWrapper = getWritableSession(localGuid, clientGuid);
         if (null == sessionWrapper){
             logger.warn("client {} is removed, but try send rpcResponse.",clientGuid);
             return;
@@ -309,7 +317,7 @@ public class S2CSessionManager extends SessionManager {
                 lifecycleAware.onSessionDisconnected(session);
             });
         }
-        
+
         logger.info("remove session by reason of {}, session info={}.",reason, session);
     }
 
@@ -613,18 +621,6 @@ public class S2CSessionManager extends SessionManager {
     }
 
     /**
-     * 收到客户端的定时Ack-ping包
-     * @param ackPingParam 心跳包参数
-     */
-    void onRcvClientAckPing(AckPingPongEventParam ackPingParam){
-        final Channel eventChannel = ackPingParam.channel();
-        tryUpdateMessageQueue(eventChannel,ackPingParam,sessionWrapper -> {
-            // ack心跳包立即返回
-            sessionWrapper.writeAndFlush(new UnsentAckPingPong());
-        });
-    }
-
-    /**
      * 尝试用message更新消息队列
      * @param eventChannel 产生事件的channel
      * @param eventParam 消息参数
@@ -712,6 +708,17 @@ public class S2CSessionManager extends SessionManager {
         });
     }
 
+    /**
+     * 收到客户端的定时Ack-ping包
+     * @param ackPingParam 心跳包参数
+     */
+    void onRcvClientAckPing(AckPingPongEventParam ackPingParam){
+        final Channel eventChannel = ackPingParam.channel();
+        tryUpdateMessageQueue(eventChannel,ackPingParam,sessionWrapper -> {
+            // ack心跳包立即返回
+            sessionWrapper.writeAndFlush(new UnsentAckPingPong());
+        });
+    }
     // -------------------------------------------------- 内部封装 -------------------------------------------
 
     private static final class UserInfo {

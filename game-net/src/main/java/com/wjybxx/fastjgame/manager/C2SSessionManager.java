@@ -161,13 +161,13 @@ public class C2SSessionManager extends SessionManager {
     }
 
     /**
-     * 获取可用的session，如果session不可用则返回null
+     * 获取一个可写的session。
      * @param localGuid form
      * @param serverGuid to
-     * @return 返回一个看使用的session
+     * @return sessionWrapper
      */
     @Nullable
-    private SessionWrapper getAliveSession(long localGuid, long serverGuid) {
+    private SessionWrapper getWritableSession(long localGuid, long serverGuid) {
         SessionWrapper sessionWrapper = getSessionWrapper(localGuid, serverGuid);
         // 会话已被删除
         if (null == sessionWrapper){
@@ -195,7 +195,7 @@ public class C2SSessionManager extends SessionManager {
      */
     @Override
     public void sendOneWayMessage(long localGuid, long serverGuid, @Nonnull Object message){
-        SessionWrapper sessionWrapper = getAliveSession(localGuid, serverGuid);
+        SessionWrapper sessionWrapper = getWritableSession(localGuid, serverGuid);
         if (sessionWrapper == null) {
             logger.debug("session {}-{} is inactive, but try send message.", localGuid, serverGuid);
             return;
@@ -216,7 +216,7 @@ public class C2SSessionManager extends SessionManager {
      */
     @Override
     public void sendRpcRequest(long localGuid, long serverGuid, @Nonnull Object request, long timeoutMs, EventLoop userEventLoop, RpcCallback rpcCallback) {
-        SessionWrapper sessionWrapper = getAliveSession(localGuid, serverGuid);
+        SessionWrapper sessionWrapper = getWritableSession(localGuid, serverGuid);
         if (sessionWrapper == null) {
             logger.debug("session {}-{} is inactive, but try send asyncRpcRequest.", localGuid, serverGuid);
             ConcurrentUtils.tryCommit(userEventLoop, () -> {
@@ -243,7 +243,7 @@ public class C2SSessionManager extends SessionManager {
      */
     @Override
     public void sendSyncRpcRequest(long localGuid, long serverGuid, @Nonnull Object request, final long timeoutMs, RpcPromise rpcPromise){
-        SessionWrapper sessionWrapper = getAliveSession(localGuid, serverGuid);
+        SessionWrapper sessionWrapper = getWritableSession(localGuid, serverGuid);
         if (sessionWrapper == null) {
             logger.debug("session {}-{} is inactive, but try send syncRpcRequest.", localGuid, serverGuid);
             rpcPromise.trySuccess(RpcResponse.SESSION_CLOSED);
@@ -266,7 +266,7 @@ public class C2SSessionManager extends SessionManager {
      */
     @Override
     public void sendRpcResponse(long localGuid, long serverGuid, long requestGuid, boolean sync, @Nonnull RpcResponse response) {
-        SessionWrapper sessionWrapper = getAliveSession(localGuid, serverGuid);
+        SessionWrapper sessionWrapper = getWritableSession(localGuid, serverGuid);
         if (sessionWrapper == null) {
             logger.debug("session {}-{} is inactive, but try send rpcResponse.", localGuid, serverGuid);
             return;

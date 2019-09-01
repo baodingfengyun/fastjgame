@@ -110,10 +110,10 @@ public class BufferedSender extends AbstractSender{
 	 * 取消所有的任务(用户线程下)
 	 */
 	private void cancelAll() {
-		for (SenderTask senderTask : buffer) {
+		SenderTask senderTask;
+		while ((senderTask = buffer.pollFirst()) != null) {
 			ConcurrentUtils.safeExecute((Runnable) senderTask::cancel);
 		}
-        buffer.clear();
 	}
 
 	/**

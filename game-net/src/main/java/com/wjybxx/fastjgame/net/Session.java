@@ -125,7 +125,7 @@ public interface Session {
     boolean isActive();
 
     /**
-     * 关闭当前session
+     * 移除当前session
      *
      * 注意：
      * 逻辑层的校验+网络层的校验并不能保证在session活跃的状态下才有事件！
