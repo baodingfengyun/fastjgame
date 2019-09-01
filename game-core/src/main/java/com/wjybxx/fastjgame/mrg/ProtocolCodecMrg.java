@@ -95,5 +95,4 @@ public final class ProtocolCodecMrg {
         return protocolCodec;
     }
 
-
 }

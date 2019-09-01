@@ -32,7 +32,7 @@ import java.util.List;
 public interface ISceneRegionMrg {
 
 	/**
-	 * 建收到中心服启动互斥区域的命令 (立连接后)
+	 * 收到中心服启动互斥区域的命令 (建立连接后)
 	 * @param activeMutexRegionsList 需要启动的互斥区域
 	 * @return 启动成功
 	 */

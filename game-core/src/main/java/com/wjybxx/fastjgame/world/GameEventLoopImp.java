@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.world;
 
 import com.google.inject.Injector;
-import com.wjybxx.fastjgame.concurrent.EventLoopGroup;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
@@ -30,7 +29,6 @@ import com.wjybxx.fastjgame.mrg.CuratorMrg;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.EventLoopUtils;
 import com.wjybxx.fastjgame.utils.MathUtils;
-import com.wjybxx.fastjgame.utils.TimeUtils;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.slf4j.Logger;
@@ -41,7 +39,6 @@ import javax.annotation.Nullable;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.locks.LockSupport;
 
 /**
  * 游戏事件循环基本实现
@@ -124,7 +121,10 @@ public class GameEventLoopImp extends SingleThreadEventLoop implements GameEvent
             }
 
             // 睡眠1毫秒，避免占用太多cpu
-            LockSupport.parkNanos(TimeUtils.NANO_PER_MILLISECOND);
+            try {
+                Thread.sleep(1);
+            } catch (InterruptedException ignore) {
+            }
         }
     }
 
@@ -176,7 +176,7 @@ public class GameEventLoopImp extends SingleThreadEventLoop implements GameEvent
         final Injector worldInjector = eventLoopInjector.createChildInjector(worldModule);
         final World world = worldInjector.getInstance(World.class);
         try {
-            world.startUp(startArgs, framesPerSecond);
+            world.startUp(startArgs);
             // 启动成功才放入
             WorldFrameInfo worldFrameInfo = new WorldFrameInfo(world, frameInterval);
             worldFrameInfoMap.put(world.worldGuid(), worldFrameInfo);

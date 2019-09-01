@@ -26,7 +26,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * 游戏世界基本信息控制器，用于逻辑线程(游戏世界线程)，它会在游戏世界线程启动之前初始化。
  * 子类可以存储更多的信息。
- * {@link #init(ConfigWrapper, int)} happens-before world thread invoke other public methods
+ * {@link #init(ConfigWrapper)} happens-before world thread invoke other public methods
  *
  * @author wjybxx
  * @version 1.0
@@ -46,10 +46,6 @@ public abstract class WorldInfoMrg {
      * 启动参数
      */
     private ConfigWrapper startArgs;
-    /**
-     * 游戏世界帧率
-     */
-    private int framesPerSecond;
 
     @Inject
     public WorldInfoMrg(GuidMrg guidMrg) {
@@ -62,9 +58,8 @@ public abstract class WorldInfoMrg {
      * (保证逻辑线程及后续线程的可见性)
      * @throws Exception 允许抛出异常
      */
-    public void init(ConfigWrapper startArgs,int framesPerSecond) throws Exception {
+    public void init(ConfigWrapper startArgs) throws Exception {
         this.startArgs = startArgs;
-        this.framesPerSecond = framesPerSecond;
         this.initImp(startArgs);
     }
 
@@ -90,16 +85,8 @@ public abstract class WorldInfoMrg {
     }
 
     /**
-     * 获取游戏世界帧率
-     */
-    public final int getFramesPerSecond(){
-        return framesPerSecond;
-    }
-
-    /**
      * 获取服务器类型(World类型)
      */
     public abstract RoleType getWorldType();
-
 
 }

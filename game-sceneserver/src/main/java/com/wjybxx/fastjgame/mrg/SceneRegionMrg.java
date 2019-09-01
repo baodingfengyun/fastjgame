@@ -105,6 +105,8 @@ public class SceneRegionMrg implements ISceneRegionMrg {
         assert sceneWorldInfoMrg.getSceneWorldType() == SceneWorldType.SINGLE;
         for (int regionId:activeMutexRegionsList){
             SceneRegion sceneRegion = SceneRegion.forNumber(regionId);
+            // 这里应该有互斥区域
+            assert sceneRegion.isMutex();
             if (activeRegions.contains(sceneRegion)){
                 continue;
             }
@@ -118,6 +120,7 @@ public class SceneRegionMrg implements ISceneRegionMrg {
         assert sceneWorldInfoMrg.getSceneWorldType() == SceneWorldType.SINGLE;
         for (int regionId:activeRegionsList){
             SceneRegion sceneRegion = SceneRegion.forNumber(regionId);
+            // 这里可以是任意类型区域
             if (activeRegions.contains(sceneRegion)){
                 continue;
             }

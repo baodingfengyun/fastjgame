@@ -32,7 +32,7 @@ import javax.annotation.Nonnull;
 public interface World {
 
     /**
-     * world的guid，在{@link #startUp(ConfigWrapper, int)}之后必须已完成赋值。
+     * world的guid，在{@link #startUp(ConfigWrapper)}之后必须已完成赋值。
      */
     long worldGuid();
 
@@ -47,9 +47,8 @@ public interface World {
      *
      * @throws Exception errors
      * @param startArgs 注册world时指定的启动参数
-     * @param framesPerSecond 游戏世界帧率
      */
-    void startUp(ConfigWrapper startArgs, int framesPerSecond) throws Exception;
+    void startUp(ConfigWrapper startArgs) throws Exception;
 
     /**
      * 游戏世界刷帧

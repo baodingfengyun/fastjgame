@@ -18,8 +18,6 @@ package com.wjybxx.fastjgame.utils;
 
 import com.wjybxx.fastjgame.misc.PlatformType;
 import com.wjybxx.fastjgame.misc.PortRange;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
@@ -35,12 +33,6 @@ import java.util.Map;
  */
 public class GameUtils {
 
-    private static final Logger logger = LoggerFactory.getLogger(GameUtils.class);
-
-    /**
-     * 内部通信用的codec名字
-     */
-    public static final String INNER_CODEC_NAME = "PROTO_BUF_CODEC";
     /**
      * TCP监听端口
      */

@@ -40,7 +40,7 @@ public interface GameEventLoopGroup extends EventLoopGroup {
 
     /**
      * 注册一个游戏World到某一个GameEventLoop上。
-     * 可以保证的是该方法happens-before于{@link World#startUp(ConfigWrapper, int)}。
+     * 可以保证的是该方法happens-before于{@link World#startUp(ConfigWrapper)}。
      *
      * 注意：当World不再使用时，应该主动取消注册。
      * 可以调用{@link World#deregister()} 或 {@link GameEventLoop#deregisterWorld(long)}。

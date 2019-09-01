@@ -131,9 +131,9 @@ public abstract class AbstractWorld implements World{
         return worldInfoMrg.getWorldType();
     }
 
-    public final void startUp(ConfigWrapper startArgs, int framesPerSecond) throws Exception{
+    public final void startUp(ConfigWrapper startArgs) throws Exception{
         // 必须先初始world信息
-        worldInfoMrg.init(startArgs, framesPerSecond);
+        worldInfoMrg.init(startArgs);
         // 初始化网络上下文
         netContextMrg.start();
 

@@ -41,7 +41,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @WorldSingleton
 @NotThreadSafe
-public class ProtocolDispatcherMrg implements RpcFunctionRegistry, RpcCallDispatcher,ProtocolDispatcher {
+public class ProtocolDispatcherMrg implements RpcFunctionRegistry, RpcCallDispatcher, ProtocolDispatcher {
 
     private static final Logger logger = LoggerFactory.getLogger(ProtocolDispatcherMrg.class);
 

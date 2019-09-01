@@ -33,7 +33,6 @@ import java.util.List;
 @RpcService(serviceId = ServiceTable.CENTER_IN_SCENE_INFO_MRG)
 public interface ICenterInSceneInfoMrg {
 
-
 	/**
 	 * 中心服请求与scene建立连接 (认为我是本服节点)
 	 * 返回配置(或启动参数)中的支持的区域(非互斥区域已启动)，互斥区域是否启动由center协调。
