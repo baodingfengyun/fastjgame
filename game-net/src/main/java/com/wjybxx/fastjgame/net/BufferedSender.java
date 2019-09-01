@@ -24,8 +24,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.util.LinkedList;
 
 /**
- * 带有缓冲区的sender。
- * 它只对用户自己发起的rpc请求进行了缓存，因为多线程的rpc请求之间无法确定顺序，缓存其它用户的请求意义不大。
+ * 带有缓冲区的sender，数据缓存在用户线程。
  *
  * @author wjybxx
  * @version 1.0
@@ -36,7 +35,7 @@ import java.util.LinkedList;
 public class BufferedSender extends AbstractSender{
 
 	/**
-	 * 只缓存了用户线程的请求。
+	 * 缓存的消息。
 	 * 不是线程安全的，只由用户线程访问。
 	 */
 	private LinkedList<SenderTask> buffer = new LinkedList<>();
@@ -61,18 +60,14 @@ public class BufferedSender extends AbstractSender{
 	 * @param task 添加的任务
 	 */
 	private void addTask(SenderTask task) {
-		// 只有用户线程的操作才需要缓存
-		if (userEventLoop().inEventLoop()) {
+		EventLoopUtils.executeOrRun(userEventLoop(), () -> {
 			// 加入缓存
 			buffer.add(task);
 			// 检查是否需要清空缓冲区
 			if (buffer.size() >= session.getNetConfigManager().flushThreshold()) {
 				flushBuffer();
 			}
-		} else {
-			// 直接提交到网络线程执行
-			netEventLoop().execute(task);
-		}
+		});
 	}
 
 	@Override
@@ -82,15 +77,14 @@ public class BufferedSender extends AbstractSender{
 
 	@Override
 	public void flush() {
-		// 只有用户线程有缓存
-		if (userEventLoop().inEventLoop()) {
+		EventLoopUtils.executeOrRun(userEventLoop(), () -> {
 			if (buffer.size() == 0) {
 				return;
 			}
 			if (session.isActive()) {
 				flushBuffer();
 			}
-		}
+		});
 	}
 
 	@Override

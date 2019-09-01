@@ -43,7 +43,7 @@ public class DefaultMessageDispatcher implements MessageFunctionRegistry, Messag
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T extends AbstractMessage> void register(@Nonnull Class<T> clazz, @Nonnull MessageFunction<T> handler) {
+	public final <T extends AbstractMessage> void register(@Nonnull Class<T> clazz, @Nonnull MessageFunction<T> handler) {
 		final MessageFunction<?> existHandler = handlerMap.get(clazz);
 		// 该类型目前还没有被注册
 		if (existHandler == null) {

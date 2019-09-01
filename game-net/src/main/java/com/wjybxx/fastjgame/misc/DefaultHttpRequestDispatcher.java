@@ -38,7 +38,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestHandlerRegistry,
 	private final Map<String, HttpRequestHandler> handlerMap = new HashMap<>(64);
 
 	@Override
-	public void register(@Nonnull String path, @Nonnull HttpRequestHandler httpRequestHandler) {
+	public final void register(@Nonnull String path, @Nonnull HttpRequestHandler httpRequestHandler) {
 		final HttpRequestHandler existHandler = handlerMap.get(path);
 		if (null == existHandler) {
 			handlerMap.put(path, httpRequestHandler);
@@ -57,7 +57,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestHandlerRegistry,
 	}
 
 	@Override
-	public void post(HttpSession httpSession, String path, HttpRequestParam params) {
+	public final void post(HttpSession httpSession, String path, HttpRequestParam params) {
 		HttpRequestHandler httpRequestHandler = handlerMap.get(path);
 		if (null == httpRequestHandler){
 			// 未注册的路径

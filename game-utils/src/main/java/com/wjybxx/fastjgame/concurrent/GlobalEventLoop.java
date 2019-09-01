@@ -62,6 +62,7 @@ public class GlobalEventLoop extends AbstractEventLoop{
 				new LinkedBlockingQueue<>(),
 				new InnerThreadFactory(),
 				new ThreadPoolExecutor.AbortPolicy());
+		// 允许核心线程超时是实现自动关闭的关键。
 		threadPoolExecutor.allowCoreThreadTimeOut(true);
 
 		executorService = threadPoolExecutor;

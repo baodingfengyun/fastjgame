@@ -35,7 +35,7 @@ public final class CompositeRpcCallback<V> implements RpcCallback {
 
 	private static final Logger logger = LoggerFactory.getLogger(CompositeRpcCallback.class);
 	/**
-	 * 该节点管理的所有子节点
+	 * 该节点管理的所有子节点。使用linkedList是因为rpcCallback是不会复用的。
 	 */
 	private final List<RpcCallback> children = new LinkedList<>();
 

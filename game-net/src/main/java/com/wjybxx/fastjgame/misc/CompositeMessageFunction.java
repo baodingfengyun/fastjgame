@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -39,9 +40,9 @@ public final class CompositeMessageFunction<T extends AbstractMessage> implement
 	private static final Logger logger = LoggerFactory.getLogger(CompositeMessageFunction.class);
 
 	/**
-	 * 该handler管理的所有子节点
+	 * 该handler管理的所有子节点。
 	 */
-	private final List<MessageFunction<T>> children = new LinkedList<>();
+	private final List<MessageFunction<T>> children = new ArrayList<>(4);
 
 	public CompositeMessageFunction() {
 
