@@ -76,4 +76,10 @@ public class DefaultRpcCallDispatcher implements RpcFunctionRegistry, RpcCallDis
 		}
 	}
 
+	/**
+	 * 释放所有捕获的对象，避免内存泄漏
+	 */
+	public final void release() {
+		functionInfoMap.clear();
+	}
 }

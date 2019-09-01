@@ -200,6 +200,8 @@ public abstract class AbstractWorld implements World{
      */
     private void shutdownCore(){
         netContextMrg.shutdown();
+        protocolDispatcherMrg.release();
+        httpDispatcherMrg.release();
     }
 
     /**

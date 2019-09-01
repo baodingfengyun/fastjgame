@@ -34,4 +34,9 @@ public interface HttpRequestHandlerRegistry {
 	 */
 	void register(@Nonnull String path, @Nonnull HttpRequestHandler httpRequestHandler);
 
+	/**
+	 * 释放所有的资源，因为{@link #register(String, HttpRequestHandler)}会捕获太多对象，
+	 * 当不再使用{@link HttpRequestHandlerRegistry}时，进行手动释放，避免因为registry对象存在导致内存泄漏。
+	 */
+	void release();
 }

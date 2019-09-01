@@ -66,4 +66,10 @@ public class SceneProtocolDispatcherMrg extends ProtocolDispatcherMrg implements
 	public <T extends AbstractMessage> void post(@Nonnull Player player, @Nonnull T message) {
 		messageDispatcher.post(player, message);
 	}
+
+	@Override
+	public void release() {
+		super.release();
+		messageDispatcher.release();
+	}
 }

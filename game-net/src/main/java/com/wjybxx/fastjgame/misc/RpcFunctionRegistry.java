@@ -34,4 +34,9 @@ public interface RpcFunctionRegistry {
 	 */
 	void register(int methodKey, @Nonnull RpcFunction function);
 
+	/**
+	 * 释放所有的资源，因为{@link #register(int, RpcFunction)}会捕获太多对象，当不再使用{@link RpcFunctionRegistry}时，
+	 * 手动的释放，避免因为registry对象存在导致内存泄漏。
+	 */
+	void release();
 }

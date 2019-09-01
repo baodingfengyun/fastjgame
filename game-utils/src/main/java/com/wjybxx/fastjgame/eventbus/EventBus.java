@@ -75,4 +75,9 @@ public class EventBus implements EventHandlerRegistry,EventDispatcher {
 			}
 		}
 	}
+
+	@Override
+	public void release() {
+		handlerMap.clear();
+	}
 }

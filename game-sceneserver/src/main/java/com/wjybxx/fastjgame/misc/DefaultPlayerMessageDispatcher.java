@@ -59,6 +59,11 @@ public class DefaultPlayerMessageDispatcher implements PlayerMessageFunctionRegi
 	}
 
 	@Override
+	public void release() {
+		handlerMap.clear();
+	}
+
+	@Override
 	public final <T extends AbstractMessage> void post(@Nonnull Player player, @Nonnull T message) {
 		@SuppressWarnings("unchecked")
 		final PlayerMessageFunction<T> messageFunction = (PlayerMessageFunction<T>) handlerMap.get(message.getClass());

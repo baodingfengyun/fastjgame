@@ -37,4 +37,9 @@ public interface MessageFunctionRegistry {
 	 */
 	<T extends AbstractMessage> void register(@Nonnull Class<T> clazz, @Nonnull MessageFunction<T> handler);
 
+	/**
+	 * 释放所有的资源，因为{@link #register(Class, MessageFunction)}会捕获太多对象，
+	 * 当不再使用{@link MessageFunctionRegistry}时，进行手动释放，避免因为registry对象存在导致内存泄漏。
+	 */
+	void release();
 }

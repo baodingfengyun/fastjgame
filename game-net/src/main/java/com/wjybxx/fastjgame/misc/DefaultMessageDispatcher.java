@@ -59,6 +59,11 @@ public class DefaultMessageDispatcher implements MessageFunctionRegistry, Messag
 	}
 
 	@Override
+	public void release() {
+		handlerMap.clear();
+	}
+
+	@Override
 	public final <T extends AbstractMessage> void post(@Nonnull Session session, @Nonnull T message) {
 		@SuppressWarnings("unchecked")
 		final MessageFunction<T> messageFunction = (MessageFunction<T>) handlerMap.get(message.getClass());

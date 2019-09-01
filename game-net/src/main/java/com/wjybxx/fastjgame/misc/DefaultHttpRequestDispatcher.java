@@ -52,6 +52,11 @@ public class DefaultHttpRequestDispatcher implements HttpRequestHandlerRegistry,
 	}
 
 	@Override
+	public void release() {
+		handlerMap.clear();
+	}
+
+	@Override
 	public void post(HttpSession httpSession, String path, HttpRequestParam params) {
 		HttpRequestHandler httpRequestHandler = handlerMap.get(path);
 		if (null == httpRequestHandler){

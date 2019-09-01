@@ -19,7 +19,9 @@ package com.wjybxx.fastjgame.mrg;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.annotation.WorldSingleton;
 import com.wjybxx.fastjgame.misc.DefaultHttpRequestDispatcher;
+import com.wjybxx.fastjgame.net.*;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -33,11 +35,33 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @WorldSingleton
 @NotThreadSafe
-public class HttpDispatcherMrg extends DefaultHttpRequestDispatcher {
+public class HttpDispatcherMrg implements HttpRequestHandlerRegistry, HttpRequestDispatcher {
+
+    private final DefaultHttpRequestDispatcher httpRequestDispatcher = new DefaultHttpRequestDispatcher();
+
+    private boolean shutdown = false;
 
     @Inject
     public HttpDispatcherMrg() {
 
     }
 
+    @Override
+    public void register(@Nonnull String path, @Nonnull HttpRequestHandler httpRequestHandler) {
+        httpRequestDispatcher.register(path, httpRequestHandler);
+    }
+
+    @Override
+    public void release() {
+        httpRequestDispatcher.release();
+        shutdown = true;
+    }
+
+    @Override
+    public void post(HttpSession httpSession, String path, HttpRequestParam params) {
+        if (shutdown) {
+            return;
+        }
+        httpRequestDispatcher.post(httpSession, path, params);
+    }
 }
