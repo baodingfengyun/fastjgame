@@ -21,7 +21,6 @@ import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.IntSequencer;
-import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.net.initializer.ChannelInitializerFactory;
 import com.wjybxx.fastjgame.net.initializer.ChannelInitializerSupplier;
@@ -100,15 +99,9 @@ public class C2SSessionManager extends SessionManager {
                 // 检测超时的rpc调用
                 FastCollectionsUtils.removeIfAndThen(sessionWrapper.messageQueue.getRpcPromiseInfoMap(),
                         (k, rpcPromiseInfo) -> netTimeManager.getSystemMillTime() >= rpcPromiseInfo.timeoutMs,
-                        (k, rpcPromiseInfo) -> commitRpcResponse(sessionWrapper, rpcPromiseInfo, RpcResponse.TIMEOUT));
+                        (k, rpcPromiseInfo) -> commitRpcResponse(sessionWrapper.session, rpcPromiseInfo, RpcResponse.TIMEOUT));
             }
         }
-    }
-
-    /** 提交rpc结果 */
-    private void commitRpcResponse(SessionWrapper sessionWrapper, RpcPromiseInfo rpcPromiseInfo, RpcResponse rpcResponse) {
-        commitRpcResponse(sessionWrapper.userInfo.netContext, sessionWrapper.session,
-                rpcPromiseInfo, rpcResponse);
     }
 
     /**
@@ -905,7 +898,7 @@ public class C2SSessionManager extends SessionManager {
             ifSequenceAndAckOk(requestTO, ()-> {
                 RpcRequestCommitTask requestCommitTask = new RpcRequestCommitTask(session, sessionWrapper.protocolDispatcher,
                         requestTO.getRequestGuid(), requestTO.isSync(), requestTO.getRequest());
-                commit(requestCommitTask);
+                commit(session, requestCommitTask);
             });
         }
 
@@ -914,11 +907,10 @@ public class C2SSessionManager extends SessionManager {
             final RpcResponseTO responseTO = responseEventParam.messageTO();
             ifSequenceAndAckOk(responseTO, () -> {
                 RpcPromiseInfo rpcPromiseInfo = sessionWrapper.messageQueue.getRpcPromiseInfoMap().remove(responseTO.getRequestGuid());
-                if (null == rpcPromiseInfo) {
-                    // 可能超时了
-                    return;
+                if (null != rpcPromiseInfo) {
+                    commitRpcResponse(sessionWrapper.session, rpcPromiseInfo, responseTO.getRpcResponse());
                 }
-                commitRpcResponse(sessionWrapper, rpcPromiseInfo, responseTO.getRpcResponse());
+                // else 可能超时了
             });
         }
 
@@ -927,7 +919,7 @@ public class C2SSessionManager extends SessionManager {
             final OneWayMessageTO oneWayMessageTO = oneWayMessageEventParam.messageTO();
             final Object message = oneWayMessageTO.getMessage();
             ifSequenceAndAckOk(oneWayMessageTO, () -> {
-                commit(new OneWayMessageCommitTask(session, sessionWrapper.protocolDispatcher, message));
+                commit(session, new OneWayMessageCommitTask(session, sessionWrapper.protocolDispatcher, message));
             });
         }
 
@@ -976,13 +968,6 @@ public class C2SSessionManager extends SessionManager {
             lastSendMessageTime = netTimeManager.getSystemSecTime();
         }
 
-        /**
-         * 提交到消息到应用层
-         * @param commitTask 尚未提交的消息
-         */
-        void commit(CommitTask commitTask) {
-            C2SSessionManager.this.commit(session, commitTask);
-        }
     }
 
     // ------------------------------------------------------ 内部封装 ---------------------------------

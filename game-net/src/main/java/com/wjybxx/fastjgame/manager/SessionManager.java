@@ -234,25 +234,33 @@ public abstract class SessionManager {
      * @param commitTask 准备提交的消息
      */
     protected final void commit(Session session, CommitTask commitTask) {
-        // 直接提交到应用层
-        ConcurrentUtils.tryCommit(session.localEventLoop(), commitTask);
+        if(session.isActive()){
+            ConcurrentUtils.tryCommit(session.localEventLoop(), commitTask);
+        }
+        // else 丢弃
     }
 
     /**
      * 提交一个rpc响应结果
-     * @param netContext 用户的网络上下文
      * @param session 会话信息
      * @param rpcPromiseInfo rpc请求的一些信息
      * @param rpcResponse rpc结果
      */
-    protected final void commitRpcResponse(NetContext netContext, Session session, RpcPromiseInfo rpcPromiseInfo, RpcResponse rpcResponse) {
+    protected final void commitRpcResponse(Session session, RpcPromiseInfo rpcPromiseInfo, RpcResponse rpcResponse) {
         if (rpcPromiseInfo.rpcPromise != null) {
             // 同步rpc调用
             rpcPromiseInfo.rpcPromise.trySuccess(rpcResponse);
         } else {
-            // 异步rpc调用
-            RpcResponseCommitTask rpcResponseCommitTask = new RpcResponseCommitTask(rpcResponse, rpcPromiseInfo.rpcCallback);
-            commit(session, rpcResponseCommitTask);
+            // 回调必须要提交，但是会话关闭的情况下，不能提交真实结果 ---- 消息能丢，回调不能丢
+            // why？
+            // 因为在会话关闭的情况下，单向消息、rpc请求全部被丢弃了，如果提交真实的rpc响应，会导致应用层收到消息的顺序和发送方不一样！！！
+            RpcResponseCommitTask rpcResponseCommitTask;
+            if (session.isActive()) {
+                rpcResponseCommitTask = new RpcResponseCommitTask(rpcResponse, rpcPromiseInfo.rpcCallback);
+            } else {
+                rpcResponseCommitTask = new RpcResponseCommitTask(RpcResponse.SESSION_CLOSED, rpcPromiseInfo.rpcCallback);
+            }
+            ConcurrentUtils.tryCommit(session.localEventLoop(), rpcResponseCommitTask);
         }
     }
 

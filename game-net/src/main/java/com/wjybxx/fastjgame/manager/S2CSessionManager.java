@@ -107,15 +107,9 @@ public class S2CSessionManager extends SessionManager {
                 // 检测超时的rpc调用
                 FastCollectionsUtils.removeIfAndThen(sessionWrapper.messageQueue.getRpcPromiseInfoMap(),
                         (long k, RpcPromiseInfo rpcPromiseInfo) -> netTimeManager.getSystemMillTime() >= rpcPromiseInfo.timeoutMs,
-                        (long k, RpcPromiseInfo rpcPromiseInfo) -> commitRpcResponse(sessionWrapper, rpcPromiseInfo, RpcResponse.TIMEOUT));
+                        (long k, RpcPromiseInfo rpcPromiseInfo) -> commitRpcResponse(sessionWrapper.session, rpcPromiseInfo, RpcResponse.TIMEOUT));
             }
         }
-    }
-
-    /** 提交rpc结果 */
-    private void commitRpcResponse(SessionWrapper sessionWrapper, RpcPromiseInfo rpcPromiseInfo, RpcResponse rpcResponse) {
-        commitRpcResponse(sessionWrapper.userInfo.netContext, sessionWrapper.session,
-                rpcPromiseInfo, rpcResponse);
     }
 
     /**
@@ -674,7 +668,7 @@ public class S2CSessionManager extends SessionManager {
         tryUpdateMessageQueue(eventChannel, rpcRequestEventParam, sessionWrapper -> {
             RpcRequestCommitTask requestCommitTask = new RpcRequestCommitTask(sessionWrapper.session, sessionWrapper.userInfo.protocolDispatcher,
                     requestMessageTO.getRequestGuid(), requestMessageTO.isSync(), requestMessageTO.getRequest());
-            sessionWrapper.commit(requestCommitTask);
+            commit(sessionWrapper.session, requestCommitTask);
         });
     }
 
@@ -687,11 +681,10 @@ public class S2CSessionManager extends SessionManager {
         final RpcResponseTO rpcResponseTO = rpcResponseEventParam.messageTO();
         tryUpdateMessageQueue(eventChannel, rpcResponseEventParam, sessionWrapper -> {
             RpcPromiseInfo rpcPromiseInfo = sessionWrapper.messageQueue.getRpcPromiseInfoMap().remove(rpcResponseTO.getRequestGuid());
-            if (null == rpcPromiseInfo) {
-                // 可能超时了
-                return;
+            if (null != rpcPromiseInfo) {
+                commitRpcResponse(sessionWrapper.session, rpcPromiseInfo, rpcResponseTO.getRpcResponse());
             }
-            commitRpcResponse(sessionWrapper, rpcPromiseInfo, rpcResponseTO.getRpcResponse());
+            // else 可能超时了
         });
     }
 
@@ -704,7 +697,7 @@ public class S2CSessionManager extends SessionManager {
 
         tryUpdateMessageQueue(eventChannel, oneWayMessageEventParam, sessionWrapper -> {
             // 尽量少的捕获对象
-            sessionWrapper.commit(new OneWayMessageCommitTask(sessionWrapper.session, sessionWrapper.userInfo.protocolDispatcher, message));
+            commit(sessionWrapper.session, new OneWayMessageCommitTask(sessionWrapper.session, sessionWrapper.userInfo.protocolDispatcher, message));
         });
     }
 
@@ -913,10 +906,6 @@ public class S2CSessionManager extends SessionManager {
             return userInfo.initializer;
         }
 
-        /** 提交到消息到应用层 */
-        void commit(CommitTask commitTask) {
-            s2CSessionManager.commit(session, commitTask);
-        }
     }
 
 }
