@@ -223,7 +223,9 @@ public class BufferedSender extends AbstractSender{
 
 		@Override
 		protected void doWrite(RpcResponse rpcResponse) {
-			bufferedSender.addTask(new RpcResponseTask(bufferedSender.session, requestGuid, rpcResponse));
+			if (bufferedSender.session.isActive()) {
+				bufferedSender.addTask(new RpcResponseTask(bufferedSender.session, requestGuid, rpcResponse));
+			}
 		}
 	}
 }

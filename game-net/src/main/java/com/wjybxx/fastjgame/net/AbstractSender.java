@@ -175,10 +175,12 @@ public abstract class AbstractSender implements Sender{
 
 		@Override
 		protected void doWrite(RpcResponse rpcResponse) {
-			// 立即提交到网络层
-			session.netEventLoop().execute(() -> {
-				session.sendRpcResponse(requestGuid, true, rpcResponse);
-			});
+			if (session.isActive()){
+				// 立即提交到网络层
+				session.netEventLoop().execute(() -> {
+					session.sendRpcResponse(requestGuid, true, rpcResponse);
+				});
+			}
 		}
 	}
 }

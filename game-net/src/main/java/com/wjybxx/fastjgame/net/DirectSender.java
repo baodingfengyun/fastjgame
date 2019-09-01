@@ -83,10 +83,12 @@ public class DirectSender extends AbstractSender {
 
 		@Override
 		protected void doWrite(RpcResponse rpcResponse) {
-			// 直接提交到网络层
-			session.netEventLoop().execute(() -> {
-				session.sendRpcResponse(requestGuid, false, rpcResponse);
-			});
+			if (session.isActive()) {
+				// 直接提交到网络层
+				session.netEventLoop().execute(() -> {
+					session.sendRpcResponse(requestGuid, false, rpcResponse);
+				});
+			}
 		}
 	}
 }

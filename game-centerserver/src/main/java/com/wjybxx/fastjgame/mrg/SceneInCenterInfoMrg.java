@@ -211,7 +211,7 @@ public class SceneInCenterInfoMrg {
             getSceneInfo(session.remoteGuid()).setSession(session);
             ICenterInSceneInfoMrgRpcProxy.connectSingleScene(centerWorldInfoMrg.getPlatformType().getNumber(), centerWorldInfoMrg.getServerId())
                     .ifSuccess(result -> connectSingleSuccessResult(session, result))
-                    .call(session);;
+                    .call(session);
         }
 
         @Override
