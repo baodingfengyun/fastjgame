@@ -43,6 +43,12 @@ import java.util.stream.Collector;
  * A: 修改配置文件，将要禁用的缓冲区的消息数量配置为0即可禁用。
  * 注意查看{@link com.wjybxx.fastjgame.utils.ConfigLoader}中修改配置的文件的两种方式。
  *
+ * Q: session关闭的情况下，是否还需要将消息发送出去呢？
+ * A: 可以发送也不可以不发送，但是必须保证 要么都发送，要么都不发送！不可以选择性的发送！必须保证消息的顺序和用户发送的顺序是一致的!
+ *
+ * Q：session关闭的情况下，是否还需要将收到的消息提交给应用层呢？
+ * Q: 可以提交也可以不提交，但是必须保证 要么都提交，要么都不提交！不可以选择性的提交！必须保证消息的提交顺序和发送方的顺序是一致的!
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/4
@@ -254,6 +260,7 @@ public abstract class SessionManager {
             // 回调必须要提交，但是会话关闭的情况下，不能提交真实结果 ---- 消息能丢，回调不能丢
             // why？
             // 因为在会话关闭的情况下，单向消息、rpc请求全部被丢弃了，如果提交真实的rpc响应，会导致应用层收到消息的顺序和发送方不一样！！！
+            // session关闭的状态下，要么都提交，要么都不提交，不能选择性的提交。
             RpcResponseCommitTask rpcResponseCommitTask;
             if (session.isActive()) {
                 rpcResponseCommitTask = new RpcResponseCommitTask(rpcResponse, rpcPromiseInfo.rpcCallback);
@@ -272,12 +279,12 @@ public abstract class SessionManager {
      * @param messageQueue 消息队列
      */
     protected final void clear(Session session, MessageQueue messageQueue) {
-        // 清空发送缓冲区
-        session.sender().clearBuffer();
         // 清理消息队列
         messageQueue.detachMessageQueue();
-        // 完成所有rpc调用
+        // 取消所有rpc调用
         cleanRpcPromiseInfo(session.localEventLoop(), messageQueue.detachRpcPromiseInfoMap());
+        // 清空发送缓冲区 - 后提交的rpc后取消
+        session.sender().clearBuffer();
     }
 
     /**

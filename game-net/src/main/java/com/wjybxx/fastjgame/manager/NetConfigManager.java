@@ -49,6 +49,7 @@ public class NetConfigManager  {
 
     private final byte[] tokenKeyBytes;
     private final int tokenForbiddenTimeout;
+    private final boolean allowAutoRelogin;
 
     private final int maxIOThreadNumPerEventLoop;
     private final int maxFrameLength;
@@ -83,6 +84,8 @@ public class NetConfigManager  {
 
         tokenKeyBytes = configWrapper.getAsString("tokenKey").getBytes(StandardCharsets.UTF_8);
         tokenForbiddenTimeout = configWrapper.getAsInt("tokenForbiddenTimeout", 600);
+
+        allowAutoRelogin = configWrapper.getAsBool("allowAutoRelogin");
 
         maxIOThreadNumPerEventLoop = configWrapper.getAsInt("maxIOThreadNumPerEventLoop");
         maxFrameLength = configWrapper.getAsInt("maxFrameLength");
@@ -133,6 +136,14 @@ public class NetConfigManager  {
     public int maxIOThreadNumPerEventLoop() {
         return maxIOThreadNumPerEventLoop;
     }
+
+    /**
+     * 是否允许网络层自动重新登录
+     */
+    public boolean isAllowAutoRelogin() {
+        return allowAutoRelogin;
+    }
+
     /**
      * 最大帧长度
      */

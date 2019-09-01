@@ -420,7 +420,13 @@ public class S2CSessionManager extends SessionManager {
      * 是否是更新的token
      */
     private boolean isNewerToken(@Nullable SessionWrapper sessionWrapper, Token clientToken) {
-        return null == sessionWrapper || clientToken.getCreateSecTime() > sessionWrapper.getToken().getCreateSecTime();
+        if (null == sessionWrapper) {
+            return true;
+        }
+        if (netConfigManager.isAllowAutoRelogin()) {
+            return clientToken.getCreateSecTime() > sessionWrapper.getToken().getCreateSecTime();
+        }
+        return false;
     }
 
     /**
