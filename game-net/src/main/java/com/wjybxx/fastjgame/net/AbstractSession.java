@@ -45,8 +45,8 @@ public abstract class AbstractSession implements Session{
         this.sessionSenderMode = sessionSenderMode;
         if (sessionSenderMode == SessionSenderMode.DIRECT) {
             sender = new DirectSender(this);
-        } else if (sessionSenderMode == SessionSenderMode.BUFFERED) {
-            sender = new BufferedSender(this);
+        } else if (sessionSenderMode == SessionSenderMode.UNSHARABLE) {
+            sender = new UnsharableSender(this);
         } else {
             throw new IllegalArgumentException("Unsupported sessionSenderMode " + sessionSenderMode);
         }

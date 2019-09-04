@@ -76,6 +76,8 @@ public interface Sender {
 
 	/**
 	 * 创建一个特定rpc请求对应的结果通道。
+	 * {@link RpcResponseChannel}是线程安全的。
+	 *
 	 * @param requestGuid 请求对应的id
 	 * @param sync 是否是同步rpc调用
 	 * @return responseChannel

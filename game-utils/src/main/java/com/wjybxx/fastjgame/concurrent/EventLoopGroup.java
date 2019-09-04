@@ -25,7 +25,6 @@ import java.util.concurrent.*;
 
 /**
  * 事件循环线程组，它表示拥有一个或多个事件循环线程。
- * (它是组合模式中的容器组件)
  *
  * 目前来说不需要实现schedule，就游戏而言，用到的地方并不多，可以换别的方式实现。
  * 在线程内部，定时任务建议使用{@link com.wjybxx.fastjgame.timer.TimerSystem}。

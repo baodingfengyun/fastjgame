@@ -20,9 +20,11 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * 事件循环，它是一个线程的抽象，它一定是单线程的，事件循环如果实现为多线程的，将失去意义。
+ * 事件循环
  *
- * (它是组合模式中的叶子组件，它不能增加子组件)
+ * <h>它是单线程的，提供以下保证：</h>
+ * <li>保证任务不会并发执行。</li>
+ * <li>还保证任务的执行顺序和提交顺序一致！{@link #execute(Runnable)}{@link #submit(Runnable)}</li>
  *
  * @author wjybxx
  * @version 1.0
@@ -49,6 +51,28 @@ public interface EventLoop extends EventLoopGroup {
 	/**
 	 * 当前线程是否是EventLoop线程。
 	 * 它暗示着：如果当前线程是EventLoop线程，那么可以访问一些线程封闭的数据。
+	 *
+	 * @apiNote
+	 * <h3>时序问题</h3>
+	 * 以下代码可能产生时序问题:
+	 * <pre>
+	 *{@code
+	 *		if(eventLoop.inEventLoop()) {
+	 *	    	doSomething();
+	 *		} else{
+	 *			eventLoop.execute(() -> doSomething());
+	 *		}
+	 * }
+	 * </pre>
+	 * Q: 产生的原因？
+	 * A: 单看任意一个线程，该线程的所有操作之间都是有序的，这个应该能理解。
+	 * 但是出现多个线程执行该代码块时：
+	 * 1. 所有的非EventLoop线程的操作会进入同一个队列，因此所有的非EventLoop线程之间的操作是有序的！
+	 * 2. 但是EventLoop线程是直接执行的，并没有进入队列，因此EventLoop线程 和 任意非EventLoop线程之间都没有顺序保证。
+	 *
+	 * 例如：有一个全局计数器，每一个线程在执行某个方法之前需要先将计数+1。 如果EventLoop线程也会调用该方法，它可能导致方法内部看见的计数不是顺序的!!!
+	 *{@code final AtomicInteger counter = new AtomicInteger();}
+	 * 它有时候是无害的，有时候则是有害的，因此必须想明白是否需要提供全局时序保证！
 	 *
 	 * @return true/false
 	 */

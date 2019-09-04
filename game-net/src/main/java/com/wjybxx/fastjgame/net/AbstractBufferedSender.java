@@ -16,120 +16,53 @@
 
 package com.wjybxx.fastjgame.net;
 
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-import com.wjybxx.fastjgame.utils.EventLoopUtils;
-
 import javax.annotation.Nonnull;
-import javax.annotation.concurrent.ThreadSafe;
-import java.util.LinkedList;
 
 /**
- * 带有缓冲区的sender，数据缓存在用户线程。
+ * 带有缓冲区的sender的模板实现 - 将所有的消息发送变成任务。
+ * @apiNote
+ * 注意：如果任务无法发送，必须调用{@link BufferTask#cancel()}执行取消逻辑。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/30
+ * date - 2019/9/4
  * github - https://github.com/hl845740757
  */
-@ThreadSafe
-public class BufferedSender extends AbstractSender{
+public abstract class AbstractBufferedSender extends AbstractSender{
 
-	/**
-	 * 缓存的消息。
-	 * 不是线程安全的，只由用户线程访问。
-	 */
-	private LinkedList<SenderTask> buffer = new LinkedList<>();
-
-	public BufferedSender(AbstractSession session) {
+	protected AbstractBufferedSender(AbstractSession session) {
 		super(session);
 	}
 
 	@Override
-	protected void doSend(@Nonnull Object message) {
+	protected final void doSend(@Nonnull Object message) {
 		addTask(new OneWayMessageTask(session, message));
 	}
 
 	@Override
-	protected void doAsyncRpc(Object request, RpcCallback callback, long timeoutMs) {
+	protected final void doAsyncRpc(Object request, RpcCallback callback, long timeoutMs) {
 		addTask(new RpcRequestTask(session, request, timeoutMs, callback));
 	}
 
 	/**
-	 * 添加一个任务，先添加到用户缓存队列中。
-	 * 该方法是{@link BufferedSender}的核心。
-	 * @param task 添加的任务
+	 * 子类通过实现该方法实现自己的缓冲策略！
+	 * @apiNote
+	 * 注意：该方法只有在{@link Session#isActive()}时才会调用，子类不必处理session状态。
+	 *
+	 * @param task 一个数据发送请求
 	 */
-	private void addTask(SenderTask task) {
-		EventLoopUtils.executeOrRun(userEventLoop(), () -> {
-			// 加入缓存
-			buffer.add(task);
-			// 检查是否需要清空缓冲区
-			if (buffer.size() >= session.getNetConfigManager().flushThreshold()) {
-				flushBuffer();
-			}
-		});
-	}
+	protected abstract void addTask(BufferTask task);
 
 	@Override
-	protected <T> RpcResponseChannel<T> newAsyncRpcResponseChannel(long requestGuid) {
+	protected final <T> RpcResponseChannel<T> newAsyncRpcResponseChannel(long requestGuid) {
 		return new BufferedResponseChannel<>(this, requestGuid);
 	}
 
-	@Override
-	public void flush() {
-		EventLoopUtils.executeOrRun(userEventLoop(), () -> {
-			if (buffer.size() == 0) {
-				return;
-			}
-			if (session.isActive()) {
-				flushBuffer();
-			}
-			// else 等待清除
-		});
-	}
-
-	@Override
-	public void clearBuffer() {
-		// 这是在关闭session时调用的，需要确保用户能取消掉所有的任务。用户线程可能关闭了，所以是tryCommit
-		ConcurrentUtils.tryCommit(userEventLoop(), this::cancelAll);
-	}
-
-	/**
-	 * 清空缓冲区(用户线程下)
-	 */
-	private void flushBuffer() {
-		final LinkedList<SenderTask> oldBuffer = exchangeBuffer();
-		netEventLoop().execute(()-> {
-			for (SenderTask senderTask :oldBuffer) {
-				senderTask.run();
-			}
-		});
-	}
-
-	/**
-	 * 取消所有的任务(用户线程下)
-	 */
-	private void cancelAll() {
-		SenderTask senderTask;
-		while ((senderTask = buffer.pollFirst()) != null) {
-			ConcurrentUtils.safeExecute((Runnable) senderTask::cancel);
-		}
-	}
-
-	/**
-	 * 交换缓冲区(用户线程下)
-	 * @return oldBuffer
-	 */
-	private LinkedList<SenderTask> exchangeBuffer() {
-		LinkedList<SenderTask> result = this.buffer;
-		this.buffer = new LinkedList<>();
-		return result;
-	}
-
-	private interface SenderTask extends Runnable{
+	protected interface BufferTask extends Runnable{
 
 		/**
-		 * 执行发送操作，运行在网络线程下
+		 * 执行发送操作，运行在网络线程下。
+		 * 实现{@link Runnable}接口可以减少lambda表达式。
 		 */
 		void run();
 
@@ -139,7 +72,7 @@ public class BufferedSender extends AbstractSender{
 		void cancel();
 	}
 
-	private static class OneWayMessageTask implements SenderTask {
+	protected static class OneWayMessageTask implements BufferTask {
 
 		private final AbstractSession session;
 		private final Object message;
@@ -160,7 +93,7 @@ public class BufferedSender extends AbstractSender{
 		}
 	}
 
-	private static class RpcRequestTask implements SenderTask {
+	protected static class RpcRequestTask implements BufferTask {
 
 		private final AbstractSession session;
 		private final Object request;
@@ -185,7 +118,7 @@ public class BufferedSender extends AbstractSender{
 		}
 	}
 
-	private static class RpcResponseTask implements SenderTask {
+	protected static class RpcResponseTask implements BufferTask {
 
 		private final AbstractSession session;
 		private final long requestGuid;
@@ -213,10 +146,10 @@ public class BufferedSender extends AbstractSender{
 	 */
 	private static class BufferedResponseChannel<T> extends AbstractRpcResponseChannel<T> {
 
-		private final BufferedSender bufferedSender;
+		private final AbstractBufferedSender bufferedSender;
 		private final long requestGuid;
 
-		public BufferedResponseChannel(BufferedSender bufferedSender, long requestGuid) {
+		private BufferedResponseChannel(AbstractBufferedSender bufferedSender, long requestGuid) {
 			this.bufferedSender = bufferedSender;
 			this.requestGuid = requestGuid;
 		}
