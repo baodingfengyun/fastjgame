@@ -325,7 +325,7 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         closeCtx(ctx,"decode exceptionCaught.");
-        logger.info("", cause);
+        logger.warn("", cause);
     }
 
     /**
