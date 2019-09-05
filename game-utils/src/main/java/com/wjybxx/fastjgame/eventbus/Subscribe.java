@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
  * 2.参数不可以带泛型，因为泛型是不具备区分度的，如果存在泛型，那么编译时会报错。
  * 3.参数类型不可以是基本类型，因为发布事件的时候会封装为Object，基本类型会被装箱，会导致问题。
  *
- * 在{@code SubscriberExample}有订阅的示例
+ * 示例类：{@link com.wjybxx.fastjgame.example.SubscriberExample}
  *
  * auto:
  * 会为拥有{@link Subscribe}方法的类生成一个代理文件，需要手动注册到EventBus上。生成的文件名字为 XXXBusRegister

@@ -29,8 +29,6 @@ import java.util.function.Function;
 /**
  * 配置工具类。提供一些特定的方法。
  *
- * 我们或策划在配置文件的时候，很容易多个空格什么的。我们可能需要自动的去除这些空格。
- *
  * 如果保持代码的整洁性，可能会产生一些拆装箱。
  * 或者说需要包装类型的时候{@link #parseString(String, Function)}可能很有帮助。
  *
@@ -78,15 +76,6 @@ public class ConfigUtils {
         }
     }
 
-    /**
-     * 获取真正的内容，如果字符串不为null，则调用一次trim
-     * @param content 待解析的字符串
-     * @return 校验后的字符串
-     */
-    private static String tryTrim(String content){
-        return null == content ? null : content.trim();
-    }
-
     public static String getAsString(String content, String defaultValue) {
         return null != content ? content : defaultValue ;
     }
@@ -102,7 +91,7 @@ public class ConfigUtils {
      * @return int
      */
     public static int getAsInt(String content) {
-        return Integer.parseInt(tryTrim(content));
+        return Integer.parseInt(content);
     }
 
     /**
@@ -112,47 +101,47 @@ public class ConfigUtils {
      * @return int
      */
     public static int getAsInt(String content, int defaultValue) {
-        return NumberUtils.toInt(tryTrim(content), defaultValue);
+        return NumberUtils.toInt(content, defaultValue);
     }
 
     public static long getAsLong(String str) {
-        return Long.parseLong(tryTrim(str));
+        return Long.parseLong(str);
     }
 
     public static long getAsLong(String str, long defaultValue) {
-        return NumberUtils.toLong(tryTrim(str), defaultValue);
+        return NumberUtils.toLong(str, defaultValue);
     }
 
     public static float getAsFloat(final String str) {
-        return Float.parseFloat(tryTrim(str));
+        return Float.parseFloat(str);
     }
 
     public static float getAsFloat(final String str, final float defaultValue) {
-        return NumberUtils.toFloat(tryTrim(str), defaultValue);
+        return NumberUtils.toFloat(str, defaultValue);
     }
 
     public static double getAsDouble(final String str) {
-        return Double.parseDouble(tryTrim(str));
+        return Double.parseDouble(str);
     }
 
     public static double getAsDouble(final String str, final double defaultValue) {
-        return NumberUtils.toDouble(tryTrim(str), defaultValue);
+        return NumberUtils.toDouble(str, defaultValue);
     }
 
     public static byte getAsByte(final String str) {
-        return Byte.parseByte(tryTrim(str));
+        return Byte.parseByte(str);
     }
 
     public static byte getAsByte(final String str, final byte defaultValue) {
-       return NumberUtils.toByte(tryTrim(str), defaultValue);
+        return NumberUtils.toByte(str, defaultValue);
     }
 
     public static short getAsShort(final String str) {
-        return Short.parseShort(tryTrim(str));
+        return Short.parseShort(str);
     }
 
     public static short getAsShort(final String str, final short defaultValue) {
-        return NumberUtils.toShort(tryTrim(str), defaultValue);
+        return NumberUtils.toShort(str, defaultValue);
     }
 
     public static boolean getAsBool(String str) {

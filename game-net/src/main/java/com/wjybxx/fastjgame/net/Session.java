@@ -56,10 +56,9 @@ import javax.annotation.concurrent.ThreadSafe;
  *
  * <p><br>
  * Q: 为何抽象层没有提供address之类的信息？<br>
- * A: 因为底层会自动处理断线重连等等，这些信息可能会变化，暂时不提供。
+ * A: 因为底层会自动处理断线重连等等，这些信息可能会变化，暂时不提供。如果需要，你可以在应用层添加，让对方带过来。
  *
  * <p><br>
- * 注意事项：
  * 注意：
  * 1. 特定的 localGuid 和 remoteGuid 在同一个NetEventLoop下只能建立一个链接！！！它俩确定唯一的一个session。
  * 并不支持在不同的端口的上以相同的id再建立连接，只能存在于不同于的{@link NetEventLoop}。<br>
@@ -120,7 +119,7 @@ public interface Session {
     Sender sender();
     // ----------------------------------------------- 生命周期 ----------------------------------------------
     /**
-     * 当前仅当session已成功和对方建立连接，且未断开的情况下返回true。
+     * 当且仅当session已成功和对方建立连接，且未断开的情况下返回true。
      */
     boolean isActive();
 

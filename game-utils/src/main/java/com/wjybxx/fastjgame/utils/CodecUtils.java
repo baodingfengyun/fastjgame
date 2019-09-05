@@ -159,7 +159,7 @@ public final class CodecUtils {
 
 	/**
 	 * 计算inputStream剩余内容的MD5，并返回一个32个字符的十六进制字符串
-	 * @param data 待计算的输入流
+	 * @param data 待计算的输入流，注意：该输入流并不会自动关闭！
 	 * @return 32个字符的十六进制字符串
 	 */
 	public static String md5Hex(@Nonnull InputStream data) throws IOException {

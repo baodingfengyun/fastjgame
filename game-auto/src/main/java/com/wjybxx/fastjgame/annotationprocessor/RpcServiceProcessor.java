@@ -54,9 +54,9 @@ import java.util.stream.Collectors;
  * 这也是注解处理器必须要打成jar包的原因。不然注解处理器可能都还未被编译。。。。
  *
  * {@link RoundEnvironment} 运行环境，编译器环境。（他是一个独立的编译器，无法直接调试，需要远程调试）
- * {@link Types} 编译时的类型信息（非常类似 Class，但那是运行时的东西，注意现在是编译时）
- * {@link Filer} 文件读写 util (然而，Filer 有局限性，只有 create 相关的接口)
- * {@link Elements} 代码结构信息
+ * {@link Types} 类型工具类
+ * {@link Filer} 文件读写util
+ * {@link Elements} Element工具类
  *
  * 遇见的坑，先记一笔：
  * 1. {@code typeUtils.isSameType(RpcResponseChannel<String>, RpcResponseChannel)  false} 带泛型和不带泛型的不是同一个类型。
@@ -66,9 +66,7 @@ import java.util.stream.Collectors;
  * 2. 在注解中引用另一个类时，这个类可能还未被编译，需要通过捕获异常获取到未编译的类的{@link TypeMirror}.
  *
  * 3. {@link Types#isSameType(TypeMirror, TypeMirror)}、{@link Types#isSubtype(TypeMirror, TypeMirror)} 、
- * {@link Types#isAssignable(TypeMirror, TypeMirror)} 必须是{@link DeclaredType}才可以。
- *
- * {@link DeclaredType}是变量、参数的声明类型。
+ * {@link Types#isAssignable(TypeMirror, TypeMirror)} ，一般使用{@link DeclaredType}，{@link DeclaredType}代表一个类或接口。
  *
  * @author wjybxx
  * @version 1.0
@@ -112,7 +110,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 	private AnnotationSpec uncheckedAnnotation;
 	/** 所有的serviceId集合，判断重复 */
 	private final ShortSet serviceIdSet = new ShortOpenHashSet(64);
-	/** 所有的methodKey集合，判断重复，只能检测当前模块的重复 */
+	/** 所有的methodKey集合，判断重复，只能检测当前模块的重复。 编译是分模块编译的，每一个模块都是一个新的processor*/
 	private final IntSet methodKeySet = new IntOpenHashSet(256);
 	/** 无界泛型通配符 */
 	private WildcardType wildcardType;
@@ -121,10 +119,6 @@ public class RpcServiceProcessor extends AbstractProcessor {
 	 * {@code RpcBuilder}对应的类型
 	 */
 	private TypeElement builderElement;
-	/**
-	 * {@link Void}对应的类型
-	 */
-	private DeclaredType voidType;
 	/**
 	 * {@code RpcResponseChannel}对应的类型
 	 */
@@ -189,7 +183,6 @@ public class RpcServiceProcessor extends AbstractProcessor {
 		rpcResponseTypeName = ClassName.get(elementUtils.getTypeElement(RPC_RESPONSE_CANONICAL_NAME));
 
 		builderElement = elementUtils.getTypeElement(BUILDER_CANONICAL_NAME);
-		voidType = typeUtils.getDeclaredType(elementUtils.getTypeElement(Void.class.getCanonicalName()));
 
 		responseChannelType = typeUtils.getDeclaredType(elementUtils.getTypeElement(CHANNEL_CANONICAL_NAME));
 		sessionType = typeUtils.getDeclaredType(elementUtils.getTypeElement(SESSION_CANONICAL_NAME));
@@ -378,8 +371,10 @@ public class RpcServiceProcessor extends AbstractProcessor {
 
 		// 搜集参数代码块
 		if (availableParameters.size() == 0) {
+			// 无参时，使用 Collections.emptyList();
 			builder.addStatement("return new $T<>($L, $T.emptyList())", defaultBuilderRawTypeName, methodKey, Collections.class);
 		} else if (availableParameters.size() == 1) {
+			// 1个参数，使用 Collections.singletonList(E);
 			final VariableElement firstVariableElement = availableParameters.get(0);
 			final String firstParameterName = firstVariableElement.getSimpleName().toString();
 			builder.addStatement("return new $T<>($L, $T.singletonList($L))", defaultBuilderRawTypeName, methodKey, Collections.class, firstParameterName);

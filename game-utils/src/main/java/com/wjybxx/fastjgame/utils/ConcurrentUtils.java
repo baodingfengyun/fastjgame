@@ -348,6 +348,7 @@ public class ConcurrentUtils {
     public static boolean tryCommit(@Nonnull Executor executor, @Nonnull Runnable task){
         try {
             executor.execute(task);
+            // 这里也不一定真正的提交成功了，因为目标executor的拒绝策略我们并不知晓
             return true;
         } catch (Exception e){
             // may reject
@@ -390,20 +391,6 @@ public class ConcurrentUtils {
     }
 
     //  ------------------------------------ 内部的一些封装，指不定什么时候可能就换成lambda表达式 --------------------
-
-    private static class AnyRunnableAdapter implements AnyRunnable{
-
-        private final Runnable task;
-
-        public AnyRunnableAdapter(Runnable task) {
-            this.task = task;
-        }
-
-        @Override
-        public void run() throws Exception {
-            task.run();;
-        }
-    }
 
     private static class SafeRunnable implements Runnable {
 

@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.annotation;
 
+import com.wjybxx.fastjgame.misc.PlayerMessageFunction;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -23,14 +25,13 @@ import java.lang.annotation.Target;
 
 /**
  * 玩家消息订阅者，表示处理玩家发来的该类型消息。<br>
- * 要使用该注解，方法必须满足以下条件：
- * <li>1. 函数必须是两个参数：第一个必须Player类型参数，第二个参数为具体消息类型参数。</li>
+ *
+ * 方法必须满足以下要求，否则编译会报错：
+ * <li>1. 函数必须是两个参数：第一个必须Player类型参数，第二个参数为具体消息类型参数。 也就是可以转换为{@link PlayerMessageFunction}</li>
  * <li>2. 必须是public </li>
- * <li>3. 返回值类型必须是void</li>
- * <li>4. 该注解只能在scene模块使用</li>
  * 否则编译时会报错。
- * <pre>
- * {@code
+ * <pre>{@code
+ *      @PlayerMessageSubscribe
  *      public void onMessage(Player player, ConcreteMessage message) {
  *          // do something
  *      }

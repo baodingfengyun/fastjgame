@@ -159,11 +159,6 @@ public class HttpRequestMapProcessor extends AbstractProcessor {
 				messager.printMessage(Diagnostic.Kind.ERROR, "HttpRequestMapping method must be public！", method);
 				continue;
 			}
-			// 返回值类型必须是void
-			if (method.getReturnType().getKind() != TypeKind.VOID) {
-				messager.printMessage(Diagnostic.Kind.ERROR, "ReturnType must be void!", method);
-				continue;
-			}
 			// 必须是3个参数
 			if (method.getParameters().size() != 3) {
 				messager.printMessage(Diagnostic.Kind.ERROR, "HttpRequestMapping method must have three and only three parameter!", method);

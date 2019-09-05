@@ -137,11 +137,6 @@ public class PlayerMessageSubscribeProcessor extends AbstractProcessor {
                 messager.printMessage(Diagnostic.Kind.ERROR, "Subscriber method must be public！", method);
                 continue;
             }
-            // 返回值类型必须是void
-            if (method.getReturnType().getKind() != TypeKind.VOID) {
-                messager.printMessage(Diagnostic.Kind.ERROR, "ReturnType must be void!", method);
-                continue;
-            }
             // 保证必须是两个参数
             if (method.getParameters().size() != 2) {
                 messager.printMessage(Diagnostic.Kind.ERROR, "subscribe method must have two and only two parameter!", method);

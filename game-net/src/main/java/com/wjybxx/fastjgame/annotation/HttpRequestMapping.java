@@ -16,6 +16,10 @@
 
 package com.wjybxx.fastjgame.annotation;
 
+import com.wjybxx.fastjgame.net.HttpRequestHandler;
+import com.wjybxx.fastjgame.net.HttpRequestParam;
+import com.wjybxx.fastjgame.net.HttpSession;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -24,6 +28,20 @@ import java.lang.annotation.Target;
 /**
  * http请求路由。
  * 该注解可以用在类/接口上，也可以用在方法上。当类上存在该注解时，那么该类中的所有方法默认都在该路径之下。
+ *
+ * 方法必须满足以下要求，否则编译会报错：
+ * <li>1. 必须是3个参数：第一个必须{@link HttpSession}，第二个参数为{@link String}，第三个参数必须是{@link HttpRequestParam}。
+ * 也就是可以转换为{@link HttpRequestHandler}</li>
+ * <li>2. 必须是public </li>
+ *
+ * eg:
+ * <pre>{@code
+ * 		@HttpRequestMapping
+ * 		public void onRequest(HttpSession session, String path, HttpRequestParam param) {
+ * 			// do something
+ * 		}
+ * }
+ * </pre>
  *
  * 没想到啥好名字，参考下了常见的spring的RequestMapping，也打算做个类似的支持。
  * @author wjybxx
