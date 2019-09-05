@@ -47,6 +47,8 @@ public enum SessionSenderMode {
 	 *
 	 * 最大缓存数量由{@link NetConfigManager#flushThreshold()}决定，当到达该值时，会自动刷新缓冲区。
 	 * 为避免消息残留，用户必须在特定的时候调用{@link Session#flush()}刷新缓冲区（eg：刷帧时）。
+	 *
+	 * 如果想了解为什么也不允许{@link RpcResponseChannel}跨线程调用，请查看{@link UnsharableSender}类文档。
 	 */
 	UNSHARABLE,
 }
