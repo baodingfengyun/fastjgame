@@ -29,8 +29,8 @@ public abstract class AbstractFixedDelayHandle extends AbstractTimerHandle imple
 
 	private long delay;
 
-	/** 理论上的上次执行时间 */
-	private long logicLastExecuteTimeMs;
+	/** 上次执行时间 */
+	private long lastExecuteTimeMs;
 
 	protected AbstractFixedDelayHandle(TimerSystem timerSystem, long createTimeMs, TimerTask timerTask,
 						long initialDelay, long delay) {
@@ -76,21 +76,25 @@ public abstract class AbstractFixedDelayHandle extends AbstractTimerHandle imple
 	protected abstract void adjust();
 
 	@Override
-	protected final void init(long curTimeMs) {
-		logicLastExecuteTimeMs = curTimeMs + initialDelay;
-		updateNextExecuteTime();
+	protected final void init() {
+		setNextExecuteTimeMs(createTimeMs() + initialDelay);
 	}
 
 	@Override
 	protected final void afterExecute(long curTimeMs) {
 		// 上次执行时间为真实时间
-		logicLastExecuteTimeMs = curTimeMs;
-		updateNextExecuteTime();
+		lastExecuteTimeMs = curTimeMs;
+		// 下次执行时间为上次执行时间 + 延迟
+		setNextExecuteTimeMs(lastExecuteTimeMs + delay);
 	}
 
 	/** 更新下一次的执行时间 */
 	protected final void updateNextExecuteTime() {
-		setNextExecuteTimeMs(logicLastExecuteTimeMs + delay);
+		if (lastExecuteTimeMs > 0) {
+			setNextExecuteTimeMs(lastExecuteTimeMs + delay);
+		} else {
+			setNextExecuteTimeMs(createTimeMs() + initialDelay);
+		}
 	}
 
 	public static void ensureDelay(long delay) {

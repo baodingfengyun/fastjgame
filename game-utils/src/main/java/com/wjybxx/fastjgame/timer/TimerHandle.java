@@ -49,18 +49,6 @@ public interface TimerHandle {
 	TimerTask timerTask();
 
 	/**
-	 * timer的创建时间。
-	 * @return 毫秒
-	 */
-	long createTimeMs();
-
-	/**
-	 * 查询距离下次执行的延迟时间
-	 * @return -1 表示已停止，否则返回大于等于0的值。
-	 */
-	long executeDelay();
-
-	/**
 	 * 设置附加属性(使得task在运行的时候可以获取该值)。
 	 * 注意：attachment在关闭或取消时不会自动删除，当你不需要使用时，可以尽早的释放它(设置为null)。
 	 * @param newData 新值
@@ -75,6 +63,17 @@ public interface TimerHandle {
 	 */
 	<T> T attachment();
 
+	/**
+	 * 查询距离下次执行的延迟时间
+	 * @return -1 表示已停止，否则返回大于等于0的值。
+	 */
+	long executeDelay();
+
+	/**
+	 * timer的创建时间。
+	 * @return 毫秒
+	 */
+	long createTimeMs();
 	// ------------------------------------ timer支持的操作 ---------------------------------
 
 	/**

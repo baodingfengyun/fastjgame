@@ -50,7 +50,10 @@ public abstract class AbstractTimerHandle implements TimerHandle{
 	/** 上下文/附加属性 */
 	private Object attachment;
 
-	/** 下次的执行时间 */
+	/**
+	 * 下次的执行时间。
+	 * 该属性是为了避免堆结构被破坏。
+	 */
 	private long nextExecuteTimeMs;
 	/** 是否已终止 */
 	private boolean terminated = false;
@@ -123,11 +126,11 @@ public abstract class AbstractTimerHandle implements TimerHandle{
 		return timerId;
 	}
 
-	void setNextExecuteTimeMs(long nextExecuteTimeMs) {
+	final void setNextExecuteTimeMs(long nextExecuteTimeMs) {
 		this.nextExecuteTimeMs = nextExecuteTimeMs;
 	}
 
-	long getNextExecuteTimeMs() {
+	final long getNextExecuteTimeMs() {
 		return nextExecuteTimeMs;
 	}
 
@@ -137,9 +140,8 @@ public abstract class AbstractTimerHandle implements TimerHandle{
 
 	/**
 	 * timer创建时进行初始化。
-	 * @param curTimeMs 当前系统时间
 	 */
-	protected abstract void init(long curTimeMs);
+	protected abstract void init();
 
 	/**
 	 * 任务执行一次之后，更新状态

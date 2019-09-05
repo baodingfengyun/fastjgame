@@ -52,8 +52,8 @@ public abstract class AbstractTimeoutHandle extends AbstractTimerHandle implemen
 	protected abstract void adjust();
 
 	@Override
-	protected final void init(long curTimeMs) {
-		updateNextExecuteTime();
+	protected final void init() {
+		setNextExecuteTimeMs(createTimeMs() + timeout);
 	}
 
 	/** 更新下一次的执行时间 */

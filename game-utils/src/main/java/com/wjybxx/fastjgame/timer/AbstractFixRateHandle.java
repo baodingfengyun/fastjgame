@@ -28,9 +28,8 @@ public abstract class AbstractFixRateHandle extends AbstractTimerHandle implemen
 	private final long initialDelay;
 
 	private long period;
-
-	/** 理论上的上次执行时间 */
-	private long logicLastExecuteTimeMs;
+	/** 上次执行时间 */
+	private long lastExecuteTimeMs;
 
 	protected AbstractFixRateHandle(TimerSystem timerSystem, long createTimeMs, TimerTask timerTask,
 					 long initialDelay, long period) {
@@ -71,21 +70,25 @@ public abstract class AbstractFixRateHandle extends AbstractTimerHandle implemen
 	}
 
 	@Override
-	protected final void init(long curTimeMs) {
-		logicLastExecuteTimeMs = curTimeMs + initialDelay;
-		updateNextExecuteTime();
+	protected final void init() {
+		setNextExecuteTimeMs(createTimeMs() + initialDelay);
 	}
 
 	@Override
 	protected final void afterExecute(long curTimeMs) {
-		// 上次执行时间非真实时间，而是加上一个周期
-		logicLastExecuteTimeMs += period;
-		updateNextExecuteTime();
+		// 上次执行时间非真实时间
+		lastExecuteTimeMs = getNextExecuteTimeMs();
+		// 下次执行时间为上次执行时间 + 周期
+		setNextExecuteTimeMs(lastExecuteTimeMs + period);
 	}
 
 	/** 更新下一次的执行时间 */
 	protected final void updateNextExecuteTime() {
-		setNextExecuteTimeMs(logicLastExecuteTimeMs + period);
+		if (lastExecuteTimeMs > 0) {
+			setNextExecuteTimeMs(lastExecuteTimeMs + period);
+		} else {
+			setNextExecuteTimeMs(createTimeMs() + initialDelay);
+		}
 	}
 
 	/**

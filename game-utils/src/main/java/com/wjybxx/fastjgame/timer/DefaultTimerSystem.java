@@ -173,7 +173,7 @@ public class DefaultTimerSystem implements TimerSystem{
 			timerHandle.setTerminated();
 			return timerHandle;
 		} else {
-			timerHandle.init(timerHandle.createTimeMs());
+			timerHandle.init();
 			queue.add(timerHandle);
 			return timerHandle;
 		}

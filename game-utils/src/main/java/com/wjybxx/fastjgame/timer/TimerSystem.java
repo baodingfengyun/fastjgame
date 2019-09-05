@@ -60,7 +60,7 @@ public interface TimerSystem {
 	 * 它保证的是：两次任务的执行间隔大于等于指定延迟时间。
 	 * (注意：任何周期性的任务之间都不具备时序保证)
 	 *
-	 * @param initialDelay 初始延迟时间，毫秒。
+	 * @param initialDelay 首次执行延迟，毫秒。
 	 * @param delay 执行间隔，毫秒，必须大于0
 	 * @param task 定时执行的任务
 	 * @return Timer对应的句柄
@@ -69,7 +69,7 @@ public interface TimerSystem {
 	FixedDelayHandle newFixedDelay(long initialDelay, long delay, @Nonnull TimerTask<FixedDelayHandle> task);
 
 	/**
-	 * {@link #newFixedDelay(long, long, TimerTask)}的快捷调用方式，初始延迟为0。
+	 * {@link #newFixedDelay(long, long, TimerTask)}的快捷调用方式，首次执行延迟为0，下一次tick的时候就会执行。
 	 */
 	@Nonnull
 	default FixedDelayHandle newFixedDelay(long delay, @Nonnull TimerTask<FixedDelayHandle> task) {
@@ -81,7 +81,7 @@ public interface TimerSystem {
 	 * 它保证的是：任务的执行次数尽量达到目标。一般情况下不需要使用该类型，一般任务建议使用{@link #newFixedDelay(long, long, TimerTask)}。
 	 * (注意：任何周期性的任务之间都不具备时序保证)
 	 *
-	 * @param initialDelay 初始延迟时间，毫秒。
+	 * @param initialDelay 首次执行延迟，毫秒。
 	 * @param period 执行周期，毫秒，必须大于0
 	 * @param task 定时执行的任务
 	 * @return Timer对应的句柄
@@ -90,7 +90,7 @@ public interface TimerSystem {
 	FixedRateHandle newFixRate(long initialDelay, long period, @Nonnull TimerTask<FixedRateHandle> task);
 
 	/**
-	 * {@link #newFixRate(long, long, TimerTask)}的快捷调用方式，初始延迟为0。
+	 * {@link #newFixRate(long, long, TimerTask)}的快捷调用方式，首次执行延迟为0，下一次tick的时候就会执行。
 	 */
 	@Nonnull
 	default FixedRateHandle newFixRate(long period, @Nonnull TimerTask<FixedRateHandle> task) {
