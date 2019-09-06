@@ -233,7 +233,7 @@ public class S2CSessionManager extends SessionManager {
         SessionWrapper sessionWrapper = getWritableSession(localGuid, clientGuid);
         if (null == sessionWrapper){
             logger.warn("client {} is removed, but try send rpcRequest.",clientGuid);
-            rpcPromise.setSuccess(RpcResponse.SESSION_CLOSED);
+            rpcPromise.trySuccess(RpcResponse.SESSION_CLOSED);
             return;
         }
         long deadline = netTimeManager.getSystemMillTime() + timeoutMs;
