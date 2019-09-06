@@ -38,24 +38,18 @@ public class DirectSender extends AbstractSender {
 	}
 
 	@Override
-	public void doSend(@Nonnull Object message) {
-		// 直接提交到网络层执行
-		netEventLoop().execute(() -> {
-			session.sendOneWayMessage(message);
-		});
+	protected void doSendMessage(@Nonnull OneWayMessageTask oneWayMessageTask) {
+		netEventLoop().execute(oneWayMessageTask);
 	}
 
 	@Override
-	public void doAsyncRpc(@Nonnull Object request, @Nonnull RpcCallback callback, long timeoutMs) {
-		// 直接提交到网络层执行
-		netEventLoop().execute(() -> {
-			session.sendAsyncRpcRequest(request, timeoutMs, callback);
-		});
+	protected void doSendAsyncRpcRequest(RpcRequestTask rpcRequestTask) {
+		netEventLoop().execute(rpcRequestTask);
 	}
 
 	@Override
-	protected <T> RpcResponseChannel<T> newAsyncRpcResponseChannel(long requestGuid) {
-		return new DirectRpcResponseChannel<>(session, requestGuid);
+	protected void doSendAsyncRpcResponse(RpcResponseTask rpcResponseTask) {
+		netEventLoop().execute(rpcResponseTask);
 	}
 
 	@Override
@@ -68,29 +62,6 @@ public class DirectSender extends AbstractSender {
 		// do nothing
 	}
 
-	/**
-	 * 立即返回结果的channel
-	 */
-	private static class DirectRpcResponseChannel<T> extends AbstractRpcResponseChannel<T> {
-
-		private final AbstractSession session;
-		private final long requestGuid;
-
-		public DirectRpcResponseChannel(AbstractSession session, long requestGuid) {
-			this.session = session;
-			this.requestGuid = requestGuid;
-		}
-
-		@Override
-		protected void doWrite(RpcResponse rpcResponse) {
-			if (session.isActive()) {
-				// 直接提交到网络层
-				session.netEventLoop().execute(() -> {
-					session.sendRpcResponse(requestGuid, false, rpcResponse);
-				});
-			}
-		}
-	}
 }
 
 

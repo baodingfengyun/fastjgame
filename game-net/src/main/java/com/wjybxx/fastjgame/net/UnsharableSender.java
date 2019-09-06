@@ -47,14 +47,14 @@ import java.util.LinkedList;
 public class UnsharableSender extends AbstractBufferedSender{
 
 	/** 用户缓存的消息 */
-	private LinkedList<BufferTask> buffer = new LinkedList<>();
+	private LinkedList<SenderTask> buffer = new LinkedList<>();
 
 	public UnsharableSender(AbstractSession session) {
 		super(session);
 	}
 
 	@Override
-	protected void addTask(BufferTask task) {
+	protected void offerSenderTask(SenderTask task) {
 		if (userEventLoop().inEventLoop()) {
 			buffer.add(task);
 			// 检查是否需要清空缓冲区
@@ -85,10 +85,10 @@ public class UnsharableSender extends AbstractBufferedSender{
 	 * 清空缓冲区(用户线程下) - 批量提交，减少竞争
 	 */
 	private void flushBuffer() {
-		final LinkedList<BufferTask> oldBuffer = exchangeBuffer();
+		final LinkedList<SenderTask> oldBuffer = exchangeBuffer();
 		netEventLoop().execute(()-> {
-			for (BufferTask bufferTask :oldBuffer) {
-				bufferTask.run();
+			for (SenderTask senderTask :oldBuffer) {
+				senderTask.run();
 			}
 		});
 	}
@@ -97,8 +97,8 @@ public class UnsharableSender extends AbstractBufferedSender{
 	 * 交换缓冲区(用户线程下)
 	 * @return oldBuffer
 	 */
-	private LinkedList<BufferTask> exchangeBuffer() {
-		LinkedList<BufferTask> result = this.buffer;
+	private LinkedList<SenderTask> exchangeBuffer() {
+		LinkedList<SenderTask> result = this.buffer;
 		this.buffer = new LinkedList<>();
 		return result;
 	}
@@ -112,9 +112,9 @@ public class UnsharableSender extends AbstractBufferedSender{
 	}
 
 	private void cancelAll() {
-		BufferTask bufferTask;
-		while ((bufferTask = buffer.pollFirst()) != null) {
-			ConcurrentUtils.safeExecute((Runnable) bufferTask::cancel);
+		SenderTask senderTask;
+		while ((senderTask = buffer.pollFirst()) != null) {
+			ConcurrentUtils.safeExecute((Runnable) senderTask::cancel);
 		}
 	}
 

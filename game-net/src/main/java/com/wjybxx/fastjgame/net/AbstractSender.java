@@ -56,14 +56,15 @@ public abstract class AbstractSender implements Sender{
 			logger.debug("session is already closed, send message failed.");
 			return;
 		}
-		doSend(message);
+		// 子类真正执行发送动作
+		doSendMessage(new OneWayMessageTask(session, message));
 	}
 
 	/**
 	 * 子类真正执行发送单向消息逻辑
-	 * @param message 待发送的单向消息
+	 * @param oneWayMessageTask 待发送的单向消息
 	 */
-	protected abstract void doSend(@Nonnull Object message);
+	protected abstract void doSendMessage(@Nonnull OneWayMessageTask oneWayMessageTask);
 
 	@Override
 	public final void rpc(@Nonnull Object request, @Nonnull RpcCallback callback, long timeoutMs) {
@@ -79,17 +80,22 @@ public abstract class AbstractSender implements Sender{
 			});
 			return;
 		}
-		doAsyncRpc(request, callback, timeoutMs);
+		// 子类真正执行发送动作
+		doSendAsyncRpcRequest(new RpcRequestTask(session, request, timeoutMs, callback));
 	}
 
 	/**
 	 * 当满足发送rpc请求条件时，子类执行真正的发送操作。
 	 *
-	 * @param request rpc请求对象
-	 * @param callback 回调函数
-	 * @param timeoutMs 超时时间，毫秒，必须大于0，必须有超时时间。
+	 * @param rpcRequestTask 待发送的异步rpc请求
 	 */
-	protected abstract void doAsyncRpc(Object request, RpcCallback callback, long timeoutMs);
+	protected abstract void doSendAsyncRpcRequest(RpcRequestTask rpcRequestTask);
+
+	/**
+	 *
+	 * @param rpcResponseTask 待发送的异步rpc响应
+	 */
+	protected abstract void doSendAsyncRpcResponse(RpcResponseTask rpcResponseTask);
 
 	@Nonnull
 	@Override
@@ -136,17 +142,9 @@ public abstract class AbstractSender implements Sender{
 		if (sync) {
 			return new SyncRpcResponseChannel<>(session, requestGuid);
 		} else {
-			return newAsyncRpcResponseChannel(requestGuid);
+			return new AsyncRpcResponseChannel<>(this, requestGuid);
 		}
 	}
-
-	/**
-	 * 创建一个返回异步rpc结果的channel
-	 * @param requestGuid rpc请求对应的id
-	 * @param <T> 结果的类型
-	 * @return channel
-	 */
-	protected abstract <T> RpcResponseChannel<T> newAsyncRpcResponseChannel(long requestGuid);
 
 	protected boolean isActive() {
 		return session.isActive();
@@ -160,6 +158,114 @@ public abstract class AbstractSender implements Sender{
 		return session.localEventLoop();
 	}
 
+	/** 主要用于减少lambda表达式 */
+	protected interface SenderTask extends Runnable{
+
+		/**
+		 * 执行发送操作，运行在网络线程下。
+		 * 实现{@link Runnable}接口可以减少lambda表达式。
+		 */
+		void run();
+
+		/**
+		 * 执行取消操作，运行在用户线程下。
+		 */
+		void cancel();
+	}
+
+	protected static class OneWayMessageTask implements SenderTask {
+
+		private final AbstractSession session;
+		private final Object message;
+
+		private OneWayMessageTask(AbstractSession session, Object message) {
+			this.session = session;
+			this.message = message;
+		}
+
+		@Override
+		public void run() {
+			session.sendOneWayMessage(message);
+		}
+
+		@Override
+		public void cancel() {
+			// do nothing
+		}
+	}
+
+	protected static class RpcRequestTask implements SenderTask {
+
+		private final AbstractSession session;
+		private final Object request;
+		private final long timeoutMs;
+		private final RpcCallback rpcCallback;
+
+		private RpcRequestTask(AbstractSession session, Object request, long timeoutMs, RpcCallback rpcCallback) {
+			this.session = session;
+			this.request = request;
+			this.timeoutMs = timeoutMs;
+			this.rpcCallback = rpcCallback;
+		}
+
+		@Override
+		public void run() {
+			session.sendAsyncRpcRequest(request, timeoutMs, rpcCallback);
+		}
+
+		@Override
+		public void cancel() {
+			// 要保证回调执行
+			rpcCallback.onComplete(RpcResponse.SESSION_CLOSED);
+		}
+	}
+
+	protected static class RpcResponseTask implements SenderTask {
+
+		private final AbstractSession session;
+		private final long requestGuid;
+		private final RpcResponse rpcResponse;
+		private final boolean sync;
+
+		private RpcResponseTask(AbstractSession session, long requestGuid, RpcResponse rpcResponse, boolean sync) {
+			this.session = session;
+			this.requestGuid = requestGuid;
+			this.rpcResponse = rpcResponse;
+			this.sync = sync;
+		}
+
+		@Override
+		public void run() {
+			session.sendRpcResponse(requestGuid, sync, rpcResponse);
+		}
+
+		@Override
+		public void cancel() {
+			// do nothing
+		}
+	}
+
+	/**
+	 * 带缓冲区的sender的ResponseChannel，将结果写回缓冲区
+	 */
+	static class AsyncRpcResponseChannel<T> extends AbstractRpcResponseChannel<T> {
+
+		private final AbstractSender sender;
+		private final long requestGuid;
+
+		private AsyncRpcResponseChannel(AbstractSender sender, long requestGuid) {
+			this.sender = sender;
+			this.requestGuid = requestGuid;
+		}
+
+		@Override
+		protected void doWrite(RpcResponse rpcResponse) {
+			if (sender.isActive()) {
+				sender.doSendAsyncRpcResponse(new RpcResponseTask(sender.session, requestGuid, rpcResponse, false));
+			}
+		}
+	}
+
 	/**
 	 * 同步Rpc结果返回通道
 	 */
@@ -168,7 +274,7 @@ public abstract class AbstractSender implements Sender{
 		private final AbstractSession session;
 		private final long requestGuid;
 
-		public SyncRpcResponseChannel(AbstractSession session, long requestGuid) {
+		private SyncRpcResponseChannel(AbstractSession session, long requestGuid) {
 			this.session = session;
 			this.requestGuid = requestGuid;
 		}
@@ -177,9 +283,7 @@ public abstract class AbstractSender implements Sender{
 		protected void doWrite(RpcResponse rpcResponse) {
 			if (session.isActive()){
 				// 立即提交到网络层
-				session.netEventLoop().execute(() -> {
-					session.sendRpcResponse(requestGuid, true, rpcResponse);
-				});
+				session.netEventLoop().execute(new RpcResponseTask(session, requestGuid, rpcResponse, true));
 			}
 		}
 	}

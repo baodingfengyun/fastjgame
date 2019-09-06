@@ -19,9 +19,9 @@ package com.wjybxx.fastjgame.net;
 import javax.annotation.Nonnull;
 
 /**
- * 带有缓冲区的sender的模板实现 - 将所有的消息发送变成任务。
+ * 带有缓冲区的sender的模板实现。
  * @apiNote
- * 注意：如果任务无法发送，必须调用{@link BufferTask#cancel()}执行取消逻辑。
+ * 注意：如果任务无法发送，必须调用{@link SenderTask#cancel()}执行取消逻辑。
  *
  * @author wjybxx
  * @version 1.0
@@ -35,130 +35,25 @@ public abstract class AbstractBufferedSender extends AbstractSender{
 	}
 
 	@Override
-	protected final void doSend(@Nonnull Object message) {
-		addTask(new OneWayMessageTask(session, message));
+	protected void doSendMessage(@Nonnull OneWayMessageTask oneWayMessageTask) {
+		offerSenderTask(oneWayMessageTask);
 	}
 
 	@Override
-	protected final void doAsyncRpc(Object request, RpcCallback callback, long timeoutMs) {
-		addTask(new RpcRequestTask(session, request, timeoutMs, callback));
+	protected void doSendAsyncRpcRequest(RpcRequestTask rpcRequestTask) {
+		offerSenderTask(rpcRequestTask);
+	}
+
+	@Override
+	protected void doSendAsyncRpcResponse(RpcResponseTask rpcResponseTask) {
+		offerSenderTask(rpcResponseTask);
 	}
 
 	/**
 	 * 子类通过实现该方法实现自己的缓冲策略！
-	 * @apiNote
-	 * 注意：该方法只有在{@link Session#isActive()}时才会调用，子类不必处理session状态。
 	 *
 	 * @param task 一个数据发送请求
 	 */
-	protected abstract void addTask(BufferTask task);
+	protected abstract void offerSenderTask(SenderTask task);
 
-	@Override
-	protected final <T> RpcResponseChannel<T> newAsyncRpcResponseChannel(long requestGuid) {
-		return new BufferedResponseChannel<>(this, requestGuid);
-	}
-
-	protected interface BufferTask extends Runnable{
-
-		/**
-		 * 执行发送操作，运行在网络线程下。
-		 * 实现{@link Runnable}接口可以减少lambda表达式。
-		 */
-		void run();
-
-		/**
-		 * 执行取消操作，运行在用户线程下。
-		 */
-		void cancel();
-	}
-
-	protected static class OneWayMessageTask implements BufferTask {
-
-		private final AbstractSession session;
-		private final Object message;
-
-		private OneWayMessageTask(AbstractSession session, Object message) {
-			this.session = session;
-			this.message = message;
-		}
-
-		@Override
-		public void run() {
-			session.sendOneWayMessage(message);
-		}
-
-		@Override
-		public void cancel() {
-			// do nothing
-		}
-	}
-
-	protected static class RpcRequestTask implements BufferTask {
-
-		private final AbstractSession session;
-		private final Object request;
-		private final long timeoutMs;
-		private final RpcCallback rpcCallback;
-
-		private RpcRequestTask(AbstractSession session, Object request, long timeoutMs, RpcCallback rpcCallback) {
-			this.session = session;
-			this.request = request;
-			this.timeoutMs = timeoutMs;
-			this.rpcCallback = rpcCallback;
-		}
-
-		@Override
-		public void run() {
-			session.sendAsyncRpcRequest(request, timeoutMs, rpcCallback);
-		}
-
-		@Override
-		public void cancel() {
-			rpcCallback.onComplete(RpcResponse.SESSION_CLOSED);
-		}
-	}
-
-	protected static class RpcResponseTask implements BufferTask {
-
-		private final AbstractSession session;
-		private final long requestGuid;
-		private final RpcResponse rpcResponse;
-
-		private RpcResponseTask(AbstractSession session, long requestGuid, RpcResponse rpcResponse) {
-			this.session = session;
-			this.requestGuid = requestGuid;
-			this.rpcResponse = rpcResponse;
-		}
-
-		@Override
-		public void run() {
-			session.sendRpcResponse(requestGuid, false, rpcResponse);
-		}
-
-		@Override
-		public void cancel() {
-			// do nothing
-		}
-	}
-
-	/**
-	 * 带缓冲区的sender的ResponseChannel，将结果写回缓冲区
-	 */
-	private static class BufferedResponseChannel<T> extends AbstractRpcResponseChannel<T> {
-
-		private final AbstractBufferedSender bufferedSender;
-		private final long requestGuid;
-
-		private BufferedResponseChannel(AbstractBufferedSender bufferedSender, long requestGuid) {
-			this.bufferedSender = bufferedSender;
-			this.requestGuid = requestGuid;
-		}
-
-		@Override
-		protected void doWrite(RpcResponse rpcResponse) {
-			if (bufferedSender.session.isActive()) {
-				bufferedSender.addTask(new RpcResponseTask(bufferedSender.session, requestGuid, rpcResponse));
-			}
-		}
-	}
 }
