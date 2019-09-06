@@ -25,6 +25,7 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.*;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
+import com.wjybxx.fastjgame.annotation.EventLoopSingleton;
 import com.wjybxx.fastjgame.annotation.WorldSingleton;
 import com.wjybxx.fastjgame.misc.*;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
@@ -60,7 +61,7 @@ import static com.wjybxx.fastjgame.utils.GameUtils.isNullOrEmptyString;
  * date - 2019/5/20 19:42
  * github - https://github.com/hl845740757
  */
-@WorldSingleton
+@EventLoopSingleton
 @NotThreadSafe
 public abstract class MongoDBMrg {
     /**

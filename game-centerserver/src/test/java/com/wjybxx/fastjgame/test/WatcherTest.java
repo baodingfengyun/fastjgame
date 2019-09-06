@@ -19,8 +19,8 @@ package com.wjybxx.fastjgame.test;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.wjybxx.fastjgame.misc.ResourceCloseHandle;
-import com.wjybxx.fastjgame.module.GameEventLoopGroupModule;
-import com.wjybxx.fastjgame.module.GameEventLoopModule;
+import com.wjybxx.fastjgame.module.CenterModule;
+import com.wjybxx.fastjgame.module.WorldGroupModule;
 import com.wjybxx.fastjgame.mrg.CuratorMrg;
 import com.wjybxx.fastjgame.utils.GameUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
@@ -67,7 +67,7 @@ public class WatcherTest {
         String logPath = logDir + File.separator + "watcher.log";
         System.setProperty("logPath", logPath);
 
-        Injector injector= Guice.createInjector(new GameEventLoopGroupModule(), new GameEventLoopModule());
+        Injector injector= Guice.createInjector(new WorldGroupModule(), new CenterModule());
         CuratorMrg curatorMrg=injector.getInstance(CuratorMrg.class);
 
         String watchPath = ZKPathUtils.onlineParentPath(1);

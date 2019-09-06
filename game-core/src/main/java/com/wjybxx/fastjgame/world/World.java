@@ -16,14 +16,14 @@
 
 package com.wjybxx.fastjgame.world;
 
-import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
 import com.wjybxx.fastjgame.net.RoleType;
 
 import javax.annotation.Nonnull;
 
 /**
- * 抽象的游戏世界，顶层类
+ * 抽象的游戏世界，顶层类。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/4
@@ -57,23 +57,9 @@ public interface World {
     void tick(long curTimeMills);
 
     /**
-     * 关闭world
+     * 关闭world（同时会关闭world所在线程）。
      * @throws Exception errors
      */
     void shutdown() throws Exception;
 
-    /**
-     * 获取world绑定到的GameEventLoop，注册完成之后可以获取。
-     * 这样可以将有关联的world注册到同一个GameEventLoop上。
-     *
-     * @return gameEventLoop
-     */
-    @Nonnull
-    GameEventLoop gameEventLoop();
-
-    /**
-     * 从注册到的GameEventLoop上取消注册
-     * @return future
-     */
-    ListenableFuture<?> deregister();
 }

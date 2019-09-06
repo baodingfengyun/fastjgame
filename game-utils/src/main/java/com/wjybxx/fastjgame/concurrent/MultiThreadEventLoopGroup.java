@@ -30,6 +30,12 @@ import java.util.function.Consumer;
 /**
  * 多线程的EventLoopGroup，它的本质是容器，它负责管理持有的EventLoop的生命周期。
  *
+ * @apiNote
+ * 1. {@link #newChild(int, ThreadFactory, RejectedExecutionHandler, Object)}
+ * 此时子类属性还未被赋值，因此创建子类需要的属性必须在context中！
+ *
+ * 2. {@link #clean()} 该方法执行在{@link GlobalEventLoop}线程，因此必须保证线程安全。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/7/14
@@ -98,7 +104,7 @@ public abstract class MultiThreadEventLoopGroup extends AbstractEventLoopGroup {
 		children = new EventLoop[nThreads];
 		for (int i = 0; i < nThreads; i ++) {
 			// 创建newChild的时候有NPE的风险，不过为了制定模板，在这里创建是有必要的，只是子类实现newChild的时候要小心点
-			children[i] = newChild(threadFactory, rejectedExecutionHandler, context);
+			children[i] = newChild(i, threadFactory, rejectedExecutionHandler, context);
 		}
 
 		// 负载均衡算法
@@ -122,13 +128,14 @@ public abstract class MultiThreadEventLoopGroup extends AbstractEventLoopGroup {
 	 * @apiNote
 	 * 注意：这里是超类构建的时候调用的，此时子类属性都是null，因此newChild需要的数据必须在context中，使用子类的属性会导致NPE。
 	 *
+	 * @param childIndex 这是正在构建的第几个child， 索引0开始
 	 * @param threadFactory 线程工厂，用于创建线程
 	 * @param rejectedExecutionHandler 拒绝任务时的处理器
 	 * @param context 构造方法中传入的上下文
 	 * @return EventLoop
 	 */
 	@Nonnull
-	protected abstract EventLoop newChild(ThreadFactory threadFactory, RejectedExecutionHandler rejectedExecutionHandler, Object context);
+	protected abstract EventLoop newChild(int childIndex, ThreadFactory threadFactory, RejectedExecutionHandler rejectedExecutionHandler, Object context);
 
 	// -------------------------------------  子类生命周期管理 --------------------------------
 
@@ -226,7 +233,7 @@ public abstract class MultiThreadEventLoopGroup extends AbstractEventLoopGroup {
 	 * 线程组退出前的清理，用于清理线程组拥有的全局资源。
 	 *
 	 * @apiNote
-	 * 注意：该方法执行在{@link GlobalEventLoop}所在的线程。
+	 * 注意：该方法执行在{@link GlobalEventLoop}所在的线程。必须保证线程安全！
 	 */
 	protected void clean() {
 

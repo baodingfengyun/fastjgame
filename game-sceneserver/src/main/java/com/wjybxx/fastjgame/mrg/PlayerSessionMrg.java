@@ -16,9 +16,8 @@
 
 package com.wjybxx.fastjgame.mrg;
 
-import com.wjybxx.fastjgame.annotation.WorldSingleton;
+import com.wjybxx.fastjgame.annotation.EventLoopSingleton;
 import com.wjybxx.fastjgame.gameobject.Player;
-import com.wjybxx.fastjgame.misc.PlayerSession;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
@@ -31,7 +30,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * date - 2019/6/23 0:10
  * github - https://github.com/hl845740757
  */
-@WorldSingleton
+@EventLoopSingleton
 @NotThreadSafe
 public class PlayerSessionMrg {
 

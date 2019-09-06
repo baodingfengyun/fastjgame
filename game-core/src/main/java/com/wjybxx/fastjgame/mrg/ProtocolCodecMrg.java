@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
+import com.wjybxx.fastjgame.annotation.EventLoopSingleton;
 import com.wjybxx.fastjgame.annotation.WorldSingleton;
 import com.wjybxx.fastjgame.misc.MessageHashMappingStrategy;
 import com.wjybxx.fastjgame.misc.MessageMapper;
@@ -37,7 +38,7 @@ import java.util.Map;
  * date - 2019/4/27 22:01
  * github - https://github.com/hl845740757
  */
-@WorldSingleton
+@EventLoopSingleton
 @NotThreadSafe
 public final class ProtocolCodecMrg {
 

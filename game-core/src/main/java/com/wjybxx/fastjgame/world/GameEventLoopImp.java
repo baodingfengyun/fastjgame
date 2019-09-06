@@ -17,20 +17,14 @@
 package com.wjybxx.fastjgame.world;
 
 import com.google.inject.Injector;
-import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
-import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
-import com.wjybxx.fastjgame.function.AnyRunnable;
-import com.wjybxx.fastjgame.module.GameEventLoopModule;
-import com.wjybxx.fastjgame.module.WorldModule;
-import com.wjybxx.fastjgame.mrg.CuratorMrg;
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-import com.wjybxx.fastjgame.utils.EventLoopUtils;
-import com.wjybxx.fastjgame.utils.MathUtils;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import com.wjybxx.fastjgame.module.WorldGroupModule;
+import com.wjybxx.fastjgame.timer.DefaultTimerSystem;
+import com.wjybxx.fastjgame.timer.FixedDelayHandle;
+import com.wjybxx.fastjgame.timer.TimerSystem;
+import com.wjybxx.fastjgame.world.GameEventLoopGroupImp.WorldStartInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,29 +44,33 @@ import java.util.concurrent.ThreadFactory;
 public class GameEventLoopImp extends SingleThreadEventLoop implements GameEventLoop{
 
     private static final Logger logger = LoggerFactory.getLogger(GameEventLoopImp.class);
+
     /** 最多执行多少个任务，必须检测一次world循环 */
-    private static final int MAX_BATCH_SIZE = 1024;
-    /** 该EventLoop上注册的World */
-    private final Long2ObjectMap<WorldFrameInfo> worldFrameInfoMap = new Long2ObjectOpenHashMap<>();
+    private static final int MAX_BATCH_SIZE = 2048;
+
     /** 游戏世界需要的网络模块 */
     private final NetEventLoopGroup netEventLoopGroup;
-    /** EventLoop需要使用的模块 */
-    private final Injector eventLoopInjector;
-    /** 需要管理的资源 */
-    private final CuratorMrg curatorMrg;
-    private final GameEventLoopMrg gameEventLoopMrg;
+
+    /** {@link WorldGroupModule}管理的线程安全的控制器 */
+    private final Injector groupInjector;
+
+    /** 要启动的world信息 */
+    private final WorldStartInfo worldStartInfo;
+    private final TimerSystem timerSystem = new DefaultTimerSystem(1);
+    /** world */
+    private World world;
 
     GameEventLoopImp(@Nullable GameEventLoopGroup parent,
                      @Nonnull ThreadFactory threadFactory,
                      @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
-                     @Nonnull NetEventLoopGroup netEventLoopGroup, Injector groupInjector) {
+                     @Nonnull NetEventLoopGroup netEventLoopGroup,
+                     @Nonnull Injector groupInjector,
+                     @Nonnull WorldStartInfo worldStartInfo) {
 
         super(parent, threadFactory, rejectedExecutionHandler);
         this.netEventLoopGroup = netEventLoopGroup;
-
-        eventLoopInjector = groupInjector.createChildInjector(new GameEventLoopModule());
-        curatorMrg = eventLoopInjector.getInstance(CuratorMrg.class);
-        gameEventLoopMrg = eventLoopInjector.getInstance(GameEventLoopMrg.class);
+        this.groupInjector = groupInjector;
+        this.worldStartInfo = worldStartInfo;
     }
 
     @Override
@@ -95,27 +93,28 @@ public class GameEventLoopImp extends SingleThreadEventLoop implements GameEvent
     @Override
     protected void init() throws Exception {
         super.init();
+        final Injector worldInjector = groupInjector.createChildInjector(worldStartInfo.worldModule);
+        // 发布自己，使得world内部可以访问 - 现在的模型下使用threadLocal也是可以的。
+        final GameEventLoopMrg gameEventLoopMrg = worldInjector.getInstance(GameEventLoopMrg.class);
         gameEventLoopMrg.publish(this);
+
+        // 创建world并尝试启动
+        this.world = worldInjector.getInstance(World.class);
+        world.startUp(worldStartInfo.startArgs);
+        // init 出现任何异常，都会导致线程关闭，world会在clean的时候调用shutdown
+        timerSystem.newFixedDelay(worldStartInfo.frameInterval, this::safeTickWorld);
     }
 
     @Override
     protected void loop() {
-        long curTimeMills;
         for (;;) {
             // 指定执行任务最大数，避免导致world延迟过高
             runAllTasks(MAX_BATCH_SIZE);
 
-            curTimeMills = System.currentTimeMillis();
-
             // 游戏世界刷帧
-            for (WorldFrameInfo worldFrameInfo:worldFrameInfoMap.values()) {
-                if (worldFrameInfo.nextTickTimeMs < curTimeMills) {
-                    continue;
-                }
-                worldFrameInfo.nextTickTimeMs = curTimeMills + worldFrameInfo.frameInterval;
-                safeTick(worldFrameInfo.world, curTimeMills);
-            }
+            timerSystem.tick();
 
+            // 查询是否应该退出了
             if (confirmShutdown()) {
                 break;
             }
@@ -128,9 +127,9 @@ public class GameEventLoopImp extends SingleThreadEventLoop implements GameEvent
         }
     }
 
-    private static void safeTick(World world, long curTimeMills) {
+    private void safeTickWorld(FixedDelayHandle handle) {
         try {
-            world.tick(curTimeMills);
+            world.tick(System.currentTimeMillis());
         } catch (Exception e){
             logger.warn("world {}-{} tick caught exception.", world.worldRole(), world.worldGuid(), e);
         }
@@ -139,23 +138,19 @@ public class GameEventLoopImp extends SingleThreadEventLoop implements GameEvent
     @Override
     protected void clean() throws Exception {
         super.clean();
-        // 关闭所有游戏world
-        for (WorldFrameInfo worldFrameInfo:worldFrameInfoMap.values()) {
-            ConcurrentUtils.safeExecute((AnyRunnable) worldFrameInfo.world::shutdown);
+
+        // 关闭游戏world
+        if (world != null) {
+            safeShutdownWorld();
         }
-        // 关闭线程级资源
-        curatorMrg.shutdown();
     }
 
-    @Nonnull
-    @Override
-    public ListenableFuture<World> registerWorld(WorldModule worldModule, ConfigWrapper startArgs, int framesPerSecond) {
-        // 校验帧率
-        final long frameInterval = MathUtils.frameInterval(framesPerSecond);
-        // world可能注册一个world，因此可能是本地线程调用
-        return EventLoopUtils.submitOrRun(this, () -> {
-            return registerWorldInternal(worldModule, startArgs, framesPerSecond, frameInterval);
-        });
+    private void safeShutdownWorld() {
+        try {
+            world.shutdown();
+        } catch (Exception ex) {
+            logger.warn("world shutdown caught exception.", ex);
+        }
     }
 
     @Nonnull
@@ -164,59 +159,4 @@ public class GameEventLoopImp extends SingleThreadEventLoop implements GameEvent
         return netEventLoopGroup;
     }
 
-    @Override
-    public ListenableFuture<?> deregisterWorld(long worldGuid) {
-        // 可能是world线程自己取消注册，因此可能是本地线程调用
-        return EventLoopUtils.submitOrRun(this, () -> {
-            deregisterWorldInternal(worldGuid);
-        });
-    }
-
-    private World registerWorldInternal(WorldModule worldModule, ConfigWrapper startArgs, int framesPerSecond, long frameInterval) {
-        final Injector worldInjector = eventLoopInjector.createChildInjector(worldModule);
-        final World world = worldInjector.getInstance(World.class);
-        try {
-            world.startUp(startArgs);
-            // 启动成功才放入
-            WorldFrameInfo worldFrameInfo = new WorldFrameInfo(world, frameInterval);
-            worldFrameInfoMap.put(world.worldGuid(), worldFrameInfo);
-            return world;
-        } catch (Exception e){
-            // 出现任何异常，都尝试关闭world
-            logger.warn("world startUp caught exception. will deregister.", e);
-            try {
-                world.shutdown();
-            } catch (Exception ex) {
-                logger.warn("world register shutdown caught exception.", ex);
-            }
-            // 重新抛出异常，避免用户对启动失败的world进行操作。
-            ConcurrentUtils.rethrow(e);
-            // unreachable
-            return null;
-        }
-    }
-
-    private void deregisterWorldInternal(long worldGuid) {
-        WorldFrameInfo worldFrameInfo = worldFrameInfoMap.remove(worldGuid);
-        if (null == worldFrameInfo) {
-            return;
-        }
-        try {
-            worldFrameInfo.world.shutdown();
-        } catch (Exception e){
-            logger.warn("world deregister shutdown caught exception.", e);
-        }
-    }
-
-    private static class WorldFrameInfo {
-
-        private final World world;
-        private final long frameInterval;
-        private long nextTickTimeMs;
-
-        private WorldFrameInfo(World world, long frameInterval) {
-            this.world = world;
-            this.frameInterval = frameInterval;
-        }
-    }
 }

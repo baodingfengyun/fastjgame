@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
+import com.wjybxx.fastjgame.annotation.EventLoopSingleton;
 import com.wjybxx.fastjgame.annotation.WorldSingleton;
 import com.wjybxx.fastjgame.misc.DefaultHttpRequestDispatcher;
 import com.wjybxx.fastjgame.net.*;
@@ -33,7 +34,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * date - 2019/8/4
  * github - https://github.com/hl845740757
  */
-@WorldSingleton
+@EventLoopSingleton
 @NotThreadSafe
 public class HttpDispatcherMrg implements HttpRequestHandlerRegistry, HttpRequestDispatcher {
 

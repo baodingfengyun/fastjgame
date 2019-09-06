@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
+import com.wjybxx.fastjgame.annotation.EventLoopSingleton;
 import com.wjybxx.fastjgame.annotation.WorldSingleton;
 import com.wjybxx.fastjgame.world.GameEventLoopMrg;
 
@@ -29,7 +30,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * date - 2019/4/27 22:12
  * github - https://github.com/hl845740757
  */
-@WorldSingleton
+@EventLoopSingleton
 @NotThreadSafe
 public class WorldWrapper {
 

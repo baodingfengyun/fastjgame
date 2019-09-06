@@ -18,18 +18,21 @@ package com.wjybxx.fastjgame.module;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
+import com.wjybxx.fastjgame.annotation.EventLoopSingleton;
 import com.wjybxx.fastjgame.mrg.*;
+import com.wjybxx.fastjgame.world.GameEventLoopMrg;
 import com.wjybxx.fastjgame.world.World;
 
 /**
  * WorldModule，游戏world的顶层module。
- * 这里都是{@link World}级别的单例。
+ * 线程级单例。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/12 12:06
  * github - https://github.com/hl845740757
  */
+@EventLoopSingleton
 public abstract class WorldModule extends AbstractModule {
 
     // 这样改造之后为典型的模板方法
@@ -54,6 +57,13 @@ public abstract class WorldModule extends AbstractModule {
         bind(WorldTimerMrg.class).in(Singleton.class);
 
         bind(WorldWrapper.class).in(Singleton.class);
+
+        bind(GameEventLoopMrg.class).in(Singleton.class);
+        bind(CuratorMrg.class).in(Singleton.class);
+        bind(GuidMrg.class).to(ZkGuidMrg.class).in(Singleton.class);
+
+        // 表格读取 （如果表格全是不可变对象，那么可能是多线程模块中的）
+        bind(TemplateMrg.class).in(Singleton.class);
     }
 
     /**

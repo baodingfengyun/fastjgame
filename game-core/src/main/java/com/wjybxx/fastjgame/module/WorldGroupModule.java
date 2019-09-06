@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.module;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
+import com.wjybxx.fastjgame.annotation.EventLoopGroupSingleton;
 import com.wjybxx.fastjgame.mrg.CuratorClientMrg;
 import com.wjybxx.fastjgame.mrg.GameConfigMrg;
 import com.wjybxx.fastjgame.mrg.GlobalExecutorMrg;
@@ -25,13 +26,16 @@ import com.wjybxx.fastjgame.world.GameEventLoopGroup;
 
 /**
  * {@link GameEventLoopGroup}级别的单例。
+ * 这里的控制器完成一些多线程的逻辑，主要还是为了减少资源消耗 - 内存、网络、线程等。
+ * 这里的资源在{@link GameEventLoopGroup}退出的时候完成释放。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/4
  * github - https://github.com/hl845740757
  */
-public class GameEventLoopGroupModule extends AbstractModule {
+@EventLoopGroupSingleton
+public class WorldGroupModule extends AbstractModule {
 
     @Override
     protected void configure() {

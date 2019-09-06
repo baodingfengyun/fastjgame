@@ -18,7 +18,7 @@ package com.wjybxx.fastjfame.test;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.wjybxx.fastjgame.module.GameEventLoopGroupModule;
+import com.wjybxx.fastjgame.module.WorldGroupModule;
 import com.wjybxx.fastjgame.module.SceneModule;
 import com.wjybxx.fastjgame.mrg.GameConfigMrg;
 
@@ -33,10 +33,10 @@ import com.wjybxx.fastjgame.mrg.GameConfigMrg;
 public class GlobalModuleTest {
 
 	public static void main(String[] args) {
-		GameEventLoopGroupModule gameEventLoopGroupModule = new GameEventLoopGroupModule();
+		WorldGroupModule worldGroupModule = new WorldGroupModule();
 
-		Injector parentModule = Guice.createInjector(gameEventLoopGroupModule);
-		Injector injector2 = Guice.createInjector(gameEventLoopGroupModule);
+		Injector parentModule = Guice.createInjector(worldGroupModule);
+		Injector injector2 = Guice.createInjector(worldGroupModule);
 
 		Injector childModule1 = parentModule.createChildInjector(new SceneModule());
 		Injector childModule2 = parentModule.createChildInjector(new SceneModule());

@@ -115,8 +115,8 @@ public class CenterInSceneInfoMrg implements ICenterInSceneInfoMrg {
         assert centerInSceneInfo.getPlatformType() == sceneWorldInfoMrg.getPlatformType();
         assert centerInSceneInfo.getServerId() == sceneWorldInfoMrg.getServerId();
         offlineAllOnlinePlayer();
-
-        sceneWorld.deregister();
+        // 自己的中心服宕机，场景服需要自动关闭
+        sceneWorld.shutdown();
     }
 
     /**

@@ -17,9 +17,8 @@
 package com.wjybxx.fastjgame.world;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
-import com.wjybxx.fastjgame.misc.*;
+import com.wjybxx.fastjgame.misc.MessageMappingStrategy;
 import com.wjybxx.fastjgame.mrg.*;
 import com.wjybxx.fastjgame.net.HttpRequestHandler;
 import com.wjybxx.fastjgame.net.RoleType;
@@ -181,7 +180,12 @@ public abstract class AbstractWorld implements World{
     protected abstract void tickHook();
 
     @Override
-    public final void shutdown() throws Exception {
+    public final void shutdown() {
+        // 该方法由GameEventLoop线程在关闭时来调用
+        if (!gameEventLoop().isShuttingDown()) {
+            gameEventLoop().shutdown();
+            return;
+        }
         // 关闭期间可能较为耗时，切换到实时策略
         worldTimeMrg.changeToRealTimeStrategy();
 
@@ -200,6 +204,7 @@ public abstract class AbstractWorld implements World{
      */
     private void shutdownCore(){
         netContextMrg.shutdown();
+        curatorMrg.shutdown();
         protocolDispatcherMrg.release();
         httpDispatcherMrg.release();
     }
@@ -209,15 +214,13 @@ public abstract class AbstractWorld implements World{
      */
     protected abstract void shutdownHook() throws Exception;
 
+    /**
+     * 获取world绑定到的{@link GameEventLoop}
+     * @return EventLoop
+     */
     @Nonnull
-    @Override
-    public GameEventLoop gameEventLoop() {
+    protected final GameEventLoop gameEventLoop() {
         return gameEventLoopMrg.getEventLoop();
-    }
-
-    @Override
-    public ListenableFuture<?> deregister() {
-        return gameEventLoopMrg.getEventLoop().deregisterWorld(worldGuid());
     }
 
 }

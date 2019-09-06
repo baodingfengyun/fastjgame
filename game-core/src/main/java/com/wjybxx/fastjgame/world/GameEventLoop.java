@@ -17,16 +17,13 @@
 package com.wjybxx.fastjgame.world;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * Q: 为什么{@link GameEventLoop} 要继承{@link GameEventLoopGroup}？
- * A: {@link GameEventLoop}是一个特殊的{@link GameEventLoopGroup}，表示它内部只有它一个{@link GameEventLoop}，
- * 这样的好处是可以使得{@link GameEventLoop}代表{@link GameEventLoopGroup}，我们可以在GameEventLoop上注册world，
- * 这样有关联的world可以注册到同一个{@link GameEventLoop}上，从而消除不必要的同步。
+ * 游戏世界循环，{@link World}的运行环境。
+ * 注意：一个{@link GameEventLoop}承载1个{@link World}。
  *
  * @author wjybxx
  * @version 1.0
@@ -42,11 +39,4 @@ public interface GameEventLoop extends GameEventLoopGroup, EventLoop {
     @Nonnull
     @Override
     GameEventLoop next();
-
-    /**
-     * 将worldGuid对应的world从EventLoop上取消注册。
-     * @param worldGuid world的id
-     * @return 取消注册成功，或早已取消注册则返回true，否则返回false。
-     */
-    ListenableFuture<?> deregisterWorld(long worldGuid);
 }

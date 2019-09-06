@@ -78,7 +78,7 @@ public class NetEventLoopGroupImp extends MultiThreadEventLoopGroup implements N
      */
     @Nonnull
     @Override
-    protected NetEventLoop newChild(ThreadFactory threadFactory, RejectedExecutionHandler rejectedExecutionHandler, Object context) {
+    protected NetEventLoop newChild(int childIndex, ThreadFactory threadFactory, RejectedExecutionHandler rejectedExecutionHandler, Object context) {
         return new NetEventLoopImp(this, threadFactory, rejectedExecutionHandler, (Injector) context);
     }
 

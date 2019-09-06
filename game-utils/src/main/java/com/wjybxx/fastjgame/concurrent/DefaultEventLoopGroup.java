@@ -45,7 +45,7 @@ public class DefaultEventLoopGroup extends MultiThreadEventLoopGroup{
 
 	@Nonnull
 	@Override
-	protected EventLoop newChild(ThreadFactory threadFactory, RejectedExecutionHandler rejectedExecutionHandler, Object context) {
+	protected EventLoop newChild(int childIndex, ThreadFactory threadFactory, RejectedExecutionHandler rejectedExecutionHandler, Object context) {
 		return new DefaultEventLoop(this, threadFactory, rejectedExecutionHandler);
 	}
 }
