@@ -67,7 +67,7 @@ public abstract class AbstractBufferedSender extends AbstractSender{
 		void run();
 
 		/**
-		 * 执行取消操作，运行在用户线程下（未来可能被删除）
+		 * 执行取消操作，运行在用户线程下。
 		 */
 		void cancel();
 	}
