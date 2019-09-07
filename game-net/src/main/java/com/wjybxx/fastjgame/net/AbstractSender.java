@@ -28,7 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * {@link Sender}的模板实现。
  * 同步消息的发送都由这里来实现，子类只负责异步消息的发送。
- * 超类会统一将消息封装为任务，有子类觉得如何提交到网络层，但是子类必须保证提交的时序。
+ * 超类会统一将消息封装为任务，由子类觉得如何提交到网络层，但是子类必须保证提交的时序。
  *
  * @author wjybxx
  * @version 1.0
