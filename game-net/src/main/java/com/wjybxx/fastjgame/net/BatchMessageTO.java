@@ -19,7 +19,6 @@ import java.util.List;
 
 /**
  * 一个纯粹的传输对象,用于一次将一批对象发送到channel。
- * 注意：它并不是一个不可变对象，它仅仅用于发布对象。
  *
  * @author wjybxx
  * @version 1.0
@@ -29,13 +28,20 @@ import java.util.List;
 @TransferObject
 public class BatchMessageTO {
 
-	private List<MessageTO> sentMessages;
+	private long ack;
 
-	public BatchMessageTO(List<MessageTO> sentMessages) {
-		this.sentMessages = sentMessages;
+	private List<NetMessage> netMessages;
+
+	public BatchMessageTO(long ack, List<NetMessage> netMessages) {
+		this.ack = ack;
+		this.netMessages = netMessages;
 	}
 
-	public List<MessageTO> getSentMessages() {
-		return sentMessages;
+	public long getAck() {
+		return ack;
+	}
+
+	public List<NetMessage> getNetMessages() {
+		return netMessages;
 	}
 }

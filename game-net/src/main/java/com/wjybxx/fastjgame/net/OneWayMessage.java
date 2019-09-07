@@ -16,24 +16,27 @@
 
 package com.wjybxx.fastjgame.net;
 
-import javax.annotation.concurrent.Immutable;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * 单向消息传输对象
+ * 已发送还未被确认的单向消息
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/7/31
  * github - https://github.com/hl845740757
  */
-@Immutable
-public class OneWayMessageTO extends MessageTO{
+@NotThreadSafe
+public class OneWayMessage extends NetMessage {
 
-	/** 消息内容，必须是不可变对象 */
-	private final Object message;
+	/**
+	 * 消息内容，必须是不可变对象。
+	 * 不要求是protoBuf形式
+	 */
+	private Object message;
 
-	public OneWayMessageTO(long ack, long sequence, Object message) {
-		super(ack, sequence);
+	public OneWayMessage(Object message) {
+		super();
 		this.message = message;
 	}
 

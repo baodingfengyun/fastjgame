@@ -20,7 +20,6 @@ import io.netty.channel.Channel;
 
 /**
  * 消息事件参数。
- * 它对应于{@link SentMessage}
  *
  * @author wjybxx
  * @version 1.0
@@ -30,14 +29,26 @@ import io.netty.channel.Channel;
 public abstract class MessageEventParam implements NetEventParam{
 
     /** 该事件对应的channel */
-    private final Channel channel;
-
+    private Channel channel;
     /** 该事件关联的本地角色guid */
-    private final long localGuid;
+    private long localGuid;
+    /** 该事件关联的远程guid */
+    private long remoteGuid;
+    /**
+     * 捎带确认的ack
+     */
+    private long ack;
+    /**
+     * 当前包id
+     */
+    private long sequence;
 
-    protected MessageEventParam(Channel channel, long localGuid) {
-        this.localGuid = localGuid;
+    public MessageEventParam(Channel channel, long localGuid, long remoteGuid, long ack, long sequence) {
         this.channel = channel;
+        this.localGuid = localGuid;
+        this.remoteGuid = remoteGuid;
+        this.ack = ack;
+        this.sequence = sequence;
     }
 
     @Override
@@ -50,17 +61,17 @@ public abstract class MessageEventParam implements NetEventParam{
         return localGuid;
     }
 
-    public final long getAck() {
-        return messageTO().getAck();
+    @Override
+    public long remoteGuid() {
+        return remoteGuid;
     }
 
-    public final long getSequence() {
-        return messageTO().getSequence();
+    public long getAck() {
+        return ack;
     }
 
-    /**
-     * 获取该消息事件上的捎带确认信息
-     * @return 捎带确认信息
-     */
-    public abstract MessageTO messageTO();
+    public long getSequence() {
+        return sequence;
+    }
+
 }

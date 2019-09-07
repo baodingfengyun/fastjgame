@@ -19,10 +19,15 @@ package com.wjybxx.fastjgame.net;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * 它是网络层已发送但是对方还未确认收到的消息包，它是非线程安全的。
- * 它由网络层构建，网络层使用，且不会共享，因此字段不必是final(final有一定消耗)。
+ * 网络消息包。
+ * 它并非线程安全的，但是有多线程下的时序保证，网络层可以安全的访问{@link #timeout}之外的任意字段。
  *
- * 一个包的{@link #sequence}不会改变，但是ack会在每次发送的时候改变。
+ *  一个包的{@link #sequence}一旦赋值便不会改变，{@link #setSequence(long)} happens-before {@link #getSequence()}。
+ *
+ * 消息包发送流程：
+ * step1  ->  create
+ * step2  ->  setSequence,setTimeout
+ * step3  ->  write
  *
  * @author wjybxx
  * @version 1.0
@@ -30,23 +35,27 @@ import javax.annotation.concurrent.NotThreadSafe;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public abstract class SentMessage {
+public abstract class NetMessage {
     /**
      * 当前包id。一个网络包一旦被构建，则不再改变！
      */
-    protected long sequence;
+    private long sequence;
     /**
      * 消息确认超时时间
      * 发送的时候设置超时时间
      */
     private long timeout;
 
-    public SentMessage(long sequence) {
-        this.sequence = sequence;
+    public NetMessage() {
+
     }
 
     public long getSequence() {
         return sequence;
+    }
+
+    public void setSequence(long sequence) {
+        this.sequence = sequence;
     }
 
     public long getTimeout() {
@@ -56,13 +65,5 @@ public abstract class SentMessage {
     public void setTimeout(long timeout) {
         this.timeout = timeout;
     }
-
-    /**
-     * 构建传输对象，一个消息被重复发送时，只有ack会更新，其它数据都不应该更新。
-     *
-     * @param ack 捎带确认的ack。
-     * @return transferObj
-     */
-    public abstract MessageTO build(long ack);
 
 }

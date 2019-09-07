@@ -67,34 +67,39 @@ public class ServerCodec extends BaseCodec {
     @Override
     public void write(ChannelHandlerContext ctx, Object msgTO, ChannelPromise promise) throws Exception {
         if (msgTO instanceof BatchMessageTO){
-            // 批量写的时候，可以使用voidPromise，不清楚的话不要轻易如此，我们并不需要检测结果，因为我们并不依赖它的任何逻辑
+            // 批量协议包
             BatchMessageTO batchMessageTO = (BatchMessageTO) msgTO;
-            for (MessageTO messageTO:batchMessageTO.getSentMessages()){
-                writeSingleMsg(ctx, messageTO, ctx.voidPromise());
+            long ack = batchMessageTO.getAck();
+            for (NetMessage message:batchMessageTO.getNetMessages()){
+                writeSingleMsg(ctx, ack, message, ctx.voidPromise());
             }
+        } else if (msgTO instanceof SingleMessageTO){
+            // 单个协议包
+            SingleMessageTO singleMessageTO = (SingleMessageTO)msgTO;
+            writeSingleMsg(ctx, singleMessageTO.getAck(), singleMessageTO.getNetMessage(), promise);
+        }  else if (msgTO instanceof ConnectResponseTO){
+            // 请求连接结果(token验证结果)
+            writeConnectResponse(ctx, (ConnectResponseTO) msgTO, promise);
         } else {
-            writeSingleMsg(ctx, msgTO, promise);
+            super.write(ctx, msgTO, promise);
         }
     }
 
     /** 发送单个消息 */
-    private void writeSingleMsg(ChannelHandlerContext ctx, Object msgTO, ChannelPromise promise) throws Exception {
+    private void writeSingleMsg(ChannelHandlerContext ctx, long ack, NetMessage msgTO, ChannelPromise promise) throws Exception {
         // 按出现的几率判断
-        if (msgTO instanceof OneWayMessageTO) {
+        if (msgTO instanceof OneWayMessage) {
             // 单向消息
-            writeOneWayMessage(ctx, (OneWayMessageTO) msgTO, promise);
-        } else if (msgTO instanceof RpcResponseTO){
+            writeOneWayMessage(ctx, ack, (OneWayMessage) msgTO, promise);
+        } else if (msgTO instanceof RpcResponseMessage){
             // RPC响应
-            writeRpcResponseMessage(ctx, (RpcResponseTO) msgTO, promise);
-        }else if (msgTO instanceof RpcRequestTO) {
+            writeRpcResponseMessage(ctx, ack, (RpcResponseMessage) msgTO, promise);
+        }else if (msgTO instanceof RpcRequestMessage) {
             // 向另一个服务器发起rpc请求
-            writeRpcRequestMessage(ctx, (RpcRequestTO) msgTO, promise);
-        } else if (msgTO instanceof AckPingPongMessageTO){
+            writeRpcRequestMessage(ctx, ack, (RpcRequestMessage) msgTO, promise);
+        } else if (msgTO instanceof AckPingPongMessage){
             // 服务器ack心跳返回消息
-            writeAckPingPongMessage(ctx, (AckPingPongMessageTO) msgTO, promise, NetPackageType.ACK_PONG);
-        } else if (msgTO instanceof ConnectResponseTO){
-            // 请求连接结果(token验证结果)
-            writeConnectResponse(ctx, (ConnectResponseTO) msgTO, promise);
+            writeAckPingPongMessage(ctx, ack, (AckPingPongMessage) msgTO, promise, NetPackageType.ACK_PONG);
         } else {
             super.write(ctx, msgTO, promise);
         }
@@ -143,30 +148,27 @@ public class ServerCodec extends BaseCodec {
     private void tryReadAckPingMessage(ChannelHandlerContext ctx, ByteBuf msg){
         ensureInited();
 
-        AckPingPongMessageTO ackPingPongMessage = readAckPingPongMessage(msg);
-        AckPingPongEventParam ackPingParam = new AckPingPongEventParam(ctx.channel(), localGuid, clientGuid, ackPingPongMessage);
-        netEventManager.publishEvent(NetEventType.ACK_PING, ackPingParam);
+        AckPingPongEventParam ackPingEventParam = readAckPingPongMessage(ctx.channel(), localGuid, clientGuid, msg);
+        netEventManager.publishEvent(NetEventType.ACK_PING, ackPingEventParam);
     }
 
     /**
      * 尝试读取rpc请求
      */
-    private void tryReadRpcRequestMessage(ChannelHandlerContext ctx, ByteBuf msg) throws IOException {
+    private void tryReadRpcRequestMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureInited();
 
-        RpcRequestTO rpcRequestTO = readRpcRequestMessage(msg);
-        RpcRequestEventParam rpcRequestEventParam = new RpcRequestEventParam(ctx.channel(), localGuid, clientGuid, rpcRequestTO);
+        RpcRequestEventParam rpcRequestEventParam = readRpcRequestMessage(ctx.channel(), localGuid, clientGuid, msg);
         netEventManager.publishEvent(NetEventType.C2S_RPC_REQUEST, rpcRequestEventParam);
     }
 
     /**
      * 尝试读取rpc响应
      */
-    private void tryReadRpcResponseMessage(ChannelHandlerContext ctx, ByteBuf msg) throws IOException {
+    private void tryReadRpcResponseMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureInited();
 
-        RpcResponseTO rpcResponseTO = readRpcResponseMessage(msg);
-        RpcResponseEventParam rpcResponseEventParam = new RpcResponseEventParam(ctx.channel(), localGuid, clientGuid, rpcResponseTO);
+        RpcResponseEventParam rpcResponseEventParam = readRpcResponseMessage(ctx.channel(), localGuid, clientGuid, msg);
         netEventManager.publishEvent(NetEventType.S2C_RPC_RESPONSE, rpcResponseEventParam);
     }
 
@@ -176,8 +178,7 @@ public class ServerCodec extends BaseCodec {
     private void tryReadOneWayMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureInited();
 
-        OneWayMessageTO oneWayMessageTO = readOneWayMessage(msg);
-        OneWayMessageEventParam oneWayMessageEventParam = new OneWayMessageEventParam(ctx.channel(), localGuid, clientGuid, oneWayMessageTO);
+        OneWayMessageEventParam oneWayMessageEventParam = readOneWayMessage(ctx.channel(), localGuid, clientGuid, msg);
         netEventManager.publishEvent(NetEventType.C2S_ONE_WAY_MESSAGE, oneWayMessageEventParam);
     }
     // endregion

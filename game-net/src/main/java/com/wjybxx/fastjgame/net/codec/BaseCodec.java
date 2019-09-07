@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.utils.NetUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
@@ -160,49 +161,50 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
     /**
      * 3. 编码rpc请求包
      */
-    final void writeRpcRequestMessage(ChannelHandlerContext ctx, RpcRequestTO messageTO, ChannelPromise promise) {
+    final void writeRpcRequestMessage(ChannelHandlerContext ctx, long ack, RpcRequestMessage rpcRequest, ChannelPromise promise) {
         ByteBuf head = newInitializedByteBuf(ctx, 8 + 8 + 8 + 1, NetPackageType.RPC_REQUEST);
         // 捎带确认消息
-        head.writeLong(messageTO.getAck());
-        head.writeLong(messageTO.getSequence());
+        head.writeLong(ack);
+        head.writeLong(rpcRequest.getSequence());
         // rpc请求头
-        head.writeLong(messageTO.getRequestGuid());
-        head.writeByte(messageTO.isSync() ? 1 : 0);
+        head.writeLong(rpcRequest.getRequestGuid());
+        head.writeByte(rpcRequest.isSync() ? 1 : 0);
         // 合并之后发送
-        appendSumAndWrite(ctx, tryMergeBody(ctx.alloc(), head, messageTO.getRequest(), codec::encodeRpcRequest), promise);
+        appendSumAndWrite(ctx, tryMergeBody(ctx.alloc(), head, rpcRequest.getRequest(), codec::encodeRpcRequest), promise);
     }
 
     /**
      * 3. 解码rpc请求包
      */
-    final RpcRequestTO readRpcRequestMessage(ByteBuf msg) {
+    final RpcRequestEventParam readRpcRequestMessage(Channel channel, long localGuid, long remoteGuid, ByteBuf msg) {
         // 捎带确认消息
-        long ack= msg.readLong();
+        long ack = msg.readLong();
         long sequence = msg.readLong();
         // rpc请求头
         long requestGuid = msg.readLong();
         boolean sync = msg.readByte() == 1;
         // 请求内容
         Object request = tryDecodeBody(msg, codec::decodeRpcRequest);
-        return new RpcRequestTO(ack, sequence, requestGuid, sync, request);
+        return new RpcRequestEventParam(channel, localGuid, remoteGuid, ack, sequence, requestGuid, sync, request);
     }
 
     /**
      * 4. 编码rpc 响应包
      */
-    final void writeRpcResponseMessage(ChannelHandlerContext ctx, RpcResponseTO messageTO, ChannelPromise promise) {
+    final void writeRpcResponseMessage(ChannelHandlerContext ctx, long ack, RpcResponseMessage sentRpcResponse, ChannelPromise promise) {
         ByteBuf head = newInitializedByteBuf(ctx, 8 + 8 + 8 + 4, NetPackageType.RPC_RESPONSE);
         // 捎带确认信息
-        head.writeLong(messageTO.getAck());
-        head.writeLong(messageTO.getSequence());
+        head.writeLong(ack);
+        head.writeLong(sentRpcResponse.getSequence());
         // 响应内容
-        head.writeLong(messageTO.getRequestGuid());
-        head.writeInt(messageTO.getResultCode().getNumber());
+        head.writeLong(sentRpcResponse.getRequestGuid());
+        final RpcResponse rpcResponse = sentRpcResponse.getRpcResponse();
+        head.writeInt(rpcResponse.getResultCode().getNumber());
 
         ByteBuf byteBuf;
-        if (messageTO.getBody() != null) {
+        if (rpcResponse.getBody() != null) {
             // 合并之后发送
-            byteBuf = tryMergeBody(ctx.alloc(), head, messageTO.getBody(), codec::encodeRpcResponse);
+            byteBuf = tryMergeBody(ctx.alloc(), head, rpcResponse.getBody(), codec::encodeRpcResponse);
         } else {
             byteBuf = head;
         }
@@ -212,7 +214,7 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
     /**
      * 4. 解码rpc 响应包
      */
-    final RpcResponseTO readRpcResponseMessage(ByteBuf msg) {
+    final RpcResponseEventParam readRpcResponseMessage(Channel channel, long localGuid, long remoteGuid, ByteBuf msg) {
         // 捎带确认信息
         long ack= msg.readLong();
         long sequence = msg.readLong();
@@ -224,7 +226,7 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
         if (msg.readableBytes() > 0) {
             body = tryDecodeBody(msg, codec::decodeRpcResponse);
         }
-        return new RpcResponseTO(ack, sequence, requestGuid, new RpcResponse(resultCode, body));
+        return new RpcResponseEventParam(channel, localGuid, remoteGuid, ack, sequence, requestGuid, new RpcResponse(resultCode, body));
     }
 
     // ------------------------------------------ 协议5 --------------------------------------------
@@ -232,27 +234,26 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
     /**
      * 5.编码单向协议包
      */
-    final void writeOneWayMessage(ChannelHandlerContext ctx, OneWayMessageTO msgTO, ChannelPromise promise) {
+    final void writeOneWayMessage(ChannelHandlerContext ctx, long ack, OneWayMessage sentOneWayMessage, ChannelPromise promise) {
         ByteBuf head = newInitializedByteBuf(ctx, 8 + 8, NetPackageType.ONE_WAY_MESSAGE);
         // 捎带确认
-        head.writeLong(msgTO.getAck());
-        head.writeLong(msgTO.getSequence());
+        head.writeLong(ack);
+        head.writeLong(sentOneWayMessage.getSequence());
         // 合并之后发送
-        appendSumAndWrite(ctx, tryMergeBody(ctx.alloc(), head, msgTO.getMessage(), codec::encodeMessage), promise);
+        appendSumAndWrite(ctx, tryMergeBody(ctx.alloc(), head, sentOneWayMessage.getMessage(), codec::encodeMessage), promise);
     }
 
     /**
      * 5.解码单向协议
      */
-    final OneWayMessageTO readOneWayMessage(ByteBuf msg) {
+    final OneWayMessageEventParam readOneWayMessage(Channel channel, long localGuid, long remoteGuid, ByteBuf msg) {
         // 捎带确认
         long ack = msg.readLong();
         long sequence = msg.readLong();
         // 消息内容
         Object message = tryDecodeBody(msg, codec::decodeMessage);
-        return new OneWayMessageTO(ack, sequence, message);
+        return new OneWayMessageEventParam(channel, localGuid, remoteGuid, ack, sequence, message);
     }
-
 
     /**
      * 尝试合并协议头和身体
@@ -294,21 +295,21 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
     /**
      * 编码协议6/7 - ack心跳包
      */
-    final void writeAckPingPongMessage(ChannelHandlerContext ctx, AckPingPongMessageTO msgTO, ChannelPromise promise,
+    final void writeAckPingPongMessage(ChannelHandlerContext ctx, long ack, AckPingPongMessage sentAckPingPong, ChannelPromise promise,
                                        NetPackageType netPackageType) {
         ByteBuf byteBuf = newInitializedByteBuf(ctx, 8 + 8, netPackageType);
-        byteBuf.writeLong(msgTO.getAck());
-        byteBuf.writeLong(msgTO.getSequence());
+        byteBuf.writeLong(ack);
+        byteBuf.writeLong(sentAckPingPong.getSequence());
         appendSumAndWrite(ctx, byteBuf, promise);
     }
 
     /**
      * 解码协议6/7 - ack心跳包
      */
-    final AckPingPongMessageTO readAckPingPongMessage(ByteBuf msg) {
+    final AckPingPongEventParam readAckPingPongMessage(Channel channel, long localGuid, long remoteGuid, ByteBuf msg) {
         long ack = msg.readLong();
         long sequence = msg.readLong();
-        return new AckPingPongMessageTO(ack, sequence);
+        return new AckPingPongEventParam(channel, localGuid, remoteGuid, ack, sequence);
     }
     // ------------------------------------------ 分割线 --------------------------------------------
     /**

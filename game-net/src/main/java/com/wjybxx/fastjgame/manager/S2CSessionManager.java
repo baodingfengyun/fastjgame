@@ -188,10 +188,10 @@ public class S2CSessionManager extends SessionManager {
     public void sendOneWayMessage(long localGuid, long clientGuid, @Nonnull Object message){
         SessionWrapper sessionWrapper = getWritableSession(localGuid, clientGuid);
         if (null == sessionWrapper){
-            logger.warn("client {} is removed, but try send message.",clientGuid);
+            logger.debug("session {}-{} is inactive, but try send message.", localGuid, clientGuid);
             return;
         }
-        sessionWrapper.write(new UnsentOneWayMessage(message));
+        sessionWrapper.write(new OneWayMessage(message));
     }
 
     /**
@@ -207,7 +207,7 @@ public class S2CSessionManager extends SessionManager {
     public void sendRpcRequest(long localGuid, long clientGuid, @Nonnull Object request, long timeoutMs, EventLoop userEventLoop, RpcCallback rpcCallback) {
         SessionWrapper sessionWrapper = getWritableSession(localGuid, clientGuid);
         if (null == sessionWrapper){
-            logger.warn("client {} is removed, but try send rpcRequest.",clientGuid);
+            logger.debug("session {}-{} is inactive, but try send asyncRpcRequest.", localGuid, clientGuid);
             ConcurrentUtils.tryCommit(userEventLoop, () -> {
                 rpcCallback.onComplete(RpcResponse.SESSION_CLOSED);
             });
@@ -215,7 +215,12 @@ public class S2CSessionManager extends SessionManager {
         }
         long deadline = netTimeManager.getSystemMillTime() + timeoutMs;
         RpcPromiseInfo rpcPromiseInfo = RpcPromiseInfo.newInstance(rpcCallback, deadline);
-        UnsentRpcRequest rpcRequest = new UnsentRpcRequest(request, rpcPromiseInfo);
+
+        long requestGuid = sessionWrapper.messageQueue.nextRpcRequestGuid();
+        RpcRequestMessage rpcRequest = new RpcRequestMessage(requestGuid, false, request);
+        // 发送之前保存信息
+        sessionWrapper.messageQueue.getRpcPromiseInfoMap().put(requestGuid, rpcPromiseInfo);
+
         // 添加到缓存队列，稍后发送
         sessionWrapper.write(rpcRequest);
     }
@@ -232,13 +237,18 @@ public class S2CSessionManager extends SessionManager {
     public void sendSyncRpcRequest(long localGuid, long clientGuid, @Nonnull Object request, long timeoutMs, RpcPromise rpcPromise){
         SessionWrapper sessionWrapper = getWritableSession(localGuid, clientGuid);
         if (null == sessionWrapper){
-            logger.warn("client {} is removed, but try send rpcRequest.",clientGuid);
+            logger.debug("session {}-{} is inactive, but try send syncRpcRequest.", localGuid, clientGuid);
             rpcPromise.trySuccess(RpcResponse.SESSION_CLOSED);
             return;
         }
         long deadline = netTimeManager.getSystemMillTime() + timeoutMs;
         RpcPromiseInfo rpcPromiseInfo = RpcPromiseInfo.newInstance(rpcPromise, deadline);
-        UnsentRpcRequest rpcRequest = new UnsentRpcRequest(request, rpcPromiseInfo);
+
+        long requestGuid = sessionWrapper.messageQueue.nextRpcRequestGuid();
+        RpcRequestMessage rpcRequest = new RpcRequestMessage(requestGuid, true, request);
+        // 发送之前保存信息
+        sessionWrapper.messageQueue.getRpcPromiseInfoMap().put(requestGuid, rpcPromiseInfo);
+
         sessionWrapper.writeAndFlush(rpcRequest);
     }
 
@@ -254,10 +264,10 @@ public class S2CSessionManager extends SessionManager {
     public void sendRpcResponse(long localGuid, long clientGuid, long requestGuid, boolean sync, @Nonnull RpcResponse response) {
         SessionWrapper sessionWrapper = getWritableSession(localGuid, clientGuid);
         if (null == sessionWrapper){
-            logger.warn("client {} is removed, but try send rpcResponse.",clientGuid);
+            logger.debug("session {}-{} is inactive, but try send rpcResponse.", localGuid, clientGuid);
             return;
         }
-        UnsentRpcResponse unsentRpcResponse = new UnsentRpcResponse(requestGuid, response);
+        RpcResponseMessage unsentRpcResponse = new RpcResponseMessage(requestGuid, response);
         if (sync) {
             // 远程发来的同步rpc调用，立即返回
             sessionWrapper.writeAndFlush(unsentRpcResponse);
@@ -298,7 +308,7 @@ public class S2CSessionManager extends SessionManager {
         session.setClosed();
 
         // 清理消息队列(需要先执行)
-        clear(session, sessionWrapper.messageQueue);
+        clearMessageQueue(session, sessionWrapper.messageQueue);
 
         // 通知客户端退出(这里会关闭channel)
         notifyClientExit(sessionWrapper.getChannel(), sessionWrapper);
@@ -344,7 +354,7 @@ public class S2CSessionManager extends SessionManager {
     }
 
     /**
-     * 当用户所在的EventLoop终止了
+     * 当用户所在的EventLoop终止了，不必上报连接断开事件，一定报不成功。
      */
     @Override
     public void onUserEventLoopTerminal(EventLoop userEventLoop) {
@@ -397,12 +407,12 @@ public class S2CSessionManager extends SessionManager {
         }
         // 新的token
         if (isNewerToken(sessionWrapper, clientToken)){
-            login(channel, requestParam, clientToken);
+            tryLogin(channel, requestParam, clientToken);
             return;
         }
         // 当前使用的token
         if (isUsingToken(sessionWrapper, clientToken)){
-            reconnect(channel, requestParam, clientToken);
+            tryReconnect(channel, requestParam, clientToken);
             return;
         }
         // 其它(介于使用的两个token之间的token)
@@ -413,7 +423,7 @@ public class S2CSessionManager extends SessionManager {
      * 是否是同一个channel
      */
     private boolean isSameChannel(SessionWrapper sessionWrapper, Channel channel) {
-        return null!=sessionWrapper && sessionWrapper.getChannel()==channel;
+        return null != sessionWrapper && sessionWrapper.getChannel() == channel;
     }
 
     /**
@@ -437,12 +447,12 @@ public class S2CSessionManager extends SessionManager {
             return false;
         }
         // 前一个token为null ==> 客户端一定收到了新的token
-        if (sessionWrapper.getPreToken()==null){
-            return tokenManager.isSameToken(sessionWrapper.getToken(),clientToken);
+        if (sessionWrapper.getPreToken() == null){
+            return tokenManager.isSameToken(sessionWrapper.getToken(), clientToken);
         }
         // 可能收到了，也可能没收到最新的token，但只能是两者之一
-        return tokenManager.isSameToken(sessionWrapper.getToken(),clientToken)
-                || tokenManager.isSameToken(sessionWrapper.getPreToken(),clientToken);
+        return tokenManager.isSameToken(sessionWrapper.getToken(), clientToken)
+                || tokenManager.isSameToken(sessionWrapper.getPreToken(), clientToken);
     }
 
     /**
@@ -470,7 +480,7 @@ public class S2CSessionManager extends SessionManager {
      * @param requestParam 客户端发来的请求参数
      * @param clientToken 客户端携带的token信息 更加新的token，newerToken
      */
-    private boolean login(Channel channel, ConnectRequestEventParam requestParam, @Nonnull Token clientToken) {
+    private boolean tryLogin(Channel channel, ConnectRequestEventParam requestParam, @Nonnull Token clientToken) {
         // 不是登录token
         if (!tokenManager.isLoginToken(clientToken)){
             notifyTokenCheckFailed(channel, requestParam, FailReason.NOT_LOGIN_TOKEN);
@@ -528,7 +538,7 @@ public class S2CSessionManager extends SessionManager {
      * @param requestParam 客户端发来的请求参数
      * @param clientToken 客户端携带的token信息，等于服务器使用的token (usingToken)
      */
-    private boolean reconnect(Channel channel, ConnectRequestEventParam requestParam, @Nonnull Token clientToken) {
+    private boolean tryReconnect(Channel channel, ConnectRequestEventParam requestParam, @Nonnull Token clientToken) {
         SessionWrapper sessionWrapper = getSessionWrapper(requestParam.localGuid(), requestParam.getClientGuid());
         assert null != sessionWrapper;
         // 这是一个旧请求
@@ -611,7 +621,7 @@ public class S2CSessionManager extends SessionManager {
      */
     private void notifyTokenCheckResult(Channel channel, int sndTokenTimes, boolean success, long ack, Token token){
         byte[] encryptToken = tokenManager.encryptToken(token);
-        ConnectResponseTO connectResponse=new ConnectResponseTO(sndTokenTimes,success, ack,encryptToken);
+        ConnectResponseTO connectResponse = new ConnectResponseTO(sndTokenTimes,success, ack,encryptToken);
         // 这里需要监听结果，不可以使用voidPromise
         ChannelFuture future = channel.writeAndFlush(connectResponse);
         // token验证失败情况下，发送之后，关闭channel
@@ -622,12 +632,12 @@ public class S2CSessionManager extends SessionManager {
 
     /**
      * 尝试用message更新消息队列
-     * @param eventChannel 产生事件的channel
      * @param eventParam 消息参数
      * @param then 当且仅当message是当前channel上期望的下一个消息，且ack合法时执行。
      */
-    private <T extends MessageEventParam> void tryUpdateMessageQueue(Channel eventChannel, T eventParam, Consumer<SessionWrapper> then){
+    private <T extends MessageEventParam> void tryUpdateMessageQueue(T eventParam, Consumer<SessionWrapper> then){
         SessionWrapper sessionWrapper = getSessionWrapper(eventParam.localGuid(), eventParam.remoteGuid());
+        Channel eventChannel = eventParam.channel();
         if (null == sessionWrapper){
             NetUtils.closeQuietly(eventChannel);
             return;
@@ -646,19 +656,18 @@ public class S2CSessionManager extends SessionManager {
         // 更新session超时时间
         sessionWrapper.setSessionTimeout(nextSessionTimeout());
 
-        MessageTO message=eventParam.messageTO();
         MessageQueue messageQueue=sessionWrapper.getMessageQueue();
         // 不是期望的下一个消息
-        if (message.getSequence()!=messageQueue.getAck()+1){
+        if (eventParam.getSequence() != messageQueue.getAck()+1){
             return;
         }
         // 客户端发来的ack错误
-        if (!messageQueue.isAckOK(message.getAck())){
+        if (!messageQueue.isAckOK(eventParam.getAck())){
             return;
         }
         // 更新消息队列
-        messageQueue.setAck(message.getSequence());
-        messageQueue.updateSentQueue(message.getAck());
+        messageQueue.setAck(eventParam.getSequence());
+        messageQueue.updateSentQueue(eventParam.getAck());
 
         // 然后执行自己的逻辑
         then.accept(sessionWrapper);
@@ -669,11 +678,9 @@ public class S2CSessionManager extends SessionManager {
      * @param rpcRequestEventParam rpc请求参数
      */
     void onRcvClientRpcRequest(RpcRequestEventParam rpcRequestEventParam) {
-        final Channel eventChannel = rpcRequestEventParam.channel();
-        final RpcRequestTO requestMessageTO = rpcRequestEventParam.messageTO();
-        tryUpdateMessageQueue(eventChannel, rpcRequestEventParam, sessionWrapper -> {
+        tryUpdateMessageQueue(rpcRequestEventParam, sessionWrapper -> {
             RpcRequestCommitTask requestCommitTask = new RpcRequestCommitTask(sessionWrapper.session, sessionWrapper.userInfo.protocolDispatcher,
-                    requestMessageTO.getRequestGuid(), requestMessageTO.isSync(), requestMessageTO.getRequest());
+                    rpcRequestEventParam.getRequestGuid(), rpcRequestEventParam.isSync(), rpcRequestEventParam.getRequest());
             commit(sessionWrapper.session, requestCommitTask);
         });
     }
@@ -683,12 +690,10 @@ public class S2CSessionManager extends SessionManager {
      * @param rpcResponseEventParam rpc响应
      */
     void onRcvClientRpcResponse(RpcResponseEventParam rpcResponseEventParam) {
-        final Channel eventChannel = rpcResponseEventParam.channel();
-        final RpcResponseTO rpcResponseTO = rpcResponseEventParam.messageTO();
-        tryUpdateMessageQueue(eventChannel, rpcResponseEventParam, sessionWrapper -> {
-            RpcPromiseInfo rpcPromiseInfo = sessionWrapper.messageQueue.getRpcPromiseInfoMap().remove(rpcResponseTO.getRequestGuid());
+        tryUpdateMessageQueue(rpcResponseEventParam, sessionWrapper -> {
+            RpcPromiseInfo rpcPromiseInfo = sessionWrapper.messageQueue.getRpcPromiseInfoMap().remove(rpcResponseEventParam.getRequestGuid());
             if (null != rpcPromiseInfo) {
-                commitRpcResponse(sessionWrapper.session, rpcPromiseInfo, rpcResponseTO.getRpcResponse());
+                commitRpcResponse(sessionWrapper.session, rpcPromiseInfo, rpcResponseEventParam.getRpcResponse());
             }
             // else 可能超时了
         });
@@ -698,11 +703,9 @@ public class S2CSessionManager extends SessionManager {
      * 当接收到客户端发送的单向消息时
      */
     void onRcvClientOneWayMsg(OneWayMessageEventParam oneWayMessageEventParam){
-        final Channel eventChannel = oneWayMessageEventParam.channel();
-        final Object message = oneWayMessageEventParam.messageTO().getMessage();
-
-        tryUpdateMessageQueue(eventChannel, oneWayMessageEventParam, sessionWrapper -> {
-            // 尽量少的捕获对象
+        // 减少lambda表达式捕获的对象
+        final Object message = oneWayMessageEventParam.getMessage();
+        tryUpdateMessageQueue(oneWayMessageEventParam, sessionWrapper -> {
             commit(sessionWrapper.session, new OneWayMessageCommitTask(sessionWrapper.session, sessionWrapper.userInfo.protocolDispatcher, message));
         });
     }
@@ -712,10 +715,9 @@ public class S2CSessionManager extends SessionManager {
      * @param ackPingParam 心跳包参数
      */
     void onRcvClientAckPing(AckPingPongEventParam ackPingParam){
-        final Channel eventChannel = ackPingParam.channel();
-        tryUpdateMessageQueue(eventChannel,ackPingParam,sessionWrapper -> {
+        tryUpdateMessageQueue(ackPingParam, sessionWrapper -> {
             // ack心跳包立即返回
-            sessionWrapper.writeAndFlush(new UnsentAckPingPong());
+            sessionWrapper.writeAndFlush(new AckPingPongMessage());
         });
     }
     // -------------------------------------------------- 内部封装 -------------------------------------------
@@ -865,7 +867,7 @@ public class S2CSessionManager extends SessionManager {
          * 写入数据到缓存，达到阈值时，缓冲区内容会立即发送
          * @param unsentMessage 为发送的原始消息
          */
-        void write(UnsentMessage unsentMessage) {
+        void write(NetMessage unsentMessage) {
             s2CSessionManager.write(channel, messageQueue, unsentMessage);
         }
 
@@ -879,7 +881,7 @@ public class S2CSessionManager extends SessionManager {
         /**
          * 立即发送一个消息(不进入待发送队列，直接进入已发送队列)
          */
-        void writeAndFlush(UnsentMessage unsentMessage){
+        void writeAndFlush(NetMessage unsentMessage){
             s2CSessionManager.writeAndFlush(channel, messageQueue, unsentMessage);
         }
 

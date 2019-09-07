@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.net;
 
-import javax.annotation.concurrent.Immutable;
-
 /**
  * 客户端发起连接请求的传输对象.
  *
@@ -26,7 +24,6 @@ import javax.annotation.concurrent.Immutable;
  * date - 2019/4/27 11:54
  * github - https://github.com/hl845740757
  */
-@Immutable
 @TransferObject
 public class ConnectRequestTO {
 
@@ -34,22 +31,22 @@ public class ConnectRequestTO {
      * 我的标识(我是谁)
      * （对于玩家来讲，该标识就是玩家guid）
      */
-    private final long clientGuid;
+    private long clientGuid;
     /**
      * 这是第几次发送token
      * (用于识别同一个token下的请求先后顺序)
      */
-    private final int sndTokenTimes;
+    private int sndTokenTimes;
     /**
      * 客户端已收到的最大协议号
      * (与tcp的ack有细微区别，tcp的ack表示期望的下一个包)
      */
-    private final long ack;
+    private long ack;
     /**
      * 客户端保存的token
      * (服务器发送给客户端的，客户端只保存)
      */
-    private final byte[] tokenBytes;
+    private byte[] tokenBytes;
 
     public ConnectRequestTO(long clientGuid, int sndTokenTimes, long ack, byte[] tokenBytes) {
         this.clientGuid = clientGuid;

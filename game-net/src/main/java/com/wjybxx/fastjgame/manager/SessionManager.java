@@ -27,10 +27,6 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.ListIterator;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collector;
 
 /**
  * session管理器，定义要实现的接口。
@@ -134,7 +130,7 @@ public abstract class SessionManager {
      * @param unsentMessage 待发送的消息
      * @return 是否真正的执行了发送操作
      */
-    protected final boolean write(Channel channel, MessageQueue messageQueue, UnsentMessage unsentMessage) {
+    protected final boolean write(Channel channel, MessageQueue messageQueue, NetMessage unsentMessage) {
         // 禁用了发送缓冲区
         if (netConfigManager.flushThreshold() <= 0){
             writeAndFlush(channel, messageQueue, unsentMessage);
@@ -156,61 +152,49 @@ public abstract class SessionManager {
      * @param messageQueue 消息队列
      * @param unsentMessage 待发送的消息
      */
-    protected final void writeAndFlush(Channel channel, MessageQueue messageQueue, UnsentMessage unsentMessage) {
-        channel.writeAndFlush(offerToSentQueueAndBuild(messageQueue, unsentMessage), channel.voidPromise());
+    protected final void writeAndFlush(Channel channel, MessageQueue messageQueue, NetMessage unsentMessage) {
+        alloSequenceAndUpdateAckTimeout(messageQueue, unsentMessage);
+        channel.writeAndFlush(new SingleMessageTO(messageQueue.getAck(), unsentMessage), channel.voidPromise());
     }
 
     /**
      * 清空发送缓冲区
-     * 因何想到了不用再申请空间的骚操作的？因为之前看Collectors的源码的时候看见了。。。
-     * {@link java.util.stream.Collectors#groupingBy(Function, Supplier, Collector)}。
      * @param channel 会话关联的channel
      * @param messageQueue 消息队列
      */
-    @SuppressWarnings("unchecked")
     protected final void flushAllUnsentMessage(Channel channel, MessageQueue messageQueue) {
         if (messageQueue.getUnsentQueue().size() == 1){
             writeAndFlush(channel, messageQueue, messageQueue.getUnsentQueue().pollFirst());
             return;
         }
-        // 使用通配符强制类型转换，绕过编译检查(不再申请空间)
-        LinkedList<?> messageTOS = messageQueue.exchangeUnsentMessages();
-        ListIterator<Object> iterator = (ListIterator<Object>) messageTOS.listIterator();
-        UnsentMessage unsentMessage;
-        while (iterator.hasNext()) {
-            unsentMessage = (UnsentMessage) iterator.next();
-            MessageTO messageTO = offerToSentQueueAndBuild(messageQueue, unsentMessage);
-            iterator.set(messageTO);
+        LinkedList<NetMessage> unsentMessages = messageQueue.exchangeUnsentMessages();
+        for (NetMessage unsentMessage : unsentMessages) {
+            alloSequenceAndUpdateAckTimeout(messageQueue, unsentMessage);
         }
         // 批量发送
-        channel.writeAndFlush(new BatchMessageTO((List<MessageTO>) messageTOS), channel.voidPromise());
+        channel.writeAndFlush(new BatchMessageTO(messageQueue.getAck(), unsentMessages), channel.voidPromise());
     }
 
     /**
-     * 压入已发送队列，并构建传输对象
+     * 分配sequence 和 设置ack超时时间
      * @param messageQueue 消息队列
-     * @param unsentMessage 未发送的消息
-     * @return transferObject
+     * @param message 未发送的消息
      */
-    private MessageTO offerToSentQueueAndBuild(MessageQueue messageQueue, UnsentMessage unsentMessage) {
-        // 分配sequence，sequence也是一种资源
-        SentMessage message = unsentMessage.build(messageQueue.nextSequence(), messageQueue);
+    private void alloSequenceAndUpdateAckTimeout(MessageQueue messageQueue, NetMessage message) {
+        // 分配sequence
+        message.setSequence(messageQueue.nextSequence());
         // 添加到已发送队列
         messageQueue.getSentQueue().add(message);
-        return updateAckAndBuild(messageQueue, message);
+        updateAckTimeout(message);
     }
 
     /**
-     * 更新ack，并构建传输对象
-     * @param messageQueue 消息队列
-     * @param sentMessage 准备发送的消息
-     * @return transferObject
+     * 更新ack超时时间
+     * @param netMessage 准备发送的消息
      */
-    private MessageTO updateAckAndBuild(MessageQueue messageQueue, SentMessage sentMessage) {
+    private void updateAckTimeout(NetMessage netMessage) {
         // 标记Ack超时时间
-        sentMessage.setTimeout(netTimeManager.getSystemMillTime() + netConfigManager.ackTimeout());
-        // 构建传输对象
-        return sentMessage.build(messageQueue.getAck());
+        netMessage.setTimeout(netTimeManager.getSystemMillTime() + netConfigManager.ackTimeout());
     }
 
     /**
@@ -221,15 +205,17 @@ public abstract class SessionManager {
     protected final void resend(Channel channel, MessageQueue messageQueue) {
         if (messageQueue.getSentQueue().size() == 1) {
             // 差点写成poll了，已发送的消息只有收到ack确认时才能删除。
-            SentMessage message = messageQueue.getSentQueue().peekFirst();
-            channel.writeAndFlush(updateAckAndBuild(messageQueue, message), channel.voidPromise());
+            NetMessage netMessage = messageQueue.getSentQueue().peekFirst();
+            updateAckTimeout(netMessage);
+            channel.writeAndFlush(new SingleMessageTO(messageQueue.getAck(), netMessage), channel.voidPromise());
         } else {
             // 这里是必须申请新空间的，因为的旧的List不能修改
-            List<MessageTO> messageTOS = new ArrayList<>(messageQueue.getSentQueue().size());
-            for (SentMessage message:messageQueue.getSentQueue()){
-                messageTOS.add(updateAckAndBuild(messageQueue, message));
+            List<NetMessage> netMessages = new ArrayList<>(messageQueue.getSentQueue().size());
+            for (NetMessage netMessage:messageQueue.getSentQueue()){
+                updateAckTimeout(netMessage);
+                netMessages.add(netMessage);
             }
-            channel.writeAndFlush(new BatchMessageTO(messageTOS), channel.voidPromise());
+            channel.writeAndFlush(new BatchMessageTO(messageQueue.getAck(), netMessages), channel.voidPromise());
         }
     }
     // ----------------------------------------------------------- 提交消息 --------------------------------------------------------------
@@ -278,7 +264,7 @@ public abstract class SessionManager {
      * @param session session上也有需要清理的东西
      * @param messageQueue 消息队列
      */
-    protected final void clear(Session session, MessageQueue messageQueue) {
+    protected final void clearMessageQueue(Session session, MessageQueue messageQueue) {
         // 清理消息队列
         messageQueue.detachMessageQueue();
         // 取消所有rpc调用

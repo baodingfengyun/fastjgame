@@ -18,8 +18,6 @@ package com.wjybxx.fastjgame.net;
 
 import io.netty.channel.Channel;
 
-import javax.annotation.concurrent.Immutable;
-
 /**
  * 连接响应事件参数
  * @author wjybxx
@@ -27,20 +25,19 @@ import javax.annotation.concurrent.Immutable;
  * date - 2019/5/7 13:08
  * github - https://github.com/hl845740757
  */
-@Immutable
 public class ConnectResponseEventParam implements NetEventParam{
 
     /** 发起请求的channel */
-    private final Channel channel;
+    private Channel channel;
 
     /** 该事件关联的本地角色guid */
-    private final long localGuid;
+    private long localGuid;
 
     /** 服务端guid */
-    private final long serverGuid;
+    private long serverGuid;
 
     /** 响应参数 */
-    private final ConnectResponseTO responseTO;
+    private ConnectResponseTO responseTO;
 
     public ConnectResponseEventParam(Channel channel, long localGuid, long serverGuid, ConnectResponseTO responseTO) {
         this.localGuid = localGuid;

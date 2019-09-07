@@ -16,22 +16,35 @@
 
 package com.wjybxx.fastjgame.net;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
- * 发送缓冲区中未发送的ack心跳包
+ * 已发送还未被确认的RPC结果
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/3
+ * date - 2019/7/31
  * github - https://github.com/hl845740757
  */
-public class UnsentAckPingPong implements UnsentMessage{
+@NotThreadSafe
+public class RpcResponseMessage extends NetMessage {
 
-	public UnsentAckPingPong() {
+	/** 客户端的哪一个请求 */
+	private long requestGuid;
+	/** rpc响应结果 */
+	private RpcResponse rpcResponse;
 
+	public RpcResponseMessage(long requestGuid, RpcResponse rpcResponse) {
+		super();
+		this.rpcResponse = rpcResponse;
+		this.requestGuid = requestGuid;
 	}
 
-	@Override
-	public SentAckPingPong build(long sequence, MessageQueue messageQueue) {
-		return new SentAckPingPong(sequence);
+	public long getRequestGuid() {
+		return requestGuid;
+	}
+
+	public RpcResponse getRpcResponse() {
+		return rpcResponse;
 	}
 }

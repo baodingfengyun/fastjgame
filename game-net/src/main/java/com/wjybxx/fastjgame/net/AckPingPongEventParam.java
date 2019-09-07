@@ -18,8 +18,6 @@ package com.wjybxx.fastjgame.net;
 
 import io.netty.channel.Channel;
 
-import javax.annotation.concurrent.Immutable;
-
 /**
  * ack心跳包事件参数
  * @author wjybxx
@@ -27,30 +25,9 @@ import javax.annotation.concurrent.Immutable;
  * date - 2019/4/27 11:59
  * github - https://github.com/hl845740757
  */
-@Immutable
 public class AckPingPongEventParam extends MessageEventParam {
 
-    /**
-     * 会话唯一id，对方唯一id。
-     */
-    private final long remoteGuid;
-    /**
-     * ping包
-     */
-    private final AckPingPongMessageTO pingPongMessageTO;
-
-    public AckPingPongEventParam(Channel channel, long localGuid, long remoteGuid, AckPingPongMessageTO pingPongMessageTO) {
-        super(channel, localGuid);
-        this.remoteGuid = remoteGuid;
-        this.pingPongMessageTO = pingPongMessageTO;
-    }
-
-    public AckPingPongMessageTO messageTO() {
-        return pingPongMessageTO;
-    }
-
-    @Override
-    public long remoteGuid() {
-        return remoteGuid;
+    public AckPingPongEventParam(Channel channel, long localGuid, long remoteGuid, long ack, long sequence) {
+        super(channel, localGuid, remoteGuid, ack, sequence);
     }
 }

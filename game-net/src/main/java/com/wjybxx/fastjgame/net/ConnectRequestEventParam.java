@@ -27,9 +27,9 @@ import io.netty.channel.Channel;
  */
 public class ConnectRequestEventParam implements NetEventParam{
 
-    private final Channel channel;
-    private final long localGuid;
-    private final ConnectRequestTO connectRequestTO;
+    private Channel channel;
+    private long localGuid;
+    private ConnectRequestTO connectRequestTO;
 
     public ConnectRequestEventParam(Channel channel, long localGuid, ConnectRequestTO connectRequestTO) {
         this.localGuid = localGuid;

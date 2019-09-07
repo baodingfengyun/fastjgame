@@ -27,16 +27,16 @@ import io.netty.channel.Channel;
  */
 public class HttpRequestEventParam implements NetEventParam{
 
-	private final Channel channel;
-	private final long localGuid;
+	private Channel channel;
+	private long localGuid;
 	/**
 	 * 请求的资源路径
 	 */
-	private final String path;
+	private String path;
 	/**
 	 * 请求参数
 	 */
-	private final HttpRequestParam params;
+	private HttpRequestParam params;
 
 	public HttpRequestEventParam(Channel channel, long localGuid, String path, HttpRequestParam params) {
 		this.channel = channel;

@@ -16,25 +16,22 @@
 
 package com.wjybxx.fastjgame.net;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
- * 发送缓冲区中还未发送的单向消息
+ * ack心跳包，网络底层使用的。
+ * 除了一般概念下心跳包的保活作用以外，还包括ack捎带确认。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/3
+ * date - 2019/4/27 11:51
  * github - https://github.com/hl845740757
  */
-public class UnsentOneWayMessage implements UnsentMessage{
+@NotThreadSafe
+public class AckPingPongMessage extends NetMessage {
 
-	/** 单向消息的结构体，具体怎么解析，不做限制 */
-	private Object message;
+    public AckPingPongMessage() {
+        super();
+    }
 
-	public UnsentOneWayMessage(Object message) {
-		this.message = message;
-	}
-
-	@Override
-	public SentMessage build(long sequence, MessageQueue messageQueue) {
-		return new SentOneWayMessage(sequence, message);
-	}
 }

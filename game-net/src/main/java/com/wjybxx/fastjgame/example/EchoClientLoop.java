@@ -97,7 +97,7 @@ public class EchoClientLoop extends SingleThreadEventLoop {
 		{
 			ExampleMessages.Hello hello = new ExampleMessages.Hello();
 			hello.setId(index);
-			hello.setMessage("SentOneWayMessage - " + System.currentTimeMillis());
+			hello.setMessage("OneWayMessage - " + System.currentTimeMillis());
 			session.send(hello);
 		}
 		// 发送异步rpc请求

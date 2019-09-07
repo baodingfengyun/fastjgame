@@ -42,7 +42,7 @@ public class ClientCodec extends BaseCodec {
     private final long serverGuid;
     /** 是否已建立链接 */
     private boolean connect = false;
-
+    /** 用于发布网络事件 */
     private final NetEventManager netEventManager;
 
     public ClientCodec(ProtocolCodec codec, long localGuid, long serverGuid, NetEventManager netEventManager) {
@@ -56,36 +56,41 @@ public class ClientCodec extends BaseCodec {
     @Override
     public void write(ChannelHandlerContext ctx, Object msgTO, ChannelPromise promise) throws Exception {
         if (msgTO instanceof BatchMessageTO){
-            // 批量写的时候，可以使用voidPromise，不清楚的话不要轻易如此，我们并不需要检测结果，因为我们并不依赖它的任何逻辑
+            // 批量协议包
             BatchMessageTO batchMessageTO = (BatchMessageTO) msgTO;
-            for (MessageTO messageTO:batchMessageTO.getSentMessages()){
-                writeSingleMsg(ctx, messageTO, ctx.voidPromise());
+            long ack = batchMessageTO.getAck();
+            for (NetMessage message:batchMessageTO.getNetMessages()){
+                writeSingleMsg(ctx, ack, message, ctx.voidPromise());
             }
-        } else {
-            writeSingleMsg(ctx, msgTO, promise);
-        }
-    }
-
-    /**发送单个消息 */
-    private void writeSingleMsg(ChannelHandlerContext ctx, Object msgTO, ChannelPromise promise) throws Exception {
-        // 按出现的几率判断
-        if (msgTO instanceof RpcRequestTO){
-            // 客户端发起的rpc请求
-            writeRpcRequestMessage(ctx, (RpcRequestTO) msgTO, promise);
-        } else if (msgTO instanceof OneWayMessageTO) {
-            // 单向消息，向另一个服务器发送单向消息
-            writeOneWayMessage(ctx, (OneWayMessageTO) msgTO, promise);
-        } else if (msgTO instanceof RpcResponseTO) {
-            // rpc返回结果
-            writeRpcResponseMessage(ctx, (RpcResponseTO) msgTO, promise);
-        } else if (msgTO instanceof AckPingPongMessageTO){
-            // 客户端ack-ping包
-            writeAckPingPongMessage(ctx,(AckPingPongMessageTO) msgTO, promise, NetPackageType.ACK_PING);
-        } else if (msgTO instanceof ConnectRequestTO){
+        } else if (msgTO instanceof SingleMessageTO){
+            // 单个协议包
+            SingleMessageTO singleMessageTO = (SingleMessageTO)msgTO;
+            writeSingleMsg(ctx, singleMessageTO.getAck(), singleMessageTO.getNetMessage(), promise);
+        } else if (msgTO instanceof ConnectRequestTO) {
             // 连接请求包(token验证包)
             writeConnectRequest(ctx, (ConnectRequestTO) msgTO, promise);
         } else {
             super.write(ctx, msgTO, promise);
+        }
+    }
+
+    /**发送单个消息 */
+    private void writeSingleMsg(ChannelHandlerContext ctx, long ack, NetMessage netMessage, ChannelPromise promise) throws Exception {
+        // 按出现的几率判断
+        if (netMessage instanceof RpcRequestMessage){
+            // rpc请，向另一个服务器发起rpc请求
+            writeRpcRequestMessage(ctx, ack, (RpcRequestMessage) netMessage, promise);
+        } else if (netMessage instanceof OneWayMessage) {
+            // 单向消息，向另一个服务器发送单向消息
+            writeOneWayMessage(ctx, ack, (OneWayMessage) netMessage, promise);
+        } else if (netMessage instanceof RpcResponseMessage) {
+            // rpc返回结果
+            writeRpcResponseMessage(ctx, ack, (RpcResponseMessage) netMessage, promise);
+        } else if (netMessage instanceof AckPingPongMessage){
+            // 客户端ack-ping包
+            writeAckPingPongMessage(ctx, ack, (AckPingPongMessage) netMessage, promise, NetPackageType.ACK_PING);
+        } else {
+            super.write(ctx, netMessage, promise);
         }
     }
     // endregion
@@ -135,8 +140,7 @@ public class ClientCodec extends BaseCodec {
     private void tryReadAckPongMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureConnected();
 
-        AckPingPongMessageTO ackPingPongMessage = readAckPingPongMessage(msg);
-        AckPingPongEventParam ackPongParam = new AckPingPongEventParam(ctx.channel(), localGuid, serverGuid, ackPingPongMessage);
+        AckPingPongEventParam ackPongParam = readAckPingPongMessage(ctx.channel(), localGuid, serverGuid, msg);
         netEventManager.publishEvent(NetEventType.ACK_PONG, ackPongParam);
     }
 
@@ -146,8 +150,7 @@ public class ClientCodec extends BaseCodec {
     private void tryReadRpcRequestMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureConnected();
 
-        RpcRequestTO rpcRequestTO = readRpcRequestMessage(msg);
-        RpcRequestEventParam rpcRequestEventParam = new RpcRequestEventParam(ctx.channel(), localGuid, serverGuid, rpcRequestTO);
+        RpcRequestEventParam rpcRequestEventParam = readRpcRequestMessage(ctx.channel(), localGuid, serverGuid, msg);
         netEventManager.publishEvent(NetEventType.S2C_RPC_REQUEST, rpcRequestEventParam);
     }
 
@@ -157,8 +160,7 @@ public class ClientCodec extends BaseCodec {
     private void tryReadRpcResponseMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureConnected();
 
-        RpcResponseTO rpcResponseTO = readRpcResponseMessage(msg);
-        RpcResponseEventParam rpcResponseEventParam = new RpcResponseEventParam(ctx.channel(), localGuid, serverGuid, rpcResponseTO);
+        RpcResponseEventParam rpcResponseEventParam = readRpcResponseMessage(ctx.channel(), localGuid, serverGuid, msg);
         netEventManager.publishEvent(NetEventType.C2S_RPC_RESPONSE, rpcResponseEventParam);
     }
 
@@ -168,8 +170,7 @@ public class ClientCodec extends BaseCodec {
     private void tryReadOneWayMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureConnected();
 
-        OneWayMessageTO oneWayMessageTO = readOneWayMessage(msg);
-        OneWayMessageEventParam oneWayMessageEventParam = new OneWayMessageEventParam(ctx.channel(), localGuid, serverGuid, oneWayMessageTO);
+        OneWayMessageEventParam oneWayMessageEventParam = readOneWayMessage(ctx.channel(), localGuid, serverGuid, msg);
         netEventManager.publishEvent(NetEventType.S2C_ONE_WAY_MESSAGE, oneWayMessageEventParam);
     }
     // endregion

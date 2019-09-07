@@ -194,8 +194,7 @@ public class C2SSessionManager extends SessionManager {
             return;
         }
         // 添加到待发送队列
-        UnsentOneWayMessage unsentOneWayMessage = new UnsentOneWayMessage(message);
-        sessionWrapper.state.write(unsentOneWayMessage);
+        sessionWrapper.state.write(new OneWayMessage(message));
     }
 
     /**
@@ -220,7 +219,11 @@ public class C2SSessionManager extends SessionManager {
 
         long deadline = netTimeManager.getSystemMillTime() + timeoutMs;
         RpcPromiseInfo rpcPromiseInfo = RpcPromiseInfo.newInstance(rpcCallback, deadline);
-        UnsentRpcRequest rpcRequest = new UnsentRpcRequest(request, rpcPromiseInfo);
+
+        long requestGuid = sessionWrapper.messageQueue.nextRpcRequestGuid();
+        RpcRequestMessage rpcRequest = new RpcRequestMessage(requestGuid, false, request);
+        // 发送前保存信息
+        sessionWrapper.messageQueue.getRpcPromiseInfoMap().put(requestGuid, rpcPromiseInfo);
 
         // 添加到缓存队列，稍后发送
         sessionWrapper.state.write(rpcRequest);
@@ -245,7 +248,12 @@ public class C2SSessionManager extends SessionManager {
 
         long deadline = netTimeManager.getSystemMillTime() + timeoutMs;
         RpcPromiseInfo rpcPromiseInfo = RpcPromiseInfo.newInstance(rpcPromise, deadline);
-        UnsentRpcRequest rpcRequest = new UnsentRpcRequest(request, rpcPromiseInfo);
+
+        long requestGuid = sessionWrapper.messageQueue.nextRpcRequestGuid();
+        RpcRequestMessage rpcRequest = new RpcRequestMessage(requestGuid, true, request);
+        // 发送之前保存信息
+        sessionWrapper.messageQueue.getRpcPromiseInfoMap().put(requestGuid, rpcPromiseInfo);
+
         // 同步调用，尝试立即发送
         sessionWrapper.state.writeAndFlush(rpcRequest);
     }
@@ -264,8 +272,9 @@ public class C2SSessionManager extends SessionManager {
             logger.debug("session {}-{} is inactive, but try send rpcResponse.", localGuid, serverGuid);
             return;
         }
-        UnsentRpcResponse unsentRpcResponse = new UnsentRpcResponse(requestGuid, response);
+        RpcResponseMessage unsentRpcResponse = new RpcResponseMessage(requestGuid, response);
         if (sync) {
+            // 同步调用的结果，立即返回
             sessionWrapper.state.writeAndFlush(unsentRpcResponse);
         } else {
             // 添加到待发送队列
@@ -308,7 +317,7 @@ public class C2SSessionManager extends SessionManager {
         }
 
         // 清理消息队列
-        clear(session, sessionWrapper.messageQueue);
+        clearMessageQueue(session, sessionWrapper.messageQueue);
 
         // 验证成功过才执行断开回调操作(调用过onSessionConnected方法)
         if (postEvent && sessionWrapper.getVerifiedSequencer().get() > 0){
@@ -350,7 +359,7 @@ public class C2SSessionManager extends SessionManager {
     }
 
     /**
-     * 当用户所在的EventLoop关闭，不比上报连接断开事件，一定报不成功。
+     * 当用户所在的EventLoop关闭，不必上报连接断开事件，一定报不成功。
      */
     @Override
     public void onUserEventLoopTerminal(EventLoop userEventLoop) {
@@ -365,8 +374,9 @@ public class C2SSessionManager extends SessionManager {
      * 如果产生事件的channel可用的话，接下来干什么呢？
      * @param then 接下来执行的逻辑
      */
-    private <T extends NetEventParam> void ifEventChannelOK(Channel eventChannel, T eventParam, Consumer<C2SSessionState> then){
+    private <T extends NetEventParam> void ifEventChannelOK(T eventParam, Consumer<C2SSessionState> then){
         SessionWrapper sessionWrapper = getSessionWrapper(eventParam.localGuid(), eventParam.remoteGuid());
+        Channel eventChannel = eventParam.channel();
         // 非法的channel
         if (sessionWrapper == null){
             NetUtils.closeQuietly(eventChannel);
@@ -386,16 +396,15 @@ public class C2SSessionManager extends SessionManager {
      * @param responseParam 连接响应结果
      */
     void onRcvConnectResponse(ConnectResponseEventParam responseParam){
-        final Channel eventChannel = responseParam.channel();
-        ifEventChannelOK(eventChannel,responseParam, sessionState -> {
+        ifEventChannelOK(responseParam, sessionState -> {
             // 无论什么状态，只要当前channel收到token验证失败，都关闭session(移除会话)，它意味着服务器通知关闭。
             if (!responseParam.isSuccess()){
-                NetUtils.closeQuietly(eventChannel);
+                NetUtils.closeQuietly(responseParam.channel());
                 removeSession(responseParam.localGuid(), responseParam.getServerGuid(),"token check failed.");
                 return;
             }
             // token验证成功
-            sessionState.onTokenCheckSuccess(eventChannel, responseParam);
+            sessionState.onTokenCheckSuccess(responseParam.channel(), responseParam);
         });
     }
 
@@ -404,9 +413,8 @@ public class C2SSessionManager extends SessionManager {
      * @param rpcRequestEventParam rpc请求
      */
     void onRcvServerRpcRequest(RpcRequestEventParam rpcRequestEventParam) {
-        final Channel eventChannel = rpcRequestEventParam.channel();
-        ifEventChannelOK(eventChannel, rpcRequestEventParam, c2SSessionState -> {
-            c2SSessionState.onRcvServerRpcRequest(eventChannel, rpcRequestEventParam);
+        ifEventChannelOK(rpcRequestEventParam, c2SSessionState -> {
+            c2SSessionState.onRcvServerRpcRequest(rpcRequestEventParam.channel(), rpcRequestEventParam);
         });
     }
 
@@ -415,9 +423,8 @@ public class C2SSessionManager extends SessionManager {
      * @param rpcResponseEventParam rpc调用结果
      */
     void onRcvServerRpcResponse(RpcResponseEventParam rpcResponseEventParam) {
-        final Channel eventChannel = rpcResponseEventParam.channel();
-        ifEventChannelOK(eventChannel, rpcResponseEventParam, c2SSessionState -> {
-            c2SSessionState.onRcvServerRpcResponse(eventChannel, rpcResponseEventParam);
+        ifEventChannelOK(rpcResponseEventParam, c2SSessionState -> {
+            c2SSessionState.onRcvServerRpcResponse(rpcResponseEventParam.channel(), rpcResponseEventParam);
         });
     }
 
@@ -426,9 +433,8 @@ public class C2SSessionManager extends SessionManager {
      * @param ackPongParam 服务器返回的pong包
      */
     void onRevServerAckPong(AckPingPongEventParam ackPongParam){
-        final Channel eventChannel = ackPongParam.channel();
-        ifEventChannelOK(eventChannel,ackPongParam, c2SSessionState -> {
-            c2SSessionState.onRcvServerAckPong(eventChannel, ackPongParam);
+        ifEventChannelOK(ackPongParam, c2SSessionState -> {
+            c2SSessionState.onRcvServerAckPong(ackPongParam.channel(), ackPongParam);
         });
     }
 
@@ -437,9 +443,8 @@ public class C2SSessionManager extends SessionManager {
      * @param oneWayMessageEventParam 服务器发来的业务逻辑包
      */
     void onRevServerOneWayMsg(OneWayMessageEventParam oneWayMessageEventParam){
-        final Channel eventChannel = oneWayMessageEventParam.channel();
-        ifEventChannelOK(eventChannel,oneWayMessageEventParam, c2SSessionState -> {
-            c2SSessionState.onRcvServerMessage(eventChannel, oneWayMessageEventParam);
+        ifEventChannelOK(oneWayMessageEventParam, c2SSessionState -> {
+            c2SSessionState.onRcvServerMessage(oneWayMessageEventParam.channel(), oneWayMessageEventParam);
         });
     }
     // endregion
@@ -566,7 +571,7 @@ public class C2SSessionManager extends SessionManager {
          * 添加到待发送队列，默认实现仅仅是放入缓冲区
          * @param unsentMessage 未发送的消息
          */
-        protected void write(UnsentMessage unsentMessage) {
+        protected void write(NetMessage unsentMessage) {
             getMessageQueue().getUnsentQueue().add(unsentMessage);
         }
 
@@ -574,7 +579,7 @@ public class C2SSessionManager extends SessionManager {
          * 尝试立即发送一条消息，默认实现仅仅是放入缓冲区。
          * @param unsentMessage 未发送的消息
          */
-        protected void writeAndFlush(UnsentMessage unsentMessage) {
+        protected void writeAndFlush(NetMessage unsentMessage) {
             getMessageQueue().getUnsentQueue().add(unsentMessage);
         }
 
@@ -845,7 +850,7 @@ public class C2SSessionManager extends SessionManager {
 
             // 是否需要发送ack-ping包，ping包服务器收到一定是会返回的，而普通消息则不一定。
             if (isNeedSendAckPing()){
-                messageQueue.getUnsentQueue().add(new UnsentAckPingPong());
+                messageQueue.getUnsentQueue().add(new AckPingPongMessage());
                 hasPingMessage=true;
                 logger.info("send ack ping");
             }
@@ -894,21 +899,19 @@ public class C2SSessionManager extends SessionManager {
         @Override
         protected void onRcvServerRpcRequest(Channel eventChannel, RpcRequestEventParam rpcRequestEventParam) {
             // 大量的lambda表达式可能影响性能，目前先不优化，先注意可维护性。
-            final RpcRequestTO requestTO = rpcRequestEventParam.messageTO();
-            ifSequenceAndAckOk(requestTO, ()-> {
+            ifSequenceAndAckOk(rpcRequestEventParam, ()-> {
                 RpcRequestCommitTask requestCommitTask = new RpcRequestCommitTask(session, sessionWrapper.protocolDispatcher,
-                        requestTO.getRequestGuid(), requestTO.isSync(), requestTO.getRequest());
+                        rpcRequestEventParam.getRequestGuid(), rpcRequestEventParam.isSync(), rpcRequestEventParam.getRequest());
                 commit(session, requestCommitTask);
             });
         }
 
         @Override
         public void onRcvServerRpcResponse(Channel eventChannel, RpcResponseEventParam responseEventParam) {
-            final RpcResponseTO responseTO = responseEventParam.messageTO();
-            ifSequenceAndAckOk(responseTO, () -> {
-                RpcPromiseInfo rpcPromiseInfo = sessionWrapper.messageQueue.getRpcPromiseInfoMap().remove(responseTO.getRequestGuid());
+            ifSequenceAndAckOk(responseEventParam, () -> {
+                RpcPromiseInfo rpcPromiseInfo = sessionWrapper.messageQueue.getRpcPromiseInfoMap().remove(responseEventParam.getRequestGuid());
                 if (null != rpcPromiseInfo) {
-                    commitRpcResponse(sessionWrapper.session, rpcPromiseInfo, responseTO.getRpcResponse());
+                    commitRpcResponse(sessionWrapper.session, rpcPromiseInfo, responseEventParam.getRpcResponse());
                 }
                 // else 可能超时了
             });
@@ -916,9 +919,9 @@ public class C2SSessionManager extends SessionManager {
 
         @Override
         protected void onRcvServerMessage(Channel eventChannel, OneWayMessageEventParam oneWayMessageEventParam) {
-            final OneWayMessageTO oneWayMessageTO = oneWayMessageEventParam.messageTO();
-            final Object message = oneWayMessageTO.getMessage();
-            ifSequenceAndAckOk(oneWayMessageTO, () -> {
+            // 减少lambda表达式捕获的对象
+            final Object message = oneWayMessageEventParam.getMessage();
+            ifSequenceAndAckOk(oneWayMessageEventParam, () -> {
                 commit(session, new OneWayMessageCommitTask(session, sessionWrapper.protocolDispatcher, message));
             });
         }
@@ -926,34 +929,34 @@ public class C2SSessionManager extends SessionManager {
         @Override
         protected void onRcvServerAckPong(Channel eventChannel, AckPingPongEventParam ackPongParam) {
             hasPingMessage = false;
-            ifSequenceAndAckOk(ackPongParam.messageTO(), ConcurrentUtils.NO_OP_TASK);
+            ifSequenceAndAckOk(ackPongParam, ConcurrentUtils.NO_OP_TASK);
             logger.info("rcv ack pong");
         }
 
         /**
          * 如果消息的ack和sequence正常的话，接下来做什么呢？
          * 当服务器发来的消息是期望的下一个消息，且ack正确时执行指定逻辑。
-         * @param messageTO 服务器发来的消息(pong包或业务逻辑包)
+         * @param eventParam 服务器发来的消息(pong包或业务逻辑包)
          */
-        final void ifSequenceAndAckOk(MessageTO messageTO, Runnable then){
+        final void ifSequenceAndAckOk(MessageEventParam eventParam, Runnable then){
             MessageQueue messageQueue = getMessageQueue();
             // 不是期望的下一个消息,请求重传
-            if (messageTO.getSequence() != messageQueue.getAck()+1){
-                reconnect("serverSequence != ack()+1, serverSequence=" + messageTO.getSequence() + ", ack="+messageQueue.getAck());
+            if (eventParam.getSequence() != messageQueue.getAck()+1){
+                reconnect("serverSequence != ack()+1, serverSequence=" + eventParam.getSequence() + ", ack="+messageQueue.getAck());
                 return;
             }
             // 服务器ack不对，尝试矫正
-            if (!messageQueue.isAckOK(messageTO.getAck())){
-                reconnect("server ack error,ackInfo="+messageQueue.generateAckErrorInfo(messageTO.getAck()));
+            if (!messageQueue.isAckOK(eventParam.getAck())){
+                reconnect("server ack error,ackInfo="+messageQueue.generateAckErrorInfo(eventParam.getAck()));
                 return;
             }
-            messageQueue.setAck(messageTO.getSequence());
-            messageQueue.updateSentQueue(messageTO.getAck());
+            messageQueue.setAck(eventParam.getSequence());
+            messageQueue.updateSentQueue(eventParam.getAck());
             then.run();
         }
 
         @Override
-        protected void write(UnsentMessage unsentMessage) {
+        protected void write(NetMessage unsentMessage) {
             boolean flushed = C2SSessionManager.this.write(channel, getMessageQueue(), unsentMessage);
             if (flushed) {
                 // 清空了缓冲区，记录发送时间
@@ -962,7 +965,7 @@ public class C2SSessionManager extends SessionManager {
         }
 
         @Override
-        protected void writeAndFlush(UnsentMessage unsentMessage) {
+        protected void writeAndFlush(NetMessage unsentMessage) {
             C2SSessionManager.this.writeAndFlush(channel, getMessageQueue(), unsentMessage);
             // 立即发送需要更新发送时间戳
             lastSendMessageTime = netTimeManager.getSystemSecTime();

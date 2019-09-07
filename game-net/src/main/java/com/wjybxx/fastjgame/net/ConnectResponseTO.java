@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.net;
 
-import javax.annotation.concurrent.Immutable;
-
 /**
  * 服务器连接请求的响应的传输对象
  * @author wjybxx
@@ -26,24 +24,23 @@ import javax.annotation.concurrent.Immutable;
  * github - https://github.com/hl845740757
  */
 @TransferObject
-@Immutable
 public class ConnectResponseTO {
     /**
      * 这是客户端第几次token验证的结果
      */
-    private final int sndTokenTimes;
+    private int sndTokenTimes;
     /**
      * token验证是否成功
      */
-    private final boolean success;
+    private boolean success;
     /**
      * 服务器确认收到的最大消息号，ack
      */
-    private final long ack;
+    private long ack;
     /**
      * 被加密的token，客户端仅仅是负责保存token
      */
-    private final byte[] encryptedToken;
+    private byte[] encryptedToken;
 
     public ConnectResponseTO(int sndTokenTimes, boolean success, long ack, byte[] encryptedToken) {
         this.sndTokenTimes = sndTokenTimes;

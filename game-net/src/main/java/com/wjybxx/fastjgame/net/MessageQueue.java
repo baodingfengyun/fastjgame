@@ -59,14 +59,14 @@ public final class MessageQueue {
     /**
      * 已发送待确认的消息队列，只要发送过就不会再放入{@link #unsentQueue}
      * Q: 为什么不使用arrayList?
-     * A: 1.存在大量的删除操作 2.太占用内存。 3.遍历很少
+     * A: 1.存在大量的删除操作 2.ArrayList存在空间浪费。3.遍历很少
      */
-    private LinkedList<SentMessage> sentQueue = new LinkedList<>();
+    private LinkedList<NetMessage> sentQueue = new LinkedList<>();
 
     /**
      * 未发送的消息队列,还没有尝试过发送的消息
      */
-    private LinkedList<UnsentMessage> unsentQueue = new LinkedList<>();
+    private LinkedList<NetMessage> unsentQueue = new LinkedList<>();
 
     // ---------------------------------------------- 已发送的rpc信息 -----------------------------------
     /**
@@ -152,11 +152,11 @@ public final class MessageQueue {
         this.ack = ack;
     }
 
-    public LinkedList<SentMessage> getSentQueue() {
+    public LinkedList<NetMessage> getSentQueue() {
         return sentQueue;
     }
 
-    public LinkedList<UnsentMessage> getUnsentQueue() {
+    public LinkedList<NetMessage> getUnsentQueue() {
         return unsentQueue;
     }
 
@@ -169,8 +169,8 @@ public final class MessageQueue {
     }
 
     /** 交换未发送的缓冲区 */
-    public LinkedList<UnsentMessage> exchangeUnsentMessages() {
-        LinkedList<UnsentMessage> result = unsentQueue;
+    public LinkedList<NetMessage> exchangeUnsentMessages() {
+        LinkedList<NetMessage> result = unsentQueue;
         unsentQueue = new LinkedList<>();
         return result;
     }

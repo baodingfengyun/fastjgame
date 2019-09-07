@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.net;
 
-import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -38,18 +37,9 @@ public class DirectSender extends AbstractSender {
 	}
 
 	@Override
-	protected void doSendMessage(@Nonnull OneWayMessageTask oneWayMessageTask) {
-		netEventLoop().execute(oneWayMessageTask);
-	}
-
-	@Override
-	protected void doSendAsyncRpcRequest(RpcRequestTask rpcRequestTask) {
-		netEventLoop().execute(rpcRequestTask);
-	}
-
-	@Override
-	protected void doSendAsyncRpcResponse(RpcResponseTask rpcResponseTask) {
-		netEventLoop().execute(rpcResponseTask);
+	protected void addSenderTask(SenderTask task) {
+		// 直接提交到网络层 - 既有时序保证，又是线程安全的
+		netEventLoop().execute(task);
 	}
 
 	@Override

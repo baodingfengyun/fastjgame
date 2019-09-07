@@ -44,7 +44,7 @@ import java.util.LinkedList;
  * github - https://github.com/hl845740757
  */
 @ThreadSafe
-public class UnsharableSender extends AbstractBufferedSender{
+public class UnsharableSender extends AbstractSender{
 
 	/** 用户缓存的消息 */
 	private LinkedList<SenderTask> buffer = new LinkedList<>();
@@ -54,7 +54,7 @@ public class UnsharableSender extends AbstractBufferedSender{
 	}
 
 	@Override
-	protected void offerSenderTask(SenderTask task) {
+	protected void addSenderTask(SenderTask task) {
 		if (userEventLoop().inEventLoop()) {
 			buffer.add(task);
 			// 检查是否需要清空缓冲区
