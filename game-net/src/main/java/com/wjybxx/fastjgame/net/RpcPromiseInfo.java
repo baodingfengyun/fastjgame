@@ -33,24 +33,19 @@ public class RpcPromiseInfo {
 	/**
 	 * promise，如果promise不为null，则表示同步rpc调用，否则表示异步rpc调用
 	 */
-	public final Promise<RpcResponse> rpcPromise;
+	public Promise<RpcResponse> rpcPromise;
 	/**
 	 * 回调，如果回调存在的话，表示是一个异步rpc调用。
 	 */
-	public final RpcCallback rpcCallback;
+	public RpcCallback rpcCallback;
 
 	/** rpc超时时间 */
-	public final long timeoutMs;
+	public long timeoutMs;
 
 	private RpcPromiseInfo(Promise<RpcResponse> rpcPromise, RpcCallback rpcCallback, long timeoutMs) {
 		this.rpcPromise = rpcPromise;
 		this.rpcCallback = rpcCallback;
 		this.timeoutMs = timeoutMs;
-	}
-
-	/** 是否是同步rpc调用 */
-	public boolean isSync() {
-		return null != rpcPromise;
 	}
 
 	public static RpcPromiseInfo newInstance(@Nonnull Promise<RpcResponse> rpcPromise, long timeoutMs) {

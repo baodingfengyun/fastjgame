@@ -77,7 +77,7 @@ public class HttpClientManager {
      * 异步get请求
      * @param url url
      * @param params get参数
-     * @param eventLoop 调用方world的eventLoop，以实现线程安全
+     * @param eventLoop 用户线程，可以实现线程安全
      * @param okHttpCallback 回调
      */
     public void asyncGet(String url, Map<String,String> params, EventLoop eventLoop, OkHttpCallback okHttpCallback){
@@ -97,7 +97,7 @@ public class HttpClientManager {
      * 异步post请求
      * @param url url
      * @param params post参数
-     * @param eventLoop 调用方world的eventLoop，以实现线程安全
+     * @param eventLoop 用户线程，可以实现线程安全
      * @param okHttpCallback 回调
      */
     public void asyncPost(String url, Map<String,String> params, EventLoop eventLoop, OkHttpCallback okHttpCallback){

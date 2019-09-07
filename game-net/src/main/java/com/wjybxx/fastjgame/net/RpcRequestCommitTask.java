@@ -24,15 +24,15 @@ package com.wjybxx.fastjgame.net;
  */
 public class RpcRequestCommitTask implements CommitTask {
 
-	private final Session session;
+	private Session session;
 	/** 消息分发器 */
-	private final ProtocolDispatcher protocolDispatcher;
+	private ProtocolDispatcher protocolDispatcher;
 	/** rpc请求编号，用于返回消息 */
-	public final long requestGuid;
+	public long requestGuid;
 	/** 是否rpc同步调用，是否加急 */
-	public final boolean sync;
+	public boolean sync;
 	/** Rpc请求内容 */
-	private final Object request;
+	private Object request;
 
 	public RpcRequestCommitTask(Session session, ProtocolDispatcher protocolDispatcher, long requestGuid, boolean sync, Object request) {
 		this.session = session;

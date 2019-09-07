@@ -26,6 +26,7 @@ import io.netty.channel.Channel;
  * date - 2019/7/31
  * github - https://github.com/hl845740757
  */
+@TransferObject
 public class OneWayMessageEventParam extends MessageEventParam{
 
 	/** 消息内容 */

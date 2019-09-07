@@ -155,10 +155,12 @@ public class HttpSessionManager {
 		final HttpSessionImp httpSession = sessionWrapper.session;
 		final String path = requestEventParam.getPath();
 		final HttpRequestParam param = requestEventParam.getParams();
+		// 避免捕获userInfo，导致内存泄漏
+		final HttpRequestDispatcher httpRequestDispatcher = userInfo.httpRequestDispatcher;
 
 		// 处理请求，提交到用户所在的线程，实现线程安全
 		ConcurrentUtils.tryCommit(userInfo.netContext.localEventLoop(), () -> {
-			userInfo.httpRequestDispatcher.post(httpSession, path, param);
+			httpRequestDispatcher.post(httpSession, path, param);
 		});
 	}
 

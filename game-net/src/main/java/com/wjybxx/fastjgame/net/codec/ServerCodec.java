@@ -86,22 +86,22 @@ public class ServerCodec extends BaseCodec {
     }
 
     /** 发送单个消息 */
-    private void writeSingleMsg(ChannelHandlerContext ctx, long ack, NetMessage msgTO, ChannelPromise promise) throws Exception {
+    private void writeSingleMsg(ChannelHandlerContext ctx, long ack, NetMessage netMessage, ChannelPromise promise) throws Exception {
         // 按出现的几率判断
-        if (msgTO instanceof OneWayMessage) {
+        if (netMessage instanceof OneWayMessage) {
             // 单向消息
-            writeOneWayMessage(ctx, ack, (OneWayMessage) msgTO, promise);
-        } else if (msgTO instanceof RpcResponseMessage){
+            writeOneWayMessage(ctx, ack, (OneWayMessage) netMessage, promise);
+        } else if (netMessage instanceof RpcResponseMessage){
             // RPC响应
-            writeRpcResponseMessage(ctx, ack, (RpcResponseMessage) msgTO, promise);
-        }else if (msgTO instanceof RpcRequestMessage) {
+            writeRpcResponseMessage(ctx, ack, (RpcResponseMessage) netMessage, promise);
+        }else if (netMessage instanceof RpcRequestMessage) {
             // 向另一个服务器发起rpc请求
-            writeRpcRequestMessage(ctx, ack, (RpcRequestMessage) msgTO, promise);
-        } else if (msgTO instanceof AckPingPongMessage){
+            writeRpcRequestMessage(ctx, ack, (RpcRequestMessage) netMessage, promise);
+        } else if (netMessage instanceof AckPingPongMessage){
             // 服务器ack心跳返回消息
-            writeAckPingPongMessage(ctx, ack, (AckPingPongMessage) msgTO, promise, NetPackageType.ACK_PONG);
+            writeAckPingPongMessage(ctx, ack, (AckPingPongMessage) netMessage, promise, NetPackageType.ACK_PONG);
         } else {
-            super.write(ctx, msgTO, promise);
+            super.write(ctx, netMessage, promise);
         }
     }
 

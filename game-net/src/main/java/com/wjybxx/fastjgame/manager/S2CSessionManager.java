@@ -21,10 +21,7 @@ import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.misc.*;
 import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.timer.FixedDelayHandle;
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-import com.wjybxx.fastjgame.utils.FastCollectionsUtils;
-import com.wjybxx.fastjgame.utils.NetUtils;
-import com.wjybxx.fastjgame.utils.TimeUtils;
+import com.wjybxx.fastjgame.utils.*;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -347,7 +344,7 @@ public class S2CSessionManager extends SessionManager {
      */
     private void removeUserSession(UserInfo userInfo, String reason, boolean postEvent) {
         FastCollectionsUtils.removeIfAndThen(userInfo.sessionWrapperMap,
-                (k, sessionWrapper) -> true,
+                FunctionUtils::TRUE,
                 (k, sessionWrapper) -> afterRemoved(sessionWrapper, reason, postEvent));
         // 绑定的端口需要释放
         NetUtils.closeQuietly(userInfo.bindResult.getChannel());
@@ -521,9 +518,11 @@ public class S2CSessionManager extends SessionManager {
         notifyTokenCheckSuccess(channel, requestParam, MessageQueue.INIT_ACK,nextToken);
         logger.info("client login success, sessionInfo={}", session);
 
+        // 避免捕获userInfo，导致内存泄漏
+        final SessionLifecycleAware lifecycleAware = userInfo.lifecycleAware;
         // 连接建立回调(通知)
         ConcurrentUtils.tryCommit(userInfo.netContext.localEventLoop(), () -> {
-            userInfo.lifecycleAware.onSessionConnected(session);
+            lifecycleAware.onSessionConnected(session);
         });
         return true;
     }

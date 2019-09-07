@@ -270,7 +270,7 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
             return Unpooled.wrappedBuffer(head, body);
         }catch (Exception e){
             // 为了不影响该连接上的其它消息，需要捕获异常
-            logger.warn("deserialize message {} caught exception.", bodyData.getClass().getName(), e);
+            logger.warn("deserialize body {} caught exception.", bodyData.getClass().getName(), e);
             return head;
         }
     }

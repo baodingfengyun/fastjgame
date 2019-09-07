@@ -24,11 +24,11 @@ package com.wjybxx.fastjgame.net;
  */
 public class OneWayMessageCommitTask implements CommitTask {
 
-	private final Session session;
+	private Session session;
 	/** 消息分发器 */
-	private final ProtocolDispatcher protocolDispatcher;
+	private ProtocolDispatcher protocolDispatcher;
 	/** 单向消息的内容 */
-	private final Object message;
+	private Object message;
 
 	public OneWayMessageCommitTask(Session session, ProtocolDispatcher protocolDispatcher, Object message) {
 		this.session = session;

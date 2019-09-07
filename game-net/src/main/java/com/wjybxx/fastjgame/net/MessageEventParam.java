@@ -20,12 +20,14 @@ import io.netty.channel.Channel;
 
 /**
  * 消息事件参数。
+ * 它对于{@link NetMessage}，对方发送一个{@link NetMessage}，则产生一个{@link MessageEventParam}事件。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/9 9:09
  * github - https://github.com/hl845740757
  */
+@TransferObject
 public abstract class MessageEventParam implements NetEventParam{
 
     /** 该事件对应的channel */

@@ -26,6 +26,7 @@ import io.netty.channel.Channel;
  * date - 2019/7/30
  * github - https://github.com/hl845740757
  */
+@TransferObject
 public class RpcRequestEventParam extends MessageEventParam{
 
 	/** rpc请求编号，用于返回消息 */

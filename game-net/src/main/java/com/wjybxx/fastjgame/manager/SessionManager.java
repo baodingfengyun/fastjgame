@@ -233,7 +233,12 @@ public abstract class SessionManager {
     }
 
     /**
-     * 提交一个rpc响应结果
+     * 提交一个rpc响应结果。
+     * rpc调用必须返回一个结果，但是会话关闭的情况下，不能提交真实结果。
+     * why？
+     * 因为在会话关闭的情况下，单向消息、rpc请求全部被丢弃了，如果提交真实的rpc响应，会导致应用层收到消息的顺序和发送方不一样！！！
+     * session关闭的状态下，要么都提交，要么都不提交，不能选择性的提交。
+     *
      * @param session 会话信息
      * @param rpcPromiseInfo rpc请求的一些信息
      * @param rpcResponse rpc结果
@@ -241,12 +246,12 @@ public abstract class SessionManager {
     protected final void commitRpcResponse(Session session, RpcPromiseInfo rpcPromiseInfo, RpcResponse rpcResponse) {
         if (rpcPromiseInfo.rpcPromise != null) {
             // 同步rpc调用
-            rpcPromiseInfo.rpcPromise.trySuccess(rpcResponse);
+            if (session.isActive()) {
+                rpcPromiseInfo.rpcPromise.trySuccess(rpcResponse);
+            } else {
+                rpcPromiseInfo.rpcPromise.trySuccess(RpcResponse.SESSION_CLOSED);
+            }
         } else {
-            // 回调必须要提交，但是会话关闭的情况下，不能提交真实结果 ---- 消息能丢，回调不能丢
-            // why？
-            // 因为在会话关闭的情况下，单向消息、rpc请求全部被丢弃了，如果提交真实的rpc响应，会导致应用层收到消息的顺序和发送方不一样！！！
-            // session关闭的状态下，要么都提交，要么都不提交，不能选择性的提交。
             RpcResponseCommitTask rpcResponseCommitTask;
             if (session.isActive()) {
                 rpcResponseCommitTask = new RpcResponseCommitTask(rpcResponse, rpcPromiseInfo.rpcCallback);

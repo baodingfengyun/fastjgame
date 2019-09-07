@@ -23,13 +23,12 @@ import java.lang.annotation.Target;
 
 /**
  * 传输对象，用于将逻辑线程的数据传输到IO线程 或 将IO线程的数据传输到逻辑线程。
- * 收发消息必须使用{@link TransferObject}。
- * 用该注解注解的类的实现都应该是不可变的，以保证线程安全。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/4/27 9:23
  */
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.TYPE)
 public @interface TransferObject {
 

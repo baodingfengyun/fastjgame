@@ -26,6 +26,7 @@ import com.wjybxx.fastjgame.net.initializer.ChannelInitializerFactory;
 import com.wjybxx.fastjgame.net.initializer.ChannelInitializerSupplier;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.FastCollectionsUtils;
+import com.wjybxx.fastjgame.utils.FunctionUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -55,7 +56,7 @@ import java.util.function.Consumer;
  * {@link C2SSessionState#closeChannel()}
  * {@link ConnectedState#reconnect(String)}
  *
- * 该管理器不是线程安全的！只能由所属的{@link NetEventLoop}调用。
+ * 该管理器不是线程安全的，每个{@link NetEventLoop}一个。
  *
  * @author wjybxx
  * @version 1.0
@@ -166,7 +167,7 @@ public class C2SSessionManager extends SessionManager {
         if (null == sessionWrapper){
             return null;
         }
-        // 会话已被关闭
+        // 会话已被关闭（session关闭的状态下，既不发送，也不提交）
         if (!sessionWrapper.session.isActive()) {
             return null;
         }
@@ -354,7 +355,7 @@ public class C2SSessionManager extends SessionManager {
      */
     private void removeUserSession(UserInfo userInfo, String reason, final boolean postEvent) {
         FastCollectionsUtils.removeIfAndThen(userInfo.sessionWrapperMap,
-                (k, sessionWrapper) -> true,
+                FunctionUtils::TRUE,
                 (k, sessionWrapper) -> afterRemoved(sessionWrapper, reason, postEvent));
     }
 
@@ -813,10 +814,11 @@ public class C2SSessionManager extends SessionManager {
                 session.tryActive();
                 logger.info("first verified success, sessionInfo={}", session);
 
-                NetContext netContext = sessionWrapper.userInfo.netContext;
+                // 避免捕获SessionWrapper，导致内存泄漏
+                final SessionLifecycleAware lifecycleAware = sessionWrapper.getLifecycleAware();
                 // 提交到用户线程
-                ConcurrentUtils.tryCommit(netContext.localEventLoop(), ()-> {
-                    sessionWrapper.getLifecycleAware().onSessionConnected(session);
+                ConcurrentUtils.tryCommit(sessionWrapper.userInfo.netContext.localEventLoop(), ()-> {
+                    lifecycleAware.onSessionConnected(session);
                 });
             } else {
                 logger.info("reconnect verified success, verifiedTimes={},sessionInfo={}", verifiedTimes, session);

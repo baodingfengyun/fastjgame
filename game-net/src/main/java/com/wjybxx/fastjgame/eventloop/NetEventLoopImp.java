@@ -26,6 +26,7 @@ import com.wjybxx.fastjgame.module.NetEventLoopModule;
 import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.FastCollectionsUtils;
+import com.wjybxx.fastjgame.utils.FunctionUtils;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
@@ -159,8 +160,9 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
 
 	@Override
 	protected void loop() {
+		long frameStart;
 		for (;;) {
-			long frameStart = System.currentTimeMillis();
+			frameStart = System.currentTimeMillis();
 			// 批量执行任务，避免任务太多时导致session得不到及时更新
 			runAllTasks(MAX_BATCH_SIZE);
 
@@ -201,7 +203,7 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
 		netTimerManager.close();
 		// 删除所有的用户信息
 		FastCollectionsUtils.removeIfAndThen(registeredUserMap,
-				(k, netContext) -> true,
+				FunctionUtils::TRUE,
 				(k, netContext) -> netContext.afterRemoved());
 		// 关闭netty线程
 		ConcurrentUtils.safeExecute((Runnable) nettyThreadManager::shutdown);
