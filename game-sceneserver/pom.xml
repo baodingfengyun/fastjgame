@@ -18,6 +18,15 @@
             <artifactId>game-core</artifactId>
             <version>1.0</version>
         </dependency>
+
+        <!-- 研究一下它的ai系统 看看有木有可借鉴的 -->
+        <!-- https://mvnrepository.com/artifact/com.badlogicgames.gdx/gdx-ai -->
+        <dependency>
+            <groupId>com.badlogicgames.gdx</groupId>
+            <artifactId>gdx-ai</artifactId>
+            <version>1.8.2</version>
+        </dependency>
+
     </dependencies>
 
 </project>
