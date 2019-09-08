@@ -238,7 +238,7 @@ public abstract class AbstractSender implements Sender{
 	}
 
 	/**
-	 * 带缓冲区的sender的ResponseChannel，将结果写回缓冲区
+	 * 异步rpc结果，由子类决定如何发送
 	 */
 	static class AsyncRpcResponseChannel<T> extends AbstractRpcResponseChannel<T> {
 
