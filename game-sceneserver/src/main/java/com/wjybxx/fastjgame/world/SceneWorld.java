@@ -55,7 +55,7 @@ public class SceneWorld extends AbstractWorld {
     protected void registerProtocolCodecs() throws Exception {
         super.registerProtocolCodecs();
         // 这里没有使用模板方法是因为不是都有额外的codec要注册，导致太多钩子方法也不好
-        // TODO 注册与玩家交互的codec帮助类
+        // TODO 注册与玩家交互的协议编解码器
     }
 
     @Override

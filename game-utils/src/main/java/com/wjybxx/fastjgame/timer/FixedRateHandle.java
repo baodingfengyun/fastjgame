@@ -47,7 +47,6 @@ public interface FixedRateHandle extends TimerHandle{
 	 * 尝试修改timer的执行周期。
 	 * @apiNote
 	 * 注意：该方法实现不保证立即生效，但保证其后续的调用的周期。
-	 * 比如：在timer还未执行时，修改了执行周期，并不保证能影响首次执行的时间。
 	 *
 	 * @param period 执行周期
 	 * @return 当且仅当成功修改TimerTask的执行周期时返回true，否则返回false(比如已取消，或已终止)。

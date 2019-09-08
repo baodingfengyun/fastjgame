@@ -19,7 +19,10 @@ package com.wjybxx.fastjgame.world;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.onlinenode.WarzoneNodeData;
 import com.wjybxx.fastjgame.misc.HostAndPort;
-import com.wjybxx.fastjgame.mrg.*;
+import com.wjybxx.fastjgame.mrg.CenterInWarzoneInfoMrg;
+import com.wjybxx.fastjgame.mrg.WarzoneSendMrg;
+import com.wjybxx.fastjgame.mrg.WarzoneWorldInfoMrg;
+import com.wjybxx.fastjgame.mrg.WorldWrapper;
 import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.net.SessionLifecycleAware;
 import com.wjybxx.fastjgame.rpcservice.ICenterInWarzoneInfoMrgRpcRegister;
@@ -53,11 +56,6 @@ public class WarzoneWorld extends AbstractWorld {
         this.warzoneWorldInfoMrg = warzoneWorldInfoMrg;
         this.centerInWarzoneInfoMrg = centerInWarzoneInfoMrg;
         this.sendMrg = sendMrg;
-    }
-
-    @Override
-    protected void registerMessageHandlers() {
-
     }
 
     @Override

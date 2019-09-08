@@ -19,8 +19,11 @@ package com.wjybxx.fastjgame.world;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.onlinenode.LoginNodeData;
 import com.wjybxx.fastjgame.misc.HostAndPort;
+import com.wjybxx.fastjgame.mrg.CenterInLoginInfoMrg;
+import com.wjybxx.fastjgame.mrg.LoginDiscoverMrg;
+import com.wjybxx.fastjgame.mrg.LoginWorldInfoMrg;
+import com.wjybxx.fastjgame.mrg.WorldWrapper;
 import com.wjybxx.fastjgame.net.NetContext;
-import com.wjybxx.fastjgame.mrg.*;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
@@ -47,11 +50,6 @@ public class LoginWorld extends AbstractWorld {
         this.loginDiscoverMrg = loginDiscoverMrg;
         this.loginWorldInfoMrg = (LoginWorldInfoMrg) worldWrapper.getWorldInfoMrg();
         this.centerInLoginInfoMrg = centerInLoginInfoMrg;
-    }
-
-    @Override
-    protected void registerMessageHandlers() {
-
     }
 
     @Override

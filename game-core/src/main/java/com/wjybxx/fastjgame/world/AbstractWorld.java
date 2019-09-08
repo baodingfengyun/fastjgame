@@ -88,34 +88,28 @@ public abstract class AbstractWorld implements World{
         protocolCodecMrg.registerProtocolCodec(name, mappingStrategy);
     }
 
-    // --------------------------------- 消息、请求处理器注册，未来可以考虑使用注解和注解处理器自动注册(生成代码) --------------------------
+    // --------------------------------- rpc请求、玩家消息、http请求处理器注册--------------------------
 
     /**
-     * 注册自己要处理的消息。也可以在自己的类中使用messageDispatcherMrg自己注册，不一定需要在world中注册。
-     * 使用对应的Register辅助类进行注册。
+     * 注册玩家消息处理器，主要是scene服注册
+     * 使用注解处理器生成的{@code xxxMsgFunRegister}进行注册
+     * 也可以在自己的类中使用messageDispatcherMrg自己注册，不一定需要在world中注册。
      */
-    protected abstract void registerMessageHandlers();
+    protected void registerMessageHandlers() {
+
+    }
 
     /**
-     * 注册rpc请求处理器。
-     * 使用对应的Register辅助类进行注册。
+     * 注册rpc请求处理器，服务器之间使用rpc进行通信。
+     * 使用注解处理生成的{@code xxxRpcRegister}进行注册。
      */
     protected abstract void registerRpcService();
 
     /**
-     * 注册自己要处理的http请求
-     * use {@link #registerHttpRequestHandler(String, HttpRequestHandler)} to register
+     * 注册自己要处理的http请求。后台管理和登录服使用http进行服务。
+     * 使用注解处理器生成的{@code xxxHttpRegister}进行注册
      */
     protected abstract void registerHttpRequestHandlers();
-
-    /**
-     * 注册http请求处理器
-     * @param path http请求路径
-     * @param httpRequestHandler 对应的处理器
-     */
-    protected final void registerHttpRequestHandler(String path, HttpRequestHandler httpRequestHandler){
-        httpDispatcherMrg.register(path, httpRequestHandler);
-    }
 
     // ----------------------------------------- 接口模板实现 ------------------------------------
 

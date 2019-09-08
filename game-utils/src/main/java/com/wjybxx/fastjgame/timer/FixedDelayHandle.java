@@ -47,7 +47,6 @@ public interface FixedDelayHandle extends TimerHandle{
 	 * 尝试修改timer的执行间隔。
 	 * @apiNote
 	 * 注意：该方法实现不保证立即生效，但保证其后续的调用的间隔
-	 * 比如：在timer还未执行时，修改了延迟时间，并不保证能影响首次执行的时间。
 	 *
 	 * @param delay 延迟时间，必须大于0！
 	 * @return 当且仅当成功修改TimerTask的执行间隔时返回true，其它情况下返回false(比如已取消，或已终止)。

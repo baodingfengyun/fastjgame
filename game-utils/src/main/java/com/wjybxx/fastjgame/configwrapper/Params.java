@@ -45,7 +45,7 @@ public abstract class Params {
      */
     public abstract String getAsString(String key);
 
-    public String getAsString(String key,String defaultValue){
+    public String getAsString(String key, String defaultValue){
         return ConfigUtils.getAsString(getAsString(key), defaultValue);
     }
 
@@ -54,7 +54,7 @@ public abstract class Params {
         return ConfigUtils.getAsInt(getAsString(key));
     }
 
-    public int getAsInt(String key,int defaultValue){
+    public int getAsInt(String key, int defaultValue){
         return ConfigUtils.getAsInt(getAsString(key), defaultValue);
     }
 
@@ -62,7 +62,7 @@ public abstract class Params {
         return ConfigUtils.getAsLong(getAsString(key));
     }
 
-    public long getAsLong(String key,long defaultValue){
+    public long getAsLong(String key, long defaultValue){
         return ConfigUtils.getAsLong(getAsString(key), defaultValue);
     }
 
@@ -70,7 +70,7 @@ public abstract class Params {
         return ConfigUtils.getAsDouble(getAsString(key));
     }
 
-    public double getAsDouble(String key,double defaultValue){
+    public double getAsDouble(String key, double defaultValue){
         return ConfigUtils.getAsDouble(getAsString(key), defaultValue);
     }
 
@@ -78,7 +78,7 @@ public abstract class Params {
         return ConfigUtils.getAsByte(getAsString(key));
     }
 
-    public byte getAsByte(String key,byte defaultValue){
+    public byte getAsByte(String key, byte defaultValue){
         return ConfigUtils.getAsByte(getAsString(key), defaultValue);
     }
 
@@ -86,7 +86,7 @@ public abstract class Params {
         return ConfigUtils.getAsShort(getAsString(key));
     }
 
-    public short getAsShort(String key,short defaultValue){
+    public short getAsShort(String key, short defaultValue){
         return ConfigUtils.getAsShort(getAsString(key), defaultValue);
     }
 
@@ -94,7 +94,7 @@ public abstract class Params {
         return ConfigUtils.getAsFloat(getAsString(key));
     }
 
-    public float getAsFloat(String key,float defaultValue){
+    public float getAsFloat(String key, float defaultValue){
         return ConfigUtils.getAsFloat(getAsString(key), defaultValue);
     }
 
@@ -113,7 +113,7 @@ public abstract class Params {
      * @param defaultValue 如果不存在指定名字的属性，则返回默认值
      * @return true,yes,1,y表示为真，其余为假。
      */
-    public boolean getAsBool(String key,boolean defaultValue){
+    public boolean getAsBool(String key, boolean defaultValue){
         return ConfigUtils.getAsBool(key, defaultValue);
     }
     // endregion

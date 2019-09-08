@@ -57,11 +57,6 @@ public class CenterWorld extends AbstractWorld {
     }
 
     @Override
-    protected void registerMessageHandlers() {
-
-    }
-
-    @Override
     protected void registerRpcService() {
 
     }

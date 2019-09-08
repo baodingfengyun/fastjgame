@@ -82,19 +82,16 @@ public class StartUp {
 
         // 试一试ALL IN ONE
         // NET线程数最少1个
-        final NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupImp(2, new DefaultThreadFactory("NET"), RejectedExecutionHandlers.log());
+        final NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET"), RejectedExecutionHandlers.log());
 
         final GameEventLoopGroupImp gameEventLoopGroup = GameEventLoopGroupImp.newBuilder()
                 .setNetEventLoopGroup(netEventLoopGroup)
                 .setRejectedExecutionHandler(RejectedExecutionHandlers.log())
+                .addWorld(new LoginModule(), loginArgs, 10)
                 .addWorld(new WarzoneModule(), warzoneArgs, 10)
                 .addWorld(new CenterModule(), centerArgs, 10)
-                .addWorld(new LoginModule(), loginArgs, 10)
                 .addWorld(new SceneModule(), singleSceneArgs, 20)
-                .addWorld(new SceneModule(), crossSceneArgs, 20)
-                .addWorld(new SceneModule(), crossSceneArgs, 20)
-                .addWorld(new SceneModule(), crossSceneArgs, 20)
-                .addWorld(new SceneModule(), crossSceneArgs, 20)
+                .addWorld(new SceneModule(), singleSceneArgs, 20)
                 .addWorld(new SceneModule(), crossSceneArgs, 20)
                 .build();
         try {

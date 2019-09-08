@@ -169,7 +169,7 @@ public class ConfigUtils {
     }
 
     /**
-     * @see it.unimi.dsi.fastutil.ints.IntArrayList#IntArrayList(int[])
+     * @see it.unimi.dsi.fastutil.ints.IntArrayList#wrap(int[])
      */
     public static int[] getAsIntArray(String value){
         String[] stringArray = getAsStringArray(value);
@@ -181,7 +181,7 @@ public class ConfigUtils {
     }
 
     /**
-     * @see it.unimi.dsi.fastutil.longs.LongArrayList#LongArrayList(long[])
+     * @see it.unimi.dsi.fastutil.longs.LongArrayList#wrap(long[])
      */
     public static long[] getAsLongArray(String value){
         String[] stringArray = getAsStringArray(value);
@@ -193,7 +193,7 @@ public class ConfigUtils {
     }
 
     /**
-     * @see it.unimi.dsi.fastutil.doubles.DoubleArrayList#DoubleArrayList(double[])
+     * @see it.unimi.dsi.fastutil.doubles.DoubleArrayList#wrap(double[])
      */
     public static double[] getAsDoubleArray(String value){
         String[] stringArray = getAsStringArray(value);
@@ -203,7 +203,6 @@ public class ConfigUtils {
         }
         return doubleArray;
     }
-
 
     // ------------------------------------------------ map支持 -------------------------------------------
 
