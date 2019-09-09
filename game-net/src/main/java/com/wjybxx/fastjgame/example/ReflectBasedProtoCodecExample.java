@@ -26,6 +26,7 @@ import java.util.*;
 
 /**
  * 基于反射的编解码器的测试用例。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/19
@@ -33,51 +34,53 @@ import java.util.*;
  */
 public class ReflectBasedProtoCodecExample {
 
-	public static void main(String[] args) throws IOException {
-		ExampleMessages.FullMessage fullMessage = getFullMessage();
-		System.out.println(fullMessage);
+    public static void main(String[] args) throws IOException {
+        ExampleMessages.FullMessage fullMessage = getFullMessage();
+        System.out.println(fullMessage);
 
-		ReflectBasedProtocolCodec codec = ExampleConstants.reflectBasedCodec;
-		ByteBufAllocator byteBufAllocator = UnpooledByteBufAllocator.DEFAULT;
-		ByteBuf encodeResult = codec.encodeMessage(byteBufAllocator, fullMessage);
+        ReflectBasedProtocolCodec codec = ExampleConstants.reflectBasedCodec;
+        ByteBufAllocator byteBufAllocator = UnpooledByteBufAllocator.DEFAULT;
+        ByteBuf encodeResult = codec.encodeMessage(byteBufAllocator, fullMessage);
 
-		Object decodeResult = codec.decodeMessage(encodeResult);
-		System.out.println(decodeResult);
+        Object decodeResult = codec.decodeMessage(encodeResult);
+        System.out.println(decodeResult);
 
-		System.out.println("equals = " + fullMessage.equals(decodeResult));
+        System.out.println("equals = " + fullMessage.equals(decodeResult));
 
-		encodeResult.release();
-	}
+        encodeResult.release();
+    }
 
-	/** 一个正常赋值了的对象 */
-	static ExampleMessages.FullMessage getFullMessage() {
-		ExampleMessages.FullMessage fullMessage = new ExampleMessages.FullMessage();
-		fullMessage.setaByte((byte) 25);
-		fullMessage.setaChar('a');
-		fullMessage.setaShort((short) 3222);
-		fullMessage.setAnInt(6555895);
-		fullMessage.setaLong(54654874561L);
-		fullMessage.setaFloat(1.1f);
-		fullMessage.setaDouble(2.0);
-		fullMessage.setaBoolean(true);
+    /**
+     * 一个正常赋值了的对象
+     */
+    static ExampleMessages.FullMessage getFullMessage() {
+        ExampleMessages.FullMessage fullMessage = new ExampleMessages.FullMessage();
+        fullMessage.setaByte((byte) 25);
+        fullMessage.setaChar('a');
+        fullMessage.setaShort((short) 3222);
+        fullMessage.setAnInt(6555895);
+        fullMessage.setaLong(54654874561L);
+        fullMessage.setaFloat(1.1f);
+        fullMessage.setaDouble(2.0);
+        fullMessage.setaBoolean(true);
 
-		ExampleMessages.Hello hello = new ExampleMessages.Hello();
-		hello.setId(65);
-		hello.setMessage("hello world.");
-		fullMessage.setHello(hello);
+        ExampleMessages.Hello hello = new ExampleMessages.Hello();
+        hello.setId(65);
+        hello.setMessage("hello world.");
+        fullMessage.setHello(hello);
 
-		fullMessage.setName("wjybxx");
-		fullMessage.setProfession(ExampleMessages.Profession.CODER);
+        fullMessage.setName("wjybxx");
+        fullMessage.setProfession(ExampleMessages.Profession.CODER);
 
-		fullMessage.setStringList(new ArrayList<>(Arrays.asList("张三", "lisi", "55")));
-		fullMessage.setStringSet(new LinkedHashSet<>(Arrays.asList("张三", "lisi", "55")));
+        fullMessage.setStringList(new ArrayList<>(Arrays.asList("张三", "lisi", "55")));
+        fullMessage.setStringSet(new LinkedHashSet<>(Arrays.asList("张三", "lisi", "55")));
 
-		Map<String,String> params = new LinkedHashMap<>();
-		params.put("first", "abc");
-		params.put("second", "def");
-		fullMessage.setStringStringMap(params);
+        Map<String, String> params = new LinkedHashMap<>();
+        params.put("first", "abc");
+        params.put("second", "def");
+        fullMessage.setStringStringMap(params);
 
-		return fullMessage;
-	}
+        return fullMessage;
+    }
 
 }

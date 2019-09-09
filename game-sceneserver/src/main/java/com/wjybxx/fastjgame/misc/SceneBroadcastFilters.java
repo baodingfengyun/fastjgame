@@ -24,6 +24,7 @@ import java.util.function.Predicate;
 
 /**
  * 场景广播使用的过滤器
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/4 18:38
@@ -34,19 +35,19 @@ public class SceneBroadcastFilters {
     // 使用lambda表达式的，是因为是无状态的，不捕获任何属性，编译后是静态方法，性能可以接受
     // 匿名内部类性能不好
 
-    public static Predicate except(Player player){
+    public static Predicate except(Player player) {
         return new ExceptSingle(player);
     }
 
-    public static Predicate except(Player... players){
+    public static Predicate except(Player... players) {
         return new ExceptBatch(Arrays.asList(players));
     }
 
-    public static Predicate except(List<Player> playerList){
+    public static Predicate except(List<Player> playerList) {
         return new ExceptBatch(playerList);
     }
 
-    private static final class ExceptSingle implements Predicate<Player>{
+    private static final class ExceptSingle implements Predicate<Player> {
 
         private final Player player;
 
@@ -60,12 +61,12 @@ public class SceneBroadcastFilters {
         }
     }
 
-    private static final class ExceptBatch implements Predicate<Player>{
+    private static final class ExceptBatch implements Predicate<Player> {
 
         private final List<Player> excepts;
 
         private ExceptBatch(List<Player> excepts) {
-            this.excepts=excepts;
+            this.excepts = excepts;
         }
 
         @Override

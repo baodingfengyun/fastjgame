@@ -47,7 +47,9 @@ import java.net.URISyntaxException;
 @ThreadSafe
 public class WsClientChannelInitializer extends ChannelInitializer<SocketChannel> {
 
-    /** 本地发起连接的角色guid */
+    /**
+     * 本地发起连接的角色guid
+     */
     private final long localGuid;
     private final long serverGuid;
     /**
@@ -71,7 +73,7 @@ public class WsClientChannelInitializer extends ChannelInitializer<SocketChannel
 
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
-        ChannelPipeline pipeline=ch.pipeline();
+        ChannelPipeline pipeline = ch.pipeline();
 
         appendHttpCodec(pipeline);
 
@@ -95,9 +97,9 @@ public class WsClientChannelInitializer extends ChannelInitializer<SocketChannel
      */
     private void appendWebsocketCodec(ChannelPipeline pipeline) throws URISyntaxException {
         // websocket 解码流程
-        URI uri=new URI(websocketUrl);
+        URI uri = new URI(websocketUrl);
         pipeline.addLast(new WebSocketClientProtocolHandler(uri, WebSocketVersion.V13,
-                null,true,new DefaultHttpHeaders(),maxFrameLength));
+                null, true, new DefaultHttpHeaders(), maxFrameLength));
         pipeline.addLast(new BinaryWebSocketFrameToBytesDecoder());
 
         // websocket 编码流程
@@ -112,7 +114,7 @@ public class WsClientChannelInitializer extends ChannelInitializer<SocketChannel
      * 自定义二进制协议支持
      */
     private void appendCustomProtocolCodec(ChannelPipeline pipeline) {
-        pipeline.addLast(new LengthFieldBasedFrameDecoder(maxFrameLength,0,4,0,4));
+        pipeline.addLast(new LengthFieldBasedFrameDecoder(maxFrameLength, 0, 4, 0, 4));
         pipeline.addLast(new ClientCodec(codec, localGuid, serverGuid, netEventManager));
     }
 }

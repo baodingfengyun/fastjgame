@@ -36,7 +36,7 @@ public class MongoDBTest {
         System.out.println("在这里打个断点,使用idea debug 界面测试");
     }
 
-    private static class MongoDBMrgImp extends MongoDBMrg{
+    private static class MongoDBMrgImp extends MongoDBMrg {
 
         public MongoDBMrgImp(GameConfigMrg gameConfigMrg, CuratorMrg curatorMrg) throws Exception {
             super(gameConfigMrg, curatorMrg);

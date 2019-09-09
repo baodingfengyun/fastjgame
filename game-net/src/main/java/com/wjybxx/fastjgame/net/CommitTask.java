@@ -23,11 +23,11 @@ package com.wjybxx.fastjgame.net;
  * date - 2019/8/8
  * github - https://github.com/hl845740757
  */
-public interface CommitTask extends Runnable{
+public interface CommitTask extends Runnable {
 
-	/**
-	 * 执行提交操作，此时运行在用户线程下。
-	 */
-	void run();
+    /**
+     * 执行提交操作，此时运行在用户线程下。
+     */
+    void run();
 
 }

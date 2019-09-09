@@ -27,7 +27,7 @@ import com.wjybxx.fastjgame.utils.GameUtils;
  * date - 2019/6/23 22:15
  * github - https://github.com/hl845740757
  */
-public class CenterMongoDBMrg extends MongoDBMrg{
+public class CenterMongoDBMrg extends MongoDBMrg {
 
     private final CenterWorldInfoMrg worldInfoMrg;
 

@@ -24,9 +24,9 @@ package com.wjybxx.fastjgame.test;
  */
 public class NumberTest {
 
-	public static void main(String[] args) {
-		System.out.println("1000 == 1_000 " + (1000 == 1_000));
+    public static void main(String[] args) {
+        System.out.println("1000 == 1_000 " + (1000 == 1_000));
 
-		System.out.println("1000000 == 1000_000 " + (1000000 == 1000_000));
-	}
+        System.out.println("1000000 == 1000_000 " + (1000000 == 1000_000));
+    }
 }

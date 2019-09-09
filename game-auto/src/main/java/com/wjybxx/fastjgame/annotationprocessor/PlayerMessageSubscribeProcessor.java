@@ -52,11 +52,15 @@ public class PlayerMessageSubscribeProcessor extends AbstractProcessor {
     private static final String PLAYER_CANONICAL_NAME = "com.wjybxx.fastjgame.gameobject.Player";
     private static final String MESSAGE_CANONICAL_NAME = "com.google.protobuf.AbstractMessage";
 
-    /** 输出编译信息 */
+    /**
+     * 输出编译信息
+     */
     private Messager messager;
     private Elements elementUtils;
     private Types typeUtils;
-    /** 处理器信息 */
+    /**
+     * 处理器信息
+     */
     private AnnotationSpec generatedAnnotation;
 
     private TypeElement subscribeElement;
@@ -113,7 +117,7 @@ public class PlayerMessageSubscribeProcessor extends AbstractProcessor {
                 .collect(Collectors.groupingBy(element -> ((Element) element).getEnclosingElement()));
 
         elementListMap.forEach((type, methods) -> {
-            genProxyClass((TypeElement)type, (List<ExecutableElement>) methods);
+            genProxyClass((TypeElement) type, (List<ExecutableElement>) methods);
         });
         return false;
     }
@@ -130,7 +134,7 @@ public class PlayerMessageSubscribeProcessor extends AbstractProcessor {
                 .addParameter(registryTypeName, "registry")
                 .addParameter(TypeName.get(typeElement.asType()), "instance");
 
-        for (Element element:subscribeMethods) {
+        for (Element element : subscribeMethods) {
             ExecutableElement method = (ExecutableElement) element;
             // 访问权限必须是public
             if (!method.getModifiers().contains(Modifier.PUBLIC)) {
@@ -150,7 +154,7 @@ public class PlayerMessageSubscribeProcessor extends AbstractProcessor {
             }
             // 第二个参数必须是具体的消息类型
             final VariableElement secondVariableElement = method.getParameters().get(1);
-            if (!AutoUtils.isTargetDeclaredType(secondVariableElement, declaredType -> typeUtils.isSubtype(declaredType, messageType))){
+            if (!AutoUtils.isTargetDeclaredType(secondVariableElement, declaredType -> typeUtils.isSubtype(declaredType, messageType))) {
                 messager.printMessage(Diagnostic.Kind.ERROR, "subscribe method second parameter type must be subtype of AbstractMessage!", method);
                 continue;
             }

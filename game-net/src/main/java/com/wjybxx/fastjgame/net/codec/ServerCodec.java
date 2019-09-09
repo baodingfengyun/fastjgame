@@ -27,6 +27,7 @@ import java.io.IOException;
 
 /**
  * 服务端使用的编解码器
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/7 13:23
@@ -35,9 +36,13 @@ import java.io.IOException;
 @NotThreadSafe
 public class ServerCodec extends BaseCodec {
 
-    /** 该channel关联哪本地哪一个用户 */
+    /**
+     * 该channel关联哪本地哪一个用户
+     */
     private final long localGuid;
-    /** 缓存的客户端guid，关联的远程 */
+    /**
+     * 缓存的客户端guid，关联的远程
+     */
     private long clientGuid = Long.MIN_VALUE;
 
     private final NetEventManager netEventManager;
@@ -50,34 +55,36 @@ public class ServerCodec extends BaseCodec {
 
     /**
      * 是否已收到过客户端的连接请求,主要关系到后续需要使用的clientGuid
+     *
      * @return 是否已接收到建立连接请求
      */
-    private boolean isInited(){
+    private boolean isInited() {
         return clientGuid != Long.MIN_VALUE;
     }
 
     /**
      * 标记为已接收过连接请求
+     *
      * @param clientGuid 客户端请求建立连接时的guid
      */
-    private void init(long clientGuid){
+    private void init(long clientGuid) {
         this.clientGuid = clientGuid;
     }
 
     @Override
     public void write(ChannelHandlerContext ctx, Object msgTO, ChannelPromise promise) throws Exception {
-        if (msgTO instanceof BatchMessageTO){
+        if (msgTO instanceof BatchMessageTO) {
             // 批量协议包
             BatchMessageTO batchMessageTO = (BatchMessageTO) msgTO;
             long ack = batchMessageTO.getAck();
-            for (NetMessage message:batchMessageTO.getNetMessages()){
+            for (NetMessage message : batchMessageTO.getNetMessages()) {
                 writeSingleMsg(ctx, ack, message, ctx.voidPromise());
             }
-        } else if (msgTO instanceof SingleMessageTO){
+        } else if (msgTO instanceof SingleMessageTO) {
             // 单个协议包
-            SingleMessageTO singleMessageTO = (SingleMessageTO)msgTO;
+            SingleMessageTO singleMessageTO = (SingleMessageTO) msgTO;
             writeSingleMsg(ctx, singleMessageTO.getAck(), singleMessageTO.getNetMessage(), promise);
-        }  else if (msgTO instanceof ConnectResponseTO){
+        } else if (msgTO instanceof ConnectResponseTO) {
             // 请求连接结果(token验证结果)
             writeConnectResponse(ctx, (ConnectResponseTO) msgTO, promise);
         } else {
@@ -85,19 +92,21 @@ public class ServerCodec extends BaseCodec {
         }
     }
 
-    /** 发送单个消息 */
+    /**
+     * 发送单个消息
+     */
     private void writeSingleMsg(ChannelHandlerContext ctx, long ack, NetMessage netMessage, ChannelPromise promise) throws Exception {
         // 按出现的几率判断
         if (netMessage instanceof OneWayMessage) {
             // 单向消息
             writeOneWayMessage(ctx, ack, (OneWayMessage) netMessage, promise);
-        } else if (netMessage instanceof RpcResponseMessage){
+        } else if (netMessage instanceof RpcResponseMessage) {
             // RPC响应
             writeRpcResponseMessage(ctx, ack, (RpcResponseMessage) netMessage, promise);
-        }else if (netMessage instanceof RpcRequestMessage) {
+        } else if (netMessage instanceof RpcRequestMessage) {
             // 向另一个服务器发起rpc请求
             writeRpcRequestMessage(ctx, ack, (RpcRequestMessage) netMessage, promise);
-        } else if (netMessage instanceof AckPingPongMessage){
+        } else if (netMessage instanceof AckPingPongMessage) {
             // 服务器ack心跳返回消息
             writeAckPingPongMessage(ctx, ack, (AckPingPongMessage) netMessage, promise, NetPackageType.ACK_PONG);
         } else {
@@ -108,7 +117,7 @@ public class ServerCodec extends BaseCodec {
     // region 读取消息
     @Override
     protected void readMsg(ChannelHandlerContext ctx, NetPackageType netPackageType, ByteBuf msg) throws Exception {
-        switch (netPackageType){
+        switch (netPackageType) {
             case CONNECT_REQUEST:
                 tryReadConnectRequest(ctx, msg);
                 break;
@@ -125,7 +134,7 @@ public class ServerCodec extends BaseCodec {
                 tryReadAckPingMessage(ctx, msg);
                 break;
             default:
-                closeCtx(ctx,"unexpected netEventType " + netPackageType);
+                closeCtx(ctx, "unexpected netEventType " + netPackageType);
                 break;
         }
     }
@@ -133,11 +142,11 @@ public class ServerCodec extends BaseCodec {
     /**
      * 客户端请求验证token
      */
-    private void tryReadConnectRequest(ChannelHandlerContext ctx, ByteBuf msg){
+    private void tryReadConnectRequest(ChannelHandlerContext ctx, ByteBuf msg) {
         ConnectRequestTO connectRequestTO = readConnectRequest(msg);
         ConnectRequestEventParam connectRequestEventParam = new ConnectRequestEventParam(ctx.channel(), localGuid, connectRequestTO);
         netEventManager.publishEvent(NetEventType.CONNECT_REQUEST, connectRequestEventParam);
-        if (!isInited()){
+        if (!isInited()) {
             init(connectRequestTO.getClientGuid());
         }
     }
@@ -145,7 +154,7 @@ public class ServerCodec extends BaseCodec {
     /**
      * 读取客户端的ack-ping包
      */
-    private void tryReadAckPingMessage(ChannelHandlerContext ctx, ByteBuf msg){
+    private void tryReadAckPingMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureInited();
 
         AckPingPongEventParam ackPingEventParam = readAckPingPongMessage(ctx.channel(), localGuid, clientGuid, msg);

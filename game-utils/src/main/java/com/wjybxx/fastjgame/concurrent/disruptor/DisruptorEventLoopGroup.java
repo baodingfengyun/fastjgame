@@ -36,48 +36,48 @@ import java.util.concurrent.ThreadFactory;
  */
 public class DisruptorEventLoopGroup extends MultiThreadEventLoopGroup {
 
-	public DisruptorEventLoopGroup(@Nonnull ThreadFactory threadFactory,
-								   @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
-								   @Nonnull List<BuildContext> contextList) {
-		super(contextList.size(), threadFactory, rejectedExecutionHandler, new LinkedList<>(contextList));
-	}
+    public DisruptorEventLoopGroup(@Nonnull ThreadFactory threadFactory,
+                                   @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
+                                   @Nonnull List<BuildContext> contextList) {
+        super(contextList.size(), threadFactory, rejectedExecutionHandler, new LinkedList<>(contextList));
+    }
 
-	public DisruptorEventLoopGroup(@Nonnull ThreadFactory threadFactory,
-								   @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
-								   @Nullable EventLoopChooserFactory chooserFactory,
-								   @Nonnull List<BuildContext> contextList) {
-		super(contextList.size(), threadFactory, rejectedExecutionHandler, chooserFactory, new LinkedList<>(contextList));
-	}
+    public DisruptorEventLoopGroup(@Nonnull ThreadFactory threadFactory,
+                                   @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
+                                   @Nullable EventLoopChooserFactory chooserFactory,
+                                   @Nonnull List<BuildContext> contextList) {
+        super(contextList.size(), threadFactory, rejectedExecutionHandler, chooserFactory, new LinkedList<>(contextList));
+    }
 
-	@Nonnull
-	@Override
-	public DisruptorEventLoop next() {
-		return (DisruptorEventLoop) super.next();
-	}
+    @Nonnull
+    @Override
+    public DisruptorEventLoop next() {
+        return (DisruptorEventLoop) super.next();
+    }
 
-	@Nonnull
-	@Override
-	protected DisruptorEventLoop newChild(int childIndex, ThreadFactory threadFactory, RejectedExecutionHandler rejectedExecutionHandler, Object context) {
-		@SuppressWarnings("unchecked")
-		BuildContext buildContext = ((List<BuildContext>)context).remove(0);
-		int ringBufferSize = buildContext.ringBufferSize > 0 ? buildContext.ringBufferSize : DisruptorEventLoop.DEFAULT_RING_BUFFER_SIZE;
-		return new DisruptorEventLoop(this, threadFactory, rejectedExecutionHandler, buildContext.eventHandler, ringBufferSize);
-	}
+    @Nonnull
+    @Override
+    protected DisruptorEventLoop newChild(int childIndex, ThreadFactory threadFactory, RejectedExecutionHandler rejectedExecutionHandler, Object context) {
+        @SuppressWarnings("unchecked")
+        BuildContext buildContext = ((List<BuildContext>) context).remove(0);
+        int ringBufferSize = buildContext.ringBufferSize > 0 ? buildContext.ringBufferSize : DisruptorEventLoop.DEFAULT_RING_BUFFER_SIZE;
+        return new DisruptorEventLoop(this, threadFactory, rejectedExecutionHandler, buildContext.eventHandler, ringBufferSize);
+    }
 
-	/**
-	 * 待优化
-	 */
-	public static class BuildContext {
-		private final int ringBufferSize;
-		private final EventHandler eventHandler;
+    /**
+     * 待优化
+     */
+    public static class BuildContext {
+        private final int ringBufferSize;
+        private final EventHandler eventHandler;
 
-		public BuildContext(EventHandler eventHandler) {
-			this(-1, eventHandler);
-		}
+        public BuildContext(EventHandler eventHandler) {
+            this(-1, eventHandler);
+        }
 
-		public BuildContext(int ringBufferSize, EventHandler eventHandler) {
-			this.ringBufferSize = ringBufferSize;
-			this.eventHandler = eventHandler;
-		}
-	}
+        public BuildContext(int ringBufferSize, EventHandler eventHandler) {
+            this.ringBufferSize = ringBufferSize;
+            this.eventHandler = eventHandler;
+        }
+    }
 }

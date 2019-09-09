@@ -23,6 +23,7 @@ import io.netty.util.internal.PlatformDependent;
 
 /**
  * 系统属性工具类
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/7/20 14:53
@@ -30,33 +31,35 @@ import io.netty.util.internal.PlatformDependent;
  */
 public class SystemUtils {
 
-	private static final ConfigWrapper properties = new PropertiesConfigWrapper(System.getProperties());
+    private static final ConfigWrapper properties = new PropertiesConfigWrapper(System.getProperties());
 
-	/** 是否是windows系统 */
-	private static final boolean IS_WINDOWS = PlatformDependent.isWindows();
-	/**
-	 * 机器MAC地址，这里存在的问题是，可能有多个网卡。
-	 * Netty在IPV4的Mac地址中间插入了 FF:FE
-	 */
-	private static final String MAC = MacAddressUtil.formatAddress(MacAddressUtil.bestAvailableMac()).toUpperCase();
+    /**
+     * 是否是windows系统
+     */
+    private static final boolean IS_WINDOWS = PlatformDependent.isWindows();
+    /**
+     * 机器MAC地址，这里存在的问题是，可能有多个网卡。
+     * Netty在IPV4的Mac地址中间插入了 FF:FE
+     */
+    private static final String MAC = MacAddressUtil.formatAddress(MacAddressUtil.bestAvailableMac()).toUpperCase();
 
-	private SystemUtils() {
+    private SystemUtils() {
 
-	}
+    }
 
-	public static ConfigWrapper getProperties() {
-		return properties;
-	}
+    public static ConfigWrapper getProperties() {
+        return properties;
+    }
 
-	public static boolean isWindows()	{
-		return IS_WINDOWS;
-	}
+    public static boolean isWindows() {
+        return IS_WINDOWS;
+    }
 
-	public static String getMAC() {
-		return MAC;
-	}
+    public static String getMAC() {
+        return MAC;
+    }
 
-	public static void main(String[] args) {
-		System.out.println("MAC\n" + getMAC());
-	}
+    public static void main(String[] args) {
+        System.out.println("MAC\n" + getMAC());
+    }
 }

@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.shape;
 
 /**
  * 2D格子
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/10 20:18
@@ -40,7 +41,7 @@ public interface Grid2D {
      * X 就是 列索引
      * Y 就是 行索引
      */
-    default int getX(){
+    default int getX() {
         return getColIndex();
     }
 
@@ -49,7 +50,7 @@ public interface Grid2D {
      * X 就是 列索引
      * Y 就是 行索引
      */
-    default int getY(){
+    default int getY() {
         return getRowIndex();
     }
 }

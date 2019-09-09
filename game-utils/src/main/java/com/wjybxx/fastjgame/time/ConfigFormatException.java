@@ -24,24 +24,24 @@ package com.wjybxx.fastjgame.time;
  * date - 2019/7/7 22:50
  * github - https://github.com/hl845740757
  */
-public class ConfigFormatException extends RuntimeException{
+public class ConfigFormatException extends RuntimeException {
 
-	public ConfigFormatException() {
-	}
+    public ConfigFormatException() {
+    }
 
-	public ConfigFormatException(String message) {
-		super(message);
-	}
+    public ConfigFormatException(String message) {
+        super(message);
+    }
 
-	public ConfigFormatException(String message, Throwable cause) {
-		super(message, cause);
-	}
+    public ConfigFormatException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
-	public ConfigFormatException(Throwable cause) {
-		super(cause);
-	}
+    public ConfigFormatException(Throwable cause) {
+        super(cause);
+    }
 
-	public ConfigFormatException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-		super(message, cause, enableSuppression, writableStackTrace);
-	}
+    public ConfigFormatException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+    }
 }

@@ -22,6 +22,7 @@ import com.wjybxx.fastjgame.shape.shape2d.Sector;
 /**
  * 扇形测试；
  * 其实最好写一个简单的图形化界面。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/2 17:28
@@ -32,7 +33,7 @@ public class SectorTest {
     public static void main(String[] args) {
         // 15° - 75°   x^2 + y^2 = 25
         // 5 * cos 15° = 4.8296   5 * sin 15° = 1.2941
-        Sector sector = Sector.newSector(Point2D.newPoint2D(0,0),5,45,60);
+        Sector sector = Sector.newSector(Point2D.newPoint2D(0, 0), 5, 45, 60);
 
         System.out.println("center=" + sector.hasPoint(sector.getCenter()));
 
@@ -43,26 +44,26 @@ public class SectorTest {
         System.out.println("startPoint=" + sector.hasPoint(Point2D.newPoint2D(y, x)));
 
         // true false
-        System.out.println("a1=" + sector.hasPoint(Point2D.newPoint2D(x, y-0.001f)));
-        System.out.println("a2=" + sector.hasPoint(Point2D.newPoint2D(x, y+0.001f)));
+        System.out.println("a1=" + sector.hasPoint(Point2D.newPoint2D(x, y - 0.001f)));
+        System.out.println("a2=" + sector.hasPoint(Point2D.newPoint2D(x, y + 0.001f)));
 
         // false false
-        System.out.println("b1=" + sector.hasPoint(Point2D.newPoint2D(y, x-0.001f)));
-        System.out.println("b2=" + sector.hasPoint(Point2D.newPoint2D(y, x+0.001f)));
+        System.out.println("b1=" + sector.hasPoint(Point2D.newPoint2D(y, x - 0.001f)));
+        System.out.println("b2=" + sector.hasPoint(Point2D.newPoint2D(y, x + 0.001f)));
 
         // true false
-        System.out.println("c1=" + sector.hasPoint(Point2D.newPoint2D(y-0.001f, x)));
-        System.out.println("c2=" + sector.hasPoint(Point2D.newPoint2D(y+0.001f, x)));
+        System.out.println("c1=" + sector.hasPoint(Point2D.newPoint2D(y - 0.001f, x)));
+        System.out.println("c2=" + sector.hasPoint(Point2D.newPoint2D(y + 0.001f, x)));
 
         Point2D p1 = Point2D.newPoint2D(y - 0.001f, x);
-        Point2D p2 = Point2D.newPoint2D(y+0.001f, x);
+        Point2D p2 = Point2D.newPoint2D(y + 0.001f, x);
         long startTime = System.currentTimeMillis();
-        for (int index=0;index<100*10000;index++){
+        for (int index = 0; index < 100 * 10000; index++) {
             sector.hasPoint(p1);
             sector.hasPoint(p2);
         }
         // 我的机器(7年前的本)上大概比三角形少10毫秒 50 VS 60
-        System.out.println("costMillTime=" + (System.currentTimeMillis()-startTime));
+        System.out.println("costMillTime=" + (System.currentTimeMillis() - startTime));
     }
 
 

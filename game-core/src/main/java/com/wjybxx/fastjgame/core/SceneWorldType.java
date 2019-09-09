@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.utils.EnumUtils;
 /**
  * 场景进程类型。
  * 为了尽量使人员分散，本服和跨服还是独立启动好一点，虽然也能设计为既是跨服也是本服。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/15 11:56
@@ -38,10 +39,11 @@ public enum SceneWorldType {
 
     /**
      * 通过名字获取进程枚举
+     *
      * @param name 枚举对应的名字，忽略大小写
      * @return SceneWorldType
      */
-    public static SceneWorldType forName(String name){
+    public static SceneWorldType forName(String name) {
         SceneWorldType sceneWorldType = EnumUtils.forNameIgnoreCase(values(), name);
         if (null == sceneWorldType) {
             throw new IllegalArgumentException("invalid name " + name);

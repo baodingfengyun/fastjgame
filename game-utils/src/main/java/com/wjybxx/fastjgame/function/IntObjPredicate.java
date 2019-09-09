@@ -31,11 +31,11 @@ public interface IntObjPredicate<V> {
 
     default IntObjPredicate<V> and(IntObjPredicate<? super V> other) {
         Objects.requireNonNull(other);
-        return (k,v) -> test(k,v) && other.test(k,v);
+        return (k, v) -> test(k, v) && other.test(k, v);
     }
 
     default IntObjPredicate<V> or(IntObjPredicate<? super V> other) {
         Objects.requireNonNull(other);
-        return (k,v) -> test(k,v) || other.test(k,v);
+        return (k, v) -> test(k, v) || other.test(k, v);
     }
 }

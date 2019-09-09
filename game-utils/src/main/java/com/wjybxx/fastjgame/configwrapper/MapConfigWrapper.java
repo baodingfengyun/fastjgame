@@ -21,6 +21,7 @@ import java.util.*;
 
 /**
  * 基于map的配置的包装器
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/4/27 13:35
@@ -34,7 +35,7 @@ public class MapConfigWrapper extends ConfigWrapper {
     @SuppressWarnings("unchecked")
     public static MapConfigWrapper EMPTY_MAP_WRAPPER = new MapConfigWrapper(Collections.EMPTY_MAP);
 
-    private final Map<String,String> configMap;
+    private final Map<String, String> configMap;
 
     public MapConfigWrapper(Map<String, String> configMap) {
         this.configMap = configMap;
@@ -53,21 +54,23 @@ public class MapConfigWrapper extends ConfigWrapper {
     /**
      * 使用{@code other}中的参数替换当前Config中的属性。
      * 它不会修改当前对象，返回的是拥有两者参数的一个新对象。
+     *
      * @param other 优先级更高
      * @return a new MapConfigWrapper
      */
-    public final MapConfigWrapper merge(MapConfigWrapper other){
-        Map<String,String> map=new HashMap<>(configMap);
+    public final MapConfigWrapper merge(MapConfigWrapper other) {
+        Map<String, String> map = new HashMap<>(configMap);
         map.putAll(other.configMap);
         return new MapConfigWrapper(map);
     }
 
     /**
      * 获取所有用于的属性名。
+     *
      * @return unmodifiableSet
      */
     @Override
-    public final Set<String> keys(){
+    public final Set<String> keys() {
         return Collections.unmodifiableSet(configMap.keySet());
     }
 

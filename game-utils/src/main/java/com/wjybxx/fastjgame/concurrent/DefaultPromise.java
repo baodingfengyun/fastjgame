@@ -37,7 +37,7 @@ import java.util.function.Predicate;
 /**
  * 默认的{@link Promise}实现。
  * 去掉了netty中的很多我们不需要使用的东西，以及去除部分优化(降低复杂度)。
- *
+ * <p>
  * 任务状态迁移：
  * <pre>
  *       (setUncancellabl) (result == UNCANCELLABLE)     (异常/成功)
@@ -49,7 +49,7 @@ import java.util.function.Predicate;
  *                                 (取消/异常/成功)
  *                 (cancel, tryFailure,setFailure,trySuccess,setSuccess)
  * </pre>
- *
+ * <p>
  * 建议使用 {@link EventLoop#newPromise()}代替构造方法。
  *
  * @author wjybxx
@@ -61,7 +61,9 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultPromise.class);
 
-    /** 1毫秒多少纳秒 */
+    /**
+     * 1毫秒多少纳秒
+     */
     private static final int NANO_PER_MILLISECOND = (int) TimeUtils.NANO_PER_MILLISECOND;
 
     /**
@@ -123,6 +125,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
 
     /**
      * 返回最新的用于通知的EventLoop
+     *
      * @return nonnull
      */
     @SuppressWarnings("ConstantConditions")
@@ -161,7 +164,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
 
     /**
      * 判断结果是否表示执行成功（已进入完成状态，且是正常完成的）。
-     *
+     * <p>
      * 解释一下为什么多线程的代码喜欢将volatile变量存为临时变量或传递给某一个方法做判断。
      * 原因：保证数据的前后一致性。
      * 当对volatile涉及多个操作时，如果不把volatile变量保存下来，每次读取的结果可能是不一样的！！！
@@ -172,10 +175,11 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
 
     /**
      * 获取表示失败的原因。
+     *
      * @return 如果是失败完成状态，则返回对应的异常，否则返回null。
      */
     private static Throwable getCause0(Object result) {
-        return (result instanceof CauseHolder) ? ((CauseHolder)result).cause : null;
+        return (result instanceof CauseHolder) ? ((CauseHolder) result).cause : null;
     }
 
     /**
@@ -229,7 +233,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     @Override
     public void setSuccess(V result) {
         // 如果调用trySuccess，会导致子类覆盖 setSuccess和trySuccess出现问题。
-        if (!setSuccess0(result)){
+        if (!setSuccess0(result)) {
             throw new IllegalStateException("complete already, discard result " + result);
         }
     }
@@ -242,7 +246,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     @Override
     public void setFailure(@Nonnull Throwable cause) {
         // 如果调用tryFailure，会导致子类覆盖 setFailure 和 tryFailure 出现问题。
-        if (!setFailure0(cause)){
+        if (!setFailure0(cause)) {
             throw new IllegalStateException("complete already, discard cause " + cause);
         }
     }
@@ -263,7 +267,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
      */
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
-        if (!isDone()){
+        if (!isDone()) {
             // 检查一次状态，减少异常生成(填充堆栈)
             return tryCompleted(new CauseHolder(new CancellationException()), true);
         } else {
@@ -287,7 +291,8 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
 
     /**
      * 尝试赋值结果(从未完成状态进入完成状态)
-     * @param value 要赋的值，一定不为null
+     *
+     * @param value  要赋的值，一定不为null
      * @param cancel 是否是取消执行
      * @return 如果赋值成功，则返回true，否则返回false。
      */
@@ -301,7 +306,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
             success = resultHolder.compareAndSet(null, value) || resultHolder.compareAndSet(UNCANCELLABLE, value);
         }
 
-        if (success){
+        if (success) {
             // 检查是否需要通知监听器
             if (checkNotifyWaiters()) {
                 // 有需要广播的监听器，尝试进行广播
@@ -316,10 +321,10 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
 
     /**
      * 检查需要通知的等待线程。
-     *
+     * <p>
      * Q:为什么可以先检查listener是否为null，再通知监听器？
      * A:代码执行到这里的时候，结果(volatile)已经对其它线程可见。如果这里认为没有监听器，那么新加入的监听器一定会在添加完之后进行通知。
-     *
+     * <p>
      * Q: 为什么不在checkNotifyWaiters里面进行通知呢？
      * A: 那会使得{@link #notifyListeners()}整个方法都处于同步代码块中！
      *
@@ -338,9 +343,9 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     private void notifyListeners() {
         // 用于拉取最新的监听器，避免长时间的占有锁
         List<ListenerEntry<? super V>> listeners;
-        synchronized (this){
+        synchronized (this) {
             // 有线程正在进行通知 或当前 没有监听器，则不需要当前线程进行通知
-            if (notifyingListeners || null == this.listeners){
+            if (notifyingListeners || null == this.listeners) {
                 return;
             }
             // 标记为正在通知(每一个正在通知的线程都会将所有的监听器通知一遍)
@@ -349,9 +354,9 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
             this.listeners = null;
         }
 
-        for (;;) {
+        for (; ; ) {
             // 通知当前批次的监听器(此时不需要获得锁) -- 但是这里不能抛出异常，否则可能死锁 -- notifyingListeners无法恢复
-            for (ListenerEntry<? super V> listenerEntry:listeners) {
+            for (ListenerEntry<? super V> listenerEntry : listeners) {
                 notifyListener(listenerEntry.listener, listenerEntry.bindExecutor);
             }
             // 通知完当前批次后，检查是否有新的监听器加入
@@ -379,7 +384,8 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
 
     /**
      * 安全的通知一个监听器，不可以抛出异常
-     * @param future future
+     *
+     * @param future   future
      * @param listener 监听器
      * @param executor 监听器的执行环境
      */
@@ -390,6 +396,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
 
     /**
      * 处理通知时异常
+     *
      * @param e 执行异常或拒绝异常
      */
     private static void handleException(Exception e) {
@@ -422,7 +429,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     @Override
     public void await() throws InterruptedException {
         // 先检查一次是否已完成，减小锁竞争，同时在完成的情况下，等待不会死锁。
-        if (isDone()){
+        if (isDone()) {
             return;
         }
         // 检查中断 --- 在执行一个耗时操作之前检查中断是有必要的
@@ -453,12 +460,16 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         EventLoopUtils.checkDeadLock(executor());
     }
 
-    /** 等待线程数+1 */
+    /**
+     * 等待线程数+1
+     */
     private void incWaiters() {
         waiters++;
     }
 
-    /** 等待线程数-1 */
+    /**
+     * 等待线程数-1
+     */
     private void decWaiters() {
         waiters++;
     }
@@ -485,10 +496,10 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         checkDeadlock();
 
         final long endTime = System.nanoTime() + unit.toNanos(timeout);
-        synchronized (this){
+        synchronized (this) {
             // 获取锁需要时间，因此应该在获取锁之后计算剩余时间
             for (long remainNano = endTime - System.nanoTime(); remainNano > 0; remainNano = endTime - System.nanoTime()) {
-                if (isDone()){
+                if (isDone()) {
                     return true;
                 }
                 incWaiters();
@@ -520,16 +531,16 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         boolean interrupted = Thread.interrupted();
         final long endTime = System.nanoTime() + unit.toNanos(timeout);
         try {
-            synchronized (this){
+            synchronized (this) {
                 // 获取锁需要时间
                 for (long remainNano = endTime - System.nanoTime(); remainNano > 0; remainNano = endTime - System.nanoTime()) {
-                    if (isDone()){
+                    if (isDone()) {
                         return true;
                     }
                     incWaiters();
                     try {
                         this.wait(remainNano / NANO_PER_MILLISECOND, (int) (remainNano % NANO_PER_MILLISECOND));
-                    } catch (InterruptedException e){
+                    } catch (InterruptedException e) {
                         interrupted = true;
                     } finally {
                         decWaiters();
@@ -559,7 +570,8 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
 
     /**
      * 真正的添加监听器，可以不指定executor
-     * @param listener 监听器
+     *
+     * @param listener     监听器
      * @param bindExecutor 监听器绑定的executor，可能为null
      */
     protected final void addListener0(@Nonnull FutureListener<? super V> listener, @Nullable EventLoop bindExecutor) {
@@ -592,6 +604,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
 
     /**
      * 移除第一个匹配的监听器
+     *
      * @param predicate 监听器测试条件
      * @return 是否成功删除了一个监听器
      */
@@ -603,7 +616,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
 
             boolean success = CollectionUtils.removeFirstMatch(listeners, predicate);
 
-            if (listeners.size() == 0){
+            if (listeners.size() == 0) {
                 listeners = null;
             }
             return success;

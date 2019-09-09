@@ -25,12 +25,13 @@ import javax.annotation.Nonnull;
 
 /**
  * npc
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/4 17:00
  * github - https://github.com/hl845740757
  */
-public class Npc extends GameObject<NpcData>{
+public class Npc extends GameObject<NpcData> {
 
     private final NpcData npcData;
 
@@ -49,7 +50,7 @@ public class Npc extends GameObject<NpcData>{
         return npcData.getConfig();
     }
 
-    public int getNpcId(){
+    public int getNpcId() {
         return npcData.getNpcId();
     }
 

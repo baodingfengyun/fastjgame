@@ -34,6 +34,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * 使用websocket时使用
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/4/27 22:25
@@ -42,7 +43,9 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class WsServerChannelInitializer extends ChannelInitializer<SocketChannel> {
 
-    /** 本地监听端口的角色guid */
+    /**
+     * 本地监听端口的角色guid
+     */
     private final long localGuid;
     /**
      * url路径(eg: "http://127.0.0.1:8888/ws" 中的 /ws )
@@ -66,7 +69,7 @@ public class WsServerChannelInitializer extends ChannelInitializer<SocketChannel
      */
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
-        ChannelPipeline pipeline=ch.pipeline();
+        ChannelPipeline pipeline = ch.pipeline();
 
         appendHttpCodec(pipeline);
 
@@ -97,7 +100,7 @@ public class WsServerChannelInitializer extends ChannelInitializer<SocketChannel
     }
 
     private void appendCustomProtocolCodec(ChannelPipeline pipeline) {
-        pipeline.addLast(new LengthFieldBasedFrameDecoder(maxFrameLength,0,4,0,4));
+        pipeline.addLast(new LengthFieldBasedFrameDecoder(maxFrameLength, 0, 4, 0, 4));
         pipeline.addLast(new ServerCodec(codec, localGuid, netEventManager));
     }
 }

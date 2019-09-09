@@ -17,6 +17,7 @@ package com.wjybxx.fastjgame.net;
 
 /**
  * rpc请求任务
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/8
@@ -24,27 +25,35 @@ package com.wjybxx.fastjgame.net;
  */
 public class RpcRequestCommitTask implements CommitTask {
 
-	private Session session;
-	/** 消息分发器 */
-	private ProtocolDispatcher protocolDispatcher;
-	/** rpc请求编号，用于返回消息 */
-	public long requestGuid;
-	/** 是否rpc同步调用，是否加急 */
-	public boolean sync;
-	/** Rpc请求内容 */
-	private Object request;
+    private Session session;
+    /**
+     * 消息分发器
+     */
+    private ProtocolDispatcher protocolDispatcher;
+    /**
+     * rpc请求编号，用于返回消息
+     */
+    public long requestGuid;
+    /**
+     * 是否rpc同步调用，是否加急
+     */
+    public boolean sync;
+    /**
+     * Rpc请求内容
+     */
+    private Object request;
 
-	public RpcRequestCommitTask(Session session, ProtocolDispatcher protocolDispatcher, long requestGuid, boolean sync, Object request) {
-		this.session = session;
-		this.protocolDispatcher = protocolDispatcher;
-		this.requestGuid = requestGuid;
-		this.sync = sync;
-		this.request = request;
-	}
+    public RpcRequestCommitTask(Session session, ProtocolDispatcher protocolDispatcher, long requestGuid, boolean sync, Object request) {
+        this.session = session;
+        this.protocolDispatcher = protocolDispatcher;
+        this.requestGuid = requestGuid;
+        this.sync = sync;
+        this.request = request;
+    }
 
-	@Override
-	public void run() {
-		final RpcResponseChannel<?> responseChannel = session.sender().newResponseChannel(requestGuid, sync);
-		protocolDispatcher.postRpcRequest(session, request, responseChannel);
-	}
+    @Override
+    public void run() {
+        final RpcResponseChannel<?> responseChannel = session.sender().newResponseChannel(requestGuid, sync);
+        protocolDispatcher.postRpcRequest(session, request, responseChannel);
+    }
 }

@@ -28,7 +28,7 @@ import java.io.File;
 
 /**
  * loginserver测试用例。
- *
+ * <p>
  * 启动参数：
  * port=8989
  *
@@ -40,7 +40,7 @@ import java.io.File;
 public class LoginWorldTest {
 
     public static void main(String[] args) throws Exception {
-        String logDir=new File("").getAbsolutePath() + File.separator + "log";
+        String logDir = new File("").getAbsolutePath() + File.separator + "log";
         String logPath = logDir + File.separator + "login.log";
         System.setProperty("logPath", logPath);
 

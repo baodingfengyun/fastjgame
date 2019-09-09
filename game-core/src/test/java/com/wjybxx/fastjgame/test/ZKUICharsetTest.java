@@ -26,6 +26,7 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * 测试ZKUI的中文是否ok
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/18 11:20
@@ -44,13 +45,13 @@ public class ZKUICharsetTest {
         Thread.sleep(5000);
     }
 
-    private static void onEvent(CuratorFramework client, TreeCacheEvent event) throws Exception{
+    private static void onEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
         ChildData childData = event.getData();
-        if (childData==null){
+        if (childData == null) {
             System.out.println(String.format("thread=%s, eventType=%s",
                     Thread.currentThread().getName(),
                     event.getType()));
-        }else {
+        } else {
             System.out.println(String.format("thread=%s, eventType=%s, path=%s, data=%s",
                     Thread.currentThread().getName(),
                     event.getType(),
@@ -59,9 +60,9 @@ public class ZKUICharsetTest {
         }
     }
 
-    private static void printChild(ChildData childData){
-        System.out.println(String.format("childData: path=%s, data=%s",childData.getPath(),
-                new String(childData.getData(),StandardCharsets.UTF_8)));
+    private static void printChild(ChildData childData) {
+        System.out.println(String.format("childData: path=%s, data=%s", childData.getPath(),
+                new String(childData.getData(), StandardCharsets.UTF_8)));
     }
 
 }

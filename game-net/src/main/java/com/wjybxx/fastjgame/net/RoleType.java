@@ -22,6 +22,7 @@ import com.wjybxx.fastjgame.utils.EnumUtils;
 
 /**
  * 用于标识会话对方的角色类型
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/4/27 10:01
@@ -103,9 +104,9 @@ public enum RoleType implements NumberEnum {
 
     private static final NumberEnumMapper<RoleType> mapper = EnumUtils.indexNumberEnum(values());
 
-    public static RoleType forNumber(int number){
+    public static RoleType forNumber(int number) {
         RoleType roleType = mapper.forNumber(number);
-        assert null!=roleType:"invalid number " + number;
+        assert null != roleType : "invalid number " + number;
         return roleType;
     }
 

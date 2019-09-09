@@ -29,29 +29,35 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class RpcRequestMessage extends NetMessage {
 
-	/** rpc请求编号，用于返回消息 */
-	private long requestGuid;
-	/** 是否是同步rpc调用，是否加急 */
-	private boolean sync;
-	/** rpc请求内容 */
-	private Object request;
+    /**
+     * rpc请求编号，用于返回消息
+     */
+    private long requestGuid;
+    /**
+     * 是否是同步rpc调用，是否加急
+     */
+    private boolean sync;
+    /**
+     * rpc请求内容
+     */
+    private Object request;
 
-	public RpcRequestMessage(long requestGuid, boolean sync, Object request) {
-		super();
-		this.requestGuid = requestGuid;
-		this.sync = sync;
-		this.request = request;
-	}
+    public RpcRequestMessage(long requestGuid, boolean sync, Object request) {
+        super();
+        this.requestGuid = requestGuid;
+        this.sync = sync;
+        this.request = request;
+    }
 
-	public long getRequestGuid() {
-		return requestGuid;
-	}
+    public long getRequestGuid() {
+        return requestGuid;
+    }
 
-	public boolean isSync() {
-		return sync;
-	}
+    public boolean isSync() {
+        return sync;
+    }
 
-	public Object getRequest() {
-		return request;
-	}
+    public Object getRequest() {
+        return request;
+    }
 }

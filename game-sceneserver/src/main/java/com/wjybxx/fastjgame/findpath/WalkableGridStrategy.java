@@ -22,7 +22,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * 可行走格子策略；
- *
+ * <p>
  * 用于实现特定类型的格子
  *
  * @author wjybxx
@@ -36,6 +36,7 @@ public interface WalkableGridStrategy {
 
     /**
      * 该遮挡值的格子是否可以走
+     *
      * @param obstacleValue 遮挡值
      * @return true/false
      */

@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.gameobject.GameObject;
 /**
  * 游戏对象进出场景接口；
  * 在Scene对象内部进行实现，因为可能涉及大量场景对象之间的交互；
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/4 19:35
@@ -30,12 +31,14 @@ public interface GameObjectInOutHandler<T extends GameObject> {
 
     /**
      * 执行游戏对象进入场景逻辑
+     *
      * @param gameObject 场景对象
      */
     void processEnterScene(T gameObject);
 
     /**
      * 执行游戏对象离开场景逻辑
+     *
      * @param gameObject 场景对象(命名为t的好处是子类实现的时候，ide生成的名字更加有意义)
      */
     void processLeaveScene(T gameObject);

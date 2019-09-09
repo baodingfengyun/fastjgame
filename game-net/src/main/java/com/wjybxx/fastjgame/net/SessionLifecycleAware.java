@@ -29,6 +29,7 @@ public interface SessionLifecycleAware {
     /**
      * 当会话第一次成功建立时调用，表示会话正式可用，只会调用一次
      * 断线重连不会触发这里
+     *
      * @param session 注册时的会话信息
      */
     void onSessionConnected(Session session);
@@ -36,6 +37,7 @@ public interface SessionLifecycleAware {
     /**
      * 当会话彻底断开连接(无法继续断线重连)时会被调用，只会调用一次
      * 只有调用过{@link #onSessionConnected(Session)}方法，才会走到该方法
+     *
      * @param session 注册时的会话信息
      */
     void onSessionDisconnected(Session session);

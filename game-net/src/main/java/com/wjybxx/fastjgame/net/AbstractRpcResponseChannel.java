@@ -20,32 +20,34 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * RpcResponseChannel的骨架实现
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/16
  * github - https://github.com/hl845740757
  */
-public abstract class AbstractRpcResponseChannel<T> implements RpcResponseChannel<T>{
+public abstract class AbstractRpcResponseChannel<T> implements RpcResponseChannel<T> {
 
-	private final AtomicBoolean writable = new AtomicBoolean(true);
+    private final AtomicBoolean writable = new AtomicBoolean(true);
 
-	@Override
-	public final void write(@Nonnull RpcResponse rpcResponse) {
-		if (writable.compareAndSet(true, false)) {
-			doWrite(rpcResponse);
-		} else {
-			throw new IllegalStateException("ResponseChannel can't be reused!");
-		}
-	}
+    @Override
+    public final void write(@Nonnull RpcResponse rpcResponse) {
+        if (writable.compareAndSet(true, false)) {
+            doWrite(rpcResponse);
+        } else {
+            throw new IllegalStateException("ResponseChannel can't be reused!");
+        }
+    }
 
-	/**
-	 * 子类真正的进行发送
-	 * @param rpcResponse rpc响应
-	 */
-	protected abstract void doWrite(RpcResponse rpcResponse);
+    /**
+     * 子类真正的进行发送
+     *
+     * @param rpcResponse rpc响应
+     */
+    protected abstract void doWrite(RpcResponse rpcResponse);
 
-	@Override
-	public final boolean isVoid() {
-		return false;
-	}
+    @Override
+    public final boolean isVoid() {
+        return false;
+    }
 }

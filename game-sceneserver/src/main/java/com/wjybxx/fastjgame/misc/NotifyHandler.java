@@ -23,6 +23,7 @@ import java.util.List;
 /**
  * 视野通知策略；
  * （来源于之前做项目时做的笔记）
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/2 22:04
@@ -31,31 +32,33 @@ import java.util.List;
 public interface NotifyHandler<T extends GameObject> {
 
     // 我要准备执行的逻辑
+
     /**
      * 通知gameObject，newVisibleGrids这些格子进入了我的视野；
      * （gameObject可能在newVisibleGrids这些格子中）
      *
-     * @param gameObject 游戏对象
+     * @param gameObject      游戏对象
      * @param newVisibleGrids gameObject当前能看见的新格子
      *                        视野视野list的原因是为了减少构建的消息数；
      */
     void notifyGameObjectOthersIn(T gameObject, List<ViewGrid> newVisibleGrids);
-    
+
     /**
      * 通知gameObject，range这些格子离开了我的视野；
      *
      * @param gameObject 游戏对象
-     * @param range gameObject离开了这些格子
-     *              视野视野list的原因是为了减少构建的消息数；
+     * @param range      gameObject离开了这些格子
+     *                   视野视野list的原因是为了减少构建的消息数；
      */
-    void notifyGameObjectOthersOut(T gameObject,List<ViewGrid> range);
+    void notifyGameObjectOthersOut(T gameObject, List<ViewGrid> range);
 
     // 其他人要执行的逻辑
+
     /**
      * 通知(range)这些格子里的对象，有一个gameObject进入了它们的视野格子
      * （gameObject可能在newVisibleGrids这些格子中）
      *
-     * @param range 视野格子
+     * @param range      视野格子
      * @param gameObject 进入这些视野格子的对象
      *                   视野视野list的原因是为了减少构建的消息数；
      */
@@ -64,7 +67,7 @@ public interface NotifyHandler<T extends GameObject> {
     /**
      * 通知(range)这些格子里的对象，有一个gameObject离开了它们的视野格子
      *
-     * @param range 视野格子
+     * @param range      视野格子
      * @param gameObject 离开这些视野格子的对象
      *                   视野视野list的原因是为了减少构建的消息数；
      */

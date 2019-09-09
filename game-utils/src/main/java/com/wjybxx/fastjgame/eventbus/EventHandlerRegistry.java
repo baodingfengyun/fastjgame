@@ -20,6 +20,7 @@ import javax.annotation.Nonnull;
 
 /**
  * 事件处理器注册表
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/27
@@ -27,19 +28,19 @@ import javax.annotation.Nonnull;
  */
 public interface EventHandlerRegistry {
 
-	/**
-	 * 注册一个事件的观察者，正常情况下，该方法由生成的代码调用。
-	 * 当然也可以手动注册一些事件，即不使用注解。
-	 *
-	 * @param eventType 关注的事件类型
-	 * @param handler 事件处理器
-	 * @param <T> 事件的类型
-	 */
-	<T> void register(@Nonnull Class<T> eventType, @Nonnull EventHandler<T> handler);
+    /**
+     * 注册一个事件的观察者，正常情况下，该方法由生成的代码调用。
+     * 当然也可以手动注册一些事件，即不使用注解。
+     *
+     * @param eventType 关注的事件类型
+     * @param handler   事件处理器
+     * @param <T>       事件的类型
+     */
+    <T> void register(@Nonnull Class<T> eventType, @Nonnull EventHandler<T> handler);
 
-	/**
-	 * 释放所有的资源，因为{@link #register(Class, EventHandler)}会捕获太多对象，当不再使用{@link EventHandlerRegistry}时，
-	 * 手动的释放，避免因为registry对象存在导致内存泄漏。
-	 */
-	void release();
+    /**
+     * 释放所有的资源，因为{@link #register(Class, EventHandler)}会捕获太多对象，当不再使用{@link EventHandlerRegistry}时，
+     * 手动的释放，避免因为registry对象存在导致内存泄漏。
+     */
+    void release();
 }

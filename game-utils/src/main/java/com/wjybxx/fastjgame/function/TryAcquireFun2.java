@@ -28,7 +28,7 @@ public interface TryAcquireFun2 {
     /**
      * 尝试申请资源
      *
-     * @return 成功则返回true,否则返回false
+     * @return 成功则返回true, 否则返回false
      */
     boolean tryAcquire();
 }

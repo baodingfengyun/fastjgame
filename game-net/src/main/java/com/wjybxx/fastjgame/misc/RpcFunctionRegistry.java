@@ -20,6 +20,7 @@ import javax.annotation.Nonnull;
 
 /**
  * Rpc调用函数注册表，本质是发布订阅/观察者的一种
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/21
@@ -27,16 +28,17 @@ import javax.annotation.Nonnull;
  */
 public interface RpcFunctionRegistry {
 
-	/**
-	 * 注册一个rpc请求处理函数
-	 * @param methodKey 方法唯一键
-	 * @param function 处理函数，该函数由代理代码生成工具自动生成，当然你也可以闲得蛋疼自己写。
-	 */
-	void register(int methodKey, @Nonnull RpcFunction function);
+    /**
+     * 注册一个rpc请求处理函数
+     *
+     * @param methodKey 方法唯一键
+     * @param function  处理函数，该函数由代理代码生成工具自动生成，当然你也可以闲得蛋疼自己写。
+     */
+    void register(int methodKey, @Nonnull RpcFunction function);
 
-	/**
-	 * 释放所有的资源，因为{@link #register(int, RpcFunction)}会捕获太多对象，当不再使用{@link RpcFunctionRegistry}时，
-	 * 手动的释放，避免因为registry对象存在导致内存泄漏。
-	 */
-	void release();
+    /**
+     * 释放所有的资源，因为{@link #register(int, RpcFunction)}会捕获太多对象，当不再使用{@link RpcFunctionRegistry}时，
+     * 手动的释放，避免因为registry对象存在导致内存泄漏。
+     */
+    void release();
 }

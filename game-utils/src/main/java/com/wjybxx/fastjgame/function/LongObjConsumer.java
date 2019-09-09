@@ -31,6 +31,9 @@ public interface LongObjConsumer<V> {
 
     default LongObjConsumer<V> andThen(LongObjConsumer<? super V> after) {
         Objects.requireNonNull(after);
-        return (k, v) -> { accept(k, v); after.accept(k, v); };
+        return (k, v) -> {
+            accept(k, v);
+            after.accept(k, v);
+        };
     }
 }

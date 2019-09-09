@@ -26,6 +26,7 @@ import java.util.Set;
 
 /**
  * http请求参数
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/27
@@ -34,45 +35,45 @@ import java.util.Set;
 @Immutable
 public class HttpRequestParam extends Params {
 
-	/**
-	 * 请求类型
-	 */
-	private final HttpMethod method;
-	/**
-	 * 请求参数
-	 * name -> value
-	 * (post也是如此)
-	 */
-	private final Map<String,String> params;
+    /**
+     * 请求类型
+     */
+    private final HttpMethod method;
+    /**
+     * 请求参数
+     * name -> value
+     * (post也是如此)
+     */
+    private final Map<String, String> params;
 
-	public HttpRequestParam(HttpMethod method, Map<String, String> params) {
-		this.method = method;
-		this.params = Collections.unmodifiableMap(params);
-	}
+    public HttpRequestParam(HttpMethod method, Map<String, String> params) {
+        this.method = method;
+        this.params = Collections.unmodifiableMap(params);
+    }
 
-	@Override
-	public Set<String> keys() {
-		return params.keySet();
-	}
+    @Override
+    public Set<String> keys() {
+        return params.keySet();
+    }
 
-	@Override
-	public String getAsString(String key) {
-		return params.get(key);
-	}
+    @Override
+    public String getAsString(String key) {
+        return params.get(key);
+    }
 
-	public HttpMethod getMethod() {
-		return method;
-	}
+    public HttpMethod getMethod() {
+        return method;
+    }
 
-	public Map<String, String> getParams() {
-		return params;
-	}
+    public Map<String, String> getParams() {
+        return params;
+    }
 
-	@Override
-	public String toString() {
-		return "HttpRequestParam{" +
-				"method=" + method +
-				", params=" + params +
-				'}';
-	}
+    @Override
+    public String toString() {
+        return "HttpRequestParam{" +
+                "method=" + method +
+                ", params=" + params +
+                '}';
+    }
 }

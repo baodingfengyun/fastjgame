@@ -57,6 +57,7 @@ public abstract class WorldInfoMrg {
      * 在启动world线程之前会调用初始化方法。
      * 子类还可以新增自定义的初始化方法，只要在启动world之前执行就是ok的。
      * (保证逻辑线程及后续线程的可见性)
+     *
      * @throws Exception 允许抛出异常
      */
     public void init(ConfigWrapper startArgs) throws Exception {
@@ -66,6 +67,7 @@ public abstract class WorldInfoMrg {
 
     /**
      * 子类自身的初始化工作
+     *
      * @param startArgs 启动参数，可能需要
      * @throws Exception 允许启动前的初始化抛出异常
      */

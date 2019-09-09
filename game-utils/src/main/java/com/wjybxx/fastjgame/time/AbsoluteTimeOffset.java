@@ -21,7 +21,7 @@ import com.wjybxx.fastjgame.utils.TimeUtils;
 
 /**
  * 绝对时间偏移量。
- *
+ * <p>
  * 配置格式{@link TimeUtils#DEFAULT_PATTERN}
  * yyyy-MM-dd HH:mm:ss
  *
@@ -30,33 +30,34 @@ import com.wjybxx.fastjgame.utils.TimeUtils;
  * date - 2019/7/7 22:50
  * github - https://github.com/hl845740757
  */
-public class AbsoluteTimeOffset implements TimeOffset{
+public class AbsoluteTimeOffset implements TimeOffset {
 
-	private long offset;
+    private long offset;
 
-	public AbsoluteTimeOffset(long offset) {
-		this.offset = offset;
-	}
+    public AbsoluteTimeOffset(long offset) {
+        this.offset = offset;
+    }
 
-	@Override
-	public long toOffset() {
-		return offset;
-	}
+    @Override
+    public long toOffset() {
+        return offset;
+    }
 
-	@Override
-	public String toString() {
-		return "AbsoluteTimeOffset{" +
-				"offset=" + offset +
-				'}';
-	}
+    @Override
+    public String toString() {
+        return "AbsoluteTimeOffset{" +
+                "offset=" + offset +
+                '}';
+    }
 
-	/**
-	 * 从配置表中解析
-	 * @param confParam 格式 yyyy-MM-dd HH:mm:ss
-	 * @return AbsoluteTimeOffset
-	 */
-	public static AbsoluteTimeOffset parseFromConf(String confParam){
-		long curMillTime = TimeUtils.parseMillTime(confParam);
-		return new AbsoluteTimeOffset(curMillTime);
-	}
+    /**
+     * 从配置表中解析
+     *
+     * @param confParam 格式 yyyy-MM-dd HH:mm:ss
+     * @return AbsoluteTimeOffset
+     */
+    public static AbsoluteTimeOffset parseFromConf(String confParam) {
+        long curMillTime = TimeUtils.parseMillTime(confParam);
+        return new AbsoluteTimeOffset(curMillTime);
+    }
 }

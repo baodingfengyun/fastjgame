@@ -31,6 +31,7 @@ import java.io.File;
 
 /**
  * 测试节点快速的删除再创建 是否会产生update事件
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/19 10:21
@@ -39,29 +40,29 @@ import java.io.File;
 public class UpdateEventTest {
 
     public static void main(String[] args) throws Exception {
-        String logDir=new File("").getAbsolutePath() + File.separator + "log";
+        String logDir = new File("").getAbsolutePath() + File.separator + "log";
         String logPath = logDir + File.separator + "updater.log";
         System.setProperty("logPath", logPath);
 
-        Injector injector= Guice.createInjector(new WorldGroupModule(), new CenterModule());
-        CuratorMrg curatorMrg=injector.getInstance(CuratorMrg.class);
+        Injector injector = Guice.createInjector(new WorldGroupModule(), new CenterModule());
+        CuratorMrg curatorMrg = injector.getInstance(CuratorMrg.class);
 
         // 注册到zk
-        String parentPath= ZKPathUtils.onlineParentPath(1);
+        String parentPath = ZKPathUtils.onlineParentPath(1);
 
         final String pathA = ZKPaths.makePath(parentPath, "a");
         final String pathB = ZKPaths.makePath(parentPath, "b");
 
-        IntSequencer intSequencer=new IntSequencer(0);
+        IntSequencer intSequencer = new IntSequencer(0);
 
-        while (intSequencer.get()<1000){
+        while (intSequencer.get() < 1000) {
             byte[] data = GameUtils.serializeToStringBytes(intSequencer.incAndGet());
 
             curatorMrg.delete(pathA);
-            curatorMrg.createNodeIfAbsent(pathA, CreateMode.EPHEMERAL,data);
+            curatorMrg.createNodeIfAbsent(pathA, CreateMode.EPHEMERAL, data);
 
             curatorMrg.delete(pathB);
-            curatorMrg.createNodeIfAbsent(pathB, CreateMode.EPHEMERAL,data);
+            curatorMrg.createNodeIfAbsent(pathB, CreateMode.EPHEMERAL, data);
             Thread.sleep(50);
         }
     }

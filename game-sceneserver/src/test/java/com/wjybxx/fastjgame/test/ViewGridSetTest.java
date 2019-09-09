@@ -27,7 +27,7 @@ import com.wjybxx.fastjgame.misc.ViewGridSet;
 public class ViewGridSetTest {
 
     public static void main(String[] args) {
-        ViewGridSet viewGridSet = new ViewGridSet(8000,10000,600);
+        ViewGridSet viewGridSet = new ViewGridSet(8000, 10000, 600);
         System.out.println(viewGridSet);
     }
 

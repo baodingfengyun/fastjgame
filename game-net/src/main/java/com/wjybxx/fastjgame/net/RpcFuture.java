@@ -29,48 +29,46 @@ import java.util.concurrent.TimeoutException;
  * 注意：在该Future上<b>主动获取结果</b>会打乱对方发送的消息之间的处理时序，你必须清除它可能带来的影响，否则不要轻易的主动获取结果！
  * 方法：{@link #get()}{@link #get(long, TimeUnit)} {@link #getNow()}
  *
- * @apiNote
- * Rpc请求具有时效性，因此{@link #get()},{@link #await()}系列方法，不会无限阻塞，都会在超时时间到达后醒来。
- *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/3
  * github - https://github.com/hl845740757
+ * @apiNote Rpc请求具有时效性，因此{@link #get()},{@link #await()}系列方法，不会无限阻塞，都会在超时时间到达后醒来。
  */
 public interface RpcFuture extends ListenableFuture<RpcResponse> {
 
-	/**
-	 * 添加rpc调用回调，默认执行在发起rpc调用的用户所在的线程。
-	 *
-	 * @param rpcCallback rpc回调逻辑
-	 */
-	void addCallback(RpcCallback rpcCallback);
+    /**
+     * 添加rpc调用回调，默认执行在发起rpc调用的用户所在的线程。
+     *
+     * @param rpcCallback rpc回调逻辑
+     */
+    void addCallback(RpcCallback rpcCallback);
 
-	/**
-	 * 添加rpc调用回调，并指定运行环境。
-	 *
-	 * @param rpcCallback rpc回调逻辑
-	 * @param eventLoop rpc回调的执行环境
-	 */
-	void addCallback(RpcCallback rpcCallback, EventLoop eventLoop);
+    /**
+     * 添加rpc调用回调，并指定运行环境。
+     *
+     * @param rpcCallback rpc回调逻辑
+     * @param eventLoop   rpc回调的执行环境
+     */
+    void addCallback(RpcCallback rpcCallback, EventLoop eventLoop);
 
-	// 1. RPCFuture上不会有执行失败异常，通过错误码来表示
-	// 2. 在RpcFuture上不会无限阻塞，一定会在超时时间到了之后就醒来
-	@Override
-	RpcResponse get() throws InterruptedException;
+    // 1. RPCFuture上不会有执行失败异常，通过错误码来表示
+    // 2. 在RpcFuture上不会无限阻塞，一定会在超时时间到了之后就醒来
+    @Override
+    RpcResponse get() throws InterruptedException;
 
-	@Override
-	RpcResponse get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException;
+    @Override
+    RpcResponse get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException;
 
-	@Override
-	void await() throws InterruptedException;
+    @Override
+    void await() throws InterruptedException;
 
-	@Override
-	void awaitUninterruptibly();
+    @Override
+    void awaitUninterruptibly();
 
-	@Override
-	boolean await(long timeout, TimeUnit unit) throws InterruptedException;
+    @Override
+    boolean await(long timeout, TimeUnit unit) throws InterruptedException;
 
-	@Override
-	boolean awaitUninterruptibly(long timeout, TimeUnit unit);
+    @Override
+    boolean awaitUninterruptibly(long timeout, TimeUnit unit);
 }

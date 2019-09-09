@@ -20,17 +20,19 @@ import com.wjybxx.fastjgame.findpath.DiagonalMovement;
 
 /**
  * 只要对角线非遮挡，总是允许走对角线
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/16 17:27
  * github - https://github.com/hl845740757
  */
-public class AlwaysDiagonalJumStrategy extends DiagonalJumStrategy{
+public class AlwaysDiagonalJumStrategy extends DiagonalJumStrategy {
 
     /**
      * 对角线非遮挡时，总是允许对角线移动
+     *
      * @param horizontalWalkable 水平方向是否可行走
-     * @param verticalWalkable 垂直方向是否可行走
+     * @param verticalWalkable   垂直方向是否可行走
      * @return
      */
     @Override

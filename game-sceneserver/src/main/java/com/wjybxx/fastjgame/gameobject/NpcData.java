@@ -24,6 +24,7 @@ import javax.annotation.Nonnull;
 
 /**
  * npc的与场景无关的数据
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/23 0:24
@@ -49,7 +50,7 @@ public class NpcData extends GameObjectData {
         return config;
     }
 
-    public int getNpcId(){
+    public int getNpcId() {
         return config.npcId;
     }
 }

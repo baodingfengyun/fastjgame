@@ -28,12 +28,13 @@ import javax.annotation.Nonnull;
 /**
  * 玩家对象，也是机器人对象；
  * 暂时先直接继承GameObject；
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/4 16:58
  * github - https://github.com/hl845740757
  */
-public class Player extends GameObject<PlayerData>{
+public class Player extends GameObject<PlayerData> {
 
     /**
      * player的一些与场景无关的数据

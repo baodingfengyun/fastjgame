@@ -30,11 +30,11 @@ public interface ShortObjPredicate<V> {
 
     default ShortObjPredicate<V> and(ShortObjPredicate<? super V> other) {
         Objects.requireNonNull(other);
-        return (k,v) -> test(k,v) && other.test(k,v);
+        return (k, v) -> test(k, v) && other.test(k, v);
     }
 
     default ShortObjPredicate<V> or(ShortObjPredicate<? super V> other) {
         Objects.requireNonNull(other);
-        return (k,v) -> test(k,v) || other.test(k,v);
+        return (k, v) -> test(k, v) || other.test(k, v);
     }
 }

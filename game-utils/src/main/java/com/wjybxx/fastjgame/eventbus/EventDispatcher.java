@@ -20,6 +20,7 @@ import javax.annotation.Nonnull;
 
 /**
  * 事件分发器
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/27
@@ -27,9 +28,10 @@ import javax.annotation.Nonnull;
  */
 public interface EventDispatcher {
 
-	/**
-	 * 发布一个事件
-	 * @param event 要发布的事件
-	 */
-	<T> void post(@Nonnull T event);
+    /**
+     * 发布一个事件
+     *
+     * @param event 要发布的事件
+     */
+    <T> void post(@Nonnull T event);
 }

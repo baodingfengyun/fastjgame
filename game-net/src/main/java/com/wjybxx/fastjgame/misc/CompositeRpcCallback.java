@@ -26,6 +26,7 @@ import java.util.List;
 
 /**
  * 为多个RpcCallback提供一个单一的视图。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/19
@@ -33,64 +34,68 @@ import java.util.List;
  */
 public final class CompositeRpcCallback<V> implements RpcCallback {
 
-	private static final Logger logger = LoggerFactory.getLogger(CompositeRpcCallback.class);
-	/**
-	 * 该节点管理的所有子节点。使用linkedList是因为rpcCallback是不会复用的。
-	 */
-	private final List<RpcCallback> children = new LinkedList<>();
+    private static final Logger logger = LoggerFactory.getLogger(CompositeRpcCallback.class);
+    /**
+     * 该节点管理的所有子节点。使用linkedList是因为rpcCallback是不会复用的。
+     */
+    private final List<RpcCallback> children = new LinkedList<>();
 
-	public CompositeRpcCallback() {
+    public CompositeRpcCallback() {
 
-	}
+    }
 
-	public CompositeRpcCallback(RpcCallback first, RpcCallback second) {
-		children.add(first);
-		children.add(second);
-	}
+    public CompositeRpcCallback(RpcCallback first, RpcCallback second) {
+        children.add(first);
+        children.add(second);
+    }
 
-	@Override
-	public void onComplete(RpcResponse rpcResponse) {
-		for (RpcCallback rpcCallback : children) {
-			try {
-				rpcCallback.onComplete(rpcResponse);
-			} catch (Exception e){
-				logger.warn("Child {} callback caught exception!", rpcCallback.getClass().getName(), e);
-			}
-		}
-	}
+    @Override
+    public void onComplete(RpcResponse rpcResponse) {
+        for (RpcCallback rpcCallback : children) {
+            try {
+                rpcCallback.onComplete(rpcResponse);
+            } catch (Exception e) {
+                logger.warn("Child {} callback caught exception!", rpcCallback.getClass().getName(), e);
+            }
+        }
+    }
 
-	/**
-	 * 只有成功才执行该方法
-	 * @return this
-	 */
-	public CompositeRpcCallback<V> ifSuccess(SucceedRpcCallback<V> rpcCallback) {
-		children.add(rpcCallback);
-		return this;
-	}
+    /**
+     * 只有成功才执行该方法
+     *
+     * @return this
+     */
+    public CompositeRpcCallback<V> ifSuccess(SucceedRpcCallback<V> rpcCallback) {
+        children.add(rpcCallback);
+        return this;
+    }
 
-	/**
-	 * 只有失败才执行该方法
-	 * @return this
-	 */
-	public CompositeRpcCallback<V> ifFailure(FailedRpcCallback rpcCallback) {
-		children.add(rpcCallback);
-		return this;
-	}
+    /**
+     * 只有失败才执行该方法
+     *
+     * @return this
+     */
+    public CompositeRpcCallback<V> ifFailure(FailedRpcCallback rpcCallback) {
+        children.add(rpcCallback);
+        return this;
+    }
 
-	/**
-	 * 无论成功失败都会执行该方法
-	 * @return this
-	 */
-	public CompositeRpcCallback<V> any(RpcCallback rpcCallback) {
-		children.add(rpcCallback);
-		return this;
-	}
+    /**
+     * 无论成功失败都会执行该方法
+     *
+     * @return this
+     */
+    public CompositeRpcCallback<V> any(RpcCallback rpcCallback) {
+        children.add(rpcCallback);
+        return this;
+    }
 
-	/**
-	 * 删除第一个匹配的回调
-	 * @param callback 回调
-	 */
-	public boolean remove(RpcCallback callback) {
-		return children.remove(callback);
-	}
+    /**
+     * 删除第一个匹配的回调
+     *
+     * @param callback 回调
+     */
+    public boolean remove(RpcCallback callback) {
+        return children.remove(callback);
+    }
 }

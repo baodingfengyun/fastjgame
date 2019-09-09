@@ -29,12 +29,14 @@ public interface Point<T extends Point<T>> {
 
     /**
      * 将自己的坐标修改为和参数坐标点一致
+     *
      * @param anotherPoint 另一个与自己同类型的坐标点
      */
     void updateLocation(T anotherPoint);
 
     /**
      * 保存一个当前坐标的快照
+     *
      * @return an snapshot
      */
     T unmodifiable();

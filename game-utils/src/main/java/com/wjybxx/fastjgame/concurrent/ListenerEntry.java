@@ -22,6 +22,7 @@ import javax.annotation.Nullable;
 /**
  * 单个监听器的执行信息.
  * POJO
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/7/14 15:10

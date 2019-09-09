@@ -29,30 +29,35 @@ import com.wjybxx.fastjgame.utils.TimeUtils;
  */
 public class TimeRange {
 
-	/** 开始时间 （INCLUSIVE）*/
-	public final long startTime;
-	/** 结束时间 （inclusive） */
-	public final long endTime;
+    /**
+     * 开始时间 （INCLUSIVE）
+     */
+    public final long startTime;
+    /**
+     * 结束时间 （inclusive）
+     */
+    public final long endTime;
 
-	public TimeRange(long startTime, long endTime) {
-		this.startTime = startTime;
-		this.endTime = endTime;
-	}
+    public TimeRange(long startTime, long endTime) {
+        this.startTime = startTime;
+        this.endTime = endTime;
+    }
 
-	/**
-	 * 指定时间是否在该时间段内
-	 * @param curTimeMs 某个瞬时时间
-	 * @return true/false
-	 */
-	public boolean isBetweenTimeRange(long curTimeMs) {
-		return curTimeMs >= startTime && curTimeMs <= endTime;
-	}
+    /**
+     * 指定时间是否在该时间段内
+     *
+     * @param curTimeMs 某个瞬时时间
+     * @return true/false
+     */
+    public boolean isBetweenTimeRange(long curTimeMs) {
+        return curTimeMs >= startTime && curTimeMs <= endTime;
+    }
 
-	@Override
-	public String toString() {
-		return "TimeRange{" +
-				"startTime=" + startTime + " =" + TimeUtils.formatTime(startTime) +
-				", endTime=" + endTime + " =" + TimeUtils.formatTime(endTime) +
-				'}';
-	}
+    @Override
+    public String toString() {
+        return "TimeRange{" +
+                "startTime=" + startTime + " =" + TimeUtils.formatTime(startTime) +
+                ", endTime=" + endTime + " =" + TimeUtils.formatTime(endTime) +
+                '}';
+    }
 }

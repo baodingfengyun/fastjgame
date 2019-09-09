@@ -28,6 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * 作为http服务器时的channel初始化器
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/4/28 22:13
@@ -36,7 +37,9 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
 
-    /** 是哪一个用户在监听 */
+    /**
+     * 是哪一个用户在监听
+     */
     private final long localGuid;
     private final NetEventManager netEventManager;
 

@@ -32,6 +32,7 @@ import org.apache.zookeeper.CreateMode;
 
 /**
  * 登录服World
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/17 20:11
@@ -75,15 +76,15 @@ public class LoginWorld extends AbstractWorld {
         HostAndPort outerHttpAddress = netContext.bind(NetUtils.getOuterIp(), loginWorldInfoMrg.getPort(),
                 netContext.newHttpServerInitializer(), httpDispatcherMrg).get();
 
-        String parentPath= ZKPathUtils.onlineRootPath();
-        String nodeName = ZKPathUtils.buildLoginNodeName(loginWorldInfoMrg.getPort(),loginWorldInfoMrg.getWorldGuid());
+        String parentPath = ZKPathUtils.onlineRootPath();
+        String nodeName = ZKPathUtils.buildLoginNodeName(loginWorldInfoMrg.getPort(), loginWorldInfoMrg.getWorldGuid());
 
         LoginNodeData loginNodeData = new LoginNodeData(innerHttpAddress.toString(),
                 outerHttpAddress.toString());
 
         final String path = ZKPaths.makePath(parentPath, nodeName);
         final byte[] initData = JsonUtils.toJsonBytes(loginNodeData);
-        curatorMrg.createNode(path, CreateMode.EPHEMERAL,initData);
+        curatorMrg.createNode(path, CreateMode.EPHEMERAL, initData);
     }
 
     @Override

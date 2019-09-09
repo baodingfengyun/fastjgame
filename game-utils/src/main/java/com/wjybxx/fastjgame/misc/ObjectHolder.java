@@ -17,6 +17,7 @@ package com.wjybxx.fastjgame.misc;
 
 /**
  * 引用类型实例持有者，在lambda表达式中使用
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/14 16:03

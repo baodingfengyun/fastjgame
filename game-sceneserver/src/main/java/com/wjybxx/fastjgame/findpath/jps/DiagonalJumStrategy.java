@@ -24,12 +24,13 @@ import static com.wjybxx.fastjgame.findpath.FindPathUtils.addNeighborIfWalkable;
 
 /**
  * 遇见拐点可对角线拐的策略，可对角线进行跳跃的跳跃的策略。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/16 21:52
  * github - https://github.com/hl845740757
  */
-public abstract class DiagonalJumStrategy extends JumpStrategy{
+public abstract class DiagonalJumStrategy extends JumpStrategy {
 
     // --------------------------------查找邻居------------------------------
     @Override
@@ -39,7 +40,7 @@ public abstract class DiagonalJumStrategy extends JumpStrategy{
         // 垂直方向邻居
         boolean verticalWalkable = addNeighborIfWalkable(context, x, y + dy, neighbors);
         // 对角线邻居
-        if (allowMovingAlongDiagonal(horizontalWalkable, verticalWalkable)){
+        if (allowMovingAlongDiagonal(horizontalWalkable, verticalWalkable)) {
             addNeighborIfWalkable(context, x + dx, y + dy, neighbors);
         }
         // 左上强迫邻居
@@ -54,8 +55,9 @@ public abstract class DiagonalJumStrategy extends JumpStrategy{
 
     /**
      * 对角线非遮挡时，是否允许对角线移动
+     *
      * @param horizontalWalkable 水平方向是否可行走
-     * @param verticalWalkable 垂直方向是否可行走
+     * @param verticalWalkable   垂直方向是否可行走
      * @return true/false
      */
     protected abstract boolean allowMovingAlongDiagonal(boolean horizontalWalkable, boolean verticalWalkable);
@@ -80,10 +82,10 @@ public abstract class DiagonalJumStrategy extends JumpStrategy{
      * </pre>
      *
      * @param context 寻路上下文
-     * @param x 当前格子x坐标
-     * @param y 当前格子y坐标
-     * @param dx deltaX x增量
-     * @param dy deltaY y增量
+     * @param x       当前格子x坐标
+     * @param y       当前格子y坐标
+     * @param dx      deltaX x增量
+     * @param dy      deltaY y增量
      * @return
      */
     private boolean dContainsLeftUpperForceNeighbor(JPSFindPathContext context, int x, int y, int dx, int dy) {
@@ -110,11 +112,12 @@ public abstract class DiagonalJumStrategy extends JumpStrategy{
      *     ?：unknown
      *     I: ignore
      * </pre>
+     *
      * @param context 寻路上下文
-     * @param x 当前格子x坐标
-     * @param y 当前格子y坐标
-     * @param dx deltaX x增量
-     * @param dy deltaY y增量
+     * @param x       当前格子x坐标
+     * @param y       当前格子y坐标
+     * @param dx      deltaX x增量
+     * @param dy      deltaY y增量
      */
     private boolean dContainsRightLowerForceNeighbor(JPSFindPathContext context, int x, int y, int dx, int dy) {
         // 右下强迫邻居
@@ -129,11 +132,11 @@ public abstract class DiagonalJumStrategy extends JumpStrategy{
         // 水平方向邻居
         addNeighborIfWalkable(context, x + dx, y, neighbors);
         // 右上强迫邻居
-        if (hContainsRightUpperForceNeighbor(context, x, y, dx)){
+        if (hContainsRightUpperForceNeighbor(context, x, y, dx)) {
             neighbors.add(context.getGrid(x + dx, y + 1));
         }
         // 右下强迫邻居
-        if (hContainsRightLowerForceNeighbor(context, x, y, dx)){
+        if (hContainsRightLowerForceNeighbor(context, x, y, dx)) {
             neighbors.add(context.getGrid(x + dx, y - 1));
         }
     }
@@ -156,10 +159,11 @@ public abstract class DiagonalJumStrategy extends JumpStrategy{
      *     ?：unknown
      *     I: ignore
      * </pre>
-     *  @param context 寻路上下文
-     * @param x 当前格子x坐标
-     * @param y 当前格子y坐标
-     * @param dx deltaX x增量
+     *
+     * @param context 寻路上下文
+     * @param x       当前格子x坐标
+     * @param y       当前格子y坐标
+     * @param dx      deltaX x增量
      */
     private boolean hContainsRightUpperForceNeighbor(JPSFindPathContext context, int x, int y, int dx) {
         // 上方不可行走，但是斜上方可行走，如果可走对角线的话，则当前节点是跳点(拐点)
@@ -186,16 +190,17 @@ public abstract class DiagonalJumStrategy extends JumpStrategy{
      *     ?：unknown
      *     I: ignore
      * </pre>
+     *
      * @param context 寻路上下文
-     * @param x 当前格子x坐标
-     * @param y 当前格子y坐标
-     * @param dx deltaX x增量
+     * @param x       当前格子x坐标
+     * @param y       当前格子y坐标
+     * @param dx      deltaX x增量
      */
     private boolean hContainsRightLowerForceNeighbor(JPSFindPathContext context, int x, int y, int dx) {
         // 下方不可行走，但是斜下方可行走，如果对角线可行走的话，则当前节点是跳点(拐点)
         return !context.isWalkable(x, y - 1) &&
                 context.isWalkable(x + dx, y - 1) &&
-                allowMovingAlongDiagonal(context.isWalkable(x + dx, y),false);
+                allowMovingAlongDiagonal(context.isWalkable(x + dx, y), false);
     }
 
     @Override
@@ -203,11 +208,11 @@ public abstract class DiagonalJumStrategy extends JumpStrategy{
         // 垂直方向邻居
         addNeighborIfWalkable(context, x, y + dy, neighbors);
         // 左上强迫邻居
-        if (vContainsLeftUpperForceNeighbor(context, x, y, dy)){
+        if (vContainsLeftUpperForceNeighbor(context, x, y, dy)) {
             neighbors.add(context.getGrid(x - 1, y + dy));
         }
         // 右上强迫邻居
-        if (vContainsRightUpperForceNeighbor(context, x, y, dy)){
+        if (vContainsRightUpperForceNeighbor(context, x, y, dy)) {
             neighbors.add(context.getGrid(x + 1, y + dy));
         }
     }
@@ -230,10 +235,11 @@ public abstract class DiagonalJumStrategy extends JumpStrategy{
      *     ?：unknown
      *     I: ignore
      * </pre>
-     *  @param context 寻路上下文
-     * @param x 当前格子x坐标
-     * @param y 当前格子y坐标
-     * @param dy deltaY y增量
+     *
+     * @param context 寻路上下文
+     * @param x       当前格子x坐标
+     * @param y       当前格子y坐标
+     * @param dy      deltaY y增量
      */
     private boolean vContainsLeftUpperForceNeighbor(JPSFindPathContext context, int x, int y, int dy) {
         // 左方不可行走，但是左下方可行走，如果该对角线方向可行走的话，则当前节点是跳点(拐点)
@@ -261,10 +267,11 @@ public abstract class DiagonalJumStrategy extends JumpStrategy{
      *     ?：unknown
      *     I: ignore
      * </pre>
-     *  @param context 寻路上下文
-     * @param x 当前格子x坐标
-     * @param y 当前格子y坐标
-     * @param dy deltaY y增量
+     *
+     * @param context 寻路上下文
+     * @param x       当前格子x坐标
+     * @param y       当前格子y坐标
+     * @param dy      deltaY y增量
      */
     private boolean vContainsRightUpperForceNeighbor(JPSFindPathContext context, int x, int y, int dy) {
         // 右方不可行走，但是右上方可行走，如果该对角线方向可行走的话，则当前节点是跳点(拐点)
@@ -277,10 +284,10 @@ public abstract class DiagonalJumStrategy extends JumpStrategy{
 
     @Override
     protected MapGrid diagonalJump(JPSFindPathContext context, int startX, int startY, int dx, int dy) {
-        for (int currentX = startX, currentY = startY; ; currentX+=dx, currentY+=dy){
+        for (int currentX = startX, currentY = startY; ; currentX += dx, currentY += dy) {
             // 当前节点为目标节点
             // 如果点y是起点或目标点，则y是跳点
-            if (context.isEndGrid(currentX, currentY)){
+            if (context.isEndGrid(currentX, currentY)) {
                 return context.endGrid;
             }
             // 如果点n是x的邻居，并且点n的邻居有阻挡（不可行走的格子），
@@ -288,7 +295,7 @@ public abstract class DiagonalJumStrategy extends JumpStrategy{
             // 其中parent(x)为路径中x的前一个点，则n为x的强迫邻居，x为n的跳点）
 
             if (dContainsLeftUpperForceNeighbor(context, currentX, currentY, dx, dy) ||
-                    dContainsRightLowerForceNeighbor(context, currentX, currentY, dx, dy) ){
+                    dContainsRightLowerForceNeighbor(context, currentX, currentY, dx, dy)) {
                 return context.getGrid(currentX, currentY);
             }
 
@@ -315,9 +322,9 @@ public abstract class DiagonalJumStrategy extends JumpStrategy{
     @Override
     protected MapGrid horizontalJump(JPSFindPathContext context, int startX, int currentY, int dx) {
         // 水平移动
-        for (int currentX=startX; ; currentX+=dx){
+        for (int currentX = startX; ; currentX += dx) {
             // 当前节点为目标节点
-            if (context.isEndGrid(currentX, currentY)){
+            if (context.isEndGrid(currentX, currentY)) {
                 return context.endGrid;
             }
             // 是否是跳点（是否包含强迫邻居）
@@ -334,9 +341,9 @@ public abstract class DiagonalJumStrategy extends JumpStrategy{
 
     @Override
     protected MapGrid verticalJump(JPSFindPathContext context, int currentX, int startY, int dy) {
-        for (int currentY = startY; ; currentY += dy){
+        for (int currentY = startY; ; currentY += dy) {
             // 当前节点为目标节点
-            if (context.isEndGrid(currentX, currentY)){
+            if (context.isEndGrid(currentX, currentY)) {
                 return context.endGrid;
             }
             // 是否是跳点（是否包含强迫邻居）

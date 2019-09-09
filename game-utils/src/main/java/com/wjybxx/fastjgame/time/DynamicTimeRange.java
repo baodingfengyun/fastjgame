@@ -30,35 +30,39 @@ package com.wjybxx.fastjgame.time;
  */
 public interface DynamicTimeRange {
 
-	/**
-	 * 当前是否在有效时间段内
-	 * @param curTimeMs 特定瞬时时间
-	 * @return 当前处于时间段内返回true，否则返回false。
-	 */
-	default boolean isBetweenTimeRange(long curTimeMs) {
-		return null != triggeringTimeRange(curTimeMs);
-	}
+    /**
+     * 当前是否在有效时间段内
+     *
+     * @param curTimeMs 特定瞬时时间
+     * @return 当前处于时间段内返回true，否则返回false。
+     */
+    default boolean isBetweenTimeRange(long curTimeMs) {
+        return null != triggeringTimeRange(curTimeMs);
+    }
 
-	/**
-	 * 获取指定时间戳触发的时间段。
-	 * 如果返回null，你可能需要{@link #nextTriggerTimeRange(long)}
-	 * @param timeMs 毫秒时间戳
-	 * @return TimeRange nullable
-	 */
-	TimeRange triggeringTimeRange(long timeMs);
+    /**
+     * 获取指定时间戳触发的时间段。
+     * 如果返回null，你可能需要{@link #nextTriggerTimeRange(long)}
+     *
+     * @param timeMs 毫秒时间戳
+     * @return TimeRange nullable
+     */
+    TimeRange triggeringTimeRange(long timeMs);
 
-	/**
-	 * 获取下一个即将触发的时间段。
-	 * @param timeMs 毫秒时间戳
-	 * @return TimeRange nullable
-	 */
-	TimeRange nextTriggerTimeRange(long timeMs);
+    /**
+     * 获取下一个即将触发的时间段。
+     *
+     * @param timeMs 毫秒时间戳
+     * @return TimeRange nullable
+     */
+    TimeRange nextTriggerTimeRange(long timeMs);
 
-	/**
-	 * 获取上一个触发的时间段
-	 * @param timeMs 毫秒时间戳
-	 * @return TimeRange nullable
-	 */
-	TimeRange preTriggerTimeRange(long timeMs);
+    /**
+     * 获取上一个触发的时间段
+     *
+     * @param timeMs 毫秒时间戳
+     * @return TimeRange nullable
+     */
+    TimeRange preTriggerTimeRange(long timeMs);
 
 }

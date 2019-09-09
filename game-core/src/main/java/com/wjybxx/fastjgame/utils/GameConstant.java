@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.utils;
 
 /**
  * 游戏常量值；
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/1 21:03

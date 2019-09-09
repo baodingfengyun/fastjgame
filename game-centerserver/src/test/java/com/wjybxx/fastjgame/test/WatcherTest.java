@@ -35,13 +35,13 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * 注意：
  * 客户端无法直接从事件对象{@link org.apache.zookeeper.WatchedEvent}中获取获取到对应数据节点的
  * 原始数据以及变更后的数据，而是需要客户端再次去重新获取数据！！！
- *
+ * <p>
  * 中间是有可能出现不一致的情况的，zookeeper只能保证最终一致性，并不能保证捕获到所有事件。
  * 遇见的一次输出：
  * Search "type=" (2 hits in 1 file)
- *   new 1 (2 hits)
- * 	Line 1: type=CHILD_ADDED ,data=592
- * 	Line 34: type=CHILD_REMOVED ,data=1002
+ * new 1 (2 hits)
+ * Line 1: type=CHILD_ADDED ,data=592
+ * Line 34: type=CHILD_REMOVED ,data=1002
  *
  * <pre>
  * A： create 592 -------->  delete 592 ---------> create 1002 -------------> delete 1002
@@ -60,36 +60,36 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class WatcherTest {
 
-    private static final ConcurrentLinkedQueue<PathChildrenCacheEvent> eventQueue=new ConcurrentLinkedQueue<>();
+    private static final ConcurrentLinkedQueue<PathChildrenCacheEvent> eventQueue = new ConcurrentLinkedQueue<>();
 
     public static void main(String[] args) throws Exception {
-        String logDir=new File("").getAbsolutePath() + File.separator + "log";
+        String logDir = new File("").getAbsolutePath() + File.separator + "log";
         String logPath = logDir + File.separator + "watcher.log";
         System.setProperty("logPath", logPath);
 
-        Injector injector= Guice.createInjector(new WorldGroupModule(), new CenterModule());
-        CuratorMrg curatorMrg=injector.getInstance(CuratorMrg.class);
+        Injector injector = Guice.createInjector(new WorldGroupModule(), new CenterModule());
+        CuratorMrg curatorMrg = injector.getInstance(CuratorMrg.class);
 
         String watchPath = ZKPathUtils.onlineParentPath(1);
         ResourceCloseHandle closeHandle = curatorMrg.watchChildren(watchPath, (client, event) -> eventQueue.offer(event));
 
-        for (int index = 0; index<10000; index++) {
+        for (int index = 0; index < 10000; index++) {
             Thread.sleep(50);
             tick();
         }
         closeHandle.close();
     }
 
-    private static void tick(){
+    private static void tick() {
         PathChildrenCacheEvent event;
-        while ((event=eventQueue.poll()) != null){
-            onEvent(event.getType(),event.getData());
+        while ((event = eventQueue.poll()) != null) {
+            onEvent(event.getType(), event.getData());
         }
     }
 
-    private static void onEvent(Type type,ChildData childData){
-        if (type == Type.CHILD_ADDED || type==Type.CHILD_REMOVED || type==Type.CHILD_UPDATED){
-            System.out.println("type="+type + " ,data=" + GameUtils.parseIntFromStringBytes(childData.getData()));
+    private static void onEvent(Type type, ChildData childData) {
+        if (type == Type.CHILD_ADDED || type == Type.CHILD_REMOVED || type == Type.CHILD_UPDATED) {
+            System.out.println("type=" + type + " ,data=" + GameUtils.parseIntFromStringBytes(childData.getData()));
         }
 
     }

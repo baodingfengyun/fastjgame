@@ -30,6 +30,7 @@ import java.util.Set;
 
 /**
  * 场景区域管理器
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/16 11:35
@@ -37,7 +38,7 @@ import java.util.Set;
  */
 public class SceneRegionMrg implements ISceneRegionMrg {
 
-    private static final Logger logger= LoggerFactory.getLogger(SceneRegionMrg.class);
+    private static final Logger logger = LoggerFactory.getLogger(SceneRegionMrg.class);
 
     private final SceneWorldInfoMrg sceneWorldInfoMrg;
     /**
@@ -50,10 +51,10 @@ public class SceneRegionMrg implements ISceneRegionMrg {
         this.sceneWorldInfoMrg = sceneWorldInfoMrg;
     }
 
-    public void onWorldStart(){
-        if (sceneWorldInfoMrg.getSceneWorldType() == SceneWorldType.SINGLE){
+    public void onWorldStart() {
+        if (sceneWorldInfoMrg.getSceneWorldType() == SceneWorldType.SINGLE) {
             activeSingleSceneNormalRegions();
-        }else {
+        } else {
             activeAllCrossSceneRegions();
         }
     }
@@ -65,8 +66,8 @@ public class SceneRegionMrg implements ISceneRegionMrg {
     /**
      * 启动所有跨服场景(目前跨服场景不做互斥)
      */
-    private void activeAllCrossSceneRegions(){
-        for (SceneRegion sceneRegion:sceneWorldInfoMrg.getConfiguredRegions()){
+    private void activeAllCrossSceneRegions() {
+        for (SceneRegion sceneRegion : sceneWorldInfoMrg.getConfiguredRegions()) {
             activeOneRegion(sceneRegion);
         }
     }
@@ -74,10 +75,10 @@ public class SceneRegionMrg implements ISceneRegionMrg {
     /**
      * 启动所有本服普通场景
      */
-    private void activeSingleSceneNormalRegions(){
-        for (SceneRegion sceneRegion:sceneWorldInfoMrg.getConfiguredRegions()){
+    private void activeSingleSceneNormalRegions() {
+        for (SceneRegion sceneRegion : sceneWorldInfoMrg.getConfiguredRegions()) {
             // 互斥区域等待centerserver通知再启动
-            if (sceneRegion.isMutex()){
+            if (sceneRegion.isMutex()) {
                 continue;
             }
             activeOneRegion(sceneRegion);
@@ -86,28 +87,29 @@ public class SceneRegionMrg implements ISceneRegionMrg {
 
     /**
      * 激活一个region，它就做一件事，创建该region里拥有的城镇。
+     *
      * @param sceneRegion 场景区域
      */
-    private void activeOneRegion(SceneRegion sceneRegion){
-        logger.info("try active region {}.",sceneRegion);
-        try{
+    private void activeOneRegion(SceneRegion sceneRegion) {
+        logger.info("try active region {}.", sceneRegion);
+        try {
             // TODO 激活区域
             activeRegions.add(sceneRegion);
-            logger.info("active region {} success.",sceneRegion);
-        }catch (Exception e){
+            logger.info("active region {} success.", sceneRegion);
+        } catch (Exception e) {
             // 这里一定不能出现异常
-            logger.error("active region {} caught exception.",sceneRegion,e);
+            logger.error("active region {} caught exception.", sceneRegion, e);
         }
     }
 
     @Override
     public boolean startMutexRegion(List<Integer> activeMutexRegionsList) {
         assert sceneWorldInfoMrg.getSceneWorldType() == SceneWorldType.SINGLE;
-        for (int regionId:activeMutexRegionsList){
+        for (int regionId : activeMutexRegionsList) {
             SceneRegion sceneRegion = SceneRegion.forNumber(regionId);
             // 这里应该有互斥区域
             assert sceneRegion.isMutex();
-            if (activeRegions.contains(sceneRegion)){
+            if (activeRegions.contains(sceneRegion)) {
                 continue;
             }
             activeOneRegion(sceneRegion);
@@ -118,10 +120,10 @@ public class SceneRegionMrg implements ISceneRegionMrg {
     @Override
     public boolean activeRegions(List<Integer> activeRegionsList) {
         assert sceneWorldInfoMrg.getSceneWorldType() == SceneWorldType.SINGLE;
-        for (int regionId:activeRegionsList){
+        for (int regionId : activeRegionsList) {
             SceneRegion sceneRegion = SceneRegion.forNumber(regionId);
             // 这里可以是任意类型区域
-            if (activeRegions.contains(sceneRegion)){
+            if (activeRegions.contains(sceneRegion)) {
                 continue;
             }
             activeOneRegion(sceneRegion);

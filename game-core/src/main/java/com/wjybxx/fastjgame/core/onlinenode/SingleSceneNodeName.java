@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.misc.PlatformType;
 /**
  * 单服场景节点名字。
  * 场景服需要不同的名字，场景进程之间没有直接的互斥关系，后启动的可以和先启动的同时存在。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/16 0:15

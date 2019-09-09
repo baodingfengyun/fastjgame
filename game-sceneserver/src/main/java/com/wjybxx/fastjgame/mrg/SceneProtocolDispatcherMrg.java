@@ -30,46 +30,47 @@ import javax.annotation.Nonnull;
 
 /**
  * 场景服派发协议的实现
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/26
  */
 public class SceneProtocolDispatcherMrg extends ProtocolDispatcherMrg implements PlayerMessageFunctionRegistry, PlayerMessageDispatcher {
 
-	private final PlayerSessionMrg playerSessionMrg;
-	private final DefaultPlayerMessageDispatcher messageDispatcher = new DefaultPlayerMessageDispatcher();
+    private final PlayerSessionMrg playerSessionMrg;
+    private final DefaultPlayerMessageDispatcher messageDispatcher = new DefaultPlayerMessageDispatcher();
 
-	@Inject
-	public SceneProtocolDispatcherMrg(PlayerSessionMrg playerSessionMrg) {
-		this.playerSessionMrg = playerSessionMrg;
-	}
+    @Inject
+    public SceneProtocolDispatcherMrg(PlayerSessionMrg playerSessionMrg) {
+        this.playerSessionMrg = playerSessionMrg;
+    }
 
-	@Override
-	protected final void dispatchOneWayMessage0(Session session, @Nonnull Object message) {
-		if (session.remoteRole() == RoleType.PLAYER && message instanceof AbstractMessage) {
-			Player player = playerSessionMrg.getPlayer(session.remoteGuid());
-			if (player != null) {
-				// 玩家已成功连入场景
-				post(player, (AbstractMessage) message);
-			} else {
-				// TODO 玩家登录
-			}
-		}
-	}
+    @Override
+    protected final void dispatchOneWayMessage0(Session session, @Nonnull Object message) {
+        if (session.remoteRole() == RoleType.PLAYER && message instanceof AbstractMessage) {
+            Player player = playerSessionMrg.getPlayer(session.remoteGuid());
+            if (player != null) {
+                // 玩家已成功连入场景
+                post(player, (AbstractMessage) message);
+            } else {
+                // TODO 玩家登录
+            }
+        }
+    }
 
-	@Override
-	public <T extends AbstractMessage> void register(@Nonnull Class<T> clazz, @Nonnull PlayerMessageFunction<T> handler) {
-		messageDispatcher.register(clazz, handler);
-	}
+    @Override
+    public <T extends AbstractMessage> void register(@Nonnull Class<T> clazz, @Nonnull PlayerMessageFunction<T> handler) {
+        messageDispatcher.register(clazz, handler);
+    }
 
-	@Override
-	public <T extends AbstractMessage> void post(@Nonnull Player player, @Nonnull T message) {
-		messageDispatcher.post(player, message);
-	}
+    @Override
+    public <T extends AbstractMessage> void post(@Nonnull Player player, @Nonnull T message) {
+        messageDispatcher.post(player, message);
+    }
 
-	@Override
-	public void release() {
-		super.release();
-		messageDispatcher.release();
-	}
+    @Override
+    public void release() {
+        super.release();
+        messageDispatcher.release();
+    }
 }

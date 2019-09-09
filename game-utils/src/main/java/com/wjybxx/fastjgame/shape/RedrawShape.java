@@ -20,6 +20,7 @@ package com.wjybxx.fastjgame.shape;
  * 可重绘的图形，由于需要的参数不尽相同，定义方法不是很方便，因此是个标记接口。
  * 子类需要提供一个redraw方法，并返回自己。
  * 该接口只是个契约。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/2 15:17

@@ -27,10 +27,10 @@ import com.wjybxx.fastjgame.misc.HostAndPort;
  * date - 2019/8/3
  * github - https://github.com/hl845740757
  */
-public interface S2CSession extends Session{
+public interface S2CSession extends Session {
 
-	/**
-	 * 绑定的本地端口
-	 */
-	HostAndPort localAddress();
+    /**
+     * 绑定的本地端口
+     */
+    HostAndPort localAddress();
 }

@@ -30,11 +30,12 @@ import com.wjybxx.fastjgame.net.Session;
 @FunctionalInterface
 public interface MessageFunction<T extends AbstractMessage> {
 
-	/**
-	 * 当接收到对方的一个消息时
-	 * @param session 消息所在的会话
-	 * @param message 对方发来的消息
-	 */
-	void onMessage(Session session, T message) throws Exception;
+    /**
+     * 当接收到对方的一个消息时
+     *
+     * @param session 消息所在的会话
+     * @param message 对方发来的消息
+     */
+    void onMessage(Session session, T message) throws Exception;
 
 }

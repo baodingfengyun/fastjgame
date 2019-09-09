@@ -32,59 +32,62 @@ import java.io.IOException;
  */
 public interface ProtocolCodec {
 
-	// ---------------------------------------- RPC请求 ---------------------------------
-	/**
-	 * 编码rpc请求
-	 *
-	 * @param bufAllocator buf分配器
-	 * @param request rpc请求内容
-	 * @return rpc请求对应的字节数组，为甚使用{@link ByteBuf}？ 减少中间数组对象，减少垃圾回收。
-	 */
-	ByteBuf encodeRpcRequest(ByteBufAllocator bufAllocator, Object request) throws IOException;
+    // ---------------------------------------- RPC请求 ---------------------------------
 
-	/**
-	 * 解码rpc请求
-	 * @param data byteBuf数据
-	 * @return rpc请求内容
-	 */
-	Object decodeRpcRequest(ByteBuf data) throws IOException;
+    /**
+     * 编码rpc请求
+     *
+     * @param bufAllocator buf分配器
+     * @param request      rpc请求内容
+     * @return rpc请求对应的字节数组，为甚使用{@link ByteBuf}？ 减少中间数组对象，减少垃圾回收。
+     */
+    ByteBuf encodeRpcRequest(ByteBufAllocator bufAllocator, Object request) throws IOException;
 
-	// ----------------------------------------- RPC响应 -------------------------------------
+    /**
+     * 解码rpc请求
+     *
+     * @param data byteBuf数据
+     * @return rpc请求内容
+     */
+    Object decodeRpcRequest(ByteBuf data) throws IOException;
 
-	/**
-	 * 编码rpc响应结果
-	 * 当且仅当{@link RpcResponse#getBody() != null}时才会调用。
-	 *
-	 * @param bufAllocator buf分配器
-	 * @param body rpc响应内容
-	 * @return rpc响应对应的字节数组
-	 */
-	ByteBuf encodeRpcResponse(ByteBufAllocator bufAllocator, Object body) throws IOException;
+    // ----------------------------------------- RPC响应 -------------------------------------
 
-	/**
-	 * 解码rpc响应内容。
-	 * 当且仅当{@link ByteBuf#readableBytes() > 0}时才会调用。
-	 *
-	 * @param data byteBuf数据
-	 * @return rpc响应内容
-	 */
-	Object decodeRpcResponse(ByteBuf data) throws IOException;
+    /**
+     * 编码rpc响应结果
+     * 当且仅当{@link RpcResponse#getBody() != null}时才会调用。
+     *
+     * @param bufAllocator buf分配器
+     * @param body         rpc响应内容
+     * @return rpc响应对应的字节数组
+     */
+    ByteBuf encodeRpcResponse(ByteBufAllocator bufAllocator, Object body) throws IOException;
 
-	// ----------------------------------------- 单向消息 -------------------------------------
+    /**
+     * 解码rpc响应内容。
+     * 当且仅当{@link ByteBuf#readableBytes() > 0}时才会调用。
+     *
+     * @param data byteBuf数据
+     * @return rpc响应内容
+     */
+    Object decodeRpcResponse(ByteBuf data) throws IOException;
 
-	/**
-	 * 编码一个单向消息
-	 *
-	 * @param bufAllocator buf分配器
-	 * @param message 消息内容
-	 * @return 消息对应的字节数组
-	 */
-	ByteBuf encodeMessage(ByteBufAllocator bufAllocator, Object message) throws IOException;
+    // ----------------------------------------- 单向消息 -------------------------------------
 
-	/**
-	 * 解码一个单向消息
-	 * @param data byteBuf数据
-	 * @return 消息内容
-	 */
-	Object decodeMessage(ByteBuf data) throws IOException;
+    /**
+     * 编码一个单向消息
+     *
+     * @param bufAllocator buf分配器
+     * @param message      消息内容
+     * @return 消息对应的字节数组
+     */
+    ByteBuf encodeMessage(ByteBufAllocator bufAllocator, Object message) throws IOException;
+
+    /**
+     * 解码一个单向消息
+     *
+     * @param data byteBuf数据
+     * @return 消息内容
+     */
+    Object decodeMessage(ByteBuf data) throws IOException;
 }

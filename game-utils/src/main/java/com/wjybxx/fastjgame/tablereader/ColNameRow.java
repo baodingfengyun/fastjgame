@@ -42,7 +42,8 @@ public class ColNameRow {
 
     /**
      * create instance
-     * @param rowIndex 所在的行索引
+     *
+     * @param rowIndex      所在的行索引
      * @param colName2Index LinkedHashMap保持读入序
      */
     public ColNameRow(int rowIndex, Object2IntMap<String> colName2Index) {
@@ -54,15 +55,16 @@ public class ColNameRow {
         return rowIndex;
     }
 
-    public int getColIndex(String colName){
+    public int getColIndex(String colName) {
         return colName2Index.getInt(colName);
     }
 
     /**
      * 获取有效列名集合
+     *
      * @return
      */
-    public Set<String> getColeNameSet(){
+    public Set<String> getColeNameSet() {
         return colName2Index.keySet();
     }
 

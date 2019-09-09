@@ -47,7 +47,9 @@ public class RejectedExecutionHandlers {
         }
     };
 
-    /** 忽略 */
+    /**
+     * 忽略
+     */
     private static final RejectedExecutionHandler DISCARD_POLICY = new RejectedExecutionHandler() {
         @Override
         public void rejected(Runnable r, EventLoop eventLoop) {
@@ -56,7 +58,9 @@ public class RejectedExecutionHandlers {
     };
 
 
-    /** 仅仅记录一条日志 */
+    /**
+     * 仅仅记录一条日志
+     */
     private static final RejectedExecutionHandler LOG_POLICY = new RejectedExecutionHandler() {
         @Override
         public void rejected(Runnable r, EventLoop eventLoop) {
@@ -69,7 +73,9 @@ public class RejectedExecutionHandlers {
 
     }
 
-    /** 抛出拒绝异常 */
+    /**
+     * 抛出拒绝异常
+     */
     public static RejectedExecutionHandler reject() {
         return REJECT_POLICY;
     }
@@ -84,7 +90,9 @@ public class RejectedExecutionHandlers {
         return CALLER_RUNS_POLICY;
     }
 
-    /** 丢弃异常/忽略异常 */
+    /**
+     * 丢弃异常/忽略异常
+     */
     public static RejectedExecutionHandler discard() {
         return DISCARD_POLICY;
     }

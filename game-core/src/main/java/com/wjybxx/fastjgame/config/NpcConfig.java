@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.config;
 
 /**
  * npc的配置属性
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/23 16:46

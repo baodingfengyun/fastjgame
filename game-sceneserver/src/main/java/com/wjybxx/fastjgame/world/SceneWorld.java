@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * SceneServer
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/15 21:45
@@ -45,7 +46,7 @@ public class SceneWorld extends AbstractWorld {
         super(worldWrapper);
         this.centerInSceneInfoMrg = centerInSceneInfoMrg;
         this.sceneRegionMrg = sceneRegionMrg;
-        this.sceneWorldInfoMrg= (SceneWorldInfoMrg) worldWrapper.getWorldInfoMrg();
+        this.sceneWorldInfoMrg = (SceneWorldInfoMrg) worldWrapper.getWorldInfoMrg();
         this.sendMrg = sendMrg;
         this.sceneMrg = sceneMrg;
         this.sceneProtocolDispatcherMrg = sceneProtocolDispatcherMrg;
@@ -102,17 +103,17 @@ public class SceneWorld extends AbstractWorld {
         HostAndPort outerWebsocketHostAndPort = netContext.bindRange(NetUtils.getOuterIp(), GameUtils.OUTER_WS_PORT_RANGE,
                 wsInitializer, new PlayerLifeAware(), protocolDispatcherMrg, SessionSenderMode.DIRECT).get();
 
-        SceneNodeData sceneNodeData =new SceneNodeData(innerTcpAddress.toString(), innerHttpAddress.toString(), localAddress.toString(), SystemUtils.getMAC(),
-                sceneWorldInfoMrg.getChannelId(), outerTcpHostAndPort.toString(),outerWebsocketHostAndPort.toString());
+        SceneNodeData sceneNodeData = new SceneNodeData(innerTcpAddress.toString(), innerHttpAddress.toString(), localAddress.toString(), SystemUtils.getMAC(),
+                sceneWorldInfoMrg.getChannelId(), outerTcpHostAndPort.toString(), outerWebsocketHostAndPort.toString());
 
-        String parentPath= ZKPathUtils.onlineParentPath(sceneWorldInfoMrg.getWarzoneId());
+        String parentPath = ZKPathUtils.onlineParentPath(sceneWorldInfoMrg.getWarzoneId());
         String nodeName;
-        if (sceneWorldInfoMrg.getSceneWorldType()== SceneWorldType.SINGLE){
-            nodeName= ZKPathUtils.buildSingleSceneNodeName(sceneWorldInfoMrg.getPlatformType(),sceneWorldInfoMrg.getServerId(),sceneWorldInfoMrg.getWorldGuid());
-        }else {
-            nodeName= ZKPathUtils.buildCrossSceneNodeName(sceneWorldInfoMrg.getWorldGuid());
+        if (sceneWorldInfoMrg.getSceneWorldType() == SceneWorldType.SINGLE) {
+            nodeName = ZKPathUtils.buildSingleSceneNodeName(sceneWorldInfoMrg.getPlatformType(), sceneWorldInfoMrg.getServerId(), sceneWorldInfoMrg.getWorldGuid());
+        } else {
+            nodeName = ZKPathUtils.buildCrossSceneNodeName(sceneWorldInfoMrg.getWorldGuid());
         }
-        curatorMrg.createNode(ZKPaths.makePath(parentPath,nodeName), CreateMode.EPHEMERAL, JsonUtils.toJsonBytes(sceneNodeData));
+        curatorMrg.createNode(ZKPaths.makePath(parentPath, nodeName), CreateMode.EPHEMERAL, JsonUtils.toJsonBytes(sceneNodeData));
     }
 
     @Override

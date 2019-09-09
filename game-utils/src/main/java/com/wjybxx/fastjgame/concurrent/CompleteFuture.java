@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * {@link AbstractListenableFuture}的一个实现，表示它关联的操作早已完成。
  * 任何添加到上面的监听器将立即收到通知。
+ *
  * @param <V> the type of value
  * @author wjybxx
  * @version 1.0
@@ -32,7 +33,9 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class CompleteFuture<V> extends AbstractListenableFuture<V> {
 
-    /** 默认的监听器执行环境 */
+    /**
+     * 默认的监听器执行环境
+     */
     private final EventLoop executor;
 
     /**

@@ -32,10 +32,10 @@ import java.util.function.Predicate;
 
 /**
  * 对会话信息的封装，提供良好的接口，方便使用；
- * 
+ * <p>
  * 注意：广播消息，避免造成错误，必须是构建完成的消息对象。
  * 只对单个玩家发送时，这里提供发送builder对象的接口；
- * 
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/4 18:22
@@ -58,10 +58,11 @@ public class SceneSendMrg {
 
     /**
      * 发送消息给玩家
+     *
      * @param player 玩家
-     * @param msg 消息
+     * @param msg    消息
      */
-    public void sendToPlayer(Player player, Message msg){
+    public void sendToPlayer(Player player, Message msg) {
         if (null != player.getSession()) {
             player.getSession().send(msg);
         }
@@ -69,31 +70,34 @@ public class SceneSendMrg {
 
     /**
      * 发送消息给玩家
-     * @param player 玩家
+     *
+     * @param player  玩家
      * @param builder 还未真正构造的消息对象
      */
-    public void sendToPlayer(Player player, Builder builder){
+    public void sendToPlayer(Player player, Builder builder) {
         sendToPlayer(player, builder.build());
     }
 
     /**
      * 发送到玩家所在的center服
+     *
      * @param player 玩家
-     * @param msg 消息
+     * @param msg    消息
      */
-    public void sendToCenter(Player player, Message msg){
-        sendToCenter(player.getPlatformType(),player.getActualServerId(),msg);
+    public void sendToCenter(Player player, Message msg) {
+        sendToCenter(player.getPlatformType(), player.getActualServerId(), msg);
     }
 
     /**
      * 发送到指定中心服
+     *
      * @param platformType 中心服所在的平台
-     * @param serverId 中心服的id
-     * @param msg 消息
+     * @param serverId     中心服的id
+     * @param msg          消息
      */
-    public void sendToCenter(PlatformType platformType, int serverId, Message msg){
+    public void sendToCenter(PlatformType platformType, int serverId, Message msg) {
         Session session = centerInSceneInfoMrg.getCenterSession(platformType, serverId);
-        if (session == null){
+        if (session == null) {
             logger.warn("send to disconnected center {}-{}", platformType, serverId);
             return;
         }
@@ -102,89 +106,95 @@ public class SceneSendMrg {
 
     /**
      * 广播指定对象视野内的所有玩家，如果gameobject为玩家，包括自己
+     *
      * @param gameObject 广播中心对象
-     * @param msg 广播消息
+     * @param msg        广播消息
      */
-    public void broadcastPlayer(GameObject gameObject, Message msg){
+    public void broadcastPlayer(GameObject gameObject, Message msg) {
         ViewGrid centerViewGrid = gameObject.getViewGrid();
         broadcastPlayer(centerViewGrid.getViewableGrids(), msg);
     }
 
     /**
      * 广播指定视野格子的玩家
+     *
      * @param viewGrids 视野格子
-     * @param msg 消息
+     * @param msg       消息
      */
-    public void broadcastPlayer(List<ViewGrid> viewGrids, Message msg){
-        for (ViewGrid viewGrid: viewGrids){
-            if (viewGrid.getPlayerNum() <= 0){
+    public void broadcastPlayer(List<ViewGrid> viewGrids, Message msg) {
+        for (ViewGrid viewGrid : viewGrids) {
+            if (viewGrid.getPlayerNum() <= 0) {
                 continue;
             }
-            for (Player player : viewGrid.getPlayerSet()){
-                sendToPlayer(player,msg);
+            for (Player player : viewGrid.getPlayerSet()) {
+                sendToPlayer(player, msg);
             }
         }
     }
 
     /**
      * 广播指定对象视野内的所有玩家，去除掉指定玩家
-     * @param gameObject 广播中心对象
-     * @param msg 消息对象
+     *
+     * @param gameObject   广播中心对象
+     * @param msg          消息对象
      * @param exceptPlayer 不广播该玩家
      */
-    public void broadcastPlayerExcept(GameObject gameObject, Message msg, Player exceptPlayer){
+    public void broadcastPlayerExcept(GameObject gameObject, Message msg, Player exceptPlayer) {
         ViewGrid centerViewGrid = gameObject.getViewGrid();
         broadcastPlayerExcept(centerViewGrid.getViewableGrids(), msg, exceptPlayer);
     }
 
     /**
      * 广播指定视野格子内的玩家，去除指定玩家
-     * @param viewGrids 视野格子
-     * @param msg 消息
+     *
+     * @param viewGrids    视野格子
+     * @param msg          消息
      * @param exceptPlayer 去除的玩家
      */
-    public void broadcastPlayerExcept(List<ViewGrid> viewGrids, Message msg, Player exceptPlayer){
-        for (ViewGrid viewGrid: viewGrids){
-            if (viewGrid.getPlayerNum() <= 0){
+    public void broadcastPlayerExcept(List<ViewGrid> viewGrids, Message msg, Player exceptPlayer) {
+        for (ViewGrid viewGrid : viewGrids) {
+            if (viewGrid.getPlayerNum() <= 0) {
                 continue;
             }
-            for (Player player : viewGrid.getPlayerSet()){
+            for (Player player : viewGrid.getPlayerSet()) {
                 // 去除指定玩家
-                if (player == exceptPlayer){
+                if (player == exceptPlayer) {
                     continue;
                 }
-                sendToPlayer(player,msg);
+                sendToPlayer(player, msg);
             }
         }
     }
 
     /**
      * 广播指定对象视野内的所有玩家，去除掉指定条件的玩家
+     *
      * @param gameObject 广播中心对象
-     * @param msg 广播消息
-     * @param except 排除条件，true的不广播
-     * {@link com.wjybxx.fastjgame.misc.SceneBroadcastFilters}可能会有帮助
+     * @param msg        广播消息
+     * @param except     排除条件，true的不广播
+     *                   {@link com.wjybxx.fastjgame.misc.SceneBroadcastFilters}可能会有帮助
      */
-    public void broadcastPlayerExcept(GameObject gameObject, Message msg, Predicate<Player> except){
+    public void broadcastPlayerExcept(GameObject gameObject, Message msg, Predicate<Player> except) {
         ViewGrid centerViewGrid = gameObject.getViewGrid();
         broadcastPlayerExcept(centerViewGrid.getViewableGrids(), msg, except);
     }
 
     /**
      * 广播指定视野格子的玩家，去除掉指定条件的玩家
+     *
      * @param viewGrids 指定的视野格子
-     * @param msg 消息
-     * @param except 排除条件，true的不广播
-     * {@link com.wjybxx.fastjgame.misc.SceneBroadcastFilters}可能会有帮助
+     * @param msg       消息
+     * @param except    排除条件，true的不广播
+     *                  {@link com.wjybxx.fastjgame.misc.SceneBroadcastFilters}可能会有帮助
      */
-    public void broadcastPlayerExcept(List<ViewGrid> viewGrids, Message msg, Predicate<Player> except){
-        for (ViewGrid viewGrid: viewGrids){
-            if (viewGrid.getPlayerNum() <= 0){
+    public void broadcastPlayerExcept(List<ViewGrid> viewGrids, Message msg, Predicate<Player> except) {
+        for (ViewGrid viewGrid : viewGrids) {
+            if (viewGrid.getPlayerNum() <= 0) {
                 continue;
             }
-            for (Player player : viewGrid.getPlayerSet()){
-                if (!except.test(player)){
-                    sendToPlayer(player,msg);
+            for (Player player : viewGrid.getPlayerSet()) {
+                if (!except.test(player)) {
+                    sendToPlayer(player, msg);
                 }
             }
         }

@@ -37,7 +37,7 @@ import java.util.Set;
  * date - 2019/5/16 10:47
  * github - https://github.com/hl845740757
  */
-public class SceneWorldInfoMrg extends WorldInfoMrg{
+public class SceneWorldInfoMrg extends WorldInfoMrg {
 
     private static final int SINGLE_SCENE_MIN_CHANNEL_ID = 1;
     private static final int CROSS_SCENE_MIN_CHANNEL_ID = 10001;
@@ -73,7 +73,7 @@ public class SceneWorldInfoMrg extends WorldInfoMrg{
     @Inject
     public SceneWorldInfoMrg(GuidMrg guidMrg, CuratorMrg curatorMrg) {
         super(guidMrg);
-        this.curatorMrg=curatorMrg;
+        this.curatorMrg = curatorMrg;
     }
 
     @Override
@@ -81,38 +81,38 @@ public class SceneWorldInfoMrg extends WorldInfoMrg{
         // 场景进程类型决定参数配置
         sceneWorldType = SceneWorldType.forName(startArgs.getAsString("sceneType"));
 
-        if(sceneWorldType == SceneWorldType.SINGLE){
+        if (sceneWorldType == SceneWorldType.SINGLE) {
             // 本服场景配置平台和服id，战区id由zookeeper配置指定
             platformType = PlatformType.valueOf(startArgs.getAsString("platform"));
             serverId = startArgs.getAsInt("serverId");
 
             // 查询zookeeper，获取该平台该服对应的战区id
             String actualServerConfigPath = ZKPathUtils.actualServerConfigPath(platformType, serverId);
-            ConfigWrapper serverConfig  = new MapConfigWrapper(GameUtils.newJsonMap(curatorMrg.getData(actualServerConfigPath)));
+            ConfigWrapper serverConfig = new MapConfigWrapper(GameUtils.newJsonMap(curatorMrg.getData(actualServerConfigPath)));
             warzoneId = serverConfig.getAsInt("warzoneId");
 
             final String originPath = ZKPathUtils.singleChannelPath(warzoneId, serverId);
-            this.initChannelId(originPath,SINGLE_SCENE_MIN_CHANNEL_ID);
-        }else {
+            this.initChannelId(originPath, SINGLE_SCENE_MIN_CHANNEL_ID);
+        } else {
             // 跨服场景的 战区id由启动参数决定
             warzoneId = startArgs.getAsInt("warzoneId");
             serverId = -1;
 
             String originPath = ZKPathUtils.crossChannelPath(warzoneId);
-            this.initChannelId(originPath,CROSS_SCENE_MIN_CHANNEL_ID);
+            this.initChannelId(originPath, CROSS_SCENE_MIN_CHANNEL_ID);
         }
 
         // 配置的要启动的区域 TODO 这种配置方式不方便配置
         String[] configuredRegionArray = startArgs.getAsStringArray("configuredRegions");
-        Set<SceneRegion> modifiableRegionSet=EnumSet.noneOf(SceneRegion.class);
-        for (String regionName:configuredRegionArray){
+        Set<SceneRegion> modifiableRegionSet = EnumSet.noneOf(SceneRegion.class);
+        for (String regionName : configuredRegionArray) {
             SceneRegion sceneRegion = SceneRegion.valueOf(regionName);
-            if (sceneRegion.getSceneWorldType()!= sceneWorldType){
+            if (sceneRegion.getSceneWorldType() != sceneWorldType) {
                 throw new IllegalArgumentException(sceneWorldType + " doesn't support " + sceneRegion);
             }
             modifiableRegionSet.add(sceneRegion);
         }
-        this.configuredRegions=Collections.unmodifiableSet(modifiableRegionSet);
+        this.configuredRegions = Collections.unmodifiableSet(modifiableRegionSet);
     }
 
     @Override
@@ -134,10 +134,11 @@ public class SceneWorldInfoMrg extends WorldInfoMrg{
 
     /**
      * 获取serverId之前一定要检查SceneType
+     *
      * @return 如果是本服场景，则存在，否则抛出异常
      */
     public int getServerId() {
-        if (sceneWorldType == SceneWorldType.SINGLE){
+        if (sceneWorldType == SceneWorldType.SINGLE) {
             return serverId;
         }
         throw new UnsupportedOperationException("cross scene serverId");
@@ -153,18 +154,19 @@ public class SceneWorldInfoMrg extends WorldInfoMrg{
 
     /**
      * 初始化channelId
-     * @param originPath 创建的节点原始路径，因为临时节点，实际路径名会不一样
+     *
+     * @param originPath     创建的节点原始路径，因为临时节点，实际路径名会不一样
      * @param startChannelId 其实channelId
      * @throws Exception zk errors
      */
-    private void initChannelId(String originPath,int startChannelId) throws Exception {
+    private void initChannelId(String originPath, int startChannelId) throws Exception {
         final String parent = ZKPathUtils.findParentPath(originPath);
         final String lockPath = ZKPathUtils.findAppropriateLockPath(parent);
         // 如果父节点存在，且没有子节点，则先删除，让序号初始化为0,再创建节点
         // 整个是一个先检查后执行的逻辑，因此需要加锁，保证整个操作的原子性
         curatorMrg.actionWhitLock(lockPath, () -> {
             curatorMrg.deleteNodeIfNoChild(parent);
-            String realPath=curatorMrg.createNode(originPath,CreateMode.EPHEMERAL_SEQUENTIAL);
+            String realPath = curatorMrg.createNode(originPath, CreateMode.EPHEMERAL_SEQUENTIAL);
             this.channelId = startChannelId + ZKPathUtils.parseSequentialId(realPath);
         });
 

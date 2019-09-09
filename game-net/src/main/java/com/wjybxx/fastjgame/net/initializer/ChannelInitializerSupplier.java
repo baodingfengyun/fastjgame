@@ -31,7 +31,7 @@ import java.util.function.Supplier;
  */
 public interface ChannelInitializerSupplier extends Supplier<ChannelInitializer<SocketChannel>> {
 
-	@Override
-	ChannelInitializer<SocketChannel> get();
+    @Override
+    ChannelInitializer<SocketChannel> get();
 
 }

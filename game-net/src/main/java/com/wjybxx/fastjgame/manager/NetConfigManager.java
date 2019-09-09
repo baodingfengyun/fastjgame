@@ -34,17 +34,21 @@ import java.nio.charset.StandardCharsets;
  * github - https://github.com/hl845740757
  */
 @ThreadSafe
-public class NetConfigManager  {
+public class NetConfigManager {
 
     /**
      * 网络包配置文件名字
      */
     public static final String NET_CONFIG_NAME = "net_config.properties";
 
-    /** 原始配置文件 */
+    /**
+     * 原始配置文件
+     */
     private final ConfigWrapper configWrapper;
 
-    /** 帧间隔 */
+    /**
+     * 帧间隔
+     */
     private final int frameInterval;
 
     private final byte[] tokenKeyBytes;
@@ -127,9 +131,10 @@ public class NetConfigManager  {
     /**
      * 用于默认的异或加密token的秘钥
      */
-    public byte[] getTokenKeyBytes(){
+    public byte[] getTokenKeyBytes() {
         return tokenKeyBytes;
     }
+
     /**
      * netty IO 线程数量
      */
@@ -147,53 +152,56 @@ public class NetConfigManager  {
     /**
      * 最大帧长度
      */
-    public int maxFrameLength(){
+    public int maxFrameLength() {
         return maxFrameLength;
     }
 
     /**
      * 作为服务器时的发送缓冲区
      */
-    public int sndBufferAsServer(){
+    public int sndBufferAsServer() {
         return sndBufferAsServer;
     }
+
     /**
      * 作为服务器时的接收缓冲区
      */
-    public int revBufferAsServer(){
+    public int revBufferAsServer() {
         return revBufferAsServer;
     }
+
     /**
      * 作为客户端时的发送缓冲区
      */
-    public int sndBufferAsClient(){
+    public int sndBufferAsClient() {
         return sndBufferAsClient;
     }
+
     /**
      * 作为客户端时的接收缓冲区
      */
-    public int revBufferAsClient(){
+    public int revBufferAsClient() {
         return revBufferAsClient;
     }
 
     /**
      * 获取服务器最大可缓存消息数
      */
-    public int serverMaxCacheNum(){
+    public int serverMaxCacheNum() {
         return serverMaxCacheNum;
     }
 
     /**
      * 获取客户端最大可缓存消息数
      */
-    public int clientMaxCacheNum(){
+    public int clientMaxCacheNum() {
         return clientMaxCacheNum;
     }
 
     /**
      * 异步通信会话超时时间(秒)
      */
-    public int sessionTimeout(){
+    public int sessionTimeout() {
         return sessionTimeout;
     }
 
@@ -221,7 +229,7 @@ public class NetConfigManager  {
     /**
      * 等待token验证结果超时时间，需要适当的长一点(毫秒)
      */
-    public long waitTokenResultTimeout(){
+    public long waitTokenResultTimeout() {
         return waitTokenResultTimeout;
     }
 
@@ -235,7 +243,7 @@ public class NetConfigManager  {
     /**
      * okHttpClient请求超时时间(秒)
      */
-    public int httpRequestTimeout(){
+    public int httpRequestTimeout() {
         return httpRequestTimeout;
     }
 
@@ -243,21 +251,27 @@ public class NetConfigManager  {
      * http会话超时时间(秒)
      * 此外，它也是检查session超时的间隔
      */
-    public int httpSessionTimeout(){
+    public int httpSessionTimeout() {
         return httpSessionTimeout;
     }
 
-    /** token被禁用的超时时间(秒) */
-    public int tokenForbiddenTimeout(){
+    /**
+     * token被禁用的超时时间(秒)
+     */
+    public int tokenForbiddenTimeout() {
         return tokenForbiddenTimeout;
     }
 
-    /** rpc异步回调超时时间(毫秒) */
+    /**
+     * rpc异步回调超时时间(毫秒)
+     */
     public int rpcCallbackTimeoutMs() {
         return rpcCallbackTimeoutMs;
     }
 
-    /** 同步rpc调用超时时间(毫秒) */
+    /**
+     * 同步rpc调用超时时间(毫秒)
+     */
     public int syncRpcTimeoutMs() {
         return syncRpcTimeoutMs;
     }

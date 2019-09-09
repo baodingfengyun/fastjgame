@@ -30,10 +30,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 @FunctionalInterface
 public interface TimerTask<T extends TimerHandle> {
 
-	/**
-	 * 执行需要的任务
-	 * @param handle 该任务绑定的句柄
-	 */
-	void run(T handle) throws Exception;
+    /**
+     * 执行需要的任务
+     *
+     * @param handle 该任务绑定的句柄
+     */
+    void run(T handle) throws Exception;
 
 }

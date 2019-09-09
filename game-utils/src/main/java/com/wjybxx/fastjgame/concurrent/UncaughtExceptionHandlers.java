@@ -23,6 +23,7 @@ import javax.annotation.Nonnull;
 
 /**
  * 常用的线程未处理异常处理器
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/7/22
@@ -38,6 +39,7 @@ public class UncaughtExceptionHandlers {
 
     /**
      * 如果线程缺少 {@link java.lang.Thread.UncaughtExceptionHandler},则将未捕获的异常计入日志。
+     *
      * @param thread 待检测的线程
      */
     public static void logIfAbsent(Thread thread) {
@@ -51,7 +53,7 @@ public class UncaughtExceptionHandlers {
      * @param logger 指定的用于记录日志的logger
      */
     public static void logIfAbsent(Thread thread, Logger logger) {
-        if (thread.getUncaughtExceptionHandler() == null){
+        if (thread.getUncaughtExceptionHandler() == null) {
             try {
                 thread.setUncaughtExceptionHandler(justLog(logger));
             } catch (SecurityException ignore) {
@@ -62,6 +64,7 @@ public class UncaughtExceptionHandlers {
 
     /**
      * 仅仅记录日志的UncaughtExceptionHandler
+     *
      * @return UncaughtExceptionHandler
      */
     @Nonnull
@@ -71,6 +74,7 @@ public class UncaughtExceptionHandlers {
 
     /**
      * 仅仅记录日志的UncaughtExceptionHandler (使用指定的logger)
+     *
      * @param logger 指定的用于记录日志的logger
      * @return UncaughtExceptionHandler
      */

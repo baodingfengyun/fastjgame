@@ -20,12 +20,13 @@ import io.netty.channel.Channel;
 
 /**
  * 连接请求事件参数
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/2
  * github - https://github.com/hl845740757
  */
-public class ConnectRequestEventParam implements NetEventParam{
+public class ConnectRequestEventParam implements NetEventParam {
 
     private Channel channel;
     private long localGuid;

@@ -26,6 +26,7 @@ import java.util.Map;
 /**
  * 游戏帮助类;
  * (不知道放哪儿的方法就放这里)
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/12 15:33
@@ -57,10 +58,11 @@ public class GameUtils {
 
     /**
      * 安静的关闭，忽略产生的异常
+     *
      * @param closeable 实现了close方法的对象
      */
-    public static void closeQuietly(AutoCloseable closeable){
-        if (null!=closeable){
+    public static void closeQuietly(AutoCloseable closeable) {
+        if (null != closeable) {
             try {
                 closeable.close();
             } catch (Exception e) {
@@ -71,44 +73,49 @@ public class GameUtils {
 
     /**
      * 将int序列化为字符串字节数组，字符串具有更好的可读性
+     *
      * @param integer
      * @return
      */
-    public static byte[] serializeToStringBytes(int integer){
+    public static byte[] serializeToStringBytes(int integer) {
         return String.valueOf(integer).getBytes(StandardCharsets.UTF_8);
     }
 
     /**
      * 从字符串字节数组中解析一个int
+     *
      * @param bytes
      * @return
      */
-    public static int parseIntFromStringBytes(byte[] bytes){
-        return Integer.parseInt(new String(bytes,StandardCharsets.UTF_8));
+    public static int parseIntFromStringBytes(byte[] bytes) {
+        return Integer.parseInt(new String(bytes, StandardCharsets.UTF_8));
     }
 
     /**
      * 使用UTF-8字符集创建字符串
+     *
      * @param utf8Bytes 使用UTF-8编码的字节数组
      * @return
      */
-    public static String newString(byte[] utf8Bytes){
-        return new String(utf8Bytes,StandardCharsets.UTF_8);
+    public static String newString(byte[] utf8Bytes) {
+        return new String(utf8Bytes, StandardCharsets.UTF_8);
     }
 
     /**
      * 当json对象字节数组表示一个map对象时，返回对应的map对象
+     *
      * @param jsonBytes json序列化的对象
      * @return
      */
     @SuppressWarnings("unchecked")
-    public static Map<String,String> newJsonMap(byte[] jsonBytes){
-        return JsonUtils.parseJsonBytesToMap(jsonBytes, LinkedHashMap.class, String.class,String.class);
+    public static Map<String, String> newJsonMap(byte[] jsonBytes) {
+        return JsonUtils.parseJsonBytesToMap(jsonBytes, LinkedHashMap.class, String.class, String.class);
     }
 
 
     /**
      * 是否是null字符串或空字符串
+     *
      * @param str 待检查的字符串
      * @return true or false
      */
@@ -120,29 +127,32 @@ public class GameUtils {
 
     /**
      * 获取中心服的数据库名字
-     * @param platformType 运营平台
+     *
+     * @param platformType   运营平台
      * @param actualServerId 服id
      * @return dbName
      */
-    public static String centerDBName(PlatformType platformType, int actualServerId){
+    public static String centerDBName(PlatformType platformType, int actualServerId) {
         // platform的名字可能被修改，但是数字标记不可以被修改
         return "center_" + platformType.getNumber() + "_" + actualServerId;
     }
 
     /**
      * 战区数据库
+     *
      * @param warzoneId 战区id
      * @return dbName
      */
-    public static String warzoneDBName(int warzoneId){
+    public static String warzoneDBName(int warzoneId) {
         return "warzone_" + warzoneId;
     }
 
     /**
      * 全局数据库名字
+     *
      * @return dbName
      */
-    public static String globalDBName(){
+    public static String globalDBName() {
         return "global";
     }
 

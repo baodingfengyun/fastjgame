@@ -34,35 +34,35 @@ import java.util.List;
 @SerializableClass
 public class RpcCall {
 
-	/**
-	 * 调用的远程方法，用于确定一个唯一的方法。不使用 服务名 + 方法名 + 方法具体参数信息，传输的内容量过于庞大，性能不好。
-	 */
-	@SerializableField(number = 1)
-	private final int methodKey;
+    /**
+     * 调用的远程方法，用于确定一个唯一的方法。不使用 服务名 + 方法名 + 方法具体参数信息，传输的内容量过于庞大，性能不好。
+     */
+    @SerializableField(number = 1)
+    private final int methodKey;
 
-	/**
-	 * 方法参数列表，无参时为{@link Collections#emptyList()}
-	 */
-	@SerializableField(number = 2)
-	private final List<Object> methodParams;
+    /**
+     * 方法参数列表，无参时为{@link Collections#emptyList()}
+     */
+    @SerializableField(number = 2)
+    private final List<Object> methodParams;
 
-	// 反射创建对象
-	private RpcCall() {
-		methodKey = -1;
-		methodParams = null;
-	}
+    // 反射创建对象
+    private RpcCall() {
+        methodKey = -1;
+        methodParams = null;
+    }
 
-	public RpcCall(int methodKey, List<Object> methodParams) {
-		this.methodKey = methodKey;
-		this.methodParams = methodParams;
-	}
+    public RpcCall(int methodKey, List<Object> methodParams) {
+        this.methodKey = methodKey;
+        this.methodParams = methodParams;
+    }
 
-	public int getMethodKey() {
-		return methodKey;
-	}
+    public int getMethodKey() {
+        return methodKey;
+    }
 
-	public List<Object> getMethodParams() {
-		return methodParams;
-	}
+    public List<Object> getMethodParams() {
+        return methodParams;
+    }
 
 }

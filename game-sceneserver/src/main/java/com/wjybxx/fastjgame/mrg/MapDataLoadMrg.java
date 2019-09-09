@@ -29,6 +29,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * 地图资源加载器，按需加载；
  * 由于地图资源信息可能很大，加载到内存浪费内存，也会拖慢启动速度；
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/5 14:13
@@ -49,12 +50,13 @@ public class MapDataLoadMrg {
 
     /**
      * 加载地图资源
+     *
      * @param mapId
      * @return
      */
-    public MapData loadMapData(int mapId){
+    public MapData loadMapData(int mapId) {
         MapData mapData = loadCache.get(mapId);
-        if (null == mapData){
+        if (null == mapData) {
             mapData = loadMapDataImp(mapId);
             loadCache.put(mapId, mapData);
         }
@@ -63,22 +65,23 @@ public class MapDataLoadMrg {
 
     /**
      * 加载地图资源
+     *
      * @param mapId 地图资源id
      * @return mapData
      */
     @Nonnull
-    private MapData loadMapDataImp(int mapId){
+    private MapData loadMapDataImp(int mapId) {
         // TODO 真正加载地图资源，现在随机生成吧
         final int rowCount = 100;
         final int colCount = 100;
 
         MapGrid[][] allMapGrids = new MapGrid[rowCount][colCount];
-        for (int rowIndex = 0; rowIndex < rowCount; rowIndex++){
-            for (int colIndex = 0; colIndex < colCount; colIndex++){
-                allMapGrids[rowIndex][colIndex] = new MapGrid(rowIndex,colIndex,GridObstacle.FREE, true);
+        for (int rowIndex = 0; rowIndex < rowCount; rowIndex++) {
+            for (int colIndex = 0; colIndex < colCount; colIndex++) {
+                allMapGrids[rowIndex][colIndex] = new MapGrid(rowIndex, colIndex, GridObstacle.FREE, true);
             }
         }
 
-        return new MapData(mapId,allMapGrids);
+        return new MapData(mapId, allMapGrids);
     }
 }

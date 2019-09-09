@@ -38,13 +38,13 @@ public class CuratorTest {
         closeHandle.close();
     }
 
-    private static void onEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception{
+    private static void onEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
         ChildData childData = event.getData();
-        if (childData==null){
+        if (childData == null) {
             System.out.println(String.format("thread=%s, eventType=%s",
                     Thread.currentThread().getName(),
                     event.getType()));
-        }else {
+        } else {
             System.out.println(String.format("thread=%s, eventType=%s, path=%s, data=%s",
                     Thread.currentThread().getName(),
                     event.getType(),
@@ -53,9 +53,9 @@ public class CuratorTest {
         }
     }
 
-    private static void printChild(ChildData childData){
-        System.out.println(String.format("childData: path=%s, data=%s",childData.getPath(),
-                new String(childData.getData(),StandardCharsets.UTF_8)));
+    private static void printChild(ChildData childData) {
+        System.out.println(String.format("childData: path=%s, data=%s", childData.getPath(),
+                new String(childData.getData(), StandardCharsets.UTF_8)));
     }
 
 }

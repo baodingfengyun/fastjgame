@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * zookeeper上在线SceneServer节点信息
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/15 17:21

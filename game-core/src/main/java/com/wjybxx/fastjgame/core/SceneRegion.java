@@ -24,6 +24,7 @@ import com.wjybxx.fastjgame.utils.EnumUtils;
  * 场景区域划分。
  * 建议每个区域至少拥有一个城镇，通过城镇进入其它类型的地图(普通副本，活动副本)。
  * 没有城镇也是可以的，传图时需要指定要传入的地图id。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/15 11:33
@@ -34,11 +35,11 @@ public enum SceneRegion implements NumberEnum {
     /**
      * 本服普通区域，不互斥，大多数地图都应该属于它。
      */
-    LOCAL_NORMAL(1, SceneWorldType.SINGLE,false),
+    LOCAL_NORMAL(1, SceneWorldType.SINGLE, false),
     /**
      * 本服竞技场(DNF玩习惯了，习惯叫PKC)，互斥
      */
-    LOCAL_PKC(2, SceneWorldType.SINGLE,true),
+    LOCAL_PKC(2, SceneWorldType.SINGLE, true),
     /**
      * 安徒恩，跨服，不互斥。
      */
@@ -63,7 +64,7 @@ public enum SceneRegion implements NumberEnum {
     private final boolean mutex;
 
     SceneRegion(int number, SceneWorldType sceneWorldType, boolean mutex) {
-        this.number=number;
+        this.number = number;
         this.sceneWorldType = sceneWorldType;
         this.mutex = mutex;
     }
@@ -73,9 +74,9 @@ public enum SceneRegion implements NumberEnum {
      */
     private static final NumberEnumMapper<SceneRegion> mapper = EnumUtils.indexNumberEnum(values());
 
-    public static SceneRegion forNumber(int number){
+    public static SceneRegion forNumber(int number) {
         SceneRegion sceneRegion = mapper.forNumber(number);
-        assert null!=sceneRegion:"invalid number " + number;
+        assert null != sceneRegion : "invalid number " + number;
         return sceneRegion;
     }
 
@@ -84,11 +85,11 @@ public enum SceneRegion implements NumberEnum {
         return number;
     }
 
-    public SceneWorldType getSceneWorldType(){
+    public SceneWorldType getSceneWorldType() {
         return sceneWorldType;
     }
 
-    public boolean isMutex(){
+    public boolean isMutex() {
         return mutex;
     }
 

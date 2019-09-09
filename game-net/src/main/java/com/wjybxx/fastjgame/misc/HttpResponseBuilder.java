@@ -22,6 +22,7 @@ import io.netty.handler.codec.http.*;
 /**
  * 用于构建复杂的http响应的建造类。
  * 目前它设计用于逻辑线程。部分操作其实更适合放在IO线程，如json序列化。
+ *
  * @param <T> the Type of this
  * @author wjybxx
  * @version 1.0
@@ -30,22 +31,24 @@ import io.netty.handler.codec.http.*;
  */
 public abstract class HttpResponseBuilder<T extends HttpResponseBuilder<T>> {
 
-    protected HttpHeaders httpHeaders=EmptyHttpHeaders.INSTANCE;
+    protected HttpHeaders httpHeaders = EmptyHttpHeaders.INSTANCE;
 
     /**
      * 添加一个HttpHeader
+     *
      * @return this
      */
-    public T addHttpHeader(CharSequence headerName,Object headerValue){
-        if (httpHeaders == EmptyHttpHeaders.INSTANCE){
+    public T addHttpHeader(CharSequence headerName, Object headerValue) {
+        if (httpHeaders == EmptyHttpHeaders.INSTANCE) {
             httpHeaders = new DefaultHttpHeaders();
         }
-        httpHeaders.set(headerName,headerValue);
+        httpHeaders.set(headerName, headerValue);
         return castThis();
     }
 
     /**
      * 返回类型强转的自身
+     *
      * @return 返回具体类型的子类自身
      */
     @SuppressWarnings("unchecked")
@@ -56,37 +59,42 @@ public abstract class HttpResponseBuilder<T extends HttpResponseBuilder<T>> {
     /**
      * 构建最终响应。
      * 这是一个模板方法(若真不满足需要可重写)。
+     *
      * @return HttpResponse
      */
-    public HttpResponse build(){
+    public HttpResponse build() {
         beforeBuild();
 
         ByteBuf content = buildContent();
-        httpHeaders.set(HttpHeaderNames.CONTENT_TYPE,contentType());
-        httpHeaders.set(HttpHeaderNames.CONTENT_LENGTH,content.readableBytes());
+        httpHeaders.set(HttpHeaderNames.CONTENT_TYPE, contentType());
+        httpHeaders.set(HttpHeaderNames.CONTENT_LENGTH, content.readableBytes());
 
-        return new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,responseStatus(),
-                content,httpHeaders,new DefaultHttpHeaders(false));
+        return new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, responseStatus(),
+                content, httpHeaders, new DefaultHttpHeaders(false));
     }
 
     /**
      * 在开始执行构建之前是否有什么事情要做，比如添加header
      */
     protected abstract void beforeBuild();
+
     /**
      * 子类指定响应状态
+     *
      * @return status
      */
     protected abstract HttpResponseStatus responseStatus();
 
     /**
      * 获取内容类型
+     *
      * @return content-type
      */
     protected abstract String contentType();
 
     /**
      * 构建内容
+     *
      * @return content
      */
     protected abstract ByteBuf buildContent();

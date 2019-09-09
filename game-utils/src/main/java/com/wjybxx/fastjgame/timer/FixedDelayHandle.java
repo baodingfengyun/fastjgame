@@ -27,36 +27,36 @@ import javax.annotation.concurrent.NotThreadSafe;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public interface FixedDelayHandle extends TimerHandle{
+public interface FixedDelayHandle extends TimerHandle {
 
-	/**
-	 * 指定的初始延迟，不可修改。
-	 *
-	 * @return 毫秒
-	 */
-	long initialDelay();
+    /**
+     * 指定的初始延迟，不可修改。
+     *
+     * @return 毫秒
+     */
+    long initialDelay();
 
-	/**
-	 * 指定的延迟时间。
-	 *
-	 * @return 毫秒
-	 */
-	long delay();
+    /**
+     * 指定的延迟时间。
+     *
+     * @return 毫秒
+     */
+    long delay();
 
-	/**
-	 * 尝试修改timer的执行间隔。
-	 * @apiNote
-	 * 注意：该方法实现不保证立即生效，但保证其后续的调用的间隔
-	 *
-	 * @param delay 延迟时间，必须大于0！
-	 * @return 当且仅当成功修改TimerTask的执行间隔时返回true，其它情况下返回false(比如已取消，或已终止)。
-	 */
-	boolean setDelay(long delay);
+    /**
+     * 尝试修改timer的执行间隔。
+     *
+     * @param delay 延迟时间，必须大于0！
+     * @return 当且仅当成功修改TimerTask的执行间隔时返回true，其它情况下返回false(比如已取消，或已终止)。
+     * @apiNote 注意：该方法实现不保证立即生效，但保证其后续的调用的间隔
+     */
+    boolean setDelay(long delay);
 
-	/**
-	 * 尝试修改timer的执行间隔，修改成功时立即生效!
-	 * @param delay 延迟时间，必须大于0！
-	 * @return 当且仅当成功修改TimerTask的执行间隔时返回true，其它情况下返回false(比如已取消，或已终止)。
-	 */
-	boolean setDelayImmediately(long delay);
+    /**
+     * 尝试修改timer的执行间隔，修改成功时立即生效!
+     *
+     * @param delay 延迟时间，必须大于0！
+     * @return 当且仅当成功修改TimerTask的执行间隔时返回true，其它情况下返回false(比如已取消，或已终止)。
+     */
+    boolean setDelayImmediately(long delay);
 }

@@ -35,19 +35,21 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface SerializableField {
 
-	/**
-	 * 该属性对应的number，在同一个类中不可以重复，尽量不要进行修改。
-	 * 取值范围：[0, 127]，正常情况完全够用，超过该范围编译会报错。
-	 * @return >= 0
-	 */
-	int number();
+    /**
+     * 该属性对应的number，在同一个类中不可以重复，尽量不要进行修改。
+     * 取值范围：[0, 127]，正常情况完全够用，超过该范围编译会报错。
+     *
+     * @return >= 0
+     */
+    int number();
 
-	/**
-	 * 是否可能为负数？
-	 * 如果可能为负，将会使用{@code sint32} {@code sint64}进行编码。否则使用{@code varInt32} {@code varInt64}进行编码。
-	 * 该属于适用于byte,short,int,long 及其包装类型。
-	 * @return 如果返回true将会得到优化
-	 */
-	boolean mayNegative() default false;
+    /**
+     * 是否可能为负数？
+     * 如果可能为负，将会使用{@code sint32} {@code sint64}进行编码。否则使用{@code varInt32} {@code varInt64}进行编码。
+     * 该属于适用于byte,short,int,long 及其包装类型。
+     *
+     * @return 如果返回true将会得到优化
+     */
+    boolean mayNegative() default false;
 
 }

@@ -27,17 +27,19 @@ import io.netty.channel.Channel;
  * github - https://github.com/hl845740757
  */
 @TransferObject
-public class OneWayMessageEventParam extends MessageEventParam{
+public class OneWayMessageEventParam extends MessageEventParam {
 
-	/** 消息内容 */
-	private Object message;
+    /**
+     * 消息内容
+     */
+    private Object message;
 
-	public OneWayMessageEventParam(Channel channel, long localGuid, long remoteGuid, long ack, long sequence, Object message) {
-		super(channel, localGuid, remoteGuid, ack, sequence);
-		this.message = message;
-	}
+    public OneWayMessageEventParam(Channel channel, long localGuid, long remoteGuid, long ack, long sequence, Object message) {
+        super(channel, localGuid, remoteGuid, ack, sequence);
+        this.message = message;
+    }
 
-	public Object getMessage() {
-		return message;
-	}
+    public Object getMessage() {
+        return message;
+    }
 }

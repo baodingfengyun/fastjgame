@@ -27,10 +27,10 @@ import com.wjybxx.fastjgame.misc.HostAndPort;
  * date - 2019/8/3
  * github - https://github.com/hl845740757
  */
-public interface C2SSession extends Session{
+public interface C2SSession extends Session {
 
-	/**
-	 * 连接的远程端口
-	 */
-	HostAndPort remoteAddress();
+    /**
+     * 连接的远程端口
+     */
+    HostAndPort remoteAddress();
 }

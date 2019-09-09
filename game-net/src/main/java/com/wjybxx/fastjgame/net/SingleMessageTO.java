@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.net;
 
 /**
  * 单个消息传输对象
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/9/7
@@ -26,20 +27,20 @@ package com.wjybxx.fastjgame.net;
 @TransferObject
 public class SingleMessageTO {
 
-	private long ack;
+    private long ack;
 
-	private NetMessage netMessage;
+    private NetMessage netMessage;
 
-	public SingleMessageTO(long ack, NetMessage netMessage) {
-		this.ack = ack;
-		this.netMessage = netMessage;
-	}
+    public SingleMessageTO(long ack, NetMessage netMessage) {
+        this.ack = ack;
+        this.netMessage = netMessage;
+    }
 
-	public long getAck() {
-		return ack;
-	}
+    public long getAck() {
+        return ack;
+    }
 
-	public NetMessage getNetMessage() {
-		return netMessage;
-	}
+    public NetMessage getNetMessage() {
+        return netMessage;
+    }
 }

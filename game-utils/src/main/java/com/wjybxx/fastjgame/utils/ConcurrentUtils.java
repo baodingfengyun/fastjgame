@@ -26,6 +26,7 @@ import java.util.concurrent.*;
 
 /**
  * 并发工具包，常用并发工具方法。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/14 1:02
@@ -35,11 +36,17 @@ public class ConcurrentUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(ConcurrentUtils.class);
 
-    /** 什么都不做的任务 */
-    public static final Runnable NO_OP_TASK = () -> {};
+    /**
+     * 什么都不做的任务
+     */
+    public static final Runnable NO_OP_TASK = () -> {
+    };
 
-    /** 用于唤醒的任务 */
-    public static final Runnable WEAK_UP_TASK = () -> {};
+    /**
+     * 用于唤醒的任务
+     */
+    public static final Runnable WEAK_UP_TASK = () -> {
+    };
 
     private ConcurrentUtils() {
 
@@ -47,37 +54,40 @@ public class ConcurrentUtils {
 
     /**
      * 在{@link CountDownLatch#await()}上等待，等待期间不响应中断
+     *
      * @param countDownLatch 闭锁
      */
-    public static void awaitUninterruptibly(@Nonnull CountDownLatch countDownLatch){
+    public static void awaitUninterruptibly(@Nonnull CountDownLatch countDownLatch) {
         awaitUninterruptibly(countDownLatch::await);
     }
 
     /**
      * 在{@link Semaphore#acquire()}上等待，等待期间不响应中断
+     *
      * @param semaphore 信号量
      */
-    public static void awaitUninterruptibly(Semaphore semaphore){
+    public static void awaitUninterruptibly(Semaphore semaphore) {
         awaitUninterruptibly(semaphore::acquire);
     }
 
     /**
      * 在等待期间不响应中断
+     *
      * @param acquireFun 如果在资源上申请资源
      */
-    public static void awaitUninterruptibly(AcquireFun acquireFun){
+    public static void awaitUninterruptibly(AcquireFun acquireFun) {
         // 清除中断状态，避免无谓的中断
         boolean interrupted = Thread.interrupted();
         try {
-            while (true){
+            while (true) {
                 try {
                     acquireFun.acquire();
                     break;
-                }catch (InterruptedException e){
+                } catch (InterruptedException e) {
                     interrupted = true;
                 }
             }
-        }finally {
+        } finally {
             // 恢复中断状态
             recoveryInterrupted(interrupted);
         }
@@ -85,124 +95,134 @@ public class ConcurrentUtils {
 
     /**
      * 使用重试的方式等待闭锁打开
+     *
      * @param countDownLatch 闭锁
-     * @param heartbeat 心跳间隔
-     * @param timeUnit 时间单位
+     * @param heartbeat      心跳间隔
+     * @param timeUnit       时间单位
      */
-    public static void awaitWithRetry(CountDownLatch countDownLatch, long heartbeat, TimeUnit timeUnit){
+    public static void awaitWithRetry(CountDownLatch countDownLatch, long heartbeat, TimeUnit timeUnit) {
         awaitWithRetry(countDownLatch::await, heartbeat, timeUnit);
     }
 
     /**
      * 使用重试的方式申请信号量
+     *
      * @param semaphore 信号量
      * @param heartbeat 心跳间隔
-     * @param timeUnit 时间单位
+     * @param timeUnit  时间单位
      */
-    public static void awaitWithRetry(Semaphore semaphore, long heartbeat, TimeUnit timeUnit){
+    public static void awaitWithRetry(Semaphore semaphore, long heartbeat, TimeUnit timeUnit) {
         awaitWithRetry(semaphore::tryAcquire, heartbeat, timeUnit);
     }
 
-     /**
+    /**
      * 使用重试的方式申请资源(可以保持线程的活性)
+     *
      * @param tryAcquireFun 申请资源的方法
-     * @param heartbeat 心跳间隔
-     * @param timeUnit 时间单位
+     * @param heartbeat     心跳间隔
+     * @param timeUnit      时间单位
      */
-    public static void awaitWithRetry(TryAcquireFun tryAcquireFun, long heartbeat, TimeUnit timeUnit){
+    public static void awaitWithRetry(TryAcquireFun tryAcquireFun, long heartbeat, TimeUnit timeUnit) {
         boolean interrupted = Thread.interrupted();
         try {
-            while (true){
+            while (true) {
                 try {
-                    if (tryAcquireFun.tryAcquire(heartbeat,timeUnit)){
+                    if (tryAcquireFun.tryAcquire(heartbeat, timeUnit)) {
                         break;
                     }
                 } catch (InterruptedException e) {
-                    interrupted=true;
+                    interrupted = true;
                 }
             }
-        }finally {
+        } finally {
             recoveryInterrupted(interrupted);
         }
     }
 
     /**
      * 使用重试的方式申请资源，申请失败则睡眠一定时间。
+     *
      * @param tryAcquireFun 资源申请函数
-     * @param heartbeat 心跳间隔
-     * @param timeUnit 时间单位
-     * @param <T> 资源的类型
+     * @param heartbeat     心跳间隔
+     * @param timeUnit      时间单位
+     * @param <T>           资源的类型
      */
-    public static <T> void awaitWithSleepingRetry(TryAcquireFun2 tryAcquireFun, long heartbeat, TimeUnit timeUnit){
+    public static <T> void awaitWithSleepingRetry(TryAcquireFun2 tryAcquireFun, long heartbeat, TimeUnit timeUnit) {
         awaitWithRetry(toAcquireFunWithSleep(tryAcquireFun), heartbeat, timeUnit);
     }
 
     // 远程资源申请
+
     /**
      * 在等待远程资源期间不响应中断
+     *
      * @param acquireFun 如果在资源上申请资源
      * @throws Exception error
      */
     public static <T> void awaitRemoteUninterruptibly(RemoteAcquireFun acquireFun) throws Exception {
         boolean interrupted = Thread.interrupted();
         try {
-            while (true){
+            while (true) {
                 try {
                     acquireFun.acquire();
                     break;
-                }catch (InterruptedException e){
+                } catch (InterruptedException e) {
                     interrupted = true;
                 }
             }
-        }finally {
+        } finally {
             recoveryInterrupted(interrupted);
         }
     }
 
     /**
      * 使用重试的方式申请远程资源
-     * @param <T> 资源类型
+     *
+     * @param <T>           资源类型
      * @param tryAcquireFun 尝试申请
-     * @param heartbeat 心跳间隔
-     * @param timeUnit 时间单位
+     * @param heartbeat     心跳间隔
+     * @param timeUnit      时间单位
      * @throws Exception error
      */
     public static <T> void awaitRemoteWithRetry(RemoteTryAcquireFun tryAcquireFun, long heartbeat, TimeUnit timeUnit) throws Exception {
         // 虽然是重复代码，但是不好消除
         boolean interrupted = Thread.interrupted();
         try {
-            while (true){
+            while (true) {
                 try {
-                    if (tryAcquireFun.tryAcquire(heartbeat, timeUnit)){
+                    if (tryAcquireFun.tryAcquire(heartbeat, timeUnit)) {
                         break;
                     }
                 } catch (InterruptedException e) {
-                    interrupted=true;
+                    interrupted = true;
                 }
             }
-        }finally {
+        } finally {
             recoveryInterrupted(interrupted);
         }
     }
 
     /**
      * 使用重试的方式申请远程资源，申请失败则睡眠一定时间
+     *
      * @param tryAcquireFun 资源申请函数
-     * @param heartbeat 心跳间隔
-     * @param timeUnit 时间单位
+     * @param heartbeat     心跳间隔
+     * @param timeUnit      时间单位
      */
     public static <T> void awaitRemoteWithSleepingRetry(RemoteTryAcquireFun2 tryAcquireFun, long heartbeat, TimeUnit timeUnit) throws Exception {
         awaitRemoteWithRetry(toAcquireRemoteFunWithSleep(tryAcquireFun), heartbeat, timeUnit);
     }
 
     // region 私有实现(辅助方法)
+
     /**
      * 使用sleep转换为{@link TryAcquireFun}类型。
+     *
      * @param tryAcquireFun2 CAS的尝试函数
-     * @param <T> 资源类型
+     * @param <T>            资源类型
      * @return
      */
-    private static <T> TryAcquireFun toAcquireFunWithSleep(TryAcquireFun2 tryAcquireFun2){
+    private static <T> TryAcquireFun toAcquireFunWithSleep(TryAcquireFun2 tryAcquireFun2) {
         return (timeout, timeUnit) -> {
             if (tryAcquireFun2.tryAcquire()) {
                 return true;
@@ -215,14 +235,15 @@ public class ConcurrentUtils {
 
     /**
      * 使用sleep转换为{@link RemoteTryAcquireFun}类型。
+     *
      * @param tryAcquireFun2 CAS的尝试函数
      * @return
      */
-    private static <T> RemoteTryAcquireFun toAcquireRemoteFunWithSleep(RemoteTryAcquireFun2 tryAcquireFun2){
+    private static <T> RemoteTryAcquireFun toAcquireRemoteFunWithSleep(RemoteTryAcquireFun2 tryAcquireFun2) {
         return (timeout, timeUnit) -> {
-            if (tryAcquireFun2.tryAcquire()){
+            if (tryAcquireFun2.tryAcquire()) {
                 return true;
-            }else {
+            } else {
                 Thread.sleep(timeUnit.toMillis(timeout));
                 return false;
             }
@@ -235,6 +256,7 @@ public class ConcurrentUtils {
 
     /**
      * 恢复中断
+     *
      * @param interrupted 是否出现了中断
      */
     public static void recoveryInterrupted(boolean interrupted) {
@@ -249,6 +271,7 @@ public class ConcurrentUtils {
     /**
      * 恢复中断。
      * 如果是中断异常，则恢复线程中断状态。
+     *
      * @param e 异常
      * @return ture if is InterruptedException
      */
@@ -266,9 +289,10 @@ public class ConcurrentUtils {
 
     /**
      * 检查线程中断状态。
+     *
      * @throws InterruptedException 如果线程被中断，则抛出中断异常
      */
-    public static void checkInterrupted() throws InterruptedException{
+    public static void checkInterrupted() throws InterruptedException {
         if (Thread.interrupted()) {
             throw new InterruptedException();
         }
@@ -276,6 +300,7 @@ public class ConcurrentUtils {
 
     /**
      * 是否是中断异常
+     *
      * @param e exception
      * @return true/false
      */
@@ -285,21 +310,23 @@ public class ConcurrentUtils {
 
     /**
      * 将一个可能抛出异常的任务包装为一个不抛出受检异常的runnable。
-     * @param r 可能抛出异常的任务
+     *
+     * @param r                可能抛出异常的任务
      * @param exceptionHandler 异常处理器
      * @return Runnable
      */
-    public static Runnable safeRunnable(Runnable r, ExceptionHandler exceptionHandler){
+    public static Runnable safeRunnable(Runnable r, ExceptionHandler exceptionHandler) {
         return new SafeRunnable(r, exceptionHandler);
     }
 
     /**
      * 将一个可能抛出异常的任务包装为一个不抛出受检异常的runnable。
-     * @param r 可能抛出异常的任务
+     *
+     * @param r                可能抛出异常的任务
      * @param exceptionHandler 异常处理器
      * @return Runnable
      */
-    public static Runnable safeRunnable(AnyRunnable r, ExceptionHandler exceptionHandler){
+    public static Runnable safeRunnable(AnyRunnable r, ExceptionHandler exceptionHandler) {
         return new SafeRunnable2(r, exceptionHandler);
     }
 
@@ -310,7 +337,7 @@ public class ConcurrentUtils {
      * @param task 要执行的任务，可以将要执行的方法封装为 ()-> safeExecute()
      * @return true if is interrupted
      */
-    public static boolean safeExecute(Runnable task){
+    public static boolean safeExecute(Runnable task) {
         boolean interrupted = false;
         try {
             task.run();
@@ -341,16 +368,17 @@ public class ConcurrentUtils {
 
     /**
      * 尝试提交任务到指定executor
+     *
      * @param executor 任务提交的目的地
-     * @param task 待提交的任务
+     * @param task     待提交的任务
      * @return 如果提交成功则返回true，否则返回false。
      */
-    public static boolean tryCommit(@Nonnull Executor executor, @Nonnull Runnable task){
+    public static boolean tryCommit(@Nonnull Executor executor, @Nonnull Runnable task) {
         try {
             executor.execute(task);
             // 这里也不一定真正的提交成功了，因为目标executor的拒绝策略我们并不知晓
             return true;
-        } catch (Exception e){
+        } catch (Exception e) {
             // may reject
             if (e instanceof RejectedExecutionException) {
                 logger.info("Try commit failure, target executor may shutdown.");
@@ -366,9 +394,9 @@ public class ConcurrentUtils {
      *
      * @param cause 任务失败的原因
      * @throws CancellationException 被取消
-     * @throws ExecutionException 执行中出现其它异常
+     * @throws ExecutionException    执行中出现其它异常
      */
-    public static void rethrowIfFailed(@Nullable Throwable cause) throws CancellationException, ExecutionException{
+    public static void rethrowIfFailed(@Nullable Throwable cause) throws CancellationException, ExecutionException {
         if (cause == null) {
             return;
         }
@@ -381,13 +409,13 @@ public class ConcurrentUtils {
     /**
      * 重新抛出异常，绕过编译时检查。
      *
-     * @param ex 受检异常
+     * @param ex  受检异常
      * @param <E> 异常类型
      * @throws E 绕过编译时检查
      */
     @SuppressWarnings("unchecked")
-    public static <E extends Exception> void rethrow(@Nonnull Exception ex) throws E{
-        throw (E)ex;
+    public static <E extends Exception> void rethrow(@Nonnull Exception ex) throws E {
+        throw (E) ex;
     }
 
     //  ------------------------------------ 内部的一些封装，指不定什么时候可能就换成lambda表达式 --------------------
@@ -406,7 +434,7 @@ public class ConcurrentUtils {
         public void run() {
             try {
                 task.run();
-            } catch (Exception e){
+            } catch (Exception e) {
                 exceptionHandler.handleException(e);
             }
         }
@@ -426,7 +454,7 @@ public class ConcurrentUtils {
         public void run() {
             try {
                 task.run();
-            } catch (Exception e){
+            } catch (Exception e) {
                 exceptionHandler.handleException(e);
             }
         }

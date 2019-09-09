@@ -40,6 +40,7 @@ import java.util.Map;
 
 /**
  * http请求参数解码器，为上层提供统一视图
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/4/28 17:43
@@ -49,7 +50,9 @@ public class HttpRequestParamDecoder extends SimpleChannelInboundHandler<FullHtt
 
     private static final Logger logger = LoggerFactory.getLogger(HttpRequestParamDecoder.class);
 
-    /** localGuid */
+    /**
+     * localGuid
+     */
     private final long localGuid;
     private final NetEventManager netEventManager;
 
@@ -62,7 +65,7 @@ public class HttpRequestParamDecoder extends SimpleChannelInboundHandler<FullHtt
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest msg) throws Exception {
         DecoderResult decoderResult = msg.decoderResult();
-        if (!decoderResult.isSuccess()){
+        if (!decoderResult.isSuccess()) {
             ctx.writeAndFlush(HttpResponseHelper.newBadRequestResponse())
                     .addListener(ChannelFutureListener.CLOSE);
             logger.warn("decode failed.", decoderResult.cause());
@@ -70,32 +73,32 @@ public class HttpRequestParamDecoder extends SimpleChannelInboundHandler<FullHtt
         }
         HttpMethod method = msg.method();
         // 仅限get和post请求
-        if (method != HttpMethod.GET && method !=HttpMethod.POST){
+        if (method != HttpMethod.GET && method != HttpMethod.POST) {
             ctx.writeAndFlush(HttpResponseHelper.newBadRequestResponse())
                     .addListener(ChannelFutureListener.CLOSE);
             logger.info("unsupported method {}", method.name());
             return;
         }
 
-        QueryStringDecoder queryStringDecoder=new QueryStringDecoder(msg.uri());
-        String path=queryStringDecoder.path();
-        Map<String,String> paramsMap = new LinkedHashMap<>();
+        QueryStringDecoder queryStringDecoder = new QueryStringDecoder(msg.uri());
+        String path = queryStringDecoder.path();
+        Map<String, String> paramsMap = new LinkedHashMap<>();
 
-        if (method == HttpMethod.GET){
-            for (Map.Entry<String, List<String>> entry:queryStringDecoder.parameters().entrySet()){
-                paramsMap.put(entry.getKey(),entry.getValue().get(0));
+        if (method == HttpMethod.GET) {
+            for (Map.Entry<String, List<String>> entry : queryStringDecoder.parameters().entrySet()) {
+                paramsMap.put(entry.getKey(), entry.getValue().get(0));
             }
         } else {
             // You <strong>MUST</strong> call {@link #destroy()} after completion to release all resources.
             HttpPostRequestDecoder postRequestDecoder = new HttpPostRequestDecoder(msg);
             try {
-                for (InterfaceHttpData httpData:postRequestDecoder.getBodyHttpDatas()){
-                    if (httpData.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute){
+                for (InterfaceHttpData httpData : postRequestDecoder.getBodyHttpDatas()) {
+                    if (httpData.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute) {
                         Attribute attribute = (Attribute) httpData;
                         paramsMap.put(attribute.getName(), attribute.getValue());
                     }
                 }
-            }finally {
+            } finally {
                 postRequestDecoder.destroy();
             }
         }
@@ -107,6 +110,6 @@ public class HttpRequestParamDecoder extends SimpleChannelInboundHandler<FullHtt
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         ctx.close();
-        logger.info("",cause);
+        logger.info("", cause);
     }
 }

@@ -23,6 +23,7 @@ import java.util.List;
 
 /**
  * 场景服区域管理器，Center会与该管理器进行通信。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/22
@@ -31,20 +32,22 @@ import java.util.List;
 @RpcService(serviceId = ServiceTable.SCENE_REGION_MRG)
 public interface ISceneRegionMrg {
 
-	/**
-	 * 收到中心服启动互斥区域的命令 (建立连接后)
-	 * @param activeMutexRegionsList 需要启动的互斥区域
-	 * @return 启动成功
-	 */
-	@RpcMethod(methodId = 1)
-	boolean startMutexRegion(List<Integer> activeMutexRegionsList);
+    /**
+     * 收到中心服启动互斥区域的命令 (建立连接后)
+     *
+     * @param activeMutexRegionsList 需要启动的互斥区域
+     * @return 启动成功
+     */
+    @RpcMethod(methodId = 1)
+    boolean startMutexRegion(List<Integer> activeMutexRegionsList);
 
-	/**
-	 * 收到game的激活区域命名(宕机恢复，挂载其他场景进程宕掉的区域)
-	 * @param activeRegionsList 需要启动的区域(可能包含互斥和非互斥区域)
-	 * @return 启动成功
-	 */
-	@RpcMethod(methodId = 2)
-	boolean activeRegions(List<Integer> activeRegionsList);
+    /**
+     * 收到game的激活区域命名(宕机恢复，挂载其他场景进程宕掉的区域)
+     *
+     * @param activeRegionsList 需要启动的区域(可能包含互斥和非互斥区域)
+     * @return 启动成功
+     */
+    @RpcMethod(methodId = 2)
+    boolean activeRegions(List<Integer> activeRegionsList);
 
 }

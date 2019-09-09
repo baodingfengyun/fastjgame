@@ -28,8 +28,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * 玩家数据序列化控制器。
  * center与scene之间传递玩家数据是通过序列化的方式发送的。
- *
+ * <p>
  * 这里的代码最好是想办法自动生成;
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/23 12:18
@@ -54,7 +55,7 @@ public class PlayerDataSerializeMrg {
         return playerData;
     }
 
-    public p_common.p_player_data serialize(PlayerData playerData){
+    public p_common.p_player_data serialize(PlayerData playerData) {
         p_common.p_player_data.Builder builder = p_common.p_player_data.newBuilder();
         builder.setPlayerGuid(playerData.getGuid());
         builder.setPlatformNumber(playerData.getPlatformType().getNumber());

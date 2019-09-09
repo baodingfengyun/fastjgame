@@ -32,9 +32,10 @@ public interface PlayerMessageFunctionRegistry {
 
     /**
      * 注册一个消息对应的处理函数
-     * @param clazz 消息类
+     *
+     * @param clazz   消息类
      * @param handler 消息对应的处理函数
-     * @param <T> 消息的类型
+     * @param <T>     消息的类型
      */
     <T extends AbstractMessage> void register(@Nonnull Class<T> clazz, @Nonnull PlayerMessageFunction<T> handler);
 

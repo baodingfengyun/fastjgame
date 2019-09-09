@@ -21,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * 工具包的常量
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/9 20:10
@@ -35,7 +36,7 @@ public class UtilConstants {
      * 默认数组分隔符 '|'
      * 逗号在某些场合下效果不好，逗号使用面太广。
      */
-    public static final String DEFAULT_ARRAY_DELIMITER ="\\|";
+    public static final String DEFAULT_ARRAY_DELIMITER = "\\|";
 
     /**
      * 默认键值对分隔符, '=' 与 ':' 都是不错的选择， ':'更贴近于json

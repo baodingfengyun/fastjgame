@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.timer;
 
 /**
  * 抽象的固定延迟的TimerHandle实现
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/14
@@ -25,81 +26,85 @@ package com.wjybxx.fastjgame.timer;
  */
 public abstract class AbstractFixedDelayHandle extends AbstractTimerHandle implements FixedDelayHandle {
 
-	private final long initialDelay;
+    private final long initialDelay;
 
-	private long delay;
+    private long delay;
 
-	/** 上次执行时间 */
-	private long lastExecuteTimeMs;
+    /**
+     * 上次执行时间
+     */
+    private long lastExecuteTimeMs;
 
-	protected AbstractFixedDelayHandle(TimerSystem timerSystem, long createTimeMs, TimerTask timerTask,
-						long initialDelay, long delay) {
-		super(timerSystem, timerTask, createTimeMs);
-		this.initialDelay = initialDelay;
-		this.delay = delay;
-	}
+    protected AbstractFixedDelayHandle(TimerSystem timerSystem, long createTimeMs, TimerTask timerTask,
+                                       long initialDelay, long delay) {
+        super(timerSystem, timerTask, createTimeMs);
+        this.initialDelay = initialDelay;
+        this.delay = delay;
+    }
 
-	@Override
-	public long initialDelay() {
-		return initialDelay;
-	}
+    @Override
+    public long initialDelay() {
+        return initialDelay;
+    }
 
-	@Override
-	public long delay() {
-		return delay;
-	}
+    @Override
+    public long delay() {
+        return delay;
+    }
 
-	@Override
-	public final boolean setDelay(long delay) {
-		ensureDelay(delay);
-		if (isTerminated()) {
-			return false;
-		} else {
-			this.delay = delay;
-			return true;
-		}
-	}
+    @Override
+    public final boolean setDelay(long delay) {
+        ensureDelay(delay);
+        if (isTerminated()) {
+            return false;
+        } else {
+            this.delay = delay;
+            return true;
+        }
+    }
 
-	@Override
-	public boolean setDelayImmediately(long delay) {
-		if (setDelay(delay)) {
-			adjust();
-			return true;
-		} else {
-			return false;
-		}
-	}
+    @Override
+    public boolean setDelayImmediately(long delay) {
+        if (setDelay(delay)) {
+            adjust();
+            return true;
+        } else {
+            return false;
+        }
+    }
 
-	/**
-	 * 当修改完delay的时候，进行必要的调整，此时还未修改下次执行时间。
-	 */
-	protected abstract void adjust();
+    /**
+     * 当修改完delay的时候，进行必要的调整，此时还未修改下次执行时间。
+     */
+    protected abstract void adjust();
 
-	@Override
-	protected final void init() {
-		setNextExecuteTimeMs(createTimeMs() + initialDelay);
-	}
+    @Override
+    protected final void init() {
+        setNextExecuteTimeMs(createTimeMs() + initialDelay);
+    }
 
-	@Override
-	protected final void afterExecute(long curTimeMs) {
-		// 上次执行时间为真实时间
-		lastExecuteTimeMs = curTimeMs;
-		// 下次执行时间为上次执行时间 + 延迟
-		setNextExecuteTimeMs(lastExecuteTimeMs + delay);
-	}
+    @Override
+    protected final void afterExecute(long curTimeMs) {
+        // 上次执行时间为真实时间
+        lastExecuteTimeMs = curTimeMs;
+        // 下次执行时间为上次执行时间 + 延迟
+        setNextExecuteTimeMs(lastExecuteTimeMs + delay);
+    }
 
-	/** 更新下一次的执行时间 */
-	protected final void updateNextExecuteTime() {
-		if (lastExecuteTimeMs > 0) {
-			setNextExecuteTimeMs(lastExecuteTimeMs + delay);
-		} else {
-			setNextExecuteTimeMs(createTimeMs() + initialDelay);
-		}
-	}
+    /**
+     * 更新下一次的执行时间
+     */
+    protected final void updateNextExecuteTime() {
+        if (lastExecuteTimeMs > 0) {
+            setNextExecuteTimeMs(lastExecuteTimeMs + delay);
+        } else {
+            setNextExecuteTimeMs(createTimeMs() + initialDelay);
+        }
+    }
 
-	public static void ensureDelay(long delay) {
-		if (delay <= 0) {
-			throw new IllegalArgumentException("delay " + delay);
-		}
-	}
+    public static void ensureDelay(long delay) {
+        if (delay <= 0) {
+            throw new IllegalArgumentException("delay " + delay);
+        }
+    }
 }

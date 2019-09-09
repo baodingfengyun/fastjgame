@@ -39,133 +39,137 @@ import java.util.stream.IntStream;
 
 /**
  * rpc请求客户端示例
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/26
  */
 public class ExampleRpcClientLoop extends SingleThreadEventLoop {
 
-	private final NetEventLoopGroup netGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET-EVENT-LOOP"),
-			RejectedExecutionHandlers.log());
+    private final NetEventLoopGroup netGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET-EVENT-LOOP"),
+            RejectedExecutionHandlers.log());
 
-	private NetContext netContext;
-	/** 是否已建立tcp连接 */
-	private Session session;
+    private NetContext netContext;
+    /**
+     * 是否已建立tcp连接
+     */
+    private Session session;
 
-	public ExampleRpcClientLoop(@Nullable EventLoopGroup parent,
-								@Nonnull ThreadFactory threadFactory,
-								@Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
-		super(parent, threadFactory, rejectedExecutionHandler);
-	}
+    public ExampleRpcClientLoop(@Nullable EventLoopGroup parent,
+                                @Nonnull ThreadFactory threadFactory,
+                                @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
+        super(parent, threadFactory, rejectedExecutionHandler);
+    }
 
-	@Override
-	protected void init() throws Exception {
-		super.init();
-		netContext = netGroup.createContext(ExampleConstants.clientGuid, ExampleConstants.clientRole, this).get();
-		// 必须先启动服务器
-		final TCPClientChannelInitializer initializer = netContext.newTcpClientInitializer(ExampleConstants.serverGuid,
-				ExampleConstants.reflectBasedCodec);
-		// 请求建立连接
-		final HostAndPort address = new HostAndPort(NetUtils.getLocalIp(), ExampleConstants.tcpPort);
-		netContext.connect(ExampleConstants.serverGuid,
-				ExampleConstants.serverRole, address,
-				() -> initializer,
-				new ServerLifeAward(),
-				new ExampleRpcDispatcher(new DefaultRpcCallDispatcher()), SessionSenderMode.DIRECT);
-	}
+    @Override
+    protected void init() throws Exception {
+        super.init();
+        netContext = netGroup.createContext(ExampleConstants.clientGuid, ExampleConstants.clientRole, this).get();
+        // 必须先启动服务器
+        final TCPClientChannelInitializer initializer = netContext.newTcpClientInitializer(ExampleConstants.serverGuid,
+                ExampleConstants.reflectBasedCodec);
+        // 请求建立连接
+        final HostAndPort address = new HostAndPort(NetUtils.getLocalIp(), ExampleConstants.tcpPort);
+        netContext.connect(ExampleConstants.serverGuid,
+                ExampleConstants.serverRole, address,
+                () -> initializer,
+                new ServerLifeAward(),
+                new ExampleRpcDispatcher(new DefaultRpcCallDispatcher()), SessionSenderMode.DIRECT);
+    }
 
-	@Override
-	protected void loop() {
-		for (int index=0; index < 1000; index ++) {
-			System.out.println("\n ------------------------------------" + index + "------------------------------------------");
+    @Override
+    protected void loop() {
+        for (int index = 0; index < 1000; index++) {
+            System.out.println("\n ------------------------------------" + index + "------------------------------------------");
 
-			// 执行所有任务
-			runAllTasks();
+            // 执行所有任务
+            runAllTasks();
 
-			if (session != null) {
-				sendRequest(index);
-			}
+            if (session != null) {
+                sendRequest(index);
+            }
 
-			if (confirmShutdown()) {
-				break;
-			}
-			// X秒一个循环
-			LockSupport.parkNanos(TimeUtils.NANO_PER_MILLISECOND * TimeUtils.SEC * 2);
-		}
-	}
+            if (confirmShutdown()) {
+                break;
+            }
+            // X秒一个循环
+            LockSupport.parkNanos(TimeUtils.NANO_PER_MILLISECOND * TimeUtils.SEC * 2);
+        }
+    }
 
-	private void sendRequest(final int index) {
-		// 方法无返回值，但是还是可以监听，只要调用的是call, sync, syncCall都可以获知调用结果
-		ExampleRpcServiceRpcProxy.hello("wjybxx- " + index)
-				.ifSuccess(result -> System.out.println("hello - " + index + " - " + result))
-				.call(session);
+    private void sendRequest(final int index) {
+        // 方法无返回值，但是还是可以监听，只要调用的是call, sync, syncCall都可以获知调用结果
+        ExampleRpcServiceRpcProxy.hello("wjybxx- " + index)
+                .ifSuccess(result -> System.out.println("hello - " + index + " - " + result))
+                .call(session);
 
-		ExampleRpcServiceRpcProxy.queryId("wjybxx-" + index)
-				.ifSuccess(result -> System.out.println("queryId - " + index + " - " + result))
-				.call(session);
+        ExampleRpcServiceRpcProxy.queryId("wjybxx-" + index)
+                .ifSuccess(result -> System.out.println("queryId - " + index + " - " + result))
+                .call(session);
 
-		ExampleRpcServiceRpcProxy.inc(index)
-				.ifSuccess(result -> System.out.println("inc - " + index + " - " + result))
-				.call(session);
+        ExampleRpcServiceRpcProxy.inc(index)
+                .ifSuccess(result -> System.out.println("inc - " + index + " - " + result))
+                .call(session);
 
-		ExampleRpcServiceRpcProxy.incWithSession(index)
-				.ifSuccess(result -> System.out.println("incWithSession - " + index + " - " + result))
-				.call(session);
+        ExampleRpcServiceRpcProxy.incWithSession(index)
+                .ifSuccess(result -> System.out.println("incWithSession - " + index + " - " + result))
+                .call(session);
 
-		ExampleRpcServiceRpcProxy.incWithChannel(index)
-				.ifSuccess(result -> System.out.println("incWithChannel - " + index + " - " + result))
-				.call(session);
+        ExampleRpcServiceRpcProxy.incWithChannel(index)
+                .ifSuccess(result -> System.out.println("incWithChannel - " + index + " - " + result))
+                .call(session);
 
-		ExampleRpcServiceRpcProxy.incWithSessionAndChannel(index)
-				.ifSuccess(result -> System.out.println("incWithSessionAndChannel - " + index + " - " + result))
-				.call(session);
+        ExampleRpcServiceRpcProxy.incWithSessionAndChannel(index)
+                .ifSuccess(result -> System.out.println("incWithSessionAndChannel - " + index + " - " + result))
+                .call(session);
 
-		// 如果client、service、netEventLoop全部无缝loop，并关闭网络层发送缓冲区，一次同步Rpc调用1 - 2毫秒
-		// SyncCall - 320395 - wjybxx-320395 , cost timeMs 2
-		// SyncCall - 320396 - wjybxx-320396 , cost timeMs 1
-		// SyncCall - 320397 - wjybxx-320397 , cost timeMs 1
+        // 如果client、service、netEventLoop全部无缝loop，并关闭网络层发送缓冲区，一次同步Rpc调用1 - 2毫秒
+        // SyncCall - 320395 - wjybxx-320395 , cost timeMs 2
+        // SyncCall - 320396 - wjybxx-320396 , cost timeMs 1
+        // SyncCall - 320397 - wjybxx-320397 , cost timeMs 1
 
-		final long start = System.currentTimeMillis();
-		final String callResult = ExampleRpcServiceRpcProxy.combine("wjybxx", String.valueOf(index)).syncCall(session);
-		System.out.println("SyncCall - " + index + " - " + callResult + " , cost timeMs " + (System.currentTimeMillis() - start));
+        final long start = System.currentTimeMillis();
+        final String callResult = ExampleRpcServiceRpcProxy.combine("wjybxx", String.valueOf(index)).syncCall(session);
+        System.out.println("SyncCall - " + index + " - " + callResult + " , cost timeMs " + (System.currentTimeMillis() - start));
 
-		// 模拟广播X次
-		final RpcBuilder<?> builder = ExampleRpcServiceRpcProxy.notifySuccess(index);
-		IntStream.rangeClosed(1, 3).forEach(i -> builder.send(session));
-	}
+        // 模拟广播X次
+        final RpcBuilder<?> builder = ExampleRpcServiceRpcProxy.notifySuccess(index);
+        IntStream.rangeClosed(1, 3).forEach(i -> builder.send(session));
+    }
 
-	@Override
-	protected void clean() throws Exception {
-		super.clean();
-		if (null != netContext) {
-			netContext.deregister();
-		}
-		netGroup.shutdown();
-	}
+    @Override
+    protected void clean() throws Exception {
+        super.clean();
+        if (null != netContext) {
+            netContext.deregister();
+        }
+        netGroup.shutdown();
+    }
 
-	private class ServerLifeAward implements SessionLifecycleAware {
+    private class ServerLifeAward implements SessionLifecycleAware {
 
-		@Override
-		public void onSessionConnected(Session session) {
-			System.out.println(" ============ onSessionConnected ===============");
-			ExampleRpcClientLoop.this.session = session;
-		}
+        @Override
+        public void onSessionConnected(Session session) {
+            System.out.println(" ============ onSessionConnected ===============");
+            ExampleRpcClientLoop.this.session = session;
+        }
 
-		@Override
-		public void onSessionDisconnected(Session session) {
-			System.out.println(" =========== onSessionDisconnected ==============");
-			ExampleRpcClientLoop.this.session = null;
-			// 断开连接后关闭
-			shutdown();
-		}
-	}
+        @Override
+        public void onSessionDisconnected(Session session) {
+            System.out.println(" =========== onSessionDisconnected ==============");
+            ExampleRpcClientLoop.this.session = null;
+            // 断开连接后关闭
+            shutdown();
+        }
+    }
 
-	public static void main(String[] args) throws ExecutionException, InterruptedException {
-		ExampleRpcClientLoop echoClientLoop = new ExampleRpcClientLoop(null,
-				new DefaultThreadFactory("CLIENT"),
-				RejectedExecutionHandlers.log());
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
+        ExampleRpcClientLoop echoClientLoop = new ExampleRpcClientLoop(null,
+                new DefaultThreadFactory("CLIENT"),
+                RejectedExecutionHandlers.log());
 
-		// 唤醒线程
-		echoClientLoop.execute(() -> {});
-	}
+        // 唤醒线程
+        echoClientLoop.execute(() -> {
+        });
+    }
 }

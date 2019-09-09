@@ -20,6 +20,7 @@ package com.wjybxx.fastjgame.misc;
  * 游戏对象容器初始化容量信息holder；
  * {@link #newBuilder()}，请使用Builder构建对象；初始化自己需要的数值；
  * {@link GameObjectContainer}
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/4 21:57
@@ -68,15 +69,15 @@ public class InitCapacityHolder {
 
     // region builder
 
-    public static Builder newBuilder(){
+    public static Builder newBuilder() {
         return new Builder();
     }
 
     public static class Builder {
 
-        private int playerSetInitCapacity=0;
-        private int petSetInitCapacity=0;
-        private int npcSetInitCapacity=0;
+        private int playerSetInitCapacity = 0;
+        private int petSetInitCapacity = 0;
+        private int npcSetInitCapacity = 0;
 
         public Builder setPlayerSetInitCapacity(int playerSetInitCapacity) {
             this.playerSetInitCapacity = playerSetInitCapacity;

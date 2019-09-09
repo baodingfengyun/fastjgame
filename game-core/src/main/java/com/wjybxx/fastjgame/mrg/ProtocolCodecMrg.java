@@ -50,11 +50,12 @@ public final class ProtocolCodecMrg {
 
     @Inject
     public ProtocolCodecMrg() {
-        
+
     }
 
     /**
      * 获取服务器之间协议编解码器
+     *
      * @return protocolCodec
      */
     public ProtocolCodec getInnerProtocolCodec() {
@@ -63,7 +64,8 @@ public final class ProtocolCodecMrg {
 
     /**
      * 通过mappingStrategy和serializer注册codec
-     * @param name codec的名字
+     *
+     * @param name            codec的名字
      * @param mappingStrategy 该端口上使用到的消息
      * @throws Exception mapping error , or init exception
      */
@@ -73,24 +75,26 @@ public final class ProtocolCodecMrg {
 
     /**
      * 注册protocolCodec
-     * @param name codec的名字
+     *
+     * @param name          codec的名字
      * @param protocolCodec codec辅助类
      */
-    public void registerProtocolCodec(@Nonnull String name, @Nonnull ProtocolCodec protocolCodec){
-        if (codecMapper.containsKey(name)){
-            throw new IllegalArgumentException("duplicate protocolCodec name "+name);
+    public void registerProtocolCodec(@Nonnull String name, @Nonnull ProtocolCodec protocolCodec) {
+        if (codecMapper.containsKey(name)) {
+            throw new IllegalArgumentException("duplicate protocolCodec name " + name);
         }
         codecMapper.put(name, protocolCodec);
     }
 
     /**
      * 获取protocolCodec
+     *
      * @param name codec的名字
      * @return ProtocolCodec
      */
-    public ProtocolCodec getProtocolCodec(@Nonnull String name){
+    public ProtocolCodec getProtocolCodec(@Nonnull String name) {
         ProtocolCodec protocolCodec = codecMapper.get(name);
-        if (null == protocolCodec){
+        if (null == protocolCodec) {
             throw new IllegalArgumentException("protocolCodec " + name + " is not registered.");
         }
         return protocolCodec;

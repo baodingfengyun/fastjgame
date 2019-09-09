@@ -21,9 +21,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * 网络消息包。
  * 它并非线程安全的，但是有多线程下的时序保证，网络层可以安全的访问{@link #timeout}之外的任意字段。
- *
+ * <p>
  * 一个包的{@link #sequence}一旦赋值便不会改变，{@link #setSequence(long)} happens-before {@link #getSequence()}。
- *
+ * <p>
  * 消息包发送流程：
  * step1  ->  create
  * step2  ->  setSequence,setTimeout

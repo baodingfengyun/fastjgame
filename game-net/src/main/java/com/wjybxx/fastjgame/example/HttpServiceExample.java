@@ -32,21 +32,21 @@ import com.wjybxx.fastjgame.utils.NetUtils;
 @HttpRequestMapping(path = "/main")
 public class HttpServiceExample {
 
-	@HttpRequestMapping(path = NetUtils.FAVICON_PATH, inherit = false)
-	public void requestIcon(HttpSession httpSession, String path, HttpRequestParam param) {
-		// path is NetUtils.FAVICON_PATH
-		httpSession.writeAndFlush(HttpResponseHelper.newNotFoundResponse());
-	}
+    @HttpRequestMapping(path = NetUtils.FAVICON_PATH, inherit = false)
+    public void requestIcon(HttpSession httpSession, String path, HttpRequestParam param) {
+        // path is NetUtils.FAVICON_PATH
+        httpSession.writeAndFlush(HttpResponseHelper.newNotFoundResponse());
+    }
 
-	@HttpRequestMapping(path = "/login")
-	public void requestLogin(HttpSession httpSession, String path, HttpRequestParam param) {
-		// path is /main/login
-	}
+    @HttpRequestMapping(path = "/login")
+    public void requestLogin(HttpSession httpSession, String path, HttpRequestParam param) {
+        // path is /main/login
+    }
 
-	public static void main(String[] args) {
-		final DefaultHttpRequestDispatcher dispatcher = new DefaultHttpRequestDispatcher();
-		// 使用生成的注册类将自己注册到消息分发器上
-		HttpServiceExampleHttpRegister.register(dispatcher, new HttpServiceExample());
-		//
-	}
+    public static void main(String[] args) {
+        final DefaultHttpRequestDispatcher dispatcher = new DefaultHttpRequestDispatcher();
+        // 使用生成的注册类将自己注册到消息分发器上
+        HttpServiceExampleHttpRegister.register(dispatcher, new HttpServiceExample());
+        //
+    }
 }

@@ -17,6 +17,7 @@ package com.wjybxx.fastjgame.misc;
 
 /**
  * long变量holder，在lambda表达式中使用
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/14 16:04

@@ -26,7 +26,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 /**
  * 表格模板控制器，存储着所有的表格信息；
  * 该控制器占用内存较多，不需要的模块不要绑定该控制器。
- *
+ * <p>
  * 如果配置全部实现为不可变对象，那么可以作为{@link GameEventLoopGroup}级别的单例。
  * 至少也可以作为线程级别的单例。
  *

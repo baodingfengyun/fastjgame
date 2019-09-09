@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.function;
 
 /**
  * Map构造器函数
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/4 22:52

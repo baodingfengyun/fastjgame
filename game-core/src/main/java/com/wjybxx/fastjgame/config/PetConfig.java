@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.config;
 
 /**
  * 宠物配置
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/23 16:48

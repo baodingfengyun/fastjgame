@@ -20,51 +20,52 @@ import io.netty.channel.Channel;
 
 /**
  * Http事件信息
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/1
  * github - https://github.com/hl845740757
  */
-public class HttpRequestEventParam implements NetEventParam{
+public class HttpRequestEventParam implements NetEventParam {
 
-	private Channel channel;
-	private long localGuid;
-	/**
-	 * 请求的资源路径
-	 */
-	private String path;
-	/**
-	 * 请求参数
-	 */
-	private HttpRequestParam params;
+    private Channel channel;
+    private long localGuid;
+    /**
+     * 请求的资源路径
+     */
+    private String path;
+    /**
+     * 请求参数
+     */
+    private HttpRequestParam params;
 
-	public HttpRequestEventParam(Channel channel, long localGuid, String path, HttpRequestParam params) {
-		this.channel = channel;
-		this.localGuid = localGuid;
-		this.path = path;
-		this.params = params;
-	}
+    public HttpRequestEventParam(Channel channel, long localGuid, String path, HttpRequestParam params) {
+        this.channel = channel;
+        this.localGuid = localGuid;
+        this.path = path;
+        this.params = params;
+    }
 
-	@Override
-	public long localGuid() {
-		return localGuid;
-	}
+    @Override
+    public long localGuid() {
+        return localGuid;
+    }
 
-	@Override
-	public long remoteGuid() {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public long remoteGuid() {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public Channel channel() {
-		return channel;
-	}
+    @Override
+    public Channel channel() {
+        return channel;
+    }
 
-	public String getPath() {
-		return path;
-	}
+    public String getPath() {
+        return path;
+    }
 
-	public HttpRequestParam getParams() {
-		return params;
-	}
+    public HttpRequestParam getParams() {
+        return params;
+    }
 }

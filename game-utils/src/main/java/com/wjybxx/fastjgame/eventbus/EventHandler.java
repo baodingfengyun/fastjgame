@@ -28,10 +28,11 @@ import javax.annotation.Nonnull;
  */
 public interface EventHandler<T> {
 
-	/**
-	 * 当出现一个订阅的事件
-	 * @param event 订阅的事件
-	 */
-	void onEvent(@Nonnull T event) throws Exception;
+    /**
+     * 当出现一个订阅的事件
+     *
+     * @param event 订阅的事件
+     */
+    void onEvent(@Nonnull T event) throws Exception;
 
 }

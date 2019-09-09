@@ -30,103 +30,105 @@ import java.util.*;
  */
 public class CompositeDynamicTimeRange implements DynamicTimeRange {
 
-	/** 所有子节点 */
-	private final List<DynamicTimeRange> children = new ArrayList<>();
+    /**
+     * 所有子节点
+     */
+    private final List<DynamicTimeRange> children = new ArrayList<>();
 
-	/**
-	 * @param children children.size() > 0
-	 */
-	public CompositeDynamicTimeRange(List<DynamicTimeRange> children) {
-		this.children.addAll(children);
-	}
+    /**
+     * @param children children.size() > 0
+     */
+    public CompositeDynamicTimeRange(List<DynamicTimeRange> children) {
+        this.children.addAll(children);
+    }
 
-	public CompositeDynamicTimeRange(DynamicTimeRange first, DynamicTimeRange... others) {
-		children.add(first);
-		Collections.addAll(children, others);
-	}
+    public CompositeDynamicTimeRange(DynamicTimeRange first, DynamicTimeRange... others) {
+        children.add(first);
+        Collections.addAll(children, others);
+    }
 
-	@Override
-	public TimeRange triggeringTimeRange(long timeMs) {
-		// 获取所有触发的里面startTime最小的
-		Optional<TimeRange> min = children.stream()
-				.map(e -> e.triggeringTimeRange(timeMs))
-				.filter(Objects::nonNull)
-				.min(CompositeDynamicTimeRange::compareNextTriggerTimeRange);
-		// 可能一个都没有触发，因此结果可能不存在
-		return min.orElse(null);
-	}
+    @Override
+    public TimeRange triggeringTimeRange(long timeMs) {
+        // 获取所有触发的里面startTime最小的
+        Optional<TimeRange> min = children.stream()
+                .map(e -> e.triggeringTimeRange(timeMs))
+                .filter(Objects::nonNull)
+                .min(CompositeDynamicTimeRange::compareNextTriggerTimeRange);
+        // 可能一个都没有触发，因此结果可能不存在
+        return min.orElse(null);
+    }
 
-	@Override
-	public TimeRange nextTriggerTimeRange(long timeMs) {
-		// 获取下一个触发的里面startTime最小的
-		Optional<TimeRange> min = children.stream()
-				.map(e -> e.nextTriggerTimeRange(timeMs))
-				.filter(Objects::nonNull)
-				.min(CompositeDynamicTimeRange::compareNextTriggerTimeRange);
-		// 可能都没有下一个触发点
-		return min.orElse(null);
-	}
+    @Override
+    public TimeRange nextTriggerTimeRange(long timeMs) {
+        // 获取下一个触发的里面startTime最小的
+        Optional<TimeRange> min = children.stream()
+                .map(e -> e.nextTriggerTimeRange(timeMs))
+                .filter(Objects::nonNull)
+                .min(CompositeDynamicTimeRange::compareNextTriggerTimeRange);
+        // 可能都没有下一个触发点
+        return min.orElse(null);
+    }
 
-	@Override
-	public TimeRange preTriggerTimeRange(long timeMs) {
-		// 获取结束的里面endTime最大的
-		Optional<TimeRange> min = children.stream()
-				.map(e -> e.preTriggerTimeRange(timeMs))
-				.filter(Objects::nonNull)
-				.max(CompositeDynamicTimeRange::comparePreTriggerTimeRange);
-		// 可能都没有上一个触发点
-		return min.orElse(null);
-	}
+    @Override
+    public TimeRange preTriggerTimeRange(long timeMs) {
+        // 获取结束的里面endTime最大的
+        Optional<TimeRange> min = children.stream()
+                .map(e -> e.preTriggerTimeRange(timeMs))
+                .filter(Objects::nonNull)
+                .max(CompositeDynamicTimeRange::comparePreTriggerTimeRange);
+        // 可能都没有上一个触发点
+        return min.orElse(null);
+    }
 
-	private static int compareNextTriggerTimeRange(TimeRange a, TimeRange b){
-		// startTime越小越靠前
-		final int startTimeCompareResult = Long.compare(a.startTime, b.startTime);
-		if (startTimeCompareResult != 0) {
-			return startTimeCompareResult;
-		}
-		// endTime越大越靠前（前面的包容后面的）
-		return Long.compare(b.endTime, a.endTime);
-	}
+    private static int compareNextTriggerTimeRange(TimeRange a, TimeRange b) {
+        // startTime越小越靠前
+        final int startTimeCompareResult = Long.compare(a.startTime, b.startTime);
+        if (startTimeCompareResult != 0) {
+            return startTimeCompareResult;
+        }
+        // endTime越大越靠前（前面的包容后面的）
+        return Long.compare(b.endTime, a.endTime);
+    }
 
-	private static int comparePreTriggerTimeRange(TimeRange a, TimeRange b){
-		// endTime越小越靠前
-		final int endTimeCompareResult = Long.compare(a.endTime, b.endTime);
-		if (endTimeCompareResult != 0){
-			return endTimeCompareResult;
-		}
-		// startTime越大越靠前（后面的包容前面的）
-		return Long.compare(b.startTime, a.startTime);
-	}
+    private static int comparePreTriggerTimeRange(TimeRange a, TimeRange b) {
+        // endTime越小越靠前
+        final int endTimeCompareResult = Long.compare(a.endTime, b.endTime);
+        if (endTimeCompareResult != 0) {
+            return endTimeCompareResult;
+        }
+        // startTime越大越靠前（后面的包容前面的）
+        return Long.compare(b.startTime, a.startTime);
+    }
 
-	@Override
-	public String toString() {
-		return "CompositeTimeRange{" +
-				"children=" + children +
-				'}';
-	}
+    @Override
+    public String toString() {
+        return "CompositeTimeRange{" +
+                "children=" + children +
+                '}';
+    }
 
-	public static void main(String[] args) {
-		List<DynamicTimeRange> children = new ArrayList<>();
+    public static void main(String[] args) {
+        List<DynamicTimeRange> children = new ArrayList<>();
 
 //		children.add(WeeklyTimeRange.parseFromConf("1_12:00:00", "2_12:00:00"));
 //		children.add(WeeklyTimeRange.parseFromConf("3_12:00:00", "4_12:00:00"));
 //		children.add(WeeklyTimeRange.parseFromConf("5_12:00:00", "6_12:00:00"));
 //		children.add(WeeklyTimeRange.parseFromConf("7_12:00:00", "2_12:00:00"));
 
-		children.add(DailyTimeRange.parseFromConf("09:00-12:00"));
-		children.add(DailyTimeRange.parseFromConf("14:00-15:00"));
-		children.add(DailyTimeRange.parseFromConf("17:00-18:00"));
-		children.add(DailyTimeRange.parseFromConf("22:00-08:00"));
+        children.add(DailyTimeRange.parseFromConf("09:00-12:00"));
+        children.add(DailyTimeRange.parseFromConf("14:00-15:00"));
+        children.add(DailyTimeRange.parseFromConf("17:00-18:00"));
+        children.add(DailyTimeRange.parseFromConf("22:00-08:00"));
 
-		CompositeDynamicTimeRange compositeDynamicTimeRange = new CompositeDynamicTimeRange(children);
-		System.out.println(compositeDynamicTimeRange);
+        CompositeDynamicTimeRange compositeDynamicTimeRange = new CompositeDynamicTimeRange(children);
+        System.out.println(compositeDynamicTimeRange);
 
-		long curTimeMs = System.currentTimeMillis();
-		System.out.println("isBetweenTimeRange         = " + compositeDynamicTimeRange.isBetweenTimeRange(curTimeMs));
-		System.out.println("triggeringTimeRange        = " + compositeDynamicTimeRange.triggeringTimeRange(curTimeMs));
-		System.out.println("nextTriggerTimeRange       = " + compositeDynamicTimeRange.nextTriggerTimeRange(curTimeMs));
-		System.out.println("preTriggerTimeRange        = " + compositeDynamicTimeRange.preTriggerTimeRange(curTimeMs));
+        long curTimeMs = System.currentTimeMillis();
+        System.out.println("isBetweenTimeRange         = " + compositeDynamicTimeRange.isBetweenTimeRange(curTimeMs));
+        System.out.println("triggeringTimeRange        = " + compositeDynamicTimeRange.triggeringTimeRange(curTimeMs));
+        System.out.println("nextTriggerTimeRange       = " + compositeDynamicTimeRange.nextTriggerTimeRange(curTimeMs));
+        System.out.println("preTriggerTimeRange        = " + compositeDynamicTimeRange.preTriggerTimeRange(curTimeMs));
 
-		System.out.println();
-	}
+        System.out.println();
+    }
 }

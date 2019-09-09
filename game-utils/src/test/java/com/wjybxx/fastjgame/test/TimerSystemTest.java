@@ -27,7 +27,7 @@ import java.util.stream.IntStream;
 
 /**
  * 新的定时器系统的测试
- *
+ * <p>
  * 节选输出：
  * --------------- sleepTimeSec 9 ---------------------- （初始）
  * timeoutTask1 1565234223563
@@ -36,7 +36,7 @@ import java.util.stream.IntStream;
  * fixRateTask 1565234223563
  * fixRateTask 1565234223564
  * fixRateTask 1565234223564
- *
+ * <p>
  * --------------- sleepTimeSec 7 ---------------------- （中途）
  * fixRateTask 1565234292568
  * fixRateTask 1565234292568
@@ -50,38 +50,38 @@ import java.util.stream.IntStream;
  */
 public class TimerSystemTest {
 
-	@SuppressWarnings("unused")
-	public static void main(String[] args) {
-		TimerSystem timerSystem = new DefaultTimerSystem();
-		// 局部变量是为了调试
-		TimeoutHandle handle1 = timerSystem.newTimeout(2 * TimeUtils.SEC, handle -> {
-			System.out.println("two second " + System.currentTimeMillis());
-		});
+    @SuppressWarnings("unused")
+    public static void main(String[] args) {
+        TimerSystem timerSystem = new DefaultTimerSystem();
+        // 局部变量是为了调试
+        TimeoutHandle handle1 = timerSystem.newTimeout(2 * TimeUtils.SEC, handle -> {
+            System.out.println("two second " + System.currentTimeMillis());
+        });
 
-		TimeoutHandle handle2 = timerSystem.newTimeout(TimeUtils.SEC, handle -> {
-			System.out.println("one second " + System.currentTimeMillis());
-		});
+        TimeoutHandle handle2 = timerSystem.newTimeout(TimeUtils.SEC, handle -> {
+            System.out.println("one second " + System.currentTimeMillis());
+        });
 
-		TimeoutHandle handle3 = timerSystem.newTimeout(2 * TimeUtils.SEC, handle -> {
-			System.out.println("two second2 " + System.currentTimeMillis());
-		});
+        TimeoutHandle handle3 = timerSystem.newTimeout(2 * TimeUtils.SEC, handle -> {
+            System.out.println("two second2 " + System.currentTimeMillis());
+        });
 
-		FixedDelayHandle handle4 = timerSystem.newFixedDelay(3 * TimeUtils.SEC, handle -> {
-			System.out.println("fixDelayTask " + System.currentTimeMillis());
-		});
+        FixedDelayHandle handle4 = timerSystem.newFixedDelay(3 * TimeUtils.SEC, handle -> {
+            System.out.println("fixDelayTask " + System.currentTimeMillis());
+        });
 
-		FixedRateHandle handle5 = timerSystem.newFixRate(3 * TimeUtils.SEC, handle -> {
-			System.out.println("fixRateTask " + System.currentTimeMillis());
-		});
+        FixedRateHandle handle5 = timerSystem.newFixRate(3 * TimeUtils.SEC, handle -> {
+            System.out.println("fixRateTask " + System.currentTimeMillis());
+        });
 
-		IntStream.rangeClosed(1, 10).forEach(index -> {
-			timerSystem.tick();
-			// 睡眠的时长不同，会打乱执行节奏
-			int sleepTimeSec = ThreadLocalRandom.current().nextInt(1, 10);
-			System.out.println("\n --------------- sleepTimeSec " + sleepTimeSec + " ----------------------");
-			LockSupport.parkNanos(TimeUtils.NANO_PER_MILLISECOND * TimeUtils.SEC * sleepTimeSec);
-		});
+        IntStream.rangeClosed(1, 10).forEach(index -> {
+            timerSystem.tick();
+            // 睡眠的时长不同，会打乱执行节奏
+            int sleepTimeSec = ThreadLocalRandom.current().nextInt(1, 10);
+            System.out.println("\n --------------- sleepTimeSec " + sleepTimeSec + " ----------------------");
+            LockSupport.parkNanos(TimeUtils.NANO_PER_MILLISECOND * TimeUtils.SEC * sleepTimeSec);
+        });
 
-		timerSystem.close();
-	}
+        timerSystem.close();
+    }
 }

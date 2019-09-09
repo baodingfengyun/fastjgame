@@ -27,15 +27,15 @@ import java.util.function.Predicate;
 /**
  * 使用时建议静态导入该类中的所有方法。
  * {@code
- *      import static com.wjybxx.fastjgame.utils.ClassScannerFilters.*;
+ * import static com.wjybxx.fastjgame.utils.ClassScannerFilters.*;
  * }
  * 了解以下方法会很有帮助。
  * {@link Predicate#and(Predicate)}
  * {@link Predicate#or(Predicate)}
  * {@link Predicate#negate()}
- *
+ * <p>
  * {@code
- *      annotationWith(Deprecated.class).and(childClass(Object.class));
+ * annotationWith(Deprecated.class).and(childClass(Object.class));
  * }
  *
  * @author wjybxx
@@ -51,46 +51,53 @@ public class ClassScannerFilters {
 
     /**
      * 所有的类文件都有效，不论判断名字还是class对象
+     *
      * @return Predicate
      */
-    public static <T> Predicate<T> all(){
+    public static <T> Predicate<T> all() {
         return obj -> true;
     }
 
     // ------------------------------------针对class对象的过滤器--------------------------
+
     /**
      * 被注解的注释的类
      * (一定要注意注解的生命周期！由于是扫描class，因此只对{@link RetentionPolicy#RUNTIME})有效。
-     *
+     * <p>
      * 细看{@link Retention} {@link RetentionPolicy}
+     *
      * @param annotationClass 注解
      * @return Predicate
      */
-    public static Predicate<Class<?>> annotationWith(Class<? extends Annotation> annotationClass){
+    public static Predicate<Class<?>> annotationWith(Class<? extends Annotation> annotationClass) {
         return clazz -> clazz.isAnnotationPresent(annotationClass);
     }
 
     /**
      * 是某个类的子类
+     *
      * @param superClass 超类
      * @return Predicate
      */
-    public static Predicate<Class<?>> childClass(Class<?> superClass){
+    public static Predicate<Class<?>> childClass(Class<?> superClass) {
         return superClass::isAssignableFrom;
     }
 
     // -------------------------------针对className的过滤器-----------------------------
+
     /**
      * 除了内部类以外的所有类
+     *
      * @return Predicate
      */
-    public static Predicate<String> exceptInnerClass(){
+    public static Predicate<String> exceptInnerClass() {
         // 内部类含有 "$"
         return clazzName -> !clazzName.contains("$");
     }
 
     /**
      * 除了指定包路径以外的类
+     *
      * @param pkgNameArray 包名 com.wjybxx.fastjgame
      * @return Predicate
      */
@@ -100,6 +107,7 @@ public class ClassScannerFilters {
 
     /**
      * 除了满足表达式的类
+     *
      * @param regex 正则表达式
      * @return Predicate
      */

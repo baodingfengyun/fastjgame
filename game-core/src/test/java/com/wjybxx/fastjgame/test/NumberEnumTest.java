@@ -39,8 +39,8 @@ public class NumberEnumTest {
         System.out.println(EEE.forNumber(1));
 
         // 老式的看看
-        System.out.println(NetEventType.forNumber((byte)1));
-        System.out.println(NetEventType.forNumber((byte)2));
+        System.out.println(NetEventType.forNumber((byte) 1));
+        System.out.println(NetEventType.forNumber((byte) 2));
 
         System.out.println(GridObstacle.forNumber(0));
         System.out.println(GridObstacle.forNumber(1));
@@ -51,7 +51,7 @@ public class NumberEnumTest {
 
     private static enum EEE implements NumberEnum {
 
-        A,B,C,D;
+        A, B, C, D;
 
         @Override
         public int getNumber() {
@@ -60,7 +60,7 @@ public class NumberEnumTest {
 
         private static final NumberEnumMapper<EEE> mapping = EnumUtils.indexNumberEnum(values());
 
-        public static EEE forNumber(int number){
+        public static EEE forNumber(int number) {
             return mapping.forNumber(number);
         }
     }

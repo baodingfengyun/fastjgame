@@ -63,8 +63,9 @@ public class AcceptorManager {
      * 监听某个端口,阻塞直到成功或失败。
      * 参数意义可参考{@link java.net.StandardSocketOptions}
      * 或 - https://www.cnblogs.com/googlemeoften/p/6082785.html
-     * @param host 地址
-     * @param port 需要绑定的端口
+     *
+     * @param host        地址
+     * @param port        需要绑定的端口
      * @param initializer channel初始化类，根据使用的协议(eg:tcp,ws) 和 序列化方式(eg:json,protoBuf)确定
      * @return 监听成功成功则返回绑定的地址，失败则返回null
      */
@@ -96,7 +97,7 @@ public class AcceptorManager {
             // ignore e
             NetUtils.closeQuietly(channelFuture);
             Thread.currentThread().interrupt();
-        } catch (Exception e){
+        } catch (Exception e) {
             // ignore, may another process bind this port
             NetUtils.closeQuietly(channelFuture);
         }
@@ -105,22 +106,23 @@ public class AcceptorManager {
 
     /**
      * 在某个端口范围内选择一个端口监听.
-     * @param host 地址
-     * @param portRange 端口范围
+     *
+     * @param host        地址
+     * @param portRange   端口范围
      * @param initializer channel初始化类
      * @return 监听成功的端口号，失败返回null
      */
     public BindResult bindRange(String host, PortRange portRange, ChannelInitializer<SocketChannel> initializer) throws BindException {
-        if (portRange.startPort <=0){
+        if (portRange.startPort <= 0) {
             throw new IllegalArgumentException("fromPort " + portRange.startPort);
         }
-        if (portRange.startPort > portRange.endPort){
+        if (portRange.startPort > portRange.endPort) {
             throw new IllegalArgumentException("fromPort " + portRange.startPort + " toPort " + portRange.endPort);
         }
-        for (int port = portRange.startPort; port<= portRange.endPort; port++){
+        for (int port = portRange.startPort; port <= portRange.endPort; port++) {
             try {
                 return bind(host, port, initializer);
-            }catch (BindException e){
+            } catch (BindException e) {
                 // ignore
             }
         }
@@ -129,14 +131,15 @@ public class AcceptorManager {
 
     /**
      * 异步建立连接localHost
+     *
      * @param hostAndPort 服务器地址
      * @param initializer channel初始化类，根据使用的协议(eg:tcp,ws) 和 序列化方式(eg:json,protoBuf)确定
      * @return channelFuture 注意使用{@link ChannelFuture#sync()} 会抛出异常。
      * 使用{@link ChannelFuture#await()} 和{@link ChannelFuture#isSuccess()} 安全处理。
      * 此外，使用channel 需要调用 {@link Channel#isActive()}检查是否成功和远程建立连接
      */
-    public ChannelFuture connectAsyn(HostAndPort hostAndPort, ChannelInitializer<SocketChannel> initializer){
-        Bootstrap bootstrap=new Bootstrap();
+    public ChannelFuture connectAsyn(HostAndPort hostAndPort, ChannelInitializer<SocketChannel> initializer) {
+        Bootstrap bootstrap = new Bootstrap();
         bootstrap.group(nettyThreadManager.getWorkerGroup());
 
         bootstrap.channel(NioSocketChannel.class);
@@ -153,12 +156,13 @@ public class AcceptorManager {
 
     /**
      * 同步建立连接
+     *
      * @param hostAndPort 服务器地址
      * @param initializer channel初始化类，根据使用的协议(eg:tcp,ws) 和 序列化方式(eg:json,protoBuf)确定
      * @return 注意！使用channel 需要调用 {@link Channel#isActive()}检查是否成功和远程建立连接
      */
     public Channel connectSyn(HostAndPort hostAndPort, ChannelInitializer<SocketChannel> initializer) {
-        ChannelFuture channelFuture= connectAsyn(hostAndPort, initializer);
+        ChannelFuture channelFuture = connectAsyn(hostAndPort, initializer);
         channelFuture.awaitUninterruptibly();
         return channelFuture.channel();
     }

@@ -25,6 +25,7 @@ import java.util.List;
 
 /**
  * CenterServer在SceneServer中的连接管理等。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/22
@@ -33,27 +34,28 @@ import java.util.List;
 @RpcService(serviceId = ServiceTable.CENTER_IN_SCENE_INFO_MRG)
 public interface ICenterInSceneInfoMrg {
 
-	/**
-	 * 中心服请求与scene建立连接 (认为我是本服节点)
-	 * 返回配置(或启动参数)中的支持的区域(非互斥区域已启动)，互斥区域是否启动由center协调。
-	 *
-	 * @param session 会话信息
-	 * @param platformNumber 中心服所属的平台
-	 * @param serverId 中心服id
-	 * @return scene配置的区域
-	 */
-	@RpcMethod(methodId = 1)
-	List<Integer> connectSingleScene(Session session, int platformNumber, int serverId);
-	/**
-	 * 中心服请求与scene建立连接 (认为我是跨服节点)
-	 * 跨服scene通知该centerserver我启动了哪些区域
-	 * 跨服场景暂时不做互斥，即使做，也不由centerserver协调(由它们自己协调，抢占zk节点)
-	 *
-	 * @param session 会话信息
-	 * @param platformNumber 中心服所属的平台
-	 * @param serverId 中心服id
-	 * @return 配置的区域和激活的区域
-	 */
-	@RpcMethod(methodId = 2)
-	ConnectCrossSceneResult connectCrossScene(Session session, int platformNumber, int serverId);
+    /**
+     * 中心服请求与scene建立连接 (认为我是本服节点)
+     * 返回配置(或启动参数)中的支持的区域(非互斥区域已启动)，互斥区域是否启动由center协调。
+     *
+     * @param session        会话信息
+     * @param platformNumber 中心服所属的平台
+     * @param serverId       中心服id
+     * @return scene配置的区域
+     */
+    @RpcMethod(methodId = 1)
+    List<Integer> connectSingleScene(Session session, int platformNumber, int serverId);
+
+    /**
+     * 中心服请求与scene建立连接 (认为我是跨服节点)
+     * 跨服scene通知该centerserver我启动了哪些区域
+     * 跨服场景暂时不做互斥，即使做，也不由centerserver协调(由它们自己协调，抢占zk节点)
+     *
+     * @param session        会话信息
+     * @param platformNumber 中心服所属的平台
+     * @param serverId       中心服id
+     * @return 配置的区域和激活的区域
+     */
+    @RpcMethod(methodId = 2)
+    ConnectCrossSceneResult connectCrossScene(Session session, int platformNumber, int serverId);
 }

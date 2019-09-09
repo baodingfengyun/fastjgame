@@ -32,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 中心服World
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/15 22:43
@@ -80,10 +81,10 @@ public class CenterWorld extends AbstractWorld {
         HostAndPort httpHostAndPort = innerAcceptorMrg.bindInnerHttpPort();
 
         // 注册到zk
-        String parentPath= ZKPathUtils.onlineParentPath(centerWorldInfoMrg.getWarzoneId());
-        String nodeName= ZKPathUtils.buildCenterNodeName(centerWorldInfoMrg.getPlatformType(), centerWorldInfoMrg.getServerId());
+        String parentPath = ZKPathUtils.onlineParentPath(centerWorldInfoMrg.getWarzoneId());
+        String nodeName = ZKPathUtils.buildCenterNodeName(centerWorldInfoMrg.getPlatformType(), centerWorldInfoMrg.getServerId());
 
-        CenterNodeData centerNodeData =new CenterNodeData(httpHostAndPort.toString(),
+        CenterNodeData centerNodeData = new CenterNodeData(httpHostAndPort.toString(),
                 centerWorldInfoMrg.getWorldGuid());
 
         final String path = ZKPaths.makePath(parentPath, nodeName);
@@ -91,7 +92,7 @@ public class CenterWorld extends AbstractWorld {
 
         final byte[] initData = JsonUtils.toJsonBytes(centerNodeData);
         ConcurrentUtils.awaitRemoteWithSleepingRetry(
-                ()-> curatorMrg.createNodeIfAbsent(path,CreateMode.EPHEMERAL,initData),
+                () -> curatorMrg.createNodeIfAbsent(path, CreateMode.EPHEMERAL, initData),
                 3, TimeUnit.SECONDS);
     }
 

@@ -21,7 +21,7 @@ import org.apache.zookeeper.CreateMode;
 
 /**
  * 有序节点测试，以知道如何解析它
- *
+ * <p>
  * 输出结果为：/online/channel/lock-0000000000
  *
  * @author wjybxx

@@ -36,11 +36,12 @@ import java.io.IOException;
  * 最开始时为分离的Encoder和Decoder。
  * 那样的问题是不太容易标记channel双方的guid。
  * (会导致协议冗余字段，或使用不必要的同步{@link io.netty.util.AttributeMap})
- *
+ * <p>
  * 使用codec会使得协议更加精炼，性能也更好，此外也方便阅读。
  * 它不是线程安全的，也不可共享。
- *
+ * <p>
  * baseCodec作为解码过程的最后一步和编码过程的第一步
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/7 12:26
@@ -69,22 +70,22 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
         ByteBuf msg = (ByteBuf) byteBuf;
         try {
             long realSum = msg.readLong();
-            long logicSum = NetUtils.calChecksum(msg,msg.readerIndex(),msg.readableBytes());
-            if (realSum != logicSum){
+            long logicSum = NetUtils.calChecksum(msg, msg.readerIndex(), msg.readableBytes());
+            if (realSum != logicSum) {
                 // 校验和不一致
-                closeCtx(ctx,"realSum="+realSum + ", logicSum="+logicSum);
+                closeCtx(ctx, "realSum=" + realSum + ", logicSum=" + logicSum);
                 return;
             }
             // 任何编解码出现问题都会在上层消息判断哪里出现问题，这里并不处理channel数据是否异常
             byte pkgTypeNumber = msg.readByte();
             NetPackageType netPackageType = NetPackageType.forNumber(pkgTypeNumber);
-            if (null == netPackageType){
+            if (null == netPackageType) {
                 // 约定之外的包类型
-                closeCtx(ctx,"null==netEventType " + pkgTypeNumber);
+                closeCtx(ctx, "null==netEventType " + pkgTypeNumber);
                 return;
             }
             readMsg(ctx, netPackageType, msg);
-        }finally {
+        } finally {
             // 解码结束，释放资源
             msg.release();
         }
@@ -92,20 +93,23 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
 
     /**
      * 子类真正的读取数据
-     * @param ctx ctx
+     *
+     * @param ctx            ctx
      * @param netPackageType 事件类型
-     * @param msg 收到的网络包
+     * @param msg            收到的网络包
      */
     protected abstract void readMsg(ChannelHandlerContext ctx, NetPackageType netPackageType, ByteBuf msg) throws Exception;
 
     // ---------------------------------------------- 协议1、2  ---------------------------------------
+
     /**
      * 编码协议1 - 连接请求
-     * @param ctx ctx
+     *
+     * @param ctx   ctx
      * @param msgTO 发送的消息
      */
     final void writeConnectRequest(ChannelHandlerContext ctx, ConnectRequestTO msgTO, ChannelPromise promise) {
-        byte[] encryptedToken=msgTO.getTokenBytes();
+        byte[] encryptedToken = msgTO.getTokenBytes();
         int contentLength = 8 + 4 + 8 + encryptedToken.length;
         ByteBuf byteBuf = newInitializedByteBuf(ctx, contentLength, NetPackageType.CONNECT_REQUEST);
 
@@ -120,10 +124,10 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
      * 解码协议1 - 连接请求
      */
     final ConnectRequestTO readConnectRequest(ByteBuf msg) {
-        long clientGuid=msg.readLong();
-        int sndTokenTimes=msg.readInt();
-        long ack=msg.readLong();
-        byte[] encryptedToken= NetUtils.readRemainBytes(msg);
+        long clientGuid = msg.readLong();
+        int sndTokenTimes = msg.readInt();
+        long ack = msg.readLong();
+        byte[] encryptedToken = NetUtils.readRemainBytes(msg);
 
         return new ConnectRequestTO(clientGuid, sndTokenTimes, ack, encryptedToken);
     }
@@ -132,13 +136,13 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
      * 编码协议2 - 连接响应
      */
     final void writeConnectResponse(ChannelHandlerContext ctx, ConnectResponseTO msgTO, ChannelPromise promise) {
-        byte[] encryptedToken=msgTO.getEncryptedToken();
+        byte[] encryptedToken = msgTO.getEncryptedToken();
 
         int contentLength = 4 + 1 + 8 + encryptedToken.length;
         ByteBuf byteBuf = newInitializedByteBuf(ctx, contentLength, NetPackageType.CONNECT_RESPONSE);
 
         byteBuf.writeInt(msgTO.getSndTokenTimes());
-        byteBuf.writeByte(msgTO.isSuccess()?1:0);
+        byteBuf.writeByte(msgTO.isSuccess() ? 1 : 0);
         byteBuf.writeLong(msgTO.getAck());
         byteBuf.writeBytes(msgTO.getEncryptedToken());
 
@@ -149,15 +153,16 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
      * 解码协议2 - 连接响应
      */
     final ConnectResponseTO readConnectResponse(ByteBuf msg) {
-        int sndTokenTimes=msg.readInt();
-        boolean success=msg.readByte()==1;
-        long ack=msg.readLong();
-        byte[] encryptedToken= NetUtils.readRemainBytes(msg);
+        int sndTokenTimes = msg.readInt();
+        boolean success = msg.readByte() == 1;
+        long ack = msg.readLong();
+        byte[] encryptedToken = NetUtils.readRemainBytes(msg);
 
         return new ConnectResponseTO(sndTokenTimes, success, ack, encryptedToken);
     }
 
     // ---------------------------------------------- 协议3、4 ---------------------------------------
+
     /**
      * 3. 编码rpc请求包
      */
@@ -216,7 +221,7 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
      */
     final RpcResponseEventParam readRpcResponseMessage(Channel channel, long localGuid, long remoteGuid, ByteBuf msg) {
         // 捎带确认信息
-        long ack= msg.readLong();
+        long ack = msg.readLong();
         long sequence = msg.readLong();
         // 响应内容
         long requestGuid = msg.readLong();
@@ -257,10 +262,11 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
 
     /**
      * 尝试合并协议头和身体
+     *
      * @param allocator byteBuf分配器
-     * @param head 协议头
-     * @param bodyData 待编码的body
-     * @param encoder 编码器
+     * @param head      协议头
+     * @param bodyData  待编码的body
+     * @param encoder   编码器
      * @return 合并后的byteBuf
      */
     @Nonnull
@@ -268,7 +274,7 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
         try {
             ByteBuf body = encoder.encode(allocator, bodyData);
             return Unpooled.wrappedBuffer(head, body);
-        }catch (Exception e){
+        } catch (Exception e) {
             // 为了不影响该连接上的其它消息，需要捕获异常
             logger.warn("deserialize body {} caught exception.", bodyData.getClass().getName(), e);
             return head;
@@ -277,6 +283,7 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
 
     /**
      * 尝试解码消息身体
+     *
      * @param data 协议内容
      * @return 为了不引用该连接上的其它消息，如果解码失败返回null。
      */
@@ -285,13 +292,14 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
         Object message = null;
         try {
             message = decoder.decode(data);
-        }catch (Exception e){
+        } catch (Exception e) {
             // 为了不影响该连接上的其它消息，需要捕获异常
             logger.warn("deserialize body caught exception", e);
         }
         return message;
     }
     // ---------------------------------------------- 协议6/7  ---------------------------------------
+
     /**
      * 编码协议6/7 - ack心跳包
      */
@@ -312,37 +320,43 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
         return new AckPingPongEventParam(channel, localGuid, remoteGuid, ack, sequence);
     }
     // ------------------------------------------ 分割线 --------------------------------------------
+
     /**
      * 关闭channel
-     * @param ctx 待关闭的context
+     *
+     * @param ctx    待关闭的context
      * @param reason 关闭context的原因
      */
-    final void closeCtx(ChannelHandlerContext ctx, String reason){
+    final void closeCtx(ChannelHandlerContext ctx, String reason) {
         logger.warn("close channel by reason of {}", reason);
         NetUtils.closeQuietly(ctx);
     }
 
-    /** 远程主机强制关闭了一个连接，这个异常真的有点坑爹 */
+    /**
+     * 远程主机强制关闭了一个连接，这个异常真的有点坑爹
+     */
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        closeCtx(ctx,"decode exceptionCaught.");
+        closeCtx(ctx, "decode exceptionCaught.");
         logger.warn("", cause);
     }
 
     /**
      * 创建一个初始化好的byteBuf
      * 设置包总长度 和 校验和
-     * @param ctx handlerContext，用于获取allocator
+     *
+     * @param ctx           handlerContext，用于获取allocator
      * @param contentLength 有效内容的长度
      * @return 足够空间的byteBuf可以直接写入内容部分
      */
-    private ByteBuf newInitializedByteBuf(ChannelHandlerContext ctx, int contentLength, NetPackageType netNetPackageType){
+    private ByteBuf newInitializedByteBuf(ChannelHandlerContext ctx, int contentLength, NetPackageType netNetPackageType) {
         return NetUtils.newInitializedByteBuf(ctx, contentLength, netNetPackageType.pkgType);
     }
 
     /**
      * 添加校验和并发送
-     * @param ctx handlerContext，用于将数据发送出去
+     *
+     * @param ctx     handlerContext，用于将数据发送出去
      * @param byteBuf 待发送的数据包
      * @param promise 操作回执
      */

@@ -28,7 +28,7 @@ import java.util.concurrent.ThreadFactory;
  * date - 2019/7/21
  * github - https://github.com/hl845740757
  */
-public class DefaultEventLoop extends SingleThreadEventLoop{
+public class DefaultEventLoop extends SingleThreadEventLoop {
 
     public DefaultEventLoop(@Nullable EventLoopGroup parent,
                             @Nonnull ThreadFactory threadFactory,
@@ -42,7 +42,7 @@ public class DefaultEventLoop extends SingleThreadEventLoop{
     @Override
     protected void loop() {
         Runnable task;
-        for (;;) {
+        for (; ; ) {
             task = takeTask();
             if (null != task) {
                 safeExecute(task);

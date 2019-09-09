@@ -17,53 +17,56 @@ package com.wjybxx.fastjgame.timer;
 
 /**
  * 抽象的只执行一次的timer系统
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/14
  * github - https://github.com/hl845740757
  */
-public abstract class AbstractTimeoutHandle extends AbstractTimerHandle implements TimeoutHandle{
+public abstract class AbstractTimeoutHandle extends AbstractTimerHandle implements TimeoutHandle {
 
-	private long timeout;
+    private long timeout;
 
-	protected AbstractTimeoutHandle(TimerSystem timerSystem, long createTimeMs, TimerTask timerTask, long timeout) {
-		super(timerSystem, timerTask, createTimeMs);
-		this.timeout = timeout;
-	}
+    protected AbstractTimeoutHandle(TimerSystem timerSystem, long createTimeMs, TimerTask timerTask, long timeout) {
+        super(timerSystem, timerTask, createTimeMs);
+        this.timeout = timeout;
+    }
 
-	@Override
-	public long timeout() {
-		return timeout;
-	}
+    @Override
+    public long timeout() {
+        return timeout;
+    }
 
-	@Override
-	public boolean setTimeoutImmediately(long timeout) {
-		if (isTerminated()) {
-			return false;
-		}
-		this.timeout = timeout;
-		adjust();
-		return true;
-	}
+    @Override
+    public boolean setTimeoutImmediately(long timeout) {
+        if (isTerminated()) {
+            return false;
+        }
+        this.timeout = timeout;
+        adjust();
+        return true;
+    }
 
-	/**
-	 * 当修改完timeout的时候，进行必要的调整，此时还未修改下次执行时间。
-	 */
-	protected abstract void adjust();
+    /**
+     * 当修改完timeout的时候，进行必要的调整，此时还未修改下次执行时间。
+     */
+    protected abstract void adjust();
 
-	@Override
-	protected final void init() {
-		setNextExecuteTimeMs(createTimeMs() + timeout);
-	}
+    @Override
+    protected final void init() {
+        setNextExecuteTimeMs(createTimeMs() + timeout);
+    }
 
-	/** 更新下一次的执行时间 */
-	protected final void updateNextExecuteTime() {
-		setNextExecuteTimeMs(createTimeMs() + timeout);
-	}
+    /**
+     * 更新下一次的执行时间
+     */
+    protected final void updateNextExecuteTime() {
+        setNextExecuteTimeMs(createTimeMs() + timeout);
+    }
 
-	@Override
-	protected final void afterExecute(long curTimeMs) {
-		// 执行一次之后就结束了。
-		setTerminated();
-	}
+    @Override
+    protected final void afterExecute(long curTimeMs) {
+        // 执行一次之后就结束了。
+        setTerminated();
+    }
 }

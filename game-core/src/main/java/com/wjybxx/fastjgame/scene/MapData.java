@@ -81,31 +81,33 @@ public class MapData implements Grid2DContainer<MapGrid> {
     }
 
     @Override
-    public int getRowCount(){
+    public int getRowCount() {
         return rowCount;
     }
 
     @Override
-    public int getColCount(){
+    public int getColCount() {
         return colCount;
     }
 
     /**
      * 地图坐标是否在地图内部
+     *
      * @param point2D 地图坐标
      * @return
      */
-    public boolean inside(Point2D point2D){
-        return MathUtils.withinRangeClosed(0, mapWidth, (int)point2D.getX()) &&
-                MathUtils.withinRangeClosed(0, mapHeight, (int)point2D.getY());
+    public boolean inside(Point2D point2D) {
+        return MathUtils.withinRangeClosed(0, mapWidth, (int) point2D.getX()) &&
+                MathUtils.withinRangeClosed(0, mapHeight, (int) point2D.getY());
     }
 
     /**
      * 通过地图内坐标，获取对应的地图格子
+     *
      * @param point2D
      * @return
      */
-    public MapGrid getGrid(Point2D point2D){
+    public MapGrid getGrid(Point2D point2D) {
         int rowIndex = MathUtils.rowIndex(rowCount, GameConstant.MAP_GRID_WIDTH, point2D.getY());
         int colIndex = MathUtils.colIndex(colCount, GameConstant.MAP_GRID_WIDTH, point2D.getX());
         return allGrids[rowIndex][colIndex];
@@ -113,21 +115,22 @@ public class MapData implements Grid2DContainer<MapGrid> {
 
     /**
      * 纠正算出来的坐标值，修正到地图内部，脱离 边界条件 和 溢出情况；
+     *
      * @param point2D 地图内的一坐标值
      */
-    public void correctLocation(Point2D point2D){
+    public void correctLocation(Point2D point2D) {
         int x = (int) point2D.getX();
         // 检查x左边溢出
-        if (x <= 0){
+        if (x <= 0) {
             point2D.setX(1);
-        } else if (x >= mapWidth){
+        } else if (x >= mapWidth) {
             point2D.setX(mapWidth - 1);
         }
         // 检查Y坐标溢出
         int y = (int) point2D.getY();
-        if (y <= 0){
+        if (y <= 0) {
             point2D.setY(1);
-        } else if (y >= mapHeight){
+        } else if (y >= mapHeight) {
             point2D.setY(mapHeight - 1);
         }
     }

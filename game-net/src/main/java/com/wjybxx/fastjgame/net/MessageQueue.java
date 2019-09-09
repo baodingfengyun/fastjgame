@@ -35,6 +35,7 @@ import java.util.LinkedList;
  * |    0~n    |      0~n      |
  * |---------------------------
  * </pre>
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/4/27 11:43
@@ -84,17 +85,17 @@ public final class MessageQueue {
      * 对方发送过来的ack是否有效。
      * 每次返回的Ack不小于上次返回的ack,不大于发出去的最大消息号
      */
-    public boolean isAckOK(long ack){
+    public boolean isAckOK(long ack) {
         return ack >= getAckLowerBound() && ack <= getAckUpperBound();
     }
 
     /**
      * 获取上一个已确认的消息号
      */
-    private long getAckLowerBound(){
+    private long getAckLowerBound() {
         // 有已发送未确认的消息，那么它的上一个就是ack下界
-        if (sentQueue.size()>0){
-            return sentQueue.getFirst().getSequence()-1;
+        if (sentQueue.size() > 0) {
+            return sentQueue.getFirst().getSequence() - 1;
         }
         // 都已确认，且没有新消息，那么上次分配的就是ack下界
         return sequencer.get();
@@ -103,9 +104,9 @@ public final class MessageQueue {
     /**
      * 获取下一个可能的最大ackGuid，
      */
-    private long getAckUpperBound(){
+    private long getAckUpperBound() {
         // 有已发送待确认的消息，那么它的最后一个就是ack上界
-        if (sentQueue.size()>0){
+        if (sentQueue.size() > 0) {
             return sentQueue.getLast().getSequence();
         }
         // 都已确认，且没有新消息，那么上次分配的就是ack上界
@@ -115,14 +116,15 @@ public final class MessageQueue {
 
     /**
      * 根据对方发送的ack更新已发送队列
+     *
      * @param ack 对方发来的ack
      */
-    public void updateSentQueue(long ack){
-        if (!isAckOK(ack)){
+    public void updateSentQueue(long ack) {
+        if (!isAckOK(ack)) {
             throw new IllegalArgumentException(generateAckErrorInfo(ack));
         }
-        while (sentQueue.size()>0){
-            if (sentQueue.getFirst().getSequence()>ack){
+        while (sentQueue.size() > 0) {
+            if (sentQueue.getFirst().getSequence() > ack) {
                 break;
             }
             sentQueue.removeFirst();
@@ -131,6 +133,7 @@ public final class MessageQueue {
 
     /**
      * 生成ack信息
+     *
      * @param ack 服务器发送来的ack
      */
     public String generateAckErrorInfo(long ack) {
@@ -140,7 +143,7 @@ public final class MessageQueue {
     /**
      * 分配下一个包的编号
      */
-    public long nextSequence(){
+    public long nextSequence() {
         return sequencer.incAndGet();
     }
 
@@ -168,21 +171,27 @@ public final class MessageQueue {
         return rpcRequestGuidSequencer.incAndGet();
     }
 
-    /** 交换未发送的缓冲区 */
+    /**
+     * 交换未发送的缓冲区
+     */
     public LinkedList<NetMessage> exchangeUnsentMessages() {
         LinkedList<NetMessage> result = unsentQueue;
         unsentQueue = new LinkedList<>();
         return result;
     }
 
-    /** 删除rpcPromiseInfoMap并返回 */
+    /**
+     * 删除rpcPromiseInfoMap并返回
+     */
     public Long2ObjectMap<RpcPromiseInfo> detachRpcPromiseInfoMap() {
         Long2ObjectMap<RpcPromiseInfo> result = rpcPromiseInfoMap;
         rpcPromiseInfoMap = null;
         return result;
     }
 
-    /** 删除已发送和未发送的消息队列 */
+    /**
+     * 删除已发送和未发送的消息队列
+     */
     public void detachMessageQueue() {
         sentQueue = null;
         unsentQueue = null;
@@ -191,7 +200,7 @@ public final class MessageQueue {
     /**
      * 获取当前缓存的消息数
      */
-    public int getCacheMessageNum(){
+    public int getCacheMessageNum() {
         return sentQueue.size() + unsentQueue.size();
     }
 

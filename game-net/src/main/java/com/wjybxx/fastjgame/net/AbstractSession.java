@@ -31,9 +31,11 @@ import javax.annotation.Nonnull;
  * date - 2019/8/4
  * github - https://github.com/hl845740757
  */
-public abstract class AbstractSession implements Session{
+public abstract class AbstractSession implements Session {
 
-    /** 消息发送模式 */
+    /**
+     * 消息发送模式
+     */
     private final SessionSenderMode sessionSenderMode;
 
     /**
@@ -54,12 +56,14 @@ public abstract class AbstractSession implements Session{
 
     /**
      * 获取网络配置管理器
+     *
      * @return NetConfigManager
      */
     protected abstract NetConfigManager getNetConfigManager();
 
     /**
      * 获取该session对应的管理器
+     *
      * @return SessionManager
      */
     protected abstract SessionManager getSessionManager();
@@ -140,15 +144,18 @@ public abstract class AbstractSession implements Session{
 
     // ------------------------------------------- 发送消息接口，必须运行在网络线程下 ---------------------------------------
 
-    /** 发送单向消息 */
+    /**
+     * 发送单向消息
+     */
     final void sendOneWayMessage(@Nonnull Object message) {
         getSessionManager().sendOneWayMessage(localGuid(), remoteGuid(), message);
     }
 
     /**
      * 发送异步rpc请求
-     * @param request 请求内容
-     * @param timeoutMs 超时时间
+     *
+     * @param request     请求内容
+     * @param timeoutMs   超时时间
      * @param rpcCallback 回调函数
      */
     final void sendAsyncRpcRequest(@Nonnull Object request, long timeoutMs, @Nonnull RpcCallback rpcCallback) {
@@ -157,8 +164,9 @@ public abstract class AbstractSession implements Session{
 
     /**
      * 发送同步rpc请求
-     * @param request 请求内容
-     * @param timeoutMs 超时时间
+     *
+     * @param request            请求内容
+     * @param timeoutMs          超时时间
      * @param rpcResponsePromise 存储结果的promise
      */
     final void sendSyncRpcRequest(@Nonnull Object request, long timeoutMs, RpcPromise rpcResponsePromise) {
@@ -167,8 +175,9 @@ public abstract class AbstractSession implements Session{
 
     /**
      * 发送rpc响应
+     *
      * @param requestGuid 请求对应的id
-     * @param sync 是否是同步rpc请求
+     * @param sync        是否是同步rpc请求
      * @param rpcResponse 请求对应的响应
      */
     final void sendRpcResponse(long requestGuid, boolean sync, RpcResponse rpcResponse) {

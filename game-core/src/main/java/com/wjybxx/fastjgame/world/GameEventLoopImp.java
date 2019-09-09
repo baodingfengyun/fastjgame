@@ -36,28 +36,39 @@ import java.util.concurrent.ThreadFactory;
 
 /**
  * 游戏事件循环基本实现
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/4
  * github - https://github.com/hl845740757
  */
-public class GameEventLoopImp extends SingleThreadEventLoop implements GameEventLoop{
+public class GameEventLoopImp extends SingleThreadEventLoop implements GameEventLoop {
 
     private static final Logger logger = LoggerFactory.getLogger(GameEventLoopImp.class);
 
-    /** 最多执行多少个任务，必须检测一次world循环 */
+    /**
+     * 最多执行多少个任务，必须检测一次world循环
+     */
     private static final int MAX_BATCH_SIZE = 2048;
 
-    /** 游戏世界需要的网络模块 */
+    /**
+     * 游戏世界需要的网络模块
+     */
     private final NetEventLoopGroup netEventLoopGroup;
 
-    /** {@link WorldGroupModule}管理的线程安全的控制器 */
+    /**
+     * {@link WorldGroupModule}管理的线程安全的控制器
+     */
     private final Injector groupInjector;
 
-    /** 要启动的world信息 */
+    /**
+     * 要启动的world信息
+     */
     private final WorldStartInfo worldStartInfo;
     private final TimerSystem timerSystem = new DefaultTimerSystem(1);
-    /** world */
+    /**
+     * world
+     */
     private World world;
 
     GameEventLoopImp(@Nullable GameEventLoopGroup parent,
@@ -107,7 +118,7 @@ public class GameEventLoopImp extends SingleThreadEventLoop implements GameEvent
 
     @Override
     protected void loop() {
-        for (;;) {
+        for (; ; ) {
             // 指定执行任务最大数，避免导致world延迟过高
             runAllTasks(MAX_BATCH_SIZE);
 
@@ -130,7 +141,7 @@ public class GameEventLoopImp extends SingleThreadEventLoop implements GameEvent
     private void safeTickWorld(FixedDelayHandle handle) {
         try {
             world.tick(System.currentTimeMillis());
-        } catch (Exception e){
+        } catch (Exception e) {
             logger.warn("world {}-{} tick caught exception.", world.worldRole(), world.worldGuid(), e);
         }
     }

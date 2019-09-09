@@ -29,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * watcher 测试，注册的时候节点存在于不存在的时候测试
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/7/2 10:02
@@ -46,7 +47,7 @@ public class WatcherTest {
         // 1. 如果当前节点不存在，会在节点创建之后收到通知
         // 2. 如果节点存在，则会在节点删除之后收到通知
         Stat stat = curatorMrg.getClient().checkExists().usingWatcher((CuratorWatcher) WatcherTest::existCallBack).forPath(path);
-        if (null == stat){
+        if (null == stat) {
             System.out.println("path " + path + " non-exist");
             curatorMrg.createNode(path, CreateMode.PERSISTENT, "checkExists".getBytes(StandardCharsets.UTF_8));
         } else {
@@ -55,11 +56,11 @@ public class WatcherTest {
         }
 
         // 等待回调完成
-        ConcurrentUtils.awaitWithRetry(countDownLatch,5, TimeUnit.SECONDS);
+        ConcurrentUtils.awaitWithRetry(countDownLatch, 5, TimeUnit.SECONDS);
     }
 
     private static void existCallBack(WatchedEvent event) {
-        System.out.println("existCallBack eventPath = " + event.getPath() + ", eventType = " +event.getType());
+        System.out.println("existCallBack eventPath = " + event.getPath() + ", eventType = " + event.getType());
         countDownLatch.countDown();
     }
 }

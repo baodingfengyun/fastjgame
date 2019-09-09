@@ -38,6 +38,7 @@ import java.util.Objects;
 
 /**
  * 内部通信建立连接的辅助类
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/4

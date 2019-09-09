@@ -37,7 +37,7 @@ import java.util.Iterator;
  */
 public class CSVReader extends TableReader<CSVRecord> {
 
-    private static final Logger logger= LoggerFactory.getLogger(CSVReader.class);
+    private static final Logger logger = LoggerFactory.getLogger(CSVReader.class);
     /**
      * windows上的CSV编码为GBK
      */
@@ -49,7 +49,7 @@ public class CSVReader extends TableReader<CSVRecord> {
     /**
      * CSV文件解析器
      */
-    private CSVParser parser=null;
+    private CSVParser parser = null;
 
     public CSVReader() {
         this(windowsCharset);
@@ -57,6 +57,7 @@ public class CSVReader extends TableReader<CSVRecord> {
 
     /**
      * create instance
+     *
      * @param charset CSV 支持指定编码，默认GBK
      */
     public CSVReader(Charset charset) {
@@ -70,10 +71,10 @@ public class CSVReader extends TableReader<CSVRecord> {
 
     @Override
     protected Iterator<CSVRecord> toIterator(File file, int sheetIndex) throws IOException {
-        if (sheetIndex>0){
+        if (sheetIndex > 0) {
             throw new IllegalArgumentException("csv reader only support sheetIndex 0");
         }
-        parser=CSVParser.parse(file, charset, CSVFormat.DEFAULT);
+        parser = CSVParser.parse(file, charset, CSVFormat.DEFAULT);
         return parser.iterator();
     }
 
@@ -84,11 +85,11 @@ public class CSVReader extends TableReader<CSVRecord> {
 
     @Override
     public void close() throws Exception {
-        if (null!=parser){
+        if (null != parser) {
             try {
                 parser.close();
-            }catch (Exception e){
-                logger.info("parser.close",e);
+            } catch (Exception e) {
+                logger.info("parser.close", e);
             }
         }
     }

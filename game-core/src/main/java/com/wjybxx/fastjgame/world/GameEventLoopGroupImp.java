@@ -167,11 +167,17 @@ public class GameEventLoopGroupImp extends MultiThreadEventLoopGroup implements 
     }
 
     static class WorldStartInfo {
-        /** world所有类 */
+        /**
+         * world所有类
+         */
         final WorldModule worldModule;
-        /** 启动参数 */
+        /**
+         * 启动参数
+         */
         final ConfigWrapper startArgs;
-        /** 帧间隔 */
+        /**
+         * 帧间隔
+         */
         final long frameInterval;
 
         WorldStartInfo(WorldModule worldModule, ConfigWrapper startArgs, long frameInterval) {

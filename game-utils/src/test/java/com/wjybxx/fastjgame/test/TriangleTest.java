@@ -21,7 +21,7 @@ import com.wjybxx.fastjgame.shape.shape2d.Triangle;
 
 /**
  * 主要测试三角形的计算点是否ok
- *
+ * <p>
  * A(0,0),B(2,8),C(8,4)
  *
  * @author wjybxx
@@ -32,11 +32,11 @@ import com.wjybxx.fastjgame.shape.shape2d.Triangle;
 public class TriangleTest {
 
     public static void main(String[] args) {
-        Point2D a=Point2D.newPoint2D(0,0);
-        Point2D b=Point2D.newPoint2D(2,8);
-        Point2D c=Point2D.newPoint2D(8,4);
+        Point2D a = Point2D.newPoint2D(0, 0);
+        Point2D b = Point2D.newPoint2D(2, 8);
+        Point2D c = Point2D.newPoint2D(8, 4);
 
-        Triangle triangle=new Triangle(a,b,c);
+        Triangle triangle = new Triangle(a, b, c);
 
         System.out.println("a=" + triangle.hasPoint(a));
         System.out.println("b=" + triangle.hasPoint(b));
@@ -48,12 +48,12 @@ public class TriangleTest {
         System.out.println("(3,7.3333f)=" + triangle.hasPoint(p1));
         System.out.println("(3,7.3334f)=" + triangle.hasPoint(p2));
 
-        long startTime=System.currentTimeMillis();
-        for (int index=0;index<100*10000;index++){
+        long startTime = System.currentTimeMillis();
+        for (int index = 0; index < 100 * 10000; index++) {
             triangle.hasPoint(p1);
             triangle.hasPoint(p2);
         }
-        System.out.println("costMillTimes=" + (System.currentTimeMillis()-startTime));
+        System.out.println("costMillTimes=" + (System.currentTimeMillis() - startTime));
     }
 
 }

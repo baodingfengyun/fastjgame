@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.misc;
 
 /**
  * mongodb中使用的集合的名字，避免直接使用字符串
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/21 17:51

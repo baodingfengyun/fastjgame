@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.annotation;
 
 /**
  * 标记注解，该注解注解的对象必须是无状态的
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/2 23:33

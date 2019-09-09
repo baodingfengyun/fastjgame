@@ -28,6 +28,7 @@ import java.util.Objects;
 
 /**
  * 反射工具类
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/4/27 10:30
@@ -37,17 +38,17 @@ public class ReflectionUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(ReflectionUtils.class);
 
-    private ReflectionUtils(){
+    private ReflectionUtils() {
         // close
     }
 
     /**
      * 查找父类/父接口定义的且被子类声明为具体类型的泛型参数的具体类型
      *
-     * @param instance superClazzOrInterface的子类实例
+     * @param instance              superClazzOrInterface的子类实例
      * @param superClazzOrInterface 泛型参数typeParamName存在的类,class或interface
-     * @param typeParamName 泛型参数名字
-     * @param <T> 约束必须有继承关系或实现关系
+     * @param typeParamName         泛型参数名字
+     * @param <T>                   约束必须有继承关系或实现关系
      * @return 如果定义的泛型存在，则返回对应的泛型clazz
      */
     public static <T> Class<?> findTypeParameter(@Nonnull T instance, Class<? super T> superClazzOrInterface, String typeParamName) throws Exception {
@@ -58,11 +59,12 @@ public class ReflectionUtils {
      * 寻找protoBuf消息的parser对象
      * 优先尝试protoBuf 3.x版本
      * 其次尝试protoBuf 2.x版本
+     *
      * @param clazz protoBuffer class
      * @return parser
      */
     @SuppressWarnings("unchecked")
-    public static <T> Parser<T> findParser(Class<T> clazz) throws ReflectiveOperationException{
+    public static <T> Parser<T> findParser(Class<T> clazz) throws ReflectiveOperationException {
         Objects.requireNonNull(clazz);
         try {
             // protoBuf3获取parser的静态方法 parser();
@@ -71,7 +73,7 @@ public class ReflectionUtils {
                 method.setAccessible(true);
                 return (Parser<T>) method.invoke(null);
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             logger.info("not protoBuf 3.x");
         }
         try {

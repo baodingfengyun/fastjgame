@@ -27,55 +27,55 @@ import java.util.Map;
 
 /**
  * 玩家消息处理函数注册器的默认实现
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/26
  * github - https://github.com/hl845740757
  */
-public class DefaultPlayerMessageDispatcher implements PlayerMessageFunctionRegistry,PlayerMessageDispatcher {
+public class DefaultPlayerMessageDispatcher implements PlayerMessageFunctionRegistry, PlayerMessageDispatcher {
 
-	private static final Logger logger = LoggerFactory.getLogger(DefaultPlayerMessageDispatcher.class);
+    private static final Logger logger = LoggerFactory.getLogger(DefaultPlayerMessageDispatcher.class);
 
-	/**
-	 * 类型到处理器的映射。
-	 */
-	private final Map<Class<?>, PlayerMessageFunction<?>> handlerMap = new IdentityHashMap<>(512);
+    /**
+     * 类型到处理器的映射。
+     */
+    private final Map<Class<?>, PlayerMessageFunction<?>> handlerMap = new IdentityHashMap<>(512);
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public <T extends AbstractMessage> void register(@Nonnull Class<T> clazz, @Nonnull PlayerMessageFunction<T> handler) {
-		final PlayerMessageFunction<?> existHandler = handlerMap.get(clazz);
-		// 该类型目前还没有被注册
-		if (existHandler == null) {
-			handlerMap.put(clazz, handler);
-			return;
-		}
-		if (existHandler instanceof CompositePlayerMessageFunction) {
-			((CompositePlayerMessageFunction)existHandler).addHandler(handler);
-		} else {
-			// 已存在该类型的处理器了，我们提供CompositeMessageHandler将其封装为统一结构
-			handlerMap.put(clazz, new CompositePlayerMessageFunction(existHandler, handler));
-		}
-	}
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T extends AbstractMessage> void register(@Nonnull Class<T> clazz, @Nonnull PlayerMessageFunction<T> handler) {
+        final PlayerMessageFunction<?> existHandler = handlerMap.get(clazz);
+        // 该类型目前还没有被注册
+        if (existHandler == null) {
+            handlerMap.put(clazz, handler);
+            return;
+        }
+        if (existHandler instanceof CompositePlayerMessageFunction) {
+            ((CompositePlayerMessageFunction) existHandler).addHandler(handler);
+        } else {
+            // 已存在该类型的处理器了，我们提供CompositeMessageHandler将其封装为统一结构
+            handlerMap.put(clazz, new CompositePlayerMessageFunction(existHandler, handler));
+        }
+    }
 
-	@Override
-	public void release() {
-		handlerMap.clear();
-	}
+    @Override
+    public void release() {
+        handlerMap.clear();
+    }
 
-	@Override
-	public final <T extends AbstractMessage> void post(@Nonnull Player player, @Nonnull T message) {
-		@SuppressWarnings("unchecked")
-		final PlayerMessageFunction<T> messageFunction = (PlayerMessageFunction<T>) handlerMap.get(message.getClass());
-		if (null == messageFunction) {
-			logger.warn("{} send unregistered message {}", player.getGuid(), message.getClass().getName());
-			return;
-		}
-		try {
-			messageFunction.onMessage(player, message);
-		} catch (Exception e){
-			logger.warn("Handler onMessage caught exception!, handler {}, message {}",
-					messageFunction.getClass().getName(), message.getClass().getName(), e);
-		}
-	}
+    @Override
+    public final <T extends AbstractMessage> void post(@Nonnull Player player, @Nonnull T message) {
+        @SuppressWarnings("unchecked") final PlayerMessageFunction<T> messageFunction = (PlayerMessageFunction<T>) handlerMap.get(message.getClass());
+        if (null == messageFunction) {
+            logger.warn("{} send unregistered message {}", player.getGuid(), message.getClass().getName());
+            return;
+        }
+        try {
+            messageFunction.onMessage(player, message);
+        } catch (Exception e) {
+            logger.warn("Handler onMessage caught exception!, handler {}, message {}",
+                    messageFunction.getClass().getName(), message.getClass().getName(), e);
+        }
+    }
 }

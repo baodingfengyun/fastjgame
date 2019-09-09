@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.net;
 /**
  * token解压密策略。
  * 由于token只在服务器加解密，是不对客户端开放的，客户端每次直接返回token字节数组，因此必须能还原。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/6 17:39
@@ -28,6 +29,7 @@ public interface TokenEncryptStrategy {
 
     /**
      * 加密token
+     *
      * @param token 待加密的token
      * @return 加密之后的字节数组
      */
@@ -35,6 +37,7 @@ public interface TokenEncryptStrategy {
 
     /**
      * 解密token
+     *
      * @param encryptedTokenBytes 加密后的token字节数组
      * @return 解密得到的token
      * @throws Exception 允许无法解密时抛出异常

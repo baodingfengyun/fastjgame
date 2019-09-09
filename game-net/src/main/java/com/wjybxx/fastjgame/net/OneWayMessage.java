@@ -29,18 +29,18 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class OneWayMessage extends NetMessage {
 
-	/**
-	 * 消息内容，必须是不可变对象。
-	 * 不要求是protoBuf形式
-	 */
-	private Object message;
+    /**
+     * 消息内容，必须是不可变对象。
+     * 不要求是protoBuf形式
+     */
+    private Object message;
 
-	public OneWayMessage(Object message) {
-		super();
-		this.message = message;
-	}
+    public OneWayMessage(Object message) {
+        super();
+        this.message = message;
+    }
 
-	public Object getMessage() {
-		return message;
-	}
+    public Object getMessage() {
+        return message;
+    }
 }

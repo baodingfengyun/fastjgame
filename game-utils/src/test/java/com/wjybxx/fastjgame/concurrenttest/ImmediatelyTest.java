@@ -29,11 +29,11 @@ import com.wjybxx.fastjgame.concurrent.Promise;
  */
 public class ImmediatelyTest {
 
-	public static void main(String[] args) {
-		Promise<String> promise = ImmediateEventLoop.INSTANCE.newPromise();
-		promise.addListener(future -> {
-			System.out.println(future.get());
-		});
-		promise.setSuccess("hello");
-	}
+    public static void main(String[] args) {
+        Promise<String> promise = ImmediateEventLoop.INSTANCE.newPromise();
+        promise.addListener(future -> {
+            System.out.println(future.get());
+        });
+        promise.setSuccess("hello");
+    }
 }

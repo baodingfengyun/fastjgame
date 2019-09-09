@@ -24,6 +24,7 @@ import javax.annotation.Nonnull;
 
 /**
  * 2D圆形
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/31 23:20
@@ -53,16 +54,17 @@ public class Circle implements Shape2D, RedrawShape {
 
     @Override
     public boolean hasPoint(@Nonnull Point2D point2D) {
-        return MathUtils.distanceWithoutSqrt(center,point2D) <= rr;
+        return MathUtils.distanceWithoutSqrt(center, point2D) <= rr;
     }
 
     /**
      * 重新绘制
+     *
      * @param center 中心点
      * @param radius 半径
      * @return
      */
-    public Circle redraw(Point2D center,float radius){
+    public Circle redraw(Point2D center, float radius) {
         this.center.updateLocation(center);
         this.radius = radius;
         refreshCache();

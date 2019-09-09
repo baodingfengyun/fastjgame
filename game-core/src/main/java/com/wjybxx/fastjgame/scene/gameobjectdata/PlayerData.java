@@ -22,12 +22,13 @@ import javax.annotation.Nonnull;
 
 /**
  * 玩家数据
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/23 0:19
  * github - https://github.com/hl845740757
  */
-public class PlayerData extends GameObjectData{
+public class PlayerData extends GameObjectData {
 
     /**
      * 玩家所在的平台

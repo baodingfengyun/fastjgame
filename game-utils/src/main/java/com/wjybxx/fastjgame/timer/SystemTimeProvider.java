@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.timer;
 
 /**
  * 系统时间提供者
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/9
@@ -25,16 +26,18 @@ package com.wjybxx.fastjgame.timer;
  */
 public interface SystemTimeProvider {
 
-	/**
-	 * 获取系统毫秒时间戳
-	 * @return 毫秒
-	 */
-	long getSystemMillTime();
+    /**
+     * 获取系统毫秒时间戳
+     *
+     * @return 毫秒
+     */
+    long getSystemMillTime();
 
-	/**
-	 * 获取系统秒数时间戳
-	 * @return 秒
-	 */
-	int getSystemSecTime();
+    /**
+     * 获取系统秒数时间戳
+     *
+     * @return 秒
+     */
+    int getSystemSecTime();
 
 }

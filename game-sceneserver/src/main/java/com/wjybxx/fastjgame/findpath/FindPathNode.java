@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.findpath;
 
 /**
  * 寻路过程中的中间节点
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/11 22:19
@@ -101,7 +102,7 @@ public class FindPathNode {
     public int getDepth() {
         int depth = 0;
         FindPathNode node = this;
-        while (node.parent != null){
+        while (node.parent != null) {
             depth++;
             node = node.parent;
         }

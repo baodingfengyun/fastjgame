@@ -30,6 +30,7 @@ import java.util.EnumMap;
 
 /**
  * gameObject的容器
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/4 21:52
@@ -57,12 +58,12 @@ public class GameObjectContainer {
      */
     private final Long2ObjectMap<Npc> npcMap;
 
-    private int totalInitCapacity=0;
+    private int totalInitCapacity = 0;
     /**
      * 辅助map，消除switch case；
      * 能改善代码的可读性，可维护性，但可能降低了速度。
      */
-    private final EnumMap<GameObjectType,Long2ObjectMap<? extends GameObject>> helperMap = new EnumMap<>(GameObjectType.class);
+    private final EnumMap<GameObjectType, Long2ObjectMap<? extends GameObject>> helperMap = new EnumMap<>(GameObjectType.class);
 
     public GameObjectContainer() {
         this(InitCapacityHolder.EMPTY);
@@ -76,66 +77,68 @@ public class GameObjectContainer {
         allGameObjectMap = FastCollectionsUtils.newEnoughCapacityLongMap(totalInitCapacity);
     }
 
-    private <V extends GameObject> Long2ObjectMap<V> createMap(GameObjectType gameObjectType,int initCapacity){
+    private <V extends GameObject> Long2ObjectMap<V> createMap(GameObjectType gameObjectType, int initCapacity) {
         Long2ObjectMap<V> result = FastCollectionsUtils.newEnoughCapacityLongMap(initCapacity);
         helperMap.put(gameObjectType, result);
         totalInitCapacity += initCapacity;
         return result;
     }
 
-    public GameObject getObject(long guid){
+    public GameObject getObject(long guid) {
         return allGameObjectMap.get(guid);
     }
 
-    public int getAllGameObjectNum(){
+    public int getAllGameObjectNum() {
         return allGameObjectMap.size();
     }
 
-    public ObjectCollection<GameObject> getAllGameObject(){
+    public ObjectCollection<GameObject> getAllGameObject() {
         return allGameObjectMap.values();
     }
 
-    public int getPlayerNum(){
+    public int getPlayerNum() {
         return playerMap.size();
     }
 
-    public ObjectCollection<Player> getPlayerSet(){
+    public ObjectCollection<Player> getPlayerSet() {
         return playerMap.values();
     }
 
-    public ObjectCollection<Pet> getPetSet(){
+    public ObjectCollection<Pet> getPetSet() {
         return petMap.values();
     }
 
-    public ObjectCollection<Npc> getNpcSet(){
+    public ObjectCollection<Npc> getNpcSet() {
         return npcMap.values();
     }
 
-    public ObjectCollection<? extends GameObject> getGameObjectSet(GameObjectType gameObjectType){
+    public ObjectCollection<? extends GameObject> getGameObjectSet(GameObjectType gameObjectType) {
         return helperMap.get(gameObjectType).values();
     }
 
     /**
      * 添加一个场景对象到该视野格子
+     *
      * @param gameObject 游戏对象
-     * @param <T> 对象的类型
+     * @param <T>        对象的类型
      */
-    public <T extends GameObject> void addGameObject(T gameObject){
-        FastCollectionsUtils.requireNotContains(allGameObjectMap,gameObject.getGuid(),"guid");
-        allGameObjectMap.put(gameObject.getGuid(),gameObject);
+    public <T extends GameObject> void addGameObject(T gameObject) {
+        FastCollectionsUtils.requireNotContains(allGameObjectMap, gameObject.getGuid(), "guid");
+        allGameObjectMap.put(gameObject.getGuid(), gameObject);
 
         @SuppressWarnings("unchecked")
         Long2ObjectMap<T> objectMap = (Long2ObjectMap<T>) helperMap.get(gameObject.getObjectType());
         assert null != objectMap : gameObject.getObjectType().name();
-        objectMap.put(gameObject.getGuid(),gameObject);
+        objectMap.put(gameObject.getGuid(), gameObject);
     }
 
     /**
      * 从当前视野格子删除一个对象
+     *
      * @param gameObject 游戏对象
-     * @param <T> 对象的类型
+     * @param <T>        对象的类型
      */
-    public <T extends GameObject> void removeObject(T gameObject){
+    public <T extends GameObject> void removeObject(T gameObject) {
         GameObject removeObj = allGameObjectMap.remove(gameObject.getGuid());
         assert null != removeObj;
 

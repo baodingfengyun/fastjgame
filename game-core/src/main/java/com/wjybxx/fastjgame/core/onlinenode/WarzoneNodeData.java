@@ -29,7 +29,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class WarzoneNodeData extends TcpServerNodeData {
 
-    /** 战区节点必须互斥，因此guid在data里面，而不在名字里。 */
+    /**
+     * 战区节点必须互斥，因此guid在data里面，而不在名字里。
+     */
     private final long worldGuid;
 
     @JsonCreator

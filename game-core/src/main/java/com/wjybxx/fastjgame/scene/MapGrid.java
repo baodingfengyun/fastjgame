@@ -29,7 +29,7 @@ import javax.annotation.concurrent.Immutable;
  * 基于格子寻路。
  * 因此格子不能过小，太小导致地图切割后的格子数过多，寻路效率会受到影响。
  * 此外格子不能太大，太大导致精细度太差，寻路等效果会很差。
- *
+ * <p>
  * 地图左下角为(0,0)
  *
  * @author wjybxx
@@ -77,7 +77,7 @@ public class MapGrid implements Grid2D {
         this.obstacleValue = obstacleValue;
         this.safeArea = safeArea;
 
-        this.center = MathUtils.gridCenterLocation(rowIndex,colIndex, GameConstant.MAP_GRID_WIDTH)
+        this.center = MathUtils.gridCenterLocation(rowIndex, colIndex, GameConstant.MAP_GRID_WIDTH)
                 .unmodifiable();
     }
 
@@ -105,11 +105,11 @@ public class MapGrid implements Grid2D {
         return center;
     }
 
-    public float getCenterX(){
+    public float getCenterX() {
         return center.getX();
     }
 
-    public float getCenterY(){
+    public float getCenterY() {
         return center.getY();
     }
 

@@ -25,32 +25,33 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * ListenableFuture的抽象实现
+ *
  * @param <V>
  * @author wjybxx
  * @version 1.0
  * date - 2019/7/14 14:53
  * github - https://github.com/hl845740757
  */
-public abstract class AbstractListenableFuture<V> implements ListenableFuture<V>{
+public abstract class AbstractListenableFuture<V> implements ListenableFuture<V> {
 
-	@Override
-	public V get() throws InterruptedException, ExecutionException {
-		await();
+    @Override
+    public V get() throws InterruptedException, ExecutionException {
+        await();
 
-		ConcurrentUtils.rethrowIfFailed(cause());
+        ConcurrentUtils.rethrowIfFailed(cause());
 
-		return getNow();
-	}
+        return getNow();
+    }
 
-	@Override
-	public V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-		if (await(timeout, unit)) {
+    @Override
+    public V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        if (await(timeout, unit)) {
 
-			ConcurrentUtils.rethrowIfFailed(cause());
+            ConcurrentUtils.rethrowIfFailed(cause());
 
-			return getNow();
-		}
-		throw new TimeoutException();
-	}
-	
+            return getNow();
+        }
+        throw new TimeoutException();
+    }
+
 }

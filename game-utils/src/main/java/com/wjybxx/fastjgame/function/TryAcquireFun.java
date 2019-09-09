@@ -29,9 +29,10 @@ import java.util.concurrent.TimeUnit;
 public interface TryAcquireFun {
     /**
      * 尝试在一定时间内申请资源
-     * @param timeout 超时时间
+     *
+     * @param timeout  超时时间
      * @param timeUnit 事件单位
-     * @return 申请成功则返回true,否则返回false
+     * @return 申请成功则返回true, 否则返回false
      */
     boolean tryAcquire(long timeout, TimeUnit timeUnit) throws InterruptedException;
 }

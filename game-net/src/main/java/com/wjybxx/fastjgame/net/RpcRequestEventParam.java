@@ -27,31 +27,37 @@ import io.netty.channel.Channel;
  * github - https://github.com/hl845740757
  */
 @TransferObject
-public class RpcRequestEventParam extends MessageEventParam{
+public class RpcRequestEventParam extends MessageEventParam {
 
-	/** rpc请求编号，用于返回消息 */
-	private long requestGuid;
-	/** 是否rpc同步调用，是否加急 */
-	private boolean sync;
-	/** rpc请求内容 */
-	private Object request;
+    /**
+     * rpc请求编号，用于返回消息
+     */
+    private long requestGuid;
+    /**
+     * 是否rpc同步调用，是否加急
+     */
+    private boolean sync;
+    /**
+     * rpc请求内容
+     */
+    private Object request;
 
-	public RpcRequestEventParam(Channel channel, long localGuid, long remoteGuid, long ack, long sequence, long requestGuid, boolean sync, Object request) {
-		super(channel, localGuid, remoteGuid, ack, sequence);
-		this.requestGuid = requestGuid;
-		this.sync = sync;
-		this.request = request;
-	}
+    public RpcRequestEventParam(Channel channel, long localGuid, long remoteGuid, long ack, long sequence, long requestGuid, boolean sync, Object request) {
+        super(channel, localGuid, remoteGuid, ack, sequence);
+        this.requestGuid = requestGuid;
+        this.sync = sync;
+        this.request = request;
+    }
 
-	public long getRequestGuid() {
-		return requestGuid;
-	}
+    public long getRequestGuid() {
+        return requestGuid;
+    }
 
-	public boolean isSync() {
-		return sync;
-	}
+    public boolean isSync() {
+        return sync;
+    }
 
-	public Object getRequest() {
-		return request;
-	}
+    public Object getRequest() {
+        return request;
+    }
 }

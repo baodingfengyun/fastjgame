@@ -32,7 +32,7 @@ import static com.wjybxx.fastjgame.utils.GameConstant.VIEWABLE_GRID_NUM;
  * 视野格子。
  * 每个视野格子是个正方形。
  * 地图从左下角(0,0)开始，视野格子是很标准的，且平行于坐标系的矩形。
- *
+ * <p>
  * 一个地图分为N个地图格子，一个九宫格中的视野格子包含一定个数的地图格子。
  *
  * @author wjybxx
@@ -68,15 +68,15 @@ public class ViewGrid extends GameObjectContainer implements Shape2D, Grid2D {
     private final ArrayList<ViewGrid> viewableGrids = new ArrayList<>(VIEWABLE_GRID_NUM);
 
     public ViewGrid(int rowIndex, int colIndex, int gridWidth) {
-        this(rowIndex,colIndex,gridWidth, InitCapacityHolder.EMPTY);
+        this(rowIndex, colIndex, gridWidth, InitCapacityHolder.EMPTY);
     }
 
-    public ViewGrid(int rowIndex, int colIndex, int gridWidth,InitCapacityHolder initCapacityHolder) {
+    public ViewGrid(int rowIndex, int colIndex, int gridWidth, InitCapacityHolder initCapacityHolder) {
         super(initCapacityHolder);
         this.rowIndex = rowIndex;
         this.colIndex = colIndex;
         this.gridWidth = gridWidth;
-        this.region= CoordinateSystem2D.buildGridRegion(rowIndex,colIndex, gridWidth);
+        this.region = CoordinateSystem2D.buildGridRegion(rowIndex, colIndex, gridWidth);
     }
 
     @Override

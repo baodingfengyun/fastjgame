@@ -31,17 +31,18 @@ import com.wjybxx.fastjgame.net.RpcResponse;
 @FunctionalInterface
 public interface SucceedRpcCallback<V> extends RpcCallback {
 
-	@SuppressWarnings("unchecked")
-	@Override
-	default void onComplete(RpcResponse rpcResponse) {
-		if (rpcResponse.isSuccess()) {
-			onSuccess((V) rpcResponse.getBody());
-		}
-	}
+    @SuppressWarnings("unchecked")
+    @Override
+    default void onComplete(RpcResponse rpcResponse) {
+        if (rpcResponse.isSuccess()) {
+            onSuccess((V) rpcResponse.getBody());
+        }
+    }
 
-	/**
-	 * 当执行成功时
-	 * @param result 调用结果
-	 */
-	 void onSuccess(V result);
+    /**
+     * 当执行成功时
+     *
+     * @param result 调用结果
+     */
+    void onSuccess(V result);
 }

@@ -32,7 +32,8 @@ public interface PlayerMessageFunction<T extends AbstractMessage> {
 
     /**
      * 当接收到一个玩家的消息
-     * @param player 发送消息的玩家
+     *
+     * @param player  发送消息的玩家
      * @param message 玩家发送的消息
      */
     void onMessage(Player player, T message);

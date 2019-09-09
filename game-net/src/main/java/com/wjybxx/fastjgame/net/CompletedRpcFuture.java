@@ -29,25 +29,25 @@ import javax.annotation.Nonnull;
  * date - 2019/8/3
  * github - https://github.com/hl845740757
  */
-public class CompletedRpcFuture extends SucceededFuture<RpcResponse> implements RpcFuture{
+public class CompletedRpcFuture extends SucceededFuture<RpcResponse> implements RpcFuture {
 
-	/**
-	 * @param executor 用户所在EventLoop,为什么可以只使用用户线程？因为不会阻塞。
-	 * @param rpcResponse rpc结果
-	 */
-	public CompletedRpcFuture(@Nonnull EventLoop executor, @Nonnull RpcResponse rpcResponse) {
-		super(executor, rpcResponse);
-	}
+    /**
+     * @param executor    用户所在EventLoop,为什么可以只使用用户线程？因为不会阻塞。
+     * @param rpcResponse rpc结果
+     */
+    public CompletedRpcFuture(@Nonnull EventLoop executor, @Nonnull RpcResponse rpcResponse) {
+        super(executor, rpcResponse);
+    }
 
-	@Override
-	public void addCallback(RpcCallback rpcCallback) {
-		addCallback(rpcCallback, executor());
-	}
+    @Override
+    public void addCallback(RpcCallback rpcCallback) {
+        addCallback(rpcCallback, executor());
+    }
 
-	@Override
-	public void addCallback(RpcCallback rpcCallback, EventLoop eventLoop) {
-		addListener(future -> {
-			rpcCallback.onComplete(future.getNow());
-		}, eventLoop);
-	}
+    @Override
+    public void addCallback(RpcCallback rpcCallback, EventLoop eventLoop) {
+        addListener(future -> {
+            rpcCallback.onComplete(future.getNow());
+        }, eventLoop);
+    }
 }

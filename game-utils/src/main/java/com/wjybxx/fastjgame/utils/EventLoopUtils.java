@@ -29,6 +29,7 @@ import java.util.concurrent.RejectedExecutionException;
 
 /**
  * 事件循环辅助方法。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/7/14 14:27
@@ -44,8 +45,8 @@ public class EventLoopUtils {
 
     /**
      * 检查死锁，由于EventLoop是单线程的，因此不能在当前EventLoop上等待另一个任务完成，很可能导致死锁。
-     * @param e executor
      *
+     * @param e executor
      */
     public static void checkDeadLock(EventLoop e) {
         if (e != null && e.inEventLoop()) {
@@ -55,7 +56,8 @@ public class EventLoopUtils {
 
     /**
      * 检查死锁，由于EventLoop是单线程的，因此不能在当前EventLoop上等待另一个任务完成，很可能导致死锁。
-     * @param e executor
+     *
+     * @param e   executor
      * @param msg 造成死锁的信息，尽量少拼接字符串。
      */
     public static void checkDeadLock(EventLoop e, String msg) {
@@ -68,10 +70,10 @@ public class EventLoopUtils {
      * 如果当前线程就是EventLoop线程，则直接执行任务，否则进行提交
      *
      * @param eventLoop 事件循环
-     * @param task 任务
+     * @param task      任务
      */
     public static void executeOrRun(@Nonnull EventLoop eventLoop, Runnable task) {
-        if (eventLoop.inEventLoop()){
+        if (eventLoop.inEventLoop()) {
             task.run();
         } else {
             eventLoop.execute(task);
@@ -81,8 +83,8 @@ public class EventLoopUtils {
     /**
      * 如果当前线程就是EventLoop线程，则直接执行任务，否则进行提交
      *
-     * @param eventLoop 事件循环
-     * @param task 任务
+     * @param eventLoop        事件循环
+     * @param task             任务
      * @param exceptionHandler 异常处理器，执行异常以及拒绝异常。
      */
     public static void executeOrRun(@Nonnull EventLoop eventLoop, Runnable task, ExceptionHandler exceptionHandler) {
@@ -92,21 +94,21 @@ public class EventLoopUtils {
     /**
      * 如果当前线程就是EventLoop线程，则直接执行任务，否则进行提交
      *
-     * @param eventLoop 事件循环
-     * @param task 任务
+     * @param eventLoop        事件循环
+     * @param task             任务
      * @param exceptionHandler 异常处理器，执行异常以及拒绝异常。
      */
     public static void executeOrRun2(@Nonnull EventLoop eventLoop, AnyRunnable task, ExceptionHandler exceptionHandler) {
-        if (eventLoop.inEventLoop()){
+        if (eventLoop.inEventLoop()) {
             try {
                 task.run();
-            } catch (Exception e){
+            } catch (Exception e) {
                 exceptionHandler.handleException(e);
             }
         } else {
             try {
                 eventLoop.execute(ConcurrentUtils.safeRunnable(task, exceptionHandler));
-            } catch (RejectedExecutionException e){
+            } catch (RejectedExecutionException e) {
                 exceptionHandler.handleException(e);
             }
         }
@@ -116,7 +118,7 @@ public class EventLoopUtils {
      * 如果当前线程就是EventLoop线程，则直接执行任务，否则进行提交
      *
      * @param eventLoop 事件循环
-     * @param task 任务
+     * @param task      任务
      * @return future
      */
     public static ListenableFuture<?> submitOrRun(@Nonnull EventLoop eventLoop, Runnable task) {
@@ -127,15 +129,15 @@ public class EventLoopUtils {
      * 如果当前线程就是EventLoop线程，则直接执行任务，否则进行提交
      *
      * @param eventLoop 事件循环
-     * @param task 任务
+     * @param task      任务
      * @return future
      */
     public static <V> ListenableFuture<V> submitOrRun(@Nonnull EventLoop eventLoop, Callable<V> task) {
-        if (eventLoop.inEventLoop()){
+        if (eventLoop.inEventLoop()) {
             try {
                 V result = task.call();
                 return new SucceededFuture<>(eventLoop, result);
-            } catch (Exception e){
+            } catch (Exception e) {
                 return new FailedFuture<>(eventLoop, e);
             }
         } else {
@@ -147,15 +149,15 @@ public class EventLoopUtils {
      * 如果当前线程就是EventLoop线程，则直接执行任务，否则尝试提交
      *
      * @param eventLoop 任务提交的目的地
-     * @param task 待提交的任务
+     * @param task      待提交的任务
      */
-    public static void tryCommitOrRun(@Nonnull EventLoop eventLoop, @Nonnull Runnable task){
+    public static void tryCommitOrRun(@Nonnull EventLoop eventLoop, @Nonnull Runnable task) {
         if (eventLoop.inEventLoop()) {
             task.run();
         } else {
             try {
                 eventLoop.execute(task);
-            } catch (Exception e){
+            } catch (Exception e) {
                 // may reject
                 if (e instanceof RejectedExecutionException) {
                     logger.info("Target EventLoop my shutdown. Task is rejected.");

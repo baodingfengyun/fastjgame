@@ -23,6 +23,7 @@ import javax.annotation.Nonnull;
 
 /**
  * 消息分发器
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/27
@@ -30,11 +31,12 @@ import javax.annotation.Nonnull;
  */
 public interface MessageDispatcher {
 
-	/**
-	 * 发布一个消息
-	 * @param session 消息所在的会话
-	 * @param message 消息内容
-	 * @param <T> 消息类型
-	 */
-	<T extends AbstractMessage> void post(@Nonnull Session session, @Nonnull T message);
+    /**
+     * 发布一个消息
+     *
+     * @param session 消息所在的会话
+     * @param message 消息内容
+     * @param <T>     消息类型
+     */
+    <T extends AbstractMessage> void post(@Nonnull Session session, @Nonnull T message);
 }

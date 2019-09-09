@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 /**
  * 禁用token帮助类。
  * 注意：不能是单例，否则会出现冲突
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/8 23:00
@@ -36,7 +37,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class ForbiddenTokenHelper {
 
-    private static final Logger logger= LoggerFactory.getLogger(ForbiddenTokenHelper.class);
+    private static final Logger logger = LoggerFactory.getLogger(ForbiddenTokenHelper.class);
 
     private final NetTimeManager netTimeManager;
     private final Long2ObjectMap<ForbiddenTokenInfo> forbiddenTokenMap = new Long2ObjectOpenHashMap<>(512);
@@ -54,55 +55,57 @@ public final class ForbiddenTokenHelper {
         this.forbiddenTimeout = forbiddenTimeout;
 
         // 定时检查释放被禁用的token(1/3个周期检查一次)
-        netTimerManager.newFixedDelay(forbiddenTimeout/3 * TimeUtils.SEC, this::releaseForbiddenToken);
+        netTimerManager.newFixedDelay(forbiddenTimeout / 3 * TimeUtils.SEC, this::releaseForbiddenToken);
     }
 
     /**
      * 禁用该token之前的token
      */
-    public void forbiddenPreToken(Token token){
-        forbiddenToken(token.getClientGuid(), token.getCreateSecTime()-1);
+    public void forbiddenPreToken(Token token) {
+        forbiddenToken(token.getClientGuid(), token.getCreateSecTime() - 1);
     }
 
     /**
      * 禁用该token及之前的token
      */
-    public void forbiddenCurToken(Token token){
+    public void forbiddenCurToken(Token token) {
         forbiddenToken(token.getClientGuid(), token.getCreateSecTime());
     }
 
     /**
      * 是否是被禁用的token
+     *
      * @return 旧的token则返回true
      */
-    public boolean isForbiddenToken(Token token){
+    public boolean isForbiddenToken(Token token) {
         ForbiddenTokenInfo forbiddenTokenInfo = forbiddenTokenMap.get(token.getClientGuid());
-        return null!=forbiddenTokenInfo && token.getCreateSecTime() <= forbiddenTokenInfo.getForbiddenCreateTime();
+        return null != forbiddenTokenInfo && token.getCreateSecTime() <= forbiddenTokenInfo.getForbiddenCreateTime();
     }
 
     /**
      * 禁用该时间戳及之前的token
-     * @param clientGuid remoteGuid
+     *
+     * @param clientGuid         remoteGuid
      * @param tokenCreateSecTime include
      */
-    private void forbiddenToken(long clientGuid, int tokenCreateSecTime){
-        int releaseTime= netTimeManager.getSystemSecTime() + forbiddenTimeout;
+    private void forbiddenToken(long clientGuid, int tokenCreateSecTime) {
+        int releaseTime = netTimeManager.getSystemSecTime() + forbiddenTimeout;
         ForbiddenTokenInfo forbiddenTokenInfo = forbiddenTokenMap.get(clientGuid);
-        if (null!=forbiddenTokenInfo){
-            if (tokenCreateSecTime<forbiddenTokenInfo.getForbiddenCreateTime()){
+        if (null != forbiddenTokenInfo) {
+            if (tokenCreateSecTime < forbiddenTokenInfo.getForbiddenCreateTime()) {
                 logger.warn("unexpected invoke.");
-            }else {
-                forbiddenTokenInfo.update(tokenCreateSecTime,releaseTime);
+            } else {
+                forbiddenTokenInfo.update(tokenCreateSecTime, releaseTime);
             }
-        }else {
-            forbiddenTokenMap.put(clientGuid,new ForbiddenTokenInfo(tokenCreateSecTime,releaseTime));
+        } else {
+            forbiddenTokenMap.put(clientGuid, new ForbiddenTokenInfo(tokenCreateSecTime, releaseTime));
         }
     }
 
     /**
      * 释放token，不能无限期缓存
      */
-    private void releaseForbiddenToken(FixedDelayHandle handle){
+    private void releaseForbiddenToken(FixedDelayHandle handle) {
         forbiddenTokenMap.values().removeIf(e -> netTimeManager.getSystemSecTime() > e.getReleaseTime());
     }
 

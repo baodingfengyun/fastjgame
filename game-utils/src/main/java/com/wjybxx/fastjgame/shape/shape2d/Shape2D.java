@@ -36,6 +36,7 @@ public interface Shape2D {
 
     /**
      * 该图形内是否存在该点，在边上也算。
+     *
      * @param point2D 2d平面的一点
      * @return
      */

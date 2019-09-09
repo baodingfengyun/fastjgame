@@ -19,10 +19,10 @@ package com.wjybxx.fastjgame.concurrent;
 /**
  * 当用户在事件循环线程中执行了一个阻塞操作时将会抛出一个{@link BlockingOperationException}异常。
  * 在事件循环线程中执行一个阻塞操作，该阻塞操作可能导致线程进入死锁状态，因此在检测到可能死锁时，抛出该异常。
- *
+ * <p>
  * 死锁分析：
  * EventLoop是单线程的，线程一次只能执行一个任务，如果在执行任务的时候等待该线程上的另一个任务完成，将死锁。
- *
+ * <p>
  * copy from netty，在这里并不希望依赖netty。
  *
  * @author wjybxx
@@ -30,22 +30,22 @@ package com.wjybxx.fastjgame.concurrent;
  * date - 2019/7/24
  * github - https://github.com/hl845740757
  */
-public class BlockingOperationException extends IllegalStateException{
+public class BlockingOperationException extends IllegalStateException {
 
-	private static final long serialVersionUID = 2462223247762460301L;
+    private static final long serialVersionUID = 2462223247762460301L;
 
-	public BlockingOperationException() {
-	}
+    public BlockingOperationException() {
+    }
 
-	public BlockingOperationException(String s) {
-		super(s);
-	}
+    public BlockingOperationException(String s) {
+        super(s);
+    }
 
-	public BlockingOperationException(String message, Throwable cause) {
-		super(message, cause);
-	}
+    public BlockingOperationException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
-	public BlockingOperationException(Throwable cause) {
-		super(cause);
-	}
+    public BlockingOperationException(Throwable cause) {
+        super(cause);
+    }
 }

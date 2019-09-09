@@ -31,68 +31,70 @@ import com.wjybxx.fastjgame.utils.EnumUtils;
  */
 public enum NetPackageType implements NumberEnum {
 
-	/**
-	 * 客户端请求建立链接(验证TOKEN)
-	 */
-	CONNECT_REQUEST((byte) 1),
-	/**
-	 * 服务器通知建立链接结果(TOKEN验证结果)
-	 */
-	CONNECT_RESPONSE((byte)2),
+    /**
+     * 客户端请求建立链接(验证TOKEN)
+     */
+    CONNECT_REQUEST((byte) 1),
+    /**
+     * 服务器通知建立链接结果(TOKEN验证结果)
+     */
+    CONNECT_RESPONSE((byte) 2),
 
-	/**
-	 * Rpc请求包，必须有一个响应。 -- Rpc消息使用protoBuf编解码，内部使用。
-	 */
+    /**
+     * Rpc请求包，必须有一个响应。 -- Rpc消息使用protoBuf编解码，内部使用。
+     */
 
-	RPC_REQUEST((byte)3),
-	/**
-	 * Rpc响应包。
-	 */
-	RPC_RESPONSE((byte)4),
+    RPC_REQUEST((byte) 3),
+    /**
+     * Rpc响应包。
+     */
+    RPC_RESPONSE((byte) 4),
 
-	/**
-	 * 单向消息包。
-	 */
-	ONE_WAY_MESSAGE((byte)5),
+    /**
+     * 单向消息包。
+     */
+    ONE_WAY_MESSAGE((byte) 5),
 
-	/**
-	 * 心跳包 -- 客户端发起
-	 */
-	ACK_PING((byte)6),
-	/**
-	 * 心跳包 -- 服务器响应
-	 */
-	ACK_PONG((byte)7),
+    /**
+     * 心跳包 -- 客户端发起
+     */
+    ACK_PING((byte) 6),
+    /**
+     * 心跳包 -- 服务器响应
+     */
+    ACK_PONG((byte) 7),
 
-	;
+    ;
 
-	public final byte pkgType;
+    public final byte pkgType;
 
-	NetPackageType(byte pkgType) {
-		this.pkgType = pkgType;
-	}
+    NetPackageType(byte pkgType) {
+        this.pkgType = pkgType;
+    }
 
-	/**
-	 * 仅仅用于初始化映射
-	 * @return 枚举对应的编号
-	 */
-	@Deprecated
-	@Override
-	public int getNumber() {
-		return pkgType;
-	}
+    /**
+     * 仅仅用于初始化映射
+     *
+     * @return 枚举对应的编号
+     */
+    @Deprecated
+    @Override
+    public int getNumber() {
+        return pkgType;
+    }
 
-	/**
-	 * 排序号的枚举数组，方便查找
-	 */
-	private static final NumberEnumMapper<NetPackageType> mapper = EnumUtils.indexNumberEnum(values());
+    /**
+     * 排序号的枚举数组，方便查找
+     */
+    private static final NumberEnumMapper<NetPackageType> mapper = EnumUtils.indexNumberEnum(values());
 
-	/**
-	 * 通过网络包中的pkgType找到对应的枚举。
-	 * @param pkgType 包类型
-	 * @return 包类型对应的枚举
-	 */
-	public static NetPackageType forNumber(byte pkgType){
-		return mapper.forNumber(pkgType);
-	}
+    /**
+     * 通过网络包中的pkgType找到对应的枚举。
+     *
+     * @param pkgType 包类型
+     * @return 包类型对应的枚举
+     */
+    public static NetPackageType forNumber(byte pkgType) {
+        return mapper.forNumber(pkgType);
+    }
 }

@@ -31,6 +31,9 @@ public interface ShortObjConsumer<V> {
 
     default ShortObjConsumer<V> andThen(ShortObjConsumer<? super V> after) {
         Objects.requireNonNull(after);
-        return (k, v) -> { accept(k, v); after.accept(k, v); };
+        return (k, v) -> {
+            accept(k, v);
+            after.accept(k, v);
+        };
     }
 }

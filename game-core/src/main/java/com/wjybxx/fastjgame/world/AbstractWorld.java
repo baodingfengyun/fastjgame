@@ -29,12 +29,13 @@ import javax.annotation.Nonnull;
 
 /**
  * 游戏World的模板实现
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/12 12:25
  * github - https://github.com/hl845740757
  */
-public abstract class AbstractWorld implements World{
+public abstract class AbstractWorld implements World {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractWorld.class);
 
@@ -81,7 +82,8 @@ public abstract class AbstractWorld implements World{
 
     /**
      * 注册codec的模板方法
-     * @param name codec的名字
+     *
+     * @param name            codec的名字
      * @param mappingStrategy 消息id到消息映射策略
      */
     protected final void registerProtocolCodec(String name, MessageMappingStrategy mappingStrategy) throws Exception {
@@ -124,7 +126,7 @@ public abstract class AbstractWorld implements World{
         return worldInfoMrg.getWorldType();
     }
 
-    public final void startUp(ConfigWrapper startArgs) throws Exception{
+    public final void startUp(ConfigWrapper startArgs) throws Exception {
         // 必须先初始world信息
         worldInfoMrg.init(startArgs);
         // 初始化网络上下文
@@ -152,9 +154,10 @@ public abstract class AbstractWorld implements World{
 
     /**
      * 游戏世界帧
+     *
      * @param curMillTime 当前系统时间
      */
-    public final void tick(long curMillTime){
+    public final void tick(long curMillTime) {
         tickCore(curMillTime);
         tickHook();
     }
@@ -162,7 +165,7 @@ public abstract class AbstractWorld implements World{
     /**
      * 超类tick逻辑
      */
-    private void tickCore(long curMillTime){
+    private void tickCore(long curMillTime) {
         // 优先更新系统时间缓存
         worldTimeMrg.update(curMillTime);
         worldTimerMrg.tick();
@@ -185,10 +188,10 @@ public abstract class AbstractWorld implements World{
 
         try {
             shutdownHook();
-        } catch (Exception e){
+        } catch (Exception e) {
             // 关闭操作和启动操作都是重要操作尽量不要产生异常
-            logger.error("shutdown caught exception",e);
-        }finally {
+            logger.error("shutdown caught exception", e);
+        } finally {
             shutdownCore();
         }
     }
@@ -196,7 +199,7 @@ public abstract class AbstractWorld implements World{
     /**
      * 关闭公共服务
      */
-    private void shutdownCore(){
+    private void shutdownCore() {
         netContextMrg.shutdown();
         curatorMrg.shutdown();
         protocolDispatcherMrg.release();
@@ -210,6 +213,7 @@ public abstract class AbstractWorld implements World{
 
     /**
      * 获取world绑定到的{@link GameEventLoop}
+     *
      * @return EventLoop
      */
     @Nonnull

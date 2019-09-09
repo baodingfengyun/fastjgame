@@ -20,6 +20,7 @@ import com.wjybxx.fastjgame.manager.TokenManager;
 
 /**
  * Token 客户端请求与服务器建立连接时的验证信息
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/4/27 15:03
@@ -60,12 +61,13 @@ public class Token {
      * use {@link TokenManager#newLoginToken(long, RoleType, long, RoleType)} (Token)}
      * use {@link TokenManager#newFailToken(long, long)} (Token)}
      * use {@link TokenManager#nextToken(Token)}
-     * @param clientGuid 客户端guid
+     *
+     * @param clientGuid     客户端guid
      * @param clientRoleType 客户端角色类型
-     * @param serverGuid 服务器guid
+     * @param serverGuid     服务器guid
      * @param serverRoleType 服务器角色类型
-     * @param verifiedTimes 已验证次数
-     * @param createSecTime 创建Token时的时间戳(秒)
+     * @param verifiedTimes  已验证次数
+     * @param createSecTime  创建Token时的时间戳(秒)
      */
     public Token(long clientGuid, RoleType clientRoleType,
                  long serverGuid, RoleType serverRoleType,
@@ -91,7 +93,7 @@ public class Token {
         return serverGuid;
     }
 
-    public RoleType getServerRoleType(){
+    public RoleType getServerRoleType() {
         return serverRoleType;
     }
 

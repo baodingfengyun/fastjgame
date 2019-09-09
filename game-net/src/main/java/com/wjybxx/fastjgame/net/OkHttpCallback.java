@@ -25,10 +25,10 @@ import java.io.IOException;
 
 /**
  * http响应处理器。
- *
+ * <p>
  * Q: 为何要继承{@link Callback}，而不是直接用{@link Callback}？
  * A: 因为这个名字实在太通用了，不够具体，此外名字容易冲突。
- *
+ * <p>
  * 所有响应都发生在用户指定的线程。
  * 注意查看注释：
  * {@link #onFailure(Call, IOException)}

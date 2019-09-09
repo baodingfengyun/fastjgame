@@ -35,49 +35,48 @@ import java.util.Map;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class EventBus implements EventHandlerRegistry,EventDispatcher {
+public class EventBus implements EventHandlerRegistry, EventDispatcher {
 
-	private static final Logger logger = LoggerFactory.getLogger(EventBus.class);
-	/**
-	 * 事件类型到处理器的映射
-	 */
-	private final Map<Class<?>, EventHandler<?>> handlerMap = new IdentityHashMap<>(512);
+    private static final Logger logger = LoggerFactory.getLogger(EventBus.class);
+    /**
+     * 事件类型到处理器的映射
+     */
+    private final Map<Class<?>, EventHandler<?>> handlerMap = new IdentityHashMap<>(512);
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public <T> void post(@Nonnull T event) {
-		final EventHandler<T> eventHandler = (EventHandler<T>) handlerMap.get(event.getClass());
-		if (null == eventHandler) {
-			// 对应的事件处理器可能忘记了注册
-			logger.warn("{}'s listeners may forgot register!", event.getClass().getName());
-			return;
-		}
-		try {
-			eventHandler.onEvent(event);
-		} catch (Exception e){
-			// 不能因为某个异常导致其它监听器接收不到事件
-			logger.warn("onEvent caught exception! EventInfo {}, handler info {}",
-					event.getClass().getName(), eventHandler.getClass().getName(), e);
-		}
-	}
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> void post(@Nonnull T event) {
+        final EventHandler<T> eventHandler = (EventHandler<T>) handlerMap.get(event.getClass());
+        if (null == eventHandler) {
+            // 对应的事件处理器可能忘记了注册
+            logger.warn("{}'s listeners may forgot register!", event.getClass().getName());
+            return;
+        }
+        try {
+            eventHandler.onEvent(event);
+        } catch (Exception e) {
+            // 不能因为某个异常导致其它监听器接收不到事件
+            logger.warn("onEvent caught exception! EventInfo {}, handler info {}",
+                    event.getClass().getName(), eventHandler.getClass().getName(), e);
+        }
+    }
 
-	@Override
-	public <T> void register(@Nonnull Class<T> eventType, @Nonnull EventHandler<T> handler) {
-		@SuppressWarnings("unchecked")
-		final EventHandler<T> existHandler = (EventHandler<T>) handlerMap.get(eventType);
-		if (null == existHandler) {
-			handlerMap.put(eventType, handler);
-		} else {
-			if (existHandler instanceof CompositeEventHandler) {
-				((CompositeEventHandler<T>) existHandler).addHandler(handler);
-			} else {
-				handlerMap.put(eventType, new CompositeEventHandler<>(existHandler, handler));
-			}
-		}
-	}
+    @Override
+    public <T> void register(@Nonnull Class<T> eventType, @Nonnull EventHandler<T> handler) {
+        @SuppressWarnings("unchecked") final EventHandler<T> existHandler = (EventHandler<T>) handlerMap.get(eventType);
+        if (null == existHandler) {
+            handlerMap.put(eventType, handler);
+        } else {
+            if (existHandler instanceof CompositeEventHandler) {
+                ((CompositeEventHandler<T>) existHandler).addHandler(handler);
+            } else {
+                handlerMap.put(eventType, new CompositeEventHandler<>(existHandler, handler));
+            }
+        }
+    }
 
-	@Override
-	public void release() {
-		handlerMap.clear();
-	}
+    @Override
+    public void release() {
+        handlerMap.clear();
+    }
 }

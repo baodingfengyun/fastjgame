@@ -35,11 +35,17 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class C2SSessionImp extends AbstractSession implements C2SSession {
 
-    /** 未激活状态 */
+    /**
+     * 未激活状态
+     */
     private static final int ST_INACTIVE = 0;
-    /** 激活状态 */
+    /**
+     * 激活状态
+     */
     private static final int ST_ACTIVE = 1;
-    /** 已关闭 */
+    /**
+     * 已关闭
+     */
     private static final int ST_CLOSED = 2;
 
     private final NetContext netContext;
@@ -65,8 +71,8 @@ public class C2SSessionImp extends AbstractSession implements C2SSession {
     public C2SSessionImp(NetContext netContext, NetManagerWrapper netManagerWrapper,
                          long serverGuid, RoleType serverType, HostAndPort remoteAddress,
                          SessionSenderMode sessionSenderMode) {
-		super(sessionSenderMode);
-		this.netContext = netContext;
+        super(sessionSenderMode);
+        this.netContext = netContext;
         this.netManagerWrapper = netManagerWrapper;
         this.serverGuid = serverGuid;
         this.serverType = serverType;
@@ -105,6 +111,7 @@ public class C2SSessionImp extends AbstractSession implements C2SSession {
 
     /**
      * 尝试激活会话，由于可能与{@link #close()}没有竞争。因为用户在激活之前其它线程是无法获取到该Session对象的。
+     *
      * @return 如果成功设置为激活状态则返回true(激活方法只应该调用一次)
      */
     public boolean tryActive() {
@@ -117,7 +124,9 @@ public class C2SSessionImp extends AbstractSession implements C2SSession {
         return stateHolder.get() == ST_ACTIVE;
     }
 
-    /** 标记为已关闭 */
+    /**
+     * 标记为已关闭
+     */
     public void setClosed() {
         stateHolder.set(ST_CLOSED);
     }

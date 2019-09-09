@@ -39,7 +39,7 @@ public class MapDataLoadTest {
         MapDataLoadMrg mapDataLoadMrg = injector.getInstance(MapDataLoadMrg.class);
 
         MapData mapData = mapDataLoadMrg.loadMapData(1);
-        ViewGridSet viewGridSet = new ViewGridSet(mapData.getMapWidth(), mapData.getMapHeight(),600);
+        ViewGridSet viewGridSet = new ViewGridSet(mapData.getMapWidth(), mapData.getMapHeight(), 600);
         System.out.println(mapData);
     }
 }

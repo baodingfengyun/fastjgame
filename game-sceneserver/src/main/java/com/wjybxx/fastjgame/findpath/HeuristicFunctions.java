@@ -65,7 +65,7 @@ package com.wjybxx.fastjgame.findpath;
  *     k = sqrt(2) - 1
  *     return max(dx, dy) + k * min(dx, dy)
  * }
- *</pre>
+ * </pre>
  * - https://www.cnblogs.com/sanmubai/p/6829495.html
  *
  * @author wjybxx
@@ -93,7 +93,7 @@ public class HeuristicFunctions {
     public static final HeuristicFunction CHEBYSHEV = (a, b) -> {
         int dx = Math.abs(a.getX() - b.getX());
         int dy = Math.abs(a.getY() - b.getY());
-        return Math.max(dx,dy);
+        return Math.max(dx, dy);
     };
 
     /**

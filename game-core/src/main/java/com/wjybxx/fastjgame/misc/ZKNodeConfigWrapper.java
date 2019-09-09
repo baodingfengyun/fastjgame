@@ -37,7 +37,7 @@ import java.util.Set;
  */
 public class ZKNodeConfigWrapper extends ConfigWrapper {
 
-    private final Map<String,byte[]> childrenData;
+    private final Map<String, byte[]> childrenData;
 
     public ZKNodeConfigWrapper(Map<String, byte[]> childrenData) {
         this.childrenData = getRealMap(childrenData);
@@ -56,9 +56,9 @@ public class ZKNodeConfigWrapper extends ConfigWrapper {
 
     @Override
     public MapConfigWrapper convert2MapWrapper() {
-        Map<String,String> resultMap=new HashMap<>();
-        for (Map.Entry<String,byte[]> entry:childrenData.entrySet()){
-            resultMap.put(entry.getKey(),new String(entry.getValue(),StandardCharsets.UTF_8));
+        Map<String, String> resultMap = new HashMap<>();
+        for (Map.Entry<String, byte[]> entry : childrenData.entrySet()) {
+            resultMap.put(entry.getKey(), new String(entry.getValue(), StandardCharsets.UTF_8));
         }
         return new MapConfigWrapper(resultMap);
     }
@@ -70,9 +70,9 @@ public class ZKNodeConfigWrapper extends ConfigWrapper {
                 '}';
     }
 
-    private static Map<String, byte[]> getRealMap(Map<String,byte[]> childrenData){
-        Map<String,byte[]> realChildrenData = CollectionUtils.newEnoughCapacityHashMap(childrenData.size());
-        for (Map.Entry<String,byte[]> entry:childrenData.entrySet()){
+    private static Map<String, byte[]> getRealMap(Map<String, byte[]> childrenData) {
+        Map<String, byte[]> realChildrenData = CollectionUtils.newEnoughCapacityHashMap(childrenData.size());
+        for (Map.Entry<String, byte[]> entry : childrenData.entrySet()) {
             String childName = ZKPathUtils.findNodeName(entry.getKey());
             byte[] childData = entry.getValue();
             realChildrenData.put(childName, childData);

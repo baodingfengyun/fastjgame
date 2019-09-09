@@ -37,6 +37,7 @@ public interface GameEventLoopGroup extends EventLoopGroup {
 
     /**
      * 获取游戏循环依赖的网络模块组件
+     *
      * @return 游戏模块依赖的网络模块
      */
     @Nonnull

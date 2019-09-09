@@ -33,42 +33,45 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public interface RpcResponseChannel<T> {
 
-	/**
-	 * 返回rpc调用结果，表示调用成功，{@link #write(RpcResponse)}的快捷方式。
-	 * @param body rpc调用结果/可能为null
-	 */
-	default void writeSuccess(@Nullable T body) {
-		write(RpcResponse.newSucceedResponse(body));
-	}
+    /**
+     * 返回rpc调用结果，表示调用成功，{@link #write(RpcResponse)}的快捷方式。
+     *
+     * @param body rpc调用结果/可能为null
+     */
+    default void writeSuccess(@Nullable T body) {
+        write(RpcResponse.newSucceedResponse(body));
+    }
 
-	/**
-	 * 返回rpc调用结果，表示调用失败，{@link #write(RpcResponse)}的快捷方式。
-	 * @param errorCode rpc调用错误码，能使用静态常量的使用常量{@link RpcResponse}
-	 */
-	default void writeFailure(@Nonnull RpcResultCode errorCode) {
-		write(RpcResponse.newFailResponse(errorCode));
-	}
+    /**
+     * 返回rpc调用结果，表示调用失败，{@link #write(RpcResponse)}的快捷方式。
+     *
+     * @param errorCode rpc调用错误码，能使用静态常量的使用常量{@link RpcResponse}
+     */
+    default void writeFailure(@Nonnull RpcResultCode errorCode) {
+        write(RpcResponse.newFailResponse(errorCode));
+    }
 
-	/**
-	 * 返回rpc调用结果，{@link #write(RpcResponse)}的快捷方式
-	 *
-	 * @param resultCode rpc调用结果码
-	 * @param body 调用结果/额外信息
-	 */
-	default void write(@Nonnull RpcResultCode resultCode, @Nullable Object body) {
-		write(new RpcResponse(resultCode, body));
-	}
+    /**
+     * 返回rpc调用结果，{@link #write(RpcResponse)}的快捷方式
+     *
+     * @param resultCode rpc调用结果码
+     * @param body       调用结果/额外信息
+     */
+    default void write(@Nonnull RpcResultCode resultCode, @Nullable Object body) {
+        write(new RpcResponse(resultCode, body));
+    }
 
-	/**
-	 * 返回rpc调用结果，如果是返回错误结果，能使用静态常量的使用常量{@link RpcResponse}
-	 *
-	 * @param rpcResponse rpc调用结果
-	 */
-	void write(@Nonnull RpcResponse rpcResponse);
+    /**
+     * 返回rpc调用结果，如果是返回错误结果，能使用静态常量的使用常量{@link RpcResponse}
+     *
+     * @param rpcResponse rpc调用结果
+     */
+    void write(@Nonnull RpcResponse rpcResponse);
 
-	/**
-	 * 是否不关心结果，true表示不关心结果
-	 * @return true/false
-	 */
-	boolean isVoid();
+    /**
+     * 是否不关心结果，true表示不关心结果
+     *
+     * @return true/false
+     */
+    boolean isVoid();
 }

@@ -24,12 +24,13 @@ import javax.annotation.Nullable;
 
 /**
  * 跟随单位
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/23 17:08
  * github - https://github.com/hl845740757
  */
-public abstract class Follower<T extends GameObjectData> extends GameObject<T>{
+public abstract class Follower<T extends GameObjectData> extends GameObject<T> {
 
     protected GameObject owner;
 
@@ -45,6 +46,7 @@ public abstract class Follower<T extends GameObjectData> extends GameObject<T>{
 
     /**
      * 获取宠物主人的guid，如果不存在主人，则返回-1
+     *
      * @return
      */
     public final long getOwnerGuid() {

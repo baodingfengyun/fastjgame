@@ -27,24 +27,28 @@ import io.netty.channel.Channel;
  * github - https://github.com/hl845740757
  */
 @TransferObject
-public class RpcResponseEventParam extends MessageEventParam{
+public class RpcResponseEventParam extends MessageEventParam {
 
-	/** 客户端的哪一个请求 */
-	private long requestGuid;
-	/** rpc响应结果 */
-	private RpcResponse rpcResponse;
+    /**
+     * 客户端的哪一个请求
+     */
+    private long requestGuid;
+    /**
+     * rpc响应结果
+     */
+    private RpcResponse rpcResponse;
 
-	public RpcResponseEventParam(Channel channel, long localGuid, long remoteGuid, long ack, long sequence, long requestGuid, RpcResponse rpcResponse) {
-		super(channel, localGuid, remoteGuid, ack, sequence);
-		this.requestGuid = requestGuid;
-		this.rpcResponse = rpcResponse;
-	}
+    public RpcResponseEventParam(Channel channel, long localGuid, long remoteGuid, long ack, long sequence, long requestGuid, RpcResponse rpcResponse) {
+        super(channel, localGuid, remoteGuid, ack, sequence);
+        this.requestGuid = requestGuid;
+        this.rpcResponse = rpcResponse;
+    }
 
-	public long getRequestGuid() {
-		return requestGuid;
-	}
+    public long getRequestGuid() {
+        return requestGuid;
+    }
 
-	public RpcResponse getRpcResponse() {
-		return rpcResponse;
-	}
+    public RpcResponse getRpcResponse() {
+        return rpcResponse;
+    }
 }

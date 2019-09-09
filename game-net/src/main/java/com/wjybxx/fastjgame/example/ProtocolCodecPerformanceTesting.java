@@ -35,44 +35,44 @@ import java.io.IOException;
  */
 public class ProtocolCodecPerformanceTesting {
 
-	public static void main(String[] args) throws IOException {
-		ByteBufAllocator byteBufAllocator = PooledByteBufAllocator.DEFAULT;
-		ExampleMessages.FullMessage fullMessage = ReflectBasedProtoCodecExample.getFullMessage();
+    public static void main(String[] args) throws IOException {
+        ByteBufAllocator byteBufAllocator = PooledByteBufAllocator.DEFAULT;
+        ExampleMessages.FullMessage fullMessage = ReflectBasedProtoCodecExample.getFullMessage();
 
-		JsonBasedProtocolCodec jsonBasedCodec = ExampleConstants.jsonBasedCodec;
-		ReflectBasedProtocolCodec reflectBasedCodec = ExampleConstants.reflectBasedCodec;
+        JsonBasedProtocolCodec jsonBasedCodec = ExampleConstants.jsonBasedCodec;
+        ReflectBasedProtocolCodec reflectBasedCodec = ExampleConstants.reflectBasedCodec;
 
-		// equals测试，正确性必须要保证
-		equalsTest(jsonBasedCodec, byteBufAllocator, fullMessage);
-		equalsTest(reflectBasedCodec, byteBufAllocator, fullMessage);
+        // equals测试，正确性必须要保证
+        equalsTest(jsonBasedCodec, byteBufAllocator, fullMessage);
+        equalsTest(reflectBasedCodec, byteBufAllocator, fullMessage);
 
-		// 预热
-		codecTest(jsonBasedCodec, byteBufAllocator, fullMessage, 1000);
-		codecTest(reflectBasedCodec, byteBufAllocator, fullMessage, 1000);
+        // 预热
+        codecTest(jsonBasedCodec, byteBufAllocator, fullMessage, 1000);
+        codecTest(reflectBasedCodec, byteBufAllocator, fullMessage, 1000);
 
-		// 开搞
-		codecTest(jsonBasedCodec, byteBufAllocator, fullMessage, 10_0000);
-		codecTest(reflectBasedCodec, byteBufAllocator, fullMessage, 10_0000);
-	}
+        // 开搞
+        codecTest(jsonBasedCodec, byteBufAllocator, fullMessage, 10_0000);
+        codecTest(reflectBasedCodec, byteBufAllocator, fullMessage, 10_0000);
+    }
 
-	private static void equalsTest(ProtocolCodec codec, ByteBufAllocator byteBufAllocator, ExampleMessages.FullMessage fullMessage) throws IOException {
-		final String name = codec.getClass().getSimpleName();
-		ByteBuf byteBuf = codec.encodeMessage(byteBufAllocator, fullMessage);
-		Object decodeMessage = codec.decodeMessage(byteBuf);
-		System.out.println(name + " codec equals result = " + fullMessage.equals(decodeMessage));
-		// 总是忘记release
-		byteBuf.release();
-	}
+    private static void equalsTest(ProtocolCodec codec, ByteBufAllocator byteBufAllocator, ExampleMessages.FullMessage fullMessage) throws IOException {
+        final String name = codec.getClass().getSimpleName();
+        ByteBuf byteBuf = codec.encodeMessage(byteBufAllocator, fullMessage);
+        Object decodeMessage = codec.decodeMessage(byteBuf);
+        System.out.println(name + " codec equals result = " + fullMessage.equals(decodeMessage));
+        // 总是忘记release
+        byteBuf.release();
+    }
 
-	private static void codecTest(ProtocolCodec codec, ByteBufAllocator byteBufAllocator, ExampleMessages.FullMessage fullMessage, int loopTimes) throws IOException {
-		final String name = codec.getClass().getSimpleName();
-		long start = System.currentTimeMillis();
-		for (int index = 0; index < loopTimes; index++) {
-			ByteBuf byteBuf = codec.encodeMessage(byteBufAllocator, fullMessage);
-			Object decodeMessage = codec.decodeMessage(byteBuf);
-			// 由于没真正发送，显式的进行释放
-			byteBuf.release();
-		}
-		System.out.println(name + " codec " + loopTimes + " times cost timeMs " + (System.currentTimeMillis()-start));
-	}
+    private static void codecTest(ProtocolCodec codec, ByteBufAllocator byteBufAllocator, ExampleMessages.FullMessage fullMessage, int loopTimes) throws IOException {
+        final String name = codec.getClass().getSimpleName();
+        long start = System.currentTimeMillis();
+        for (int index = 0; index < loopTimes; index++) {
+            ByteBuf byteBuf = codec.encodeMessage(byteBufAllocator, fullMessage);
+            Object decodeMessage = codec.decodeMessage(byteBuf);
+            // 由于没真正发送，显式的进行释放
+            byteBuf.release();
+        }
+        System.out.println(name + " codec " + loopTimes + " times cost timeMs " + (System.currentTimeMillis() - start));
+    }
 }

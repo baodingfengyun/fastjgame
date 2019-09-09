@@ -20,10 +20,10 @@ import com.wjybxx.fastjgame.scene.MapGrid;
 
 /**
  * 启发函数;
- *
+ * <p>
  * 盲目搜索会浪费很多时间和空间, 所以我们在路径搜索时, 会首先选择最有希望的节点,
  * 这种搜索称之为 "启发式搜索 (Heuristic Search)"
- *
+ * <p>
  * 如何来界定"最有希望"? 我们需要通过 启发函数 (Heuristic Function) 计算得到.
  *
  * @author wjybxx

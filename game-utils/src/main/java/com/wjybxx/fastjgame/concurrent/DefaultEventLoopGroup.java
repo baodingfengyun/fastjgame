@@ -28,24 +28,24 @@ import java.util.concurrent.ThreadFactory;
  * date - 2019/7/23
  * github - https://github.com/hl845740757
  */
-public class DefaultEventLoopGroup extends MultiThreadEventLoopGroup{
+public class DefaultEventLoopGroup extends MultiThreadEventLoopGroup {
 
-	public DefaultEventLoopGroup(int nThreads,
-								 @Nonnull ThreadFactory threadFactory,
-								 @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
-		this(nThreads, threadFactory, rejectedExecutionHandler, null);
-	}
+    public DefaultEventLoopGroup(int nThreads,
+                                 @Nonnull ThreadFactory threadFactory,
+                                 @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
+        this(nThreads, threadFactory, rejectedExecutionHandler, null);
+    }
 
-	public DefaultEventLoopGroup(int nThreads,
-								 @Nonnull ThreadFactory threadFactory,
-								 @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
-								 @Nullable EventLoopChooserFactory chooserFactory) {
-		super(nThreads, threadFactory, rejectedExecutionHandler, chooserFactory, null);
-	}
+    public DefaultEventLoopGroup(int nThreads,
+                                 @Nonnull ThreadFactory threadFactory,
+                                 @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
+                                 @Nullable EventLoopChooserFactory chooserFactory) {
+        super(nThreads, threadFactory, rejectedExecutionHandler, chooserFactory, null);
+    }
 
-	@Nonnull
-	@Override
-	protected EventLoop newChild(int childIndex, ThreadFactory threadFactory, RejectedExecutionHandler rejectedExecutionHandler, Object context) {
-		return new DefaultEventLoop(this, threadFactory, rejectedExecutionHandler);
-	}
+    @Nonnull
+    @Override
+    protected EventLoop newChild(int childIndex, ThreadFactory threadFactory, RejectedExecutionHandler rejectedExecutionHandler, Object context) {
+        return new DefaultEventLoop(this, threadFactory, rejectedExecutionHandler);
+    }
 }

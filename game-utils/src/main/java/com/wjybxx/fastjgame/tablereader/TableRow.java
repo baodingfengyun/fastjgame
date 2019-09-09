@@ -40,14 +40,15 @@ public class TableRow extends ConfigWrapper {
      * colName -> content 可读性更好
      * colIndex -> content 的可读性有点差
      */
-    private final Map<String,String> colName2Value;
+    private final Map<String, String> colName2Value;
 
     /**
      * create instance
-     * @param rowIndex 行索引
+     *
+     * @param rowIndex      行索引
      * @param colName2Value 属性名到属性值的映射
      */
-    public TableRow(int rowIndex, Map<String,String> colName2Value) {
+    public TableRow(int rowIndex, Map<String, String> colName2Value) {
         this.rowIndex = rowIndex;
         this.colName2Value = colName2Value;
     }

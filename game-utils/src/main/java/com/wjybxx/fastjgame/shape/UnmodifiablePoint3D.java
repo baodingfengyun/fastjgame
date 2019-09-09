@@ -18,12 +18,13 @@ package com.wjybxx.fastjgame.shape;
 
 /**
  * 不可修改的3D坐标点，代理对象。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/31 23:44
  * github - https://github.com/hl845740757
  */
-public class UnmodifiablePoint3D extends Point3D{
+public class UnmodifiablePoint3D extends Point3D {
 
     private final float x;
 

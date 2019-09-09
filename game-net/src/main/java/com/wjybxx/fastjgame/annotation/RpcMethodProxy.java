@@ -23,6 +23,7 @@ import java.lang.annotation.Target;
 
 /**
  * {@link RpcMethod}对应的代理方法的注解、
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/20
@@ -32,9 +33,10 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface RpcMethodProxy {
 
-	/**
-	 * 返回对应的方法的唯一键。
-	 * @return int
-	 */
-	int methodKey();
+    /**
+     * 返回对应的方法的唯一键。
+     *
+     * @return int
+     */
+    int methodKey();
 }

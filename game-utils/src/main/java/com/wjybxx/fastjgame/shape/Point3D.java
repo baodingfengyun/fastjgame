@@ -19,20 +19,20 @@ package com.wjybxx.fastjgame.shape;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- *
  * 默认3D坐标点实现，可修改坐标。
- *
+ * <p>
  * 3D游戏中y是高度,为啥y是高？
  * 因为2d引擎和3d引擎一般是共用屏幕所在的平面的，也就是x,y所在的面，那么从里到外只能用z了。
  * 而角色移动的时候是在 x，z所在的平面。
  * （和平时数学课本的xyz不一致，一般书本中z是高）
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/31 22:30
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public abstract class Point3D implements Point<Point3D>{
+public abstract class Point3D implements Point<Point3D> {
 
     public static final Point3D EMPTY = newPoint3D().unmodifiable();
 
@@ -49,25 +49,28 @@ public abstract class Point3D implements Point<Point3D>{
     /**
      * 重新绘制坐标，并返回自己，用于复用对象时。
      */
-    public final Point3D redraw(float x, float y,float z){
-        updateLocation(x,y,z);
+    public final Point3D redraw(float x, float y, float z) {
+        updateLocation(x, y, z);
         return this;
     }
 
     /**
      * x 正方向从左到右
+     *
      * @return float
      */
     public abstract float getX();
 
     /**
      * y 正方向从下到上
+     *
      * @return float
      */
     public abstract float getY();
 
     /**
      * z 正方向朝向屏幕后方
+     *
      * @return float
      */
     public abstract float getZ();
@@ -80,29 +83,32 @@ public abstract class Point3D implements Point<Point3D>{
 
     /**
      * 创建一个默认坐标的3d坐标点
+     *
      * @return new instance
      */
-    public static Point3D newPoint3D(){
+    public static Point3D newPoint3D() {
         return new DefaultPoint3D();
     }
 
     /**
      * 创建一个指定初始值的3d坐标点
+     *
      * @param x 初始x
      * @param y 初始y
      * @param z 初始z
      * @return new instance
      */
-    public static Point3D newPoint3D(float x,float y,float z){
-        return new DefaultPoint3D(x,y,z);
+    public static Point3D newPoint3D(float x, float y, float z) {
+        return new DefaultPoint3D(x, y, z);
     }
 
     /**
      * 返回一个不可修改的3d坐标视图
+     *
      * @param point3D 原始3d坐标点
      * @return a view of point3d
      */
-    static Point3D unmodifiable(Point3D point3D){
+    static Point3D unmodifiable(Point3D point3D) {
         return new UnmodifiablePoint3D(point3D);
     }
 }

@@ -23,6 +23,7 @@ import java.util.List;
 /**
  * 场景进程选择器,不提供线程安全性，因为设计里只有主线程使用；
  * 内部可能会有一些状态；
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/23 19:10
@@ -33,6 +34,7 @@ public interface SceneWorldChooser {
 
     /**
      * 从多个可用场景进程中选择一个进程。
+     *
      * @param availableProcesses size >= 2
      * @return selection
      */

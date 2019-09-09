@@ -28,22 +28,23 @@ import java.lang.annotation.Target;
 /**
  * http请求路由。
  * 该注解可以用在类/接口上，也可以用在方法上。当类上存在该注解时，那么该类中的所有方法默认都在该路径之下。
- *
+ * <p>
  * 方法必须满足以下要求，否则编译会报错：
  * <li>1. 必须是3个参数：第一个必须{@link HttpSession}，第二个参数为{@link String}，第三个参数必须是{@link HttpRequestParam}。
  * 也就是可以转换为{@link HttpRequestHandler}</li>
  * <li>2. 必须是public </li>
- *
+ * <p>
  * eg:
  * <pre>{@code
- * 		@HttpRequestMapping
- * 		public void onRequest(HttpSession session, String path, HttpRequestParam param) {
+ *        @HttpRequestMapping
+ *        public void onRequest(HttpSession session, String path, HttpRequestParam param) {
  * 			// do something
- * 		}
+ *        }
  * }
  * </pre>
- *
+ * <p>
  * 没想到啥好名字，参考下了常见的spring的RequestMapping，也打算做个类似的支持。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/27
@@ -53,19 +54,19 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE, ElementType.METHOD})
 public @interface HttpRequestMapping {
 
-	/**
-	 * 要监听的http请求路径。
-	 * 路径必须以'/'开头，eg: /main
-	 *
-	 * @return path
-	 */
-	String path();
+    /**
+     * 要监听的http请求路径。
+     * 路径必须以'/'开头，eg: /main
+     *
+     * @return path
+     */
+    String path();
 
-	/**
-	 * 是否继承父节点的路径，默认支持.。
-	 * 如果不继承父节点路径，则使用指定的路径，否则使用父节点路径和当前路径拼接完的路径。
-	 *
-	 * @return true/false
-	 */
-	boolean inherit() default true;
+    /**
+     * 是否继承父节点的路径，默认支持.。
+     * 如果不继承父节点路径，则使用指定的路径，否则使用父节点路径和当前路径拼接完的路径。
+     *
+     * @return true/false
+     */
+    boolean inherit() default true;
 }

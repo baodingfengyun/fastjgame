@@ -36,67 +36,67 @@ import java.io.OutputStream;
  */
 public class JsonBasedProtocolCodec implements ProtocolCodec {
 
-	private final MessageMapper messageMapper;
+    private final MessageMapper messageMapper;
 
-	public JsonBasedProtocolCodec(MessageMapper messageMapper) {
-		this.messageMapper = messageMapper;
-	}
+    public JsonBasedProtocolCodec(MessageMapper messageMapper) {
+        this.messageMapper = messageMapper;
+    }
 
-	@Override
-	public ByteBuf encodeRpcRequest(ByteBufAllocator bufAllocator, Object request) throws IOException {
-		return encode(bufAllocator, request);
-	}
+    @Override
+    public ByteBuf encodeRpcRequest(ByteBufAllocator bufAllocator, Object request) throws IOException {
+        return encode(bufAllocator, request);
+    }
 
-	@Override
-	public Object decodeRpcRequest(ByteBuf data) throws IOException {
-		return decode(data);
-	}
+    @Override
+    public Object decodeRpcRequest(ByteBuf data) throws IOException {
+        return decode(data);
+    }
 
-	@Override
-	public ByteBuf encodeRpcResponse(ByteBufAllocator bufAllocator, Object body) throws IOException {
-		return encode(bufAllocator, body);
-	}
+    @Override
+    public ByteBuf encodeRpcResponse(ByteBufAllocator bufAllocator, Object body) throws IOException {
+        return encode(bufAllocator, body);
+    }
 
-	@Override
-	public Object decodeRpcResponse(ByteBuf data) throws IOException {
-		return decode(data);
-	}
+    @Override
+    public Object decodeRpcResponse(ByteBuf data) throws IOException {
+        return decode(data);
+    }
 
-	@Override
-	public ByteBuf encodeMessage(ByteBufAllocator bufAllocator, Object message) throws IOException {
-		return encode(bufAllocator, message);
-	}
+    @Override
+    public ByteBuf encodeMessage(ByteBufAllocator bufAllocator, Object message) throws IOException {
+        return encode(bufAllocator, message);
+    }
 
-	@Override
-	public Object decodeMessage(ByteBuf data) throws IOException {
-		return decode(data);
-	}
+    @Override
+    public Object decodeMessage(ByteBuf data) throws IOException {
+        return decode(data);
+    }
 
-	private ByteBuf encode(ByteBufAllocator bufAllocator, Object obj) throws IOException {
-		ByteBuf cacheBuffer = Unpooled.wrappedBuffer(NetUtils.LOCAL_BUFFER.get());
-		try {
-			// wrap会认为bytes中的数据都是可读的，我们需要清空这些标记。
-			cacheBuffer.clear();
+    private ByteBuf encode(ByteBufAllocator bufAllocator, Object obj) throws IOException {
+        ByteBuf cacheBuffer = Unpooled.wrappedBuffer(NetUtils.LOCAL_BUFFER.get());
+        try {
+            // wrap会认为bytes中的数据都是可读的，我们需要清空这些标记。
+            cacheBuffer.clear();
 
-			ByteBufOutputStream byteBufOutputStream = new ByteBufOutputStream(cacheBuffer);
-			// 协议classId
-			int messageId = messageMapper.getMessageId(obj.getClass());
-			byteBufOutputStream.writeInt(messageId);
-			// 写入序列化的内容
-			JsonUtils.getMapper().writeValue((OutputStream) byteBufOutputStream, obj);
-			// 写入byteBuf
-			ByteBuf byteBuf = bufAllocator.buffer(cacheBuffer.readableBytes());
-			byteBuf.writeBytes(cacheBuffer);
-			return byteBuf;
-		} finally {
-			cacheBuffer.release();
-		}
-	}
+            ByteBufOutputStream byteBufOutputStream = new ByteBufOutputStream(cacheBuffer);
+            // 协议classId
+            int messageId = messageMapper.getMessageId(obj.getClass());
+            byteBufOutputStream.writeInt(messageId);
+            // 写入序列化的内容
+            JsonUtils.getMapper().writeValue((OutputStream) byteBufOutputStream, obj);
+            // 写入byteBuf
+            ByteBuf byteBuf = bufAllocator.buffer(cacheBuffer.readableBytes());
+            byteBuf.writeBytes(cacheBuffer);
+            return byteBuf;
+        } finally {
+            cacheBuffer.release();
+        }
+    }
 
-	private Object decode(ByteBuf data) throws IOException {
-		final Class<?> messageClazz = messageMapper.getMessageClazz(data.readInt());
-		final ByteBufInputStream inputStream = new ByteBufInputStream(data);
-		return JsonUtils.getMapper().readValue((InputStream) inputStream, messageClazz);
-	}
+    private Object decode(ByteBuf data) throws IOException {
+        final Class<?> messageClazz = messageMapper.getMessageClazz(data.readInt());
+        final ByteBufInputStream inputStream = new ByteBufInputStream(data);
+        return JsonUtils.getMapper().readValue((InputStream) inputStream, messageClazz);
+    }
 
 }

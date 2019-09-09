@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.shape;
 
 /**
  * 矩形顶点holder类
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/5 17:54

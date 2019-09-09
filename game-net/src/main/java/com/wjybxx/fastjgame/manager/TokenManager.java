@@ -63,41 +63,44 @@ public class TokenManager {
 
     /**
      * 为指定双方创建一个再也无法验证成功的token
+     *
      * @param clientGuid 客户端guid
      * @param serverGuid 服务器guid
      * @return failToken
      */
-    public Token newFailToken(long clientGuid, long serverGuid){
+    public Token newFailToken(long clientGuid, long serverGuid) {
         return new Token(clientGuid, RoleType.INVALID, serverGuid, RoleType.INVALID, -1, -1);
     }
 
     /**
      * 是否是用于标记失败的token
+     *
      * @return 返回true表示该token必定认定失败
      */
-    public boolean isFailToken(Token token){
+    public boolean isFailToken(Token token) {
         return token.getClientRoleType() == RoleType.INVALID
-                || token.getServerRoleType()== RoleType.INVALID
+                || token.getServerRoleType() == RoleType.INVALID
                 || token.getVerifiedTimes() < 0
                 || token.getCreateSecTime() < 0;
     }
 
     /**
      * 分配一个在指定服务器登录用的token
+     *
      * @param clientGuid 客户端的guid，为哪个客户端创建的
      * @param clientRole 客户端的角色类型
      * @param serverGuid 服务器的guid，要登录的服务器guid
      * @param serverRole 服务器的角色类型
      * @return Token
      */
-    public Token newLoginToken(long clientGuid, RoleType clientRole, long serverGuid, RoleType serverRole){
+    public Token newLoginToken(long clientGuid, RoleType clientRole, long serverGuid, RoleType serverRole) {
         return new Token(clientGuid, clientRole, serverGuid, serverRole,
                 INIT_VERIFIED_TIMES, netTimeManager.getSystemSecTime());
     }
 
     /**
-     * @see #newLoginToken(long, RoleType, long, RoleType)
      * @return tokenBytes
+     * @see #newLoginToken(long, RoleType, long, RoleType)
      */
     public byte[] newEncryptedLoginToken(long clientGuid, RoleType clientRole, long serverGuid, RoleType serverRole) {
         return encryptToken(newLoginToken(clientGuid, clientRole, serverGuid, serverRole));
@@ -113,14 +116,14 @@ public class TokenManager {
     /**
      * 登录token是否超时了
      */
-    public boolean isLoginTokenTimeout(Token token){
+    public boolean isLoginTokenTimeout(Token token) {
         return netTimeManager.getSystemSecTime() > token.getCreateSecTime() + netConfigManager.loginTokenTimeout();
     }
 
     /**
      * 创建一个登录成功Token
      */
-    public Token newLoginSuccessToken(Token token){
+    public Token newLoginSuccessToken(Token token) {
         // 默认的验证次数不一定是0，不能简单的+1
         return new Token(token.getClientGuid(), token.getClientRoleType(), token.getServerGuid(), token.getServerRoleType(),
                 1, netTimeManager.getSystemSecTime());
@@ -129,7 +132,7 @@ public class TokenManager {
     /**
      * 是否是相同的token,客户端的token是否和服务器token匹配
      */
-    public boolean isSameToken(Token existToken, Token token){
+    public boolean isSameToken(Token existToken, Token token) {
         // 不轻易重写equals方法
         return existToken.getClientGuid() == token.getClientGuid() &&
                 existToken.getClientRoleType() == token.getClientRoleType() &&
@@ -142,29 +145,31 @@ public class TokenManager {
     /**
      * 断线重连之后，分配下一个token，还可以加入更多参数，额外的信息需要传参
      */
-    public Token nextToken(Token token){
+    public Token nextToken(Token token) {
         return new Token(token.getClientGuid(), token.getClientRoleType(), token.getServerGuid(), token.getServerRoleType(),
-                token.getVerifiedTimes()+1, netTimeManager.getSystemSecTime());
+                token.getVerifiedTimes() + 1, netTimeManager.getSystemSecTime());
     }
 
     /**
      * 加密token，这里最好有自己的实现。
+     *
      * @return bytes
      */
-    public byte[] encryptToken(Token token){
+    public byte[] encryptToken(Token token) {
         return tokenEncryptStrategy.encryptToken(token);
     }
 
     /**
      * 解密失败则返回null
+     *
      * @param encryptedTokenBytes 加密后的token字节数组
      * @return token
      */
-    public Token decryptToken(byte[] encryptedTokenBytes){
+    public Token decryptToken(byte[] encryptedTokenBytes) {
         try {
             return tokenEncryptStrategy.decryptToken(encryptedTokenBytes);
-        }catch (Exception e){
-            logger.warn("decryptToken caught exception",e);
+        } catch (Exception e) {
+            logger.warn("decryptToken caught exception", e);
             return null;
         }
     }
@@ -172,7 +177,7 @@ public class TokenManager {
     /**
      * 默认的异或方式的加解密策略
      */
-    private class XOREncryptStrategy implements TokenEncryptStrategy{
+    private class XOREncryptStrategy implements TokenEncryptStrategy {
 
         @Override
         public byte[] encryptToken(Token token) {
@@ -189,18 +194,22 @@ public class TokenManager {
 
     /**
      * 异或两个字节数组，并返回一个新的字节数组，其长度为msgBytes的长度
+     *
      * @param msgBytes 消息对应的字节数组
      * @param keyBytes 用于加密的字节数组
      * @return 加密后的字节数组
      */
-    private static byte[] xorByteArray(byte[] msgBytes,byte[] keyBytes){
+    private static byte[] xorByteArray(byte[] msgBytes, byte[] keyBytes) {
         byte[] resultBytes = new byte[msgBytes.length];
-        for (int index=0;index<msgBytes.length;index++){
-            resultBytes[index]= (byte)(msgBytes[index] ^ keyBytes[index%keyBytes.length]);
+        for (int index = 0; index < msgBytes.length; index++) {
+            resultBytes[index] = (byte) (msgBytes[index] ^ keyBytes[index % keyBytes.length]);
         }
         return resultBytes;
     }
-    /** 编码token */
+
+    /**
+     * 编码token
+     */
     private static byte[] encodeToken(Token token) {
         final int contentLength = 8 + 4 + 8 + 4 + 4 + 4;
         ByteBuf byteBuf = Unpooled.buffer(contentLength);
@@ -215,7 +224,10 @@ public class TokenManager {
 
         return NetUtils.readRemainBytes(byteBuf);
     }
-    /** 解码token */
+
+    /**
+     * 解码token
+     */
     private static Token decodeToken(byte[] tokenBytes) {
         ByteBuf byteBuf = Unpooled.wrappedBuffer(tokenBytes);
         long clientGuid = byteBuf.readLong();

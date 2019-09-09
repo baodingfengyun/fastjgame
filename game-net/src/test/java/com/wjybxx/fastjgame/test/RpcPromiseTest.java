@@ -16,12 +16,12 @@ import com.wjybxx.fastjgame.utils.TimeUtils;
  */
 public class RpcPromiseTest {
 
-	public static void main(String[] args) throws InterruptedException {
-		NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("Net"), RejectedExecutionHandlers.log());
-		DefaultEventLoopGroup defaultEventLoopGroup = new DefaultEventLoopGroup(1, new DefaultThreadFactory("DEF"), RejectedExecutionHandlers.log());
+    public static void main(String[] args) throws InterruptedException {
+        NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("Net"), RejectedExecutionHandlers.log());
+        DefaultEventLoopGroup defaultEventLoopGroup = new DefaultEventLoopGroup(1, new DefaultThreadFactory("DEF"), RejectedExecutionHandlers.log());
 
-		RpcPromise rpcPromise = new DefaultRpcPromise(netEventLoopGroup.next(), defaultEventLoopGroup.next(), 10 * TimeUtils.SEC);
-		System.out.println(rpcPromise.get());
-		System.out.println(rpcPromise.get());
-	}
+        RpcPromise rpcPromise = new DefaultRpcPromise(netEventLoopGroup.next(), defaultEventLoopGroup.next(), 10 * TimeUtils.SEC);
+        System.out.println(rpcPromise.get());
+        System.out.println(rpcPromise.get());
+    }
 }

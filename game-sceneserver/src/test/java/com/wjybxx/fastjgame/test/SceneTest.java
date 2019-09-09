@@ -34,7 +34,7 @@ public class SceneTest {
     }
 
 
-    private static class ExampleScene extends Scene{
+    private static class ExampleScene extends Scene {
 
         public ExampleScene(long guid, SceneConfig mapConfig, SceneWrapper sceneWrapper) {
             super(guid, mapConfig, sceneWrapper);

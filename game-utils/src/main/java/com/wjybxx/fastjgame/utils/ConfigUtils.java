@@ -28,7 +28,7 @@ import java.util.function.Function;
 
 /**
  * 配置工具类。提供一些特定的方法。
- *
+ * <p>
  * 如果保持代码的整洁性，可能会产生一些拆装箱。
  * 或者说需要包装类型的时候{@link #parseString(String, Function)}可能很有帮助。
  *
@@ -45,31 +45,33 @@ public class ConfigUtils {
 
     /**
      * 解析一个数字类型的字符串，当字符串为null 或 格式错误时，会抛出异常。
+     *
      * @param content 字符串
-     * @param parser 字符串解析方法
-     * @param <T> 数字类型
+     * @param parser  字符串解析方法
+     * @param <T>     数字类型
      * @return number
      */
-    public static <T> T parseString(String content, Function<String,T> parser) {
+    public static <T> T parseString(String content, Function<String, T> parser) {
         String value = Objects.requireNonNull(content).trim();
         return parser.apply(value);
     }
 
     /**
      * 解析一个数字类型的字符串，当字符串为null 或 格式错误时，返回默认值。
-     * @param content 字符串
-     * @param parser 字符串解析方法
+     *
+     * @param content      字符串
+     * @param parser       字符串解析方法
      * @param defaultValue 当字符串为null 或 格式异常的时候返回该默认值
-     * @param <T> 数字类型
+     * @param <T>          数字类型
      * @return number
      */
-    public static <T extends Number> T parseNumber(String content, Function<String,T> parser, T defaultValue) {
-        if (null == content){
+    public static <T extends Number> T parseNumber(String content, Function<String, T> parser, T defaultValue) {
+        if (null == content) {
             return defaultValue;
         } else {
             try {
                 return parser.apply(content.trim());
-            } catch (NumberFormatException e){
+            } catch (NumberFormatException e) {
                 // 出现异常，返回默认值
                 return defaultValue;
             }
@@ -77,7 +79,7 @@ public class ConfigUtils {
     }
 
     public static String getAsString(String content, String defaultValue) {
-        return null != content ? content : defaultValue ;
+        return null != content ? content : defaultValue;
     }
 
     // ------------------------------------------------------- 基本类型支持 ------------------------------------------
@@ -96,7 +98,8 @@ public class ConfigUtils {
 
     /**
      * 解析一个int值，会自动调用{@link String#trim()}，当解析失败时，会返回默认值。
-     * @param content 待解析的字符串
+     *
+     * @param content      待解析的字符串
      * @param defaultValue 当字符串为null 或 格式异常的时候返回该默认值
      * @return int
      */
@@ -158,23 +161,23 @@ public class ConfigUtils {
         }
         try {
             return getAsBool(value);
-        } catch (Exception e){
+        } catch (Exception e) {
             return defaultValue;
         }
     }
     // ----------------------------------------------- 基本类型数组支持 -------------------------------------------
 
-    public static String[] getAsStringArray(String value){
+    public static String[] getAsStringArray(String value) {
         return value.split(UtilConstants.DEFAULT_ARRAY_DELIMITER);
     }
 
     /**
      * @see it.unimi.dsi.fastutil.ints.IntArrayList#wrap(int[])
      */
-    public static int[] getAsIntArray(String value){
+    public static int[] getAsIntArray(String value) {
         String[] stringArray = getAsStringArray(value);
-        int[] intArray=new int[stringArray.length];
-        for (int index=0;index<stringArray.length;index++){
+        int[] intArray = new int[stringArray.length];
+        for (int index = 0; index < stringArray.length; index++) {
             intArray[index] = getAsInt(stringArray[index]);
         }
         return intArray;
@@ -183,10 +186,10 @@ public class ConfigUtils {
     /**
      * @see it.unimi.dsi.fastutil.longs.LongArrayList#wrap(long[])
      */
-    public static long[] getAsLongArray(String value){
+    public static long[] getAsLongArray(String value) {
         String[] stringArray = getAsStringArray(value);
-        long[] longArray=new long[stringArray.length];
-        for (int index=0;index<stringArray.length;index++){
+        long[] longArray = new long[stringArray.length];
+        for (int index = 0; index < stringArray.length; index++) {
             longArray[index] = getAsLong(stringArray[index]);
         }
         return longArray;
@@ -195,10 +198,10 @@ public class ConfigUtils {
     /**
      * @see it.unimi.dsi.fastutil.doubles.DoubleArrayList#wrap(double[])
      */
-    public static double[] getAsDoubleArray(String value){
+    public static double[] getAsDoubleArray(String value) {
         String[] stringArray = getAsStringArray(value);
-        double[] doubleArray=new double[stringArray.length];
-        for (int index=0;index<stringArray.length;index++){
+        double[] doubleArray = new double[stringArray.length];
+        for (int index = 0; index < stringArray.length; index++) {
             doubleArray[index] = getAsDouble(stringArray[index]);
         }
         return doubleArray;
@@ -208,14 +211,15 @@ public class ConfigUtils {
 
     /**
      * 使用默认的数组分隔符和键值对分隔符解析字符串。
-     * @param content 字符串内容
-     * @param keyParser 键解析器
+     *
+     * @param content     字符串内容
+     * @param keyParser   键解析器
      * @param valueParser 值解析器
-     * @param <K> 键类型
-     * @param <V> 值类型
+     * @param <K>         键类型
+     * @param <V>         值类型
      * @return map 保持有序
      */
-    public static <K,V> Map<K,V> parseToMap(String content, Function<String,K> keyParser, Function<String, V> valueParser) {
+    public static <K, V> Map<K, V> parseToMap(String content, Function<String, K> keyParser, Function<String, V> valueParser) {
         return parseToMap(content, UtilConstants.DEFAULT_ARRAY_DELIMITER, UtilConstants.DEFAULT_KEY_VALUE_DELIMITER,
                 keyParser, valueParser);
     }
@@ -223,23 +227,24 @@ public class ConfigUtils {
     /**
      * 使用指定的数组分隔符和键值对分隔符解析字符串;
      * 配合{@link #toString(Map, String, String, Function, Function)}
-     * @param content 字符串内容
+     *
+     * @param content        字符串内容
      * @param arrayDelimiter 数组分隔符
-     * @param kvDelimiter 键值对分隔符
-     * @param keyParser 键类型映射
-     * @param valueParser 值类型映射
-     * @param <K> 键类型
-     * @param <V> 值类型
+     * @param kvDelimiter    键值对分隔符
+     * @param keyParser      键类型映射
+     * @param valueParser    值类型映射
+     * @param <K>            键类型
+     * @param <V>            值类型
      * @return Map NonNull 保持有序
      */
-    public static <K,V> Map<K,V> parseToMap(String content, String arrayDelimiter, String kvDelimiter,
-                                                    Function<String,K> keyParser, Function<String, V> valueParser) {
+    public static <K, V> Map<K, V> parseToMap(String content, String arrayDelimiter, String kvDelimiter,
+                                              Function<String, K> keyParser, Function<String, V> valueParser) {
         if (StringUtils.isBlank(content)) {
             return new LinkedHashMap<>();
         }
         String[] kvPairArray = content.split(arrayDelimiter);
         Map<K, V> result = CollectionUtils.newEnoughCapacityLinkedHashMap(kvPairArray.length);
-        for (String kvPairStr: kvPairArray){
+        for (String kvPairStr : kvPairArray) {
             String[] kvPair = kvPairStr.split(kvDelimiter, 2);
             K key = keyParser.apply(kvPair[0]);
             // 校验重复
@@ -255,24 +260,25 @@ public class ConfigUtils {
     /**
      * 将键值对数组格式化为键值对的数组字符串；
      * 配合{@link #parseToMap(String, String, String, Function, Function)}
-     * @param map 键值对
+     *
+     * @param map            键值对
      * @param arrayDelimiter 数组分隔符
-     * @param kvDelimiter 键值对分隔符
-     * @param keyMapper 键类型映射
-     * @param valueMapper 值类型映射
-     * @param <K> 键类型
-     * @param <V> 值类型
+     * @param kvDelimiter    键值对分隔符
+     * @param keyMapper      键类型映射
+     * @param valueMapper    值类型映射
+     * @param <K>            键类型
+     * @param <V>            值类型
      * @return String NonNull
      */
-    public static <K,V> String toString(Map<K,V> map, String arrayDelimiter, String kvDelimiter,
-                                        Function<K,String> keyMapper, Function<V,String> valueMapper) {
-        if (null == map || map.isEmpty()){
+    public static <K, V> String toString(Map<K, V> map, String arrayDelimiter, String kvDelimiter,
+                                         Function<K, String> keyMapper, Function<V, String> valueMapper) {
+        if (null == map || map.isEmpty()) {
             return "";
         }
         StringBuilder sb = new StringBuilder();
-        for (Map.Entry<K,V> entry : map.entrySet()){
+        for (Map.Entry<K, V> entry : map.entrySet()) {
             // eg: k=v;
-            if (sb.length() > 0){
+            if (sb.length() > 0) {
                 sb.append(arrayDelimiter);
             }
             // eg: k=v 这里其实校验是否产生了重复的key字符串会更好

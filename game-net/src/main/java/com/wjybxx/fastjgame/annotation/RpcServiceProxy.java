@@ -23,6 +23,7 @@ import java.lang.annotation.Target;
 
 /**
  * {@link RpcService}对应的代理类的注解
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/20
@@ -32,10 +33,11 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface RpcServiceProxy {
 
-	/**
-	 * 该类对应的serviceId，由该id和methodId构成唯一索引
-	 * @return short
-	 */
-	short serviceId();
+    /**
+     * 该类对应的serviceId，由该id和methodId构成唯一索引
+     *
+     * @return short
+     */
+    short serviceId();
 
 }

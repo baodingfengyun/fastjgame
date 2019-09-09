@@ -28,7 +28,7 @@ import java.io.File;
 
 /**
  * 启动参数：
- platform=TEST serverId=1
+ * platform=TEST serverId=1
  *
  * @author wjybxx
  * @version 1.0
@@ -38,7 +38,7 @@ import java.io.File;
 public class CenterWorldTest {
 
     public static void main(String[] args) throws Exception {
-        String logDir=new File("").getAbsolutePath() + File.separator + "log";
+        String logDir = new File("").getAbsolutePath() + File.separator + "log";
         String logPath = logDir + File.separator + "center.log";
         System.setProperty("logPath", logPath);
 

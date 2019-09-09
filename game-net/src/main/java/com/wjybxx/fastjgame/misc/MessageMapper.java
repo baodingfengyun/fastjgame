@@ -62,7 +62,7 @@ public final class MessageMapper {
      * @param messageId 消息id
      * @return 消息id对应的class
      */
-    public final Class<?> getMessageClazz(int messageId){
+    public final Class<?> getMessageClazz(int messageId) {
         return messageId2ClazzMap.get(messageId);
     }
 
@@ -72,23 +72,25 @@ public final class MessageMapper {
      * @param messageClazz 消息对应的class
      * @return messageId
      */
-    public final int getMessageId(Class<?> messageClazz){
+    public final int getMessageId(Class<?> messageClazz) {
         return messageClazz2IdMap.getInt(messageClazz);
     }
 
     /**
      * 获取所有的消息类文件
+     *
      * @return unmodifiableSet
      */
-    public final Set<Class<?>> getAllMessageClasses(){
+    public final Set<Class<?>> getAllMessageClasses() {
         return Collections.unmodifiableSet(messageClazz2IdMap.keySet());
     }
 
     /**
      * 获取所有的消息映射
+     *
      * @return unmodifiableMap
      */
-    public final Object2IntMap<Class<?>> getMessageClazz2IdMap(){
+    public final Object2IntMap<Class<?>> getMessageClazz2IdMap() {
         return Object2IntMaps.unmodifiable(messageClazz2IdMap);
     }
 
@@ -99,7 +101,7 @@ public final class MessageMapper {
             Object2IntMap<Class<?>> messageClazz2IdMap = new Object2IntOpenHashMap<>();
             Int2ObjectMap<Class<?>> messageId2ClazzMap = new Int2ObjectOpenHashMap<>();
 
-            for (Object2IntMap.Entry<Class<?>> entry:mappingResult.object2IntEntrySet()){
+            for (Object2IntMap.Entry<Class<?>> entry : mappingResult.object2IntEntrySet()) {
                 Class<?> existClazz = messageId2ClazzMap.get(entry.getIntValue());
                 if (null != existClazz) {
                     throw new IllegalArgumentException(entry.getKey().getCanonicalName() +

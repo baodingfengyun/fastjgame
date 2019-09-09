@@ -25,12 +25,13 @@ import javax.annotation.Nullable;
 
 /**
  * 宠物对象
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/4 16:59
  * github - https://github.com/hl845740757
  */
-public class Pet extends Follower<PetData>{
+public class Pet extends Follower<PetData> {
 
     private final PetData petData;
 

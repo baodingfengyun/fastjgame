@@ -33,6 +33,7 @@ import static com.wjybxx.fastjgame.utils.ClassScannerFilters.*;
 
 /**
  * 类扫描器
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/20 13:57
@@ -63,6 +64,7 @@ public class ClassScanner {
 
     /**
      * 返回指定文件夹下的所有外部类
+     *
      * @param pkgName java包名,eg: com.wjybxx.game
      * @return classSet
      */
@@ -72,9 +74,10 @@ public class ClassScanner {
 
     /**
      * 加载指定包下符合条件的class
-     * @param pkgName java包名,eg: com.wjybxx.game
+     *
+     * @param pkgName         java包名,eg: com.wjybxx.game
      * @param classNameFilter 过滤要加载的类，避免加载过多无用的类 test返回true的才会加载
-     * @param classFilter 对加载后的类进行再次确认 test返回true的才会添加到结果集中
+     * @param classFilter     对加载后的类进行再次确认 test返回true的才会添加到结果集中
      * @return 符合过滤条件的class文件
      */
     public static Set<Class<?>> findClasses(String pkgName, Predicate<String> classNameFilter, Predicate<Class<?>> classFilter) {
@@ -111,15 +114,16 @@ public class ClassScanner {
 
     /**
      * 从文件夹中加载class文件
-     * @param classLoader 类加载器
-     * @param pkgName java包名
-     * @param pkgPath 文件夹路径
-     * @param classes 结果输出
+     *
+     * @param classLoader     类加载器
+     * @param pkgName         java包名
+     * @param pkgPath         文件夹路径
+     * @param classes         结果输出
      * @param classNameFilter 过滤要加载的类，避免加载过多无用的类
-     * @param classFilter 对加载后的类进行再次确认
+     * @param classFilter     对加载后的类进行再次确认
      */
     public static void findClassesByFile(ClassLoader classLoader, String pkgName, String pkgPath, Set<Class<?>> classes,
-                                          Predicate<String> classNameFilter, Predicate<Class<?>> classFilter) {
+                                         Predicate<String> classNameFilter, Predicate<Class<?>> classFilter) {
         // 获取此包的目录 建立一个File
         File dir = new File(pkgPath);
         // 如果不存在或者 也不是目录就直接返回
@@ -143,7 +147,7 @@ public class ClassScanner {
                     // 被忽略的文件夹
                     continue;
                 }
-                findClassesByFile(classLoader, pkgName + "." + file.getName(),pkgPath + "/" + file.getName(),classes,
+                findClassesByFile(classLoader, pkgName + "." + file.getName(), pkgPath + "/" + file.getName(), classes,
                         classNameFilter, classFilter);
                 continue;
             }
@@ -151,13 +155,13 @@ public class ClassScanner {
             String className = pkgName + "." + file.getName().substring(0, file.getName().length() - 6);
 
             // 不需要加载
-            if (!classNameFilter.test(className)){
+            if (!classNameFilter.test(className)) {
                 continue;
             }
             //加载类
             try {
                 Class clazz = classLoader.loadClass(className);
-                if (classFilter.test(clazz)){
+                if (classFilter.test(clazz)) {
                     // 不需要的类
                     classes.add(clazz);
                 }
@@ -169,15 +173,16 @@ public class ClassScanner {
 
     /**
      * 从jar包中搜索class文件
-     * @param classLoader 类加载器
-     * @param pkgName java包名
-     * @param jar jar包对象
-     * @param classes 结果输出
+     *
+     * @param classLoader     类加载器
+     * @param pkgName         java包名
+     * @param jar             jar包对象
+     * @param classes         结果输出
      * @param classNameFilter 过滤要加载的类，避免加载过多无用的类
-     * @param classFilter 对加载后的类进行再次确认
+     * @param classFilter     对加载后的类进行再次确认
      */
     public static void findClassesByJar(ClassLoader classLoader, String pkgName, JarFile jar, Set<Class<?>> classes,
-                                         Predicate<String> classNameFilter, Predicate<Class<?>> classFilter) {
+                                        Predicate<String> classNameFilter, Predicate<Class<?>> classFilter) {
         String pkgDir = pkgName.replace(".", "/");
         Enumeration<JarEntry> entry = jar.entries();
 
@@ -187,7 +192,7 @@ public class ClassScanner {
             JarEntry jarEntry = entry.nextElement();
 
             // 包也是一个entry
-            if (jarEntry.isDirectory()){
+            if (jarEntry.isDirectory()) {
                 continue;
             }
 
@@ -205,18 +210,18 @@ public class ClassScanner {
             String className = name.substring(0, name.length() - 6).replace("/", ".");
 
             // 不需要加载
-            if (!classNameFilter.test(className)){
+            if (!classNameFilter.test(className)) {
                 continue;
             }
 
             //加载类
             try {
                 Class<?> clazz = classLoader.loadClass(className);
-                if (classFilter.test(clazz)){
+                if (classFilter.test(clazz)) {
                     // 不需要的类
                     classes.add(clazz);
                 }
-            } catch (ClassNotFoundException | NoClassDefFoundError e){
+            } catch (ClassNotFoundException | NoClassDefFoundError e) {
                 // jdk 1.7的新语法还没用过...
                 logger.error("load class {} from jar {} caught exception", className, jar.getName(), e);
             }

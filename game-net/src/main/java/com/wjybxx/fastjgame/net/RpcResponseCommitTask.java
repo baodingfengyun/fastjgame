@@ -17,6 +17,7 @@ package com.wjybxx.fastjgame.net;
 
 /**
  * rpc响应任务
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/13
@@ -24,16 +25,16 @@ package com.wjybxx.fastjgame.net;
  */
 public class RpcResponseCommitTask implements CommitTask {
 
-	private RpcResponse rpcResponse;
-	private RpcCallback rpcCallback;
+    private RpcResponse rpcResponse;
+    private RpcCallback rpcCallback;
 
-	public RpcResponseCommitTask(RpcResponse rpcResponse, RpcCallback rpcCallback) {
-		this.rpcResponse = rpcResponse;
-		this.rpcCallback = rpcCallback;
-	}
+    public RpcResponseCommitTask(RpcResponse rpcResponse, RpcCallback rpcCallback) {
+        this.rpcResponse = rpcResponse;
+        this.rpcCallback = rpcCallback;
+    }
 
-	@Override
-	public void run() {
-		rpcCallback.onComplete(rpcResponse);
-	}
+    @Override
+    public void run() {
+        rpcCallback.onComplete(rpcResponse);
+    }
 }

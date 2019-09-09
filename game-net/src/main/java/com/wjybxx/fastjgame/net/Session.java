@@ -36,14 +36,14 @@ import javax.annotation.concurrent.ThreadSafe;
  * <li>任意两个同步消息之间，都满足先发送的先到。</li>
  * <li>任意两个异步消息之间，都满足先接收到的先提交给应用层。</li>
  * <li>任意两个同步消息之间，都满足先接收到的先提交给应用层。</li>
- *
+ * <p>
  * 警惕：
  * <li>先发送的请求不一定先获得结果！对方什么时候返回给你结果是不确定的！</li>
  *
  * <h3>常见问题</h3>
  * Q: 为什么不提供同步调用 与 异步调用 之间的顺序保证？<br>
  * A: 基于这样的考虑：同步调用表示一种更迫切的需求，期望更快的处理，更快的返回，而异步调用没有这样的语义。
- *
+ * <p>
  * Q: 为何删除了返回{@link RpcFuture}的rpc接口？<br>
  * A: 返回{@link RpcFuture}固然可以，但是会导致使用复杂度的急剧攀升。如果没有理解地特别清楚，很容易造成一些奇怪的错误。
  * 此外，返回{@link RpcFuture}的rpc请求不能被优化，因此决定干脆删除它，也可以降低网络层的复杂度。
@@ -98,6 +98,7 @@ public interface Session {
     SessionSenderMode senderMode();
 
     // ------------------------------------------------ session运行的网络环境 -----------------------------------------
+
     /**
      * 该session所在的上下文
      */
@@ -118,6 +119,7 @@ public interface Session {
      */
     Sender sender();
     // ----------------------------------------------- 生命周期 ----------------------------------------------
+
     /**
      * 当且仅当session已成功和对方建立连接，且未断开的情况下返回true。
      */
@@ -125,7 +127,7 @@ public interface Session {
 
     /**
      * 移除当前session
-     *
+     * <p>
      * 注意：
      * 逻辑层的校验+网络层的校验并不能保证在session活跃的状态下才有事件！
      * 因为事件会被提交到session所在的executor，因此即使 {@link #isActive() false}，也仍然可能收到该session的消息或事件。
@@ -134,43 +136,45 @@ public interface Session {
     ListenableFuture<?> close();
 
     // ------------------------------------------------ 发送消息 ------------------------------------------
+
     /**
      * 发送一个单向消息给对方
+     *
      * @param message 单向消息
      */
     void send(@Nonnull Object message);
 
     // ------------------------------------------------ 异步Rpc请求 ---------------------------------------------
+
     /**
      * 发送一个**异步**rpc请求给对方，会使用默认的超时时间（配置文件中指定）。
      * 注意：
      * 1. {@link RpcCallback}执行在用户线程。如果是用户线程发起rpc请求，则不必担心线程安全问题。否则需要注意callback的线程安全问题。
      *
-     * @param request rpc请求对象
+     * @param request  rpc请求对象
      * @param callback 回调函数
      */
     void rpc(@Nonnull Object request, @Nonnull RpcCallback callback);
 
     /**
      * 发送一个**异步**rpc请求给对方。
-     * @see #rpc(Object, RpcCallback)
      *
-     * @param request rpc请求对象
-     * @param callback 回调函数
+     * @param request   rpc请求对象
+     * @param callback  回调函数
      * @param timeoutMs 超时时间，毫秒，必须大于0，必须有超时时间。
+     * @see #rpc(Object, RpcCallback)
      */
     void rpc(@Nonnull Object request, @Nonnull RpcCallback callback, long timeoutMs);
 
     // ------------------------------------------------ 同步Rpc请求 ---------------------------------------------
+
     /**
      * 发送一个**同步**rpc请求给对方，并阻塞到结果返回或超时，或中断，会使用默认的超时时间（配置文件中指定）。
      *
-     * @apiNote
-     * 注意：同步rpc调用会尽可能地立即发送，它的结果对方也会尽可能地立即返回，因此它与{@link #send(Object)}{@link #rpc(Object, RpcCallback)}之间
-     * 没有顺序保证，只保证与其它的**同步**rpc调用之间的顺序！
-     *
      * @param request rpc请求对象
      * @return rpc返回结果
+     * @apiNote 注意：同步rpc调用会尽可能地立即发送，它的结果对方也会尽可能地立即返回，因此它与{@link #send(Object)}{@link #rpc(Object, RpcCallback)}之间
+     * 没有顺序保证，只保证与其它的**同步**rpc调用之间的顺序！
      */
     @Nonnull
     RpcResponse syncRpc(@Nonnull Object request) throws InterruptedException;
@@ -179,7 +183,7 @@ public interface Session {
      * 发送一个**同步**rpc请求给对方，并阻塞到结果返回或超时或被中断。
      * 注意与{@link #syncRpc(Object)}相同的警告。
      *
-     * @param request rpc请求对象
+     * @param request   rpc请求对象
      * @param timeoutMs 超时时间，毫秒，必须大于0，否则死锁可能！！！
      * @return rpc返回结果
      */
@@ -189,6 +193,7 @@ public interface Session {
     /**
      * 发送一个**同步**rpc请求给对方，并阻塞到结果返回或超时或被中断。
      * 注意与{@link #syncRpc(Object)}相同的警告。
+     *
      * @param request rpc请求对象
      * @return rpc返回结果
      */
@@ -199,7 +204,7 @@ public interface Session {
      * 发送一个**同步**rpc请求给对方，并阻塞到结果返回或超时。
      * 注意与{@link #syncRpc(Object)}相同的警告。
      *
-     * @param request rpc请求对象
+     * @param request   rpc请求对象
      * @param timeoutMs 超时时间，毫秒，必须大于0，否则死锁可能！！！
      * @return rpc返回结果
      */

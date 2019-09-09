@@ -22,12 +22,13 @@ import com.wjybxx.fastjgame.utils.GameUtils;
 
 /**
  * 登录服连接的数据库管理工具
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/23 23:33
  * github - https://github.com/hl845740757
  */
-public class LoginMongoDBMrg extends MongoDBMrg{
+public class LoginMongoDBMrg extends MongoDBMrg {
 
     @Inject
     public LoginMongoDBMrg(GameConfigMrg gameConfigMrg, CuratorMrg curatorMrg) throws Exception {

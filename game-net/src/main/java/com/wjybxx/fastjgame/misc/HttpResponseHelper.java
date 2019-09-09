@@ -26,6 +26,7 @@ import java.util.Objects;
 
 /**
  * http响应帮助类
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/4/29 9:20
@@ -52,23 +53,25 @@ public final class HttpResponseHelper {
     /**
      * image/png（PNG图像）
      */
-    public static final String IMAGE_PNG="image/png";
+    public static final String IMAGE_PNG = "image/png";
     /**
      * 非空字节数组
      */
     private static final byte[] NO_EMPTY_BYTES = "".getBytes(StandardCharsets.UTF_8);
 
-    private HttpResponseHelper(){
+    private HttpResponseHelper() {
         // close
     }
 
     // region 一些辅助方法
+
     /**
      * 构建字符串内容时的帮助方法
+     *
      * @param content 字符串内存
      * @return ByteBuf
      */
-    public static ByteBuf buildStringContent(String content){
+    public static ByteBuf buildStringContent(String content) {
         Objects.requireNonNull(content);
         return Unpooled.copiedBuffer(content.getBytes(StandardCharsets.UTF_8));
     }
@@ -78,88 +81,96 @@ public final class HttpResponseHelper {
 
     /**
      * 纯文本字符串响应
+     *
      * @param content 字符串内容
      * @return HttpResponse
      */
-    public static DefaultFullHttpResponse newStringResponse(String content){
-        return newTextResponse(TEXT_PLAIN,content);
+    public static DefaultFullHttpResponse newStringResponse(String content) {
+        return newTextResponse(TEXT_PLAIN, content);
     }
 
     /**
      * html文本响应
+     *
      * @param content 文本内容
      * @return HttpResponse
      */
-    public static DefaultFullHttpResponse newHtmlResponse(String content){
-        return newTextResponse(TEXT_HTML,content);
+    public static DefaultFullHttpResponse newHtmlResponse(String content) {
+        return newTextResponse(TEXT_HTML, content);
     }
 
     /**
      * json文本响应
+     *
      * @param jsonObj 可序列化的json对象
      * @return HttpResponse
      */
-    public static DefaultFullHttpResponse newJsonResponse(Object jsonObj){
+    public static DefaultFullHttpResponse newJsonResponse(Object jsonObj) {
         String json = JsonUtils.toJson(jsonObj);
-        return newTextResponse(TEXT_JSON,json);
+        return newTextResponse(TEXT_JSON, json);
     }
 
     /**
      * 文本响应
+     *
      * @param contentType 内容类型
-     * @param content 内容
+     * @param content     内容
      * @return HttpResponse
      */
-    private static DefaultFullHttpResponse newTextResponse(String contentType,String content){
+    private static DefaultFullHttpResponse newTextResponse(String contentType, String content) {
         ByteBuf byteBuf = buildStringContent(content);
         DefaultFullHttpResponse httpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, byteBuf);
         HttpHeaders headers = httpResponse.headers();
-        headers.set(HttpHeaderNames.CONTENT_TYPE,contentType);
-        headers.set(HttpHeaderNames.CONTENT_LENGTH,byteBuf.readableBytes());
+        headers.set(HttpHeaderNames.CONTENT_TYPE, contentType);
+        headers.set(HttpHeaderNames.CONTENT_LENGTH, byteBuf.readableBytes());
         return httpResponse;
     }
 
     /**
      * 错误请求的响应
+     *
      * @return HttpResponse
      */
-    public static DefaultFullHttpResponse newBadRequestResponse(){
+    public static DefaultFullHttpResponse newBadRequestResponse() {
         return newErrorResponse(HttpResponseStatus.BAD_REQUEST);
     }
 
     /**
      * 不支持的路径请求
+     *
      * @return HttpResponse
      */
-    public static DefaultFullHttpResponse newNotFoundResponse(){
+    public static DefaultFullHttpResponse newNotFoundResponse() {
         return newErrorResponse(HttpResponseStatus.NOT_FOUND);
     }
 
     /**
      * 错误响应
+     *
      * @param status 错误码
      * @return HttpResponse
      */
-    private static DefaultFullHttpResponse newErrorResponse(HttpResponseStatus status){
+    private static DefaultFullHttpResponse newErrorResponse(HttpResponseStatus status) {
         DefaultFullHttpResponse httpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status);
         HttpHeaders headers = httpResponse.headers();
-        headers.set(HttpHeaderNames.CONTENT_TYPE,TEXT_PLAIN);
-        headers.set(HttpHeaderNames.CONTENT_LENGTH,0);
+        headers.set(HttpHeaderNames.CONTENT_TYPE, TEXT_PLAIN);
+        headers.set(HttpHeaderNames.CONTENT_LENGTH, 0);
         return httpResponse;
     }
 
     /**
      * 重定向响应
+     *
      * @return HttpResponse
      */
-    public static DefaultFullHttpResponse newRelocationResponse(String url){
-        Objects.requireNonNull(url,"url");
+    public static DefaultFullHttpResponse newRelocationResponse(String url) {
+        Objects.requireNonNull(url, "url");
         DefaultFullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.SEE_OTHER);
         HttpHeaders headers = response.headers();
         headers.set(HttpHeaderNames.LOCATION, url);
-        headers.set(HttpHeaderNames.CONNECTION,HttpHeaderValues.CLOSE);
+        headers.set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
         headers.set(HttpHeaderNames.CONTENT_TYPE, TEXT_PLAIN);
-        headers.set(HttpHeaderNames.CONTENT_LENGTH,0);
+        headers.set(HttpHeaderNames.CONTENT_LENGTH, 0);
         return response;
     }
     // endregion

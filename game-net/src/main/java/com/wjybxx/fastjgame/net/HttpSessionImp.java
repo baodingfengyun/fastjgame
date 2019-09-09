@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * http会话信息
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/4/29 9:49
@@ -87,22 +88,24 @@ public final class HttpSessionImp implements HttpSession {
 
     /**
      * 发送一个响应
+     *
      * @param response 响应内容
      * @return 注意相同的警告，建议使用{@link ChannelFuture#await()} 和{@link ChannelFuture#isSuccess()}
      * 代替{@link ChannelFuture#sync()}
      */
-    public ChannelFuture writeAndFlush(HttpResponse response){
+    public ChannelFuture writeAndFlush(HttpResponse response) {
         return channel.writeAndFlush(response);
     }
 
     /**
      * 发送一个响应
-     * @param <T> builder自身
+     *
+     * @param <T>     builder自身
      * @param builder 建造者
-     * @return  注意相同的警告，建议使用{@link ChannelFuture#await()} 和{@link ChannelFuture#isSuccess()}
+     * @return 注意相同的警告，建议使用{@link ChannelFuture#await()} 和{@link ChannelFuture#isSuccess()}
      * 代替{@link ChannelFuture#sync()}
      */
-    public <T extends HttpResponseBuilder<T>> ChannelFuture writeAndFlush(HttpResponseBuilder<T> builder){
+    public <T extends HttpResponseBuilder<T>> ChannelFuture writeAndFlush(HttpResponseBuilder<T> builder) {
         HttpResponse response = builder.build();
         return writeAndFlush(response);
     }

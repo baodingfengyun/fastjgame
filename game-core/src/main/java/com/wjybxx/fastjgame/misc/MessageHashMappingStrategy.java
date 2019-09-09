@@ -40,7 +40,9 @@ public class MessageHashMappingStrategy implements MessageMappingStrategy {
     private static final String protoBufferPkg = "com.wjybxx.fastjgame.protobuffer";
     private static final String serializablePkg = "com.wjybxx.fastjgame.serializebale";
 
-    /** 同一个进程下使用是的相同的消息类，不必反复扫描 */
+    /**
+     * 同一个进程下使用是的相同的消息类，不必反复扫描
+     */
     private static final Object2IntMap<Class<?>> messageClass2IdMap = new Object2IntOpenHashMap<>(512);
 
     static {
@@ -49,7 +51,7 @@ public class MessageHashMappingStrategy implements MessageMappingStrategy {
                 name -> StringUtils.countMatches(name, "$") <= 1,
                 MessageHashMappingStrategy::isSerializable);
 
-        for (Class<?> messageClass:allClass) {
+        for (Class<?> messageClass : allClass) {
             messageClass2IdMap.put(messageClass, getUniqueId(messageClass));
         }
     }

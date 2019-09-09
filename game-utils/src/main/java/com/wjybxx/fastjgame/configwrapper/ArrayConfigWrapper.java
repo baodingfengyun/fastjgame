@@ -28,6 +28,7 @@ import java.util.Set;
 /**
  * 基于数组的键值对配置的包装器。
  * 数组的每一个元素都是一个键值对 key=value，如：[a=1,b=2]
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/4/27 13:36
@@ -39,14 +40,14 @@ public class ArrayConfigWrapper extends ConfigWrapper {
     /**
      * 索引好的数据
      */
-    private Map<String,String> indexedMap;
+    private Map<String, String> indexedMap;
 
     public ArrayConfigWrapper(String[] pairsArray) {
         this(pairsArray, UtilConstants.DEFAULT_KEY_VALUE_DELIMITER);
     }
 
     /**
-     * @param pairsArray 键值对数组
+     * @param pairsArray  键值对数组
      * @param kvDelimiter 键值对分隔符
      */
     public ArrayConfigWrapper(String[] pairsArray, String kvDelimiter) {
@@ -76,13 +77,13 @@ public class ArrayConfigWrapper extends ConfigWrapper {
     }
 
     private static Map<String, String> index(String[] pairsArray, String kvDelimiter) {
-        HashMap<String,String> map = CollectionUtils.newEnoughCapacityHashMap(pairsArray.length);
-        for (String pair:pairsArray){
+        HashMap<String, String> map = CollectionUtils.newEnoughCapacityHashMap(pairsArray.length);
+        for (String pair : pairsArray) {
             String[] keyValuePair = pair.split(kvDelimiter, 2);
-            if (keyValuePair.length==2){
-                map.put(keyValuePair[0],keyValuePair[1]);
-            }else {
-                map.put(keyValuePair[0],null);
+            if (keyValuePair.length == 2) {
+                map.put(keyValuePair[0], keyValuePair[1]);
+            } else {
+                map.put(keyValuePair[0], null);
             }
         }
         return map;

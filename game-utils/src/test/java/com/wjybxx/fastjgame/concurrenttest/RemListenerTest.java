@@ -28,20 +28,20 @@ import com.wjybxx.fastjgame.concurrent.*;
  */
 public class RemListenerTest {
 
-	public static void main(String[] args) {
-		DefaultEventLoopGroup defaultEventLoopGroup = new DefaultEventLoopGroup(1, new DefaultThreadFactory("DEF"), RejectedExecutionHandlers.reject());
-		DefaultPromise<Object> defaultPromise = new DefaultPromise<>(defaultEventLoopGroup.next());
+    public static void main(String[] args) {
+        DefaultEventLoopGroup defaultEventLoopGroup = new DefaultEventLoopGroup(1, new DefaultThreadFactory("DEF"), RejectedExecutionHandlers.reject());
+        DefaultPromise<Object> defaultPromise = new DefaultPromise<>(defaultEventLoopGroup.next());
 
-		final FutureListener<Object> futureListener = future -> {
-			System.out.println(future.getNow());
-		};
+        final FutureListener<Object> futureListener = future -> {
+            System.out.println(future.getNow());
+        };
 
-		// debug追踪
-		defaultPromise.addListener(futureListener);
+        // debug追踪
+        defaultPromise.addListener(futureListener);
 
-		defaultPromise.removeListener(futureListener);
+        defaultPromise.removeListener(futureListener);
 
-		System.out.println("");
-	}
+        System.out.println("");
+    }
 
 }

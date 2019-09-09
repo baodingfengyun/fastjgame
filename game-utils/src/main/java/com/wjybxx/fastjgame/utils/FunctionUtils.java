@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.utils;
 
 /**
  * 常用函数式方法
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/4
@@ -25,8 +26,11 @@ package com.wjybxx.fastjgame.utils;
  */
 public final class FunctionUtils {
 
-    /** 什么也不做的Action */
-    public static final Runnable NO_OP_ACTION = () -> {};
+    /**
+     * 什么也不做的Action
+     */
+    public static final Runnable NO_OP_ACTION = () -> {
+    };
 
     private FunctionUtils() {
 
@@ -41,11 +45,11 @@ public final class FunctionUtils {
     }
 
     // ---------------------------------- obj - obj -----------------------------
-    public static <T,U> boolean TRUE(T t, U u) {
+    public static <T, U> boolean TRUE(T t, U u) {
         return true;
     }
 
-    public static <T,U> boolean FALSE(T t, U u) {
+    public static <T, U> boolean FALSE(T t, U u) {
         return false;
     }
 

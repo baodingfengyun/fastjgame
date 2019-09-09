@@ -32,6 +32,7 @@ public interface StraightLine {
 
     /**
      * 通过x计算对应的y值
+     *
      * @param x x
      * @return y
      */

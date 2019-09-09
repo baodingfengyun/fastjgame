@@ -62,10 +62,10 @@ import java.util.PriorityQueue;
  *
  * <h3>跳点</h3>
  * <p>
- *   什么是跳点？
- *   1.起始点 和 目标点
- *   2.如果当前方向的对角线移动，如果水平方向或垂直方向存在跳点，这当前点是跳点
- *   3.存在强制邻居，无法继续跳跃(前进方向的两侧不对称)
+ * 什么是跳点？
+ * 1.起始点 和 目标点
+ * 2.如果当前方向的对角线移动，如果水平方向或垂直方向存在跳点，这当前点是跳点
+ * 3.存在强制邻居，无法继续跳跃(前进方向的两侧不对称)
  * </p>
  *
  * @author wjybxx
@@ -95,7 +95,7 @@ public class JPSFindPathStrategy extends FindPathStrategy<JPSFindPathContext> {
      * (存为常量，可做优化)
      * (compare F)
      */
-    private static final Comparator<FindPathNode> comparator = (a , b) -> Float.compare(a.getF(), b.getF());
+    private static final Comparator<FindPathNode> comparator = (a, b) -> Float.compare(a.getF(), b.getF());
 
     /**
      * 开放节点（未确定最优路径的跳点）
@@ -126,7 +126,7 @@ public class JPSFindPathStrategy extends FindPathStrategy<JPSFindPathContext> {
 
             // 最小代价节点，当前可到达的消耗最低的节点(跳点)
             FindPathNode minCostNode;
-            while ((minCostNode = openNodes.poll()) != null){
+            while ((minCostNode = openNodes.poll()) != null) {
                 closeNodes.add(minCostNode);
 
                 if (context.isEndGrid(minCostNode.getX(), minCostNode.getY())) {
@@ -140,26 +140,26 @@ public class JPSFindPathStrategy extends FindPathStrategy<JPSFindPathContext> {
 
             // 寻路失败
             return null;
-        }finally {
+        } finally {
             openNodes.clear();
             closeNodes.clear();
         }
     }
 
-    private boolean isClosed(ArrayList<FindPathNode> closeNodes, int x, int y){
+    private boolean isClosed(ArrayList<FindPathNode> closeNodes, int x, int y) {
         FindPathNode pathNode;
-        for (int index=0,end=closeNodes.size(); index<end; index++){
-            pathNode= closeNodes.get(index);
-            if (pathNode.getX() == x && pathNode.getY() == y){
+        for (int index = 0, end = closeNodes.size(); index < end; index++) {
+            pathNode = closeNodes.get(index);
+            if (pathNode.getX() == x && pathNode.getY() == y) {
                 return true;
             }
         }
         return false;
     }
 
-    private FindPathNode findGrid(PriorityQueue<FindPathNode> findPathNodes, int x, int y){
-        for (FindPathNode pathNode:findPathNodes){
-            if (pathNode.getX() == x && pathNode.getY() == y){
+    private FindPathNode findGrid(PriorityQueue<FindPathNode> findPathNodes, int x, int y) {
+        for (FindPathNode pathNode : findPathNodes) {
+            if (pathNode.getX() == x && pathNode.getY() == y) {
                 return pathNode;
             }
         }
@@ -167,7 +167,7 @@ public class JPSFindPathStrategy extends FindPathStrategy<JPSFindPathContext> {
     }
 
     private void identifySuccessors(JPSFindPathContext context, FindPathNode curNode,
-                                           PriorityQueue<FindPathNode> openNodes, ArrayList<FindPathNode> closeNodes){
+                                    PriorityQueue<FindPathNode> openNodes, ArrayList<FindPathNode> closeNodes) {
         ArrayList<MapGrid> neighbors = localNeighbors.get();
         MapGrid curGrid = context.getGrid(curNode.getX(), curNode.getY());
 
@@ -175,28 +175,28 @@ public class JPSFindPathStrategy extends FindPathStrategy<JPSFindPathContext> {
         MapGrid neighbor, jumpNode;
         FindPathNode existNode, newNode;
 
-        try{
+        try {
             JUMP_STRATEGY.findNeighbors(context, curNode, neighbors);
 
             // 朝着可到的邻居方向跳跃(循环遍历次数太多，使用fori的形式性能是最好的)
-            for (int index=0,end=neighbors.size();index<end;index++){
+            for (int index = 0, end = neighbors.size(); index < end; index++) {
                 neighbor = neighbors.get(index);
 
                 // curGrid朝着neighbor方向进行跳跃
                 jumpNode = JUMP_STRATEGY.jump(context, curNode.getX(), curNode.getY(), neighbor.getX(), neighbor.getY());
                 // 遇见遮挡或超出地图了
-                if (null == jumpNode){
+                if (null == jumpNode) {
                     continue;
                 }
                 // 已存在到达跳点最优路径
-                if (isClosed(closeNodes, jumpNode.getX(), jumpNode.getY())){
+                if (isClosed(closeNodes, jumpNode.getX(), jumpNode.getY())) {
                     continue;
                 }
 
                 g = curNode.getG() + distanceFunction.apply(curGrid, jumpNode);
 
                 existNode = findGrid(openNodes, jumpNode.getX(), jumpNode.getY());
-                if (null == existNode){
+                if (null == existNode) {
                     // 这是一个新的跳点
                     newNode = new FindPathNode(jumpNode.getX(), jumpNode.getY());
                     newNode.setG(g);
@@ -208,10 +208,10 @@ public class JPSFindPathStrategy extends FindPathStrategy<JPSFindPathContext> {
                     newNode.setParent(curNode);
 
                     openNodes.add(newNode);
-                }else {
+                } else {
                     // 需要比较到达跳点的消耗，
                     // 如果存在的路径消耗大于新的值，则需要进行替换
-                    if (existNode.getG() > g){
+                    if (existNode.getG() > g) {
                         existNode.setG(g);
 
                         h = heuristicDistanceFunction.apply(jumpNode, context.endGrid);
@@ -226,7 +226,7 @@ public class JPSFindPathStrategy extends FindPathStrategy<JPSFindPathContext> {
                     }
                 }
             }
-        }finally {
+        } finally {
             neighbors.clear();
         }
     }

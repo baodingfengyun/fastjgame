@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.rpcservice;
 
 /**
  * 所有的rpcServiceId,方便管理
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/20
@@ -25,10 +26,16 @@ package com.wjybxx.fastjgame.rpcservice;
  */
 public final class ServiceTable {
 
-	/** 中心服在战区服的信息管理 */
-	public static final short CENTER_IN_WARZONE_INFO_MRG = 1;
-	/** 中心服在场景服的信息管理 */
-	public static final short CENTER_IN_SCENE_INFO_MRG = 2;
-	/** 场景服区域管理器 */
-	public static final short SCENE_REGION_MRG = 3;
+    /**
+     * 中心服在战区服的信息管理
+     */
+    public static final short CENTER_IN_WARZONE_INFO_MRG = 1;
+    /**
+     * 中心服在场景服的信息管理
+     */
+    public static final short CENTER_IN_SCENE_INFO_MRG = 2;
+    /**
+     * 场景服区域管理器
+     */
+    public static final short SCENE_REGION_MRG = 3;
 }

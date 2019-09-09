@@ -28,6 +28,7 @@ public interface RemoteAcquireFun {
 
     /**
      * 申请资源，直到成功或中断
+     *
      * @throws Exception 申请资源失败，可能是超时，也可能是其它异常
      */
     void acquire() throws Exception;

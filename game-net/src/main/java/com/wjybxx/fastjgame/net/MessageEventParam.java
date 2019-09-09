@@ -28,13 +28,19 @@ import io.netty.channel.Channel;
  * github - https://github.com/hl845740757
  */
 @TransferObject
-public abstract class MessageEventParam implements NetEventParam{
+public abstract class MessageEventParam implements NetEventParam {
 
-    /** 该事件对应的channel */
+    /**
+     * 该事件对应的channel
+     */
     private Channel channel;
-    /** 该事件关联的本地角色guid */
+    /**
+     * 该事件关联的本地角色guid
+     */
     private long localGuid;
-    /** 该事件关联的远程guid */
+    /**
+     * 该事件关联的远程guid
+     */
     private long remoteGuid;
     /**
      * 捎带确认的ack

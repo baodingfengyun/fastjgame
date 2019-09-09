@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.shape;
 
 /**
  * 默认2D坐标实现，支持坐标修改。
- *
+ * <p>
  * 建议使用{@link Point2D#newPoint2D()} 和 {@link Point2D#newPoint2D(float, float)}
  * 两个工厂方法代替构造方法创建实例。
  *
@@ -27,14 +27,14 @@ package com.wjybxx.fastjgame.shape;
  * date - 2019/5/31 23:32
  * github - https://github.com/hl845740757
  */
-public class DefaultPoint2D extends Point2D{
+public class DefaultPoint2D extends Point2D {
 
     private float x;
 
     private float y;
 
     public DefaultPoint2D() {
-        this(0,0);
+        this(0, 0);
     }
 
     public DefaultPoint2D(float x, float y) {
@@ -43,9 +43,9 @@ public class DefaultPoint2D extends Point2D{
     }
 
     @Override
-    public void updateLocation(float x,float y){
-        this.x=x;
-        this.y=y;
+    public void updateLocation(float x, float y) {
+        this.x = x;
+        this.y = y;
     }
 
     @Override

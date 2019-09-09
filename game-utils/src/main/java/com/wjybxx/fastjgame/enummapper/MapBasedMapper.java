@@ -23,14 +23,14 @@ import javax.annotation.Nullable;
 /**
  * 基于map的映射。
  * 对于枚举值较多或数字取值范围散乱的枚举适合；
- * @param <T>
  *
+ * @param <T>
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/4 15:49
  * github - https://github.com/hl845740757
  */
-public class MapBasedMapper<T extends NumberEnum> implements NumberEnumMapper<T>{
+public class MapBasedMapper<T extends NumberEnum> implements NumberEnumMapper<T> {
 
     private final T[] values;
     private final Int2ObjectMap<T> mapping;

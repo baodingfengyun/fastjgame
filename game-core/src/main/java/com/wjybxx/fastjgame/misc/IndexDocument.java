@@ -43,7 +43,7 @@ public class IndexDocument {
      */
     private static final int DESCENDING_INDEX = -1;
 
-    private final Document document=new Document();
+    private final Document document = new Document();
 
     public IndexDocument() {
 
@@ -51,24 +51,26 @@ public class IndexDocument {
 
     /**
      * 创建一个索引文档
+     *
      * @param firstFiled 第一个比较字段
-     * @param ascending 是否升序
+     * @param ascending  是否升序
      */
-    public IndexDocument(String firstFiled,boolean ascending) {
-        thenComparing(firstFiled,ascending);
+    public IndexDocument(String firstFiled, boolean ascending) {
+        thenComparing(firstFiled, ascending);
     }
 
     /**
      * 接下来比较什么字段
-     * @param filed 然后比较什么字段
+     *
+     * @param filed     然后比较什么字段
      * @param ascending 是否升序
      * @return this
      */
-    public IndexDocument thenComparing(String filed, boolean ascending){
-        if (document.containsKey(filed)){
+    public IndexDocument thenComparing(String filed, boolean ascending) {
+        if (document.containsKey(filed)) {
             throw new IllegalArgumentException(filed);
         }
-        document.append(filed,ascending?ASCENDING_INDEX:DESCENDING_INDEX);
+        document.append(filed, ascending ? ASCENDING_INDEX : DESCENDING_INDEX);
         return this;
     }
 

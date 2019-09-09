@@ -32,7 +32,7 @@ import java.util.List;
  * date - 2019/8/25
  * github - https://github.com/hl845740757
  */
-public class CompositePlayerMessageFunction<T extends AbstractMessage> implements PlayerMessageFunction<T>{
+public class CompositePlayerMessageFunction<T extends AbstractMessage> implements PlayerMessageFunction<T> {
 
     private static final Logger logger = LoggerFactory.getLogger(CompositePlayerMessageFunction.class);
 
@@ -56,7 +56,7 @@ public class CompositePlayerMessageFunction<T extends AbstractMessage> implement
 
     @Override
     public void onMessage(Player player, T message) {
-        for (PlayerMessageFunction<T> function:children) {
+        for (PlayerMessageFunction<T> function : children) {
             try {
                 function.onMessage(player, message);
             } catch (Exception e) {

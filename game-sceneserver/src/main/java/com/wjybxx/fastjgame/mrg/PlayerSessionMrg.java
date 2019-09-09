@@ -25,6 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * 管理与玩家之间的连接
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/23 0:10
@@ -42,22 +43,24 @@ public class PlayerSessionMrg {
     /**
      * 玩家是否登录scene进程成功了，玩家连接上scene这个事件是请求登录scene。
      * 必须等到center服的验证结果之后，玩家数据才会从center到scene。
+     *
      * @param playerGuid 玩家guid
      * @return true/false
      */
-    public boolean isLoginSuccess(long playerGuid){
+    public boolean isLoginSuccess(long playerGuid) {
         return guid2SessionMap.containsKey(playerGuid);
     }
 
-    public Player getPlayer(long playerGuid){
+    public Player getPlayer(long playerGuid) {
         return guid2SessionMap.get(playerGuid);
     }
 
     /**
      * 当玩家断开连接
+     *
      * @param playerGuid 玩家guid
      */
-    public void onPlayerDisconnect(long playerGuid){
+    public void onPlayerDisconnect(long playerGuid) {
         // TODO 处理玩家掉线的情况
     }
 

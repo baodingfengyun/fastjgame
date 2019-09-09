@@ -23,7 +23,7 @@ import java.lang.annotation.Target;
 
 /**
  * 用该注解注解的类表示是一个需要序列化的类。
- *
+ * <p>
  * 注意：
  * 1. 必须提供无参构造方法，可以是private。
  * 2. 如果是枚举类型，必须实现{@link com.wjybxx.fastjgame.enummapper.NumberEnum}接口和

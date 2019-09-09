@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.misc.PlatformType;
 
 /**
  * 中心服需要总是生成相同的名字，以使得只有一个center进程存在
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/16 0:14

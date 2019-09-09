@@ -26,50 +26,50 @@ import com.wjybxx.fastjgame.concurrent.*;
  */
 public class DefaultEventLoopTest {
 
-	private static DefaultEventLoopGroup eventLoopGroup = new DefaultEventLoopGroup(2, new DefaultThreadFactory("test"), RejectedExecutionHandlers.reject());
+    private static DefaultEventLoopGroup eventLoopGroup = new DefaultEventLoopGroup(2, new DefaultThreadFactory("test"), RejectedExecutionHandlers.reject());
 
-	public static void main(String[] args) {
+    public static void main(String[] args) {
 
-		ListenableFuture<String> future = eventLoopGroup.submit(() -> {
-			System.out.println("before task1 return.");
-			Thread.sleep(200);
-			return "-hello world.";
-		});
-		ListenableFuture<String> future2 = eventLoopGroup.submit(() -> {
-			System.out.println("before task2  return.");
-			Thread.sleep(200);
-			return "-java";
-		});
+        ListenableFuture<String> future = eventLoopGroup.submit(() -> {
+            System.out.println("before task1 return.");
+            Thread.sleep(200);
+            return "-hello world.";
+        });
+        ListenableFuture<String> future2 = eventLoopGroup.submit(() -> {
+            System.out.println("before task2  return.");
+            Thread.sleep(200);
+            return "-java";
+        });
 
-		System.out.println("before await");
-		future.awaitUninterruptibly();
-		future2.awaitUninterruptibly();
+        System.out.println("before await");
+        future.awaitUninterruptibly();
+        future2.awaitUninterruptibly();
 
-		System.out.println(future.getNow());
-		System.out.println(future2.getNow());
+        System.out.println(future.getNow());
+        System.out.println(future2.getNow());
 
-		ListenableFuture<String> future3 = eventLoopGroup.submit(() -> {
-			Thread.sleep(500);
-			return "500";
-		});
+        ListenableFuture<String> future3 = eventLoopGroup.submit(() -> {
+            Thread.sleep(500);
+            return "500";
+        });
 
-		future3.addListener((listenableFuture) -> {
-			System.out.println("1 onComplete, thread " + Thread.currentThread().getName() + ",result = " + listenableFuture.getNow());
-		}, GlobalEventLoop.INSTANCE);
+        future3.addListener((listenableFuture) -> {
+            System.out.println("1 onComplete, thread " + Thread.currentThread().getName() + ",result = " + listenableFuture.getNow());
+        }, GlobalEventLoop.INSTANCE);
 
-		future3.addListener((listenableFuture) -> {
-			System.out.println("2 onComplete, thread " + Thread.currentThread().getName() + ",result = " + listenableFuture.getNow());
-		});
+        future3.addListener((listenableFuture) -> {
+            System.out.println("2 onComplete, thread " + Thread.currentThread().getName() + ",result = " + listenableFuture.getNow());
+        });
 
-		future3.addListener((listenableFuture) -> {
-			System.out.println("3 onComplete, thread " + Thread.currentThread().getName() + ",result = " + listenableFuture.getNow());
-			// 已完成到时候添加监听
-			future3.addListener(listenableFuture2 -> {
-				System.out.println("4 onComplete, thread " + Thread.currentThread().getName() + ",result = " + listenableFuture2.getNow());
-			}, GlobalEventLoop.INSTANCE);
-		});
+        future3.addListener((listenableFuture) -> {
+            System.out.println("3 onComplete, thread " + Thread.currentThread().getName() + ",result = " + listenableFuture.getNow());
+            // 已完成到时候添加监听
+            future3.addListener(listenableFuture2 -> {
+                System.out.println("4 onComplete, thread " + Thread.currentThread().getName() + ",result = " + listenableFuture2.getNow());
+            }, GlobalEventLoop.INSTANCE);
+        });
 
 
-		eventLoopGroup.shutdown();
-	}
+        eventLoopGroup.shutdown();
+    }
 }

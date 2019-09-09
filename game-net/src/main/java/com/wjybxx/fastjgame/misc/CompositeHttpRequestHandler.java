@@ -27,6 +27,7 @@ import java.util.List;
 
 /**
  * 为多个http请求处理器提供一个单一的视图
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/27
@@ -34,31 +35,31 @@ import java.util.List;
  */
 public class CompositeHttpRequestHandler implements HttpRequestHandler {
 
-	private static final Logger logger = LoggerFactory.getLogger(CompositeHttpRequestHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(CompositeHttpRequestHandler.class);
 
-	private final List<HttpRequestHandler> children = new ArrayList<>(4);
+    private final List<HttpRequestHandler> children = new ArrayList<>(4);
 
-	public CompositeHttpRequestHandler() {
-	}
+    public CompositeHttpRequestHandler() {
+    }
 
-	public CompositeHttpRequestHandler(HttpRequestHandler first, HttpRequestHandler second) {
-		children.add(first);
-		children.add(second);
-	}
+    public CompositeHttpRequestHandler(HttpRequestHandler first, HttpRequestHandler second) {
+        children.add(first);
+        children.add(second);
+    }
 
-	public CompositeHttpRequestHandler addHandler(HttpRequestHandler handler) {
-		children.add(handler);
-		return this;
-	}
+    public CompositeHttpRequestHandler addHandler(HttpRequestHandler handler) {
+        children.add(handler);
+        return this;
+    }
 
-	@Override
-	public void onHttpRequest(HttpSession httpSession, String path, HttpRequestParam params) throws Exception {
-		for (HttpRequestHandler httpRequestHandler:children) {
-			try {
-				httpRequestHandler.onHttpRequest(httpSession, path, params);
-			} catch (Exception e) {
-				logger.warn("Child onHttpRequest caught exception, path {}", path, e);
-			}
-		}
-	}
+    @Override
+    public void onHttpRequest(HttpSession httpSession, String path, HttpRequestParam params) throws Exception {
+        for (HttpRequestHandler httpRequestHandler : children) {
+            try {
+                httpRequestHandler.onHttpRequest(httpSession, path, params);
+            } catch (Exception e) {
+                logger.warn("Child onHttpRequest caught exception, path {}", path, e);
+            }
+        }
+    }
 }

@@ -19,44 +19,46 @@ package com.wjybxx.fastjgame.timer;
 
 /**
  * 常用系统时间提供器
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/16
  */
 public final class SystemTimeProviders {
 
-	private SystemTimeProviders() {
+    private SystemTimeProviders() {
 
-	}
+    }
 
-	/**
-	 * 获取实时时间提供器
-	 * @return timeProvider
-	 */
-	public static SystemTimeProvider getRealtimeProvider() {
-		return RealTimeProvider.INSTANCE;
-	}
+    /**
+     * 获取实时时间提供器
+     *
+     * @return timeProvider
+     */
+    public static SystemTimeProvider getRealtimeProvider() {
+        return RealTimeProvider.INSTANCE;
+    }
 
-	/**
-	 * 实时系统时间提供者
-	 */
-	private static class RealTimeProvider implements SystemTimeProvider{
+    /**
+     * 实时系统时间提供者
+     */
+    private static class RealTimeProvider implements SystemTimeProvider {
 
-		public static final RealTimeProvider INSTANCE = new RealTimeProvider();
+        public static final RealTimeProvider INSTANCE = new RealTimeProvider();
 
-		private RealTimeProvider() {
+        private RealTimeProvider() {
 
-		}
+        }
 
-		@Override
-		public long getSystemMillTime() {
-			return System.currentTimeMillis();
-		}
+        @Override
+        public long getSystemMillTime() {
+            return System.currentTimeMillis();
+        }
 
-		@Override
-		public int getSystemSecTime() {
-			return (int) (System.currentTimeMillis()/1000);
-		}
-	}
+        @Override
+        public int getSystemSecTime() {
+            return (int) (System.currentTimeMillis() / 1000);
+        }
+    }
 
 }

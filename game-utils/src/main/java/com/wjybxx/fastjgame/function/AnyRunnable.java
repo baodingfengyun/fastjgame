@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.function;
 
 /**
  * 可抛出异常的Runnable
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/7/13 23:47

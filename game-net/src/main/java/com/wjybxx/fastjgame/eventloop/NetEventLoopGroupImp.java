@@ -37,7 +37,7 @@ import java.util.concurrent.ThreadFactory;
  * date - 2019/8/4
  * github - https://github.com/hl845740757
  */
-public class NetEventLoopGroupImp extends MultiThreadEventLoopGroup implements NetEventLoopGroup{
+public class NetEventLoopGroupImp extends MultiThreadEventLoopGroup implements NetEventLoopGroup {
 
     /**
      * @see #NetEventLoopGroupImp(int, ThreadFactory, RejectedExecutionHandler, EventLoopChooserFactory)
@@ -49,11 +49,10 @@ public class NetEventLoopGroupImp extends MultiThreadEventLoopGroup implements N
     }
 
     /**
-     *
-     * @param nThreads 线程组内的线程数量
-     * @param threadFactory 线程工厂
+     * @param nThreads                 线程组内的线程数量
+     * @param threadFactory            线程工厂
      * @param rejectedExecutionHandler 任务拒绝策略
-     * @param chooserFactory 负载均衡算法
+     * @param chooserFactory           负载均衡算法
      */
     public NetEventLoopGroupImp(int nThreads,
                                 @Nonnull ThreadFactory threadFactory,

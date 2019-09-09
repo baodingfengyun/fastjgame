@@ -32,23 +32,23 @@ import com.wjybxx.fastjgame.manager.*;
  */
 public class NetEventLoopModule extends AbstractModule {
 
-	@Override
-	protected void configure() {
-		binder().requireExplicitBindings();
+    @Override
+    protected void configure() {
+        binder().requireExplicitBindings();
 
-		bind(NetEventLoopManager.class).in(Singleton.class);
-		bind(C2SSessionManager.class).in(Singleton.class);
-		bind(S2CSessionManager.class).in(Singleton.class);
-		bind(HttpSessionManager.class).in(Singleton.class);
-		bind(NetEventManager.class).in(Singleton.class);
+        bind(NetEventLoopManager.class).in(Singleton.class);
+        bind(C2SSessionManager.class).in(Singleton.class);
+        bind(S2CSessionManager.class).in(Singleton.class);
+        bind(HttpSessionManager.class).in(Singleton.class);
+        bind(NetEventManager.class).in(Singleton.class);
 
-		bind(NettyThreadManager.class).in(Singleton.class);
-		bind(AcceptorManager.class).in(Singleton.class);
+        bind(NettyThreadManager.class).in(Singleton.class);
+        bind(AcceptorManager.class).in(Singleton.class);
 
-		bind(TokenManager.class).in(Singleton.class);
-		bind(NetTimeManager.class).in(Singleton.class);
-		bind(NetTimerManager.class).in(Singleton.class);
+        bind(TokenManager.class).in(Singleton.class);
+        bind(NetTimeManager.class).in(Singleton.class);
+        bind(NetTimerManager.class).in(Singleton.class);
 
-		bind(NetManagerWrapper.class).in(Singleton.class);
-	}
+        bind(NetManagerWrapper.class).in(Singleton.class);
+    }
 }

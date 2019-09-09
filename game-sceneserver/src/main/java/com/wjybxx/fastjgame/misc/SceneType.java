@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.misc;
 
 /**
  * 场景类型
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/5 20:22

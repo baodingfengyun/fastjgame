@@ -26,6 +26,7 @@ import java.io.IOException;
 
 /**
  * 游戏配置控制器，除网络层配置以外的游戏配置都在这
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/12 12:13
@@ -67,14 +68,14 @@ public class GameConfigMrg {
 
     @Inject
     public GameConfigMrg() throws IOException {
-        configWrapper= ConfigLoader.loadConfig(GameConfigMrg.class.getClassLoader(),"game_config.properties");
+        configWrapper = ConfigLoader.loadConfig(GameConfigMrg.class.getClassLoader(), "game_config.properties");
         globalExecutorThreadNum = configWrapper.getAsInt("globalExecutorThreadNum", 5);
         zkConnectString = configWrapper.getAsString("zkConnectString");
-        zkConnectionTimeoutMs=configWrapper.getAsInt("zkConnectionTimeoutMs");
-        zkSessionTimeoutMs=configWrapper.getAsInt("zkSessionTimeoutMs");
-        zkNameSpace=configWrapper.getAsString("zkNameSpace");
-        mongoConnectionTimeoutMs=configWrapper.getAsInt("mongoConnectionTimeoutMs");
-        mongoConnectionsPerHost=configWrapper.getAsInt("mongoConnectionsPerHost");
+        zkConnectionTimeoutMs = configWrapper.getAsInt("zkConnectionTimeoutMs");
+        zkSessionTimeoutMs = configWrapper.getAsInt("zkSessionTimeoutMs");
+        zkNameSpace = configWrapper.getAsString("zkNameSpace");
+        mongoConnectionTimeoutMs = configWrapper.getAsInt("mongoConnectionTimeoutMs");
+        mongoConnectionsPerHost = configWrapper.getAsInt("mongoConnectionsPerHost");
     }
 
     public ConfigWrapper getConfigWrapper() {

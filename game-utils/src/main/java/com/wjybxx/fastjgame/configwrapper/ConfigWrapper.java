@@ -23,6 +23,7 @@ import javax.annotation.concurrent.Immutable;
  * 键值对类型配置包装对象，为其增强功能，子类实现必须为不可变对象，以实现线程安全。
  * 提供一些便利方法。
  * 但是觉得这个名好像没取好
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/4/27 13:30
@@ -39,12 +40,14 @@ public abstract class ConfigWrapper extends Params {
 
     /**
      * 基于map的配置是最容易理解的，最容易使用的，需要提供转换方法。
+     *
      * @return MapConfigWrapper
      */
     public abstract MapConfigWrapper convert2MapWrapper();
 
     /**
      * 主要用于打印自己的数据结构，用于debug
+     *
      * @return debug info
      */
     @Override

@@ -31,7 +31,7 @@ import org.apache.curator.framework.recipes.cache.*;
  * 调用{@link TreeCache#close()}的时候会关闭executor...
  * {@link PathChildrenCache}还能选是否关闭，{@link TreeCache}不能选择。
  * 不能随便关闭他人的线程池，所以如果要使用{@link TreeCache}必须新建线程池。
- *
+ * <p>
  * 使用{@link TreeCache}逻辑处理起来会简单点，而且登录服没有太多的负载要处理，
  * 创建额外的线程池影响很小。
  *
@@ -72,19 +72,19 @@ public class LoginDiscoverMrg {
         }
     }
 
-    private void onEvent(TreeCacheEvent event){
+    private void onEvent(TreeCacheEvent event) {
         if (event.getType() != TreeCacheEvent.Type.NODE_ADDED
-                && event.getType() != TreeCacheEvent.Type.NODE_REMOVED){
+                && event.getType() != TreeCacheEvent.Type.NODE_REMOVED) {
             return;
         }
         ChildData childData = event.getData();
         // 根节点
-        if (childData.getPath().equals(ZKPathUtils.onlineRootPath())){
+        if (childData.getPath().equals(ZKPathUtils.onlineRootPath())) {
             return;
         }
         // 战区节点
         String nodeName = ZKPathUtils.findNodeName(childData.getPath());
-        if (nodeName.startsWith("warzone")){
+        if (nodeName.startsWith("warzone")) {
             return;
         }
         // 战区子节点
@@ -92,27 +92,27 @@ public class LoginDiscoverMrg {
         assert serverType == RoleType.CENTER;
 
         CenterNodeName centerNodeName = ZKPathUtils.parseCenterNodeName(childData.getPath());
-        CenterNodeData centerNode= JsonUtils.parseJsonBytes(childData.getData(), CenterNodeData.class);
-        if (event.getType() == TreeCacheEvent.Type.NODE_ADDED){
-            centerInLoginInfoMrg.onDiscoverCenterServer(centerNodeName,centerNode);
-        } else if (event.getType() == TreeCacheEvent.Type.NODE_REMOVED){
-            centerInLoginInfoMrg.onCenterServerNodeRemove(centerNodeName,centerNode);
+        CenterNodeData centerNode = JsonUtils.parseJsonBytes(childData.getData(), CenterNodeData.class);
+        if (event.getType() == TreeCacheEvent.Type.NODE_ADDED) {
+            centerInLoginInfoMrg.onDiscoverCenterServer(centerNodeName, centerNode);
+        } else if (event.getType() == TreeCacheEvent.Type.NODE_REMOVED) {
+            centerInLoginInfoMrg.onCenterServerNodeRemove(centerNodeName, centerNode);
         }
     }
 
     /**
      * 选择需要的cache
      */
-    private static class LoginCacheSelector implements TreeCacheSelector{
+    private static class LoginCacheSelector implements TreeCacheSelector {
 
         /**
          * 只取回warzone下的节点
          */
         @Override
         public boolean traverseChildren(String fullPath) {
-            if (fullPath.equals(ZKPathUtils.onlineRootPath())){
+            if (fullPath.equals(ZKPathUtils.onlineRootPath())) {
                 return true;
-            }else {
+            } else {
                 return ZKPathUtils.findNodeName(fullPath).startsWith("warzone");
             }
         }
@@ -124,9 +124,9 @@ public class LoginDiscoverMrg {
         public boolean acceptChild(String fullPath) {
             String nodeName = ZKPathUtils.findNodeName(fullPath);
             // 战区节点(容器)
-            if (nodeName.startsWith("warzone")){
+            if (nodeName.startsWith("warzone")) {
                 return true;
-            }else {
+            } else {
                 // 叶子节点
                 RoleType serverType = ZKPathUtils.parseServerType(nodeName);
                 return serverType == RoleType.CENTER;

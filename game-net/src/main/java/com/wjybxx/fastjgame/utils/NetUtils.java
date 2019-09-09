@@ -40,6 +40,7 @@ import java.util.Enumeration;
 
 /**
  * 网络包工具类
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/4/27 10:28
@@ -99,11 +100,11 @@ public class NetUtils {
     /**
      * 安静的关闭channel,不产生任何影响
      */
-    public static void closeQuietly(Channel channel){
-        if (null != channel){
-            try{
+    public static void closeQuietly(Channel channel) {
+        if (null != channel) {
+            try {
                 channel.close();
-            }catch (Exception e){
+            } catch (Exception e) {
                 // ignore
             }
         }
@@ -112,7 +113,7 @@ public class NetUtils {
     /**
      * 安静的关闭future，不产生任何影响
      */
-    public static void closeQuietly(ChannelFuture channelFuture){
+    public static void closeQuietly(ChannelFuture channelFuture) {
         if (null != channelFuture) {
             try {
                 channelFuture.cancel(true);
@@ -127,10 +128,10 @@ public class NetUtils {
      * 安静的关闭ctx，不产生任何影响
      */
     public static void closeQuietly(ChannelHandlerContext ctx) {
-        if (null != ctx){
+        if (null != ctx) {
             try {
                 ctx.close();
-            }catch (Exception e){
+            } catch (Exception e) {
                 // ignore
             }
         }
@@ -140,10 +141,10 @@ public class NetUtils {
      * 关闭一个资源
      */
     public static void closeQuietly(Closeable resource) {
-        if (null != resource){
+        if (null != resource) {
             try {
                 resource.close();
-            }catch (Exception e){
+            } catch (Exception e) {
                 // ignore
             }
         }
@@ -151,14 +152,15 @@ public class NetUtils {
 
     /**
      * 计算byteBuf指定区域字节的校验和
+     *
      * @param byteBuf byteBuf
-     * @param offset 偏移量
-     * @param length 有效长度，不可越界
+     * @param offset  偏移量
+     * @param length  有效长度，不可越界
      * @return 校验和
      */
-    public static long calChecksum(ByteBuf byteBuf, int offset, int length){
-        long checkSum=0;
-        for (int index=offset,end=offset+length;index<end;index++){
+    public static long calChecksum(ByteBuf byteBuf, int offset, int length) {
+        long checkSum = 0;
+        for (int index = offset, end = offset + length; index < end; index++) {
             checkSum += (byteBuf.getByte(index) & 255);
         }
         return checkSum;
@@ -166,45 +168,49 @@ public class NetUtils {
 
     /**
      * 获取机器内网ip
+     *
      * @return 内网地址
      */
-    public static String getLocalIp(){
+    public static String getLocalIp() {
         return localIp;
     }
 
     /**
      * 获取机器外网ip
+     *
      * @return 如果无法获取到外网地址，返回的是内网地址
      */
-    public static String getOuterIp(){
+    public static String getOuterIp() {
         return outerIp;
     }
 
     /**
      * 查找内网ip。
+     *
      * @return
      */
     private static String findLocalIp() {
-        String hostAddress="127.0.0.1";
+        String hostAddress = "127.0.0.1";
         try {
-            hostAddress= Inet4Address.getLocalHost().getHostAddress();
+            hostAddress = Inet4Address.getLocalHost().getHostAddress();
         } catch (UnknownHostException e) {
-            logger.error("get localHost caught exception,use {} instead.",hostAddress,e);
+            logger.error("get localHost caught exception,use {} instead.", hostAddress, e);
         }
         return hostAddress;
     }
 
     /**
      * 获取本机外网ip，如果不存在则返回内网ip。
-     *
+     * <p>
      * 个人对此不是很熟，参考自以下文章
      * - http://www.voidcn.com/article/p-rludpgmk-yb.html
      * - https://rainbow702.iteye.com/blog/2066431
-     *
+     * <p>
      * {@link Inet4Address#isSiteLocalAddress()} 是否是私有网段
      * 10/8 prefix ，172.16/12 prefix ，192.168/16 prefix
      * {@link Inet4Address#isLoopbackAddress()} 是否是本机回环ip (127.x.x.x)
      * {@link Inet4Address#isAnyLocalAddress()} 是否是通配符地址 (0.0.0.0)
+     *
      * @return outerIp
      */
     private static String findOuterIp() {
@@ -215,27 +221,27 @@ public class NetUtils {
                 Enumeration<InetAddress> address = ni.getInetAddresses();
                 while (address.hasMoreElements()) {
                     InetAddress ip = address.nextElement();
-                    if (!(ip instanceof Inet4Address)){
+                    if (!(ip instanceof Inet4Address)) {
                         continue;
                     }
                     // 回环地址
-                    Inet4Address inet4Address= (Inet4Address) ip;
-                    if (inet4Address.isLoopbackAddress()){
+                    Inet4Address inet4Address = (Inet4Address) ip;
+                    if (inet4Address.isLoopbackAddress()) {
                         continue;
                     }
                     // 通配符地址
-                    if (inet4Address.isAnyLocalAddress()){
+                    if (inet4Address.isAnyLocalAddress()) {
                         continue;
                     }
                     // 私有地址(内网地址)
-                    if (ip.isSiteLocalAddress()){
+                    if (ip.isSiteLocalAddress()) {
                         continue;
                     }
                     return inet4Address.getHostAddress();
                 }
             }
-        } catch (SocketException e){
-            logger.error("find outerIp caught exception,will use localIp instead.",e);
+        } catch (SocketException e) {
+            logger.error("find outerIp caught exception,will use localIp instead.", e);
             return findLocalIp();
         }
         logger.error("can't find outerIp, will use localIp instead.");
@@ -245,12 +251,13 @@ public class NetUtils {
     /**
      * 创建一个初始化好的byteBuf
      * 预分配消息长度 校验和 和包类型字段
-     * @param ctx 获取allocator
+     *
+     * @param ctx           获取allocator
      * @param contentLength 有效内容长度
-     * @param pkgType 包类型
+     * @param pkgType       包类型
      * @return 以初始化前三个字段
      */
-    public static ByteBuf newInitializedByteBuf(ChannelHandlerContext ctx, int contentLength, byte pkgType){
+    public static ByteBuf newInitializedByteBuf(ChannelHandlerContext ctx, int contentLength, byte pkgType) {
         // 消息长度字段 + 校验和 + 包类型
         ByteBuf byteBuf = ctx.alloc().buffer(4 + 8 + 1 + contentLength);
         byteBuf.writeInt(0);
@@ -264,15 +271,16 @@ public class NetUtils {
      */
     public static void appendLengthAndCheckSum(ByteBuf byteBuf) {
         byteBuf.setInt(0, byteBuf.readableBytes() - 4);
-        byteBuf.setLong(4, NetUtils.calChecksum(byteBuf, 12, byteBuf.readableBytes()-12));
+        byteBuf.setLong(4, NetUtils.calChecksum(byteBuf, 12, byteBuf.readableBytes() - 12));
     }
 
     /**
      * 将byteBuf中剩余的字节读取到一个字节数组中。
+     *
      * @param byteBuf 方法返回之后 readableBytes == 0
      * @return new instance
      */
-    public static byte[] readRemainBytes(ByteBuf byteBuf){
+    public static byte[] readRemainBytes(ByteBuf byteBuf) {
         byte[] result = new byte[byteBuf.readableBytes()];
         byteBuf.readBytes(result);
         return result;
@@ -280,24 +288,23 @@ public class NetUtils {
 
     /**
      * 设置channel性能偏好.
-     *
+     * <p>
      * 可参考 - https://blog.csdn.net/zero__007/article/details/51723434
-     *
-     * 	在 JDK 1.5 中, 还为 Socket 类提供了{@link Socket#setPerformancePreferences(int, int, int)}方法:
-     *  以上方法的 3 个参数表示网络传输数据的 3 选指标.
-     *  connectionTime: 表示用最少时间建立连接.
-     *  latency: 表示最小延迟.
-     *  bandwidth: 表示最高带宽.
-     *  setPerformancePreferences() 方法用来设定这 3 项指标之间的相对重要性.
-     *  可以为这些参数赋予任意的整数, 这些整数之间的相对大小就决定了相应参数的相对重要性.
-     *  例如, 如果参数 connectionTime 为 2, 参数 latency 为 1, 而参数bandwidth 为 3,
-     *  就表示最高带宽最重要, 其次是最少连接时间, 最后是最小延迟.
-     *
+     * <p>
+     * 在 JDK 1.5 中, 还为 Socket 类提供了{@link Socket#setPerformancePreferences(int, int, int)}方法:
+     * 以上方法的 3 个参数表示网络传输数据的 3 选指标.
+     * connectionTime: 表示用最少时间建立连接.
+     * latency: 表示最小延迟.
+     * bandwidth: 表示最高带宽.
+     * setPerformancePreferences() 方法用来设定这 3 项指标之间的相对重要性.
+     * 可以为这些参数赋予任意的整数, 这些整数之间的相对大小就决定了相应参数的相对重要性.
+     * 例如, 如果参数 connectionTime 为 2, 参数 latency 为 1, 而参数bandwidth 为 3,
+     * 就表示最高带宽最重要, 其次是最少连接时间, 最后是最小延迟.
      */
     public static void setChannelPerformancePreferences(Channel channel) {
         ChannelConfig channelConfig = channel.config();
-        if (channelConfig instanceof DefaultSocketChannelConfig){
-            DefaultSocketChannelConfig socketChannelConfig= (DefaultSocketChannelConfig) channelConfig;
+        if (channelConfig instanceof DefaultSocketChannelConfig) {
+            DefaultSocketChannelConfig socketChannelConfig = (DefaultSocketChannelConfig) channelConfig;
             socketChannelConfig.setPerformancePreferences(0, 1, 2);
             socketChannelConfig.setAllocator(PooledByteBufAllocator.DEFAULT);
         }

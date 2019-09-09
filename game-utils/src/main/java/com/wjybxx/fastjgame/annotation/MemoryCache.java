@@ -23,6 +23,7 @@ import java.lang.annotation.Target;
 
 /**
  * 用该注解注解的属性为内存缓存属性，不需要入库
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/7/28

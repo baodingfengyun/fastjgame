@@ -28,10 +28,10 @@ import java.io.File;
 
 /**
  * 单服进程启动参数：
- sceneType=SINGLE warzoneId=1 serverId=1 configuredRegions=LOCAL_NORMAL|LOCAL_PKC
-
+ * sceneType=SINGLE warzoneId=1 serverId=1 configuredRegions=LOCAL_NORMAL|LOCAL_PKC
+ * <p>
  * 跨服场景启动参数
- sceneType=CROSS warzoneId=1 configuredRegions=WARZONE_ANTON|WARZONE_LUKE
+ * sceneType=CROSS warzoneId=1 configuredRegions=WARZONE_ANTON|WARZONE_LUKE
  *
  * @author wjybxx
  * @version 1.0
@@ -41,7 +41,7 @@ import java.io.File;
 public class SceneWorldTest {
 
     public static void main(String[] args) throws Exception {
-        String logDir=new File("").getAbsolutePath() + File.separator + "log";
+        String logDir = new File("").getAbsolutePath() + File.separator + "log";
         String logPath = logDir + File.separator + "scene.log";
         System.setProperty("logPath", logPath);
 

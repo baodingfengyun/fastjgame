@@ -21,6 +21,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * int类型的序号分配器。
  * 类似{@link LongSequencer}。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/6 20:58
@@ -43,33 +44,37 @@ public class IntSequencer {
 
     /**
      * 获取当前值
+     *
      * @return
      */
-    public int get(){
+    public int get() {
         return value;
     }
 
     /**
      * 设置序号
+     *
      * @param sequence
      */
-    public void set(int sequence){
+    public void set(int sequence) {
         this.value = sequence;
     }
 
     /**
      * 返回之后+1
+     *
      * @return
      */
-    public int getAndInc(){
+    public int getAndInc() {
         return value++;
     }
 
     /**
      * +1之后返回
+     *
      * @return
      */
-    public int incAndGet(){
+    public int incAndGet() {
         return ++value;
     }
 

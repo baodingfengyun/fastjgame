@@ -45,19 +45,21 @@ public interface World {
     /**
      * 启动world，注意：world出现任何异常，都会停止执行并开始关闭
      *
-     * @throws Exception errors
      * @param startArgs 注册world时指定的启动参数
+     * @throws Exception errors
      */
     void startUp(ConfigWrapper startArgs) throws Exception;
 
     /**
      * 游戏世界刷帧
+     *
      * @param curTimeMills 当前时间戳
      */
     void tick(long curTimeMills);
 
     /**
      * 关闭world（同时会关闭world所在线程）。
+     *
      * @throws Exception errors
      */
     void shutdown() throws Exception;

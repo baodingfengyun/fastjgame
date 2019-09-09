@@ -26,6 +26,7 @@ import java.util.concurrent.locks.LockSupport;
 
 /**
  * 消费者等待策略 (也就是我们的游戏世界等待网络事件时的策略)。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/4/27 10:06
@@ -42,8 +43,7 @@ public class SleepingWaitExtendStrategy implements WaitStrategy {
 
     private final DisruptorEventLoop eventLoop;
 
-    public SleepingWaitExtendStrategy(DisruptorEventLoop eventLoop)
-    {
+    public SleepingWaitExtendStrategy(DisruptorEventLoop eventLoop) {
         this.eventLoop = eventLoop;
         this.retries = DEFAULT_RETRIES;
         this.sleepTimeNs = DEFAULT_SLEEP;
@@ -58,11 +58,10 @@ public class SleepingWaitExtendStrategy implements WaitStrategy {
 
         // dependentSequence 该项目组织架构中，其实只是生产者的sequence。
         // 在等待生产者生产数据的过程中，尝试执行游戏世界循环
-        while ((availableSequence = dependentSequence.get()) < sequence)
-        {
+        while ((availableSequence = dependentSequence.get()) < sequence) {
             counter = applyWaitMethod(barrier, counter);
             // 每隔一段时间执行一次onWaitEvent
-            if ((counter & INVOKE_ON_WAIT_EVENT_INTERVAL) == 0){
+            if ((counter & INVOKE_ON_WAIT_EVENT_INTERVAL) == 0) {
                 eventLoop.onWaitEvent();
             }
         }
@@ -71,20 +70,17 @@ public class SleepingWaitExtendStrategy implements WaitStrategy {
     }
 
     @Override
-    public void signalAllWhenBlocking()
-    {
+    public void signalAllWhenBlocking() {
     }
 
     private int applyWaitMethod(final SequenceBarrier barrier, int counter)
-            throws AlertException
-    {
+            throws AlertException {
         barrier.checkAlert();
 
         if (counter > 100) {
             // 大于100时自旋
             --counter;
-        }
-        else if (counter > 0) {
+        } else if (counter > 0) {
             // 大于0时尝试让出Cpu
             --counter;
             Thread.yield();

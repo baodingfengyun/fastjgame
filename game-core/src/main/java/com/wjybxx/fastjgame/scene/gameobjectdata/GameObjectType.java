@@ -22,6 +22,7 @@ import com.wjybxx.fastjgame.utils.EnumUtils;
 
 /**
  * 游戏对象类型
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/2 22:59
@@ -52,7 +53,7 @@ public enum GameObjectType implements NumberEnum {
 
     private static final NumberEnumMapper<GameObjectType> mapper = EnumUtils.indexNumberEnum(values());
 
-    public static GameObjectType forNumber(int number){
+    public static GameObjectType forNumber(int number) {
         return mapper.forNumber(number);
     }
 }

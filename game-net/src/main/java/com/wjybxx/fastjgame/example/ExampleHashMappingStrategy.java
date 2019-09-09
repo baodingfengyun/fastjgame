@@ -33,9 +33,9 @@ public class ExampleHashMappingStrategy implements MessageMappingStrategy {
 
     @Override
     public Object2IntMap<Class<?>> mapping() throws Exception {
-        Object2IntMap<Class<?>> result =  new Object2IntOpenHashMap<>();
+        Object2IntMap<Class<?>> result = new Object2IntOpenHashMap<>();
         Class<?>[] allClass = ExampleMessages.class.getDeclaredClasses();
-        for (Class<?> messageClass:allClass) {
+        for (Class<?> messageClass : allClass) {
             result.put(messageClass, messageClass.getCanonicalName().hashCode());
         }
         result.put(RpcCall.class, RpcCall.class.getCanonicalName().hashCode());

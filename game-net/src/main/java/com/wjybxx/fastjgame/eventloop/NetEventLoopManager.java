@@ -32,25 +32,28 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class NetEventLoopManager {
 
-	private NetEventLoopImp eventLoop;
+    private NetEventLoopImp eventLoop;
 
-	@Inject
-	public NetEventLoopManager() {
+    @Inject
+    public NetEventLoopManager() {
 
-	}
-	/** 不允许外部调用，保证安全性 */
-	void publish(NetEventLoopImp eventLoop) {
-		this.eventLoop = eventLoop;
-	}
+    }
 
-	public NetEventLoopImp eventLoop() {
-		return eventLoop;
-	}
+    /**
+     * 不允许外部调用，保证安全性
+     */
+    void publish(NetEventLoopImp eventLoop) {
+        this.eventLoop = eventLoop;
+    }
 
-	public boolean inEventLoop() {
-		if (null == eventLoop) {
-			throw new IllegalStateException();
-		}
-		return eventLoop.inEventLoop();
-	}
+    public NetEventLoopImp eventLoop() {
+        return eventLoop;
+    }
+
+    public boolean inEventLoop() {
+        if (null == eventLoop) {
+            throw new IllegalStateException();
+        }
+        return eventLoop.inEventLoop();
+    }
 }

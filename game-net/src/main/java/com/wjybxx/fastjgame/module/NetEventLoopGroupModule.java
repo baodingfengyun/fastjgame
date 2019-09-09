@@ -30,10 +30,10 @@ import com.wjybxx.fastjgame.manager.NetConfigManager;
  */
 public class NetEventLoopGroupModule extends AbstractModule {
 
-	@Override
-	protected void configure() {
-		binder().requireExplicitBindings();
-		bind(NetConfigManager.class).in(Singleton.class);
-		bind(HttpClientManager.class).in(Singleton.class);
-	}
+    @Override
+    protected void configure() {
+        binder().requireExplicitBindings();
+        bind(NetConfigManager.class).in(Singleton.class);
+        bind(HttpClientManager.class).in(Singleton.class);
+    }
 }

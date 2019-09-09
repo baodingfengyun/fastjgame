@@ -28,7 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class SystemTimeHelper implements SystemTimeProvider{
+public class SystemTimeHelper implements SystemTimeProvider {
 
     /**
      * 获取时间策略
@@ -41,6 +41,7 @@ public class SystemTimeHelper implements SystemTimeProvider{
 
     /**
      * 获取系统毫秒时间戳
+     *
      * @return 毫秒
      */
     @Override
@@ -50,6 +51,7 @@ public class SystemTimeHelper implements SystemTimeProvider{
 
     /**
      * 获取系统秒数时间戳
+     *
      * @return 秒
      */
     @Override
@@ -59,24 +61,25 @@ public class SystemTimeHelper implements SystemTimeProvider{
 
     /**
      * 尝试更新系统时间
+     *
      * @param systemTimeMillis 指定的系统毫秒时间
      * @return 更新成功则返回true
      */
-    public boolean update(long systemTimeMillis){
+    public boolean update(long systemTimeMillis) {
         return strategy.update(systemTimeMillis);
     }
 
     /**
      * 切换到缓存策略
      */
-    public void changeToCacheStrategy(){
+    public void changeToCacheStrategy() {
         this.strategy = new CacheTimeStrategy();
     }
 
     /**
      * 切换到实时策略
      */
-    public void changeToRealTimeStrategy(){
+    public void changeToRealTimeStrategy() {
         this.strategy = RealTimeStrategy.INSTANCE;
     }
 
@@ -98,6 +101,7 @@ public class SystemTimeHelper implements SystemTimeProvider{
 
         /**
          * 尝试更新系统时间
+         *
          * @param systemTimeMillis 指定的系统毫秒时间
          * @return 更新成功则返回true
          */
@@ -109,7 +113,7 @@ public class SystemTimeHelper implements SystemTimeProvider{
      * 目的为了减少频繁地调用{@link System#currentTimeMillis()}
      */
     @NotThreadSafe
-    public static class CacheTimeStrategy implements SystemTimeStrategy{
+    public static class CacheTimeStrategy implements SystemTimeStrategy {
         /**
          * 当前帧毫秒时间(非实时时间)
          */
@@ -125,7 +129,7 @@ public class SystemTimeHelper implements SystemTimeProvider{
 
         public boolean update(long systemTimeMillis) {
             this.systemMillTime = systemTimeMillis;
-            this.systemSecTime = (int) (systemTimeMillis /1000);
+            this.systemSecTime = (int) (systemTimeMillis / 1000);
             return true;
         }
 
@@ -152,9 +156,11 @@ public class SystemTimeHelper implements SystemTimeProvider{
      * 实时系统时间提供者
      */
     @ThreadSafe
-    public static class RealTimeStrategy implements SystemTimeStrategy{
+    public static class RealTimeStrategy implements SystemTimeStrategy {
 
-        /** 实时策略，它本身是线程安全的*/
+        /**
+         * 实时策略，它本身是线程安全的
+         */
         public static final RealTimeStrategy INSTANCE = new RealTimeStrategy();
 
         private RealTimeStrategy() {
@@ -168,7 +174,7 @@ public class SystemTimeHelper implements SystemTimeProvider{
 
         @Override
         public int getSystemSecTime() {
-            return (int) (System.currentTimeMillis()/1000);
+            return (int) (System.currentTimeMillis() / 1000);
         }
 
         @Override

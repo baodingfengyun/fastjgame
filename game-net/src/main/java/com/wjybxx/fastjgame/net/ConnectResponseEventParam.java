@@ -20,23 +20,32 @@ import io.netty.channel.Channel;
 
 /**
  * 连接响应事件参数
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/7 13:08
  * github - https://github.com/hl845740757
  */
-public class ConnectResponseEventParam implements NetEventParam{
+public class ConnectResponseEventParam implements NetEventParam {
 
-    /** 发起请求的channel */
+    /**
+     * 发起请求的channel
+     */
     private Channel channel;
 
-    /** 该事件关联的本地角色guid */
+    /**
+     * 该事件关联的本地角色guid
+     */
     private long localGuid;
 
-    /** 服务端guid */
+    /**
+     * 服务端guid
+     */
     private long serverGuid;
 
-    /** 响应参数 */
+    /**
+     * 响应参数
+     */
     private ConnectResponseTO responseTO;
 
     public ConnectResponseEventParam(Channel channel, long localGuid, long serverGuid, ConnectResponseTO responseTO) {

@@ -18,11 +18,12 @@ package com.wjybxx.fastjgame.configwrapper;
 
 /**
  * 配置抽象类
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/18
  * github - https://github.com/hl845740757
  */
-public abstract class Configuration extends Params{
+public abstract class Configuration extends Params {
 
 }

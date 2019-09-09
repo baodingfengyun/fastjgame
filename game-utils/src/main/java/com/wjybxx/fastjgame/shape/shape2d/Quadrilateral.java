@@ -24,9 +24,9 @@ import javax.annotation.Nonnull;
 /**
  * 任意四边形
  * a------- d
- *  \       \
- *   \       \
- *    b-------c
+ * \       \
+ * \       \
+ * b-------c
  *
  * @author wjybxx
  * @version 1.0
@@ -40,15 +40,15 @@ public class Quadrilateral implements Shape2D, RedrawShape {
     private final Triangle adc;
 
     public Quadrilateral(Point2D a, Point2D b, Point2D c, Point2D d) {
-        this.abc=new Triangle(a, b, c);
-        this.adc=new Triangle(a, d, c);
+        this.abc = new Triangle(a, b, c);
+        this.adc = new Triangle(a, d, c);
     }
 
     /**
      * 重新设置坐标，不更新引用，只更新数值
      * {@link Point2D#updateLocation(Point2D)}
      */
-    public Quadrilateral redraw(Point2D a, Point2D b, Point2D c, Point2D d){
+    public Quadrilateral redraw(Point2D a, Point2D b, Point2D c, Point2D d) {
         this.abc.redraw(a, b, c);
         this.adc.redraw(a, d, c);
         return this;
@@ -58,6 +58,7 @@ public class Quadrilateral implements Shape2D, RedrawShape {
      * 拆分成两个三角形而言，对于凹四边形和凸四边形都适用。
      * 对于凸四边形，可以采用向量法(同侧原理)。
      * - https://blog.csdn.net/San_Junipero/article/details/79172260
+     *
      * @param point2D 2d平面的一点
      * @return true/false
      */
@@ -66,19 +67,19 @@ public class Quadrilateral implements Shape2D, RedrawShape {
         return abc.hasPoint(point2D) || adc.hasPoint(point2D);
     }
 
-    public Point2D getPointA(){
+    public Point2D getPointA() {
         return abc.getPointA();
     }
 
-    public Point2D getPointB(){
+    public Point2D getPointB() {
         return abc.getPointB();
     }
 
-    public Point2D getPointC(){
+    public Point2D getPointC() {
         return abc.getPointC();
     }
 
-    public Point2D getPointD(){
+    public Point2D getPointD() {
         return adc.getPointB();
     }
 

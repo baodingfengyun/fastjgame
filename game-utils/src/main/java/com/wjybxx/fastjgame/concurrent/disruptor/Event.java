@@ -26,49 +26,49 @@ import javax.annotation.Nullable;
  * date - 2019/7/24
  * github - https://github.com/hl845740757
  */
-public final class Event implements AutoCloseable{
+public final class Event implements AutoCloseable {
 
-	/**
-	 * 事件类型，只有用int才是能无限扩展的,不然就不能放在UtilS包了。
-	 */
-	private int type;
-	/**
-	 * 事件参数
-	 */
-	private Object param;
+    /**
+     * 事件类型，只有用int才是能无限扩展的,不然就不能放在UtilS包了。
+     */
+    private int type;
+    /**
+     * 事件参数
+     */
+    private Object param;
 
-	public Event() {
+    public Event() {
 
-	}
+    }
 
-	public Event(int type, Object param) {
-		this.type = type;
-		this.param = param;
-	}
+    public Event(int type, Object param) {
+        this.type = type;
+        this.param = param;
+    }
 
-	public int getType() {
-		return type;
-	}
+    public int getType() {
+        return type;
+    }
 
-	public void setType(int type) {
-		this.type = type;
-	}
+    public void setType(int type) {
+        this.type = type;
+    }
 
-	@Nullable
-	public Object getParam() {
-		return param;
-	}
+    @Nullable
+    public Object getParam() {
+        return param;
+    }
 
-	public void setParam(Object param) {
-		this.param = param;
-	}
+    public void setParam(Object param) {
+        this.param = param;
+    }
 
-	/**
-	 * help GC
-	 * -- Disruptor的RingBuffer会始终持有Event对象，如果Event对象不进行清理，会导致一定的内存泄漏。
-	 */
-	@Override
-	public void close() {
-		this.param = null;
-	}
+    /**
+     * help GC
+     * -- Disruptor的RingBuffer会始终持有Event对象，如果Event对象不进行清理，会导致一定的内存泄漏。
+     */
+    @Override
+    public void close() {
+        this.param = null;
+    }
 }

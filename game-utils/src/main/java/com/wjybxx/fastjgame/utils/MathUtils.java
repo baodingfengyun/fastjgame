@@ -22,6 +22,7 @@ import com.wjybxx.fastjgame.shape.shape2d.StraightLine;
 
 /**
  * 数学计算辅助类
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/12 16:08
@@ -54,11 +55,12 @@ public class MathUtils {
 
     /**
      * 帧间隔(毫秒)
+     *
      * @param framePerSecond 每秒帧数 1 ~ 1000
      * @return millTime
      */
-    public static long frameInterval(int framePerSecond){
-        if (framePerSecond < 1 || framePerSecond > 1000){
+    public static long frameInterval(int framePerSecond) {
+        if (framePerSecond < 1 || framePerSecond > 1000) {
             throw new IllegalArgumentException("framePerSecond " + framePerSecond + " must within 1~1000");
         }
         return 1000 / framePerSecond;
@@ -67,110 +69,119 @@ public class MathUtils {
     /**
      * 两个int安全相乘，返回一个long，避免越界；
      * 相乘之后再强转可能越界。
+     *
      * @param a int
      * @param b int
      * @return long
      */
-    public static long safeMultiplyInt(int a, int b){
-        return (long)a * b;
+    public static long safeMultiplyInt(int a, int b) {
+        return (long) a * b;
     }
 
     /**
      * 两个short安全相乘，返回一个int，避免越界；
      * 相乘之后再强转可能越界。
+     *
      * @param a short
      * @param b short
      * @return integer
      */
-    public static int safeMultiplyShort(short a, short b){
-        return (int)a * b;
+    public static int safeMultiplyShort(short a, short b) {
+        return (int) a * b;
     }
 
     /**
      * 求两个点的距离
+     *
      * @param a 坐标a
      * @param b 坐标b
      * @return 开方后的真实距离
      */
-    public static float distance(Point2D a,Point2D b){
-        return (float) Math.sqrt(distanceWithoutSqrt(a,b));
+    public static float distance(Point2D a, Point2D b) {
+        return (float) Math.sqrt(distanceWithoutSqrt(a, b));
     }
 
     /**
      * 求两个点的快速坐标距离(不开方)
+     *
      * @param a 坐标a
      * @param b 坐标b
      * @return x^2 + y^2
      */
-    public static float distanceWithoutSqrt(Point2D a, Point2D b){
-        float x=a.getX() - b.getX();
-        float y=a.getY() - b.getY();
+    public static float distanceWithoutSqrt(Point2D a, Point2D b) {
+        float x = a.getX() - b.getX();
+        float y = a.getY() - b.getY();
         // 暂时不考虑越界问题，游戏地图不应该存在这种情况
-        return x*x + y*y;
+        return x * x + y * y;
     }
 
     /**
      * 两个int相除，如果余数大于0，则进一
+     *
      * @param a int
      * @param b int
      * @return int
      */
-    public static int divideIntCeil(int a, int b){
+    public static int divideIntCeil(int a, int b) {
         int remainder = a % b;
-        if (remainder > 0){
-            return a/b + 1;
-        }else {
-            return a/b;
+        if (remainder > 0) {
+            return a / b + 1;
+        } else {
+            return a / b;
         }
     }
 
     /**
      * 是否在区间段内，左闭右开，包含左边界，不包含右边界
+     *
      * @param start 区间起始值 inclusive
-     * @param end 区间结束值 exclusive
+     * @param end   区间结束值 exclusive
      * @param value 待检测的值
      * @return
      */
-    public static boolean withinRange(int start, int end, int value){
+    public static boolean withinRange(int start, int end, int value) {
         return value >= start && value < end;
     }
 
     /**
      * 是否在区间段内，闭区间，包含双端边界
+     *
      * @param start 区间起始值 inclusive
-     * @param end 区间结束值 inclusive
+     * @param end   区间结束值 inclusive
      * @param value 待检测的值
      */
-    public static boolean withinRangeClosed(int start, int end, int value){
+    public static boolean withinRangeClosed(int start, int end, int value) {
         return value >= start && value <= end;
     }
 
     /**
      * 是否在区间段内，不包含双端边界值
+     *
      * @param start 区间起始值 exclusive
-     * @param end 区间结束值 exclusive
+     * @param end   区间结束值 exclusive
      * @param value 待检测的值
      * @return
      */
-    public static boolean betweenRange(int start, int end, int value){
+    public static boolean betweenRange(int start, int end, int value) {
         return value > start && value < end;
     }
 
     /**
      * 计算直线函数(直线函数不一定存在)
+     *
      * @param start 起始点
-     * @param end 结束点
+     * @param end   结束点
      * @return 两点所在的直线
      */
     public static StraightLine calStraightLine(Point2D start, Point2D end) {
         float dx = end.getX() - start.getX();
         // x的差值不能为0
-        if (Float.compare(dx,0.0f) == 0){
+        if (Float.compare(dx, 0.0f) == 0) {
             throw new IllegalArgumentException("bad line");
         }
 
         float dy = end.getY() - start.getY();
-        if (Float.compare(dy,0.0f) == 0){
+        if (Float.compare(dy, 0.0f) == 0) {
             // y的差值为0表示平行于x轴
             // 将y存为临时变量，避免捕获start对象(不仅内存泄漏，逻辑会还有bug，因为start可能是可变对象)
             // 警告：以lambda表达式作为返回值的，一定要注意捕获变量问题
@@ -186,18 +197,19 @@ public class MathUtils {
 
     /**
      * 计算直线上一点
+     *
      * @param straightLine 直线函数
-     * @param x x坐标
-     * @return Point2D(x,y)
+     * @param x            x坐标
+     * @return Point2D(x, y)
      */
-    public static Point2D calStraightLinePoint(StraightLine straightLine, float x){
-        return Point2D.newPoint2D(x,straightLine.apply(x));
+    public static Point2D calStraightLinePoint(StraightLine straightLine, float x) {
+        return Point2D.newPoint2D(x, straightLine.apply(x));
     }
 
     /**
      * 三点是否共线
      */
-    public static boolean isOneLine(Point2D a, Point2D b, Point2D c){
+    public static boolean isOneLine(Point2D a, Point2D b, Point2D c) {
         Point2D v1 = sub(b, a);
         Point2D v2 = sub(c, a);
         // B(向量) = λ * A(向量)
@@ -210,11 +222,12 @@ public class MathUtils {
 
     /**
      * 计算格子总行数
-     * @param mapHeight 地图高度
+     *
+     * @param mapHeight  地图高度
      * @param gridHeight 格子高度或宽度（正方形）
      * @return 格子总行数
      */
-    public static int rowCount(int mapHeight, int gridHeight){
+    public static int rowCount(int mapHeight, int gridHeight) {
         return MathUtils.divideIntCeil(mapHeight, gridHeight);
     }
 
@@ -222,55 +235,60 @@ public class MathUtils {
      * 计算一个点的行索引；
      * 需要注意越界问题，正方向边界需要-1；
      * 普通格子是不包含右侧边和上侧边的，而最右边格子包含右侧边，最上边格子包含上侧边；
-     * @param rowCount 总行数
+     *
+     * @param rowCount   总行数
      * @param gridHeight 格子高度
-     * @param y 当前所在y坐标
+     * @param y          当前所在y坐标
      * @return 当前y坐标对应的行索引
      */
-    public static int rowIndex(int rowCount, int gridHeight, float y){
+    public static int rowIndex(int rowCount, int gridHeight, float y) {
         return Math.min(rowCount - 1, (int) y / gridHeight);
     }
 
     /**
      * 计算格子总列数(进一法)
-     * @param mapWidth 地图总宽度
+     *
+     * @param mapWidth  地图总宽度
      * @param gridWidth 格子宽度
      * @return 格子总猎术
      */
-    public static int colCount(int mapWidth, int gridWidth){
+    public static int colCount(int mapWidth, int gridWidth) {
         return MathUtils.divideIntCeil(mapWidth, gridWidth);
     }
 
     /**
      * 计算一个点的列索引
-     * @param colCount 总列数
+     *
+     * @param colCount  总列数
      * @param gridWidth 格子宽度
-     * @param x 当前x坐标
+     * @param x         当前x坐标
      * @return
      */
-    public static int colIndex(int colCount, int gridWidth, float x){
+    public static int colIndex(int colCount, int gridWidth, float x) {
         return Math.min(colCount - 1, (int) x / gridWidth);
     }
 
     /**
      * 格子顶点坐标(针对宽高一样的格子)
-     * @param rowIndex 行索引，行索引对应的是Y索引 算出的是Y值
-     * @param colIndex 列索引，列索引对应的是X索引 算出的是X值
+     *
+     * @param rowIndex  行索引，行索引对应的是Y索引 算出的是Y值
+     * @param colIndex  列索引，列索引对应的是X索引 算出的是X值
      * @param gridWidth 格子宽度
      * @return
      */
-    public static Point2D gridVertexLocation(int rowIndex, int colIndex, int gridWidth){
+    public static Point2D gridVertexLocation(int rowIndex, int colIndex, int gridWidth) {
         return Point2D.newPoint2D(colIndex * gridWidth, rowIndex * gridWidth);
     }
 
     /**
      * 格子中心点坐标(针对宽高一样的格子)
-     * @param rowIndex 行索引，行索引对应的是Y索引 算出的是Y值
-     * @param colIndex 列索引，列索引对应的是X索引 算出的是X值
+     *
+     * @param rowIndex  行索引，行索引对应的是Y索引 算出的是Y值
+     * @param colIndex  列索引，列索引对应的是X索引 算出的是X值
      * @param gridWidth 格子宽度
      * @return
      */
-    public static Point2D gridCenterLocation(int rowIndex, int colIndex, int gridWidth){
+    public static Point2D gridCenterLocation(int rowIndex, int colIndex, int gridWidth) {
         return Point2D.newPoint2D((colIndex + 0.5f) * gridWidth, (rowIndex + 0.5f) * gridWidth);
     }
 
@@ -292,7 +310,7 @@ public class MathUtils {
      * @param centralAngle 圆心角
      * @return radAngle
      */
-    public static float radAngle(float centralAngle){
+    public static float radAngle(float centralAngle) {
         // (n * π) / 180
         return (centralAngle * PI) / 180;
     }
@@ -303,26 +321,26 @@ public class MathUtils {
      * @param radAngle 弧度角
      * @return centralAngle
      */
-    public static float centralAngle(float radAngle){
+    public static float centralAngle(float radAngle) {
         return (radAngle * 180) / PI;
     }
 
-    public static float radAngleSub(float angle,float delta){
+    public static float radAngleSub(float angle, float delta) {
         float v = angle - delta;
-        if ( v < -PI){
+        if (v < -PI) {
             // 越界
             return v + DOUBLE_PI;
-        }else {
+        } else {
             return v;
         }
     }
 
-    public static float radAngleAdd(float angle,float delta){
+    public static float radAngleAdd(float angle, float delta) {
         float v = angle + delta;
-        if (v > PI){
+        if (v > PI) {
             // 越界
             return v - DOUBLE_PI;
-        }else {
+        } else {
             return v;
         }
     }
@@ -330,9 +348,10 @@ public class MathUtils {
 
     /**
      * 以center为中心，指定朝向，指定长度处的一点。
+     *
      * @param center 中心点
-     * @param angle 在中心点的某个角度
-     * @param len 指定长度
+     * @param angle  在中心点的某个角度
+     * @param len    指定长度
      * @return new point 2D
      */
     public static Point2D directionPoint(Point2D center, float angle, float len) {
@@ -346,7 +365,7 @@ public class MathUtils {
     /**
      * 计算目标点相对于中心点的朝向。
      *
-     * @param center 中心点
+     * @param center         中心点
      * @param directionPoint 目标点
      * @return radiansAngle 弧度角
      */
@@ -360,49 +379,53 @@ public class MathUtils {
 
     /**
      * 判断两个float是否近似相等
+     *
      * @return 当两个float的差值在一定区间内时，我们认为其相等
      */
-    public static boolean equals(float a, float b){
-        return Math.abs(a-b) < FLOAT_DEVIATION;
+    public static boolean equals(float a, float b) {
+        return Math.abs(a - b) < FLOAT_DEVIATION;
     }
 
     /**
      * 判断两个double是否近似相等
+     *
      * @return 当两个double的差值在一定区间内时，我们认为其相等
      */
-    public static boolean equals(double a, double b){
-        return Math.abs(a-b) < DOUBLE_DEVIATION;
+    public static boolean equals(double a, double b) {
+        return Math.abs(a - b) < DOUBLE_DEVIATION;
     }
     // endregion
 
     // region 二维向量
+
     /**
      * 向量加
      */
-    public static Point2D add(Point2D p1, Point2D p2){
-        return add(p1, p2,Point2D.newPoint2D());
+    public static Point2D add(Point2D p1, Point2D p2) {
+        return add(p1, p2, Point2D.newPoint2D());
     }
 
-    public static Point2D add(Point2D p1, Point2D p2,Point2D result){
-       return result.redraw(p1.getX() + p2.getX(), p1.getY() + p2.getY());
+    public static Point2D add(Point2D p1, Point2D p2, Point2D result) {
+        return result.redraw(p1.getX() + p2.getX(), p1.getY() + p2.getY());
     }
 
     /**
      * 向量减
      */
-    public static Point2D sub(Point2D p1, Point2D p2){
-        return sub(p1,p2,Point2D.newPoint2D());
+    public static Point2D sub(Point2D p1, Point2D p2) {
+        return sub(p1, p2, Point2D.newPoint2D());
     }
 
     /**
      * 向量减 (p1 - p2)。
      * （由于向量减法用的太多，可能某些地方需要做缓存）
-     * @param p1 被减数
-     * @param p2 减数
+     *
+     * @param p1     被减数
+     * @param p2     减数
      * @param result 结果容器，新对象或缓存对象
      * @return param result
      */
-    public static Point2D sub(Point2D p1, Point2D p2,Point2D result){
+    public static Point2D sub(Point2D p1, Point2D p2, Point2D result) {
         return result.redraw(p1.getX() - p2.getX(),
                 p1.getY() - p2.getY());
     }
@@ -428,16 +451,17 @@ public class MathUtils {
      * 向量积的模（长度）可以解释成以a和b为邻边的平行四边形的面积。
      * （法线？）
      * - https://blog.csdn.net/dcrmg/article/details/52416832
+     *
      * @param p1
      * @param p2
      * @return
      */
     public static Point3D crossProduct(Point2D p1, Point2D p2) {
-        return Point3D.newPoint3D(0,0, crossProductValue(p1, p2));
+        return Point3D.newPoint3D(0, 0, crossProductValue(p1, p2));
     }
 
-    public static Point3D crossProduct(Point2D p1, Point2D p2,Point3D result) {
-        return result.redraw(0,0, crossProductValue(p1, p2));
+    public static Point3D crossProduct(Point2D p1, Point2D p2, Point3D result) {
+        return result.redraw(0, 0, crossProductValue(p1, p2));
     }
 
     /**
@@ -446,6 +470,7 @@ public class MathUtils {
      *      cross(a,b) = ax * by - ay * bx = norm(a)* norm(b) * sin< a, b >
      * }
      * </pre>
+     *
      * @param a
      * @param b
      * @return
@@ -462,7 +487,7 @@ public class MathUtils {
     /**
      * 向量加
      */
-    public static Point3D add(Point3D p1, Point3D p2){
+    public static Point3D add(Point3D p1, Point3D p2) {
         return Point3D.newPoint3D(p1.getX() + p2.getX(),
                 p1.getY() + p2.getY(),
                 p1.getZ() + p2.getZ());
@@ -471,19 +496,20 @@ public class MathUtils {
     /**
      * 向量减
      */
-    public static Point3D sub(Point3D p1, Point3D p2){
-        return sub(p1,p2,Point3D.newPoint3D());
+    public static Point3D sub(Point3D p1, Point3D p2) {
+        return sub(p1, p2, Point3D.newPoint3D());
     }
 
     /**
      * 计算向量p1 - p2的差，并将结果存入result对象。
      * （减法用的较多）
-     * @param p1 被减数
-     * @param p2 减数
+     *
+     * @param p1     被减数
+     * @param p2     减数
      * @param result 结果容器
      * @return param result
      */
-    public static Point3D sub(Point3D p1, Point3D p2,Point3D result){
+    public static Point3D sub(Point3D p1, Point3D p2, Point3D result) {
         return result.redraw(p1.getX() - p2.getX(),
                 p1.getY() - p2.getY(),
                 p1.getZ() - p2.getZ());
@@ -512,27 +538,28 @@ public class MathUtils {
      *          a * b = (y1*z2- y2*z1, -(x1*z2 - x2*z1) , x1*y2 - x2*y1)
      *     }
      * </pre>
-     *
+     * <p>
      * - https://blog.csdn.net/dcrmg/article/details/52416832
      * 在3D图像学中，叉乘的概念非常有用，可以通过两个向量的叉乘，生成第三个垂直于a，b的法向量，从而构建X、Y、Z坐标系。
      */
     public static Point3D crossProduct(Point3D a, Point3D b) {
-        return crossProduct(a, b,Point3D.newPoint3D());
+        return crossProduct(a, b, Point3D.newPoint3D());
     }
 
     /**
      * 计算 a 与 b 的叉乘，并将结果存入result
+     *
      * @param result 结果容器
      * @return result
      */
-    public static Point3D crossProduct(Point3D a, Point3D b,Point3D result) {
+    public static Point3D crossProduct(Point3D a, Point3D b, Point3D result) {
         // yz所在平面:  ay * bz - by * az
         float x = a.getY() * b.getZ() - b.getY() * a.getZ();
         // xz所在平面： -(ax * bz - bx * az)
-        float y = - (a.getX() * b.getZ() - b.getX() * a.getZ());
+        float y = -(a.getX() * b.getZ() - b.getX() * a.getZ());
         // xy所在平面： ax * by - bx * ay
         float z = a.getX() * b.getY() - b.getX() * a.getY();
-        return result.redraw(x,y,z);
+        return result.redraw(x, y, z);
     }
     // endregion
 }

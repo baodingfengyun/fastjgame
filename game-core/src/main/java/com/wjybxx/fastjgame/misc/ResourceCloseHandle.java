@@ -31,14 +31,14 @@ import java.io.IOException;
  */
 public class ResourceCloseHandle implements Closeable {
 
-	private final Closeable resource;
+    private final Closeable resource;
 
-	public ResourceCloseHandle(PathChildrenCache resource) {
-		this.resource = resource;
-	}
+    public ResourceCloseHandle(PathChildrenCache resource) {
+        this.resource = resource;
+    }
 
-	@Override
-	public void close() throws IOException {
-		resource.close();
-	}
+    @Override
+    public void close() throws IOException {
+        resource.close();
+    }
 }

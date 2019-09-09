@@ -26,6 +26,7 @@ import java.util.Set;
 
 /**
  * 适用于全部是字符串键值对的{@link Document}
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/22 11:13
@@ -47,13 +48,13 @@ public class DocumentConfigWrapper extends ConfigWrapper {
     @Override
     public String getAsString(String key) {
         Object value = document.get(key);
-        return null==value?null:String.valueOf(value);
+        return null == value ? null : String.valueOf(value);
     }
 
     @Override
     public MapConfigWrapper convert2MapWrapper() {
-        Map<String,String> result=new LinkedHashMap<>();
-        for (Map.Entry<String,Object> entry:document.entrySet()) {
+        Map<String, String> result = new LinkedHashMap<>();
+        for (Map.Entry<String, Object> entry : document.entrySet()) {
             // 这里的value不为null
             result.put(entry.getKey(), String.valueOf(entry.getValue()));
         }

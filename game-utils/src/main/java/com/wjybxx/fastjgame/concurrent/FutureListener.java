@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.concurrent;
 
 /**
  * Future的监听者。
- *
+ * <p>
  * 监听{@link ListenableFuture}的结果。一旦该listener通过{@link ListenableFuture#addListener(FutureListener)}添加到future上，
  * future上关联的异步操作完成时，就会收到通知。
  *
@@ -31,7 +31,6 @@ package com.wjybxx.fastjgame.concurrent;
  * </pre>
  *
  * @param <V> Listener期望消费的类型，也是Future生产的类型。
- *
  * @author wjybxx
  * @version 1.0
  * date - 2019/7/14
@@ -40,11 +39,12 @@ package com.wjybxx.fastjgame.concurrent;
 @FunctionalInterface
 public interface FutureListener<V> {
 
-	/**
-	 * 当监听的Future对应的操作完成时，该方法将会被调用。
-	 * @param future 监听器监听的future。PECS Future作为生产者，必须生产可供监听器消费的类型（V或V的子类型），因此使用extends。
-	 * @throws Exception error
-	 */
-	void onComplete(ListenableFuture<? extends V> future) throws Exception;
+    /**
+     * 当监听的Future对应的操作完成时，该方法将会被调用。
+     *
+     * @param future 监听器监听的future。PECS Future作为生产者，必须生产可供监听器消费的类型（V或V的子类型），因此使用extends。
+     * @throws Exception error
+     */
+    void onComplete(ListenableFuture<? extends V> future) throws Exception;
 
 }

@@ -75,7 +75,7 @@ public class ProtocolDispatcherMrg implements RpcFunctionRegistry, RpcCallDispat
         if (shutdown) {
             return;
         }
-        if (null == request){
+        if (null == request) {
             logger.warn("{} - {} send null request", session.remoteRole(), session.remoteGuid());
             return;
         }
@@ -87,7 +87,7 @@ public class ProtocolDispatcherMrg implements RpcFunctionRegistry, RpcCallDispat
         if (shutdown) {
             return;
         }
-        if (null == message){
+        if (null == message) {
             logger.warn("{} - {} send null message", session.remoteRole(), session.remoteGuid());
             return;
         }
@@ -100,6 +100,7 @@ public class ProtocolDispatcherMrg implements RpcFunctionRegistry, RpcCallDispat
 
     /**
      * 分发一个单向消息
+     *
      * @param session 所在的会话
      * @param message 单向消息
      */

@@ -33,18 +33,21 @@ public interface NetEventParam {
 
     /**
      * 获取网络事件对于的channel
+     *
      * @return eventChannel
      */
     Channel channel();
 
     /**
      * 本地节点的guid.
+     *
      * @return long
      */
     long localGuid();
 
     /**
      * 远程节点的guid
+     *
      * @return long
      */
     long remoteGuid();

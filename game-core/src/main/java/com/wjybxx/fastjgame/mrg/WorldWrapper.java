@@ -25,6 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * world需要的控制器的包装类，避免子类的构造方法出现大量对象
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/4/27 22:12
@@ -52,9 +53,9 @@ public class WorldWrapper {
 
     @Inject
     public WorldWrapper(GameEventLoopMrg gameEventLoopMrg, WorldInfoMrg worldInfoMrg, WorldTimeMrg worldTimeMrg,
-						ProtocolDispatcherMrg protocolDispatcherMrg, HttpDispatcherMrg httpDispatcherMrg,
-						ProtocolCodecMrg protocolCodecMrg, WorldTimerMrg worldTimerMrg, GlobalExecutorMrg globalExecutorMrg,
-						CuratorMrg curatorMrg, GuidMrg guidMrg, GameConfigMrg gameConfigMrg, NetContextMrg netContextMrg, CuratorClientMrg curatorClientMrg, TemplateMrg templateMrg, InnerAcceptorMrg innerAcceptorMrg) {
+                        ProtocolDispatcherMrg protocolDispatcherMrg, HttpDispatcherMrg httpDispatcherMrg,
+                        ProtocolCodecMrg protocolCodecMrg, WorldTimerMrg worldTimerMrg, GlobalExecutorMrg globalExecutorMrg,
+                        CuratorMrg curatorMrg, GuidMrg guidMrg, GameConfigMrg gameConfigMrg, NetContextMrg netContextMrg, CuratorClientMrg curatorClientMrg, TemplateMrg templateMrg, InnerAcceptorMrg innerAcceptorMrg) {
         this.gameEventLoopMrg = gameEventLoopMrg;
         this.worldInfoMrg = worldInfoMrg;
         this.worldTimeMrg = worldTimeMrg;

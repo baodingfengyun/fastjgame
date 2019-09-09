@@ -31,16 +31,17 @@ import com.wjybxx.fastjgame.net.RpcResponse;
 @FunctionalInterface
 public interface FailedRpcCallback extends RpcCallback {
 
-	@Override
-	default void onComplete(RpcResponse rpcResponse) {
-		if (!rpcResponse.isSuccess()) {
-			onFailure(rpcResponse);
-		}
-	}
+    @Override
+    default void onComplete(RpcResponse rpcResponse) {
+        if (!rpcResponse.isSuccess()) {
+            onFailure(rpcResponse);
+        }
+    }
 
-	/**
-	 * 当调用失败时
-	 * @param rpcResponse rpc调用结果
-	 */
-	void onFailure(RpcResponse rpcResponse);
+    /**
+     * 当调用失败时
+     *
+     * @param rpcResponse rpc调用结果
+     */
+    void onFailure(RpcResponse rpcResponse);
 }

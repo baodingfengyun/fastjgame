@@ -20,6 +20,7 @@ import javax.annotation.Nonnull;
 
 /**
  * 场景对象都有一份与场景无关的数据
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/23 0:19

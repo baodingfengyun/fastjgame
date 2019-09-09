@@ -68,19 +68,20 @@ public class HttpClientManager {
     /**
      * 同步get请求
      */
-    public Response syncGet(String url, Map<String,String> params) throws IOException {
+    public Response syncGet(String url, Map<String, String> params) throws IOException {
         Request request = new Request.Builder().get().url(buildGetUrl(url, params)).build();
         return okHttpClient.newCall(request).execute();
     }
 
     /**
      * 异步get请求
-     * @param url url
-     * @param params get参数
-     * @param eventLoop 用户线程，可以实现线程安全
+     *
+     * @param url            url
+     * @param params         get参数
+     * @param eventLoop      用户线程，可以实现线程安全
      * @param okHttpCallback 回调
      */
-    public void asyncGet(String url, Map<String,String> params, EventLoop eventLoop, OkHttpCallback okHttpCallback){
+    public void asyncGet(String url, Map<String, String> params, EventLoop eventLoop, OkHttpCallback okHttpCallback) {
         Request request = new Request.Builder().get().url(buildGetUrl(url, params)).build();
         okHttpClient.newCall(request).enqueue(new DelegateEventCallBack(eventLoop, okHttpCallback));
     }
@@ -88,46 +89,49 @@ public class HttpClientManager {
     /**
      * 同步post请求
      */
-    public Response syncPost(String url, Map<String,String> params) throws IOException {
+    public Response syncPost(String url, Map<String, String> params) throws IOException {
         Request request = new Request.Builder().url(checkUrl(url)).post(buildPostBody(params)).build();
         return okHttpClient.newCall(request).execute();
     }
 
     /**
      * 异步post请求
-     * @param url url
-     * @param params post参数
-     * @param eventLoop 用户线程，可以实现线程安全
+     *
+     * @param url            url
+     * @param params         post参数
+     * @param eventLoop      用户线程，可以实现线程安全
      * @param okHttpCallback 回调
      */
-    public void asyncPost(String url, Map<String,String> params, EventLoop eventLoop, OkHttpCallback okHttpCallback){
+    public void asyncPost(String url, Map<String, String> params, EventLoop eventLoop, OkHttpCallback okHttpCallback) {
         Request request = new Request.Builder().url(checkUrl(url)).post(buildPostBody(params)).build();
         okHttpClient.newCall(request).enqueue(new DelegateEventCallBack(eventLoop, okHttpCallback));
     }
 
     /**
      * 构建get请求的参数部分
-     * @param url 远程地址
+     *
+     * @param url    远程地址
      * @param params get请求参数
      * @return full request
      */
-    private String buildGetUrl(String url,Map<String,String> params){
+    private String buildGetUrl(String url, Map<String, String> params) {
         String safeUrl = checkUrl(url);
         StringBuilder builder = new StringBuilder(safeUrl);
         // 是否添加&符号
         boolean appendAnd = false;
-        for (Map.Entry<String,String> entry:params.entrySet()){
-            if (appendAnd){
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            if (appendAnd) {
                 builder.append("&");
             }
             builder.append(entry.getKey()).append("=").append(entry.getValue());
-            appendAnd=true;
+            appendAnd = true;
         }
         return builder.toString();
     }
 
     /**
      * 检查url格式，默认http协议
+     *
      * @param url 待检查的url
      * @return 正确的url格式
      */
@@ -139,7 +143,7 @@ public class HttpClientManager {
             safeUrl = "http://" + url;
         }
         // 末尾添加参数之前添加?
-        if (safeUrl.charAt(safeUrl.length()-1) != '?'){
+        if (safeUrl.charAt(safeUrl.length() - 1) != '?') {
             safeUrl = safeUrl + "?";
         }
         return safeUrl;
@@ -147,13 +151,14 @@ public class HttpClientManager {
 
     /**
      * 构建post请求的数据部分
+     *
      * @param params post参数
      * @return body
      */
-    private RequestBody buildPostBody(Map<String,String> params){
+    private RequestBody buildPostBody(Map<String, String> params) {
         FormBody.Builder builder = new FormBody.Builder();
-        for (Map.Entry<String,String> entry:params.entrySet()){
-            builder.add(entry.getKey(),entry.getValue());
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            builder.add(entry.getKey(), entry.getValue());
         }
         return builder.build();
     }
@@ -177,7 +182,7 @@ public class HttpClientManager {
             ConcurrentUtils.tryCommit(eventLoop, () -> {
                 try {
                     responseCallback.onFailure(call, cause);
-                } catch (Exception e2){
+                } catch (Exception e2) {
                     logger.warn("{} onFailure caught exception", call.request().url(), e2);
                 }
             });
@@ -193,7 +198,7 @@ public class HttpClientManager {
                     logger.warn("{} onResponse caught exception", call.request().url(), e);
                 } finally {
                     // 必须调用close释放资源
-                    if (response.body() != null){
+                    if (response.body() != null) {
                         NetUtils.closeQuietly(response);
                     }
                 }

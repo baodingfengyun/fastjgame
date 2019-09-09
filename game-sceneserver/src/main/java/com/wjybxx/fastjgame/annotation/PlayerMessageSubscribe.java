@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
 
 /**
  * 玩家消息订阅者，表示处理玩家发来的该类型消息。<br>
- *
+ * <p>
  * 方法必须满足以下要求，否则编译会报错：
  * <li>1. 函数必须是两个参数：第一个必须Player类型参数，第二个参数为具体消息类型参数。 也就是可以转换为{@link PlayerMessageFunction}</li>
  * <li>2. 必须是public </li>

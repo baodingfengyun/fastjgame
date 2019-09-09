@@ -23,7 +23,7 @@ import java.util.Map;
 
 /**
  * FastUtil的Map的加载因子;
- *
+ * <p>
  * JDK的hashMap 和 FastUtil的hashMap都是当容量大于阈值的时候触发扩容；
  * <pre>
  * {@code
@@ -56,7 +56,7 @@ import java.util.Map;
  */
 public class LoadFactorTest {
 
-    private static int nextSize(int cap){
+    private static int nextSize(int cap) {
         int n = cap - 1;
         n |= n >>> 1;
         n |= n >>> 2;
@@ -83,12 +83,12 @@ public class LoadFactorTest {
 
     /**
      * 测试fastUtilMap的扩容
-     *
+     * <p>
      * size > maxFill 扩容
      */
     private static void testFastMap() {
         int size = 0;
-        if (size++ >= getMaxFill()){
+        if (size++ >= getMaxFill()) {
             System.out.println("inner " + size);
         }
         System.out.println("outer " + size);
@@ -96,40 +96,41 @@ public class LoadFactorTest {
         // if (size ++ >= maxFill) 是判定再加，这种写法容易搞晕，一不小心就晕
         // 表示插入之前的容量已经到达阈值则扩容，<=> 插入后的size大于阈值则扩容
         // 等价于JDK的  ++size > maxFill
-        Long2ObjectOpenHashMap<String> map3 = new Long2ObjectOpenHashMap<>(3,1);
-        putN(map3,4);
+        Long2ObjectOpenHashMap<String> map3 = new Long2ObjectOpenHashMap<>(3, 1);
+        putN(map3, 4);
 
-        Long2ObjectOpenHashMap<String> map4 = new Long2ObjectOpenHashMap<>(4,1);
-        putN(map4,5);
+        Long2ObjectOpenHashMap<String> map4 = new Long2ObjectOpenHashMap<>(4, 1);
+        putN(map4, 5);
     }
 
     /**
      * 测试hashMap扩容
-     *
+     * <p>
      * 插入后的size大于阈值则扩容
      */
-    private static void testHashMap(){
+    private static void testHashMap() {
         int size = 0;
-        if (++size >= getMaxFill()){
+        if (++size >= getMaxFill()) {
             System.out.println("inner " + size);
         }
         System.out.println("outer " + size);
 
         //  hashMap 又是 ++ size,是先加再判定
         //  if (++size > threshold)
-        HashMap<Long,String> map4 = new HashMap<>(4,1);
-        putN(map4,5);
+        HashMap<Long, String> map4 = new HashMap<>(4, 1);
+        putN(map4, 5);
     }
 
     /**
      * 放入n个数
+     *
      * @param map
      * @param n
      */
-    private static void putN (Map<Long,String> map, int n){
-        for (int index=0; index<n; index++){
+    private static void putN(Map<Long, String> map, int n) {
+        for (int index = 0; index < n; index++) {
             long key = map.size() + 1;
-            map.put(key,""+key);
+            map.put(key, "" + key);
             System.out.println("break point");
         }
     }

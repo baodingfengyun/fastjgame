@@ -27,6 +27,7 @@ import java.util.Map;
 
 /**
  * {@link MessageFunctionRegistry}的默认实现。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/24
@@ -34,49 +35,48 @@ import java.util.Map;
  */
 public class DefaultMessageDispatcher implements MessageFunctionRegistry, MessageDispatcher {
 
-	private static final Logger logger = LoggerFactory.getLogger(DefaultMessageDispatcher.class);
+    private static final Logger logger = LoggerFactory.getLogger(DefaultMessageDispatcher.class);
 
-	/**
-	 * 类型到处理器的映射。
-	 */
-	private final Map<Class<?>, MessageFunction<?>> handlerMap = new IdentityHashMap<>(512);
+    /**
+     * 类型到处理器的映射。
+     */
+    private final Map<Class<?>, MessageFunction<?>> handlerMap = new IdentityHashMap<>(512);
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public final <T extends AbstractMessage> void register(@Nonnull Class<T> clazz, @Nonnull MessageFunction<T> handler) {
-		final MessageFunction<?> existHandler = handlerMap.get(clazz);
-		// 该类型目前还没有被注册
-		if (existHandler == null) {
-			handlerMap.put(clazz, handler);
-			return;
-		}
-		if (existHandler instanceof CompositeMessageFunction) {
-			((CompositeMessageFunction)existHandler).addHandler(handler);
-		} else {
-			// 已存在该类型的处理器了，我们提供CompositeMessageHandler将其封装为统一结构
-			handlerMap.put(clazz, new CompositeMessageFunction(existHandler, handler));
-		}
-	}
+    @SuppressWarnings("unchecked")
+    @Override
+    public final <T extends AbstractMessage> void register(@Nonnull Class<T> clazz, @Nonnull MessageFunction<T> handler) {
+        final MessageFunction<?> existHandler = handlerMap.get(clazz);
+        // 该类型目前还没有被注册
+        if (existHandler == null) {
+            handlerMap.put(clazz, handler);
+            return;
+        }
+        if (existHandler instanceof CompositeMessageFunction) {
+            ((CompositeMessageFunction) existHandler).addHandler(handler);
+        } else {
+            // 已存在该类型的处理器了，我们提供CompositeMessageHandler将其封装为统一结构
+            handlerMap.put(clazz, new CompositeMessageFunction(existHandler, handler));
+        }
+    }
 
-	@Override
-	public void release() {
-		handlerMap.clear();
-	}
+    @Override
+    public void release() {
+        handlerMap.clear();
+    }
 
-	@Override
-	public final <T extends AbstractMessage> void post(@Nonnull Session session, @Nonnull T message) {
-		@SuppressWarnings("unchecked")
-		final MessageFunction<T> messageFunction = (MessageFunction<T>) handlerMap.get(message.getClass());
-		if (null == messageFunction) {
-			logger.warn("{} - {} send unregistered message {}",
-					session.remoteRole(), session.remoteGuid(), message.getClass().getName());
-			return;
-		}
-		try {
-			messageFunction.onMessage(session, message);
-		} catch (Exception e){
-			logger.warn("Handler onMessage caught exception!, handler {}, message {}",
-					messageFunction.getClass().getName(), message.getClass().getName(), e);
-		}
-	}
+    @Override
+    public final <T extends AbstractMessage> void post(@Nonnull Session session, @Nonnull T message) {
+        @SuppressWarnings("unchecked") final MessageFunction<T> messageFunction = (MessageFunction<T>) handlerMap.get(message.getClass());
+        if (null == messageFunction) {
+            logger.warn("{} - {} send unregistered message {}",
+                    session.remoteRole(), session.remoteGuid(), message.getClass().getName());
+            return;
+        }
+        try {
+            messageFunction.onMessage(session, message);
+        } catch (Exception e) {
+            logger.warn("Handler onMessage caught exception!, handler {}, message {}",
+                    messageFunction.getClass().getName(), message.getClass().getName(), e);
+        }
+    }
 }

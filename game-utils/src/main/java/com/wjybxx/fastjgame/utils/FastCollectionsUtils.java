@@ -29,6 +29,7 @@ import java.util.Map;
 
 /**
  * 针对fastUtil集合的帮助类
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/9 12:36
@@ -55,14 +56,14 @@ public class FastCollectionsUtils {
         Long2ObjectMap.Entry<V> entry;
         long k;
         V v;
-        while (itr.hasNext()){
+        while (itr.hasNext()) {
             entry = itr.next();
-            k=entry.getLongKey();
-            v=entry.getValue();
-            if (predicate.test(k,v)){
+            k = entry.getLongKey();
+            v = entry.getValue();
+            if (predicate.test(k, v)) {
                 itr.remove();
                 removeNum++;
-                then.accept(k,v);
+                then.accept(k, v);
             }
         }
         return removeNum;
@@ -83,14 +84,14 @@ public class FastCollectionsUtils {
         Int2ObjectMap.Entry<V> entry;
         int k;
         V v;
-        while (itr.hasNext()){
+        while (itr.hasNext()) {
             entry = itr.next();
-            k=entry.getIntKey();
-            v=entry.getValue();
-            if (predicate.test(k,v)){
+            k = entry.getIntKey();
+            v = entry.getValue();
+            if (predicate.test(k, v)) {
                 itr.remove();
                 removeNum++;
-                then.accept(k,v);
+                then.accept(k, v);
             }
         }
         return removeNum;
@@ -111,14 +112,14 @@ public class FastCollectionsUtils {
         Short2ObjectMap.Entry<V> entry;
         short k;
         V v;
-        while (itr.hasNext()){
+        while (itr.hasNext()) {
             entry = itr.next();
-            k=entry.getShortKey();
-            v=entry.getValue();
-            if (predicate.test(k,v)){
+            k = entry.getShortKey();
+            v = entry.getValue();
+            if (predicate.test(k, v)) {
                 itr.remove();
                 removeNum++;
-                then.accept(k,v);
+                then.accept(k, v);
             }
         }
         return removeNum;
@@ -126,37 +127,38 @@ public class FastCollectionsUtils {
 
     // region 要求制定键值不存在 或 存在
 
-    public static <V> void requireNotContains(Int2ObjectMap<V> map,int key,String msg){
-        if (map.containsKey(key)){
+    public static <V> void requireNotContains(Int2ObjectMap<V> map, int key, String msg) {
+        if (map.containsKey(key)) {
             throw new IllegalArgumentException("duplicate " + msg + "-" + key);
         }
     }
-    public static <V> void requireContains(Int2ObjectMap<V> map,int key,String msg){
-        if (!map.containsKey(key)){
+
+    public static <V> void requireContains(Int2ObjectMap<V> map, int key, String msg) {
+        if (!map.containsKey(key)) {
             throw new IllegalArgumentException("nonexistent " + msg + "-" + key);
         }
     }
 
-    public static <V> void requireNotContains(Long2ObjectMap<V> map,long key,String msg){
-        if (map.containsKey(key)){
+    public static <V> void requireNotContains(Long2ObjectMap<V> map, long key, String msg) {
+        if (map.containsKey(key)) {
             throw new IllegalArgumentException("duplicate " + msg + "-" + key);
         }
     }
 
-    public static <V> void requireContains(Long2ObjectMap<V> map,long key,String msg){
-        if (!map.containsKey(key)){
+    public static <V> void requireContains(Long2ObjectMap<V> map, long key, String msg) {
+        if (!map.containsKey(key)) {
             throw new IllegalArgumentException("nonexistent " + msg + "-" + key);
         }
     }
 
-    public static <V> void requireNotContains(Short2ObjectMap<V> map,short key,String msg){
-        if (map.containsKey(key)){
+    public static <V> void requireNotContains(Short2ObjectMap<V> map, short key, String msg) {
+        if (map.containsKey(key)) {
             throw new IllegalArgumentException("duplicate " + msg + "-" + key);
         }
     }
 
-    public static <V> void requireContains(Short2ObjectMap<V> map,short key,String msg){
-        if (!map.containsKey(key)){
+    public static <V> void requireContains(Short2ObjectMap<V> map, short key, String msg) {
+        if (!map.containsKey(key)) {
             throw new IllegalArgumentException("nonexistent " + msg + "-" + key);
         }
     }
@@ -172,13 +174,13 @@ public class FastCollectionsUtils {
      * FastUtil的集合是基于数组的，解决冲突采用的是线性探测法！因此不扩容的情况下能存储的元素个数是确定的；
      * 而Jdk的集合特殊基于数组的，但是解决冲突采用的是链表/树，因此能存储大于数组容量的元素。
      *
-     * @param constructor map的构造器函数
+     * @param constructor  map的构造器函数
      * @param initCapacity 初始容量 大于0有效
-     * @param <K> key的类型
-     * @param <V> value的类型
+     * @param <K>          key的类型
+     * @param <V>          value的类型
      * @return M
      */
-    public static <K,V,M extends Map<K,V>> M newEnoughCapacityMap(MapConstructor<M> constructor, int initCapacity){
+    public static <K, V, M extends Map<K, V>> M newEnoughCapacityMap(MapConstructor<M> constructor, int initCapacity) {
         // fastUtil 需要 + 1,JDK的不需要
         return initCapacity > 0 ? constructor.newMap(initCapacity + 1, 1) : constructor.newMap(16, 0.75f);
     }
@@ -187,21 +189,21 @@ public class FastCollectionsUtils {
      * @see #newEnoughCapacityMap(MapConstructor, int)
      */
     public static <V> Long2ObjectMap<V> newEnoughCapacityLongMap(int initCapacity) {
-        return newEnoughCapacityMap(Long2ObjectOpenHashMap::new,initCapacity);
+        return newEnoughCapacityMap(Long2ObjectOpenHashMap::new, initCapacity);
     }
 
     /**
      * @see #newEnoughCapacityMap(MapConstructor, int)
      */
     public static <V> Int2ObjectMap<V> newEnoughCapacityIntMap(int initCapacity) {
-        return newEnoughCapacityMap(Int2ObjectOpenHashMap::new,initCapacity);
+        return newEnoughCapacityMap(Int2ObjectOpenHashMap::new, initCapacity);
     }
 
     /**
      * @see #newEnoughCapacityMap(MapConstructor, int)
      */
     public static <V> Short2ObjectMap<V> newEnoughCapacityShortMap(int initCapacity) {
-        return newEnoughCapacityMap(Short2ObjectOpenHashMap::new,initCapacity);
+        return newEnoughCapacityMap(Short2ObjectOpenHashMap::new, initCapacity);
     }
 
     // endregion

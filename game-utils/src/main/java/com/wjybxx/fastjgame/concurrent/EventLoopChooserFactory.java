@@ -20,6 +20,7 @@ import javax.annotation.Nonnull;
 
 /**
  * EventLoop选择器工厂
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/7/14
@@ -27,6 +28,6 @@ import javax.annotation.Nonnull;
  */
 public interface EventLoopChooserFactory {
 
-	@Nonnull
-	EventLoopChooser newChooser(EventLoop[] children);
+    @Nonnull
+    EventLoopChooser newChooser(EventLoop[] children);
 }

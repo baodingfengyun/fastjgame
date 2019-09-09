@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 连接的接收方建立的会话信息。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/4/27 10:18
@@ -37,7 +38,7 @@ public class S2CSessionImp extends AbstractSession implements S2CSession {
 
     private final NetContext netContext;
     /**
-     *获取通用控制器
+     * 获取通用控制器
      */
     private final NetManagerWrapper netManagerWrapper;
     /**

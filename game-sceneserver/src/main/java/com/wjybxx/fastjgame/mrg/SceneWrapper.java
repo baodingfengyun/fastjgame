@@ -20,6 +20,7 @@ import com.google.inject.Inject;
 
 /**
  * 封装scene需要的控制器
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/4 19:33

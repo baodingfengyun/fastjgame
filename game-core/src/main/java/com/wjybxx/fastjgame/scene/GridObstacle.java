@@ -23,6 +23,7 @@ import com.wjybxx.fastjgame.utils.EnumUtils;
 /**
  * 格子遮挡标记；
  * 没有使用更加高效的int值，因为可读性会较差，而{@link java.util.EnumSet}也是基于位运算的；
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/4 13:30
@@ -55,7 +56,7 @@ public enum GridObstacle implements NumberEnum {
 
     private static final NumberEnumMapper<GridObstacle> mapper = EnumUtils.indexNumberEnum(values());
 
-    public static GridObstacle forNumber(int number){
+    public static GridObstacle forNumber(int number) {
         return mapper.forNumber(number);
     }
 

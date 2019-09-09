@@ -28,18 +28,20 @@ import javax.annotation.concurrent.NotThreadSafe;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public interface TimeoutHandle extends TimerHandle{
+public interface TimeoutHandle extends TimerHandle {
 
-	/**
-	 * 指定的超时时间。
-	 * @return 毫秒
-	 */
-	long timeout();
+    /**
+     * 指定的超时时间。
+     *
+     * @return 毫秒
+     */
+    long timeout();
 
-	/**
-	 * 更新超时时间，立即生效。
-	 * @param timeout 新的超时时间
-	 * @return 更新成功则返回true
-	 */
-	boolean setTimeoutImmediately(long timeout);
+    /**
+     * 更新超时时间，立即生效。
+     *
+     * @param timeout 新的超时时间
+     * @return 更新成功则返回true
+     */
+    boolean setTimeoutImmediately(long timeout);
 }

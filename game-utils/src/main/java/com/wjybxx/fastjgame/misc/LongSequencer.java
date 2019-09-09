@@ -22,6 +22,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * long类型的序号分配器。
  * 采用递增方式分配。
  * 由于使用的地方还挺多，整合出一个类来。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/6 20:42
@@ -44,33 +45,37 @@ public final class LongSequencer {
 
     /**
      * 获取当前值
+     *
      * @return
      */
-    public long get(){
+    public long get() {
         return value;
     }
 
     /**
      * 设置序号
+     *
      * @param sequence 指定值
      */
-    public void set(long sequence){
-        this.value=sequence;
+    public void set(long sequence) {
+        this.value = sequence;
     }
 
     /**
      * 返回之后+1
+     *
      * @return
      */
-    public long getAndInc(){
+    public long getAndInc() {
         return value++;
     }
 
     /**
      * +1之后返回
+     *
      * @return
      */
-    public long incAndGet(){
+    public long incAndGet() {
         return ++value;
     }
 

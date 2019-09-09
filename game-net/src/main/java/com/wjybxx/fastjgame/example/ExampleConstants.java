@@ -22,6 +22,7 @@ import com.wjybxx.fastjgame.net.RoleType;
 
 /**
  * 测试用例的常量
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/6
@@ -29,24 +30,34 @@ import com.wjybxx.fastjgame.net.RoleType;
  */
 public final class ExampleConstants {
 
-	/** 服务端信息 */
-	public static final long serverGuid = 22222;
-	public static final RoleType serverRole = RoleType.TEST_SERVER;
-	/** 客户端信息 */
-	public static final long clientGuid = 11111;
-	public static final RoleType clientRole = RoleType.TEST_CLIENT;
+    /**
+     * 服务端信息
+     */
+    public static final long serverGuid = 22222;
+    public static final RoleType serverRole = RoleType.TEST_SERVER;
+    /**
+     * 客户端信息
+     */
+    public static final long clientGuid = 11111;
+    public static final RoleType clientRole = RoleType.TEST_CLIENT;
 
-	/** 测试用例使用的codec */
-	public static final MessageMapper messageMapper = MessageMapper.newInstance(new ExampleHashMappingStrategy());
-	public static final JsonBasedProtocolCodec jsonBasedCodec = new JsonBasedProtocolCodec(messageMapper);
-	public static final ReflectBasedProtocolCodec reflectBasedCodec = ReflectBasedProtocolCodec.newInstance(messageMapper);
+    /**
+     * 测试用例使用的codec
+     */
+    public static final MessageMapper messageMapper = MessageMapper.newInstance(new ExampleHashMappingStrategy());
+    public static final JsonBasedProtocolCodec jsonBasedCodec = new JsonBasedProtocolCodec(messageMapper);
+    public static final ReflectBasedProtocolCodec reflectBasedCodec = ReflectBasedProtocolCodec.newInstance(messageMapper);
 
-	/** tcp端口 */
-	public static final int tcpPort = 23333;
-	/** http端口 */
-	public static final int httpPort = 54321;
+    /**
+     * tcp端口
+     */
+    public static final int tcpPort = 23333;
+    /**
+     * http端口
+     */
+    public static final int httpPort = 54321;
 
-	private ExampleConstants() {
+    private ExampleConstants() {
 
-	}
+    }
 }

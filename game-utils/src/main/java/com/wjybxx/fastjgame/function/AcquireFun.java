@@ -28,6 +28,7 @@ public interface AcquireFun {
 
     /**
      * 申请资源，直到成功或中断
+     *
      * @throws InterruptedException 如果在申请资源期间被中断，则可能抛出该异常
      */
     void acquire() throws InterruptedException;

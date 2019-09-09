@@ -31,14 +31,16 @@ public interface ProtocolDispatcher {
 
     /**
      * 处理该会话发来的Rpc请求
-     * @param session 会话信息
-     * @param request rpc请求，如果编解码异常，则可能为null。
+     *
+     * @param session         会话信息
+     * @param request         rpc请求，如果编解码异常，则可能为null。
      * @param responseChannel 用于返回结果的通道
      */
     void postRpcRequest(Session session, @Nullable Object request, RpcResponseChannel<?> responseChannel);
 
     /**
      * 处理该会话发来单向的消息
+     *
      * @param session 会话信息
      * @param message 业务逻辑消息，如果编解码异常，则可能为null。
      */

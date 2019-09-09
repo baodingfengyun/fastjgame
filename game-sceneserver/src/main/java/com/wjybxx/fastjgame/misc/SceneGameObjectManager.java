@@ -20,6 +20,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * 对外提供访问场景内当前对象的接口
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/31 23:03

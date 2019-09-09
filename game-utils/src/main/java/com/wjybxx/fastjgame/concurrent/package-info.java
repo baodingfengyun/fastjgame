@@ -19,7 +19,6 @@
  * 整体来说是参考的Netty的EventLoop实现，Netty的并发包较为庞大，支持的东西较多，
  * 这里只取需要的部分，将其简化。有部分类就是Netty的，之所以进行拷贝，是因为希望这个包不引入Netty。
  *
- *
  * @author wjybxx
  * @version 1.0
  * date - 2019/7/13 0:40

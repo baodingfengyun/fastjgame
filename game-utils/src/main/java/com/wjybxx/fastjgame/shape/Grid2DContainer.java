@@ -20,6 +20,7 @@ import com.wjybxx.fastjgame.utils.MathUtils;
 
 /**
  * 2D格子容器
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/11 17:08
@@ -28,23 +29,24 @@ import com.wjybxx.fastjgame.utils.MathUtils;
 public interface Grid2DContainer<T extends Grid2D> {
 
     T[][] getAllGrids();
-    
-    default int getRowCount(){
+
+    default int getRowCount() {
         return getAllGrids().length;
     }
-    
-    default int getColCount(){
+
+    default int getColCount() {
         return getAllGrids()[0].length;
     }
 
     /**
      * 检查格子索引是否在容器内
      * (数学计算)
+     *
      * @param x 列索引
      * @param y 行索引
      * @return
      */
-    default boolean inside(int x, int y){
+    default boolean inside(int x, int y) {
         return MathUtils.withinRange(0, getColCount(), x) &&
                 MathUtils.withinRange(0, getRowCount(), y);
     }
@@ -53,22 +55,24 @@ public interface Grid2DContainer<T extends Grid2D> {
      * 获取指定行列位置格子。
      * 使用前请调用{@link #inside(int, int)}检查是否合法；
      * (数学计算)
+     *
      * @param x 列索引
      * @param y 行索引
      */
-    default T getGrid(int x, int y){
+    default T getGrid(int x, int y) {
         return getAllGrids()[y][x];
     }
 
     /**
      * 检查格子索引是否在容器内
      * (debug)
+     *
      * @param rowIndex 行索引
      * @param colIndex 列索引
      * @return
      */
-    default boolean inside2(int rowIndex, int colIndex){
-        return MathUtils.withinRange(0, getRowCount(), rowIndex)&&
+    default boolean inside2(int rowIndex, int colIndex) {
+        return MathUtils.withinRange(0, getRowCount(), rowIndex) &&
                 MathUtils.withinRange(0, getColCount(), colIndex);
     }
 
@@ -76,10 +80,11 @@ public interface Grid2DContainer<T extends Grid2D> {
      * 获取指定行列位置格子。
      * 使用前请调用{@link #inside2(int, int)}检查是否合法;
      * (debug)
+     *
      * @param rowIndex 行索引
      * @param colIndex 列索引
      */
-    default T getGrid2(int rowIndex, int colIndex){
+    default T getGrid2(int rowIndex, int colIndex) {
         return getAllGrids()[rowIndex][colIndex];
     }
 }

@@ -23,6 +23,7 @@ import com.wjybxx.fastjgame.world.World;
 
 /**
  * 场景模块需要绑定的对象(依赖注入管理的对象)
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/16 21:20

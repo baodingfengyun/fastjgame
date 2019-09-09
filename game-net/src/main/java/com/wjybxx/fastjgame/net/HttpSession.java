@@ -34,48 +34,51 @@ import javax.annotation.Nonnull;
  */
 public interface HttpSession {
 
-	/**
-	 * 监听端口的本地对象的guid
-	 */
-	long localGuid();
+    /**
+     * 监听端口的本地对象的guid
+     */
+    long localGuid();
 
-	/**
-	 * 监听端口的本地对象的类型
-	 */
-	RoleType localRole();
+    /**
+     * 监听端口的本地对象的类型
+     */
+    RoleType localRole();
 
-	/**
-	 * 绑定的本地端口
-	 */
-	@Nonnull
-	HostAndPort localAddress();
+    /**
+     * 绑定的本地端口
+     */
+    @Nonnull
+    HostAndPort localAddress();
 
-	/**
-	 * session是否处于活动状态
-	 * @return true/false
-	 */
-	boolean isAlive();
+    /**
+     * session是否处于活动状态
+     *
+     * @return true/false
+     */
+    boolean isAlive();
 
-	/**
-	 * 关闭session。
-	 * 子类实现必须线程安全。
-	 */
-	ListenableFuture<?> close();
+    /**
+     * 关闭session。
+     * 子类实现必须线程安全。
+     */
+    ListenableFuture<?> close();
 
-	/**
-	 * 发送一个响应
-	 * @param response 响应内容
-	 * @return 注意相同的警告，建议使用{@link ChannelFuture#await()} 和{@link ChannelFuture#isSuccess()}
-	 * 代替{@link ChannelFuture#sync()}
-	 */
-	ChannelFuture writeAndFlush(HttpResponse response);
+    /**
+     * 发送一个响应
+     *
+     * @param response 响应内容
+     * @return 注意相同的警告，建议使用{@link ChannelFuture#await()} 和{@link ChannelFuture#isSuccess()}
+     * 代替{@link ChannelFuture#sync()}
+     */
+    ChannelFuture writeAndFlush(HttpResponse response);
 
-	/**
-	 * 发送一个http结果对象
-	 * @param <T> builder自身
-	 * @param builder 建造者
-	 * @return  注意相同的警告，建议使用{@link ChannelFuture#await()} 和{@link ChannelFuture#isSuccess()}
-	 * 			代替{@link ChannelFuture#sync()}
-	 */
-	<T extends HttpResponseBuilder<T>> ChannelFuture writeAndFlush(HttpResponseBuilder<T> builder);
+    /**
+     * 发送一个http结果对象
+     *
+     * @param <T>     builder自身
+     * @param builder 建造者
+     * @return 注意相同的警告，建议使用{@link ChannelFuture#await()} 和{@link ChannelFuture#isSuccess()}
+     * 代替{@link ChannelFuture#sync()}
+     */
+    <T extends HttpResponseBuilder<T>> ChannelFuture writeAndFlush(HttpResponseBuilder<T> builder);
 }

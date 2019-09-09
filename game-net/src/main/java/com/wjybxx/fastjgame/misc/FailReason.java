@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.misc;
 
 /**
  * token验证失败原因
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/9 17:03

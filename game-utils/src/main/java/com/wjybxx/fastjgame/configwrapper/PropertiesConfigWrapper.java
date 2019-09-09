@@ -23,6 +23,7 @@ import java.util.Set;
 
 /**
  * 基于Properties的配置的包装器。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/4/27 12:56
@@ -45,15 +46,15 @@ public final class PropertiesConfigWrapper extends ConfigWrapper {
     }
 
     @Override
-    public String getAsString(String key){
+    public String getAsString(String key) {
         return properties.getProperty(key);
     }
 
     @Override
     public MapConfigWrapper convert2MapWrapper() {
-        HashMap<String,String> map=new HashMap<>();
-        for (String name:properties.stringPropertyNames()){
-            map.put(name,properties.getProperty(name));
+        HashMap<String, String> map = new HashMap<>();
+        for (String name : properties.stringPropertyNames()) {
+            map.put(name, properties.getProperty(name));
         }
         return new MapConfigWrapper(map);
     }

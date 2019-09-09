@@ -34,6 +34,7 @@ import java.io.File;
 
 /**
  * 启动器
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/5
@@ -41,41 +42,51 @@ import java.io.File;
  */
 public class StartUp {
 
-    /** 战区服参数 */
-    private static final String[] warzoneArgs = new String[] {
-            "warzoneId="+ 1
+    /**
+     * 战区服参数
+     */
+    private static final String[] warzoneArgs = new String[]{
+            "warzoneId=" + 1
     };
 
-    /** 中心服参数 */
-    private static final String[] centerArgs = new String[] {
-            "platform="+ PlatformType.TEST.name(),
-            "serverId="+ 1
+    /**
+     * 中心服参数
+     */
+    private static final String[] centerArgs = new String[]{
+            "platform=" + PlatformType.TEST.name(),
+            "serverId=" + 1
     };
 
-    /** 本服scene参数 */
-    private static final String[] singleSceneArgs = new String[] {
-            "sceneType="+SceneWorldType.SINGLE.name(),
-            "platform="+ PlatformType.TEST.name(),
-            "serverId="+ 1,
-            "configuredRegions="+ SceneRegion.LOCAL_PKC.name() + "|" + SceneRegion.LOCAL_NORMAL.name()
+    /**
+     * 本服scene参数
+     */
+    private static final String[] singleSceneArgs = new String[]{
+            "sceneType=" + SceneWorldType.SINGLE.name(),
+            "platform=" + PlatformType.TEST.name(),
+            "serverId=" + 1,
+            "configuredRegions=" + SceneRegion.LOCAL_PKC.name() + "|" + SceneRegion.LOCAL_NORMAL.name()
     };
 
-    /** 跨服scene参数 */
-    private static final String[] crossSceneArgs = new String[] {
-            "sceneType="+SceneWorldType.CROSS.name(),
-            "warzoneId="+ 1,
-            "configuredRegions="+ SceneRegion.WARZONE_ANTON.name() + "|" + SceneRegion.WARZONE_LUKE.name()
+    /**
+     * 跨服scene参数
+     */
+    private static final String[] crossSceneArgs = new String[]{
+            "sceneType=" + SceneWorldType.CROSS.name(),
+            "warzoneId=" + 1,
+            "configuredRegions=" + SceneRegion.WARZONE_ANTON.name() + "|" + SceneRegion.WARZONE_LUKE.name()
     };
 
-    /** 登录服参数 */
-    private static final String[] loginArgs = new String[] {
+    /**
+     * 登录服参数
+     */
+    private static final String[] loginArgs = new String[]{
             "port=" + 12345
     };
 
 
     public static void main(String[] args) throws Exception {
         // 指定一下日志文件
-        String logDir=new File("").getAbsolutePath() + File.separator + "log";
+        String logDir = new File("").getAbsolutePath() + File.separator + "log";
         String logPath = logDir + File.separator + "fastjgame.log";
         System.out.println("logPath " + logPath);
         System.setProperty("logPath", logPath);
@@ -96,7 +107,7 @@ public class StartUp {
                 .build();
         try {
             Thread.sleep(2 * TimeUtils.MIN);
-        } catch (InterruptedException ignore){
+        } catch (InterruptedException ignore) {
         }
         // 试一试能否安全关闭
         gameEventLoopGroup.shutdown();

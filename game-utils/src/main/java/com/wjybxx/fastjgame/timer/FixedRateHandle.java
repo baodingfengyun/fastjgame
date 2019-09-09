@@ -27,37 +27,36 @@ import javax.annotation.concurrent.NotThreadSafe;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public interface FixedRateHandle extends TimerHandle{
+public interface FixedRateHandle extends TimerHandle {
 
-	/**
-	 * 指定的初始延迟，不可修改。
-	 *
-	 * @return 毫秒
-	 */
-	long initialDelay();
+    /**
+     * 指定的初始延迟，不可修改。
+     *
+     * @return 毫秒
+     */
+    long initialDelay();
 
-	/**
-	 * 指定的执行周期。
-	 *
-	 * @return 毫秒
-	 */
-	long period();
+    /**
+     * 指定的执行周期。
+     *
+     * @return 毫秒
+     */
+    long period();
 
-	/**
-	 * 尝试修改timer的执行周期。
-	 * @apiNote
-	 * 注意：该方法实现不保证立即生效，但保证其后续的调用的周期。
-	 *
-	 * @param period 执行周期
-	 * @return 当且仅当成功修改TimerTask的执行周期时返回true，否则返回false(比如已取消，或已终止)。
-	 */
-	boolean setPeriod(long period);
+    /**
+     * 尝试修改timer的执行周期。
+     *
+     * @param period 执行周期
+     * @return 当且仅当成功修改TimerTask的执行周期时返回true，否则返回false(比如已取消，或已终止)。
+     * @apiNote 注意：该方法实现不保证立即生效，但保证其后续的调用的周期。
+     */
+    boolean setPeriod(long period);
 
-	/**
-	 * 尝试修改timer的执行周期，修改成功时立即生效!
-	 *
-	 * @param period 执行周期
-	 * @return 当且仅当成功修改TimerTask的执行周期时返回true，否则返回false(比如已取消，或已终止)。
-	 */
-	boolean setPeriodImmediately(long period);
+    /**
+     * 尝试修改timer的执行周期，修改成功时立即生效!
+     *
+     * @param period 执行周期
+     * @return 当且仅当成功修改TimerTask的执行周期时返回true，否则返回false(比如已取消，或已终止)。
+     */
+    boolean setPeriodImmediately(long period);
 }

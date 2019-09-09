@@ -31,7 +31,7 @@ import static com.wjybxx.fastjgame.findpath.FindPathUtils.addNeighborIfWalkable;
  * date - 2019/6/16 15:45
  * github - https://github.com/hl845740757
  */
-public class NeverDiagonalJumStrategy extends JumpStrategy{
+public class NeverDiagonalJumStrategy extends JumpStrategy {
 
     @Override
     protected void findDiagonalNeighbors(JPSFindPathContext context, int x, int y, int dx, int dy, List<MapGrid> neighbors) {
@@ -73,9 +73,9 @@ public class NeverDiagonalJumStrategy extends JumpStrategy{
     @Override
     protected MapGrid horizontalJump(JPSFindPathContext context, int startX, int currentY, int dx) {
         // 水平移动
-        for (int currentX=startX; ; currentX+=dx){
+        for (int currentX = startX; ; currentX += dx) {
             // 当前节点为目标节点
-            if (context.isEndGrid(currentX, currentY)){
+            if (context.isEndGrid(currentX, currentY)) {
                 return context.endGrid;
             }
             // 不可以对角线移动，那么只能上下拐，什么时候拐？
@@ -141,15 +141,15 @@ public class NeverDiagonalJumStrategy extends JumpStrategy{
 
     @Override
     protected MapGrid verticalJump(JPSFindPathContext context, int currentX, int startY, int dy) {
-        for (int currentY = startY; ; currentY += dy){
+        for (int currentY = startY; ; currentY += dy) {
             // 当前节点为目标节点
-            if (context.isEndGrid(currentX, currentY)){
+            if (context.isEndGrid(currentX, currentY)) {
                 return context.endGrid;
             }
             // 不可对角线移动，那么只能左右拐，那么什么是时候拐方向？
             // （从parent(x)、x、n的路径长度比其他任何从parent(x)到n且不经过x的路径短，）（存在左右强迫邻居）
             if (vContainLeftForceNeighbor(context, currentX, currentY, dy)
-                    || vContainRightForceNeighbor(context, currentX, currentY, dy)){
+                    || vContainRightForceNeighbor(context, currentX, currentY, dy)) {
                 return context.getGrid(currentX, currentY);
             }
 
@@ -187,7 +187,7 @@ public class NeverDiagonalJumStrategy extends JumpStrategy{
      *     I: ignore
      * </pre>
      */
-    private boolean vContainLeftForceNeighbor(JPSFindPathContext context, int x, int y, int dy){
+    private boolean vContainLeftForceNeighbor(JPSFindPathContext context, int x, int y, int dy) {
         return context.isWalkable(x - 1, y) && !context.isWalkable(x - 1, y - dy);
     }
 
@@ -210,7 +210,7 @@ public class NeverDiagonalJumStrategy extends JumpStrategy{
      *     I: ignore
      * </pre>
      */
-    private boolean vContainRightForceNeighbor(JPSFindPathContext context, int x, int y, int dy){
+    private boolean vContainRightForceNeighbor(JPSFindPathContext context, int x, int y, int dy) {
         return context.isWalkable(x + 1, y) && !context.isWalkable(x + 1, y - dy);
     }
 }

@@ -21,7 +21,7 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * 直接发送的sender，在消息数量不是很多的情况下，拥有更低的延迟，吞吐量也较好。
  * 但是如果消息数量非常大，那么延迟会很高(高度竞争)，吞吐量也较差。
- *
+ * <p>
  * 该实现没有任何缓存，逻辑简单，是线程安全的，消息顺序也很容易保证。
  *
  * @author wjybxx
@@ -32,25 +32,25 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class DirectSender extends AbstractSender {
 
-	public DirectSender(AbstractSession session) {
-		super(session);
-	}
+    public DirectSender(AbstractSession session) {
+        super(session);
+    }
 
-	@Override
-	protected void addSenderTask(SenderTask task) {
-		// 直接提交到网络层 - 既有时序保证，又是线程安全的
-		netEventLoop().execute(task);
-	}
+    @Override
+    protected void addSenderTask(SenderTask task) {
+        // 直接提交到网络层 - 既有时序保证，又是线程安全的
+        netEventLoop().execute(task);
+    }
 
-	@Override
-	public void flush() {
-		// 没有缓存，因此什么都不做
-	}
+    @Override
+    public void flush() {
+        // 没有缓存，因此什么都不做
+    }
 
-	@Override
-	public void clearBuffer() {
-		// do nothing
-	}
+    @Override
+    public void clearBuffer() {
+        // do nothing
+    }
 
 }
 

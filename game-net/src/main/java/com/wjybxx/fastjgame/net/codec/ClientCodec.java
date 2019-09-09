@@ -36,13 +36,21 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class ClientCodec extends BaseCodec {
 
-    /** 该channel关联的本地对象标识 */
+    /**
+     * 该channel关联的本地对象标识
+     */
     private final long localGuid;
-    /** 该channel关联的远程对象标识 */
+    /**
+     * 该channel关联的远程对象标识
+     */
     private final long serverGuid;
-    /** 是否已建立链接 */
+    /**
+     * 是否已建立链接
+     */
     private boolean connect = false;
-    /** 用于发布网络事件 */
+    /**
+     * 用于发布网络事件
+     */
     private final NetEventManager netEventManager;
 
     public ClientCodec(ProtocolCodec codec, long localGuid, long serverGuid, NetEventManager netEventManager) {
@@ -55,16 +63,16 @@ public class ClientCodec extends BaseCodec {
     // region 编码消息
     @Override
     public void write(ChannelHandlerContext ctx, Object msgTO, ChannelPromise promise) throws Exception {
-        if (msgTO instanceof BatchMessageTO){
+        if (msgTO instanceof BatchMessageTO) {
             // 批量协议包
             BatchMessageTO batchMessageTO = (BatchMessageTO) msgTO;
             long ack = batchMessageTO.getAck();
-            for (NetMessage message:batchMessageTO.getNetMessages()){
+            for (NetMessage message : batchMessageTO.getNetMessages()) {
                 writeSingleMsg(ctx, ack, message, ctx.voidPromise());
             }
-        } else if (msgTO instanceof SingleMessageTO){
+        } else if (msgTO instanceof SingleMessageTO) {
             // 单个协议包
-            SingleMessageTO singleMessageTO = (SingleMessageTO)msgTO;
+            SingleMessageTO singleMessageTO = (SingleMessageTO) msgTO;
             writeSingleMsg(ctx, singleMessageTO.getAck(), singleMessageTO.getNetMessage(), promise);
         } else if (msgTO instanceof ConnectRequestTO) {
             // 连接请求包(token验证包)
@@ -74,10 +82,12 @@ public class ClientCodec extends BaseCodec {
         }
     }
 
-    /**发送单个消息 */
+    /**
+     * 发送单个消息
+     */
     private void writeSingleMsg(ChannelHandlerContext ctx, long ack, NetMessage netMessage, ChannelPromise promise) throws Exception {
         // 按出现的几率判断
-        if (netMessage instanceof RpcRequestMessage){
+        if (netMessage instanceof RpcRequestMessage) {
             // rpc请，向另一个服务器发起rpc请求
             writeRpcRequestMessage(ctx, ack, (RpcRequestMessage) netMessage, promise);
         } else if (netMessage instanceof OneWayMessage) {
@@ -86,7 +96,7 @@ public class ClientCodec extends BaseCodec {
         } else if (netMessage instanceof RpcResponseMessage) {
             // rpc返回结果
             writeRpcResponseMessage(ctx, ack, (RpcResponseMessage) netMessage, promise);
-        } else if (netMessage instanceof AckPingPongMessage){
+        } else if (netMessage instanceof AckPingPongMessage) {
             // 客户端ack-ping包
             writeAckPingPongMessage(ctx, ack, (AckPingPongMessage) netMessage, promise, NetPackageType.ACK_PING);
         } else {
@@ -98,7 +108,7 @@ public class ClientCodec extends BaseCodec {
     // region 读取消息
     @Override
     protected void readMsg(ChannelHandlerContext ctx, NetPackageType netPackageType, ByteBuf msg) {
-        switch (netPackageType){
+        switch (netPackageType) {
             case CONNECT_RESPONSE:
                 tryReadConnectResponse(ctx, msg);
                 break;
@@ -115,7 +125,7 @@ public class ClientCodec extends BaseCodec {
                 tryReadAckPongMessage(ctx, msg);
                 break;
             default:
-                closeCtx(ctx,"unexpected netEventType " + netPackageType);
+                closeCtx(ctx, "unexpected netEventType " + netPackageType);
                 break;
         }
     }

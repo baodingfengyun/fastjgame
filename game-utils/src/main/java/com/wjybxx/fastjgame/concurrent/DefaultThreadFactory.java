@@ -34,70 +34,82 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class DefaultThreadFactory implements ThreadFactory {
 
-	private static final Logger logger = LoggerFactory.getLogger(DefaultThreadFactory.class);
-	/** 未指定的优先级 */
-	private static final int UNASSIGNED_PRIORITY = -1;
-	/**  线程池id，避免name相同时的冲突 */
-	private static final AtomicInteger poolId = new AtomicInteger();
+    private static final Logger logger = LoggerFactory.getLogger(DefaultThreadFactory.class);
+    /**
+     * 未指定的优先级
+     */
+    private static final int UNASSIGNED_PRIORITY = -1;
+    /**
+     * 线程池id，避免name相同时的冲突
+     */
+    private static final AtomicInteger poolId = new AtomicInteger();
 
-	/** 该线程池内，下一个线程的id */
-	private final AtomicInteger nextId = new AtomicInteger();
-	/** 线程命名前缀：poolId -  poolName */
-	private final String prefix;
-	/** 是否是守护线程 */
-	private final boolean daemon;
-	/** 线程优先级 */
-	private final int priority;
+    /**
+     * 该线程池内，下一个线程的id
+     */
+    private final AtomicInteger nextId = new AtomicInteger();
+    /**
+     * 线程命名前缀：poolId -  poolName
+     */
+    private final String prefix;
+    /**
+     * 是否是守护线程
+     */
+    private final boolean daemon;
+    /**
+     * 线程优先级
+     */
+    private final int priority;
 
-	public DefaultThreadFactory(String poolName) {
-		this(poolName, false);
-	}
+    public DefaultThreadFactory(String poolName) {
+        this(poolName, false);
+    }
 
-	public DefaultThreadFactory(String poolName, boolean daemon) {
-		this(poolName, daemon, UNASSIGNED_PRIORITY);
-	}
+    public DefaultThreadFactory(String poolName, boolean daemon) {
+        this(poolName, daemon, UNASSIGNED_PRIORITY);
+    }
 
-	public DefaultThreadFactory(String poolName, boolean daemon, int priority) {
-		if (poolName == null) {
-			throw new NullPointerException("poolName");
-		}
+    public DefaultThreadFactory(String poolName, boolean daemon, int priority) {
+        if (poolName == null) {
+            throw new NullPointerException("poolName");
+        }
 
-		if (priority != UNASSIGNED_PRIORITY) {
-			if (priority < Thread.MIN_PRIORITY || priority > Thread.MAX_PRIORITY) {
-				throw new IllegalArgumentException(
-						"priority: " + priority + " (expected: Thread.MIN_PRIORITY <= priority <= Thread.MAX_PRIORITY)");
-			}
-		}
+        if (priority != UNASSIGNED_PRIORITY) {
+            if (priority < Thread.MIN_PRIORITY || priority > Thread.MAX_PRIORITY) {
+                throw new IllegalArgumentException(
+                        "priority: " + priority + " (expected: Thread.MIN_PRIORITY <= priority <= Thread.MAX_PRIORITY)");
+            }
+        }
 
-		prefix = "(Pool-" + poolId.incrementAndGet() + ")" + poolName + "-";
-		this.daemon = daemon;
-		this.priority = priority;
-	}
+        prefix = "(Pool-" + poolId.incrementAndGet() + ")" + poolName + "-";
+        this.daemon = daemon;
+        this.priority = priority;
+    }
 
-	@Override
-	public Thread newThread(@Nonnull Runnable r) {
-		Thread t = new Thread(r, prefix + nextId.getAndIncrement());
-		try {
-			if (t.isDaemon() != daemon) {
-				t.setDaemon(daemon);
-			}
+    @Override
+    public Thread newThread(@Nonnull Runnable r) {
+        Thread t = new Thread(r, prefix + nextId.getAndIncrement());
+        try {
+            if (t.isDaemon() != daemon) {
+                t.setDaemon(daemon);
+            }
 
-			if (priority != UNASSIGNED_PRIORITY && t.getPriority() != priority) {
-				t.setPriority(priority);
-			}
-			UncaughtExceptionHandlers.logIfAbsent(t, logger);
-		} catch (Exception ignored) {
-			// Doesn't matter even if failed to set.
-		}
-		return t;
-	}
+            if (priority != UNASSIGNED_PRIORITY && t.getPriority() != priority) {
+                t.setPriority(priority);
+            }
+            UncaughtExceptionHandlers.logIfAbsent(t, logger);
+        } catch (Exception ignored) {
+            // Doesn't matter even if failed to set.
+        }
+        return t;
+    }
 
-	@Override
-	public String toString() {
-		return "DefaultThreadFactory{" +
-				"prefix='" + prefix + '\'' +
-				", daemon=" + daemon +
-				", priority=" + priority +
-				'}';
-	}
+    @Override
+    public String toString() {
+        return "DefaultThreadFactory{" +
+                "prefix='" + prefix + '\'' +
+                ", daemon=" + daemon +
+                ", priority=" + priority +
+                '}';
+    }
 }

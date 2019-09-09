@@ -22,6 +22,7 @@ import java.util.Set;
 
 /**
  * 空配置文件Wrapper
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/4/27 15:23

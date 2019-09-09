@@ -29,7 +29,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * why?
  * 如果以NetEventLoopGroup进行分配，在用户不清楚的情况下，用户可能认为调整NetEventLoopGroup的线程数就可以提高网络性能，但实际上不行。
  * 如果没有调整Netty的线程数，它不能做到随着NetEventLoop线程的增加使性能也增加的目的。
- *
+ * <p>
  * 以NetEventLoop为单位分配资源也有坏处，最明显的坏处就是线程数很多。
  *
  * @author wjybxx

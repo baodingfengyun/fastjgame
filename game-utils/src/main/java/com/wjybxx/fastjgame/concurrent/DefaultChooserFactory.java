@@ -22,38 +22,43 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 默认的选择EventLoop选择器工厂
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/7/14
  * github - https://github.com/hl845740757
  */
-public class DefaultChooserFactory implements EventLoopChooserFactory{
+public class DefaultChooserFactory implements EventLoopChooserFactory {
 
-	@Nonnull
-	@Override
-	public EventLoopChooser newChooser(EventLoop[] children) {
-		return new RoundRobinEventLoopChooser(children);
-	}
+    @Nonnull
+    @Override
+    public EventLoopChooser newChooser(EventLoop[] children) {
+        return new RoundRobinEventLoopChooser(children);
+    }
 
-	/**
-	 * 简单轮询的方式进行EventExecutor的负载均衡。
-	 */
-	@ThreadSafe
-	private static final class RoundRobinEventLoopChooser implements EventLoopChooser {
-		/** 索引计数，保证线程安全 */
-		private final AtomicInteger idx = new AtomicInteger();
-		/** 管理的children */
-		private final EventLoop[] executors;
+    /**
+     * 简单轮询的方式进行EventExecutor的负载均衡。
+     */
+    @ThreadSafe
+    private static final class RoundRobinEventLoopChooser implements EventLoopChooser {
+        /**
+         * 索引计数，保证线程安全
+         */
+        private final AtomicInteger idx = new AtomicInteger();
+        /**
+         * 管理的children
+         */
+        private final EventLoop[] executors;
 
-		RoundRobinEventLoopChooser(EventLoop[] executors) {
-			assert executors.length > 0;
-			this.executors = executors;
-		}
+        RoundRobinEventLoopChooser(EventLoop[] executors) {
+            assert executors.length > 0;
+            this.executors = executors;
+        }
 
-		@Nonnull
-		@Override
-		public EventLoop next() {
-			return executors[Math.abs(idx.getAndIncrement() % executors.length)];
-		}
-	}
+        @Nonnull
+        @Override
+        public EventLoop next() {
+            return executors[Math.abs(idx.getAndIncrement() % executors.length)];
+        }
+    }
 }

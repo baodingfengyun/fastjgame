@@ -31,9 +31,9 @@ import java.util.Properties;
  * 注意：会在 本地文件夹(./config) 和 classPath(resources文件夹)尝试加载配置文件。
  * 当一个参数在两个配置文件都存在时，本地文件夹中的参数生效。
  * => 旨在可以使用外部配置文件代替jar包内配置。
- *
- *  如果你不能修改Jar包中的配置文件，请注意查看日志，会打印加载文件的路径，你可以新建一个配置文件，
- *  把自己要修改的属性配置进去即可，不修改的不配置，会将两份配置文件合并，重复属性以本地文件为准。
+ * <p>
+ * 如果你不能修改Jar包中的配置文件，请注意查看日志，会打印加载文件的路径，你可以新建一个配置文件，
+ * 把自己要修改的属性配置进去即可，不修改的不配置，会将两份配置文件合并，重复属性以本地文件为准。
  *
  * @author wjybxx
  * @version 1.0
@@ -51,8 +51,8 @@ public final class ConfigLoader {
     public static final String GAME_CONFIG_DIR;
 
     static {
-        final String defaultGameConfigDir=new File("").getAbsolutePath() + File.separator + "config";
-        GAME_CONFIG_DIR = System.getProperty("fastjgameConfigDir",defaultGameConfigDir);
+        final String defaultGameConfigDir = new File("").getAbsolutePath() + File.separator + "config";
+        GAME_CONFIG_DIR = System.getProperty("fastjgameConfigDir", defaultGameConfigDir);
     }
 
     private ConfigLoader() {
@@ -62,12 +62,13 @@ public final class ConfigLoader {
     /**
      * 优先在当前运行环境目录下寻找，如果当前运行环境不存在，则在jar环境下寻找。
      * 该方法仅仅是一个简便方法，使用ConfigLoader的classLoader来加载文件。
+     *
      * @param fileName 配置文件名字
      * @return 如果成功加载，则返回其包装对象
      * @throws IOException 找不到文件或加载文件错误
      */
     public static ConfigWrapper loadConfig(String fileName) throws IOException {
-        return loadConfig(Thread.currentThread().getContextClassLoader(),fileName);
+        return loadConfig(Thread.currentThread().getContextClassLoader(), fileName);
     }
 
     /**
@@ -75,59 +76,60 @@ public final class ConfigLoader {
      * 当一个参数在两个配置文件都存在时，本地文件夹中的参数生效。
      *
      * @param classLoader 指定classLoader
-     * @param fileName 配置文件名字
+     * @param fileName    配置文件名字
      * @return 如果成功加载，则返回其包装对象
      * @throws IOException 找不到文件或加载文件错误
      */
     public static ConfigWrapper loadConfig(ClassLoader classLoader, String fileName) throws IOException {
         // 当前运行环境目录下寻找
-        ConfigWrapper cfgFromGameConfigDir=null;
-        try{
+        ConfigWrapper cfgFromGameConfigDir = null;
+        try {
             cfgFromGameConfigDir = loadCfgFromGameConfigDir(fileName);
-            logger.info("load {} from gameConfigDir success!",fileName);
-        }catch (IOException e){
+            logger.info("load {} from gameConfigDir success!", fileName);
+        } catch (IOException e) {
             // ignore e
-            logger.info("load {} from gameConfigDir failed",fileName);
+            logger.info("load {} from gameConfigDir failed", fileName);
         }
         // jar包环境下寻找
-        ConfigWrapper cfgFromJarResources=null;
+        ConfigWrapper cfgFromJarResources = null;
         try {
-            cfgFromJarResources = loadCfgFromJarResources(classLoader,fileName);
-            logger.info("load {} from jarResources success!",fileName);
-        }catch (IOException e){
-            logger.info("load {} from jarResources failed",fileName);
+            cfgFromJarResources = loadCfgFromJarResources(classLoader, fileName);
+            logger.info("load {} from jarResources success!", fileName);
+        } catch (IOException e) {
+            logger.info("load {} from jarResources failed", fileName);
         }
         // 两个配置文件都不存在
-        if (cfgFromGameConfigDir == null && cfgFromJarResources == null){
+        if (cfgFromGameConfigDir == null && cfgFromJarResources == null) {
             throw new FileNotFoundException(fileName);
         }
         // 两个都存在，需要合并(gameConfig下的替换jar包中的)
-        if (cfgFromGameConfigDir != null && cfgFromJarResources != null){
+        if (cfgFromGameConfigDir != null && cfgFromJarResources != null) {
             return cfgFromJarResources.convert2MapWrapper().merge(cfgFromGameConfigDir.convert2MapWrapper());
         }
         // 哪个存在返回哪个
-        if (cfgFromGameConfigDir != null){
+        if (cfgFromGameConfigDir != null) {
             return cfgFromGameConfigDir;
-        }else {
+        } else {
             return cfgFromJarResources;
         }
     }
 
     /**
      * 优先在游戏配置文件夹中寻找
+     *
      * @param fileName 配置文件名字
      * @return nullable
      * @throws IOException 找不到文件或加载文件错误
      */
     public static ConfigWrapper loadCfgFromGameConfigDir(String fileName) throws IOException {
-        String path= GAME_CONFIG_DIR + File.separator + fileName;
+        String path = GAME_CONFIG_DIR + File.separator + fileName;
         logger.info("loadCfgFromGameConfigDir {}", path);
 
-        File file=new File(path);
-        if (file.exists() && file.isFile()){
-            try(FileInputStream fileInputStream=new FileInputStream(file);
-                InputStreamReader inputStreamReader=new InputStreamReader(fileInputStream, StandardCharsets.UTF_8)){
-                Properties properties=new Properties();
+        File file = new File(path);
+        if (file.exists() && file.isFile()) {
+            try (FileInputStream fileInputStream = new FileInputStream(file);
+                 InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream, StandardCharsets.UTF_8)) {
+                Properties properties = new Properties();
                 properties.load(inputStreamReader);
                 return new PropertiesConfigWrapper(properties);
             }
@@ -137,20 +139,21 @@ public final class ConfigLoader {
 
     /**
      * 在jar包resources下环境中寻找
-     * @return nullable
+     *
      * @param classLoader 运行环境根路径
-     * @param fileName 配置文件名字
+     * @param fileName    配置文件名字
+     * @return nullable
      * @throws IOException 找不到文件或加载文件错误
      */
     public static ConfigWrapper loadCfgFromJarResources(ClassLoader classLoader, String fileName) throws IOException {
         logger.info("-Step1 loadCfgFromJarResources {}", fileName);
         URL resource = classLoader.getResource(fileName);
-        if (resource == null){
+        if (resource == null) {
             throw new FileNotFoundException(fileName);
         }
         logger.info("-Step2 loadCfgFromJarResources {}", resource.getPath());
-        try (InputStream inputStream=resource.openStream()){
-            Properties properties=new Properties();
+        try (InputStream inputStream = resource.openStream()) {
+            Properties properties = new Properties();
             properties.load(inputStream);
             return new PropertiesConfigWrapper(properties);
         }

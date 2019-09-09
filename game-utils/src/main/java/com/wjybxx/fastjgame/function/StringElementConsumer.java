@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.function;
 
 /**
  * 字符串数组元素消费者
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/7/20 11:01
@@ -25,10 +26,11 @@ package com.wjybxx.fastjgame.function;
  */
 @FunctionalInterface
 public interface StringElementConsumer {
-	/**
-	 * 处理指定下标的元素
-	 * @param index 在数组中的下标
-	 * @param element 内容
-	 */
-	void accept(int index, String element);
+    /**
+     * 处理指定下标的元素
+     *
+     * @param index   在数组中的下标
+     * @param element 内容
+     */
+    void accept(int index, String element);
 }

@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.shape.shape2d.Rectangle;
 
 /**
  * 矩形创建测试
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/3 20:10
@@ -29,10 +30,10 @@ import com.wjybxx.fastjgame.shape.shape2d.Rectangle;
 public class RectangleTest {
 
     public static void main(String[] args) {
-        Rectangle rectangle=Rectangle.newRectangleByCentralAngle(Point2D.newPoint2D(0,0),90,6,3);
+        Rectangle rectangle = Rectangle.newRectangleByCentralAngle(Point2D.newPoint2D(0, 0), 90, 6, 3);
         System.out.println(rectangle);
 
-        Rectangle rectangle2=Rectangle.newRectangleByCentralAngle(Point2D.newPoint2D(0,0),45,6,3);
+        Rectangle rectangle2 = Rectangle.newRectangleByCentralAngle(Point2D.newPoint2D(0, 0), 45, 6, 3);
         System.out.println(rectangle2);
     }
 

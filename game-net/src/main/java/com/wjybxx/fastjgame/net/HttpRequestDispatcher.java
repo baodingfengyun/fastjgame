@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.net;
 
 /**
  * http请求分发器
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/27
@@ -25,11 +26,12 @@ package com.wjybxx.fastjgame.net;
  */
 public interface HttpRequestDispatcher {
 
-	/**
-	 * 分发一个Http请求
-	 * @param httpSession 该http对应的session
-	 * @param path 请求路径
-	 * @param params 请求参数
-	 */
-	void post(HttpSession httpSession, String path, HttpRequestParam params);
+    /**
+     * 分发一个Http请求
+     *
+     * @param httpSession 该http对应的session
+     * @param path        请求路径
+     * @param params      请求参数
+     */
+    void post(HttpSession httpSession, String path, HttpRequestParam params);
 }

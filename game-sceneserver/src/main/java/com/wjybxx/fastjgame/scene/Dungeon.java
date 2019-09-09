@@ -23,12 +23,13 @@ import com.wjybxx.fastjgame.mrg.SceneWrapper;
 /**
  * 副本场景，当玩家退出后销毁；
  * (副本这个词很难翻译的贴切)
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/5 19:59
  * github - https://github.com/hl845740757
  */
-public abstract class Dungeon extends Scene{
+public abstract class Dungeon extends Scene {
 
     public Dungeon(long guid, SceneConfig sceneConfig, SceneWrapper sceneWrapper) {
         super(guid, sceneConfig, sceneWrapper);

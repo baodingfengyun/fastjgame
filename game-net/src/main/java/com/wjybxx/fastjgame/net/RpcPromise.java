@@ -20,7 +20,7 @@ import com.wjybxx.fastjgame.concurrent.Promise;
 
 /**
  * RpcPromise
- * 
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/3

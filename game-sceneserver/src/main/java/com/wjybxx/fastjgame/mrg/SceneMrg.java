@@ -30,6 +30,7 @@ import javax.annotation.Nullable;
 /**
  * 管理所有的Scene对象；
  * （创建，寻找，删除）
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/5 19:56
@@ -58,35 +59,35 @@ public class SceneMrg {
         this.worldTimeMrg = worldTimeMrg;
     }
 
-    public void tick(){
+    public void tick() {
         tickScene(townMap);
         tickScene(dungeonMap);
     }
 
-    private <T extends Scene> void tickScene(Long2ObjectMap<T> sceneMap){
-        if (sceneMap.size() == 0){
+    private <T extends Scene> void tickScene(Long2ObjectMap<T> sceneMap) {
+        if (sceneMap.size() == 0) {
             return;
         }
         long curMillTime = worldTimeMrg.getSystemMillTime();
-        for (Scene scene : sceneMap.values()){
+        for (Scene scene : sceneMap.values()) {
             try {
                 scene.tick(curMillTime);
-            }catch (Exception e){
-                logger.error("tick caught exception, sceneType={}",scene.sceneType(),e);
+            } catch (Exception e) {
+                logger.error("tick caught exception, sceneType={}", scene.sceneType(), e);
             }
         }
     }
 
     @Nullable
-    public Scene getScene(long guid){
+    public Scene getScene(long guid) {
         // 副本中寻找
         Dungeon dungeon = getDungeon(guid);
-        if (null != dungeon){
+        if (null != dungeon) {
             return dungeon;
         }
         // 城镇中寻找
         Town town = getTown(guid);
-        if (null != town){
+        if (null != town) {
             return town;
         }
         return null;
@@ -94,6 +95,7 @@ public class SceneMrg {
 
     /**
      * 通过guid获取城镇对象
+     *
      * @param guid 城镇guid
      * @return Town
      */
@@ -104,11 +106,12 @@ public class SceneMrg {
 
     /**
      * 通过guid获取副本对象
+     *
      * @param guid 副本guid
      * @return Dungeon
      */
     @Nullable
-    public Dungeon getDungeon(long guid){
+    public Dungeon getDungeon(long guid) {
         return dungeonMap.get(guid);
     }
 }

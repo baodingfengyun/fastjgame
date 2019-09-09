@@ -20,8 +20,9 @@ import com.wjybxx.fastjgame.utils.MathUtils;
 
 /**
  * 圆心角 [0,360)；
- *
+ * <p>
  * 一般没有额外说明时都是弧度角。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/2 15:01
@@ -48,7 +49,7 @@ public class CentralAngle {
         this.angle = angle;
     }
 
-    public RadiansAngle toRadAngle(){
+    public RadiansAngle toRadAngle() {
         return new RadiansAngle(MathUtils.radAngle(angle));
     }
 }

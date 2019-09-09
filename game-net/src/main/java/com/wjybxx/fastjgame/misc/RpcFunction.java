@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import  com.wjybxx.fastjgame.net.RpcResponseChannel;
+import com.wjybxx.fastjgame.net.RpcResponseChannel;
 import com.wjybxx.fastjgame.net.Session;
 
 import java.util.List;
@@ -31,14 +31,15 @@ import java.util.List;
  * github - https://github.com/hl845740757
  */
 @FunctionalInterface
-public interface RpcFunction<T>  {
+public interface RpcFunction<T> {
 
-	/**
-	 * 执行调用
-	 * @param session 请求方对应的session
-	 * @param methodParams 对应的方法参数，发过来的参数不包含{@link Session} 和 {@link RpcResponseChannel}，如果需要的话，代理方法需要完成该处理。
-	 * @param responseChannel 返回结果的通道
-	 */
-	void call(Session session, List<Object> methodParams, RpcResponseChannel<T> responseChannel) throws Exception;
+    /**
+     * 执行调用
+     *
+     * @param session         请求方对应的session
+     * @param methodParams    对应的方法参数，发过来的参数不包含{@link Session} 和 {@link RpcResponseChannel}，如果需要的话，代理方法需要完成该处理。
+     * @param responseChannel 返回结果的通道
+     */
+    void call(Session session, List<Object> methodParams, RpcResponseChannel<T> responseChannel) throws Exception;
 
 }

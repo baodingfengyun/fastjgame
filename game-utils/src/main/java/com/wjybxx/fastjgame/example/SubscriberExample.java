@@ -25,6 +25,7 @@ import java.util.HashSet;
 
 /**
  * {@link com.wjybxx.fastjgame.eventbus.EventBus}的注册者例子。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/24
@@ -32,73 +33,73 @@ import java.util.HashSet;
  */
 public class SubscriberExample {
 
-	public SubscriberExample(EventBus bus) {
-		// 这里只是示例，最好不要在构造方法中注册，未构造完成就发布自己可能存在问题
-		SubscriberExampleBusRegister.register(bus, this);
-	}
+    public SubscriberExample(EventBus bus) {
+        // 这里只是示例，最好不要在构造方法中注册，未构造完成就发布自己可能存在问题
+        SubscriberExampleBusRegister.register(bus, this);
+    }
 
-	@Subscribe
-	public void hello(String name) {
-		System.out.println("hello-" + name);
-	}
+    @Subscribe
+    public void hello(String name) {
+        System.out.println("hello-" + name);
+    }
 
-	@Subscribe
-	public void hello2(String name) {
-		System.out.println("hello2-" + name);
-	}
+    @Subscribe
+    public void hello2(String name) {
+        System.out.println("hello2-" + name);
+    }
 
-	@Subscribe
-	public void hello3(String name) {
-		System.out.println("hello3-" + name);
-	}
+    @Subscribe
+    public void hello3(String name) {
+        System.out.println("hello3-" + name);
+    }
 
-	@Subscribe
-	public void onEvent(String name) {
-		System.out.println("onEvent-" + name);
-	}
+    @Subscribe
+    public void onEvent(String name) {
+        System.out.println("onEvent-" + name);
+    }
 
-	@Subscribe
-	public void onEvent(Integer age) {
-		System.out.println("onEvent-" + age);
-	}
+    @Subscribe
+    public void onEvent(Integer age) {
+        System.out.println("onEvent-" + age);
+    }
 
-	@Subscribe
-	public void onEvent(EventLoop name) {
+    @Subscribe
+    public void onEvent(EventLoop name) {
 
-	}
+    }
 
-	@Subscribe
-	public void onEvent(Object name) {
+    @Subscribe
+    public void onEvent(Object name) {
 
-	}
+    }
 
-	@Subscribe
-	public void onEvent(DefaultThreadFactory defaultThreadFactory) {
-		System.out.println(defaultThreadFactory);
-	}
+    @Subscribe
+    public void onEvent(DefaultThreadFactory defaultThreadFactory) {
+        System.out.println(defaultThreadFactory);
+    }
 
-//	@Subscribe
-	public <T> void illegalMethod() {
-		// 如果打开注解，编译会报错
-	}
+    //	@Subscribe
+    public <T> void illegalMethod() {
+        // 如果打开注解，编译会报错
+    }
 
-//	@Subscribe
-	public <T> void illegalMethod(T illegal) {
-		// 如果打开注解，编译会报错
-	}
+    //	@Subscribe
+    public <T> void illegalMethod(T illegal) {
+        // 如果打开注解，编译会报错
+    }
 
-//	@Subscribe
-	public void illegalMethod(HashSet<String> illegal) {
-		// 如果打开注解，编译会报错
-	}
+    //	@Subscribe
+    public void illegalMethod(HashSet<String> illegal) {
+        // 如果打开注解，编译会报错
+    }
 
-	public static void main(String[] args) {
-		final EventBus bus = new EventBus();
-		new SubscriberExample(bus);
+    public static void main(String[] args) {
+        final EventBus bus = new EventBus();
+        new SubscriberExample(bus);
 
-		bus.post("String");
-		bus.post(250);
+        bus.post("String");
+        bus.post(250);
 
-		bus.post(new DefaultThreadFactory("bus"));
-	}
+        bus.post(new DefaultThreadFactory("bus"));
+    }
 }

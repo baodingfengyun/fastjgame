@@ -17,6 +17,7 @@ package com.wjybxx.fastjgame.net;
 
 /**
  * 单向消息任务
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/8
@@ -24,20 +25,24 @@ package com.wjybxx.fastjgame.net;
  */
 public class OneWayMessageCommitTask implements CommitTask {
 
-	private Session session;
-	/** 消息分发器 */
-	private ProtocolDispatcher protocolDispatcher;
-	/** 单向消息的内容 */
-	private Object message;
+    private Session session;
+    /**
+     * 消息分发器
+     */
+    private ProtocolDispatcher protocolDispatcher;
+    /**
+     * 单向消息的内容
+     */
+    private Object message;
 
-	public OneWayMessageCommitTask(Session session, ProtocolDispatcher protocolDispatcher, Object message) {
-		this.session = session;
-		this.protocolDispatcher = protocolDispatcher;
-		this.message = message;
-	}
+    public OneWayMessageCommitTask(Session session, ProtocolDispatcher protocolDispatcher, Object message) {
+        this.session = session;
+        this.protocolDispatcher = protocolDispatcher;
+        this.message = message;
+    }
 
-	@Override
-	public void run() {
-		protocolDispatcher.postOneWayMessage(session, message);
-	}
+    @Override
+    public void run() {
+        protocolDispatcher.postOneWayMessage(session, message);
+    }
 }

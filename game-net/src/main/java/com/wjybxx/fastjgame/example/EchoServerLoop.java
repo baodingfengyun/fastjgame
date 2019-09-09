@@ -42,101 +42,102 @@ import java.util.concurrent.locks.LockSupport;
  */
 public class EchoServerLoop extends SingleThreadEventLoop {
 
-	private final NetEventLoopGroup netGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET-EVENT-LOOP"),
-			RejectedExecutionHandlers.log());
+    private final NetEventLoopGroup netGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET-EVENT-LOOP"),
+            RejectedExecutionHandlers.log());
 
-	private NetContext netContext;
+    private NetContext netContext;
 
-	public EchoServerLoop(@Nullable EventLoopGroup parent, @Nonnull ThreadFactory threadFactory, @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
-		super(parent, threadFactory, rejectedExecutionHandler);
-	}
+    public EchoServerLoop(@Nullable EventLoopGroup parent, @Nonnull ThreadFactory threadFactory, @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
+        super(parent, threadFactory, rejectedExecutionHandler);
+    }
 
-	@Override
-	protected void init() throws Exception {
-		super.init();
-		// 创建网络环境
-		netContext = netGroup.createContext(ExampleConstants.serverGuid, ExampleConstants.serverRole, this).get();
+    @Override
+    protected void init() throws Exception {
+        super.init();
+        // 创建网络环境
+        netContext = netGroup.createContext(ExampleConstants.serverGuid, ExampleConstants.serverRole, this).get();
 
-		// 监听tcp端口
-		TCPServerChannelInitializer initializer = netContext.newTcpServerInitializer(ExampleConstants.jsonBasedCodec);
-		netContext.bind(NetUtils.getLocalIp(), ExampleConstants.tcpPort, initializer, new ClientLifeAware(), new EchoProtocolDispatcher(), SessionSenderMode.DIRECT);
+        // 监听tcp端口
+        TCPServerChannelInitializer initializer = netContext.newTcpServerInitializer(ExampleConstants.jsonBasedCodec);
+        netContext.bind(NetUtils.getLocalIp(), ExampleConstants.tcpPort, initializer, new ClientLifeAware(), new EchoProtocolDispatcher(), SessionSenderMode.DIRECT);
 
-		// 监听http端口
-		HttpServerInitializer httpServerInitializer = netContext.newHttpServerInitializer();
-		netContext.bind(NetUtils.getLocalIp(), ExampleConstants.httpPort, httpServerInitializer, new EchoHttpRequestDispatcher());
-	}
+        // 监听http端口
+        HttpServerInitializer httpServerInitializer = netContext.newHttpServerInitializer();
+        netContext.bind(NetUtils.getLocalIp(), ExampleConstants.httpPort, httpServerInitializer, new EchoHttpRequestDispatcher());
+    }
 
 
-	@Override
-	protected void loop() {
-		final long starrTime = System.currentTimeMillis();
-		for (;;) {
-			// 执行所有任务
-			runAllTasks();
-			// 循环x分钟
-			if (System.currentTimeMillis() - starrTime > TimeUtils.MIN * 3) {
-				break;
-			}
-			// 确认是否退出
-			if (confirmShutdown()) {
-				break;
-			}
-			// 睡10毫秒
-			LockSupport.parkNanos(TimeUtils.NANO_PER_MILLISECOND * 10);
-		}
-	}
+    @Override
+    protected void loop() {
+        final long starrTime = System.currentTimeMillis();
+        for (; ; ) {
+            // 执行所有任务
+            runAllTasks();
+            // 循环x分钟
+            if (System.currentTimeMillis() - starrTime > TimeUtils.MIN * 3) {
+                break;
+            }
+            // 确认是否退出
+            if (confirmShutdown()) {
+                break;
+            }
+            // 睡10毫秒
+            LockSupport.parkNanos(TimeUtils.NANO_PER_MILLISECOND * 10);
+        }
+    }
 
-	@Override
-	protected void clean() throws Exception {
-		super.clean();
-		if (null != netContext) {
-			netContext.deregister();
-		}
-		netGroup.shutdown();
-	}
+    @Override
+    protected void clean() throws Exception {
+        super.clean();
+        if (null != netContext) {
+            netContext.deregister();
+        }
+        netGroup.shutdown();
+    }
 
-	private static class ClientLifeAware implements SessionLifecycleAware {
+    private static class ClientLifeAware implements SessionLifecycleAware {
 
-		@Override
-		public void onSessionConnected(Session session) {
-			System.out.println("-----------------onSessionConnected----------------------");
-		}
+        @Override
+        public void onSessionConnected(Session session) {
+            System.out.println("-----------------onSessionConnected----------------------");
+        }
 
-		@Override
-		public void onSessionDisconnected(Session session) {
-			System.out.println("----------------onSessionDisconnected---------------------");
-		}
-	}
+        @Override
+        public void onSessionDisconnected(Session session) {
+            System.out.println("----------------onSessionDisconnected---------------------");
+        }
+    }
 
-	private static class EchoProtocolDispatcher implements ProtocolDispatcher {
+    private static class EchoProtocolDispatcher implements ProtocolDispatcher {
 
-		@Override
-		public void postOneWayMessage(Session session, @Nullable Object message) {
-			assert null != message;
-			session.send(message);
-		}
+        @Override
+        public void postOneWayMessage(Session session, @Nullable Object message) {
+            assert null != message;
+            session.send(message);
+        }
 
-		@Override
-		public void postRpcRequest(Session session, @Nullable Object request, RpcResponseChannel<?> responseChannel) {
-			assert null != request;
-			@SuppressWarnings("unchecked")
-			RpcResponseChannel<Object> channel = (RpcResponseChannel<Object>) responseChannel;
-			channel.writeSuccess(request);
-		}
-	}
+        @Override
+        public void postRpcRequest(Session session, @Nullable Object request, RpcResponseChannel<?> responseChannel) {
+            assert null != request;
+            @SuppressWarnings("unchecked")
+            RpcResponseChannel<Object> channel = (RpcResponseChannel<Object>) responseChannel;
+            channel.writeSuccess(request);
+        }
+    }
 
-	private static class EchoHttpRequestDispatcher implements HttpRequestDispatcher {
+    private static class EchoHttpRequestDispatcher implements HttpRequestDispatcher {
 
-		@Override
-		public void post(HttpSession httpSession, String path, HttpRequestParam params) {
-			httpSession.writeAndFlush(HttpResponseHelper.newStringResponse("path - " + path + ", params - " + params.toString()));
-		}
+        @Override
+        public void post(HttpSession httpSession, String path, HttpRequestParam params) {
+            httpSession.writeAndFlush(HttpResponseHelper.newStringResponse("path - " + path + ", params - " + params.toString()));
+        }
 
-	}
+    }
 
-	public static void main(String[] args) throws ExecutionException, InterruptedException {
-		EchoServerLoop echoServerLoop = new EchoServerLoop(null, new DefaultThreadFactory("SERVER"), RejectedExecutionHandlers.log());
-		// 唤醒线程
-		echoServerLoop.execute(() -> {});
-	}
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
+        EchoServerLoop echoServerLoop = new EchoServerLoop(null, new DefaultThreadFactory("SERVER"), RejectedExecutionHandlers.log());
+        // 唤醒线程
+        echoServerLoop.execute(() -> {
+        });
+    }
 }

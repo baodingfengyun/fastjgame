@@ -26,24 +26,25 @@ package com.wjybxx.fastjgame.concurrent.disruptor;
  */
 public interface EventHandler {
 
-	/**
-	 * 通知EventHandler启动
-	 * @param eventLoop eventHandler所在的事件循环，可以保存下来
-	 */
-	void startUp(DisruptorEventLoop eventLoop);
+    /**
+     * 通知EventHandler启动
+     *
+     * @param eventLoop eventHandler所在的事件循环，可以保存下来
+     */
+    void startUp(DisruptorEventLoop eventLoop);
 
-	/**
-	 * 接收到一个事件
-	 */
-	void onEvent(Event event) throws Exception;
+    /**
+     * 接收到一个事件
+     */
+    void onEvent(Event event) throws Exception;
 
-	/**
-	 * 等待事件期间 -- 在一定时间内没有事件时会被调用
-	 */
-	void onWaitEvent();
+    /**
+     * 等待事件期间 -- 在一定时间内没有事件时会被调用
+     */
+    void onWaitEvent();
 
-	/**
-	 * 命令EventHandler关闭
-	 */
-	void shutdown();
+    /**
+     * 命令EventHandler关闭
+     */
+    void shutdown();
 }

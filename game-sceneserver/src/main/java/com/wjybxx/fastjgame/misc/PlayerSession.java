@@ -22,6 +22,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * 玩家与scene进程的会话信息管理
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/23 0:11

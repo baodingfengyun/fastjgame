@@ -24,6 +24,7 @@ import javax.annotation.Nonnull;
 /**
  * 寻路参数，避免大量的传参
  * （参数对象）
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/12 15:35
@@ -48,12 +49,13 @@ public abstract class FindPathContext {
 
     /**
      * 获取指定坐标的
+     *
      * @param x x坐标，列索引
      * @param y y坐标，行索引
      * @return 如果坐标未越界，则返回指定格子，否则返回null
      */
-    public MapGrid getGrid(int x, int y){
-        if (mapData.inside(x,y)){
+    public MapGrid getGrid(int x, int y) {
+        if (mapData.inside(x, y)) {
             return mapData.getGrid(x, y);
         }
         return null;
@@ -61,41 +63,45 @@ public abstract class FindPathContext {
 
     /**
      * 指定格子是否可移动
+     *
      * @param mapGrid 地图格子
      * @return
      */
-    public boolean isWalkable(@Nonnull MapGrid mapGrid){
+    public boolean isWalkable(@Nonnull MapGrid mapGrid) {
         return walkableGridStrategy.walkable(mapGrid.getObstacleValue());
     }
 
     /**
      * 指定坐标的格子是否可以移动
      * （指定的坐标可能越界）
+     *
      * @param x x坐标，列索引
      * @param y y坐标，行索引
      * @return
      */
-    public boolean isWalkable(int x, int y){
+    public boolean isWalkable(int x, int y) {
         return mapData.inside(x, y) && walkableGridStrategy.walkable(mapData.getGrid(x, y).getObstacleValue());
     }
 
     /**
      * 指定坐标的格子是否在地图内
+     *
      * @param x x坐标，列索引
      * @param y y坐标，行索引
      * @return
      */
-    public boolean isInside(int x, int y){
+    public boolean isInside(int x, int y) {
         return mapData.inside(x, y);
     }
 
     /**
      * 是否是目标格子
+     *
      * @param x x坐标，列索引
      * @param y y坐标，行索引
      * @return
      */
-    public boolean isEndGrid(int x, int y){
+    public boolean isEndGrid(int x, int y) {
         return x == endGrid.getX() && y == endGrid.getY();
     }
 }

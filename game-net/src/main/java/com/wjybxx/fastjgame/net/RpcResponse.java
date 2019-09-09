@@ -31,63 +31,65 @@ import javax.annotation.concurrent.Immutable;
 @Immutable
 public final class RpcResponse {
 
-	/** 执行成功但是没有返回值的body */
-	public static final RpcResponse SUCCESS = new RpcResponse(RpcResultCode.SUCCESS, null);
+    /**
+     * 执行成功但是没有返回值的body
+     */
+    public static final RpcResponse SUCCESS = new RpcResponse(RpcResultCode.SUCCESS, null);
 
-	public static final RpcResponse SESSION_NULL = newFailResponse(RpcResultCode.SESSION_NULL);
-	public static final RpcResponse SESSION_CLOSED = newFailResponse(RpcResultCode.SESSION_CLOSED);
+    public static final RpcResponse SESSION_NULL = newFailResponse(RpcResultCode.SESSION_NULL);
+    public static final RpcResponse SESSION_CLOSED = newFailResponse(RpcResultCode.SESSION_CLOSED);
 
-	public static final RpcResponse CANCELLED = newFailResponse(RpcResultCode.CANCELLED);
-	public static final RpcResponse TIMEOUT = newFailResponse(RpcResultCode.TIMEOUT);
+    public static final RpcResponse CANCELLED = newFailResponse(RpcResultCode.CANCELLED);
+    public static final RpcResponse TIMEOUT = newFailResponse(RpcResultCode.TIMEOUT);
 
-	public static final RpcResponse FORBID = newFailResponse(RpcResultCode.FORBID);
-	public static final RpcResponse BAD_REQUEST = newFailResponse(RpcResultCode.BAD_REQUEST);
+    public static final RpcResponse FORBID = newFailResponse(RpcResultCode.FORBID);
+    public static final RpcResponse BAD_REQUEST = newFailResponse(RpcResultCode.BAD_REQUEST);
 
-	public static final RpcResponse ERROR = newFailResponse(RpcResultCode.ERROR);
+    public static final RpcResponse ERROR = newFailResponse(RpcResultCode.ERROR);
 
-	/**
-	 * 结果标识
-	 */
-	private final RpcResultCode resultCode;
-	/**
-	 * rpc响应结果，可能为null
-	 */
-	private final Object body;
+    /**
+     * 结果标识
+     */
+    private final RpcResultCode resultCode;
+    /**
+     * rpc响应结果，可能为null
+     */
+    private final Object body;
 
-	public RpcResponse(@Nonnull RpcResultCode resultCode, @Nullable Object body) {
-		this.resultCode = resultCode;
-		this.body = body;
-	}
+    public RpcResponse(@Nonnull RpcResultCode resultCode, @Nullable Object body) {
+        this.resultCode = resultCode;
+        this.body = body;
+    }
 
-	public RpcResultCode getResultCode() {
-		return resultCode;
-	}
+    public RpcResultCode getResultCode() {
+        return resultCode;
+    }
 
-	public Object getBody() {
-		return body;
-	}
+    public Object getBody() {
+        return body;
+    }
 
-	public boolean isSuccess() {
-		return resultCode == RpcResultCode.SUCCESS;
-	}
+    public boolean isSuccess() {
+        return resultCode == RpcResultCode.SUCCESS;
+    }
 
-	public static RpcResponse newFailResponse(@Nonnull RpcResultCode resultCode) {
-		return new RpcResponse(resultCode, null);
-	}
+    public static RpcResponse newFailResponse(@Nonnull RpcResultCode resultCode) {
+        return new RpcResponse(resultCode, null);
+    }
 
-	public static RpcResponse newSucceedResponse(@Nullable Object body) {
-		if (null == body) {
-			return SUCCESS;
-		} else {
-			return new RpcResponse(RpcResultCode.SUCCESS, body);
-		}
-	}
+    public static RpcResponse newSucceedResponse(@Nullable Object body) {
+        if (null == body) {
+            return SUCCESS;
+        } else {
+            return new RpcResponse(RpcResultCode.SUCCESS, body);
+        }
+    }
 
-	@Override
-	public String toString() {
-		return "RpcResponse{" +
-				"resultCode=" + resultCode +
-				", body=" + body +
-				'}';
-	}
+    @Override
+    public String toString() {
+        return "RpcResponse{" +
+                "resultCode=" + resultCode +
+                ", body=" + body +
+                '}';
+    }
 }

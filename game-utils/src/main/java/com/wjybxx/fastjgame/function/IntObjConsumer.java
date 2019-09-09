@@ -31,6 +31,9 @@ public interface IntObjConsumer<V> {
 
     default IntObjConsumer<V> andThen(IntObjConsumer<? super V> after) {
         Objects.requireNonNull(after);
-        return (k, v) -> { accept(k, v); after.accept(k, v); };
+        return (k, v) -> {
+            accept(k, v);
+            after.accept(k, v);
+        };
     }
 }

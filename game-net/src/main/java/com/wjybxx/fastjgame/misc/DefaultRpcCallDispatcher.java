@@ -39,47 +39,47 @@ import java.util.List;
 @NotThreadSafe
 public class DefaultRpcCallDispatcher implements RpcFunctionRegistry, RpcCallDispatcher {
 
-	private static final Logger logger = LoggerFactory.getLogger(DefaultRpcCallDispatcher.class);
+    private static final Logger logger = LoggerFactory.getLogger(DefaultRpcCallDispatcher.class);
 
-	/**
-	 * 所有的Rpc请求处理函数, methodKey -> rpcFunction
-	 */
-	private final Int2ObjectMap<RpcFunction> functionInfoMap = new Int2ObjectOpenHashMap<>(512);
+    /**
+     * 所有的Rpc请求处理函数, methodKey -> rpcFunction
+     */
+    private final Int2ObjectMap<RpcFunction> functionInfoMap = new Int2ObjectOpenHashMap<>(512);
 
-	@Override
-	public final void register(int methodKey, @Nonnull RpcFunction function) {
-		// rpc请求id不可以重复，编译时保证了生成的代码不会重复，但是手动注册不在检测范围内
-		if (functionInfoMap.containsKey(methodKey)) {
-			throw new IllegalArgumentException("methodKey " + methodKey + " is already registered!");
-		}
-		functionInfoMap.put(methodKey, function);
-	}
+    @Override
+    public final void register(int methodKey, @Nonnull RpcFunction function) {
+        // rpc请求id不可以重复，编译时保证了生成的代码不会重复，但是手动注册不在检测范围内
+        if (functionInfoMap.containsKey(methodKey)) {
+            throw new IllegalArgumentException("methodKey " + methodKey + " is already registered!");
+        }
+        functionInfoMap.put(methodKey, function);
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public final void post(@Nonnull Session session, @Nonnull RpcCall rpcCall, @Nonnull RpcResponseChannel<?> rpcResponseChannel) {
-		final int methodKey = rpcCall.getMethodKey();
-		final List<Object> params = rpcCall.getMethodParams();
-		final RpcFunction rpcFunction = functionInfoMap.get(methodKey);
-		if (null == rpcFunction) {
-			rpcResponseChannel.write(RpcResponse.BAD_REQUEST);
-			// 不打印参数详情，消耗可能较大，注意：这里的参数大小和真实的方法参数大小不一定一样，主要是ResponseChannel和Session不需要客户端传。
-			logger.warn("{} - {} send unregistered request, methodKey={}, parameters size={}",
-					session.remoteRole(), session.remoteGuid(), methodKey, params.size());
-			return;
-		}
-		try {
-			rpcFunction.call(session, params, rpcResponseChannel);
-		} catch (Exception e){
-			logger.warn("handle {} - {} rpcCall caught exception, methodKey={}",
-					session.remoteRole(), session.remoteGuid(), methodKey, e);
-		}
-	}
+    @SuppressWarnings("unchecked")
+    @Override
+    public final void post(@Nonnull Session session, @Nonnull RpcCall rpcCall, @Nonnull RpcResponseChannel<?> rpcResponseChannel) {
+        final int methodKey = rpcCall.getMethodKey();
+        final List<Object> params = rpcCall.getMethodParams();
+        final RpcFunction rpcFunction = functionInfoMap.get(methodKey);
+        if (null == rpcFunction) {
+            rpcResponseChannel.write(RpcResponse.BAD_REQUEST);
+            // 不打印参数详情，消耗可能较大，注意：这里的参数大小和真实的方法参数大小不一定一样，主要是ResponseChannel和Session不需要客户端传。
+            logger.warn("{} - {} send unregistered request, methodKey={}, parameters size={}",
+                    session.remoteRole(), session.remoteGuid(), methodKey, params.size());
+            return;
+        }
+        try {
+            rpcFunction.call(session, params, rpcResponseChannel);
+        } catch (Exception e) {
+            logger.warn("handle {} - {} rpcCall caught exception, methodKey={}",
+                    session.remoteRole(), session.remoteGuid(), methodKey, e);
+        }
+    }
 
-	/**
-	 * 释放所有捕获的对象，避免内存泄漏
-	 */
-	public final void release() {
-		functionInfoMap.clear();
-	}
+    /**
+     * 释放所有捕获的对象，避免内存泄漏
+     */
+    public final void release() {
+        functionInfoMap.clear();
+    }
 }

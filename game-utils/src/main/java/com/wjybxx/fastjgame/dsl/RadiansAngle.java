@@ -20,8 +20,9 @@ import com.wjybxx.fastjgame.utils.MathUtils;
 
 /**
  * 弧度角 (-PI,PI]； 也可写为 RadAngle
- *
+ * <p>
  * 一般没有额外说明时都是弧度角。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/2 15:01
@@ -48,7 +49,7 @@ public final class RadiansAngle {
         this.angle = angle;
     }
 
-    public CentralAngle toCentralAngle(){
+    public CentralAngle toCentralAngle() {
         return new CentralAngle(MathUtils.centralAngle(angle));
     }
 }

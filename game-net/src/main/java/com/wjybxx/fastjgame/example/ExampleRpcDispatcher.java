@@ -27,6 +27,7 @@ import javax.annotation.Nullable;
 
 /**
  * rpc请求分发器示例
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/26
@@ -34,23 +35,23 @@ import javax.annotation.Nullable;
  */
 public class ExampleRpcDispatcher implements ProtocolDispatcher {
 
-	private final RpcCallDispatcher dispatcher;
+    private final RpcCallDispatcher dispatcher;
 
-	public ExampleRpcDispatcher(RpcCallDispatcher dispatcher) {
-		this.dispatcher = dispatcher;
-	}
+    public ExampleRpcDispatcher(RpcCallDispatcher dispatcher) {
+        this.dispatcher = dispatcher;
+    }
 
-	@Override
-	public void postRpcRequest(Session session, @Nullable Object request, RpcResponseChannel<?> responseChannel) {
-		if (request instanceof RpcCall) {
-			dispatcher.post(session, (RpcCall) request, responseChannel);
-		}
-	}
+    @Override
+    public void postRpcRequest(Session session, @Nullable Object request, RpcResponseChannel<?> responseChannel) {
+        if (request instanceof RpcCall) {
+            dispatcher.post(session, (RpcCall) request, responseChannel);
+        }
+    }
 
-	@Override
-	public void postOneWayMessage(Session session, @Nullable Object message) {
-		if (message instanceof RpcCall) {
-			dispatcher.post(session, (RpcCall) message, VoidRpcResponseChannel.INSTANCE);
-		}
-	}
+    @Override
+    public void postOneWayMessage(Session session, @Nullable Object message) {
+        if (message instanceof RpcCall) {
+            dispatcher.post(session, (RpcCall) message, VoidRpcResponseChannel.INSTANCE);
+        }
+    }
 }

@@ -27,6 +27,7 @@ import javax.annotation.Nonnull;
 
 /**
  * 场景对象顶层类。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/31 22:48
@@ -34,9 +35,13 @@ import javax.annotation.Nonnull;
  */
 public abstract class GameObject<T extends GameObjectData> {
 
-    /** 对象当前所在的场景 */
+    /**
+     * 对象当前所在的场景
+     */
     protected Scene scene;
-    /** 对象绑定的定时器 */
+    /**
+     * 对象绑定的定时器
+     */
     private final TimerSystem timerSystem;
     /**
      * 游戏对象的坐标
@@ -74,14 +79,17 @@ public abstract class GameObject<T extends GameObjectData> {
 
     /**
      * 返回该场景对象对应的枚举类型
+     *
      * @return {@link GameObjectType}
      */
     @Nonnull
     public final GameObjectType getObjectType() {
         return getData().getObjectType();
     }
+
     /**
      * 获取该场景对象的非场景数据
+     *
      * @return data
      */
     @Nonnull

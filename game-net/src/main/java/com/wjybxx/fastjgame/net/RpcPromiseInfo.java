@@ -22,6 +22,7 @@ import javax.annotation.Nonnull;
 
 /**
  * RpcPromise信息
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/3
@@ -29,30 +30,32 @@ import javax.annotation.Nonnull;
  */
 public class RpcPromiseInfo {
 
-	// promise与callback二者存一
-	/**
-	 * promise，如果promise不为null，则表示同步rpc调用，否则表示异步rpc调用
-	 */
-	public Promise<RpcResponse> rpcPromise;
-	/**
-	 * 回调，如果回调存在的话，表示是一个异步rpc调用。
-	 */
-	public RpcCallback rpcCallback;
+    // promise与callback二者存一
+    /**
+     * promise，如果promise不为null，则表示同步rpc调用，否则表示异步rpc调用
+     */
+    public Promise<RpcResponse> rpcPromise;
+    /**
+     * 回调，如果回调存在的话，表示是一个异步rpc调用。
+     */
+    public RpcCallback rpcCallback;
 
-	/** rpc超时时间 */
-	public long timeoutMs;
+    /**
+     * rpc超时时间
+     */
+    public long timeoutMs;
 
-	private RpcPromiseInfo(Promise<RpcResponse> rpcPromise, RpcCallback rpcCallback, long timeoutMs) {
-		this.rpcPromise = rpcPromise;
-		this.rpcCallback = rpcCallback;
-		this.timeoutMs = timeoutMs;
-	}
+    private RpcPromiseInfo(Promise<RpcResponse> rpcPromise, RpcCallback rpcCallback, long timeoutMs) {
+        this.rpcPromise = rpcPromise;
+        this.rpcCallback = rpcCallback;
+        this.timeoutMs = timeoutMs;
+    }
 
-	public static RpcPromiseInfo newInstance(@Nonnull Promise<RpcResponse> rpcPromise, long timeoutMs) {
-		return new RpcPromiseInfo(rpcPromise, null, timeoutMs);
-	}
+    public static RpcPromiseInfo newInstance(@Nonnull Promise<RpcResponse> rpcPromise, long timeoutMs) {
+        return new RpcPromiseInfo(rpcPromise, null, timeoutMs);
+    }
 
-	public static RpcPromiseInfo newInstance(@Nonnull RpcCallback rpcCallback, long timeoutMs) {
-		return new RpcPromiseInfo(null, rpcCallback, timeoutMs);
-	}
+    public static RpcPromiseInfo newInstance(@Nonnull RpcCallback rpcCallback, long timeoutMs) {
+        return new RpcPromiseInfo(null, rpcCallback, timeoutMs);
+    }
 }

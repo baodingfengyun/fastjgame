@@ -25,7 +25,7 @@ import java.util.Set;
 
 /**
  * Excel或CSV等配置表的一页，默认colNameRow之后的为有效内容行，前面的行都是注释行。
- *
+ * <p>
  * like:
  * <pre>
  *                |-------------------------------|
@@ -44,7 +44,7 @@ import java.util.Set;
  *      }
  * }
  * </pre>
- *
+ * <p>
  * 如果你的表格只有两列有效列，且是属于key-value性质的(key不可以重复)，like:
  * <pre>
  *                |---------------------------|
@@ -63,6 +63,7 @@ import java.util.Set;
  *       // wrapper.getAsInt("b") 将会返回 2
  * }
  * </pre>
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/11 16:09
@@ -90,10 +91,11 @@ public class TableSheet {
 
     /**
      * new instance
-     * @param fileName 文件名
+     *
+     * @param fileName   文件名
      * @param sheetIndex 第几页
      * @param colNameRow 属性名称行
-     * @param tableRows LinkedHashMap要求保持读入序
+     * @param tableRows  LinkedHashMap要求保持读入序
      */
     public TableSheet(String fileName, int sheetIndex, ColNameRow colNameRow, List<TableRow> tableRows) {
         this.fileName = fileName;
@@ -117,36 +119,39 @@ public class TableSheet {
     /**
      * 获取有效内容行，方便迭代(遍历)。
      * 强烈建议使用它进行遍历。
+     *
      * @return 跳过了属性名称行及前面的行
      */
-    public List<TableRow> getContentRows(){
+    public List<TableRow> getContentRows() {
         int contentStartRowIndex = colNameRow.getRowIndex() + 1;
-        if (contentStartRowIndex < tableRows.size()){
-            return tableRows.subList(contentStartRowIndex,tableRows.size());
-        }else {
+        if (contentStartRowIndex < tableRows.size()) {
+            return tableRows.subList(contentStartRowIndex, tableRows.size());
+        } else {
             return Collections.emptyList();
         }
     }
 
     /**
      * 为指定两列属性建立映射，如果你的表格只有两列是有效的，且是key-value性质的，推荐使用该方法。
-     * @param keyColName key所在列名，key所在列不可以重复。
+     *
+     * @param keyColName   key所在列名，key所在列不可以重复。
      * @param valueColName value所在列名
      * @return
      */
-    public TableSheetConfigWrapper creatMap(String keyColName, String valueColName){
-        return TableSheetConfigWrapper.create(this,keyColName,valueColName);
+    public TableSheetConfigWrapper creatMap(String keyColName, String valueColName) {
+        return TableSheetConfigWrapper.create(this, keyColName, valueColName);
     }
 
     /**
      * 通过行索引获取该行配置。
      * 强烈建议使用{@link #getContentRows()}遍历。
+     *
      * @param rowIndex [0,getTotalRowNum()-1]
      * @return
      */
     @Nonnull
-    public TableRow getRow(int rowIndex){
-        if (rowIndex <0 || rowIndex >=tableRows.size()){
+    public TableRow getRow(int rowIndex) {
+        if (rowIndex < 0 || rowIndex >= tableRows.size()) {
             throw new IllegalArgumentException("rowIndex range: [0,totalRowNum-1]");
         }
         return tableRows.get(rowIndex);
@@ -154,14 +159,15 @@ public class TableSheet {
 
     /**
      * 在内容行查询某列为某值的行
-     * @param colName 列名
+     *
+     * @param colName  列名
      * @param colValue 该列对应的值
      * @return
      */
     @Nullable
-    public TableRow getRow(String colName,@Nonnull String colValue){
-        for (TableRow tableRow:getContentRows()){
-            if (colValue.equals(tableRow.getAsString(colName))){
+    public TableRow getRow(String colName, @Nonnull String colValue) {
+        for (TableRow tableRow : getContentRows()) {
+            if (colValue.equals(tableRow.getAsString(colName))) {
                 return tableRow;
             }
         }
@@ -171,23 +177,24 @@ public class TableSheet {
     /**
      * 获取表格的所有行内容。
      * 强烈建议使用{@link #getContentRows()}遍历。
+     *
      * @return 所有内容行
      */
-    public List<TableRow> getAllRows(){
+    public List<TableRow> getAllRows() {
         return tableRows;
     }
 
     /**
      * 获取表总行数
      */
-    public int getTotalRowNum(){
+    public int getTotalRowNum() {
         return tableRows.size();
     }
 
     /**
      * 获取所有列名(属性名)
      */
-    public Set<String> getColNameSet(){
+    public Set<String> getColNameSet() {
         return colNameRow.getColeNameSet();
     }
 

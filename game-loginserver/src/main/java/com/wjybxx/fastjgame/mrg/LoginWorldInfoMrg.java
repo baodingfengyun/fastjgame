@@ -24,12 +24,13 @@ import com.wjybxx.fastjgame.net.RoleType;
  * 登录服需要启动参数吗？
  * 需要指定端口，如果随机端口的话，得查zookeeper才知道绑定的哪个端口，
  * 而且如果用Nginx，每次都可能要改配置。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/17 20:18
  * github - https://github.com/hl845740757
  */
-public class LoginWorldInfoMrg extends WorldInfoMrg{
+public class LoginWorldInfoMrg extends WorldInfoMrg {
 
     private int port;
 
@@ -40,7 +41,7 @@ public class LoginWorldInfoMrg extends WorldInfoMrg{
 
     @Override
     protected void initImp(ConfigWrapper startArgs) throws Exception {
-        port=startArgs.getAsInt("port");
+        port = startArgs.getAsInt("port");
     }
 
     @Override

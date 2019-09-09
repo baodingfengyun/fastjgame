@@ -20,6 +20,7 @@ import javax.annotation.Nonnull;
 
 /**
  * http请求处理器注册表
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/27
@@ -27,16 +28,17 @@ import javax.annotation.Nonnull;
  */
 public interface HttpRequestHandlerRegistry {
 
-	/**
-	 * 注册一个路径的请求处理
-	 * @param path 路径
-	 * @param httpRequestHandler 请求处理器
-	 */
-	void register(@Nonnull String path, @Nonnull HttpRequestHandler httpRequestHandler);
+    /**
+     * 注册一个路径的请求处理
+     *
+     * @param path               路径
+     * @param httpRequestHandler 请求处理器
+     */
+    void register(@Nonnull String path, @Nonnull HttpRequestHandler httpRequestHandler);
 
-	/**
-	 * 释放所有的资源，因为{@link #register(String, HttpRequestHandler)}会捕获太多对象，
-	 * 当不再使用{@link HttpRequestHandlerRegistry}时，进行手动释放，避免因为registry对象存在导致内存泄漏。
-	 */
-	void release();
+    /**
+     * 释放所有的资源，因为{@link #register(String, HttpRequestHandler)}会捕获太多对象，
+     * 当不再使用{@link HttpRequestHandlerRegistry}时，进行手动释放，避免因为registry对象存在导致内存泄漏。
+     */
+    void release();
 }

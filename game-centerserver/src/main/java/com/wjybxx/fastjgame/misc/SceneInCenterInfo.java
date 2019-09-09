@@ -25,7 +25,7 @@ import java.util.Set;
 
 /**
  * SceneSever在CenterServer中的状态信息
- * 
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/15 12:22
@@ -117,8 +117,8 @@ public class SceneInCenterInfo {
     public IntSequencer getOnlinePlayerSequencer() {
         return onlinePlayerSequencer;
     }
-    
-    public boolean addActiveSceneRegion(SceneRegion sceneRegion){
+
+    public boolean addActiveSceneRegion(SceneRegion sceneRegion) {
         return this.activeRegions.add(sceneRegion);
     }
 

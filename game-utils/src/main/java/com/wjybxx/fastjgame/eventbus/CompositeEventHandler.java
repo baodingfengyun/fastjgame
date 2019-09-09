@@ -25,12 +25,13 @@ import java.util.List;
 
 /**
  * 复合事件处理器，为多个事件处理器提供一个单一的视图。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/24
  * github - https://github.com/hl845740757
  */
-public class CompositeEventHandler<T> implements EventHandler<T>{
+public class CompositeEventHandler<T> implements EventHandler<T> {
 
     private static final Logger logger = LoggerFactory.getLogger(CompositeEventHandler.class);
 
@@ -48,17 +49,17 @@ public class CompositeEventHandler<T> implements EventHandler<T>{
         children.add(second);
     }
 
-    public CompositeEventHandler<T> addHandler(@Nonnull EventHandler<T> handler){
+    public CompositeEventHandler<T> addHandler(@Nonnull EventHandler<T> handler) {
         children.add(handler);
         return this;
     }
 
     @Override
     public void onEvent(@Nonnull T event) throws Exception {
-        for (EventHandler<T> handler:children) {
+        for (EventHandler<T> handler : children) {
             try {
                 handler.onEvent(event);
-            } catch (Exception e){
+            } catch (Exception e) {
                 logger.warn("Child {} onEvent caught exception!", handler.getClass().getName(), e);
             }
         }

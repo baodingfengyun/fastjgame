@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.net.RpcResponse;
 
 /**
  * 什么也不做的rpc回调
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/23
@@ -28,10 +29,10 @@ import com.wjybxx.fastjgame.net.RpcResponse;
  */
 public class EmptyRpcCallback implements RpcCallback {
 
-	public static final EmptyRpcCallback INSTANCE = new EmptyRpcCallback();
+    public static final EmptyRpcCallback INSTANCE = new EmptyRpcCallback();
 
-	@Override
-	public void onComplete(RpcResponse rpcResponse) {
-		// ignore
-	}
+    @Override
+    public void onComplete(RpcResponse rpcResponse) {
+        // ignore
+    }
 }

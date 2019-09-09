@@ -30,16 +30,16 @@ import javax.annotation.Nonnull;
  * github - https://github.com/hl845740757
  */
 @FunctionalInterface
-public interface ChannelInitializerFactory extends ChannelInitializerSupplier{
+public interface ChannelInitializerFactory extends ChannelInitializerSupplier {
 
-	@Override
-	default ChannelInitializer<SocketChannel> get() {
-		return newInitializer();
-	}
+    @Override
+    default ChannelInitializer<SocketChannel> get() {
+        return newInitializer();
+    }
 
-	/**
-	 * 返回一个新的initializer用于初始化channel
-	 */
-	@Nonnull
-	ChannelInitializer<SocketChannel> newInitializer();
+    /**
+     * 返回一个新的initializer用于初始化channel
+     */
+    @Nonnull
+    ChannelInitializer<SocketChannel> newInitializer();
 }

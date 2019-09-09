@@ -22,6 +22,7 @@ import javax.annotation.Nonnull;
 
 /**
  * {@link MessageFunction}注册器。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/24
@@ -29,17 +30,18 @@ import javax.annotation.Nonnull;
  */
 public interface MessageFunctionRegistry {
 
-	/**
-	 * 注册一个消息的处理策略
-	 * @param clazz 消息的类型
-	 * @param handler 消息对应的处理器
-	 * @param <T> 消息的类型
-	 */
-	<T extends AbstractMessage> void register(@Nonnull Class<T> clazz, @Nonnull MessageFunction<T> handler);
+    /**
+     * 注册一个消息的处理策略
+     *
+     * @param clazz   消息的类型
+     * @param handler 消息对应的处理器
+     * @param <T>     消息的类型
+     */
+    <T extends AbstractMessage> void register(@Nonnull Class<T> clazz, @Nonnull MessageFunction<T> handler);
 
-	/**
-	 * 释放所有的资源，因为{@link #register(Class, MessageFunction)}会捕获太多对象，
-	 * 当不再使用{@link MessageFunctionRegistry}时，进行手动释放，避免因为registry对象存在导致内存泄漏。
-	 */
-	void release();
+    /**
+     * 释放所有的资源，因为{@link #register(Class, MessageFunction)}会捕获太多对象，
+     * 当不再使用{@link MessageFunctionRegistry}时，进行手动释放，避免因为registry对象存在导致内存泄漏。
+     */
+    void release();
 }

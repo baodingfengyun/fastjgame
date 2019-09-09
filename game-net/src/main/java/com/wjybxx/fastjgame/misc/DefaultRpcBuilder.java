@@ -26,12 +26,13 @@ import java.util.List;
 
 /**
  * {@link RpcBuilder}的默认实现
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/23
  * github - https://github.com/hl845740757
  */
-public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
+public class DefaultRpcBuilder<V> implements RpcBuilder<V> {
 
     private static final int SHARE_MODE_ANY = 0;
     private static final int SHARE_MODE_SEND = 1;
@@ -80,7 +81,7 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
         }
         // 添加超过两次
         if (callback instanceof CompositeRpcCallback) {
-            ((CompositeRpcCallback)this.callback).any(newCallback);
+            ((CompositeRpcCallback) this.callback).any(newCallback);
         } else {
             // 添加的第二个回调
             callback = new CompositeRpcCallback<>(callback, newCallback);
@@ -102,7 +103,7 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V>{
         if (sessionIterable == null) {
             return;
         }
-        for (Session session:sessionIterable) {
+        for (Session session : sessionIterable) {
             if (session != null) {
                 session.send(call);
             }

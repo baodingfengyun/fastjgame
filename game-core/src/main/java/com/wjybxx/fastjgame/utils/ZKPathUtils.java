@@ -37,50 +37,54 @@ import java.io.File;
  */
 public class ZKPathUtils {
 
-    private static final String CHANNELID_PREFIX="channel-";
+    private static final String CHANNELID_PREFIX = "channel-";
 
     /**
      * 寻找节点的名字，即最后一部分
+     *
      * @param path
      * @return
      */
-    public static String findNodeName(String path){
+    public static String findNodeName(String path) {
         PathUtils.validatePath(path);
         int delimiterIndex = path.lastIndexOf("/");
-        return path.substring(delimiterIndex+1);
+        return path.substring(delimiterIndex + 1);
     }
 
     /**
      * 寻找节点的父节点路径
+     *
      * @param path 路径参数，不可以是根节点("/")
      * @return
      */
-    public static String findParentPath(String path){
+    public static String findParentPath(String path) {
         PathUtils.validatePath(path);
         int delimiterIndex = path.lastIndexOf("/");
         // root(nameSpace)
-        if (delimiterIndex == 0){
+        if (delimiterIndex == 0) {
             throw new IllegalArgumentException("path " + path + " is root");
         }
-        return path.substring(0,delimiterIndex);
+        return path.substring(0, delimiterIndex);
     }
 
     /**
      * 获取父节点的名字
+     *
      * @param path 节点路径
      * @return
      */
-    private static String findParentNodeName(String path){
+    private static String findParentNodeName(String path) {
         return findNodeName(findParentPath(path));
     }
 
     /**
      * 构建一个全路径
-     * @param parent 父节点全路径
+     *
+     * @param parent   父节点全路径
      * @param nodeName 属性名字
      * @return
      */
-    public static String makePath(String parent,String nodeName){
+    public static String makePath(String parent, String nodeName) {
         return parent + "/" + nodeName;
     }
 
@@ -88,20 +92,22 @@ public class ZKPathUtils {
      * 找到一个合适的锁节点，锁的范围越小越好。
      * 对于非根节点来说，使用它的父节点路径。
      * 对应根节点来说，使用全局锁位置。
+     *
      * @param path 查询的路径
      * @return 一个合适的加锁路径
      */
-    public static String findAppropriateLockPath(String path){
+    public static String findAppropriateLockPath(String path) {
         PathUtils.validatePath(path);
         int delimiterIndex = path.lastIndexOf("/");
-        if (delimiterIndex == 0){
+        if (delimiterIndex == 0) {
             return globalLockPath();
         }
-        return path.substring(0,delimiterIndex);
+        return path.substring(0, delimiterIndex);
     }
 
     /**
      * 获取全局锁路径
+     *
      * @return
      */
     private static String globalLockPath() {
@@ -110,117 +116,129 @@ public class ZKPathUtils {
 
     /**
      * 返回全局guidIndex所在路径
+     *
      * @return
      */
-    public static String guidIndexPath(){
+    public static String guidIndexPath() {
         return "/mutex/guid/guidIndex";
     }
 
     /**
      * 运行平台参数路径
+     *
      * @param platformType 平台枚举
      * @return
      */
-    public static String platParamPath(PlatformType platformType){
+    public static String platParamPath(PlatformType platformType) {
         return "/config/platform/" + platformType;
     }
 
     /**
      * 真实服配置节点
-     * @param platformType 平台枚举
+     *
+     * @param platformType   平台枚举
      * @param actualServerId 真实服id，现存的服务器
      * @return
      */
-    public static String actualServerConfigPath(PlatformType platformType, int actualServerId){
-        return platParamPath(platformType) +"/actualserver/" + actualServerId;
+    public static String actualServerConfigPath(PlatformType platformType, int actualServerId) {
+        return platParamPath(platformType) + "/actualserver/" + actualServerId;
     }
 
     /**
      * 逻辑服到真实服映射节点
-     * @param platformType 平台枚举
+     *
+     * @param platformType  平台枚举
      * @param logicServerId 逻辑服id(合服前的服id)
      * @return
      */
-    public static String logicServerConfigPath(PlatformType platformType, int logicServerId){
-        return platParamPath(platformType) +"/logicserver/" + logicServerId;
+    public static String logicServerConfigPath(PlatformType platformType, int logicServerId) {
+        return platParamPath(platformType) + "/logicserver/" + logicServerId;
     }
 
     /**
      * 获取战区的配置路径
+     *
      * @param warzoneId
      * @return
      */
-    public static String warzoneConfigPath(int warzoneId){
-        return "/config/warzone/"+warzoneId;
+    public static String warzoneConfigPath(int warzoneId) {
+        return "/config/warzone/" + warzoneId;
     }
 
     /**
      * mongodb的配置路径
+     *
      * @return
      */
-    public static String mongoConfigPath(){
+    public static String mongoConfigPath() {
         return "/config/mongodb";
     }
 
     /**
      * 本服进程申请channelId的地方(本服内竞争)
+     *
      * @param warzoneId 战区id
-     * @param serverId 服id
+     * @param serverId  服id
      * @return 父节点路径
      */
-    public static String singleChannelPath(int warzoneId,int serverId){
+    public static String singleChannelPath(int warzoneId, int serverId) {
         // 拼一下，不弄那么深
         return "/mutex/channel/single/" + warzoneId + "-" + serverId + "/" + CHANNELID_PREFIX;
     }
 
     /**
      * 跨服进程申请channelId的地方(战区内竞争)
+     *
      * @param warzoneId 战区id
      * @return 父节点路径
      */
-    public static String crossChannelPath(int warzoneId){
+    public static String crossChannelPath(int warzoneId) {
         return "/mutex/channel/cross/" + warzoneId + "/" + CHANNELID_PREFIX;
     }
 
     /**
      * 解析临时顺序节点的序号
+     *
      * @param path 有序节点的名字
      * @return zk默认序号是从0开始的，最小为0
      */
-    public static int parseSequentialId(String path){
-        return Integer.parseInt(findNodeName(path).split("-",2)[1]);
+    public static int parseSequentialId(String path) {
+        return Integer.parseInt(findNodeName(path).split("-", 2)[1]);
     }
 
     // region 在线节点路径
 
     /**
      * 在线节点信息的根节点
+     *
      * @return
      */
-    public static String onlineRootPath(){
+    public static String onlineRootPath() {
         return "/online";
     }
 
     /**
      * 同一个战区下的服务器注册在同一节点下.
-     *
+     * <p>
      * 如果战区跨平台：
      * online/warzone-x/
      * 如果战区不夸平台:
      * online/platfrom/warzone
+     *
      * @param warzoneId 战区id
      * @return
      */
-    public static String onlineParentPath(int warzoneId){
+    public static String onlineParentPath(int warzoneId) {
         return "/online/warzone-" + warzoneId;
     }
 
     /**
      * 寻找在线节点所属的战区
+     *
      * @param onlinePath 在线节点的路径，在线节点全部在战区节点之下
      * @return
      */
-    private static int findWarzoneId(String onlinePath){
+    private static int findWarzoneId(String onlinePath) {
         // "warzone-x"
         String onlineParentNodeName = findParentNodeName(onlinePath);
         String[] params = onlineParentNodeName.split("-", 2);
@@ -234,24 +252,27 @@ public class ZKPathUtils {
     /**
      * 通过服务器的节点名字解析服务器的类型。
      * 名字的第一个字段始终是服务器类型的枚举名。
+     *
      * @param nodeName 服务器节点名字
      * @return 返回服务器的类型
      */
-    public static RoleType parseServerType(String nodeName){
-        return RoleType.valueOf(nodeName.split("-",2)[0]);
+    public static RoleType parseServerType(String nodeName) {
+        return RoleType.valueOf(nodeName.split("-", 2)[0]);
     }
 
     /**
      * 为战区创建一个有意义的节点名字
+     *
      * @param warzoneId 战区id
      * @return 唯一的有意义的名字
      */
-    public static String buildWarzoneNodeName(int warzoneId){
+    public static String buildWarzoneNodeName(int warzoneId) {
         return RoleType.WARZONE + "-" + warzoneId;
     }
 
     /**
      * 解析战区的节点路径(名字)
+     *
      * @param path fullpath
      * @return 战区基本信息
      */
@@ -263,20 +284,22 @@ public class ZKPathUtils {
 
     /**
      * 为指定服创建一个有意义的节点名字
+     *
      * @param platformType 平台
-     * @param serverId 几服
+     * @param serverId     几服
      * @return 唯一的有意义的名字
      */
-    public static String buildCenterNodeName(PlatformType platformType, int serverId){
+    public static String buildCenterNodeName(PlatformType platformType, int serverId) {
         return RoleType.CENTER + "-" + platformType + "-" + serverId;
     }
 
     /**
      * 解析game节点的路径(名字)
+     *
      * @param centerPath fullpath
      * @return game服的信息
      */
-    public static CenterNodeName parseCenterNodeName(String centerPath){
+    public static CenterNodeName parseCenterNodeName(String centerPath) {
         int warzoneId = findWarzoneId(centerPath);
         String[] params = findNodeName(centerPath).split("-");
         PlatformType platformType = PlatformType.valueOf(params[1]);
@@ -286,80 +309,87 @@ public class ZKPathUtils {
 
     /**
      * 为指定本服scene进程创建一个有意义的节点名字，用于注册到zookeeper
+     *
      * @param platformType 所属的平台
-     * @param serverId 几服
-     * @param worldGuid worldGuid
+     * @param serverId     几服
+     * @param worldGuid    worldGuid
      * @return 唯一的有意义的名字
      */
-    public static String buildSingleSceneNodeName(PlatformType platformType, int serverId, long worldGuid){
+    public static String buildSingleSceneNodeName(PlatformType platformType, int serverId, long worldGuid) {
         return RoleType.SCENE + "-" + SceneWorldType.SINGLE.name() + "-" + platformType + "-" + serverId + "-" + worldGuid;
     }
 
     /**
      * 为跨服节点创建一个有意义的节点名字，用于注册到zookeeper
+     *
      * @param worldGuid worldGuid
      * @return 唯一的有意义的名字
      */
-    public static String buildCrossSceneNodeName(long worldGuid){
+    public static String buildCrossSceneNodeName(long worldGuid) {
         return RoleType.SCENE + "-" + SceneWorldType.CROSS.name() + "-" + worldGuid;
     }
 
     /**
      * 通过场景节点的名字解析场景进程的类型
+     *
      * @param sceneNodePath scene节点的名字
      * @return scene进程的类型
      */
-    public static SceneWorldType parseSceneType(String sceneNodePath){
+    public static SceneWorldType parseSceneType(String sceneNodePath) {
         String[] params = findNodeName(sceneNodePath).split("-", 3);
         return SceneWorldType.valueOf(params[1]);
     }
 
     /**
      * 解析单服scene进程的节点路径(名字)
+     *
      * @param path fullpath
      * @return scene包含的基本信息
      */
-    public static SingleSceneNodeName parseSingleSceneNodeName(String path){
+    public static SingleSceneNodeName parseSingleSceneNodeName(String path) {
         int warzoneId = findWarzoneId(path);
         String[] params = findNodeName(path).split("-");
         PlatformType platformType = PlatformType.valueOf(params[2]);
         int serverId = Integer.parseInt(params[3]);
         long worldGuid = Long.parseLong(params[4]);
-        return new SingleSceneNodeName(warzoneId, platformType, serverId,worldGuid);
+        return new SingleSceneNodeName(warzoneId, platformType, serverId, worldGuid);
     }
 
     /**
      * 解析跨服节点的节点路径(名字)
+     *
      * @param path fullpath
      * @return 跨服节点信息
      */
-    public static CrossSceneNodeName parseCrossSceneNodeName(String path){
+    public static CrossSceneNodeName parseCrossSceneNodeName(String path) {
         int warzoneId = findWarzoneId(path);
         String[] params = findNodeName(path).split("-");
         long worldGuid = Long.parseLong(params[2]);
-        return new CrossSceneNodeName(warzoneId,worldGuid);
+        return new CrossSceneNodeName(warzoneId, worldGuid);
     }
 
     /**
      * 为loginserver创建一个节点名字
-     * @param port 端口号
+     *
+     * @param port      端口号
      * @param worldGuid worldGuid
      * @return 一个唯一的有意义的名字
      */
-    public static String buildLoginNodeName(int port,long worldGuid){
-        return RoleType.LOGIN + "-" + port + "-"+worldGuid;
+    public static String buildLoginNodeName(int port, long worldGuid) {
+        return RoleType.LOGIN + "-" + port + "-" + worldGuid;
     }
 
     /**
      * 解析loginserver的节点名字
+     *
      * @param path 节点路径
      * @return
      */
-    public static LoginNodeName parseLoginNodeName(String path){
+    public static LoginNodeName parseLoginNodeName(String path) {
         String[] params = findNodeName(path).split("-");
-        int port=Integer.parseInt(params[1]);
+        int port = Integer.parseInt(params[1]);
         long worldGuid = Long.parseLong(params[2]);
-        return new LoginNodeName(port,worldGuid);
+        return new LoginNodeName(port, worldGuid);
     }
     // endregion
 }

@@ -22,6 +22,7 @@ import com.wjybxx.fastjgame.utils.EnumUtils;
 
 /**
  * 运行平台类型，平台问题最终还是会遇见，这里先处理。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/17 22:02
@@ -51,9 +52,9 @@ public enum PlatformType implements NumberEnum {
 
     private static final NumberEnumMapper<PlatformType> mapper = EnumUtils.indexNumberEnum(values());
 
-    public static PlatformType forNumber(int number){
+    public static PlatformType forNumber(int number) {
         PlatformType platformType = mapper.forNumber(number);
-        assert null!=platformType:"invalid number "+number;
+        assert null != platformType : "invalid number " + number;
         return platformType;
     }
 }

@@ -29,22 +29,26 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class RpcResponseMessage extends NetMessage {
 
-	/** 客户端的哪一个请求 */
-	private long requestGuid;
-	/** rpc响应结果 */
-	private RpcResponse rpcResponse;
+    /**
+     * 客户端的哪一个请求
+     */
+    private long requestGuid;
+    /**
+     * rpc响应结果
+     */
+    private RpcResponse rpcResponse;
 
-	public RpcResponseMessage(long requestGuid, RpcResponse rpcResponse) {
-		super();
-		this.rpcResponse = rpcResponse;
-		this.requestGuid = requestGuid;
-	}
+    public RpcResponseMessage(long requestGuid, RpcResponse rpcResponse) {
+        super();
+        this.rpcResponse = rpcResponse;
+        this.requestGuid = requestGuid;
+    }
 
-	public long getRequestGuid() {
-		return requestGuid;
-	}
+    public long getRequestGuid() {
+        return requestGuid;
+    }
 
-	public RpcResponse getRpcResponse() {
-		return rpcResponse;
-	}
+    public RpcResponse getRpcResponse() {
+        return rpcResponse;
+    }
 }

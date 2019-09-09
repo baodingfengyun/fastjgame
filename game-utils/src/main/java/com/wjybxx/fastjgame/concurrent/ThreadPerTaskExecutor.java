@@ -31,18 +31,18 @@ import java.util.concurrent.ThreadFactory;
  */
 public final class ThreadPerTaskExecutor implements Executor {
 
-	private final ThreadFactory threadFactory;
+    private final ThreadFactory threadFactory;
 
-	public ThreadPerTaskExecutor(ThreadFactory threadFactory) {
-		if (threadFactory == null) {
-			throw new NullPointerException("threadFactory");
-		}
-		this.threadFactory = threadFactory;
-	}
+    public ThreadPerTaskExecutor(ThreadFactory threadFactory) {
+        if (threadFactory == null) {
+            throw new NullPointerException("threadFactory");
+        }
+        this.threadFactory = threadFactory;
+    }
 
-	@Override
-	public void execute(@Nonnull Runnable command) {
-		// 为每一个任务新建一个线程
-		threadFactory.newThread(command).start();
-	}
+    @Override
+    public void execute(@Nonnull Runnable command) {
+        // 为每一个任务新建一个线程
+        threadFactory.newThread(command).start();
+    }
 }

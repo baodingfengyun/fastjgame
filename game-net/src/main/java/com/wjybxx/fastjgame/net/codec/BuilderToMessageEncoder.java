@@ -25,11 +25,12 @@ import java.util.List;
 /**
  * 将protoBuf中的builder转换为message对象，因为消息映射用的是它对应的message。
  * 因为人总是容易忘记，容易老发送builder。
- *
+ * <p>
  * 发送builder的好处：可以将一部分操作转移到io线程。
  * 发送builder的坏处：
- *      1.builder是可变对象，如果发送builder后，再次修改builder，是很危险的！！！
- *      2.反复构建多次
+ * 1.builder是可变对象，如果发送builder后，再次修改builder，是很危险的！！！
+ * 2.反复构建多次
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/23 13:39

@@ -26,12 +26,13 @@ import static com.wjybxx.fastjgame.findpath.FindPathUtils.addNeighborIfWalkable;
 /**
  * 当前仅当前进的水平方向和垂直方向都不是遮挡时，才可以走对角线；
  * （不会因为对角线节点导致拐点，而只有水平和垂直方向会生成拐点，导致了拐点算法很不一样）
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/16 23:13
  * github - https://github.com/hl845740757
  */
-public class NoneObstacleJumpStrategy extends JumpStrategy{
+public class NoneObstacleJumpStrategy extends JumpStrategy {
 
     @Override
     protected void findDiagonalNeighbors(JPSFindPathContext context, int x, int y, int dx, int dy, List<MapGrid> neighbors) {
@@ -40,7 +41,7 @@ public class NoneObstacleJumpStrategy extends JumpStrategy{
         // 垂直方向邻居
         boolean verticalWalkable = addNeighborIfWalkable(context, x, y + dy, neighbors);
         // 对角线邻居
-        if (horizontalWalkable && verticalWalkable){
+        if (horizontalWalkable && verticalWalkable) {
             addNeighborIfWalkable(context, x + dx, y + dy, neighbors);
         }
     }
@@ -94,10 +95,10 @@ public class NoneObstacleJumpStrategy extends JumpStrategy{
      */
     @Override
     protected MapGrid diagonalJump(JPSFindPathContext context, int startX, int startY, int dx, int dy) {
-        for (int currentX = startX, currentY = startY; ; currentX+=dx, currentY+=dy){
+        for (int currentX = startX, currentY = startY; ; currentX += dx, currentY += dy) {
             // 当前节点为目标节点
             // 如果点y是起点或目标点，则y是跳点
-            if (context.isEndGrid(currentX, currentY)){
+            if (context.isEndGrid(currentX, currentY)) {
                 return context.endGrid;
             }
 
@@ -123,9 +124,9 @@ public class NoneObstacleJumpStrategy extends JumpStrategy{
     @Override
     protected MapGrid horizontalJump(JPSFindPathContext context, int startX, int currentY, int dx) {
         // 水平移动
-        for (int currentX=startX; ; currentX+=dx){
+        for (int currentX = startX; ; currentX += dx) {
             // 当前节点为目标节点
-            if (context.isEndGrid(currentX, currentY)){
+            if (context.isEndGrid(currentX, currentY)) {
                 return context.endGrid;
             }
 
@@ -191,15 +192,15 @@ public class NoneObstacleJumpStrategy extends JumpStrategy{
 
     @Override
     protected MapGrid verticalJump(JPSFindPathContext context, int currentX, int startY, int dy) {
-        for (int currentY = startY; ; currentY += dy){
+        for (int currentY = startY; ; currentY += dy) {
             // 当前节点为目标节点
-            if (context.isEndGrid(currentX, currentY)){
+            if (context.isEndGrid(currentX, currentY)) {
                 return context.endGrid;
             }
             // 不可对角线移动，那么只能左右拐，那么什么是时候拐方向？
             // （从parent(x)、x、n的路径长度比其他任何从parent(x)到n且不经过x的路径短，）（存在左右强迫邻居）
             if (vContainLeftForceNeighbor(context, currentX, currentY, dy)
-                    || vContainRightForceNeighbor(context, currentX, currentY, dy)){
+                    || vContainRightForceNeighbor(context, currentX, currentY, dy)) {
                 return context.getGrid(currentX, currentY);
             }
 
@@ -229,7 +230,7 @@ public class NoneObstacleJumpStrategy extends JumpStrategy{
      *     I: ignore
      * </pre>
      */
-    private boolean vContainLeftForceNeighbor(JPSFindPathContext context, int x, int y, int dy){
+    private boolean vContainLeftForceNeighbor(JPSFindPathContext context, int x, int y, int dy) {
         return context.isWalkable(x - 1, y) && !context.isWalkable(x - 1, y - dy);
     }
 
@@ -253,7 +254,7 @@ public class NoneObstacleJumpStrategy extends JumpStrategy{
      *     I: ignore
      * </pre>
      */
-    private boolean vContainRightForceNeighbor(JPSFindPathContext context, int x, int y, int dy){
+    private boolean vContainRightForceNeighbor(JPSFindPathContext context, int x, int y, int dy) {
         return context.isWalkable(x + 1, y) && !context.isWalkable(x + 1, y - dy);
 
     }

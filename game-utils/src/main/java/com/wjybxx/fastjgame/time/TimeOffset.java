@@ -28,8 +28,8 @@ package com.wjybxx.fastjgame.time;
  */
 public interface TimeOffset {
 
-	/**
-	 * 获取毫秒方式的时间偏移值
-	 */
-	long toOffset();
+    /**
+     * 获取毫秒方式的时间偏移值
+     */
+    long toOffset();
 }

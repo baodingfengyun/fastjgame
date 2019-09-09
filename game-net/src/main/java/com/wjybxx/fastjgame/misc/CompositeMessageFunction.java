@@ -37,36 +37,36 @@ import java.util.List;
  */
 public final class CompositeMessageFunction<T extends AbstractMessage> implements MessageFunction<T> {
 
-	private static final Logger logger = LoggerFactory.getLogger(CompositeMessageFunction.class);
+    private static final Logger logger = LoggerFactory.getLogger(CompositeMessageFunction.class);
 
-	/**
-	 * 该handler管理的所有子节点。
-	 */
-	private final List<MessageFunction<T>> children = new ArrayList<>(4);
+    /**
+     * 该handler管理的所有子节点。
+     */
+    private final List<MessageFunction<T>> children = new ArrayList<>(4);
 
-	public CompositeMessageFunction() {
+    public CompositeMessageFunction() {
 
-	}
+    }
 
-	public CompositeMessageFunction(@Nonnull MessageFunction<T> first, @Nonnull MessageFunction<T> second) {
-		children.add(first);
-		children.add(second);
-	}
+    public CompositeMessageFunction(@Nonnull MessageFunction<T> first, @Nonnull MessageFunction<T> second) {
+        children.add(first);
+        children.add(second);
+    }
 
-	public CompositeMessageFunction<T> addHandler(@Nonnull MessageFunction<T> handler) {
-		children.add(handler);
-		return this;
-	}
+    public CompositeMessageFunction<T> addHandler(@Nonnull MessageFunction<T> handler) {
+        children.add(handler);
+        return this;
+    }
 
-	@Override
-	public void onMessage(Session session, T message) throws Exception {
-		for (MessageFunction<T> handler:children) {
-			try {
-				handler.onMessage(session, message);
-			} catch (Exception e) {
-				logger.warn("Child onMessage caught exception, child {}, message {}",
-						handler.getClass().getName(), message.getClass().getName(), e);
-			}
-		}
-	}
+    @Override
+    public void onMessage(Session session, T message) throws Exception {
+        for (MessageFunction<T> handler : children) {
+            try {
+                handler.onMessage(session, message);
+            } catch (Exception e) {
+                logger.warn("Child onMessage caught exception, child {}, message {}",
+                        handler.getClass().getName(), message.getClass().getName(), e);
+            }
+        }
+    }
 }

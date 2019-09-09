@@ -22,7 +22,7 @@ package com.wjybxx.fastjgame.shape;
  * date - 2019/5/31 23:22
  * github - https://github.com/hl845740757
  */
-public class UnmodifiablePoint2D extends Point2D{
+public class UnmodifiablePoint2D extends Point2D {
 
     private final float x;
 

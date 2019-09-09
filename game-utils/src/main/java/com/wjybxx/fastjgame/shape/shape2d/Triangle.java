@@ -33,7 +33,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  *  *       *
  * b * * * * c
  * </pre>
- *
+ * <p>
  * 同向法：
  * <pre>
  *     {@code
@@ -74,7 +74,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  *     }
  * </pre>
  *
- *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/1 0:21
@@ -91,7 +90,7 @@ public class Triangle implements Shape2D, RedrawShape {
 
     private final Point2D c;
 
-    public Triangle(@Nonnull Point2D a,@Nonnull Point2D b,@Nonnull Point2D c) {
+    public Triangle(@Nonnull Point2D a, @Nonnull Point2D b, @Nonnull Point2D c) {
         this.a = a;
         this.b = b;
         this.c = c;
@@ -99,11 +98,11 @@ public class Triangle implements Shape2D, RedrawShape {
 
     /**
      * 这里采用重心法。
-     *
+     * <p>
      * 内角和法，同向法，重心法，面积法。
      * (同向法是向量计算，应该是较快的，理解起来也容易)
      * （重心法也是向量计算，而且计算量更少）
-     *
+     * <p>
      * 强烈建议看这篇文章（带有测试用例）：
      * - http://blackpawn.com/texts/pointinpoly/default.html
      * 经过测试也是OK的
@@ -115,9 +114,9 @@ public class Triangle implements Shape2D, RedrawShape {
     public boolean hasPoint(@Nonnull Point2D p) {
         TriangleCache cache = localCache.get();
         // Compute vectors
-        Point2D v0 = MathUtils.sub(c,a, cache.cacheV0);
-        Point2D v1 = MathUtils.sub(b,a, cache.cacheV1);
-        Point2D v2 = MathUtils.sub(p,a, cache.cacheV2);
+        Point2D v0 = MathUtils.sub(c, a, cache.cacheV0);
+        Point2D v1 = MathUtils.sub(b, a, cache.cacheV1);
+        Point2D v2 = MathUtils.sub(p, a, cache.cacheV2);
 
         float dot00 = MathUtils.dotProduct(v0, v0);
         float dot01 = MathUtils.dotProduct(v0, v1);
@@ -139,7 +138,7 @@ public class Triangle implements Shape2D, RedrawShape {
      * 重新绘制,不会修改内部引用，只会修改数值。
      * {@link Point2D#updateLocation(Point2D)}
      */
-    public Triangle redraw(Point2D a, Point2D b, Point2D c){
+    public Triangle redraw(Point2D a, Point2D b, Point2D c) {
         this.a.updateLocation(a);
         this.b.updateLocation(b);
         this.c.updateLocation(c);
@@ -159,11 +158,13 @@ public class Triangle implements Shape2D, RedrawShape {
     }
 
     // 同向法
+
     /**
      * 判断 p1 和 p2 是否在 ab 向量的同侧
+     *
      * @return true/false
      */
-    private static boolean sameSide(Point2D p1, Point2D p2, Point2D a, Point2D b){
+    private static boolean sameSide(Point2D p1, Point2D p2, Point2D a, Point2D b) {
         TriangleCache cache = localCache.get();
 
         Point2D ab = MathUtils.sub(b, a, cache.cacheV0);
@@ -177,9 +178,10 @@ public class Triangle implements Shape2D, RedrawShape {
 
     /**
      * 同向法求p是否在三角形内，p和任意顶点都在另外两个顶点构成的向量的同侧。
+     *
      * @return true/false
      */
-    private static boolean pointInTriangle(Point2D p, Point2D a, Point2D b, Point2D c){
+    private static boolean pointInTriangle(Point2D p, Point2D a, Point2D b, Point2D c) {
         return sameSide(p, a, b, c)
                 && sameSide(p, b, a, c)
                 && sameSide(p, c, a, b);

@@ -32,7 +32,7 @@ import java.util.Set;
  * date - 2019/5/12 9:45
  * github - https://github.com/hl845740757
  */
-public class TableSheetConfigWrapper extends ConfigWrapper{
+public class TableSheetConfigWrapper extends ConfigWrapper {
 
     private final String fileName;
 
@@ -42,11 +42,11 @@ public class TableSheetConfigWrapper extends ConfigWrapper{
 
     private final String valueColName;
 
-    private final Map<String,String> indexedContent;
+    private final Map<String, String> indexedContent;
 
     private TableSheetConfigWrapper(String fileName, int sheetIndex,
-                                   String keyColName, String valueColName,
-                                   Map<String,String> indexedContent) {
+                                    String keyColName, String valueColName,
+                                    Map<String, String> indexedContent) {
         this.fileName = fileName;
         this.sheetIndex = sheetIndex;
         this.keyColName = keyColName;
@@ -98,31 +98,32 @@ public class TableSheetConfigWrapper extends ConfigWrapper{
 
     /**
      * 创建一个表格包装对象，只包含tableSheet指定的两列
-     * @param tableSheet 表格
-     * @param keyColName key所在列列名，key列配置必须唯一
+     *
+     * @param tableSheet   表格
+     * @param keyColName   key所在列列名，key列配置必须唯一
      * @param valueColName value所在列列名
      * @return
      */
-    public static TableSheetConfigWrapper create(TableSheet tableSheet, String keyColName, String valueColName){
+    public static TableSheetConfigWrapper create(TableSheet tableSheet, String keyColName, String valueColName) {
         Map<String, String> indexedContent = createIndex(tableSheet, keyColName, valueColName);
-        return new TableSheetConfigWrapper(tableSheet.getFileName(),tableSheet.getSheetIndex(),
-                keyColName,valueColName,
+        return new TableSheetConfigWrapper(tableSheet.getFileName(), tableSheet.getSheetIndex(),
+                keyColName, valueColName,
                 indexedContent);
     }
 
     /**
      * 创建key-value的索引，避免使用时的大量遍历
      */
-    private static Map<String,String> createIndex(TableSheet tableSheet, String keyColName, String valueColName){
+    private static Map<String, String> createIndex(TableSheet tableSheet, String keyColName, String valueColName) {
         // 使用LinkedHashMap保持原顺序
-        Map<String,String> result = CollectionUtils.newEnoughCapacityLinkedHashMap(tableSheet.getTotalRowNum());
-        for (TableRow tableRow:tableSheet.getContentRows()){
+        Map<String, String> result = CollectionUtils.newEnoughCapacityLinkedHashMap(tableSheet.getTotalRowNum());
+        for (TableRow tableRow : tableSheet.getContentRows()) {
             String key = tableRow.getAsString(keyColName);
             // 不可以有重复键
-            if (result.containsKey(key)){
+            if (result.containsKey(key)) {
                 throw new IllegalArgumentException("keyCol hash duplicate key " + key);
             }
-            result.put(key,tableRow.getAsString(valueColName));
+            result.put(key, tableRow.getAsString(valueColName));
         }
         return Collections.unmodifiableMap(result);
     }

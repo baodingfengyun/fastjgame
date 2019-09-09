@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.timer;
 
 /**
  * 抽象的固定频率的TimerHandle实现
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/14
@@ -25,83 +26,87 @@ package com.wjybxx.fastjgame.timer;
  */
 public abstract class AbstractFixRateHandle extends AbstractTimerHandle implements FixedRateHandle {
 
-	private final long initialDelay;
+    private final long initialDelay;
 
-	private long period;
-	/** 上次执行时间 */
-	private long lastExecuteTimeMs;
+    private long period;
+    /**
+     * 上次执行时间
+     */
+    private long lastExecuteTimeMs;
 
-	protected AbstractFixRateHandle(TimerSystem timerSystem, long createTimeMs, TimerTask timerTask,
-					 long initialDelay, long period) {
-		super(timerSystem, timerTask, createTimeMs);
-		this.initialDelay = initialDelay;
-		this.period = period;
-	}
+    protected AbstractFixRateHandle(TimerSystem timerSystem, long createTimeMs, TimerTask timerTask,
+                                    long initialDelay, long period) {
+        super(timerSystem, timerTask, createTimeMs);
+        this.initialDelay = initialDelay;
+        this.period = period;
+    }
 
-	@Override
-	public long initialDelay() {
-		return initialDelay;
-	}
+    @Override
+    public long initialDelay() {
+        return initialDelay;
+    }
 
-	@Override
-	public long period() {
-		return period;
-	}
+    @Override
+    public long period() {
+        return period;
+    }
 
-	@Override
-	public final boolean setPeriod(long period) {
-		ensurePeriod(period);
-		if (isTerminated()) {
-			return false;
-		} else {
-			this.period = period;
-			return true;
-		}
-	}
+    @Override
+    public final boolean setPeriod(long period) {
+        ensurePeriod(period);
+        if (isTerminated()) {
+            return false;
+        } else {
+            this.period = period;
+            return true;
+        }
+    }
 
-	@Override
-	public boolean setPeriodImmediately(long period) {
-		if (setPeriod(period)) {
-			adjust();
-			return true;
-		} else {
-			return false;
-		}
-	}
+    @Override
+    public boolean setPeriodImmediately(long period) {
+        if (setPeriod(period)) {
+            adjust();
+            return true;
+        } else {
+            return false;
+        }
+    }
 
-	@Override
-	protected final void init() {
-		setNextExecuteTimeMs(createTimeMs() + initialDelay);
-	}
+    @Override
+    protected final void init() {
+        setNextExecuteTimeMs(createTimeMs() + initialDelay);
+    }
 
-	@Override
-	protected final void afterExecute(long curTimeMs) {
-		// 上次执行时间非真实时间
-		lastExecuteTimeMs = getNextExecuteTimeMs();
-		// 下次执行时间为上次执行时间 + 周期
-		setNextExecuteTimeMs(lastExecuteTimeMs + period);
-	}
+    @Override
+    protected final void afterExecute(long curTimeMs) {
+        // 上次执行时间非真实时间
+        lastExecuteTimeMs = getNextExecuteTimeMs();
+        // 下次执行时间为上次执行时间 + 周期
+        setNextExecuteTimeMs(lastExecuteTimeMs + period);
+    }
 
-	/** 更新下一次的执行时间 */
-	protected final void updateNextExecuteTime() {
-		if (lastExecuteTimeMs > 0) {
-			setNextExecuteTimeMs(lastExecuteTimeMs + period);
-		} else {
-			setNextExecuteTimeMs(createTimeMs() + initialDelay);
-		}
-	}
+    /**
+     * 更新下一次的执行时间
+     */
+    protected final void updateNextExecuteTime() {
+        if (lastExecuteTimeMs > 0) {
+            setNextExecuteTimeMs(lastExecuteTimeMs + period);
+        } else {
+            setNextExecuteTimeMs(createTimeMs() + initialDelay);
+        }
+    }
 
-	/**
-	 * 当修改完period的时候，进行必要的调整，此时还未修改下次执行时间。
-	 * 注意：虽然三个抽象类中都有{@link #adjust()} {@link #updateNextExecuteTime()}两个函数，
-	 * 但是不代表它们应该提炼到父类！
-	 */
-	@SuppressWarnings("JavaDoc")
-	protected abstract void adjust();
+    /**
+     * 当修改完period的时候，进行必要的调整，此时还未修改下次执行时间。
+     * 注意：虽然三个抽象类中都有{@link #adjust()} {@link #updateNextExecuteTime()}两个函数，
+     * 但是不代表它们应该提炼到父类！
+     */
+    @SuppressWarnings("JavaDoc")
+    protected abstract void adjust();
 
-	public static void ensurePeriod(long period) {
-		if (period <= 0) {
-			throw new IllegalArgumentException("period " + period);
-		}
-	}
+    public static void ensurePeriod(long period) {
+        if (period <= 0) {
+            throw new IllegalArgumentException("period " + period);
+        }
+    }
 }

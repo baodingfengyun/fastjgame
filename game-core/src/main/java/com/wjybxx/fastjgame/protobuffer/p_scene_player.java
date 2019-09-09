@@ -4,4444 +4,4754 @@
 package com.wjybxx.fastjgame.protobuffer;
 
 public final class p_scene_player {
-  private p_scene_player() {}
-  public static void registerAllExtensions(
-      com.google.protobuf.ExtensionRegistryLite registry) {
-  }
-
-  public static void registerAllExtensions(
-      com.google.protobuf.ExtensionRegistry registry) {
-    registerAllExtensions(
-        (com.google.protobuf.ExtensionRegistryLite) registry);
-  }
-  public interface p_scene_player_dataOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:fastjgame.p_scene_player_data)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <pre>
-     * 玩家的唯一标识，一定是不变的
-     * </pre>
-     *
-     * <code>int64 playerGuid = 1;</code>
-     */
-    long getPlayerGuid();
-
-    /**
-     * <code>int32 logicServerId = 2;</code>
-     */
-    int getLogicServerId();
-
-    /**
-     * <code>int32 actualServerId = 3;</code>
-     */
-    int getActualServerId();
-  }
-  /**
-   * <pre>
-   * player在进入视野时，需要广播的数据
-   * </pre>
-   *
-   * Protobuf type {@code fastjgame.p_scene_player_data}
-   */
-  public  static final class p_scene_player_data extends
-      com.google.protobuf.GeneratedMessageV3 implements
-      // @@protoc_insertion_point(message_implements:fastjgame.p_scene_player_data)
-      p_scene_player_dataOrBuilder {
-  private static final long serialVersionUID = 0L;
-    // Use p_scene_player_data.newBuilder() to construct.
-    private p_scene_player_data(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
-      super(builder);
-    }
-    private p_scene_player_data() {
+    private p_scene_player() {
     }
 
-    @java.lang.Override
-    public final com.google.protobuf.UnknownFieldSet
-    getUnknownFields() {
-      return this.unknownFields;
-    }
-    private p_scene_player_data(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      this();
-      if (extensionRegistry == null) {
-        throw new java.lang.NullPointerException();
-      }
-      int mutable_bitField0_ = 0;
-      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
-          com.google.protobuf.UnknownFieldSet.newBuilder();
-      try {
-        boolean done = false;
-        while (!done) {
-          int tag = input.readTag();
-          switch (tag) {
-            case 0:
-              done = true;
-              break;
-            case 8: {
-
-              playerGuid_ = input.readInt64();
-              break;
-            }
-            case 16: {
-
-              logicServerId_ = input.readInt32();
-              break;
-            }
-            case 24: {
-
-              actualServerId_ = input.readInt32();
-              break;
-            }
-            default: {
-              if (!parseUnknownField(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
-          }
-        }
-      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw e.setUnfinishedMessage(this);
-      } catch (java.io.IOException e) {
-        throw new com.google.protobuf.InvalidProtocolBufferException(
-            e).setUnfinishedMessage(this);
-      } finally {
-        this.unknownFields = unknownFields.build();
-        makeExtensionsImmutable();
-      }
-    }
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_player_data_descriptor;
+    public static void registerAllExtensions(
+            com.google.protobuf.ExtensionRegistryLite registry) {
     }
 
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_player_data_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.class, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.Builder.class);
+    public static void registerAllExtensions(
+            com.google.protobuf.ExtensionRegistry registry) {
+        registerAllExtensions(
+                (com.google.protobuf.ExtensionRegistryLite) registry);
     }
 
-    public static final int PLAYERGUID_FIELD_NUMBER = 1;
-    private long playerGuid_;
-    /**
-     * <pre>
-     * 玩家的唯一标识，一定是不变的
-     * </pre>
-     *
-     * <code>int64 playerGuid = 1;</code>
-     */
-    public long getPlayerGuid() {
-      return playerGuid_;
+    public interface p_scene_player_dataOrBuilder extends
+            // @@protoc_insertion_point(interface_extends:fastjgame.p_scene_player_data)
+            com.google.protobuf.MessageOrBuilder {
+
+        /**
+         * <pre>
+         * 玩家的唯一标识，一定是不变的
+         * </pre>
+         *
+         * <code>int64 playerGuid = 1;</code>
+         */
+        long getPlayerGuid();
+
+        /**
+         * <code>int32 logicServerId = 2;</code>
+         */
+        int getLogicServerId();
+
+        /**
+         * <code>int32 actualServerId = 3;</code>
+         */
+        int getActualServerId();
     }
 
-    public static final int LOGICSERVERID_FIELD_NUMBER = 2;
-    private int logicServerId_;
-    /**
-     * <code>int32 logicServerId = 2;</code>
-     */
-    public int getLogicServerId() {
-      return logicServerId_;
-    }
-
-    public static final int ACTUALSERVERID_FIELD_NUMBER = 3;
-    private int actualServerId_;
-    /**
-     * <code>int32 actualServerId = 3;</code>
-     */
-    public int getActualServerId() {
-      return actualServerId_;
-    }
-
-    private byte memoizedIsInitialized = -1;
-    @java.lang.Override
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    @java.lang.Override
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      if (playerGuid_ != 0L) {
-        output.writeInt64(1, playerGuid_);
-      }
-      if (logicServerId_ != 0) {
-        output.writeInt32(2, logicServerId_);
-      }
-      if (actualServerId_ != 0) {
-        output.writeInt32(3, actualServerId_);
-      }
-      unknownFields.writeTo(output);
-    }
-
-    @java.lang.Override
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      if (playerGuid_ != 0L) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(1, playerGuid_);
-      }
-      if (logicServerId_ != 0) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(2, logicServerId_);
-      }
-      if (actualServerId_ != 0) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(3, actualServerId_);
-      }
-      size += unknownFields.getSerializedSize();
-      memoizedSize = size;
-      return size;
-    }
-
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data)) {
-        return super.equals(obj);
-      }
-      com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data other = (com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data) obj;
-
-      if (getPlayerGuid()
-          != other.getPlayerGuid()) return false;
-      if (getLogicServerId()
-          != other.getLogicServerId()) return false;
-      if (getActualServerId()
-          != other.getActualServerId()) return false;
-      if (!unknownFields.equals(other.unknownFields)) return false;
-      return true;
-    }
-
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + PLAYERGUID_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getPlayerGuid());
-      hash = (37 * hash) + LOGICSERVERID_FIELD_NUMBER;
-      hash = (53 * hash) + getLogicServerId();
-      hash = (37 * hash) + ACTUALSERVERID_FIELD_NUMBER;
-      hash = (53 * hash) + getActualServerId();
-      hash = (29 * hash) + unknownFields.hashCode();
-      memoizedHashCode = hash;
-      return hash;
-    }
-
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    @java.lang.Override
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    @java.lang.Override
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
     /**
      * <pre>
      * player在进入视野时，需要广播的数据
      * </pre>
-     *
+     * <p>
      * Protobuf type {@code fastjgame.p_scene_player_data}
      */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:fastjgame.p_scene_player_data)
-        com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_dataOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_player_data_descriptor;
-      }
+    public static final class p_scene_player_data extends
+            com.google.protobuf.GeneratedMessageV3 implements
+            // @@protoc_insertion_point(message_implements:fastjgame.p_scene_player_data)
+            p_scene_player_dataOrBuilder {
+        private static final long serialVersionUID = 0L;
 
-      @java.lang.Override
-      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_player_data_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.class, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.Builder.class);
-      }
-
-      // Construct using com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.newBuilder()
-      private Builder() {
-        maybeForceBuilderInitialization();
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
-        super(parent);
-        maybeForceBuilderInitialization();
-      }
-      private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessageV3
-                .alwaysUseFieldBuilders) {
+        // Use p_scene_player_data.newBuilder() to construct.
+        private p_scene_player_data(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+            super(builder);
         }
-      }
-      @java.lang.Override
-      public Builder clear() {
-        super.clear();
-        playerGuid_ = 0L;
 
-        logicServerId_ = 0;
-
-        actualServerId_ = 0;
-
-        return this;
-      }
-
-      @java.lang.Override
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_player_data_descriptor;
-      }
-
-      @java.lang.Override
-      public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data getDefaultInstanceForType() {
-        return com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.getDefaultInstance();
-      }
-
-      @java.lang.Override
-      public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data build() {
-        com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
+        private p_scene_player_data() {
         }
-        return result;
-      }
 
-      @java.lang.Override
-      public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data buildPartial() {
-        com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data result = new com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data(this);
-        result.playerGuid_ = playerGuid_;
-        result.logicServerId_ = logicServerId_;
-        result.actualServerId_ = actualServerId_;
-        onBuilt();
-        return result;
-      }
-
-      @java.lang.Override
-      public Builder clone() {
-        return super.clone();
-      }
-      @java.lang.Override
-      public Builder setField(
-          com.google.protobuf.Descriptors.FieldDescriptor field,
-          java.lang.Object value) {
-        return super.setField(field, value);
-      }
-      @java.lang.Override
-      public Builder clearField(
-          com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return super.clearField(field);
-      }
-      @java.lang.Override
-      public Builder clearOneof(
-          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return super.clearOneof(oneof);
-      }
-      @java.lang.Override
-      public Builder setRepeatedField(
-          com.google.protobuf.Descriptors.FieldDescriptor field,
-          int index, java.lang.Object value) {
-        return super.setRepeatedField(field, index, value);
-      }
-      @java.lang.Override
-      public Builder addRepeatedField(
-          com.google.protobuf.Descriptors.FieldDescriptor field,
-          java.lang.Object value) {
-        return super.addRepeatedField(field, value);
-      }
-      @java.lang.Override
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data) {
-          return mergeFrom((com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
+        @java.lang.Override
+        public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+            return this.unknownFields;
         }
-      }
 
-      public Builder mergeFrom(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data other) {
-        if (other == com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.getDefaultInstance()) return this;
-        if (other.getPlayerGuid() != 0L) {
-          setPlayerGuid(other.getPlayerGuid());
-        }
-        if (other.getLogicServerId() != 0) {
-          setLogicServerId(other.getLogicServerId());
-        }
-        if (other.getActualServerId() != 0) {
-          setActualServerId(other.getActualServerId());
-        }
-        this.mergeUnknownFields(other.unknownFields);
-        onChanged();
-        return this;
-      }
-
-      @java.lang.Override
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data parsedMessage = null;
-        try {
-          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          parsedMessage = (com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data) e.getUnfinishedMessage();
-          throw e.unwrapIOException();
-        } finally {
-          if (parsedMessage != null) {
-            mergeFrom(parsedMessage);
-          }
-        }
-        return this;
-      }
-
-      private long playerGuid_ ;
-      /**
-       * <pre>
-       * 玩家的唯一标识，一定是不变的
-       * </pre>
-       *
-       * <code>int64 playerGuid = 1;</code>
-       */
-      public long getPlayerGuid() {
-        return playerGuid_;
-      }
-      /**
-       * <pre>
-       * 玩家的唯一标识，一定是不变的
-       * </pre>
-       *
-       * <code>int64 playerGuid = 1;</code>
-       */
-      public Builder setPlayerGuid(long value) {
-        
-        playerGuid_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * 玩家的唯一标识，一定是不变的
-       * </pre>
-       *
-       * <code>int64 playerGuid = 1;</code>
-       */
-      public Builder clearPlayerGuid() {
-        
-        playerGuid_ = 0L;
-        onChanged();
-        return this;
-      }
-
-      private int logicServerId_ ;
-      /**
-       * <code>int32 logicServerId = 2;</code>
-       */
-      public int getLogicServerId() {
-        return logicServerId_;
-      }
-      /**
-       * <code>int32 logicServerId = 2;</code>
-       */
-      public Builder setLogicServerId(int value) {
-        
-        logicServerId_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>int32 logicServerId = 2;</code>
-       */
-      public Builder clearLogicServerId() {
-        
-        logicServerId_ = 0;
-        onChanged();
-        return this;
-      }
-
-      private int actualServerId_ ;
-      /**
-       * <code>int32 actualServerId = 3;</code>
-       */
-      public int getActualServerId() {
-        return actualServerId_;
-      }
-      /**
-       * <code>int32 actualServerId = 3;</code>
-       */
-      public Builder setActualServerId(int value) {
-        
-        actualServerId_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>int32 actualServerId = 3;</code>
-       */
-      public Builder clearActualServerId() {
-        
-        actualServerId_ = 0;
-        onChanged();
-        return this;
-      }
-      @java.lang.Override
-      public final Builder setUnknownFields(
-          final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFields(unknownFields);
-      }
-
-      @java.lang.Override
-      public final Builder mergeUnknownFields(
-          final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.mergeUnknownFields(unknownFields);
-      }
-
-
-      // @@protoc_insertion_point(builder_scope:fastjgame.p_scene_player_data)
-    }
-
-    // @@protoc_insertion_point(class_scope:fastjgame.p_scene_player_data)
-    private static final com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data();
-    }
-
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    private static final com.google.protobuf.Parser<p_scene_player_data>
-        PARSER = new com.google.protobuf.AbstractParser<p_scene_player_data>() {
-      @java.lang.Override
-      public p_scene_player_data parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        return new p_scene_player_data(input, extensionRegistry);
-      }
-    };
-
-    public static com.google.protobuf.Parser<p_scene_player_data> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<p_scene_player_data> getParserForType() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
-  public interface p_scene_npc_dataOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:fastjgame.p_scene_npc_data)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <pre>
-     * npc的guid，同一个npc根据规则的不同，guid可能是变化的，也可能是不变的，尽量保持不变
-     * </pre>
-     *
-     * <code>int64 npcGuid = 1;</code>
-     */
-    long getNpcGuid();
-
-    /**
-     * <pre>
-     * 对应npc配置
-     * </pre>
-     *
-     * <code>int32 npcId = 2;</code>
-     */
-    int getNpcId();
-  }
-  /**
-   * <pre>
-   * npc在进入视野时，需要广播的数据
-   * </pre>
-   *
-   * Protobuf type {@code fastjgame.p_scene_npc_data}
-   */
-  public  static final class p_scene_npc_data extends
-      com.google.protobuf.GeneratedMessageV3 implements
-      // @@protoc_insertion_point(message_implements:fastjgame.p_scene_npc_data)
-      p_scene_npc_dataOrBuilder {
-  private static final long serialVersionUID = 0L;
-    // Use p_scene_npc_data.newBuilder() to construct.
-    private p_scene_npc_data(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
-      super(builder);
-    }
-    private p_scene_npc_data() {
-    }
-
-    @java.lang.Override
-    public final com.google.protobuf.UnknownFieldSet
-    getUnknownFields() {
-      return this.unknownFields;
-    }
-    private p_scene_npc_data(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      this();
-      if (extensionRegistry == null) {
-        throw new java.lang.NullPointerException();
-      }
-      int mutable_bitField0_ = 0;
-      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
-          com.google.protobuf.UnknownFieldSet.newBuilder();
-      try {
-        boolean done = false;
-        while (!done) {
-          int tag = input.readTag();
-          switch (tag) {
-            case 0:
-              done = true;
-              break;
-            case 8: {
-
-              npcGuid_ = input.readInt64();
-              break;
+        private p_scene_player_data(
+                com.google.protobuf.CodedInputStream input,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            this();
+            if (extensionRegistry == null) {
+                throw new java.lang.NullPointerException();
             }
-            case 16: {
+            int mutable_bitField0_ = 0;
+            com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+                    com.google.protobuf.UnknownFieldSet.newBuilder();
+            try {
+                boolean done = false;
+                while (!done) {
+                    int tag = input.readTag();
+                    switch (tag) {
+                        case 0:
+                            done = true;
+                            break;
+                        case 8: {
 
-              npcId_ = input.readInt32();
-              break;
+                            playerGuid_ = input.readInt64();
+                            break;
+                        }
+                        case 16: {
+
+                            logicServerId_ = input.readInt32();
+                            break;
+                        }
+                        case 24: {
+
+                            actualServerId_ = input.readInt32();
+                            break;
+                        }
+                        default: {
+                            if (!parseUnknownField(
+                                    input, unknownFields, extensionRegistry, tag)) {
+                                done = true;
+                            }
+                            break;
+                        }
+                    }
+                }
+            } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+                throw e.setUnfinishedMessage(this);
+            } catch (java.io.IOException e) {
+                throw new com.google.protobuf.InvalidProtocolBufferException(
+                        e).setUnfinishedMessage(this);
+            } finally {
+                this.unknownFields = unknownFields.build();
+                makeExtensionsImmutable();
             }
-            default: {
-              if (!parseUnknownField(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
-          }
         }
-      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw e.setUnfinishedMessage(this);
-      } catch (java.io.IOException e) {
-        throw new com.google.protobuf.InvalidProtocolBufferException(
-            e).setUnfinishedMessage(this);
-      } finally {
-        this.unknownFields = unknownFields.build();
-        makeExtensionsImmutable();
-      }
-    }
-    public static final com.google.protobuf.Descriptors.Descriptor
+
+        public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_npc_data_descriptor;
-    }
+            return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_player_data_descriptor;
+        }
 
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        @java.lang.Override
+        protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_npc_data_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.class, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.Builder.class);
+            return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_player_data_fieldAccessorTable
+                    .ensureFieldAccessorsInitialized(
+                            com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.class, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.Builder.class);
+        }
+
+        public static final int PLAYERGUID_FIELD_NUMBER = 1;
+        private long playerGuid_;
+
+        /**
+         * <pre>
+         * 玩家的唯一标识，一定是不变的
+         * </pre>
+         *
+         * <code>int64 playerGuid = 1;</code>
+         */
+        public long getPlayerGuid() {
+            return playerGuid_;
+        }
+
+        public static final int LOGICSERVERID_FIELD_NUMBER = 2;
+        private int logicServerId_;
+
+        /**
+         * <code>int32 logicServerId = 2;</code>
+         */
+        public int getLogicServerId() {
+            return logicServerId_;
+        }
+
+        public static final int ACTUALSERVERID_FIELD_NUMBER = 3;
+        private int actualServerId_;
+
+        /**
+         * <code>int32 actualServerId = 3;</code>
+         */
+        public int getActualServerId() {
+            return actualServerId_;
+        }
+
+        private byte memoizedIsInitialized = -1;
+
+        @java.lang.Override
+        public final boolean isInitialized() {
+            byte isInitialized = memoizedIsInitialized;
+            if (isInitialized == 1) return true;
+            if (isInitialized == 0) return false;
+
+            memoizedIsInitialized = 1;
+            return true;
+        }
+
+        @java.lang.Override
+        public void writeTo(com.google.protobuf.CodedOutputStream output)
+                throws java.io.IOException {
+            if (playerGuid_ != 0L) {
+                output.writeInt64(1, playerGuid_);
+            }
+            if (logicServerId_ != 0) {
+                output.writeInt32(2, logicServerId_);
+            }
+            if (actualServerId_ != 0) {
+                output.writeInt32(3, actualServerId_);
+            }
+            unknownFields.writeTo(output);
+        }
+
+        @java.lang.Override
+        public int getSerializedSize() {
+            int size = memoizedSize;
+            if (size != -1) return size;
+
+            size = 0;
+            if (playerGuid_ != 0L) {
+                size += com.google.protobuf.CodedOutputStream
+                        .computeInt64Size(1, playerGuid_);
+            }
+            if (logicServerId_ != 0) {
+                size += com.google.protobuf.CodedOutputStream
+                        .computeInt32Size(2, logicServerId_);
+            }
+            if (actualServerId_ != 0) {
+                size += com.google.protobuf.CodedOutputStream
+                        .computeInt32Size(3, actualServerId_);
+            }
+            size += unknownFields.getSerializedSize();
+            memoizedSize = size;
+            return size;
+        }
+
+        @java.lang.Override
+        public boolean equals(final java.lang.Object obj) {
+            if (obj == this) {
+                return true;
+            }
+            if (!(obj instanceof com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data)) {
+                return super.equals(obj);
+            }
+            com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data other = (com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data) obj;
+
+            if (getPlayerGuid()
+                    != other.getPlayerGuid()) return false;
+            if (getLogicServerId()
+                    != other.getLogicServerId()) return false;
+            if (getActualServerId()
+                    != other.getActualServerId()) return false;
+            if (!unknownFields.equals(other.unknownFields)) return false;
+            return true;
+        }
+
+        @java.lang.Override
+        public int hashCode() {
+            if (memoizedHashCode != 0) {
+                return memoizedHashCode;
+            }
+            int hash = 41;
+            hash = (19 * hash) + getDescriptor().hashCode();
+            hash = (37 * hash) + PLAYERGUID_FIELD_NUMBER;
+            hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+                    getPlayerGuid());
+            hash = (37 * hash) + LOGICSERVERID_FIELD_NUMBER;
+            hash = (53 * hash) + getLogicServerId();
+            hash = (37 * hash) + ACTUALSERVERID_FIELD_NUMBER;
+            hash = (53 * hash) + getActualServerId();
+            hash = (29 * hash) + unknownFields.hashCode();
+            memoizedHashCode = hash;
+            return hash;
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data parseFrom(
+                java.nio.ByteBuffer data)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            return PARSER.parseFrom(data);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data parseFrom(
+                java.nio.ByteBuffer data,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            return PARSER.parseFrom(data, extensionRegistry);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data parseFrom(
+                com.google.protobuf.ByteString data)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            return PARSER.parseFrom(data);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data parseFrom(
+                com.google.protobuf.ByteString data,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            return PARSER.parseFrom(data, extensionRegistry);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data parseFrom(byte[] data)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            return PARSER.parseFrom(data);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data parseFrom(
+                byte[] data,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            return PARSER.parseFrom(data, extensionRegistry);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data parseFrom(java.io.InputStream input)
+                throws java.io.IOException {
+            return com.google.protobuf.GeneratedMessageV3
+                    .parseWithIOException(PARSER, input);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data parseFrom(
+                java.io.InputStream input,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws java.io.IOException {
+            return com.google.protobuf.GeneratedMessageV3
+                    .parseWithIOException(PARSER, input, extensionRegistry);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data parseDelimitedFrom(java.io.InputStream input)
+                throws java.io.IOException {
+            return com.google.protobuf.GeneratedMessageV3
+                    .parseDelimitedWithIOException(PARSER, input);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data parseDelimitedFrom(
+                java.io.InputStream input,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws java.io.IOException {
+            return com.google.protobuf.GeneratedMessageV3
+                    .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data parseFrom(
+                com.google.protobuf.CodedInputStream input)
+                throws java.io.IOException {
+            return com.google.protobuf.GeneratedMessageV3
+                    .parseWithIOException(PARSER, input);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data parseFrom(
+                com.google.protobuf.CodedInputStream input,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws java.io.IOException {
+            return com.google.protobuf.GeneratedMessageV3
+                    .parseWithIOException(PARSER, input, extensionRegistry);
+        }
+
+        @java.lang.Override
+        public Builder newBuilderForType() {
+            return newBuilder();
+        }
+
+        public static Builder newBuilder() {
+            return DEFAULT_INSTANCE.toBuilder();
+        }
+
+        public static Builder newBuilder(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data prototype) {
+            return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+        }
+
+        @java.lang.Override
+        public Builder toBuilder() {
+            return this == DEFAULT_INSTANCE
+                    ? new Builder() : new Builder().mergeFrom(this);
+        }
+
+        @java.lang.Override
+        protected Builder newBuilderForType(
+                com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+            Builder builder = new Builder(parent);
+            return builder;
+        }
+
+        /**
+         * <pre>
+         * player在进入视野时，需要广播的数据
+         * </pre>
+         * <p>
+         * Protobuf type {@code fastjgame.p_scene_player_data}
+         */
+        public static final class Builder extends
+                com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+                // @@protoc_insertion_point(builder_implements:fastjgame.p_scene_player_data)
+                com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_dataOrBuilder {
+            public static final com.google.protobuf.Descriptors.Descriptor
+            getDescriptor() {
+                return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_player_data_descriptor;
+            }
+
+            @java.lang.Override
+            protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+            internalGetFieldAccessorTable() {
+                return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_player_data_fieldAccessorTable
+                        .ensureFieldAccessorsInitialized(
+                                com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.class, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.Builder.class);
+            }
+
+            // Construct using com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.newBuilder()
+            private Builder() {
+                maybeForceBuilderInitialization();
+            }
+
+            private Builder(
+                    com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+                super(parent);
+                maybeForceBuilderInitialization();
+            }
+
+            private void maybeForceBuilderInitialization() {
+                if (com.google.protobuf.GeneratedMessageV3
+                        .alwaysUseFieldBuilders) {
+                }
+            }
+
+            @java.lang.Override
+            public Builder clear() {
+                super.clear();
+                playerGuid_ = 0L;
+
+                logicServerId_ = 0;
+
+                actualServerId_ = 0;
+
+                return this;
+            }
+
+            @java.lang.Override
+            public com.google.protobuf.Descriptors.Descriptor
+            getDescriptorForType() {
+                return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_player_data_descriptor;
+            }
+
+            @java.lang.Override
+            public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data getDefaultInstanceForType() {
+                return com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.getDefaultInstance();
+            }
+
+            @java.lang.Override
+            public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data build() {
+                com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data result = buildPartial();
+                if (!result.isInitialized()) {
+                    throw newUninitializedMessageException(result);
+                }
+                return result;
+            }
+
+            @java.lang.Override
+            public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data buildPartial() {
+                com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data result = new com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data(this);
+                result.playerGuid_ = playerGuid_;
+                result.logicServerId_ = logicServerId_;
+                result.actualServerId_ = actualServerId_;
+                onBuilt();
+                return result;
+            }
+
+            @java.lang.Override
+            public Builder clone() {
+                return super.clone();
+            }
+
+            @java.lang.Override
+            public Builder setField(
+                    com.google.protobuf.Descriptors.FieldDescriptor field,
+                    java.lang.Object value) {
+                return super.setField(field, value);
+            }
+
+            @java.lang.Override
+            public Builder clearField(
+                    com.google.protobuf.Descriptors.FieldDescriptor field) {
+                return super.clearField(field);
+            }
+
+            @java.lang.Override
+            public Builder clearOneof(
+                    com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+                return super.clearOneof(oneof);
+            }
+
+            @java.lang.Override
+            public Builder setRepeatedField(
+                    com.google.protobuf.Descriptors.FieldDescriptor field,
+                    int index, java.lang.Object value) {
+                return super.setRepeatedField(field, index, value);
+            }
+
+            @java.lang.Override
+            public Builder addRepeatedField(
+                    com.google.protobuf.Descriptors.FieldDescriptor field,
+                    java.lang.Object value) {
+                return super.addRepeatedField(field, value);
+            }
+
+            @java.lang.Override
+            public Builder mergeFrom(com.google.protobuf.Message other) {
+                if (other instanceof com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data) {
+                    return mergeFrom((com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data) other);
+                } else {
+                    super.mergeFrom(other);
+                    return this;
+                }
+            }
+
+            public Builder mergeFrom(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data other) {
+                if (other == com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.getDefaultInstance())
+                    return this;
+                if (other.getPlayerGuid() != 0L) {
+                    setPlayerGuid(other.getPlayerGuid());
+                }
+                if (other.getLogicServerId() != 0) {
+                    setLogicServerId(other.getLogicServerId());
+                }
+                if (other.getActualServerId() != 0) {
+                    setActualServerId(other.getActualServerId());
+                }
+                this.mergeUnknownFields(other.unknownFields);
+                onChanged();
+                return this;
+            }
+
+            @java.lang.Override
+            public final boolean isInitialized() {
+                return true;
+            }
+
+            @java.lang.Override
+            public Builder mergeFrom(
+                    com.google.protobuf.CodedInputStream input,
+                    com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                    throws java.io.IOException {
+                com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data parsedMessage = null;
+                try {
+                    parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+                } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+                    parsedMessage = (com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data) e.getUnfinishedMessage();
+                    throw e.unwrapIOException();
+                } finally {
+                    if (parsedMessage != null) {
+                        mergeFrom(parsedMessage);
+                    }
+                }
+                return this;
+            }
+
+            private long playerGuid_;
+
+            /**
+             * <pre>
+             * 玩家的唯一标识，一定是不变的
+             * </pre>
+             *
+             * <code>int64 playerGuid = 1;</code>
+             */
+            public long getPlayerGuid() {
+                return playerGuid_;
+            }
+
+            /**
+             * <pre>
+             * 玩家的唯一标识，一定是不变的
+             * </pre>
+             *
+             * <code>int64 playerGuid = 1;</code>
+             */
+            public Builder setPlayerGuid(long value) {
+
+                playerGuid_ = value;
+                onChanged();
+                return this;
+            }
+
+            /**
+             * <pre>
+             * 玩家的唯一标识，一定是不变的
+             * </pre>
+             *
+             * <code>int64 playerGuid = 1;</code>
+             */
+            public Builder clearPlayerGuid() {
+
+                playerGuid_ = 0L;
+                onChanged();
+                return this;
+            }
+
+            private int logicServerId_;
+
+            /**
+             * <code>int32 logicServerId = 2;</code>
+             */
+            public int getLogicServerId() {
+                return logicServerId_;
+            }
+
+            /**
+             * <code>int32 logicServerId = 2;</code>
+             */
+            public Builder setLogicServerId(int value) {
+
+                logicServerId_ = value;
+                onChanged();
+                return this;
+            }
+
+            /**
+             * <code>int32 logicServerId = 2;</code>
+             */
+            public Builder clearLogicServerId() {
+
+                logicServerId_ = 0;
+                onChanged();
+                return this;
+            }
+
+            private int actualServerId_;
+
+            /**
+             * <code>int32 actualServerId = 3;</code>
+             */
+            public int getActualServerId() {
+                return actualServerId_;
+            }
+
+            /**
+             * <code>int32 actualServerId = 3;</code>
+             */
+            public Builder setActualServerId(int value) {
+
+                actualServerId_ = value;
+                onChanged();
+                return this;
+            }
+
+            /**
+             * <code>int32 actualServerId = 3;</code>
+             */
+            public Builder clearActualServerId() {
+
+                actualServerId_ = 0;
+                onChanged();
+                return this;
+            }
+
+            @java.lang.Override
+            public final Builder setUnknownFields(
+                    final com.google.protobuf.UnknownFieldSet unknownFields) {
+                return super.setUnknownFields(unknownFields);
+            }
+
+            @java.lang.Override
+            public final Builder mergeUnknownFields(
+                    final com.google.protobuf.UnknownFieldSet unknownFields) {
+                return super.mergeUnknownFields(unknownFields);
+            }
+
+
+            // @@protoc_insertion_point(builder_scope:fastjgame.p_scene_player_data)
+        }
+
+        // @@protoc_insertion_point(class_scope:fastjgame.p_scene_player_data)
+        private static final com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data DEFAULT_INSTANCE;
+
+        static {
+            DEFAULT_INSTANCE = new com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data();
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data getDefaultInstance() {
+            return DEFAULT_INSTANCE;
+        }
+
+        private static final com.google.protobuf.Parser<p_scene_player_data>
+                PARSER = new com.google.protobuf.AbstractParser<p_scene_player_data>() {
+            @java.lang.Override
+            public p_scene_player_data parsePartialFrom(
+                    com.google.protobuf.CodedInputStream input,
+                    com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                    throws com.google.protobuf.InvalidProtocolBufferException {
+                return new p_scene_player_data(input, extensionRegistry);
+            }
+        };
+
+        public static com.google.protobuf.Parser<p_scene_player_data> parser() {
+            return PARSER;
+        }
+
+        @java.lang.Override
+        public com.google.protobuf.Parser<p_scene_player_data> getParserForType() {
+            return PARSER;
+        }
+
+        @java.lang.Override
+        public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data getDefaultInstanceForType() {
+            return DEFAULT_INSTANCE;
+        }
+
     }
 
-    public static final int NPCGUID_FIELD_NUMBER = 1;
-    private long npcGuid_;
-    /**
-     * <pre>
-     * npc的guid，同一个npc根据规则的不同，guid可能是变化的，也可能是不变的，尽量保持不变
-     * </pre>
-     *
-     * <code>int64 npcGuid = 1;</code>
-     */
-    public long getNpcGuid() {
-      return npcGuid_;
+    public interface p_scene_npc_dataOrBuilder extends
+            // @@protoc_insertion_point(interface_extends:fastjgame.p_scene_npc_data)
+            com.google.protobuf.MessageOrBuilder {
+
+        /**
+         * <pre>
+         * npc的guid，同一个npc根据规则的不同，guid可能是变化的，也可能是不变的，尽量保持不变
+         * </pre>
+         *
+         * <code>int64 npcGuid = 1;</code>
+         */
+        long getNpcGuid();
+
+        /**
+         * <pre>
+         * 对应npc配置
+         * </pre>
+         *
+         * <code>int32 npcId = 2;</code>
+         */
+        int getNpcId();
     }
 
-    public static final int NPCID_FIELD_NUMBER = 2;
-    private int npcId_;
-    /**
-     * <pre>
-     * 对应npc配置
-     * </pre>
-     *
-     * <code>int32 npcId = 2;</code>
-     */
-    public int getNpcId() {
-      return npcId_;
-    }
-
-    private byte memoizedIsInitialized = -1;
-    @java.lang.Override
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    @java.lang.Override
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      if (npcGuid_ != 0L) {
-        output.writeInt64(1, npcGuid_);
-      }
-      if (npcId_ != 0) {
-        output.writeInt32(2, npcId_);
-      }
-      unknownFields.writeTo(output);
-    }
-
-    @java.lang.Override
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      if (npcGuid_ != 0L) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(1, npcGuid_);
-      }
-      if (npcId_ != 0) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(2, npcId_);
-      }
-      size += unknownFields.getSerializedSize();
-      memoizedSize = size;
-      return size;
-    }
-
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data)) {
-        return super.equals(obj);
-      }
-      com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data other = (com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data) obj;
-
-      if (getNpcGuid()
-          != other.getNpcGuid()) return false;
-      if (getNpcId()
-          != other.getNpcId()) return false;
-      if (!unknownFields.equals(other.unknownFields)) return false;
-      return true;
-    }
-
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + NPCGUID_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getNpcGuid());
-      hash = (37 * hash) + NPCID_FIELD_NUMBER;
-      hash = (53 * hash) + getNpcId();
-      hash = (29 * hash) + unknownFields.hashCode();
-      memoizedHashCode = hash;
-      return hash;
-    }
-
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    @java.lang.Override
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    @java.lang.Override
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
     /**
      * <pre>
      * npc在进入视野时，需要广播的数据
      * </pre>
-     *
+     * <p>
      * Protobuf type {@code fastjgame.p_scene_npc_data}
      */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:fastjgame.p_scene_npc_data)
-        com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_dataOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_npc_data_descriptor;
-      }
+    public static final class p_scene_npc_data extends
+            com.google.protobuf.GeneratedMessageV3 implements
+            // @@protoc_insertion_point(message_implements:fastjgame.p_scene_npc_data)
+            p_scene_npc_dataOrBuilder {
+        private static final long serialVersionUID = 0L;
 
-      @java.lang.Override
-      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_npc_data_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.class, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.Builder.class);
-      }
-
-      // Construct using com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.newBuilder()
-      private Builder() {
-        maybeForceBuilderInitialization();
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
-        super(parent);
-        maybeForceBuilderInitialization();
-      }
-      private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessageV3
-                .alwaysUseFieldBuilders) {
+        // Use p_scene_npc_data.newBuilder() to construct.
+        private p_scene_npc_data(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+            super(builder);
         }
-      }
-      @java.lang.Override
-      public Builder clear() {
-        super.clear();
-        npcGuid_ = 0L;
 
-        npcId_ = 0;
-
-        return this;
-      }
-
-      @java.lang.Override
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_npc_data_descriptor;
-      }
-
-      @java.lang.Override
-      public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data getDefaultInstanceForType() {
-        return com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.getDefaultInstance();
-      }
-
-      @java.lang.Override
-      public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data build() {
-        com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
+        private p_scene_npc_data() {
         }
-        return result;
-      }
 
-      @java.lang.Override
-      public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data buildPartial() {
-        com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data result = new com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data(this);
-        result.npcGuid_ = npcGuid_;
-        result.npcId_ = npcId_;
-        onBuilt();
-        return result;
-      }
-
-      @java.lang.Override
-      public Builder clone() {
-        return super.clone();
-      }
-      @java.lang.Override
-      public Builder setField(
-          com.google.protobuf.Descriptors.FieldDescriptor field,
-          java.lang.Object value) {
-        return super.setField(field, value);
-      }
-      @java.lang.Override
-      public Builder clearField(
-          com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return super.clearField(field);
-      }
-      @java.lang.Override
-      public Builder clearOneof(
-          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return super.clearOneof(oneof);
-      }
-      @java.lang.Override
-      public Builder setRepeatedField(
-          com.google.protobuf.Descriptors.FieldDescriptor field,
-          int index, java.lang.Object value) {
-        return super.setRepeatedField(field, index, value);
-      }
-      @java.lang.Override
-      public Builder addRepeatedField(
-          com.google.protobuf.Descriptors.FieldDescriptor field,
-          java.lang.Object value) {
-        return super.addRepeatedField(field, value);
-      }
-      @java.lang.Override
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data) {
-          return mergeFrom((com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
+        @java.lang.Override
+        public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+            return this.unknownFields;
         }
-      }
 
-      public Builder mergeFrom(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data other) {
-        if (other == com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.getDefaultInstance()) return this;
-        if (other.getNpcGuid() != 0L) {
-          setNpcGuid(other.getNpcGuid());
-        }
-        if (other.getNpcId() != 0) {
-          setNpcId(other.getNpcId());
-        }
-        this.mergeUnknownFields(other.unknownFields);
-        onChanged();
-        return this;
-      }
-
-      @java.lang.Override
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data parsedMessage = null;
-        try {
-          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          parsedMessage = (com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data) e.getUnfinishedMessage();
-          throw e.unwrapIOException();
-        } finally {
-          if (parsedMessage != null) {
-            mergeFrom(parsedMessage);
-          }
-        }
-        return this;
-      }
-
-      private long npcGuid_ ;
-      /**
-       * <pre>
-       * npc的guid，同一个npc根据规则的不同，guid可能是变化的，也可能是不变的，尽量保持不变
-       * </pre>
-       *
-       * <code>int64 npcGuid = 1;</code>
-       */
-      public long getNpcGuid() {
-        return npcGuid_;
-      }
-      /**
-       * <pre>
-       * npc的guid，同一个npc根据规则的不同，guid可能是变化的，也可能是不变的，尽量保持不变
-       * </pre>
-       *
-       * <code>int64 npcGuid = 1;</code>
-       */
-      public Builder setNpcGuid(long value) {
-        
-        npcGuid_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * npc的guid，同一个npc根据规则的不同，guid可能是变化的，也可能是不变的，尽量保持不变
-       * </pre>
-       *
-       * <code>int64 npcGuid = 1;</code>
-       */
-      public Builder clearNpcGuid() {
-        
-        npcGuid_ = 0L;
-        onChanged();
-        return this;
-      }
-
-      private int npcId_ ;
-      /**
-       * <pre>
-       * 对应npc配置
-       * </pre>
-       *
-       * <code>int32 npcId = 2;</code>
-       */
-      public int getNpcId() {
-        return npcId_;
-      }
-      /**
-       * <pre>
-       * 对应npc配置
-       * </pre>
-       *
-       * <code>int32 npcId = 2;</code>
-       */
-      public Builder setNpcId(int value) {
-        
-        npcId_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * 对应npc配置
-       * </pre>
-       *
-       * <code>int32 npcId = 2;</code>
-       */
-      public Builder clearNpcId() {
-        
-        npcId_ = 0;
-        onChanged();
-        return this;
-      }
-      @java.lang.Override
-      public final Builder setUnknownFields(
-          final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFields(unknownFields);
-      }
-
-      @java.lang.Override
-      public final Builder mergeUnknownFields(
-          final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.mergeUnknownFields(unknownFields);
-      }
-
-
-      // @@protoc_insertion_point(builder_scope:fastjgame.p_scene_npc_data)
-    }
-
-    // @@protoc_insertion_point(class_scope:fastjgame.p_scene_npc_data)
-    private static final com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data();
-    }
-
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    private static final com.google.protobuf.Parser<p_scene_npc_data>
-        PARSER = new com.google.protobuf.AbstractParser<p_scene_npc_data>() {
-      @java.lang.Override
-      public p_scene_npc_data parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        return new p_scene_npc_data(input, extensionRegistry);
-      }
-    };
-
-    public static com.google.protobuf.Parser<p_scene_npc_data> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<p_scene_npc_data> getParserForType() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
-  public interface p_scene_pet_dataOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:fastjgame.p_scene_pet_data)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <pre>
-     * 宠物的主人guid
-     * </pre>
-     *
-     * <code>int64 ownerGuid = 1;</code>
-     */
-    long getOwnerGuid();
-
-    /**
-     * <pre>
-     * 宠物的guid，guid可能是变化的，也可能是不变的，尽量保持不变
-     * </pre>
-     *
-     * <code>int64 petGuid = 2;</code>
-     */
-    long getPetGuid();
-
-    /**
-     * <pre>
-     * 对应宠物配置
-     * </pre>
-     *
-     * <code>int32 petId = 3;</code>
-     */
-    int getPetId();
-  }
-  /**
-   * <pre>
-   * pet在进入视野时，需要广播的数据
-   * </pre>
-   *
-   * Protobuf type {@code fastjgame.p_scene_pet_data}
-   */
-  public  static final class p_scene_pet_data extends
-      com.google.protobuf.GeneratedMessageV3 implements
-      // @@protoc_insertion_point(message_implements:fastjgame.p_scene_pet_data)
-      p_scene_pet_dataOrBuilder {
-  private static final long serialVersionUID = 0L;
-    // Use p_scene_pet_data.newBuilder() to construct.
-    private p_scene_pet_data(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
-      super(builder);
-    }
-    private p_scene_pet_data() {
-    }
-
-    @java.lang.Override
-    public final com.google.protobuf.UnknownFieldSet
-    getUnknownFields() {
-      return this.unknownFields;
-    }
-    private p_scene_pet_data(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      this();
-      if (extensionRegistry == null) {
-        throw new java.lang.NullPointerException();
-      }
-      int mutable_bitField0_ = 0;
-      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
-          com.google.protobuf.UnknownFieldSet.newBuilder();
-      try {
-        boolean done = false;
-        while (!done) {
-          int tag = input.readTag();
-          switch (tag) {
-            case 0:
-              done = true;
-              break;
-            case 8: {
-
-              ownerGuid_ = input.readInt64();
-              break;
+        private p_scene_npc_data(
+                com.google.protobuf.CodedInputStream input,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            this();
+            if (extensionRegistry == null) {
+                throw new java.lang.NullPointerException();
             }
-            case 16: {
+            int mutable_bitField0_ = 0;
+            com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+                    com.google.protobuf.UnknownFieldSet.newBuilder();
+            try {
+                boolean done = false;
+                while (!done) {
+                    int tag = input.readTag();
+                    switch (tag) {
+                        case 0:
+                            done = true;
+                            break;
+                        case 8: {
 
-              petGuid_ = input.readInt64();
-              break;
-            }
-            case 24: {
+                            npcGuid_ = input.readInt64();
+                            break;
+                        }
+                        case 16: {
 
-              petId_ = input.readInt32();
-              break;
+                            npcId_ = input.readInt32();
+                            break;
+                        }
+                        default: {
+                            if (!parseUnknownField(
+                                    input, unknownFields, extensionRegistry, tag)) {
+                                done = true;
+                            }
+                            break;
+                        }
+                    }
+                }
+            } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+                throw e.setUnfinishedMessage(this);
+            } catch (java.io.IOException e) {
+                throw new com.google.protobuf.InvalidProtocolBufferException(
+                        e).setUnfinishedMessage(this);
+            } finally {
+                this.unknownFields = unknownFields.build();
+                makeExtensionsImmutable();
             }
-            default: {
-              if (!parseUnknownField(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
-          }
         }
-      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw e.setUnfinishedMessage(this);
-      } catch (java.io.IOException e) {
-        throw new com.google.protobuf.InvalidProtocolBufferException(
-            e).setUnfinishedMessage(this);
-      } finally {
-        this.unknownFields = unknownFields.build();
-        makeExtensionsImmutable();
-      }
-    }
-    public static final com.google.protobuf.Descriptors.Descriptor
+
+        public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_pet_data_descriptor;
-    }
+            return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_npc_data_descriptor;
+        }
 
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        @java.lang.Override
+        protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_pet_data_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.class, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.Builder.class);
+            return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_npc_data_fieldAccessorTable
+                    .ensureFieldAccessorsInitialized(
+                            com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.class, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.Builder.class);
+        }
+
+        public static final int NPCGUID_FIELD_NUMBER = 1;
+        private long npcGuid_;
+
+        /**
+         * <pre>
+         * npc的guid，同一个npc根据规则的不同，guid可能是变化的，也可能是不变的，尽量保持不变
+         * </pre>
+         *
+         * <code>int64 npcGuid = 1;</code>
+         */
+        public long getNpcGuid() {
+            return npcGuid_;
+        }
+
+        public static final int NPCID_FIELD_NUMBER = 2;
+        private int npcId_;
+
+        /**
+         * <pre>
+         * 对应npc配置
+         * </pre>
+         *
+         * <code>int32 npcId = 2;</code>
+         */
+        public int getNpcId() {
+            return npcId_;
+        }
+
+        private byte memoizedIsInitialized = -1;
+
+        @java.lang.Override
+        public final boolean isInitialized() {
+            byte isInitialized = memoizedIsInitialized;
+            if (isInitialized == 1) return true;
+            if (isInitialized == 0) return false;
+
+            memoizedIsInitialized = 1;
+            return true;
+        }
+
+        @java.lang.Override
+        public void writeTo(com.google.protobuf.CodedOutputStream output)
+                throws java.io.IOException {
+            if (npcGuid_ != 0L) {
+                output.writeInt64(1, npcGuid_);
+            }
+            if (npcId_ != 0) {
+                output.writeInt32(2, npcId_);
+            }
+            unknownFields.writeTo(output);
+        }
+
+        @java.lang.Override
+        public int getSerializedSize() {
+            int size = memoizedSize;
+            if (size != -1) return size;
+
+            size = 0;
+            if (npcGuid_ != 0L) {
+                size += com.google.protobuf.CodedOutputStream
+                        .computeInt64Size(1, npcGuid_);
+            }
+            if (npcId_ != 0) {
+                size += com.google.protobuf.CodedOutputStream
+                        .computeInt32Size(2, npcId_);
+            }
+            size += unknownFields.getSerializedSize();
+            memoizedSize = size;
+            return size;
+        }
+
+        @java.lang.Override
+        public boolean equals(final java.lang.Object obj) {
+            if (obj == this) {
+                return true;
+            }
+            if (!(obj instanceof com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data)) {
+                return super.equals(obj);
+            }
+            com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data other = (com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data) obj;
+
+            if (getNpcGuid()
+                    != other.getNpcGuid()) return false;
+            if (getNpcId()
+                    != other.getNpcId()) return false;
+            if (!unknownFields.equals(other.unknownFields)) return false;
+            return true;
+        }
+
+        @java.lang.Override
+        public int hashCode() {
+            if (memoizedHashCode != 0) {
+                return memoizedHashCode;
+            }
+            int hash = 41;
+            hash = (19 * hash) + getDescriptor().hashCode();
+            hash = (37 * hash) + NPCGUID_FIELD_NUMBER;
+            hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+                    getNpcGuid());
+            hash = (37 * hash) + NPCID_FIELD_NUMBER;
+            hash = (53 * hash) + getNpcId();
+            hash = (29 * hash) + unknownFields.hashCode();
+            memoizedHashCode = hash;
+            return hash;
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data parseFrom(
+                java.nio.ByteBuffer data)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            return PARSER.parseFrom(data);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data parseFrom(
+                java.nio.ByteBuffer data,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            return PARSER.parseFrom(data, extensionRegistry);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data parseFrom(
+                com.google.protobuf.ByteString data)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            return PARSER.parseFrom(data);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data parseFrom(
+                com.google.protobuf.ByteString data,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            return PARSER.parseFrom(data, extensionRegistry);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data parseFrom(byte[] data)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            return PARSER.parseFrom(data);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data parseFrom(
+                byte[] data,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            return PARSER.parseFrom(data, extensionRegistry);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data parseFrom(java.io.InputStream input)
+                throws java.io.IOException {
+            return com.google.protobuf.GeneratedMessageV3
+                    .parseWithIOException(PARSER, input);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data parseFrom(
+                java.io.InputStream input,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws java.io.IOException {
+            return com.google.protobuf.GeneratedMessageV3
+                    .parseWithIOException(PARSER, input, extensionRegistry);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data parseDelimitedFrom(java.io.InputStream input)
+                throws java.io.IOException {
+            return com.google.protobuf.GeneratedMessageV3
+                    .parseDelimitedWithIOException(PARSER, input);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data parseDelimitedFrom(
+                java.io.InputStream input,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws java.io.IOException {
+            return com.google.protobuf.GeneratedMessageV3
+                    .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data parseFrom(
+                com.google.protobuf.CodedInputStream input)
+                throws java.io.IOException {
+            return com.google.protobuf.GeneratedMessageV3
+                    .parseWithIOException(PARSER, input);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data parseFrom(
+                com.google.protobuf.CodedInputStream input,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws java.io.IOException {
+            return com.google.protobuf.GeneratedMessageV3
+                    .parseWithIOException(PARSER, input, extensionRegistry);
+        }
+
+        @java.lang.Override
+        public Builder newBuilderForType() {
+            return newBuilder();
+        }
+
+        public static Builder newBuilder() {
+            return DEFAULT_INSTANCE.toBuilder();
+        }
+
+        public static Builder newBuilder(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data prototype) {
+            return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+        }
+
+        @java.lang.Override
+        public Builder toBuilder() {
+            return this == DEFAULT_INSTANCE
+                    ? new Builder() : new Builder().mergeFrom(this);
+        }
+
+        @java.lang.Override
+        protected Builder newBuilderForType(
+                com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+            Builder builder = new Builder(parent);
+            return builder;
+        }
+
+        /**
+         * <pre>
+         * npc在进入视野时，需要广播的数据
+         * </pre>
+         * <p>
+         * Protobuf type {@code fastjgame.p_scene_npc_data}
+         */
+        public static final class Builder extends
+                com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+                // @@protoc_insertion_point(builder_implements:fastjgame.p_scene_npc_data)
+                com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_dataOrBuilder {
+            public static final com.google.protobuf.Descriptors.Descriptor
+            getDescriptor() {
+                return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_npc_data_descriptor;
+            }
+
+            @java.lang.Override
+            protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+            internalGetFieldAccessorTable() {
+                return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_npc_data_fieldAccessorTable
+                        .ensureFieldAccessorsInitialized(
+                                com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.class, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.Builder.class);
+            }
+
+            // Construct using com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.newBuilder()
+            private Builder() {
+                maybeForceBuilderInitialization();
+            }
+
+            private Builder(
+                    com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+                super(parent);
+                maybeForceBuilderInitialization();
+            }
+
+            private void maybeForceBuilderInitialization() {
+                if (com.google.protobuf.GeneratedMessageV3
+                        .alwaysUseFieldBuilders) {
+                }
+            }
+
+            @java.lang.Override
+            public Builder clear() {
+                super.clear();
+                npcGuid_ = 0L;
+
+                npcId_ = 0;
+
+                return this;
+            }
+
+            @java.lang.Override
+            public com.google.protobuf.Descriptors.Descriptor
+            getDescriptorForType() {
+                return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_npc_data_descriptor;
+            }
+
+            @java.lang.Override
+            public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data getDefaultInstanceForType() {
+                return com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.getDefaultInstance();
+            }
+
+            @java.lang.Override
+            public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data build() {
+                com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data result = buildPartial();
+                if (!result.isInitialized()) {
+                    throw newUninitializedMessageException(result);
+                }
+                return result;
+            }
+
+            @java.lang.Override
+            public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data buildPartial() {
+                com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data result = new com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data(this);
+                result.npcGuid_ = npcGuid_;
+                result.npcId_ = npcId_;
+                onBuilt();
+                return result;
+            }
+
+            @java.lang.Override
+            public Builder clone() {
+                return super.clone();
+            }
+
+            @java.lang.Override
+            public Builder setField(
+                    com.google.protobuf.Descriptors.FieldDescriptor field,
+                    java.lang.Object value) {
+                return super.setField(field, value);
+            }
+
+            @java.lang.Override
+            public Builder clearField(
+                    com.google.protobuf.Descriptors.FieldDescriptor field) {
+                return super.clearField(field);
+            }
+
+            @java.lang.Override
+            public Builder clearOneof(
+                    com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+                return super.clearOneof(oneof);
+            }
+
+            @java.lang.Override
+            public Builder setRepeatedField(
+                    com.google.protobuf.Descriptors.FieldDescriptor field,
+                    int index, java.lang.Object value) {
+                return super.setRepeatedField(field, index, value);
+            }
+
+            @java.lang.Override
+            public Builder addRepeatedField(
+                    com.google.protobuf.Descriptors.FieldDescriptor field,
+                    java.lang.Object value) {
+                return super.addRepeatedField(field, value);
+            }
+
+            @java.lang.Override
+            public Builder mergeFrom(com.google.protobuf.Message other) {
+                if (other instanceof com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data) {
+                    return mergeFrom((com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data) other);
+                } else {
+                    super.mergeFrom(other);
+                    return this;
+                }
+            }
+
+            public Builder mergeFrom(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data other) {
+                if (other == com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.getDefaultInstance())
+                    return this;
+                if (other.getNpcGuid() != 0L) {
+                    setNpcGuid(other.getNpcGuid());
+                }
+                if (other.getNpcId() != 0) {
+                    setNpcId(other.getNpcId());
+                }
+                this.mergeUnknownFields(other.unknownFields);
+                onChanged();
+                return this;
+            }
+
+            @java.lang.Override
+            public final boolean isInitialized() {
+                return true;
+            }
+
+            @java.lang.Override
+            public Builder mergeFrom(
+                    com.google.protobuf.CodedInputStream input,
+                    com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                    throws java.io.IOException {
+                com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data parsedMessage = null;
+                try {
+                    parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+                } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+                    parsedMessage = (com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data) e.getUnfinishedMessage();
+                    throw e.unwrapIOException();
+                } finally {
+                    if (parsedMessage != null) {
+                        mergeFrom(parsedMessage);
+                    }
+                }
+                return this;
+            }
+
+            private long npcGuid_;
+
+            /**
+             * <pre>
+             * npc的guid，同一个npc根据规则的不同，guid可能是变化的，也可能是不变的，尽量保持不变
+             * </pre>
+             *
+             * <code>int64 npcGuid = 1;</code>
+             */
+            public long getNpcGuid() {
+                return npcGuid_;
+            }
+
+            /**
+             * <pre>
+             * npc的guid，同一个npc根据规则的不同，guid可能是变化的，也可能是不变的，尽量保持不变
+             * </pre>
+             *
+             * <code>int64 npcGuid = 1;</code>
+             */
+            public Builder setNpcGuid(long value) {
+
+                npcGuid_ = value;
+                onChanged();
+                return this;
+            }
+
+            /**
+             * <pre>
+             * npc的guid，同一个npc根据规则的不同，guid可能是变化的，也可能是不变的，尽量保持不变
+             * </pre>
+             *
+             * <code>int64 npcGuid = 1;</code>
+             */
+            public Builder clearNpcGuid() {
+
+                npcGuid_ = 0L;
+                onChanged();
+                return this;
+            }
+
+            private int npcId_;
+
+            /**
+             * <pre>
+             * 对应npc配置
+             * </pre>
+             *
+             * <code>int32 npcId = 2;</code>
+             */
+            public int getNpcId() {
+                return npcId_;
+            }
+
+            /**
+             * <pre>
+             * 对应npc配置
+             * </pre>
+             *
+             * <code>int32 npcId = 2;</code>
+             */
+            public Builder setNpcId(int value) {
+
+                npcId_ = value;
+                onChanged();
+                return this;
+            }
+
+            /**
+             * <pre>
+             * 对应npc配置
+             * </pre>
+             *
+             * <code>int32 npcId = 2;</code>
+             */
+            public Builder clearNpcId() {
+
+                npcId_ = 0;
+                onChanged();
+                return this;
+            }
+
+            @java.lang.Override
+            public final Builder setUnknownFields(
+                    final com.google.protobuf.UnknownFieldSet unknownFields) {
+                return super.setUnknownFields(unknownFields);
+            }
+
+            @java.lang.Override
+            public final Builder mergeUnknownFields(
+                    final com.google.protobuf.UnknownFieldSet unknownFields) {
+                return super.mergeUnknownFields(unknownFields);
+            }
+
+
+            // @@protoc_insertion_point(builder_scope:fastjgame.p_scene_npc_data)
+        }
+
+        // @@protoc_insertion_point(class_scope:fastjgame.p_scene_npc_data)
+        private static final com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data DEFAULT_INSTANCE;
+
+        static {
+            DEFAULT_INSTANCE = new com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data();
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data getDefaultInstance() {
+            return DEFAULT_INSTANCE;
+        }
+
+        private static final com.google.protobuf.Parser<p_scene_npc_data>
+                PARSER = new com.google.protobuf.AbstractParser<p_scene_npc_data>() {
+            @java.lang.Override
+            public p_scene_npc_data parsePartialFrom(
+                    com.google.protobuf.CodedInputStream input,
+                    com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                    throws com.google.protobuf.InvalidProtocolBufferException {
+                return new p_scene_npc_data(input, extensionRegistry);
+            }
+        };
+
+        public static com.google.protobuf.Parser<p_scene_npc_data> parser() {
+            return PARSER;
+        }
+
+        @java.lang.Override
+        public com.google.protobuf.Parser<p_scene_npc_data> getParserForType() {
+            return PARSER;
+        }
+
+        @java.lang.Override
+        public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data getDefaultInstanceForType() {
+            return DEFAULT_INSTANCE;
+        }
+
     }
 
-    public static final int OWNERGUID_FIELD_NUMBER = 1;
-    private long ownerGuid_;
-    /**
-     * <pre>
-     * 宠物的主人guid
-     * </pre>
-     *
-     * <code>int64 ownerGuid = 1;</code>
-     */
-    public long getOwnerGuid() {
-      return ownerGuid_;
+    public interface p_scene_pet_dataOrBuilder extends
+            // @@protoc_insertion_point(interface_extends:fastjgame.p_scene_pet_data)
+            com.google.protobuf.MessageOrBuilder {
+
+        /**
+         * <pre>
+         * 宠物的主人guid
+         * </pre>
+         *
+         * <code>int64 ownerGuid = 1;</code>
+         */
+        long getOwnerGuid();
+
+        /**
+         * <pre>
+         * 宠物的guid，guid可能是变化的，也可能是不变的，尽量保持不变
+         * </pre>
+         *
+         * <code>int64 petGuid = 2;</code>
+         */
+        long getPetGuid();
+
+        /**
+         * <pre>
+         * 对应宠物配置
+         * </pre>
+         *
+         * <code>int32 petId = 3;</code>
+         */
+        int getPetId();
     }
 
-    public static final int PETGUID_FIELD_NUMBER = 2;
-    private long petGuid_;
-    /**
-     * <pre>
-     * 宠物的guid，guid可能是变化的，也可能是不变的，尽量保持不变
-     * </pre>
-     *
-     * <code>int64 petGuid = 2;</code>
-     */
-    public long getPetGuid() {
-      return petGuid_;
-    }
-
-    public static final int PETID_FIELD_NUMBER = 3;
-    private int petId_;
-    /**
-     * <pre>
-     * 对应宠物配置
-     * </pre>
-     *
-     * <code>int32 petId = 3;</code>
-     */
-    public int getPetId() {
-      return petId_;
-    }
-
-    private byte memoizedIsInitialized = -1;
-    @java.lang.Override
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    @java.lang.Override
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      if (ownerGuid_ != 0L) {
-        output.writeInt64(1, ownerGuid_);
-      }
-      if (petGuid_ != 0L) {
-        output.writeInt64(2, petGuid_);
-      }
-      if (petId_ != 0) {
-        output.writeInt32(3, petId_);
-      }
-      unknownFields.writeTo(output);
-    }
-
-    @java.lang.Override
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      if (ownerGuid_ != 0L) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(1, ownerGuid_);
-      }
-      if (petGuid_ != 0L) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(2, petGuid_);
-      }
-      if (petId_ != 0) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(3, petId_);
-      }
-      size += unknownFields.getSerializedSize();
-      memoizedSize = size;
-      return size;
-    }
-
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data)) {
-        return super.equals(obj);
-      }
-      com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data other = (com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data) obj;
-
-      if (getOwnerGuid()
-          != other.getOwnerGuid()) return false;
-      if (getPetGuid()
-          != other.getPetGuid()) return false;
-      if (getPetId()
-          != other.getPetId()) return false;
-      if (!unknownFields.equals(other.unknownFields)) return false;
-      return true;
-    }
-
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + OWNERGUID_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getOwnerGuid());
-      hash = (37 * hash) + PETGUID_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getPetGuid());
-      hash = (37 * hash) + PETID_FIELD_NUMBER;
-      hash = (53 * hash) + getPetId();
-      hash = (29 * hash) + unknownFields.hashCode();
-      memoizedHashCode = hash;
-      return hash;
-    }
-
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    @java.lang.Override
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    @java.lang.Override
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
     /**
      * <pre>
      * pet在进入视野时，需要广播的数据
      * </pre>
-     *
+     * <p>
      * Protobuf type {@code fastjgame.p_scene_pet_data}
      */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:fastjgame.p_scene_pet_data)
-        com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_dataOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_pet_data_descriptor;
-      }
+    public static final class p_scene_pet_data extends
+            com.google.protobuf.GeneratedMessageV3 implements
+            // @@protoc_insertion_point(message_implements:fastjgame.p_scene_pet_data)
+            p_scene_pet_dataOrBuilder {
+        private static final long serialVersionUID = 0L;
 
-      @java.lang.Override
-      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_pet_data_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.class, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.Builder.class);
-      }
-
-      // Construct using com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.newBuilder()
-      private Builder() {
-        maybeForceBuilderInitialization();
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
-        super(parent);
-        maybeForceBuilderInitialization();
-      }
-      private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessageV3
-                .alwaysUseFieldBuilders) {
+        // Use p_scene_pet_data.newBuilder() to construct.
+        private p_scene_pet_data(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+            super(builder);
         }
-      }
-      @java.lang.Override
-      public Builder clear() {
-        super.clear();
-        ownerGuid_ = 0L;
 
-        petGuid_ = 0L;
-
-        petId_ = 0;
-
-        return this;
-      }
-
-      @java.lang.Override
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_pet_data_descriptor;
-      }
-
-      @java.lang.Override
-      public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data getDefaultInstanceForType() {
-        return com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.getDefaultInstance();
-      }
-
-      @java.lang.Override
-      public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data build() {
-        com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
+        private p_scene_pet_data() {
         }
-        return result;
-      }
 
-      @java.lang.Override
-      public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data buildPartial() {
-        com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data result = new com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data(this);
-        result.ownerGuid_ = ownerGuid_;
-        result.petGuid_ = petGuid_;
-        result.petId_ = petId_;
-        onBuilt();
-        return result;
-      }
-
-      @java.lang.Override
-      public Builder clone() {
-        return super.clone();
-      }
-      @java.lang.Override
-      public Builder setField(
-          com.google.protobuf.Descriptors.FieldDescriptor field,
-          java.lang.Object value) {
-        return super.setField(field, value);
-      }
-      @java.lang.Override
-      public Builder clearField(
-          com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return super.clearField(field);
-      }
-      @java.lang.Override
-      public Builder clearOneof(
-          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return super.clearOneof(oneof);
-      }
-      @java.lang.Override
-      public Builder setRepeatedField(
-          com.google.protobuf.Descriptors.FieldDescriptor field,
-          int index, java.lang.Object value) {
-        return super.setRepeatedField(field, index, value);
-      }
-      @java.lang.Override
-      public Builder addRepeatedField(
-          com.google.protobuf.Descriptors.FieldDescriptor field,
-          java.lang.Object value) {
-        return super.addRepeatedField(field, value);
-      }
-      @java.lang.Override
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data) {
-          return mergeFrom((com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
+        @java.lang.Override
+        public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+            return this.unknownFields;
         }
-      }
 
-      public Builder mergeFrom(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data other) {
-        if (other == com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.getDefaultInstance()) return this;
-        if (other.getOwnerGuid() != 0L) {
-          setOwnerGuid(other.getOwnerGuid());
-        }
-        if (other.getPetGuid() != 0L) {
-          setPetGuid(other.getPetGuid());
-        }
-        if (other.getPetId() != 0) {
-          setPetId(other.getPetId());
-        }
-        this.mergeUnknownFields(other.unknownFields);
-        onChanged();
-        return this;
-      }
-
-      @java.lang.Override
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data parsedMessage = null;
-        try {
-          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          parsedMessage = (com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data) e.getUnfinishedMessage();
-          throw e.unwrapIOException();
-        } finally {
-          if (parsedMessage != null) {
-            mergeFrom(parsedMessage);
-          }
-        }
-        return this;
-      }
-
-      private long ownerGuid_ ;
-      /**
-       * <pre>
-       * 宠物的主人guid
-       * </pre>
-       *
-       * <code>int64 ownerGuid = 1;</code>
-       */
-      public long getOwnerGuid() {
-        return ownerGuid_;
-      }
-      /**
-       * <pre>
-       * 宠物的主人guid
-       * </pre>
-       *
-       * <code>int64 ownerGuid = 1;</code>
-       */
-      public Builder setOwnerGuid(long value) {
-        
-        ownerGuid_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * 宠物的主人guid
-       * </pre>
-       *
-       * <code>int64 ownerGuid = 1;</code>
-       */
-      public Builder clearOwnerGuid() {
-        
-        ownerGuid_ = 0L;
-        onChanged();
-        return this;
-      }
-
-      private long petGuid_ ;
-      /**
-       * <pre>
-       * 宠物的guid，guid可能是变化的，也可能是不变的，尽量保持不变
-       * </pre>
-       *
-       * <code>int64 petGuid = 2;</code>
-       */
-      public long getPetGuid() {
-        return petGuid_;
-      }
-      /**
-       * <pre>
-       * 宠物的guid，guid可能是变化的，也可能是不变的，尽量保持不变
-       * </pre>
-       *
-       * <code>int64 petGuid = 2;</code>
-       */
-      public Builder setPetGuid(long value) {
-        
-        petGuid_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * 宠物的guid，guid可能是变化的，也可能是不变的，尽量保持不变
-       * </pre>
-       *
-       * <code>int64 petGuid = 2;</code>
-       */
-      public Builder clearPetGuid() {
-        
-        petGuid_ = 0L;
-        onChanged();
-        return this;
-      }
-
-      private int petId_ ;
-      /**
-       * <pre>
-       * 对应宠物配置
-       * </pre>
-       *
-       * <code>int32 petId = 3;</code>
-       */
-      public int getPetId() {
-        return petId_;
-      }
-      /**
-       * <pre>
-       * 对应宠物配置
-       * </pre>
-       *
-       * <code>int32 petId = 3;</code>
-       */
-      public Builder setPetId(int value) {
-        
-        petId_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * 对应宠物配置
-       * </pre>
-       *
-       * <code>int32 petId = 3;</code>
-       */
-      public Builder clearPetId() {
-        
-        petId_ = 0;
-        onChanged();
-        return this;
-      }
-      @java.lang.Override
-      public final Builder setUnknownFields(
-          final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFields(unknownFields);
-      }
-
-      @java.lang.Override
-      public final Builder mergeUnknownFields(
-          final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.mergeUnknownFields(unknownFields);
-      }
-
-
-      // @@protoc_insertion_point(builder_scope:fastjgame.p_scene_pet_data)
-    }
-
-    // @@protoc_insertion_point(class_scope:fastjgame.p_scene_pet_data)
-    private static final com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data();
-    }
-
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    private static final com.google.protobuf.Parser<p_scene_pet_data>
-        PARSER = new com.google.protobuf.AbstractParser<p_scene_pet_data>() {
-      @java.lang.Override
-      public p_scene_pet_data parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        return new p_scene_pet_data(input, extensionRegistry);
-      }
-    };
-
-    public static com.google.protobuf.Parser<p_scene_pet_data> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<p_scene_pet_data> getParserForType() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
-  public interface p_notify_player_others_inOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:fastjgame.p_notify_player_others_in)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <pre>
-     * 进入视野的玩家
-     * </pre>
-     *
-     * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
-     */
-    java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data> 
-        getPlayersList();
-    /**
-     * <pre>
-     * 进入视野的玩家
-     * </pre>
-     *
-     * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
-     */
-    com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data getPlayers(int index);
-    /**
-     * <pre>
-     * 进入视野的玩家
-     * </pre>
-     *
-     * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
-     */
-    int getPlayersCount();
-    /**
-     * <pre>
-     * 进入视野的玩家
-     * </pre>
-     *
-     * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
-     */
-    java.util.List<? extends com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_dataOrBuilder> 
-        getPlayersOrBuilderList();
-    /**
-     * <pre>
-     * 进入视野的玩家
-     * </pre>
-     *
-     * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
-     */
-    com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_dataOrBuilder getPlayersOrBuilder(
-        int index);
-
-    /**
-     * <pre>
-     * 进入视野的npc
-     * </pre>
-     *
-     * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
-     */
-    java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data> 
-        getNpcsList();
-    /**
-     * <pre>
-     * 进入视野的npc
-     * </pre>
-     *
-     * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
-     */
-    com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data getNpcs(int index);
-    /**
-     * <pre>
-     * 进入视野的npc
-     * </pre>
-     *
-     * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
-     */
-    int getNpcsCount();
-    /**
-     * <pre>
-     * 进入视野的npc
-     * </pre>
-     *
-     * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
-     */
-    java.util.List<? extends com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_dataOrBuilder> 
-        getNpcsOrBuilderList();
-    /**
-     * <pre>
-     * 进入视野的npc
-     * </pre>
-     *
-     * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
-     */
-    com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_dataOrBuilder getNpcsOrBuilder(
-        int index);
-
-    /**
-     * <pre>
-     * 进入视野的宠物
-     * </pre>
-     *
-     * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
-     */
-    java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data> 
-        getPetsList();
-    /**
-     * <pre>
-     * 进入视野的宠物
-     * </pre>
-     *
-     * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
-     */
-    com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data getPets(int index);
-    /**
-     * <pre>
-     * 进入视野的宠物
-     * </pre>
-     *
-     * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
-     */
-    int getPetsCount();
-    /**
-     * <pre>
-     * 进入视野的宠物
-     * </pre>
-     *
-     * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
-     */
-    java.util.List<? extends com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_dataOrBuilder> 
-        getPetsOrBuilderList();
-    /**
-     * <pre>
-     * 进入视野的宠物
-     * </pre>
-     *
-     * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
-     */
-    com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_dataOrBuilder getPetsOrBuilder(
-        int index);
-  }
-  /**
-   * <pre>
-   * 通知玩家，这些对象进入了视野
-   * </pre>
-   *
-   * Protobuf type {@code fastjgame.p_notify_player_others_in}
-   */
-  public  static final class p_notify_player_others_in extends
-      com.google.protobuf.GeneratedMessageV3 implements
-      // @@protoc_insertion_point(message_implements:fastjgame.p_notify_player_others_in)
-      p_notify_player_others_inOrBuilder {
-  private static final long serialVersionUID = 0L;
-    // Use p_notify_player_others_in.newBuilder() to construct.
-    private p_notify_player_others_in(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
-      super(builder);
-    }
-    private p_notify_player_others_in() {
-      players_ = java.util.Collections.emptyList();
-      npcs_ = java.util.Collections.emptyList();
-      pets_ = java.util.Collections.emptyList();
-    }
-
-    @java.lang.Override
-    public final com.google.protobuf.UnknownFieldSet
-    getUnknownFields() {
-      return this.unknownFields;
-    }
-    private p_notify_player_others_in(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      this();
-      if (extensionRegistry == null) {
-        throw new java.lang.NullPointerException();
-      }
-      int mutable_bitField0_ = 0;
-      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
-          com.google.protobuf.UnknownFieldSet.newBuilder();
-      try {
-        boolean done = false;
-        while (!done) {
-          int tag = input.readTag();
-          switch (tag) {
-            case 0:
-              done = true;
-              break;
-            case 10: {
-              if (!((mutable_bitField0_ & 0x00000001) != 0)) {
-                players_ = new java.util.ArrayList<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data>();
-                mutable_bitField0_ |= 0x00000001;
-              }
-              players_.add(
-                  input.readMessage(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.parser(), extensionRegistry));
-              break;
+        private p_scene_pet_data(
+                com.google.protobuf.CodedInputStream input,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            this();
+            if (extensionRegistry == null) {
+                throw new java.lang.NullPointerException();
             }
-            case 18: {
-              if (!((mutable_bitField0_ & 0x00000002) != 0)) {
-                npcs_ = new java.util.ArrayList<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data>();
-                mutable_bitField0_ |= 0x00000002;
-              }
-              npcs_.add(
-                  input.readMessage(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.parser(), extensionRegistry));
-              break;
+            int mutable_bitField0_ = 0;
+            com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+                    com.google.protobuf.UnknownFieldSet.newBuilder();
+            try {
+                boolean done = false;
+                while (!done) {
+                    int tag = input.readTag();
+                    switch (tag) {
+                        case 0:
+                            done = true;
+                            break;
+                        case 8: {
+
+                            ownerGuid_ = input.readInt64();
+                            break;
+                        }
+                        case 16: {
+
+                            petGuid_ = input.readInt64();
+                            break;
+                        }
+                        case 24: {
+
+                            petId_ = input.readInt32();
+                            break;
+                        }
+                        default: {
+                            if (!parseUnknownField(
+                                    input, unknownFields, extensionRegistry, tag)) {
+                                done = true;
+                            }
+                            break;
+                        }
+                    }
+                }
+            } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+                throw e.setUnfinishedMessage(this);
+            } catch (java.io.IOException e) {
+                throw new com.google.protobuf.InvalidProtocolBufferException(
+                        e).setUnfinishedMessage(this);
+            } finally {
+                this.unknownFields = unknownFields.build();
+                makeExtensionsImmutable();
             }
-            case 26: {
-              if (!((mutable_bitField0_ & 0x00000004) != 0)) {
-                pets_ = new java.util.ArrayList<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data>();
-                mutable_bitField0_ |= 0x00000004;
-              }
-              pets_.add(
-                  input.readMessage(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.parser(), extensionRegistry));
-              break;
-            }
-            default: {
-              if (!parseUnknownField(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
-          }
         }
-      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw e.setUnfinishedMessage(this);
-      } catch (java.io.IOException e) {
-        throw new com.google.protobuf.InvalidProtocolBufferException(
-            e).setUnfinishedMessage(this);
-      } finally {
-        if (((mutable_bitField0_ & 0x00000001) != 0)) {
-          players_ = java.util.Collections.unmodifiableList(players_);
-        }
-        if (((mutable_bitField0_ & 0x00000002) != 0)) {
-          npcs_ = java.util.Collections.unmodifiableList(npcs_);
-        }
-        if (((mutable_bitField0_ & 0x00000004) != 0)) {
-          pets_ = java.util.Collections.unmodifiableList(pets_);
-        }
-        this.unknownFields = unknownFields.build();
-        makeExtensionsImmutable();
-      }
-    }
-    public static final com.google.protobuf.Descriptors.Descriptor
+
+        public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_notify_player_others_in_descriptor;
-    }
+            return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_pet_data_descriptor;
+        }
 
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        @java.lang.Override
+        protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_notify_player_others_in_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in.class, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in.Builder.class);
+            return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_pet_data_fieldAccessorTable
+                    .ensureFieldAccessorsInitialized(
+                            com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.class, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.Builder.class);
+        }
+
+        public static final int OWNERGUID_FIELD_NUMBER = 1;
+        private long ownerGuid_;
+
+        /**
+         * <pre>
+         * 宠物的主人guid
+         * </pre>
+         *
+         * <code>int64 ownerGuid = 1;</code>
+         */
+        public long getOwnerGuid() {
+            return ownerGuid_;
+        }
+
+        public static final int PETGUID_FIELD_NUMBER = 2;
+        private long petGuid_;
+
+        /**
+         * <pre>
+         * 宠物的guid，guid可能是变化的，也可能是不变的，尽量保持不变
+         * </pre>
+         *
+         * <code>int64 petGuid = 2;</code>
+         */
+        public long getPetGuid() {
+            return petGuid_;
+        }
+
+        public static final int PETID_FIELD_NUMBER = 3;
+        private int petId_;
+
+        /**
+         * <pre>
+         * 对应宠物配置
+         * </pre>
+         *
+         * <code>int32 petId = 3;</code>
+         */
+        public int getPetId() {
+            return petId_;
+        }
+
+        private byte memoizedIsInitialized = -1;
+
+        @java.lang.Override
+        public final boolean isInitialized() {
+            byte isInitialized = memoizedIsInitialized;
+            if (isInitialized == 1) return true;
+            if (isInitialized == 0) return false;
+
+            memoizedIsInitialized = 1;
+            return true;
+        }
+
+        @java.lang.Override
+        public void writeTo(com.google.protobuf.CodedOutputStream output)
+                throws java.io.IOException {
+            if (ownerGuid_ != 0L) {
+                output.writeInt64(1, ownerGuid_);
+            }
+            if (petGuid_ != 0L) {
+                output.writeInt64(2, petGuid_);
+            }
+            if (petId_ != 0) {
+                output.writeInt32(3, petId_);
+            }
+            unknownFields.writeTo(output);
+        }
+
+        @java.lang.Override
+        public int getSerializedSize() {
+            int size = memoizedSize;
+            if (size != -1) return size;
+
+            size = 0;
+            if (ownerGuid_ != 0L) {
+                size += com.google.protobuf.CodedOutputStream
+                        .computeInt64Size(1, ownerGuid_);
+            }
+            if (petGuid_ != 0L) {
+                size += com.google.protobuf.CodedOutputStream
+                        .computeInt64Size(2, petGuid_);
+            }
+            if (petId_ != 0) {
+                size += com.google.protobuf.CodedOutputStream
+                        .computeInt32Size(3, petId_);
+            }
+            size += unknownFields.getSerializedSize();
+            memoizedSize = size;
+            return size;
+        }
+
+        @java.lang.Override
+        public boolean equals(final java.lang.Object obj) {
+            if (obj == this) {
+                return true;
+            }
+            if (!(obj instanceof com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data)) {
+                return super.equals(obj);
+            }
+            com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data other = (com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data) obj;
+
+            if (getOwnerGuid()
+                    != other.getOwnerGuid()) return false;
+            if (getPetGuid()
+                    != other.getPetGuid()) return false;
+            if (getPetId()
+                    != other.getPetId()) return false;
+            if (!unknownFields.equals(other.unknownFields)) return false;
+            return true;
+        }
+
+        @java.lang.Override
+        public int hashCode() {
+            if (memoizedHashCode != 0) {
+                return memoizedHashCode;
+            }
+            int hash = 41;
+            hash = (19 * hash) + getDescriptor().hashCode();
+            hash = (37 * hash) + OWNERGUID_FIELD_NUMBER;
+            hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+                    getOwnerGuid());
+            hash = (37 * hash) + PETGUID_FIELD_NUMBER;
+            hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+                    getPetGuid());
+            hash = (37 * hash) + PETID_FIELD_NUMBER;
+            hash = (53 * hash) + getPetId();
+            hash = (29 * hash) + unknownFields.hashCode();
+            memoizedHashCode = hash;
+            return hash;
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data parseFrom(
+                java.nio.ByteBuffer data)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            return PARSER.parseFrom(data);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data parseFrom(
+                java.nio.ByteBuffer data,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            return PARSER.parseFrom(data, extensionRegistry);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data parseFrom(
+                com.google.protobuf.ByteString data)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            return PARSER.parseFrom(data);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data parseFrom(
+                com.google.protobuf.ByteString data,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            return PARSER.parseFrom(data, extensionRegistry);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data parseFrom(byte[] data)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            return PARSER.parseFrom(data);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data parseFrom(
+                byte[] data,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            return PARSER.parseFrom(data, extensionRegistry);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data parseFrom(java.io.InputStream input)
+                throws java.io.IOException {
+            return com.google.protobuf.GeneratedMessageV3
+                    .parseWithIOException(PARSER, input);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data parseFrom(
+                java.io.InputStream input,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws java.io.IOException {
+            return com.google.protobuf.GeneratedMessageV3
+                    .parseWithIOException(PARSER, input, extensionRegistry);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data parseDelimitedFrom(java.io.InputStream input)
+                throws java.io.IOException {
+            return com.google.protobuf.GeneratedMessageV3
+                    .parseDelimitedWithIOException(PARSER, input);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data parseDelimitedFrom(
+                java.io.InputStream input,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws java.io.IOException {
+            return com.google.protobuf.GeneratedMessageV3
+                    .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data parseFrom(
+                com.google.protobuf.CodedInputStream input)
+                throws java.io.IOException {
+            return com.google.protobuf.GeneratedMessageV3
+                    .parseWithIOException(PARSER, input);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data parseFrom(
+                com.google.protobuf.CodedInputStream input,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws java.io.IOException {
+            return com.google.protobuf.GeneratedMessageV3
+                    .parseWithIOException(PARSER, input, extensionRegistry);
+        }
+
+        @java.lang.Override
+        public Builder newBuilderForType() {
+            return newBuilder();
+        }
+
+        public static Builder newBuilder() {
+            return DEFAULT_INSTANCE.toBuilder();
+        }
+
+        public static Builder newBuilder(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data prototype) {
+            return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+        }
+
+        @java.lang.Override
+        public Builder toBuilder() {
+            return this == DEFAULT_INSTANCE
+                    ? new Builder() : new Builder().mergeFrom(this);
+        }
+
+        @java.lang.Override
+        protected Builder newBuilderForType(
+                com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+            Builder builder = new Builder(parent);
+            return builder;
+        }
+
+        /**
+         * <pre>
+         * pet在进入视野时，需要广播的数据
+         * </pre>
+         * <p>
+         * Protobuf type {@code fastjgame.p_scene_pet_data}
+         */
+        public static final class Builder extends
+                com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+                // @@protoc_insertion_point(builder_implements:fastjgame.p_scene_pet_data)
+                com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_dataOrBuilder {
+            public static final com.google.protobuf.Descriptors.Descriptor
+            getDescriptor() {
+                return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_pet_data_descriptor;
+            }
+
+            @java.lang.Override
+            protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+            internalGetFieldAccessorTable() {
+                return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_pet_data_fieldAccessorTable
+                        .ensureFieldAccessorsInitialized(
+                                com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.class, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.Builder.class);
+            }
+
+            // Construct using com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.newBuilder()
+            private Builder() {
+                maybeForceBuilderInitialization();
+            }
+
+            private Builder(
+                    com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+                super(parent);
+                maybeForceBuilderInitialization();
+            }
+
+            private void maybeForceBuilderInitialization() {
+                if (com.google.protobuf.GeneratedMessageV3
+                        .alwaysUseFieldBuilders) {
+                }
+            }
+
+            @java.lang.Override
+            public Builder clear() {
+                super.clear();
+                ownerGuid_ = 0L;
+
+                petGuid_ = 0L;
+
+                petId_ = 0;
+
+                return this;
+            }
+
+            @java.lang.Override
+            public com.google.protobuf.Descriptors.Descriptor
+            getDescriptorForType() {
+                return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_scene_pet_data_descriptor;
+            }
+
+            @java.lang.Override
+            public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data getDefaultInstanceForType() {
+                return com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.getDefaultInstance();
+            }
+
+            @java.lang.Override
+            public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data build() {
+                com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data result = buildPartial();
+                if (!result.isInitialized()) {
+                    throw newUninitializedMessageException(result);
+                }
+                return result;
+            }
+
+            @java.lang.Override
+            public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data buildPartial() {
+                com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data result = new com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data(this);
+                result.ownerGuid_ = ownerGuid_;
+                result.petGuid_ = petGuid_;
+                result.petId_ = petId_;
+                onBuilt();
+                return result;
+            }
+
+            @java.lang.Override
+            public Builder clone() {
+                return super.clone();
+            }
+
+            @java.lang.Override
+            public Builder setField(
+                    com.google.protobuf.Descriptors.FieldDescriptor field,
+                    java.lang.Object value) {
+                return super.setField(field, value);
+            }
+
+            @java.lang.Override
+            public Builder clearField(
+                    com.google.protobuf.Descriptors.FieldDescriptor field) {
+                return super.clearField(field);
+            }
+
+            @java.lang.Override
+            public Builder clearOneof(
+                    com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+                return super.clearOneof(oneof);
+            }
+
+            @java.lang.Override
+            public Builder setRepeatedField(
+                    com.google.protobuf.Descriptors.FieldDescriptor field,
+                    int index, java.lang.Object value) {
+                return super.setRepeatedField(field, index, value);
+            }
+
+            @java.lang.Override
+            public Builder addRepeatedField(
+                    com.google.protobuf.Descriptors.FieldDescriptor field,
+                    java.lang.Object value) {
+                return super.addRepeatedField(field, value);
+            }
+
+            @java.lang.Override
+            public Builder mergeFrom(com.google.protobuf.Message other) {
+                if (other instanceof com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data) {
+                    return mergeFrom((com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data) other);
+                } else {
+                    super.mergeFrom(other);
+                    return this;
+                }
+            }
+
+            public Builder mergeFrom(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data other) {
+                if (other == com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.getDefaultInstance())
+                    return this;
+                if (other.getOwnerGuid() != 0L) {
+                    setOwnerGuid(other.getOwnerGuid());
+                }
+                if (other.getPetGuid() != 0L) {
+                    setPetGuid(other.getPetGuid());
+                }
+                if (other.getPetId() != 0) {
+                    setPetId(other.getPetId());
+                }
+                this.mergeUnknownFields(other.unknownFields);
+                onChanged();
+                return this;
+            }
+
+            @java.lang.Override
+            public final boolean isInitialized() {
+                return true;
+            }
+
+            @java.lang.Override
+            public Builder mergeFrom(
+                    com.google.protobuf.CodedInputStream input,
+                    com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                    throws java.io.IOException {
+                com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data parsedMessage = null;
+                try {
+                    parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+                } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+                    parsedMessage = (com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data) e.getUnfinishedMessage();
+                    throw e.unwrapIOException();
+                } finally {
+                    if (parsedMessage != null) {
+                        mergeFrom(parsedMessage);
+                    }
+                }
+                return this;
+            }
+
+            private long ownerGuid_;
+
+            /**
+             * <pre>
+             * 宠物的主人guid
+             * </pre>
+             *
+             * <code>int64 ownerGuid = 1;</code>
+             */
+            public long getOwnerGuid() {
+                return ownerGuid_;
+            }
+
+            /**
+             * <pre>
+             * 宠物的主人guid
+             * </pre>
+             *
+             * <code>int64 ownerGuid = 1;</code>
+             */
+            public Builder setOwnerGuid(long value) {
+
+                ownerGuid_ = value;
+                onChanged();
+                return this;
+            }
+
+            /**
+             * <pre>
+             * 宠物的主人guid
+             * </pre>
+             *
+             * <code>int64 ownerGuid = 1;</code>
+             */
+            public Builder clearOwnerGuid() {
+
+                ownerGuid_ = 0L;
+                onChanged();
+                return this;
+            }
+
+            private long petGuid_;
+
+            /**
+             * <pre>
+             * 宠物的guid，guid可能是变化的，也可能是不变的，尽量保持不变
+             * </pre>
+             *
+             * <code>int64 petGuid = 2;</code>
+             */
+            public long getPetGuid() {
+                return petGuid_;
+            }
+
+            /**
+             * <pre>
+             * 宠物的guid，guid可能是变化的，也可能是不变的，尽量保持不变
+             * </pre>
+             *
+             * <code>int64 petGuid = 2;</code>
+             */
+            public Builder setPetGuid(long value) {
+
+                petGuid_ = value;
+                onChanged();
+                return this;
+            }
+
+            /**
+             * <pre>
+             * 宠物的guid，guid可能是变化的，也可能是不变的，尽量保持不变
+             * </pre>
+             *
+             * <code>int64 petGuid = 2;</code>
+             */
+            public Builder clearPetGuid() {
+
+                petGuid_ = 0L;
+                onChanged();
+                return this;
+            }
+
+            private int petId_;
+
+            /**
+             * <pre>
+             * 对应宠物配置
+             * </pre>
+             *
+             * <code>int32 petId = 3;</code>
+             */
+            public int getPetId() {
+                return petId_;
+            }
+
+            /**
+             * <pre>
+             * 对应宠物配置
+             * </pre>
+             *
+             * <code>int32 petId = 3;</code>
+             */
+            public Builder setPetId(int value) {
+
+                petId_ = value;
+                onChanged();
+                return this;
+            }
+
+            /**
+             * <pre>
+             * 对应宠物配置
+             * </pre>
+             *
+             * <code>int32 petId = 3;</code>
+             */
+            public Builder clearPetId() {
+
+                petId_ = 0;
+                onChanged();
+                return this;
+            }
+
+            @java.lang.Override
+            public final Builder setUnknownFields(
+                    final com.google.protobuf.UnknownFieldSet unknownFields) {
+                return super.setUnknownFields(unknownFields);
+            }
+
+            @java.lang.Override
+            public final Builder mergeUnknownFields(
+                    final com.google.protobuf.UnknownFieldSet unknownFields) {
+                return super.mergeUnknownFields(unknownFields);
+            }
+
+
+            // @@protoc_insertion_point(builder_scope:fastjgame.p_scene_pet_data)
+        }
+
+        // @@protoc_insertion_point(class_scope:fastjgame.p_scene_pet_data)
+        private static final com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data DEFAULT_INSTANCE;
+
+        static {
+            DEFAULT_INSTANCE = new com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data();
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data getDefaultInstance() {
+            return DEFAULT_INSTANCE;
+        }
+
+        private static final com.google.protobuf.Parser<p_scene_pet_data>
+                PARSER = new com.google.protobuf.AbstractParser<p_scene_pet_data>() {
+            @java.lang.Override
+            public p_scene_pet_data parsePartialFrom(
+                    com.google.protobuf.CodedInputStream input,
+                    com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                    throws com.google.protobuf.InvalidProtocolBufferException {
+                return new p_scene_pet_data(input, extensionRegistry);
+            }
+        };
+
+        public static com.google.protobuf.Parser<p_scene_pet_data> parser() {
+            return PARSER;
+        }
+
+        @java.lang.Override
+        public com.google.protobuf.Parser<p_scene_pet_data> getParserForType() {
+            return PARSER;
+        }
+
+        @java.lang.Override
+        public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data getDefaultInstanceForType() {
+            return DEFAULT_INSTANCE;
+        }
+
     }
 
-    public static final int PLAYERS_FIELD_NUMBER = 1;
-    private java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data> players_;
-    /**
-     * <pre>
-     * 进入视野的玩家
-     * </pre>
-     *
-     * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
-     */
-    public java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data> getPlayersList() {
-      return players_;
-    }
-    /**
-     * <pre>
-     * 进入视野的玩家
-     * </pre>
-     *
-     * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
-     */
-    public java.util.List<? extends com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_dataOrBuilder> 
-        getPlayersOrBuilderList() {
-      return players_;
-    }
-    /**
-     * <pre>
-     * 进入视野的玩家
-     * </pre>
-     *
-     * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
-     */
-    public int getPlayersCount() {
-      return players_.size();
-    }
-    /**
-     * <pre>
-     * 进入视野的玩家
-     * </pre>
-     *
-     * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
-     */
-    public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data getPlayers(int index) {
-      return players_.get(index);
-    }
-    /**
-     * <pre>
-     * 进入视野的玩家
-     * </pre>
-     *
-     * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
-     */
-    public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_dataOrBuilder getPlayersOrBuilder(
-        int index) {
-      return players_.get(index);
+    public interface p_notify_player_others_inOrBuilder extends
+            // @@protoc_insertion_point(interface_extends:fastjgame.p_notify_player_others_in)
+            com.google.protobuf.MessageOrBuilder {
+
+        /**
+         * <pre>
+         * 进入视野的玩家
+         * </pre>
+         *
+         * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
+         */
+        java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data>
+        getPlayersList();
+
+        /**
+         * <pre>
+         * 进入视野的玩家
+         * </pre>
+         *
+         * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
+         */
+        com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data getPlayers(int index);
+
+        /**
+         * <pre>
+         * 进入视野的玩家
+         * </pre>
+         *
+         * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
+         */
+        int getPlayersCount();
+
+        /**
+         * <pre>
+         * 进入视野的玩家
+         * </pre>
+         *
+         * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
+         */
+        java.util.List<? extends com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_dataOrBuilder>
+        getPlayersOrBuilderList();
+
+        /**
+         * <pre>
+         * 进入视野的玩家
+         * </pre>
+         *
+         * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
+         */
+        com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_dataOrBuilder getPlayersOrBuilder(
+                int index);
+
+        /**
+         * <pre>
+         * 进入视野的npc
+         * </pre>
+         *
+         * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
+         */
+        java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data>
+        getNpcsList();
+
+        /**
+         * <pre>
+         * 进入视野的npc
+         * </pre>
+         *
+         * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
+         */
+        com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data getNpcs(int index);
+
+        /**
+         * <pre>
+         * 进入视野的npc
+         * </pre>
+         *
+         * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
+         */
+        int getNpcsCount();
+
+        /**
+         * <pre>
+         * 进入视野的npc
+         * </pre>
+         *
+         * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
+         */
+        java.util.List<? extends com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_dataOrBuilder>
+        getNpcsOrBuilderList();
+
+        /**
+         * <pre>
+         * 进入视野的npc
+         * </pre>
+         *
+         * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
+         */
+        com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_dataOrBuilder getNpcsOrBuilder(
+                int index);
+
+        /**
+         * <pre>
+         * 进入视野的宠物
+         * </pre>
+         *
+         * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
+         */
+        java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data>
+        getPetsList();
+
+        /**
+         * <pre>
+         * 进入视野的宠物
+         * </pre>
+         *
+         * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
+         */
+        com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data getPets(int index);
+
+        /**
+         * <pre>
+         * 进入视野的宠物
+         * </pre>
+         *
+         * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
+         */
+        int getPetsCount();
+
+        /**
+         * <pre>
+         * 进入视野的宠物
+         * </pre>
+         *
+         * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
+         */
+        java.util.List<? extends com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_dataOrBuilder>
+        getPetsOrBuilderList();
+
+        /**
+         * <pre>
+         * 进入视野的宠物
+         * </pre>
+         *
+         * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
+         */
+        com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_dataOrBuilder getPetsOrBuilder(
+                int index);
     }
 
-    public static final int NPCS_FIELD_NUMBER = 2;
-    private java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data> npcs_;
-    /**
-     * <pre>
-     * 进入视野的npc
-     * </pre>
-     *
-     * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
-     */
-    public java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data> getNpcsList() {
-      return npcs_;
-    }
-    /**
-     * <pre>
-     * 进入视野的npc
-     * </pre>
-     *
-     * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
-     */
-    public java.util.List<? extends com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_dataOrBuilder> 
-        getNpcsOrBuilderList() {
-      return npcs_;
-    }
-    /**
-     * <pre>
-     * 进入视野的npc
-     * </pre>
-     *
-     * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
-     */
-    public int getNpcsCount() {
-      return npcs_.size();
-    }
-    /**
-     * <pre>
-     * 进入视野的npc
-     * </pre>
-     *
-     * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
-     */
-    public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data getNpcs(int index) {
-      return npcs_.get(index);
-    }
-    /**
-     * <pre>
-     * 进入视野的npc
-     * </pre>
-     *
-     * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
-     */
-    public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_dataOrBuilder getNpcsOrBuilder(
-        int index) {
-      return npcs_.get(index);
-    }
-
-    public static final int PETS_FIELD_NUMBER = 3;
-    private java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data> pets_;
-    /**
-     * <pre>
-     * 进入视野的宠物
-     * </pre>
-     *
-     * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
-     */
-    public java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data> getPetsList() {
-      return pets_;
-    }
-    /**
-     * <pre>
-     * 进入视野的宠物
-     * </pre>
-     *
-     * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
-     */
-    public java.util.List<? extends com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_dataOrBuilder> 
-        getPetsOrBuilderList() {
-      return pets_;
-    }
-    /**
-     * <pre>
-     * 进入视野的宠物
-     * </pre>
-     *
-     * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
-     */
-    public int getPetsCount() {
-      return pets_.size();
-    }
-    /**
-     * <pre>
-     * 进入视野的宠物
-     * </pre>
-     *
-     * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
-     */
-    public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data getPets(int index) {
-      return pets_.get(index);
-    }
-    /**
-     * <pre>
-     * 进入视野的宠物
-     * </pre>
-     *
-     * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
-     */
-    public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_dataOrBuilder getPetsOrBuilder(
-        int index) {
-      return pets_.get(index);
-    }
-
-    private byte memoizedIsInitialized = -1;
-    @java.lang.Override
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    @java.lang.Override
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      for (int i = 0; i < players_.size(); i++) {
-        output.writeMessage(1, players_.get(i));
-      }
-      for (int i = 0; i < npcs_.size(); i++) {
-        output.writeMessage(2, npcs_.get(i));
-      }
-      for (int i = 0; i < pets_.size(); i++) {
-        output.writeMessage(3, pets_.get(i));
-      }
-      unknownFields.writeTo(output);
-    }
-
-    @java.lang.Override
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      for (int i = 0; i < players_.size(); i++) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(1, players_.get(i));
-      }
-      for (int i = 0; i < npcs_.size(); i++) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(2, npcs_.get(i));
-      }
-      for (int i = 0; i < pets_.size(); i++) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(3, pets_.get(i));
-      }
-      size += unknownFields.getSerializedSize();
-      memoizedSize = size;
-      return size;
-    }
-
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in)) {
-        return super.equals(obj);
-      }
-      com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in other = (com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in) obj;
-
-      if (!getPlayersList()
-          .equals(other.getPlayersList())) return false;
-      if (!getNpcsList()
-          .equals(other.getNpcsList())) return false;
-      if (!getPetsList()
-          .equals(other.getPetsList())) return false;
-      if (!unknownFields.equals(other.unknownFields)) return false;
-      return true;
-    }
-
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      if (getPlayersCount() > 0) {
-        hash = (37 * hash) + PLAYERS_FIELD_NUMBER;
-        hash = (53 * hash) + getPlayersList().hashCode();
-      }
-      if (getNpcsCount() > 0) {
-        hash = (37 * hash) + NPCS_FIELD_NUMBER;
-        hash = (53 * hash) + getNpcsList().hashCode();
-      }
-      if (getPetsCount() > 0) {
-        hash = (37 * hash) + PETS_FIELD_NUMBER;
-        hash = (53 * hash) + getPetsList().hashCode();
-      }
-      hash = (29 * hash) + unknownFields.hashCode();
-      memoizedHashCode = hash;
-      return hash;
-    }
-
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    @java.lang.Override
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    @java.lang.Override
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
     /**
      * <pre>
      * 通知玩家，这些对象进入了视野
      * </pre>
-     *
+     * <p>
      * Protobuf type {@code fastjgame.p_notify_player_others_in}
      */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:fastjgame.p_notify_player_others_in)
-        com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_inOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_notify_player_others_in_descriptor;
-      }
+    public static final class p_notify_player_others_in extends
+            com.google.protobuf.GeneratedMessageV3 implements
+            // @@protoc_insertion_point(message_implements:fastjgame.p_notify_player_others_in)
+            p_notify_player_others_inOrBuilder {
+        private static final long serialVersionUID = 0L;
 
-      @java.lang.Override
-      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_notify_player_others_in_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in.class, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in.Builder.class);
-      }
+        // Use p_notify_player_others_in.newBuilder() to construct.
+        private p_notify_player_others_in(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+            super(builder);
+        }
 
-      // Construct using com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in.newBuilder()
-      private Builder() {
-        maybeForceBuilderInitialization();
-      }
+        private p_notify_player_others_in() {
+            players_ = java.util.Collections.emptyList();
+            npcs_ = java.util.Collections.emptyList();
+            pets_ = java.util.Collections.emptyList();
+        }
 
-      private Builder(
-          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
-        super(parent);
-        maybeForceBuilderInitialization();
-      }
-      private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessageV3
-                .alwaysUseFieldBuilders) {
-          getPlayersFieldBuilder();
-          getNpcsFieldBuilder();
-          getPetsFieldBuilder();
+        @java.lang.Override
+        public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+            return this.unknownFields;
         }
-      }
-      @java.lang.Override
-      public Builder clear() {
-        super.clear();
-        if (playersBuilder_ == null) {
-          players_ = java.util.Collections.emptyList();
-          bitField0_ = (bitField0_ & ~0x00000001);
-        } else {
-          playersBuilder_.clear();
-        }
-        if (npcsBuilder_ == null) {
-          npcs_ = java.util.Collections.emptyList();
-          bitField0_ = (bitField0_ & ~0x00000002);
-        } else {
-          npcsBuilder_.clear();
-        }
-        if (petsBuilder_ == null) {
-          pets_ = java.util.Collections.emptyList();
-          bitField0_ = (bitField0_ & ~0x00000004);
-        } else {
-          petsBuilder_.clear();
-        }
-        return this;
-      }
 
-      @java.lang.Override
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_notify_player_others_in_descriptor;
-      }
-
-      @java.lang.Override
-      public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in getDefaultInstanceForType() {
-        return com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in.getDefaultInstance();
-      }
-
-      @java.lang.Override
-      public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in build() {
-        com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      @java.lang.Override
-      public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in buildPartial() {
-        com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in result = new com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in(this);
-        int from_bitField0_ = bitField0_;
-        if (playersBuilder_ == null) {
-          if (((bitField0_ & 0x00000001) != 0)) {
-            players_ = java.util.Collections.unmodifiableList(players_);
-            bitField0_ = (bitField0_ & ~0x00000001);
-          }
-          result.players_ = players_;
-        } else {
-          result.players_ = playersBuilder_.build();
-        }
-        if (npcsBuilder_ == null) {
-          if (((bitField0_ & 0x00000002) != 0)) {
-            npcs_ = java.util.Collections.unmodifiableList(npcs_);
-            bitField0_ = (bitField0_ & ~0x00000002);
-          }
-          result.npcs_ = npcs_;
-        } else {
-          result.npcs_ = npcsBuilder_.build();
-        }
-        if (petsBuilder_ == null) {
-          if (((bitField0_ & 0x00000004) != 0)) {
-            pets_ = java.util.Collections.unmodifiableList(pets_);
-            bitField0_ = (bitField0_ & ~0x00000004);
-          }
-          result.pets_ = pets_;
-        } else {
-          result.pets_ = petsBuilder_.build();
-        }
-        onBuilt();
-        return result;
-      }
-
-      @java.lang.Override
-      public Builder clone() {
-        return super.clone();
-      }
-      @java.lang.Override
-      public Builder setField(
-          com.google.protobuf.Descriptors.FieldDescriptor field,
-          java.lang.Object value) {
-        return super.setField(field, value);
-      }
-      @java.lang.Override
-      public Builder clearField(
-          com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return super.clearField(field);
-      }
-      @java.lang.Override
-      public Builder clearOneof(
-          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return super.clearOneof(oneof);
-      }
-      @java.lang.Override
-      public Builder setRepeatedField(
-          com.google.protobuf.Descriptors.FieldDescriptor field,
-          int index, java.lang.Object value) {
-        return super.setRepeatedField(field, index, value);
-      }
-      @java.lang.Override
-      public Builder addRepeatedField(
-          com.google.protobuf.Descriptors.FieldDescriptor field,
-          java.lang.Object value) {
-        return super.addRepeatedField(field, value);
-      }
-      @java.lang.Override
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in) {
-          return mergeFrom((com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in other) {
-        if (other == com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in.getDefaultInstance()) return this;
-        if (playersBuilder_ == null) {
-          if (!other.players_.isEmpty()) {
-            if (players_.isEmpty()) {
-              players_ = other.players_;
-              bitField0_ = (bitField0_ & ~0x00000001);
-            } else {
-              ensurePlayersIsMutable();
-              players_.addAll(other.players_);
+        private p_notify_player_others_in(
+                com.google.protobuf.CodedInputStream input,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            this();
+            if (extensionRegistry == null) {
+                throw new java.lang.NullPointerException();
             }
-            onChanged();
-          }
-        } else {
-          if (!other.players_.isEmpty()) {
-            if (playersBuilder_.isEmpty()) {
-              playersBuilder_.dispose();
-              playersBuilder_ = null;
-              players_ = other.players_;
-              bitField0_ = (bitField0_ & ~0x00000001);
-              playersBuilder_ = 
-                com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
-                   getPlayersFieldBuilder() : null;
-            } else {
-              playersBuilder_.addAllMessages(other.players_);
+            int mutable_bitField0_ = 0;
+            com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+                    com.google.protobuf.UnknownFieldSet.newBuilder();
+            try {
+                boolean done = false;
+                while (!done) {
+                    int tag = input.readTag();
+                    switch (tag) {
+                        case 0:
+                            done = true;
+                            break;
+                        case 10: {
+                            if (!((mutable_bitField0_ & 0x00000001) != 0)) {
+                                players_ = new java.util.ArrayList<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data>();
+                                mutable_bitField0_ |= 0x00000001;
+                            }
+                            players_.add(
+                                    input.readMessage(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.parser(), extensionRegistry));
+                            break;
+                        }
+                        case 18: {
+                            if (!((mutable_bitField0_ & 0x00000002) != 0)) {
+                                npcs_ = new java.util.ArrayList<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data>();
+                                mutable_bitField0_ |= 0x00000002;
+                            }
+                            npcs_.add(
+                                    input.readMessage(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.parser(), extensionRegistry));
+                            break;
+                        }
+                        case 26: {
+                            if (!((mutable_bitField0_ & 0x00000004) != 0)) {
+                                pets_ = new java.util.ArrayList<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data>();
+                                mutable_bitField0_ |= 0x00000004;
+                            }
+                            pets_.add(
+                                    input.readMessage(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.parser(), extensionRegistry));
+                            break;
+                        }
+                        default: {
+                            if (!parseUnknownField(
+                                    input, unknownFields, extensionRegistry, tag)) {
+                                done = true;
+                            }
+                            break;
+                        }
+                    }
+                }
+            } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+                throw e.setUnfinishedMessage(this);
+            } catch (java.io.IOException e) {
+                throw new com.google.protobuf.InvalidProtocolBufferException(
+                        e).setUnfinishedMessage(this);
+            } finally {
+                if (((mutable_bitField0_ & 0x00000001) != 0)) {
+                    players_ = java.util.Collections.unmodifiableList(players_);
+                }
+                if (((mutable_bitField0_ & 0x00000002) != 0)) {
+                    npcs_ = java.util.Collections.unmodifiableList(npcs_);
+                }
+                if (((mutable_bitField0_ & 0x00000004) != 0)) {
+                    pets_ = java.util.Collections.unmodifiableList(pets_);
+                }
+                this.unknownFields = unknownFields.build();
+                makeExtensionsImmutable();
             }
-          }
         }
-        if (npcsBuilder_ == null) {
-          if (!other.npcs_.isEmpty()) {
-            if (npcs_.isEmpty()) {
-              npcs_ = other.npcs_;
-              bitField0_ = (bitField0_ & ~0x00000002);
-            } else {
-              ensureNpcsIsMutable();
-              npcs_.addAll(other.npcs_);
-            }
-            onChanged();
-          }
-        } else {
-          if (!other.npcs_.isEmpty()) {
-            if (npcsBuilder_.isEmpty()) {
-              npcsBuilder_.dispose();
-              npcsBuilder_ = null;
-              npcs_ = other.npcs_;
-              bitField0_ = (bitField0_ & ~0x00000002);
-              npcsBuilder_ = 
-                com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
-                   getNpcsFieldBuilder() : null;
-            } else {
-              npcsBuilder_.addAllMessages(other.npcs_);
-            }
-          }
-        }
-        if (petsBuilder_ == null) {
-          if (!other.pets_.isEmpty()) {
-            if (pets_.isEmpty()) {
-              pets_ = other.pets_;
-              bitField0_ = (bitField0_ & ~0x00000004);
-            } else {
-              ensurePetsIsMutable();
-              pets_.addAll(other.pets_);
-            }
-            onChanged();
-          }
-        } else {
-          if (!other.pets_.isEmpty()) {
-            if (petsBuilder_.isEmpty()) {
-              petsBuilder_.dispose();
-              petsBuilder_ = null;
-              pets_ = other.pets_;
-              bitField0_ = (bitField0_ & ~0x00000004);
-              petsBuilder_ = 
-                com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
-                   getPetsFieldBuilder() : null;
-            } else {
-              petsBuilder_.addAllMessages(other.pets_);
-            }
-          }
-        }
-        this.mergeUnknownFields(other.unknownFields);
-        onChanged();
-        return this;
-      }
 
-      @java.lang.Override
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in parsedMessage = null;
-        try {
-          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          parsedMessage = (com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in) e.getUnfinishedMessage();
-          throw e.unwrapIOException();
-        } finally {
-          if (parsedMessage != null) {
-            mergeFrom(parsedMessage);
-          }
-        }
-        return this;
-      }
-      private int bitField0_;
-
-      private java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data> players_ =
-        java.util.Collections.emptyList();
-      private void ensurePlayersIsMutable() {
-        if (!((bitField0_ & 0x00000001) != 0)) {
-          players_ = new java.util.ArrayList<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data>(players_);
-          bitField0_ |= 0x00000001;
-         }
-      }
-
-      private com.google.protobuf.RepeatedFieldBuilderV3<
-          com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.Builder, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_dataOrBuilder> playersBuilder_;
-
-      /**
-       * <pre>
-       * 进入视野的玩家
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
-       */
-      public java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data> getPlayersList() {
-        if (playersBuilder_ == null) {
-          return java.util.Collections.unmodifiableList(players_);
-        } else {
-          return playersBuilder_.getMessageList();
-        }
-      }
-      /**
-       * <pre>
-       * 进入视野的玩家
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
-       */
-      public int getPlayersCount() {
-        if (playersBuilder_ == null) {
-          return players_.size();
-        } else {
-          return playersBuilder_.getCount();
-        }
-      }
-      /**
-       * <pre>
-       * 进入视野的玩家
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
-       */
-      public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data getPlayers(int index) {
-        if (playersBuilder_ == null) {
-          return players_.get(index);
-        } else {
-          return playersBuilder_.getMessage(index);
-        }
-      }
-      /**
-       * <pre>
-       * 进入视野的玩家
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
-       */
-      public Builder setPlayers(
-          int index, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data value) {
-        if (playersBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          ensurePlayersIsMutable();
-          players_.set(index, value);
-          onChanged();
-        } else {
-          playersBuilder_.setMessage(index, value);
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * 进入视野的玩家
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
-       */
-      public Builder setPlayers(
-          int index, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.Builder builderForValue) {
-        if (playersBuilder_ == null) {
-          ensurePlayersIsMutable();
-          players_.set(index, builderForValue.build());
-          onChanged();
-        } else {
-          playersBuilder_.setMessage(index, builderForValue.build());
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * 进入视野的玩家
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
-       */
-      public Builder addPlayers(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data value) {
-        if (playersBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          ensurePlayersIsMutable();
-          players_.add(value);
-          onChanged();
-        } else {
-          playersBuilder_.addMessage(value);
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * 进入视野的玩家
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
-       */
-      public Builder addPlayers(
-          int index, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data value) {
-        if (playersBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          ensurePlayersIsMutable();
-          players_.add(index, value);
-          onChanged();
-        } else {
-          playersBuilder_.addMessage(index, value);
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * 进入视野的玩家
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
-       */
-      public Builder addPlayers(
-          com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.Builder builderForValue) {
-        if (playersBuilder_ == null) {
-          ensurePlayersIsMutable();
-          players_.add(builderForValue.build());
-          onChanged();
-        } else {
-          playersBuilder_.addMessage(builderForValue.build());
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * 进入视野的玩家
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
-       */
-      public Builder addPlayers(
-          int index, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.Builder builderForValue) {
-        if (playersBuilder_ == null) {
-          ensurePlayersIsMutable();
-          players_.add(index, builderForValue.build());
-          onChanged();
-        } else {
-          playersBuilder_.addMessage(index, builderForValue.build());
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * 进入视野的玩家
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
-       */
-      public Builder addAllPlayers(
-          java.lang.Iterable<? extends com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data> values) {
-        if (playersBuilder_ == null) {
-          ensurePlayersIsMutable();
-          com.google.protobuf.AbstractMessageLite.Builder.addAll(
-              values, players_);
-          onChanged();
-        } else {
-          playersBuilder_.addAllMessages(values);
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * 进入视野的玩家
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
-       */
-      public Builder clearPlayers() {
-        if (playersBuilder_ == null) {
-          players_ = java.util.Collections.emptyList();
-          bitField0_ = (bitField0_ & ~0x00000001);
-          onChanged();
-        } else {
-          playersBuilder_.clear();
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * 进入视野的玩家
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
-       */
-      public Builder removePlayers(int index) {
-        if (playersBuilder_ == null) {
-          ensurePlayersIsMutable();
-          players_.remove(index);
-          onChanged();
-        } else {
-          playersBuilder_.remove(index);
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * 进入视野的玩家
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
-       */
-      public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.Builder getPlayersBuilder(
-          int index) {
-        return getPlayersFieldBuilder().getBuilder(index);
-      }
-      /**
-       * <pre>
-       * 进入视野的玩家
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
-       */
-      public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_dataOrBuilder getPlayersOrBuilder(
-          int index) {
-        if (playersBuilder_ == null) {
-          return players_.get(index);  } else {
-          return playersBuilder_.getMessageOrBuilder(index);
-        }
-      }
-      /**
-       * <pre>
-       * 进入视野的玩家
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
-       */
-      public java.util.List<? extends com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_dataOrBuilder> 
-           getPlayersOrBuilderList() {
-        if (playersBuilder_ != null) {
-          return playersBuilder_.getMessageOrBuilderList();
-        } else {
-          return java.util.Collections.unmodifiableList(players_);
-        }
-      }
-      /**
-       * <pre>
-       * 进入视野的玩家
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
-       */
-      public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.Builder addPlayersBuilder() {
-        return getPlayersFieldBuilder().addBuilder(
-            com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.getDefaultInstance());
-      }
-      /**
-       * <pre>
-       * 进入视野的玩家
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
-       */
-      public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.Builder addPlayersBuilder(
-          int index) {
-        return getPlayersFieldBuilder().addBuilder(
-            index, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.getDefaultInstance());
-      }
-      /**
-       * <pre>
-       * 进入视野的玩家
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
-       */
-      public java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.Builder> 
-           getPlayersBuilderList() {
-        return getPlayersFieldBuilder().getBuilderList();
-      }
-      private com.google.protobuf.RepeatedFieldBuilderV3<
-          com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.Builder, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_dataOrBuilder> 
-          getPlayersFieldBuilder() {
-        if (playersBuilder_ == null) {
-          playersBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
-              com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.Builder, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_dataOrBuilder>(
-                  players_,
-                  ((bitField0_ & 0x00000001) != 0),
-                  getParentForChildren(),
-                  isClean());
-          players_ = null;
-        }
-        return playersBuilder_;
-      }
-
-      private java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data> npcs_ =
-        java.util.Collections.emptyList();
-      private void ensureNpcsIsMutable() {
-        if (!((bitField0_ & 0x00000002) != 0)) {
-          npcs_ = new java.util.ArrayList<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data>(npcs_);
-          bitField0_ |= 0x00000002;
-         }
-      }
-
-      private com.google.protobuf.RepeatedFieldBuilderV3<
-          com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.Builder, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_dataOrBuilder> npcsBuilder_;
-
-      /**
-       * <pre>
-       * 进入视野的npc
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
-       */
-      public java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data> getNpcsList() {
-        if (npcsBuilder_ == null) {
-          return java.util.Collections.unmodifiableList(npcs_);
-        } else {
-          return npcsBuilder_.getMessageList();
-        }
-      }
-      /**
-       * <pre>
-       * 进入视野的npc
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
-       */
-      public int getNpcsCount() {
-        if (npcsBuilder_ == null) {
-          return npcs_.size();
-        } else {
-          return npcsBuilder_.getCount();
-        }
-      }
-      /**
-       * <pre>
-       * 进入视野的npc
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
-       */
-      public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data getNpcs(int index) {
-        if (npcsBuilder_ == null) {
-          return npcs_.get(index);
-        } else {
-          return npcsBuilder_.getMessage(index);
-        }
-      }
-      /**
-       * <pre>
-       * 进入视野的npc
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
-       */
-      public Builder setNpcs(
-          int index, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data value) {
-        if (npcsBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          ensureNpcsIsMutable();
-          npcs_.set(index, value);
-          onChanged();
-        } else {
-          npcsBuilder_.setMessage(index, value);
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * 进入视野的npc
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
-       */
-      public Builder setNpcs(
-          int index, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.Builder builderForValue) {
-        if (npcsBuilder_ == null) {
-          ensureNpcsIsMutable();
-          npcs_.set(index, builderForValue.build());
-          onChanged();
-        } else {
-          npcsBuilder_.setMessage(index, builderForValue.build());
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * 进入视野的npc
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
-       */
-      public Builder addNpcs(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data value) {
-        if (npcsBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          ensureNpcsIsMutable();
-          npcs_.add(value);
-          onChanged();
-        } else {
-          npcsBuilder_.addMessage(value);
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * 进入视野的npc
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
-       */
-      public Builder addNpcs(
-          int index, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data value) {
-        if (npcsBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          ensureNpcsIsMutable();
-          npcs_.add(index, value);
-          onChanged();
-        } else {
-          npcsBuilder_.addMessage(index, value);
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * 进入视野的npc
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
-       */
-      public Builder addNpcs(
-          com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.Builder builderForValue) {
-        if (npcsBuilder_ == null) {
-          ensureNpcsIsMutable();
-          npcs_.add(builderForValue.build());
-          onChanged();
-        } else {
-          npcsBuilder_.addMessage(builderForValue.build());
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * 进入视野的npc
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
-       */
-      public Builder addNpcs(
-          int index, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.Builder builderForValue) {
-        if (npcsBuilder_ == null) {
-          ensureNpcsIsMutable();
-          npcs_.add(index, builderForValue.build());
-          onChanged();
-        } else {
-          npcsBuilder_.addMessage(index, builderForValue.build());
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * 进入视野的npc
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
-       */
-      public Builder addAllNpcs(
-          java.lang.Iterable<? extends com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data> values) {
-        if (npcsBuilder_ == null) {
-          ensureNpcsIsMutable();
-          com.google.protobuf.AbstractMessageLite.Builder.addAll(
-              values, npcs_);
-          onChanged();
-        } else {
-          npcsBuilder_.addAllMessages(values);
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * 进入视野的npc
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
-       */
-      public Builder clearNpcs() {
-        if (npcsBuilder_ == null) {
-          npcs_ = java.util.Collections.emptyList();
-          bitField0_ = (bitField0_ & ~0x00000002);
-          onChanged();
-        } else {
-          npcsBuilder_.clear();
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * 进入视野的npc
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
-       */
-      public Builder removeNpcs(int index) {
-        if (npcsBuilder_ == null) {
-          ensureNpcsIsMutable();
-          npcs_.remove(index);
-          onChanged();
-        } else {
-          npcsBuilder_.remove(index);
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * 进入视野的npc
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
-       */
-      public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.Builder getNpcsBuilder(
-          int index) {
-        return getNpcsFieldBuilder().getBuilder(index);
-      }
-      /**
-       * <pre>
-       * 进入视野的npc
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
-       */
-      public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_dataOrBuilder getNpcsOrBuilder(
-          int index) {
-        if (npcsBuilder_ == null) {
-          return npcs_.get(index);  } else {
-          return npcsBuilder_.getMessageOrBuilder(index);
-        }
-      }
-      /**
-       * <pre>
-       * 进入视野的npc
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
-       */
-      public java.util.List<? extends com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_dataOrBuilder> 
-           getNpcsOrBuilderList() {
-        if (npcsBuilder_ != null) {
-          return npcsBuilder_.getMessageOrBuilderList();
-        } else {
-          return java.util.Collections.unmodifiableList(npcs_);
-        }
-      }
-      /**
-       * <pre>
-       * 进入视野的npc
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
-       */
-      public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.Builder addNpcsBuilder() {
-        return getNpcsFieldBuilder().addBuilder(
-            com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.getDefaultInstance());
-      }
-      /**
-       * <pre>
-       * 进入视野的npc
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
-       */
-      public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.Builder addNpcsBuilder(
-          int index) {
-        return getNpcsFieldBuilder().addBuilder(
-            index, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.getDefaultInstance());
-      }
-      /**
-       * <pre>
-       * 进入视野的npc
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
-       */
-      public java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.Builder> 
-           getNpcsBuilderList() {
-        return getNpcsFieldBuilder().getBuilderList();
-      }
-      private com.google.protobuf.RepeatedFieldBuilderV3<
-          com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.Builder, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_dataOrBuilder> 
-          getNpcsFieldBuilder() {
-        if (npcsBuilder_ == null) {
-          npcsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
-              com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.Builder, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_dataOrBuilder>(
-                  npcs_,
-                  ((bitField0_ & 0x00000002) != 0),
-                  getParentForChildren(),
-                  isClean());
-          npcs_ = null;
-        }
-        return npcsBuilder_;
-      }
-
-      private java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data> pets_ =
-        java.util.Collections.emptyList();
-      private void ensurePetsIsMutable() {
-        if (!((bitField0_ & 0x00000004) != 0)) {
-          pets_ = new java.util.ArrayList<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data>(pets_);
-          bitField0_ |= 0x00000004;
-         }
-      }
-
-      private com.google.protobuf.RepeatedFieldBuilderV3<
-          com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.Builder, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_dataOrBuilder> petsBuilder_;
-
-      /**
-       * <pre>
-       * 进入视野的宠物
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
-       */
-      public java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data> getPetsList() {
-        if (petsBuilder_ == null) {
-          return java.util.Collections.unmodifiableList(pets_);
-        } else {
-          return petsBuilder_.getMessageList();
-        }
-      }
-      /**
-       * <pre>
-       * 进入视野的宠物
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
-       */
-      public int getPetsCount() {
-        if (petsBuilder_ == null) {
-          return pets_.size();
-        } else {
-          return petsBuilder_.getCount();
-        }
-      }
-      /**
-       * <pre>
-       * 进入视野的宠物
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
-       */
-      public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data getPets(int index) {
-        if (petsBuilder_ == null) {
-          return pets_.get(index);
-        } else {
-          return petsBuilder_.getMessage(index);
-        }
-      }
-      /**
-       * <pre>
-       * 进入视野的宠物
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
-       */
-      public Builder setPets(
-          int index, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data value) {
-        if (petsBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          ensurePetsIsMutable();
-          pets_.set(index, value);
-          onChanged();
-        } else {
-          petsBuilder_.setMessage(index, value);
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * 进入视野的宠物
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
-       */
-      public Builder setPets(
-          int index, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.Builder builderForValue) {
-        if (petsBuilder_ == null) {
-          ensurePetsIsMutable();
-          pets_.set(index, builderForValue.build());
-          onChanged();
-        } else {
-          petsBuilder_.setMessage(index, builderForValue.build());
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * 进入视野的宠物
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
-       */
-      public Builder addPets(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data value) {
-        if (petsBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          ensurePetsIsMutable();
-          pets_.add(value);
-          onChanged();
-        } else {
-          petsBuilder_.addMessage(value);
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * 进入视野的宠物
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
-       */
-      public Builder addPets(
-          int index, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data value) {
-        if (petsBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          ensurePetsIsMutable();
-          pets_.add(index, value);
-          onChanged();
-        } else {
-          petsBuilder_.addMessage(index, value);
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * 进入视野的宠物
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
-       */
-      public Builder addPets(
-          com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.Builder builderForValue) {
-        if (petsBuilder_ == null) {
-          ensurePetsIsMutable();
-          pets_.add(builderForValue.build());
-          onChanged();
-        } else {
-          petsBuilder_.addMessage(builderForValue.build());
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * 进入视野的宠物
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
-       */
-      public Builder addPets(
-          int index, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.Builder builderForValue) {
-        if (petsBuilder_ == null) {
-          ensurePetsIsMutable();
-          pets_.add(index, builderForValue.build());
-          onChanged();
-        } else {
-          petsBuilder_.addMessage(index, builderForValue.build());
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * 进入视野的宠物
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
-       */
-      public Builder addAllPets(
-          java.lang.Iterable<? extends com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data> values) {
-        if (petsBuilder_ == null) {
-          ensurePetsIsMutable();
-          com.google.protobuf.AbstractMessageLite.Builder.addAll(
-              values, pets_);
-          onChanged();
-        } else {
-          petsBuilder_.addAllMessages(values);
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * 进入视野的宠物
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
-       */
-      public Builder clearPets() {
-        if (petsBuilder_ == null) {
-          pets_ = java.util.Collections.emptyList();
-          bitField0_ = (bitField0_ & ~0x00000004);
-          onChanged();
-        } else {
-          petsBuilder_.clear();
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * 进入视野的宠物
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
-       */
-      public Builder removePets(int index) {
-        if (petsBuilder_ == null) {
-          ensurePetsIsMutable();
-          pets_.remove(index);
-          onChanged();
-        } else {
-          petsBuilder_.remove(index);
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * 进入视野的宠物
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
-       */
-      public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.Builder getPetsBuilder(
-          int index) {
-        return getPetsFieldBuilder().getBuilder(index);
-      }
-      /**
-       * <pre>
-       * 进入视野的宠物
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
-       */
-      public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_dataOrBuilder getPetsOrBuilder(
-          int index) {
-        if (petsBuilder_ == null) {
-          return pets_.get(index);  } else {
-          return petsBuilder_.getMessageOrBuilder(index);
-        }
-      }
-      /**
-       * <pre>
-       * 进入视野的宠物
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
-       */
-      public java.util.List<? extends com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_dataOrBuilder> 
-           getPetsOrBuilderList() {
-        if (petsBuilder_ != null) {
-          return petsBuilder_.getMessageOrBuilderList();
-        } else {
-          return java.util.Collections.unmodifiableList(pets_);
-        }
-      }
-      /**
-       * <pre>
-       * 进入视野的宠物
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
-       */
-      public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.Builder addPetsBuilder() {
-        return getPetsFieldBuilder().addBuilder(
-            com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.getDefaultInstance());
-      }
-      /**
-       * <pre>
-       * 进入视野的宠物
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
-       */
-      public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.Builder addPetsBuilder(
-          int index) {
-        return getPetsFieldBuilder().addBuilder(
-            index, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.getDefaultInstance());
-      }
-      /**
-       * <pre>
-       * 进入视野的宠物
-       * </pre>
-       *
-       * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
-       */
-      public java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.Builder> 
-           getPetsBuilderList() {
-        return getPetsFieldBuilder().getBuilderList();
-      }
-      private com.google.protobuf.RepeatedFieldBuilderV3<
-          com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.Builder, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_dataOrBuilder> 
-          getPetsFieldBuilder() {
-        if (petsBuilder_ == null) {
-          petsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
-              com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.Builder, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_dataOrBuilder>(
-                  pets_,
-                  ((bitField0_ & 0x00000004) != 0),
-                  getParentForChildren(),
-                  isClean());
-          pets_ = null;
-        }
-        return petsBuilder_;
-      }
-      @java.lang.Override
-      public final Builder setUnknownFields(
-          final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFields(unknownFields);
-      }
-
-      @java.lang.Override
-      public final Builder mergeUnknownFields(
-          final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.mergeUnknownFields(unknownFields);
-      }
-
-
-      // @@protoc_insertion_point(builder_scope:fastjgame.p_notify_player_others_in)
-    }
-
-    // @@protoc_insertion_point(class_scope:fastjgame.p_notify_player_others_in)
-    private static final com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in();
-    }
-
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    private static final com.google.protobuf.Parser<p_notify_player_others_in>
-        PARSER = new com.google.protobuf.AbstractParser<p_notify_player_others_in>() {
-      @java.lang.Override
-      public p_notify_player_others_in parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        return new p_notify_player_others_in(input, extensionRegistry);
-      }
-    };
-
-    public static com.google.protobuf.Parser<p_notify_player_others_in> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<p_notify_player_others_in> getParserForType() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
-  public interface p_notify_player_others_outOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:fastjgame.p_notify_player_others_out)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <code>repeated int64 guids = 1;</code>
-     */
-    java.util.List<java.lang.Long> getGuidsList();
-    /**
-     * <code>repeated int64 guids = 1;</code>
-     */
-    int getGuidsCount();
-    /**
-     * <code>repeated int64 guids = 1;</code>
-     */
-    long getGuids(int index);
-  }
-  /**
-   * <pre>
-   * 通知玩家，这些对象离开了视野
-   * </pre>
-   *
-   * Protobuf type {@code fastjgame.p_notify_player_others_out}
-   */
-  public  static final class p_notify_player_others_out extends
-      com.google.protobuf.GeneratedMessageV3 implements
-      // @@protoc_insertion_point(message_implements:fastjgame.p_notify_player_others_out)
-      p_notify_player_others_outOrBuilder {
-  private static final long serialVersionUID = 0L;
-    // Use p_notify_player_others_out.newBuilder() to construct.
-    private p_notify_player_others_out(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
-      super(builder);
-    }
-    private p_notify_player_others_out() {
-      guids_ = emptyLongList();
-    }
-
-    @java.lang.Override
-    public final com.google.protobuf.UnknownFieldSet
-    getUnknownFields() {
-      return this.unknownFields;
-    }
-    private p_notify_player_others_out(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      this();
-      if (extensionRegistry == null) {
-        throw new java.lang.NullPointerException();
-      }
-      int mutable_bitField0_ = 0;
-      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
-          com.google.protobuf.UnknownFieldSet.newBuilder();
-      try {
-        boolean done = false;
-        while (!done) {
-          int tag = input.readTag();
-          switch (tag) {
-            case 0:
-              done = true;
-              break;
-            case 8: {
-              if (!((mutable_bitField0_ & 0x00000001) != 0)) {
-                guids_ = newLongList();
-                mutable_bitField0_ |= 0x00000001;
-              }
-              guids_.addLong(input.readInt64());
-              break;
-            }
-            case 10: {
-              int length = input.readRawVarint32();
-              int limit = input.pushLimit(length);
-              if (!((mutable_bitField0_ & 0x00000001) != 0) && input.getBytesUntilLimit() > 0) {
-                guids_ = newLongList();
-                mutable_bitField0_ |= 0x00000001;
-              }
-              while (input.getBytesUntilLimit() > 0) {
-                guids_.addLong(input.readInt64());
-              }
-              input.popLimit(limit);
-              break;
-            }
-            default: {
-              if (!parseUnknownField(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
-          }
-        }
-      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw e.setUnfinishedMessage(this);
-      } catch (java.io.IOException e) {
-        throw new com.google.protobuf.InvalidProtocolBufferException(
-            e).setUnfinishedMessage(this);
-      } finally {
-        if (((mutable_bitField0_ & 0x00000001) != 0)) {
-          guids_.makeImmutable(); // C
-        }
-        this.unknownFields = unknownFields.build();
-        makeExtensionsImmutable();
-      }
-    }
-    public static final com.google.protobuf.Descriptors.Descriptor
+        public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_notify_player_others_out_descriptor;
-    }
+            return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_notify_player_others_in_descriptor;
+        }
 
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        @java.lang.Override
+        protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_notify_player_others_out_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out.class, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out.Builder.class);
-    }
-
-    public static final int GUIDS_FIELD_NUMBER = 1;
-    private com.google.protobuf.Internal.LongList guids_;
-    /**
-     * <code>repeated int64 guids = 1;</code>
-     */
-    public java.util.List<java.lang.Long>
-        getGuidsList() {
-      return guids_;
-    }
-    /**
-     * <code>repeated int64 guids = 1;</code>
-     */
-    public int getGuidsCount() {
-      return guids_.size();
-    }
-    /**
-     * <code>repeated int64 guids = 1;</code>
-     */
-    public long getGuids(int index) {
-      return guids_.getLong(index);
-    }
-    private int guidsMemoizedSerializedSize = -1;
-
-    private byte memoizedIsInitialized = -1;
-    @java.lang.Override
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    @java.lang.Override
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      getSerializedSize();
-      if (getGuidsList().size() > 0) {
-        output.writeUInt32NoTag(10);
-        output.writeUInt32NoTag(guidsMemoizedSerializedSize);
-      }
-      for (int i = 0; i < guids_.size(); i++) {
-        output.writeInt64NoTag(guids_.getLong(i));
-      }
-      unknownFields.writeTo(output);
-    }
-
-    @java.lang.Override
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      {
-        int dataSize = 0;
-        for (int i = 0; i < guids_.size(); i++) {
-          dataSize += com.google.protobuf.CodedOutputStream
-            .computeInt64SizeNoTag(guids_.getLong(i));
+            return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_notify_player_others_in_fieldAccessorTable
+                    .ensureFieldAccessorsInitialized(
+                            com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in.class, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in.Builder.class);
         }
-        size += dataSize;
-        if (!getGuidsList().isEmpty()) {
-          size += 1;
-          size += com.google.protobuf.CodedOutputStream
-              .computeInt32SizeNoTag(dataSize);
+
+        public static final int PLAYERS_FIELD_NUMBER = 1;
+        private java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data> players_;
+
+        /**
+         * <pre>
+         * 进入视野的玩家
+         * </pre>
+         *
+         * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
+         */
+        public java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data> getPlayersList() {
+            return players_;
         }
-        guidsMemoizedSerializedSize = dataSize;
-      }
-      size += unknownFields.getSerializedSize();
-      memoizedSize = size;
-      return size;
+
+        /**
+         * <pre>
+         * 进入视野的玩家
+         * </pre>
+         *
+         * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
+         */
+        public java.util.List<? extends com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_dataOrBuilder>
+        getPlayersOrBuilderList() {
+            return players_;
+        }
+
+        /**
+         * <pre>
+         * 进入视野的玩家
+         * </pre>
+         *
+         * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
+         */
+        public int getPlayersCount() {
+            return players_.size();
+        }
+
+        /**
+         * <pre>
+         * 进入视野的玩家
+         * </pre>
+         *
+         * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
+         */
+        public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data getPlayers(int index) {
+            return players_.get(index);
+        }
+
+        /**
+         * <pre>
+         * 进入视野的玩家
+         * </pre>
+         *
+         * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
+         */
+        public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_dataOrBuilder getPlayersOrBuilder(
+                int index) {
+            return players_.get(index);
+        }
+
+        public static final int NPCS_FIELD_NUMBER = 2;
+        private java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data> npcs_;
+
+        /**
+         * <pre>
+         * 进入视野的npc
+         * </pre>
+         *
+         * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
+         */
+        public java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data> getNpcsList() {
+            return npcs_;
+        }
+
+        /**
+         * <pre>
+         * 进入视野的npc
+         * </pre>
+         *
+         * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
+         */
+        public java.util.List<? extends com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_dataOrBuilder>
+        getNpcsOrBuilderList() {
+            return npcs_;
+        }
+
+        /**
+         * <pre>
+         * 进入视野的npc
+         * </pre>
+         *
+         * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
+         */
+        public int getNpcsCount() {
+            return npcs_.size();
+        }
+
+        /**
+         * <pre>
+         * 进入视野的npc
+         * </pre>
+         *
+         * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
+         */
+        public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data getNpcs(int index) {
+            return npcs_.get(index);
+        }
+
+        /**
+         * <pre>
+         * 进入视野的npc
+         * </pre>
+         *
+         * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
+         */
+        public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_dataOrBuilder getNpcsOrBuilder(
+                int index) {
+            return npcs_.get(index);
+        }
+
+        public static final int PETS_FIELD_NUMBER = 3;
+        private java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data> pets_;
+
+        /**
+         * <pre>
+         * 进入视野的宠物
+         * </pre>
+         *
+         * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
+         */
+        public java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data> getPetsList() {
+            return pets_;
+        }
+
+        /**
+         * <pre>
+         * 进入视野的宠物
+         * </pre>
+         *
+         * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
+         */
+        public java.util.List<? extends com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_dataOrBuilder>
+        getPetsOrBuilderList() {
+            return pets_;
+        }
+
+        /**
+         * <pre>
+         * 进入视野的宠物
+         * </pre>
+         *
+         * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
+         */
+        public int getPetsCount() {
+            return pets_.size();
+        }
+
+        /**
+         * <pre>
+         * 进入视野的宠物
+         * </pre>
+         *
+         * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
+         */
+        public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data getPets(int index) {
+            return pets_.get(index);
+        }
+
+        /**
+         * <pre>
+         * 进入视野的宠物
+         * </pre>
+         *
+         * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
+         */
+        public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_dataOrBuilder getPetsOrBuilder(
+                int index) {
+            return pets_.get(index);
+        }
+
+        private byte memoizedIsInitialized = -1;
+
+        @java.lang.Override
+        public final boolean isInitialized() {
+            byte isInitialized = memoizedIsInitialized;
+            if (isInitialized == 1) return true;
+            if (isInitialized == 0) return false;
+
+            memoizedIsInitialized = 1;
+            return true;
+        }
+
+        @java.lang.Override
+        public void writeTo(com.google.protobuf.CodedOutputStream output)
+                throws java.io.IOException {
+            for (int i = 0; i < players_.size(); i++) {
+                output.writeMessage(1, players_.get(i));
+            }
+            for (int i = 0; i < npcs_.size(); i++) {
+                output.writeMessage(2, npcs_.get(i));
+            }
+            for (int i = 0; i < pets_.size(); i++) {
+                output.writeMessage(3, pets_.get(i));
+            }
+            unknownFields.writeTo(output);
+        }
+
+        @java.lang.Override
+        public int getSerializedSize() {
+            int size = memoizedSize;
+            if (size != -1) return size;
+
+            size = 0;
+            for (int i = 0; i < players_.size(); i++) {
+                size += com.google.protobuf.CodedOutputStream
+                        .computeMessageSize(1, players_.get(i));
+            }
+            for (int i = 0; i < npcs_.size(); i++) {
+                size += com.google.protobuf.CodedOutputStream
+                        .computeMessageSize(2, npcs_.get(i));
+            }
+            for (int i = 0; i < pets_.size(); i++) {
+                size += com.google.protobuf.CodedOutputStream
+                        .computeMessageSize(3, pets_.get(i));
+            }
+            size += unknownFields.getSerializedSize();
+            memoizedSize = size;
+            return size;
+        }
+
+        @java.lang.Override
+        public boolean equals(final java.lang.Object obj) {
+            if (obj == this) {
+                return true;
+            }
+            if (!(obj instanceof com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in)) {
+                return super.equals(obj);
+            }
+            com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in other = (com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in) obj;
+
+            if (!getPlayersList()
+                    .equals(other.getPlayersList())) return false;
+            if (!getNpcsList()
+                    .equals(other.getNpcsList())) return false;
+            if (!getPetsList()
+                    .equals(other.getPetsList())) return false;
+            if (!unknownFields.equals(other.unknownFields)) return false;
+            return true;
+        }
+
+        @java.lang.Override
+        public int hashCode() {
+            if (memoizedHashCode != 0) {
+                return memoizedHashCode;
+            }
+            int hash = 41;
+            hash = (19 * hash) + getDescriptor().hashCode();
+            if (getPlayersCount() > 0) {
+                hash = (37 * hash) + PLAYERS_FIELD_NUMBER;
+                hash = (53 * hash) + getPlayersList().hashCode();
+            }
+            if (getNpcsCount() > 0) {
+                hash = (37 * hash) + NPCS_FIELD_NUMBER;
+                hash = (53 * hash) + getNpcsList().hashCode();
+            }
+            if (getPetsCount() > 0) {
+                hash = (37 * hash) + PETS_FIELD_NUMBER;
+                hash = (53 * hash) + getPetsList().hashCode();
+            }
+            hash = (29 * hash) + unknownFields.hashCode();
+            memoizedHashCode = hash;
+            return hash;
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in parseFrom(
+                java.nio.ByteBuffer data)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            return PARSER.parseFrom(data);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in parseFrom(
+                java.nio.ByteBuffer data,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            return PARSER.parseFrom(data, extensionRegistry);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in parseFrom(
+                com.google.protobuf.ByteString data)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            return PARSER.parseFrom(data);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in parseFrom(
+                com.google.protobuf.ByteString data,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            return PARSER.parseFrom(data, extensionRegistry);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in parseFrom(byte[] data)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            return PARSER.parseFrom(data);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in parseFrom(
+                byte[] data,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            return PARSER.parseFrom(data, extensionRegistry);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in parseFrom(java.io.InputStream input)
+                throws java.io.IOException {
+            return com.google.protobuf.GeneratedMessageV3
+                    .parseWithIOException(PARSER, input);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in parseFrom(
+                java.io.InputStream input,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws java.io.IOException {
+            return com.google.protobuf.GeneratedMessageV3
+                    .parseWithIOException(PARSER, input, extensionRegistry);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in parseDelimitedFrom(java.io.InputStream input)
+                throws java.io.IOException {
+            return com.google.protobuf.GeneratedMessageV3
+                    .parseDelimitedWithIOException(PARSER, input);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in parseDelimitedFrom(
+                java.io.InputStream input,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws java.io.IOException {
+            return com.google.protobuf.GeneratedMessageV3
+                    .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in parseFrom(
+                com.google.protobuf.CodedInputStream input)
+                throws java.io.IOException {
+            return com.google.protobuf.GeneratedMessageV3
+                    .parseWithIOException(PARSER, input);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in parseFrom(
+                com.google.protobuf.CodedInputStream input,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws java.io.IOException {
+            return com.google.protobuf.GeneratedMessageV3
+                    .parseWithIOException(PARSER, input, extensionRegistry);
+        }
+
+        @java.lang.Override
+        public Builder newBuilderForType() {
+            return newBuilder();
+        }
+
+        public static Builder newBuilder() {
+            return DEFAULT_INSTANCE.toBuilder();
+        }
+
+        public static Builder newBuilder(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in prototype) {
+            return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+        }
+
+        @java.lang.Override
+        public Builder toBuilder() {
+            return this == DEFAULT_INSTANCE
+                    ? new Builder() : new Builder().mergeFrom(this);
+        }
+
+        @java.lang.Override
+        protected Builder newBuilderForType(
+                com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+            Builder builder = new Builder(parent);
+            return builder;
+        }
+
+        /**
+         * <pre>
+         * 通知玩家，这些对象进入了视野
+         * </pre>
+         * <p>
+         * Protobuf type {@code fastjgame.p_notify_player_others_in}
+         */
+        public static final class Builder extends
+                com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+                // @@protoc_insertion_point(builder_implements:fastjgame.p_notify_player_others_in)
+                com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_inOrBuilder {
+            public static final com.google.protobuf.Descriptors.Descriptor
+            getDescriptor() {
+                return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_notify_player_others_in_descriptor;
+            }
+
+            @java.lang.Override
+            protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+            internalGetFieldAccessorTable() {
+                return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_notify_player_others_in_fieldAccessorTable
+                        .ensureFieldAccessorsInitialized(
+                                com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in.class, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in.Builder.class);
+            }
+
+            // Construct using com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in.newBuilder()
+            private Builder() {
+                maybeForceBuilderInitialization();
+            }
+
+            private Builder(
+                    com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+                super(parent);
+                maybeForceBuilderInitialization();
+            }
+
+            private void maybeForceBuilderInitialization() {
+                if (com.google.protobuf.GeneratedMessageV3
+                        .alwaysUseFieldBuilders) {
+                    getPlayersFieldBuilder();
+                    getNpcsFieldBuilder();
+                    getPetsFieldBuilder();
+                }
+            }
+
+            @java.lang.Override
+            public Builder clear() {
+                super.clear();
+                if (playersBuilder_ == null) {
+                    players_ = java.util.Collections.emptyList();
+                    bitField0_ = (bitField0_ & ~0x00000001);
+                } else {
+                    playersBuilder_.clear();
+                }
+                if (npcsBuilder_ == null) {
+                    npcs_ = java.util.Collections.emptyList();
+                    bitField0_ = (bitField0_ & ~0x00000002);
+                } else {
+                    npcsBuilder_.clear();
+                }
+                if (petsBuilder_ == null) {
+                    pets_ = java.util.Collections.emptyList();
+                    bitField0_ = (bitField0_ & ~0x00000004);
+                } else {
+                    petsBuilder_.clear();
+                }
+                return this;
+            }
+
+            @java.lang.Override
+            public com.google.protobuf.Descriptors.Descriptor
+            getDescriptorForType() {
+                return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_notify_player_others_in_descriptor;
+            }
+
+            @java.lang.Override
+            public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in getDefaultInstanceForType() {
+                return com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in.getDefaultInstance();
+            }
+
+            @java.lang.Override
+            public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in build() {
+                com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in result = buildPartial();
+                if (!result.isInitialized()) {
+                    throw newUninitializedMessageException(result);
+                }
+                return result;
+            }
+
+            @java.lang.Override
+            public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in buildPartial() {
+                com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in result = new com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in(this);
+                int from_bitField0_ = bitField0_;
+                if (playersBuilder_ == null) {
+                    if (((bitField0_ & 0x00000001) != 0)) {
+                        players_ = java.util.Collections.unmodifiableList(players_);
+                        bitField0_ = (bitField0_ & ~0x00000001);
+                    }
+                    result.players_ = players_;
+                } else {
+                    result.players_ = playersBuilder_.build();
+                }
+                if (npcsBuilder_ == null) {
+                    if (((bitField0_ & 0x00000002) != 0)) {
+                        npcs_ = java.util.Collections.unmodifiableList(npcs_);
+                        bitField0_ = (bitField0_ & ~0x00000002);
+                    }
+                    result.npcs_ = npcs_;
+                } else {
+                    result.npcs_ = npcsBuilder_.build();
+                }
+                if (petsBuilder_ == null) {
+                    if (((bitField0_ & 0x00000004) != 0)) {
+                        pets_ = java.util.Collections.unmodifiableList(pets_);
+                        bitField0_ = (bitField0_ & ~0x00000004);
+                    }
+                    result.pets_ = pets_;
+                } else {
+                    result.pets_ = petsBuilder_.build();
+                }
+                onBuilt();
+                return result;
+            }
+
+            @java.lang.Override
+            public Builder clone() {
+                return super.clone();
+            }
+
+            @java.lang.Override
+            public Builder setField(
+                    com.google.protobuf.Descriptors.FieldDescriptor field,
+                    java.lang.Object value) {
+                return super.setField(field, value);
+            }
+
+            @java.lang.Override
+            public Builder clearField(
+                    com.google.protobuf.Descriptors.FieldDescriptor field) {
+                return super.clearField(field);
+            }
+
+            @java.lang.Override
+            public Builder clearOneof(
+                    com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+                return super.clearOneof(oneof);
+            }
+
+            @java.lang.Override
+            public Builder setRepeatedField(
+                    com.google.protobuf.Descriptors.FieldDescriptor field,
+                    int index, java.lang.Object value) {
+                return super.setRepeatedField(field, index, value);
+            }
+
+            @java.lang.Override
+            public Builder addRepeatedField(
+                    com.google.protobuf.Descriptors.FieldDescriptor field,
+                    java.lang.Object value) {
+                return super.addRepeatedField(field, value);
+            }
+
+            @java.lang.Override
+            public Builder mergeFrom(com.google.protobuf.Message other) {
+                if (other instanceof com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in) {
+                    return mergeFrom((com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in) other);
+                } else {
+                    super.mergeFrom(other);
+                    return this;
+                }
+            }
+
+            public Builder mergeFrom(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in other) {
+                if (other == com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in.getDefaultInstance())
+                    return this;
+                if (playersBuilder_ == null) {
+                    if (!other.players_.isEmpty()) {
+                        if (players_.isEmpty()) {
+                            players_ = other.players_;
+                            bitField0_ = (bitField0_ & ~0x00000001);
+                        } else {
+                            ensurePlayersIsMutable();
+                            players_.addAll(other.players_);
+                        }
+                        onChanged();
+                    }
+                } else {
+                    if (!other.players_.isEmpty()) {
+                        if (playersBuilder_.isEmpty()) {
+                            playersBuilder_.dispose();
+                            playersBuilder_ = null;
+                            players_ = other.players_;
+                            bitField0_ = (bitField0_ & ~0x00000001);
+                            playersBuilder_ =
+                                    com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                                            getPlayersFieldBuilder() : null;
+                        } else {
+                            playersBuilder_.addAllMessages(other.players_);
+                        }
+                    }
+                }
+                if (npcsBuilder_ == null) {
+                    if (!other.npcs_.isEmpty()) {
+                        if (npcs_.isEmpty()) {
+                            npcs_ = other.npcs_;
+                            bitField0_ = (bitField0_ & ~0x00000002);
+                        } else {
+                            ensureNpcsIsMutable();
+                            npcs_.addAll(other.npcs_);
+                        }
+                        onChanged();
+                    }
+                } else {
+                    if (!other.npcs_.isEmpty()) {
+                        if (npcsBuilder_.isEmpty()) {
+                            npcsBuilder_.dispose();
+                            npcsBuilder_ = null;
+                            npcs_ = other.npcs_;
+                            bitField0_ = (bitField0_ & ~0x00000002);
+                            npcsBuilder_ =
+                                    com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                                            getNpcsFieldBuilder() : null;
+                        } else {
+                            npcsBuilder_.addAllMessages(other.npcs_);
+                        }
+                    }
+                }
+                if (petsBuilder_ == null) {
+                    if (!other.pets_.isEmpty()) {
+                        if (pets_.isEmpty()) {
+                            pets_ = other.pets_;
+                            bitField0_ = (bitField0_ & ~0x00000004);
+                        } else {
+                            ensurePetsIsMutable();
+                            pets_.addAll(other.pets_);
+                        }
+                        onChanged();
+                    }
+                } else {
+                    if (!other.pets_.isEmpty()) {
+                        if (petsBuilder_.isEmpty()) {
+                            petsBuilder_.dispose();
+                            petsBuilder_ = null;
+                            pets_ = other.pets_;
+                            bitField0_ = (bitField0_ & ~0x00000004);
+                            petsBuilder_ =
+                                    com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                                            getPetsFieldBuilder() : null;
+                        } else {
+                            petsBuilder_.addAllMessages(other.pets_);
+                        }
+                    }
+                }
+                this.mergeUnknownFields(other.unknownFields);
+                onChanged();
+                return this;
+            }
+
+            @java.lang.Override
+            public final boolean isInitialized() {
+                return true;
+            }
+
+            @java.lang.Override
+            public Builder mergeFrom(
+                    com.google.protobuf.CodedInputStream input,
+                    com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                    throws java.io.IOException {
+                com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in parsedMessage = null;
+                try {
+                    parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+                } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+                    parsedMessage = (com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in) e.getUnfinishedMessage();
+                    throw e.unwrapIOException();
+                } finally {
+                    if (parsedMessage != null) {
+                        mergeFrom(parsedMessage);
+                    }
+                }
+                return this;
+            }
+
+            private int bitField0_;
+
+            private java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data> players_ =
+                    java.util.Collections.emptyList();
+
+            private void ensurePlayersIsMutable() {
+                if (!((bitField0_ & 0x00000001) != 0)) {
+                    players_ = new java.util.ArrayList<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data>(players_);
+                    bitField0_ |= 0x00000001;
+                }
+            }
+
+            private com.google.protobuf.RepeatedFieldBuilderV3<
+                    com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.Builder, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_dataOrBuilder> playersBuilder_;
+
+            /**
+             * <pre>
+             * 进入视野的玩家
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
+             */
+            public java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data> getPlayersList() {
+                if (playersBuilder_ == null) {
+                    return java.util.Collections.unmodifiableList(players_);
+                } else {
+                    return playersBuilder_.getMessageList();
+                }
+            }
+
+            /**
+             * <pre>
+             * 进入视野的玩家
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
+             */
+            public int getPlayersCount() {
+                if (playersBuilder_ == null) {
+                    return players_.size();
+                } else {
+                    return playersBuilder_.getCount();
+                }
+            }
+
+            /**
+             * <pre>
+             * 进入视野的玩家
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
+             */
+            public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data getPlayers(int index) {
+                if (playersBuilder_ == null) {
+                    return players_.get(index);
+                } else {
+                    return playersBuilder_.getMessage(index);
+                }
+            }
+
+            /**
+             * <pre>
+             * 进入视野的玩家
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
+             */
+            public Builder setPlayers(
+                    int index, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data value) {
+                if (playersBuilder_ == null) {
+                    if (value == null) {
+                        throw new NullPointerException();
+                    }
+                    ensurePlayersIsMutable();
+                    players_.set(index, value);
+                    onChanged();
+                } else {
+                    playersBuilder_.setMessage(index, value);
+                }
+                return this;
+            }
+
+            /**
+             * <pre>
+             * 进入视野的玩家
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
+             */
+            public Builder setPlayers(
+                    int index, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.Builder builderForValue) {
+                if (playersBuilder_ == null) {
+                    ensurePlayersIsMutable();
+                    players_.set(index, builderForValue.build());
+                    onChanged();
+                } else {
+                    playersBuilder_.setMessage(index, builderForValue.build());
+                }
+                return this;
+            }
+
+            /**
+             * <pre>
+             * 进入视野的玩家
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
+             */
+            public Builder addPlayers(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data value) {
+                if (playersBuilder_ == null) {
+                    if (value == null) {
+                        throw new NullPointerException();
+                    }
+                    ensurePlayersIsMutable();
+                    players_.add(value);
+                    onChanged();
+                } else {
+                    playersBuilder_.addMessage(value);
+                }
+                return this;
+            }
+
+            /**
+             * <pre>
+             * 进入视野的玩家
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
+             */
+            public Builder addPlayers(
+                    int index, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data value) {
+                if (playersBuilder_ == null) {
+                    if (value == null) {
+                        throw new NullPointerException();
+                    }
+                    ensurePlayersIsMutable();
+                    players_.add(index, value);
+                    onChanged();
+                } else {
+                    playersBuilder_.addMessage(index, value);
+                }
+                return this;
+            }
+
+            /**
+             * <pre>
+             * 进入视野的玩家
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
+             */
+            public Builder addPlayers(
+                    com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.Builder builderForValue) {
+                if (playersBuilder_ == null) {
+                    ensurePlayersIsMutable();
+                    players_.add(builderForValue.build());
+                    onChanged();
+                } else {
+                    playersBuilder_.addMessage(builderForValue.build());
+                }
+                return this;
+            }
+
+            /**
+             * <pre>
+             * 进入视野的玩家
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
+             */
+            public Builder addPlayers(
+                    int index, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.Builder builderForValue) {
+                if (playersBuilder_ == null) {
+                    ensurePlayersIsMutable();
+                    players_.add(index, builderForValue.build());
+                    onChanged();
+                } else {
+                    playersBuilder_.addMessage(index, builderForValue.build());
+                }
+                return this;
+            }
+
+            /**
+             * <pre>
+             * 进入视野的玩家
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
+             */
+            public Builder addAllPlayers(
+                    java.lang.Iterable<? extends com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data> values) {
+                if (playersBuilder_ == null) {
+                    ensurePlayersIsMutable();
+                    com.google.protobuf.AbstractMessageLite.Builder.addAll(
+                            values, players_);
+                    onChanged();
+                } else {
+                    playersBuilder_.addAllMessages(values);
+                }
+                return this;
+            }
+
+            /**
+             * <pre>
+             * 进入视野的玩家
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
+             */
+            public Builder clearPlayers() {
+                if (playersBuilder_ == null) {
+                    players_ = java.util.Collections.emptyList();
+                    bitField0_ = (bitField0_ & ~0x00000001);
+                    onChanged();
+                } else {
+                    playersBuilder_.clear();
+                }
+                return this;
+            }
+
+            /**
+             * <pre>
+             * 进入视野的玩家
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
+             */
+            public Builder removePlayers(int index) {
+                if (playersBuilder_ == null) {
+                    ensurePlayersIsMutable();
+                    players_.remove(index);
+                    onChanged();
+                } else {
+                    playersBuilder_.remove(index);
+                }
+                return this;
+            }
+
+            /**
+             * <pre>
+             * 进入视野的玩家
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
+             */
+            public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.Builder getPlayersBuilder(
+                    int index) {
+                return getPlayersFieldBuilder().getBuilder(index);
+            }
+
+            /**
+             * <pre>
+             * 进入视野的玩家
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
+             */
+            public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_dataOrBuilder getPlayersOrBuilder(
+                    int index) {
+                if (playersBuilder_ == null) {
+                    return players_.get(index);
+                } else {
+                    return playersBuilder_.getMessageOrBuilder(index);
+                }
+            }
+
+            /**
+             * <pre>
+             * 进入视野的玩家
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
+             */
+            public java.util.List<? extends com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_dataOrBuilder>
+            getPlayersOrBuilderList() {
+                if (playersBuilder_ != null) {
+                    return playersBuilder_.getMessageOrBuilderList();
+                } else {
+                    return java.util.Collections.unmodifiableList(players_);
+                }
+            }
+
+            /**
+             * <pre>
+             * 进入视野的玩家
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
+             */
+            public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.Builder addPlayersBuilder() {
+                return getPlayersFieldBuilder().addBuilder(
+                        com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.getDefaultInstance());
+            }
+
+            /**
+             * <pre>
+             * 进入视野的玩家
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
+             */
+            public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.Builder addPlayersBuilder(
+                    int index) {
+                return getPlayersFieldBuilder().addBuilder(
+                        index, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.getDefaultInstance());
+            }
+
+            /**
+             * <pre>
+             * 进入视野的玩家
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_player_data players = 1;</code>
+             */
+            public java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.Builder>
+            getPlayersBuilderList() {
+                return getPlayersFieldBuilder().getBuilderList();
+            }
+
+            private com.google.protobuf.RepeatedFieldBuilderV3<
+                    com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.Builder, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_dataOrBuilder>
+            getPlayersFieldBuilder() {
+                if (playersBuilder_ == null) {
+                    playersBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+                            com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data.Builder, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_dataOrBuilder>(
+                            players_,
+                            ((bitField0_ & 0x00000001) != 0),
+                            getParentForChildren(),
+                            isClean());
+                    players_ = null;
+                }
+                return playersBuilder_;
+            }
+
+            private java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data> npcs_ =
+                    java.util.Collections.emptyList();
+
+            private void ensureNpcsIsMutable() {
+                if (!((bitField0_ & 0x00000002) != 0)) {
+                    npcs_ = new java.util.ArrayList<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data>(npcs_);
+                    bitField0_ |= 0x00000002;
+                }
+            }
+
+            private com.google.protobuf.RepeatedFieldBuilderV3<
+                    com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.Builder, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_dataOrBuilder> npcsBuilder_;
+
+            /**
+             * <pre>
+             * 进入视野的npc
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
+             */
+            public java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data> getNpcsList() {
+                if (npcsBuilder_ == null) {
+                    return java.util.Collections.unmodifiableList(npcs_);
+                } else {
+                    return npcsBuilder_.getMessageList();
+                }
+            }
+
+            /**
+             * <pre>
+             * 进入视野的npc
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
+             */
+            public int getNpcsCount() {
+                if (npcsBuilder_ == null) {
+                    return npcs_.size();
+                } else {
+                    return npcsBuilder_.getCount();
+                }
+            }
+
+            /**
+             * <pre>
+             * 进入视野的npc
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
+             */
+            public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data getNpcs(int index) {
+                if (npcsBuilder_ == null) {
+                    return npcs_.get(index);
+                } else {
+                    return npcsBuilder_.getMessage(index);
+                }
+            }
+
+            /**
+             * <pre>
+             * 进入视野的npc
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
+             */
+            public Builder setNpcs(
+                    int index, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data value) {
+                if (npcsBuilder_ == null) {
+                    if (value == null) {
+                        throw new NullPointerException();
+                    }
+                    ensureNpcsIsMutable();
+                    npcs_.set(index, value);
+                    onChanged();
+                } else {
+                    npcsBuilder_.setMessage(index, value);
+                }
+                return this;
+            }
+
+            /**
+             * <pre>
+             * 进入视野的npc
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
+             */
+            public Builder setNpcs(
+                    int index, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.Builder builderForValue) {
+                if (npcsBuilder_ == null) {
+                    ensureNpcsIsMutable();
+                    npcs_.set(index, builderForValue.build());
+                    onChanged();
+                } else {
+                    npcsBuilder_.setMessage(index, builderForValue.build());
+                }
+                return this;
+            }
+
+            /**
+             * <pre>
+             * 进入视野的npc
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
+             */
+            public Builder addNpcs(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data value) {
+                if (npcsBuilder_ == null) {
+                    if (value == null) {
+                        throw new NullPointerException();
+                    }
+                    ensureNpcsIsMutable();
+                    npcs_.add(value);
+                    onChanged();
+                } else {
+                    npcsBuilder_.addMessage(value);
+                }
+                return this;
+            }
+
+            /**
+             * <pre>
+             * 进入视野的npc
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
+             */
+            public Builder addNpcs(
+                    int index, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data value) {
+                if (npcsBuilder_ == null) {
+                    if (value == null) {
+                        throw new NullPointerException();
+                    }
+                    ensureNpcsIsMutable();
+                    npcs_.add(index, value);
+                    onChanged();
+                } else {
+                    npcsBuilder_.addMessage(index, value);
+                }
+                return this;
+            }
+
+            /**
+             * <pre>
+             * 进入视野的npc
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
+             */
+            public Builder addNpcs(
+                    com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.Builder builderForValue) {
+                if (npcsBuilder_ == null) {
+                    ensureNpcsIsMutable();
+                    npcs_.add(builderForValue.build());
+                    onChanged();
+                } else {
+                    npcsBuilder_.addMessage(builderForValue.build());
+                }
+                return this;
+            }
+
+            /**
+             * <pre>
+             * 进入视野的npc
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
+             */
+            public Builder addNpcs(
+                    int index, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.Builder builderForValue) {
+                if (npcsBuilder_ == null) {
+                    ensureNpcsIsMutable();
+                    npcs_.add(index, builderForValue.build());
+                    onChanged();
+                } else {
+                    npcsBuilder_.addMessage(index, builderForValue.build());
+                }
+                return this;
+            }
+
+            /**
+             * <pre>
+             * 进入视野的npc
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
+             */
+            public Builder addAllNpcs(
+                    java.lang.Iterable<? extends com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data> values) {
+                if (npcsBuilder_ == null) {
+                    ensureNpcsIsMutable();
+                    com.google.protobuf.AbstractMessageLite.Builder.addAll(
+                            values, npcs_);
+                    onChanged();
+                } else {
+                    npcsBuilder_.addAllMessages(values);
+                }
+                return this;
+            }
+
+            /**
+             * <pre>
+             * 进入视野的npc
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
+             */
+            public Builder clearNpcs() {
+                if (npcsBuilder_ == null) {
+                    npcs_ = java.util.Collections.emptyList();
+                    bitField0_ = (bitField0_ & ~0x00000002);
+                    onChanged();
+                } else {
+                    npcsBuilder_.clear();
+                }
+                return this;
+            }
+
+            /**
+             * <pre>
+             * 进入视野的npc
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
+             */
+            public Builder removeNpcs(int index) {
+                if (npcsBuilder_ == null) {
+                    ensureNpcsIsMutable();
+                    npcs_.remove(index);
+                    onChanged();
+                } else {
+                    npcsBuilder_.remove(index);
+                }
+                return this;
+            }
+
+            /**
+             * <pre>
+             * 进入视野的npc
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
+             */
+            public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.Builder getNpcsBuilder(
+                    int index) {
+                return getNpcsFieldBuilder().getBuilder(index);
+            }
+
+            /**
+             * <pre>
+             * 进入视野的npc
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
+             */
+            public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_dataOrBuilder getNpcsOrBuilder(
+                    int index) {
+                if (npcsBuilder_ == null) {
+                    return npcs_.get(index);
+                } else {
+                    return npcsBuilder_.getMessageOrBuilder(index);
+                }
+            }
+
+            /**
+             * <pre>
+             * 进入视野的npc
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
+             */
+            public java.util.List<? extends com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_dataOrBuilder>
+            getNpcsOrBuilderList() {
+                if (npcsBuilder_ != null) {
+                    return npcsBuilder_.getMessageOrBuilderList();
+                } else {
+                    return java.util.Collections.unmodifiableList(npcs_);
+                }
+            }
+
+            /**
+             * <pre>
+             * 进入视野的npc
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
+             */
+            public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.Builder addNpcsBuilder() {
+                return getNpcsFieldBuilder().addBuilder(
+                        com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.getDefaultInstance());
+            }
+
+            /**
+             * <pre>
+             * 进入视野的npc
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
+             */
+            public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.Builder addNpcsBuilder(
+                    int index) {
+                return getNpcsFieldBuilder().addBuilder(
+                        index, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.getDefaultInstance());
+            }
+
+            /**
+             * <pre>
+             * 进入视野的npc
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_npc_data npcs = 2;</code>
+             */
+            public java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.Builder>
+            getNpcsBuilderList() {
+                return getNpcsFieldBuilder().getBuilderList();
+            }
+
+            private com.google.protobuf.RepeatedFieldBuilderV3<
+                    com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.Builder, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_dataOrBuilder>
+            getNpcsFieldBuilder() {
+                if (npcsBuilder_ == null) {
+                    npcsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+                            com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data.Builder, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_dataOrBuilder>(
+                            npcs_,
+                            ((bitField0_ & 0x00000002) != 0),
+                            getParentForChildren(),
+                            isClean());
+                    npcs_ = null;
+                }
+                return npcsBuilder_;
+            }
+
+            private java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data> pets_ =
+                    java.util.Collections.emptyList();
+
+            private void ensurePetsIsMutable() {
+                if (!((bitField0_ & 0x00000004) != 0)) {
+                    pets_ = new java.util.ArrayList<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data>(pets_);
+                    bitField0_ |= 0x00000004;
+                }
+            }
+
+            private com.google.protobuf.RepeatedFieldBuilderV3<
+                    com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.Builder, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_dataOrBuilder> petsBuilder_;
+
+            /**
+             * <pre>
+             * 进入视野的宠物
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
+             */
+            public java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data> getPetsList() {
+                if (petsBuilder_ == null) {
+                    return java.util.Collections.unmodifiableList(pets_);
+                } else {
+                    return petsBuilder_.getMessageList();
+                }
+            }
+
+            /**
+             * <pre>
+             * 进入视野的宠物
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
+             */
+            public int getPetsCount() {
+                if (petsBuilder_ == null) {
+                    return pets_.size();
+                } else {
+                    return petsBuilder_.getCount();
+                }
+            }
+
+            /**
+             * <pre>
+             * 进入视野的宠物
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
+             */
+            public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data getPets(int index) {
+                if (petsBuilder_ == null) {
+                    return pets_.get(index);
+                } else {
+                    return petsBuilder_.getMessage(index);
+                }
+            }
+
+            /**
+             * <pre>
+             * 进入视野的宠物
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
+             */
+            public Builder setPets(
+                    int index, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data value) {
+                if (petsBuilder_ == null) {
+                    if (value == null) {
+                        throw new NullPointerException();
+                    }
+                    ensurePetsIsMutable();
+                    pets_.set(index, value);
+                    onChanged();
+                } else {
+                    petsBuilder_.setMessage(index, value);
+                }
+                return this;
+            }
+
+            /**
+             * <pre>
+             * 进入视野的宠物
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
+             */
+            public Builder setPets(
+                    int index, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.Builder builderForValue) {
+                if (petsBuilder_ == null) {
+                    ensurePetsIsMutable();
+                    pets_.set(index, builderForValue.build());
+                    onChanged();
+                } else {
+                    petsBuilder_.setMessage(index, builderForValue.build());
+                }
+                return this;
+            }
+
+            /**
+             * <pre>
+             * 进入视野的宠物
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
+             */
+            public Builder addPets(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data value) {
+                if (petsBuilder_ == null) {
+                    if (value == null) {
+                        throw new NullPointerException();
+                    }
+                    ensurePetsIsMutable();
+                    pets_.add(value);
+                    onChanged();
+                } else {
+                    petsBuilder_.addMessage(value);
+                }
+                return this;
+            }
+
+            /**
+             * <pre>
+             * 进入视野的宠物
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
+             */
+            public Builder addPets(
+                    int index, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data value) {
+                if (petsBuilder_ == null) {
+                    if (value == null) {
+                        throw new NullPointerException();
+                    }
+                    ensurePetsIsMutable();
+                    pets_.add(index, value);
+                    onChanged();
+                } else {
+                    petsBuilder_.addMessage(index, value);
+                }
+                return this;
+            }
+
+            /**
+             * <pre>
+             * 进入视野的宠物
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
+             */
+            public Builder addPets(
+                    com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.Builder builderForValue) {
+                if (petsBuilder_ == null) {
+                    ensurePetsIsMutable();
+                    pets_.add(builderForValue.build());
+                    onChanged();
+                } else {
+                    petsBuilder_.addMessage(builderForValue.build());
+                }
+                return this;
+            }
+
+            /**
+             * <pre>
+             * 进入视野的宠物
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
+             */
+            public Builder addPets(
+                    int index, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.Builder builderForValue) {
+                if (petsBuilder_ == null) {
+                    ensurePetsIsMutable();
+                    pets_.add(index, builderForValue.build());
+                    onChanged();
+                } else {
+                    petsBuilder_.addMessage(index, builderForValue.build());
+                }
+                return this;
+            }
+
+            /**
+             * <pre>
+             * 进入视野的宠物
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
+             */
+            public Builder addAllPets(
+                    java.lang.Iterable<? extends com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data> values) {
+                if (petsBuilder_ == null) {
+                    ensurePetsIsMutable();
+                    com.google.protobuf.AbstractMessageLite.Builder.addAll(
+                            values, pets_);
+                    onChanged();
+                } else {
+                    petsBuilder_.addAllMessages(values);
+                }
+                return this;
+            }
+
+            /**
+             * <pre>
+             * 进入视野的宠物
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
+             */
+            public Builder clearPets() {
+                if (petsBuilder_ == null) {
+                    pets_ = java.util.Collections.emptyList();
+                    bitField0_ = (bitField0_ & ~0x00000004);
+                    onChanged();
+                } else {
+                    petsBuilder_.clear();
+                }
+                return this;
+            }
+
+            /**
+             * <pre>
+             * 进入视野的宠物
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
+             */
+            public Builder removePets(int index) {
+                if (petsBuilder_ == null) {
+                    ensurePetsIsMutable();
+                    pets_.remove(index);
+                    onChanged();
+                } else {
+                    petsBuilder_.remove(index);
+                }
+                return this;
+            }
+
+            /**
+             * <pre>
+             * 进入视野的宠物
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
+             */
+            public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.Builder getPetsBuilder(
+                    int index) {
+                return getPetsFieldBuilder().getBuilder(index);
+            }
+
+            /**
+             * <pre>
+             * 进入视野的宠物
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
+             */
+            public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_dataOrBuilder getPetsOrBuilder(
+                    int index) {
+                if (petsBuilder_ == null) {
+                    return pets_.get(index);
+                } else {
+                    return petsBuilder_.getMessageOrBuilder(index);
+                }
+            }
+
+            /**
+             * <pre>
+             * 进入视野的宠物
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
+             */
+            public java.util.List<? extends com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_dataOrBuilder>
+            getPetsOrBuilderList() {
+                if (petsBuilder_ != null) {
+                    return petsBuilder_.getMessageOrBuilderList();
+                } else {
+                    return java.util.Collections.unmodifiableList(pets_);
+                }
+            }
+
+            /**
+             * <pre>
+             * 进入视野的宠物
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
+             */
+            public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.Builder addPetsBuilder() {
+                return getPetsFieldBuilder().addBuilder(
+                        com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.getDefaultInstance());
+            }
+
+            /**
+             * <pre>
+             * 进入视野的宠物
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
+             */
+            public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.Builder addPetsBuilder(
+                    int index) {
+                return getPetsFieldBuilder().addBuilder(
+                        index, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.getDefaultInstance());
+            }
+
+            /**
+             * <pre>
+             * 进入视野的宠物
+             * </pre>
+             *
+             * <code>repeated .fastjgame.p_scene_pet_data pets = 3;</code>
+             */
+            public java.util.List<com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.Builder>
+            getPetsBuilderList() {
+                return getPetsFieldBuilder().getBuilderList();
+            }
+
+            private com.google.protobuf.RepeatedFieldBuilderV3<
+                    com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.Builder, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_dataOrBuilder>
+            getPetsFieldBuilder() {
+                if (petsBuilder_ == null) {
+                    petsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+                            com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data.Builder, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_dataOrBuilder>(
+                            pets_,
+                            ((bitField0_ & 0x00000004) != 0),
+                            getParentForChildren(),
+                            isClean());
+                    pets_ = null;
+                }
+                return petsBuilder_;
+            }
+
+            @java.lang.Override
+            public final Builder setUnknownFields(
+                    final com.google.protobuf.UnknownFieldSet unknownFields) {
+                return super.setUnknownFields(unknownFields);
+            }
+
+            @java.lang.Override
+            public final Builder mergeUnknownFields(
+                    final com.google.protobuf.UnknownFieldSet unknownFields) {
+                return super.mergeUnknownFields(unknownFields);
+            }
+
+
+            // @@protoc_insertion_point(builder_scope:fastjgame.p_notify_player_others_in)
+        }
+
+        // @@protoc_insertion_point(class_scope:fastjgame.p_notify_player_others_in)
+        private static final com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in DEFAULT_INSTANCE;
+
+        static {
+            DEFAULT_INSTANCE = new com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in();
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in getDefaultInstance() {
+            return DEFAULT_INSTANCE;
+        }
+
+        private static final com.google.protobuf.Parser<p_notify_player_others_in>
+                PARSER = new com.google.protobuf.AbstractParser<p_notify_player_others_in>() {
+            @java.lang.Override
+            public p_notify_player_others_in parsePartialFrom(
+                    com.google.protobuf.CodedInputStream input,
+                    com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                    throws com.google.protobuf.InvalidProtocolBufferException {
+                return new p_notify_player_others_in(input, extensionRegistry);
+            }
+        };
+
+        public static com.google.protobuf.Parser<p_notify_player_others_in> parser() {
+            return PARSER;
+        }
+
+        @java.lang.Override
+        public com.google.protobuf.Parser<p_notify_player_others_in> getParserForType() {
+            return PARSER;
+        }
+
+        @java.lang.Override
+        public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_in getDefaultInstanceForType() {
+            return DEFAULT_INSTANCE;
+        }
+
     }
 
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out)) {
-        return super.equals(obj);
-      }
-      com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out other = (com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out) obj;
+    public interface p_notify_player_others_outOrBuilder extends
+            // @@protoc_insertion_point(interface_extends:fastjgame.p_notify_player_others_out)
+            com.google.protobuf.MessageOrBuilder {
 
-      if (!getGuidsList()
-          .equals(other.getGuidsList())) return false;
-      if (!unknownFields.equals(other.unknownFields)) return false;
-      return true;
-    }
+        /**
+         * <code>repeated int64 guids = 1;</code>
+         */
+        java.util.List<java.lang.Long> getGuidsList();
 
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      if (getGuidsCount() > 0) {
-        hash = (37 * hash) + GUIDS_FIELD_NUMBER;
-        hash = (53 * hash) + getGuidsList().hashCode();
-      }
-      hash = (29 * hash) + unknownFields.hashCode();
-      memoizedHashCode = hash;
-      return hash;
+        /**
+         * <code>repeated int64 guids = 1;</code>
+         */
+        int getGuidsCount();
+
+        /**
+         * <code>repeated int64 guids = 1;</code>
+         */
+        long getGuids(int index);
     }
 
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input);
-    }
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    @java.lang.Override
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    @java.lang.Override
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
     /**
      * <pre>
      * 通知玩家，这些对象离开了视野
      * </pre>
-     *
+     * <p>
      * Protobuf type {@code fastjgame.p_notify_player_others_out}
      */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:fastjgame.p_notify_player_others_out)
-        com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_outOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_notify_player_others_out_descriptor;
-      }
+    public static final class p_notify_player_others_out extends
+            com.google.protobuf.GeneratedMessageV3 implements
+            // @@protoc_insertion_point(message_implements:fastjgame.p_notify_player_others_out)
+            p_notify_player_others_outOrBuilder {
+        private static final long serialVersionUID = 0L;
 
-      @java.lang.Override
-      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_notify_player_others_out_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out.class, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out.Builder.class);
-      }
-
-      // Construct using com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out.newBuilder()
-      private Builder() {
-        maybeForceBuilderInitialization();
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
-        super(parent);
-        maybeForceBuilderInitialization();
-      }
-      private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessageV3
-                .alwaysUseFieldBuilders) {
+        // Use p_notify_player_others_out.newBuilder() to construct.
+        private p_notify_player_others_out(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+            super(builder);
         }
-      }
-      @java.lang.Override
-      public Builder clear() {
-        super.clear();
-        guids_ = emptyLongList();
-        bitField0_ = (bitField0_ & ~0x00000001);
-        return this;
-      }
 
-      @java.lang.Override
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_notify_player_others_out_descriptor;
-      }
-
-      @java.lang.Override
-      public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out getDefaultInstanceForType() {
-        return com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out.getDefaultInstance();
-      }
-
-      @java.lang.Override
-      public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out build() {
-        com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
+        private p_notify_player_others_out() {
+            guids_ = emptyLongList();
         }
-        return result;
-      }
 
-      @java.lang.Override
-      public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out buildPartial() {
-        com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out result = new com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out(this);
-        int from_bitField0_ = bitField0_;
-        if (((bitField0_ & 0x00000001) != 0)) {
-          guids_.makeImmutable();
-          bitField0_ = (bitField0_ & ~0x00000001);
+        @java.lang.Override
+        public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+            return this.unknownFields;
         }
-        result.guids_ = guids_;
-        onBuilt();
-        return result;
-      }
 
-      @java.lang.Override
-      public Builder clone() {
-        return super.clone();
-      }
-      @java.lang.Override
-      public Builder setField(
-          com.google.protobuf.Descriptors.FieldDescriptor field,
-          java.lang.Object value) {
-        return super.setField(field, value);
-      }
-      @java.lang.Override
-      public Builder clearField(
-          com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return super.clearField(field);
-      }
-      @java.lang.Override
-      public Builder clearOneof(
-          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return super.clearOneof(oneof);
-      }
-      @java.lang.Override
-      public Builder setRepeatedField(
-          com.google.protobuf.Descriptors.FieldDescriptor field,
-          int index, java.lang.Object value) {
-        return super.setRepeatedField(field, index, value);
-      }
-      @java.lang.Override
-      public Builder addRepeatedField(
-          com.google.protobuf.Descriptors.FieldDescriptor field,
-          java.lang.Object value) {
-        return super.addRepeatedField(field, value);
-      }
-      @java.lang.Override
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out) {
-          return mergeFrom((com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
+        private p_notify_player_others_out(
+                com.google.protobuf.CodedInputStream input,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            this();
+            if (extensionRegistry == null) {
+                throw new java.lang.NullPointerException();
+            }
+            int mutable_bitField0_ = 0;
+            com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+                    com.google.protobuf.UnknownFieldSet.newBuilder();
+            try {
+                boolean done = false;
+                while (!done) {
+                    int tag = input.readTag();
+                    switch (tag) {
+                        case 0:
+                            done = true;
+                            break;
+                        case 8: {
+                            if (!((mutable_bitField0_ & 0x00000001) != 0)) {
+                                guids_ = newLongList();
+                                mutable_bitField0_ |= 0x00000001;
+                            }
+                            guids_.addLong(input.readInt64());
+                            break;
+                        }
+                        case 10: {
+                            int length = input.readRawVarint32();
+                            int limit = input.pushLimit(length);
+                            if (!((mutable_bitField0_ & 0x00000001) != 0) && input.getBytesUntilLimit() > 0) {
+                                guids_ = newLongList();
+                                mutable_bitField0_ |= 0x00000001;
+                            }
+                            while (input.getBytesUntilLimit() > 0) {
+                                guids_.addLong(input.readInt64());
+                            }
+                            input.popLimit(limit);
+                            break;
+                        }
+                        default: {
+                            if (!parseUnknownField(
+                                    input, unknownFields, extensionRegistry, tag)) {
+                                done = true;
+                            }
+                            break;
+                        }
+                    }
+                }
+            } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+                throw e.setUnfinishedMessage(this);
+            } catch (java.io.IOException e) {
+                throw new com.google.protobuf.InvalidProtocolBufferException(
+                        e).setUnfinishedMessage(this);
+            } finally {
+                if (((mutable_bitField0_ & 0x00000001) != 0)) {
+                    guids_.makeImmutable(); // C
+                }
+                this.unknownFields = unknownFields.build();
+                makeExtensionsImmutable();
+            }
         }
-      }
 
-      public Builder mergeFrom(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out other) {
-        if (other == com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out.getDefaultInstance()) return this;
-        if (!other.guids_.isEmpty()) {
-          if (guids_.isEmpty()) {
-            guids_ = other.guids_;
-            bitField0_ = (bitField0_ & ~0x00000001);
-          } else {
-            ensureGuidsIsMutable();
-            guids_.addAll(other.guids_);
-          }
-          onChanged();
+        public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+            return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_notify_player_others_out_descriptor;
         }
-        this.mergeUnknownFields(other.unknownFields);
-        onChanged();
-        return this;
-      }
 
-      @java.lang.Override
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out parsedMessage = null;
-        try {
-          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          parsedMessage = (com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out) e.getUnfinishedMessage();
-          throw e.unwrapIOException();
-        } finally {
-          if (parsedMessage != null) {
-            mergeFrom(parsedMessage);
-          }
+        @java.lang.Override
+        protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+            return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_notify_player_others_out_fieldAccessorTable
+                    .ensureFieldAccessorsInitialized(
+                            com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out.class, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out.Builder.class);
         }
-        return this;
-      }
-      private int bitField0_;
 
-      private com.google.protobuf.Internal.LongList guids_ = emptyLongList();
-      private void ensureGuidsIsMutable() {
-        if (!((bitField0_ & 0x00000001) != 0)) {
-          guids_ = mutableCopy(guids_);
-          bitField0_ |= 0x00000001;
-         }
-      }
-      /**
-       * <code>repeated int64 guids = 1;</code>
-       */
-      public java.util.List<java.lang.Long>
-          getGuidsList() {
-        return ((bitField0_ & 0x00000001) != 0) ?
-                 java.util.Collections.unmodifiableList(guids_) : guids_;
-      }
-      /**
-       * <code>repeated int64 guids = 1;</code>
-       */
-      public int getGuidsCount() {
-        return guids_.size();
-      }
-      /**
-       * <code>repeated int64 guids = 1;</code>
-       */
-      public long getGuids(int index) {
-        return guids_.getLong(index);
-      }
-      /**
-       * <code>repeated int64 guids = 1;</code>
-       */
-      public Builder setGuids(
-          int index, long value) {
-        ensureGuidsIsMutable();
-        guids_.setLong(index, value);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>repeated int64 guids = 1;</code>
-       */
-      public Builder addGuids(long value) {
-        ensureGuidsIsMutable();
-        guids_.addLong(value);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>repeated int64 guids = 1;</code>
-       */
-      public Builder addAllGuids(
-          java.lang.Iterable<? extends java.lang.Long> values) {
-        ensureGuidsIsMutable();
-        com.google.protobuf.AbstractMessageLite.Builder.addAll(
-            values, guids_);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>repeated int64 guids = 1;</code>
-       */
-      public Builder clearGuids() {
-        guids_ = emptyLongList();
-        bitField0_ = (bitField0_ & ~0x00000001);
-        onChanged();
-        return this;
-      }
-      @java.lang.Override
-      public final Builder setUnknownFields(
-          final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFields(unknownFields);
-      }
+        public static final int GUIDS_FIELD_NUMBER = 1;
+        private com.google.protobuf.Internal.LongList guids_;
 
-      @java.lang.Override
-      public final Builder mergeUnknownFields(
-          final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.mergeUnknownFields(unknownFields);
-      }
+        /**
+         * <code>repeated int64 guids = 1;</code>
+         */
+        public java.util.List<java.lang.Long>
+        getGuidsList() {
+            return guids_;
+        }
+
+        /**
+         * <code>repeated int64 guids = 1;</code>
+         */
+        public int getGuidsCount() {
+            return guids_.size();
+        }
+
+        /**
+         * <code>repeated int64 guids = 1;</code>
+         */
+        public long getGuids(int index) {
+            return guids_.getLong(index);
+        }
+
+        private int guidsMemoizedSerializedSize = -1;
+
+        private byte memoizedIsInitialized = -1;
+
+        @java.lang.Override
+        public final boolean isInitialized() {
+            byte isInitialized = memoizedIsInitialized;
+            if (isInitialized == 1) return true;
+            if (isInitialized == 0) return false;
+
+            memoizedIsInitialized = 1;
+            return true;
+        }
+
+        @java.lang.Override
+        public void writeTo(com.google.protobuf.CodedOutputStream output)
+                throws java.io.IOException {
+            getSerializedSize();
+            if (getGuidsList().size() > 0) {
+                output.writeUInt32NoTag(10);
+                output.writeUInt32NoTag(guidsMemoizedSerializedSize);
+            }
+            for (int i = 0; i < guids_.size(); i++) {
+                output.writeInt64NoTag(guids_.getLong(i));
+            }
+            unknownFields.writeTo(output);
+        }
+
+        @java.lang.Override
+        public int getSerializedSize() {
+            int size = memoizedSize;
+            if (size != -1) return size;
+
+            size = 0;
+            {
+                int dataSize = 0;
+                for (int i = 0; i < guids_.size(); i++) {
+                    dataSize += com.google.protobuf.CodedOutputStream
+                            .computeInt64SizeNoTag(guids_.getLong(i));
+                }
+                size += dataSize;
+                if (!getGuidsList().isEmpty()) {
+                    size += 1;
+                    size += com.google.protobuf.CodedOutputStream
+                            .computeInt32SizeNoTag(dataSize);
+                }
+                guidsMemoizedSerializedSize = dataSize;
+            }
+            size += unknownFields.getSerializedSize();
+            memoizedSize = size;
+            return size;
+        }
+
+        @java.lang.Override
+        public boolean equals(final java.lang.Object obj) {
+            if (obj == this) {
+                return true;
+            }
+            if (!(obj instanceof com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out)) {
+                return super.equals(obj);
+            }
+            com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out other = (com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out) obj;
+
+            if (!getGuidsList()
+                    .equals(other.getGuidsList())) return false;
+            if (!unknownFields.equals(other.unknownFields)) return false;
+            return true;
+        }
+
+        @java.lang.Override
+        public int hashCode() {
+            if (memoizedHashCode != 0) {
+                return memoizedHashCode;
+            }
+            int hash = 41;
+            hash = (19 * hash) + getDescriptor().hashCode();
+            if (getGuidsCount() > 0) {
+                hash = (37 * hash) + GUIDS_FIELD_NUMBER;
+                hash = (53 * hash) + getGuidsList().hashCode();
+            }
+            hash = (29 * hash) + unknownFields.hashCode();
+            memoizedHashCode = hash;
+            return hash;
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out parseFrom(
+                java.nio.ByteBuffer data)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            return PARSER.parseFrom(data);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out parseFrom(
+                java.nio.ByteBuffer data,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            return PARSER.parseFrom(data, extensionRegistry);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out parseFrom(
+                com.google.protobuf.ByteString data)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            return PARSER.parseFrom(data);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out parseFrom(
+                com.google.protobuf.ByteString data,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            return PARSER.parseFrom(data, extensionRegistry);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out parseFrom(byte[] data)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            return PARSER.parseFrom(data);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out parseFrom(
+                byte[] data,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            return PARSER.parseFrom(data, extensionRegistry);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out parseFrom(java.io.InputStream input)
+                throws java.io.IOException {
+            return com.google.protobuf.GeneratedMessageV3
+                    .parseWithIOException(PARSER, input);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out parseFrom(
+                java.io.InputStream input,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws java.io.IOException {
+            return com.google.protobuf.GeneratedMessageV3
+                    .parseWithIOException(PARSER, input, extensionRegistry);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out parseDelimitedFrom(java.io.InputStream input)
+                throws java.io.IOException {
+            return com.google.protobuf.GeneratedMessageV3
+                    .parseDelimitedWithIOException(PARSER, input);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out parseDelimitedFrom(
+                java.io.InputStream input,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws java.io.IOException {
+            return com.google.protobuf.GeneratedMessageV3
+                    .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out parseFrom(
+                com.google.protobuf.CodedInputStream input)
+                throws java.io.IOException {
+            return com.google.protobuf.GeneratedMessageV3
+                    .parseWithIOException(PARSER, input);
+        }
+
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out parseFrom(
+                com.google.protobuf.CodedInputStream input,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws java.io.IOException {
+            return com.google.protobuf.GeneratedMessageV3
+                    .parseWithIOException(PARSER, input, extensionRegistry);
+        }
+
+        @java.lang.Override
+        public Builder newBuilderForType() {
+            return newBuilder();
+        }
+
+        public static Builder newBuilder() {
+            return DEFAULT_INSTANCE.toBuilder();
+        }
+
+        public static Builder newBuilder(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out prototype) {
+            return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+        }
+
+        @java.lang.Override
+        public Builder toBuilder() {
+            return this == DEFAULT_INSTANCE
+                    ? new Builder() : new Builder().mergeFrom(this);
+        }
+
+        @java.lang.Override
+        protected Builder newBuilderForType(
+                com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+            Builder builder = new Builder(parent);
+            return builder;
+        }
+
+        /**
+         * <pre>
+         * 通知玩家，这些对象离开了视野
+         * </pre>
+         * <p>
+         * Protobuf type {@code fastjgame.p_notify_player_others_out}
+         */
+        public static final class Builder extends
+                com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+                // @@protoc_insertion_point(builder_implements:fastjgame.p_notify_player_others_out)
+                com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_outOrBuilder {
+            public static final com.google.protobuf.Descriptors.Descriptor
+            getDescriptor() {
+                return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_notify_player_others_out_descriptor;
+            }
+
+            @java.lang.Override
+            protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+            internalGetFieldAccessorTable() {
+                return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_notify_player_others_out_fieldAccessorTable
+                        .ensureFieldAccessorsInitialized(
+                                com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out.class, com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out.Builder.class);
+            }
+
+            // Construct using com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out.newBuilder()
+            private Builder() {
+                maybeForceBuilderInitialization();
+            }
+
+            private Builder(
+                    com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+                super(parent);
+                maybeForceBuilderInitialization();
+            }
+
+            private void maybeForceBuilderInitialization() {
+                if (com.google.protobuf.GeneratedMessageV3
+                        .alwaysUseFieldBuilders) {
+                }
+            }
+
+            @java.lang.Override
+            public Builder clear() {
+                super.clear();
+                guids_ = emptyLongList();
+                bitField0_ = (bitField0_ & ~0x00000001);
+                return this;
+            }
+
+            @java.lang.Override
+            public com.google.protobuf.Descriptors.Descriptor
+            getDescriptorForType() {
+                return com.wjybxx.fastjgame.protobuffer.p_scene_player.internal_static_fastjgame_p_notify_player_others_out_descriptor;
+            }
+
+            @java.lang.Override
+            public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out getDefaultInstanceForType() {
+                return com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out.getDefaultInstance();
+            }
+
+            @java.lang.Override
+            public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out build() {
+                com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out result = buildPartial();
+                if (!result.isInitialized()) {
+                    throw newUninitializedMessageException(result);
+                }
+                return result;
+            }
+
+            @java.lang.Override
+            public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out buildPartial() {
+                com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out result = new com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out(this);
+                int from_bitField0_ = bitField0_;
+                if (((bitField0_ & 0x00000001) != 0)) {
+                    guids_.makeImmutable();
+                    bitField0_ = (bitField0_ & ~0x00000001);
+                }
+                result.guids_ = guids_;
+                onBuilt();
+                return result;
+            }
+
+            @java.lang.Override
+            public Builder clone() {
+                return super.clone();
+            }
+
+            @java.lang.Override
+            public Builder setField(
+                    com.google.protobuf.Descriptors.FieldDescriptor field,
+                    java.lang.Object value) {
+                return super.setField(field, value);
+            }
+
+            @java.lang.Override
+            public Builder clearField(
+                    com.google.protobuf.Descriptors.FieldDescriptor field) {
+                return super.clearField(field);
+            }
+
+            @java.lang.Override
+            public Builder clearOneof(
+                    com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+                return super.clearOneof(oneof);
+            }
+
+            @java.lang.Override
+            public Builder setRepeatedField(
+                    com.google.protobuf.Descriptors.FieldDescriptor field,
+                    int index, java.lang.Object value) {
+                return super.setRepeatedField(field, index, value);
+            }
+
+            @java.lang.Override
+            public Builder addRepeatedField(
+                    com.google.protobuf.Descriptors.FieldDescriptor field,
+                    java.lang.Object value) {
+                return super.addRepeatedField(field, value);
+            }
+
+            @java.lang.Override
+            public Builder mergeFrom(com.google.protobuf.Message other) {
+                if (other instanceof com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out) {
+                    return mergeFrom((com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out) other);
+                } else {
+                    super.mergeFrom(other);
+                    return this;
+                }
+            }
+
+            public Builder mergeFrom(com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out other) {
+                if (other == com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out.getDefaultInstance())
+                    return this;
+                if (!other.guids_.isEmpty()) {
+                    if (guids_.isEmpty()) {
+                        guids_ = other.guids_;
+                        bitField0_ = (bitField0_ & ~0x00000001);
+                    } else {
+                        ensureGuidsIsMutable();
+                        guids_.addAll(other.guids_);
+                    }
+                    onChanged();
+                }
+                this.mergeUnknownFields(other.unknownFields);
+                onChanged();
+                return this;
+            }
+
+            @java.lang.Override
+            public final boolean isInitialized() {
+                return true;
+            }
+
+            @java.lang.Override
+            public Builder mergeFrom(
+                    com.google.protobuf.CodedInputStream input,
+                    com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                    throws java.io.IOException {
+                com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out parsedMessage = null;
+                try {
+                    parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+                } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+                    parsedMessage = (com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out) e.getUnfinishedMessage();
+                    throw e.unwrapIOException();
+                } finally {
+                    if (parsedMessage != null) {
+                        mergeFrom(parsedMessage);
+                    }
+                }
+                return this;
+            }
+
+            private int bitField0_;
+
+            private com.google.protobuf.Internal.LongList guids_ = emptyLongList();
+
+            private void ensureGuidsIsMutable() {
+                if (!((bitField0_ & 0x00000001) != 0)) {
+                    guids_ = mutableCopy(guids_);
+                    bitField0_ |= 0x00000001;
+                }
+            }
+
+            /**
+             * <code>repeated int64 guids = 1;</code>
+             */
+            public java.util.List<java.lang.Long>
+            getGuidsList() {
+                return ((bitField0_ & 0x00000001) != 0) ?
+                        java.util.Collections.unmodifiableList(guids_) : guids_;
+            }
+
+            /**
+             * <code>repeated int64 guids = 1;</code>
+             */
+            public int getGuidsCount() {
+                return guids_.size();
+            }
+
+            /**
+             * <code>repeated int64 guids = 1;</code>
+             */
+            public long getGuids(int index) {
+                return guids_.getLong(index);
+            }
+
+            /**
+             * <code>repeated int64 guids = 1;</code>
+             */
+            public Builder setGuids(
+                    int index, long value) {
+                ensureGuidsIsMutable();
+                guids_.setLong(index, value);
+                onChanged();
+                return this;
+            }
+
+            /**
+             * <code>repeated int64 guids = 1;</code>
+             */
+            public Builder addGuids(long value) {
+                ensureGuidsIsMutable();
+                guids_.addLong(value);
+                onChanged();
+                return this;
+            }
+
+            /**
+             * <code>repeated int64 guids = 1;</code>
+             */
+            public Builder addAllGuids(
+                    java.lang.Iterable<? extends java.lang.Long> values) {
+                ensureGuidsIsMutable();
+                com.google.protobuf.AbstractMessageLite.Builder.addAll(
+                        values, guids_);
+                onChanged();
+                return this;
+            }
+
+            /**
+             * <code>repeated int64 guids = 1;</code>
+             */
+            public Builder clearGuids() {
+                guids_ = emptyLongList();
+                bitField0_ = (bitField0_ & ~0x00000001);
+                onChanged();
+                return this;
+            }
+
+            @java.lang.Override
+            public final Builder setUnknownFields(
+                    final com.google.protobuf.UnknownFieldSet unknownFields) {
+                return super.setUnknownFields(unknownFields);
+            }
+
+            @java.lang.Override
+            public final Builder mergeUnknownFields(
+                    final com.google.protobuf.UnknownFieldSet unknownFields) {
+                return super.mergeUnknownFields(unknownFields);
+            }
 
 
-      // @@protoc_insertion_point(builder_scope:fastjgame.p_notify_player_others_out)
-    }
+            // @@protoc_insertion_point(builder_scope:fastjgame.p_notify_player_others_out)
+        }
 
-    // @@protoc_insertion_point(class_scope:fastjgame.p_notify_player_others_out)
-    private static final com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out();
-    }
+        // @@protoc_insertion_point(class_scope:fastjgame.p_notify_player_others_out)
+        private static final com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out DEFAULT_INSTANCE;
 
-    public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
+        static {
+            DEFAULT_INSTANCE = new com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out();
+        }
 
-    private static final com.google.protobuf.Parser<p_notify_player_others_out>
-        PARSER = new com.google.protobuf.AbstractParser<p_notify_player_others_out>() {
-      @java.lang.Override
-      public p_notify_player_others_out parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        return new p_notify_player_others_out(input, extensionRegistry);
-      }
-    };
+        public static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out getDefaultInstance() {
+            return DEFAULT_INSTANCE;
+        }
 
-    public static com.google.protobuf.Parser<p_notify_player_others_out> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<p_notify_player_others_out> getParserForType() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
-  private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_fastjgame_p_scene_player_data_descriptor;
-  private static final 
-    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_fastjgame_p_scene_player_data_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_fastjgame_p_scene_npc_data_descriptor;
-  private static final 
-    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_fastjgame_p_scene_npc_data_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_fastjgame_p_scene_pet_data_descriptor;
-  private static final 
-    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_fastjgame_p_scene_pet_data_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_fastjgame_p_notify_player_others_in_descriptor;
-  private static final 
-    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_fastjgame_p_notify_player_others_in_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_fastjgame_p_notify_player_others_out_descriptor;
-  private static final 
-    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_fastjgame_p_notify_player_others_out_fieldAccessorTable;
-
-  public static com.google.protobuf.Descriptors.FileDescriptor
-      getDescriptor() {
-    return descriptor;
-  }
-  private static  com.google.protobuf.Descriptors.FileDescriptor
-      descriptor;
-  static {
-    java.lang.String[] descriptorData = {
-      "\n\024p_scene_player.proto\022\tfastjgame\032\016p_com" +
-      "mon.proto\"X\n\023p_scene_player_data\022\022\n\nplay" +
-      "erGuid\030\001 \001(\003\022\025\n\rlogicServerId\030\002 \001(\005\022\026\n\016a" +
-      "ctualServerId\030\003 \001(\005\"2\n\020p_scene_npc_data\022" +
-      "\017\n\007npcGuid\030\001 \001(\003\022\r\n\005npcId\030\002 \001(\005\"E\n\020p_sce" +
-      "ne_pet_data\022\021\n\townerGuid\030\001 \001(\003\022\017\n\007petGui" +
-      "d\030\002 \001(\003\022\r\n\005petId\030\003 \001(\005\"\242\001\n\031p_notify_play" +
-      "er_others_in\022/\n\007players\030\001 \003(\0132\036.fastjgam" +
-      "e.p_scene_player_data\022)\n\004npcs\030\002 \003(\0132\033.fa" +
-      "stjgame.p_scene_npc_data\022)\n\004pets\030\003 \003(\0132\033" +
-      ".fastjgame.p_scene_pet_data\"+\n\032p_notify_" +
-      "player_others_out\022\r\n\005guids\030\001 \003(\003B4\n com." +
-      "wjybxx.fastjgame.protobufferB\016p_scene_pl" +
-      "ayerH\001b\006proto3"
-    };
-    com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
-          public com.google.protobuf.ExtensionRegistry assignDescriptors(
-              com.google.protobuf.Descriptors.FileDescriptor root) {
-            descriptor = root;
-            return null;
-          }
+        private static final com.google.protobuf.Parser<p_notify_player_others_out>
+                PARSER = new com.google.protobuf.AbstractParser<p_notify_player_others_out>() {
+            @java.lang.Override
+            public p_notify_player_others_out parsePartialFrom(
+                    com.google.protobuf.CodedInputStream input,
+                    com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                    throws com.google.protobuf.InvalidProtocolBufferException {
+                return new p_notify_player_others_out(input, extensionRegistry);
+            }
         };
-    com.google.protobuf.Descriptors.FileDescriptor
-      .internalBuildGeneratedFileFrom(descriptorData,
-        new com.google.protobuf.Descriptors.FileDescriptor[] {
-          com.wjybxx.fastjgame.protobuffer.p_common.getDescriptor(),
-        }, assigner);
-    internal_static_fastjgame_p_scene_player_data_descriptor =
-      getDescriptor().getMessageTypes().get(0);
-    internal_static_fastjgame_p_scene_player_data_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_fastjgame_p_scene_player_data_descriptor,
-        new java.lang.String[] { "PlayerGuid", "LogicServerId", "ActualServerId", });
-    internal_static_fastjgame_p_scene_npc_data_descriptor =
-      getDescriptor().getMessageTypes().get(1);
-    internal_static_fastjgame_p_scene_npc_data_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_fastjgame_p_scene_npc_data_descriptor,
-        new java.lang.String[] { "NpcGuid", "NpcId", });
-    internal_static_fastjgame_p_scene_pet_data_descriptor =
-      getDescriptor().getMessageTypes().get(2);
-    internal_static_fastjgame_p_scene_pet_data_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_fastjgame_p_scene_pet_data_descriptor,
-        new java.lang.String[] { "OwnerGuid", "PetGuid", "PetId", });
-    internal_static_fastjgame_p_notify_player_others_in_descriptor =
-      getDescriptor().getMessageTypes().get(3);
-    internal_static_fastjgame_p_notify_player_others_in_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_fastjgame_p_notify_player_others_in_descriptor,
-        new java.lang.String[] { "Players", "Npcs", "Pets", });
-    internal_static_fastjgame_p_notify_player_others_out_descriptor =
-      getDescriptor().getMessageTypes().get(4);
-    internal_static_fastjgame_p_notify_player_others_out_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_fastjgame_p_notify_player_others_out_descriptor,
-        new java.lang.String[] { "Guids", });
-    com.wjybxx.fastjgame.protobuffer.p_common.getDescriptor();
-  }
 
-  // @@protoc_insertion_point(outer_class_scope)
+        public static com.google.protobuf.Parser<p_notify_player_others_out> parser() {
+            return PARSER;
+        }
+
+        @java.lang.Override
+        public com.google.protobuf.Parser<p_notify_player_others_out> getParserForType() {
+            return PARSER;
+        }
+
+        @java.lang.Override
+        public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_notify_player_others_out getDefaultInstanceForType() {
+            return DEFAULT_INSTANCE;
+        }
+
+    }
+
+    private static final com.google.protobuf.Descriptors.Descriptor
+            internal_static_fastjgame_p_scene_player_data_descriptor;
+    private static final
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+            internal_static_fastjgame_p_scene_player_data_fieldAccessorTable;
+    private static final com.google.protobuf.Descriptors.Descriptor
+            internal_static_fastjgame_p_scene_npc_data_descriptor;
+    private static final
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+            internal_static_fastjgame_p_scene_npc_data_fieldAccessorTable;
+    private static final com.google.protobuf.Descriptors.Descriptor
+            internal_static_fastjgame_p_scene_pet_data_descriptor;
+    private static final
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+            internal_static_fastjgame_p_scene_pet_data_fieldAccessorTable;
+    private static final com.google.protobuf.Descriptors.Descriptor
+            internal_static_fastjgame_p_notify_player_others_in_descriptor;
+    private static final
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+            internal_static_fastjgame_p_notify_player_others_in_fieldAccessorTable;
+    private static final com.google.protobuf.Descriptors.Descriptor
+            internal_static_fastjgame_p_notify_player_others_out_descriptor;
+    private static final
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+            internal_static_fastjgame_p_notify_player_others_out_fieldAccessorTable;
+
+    public static com.google.protobuf.Descriptors.FileDescriptor
+    getDescriptor() {
+        return descriptor;
+    }
+
+    private static com.google.protobuf.Descriptors.FileDescriptor
+            descriptor;
+
+    static {
+        java.lang.String[] descriptorData = {
+                "\n\024p_scene_player.proto\022\tfastjgame\032\016p_com" +
+                        "mon.proto\"X\n\023p_scene_player_data\022\022\n\nplay" +
+                        "erGuid\030\001 \001(\003\022\025\n\rlogicServerId\030\002 \001(\005\022\026\n\016a" +
+                        "ctualServerId\030\003 \001(\005\"2\n\020p_scene_npc_data\022" +
+                        "\017\n\007npcGuid\030\001 \001(\003\022\r\n\005npcId\030\002 \001(\005\"E\n\020p_sce" +
+                        "ne_pet_data\022\021\n\townerGuid\030\001 \001(\003\022\017\n\007petGui" +
+                        "d\030\002 \001(\003\022\r\n\005petId\030\003 \001(\005\"\242\001\n\031p_notify_play" +
+                        "er_others_in\022/\n\007players\030\001 \003(\0132\036.fastjgam" +
+                        "e.p_scene_player_data\022)\n\004npcs\030\002 \003(\0132\033.fa" +
+                        "stjgame.p_scene_npc_data\022)\n\004pets\030\003 \003(\0132\033" +
+                        ".fastjgame.p_scene_pet_data\"+\n\032p_notify_" +
+                        "player_others_out\022\r\n\005guids\030\001 \003(\003B4\n com." +
+                        "wjybxx.fastjgame.protobufferB\016p_scene_pl" +
+                        "ayerH\001b\006proto3"
+        };
+        com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
+                new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
+                    public com.google.protobuf.ExtensionRegistry assignDescriptors(
+                            com.google.protobuf.Descriptors.FileDescriptor root) {
+                        descriptor = root;
+                        return null;
+                    }
+                };
+        com.google.protobuf.Descriptors.FileDescriptor
+                .internalBuildGeneratedFileFrom(descriptorData,
+                        new com.google.protobuf.Descriptors.FileDescriptor[]{
+                                com.wjybxx.fastjgame.protobuffer.p_common.getDescriptor(),
+                        }, assigner);
+        internal_static_fastjgame_p_scene_player_data_descriptor =
+                getDescriptor().getMessageTypes().get(0);
+        internal_static_fastjgame_p_scene_player_data_fieldAccessorTable = new
+                com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+                internal_static_fastjgame_p_scene_player_data_descriptor,
+                new java.lang.String[]{"PlayerGuid", "LogicServerId", "ActualServerId",});
+        internal_static_fastjgame_p_scene_npc_data_descriptor =
+                getDescriptor().getMessageTypes().get(1);
+        internal_static_fastjgame_p_scene_npc_data_fieldAccessorTable = new
+                com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+                internal_static_fastjgame_p_scene_npc_data_descriptor,
+                new java.lang.String[]{"NpcGuid", "NpcId",});
+        internal_static_fastjgame_p_scene_pet_data_descriptor =
+                getDescriptor().getMessageTypes().get(2);
+        internal_static_fastjgame_p_scene_pet_data_fieldAccessorTable = new
+                com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+                internal_static_fastjgame_p_scene_pet_data_descriptor,
+                new java.lang.String[]{"OwnerGuid", "PetGuid", "PetId",});
+        internal_static_fastjgame_p_notify_player_others_in_descriptor =
+                getDescriptor().getMessageTypes().get(3);
+        internal_static_fastjgame_p_notify_player_others_in_fieldAccessorTable = new
+                com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+                internal_static_fastjgame_p_notify_player_others_in_descriptor,
+                new java.lang.String[]{"Players", "Npcs", "Pets",});
+        internal_static_fastjgame_p_notify_player_others_out_descriptor =
+                getDescriptor().getMessageTypes().get(4);
+        internal_static_fastjgame_p_notify_player_others_out_fieldAccessorTable = new
+                com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+                internal_static_fastjgame_p_notify_player_others_out_descriptor,
+                new java.lang.String[]{"Guids",});
+        com.wjybxx.fastjgame.protobuffer.p_common.getDescriptor();
+    }
+
+    // @@protoc_insertion_point(outer_class_scope)
 }

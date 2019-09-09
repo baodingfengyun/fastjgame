@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.core.onlinenode;
 
 /**
  * 登录服务器节点名字
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/17 21:27

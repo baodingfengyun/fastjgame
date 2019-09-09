@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.findpath;
 
 /**
  * 对角线移动类型
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/10 21:20
@@ -88,7 +89,6 @@ public enum DiagonalMovement {
      *        (X)
      * 如图，由于B不可以行走，因此不可以走对角线
      * </pre>
-     *
      */
     OnlyWhenNoObstacles;
 }

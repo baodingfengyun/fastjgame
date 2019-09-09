@@ -48,18 +48,20 @@ public class WalkableGridStrategys {
 
     /**
      * 只有指定格子可以走，其它格子都不可以走
+     *
      * @param walkableGrids 可以走动的格子
      */
-    public static WalkableGridStrategy valueOf(@Nonnull GridObstacle...walkableGrids){
+    public static WalkableGridStrategy valueOf(@Nonnull GridObstacle... walkableGrids) {
         EnumSet<GridObstacle> walkableGridSet = EnumSet.copyOf(Arrays.asList(walkableGrids));
         return new DefaultWalkableGridStrategy(walkableGridSet);
     }
 
     /**
      * 除了指定格子类型不可走之外，其它格子都可以走
+     *
      * @param unwalkableGrids 不可以走的格子
      */
-    public static WalkableGridStrategy except(@Nonnull GridObstacle...unwalkableGrids){
+    public static WalkableGridStrategy except(@Nonnull GridObstacle... unwalkableGrids) {
         EnumSet<GridObstacle> walkableGridSet = EnumSet.allOf(GridObstacle.class);
         List<GridObstacle> unwalkableGridList = Arrays.asList(unwalkableGrids);
         walkableGridSet.removeAll(unwalkableGridList);
@@ -70,12 +72,12 @@ public class WalkableGridStrategys {
      * 实现参考{@code java.util.RegularEnumSet}
      * 遮挡标记值数量肯定不会大于64的
      */
-    private static class DefaultWalkableGridStrategy implements WalkableGridStrategy{
+    private static class DefaultWalkableGridStrategy implements WalkableGridStrategy {
 
         private long elements;
 
         private DefaultWalkableGridStrategy(EnumSet<GridObstacle> walkableGridSet) {
-            for (GridObstacle e: walkableGridSet){
+            for (GridObstacle e : walkableGridSet) {
                 elements |= (1L << e.ordinal());
             }
         }

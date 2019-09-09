@@ -34,15 +34,15 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class VoidRpcResponseChannel implements RpcResponseChannel<Void> {
 
-	public static final RpcResponseChannel INSTANCE = new VoidRpcResponseChannel();
+    public static final RpcResponseChannel INSTANCE = new VoidRpcResponseChannel();
 
-	@Override
-	public void write(@Nonnull RpcResponse rpcResponse) {
-		// do nothing
-	}
+    @Override
+    public void write(@Nonnull RpcResponse rpcResponse) {
+        // do nothing
+    }
 
-	@Override
-	public boolean isVoid() {
-		return true;
-	}
+    @Override
+    public boolean isVoid() {
+        return true;
+    }
 }

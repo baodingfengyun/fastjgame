@@ -28,6 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * 服务器channel初始化器示例
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/4/27 22:17
@@ -36,7 +37,9 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class TCPServerChannelInitializer extends ChannelInitializer<SocketChannel> {
 
-    /** 本地发起监听的角色guid */
+    /**
+     * 本地发起监听的角色guid
+     */
     private final long localGuid;
     private final int maxFrameLength;
     private final ProtocolCodec codec;
@@ -52,7 +55,7 @@ public class TCPServerChannelInitializer extends ChannelInitializer<SocketChanne
 
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
-        ChannelPipeline pipeline=ch.pipeline();
+        ChannelPipeline pipeline = ch.pipeline();
         pipeline.addLast(new LengthFieldBasedFrameDecoder(maxFrameLength, 0, 4, 0, 4));
         pipeline.addLast(new ServerCodec(codec, localGuid, netEventManager));
     }

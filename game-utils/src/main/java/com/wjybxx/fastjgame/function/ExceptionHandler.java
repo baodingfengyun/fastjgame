@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.function;
 
 /**
  * 异常处理器
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/7/13 23:47

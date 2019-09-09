@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.misc;
 
 /**
  * Bool值持对象，用于lambda表达式
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/24
@@ -25,22 +26,22 @@ package com.wjybxx.fastjgame.misc;
  */
 public class BooleanHolder {
 
-	private boolean value;
+    private boolean value;
 
-	public BooleanHolder() {
-		this.value = false;
-	}
+    public BooleanHolder() {
+        this.value = false;
+    }
 
-	public BooleanHolder(boolean value) {
-		this.value = value;
-	}
+    public BooleanHolder(boolean value) {
+        this.value = value;
+    }
 
-	public boolean isValue() {
-		return value;
-	}
+    public boolean isValue() {
+        return value;
+    }
 
-	public void setValue(boolean value) {
-		this.value = value;
-	}
+    public void setValue(boolean value) {
+        this.value = value;
+    }
 }
 

@@ -26,12 +26,13 @@ import com.wjybxx.fastjgame.utils.ZKPathUtils;
 
 /**
  * 中心服信息管理器
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/15 23:30
  * github - https://github.com/hl845740757
  */
-public class CenterWorldInfoMrg extends WorldInfoMrg{
+public class CenterWorldInfoMrg extends WorldInfoMrg {
 
     private final CuratorMrg curatorMrg;
     /**
@@ -63,16 +64,16 @@ public class CenterWorldInfoMrg extends WorldInfoMrg{
 
     @Override
     protected void initImp(ConfigWrapper startArgs) throws Exception {
-        platformType=PlatformType.valueOf(startArgs.getAsString("platform"));
-        serverId=startArgs.getAsInt("serverId");
+        platformType = PlatformType.valueOf(startArgs.getAsString("platform"));
+        serverId = startArgs.getAsInt("serverId");
 
-        String actualServerPath= ZKPathUtils.actualServerConfigPath(platformType,serverId);
-        this.actualServerConfig =new MapConfigWrapper(GameUtils.newJsonMap(curatorMrg.getData(actualServerPath)));
-        String logicServerPath=ZKPathUtils.logicServerConfigPath(platformType,serverId);
-        this.logicServerConfig =new MapConfigWrapper(GameUtils.newJsonMap(curatorMrg.getData(logicServerPath)));
+        String actualServerPath = ZKPathUtils.actualServerConfigPath(platformType, serverId);
+        this.actualServerConfig = new MapConfigWrapper(GameUtils.newJsonMap(curatorMrg.getData(actualServerPath)));
+        String logicServerPath = ZKPathUtils.logicServerConfigPath(platformType, serverId);
+        this.logicServerConfig = new MapConfigWrapper(GameUtils.newJsonMap(curatorMrg.getData(logicServerPath)));
 
         // 战区通过zookeeper节点获取
-        warzoneId= actualServerConfig.getAsInt("warzoneId");
+        warzoneId = actualServerConfig.getAsInt("warzoneId");
     }
 
     @Override

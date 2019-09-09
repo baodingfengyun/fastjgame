@@ -28,20 +28,20 @@ import java.util.List;
 @TransferObject
 public class BatchMessageTO {
 
-	private long ack;
+    private long ack;
 
-	private List<NetMessage> netMessages;
+    private List<NetMessage> netMessages;
 
-	public BatchMessageTO(long ack, List<NetMessage> netMessages) {
-		this.ack = ack;
-		this.netMessages = netMessages;
-	}
+    public BatchMessageTO(long ack, List<NetMessage> netMessages) {
+        this.ack = ack;
+        this.netMessages = netMessages;
+    }
 
-	public long getAck() {
-		return ack;
-	}
+    public long getAck() {
+        return ack;
+    }
 
-	public List<NetMessage> getNetMessages() {
-		return netMessages;
-	}
+    public List<NetMessage> getNetMessages() {
+        return netMessages;
+    }
 }
