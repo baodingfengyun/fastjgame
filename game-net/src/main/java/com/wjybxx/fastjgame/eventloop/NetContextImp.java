@@ -23,6 +23,7 @@ import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.PortRange;
 import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.net.initializer.*;
+import com.wjybxx.fastjgame.net.injvm.JVMPort;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
@@ -87,30 +88,6 @@ class NetContextImp implements NetContext {
     }
 
     @Override
-    public TCPServerChannelInitializer newTcpServerInitializer(ProtocolCodec codec) {
-        return new TCPServerChannelInitializer(localGuid, managerWrapper.getNetConfigManager().maxFrameLength(),
-                codec, managerWrapper.getNetEventManager());
-    }
-
-    @Override
-    public TCPClientChannelInitializer newTcpClientInitializer(long remoteGuid, ProtocolCodec codec) {
-        return new TCPClientChannelInitializer(localGuid, remoteGuid, managerWrapper.getNetConfigManager().maxFrameLength(),
-                codec, managerWrapper.getNetEventManager());
-    }
-
-    @Override
-    public WsServerChannelInitializer newWsServerInitializer(String websocketUrl, ProtocolCodec codec) {
-        return new WsServerChannelInitializer(localGuid, websocketUrl, managerWrapper.getNetConfigManager().maxFrameLength(),
-                codec, managerWrapper.getNetEventManager());
-    }
-
-    @Override
-    public WsClientChannelInitializer newWsClientInitializer(long remoteGuid, String websocketUrl, ProtocolCodec codec) {
-        return new WsClientChannelInitializer(localGuid, remoteGuid, websocketUrl, managerWrapper.getNetConfigManager().maxFrameLength(),
-                codec, managerWrapper.getNetEventManager());
-    }
-
-    @Override
     public ListenableFuture<?> deregister() {
         // 逻辑层调用
         return netEventLoop.deregisterContext(localGuid);
@@ -122,20 +99,45 @@ class NetContextImp implements NetContext {
         managerWrapper.getC2SSessionManager().removeUserSession(localGuid, "deregister");
         managerWrapper.getHttpSessionManager().removeUserSession(localGuid);
 
+        managerWrapper.getJvmc2SSessionManager().removeUserSession(localGuid, "deregister");
+        managerWrapper.getJvms2CSessionManager().removeUserSession(localGuid, "deregister");
+
         logger.info("User {}-{} NetContext removed!", localRole, localGuid);
     }
 
+    private int maxFrameLength() {
+        return managerWrapper.getNetConfigManager().maxFrameLength();
+    }
+
     @Override
-    public ListenableFuture<HostAndPort> bindRange(String host, @Nonnull PortRange portRange,
-                                                   @Nonnull ChannelInitializer<SocketChannel> initializer,
-                                                   @Nonnull SessionLifecycleAware lifecycleAware,
-                                                   @Nonnull ProtocolDispatcher protocolDispatcher,
-                                                   @Nonnull SessionSenderMode sessionSenderMode) {
+    public ListenableFuture<HostAndPort> bindTcpRange(String host, PortRange portRange,
+                                                      @Nonnull ProtocolCodec codec,
+                                                      @Nonnull SessionLifecycleAware lifecycleAware,
+                                                      @Nonnull ProtocolDispatcher protocolDispatcher,
+                                                      @Nonnull SessionSenderMode sessionSenderMode) {
+        final PortContext portContext = new PortContext(lifecycleAware, protocolDispatcher, sessionSenderMode);
+        final TCPServerChannelInitializer tcpServerChannelInitializer = new TCPServerChannelInitializer(localGuid, maxFrameLength(),
+                codec, portContext, managerWrapper.getNetEventManager());
+        return bindRange(host, portRange, tcpServerChannelInitializer);
+    }
+
+    @Override
+    public ListenableFuture<HostAndPort> bindWSRange(String host, PortRange portRange, String websocketUrl,
+                                                     @Nonnull ProtocolCodec codec,
+                                                     @Nonnull SessionLifecycleAware lifecycleAware,
+                                                     @Nonnull ProtocolDispatcher protocolDispatcher,
+                                                     @Nonnull SessionSenderMode sessionSenderMode) {
+        final PortContext portContext = new PortContext(lifecycleAware, protocolDispatcher, sessionSenderMode);
+        final WsServerChannelInitializer wsServerChannelInitializer = new WsServerChannelInitializer(localGuid, websocketUrl, maxFrameLength(),
+                codec, portContext, managerWrapper.getNetEventManager());
+        return bindRange(host, portRange, wsServerChannelInitializer);
+    }
+
+    private ListenableFuture<HostAndPort> bindRange(String host, PortRange portRange, @Nonnull ChannelInitializer<SocketChannel> initializer) {
         // 这里一定不是网络层，只有逻辑层才会调用bind
         return netEventLoop.submit(() -> {
             try {
-                return managerWrapper.getS2CSessionManager().bindRange(this, host, portRange,
-                        initializer, lifecycleAware, protocolDispatcher, sessionSenderMode);
+                return managerWrapper.getS2CSessionManager().bindRange(this, host, portRange, initializer);
             } catch (BindException e) {
                 ConcurrentUtils.rethrow(e);
                 // unreachable
@@ -145,12 +147,36 @@ class NetContextImp implements NetContext {
     }
 
     @Override
-    public ListenableFuture<?> connect(long remoteGuid, RoleType remoteRole,
-                                       @Nonnull HostAndPort remoteAddress,
-                                       @Nonnull ChannelInitializerSupplier initializerSupplier,
-                                       @Nonnull SessionLifecycleAware lifecycleAware,
-                                       @Nonnull ProtocolDispatcher protocolDispatcher,
-                                       @Nonnull SessionSenderMode sessionSenderMode) {
+    public ListenableFuture<?> connectTcp(long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress,
+                                          @Nonnull ProtocolCodec codec,
+                                          @Nonnull SessionLifecycleAware lifecycleAware,
+                                          @Nonnull ProtocolDispatcher protocolDispatcher,
+                                          @Nonnull SessionSenderMode sessionSenderMode) {
+        final TCPClientChannelInitializer initializer = new TCPClientChannelInitializer(localGuid, remoteGuid, maxFrameLength(),
+                codec, managerWrapper.getNetEventManager());
+        ChannelInitializerSupplier initializerSupplier = () -> initializer;
+        return connect(remoteGuid, remoteRole, remoteAddress, lifecycleAware, protocolDispatcher, sessionSenderMode, initializerSupplier);
+    }
+
+
+    @Override
+    public ListenableFuture<?> connectWS(long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress, String websocketUrl,
+                                         @Nonnull ProtocolCodec codec,
+                                         @Nonnull SessionLifecycleAware lifecycleAware,
+                                         @Nonnull ProtocolDispatcher protocolDispatcher,
+                                         @Nonnull SessionSenderMode sessionSenderMode) {
+        final WsClientChannelInitializer initializer = new WsClientChannelInitializer(localGuid, remoteGuid, websocketUrl, maxFrameLength(),
+                codec, managerWrapper.getNetEventManager());
+        ChannelInitializerSupplier initializerSupplier = () -> initializer;
+        return connect(remoteGuid, remoteRole, remoteAddress, lifecycleAware, protocolDispatcher, sessionSenderMode, initializerSupplier);
+    }
+
+    @Nonnull
+    private ListenableFuture<?> connect(long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress,
+                                        @Nonnull SessionLifecycleAware lifecycleAware,
+                                        @Nonnull ProtocolDispatcher protocolDispatcher,
+                                        @Nonnull SessionSenderMode sessionSenderMode,
+                                        ChannelInitializerSupplier initializerSupplier) {
         // 这里一定不是网络层，只有逻辑层才会调用connect
         return netEventLoop.submit(() -> {
             managerWrapper.getC2SSessionManager().connect(this, remoteGuid, remoteRole, remoteAddress,
@@ -161,18 +187,12 @@ class NetContextImp implements NetContext {
     // ------------------------------------------- http 实现 ----------------------------------------
 
     @Override
-    public HttpServerInitializer newHttpServerInitializer() {
-        return new HttpServerInitializer(localGuid, managerWrapper.getNetEventManager());
-    }
-
-    @Override
-    public ListenableFuture<HostAndPort> bindRange(String host, PortRange portRange,
-                                                   @Nonnull ChannelInitializer<SocketChannel> initializer,
-                                                   @Nonnull HttpRequestDispatcher httpRequestDispatcher) {
+    public ListenableFuture<HostAndPort> bindHttpRange(String host, PortRange portRange, @Nonnull HttpRequestDispatcher httpRequestDispatcher) {
+        final HttpServerInitializer initializer = new HttpServerInitializer(localGuid, httpRequestDispatcher, managerWrapper.getNetEventManager());
         // 这里一定不是网络层，只有逻辑层才会调用bind
         return netEventLoop.submit(() -> {
             try {
-                return managerWrapper.getHttpSessionManager().bindRange(this, host, portRange, initializer, httpRequestDispatcher);
+                return managerWrapper.getHttpSessionManager().bindRange(this, host, portRange, initializer);
             } catch (Exception e) {
                 ConcurrentUtils.rethrow(e);
                 // unreachable
@@ -203,4 +223,25 @@ class NetContextImp implements NetContext {
 
     // ----------------------------------------------- 本地调用支持 --------------------------------------------
 
+
+    @Override
+    public ListenableFuture<JVMPort> bindInJVM(@Nonnull SessionLifecycleAware lifecycleAware,
+                                               @Nonnull ProtocolDispatcher protocolDispatcher,
+                                               @Nonnull SessionSenderMode sessionSenderMode) {
+        final PortContext portContext = new PortContext(lifecycleAware, protocolDispatcher, sessionSenderMode);
+        return netEventLoop.submit(() -> {
+            return managerWrapper.getJvms2CSessionManager().bind(this, portContext);
+        });
+    }
+
+    @Override
+    public ListenableFuture<?> connectInJVM(@Nonnull JVMPort jvmPort,
+                                            @Nonnull SessionLifecycleAware lifecycleAware,
+                                            @Nonnull ProtocolDispatcher protocolDispatcher,
+                                            @Nonnull SessionSenderMode sessionSenderMode) {
+        // 注意：这里是提交到jvmPort所在的NetEventLoop, 是实现线程安全，消除同步的关键
+        return jvmPort.netEventLoop().submit(() -> {
+            jvmPort.getSessionManager().connect(this, jvmPort, lifecycleAware, protocolDispatcher, sessionSenderMode);
+        });
+    }
 }

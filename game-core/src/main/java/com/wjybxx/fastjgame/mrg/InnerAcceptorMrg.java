@@ -18,23 +18,22 @@ package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.annotation.EventLoopSingleton;
-import com.wjybxx.fastjgame.annotation.WorldSingleton;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.misc.HostAndPort;
-import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.misc.PortRange;
+import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.net.RoleType;
-import com.wjybxx.fastjgame.net.SessionSenderMode;
 import com.wjybxx.fastjgame.net.SessionLifecycleAware;
-import com.wjybxx.fastjgame.net.initializer.HttpServerInitializer;
-import com.wjybxx.fastjgame.net.initializer.TCPClientChannelInitializer;
-import com.wjybxx.fastjgame.net.initializer.TCPServerChannelInitializer;
+import com.wjybxx.fastjgame.net.SessionSenderMode;
+import com.wjybxx.fastjgame.net.injvm.JVMPort;
 import com.wjybxx.fastjgame.utils.GameUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.SystemUtils;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 
 /**
  * 内部通信建立连接的辅助类
@@ -52,45 +51,56 @@ public class InnerAcceptorMrg {
     private final ProtocolDispatcherMrg protocolDispatcherMrg;
     private final HttpDispatcherMrg httpDispatcherMrg;
     private final NetContextMrg netContextMrg;
+    private final JVMPortMrg jvmPortMrg;
+    private final WorldInfoMrg worldInfoMrg;
 
     @Inject
-    public InnerAcceptorMrg(ProtocolCodecMrg protocolCodecMrg, ProtocolDispatcherMrg protocolDispatcherMrg, HttpDispatcherMrg httpDispatcherMrg, NetContextMrg netContextMrg) {
+    public InnerAcceptorMrg(ProtocolCodecMrg protocolCodecMrg, ProtocolDispatcherMrg protocolDispatcherMrg, HttpDispatcherMrg httpDispatcherMrg, NetContextMrg netContextMrg, JVMPortMrg jvmPortMrg, WorldInfoMrg worldInfoMrg) {
         this.protocolCodecMrg = protocolCodecMrg;
         this.protocolDispatcherMrg = protocolDispatcherMrg;
 
         this.httpDispatcherMrg = httpDispatcherMrg;
         this.netContextMrg = netContextMrg;
+        this.jvmPortMrg = jvmPortMrg;
+        this.worldInfoMrg = worldInfoMrg;
     }
 
-    public HostAndPort bindInnerTcpPort(SessionLifecycleAware lifecycleAware) {
+    public void bindInnerJvmPort(SessionLifecycleAware lifecycleAware) throws ExecutionException, InterruptedException {
+        final ListenableFuture<JVMPort> jvmPortFuture = netContextMrg.getNetContext().bindInJVM(lifecycleAware, protocolDispatcherMrg, getInnerSenderMode());
+        final JVMPort jvmPort = jvmPortFuture.get();
+        jvmPortMrg.register(worldInfoMrg.getWorldGuid(), jvmPort);
+    }
+
+    public HostAndPort bindInnerTcpPort(SessionLifecycleAware lifecycleAware) throws ExecutionException, InterruptedException {
         return bindTcpPort(NetUtils.getLocalIp(), GameUtils.INNER_TCP_PORT_RANGE, lifecycleAware);
     }
 
-    private HostAndPort bindTcpPort(String host, PortRange portRange, SessionLifecycleAware lifecycleAware) {
+    private HostAndPort bindTcpPort(String host, PortRange portRange, SessionLifecycleAware lifecycleAware) throws ExecutionException, InterruptedException {
         NetContext netContext = netContextMrg.getNetContext();
-        TCPServerChannelInitializer serverChannelInitializer = netContext.newTcpServerInitializer(protocolCodecMrg.getInnerProtocolCodec());
 
-        ListenableFuture<HostAndPort> bindFuture = netContext.bindRange(host, portRange,
-                serverChannelInitializer, lifecycleAware, protocolDispatcherMrg, SessionSenderMode.DIRECT);
+        ListenableFuture<HostAndPort> bindFuture = netContext.bindTcpRange(host, portRange,
+                protocolCodecMrg.getInnerProtocolCodec(), lifecycleAware, protocolDispatcherMrg, getInnerSenderMode());
 
-        bindFuture.awaitUninterruptibly();
-        return bindFuture.getNow();
+        return bindFuture.get();
     }
 
-    public HostAndPort bindLocalTcpPort(SessionLifecycleAware lifecycleAware) {
+    public HostAndPort bindLocalTcpPort(SessionLifecycleAware lifecycleAware) throws ExecutionException, InterruptedException {
         return bindTcpPort("localhost", GameUtils.LOCAL_TCP_PORT_RANGE, lifecycleAware);
     }
 
-    public HostAndPort bindInnerHttpPort() {
+    public HostAndPort bindInnerHttpPort() throws ExecutionException, InterruptedException {
         NetContext netContext = netContextMrg.getNetContext();
-        HttpServerInitializer httpServerInitializer = netContext.newHttpServerInitializer();
 
-        ListenableFuture<HostAndPort> bindFuture = netContext.bindRange(NetUtils.getLocalIp(), GameUtils.INNER_HTTP_PORT_RANGE, httpServerInitializer, httpDispatcherMrg);
-        bindFuture.awaitUninterruptibly();
-        return bindFuture.getNow();
+        ListenableFuture<HostAndPort> bindFuture = netContext.bindHttpRange(NetUtils.getLocalIp(), GameUtils.INNER_HTTP_PORT_RANGE, httpDispatcherMrg);
+        return bindFuture.get();
     }
 
     public ListenableFuture<?> connect(long remoteGuid, RoleType remoteRole, String innerTcpAddress, String localAddress, String macAddress, SessionLifecycleAware lifecycleAware) {
+        final JVMPort jvmPort = jvmPortMrg.getJVMPort(remoteGuid);
+        if (null != jvmPort) {
+            // 两个world在同一个进程内
+            return netContextMrg.getNetContext().connectInJVM(jvmPort, lifecycleAware, protocolDispatcherMrg, getInnerSenderMode());
+        }
         if (Objects.equals(macAddress, SystemUtils.getMAC())) {
             // 两个world在同一台机器，不走网卡
             return connect(remoteGuid, remoteRole, HostAndPort.parseHostAndPort(localAddress), lifecycleAware);
@@ -100,12 +110,15 @@ public class InnerAcceptorMrg {
         }
     }
 
+    @Nonnull
+    private SessionSenderMode getInnerSenderMode() {
+        return GameUtils.INNER_SENDER_MODE;
+    }
+
     private ListenableFuture<?> connect(long remoteGuid, RoleType remoteRole, HostAndPort hostAndPort, SessionLifecycleAware lifecycleAware) {
         NetContext netContext = netContextMrg.getNetContext();
-        TCPClientChannelInitializer clientChannelInitializer = netContext.newTcpClientInitializer(remoteGuid, protocolCodecMrg.getInnerProtocolCodec());
 
-        return netContext.connect(remoteGuid, remoteRole, hostAndPort,
-                () -> clientChannelInitializer,
-                lifecycleAware, protocolDispatcherMrg, SessionSenderMode.DIRECT);
+        return netContext.connectTcp(remoteGuid, remoteRole, hostAndPort,
+                protocolCodecMrg.getInnerProtocolCodec(), lifecycleAware, protocolDispatcherMrg, getInnerSenderMode());
     }
 }

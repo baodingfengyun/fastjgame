@@ -35,7 +35,9 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.net.BindException;
+import java.util.ArrayList;
 import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -82,13 +84,14 @@ public class HttpSessionManager {
      * @see AcceptorManager#bindRange(String, PortRange, ChannelInitializer)
      */
     public HostAndPort bindRange(NetContext netContext, String host, PortRange portRange,
-                                 @Nonnull ChannelInitializer<SocketChannel> initializer,
-                                 @Nonnull HttpRequestDispatcher httpRequestDispatcher) throws BindException {
+                                 @Nonnull ChannelInitializer<SocketChannel> initializer) throws BindException {
         assert netEventLoopManager.inEventLoop();
         // 绑定端口
         BindResult bindResult = acceptorManager.bindRange(host, portRange, initializer);
         // 保存用户信息
-        userInfoMap.computeIfAbsent(netContext.localGuid(), localGuid -> new UserInfo(netContext, bindResult, initializer, httpRequestDispatcher));
+        final UserInfo userInfo = userInfoMap.computeIfAbsent(netContext.localGuid(), localGuid -> new UserInfo(netContext));
+        // 保存绑定的端口
+        userInfo.bindResultList.add(bindResult);
 
         return bindResult.getHostAndPort();
     }
@@ -106,7 +109,7 @@ public class HttpSessionManager {
     }
 
     /**
-     * 删除某个会话的所有session
+     * 删除某个用户的所有session
      *
      * @param localGuid 用户id
      */
@@ -122,7 +125,7 @@ public class HttpSessionManager {
         // 如果 用户 持有了httpSession的引用，长时间没有完成响应的话，这里关闭可能导致一些错误
         CollectionUtils.removeIfAndThen(userInfo.sessionWrapperMap, FunctionUtils::TRUE, this::afterRemoved);
         // 绑定的端口需要释放
-        NetUtils.closeQuietly(userInfo.bindResult.getChannel());
+        userInfo.bindResultList.forEach(bindResult -> NetUtils.closeQuietly(bindResult.getChannel()));
     }
 
     /**
@@ -152,7 +155,7 @@ public class HttpSessionManager {
         }
         // 保存session
         SessionWrapper sessionWrapper = userInfo.sessionWrapperMap.computeIfAbsent(channel,
-                k -> new SessionWrapper(new HttpSessionImp(userInfo.netContext, userInfo.bindResult.getHostAndPort(), this, channel)));
+                k -> new SessionWrapper(new HttpSessionImp(userInfo.netContext, this, channel)));
 
         // 保持一段时间的活性
         sessionWrapper.setSessionTimeout(netConfigManager.httpSessionTimeout() + netTimeManager.getSystemSecTime());
@@ -160,11 +163,11 @@ public class HttpSessionManager {
         final HttpSessionImp httpSession = sessionWrapper.session;
         final String path = requestEventParam.getPath();
         final HttpRequestParam param = requestEventParam.getParams();
-        // 避免捕获userInfo，导致内存泄漏
-        final HttpRequestDispatcher httpRequestDispatcher = userInfo.httpRequestDispatcher;
+        // 避免捕获多于的对象，导致内存泄漏
+        final HttpRequestDispatcher httpRequestDispatcher = requestEventParam.getHttpRequestDispatcher();
 
         // 处理请求，提交到用户所在的线程，实现线程安全
-        ConcurrentUtils.tryCommit(userInfo.netContext.localEventLoop(), () -> {
+        ConcurrentUtils.tryCommit(httpSession.localEventLoop(), () -> {
             httpRequestDispatcher.post(httpSession, path, param);
         });
     }
@@ -200,28 +203,14 @@ public class HttpSessionManager {
         /**
          * 绑定的端口信息等，关联的channel需要再用户取消注册后关闭
          */
-        private final BindResult bindResult;
-        /**
-         * 端口初始化类
-         */
-        private final ChannelInitializer<SocketChannel> initializer;
-        /**
-         * http请求处理器
-         */
-        private final HttpRequestDispatcher httpRequestDispatcher;
-
+        private final List<BindResult> bindResultList = new ArrayList<>(4);
         /**
          * 该用户关联的所有的会话
          */
         private final Map<Channel, SessionWrapper> sessionWrapperMap = new IdentityHashMap<>();
 
-        private UserInfo(NetContext netContext, BindResult bindResult,
-                         ChannelInitializer<SocketChannel> initializer,
-                         HttpRequestDispatcher httpRequestDispatcher) {
+        private UserInfo(NetContext netContext) {
             this.netContext = netContext;
-            this.bindResult = bindResult;
-            this.initializer = initializer;
-            this.httpRequestDispatcher = httpRequestDispatcher;
         }
     }
 

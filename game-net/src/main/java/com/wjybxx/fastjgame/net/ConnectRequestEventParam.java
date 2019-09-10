@@ -30,12 +30,18 @@ public class ConnectRequestEventParam implements NetEventParam {
 
     private Channel channel;
     private long localGuid;
+    private PortContext portContext;
     private ConnectRequestTO connectRequestTO;
 
-    public ConnectRequestEventParam(Channel channel, long localGuid, ConnectRequestTO connectRequestTO) {
+    public ConnectRequestEventParam(Channel channel, long localGuid, PortContext portContext, ConnectRequestTO connectRequestTO) {
         this.localGuid = localGuid;
         this.channel = channel;
+        this.portContext = portContext;
         this.connectRequestTO = connectRequestTO;
+    }
+
+    public PortContext getPortContext() {
+        return portContext;
     }
 
     public long getClientGuid() {

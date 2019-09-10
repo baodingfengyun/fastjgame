@@ -30,6 +30,7 @@ public class HttpRequestEventParam implements NetEventParam {
 
     private Channel channel;
     private long localGuid;
+    private final HttpRequestDispatcher httpRequestDispatcher;
     /**
      * 请求的资源路径
      */
@@ -39,9 +40,10 @@ public class HttpRequestEventParam implements NetEventParam {
      */
     private HttpRequestParam params;
 
-    public HttpRequestEventParam(Channel channel, long localGuid, String path, HttpRequestParam params) {
+    public HttpRequestEventParam(Channel channel, long localGuid, HttpRequestDispatcher httpRequestDispatcher, String path, HttpRequestParam params) {
         this.channel = channel;
         this.localGuid = localGuid;
+        this.httpRequestDispatcher = httpRequestDispatcher;
         this.path = path;
         this.params = params;
     }
@@ -49,6 +51,10 @@ public class HttpRequestEventParam implements NetEventParam {
     @Override
     public long localGuid() {
         return localGuid;
+    }
+
+    public HttpRequestDispatcher getHttpRequestDispatcher() {
+        return httpRequestDispatcher;
     }
 
     @Override

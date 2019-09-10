@@ -16,7 +16,9 @@
 
 package com.wjybxx.fastjgame.net;
 
+import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.HttpResponseBuilder;
 import io.netty.channel.ChannelFuture;
@@ -43,12 +45,6 @@ public interface HttpSession {
      * 监听端口的本地对象的类型
      */
     RoleType localRole();
-
-    /**
-     * 绑定的本地端口
-     */
-    @Nonnull
-    HostAndPort localAddress();
 
     /**
      * session是否处于活动状态
@@ -81,4 +77,10 @@ public interface HttpSession {
      * 代替{@link ChannelFuture#sync()}
      */
     <T extends HttpResponseBuilder<T>> ChannelFuture writeAndFlush(HttpResponseBuilder<T> builder);
+
+    // ------------------------------------- session的运行环境(不建议用户使用) -------------------------
+
+    NetEventLoop netEventLoop();
+
+    EventLoop localEventLoop();
 }

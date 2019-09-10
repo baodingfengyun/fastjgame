@@ -22,6 +22,7 @@ import com.wjybxx.fastjgame.annotation.EventLoopGroupSingleton;
 import com.wjybxx.fastjgame.mrg.CuratorClientMrg;
 import com.wjybxx.fastjgame.mrg.GameConfigMrg;
 import com.wjybxx.fastjgame.mrg.GlobalExecutorMrg;
+import com.wjybxx.fastjgame.mrg.JVMPortMrg;
 import com.wjybxx.fastjgame.world.GameEventLoopGroup;
 
 /**
@@ -44,5 +45,6 @@ public class WorldGroupModule extends AbstractModule {
         bind(GameConfigMrg.class).in(Singleton.class);
         bind(GlobalExecutorMrg.class).in(Singleton.class);
         bind(CuratorClientMrg.class).in(Singleton.class);
+        bind(JVMPortMrg.class).in(Singleton.class);
     }
 }

@@ -19,7 +19,6 @@ package com.wjybxx.fastjgame.module;
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopManager;
-import com.wjybxx.fastjgame.manager.NetManagerWrapper;
 import com.wjybxx.fastjgame.manager.*;
 
 /**
@@ -37,10 +36,14 @@ public class NetEventLoopModule extends AbstractModule {
         binder().requireExplicitBindings();
 
         bind(NetEventLoopManager.class).in(Singleton.class);
+
+        bind(NetEventManager.class).in(Singleton.class);
         bind(C2SSessionManager.class).in(Singleton.class);
         bind(S2CSessionManager.class).in(Singleton.class);
         bind(HttpSessionManager.class).in(Singleton.class);
-        bind(NetEventManager.class).in(Singleton.class);
+
+        bind(JVMC2SSessionManager.class).in(Singleton.class);
+        bind(JVMS2CSessionManager.class).in(Singleton.class);
 
         bind(NettyThreadManager.class).in(Singleton.class);
         bind(AcceptorManager.class).in(Singleton.class);

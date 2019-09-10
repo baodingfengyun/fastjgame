@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.net.initializer;
 
 import com.wjybxx.fastjgame.manager.NetEventManager;
+import com.wjybxx.fastjgame.net.PortContext;
 import com.wjybxx.fastjgame.net.ProtocolCodec;
 import com.wjybxx.fastjgame.net.codec.ServerCodec;
 import io.netty.channel.ChannelInitializer;
@@ -43,12 +44,14 @@ public class TCPServerChannelInitializer extends ChannelInitializer<SocketChanne
     private final long localGuid;
     private final int maxFrameLength;
     private final ProtocolCodec codec;
+    private final PortContext portContext;
     private final NetEventManager netEventManager;
 
     public TCPServerChannelInitializer(long localGuid, int maxFrameLength, ProtocolCodec codec,
-                                       NetEventManager netEventManager) {
+                                       PortContext portContext, NetEventManager netEventManager) {
         this.localGuid = localGuid;
         this.maxFrameLength = maxFrameLength;
+        this.portContext = portContext;
         this.netEventManager = netEventManager;
         this.codec = codec;
     }
@@ -57,6 +60,6 @@ public class TCPServerChannelInitializer extends ChannelInitializer<SocketChanne
     protected void initChannel(SocketChannel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
         pipeline.addLast(new LengthFieldBasedFrameDecoder(maxFrameLength, 0, 4, 0, 4));
-        pipeline.addLast(new ServerCodec(codec, localGuid, netEventManager));
+        pipeline.addLast(new ServerCodec(codec, localGuid, portContext, netEventManager));
     }
 }

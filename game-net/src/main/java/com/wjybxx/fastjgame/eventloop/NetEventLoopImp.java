@@ -60,6 +60,8 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     private final S2CSessionManager s2CSessionManager;
     private final C2SSessionManager c2SSessionManager;
     private final HttpSessionManager httpSessionManager;
+    private final JVMS2CSessionManager jvms2CSessionManager;
+    private final JVMC2SSessionManager jvmc2SSessionManager;
     private final NetTimeManager netTimeManager;
     private final NetTimerManager netTimerManager;
 
@@ -89,6 +91,10 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         s2CSessionManager = managerWrapper.getS2CSessionManager();
         c2SSessionManager = managerWrapper.getC2SSessionManager();
         httpSessionManager = managerWrapper.getHttpSessionManager();
+
+        jvms2CSessionManager = managerWrapper.getJvms2CSessionManager();
+        jvmc2SSessionManager = managerWrapper.getJvmc2SSessionManager();
+
         // NetEventLoop私有的资源
         nettyThreadManager = managerWrapper.getNettyThreadManager();
         // 时间管理器和timer管理器
@@ -98,6 +104,8 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         s2CSessionManager.setManagerWrapper(managerWrapper);
         c2SSessionManager.setManagerWrapper(managerWrapper);
         httpSessionManager.setManagerWrapper(managerWrapper);
+        jvms2CSessionManager.setNetManagerWrapper(managerWrapper);
+        jvmc2SSessionManager.setNetManagerWrapper(managerWrapper);
     }
 
     /**
@@ -177,13 +185,15 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
             // 刷帧
             s2CSessionManager.tick();
             c2SSessionManager.tick();
+            jvms2CSessionManager.tick();
+            jvmc2SSessionManager.tick();
 
             if (confirmShutdown()) {
                 break;
             }
 
             // 每次循环休息一下下，避免CPU占有率过高
-            sleepQuietly(System.currentTimeMillis() - frameStart);
+//            sleepQuietly(System.currentTimeMillis() - frameStart);
         }
     }
 
@@ -237,5 +247,8 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         managerWrapper.getS2CSessionManager().onUserEventLoopTerminal(userEventLoop);
         managerWrapper.getC2SSessionManager().onUserEventLoopTerminal(userEventLoop);
         managerWrapper.getHttpSessionManager().onUserEventLoopTerminal(userEventLoop);
+
+        managerWrapper.getJvmc2SSessionManager().onUserEventLoopTerminal(userEventLoop);
+        managerWrapper.getJvms2CSessionManager().onUserEventLoopTerminal(userEventLoop);
     }
 }

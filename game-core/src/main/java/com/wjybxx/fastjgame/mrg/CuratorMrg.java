@@ -398,9 +398,7 @@ public class CuratorMrg {
      *
      * @param path 节点路径
      * @return 节点的数据
-     * @deprecated 尽量不要阻塞线程，会导致该线程上的其它world也阻塞！
      */
-    @Deprecated
     public byte[] waitForNodeCreate(final String path) throws Exception {
         // 使用NodeCache的话，写了太多代码，搞得复杂了，不利于维护，使用简单的轮询代替。
         // 轮询虽然不雅观，但是正确性易保证
@@ -417,9 +415,7 @@ public class CuratorMrg {
      *
      * @param path 节点路径
      * @throws Exception zk errors
-     * @deprecated 尽量不要阻塞线程，会导致该线程上的其它world也阻塞！
      */
-    @Deprecated
     public void waitForNodeDelete(String path) throws Exception {
         final DistributedBarrier barrier = new DistributedBarrier(client, path);
         ConcurrentUtils.awaitRemoteUninterruptibly(barrier::waitOnBarrier);

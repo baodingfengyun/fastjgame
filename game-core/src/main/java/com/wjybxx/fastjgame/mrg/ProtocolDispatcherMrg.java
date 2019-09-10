@@ -71,7 +71,7 @@ public class ProtocolDispatcherMrg implements RpcFunctionRegistry, RpcCallDispat
     }
 
     @Override
-    public final void postRpcRequest(Session session, @Nullable Object request, RpcResponseChannel<?> responseChannel) {
+    public final void postRpcRequest(Session session, @Nullable Object request, @Nonnull RpcResponseChannel<?> responseChannel) {
         if (shutdown) {
             return;
         }

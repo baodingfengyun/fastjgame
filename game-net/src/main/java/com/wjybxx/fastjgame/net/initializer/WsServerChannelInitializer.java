@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.net.initializer;
 
 import com.wjybxx.fastjgame.manager.NetEventManager;
+import com.wjybxx.fastjgame.net.PortContext;
 import com.wjybxx.fastjgame.net.ProtocolCodec;
 import com.wjybxx.fastjgame.net.codec.ServerCodec;
 import com.wjybxx.fastjgame.net.codec.wb.BinaryWebSocketFrameToBytesDecoder;
@@ -53,12 +54,14 @@ public class WsServerChannelInitializer extends ChannelInitializer<SocketChannel
     private final String websocketPath;
     private final int maxFrameLength;
     private final ProtocolCodec codec;
+    private final PortContext portContext;
     private final NetEventManager netEventManager;
 
-    public WsServerChannelInitializer(long localGuid, String websocketPath, int maxFrameLength, ProtocolCodec codec, NetEventManager netEventManager) {
+    public WsServerChannelInitializer(long localGuid, String websocketPath, int maxFrameLength, ProtocolCodec codec, PortContext portContext, NetEventManager netEventManager) {
         this.localGuid = localGuid;
         this.websocketPath = websocketPath;
         this.maxFrameLength = maxFrameLength;
+        this.portContext = portContext;
         this.netEventManager = netEventManager;
         this.codec = codec;
     }
@@ -101,6 +104,6 @@ public class WsServerChannelInitializer extends ChannelInitializer<SocketChannel
 
     private void appendCustomProtocolCodec(ChannelPipeline pipeline) {
         pipeline.addLast(new LengthFieldBasedFrameDecoder(maxFrameLength, 0, 4, 0, 4));
-        pipeline.addLast(new ServerCodec(codec, localGuid, netEventManager));
+        pipeline.addLast(new ServerCodec(codec, localGuid, portContext, netEventManager));
     }
 }

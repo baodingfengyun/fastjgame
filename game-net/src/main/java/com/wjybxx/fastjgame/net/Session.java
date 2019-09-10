@@ -97,27 +97,6 @@ public interface Session {
      */
     SessionSenderMode senderMode();
 
-    // ------------------------------------------------ session运行的网络环境 -----------------------------------------
-
-    /**
-     * 该session所在的上下文
-     */
-    NetContext netContext();
-
-    /**
-     * session所属的网络线程。
-     */
-    NetEventLoop netEventLoop();
-
-    /**
-     * session所属的用户线程
-     */
-    EventLoop localEventLoop();
-
-    /**
-     * 获取该session关联的消息发送器，不建议应用层使用。
-     */
-    Sender sender();
     // ----------------------------------------------- 生命周期 ----------------------------------------------
 
     /**
@@ -219,4 +198,24 @@ public interface Session {
      */
     void flush();
 
+
+    // ------------------------------------------- session运行的网络环境（不是给用户的API） -----------------------------------------
+
+    /**
+     * session所属的网络线程。
+     * - 注意：不一定和创建它的NetContext所属的线程一致
+     * Q: why?
+     * A: 为了更好的性能，消除不必要的同步！
+     */
+    NetEventLoop netEventLoop();
+
+    /**
+     * session所属的用户线程
+     */
+    EventLoop localEventLoop();
+
+    /**
+     * 获取该session关联的消息发送器，不建议应用层使用。
+     */
+    Sender sender();
 }

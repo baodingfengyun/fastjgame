@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.net;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.manager.NetConfigManager;
+import com.wjybxx.fastjgame.manager.NetManagerWrapper;
 import com.wjybxx.fastjgame.manager.SessionManager;
 
 import javax.annotation.Nonnull;
@@ -34,17 +35,42 @@ import javax.annotation.Nonnull;
 public abstract class AbstractSession implements Session {
 
     /**
+     * session关联的本地信息
+     */
+    protected final NetContext netContext;
+    /**
+     * session关联的远程角色guid
+     */
+    protected final long remoteGuid;
+    /**
+     * session关联的远程角色类型
+     */
+    protected final RoleType remoteRole;
+    /**
+     * {@link NetEventLoop}关联的所有逻辑控制器
+     */
+    protected final NetManagerWrapper managerWrapper;
+    /**
      * 消息发送模式
      */
     private final SessionSenderMode sessionSenderMode;
-
     /**
      * 真正执行消息发送组件
      */
     private final Sender sender;
+    /**
+     * session绑定到的EventLoop
+     */
+    private final NetEventLoop netEventLoop;
 
-    protected AbstractSession(SessionSenderMode sessionSenderMode) {
+    protected AbstractSession(NetContext netContext, long remoteGuid, RoleType remoteRole,
+                              NetManagerWrapper managerWrapper, SessionSenderMode sessionSenderMode) {
+        this.netContext = netContext;
+        this.remoteGuid = remoteGuid;
+        this.remoteRole = remoteRole;
+        this.managerWrapper = managerWrapper;
         this.sessionSenderMode = sessionSenderMode;
+        this.netEventLoop = managerWrapper.getNetEventLoopManager().eventLoop();
         if (sessionSenderMode == SessionSenderMode.DIRECT) {
             sender = new DirectSender(this);
         } else if (sessionSenderMode == SessionSenderMode.UNSHARABLE) {
@@ -59,43 +85,41 @@ public abstract class AbstractSession implements Session {
      *
      * @return NetConfigManager
      */
-    protected abstract NetConfigManager getNetConfigManager();
+    protected final NetConfigManager getNetConfigManager() {
+        return managerWrapper.getNetConfigManager();
+    }
 
     /**
      * 获取该session对应的管理器
      *
      * @return SessionManager
      */
+    @Nonnull
     protected abstract SessionManager getSessionManager();
 
     @Override
     public final long localGuid() {
-        return netContext().localGuid();
+        return netContext.localGuid();
     }
 
     @Override
     public final RoleType localRole() {
-        return netContext().localRole();
+        return netContext.localRole();
     }
 
     @Override
-    public SessionSenderMode senderMode() {
+    public final long remoteGuid() {
+        return remoteGuid;
+    }
+
+    @Override
+    public final RoleType remoteRole() {
+        return remoteRole;
+    }
+
+    @Override
+    public final SessionSenderMode senderMode() {
         return sessionSenderMode;
-    }
-
-    @Override
-    public NetEventLoop netEventLoop() {
-        return netContext().netEventLoop();
-    }
-
-    @Override
-    public EventLoop localEventLoop() {
-        return netContext().localEventLoop();
-    }
-
-    @Override
-    public Sender sender() {
-        return sender;
     }
 
     @Override
@@ -140,6 +164,22 @@ public abstract class AbstractSession implements Session {
     @Override
     public void flush() {
         sender.flush();
+    }
+
+    @Override
+    public final NetEventLoop netEventLoop() {
+        //注意：这里可能和session所属的NetContext中的NetEventLoop不一样
+        return netEventLoop;
+    }
+
+    @Override
+    public final EventLoop localEventLoop() {
+        return netContext.localEventLoop();
+    }
+
+    @Override
+    public final Sender sender() {
+        return sender;
     }
 
     // ------------------------------------------- 发送消息接口，必须运行在网络线程下 ---------------------------------------

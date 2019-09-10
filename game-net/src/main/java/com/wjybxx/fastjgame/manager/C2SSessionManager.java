@@ -24,6 +24,7 @@ import com.wjybxx.fastjgame.misc.IntSequencer;
 import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.net.initializer.ChannelInitializerFactory;
 import com.wjybxx.fastjgame.net.initializer.ChannelInitializerSupplier;
+import com.wjybxx.fastjgame.net.remote.C2SSession;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.FastCollectionsUtils;
 import com.wjybxx.fastjgame.utils.FunctionUtils;
@@ -64,7 +65,7 @@ import java.util.function.Consumer;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class C2SSessionManager extends SessionManager {
+public class C2SSessionManager extends RemoteSessionManager {
 
     private static final Logger logger = LoggerFactory.getLogger(C2SSessionManager.class);
 
@@ -103,7 +104,7 @@ public class C2SSessionManager extends SessionManager {
                 }
                 // 检测超时的rpc调用
                 FastCollectionsUtils.removeIfAndThen(sessionWrapper.messageQueue.getRpcPromiseInfoMap(),
-                        (k, rpcPromiseInfo) -> netTimeManager.getSystemMillTime() >= rpcPromiseInfo.timeoutMs,
+                        (k, rpcPromiseInfo) -> netTimeManager.getSystemMillTime() >= rpcPromiseInfo.deadline,
                         (k, rpcPromiseInfo) -> commitRpcResponse(sessionWrapper.session, rpcPromiseInfo, RpcResponse.TIMEOUT));
             }
         }
@@ -137,7 +138,7 @@ public class C2SSessionManager extends SessionManager {
      * @param protocolDispatcher  消息处理器
      * @param sessionSenderMode   session发送消息的方式
      */
-    public void connect(NetContext netContext, long serverGuid, RoleType serverType, HostAndPort hostAndPort,
+    public void connect(@Nonnull NetContext netContext, long serverGuid, RoleType serverType, HostAndPort hostAndPort,
                         @Nonnull ChannelInitializerSupplier initializerSupplier,
                         @Nonnull SessionLifecycleAware lifecycleAware,
                         @Nonnull ProtocolDispatcher protocolDispatcher,
@@ -151,7 +152,7 @@ public class C2SSessionManager extends SessionManager {
         UserInfo userInfo = userInfoMap.computeIfAbsent(localGuid, k -> new UserInfo(netContext));
 
         // 创建会话
-        C2SSessionImp session = new C2SSessionImp(netContext, managerWrapper, serverGuid, serverType, hostAndPort, sessionSenderMode);
+        C2SSession session = new C2SSession(netContext, managerWrapper, serverGuid, serverType, hostAndPort, sessionSenderMode);
         byte[] encryptedLoginToken = tokenManager.newEncryptedLoginToken(netContext.localGuid(), netContext.localRole(), serverGuid, serverType);
         SessionWrapper sessionWrapper = new SessionWrapper(userInfo, initializerSupplier, lifecycleAware, protocolDispatcher, session, encryptedLoginToken);
         // 保存会话
@@ -321,7 +322,7 @@ public class C2SSessionManager extends SessionManager {
      */
     private void afterRemoved(SessionWrapper sessionWrapper, String reason, final boolean postEvent) {
         // 避免捕获SessionWrapper，导致内存泄漏
-        final C2SSessionImp session = sessionWrapper.getSession();
+        final C2SSession session = sessionWrapper.getSession();
         // 标记为已关闭，这里不能调用close，否则死循环了。
         session.setClosed();
 
@@ -339,7 +340,7 @@ public class C2SSessionManager extends SessionManager {
             // 避免捕获SessionWrapper，导致内存泄漏
             final SessionLifecycleAware lifecycleAware = sessionWrapper.lifecycleAware;
             // 提交到用户线程
-            ConcurrentUtils.tryCommit(sessionWrapper.userInfo.netContext.localEventLoop(), () -> {
+            ConcurrentUtils.tryCommit(session.localEventLoop(), () -> {
                 lifecycleAware.onSessionDisconnected(session);
             });
         }
@@ -498,7 +499,7 @@ public class C2SSessionManager extends SessionManager {
 
         final SessionWrapper sessionWrapper;
 
-        final C2SSessionImp session;
+        final C2SSession session;
 
         C2SSessionState(SessionWrapper sessionWrapper) {
             this.sessionWrapper = sessionWrapper;
@@ -847,7 +848,7 @@ public class C2SSessionManager extends SessionManager {
                 // 避免捕获SessionWrapper，导致内存泄漏
                 final SessionLifecycleAware lifecycleAware = sessionWrapper.getLifecycleAware();
                 // 提交到用户线程
-                ConcurrentUtils.tryCommit(sessionWrapper.userInfo.netContext.localEventLoop(), () -> {
+                ConcurrentUtils.tryCommit(session.localEventLoop(), () -> {
                     lifecycleAware.onSessionConnected(session);
                 });
             } else {
@@ -1061,7 +1062,7 @@ public class C2SSessionManager extends SessionManager {
         /**
          * 客户端与服务器之间的会话信息
          */
-        private final C2SSessionImp session;
+        private final C2SSession session;
         /**
          * 该会话关联的消息队列
          */
@@ -1086,7 +1087,7 @@ public class C2SSessionManager extends SessionManager {
 
         SessionWrapper(UserInfo userInfo, ChannelInitializerSupplier initializerSupplier,
                        SessionLifecycleAware lifecycleAware, ProtocolDispatcher protocolDispatcher,
-                       C2SSessionImp session, byte[] encryptedToken) {
+                       C2SSession session, byte[] encryptedToken) {
             this.userInfo = userInfo;
             this.initializerSupplier = initializerSupplier;
             this.lifecycleAware = lifecycleAware;
@@ -1095,7 +1096,7 @@ public class C2SSessionManager extends SessionManager {
             this.encryptedToken = encryptedToken;
         }
 
-        public C2SSessionImp getSession() {
+        public C2SSession getSession() {
             return session;
         }
 

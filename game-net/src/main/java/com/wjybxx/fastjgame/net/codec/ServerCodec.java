@@ -23,7 +23,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 
 import javax.annotation.concurrent.NotThreadSafe;
-import java.io.IOException;
 
 /**
  * 服务端使用的编解码器
@@ -45,11 +44,13 @@ public class ServerCodec extends BaseCodec {
      */
     private long clientGuid = Long.MIN_VALUE;
 
+    private final PortContext portContext;
     private final NetEventManager netEventManager;
 
-    public ServerCodec(ProtocolCodec codec, long localGuid, NetEventManager netEventManager) {
+    public ServerCodec(ProtocolCodec codec, long localGuid, PortContext portContext, NetEventManager netEventManager) {
         super(codec);
         this.localGuid = localGuid;
+        this.portContext = portContext;
         this.netEventManager = netEventManager;
     }
 
@@ -144,7 +145,7 @@ public class ServerCodec extends BaseCodec {
      */
     private void tryReadConnectRequest(ChannelHandlerContext ctx, ByteBuf msg) {
         ConnectRequestTO connectRequestTO = readConnectRequest(msg);
-        ConnectRequestEventParam connectRequestEventParam = new ConnectRequestEventParam(ctx.channel(), localGuid, connectRequestTO);
+        ConnectRequestEventParam connectRequestEventParam = new ConnectRequestEventParam(ctx.channel(), localGuid, portContext, connectRequestTO);
         netEventManager.publishEvent(NetEventType.CONNECT_REQUEST, connectRequestEventParam);
         if (!isInited()) {
             init(connectRequestTO.getClientGuid());

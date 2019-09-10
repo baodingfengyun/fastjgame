@@ -26,7 +26,7 @@ import com.wjybxx.fastjgame.utils.GameUtils;
  * date - 2019/6/23 23:27
  * github - https://github.com/hl845740757
  */
-public class WarzoneMongoDBMrg extends MongoDBMrg{
+public class WarzoneMongoDBMrg extends MongoDBMrg {
 
     private final WarzoneWorldInfoMrg worldInfoMrg;
 

@@ -38,6 +38,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * WarzoneServer
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/15 18:31
@@ -74,16 +75,19 @@ public class WarzoneWorld extends AbstractWorld {
     }
 
     private void bindAndRegisterToZK() throws Exception {
+        final CenterLifeAware centerLifeAware = new CenterLifeAware();
+        // 绑定jvm内部通信端口
+        innerAcceptorMrg.bindInnerJvmPort(centerLifeAware);
         // 绑定3个内部交互的端口
-        HostAndPort tcpHostAndPort = innerAcceptorMrg.bindInnerTcpPort(new CenterLifeAware());
+        HostAndPort tcpHostAndPort = innerAcceptorMrg.bindInnerTcpPort(centerLifeAware);
         HostAndPort httpHostAndPort = innerAcceptorMrg.bindInnerHttpPort();
-        HostAndPort localAddress = innerAcceptorMrg.bindLocalTcpPort(new CenterLifeAware());
+        HostAndPort localAddress = innerAcceptorMrg.bindLocalTcpPort(centerLifeAware);
 
         // 注册到zk
-        String parentPath= ZKPathUtils.onlineParentPath(warzoneWorldInfoMrg.getWarzoneId());
-        String nodeName= ZKPathUtils.buildWarzoneNodeName(warzoneWorldInfoMrg.getWarzoneId());
+        String parentPath = ZKPathUtils.onlineParentPath(warzoneWorldInfoMrg.getWarzoneId());
+        String nodeName = ZKPathUtils.buildWarzoneNodeName(warzoneWorldInfoMrg.getWarzoneId());
 
-        WarzoneNodeData centerNodeData =new WarzoneNodeData(tcpHostAndPort.toString(), httpHostAndPort.toString(), localAddress.toString(), SystemUtils.getMAC(),
+        WarzoneNodeData centerNodeData = new WarzoneNodeData(tcpHostAndPort.toString(), httpHostAndPort.toString(), localAddress.toString(), SystemUtils.getMAC(),
                 warzoneWorldInfoMrg.getWorldGuid());
 
         final String path = ZKPaths.makePath(parentPath, nodeName);
@@ -91,7 +95,7 @@ public class WarzoneWorld extends AbstractWorld {
 
         final byte[] initData = JsonUtils.toJsonBytes(centerNodeData);
         ConcurrentUtils.awaitRemoteWithSleepingRetry(
-                () -> curatorMrg.createNodeIfAbsent(path, CreateMode.EPHEMERAL,initData),
+                () -> curatorMrg.createNodeIfAbsent(path, CreateMode.EPHEMERAL, initData),
                 3, TimeUnit.SECONDS);
     }
 

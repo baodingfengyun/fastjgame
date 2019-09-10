@@ -16,17 +16,20 @@
 
 package com.wjybxx.fastjgame.example;
 
-import com.wjybxx.fastjgame.concurrent.*;
+import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
+import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
+import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
+import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupImp;
 import com.wjybxx.fastjgame.misc.DefaultRpcCallDispatcher;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.RpcBuilder;
 import com.wjybxx.fastjgame.net.NetContext;
-import com.wjybxx.fastjgame.net.SessionSenderMode;
 import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.net.SessionLifecycleAware;
-import com.wjybxx.fastjgame.net.initializer.TCPClientChannelInitializer;
+import com.wjybxx.fastjgame.net.SessionSenderMode;
+import com.wjybxx.fastjgame.net.injvm.JVMPort;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.TimeUtils;
 
@@ -50,31 +53,39 @@ public class ExampleRpcClientLoop extends SingleThreadEventLoop {
             RejectedExecutionHandlers.log());
 
     private NetContext netContext;
+
+    private final JVMPort jvmPort;
     /**
      * 是否已建立tcp连接
      */
     private Session session;
 
-    public ExampleRpcClientLoop(@Nullable EventLoopGroup parent,
-                                @Nonnull ThreadFactory threadFactory,
-                                @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
-        super(parent, threadFactory, rejectedExecutionHandler);
+    public ExampleRpcClientLoop(@Nonnull ThreadFactory threadFactory,
+                                @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
+                                @Nullable JVMPort jvmPort) {
+        super(null, threadFactory, rejectedExecutionHandler);
+        this.jvmPort = jvmPort;
     }
 
     @Override
     protected void init() throws Exception {
         super.init();
         netContext = netGroup.createContext(ExampleConstants.clientGuid, ExampleConstants.clientRole, this).get();
-        // 必须先启动服务器
-        final TCPClientChannelInitializer initializer = netContext.newTcpClientInitializer(ExampleConstants.serverGuid,
-                ExampleConstants.reflectBasedCodec);
-        // 请求建立连接
-        final HostAndPort address = new HostAndPort(NetUtils.getLocalIp(), ExampleConstants.tcpPort);
-        netContext.connect(ExampleConstants.serverGuid,
-                ExampleConstants.serverRole, address,
-                () -> initializer,
-                new ServerLifeAward(),
-                new ExampleRpcDispatcher(new DefaultRpcCallDispatcher()), SessionSenderMode.DIRECT);
+
+        if (jvmPort != null) {
+            netContext.connectInJVM(jvmPort,
+                    new ServerLifeAward(),
+                    new ExampleRpcDispatcher(new DefaultRpcCallDispatcher()),
+                    SessionSenderMode.DIRECT);
+        } else {
+            // 必须先启动服务器
+            final HostAndPort address = new HostAndPort(NetUtils.getLocalIp(), ExampleConstants.tcpPort);
+            netContext.connectTcp(ExampleConstants.serverGuid, ExampleConstants.serverRole, address,
+                    ExampleConstants.reflectBasedCodec,
+                    new ServerLifeAward(),
+                    new ExampleRpcDispatcher(new DefaultRpcCallDispatcher()),
+                    SessionSenderMode.DIRECT);
+        }
     }
 
     @Override
@@ -123,14 +134,14 @@ public class ExampleRpcClientLoop extends SingleThreadEventLoop {
                 .ifSuccess(result -> System.out.println("incWithSessionAndChannel - " + index + " - " + result))
                 .call(session);
 
-        // 如果client、service、netEventLoop全部无缝loop，并关闭网络层发送缓冲区，一次同步Rpc调用1 - 2毫秒
-        // SyncCall - 320395 - wjybxx-320395 , cost timeMs 2
-        // SyncCall - 320396 - wjybxx-320396 , cost timeMs 1
-        // SyncCall - 320397 - wjybxx-320397 , cost timeMs 1
+        // 如果client、service、netEventLoop全部无缝loop，并关闭网络层发送缓冲区，在我电脑上：
+        // 如果是正常socket，最低1300000纳秒(1.3毫秒) 多数为 2000000纳秒左右居多 （2毫秒）。
+        // 如果jvmPort，平均在 140000纳秒(0.14毫秒) 左右
 
-        final long start = System.currentTimeMillis();
+        final long start = System.nanoTime();
         final String callResult = ExampleRpcServiceRpcProxy.combine("wjybxx", String.valueOf(index)).syncCall(session);
-        System.out.println("SyncCall - " + index + " - " + callResult + " , cost timeMs " + (System.currentTimeMillis() - start));
+        final long costTimeMs = System.nanoTime() - start;
+        System.out.println("SyncCall - " + index + " - " + callResult + " , cost time " + costTimeMs);
 
         // 模拟广播X次
         final RpcBuilder<?> builder = ExampleRpcServiceRpcProxy.notifySuccess(index);
@@ -164,9 +175,10 @@ public class ExampleRpcClientLoop extends SingleThreadEventLoop {
     }
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-        ExampleRpcClientLoop echoClientLoop = new ExampleRpcClientLoop(null,
+        ExampleRpcClientLoop echoClientLoop = new ExampleRpcClientLoop(
                 new DefaultThreadFactory("CLIENT"),
-                RejectedExecutionHandlers.log());
+                RejectedExecutionHandlers.log(),
+                null);
 
         // 唤醒线程
         echoClientLoop.execute(() -> {

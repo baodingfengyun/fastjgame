@@ -6,11 +6,9 @@ import com.wjybxx.fastjgame.core.onlinenode.SceneNodeData;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.mrg.*;
 import com.wjybxx.fastjgame.net.NetContext;
-import com.wjybxx.fastjgame.net.SessionSenderMode;
 import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.net.SessionLifecycleAware;
-import com.wjybxx.fastjgame.net.initializer.TCPServerChannelInitializer;
-import com.wjybxx.fastjgame.net.initializer.WsServerChannelInitializer;
+import com.wjybxx.fastjgame.net.SessionSenderMode;
 import com.wjybxx.fastjgame.rpcservice.ICenterInSceneInfoMrgRpcRegister;
 import com.wjybxx.fastjgame.rpcservice.ISceneRegionMrgRpcRegister;
 import com.wjybxx.fastjgame.utils.*;
@@ -86,22 +84,25 @@ public class SceneWorld extends AbstractWorld {
     }
 
     private void bindAndRegisterToZK() throws Exception {
+        final CenterLifeAware centerLifeAware = new CenterLifeAware();
+        // 绑定jvm内部通信的端口
+        innerAcceptorMrg.bindInnerJvmPort(centerLifeAware);
         // 绑定3个内部交互的端口
-        HostAndPort innerTcpAddress = innerAcceptorMrg.bindInnerTcpPort(new CenterLifeAware());
+        HostAndPort innerTcpAddress = innerAcceptorMrg.bindInnerTcpPort(centerLifeAware);
         HostAndPort innerHttpAddress = innerAcceptorMrg.bindInnerHttpPort();
-        HostAndPort localAddress = innerAcceptorMrg.bindLocalTcpPort(new CenterLifeAware());
+        HostAndPort localAddress = innerAcceptorMrg.bindLocalTcpPort(centerLifeAware);
 
         // 绑定与玩家交互的两个端口
         // TODO 这里需要和前端确定到底使用什么通信方式，暂时使用服务器之间机制
         NetContext netContext = netContextMrg.getNetContext();
-        TCPServerChannelInitializer tcplInitializer = netContext.newTcpServerInitializer(protocolCodecMrg.getInnerProtocolCodec());
 
-        HostAndPort outerTcpHostAndPort = netContext.bindRange(NetUtils.getOuterIp(), GameUtils.OUTER_TCP_PORT_RANGE,
-                tcplInitializer, new PlayerLifeAware(), protocolDispatcherMrg, SessionSenderMode.DIRECT).get();
+        HostAndPort outerTcpHostAndPort = netContext.bindTcpRange(NetUtils.getOuterIp(), GameUtils.OUTER_TCP_PORT_RANGE,
+                protocolCodecMrg.getInnerProtocolCodec(), new PlayerLifeAware(),
+                protocolDispatcherMrg, SessionSenderMode.DIRECT).get();
 
-        WsServerChannelInitializer wsInitializer = netContext.newWsServerInitializer("/ws", protocolCodecMrg.getInnerProtocolCodec());
-        HostAndPort outerWebsocketHostAndPort = netContext.bindRange(NetUtils.getOuterIp(), GameUtils.OUTER_WS_PORT_RANGE,
-                wsInitializer, new PlayerLifeAware(), protocolDispatcherMrg, SessionSenderMode.DIRECT).get();
+        HostAndPort outerWebsocketHostAndPort = netContext.bindWSRange(NetUtils.getOuterIp(), GameUtils.OUTER_WS_PORT_RANGE, "/ws",
+                protocolCodecMrg.getInnerProtocolCodec(), new PlayerLifeAware(),
+                protocolDispatcherMrg, SessionSenderMode.DIRECT).get();
 
         SceneNodeData sceneNodeData = new SceneNodeData(innerTcpAddress.toString(), innerHttpAddress.toString(), localAddress.toString(), SystemUtils.getMAC(),
                 sceneWorldInfoMrg.getChannelId(), outerTcpHostAndPort.toString(), outerWebsocketHostAndPort.toString());

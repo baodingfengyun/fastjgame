@@ -73,8 +73,7 @@ public class LoginWorld extends AbstractWorld {
         HostAndPort innerHttpAddress = innerAcceptorMrg.bindInnerHttpPort();
         NetContext netContext = netContextMrg.getNetContext();
 
-        HostAndPort outerHttpAddress = netContext.bind(NetUtils.getOuterIp(), loginWorldInfoMrg.getPort(),
-                netContext.newHttpServerInitializer(), httpDispatcherMrg).get();
+        HostAndPort outerHttpAddress = netContext.bindHttp(NetUtils.getOuterIp(), loginWorldInfoMrg.getPort(), httpDispatcherMrg).get();
 
         String parentPath = ZKPathUtils.onlineRootPath();
         String nodeName = ZKPathUtils.buildLoginNodeName(loginWorldInfoMrg.getPort(), loginWorldInfoMrg.getWorldGuid());

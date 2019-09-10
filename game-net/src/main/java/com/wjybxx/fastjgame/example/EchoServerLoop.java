@@ -58,12 +58,11 @@ public class EchoServerLoop extends SingleThreadEventLoop {
         netContext = netGroup.createContext(ExampleConstants.serverGuid, ExampleConstants.serverRole, this).get();
 
         // 监听tcp端口
-        TCPServerChannelInitializer initializer = netContext.newTcpServerInitializer(ExampleConstants.jsonBasedCodec);
-        netContext.bind(NetUtils.getLocalIp(), ExampleConstants.tcpPort, initializer, new ClientLifeAware(), new EchoProtocolDispatcher(), SessionSenderMode.DIRECT);
+        netContext.bindTcp(NetUtils.getLocalIp(), ExampleConstants.tcpPort,
+                ExampleConstants.jsonBasedCodec, new ClientLifeAware(), new EchoProtocolDispatcher(), SessionSenderMode.DIRECT);
 
         // 监听http端口
-        HttpServerInitializer httpServerInitializer = netContext.newHttpServerInitializer();
-        netContext.bind(NetUtils.getLocalIp(), ExampleConstants.httpPort, httpServerInitializer, new EchoHttpRequestDispatcher());
+        netContext.bindHttp(NetUtils.getLocalIp(), ExampleConstants.httpPort, new EchoHttpRequestDispatcher());
     }
 
 
@@ -117,7 +116,7 @@ public class EchoServerLoop extends SingleThreadEventLoop {
         }
 
         @Override
-        public void postRpcRequest(Session session, @Nullable Object request, RpcResponseChannel<?> responseChannel) {
+        public void postRpcRequest(Session session, @Nullable Object request, @Nonnull RpcResponseChannel<?> responseChannel) {
             assert null != request;
             @SuppressWarnings("unchecked")
             RpcResponseChannel<Object> channel = (RpcResponseChannel<Object>) responseChannel;

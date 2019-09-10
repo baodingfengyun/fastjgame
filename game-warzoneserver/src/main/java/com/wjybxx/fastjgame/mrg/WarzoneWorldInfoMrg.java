@@ -26,7 +26,7 @@ import com.wjybxx.fastjgame.net.RoleType;
  * date - 2019/5/17 15:40
  * github - https://github.com/hl845740757
  */
-public class WarzoneWorldInfoMrg extends WorldInfoMrg{
+public class WarzoneWorldInfoMrg extends WorldInfoMrg {
 
     private int warzoneId;
 
@@ -37,7 +37,7 @@ public class WarzoneWorldInfoMrg extends WorldInfoMrg{
 
     @Override
     protected void initImp(ConfigWrapper startArgs) throws Exception {
-        warzoneId=startArgs.getAsInt("warzoneId");
+        warzoneId = startArgs.getAsInt("warzoneId");
     }
 
     @Override

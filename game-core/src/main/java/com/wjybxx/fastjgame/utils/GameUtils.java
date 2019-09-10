@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.utils;
 
 import com.wjybxx.fastjgame.misc.PlatformType;
 import com.wjybxx.fastjgame.misc.PortRange;
+import com.wjybxx.fastjgame.net.SessionSenderMode;
 
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
@@ -52,6 +53,11 @@ public class GameUtils {
      */
     public static final PortRange OUTER_TCP_PORT_RANGE = new PortRange(23001, 23500);
     public static final PortRange OUTER_WS_PORT_RANGE = new PortRange(24001, 24500);
+
+    /**
+     * 服务器之间消息发送发送
+     */
+    public static final SessionSenderMode INNER_SENDER_MODE = SessionSenderMode.DIRECT;
 
     private GameUtils() {
     }

@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * 战区发送信息的辅助类
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/6/23 23:53
@@ -43,12 +44,13 @@ public class WarzoneSendMrg {
 
     /**
      * 发送消息到某个center服
+     *
      * @param platformType center服所在的运营平台
-     * @param serverId 服id
+     * @param serverId     服id
      */
     public void sendToCenter(PlatformType platformType, int serverId, Message msg) {
         Session session = centerInWarzoneInfoMrg.getCenterSession(platformType, serverId);
-        if (null != session){
+        if (null != session) {
             session.send(msg);
         } else {
             logger.info("try send msg to {}-{}, but already disconnect", platformType, serverId);

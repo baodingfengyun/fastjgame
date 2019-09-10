@@ -1,28 +1,32 @@
 /*
- * Copyright 2019 wjybxx
+ *  Copyright 2019 wjybxx
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to iBn writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net;
+package com.wjybxx.fastjgame.net.remote;
 
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
-import com.wjybxx.fastjgame.manager.NetConfigManager;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
-import com.wjybxx.fastjgame.manager.SessionManager;
+import com.wjybxx.fastjgame.manager.RemoteSessionManager;
 import com.wjybxx.fastjgame.misc.HostAndPort;
+import com.wjybxx.fastjgame.net.AbstractSession;
+import com.wjybxx.fastjgame.net.NetContext;
+import com.wjybxx.fastjgame.net.RoleType;
+import com.wjybxx.fastjgame.net.SessionSenderMode;
 import com.wjybxx.fastjgame.utils.EventLoopUtils;
 
+import javax.annotation.Nonnull;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -33,7 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * date - 2019/4/27 10:00
  * github - https://github.com/hl845740757
  */
-public class C2SSessionImp extends AbstractSession implements C2SSession {
+public class C2SSession extends AbstractRemoteSession implements RemoteSession {
 
     /**
      * 未激活状态
@@ -48,17 +52,6 @@ public class C2SSessionImp extends AbstractSession implements C2SSession {
      */
     private static final int ST_CLOSED = 2;
 
-    private final NetContext netContext;
-    private final NetManagerWrapper netManagerWrapper;
-
-    /**
-     * 服务器唯一标识(会话id)
-     */
-    private final long serverGuid;
-    /**
-     * 服务器类型
-     */
-    private final RoleType serverType;
     /**
      * 服务器地址
      */
@@ -68,43 +61,19 @@ public class C2SSessionImp extends AbstractSession implements C2SSession {
      */
     private final AtomicInteger stateHolder = new AtomicInteger(ST_INACTIVE);
 
-    public C2SSessionImp(NetContext netContext, NetManagerWrapper netManagerWrapper,
-                         long serverGuid, RoleType serverType, HostAndPort remoteAddress,
-                         SessionSenderMode sessionSenderMode) {
-        super(sessionSenderMode);
-        this.netContext = netContext;
-        this.netManagerWrapper = netManagerWrapper;
-        this.serverGuid = serverGuid;
-        this.serverType = serverType;
+    public C2SSession(NetContext netContext, NetManagerWrapper netManagerWrapper,
+                      long serverGuid, RoleType serverType, HostAndPort remoteAddress,
+                      SessionSenderMode sessionSenderMode) {
+        super(netContext, serverGuid, serverType, netManagerWrapper, sessionSenderMode);
         this.remoteAddress = remoteAddress;
     }
 
+    @Nonnull
     @Override
-    public NetContext netContext() {
-        return netContext;
+    protected RemoteSessionManager getSessionManager() {
+        return managerWrapper.getC2SSessionManager();
     }
 
-    @Override
-    protected NetConfigManager getNetConfigManager() {
-        return netManagerWrapper.getNetConfigManager();
-    }
-
-    @Override
-    protected SessionManager getSessionManager() {
-        return netManagerWrapper.getC2SSessionManager();
-    }
-
-    @Override
-    public long remoteGuid() {
-        return serverGuid;
-    }
-
-    @Override
-    public RoleType remoteRole() {
-        return serverType;
-    }
-
-    @Override
     public HostAndPort remoteAddress() {
         return remoteAddress;
     }
@@ -115,7 +84,6 @@ public class C2SSessionImp extends AbstractSession implements C2SSession {
      * @return 如果成功设置为激活状态则返回true(激活方法只应该调用一次)
      */
     public boolean tryActive() {
-        assert netContext.netEventLoop().inEventLoop();
         return stateHolder.compareAndSet(ST_INACTIVE, ST_ACTIVE);
     }
 
@@ -137,18 +105,18 @@ public class C2SSessionImp extends AbstractSession implements C2SSession {
         // 设置状态
         setClosed();
         // 可能是自己关闭，因此可能是当前线程，重复调用也必须发送NetEventLoop，否则可能看似关闭，实则还未关闭
-        return EventLoopUtils.submitOrRun(netContext.netEventLoop(), () -> {
-            netManagerWrapper.getC2SSessionManager().removeSession(localGuid(), remoteGuid(), "close method");
+        return EventLoopUtils.submitOrRun(netEventLoop(), () -> {
+            managerWrapper.getC2SSessionManager().removeSession(localGuid(), remoteGuid(), "close method");
         });
     }
 
     @Override
     public String toString() {
-        return "C2SSessionImp{" +
+        return "C2SSession{" +
                 "localGuid=" + localGuid() +
                 ", localRole=" + localRole() +
-                ", serverGuid=" + serverGuid +
-                ", serverType=" + serverType +
+                ", remoteGuid=" + remoteGuid +
+                ", remoteRole=" + remoteRole +
                 ", remoteAddress=" + remoteAddress +
                 ", active=" + stateHolder.get() +
                 '}';

@@ -93,7 +93,7 @@ public class StartUp {
 
         // 试一试ALL IN ONE
         // NET线程数最少1个
-        final NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET"), RejectedExecutionHandlers.log());
+        final NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupImp(3, new DefaultThreadFactory("NET"), RejectedExecutionHandlers.log());
 
         final GameEventLoopGroupImp gameEventLoopGroup = GameEventLoopGroupImp.newBuilder()
                 .setNetEventLoopGroup(netEventLoopGroup)

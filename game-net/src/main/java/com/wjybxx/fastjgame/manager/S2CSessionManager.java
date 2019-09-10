@@ -20,6 +20,7 @@ import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.misc.*;
 import com.wjybxx.fastjgame.net.*;
+import com.wjybxx.fastjgame.net.remote.S2CSession;
 import com.wjybxx.fastjgame.timer.FixedDelayHandle;
 import com.wjybxx.fastjgame.utils.*;
 import io.netty.channel.Channel;
@@ -35,6 +36,8 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.BindException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -64,7 +67,7 @@ import java.util.function.Consumer;
  * date - 2019/4/27 22:14
  * github - https://github.com/hl845740757
  */
-public class S2CSessionManager extends SessionManager {
+public class S2CSessionManager extends RemoteSessionManager {
 
     private static final Logger logger = LoggerFactory.getLogger(S2CSessionManager.class);
 
@@ -107,8 +110,8 @@ public class S2CSessionManager extends SessionManager {
 
                 // 检测超时的rpc调用
                 FastCollectionsUtils.removeIfAndThen(sessionWrapper.messageQueue.getRpcPromiseInfoMap(),
-                        (long k, RpcPromiseInfo rpcPromiseInfo) -> netTimeManager.getSystemMillTime() >= rpcPromiseInfo.timeoutMs,
-                        (long k, RpcPromiseInfo rpcPromiseInfo) -> commitRpcResponse(sessionWrapper.session, rpcPromiseInfo, RpcResponse.TIMEOUT));
+                        (k, rpcPromiseInfo) -> netTimeManager.getSystemMillTime() >= rpcPromiseInfo.deadline,
+                        (k, rpcPromiseInfo) -> commitRpcResponse(sessionWrapper.session, rpcPromiseInfo, RpcResponse.TIMEOUT));
             }
         }
     }
@@ -127,15 +130,16 @@ public class S2CSessionManager extends SessionManager {
     /**
      * @see AcceptorManager#bindRange(String, PortRange, ChannelInitializer)
      */
-    public HostAndPort bindRange(NetContext netContext, String host, PortRange portRange,
-                                 ChannelInitializer<SocketChannel> initializer,
-                                 SessionLifecycleAware lifecycleAware,
-                                 ProtocolDispatcher protocolDispatcher, SessionSenderMode sessionSenderMode) throws BindException {
+    public HostAndPort bindRange(NetContext netContext, String host, PortRange portRange, ChannelInitializer<SocketChannel> initializer) throws BindException {
 
         final BindResult bindResult = acceptorManager.bindRange(host, portRange, initializer);
-        // 由于是监听方，因此方法参数是针对该用户的所有客户端的
-        userInfoMap.computeIfAbsent(netContext.localGuid(),
-                localGuid -> new UserInfo(netContext, bindResult, initializer, lifecycleAware, protocolDispatcher, sessionSenderMode, netTimeManager, timerManager, netConfigManager));
+
+        final UserInfo userInfo = userInfoMap.computeIfAbsent(netContext.localGuid(), k -> {
+            return new UserInfo(netContext, new ForbiddenTokenHelper(netTimeManager, timerManager, netConfigManager.tokenForbiddenTimeout()));
+        });
+        // 保存绑定的端口信息
+        userInfo.bindResultList.add(bindResult);
+
         return bindResult.getHostAndPort();
     }
 
@@ -311,7 +315,7 @@ public class S2CSessionManager extends SessionManager {
         // 禁用该token及之前的token
         sessionWrapper.userInfo.forbiddenTokenHelper.forbiddenCurToken(sessionWrapper.getToken());
         // 避免捕获SessionWrapper，导致内存泄漏
-        final S2CSessionImp session = sessionWrapper.getSession();
+        final S2CSession session = sessionWrapper.getSession();
         // 设置为已关闭
         session.setClosed();
 
@@ -325,7 +329,7 @@ public class S2CSessionManager extends SessionManager {
             // 避免捕获SessionWrapper，导致内存泄漏
             final SessionLifecycleAware lifecycleAware = sessionWrapper.getLifecycleAware();
             // 尝试提交到用户线程
-            ConcurrentUtils.tryCommit(sessionWrapper.userInfo.netContext.localEventLoop(), () -> {
+            ConcurrentUtils.tryCommit(session.localEventLoop(), () -> {
                 lifecycleAware.onSessionDisconnected(session);
             });
         }
@@ -360,7 +364,7 @@ public class S2CSessionManager extends SessionManager {
                 FunctionUtils::TRUE,
                 (k, sessionWrapper) -> afterRemoved(sessionWrapper, reason, postEvent));
         // 绑定的端口需要释放
-        NetUtils.closeQuietly(userInfo.bindResult.getChannel());
+        userInfo.bindResultList.forEach(bindResult -> NetUtils.closeQuietly(bindResult.getChannel()));
     }
 
     /**
@@ -520,24 +524,25 @@ public class S2CSessionManager extends SessionManager {
         // 禁用验证成功的token之前的token(不能放到removeSession之前，会导致覆盖)
         userInfo.forbiddenTokenHelper.forbiddenPreToken(clientToken);
 
+        final PortContext portContext = requestParam.getPortContext();
         // 登录成功
-        S2CSessionImp session = new S2CSessionImp(userInfo.netContext, userInfo.bindResult.getHostAndPort(), managerWrapper,
-                requestParam.getClientGuid(), clientToken.getClientRoleType(), userInfo.sessionSenderMode);
+        S2CSession session = new S2CSession(userInfo.netContext, managerWrapper,
+                requestParam.getClientGuid(), clientToken.getClientRoleType(), portContext.sessionSenderMode);
 
         SessionWrapper sessionWrapper = new SessionWrapper(userInfo, session, this);
         userInfo.sessionWrapperMap.put(requestParam.getClientGuid(), sessionWrapper);
 
         // 分配新的token并进入等待状态
         Token nextToken = tokenManager.newLoginSuccessToken(clientToken);
-        sessionWrapper.changeToWaitState(channel, requestParam.getSndTokenTimes(), clientToken, nextToken, nextSessionTimeout());
+        sessionWrapper.changeToWaitState(channel, portContext, requestParam.getSndTokenTimes(), clientToken, nextToken, nextSessionTimeout());
 
         notifyTokenCheckSuccess(channel, requestParam, MessageQueue.INIT_ACK, nextToken);
         logger.info("client login success, sessionInfo={}", session);
 
-        // 避免捕获userInfo，导致内存泄漏
-        final SessionLifecycleAware lifecycleAware = userInfo.lifecycleAware;
+        // 避免捕获过多的对象，导致内存泄漏
+        final SessionLifecycleAware lifecycleAware = portContext.lifecycleAware;
         // 连接建立回调(通知)
-        ConcurrentUtils.tryCommit(userInfo.netContext.localEventLoop(), () -> {
+        ConcurrentUtils.tryCommit(session.localEventLoop(), () -> {
             lifecycleAware.onSessionConnected(session);
         });
         return true;
@@ -582,7 +587,7 @@ public class S2CSessionManager extends SessionManager {
 
         // 分配新的token并进入等待状态
         Token nextToken = tokenManager.nextToken(clientToken);
-        sessionWrapper.changeToWaitState(channel, requestParam.getSndTokenTimes(), clientToken, nextToken, nextSessionTimeout());
+        sessionWrapper.changeToWaitState(channel, requestParam.getPortContext(), requestParam.getSndTokenTimes(), clientToken, nextToken, nextSessionTimeout());
 
         notifyTokenCheckSuccess(channel, requestParam, messageQueue.getAck(), nextToken);
         logger.info("client reconnect success, sessionInfo={}", sessionWrapper.getSession());
@@ -602,7 +607,8 @@ public class S2CSessionManager extends SessionManager {
      */
     private void notifyClientExit(Channel channel, SessionWrapper sessionWrapper) {
         long clientGuid = sessionWrapper.getSession().remoteGuid();
-        Token failToken = tokenManager.newFailToken(clientGuid, sessionWrapper.getLocalGuid());
+        long serverGuid = sessionWrapper.getSession().localGuid();
+        Token failToken = tokenManager.newFailToken(clientGuid, serverGuid);
         notifyTokenCheckResult(channel, sessionWrapper.getSndTokenTimes(), false, -1, failToken);
     }
 
@@ -701,7 +707,7 @@ public class S2CSessionManager extends SessionManager {
      */
     void onRcvClientRpcRequest(RpcRequestEventParam rpcRequestEventParam) {
         tryUpdateMessageQueue(rpcRequestEventParam, sessionWrapper -> {
-            RpcRequestCommitTask requestCommitTask = new RpcRequestCommitTask(sessionWrapper.session, sessionWrapper.userInfo.protocolDispatcher,
+            RpcRequestCommitTask requestCommitTask = new RpcRequestCommitTask(sessionWrapper.session, sessionWrapper.getProtocolDispatcher(),
                     rpcRequestEventParam.getRequestGuid(), rpcRequestEventParam.isSync(), rpcRequestEventParam.getRequest());
             commit(sessionWrapper.session, requestCommitTask);
         });
@@ -729,7 +735,7 @@ public class S2CSessionManager extends SessionManager {
         // 减少lambda表达式捕获的对象
         final Object message = oneWayMessageEventParam.getMessage();
         tryUpdateMessageQueue(oneWayMessageEventParam, sessionWrapper -> {
-            commit(sessionWrapper.session, new OneWayMessageCommitTask(sessionWrapper.session, sessionWrapper.userInfo.protocolDispatcher, message));
+            commit(sessionWrapper.session, new OneWayMessageCommitTask(sessionWrapper.session, sessionWrapper.getProtocolDispatcher(), message));
         });
     }
 
@@ -749,27 +755,14 @@ public class S2CSessionManager extends SessionManager {
     private static final class UserInfo {
 
         // ------------- 会话关联的本地对象 -----------------
+        /**
+         * 用户信息
+         */
         private final NetContext netContext;
         /**
-         * 绑定的结果，关联的channel需要在用户删除后关闭
+         * 该用户绑定的所有端口，关联的channel需要在用户删除后关闭
          */
-        private final BindResult bindResult;
-        /**
-         * 会话生命周期handler
-         */
-        private final SessionLifecycleAware lifecycleAware;
-        /**
-         * 如何初始新接入的channel
-         */
-        private final ChannelInitializer<SocketChannel> initializer;
-        /**
-         * 该端口上的消息处理器
-         */
-        private final ProtocolDispatcher protocolDispatcher;
-        /**
-         * 该端口上的消息发送方式
-         */
-        private final SessionSenderMode sessionSenderMode;
+        private final List<BindResult> bindResultList = new ArrayList<>(4);
         /**
          * 该用户关联的所有会话信息
          */
@@ -779,20 +772,9 @@ public class S2CSessionManager extends SessionManager {
          */
         private final ForbiddenTokenHelper forbiddenTokenHelper;
 
-        private UserInfo(NetContext netContext, BindResult bindResult,
-                         @Nonnull ChannelInitializer<SocketChannel> initializer,
-                         @Nonnull SessionLifecycleAware lifecycleAware,
-                         @Nonnull ProtocolDispatcher protocolDispatcher,
-                         SessionSenderMode sessionSenderMode, NetTimeManager netTimeManager,
-                         NetTimerManager timerManager,
-                         NetConfigManager netConfigManager) {
+        private UserInfo(NetContext netContext, ForbiddenTokenHelper forbiddenTokenHelper) {
             this.netContext = netContext;
-            this.bindResult = bindResult;
-            this.lifecycleAware = lifecycleAware;
-            this.initializer = initializer;
-            this.protocolDispatcher = protocolDispatcher;
-            this.sessionSenderMode = sessionSenderMode;
-            this.forbiddenTokenHelper = new ForbiddenTokenHelper(netTimeManager, timerManager, netConfigManager.tokenForbiddenTimeout());
+            this.forbiddenTokenHelper = forbiddenTokenHelper;
         }
     }
 
@@ -809,7 +791,11 @@ public class S2CSessionManager extends SessionManager {
         /**
          * 注册的会话信息
          */
-        private final S2CSessionImp session;
+        private final S2CSession session;
+        /**
+         * 对应端口的上下文
+         */
+        private PortContext portContext;
         /**
          * 会话的消息队列
          */
@@ -840,13 +826,13 @@ public class S2CSessionManager extends SessionManager {
          */
         private final S2CSessionManager s2CSessionManager;
 
-        SessionWrapper(UserInfo userInfo, S2CSessionImp session, S2CSessionManager s2CSessionManager) {
+        SessionWrapper(UserInfo userInfo, S2CSession session, S2CSessionManager s2CSessionManager) {
             this.userInfo = userInfo;
             this.session = session;
             this.s2CSessionManager = s2CSessionManager;
         }
 
-        S2CSessionImp getSession() {
+        S2CSession getSession() {
             return session;
         }
 
@@ -879,13 +865,15 @@ public class S2CSessionManager extends SessionManager {
          * (等待客户端真正的产生消息,也就是收到了新的token)
          *
          * @param channel        新的channel
+         * @param portContext    所在端口的上下文
          * @param sndTokenTimes  这是对客户端第几次发送token验证
          * @param preToken       上一个token
          * @param nextToken      新的token
          * @param sessionTimeout 会话超时时间
          */
-        void changeToWaitState(Channel channel, int sndTokenTimes, Token preToken, Token nextToken, int sessionTimeout) {
+        void changeToWaitState(Channel channel, PortContext portContext, int sndTokenTimes, Token preToken, Token nextToken, int sessionTimeout) {
             this.channel = channel;
+            this.portContext = portContext;
             this.token = nextToken;
             this.sessionTimeout = sessionTimeout;
             this.preToken = preToken;
@@ -944,18 +932,13 @@ public class S2CSessionManager extends SessionManager {
             return messageQueue.getCacheMessageNum();
         }
 
-        long getLocalGuid() {
-            return userInfo.netContext.localGuid();
-        }
-
         SessionLifecycleAware getLifecycleAware() {
-            return userInfo.lifecycleAware;
+            return portContext.lifecycleAware;
         }
 
-        ChannelInitializer<SocketChannel> getInitializer() {
-            return userInfo.initializer;
+        ProtocolDispatcher getProtocolDispatcher() {
+            return portContext.protocolDispatcher;
         }
-
     }
 
 }

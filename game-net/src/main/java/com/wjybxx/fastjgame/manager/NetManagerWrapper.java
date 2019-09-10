@@ -43,6 +43,8 @@ public class NetManagerWrapper {
     private final NetTimeManager netTimeManager;
     private final NetTimerManager netTimerManager;
     private final TokenManager tokenManager;
+    private final JVMC2SSessionManager jvmc2SSessionManager;
+    private final JVMS2CSessionManager jvms2CSessionManager;
 
     @Inject
     public NetManagerWrapper(NetEventLoopManager netEventLoopManager,
@@ -51,7 +53,7 @@ public class NetManagerWrapper {
                              NettyThreadManager nettyThreadManager,
                              NetConfigManager netConfigManager, AcceptorManager acceptorManager,
                              HttpClientManager httpClientManager, NetTimeManager netTimeManager,
-                             NetTimerManager netTimerManager, TokenManager tokenManager) {
+                             NetTimerManager netTimerManager, TokenManager tokenManager, JVMC2SSessionManager jvmc2SSessionManager, JVMS2CSessionManager jvms2CSessionManager) {
         this.netEventLoopManager = netEventLoopManager;
         this.s2CSessionManager = s2CSessionManager;
         this.c2SSessionManager = c2SSessionManager;
@@ -64,6 +66,8 @@ public class NetManagerWrapper {
         this.netTimeManager = netTimeManager;
         this.netTimerManager = netTimerManager;
         this.tokenManager = tokenManager;
+        this.jvmc2SSessionManager = jvmc2SSessionManager;
+        this.jvms2CSessionManager = jvms2CSessionManager;
     }
 
     public NetEventLoopManager getNetEventLoopManager() {
@@ -112,5 +116,13 @@ public class NetManagerWrapper {
 
     public NetConfigManager getNetConfigManager() {
         return netConfigManager;
+    }
+
+    public JVMC2SSessionManager getJvmc2SSessionManager() {
+        return jvmc2SSessionManager;
+    }
+
+    public JVMS2CSessionManager getJvms2CSessionManager() {
+        return jvms2CSessionManager;
     }
 }

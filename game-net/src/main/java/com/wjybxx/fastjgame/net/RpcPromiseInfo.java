@@ -43,19 +43,19 @@ public class RpcPromiseInfo {
     /**
      * rpc超时时间
      */
-    public long timeoutMs;
+    public long deadline;
 
-    private RpcPromiseInfo(Promise<RpcResponse> rpcPromise, RpcCallback rpcCallback, long timeoutMs) {
+    private RpcPromiseInfo(Promise<RpcResponse> rpcPromise, RpcCallback rpcCallback, long deadline) {
         this.rpcPromise = rpcPromise;
         this.rpcCallback = rpcCallback;
-        this.timeoutMs = timeoutMs;
+        this.deadline = deadline;
     }
 
-    public static RpcPromiseInfo newInstance(@Nonnull Promise<RpcResponse> rpcPromise, long timeoutMs) {
-        return new RpcPromiseInfo(rpcPromise, null, timeoutMs);
+    public static RpcPromiseInfo newInstance(@Nonnull Promise<RpcResponse> rpcPromise, long deadline) {
+        return new RpcPromiseInfo(rpcPromise, null, deadline);
     }
 
-    public static RpcPromiseInfo newInstance(@Nonnull RpcCallback rpcCallback, long timeoutMs) {
-        return new RpcPromiseInfo(null, rpcCallback, timeoutMs);
+    public static RpcPromiseInfo newInstance(@Nonnull RpcCallback rpcCallback, long deadline) {
+        return new RpcPromiseInfo(null, rpcCallback, deadline);
     }
 }

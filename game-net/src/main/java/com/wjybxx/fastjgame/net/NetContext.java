@@ -21,7 +21,8 @@ import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.PortRange;
-import com.wjybxx.fastjgame.net.initializer.*;
+import com.wjybxx.fastjgame.net.initializer.HttpServerInitializer;
+import com.wjybxx.fastjgame.net.injvm.JVMPort;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import okhttp3.Response;
@@ -63,7 +64,6 @@ public interface NetContext {
 
     /**
      * 该context绑定到的NetEventLoop。
-     * （可实现多个NetContext绑定到相同的NetEventLoop，可消除不必要的同步）
      */
     NetEventLoop netEventLoop();
 
@@ -74,97 +74,118 @@ public interface NetContext {
 
     // ----------------------------------- tcp/ws支持 ---------------------------------------
 
+
     /**
-     * 监听某个端口
+     * 在指定端口监听tcp连接
      *
      * @param host               地址
-     * @param port               指定端口号
-     * @param initializer        如何初始化channel
+     * @param port               端口号
+     * @param codec              网络协议解码器
      * @param lifecycleAware     生命周期监听器
      * @param protocolDispatcher 协议处理器
      * @param sessionSenderMode  session发送消息的方式
-     * @return future 可以等待绑定完成。
+     * @return future
      */
-    default ListenableFuture<HostAndPort> bind(String host, int port,
-                                               @Nonnull ChannelInitializer<SocketChannel> initializer,
-                                               @Nonnull SessionLifecycleAware lifecycleAware,
-                                               @Nonnull ProtocolDispatcher protocolDispatcher,
-                                               @Nonnull SessionSenderMode sessionSenderMode) {
-        return this.bindRange(host, new PortRange(port, port), initializer, lifecycleAware, protocolDispatcher, sessionSenderMode);
+    default ListenableFuture<HostAndPort> bindTcp(String host, int port,
+                                                  @Nonnull ProtocolCodec codec,
+                                                  @Nonnull SessionLifecycleAware lifecycleAware,
+                                                  @Nonnull ProtocolDispatcher protocolDispatcher,
+                                                  @Nonnull SessionSenderMode sessionSenderMode) {
+        return this.bindTcpRange(host, new PortRange(port, port), codec, lifecycleAware, protocolDispatcher, sessionSenderMode);
     }
 
     /**
-     * 监听某个端口
+     * 在指定端口范围内选择一个合适的端口监听tcp连接
      *
      * @param host               地址
      * @param portRange          端口范围
-     * @param initializer        如何初始化channel
+     * @param codec              网络协议解码器
      * @param lifecycleAware     生命周期监听器
      * @param protocolDispatcher 协议处理器
      * @param sessionSenderMode  session发送消息的方式
-     * @return future 可以等待绑定完成。
+     * @return future
      */
-    ListenableFuture<HostAndPort> bindRange(String host, @Nonnull PortRange portRange,
-                                            @Nonnull ChannelInitializer<SocketChannel> initializer,
-                                            @Nonnull SessionLifecycleAware lifecycleAware,
-                                            @Nonnull ProtocolDispatcher protocolDispatcher,
-                                            @Nonnull SessionSenderMode sessionSenderMode);
+    ListenableFuture<HostAndPort> bindTcpRange(String host, PortRange portRange,
+                                               @Nonnull ProtocolCodec codec,
+                                               @Nonnull SessionLifecycleAware lifecycleAware,
+                                               @Nonnull ProtocolDispatcher protocolDispatcher,
+                                               @Nonnull SessionSenderMode sessionSenderMode);
 
     /**
-     * 连接远程某个端口
+     * 以tcp方式连接远程某个端口
      *
-     * @param remoteGuid          远程角色guid
-     * @param remoteRole          远程角色类型
-     * @param remoteAddress       远程地址
-     * @param initializerSupplier 如何初始化channel，supplier是因为断线重连可能需要新的initializer。
-     * @param lifecycleAware      生命周期监听器
-     * @param protocolDispatcher  协议处理器
-     * @param sessionSenderMode   session发送消息的方式
+     * @param remoteGuid         远程角色guid
+     * @param remoteRole         远程角色类型
+     * @param remoteAddress      远程地址
+     * @param codec              协议编解码器
+     * @param lifecycleAware     生命周期监听器
+     * @param protocolDispatcher 协议处理器
+     * @param sessionSenderMode  session发送消息的方式
      * @return future，它并不是连接真正建立的future，而且连接操作是否被NetEventLoop响应的future
      */
-    ListenableFuture<?> connect(long remoteGuid, RoleType remoteRole,
-                                @Nonnull HostAndPort remoteAddress,
-                                @Nonnull ChannelInitializerSupplier initializerSupplier,
-                                @Nonnull SessionLifecycleAware lifecycleAware,
-                                @Nonnull ProtocolDispatcher protocolDispatcher,
-                                @Nonnull SessionSenderMode sessionSenderMode);
+    ListenableFuture<?> connectTcp(long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress,
+                                   @Nonnull ProtocolCodec codec,
+                                   @Nonnull SessionLifecycleAware lifecycleAware,
+                                   @Nonnull ProtocolDispatcher protocolDispatcher,
+                                   @Nonnull SessionSenderMode sessionSenderMode);
 
     /**
-     * 工厂方法，创建一个用于tcp监听的Initializer.
+     * 在指定端口监听WebSocket连接
      *
-     * @param codec 消息包编解码帮助类
-     * @return 用于初始化http端口
+     * @param host               地址
+     * @param port               端口
+     * @param websocketUrl       触发websocket升级的地址
+     * @param codec              网络协议解码器
+     * @param lifecycleAware     生命周期监听器
+     * @param protocolDispatcher 协议处理器
+     * @param sessionSenderMode  session发送消息的方式
+     * @return future
      */
-    TCPServerChannelInitializer newTcpServerInitializer(ProtocolCodec codec);
+    default ListenableFuture<HostAndPort> bindWS(String host, int port, String websocketUrl,
+                                                 @Nonnull ProtocolCodec codec,
+                                                 @Nonnull SessionLifecycleAware lifecycleAware,
+                                                 @Nonnull ProtocolDispatcher protocolDispatcher,
+                                                 @Nonnull SessionSenderMode sessionSenderMode) {
+        return this.bindWSRange(host, new PortRange(port, port), websocketUrl,
+                codec, lifecycleAware, protocolDispatcher, sessionSenderMode);
+    }
 
     /**
-     * 工厂方法，创建一个用于进行tcp连接的initializer
+     * 在指定端口范围内选择一个合适的端口监听WebSocket连接
      *
-     * @param remoteGuid 远程用户id
-     * @param codec      消息包编解码帮助类
-     * @return 用于初始化http端口
+     * @param host               地址
+     * @param portRange          端口范围
+     * @param websocketUrl       触发websocket升级的地址
+     * @param codec              网络协议解码器
+     * @param lifecycleAware     生命周期监听器
+     * @param protocolDispatcher 协议处理器
+     * @param sessionSenderMode  session发送消息的方式
+     * @return future
      */
-    TCPClientChannelInitializer newTcpClientInitializer(long remoteGuid, ProtocolCodec codec);
+    ListenableFuture<HostAndPort> bindWSRange(String host, PortRange portRange, String websocketUrl,
+                                              @Nonnull ProtocolCodec codec,
+                                              @Nonnull SessionLifecycleAware lifecycleAware,
+                                              @Nonnull ProtocolDispatcher protocolDispatcher,
+                                              @Nonnull SessionSenderMode sessionSenderMode);
 
     /**
-     * 工厂方法，创建一个用于websokect监听的Initializer.
+     * 以websocket方式连接远程某个端口
      *
-     * @param websocketUrl 触发websocket升级的地址
-     * @param codec        消息包编解码帮助类
-     * @return 用于初始化websocket端口
+     * @param remoteGuid         远程角色guid
+     * @param remoteRole         远程角色类型
+     * @param remoteAddress      远程地址
+     * @param codec              协议编解码器
+     * @param lifecycleAware     生命周期监听器
+     * @param protocolDispatcher 协议处理器
+     * @param sessionSenderMode  session发送消息的方式
+     * @return future，它并不是连接真正建立的future，而且连接操作是否被NetEventLoop响应的future
      */
-    WsServerChannelInitializer newWsServerInitializer(String websocketUrl, ProtocolCodec codec);
+    ListenableFuture<?> connectWS(long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress, String websocketUrl,
+                                  @Nonnull ProtocolCodec codec,
+                                  @Nonnull SessionLifecycleAware lifecycleAware,
+                                  @Nonnull ProtocolDispatcher protocolDispatcher,
+                                  @Nonnull SessionSenderMode sessionSenderMode);
 
-    /**
-     * 工厂方法，创建一个用于websocket连接的initializer
-     *
-     * @param remoteGuid   远程地址
-     * @param websocketUrl 触发websocket升级的地址
-     * @param codec        消息包编解码帮助类
-     * @return 用于初始化websocket端口
-     */
-
-    WsClientChannelInitializer newWsClientInitializer(long remoteGuid, String websocketUrl, ProtocolCodec codec);
 
     //  --------------------------------------- http支持 -----------------------------------------
 
@@ -173,14 +194,11 @@ public interface NetContext {
      *
      * @param host                  地址
      * @param port                  指定端口号
-     * @param initializer           如何初始化channel
-     * @param httpRequestDispatcher http请求处理器
+     * @param httpRequestDispatcher 该端口上的协议处理器
      * @return future 可以等待绑定完成。
      */
-    default ListenableFuture<HostAndPort> bind(String host, int port,
-                                               @Nonnull ChannelInitializer<SocketChannel> initializer,
-                                               @Nonnull HttpRequestDispatcher httpRequestDispatcher) {
-        return this.bindRange(host, new PortRange(port, port), initializer, httpRequestDispatcher);
+    default ListenableFuture<HostAndPort> bindHttp(String host, int port, @Nonnull HttpRequestDispatcher httpRequestDispatcher) {
+        return this.bindHttpRange(host, new PortRange(port, port), httpRequestDispatcher);
     }
 
     /**
@@ -188,13 +206,10 @@ public interface NetContext {
      *
      * @param host                  地址
      * @param portRange             端口范围
-     * @param initializer           如何初始化channel
-     * @param httpRequestDispatcher http请求处理器
+     * @param httpRequestDispatcher 该端口上的协议处理器
      * @return future 可以等待绑定完成。
      */
-    ListenableFuture<HostAndPort> bindRange(String host, PortRange portRange,
-                                            @Nonnull ChannelInitializer<SocketChannel> initializer,
-                                            @Nonnull HttpRequestDispatcher httpRequestDispatcher);
+    ListenableFuture<HostAndPort> bindHttpRange(String host, PortRange portRange, @Nonnull HttpRequestDispatcher httpRequestDispatcher);
 
     /**
      * 同步get请求
@@ -230,11 +245,32 @@ public interface NetContext {
      */
     void asyncPost(String url, @Nonnull Map<String, String> params, @Nonnull OkHttpCallback okHttpCallback);
 
-    /**
-     * 工厂方法，创建一个用于http监听的Initializer.
-     *
-     * @return 用于初始化http端口
-     */
-    HttpServerInitializer newHttpServerInitializer();
 
+    // -------------------------------------- 用于支持JVM内部通信 -------------------------------
+
+    /**
+     * 绑定一个JVM端口，用于其它线程建立会话
+     *
+     * @param lifecycleAware     生命周期监听器
+     * @param protocolDispatcher 消息分发器
+     * @param sessionSenderMode  消息的发送方式
+     * @return future
+     */
+    ListenableFuture<JVMPort> bindInJVM(@Nonnull SessionLifecycleAware lifecycleAware,
+                                        @Nonnull ProtocolDispatcher protocolDispatcher,
+                                        @Nonnull SessionSenderMode sessionSenderMode);
+
+    /**
+     * 与JVM内的另一个线程建立session
+     *
+     * @param jvmPort            远程“端口”信息
+     * @param lifecycleAware     生命周期监听器
+     * @param protocolDispatcher 消息分发器
+     * @param sessionSenderMode  消息的发送方式
+     * @return future
+     */
+    ListenableFuture<?> connectInJVM(@Nonnull JVMPort jvmPort,
+                                     @Nonnull SessionLifecycleAware lifecycleAware,
+                                     @Nonnull ProtocolDispatcher protocolDispatcher,
+                                     @Nonnull SessionSenderMode sessionSenderMode);
 }

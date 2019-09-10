@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.net;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -36,7 +37,7 @@ public interface ProtocolDispatcher {
      * @param request         rpc请求，如果编解码异常，则可能为null。
      * @param responseChannel 用于返回结果的通道
      */
-    void postRpcRequest(Session session, @Nullable Object request, RpcResponseChannel<?> responseChannel);
+    void postRpcRequest(Session session, @Nullable Object request, @Nonnull RpcResponseChannel<?> responseChannel);
 
     /**
      * 处理该会话发来单向的消息

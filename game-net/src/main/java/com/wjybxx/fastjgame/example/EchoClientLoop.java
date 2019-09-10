@@ -69,11 +69,9 @@ public class EchoClientLoop extends SingleThreadEventLoop {
         super.init();
         netContext = netGroup.createContext(ExampleConstants.clientGuid, ExampleConstants.clientRole, this).get();
         // 必须先启动服务器
-        final TCPClientChannelInitializer initializer = netContext.newTcpClientInitializer(ExampleConstants.serverGuid,
-                ExampleConstants.jsonBasedCodec);
         final HostAndPort address = new HostAndPort(NetUtils.getLocalIp(), ExampleConstants.tcpPort);
-        netContext.connect(ExampleConstants.serverGuid, ExampleConstants.serverRole, address, () -> initializer,
-                new ServerLifeAward(), new EchoProtocolDispatcher(), SessionSenderMode.DIRECT);
+        netContext.connectTcp(ExampleConstants.serverGuid, ExampleConstants.serverRole, address,
+                ExampleConstants.jsonBasedCodec, new ServerLifeAward(), new EchoProtocolDispatcher(), SessionSenderMode.DIRECT);
     }
 
     public void loop() {
@@ -187,7 +185,7 @@ public class EchoClientLoop extends SingleThreadEventLoop {
         }
 
         @Override
-        public void postRpcRequest(Session session, @Nullable Object request, RpcResponseChannel<?> responseChannel) {
+        public void postRpcRequest(Session session, @Nullable Object request, @Nonnull RpcResponseChannel<?> responseChannel) {
             // unreachable
         }
 

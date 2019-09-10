@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.net.codec.http;
 
 import com.wjybxx.fastjgame.manager.NetEventManager;
 import com.wjybxx.fastjgame.misc.HttpResponseHelper;
+import com.wjybxx.fastjgame.net.HttpRequestDispatcher;
 import com.wjybxx.fastjgame.net.HttpRequestEventParam;
 import com.wjybxx.fastjgame.net.HttpRequestParam;
 import com.wjybxx.fastjgame.net.NetEventType;
@@ -54,11 +55,16 @@ public class HttpRequestParamDecoder extends SimpleChannelInboundHandler<FullHtt
      * localGuid
      */
     private final long localGuid;
+    /**
+     * 该端口上关联的消息处理器
+     */
+    private final HttpRequestDispatcher httpRequestDispatcher;
     private final NetEventManager netEventManager;
 
-    public HttpRequestParamDecoder(long localGuid, NetEventManager netEventManager) {
+    public HttpRequestParamDecoder(long localGuid, HttpRequestDispatcher httpRequestDispatcher, NetEventManager netEventManager) {
         super(true);
         this.localGuid = localGuid;
+        this.httpRequestDispatcher = httpRequestDispatcher;
         this.netEventManager = netEventManager;
     }
 
@@ -103,7 +109,7 @@ public class HttpRequestParamDecoder extends SimpleChannelInboundHandler<FullHtt
             }
         }
         final HttpRequestParam httpRequestParam = new HttpRequestParam(method, paramsMap);
-        HttpRequestEventParam httpRequestEventParam = new HttpRequestEventParam(ctx.channel(), localGuid, path, httpRequestParam);
+        HttpRequestEventParam httpRequestEventParam = new HttpRequestEventParam(ctx.channel(), localGuid, httpRequestDispatcher, path, httpRequestParam);
         netEventManager.publishEvent(NetEventType.HTTP_REQUEST, httpRequestEventParam);
     }
 

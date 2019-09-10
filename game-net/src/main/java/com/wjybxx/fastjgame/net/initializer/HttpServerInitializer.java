@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.net.initializer;
 
 import com.wjybxx.fastjgame.manager.NetEventManager;
+import com.wjybxx.fastjgame.net.HttpRequestDispatcher;
 import com.wjybxx.fastjgame.net.codec.http.HttpRequestParamDecoder;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -41,10 +42,12 @@ public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
      * 是哪一个用户在监听
      */
     private final long localGuid;
+    private final HttpRequestDispatcher httpRequestDispatcher;
     private final NetEventManager netEventManager;
 
-    public HttpServerInitializer(long localGuid, NetEventManager netEventManager) {
+    public HttpServerInitializer(long localGuid, HttpRequestDispatcher httpRequestDispatcher, NetEventManager netEventManager) {
         this.localGuid = localGuid;
+        this.httpRequestDispatcher = httpRequestDispatcher;
         this.netEventManager = netEventManager;
     }
 
@@ -54,6 +57,6 @@ public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
         pipeline.addLast(new HttpServerCodec());
         // http请求和响应可能被分段，利用聚合器将http请求合并为完整的Http请求
         pipeline.addLast(new HttpObjectAggregator(65535));
-        pipeline.addLast(new HttpRequestParamDecoder(localGuid, netEventManager));
+        pipeline.addLast(new HttpRequestParamDecoder(localGuid, httpRequestDispatcher, netEventManager));
     }
 }

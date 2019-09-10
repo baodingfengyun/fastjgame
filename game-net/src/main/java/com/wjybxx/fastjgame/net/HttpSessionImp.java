@@ -16,16 +16,16 @@
 
 package com.wjybxx.fastjgame.net;
 
+import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.manager.HttpSessionManager;
-import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.HttpResponseBuilder;
 import com.wjybxx.fastjgame.utils.EventLoopUtils;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.handler.codec.http.HttpResponse;
 
-import javax.annotation.Nonnull;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -39,7 +39,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public final class HttpSessionImp implements HttpSession {
 
     private final NetContext netContext;
-    private final HostAndPort localAddress;
     private final HttpSessionManager httpSessionManager;
     /**
      * session对应的channel
@@ -50,9 +49,8 @@ public final class HttpSessionImp implements HttpSession {
      */
     private final AtomicBoolean stateHolder = new AtomicBoolean(true);
 
-    public HttpSessionImp(NetContext netContext, HostAndPort localAddress, HttpSessionManager httpSessionManager, Channel channel) {
+    public HttpSessionImp(NetContext netContext, HttpSessionManager httpSessionManager, Channel channel) {
         this.netContext = netContext;
-        this.localAddress = localAddress;
         this.httpSessionManager = httpSessionManager;
         this.channel = channel;
     }
@@ -65,12 +63,6 @@ public final class HttpSessionImp implements HttpSession {
     @Override
     public RoleType localRole() {
         return netContext.localRole();
-    }
-
-    @Nonnull
-    @Override
-    public HostAndPort localAddress() {
-        return localAddress;
     }
 
     public Channel getChannel() {
@@ -113,8 +105,18 @@ public final class HttpSessionImp implements HttpSession {
     @Override
     public ListenableFuture<?> close() {
         setClosed();
-        return EventLoopUtils.submitOrRun(netContext.netEventLoop(), () -> {
+        return EventLoopUtils.submitOrRun(netEventLoop(), () -> {
             httpSessionManager.removeSession(this, channel);
         });
+    }
+
+    @Override
+    public NetEventLoop netEventLoop() {
+        return netContext.netEventLoop();
+    }
+
+    @Override
+    public EventLoop localEventLoop() {
+        return netContext.localEventLoop();
     }
 }
