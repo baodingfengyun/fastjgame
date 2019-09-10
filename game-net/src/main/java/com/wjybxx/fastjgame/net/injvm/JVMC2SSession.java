@@ -19,7 +19,6 @@ package com.wjybxx.fastjgame.net.injvm;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.manager.JVMC2SSessionManager;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
-import com.wjybxx.fastjgame.manager.SessionManager;
 import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.net.RoleType;
 import com.wjybxx.fastjgame.net.SessionSenderMode;
@@ -39,9 +38,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class JVMC2SSession extends AbstractJVMSession {
 
     /**
-     * 会话存活状态，创建session的时候已是激活的了。
+     * 会话激活状态
      */
-    private final AtomicBoolean state = new AtomicBoolean(true);
+    private final AtomicBoolean state = new AtomicBoolean(false);
 
     public JVMC2SSession(NetContext netContext, long remoteGuid, RoleType remoteRole,
                          NetManagerWrapper managerWrapper, SessionSenderMode sessionSenderMode) {

@@ -23,6 +23,8 @@ import com.wjybxx.fastjgame.net.RoleType;
 import com.wjybxx.fastjgame.net.SessionSenderMode;
 
 /**
+ * JVMSession的抽象实现
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/9/9

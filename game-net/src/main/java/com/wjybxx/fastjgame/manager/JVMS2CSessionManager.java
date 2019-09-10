@@ -39,6 +39,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * 监听方session管理器
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/9/9
@@ -249,7 +251,7 @@ public class JVMS2CSessionManager extends JVMSessionManager {
     }
 
     /**
-     * 删除某个用户的所有会话，(赶脚不必发送通知)
+     * 删除某个用户的所有会话
      *
      * @param userInfo  用户信息
      * @param reason    移除会话的原因
@@ -355,7 +357,7 @@ public class JVMS2CSessionManager extends JVMSessionManager {
 
         /**
          * 客户端发起的所有会话，注册时加入，close时删除
-         * serverGuid --> session
+         * guid --> session
          */
         private final Long2ObjectMap<SessionWrapper> sessionWrapperMap = new Long2ObjectOpenHashMap<>();
 

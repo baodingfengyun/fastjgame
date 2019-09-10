@@ -90,7 +90,8 @@ public class ExampleRpcClientLoop extends SingleThreadEventLoop {
 
     @Override
     protected void loop() {
-        for (int index = 0; index < 1000; index++) {
+        final long starrTime = System.currentTimeMillis();
+        for (int index = 0; ; index++) {
             System.out.println("\n ------------------------------------" + index + "------------------------------------------");
 
             // 执行所有任务
@@ -103,8 +104,10 @@ public class ExampleRpcClientLoop extends SingleThreadEventLoop {
             if (confirmShutdown()) {
                 break;
             }
-            // X秒一个循环
-            LockSupport.parkNanos(TimeUtils.NANO_PER_MILLISECOND * TimeUtils.SEC * 2);
+            // 循环x分钟
+            if (System.currentTimeMillis() - starrTime > TimeUtils.MIN * 3) {
+                break;
+            }
         }
     }
 
@@ -134,9 +137,10 @@ public class ExampleRpcClientLoop extends SingleThreadEventLoop {
                 .ifSuccess(result -> System.out.println("incWithSessionAndChannel - " + index + " - " + result))
                 .call(session);
 
-        // 如果client、service、netEventLoop全部无缝loop，并关闭网络层发送缓冲区，在我电脑上：
-        // 如果是正常socket，最低1300000纳秒(1.3毫秒) 多数为 2000000纳秒左右居多 （2毫秒）。
-        // 如果jvmPort，平均在 140000纳秒(0.14毫秒) 左右
+        // 如果netEventLoop全部无缝loop (net_config.properties 配置frameInterval 为0)
+        // 在我电脑上：
+        // 如果是正常socket，30W - 40W 纳秒区间段最多 - (0.3 - 0.4毫秒)。
+        // 如果jvmPort， 2W - 3W 纳秒区间段最多 - (0.02 - 0.03毫秒)。
 
         final long start = System.nanoTime();
         final String callResult = ExampleRpcServiceRpcProxy.combine("wjybxx", String.valueOf(index)).syncCall(session);

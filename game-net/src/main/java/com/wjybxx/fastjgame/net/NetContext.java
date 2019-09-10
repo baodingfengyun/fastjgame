@@ -21,10 +21,8 @@ import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.PortRange;
-import com.wjybxx.fastjgame.net.initializer.HttpServerInitializer;
 import com.wjybxx.fastjgame.net.injvm.JVMPort;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.socket.SocketChannel;
+import com.wjybxx.fastjgame.net.injvm.JVMSession;
 import okhttp3.Response;
 
 import javax.annotation.Nonnull;
@@ -249,7 +247,8 @@ public interface NetContext {
     // -------------------------------------- 用于支持JVM内部通信 -------------------------------
 
     /**
-     * 绑定一个JVM端口，用于其它线程建立会话
+     * 绑定一个JVM端口，用于其它线程建立会话。
+     * 其性能至少是socket的10倍，如果你的session的双发在同一个进程下，那么强烈建议使用{@link JVMSession}。
      *
      * @param lifecycleAware     生命周期监听器
      * @param protocolDispatcher 消息分发器
