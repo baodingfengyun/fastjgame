@@ -36,7 +36,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * date - 2019/4/27 10:18
  * github - https://github.com/hl845740757
  */
-public class S2CSession extends AbstractRemoteSession implements RemoteSession {
+public class S2CSession extends AbstractRemoteSession {
 
     /**
      * 会话在激活的时候才会创建，因此初始的时候是true

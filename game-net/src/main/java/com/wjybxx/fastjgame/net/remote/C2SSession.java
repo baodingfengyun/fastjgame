@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * date - 2019/4/27 10:00
  * github - https://github.com/hl845740757
  */
-public class C2SSession extends AbstractRemoteSession implements RemoteSession {
+public class C2SSession extends AbstractRemoteSession {
 
     /**
      * 未激活状态

@@ -94,7 +94,7 @@ public class GameEventLoopGroupImp extends MultiThreadEventLoopGroup implements 
     public static final class Builder {
 
         private ThreadFactory threadFactory = new DefaultThreadFactory("WORLD");
-        private RejectedExecutionHandler rejectedExecutionHandler = RejectedExecutionHandlers.reject();
+        private RejectedExecutionHandler rejectedExecutionHandler = RejectedExecutionHandlers.abort();
         private EventLoopChooserFactory chooserFactory = null;
 
         private NetEventLoopGroup netEventLoopGroup;

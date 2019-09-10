@@ -22,6 +22,7 @@ import com.wjybxx.fastjgame.net.Session;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 import java.util.List;
 
 /**
@@ -32,6 +33,7 @@ import java.util.List;
  * date - 2019/8/23
  * github - https://github.com/hl845740757
  */
+@NotThreadSafe
 public class DefaultRpcBuilder<V> implements RpcBuilder<V> {
 
     private static final int SHARE_MODE_ANY = 0;

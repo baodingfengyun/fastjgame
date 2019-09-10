@@ -19,12 +19,8 @@ package com.wjybxx.fastjgame.net;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
-import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.HttpResponseBuilder;
-import io.netty.channel.ChannelFuture;
 import io.netty.handler.codec.http.HttpResponse;
-
-import javax.annotation.Nonnull;
 
 /**
  * HttpSession抽象接口
@@ -63,24 +59,35 @@ public interface HttpSession {
      * 发送一个响应
      *
      * @param response 响应内容
-     * @return 注意相同的警告，建议使用{@link ChannelFuture#await()} 和{@link ChannelFuture#isSuccess()}
-     * 代替{@link ChannelFuture#sync()}
      */
-    ChannelFuture writeAndFlush(HttpResponse response);
+    void writeAndFlush(HttpResponse response);
 
     /**
      * 发送一个http结果对象
      *
      * @param <T>     builder自身
      * @param builder 建造者
-     * @return 注意相同的警告，建议使用{@link ChannelFuture#await()} 和{@link ChannelFuture#isSuccess()}
-     * 代替{@link ChannelFuture#sync()}
      */
-    <T extends HttpResponseBuilder<T>> ChannelFuture writeAndFlush(HttpResponseBuilder<T> builder);
+    <T extends HttpResponseBuilder<T>> void writeAndFlush(HttpResponseBuilder<T> builder);
 
     // ------------------------------------- session的运行环境(不建议用户使用) -------------------------
 
+    /**
+     * 创建该session的NetContext
+     *
+     */
+    NetContext netContext();
+
+    /**
+     * 该session所在的NetEventLoop。
+     * <li>注意：不保证是{@link NetContext#netEventLoop()} </li>
+     *
+     */
     NetEventLoop netEventLoop();
 
+    /**
+     * 该session所在的用户线程，一定是{@link NetContext#localEventLoop()}
+     *
+     */
     EventLoop localEventLoop();
 }

@@ -69,10 +69,14 @@ class ExampleRpcServerLoop extends SingleThreadEventLoop {
 
         if (jvmPortPromise != null) {
             // 绑定jvm端口
-            final JVMPort jvmPort = netContext.bindInJVM(new ClientLifeAware(),
-                    new ExampleRpcDispatcher(dispatcher),
-                    SessionSenderMode.DIRECT).get();
-            jvmPortPromise.trySuccess(jvmPort);
+            try {
+                final JVMPort jvmPort = netContext.bindInJVM(new ClientLifeAware(),
+                        new ExampleRpcDispatcher(dispatcher),
+                        SessionSenderMode.DIRECT).get();
+                jvmPortPromise.trySuccess(jvmPort);
+            } catch (Exception e) {
+                jvmPortPromise.tryFailure(e);
+            }
         } else {
             // 监听tcp端口
             netContext.bindTcp(NetUtils.getLocalIp(),

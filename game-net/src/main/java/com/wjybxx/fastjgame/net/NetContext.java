@@ -248,7 +248,12 @@ public interface NetContext {
 
     /**
      * 绑定一个JVM端口，用于其它线程建立会话。
-     * 其性能至少是socket的10倍，如果你的session的双发在同一个进程下，那么强烈建议使用{@link JVMSession}。
+     * 其性能与socket的不在一个数量级，如果你的session的双方在同一个进程下，那么强烈建议使用{@link JVMSession}。
+     * <pre>
+     * 1. 它发消息没有序列化开销 - 因此也要注意发送的数据当前线程不可以再使用。
+     * 2. 它没有网络传输开销，纯粹的内存数据转移。
+     * 3. 没有复杂的网络情况要处理。 - ack、sequence等复杂逻辑。
+     * </pre>
      *
      * @param lifecycleAware     生命周期监听器
      * @param protocolDispatcher 消息分发器

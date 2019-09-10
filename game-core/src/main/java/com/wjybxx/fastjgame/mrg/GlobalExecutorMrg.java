@@ -61,7 +61,7 @@ public class GlobalExecutorMrg {
 
     public void shutdown() {
         executorService.shutdownNow();
-        logger.info("shut down success.");
+        logger.info("GlobalExecutorMrg shutdown success.");
     }
 
 }

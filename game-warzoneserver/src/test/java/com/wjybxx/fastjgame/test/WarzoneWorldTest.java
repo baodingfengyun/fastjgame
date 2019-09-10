@@ -44,7 +44,7 @@ public class WarzoneWorldTest {
         System.setProperty("logPath", logPath);
 
 
-        NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET"), RejectedExecutionHandlers.reject());
+        NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET"), RejectedExecutionHandlers.abort());
         GameEventLoopGroupImp.newBuilder()
                 .setNetEventLoopGroup(netEventLoopGroup)
                 .addWorld(new WarzoneModule(), new ArrayConfigWrapper(args), 5)

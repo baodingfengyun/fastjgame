@@ -46,7 +46,7 @@ public class SceneWorldTest {
         System.setProperty("logPath", logPath);
 
         NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET"),
-                RejectedExecutionHandlers.reject());
+                RejectedExecutionHandlers.abort());
 
         GameEventLoopGroupImp.newBuilder()
                 .setNetEventLoopGroup(netEventLoopGroup)

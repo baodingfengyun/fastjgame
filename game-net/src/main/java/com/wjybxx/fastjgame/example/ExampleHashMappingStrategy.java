@@ -16,10 +16,16 @@
 
 package com.wjybxx.fastjgame.example;
 
+import com.google.protobuf.AbstractMessage;
+import com.google.protobuf.ProtocolMessageEnum;
+import com.wjybxx.fastjgame.annotation.SerializableClass;
+import com.wjybxx.fastjgame.enummapper.NumberEnum;
 import com.wjybxx.fastjgame.misc.MessageMappingStrategy;
 import com.wjybxx.fastjgame.misc.RpcCall;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+
+import java.util.Arrays;
 
 /**
  * 基于hash的映射方法，由类的完整名字计算hash值。
@@ -33,12 +39,40 @@ public class ExampleHashMappingStrategy implements MessageMappingStrategy {
 
     @Override
     public Object2IntMap<Class<?>> mapping() throws Exception {
-        Object2IntMap<Class<?>> result = new Object2IntOpenHashMap<>();
+        final Object2IntMap<Class<?>> result = new Object2IntOpenHashMap<>();
         Class<?>[] allClass = ExampleMessages.class.getDeclaredClasses();
         for (Class<?> messageClass : allClass) {
             result.put(messageClass, messageClass.getCanonicalName().hashCode());
         }
+        // rpc调用必须放里面
         result.put(RpcCall.class, RpcCall.class.getCanonicalName().hashCode());
+        // 测试协议文件
+        Arrays.stream(p_test.class.getDeclaredClasses())
+                .filter(ExampleHashMappingStrategy::isSerializable)
+                .forEach(clazz -> {
+                    result.put(clazz, clazz.getCanonicalName().hashCode());
+                });
         return result;
+    }
+
+    private static boolean isSerializable(Class<?> clazz) {
+        return clazz.isAnnotationPresent(SerializableClass.class)
+                || AbstractMessage.class.isAssignableFrom(clazz)
+                || ProtocolMessageEnum.class.isAssignableFrom(clazz)
+                || NumberEnum.class.isAssignableFrom(clazz) && hasForNumberMethod(clazz);
+    }
+
+    private static boolean hasForNumberMethod(Class<?> clazz) {
+        try {
+            clazz.getDeclaredMethod("forNumber", int.class);
+            return true;
+        } catch (NoSuchMethodException ignore) {
+        }
+        try {
+            clazz.getDeclaredMethod("forNumber", Integer.class);
+            return true;
+        } catch (NoSuchMethodException ignore) {
+        }
+        return false;
     }
 }

@@ -101,6 +101,7 @@ fastjgame 为 fast java game framework的缩写，如名字一样，该项目的
 3. 支持自定义协议解析（实现**ProtocolCodec**）。
 4. 采用protoBuf实现自定义二进制协议，**体积小，编解码速度快**，再辅以代码生成 -- **简单极速的rpc调用**。
 5. 支持*双向的***单向消息，异步rpc调用，同步rpc调用。**
+6. JVM内线程通信与跨进程通信具有几乎完成相同的API。你可以向另一个**进程**发起RPC请求，也可以向另一个**线程**发起RPC请求。
 
 ### 服务器的节点发现
 * 基于zookeeper实现，同时zookeeper作为配置中心，以及分布式锁.  
@@ -178,3 +179,9 @@ fastjgame 为 fast java game framework的缩写，如名字一样，该项目的
 
 #### 注解处理器优化 2019-08-26
 注解处理器不再依赖utils和net模块，而是utils依赖auto模块，这样utils和net模块也可以使用自己定义的注解了。
+
+#### 线程模型调整 2019年9月06日
+一个GameEventLoop只承载单个World，具有更简单的编程模型，且更加安全。
+
+#### JVMSession 2019年9月10日
+为JVM内部线程提供session支持，JVM内通信和跨进程之间的通信有相同的API。你可以通过**NetContext**轻松的连接到另一个线程，其通信开销远远小于socket。

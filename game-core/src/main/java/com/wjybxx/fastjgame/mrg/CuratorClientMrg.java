@@ -25,6 +25,8 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.EnsureContainers;
 import org.apache.curator.utils.CloseableExecutorService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -43,6 +45,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @EventLoopGroupSingleton
 @ThreadSafe
 public class CuratorClientMrg {
+
+    private static final Logger logger = LoggerFactory.getLogger(CuratorClientMrg.class);
 
     /**
      * CuratorFramework instances are fully thread-safe.
@@ -74,6 +78,7 @@ public class CuratorClientMrg {
     public void shutdown() {
         ConcurrentUtils.safeExecute((Runnable) client::close);
         backgroundExecutor.shutdownNow();
+        logger.info("CuratorClientMrg shutdown success");
     }
 
     /**

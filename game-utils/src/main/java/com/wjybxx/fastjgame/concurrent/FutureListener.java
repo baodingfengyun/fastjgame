@@ -23,12 +23,12 @@ package com.wjybxx.fastjgame.concurrent;
  * 监听{@link ListenableFuture}的结果。一旦该listener通过{@link ListenableFuture#addListener(FutureListener)}添加到future上，
  * future上关联的异步操作完成时，就会收到通知。
  *
- * <pre>
- * ListenableFuture f = new DefaultPromise(..);
+ * <pre>{@code
+ * ListenableFuture f = submit(task);
  * f.addListener(new FutureListener() {
- *     public void onComplete(ListenableFuture f) { .. }
+ *      public void onComplete(ListenableFuture f) { .. }
  * });
- * </pre>
+ * }</pre>
  *
  * @param <V> Listener期望消费的类型，也是Future生产的类型。
  * @author wjybxx

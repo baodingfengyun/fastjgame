@@ -478,7 +478,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     @Nullable
     protected final Runnable takeTask() {
         assert inEventLoop();
-        return taskQueueHandler.taskTask();
+        return taskQueueHandler.takeTask();
     }
 
     /**
@@ -490,7 +490,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     @Nullable
     protected final Runnable takeTask(long timeoutMs) {
         assert inEventLoop();
-        return taskQueueHandler.taskTask(timeoutMs);
+        return taskQueueHandler.takeTask(timeoutMs);
     }
 
     /**
@@ -599,7 +599,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
          * @return task
          */
         @Nullable
-        Runnable taskTask();
+        Runnable takeTask();
 
         /**
          * 以阻塞的方式从任务队列中取出一个任务，直到被中断或被唤醒，或时间到
@@ -607,7 +607,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
          * @param timeoutMs 超时时间，毫秒
          * @return task
          */
-        Runnable taskTask(long timeoutMs);
+        Runnable takeTask(long timeoutMs);
 
         /**
          * 将任务队列
@@ -640,7 +640,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 
         @Nullable
         @Override
-        public Runnable taskTask() {
+        public Runnable takeTask() {
             return taskTaskImp(taskQueue::take);
         }
 
@@ -660,7 +660,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
         }
 
         @Override
-        public Runnable taskTask(long timeoutMs) {
+        public Runnable takeTask(long timeoutMs) {
             return taskTaskImp(() -> taskQueue.poll(timeoutMs, TimeUnit.MILLISECONDS));
         }
 
@@ -686,12 +686,12 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 
         @Nullable
         @Override
-        public Runnable taskTask() {
+        public Runnable takeTask() {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public Runnable taskTask(long timeoutMs) {
+        public Runnable takeTask(long timeoutMs) {
             throw new UnsupportedOperationException();
         }
 

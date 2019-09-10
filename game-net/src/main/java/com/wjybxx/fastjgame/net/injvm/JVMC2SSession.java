@@ -70,6 +70,7 @@ public class JVMC2SSession extends AbstractJVMSession {
     @Override
     public ListenableFuture<?> close() {
         setClosed();
+        // 可能是网络层发起的关闭请求
         return EventLoopUtils.submitOrRun(netEventLoop(), () -> {
             getSessionManager().removeSession(localGuid(), remoteGuid, "close");
         });

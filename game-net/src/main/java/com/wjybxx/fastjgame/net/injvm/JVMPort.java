@@ -21,7 +21,7 @@ import com.wjybxx.fastjgame.manager.JVMC2SSessionManager;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
 import com.wjybxx.fastjgame.net.*;
 
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * 用于建立JVM内部session的“端口”，它并非一个真正的端口。
@@ -32,7 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * date - 2019/9/9
  * github - https://github.com/hl845740757
  */
-@ThreadSafe
+@NotThreadSafe
 public class JVMPort {
 
     /**

@@ -23,7 +23,6 @@ import com.wjybxx.fastjgame.manager.HttpSessionManager;
 import com.wjybxx.fastjgame.misc.HttpResponseBuilder;
 import com.wjybxx.fastjgame.utils.EventLoopUtils;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 import io.netty.handler.codec.http.HttpResponse;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -78,28 +77,12 @@ public final class HttpSessionImp implements HttpSession {
         stateHolder.set(true);
     }
 
-    /**
-     * 发送一个响应
-     *
-     * @param response 响应内容
-     * @return 注意相同的警告，建议使用{@link ChannelFuture#await()} 和{@link ChannelFuture#isSuccess()}
-     * 代替{@link ChannelFuture#sync()}
-     */
-    public ChannelFuture writeAndFlush(HttpResponse response) {
-        return channel.writeAndFlush(response);
+    public void writeAndFlush(HttpResponse response) {
+        channel.writeAndFlush(response, channel.voidPromise());
     }
 
-    /**
-     * 发送一个响应
-     *
-     * @param <T>     builder自身
-     * @param builder 建造者
-     * @return 注意相同的警告，建议使用{@link ChannelFuture#await()} 和{@link ChannelFuture#isSuccess()}
-     * 代替{@link ChannelFuture#sync()}
-     */
-    public <T extends HttpResponseBuilder<T>> ChannelFuture writeAndFlush(HttpResponseBuilder<T> builder) {
-        HttpResponse response = builder.build();
-        return writeAndFlush(response);
+    public <T extends HttpResponseBuilder<T>> void writeAndFlush(HttpResponseBuilder<T> builder) {
+        writeAndFlush(builder.build());
     }
 
     @Override
@@ -108,6 +91,11 @@ public final class HttpSessionImp implements HttpSession {
         return EventLoopUtils.submitOrRun(netEventLoop(), () -> {
             httpSessionManager.removeSession(this, channel);
         });
+    }
+
+    @Override
+    public NetContext netContext() {
+        return netContext;
     }
 
     @Override

@@ -55,7 +55,7 @@ import java.util.*;
  * <p>
  * 其实我心里还是支持用反射，尤其是在现在的架构下，解码操作可以在Netty的IO线程，也可以在NetEventLoop线程（NetEventLoop线程是非常清闲的），
  * 对应用层的性能降低很有限。
- * *
+ *
  * 自定义协议，不要使用原生带Tag的方法！
  * 突然发现...计算大小的方法不需要了..............
  * <p>
@@ -66,7 +66,7 @@ import java.util.*;
  * 		List/Set 		tag + size + element,element....              element 编解码 -- 递归
  * 		Map      		tag + size + key,value,key,value.....         key/Value 编解码 -- 递归
  * 		Message  		tag + messageId + length + bytes
- * 	    Serializable	tag + messageId + field,field.... endTag       field 构成: type + number + data
+ * 	    Serializable	tag + messageId + field,field.... endTag       field 构成: tag + number + data
  * 	    枚举				tag + messageId + number
  * </pre>
  * 其中messageId用于确定一个唯一的类！也就是{@link MessageMapper}的重要作用。
@@ -707,7 +707,8 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
 
         @Override
         public int calSerializeDataSize(@Nonnull AbstractMessage obj, boolean mayNegative) {
-            return CodedOutputStream.computeMessageSizeNoTag(obj);
+            return CodedOutputStream.computeInt32SizeNoTag(messageMapper.getMessageId(obj.getClass())) +
+                    CodedOutputStream.computeMessageSizeNoTag(obj);
         }
 
         @Override

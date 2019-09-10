@@ -33,39 +33,28 @@ public class RejectedExecutionHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(RejectedExecutionHandlers.class);
 
-    private static final RejectedExecutionHandler REJECT_POLICY = new RejectedExecutionHandler() {
-        @Override
-        public void rejected(Runnable r, EventLoop eventLoop) {
-            throw new RejectedExecutionException();
-        }
+    /**
+     * 中止 - 抛出异常
+     */
+    private static final RejectedExecutionHandler ABORT_POLICY = (r, eventLoop) -> {
+        throw new RejectedExecutionException();
     };
 
-    private static final RejectedExecutionHandler CALLER_RUNS_POLICY = new RejectedExecutionHandler() {
-        @Override
-        public void rejected(Runnable r, EventLoop eventLoop) {
-            r.run();
-        }
-    };
+    private static final RejectedExecutionHandler CALLER_RUNS_POLICY = (r, eventLoop) -> r.run();
 
     /**
      * 忽略
      */
-    private static final RejectedExecutionHandler DISCARD_POLICY = new RejectedExecutionHandler() {
-        @Override
-        public void rejected(Runnable r, EventLoop eventLoop) {
-            // do nothing
-        }
+    private static final RejectedExecutionHandler DISCARD_POLICY = (r, eventLoop) -> {
+        // do nothing
     };
 
 
     /**
      * 仅仅记录一条日志
      */
-    private static final RejectedExecutionHandler LOG_POLICY = new RejectedExecutionHandler() {
-        @Override
-        public void rejected(Runnable r, EventLoop eventLoop) {
-            logger.warn("task {} is reject by {}.", r.getClass().getCanonicalName(), eventLoop.getClass().getCanonicalName());
-        }
+    private static final RejectedExecutionHandler LOG_POLICY = (r, eventLoop) -> {
+        logger.warn("task {} is reject by {}.", r.getClass().getCanonicalName(), eventLoop.getClass().getCanonicalName());
     };
 
 
@@ -76,8 +65,8 @@ public class RejectedExecutionHandlers {
     /**
      * 抛出拒绝异常
      */
-    public static RejectedExecutionHandler reject() {
-        return REJECT_POLICY;
+    public static RejectedExecutionHandler abort() {
+        return ABORT_POLICY;
     }
 
     /**
@@ -97,6 +86,9 @@ public class RejectedExecutionHandlers {
         return DISCARD_POLICY;
     }
 
+    /**
+     * 仅仅是记录一条日志
+     */
     public static RejectedExecutionHandler log() {
         return LOG_POLICY;
     }

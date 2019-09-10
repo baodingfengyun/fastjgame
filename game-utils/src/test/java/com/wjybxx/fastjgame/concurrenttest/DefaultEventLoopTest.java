@@ -26,7 +26,7 @@ import com.wjybxx.fastjgame.concurrent.*;
  */
 public class DefaultEventLoopTest {
 
-    private static DefaultEventLoopGroup eventLoopGroup = new DefaultEventLoopGroup(2, new DefaultThreadFactory("test"), RejectedExecutionHandlers.reject());
+    private static DefaultEventLoopGroup eventLoopGroup = new DefaultEventLoopGroup(2, new DefaultThreadFactory("test"), RejectedExecutionHandlers.abort());
 
     public static void main(String[] args) {
 

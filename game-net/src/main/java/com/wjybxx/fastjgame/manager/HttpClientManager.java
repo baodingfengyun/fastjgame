@@ -63,6 +63,7 @@ public class HttpClientManager {
     public void shutdown() {
         okHttpClient.dispatcher().cancelAll();
         okHttpClient.dispatcher().executorService().shutdown();
+        logger.info("HttpClientManager shutdown success");
     }
 
     /**

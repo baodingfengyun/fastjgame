@@ -137,10 +137,11 @@ public class ExampleRpcClientLoop extends SingleThreadEventLoop {
                 .ifSuccess(result -> System.out.println("incWithSessionAndChannel - " + index + " - " + result))
                 .call(session);
 
-        // 如果netEventLoop全部无缝loop (net_config.properties 配置frameInterval 为0)
+        // 如果netEventLoop无缝loop (net_config.properties 配置frameInterval 为0)
         // 在我电脑上：
         // 如果是正常socket，30W - 40W 纳秒区间段最多 - (0.3 - 0.4毫秒)。
         // 如果jvmPort， 2W - 3W 纳秒区间段最多 - (0.02 - 0.03毫秒)。
+        // 这还只是数据非常少的情况下，如果数据量大，这个差距更大，JVM内部通信建议使用JVMSession
 
         final long start = System.nanoTime();
         final String callResult = ExampleRpcServiceRpcProxy.combine("wjybxx", String.valueOf(index)).syncCall(session);

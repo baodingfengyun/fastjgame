@@ -44,7 +44,7 @@ public class LoginWorldTest {
         String logPath = logDir + File.separator + "login.log";
         System.setProperty("logPath", logPath);
 
-        NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET"), RejectedExecutionHandlers.reject());
+        NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET"), RejectedExecutionHandlers.abort());
 
         GameEventLoopGroupImp.newBuilder()
                 .setNetEventLoopGroup(netEventLoopGroup)

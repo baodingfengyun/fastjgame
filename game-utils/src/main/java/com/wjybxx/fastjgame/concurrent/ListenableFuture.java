@@ -135,7 +135,7 @@ public interface ListenableFuture<V> extends Future<V> {
      * 非阻塞获取导致任务失败的原因。
      * 当future关联的任务被取消或由于异常进入完成状态后，该方法将返回操作失败的原因。
      *
-     * @return 失败的原因。{@link CancellationException} 或 {@link ExecutionException}。
+     * @return 失败的原因。原始原因，而不是被包装后的{@link ExecutionException}
      * 如果future关联的task已正常完成，则返回null。
      * 如果future关联的task还未进入完成状态，则返回null。
      */

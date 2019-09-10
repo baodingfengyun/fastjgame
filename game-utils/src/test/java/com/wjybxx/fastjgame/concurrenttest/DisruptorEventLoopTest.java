@@ -36,7 +36,7 @@ public class DisruptorEventLoopTest {
 
     public static void main(String[] args) {
         DisruptorEventLoopGroup eventLoopGroup = new DisruptorEventLoopGroup(new DefaultThreadFactory("Disruptor-Thread"),
-                RejectedExecutionHandlers.reject(),
+                RejectedExecutionHandlers.abort(),
                 Collections.singletonList(new DisruptorEventLoopGroup.BuildContext(new EventHandlerImp())));
 
         DisruptorEventLoop eventLoop = eventLoopGroup.next();

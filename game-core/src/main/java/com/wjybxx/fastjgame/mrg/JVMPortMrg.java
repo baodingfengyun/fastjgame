@@ -53,11 +53,11 @@ public class JVMPortMrg {
      * A: 因为性能差不多。 - 这理由简直可以拖出去枪毙5分钟了。
      * <p>
      * Q: 那什么时候使用{@link ConcurrentHashMap}？
-     * A: 如果你盲目的将{@link HashMap}替换成{@link ConcurrentHashMap}，可能能解决问题，但也有可能将问题隐藏，甚至什么用也没有！
+     * A: 如果你盲目的将{@link HashMap}替换成{@link ConcurrentHashMap}，可能能解决问题，但也有可能将问题隐藏，甚至可能什么用也没有！
      * <i>解决了问题</i>和<i>什么用都没有</i>是最好的两种情况，如果是将问题给隐藏了，那么你就是给自己埋了一个更大的坑，以后出现问题更难分析，更难解决，
      * 因为你会觉得使用了{@link ConcurrentHashMap}，这里没有问题。
      * <p>
-     * 什么时候使用{@link ConcurrentHashMap}并不重要，重要的是你要清楚你面临的真正问题！<br>
+     * 什么时候使用{@link ConcurrentHashMap}并不重要，重要的是你要清楚你面临的真正问题，这个需要扎实的多线程基础！<br>
      * 建议：优先消除同步逻辑！当你无法消除同步的时候，再考虑{@link ConcurrentHashMap}这种并发组件。<br>
      * 我习惯于：先想办法消除同步，再考虑其它的并发组件。这套框架的底层，也都是这样做的！我在这里的时候很自然的发现{@link ConcurrentHashMap}很适合，就用了。
      */
@@ -72,8 +72,8 @@ public class JVMPortMrg {
      * 发布一个JVMPort，使得其它线程可以通过该jvmPort建立连接。
      * 注意：该方法必须在world将自己注册到zookeeper之前执行！以保证其它world在zookeeper上发现它以后一定能取出它的jvmPort.
      *
-     * @param worldGuid
-     * @param jvmPort
+     * @param worldGuid worldGuid
+     * @param jvmPort   该world监听的jvm端口
      */
     public void register(long worldGuid, JVMPort jvmPort) {
         final JVMPort exist = jvmPortMap.putIfAbsent(worldGuid, jvmPort);
