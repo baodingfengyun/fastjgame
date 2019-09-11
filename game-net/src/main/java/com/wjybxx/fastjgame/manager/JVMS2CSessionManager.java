@@ -22,8 +22,8 @@ import com.wjybxx.fastjgame.misc.LongSequencer;
 import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.net.injvm.JVMPort;
 import com.wjybxx.fastjgame.net.injvm.JVMS2CSession;
+import com.wjybxx.fastjgame.utils.CollectionUtils;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-import com.wjybxx.fastjgame.utils.FastCollectionsUtils;
 import com.wjybxx.fastjgame.utils.FunctionUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
@@ -80,9 +80,9 @@ public class JVMS2CSessionManager extends JVMSessionManager {
         for (UserInfo userInfo : userInfoMap.values()) {
             for (SessionWrapper sessionWrapper : userInfo.sessionWrapperMap.values()) {
                 // 检测超时的rpc调用
-                FastCollectionsUtils.removeIfAndThen(sessionWrapper.rpcPromiseInfoMap,
-                        (k, rpcPromiseInfo) -> netTimeManager.getSystemMillTime() >= rpcPromiseInfo.deadline,
-                        (k, rpcPromiseInfo) -> commitRpcResponse(sessionWrapper.session, rpcPromiseInfo, RpcResponse.TIMEOUT));
+                CollectionUtils.removeIfAndThen(sessionWrapper.rpcPromiseInfoMap.values(),
+                        rpcPromiseInfo -> netTimeManager.getSystemMillTime() >= rpcPromiseInfo.deadline,
+                        rpcPromiseInfo -> commitRpcResponse(sessionWrapper.session, rpcPromiseInfo, RpcResponse.TIMEOUT));
             }
         }
     }
@@ -123,7 +123,7 @@ public class JVMS2CSessionManager extends JVMSessionManager {
         final SessionWrapper sessionWrapper = getWritableSession(localGuid, remoteGuid);
         if (null != sessionWrapper) {
             // 注意需要交换guid
-            jvmc2SSessionManager.onRcvOneWayMessage(remoteGuid, localGuid, NetUtils.codecOneWayMessage(message, sessionWrapper.getCodec()));
+            jvmc2SSessionManager.onRcvOneWayMessage(remoteGuid, localGuid, NetUtils.cloneMessage(message, sessionWrapper.getCodec()));
         }
     }
 
@@ -137,7 +137,7 @@ public class JVMS2CSessionManager extends JVMSessionManager {
             RpcPromiseInfo rpcPromiseInfo = RpcPromiseInfo.newInstance(rpcCallback, deadline);
             sessionWrapper.rpcPromiseInfoMap.put(remoteGuid, rpcPromiseInfo);
 
-            jvmc2SSessionManager.onRcvRpcRequestMessage(remoteGuid, localGuid, rpcRequestGuid, false, NetUtils.codecRpcRequest(request, sessionWrapper.getCodec()));
+            jvmc2SSessionManager.onRcvRpcRequestMessage(remoteGuid, localGuid, rpcRequestGuid, false, NetUtils.cloneRpcRequest(request, sessionWrapper.getCodec()));
         } else {
             ConcurrentUtils.tryCommit(userEventLoop, () -> {
                 rpcCallback.onComplete(RpcResponse.SESSION_CLOSED);
@@ -155,7 +155,7 @@ public class JVMS2CSessionManager extends JVMSessionManager {
             long requestGuid = sessionWrapper.nextRpcRequestGuid();
             sessionWrapper.rpcPromiseInfoMap.put(requestGuid, rpcPromiseInfo);
 
-            jvmc2SSessionManager.onRcvRpcRequestMessage(remoteGuid, localGuid, requestGuid, true, NetUtils.codecRpcRequest(request, sessionWrapper.getCodec()));
+            jvmc2SSessionManager.onRcvRpcRequestMessage(remoteGuid, localGuid, requestGuid, true, NetUtils.cloneRpcRequest(request, sessionWrapper.getCodec()));
         } else {
             rpcPromise.trySuccess(RpcResponse.SESSION_CLOSED);
         }
@@ -166,7 +166,7 @@ public class JVMS2CSessionManager extends JVMSessionManager {
         final SessionWrapper sessionWrapper = getWritableSession(localGuid, remoteGuid);
         if (null != sessionWrapper) {
             // 注意需要交换guid
-            jvmc2SSessionManager.onRcvRpcResponse(remoteGuid, localGuid, requestGuid, NetUtils.codecRpcResponse(response, sessionWrapper.getCodec()));
+            jvmc2SSessionManager.onRcvRpcResponse(remoteGuid, localGuid, requestGuid, NetUtils.cloneRpcResponse(response, sessionWrapper.getCodec()));
         }
     }
 
@@ -259,9 +259,9 @@ public class JVMS2CSessionManager extends JVMSessionManager {
      * @param postEvent 是否提交session移除事件
      */
     private void removeUserSession(UserInfo userInfo, String reason, final boolean postEvent) {
-        FastCollectionsUtils.removeIfAndThen(userInfo.sessionWrapperMap,
+        CollectionUtils.removeIfAndThen(userInfo.sessionWrapperMap.values(),
                 FunctionUtils::TRUE,
-                (k, sessionWrapper) -> afterRemoved(sessionWrapper, reason, postEvent));
+                sessionWrapper -> afterRemoved(sessionWrapper, reason, postEvent));
     }
 
     /**
@@ -269,9 +269,9 @@ public class JVMS2CSessionManager extends JVMSessionManager {
      */
     @Override
     public void onUserEventLoopTerminal(EventLoop userEventLoop) {
-        FastCollectionsUtils.removeIfAndThen(userInfoMap,
-                (k, userInfo) -> userInfo.netContext.localEventLoop() == userEventLoop,
-                (k, userInfo) -> removeUserSession(userInfo, "onUserEventLoopTerminal", false));
+        CollectionUtils.removeIfAndThen(userInfoMap.values(),
+                userInfo -> userInfo.netContext.localEventLoop() == userEventLoop,
+                userInfo -> removeUserSession(userInfo, "onUserEventLoopTerminal", false));
     }
 
     /**
@@ -281,9 +281,9 @@ public class JVMS2CSessionManager extends JVMSessionManager {
      */
     private void onRemoteEventLoopTerminal(EventLoop remoteEventLoop) {
         for (UserInfo userInfo : userInfoMap.values()) {
-            FastCollectionsUtils.removeIfAndThen(userInfo.sessionWrapperMap,
-                    (k, sessionWrapper) -> sessionWrapper.remoteEventLoop == remoteEventLoop,
-                    (k, sessionWrapper) -> afterRemoved(sessionWrapper, "onRemoteEventLoopTerminal", true));
+            CollectionUtils.removeIfAndThen(userInfo.sessionWrapperMap.values(),
+                    sessionWrapper -> sessionWrapper.remoteEventLoop == remoteEventLoop,
+                    sessionWrapper -> afterRemoved(sessionWrapper, "onRemoteEventLoopTerminal", true));
         }
     }
 

@@ -103,9 +103,9 @@ public class HttpSessionManager {
      */
     public void onUserEventLoopTerminal(EventLoop eventLoop) {
         assert netEventLoopManager.inEventLoop();
-        FastCollectionsUtils.removeIfAndThen(userInfoMap,
-                (long k, UserInfo userInfo) -> userInfo.netContext.localEventLoop() == eventLoop,
-                (long k, UserInfo userInfo) -> removeUserSession(userInfo));
+        CollectionUtils.removeIfAndThen(userInfoMap.values(),
+                userInfo -> userInfo.netContext.localEventLoop() == eventLoop,
+                this::removeUserSession);
     }
 
     /**

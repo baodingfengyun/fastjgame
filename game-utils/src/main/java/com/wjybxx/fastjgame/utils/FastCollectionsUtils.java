@@ -28,7 +28,9 @@ import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
 import java.util.Map;
 
 /**
- * 针对fastUtil集合的帮助类
+ * 针对fastUtil集合的帮助类。
+ * 注意：fastUtil的一个大坑！由于fastUtil的map的key-value是分开存放的，因此如果以{@link Map.Entry}的形式遍历会产生大量的对象！！！
+ * 会完全失去它的优势。
  *
  * @author wjybxx
  * @version 1.0
@@ -42,7 +44,7 @@ public class FastCollectionsUtils {
     }
 
     /**
-     * 移除map中符合条件的元素，并对删除的元素执行后续的操作
+     * 移除map中符合条件的元素，并对删除的元素执行后续的操作。
      *
      * @param map       必须是可修改的map
      * @param predicate 过滤条件，为真的删除

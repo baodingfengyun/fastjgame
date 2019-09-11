@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import io.netty.buffer.*;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,7 +46,7 @@ public class JsonBasedProtocolCodec implements ProtocolCodec {
     }
 
     @Override
-    public ByteBuf encodeRpcRequest(ByteBufAllocator bufAllocator, Object request) throws IOException {
+    public ByteBuf encodeRpcRequest(ByteBufAllocator bufAllocator, @Nonnull Object request) throws IOException {
         return encode(bufAllocator, request);
     }
 
@@ -55,7 +56,7 @@ public class JsonBasedProtocolCodec implements ProtocolCodec {
     }
 
     @Override
-    public ByteBuf encodeRpcResponse(ByteBufAllocator bufAllocator, Object body) throws IOException {
+    public ByteBuf encodeRpcResponse(ByteBufAllocator bufAllocator, @Nonnull Object body) throws IOException {
         return encode(bufAllocator, body);
     }
 
@@ -101,4 +102,36 @@ public class JsonBasedProtocolCodec implements ProtocolCodec {
         return JsonUtils.getMapper().readValue((InputStream) inputStream, messageClazz);
     }
 
+    @Override
+    public Object cloneRpcRequest(@Nonnull Object request) throws IOException {
+        return cloneObject(request);
+    }
+
+    @Override
+    public Object cloneRpcResponse(@Nonnull Object body) throws IOException {
+        return cloneObject(body);
+    }
+
+    @Override
+    public Object cloneMessage(@Nonnull Object message) throws IOException {
+        return cloneObject(message);
+    }
+
+    private Object cloneObject(@Nonnull Object obj) throws IOException {
+        ByteBuf cacheBuffer = Unpooled.wrappedBuffer(NetUtils.LOCAL_BUFFER.get());
+        try {
+            // wrap会认为bytes中的数据都是可读的，我们需要清空这些标记。
+            cacheBuffer.clear();
+
+            // 写入序列化的内容
+            ByteBufOutputStream byteBufOutputStream = new ByteBufOutputStream(cacheBuffer);
+            JsonUtils.getMapper().writeValue((OutputStream) byteBufOutputStream, obj);
+
+            // 再读出来
+            ByteBufInputStream byteBufInputStream = new ByteBufInputStream(cacheBuffer);
+            return JsonUtils.getMapper().readValue((InputStream) byteBufInputStream, obj.getClass());
+        } finally {
+            cacheBuffer.release();
+        }
+    }
 }

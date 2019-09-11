@@ -22,8 +22,6 @@ import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
 import com.wjybxx.fastjgame.manager.NetConfigManager;
 import com.wjybxx.fastjgame.net.ProtocolCodec;
 import com.wjybxx.fastjgame.net.RpcResponse;
-import com.wjybxx.fastjgame.net.codec.DecodeFunction;
-import com.wjybxx.fastjgame.net.codec.EncodeFunction;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
@@ -318,8 +316,13 @@ public class NetUtils {
      * @param codec   编解码器
      * @return newInstance
      */
-    public static Object codecOneWayMessage(Object message, ProtocolCodec codec) {
-        return codecImp(message, codec::encodeMessage, codec::decodeMessage);
+    public static Object cloneMessage(Object message, ProtocolCodec codec) {
+        try {
+            return codec.cloneMessage(message);
+        } catch (Exception e) {
+            logger.warn("cloneMessage {} caught exception, use null instead", message.getClass().getName(), e);
+        }
+        return null;
     }
 
     /**
@@ -329,8 +332,13 @@ public class NetUtils {
      * @param codec      编解码器
      * @return newInstance
      */
-    public static Object codecRpcRequest(Object rpcRequest, ProtocolCodec codec) {
-        return codecImp(rpcRequest, codec::encodeRpcRequest, codec::decodeRpcRequest);
+    public static Object cloneRpcRequest(Object rpcRequest, ProtocolCodec codec) {
+        try {
+            return codec.cloneRpcRequest(rpcRequest);
+        } catch (Exception e) {
+            logger.warn("cloneRpcRequest {} caught exception, use null instead", rpcRequest.getClass().getName(), e);
+        }
+        return null;
     }
 
     /**
@@ -340,29 +348,18 @@ public class NetUtils {
      * @param codec    编解码器
      * @return newInstance
      */
-    public static RpcResponse codecRpcResponse(RpcResponse response, ProtocolCodec codec) {
+    public static RpcResponse cloneRpcResponse(RpcResponse response, ProtocolCodec codec) {
         if (response.getBody() == null) {
             return new RpcResponse(response.getResultCode(), null);
         } else {
-            Object body = codecImp(response.getBody(), codec::encodeRpcResponse, codec::decodeRpcResponse);
-            return new RpcResponse(response.getResultCode(), body);
-        }
-    }
-
-    private static Object codecImp(Object object, EncodeFunction encodeFunction, DecodeFunction decodeFunction) {
-        try {
-            final ByteBuf byteBuf = encodeFunction.encode(PooledByteBufAllocator.DEFAULT, object);
             try {
-                return decodeFunction.decode(byteBuf);
+                Object body = codec.cloneRpcResponse(response.getBody());
+                return new RpcResponse(response.getResultCode(), body);
             } catch (Exception e) {
-                logger.warn("decode {} caught exception, use null instead", object.getClass().getName(), e);
-            } finally {
-                byteBuf.release();
+                logger.warn("cloneRpcResponse {} caught exception, use null instead", response.getBody().getClass().getName(), e);
             }
-        } catch (Exception e) {
-            logger.warn("encode {} caught exception, use null instead", object.getClass().getName(), e);
+            return new RpcResponse(response.getResultCode(), null);
         }
-        return null;
     }
 
     public static void main(String[] args) {

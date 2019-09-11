@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.net;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 
@@ -44,7 +45,7 @@ public interface ProtocolCodec {
      * @param request      rpc请求内容
      * @return rpc请求对应的字节数组，为甚使用{@link ByteBuf}？ 减少中间数组对象，减少垃圾回收。
      */
-    ByteBuf encodeRpcRequest(ByteBufAllocator bufAllocator, Object request) throws IOException;
+    ByteBuf encodeRpcRequest(ByteBufAllocator bufAllocator, @Nonnull Object request) throws IOException;
 
     /**
      * 解码rpc请求
@@ -53,6 +54,14 @@ public interface ProtocolCodec {
      * @return rpc请求内容
      */
     Object decodeRpcRequest(ByteBuf data) throws IOException;
+
+    /**
+     * 将一个对象序列化再反序列化，获取一个拷贝的新对象。
+     *
+     * @param request rpc请求内容
+     * @return newInstance
+     */
+    Object cloneRpcRequest(@Nonnull Object request) throws IOException;
 
     // ----------------------------------------- RPC响应 -------------------------------------
 
@@ -64,7 +73,7 @@ public interface ProtocolCodec {
      * @param body         rpc响应内容
      * @return rpc响应对应的字节数组
      */
-    ByteBuf encodeRpcResponse(ByteBufAllocator bufAllocator, Object body) throws IOException;
+    ByteBuf encodeRpcResponse(ByteBufAllocator bufAllocator, @Nonnull Object body) throws IOException;
 
     /**
      * 解码rpc响应内容。
@@ -75,6 +84,13 @@ public interface ProtocolCodec {
      */
     Object decodeRpcResponse(ByteBuf data) throws IOException;
 
+    /**
+     * 将一个rpc响应结果对象序列化再反序列化，获取一个拷贝的新对象。
+     *
+     * @param body 响应内容。
+     * @return newInstance
+     */
+    Object cloneRpcResponse(@Nonnull Object body) throws IOException;
     // ----------------------------------------- 单向消息 -------------------------------------
 
     /**
@@ -93,4 +109,12 @@ public interface ProtocolCodec {
      * @return 消息内容
      */
     Object decodeMessage(ByteBuf data) throws IOException;
+
+    /**
+     * 将一个单向消息序列化再反序列化，获取一个拷贝的新对象。
+     *
+     * @param message 消息内容
+     * @return newInstance
+     */
+    Object cloneMessage(@Nonnull Object message) throws IOException;
 }

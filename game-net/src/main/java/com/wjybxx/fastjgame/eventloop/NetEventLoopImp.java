@@ -24,8 +24,8 @@ import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
 import com.wjybxx.fastjgame.manager.*;
 import com.wjybxx.fastjgame.module.NetEventLoopModule;
 import com.wjybxx.fastjgame.net.*;
+import com.wjybxx.fastjgame.utils.CollectionUtils;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-import com.wjybxx.fastjgame.utils.FastCollectionsUtils;
 import com.wjybxx.fastjgame.utils.FunctionUtils;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -214,9 +214,9 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         // 清理定时器
         netTimerManager.close();
         // 删除所有的用户信息
-        FastCollectionsUtils.removeIfAndThen(registeredUserMap,
+        CollectionUtils.removeIfAndThen(registeredUserMap.values(),
                 FunctionUtils::TRUE,
-                (k, netContext) -> netContext.afterRemoved());
+                NetContextImp::afterRemoved);
         // 关闭netty线程
         ConcurrentUtils.safeExecute((Runnable) nettyThreadManager::shutdown);
     }
@@ -237,9 +237,9 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
 
     private void onUserEventLoopTerminal(EventLoop userEventLoop) {
         // 删除该EventLoop相关的所有context
-        FastCollectionsUtils.removeIfAndThen(registeredUserMap,
-                (k, netContext) -> netContext.localEventLoop() == userEventLoop,
-                (k, netContext) -> netContext.afterRemoved());
+        CollectionUtils.removeIfAndThen(registeredUserMap.values(),
+                netContext -> netContext.localEventLoop() == userEventLoop,
+                NetContextImp::afterRemoved);
 
         // 更彻底的清理
         managerWrapper.getS2CSessionManager().onUserEventLoopTerminal(userEventLoop);

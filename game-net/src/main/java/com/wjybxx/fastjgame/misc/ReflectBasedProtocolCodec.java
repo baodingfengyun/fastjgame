@@ -141,7 +141,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
     }
 
     @Override
-    public ByteBuf encodeRpcRequest(ByteBufAllocator bufAllocator, Object request) throws IOException {
+    public ByteBuf encodeRpcRequest(ByteBufAllocator bufAllocator, @Nonnull Object request) throws IOException {
         return encode(bufAllocator, request);
     }
 
@@ -151,7 +151,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
     }
 
     @Override
-    public ByteBuf encodeRpcResponse(ByteBufAllocator bufAllocator, Object body) throws IOException {
+    public ByteBuf encodeRpcResponse(ByteBufAllocator bufAllocator, @Nonnull Object body) throws IOException {
         return encode(bufAllocator, body);
     }
 
@@ -1061,6 +1061,33 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
     }
 
+    // -------------------------------------------------  拷贝对象 --------------------------------------------------
+    @Override
+    public Object cloneRpcRequest(@Nonnull Object request) throws IOException {
+        return cloneObject(request);
+    }
+
+    @Override
+    public Object cloneRpcResponse(@Nonnull Object body) throws IOException {
+        return cloneObject(body);
+    }
+
+    @Override
+    public Object cloneMessage(@Nonnull Object message) throws IOException {
+        return cloneObject(message);
+    }
+
+    private Object cloneObject(@Nonnull Object obj) throws IOException {
+        final byte[] localBuffer = NetUtils.LOCAL_BUFFER.get();
+        // 写进入
+        CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(localBuffer);
+        writeObject(codedOutputStream, obj);
+        // 再读出来
+        CodedInputStream codedInputStream = CodedInputStream.newInstance(localBuffer, 0, codedOutputStream.getTotalBytesWritten());
+        return readObject(codedInputStream);
+    }
+
+    // ------------------------------------------------- 工厂方法 ------------------------------------------------------
     @Nonnull
     public static ReflectBasedProtocolCodec newInstance(MessageMapper messageMapper) {
         final Map<Class<?>, Parser<?>> parserMap = new IdentityHashMap<>();

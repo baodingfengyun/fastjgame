@@ -109,9 +109,9 @@ public class S2CSessionManager extends RemoteSessionManager {
                 sessionWrapper.flushBuffer();
 
                 // 检测超时的rpc调用
-                FastCollectionsUtils.removeIfAndThen(sessionWrapper.messageQueue.getRpcPromiseInfoMap(),
-                        (k, rpcPromiseInfo) -> netTimeManager.getSystemMillTime() >= rpcPromiseInfo.deadline,
-                        (k, rpcPromiseInfo) -> commitRpcResponse(sessionWrapper.session, rpcPromiseInfo, RpcResponse.TIMEOUT));
+                CollectionUtils.removeIfAndThen(sessionWrapper.messageQueue.getRpcPromiseInfoMap().values(),
+                        rpcPromiseInfo -> netTimeManager.getSystemMillTime() >= rpcPromiseInfo.deadline,
+                        rpcPromiseInfo -> commitRpcResponse(sessionWrapper.session, rpcPromiseInfo, RpcResponse.TIMEOUT));
             }
         }
     }
@@ -121,9 +121,9 @@ public class S2CSessionManager extends RemoteSessionManager {
      */
     private void checkSessionTimeout(FixedDelayHandle handle) {
         for (UserInfo userInfo : userInfoMap.values()) {
-            FastCollectionsUtils.removeIfAndThen(userInfo.sessionWrapperMap,
-                    (k, sessionWrapper) -> netTimeManager.getSystemSecTime() >= sessionWrapper.getSessionTimeout(),
-                    (k, sessionWrapper) -> afterRemoved(sessionWrapper, "session time out!", true));
+            CollectionUtils.removeIfAndThen(userInfo.sessionWrapperMap.values(),
+                    sessionWrapper -> netTimeManager.getSystemSecTime() >= sessionWrapper.getSessionTimeout(),
+                    sessionWrapper -> afterRemoved(sessionWrapper, "session time out!", true));
         }
     }
 
@@ -360,9 +360,9 @@ public class S2CSessionManager extends RemoteSessionManager {
      * @param postEvent 是否上报session移除事件
      */
     private void removeUserSession(UserInfo userInfo, String reason, boolean postEvent) {
-        FastCollectionsUtils.removeIfAndThen(userInfo.sessionWrapperMap,
+        CollectionUtils.removeIfAndThen(userInfo.sessionWrapperMap.values(),
                 FunctionUtils::TRUE,
-                (k, sessionWrapper) -> afterRemoved(sessionWrapper, reason, postEvent));
+                sessionWrapper -> afterRemoved(sessionWrapper, reason, postEvent));
         // 绑定的端口需要释放
         userInfo.bindResultList.forEach(bindResult -> NetUtils.closeQuietly(bindResult.getChannel()));
     }
@@ -372,9 +372,9 @@ public class S2CSessionManager extends RemoteSessionManager {
      */
     @Override
     public void onUserEventLoopTerminal(EventLoop userEventLoop) {
-        FastCollectionsUtils.removeIfAndThen(userInfoMap,
-                (k, userInfo) -> userInfo.netContext.localEventLoop() == userEventLoop,
-                (k, userInfo) -> removeUserSession(userInfo, "onUserEventLoopTerminal", false));
+        CollectionUtils.removeIfAndThen(userInfoMap.values(),
+                userInfo -> userInfo.netContext.localEventLoop() == userEventLoop,
+                userInfo -> removeUserSession(userInfo, "onUserEventLoopTerminal", false));
     }
     // ------------------------------------------------- 网络事件处理 ---------------------------------------
 

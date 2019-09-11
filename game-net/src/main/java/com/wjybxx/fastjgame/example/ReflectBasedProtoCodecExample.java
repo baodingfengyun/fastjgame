@@ -53,7 +53,7 @@ public class ReflectBasedProtoCodecExample {
     /**
      * 一个正常赋值了的对象
      */
-    static ExampleMessages.FullMessage getFullMessage() {
+    public static ExampleMessages.FullMessage getFullMessage() {
         ExampleMessages.FullMessage fullMessage = new ExampleMessages.FullMessage();
         fullMessage.setaByte((byte) 25);
         fullMessage.setaChar('a');

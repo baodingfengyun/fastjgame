@@ -25,8 +25,8 @@ import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.net.initializer.ChannelInitializerFactory;
 import com.wjybxx.fastjgame.net.initializer.ChannelInitializerSupplier;
 import com.wjybxx.fastjgame.net.remote.C2SSession;
+import com.wjybxx.fastjgame.utils.CollectionUtils;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-import com.wjybxx.fastjgame.utils.FastCollectionsUtils;
 import com.wjybxx.fastjgame.utils.FunctionUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import io.netty.channel.Channel;
@@ -103,9 +103,9 @@ public class C2SSessionManager extends RemoteSessionManager {
                     sessionWrapper.getState().execute();
                 }
                 // 检测超时的rpc调用
-                FastCollectionsUtils.removeIfAndThen(sessionWrapper.messageQueue.getRpcPromiseInfoMap(),
-                        (k, rpcPromiseInfo) -> netTimeManager.getSystemMillTime() >= rpcPromiseInfo.deadline,
-                        (k, rpcPromiseInfo) -> commitRpcResponse(sessionWrapper.session, rpcPromiseInfo, RpcResponse.TIMEOUT));
+                CollectionUtils.removeIfAndThen(sessionWrapper.messageQueue.getRpcPromiseInfoMap().values(),
+                        rpcPromiseInfo -> netTimeManager.getSystemMillTime() >= rpcPromiseInfo.deadline,
+                        rpcPromiseInfo -> commitRpcResponse(sessionWrapper.session, rpcPromiseInfo, RpcResponse.TIMEOUT));
             }
         }
     }
@@ -370,9 +370,9 @@ public class C2SSessionManager extends RemoteSessionManager {
      * @param postEvent 是否提交session移除事件
      */
     private void removeUserSession(UserInfo userInfo, String reason, final boolean postEvent) {
-        FastCollectionsUtils.removeIfAndThen(userInfo.sessionWrapperMap,
+        CollectionUtils.removeIfAndThen(userInfo.sessionWrapperMap.values(),
                 FunctionUtils::TRUE,
-                (k, sessionWrapper) -> afterRemoved(sessionWrapper, reason, postEvent));
+                sessionWrapper -> afterRemoved(sessionWrapper, reason, postEvent));
     }
 
     /**
@@ -380,9 +380,9 @@ public class C2SSessionManager extends RemoteSessionManager {
      */
     @Override
     public void onUserEventLoopTerminal(EventLoop userEventLoop) {
-        FastCollectionsUtils.removeIfAndThen(userInfoMap,
-                (k, userInfo) -> userInfo.netContext.localEventLoop() == userEventLoop,
-                (k, userInfo) -> removeUserSession(userInfo, "onUserEventLoopTerminal", false));
+        CollectionUtils.removeIfAndThen(userInfoMap.values(),
+                userInfo -> userInfo.netContext.localEventLoop() == userEventLoop,
+                userInfo -> removeUserSession(userInfo, "onUserEventLoopTerminal", false));
     }
 
     // region  --------------------------------- 网络事件处理 ---------------------------------

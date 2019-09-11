@@ -16,10 +16,9 @@
 
 package com.wjybxx.fastjgame.manager;
 
-import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.net.*;
+import com.wjybxx.fastjgame.utils.CollectionUtils;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-import com.wjybxx.fastjgame.utils.FastCollectionsUtils;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 
 /**
@@ -90,9 +89,9 @@ public abstract class AbstractSessionManager implements SessionManager {
             return;
         }
         // 立即执行所有同步rpc调用
-        FastCollectionsUtils.removeIfAndThen(rpcPromiseInfoMap,
-                (k, rpcPromiseInfo) -> rpcPromiseInfo.rpcPromise != null,
-                (k, rpcPromiseInfo) -> rpcPromiseInfo.rpcPromise.trySuccess(RpcResponse.SESSION_CLOSED));
+        CollectionUtils.removeIfAndThen(rpcPromiseInfoMap.values(),
+                rpcPromiseInfo -> rpcPromiseInfo.rpcPromise != null,
+                rpcPromiseInfo -> rpcPromiseInfo.rpcPromise.trySuccess(RpcResponse.SESSION_CLOSED));
         // 减少不必要的提交
         if (rpcPromiseInfoMap.size() == 0) {
             return;
