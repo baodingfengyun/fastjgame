@@ -118,6 +118,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
                 new IntegerCodec(),
                 new LongCodec(),
                 new FloatCodec(),
+                new DoubleCodec(),
 
                 new StringCodec(),
                 new MessageCodec(),
@@ -130,10 +131,20 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
                 new ProtoEnumCodec(),
                 new NumberEnumCodec(),
 
+                // 字节数组比较常见
+                new ByteArrayCodec(),
+
                 new BoolCodec(),
-                new DoubleCodec(),
                 new ByteCodec(),
                 new ShortCodec(),
+
+                // 其它数组使用较少
+                new IntArrayCodec(),
+                new LongArrayCodec(),
+                new FloatArrayCodec(),
+                new DoubleArrayCodec(),
+                // short数组我工作至今都没用过几次。。。
+                new ShortArrayCodec(),
 
                 // 正常情况很少使用char
                 new CharCodec(),
@@ -232,7 +243,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
      */
     @Nullable
     private Object readObject(CodedInputStream inputStream) throws IOException {
-        final int wireType = readTag(inputStream);
+        final byte wireType = readTag(inputStream);
         if (wireType == WireType.NULL) {
             return null;
         }
@@ -276,16 +287,17 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
      * @param wireType 类型
      * @return 序列化后的大小。
      */
-    private static int calTagSize(int wireType) {
-        return CodedOutputStream.computeUInt32SizeNoTag(wireType);
+    private static int calTagSize(byte wireType) {
+        assert wireType >= 0;
+        return 1;
     }
 
-    private static void writeTag(CodedOutputStream outputStream, int wireType) throws IOException {
-        outputStream.writeUInt32NoTag(wireType);
+    private static void writeTag(CodedOutputStream outputStream, byte wireType) throws IOException {
+        outputStream.writeRawByte(wireType);
     }
 
-    private static int readTag(CodedInputStream inputStream) throws IOException {
-        return inputStream.readUInt32();
+    private static byte readTag(CodedInputStream inputStream) throws IOException {
+        return inputStream.readRawByte();
     }
 
     /**
@@ -324,9 +336,9 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         /**
          * 数据类型(该缓存是为了提高编码速度的)
          */
-        private final int wireType;
+        private final byte wireType;
 
-        private FieldDescriptor(Field field, int number, boolean mayNegative, int wireType) {
+        private FieldDescriptor(Field field, int number, boolean mayNegative, byte wireType) {
             this.field = field;
             this.number = number;
             this.mayNegative = mayNegative;
@@ -400,7 +412,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
          *
          * @return wireType
          */
-        int getWireType();
+        byte getWireType();
     }
 
     // -------------------------------------------- int32 -----------------------------------------------
@@ -452,6 +464,37 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
     }
 
+    /**
+     * 一个字节就占用一个字节 - 不需要使用int32的格式
+     */
+    private static class ByteCodec implements Codec<Byte> {
+
+        @Override
+        public boolean isSupport(Class<?> type) {
+            return type == Byte.class;
+        }
+
+        @Override
+        public int calSerializeDataSize(@Nonnull Byte obj, boolean mayNegative) throws IOException {
+            return 1;
+        }
+
+        @Override
+        public void writeData(CodedOutputStream outputStream, @Nonnull Byte obj, boolean mayNegative) throws IOException {
+            outputStream.writeRawByte(obj);
+        }
+
+        @Override
+        public Byte readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
+            return inputStream.readRawByte();
+        }
+
+        @Override
+        public byte getWireType() {
+            return WireType.BYTE;
+        }
+    }
+
     private static abstract class Int32Codec<T extends Number> implements Codec<T> {
 
         @Override
@@ -464,42 +507,6 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
             writeInt32(outputStream, obj.intValue(), mayNegative);
         }
 
-    }
-
-    private static class ByteCodec extends Int32Codec<Byte> {
-
-        @Override
-        public boolean isSupport(Class<?> type) {
-            return type == Byte.class;
-        }
-
-        @Override
-        public Byte readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
-            return (byte) readInt32(inputStream, mayNegative);
-        }
-
-        @Override
-        public int getWireType() {
-            return WireType.BYTE;
-        }
-    }
-
-    private static class ShortCodec extends Int32Codec<Short> {
-
-        @Override
-        public boolean isSupport(Class<?> type) {
-            return type == Short.class;
-        }
-
-        @Override
-        public Short readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
-            return (short) readInt32(inputStream, mayNegative);
-        }
-
-        @Override
-        public int getWireType() {
-            return WireType.SHORT;
-        }
     }
 
     private static class IntegerCodec extends Int32Codec<Integer> {
@@ -515,10 +522,28 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int getWireType() {
+        public byte getWireType() {
             return WireType.INT;
         }
 
+    }
+
+    private static class ShortCodec extends Int32Codec<Short> {
+
+        @Override
+        public boolean isSupport(Class<?> type) {
+            return type == Short.class;
+        }
+
+        @Override
+        public Short readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
+            return (short) readInt32(inputStream, mayNegative);
+        }
+
+        @Override
+        public byte getWireType() {
+            return WireType.SHORT;
+        }
     }
 
     private static class CharCodec implements Codec<Character> {
@@ -545,7 +570,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int getWireType() {
+        public byte getWireType() {
             return WireType.CHAR;
         }
     }
@@ -585,7 +610,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int getWireType() {
+        public byte getWireType() {
             return WireType.LONG;
         }
     }
@@ -613,7 +638,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int getWireType() {
+        public byte getWireType() {
             return WireType.FLOAT;
         }
     }
@@ -641,7 +666,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int getWireType() {
+        public byte getWireType() {
             return WireType.DOUBLE;
         }
     }
@@ -669,7 +694,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int getWireType() {
+        public byte getWireType() {
             return WireType.BOOLEAN;
         }
     }
@@ -697,7 +722,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int getWireType() {
+        public byte getWireType() {
             return WireType.STRING;
         }
     }
@@ -731,7 +756,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int getWireType() {
+        public byte getWireType() {
             return WireType.MESSAGE;
         }
     }
@@ -774,7 +799,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int getWireType() {
+        public byte getWireType() {
             return WireType.PROTO_ENUM;
         }
 
@@ -792,7 +817,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int getWireType() {
+        public byte getWireType() {
             return WireType.NUMBER_ENUM;
         }
 
@@ -861,7 +886,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int getWireType() {
+        public byte getWireType() {
             return WireType.LIST;
         }
 
@@ -880,7 +905,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int getWireType() {
+        public byte getWireType() {
             return WireType.SET;
         }
 
@@ -941,7 +966,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int getWireType() {
+        public byte getWireType() {
             return WireType.MAP;
         }
     }
@@ -1038,8 +1063,287 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int getWireType() {
+        public byte getWireType() {
             return WireType.REFERENCE;
+        }
+    }
+
+    // ------------------------------------------------- 基本数组支持 ---------------------------------------------
+
+    private static class ByteArrayCodec implements Codec<byte[]> {
+        @Override
+        public boolean isSupport(Class<?> type) {
+            return type == byte[].class;
+        }
+
+        @Override
+        public int calSerializeDataSize(@Nonnull byte[] obj, boolean mayNegative) throws IOException {
+            return CodedOutputStream.computeUInt32SizeNoTag(obj.length) + obj.length;
+        }
+
+        @Override
+        public void writeData(CodedOutputStream outputStream, @Nonnull byte[] obj, boolean mayNegative) throws IOException {
+            outputStream.writeUInt32NoTag(obj.length);
+            if (obj.length > 0) {
+                outputStream.writeRawBytes(obj);
+            }
+        }
+
+        @Override
+        public byte[] readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
+            final int length = inputStream.readUInt32();
+            if (length == 0) {
+                return new byte[0];
+            }
+            return inputStream.readRawBytes(length);
+        }
+
+        @Override
+        public byte getWireType() {
+            return WireType.BYTE_ARRAY;
+        }
+    }
+
+    private static class IntArrayCodec implements Codec<int[]> {
+
+        @Override
+        public boolean isSupport(Class<?> type) {
+            return type == int[].class;
+        }
+
+        @Override
+        public int calSerializeDataSize(@Nonnull int[] obj, boolean mayNegative) throws IOException {
+            int totalSize = CodedOutputStream.computeUInt32SizeNoTag(obj.length);
+            if (obj.length == 0) {
+                return totalSize;
+            }
+            for (int value : obj) {
+                totalSize += CodedOutputStream.computeSInt32SizeNoTag(value);
+            }
+            return totalSize;
+        }
+
+        @Override
+        public void writeData(CodedOutputStream outputStream, @Nonnull int[] obj, boolean mayNegative) throws IOException {
+            outputStream.writeUInt32NoTag(obj.length);
+            if (obj.length == 0) {
+                return;
+            }
+            for (int value : obj) {
+                outputStream.writeSInt32NoTag(value);
+            }
+        }
+
+        @Override
+        public int[] readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
+            final int length = inputStream.readUInt32();
+            if (length == 0) {
+                return new int[0];
+            }
+            int[] result = new int[length];
+            for (int index = 0; index < length; index++) {
+                result[index] = inputStream.readSInt32();
+            }
+            return result;
+        }
+
+        @Override
+        public byte getWireType() {
+            return WireType.INT_ARRAY;
+        }
+    }
+
+    private static class ShortArrayCodec implements Codec<short[]> {
+
+        @Override
+        public boolean isSupport(Class<?> type) {
+            return type == short[].class;
+        }
+
+        @Override
+        public int calSerializeDataSize(@Nonnull short[] obj, boolean mayNegative) throws IOException {
+            int totalSize = CodedOutputStream.computeUInt32SizeNoTag(obj.length);
+            if (obj.length == 0) {
+                return totalSize;
+            }
+            for (short value : obj) {
+                totalSize += CodedOutputStream.computeSInt32SizeNoTag(value);
+            }
+            return totalSize;
+        }
+
+        @Override
+        public void writeData(CodedOutputStream outputStream, @Nonnull short[] obj, boolean mayNegative) throws IOException {
+            outputStream.writeUInt32NoTag(obj.length);
+            if (obj.length == 0) {
+                return;
+            }
+            for (short value : obj) {
+                outputStream.writeSInt32NoTag(value);
+            }
+        }
+
+        @Override
+        public short[] readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
+            final int length = inputStream.readUInt32();
+            if (length == 0) {
+                return new short[0];
+            }
+            short[] result = new short[length];
+            for (int index = 0; index < length; index++) {
+                result[index] = (short) inputStream.readSInt32();
+            }
+            return result;
+        }
+
+        @Override
+        public byte getWireType() {
+            return WireType.SHORT_ARRAY;
+        }
+    }
+
+    private static class LongArrayCodec implements Codec<long[]> {
+        @Override
+        public boolean isSupport(Class<?> type) {
+            return type == long[].class;
+        }
+
+        @Override
+        public int calSerializeDataSize(@Nonnull long[] obj, boolean mayNegative) throws IOException {
+            int totalSize = CodedOutputStream.computeUInt32SizeNoTag(obj.length);
+            if (obj.length == 0) {
+                return totalSize;
+            }
+            for (long value : obj) {
+                totalSize += CodedOutputStream.computeSInt64SizeNoTag(value);
+            }
+            return totalSize;
+        }
+
+        @Override
+        public void writeData(CodedOutputStream outputStream, @Nonnull long[] obj, boolean mayNegative) throws IOException {
+            outputStream.writeUInt32NoTag(obj.length);
+            if (obj.length == 0) {
+                return;
+            }
+            for (long value : obj) {
+                outputStream.writeSInt64NoTag(value);
+            }
+        }
+
+        @Override
+        public long[] readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
+            final int length = inputStream.readUInt32();
+            if (length == 0) {
+                return new long[0];
+            }
+            long[] result = new long[length];
+            for (int index = 0; index < length; index++) {
+                result[index] = inputStream.readSInt64();
+            }
+            return result;
+        }
+
+        @Override
+        public byte getWireType() {
+            return WireType.LONG_ARRAY;
+        }
+    }
+
+    private static class FloatArrayCodec implements Codec<float[]> {
+
+        @Override
+        public boolean isSupport(Class<?> type) {
+            return type == float[].class;
+        }
+
+        @Override
+        public int calSerializeDataSize(@Nonnull float[] obj, boolean mayNegative) throws IOException {
+            int totalSize = CodedOutputStream.computeUInt32SizeNoTag(obj.length);
+            if (obj.length == 0) {
+                return totalSize;
+            }
+            for (float value : obj) {
+                totalSize += CodedOutputStream.computeFloatSizeNoTag(value);
+            }
+            return totalSize;
+        }
+
+        @Override
+        public void writeData(CodedOutputStream outputStream, @Nonnull float[] obj, boolean mayNegative) throws IOException {
+            outputStream.writeUInt32NoTag(obj.length);
+            if (obj.length == 0) {
+                return;
+            }
+            for (float value : obj) {
+                outputStream.writeFloatNoTag(value);
+            }
+        }
+
+        @Override
+        public float[] readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
+            final int length = inputStream.readUInt32();
+            if (length == 0) {
+                return new float[0];
+            }
+            float[] result = new float[length];
+            for (int index = 0; index < length; index++) {
+                result[index] = inputStream.readFloat();
+            }
+            return result;
+        }
+
+        @Override
+        public byte getWireType() {
+            return WireType.FLOAT_ARRAY;
+        }
+    }
+
+    private static class DoubleArrayCodec implements Codec<double[]> {
+        @Override
+        public boolean isSupport(Class<?> type) {
+            return type == double[].class;
+        }
+
+        @Override
+        public int calSerializeDataSize(@Nonnull double[] obj, boolean mayNegative) throws IOException {
+            int totalSize = CodedOutputStream.computeUInt32SizeNoTag(obj.length);
+            if (obj.length == 0) {
+                return totalSize;
+            }
+            for (double value : obj) {
+                totalSize += CodedOutputStream.computeDoubleSizeNoTag(value);
+            }
+            return totalSize;
+        }
+
+        @Override
+        public void writeData(CodedOutputStream outputStream, @Nonnull double[] obj, boolean mayNegative) throws IOException {
+            outputStream.writeUInt32NoTag(obj.length);
+            if (obj.length == 0) {
+                return;
+            }
+            for (double value : obj) {
+                outputStream.writeDoubleNoTag(value);
+            }
+        }
+
+        @Override
+        public double[] readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
+            final int length = inputStream.readUInt32();
+            if (length == 0) {
+                return new double[0];
+            }
+            double[] result = new double[length];
+            for (int index = 0; index < length; index++) {
+                result[index] = inputStream.readDouble();
+            }
+            return result;
+        }
+
+        @Override
+        public byte getWireType() {
+            return WireType.DOUBLE_ARRAY;
         }
     }
 

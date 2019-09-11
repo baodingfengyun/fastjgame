@@ -20,14 +20,13 @@ import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
 import com.wjybxx.fastjgame.manager.RemoteSessionManager;
 import com.wjybxx.fastjgame.misc.HostAndPort;
-import com.wjybxx.fastjgame.net.AbstractSession;
 import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.net.RoleType;
 import com.wjybxx.fastjgame.net.SessionSenderMode;
 import com.wjybxx.fastjgame.utils.EventLoopUtils;
 
 import javax.annotation.Nonnull;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 连接的发起方建立的会话信息
@@ -40,26 +39,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class C2SSession extends AbstractRemoteSession {
 
     /**
-     * 未激活状态
-     */
-    private static final int ST_INACTIVE = 0;
-    /**
-     * 激活状态
-     */
-    private static final int ST_ACTIVE = 1;
-    /**
-     * 已关闭
-     */
-    private static final int ST_CLOSED = 2;
-
-    /**
      * 服务器地址
      */
     private final HostAndPort remoteAddress;
     /**
-     * 会话是否已激活，客户端会话是预先创建的，因此刚创建的时候是未激活的，当且成功建立连接时，才会激活。
+     * 会话状态：session连接成功以后，用户才能获取到session，因此这里初始化为true没有影响。
      */
-    private final AtomicInteger stateHolder = new AtomicInteger(ST_INACTIVE);
+    private final AtomicBoolean stateHolder = new AtomicBoolean(true);
 
     public C2SSession(NetContext netContext, NetManagerWrapper netManagerWrapper,
                       long serverGuid, RoleType serverType, HostAndPort remoteAddress,
@@ -78,25 +64,16 @@ public class C2SSession extends AbstractRemoteSession {
         return remoteAddress;
     }
 
-    /**
-     * 尝试激活会话，由于可能与{@link #close()}没有竞争。因为用户在激活之前其它线程是无法获取到该Session对象的。
-     *
-     * @return 如果成功设置为激活状态则返回true(激活方法只应该调用一次)
-     */
-    public boolean tryActive() {
-        return stateHolder.compareAndSet(ST_INACTIVE, ST_ACTIVE);
-    }
-
     @Override
     public boolean isActive() {
-        return stateHolder.get() == ST_ACTIVE;
+        return stateHolder.get();
     }
 
     /**
      * 标记为已关闭
      */
     public void setClosed() {
-        stateHolder.set(ST_CLOSED);
+        stateHolder.set(false);
     }
 
     @Override

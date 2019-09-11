@@ -23,6 +23,7 @@ import com.wjybxx.fastjgame.utils.EnumUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -136,6 +137,24 @@ public final class ExampleMessages {
 
         @SerializableField(number = 15)
         private String aNull;
+
+        @SerializableField(number = 16)
+        private byte[] aByteArray;
+
+        @SerializableField(number = 17)
+        private short[] aShortArray;
+
+        @SerializableField(number = 18)
+        private int[] aIntArray;
+
+        @SerializableField(number = 19)
+        private long[] aLongArrray;
+
+        @SerializableField(number = 20)
+        private float[] aFloatArray;
+
+        @SerializableField(number = 21)
+        private double[] aDoubleArray;
 
         public byte getaByte() {
             return aByte;
@@ -257,6 +276,55 @@ public final class ExampleMessages {
             this.aNull = aNull;
         }
 
+        public byte[] getaByteArray() {
+            return aByteArray;
+        }
+
+        public void setaByteArray(byte[] aByteArray) {
+            this.aByteArray = aByteArray;
+        }
+
+
+        public short[] getaShortArray() {
+            return aShortArray;
+        }
+
+        public void setaShortArray(short[] aShortArray) {
+            this.aShortArray = aShortArray;
+        }
+
+        public int[] getaIntArray() {
+            return aIntArray;
+        }
+
+        public void setaIntArray(int[] aIntArray) {
+            this.aIntArray = aIntArray;
+        }
+
+        public long[] getaLongArrray() {
+            return aLongArrray;
+        }
+
+        public void setaLongArrray(long[] aLongArrray) {
+            this.aLongArrray = aLongArrray;
+        }
+
+        public float[] getaFloatArray() {
+            return aFloatArray;
+        }
+
+        public void setaFloatArray(float[] aFloatArray) {
+            this.aFloatArray = aFloatArray;
+        }
+
+        public double[] getaDoubleArray() {
+            return aDoubleArray;
+        }
+
+        public void setaDoubleArray(double[] aDoubleArray) {
+            this.aDoubleArray = aDoubleArray;
+        }
+
         @Override
         public boolean equals(Object object) {
             if (this == object) return true;
@@ -281,6 +349,12 @@ public final class ExampleMessages {
                     .append(stringStringMap, that.stringStringMap)
                     .append(hello, that.hello)
                     .append(aNull, that.aNull)
+                    .append(aByteArray, that.aByteArray)
+                    .append(aShortArray, that.aShortArray)
+                    .append(aIntArray, that.aIntArray)
+                    .append(aLongArrray, that.aLongArrray)
+                    .append(aFloatArray, that.aFloatArray)
+                    .append(aDoubleArray, that.aDoubleArray)
                     .isEquals();
         }
 
@@ -302,6 +376,12 @@ public final class ExampleMessages {
                     .append(stringStringMap)
                     .append(hello)
                     .append(aNull)
+                    .append(aByteArray)
+                    .append(aShortArray)
+                    .append(aIntArray)
+                    .append(aLongArrray)
+                    .append(aFloatArray)
+                    .append(aDoubleArray)
                     .toHashCode();
         }
 
@@ -322,7 +402,13 @@ public final class ExampleMessages {
                     ", stringSet=" + stringSet +
                     ", stringStringMap=" + stringStringMap +
                     ", hello=" + hello +
-                    ", aNull=" + aNull +
+                    ", aNull='" + aNull + '\'' +
+                    ", aByteArray=" + Arrays.toString(aByteArray) +
+                    ", aShortArray=" + Arrays.toString(aShortArray) +
+                    ", aIntArray=" + Arrays.toString(aIntArray) +
+                    ", aLongArrray=" + Arrays.toString(aLongArrray) +
+                    ", aFloatArray=" + Arrays.toString(aFloatArray) +
+                    ", aDoubleArray=" + Arrays.toString(aDoubleArray) +
                     '}';
         }
     }

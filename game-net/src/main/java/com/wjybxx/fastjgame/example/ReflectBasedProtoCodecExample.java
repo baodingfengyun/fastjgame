@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.example;
 
 import com.wjybxx.fastjgame.misc.ReflectBasedProtocolCodec;
+import com.wjybxx.fastjgame.utils.NetUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.UnpooledByteBufAllocator;
@@ -35,11 +36,14 @@ import java.util.*;
 public class ReflectBasedProtoCodecExample {
 
     public static void main(String[] args) throws IOException {
+        ReflectBasedProtocolCodec codec = ExampleConstants.reflectBasedCodec;
+        ByteBufAllocator byteBufAllocator = UnpooledByteBufAllocator.DEFAULT;
+        // NetUtils初始化，避免输出扰乱视听
+        System.out.println(NetUtils.getOuterIp());
+
         ExampleMessages.FullMessage fullMessage = getFullMessage();
         System.out.println(fullMessage);
 
-        ReflectBasedProtocolCodec codec = ExampleConstants.reflectBasedCodec;
-        ByteBufAllocator byteBufAllocator = UnpooledByteBufAllocator.DEFAULT;
         ByteBuf encodeResult = codec.encodeMessage(byteBufAllocator, fullMessage);
 
         Object decodeResult = codec.decodeMessage(encodeResult);
@@ -79,6 +83,13 @@ public class ReflectBasedProtoCodecExample {
         params.put("first", "abc");
         params.put("second", "def");
         fullMessage.setStringStringMap(params);
+
+        fullMessage.setaByteArray(new byte[]{Byte.MIN_VALUE, 1, Byte.MAX_VALUE});
+        fullMessage.setaShortArray(new short[]{Short.MIN_VALUE, 2, Short.MAX_VALUE});
+        fullMessage.setaIntArray(new int[]{Integer.MIN_VALUE, 3, Integer.MAX_VALUE});
+        fullMessage.setaLongArrray(new long[]{Long.MIN_VALUE, 4, Long.MAX_VALUE});
+        fullMessage.setaFloatArray(new float[]{-5.5f, 0.1f, 5.5f});
+        fullMessage.setaDoubleArray(new double[]{-6.6, 0.1f, 6.6});
 
         return fullMessage;
     }

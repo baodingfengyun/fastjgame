@@ -347,19 +347,20 @@ public class C2SSessionManager extends RemoteSessionManager {
         // 清理消息队列
         clearMessageQueue(session, sessionWrapper.messageQueue);
 
-        // 验证成功过才执行断开回调操作(调用过onSessionConnected方法)
         if (postEvent) {
             if (sessionWrapper.promise != null) {
-                // 连接失败
+                // 未完成连接
                 sessionWrapper.promise.tryFailure(new IOException(reason));
             } else {
-                // 连接成功
-                // 避免捕获SessionWrapper，导致内存泄漏
-                final SessionDisconnectAware disconnectAware = sessionWrapper.disconnectAware;
-                // 提交到用户线程
-                ConcurrentUtils.tryCommit(session.localEventLoop(), () -> {
-                    disconnectAware.onSessionDisconnected(session);
-                });
+                // 验证成功过才执行断开回调操作(调用过onSessionConnected方法)
+                if (sessionWrapper.getVerifiedSequencer().get() > 0) {
+                    // 避免捕获SessionWrapper，导致内存泄漏
+                    final SessionDisconnectAware disconnectAware = sessionWrapper.disconnectAware;
+                    // 提交到用户线程
+                    ConcurrentUtils.tryCommit(session.localEventLoop(), () -> {
+                        disconnectAware.onSessionDisconnected(session);
+                    });
+                }
             }
         }
         logger.info("remove session by reason of {}, session info={}.", reason, session);
@@ -858,15 +859,16 @@ public class C2SSessionManager extends RemoteSessionManager {
             hasPingMessage = false;
             lastSendMessageTime = netTimeManager.getSystemSecTime();
 
+            final Promise<Session> promise = sessionWrapper.detachPromise();
+            if (null != promise && !promise.trySuccess(session)) {
+                // 激活session失败
+                removeSession(session.localGuid(), session.remoteGuid(), "active session failed");
+                return;
+            }
             int verifiedTimes = getVerifiedSequencer().incAndGet();
-            if (verifiedTimes == 1) {
-                session.tryActive();
+            if (promise != null) {
+                assert verifiedTimes == 1;
                 logger.info("first verified success, sessionInfo={}", session);
-                // 通知用户
-                final Promise<Session> promise = sessionWrapper.detachPromise();
-                if (!promise.trySuccess(session)) {
-                    removeSession(session.localGuid(), session.remoteGuid(), "active session failed");
-                }
             } else {
                 logger.info("reconnect verified success, verifiedTimes={},sessionInfo={}", verifiedTimes, session);
                 // 重发未确认接受到的消息

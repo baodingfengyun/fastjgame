@@ -29,7 +29,7 @@ import java.util.Set;
 
 /**
  * 序列化的数据类型。
- * 为何不支持数组类型[] ????，支持起来太费劲了，难受，请使用list代替。
+ * 数组类型只进行了部分支持，完全的支持的话比较难受，请使用list代替。
  *
  * @author wjybxx
  * @version 1.0
@@ -39,85 +39,111 @@ import java.util.Set;
 public class WireType {
 
     /**
-     * varInt, sInt
+     * rawByte
      */
-    public static final int BYTE = 1;
+    public static final byte BYTE = 1;
     /**
      * uInt
      */
-    public static final int CHAR = 2;
+    public static final byte CHAR = 2;
     /**
      * varInt, sInt
      */
-    public static final int SHORT = 3;
+    public static final byte SHORT = 3;
     /**
      * varInt, sInt
      */
-    public static final int INT = 4;
+    public static final byte INT = 4;
     /**
      * varInt64, sInt64
      */
-    public static final int LONG = 5;
+    public static final byte LONG = 5;
     /**
      * fixed32
      */
-    public static final int FLOAT = 6;
+    public static final byte FLOAT = 6;
     /**
      * fixed64
      */
-    public static final int DOUBLE = 7;
+    public static final byte DOUBLE = 7;
     /**
      * uInt
      */
-    public static final int BOOLEAN = 8;
+    public static final byte BOOLEAN = 8;
 
     /**
      * 字符串 LENGTH_DELIMITED
      */
-    public static final int STRING = 9;
+    public static final byte STRING = 9;
     /**
      * protobuf LENGTH_DELIMITED
      */
-    public static final int MESSAGE = 10;
+    public static final byte MESSAGE = 10;
     /**
      * protoBuf的枚举
      */
-    public static final int PROTO_ENUM = 11;
+    public static final byte PROTO_ENUM = 11;
     /**
      * 枚举支持，自定义枚举必须实现{@link com.wjybxx.fastjgame.enummapper.NumberEnum}接口，
      * 且必须定义 forNumber(int) 获取枚举值的静态方法，以使得和protoBuf一样解析。
      * 拆分为两个枚举是为了避免编码时的反射调用。
      */
-    public static final int NUMBER_ENUM = 12;
+    public static final byte NUMBER_ENUM = 12;
 
     // -- 基本集合
     /**
      * List，解析时使用{@link java.util.ArrayList}，Repeatable
      */
-    public static final int LIST = 13;
+    public static final byte LIST = 13;
 
     /**
      * Set，解析时使用{@link java.util.LinkedHashSet}，保持顺序
      */
-    public static final int SET = 14;
+    public static final byte SET = 14;
 
     /**
      * Map，解析时使用{@link java.util.LinkedHashMap}，保持顺序
      */
-    public static final int MAP = 15;
+    public static final byte MAP = 15;
     /**
      * NULL
      */
-    public static final int NULL = 16;
+    public static final byte NULL = 16;
     /**
      * 可序列化的普通对象，最好是简单的Bean -- POJO，必须带有{@link SerializableClass}注解。
      * 必须有无参构造方法，可以是private。
      */
-    public static final int REFERENCE = 17;
+    public static final byte REFERENCE = 17;
     /**
      * 它不代表内容，仅仅表示一个分隔符
      */
-    public static final int REFERENCE_END = 18;
+    public static final byte REFERENCE_END = 18;
+
+    /**
+     * 字节数组
+     */
+    public static final byte BYTE_ARRAY = 19;
+    /**
+     * short数组
+     */
+    public static final byte SHORT_ARRAY = 20;
+
+    /**
+     * int数组
+     */
+    public static final byte INT_ARRAY = 21;
+    /**
+     * long数组
+     */
+    public static final byte LONG_ARRAY = 22;
+    /**
+     * float数组
+     */
+    public static final byte FLOAT_ARRAY = 23;
+    /**
+     * double数组
+     */
+    public static final byte DOUBLE_ARRAY = 24;
 
     /**
      * 查找一个class对应的wireType
@@ -125,7 +151,7 @@ public class WireType {
      * @param type class
      * @return wireType
      */
-    public static int findType(@Nonnull final Class<?> type) {
+    public static byte findType(@Nonnull final Class<?> type) {
         // --- 基本类型
         if (type == byte.class || type == Byte.class) {
             return WireType.BYTE;
@@ -190,6 +216,25 @@ public class WireType {
         // 自定义类型
         if (type.isAnnotationPresent(SerializableClass.class)) {
             return WireType.REFERENCE;
+        }
+        // ----数组类型
+        if (type == byte[].class) {
+            return WireType.BYTE_ARRAY;
+        }
+        if (type == short[].class) {
+            return WireType.SHORT_ARRAY;
+        }
+        if (type == int[].class) {
+            return WireType.INT_ARRAY;
+        }
+        if (type == long[].class) {
+            return WireType.LONG_ARRAY;
+        }
+        if (type == float[].class) {
+            return WireType.FLOAT_ARRAY;
+        }
+        if (type == double[].class) {
+            return WireType.DOUBLE_ARRAY;
         }
         throw new IllegalArgumentException("unsupported type " + type.getName());
     }
