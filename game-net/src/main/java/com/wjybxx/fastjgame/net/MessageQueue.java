@@ -113,7 +113,6 @@ public final class MessageQueue {
         return sequencer.get();
     }
 
-
     /**
      * 根据对方发送的ack更新已发送队列
      *

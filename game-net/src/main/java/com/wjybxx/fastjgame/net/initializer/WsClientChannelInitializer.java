@@ -57,11 +57,10 @@ public class WsClientChannelInitializer extends ChannelInitializer<SocketChannel
      */
     private final String websocketUrl;
     private final int maxFrameLength;
-    private final NetEventManager netEventManager;
     private final ProtocolCodec codec;
+    private final NetEventManager netEventManager;
 
-    public WsClientChannelInitializer(long localGuid, long serverGuid,
-                                      String websocketUrl, int maxFrameLength,
+    public WsClientChannelInitializer(long localGuid, long serverGuid, String websocketUrl, int maxFrameLength,
                                       ProtocolCodec codec, NetEventManager netEventManager) {
         this.localGuid = localGuid;
         this.serverGuid = serverGuid;

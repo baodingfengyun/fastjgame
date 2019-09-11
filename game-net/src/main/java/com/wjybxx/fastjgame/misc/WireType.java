@@ -119,6 +119,7 @@ public class WireType {
      */
     public static final byte REFERENCE_END = 18;
 
+    // -- 常用数组
     /**
      * 字节数组
      */
@@ -144,6 +145,10 @@ public class WireType {
      * double数组
      */
     public static final byte DOUBLE_ARRAY = 24;
+    /**
+     * char数组
+     */
+    public static final byte CHAR_ARRAY = 25;
 
     /**
      * 查找一个class对应的wireType
@@ -235,6 +240,9 @@ public class WireType {
         }
         if (type == double[].class) {
             return WireType.DOUBLE_ARRAY;
+        }
+        if (type == char[].class) {
+            return WireType.CHAR_ARRAY;
         }
         throw new IllegalArgumentException("unsupported type " + type.getName());
     }

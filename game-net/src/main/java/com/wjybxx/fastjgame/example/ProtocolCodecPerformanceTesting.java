@@ -44,11 +44,15 @@ public class ProtocolCodecPerformanceTesting {
 
         // equals测试，正确性必须要保证
         equalsTest(jsonBasedCodec, byteBufAllocator, fullMessage);
+        System.out.println();
+
         equalsTest(reflectBasedCodec, byteBufAllocator, fullMessage);
+        System.out.println();
 
         // 预热
         codecTest(jsonBasedCodec, byteBufAllocator, fullMessage, 1000);
         codecTest(reflectBasedCodec, byteBufAllocator, fullMessage, 1000);
+        System.out.println();
 
         // 开搞
         codecTest(jsonBasedCodec, byteBufAllocator, fullMessage, 10_0000);
@@ -58,6 +62,8 @@ public class ProtocolCodecPerformanceTesting {
     private static void equalsTest(ProtocolCodec codec, ByteBufAllocator byteBufAllocator, ExampleMessages.FullMessage fullMessage) throws IOException {
         final String name = codec.getClass().getSimpleName();
         ByteBuf byteBuf = codec.encodeMessage(byteBufAllocator, fullMessage);
+        System.out.println(name + " encode result bytes = " + byteBuf.readableBytes());
+
         Object decodeMessage = codec.decodeMessage(byteBuf);
         System.out.println(name + " codec equals result = " + fullMessage.equals(decodeMessage));
         // 总是忘记release

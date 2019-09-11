@@ -156,6 +156,9 @@ public final class ExampleMessages {
         @SerializableField(number = 21)
         private double[] aDoubleArray;
 
+        @SerializableField(number = 22)
+        private char[] aCharArray;
+
         public byte getaByte() {
             return aByte;
         }
@@ -325,6 +328,14 @@ public final class ExampleMessages {
             this.aDoubleArray = aDoubleArray;
         }
 
+        public char[] getaCharArray() {
+            return aCharArray;
+        }
+
+        public void setaCharArray(char[] aCharArray) {
+            this.aCharArray = aCharArray;
+        }
+
         @Override
         public boolean equals(Object object) {
             if (this == object) return true;
@@ -355,6 +366,7 @@ public final class ExampleMessages {
                     .append(aLongArrray, that.aLongArrray)
                     .append(aFloatArray, that.aFloatArray)
                     .append(aDoubleArray, that.aDoubleArray)
+                    .append(aCharArray, that.aCharArray)
                     .isEquals();
         }
 
@@ -382,6 +394,7 @@ public final class ExampleMessages {
                     .append(aLongArrray)
                     .append(aFloatArray)
                     .append(aDoubleArray)
+                    .append(aCharArray)
                     .toHashCode();
         }
 
@@ -409,6 +422,7 @@ public final class ExampleMessages {
                     ", aLongArrray=" + Arrays.toString(aLongArrray) +
                     ", aFloatArray=" + Arrays.toString(aFloatArray) +
                     ", aDoubleArray=" + Arrays.toString(aDoubleArray) +
+                    ", aCharArray=" + Arrays.toString(aCharArray) +
                     '}';
         }
     }

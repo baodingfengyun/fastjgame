@@ -52,7 +52,7 @@ public class DefaultRpcPromise extends DefaultPromise<RpcResponse> implements Rp
     public DefaultRpcPromise(NetEventLoop workerEventLoop, EventLoop userEventLoop, long timeoutMs) {
         super(workerEventLoop);
         this.userEventLoop = userEventLoop;
-        // +1 毫秒
+        // +1 毫秒(绕过边界值)
         this.timeoutMs = System.currentTimeMillis() + timeoutMs + 1;
     }
 

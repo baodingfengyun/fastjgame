@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.net;
 
 /**
  * http请求处理器
+ * (不要随便挪动位置：注解处理器用到了完成类名)
  *
  * @author wjybxx
  * @version 1.0

@@ -101,9 +101,7 @@ public abstract class AbstractSender implements Sender {
         }
         final RpcPromise rpcPromise = netEventLoop().newRpcPromise(userEventLoop(), timeoutMs);
         // 直接提交到网络层执行
-        netEventLoop().execute(() -> {
-            session.sendSyncRpcRequest(request, timeoutMs, rpcPromise);
-        });
+        netEventLoop().execute(new SyncRpcRequestTask(session, request, timeoutMs, rpcPromise));
         // RpcPromise保证了不会等待超过限时时间
         return rpcPromise.get();
     }
@@ -120,9 +118,7 @@ public abstract class AbstractSender implements Sender {
         }
         final RpcPromise rpcPromise = netEventLoop().newRpcPromise(userEventLoop(), timeoutMs);
         // 直接提交到网络层执行
-        netEventLoop().execute(() -> {
-            session.sendSyncRpcRequest(request, timeoutMs, rpcPromise);
-        });
+        netEventLoop().execute(new SyncRpcRequestTask(session, request, timeoutMs, rpcPromise));
         // RpcPromise保证了不会等待超过限时时间
         rpcPromise.awaitUninterruptibly();
         // 一定有结果
@@ -151,7 +147,7 @@ public abstract class AbstractSender implements Sender {
     }
 
     /**
-     * 主要用于减少lambda表达式
+     * 主要用于减少lambda表达式，也方便未来扩展
      */
     protected interface SenderTask extends Runnable {
 
@@ -211,6 +207,31 @@ public abstract class AbstractSender implements Sender {
         public void cancel() {
             // 要保证回调执行
             rpcCallback.onComplete(RpcResponse.SESSION_CLOSED);
+        }
+    }
+
+    private static class SyncRpcRequestTask implements SenderTask {
+
+        private final AbstractSession session;
+        private final Object request;
+        private final long timeoutMs;
+        private final RpcPromise rpcPromise;
+
+        private SyncRpcRequestTask(AbstractSession session, Object request, long timeoutMs, RpcPromise rpcPromise) {
+            this.session = session;
+            this.request = request;
+            this.timeoutMs = timeoutMs;
+            this.rpcPromise = rpcPromise;
+        }
+
+        @Override
+        public void run() {
+            session.sendSyncRpcRequest(request, timeoutMs, rpcPromise);
+        }
+
+        @Override
+        public void cancel() {
+            rpcPromise.trySuccess(RpcResponse.SESSION_CLOSED);
         }
     }
 

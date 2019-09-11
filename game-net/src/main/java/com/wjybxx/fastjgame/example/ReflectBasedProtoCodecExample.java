@@ -91,6 +91,8 @@ public class ReflectBasedProtoCodecExample {
         fullMessage.setaFloatArray(new float[]{-5.5f, 0.1f, 5.5f});
         fullMessage.setaDoubleArray(new double[]{-6.6, 0.1f, 6.6});
 
+        fullMessage.setaCharArray("hello world".toCharArray());
+
         return fullMessage;
     }
 

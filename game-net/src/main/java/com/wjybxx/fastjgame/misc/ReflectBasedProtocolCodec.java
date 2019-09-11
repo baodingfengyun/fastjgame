@@ -70,6 +70,7 @@ import java.util.*;
  * 		Message  		tag + messageId + length + bytes
  * 	    Serializable	tag + messageId + field,field.... endTag       field 构成: tag + number + data
  * 	    枚举				tag + messageId + number
+ * 	    基本类型数组      tag + size + value,value......
  * </pre>
  * 其中messageId用于确定一个唯一的类！也就是{@link MessageMapper}的重要作用。
  *
@@ -143,6 +144,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
                 new LongArrayCodec(),
                 new FloatArrayCodec(),
                 new DoubleArrayCodec(),
+                new CharArrayCodec(),
                 // short数组我工作至今都没用过几次。。。
                 new ShortArrayCodec(),
 
@@ -415,6 +417,37 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         byte getWireType();
     }
 
+    /**
+     * 一个字节就占用一个字节 - 不需要使用int32的格式
+     */
+    private static class ByteCodec implements Codec<Byte> {
+
+        @Override
+        public boolean isSupport(Class<?> type) {
+            return type == Byte.class;
+        }
+
+        @Override
+        public int calSerializeDataSize(@Nonnull Byte obj, boolean mayNegative) throws IOException {
+            return 1;
+        }
+
+        @Override
+        public void writeData(CodedOutputStream outputStream, @Nonnull Byte obj, boolean mayNegative) throws IOException {
+            outputStream.writeRawByte(obj);
+        }
+
+        @Override
+        public Byte readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
+            return inputStream.readRawByte();
+        }
+
+        @Override
+        public byte getWireType() {
+            return WireType.BYTE;
+        }
+    }
+
     // -------------------------------------------- int32 -----------------------------------------------
 
     /**
@@ -461,37 +494,6 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
             return inputStream.readSInt32();
         } else {
             return inputStream.readInt32();
-        }
-    }
-
-    /**
-     * 一个字节就占用一个字节 - 不需要使用int32的格式
-     */
-    private static class ByteCodec implements Codec<Byte> {
-
-        @Override
-        public boolean isSupport(Class<?> type) {
-            return type == Byte.class;
-        }
-
-        @Override
-        public int calSerializeDataSize(@Nonnull Byte obj, boolean mayNegative) throws IOException {
-            return 1;
-        }
-
-        @Override
-        public void writeData(CodedOutputStream outputStream, @Nonnull Byte obj, boolean mayNegative) throws IOException {
-            outputStream.writeRawByte(obj);
-        }
-
-        @Override
-        public Byte readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
-            return inputStream.readRawByte();
-        }
-
-        @Override
-        public byte getWireType() {
-            return WireType.BYTE;
         }
     }
 
@@ -556,17 +558,17 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         @Override
         public int calSerializeDataSize(@Nonnull Character obj, boolean mayNegative) {
             // char 是无符号整形
-            return calInt32Size(obj, false);
+            return CodedOutputStream.computeUInt32SizeNoTag(obj);
         }
 
         @Override
         public void writeData(CodedOutputStream outputStream, @Nonnull Character obj, boolean mayNegative) throws IOException {
-            writeInt32(outputStream, obj, false);
+            outputStream.writeUInt32NoTag(obj);
         }
 
         @Override
         public Character readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
-            return (char) readInt32(inputStream, false);
+            return (char) inputStream.readUInt32();
         }
 
         @Override
@@ -1344,6 +1346,55 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         @Override
         public byte getWireType() {
             return WireType.DOUBLE_ARRAY;
+        }
+    }
+
+    private static class CharArrayCodec implements Codec<char[]> {
+
+        @Override
+        public boolean isSupport(Class<?> type) {
+            return type == char[].class;
+        }
+
+        @Override
+        public int calSerializeDataSize(@Nonnull char[] obj, boolean mayNegative) throws IOException {
+            int totalSize = CodedOutputStream.computeUInt32SizeNoTag(obj.length);
+            if (obj.length == 0) {
+                return totalSize;
+            }
+            for (char value : obj) {
+                totalSize += CodedOutputStream.computeUInt32SizeNoTag(value);
+            }
+            return totalSize;
+        }
+
+        @Override
+        public void writeData(CodedOutputStream outputStream, @Nonnull char[] obj, boolean mayNegative) throws IOException {
+            outputStream.writeUInt32NoTag(obj.length);
+            if (obj.length == 0) {
+                return;
+            }
+            for (char value : obj) {
+                outputStream.writeUInt32NoTag(value);
+            }
+        }
+
+        @Override
+        public char[] readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
+            final int length = inputStream.readUInt32();
+            if (length == 0) {
+                return new char[0];
+            }
+            char[] result = new char[length];
+            for (int index = 0; index < length; index++) {
+                result[index] = (char) inputStream.readUInt32();
+            }
+            return result;
+        }
+
+        @Override
+        public byte getWireType() {
+            return WireType.CHAR_ARRAY;
         }
     }
 

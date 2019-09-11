@@ -18,7 +18,6 @@ package com.wjybxx.fastjgame.net.injvm;
 
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.manager.JVMC2SSessionManager;
-import com.wjybxx.fastjgame.manager.JVMS2CSessionManager;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
 import com.wjybxx.fastjgame.net.*;
 
@@ -71,6 +70,7 @@ public class JVMPort {
     }
 
     public PortContext getPortContext() {
+        assert netEventLoop().inEventLoop();
         return portContext;
     }
 
@@ -94,9 +94,5 @@ public class JVMPort {
         assert netEventLoop().inEventLoop();
         return managerWrapper.getJvmc2SSessionManager();
     }
-
-    public JVMS2CSessionManager getAcceptorManager() {
-        assert netEventLoop().inEventLoop();
-        return managerWrapper.getJvms2CSessionManager();
-    }
+    
 }

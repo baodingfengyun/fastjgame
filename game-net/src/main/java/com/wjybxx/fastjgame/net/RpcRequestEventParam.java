@@ -42,7 +42,8 @@ public class RpcRequestEventParam extends MessageEventParam {
      */
     private Object request;
 
-    public RpcRequestEventParam(Channel channel, long localGuid, long remoteGuid, long ack, long sequence, long requestGuid, boolean sync, Object request) {
+    public RpcRequestEventParam(Channel channel, long localGuid, long remoteGuid, long ack, long sequence,
+                                long requestGuid, boolean sync, Object request) {
         super(channel, localGuid, remoteGuid, ack, sequence);
         this.requestGuid = requestGuid;
         this.sync = sync;

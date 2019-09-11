@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.net;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * 已发送还未被确认的Rpc请求
+ * Rpc请求消息
  *
  * @author wjybxx
  * @version 1.0

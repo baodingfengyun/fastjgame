@@ -95,7 +95,7 @@ public interface SessionManager {
     void removeUserSession(long localGuid, String reason);
 
     /**
-     * 当检测到用户所在的线程终止
+     * 当检测到用户所在的线程终止(注册NetContext的用户)
      *
      * @param userEventLoop 用户所在的EventLoop
      */

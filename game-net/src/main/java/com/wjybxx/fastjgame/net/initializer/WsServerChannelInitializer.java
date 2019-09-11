@@ -57,7 +57,8 @@ public class WsServerChannelInitializer extends ChannelInitializer<SocketChannel
     private final PortContext portContext;
     private final NetEventManager netEventManager;
 
-    public WsServerChannelInitializer(long localGuid, String websocketPath, int maxFrameLength, ProtocolCodec codec, PortContext portContext, NetEventManager netEventManager) {
+    public WsServerChannelInitializer(long localGuid, String websocketPath, int maxFrameLength,
+                                      ProtocolCodec codec, PortContext portContext, NetEventManager netEventManager) {
         this.localGuid = localGuid;
         this.websocketPath = websocketPath;
         this.maxFrameLength = maxFrameLength;
