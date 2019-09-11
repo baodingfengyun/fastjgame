@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.manager;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.IntSequencer;
@@ -39,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
+import java.io.IOException;
 import java.util.function.Consumer;
 
 /**
@@ -134,15 +136,17 @@ public class C2SSessionManager extends RemoteSessionManager {
      * @param serverType          服务器类型
      * @param hostAndPort         服务器地址
      * @param initializerSupplier 初始化器提供者，如果initializer是线程安全的，可以始终返回同一个对象
-     * @param lifecycleAware      作为客户端，链接不同的服务器时，可能有不同的生命周期事件处理
+     * @param disconnectAware     Session断开连接事件处理器
      * @param protocolDispatcher  消息处理器
      * @param sessionSenderMode   session发送消息的方式
+     * @param promise             传递给用户结果的promise
      */
     public void connect(@Nonnull NetContext netContext, long serverGuid, RoleType serverType, HostAndPort hostAndPort,
                         @Nonnull ChannelInitializerSupplier initializerSupplier,
-                        @Nonnull SessionLifecycleAware lifecycleAware,
+                        @Nonnull SessionDisconnectAware disconnectAware,
                         @Nonnull ProtocolDispatcher protocolDispatcher,
-                        @Nonnull SessionSenderMode sessionSenderMode) throws IllegalArgumentException {
+                        @Nonnull SessionSenderMode sessionSenderMode,
+                        @Nonnull Promise<Session> promise) {
         long localGuid = netContext.localGuid();
         // 已注册
         if (getSessionWrapper(localGuid, serverGuid) != null) {
@@ -154,11 +158,19 @@ public class C2SSessionManager extends RemoteSessionManager {
         // 创建会话
         C2SSession session = new C2SSession(netContext, managerWrapper, serverGuid, serverType, hostAndPort, sessionSenderMode);
         byte[] encryptedLoginToken = tokenManager.newEncryptedLoginToken(netContext.localGuid(), netContext.localRole(), serverGuid, serverType);
-        SessionWrapper sessionWrapper = new SessionWrapper(userInfo, initializerSupplier, lifecycleAware, protocolDispatcher, session, encryptedLoginToken);
+        SessionWrapper sessionWrapper = new SessionWrapper(userInfo, initializerSupplier, disconnectAware, protocolDispatcher, session, encryptedLoginToken, promise);
+
         // 保存会话
         userInfo.sessionWrapperMap.put(session.remoteGuid(), sessionWrapper);
         // 初始为连接状态
         changeState(sessionWrapper, new ConnectingState(sessionWrapper));
+
+        // 监听用户取消
+        promise.addListener(future -> {
+            if (future.isCancelled()) {
+                removeSession(localGuid, serverGuid, "user cancelled");
+            }
+        }, managerWrapper.getNetEventLoopManager().eventLoop());
     }
 
     /**
@@ -336,13 +348,19 @@ public class C2SSessionManager extends RemoteSessionManager {
         clearMessageQueue(session, sessionWrapper.messageQueue);
 
         // 验证成功过才执行断开回调操作(调用过onSessionConnected方法)
-        if (postEvent && sessionWrapper.getVerifiedSequencer().get() > 0) {
-            // 避免捕获SessionWrapper，导致内存泄漏
-            final SessionLifecycleAware lifecycleAware = sessionWrapper.lifecycleAware;
-            // 提交到用户线程
-            ConcurrentUtils.tryCommit(session.localEventLoop(), () -> {
-                lifecycleAware.onSessionDisconnected(session);
-            });
+        if (postEvent) {
+            if (sessionWrapper.promise != null) {
+                // 连接失败
+                sessionWrapper.promise.tryFailure(new IOException(reason));
+            } else {
+                // 连接成功
+                // 避免捕获SessionWrapper，导致内存泄漏
+                final SessionDisconnectAware disconnectAware = sessionWrapper.disconnectAware;
+                // 提交到用户线程
+                ConcurrentUtils.tryCommit(session.localEventLoop(), () -> {
+                    disconnectAware.onSessionDisconnected(session);
+                });
+            }
         }
         logger.info("remove session by reason of {}, session info={}.", reason, session);
     }
@@ -844,13 +862,11 @@ public class C2SSessionManager extends RemoteSessionManager {
             if (verifiedTimes == 1) {
                 session.tryActive();
                 logger.info("first verified success, sessionInfo={}", session);
-
-                // 避免捕获SessionWrapper，导致内存泄漏
-                final SessionLifecycleAware lifecycleAware = sessionWrapper.getLifecycleAware();
-                // 提交到用户线程
-                ConcurrentUtils.tryCommit(session.localEventLoop(), () -> {
-                    lifecycleAware.onSessionConnected(session);
-                });
+                // 通知用户
+                final Promise<Session> promise = sessionWrapper.detachPromise();
+                if (!promise.trySuccess(session)) {
+                    removeSession(session.localGuid(), session.remoteGuid(), "active session failed");
+                }
             } else {
                 logger.info("reconnect verified success, verifiedTimes={},sessionInfo={}", verifiedTimes, session);
                 // 重发未确认接受到的消息
@@ -1053,7 +1069,7 @@ public class C2SSessionManager extends RemoteSessionManager {
         /**
          * 该会话使用的生命周期回调接口
          */
-        private final SessionLifecycleAware lifecycleAware;
+        private final SessionDisconnectAware disconnectAware;
         /**
          * 该会话关联的消息处理器
          */
@@ -1084,16 +1100,24 @@ public class C2SSessionManager extends RemoteSessionManager {
          * 会话当前状态
          */
         private C2SSessionState state;
+        /**
+         * 用于返回给用户结果
+         */
+        private Promise<Session> promise;
 
-        SessionWrapper(UserInfo userInfo, ChannelInitializerSupplier initializerSupplier,
-                       SessionLifecycleAware lifecycleAware, ProtocolDispatcher protocolDispatcher,
-                       C2SSession session, byte[] encryptedToken) {
+        SessionWrapper(UserInfo userInfo,
+                       ChannelInitializerSupplier initializerSupplier,
+                       SessionDisconnectAware disconnectAware,
+                       ProtocolDispatcher protocolDispatcher,
+                       C2SSession session,
+                       byte[] encryptedToken, Promise<Session> promise) {
             this.userInfo = userInfo;
             this.initializerSupplier = initializerSupplier;
-            this.lifecycleAware = lifecycleAware;
+            this.disconnectAware = disconnectAware;
             this.protocolDispatcher = protocolDispatcher;
             this.session = session;
             this.encryptedToken = encryptedToken;
+            this.promise = promise;
         }
 
         public C2SSession getSession() {
@@ -1132,8 +1156,8 @@ public class C2SSessionManager extends RemoteSessionManager {
             return userInfo.netContext.localGuid();
         }
 
-        SessionLifecycleAware getLifecycleAware() {
-            return lifecycleAware;
+        SessionDisconnectAware getDisconnectAware() {
+            return disconnectAware;
         }
 
         ChannelInitializerSupplier getInitializerSupplier() {
@@ -1142,6 +1166,12 @@ public class C2SSessionManager extends RemoteSessionManager {
 
         NetContext getNetContext() {
             return userInfo.netContext;
+        }
+
+        Promise<Session> detachPromise() {
+            Promise<Session> result = promise;
+            promise = null;
+            return result;
         }
 
     }

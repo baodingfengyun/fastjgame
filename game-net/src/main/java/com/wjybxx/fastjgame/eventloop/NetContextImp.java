@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.eventloop;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.PortRange;
@@ -147,41 +148,43 @@ class NetContextImp implements NetContext {
     }
 
     @Override
-    public ListenableFuture<?> connectTcp(long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress,
-                                          @Nonnull ProtocolCodec codec,
-                                          @Nonnull SessionLifecycleAware lifecycleAware,
-                                          @Nonnull ProtocolDispatcher protocolDispatcher,
-                                          @Nonnull SessionSenderMode sessionSenderMode) {
+    public ListenableFuture<Session> connectTcp(long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress,
+                                                @Nonnull ProtocolCodec codec,
+                                                @Nonnull SessionDisconnectAware disconnectAware,
+                                                @Nonnull ProtocolDispatcher protocolDispatcher,
+                                                @Nonnull SessionSenderMode sessionSenderMode) {
         final TCPClientChannelInitializer initializer = new TCPClientChannelInitializer(localGuid, remoteGuid, maxFrameLength(),
                 codec, managerWrapper.getNetEventManager());
         ChannelInitializerSupplier initializerSupplier = () -> initializer;
-        return connect(remoteGuid, remoteRole, remoteAddress, lifecycleAware, protocolDispatcher, sessionSenderMode, initializerSupplier);
+        return connect(remoteGuid, remoteRole, remoteAddress, disconnectAware, protocolDispatcher, sessionSenderMode, initializerSupplier);
     }
 
 
     @Override
-    public ListenableFuture<?> connectWS(long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress, String websocketUrl,
-                                         @Nonnull ProtocolCodec codec,
-                                         @Nonnull SessionLifecycleAware lifecycleAware,
-                                         @Nonnull ProtocolDispatcher protocolDispatcher,
-                                         @Nonnull SessionSenderMode sessionSenderMode) {
+    public ListenableFuture<Session> connectWS(long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress, String websocketUrl,
+                                               @Nonnull ProtocolCodec codec,
+                                               @Nonnull SessionDisconnectAware disconnectAware,
+                                               @Nonnull ProtocolDispatcher protocolDispatcher,
+                                               @Nonnull SessionSenderMode sessionSenderMode) {
         final WsClientChannelInitializer initializer = new WsClientChannelInitializer(localGuid, remoteGuid, websocketUrl, maxFrameLength(),
                 codec, managerWrapper.getNetEventManager());
         ChannelInitializerSupplier initializerSupplier = () -> initializer;
-        return connect(remoteGuid, remoteRole, remoteAddress, lifecycleAware, protocolDispatcher, sessionSenderMode, initializerSupplier);
+        return connect(remoteGuid, remoteRole, remoteAddress, disconnectAware, protocolDispatcher, sessionSenderMode, initializerSupplier);
     }
 
     @Nonnull
-    private ListenableFuture<?> connect(long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress,
-                                        @Nonnull SessionLifecycleAware lifecycleAware,
-                                        @Nonnull ProtocolDispatcher protocolDispatcher,
-                                        @Nonnull SessionSenderMode sessionSenderMode,
-                                        ChannelInitializerSupplier initializerSupplier) {
+    private ListenableFuture<Session> connect(long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress,
+                                              @Nonnull SessionDisconnectAware disconnectAware,
+                                              @Nonnull ProtocolDispatcher protocolDispatcher,
+                                              @Nonnull SessionSenderMode sessionSenderMode,
+                                              @Nonnull ChannelInitializerSupplier initializerSupplier) {
+        final Promise<Session> promise = netEventLoop.newPromise();
         // 这里一定不是网络层，只有逻辑层才会调用connect
-        return netEventLoop.submit(() -> {
+        netEventLoop.execute(() -> {
             managerWrapper.getC2SSessionManager().connect(this, remoteGuid, remoteRole, remoteAddress,
-                    initializerSupplier, lifecycleAware, protocolDispatcher, sessionSenderMode);
+                    initializerSupplier, disconnectAware, protocolDispatcher, sessionSenderMode, promise);
         });
+        return promise;
     }
 
     // ------------------------------------------- http 实现 ----------------------------------------
@@ -236,13 +239,15 @@ class NetContextImp implements NetContext {
     }
 
     @Override
-    public ListenableFuture<?> connectInJVM(@Nonnull JVMPort jvmPort,
-                                            @Nonnull SessionLifecycleAware lifecycleAware,
-                                            @Nonnull ProtocolDispatcher protocolDispatcher,
-                                            @Nonnull SessionSenderMode sessionSenderMode) {
+    public ListenableFuture<Session> connectInJVM(@Nonnull JVMPort jvmPort,
+                                                  @Nonnull SessionDisconnectAware disconnectAware,
+                                                  @Nonnull ProtocolDispatcher protocolDispatcher,
+                                                  @Nonnull SessionSenderMode sessionSenderMode) {
+        final Promise<Session> promise = jvmPort.netEventLoop().newPromise();
         // 注意：这里是提交到jvmPort所在的NetEventLoop, 是实现线程安全，消除同步的关键
-        return jvmPort.netEventLoop().submit(() -> {
-            jvmPort.getConnectManager().connect(this, jvmPort, lifecycleAware, protocolDispatcher, sessionSenderMode);
+        jvmPort.netEventLoop().execute(() -> {
+            jvmPort.getConnectManager().connect(this, jvmPort, disconnectAware, protocolDispatcher, sessionSenderMode, promise);
         });
+        return promise;
     }
 }

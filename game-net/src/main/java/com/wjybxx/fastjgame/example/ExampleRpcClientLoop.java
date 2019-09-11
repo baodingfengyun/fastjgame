@@ -27,7 +27,7 @@ import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.RpcBuilder;
 import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.net.Session;
-import com.wjybxx.fastjgame.net.SessionLifecycleAware;
+import com.wjybxx.fastjgame.net.SessionDisconnectAware;
 import com.wjybxx.fastjgame.net.SessionSenderMode;
 import com.wjybxx.fastjgame.net.injvm.JVMPort;
 import com.wjybxx.fastjgame.utils.NetUtils;
@@ -35,9 +35,7 @@ import com.wjybxx.fastjgame.utils.TimeUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.locks.LockSupport;
 import java.util.stream.IntStream;
 
 /**
@@ -73,18 +71,18 @@ public class ExampleRpcClientLoop extends SingleThreadEventLoop {
         netContext = netGroup.createContext(ExampleConstants.clientGuid, ExampleConstants.clientRole, this).get();
 
         if (jvmPort != null) {
-            netContext.connectInJVM(jvmPort,
-                    new ServerLifeAward(),
+            session = netContext.connectInJVM(jvmPort,
+                    new ServerDisconnectAward(),
                     new ExampleRpcDispatcher(new DefaultRpcCallDispatcher()),
-                    SessionSenderMode.DIRECT);
+                    SessionSenderMode.DIRECT).get();
         } else {
             // 必须先启动服务器
             final HostAndPort address = new HostAndPort(NetUtils.getLocalIp(), ExampleConstants.tcpPort);
-            netContext.connectTcp(ExampleConstants.serverGuid, ExampleConstants.serverRole, address,
+            session = netContext.connectTcp(ExampleConstants.serverGuid, ExampleConstants.serverRole, address,
                     ExampleConstants.reflectBasedCodec,
-                    new ServerLifeAward(),
+                    new ServerDisconnectAward(),
                     new ExampleRpcDispatcher(new DefaultRpcCallDispatcher()),
-                    SessionSenderMode.DIRECT);
+                    SessionSenderMode.DIRECT).get();
         }
     }
 
@@ -97,9 +95,7 @@ public class ExampleRpcClientLoop extends SingleThreadEventLoop {
             // 执行所有任务
             runAllTasks();
 
-            if (session != null) {
-                sendRequest(index);
-            }
+            sendRequest(index);
 
             if (confirmShutdown()) {
                 break;
@@ -139,7 +135,7 @@ public class ExampleRpcClientLoop extends SingleThreadEventLoop {
 
         // 如果netEventLoop无缝loop (net_config.properties 配置frameInterval 为0)
         // 在我电脑上：
-        // 如果是正常socket，30W - 40W 纳秒区间段最多 - (0.3 - 0.4毫秒)。
+        // 如果是正常socket，15W - 20W 纳秒区间段最多 - (0.15 - 0.2毫秒)。
         // 如果jvmPort， 2W - 3W 纳秒区间段最多 - (0.02 - 0.03毫秒)。
         // 这还只是数据非常少的情况下，如果数据量大，这个差距更大，JVM内部通信建议使用JVMSession
 
@@ -162,13 +158,7 @@ public class ExampleRpcClientLoop extends SingleThreadEventLoop {
         netGroup.shutdown();
     }
 
-    private class ServerLifeAward implements SessionLifecycleAware {
-
-        @Override
-        public void onSessionConnected(Session session) {
-            System.out.println(" ============ onSessionConnected ===============");
-            ExampleRpcClientLoop.this.session = session;
-        }
+    private class ServerDisconnectAward implements SessionDisconnectAware {
 
         @Override
         public void onSessionDisconnected(Session session) {
@@ -179,7 +169,7 @@ public class ExampleRpcClientLoop extends SingleThreadEventLoop {
         }
     }
 
-    public static void main(String[] args) throws ExecutionException, InterruptedException {
+    public static void main(String[] args) {
         ExampleRpcClientLoop echoClientLoop = new ExampleRpcClientLoop(
                 new DefaultThreadFactory("CLIENT"),
                 RejectedExecutionHandlers.log(),

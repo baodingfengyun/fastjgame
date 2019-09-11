@@ -94,11 +94,6 @@ public final class HttpSessionImp implements HttpSession {
     }
 
     @Override
-    public NetContext netContext() {
-        return netContext;
-    }
-
-    @Override
     public NetEventLoop netEventLoop() {
         return netContext.netEventLoop();
     }

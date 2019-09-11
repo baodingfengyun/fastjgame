@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -175,18 +176,14 @@ public class JVMS2CSessionManager extends JVMSessionManager {
     public void onRcvOneWayMessage(long localGuid, long clientGuid, Object message) {
         final SessionWrapper sessionWrapper = getSessionWrapper(localGuid, clientGuid);
         if (sessionWrapper != null) {
-            // 避免捕获错误的对象
-            final JVMS2CSession session = sessionWrapper.session;
-            commit(session, new OneWayMessageCommitTask(session, sessionWrapper.getProtocolDispatcher(), message));
+            commit(sessionWrapper.session, new OneWayMessageCommitTask(sessionWrapper.session, sessionWrapper.getProtocolDispatcher(), message));
         }
     }
 
     public void onRcvRpcRequestMessage(long localGuid, long clientGuid, long requestGuid, boolean sync, Object request) {
         final SessionWrapper sessionWrapper = getSessionWrapper(localGuid, clientGuid);
         if (sessionWrapper != null) {
-            // 避免捕获错误的对象
-            final JVMS2CSession session = sessionWrapper.session;
-            commit(session, new RpcRequestCommitTask(session, sessionWrapper.getProtocolDispatcher(), requestGuid, sync, request));
+            commit(sessionWrapper.session, new RpcRequestCommitTask(sessionWrapper.session, sessionWrapper.getProtocolDispatcher(), requestGuid, sync, request));
         }
     }
 
@@ -306,20 +303,19 @@ public class JVMS2CSessionManager extends JVMSessionManager {
      * @param remoteEventLoop 客户端所在线程
      * @return 监听方的eventLoop
      */
-    @Nullable
-    public EventLoop tryConnect(JVMPort jvmPort, long clientGuid, RoleType clientRole, EventLoop remoteEventLoop) {
+    public EventLoop tryConnect(JVMPort jvmPort, long clientGuid, RoleType clientRole, EventLoop remoteEventLoop) throws IOException {
         final UserInfo userInfo = userInfoMap.get(jvmPort.localGuid());
         // 用户已取消注册
         if (null == userInfo) {
-            return null;
+            throw new IOException("remote node not exist");
         }
         // 用户关闭了该端口
         if (!userInfo.jvmPortList.contains(jvmPort)) {
-            return null;
+            throw new IOException("jvmport not exist");
         }
         // 已存在该会话
         if (userInfo.sessionWrapperMap.containsKey(clientGuid)) {
-            throw new IllegalArgumentException("client " + clientGuid + " already connected!");
+            throw new IOException("session already exist");
         }
         final PortContext portContext = jvmPort.getPortContext();
         final JVMS2CSession jvms2CSession = new JVMS2CSession(userInfo.netContext, clientGuid, clientRole, netManagerWrapper, portContext.sessionSenderMode);

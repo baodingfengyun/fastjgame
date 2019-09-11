@@ -834,7 +834,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         public T readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
             int size = inputStream.readUInt32();
             if (size == 0) {
-                return emptyCollection();
+                return newCollection(0);
             }
             T collection = newCollection(size);
             for (int index = 0; index < size; index++) {
@@ -842,12 +842,6 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
             }
             return collection;
         }
-
-        /**
-         * 当size为0时，尝试返回一个空的具体集合
-         */
-        @Nonnull
-        protected abstract T emptyCollection();
 
         /**
          * 当size大于0时，尝试返回一个足够容量的集合
@@ -873,12 +867,6 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
 
         @Nonnull
         @Override
-        protected List emptyCollection() {
-            return Collections.emptyList();
-        }
-
-        @Nonnull
-        @Override
         protected List newCollection(int size) {
             return new ArrayList(size);
         }
@@ -894,12 +882,6 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         @Override
         public int getWireType() {
             return WireType.SET;
-        }
-
-        @Nonnull
-        @Override
-        protected Set emptyCollection() {
-            return Collections.emptySet();
         }
 
         @Nonnull
@@ -947,7 +929,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         public Map readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
             int size = inputStream.readUInt32();
             if (size == 0) {
-                return Collections.emptyMap();
+                return new HashMap();
             }
             Map<Object, Object> map = CollectionUtils.newEnoughCapacityLinkedHashMap(size);
             for (int index = 0; index < size; index++) {

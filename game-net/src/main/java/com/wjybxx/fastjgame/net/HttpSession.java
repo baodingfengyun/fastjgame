@@ -73,11 +73,6 @@ public interface HttpSession {
     // ------------------------------------- session的运行环境(不建议用户使用) -------------------------
 
     /**
-     * 创建该session的NetContext
-     */
-    NetContext netContext();
-
-    /**
      * 该session所在的NetEventLoop。
      * <li>注意：不保证是{@link NetContext#netEventLoop()} </li>
      */

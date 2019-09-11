@@ -21,14 +21,12 @@ import com.wjybxx.fastjgame.annotation.EventLoopSingleton;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.PortRange;
-import com.wjybxx.fastjgame.net.NetContext;
-import com.wjybxx.fastjgame.net.RoleType;
-import com.wjybxx.fastjgame.net.SessionLifecycleAware;
-import com.wjybxx.fastjgame.net.SessionSenderMode;
+import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.net.injvm.JVMPort;
 import com.wjybxx.fastjgame.utils.GameUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.SystemUtils;
+import com.wjybxx.fastjgame.world.GameEventLoopMrg;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -53,9 +51,11 @@ public class InnerAcceptorMrg {
     private final NetContextMrg netContextMrg;
     private final JVMPortMrg jvmPortMrg;
     private final WorldInfoMrg worldInfoMrg;
+    private final GameEventLoopMrg gameEventLoopMrg;
 
     @Inject
-    public InnerAcceptorMrg(ProtocolCodecMrg protocolCodecMrg, ProtocolDispatcherMrg protocolDispatcherMrg, HttpDispatcherMrg httpDispatcherMrg, NetContextMrg netContextMrg, JVMPortMrg jvmPortMrg, WorldInfoMrg worldInfoMrg) {
+    public InnerAcceptorMrg(ProtocolCodecMrg protocolCodecMrg, ProtocolDispatcherMrg protocolDispatcherMrg, HttpDispatcherMrg httpDispatcherMrg,
+                            NetContextMrg netContextMrg, JVMPortMrg jvmPortMrg, WorldInfoMrg worldInfoMrg, GameEventLoopMrg gameEventLoopMrg) {
         this.protocolCodecMrg = protocolCodecMrg;
         this.protocolDispatcherMrg = protocolDispatcherMrg;
 
@@ -63,10 +63,11 @@ public class InnerAcceptorMrg {
         this.netContextMrg = netContextMrg;
         this.jvmPortMrg = jvmPortMrg;
         this.worldInfoMrg = worldInfoMrg;
+        this.gameEventLoopMrg = gameEventLoopMrg;
     }
 
     public void bindInnerJvmPort(SessionLifecycleAware lifecycleAware) throws ExecutionException, InterruptedException {
-        final ListenableFuture<JVMPort> jvmPortFuture = netContextMrg.getNetContext().bindInJVM(protocolCodecMrg.getInnerProtocolCodec(),
+        final ListenableFuture<JVMPort> jvmPortFuture = netContextMrg.getNetContext().bindInJVM(getInnerProtocolCodec(),
                 lifecycleAware, protocolDispatcherMrg, getInnerSenderMode());
         final JVMPort jvmPort = jvmPortFuture.get();
         jvmPortMrg.register(worldInfoMrg.getWorldGuid(), jvmPort);
@@ -80,7 +81,7 @@ public class InnerAcceptorMrg {
         NetContext netContext = netContextMrg.getNetContext();
 
         ListenableFuture<HostAndPort> bindFuture = netContext.bindTcpRange(host, portRange,
-                protocolCodecMrg.getInnerProtocolCodec(), lifecycleAware, protocolDispatcherMrg, getInnerSenderMode());
+                getInnerProtocolCodec(), lifecycleAware, protocolDispatcherMrg, getInnerSenderMode());
 
         return bindFuture.get();
     }
@@ -96,30 +97,45 @@ public class InnerAcceptorMrg {
         return bindFuture.get();
     }
 
-    public ListenableFuture<?> connect(long remoteGuid, RoleType remoteRole, String innerTcpAddress, String localAddress, String macAddress, SessionLifecycleAware lifecycleAware) {
+    public void connect(long remoteGuid, RoleType remoteRole, String innerTcpAddress, String localAddress, String macAddress, SessionLifecycleAware lifecycleAware) {
         final JVMPort jvmPort = jvmPortMrg.getJVMPort(remoteGuid);
         if (null != jvmPort) {
             // 两个world在同一个进程内
-            return netContextMrg.getNetContext().connectInJVM(jvmPort, lifecycleAware, protocolDispatcherMrg, getInnerSenderMode());
+            netContextMrg.getNetContext().connectInJVM(jvmPort, lifecycleAware, protocolDispatcherMrg, getInnerSenderMode())
+                    .addListener(future -> connectComplete(future, lifecycleAware), gameEventLoopMrg.getEventLoop());
+            return;
         }
         if (Objects.equals(macAddress, SystemUtils.getMAC())) {
             // 两个world在同一台机器，不走网卡
-            return connect(remoteGuid, remoteRole, HostAndPort.parseHostAndPort(localAddress), lifecycleAware);
+            connectTcp(remoteGuid, remoteRole, HostAndPort.parseHostAndPort(localAddress), lifecycleAware);
         } else {
             // 两个world在不同机器，走正常socket
-            return connect(remoteGuid, remoteRole, HostAndPort.parseHostAndPort(innerTcpAddress), lifecycleAware);
+            connectTcp(remoteGuid, remoteRole, HostAndPort.parseHostAndPort(innerTcpAddress), lifecycleAware);
         }
+    }
+
+    private void connectComplete(ListenableFuture<? extends Session> future, SessionLifecycleAware lifecycleAware) {
+        if (!gameEventLoopMrg.getEventLoop().inEventLoop()) {
+            throw new IllegalStateException("may forget bind EventLoop");
+        }
+        if (future.isSuccess()) {
+            lifecycleAware.onSessionConnected(future.getNow());
+        }
+    }
+
+    private void connectTcp(long remoteGuid, RoleType remoteRole, HostAndPort hostAndPort, SessionLifecycleAware lifecycleAware) {
+        netContextMrg.getNetContext().connectTcp(remoteGuid, remoteRole, hostAndPort, getInnerProtocolCodec(),
+                lifecycleAware, protocolDispatcherMrg, getInnerSenderMode())
+                .addListener(future -> connectComplete(future, lifecycleAware), gameEventLoopMrg.getEventLoop());
+    }
+
+    @Nonnull
+    private ProtocolCodec getInnerProtocolCodec() {
+        return protocolCodecMrg.getInnerProtocolCodec();
     }
 
     @Nonnull
     private SessionSenderMode getInnerSenderMode() {
         return GameUtils.INNER_SENDER_MODE;
-    }
-
-    private ListenableFuture<?> connect(long remoteGuid, RoleType remoteRole, HostAndPort hostAndPort, SessionLifecycleAware lifecycleAware) {
-        NetContext netContext = netContextMrg.getNetContext();
-
-        return netContext.connectTcp(remoteGuid, remoteRole, hostAndPort,
-                protocolCodecMrg.getInnerProtocolCodec(), lifecycleAware, protocolDispatcherMrg, getInnerSenderMode());
     }
 }

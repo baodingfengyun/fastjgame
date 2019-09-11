@@ -38,9 +38,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class JVMC2SSession extends AbstractJVMSession {
 
     /**
-     * 会话激活状态
+     * 会话状态：建立成功才会创建，因此默认true
      */
-    private final AtomicBoolean state = new AtomicBoolean(false);
+    private final AtomicBoolean state = new AtomicBoolean(true);
 
     public JVMC2SSession(NetContext netContext, long remoteGuid, RoleType remoteRole,
                          NetManagerWrapper managerWrapper, SessionSenderMode sessionSenderMode) {
@@ -56,11 +56,6 @@ public class JVMC2SSession extends AbstractJVMSession {
     @Override
     public boolean isActive() {
         return state.get();
-    }
-
-    public void tryActive() {
-        // 讲道理一定成功，因为未成功之前，用户不能获取到session
-        state.compareAndSet(false, true);
     }
 
     public void setClosed() {
