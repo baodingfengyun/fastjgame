@@ -17,8 +17,6 @@ package com.wjybxx.fastjgame.net;
 
 import io.netty.channel.Channel;
 
-import javax.annotation.concurrent.Immutable;
-
 /**
  * 网络事件参数，提供统一的抽象(窄)视图。
  * 子类实现必须是不可变对象，以保证线程安全性。
@@ -28,7 +26,6 @@ import javax.annotation.concurrent.Immutable;
  * date - 2019/4/27 9:16
  * github - https://github.com/hl845740757
  */
-@Immutable
 public interface NetEventParam {
 
     /**

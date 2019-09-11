@@ -73,7 +73,7 @@ public class ReflectionUtils {
                 method.setAccessible(true);
                 return (Parser<T>) method.invoke(null);
             }
-        } catch (Exception e) {
+        } catch (Exception ignore) {
             logger.info("not protoBuf 3.x");
         }
         try {
@@ -81,7 +81,7 @@ public class ReflectionUtils {
             Field field = clazz.getDeclaredField("PARSER");
             field.setAccessible(true);
             return (Parser<T>) field.get(null);
-        } catch (Exception e) {
+        } catch (Exception ignore) {
             logger.info("not protoBuf 2.x");
         }
         throw new ReflectiveOperationException("invalid protocol buffer class " + clazz.getSimpleName());

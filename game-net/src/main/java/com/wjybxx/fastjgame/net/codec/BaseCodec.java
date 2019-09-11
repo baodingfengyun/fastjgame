@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.IOException;
 
 /**
  * 最开始时为分离的Encoder和Decoder。
@@ -365,15 +364,4 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
         ctx.write(byteBuf, promise);
     }
 
-    @FunctionalInterface
-    private interface EncodeFunction {
-
-        ByteBuf encode(ByteBufAllocator allocator, Object obj) throws IOException;
-    }
-
-    @FunctionalInterface
-    private interface DecodeFunction {
-
-        Object decode(ByteBuf data) throws IOException;
-    }
 }

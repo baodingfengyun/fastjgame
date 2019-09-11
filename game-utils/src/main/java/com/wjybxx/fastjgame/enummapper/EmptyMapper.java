@@ -30,6 +30,7 @@ import javax.annotation.Nullable;
 public class EmptyMapper<T extends NumberEnum> implements NumberEnumMapper<T> {
 
     public static final EmptyMapper<?> INSTANCE = new EmptyMapper<>();
+    private static final Object[] EMPTY_ARRAY = new Object[0];
 
     private EmptyMapper() {
     }
@@ -43,6 +44,6 @@ public class EmptyMapper<T extends NumberEnum> implements NumberEnumMapper<T> {
     @SuppressWarnings("unchecked")
     @Override
     public T[] values() {
-        return (T[]) new Object[0];
+        return (T[]) EMPTY_ARRAY;
     }
 }

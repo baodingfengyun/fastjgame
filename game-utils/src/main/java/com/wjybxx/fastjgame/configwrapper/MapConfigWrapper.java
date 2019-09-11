@@ -28,12 +28,12 @@ import java.util.*;
  * github - https://github.com/hl845740757
  */
 @Immutable
-public class MapConfigWrapper extends ConfigWrapper {
+public final class MapConfigWrapper extends ConfigWrapper {
     /**
      * 空map配置包装对象
      */
     @SuppressWarnings("unchecked")
-    public static MapConfigWrapper EMPTY_MAP_WRAPPER = new MapConfigWrapper(Collections.EMPTY_MAP);
+    public static final MapConfigWrapper EMPTY_MAP_WRAPPER = new MapConfigWrapper(Collections.EMPTY_MAP);
 
     private final Map<String, String> configMap;
 

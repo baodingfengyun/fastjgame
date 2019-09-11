@@ -25,6 +25,7 @@ import com.wjybxx.fastjgame.net.injvm.JVMPort;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.FastCollectionsUtils;
 import com.wjybxx.fastjgame.utils.FunctionUtils;
+import com.wjybxx.fastjgame.utils.NetUtils;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -123,7 +124,7 @@ public class JVMC2SSessionManager extends JVMSessionManager {
         final SessionWrapper sessionWrapper = getWritableSession(localGuid, remoteGuid);
         if (null != sessionWrapper) {
             // 注意需要交换guid
-            jvms2CSessionManager.onRcvOneWayMessage(remoteGuid, localGuid, message);
+            jvms2CSessionManager.onRcvOneWayMessage(remoteGuid, localGuid, NetUtils.codecOneWayMessage(message, sessionWrapper.codec));
         }
     }
 
@@ -137,7 +138,7 @@ public class JVMC2SSessionManager extends JVMSessionManager {
             RpcPromiseInfo rpcPromiseInfo = RpcPromiseInfo.newInstance(rpcCallback, deadline);
             sessionWrapper.rpcPromiseInfoMap.put(remoteGuid, rpcPromiseInfo);
 
-            jvms2CSessionManager.onRcvRpcRequestMessage(remoteGuid, localGuid, rpcRequestGuid, false, request);
+            jvms2CSessionManager.onRcvRpcRequestMessage(remoteGuid, localGuid, rpcRequestGuid, false, NetUtils.codecRpcRequest(request, sessionWrapper.codec));
         } else {
             ConcurrentUtils.tryCommit(userEventLoop, () -> {
                 rpcCallback.onComplete(RpcResponse.SESSION_CLOSED);
@@ -155,7 +156,7 @@ public class JVMC2SSessionManager extends JVMSessionManager {
             long requestGuid = sessionWrapper.nextRpcRequestGuid();
             sessionWrapper.rpcPromiseInfoMap.put(requestGuid, rpcPromiseInfo);
 
-            jvms2CSessionManager.onRcvRpcRequestMessage(remoteGuid, localGuid, requestGuid, true, request);
+            jvms2CSessionManager.onRcvRpcRequestMessage(remoteGuid, localGuid, requestGuid, true, NetUtils.codecRpcRequest(request, sessionWrapper.codec));
         } else {
             rpcPromise.trySuccess(RpcResponse.SESSION_CLOSED);
         }
@@ -165,7 +166,7 @@ public class JVMC2SSessionManager extends JVMSessionManager {
     public void sendRpcResponse(long localGuid, long remoteGuid, long requestGuid, boolean sync, @Nonnull RpcResponse response) {
         final SessionWrapper sessionWrapper = getWritableSession(localGuid, remoteGuid);
         if (null != sessionWrapper) {
-            jvms2CSessionManager.onRcvRpcResponse(remoteGuid, localGuid, requestGuid, response);
+            jvms2CSessionManager.onRcvRpcResponse(remoteGuid, localGuid, requestGuid, NetUtils.codecRpcResponse(response, sessionWrapper.codec));
         }
     }
 
@@ -316,7 +317,7 @@ public class JVMC2SSessionManager extends JVMSessionManager {
 
         final UserInfo userInfo = userInfoMap.computeIfAbsent(localGuid, k -> new UserInfo(netContext));
         final JVMC2SSession localSession = new JVMC2SSession(netContext, remoteGuid, remoteRole, netManagerWrapper, sessionSenderMode);
-        final SessionWrapper sessionWrapper = new SessionWrapper(localSession, lifecycleAware, protocolDispatcher);
+        final SessionWrapper sessionWrapper = new SessionWrapper(localSession, jvmPort.getCodec(), lifecycleAware, protocolDispatcher);
         // 先占坑
         userInfo.sessionWrapperMap.put(remoteGuid, sessionWrapper);
 
@@ -388,6 +389,10 @@ public class JVMC2SSessionManager extends JVMSessionManager {
          */
         private final JVMC2SSession session;
         /**
+         * 该端口上的消息编解码器
+         */
+        private final ProtocolCodec codec;
+        /**
          * 该会话使用的生命周期回调接口
          */
         private final SessionLifecycleAware lifecycleAware;
@@ -411,8 +416,9 @@ public class JVMC2SSessionManager extends JVMSessionManager {
          */
         private EventLoop remoteEventLoop;
 
-        public SessionWrapper(JVMC2SSession session, SessionLifecycleAware lifecycleAware, ProtocolDispatcher protocolDispatcher) {
+        public SessionWrapper(JVMC2SSession session, ProtocolCodec codec, SessionLifecycleAware lifecycleAware, ProtocolDispatcher protocolDispatcher) {
             this.session = session;
+            this.codec = codec;
             this.lifecycleAware = lifecycleAware;
             this.protocolDispatcher = protocolDispatcher;
         }

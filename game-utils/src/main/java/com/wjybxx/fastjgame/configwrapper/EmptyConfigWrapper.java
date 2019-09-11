@@ -29,7 +29,7 @@ import java.util.Set;
  * github - https://github.com/hl845740757
  */
 @Immutable
-public class EmptyConfigWrapper extends ConfigWrapper {
+public final class EmptyConfigWrapper extends ConfigWrapper {
 
     public static EmptyConfigWrapper INSTANCE = new EmptyConfigWrapper();
 

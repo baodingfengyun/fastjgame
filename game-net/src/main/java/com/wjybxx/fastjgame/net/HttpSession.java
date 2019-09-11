@@ -74,20 +74,17 @@ public interface HttpSession {
 
     /**
      * 创建该session的NetContext
-     *
      */
     NetContext netContext();
 
     /**
      * 该session所在的NetEventLoop。
      * <li>注意：不保证是{@link NetContext#netEventLoop()} </li>
-     *
      */
     NetEventLoop netEventLoop();
 
     /**
      * 该session所在的用户线程，一定是{@link NetContext#localEventLoop()}
-     *
      */
     EventLoop localEventLoop();
 }

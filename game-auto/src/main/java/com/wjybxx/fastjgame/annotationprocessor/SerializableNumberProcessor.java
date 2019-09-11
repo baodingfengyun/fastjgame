@@ -110,6 +110,11 @@ public class SerializableNumberProcessor extends AbstractProcessor {
             if (!first.isPresent()) {
                 continue;
             }
+            // 不能是static
+            if (variableElement.getModifiers().contains(Modifier.STATIC)) {
+                messager.printMessage(Diagnostic.Kind.ERROR, "serializable field can't be static", variableElement);
+                continue;
+            }
             // value中，基本类型会被封装为包装类型，number是int类型
             final int number = (Integer) AutoUtils.getAnnotationValueNotDefault(first.get(), NUMBER_METHOD_NAME);
             // 取值范围检测

@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.net.injvm;
 
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.manager.JVMC2SSessionManager;
+import com.wjybxx.fastjgame.manager.JVMS2CSessionManager;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
 import com.wjybxx.fastjgame.net.*;
 
@@ -25,7 +26,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * 用于建立JVM内部session的“端口”，它并非一个真正的端口。
- * 注意：每次调用{@link NetContext#bindInJVM(SessionLifecycleAware, ProtocolDispatcher, SessionSenderMode)}都会产生一个新的jvmPort。
+ * 注意：每次调用{@link NetContext#bindInJVM(ProtocolCodec, SessionLifecycleAware, ProtocolDispatcher, SessionSenderMode)}都会产生一个新的jvmPort。
  *
  * @author wjybxx
  * @version 1.0
@@ -44,6 +45,11 @@ public class JVMPort {
      */
     private final RoleType localRole;
     /**
+     * 端口上的编解码器
+     * 注意：它直接编解码双方的所有消息。
+     */
+    private final ProtocolCodec codec;
+    /**
      * 该端口上的session处理逻辑
      */
     private final PortContext portContext;
@@ -52,15 +58,19 @@ public class JVMPort {
      */
     private final NetManagerWrapper managerWrapper;
 
-    public JVMPort(long localGuid, RoleType localRole, PortContext portContext, NetManagerWrapper managerWrapper) {
+    public JVMPort(long localGuid, RoleType localRole, ProtocolCodec codec, PortContext portContext, NetManagerWrapper managerWrapper) {
+        this.codec = codec;
         this.portContext = portContext;
         this.localGuid = localGuid;
         this.localRole = localRole;
         this.managerWrapper = managerWrapper;
     }
 
+    public ProtocolCodec getCodec() {
+        return codec;
+    }
+
     public PortContext getPortContext() {
-        assert netEventLoop().inEventLoop();
         return portContext;
     }
 
@@ -80,8 +90,13 @@ public class JVMPort {
         return managerWrapper.getNetEventLoopManager().eventLoop();
     }
 
-    public JVMC2SSessionManager getSessionManager() {
+    public JVMC2SSessionManager getConnectManager() {
         assert netEventLoop().inEventLoop();
         return managerWrapper.getJvmc2SSessionManager();
+    }
+
+    public JVMS2CSessionManager getAcceptorManager() {
+        assert netEventLoop().inEventLoop();
+        return managerWrapper.getJvms2CSessionManager();
     }
 }

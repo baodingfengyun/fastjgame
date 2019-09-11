@@ -28,6 +28,8 @@ import io.netty.buffer.ByteBufAllocator;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.Immutable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -55,7 +57,7 @@ import java.util.*;
  * <p>
  * 其实我心里还是支持用反射，尤其是在现在的架构下，解码操作可以在Netty的IO线程，也可以在NetEventLoop线程（NetEventLoop线程是非常清闲的），
  * 对应用层的性能降低很有限。
- *
+ * <p>
  * 自定义协议，不要使用原生带Tag的方法！
  * 突然发现...计算大小的方法不需要了..............
  * <p>
@@ -76,6 +78,8 @@ import java.util.*;
  * date - 2019/8/19
  * github - https://github.com/hl845740757
  */
+@Immutable
+@ThreadSafe
 public class ReflectBasedProtocolCodec implements ProtocolCodec {
 
     private final MessageMapper messageMapper;

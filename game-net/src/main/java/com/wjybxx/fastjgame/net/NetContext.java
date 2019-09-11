@@ -250,17 +250,18 @@ public interface NetContext {
      * 绑定一个JVM端口，用于其它线程建立会话。
      * 其性能与socket的不在一个数量级，如果你的session的双方在同一个进程下，那么强烈建议使用{@link JVMSession}。
      * <pre>
-     * 1. 它发消息没有序列化开销 - 因此也要注意发送的数据当前线程不可以再使用。
-     * 2. 它没有网络传输开销，纯粹的内存数据转移。
-     * 3. 没有复杂的网络情况要处理。 - ack、sequence等复杂逻辑。
+     * 1. 它没有网络传输开销，纯粹的内存数据转移。
+     * 2. 没有复杂的网络情况要处理。
      * </pre>
      *
+     * @param codec              协议编解码器 Q: 为什么需要？ A: 发送可变对象时，保证线程安全。
      * @param lifecycleAware     生命周期监听器
      * @param protocolDispatcher 消息分发器
      * @param sessionSenderMode  消息的发送方式
      * @return future
      */
-    ListenableFuture<JVMPort> bindInJVM(@Nonnull SessionLifecycleAware lifecycleAware,
+    ListenableFuture<JVMPort> bindInJVM(@Nonnull ProtocolCodec codec,
+                                        @Nonnull SessionLifecycleAware lifecycleAware,
                                         @Nonnull ProtocolDispatcher protocolDispatcher,
                                         @Nonnull SessionSenderMode sessionSenderMode);
 

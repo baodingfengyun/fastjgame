@@ -35,12 +35,12 @@ import java.util.Set;
  * github - https://github.com/hl845740757
  */
 @Immutable
-public class ArrayConfigWrapper extends ConfigWrapper {
+public final class ArrayConfigWrapper extends ConfigWrapper {
 
     /**
      * 索引好的数据
      */
-    private Map<String, String> indexedMap;
+    private final Map<String, String> indexedMap;
 
     public ArrayConfigWrapper(String[] pairsArray) {
         this(pairsArray, UtilConstants.DEFAULT_KEY_VALUE_DELIMITER);

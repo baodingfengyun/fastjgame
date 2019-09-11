@@ -16,12 +16,16 @@
 
 package com.wjybxx.fastjgame.net;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
 /**
  * Rpc响应结果。
+ * 注意：这是RPC调用的结果，一定不能使用 == 判断相等！！！
  *
  * @author wjybxx
  * @version 1.0
@@ -31,6 +35,7 @@ import javax.annotation.concurrent.Immutable;
 @Immutable
 public final class RpcResponse {
 
+    // 这些常量仅仅是为了减少对象创建，但是你需要谨记：这是RPC调用的结果，一定不能使用 == 判断相等！！！
     /**
      * 执行成功但是没有返回值的body
      */
@@ -83,6 +88,32 @@ public final class RpcResponse {
         } else {
             return new RpcResponse(RpcResultCode.SUCCESS, body);
         }
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+
+        if (object == null || getClass() != object.getClass()) {
+            return false;
+        }
+
+        RpcResponse that = (RpcResponse) object;
+
+        return new EqualsBuilder()
+                .append(resultCode, that.resultCode)
+                .append(body, that.body)
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37)
+                .append(resultCode)
+                .append(body)
+                .toHashCode();
     }
 
     @Override

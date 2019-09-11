@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.net;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 
 /**
@@ -29,7 +30,9 @@ import java.io.IOException;
  * @version 1.0
  * date - 2019/8/18
  * github - https://github.com/hl845740757
+ * @apiNote 子类实现必须是线程安全的！
  */
+@ThreadSafe
 public interface ProtocolCodec {
 
     // ---------------------------------------- RPC请求 ---------------------------------

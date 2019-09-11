@@ -25,6 +25,7 @@ import com.wjybxx.fastjgame.net.injvm.JVMS2CSession;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.FastCollectionsUtils;
 import com.wjybxx.fastjgame.utils.FunctionUtils;
+import com.wjybxx.fastjgame.utils.NetUtils;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -122,7 +123,7 @@ public class JVMS2CSessionManager extends JVMSessionManager {
         final SessionWrapper sessionWrapper = getWritableSession(localGuid, remoteGuid);
         if (null != sessionWrapper) {
             // 注意需要交换guid
-            jvmc2SSessionManager.onRcvOneWayMessage(remoteGuid, localGuid, message);
+            jvmc2SSessionManager.onRcvOneWayMessage(remoteGuid, localGuid, NetUtils.codecOneWayMessage(message, sessionWrapper.getCodec()));
         }
     }
 
@@ -136,7 +137,7 @@ public class JVMS2CSessionManager extends JVMSessionManager {
             RpcPromiseInfo rpcPromiseInfo = RpcPromiseInfo.newInstance(rpcCallback, deadline);
             sessionWrapper.rpcPromiseInfoMap.put(remoteGuid, rpcPromiseInfo);
 
-            jvmc2SSessionManager.onRcvRpcRequestMessage(remoteGuid, localGuid, rpcRequestGuid, false, request);
+            jvmc2SSessionManager.onRcvRpcRequestMessage(remoteGuid, localGuid, rpcRequestGuid, false, NetUtils.codecRpcRequest(request, sessionWrapper.getCodec()));
         } else {
             ConcurrentUtils.tryCommit(userEventLoop, () -> {
                 rpcCallback.onComplete(RpcResponse.SESSION_CLOSED);
@@ -154,7 +155,7 @@ public class JVMS2CSessionManager extends JVMSessionManager {
             long requestGuid = sessionWrapper.nextRpcRequestGuid();
             sessionWrapper.rpcPromiseInfoMap.put(requestGuid, rpcPromiseInfo);
 
-            jvmc2SSessionManager.onRcvRpcRequestMessage(remoteGuid, localGuid, requestGuid, true, request);
+            jvmc2SSessionManager.onRcvRpcRequestMessage(remoteGuid, localGuid, requestGuid, true, NetUtils.codecRpcRequest(request, sessionWrapper.getCodec()));
         } else {
             rpcPromise.trySuccess(RpcResponse.SESSION_CLOSED);
         }
@@ -165,7 +166,7 @@ public class JVMS2CSessionManager extends JVMSessionManager {
         final SessionWrapper sessionWrapper = getWritableSession(localGuid, remoteGuid);
         if (null != sessionWrapper) {
             // 注意需要交换guid
-            jvmc2SSessionManager.onRcvRpcResponse(remoteGuid, localGuid, requestGuid, response);
+            jvmc2SSessionManager.onRcvRpcResponse(remoteGuid, localGuid, requestGuid, NetUtils.codecRpcResponse(response, sessionWrapper.getCodec()));
         }
     }
 
@@ -289,8 +290,8 @@ public class JVMS2CSessionManager extends JVMSessionManager {
     // ----------------------------------------  监听和建立连接 ---------------------------------------------------
 
 
-    public JVMPort bind(@Nonnull NetContext netContext, PortContext portContext) {
-        final JVMPort jvmPort = new JVMPort(netContext.localGuid(), netContext.localRole(), portContext, netManagerWrapper);
+    public JVMPort bind(@Nonnull NetContext netContext, ProtocolCodec codec, PortContext portContext) {
+        final JVMPort jvmPort = new JVMPort(netContext.localGuid(), netContext.localRole(), codec, portContext, netManagerWrapper);
         final UserInfo userInfo = userInfoMap.computeIfAbsent(netContext.localGuid(), k -> new UserInfo(netContext));
         userInfo.jvmPortList.add(jvmPort);
         return jvmPort;
@@ -322,7 +323,7 @@ public class JVMS2CSessionManager extends JVMSessionManager {
         }
         final PortContext portContext = jvmPort.getPortContext();
         final JVMS2CSession jvms2CSession = new JVMS2CSession(userInfo.netContext, clientGuid, clientRole, netManagerWrapper, portContext.sessionSenderMode);
-        SessionWrapper sessionWrapper = new SessionWrapper(jvms2CSession, remoteEventLoop, portContext);
+        SessionWrapper sessionWrapper = new SessionWrapper(jvms2CSession, jvmPort, remoteEventLoop);
         userInfo.sessionWrapperMap.put(clientGuid, sessionWrapper);
 
         // 建立会话成功
@@ -374,13 +375,13 @@ public class JVMS2CSessionManager extends JVMSessionManager {
          */
         private final JVMS2CSession session;
         /**
+         * 会话所属的JVM端口
+         */
+        private final JVMPort jvmPort;
+        /**
          * 会话另一方所在的线程(建立连接成功才会有)
          */
         private final EventLoop remoteEventLoop;
-        /**
-         * 该端口上的协议处理器
-         */
-        private final PortContext portContext;
         /**
          * RpcRequestGuid分配器
          */
@@ -390,10 +391,10 @@ public class JVMS2CSessionManager extends JVMSessionManager {
          */
         private Long2ObjectMap<RpcPromiseInfo> rpcPromiseInfoMap = new Long2ObjectLinkedOpenHashMap<>();
 
-        public SessionWrapper(JVMS2CSession session, EventLoop remoteEventLoop, PortContext portContext) {
+        public SessionWrapper(JVMS2CSession session, JVMPort jvmPort, EventLoop remoteEventLoop) {
             this.session = session;
             this.remoteEventLoop = remoteEventLoop;
-            this.portContext = portContext;
+            this.jvmPort = jvmPort;
         }
 
         public long nextRpcRequestGuid() {
@@ -409,12 +410,16 @@ public class JVMS2CSessionManager extends JVMSessionManager {
             return result;
         }
 
+        ProtocolCodec getCodec() {
+            return jvmPort.getCodec();
+        }
+
         SessionLifecycleAware getLifecycleAware() {
-            return portContext.lifecycleAware;
+            return jvmPort.getPortContext().lifecycleAware;
         }
 
         ProtocolDispatcher getProtocolDispatcher() {
-            return portContext.protocolDispatcher;
+            return jvmPort.getPortContext().protocolDispatcher;
         }
     }
 }

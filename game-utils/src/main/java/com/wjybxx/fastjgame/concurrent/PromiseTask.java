@@ -33,12 +33,12 @@ public class PromiseTask<V> extends DefaultPromise<V> implements RunnableFuture<
 
     private final Callable<V> callable;
 
-    public PromiseTask(@Nonnull EventLoop executor, Callable<V> callable) {
+    public PromiseTask(@Nonnull EventLoop executor, @Nonnull Callable<V> callable) {
         super(executor);
         this.callable = callable;
     }
 
-    public PromiseTask(@Nonnull EventLoop executor, Runnable runnable, V result) {
+    public PromiseTask(@Nonnull EventLoop executor, @Nonnull Runnable runnable, V result) {
         super(executor);
         this.callable = Executors.callable(runnable, result);
     }

@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import io.netty.buffer.*;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -34,6 +35,7 @@ import java.io.OutputStream;
  * date - 2019/8/18
  * github - https://github.com/hl845740757
  */
+@ThreadSafe
 public class JsonBasedProtocolCodec implements ProtocolCodec {
 
     private final MessageMapper messageMapper;

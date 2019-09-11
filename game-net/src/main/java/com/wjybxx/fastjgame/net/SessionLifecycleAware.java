@@ -24,7 +24,7 @@ package com.wjybxx.fastjgame.net;
  * date - 2019/4/27 11:48
  * github - https://github.com/hl845740757
  */
-public interface SessionLifecycleAware extends SessionConnectAware, SessionDisconnectAware{
+public interface SessionLifecycleAware extends SessionConnectAware, SessionDisconnectAware {
 
 
     @Override

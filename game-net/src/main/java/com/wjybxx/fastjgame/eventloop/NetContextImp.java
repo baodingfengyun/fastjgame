@@ -225,12 +225,13 @@ class NetContextImp implements NetContext {
 
 
     @Override
-    public ListenableFuture<JVMPort> bindInJVM(@Nonnull SessionLifecycleAware lifecycleAware,
+    public ListenableFuture<JVMPort> bindInJVM(@Nonnull ProtocolCodec codec,
+                                               @Nonnull SessionLifecycleAware lifecycleAware,
                                                @Nonnull ProtocolDispatcher protocolDispatcher,
                                                @Nonnull SessionSenderMode sessionSenderMode) {
         final PortContext portContext = new PortContext(lifecycleAware, protocolDispatcher, sessionSenderMode);
         return netEventLoop.submit(() -> {
-            return managerWrapper.getJvms2CSessionManager().bind(this, portContext);
+            return managerWrapper.getJvms2CSessionManager().bind(this, codec, portContext);
         });
     }
 
@@ -241,7 +242,7 @@ class NetContextImp implements NetContext {
                                             @Nonnull SessionSenderMode sessionSenderMode) {
         // 注意：这里是提交到jvmPort所在的NetEventLoop, 是实现线程安全，消除同步的关键
         return jvmPort.netEventLoop().submit(() -> {
-            jvmPort.getSessionManager().connect(this, jvmPort, lifecycleAware, protocolDispatcher, sessionSenderMode);
+            jvmPort.getConnectManager().connect(this, jvmPort, lifecycleAware, protocolDispatcher, sessionSenderMode);
         });
     }
 }
