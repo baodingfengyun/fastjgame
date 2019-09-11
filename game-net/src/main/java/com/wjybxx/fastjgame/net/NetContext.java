@@ -254,7 +254,9 @@ public interface NetContext {
      * 2. 没有复杂的网络情况要处理。
      * </pre>
      *
-     * @param codec              协议编解码器 Q: 为什么需要？ A: 发送可变对象时，保证线程安全。
+     * @param codec              协议编解码器<br>
+     *                           Q: 为什么需要？ <br>
+     *                           A: 发送可变对象时，保证线程安全。否则用户还是需要关心是否是进程内还是跨进程问题。
      * @param lifecycleAware     生命周期监听器
      * @param protocolDispatcher 消息分发器
      * @param sessionSenderMode  消息的发送方式
@@ -266,7 +268,8 @@ public interface NetContext {
                                         @Nonnull SessionSenderMode sessionSenderMode);
 
     /**
-     * 与JVM内的另一个线程建立session
+     * 与JVM内的另一个线程建立session。
+     * 注意：由于在同一个JVM内，因此使用的是对方的{@link ProtocolCodec}。
      *
      * @param jvmPort            远程“端口”信息
      * @param lifecycleAware     生命周期监听器

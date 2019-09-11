@@ -70,7 +70,8 @@ class ExampleRpcServerLoop extends SingleThreadEventLoop {
         if (jvmPortPromise != null) {
             // 绑定jvm端口
             try {
-                final JVMPort jvmPort = netContext.bindInJVM(new ClientLifeAware(),
+                final JVMPort jvmPort = netContext.bindInJVM(ExampleConstants.reflectBasedCodec,
+                        new ClientLifeAware(),
                         new ExampleRpcDispatcher(dispatcher),
                         SessionSenderMode.DIRECT).get();
                 jvmPortPromise.trySuccess(jvmPort);

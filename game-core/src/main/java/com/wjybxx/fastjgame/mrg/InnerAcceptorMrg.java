@@ -66,7 +66,8 @@ public class InnerAcceptorMrg {
     }
 
     public void bindInnerJvmPort(SessionLifecycleAware lifecycleAware) throws ExecutionException, InterruptedException {
-        final ListenableFuture<JVMPort> jvmPortFuture = netContextMrg.getNetContext().bindInJVM(lifecycleAware, protocolDispatcherMrg, getInnerSenderMode());
+        final ListenableFuture<JVMPort> jvmPortFuture = netContextMrg.getNetContext().bindInJVM(protocolCodecMrg.getInnerProtocolCodec(),
+                lifecycleAware, protocolDispatcherMrg, getInnerSenderMode());
         final JVMPort jvmPort = jvmPortFuture.get();
         jvmPortMrg.register(worldInfoMrg.getWorldGuid(), jvmPort);
     }
