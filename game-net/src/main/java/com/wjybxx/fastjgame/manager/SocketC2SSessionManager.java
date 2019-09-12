@@ -137,14 +137,14 @@ public class SocketC2SSessionManager extends SokectSessionManager {
      * @param serverType          服务器类型
      * @param hostAndPort         服务器地址
      * @param initializerSupplier 初始化器提供者，如果initializer是线程安全的，可以始终返回同一个对象
-     * @param disconnectAware     Session断开连接事件处理器
+     * @param lifecycleAware      生命周期事件处理
      * @param protocolDispatcher  消息处理器
      * @param sessionSenderMode   session发送消息的方式
      * @param promise             传递给用户结果的promise
      */
     public void connect(@Nonnull NetContext netContext, long serverGuid, RoleType serverType, HostAndPort hostAndPort,
                         @Nonnull ChannelInitializerSupplier initializerSupplier,
-                        @Nonnull SessionDisconnectAware disconnectAware,
+                        @Nonnull SessionLifecycleAware lifecycleAware,
                         @Nonnull ProtocolDispatcher protocolDispatcher,
                         @Nonnull SessionSenderMode sessionSenderMode,
                         @Nonnull Promise<Session> promise) {
@@ -159,7 +159,7 @@ public class SocketC2SSessionManager extends SokectSessionManager {
         // 创建会话
         SocketC2SSession session = new SocketC2SSession(netContext, managerWrapper, serverGuid, serverType, hostAndPort, sessionSenderMode);
         byte[] encryptedLoginToken = tokenManager.newEncryptedLoginToken(netContext.localGuid(), netContext.localRole(), serverGuid, serverType);
-        SessionWrapper sessionWrapper = new SessionWrapper(userInfo, initializerSupplier, disconnectAware, protocolDispatcher, session, encryptedLoginToken, promise);
+        SessionWrapper sessionWrapper = new SessionWrapper(userInfo, initializerSupplier, lifecycleAware, protocolDispatcher, session, encryptedLoginToken, promise);
 
         // 保存会话
         userInfo.sessionWrapperMap.put(session.remoteGuid(), sessionWrapper);
@@ -251,10 +251,10 @@ public class SocketC2SSessionManager extends SokectSessionManager {
                 // 验证成功过才执行断开回调操作(调用过onSessionConnected方法)
                 if (sessionWrapper.getVerifiedSequencer().get() > 0) {
                     // 避免捕获SessionWrapper，导致内存泄漏
-                    final SessionDisconnectAware disconnectAware = sessionWrapper.disconnectAware;
+                    final SessionLifecycleAware lifecycleAware = sessionWrapper.lifecycleAware;
                     // 提交到用户线程
                     ConcurrentUtils.tryCommit(session.localEventLoop(), () -> {
-                        disconnectAware.onSessionDisconnected(session);
+                        lifecycleAware.onSessionDisconnected(session);
                     });
                 }
             }
@@ -764,6 +764,11 @@ public class SocketC2SSessionManager extends SokectSessionManager {
             int verifiedTimes = getVerifiedSequencer().incAndGet();
             if (promise != null) {
                 assert verifiedTimes == 1;
+                // 避免捕获错误的对象
+                final SessionLifecycleAware lifecycleAware = sessionWrapper.lifecycleAware;
+                ConcurrentUtils.tryCommit(session.localEventLoop(), () -> {
+                    lifecycleAware.onSessionConnected(session);
+                });
                 logger.info("first verified success, sessionInfo={}", session);
             } else {
                 logger.info("reconnect verified success, verifiedTimes={},sessionInfo={}", verifiedTimes, session);
@@ -967,7 +972,7 @@ public class SocketC2SSessionManager extends SokectSessionManager {
         /**
          * 该会话使用的生命周期回调接口
          */
-        private final SessionDisconnectAware disconnectAware;
+        private final SessionLifecycleAware lifecycleAware;
         /**
          * 该会话关联的消息处理器
          */
@@ -1001,14 +1006,14 @@ public class SocketC2SSessionManager extends SokectSessionManager {
 
         SessionWrapper(UserInfo userInfo,
                        ChannelInitializerSupplier initializerSupplier,
-                       SessionDisconnectAware disconnectAware,
+                       SessionLifecycleAware lifecycleAware,
                        ProtocolDispatcher protocolDispatcher,
                        SocketC2SSession session,
                        byte[] encryptedToken, Promise<Session> promise) {
             super(session);
             this.userInfo = userInfo;
             this.initializerSupplier = initializerSupplier;
-            this.disconnectAware = disconnectAware;
+            this.lifecycleAware = lifecycleAware;
             this.protocolDispatcher = protocolDispatcher;
             this.encryptedToken = encryptedToken;
             this.promise = promise;
@@ -1044,10 +1049,6 @@ public class SocketC2SSessionManager extends SokectSessionManager {
 
         long getLocalGuid() {
             return userInfo.netContext.localGuid();
-        }
-
-        SessionDisconnectAware getDisconnectAware() {
-            return disconnectAware;
         }
 
         ChannelInitializerSupplier getInitializerSupplier() {

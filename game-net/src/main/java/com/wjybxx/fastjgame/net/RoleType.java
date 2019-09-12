@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.net;
 
+import com.wjybxx.fastjgame.annotation.SerializableClass;
 import com.wjybxx.fastjgame.enummapper.NumberEnum;
 import com.wjybxx.fastjgame.enummapper.NumberEnumMapper;
 import com.wjybxx.fastjgame.utils.EnumUtils;
@@ -28,6 +29,7 @@ import com.wjybxx.fastjgame.utils.EnumUtils;
  * date - 2019/4/27 10:01
  * github - https://github.com/hl845740757
  */
+@SerializableClass
 public enum RoleType implements NumberEnum {
     /**
      * 无效的

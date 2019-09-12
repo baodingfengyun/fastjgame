@@ -1440,37 +1440,21 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
                     parserMap.put(messageClazz, parser);
                     continue;
                 }
-                // protoBufEnum 和 NumberEnum
-                if (ProtocolMessageEnum.class.isAssignableFrom(messageClazz) || NumberEnum.class.isAssignableFrom(messageClazz)) {
-                    // 取消检测
-                    try {
-                        Method forNumberMethod = messageClazz.getMethod("forNumber", int.class);
-                        forNumberMethod.setAccessible(true);
-                        EnumDescriptor enumDescriptor = new EnumDescriptor(forNumberMethod);
-                        enumDescriptorMap.put(messageClazz, enumDescriptor);
-                    } catch (Exception ignore) {
-                        // 实现了numberEnum但是并不是想被序列化的类
+                // protoBufEnum
+                if (ProtocolMessageEnum.class.isAssignableFrom(messageClazz)) {
+                    indexEnumDescriptor(enumDescriptorMap, messageClazz);
+                    continue;
+                }
+                // NumberEnum
+                if (NumberEnum.class.isAssignableFrom(messageClazz)) {
+                    if (messageClazz.isAnnotationPresent(SerializableClass.class)) {
+                        indexEnumDescriptor(enumDescriptorMap, messageClazz);
                     }
                     continue;
                 }
-                // 带有注解的类 - 缓存所有的字段描述
+                // 带有注解的普通类 - 缓存所有的字段描述
                 if (messageClazz.isAnnotationPresent(SerializableClass.class)) {
-                    FieldDescriptor[] fieldDescriptors = Arrays.stream(messageClazz.getDeclaredFields())
-                            .filter(field -> field.isAnnotationPresent(SerializableField.class))
-                            .sorted(Comparator.comparingInt(field -> field.getAnnotation(SerializableField.class).number()))
-                            .map(field -> {
-                                // 取消检测
-                                field.setAccessible(true);
-                                SerializableField annotation = field.getAnnotation(SerializableField.class);
-                                return new FieldDescriptor(field, annotation.number(), annotation.mayNegative(), WireType.findType(field.getType()));
-                            })
-                            .toArray(FieldDescriptor[]::new);
-
-                    // 必须提供无参构造方法
-                    Constructor constructor = messageClazz.getDeclaredConstructor();
-                    constructor.setAccessible(true);
-                    ClassDescriptor classDescriptor = new ClassDescriptor(fieldDescriptors, constructor);
-                    classDescriptorMap.put(messageClazz, classDescriptor);
+                    indexClassDescriptor(classDescriptorMap, messageClazz);
                 }
             }
             return new ReflectBasedProtocolCodec(messageMapper, parserMap, classDescriptorMap, enumDescriptorMap);
@@ -1479,6 +1463,33 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
             // unreachable
             return null;
         }
+    }
+
+    private static void indexClassDescriptor(Map<Class<?>, ClassDescriptor> classDescriptorMap, Class<?> messageClazz) throws NoSuchMethodException {
+        FieldDescriptor[] fieldDescriptors = Arrays.stream(messageClazz.getDeclaredFields())
+                .filter(field -> field.isAnnotationPresent(SerializableField.class))
+                .sorted(Comparator.comparingInt(field -> field.getAnnotation(SerializableField.class).number()))
+                .map(field -> {
+                    // 取消检测
+                    field.setAccessible(true);
+                    SerializableField annotation = field.getAnnotation(SerializableField.class);
+                    return new FieldDescriptor(field, annotation.number(), annotation.mayNegative(), WireType.findType(field.getType()));
+                })
+                .toArray(FieldDescriptor[]::new);
+
+        // 必须提供无参构造方法
+        Constructor constructor = messageClazz.getDeclaredConstructor();
+        constructor.setAccessible(true);
+        ClassDescriptor classDescriptor = new ClassDescriptor(fieldDescriptors, constructor);
+        classDescriptorMap.put(messageClazz, classDescriptor);
+    }
+
+    private static void indexEnumDescriptor(Map<Class<?>, EnumDescriptor> enumDescriptorMap, Class<?> messageClazz) throws NoSuchMethodException {
+        Method forNumberMethod = messageClazz.getMethod("forNumber", int.class);
+        // 取消检测
+        forNumberMethod.setAccessible(true);
+        EnumDescriptor enumDescriptor = new EnumDescriptor(forNumberMethod);
+        enumDescriptorMap.put(messageClazz, enumDescriptor);
     }
 
 }

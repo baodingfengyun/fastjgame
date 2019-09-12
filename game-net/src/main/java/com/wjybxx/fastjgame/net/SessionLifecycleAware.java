@@ -24,10 +24,14 @@ package com.wjybxx.fastjgame.net;
  * date - 2019/4/27 11:48
  * github - https://github.com/hl845740757
  */
-public interface SessionLifecycleAware extends SessionConnectAware, SessionDisconnectAware {
+public interface SessionLifecycleAware {
 
-
-    @Override
+    /**
+     * 当会话第一次成功建立时调用，表示会话正式可用，只会调用一次
+     * 断线重连不会触发这里
+     *
+     * @param session 注册时的会话信息
+     */
     void onSessionConnected(Session session);
 
     /**
@@ -36,6 +40,5 @@ public interface SessionLifecycleAware extends SessionConnectAware, SessionDisco
      *
      * @param session 注册时的会话信息
      */
-    @Override
     void onSessionDisconnected(Session session);
 }

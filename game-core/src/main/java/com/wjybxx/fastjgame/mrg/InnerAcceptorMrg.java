@@ -101,8 +101,7 @@ public class InnerAcceptorMrg {
         final JVMPort jvmPort = jvmPortMrg.getJVMPort(remoteGuid);
         if (null != jvmPort) {
             // 两个world在同一个进程内
-            netContextMrg.getNetContext().connectInJVM(jvmPort, lifecycleAware, protocolDispatcherMrg, getInnerSenderMode())
-                    .addListener(future -> connectComplete(future, lifecycleAware), gameEventLoopMrg.getEventLoop());
+            netContextMrg.getNetContext().connectInJVM(jvmPort, lifecycleAware, protocolDispatcherMrg, getInnerSenderMode());
             return;
         }
         if (Objects.equals(macAddress, SystemUtils.getMAC())) {
@@ -114,19 +113,9 @@ public class InnerAcceptorMrg {
         }
     }
 
-    private void connectComplete(ListenableFuture<? extends Session> future, SessionLifecycleAware lifecycleAware) {
-        if (!gameEventLoopMrg.getEventLoop().inEventLoop()) {
-            throw new IllegalStateException("may forget bind EventLoop");
-        }
-        if (future.isSuccess()) {
-            lifecycleAware.onSessionConnected(future.getNow());
-        }
-    }
-
     private void connectTcp(long remoteGuid, RoleType remoteRole, HostAndPort hostAndPort, SessionLifecycleAware lifecycleAware) {
         netContextMrg.getNetContext().connectTcp(remoteGuid, remoteRole, hostAndPort, getInnerProtocolCodec(),
-                lifecycleAware, protocolDispatcherMrg, getInnerSenderMode())
-                .addListener(future -> connectComplete(future, lifecycleAware), gameEventLoopMrg.getEventLoop());
+                lifecycleAware, protocolDispatcherMrg, getInnerSenderMode());
     }
 
     @Nonnull

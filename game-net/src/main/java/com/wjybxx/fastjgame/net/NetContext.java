@@ -116,14 +116,14 @@ public interface NetContext {
      * @param remoteRole         远程角色类型
      * @param remoteAddress      远程地址
      * @param codec              协议编解码器
-     * @param disconnectAware    session断开连接事件处理器
+     * @param lifecycleAware     生命周期监听器
      * @param protocolDispatcher 协议处理器
      * @param sessionSenderMode  session发送消息的方式
-     * @return future，它并不是连接真正建立的future，而且连接操作是否被NetEventLoop响应的future
+     * @return future
      */
     ListenableFuture<Session> connectTcp(long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress,
                                          @Nonnull ProtocolCodec codec,
-                                         @Nonnull SessionDisconnectAware disconnectAware,
+                                         @Nonnull SessionLifecycleAware lifecycleAware,
                                          @Nonnull ProtocolDispatcher protocolDispatcher,
                                          @Nonnull SessionSenderMode sessionSenderMode);
 
@@ -173,14 +173,14 @@ public interface NetContext {
      * @param remoteRole         远程角色类型
      * @param remoteAddress      远程地址
      * @param codec              协议编解码器
-     * @param disconnectAware    session断开连接事件处理器
+     * @param lifecycleAware     生命周期监听器
      * @param protocolDispatcher 协议处理器
      * @param sessionSenderMode  session发送消息的方式
      * @return future 如果想消除同步，添加监听器时请绑定EventLoop
      */
     ListenableFuture<Session> connectWS(long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress, String websocketUrl,
                                         @Nonnull ProtocolCodec codec,
-                                        @Nonnull SessionDisconnectAware disconnectAware,
+                                        @Nonnull SessionLifecycleAware lifecycleAware,
                                         @Nonnull ProtocolDispatcher protocolDispatcher,
                                         @Nonnull SessionSenderMode sessionSenderMode);
 
@@ -272,13 +272,13 @@ public interface NetContext {
      * 注意：由于在同一个JVM内，因此使用的是对方的{@link ProtocolCodec}。
      *
      * @param jvmPort            远程“端口”信息
-     * @param disconnectAware    session断开连接事件处理器
+     * @param lifecycleAware     生命周期监听器
      * @param protocolDispatcher 消息分发器
      * @param sessionSenderMode  消息的发送方式
      * @return future 如果想消除同步，添加监听器时请绑定EventLoop
      */
     ListenableFuture<Session> connectInJVM(@Nonnull JVMPort jvmPort,
-                                           @Nonnull SessionDisconnectAware disconnectAware,
+                                           @Nonnull SessionLifecycleAware lifecycleAware,
                                            @Nonnull ProtocolDispatcher protocolDispatcher,
                                            @Nonnull SessionSenderMode sessionSenderMode);
 }

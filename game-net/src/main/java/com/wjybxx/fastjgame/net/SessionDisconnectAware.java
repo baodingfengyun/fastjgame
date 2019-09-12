@@ -24,7 +24,12 @@ package com.wjybxx.fastjgame.net;
  * date - 2019/9/10
  * github - https://github.com/hl845740757
  */
-public interface SessionDisconnectAware {
+public interface SessionDisconnectAware extends SessionLifecycleAware {
+
+    @Override
+    default void onSessionConnected(Session session) {
+        // ignore
+    }
 
     /**
      * 当会话彻底断开连接(无法继续断线重连)时会被调用，只会调用一次

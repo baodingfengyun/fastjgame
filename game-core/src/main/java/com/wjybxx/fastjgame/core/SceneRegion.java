@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.core;
 
+import com.wjybxx.fastjgame.annotation.SerializableClass;
 import com.wjybxx.fastjgame.enummapper.NumberEnum;
 import com.wjybxx.fastjgame.enummapper.NumberEnumMapper;
 import com.wjybxx.fastjgame.utils.EnumUtils;
@@ -30,6 +31,7 @@ import com.wjybxx.fastjgame.utils.EnumUtils;
  * date - 2019/5/15 11:33
  * github - https://github.com/hl845740757
  */
+@SerializableClass
 public enum SceneRegion implements NumberEnum {
 
     /**

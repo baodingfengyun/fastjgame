@@ -25,6 +25,8 @@ import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.PrimitiveType;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
@@ -46,7 +48,9 @@ public class SerializableNumberProcessor extends AbstractProcessor {
     // 使用这种方式可以脱离对utils，net包的依赖
     private static final String SERIALIZABLE_CLASS_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.SerializableClass";
     private static final String SERIALIZABLE_FIELD_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.SerializableField";
+    private static final String NUMBER_ENUM_CANONICAL_NAME = "com.wjybxx.fastjgame.enummapper.NumberEnum";
     private static final String NUMBER_METHOD_NAME = "number";
+    private static final String FOR_NUMBER_METHOD_NAME = "forNumber";
 
     // 工具类
     private Messager messager;
@@ -55,6 +59,7 @@ public class SerializableNumberProcessor extends AbstractProcessor {
 
     private TypeElement serializableClassElement;
     private DeclaredType serializableFieldType;
+    private DeclaredType numberEnumDeclaredType;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
@@ -81,6 +86,7 @@ public class SerializableNumberProcessor extends AbstractProcessor {
         }
         serializableClassElement = elementUtils.getTypeElement(SERIALIZABLE_CLASS_CANONICAL_NAME);
         serializableFieldType = typeUtils.getDeclaredType(elementUtils.getTypeElement(SERIALIZABLE_FIELD_CANONICAL_NAME));
+        numberEnumDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(NUMBER_ENUM_CANONICAL_NAME));
     }
 
     @Override
@@ -96,6 +102,22 @@ public class SerializableNumberProcessor extends AbstractProcessor {
     }
 
     private void checkNumber(TypeElement typeElement) {
+        // 只允许枚举和类使用
+        if (typeElement.getKind() == ElementKind.ENUM) {
+            checkEnum(typeElement);
+        } else if (typeElement.getKind() == ElementKind.CLASS){
+            if (typeUtils.isSubtype(typeUtils.getDeclaredType(typeElement), numberEnumDeclaredType)) {
+                // numberEnum
+                checkEnum(typeElement);
+            } else {
+                checkClass(typeElement);
+            }
+        } else {
+            messager.printMessage(Diagnostic.Kind.ERROR, "serializable class does not allow here", typeElement);
+        }
+    }
+
+    private void checkClass(TypeElement typeElement) {
         final IntSet numberSet = new IntOpenHashSet(typeElement.getEnclosedElements().size());
         for (Element element : typeElement.getEnclosedElements()) {
             // 非成员属性
@@ -126,5 +148,41 @@ public class SerializableNumberProcessor extends AbstractProcessor {
                 messager.printMessage(Diagnostic.Kind.ERROR, "number " + number + " is duplicate!", variableElement);
             }
         }
+    }
+
+    /**
+     * 查找方法{@code
+     *      static T forNumber(int) {
+     *      }
+     * }
+     * @param typeElement 要检索的类
+     */
+    private void checkEnum(TypeElement typeElement) {
+        for (Element element : typeElement.getEnclosedElements()) {
+            if (element.getKind() != ElementKind.METHOD) {
+                continue;
+            }
+            ExecutableElement executableElement = (ExecutableElement) element;
+            // 要求：静态方法
+            if (!executableElement.getModifiers().contains(Modifier.STATIC)) {
+                continue;
+            }
+            // 要求：名字必须是 "forNumber"
+            if (!executableElement.getSimpleName().toString().equals(FOR_NUMBER_METHOD_NAME)) {
+                continue;
+            }
+            // 要求：只有一个参数
+            if (executableElement.getParameters().size() != 1) {
+                continue;
+            }
+            // 要求：必须是int
+            final VariableElement variableElement = executableElement.getParameters().get(0);
+            if (AutoUtils.isTargetPrimitiveType(variableElement, TypeKind.INT)) {
+                // OK 其实还有返回值类型校验，这个一般不会错，就不校验了
+                return;
+            }
+        }
+        // 找不到forNumber方法
+        messager.printMessage(Diagnostic.Kind.ERROR, "serializable Enum/NumberEnum must contains 'static E forNumber(int)' method!", typeElement);
     }
 }

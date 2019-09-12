@@ -427,6 +427,7 @@ public final class ExampleMessages {
         }
     }
 
+    @SerializableClass
     public enum Profession implements NumberEnum {
         CODER(1),
         TEACHER(2),

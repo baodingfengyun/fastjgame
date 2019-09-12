@@ -19,7 +19,6 @@ package com.wjybxx.fastjgame.misc;
 import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.ProtocolMessageEnum;
 import com.wjybxx.fastjgame.annotation.SerializableClass;
-import com.wjybxx.fastjgame.enummapper.NumberEnum;
 import com.wjybxx.fastjgame.utils.ClassScanner;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -59,22 +58,7 @@ public class MessageHashMappingStrategy implements MessageMappingStrategy {
     private static boolean isSerializable(Class<?> clazz) {
         return clazz.isAnnotationPresent(SerializableClass.class)
                 || AbstractMessage.class.isAssignableFrom(clazz)
-                || ProtocolMessageEnum.class.isAssignableFrom(clazz)
-                || NumberEnum.class.isAssignableFrom(clazz) && hasForNumberMethod(clazz);
-    }
-
-    private static boolean hasForNumberMethod(Class<?> clazz) {
-        try {
-            clazz.getDeclaredMethod("forNumber", int.class);
-            return true;
-        } catch (NoSuchMethodException ignore) {
-        }
-        try {
-            clazz.getDeclaredMethod("forNumber", Integer.class);
-            return true;
-        } catch (NoSuchMethodException ignore) {
-        }
-        return false;
+                || ProtocolMessageEnum.class.isAssignableFrom(clazz);
     }
 
     private static int getUniqueId(Class<?> rpcCallClass) {

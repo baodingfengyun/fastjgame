@@ -150,31 +150,31 @@ class NetContextImp implements NetContext {
     @Override
     public ListenableFuture<Session> connectTcp(long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress,
                                                 @Nonnull ProtocolCodec codec,
-                                                @Nonnull SessionDisconnectAware disconnectAware,
+                                                @Nonnull SessionLifecycleAware lifecycleAware,
                                                 @Nonnull ProtocolDispatcher protocolDispatcher,
                                                 @Nonnull SessionSenderMode sessionSenderMode) {
         final TCPClientChannelInitializer initializer = new TCPClientChannelInitializer(localGuid, remoteGuid, maxFrameLength(),
                 codec, managerWrapper.getNetEventManager());
         ChannelInitializerSupplier initializerSupplier = () -> initializer;
-        return connect(remoteGuid, remoteRole, remoteAddress, disconnectAware, protocolDispatcher, sessionSenderMode, initializerSupplier);
+        return connect(remoteGuid, remoteRole, remoteAddress, lifecycleAware, protocolDispatcher, sessionSenderMode, initializerSupplier);
     }
 
 
     @Override
     public ListenableFuture<Session> connectWS(long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress, String websocketUrl,
                                                @Nonnull ProtocolCodec codec,
-                                               @Nonnull SessionDisconnectAware disconnectAware,
+                                               @Nonnull SessionLifecycleAware lifecycleAware,
                                                @Nonnull ProtocolDispatcher protocolDispatcher,
                                                @Nonnull SessionSenderMode sessionSenderMode) {
         final WsClientChannelInitializer initializer = new WsClientChannelInitializer(localGuid, remoteGuid, websocketUrl, maxFrameLength(),
                 codec, managerWrapper.getNetEventManager());
         ChannelInitializerSupplier initializerSupplier = () -> initializer;
-        return connect(remoteGuid, remoteRole, remoteAddress, disconnectAware, protocolDispatcher, sessionSenderMode, initializerSupplier);
+        return connect(remoteGuid, remoteRole, remoteAddress, lifecycleAware, protocolDispatcher, sessionSenderMode, initializerSupplier);
     }
 
     @Nonnull
     private ListenableFuture<Session> connect(long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress,
-                                              @Nonnull SessionDisconnectAware disconnectAware,
+                                              @Nonnull SessionLifecycleAware lifecycleAware,
                                               @Nonnull ProtocolDispatcher protocolDispatcher,
                                               @Nonnull SessionSenderMode sessionSenderMode,
                                               @Nonnull ChannelInitializerSupplier initializerSupplier) {
@@ -182,7 +182,7 @@ class NetContextImp implements NetContext {
         // 这里一定不是网络层，只有逻辑层才会调用connect
         netEventLoop.execute(() -> {
             managerWrapper.getSocketC2SSessionManager().connect(this, remoteGuid, remoteRole, remoteAddress,
-                    initializerSupplier, disconnectAware, protocolDispatcher, sessionSenderMode, promise);
+                    initializerSupplier, lifecycleAware, protocolDispatcher, sessionSenderMode, promise);
         });
         return promise;
     }
@@ -240,13 +240,13 @@ class NetContextImp implements NetContext {
 
     @Override
     public ListenableFuture<Session> connectInJVM(@Nonnull JVMPort jvmPort,
-                                                  @Nonnull SessionDisconnectAware disconnectAware,
+                                                  @Nonnull SessionLifecycleAware lifecycleAware,
                                                   @Nonnull ProtocolDispatcher protocolDispatcher,
                                                   @Nonnull SessionSenderMode sessionSenderMode) {
         final Promise<Session> promise = jvmPort.netEventLoop().newPromise();
         // 注意：这里是提交到jvmPort所在的NetEventLoop, 是实现线程安全，消除同步的关键
         jvmPort.netEventLoop().execute(() -> {
-            jvmPort.getConnectManager().connect(this, jvmPort, disconnectAware, protocolDispatcher, sessionSenderMode, promise);
+            jvmPort.getConnectManager().connect(this, jvmPort, lifecycleAware, protocolDispatcher, sessionSenderMode, promise);
         });
         return promise;
     }

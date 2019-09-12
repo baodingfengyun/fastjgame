@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.misc;
 
+import com.wjybxx.fastjgame.annotation.SerializableClass;
 import com.wjybxx.fastjgame.enummapper.NumberEnum;
 import com.wjybxx.fastjgame.enummapper.NumberEnumMapper;
 import com.wjybxx.fastjgame.utils.EnumUtils;
@@ -28,6 +29,7 @@ import com.wjybxx.fastjgame.utils.EnumUtils;
  * date - 2019/5/17 22:02
  * github - https://github.com/hl845740757
  */
+@SerializableClass
 public enum PlatformType implements NumberEnum {
     /**
      * 测试用的运营平台

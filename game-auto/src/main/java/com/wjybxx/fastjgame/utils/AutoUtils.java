@@ -20,9 +20,7 @@ import com.squareup.javapoet.*;
 
 import javax.annotation.Nonnull;
 import javax.lang.model.element.*;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.type.TypeVariable;
+import javax.lang.model.type.*;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.SimpleTypeVisitor8;
 import javax.lang.model.util.Types;
@@ -360,4 +358,19 @@ public class AutoUtils {
         }, null);
     }
 
+    public static boolean isTargetPrimitiveType(VariableElement variableElement, TypeKind primitiveType) {
+        return variableElement.asType().accept(new SimpleTypeVisitor8<Boolean, Void>() {
+
+            @Override
+            public Boolean visitPrimitive(PrimitiveType t, Void aVoid) {
+                return primitiveType == t.getKind();
+            }
+
+            @Override
+            protected Boolean defaultAction(TypeMirror e, Void aVoid) {
+                return false;
+            }
+
+        }, null);
+    }
 }

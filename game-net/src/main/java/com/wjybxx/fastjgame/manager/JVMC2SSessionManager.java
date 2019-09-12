@@ -179,10 +179,10 @@ public class JVMC2SSessionManager extends JVMSessionManager {
         // 验证成功过才执行断开回调操作(即调用过onSessionConnected方法)
         if (postEvent && sessionWrapper.remoteEventLoop != null) {
             // 避免捕获SessionWrapper，导致内存泄漏
-            final SessionDisconnectAware disconnectAware = sessionWrapper.disconnectAware;
+            final SessionLifecycleAware lifecycleAware = sessionWrapper.lifecycleAware;
             // 提交到用户线程
             ConcurrentUtils.tryCommit(session.localEventLoop(), () -> {
-                disconnectAware.onSessionDisconnected(session);
+                lifecycleAware.onSessionDisconnected(session);
             });
         }
         logger.info("remove session by reason of {}, session info={}.", reason, session);
@@ -240,14 +240,14 @@ public class JVMC2SSessionManager extends JVMSessionManager {
      *
      * @param netContext         本地信息
      * @param jvmPort            另一个线程的监听信息
-     * @param disconnectAware    作为客户端，链接不同的服务器时，可能有不同的生命周期事件处理
+     * @param lifecycleAware     生命周期事件处理
      * @param protocolDispatcher 消息处理器
      * @param sessionSenderMode  session发送消息的方式
      * @param promise            用户获取结果的future
      */
     public void connect(@Nonnull NetContext netContext,
                         @Nonnull JVMPort jvmPort,
-                        @Nonnull SessionDisconnectAware disconnectAware,
+                        @Nonnull SessionLifecycleAware lifecycleAware,
                         @Nonnull ProtocolDispatcher protocolDispatcher,
                         @Nonnull SessionSenderMode sessionSenderMode,
                         @Nonnull Promise<Session> promise) {
@@ -267,12 +267,16 @@ public class JVMC2SSessionManager extends JVMSessionManager {
             // 建立链接成功
             final UserInfo userInfo = userInfoMap.computeIfAbsent(localGuid, k -> new UserInfo(netContext));
             final JVMC2SSession session = new JVMC2SSession(netContext, remoteGuid, remoteRole, netManagerWrapper, sessionSenderMode);
-            final SessionWrapper sessionWrapper = new SessionWrapper(session, jvmPort.getCodec(), disconnectAware, protocolDispatcher, remoteEventLoop);
+            final SessionWrapper sessionWrapper = new SessionWrapper(session, jvmPort.getCodec(), lifecycleAware, protocolDispatcher, remoteEventLoop);
 
             // 通知用户
             if (promise.trySuccess(session)) {
                 // 保存会话
                 userInfo.sessionWrapperMap.put(remoteGuid, sessionWrapper);
+                // 会话建立成功
+                ConcurrentUtils.tryCommit(netContext.localEventLoop(), () -> {
+                    lifecycleAware.onSessionConnected(session);
+                });
                 // 监听服务端线程关闭
                 if (remoteEventLoopSet.add(remoteEventLoop)) {
                     remoteEventLoop.terminationFuture().addListener(future -> {
@@ -314,7 +318,7 @@ public class JVMC2SSessionManager extends JVMSessionManager {
         /**
          * 该会话使用的生命周期回调接口
          */
-        private final SessionDisconnectAware disconnectAware;
+        private final SessionLifecycleAware lifecycleAware;
         /**
          * 该会话关联的消息处理器
          */
@@ -327,12 +331,12 @@ public class JVMC2SSessionManager extends JVMSessionManager {
 
         SessionWrapper(JVMC2SSession session,
                        ProtocolCodec codec,
-                       SessionDisconnectAware disconnectAware,
+                       SessionLifecycleAware lifecycleAware,
                        ProtocolDispatcher protocolDispatcher,
                        EventLoop remoteEventLoop) {
             super(session);
             this.codec = codec;
-            this.disconnectAware = disconnectAware;
+            this.lifecycleAware = lifecycleAware;
             this.protocolDispatcher = protocolDispatcher;
             this.remoteEventLoop = remoteEventLoop;
         }
