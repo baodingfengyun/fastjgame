@@ -52,19 +52,21 @@ public abstract class AbstractSender implements Sender {
     }
 
     @Override
-    public final void send(@Nonnull Object message) {
+    public final void send(@Nonnull Object message, boolean immediate) {
         // 逻辑层检测，会话已关闭，立即返回
         if (!isActive()) {
             logger.debug("session is already closed, send message failed.");
             return;
         }
-        // 子类真正执行发送动作
-        addSenderTask(new OneWayMessageTask(session, message));
+        if (immediate) {
+            netEventLoop().execute(new OneWayMessageTask(session, message, immediate));
+        } else {
+            addSenderTask(new OneWayMessageTask(session, message, immediate));
+        }
     }
 
-
     @Override
-    public final void rpc(@Nonnull Object request, @Nonnull RpcCallback callback, long timeoutMs) {
+    public final void call(@Nonnull Object request, @Nonnull RpcCallback callback, long timeoutMs, boolean immediate) {
         // 参数校验，必须有过期时间
         if (timeoutMs <= 0) {
             throw new IllegalArgumentException("timeoutMs");
@@ -77,8 +79,11 @@ public abstract class AbstractSender implements Sender {
             });
             return;
         }
-        // 子类真正执行发送动作
-        addSenderTask(new RpcRequestTask(session, request, timeoutMs, callback));
+        if (immediate) {
+            netEventLoop().execute(new RpcRequestTask(session, request, timeoutMs, callback, immediate));
+        } else {
+            addSenderTask(new RpcRequestTask(session, request, timeoutMs, callback, immediate));
+        }
     }
 
     /**
@@ -91,7 +96,7 @@ public abstract class AbstractSender implements Sender {
 
     @Nonnull
     @Override
-    public final RpcResponse syncRpc(@Nonnull Object request, long timeoutMs) throws InterruptedException {
+    public final RpcResponse sync(@Nonnull Object request, long timeoutMs, boolean immediate) {
         if (timeoutMs <= 0) {
             throw new IllegalArgumentException("timeoutMs");
         }
@@ -100,25 +105,16 @@ public abstract class AbstractSender implements Sender {
             return RpcResponse.SESSION_CLOSED;
         }
         final RpcPromise rpcPromise = netEventLoop().newRpcPromise(userEventLoop(), timeoutMs);
-        // 直接提交到网络层执行
-        netEventLoop().execute(new SyncRpcRequestTask(session, request, timeoutMs, rpcPromise));
-        // RpcPromise保证了不会等待超过限时时间
-        return rpcPromise.get();
-    }
-
-    @Nonnull
-    @Override
-    public final RpcResponse syncRpcUninterruptibly(@Nonnull Object request, long timeoutMs) {
-        if (timeoutMs <= 0) {
-            throw new IllegalArgumentException("timeoutMs");
+        final RpcRequestTask2 requestTask2 = new RpcRequestTask2(session, request, timeoutMs, rpcPromise, immediate);
+        if (immediate) {
+            // 直接提交到网络层执行
+            netEventLoop().execute(requestTask2);
+        } else {
+            // 添加到任务列表
+            addSenderTask(requestTask2);
+            // 确保能安全的阻塞等待结果
+            flush();
         }
-        // 逻辑层校验，会话已关闭，立即返回结果
-        if (!isActive()) {
-            return RpcResponse.SESSION_CLOSED;
-        }
-        final RpcPromise rpcPromise = netEventLoop().newRpcPromise(userEventLoop(), timeoutMs);
-        // 直接提交到网络层执行
-        netEventLoop().execute(new SyncRpcRequestTask(session, request, timeoutMs, rpcPromise));
         // RpcPromise保证了不会等待超过限时时间
         rpcPromise.awaitUninterruptibly();
         // 一定有结果
@@ -126,12 +122,8 @@ public abstract class AbstractSender implements Sender {
     }
 
     @Override
-    public final <T> RpcResponseChannel<T> newResponseChannel(long requestGuid, boolean sync) {
-        if (sync) {
-            return new SyncRpcResponseChannel<>(session, requestGuid);
-        } else {
-            return new AsyncRpcResponseChannel<>(this, requestGuid);
-        }
+    public final <T> RpcResponseChannel<T> newResponseChannel(long requestGuid, boolean immediate) {
+        return new DefaultRpcResponseChannel<>(this, requestGuid, immediate);
     }
 
     protected boolean isActive() {
@@ -167,15 +159,17 @@ public abstract class AbstractSender implements Sender {
 
         private final AbstractSession session;
         private final Object message;
+        private final boolean immediate;
 
-        private OneWayMessageTask(AbstractSession session, Object message) {
+        private OneWayMessageTask(AbstractSession session, Object message, boolean immediate) {
             this.session = session;
             this.message = message;
+            this.immediate = immediate;
         }
 
         @Override
         public void run() {
-            session.sendOneWayMessage(message);
+            session.sendOneWayMessage(message, immediate);
         }
 
         @Override
@@ -190,17 +184,19 @@ public abstract class AbstractSender implements Sender {
         private final Object request;
         private final long timeoutMs;
         private final RpcCallback rpcCallback;
+        private final boolean immediate;
 
-        private RpcRequestTask(AbstractSession session, Object request, long timeoutMs, RpcCallback rpcCallback) {
+        private RpcRequestTask(AbstractSession session, Object request, long timeoutMs, RpcCallback rpcCallback, boolean immediate) {
             this.session = session;
             this.request = request;
             this.timeoutMs = timeoutMs;
             this.rpcCallback = rpcCallback;
+            this.immediate = immediate;
         }
 
         @Override
         public void run() {
-            session.sendAsyncRpcRequest(request, timeoutMs, rpcCallback);
+            session.sendRpcRequest(request, timeoutMs, rpcCallback, immediate);
         }
 
         @Override
@@ -210,23 +206,25 @@ public abstract class AbstractSender implements Sender {
         }
     }
 
-    private static class SyncRpcRequestTask implements SenderTask {
+    private static class RpcRequestTask2 implements SenderTask {
 
         private final AbstractSession session;
         private final Object request;
         private final long timeoutMs;
         private final RpcPromise rpcPromise;
+        private final boolean immediate;
 
-        private SyncRpcRequestTask(AbstractSession session, Object request, long timeoutMs, RpcPromise rpcPromise) {
+        private RpcRequestTask2(AbstractSession session, Object request, long timeoutMs, RpcPromise rpcPromise, boolean immediate) {
             this.session = session;
             this.request = request;
             this.timeoutMs = timeoutMs;
             this.rpcPromise = rpcPromise;
+            this.immediate = immediate;
         }
 
         @Override
         public void run() {
-            session.sendSyncRpcRequest(request, timeoutMs, rpcPromise);
+            session.sendRpcRequest(request, timeoutMs, rpcPromise, immediate);
         }
 
         @Override
@@ -240,18 +238,18 @@ public abstract class AbstractSender implements Sender {
         private final AbstractSession session;
         private final long requestGuid;
         private final RpcResponse rpcResponse;
-        private final boolean sync;
+        private final boolean immediate;
 
-        private RpcResponseTask(AbstractSession session, long requestGuid, RpcResponse rpcResponse, boolean sync) {
+        private RpcResponseTask(AbstractSession session, long requestGuid, RpcResponse rpcResponse, boolean immediate) {
             this.session = session;
             this.requestGuid = requestGuid;
             this.rpcResponse = rpcResponse;
-            this.sync = sync;
+            this.immediate = immediate;
         }
 
         @Override
         public void run() {
-            session.sendRpcResponse(requestGuid, sync, rpcResponse);
+            session.sendRpcResponse(requestGuid, immediate, rpcResponse);
         }
 
         @Override
@@ -260,45 +258,27 @@ public abstract class AbstractSender implements Sender {
         }
     }
 
-    /**
-     * 异步rpc结果，由子类决定如何发送
-     */
-    static class AsyncRpcResponseChannel<T> extends AbstractRpcResponseChannel<T> {
+    private static class DefaultRpcResponseChannel<T> extends AbstractRpcResponseChannel<T> {
 
         private final AbstractSender sender;
         private final long requestGuid;
+        private final boolean immediate;
 
-        private AsyncRpcResponseChannel(AbstractSender sender, long requestGuid) {
+        private DefaultRpcResponseChannel(AbstractSender sender, long requestGuid, boolean immediate) {
             this.sender = sender;
             this.requestGuid = requestGuid;
+            this.immediate = immediate;
         }
 
         @Override
         protected void doWrite(RpcResponse rpcResponse) {
             if (sender.isActive()) {
-                sender.addSenderTask(new RpcResponseTask(sender.session, requestGuid, rpcResponse, false));
-            }
-        }
-    }
+                if (immediate) {
+                    sender.netEventLoop().execute(new RpcResponseTask(sender.session, requestGuid, rpcResponse, immediate));
+                } else {
+                    sender.addSenderTask(new RpcResponseTask(sender.session, requestGuid, rpcResponse, immediate));
+                }
 
-    /**
-     * 同步Rpc结果返回通道
-     */
-    private static class SyncRpcResponseChannel<T> extends AbstractRpcResponseChannel<T> {
-
-        private final AbstractSession session;
-        private final long requestGuid;
-
-        private SyncRpcResponseChannel(AbstractSession session, long requestGuid) {
-            this.session = session;
-            this.requestGuid = requestGuid;
-        }
-
-        @Override
-        protected void doWrite(RpcResponse rpcResponse) {
-            if (session.isActive()) {
-                // 立即提交到网络层
-                session.netEventLoop().execute(new RpcResponseTask(session, requestGuid, rpcResponse, true));
             }
         }
     }

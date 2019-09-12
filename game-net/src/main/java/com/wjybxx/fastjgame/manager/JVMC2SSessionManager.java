@@ -126,10 +126,10 @@ public class JVMC2SSessionManager extends JVMSessionManager {
         }
     }
 
-    public void onRcvRpcRequestMessage(long localGuid, long serverGuid, long requestGuid, boolean sync, Object request) {
+    public void onRcvRpcRequestMessage(long localGuid, long serverGuid, long requestGuid, boolean immediate, Object request) {
         final SessionWrapper sessionWrapper = getSessionWrapper(localGuid, serverGuid);
         if (sessionWrapper != null) {
-            commit(sessionWrapper.getSession(), new RpcRequestCommitTask(sessionWrapper.getSession(), sessionWrapper.protocolDispatcher, requestGuid, sync, request));
+            commit(sessionWrapper.getSession(), new RpcRequestCommitTask(sessionWrapper.getSession(), sessionWrapper.protocolDispatcher, requestGuid, immediate, request));
         }
     }
 
@@ -342,20 +342,20 @@ public class JVMC2SSessionManager extends JVMSessionManager {
         }
 
         @Override
-        public void sendOneWayMessage(@Nonnull Object message) {
+        public void sendOneWayMessage(@Nonnull Object message, boolean immediate) {
             // 注意交换guid
             jvms2CSessionManager.onRcvOneWayMessage(session.remoteGuid(), session.localGuid(),
                     NetUtils.cloneMessage(message, codec));
         }
 
         @Override
-        public void sendRpcRequest(long requestGuid, boolean sync, @Nonnull Object request) {
+        public void sendRpcRequest(long requestGuid, boolean immediate, @Nonnull Object request) {
             jvms2CSessionManager.onRcvRpcRequestMessage(session.remoteGuid(), session.localGuid(),
-                    requestGuid, sync, NetUtils.cloneRpcRequest(request, codec));
+                    requestGuid, immediate, NetUtils.cloneRpcRequest(request, codec));
         }
 
         @Override
-        public void sendRpcResponse(long requestGuid, boolean sync, @Nonnull RpcResponse response) {
+        public void sendRpcResponse(long requestGuid, boolean immediate, @Nonnull RpcResponse response) {
             jvms2CSessionManager.onRcvRpcResponse(session.remoteGuid(), session.localGuid(),
                     requestGuid, NetUtils.cloneRpcResponse(response, codec));
         }

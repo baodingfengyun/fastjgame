@@ -104,7 +104,7 @@ public class EchoClientLoop extends SingleThreadEventLoop {
             ExampleMessages.Hello hello = new ExampleMessages.Hello();
             hello.setId(index);
             hello.setMessage("asyncRpcRequest without future - " + System.currentTimeMillis());
-            session.rpc(hello, rpcResponse -> {
+            session.call(hello, rpcResponse -> {
                 System.out.println("\nasyncRpcResponse without future - " + JsonUtils.toJson(rpcResponse));
             });
         }
@@ -113,7 +113,7 @@ public class EchoClientLoop extends SingleThreadEventLoop {
             ExampleMessages.Hello hello = new ExampleMessages.Hello();
             hello.setId(index);
             hello.setMessage("syncRpcRequest - " + System.currentTimeMillis());
-            RpcResponse rpcResponse = session.syncRpcUninterruptibly(hello);
+            RpcResponse rpcResponse = session.sync(hello);
             System.out.println("\nsyncRpcResponse - " + JsonUtils.toJson(rpcResponse));
         }
 

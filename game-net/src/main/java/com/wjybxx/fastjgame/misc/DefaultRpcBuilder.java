@@ -134,7 +134,6 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V> {
 
     @Override
     public final void call(@Nullable Session session) {
-        // 可监听，并且设置了回调
         ensureRpcAvailable();
         if (session == null) {
             if (callback != null) {
@@ -147,11 +146,12 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V> {
                 session.send(call);
             } else {
                 // 设置了回调，走rpc，对方一定会返回一个值
-                session.rpc(call, callback);
+                session.call(call, callback);
             }
         }
     }
 
+    @Nonnull
     @Override
     public final RpcResponse sync(@Nullable Session session) throws IllegalStateException {
         ensureRpcAvailable();
@@ -160,11 +160,7 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V> {
             // session不存在，安全的失败
             response = RpcResponse.SESSION_NULL;
         } else {
-            response = session.syncRpcUninterruptibly(call);
-        }
-        // 返回之前，先执行添加的回调
-        if (callback != null) {
-            callback.onComplete(response);
+            response = session.sync(call);
         }
         return response;
     }
@@ -181,4 +177,71 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V> {
         }
     }
 
+    // ---------------------------------------------------- 分割线 ----------------------------------------------
+
+    @Override
+    public void sendImmediately(@Nullable Session session) throws IllegalStateException {
+        ensureSendAvailable();
+        if (session != null) {
+            session.sendImmediately(call);
+        }
+    }
+
+    @Override
+    public void broadcastImmediately(@Nullable Iterable<Session> sessionIterable) throws IllegalStateException {
+        ensureSendAvailable();
+        if (sessionIterable == null) {
+            return;
+        }
+        for (Session session : sessionIterable) {
+            if (session != null) {
+                session.sendImmediately(call);
+            }
+        }
+    }
+
+    @Override
+    public void callImmediately(@Nullable Session session) throws IllegalStateException {
+        ensureRpcAvailable();
+        if (session == null) {
+            if (callback != null) {
+                // session不存在，安全的失败
+                callback.onComplete(RpcResponse.SESSION_NULL);
+            }
+        } else {
+            if (callback == null) {
+                // 没有设置回调，使用通知代替rpc调用，对方不会返回结果
+                session.sendImmediately(call);
+            } else {
+                // 设置了回调，走rpc，对方一定会返回一个值
+                session.callImmediately(call, callback);
+            }
+        }
+    }
+
+    @Nonnull
+    @Override
+    public RpcResponse syncImmediately(@Nullable Session session) throws IllegalStateException {
+        ensureRpcAvailable();
+        final RpcResponse response;
+        if (session == null) {
+            // session不存在，安全的失败
+            response = RpcResponse.SESSION_NULL;
+        } else {
+            response = session.syncImmediately(call);
+        }
+        return response;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Nullable
+    @Override
+    public V syncCallImmediately(@Nullable Session session) throws IllegalStateException {
+        final RpcResponse rpcResponse = syncImmediately(session);
+        if (rpcResponse.isSuccess()) {
+            return (V) rpcResponse.getBody();
+        } else {
+            return null;
+        }
+    }
 }

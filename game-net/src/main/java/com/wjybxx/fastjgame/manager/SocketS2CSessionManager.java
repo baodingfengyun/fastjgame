@@ -106,7 +106,7 @@ public class SocketS2CSessionManager extends SokectSessionManager {
         for (UserInfo userInfo : userInfoMap.values()) {
             for (SessionWrapper sessionWrapper : userInfo.sessionWrapperMap.values()) {
                 // 检查清空缓冲区
-                sessionWrapper.flushBuffer();
+                sessionWrapper.flushAllUnsentMessage();
 
                 // 检测超时的rpc调用
                 timeoutConsumer.setSession(sessionWrapper.getSession());
@@ -496,6 +496,10 @@ public class SocketS2CSessionManager extends SokectSessionManager {
         if (messageQueue.getSentQueue().size() > 0) {
             resend(channel, messageQueue);
         }
+        // 为什么要flush？
+        // Q: 为什么要flush？ <br>
+        // A: 这里存在一个时序问题，如果不flush，那么下一帧之前的加急消息会立即发送，而前面的加急消息因为不能立即发送而进入了未发送队列！
+        sessionWrapper.flushAllUnsentMessage();
         return true;
     }
 
@@ -608,7 +612,7 @@ public class SocketS2CSessionManager extends SokectSessionManager {
     void onRcvClientRpcRequest(RpcRequestEventParam rpcRequestEventParam) {
         tryUpdateMessageQueue(rpcRequestEventParam, sessionWrapper -> {
             RpcRequestCommitTask requestCommitTask = new RpcRequestCommitTask(sessionWrapper.getSession(), sessionWrapper.getProtocolDispatcher(),
-                    rpcRequestEventParam.getRequestGuid(), rpcRequestEventParam.isSync(), rpcRequestEventParam.getRequest());
+                    rpcRequestEventParam.getRequestGuid(), rpcRequestEventParam.isImmediate(), rpcRequestEventParam.getRequest());
             commit(sessionWrapper.getSession(), requestCommitTask);
         });
     }
@@ -793,13 +797,6 @@ public class SocketS2CSessionManager extends SokectSessionManager {
         }
 
         /**
-         * 清空缓存
-         */
-        void flushAllUnsentMessage() {
-            socketS2CSessionManager.flushAllUnsentMessage(channel, messageQueue);
-        }
-
-        /**
          * 立即发送一个消息(不进入待发送队列，直接进入已发送队列)
          */
         void writeAndFlush(NetMessage unsentMessage) {
@@ -809,9 +806,9 @@ public class SocketS2CSessionManager extends SokectSessionManager {
         /**
          * 检查是否需要清空缓冲区
          */
-        void flushBuffer() {
+        void flushAllUnsentMessage() {
             if (messageQueue.getUnsentQueue().size() > 0) {
-                flushAllUnsentMessage();
+                socketS2CSessionManager.flushAllUnsentMessage(channel, messageQueue);
             }
         }
 
@@ -832,27 +829,29 @@ public class SocketS2CSessionManager extends SokectSessionManager {
         }
 
         @Override
-        public void sendOneWayMessage(@Nonnull Object message) {
-            write(new OneWayMessage(message));
-        }
-
-        @Override
-        public void sendRpcRequest(long requestGuid, boolean sync, @Nonnull Object request) {
-            RpcRequestMessage rpcRequest = new RpcRequestMessage(requestGuid, sync, request);
-            if (sync) {
-                writeAndFlush(rpcRequest);
+        public void sendOneWayMessage(@Nonnull Object message, boolean immediate) {
+            if (immediate) {
+                writeAndFlush(new OneWayMessage(message));
             } else {
-                write(rpcRequest);
+                write(new OneWayMessage(message));
             }
         }
 
         @Override
-        public void sendRpcResponse(long requestGuid, boolean sync, @Nonnull RpcResponse response) {
-            RpcResponseMessage unsentRpcResponse = new RpcResponseMessage(requestGuid, response);
-            if (sync) {
-                writeAndFlush(unsentRpcResponse);
+        public void sendRpcRequest(long requestGuid, boolean immediate, @Nonnull Object request) {
+            if (immediate) {
+                writeAndFlush(new RpcRequestMessage(requestGuid, immediate, request));
             } else {
-                write(unsentRpcResponse);
+                write(new RpcRequestMessage(requestGuid, immediate, request));
+            }
+        }
+
+        @Override
+        public void sendRpcResponse(long requestGuid, boolean immediate, @Nonnull RpcResponse response) {
+            if (immediate) {
+                writeAndFlush(new RpcResponseMessage(requestGuid, response));
+            } else {
+                write(new RpcResponseMessage(requestGuid, response));
             }
         }
     }

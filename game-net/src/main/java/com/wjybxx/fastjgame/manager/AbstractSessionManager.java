@@ -94,16 +94,16 @@ public abstract class AbstractSessionManager implements SessionManager {
     protected abstract ISessionWrapper getWritableSession(long localGuid, long remoteGuid);
 
     @Override
-    public final void sendOneWayMessage(long localGuid, long remoteGuid, @Nonnull Object message) {
+    public final void sendOneWayMessage(long localGuid, long remoteGuid, @Nonnull Object message, boolean immediate) {
         final ISessionWrapper sessionWrapper = getWritableSession(localGuid, remoteGuid);
         if (null != sessionWrapper) {
-            sessionWrapper.sendOneWayMessage(message);
+            sessionWrapper.sendOneWayMessage(message, immediate);
         }
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public final void sendRpcRequest(long localGuid, long remoteGuid, @Nonnull Object request, long timeoutMs, EventLoop userEventLoop, RpcCallback rpcCallback) {
+    public final void sendRpcRequest(long localGuid, long remoteGuid, @Nonnull Object request, long timeoutMs, EventLoop userEventLoop, RpcCallback rpcCallback, boolean immediate) {
         final ISessionWrapper sessionWrapper = getWritableSession(localGuid, remoteGuid);
         if (null != sessionWrapper) {
             // 保存rpc请求上下文
@@ -113,7 +113,7 @@ public abstract class AbstractSessionManager implements SessionManager {
             long requestGuid = sessionWrapper.nextRequestGuid();
             sessionWrapper.getRpcPromiseInfoMap().put(requestGuid, rpcPromiseInfo);
             // 执行发送
-            sessionWrapper.sendRpcRequest(requestGuid, false, request);
+            sessionWrapper.sendRpcRequest(requestGuid, immediate, request);
         } else {
             ConcurrentUtils.tryCommit(userEventLoop, () -> {
                 rpcCallback.onComplete(RpcResponse.SESSION_CLOSED);
@@ -123,7 +123,7 @@ public abstract class AbstractSessionManager implements SessionManager {
 
     @SuppressWarnings("unchecked")
     @Override
-    public final void sendSyncRpcRequest(long localGuid, long remoteGuid, @Nonnull Object request, long timeoutMs, RpcPromise rpcPromise) {
+    public final void sendRpcRequest(long localGuid, long remoteGuid, @Nonnull Object request, long timeoutMs, RpcPromise rpcPromise, boolean immediate) {
         final ISessionWrapper sessionWrapper = getWritableSession(localGuid, remoteGuid);
         if (null != sessionWrapper) {
             // 保存rpc请求上下文
@@ -133,17 +133,17 @@ public abstract class AbstractSessionManager implements SessionManager {
             long requestGuid = sessionWrapper.nextRequestGuid();
             sessionWrapper.getRpcPromiseInfoMap().put(requestGuid, rpcPromiseInfo);
             // 执行发送
-            sessionWrapper.sendRpcRequest(requestGuid, true, request);
+            sessionWrapper.sendRpcRequest(requestGuid, immediate, request);
         } else {
             rpcPromise.trySuccess(RpcResponse.SESSION_CLOSED);
         }
     }
 
     @Override
-    public final void sendRpcResponse(long localGuid, long remoteGuid, long requestGuid, boolean sync, @Nonnull RpcResponse response) {
+    public final void sendRpcResponse(long localGuid, long remoteGuid, long requestGuid, boolean immediate, @Nonnull RpcResponse response) {
         ISessionWrapper sessionWrapper = getWritableSession(localGuid, remoteGuid);
         if (sessionWrapper != null) {
-            sessionWrapper.sendRpcResponse(requestGuid, sync, response);
+            sessionWrapper.sendRpcResponse(requestGuid, immediate, response);
         }
     }
 
@@ -175,7 +175,6 @@ public abstract class AbstractSessionManager implements SessionManager {
      */
     protected final void commitRpcResponse(Session session, RpcPromiseInfo rpcPromiseInfo, RpcResponse rpcResponse) {
         if (rpcPromiseInfo.rpcPromise != null) {
-            // 同步rpc调用
             if (session.isActive()) {
                 rpcPromiseInfo.rpcPromise.trySuccess(rpcResponse);
             } else {
@@ -203,7 +202,7 @@ public abstract class AbstractSessionManager implements SessionManager {
         if (rpcPromiseInfoMap.size() == 0) {
             return;
         }
-        // 立即执行所有同步rpc调用
+        // 立即通知所有rpcPromise - 因为用户可能阻塞在上面。
         CollectionUtils.removeIfAndThen(rpcPromiseInfoMap.values(),
                 rpcPromiseInfo -> rpcPromiseInfo.rpcPromise != null,
                 rpcPromiseInfo -> rpcPromiseInfo.rpcPromise.trySuccess(RpcResponse.SESSION_CLOSED));
@@ -274,11 +273,11 @@ public abstract class AbstractSessionManager implements SessionManager {
             return rpcPromiseInfoMap;
         }
 
-        public abstract void sendOneWayMessage(@Nonnull Object message);
+        public abstract void sendOneWayMessage(@Nonnull Object message, boolean immediate);
 
-        public abstract void sendRpcRequest(long requestGuid, boolean sync, @Nonnull Object request);
+        public abstract void sendRpcRequest(long requestGuid, boolean immediate, @Nonnull Object request);
 
-        public abstract void sendRpcResponse(long requestGuid, boolean sync, @Nonnull RpcResponse response);
+        public abstract void sendRpcResponse(long requestGuid, boolean immediate, @Nonnull RpcResponse response);
 
     }
 }

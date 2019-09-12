@@ -24,35 +24,16 @@ import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * 会话信息，用于获取一个链接的双方的基本信息 和 提供发送异步消息和同步消息的接口。
+ * 一个连接的抽象，它可能是一个socket连接，也可能是JVM内的线程之间内的连接，不论它真的是什么，你都可以以相同的方式使用它们发送消息。
  *
- * <h3>消息分类</h3>
- * 异步消息：单向消息、异步Rpc请求、异步Rpc调用的结果<br>
- * 同步消息：同步rpc请求、同步Rpc调用的结果
- *
- * <h3>消息顺序问题(极其重要)</h3>
- * 网络层提供以下保证：
- * <li>任意两个异步消息之间，都满足先发送的先到。</li>
- * <li>任意两个同步消息之间，都满足先发送的先到。</li>
- * <li>任意两个异步消息之间，都满足先接收到的先提交给应用层。</li>
- * <li>任意两个同步消息之间，都满足先接收到的先提交给应用层。</li>
  * <p>
  * 警惕：
  * <li>先发送的请求不一定先获得结果！对方什么时候返回给你结果是不确定的！</li>
- *
- * <h3>常见问题</h3>
- * Q: 为什么不提供同步调用 与 异步调用 之间的顺序保证？<br>
- * A: 基于这样的考虑：同步调用表示一种更迫切的需求，期望更快的处理，更快的返回，而异步调用没有这样的语义。
- * <p>
- * Q: 为何删除了返回{@link RpcFuture}的rpc接口？<br>
- * A: 返回{@link RpcFuture}固然可以，但是会导致使用复杂度的急剧攀升。如果没有理解地特别清楚，很容易造成一些奇怪的错误。
- * 此外，返回{@link RpcFuture}的rpc请求不能被优化，因此决定干脆删除它，也可以降低网络层的复杂度。
  *
  * <p><br>
  * Q: Netty线程和用户线程之间会竞争NetEventLoop资源，这个竞争可能非常激烈，如何降低Netty线程和用户线程之间的竞争？<br>
  * A: Session接口中的所有方法都不会对请求进行缓存，都会立即发送到网络层。为了解决这个问题，提炼了{@link Sender}接口，你可以使用带有缓冲的sender，
  * 可以对用户的异步消息进行一定的缓存，使得可以进行批量发送，可以有效的降低竞争。
- * (之前设计了pipeline，但是发现出现多个发送消息的接口以后，会导致使用复杂度的提升，不安全！)
  *
  * <p><br>
  * Q: 为何抽象层没有提供address之类的信息？<br>
@@ -126,78 +107,104 @@ public interface Session {
     // ------------------------------------------------ 异步Rpc请求 ---------------------------------------------
 
     /**
-     * 发送一个**异步**rpc请求给对方，会使用默认的超时时间（配置文件中指定）。
+     * 发送一个rpc请求给对方，会使用默认的超时时间（配置文件中指定）。
      * 注意：
      * 1. {@link RpcCallback}执行在用户线程。如果是用户线程发起rpc请求，则不必担心线程安全问题。否则需要注意callback的线程安全问题。
      *
      * @param request  rpc请求对象
      * @param callback 回调函数
      */
-    void rpc(@Nonnull Object request, @Nonnull RpcCallback callback);
+    void call(@Nonnull Object request, @Nonnull RpcCallback callback);
 
     /**
-     * 发送一个**异步**rpc请求给对方。
+     * 发送一个rpc请求给对方。
      *
      * @param request   rpc请求对象
      * @param callback  回调函数
      * @param timeoutMs 超时时间，毫秒，必须大于0，必须有超时时间。
-     * @see #rpc(Object, RpcCallback)
+     * @see #call(Object, RpcCallback)
      */
-    void rpc(@Nonnull Object request, @Nonnull RpcCallback callback, long timeoutMs);
-
-    // ------------------------------------------------ 同步Rpc请求 ---------------------------------------------
+    void call(@Nonnull Object request, @Nonnull RpcCallback callback, long timeoutMs);
 
     /**
-     * 发送一个**同步**rpc请求给对方，并阻塞到结果返回或超时，或中断，会使用默认的超时时间（配置文件中指定）。
+     * 发送一个rpc请求给对方，并阻塞到结果返回或超时或被中断。
      *
      * @param request rpc请求对象
      * @return rpc返回结果
-     * @apiNote 注意：同步rpc调用会尽可能地立即发送，它的结果对方也会尽可能地立即返回，因此它与{@link #send(Object)}{@link #rpc(Object, RpcCallback)}之间
-     * 没有顺序保证，只保证与其它的**同步**rpc调用之间的顺序！
      */
     @Nonnull
-    RpcResponse syncRpc(@Nonnull Object request) throws InterruptedException;
+    RpcResponse sync(@Nonnull Object request);
 
     /**
-     * 发送一个**同步**rpc请求给对方，并阻塞到结果返回或超时或被中断。
-     * 注意与{@link #syncRpc(Object)}相同的警告。
+     * 发送一个rpc请求给对方，并阻塞到结果返回或超时。
+     * 注意与{@link #sync(Object)}相同的警告。
      *
      * @param request   rpc请求对象
      * @param timeoutMs 超时时间，毫秒，必须大于0，否则死锁可能！！！
      * @return rpc返回结果
      */
     @Nonnull
-    RpcResponse syncRpc(@Nonnull Object request, long timeoutMs) throws InterruptedException;
+    RpcResponse sync(@Nonnull Object request, long timeoutMs);
+
+    // ----------------------------------------------- 禁用所有发送缓存的接口 -------------------------------------
+    // --------------------------------------------- 不仅仅禁用我的缓存，也禁用对方的返回结果的缓存 --------------------
+    // ------------------------------------------------ 发送消息 ------------------------------------------
 
     /**
-     * 发送一个**同步**rpc请求给对方，并阻塞到结果返回或超时或被中断。
-     * 注意与{@link #syncRpc(Object)}相同的警告。
+     * 发送一个单向消息给对方
+     *
+     * @param message 单向消息
+     */
+    void sendImmediately(@Nonnull Object message);
+
+    // ------------------------------------------------ 异步Rpc请求 ---------------------------------------------
+
+    /**
+     * 发送一个rpc请求给对方，会使用默认的超时时间（配置文件中指定）。
+     * 注意：
+     * 1. {@link RpcCallback}执行在用户线程。如果是用户线程发起rpc请求，则不必担心线程安全问题。否则需要注意callback的线程安全问题。
+     *
+     * @param request  rpc请求对象
+     * @param callback 回调函数
+     */
+    void callImmediately(@Nonnull Object request, @Nonnull RpcCallback callback);
+
+    /**
+     * 发送一个rpc请求给对方。
+     *
+     * @param request   rpc请求对象
+     * @param callback  回调函数
+     * @param timeoutMs 超时时间，毫秒，必须大于0，必须有超时时间。
+     * @see #call(Object, RpcCallback)
+     */
+    void callImmediately(@Nonnull Object request, @Nonnull RpcCallback callback, long timeoutMs);
+
+    /**
+     * 发送一个rpc请求给对方，并阻塞到结果返回或超时或被中断。
      *
      * @param request rpc请求对象
      * @return rpc返回结果
      */
     @Nonnull
-    RpcResponse syncRpcUninterruptibly(@Nonnull Object request);
+    RpcResponse syncImmediately(@Nonnull Object request);
 
     /**
-     * 发送一个**同步**rpc请求给对方，并阻塞到结果返回或超时。
-     * 注意与{@link #syncRpc(Object)}相同的警告。
+     * 发送一个rpc请求给对方，并阻塞到结果返回或超时。
      *
      * @param request   rpc请求对象
      * @param timeoutMs 超时时间，毫秒，必须大于0，否则死锁可能！！！
      * @return rpc返回结果
      */
     @Nonnull
-    RpcResponse syncRpcUninterruptibly(@Nonnull Object request, long timeoutMs);
+    RpcResponse syncImmediately(@Nonnull Object request, long timeoutMs);
 
-    // --------------------------------------------  缓冲区处理 -------------------------------------------------
+    // ---------------------------------------------- 缓冲区处理 -------------------------------------------------
 
     /**
      * 如果存在缓冲，则清空缓冲区。
      * 注意：如果为session创建的是带有缓冲的sender，那么必须调用flush，否则可能有消息残留。
      */
     void flush();
-
 
     // --------------------------------------- session运行的网络环境（不是给用户的API） -------------------------------------
 

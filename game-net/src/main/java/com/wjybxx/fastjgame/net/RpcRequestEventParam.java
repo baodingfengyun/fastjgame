@@ -36,17 +36,17 @@ public class RpcRequestEventParam extends MessageEventParam {
     /**
      * 是否rpc同步调用，是否加急
      */
-    private boolean sync;
+    private boolean immediate;
     /**
      * rpc请求内容
      */
     private Object request;
 
     public RpcRequestEventParam(Channel channel, long localGuid, long remoteGuid, long ack, long sequence,
-                                long requestGuid, boolean sync, Object request) {
+                                long requestGuid, boolean immediate, Object request) {
         super(channel, localGuid, remoteGuid, ack, sequence);
         this.requestGuid = requestGuid;
-        this.sync = sync;
+        this.immediate = immediate;
         this.request = request;
     }
 
@@ -54,8 +54,8 @@ public class RpcRequestEventParam extends MessageEventParam {
         return requestGuid;
     }
 
-    public boolean isSync() {
-        return sync;
+    public boolean isImmediate() {
+        return immediate;
     }
 
     public Object getRequest() {

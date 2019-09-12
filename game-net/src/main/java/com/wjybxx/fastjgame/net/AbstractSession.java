@@ -124,47 +124,66 @@ public abstract class AbstractSession implements Session {
 
     @Override
     public void send(@Nonnull Object message) {
-        sender.send(message);
+        sender.send(message, false);
     }
 
     @Override
-    public void rpc(@Nonnull Object request, @Nonnull RpcCallback callback) {
-        sender.rpc(request, callback, getNetConfigManager().rpcCallbackTimeoutMs());
+    public void call(@Nonnull Object request, @Nonnull RpcCallback callback) {
+        sender.call(request, callback, getNetConfigManager().rpcCallbackTimeoutMs(), false);
     }
 
     @Override
-    public void rpc(@Nonnull Object request, @Nonnull RpcCallback callback, long timeoutMs) {
-        sender.rpc(request, callback, timeoutMs);
-    }
-
-    @Override
-    @Nonnull
-    public RpcResponse syncRpc(@Nonnull Object request) throws InterruptedException {
-        return sender.syncRpc(request, getNetConfigManager().syncRpcTimeoutMs());
+    public void call(@Nonnull Object request, @Nonnull RpcCallback callback, long timeoutMs) {
+        sender.call(request, callback, timeoutMs, false);
     }
 
     @Override
     @Nonnull
-    public RpcResponse syncRpc(@Nonnull Object request, long timeoutMs) throws InterruptedException {
-        return sender.syncRpc(request, timeoutMs);
+    public RpcResponse sync(@Nonnull Object request) {
+        return sender.sync(request, getNetConfigManager().syncRpcTimeoutMs(), false);
     }
 
     @Override
     @Nonnull
-    public RpcResponse syncRpcUninterruptibly(@Nonnull Object request) {
-        return sender.syncRpcUninterruptibly(request, getNetConfigManager().syncRpcTimeoutMs());
+    public RpcResponse sync(@Nonnull Object request, long timeoutMs) {
+        return sender.sync(request, timeoutMs, false);
+    }
+
+    // ---------------------------------------------  立即发送消息的接口 --------------------------------------
+
+    @Override
+    public void sendImmediately(@Nonnull Object message) {
+        sender.send(message, true);
     }
 
     @Override
+    public void callImmediately(@Nonnull Object request, @Nonnull RpcCallback callback) {
+        sender.call(request, callback, getNetConfigManager().rpcCallbackTimeoutMs(), true);
+    }
+
+    @Override
+    public void callImmediately(@Nonnull Object request, @Nonnull RpcCallback callback, long timeoutMs) {
+        sender.call(request, callback, timeoutMs, true);
+    }
+
     @Nonnull
-    public RpcResponse syncRpcUninterruptibly(@Nonnull Object request, long timeoutMs) {
-        return sender.syncRpcUninterruptibly(request, timeoutMs);
+    @Override
+    public RpcResponse syncImmediately(@Nonnull Object request) {
+        return sender.sync(request, getNetConfigManager().syncRpcTimeoutMs(), true);
+    }
+
+    @Nonnull
+    @Override
+    public RpcResponse syncImmediately(@Nonnull Object request, long timeoutMs) {
+        return sender.sync(request, timeoutMs, true);
     }
 
     @Override
     public void flush() {
         sender.flush();
     }
+
+    // -------------------------------------------------- 运行环境 ------------------------------------------------------
 
     @Override
     public final NetEventLoop netEventLoop() {
@@ -182,45 +201,50 @@ public abstract class AbstractSession implements Session {
         return sender;
     }
 
-    // ------------------------------------------- 发送消息接口，必须运行在网络线程下 ---------------------------------------
+    // ---------------------------------------------- 发送消息接口，必须运行在网络线程下 ---------------------------------------
 
     /**
      * 发送单向消息
+     *
+     * @param message   消息内容
+     * @param immediate 是否加急
      */
-    final void sendOneWayMessage(@Nonnull Object message) {
-        getSessionManager().sendOneWayMessage(localGuid(), remoteGuid(), message);
+    final void sendOneWayMessage(@Nonnull Object message, boolean immediate) {
+        getSessionManager().sendOneWayMessage(localGuid(), remoteGuid(), message, immediate);
     }
 
     /**
-     * 发送异步rpc请求
+     * 发送rpc请求
      *
      * @param request     请求内容
      * @param timeoutMs   超时时间
      * @param rpcCallback 回调函数
+     * @param immediate   是否加急
      */
-    final void sendAsyncRpcRequest(@Nonnull Object request, long timeoutMs, @Nonnull RpcCallback rpcCallback) {
-        getSessionManager().sendRpcRequest(localGuid(), remoteGuid(), request, timeoutMs, localEventLoop(), rpcCallback);
+    final void sendRpcRequest(@Nonnull Object request, long timeoutMs, @Nonnull RpcCallback rpcCallback, boolean immediate) {
+        getSessionManager().sendRpcRequest(localGuid(), remoteGuid(), request, timeoutMs, localEventLoop(), rpcCallback, immediate);
     }
 
     /**
-     * 发送同步rpc请求
+     * 发送rpc请求
      *
-     * @param request            请求内容
-     * @param timeoutMs          超时时间
-     * @param rpcResponsePromise 存储结果的promise
+     * @param request    请求内容
+     * @param timeoutMs  超时时间
+     * @param rpcPromise 存储结果的promise
+     * @param immediate  是否加急
      */
-    final void sendSyncRpcRequest(@Nonnull Object request, long timeoutMs, RpcPromise rpcResponsePromise) {
-        getSessionManager().sendSyncRpcRequest(localGuid(), remoteGuid(), request, timeoutMs, rpcResponsePromise);
+    final void sendRpcRequest(@Nonnull Object request, long timeoutMs, RpcPromise rpcPromise, boolean immediate) {
+        getSessionManager().sendRpcRequest(localGuid(), remoteGuid(), request, timeoutMs, rpcPromise, immediate);
     }
 
     /**
      * 发送rpc响应
      *
      * @param requestGuid 请求对应的id
-     * @param sync        是否是同步rpc请求
+     * @param immediate   是否加急
      * @param rpcResponse 请求对应的响应
      */
-    final void sendRpcResponse(long requestGuid, boolean sync, RpcResponse rpcResponse) {
-        getSessionManager().sendRpcResponse(localGuid(), remoteGuid(), requestGuid, sync, rpcResponse);
+    final void sendRpcResponse(long requestGuid, boolean immediate, RpcResponse rpcResponse) {
+        getSessionManager().sendRpcResponse(localGuid(), remoteGuid(), requestGuid, immediate, rpcResponse);
     }
 }

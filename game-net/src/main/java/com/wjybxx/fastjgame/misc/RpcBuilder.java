@@ -106,21 +106,18 @@ public interface RpcBuilder<V> {
     // --------------------------------------------- 真正执行 --------------------------------------------------
 
     /**
-     * 1. 发送一个通知。
-     * 2. 发起一个异步rpc调用，但是不关心返回值，不论调用的方法是否真的有返回值。
-     * <p>
-     * 注意：
-     * 1. 一旦调用了send方法，那么便不可以调用<b>send、broadcast</b>以外的请求方法。
-     * 2. 即使添加了回调，这些回调也会被忽略。
+     * 发送一个单向通知 - 它也可以调用rpc方法，不过结果不会被传输回来。
      *
-     * @param session rpc请求的目的地，可以为null，以省却调用时的外部检查。
-     * @throws IllegalStateException 如果调用过send、broadcast以外的请求方法，则会抛出异常。
+     * @param session 要通知的session
+     * @throws IllegalStateException 如果调用过send、broadcast以外的请求方法，则会抛出异常
      */
     void send(@Nullable Session session) throws IllegalStateException;
 
     /**
      * 广播一个通知，它是对{@link #send(Session)}的一个包装。
-     * 注意事项同{@link #send(Session)}。
+     * 注意:
+     * 1. 一旦调用了send方法，那么便不可以调用<b>send、broadcast</b>以外的请求方法。
+     * 2. 即使添加了回调，这些回调也会被忽略。
      *
      * @param sessionIterable 要广播的所有session
      * @throws IllegalStateException 如果调用过send、broadcast以外的请求方法，则会抛出异常。
@@ -143,13 +140,15 @@ public interface RpcBuilder<V> {
      * <p>
      * 注意：
      * 1. 一旦调用了sync方法，那么该builder便不可以再使用。
-     * 2. 如果添加了回调，回调会在返回前执行。(其实也纠结，调用失败是返回null还是抛出异常好)
-     * 3. 少使用同步调用，必要的时候使用同步可以降低编程复杂度，但是大量使用会大大降低吞吐量。
+     * 2. 少使用同步调用，必要的时候使用同步可以降低编程复杂度，但是大量使用会大大降低吞吐量。
+     * 3. 一旦调用了syncCall方法，那么该builder便不可以再使用。
+     * 4. 即使添加了回调，这些回调也会被忽略。
      *
      * @param session rpc请求的目的地，可以为null，以省却调用时的外部检查。
      * @return result
      * @throws IllegalStateException 如果重用一个可监听的rpcBuilder，则会抛出异常！
      */
+    @Nonnull
     RpcResponse sync(@Nullable Session session) throws IllegalStateException;
 
     /**
@@ -157,9 +156,9 @@ public interface RpcBuilder<V> {
      * <p>
      * 注意：
      * 1. 如果null是一个合理的返回值，那么你不能基于调用结果做出任何判断。这种情况下，建议你使用{@link #sync(Session)}，可以获得调用的结果码。
-     * 2. 如果添加了回调，回调会在返回前执行。(其实也纠结，调用失败是返回null还是抛出异常好)
-     * 3. 少使用同步调用，必要的时候使用同步可以降低编程复杂度，但是大量使用会大大降低吞吐量。
-     * 4. 一旦调用了syncCall方法，那么该builder便不可以再使用。
+     * 2. 少使用同步调用，必要的时候使用同步可以降低编程复杂度，但是大量使用会大大降低吞吐量。
+     * 3. 一旦调用了syncCall方法，那么该builder便不可以再使用。
+     * 4. 即使添加了回调，这些回调也会被忽略。
      *
      * @param session rpc请求的目的地，可以为null，以省却调用时的外部检查。
      * @return result
@@ -167,4 +166,62 @@ public interface RpcBuilder<V> {
      */
     @Nullable
     V syncCall(@Nullable Session session) throws IllegalStateException;
+
+    // ------------------------------------------------- 无缓存的消息接口 ------------------------------------------
+
+    void sendImmediately(@Nullable Session session) throws IllegalStateException;
+
+    /**
+     * 广播一个通知，它是对{@link #send(Session)}的一个包装。
+     * 注意:
+     * 1. 一旦调用了send方法，那么便不可以调用<b>send、broadcast</b>以外的请求方法。
+     * 2. 即使添加了回调，这些回调也会被忽略。
+     *
+     * @param sessionIterable 要广播的所有session
+     * @throws IllegalStateException 如果调用过send、broadcast以外的请求方法，则会抛出异常。
+     */
+    void broadcastImmediately(@Nullable Iterable<Session> sessionIterable) throws IllegalStateException;
+
+    /**
+     * 执行异步rpc调用，无论如何对方都会返回一个结果。
+     * call是不是很好记住？那就多用它。
+     * <p>
+     * 注意：一旦调用了call方法，那么该builder便不可以再使用。
+     *
+     * @param session rpc请求的目的地，可以为null，以省却调用时的外部检查。
+     * @throws IllegalStateException 如果重用一个可监听的rpcBuilder，则会抛出异常！
+     */
+    void callImmediately(@Nullable Session session) throws IllegalStateException;
+
+    /**
+     * 执行同步rpc调用，并直接获得结果。如果添加了回调，回调会在返回前执行。
+     * <p>
+     * 注意：
+     * 1. 一旦调用了sync方法，那么该builder便不可以再使用。
+     * 2. 少使用同步调用，必要的时候使用同步可以降低编程复杂度，但是大量使用会大大降低吞吐量。
+     * 3. 一旦调用了syncCall方法，那么该builder便不可以再使用。
+     * 4. 即使添加了回调，这些回调也会被忽略。
+     *
+     * @param session rpc请求的目的地，可以为null，以省却调用时的外部检查。
+     * @return result
+     * @throws IllegalStateException 如果重用一个可监听的rpcBuilder，则会抛出异常！
+     */
+    @Nonnull
+    RpcResponse syncImmediately(@Nullable Session session) throws IllegalStateException;
+
+    /**
+     * 执行同步rpc调用，如果执行成功，则返回对应的调用结果，否则返回null。
+     * <p>
+     * 注意：
+     * 1. 如果null是一个合理的返回值，那么你不能基于调用结果做出任何判断。这种情况下，建议你使用{@link #sync(Session)}，可以获得调用的结果码。
+     * 2. 少使用同步调用，必要的时候使用同步可以降低编程复杂度，但是大量使用会大大降低吞吐量。
+     * 3. 一旦调用了syncCall方法，那么该builder便不可以再使用。
+     * 4. 即使添加了回调，这些回调也会被忽略。
+     *
+     * @param session rpc请求的目的地，可以为null，以省却调用时的外部检查。
+     * @return result
+     * @throws IllegalStateException 如果重用一个可监听的rpcBuilder，则会抛出异常！
+     */
+    @Nullable
+    V syncCallImmediately(@Nullable Session session) throws IllegalStateException;
 }

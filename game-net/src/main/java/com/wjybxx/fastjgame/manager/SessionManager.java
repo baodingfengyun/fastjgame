@@ -39,8 +39,9 @@ public interface SessionManager {
      * @param localGuid  我的标识
      * @param remoteGuid 远程节点标识
      * @param message    单向消息内容
+     * @param immediate  是否加急
      */
-    void sendOneWayMessage(long localGuid, long remoteGuid, @Nonnull Object message);
+    void sendOneWayMessage(long localGuid, long remoteGuid, @Nonnull Object message, boolean immediate);
 
     /**
      * 向远程发送一个异步rpc请求
@@ -51,8 +52,9 @@ public interface SessionManager {
      * @param timeoutMs     超时时间，大于0
      * @param userEventLoop 用户线程
      * @param rpcCallback   rpc回调
+     * @param immediate     是否加急
      */
-    void sendRpcRequest(long localGuid, long remoteGuid, @Nonnull Object request, long timeoutMs, EventLoop userEventLoop, RpcCallback rpcCallback);
+    void sendRpcRequest(long localGuid, long remoteGuid, @Nonnull Object request, long timeoutMs, EventLoop userEventLoop, RpcCallback rpcCallback, boolean immediate);
 
     /**
      * 向远程发送一个同步rpc请求
@@ -62,8 +64,9 @@ public interface SessionManager {
      * @param request    rpc请求内容
      * @param timeoutMs  超时时间，大于0
      * @param rpcPromise 用于监听结果
+     * @param immediate  是否加急
      */
-    void sendSyncRpcRequest(long localGuid, long remoteGuid, @Nonnull Object request, long timeoutMs, RpcPromise rpcPromise);
+    void sendRpcRequest(long localGuid, long remoteGuid, @Nonnull Object request, long timeoutMs, RpcPromise rpcPromise, boolean immediate);
 
     /**
      * 发送rpc响应
@@ -71,10 +74,10 @@ public interface SessionManager {
      * @param localGuid   我的id
      * @param remoteGuid  远程节点id
      * @param requestGuid 请求对应的编号
-     * @param sync        是否是同步rpc调用，如果是同步rpc调用，需要立即发送，不进入缓存。
+     * @param immediate   是否加急？不进入缓存。
      * @param response    响应结果
      */
-    void sendRpcResponse(long localGuid, long remoteGuid, long requestGuid, boolean sync, @Nonnull RpcResponse response);
+    void sendRpcResponse(long localGuid, long remoteGuid, long requestGuid, boolean immediate, @Nonnull RpcResponse response);
 
     /**
      * 删除指定session

@@ -24,7 +24,7 @@
  long  8字节     sequence         这是我发送的第几个包/帧。
 
  long  8字节     requestGuid      请求id
- byte  1字节     sync             是否是同步rpc调用，表示加急(不缓存)
+ byte  1字节     immediate        是否加急(不缓存)
  bytes 字节数组   requestBytes     请求的内容，用户自定义解析
 
 4.Rpc响应包
@@ -43,7 +43,6 @@
 6、7 客户端ack-ping消息 和 服务器返回的ack-pong消息 同结构 定长消息
  long  8字节      ack              我收到的最大消息号(捎带确认的ack)
  long  8字节      sequence         这是我发送的第几个包/帧。
-
 
 在3、4、5都有捎带确认的ack情况下为什么还需要6和7 （单独的心跳包）？
 1.采用捎带确认基于这样的假设：请求一般会存在一个响应，且双方总是有消息要发给另一方，而且间隔不会太长,。

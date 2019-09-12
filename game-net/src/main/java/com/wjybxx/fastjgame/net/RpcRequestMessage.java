@@ -34,18 +34,18 @@ public class RpcRequestMessage extends NetMessage {
      */
     private long requestGuid;
     /**
-     * 是否是同步rpc调用，是否加急
+     * 是否加急
      */
-    private boolean sync;
+    private boolean immediate;
     /**
      * rpc请求内容
      */
     private Object request;
 
-    public RpcRequestMessage(long requestGuid, boolean sync, Object request) {
+    public RpcRequestMessage(long requestGuid, boolean immediate, Object request) {
         super();
         this.requestGuid = requestGuid;
-        this.sync = sync;
+        this.immediate = immediate;
         this.request = request;
     }
 
@@ -53,8 +53,8 @@ public class RpcRequestMessage extends NetMessage {
         return requestGuid;
     }
 
-    public boolean isSync() {
-        return sync;
+    public boolean isImmediate() {
+        return immediate;
     }
 
     public Object getRequest() {

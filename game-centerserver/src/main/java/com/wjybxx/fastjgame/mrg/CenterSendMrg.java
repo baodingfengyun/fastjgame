@@ -148,7 +148,7 @@ public class CenterSendMrg {
     public <T extends MessageLite> RpcResponse syncRpcScene(long worldGuid, @Nonnull Message msg) {
         SceneInCenterInfo sceneInfo = sceneInCenterInfoMrg.getSceneInfo(worldGuid);
         if (null != sceneInfo && sceneInfo.getSession() != null) {
-            return sceneInfo.getSession().syncRpcUninterruptibly(msg);
+            return sceneInfo.getSession().sync(msg);
         } else {
             logger.info("scene process {} is disconnect already.", worldGuid);
             return RpcResponse.SESSION_CLOSED;
@@ -166,7 +166,7 @@ public class CenterSendMrg {
     public <T extends MessageLite> RpcResponse syncRpcScene(int channelId, @Nonnull Message msg) {
         SceneInCenterInfo sceneInfo = sceneInCenterInfoMrg.getSceneInfo(channelId);
         if (null != sceneInfo && sceneInfo.getSession() != null) {
-            return sceneInfo.getSession().syncRpcUninterruptibly(msg);
+            return sceneInfo.getSession().sync(msg);
         } else {
             logger.info("channel {} is disconnect already.", channelId);
             return RpcResponse.SESSION_CLOSED;

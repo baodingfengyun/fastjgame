@@ -39,49 +39,41 @@ public interface Sender {
     /**
      * 发送一个单向消息/通知
      *
-     * @param message 待发送的消息
+     * @param message   待发送的消息
+     * @param immediate 是否加急
      */
-    void send(@Nonnull Object message);
+    void send(@Nonnull Object message, boolean immediate);
 
     /**
-     * 发送一个**异步**rpc请求给对方，并阻塞到结果返回或超时或被中断。
+     * 发送一个rpc请求给对方。
      * 注意：回调执行在session的用户线程。
-     *
-     * @param request   rpc请求对象
+     *  @param request   rpc请求对象
      * @param callback  回调函数
      * @param timeoutMs 超时时间，毫秒，必须大于0，必须有超时时间。
+     * @param immediate 是否加急
      */
-    void rpc(@Nonnull Object request, @Nonnull RpcCallback callback, long timeoutMs);
+    void call(@Nonnull Object request, @Nonnull RpcCallback callback, long timeoutMs, boolean immediate);
 
     /**
-     * 发送一个**同步**rpc请求给对方，并阻塞到结果返回或超时或被中断。
+     * 发送一个rpc请求给对方，并阻塞到结果返回或超时。
      *
      * @param request   rpc请求对象
      * @param timeoutMs 超时时间，毫秒，必须大于0，否则死锁可能！！！
+     * @param immediate 是否加急
      * @return rpc返回结果
      */
     @Nonnull
-    RpcResponse syncRpc(@Nonnull Object request, long timeoutMs) throws InterruptedException;
-
-    /**
-     * 发送一个**同步**rpc请求给对方，并阻塞到结果返回或超时。
-     *
-     * @param request   rpc请求对象
-     * @param timeoutMs 超时时间，毫秒，必须大于0，否则死锁可能！！！
-     * @return rpc返回结果
-     */
-    @Nonnull
-    RpcResponse syncRpcUninterruptibly(@Nonnull Object request, long timeoutMs);
+    RpcResponse sync(@Nonnull Object request, long timeoutMs, boolean immediate);
 
     /**
      * 创建一个特定rpc请求对应的结果通道。
      * {@link RpcResponseChannel}是线程安全的。
      *
      * @param requestGuid 请求对应的id
-     * @param sync        是否是同步rpc调用
+     * @param immediate   是否加急
      * @return responseChannel
      */
-    <T> RpcResponseChannel<T> newResponseChannel(long requestGuid, boolean sync);
+    <T> RpcResponseChannel<T> newResponseChannel(long requestGuid, boolean immediate);
 
     /**
      * 如果存在缓冲，则清空缓冲区。

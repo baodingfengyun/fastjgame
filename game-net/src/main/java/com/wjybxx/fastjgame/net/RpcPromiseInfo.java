@@ -32,11 +32,11 @@ public class RpcPromiseInfo {
 
     // promise与callback二者存一
     /**
-     * promise，如果promise不为null，则表示同步rpc调用，否则表示异步rpc调用
+     * promise
      */
     public Promise<RpcResponse> rpcPromise;
     /**
-     * 回调，如果回调存在的话，表示是一个异步rpc调用。
+     * 回调
      */
     public RpcCallback rpcCallback;
 
