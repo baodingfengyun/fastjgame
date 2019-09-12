@@ -26,6 +26,8 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * 实现session管理器的通用功能
@@ -39,11 +41,45 @@ public abstract class AbstractSessionManager implements SessionManager {
 
     protected final NetTimeManager netTimeManager;
 
+    /**
+     * 这是一项特定的优化：消除大量的lambda表达式对象，你通常并不需要这样。
+     */
+    protected final Predicate<RpcPromiseInfo> timeoutPredicate;
+    /**
+     * 这是一项特定的优化：消除大量的lambda表达式对象，你通常并不需要这样。
+     */
+    protected final TimeoutConsumer timeoutConsumer;
+
     @Inject
     protected AbstractSessionManager(NetTimeManager netTimeManager) {
         this.netTimeManager = netTimeManager;
+        this.timeoutPredicate = new TimeoutPredicate();
+        this.timeoutConsumer = new TimeoutConsumer();
     }
 
+    protected class TimeoutPredicate implements Predicate<RpcPromiseInfo> {
+
+        @Override
+        public boolean test(RpcPromiseInfo rpcPromiseInfo) {
+            return netTimeManager.getSystemMillTime() >= rpcPromiseInfo.deadline;
+        }
+    }
+
+    protected class TimeoutConsumer implements Consumer<RpcPromiseInfo> {
+
+        private Session session;
+
+        @Override
+        public void accept(RpcPromiseInfo rpcPromiseInfo) {
+            commitRpcResponse(session, rpcPromiseInfo, RpcResponse.TIMEOUT);
+            // 避免内存泄漏
+            session = null;
+        }
+
+        public void setSession(@Nonnull Session session) {
+            this.session = session;
+        }
+    }
 
     // ---------------------------------------------------------- 发送消息  -------------------------------------------------------------
 

@@ -58,7 +58,7 @@ public class JVMS2CSessionManager extends JVMSessionManager {
     private final Long2ObjectMap<UserInfo> userInfoMap = new Long2ObjectOpenHashMap<>();
     /**
      * 连接的所有远程线程。
-     * 将监听到远程线程终止后，需要删除对应的会话。
+     * 监听到远程线程终止后，需要删除对应的会话。
      */
     private final Set<EventLoop> remoteEventLoopSet = new HashSet<>();
 
@@ -76,9 +76,10 @@ public class JVMS2CSessionManager extends JVMSessionManager {
         for (UserInfo userInfo : userInfoMap.values()) {
             for (SessionWrapper sessionWrapper : userInfo.sessionWrapperMap.values()) {
                 // 检测超时的rpc调用
+                timeoutConsumer.setSession(sessionWrapper.getSession());
                 CollectionUtils.removeIfAndThen(sessionWrapper.getRpcPromiseInfoMap().values(),
-                        rpcPromiseInfo -> netTimeManager.getSystemMillTime() >= rpcPromiseInfo.deadline,
-                        rpcPromiseInfo -> commitRpcResponse(sessionWrapper.getSession(), rpcPromiseInfo, RpcResponse.TIMEOUT));
+                        timeoutPredicate,
+                        timeoutConsumer);
             }
         }
     }

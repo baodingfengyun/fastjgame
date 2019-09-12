@@ -17,6 +17,8 @@
 package com.wjybxx.fastjgame.net;
 
 import com.wjybxx.fastjgame.manager.TokenManager;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
  * Token 客户端请求与服务器建立连接时的验证信息
@@ -103,6 +105,39 @@ public class Token {
 
     public int getCreateSecTime() {
         return createSecTime;
+    }
+
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) return true;
+
+        if (object == null || getClass() != object.getClass()) {
+            return false;
+        }
+
+        Token token = (Token) object;
+
+        return new EqualsBuilder()
+                .append(clientGuid, token.clientGuid)
+                .append(serverGuid, token.serverGuid)
+                .append(verifiedTimes, token.verifiedTimes)
+                .append(createSecTime, token.createSecTime)
+                .append(clientRoleType, token.clientRoleType)
+                .append(serverRoleType, token.serverRoleType)
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37)
+                .append(clientGuid)
+                .append(clientRoleType)
+                .append(serverGuid)
+                .append(serverRoleType)
+                .append(verifiedTimes)
+                .append(createSecTime)
+                .toHashCode();
     }
 
     @Override

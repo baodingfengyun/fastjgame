@@ -132,13 +132,7 @@ public class TokenManager {
      * 是否是相同的token,客户端的token是否和服务器token匹配
      */
     public boolean isSameToken(Token existToken, Token token) {
-        // 不轻易重写equals方法
-        return existToken.getClientGuid() == token.getClientGuid() &&
-                existToken.getClientRoleType() == token.getClientRoleType() &&
-                existToken.getServerGuid() == token.getServerGuid() &&
-                existToken.getServerRoleType() == token.getServerRoleType() &&
-                existToken.getVerifiedTimes() == token.getVerifiedTimes() &&
-                existToken.getCreateSecTime() == token.getCreateSecTime();
+        return existToken.equals(token);
     }
 
     /**

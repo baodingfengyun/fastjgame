@@ -94,5 +94,5 @@ public class JVMPort {
         assert netEventLoop().inEventLoop();
         return managerWrapper.getJvmc2SSessionManager();
     }
-    
+
 }

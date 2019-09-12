@@ -109,9 +109,10 @@ public class SocketS2CSessionManager extends SokectSessionManager {
                 sessionWrapper.flushBuffer();
 
                 // 检测超时的rpc调用
+                timeoutConsumer.setSession(sessionWrapper.getSession());
                 CollectionUtils.removeIfAndThen(sessionWrapper.getRpcPromiseInfoMap().values(),
-                        rpcPromiseInfo -> netTimeManager.getSystemMillTime() >= rpcPromiseInfo.deadline,
-                        rpcPromiseInfo -> commitRpcResponse(sessionWrapper.getSession(), rpcPromiseInfo, RpcResponse.TIMEOUT));
+                        timeoutPredicate,
+                        timeoutConsumer);
             }
         }
     }
