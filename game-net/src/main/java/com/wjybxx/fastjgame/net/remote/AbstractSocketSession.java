@@ -30,9 +30,9 @@ import com.wjybxx.fastjgame.net.SessionSenderMode;
  * date - 2019/9/9
  * github - https://github.com/hl845740757
  */
-public abstract class AbstractRemoteSession extends AbstractSession implements RemoteSession {
+public abstract class AbstractSocketSession extends AbstractSession implements SocketSession {
 
-    public AbstractRemoteSession(NetContext netContext, long remoteGuid, RoleType remoteRole,
+    public AbstractSocketSession(NetContext netContext, long remoteGuid, RoleType remoteRole,
                                  NetManagerWrapper managerWrapper, SessionSenderMode sessionSenderMode) {
         super(netContext, remoteGuid, remoteRole, managerWrapper, sessionSenderMode);
     }

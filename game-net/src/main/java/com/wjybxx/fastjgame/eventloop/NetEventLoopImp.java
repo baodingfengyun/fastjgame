@@ -57,8 +57,8 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     private final NetEventLoopManager netEventLoopManager;
     private final NetConfigManager netConfigManager;
     private final NettyThreadManager nettyThreadManager;
-    private final S2CSessionManager s2CSessionManager;
-    private final C2SSessionManager c2SSessionManager;
+    private final SocketS2CSessionManager socketS2CSessionManager;
+    private final SocketC2SSessionManager socketC2SSessionManager;
     private final HttpSessionManager httpSessionManager;
     private final JVMS2CSessionManager jvms2CSessionManager;
     private final JVMC2SSessionManager jvmc2SSessionManager;
@@ -88,8 +88,8 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         // 用于发布自己
         netEventLoopManager = managerWrapper.getNetEventLoopManager();
         // session管理
-        s2CSessionManager = managerWrapper.getS2CSessionManager();
-        c2SSessionManager = managerWrapper.getC2SSessionManager();
+        socketS2CSessionManager = managerWrapper.getSocketS2CSessionManager();
+        socketC2SSessionManager = managerWrapper.getSocketC2SSessionManager();
         httpSessionManager = managerWrapper.getHttpSessionManager();
 
         jvms2CSessionManager = managerWrapper.getJvms2CSessionManager();
@@ -101,8 +101,8 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         netTimeManager = managerWrapper.getNetTimeManager();
         netTimerManager = managerWrapper.getNetTimerManager();
         // 解决循环依赖
-        s2CSessionManager.setManagerWrapper(managerWrapper);
-        c2SSessionManager.setManagerWrapper(managerWrapper);
+        socketS2CSessionManager.setManagerWrapper(managerWrapper);
+        socketC2SSessionManager.setManagerWrapper(managerWrapper);
         httpSessionManager.setManagerWrapper(managerWrapper);
         jvms2CSessionManager.setNetManagerWrapper(managerWrapper);
         jvmc2SSessionManager.setNetManagerWrapper(managerWrapper);
@@ -183,8 +183,8 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
             // 检测定时器
             netTimerManager.tick();
             // 刷帧
-            s2CSessionManager.tick();
-            c2SSessionManager.tick();
+            socketS2CSessionManager.tick();
+            socketC2SSessionManager.tick();
             jvms2CSessionManager.tick();
             jvmc2SSessionManager.tick();
 
@@ -242,8 +242,8 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
                 NetContextImp::afterRemoved);
 
         // 更彻底的清理
-        managerWrapper.getS2CSessionManager().onUserEventLoopTerminal(userEventLoop);
-        managerWrapper.getC2SSessionManager().onUserEventLoopTerminal(userEventLoop);
+        managerWrapper.getSocketS2CSessionManager().onUserEventLoopTerminal(userEventLoop);
+        managerWrapper.getSocketC2SSessionManager().onUserEventLoopTerminal(userEventLoop);
         managerWrapper.getHttpSessionManager().onUserEventLoopTerminal(userEventLoop);
 
         managerWrapper.getJvmc2SSessionManager().onUserEventLoopTerminal(userEventLoop);

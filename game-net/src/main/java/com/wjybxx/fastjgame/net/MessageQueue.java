@@ -16,10 +16,6 @@
 
 package com.wjybxx.fastjgame.net;
 
-import com.wjybxx.fastjgame.misc.LongSequencer;
-import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-
 import java.util.LinkedList;
 
 /**
@@ -50,7 +46,7 @@ public final class MessageQueue {
     /**
      * 序号分配器
      */
-    private final LongSequencer sequencer = new LongSequencer(INIT_ACK);
+    private long sequencer = INIT_ACK;
 
     /**
      * 接收到对方的最大消息编号
@@ -69,18 +65,6 @@ public final class MessageQueue {
      */
     private LinkedList<NetMessage> unsentQueue = new LinkedList<>();
 
-    // ---------------------------------------------- 已发送的rpc信息 -----------------------------------
-    /**
-     * RpcRequestId分配器
-     */
-    private final LongSequencer rpcRequestGuidSequencer = new LongSequencer(0);
-
-    /**
-     * 当前会话上的rpc请求
-     * (提供顺序保证，先发起的请求先超时)
-     */
-    private Long2ObjectMap<RpcPromiseInfo> rpcPromiseInfoMap = new Long2ObjectLinkedOpenHashMap<>();
-
     /**
      * 对方发送过来的ack是否有效。
      * 每次返回的Ack不小于上次返回的ack,不大于发出去的最大消息号
@@ -98,7 +82,7 @@ public final class MessageQueue {
             return sentQueue.getFirst().getSequence() - 1;
         }
         // 都已确认，且没有新消息，那么上次分配的就是ack下界
-        return sequencer.get();
+        return sequencer;
     }
 
     /**
@@ -110,7 +94,7 @@ public final class MessageQueue {
             return sentQueue.getLast().getSequence();
         }
         // 都已确认，且没有新消息，那么上次分配的就是ack上界
-        return sequencer.get();
+        return sequencer;
     }
 
     /**
@@ -143,7 +127,7 @@ public final class MessageQueue {
      * 分配下一个包的编号
      */
     public long nextSequence() {
-        return sequencer.incAndGet();
+        return ++sequencer;
     }
 
     public long getAck() {
@@ -162,29 +146,12 @@ public final class MessageQueue {
         return unsentQueue;
     }
 
-    public Long2ObjectMap<RpcPromiseInfo> getRpcPromiseInfoMap() {
-        return rpcPromiseInfoMap;
-    }
-
-    public long nextRpcRequestGuid() {
-        return rpcRequestGuidSequencer.incAndGet();
-    }
-
     /**
      * 交换未发送的缓冲区
      */
     public LinkedList<NetMessage> exchangeUnsentMessages() {
         LinkedList<NetMessage> result = unsentQueue;
         unsentQueue = new LinkedList<>();
-        return result;
-    }
-
-    /**
-     * 删除rpcPromiseInfoMap并返回
-     */
-    public Long2ObjectMap<RpcPromiseInfo> detachRpcPromiseInfoMap() {
-        Long2ObjectMap<RpcPromiseInfo> result = rpcPromiseInfoMap;
-        rpcPromiseInfoMap = null;
         return result;
     }
 

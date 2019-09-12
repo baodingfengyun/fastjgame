@@ -41,7 +41,7 @@ import java.util.Map;
 @ThreadSafe
 public interface NetContext {
 
-    // --- 注册到网络模块时的信息 ---
+    // --- 注册到网络模块时的信息
 
     /**
      * 注册的本地guid
@@ -54,19 +54,19 @@ public interface NetContext {
     RoleType localRole();
 
     /**
-     * 本地角色的运行环境，用于实现线程安全，
-     * 可以保证{@link ProtocolDispatcher}运行在该{@link EventLoop}上。
-     * (也就是说所有的网络事件处理最终都会运行在该EventLoop上)
+     * 本地角色的运行环境，用于实现线程安全。
+     * 网络层保证所有的业务逻辑处理最终都会运行在该EventLoop上。
      */
     EventLoop localEventLoop();
 
     /**
      * 该context绑定到的NetEventLoop。
+     * 底层会尽可能的让用户的网络请求执行在该{@link NetEventLoop}上，但不保证全部在该{@link NetEventLoop}上。
      */
     NetEventLoop netEventLoop();
 
     /**
-     * 从注册的NetEventLoop上取消注册，会关闭该context关联的所有会话。
+     * 从注册的NetEventLoop上取消注册，会关闭该context关联的所有{@link Session} {@link HttpSession}。
      */
     ListenableFuture<?> deregister();
 

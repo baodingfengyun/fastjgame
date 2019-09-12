@@ -19,7 +19,6 @@ package com.wjybxx.fastjgame.net.injvm;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.manager.JVMS2CSessionManager;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
-import com.wjybxx.fastjgame.manager.SessionManager;
 import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.net.RoleType;
 import com.wjybxx.fastjgame.net.SessionSenderMode;

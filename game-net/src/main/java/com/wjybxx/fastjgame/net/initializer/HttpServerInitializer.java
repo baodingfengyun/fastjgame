@@ -25,8 +25,6 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 /**
  * 作为http服务器时的channel初始化器
  *
@@ -35,7 +33,6 @@ import javax.annotation.concurrent.ThreadSafe;
  * date - 2019/4/28 22:13
  * github - https://github.com/hl845740757
  */
-@ThreadSafe
 public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
 
     /**

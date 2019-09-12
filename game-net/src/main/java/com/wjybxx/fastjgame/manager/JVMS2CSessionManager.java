@@ -18,7 +18,6 @@ package com.wjybxx.fastjgame.manager;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.misc.LongSequencer;
 import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.net.injvm.JVMPort;
 import com.wjybxx.fastjgame.net.injvm.JVMS2CSession;
@@ -26,7 +25,6 @@ import com.wjybxx.fastjgame.utils.CollectionUtils;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.FunctionUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
-import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.slf4j.Logger;
@@ -54,8 +52,6 @@ public class JVMS2CSessionManager extends JVMSessionManager {
 
     private NetManagerWrapper netManagerWrapper;
     private JVMC2SSessionManager jvmc2SSessionManager;
-    private final NetTimerManager netTimerManager;
-    private final NetTimeManager netTimeManager;
     /**
      * 所有用户的会话信息
      */
@@ -67,9 +63,8 @@ public class JVMS2CSessionManager extends JVMSessionManager {
     private final Set<EventLoop> remoteEventLoopSet = new HashSet<>();
 
     @Inject
-    public JVMS2CSessionManager(NetTimerManager netTimerManager, NetTimeManager netTimeManager) {
-        this.netTimerManager = netTimerManager;
-        this.netTimeManager = netTimeManager;
+    public JVMS2CSessionManager(NetTimeManager netTimeManager) {
+        super(netTimeManager);
     }
 
     public void setNetManagerWrapper(NetManagerWrapper netManagerWrapper) {
@@ -81,9 +76,9 @@ public class JVMS2CSessionManager extends JVMSessionManager {
         for (UserInfo userInfo : userInfoMap.values()) {
             for (SessionWrapper sessionWrapper : userInfo.sessionWrapperMap.values()) {
                 // 检测超时的rpc调用
-                CollectionUtils.removeIfAndThen(sessionWrapper.rpcPromiseInfoMap.values(),
+                CollectionUtils.removeIfAndThen(sessionWrapper.getRpcPromiseInfoMap().values(),
                         rpcPromiseInfo -> netTimeManager.getSystemMillTime() >= rpcPromiseInfo.deadline,
-                        rpcPromiseInfo -> commitRpcResponse(sessionWrapper.session, rpcPromiseInfo, RpcResponse.TIMEOUT));
+                        rpcPromiseInfo -> commitRpcResponse(sessionWrapper.getSession(), rpcPromiseInfo, RpcResponse.TIMEOUT));
             }
         }
     }
@@ -105,97 +100,46 @@ public class JVMS2CSessionManager extends JVMSessionManager {
     }
 
     // ---------------------------------------------------- 发送消息 -------------------------------------------
-    private SessionWrapper getWritableSession(long localGuid, long serverGuid) {
+    @Override
+    protected SessionWrapper getWritableSession(long localGuid, long serverGuid) {
         SessionWrapper sessionWrapper = getSessionWrapper(localGuid, serverGuid);
         // 会话已被删除
         if (null == sessionWrapper) {
             return null;
         }
         // 会话已被关闭（session关闭的状态下，既不发送，也不提交）
-        if (!sessionWrapper.session.isActive()) {
+        if (!sessionWrapper.getSession().isActive()) {
             return null;
         }
         return sessionWrapper;
     }
 
 
-    @Override
-    public void sendOneWayMessage(long localGuid, long remoteGuid, @Nonnull Object message) {
-        final SessionWrapper sessionWrapper = getWritableSession(localGuid, remoteGuid);
-        if (null != sessionWrapper) {
-            // 注意需要交换guid
-            jvmc2SSessionManager.onRcvOneWayMessage(remoteGuid, localGuid, NetUtils.cloneMessage(message, sessionWrapper.getCodec()));
-        }
-    }
-
-    @Override
-    public void sendRpcRequest(long localGuid, long remoteGuid, @Nonnull Object request, long timeoutMs, EventLoop userEventLoop, RpcCallback rpcCallback) {
-        final SessionWrapper sessionWrapper = getWritableSession(localGuid, remoteGuid);
-        if (null != sessionWrapper) {
-            // 创建rpc对应的上下文
-            long rpcRequestGuid = sessionWrapper.nextRpcRequestGuid();
-            long deadline = netTimeManager.getSystemMillTime() + timeoutMs;
-            RpcPromiseInfo rpcPromiseInfo = RpcPromiseInfo.newInstance(rpcCallback, deadline);
-            sessionWrapper.rpcPromiseInfoMap.put(remoteGuid, rpcPromiseInfo);
-
-            jvmc2SSessionManager.onRcvRpcRequestMessage(remoteGuid, localGuid, rpcRequestGuid, false, NetUtils.cloneRpcRequest(request, sessionWrapper.getCodec()));
-        } else {
-            ConcurrentUtils.tryCommit(userEventLoop, () -> {
-                rpcCallback.onComplete(RpcResponse.SESSION_CLOSED);
-            });
-        }
-    }
-
-    @Override
-    public void sendSyncRpcRequest(long localGuid, long remoteGuid, @Nonnull Object request, long timeoutMs, RpcPromise rpcPromise) {
-        final SessionWrapper sessionWrapper = getWritableSession(localGuid, remoteGuid);
-        if (null != sessionWrapper) {
-            // 创建rpc对应的上下文
-            long deadline = netTimeManager.getSystemMillTime() + timeoutMs;
-            RpcPromiseInfo rpcPromiseInfo = RpcPromiseInfo.newInstance(rpcPromise, deadline);
-            long requestGuid = sessionWrapper.nextRpcRequestGuid();
-            sessionWrapper.rpcPromiseInfoMap.put(requestGuid, rpcPromiseInfo);
-
-            jvmc2SSessionManager.onRcvRpcRequestMessage(remoteGuid, localGuid, requestGuid, true, NetUtils.cloneRpcRequest(request, sessionWrapper.getCodec()));
-        } else {
-            rpcPromise.trySuccess(RpcResponse.SESSION_CLOSED);
-        }
-    }
-
-    @Override
-    public void sendRpcResponse(long localGuid, long remoteGuid, long requestGuid, boolean sync, @Nonnull RpcResponse response) {
-        final SessionWrapper sessionWrapper = getWritableSession(localGuid, remoteGuid);
-        if (null != sessionWrapper) {
-            // 注意需要交换guid
-            jvmc2SSessionManager.onRcvRpcResponse(remoteGuid, localGuid, requestGuid, NetUtils.cloneRpcResponse(response, sessionWrapper.getCodec()));
-        }
-    }
-
     // --------------------------------------------------- 接收消息 ------------------------------------------------------
 
     public void onRcvOneWayMessage(long localGuid, long clientGuid, Object message) {
         final SessionWrapper sessionWrapper = getSessionWrapper(localGuid, clientGuid);
         if (sessionWrapper != null) {
-            commit(sessionWrapper.session, new OneWayMessageCommitTask(sessionWrapper.session, sessionWrapper.getProtocolDispatcher(), message));
+            commit(sessionWrapper.getSession(), new OneWayMessageCommitTask(sessionWrapper.getSession(), sessionWrapper.getProtocolDispatcher(), message));
         }
     }
 
     public void onRcvRpcRequestMessage(long localGuid, long clientGuid, long requestGuid, boolean sync, Object request) {
         final SessionWrapper sessionWrapper = getSessionWrapper(localGuid, clientGuid);
         if (sessionWrapper != null) {
-            commit(sessionWrapper.session, new RpcRequestCommitTask(sessionWrapper.session, sessionWrapper.getProtocolDispatcher(), requestGuid, sync, request));
+            commit(sessionWrapper.getSession(), new RpcRequestCommitTask(sessionWrapper.getSession(), sessionWrapper.getProtocolDispatcher(), requestGuid, sync, request));
         }
     }
 
     public void onRcvRpcResponse(long localGuid, long clientGuid, long requestGuid, RpcResponse rpcResponse) {
         final SessionWrapper sessionWrapper = getSessionWrapper(localGuid, clientGuid);
         if (sessionWrapper != null) {
-            final RpcPromiseInfo rpcPromiseInfo = sessionWrapper.rpcPromiseInfoMap.remove(requestGuid);
+            final RpcPromiseInfo rpcPromiseInfo = sessionWrapper.getRpcPromiseInfoMap().remove(requestGuid);
             if (null == rpcPromiseInfo) {
                 // 超时之类
                 return;
             }
-            commitRpcResponse(sessionWrapper.session, rpcPromiseInfo, rpcResponse);
+            commitRpcResponse(sessionWrapper.getSession(), rpcPromiseInfo, rpcResponse);
         }
     }
 
@@ -221,7 +165,7 @@ public class JVMS2CSessionManager extends JVMSessionManager {
      */
     private void afterRemoved(SessionWrapper sessionWrapper, String reason, final boolean postEvent) {
         // 避免捕获SessionWrapper，导致内存泄漏
-        final JVMS2CSession session = sessionWrapper.session;
+        final JVMS2CSession session = sessionWrapper.getSession();
         // 标记为已关闭，这里不能调用close，否则死循环了。
         session.setClosed();
 
@@ -364,12 +308,8 @@ public class JVMS2CSessionManager extends JVMSessionManager {
 
     }
 
-    private static class SessionWrapper {
+    private class SessionWrapper extends ISessionWrapper<JVMS2CSession> {
 
-        /**
-         * 客户端与服务器之间的会话信息
-         */
-        private final JVMS2CSession session;
         /**
          * 会话所属的JVM端口
          */
@@ -378,32 +318,11 @@ public class JVMS2CSessionManager extends JVMSessionManager {
          * 会话另一方所在的线程(建立连接成功才会有)
          */
         private final EventLoop remoteEventLoop;
-        /**
-         * RpcRequestGuid分配器
-         */
-        private final LongSequencer rpcRequestGuidSequencer = new LongSequencer(0);
-        /**
-         * 当前会话上的rpc请求
-         */
-        private Long2ObjectMap<RpcPromiseInfo> rpcPromiseInfoMap = new Long2ObjectLinkedOpenHashMap<>();
 
         public SessionWrapper(JVMS2CSession session, JVMPort jvmPort, EventLoop remoteEventLoop) {
-            this.session = session;
+            super(session);
             this.remoteEventLoop = remoteEventLoop;
             this.jvmPort = jvmPort;
-        }
-
-        public long nextRpcRequestGuid() {
-            return rpcRequestGuidSequencer.incAndGet();
-        }
-
-        /**
-         * 删除rpcPromiseInfoMap并返回
-         */
-        Long2ObjectMap<RpcPromiseInfo> detachRpcPromiseInfoMap() {
-            Long2ObjectMap<RpcPromiseInfo> result = rpcPromiseInfoMap;
-            rpcPromiseInfoMap = null;
-            return result;
         }
 
         ProtocolCodec getCodec() {
@@ -416,6 +335,26 @@ public class JVMS2CSessionManager extends JVMSessionManager {
 
         ProtocolDispatcher getProtocolDispatcher() {
             return jvmPort.getPortContext().protocolDispatcher;
+        }
+
+        @Override
+        public void sendOneWayMessage(@Nonnull Object message) {
+            // 注意交换guid
+            jvmc2SSessionManager.onRcvOneWayMessage(session.remoteGuid(), session.localGuid(),
+                    NetUtils.cloneMessage(message, getCodec()));
+        }
+
+        @Override
+        public void sendRpcRequest(long requestGuid, boolean sync, @Nonnull Object request) {
+            jvmc2SSessionManager.onRcvRpcRequestMessage(session.remoteGuid(), session.localGuid(),
+                    requestGuid, sync, NetUtils.cloneRpcRequest(request, getCodec()));
+        }
+
+        @Override
+        public void sendRpcResponse(long requestGuid, boolean sync, @Nonnull RpcResponse response) {
+            jvmc2SSessionManager.onRcvRpcResponse(session.remoteGuid(), session.localGuid(),
+                    requestGuid, NetUtils.cloneRpcResponse(response, getCodec()));
+
         }
     }
 }

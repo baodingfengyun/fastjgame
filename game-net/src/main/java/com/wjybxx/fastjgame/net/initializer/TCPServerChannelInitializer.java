@@ -25,8 +25,6 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 /**
  * 服务器channel初始化器示例
  *
@@ -35,7 +33,6 @@ import javax.annotation.concurrent.ThreadSafe;
  * date - 2019/4/27 22:17
  * github - https://github.com/hl845740757
  */
-@ThreadSafe
 public class TCPServerChannelInitializer extends ChannelInitializer<SocketChannel> {
 
     /**

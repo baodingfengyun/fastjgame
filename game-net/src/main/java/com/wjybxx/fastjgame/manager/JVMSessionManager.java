@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.manager;
 
+import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 
@@ -34,5 +35,9 @@ import com.wjybxx.fastjgame.eventloop.NetEventLoop;
  */
 public abstract class JVMSessionManager extends AbstractSessionManager {
 
+    @Inject
+    public JVMSessionManager(NetTimeManager netTimeManager) {
+        super(netTimeManager);
+    }
 
 }

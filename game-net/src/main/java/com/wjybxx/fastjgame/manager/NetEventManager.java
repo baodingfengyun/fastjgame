@@ -38,16 +38,16 @@ public class NetEventManager {
 
     private static final Logger logger = LoggerFactory.getLogger(NetEventManager.class);
 
-    private final S2CSessionManager s2CSessionManager;
-    private final C2SSessionManager c2SSessionManager;
+    private final SocketS2CSessionManager socketS2CSessionManager;
+    private final SocketC2SSessionManager socketC2SSessionManager;
     private final HttpSessionManager httpSessionManager;
     private final NetEventLoopManager netEventLoopManager;
 
     @Inject
-    public NetEventManager(S2CSessionManager s2CSessionManager, C2SSessionManager c2SSessionManager,
+    public NetEventManager(SocketS2CSessionManager socketS2CSessionManager, SocketC2SSessionManager socketC2SSessionManager,
                            HttpSessionManager httpSessionManager, NetEventLoopManager netEventLoopManager) {
-        this.s2CSessionManager = s2CSessionManager;
-        this.c2SSessionManager = c2SSessionManager;
+        this.socketS2CSessionManager = socketS2CSessionManager;
+        this.socketC2SSessionManager = socketC2SSessionManager;
         this.httpSessionManager = httpSessionManager;
         this.netEventLoopManager = netEventLoopManager;
     }
@@ -77,42 +77,42 @@ public class NetEventManager {
         switch (eventType) {
             // connect request response
             case CONNECT_REQUEST:
-                s2CSessionManager.onRcvConnectRequest((ConnectRequestEventParam) eventParam);
+                socketS2CSessionManager.onRcvConnectRequest((ConnectRequestEventParam) eventParam);
                 break;
             case CONNECT_RESPONSE:
-                c2SSessionManager.onRcvConnectResponse((ConnectResponseEventParam) eventParam);
+                socketC2SSessionManager.onRcvConnectResponse((ConnectResponseEventParam) eventParam);
                 break;
 
             // ping-pong message
             case ACK_PING:
-                s2CSessionManager.onRcvClientAckPing((AckPingPongEventParam) eventParam);
+                socketS2CSessionManager.onRcvClientAckPing((AckPingPongEventParam) eventParam);
                 break;
             case ACK_PONG:
-                c2SSessionManager.onRevServerAckPong((AckPingPongEventParam) eventParam);
+                socketC2SSessionManager.onRevServerAckPong((AckPingPongEventParam) eventParam);
                 break;
 
             // 连接的客户端方发起的rpc
             case C2S_RPC_REQUEST:
-                s2CSessionManager.onRcvClientRpcRequest((RpcRequestEventParam) eventParam);
+                socketS2CSessionManager.onRcvClientRpcRequest((RpcRequestEventParam) eventParam);
                 break;
             case C2S_RPC_RESPONSE:
-                c2SSessionManager.onRcvServerRpcResponse((RpcResponseEventParam) eventParam);
+                socketC2SSessionManager.onRcvServerRpcResponse((RpcResponseEventParam) eventParam);
                 break;
 
             // 连接的服务端发起的rpc
             case S2C_RPC_REQUEST:
-                c2SSessionManager.onRcvServerRpcRequest((RpcRequestEventParam) eventParam);
+                socketC2SSessionManager.onRcvServerRpcRequest((RpcRequestEventParam) eventParam);
                 break;
             case S2C_RPC_RESPONSE:
-                s2CSessionManager.onRcvClientRpcResponse((RpcResponseEventParam) eventParam);
+                socketS2CSessionManager.onRcvClientRpcResponse((RpcResponseEventParam) eventParam);
                 break;
 
             // 连接双方的单向消息
             case C2S_ONE_WAY_MESSAGE:
-                s2CSessionManager.onRcvClientOneWayMsg((OneWayMessageEventParam) eventParam);
+                socketS2CSessionManager.onRcvClientOneWayMsg((OneWayMessageEventParam) eventParam);
                 break;
             case S2C_ONE_WAY_MESSAGE:
-                c2SSessionManager.onRevServerOneWayMsg((OneWayMessageEventParam) eventParam);
+                socketC2SSessionManager.onRevServerOneWayMsg((OneWayMessageEventParam) eventParam);
                 break;
 
             // http request

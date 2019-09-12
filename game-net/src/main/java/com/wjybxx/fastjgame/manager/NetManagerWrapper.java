@@ -32,8 +32,8 @@ import com.wjybxx.fastjgame.eventloop.NetEventLoopManager;
 public class NetManagerWrapper {
 
     private final NetEventLoopManager netEventLoopManager;
-    private final S2CSessionManager s2CSessionManager;
-    private final C2SSessionManager c2SSessionManager;
+    private final SocketS2CSessionManager socketS2CSessionManager;
+    private final SocketC2SSessionManager socketC2SSessionManager;
     private final HttpSessionManager httpSessionManager;
     private final NetEventManager netEventManager;
     private final NettyThreadManager nettyThreadManager;
@@ -48,15 +48,15 @@ public class NetManagerWrapper {
 
     @Inject
     public NetManagerWrapper(NetEventLoopManager netEventLoopManager,
-                             S2CSessionManager s2CSessionManager, C2SSessionManager c2SSessionManager,
+                             SocketS2CSessionManager socketS2CSessionManager, SocketC2SSessionManager socketC2SSessionManager,
                              HttpSessionManager httpSessionManager, NetEventManager netEventManager,
                              NettyThreadManager nettyThreadManager,
                              NetConfigManager netConfigManager, AcceptorManager acceptorManager,
                              HttpClientManager httpClientManager, NetTimeManager netTimeManager,
                              NetTimerManager netTimerManager, TokenManager tokenManager, JVMC2SSessionManager jvmc2SSessionManager, JVMS2CSessionManager jvms2CSessionManager) {
         this.netEventLoopManager = netEventLoopManager;
-        this.s2CSessionManager = s2CSessionManager;
-        this.c2SSessionManager = c2SSessionManager;
+        this.socketS2CSessionManager = socketS2CSessionManager;
+        this.socketC2SSessionManager = socketC2SSessionManager;
         this.httpSessionManager = httpSessionManager;
         this.netEventManager = netEventManager;
         this.nettyThreadManager = nettyThreadManager;
@@ -74,12 +74,12 @@ public class NetManagerWrapper {
         return netEventLoopManager;
     }
 
-    public S2CSessionManager getS2CSessionManager() {
-        return s2CSessionManager;
+    public SocketS2CSessionManager getSocketS2CSessionManager() {
+        return socketS2CSessionManager;
     }
 
-    public C2SSessionManager getC2SSessionManager() {
-        return c2SSessionManager;
+    public SocketC2SSessionManager getSocketC2SSessionManager() {
+        return socketC2SSessionManager;
     }
 
     public HttpSessionManager getHttpSessionManager() {

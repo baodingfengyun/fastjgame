@@ -16,10 +16,10 @@
 
 package com.wjybxx.fastjgame.net.remote;
 
+
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
-import com.wjybxx.fastjgame.manager.RemoteSessionManager;
-import com.wjybxx.fastjgame.misc.HostAndPort;
+import com.wjybxx.fastjgame.manager.SokectSessionManager;
 import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.net.RoleType;
 import com.wjybxx.fastjgame.net.SessionSenderMode;
@@ -29,39 +29,29 @@ import javax.annotation.Nonnull;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * 连接的发起方建立的会话信息
+ * 连接的接收方建立的会话信息。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/4/27 10:00
+ * date - 2019/4/27 10:18
  * github - https://github.com/hl845740757
  */
-public class C2SSession extends AbstractRemoteSession {
+public class SocketS2CSession extends AbstractSocketSession {
 
     /**
-     * 服务器地址
-     */
-    private final HostAndPort remoteAddress;
-    /**
-     * 会话状态：session连接成功以后，用户才能获取到session，因此这里初始化为true没有影响。
+     * 会话在激活的时候才会创建，因此初始的时候是true
      */
     private final AtomicBoolean stateHolder = new AtomicBoolean(true);
 
-    public C2SSession(NetContext netContext, NetManagerWrapper netManagerWrapper,
-                      long serverGuid, RoleType serverType, HostAndPort remoteAddress,
-                      SessionSenderMode sessionSenderMode) {
-        super(netContext, serverGuid, serverType, netManagerWrapper, sessionSenderMode);
-        this.remoteAddress = remoteAddress;
+    public SocketS2CSession(NetContext netContext, NetManagerWrapper netManagerWrapper,
+                            long clientGuid, RoleType clientType, SessionSenderMode sessionSenderMode) {
+        super(netContext, clientGuid, clientType, netManagerWrapper, sessionSenderMode);
     }
 
     @Nonnull
     @Override
-    protected RemoteSessionManager getSessionManager() {
-        return managerWrapper.getC2SSessionManager();
-    }
-
-    public HostAndPort remoteAddress() {
-        return remoteAddress;
+    protected SokectSessionManager getSessionManager() {
+        return managerWrapper.getSocketS2CSessionManager();
     }
 
     @Override
@@ -69,9 +59,6 @@ public class C2SSession extends AbstractRemoteSession {
         return stateHolder.get();
     }
 
-    /**
-     * 标记为已关闭
-     */
     public void setClosed() {
         stateHolder.set(false);
     }
@@ -81,21 +68,21 @@ public class C2SSession extends AbstractRemoteSession {
         // 为什么不对它做优化了？ 因为他本身调用的频率就很低，平白无故的增加复杂度不值得。
         // 设置状态
         setClosed();
-        // 可能是自己关闭，因此可能是当前线程，重复调用也必须发送NetEventLoop，否则可能看似关闭，实则还未关闭
+        // 可能是自身发起关闭请求，因此可能在当前线程，重复调用也必须发送NetEventLoop，否则可能看似关闭，实则还未关闭
         return EventLoopUtils.submitOrRun(netEventLoop(), () -> {
-            managerWrapper.getC2SSessionManager().removeSession(localGuid(), remoteGuid(), "close method");
+            getSessionManager().removeSession(localGuid(), remoteGuid(), "close");
         });
     }
 
     @Override
     public String toString() {
-        return "C2SSession{" +
+        return "SocketS2CSession{" +
                 "localGuid=" + localGuid() +
                 ", localRole=" + localRole() +
                 ", remoteGuid=" + remoteGuid +
                 ", remoteRole=" + remoteRole +
-                ", remoteAddress=" + remoteAddress +
                 ", active=" + stateHolder.get() +
                 '}';
     }
+
 }

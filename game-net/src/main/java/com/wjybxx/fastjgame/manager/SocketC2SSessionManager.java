@@ -25,7 +25,7 @@ import com.wjybxx.fastjgame.misc.IntSequencer;
 import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.net.initializer.ChannelInitializerFactory;
 import com.wjybxx.fastjgame.net.initializer.ChannelInitializerSupplier;
-import com.wjybxx.fastjgame.net.remote.C2SSession;
+import com.wjybxx.fastjgame.net.remote.SocketC2SSession;
 import com.wjybxx.fastjgame.utils.CollectionUtils;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.FunctionUtils;
@@ -67,9 +67,9 @@ import java.util.function.Consumer;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class C2SSessionManager extends RemoteSessionManager {
+public class SocketC2SSessionManager extends SokectSessionManager {
 
-    private static final Logger logger = LoggerFactory.getLogger(C2SSessionManager.class);
+    private static final Logger logger = LoggerFactory.getLogger(SocketC2SSessionManager.class);
 
     private NetManagerWrapper managerWrapper;
     private final AcceptorManager acceptorManager;
@@ -82,8 +82,8 @@ public class C2SSessionManager extends RemoteSessionManager {
     private final Long2ObjectMap<UserInfo> userInfoMap = new Long2ObjectOpenHashMap<>();
 
     @Inject
-    public C2SSessionManager(NetConfigManager netConfigManager, AcceptorManager acceptorManager,
-                             NetTimeManager netTimeManager, TokenManager tokenManager, NetTimerManager timerManager) {
+    public SocketC2SSessionManager(NetConfigManager netConfigManager, AcceptorManager acceptorManager,
+                                   NetTimeManager netTimeManager, TokenManager tokenManager, NetTimerManager timerManager) {
         super(netConfigManager, netTimeManager);
         this.acceptorManager = acceptorManager;
         this.tokenManager = tokenManager;
@@ -105,9 +105,9 @@ public class C2SSessionManager extends RemoteSessionManager {
                     sessionWrapper.getState().execute();
                 }
                 // 检测超时的rpc调用
-                CollectionUtils.removeIfAndThen(sessionWrapper.messageQueue.getRpcPromiseInfoMap().values(),
+                CollectionUtils.removeIfAndThen(sessionWrapper.getRpcPromiseInfoMap().values(),
                         rpcPromiseInfo -> netTimeManager.getSystemMillTime() >= rpcPromiseInfo.deadline,
-                        rpcPromiseInfo -> commitRpcResponse(sessionWrapper.session, rpcPromiseInfo, RpcResponse.TIMEOUT));
+                        rpcPromiseInfo -> commitRpcResponse(sessionWrapper.getSession(), rpcPromiseInfo, RpcResponse.TIMEOUT));
             }
         }
     }
@@ -156,7 +156,7 @@ public class C2SSessionManager extends RemoteSessionManager {
         UserInfo userInfo = userInfoMap.computeIfAbsent(localGuid, k -> new UserInfo(netContext));
 
         // 创建会话
-        C2SSession session = new C2SSession(netContext, managerWrapper, serverGuid, serverType, hostAndPort, sessionSenderMode);
+        SocketC2SSession session = new SocketC2SSession(netContext, managerWrapper, serverGuid, serverType, hostAndPort, sessionSenderMode);
         byte[] encryptedLoginToken = tokenManager.newEncryptedLoginToken(netContext.localGuid(), netContext.localRole(), serverGuid, serverType);
         SessionWrapper sessionWrapper = new SessionWrapper(userInfo, initializerSupplier, disconnectAware, protocolDispatcher, session, encryptedLoginToken, promise);
 
@@ -181,14 +181,15 @@ public class C2SSessionManager extends RemoteSessionManager {
      * @return sessionWrapper
      */
     @Nullable
-    private SessionWrapper getWritableSession(long localGuid, long serverGuid) {
+    @Override
+    protected SessionWrapper getWritableSession(long localGuid, long serverGuid) {
         SessionWrapper sessionWrapper = getSessionWrapper(localGuid, serverGuid);
         // 会话已被删除
         if (null == sessionWrapper) {
             return null;
         }
         // 会话已被关闭（session关闭的状态下，既不发送，也不提交）
-        if (!sessionWrapper.session.isActive()) {
+        if (!sessionWrapper.getSession().isActive()) {
             return null;
         }
         // 缓存需要排除正常缓存阈值
@@ -198,112 +199,6 @@ public class C2SSessionManager extends RemoteSessionManager {
             return null;
         } else {
             return sessionWrapper;
-        }
-    }
-
-    /**
-     * 向服务器发送一个消息,不保证立即发送，因为会话状态不确定，只保证最后一定会按顺序发送出去
-     *
-     * @param localGuid  from
-     * @param serverGuid to
-     * @param message    消息内容
-     */
-    @Override
-    public void sendOneWayMessage(long localGuid, long serverGuid, @Nonnull Object message) {
-        SessionWrapper sessionWrapper = getWritableSession(localGuid, serverGuid);
-        if (sessionWrapper == null) {
-            logger.debug("session {}-{} is inactive, but try send message.", localGuid, serverGuid);
-            return;
-        }
-        // 添加到待发送队列
-        sessionWrapper.state.write(new OneWayMessage(message));
-    }
-
-    /**
-     * 发送一个异步rpc请求
-     *
-     * @param localGuid     我的标识
-     * @param serverGuid    远程guid
-     * @param request       rpc请求内容
-     * @param timeoutMs     超时时间，大于0
-     * @param userEventLoop 用户线程
-     * @param rpcCallback   rpc回调
-     */
-    @Override
-    public void sendRpcRequest(long localGuid, long serverGuid, @Nonnull Object request, long timeoutMs, EventLoop userEventLoop, RpcCallback rpcCallback) {
-        SessionWrapper sessionWrapper = getWritableSession(localGuid, serverGuid);
-        if (sessionWrapper == null) {
-            logger.debug("session {}-{} is inactive, but try send asyncRpcRequest.", localGuid, serverGuid);
-            ConcurrentUtils.tryCommit(userEventLoop, () -> {
-                rpcCallback.onComplete(RpcResponse.SESSION_CLOSED);
-            });
-            return;
-        }
-
-        long deadline = netTimeManager.getSystemMillTime() + timeoutMs;
-        RpcPromiseInfo rpcPromiseInfo = RpcPromiseInfo.newInstance(rpcCallback, deadline);
-
-        long requestGuid = sessionWrapper.messageQueue.nextRpcRequestGuid();
-        RpcRequestMessage rpcRequest = new RpcRequestMessage(requestGuid, false, request);
-        // 发送前保存信息
-        sessionWrapper.messageQueue.getRpcPromiseInfoMap().put(requestGuid, rpcPromiseInfo);
-
-        // 添加到缓存队列，稍后发送
-        sessionWrapper.state.write(rpcRequest);
-    }
-
-    /**
-     * 发送一个同步rpc调用
-     *
-     * @param localGuid  我的标识
-     * @param serverGuid 远程标识
-     * @param request    rpc请求内容
-     * @param timeoutMs  超时时间
-     * @param rpcPromise 接收结果的promise
-     */
-    @Override
-    public void sendSyncRpcRequest(long localGuid, long serverGuid, @Nonnull Object request, final long timeoutMs, RpcPromise rpcPromise) {
-        SessionWrapper sessionWrapper = getWritableSession(localGuid, serverGuid);
-        if (sessionWrapper == null) {
-            logger.debug("session {}-{} is inactive, but try send syncRpcRequest.", localGuid, serverGuid);
-            rpcPromise.trySuccess(RpcResponse.SESSION_CLOSED);
-            return;
-        }
-
-        long deadline = netTimeManager.getSystemMillTime() + timeoutMs;
-        RpcPromiseInfo rpcPromiseInfo = RpcPromiseInfo.newInstance(rpcPromise, deadline);
-
-        long requestGuid = sessionWrapper.messageQueue.nextRpcRequestGuid();
-        RpcRequestMessage rpcRequest = new RpcRequestMessage(requestGuid, true, request);
-        // 发送之前保存信息
-        sessionWrapper.messageQueue.getRpcPromiseInfoMap().put(requestGuid, rpcPromiseInfo);
-
-        // 同步调用，尝试立即发送
-        sessionWrapper.state.writeAndFlush(rpcRequest);
-    }
-
-    /**
-     * 发送rpc调用结果
-     *
-     * @param localGuid   form
-     * @param serverGuid  to
-     * @param requestGuid rpc请求号
-     * @param response    rpc调用结果
-     */
-    @Override
-    public void sendRpcResponse(long localGuid, long serverGuid, long requestGuid, boolean sync, @Nonnull RpcResponse response) {
-        SessionWrapper sessionWrapper = getWritableSession(localGuid, serverGuid);
-        if (sessionWrapper == null) {
-            logger.debug("session {}-{} is inactive, but try send rpcResponse.", localGuid, serverGuid);
-            return;
-        }
-        RpcResponseMessage unsentRpcResponse = new RpcResponseMessage(requestGuid, response);
-        if (sync) {
-            // 同步调用的结果，立即返回
-            sessionWrapper.state.writeAndFlush(unsentRpcResponse);
-        } else {
-            // 添加到待发送队列
-            sessionWrapper.state.write(unsentRpcResponse);
         }
     }
 
@@ -334,7 +229,7 @@ public class C2SSessionManager extends RemoteSessionManager {
      */
     private void afterRemoved(SessionWrapper sessionWrapper, String reason, final boolean postEvent) {
         // 避免捕获SessionWrapper，导致内存泄漏
-        final C2SSession session = sessionWrapper.getSession();
+        final SocketC2SSession session = sessionWrapper.getSession();
         // 标记为已关闭，这里不能调用close，否则死循环了。
         session.setClosed();
 
@@ -345,7 +240,7 @@ public class C2SSessionManager extends RemoteSessionManager {
         }
 
         // 清理消息队列
-        clearMessageQueue(session, sessionWrapper.messageQueue);
+        clearMessageQueue(sessionWrapper, sessionWrapper.messageQueue);
 
         if (postEvent) {
             if (sessionWrapper.promise != null) {
@@ -518,11 +413,11 @@ public class C2SSessionManager extends RemoteSessionManager {
 
         final SessionWrapper sessionWrapper;
 
-        final C2SSession session;
+        final SocketC2SSession session;
 
         C2SSessionState(SessionWrapper sessionWrapper) {
             this.sessionWrapper = sessionWrapper;
-            this.session = sessionWrapper.session;
+            this.session = sessionWrapper.getSession();
         }
 
         MessageQueue getMessageQueue() {
@@ -882,7 +777,7 @@ public class C2SSessionManager extends RemoteSessionManager {
         private void resend() {
             MessageQueue messageQueue = getMessageQueue();
             if (messageQueue.getSentQueue().size() > 0) {
-                C2SSessionManager.this.resend(channel, messageQueue);
+                SocketC2SSessionManager.this.resend(channel, messageQueue);
             }
         }
 
@@ -916,7 +811,7 @@ public class C2SSessionManager extends RemoteSessionManager {
          * 发送所有待发送的消息
          */
         private void flushAllUnsentMessage() {
-            C2SSessionManager.this.flushAllUnsentMessage(channel, getMessageQueue());
+            SocketC2SSessionManager.this.flushAllUnsentMessage(channel, getMessageQueue());
             lastSendMessageTime = netTimeManager.getSystemSecTime();
         }
 
@@ -963,9 +858,9 @@ public class C2SSessionManager extends RemoteSessionManager {
         @Override
         public void onRcvServerRpcResponse(Channel eventChannel, RpcResponseEventParam responseEventParam) {
             ifSequenceAndAckOk(responseEventParam, () -> {
-                RpcPromiseInfo rpcPromiseInfo = sessionWrapper.messageQueue.getRpcPromiseInfoMap().remove(responseEventParam.getRequestGuid());
+                RpcPromiseInfo rpcPromiseInfo = sessionWrapper.getRpcPromiseInfoMap().remove(responseEventParam.getRequestGuid());
                 if (null != rpcPromiseInfo) {
-                    commitRpcResponse(sessionWrapper.session, rpcPromiseInfo, responseEventParam.getRpcResponse());
+                    commitRpcResponse(sessionWrapper.getSession(), rpcPromiseInfo, responseEventParam.getRpcResponse());
                 }
                 // else 可能超时了
             });
@@ -1012,7 +907,7 @@ public class C2SSessionManager extends RemoteSessionManager {
 
         @Override
         protected void write(NetMessage unsentMessage) {
-            boolean flushed = C2SSessionManager.this.write(channel, getMessageQueue(), unsentMessage);
+            boolean flushed = SocketC2SSessionManager.this.write(channel, getMessageQueue(), unsentMessage);
             if (flushed) {
                 // 清空了缓冲区，记录发送时间
                 lastSendMessageTime = netTimeManager.getSystemSecTime();
@@ -1021,7 +916,7 @@ public class C2SSessionManager extends RemoteSessionManager {
 
         @Override
         protected void writeAndFlush(NetMessage unsentMessage) {
-            C2SSessionManager.this.writeAndFlush(channel, getMessageQueue(), unsentMessage);
+            SocketC2SSessionManager.this.writeAndFlush(channel, getMessageQueue(), unsentMessage);
             // 立即发送需要更新发送时间戳
             lastSendMessageTime = netTimeManager.getSystemSecTime();
         }
@@ -1055,7 +950,7 @@ public class C2SSessionManager extends RemoteSessionManager {
      * session包装对象
      * 不将额外信息暴露给应用层，同时实现线程安全。
      */
-    private static class SessionWrapper {
+    private static class SessionWrapper extends ISessionWrapper<SocketC2SSession> {
 
         /**
          * 建立Session和用户之间的关系
@@ -1077,10 +972,6 @@ public class C2SSessionManager extends RemoteSessionManager {
          */
         private final ProtocolDispatcher protocolDispatcher;
 
-        /**
-         * 客户端与服务器之间的会话信息
-         */
-        private final C2SSession session;
         /**
          * 该会话关联的消息队列
          */
@@ -1111,19 +1002,15 @@ public class C2SSessionManager extends RemoteSessionManager {
                        ChannelInitializerSupplier initializerSupplier,
                        SessionDisconnectAware disconnectAware,
                        ProtocolDispatcher protocolDispatcher,
-                       C2SSession session,
+                       SocketC2SSession session,
                        byte[] encryptedToken, Promise<Session> promise) {
+            super(session);
             this.userInfo = userInfo;
             this.initializerSupplier = initializerSupplier;
             this.disconnectAware = disconnectAware;
             this.protocolDispatcher = protocolDispatcher;
-            this.session = session;
             this.encryptedToken = encryptedToken;
             this.promise = promise;
-        }
-
-        public C2SSession getSession() {
-            return session;
         }
 
         MessageQueue getMessageQueue() {
@@ -1176,6 +1063,30 @@ public class C2SSessionManager extends RemoteSessionManager {
             return result;
         }
 
+        @Override
+        public void sendOneWayMessage(@Nonnull Object message) {
+            state.write(new OneWayMessage(message));
+        }
+
+        @Override
+        public void sendRpcRequest(long requestGuid, boolean sync, @Nonnull Object request) {
+            RpcRequestMessage rpcRequestMessage = new RpcRequestMessage(requestGuid, sync, request);
+            if (sync) {
+                state.writeAndFlush(rpcRequestMessage);
+            } else {
+                state.write(rpcRequestMessage);
+            }
+        }
+
+        @Override
+        public void sendRpcResponse(long requestGuid, boolean sync, @Nonnull RpcResponse response) {
+            RpcResponseMessage rpcResponseMessage = new RpcResponseMessage(requestGuid, response);
+            if (sync) {
+                state.writeAndFlush(rpcResponseMessage);
+            } else {
+                state.write(rpcResponseMessage);
+            }
+        }
     }
 
 }

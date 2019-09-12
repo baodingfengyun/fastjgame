@@ -16,10 +16,16 @@
 
 package com.wjybxx.fastjgame.manager;
 
+import com.google.inject.Inject;
+import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.utils.CollectionUtils;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
+import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * 实现session管理器的通用功能
@@ -31,6 +37,79 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
  */
 public abstract class AbstractSessionManager implements SessionManager {
 
+    protected final NetTimeManager netTimeManager;
+
+    @Inject
+    protected AbstractSessionManager(NetTimeManager netTimeManager) {
+        this.netTimeManager = netTimeManager;
+    }
+
+
+    // ---------------------------------------------------------- 发送消息  -------------------------------------------------------------
+
+    /**
+     * 获取一个可写的session
+     *
+     * @param localGuid  本地角色guid
+     * @param remoteGuid 远程角色guid
+     * @return wrapper
+     */
+    @Nullable
+    protected abstract ISessionWrapper getWritableSession(long localGuid, long remoteGuid);
+
+    @Override
+    public final void sendOneWayMessage(long localGuid, long remoteGuid, @Nonnull Object message) {
+        final ISessionWrapper sessionWrapper = getWritableSession(localGuid, remoteGuid);
+        if (null != sessionWrapper) {
+            sessionWrapper.sendOneWayMessage(message);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public final void sendRpcRequest(long localGuid, long remoteGuid, @Nonnull Object request, long timeoutMs, EventLoop userEventLoop, RpcCallback rpcCallback) {
+        final ISessionWrapper sessionWrapper = getWritableSession(localGuid, remoteGuid);
+        if (null != sessionWrapper) {
+            // 保存rpc请求上下文
+            long deadline = netTimeManager.getSystemMillTime() + timeoutMs;
+            RpcPromiseInfo rpcPromiseInfo = RpcPromiseInfo.newInstance(rpcCallback, deadline);
+
+            long requestGuid = sessionWrapper.nextRequestGuid();
+            sessionWrapper.getRpcPromiseInfoMap().put(requestGuid, rpcPromiseInfo);
+            // 执行发送
+            sessionWrapper.sendRpcRequest(requestGuid, false, request);
+        } else {
+            ConcurrentUtils.tryCommit(userEventLoop, () -> {
+                rpcCallback.onComplete(RpcResponse.SESSION_CLOSED);
+            });
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public final void sendSyncRpcRequest(long localGuid, long remoteGuid, @Nonnull Object request, long timeoutMs, RpcPromise rpcPromise) {
+        final ISessionWrapper sessionWrapper = getWritableSession(localGuid, remoteGuid);
+        if (null != sessionWrapper) {
+            // 保存rpc请求上下文
+            long deadline = netTimeManager.getSystemMillTime() + timeoutMs;
+            RpcPromiseInfo rpcPromiseInfo = RpcPromiseInfo.newInstance(rpcPromise, deadline);
+
+            long requestGuid = sessionWrapper.nextRequestGuid();
+            sessionWrapper.getRpcPromiseInfoMap().put(requestGuid, rpcPromiseInfo);
+            // 执行发送
+            sessionWrapper.sendRpcRequest(requestGuid, true, request);
+        } else {
+            rpcPromise.trySuccess(RpcResponse.SESSION_CLOSED);
+        }
+    }
+
+    @Override
+    public final void sendRpcResponse(long localGuid, long remoteGuid, long requestGuid, boolean sync, @Nonnull RpcResponse response) {
+        ISessionWrapper sessionWrapper = getWritableSession(localGuid, remoteGuid);
+        if (sessionWrapper != null) {
+            sessionWrapper.sendRpcResponse(requestGuid, sync, response);
+        }
+    }
 
     // ----------------------------------------------------------- 提交消息 --------------------------------------------------------------
 
@@ -103,5 +182,67 @@ public abstract class AbstractSessionManager implements SessionManager {
                 ConcurrentUtils.safeExecute((Runnable) () -> rpcPromiseInfo.rpcCallback.onComplete(RpcResponse.SESSION_CLOSED));
             }
         });
+    }
+
+    // --------------------------------------------------- 各种内部封装 -------------------------------------------
+
+    /**
+     * Session的封装对象。
+     *
+     * @author wjybxx
+     * @version 1.0
+     * date - 2019/9/11
+     * github - https://github.com/hl845740757
+     */
+    public abstract static class ISessionWrapper<T extends Session> {
+
+        /**
+         * 关联的session
+         */
+        protected final T session;
+
+        /**
+         * RpcRequestId分配器
+         */
+        private long requestGuidSequencer = 0;
+
+        /**
+         * 当前会话上的rpc请求
+         * (提供顺序保证，先发起的请求先超时)
+         */
+        private Long2ObjectMap<RpcPromiseInfo> rpcPromiseInfoMap = new Long2ObjectLinkedOpenHashMap<>();
+
+        protected ISessionWrapper(T session) {
+            this.session = session;
+        }
+
+
+        public final T getSession() {
+            return session;
+        }
+
+        public final long nextRequestGuid() {
+            return ++requestGuidSequencer;
+        }
+
+        /**
+         * 删除rpcPromiseInfoMap并返回
+         */
+        public final Long2ObjectMap<RpcPromiseInfo> detachRpcPromiseInfoMap() {
+            Long2ObjectMap<RpcPromiseInfo> result = rpcPromiseInfoMap;
+            rpcPromiseInfoMap = null;
+            return result;
+        }
+
+        public Long2ObjectMap<RpcPromiseInfo> getRpcPromiseInfoMap() {
+            return rpcPromiseInfoMap;
+        }
+
+        public abstract void sendOneWayMessage(@Nonnull Object message);
+
+        public abstract void sendRpcRequest(long requestGuid, boolean sync, @Nonnull Object request);
+
+        public abstract void sendRpcResponse(long requestGuid, boolean sync, @Nonnull RpcResponse response);
+
     }
 }

@@ -24,14 +24,14 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 
 /**
- * 协议编解码器。
- * {@link ProtocolCodec}在网络层，而{@link ProtocolDispatcher}在应用层，在用户线程。
+ * 协议编解码器。<br>
+ * 注意：子类实现必须是线程安全的！因为它可能在多个线程中调用。但能保证的是：{@link ProtocolCodec}发布到网络层一定 happens-before 任意编解码方法！<br>
+ * 因此建议的实现方式：在传递给网络层之前完成所有的初始化工作，并且所有的编解码工作都不会修改对象的状态。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/18
  * github - https://github.com/hl845740757
- * @apiNote 子类实现必须是线程安全的！
  */
 @ThreadSafe
 public interface ProtocolCodec {

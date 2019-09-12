@@ -313,11 +313,11 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         /**
          * 要序列化的字段的映射
          */
-        private final NumberEnumMapper<FieldDescriptor> mapper;
+        private final NumberEnumMapper<FieldDescriptor> fieldDescriptorMapper;
 
         private ClassDescriptor(FieldDescriptor[] serializableFields, Constructor constructor) {
             this.constructor = constructor;
-            this.mapper = EnumUtils.indexNumberEnum(serializableFields);
+            this.fieldDescriptorMapper = EnumUtils.indexNumberEnum(serializableFields);
         }
     }
 
@@ -989,7 +989,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
             ClassDescriptor descriptor = descriptorMap.get(obj.getClass());
             int size = CodedOutputStream.computeInt32SizeNoTag(messageMapper.getMessageId(obj.getClass()));
             try {
-                for (FieldDescriptor fieldDescriptor : descriptor.mapper.values()) {
+                for (FieldDescriptor fieldDescriptor : descriptor.fieldDescriptorMapper.values()) {
                     // nullable
                     Object fieldValue = fieldDescriptor.field.get(obj);
                     // null不序列化
@@ -1017,7 +1017,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
             ClassDescriptor descriptor = descriptorMap.get(obj.getClass());
             outputStream.writeInt32NoTag(messageMapper.getMessageId(obj.getClass()));
             try {
-                for (FieldDescriptor fieldDescriptor : descriptor.mapper.values()) {
+                for (FieldDescriptor fieldDescriptor : descriptor.fieldDescriptorMapper.values()) {
                     // nullable
                     Object fieldValue = fieldDescriptor.field.get(obj);
                     // null不序列化
@@ -1051,7 +1051,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
                 while ((wireType = readTag(inputStream)) != WireType.REFERENCE_END) {
                     int number = readInt32(inputStream, false);
                     // nullable
-                    FieldDescriptor fieldDescriptor = descriptor.mapper.forNumber(number);
+                    FieldDescriptor fieldDescriptor = descriptor.fieldDescriptorMapper.forNumber(number);
                     if (null == fieldDescriptor) {
                         throw new IOException("Incompatible type " + messageClass.getName() + ", number = " + number);
                     }

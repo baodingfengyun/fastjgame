@@ -55,10 +55,6 @@ public class ConnectResponseEventParam implements NetEventParam {
         this.responseTO = responseTO;
     }
 
-    public ConnectResponseTO getResponseTO() {
-        return responseTO;
-    }
-
     public int getSndTokenTimes() {
         return responseTO.getSndTokenTimes();
     }

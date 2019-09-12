@@ -96,8 +96,8 @@ class NetContextImp implements NetContext {
 
     void afterRemoved() {
         // 尝试删除自己的痕迹
-        managerWrapper.getS2CSessionManager().removeUserSession(localGuid, "deregister");
-        managerWrapper.getC2SSessionManager().removeUserSession(localGuid, "deregister");
+        managerWrapper.getSocketS2CSessionManager().removeUserSession(localGuid, "deregister");
+        managerWrapper.getSocketC2SSessionManager().removeUserSession(localGuid, "deregister");
         managerWrapper.getHttpSessionManager().removeUserSession(localGuid);
 
         managerWrapper.getJvmc2SSessionManager().removeUserSession(localGuid, "deregister");
@@ -138,7 +138,7 @@ class NetContextImp implements NetContext {
         // 这里一定不是网络层，只有逻辑层才会调用bind
         return netEventLoop.submit(() -> {
             try {
-                return managerWrapper.getS2CSessionManager().bindRange(this, host, portRange, initializer);
+                return managerWrapper.getSocketS2CSessionManager().bindRange(this, host, portRange, initializer);
             } catch (BindException e) {
                 ConcurrentUtils.rethrow(e);
                 // unreachable
@@ -181,7 +181,7 @@ class NetContextImp implements NetContext {
         final Promise<Session> promise = netEventLoop.newPromise();
         // 这里一定不是网络层，只有逻辑层才会调用connect
         netEventLoop.execute(() -> {
-            managerWrapper.getC2SSessionManager().connect(this, remoteGuid, remoteRole, remoteAddress,
+            managerWrapper.getSocketC2SSessionManager().connect(this, remoteGuid, remoteRole, remoteAddress,
                     initializerSupplier, disconnectAware, protocolDispatcher, sessionSenderMode, promise);
         });
         return promise;

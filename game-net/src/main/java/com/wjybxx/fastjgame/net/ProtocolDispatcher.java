@@ -18,16 +18,18 @@ package com.wjybxx.fastjgame.net;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * 协议分发器，接收到请求派发出去。
- * {@link ProtocolCodec}在网络层，而{@link ProtocolDispatcher}在应用层，在用户线程。
+ * 协议分发器。
+ * 注意：该实现不必是线程安全的，网络层保证所有的逻辑执行都在用户线程 - 即 {@link NetContext#localEventLoop()}。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/4/27 22:05
  * github - https://github.com/hl845740757
  */
+@NotThreadSafe
 public interface ProtocolDispatcher {
 
     /**

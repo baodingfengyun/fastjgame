@@ -26,7 +26,6 @@ import com.wjybxx.fastjgame.net.Session;
  * date - 2019/9/9
  * github - https://github.com/hl845740757
  */
-public interface RemoteSession extends Session {
-
+public interface SocketSession extends Session {
 
 }

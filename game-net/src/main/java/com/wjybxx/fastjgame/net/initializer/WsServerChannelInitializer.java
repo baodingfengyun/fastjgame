@@ -31,8 +31,6 @@ import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.WebSocket13FrameEncoder;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 /**
  * 使用websocket时使用
  *
@@ -41,7 +39,6 @@ import javax.annotation.concurrent.ThreadSafe;
  * date - 2019/4/27 22:25
  * github - https://github.com/hl845740757
  */
-@ThreadSafe
 public class WsServerChannelInitializer extends ChannelInitializer<SocketChannel> {
 
     /**

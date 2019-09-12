@@ -63,7 +63,7 @@ public @interface HttpRequestMapping {
     String path();
 
     /**
-     * 是否继承父节点的路径，默认支持.。
+     * 是否继承父节点的路径，默认继承。
      * 如果不继承父节点路径，则使用指定的路径，否则使用父节点路径和当前路径拼接完的路径。
      *
      * @return true/false

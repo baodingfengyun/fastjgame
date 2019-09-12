@@ -45,12 +45,13 @@ import java.util.List;
  * date - 2019/8/4
  * github - https://github.com/hl845740757
  */
-public abstract class RemoteSessionManager extends AbstractSessionManager {
+public abstract class SokectSessionManager extends AbstractSessionManager {
 
     protected final NetConfigManager netConfigManager;
     protected final NetTimeManager netTimeManager;
 
-    protected RemoteSessionManager(NetConfigManager netConfigManager, NetTimeManager netTimeManager) {
+    protected SokectSessionManager(NetConfigManager netConfigManager, NetTimeManager netTimeManager) {
+        super(netTimeManager);
         this.netConfigManager = netConfigManager;
         this.netTimeManager = netTimeManager;
     }
@@ -164,16 +165,16 @@ public abstract class RemoteSessionManager extends AbstractSessionManager {
     /**
      * 清理消息队列
      *
-     * @param session      session上也有需要清理的东西
-     * @param messageQueue 消息队列
+     * @param sessionWrapper session保证对象
+     * @param messageQueue   消息队列
      */
-    protected final void clearMessageQueue(Session session, MessageQueue messageQueue) {
+    protected final <T extends Session> void clearMessageQueue(ISessionWrapper<T> sessionWrapper, MessageQueue messageQueue) {
         // 清理消息队列
         messageQueue.detachMessageQueue();
         // 取消所有rpc调用
-        cleanRpcPromiseInfo(session, messageQueue.detachRpcPromiseInfoMap());
+        cleanRpcPromiseInfo(sessionWrapper.getSession(), sessionWrapper.detachRpcPromiseInfoMap());
         // 清空发送缓冲区 - 后提交的rpc后取消
-        session.sender().clearBuffer();
+        sessionWrapper.getSession().sender().clearBuffer();
     }
 
 }
