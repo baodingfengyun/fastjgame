@@ -33,6 +33,10 @@ import com.wjybxx.fastjgame.net.*;
 @RpcService(serviceId = 32700)
 public class ExampleRpcService {
 
+    @RpcMethod(methodId = 0)
+    public void sync() {
+
+    }
 
     @RpcMethod(methodId = 1)
     public void hello(String name) {

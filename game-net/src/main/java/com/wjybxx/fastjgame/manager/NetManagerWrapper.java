@@ -52,7 +52,7 @@ public class NetManagerWrapper {
                              NettyThreadManager nettyThreadManager,
                              NetConfigManager netConfigManager, AcceptorManager acceptorManager,
                              HttpClientManager httpClientManager, NetTimeManager netTimeManager,
-                             NetTimerManager netTimerManager , JVMC2SSessionManager jvmc2SSessionManager, JVMS2CSessionManager jvms2CSessionManager) {
+                             NetTimerManager netTimerManager, JVMC2SSessionManager jvmc2SSessionManager, JVMS2CSessionManager jvms2CSessionManager) {
         this.netEventLoopManager = netEventLoopManager;
         this.socketS2CSessionManager = socketS2CSessionManager;
         this.socketC2SSessionManager = socketC2SSessionManager;

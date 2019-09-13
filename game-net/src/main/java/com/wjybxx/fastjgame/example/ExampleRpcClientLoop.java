@@ -95,11 +95,16 @@ public class ExampleRpcClientLoop extends SingleThreadEventLoop {
             // 执行所有任务
             runAllTasks();
 
-            sendRequest(index);
-
             if (confirmShutdown()) {
                 break;
             }
+
+            if (session == null) {
+                break;
+            }
+
+            sendRequest(index);
+
             // 循环x分钟
             if (System.currentTimeMillis() - starrTime > TimeUtils.MIN * 3) {
                 break;
@@ -107,7 +112,29 @@ public class ExampleRpcClientLoop extends SingleThreadEventLoop {
         }
     }
 
+    /**
+     * 如果netEventLoop无缝loop (net_config.properties 配置frameInterval 为0)，在我电脑上：
+     * <p>
+     * 如果是正常socket，使用SocketSession：
+     * SyncCall - 9339 - wjybxx-9339 , cost time nano 231849
+     * SyncCall - 9340 - wjybxx-9340 , cost time nano 252048
+     * SyncCall - 9341 - wjybxx-9341 , cost time nano 254682
+     * 20W - 30W 纳秒区间段最多 - (0.2 - 0.3毫秒)
+     * <p>
+     * 如果jvmPort，使用JVMSession：
+     * SyncCall - 229103 - wjybxx-229103 , cost time nano 6148
+     * SyncCall - 229104 - wjybxx-229104 , cost time nano 5855
+     * SyncCall - 229105 - wjybxx-229105 , cost time nano 7611
+     * 大致的测试结果是：6000纳秒左右 - (0.006毫秒)。
+     * <p>
+     * 这还只是数据非常少的情况下，如果数据量大，这个差距更大，JVM内部通信建议使用JVMSession
+     */
     private void sendRequest(final int index) {
+        final long start = System.nanoTime();
+        final String callResult = ExampleRpcServiceRpcProxy.combine("wjybxx", String.valueOf(index)).syncCall(session);
+        final long costTimeMs = System.nanoTime() - start;
+        System.out.println("SyncCall - " + index + " - " + callResult + " , cost time nano " + costTimeMs);
+
         // 方法无返回值，但是还是可以监听，只要调用的是call, sync, syncCall都可以获知调用结果
         ExampleRpcServiceRpcProxy.hello("wjybxx- " + index)
                 .ifSuccess(result -> System.out.println("hello - " + index + " - " + result))
@@ -133,20 +160,12 @@ public class ExampleRpcClientLoop extends SingleThreadEventLoop {
                 .ifSuccess(result -> System.out.println("incWithSessionAndChannel - " + index + " - " + result))
                 .call(session);
 
-        // 如果netEventLoop无缝loop (net_config.properties 配置frameInterval 为0)
-        // 在我电脑上：
-        // 如果是正常socket，15W - 20W 纳秒区间段最多 - (0.15 - 0.2毫秒)。
-        // 如果jvmPort， 2W - 3W 纳秒区间段最多 - (0.02 - 0.03毫秒)。
-        // 这还只是数据非常少的情况下，如果数据量大，这个差距更大，JVM内部通信建议使用JVMSession
-
-        final long start = System.nanoTime();
-        final String callResult = ExampleRpcServiceRpcProxy.combine("wjybxx", String.valueOf(index)).syncCall(session);
-        final long costTimeMs = System.nanoTime() - start;
-        System.out.println("SyncCall - " + index + " - " + callResult + " , cost time " + costTimeMs);
-
         // 模拟广播X次
         final RpcBuilder<?> builder = ExampleRpcServiceRpcProxy.notifySuccess(index);
         IntStream.rangeClosed(1, 3).forEach(i -> builder.send(session));
+
+        // 阻塞到前面的rpc都返回，使得每次combine调用不被其它rpc调用影响
+        ExampleRpcServiceRpcProxy.sync().sync(session);
     }
 
     @Override
