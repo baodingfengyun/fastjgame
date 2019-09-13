@@ -105,10 +105,8 @@ public abstract class AbstractSender implements Sender {
         }
         final RpcPromise rpcPromise = netEventLoop().newRpcPromise(userEventLoop(), timeoutMs);
         final SyncRpcRequestTask syncRpcRequestTask = new SyncRpcRequestTask(session, request, timeoutMs, rpcPromise);
-        // 添加到任务列表
-        write(syncRpcRequestTask);
-        // flush确保能安全的阻塞等待结果
-        flush();
+        // 发送并flush，确保可以安全的等待
+        writeAndFlush(syncRpcRequestTask);
         // RpcPromise保证了不会等待超过限时时间
         rpcPromise.awaitUninterruptibly();
         // 一定有结果

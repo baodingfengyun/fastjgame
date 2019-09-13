@@ -67,7 +67,7 @@ import java.util.function.Consumer;
  * date - 2019/4/27 22:14
  * github - https://github.com/hl845740757
  */
-public class SocketS2CSessionManager extends SokectSessionManager {
+public class SocketS2CSessionManager extends SocketSessionManager {
 
     private static final Logger logger = LoggerFactory.getLogger(SocketS2CSessionManager.class);
 
@@ -681,7 +681,7 @@ public class SocketS2CSessionManager extends SokectSessionManager {
     /**
      * S2CSession的包装类，不对外暴露细节
      */
-    private static final class SessionWrapper extends ISessionWrapper<SocketS2CSession> {
+    private static final class SessionWrapper extends SocketSessionWrapper<SocketS2CSession> {
 
         /**
          * 建立session与用户的关系
@@ -743,10 +743,6 @@ public class SocketS2CSessionManager extends SokectSessionManager {
             return sndTokenTimes;
         }
 
-        MessageQueue getMessageQueue() {
-            return messageQueue;
-        }
-
         Token getPreToken() {
             return preToken;
         }
@@ -784,22 +780,6 @@ public class SocketS2CSessionManager extends SokectSessionManager {
         }
 
         /**
-         * 写入数据到缓存，达到阈值时，缓冲区内容会立即发送
-         *
-         * @param unsentMessage 为发送的原始消息
-         */
-        void write(NetMessage unsentMessage) {
-            socketS2CSessionManager.write(channel, messageQueue, unsentMessage);
-        }
-
-        /**
-         * 立即发送一个消息(不进入待发送队列，直接进入已发送队列)
-         */
-        void writeAndFlush(NetMessage unsentMessage) {
-            socketS2CSessionManager.writeAndFlush(channel, messageQueue, unsentMessage);
-        }
-
-        /**
          * 检查是否需要清空缓冲区
          */
         void flushAllUnsentMessage() {
@@ -824,27 +804,21 @@ public class SocketS2CSessionManager extends SokectSessionManager {
             return portContext.protocolDispatcher;
         }
 
-        @Override
-        public void sendOneWayMessage(@Nonnull Object message) {
-            write(new OneWayMessage(message));
+        /**
+         * 写入数据到缓存，达到阈值时，缓冲区会自动清空
+         *
+         * @param unsentMessage 待发送的消息
+         */
+        protected void write(NetMessage unsentMessage) {
+            socketS2CSessionManager.write(channel, messageQueue, unsentMessage);
         }
 
-        @Override
-        public void sendRpcRequest(long requestGuid, boolean sync, @Nonnull Object request) {
-            if (sync) {
-                writeAndFlush(new RpcRequestMessage(requestGuid, sync, request));
-            } else {
-                write(new RpcRequestMessage(requestGuid, sync, request));
-            }
-        }
-
-        @Override
-        public void sendRpcResponse(long requestGuid, boolean sync, @Nonnull RpcResponse response) {
-            if (sync) {
-                writeAndFlush(new RpcResponseMessage(requestGuid, response));
-            } else {
-                write(new RpcResponseMessage(requestGuid, response));
-            }
+        /**
+         * 立即发送一个消息
+         * @param unsentMessage 待发送的消息
+         */
+        protected void writeAndFlush(NetMessage unsentMessage) {
+            socketS2CSessionManager.writeAndFlush(channel, messageQueue, unsentMessage);
         }
     }
 

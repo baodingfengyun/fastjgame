@@ -67,7 +67,7 @@ import java.util.function.Consumer;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class SocketC2SSessionManager extends SokectSessionManager {
+public class SocketC2SSessionManager extends SocketSessionManager {
 
     private static final Logger logger = LoggerFactory.getLogger(SocketC2SSessionManager.class);
 
@@ -962,7 +962,7 @@ public class SocketC2SSessionManager extends SokectSessionManager {
      * session包装对象
      * 不将额外信息暴露给应用层，同时实现线程安全。
      */
-    private static class SessionWrapper extends ISessionWrapper<SocketC2SSession> {
+    private static class SessionWrapper extends SocketSessionWrapper<SocketC2SSession> {
 
         /**
          * 建立Session和用户之间的关系
@@ -984,10 +984,6 @@ public class SocketC2SSessionManager extends SokectSessionManager {
          */
         private final ProtocolDispatcher protocolDispatcher;
 
-        /**
-         * 该会话关联的消息队列
-         */
-        private final MessageQueue messageQueue = new MessageQueue();
         /**
          * 发送token次数
          */
@@ -1023,10 +1019,6 @@ public class SocketC2SSessionManager extends SokectSessionManager {
             this.protocolDispatcher = protocolDispatcher;
             this.encryptedToken = encryptedToken;
             this.promise = promise;
-        }
-
-        MessageQueue getMessageQueue() {
-            return messageQueue;
         }
 
         C2SSessionState getState() {
@@ -1072,26 +1064,13 @@ public class SocketC2SSessionManager extends SokectSessionManager {
         }
 
         @Override
-        public void sendOneWayMessage(@Nonnull Object message) {
-            state.write(new OneWayMessage(message));
+        protected void write(NetMessage unsentMessage) {
+            state.write(unsentMessage);
         }
 
         @Override
-        public void sendRpcRequest(long requestGuid, boolean sync, @Nonnull Object request) {
-            if (sync) {
-                state.writeAndFlush(new RpcRequestMessage(requestGuid, sync, request));
-            } else {
-                state.write(new RpcRequestMessage(requestGuid, sync, request));
-            }
-        }
-
-        @Override
-        public void sendRpcResponse(long requestGuid, boolean sync, @Nonnull RpcResponse response) {
-            if (sync) {
-                state.writeAndFlush(new RpcResponseMessage(requestGuid, response));
-            } else {
-                state.write(new RpcResponseMessage(requestGuid, response));
-            }
+        protected void writeAndFlush(NetMessage unsentMessage) {
+            state.writeAndFlush(unsentMessage);
         }
     }
 

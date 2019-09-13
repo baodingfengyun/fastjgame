@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.net.remote;
 
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
-import com.wjybxx.fastjgame.manager.SokectSessionManager;
+import com.wjybxx.fastjgame.manager.SocketSessionManager;
 import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.net.RoleType;
 import com.wjybxx.fastjgame.net.SessionSenderMode;
@@ -50,7 +50,7 @@ public class SocketS2CSession extends AbstractSocketSession {
 
     @Nonnull
     @Override
-    protected SokectSessionManager getSessionManager() {
+    protected SocketSessionManager getSessionManager() {
         return managerWrapper.getSocketS2CSessionManager();
     }
 

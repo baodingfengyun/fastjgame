@@ -26,7 +26,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * @version 1.0
  * date - 2019/8/30
  * github - https://github.com/hl845740757
- * @apiNote 实现类必须是线程安全的。
+ * @apiNote 实现类必须是线程安全的。且必须保证时序，必须保证先发的先到。
  */
 @ThreadSafe
 public interface Sender {

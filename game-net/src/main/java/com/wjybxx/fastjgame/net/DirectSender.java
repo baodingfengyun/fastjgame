@@ -44,7 +44,7 @@ public class DirectSender extends AbstractSender {
 
     @Override
     protected void writeAndFlush(SenderTask task) {
-        // 没有缓冲区
+        // 没有缓冲区，提交即可
         netEventLoop().execute(task);
     }
 

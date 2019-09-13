@@ -60,6 +60,7 @@ public class UnsharableSender extends AbstractSender {
     @Override
     protected void write(SenderTask task) {
         if (userEventLoop().inEventLoop()) {
+            // 加入缓冲区
             buffer.add(task);
             // 检查是否需要清空缓冲区
             if (buffer.size() >= session.getNetConfigManager().flushThreshold()) {
@@ -74,8 +75,10 @@ public class UnsharableSender extends AbstractSender {
     protected void writeAndFlush(SenderTask task) {
         if (userEventLoop().inEventLoop()) {
             if (buffer.size() == 0) {
+                // 减少不必要的插入删除
                 netEventLoop().execute(task);
             } else {
+                // 加入缓冲区并清空
                 buffer.add(task);
                 flushBuffer();
             }

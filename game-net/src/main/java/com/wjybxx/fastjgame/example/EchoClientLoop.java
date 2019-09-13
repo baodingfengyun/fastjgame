@@ -75,17 +75,23 @@ public class EchoClientLoop extends SingleThreadEventLoop {
     }
 
     public void loop() {
-        for (int index = 0; index < 1000 && session != null; index++) {
+        for (int index = 0; index < 1000; index++) {
             System.out.println("\n ------------------------------------" + index + "------------------------------------------");
 
             // 执行所有任务
             runAllTasks();
 
-            trySendMessage(index);
-
             if (confirmShutdown()) {
                 break;
             }
+
+            // 某一个task处理了断开连接事件
+            if (null == session) {
+                break;
+            }
+
+            trySendMessage(index);
+
             // X秒一个循环
             LockSupport.parkNanos(TimeUtils.NANO_PER_MILLISECOND * TimeUtils.SEC);
         }

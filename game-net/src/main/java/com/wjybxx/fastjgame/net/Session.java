@@ -26,9 +26,13 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * 一个连接的抽象，它可能是一个socket连接，也可能是JVM内的线程之间内的连接，不论它真的是什么，你都可以以相同的方式使用它们发送消息。
  *
+ * <h3>时序问题</h3>
+ * 1. {@link #send(Object)}、{@link #call(Object, RpcCallback)}、{@link #sync(Object)}、{@link RpcResponseChannel#write(RpcResponse)}
+ * 之间都满足先发送的必然先到。这样的好处是编程更简单，缺点是同步rpc调用响应会变慢，如果真的需要插队的处理机制，未来再进行拓展（很容易）。
  * <p>
- * 警惕：
- * <li>先发送的请求不一定先获得结果！对方什么时候返回给你结果是不确定的！</li>
+ * 2. 但是要注意一个问题：{@link #sync(Object)}会打乱处理的顺序！同步Rpc调用的结果会被你提前处理，其它消息可能先到，但是由于你处于阻塞状态，而导致被延迟处理。
+ * <p>
+ * 3. 先发送的请求不一定先获得结果！对方什么时候返回给你结果是不确定的！
  *
  * <p><br>
  * Q: Netty线程和用户线程之间会竞争NetEventLoop资源，这个竞争可能非常激烈，如何降低Netty线程和用户线程之间的竞争？<br>

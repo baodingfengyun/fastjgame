@@ -17,8 +17,10 @@
 package com.wjybxx.fastjgame.manager;
 
 import com.wjybxx.fastjgame.net.*;
+import com.wjybxx.fastjgame.net.remote.SocketSession;
 import io.netty.channel.Channel;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -45,12 +47,12 @@ import java.util.List;
  * date - 2019/8/4
  * github - https://github.com/hl845740757
  */
-public abstract class SokectSessionManager extends AbstractSessionManager {
+public abstract class SocketSessionManager extends AbstractSessionManager {
 
     protected final NetConfigManager netConfigManager;
     protected final NetTimeManager netTimeManager;
 
-    protected SokectSessionManager(NetConfigManager netConfigManager, NetTimeManager netTimeManager) {
+    protected SocketSessionManager(NetConfigManager netConfigManager, NetTimeManager netTimeManager) {
         super(netTimeManager);
         this.netConfigManager = netConfigManager;
         this.netTimeManager = netTimeManager;
@@ -185,4 +187,48 @@ public abstract class SokectSessionManager extends AbstractSessionManager {
         sessionWrapper.getSession().sender().clearBuffer();
     }
 
+
+    protected static abstract class SocketSessionWrapper<T extends SocketSession> extends ISessionWrapper<T> {
+
+        /**
+         * 基于socket的session，需要使用消息队列
+         */
+        protected final MessageQueue messageQueue = new MessageQueue();
+
+        public SocketSessionWrapper(T session) {
+            super(session);
+        }
+
+        MessageQueue getMessageQueue() {
+            return messageQueue;
+        }
+
+        @Override
+        public final void sendOneWayMessage(@Nonnull Object message) {
+            write(new OneWayMessage(message));
+        }
+
+        @Override
+        public final void sendRpcRequest(long requestGuid, boolean sync, @Nonnull Object request) {
+            if (sync) {
+                writeAndFlush(new RpcRequestMessage(requestGuid, sync, request));
+            } else {
+                write(new RpcRequestMessage(requestGuid, sync, request));
+            }
+        }
+
+        @Override
+        public final void sendRpcResponse(long requestGuid, boolean sync, @Nonnull RpcResponse response) {
+            if (sync) {
+                writeAndFlush(new RpcResponseMessage(requestGuid, response));
+            } else {
+                write(new RpcResponseMessage(requestGuid, response));
+            }
+        }
+
+        protected abstract void write(NetMessage unsentMessage);
+
+        protected abstract void writeAndFlush(NetMessage unsentMessage);
+
+    }
 }
