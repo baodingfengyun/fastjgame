@@ -105,10 +105,7 @@ public class SocketC2SSessionManager extends SokectSessionManager {
                     sessionWrapper.getState().execute();
                 }
                 // 检测超时的rpc调用
-                timeoutConsumer.setSession(sessionWrapper.getSession());
-                CollectionUtils.removeIfAndThen(sessionWrapper.getRpcPromiseInfoMap().values(),
-                        timeoutPredicate,
-                        timeoutConsumer);
+                checkRpcTimeout(sessionWrapper);
             }
         }
     }
@@ -780,7 +777,7 @@ public class SocketC2SSessionManager extends SokectSessionManager {
         /**
          * 1. 重发那些已发送，但是未被确认的消息
          * 2. 清空未发送的消息
-         *
+         * <p>
          * Q: 为什么要flush？ <br>
          * A: 这里存在一个时序问题，如果不flush，那么下一帧之前的加急消息会立即发送，而前面的加急消息因为不能立即发送而进入了未发送队列！
          */
@@ -865,7 +862,7 @@ public class SocketC2SSessionManager extends SokectSessionManager {
             // 大量的lambda表达式可能影响性能，目前先不优化，先注意可维护性。
             ifSequenceAndAckOk(rpcRequestEventParam, () -> {
                 RpcRequestCommitTask requestCommitTask = new RpcRequestCommitTask(session, sessionWrapper.protocolDispatcher,
-                        rpcRequestEventParam.getRequestGuid(), rpcRequestEventParam.isImmediate(), rpcRequestEventParam.getRequest());
+                        rpcRequestEventParam.getRequestGuid(), rpcRequestEventParam.isSync(), rpcRequestEventParam.getRequest());
                 commit(session, requestCommitTask);
             });
         }
@@ -1075,26 +1072,22 @@ public class SocketC2SSessionManager extends SokectSessionManager {
         }
 
         @Override
-        public void sendOneWayMessage(@Nonnull Object message, boolean immediate) {
-            if (immediate) {
-                state.writeAndFlush(new OneWayMessage(message));
+        public void sendOneWayMessage(@Nonnull Object message) {
+            state.write(new OneWayMessage(message));
+        }
+
+        @Override
+        public void sendRpcRequest(long requestGuid, boolean sync, @Nonnull Object request) {
+            if (sync) {
+                state.writeAndFlush(new RpcRequestMessage(requestGuid, sync, request));
             } else {
-                state.write(new OneWayMessage(message));
+                state.write(new RpcRequestMessage(requestGuid, sync, request));
             }
         }
 
         @Override
-        public void sendRpcRequest(long requestGuid, boolean immediate, @Nonnull Object request) {
-            if (immediate) {
-                state.writeAndFlush(new RpcRequestMessage(requestGuid, immediate, request));
-            } else {
-                state.write(new RpcRequestMessage(requestGuid, immediate, request));
-            }
-        }
-
-        @Override
-        public void sendRpcResponse(long requestGuid, boolean immediate, @Nonnull RpcResponse response) {
-            if (immediate) {
+        public void sendRpcResponse(long requestGuid, boolean sync, @Nonnull RpcResponse response) {
+            if (sync) {
                 state.writeAndFlush(new RpcResponseMessage(requestGuid, response));
             } else {
                 state.write(new RpcResponseMessage(requestGuid, response));

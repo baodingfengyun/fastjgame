@@ -89,9 +89,14 @@ public abstract class SokectSessionManager extends AbstractSessionManager {
      * @param messageQueue  消息队列
      * @param unsentMessage 待发送的消息
      */
-    protected final void writeAndFlush(Channel channel, MessageQueue messageQueue, NetMessage unsentMessage) {
-        alloSequenceAndUpdateAckTimeout(messageQueue, unsentMessage);
-        channel.writeAndFlush(new SingleMessageTO(messageQueue.getAck(), unsentMessage), channel.voidPromise());
+    protected final void writeAndFlush(Channel channel, MessageQueue messageQueue, final NetMessage unsentMessage) {
+        if (messageQueue.getUnsentQueue().size() == 0) {
+            alloSequenceAndUpdateAckTimeout(messageQueue, unsentMessage);
+            channel.writeAndFlush(new SingleMessageTO(messageQueue.getAck(), unsentMessage), channel.voidPromise());
+        } else {
+            messageQueue.getUnsentQueue().add(unsentMessage);
+            flushAllUnsentMessage(channel, messageQueue);
+        }
     }
 
     /**
@@ -102,15 +107,18 @@ public abstract class SokectSessionManager extends AbstractSessionManager {
      */
     protected final void flushAllUnsentMessage(Channel channel, MessageQueue messageQueue) {
         if (messageQueue.getUnsentQueue().size() == 1) {
-            writeAndFlush(channel, messageQueue, messageQueue.getUnsentQueue().pollFirst());
-            return;
-        }
-        LinkedList<NetMessage> unsentMessages = messageQueue.exchangeUnsentMessages();
-        for (NetMessage unsentMessage : unsentMessages) {
+            // 单个发送
+            final NetMessage unsentMessage = messageQueue.getUnsentQueue().pollFirst();
             alloSequenceAndUpdateAckTimeout(messageQueue, unsentMessage);
+            channel.writeAndFlush(new SingleMessageTO(messageQueue.getAck(), unsentMessage), channel.voidPromise());
+        } else {
+            // 批量发送
+            LinkedList<NetMessage> unsentMessages = messageQueue.exchangeUnsentMessages();
+            for (NetMessage unsentMessage : unsentMessages) {
+                alloSequenceAndUpdateAckTimeout(messageQueue, unsentMessage);
+            }
+            channel.writeAndFlush(new BatchMessageTO(messageQueue.getAck(), unsentMessages), channel.voidPromise());
         }
-        // 批量发送
-        channel.writeAndFlush(new BatchMessageTO(messageQueue.getAck(), unsentMessages), channel.voidPromise());
     }
 
     /**

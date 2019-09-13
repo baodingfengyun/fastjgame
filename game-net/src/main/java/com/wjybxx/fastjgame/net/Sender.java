@@ -39,41 +39,39 @@ public interface Sender {
     /**
      * 发送一个单向消息/通知
      *
-     * @param message   待发送的消息
-     * @param immediate 是否加急
+     * @param message 待发送的消息
      */
-    void send(@Nonnull Object message, boolean immediate);
+    void send(@Nonnull Object message);
 
     /**
      * 发送一个rpc请求给对方。
      * 注意：回调执行在session的用户线程。
-     *  @param request   rpc请求对象
+     *
+     * @param request   rpc请求对象
      * @param callback  回调函数
      * @param timeoutMs 超时时间，毫秒，必须大于0，必须有超时时间。
-     * @param immediate 是否加急
      */
-    void call(@Nonnull Object request, @Nonnull RpcCallback callback, long timeoutMs, boolean immediate);
+    void call(@Nonnull Object request, @Nonnull RpcCallback callback, long timeoutMs);
 
     /**
      * 发送一个rpc请求给对方，并阻塞到结果返回或超时。
      *
      * @param request   rpc请求对象
      * @param timeoutMs 超时时间，毫秒，必须大于0，否则死锁可能！！！
-     * @param immediate 是否加急
      * @return rpc返回结果
      */
     @Nonnull
-    RpcResponse sync(@Nonnull Object request, long timeoutMs, boolean immediate);
+    RpcResponse sync(@Nonnull Object request, long timeoutMs);
 
     /**
      * 创建一个特定rpc请求对应的结果通道。
      * {@link RpcResponseChannel}是线程安全的。
      *
      * @param requestGuid 请求对应的id
-     * @param immediate   是否加急
+     * @param sync        是否是同步rpc调用
      * @return responseChannel
      */
-    <T> RpcResponseChannel<T> newResponseChannel(long requestGuid, boolean immediate);
+    <T> RpcResponseChannel<T> newResponseChannel(long requestGuid, boolean sync);
 
     /**
      * 如果存在缓冲，则清空缓冲区。

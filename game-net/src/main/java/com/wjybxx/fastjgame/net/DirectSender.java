@@ -37,8 +37,14 @@ public class DirectSender extends AbstractSender {
     }
 
     @Override
-    protected void addSenderTask(SenderTask task) {
+    protected void write(SenderTask task) {
         // 直接提交到网络层 - 既有时序保证，又是线程安全的
+        netEventLoop().execute(task);
+    }
+
+    @Override
+    protected void writeAndFlush(SenderTask task) {
+        // 没有缓冲区
         netEventLoop().execute(task);
     }
 

@@ -107,12 +107,8 @@ public class SocketS2CSessionManager extends SokectSessionManager {
             for (SessionWrapper sessionWrapper : userInfo.sessionWrapperMap.values()) {
                 // 检查清空缓冲区
                 sessionWrapper.flushAllUnsentMessage();
-
                 // 检测超时的rpc调用
-                timeoutConsumer.setSession(sessionWrapper.getSession());
-                CollectionUtils.removeIfAndThen(sessionWrapper.getRpcPromiseInfoMap().values(),
-                        timeoutPredicate,
-                        timeoutConsumer);
+                checkRpcTimeout(sessionWrapper);
             }
         }
     }
@@ -612,7 +608,7 @@ public class SocketS2CSessionManager extends SokectSessionManager {
     void onRcvClientRpcRequest(RpcRequestEventParam rpcRequestEventParam) {
         tryUpdateMessageQueue(rpcRequestEventParam, sessionWrapper -> {
             RpcRequestCommitTask requestCommitTask = new RpcRequestCommitTask(sessionWrapper.getSession(), sessionWrapper.getProtocolDispatcher(),
-                    rpcRequestEventParam.getRequestGuid(), rpcRequestEventParam.isImmediate(), rpcRequestEventParam.getRequest());
+                    rpcRequestEventParam.getRequestGuid(), rpcRequestEventParam.isSync(), rpcRequestEventParam.getRequest());
             commit(sessionWrapper.getSession(), requestCommitTask);
         });
     }
@@ -829,26 +825,22 @@ public class SocketS2CSessionManager extends SokectSessionManager {
         }
 
         @Override
-        public void sendOneWayMessage(@Nonnull Object message, boolean immediate) {
-            if (immediate) {
-                writeAndFlush(new OneWayMessage(message));
+        public void sendOneWayMessage(@Nonnull Object message) {
+            write(new OneWayMessage(message));
+        }
+
+        @Override
+        public void sendRpcRequest(long requestGuid, boolean sync, @Nonnull Object request) {
+            if (sync) {
+                writeAndFlush(new RpcRequestMessage(requestGuid, sync, request));
             } else {
-                write(new OneWayMessage(message));
+                write(new RpcRequestMessage(requestGuid, sync, request));
             }
         }
 
         @Override
-        public void sendRpcRequest(long requestGuid, boolean immediate, @Nonnull Object request) {
-            if (immediate) {
-                writeAndFlush(new RpcRequestMessage(requestGuid, immediate, request));
-            } else {
-                write(new RpcRequestMessage(requestGuid, immediate, request));
-            }
-        }
-
-        @Override
-        public void sendRpcResponse(long requestGuid, boolean immediate, @Nonnull RpcResponse response) {
-            if (immediate) {
+        public void sendRpcResponse(long requestGuid, boolean sync, @Nonnull RpcResponse response) {
+            if (sync) {
                 writeAndFlush(new RpcResponseMessage(requestGuid, response));
             } else {
                 write(new RpcResponseMessage(requestGuid, response));

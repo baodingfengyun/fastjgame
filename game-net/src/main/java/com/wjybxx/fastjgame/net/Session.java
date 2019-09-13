@@ -146,58 +146,6 @@ public interface Session {
     @Nonnull
     RpcResponse sync(@Nonnull Object request, long timeoutMs);
 
-    // ----------------------------------------------- 禁用所有发送缓存的接口 -------------------------------------
-    // --------------------------------------------- 不仅仅禁用我的缓存，也禁用对方的返回结果的缓存 --------------------
-    // ------------------------------------------------ 发送消息 ------------------------------------------
-
-    /**
-     * 发送一个单向消息给对方
-     *
-     * @param message 单向消息
-     */
-    void sendImmediately(@Nonnull Object message);
-
-    // ------------------------------------------------ 异步Rpc请求 ---------------------------------------------
-
-    /**
-     * 发送一个rpc请求给对方，会使用默认的超时时间（配置文件中指定）。
-     * 注意：
-     * 1. {@link RpcCallback}执行在用户线程。如果是用户线程发起rpc请求，则不必担心线程安全问题。否则需要注意callback的线程安全问题。
-     *
-     * @param request  rpc请求对象
-     * @param callback 回调函数
-     */
-    void callImmediately(@Nonnull Object request, @Nonnull RpcCallback callback);
-
-    /**
-     * 发送一个rpc请求给对方。
-     *
-     * @param request   rpc请求对象
-     * @param callback  回调函数
-     * @param timeoutMs 超时时间，毫秒，必须大于0，必须有超时时间。
-     * @see #call(Object, RpcCallback)
-     */
-    void callImmediately(@Nonnull Object request, @Nonnull RpcCallback callback, long timeoutMs);
-
-    /**
-     * 发送一个rpc请求给对方，并阻塞到结果返回或超时或被中断。
-     *
-     * @param request rpc请求对象
-     * @return rpc返回结果
-     */
-    @Nonnull
-    RpcResponse syncImmediately(@Nonnull Object request);
-
-    /**
-     * 发送一个rpc请求给对方，并阻塞到结果返回或超时。
-     *
-     * @param request   rpc请求对象
-     * @param timeoutMs 超时时间，毫秒，必须大于0，否则死锁可能！！！
-     * @return rpc返回结果
-     */
-    @Nonnull
-    RpcResponse syncImmediately(@Nonnull Object request, long timeoutMs);
-
     // ---------------------------------------------- 缓冲区处理 -------------------------------------------------
 
     /**

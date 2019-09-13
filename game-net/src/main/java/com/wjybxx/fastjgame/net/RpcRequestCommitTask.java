@@ -35,25 +35,25 @@ public class RpcRequestCommitTask implements CommitTask {
      */
     public long requestGuid;
     /**
-     * 是否加急
+     * 是否是同步rpc调用
      */
-    public boolean immediate;
+    public boolean sync;
     /**
      * Rpc请求内容
      */
     private Object request;
 
-    public RpcRequestCommitTask(Session session, ProtocolDispatcher protocolDispatcher, long requestGuid, boolean immediate, Object request) {
+    public RpcRequestCommitTask(Session session, ProtocolDispatcher protocolDispatcher, long requestGuid, boolean sync, Object request) {
         this.session = session;
         this.protocolDispatcher = protocolDispatcher;
         this.requestGuid = requestGuid;
-        this.immediate = immediate;
+        this.sync = sync;
         this.request = request;
     }
 
     @Override
     public void run() {
-        final RpcResponseChannel<?> responseChannel = session.sender().newResponseChannel(requestGuid, immediate);
+        final RpcResponseChannel<?> responseChannel = session.sender().newResponseChannel(requestGuid, sync);
         protocolDispatcher.postRpcRequest(session, request, responseChannel);
     }
 }

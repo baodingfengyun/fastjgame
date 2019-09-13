@@ -58,11 +58,25 @@ public class UnsharableSender extends AbstractSender {
     }
 
     @Override
-    protected void addSenderTask(SenderTask task) {
+    protected void write(SenderTask task) {
         if (userEventLoop().inEventLoop()) {
             buffer.add(task);
             // 检查是否需要清空缓冲区
             if (buffer.size() >= session.getNetConfigManager().flushThreshold()) {
+                flushBuffer();
+            }
+        } else {
+            throw new IllegalStateException("unsharable");
+        }
+    }
+
+    @Override
+    protected void writeAndFlush(SenderTask task) {
+        if (userEventLoop().inEventLoop()) {
+            if (buffer.size() == 0) {
+                netEventLoop().execute(task);
+            } else {
+                buffer.add(task);
                 flushBuffer();
             }
         } else {
@@ -89,12 +103,18 @@ public class UnsharableSender extends AbstractSender {
      * 清空缓冲区(用户线程下) - 批量提交，减少竞争
      */
     private void flushBuffer() {
-        final LinkedList<SenderTask> oldBuffer = exchangeBuffer();
-        netEventLoop().execute(() -> {
-            for (SenderTask senderTask : oldBuffer) {
-                senderTask.run();
-            }
-        });
+        if (buffer.size() == 1) {
+            netEventLoop().execute(buffer.pollFirst());
+        } else {
+            final LinkedList<SenderTask> oldBuffer = exchangeBuffer();
+            netEventLoop().execute(() -> {
+                for (SenderTask senderTask : oldBuffer) {
+                    senderTask.run();
+                }
+            });
+        }
+
+
     }
 
     /**

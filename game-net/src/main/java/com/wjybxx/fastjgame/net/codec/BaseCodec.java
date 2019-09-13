@@ -173,7 +173,7 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
         head.writeLong(rpcRequest.getSequence());
         // rpc请求头
         head.writeLong(rpcRequest.getRequestGuid());
-        head.writeByte(rpcRequest.isImmediate() ? 1 : 0);
+        head.writeByte(rpcRequest.isSync() ? 1 : 0);
         // 合并之后发送
         appendSumAndWrite(ctx, tryMergeBody(ctx.alloc(), head, rpcRequest.getRequest(), codec::encodeRpcRequest), promise);
     }
@@ -187,10 +187,10 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
         long sequence = msg.readLong();
         // rpc请求头
         long requestGuid = msg.readLong();
-        boolean immediate = msg.readByte() == 1;
+        boolean sync = msg.readByte() == 1;
         // 请求内容
         Object request = tryDecodeBody(msg, codec::decodeRpcRequest);
-        return new RpcRequestEventParam(channel, localGuid, remoteGuid, ack, sequence, requestGuid, immediate, request);
+        return new RpcRequestEventParam(channel, localGuid, remoteGuid, ack, sequence, requestGuid, sync, request);
     }
 
     /**

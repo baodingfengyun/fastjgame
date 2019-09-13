@@ -76,10 +76,7 @@ public class JVMS2CSessionManager extends JVMSessionManager {
         for (UserInfo userInfo : userInfoMap.values()) {
             for (SessionWrapper sessionWrapper : userInfo.sessionWrapperMap.values()) {
                 // 检测超时的rpc调用
-                timeoutConsumer.setSession(sessionWrapper.getSession());
-                CollectionUtils.removeIfAndThen(sessionWrapper.getRpcPromiseInfoMap().values(),
-                        timeoutPredicate,
-                        timeoutConsumer);
+                checkRpcTimeout(sessionWrapper);
             }
         }
     }
@@ -125,10 +122,10 @@ public class JVMS2CSessionManager extends JVMSessionManager {
         }
     }
 
-    public void onRcvRpcRequestMessage(long localGuid, long clientGuid, long requestGuid, boolean immediate, Object request) {
+    public void onRcvRpcRequestMessage(long localGuid, long clientGuid, long requestGuid, boolean sync, Object request) {
         final SessionWrapper sessionWrapper = getSessionWrapper(localGuid, clientGuid);
         if (sessionWrapper != null) {
-            commit(sessionWrapper.getSession(), new RpcRequestCommitTask(sessionWrapper.getSession(), sessionWrapper.getProtocolDispatcher(), requestGuid, immediate, request));
+            commit(sessionWrapper.getSession(), new RpcRequestCommitTask(sessionWrapper.getSession(), sessionWrapper.getProtocolDispatcher(), requestGuid, sync, request));
         }
     }
 
@@ -339,20 +336,20 @@ public class JVMS2CSessionManager extends JVMSessionManager {
         }
 
         @Override
-        public void sendOneWayMessage(@Nonnull Object message, boolean immediate) {
+        public void sendOneWayMessage(@Nonnull Object message) {
             // 注意交换guid
             jvmc2SSessionManager.onRcvOneWayMessage(session.remoteGuid(), session.localGuid(),
                     NetUtils.cloneMessage(message, getCodec()));
         }
 
         @Override
-        public void sendRpcRequest(long requestGuid, boolean immediate, @Nonnull Object request) {
+        public void sendRpcRequest(long requestGuid, boolean sync, @Nonnull Object request) {
             jvmc2SSessionManager.onRcvRpcRequestMessage(session.remoteGuid(), session.localGuid(),
-                    requestGuid, immediate, NetUtils.cloneRpcRequest(request, getCodec()));
+                    requestGuid, sync, NetUtils.cloneRpcRequest(request, getCodec()));
         }
 
         @Override
-        public void sendRpcResponse(long requestGuid, boolean immediate, @Nonnull RpcResponse response) {
+        public void sendRpcResponse(long requestGuid, boolean sync, @Nonnull RpcResponse response) {
             jvmc2SSessionManager.onRcvRpcResponse(session.remoteGuid(), session.localGuid(),
                     requestGuid, NetUtils.cloneRpcResponse(response, getCodec()));
 

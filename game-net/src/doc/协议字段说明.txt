@@ -24,7 +24,7 @@
  long  8字节     sequence         这是我发送的第几个包/帧。
 
  long  8字节     requestGuid      请求id
- byte  1字节     immediate        是否加急(不缓存)
+ byte  1字节     sync             是否是同步rpc调用
  bytes 字节数组   requestBytes     请求的内容，用户自定义解析
 
 4.Rpc响应包
