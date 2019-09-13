@@ -23,6 +23,7 @@ import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupImp;
 import com.wjybxx.fastjgame.misc.DefaultRpcCallDispatcher;
+import com.wjybxx.fastjgame.misc.DefaultProtocolDispatcher;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.RpcBuilder;
 import com.wjybxx.fastjgame.net.NetContext;
@@ -73,7 +74,7 @@ public class ExampleRpcClientLoop extends SingleThreadEventLoop {
         if (jvmPort != null) {
             session = netContext.connectInJVM(jvmPort,
                     new ServerDisconnectAward(),
-                    new ExampleRpcDispatcher(new DefaultRpcCallDispatcher()),
+                    new DefaultProtocolDispatcher(),
                     SessionSenderMode.DIRECT).get();
         } else {
             // 必须先启动服务器
@@ -81,7 +82,7 @@ public class ExampleRpcClientLoop extends SingleThreadEventLoop {
             session = netContext.connectTcp(ExampleConstants.serverGuid, ExampleConstants.serverRole, address,
                     ExampleConstants.reflectBasedCodec,
                     new ServerDisconnectAward(),
-                    new ExampleRpcDispatcher(new DefaultRpcCallDispatcher()),
+                    new DefaultProtocolDispatcher(),
                     SessionSenderMode.DIRECT).get();
         }
     }

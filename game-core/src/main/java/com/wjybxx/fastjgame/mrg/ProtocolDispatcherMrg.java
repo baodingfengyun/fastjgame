@@ -18,16 +18,8 @@ package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.annotation.EventLoopSingleton;
-import com.wjybxx.fastjgame.annotation.WorldSingleton;
-import com.wjybxx.fastjgame.misc.*;
-import com.wjybxx.fastjgame.net.ProtocolDispatcher;
-import com.wjybxx.fastjgame.net.RpcResponseChannel;
-import com.wjybxx.fastjgame.net.Session;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.wjybxx.fastjgame.misc.DefaultProtocolDispatcher;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -42,69 +34,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @EventLoopSingleton
 @NotThreadSafe
-public class ProtocolDispatcherMrg implements RpcFunctionRegistry, RpcCallDispatcher, ProtocolDispatcher {
-
-    private static final Logger logger = LoggerFactory.getLogger(ProtocolDispatcherMrg.class);
-
-    private final DefaultRpcCallDispatcher rpcCallDispatcher = new DefaultRpcCallDispatcher();
-    private boolean shutdown = false;
+public class ProtocolDispatcherMrg extends DefaultProtocolDispatcher {
 
     @Inject
     public ProtocolDispatcherMrg() {
-
-    }
-
-    @Override
-    public void register(int methodKey, @Nonnull RpcFunction function) {
-        rpcCallDispatcher.register(methodKey, function);
-    }
-
-    @Override
-    public void release() {
-        rpcCallDispatcher.release();
-        shutdown = true;
-    }
-
-    @Override
-    public void post(@Nonnull Session session, @Nonnull RpcCall rpcCall, @Nonnull RpcResponseChannel<?> rpcResponseChannel) {
-        rpcCallDispatcher.post(session, rpcCall, rpcResponseChannel);
-    }
-
-    @Override
-    public final void postRpcRequest(Session session, @Nullable Object request, @Nonnull RpcResponseChannel<?> responseChannel) {
-        if (shutdown) {
-            return;
-        }
-        if (null == request) {
-            logger.warn("{} - {} send null request", session.remoteRole(), session.remoteGuid());
-            return;
-        }
-        rpcCallDispatcher.post(session, (RpcCall) request, responseChannel);
-    }
-
-    @Override
-    public final void postOneWayMessage(Session session, @Nullable Object message) {
-        if (shutdown) {
-            return;
-        }
-        if (null == message) {
-            logger.warn("{} - {} send null message", session.remoteRole(), session.remoteGuid());
-            return;
-        }
-        if (message instanceof RpcCall) {
-            post(session, (RpcCall) message, VoidRpcResponseChannel.INSTANCE);
-        } else {
-            dispatchOneWayMessage0(session, message);
-        }
-    }
-
-    /**
-     * 分发一个单向消息
-     *
-     * @param session 所在的会话
-     * @param message 单向消息
-     */
-    protected void dispatchOneWayMessage0(Session session, @Nonnull Object message) {
-        logger.info("unhandled {}-{} message {}", session.remoteRole(), session.remoteGuid(), message.getClass().getSimpleName());
     }
 }

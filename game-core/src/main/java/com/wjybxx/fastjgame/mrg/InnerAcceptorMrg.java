@@ -51,11 +51,10 @@ public class InnerAcceptorMrg {
     private final NetContextMrg netContextMrg;
     private final JVMPortMrg jvmPortMrg;
     private final WorldInfoMrg worldInfoMrg;
-    private final GameEventLoopMrg gameEventLoopMrg;
 
     @Inject
     public InnerAcceptorMrg(ProtocolCodecMrg protocolCodecMrg, ProtocolDispatcherMrg protocolDispatcherMrg, HttpDispatcherMrg httpDispatcherMrg,
-                            NetContextMrg netContextMrg, JVMPortMrg jvmPortMrg, WorldInfoMrg worldInfoMrg, GameEventLoopMrg gameEventLoopMrg) {
+                            NetContextMrg netContextMrg, JVMPortMrg jvmPortMrg, WorldInfoMrg worldInfoMrg) {
         this.protocolCodecMrg = protocolCodecMrg;
         this.protocolDispatcherMrg = protocolDispatcherMrg;
 
@@ -63,7 +62,6 @@ public class InnerAcceptorMrg {
         this.netContextMrg = netContextMrg;
         this.jvmPortMrg = jvmPortMrg;
         this.worldInfoMrg = worldInfoMrg;
-        this.gameEventLoopMrg = gameEventLoopMrg;
     }
 
     public void bindInnerJvmPort(SessionLifecycleAware lifecycleAware) throws ExecutionException, InterruptedException {

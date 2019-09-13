@@ -20,11 +20,9 @@ import com.wjybxx.fastjgame.concurrent.*;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupImp;
 import com.wjybxx.fastjgame.misc.DefaultRpcCallDispatcher;
+import com.wjybxx.fastjgame.misc.DefaultProtocolDispatcher;
 import com.wjybxx.fastjgame.misc.RpcCallDispatcher;
-import com.wjybxx.fastjgame.net.NetContext;
-import com.wjybxx.fastjgame.net.Session;
-import com.wjybxx.fastjgame.net.SessionLifecycleAware;
-import com.wjybxx.fastjgame.net.SessionSenderMode;
+import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.net.injvm.JVMPort;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
@@ -33,7 +31,6 @@ import com.wjybxx.fastjgame.utils.TimeUtils;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.locks.LockSupport;
 
 /**
  * 示例rpc服务器
@@ -47,17 +44,18 @@ class ExampleRpcServerLoop extends SingleThreadEventLoop {
 
     private final NetEventLoopGroup netGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET-EVENT-LOOP"),
             RejectedExecutionHandlers.log());
-    private final RpcCallDispatcher dispatcher;
+
+    private final ProtocolDispatcher protocolDispatcher;
 
     private NetContext netContext;
     private final Promise<JVMPort> jvmPortPromise;
 
     public ExampleRpcServerLoop(@Nonnull ThreadFactory threadFactory,
                                 @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
-                                @Nonnull RpcCallDispatcher dispatcher,
+                                @Nonnull ProtocolDispatcher protocolDispatcher,
                                 @Nullable Promise<JVMPort> jvmPortPromise) {
         super(null, threadFactory, rejectedExecutionHandler);
-        this.dispatcher = dispatcher;
+        this.protocolDispatcher = protocolDispatcher;
         this.jvmPortPromise = jvmPortPromise;
     }
 
@@ -72,7 +70,7 @@ class ExampleRpcServerLoop extends SingleThreadEventLoop {
             try {
                 final JVMPort jvmPort = netContext.bindInJVM(ExampleConstants.reflectBasedCodec,
                         new ClientLifeAware(),
-                        new ExampleRpcDispatcher(dispatcher),
+                        protocolDispatcher,
                         SessionSenderMode.DIRECT).get();
                 jvmPortPromise.trySuccess(jvmPort);
             } catch (Exception e) {
@@ -84,7 +82,7 @@ class ExampleRpcServerLoop extends SingleThreadEventLoop {
                     ExampleConstants.tcpPort,
                     ExampleConstants.reflectBasedCodec,
                     new ClientLifeAware(),
-                    new ExampleRpcDispatcher(dispatcher),
+                    protocolDispatcher,
                     SessionSenderMode.DIRECT);
         }
     }
@@ -129,11 +127,12 @@ class ExampleRpcServerLoop extends SingleThreadEventLoop {
     }
 
     public static void main(String[] args) {
-        final DefaultRpcCallDispatcher dispatcher = new DefaultRpcCallDispatcher();
-        ExampleRpcServiceRpcRegister.register(dispatcher, new ExampleRpcService());
+        DefaultProtocolDispatcher protocolDispatcher = new DefaultProtocolDispatcher();
+        ExampleRpcServiceRpcRegister.register(protocolDispatcher, new ExampleRpcService());
+
         final ExampleRpcServerLoop serviceLoop = new ExampleRpcServerLoop(new DefaultThreadFactory("SERVICE"),
                 RejectedExecutionHandlers.log(),
-                dispatcher,
+                protocolDispatcher,
                 null);
         // 唤醒线程
         serviceLoop.execute(ConcurrentUtils.NO_OP_TASK);

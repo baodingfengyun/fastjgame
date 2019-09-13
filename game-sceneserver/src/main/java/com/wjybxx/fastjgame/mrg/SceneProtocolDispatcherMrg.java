@@ -20,7 +20,6 @@ import com.google.inject.Inject;
 import com.google.protobuf.AbstractMessage;
 import com.wjybxx.fastjgame.gameobject.Player;
 import com.wjybxx.fastjgame.misc.DefaultPlayerMessageDispatcher;
-import com.wjybxx.fastjgame.misc.PlayerMessageDispatcher;
 import com.wjybxx.fastjgame.misc.PlayerMessageFunction;
 import com.wjybxx.fastjgame.misc.PlayerMessageFunctionRegistry;
 import com.wjybxx.fastjgame.net.RoleType;
@@ -35,7 +34,7 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2019/8/26
  */
-public class SceneProtocolDispatcherMrg extends ProtocolDispatcherMrg implements PlayerMessageFunctionRegistry, PlayerMessageDispatcher {
+public class SceneProtocolDispatcherMrg extends ProtocolDispatcherMrg implements PlayerMessageFunctionRegistry {
 
     private final PlayerSessionMrg playerSessionMrg;
     private final DefaultPlayerMessageDispatcher messageDispatcher = new DefaultPlayerMessageDispatcher();
@@ -46,12 +45,12 @@ public class SceneProtocolDispatcherMrg extends ProtocolDispatcherMrg implements
     }
 
     @Override
-    protected final void dispatchOneWayMessage0(Session session, @Nonnull Object message) {
+    protected final void dispatchOneWayMessage(Session session, @Nonnull Object message) {
         if (session.remoteRole() == RoleType.PLAYER && message instanceof AbstractMessage) {
             Player player = playerSessionMrg.getPlayer(session.remoteGuid());
             if (player != null) {
                 // 玩家已成功连入场景
-                post(player, (AbstractMessage) message);
+                messageDispatcher.post(player, (AbstractMessage) message);
             } else {
                 // TODO 玩家登录
             }
@@ -61,11 +60,6 @@ public class SceneProtocolDispatcherMrg extends ProtocolDispatcherMrg implements
     @Override
     public <T extends AbstractMessage> void register(@Nonnull Class<T> clazz, @Nonnull PlayerMessageFunction<T> handler) {
         messageDispatcher.register(clazz, handler);
-    }
-
-    @Override
-    public <T extends AbstractMessage> void post(@Nonnull Player player, @Nonnull T message) {
-        messageDispatcher.post(player, message);
     }
 
     @Override
