@@ -32,11 +32,11 @@ public enum NetEventType implements NumberEnum {
 
     // -----------------------客户端(连接的发起方)请求与远程(服务端)建立连接------------------
     /**
-     * 客户端请求建立链接(验证TOKEN)
+     * 客户端请求建立链接
      */
     CONNECT_REQUEST(1),
     /**
-     * 服务器通知建立链接结果(TOKEN验证结果)
+     * 服务器通知建立连接结果
      */
     CONNECT_RESPONSE(2),
 

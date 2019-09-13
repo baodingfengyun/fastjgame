@@ -33,41 +33,39 @@ public class ConnectRequestTO {
      */
     private long clientGuid;
     /**
-     * 这是第几次发送token
-     * (用于识别同一个token下的请求先后顺序)
+     * 客户端角色类型
      */
-    private int sndTokenTimes;
+    private RoleType clientRole;
+    /**
+     * 这是客户端的第几次连接请求，每次重连时都必须增加，用于识别最新的请求。
+     */
+    private int verifyingTimes;
     /**
      * 客户端已收到的最大协议号
      * (与tcp的ack有细微区别，tcp的ack表示期望的下一个包)
      */
     private long ack;
-    /**
-     * 客户端保存的token
-     * (服务器发送给客户端的，客户端只保存)
-     */
-    private byte[] tokenBytes;
 
-    public ConnectRequestTO(long clientGuid, int sndTokenTimes, long ack, byte[] tokenBytes) {
+    public ConnectRequestTO(long clientGuid, RoleType clientRole, int verifyingTimes, long ack) {
         this.clientGuid = clientGuid;
-        this.sndTokenTimes = sndTokenTimes;
+        this.clientRole = clientRole;
+        this.verifyingTimes = verifyingTimes;
         this.ack = ack;
-        this.tokenBytes = tokenBytes;
     }
 
     public long getClientGuid() {
         return clientGuid;
     }
 
-    public int getSndTokenTimes() {
-        return sndTokenTimes;
+    public RoleType getClientRole() {
+        return clientRole;
+    }
+
+    public int getVerifyingTimes() {
+        return verifyingTimes;
     }
 
     public long getAck() {
         return ack;
-    }
-
-    public byte[] getTokenBytes() {
-        return tokenBytes;
     }
 }

@@ -114,6 +114,9 @@ public interface Session {
      * 发送一个rpc请求给对方，会使用默认的超时时间（配置文件中指定）。
      * 注意：
      * 1. {@link RpcCallback}执行在用户线程。如果是用户线程发起rpc请求，则不必担心线程安全问题。否则需要注意callback的线程安全问题。
+     * <p>
+     * Q: 为什么异步RPC调用不是返回一个Future? <br>
+     * A: 使用future将增加额外的消耗，而且容易错误使用。
      *
      * @param request  rpc请求对象
      * @param callback 回调函数
@@ -131,7 +134,7 @@ public interface Session {
     void call(@Nonnull Object request, @Nonnull RpcCallback callback, long timeoutMs);
 
     /**
-     * 发送一个rpc请求给对方，并阻塞到结果返回或超时或被中断。
+     * 发送一个rpc请求给对方，并阻塞到结果返回或超时。
      *
      * @param request rpc请求对象
      * @return rpc返回结果
@@ -154,7 +157,7 @@ public interface Session {
 
     /**
      * 如果存在缓冲，则清空缓冲区。
-     * 注意：如果为session创建的是带有缓冲的sender，那么必须调用flush，否则可能有消息残留。
+     * 注意：如果为session创建的是带有缓冲的sender，那么必须在特定的时候调用flush，否则可能有消息残留。
      */
     void flush();
 

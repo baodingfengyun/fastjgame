@@ -40,4 +40,17 @@ public abstract class JVMSessionManager extends AbstractSessionManager {
         super(netTimeManager);
     }
 
+    @Override
+    protected final ISessionWrapper getWritableSession(long localGuid, long remoteGuid) {
+        ISessionWrapper sessionWrapper = getSessionWrapper(localGuid, remoteGuid);
+        // 会话已被删除
+        if (null == sessionWrapper) {
+            return null;
+        }
+        // 会话已被关闭（session关闭的状态下，既不发送，也不提交）
+        if (!sessionWrapper.getSession().isActive()) {
+            return null;
+        }
+        return sessionWrapper;
+    }
 }

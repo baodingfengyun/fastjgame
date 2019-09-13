@@ -32,11 +32,11 @@ import com.wjybxx.fastjgame.utils.EnumUtils;
 public enum NetPackageType implements NumberEnum {
 
     /**
-     * 客户端请求建立链接(验证TOKEN)
+     * 客户端请求建立链接
      */
     CONNECT_REQUEST((byte) 1),
     /**
-     * 服务器通知建立链接结果(TOKEN验证结果)
+     * 服务器通知建立连接结果(验证结果)
      */
     CONNECT_RESPONSE((byte) 2),
 

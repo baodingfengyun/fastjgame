@@ -22,7 +22,6 @@ import com.wjybxx.fastjgame.utils.ConfigLoader;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 /**
  * 网络层配置管理器，不做热加载，网络层本身不需要经常修改，而且很多配置也无法热加载。
@@ -51,10 +50,6 @@ public class NetConfigManager {
      */
     private final int frameInterval;
 
-    private final byte[] tokenKeyBytes;
-    private final int tokenForbiddenTimeout;
-    private final boolean allowAutoRelogin;
-
     private final int maxIOThreadNumPerEventLoop;
     private final int maxFrameLength;
     private final int sndBufferAsServer;
@@ -64,8 +59,7 @@ public class NetConfigManager {
 
     private final int connectMaxTryTimes;
     private final int connectTimeout;
-    private final int waitTokenResultTimeout;
-    private final int loginTokenTimeout;
+    private final int waitVerifyResultTimeout;
     private final int ackTimeout;
     private final int sessionTimeout;
 
@@ -86,11 +80,6 @@ public class NetConfigManager {
 
         frameInterval = configWrapper.getAsInt("frameInterval");
 
-        tokenKeyBytes = configWrapper.getAsString("tokenKey").getBytes(StandardCharsets.UTF_8);
-        tokenForbiddenTimeout = configWrapper.getAsInt("tokenForbiddenTimeout", 600);
-
-        allowAutoRelogin = configWrapper.getAsBool("allowAutoRelogin");
-
         maxIOThreadNumPerEventLoop = configWrapper.getAsInt("maxIOThreadNumPerEventLoop");
         maxFrameLength = configWrapper.getAsInt("maxFrameLength");
         sndBufferAsServer = configWrapper.getAsInt("sndBufferAsServer");
@@ -105,8 +94,7 @@ public class NetConfigManager {
 
         connectMaxTryTimes = configWrapper.getAsInt("connectMaxTryTimes");
         connectTimeout = configWrapper.getAsInt("connectTimeout");
-        waitTokenResultTimeout = configWrapper.getAsInt("waitTokenResultTimeout");
-        loginTokenTimeout = configWrapper.getAsInt("loginTokenTimeout");
+        waitVerifyResultTimeout = configWrapper.getAsInt("waitVerifyResultTimeout");
         ackTimeout = configWrapper.getAsInt("ackTimeout");
         sessionTimeout = configWrapper.getAsInt("sessionTimeout");
 
@@ -129,24 +117,10 @@ public class NetConfigManager {
     }
 
     /**
-     * 用于默认的异或加密token的秘钥
-     */
-    public byte[] getTokenKeyBytes() {
-        return tokenKeyBytes;
-    }
-
-    /**
      * netty IO 线程数量
      */
     public int maxIOThreadNumPerEventLoop() {
         return maxIOThreadNumPerEventLoop;
-    }
-
-    /**
-     * 是否允许网络层自动重新登录
-     */
-    public boolean isAllowAutoRelogin() {
-        return allowAutoRelogin;
     }
 
     /**
@@ -206,13 +180,6 @@ public class NetConfigManager {
     }
 
     /**
-     * 获取Token登录超时时间(秒，登录Token时效性)
-     */
-    public int loginTokenTimeout() {
-        return loginTokenTimeout;
-    }
-
-    /**
      * 最大重连尝试次数(连接状态下尝试连接次数)
      */
     public int connectMaxTryTimes() {
@@ -227,10 +194,10 @@ public class NetConfigManager {
     }
 
     /**
-     * 等待token验证结果超时时间，需要适当的长一点(毫秒)
+     * 等待验证结果超时时间，需要适当的长一点(毫秒)
      */
-    public long waitTokenResultTimeout() {
-        return waitTokenResultTimeout;
+    public long waitVerifyResultTimeout() {
+        return waitVerifyResultTimeout;
     }
 
     /**
@@ -253,13 +220,6 @@ public class NetConfigManager {
      */
     public int httpSessionTimeout() {
         return httpSessionTimeout;
-    }
-
-    /**
-     * token被禁用的超时时间(秒)
-     */
-    public int tokenForbiddenTimeout() {
-        return tokenForbiddenTimeout;
     }
 
     /**

@@ -53,6 +53,9 @@ public final class CollectionUtils {
      * @return 返回删除成功的元素
      */
     public static <E> int removeIfAndThen(Collection<E> collection, Predicate<E> filter, Consumer<E> then) {
+        if (collection.size() == 0) {
+            return 0;
+        }
         Iterator<E> iterator = collection.iterator();
         E e;
         int removeNum = 0;
@@ -78,6 +81,10 @@ public final class CollectionUtils {
      * @return 删除的元素数量
      */
     public static <K, V> int removeIfAndThen(final Map<K, V> map, final BiPredicate<? super K, ? super V> predicate, BiConsumer<K, V> then) {
+        if (map.size() == 0){
+            return 0;
+        }
+
         int removeNum = 0;
         // entry在调用remove之后不可再访问,因此需要将key-value保存下来
         Map.Entry<K, V> kvEntry;
@@ -108,8 +115,7 @@ public final class CollectionUtils {
      * @return 删除的元素数量
      */
     public static <K, V> int removeIf(final Map<K, V> map, final BiPredicate<? super K, ? super V> predicate) {
-        return removeIfAndThen(map, predicate, (k, v) -> {
-        });
+        return removeIfAndThen(map, predicate, FunctionUtils.emptyBiConsumer());
     }
 
     /**
@@ -121,6 +127,9 @@ public final class CollectionUtils {
      * @return 是否成功删除了一个元素
      */
     public static <E> boolean removeFirstMatch(Collection<E> collection, Predicate<? super E> predicate) {
+        if (collection.size() == 0) {
+            return false;
+        }
         Iterator<E> iterator = collection.iterator();
         while (iterator.hasNext()) {
             if (predicate.test(iterator.next())) {

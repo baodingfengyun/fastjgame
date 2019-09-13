@@ -27,31 +27,26 @@ package com.wjybxx.fastjgame.net;
 @TransferObject
 public class ConnectResponseTO {
     /**
-     * 这是客户端第几次token验证的结果
+     * 这是客户端第几次验证的结果
      */
-    private int sndTokenTimes;
+    private int verifyingTimes;
     /**
-     * token验证是否成功
+     * 验证是否成功
      */
     private boolean success;
     /**
      * 服务器确认收到的最大消息号，ack
      */
     private long ack;
-    /**
-     * 被加密的token，客户端仅仅是负责保存token
-     */
-    private byte[] encryptedToken;
 
-    public ConnectResponseTO(int sndTokenTimes, boolean success, long ack, byte[] encryptedToken) {
-        this.sndTokenTimes = sndTokenTimes;
+    public ConnectResponseTO(int verifyingTimes, boolean success, long ack) {
+        this.verifyingTimes = verifyingTimes;
         this.success = success;
         this.ack = ack;
-        this.encryptedToken = encryptedToken;
     }
 
-    public int getSndTokenTimes() {
-        return sndTokenTimes;
+    public int getVerifyingTimes() {
+        return verifyingTimes;
     }
 
     public boolean isSuccess() {
@@ -62,7 +57,4 @@ public class ConnectResponseTO {
         return ack;
     }
 
-    public byte[] getEncryptedToken() {
-        return encryptedToken;
-    }
 }

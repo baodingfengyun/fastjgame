@@ -109,14 +109,14 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
      * @param msgTO 发送的消息
      */
     final void writeConnectRequest(ChannelHandlerContext ctx, ConnectRequestTO msgTO, ChannelPromise promise) {
-        byte[] encryptedToken = msgTO.getTokenBytes();
-        int contentLength = 8 + 4 + 8 + encryptedToken.length;
+        int contentLength = 8 + 4 + 4 + 8;
         ByteBuf byteBuf = newInitializedByteBuf(ctx, contentLength, NetPackageType.CONNECT_REQUEST);
 
         byteBuf.writeLong(msgTO.getClientGuid());
-        byteBuf.writeInt(msgTO.getSndTokenTimes());
+        byteBuf.writeInt(msgTO.getClientRole().getNumber());
+        byteBuf.writeInt(msgTO.getVerifyingTimes());
         byteBuf.writeLong(msgTO.getAck());
-        byteBuf.writeBytes(encryptedToken);
+
         appendSumAndWrite(ctx, byteBuf, promise);
     }
 
@@ -125,26 +125,23 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
      */
     final ConnectRequestTO readConnectRequest(ByteBuf msg) {
         long clientGuid = msg.readLong();
-        int sndTokenTimes = msg.readInt();
+        RoleType clientRole = RoleType.forNumber(msg.readInt());
+        int verifyingTimes = msg.readInt();
         long ack = msg.readLong();
-        byte[] encryptedToken = NetUtils.readRemainBytes(msg);
 
-        return new ConnectRequestTO(clientGuid, sndTokenTimes, ack, encryptedToken);
+        return new ConnectRequestTO(clientGuid, clientRole, verifyingTimes, ack);
     }
 
     /**
      * 编码协议2 - 连接响应
      */
     final void writeConnectResponse(ChannelHandlerContext ctx, ConnectResponseTO msgTO, ChannelPromise promise) {
-        byte[] encryptedToken = msgTO.getEncryptedToken();
-
-        int contentLength = 4 + 1 + 8 + encryptedToken.length;
+        int contentLength = 4 + 1 + 8;
         ByteBuf byteBuf = newInitializedByteBuf(ctx, contentLength, NetPackageType.CONNECT_RESPONSE);
 
-        byteBuf.writeInt(msgTO.getSndTokenTimes());
+        byteBuf.writeInt(msgTO.getVerifyingTimes());
         byteBuf.writeByte(msgTO.isSuccess() ? 1 : 0);
         byteBuf.writeLong(msgTO.getAck());
-        byteBuf.writeBytes(msgTO.getEncryptedToken());
 
         appendSumAndWrite(ctx, byteBuf, promise);
     }
@@ -153,12 +150,10 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
      * 解码协议2 - 连接响应
      */
     final ConnectResponseTO readConnectResponse(ByteBuf msg) {
-        int sndTokenTimes = msg.readInt();
+        int verifyingTimes = msg.readInt();
         boolean success = msg.readByte() == 1;
         long ack = msg.readLong();
-        byte[] encryptedToken = NetUtils.readRemainBytes(msg);
-
-        return new ConnectResponseTO(sndTokenTimes, success, ack, encryptedToken);
+        return new ConnectResponseTO(verifyingTimes, success, ack);
     }
 
     // ---------------------------------------------- 协议3、4 ---------------------------------------

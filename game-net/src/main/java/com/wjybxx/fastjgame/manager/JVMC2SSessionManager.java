@@ -84,7 +84,6 @@ public class JVMC2SSessionManager extends JVMSessionManager {
         }
     }
 
-
     /**
      * 获取session
      *
@@ -93,26 +92,13 @@ public class JVMC2SSessionManager extends JVMSessionManager {
      * @return 如果存在则返回对应的session，否则返回null
      */
     @Nullable
-    private SessionWrapper getSessionWrapper(long localGuid, long serverGuid) {
+    @Override
+    protected SessionWrapper getSessionWrapper(long localGuid, long serverGuid) {
         UserInfo userInfo = userInfoMap.get(localGuid);
         if (null == userInfo) {
             return null;
         }
         return userInfo.sessionWrapperMap.get(serverGuid);
-    }
-    // ---------------------------------------------------- 发送消息 -------------------------------------------------
-
-    protected SessionWrapper getWritableSession(long localGuid, long serverGuid) {
-        SessionWrapper sessionWrapper = getSessionWrapper(localGuid, serverGuid);
-        // 会话已被删除
-        if (null == sessionWrapper) {
-            return null;
-        }
-        // 会话已被关闭（session关闭的状态下，既不发送，也不提交）
-        if (!sessionWrapper.getSession().isActive()) {
-            return null;
-        }
-        return sessionWrapper;
     }
 
     // ---------------------------------------------------- 接收消息 -------------------------------------------------

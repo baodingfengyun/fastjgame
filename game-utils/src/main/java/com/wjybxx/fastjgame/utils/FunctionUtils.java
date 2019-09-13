@@ -16,6 +16,9 @@
 
 package com.wjybxx.fastjgame.utils;
 
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+
 /**
  * 常用函数式方法
  *
@@ -32,8 +35,24 @@ public final class FunctionUtils {
     public static final Runnable NO_OP_ACTION = () -> {
     };
 
+    private static final BiConsumer<?, ?> _emptyBiConsumer = (a, b) -> {
+    };
+
+    private static final Consumer<?> _emptyConsumer = (a) -> {
+    };
+
     private FunctionUtils() {
 
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T,U> BiConsumer<T, U> emptyBiConsumer() {
+        return (BiConsumer<T, U>) _emptyBiConsumer;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> Consumer<T> emptyConsumer() {
+        return (Consumer<T>) _emptyConsumer;
     }
 
     public static <T> boolean TRUE(T t) {

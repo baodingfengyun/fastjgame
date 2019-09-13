@@ -75,7 +75,7 @@ public class ClientCodec extends BaseCodec {
             SingleMessageTO singleMessageTO = (SingleMessageTO) msgTO;
             writeSingleMsg(ctx, singleMessageTO.getAck(), singleMessageTO.getNetMessage(), promise);
         } else if (msgTO instanceof ConnectRequestTO) {
-            // 连接请求包(token验证包)
+            // 请求建立连接包
             writeConnectRequest(ctx, (ConnectRequestTO) msgTO, promise);
         } else {
             super.write(ctx, msgTO, promise);
@@ -131,7 +131,7 @@ public class ClientCodec extends BaseCodec {
     }
 
     /**
-     * 服务器返回的Token验证结果
+     * 服务器返回的建立连接验证结果
      */
     private void tryReadConnectResponse(ChannelHandlerContext ctx, ByteBuf msg) {
         ConnectResponseTO responseTO = readConnectResponse(msg);

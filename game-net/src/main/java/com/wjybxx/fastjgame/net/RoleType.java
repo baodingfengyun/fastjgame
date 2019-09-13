@@ -98,7 +98,7 @@ public enum RoleType implements NumberEnum {
     /**
      * 角色编号
      */
-    public final int number;
+    private final int number;
 
     RoleType(int roleType) {
         this.number = roleType;

@@ -87,7 +87,7 @@ public abstract class AbstractSender implements Sender {
     protected abstract void write(SenderTask task);
 
     /**
-     * 发送一个任务，并清空缓冲区
+     * 发送一个任务，并立即清空缓冲区
      *
      * @param task 一个数据发送请求
      */
@@ -259,10 +259,10 @@ public abstract class AbstractSender implements Sender {
         @Override
         protected void doWrite(RpcResponse rpcResponse) {
             if (sender.isActive()) {
-                sender.write(new RpcResponseTask(sender.session, requestGuid, rpcResponse, sync));
                 if (sync) {
-                    // 同步调用，刷新缓冲区，尽快的返回
-                    sender.flush();
+                    sender.writeAndFlush(new RpcResponseTask(sender.session, requestGuid, rpcResponse, true));
+                } else {
+                    sender.write(new RpcResponseTask(sender.session, requestGuid, rpcResponse, false));
                 }
             }
         }

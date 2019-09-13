@@ -166,8 +166,8 @@ public final class MessageQueue {
     /**
      * 获取当前缓存的消息数
      */
-    public int getCacheMessageNum() {
-        return sentQueue.size() + unsentQueue.size();
+    public int getUnsentMessageNum() {
+        return sentQueue.size();
     }
 
     @Override

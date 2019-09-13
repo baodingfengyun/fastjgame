@@ -53,6 +53,10 @@ public class FastCollectionsUtils {
      * @return 删除的元素数量
      */
     public static <V> int removeIfAndThen(final Long2ObjectMap<V> map, final LongObjPredicate<? super V> predicate, LongObjConsumer<V> then) {
+        if (map.size() == 0) {
+            return 0;
+        }
+
         ObjectIterator<Long2ObjectMap.Entry<V>> itr = map.long2ObjectEntrySet().iterator();
         int removeNum = 0;
         Long2ObjectMap.Entry<V> entry;
@@ -81,6 +85,10 @@ public class FastCollectionsUtils {
      * @return 删除的元素数量
      */
     public static <V> int removeIfAndThen(final Int2ObjectMap<V> map, final IntObjPredicate<? super V> predicate, IntObjConsumer<V> then) {
+        if (map.size() == 0) {
+            return 0;
+        }
+
         ObjectIterator<Int2ObjectMap.Entry<V>> itr = map.int2ObjectEntrySet().iterator();
         int removeNum = 0;
         Int2ObjectMap.Entry<V> entry;
@@ -109,6 +117,10 @@ public class FastCollectionsUtils {
      * @return 删除的元素数量
      */
     public static <V> int removeIfAndThen(final Short2ObjectMap<V> map, final ShortObjPredicate<? super V> predicate, ShortObjConsumer<V> then) {
+        if (map.size() == 0) {
+            return 0;
+        }
+
         ObjectIterator<Short2ObjectMap.Entry<V>> itr = map.short2ObjectEntrySet().iterator();
         int removeNum = 0;
         Short2ObjectMap.Entry<V> entry;

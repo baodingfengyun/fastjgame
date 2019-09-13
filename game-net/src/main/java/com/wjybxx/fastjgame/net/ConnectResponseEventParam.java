@@ -42,7 +42,6 @@ public class ConnectResponseEventParam implements NetEventParam {
      * 服务端guid
      */
     private long serverGuid;
-
     /**
      * 响应参数
      */
@@ -55,8 +54,8 @@ public class ConnectResponseEventParam implements NetEventParam {
         this.responseTO = responseTO;
     }
 
-    public int getSndTokenTimes() {
-        return responseTO.getSndTokenTimes();
+    public int getVerifyingTimes() {
+        return responseTO.getVerifyingTimes();
     }
 
     public boolean isSuccess() {
@@ -69,10 +68,6 @@ public class ConnectResponseEventParam implements NetEventParam {
 
     public long getAck() {
         return responseTO.getAck();
-    }
-
-    public byte[] getEncryptedToken() {
-        return responseTO.getEncryptedToken();
     }
 
     @Override

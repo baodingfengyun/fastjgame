@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.misc;
 
 /**
- * token验证失败原因
+ * 建立连接失败的原因
  *
  * @author wjybxx
  * @version 1.0
@@ -26,37 +26,13 @@ package com.wjybxx.fastjgame.misc;
  */
 public enum FailReason {
     /**
-     * token解析错误，无法解析
-     */
-    NULL,
-    /**
      * server不存在
      */
     SERVER_NOT_EXIST,
     /**
-     * 无效的token
-     */
-    INVALID,
-    /**
-     * token与请求不匹配
-     */
-    TOKEN_NOT_MATCH_REQUEST,
-    /**
-     * 不是登录token
-     */
-    NOT_LOGIN_TOKEN,
-    /**
      * ack校验错误
      */
-    ACK,
-    /**
-     * token超时了
-     */
-    TOKEN_TIMEOUT,
-    /**
-     * 同一个channel
-     */
-    SAME_CHANNEL,
+    ACK_ERROR,
     /**
      * 旧请求
      */

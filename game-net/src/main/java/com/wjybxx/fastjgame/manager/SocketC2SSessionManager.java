@@ -73,7 +73,6 @@ public class SocketC2SSessionManager extends SocketSessionManager {
 
     private NetManagerWrapper managerWrapper;
     private final AcceptorManager acceptorManager;
-    private final TokenManager tokenManager;
     private final NetTimerManager timerManager;
 
     /**
@@ -83,10 +82,9 @@ public class SocketC2SSessionManager extends SocketSessionManager {
 
     @Inject
     public SocketC2SSessionManager(NetConfigManager netConfigManager, AcceptorManager acceptorManager,
-                                   NetTimeManager netTimeManager, TokenManager tokenManager, NetTimerManager timerManager) {
+                                   NetTimeManager netTimeManager, NetTimerManager timerManager) {
         super(netConfigManager, netTimeManager);
         this.acceptorManager = acceptorManager;
-        this.tokenManager = tokenManager;
         this.timerManager = timerManager;
     }
 
@@ -118,7 +116,8 @@ public class SocketC2SSessionManager extends SocketSessionManager {
      * @return 如果存在则返回对应的session，否则返回null
      */
     @Nullable
-    private SessionWrapper getSessionWrapper(long localGuid, long serverGuid) {
+    @Override
+    protected SessionWrapper getSessionWrapper(long localGuid, long serverGuid) {
         UserInfo userInfo = userInfoMap.get(localGuid);
         if (null == userInfo) {
             return null;
@@ -148,15 +147,14 @@ public class SocketC2SSessionManager extends SocketSessionManager {
         long localGuid = netContext.localGuid();
         // 已注册
         if (getSessionWrapper(localGuid, serverGuid) != null) {
-            throw new IllegalArgumentException("session localGuid " + localGuid + "- serverGuid " + serverGuid + " registered before.");
+            throw new IllegalArgumentException("session localGuid " + localGuid + ", serverGuid " + serverGuid + " already registered.");
         }
         // 保存用户信息，因为是发起连接请求，因此方法参数都是针对单个会话的。
         UserInfo userInfo = userInfoMap.computeIfAbsent(localGuid, k -> new UserInfo(netContext));
 
         // 创建会话
         SocketC2SSession session = new SocketC2SSession(netContext, managerWrapper, serverGuid, serverType, hostAndPort, sessionSenderMode);
-        byte[] encryptedLoginToken = tokenManager.newEncryptedLoginToken(netContext.localGuid(), netContext.localRole(), serverGuid, serverType);
-        SessionWrapper sessionWrapper = new SessionWrapper(userInfo, initializerSupplier, lifecycleAware, protocolDispatcher, session, encryptedLoginToken, promise);
+        SessionWrapper sessionWrapper = new SessionWrapper(userInfo, initializerSupplier, lifecycleAware, protocolDispatcher, session, promise);
 
         // 保存会话
         userInfo.sessionWrapperMap.put(session.remoteGuid(), sessionWrapper);
@@ -169,35 +167,6 @@ public class SocketC2SSessionManager extends SocketSessionManager {
                 removeSession(localGuid, serverGuid, "user cancelled");
             }
         }, managerWrapper.getNetEventLoopManager().eventLoop());
-    }
-
-    /**
-     * 获取一个可写的session。
-     *
-     * @param localGuid  form
-     * @param serverGuid to
-     * @return sessionWrapper
-     */
-    @Nullable
-    @Override
-    protected SessionWrapper getWritableSession(long localGuid, long serverGuid) {
-        SessionWrapper sessionWrapper = getSessionWrapper(localGuid, serverGuid);
-        // 会话已被删除
-        if (null == sessionWrapper) {
-            return null;
-        }
-        // 会话已被关闭（session关闭的状态下，既不发送，也不提交）
-        if (!sessionWrapper.getSession().isActive()) {
-            return null;
-        }
-        // 缓存需要排除正常缓存阈值
-        if (sessionWrapper.getMessageQueue().getCacheMessageNum() >= netConfigManager.clientMaxCacheNum() + netConfigManager.flushThreshold()) {
-            // 缓存过多，删除会话
-            removeSession(localGuid, serverGuid, "cacheMessageNum is too much!");
-            return null;
-        } else {
-            return sessionWrapper;
-        }
     }
 
     /**
@@ -322,20 +291,20 @@ public class SocketC2SSessionManager extends SocketSessionManager {
     }
 
     /**
-     * 当收到服务器的Token验证结果
+     * 当收到服务器的验证结果
      *
      * @param responseParam 连接响应结果
      */
     void onRcvConnectResponse(ConnectResponseEventParam responseParam) {
         ifEventChannelOK(responseParam, sessionState -> {
-            // 无论什么状态，只要当前channel收到token验证失败，都关闭session(移除会话)，它意味着服务器通知关闭。
+            // 无论什么状态，只要当前channel收到验证失败，都关闭session(移除会话)，它意味着服务器通知删除session。
             if (!responseParam.isSuccess()) {
                 NetUtils.closeQuietly(responseParam.channel());
                 removeSession(responseParam.localGuid(), responseParam.getServerGuid(), "token check failed.");
                 return;
             }
-            // token验证成功
-            sessionState.onTokenCheckSuccess(responseParam.channel(), responseParam);
+            // 验证成功
+            sessionState.onVerifiedSuccess(responseParam.channel(), responseParam);
         });
     }
 
@@ -397,12 +366,13 @@ public class SocketC2SSessionManager extends SocketSessionManager {
     }
 
     /**
-     * 客户端只会有三个网络事件(三种类型协议)，
-     * 1.token验证结果
-     * 2.服务器ack-ping返回协议(ack-pong)
-     * 3.服务器发送的正式消息
+     * 客户端有4个网络事件，
+     * 1. 验证结果
+     * 2. 单向消息
+     * 3. rpc请求
+     * 4. rpc响应
      * <p>
-     * 同时也只有三种状态：
+     * 有三种状态：
      * 1.尝试连接状态
      * 2.正在验证状态
      * 3.已验证状态
@@ -430,8 +400,8 @@ public class SocketC2SSessionManager extends SocketSessionManager {
             return sessionWrapper.getVerifiedSequencer();
         }
 
-        IntSequencer getSndTokenSequencer() {
-            return sessionWrapper.getSndTokenSequencer();
+        IntSequencer getVerifyingSequencer() {
+            return sessionWrapper.getVerifyingSequencer();
         }
 
         ProtocolDispatcher getProtocolDispatcher() {
@@ -459,12 +429,12 @@ public class SocketC2SSessionManager extends SocketSessionManager {
         protected abstract boolean isEventChannelOK(Channel eventChannel);
 
         /**
-         * 当收到服务器的token验证成功消息
+         * 当收到服务器的验证成功消息
          *
          * @param eventChannel 产生事件的channel
          * @param resultParam  返回信息
          */
-        protected void onTokenCheckSuccess(Channel eventChannel, ConnectResponseEventParam resultParam) {
+        protected void onVerifiedSuccess(Channel eventChannel, ConnectResponseEventParam resultParam) {
             throw new IllegalStateException(this.getClass().getSimpleName());
         }
 
@@ -581,7 +551,7 @@ public class SocketC2SSessionManager extends SocketSessionManager {
                 // 无法连接到服务器，移除会话，结束
                 // 下一帧删除，避免迭代的过程中进行删除
                 timerManager.nextTick(handle -> {
-                    removeSession(sessionWrapper.getLocalGuid(), session.remoteGuid(), "can't connect remote " + session.remoteAddress());
+                    removeSession(sessionWrapper.localGuid(), session.remoteGuid(), "can't connect remote " + session.remoteAddress());
                 });
             }
         }
@@ -639,7 +609,7 @@ public class SocketC2SSessionManager extends SocketSessionManager {
         final void reconnect(String reason) {
             NetUtils.closeQuietly(channel);
             changeState(sessionWrapper, new ConnectingState(sessionWrapper));
-            logger.debug("reconnect by reason of {}", reason);
+            logger.info("reconnect by reason of {}", reason);
         }
 
     }
@@ -648,7 +618,7 @@ public class SocketC2SSessionManager extends SocketSessionManager {
      * 正在验证状态。
      * <p>
      * 1.如果限定时间内未收到任何消息，则尝试重新连接。
-     * 2.收到其它消息，但未收到token验证结果时：，则会再次进行验证。
+     * 2.收到其它消息，但未收到验证结果时：则会再次进行验证。
      * 3.收到验证结果：
      * <li>任何状态下收到验证失败都会关闭session</li>
      * <li>验证成功且判定服务器的ack正确时，验证完成</li>
@@ -656,7 +626,7 @@ public class SocketC2SSessionManager extends SocketSessionManager {
      */
     private class VerifyingState extends ConnectedState {
         /**
-         * 进入状态机的时间戳，用于计算token响应超时
+         * 进入状态机的时间戳，用于判断验证请求是否超时
          */
         private long enterStateMillTime;
 
@@ -664,73 +634,69 @@ public class SocketC2SSessionManager extends SocketSessionManager {
             super(sessionWrapper, channel);
         }
 
-        /**
-         * 发送token
-         */
+
         @Override
         protected void enter() {
             enterStateMillTime = netTimeManager.getSystemMillTime();
 
-            int sndTokenTimes = getSndTokenSequencer().incAndGet();
-            // 创建验证请求
-            ConnectRequestTO connectRequest = new ConnectRequestTO(sessionWrapper.getLocalGuid(), sndTokenTimes,
-                    getMessageQueue().getAck(), sessionWrapper.getEncryptedToken());
+            // 发送连接(重连)请求
+            int verifyingTimes = getVerifyingSequencer().incAndGet();
+            ConnectRequestTO connectRequest = new ConnectRequestTO(sessionWrapper.localGuid(), sessionWrapper.localRole(), verifyingTimes,
+                    getMessageQueue().getAck());
             channel.writeAndFlush(connectRequest, channel.voidPromise());
-            logger.debug("{} times send verify msg to server {}", sndTokenTimes, session);
+            logger.debug("{} times send verify msg to server {}", verifyingTimes, session);
         }
 
         @Override
         protected void execute() {
-            if (netTimeManager.getSystemMillTime() - enterStateMillTime > netConfigManager.waitTokenResultTimeout()) {
-                // 获取token结果超时，重连
-                reconnect("wait token result timeout.");
+            if (netTimeManager.getSystemMillTime() - enterStateMillTime > netConfigManager.waitVerifyResultTimeout()) {
+                // 验证超时，重连
+                reconnect("wait verify result timeout.");
             }
         }
 
         @Override
-        protected void onTokenCheckSuccess(Channel eventChannel, ConnectResponseEventParam resultParam) {
+        protected void onVerifiedSuccess(Channel eventChannel, ConnectResponseEventParam resultParam) {
             // 不是等待的结果
-            if (resultParam.getSndTokenTimes() != getSndTokenSequencer().get()) {
+            if (resultParam.getVerifyingTimes() != getVerifyingSequencer().get()) {
                 return;
             }
             MessageQueue messageQueue = getMessageQueue();
             // 收到的ack有误(有丢包)，这里重连已没有意义(始终有消息漏掉了，无法恢复)
             if (!messageQueue.isAckOK(resultParam.getAck())) {
-                removeSession(sessionWrapper.getLocalGuid(), resultParam.getServerGuid(),
+                removeSession(sessionWrapper.localGuid(), resultParam.getServerGuid(),
                         "(Verifying) server ack is error. ackInfo = " + messageQueue.generateAckErrorInfo(resultParam.getAck()));
                 return;
             }
             // 更新消息队列
             sessionWrapper.getMessageQueue().updateSentQueue(resultParam.getAck());
-            // 保存新的token
-            sessionWrapper.setEncryptedToken(resultParam.getEncryptedToken());
             changeState(sessionWrapper, new VerifiedState(sessionWrapper, channel));
         }
 
         @Override
         protected void onRcvServerRpcRequest(Channel eventChannel, RpcRequestEventParam rpcRequestEventParam) {
-            reconnect("onRcvServerRpcRequest, but missing token result");
+            reconnect("onRcvServerRpcRequest, but missing verify result");
         }
 
         @Override
         protected void onRcvServerRpcResponse(Channel eventChannel, RpcResponseEventParam responseEventParam) {
-            reconnect("onRcvServerRpcResponse, but missing token result");
+            reconnect("onRcvServerRpcResponse, but missing verify result");
         }
 
         @Override
         protected void onRcvServerMessage(Channel eventChannel, OneWayMessageEventParam oneWayMessageEventParam) {
-            reconnect("onRcvServerMessage, but missing token result");
+            reconnect("onRcvServerMessage, but missing verify result");
         }
 
         @Override
         protected void onRcvServerAckPong(Channel eventChannel, AckPingPongEventParam ackPongParam) {
-            reconnect("onRcvServerAckPong, but missing token result");
+            reconnect("onRcvServerAckPong, but missing verify result");
         }
 
     }
 
     /**
-     * token验证成功状态
+     * 验证成功状态
      */
     private class VerifiedState extends ConnectedState {
         /**
@@ -777,9 +743,6 @@ public class SocketC2SSessionManager extends SocketSessionManager {
         /**
          * 1. 重发那些已发送，但是未被确认的消息
          * 2. 清空未发送的消息
-         * <p>
-         * Q: 为什么要flush？ <br>
-         * A: 这里存在一个时序问题，如果不flush，那么下一帧之前的加急消息会立即发送，而前面的加急消息因为不能立即发送而进入了未发送队列！
          */
         private void resendAndFlush() {
             MessageQueue messageQueue = getMessageQueue();
@@ -983,20 +946,14 @@ public class SocketC2SSessionManager extends SocketSessionManager {
          * 该会话关联的消息处理器
          */
         private final ProtocolDispatcher protocolDispatcher;
-
         /**
-         * 发送token次数
+         * 发起验证请求的次数
          */
-        private final IntSequencer sndTokenSequencer = new IntSequencer(0);
+        private final IntSequencer verifyingSequencer = new IntSequencer(0);
         /**
          * 验证成功的次数
-         * (也等于收到token结果的次数，因为验证失败，就会删除session)
          */
         private final IntSequencer verifiedSequencer = new IntSequencer(0);
-        /**
-         * 被加密的Token，客户端并不关心具体内容，只是保存用于建立链接
-         */
-        private byte[] encryptedToken;
         /**
          * 会话当前状态
          */
@@ -1011,13 +968,12 @@ public class SocketC2SSessionManager extends SocketSessionManager {
                        SessionLifecycleAware lifecycleAware,
                        ProtocolDispatcher protocolDispatcher,
                        SocketC2SSession session,
-                       byte[] encryptedToken, Promise<Session> promise) {
+                       Promise<Session> promise) {
             super(session);
             this.userInfo = userInfo;
             this.initializerSupplier = initializerSupplier;
             this.lifecycleAware = lifecycleAware;
             this.protocolDispatcher = protocolDispatcher;
-            this.encryptedToken = encryptedToken;
             this.promise = promise;
         }
 
@@ -1025,28 +981,16 @@ public class SocketC2SSessionManager extends SocketSessionManager {
             return state;
         }
 
-        void setEncryptedToken(byte[] encryptedToken) {
-            this.encryptedToken = encryptedToken;
-        }
-
         void setState(C2SSessionState state) {
             this.state = state;
         }
 
-        byte[] getEncryptedToken() {
-            return encryptedToken;
-        }
-
-        IntSequencer getSndTokenSequencer() {
-            return sndTokenSequencer;
+        IntSequencer getVerifyingSequencer() {
+            return verifyingSequencer;
         }
 
         IntSequencer getVerifiedSequencer() {
             return verifiedSequencer;
-        }
-
-        long getLocalGuid() {
-            return userInfo.netContext.localGuid();
         }
 
         ChannelInitializerSupplier getInitializerSupplier() {

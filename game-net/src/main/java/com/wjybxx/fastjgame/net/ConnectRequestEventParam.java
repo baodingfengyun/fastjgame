@@ -48,20 +48,16 @@ public class ConnectRequestEventParam implements NetEventParam {
         return connectRequestTO.getClientGuid();
     }
 
+    public RoleType getClientRole() {
+        return connectRequestTO.getClientRole();
+    }
+
     public long getAck() {
         return connectRequestTO.getAck();
     }
 
-    public byte[] getTokenBytes() {
-        return connectRequestTO.getTokenBytes();
-    }
-
-    public int getSndTokenTimes() {
-        return connectRequestTO.getSndTokenTimes();
-    }
-
-    public ConnectRequestTO getConnectRequestTO() {
-        return connectRequestTO;
+    public int getVerifyingTimes() {
+        return connectRequestTO.getVerifyingTimes();
     }
 
     @Override

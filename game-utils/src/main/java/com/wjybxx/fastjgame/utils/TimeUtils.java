@@ -128,6 +128,16 @@ public class TimeUtils {
 		return localDateTime.with(MIDNIGHT).toEpochSecond(ZONE_OFFSET) * 1000;
 	}
 
+    /**
+     * 获取指定时间戳所在日期的23:59:59的毫秒时间戳
+     * @param curTimeMs 指定时间戳，用于确定日期
+     * @return end time of special day
+     */
+    public static long getTimeEndOfToday(long curTimeMs){
+        LocalDateTime localDateTime = toLocalDateTimeIgnoreMs(curTimeMs);
+        return localDateTime.with(MIDNIGHT).toEpochSecond(ZONE_OFFSET) * 1000 + (DAY - 1);
+    }
+
 	/**
 	 * 获取指定时间戳所在那一周的周一00:00:00的毫秒时间戳
 	 * @param curTimeMs 指定时间戳，用于确定所在的周

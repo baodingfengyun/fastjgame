@@ -58,6 +58,36 @@ public abstract class SocketSessionManager extends AbstractSessionManager {
         this.netTimeManager = netTimeManager;
     }
 
+    @Override
+    protected abstract SocketSessionWrapper getSessionWrapper(long localGuid, long clientGuid);
+
+    /**
+     * 获取一个可写的session。
+     *
+     * @param localGuid  from
+     * @param remoteGuid to
+     * @return sessionWrapper
+     */
+    @Override
+    protected final SocketSessionWrapper getWritableSession(long localGuid, long remoteGuid) {
+        SocketSessionWrapper sessionWrapper = getSessionWrapper(localGuid, remoteGuid);
+        // 会话已被删除
+        if (null == sessionWrapper) {
+            return null;
+        }
+        // 会话已被关闭（session关闭的状态下，既不发送，也不提交）
+        if (!sessionWrapper.getSession().isActive()) {
+            return null;
+        }
+        // 未确认消息过多，删除会话
+        if (sessionWrapper.getUnsentMessageNum() >= netConfigManager.clientMaxCacheNum()) {
+            removeSession(localGuid, remoteGuid, "cacheMessage is too much, num = " + sessionWrapper.getUnsentMessageNum());
+            return null;
+        } else {
+            return sessionWrapper;
+        }
+    }
+
     // -----------------------------------------------------------  发送缓冲区 --------------------------------------------------------------
 
     /**
@@ -203,6 +233,10 @@ public abstract class SocketSessionManager extends AbstractSessionManager {
             return messageQueue;
         }
 
+        public int getUnsentMessageNum() {
+            return messageQueue.getUnsentMessageNum();
+        }
+
         @Override
         public final void sendOneWayMessage(@Nonnull Object message) {
             write(new OneWayMessage(message));
@@ -211,9 +245,9 @@ public abstract class SocketSessionManager extends AbstractSessionManager {
         @Override
         public final void sendRpcRequest(long requestGuid, boolean sync, @Nonnull Object request) {
             if (sync) {
-                writeAndFlush(new RpcRequestMessage(requestGuid, sync, request));
+                writeAndFlush(new RpcRequestMessage(requestGuid, true, request));
             } else {
-                write(new RpcRequestMessage(requestGuid, sync, request));
+                write(new RpcRequestMessage(requestGuid, false, request));
             }
         }
 

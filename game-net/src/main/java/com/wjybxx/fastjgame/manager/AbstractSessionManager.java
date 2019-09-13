@@ -57,15 +57,17 @@ public abstract class AbstractSessionManager implements SessionManager {
         this.timeoutConsumer = new TimeoutConsumer();
     }
 
+    @SuppressWarnings("unchecked")
     protected final void checkRpcTimeout(ISessionWrapper sessionWrapper) {
         // 检测超时的rpc调用
-        timeoutConsumer.setSession(sessionWrapper.getSession());
+        timeoutConsumer.session = sessionWrapper.getSession();
         CollectionUtils.removeIfAndThen(sessionWrapper.getRpcPromiseInfoMap().values(),
                 timeoutPredicate,
                 timeoutConsumer);
+        timeoutConsumer.session = null;
     }
 
-    protected class TimeoutPredicate implements Predicate<RpcPromiseInfo> {
+    private class TimeoutPredicate implements Predicate<RpcPromiseInfo> {
 
         @Override
         public boolean test(RpcPromiseInfo rpcPromiseInfo) {
@@ -73,21 +75,17 @@ public abstract class AbstractSessionManager implements SessionManager {
         }
     }
 
-    protected class TimeoutConsumer implements Consumer<RpcPromiseInfo> {
+    private class TimeoutConsumer implements Consumer<RpcPromiseInfo> {
 
         private Session session;
 
         @Override
         public void accept(RpcPromiseInfo rpcPromiseInfo) {
             commitRpcResponse(session, rpcPromiseInfo, RpcResponse.TIMEOUT);
-            // 避免内存泄漏
-            session = null;
-        }
-
-        public void setSession(@Nonnull Session session) {
-            this.session = session;
         }
     }
+
+    protected abstract ISessionWrapper getSessionWrapper(long localGuid, long clientGuid);
 
     // ---------------------------------------------------------- 发送消息  -------------------------------------------------------------
 
@@ -262,6 +260,14 @@ public abstract class AbstractSessionManager implements SessionManager {
 
         public final T getSession() {
             return session;
+        }
+
+        public long localGuid() {
+            return session.localGuid();
+        }
+
+        public RoleType localRole() {
+            return session.localRole();
         }
 
         public final long nextRequestGuid() {

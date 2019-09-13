@@ -6,18 +6,16 @@
  long 8字节      checkSum          消息的内容的校验和(不包含第一个字段和自身)
  byte 1字节      pkgType           协议的类型(每种协议一个固定值)
 
-1.token验证(请求登录)
- long  8字节     clientGuid        客户端唯一标识，用于初始化channel，关联会话
- int   4字节     sndTokenTimes     这是客户端第几次发起连接请求(用于识别在同一个token上的最新请求)和追踪结果
+1.请求建立连接(重连)
+ long  8字节     clientGuid        客户端唯一标识，用于关联会话
+ int   4字节     clientRole        客户端类型
+ int   4字节     verifyingTimes    这是客户端第几次发起连接请求：用于识别最新请求和客户端追踪结果
  long  8字节     ack               客户端收到的最大消息号(捎带确认的ack)
- bytes 字节数组   encryptTokenBytes  加密后的token字节数组,用于登录该服务器的token(用于校验请求参数)
 
-2.Token验证结果(建立连接响应)
- int   4字节     sndTokenTimes     这是客户端第几次发起连接请求(返回给客户端)
+2.建立连接响应
+ int   4字节     verifyingTimes    这是客户端第几次发起的连接请求
  byte  1字节     success           token验证结果(成功为 1,失败为 0)
  long  8字节     ack               服务器收到的最大消息号
- bytes 字节数组   encryptTokenBytes 加密后的token字节数组，验证成功为新的token，验证失败则为失败token
-
 
 3.Rpc请求包
  long  8字节     ack              我收到的最大消息号(捎带确认的ack)
