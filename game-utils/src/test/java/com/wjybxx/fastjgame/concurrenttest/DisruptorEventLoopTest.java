@@ -20,8 +20,6 @@ import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoopGroup;
-import com.wjybxx.fastjgame.concurrent.disruptor.Event;
-import com.wjybxx.fastjgame.concurrent.disruptor.EventHandler;
 
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
@@ -35,13 +33,12 @@ import java.util.concurrent.TimeUnit;
 public class DisruptorEventLoopTest {
 
     public static void main(String[] args) {
-        DisruptorEventLoopGroup eventLoopGroup = new DisruptorEventLoopGroup(new DefaultThreadFactory("Disruptor-Thread"),
-                RejectedExecutionHandlers.abort(),
-                Collections.singletonList(new DisruptorEventLoopGroup.BuildContext(new EventHandlerImp())));
+        DisruptorEventLoop eventLoop = new DisruptorEventLoop(null,
+                new DefaultThreadFactory("Disruptor-Thread"),
+                8192,
+                RejectedExecutionHandlers.abort());
 
-        DisruptorEventLoop eventLoop = eventLoopGroup.next();
-
-        eventLoop.publishEvent(1, new StringEventParam("hello world!"));
+        eventLoop.execute(() ->  System.out.println("hello world!"));
 
         eventLoop.terminationFuture().awaitUninterruptibly(5, TimeUnit.SECONDS);
 
@@ -50,42 +47,4 @@ public class DisruptorEventLoopTest {
         eventLoop.terminationFuture().awaitUninterruptibly();
     }
 
-    private static class EventHandlerImp implements EventHandler {
-
-        @Override
-        public void startUp(DisruptorEventLoop eventLoop) {
-            System.out.println("startUp");
-        }
-
-        @Override
-        public void onEvent(Event event) throws Exception {
-            System.out.println("onEvent, EventType = " + event.getType() + ", eventParam = " + event.getParam());
-        }
-
-        @Override
-        public void onWaitEvent() {
-            System.out.println("onWaitEvent");
-        }
-
-        @Override
-        public void shutdown() {
-            System.out.println("shutdown");
-        }
-    }
-
-    private static class StringEventParam {
-
-        private final String param;
-
-        private StringEventParam(String param) {
-            this.param = param;
-        }
-
-        @Override
-        public String toString() {
-            return "StringEventParam{" +
-                    "param='" + param + '\'' +
-                    '}';
-        }
-    }
 }

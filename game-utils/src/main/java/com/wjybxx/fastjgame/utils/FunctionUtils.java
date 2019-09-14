@@ -46,7 +46,7 @@ public final class FunctionUtils {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T,U> BiConsumer<T, U> emptyBiConsumer() {
+    public static <T, U> BiConsumer<T, U> emptyBiConsumer() {
         return (BiConsumer<T, U>) _emptyBiConsumer;
     }
 

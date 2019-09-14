@@ -16,29 +16,32 @@
 
 package com.wjybxx.fastjgame.concurrent.disruptor;
 
+import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.InsufficientCapacityException;
 import com.lmax.disruptor.LifecycleAware;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
-import com.wjybxx.fastjgame.annotation.UnstableApi;
-import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.*;
+import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.concurrent.*;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 
 /**
- * 基于Disruptor的事件循环，<b>该事件循环不会阻塞</b>。
- * 使用{@link DisruptorEventLoop}时，应尽量使用{@link #publishEvent(int, Object)}，而不是{@link #execute(Runnable)}
+ * 基于Disruptor的事件循环。
  * <p>
- * 代码和{@link SingleThreadEventLoop}很像，类似的代码写两遍还是有点难受，但是又不完全一样。。。。
+ * 可能阻塞生产者，因为消费者的速度可能跟不上。
+ * <p>
+ * 代码和{@link SingleThreadEventLoop}很像，但是又不完全一样，类似的代码写两遍还是有点难受。。。。
  *
  * @author wjybxx
  * @version 1.0
@@ -81,27 +84,14 @@ public class DisruptorEventLoop extends AbstractEventLoop {
      */
     private volatile Thread thread;
     /**
-     * 任务拒绝策略
-     */
-    private final RejectedExecutionHandler rejectedExecutionHandler;
-    /**
-     * 事件处理器
-     */
-    private final EventHandler eventHandler;
-    /**
      * disruptor
      */
-    private final Disruptor<Event> disruptor;
-
-    /**
-     * execute提交的任务，主要使用event，这里不应该堆积大量的任务。
-     */
-    private final ConcurrentLinkedQueue<Runnable> taskQueue = new ConcurrentLinkedQueue<>();
+    private final Disruptor<DisruptorEvent> disruptor;
 
     /**
      * 事件队列
      */
-    private final RingBuffer<Event> ringBuffer;
+    private final RingBuffer<DisruptorEvent> ringBuffer;
 
     /**
      * 线程状态
@@ -112,27 +102,29 @@ public class DisruptorEventLoop extends AbstractEventLoop {
      * 线程终止future
      */
     private final Promise<?> terminationFuture = new DefaultPromise(GlobalEventLoop.INSTANCE);
+    /**
+     * 任务拒绝策略
+     */
+    private final RejectedExecutionHandler rejectedExecutionHandler;
 
     /**
      * @param parent                   容器节点
      * @param threadFactory            线程工厂
-     * @param rejectedExecutionHandler {@link #execute(Runnable)}提交任务失败时的处理策略
-     * @param eventHandler             事件处理器
-     * @param ringBufferSize           事件缓冲区大小，当ringBuffer填充满以后，{@link #publishEvent(int, Object)}会阻塞。
+     * @param ringBufferSize           事件缓冲区大小
+     * @param rejectedExecutionHandler 拒绝策略
      */
     public DisruptorEventLoop(@Nullable EventLoopGroup parent,
                               @Nonnull ThreadFactory threadFactory,
-                              @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
-                              @Nonnull EventHandler eventHandler, int ringBufferSize) {
+                              int ringBufferSize,
+                              @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
         super(parent);
         this.rejectedExecutionHandler = rejectedExecutionHandler;
-        this.eventHandler = eventHandler;
 
-        this.disruptor = new Disruptor<Event>(new EventFactory(),
+        this.disruptor = new Disruptor<>(DisruptorEvent::new,
                 ringBufferSize,
                 new InnerThreadFactory(threadFactory),
                 ProducerType.MULTI,
-                new SleepingWaitExtendStrategy(this));
+                new DisruptorEventLoopWaitStrategy(this));
 
         disruptor.setDefaultExceptionHandler(new DisruptorExceptionHandler());
 
@@ -188,114 +180,46 @@ public class DisruptorEventLoop extends AbstractEventLoop {
                 return;
             }
             if (stateHolder.compareAndSet(oldState, ST_SHUTTING_DOWN)) {
-                // 其它线程关闭EventLoop时需要确保EventLoop可关闭
-                if (!inEventLoop()) {
-                    // 确保
-                    ensureThreadTerminable(oldState);
-                }
-                return;
+                // 确保线程能够关闭 - 这里不要判断inEventLoop，因为线程并不由自己控制 - 后期会修改实现
+                ensureThreadTerminable(oldState);
             }
         }
     }
 
     @Override
     public void execute(@Nonnull Runnable task) {
-        if (addTask(task) && !inEventLoop()) {
-            // 其它线程添加任务成功后，需要确保executor已启动，自己添加任务的话，自然已经启动过了
-            ensureThreadStarted();
-        }
-    }
-
-    /**
-     * 尝试添加一个任务到任务队列
-     *
-     * @param task 期望运行的任务
-     * @return 压入成功则返回true
-     */
-    private boolean addTask(@Nonnull Runnable task) {
-        // 1. 在检测到未关闭的状态下尝试压入队列
-        if (!isShuttingDown() && taskQueue.offer(task)) {
-            // 2. 压入队列是一个过程！在压入队列的过程中，executor的状态可能改变，因此必须再次校验 - 以判断线程是否在任务压入队列之后已经开始关闭了
-            // remove失败表示executor已经处理了该任务或已经被强制停止(shutdownNow) --- shutdownNow方法已删除
-            if (isShuttingDown() && taskQueue.remove(task)) {
-                reject(task);
-                return false;
-            }
-            return true;
-        } else {
-            // executor已关闭 或 压入队列失败，拒绝
-            reject(task);
-            return false;
-        }
-    }
-
-    /**
-     * 发布一个事件，当没有足够空间时会阻塞直到有空间可用。
-     * (待优化)
-     *
-     * @param eventType  事件类型
-     * @param eventParam 事件对应的参数
-     */
-    @UnstableApi
-    public void publishEvent(int eventType, Object eventParam) {
         if (inEventLoop()) {
-            // 防止死锁，自己发布事件时，如果没有足够空间，会导致死锁，需要压入队列
-            taskQueue.offer(new EventTask(new Event(eventType, eventParam)));
+            // 防止死锁 - 因为是单消费者模型，自己发布事件时，如果没有足够空间，会导致死锁。
+            // 线程内部，请使用TimerSystem延迟执行
+            // Q: 这里为什么不直接添加到timerSystem？
+            // A: 因为时序问题，会让让用户以为execute之间有时序保证，而实际上是没有的。
+            throw new BlockingOperationException("");
         } else {
-            ensureThreadStarted();
-            // 直接调用next()的情况下，如果disruptor已关闭则可能死锁，消费者不再消费，生产者继续放就会死锁
-            // TODO 优化？还是说就用next()，关闭的时候注意点？
+            // 直接调用next()的情况下，Disruptor内部是死循环，没有任何机制能保证安全的退出，即使Disruptor线程已退出。
+            // 如果disruptor已关闭则可能死锁。
             for (int tryTimes = 1; !isShuttingDown(); tryTimes++) {
                 try {
                     long sequence = ringBuffer.tryNext();
                     try {
-                        Event event = ringBuffer.get(sequence);
-                        event.setType(eventType);
-                        event.setParam(eventParam);
+                        DisruptorEvent event = ringBuffer.get(sequence);
+                        event.setTask(task);
+                        return;
                     } finally {
                         ringBuffer.publish(sequence);
+                        // 确保线程已启动
+                        ensureThreadStarted();
                     }
-                    return;
                 } catch (InsufficientCapacityException ignore) {
                     // 最多睡眠1毫秒
                     int sleepTimes = (1 + ThreadLocalRandom.current().nextInt(Math.min(100, tryTimes))) * 10000;
                     LockSupport.parkNanos(sleepTimes);
                 }
             }
-            throw new RejectedExecutionException("EventType " + eventType);
+            rejectedExecutionHandler.rejected(task, this);
         }
     }
 
-    protected final void reject(@Nonnull Runnable task) {
-        rejectedExecutionHandler.rejected(task, this);
-    }
     // ----------------------------- 生命周期begin ------------------------------
-
-    /**
-     * 查询运行状态是否还没到指定状态。
-     * (参考自JDK {@link ThreadPoolExecutor})
-     *
-     * @param oldState    看见的状态值
-     * @param targetState 期望的还没到的状态
-     * @return 如果当前状态在指定状态之前，则返回true。
-     */
-    private static boolean runStateLessThan(int oldState, int targetState) {
-        return oldState < targetState;
-    }
-
-    /**
-     * 查询运行状态是否至少已到了指定状态。
-     * (参考自JDK {@link ThreadPoolExecutor})
-     * <p>
-     * 该方法参考自{@link ThreadPoolExecutor}
-     *
-     * @param oldState    看见的状态值
-     * @param targetState 期望的至少到达的状态
-     * @return 如果当前状态为指定状态或指定状态的后续状态，则返回true。
-     */
-    private static boolean runStateAtLeast(int oldState, int targetState) {
-        return oldState >= targetState;
-    }
 
     /**
      * 将运行状态转换为给定目标，或者至少保留给定状态。
@@ -306,7 +230,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     private void advanceRunState(int targetState) {
         for (; ; ) {
             int oldState = stateHolder.get();
-            if (runStateAtLeast(oldState, targetState) || stateHolder.compareAndSet(oldState, targetState))
+            if (oldState >= targetState || stateHolder.compareAndSet(oldState, targetState))
                 break;
         }
     }
@@ -333,8 +257,10 @@ public class DisruptorEventLoop extends AbstractEventLoop {
         if (oldState == ST_NOT_STARTED) {
             stateHolder.set(ST_TERMINATED);
             terminationFuture.trySuccess(null);
+        } else {
+            // 中断当前线程
+            disruptor.halt();
         }
-        // else 其它状态下不应该阻塞，不需要唤醒
     }
 
     private void onStart() {
@@ -342,109 +268,26 @@ public class DisruptorEventLoop extends AbstractEventLoop {
             // 非真正启动，earlyExit
             return;
         }
-
-        init();
-        eventHandler.startUp(this);
+        try {
+            init();
+        } catch (Exception e) {
+            ConcurrentUtils.rethrow(e);
+        }
     }
 
     /**
      * 事件循环线程启动时的初始化操作。
+     * @apiNote 抛出任何异常都将导致线程终止
      */
-    protected void init() {
+    protected void init() throws Exception{
 
-    }
-
-    private void onEvent(Event event, long sequence, boolean endOfBatch) throws Exception {
-        onEvent(event);
-        if (endOfBatch) {
-            // 处理一批事件，执行一批任务
-            runAllTasks();
-            // 检查是否需要关闭
-            confirmShutdown();
-        }
-    }
-
-    private void onEvent(Event event) {
-        try {
-            eventHandler.onEvent(event);
-        } catch (Exception e) {
-            logger.warn("onEvent caught exception.", e);
-        } finally {
-            event.close();
-        }
-    }
-
-    void onWaitEvent() {
-        try {
-            eventHandler.onWaitEvent();
-        } finally {
-            // 等待期间，执行所有任务
-            runAllTasks();
-            // 检查是否需要关闭
-            confirmShutdown();
-        }
-    }
-
-    private void onShutdown() {
-        if (!inEventLoop()) {
-            // 非真正退出，earlyExit
-            return;
-        }
-
-        try {
-            eventHandler.shutdown();
-        } finally {
-            // 如果是非正常退出，需要切换到关闭状态
-            advanceRunState(ST_SHUTTING_DOWN);
-            try {
-                // 非正常退出下也尝试执行完所有的任务 - 当然这也不是很安全
-                // Run all remaining tasks and shutdown hooks.
-                for (; ; ) {
-                    if (confirmShutdown()) {
-                        break;
-                    }
-                }
-            } finally {
-                // 退出前进行必要的清理，释放系统资源
-                try {
-                    clean();
-                } finally {
-                    terminationFuture.setSuccess(null);
-                }
-            }
-        }
     }
 
     /**
-     * 用于确认是否应该立即关闭
-     *
-     * @return 如果返回true，那么应该立即停止事件循环，准备退出。
+     * 执行一次循环
      */
-    protected final boolean confirmShutdown() {
-        // 用于EventLoop确认自己是否应该退出，不应该由外部线程调用
-        assert inEventLoop();
+    protected void loopOnce() {
 
-        // 它放前面是因为更可能出现
-        if (!isShuttingDown()) {
-            return false;
-        }
-
-        // 它只在关闭阶段出现
-        if (isShutdown()) {
-            return true;
-        }
-        // shuttingDown状态下，已不会接收新的任务，执行完当前所有未执行的任务就可以退出了。
-        runAllTasks();
-
-        // TODO 对于未处理完的事件，还没想到好的办法处理，继续执行好像很危险，可能导致生产者继续生产
-
-        // 切换至SHUTDOWN状态，准备执行最后的清理动作
-        advanceRunState(ST_SHUTDOWN);
-
-        // 真正关闭disruptor，不可以调用shutdown，否则可能导致死锁
-        disruptor.halt();
-
-        return true;
     }
 
     /**
@@ -454,16 +297,36 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 
     }
 
-    /**
-     * 运行任务队列中当前所有的任务
-     */
-    protected void runAllTasks() {
-        Runnable task;
-        while ((task = taskQueue.poll()) != null) {
-            safeExecute(task);
+    private void onShutdown() {
+        if (!inEventLoop()) {
+            // 非真正退出，earlyExit
+            return;
+        }
+        // 告知其它线程已开始关闭 - 不要再提交任务
+        advanceRunState(ST_SHUTTING_DOWN);
+
+        // 退出前进行必要的清理，释放系统资源
+        try {
+            clean();
+        } catch (Exception e) {
+            logger.error("thread clean caught exception!", e);
+        } finally {
+            stateHolder.set(ST_TERMINATED);
+            terminationFuture.setSuccess(null);
         }
     }
 
+    private void onEvent(DisruptorEvent event, boolean endOfBatch) throws Exception {
+        try {
+            safeExecute(event.getTask());
+        } finally {
+            event.close();
+            if (endOfBatch) {
+                // 没执行一批事件，执行一次循环
+                loopOnce();
+            }
+        }
+    }
     // ------------------------------ 生命周期end --------------------------------
 
     private class InnerThreadFactory implements ThreadFactory {
@@ -486,7 +349,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     /**
      * EventHandler内部实现，避免{@link DisruptorEventLoop}对外暴露这些接口
      */
-    private static class InnerEventHandler implements com.lmax.disruptor.EventHandler<Event>, LifecycleAware {
+    private static class InnerEventHandler implements EventHandler<DisruptorEvent>, LifecycleAware {
 
         private final DisruptorEventLoop disruptorEventLoop;
 
@@ -500,30 +363,13 @@ public class DisruptorEventLoop extends AbstractEventLoop {
         }
 
         @Override
-        public void onEvent(Event event, long sequence, boolean endOfBatch) throws Exception {
-            disruptorEventLoop.onEvent(event, sequence, endOfBatch);
+        public void onEvent(DisruptorEvent event, long sequence, boolean endOfBatch) throws Exception {
+            disruptorEventLoop.onEvent(event, endOfBatch);
         }
 
         @Override
         public void onShutdown() {
             disruptorEventLoop.onShutdown();
-        }
-    }
-
-    /**
-     * 包装对象，用于自身发布事件时。
-     */
-    private class EventTask implements Runnable {
-
-        private final Event event;
-
-        private EventTask(Event event) {
-            this.event = event;
-        }
-
-        @Override
-        public void run() {
-            onEvent(event);
         }
     }
 

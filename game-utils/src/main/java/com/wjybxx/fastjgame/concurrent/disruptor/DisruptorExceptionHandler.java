@@ -29,21 +29,23 @@ import org.slf4j.LoggerFactory;
  * date - 2019/7/31
  * github - https://github.com/hl845740757
  */
-public class DisruptorExceptionHandler implements ExceptionHandler<Event> {
+public class DisruptorExceptionHandler implements ExceptionHandler<DisruptorEvent> {
 
     private static final Logger logger = LoggerFactory.getLogger(DisruptorExceptionHandler.class);
 
-    public DisruptorExceptionHandler() {
+    DisruptorExceptionHandler() {
     }
 
     @Override
-    public void handleEventException(Throwable ex, long sequence, Event event) {
-        logger.warn("onEvent caught exception!", ex);
+    public void handleEventException(Throwable ex, long sequence, DisruptorEvent event) {
+        // 这里是没有捕获到的异常
+        logger.error("onEvent caught exception!", ex);
     }
 
     @Override
     public void handleOnStartException(Throwable ex) {
-        logger.error("onStart caught exception!", ex);
+        // 启动时抛出异常，则退出线程
+        throw new RuntimeException(ex);
     }
 
     @Override

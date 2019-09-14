@@ -61,7 +61,7 @@ public class DisruptorEventLoopGroup extends MultiThreadEventLoopGroup {
         @SuppressWarnings("unchecked")
         BuildContext buildContext = ((List<BuildContext>) context).remove(0);
         int ringBufferSize = buildContext.ringBufferSize > 0 ? buildContext.ringBufferSize : DisruptorEventLoop.DEFAULT_RING_BUFFER_SIZE;
-        return new DisruptorEventLoop(this, threadFactory, rejectedExecutionHandler, buildContext.eventHandler, ringBufferSize);
+        return new DisruptorEventLoop(this, threadFactory, ringBufferSize, rejectedExecutionHandler);
     }
 
     /**
@@ -69,15 +69,9 @@ public class DisruptorEventLoopGroup extends MultiThreadEventLoopGroup {
      */
     public static class BuildContext {
         private final int ringBufferSize;
-        private final EventHandler eventHandler;
 
-        public BuildContext(EventHandler eventHandler) {
-            this(-1, eventHandler);
-        }
-
-        public BuildContext(int ringBufferSize, EventHandler eventHandler) {
+        public BuildContext(int ringBufferSize) {
             this.ringBufferSize = ringBufferSize;
-            this.eventHandler = eventHandler;
         }
     }
 }

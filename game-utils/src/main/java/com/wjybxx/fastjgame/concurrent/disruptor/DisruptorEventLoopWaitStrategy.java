@@ -25,25 +25,25 @@ import com.wjybxx.fastjgame.utils.TimeUtils;
 import java.util.concurrent.locks.LockSupport;
 
 /**
- * 消费者等待策略 (也就是我们的游戏世界等待网络事件时的策略)。
+ * {@link DisruptorEventLoop}等待策略
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/4/27 10:06
  * github - https://github.com/hl845740757
  */
-public class SleepingWaitExtendStrategy implements WaitStrategy {
+public class DisruptorEventLoopWaitStrategy implements WaitStrategy {
 
     private static final int INVOKE_ON_WAIT_EVENT_INTERVAL = 0x3F;
     private static final int DEFAULT_RETRIES = 200;
-    private static final long DEFAULT_SLEEP = TimeUtils.NANO_PER_MILLISECOND;
+    private static final long DEFAULT_SLEEP = TimeUtils.NANO_PER_MILLISECOND / 10;
 
     private final int retries;
     private final long sleepTimeNs;
 
     private final DisruptorEventLoop eventLoop;
 
-    public SleepingWaitExtendStrategy(DisruptorEventLoop eventLoop) {
+    DisruptorEventLoopWaitStrategy(DisruptorEventLoop eventLoop) {
         this.eventLoop = eventLoop;
         this.retries = DEFAULT_RETRIES;
         this.sleepTimeNs = DEFAULT_SLEEP;
@@ -52,7 +52,6 @@ public class SleepingWaitExtendStrategy implements WaitStrategy {
     @Override
     public long waitFor(final long sequence, Sequence cursor, final Sequence dependentSequence,
                         final SequenceBarrier barrier) throws AlertException {
-
         long availableSequence;
         int counter = retries;
 
@@ -60,21 +59,22 @@ public class SleepingWaitExtendStrategy implements WaitStrategy {
         // 在等待生产者生产数据的过程中，尝试执行游戏世界循环
         while ((availableSequence = dependentSequence.get()) < sequence) {
             counter = applyWaitMethod(barrier, counter);
-            // 每隔一段时间执行一次onWaitEvent
+            // 每隔一段时间执行一次循环
             if ((counter & INVOKE_ON_WAIT_EVENT_INTERVAL) == 0) {
-                eventLoop.onWaitEvent();
+                eventLoop.loopOnce();
             }
         }
-
         return availableSequence;
     }
 
     @Override
     public void signalAllWhenBlocking() {
+        // 没有消费者在这里阻塞，因此什么也不做
     }
 
     private int applyWaitMethod(final SequenceBarrier barrier, int counter)
             throws AlertException {
+        // 检查中断/终止信号
         barrier.checkAlert();
 
         if (counter > 100) {

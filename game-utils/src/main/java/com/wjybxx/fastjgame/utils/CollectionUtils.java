@@ -81,7 +81,7 @@ public final class CollectionUtils {
      * @return 删除的元素数量
      */
     public static <K, V> int removeIfAndThen(final Map<K, V> map, final BiPredicate<? super K, ? super V> predicate, BiConsumer<K, V> then) {
-        if (map.size() == 0){
+        if (map.size() == 0) {
             return 0;
         }
 
@@ -369,7 +369,7 @@ public final class CollectionUtils {
      * 创建足够容量的HashSet，可减少扩容次数，适合用在能估算最大容量的时候;
      *
      * @param initCapacity 初始容量 大于0有效
-     * @param <E> the type of element
+     * @param <E>          the type of element
      * @return HashSet
      */
     public static <E> HashSet<E> newEnoughCapacityHashSet(int initCapacity) {
