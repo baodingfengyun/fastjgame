@@ -243,11 +243,6 @@ class NetContextImp implements NetContext {
                                                   @Nonnull SessionLifecycleAware lifecycleAware,
                                                   @Nonnull ProtocolDispatcher protocolDispatcher,
                                                   @Nonnull SessionSenderMode sessionSenderMode) {
-        final Promise<Session> promise = jvmPort.netEventLoop().newPromise();
-        // 注意：这里是提交到jvmPort所在的NetEventLoop, 是实现线程安全，消除同步的关键
-        jvmPort.netEventLoop().execute(() -> {
-            jvmPort.getConnectManager().connect(this, jvmPort, lifecycleAware, protocolDispatcher, sessionSenderMode, promise);
-        });
-        return promise;
+        return jvmPort.connect(this, lifecycleAware, protocolDispatcher, sessionSenderMode);
     }
 }

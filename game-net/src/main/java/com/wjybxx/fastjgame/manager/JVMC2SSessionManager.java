@@ -19,9 +19,9 @@ package com.wjybxx.fastjgame.manager;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.Promise;
+import com.wjybxx.fastjgame.manager.JVMS2CSessionManager.JVMPortImp;
 import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.net.injvm.JVMC2SSession;
-import com.wjybxx.fastjgame.net.injvm.JVMPort;
 import com.wjybxx.fastjgame.utils.CollectionUtils;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.FunctionUtils;
@@ -229,12 +229,12 @@ public class JVMC2SSessionManager extends JVMSessionManager {
      * @param sessionSenderMode  session发送消息的方式
      * @param promise            用户获取结果的future
      */
-    public void connect(@Nonnull NetContext netContext,
-                        @Nonnull JVMPort jvmPort,
-                        @Nonnull SessionLifecycleAware lifecycleAware,
-                        @Nonnull ProtocolDispatcher protocolDispatcher,
-                        @Nonnull SessionSenderMode sessionSenderMode,
-                        @Nonnull Promise<Session> promise) {
+    void connect(@Nonnull NetContext netContext,
+                 @Nonnull JVMPortImp jvmPort,
+                 @Nonnull SessionLifecycleAware lifecycleAware,
+                 @Nonnull ProtocolDispatcher protocolDispatcher,
+                 @Nonnull SessionSenderMode sessionSenderMode,
+                 @Nonnull Promise<Session> promise) {
 
         final long localGuid = netContext.localGuid();
         final long remoteGuid = jvmPort.localGuid();
@@ -344,4 +344,5 @@ public class JVMC2SSessionManager extends JVMSessionManager {
                     requestGuid, NetUtils.cloneRpcResponse(response, codec));
         }
     }
+
 }

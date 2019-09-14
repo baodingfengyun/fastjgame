@@ -790,20 +790,20 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
 
         @Override
         public int calSerializeDataSize(@Nonnull AbstractMessage obj, boolean mayNegative) {
-            return CodedOutputStream.computeInt32SizeNoTag(messageMapper.getMessageId(obj.getClass())) +
+            return CodedOutputStream.computeSInt32SizeNoTag(messageMapper.getMessageId(obj.getClass())) +
                     CodedOutputStream.computeMessageSizeNoTag(obj);
         }
 
         @Override
         public void writeData(CodedOutputStream outputStream, @Nonnull AbstractMessage obj, boolean mayNegative) throws IOException {
-            outputStream.writeInt32NoTag(messageMapper.getMessageId(obj.getClass()));
+            outputStream.writeSInt32NoTag(messageMapper.getMessageId(obj.getClass()));
             outputStream.writeMessageNoTag(obj);
         }
 
         @SuppressWarnings("unchecked")
         @Override
         public AbstractMessage readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
-            final int messageId = inputStream.readInt32();
+            final int messageId = inputStream.readSInt32();
             final Class<?> messageClazz = messageMapper.getMessageClazz(messageId);
             final Parser<AbstractMessage> parser = (Parser<AbstractMessage>) parserMap.get(messageClazz);
             return inputStream.readMessage(parser, ExtensionRegistryLite.getEmptyRegistry());
@@ -826,20 +826,20 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
 
         @Override
         public int calSerializeDataSize(@Nonnull T obj, boolean mayNegative) {
-            return CodedOutputStream.computeInt32SizeNoTag(messageMapper.getMessageId(obj.getClass())) +
+            return CodedOutputStream.computeSInt32SizeNoTag(messageMapper.getMessageId(obj.getClass())) +
                     CodedOutputStream.computeEnumSizeNoTag(getNumber(obj));
         }
 
         @Override
         public void writeData(CodedOutputStream outputStream, @Nonnull T obj, boolean mayNegative) throws IOException {
-            outputStream.writeInt32NoTag(messageMapper.getMessageId(obj.getClass()));
+            outputStream.writeSInt32NoTag(messageMapper.getMessageId(obj.getClass()));
             outputStream.writeEnumNoTag(getNumber(obj));
         }
 
         @SuppressWarnings("unchecked")
         @Override
         public T readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
-            int messageId = inputStream.readInt32();
+            int messageId = inputStream.readSInt32();
             int number = inputStream.readEnum();
             Class<?> enumClass = messageMapper.getMessageClazz(messageId);
             try {
@@ -1070,7 +1070,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         @Override
         public int calSerializeDataSize(@Nonnull Object obj, boolean ignore) throws IOException {
             ClassDescriptor descriptor = descriptorMap.get(obj.getClass());
-            int size = CodedOutputStream.computeInt32SizeNoTag(messageMapper.getMessageId(obj.getClass()));
+            int size = CodedOutputStream.computeSInt32SizeNoTag(messageMapper.getMessageId(obj.getClass()));
             try {
                 for (FieldDescriptor fieldDescriptor : descriptor.fieldDescriptorMapper.values()) {
                     // nullable
@@ -1098,7 +1098,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         @Override
         public void writeData(CodedOutputStream outputStream, @Nonnull Object obj, boolean ignore) throws IOException {
             ClassDescriptor descriptor = descriptorMap.get(obj.getClass());
-            outputStream.writeInt32NoTag(messageMapper.getMessageId(obj.getClass()));
+            outputStream.writeSInt32NoTag(messageMapper.getMessageId(obj.getClass()));
             try {
                 for (FieldDescriptor fieldDescriptor : descriptor.fieldDescriptorMapper.values()) {
                     // nullable
@@ -1124,7 +1124,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
 
         @Override
         public Object readData(CodedInputStream inputStream, boolean ignore) throws IOException {
-            int messageId = inputStream.readInt32();
+            int messageId = inputStream.readSInt32();
             Class<?> messageClass = messageMapper.getMessageClazz(messageId);
             ClassDescriptor descriptor = descriptorMap.get(messageClass);
 

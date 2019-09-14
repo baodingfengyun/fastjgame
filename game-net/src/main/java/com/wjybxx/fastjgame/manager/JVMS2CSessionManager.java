@@ -18,7 +18,11 @@ package com.wjybxx.fastjgame.manager;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.wjybxx.fastjgame.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.concurrent.Promise;
+import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.net.*;
+import com.wjybxx.fastjgame.net.injvm.JVMC2SSession;
 import com.wjybxx.fastjgame.net.injvm.JVMPort;
 import com.wjybxx.fastjgame.net.injvm.JVMS2CSession;
 import com.wjybxx.fastjgame.utils.CollectionUtils;
@@ -213,9 +217,17 @@ public class JVMS2CSessionManager extends JVMSessionManager {
 
     // ----------------------------------------  监听和建立连接 ---------------------------------------------------
 
-
+    /**
+     * 创建一个JVMPort
+     *
+     * @param netContext  用户所属的网络环境
+     * @param codec       该端口上的编解码器 - 对可变对象进行深复制
+     * @param portContext 该端口上的协议处理器
+     * @return jvmPort
+     */
     public JVMPort bind(@Nonnull NetContext netContext, ProtocolCodec codec, PortContext portContext) {
-        final JVMPort jvmPort = new JVMPort(netContext.localGuid(), netContext.localRole(), codec, portContext, netManagerWrapper);
+        final JVMPort jvmPort = new JVMPortImp(netContext.localGuid(), netContext.localRole(),
+                codec, portContext, netManagerWrapper.getNetEventLoopManager().eventLoop(), jvmc2SSessionManager);
         final UserInfo userInfo = userInfoMap.computeIfAbsent(netContext.localGuid(), k -> new UserInfo(netContext));
         userInfo.jvmPortList.add(jvmPort);
         return jvmPort;
@@ -230,7 +242,7 @@ public class JVMS2CSessionManager extends JVMSessionManager {
      * @param remoteEventLoop 客户端所在线程
      * @return 监听方的eventLoop
      */
-    public EventLoop tryConnect(JVMPort jvmPort, long clientGuid, RoleType clientRole, EventLoop remoteEventLoop) throws IOException {
+    EventLoop tryConnect(JVMPortImp jvmPort, long clientGuid, RoleType clientRole, EventLoop remoteEventLoop) throws IOException {
         final UserInfo userInfo = userInfoMap.get(jvmPort.localGuid());
         // 用户已取消注册
         if (null == userInfo) {
@@ -291,18 +303,88 @@ public class JVMS2CSessionManager extends JVMSessionManager {
 
     }
 
+    // 堆外屏蔽实现
+    static class JVMPortImp implements JVMPort {
+        /**
+         * 本地角色guid
+         */
+        private final long localGuid;
+        /**
+         * 本地角色类型
+         */
+        private final RoleType localRole;
+        /**
+         * 端口上的编解码器
+         * 注意：它直接编解码双方的所有消息。
+         */
+        private final ProtocolCodec codec;
+        /**
+         * 该端口上的session处理逻辑
+         */
+        private final PortContext portContext;
+        /**
+         * 绑定端口的用户所属的EventLoop
+         * Q: 为什么要使用绑定端口的用户的{@link NetEventLoop}?
+         * A: 可以使得{@link JVMC2SSession}{@link JVMS2CSession}处于同一个{@link NetEventLoop}，可以消除不必与的同步。
+         */
+        private final NetEventLoop netEventLoop;
+        /**
+         * 建立连接的管理器
+         */
+        private final JVMC2SSessionManager jvmc2SSessionManager;
+
+        private JVMPortImp(long localGuid, RoleType localRole, ProtocolCodec codec, PortContext portContext, NetEventLoop netEventLoop, JVMC2SSessionManager jvmc2SSessionManager) {
+            this.codec = codec;
+            this.portContext = portContext;
+            this.localGuid = localGuid;
+            this.localRole = localRole;
+            this.netEventLoop = netEventLoop;
+            this.jvmc2SSessionManager = jvmc2SSessionManager;
+        }
+
+        public ProtocolCodec getCodec() {
+            return codec;
+        }
+
+        PortContext getPortContext() {
+            assert netEventLoop.inEventLoop();
+            return portContext;
+        }
+
+        public long localGuid() {
+            return localGuid;
+        }
+
+        public RoleType localRole() {
+            return localRole;
+        }
+
+        @Override
+        public ListenableFuture<Session> connect(@Nonnull NetContext netContext,
+                                                 @Nonnull SessionLifecycleAware lifecycleAware,
+                                                 @Nonnull ProtocolDispatcher protocolDispatcher,
+                                                 @Nonnull SessionSenderMode sessionSenderMode) {
+            final Promise<Session> promise = netEventLoop.newPromise();
+            // 注意：这里是提交到jvmPort所在的NetEventLoop, 是实现线程安全，消除同步的关键
+            netEventLoop.execute(() -> {
+                jvmc2SSessionManager.connect(netContext, this, lifecycleAware, protocolDispatcher, sessionSenderMode, promise);
+            });
+            return promise;
+        }
+    }
+
     private class SessionWrapper extends ISessionWrapper<JVMS2CSession> {
 
         /**
          * 会话所属的JVM端口
          */
-        private final JVMPort jvmPort;
+        private final JVMPortImp jvmPort;
         /**
          * 会话另一方所在的线程(建立连接成功才会有)
          */
         private final EventLoop remoteEventLoop;
 
-        public SessionWrapper(JVMS2CSession session, JVMPort jvmPort, EventLoop remoteEventLoop) {
+        private SessionWrapper(JVMS2CSession session, JVMPortImp jvmPort, EventLoop remoteEventLoop) {
             super(session);
             this.remoteEventLoop = remoteEventLoop;
             this.jvmPort = jvmPort;
