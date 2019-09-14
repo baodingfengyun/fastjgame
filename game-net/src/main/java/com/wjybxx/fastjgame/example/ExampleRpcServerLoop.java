@@ -19,10 +19,11 @@ package com.wjybxx.fastjgame.example;
 import com.wjybxx.fastjgame.concurrent.*;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupImp;
-import com.wjybxx.fastjgame.misc.DefaultRpcCallDispatcher;
 import com.wjybxx.fastjgame.misc.DefaultProtocolDispatcher;
-import com.wjybxx.fastjgame.misc.RpcCallDispatcher;
-import com.wjybxx.fastjgame.net.*;
+import com.wjybxx.fastjgame.net.NetContext;
+import com.wjybxx.fastjgame.net.Session;
+import com.wjybxx.fastjgame.net.SessionLifecycleAware;
+import com.wjybxx.fastjgame.net.SessionSenderMode;
 import com.wjybxx.fastjgame.net.injvm.JVMPort;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
@@ -45,17 +46,15 @@ class ExampleRpcServerLoop extends SingleThreadEventLoop {
     private final NetEventLoopGroup netGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET-EVENT-LOOP"),
             RejectedExecutionHandlers.log());
 
-    private final ProtocolDispatcher protocolDispatcher;
+    private final DefaultProtocolDispatcher protocolDispatcher = new DefaultProtocolDispatcher();
 
     private NetContext netContext;
     private final Promise<JVMPort> jvmPortPromise;
 
     public ExampleRpcServerLoop(@Nonnull ThreadFactory threadFactory,
                                 @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
-                                @Nonnull ProtocolDispatcher protocolDispatcher,
                                 @Nullable Promise<JVMPort> jvmPortPromise) {
         super(null, threadFactory, rejectedExecutionHandler);
-        this.protocolDispatcher = protocolDispatcher;
         this.jvmPortPromise = jvmPortPromise;
     }
 
@@ -64,6 +63,8 @@ class ExampleRpcServerLoop extends SingleThreadEventLoop {
         super.init();
         // 创建网络环境
         netContext = netGroup.createContext(ExampleConstants.serverGuid, ExampleConstants.serverRole, this).get();
+        // 注册rpc服务
+        ExampleRpcServiceRpcRegister.register(protocolDispatcher, new ExampleRpcService());
 
         if (jvmPortPromise != null) {
             // 绑定jvm端口
@@ -127,12 +128,8 @@ class ExampleRpcServerLoop extends SingleThreadEventLoop {
     }
 
     public static void main(String[] args) {
-        DefaultProtocolDispatcher protocolDispatcher = new DefaultProtocolDispatcher();
-        ExampleRpcServiceRpcRegister.register(protocolDispatcher, new ExampleRpcService());
-
         final ExampleRpcServerLoop serviceLoop = new ExampleRpcServerLoop(new DefaultThreadFactory("SERVICE"),
                 RejectedExecutionHandlers.log(),
-                protocolDispatcher,
                 null);
         // 唤醒线程
         serviceLoop.execute(ConcurrentUtils.NO_OP_TASK);

@@ -38,11 +38,8 @@ public class JVMSessionExample {
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         final Promise<JVMPort> promise = GlobalEventLoop.INSTANCE.newPromise();
         {
-            final DefaultProtocolDispatcher dispatcher = new DefaultProtocolDispatcher();
-            ExampleRpcServiceRpcRegister.register(dispatcher, new ExampleRpcService());
             ExampleRpcServerLoop exampleRpcServerLoop = new ExampleRpcServerLoop(new DefaultThreadFactory("SERVER"),
                     RejectedExecutionHandlers.log(),
-                    dispatcher,
                     promise);
             // 唤醒、启动服务器
             exampleRpcServerLoop.execute(ConcurrentUtils.NO_OP_TASK);

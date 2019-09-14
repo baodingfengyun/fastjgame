@@ -41,7 +41,7 @@ public class ReflectBasedProtoCodecExample {
         // NetUtils初始化，避免输出扰乱视听
         System.out.println(NetUtils.getOuterIp());
 
-        ExampleMessages.FullMessage fullMessage = getFullMessage();
+        ExampleMessages.FullMessage fullMessage = newFullMessage();
         System.out.println(fullMessage);
 
         ByteBuf encodeResult = codec.encodeMessage(byteBufAllocator, fullMessage);
@@ -57,7 +57,7 @@ public class ReflectBasedProtoCodecExample {
     /**
      * 一个正常赋值了的对象
      */
-    public static ExampleMessages.FullMessage getFullMessage() {
+    public static ExampleMessages.FullMessage newFullMessage() {
         ExampleMessages.FullMessage fullMessage = new ExampleMessages.FullMessage();
         fullMessage.setaByte((byte) 25);
         fullMessage.setaChar('a');

@@ -233,7 +233,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
                 return;
             }
         }
-        throw new UnsupportedOperationException("type " + object.getClass().getName());
+        throw new IOException("unsupported class " + object.getClass().getName());
     }
 
     /**
@@ -254,10 +254,10 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
     }
 
     @Nonnull
-    private Codec<?> getCodec(int wireType) {
+    private Codec<?> getCodec(int wireType) throws IOException {
         Codec<?> codec = codecMapper.forNumber(wireType);
         if (null == codec) {
-            throw new UnsupportedOperationException("unsupported wireType " + wireType);
+            throw new IOException("unsupported wireType " + wireType);
         }
         return codec;
     }
@@ -415,6 +415,14 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
          * @return wireType
          */
         byte getWireType();
+
+        /**
+         * 克隆一个对象
+         *
+         * @param obj 待克隆的对象
+         * @return newInstance or the same object
+         */
+        T clone(T obj) throws IOException;
     }
 
     /**
@@ -445,6 +453,11 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         @Override
         public byte getWireType() {
             return WireType.BYTE;
+        }
+
+        @Override
+        public Byte clone(Byte obj) {
+            return obj;
         }
     }
 
@@ -528,6 +541,10 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
             return WireType.INT;
         }
 
+        @Override
+        public Integer clone(Integer obj) {
+            return obj;
+        }
     }
 
     private static class ShortCodec extends Int32Codec<Short> {
@@ -545,6 +562,11 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         @Override
         public byte getWireType() {
             return WireType.SHORT;
+        }
+
+        @Override
+        public Short clone(Short obj) {
+            return obj;
         }
     }
 
@@ -574,6 +596,11 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         @Override
         public byte getWireType() {
             return WireType.CHAR;
+        }
+
+        @Override
+        public Character clone(Character obj) {
+            return obj;
         }
     }
 
@@ -615,6 +642,11 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         public byte getWireType() {
             return WireType.LONG;
         }
+
+        @Override
+        public Long clone(Long obj) {
+            return obj;
+        }
     }
 
     private static class FloatCodec implements Codec<Float> {
@@ -642,6 +674,11 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         @Override
         public byte getWireType() {
             return WireType.FLOAT;
+        }
+
+        @Override
+        public Float clone(Float obj) {
+            return obj;
         }
     }
 
@@ -671,6 +708,11 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         public byte getWireType() {
             return WireType.DOUBLE;
         }
+
+        @Override
+        public Double clone(Double obj) {
+            return obj;
+        }
     }
 
     private static class BoolCodec implements Codec<Boolean> {
@@ -699,6 +741,11 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         public byte getWireType() {
             return WireType.BOOLEAN;
         }
+
+        @Override
+        public Boolean clone(Boolean obj) {
+            return obj;
+        }
     }
 
     private static class StringCodec implements Codec<String> {
@@ -726,6 +773,11 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         @Override
         public byte getWireType() {
             return WireType.STRING;
+        }
+
+        @Override
+        public String clone(String obj) {
+            return obj;
         }
     }
 
@@ -761,6 +813,11 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         public byte getWireType() {
             return WireType.MESSAGE;
         }
+
+        @Override
+        public AbstractMessage clone(AbstractMessage obj) {
+            return obj;
+        }
     }
 
     private abstract class EnumCodec<T> implements Codec<T> {
@@ -790,6 +847,11 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
             } catch (Exception e) {
                 throw new IOException(enumClass.getName(), e);
             }
+        }
+
+        @Override
+        public T clone(T obj) {
+            return obj;
         }
     }
 
@@ -878,6 +940,15 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         @Nonnull
         protected abstract T newCollection(int size);
 
+        @SuppressWarnings("unchecked")
+        @Override
+        public T clone(T obj) throws IOException {
+            T collection = newCollection(obj.size());
+            for (Object element : obj) {
+                collection.add(ReflectBasedProtocolCodec.this.cloneObject(element));
+            }
+            return collection;
+        }
     }
 
     private class ListCodec extends CollectionCodec<List> {
@@ -914,7 +985,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         @Nonnull
         @Override
         protected Set newCollection(int size) {
-            return new LinkedHashSet(size, 1);
+            return CollectionUtils.newEnoughCapacityLinkedHashSet(size);
         }
     }
 
@@ -956,7 +1027,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         public Map readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
             int size = inputStream.readUInt32();
             if (size == 0) {
-                return new HashMap();
+                return new LinkedHashMap();
             }
             Map<Object, Object> map = CollectionUtils.newEnoughCapacityLinkedHashMap(size);
             for (int index = 0; index < size; index++) {
@@ -970,6 +1041,18 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         @Override
         public byte getWireType() {
             return WireType.MAP;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public Map clone(Map obj) throws IOException {
+            Map<Object, Object> map = CollectionUtils.newEnoughCapacityLinkedHashMap(obj.size());
+            for (Map.Entry entry : ((Map<Object, Object>) obj).entrySet()) {
+                final Object k = ReflectBasedProtocolCodec.this.cloneObject(entry.getKey());
+                final Object v = ReflectBasedProtocolCodec.this.cloneObject(entry.getValue());
+                map.put(k, v);
+            }
+            return map;
         }
     }
 
@@ -1068,6 +1151,29 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         public byte getWireType() {
             return WireType.REFERENCE;
         }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public Object clone(Object obj) throws IOException {
+            ClassDescriptor descriptor = descriptorMap.get(obj.getClass());
+            try {
+                Object instance = descriptor.constructor.newInstance();
+                for (FieldDescriptor fieldDescriptor : descriptor.fieldDescriptorMapper.values()) {
+                    // nullable
+                    Object fieldValue = fieldDescriptor.field.get(obj);
+                    // null不拷贝
+                    if (null == fieldValue) {
+                        continue;
+                    }
+                    Codec codec = getCodec(fieldDescriptor.wireType);
+                    final Object newValue = codec.clone(fieldValue);
+                    fieldDescriptor.field.set(instance, newValue);
+                }
+                return instance;
+            } catch (Exception e) {
+                throw new IOException(obj.getClass().getName(), e);
+            }
+        }
     }
 
     // ------------------------------------------------- 基本数组支持 ---------------------------------------------
@@ -1103,6 +1209,13 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         @Override
         public byte getWireType() {
             return WireType.BYTE_ARRAY;
+        }
+
+        @Override
+        public byte[] clone(byte[] obj) throws IOException {
+            final byte[] result = new byte[obj.length];
+            System.arraycopy(obj, 0, result, 0, obj.length);
+            return result;
         }
     }
 
@@ -1153,6 +1266,13 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         public byte getWireType() {
             return WireType.INT_ARRAY;
         }
+
+        @Override
+        public int[] clone(int[] obj) throws IOException {
+            final int[] result = new int[obj.length];
+            System.arraycopy(obj, 0, result, 0, obj.length);
+            return result;
+        }
     }
 
     private static class ShortArrayCodec implements Codec<short[]> {
@@ -1202,6 +1322,13 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         public byte getWireType() {
             return WireType.SHORT_ARRAY;
         }
+
+        @Override
+        public short[] clone(short[] obj) throws IOException {
+            final short[] result = new short[obj.length];
+            System.arraycopy(obj, 0, result, 0, obj.length);
+            return result;
+        }
     }
 
     private static class LongArrayCodec implements Codec<long[]> {
@@ -1249,6 +1376,13 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         @Override
         public byte getWireType() {
             return WireType.LONG_ARRAY;
+        }
+
+        @Override
+        public long[] clone(long[] obj) throws IOException {
+            final long[] result = new long[obj.length];
+            System.arraycopy(obj, 0, result, 0, obj.length);
+            return result;
         }
     }
 
@@ -1299,6 +1433,13 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         public byte getWireType() {
             return WireType.FLOAT_ARRAY;
         }
+
+        @Override
+        public float[] clone(float[] obj) throws IOException {
+            final float[] result = new float[obj.length];
+            System.arraycopy(obj, 0, result, 0, obj.length);
+            return result;
+        }
     }
 
     private static class DoubleArrayCodec implements Codec<double[]> {
@@ -1346,6 +1487,13 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         @Override
         public byte getWireType() {
             return WireType.DOUBLE_ARRAY;
+        }
+
+        @Override
+        public double[] clone(double[] obj) throws IOException {
+            final double[] result = new double[obj.length];
+            System.arraycopy(obj, 0, result, 0, obj.length);
+            return result;
         }
     }
 
@@ -1396,6 +1544,13 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         public byte getWireType() {
             return WireType.CHAR_ARRAY;
         }
+
+        @Override
+        public char[] clone(char[] obj) throws IOException {
+            final char[] result = new char[obj.length];
+            System.arraycopy(obj, 0, result, 0, obj.length);
+            return result;
+        }
     }
 
     // -------------------------------------------------  拷贝对象 --------------------------------------------------
@@ -1414,14 +1569,27 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         return cloneObject(message);
     }
 
-    private Object cloneObject(@Nonnull Object obj) throws IOException {
-        final byte[] localBuffer = NetUtils.LOCAL_BUFFER.get();
-        // 写进入
-        CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(localBuffer);
-        writeObject(codedOutputStream, obj);
-        // 再读出来
-        CodedInputStream codedInputStream = CodedInputStream.newInstance(localBuffer, 0, codedOutputStream.getTotalBytesWritten());
-        return readObject(codedInputStream);
+    @SuppressWarnings("unchecked")
+    private Object cloneObject(@Nullable Object object) throws IOException {
+        if (object == null) {
+            return null;
+        }
+
+        final Class<?> type = object.getClass();
+        for (Codec codec : codecMapper.values()) {
+            if (codec.isSupport(type)) {
+                return codec.clone(object);
+            }
+        }
+        throw new IOException("unsupported class " + object.getClass().getName());
+        // 旧版本实现
+//        final byte[] localBuffer = NetUtils.LOCAL_BUFFER.get();
+//        // 写进去
+//        CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(localBuffer);
+//        writeObject(codedOutputStream, object);
+//        // 再读出来
+//        CodedInputStream codedInputStream = CodedInputStream.newInstance(localBuffer, 0, codedOutputStream.getTotalBytesWritten());
+//        return readObject(codedInputStream);
     }
 
     // ------------------------------------------------- 工厂方法 ------------------------------------------------------

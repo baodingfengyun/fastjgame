@@ -330,8 +330,7 @@ public final class CollectionUtils {
     }
 
     /**
-     * 创建足够容量的Map，容量到达指定容量之后才会开始扩容；
-     * 适合用在能估算最大容量的时候;
+     * 创建足够容量的Map，可减少扩容次数，适合用在能估算最大容量的时候;
      *
      * @param constructor  map的构造器函数
      * @param initCapacity 初始容量 大于0有效
@@ -344,8 +343,7 @@ public final class CollectionUtils {
     }
 
     /**
-     * 创建足够容量的HashMap，容量到达指定容量之后才会开始扩容；
-     * 适合用在能估算最大容量的时候;
+     * 创建足够容量的HashMap，可减少扩容次数，适合用在能估算最大容量的时候;
      *
      * @param initCapacity 初始容量 大于0有效
      * @param <K>          key的类型
@@ -356,8 +354,7 @@ public final class CollectionUtils {
     }
 
     /**
-     * 创建足够容量的LinkecHashMap，容量到达指定容量之后才会开始扩容；
-     * 适合用在能估算最大容量的时候;
+     * 创建足够容量的LinkecHashMap，可减少扩容次数，适合用在能估算最大容量的时候;
      *
      * @param initCapacity 初始容量 大于0有效
      * @param <K>          key的类型
@@ -366,6 +363,35 @@ public final class CollectionUtils {
      */
     public static <K, V> LinkedHashMap<K, V> newEnoughCapacityLinkedHashMap(int initCapacity) {
         return newEnoughCapacityMap(LinkedHashMap::new, initCapacity);
+    }
+
+    /**
+     * 创建足够容量的HashSet，可减少扩容次数，适合用在能估算最大容量的时候;
+     *
+     * @param initCapacity 初始容量 大于0有效
+     * @param <E> the type of element
+     * @return HashSet
+     */
+    public static <E> HashSet<E> newEnoughCapacityHashSet(int initCapacity) {
+        if (initCapacity > 0) {
+            return new HashSet<>(initCapacity, 1);
+        } else {
+            return new HashSet<>();
+        }
+    }
+
+    /**
+     * 创建足够容量的LinkecHashSet，适合用在能估算最大容量的时候;
+     *
+     * @param initCapacity 初始容量 大于0有效
+     * @return LinkedHashSet
+     */
+    public static <E> LinkedHashSet<E> newEnoughCapacityLinkedHashSet(int initCapacity) {
+        if (initCapacity > 0) {
+            return new LinkedHashSet<>(initCapacity, 1);
+        } else {
+            return new LinkedHashSet<>();
+        }
     }
 
     /**

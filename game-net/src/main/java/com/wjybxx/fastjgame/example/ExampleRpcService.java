@@ -89,4 +89,8 @@ public class ExampleRpcService {
         return prefix + "-" + content;
     }
 
+    @RpcMethod(methodId = 9)
+    public ExampleMessages.FullMessage echo(ExampleMessages.FullMessage message) {
+        return message;
+    }
 }

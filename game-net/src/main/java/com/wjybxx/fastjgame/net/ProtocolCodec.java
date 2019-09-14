@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.net;
 
+import com.google.protobuf.AbstractMessage;
+import com.wjybxx.fastjgame.enummapper.NumberEnum;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 
@@ -27,6 +29,11 @@ import java.io.IOException;
  * 协议编解码器。<br>
  * 注意：子类实现必须是线程安全的！因为它可能在多个线程中调用。但能保证的是：{@link ProtocolCodec}发布到网络层一定 happens-before 任意编解码方法！<br>
  * 因此建议的实现方式：在传递给网络层之前完成所有的初始化工作，并且所有的编解码工作都不会修改对象的状态。
+ * <p>
+ * Q: 如何减少{@link #cloneRpcRequest(Object)} {@link #cloneRpcResponse(Object)} {@link #cloneMessage(Object)}消耗？<br>
+ * A: 网络层提供最小保证： 基本类型的包装类型、{@link String}、{@link AbstractMessage}、{@link Enum}、{@link NumberEnum}不进行拷贝，因为它们都是不可变对象，可以安全的共享。
+ * 不过使用者也需要注意，这些对象是共享的，你不能用它们来加锁。<br>
+ * PS: 多线程下对包装类型和字符串加锁是非常危险的，缓存池、常量池的存在可能导致非常严重的问题。
  *
  * @author wjybxx
  * @version 1.0
@@ -56,10 +63,11 @@ public interface ProtocolCodec {
     Object decodeRpcRequest(ByteBuf data) throws IOException;
 
     /**
-     * 将一个对象序列化再反序列化，获取一个拷贝的新对象。
+     * 拷贝一个RPC请求。
+     * 注意：为了性能和内存考虑，不一定是深拷贝，不可变对象不会进行拷贝。
      *
      * @param request rpc请求内容
-     * @return newInstance
+     * @return new instance or the same object
      */
     Object cloneRpcRequest(@Nonnull Object request) throws IOException;
 
@@ -85,10 +93,11 @@ public interface ProtocolCodec {
     Object decodeRpcResponse(ByteBuf data) throws IOException;
 
     /**
-     * 将一个rpc响应结果对象序列化再反序列化，获取一个拷贝的新对象。
+     * 拷贝一个rpc响应内容。
+     * 注意：为了性能和内存考虑，不一定是深拷贝，不可变对象不会进行拷贝。
      *
      * @param body 响应内容。
-     * @return newInstance
+     * @return new instance or the same object
      */
     Object cloneRpcResponse(@Nonnull Object body) throws IOException;
     // ----------------------------------------- 单向消息 -------------------------------------
@@ -111,10 +120,11 @@ public interface ProtocolCodec {
     Object decodeMessage(ByteBuf data) throws IOException;
 
     /**
-     * 将一个单向消息序列化再反序列化，获取一个拷贝的新对象。
+     * 拷贝一个单向消息/通知。
+     * 注意：为了性能和内存考虑，不一定是深拷贝，不可变对象不会进行拷贝。
      *
      * @param message 消息内容
-     * @return newInstance
+     * @return new instance or the same object
      */
     Object cloneMessage(@Nonnull Object message) throws IOException;
 }

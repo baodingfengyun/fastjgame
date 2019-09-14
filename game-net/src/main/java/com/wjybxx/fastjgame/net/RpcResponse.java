@@ -21,7 +21,6 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.Immutable;
 
 /**
  * Rpc响应结果。
@@ -32,7 +31,6 @@ import javax.annotation.concurrent.Immutable;
  * date - 2019/8/1
  * github - https://github.com/hl845740757
  */
-@Immutable
 public final class RpcResponse {
 
     // 这些常量仅仅是为了减少对象创建，但是你需要谨记：这是RPC调用的结果，一定不能使用 == 判断相等！！！

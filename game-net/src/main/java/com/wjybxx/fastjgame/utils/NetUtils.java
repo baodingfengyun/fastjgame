@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.utils;
 
+import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.CodedOutputStream;
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
@@ -32,10 +33,13 @@ import io.netty.channel.socket.DefaultSocketChannelConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.*;
+import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.List;
 
 /**
  * 网络包工具类
@@ -48,6 +52,17 @@ import java.util.Enumeration;
 public class NetUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(NetUtils.class);
+
+    private static final List<Class<?>> BOX_CLASSES = Arrays.asList(
+            Integer.class,
+            Long.class,
+            Float.class,
+            Double.class,
+            Byte.class,
+            Short.class,
+            Boolean.class,
+            Character.class
+    );
 
     /**
      * 最大缓冲区大小1M,一个消息如果超过1M不能忍。
@@ -309,12 +324,27 @@ public class NetUtils {
         }
     }
 
+    // ----------------------------------------------------- 拷贝消息 --------------------------------------------
+
     /**
-     * 编解码一次单向消息 - 获得一个全新的对象
+     * 是否是不可变对象
+     *
+     * @param object 被检测对象
+     * @return true/false
+     */
+    public static boolean isImmutable(@Nonnull Object object) {
+        return object instanceof String
+                || object instanceof AbstractMessage
+                || BOX_CLASSES.contains(object.getClass())
+                || object instanceof Enum;
+    }
+
+    /**
+     * 拷贝一个单向消息
      *
      * @param message 消息内容
      * @param codec   编解码器
-     * @return newInstance
+     * @return newInstance or the same object
      */
     public static Object cloneMessage(Object message, ProtocolCodec codec) {
         try {
@@ -326,11 +356,11 @@ public class NetUtils {
     }
 
     /**
-     * 编解码一次rpc请求 - 获得一个全新的rpc请求对象
+     * 拷贝一个rpc请求
      *
      * @param rpcRequest 请求内容
      * @param codec      编解码器
-     * @return newInstance
+     * @return newInstance or the same object
      */
     public static Object cloneRpcRequest(Object rpcRequest, ProtocolCodec codec) {
         try {
@@ -342,11 +372,11 @@ public class NetUtils {
     }
 
     /**
-     * 编解码一次rpc响应结果 - 获得一个全新的rpc响应结果
+     * 拷贝一个rpc响应
      *
      * @param response 响应内容
      * @param codec    编解码器
-     * @return newInstance
+     * @return newInstance or the same object
      */
     public static RpcResponse cloneRpcResponse(RpcResponse response, ProtocolCodec codec) {
         if (response.getBody() == null) {

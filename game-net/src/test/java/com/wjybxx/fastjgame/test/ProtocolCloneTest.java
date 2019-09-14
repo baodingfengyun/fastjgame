@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.example.ExampleConstants;
 import com.wjybxx.fastjgame.example.ExampleMessages;
 import com.wjybxx.fastjgame.example.ReflectBasedProtoCodecExample;
 import com.wjybxx.fastjgame.net.ProtocolCodec;
+import com.wjybxx.fastjgame.utils.NetUtils;
 
 import java.io.IOException;
 
@@ -35,15 +36,17 @@ import java.io.IOException;
 public class ProtocolCloneTest {
 
     public static void main(String[] args) throws IOException {
+        // 触发NetUtils类加载，避免输出干扰
+        NetUtils.isImmutable("a");
         cloneTest(ExampleConstants.reflectBasedCodec);
-        System.out.println("------------------------");
         cloneTest(ExampleConstants.jsonBasedCodec);
     }
 
     private static void cloneTest(ProtocolCodec codec) throws IOException {
-        final ExampleMessages.FullMessage fullMessage = ReflectBasedProtoCodecExample.getFullMessage();
-        Preconditions.checkArgument(codec.cloneMessage(fullMessage).equals(fullMessage), "cloneMessage");
-        Preconditions.checkArgument(codec.cloneRpcRequest(fullMessage).equals(fullMessage), "cloneRpcRequest");
-        Preconditions.checkArgument(codec.cloneRpcResponse(fullMessage).equals(fullMessage), "cloneRpcResponse");
+        System.out.println("\n" + codec.getClass().getName());
+        final ExampleMessages.FullMessage fullMessage = ReflectBasedProtoCodecExample.newFullMessage();
+        System.out.println("cloneMessage "  + codec.cloneMessage(fullMessage).equals(fullMessage));
+        System.out.println("cloneRpcRequest" + codec.cloneRpcRequest(fullMessage).equals(fullMessage));
+        System.out.println("cloneRpcResponse" + codec.cloneRpcResponse(fullMessage).equals(fullMessage));
     }
 }
