@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.net;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -37,13 +38,13 @@ public class DirectSender extends AbstractSender {
     }
 
     @Override
-    protected void write(SenderTask task) {
+    protected void write(@Nonnull SenderTask task) {
         // 直接提交到网络层 - 既有时序保证，又是线程安全的
         netEventLoop().execute(task);
     }
 
     @Override
-    protected void writeAndFlush(SenderTask task) {
+    protected void writeAndFlush(@Nonnull SenderTask task) {
         // 没有缓冲区，提交即可
         netEventLoop().execute(task);
     }

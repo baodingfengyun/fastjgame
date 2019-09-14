@@ -100,7 +100,7 @@ public abstract class SocketSessionManager extends AbstractSessionManager {
      */
     protected final boolean write(Channel channel, MessageQueue messageQueue, NetMessage unsentMessage) {
         // 禁用了发送缓冲区
-        if (netConfigManager.flushThreshold() <= 0) {
+        if (netConfigManager.flushThreshold() <= 1) {
             writeAndFlush(channel, messageQueue, unsentMessage);
             return true;
         }

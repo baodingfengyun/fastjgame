@@ -238,7 +238,7 @@ public class NetConfigManager {
 
     /**
      * 当缓存的消息数到达该值时，立即清空缓冲区
-     * 该值等于0表示关闭缓冲区，异步消息也立即发送
+     * 该值等于0表示关闭缓冲区
      */
     public int flushThreshold() {
         return flushThreshold;

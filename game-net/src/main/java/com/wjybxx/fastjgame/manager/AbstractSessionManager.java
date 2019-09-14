@@ -257,7 +257,6 @@ public abstract class AbstractSessionManager implements SessionManager {
             this.session = session;
         }
 
-
         public final T getSession() {
             return session;
         }

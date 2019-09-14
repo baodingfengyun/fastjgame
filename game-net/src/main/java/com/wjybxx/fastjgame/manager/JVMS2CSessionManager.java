@@ -303,7 +303,7 @@ public class JVMS2CSessionManager extends JVMSessionManager {
 
     }
 
-    // 堆外屏蔽实现
+    // 对外屏蔽实现
     static class JVMPortImp implements JVMPort {
         /**
          * 本地角色guid

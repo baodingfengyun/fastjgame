@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.net;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import io.netty.channel.ChannelHandler;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.LinkedList;
 
@@ -53,17 +54,25 @@ public class UnsharableSender extends AbstractSender {
      */
     private LinkedList<SenderTask> buffer = new LinkedList<>();
 
+    private final int flushThreshold;
+
     public UnsharableSender(AbstractSession session) {
         super(session);
+        this.flushThreshold = session.getNetConfigManager().flushThreshold();
     }
 
     @Override
-    protected void write(SenderTask task) {
+    protected void write(@Nonnull SenderTask task) {
+        // 未开启缓冲区
+        if (flushThreshold <= 1) {
+            writeAndFlush(task);
+            return;
+        }
         if (userEventLoop().inEventLoop()) {
             // 加入缓冲区
             buffer.add(task);
             // 检查是否需要清空缓冲区
-            if (buffer.size() >= session.getNetConfigManager().flushThreshold()) {
+            if (buffer.size() >= flushThreshold) {
                 flushBuffer();
             }
         } else {
@@ -72,10 +81,10 @@ public class UnsharableSender extends AbstractSender {
     }
 
     @Override
-    protected void writeAndFlush(SenderTask task) {
+    protected void writeAndFlush(@Nonnull SenderTask task) {
         if (userEventLoop().inEventLoop()) {
             if (buffer.size() == 0) {
-                // 减少不必要的插入删除
+                // 没有缓存 - 直接发送
                 netEventLoop().execute(task);
             } else {
                 // 加入缓冲区并清空

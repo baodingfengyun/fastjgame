@@ -84,14 +84,14 @@ public abstract class AbstractSender implements Sender {
      * @param task 一个数据发送请求
      * @apiNote 必须保证消息的时序
      */
-    protected abstract void write(SenderTask task);
+    protected abstract void write(@Nonnull SenderTask task);
 
     /**
      * 发送一个任务，并立即清空缓冲区
      *
      * @param task 一个数据发送请求
      */
-    protected abstract void writeAndFlush(SenderTask task);
+    protected abstract void writeAndFlush(@Nonnull SenderTask task);
 
     @Nonnull
     @Override
