@@ -53,7 +53,9 @@ public class UnsharableSender extends AbstractSender {
      * 用户缓存的消息
      */
     private LinkedList<SenderTask> buffer = new LinkedList<>();
-
+    /**
+     * 缓冲区阈值
+     */
     private final int flushThreshold;
 
     public UnsharableSender(AbstractSession session) {
@@ -73,7 +75,7 @@ public class UnsharableSender extends AbstractSender {
             buffer.add(task);
             // 检查是否需要清空缓冲区
             if (buffer.size() >= flushThreshold) {
-                flushBuffer();
+                doFlush();
             }
         } else {
             throw new IllegalStateException("unsharable");
@@ -89,7 +91,7 @@ public class UnsharableSender extends AbstractSender {
             } else {
                 // 加入缓冲区并清空
                 buffer.add(task);
-                flushBuffer();
+                doFlush();
             }
         } else {
             throw new IllegalStateException("unsharable");
@@ -103,7 +105,7 @@ public class UnsharableSender extends AbstractSender {
                 return;
             }
             if (session.isActive()) {
-                flushBuffer();
+                doFlush();
             }
             // else 等待关闭
         } else {
@@ -114,30 +116,20 @@ public class UnsharableSender extends AbstractSender {
     /**
      * 清空缓冲区(用户线程下) - 批量提交，减少竞争
      */
-    private void flushBuffer() {
+    private void doFlush() {
         if (buffer.size() == 1) {
             netEventLoop().execute(buffer.pollFirst());
         } else {
-            final LinkedList<SenderTask> oldBuffer = exchangeBuffer();
+            // 交换缓冲区
+            final LinkedList<SenderTask> oldBuffer = this.buffer;
+            this.buffer = new LinkedList<>();
+            // 提交到网络层
             netEventLoop().execute(() -> {
                 for (SenderTask senderTask : oldBuffer) {
                     senderTask.run();
                 }
             });
         }
-
-
-    }
-
-    /**
-     * 交换缓冲区(用户线程下)
-     *
-     * @return oldBuffer
-     */
-    private LinkedList<SenderTask> exchangeBuffer() {
-        LinkedList<SenderTask> result = this.buffer;
-        this.buffer = new LinkedList<>();
-        return result;
     }
 
     /**

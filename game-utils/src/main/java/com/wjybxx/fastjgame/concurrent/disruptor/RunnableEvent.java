@@ -26,32 +26,26 @@ import javax.annotation.Nonnull;
  * date - 2019/7/24
  * github - https://github.com/hl845740757
  */
-final class DisruptorEvent implements AutoCloseable {
+final class RunnableEvent {
 
     /**
      * 事件参数
      */
     private Runnable task;
 
-    DisruptorEvent() {
+    RunnableEvent() {
 
     }
 
     @Nonnull
-    public Runnable getTask() {
-        return task;
+    Runnable detachTask() {
+        Runnable r = task;
+        task = null;
+        return r;
     }
 
-    public void setTask(@Nonnull Runnable task) {
+    void setTask(@Nonnull Runnable task) {
         this.task = task;
     }
 
-    /**
-     * help GC
-     * -- Disruptor的RingBuffer会始终持有Event对象，如果Event对象不进行清理，会导致一定的内存泄漏。
-     */
-    @Override
-    public void close() {
-        this.task = null;
-    }
 }

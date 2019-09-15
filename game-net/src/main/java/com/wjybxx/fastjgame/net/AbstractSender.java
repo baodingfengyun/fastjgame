@@ -114,7 +114,7 @@ public abstract class AbstractSender implements Sender {
     }
 
     @Override
-    public final <T> RpcResponseChannel<T> newResponseChannel(long requestGuid, boolean sync) {
+    public <T> RpcResponseChannel<T> newResponseChannel(long requestGuid, boolean sync) {
         return new DefaultRpcResponseChannel<>(this, requestGuid, sync);
     }
 
@@ -152,7 +152,7 @@ public abstract class AbstractSender implements Sender {
         private final AbstractSession session;
         private final Object message;
 
-        private OneWayMessageTask(AbstractSession session, Object message) {
+        OneWayMessageTask(AbstractSession session, Object message) {
             this.session = session;
             this.message = message;
         }
@@ -175,7 +175,7 @@ public abstract class AbstractSender implements Sender {
         private final long timeoutMs;
         private final RpcCallback rpcCallback;
 
-        private RpcRequestTask(AbstractSession session, Object request, long timeoutMs, RpcCallback rpcCallback) {
+        RpcRequestTask(AbstractSession session, Object request, long timeoutMs, RpcCallback rpcCallback) {
             this.session = session;
             this.request = request;
             this.timeoutMs = timeoutMs;
@@ -201,7 +201,7 @@ public abstract class AbstractSender implements Sender {
         private final long timeoutMs;
         private final RpcPromise rpcPromise;
 
-        private SyncRpcRequestTask(AbstractSession session, Object request, long timeoutMs, RpcPromise rpcPromise) {
+        SyncRpcRequestTask(AbstractSession session, Object request, long timeoutMs, RpcPromise rpcPromise) {
             this.session = session;
             this.request = request;
             this.timeoutMs = timeoutMs;
@@ -226,7 +226,7 @@ public abstract class AbstractSender implements Sender {
         private final RpcResponse rpcResponse;
         private final boolean sync;
 
-        private RpcResponseTask(AbstractSession session, long requestGuid, RpcResponse rpcResponse, boolean sync) {
+        RpcResponseTask(AbstractSession session, long requestGuid, RpcResponse rpcResponse, boolean sync) {
             this.session = session;
             this.requestGuid = requestGuid;
             this.rpcResponse = rpcResponse;

@@ -20,7 +20,6 @@ import com.lmax.disruptor.AlertException;
 import com.lmax.disruptor.Sequence;
 import com.lmax.disruptor.SequenceBarrier;
 import com.lmax.disruptor.WaitStrategy;
-import com.wjybxx.fastjgame.utils.TimeUtils;
 
 import java.util.concurrent.locks.LockSupport;
 
@@ -32,11 +31,11 @@ import java.util.concurrent.locks.LockSupport;
  * date - 2019/4/27 10:06
  * github - https://github.com/hl845740757
  */
-public class DisruptorEventLoopWaitStrategy implements WaitStrategy {
+class DisruptorEventLoopWaitStrategy implements WaitStrategy {
 
     private static final int INVOKE_ON_WAIT_EVENT_INTERVAL = 0x3F;
     private static final int DEFAULT_RETRIES = 200;
-    private static final long DEFAULT_SLEEP = TimeUtils.NANO_PER_MILLISECOND / 10;
+    private static final long DEFAULT_SLEEP = 1000;
 
     private final int retries;
     private final long sleepTimeNs;
@@ -56,7 +55,6 @@ public class DisruptorEventLoopWaitStrategy implements WaitStrategy {
         int counter = retries;
 
         // dependentSequence 该项目组织架构中，其实只是生产者的sequence。
-        // 在等待生产者生产数据的过程中，尝试执行游戏世界循环
         while ((availableSequence = dependentSequence.get()) < sequence) {
             counter = applyWaitMethod(barrier, counter);
             // 每隔一段时间执行一次循环
@@ -69,7 +67,7 @@ public class DisruptorEventLoopWaitStrategy implements WaitStrategy {
 
     @Override
     public void signalAllWhenBlocking() {
-        // 没有消费者在这里阻塞，因此什么也不做
+        // 消费者并不会在等待时阻塞，因此什么也不做
     }
 
     private int applyWaitMethod(final SequenceBarrier barrier, int counter)

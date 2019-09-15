@@ -16,10 +16,7 @@
 
 package com.wjybxx.fastjgame.concurrent.disruptor;
 
-import com.lmax.disruptor.EventHandler;
-import com.lmax.disruptor.InsufficientCapacityException;
-import com.lmax.disruptor.LifecycleAware;
-import com.lmax.disruptor.RingBuffer;
+import com.lmax.disruptor.*;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
 import com.wjybxx.fastjgame.concurrent.*;
@@ -55,7 +52,11 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     /**
      * 默认ringBuffer大小
      */
-    static final int DEFAULT_RING_BUFFER_SIZE = SystemUtils.getProperties().getAsInt("DisruptorEventLoop.ringBufferSize", 16 * 1024);
+    public static final int DEFAULT_RING_BUFFER_SIZE = SystemUtils.getProperties().getAsInt("DisruptorEventLoop.ringBufferSize", 16 * 1024);
+    /**
+     * 提交任务最大尝试次数 - 避免死锁
+     */
+    public static final int MAX_TRY_TIMES = SystemUtils.getProperties().getAsInt("DisruptorEventLoop.ringBufferSize", 10 * 10000);
 
     // 线程的状态
     /**
@@ -86,12 +87,12 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     /**
      * disruptor
      */
-    private final Disruptor<DisruptorEvent> disruptor;
+    private final Disruptor<RunnableEvent> disruptor;
 
     /**
      * 事件队列
      */
-    private final RingBuffer<DisruptorEvent> ringBuffer;
+    private final RingBuffer<RunnableEvent> ringBuffer;
 
     /**
      * 线程状态
@@ -107,6 +108,12 @@ public class DisruptorEventLoop extends AbstractEventLoop {
      */
     private final RejectedExecutionHandler rejectedExecutionHandler;
 
+    public DisruptorEventLoop(@Nullable EventLoopGroup parent,
+                              @Nonnull ThreadFactory threadFactory,
+                              @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
+        this(parent, threadFactory, DEFAULT_RING_BUFFER_SIZE, rejectedExecutionHandler);
+    }
+
     /**
      * @param parent                   容器节点
      * @param threadFactory            线程工厂
@@ -120,7 +127,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
         super(parent);
         this.rejectedExecutionHandler = rejectedExecutionHandler;
 
-        this.disruptor = new Disruptor<>(DisruptorEvent::new,
+        this.disruptor = new Disruptor<>(RunnableEvent::new,
                 ringBufferSize,
                 new InnerThreadFactory(threadFactory),
                 ProducerType.MULTI,
@@ -197,11 +204,12 @@ public class DisruptorEventLoop extends AbstractEventLoop {
         } else {
             // 直接调用next()的情况下，Disruptor内部是死循环，没有任何机制能保证安全的退出，即使Disruptor线程已退出。
             // 如果disruptor已关闭则可能死锁。
-            for (int tryTimes = 1; !isShuttingDown(); tryTimes++) {
+            int tryTimes = 1;
+            for (; tryTimes <= MAX_TRY_TIMES && !isShuttingDown(); tryTimes++) {
                 try {
                     long sequence = ringBuffer.tryNext();
                     try {
-                        DisruptorEvent event = ringBuffer.get(sequence);
+                        RunnableEvent event = ringBuffer.get(sequence);
                         event.setTask(task);
                         return;
                     } finally {
@@ -211,8 +219,15 @@ public class DisruptorEventLoop extends AbstractEventLoop {
                     }
                 } catch (InsufficientCapacityException ignore) {
                     // 最多睡眠1毫秒
-                    int sleepTimes = (1 + ThreadLocalRandom.current().nextInt(Math.min(100, tryTimes))) * 10000;
+                    long sleepTimes = (1 + ThreadLocalRandom.current().nextInt(Math.min(1000, tryTimes))) * 1000;
                     LockSupport.parkNanos(sleepTimes);
+                }
+            }
+            if (tryTimes >= MAX_TRY_TIMES) {
+                logger.error("may disruptor event loop dead lock, tryTimes {}", tryTimes);
+            } else {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("try times {}", tryTimes);
                 }
             }
             rejectedExecutionHandler.rejected(task, this);
@@ -239,8 +254,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
      * 确保线程已启动
      */
     private void ensureThreadStarted() {
-        int state = stateHolder.get();
-        if (state == ST_NOT_STARTED) {
+        if (stateHolder.get() == ST_NOT_STARTED) {
             if (stateHolder.compareAndSet(ST_NOT_STARTED, ST_STARTED)) {
                 disruptor.start();
             }
@@ -264,9 +278,8 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     }
 
     private void onStart() {
-        if (!inEventLoop()) {
-            // 非真正启动，earlyExit
-            return;
+        if (isTerminated()) {
+            throw new IllegalStateException();
         }
         try {
             init();
@@ -277,9 +290,10 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 
     /**
      * 事件循环线程启动时的初始化操作。
+     *
      * @apiNote 抛出任何异常都将导致线程终止
      */
-    protected void init() throws Exception{
+    protected void init() throws Exception {
 
     }
 
@@ -293,14 +307,13 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     /**
      * 线程退出前的清理动作
      */
-    protected void clean() {
+    protected void clean() throws Exception {
 
     }
 
     private void onShutdown() {
-        if (!inEventLoop()) {
-            // 非真正退出，earlyExit
-            return;
+        if (isTerminated()) {
+            throw new IllegalStateException();
         }
         // 告知其它线程已开始关闭 - 不要再提交任务
         advanceRunState(ST_SHUTTING_DOWN);
@@ -316,15 +329,11 @@ public class DisruptorEventLoop extends AbstractEventLoop {
         }
     }
 
-    private void onEvent(DisruptorEvent event, boolean endOfBatch) throws Exception {
-        try {
-            safeExecute(event.getTask());
-        } finally {
-            event.close();
-            if (endOfBatch) {
-                // 没执行一批事件，执行一次循环
-                loopOnce();
-            }
+    private void onEvent(RunnableEvent event, boolean endOfBatch) throws Exception {
+        safeExecute(event.detachTask());
+        if (endOfBatch) {
+            // 每执行一批事件，执行一次循环
+            loopOnce();
         }
     }
     // ------------------------------ 生命周期end --------------------------------
@@ -349,7 +358,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     /**
      * EventHandler内部实现，避免{@link DisruptorEventLoop}对外暴露这些接口
      */
-    private static class InnerEventHandler implements EventHandler<DisruptorEvent>, LifecycleAware {
+    private static class InnerEventHandler implements EventHandler<RunnableEvent>, LifecycleAware, TimeoutHandler {
 
         private final DisruptorEventLoop disruptorEventLoop;
 
@@ -363,8 +372,13 @@ public class DisruptorEventLoop extends AbstractEventLoop {
         }
 
         @Override
-        public void onEvent(DisruptorEvent event, long sequence, boolean endOfBatch) throws Exception {
+        public void onEvent(RunnableEvent event, long sequence, boolean endOfBatch) throws Exception {
             disruptorEventLoop.onEvent(event, endOfBatch);
+        }
+
+        @Override
+        public void onTimeout(long sequence) throws Exception {
+            logger.warn("waitOnBarrier timeout, sequence {}", sequence);
         }
 
         @Override
