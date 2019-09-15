@@ -35,16 +35,14 @@ import java.util.concurrent.locks.LockSupport;
 /**
  * 基于Disruptor的事件循环。
  * <p>
- * 可能阻塞生产者，因为消费者的速度可能跟不上。
- * <p>
  * 代码和{@link SingleThreadEventLoop}很像，但是又不完全一样，类似的代码写两遍还是有点难受。。。。
  * <p>
  * Q: {@link DisruptorEventLoop}比{@link SingleThreadEventLoop}强在哪？
  * A: 1. 有界队列{@link LinkedBlockingQueue}、{@link ArrayBlockingQueue}性能太差。
- * 2. {@link ConcurrentLinkedQueue} 是无界的，不能很好的管理资源，而且我测试的时候，发现它的锁算法在高度竞争下有缺陷，表现很奇怪 - 看起来像是由偏向性。
+ * 2. {@link ConcurrentLinkedQueue} 是无界的，不能很好的管理资源，而且我测试的时候，发现它的锁算法在高度竞争下有缺陷，表现很奇怪 - 看起来像是有偏向性。
  * 3. {@link RingBuffer}的内存利用的很好，且性能极好， 我测了几次，比{@link ConcurrentLinkedQueue}大概高20%-25%， 而且算法没得问题。
  * <p>
- * Q: 那么又有什么缺陷呢？<br>
+ * Q: 那么有什么缺陷呢？<br>
  * A: 1. {@link RingBuffer}是有界的。提交任务失败时：如果限制重试次数，则可能丢掉任务，可能产生严重影响。
  * 如果不限制重试次数，则可能长时间阻塞，甚至死锁！
  * 2. 线程的生命周期不好控制！因为线程不是自己创建的，而是来源于{@link BatchEventProcessor}
@@ -228,8 +226,8 @@ public class DisruptorEventLoop extends AbstractEventLoop {
                         ensureThreadStarted();
                     }
                 } catch (InsufficientCapacityException ignore) {
-                    // 最少睡眠1000纳秒，最多睡眠1毫秒
-                    long sleepTimes = (1 + ThreadLocalRandom.current().nextInt(Math.min(1000, tryTimes))) * 1000;
+                    // 最少睡眠100纳秒，最多睡眠1毫秒
+                    long sleepTimes = (1 + ThreadLocalRandom.current().nextInt(Math.min(10000, tryTimes))) * 100;
                     LockSupport.parkNanos(sleepTimes);
                 }
             }
