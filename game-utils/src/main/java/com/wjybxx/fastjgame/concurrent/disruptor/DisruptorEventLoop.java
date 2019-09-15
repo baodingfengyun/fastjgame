@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.concurrent.disruptor;
 import com.lmax.disruptor.*;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
+import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.*;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.SystemUtils;
@@ -27,9 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 
@@ -39,6 +38,19 @@ import java.util.concurrent.locks.LockSupport;
  * 可能阻塞生产者，因为消费者的速度可能跟不上。
  * <p>
  * 代码和{@link SingleThreadEventLoop}很像，但是又不完全一样，类似的代码写两遍还是有点难受。。。。
+ * <p>
+ * Q: {@link DisruptorEventLoop}比{@link SingleThreadEventLoop}强在哪？
+ * A: 1. 有界队列{@link LinkedBlockingQueue}、{@link ArrayBlockingQueue}性能太差。
+ * 2. {@link ConcurrentLinkedQueue} 是无界的，不能很好的管理资源，而且我测试的时候，发现它的锁算法在高度竞争下有缺陷，表现很奇怪 - 看起来像是由偏向性。
+ * 3. {@link RingBuffer}的内存利用的很好，且性能极好， 我测了几次，比{@link ConcurrentLinkedQueue}大概高20%-25%， 而且算法没得问题。
+ * <p>
+ * Q: 那么又有什么缺陷呢？<br>
+ * A: 1. {@link RingBuffer}是有界的。提交任务失败时：如果限制重试次数，则可能丢掉任务，可能产生严重影响。
+ * 如果不限制重试次数，则可能长时间阻塞，甚至死锁！
+ * 2. 线程的生命周期不好控制！因为线程不是自己创建的，而是来源于{@link BatchEventProcessor}
+ * 3. 线程的循环逻辑也不好控制。因为循环逻辑也是来源于{@link BatchEventProcessor}
+ * 4. 内存泄漏，{@link Disruptor}关闭时无法很好清理{@link RingBuffer}剩余的事件。
+ * 第一项和第四项其实是有点危险的。
  *
  * @author wjybxx
  * @version 1.0
@@ -50,9 +62,9 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     private static final Logger logger = LoggerFactory.getLogger(DisruptorEventLoop.class);
 
     /**
-     * 默认ringBuffer大小
+     * 默认ringBuffer大小 - 大一点可以减少降低阻塞概率
      */
-    public static final int DEFAULT_RING_BUFFER_SIZE = SystemUtils.getProperties().getAsInt("DisruptorEventLoop.ringBufferSize", 16 * 1024);
+    public static final int DEFAULT_RING_BUFFER_SIZE = SystemUtils.getProperties().getAsInt("DisruptorEventLoop.ringBufferSize", 32 * 1024);
     /**
      * 提交任务最大尝试次数 - 避免死锁
      */
@@ -64,24 +76,20 @@ public class DisruptorEventLoop extends AbstractEventLoop {
      */
     private static final int ST_NOT_STARTED = 1;
     /**
-     * 已启动状态，运行状态
+     * 运行状态
      */
-    private static final int ST_STARTED = 2;
-    /**
-     * 正在关闭状态，正在尝试执行最后的任务
-     */
-    private static final int ST_SHUTTING_DOWN = 3;
+    private static final int ST_RUNNING = 2;
     /**
      * 已关闭状态，正在进行最后的清理
      */
-    private static final int ST_SHUTDOWN = 4;
+    private static final int ST_SHUTDOWN = 3;
     /**
      * 终止状态(二阶段终止模式 - 已关闭状态下进行最后的清理，然后进入终止状态)
      */
-    private static final int ST_TERMINATED = 5;
+    private static final int ST_TERMINATED = 4;
 
     /**
-     * Disruptor线程
+     * Disruptor线程 {@link BatchEventProcessor}所属的线程。
      */
     private volatile Thread thread;
     /**
@@ -111,19 +119,19 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     public DisruptorEventLoop(@Nullable EventLoopGroup parent,
                               @Nonnull ThreadFactory threadFactory,
                               @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
-        this(parent, threadFactory, DEFAULT_RING_BUFFER_SIZE, rejectedExecutionHandler);
+        this(parent, threadFactory, rejectedExecutionHandler, DEFAULT_RING_BUFFER_SIZE);
     }
 
     /**
      * @param parent                   容器节点
      * @param threadFactory            线程工厂
-     * @param ringBufferSize           事件缓冲区大小
      * @param rejectedExecutionHandler 拒绝策略
+     * @param ringBufferSize           事件缓冲区大小
      */
     public DisruptorEventLoop(@Nullable EventLoopGroup parent,
                               @Nonnull ThreadFactory threadFactory,
-                              int ringBufferSize,
-                              @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
+                              @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
+                              int ringBufferSize) {
         super(parent);
         this.rejectedExecutionHandler = rejectedExecutionHandler;
 
@@ -146,13 +154,15 @@ public class DisruptorEventLoop extends AbstractEventLoop {
         return thread == Thread.currentThread();
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated use {@link #isShutdown()}
+     */
+    @Deprecated
     @Override
     public boolean isShuttingDown() {
-        return isShuttingDown0(stateHolder.get());
-    }
-
-    private static boolean isShuttingDown0(int state) {
-        return state >= ST_SHUTTING_DOWN;
+        return isShutdown();
     }
 
     @Override
@@ -183,10 +193,10 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     public void shutdown() {
         for (; ; ) {
             int oldState = stateHolder.get();
-            if (isShuttingDown0(oldState)) {
+            if (isShutdown0(oldState)) {
                 return;
             }
-            if (stateHolder.compareAndSet(oldState, ST_SHUTTING_DOWN)) {
+            if (stateHolder.compareAndSet(oldState, ST_SHUTDOWN)) {
                 // 确保线程能够关闭 - 这里不要判断inEventLoop，因为线程并不由自己控制 - 后期会修改实现
                 ensureThreadTerminable(oldState);
             }
@@ -205,7 +215,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
             // 直接调用next()的情况下，Disruptor内部是死循环，没有任何机制能保证安全的退出，即使Disruptor线程已退出。
             // 如果disruptor已关闭则可能死锁。
             int tryTimes = 1;
-            for (; tryTimes <= MAX_TRY_TIMES && !isShuttingDown(); tryTimes++) {
+            for (; tryTimes <= MAX_TRY_TIMES && !isShutdown(); tryTimes++) {
                 try {
                     long sequence = ringBuffer.tryNext();
                     try {
@@ -218,7 +228,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
                         ensureThreadStarted();
                     }
                 } catch (InsufficientCapacityException ignore) {
-                    // 最多睡眠1毫秒
+                    // 最少睡眠1000纳秒，最多睡眠1毫秒
                     long sleepTimes = (1 + ThreadLocalRandom.current().nextInt(Math.min(1000, tryTimes))) * 1000;
                     LockSupport.parkNanos(sleepTimes);
                 }
@@ -240,7 +250,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
      * 将运行状态转换为给定目标，或者至少保留给定状态。
      * 参考自{@code ThreadPoolExecutor#advanceRunState}
      *
-     * @param targetState 期望的目标状态， {@link #ST_SHUTTING_DOWN} 或者 {@link #ST_SHUTDOWN}
+     * @param targetState 期望的目标状态
      */
     private void advanceRunState(int targetState) {
         for (; ; ) {
@@ -255,7 +265,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
      */
     private void ensureThreadStarted() {
         if (stateHolder.get() == ST_NOT_STARTED) {
-            if (stateHolder.compareAndSet(ST_NOT_STARTED, ST_STARTED)) {
+            if (stateHolder.compareAndSet(ST_NOT_STARTED, ST_RUNNING)) {
                 disruptor.start();
             }
         }
@@ -316,7 +326,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
             throw new IllegalStateException();
         }
         // 告知其它线程已开始关闭 - 不要再提交任务
-        advanceRunState(ST_SHUTTING_DOWN);
+        advanceRunState(ST_SHUTDOWN);
 
         // 退出前进行必要的清理，释放系统资源
         try {

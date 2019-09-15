@@ -19,9 +19,7 @@ package com.wjybxx.fastjgame.concurrenttest;
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
-import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoopGroup;
 
-import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -35,7 +33,6 @@ public class DisruptorEventLoopTest {
     public static void main(String[] args) {
         DisruptorEventLoop eventLoop = new DisruptorEventLoop(null,
                 new DefaultThreadFactory("Disruptor-Thread"),
-                8192,
                 RejectedExecutionHandlers.abort());
 
         eventLoop.execute(() ->  System.out.println("hello world!"));

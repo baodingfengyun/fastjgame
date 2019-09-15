@@ -32,7 +32,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class NetEventLoopManager {
 
-    private NetEventLoopImp eventLoop;
+    private NetEventLoop eventLoop;
 
     @Inject
     public NetEventLoopManager() {
@@ -42,11 +42,11 @@ public class NetEventLoopManager {
     /**
      * 不允许外部调用，保证安全性
      */
-    void publish(NetEventLoopImp eventLoop) {
+    void publish(NetEventLoop eventLoop) {
         this.eventLoop = eventLoop;
     }
 
-    public NetEventLoopImp eventLoop() {
+    public NetEventLoop eventLoop() {
         return eventLoop;
     }
 

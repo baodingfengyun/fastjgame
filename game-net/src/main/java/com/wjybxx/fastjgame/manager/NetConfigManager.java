@@ -45,11 +45,6 @@ public class NetConfigManager {
      */
     private final ConfigWrapper configWrapper;
 
-    /**
-     * 帧间隔
-     */
-    private final int frameInterval;
-
     private final int maxIOThreadNumPerEventLoop;
     private final int maxFrameLength;
     private final int sndBufferAsServer;
@@ -78,8 +73,6 @@ public class NetConfigManager {
     public NetConfigManager() throws IOException {
         configWrapper = ConfigLoader.loadConfig(NetConfigManager.class.getClassLoader(), NET_CONFIG_NAME);
 
-        frameInterval = configWrapper.getAsInt("frameInterval");
-
         maxIOThreadNumPerEventLoop = configWrapper.getAsInt("maxIOThreadNumPerEventLoop");
         maxFrameLength = configWrapper.getAsInt("maxFrameLength");
         sndBufferAsServer = configWrapper.getAsInt("sndBufferAsServer");
@@ -103,10 +96,6 @@ public class NetConfigManager {
 
         rpcCallbackTimeoutMs = configWrapper.getAsInt("rpcCallbackTimeoutMs");
         syncRpcTimeoutMs = configWrapper.getAsInt("syncRpcTimeoutMs");
-    }
-
-    public int frameInterval() {
-        return frameInterval;
     }
 
     /**

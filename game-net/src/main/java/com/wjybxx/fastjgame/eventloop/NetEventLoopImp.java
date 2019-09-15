@@ -20,7 +20,7 @@ import com.google.inject.Injector;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
-import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
+import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
 import com.wjybxx.fastjgame.manager.*;
 import com.wjybxx.fastjgame.module.NetEventLoopModule;
 import com.wjybxx.fastjgame.net.*;
@@ -33,9 +33,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.HashSet;
-import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadFactory;
 
 /**
@@ -46,12 +44,7 @@ import java.util.concurrent.ThreadFactory;
  * date - 2019/8/3
  * github - https://github.com/hl845740757
  */
-public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLoop {
-
-    /**
-     * 处理任务时，每次最多处理数量
-     */
-    private static final int MAX_BATCH_SIZE = 2048;
+public class NetEventLoopImp extends DisruptorEventLoop implements NetEventLoop {
 
     private final NetManagerWrapper managerWrapper;
     private final NetEventLoopManager netEventLoopManager;
@@ -108,13 +101,6 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         jvmc2SSessionManager.setNetManagerWrapper(managerWrapper);
     }
 
-    /**
-     * NetEventLoop不执行阻塞类型的操作，不使用BlockingQueue
-     */
-    @Override
-    protected Queue<Runnable> newTaskQueue(int maxTaskNum) {
-        return new ConcurrentLinkedQueue<>();
-    }
 
     @Nullable
     @Override
@@ -171,41 +157,16 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     }
 
     @Override
-    protected void loop() {
-        long frameStart;
-        for (; ; ) {
-            frameStart = System.currentTimeMillis();
-            // 批量执行任务，避免任务太多时导致session得不到及时更新
-            runAllTasks(MAX_BATCH_SIZE);
-
-            // 更新时间
-            netTimeManager.update(System.currentTimeMillis());
-            // 检测定时器
-            netTimerManager.tick();
-            // 刷帧
-            socketS2CSessionManager.tick();
-            socketC2SSessionManager.tick();
-            jvms2CSessionManager.tick();
-            jvmc2SSessionManager.tick();
-
-            if (confirmShutdown()) {
-                break;
-            }
-
-            // 启用了帧控制，则每次循环休息一下下，避免CPU占有率过高
-            if (netConfigManager.frameInterval() > 0) {
-                sleepQuietly(System.currentTimeMillis() - frameStart);
-            }
-        }
-    }
-
-    private void sleepQuietly(long loopCostMs) {
-        // 最小睡眠1毫秒
-        final long sleepTimeMs = Math.max(1, netConfigManager.frameInterval() - loopCostMs);
-        try {
-            Thread.sleep(sleepTimeMs);
-        } catch (InterruptedException ignore) {
-        }
+    protected void loopOnce() {
+        // 更新时间
+        netTimeManager.update(System.currentTimeMillis());
+        // 检测定时器
+        netTimerManager.tick();
+        // 刷帧
+        socketS2CSessionManager.tick();
+        socketC2SSessionManager.tick();
+        jvms2CSessionManager.tick();
+        jvmc2SSessionManager.tick();
     }
 
     @Override

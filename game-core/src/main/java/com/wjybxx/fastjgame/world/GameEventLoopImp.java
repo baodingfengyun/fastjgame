@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.world;
 
 import com.google.inject.Injector;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
-import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
+import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.module.WorldGroupModule;
 import com.wjybxx.fastjgame.timer.DefaultTimerSystem;
@@ -30,8 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadFactory;
 
 /**
@@ -42,14 +40,9 @@ import java.util.concurrent.ThreadFactory;
  * date - 2019/8/4
  * github - https://github.com/hl845740757
  */
-public class GameEventLoopImp extends SingleThreadEventLoop implements GameEventLoop {
+public class GameEventLoopImp extends DisruptorEventLoop implements GameEventLoop {
 
     private static final Logger logger = LoggerFactory.getLogger(GameEventLoopImp.class);
-
-    /**
-     * 最多执行多少个任务，必须检测一次world循环
-     */
-    private static final int MAX_BATCH_SIZE = 2048;
 
     /**
      * 游戏世界需要的网络模块
@@ -84,11 +77,6 @@ public class GameEventLoopImp extends SingleThreadEventLoop implements GameEvent
         this.worldStartInfo = worldStartInfo;
     }
 
-    @Override
-    protected Queue<Runnable> newTaskQueue(int maxTaskNum) {
-        return new ConcurrentLinkedQueue<>();
-    }
-
     @Nullable
     @Override
     public GameEventLoopGroup parent() {
@@ -117,25 +105,9 @@ public class GameEventLoopImp extends SingleThreadEventLoop implements GameEvent
     }
 
     @Override
-    protected void loop() {
-        for (; ; ) {
-            // 指定执行任务最大数，避免导致world延迟过高
-            runAllTasks(MAX_BATCH_SIZE);
-
-            // 游戏世界刷帧
-            timerSystem.tick();
-
-            // 查询是否应该退出了
-            if (confirmShutdown()) {
-                break;
-            }
-
-            // 睡眠1毫秒，避免占用太多cpu
-            try {
-                Thread.sleep(1);
-            } catch (InterruptedException ignore) {
-            }
-        }
+    protected void loopOnce() {
+        // 游戏世界刷帧
+        timerSystem.tick();
     }
 
     private void safeTickWorld(FixedDelayHandle handle) {

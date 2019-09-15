@@ -20,6 +20,8 @@ import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
+import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
+import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoopWaitStrategy;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupImp;
 import com.wjybxx.fastjgame.misc.DefaultProtocolDispatcher;
@@ -36,16 +38,48 @@ import com.wjybxx.fastjgame.utils.TimeUtils;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.locks.LockSupport;
 import java.util.stream.IntStream;
 
 /**
  * rpc请求客户端示例
  *
+ * <pre>
+ * 旧时三大组件继承{@link SingleThreadEventLoop}时，全部无缝loop的时候，测试数据大概如下：
+ * <p>
+ * 如果是正常socket，使用SocketSession：
+ * SyncCall - 9339 - wjybxx-9339 , cost time nano 231849
+ * SyncCall - 9340 - wjybxx-9340 , cost time nano 252048
+ * SyncCall - 9341 - wjybxx-9341 , cost time nano 254682
+ * 大致的测试结果是: 20W 纳秒左右。 这里的输出没取好，后期的测试其实18W-19W左右居多。
+ * <p>
+ * 如果jvmPort，使用JVMSession：
+ * SyncCall - 229103 - wjybxx-229103 , cost time nano 6148
+ * SyncCall - 229104 - wjybxx-229104 , cost time nano 5855
+ * SyncCall - 229105 - wjybxx-229105 , cost time nano 7611
+ * 大致的测试结果是：6000纳秒左右 - (0.006毫秒)。
+ * </pre>
+ * <pre>
+ * 现在：如果{@link DisruptorEventLoopWaitStrategy}不调用{@link LockSupport#parkNanos(long)}，也不调用{@link Thread#yield()}，测试数据如下：
+ * <p>如果是正常socket，使用SocketSession：
+ * SyncCall - 82418 - wjybxx-82418 , cost time nano 178863
+ * SyncCall - 82419 - wjybxx-82419 , cost time nano 160128
+ * SyncCall - 82420 - wjybxx-82420 , cost time nano 171837
+ * 大致的测试结果是:  17W 纳秒左右
+ *
+ * <p>如果jvmPort，使用JVMSession：
+ * SyncCall - 632894 - wjybxx-632894 , cost time nano 5269
+ * SyncCall - 632895 - wjybxx-632895 , cost time nano 4684
+ * SyncCall - 632896 - wjybxx-632896 , cost time nano 4977
+ * 大致的测试结果是：5000纳秒左右 - (0.005毫秒)。
+ *
+ * </pre>
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/26
  */
-public class ExampleRpcClientLoop extends SingleThreadEventLoop {
+public class ExampleRpcClientLoop extends DisruptorEventLoop {
 
     private final NetEventLoopGroup netGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET-EVENT-LOOP"),
             RejectedExecutionHandlers.log());
@@ -57,6 +91,8 @@ public class ExampleRpcClientLoop extends SingleThreadEventLoop {
      * 是否已建立tcp连接
      */
     private Session session;
+    private long startTime;
+    private int index;
 
     public ExampleRpcClientLoop(@Nonnull ThreadFactory threadFactory,
                                 @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
@@ -84,50 +120,21 @@ public class ExampleRpcClientLoop extends SingleThreadEventLoop {
                     new DefaultProtocolDispatcher(),
                     SessionSenderMode.DIRECT).get();
         }
+        startTime = System.currentTimeMillis();
     }
 
     @Override
-    protected void loop() {
-        final long starrTime = System.currentTimeMillis();
-        for (int index = 0; ; index++) {
-            System.out.println("\n ------------------------------------" + index + "------------------------------------------");
-
-            // 执行所有任务
-            runAllTasks();
-
-            if (confirmShutdown()) {
-                break;
-            }
-
-            if (session == null) {
-                break;
-            }
-
-            sendRequest(index);
-
-            // 循环x分钟
-            if (System.currentTimeMillis() - starrTime > TimeUtils.MIN * 3) {
-                break;
-            }
+    protected void loopOnce() {
+        if (session == null || System.currentTimeMillis() - startTime > TimeUtils.MIN) {
+            shutdown();
+            return;
         }
+        sendRequest(index++);
     }
 
     /**
-     * 如果netEventLoop无缝loop (net_config.properties 配置frameInterval 为0)，在我电脑上：
+
      * <p>
-     * 如果是正常socket，使用SocketSession：
-     * SyncCall - 9339 - wjybxx-9339 , cost time nano 231849
-     * SyncCall - 9340 - wjybxx-9340 , cost time nano 252048
-     * SyncCall - 9341 - wjybxx-9341 , cost time nano 254682
-     * 20W - 30W 纳秒区间段最多 - (0.2 - 0.3毫秒)。 后面的测试中，维持在15W - 20W纳秒左右，0.15 - 0.2毫秒
-     * <p>
-     * 如果jvmPort，使用JVMSession：
-     * SyncCall - 229103 - wjybxx-229103 , cost time nano 6148
-     * SyncCall - 229104 - wjybxx-229104 , cost time nano 5855
-     * SyncCall - 229105 - wjybxx-229105 , cost time nano 7611
-     * 大致的测试结果是：6000纳秒左右 - (0.006毫秒)。 后面的测试维持在 1W纳秒左右，0.01毫秒
-     * <p>
-     * 这还只是数据非常少的情况下，如果数据量大，这个差距更大，JVM内部通信建议使用JVMSession
      */
     private void sendRequest(final int index) {
         final long start = System.nanoTime();

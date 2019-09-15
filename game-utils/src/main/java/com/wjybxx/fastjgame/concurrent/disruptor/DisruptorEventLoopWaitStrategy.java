@@ -31,11 +31,11 @@ import java.util.concurrent.locks.LockSupport;
  * date - 2019/4/27 10:06
  * github - https://github.com/hl845740757
  */
-class DisruptorEventLoopWaitStrategy implements WaitStrategy {
+public class DisruptorEventLoopWaitStrategy implements WaitStrategy {
 
     private static final int INVOKE_ON_WAIT_EVENT_INTERVAL = 0x3F;
     private static final int DEFAULT_RETRIES = 200;
-    private static final long DEFAULT_SLEEP = 1000;
+    private static final long DEFAULT_SLEEP = 100;
 
     private final int retries;
     private final long sleepTimeNs;

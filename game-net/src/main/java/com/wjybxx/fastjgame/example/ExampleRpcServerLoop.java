@@ -16,7 +16,11 @@
 
 package com.wjybxx.fastjgame.example;
 
-import com.wjybxx.fastjgame.concurrent.*;
+import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
+import com.wjybxx.fastjgame.concurrent.Promise;
+import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
+import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
+import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupImp;
 import com.wjybxx.fastjgame.misc.DefaultProtocolDispatcher;
@@ -41,7 +45,7 @@ import java.util.concurrent.ThreadFactory;
  * date - 2019/9/10
  * github - https://github.com/hl845740757
  */
-class ExampleRpcServerLoop extends SingleThreadEventLoop {
+class ExampleRpcServerLoop extends DisruptorEventLoop {
 
     private final NetEventLoopGroup netGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET-EVENT-LOOP"),
             RejectedExecutionHandlers.log());
@@ -50,6 +54,7 @@ class ExampleRpcServerLoop extends SingleThreadEventLoop {
 
     private NetContext netContext;
     private final Promise<JVMPort> jvmPortPromise;
+    private long startTime;
 
     public ExampleRpcServerLoop(@Nonnull ThreadFactory threadFactory,
                                 @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
@@ -86,22 +91,13 @@ class ExampleRpcServerLoop extends SingleThreadEventLoop {
                     protocolDispatcher,
                     SessionSenderMode.DIRECT);
         }
+        startTime = System.currentTimeMillis();
     }
 
     @Override
-    protected void loop() {
-        final long starrTime = System.currentTimeMillis();
-        for (; ; ) {
-            // 执行所有任务
-            runAllTasks();
-            // 循环x分钟
-            if (System.currentTimeMillis() - starrTime > TimeUtils.MIN * 3) {
-                break;
-            }
-            // 确认是否退出
-            if (confirmShutdown()) {
-                break;
-            }
+    protected void loopOnce() {
+        if (System.currentTimeMillis() - startTime > TimeUtils.MIN) {
+            shutdown();
         }
     }
 
