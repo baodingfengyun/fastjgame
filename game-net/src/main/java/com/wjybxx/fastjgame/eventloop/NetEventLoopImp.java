@@ -20,7 +20,7 @@ import com.google.inject.Injector;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
-import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
+import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
 import com.wjybxx.fastjgame.manager.*;
 import com.wjybxx.fastjgame.module.NetEventLoopModule;
 import com.wjybxx.fastjgame.net.*;
@@ -44,7 +44,9 @@ import java.util.concurrent.ThreadFactory;
  * date - 2019/8/3
  * github - https://github.com/hl845740757
  */
-public class NetEventLoopImp extends DisruptorEventLoop implements NetEventLoop {
+public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLoop {
+
+    private static final int MAX_BATCH_SIZE = 64 * 1024;
 
     private final NetManagerWrapper managerWrapper;
     private final NetEventLoopManager netEventLoopManager;
@@ -157,16 +159,24 @@ public class NetEventLoopImp extends DisruptorEventLoop implements NetEventLoop 
     }
 
     @Override
-    protected void loopOnce() {
-        // 更新时间
-        netTimeManager.update(System.currentTimeMillis());
-        // 检测定时器
-        netTimerManager.tick();
-        // 刷帧
-        socketS2CSessionManager.tick();
-        socketC2SSessionManager.tick();
-        jvms2CSessionManager.tick();
-        jvmc2SSessionManager.tick();
+    protected void loop() {
+        while (true) {
+            runAllTasks(MAX_BATCH_SIZE);
+
+            // 更新时间
+            netTimeManager.update(System.currentTimeMillis());
+            // 检测定时器
+            netTimerManager.tick();
+            // 刷帧
+            socketS2CSessionManager.tick();
+            socketC2SSessionManager.tick();
+            jvms2CSessionManager.tick();
+            jvmc2SSessionManager.tick();
+
+            if (confirmShutdown()) {
+                break;
+            }
+        }
     }
 
     @Override

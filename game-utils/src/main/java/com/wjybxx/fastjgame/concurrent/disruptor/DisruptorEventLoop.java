@@ -35,20 +35,21 @@ import java.util.concurrent.locks.LockSupport;
 /**
  * 基于Disruptor的事件循环。
  * <p>
- * 代码和{@link SingleThreadEventLoop}很像，但是又不完全一样，类似的代码写两遍还是有点难受。。。。
+ * 警告：任意两个{@link DisruptorEventLoop}之间最好不要互相发消息/事件，可能造成死锁！
  * <p>
  * Q: {@link DisruptorEventLoop}比{@link SingleThreadEventLoop}强在哪？
  * A: 1. 有界队列{@link LinkedBlockingQueue}、{@link ArrayBlockingQueue}性能太差。
- * 2. {@link ConcurrentLinkedQueue} 是无界的，不能很好的管理资源，而且我测试的时候，发现它的锁算法在高度竞争下有缺陷，表现很奇怪 - 看起来像是有偏向性。
- * 3. {@link RingBuffer}的内存利用的很好，且性能极好， 我测了几次，比{@link ConcurrentLinkedQueue}大概高20%-25%， 而且算法没得问题。
+ * 2. {@link ConcurrentLinkedQueue} 是无界的，不能很好的管理资源。
+ * 3. {@link RingBuffer}的内存利用的很好，且性能极好，我测了几次，比{@link ConcurrentLinkedQueue}大概高20%-25%。
  * <p>
  * Q: 那么有什么缺陷呢？<br>
- * A: 1. {@link RingBuffer}是有界的。提交任务失败时：如果限制重试次数，则可能丢掉任务，可能产生严重影响。
- * 如果不限制重试次数，则可能长时间阻塞，甚至死锁！
+ * A: 1. {@link RingBuffer}是有界的。由于{@link EventLoop}都是单线程的，如果两个{@link EventLoop}都使用有界队列，容易死锁！ - eg: 网络层尝试向应用层提交任务，应用层尝试向网络层提交任务。
+ * 2. 提交任务失败时：如果限制重试次数，则可能丢掉任务，可能产生严重影响。如果不限制重试次数，则可能长时间阻塞，甚至死锁！
  * 2. 线程的生命周期不好控制！因为线程不是自己创建的，而是来源于{@link BatchEventProcessor}
  * 3. 线程的循环逻辑也不好控制。因为循环逻辑也是来源于{@link BatchEventProcessor}
  * 4. 内存泄漏，{@link Disruptor}关闭时无法很好清理{@link RingBuffer}剩余的事件。
  * 第一项和第四项其实是有点危险的。
+ *
  *
  * @author wjybxx
  * @version 1.0
@@ -62,11 +63,11 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     /**
      * 默认ringBuffer大小 - 大一点可以减少降低阻塞概率
      */
-    public static final int DEFAULT_RING_BUFFER_SIZE = SystemUtils.getProperties().getAsInt("DisruptorEventLoop.ringBufferSize", 32 * 1024);
+    public static final int DEFAULT_RING_BUFFER_SIZE = SystemUtils.getProperties().getAsInt("DisruptorEventLoop.ringBufferSize", 1024 * 1024);
     /**
      * 提交任务最大尝试次数 - 避免死锁
      */
-    public static final int MAX_TRY_TIMES = SystemUtils.getProperties().getAsInt("DisruptorEventLoop.ringBufferSize", 10 * 10000);
+    public static final int MAX_TRY_TIMES = SystemUtils.getProperties().getAsInt("DisruptorEventLoop.maxTryTimes", 10 * 10000);
 
     // 线程的状态
     /**
@@ -232,11 +233,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
                 }
             }
             if (tryTimes >= MAX_TRY_TIMES) {
-                logger.error("may disruptor event loop dead lock, tryTimes {}", tryTimes);
-            } else {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("try times {}", tryTimes);
-                }
+                logger.error("may cause dead lock, tryTimes {}", tryTimes);
             }
             rejectedExecutionHandler.rejected(task, this);
         }
@@ -286,13 +283,13 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     }
 
     private void onStart() {
-        if (isTerminated()) {
-            throw new IllegalStateException();
-        }
         try {
             init();
-        } catch (Exception e) {
-            ConcurrentUtils.rethrow(e);
+        } catch (Throwable e) {
+            stateHolder.set(ST_TERMINATED);
+            terminationFuture.tryFailure(e);
+            // 启动时抛出异常，无法走到 onShutdown
+            ConcurrentUtils.rethrow(new RuntimeException(e));
         }
     }
 
@@ -320,16 +317,13 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     }
 
     private void onShutdown() {
-        if (isTerminated()) {
-            throw new IllegalStateException();
-        }
         // 告知其它线程已开始关闭 - 不要再提交任务
         advanceRunState(ST_SHUTDOWN);
 
         // 退出前进行必要的清理，释放系统资源
         try {
             clean();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             logger.error("thread clean caught exception!", e);
         } finally {
             stateHolder.set(ST_TERMINATED);

@@ -30,6 +30,7 @@ import javax.annotation.Nullable;
  * @version 1.0
  * date - 2019/7/14
  * github - https://github.com/hl845740757
+ * @apiNote 由于{@link EventLoop}都是单线程的，如果两个{@link EventLoop}存在直接交互，且都使用有界队列，则可能死锁！
  */
 public interface EventLoop extends EventLoopGroup {
 

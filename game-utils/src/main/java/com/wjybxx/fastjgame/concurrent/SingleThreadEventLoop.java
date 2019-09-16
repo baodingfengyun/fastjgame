@@ -50,23 +50,10 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     };
 
     /**
-     * 当允许的任务数小于等于该值时使用{@link ArrayBlockingQueue}，能提高部分性能（空间换时间）。
-     * 过大时浪费内存。
-     */
-    private static final int ARRAy_BLOCKING_QUEUE_CAPACITY = 16 * 1024;
-
-    /**
      * 缓存队列的大小，不宜过大，但也不能过小。
      * 过大容易造成内存浪费，过小对于性能无太大意义。
      */
     private static final int CACHE_QUEUE_CAPACITY = 1024;
-
-    /**
-     * 默认的最大任务数，默认无上限。
-     * 最小为1024
-     */
-    private static final int DEFAULT_MAX_TASKS =
-            Math.max(1024, SystemUtils.getProperties().getAsInt("SingleThreadEventLoop.maxTasks", Integer.MAX_VALUE));
 
     // 线程的状态
     /**
@@ -134,32 +121,24 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     protected SingleThreadEventLoop(@Nullable EventLoopGroup parent,
                                     @Nonnull ThreadFactory threadFactory,
                                     @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
-        this(parent, threadFactory, rejectedExecutionHandler, DEFAULT_MAX_TASKS);
-    }
-
-    protected SingleThreadEventLoop(@Nullable EventLoopGroup parent,
-                                    @Nonnull ThreadFactory threadFactory,
-                                    @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
-                                    int maxTaskNum) {
         super(parent);
         this.thread = Objects.requireNonNull(threadFactory.newThread(new Worker()), "newThread");
-
         // 记录异常退出日志
         UncaughtExceptionHandlers.logIfAbsent(thread, logger);
 
+
         this.rejectedExecutionHandler = rejectedExecutionHandler;
-        this.taskQueue = newTaskQueue(maxTaskNum);
+        this.taskQueue = newTaskQueue();
         this.taskQueueHandler = newTaskQueueHandler(taskQueue);
     }
 
     /**
-     * 创建任务队列，如果子类不需要阻塞操作，则可以创建特定类型的队列。
+     * 创建任务队列，如果子类不需要阻塞操作 或 需要控制资源，则可以创建特定类型的队列。
      *
-     * @param maxTaskNum 允许压入的最大任务数
      * @return queue
      */
-    protected Queue<Runnable> newTaskQueue(int maxTaskNum) {
-        return maxTaskNum > ARRAy_BLOCKING_QUEUE_CAPACITY ? new LinkedBlockingQueue<>(maxTaskNum) : new ArrayBlockingQueue<>(maxTaskNum);
+    protected Queue<Runnable> newTaskQueue() {
+        return new LinkedBlockingQueue<>();
     }
 
     /**

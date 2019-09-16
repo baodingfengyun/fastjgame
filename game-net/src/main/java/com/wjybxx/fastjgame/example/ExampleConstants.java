@@ -15,6 +15,10 @@
  */
 package com.wjybxx.fastjgame.example;
 
+import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
+import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
+import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
+import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupImp;
 import com.wjybxx.fastjgame.misc.JsonBasedProtocolCodec;
 import com.wjybxx.fastjgame.misc.MessageMapper;
 import com.wjybxx.fastjgame.misc.ReflectBasedProtocolCodec;
@@ -48,6 +52,8 @@ public final class ExampleConstants {
     public static final JsonBasedProtocolCodec jsonBasedCodec = new JsonBasedProtocolCodec(messageMapper);
     public static final ReflectBasedProtocolCodec reflectBasedCodec = ReflectBasedProtocolCodec.newInstance(messageMapper);
 
+    public static final NetEventLoopGroup netGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET-EVENT-LOOP"),
+            RejectedExecutionHandlers.log());
     /**
      * tcp端口
      */

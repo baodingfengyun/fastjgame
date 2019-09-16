@@ -132,10 +132,6 @@ public class ExampleRpcClientLoop extends DisruptorEventLoop {
         sendRequest(index++);
     }
 
-    /**
-
-     * <p>
-     */
     private void sendRequest(final int index) {
         final long start = System.nanoTime();
         final String callResult = ExampleRpcServiceRpcProxy.combine("wjybxx", String.valueOf(index)).syncCall(session);

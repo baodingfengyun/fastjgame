@@ -50,6 +50,7 @@ class DisruptorExceptionHandler implements ExceptionHandler<RunnableEvent> {
 
     @Override
     public void handleOnShutdownException(Throwable ex) {
+        // 退出时未捕获到的异常
         logger.error("onShutdown caught exception!", ex);
     }
 }

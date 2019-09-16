@@ -97,10 +97,11 @@ public class DefaultThreadFactory implements ThreadFactory {
             if (priority != UNASSIGNED_PRIORITY && t.getPriority() != priority) {
                 t.setPriority(priority);
             }
-            UncaughtExceptionHandlers.logIfAbsent(t, logger);
         } catch (Exception ignored) {
             // Doesn't matter even if failed to set.
         }
+        // 记录异常
+        t.setUncaughtExceptionHandler(UncaughtExceptionHandlers.justLog(logger));
         return t;
     }
 

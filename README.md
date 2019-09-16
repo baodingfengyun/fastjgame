@@ -3,7 +3,7 @@ fastjgame 为 fast java game framework的缩写，如名字一样，该项目的
 1. 它将是一个**分布式多进程多线程**架构，它有着良好的多线程模型，兼具简单性和高性能。  
 2. 高性能的网络层: 采用protoBuf实现自定义二进制协议，**体积小，编解码速度快**，再辅以代码生成 -- **简单极速的rpc调用**。
 3. 代码自动生成: RpcService、Subscribe等相应代码自动生成。代码生成一时爽，一直生成一直爽。
-4. 高性能的并发组件DisruptorEventLoop。
+4. **Netty**线程模型与**Disruptor**线程模型合二为一，高性能的并发组件**DisruptorEventLoop**。
 
 ***
 ### 多线程框架的好与坏
