@@ -62,6 +62,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 
     /**
      * 默认ringBuffer大小 - 大一点可以减少降低阻塞概率
+     * 1024 * 1024 个对象大概 16M
      */
     public static final int DEFAULT_RING_BUFFER_SIZE = SystemUtils.getProperties().getAsInt("DisruptorEventLoop.ringBufferSize", 1024 * 1024);
     /**

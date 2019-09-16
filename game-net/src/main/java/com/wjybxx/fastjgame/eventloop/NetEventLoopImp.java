@@ -35,6 +35,7 @@ import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.locks.LockSupport;
 
 /**
  * 网络事件循环
@@ -176,6 +177,8 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
             if (confirmShutdown()) {
                 break;
             }
+            // 降低cpu利用率
+            LockSupport.parkNanos(100);
         }
     }
 

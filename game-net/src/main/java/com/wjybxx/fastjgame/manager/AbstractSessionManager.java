@@ -121,9 +121,7 @@ public abstract class AbstractSessionManager implements SessionManager {
             // 执行发送
             sessionWrapper.sendRpcRequest(requestGuid, false, request);
         } else {
-            ConcurrentUtils.tryCommit(userEventLoop, () -> {
-                rpcCallback.onComplete(RpcResponse.SESSION_CLOSED);
-            });
+            ConcurrentUtils.tryCommit(userEventLoop, new RpcResponseCommitTask(rpcCallback, RpcResponse.SESSION_CLOSED));
         }
     }
 
@@ -189,14 +187,13 @@ public abstract class AbstractSessionManager implements SessionManager {
         } else {
             RpcResponseCommitTask rpcResponseCommitTask;
             if (session.isActive()) {
-                rpcResponseCommitTask = new RpcResponseCommitTask(rpcResponse, rpcPromiseInfo.rpcCallback);
+                rpcResponseCommitTask = new RpcResponseCommitTask(rpcPromiseInfo.rpcCallback, rpcResponse);
             } else {
-                rpcResponseCommitTask = new RpcResponseCommitTask(RpcResponse.SESSION_CLOSED, rpcPromiseInfo.rpcCallback);
+                rpcResponseCommitTask = new RpcResponseCommitTask(rpcPromiseInfo.rpcCallback, RpcResponse.SESSION_CLOSED);
             }
             ConcurrentUtils.tryCommit(session.localEventLoop(), rpcResponseCommitTask);
         }
     }
-
 
     /**
      * 清理Rpc请求信息

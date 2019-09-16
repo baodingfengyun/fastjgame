@@ -25,10 +25,10 @@ package com.wjybxx.fastjgame.net;
  */
 public class RpcResponseCommitTask implements CommitTask {
 
-    private RpcResponse rpcResponse;
     private RpcCallback rpcCallback;
+    private RpcResponse rpcResponse;
 
-    public RpcResponseCommitTask(RpcResponse rpcResponse, RpcCallback rpcCallback) {
+    public RpcResponseCommitTask(RpcCallback rpcCallback, RpcResponse rpcResponse) {
         this.rpcResponse = rpcResponse;
         this.rpcCallback = rpcCallback;
     }
