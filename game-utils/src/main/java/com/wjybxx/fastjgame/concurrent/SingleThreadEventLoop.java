@@ -19,13 +19,15 @@ package com.wjybxx.fastjgame.concurrent;
 
 import com.wjybxx.fastjgame.utils.CollectionUtils;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-import com.wjybxx.fastjgame.utils.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Queue;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
@@ -46,7 +48,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     /**
      * 用于友好的唤醒当前线程的任务
      */
-    private static final Runnable WAKE_UP_TASK = () -> {
+    protected static final Runnable WAKE_UP_TASK = () -> {
     };
 
     /**
@@ -125,7 +127,6 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
         this.thread = Objects.requireNonNull(threadFactory.newThread(new Worker()), "newThread");
         // 记录异常退出日志
         UncaughtExceptionHandlers.logIfAbsent(thread, logger);
-
 
         this.rejectedExecutionHandler = rejectedExecutionHandler;
         this.taskQueue = newTaskQueue();
@@ -273,33 +274,9 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
         thread.interrupt();
     }
 
-    @Deprecated
-    @Nonnull
-    @Override
-    public final List<Runnable> shutdownNow() {
-        for (; ; ) {
-            int oldState = stateHolder.get();
-            if (isShutdown0(oldState)) {
-                return Collections.emptyList();
-            }
-            if (stateHolder.compareAndSet(oldState, ST_SHUTDOWN)) {
-                // 停止所有任务
-                // 注意：这个时候仍然可能有线程尝试添加任务，需要在添加任务那里进行处理
-                LinkedList<Runnable> haltTasks = new LinkedList<>();
-                taskQueueHandler.drainQueue(haltTasks);
-                haltTasks.removeIf(task -> task == WAKE_UP_TASK);
-
-                // 确保线程可进入终止状态
-                ensureThreadTerminable(oldState);
-                return haltTasks;
-            }
-        }
-    }
-
     /**
      * 确保线程可终止。
      * - terminable
-     * TODO 这个需要仔细思考
      *
      * @param oldState 切换到shutdown之前的状态
      */
@@ -342,7 +319,6 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     protected final boolean confirmShutdown() {
         // 用于EventLoop确认自己是否应该退出，不应该由外部线程调用
         assert inEventLoop();
-
         // 它放前面是因为更可能出现
         if (!isShuttingDown()) {
             return false;
@@ -429,7 +405,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
         // 1. 在检测到未关闭的状态下尝试压入队列
         if (!isShuttingDown() && taskQueue.offer(task)) {
             // 2. 压入队列是一个过程！在压入队列的过程中，executor的状态可能改变，因此必须再次校验 - 以判断线程是否在任务压入队列之后已经开始关闭了
-            // remove失败表示executor已经处理了该任务或已经被强制停止(shutdownNow) --- shutdownNow方法已删除
+            // remove失败表示executor已经处理了该任务
             if (isShuttingDown() && taskQueue.remove(task)) {
                 reject(task);
                 return false;
@@ -470,7 +446,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     /**
      * 阻塞式地从阻塞队列中获取一个任务。
      *
-     * @param timeoutMs 超时时间
+     * @param timeoutMs 超时时间 - 毫秒
      * @return 如果executor被唤醒或被中断或实时间到，则返回null
      */
     @Nullable
@@ -488,13 +464,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     @Nullable
     protected final Runnable pollTask() {
         assert inEventLoop();
-        for (; ; ) {
-            Runnable task = taskQueue.poll();
-            if (task == WAKE_UP_TASK) {
-                continue;
-            }
-            return task;
-        }
+        return taskQueue.poll();
     }
 
     /**
@@ -561,9 +531,6 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
         while (pollTaskToCache() > 0) {
             // 批量拉取任务执行(可减少竞争)
             for (Runnable runnable : cacheQueue) {
-                if (runnable == WAKE_UP_TASK) {
-                    continue;
-                }
                 safeExecute(runnable);
                 runTaskNum++;
             }
@@ -596,24 +563,13 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
         Runnable takeTask(long timeoutMs);
 
         /**
-         * 将任务队列
+         * 将任务队列中的任务拉取到线程本地缓存队列中
          *
          * @param cacheQueue  任务缓存队列
          * @param maxCacheNum 最大缓存数
          */
         int drainTo(List<Runnable> cacheQueue, int maxCacheNum);
 
-        /**
-         * 将任务队列中所有任务删除，并添加到目标集合
-         *
-         * @param out 目标集合
-         */
-        int drainQueue(List<Runnable> out);
-    }
-
-    @FunctionalInterface
-    private interface TakeAction {
-        Runnable take() throws InterruptedException;
     }
 
     protected static class BlockingQueueHandler implements TaskQueueHandler {
@@ -627,37 +583,27 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
         @Nullable
         @Override
         public Runnable takeTask() {
-            return taskTaskImp(taskQueue::take);
-        }
-
-        private static Runnable taskTaskImp(TakeAction action) {
             try {
-                Runnable task = action.take();
-                // 被唤醒
-                if (task == WAKE_UP_TASK) {
-                    return null;
-                } else {
-                    return task;
-                }
+                return taskQueue.take();
             } catch (InterruptedException ignore) {
                 // 被中断唤醒 wake up
+                return null;
             }
-            return null;
         }
 
         @Override
         public Runnable takeTask(long timeoutMs) {
-            return taskTaskImp(() -> taskQueue.poll(timeoutMs, TimeUnit.MILLISECONDS));
+            try {
+                return taskQueue.poll(timeoutMs, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException ignore) {
+                // 被中断唤醒 wake up
+                return null;
+            }
         }
 
         @Override
         public int drainTo(List<Runnable> cacheQueue, int maxCacheNum) {
             return taskQueue.drainTo(cacheQueue, maxCacheNum);
-        }
-
-        @Override
-        public int drainQueue(List<Runnable> out) {
-            return CollectionUtils.drainQueue(taskQueue, out);
         }
 
     }
@@ -686,9 +632,5 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
             return CollectionUtils.pollTo(taskQueue, cacheQueue, maxCacheNum);
         }
 
-        @Override
-        public int drainQueue(List<Runnable> out) {
-            return CollectionUtils.drainQueue(taskQueue, out);
-        }
     }
 }

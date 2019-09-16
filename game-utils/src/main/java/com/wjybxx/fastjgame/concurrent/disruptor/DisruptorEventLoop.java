@@ -50,7 +50,6 @@ import java.util.concurrent.locks.LockSupport;
  * 4. 内存泄漏，{@link Disruptor}关闭时无法很好清理{@link RingBuffer}剩余的事件。
  * 第一项和第四项其实是有点危险的。
  *
- *
  * @author wjybxx
  * @version 1.0
  * date - 2019/7/24
@@ -260,7 +259,8 @@ public class DisruptorEventLoop extends AbstractEventLoop {
      * 确保线程已启动
      */
     private void ensureThreadStarted() {
-        if (stateHolder.get() == ST_NOT_STARTED) {
+        int oldState = stateHolder.get();
+        if (oldState == ST_NOT_STARTED) {
             if (stateHolder.compareAndSet(ST_NOT_STARTED, ST_RUNNING)) {
                 disruptor.start();
             }
