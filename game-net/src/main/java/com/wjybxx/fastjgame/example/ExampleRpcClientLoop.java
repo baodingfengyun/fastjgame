@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
+import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorWaitStrategyType;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupImp;
 import com.wjybxx.fastjgame.misc.DefaultProtocolDispatcher;
@@ -96,7 +97,7 @@ public class ExampleRpcClientLoop extends DisruptorEventLoop {
     public ExampleRpcClientLoop(@Nonnull ThreadFactory threadFactory,
                                 @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
                                 @Nullable JVMPort jvmPort) {
-        super(null, threadFactory, rejectedExecutionHandler);
+        super(null, threadFactory, rejectedExecutionHandler, DisruptorWaitStrategyType.YIELD);
         this.jvmPort = jvmPort;
     }
 

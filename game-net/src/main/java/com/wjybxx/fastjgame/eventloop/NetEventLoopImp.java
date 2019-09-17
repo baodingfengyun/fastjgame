@@ -162,7 +162,7 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     @Override
     protected void loop() {
         while (true) {
-            runAllTasks(MAX_BATCH_SIZE);
+            runTasksBatch(MAX_BATCH_SIZE);
 
             // 更新时间
             netTimeManager.update(System.currentTimeMillis());

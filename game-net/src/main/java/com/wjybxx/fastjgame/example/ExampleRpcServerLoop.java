@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
+import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorWaitStrategyType;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupImp;
 import com.wjybxx.fastjgame.misc.DefaultProtocolDispatcher;
@@ -54,12 +55,14 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
 
     private NetContext netContext;
     private final Promise<JVMPort> jvmPortPromise;
+
     private long startTime;
+    private Session session;
 
     public ExampleRpcServerLoop(@Nonnull ThreadFactory threadFactory,
                                 @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
                                 @Nullable Promise<JVMPort> jvmPortPromise) {
-        super(null, threadFactory, rejectedExecutionHandler);
+        super(null, threadFactory, rejectedExecutionHandler, DisruptorWaitStrategyType.YIELD);
         this.jvmPortPromise = jvmPortPromise;
     }
 
@@ -110,16 +113,18 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
         netGroup.shutdown();
     }
 
-    private static class ClientLifeAware implements SessionLifecycleAware {
+    private class ClientLifeAware implements SessionLifecycleAware {
 
         @Override
         public void onSessionConnected(Session session) {
             System.out.println("-----------------onSessionConnected----------------------");
+            ExampleRpcServerLoop.this.session = session;
         }
 
         @Override
         public void onSessionDisconnected(Session session) {
             System.out.println("----------------onSessionDisconnected---------------------");
+            ExampleRpcServerLoop.this.session = null;
         }
     }
 

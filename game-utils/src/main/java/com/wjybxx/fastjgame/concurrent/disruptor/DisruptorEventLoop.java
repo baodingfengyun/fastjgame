@@ -245,7 +245,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     private void ensureThreadTerminable(int oldState) {
         if (oldState == ST_NOT_STARTED) {
             stateHolder.set(ST_TERMINATED);
-            terminationFuture.trySuccess(null);
+            terminationFuture.setSuccess(null);
         } else {
             // 中断当前线程，即使inEventLoop也需要中断，否则可能丢失信号，在waitFor处无法停止
             worker.sequenceBarrier.alert();
@@ -456,7 +456,8 @@ public class DisruptorEventLoop extends AbstractEventLoop {
                     // 等待超时，执行一次循环
                     safeLoopOnce();
                 } catch (Throwable e) {
-                    // 不好的等待策略实现，这是和BatchEventProcessor不一样的地方，这里并不会更新sequence，不会导致数据丢失问题！
+                    // 不好的等待策略实现
+                    // 这是和BatchEventProcessor不一样的地方，这里并不会更新sequence，不会导致数据丢失问题！
                     logger.error("bad waitStrategy imp", e);
                 }
             }
@@ -469,6 +470,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
             long startNanoTime = System.nanoTime();
             for (int triTimes = 0; triTimes < 100_0000; triTimes++) {
                 try {
+                    // 申请整个空间，因此与真正的生产者之间是互斥的！这是关键
                     final long finalSequence = ringBuffer.tryNext(ringBuffer.getBufferSize());
                     final long initialSequence = finalSequence - (ringBuffer.getBufferSize() - 1);
                     try {
