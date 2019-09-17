@@ -37,6 +37,11 @@ final class RunnableEvent {
 
     }
 
+    /**
+     * 返回当前任务
+     *
+     * @return task
+     */
     @Nonnull
     Runnable detachTask() {
         Runnable r = task;

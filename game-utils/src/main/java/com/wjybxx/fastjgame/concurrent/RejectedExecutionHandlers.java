@@ -54,7 +54,7 @@ public class RejectedExecutionHandlers {
      * 仅仅记录一条日志
      */
     private static final RejectedExecutionHandler LOG_POLICY = (r, eventLoop) -> {
-        logger.warn("task {} is reject by {}.", r.getClass().getCanonicalName(), eventLoop.getClass().getCanonicalName());
+        logger.info("task {} is reject by {}.", r.getClass().getCanonicalName(), eventLoop.getClass().getCanonicalName());
     };
 
 

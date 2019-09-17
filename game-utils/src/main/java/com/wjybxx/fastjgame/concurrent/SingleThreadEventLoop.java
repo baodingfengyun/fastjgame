@@ -361,7 +361,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
                     logger.error("thread exit due to exception!", e);
                 }
             } finally {
-                // 如果是非正常退出，需要切换到正在关闭状态
+                // 如果是非正常退出，需要切换到正在关闭状态 - 告知其它线程正在关闭
                 advanceRunState(ST_SHUTTING_DOWN);
                 try {
                     // 非正常退出下也尝试执行完所有的任务 - 当然这也不是很安全

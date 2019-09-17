@@ -45,7 +45,7 @@ public class DisruptorEventLoopTest2 extends DisruptorEventLoop {
     }
 
     @Override
-    protected void loopOnce() {
+    protected void loopOnce() throws Exception{
         super.loopOnce();
     }
 

@@ -21,7 +21,6 @@ import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
-import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoopWaitStrategy;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupImp;
 import com.wjybxx.fastjgame.misc.DefaultProtocolDispatcher;
@@ -60,7 +59,7 @@ import java.util.stream.IntStream;
  * 大致的测试结果是：6000纳秒左右 - (0.006毫秒)。
  * </pre>
  * <pre>
- * 现在：如果{@link DisruptorEventLoopWaitStrategy}不调用{@link LockSupport#parkNanos(long)}，也不调用{@link Thread#yield()}，测试数据如下：
+ * 现在：如果{@link com.lmax.disruptor.WaitStrategy}不调用{@link LockSupport#parkNanos(long)}，也不调用{@link Thread#yield()}，测试数据如下：
  * <p>如果是正常socket，使用SocketSession：
  * SyncCall - 82418 - wjybxx-82418 , cost time nano 178863
  * SyncCall - 82419 - wjybxx-82419 , cost time nano 160128
