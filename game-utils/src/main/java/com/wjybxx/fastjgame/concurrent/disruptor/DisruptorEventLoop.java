@@ -476,7 +476,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
                     try {
                         for (long sequence = initialSequence; sequence <= finalSequence; sequence++) {
                             // 丢弃数据，避免内存泄漏
-                            ringBuffer.get(sequence).detachTask();
+                            ringBuffer.get(sequence).disCard();
                         }
                         break;
                     } finally {
