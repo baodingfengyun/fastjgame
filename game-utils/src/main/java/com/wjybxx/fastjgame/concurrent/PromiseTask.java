@@ -50,7 +50,7 @@ public class PromiseTask<V> extends DefaultPromise<V> implements RunnableFuture<
                 V result = callable.call();
                 setSuccessInternal(result);
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             setFailureInternal(e);
         }
     }

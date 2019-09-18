@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.timer;
 
-import com.wjybxx.fastjgame.misc.LongSequencer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,9 +60,10 @@ public class DefaultTimerSystem implements TimerSystem {
      */
     private final SystemTimeProvider timeProvider;
     /**
-     * 用于分配timerId 如果是静态的将存在线程安全问题(或使用AtomicLong - 不想产生不必要的竞争，因此每个timerSystem一个)
+     * 用于分配timerId。
+     * 如果是静态的将存在线程安全问题(或使用AtomicLong - 不想产生不必要的竞争，因此每个timerSystem一个)
      */
-    private final LongSequencer timerIdSequencer = new LongSequencer(0);
+    private long timerIdSequencer = 0;
     /**
      * 是否已关闭
      */
@@ -138,7 +138,7 @@ public class DefaultTimerSystem implements TimerSystem {
             if (curMillTime < timerHandle.getNextExecuteTimeMs()) {
                 return;
             }
-            // 先弹出队列
+            // 先弹出队列，并记录正在执行
             runningTimerId = timerQueue.poll().getTimerId();
 
             do {
@@ -152,7 +152,7 @@ public class DefaultTimerSystem implements TimerSystem {
                 // 如果未取消的话，压入队列稍后执行
                 timerQueue.offer(timerHandle);
             }
-
+            // 清除标记
             runningTimerId = INVALID_TIMER_ID;
         }
     }
@@ -179,7 +179,7 @@ public class DefaultTimerSystem implements TimerSystem {
 
     @Override
     public long allocTimerId() {
-        return timerIdSequencer.incAndGet();
+        return ++timerIdSequencer;
     }
 
     /**
@@ -191,22 +191,6 @@ public class DefaultTimerSystem implements TimerSystem {
         AbstractTimerHandle handle;
         while ((handle = queue.poll()) != null) {
             handle.setTerminated();
-        }
-    }
-
-    /**
-     * 将timer压入队列，并进行适当的初始化。
-     */
-    private <T extends AbstractTimerHandle> T tryAddTimerAndInit(Queue<AbstractTimerHandle> queue, T timerHandle) {
-        if (closed) {
-            // timer系统已关闭，不压入队列
-            timerHandle.setTerminated();
-            return timerHandle;
-        } else {
-            // 先初始化，才能获得首次执行时间
-            timerHandle.init();
-            queue.add(timerHandle);
-            return timerHandle;
         }
     }
 
@@ -223,11 +207,45 @@ public class DefaultTimerSystem implements TimerSystem {
         }
     }
 
+    /**
+     * 调整handle在timerSystem中的优先级(暂时先删除再插入，如果切换底层数据结构，那么可能会修改)
+     *
+     * @param handle       定时器句柄
+     * @param adjustAction 调整优先级的函数
+     * @param <T>          定时器句柄类型
+     */
+    private <T extends AbstractTimerHandle> void adjust(T handle, Consumer<T> adjustAction) {
+        if (runningTimerId == handle.getTimerId()) {
+            // 正在执行的时候调整间隔
+            adjustAction.accept(handle);
+        } else {
+            // 其它时候调整间隔
+            timerQueue.remove(handle);
+            adjustAction.accept(handle);
+            timerQueue.add(handle);
+        }
+    }
+
+    /**
+     * 将timer压入队列，并进行适当的初始化。
+     */
+    private <T extends AbstractTimerHandle> T tryAddTimerAndInit(T timerHandle) {
+        if (closed) {
+            // timer系统已关闭，不压入队列
+            timerHandle.setTerminated();
+        } else {
+            // 先初始化，才能获得首次执行时间
+            timerHandle.init();
+            timerQueue.add(timerHandle);
+        }
+        return timerHandle;
+    }
+
     @Nonnull
     @Override
     public TimeoutHandle newTimeout(long timeout, @Nonnull TimerTask<TimeoutHandle> task) {
         TimeoutHandleImp timeoutHandleImp = new TimeoutHandleImp(this, task, timeProvider.getSystemMillTime(), timeout);
-        return tryAddTimerAndInit(timerQueue, timeoutHandleImp);
+        return tryAddTimerAndInit(timeoutHandleImp);
     }
 
     @Nonnull
@@ -235,7 +253,7 @@ public class DefaultTimerSystem implements TimerSystem {
     public FixedDelayHandle newFixedDelay(long initialDelay, long delay, @Nonnull TimerTask<FixedDelayHandle> task) {
         AbstractFixedDelayHandle.ensureDelay(delay);
         FixedDelayHandleImp fixedDelayHandleImp = new FixedDelayHandleImp(this, task, timeProvider.getSystemMillTime(), initialDelay, delay);
-        return tryAddTimerAndInit(timerQueue, fixedDelayHandleImp);
+        return tryAddTimerAndInit(fixedDelayHandleImp);
     }
 
     @Nonnull
@@ -243,7 +261,7 @@ public class DefaultTimerSystem implements TimerSystem {
     public FixedRateHandle newFixRate(long initialDelay, long period, @Nonnull TimerTask<FixedRateHandle> task) {
         AbstractFixRateHandle.ensurePeriod(period);
         FixRateHandleImp fixRateHandleImp = new FixRateHandleImp(this, task, timeProvider.getSystemMillTime(), initialDelay, period);
-        return tryAddTimerAndInit(timerQueue, fixRateHandleImp);
+        return tryAddTimerAndInit(fixRateHandleImp);
     }
 
     // ------------------------------------- handle实现 --------------------------------------------
@@ -268,7 +286,7 @@ public class DefaultTimerSystem implements TimerSystem {
 
         @Override
         protected void adjust() {
-            DefaultTimerSystem.adjust(timerSystem(), this, TimeoutHandleImp::updateNextExecuteTime);
+            timerSystem().adjust(this, TimeoutHandleImp::updateNextExecuteTime);
         }
     }
 
@@ -292,7 +310,7 @@ public class DefaultTimerSystem implements TimerSystem {
 
         @Override
         protected void adjust() {
-            DefaultTimerSystem.adjust(timerSystem(), this, FixedDelayHandleImp::updateNextExecuteTime);
+            timerSystem().adjust(this, FixedDelayHandleImp::updateNextExecuteTime);
         }
     }
 
@@ -316,21 +334,8 @@ public class DefaultTimerSystem implements TimerSystem {
 
         @Override
         protected void adjust() {
-            DefaultTimerSystem.adjust(timerSystem(), this, FixRateHandleImp::updateNextExecuteTime);
+            timerSystem().adjust(this, FixRateHandleImp::updateNextExecuteTime);
         }
     }
 
-    /**
-     * 调整handle在timerSystem中的优先级(暂时先删除再插入，如果切换底层数据结构，那么可能会修改)
-     *
-     * @param timerSystem  绑定的timerSystem
-     * @param handle       定时器句柄
-     * @param adjustAction 调整优先级的函数
-     * @param <T>          定时器句柄类型
-     */
-    private static <T extends AbstractTimerHandle> void adjust(DefaultTimerSystem timerSystem, T handle, Consumer<T> adjustAction) {
-        timerSystem.timerQueue.remove(handle);
-        adjustAction.accept(handle);
-        timerSystem.timerQueue.add(handle);
-    }
 }
