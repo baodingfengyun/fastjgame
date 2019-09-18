@@ -127,4 +127,11 @@ public interface TimerSystem {
      */
     @Nonnull
     SystemTimeProvider timeProvider();
+
+    /**
+     * 分配一个timerId
+     *
+     * @return timerId
+     */
+    long allocTimerId();
 }

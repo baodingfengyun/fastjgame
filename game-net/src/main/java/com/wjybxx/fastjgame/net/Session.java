@@ -36,7 +36,7 @@ import javax.annotation.concurrent.ThreadSafe;
  *
  * <p><br>
  * Q: Netty线程和用户线程之间会竞争NetEventLoop资源，这个竞争可能非常激烈，如何降低Netty线程和用户线程之间的竞争？<br>
- * A: Session接口中的所有方法都不会对请求进行缓存，都会立即发送到网络层。为了解决这个问题，提炼了{@link Sender}接口，你可以使用带有缓冲的sender，
+ * A: 为了解决这个问题，提炼了{@link Sender}接口，你可以使用带有缓冲的sender -  {@link UnsharableSender}，
  * 可以对用户的异步消息进行一定的缓存，使得可以进行批量发送，可以有效的降低竞争。
  *
  * <p><br>

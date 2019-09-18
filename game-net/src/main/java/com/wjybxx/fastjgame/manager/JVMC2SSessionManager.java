@@ -20,6 +20,8 @@ import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.manager.JVMS2CSessionManager.JVMPortImp;
+import com.wjybxx.fastjgame.misc.ConnectAwareTask;
+import com.wjybxx.fastjgame.misc.DisconnectAwareTask;
 import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.net.injvm.JVMC2SSession;
 import com.wjybxx.fastjgame.utils.CollectionUtils;
@@ -162,12 +164,8 @@ public class JVMC2SSessionManager extends JVMSessionManager {
 
         // 验证成功过才执行断开回调操作(即调用过onSessionConnected方法)
         if (postEvent && sessionWrapper.remoteEventLoop != null) {
-            // 避免捕获SessionWrapper，导致内存泄漏
-            final SessionLifecycleAware lifecycleAware = sessionWrapper.lifecycleAware;
             // 提交到用户线程
-            ConcurrentUtils.tryCommit(session.localEventLoop(), () -> {
-                lifecycleAware.onSessionDisconnected(session);
-            });
+            ConcurrentUtils.tryCommit(session.localEventLoop(), new DisconnectAwareTask(session, sessionWrapper.lifecycleAware));
         }
         logger.info("remove session by reason of {}, session info={}.", reason, session);
     }
@@ -258,9 +256,7 @@ public class JVMC2SSessionManager extends JVMSessionManager {
                 // 保存会话
                 userInfo.sessionWrapperMap.put(remoteGuid, sessionWrapper);
                 // 会话建立成功
-                ConcurrentUtils.tryCommit(netContext.localEventLoop(), () -> {
-                    lifecycleAware.onSessionConnected(session);
-                });
+                ConcurrentUtils.tryCommit(netContext.localEventLoop(), new ConnectAwareTask(session, lifecycleAware));
                 // 监听服务端线程关闭
                 if (remoteEventLoopSet.add(remoteEventLoop)) {
                     remoteEventLoop.terminationFuture().addListener(future -> {

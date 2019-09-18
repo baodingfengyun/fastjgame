@@ -20,6 +20,8 @@ import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
+import com.wjybxx.fastjgame.misc.ConnectAwareTask;
+import com.wjybxx.fastjgame.misc.DisconnectAwareTask;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.IntSequencer;
 import com.wjybxx.fastjgame.net.*;
@@ -216,12 +218,8 @@ public class SocketC2SSessionManager extends SocketSessionManager {
             } else {
                 // 验证成功过才执行断开回调操作(调用过onSessionConnected方法)
                 if (sessionWrapper.getVerifiedSequencer().get() > 0) {
-                    // 避免捕获SessionWrapper，导致内存泄漏
-                    final SessionLifecycleAware lifecycleAware = sessionWrapper.lifecycleAware;
                     // 提交到用户线程
-                    ConcurrentUtils.tryCommit(session.localEventLoop(), () -> {
-                        lifecycleAware.onSessionDisconnected(session);
-                    });
+                    ConcurrentUtils.tryCommit(session.localEventLoop(), new DisconnectAwareTask(session, sessionWrapper.lifecycleAware));
                 }
             }
         }
@@ -727,11 +725,7 @@ public class SocketC2SSessionManager extends SocketSessionManager {
             int verifiedTimes = getVerifiedSequencer().incAndGet();
             if (promise != null) {
                 assert verifiedTimes == 1;
-                // 避免捕获错误的对象
-                final SessionLifecycleAware lifecycleAware = sessionWrapper.lifecycleAware;
-                ConcurrentUtils.tryCommit(session.localEventLoop(), () -> {
-                    lifecycleAware.onSessionConnected(session);
-                });
+                ConcurrentUtils.tryCommit(session.localEventLoop(), new ConnectAwareTask(session, sessionWrapper.lifecycleAware));
                 logger.info("first verified success, sessionInfo={}", session);
             } else {
                 logger.info("reconnect verified success, verifiedTimes={},sessionInfo={}", verifiedTimes, session);

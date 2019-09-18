@@ -36,7 +36,7 @@ public enum RoleType implements NumberEnum {
      */
     INVALID(-1),
     /**
-     * 网关服(不使用)
+     * 网关服(扩展用)
      */
     GATE(0),
     /**
@@ -83,16 +83,20 @@ public enum RoleType implements NumberEnum {
      * 战斗服(扩展用)
      */
     BATTLE(11),
+    /**
+     * 全局服务器(扩展用)
+     */
+    GLOBAL(12),
 
     /**
      * 测试用客户端角色
      */
-    TEST_CLIENT(12),
+    TEST_CLIENT(15),
 
     /**
      * 测试用服务器角色
      */
-    TEST_SERVER(13),
+    TEST_SERVER(16),
     ;
 
     /**

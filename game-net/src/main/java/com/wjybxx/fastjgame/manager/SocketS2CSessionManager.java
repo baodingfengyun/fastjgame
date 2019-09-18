@@ -180,12 +180,8 @@ public class SocketS2CSessionManager extends SocketSessionManager {
         notifyClientExit(sessionWrapper.getChannel(), sessionWrapper);
 
         if (postEvent) {
-            // 避免捕获SessionWrapper，导致内存泄漏
-            final SessionLifecycleAware lifecycleAware = sessionWrapper.getLifecycleAware();
             // 尝试提交到用户线程
-            ConcurrentUtils.tryCommit(session.localEventLoop(), () -> {
-                lifecycleAware.onSessionDisconnected(session);
-            });
+            ConcurrentUtils.tryCommit(session.localEventLoop(), new DisconnectAwareTask(session, sessionWrapper.getLifecycleAware()));
         }
 
         logger.info("remove session by reason of {}, session info={}.", reason, session);
@@ -281,12 +277,8 @@ public class SocketS2CSessionManager extends SocketSessionManager {
         notifyVerifySuccess(channel, requestParam.getVerifyingTimes(), MessageQueue.INIT_ACK);
         logger.info("client login success, sessionInfo={}", session);
 
-        // 避免捕获过多的对象，导致内存泄漏
-        final SessionLifecycleAware lifecycleAware = portContext.lifecycleAware;
         // 连接建立回调(通知)
-        ConcurrentUtils.tryCommit(session.localEventLoop(), () -> {
-            lifecycleAware.onSessionConnected(session);
-        });
+        ConcurrentUtils.tryCommit(session.localEventLoop(), new ConnectAwareTask(session, portContext.lifecycleAware));
         return true;
     }
 

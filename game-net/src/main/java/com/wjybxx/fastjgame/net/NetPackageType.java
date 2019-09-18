@@ -77,7 +77,6 @@ public enum NetPackageType implements NumberEnum {
      *
      * @return 枚举对应的编号
      */
-    @Deprecated
     @Override
     public int getNumber() {
         return pkgType;

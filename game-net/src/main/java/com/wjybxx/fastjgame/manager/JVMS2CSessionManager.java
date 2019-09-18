@@ -21,6 +21,8 @@ import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
+import com.wjybxx.fastjgame.misc.ConnectAwareTask;
+import com.wjybxx.fastjgame.misc.DisconnectAwareTask;
 import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.net.injvm.JVMC2SSession;
 import com.wjybxx.fastjgame.net.injvm.JVMPort;
@@ -160,12 +162,8 @@ public class JVMS2CSessionManager extends JVMSessionManager {
         cleanRpcPromiseInfo(session, sessionWrapper.detachRpcPromiseInfoMap());
 
         if (postEvent) {
-            // 避免捕获SessionWrapper，导致内存泄漏
-            final SessionLifecycleAware lifecycleAware = sessionWrapper.getLifecycleAware();
             // 提交到用户线程
-            ConcurrentUtils.tryCommit(session.localEventLoop(), () -> {
-                lifecycleAware.onSessionDisconnected(session);
-            });
+            ConcurrentUtils.tryCommit(session.localEventLoop(), new DisconnectAwareTask(session, sessionWrapper.getLifecycleAware()));
         }
         logger.info("remove session by reason of {}, session info={}.", reason, session);
     }
@@ -257,15 +255,12 @@ public class JVMS2CSessionManager extends JVMSessionManager {
             throw new IOException("session already exist");
         }
         final PortContext portContext = jvmPort.getPortContext();
-        final JVMS2CSession jvms2CSession = new JVMS2CSession(userInfo.netContext, clientGuid, clientRole, netManagerWrapper, portContext.sessionSenderMode);
-        SessionWrapper sessionWrapper = new SessionWrapper(jvms2CSession, jvmPort, remoteEventLoop);
+        final JVMS2CSession session = new JVMS2CSession(userInfo.netContext, clientGuid, clientRole, netManagerWrapper, portContext.sessionSenderMode);
+        SessionWrapper sessionWrapper = new SessionWrapper(session, jvmPort, remoteEventLoop);
         userInfo.sessionWrapperMap.put(clientGuid, sessionWrapper);
 
         // 建立会话成功
-        final SessionLifecycleAware lifecycleAware = portContext.lifecycleAware;
-        ConcurrentUtils.tryCommit(jvms2CSession.localEventLoop(), () -> {
-            lifecycleAware.onSessionConnected(jvms2CSession);
-        });
+        ConcurrentUtils.tryCommit(session.localEventLoop(), new ConnectAwareTask(session, portContext.lifecycleAware));
 
         // 监听客户端线程关闭
         if (remoteEventLoopSet.add(remoteEventLoop)) {
@@ -274,7 +269,7 @@ public class JVMS2CSessionManager extends JVMSessionManager {
             }, netManagerWrapper.getNetEventLoopManager().eventLoop());
         }
 
-        return jvms2CSession.localEventLoop();
+        return session.localEventLoop();
     }
 
     // -------------------------------------

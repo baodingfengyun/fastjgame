@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.timer;
 
-import com.wjybxx.fastjgame.misc.LongSequencer;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Comparator;
@@ -31,8 +29,6 @@ import java.util.Comparator;
  * github - https://github.com/hl845740757
  */
 public abstract class AbstractTimerHandle implements TimerHandle {
-
-    private static final LongSequencer timerIdSequencer = new LongSequencer(0);
 
     /**
      * 执行时间越小越靠前，执行时间相同的，timerId越小越靠前(越先添加timerId越小)
@@ -72,7 +68,7 @@ public abstract class AbstractTimerHandle implements TimerHandle {
     private boolean terminated = false;
 
     protected AbstractTimerHandle(TimerSystem timerSystem, TimerTask timerTask, long createTimeMs) {
-        this.timerId = timerIdSequencer.incAndGet();
+        this.timerId = timerSystem.allocTimerId();
         this.timerSystem = timerSystem;
         this.createTimeMs = createTimeMs;
         this.timerTask = timerTask;
