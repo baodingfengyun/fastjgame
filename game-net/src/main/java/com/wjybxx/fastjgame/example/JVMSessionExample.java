@@ -39,7 +39,7 @@ public class JVMSessionExample {
         final Promise<JVMPort> promise = GlobalEventLoop.INSTANCE.newPromise();
         {
             ExampleRpcServerLoop exampleRpcServerLoop = new ExampleRpcServerLoop(new DefaultThreadFactory("SERVER"),
-                    RejectedExecutionHandlers.log(),
+                    RejectedExecutionHandlers.discard(),
                     promise);
             // 唤醒、启动服务器
             exampleRpcServerLoop.execute(ConcurrentUtils.NO_OP_TASK);
@@ -49,7 +49,7 @@ public class JVMSessionExample {
         {
             ExampleRpcClientLoop echoClientLoop = new ExampleRpcClientLoop(
                     new DefaultThreadFactory("CLIENT"),
-                    RejectedExecutionHandlers.log(),
+                    RejectedExecutionHandlers.discard(),
                     jvmPort);
 
             // 唤醒线程

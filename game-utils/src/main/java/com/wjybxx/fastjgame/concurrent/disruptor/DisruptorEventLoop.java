@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.concurrent.disruptor;
 
 import com.lmax.disruptor.*;
 import com.wjybxx.fastjgame.concurrent.*;
+import com.wjybxx.fastjgame.timer.TimerSystem;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.SystemUtils;
 import org.slf4j.Logger;
@@ -34,13 +35,18 @@ import java.util.concurrent.locks.LockSupport;
  * 基于Disruptor的事件循环。
  *
  * <p>
- * Q: {@link DisruptorEventLoop}比起{@link SingleThreadEventLoop}，优势在哪？
- * A: 1. {@link DisruptorEventLoop}对资源的利用率远胜{@link SingleThreadEventLoop}，
+ * Q: {@link DisruptorEventLoop}比起{@link SingleThreadEventLoop}，优势在哪？<br>
+ * A: {@link DisruptorEventLoop}对资源的利用率远胜{@link SingleThreadEventLoop}，性能也要高出不少。
  * <p>
  * Q: 那缺陷在哪呢？
- * A: 1. 最大的缺陷就是{@link DisruptorEventLoop}涉及很多额外的知识，涉及到Disruptor框架，而且我为了解决它存在的一些问题，又选择了一些自定义的实现，
- * 导致其阅读难度较大，不像{@link SingleThreadEventLoop}那么清晰易懂。
- * 2. 它是有界的队列，如果超出负载可能导致死锁问题。
+ * A: 1. 最大的缺陷就是它只能是有界的队列。<br>
+ * 2. {@link DisruptorEventLoop}涉及很多额外的知识，涉及到Disruptor框架，而且我为了解决它存在的一些问题，又选择了一些自定义的实现，
+ * 导致其阅读难度较大，不像{@link SingleThreadEventLoop}那么清晰易懂。<br>
+ * 3. 子类不能控制循环逻辑，无法自己决定什么时候调用{@link #loopOnce()}。<br>
+ *
+ * <p>
+ * Q: 哪些事件循环适合使用{@link DisruptorEventLoop} ?<br>
+ * A: 如果你的服务处于终端节点，且需要极低的延迟和极高的吞吐量的时候。{@link DisruptorEventLoop}最好不要用在中间节点，超过负载可能死锁！
  *
  * <p>
  * 警告：由于{@link EventLoop}都是单线程的，如果两个{@link EventLoop}都使用有界队列，如果互相通信，如果超过负载，则可能死锁！
@@ -59,15 +65,15 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     private static final Logger logger = LoggerFactory.getLogger(DisruptorEventLoop.class);
 
     /**
-     * 执行{@link #loopOnce()}的间隔
+     * 执行{@link #loopOnce()}的间隔，该值越小{@link #loopOnce()}调用频率越高。
      */
-    static final int LOOP_ONCE_INTERVAL = 32 * 1024 - 1;
+    static final int LOOP_ONCE_INTERVAL = 8192;
 
     /**
      * 默认ringBuffer大小 - 大一点可以减少降低阻塞概率
      * 1024 * 1024 个对象大概 16M
      */
-    public static final int DEFAULT_RING_BUFFER_SIZE = SystemUtils.getProperties().getAsInt("DisruptorEventLoop.ringBufferSize", 2 * 1024 * 1024);
+    public static final int DEFAULT_RING_BUFFER_SIZE = SystemUtils.getProperties().getAsInt("DisruptorEventLoop.ringBufferSize", 1024 * 1024);
 
     // 线程的状态
     /**
@@ -336,7 +342,9 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     }
 
     /**
-     * 执行一次循环
+     * 执行一次循环。
+     *
+     * @apiNote 注意由于调用时机并不确定，子类实现需要自己控制真实的帧间隔，可以使用{@link TimerSystem}控制。
      */
     protected void loopOnce() throws Exception {
 
@@ -361,18 +369,16 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     /**
      * 安全的执行一次循环。
      * 注意：该方法不是给子类的API
-     * <p>
-     * Q: 为何必须捕获{@link #loopOnce()}的异常？
-     * A: 1. 如果在处理事件时抛出异常，将导致当前批次还未处理完，又调用{@link WaitStrategy#waitFor(long, Sequence, Sequence, SequenceBarrier)}，
-     * 这个影响较小，仅仅是产生一次额外调用，不影响正确性。
-     * 2. 如果在实现{@link WaitStrategy#waitFor(long, Sequence, Sequence, SequenceBarrier)}的地方抛出了异常，将导致该sequence跳过！！！！！
-     * 将导致严重错误，因为丢失了数据。
      */
     final void safeLoopOnce() {
         try {
             loopOnce();
-        } catch (Throwable ex) {
-            logger.warn("loopOnce caught exception", ex);
+        } catch (Throwable t) {
+            if (t instanceof VirtualMachineError) {
+                logger.error("loopOnce caught exception", t);
+            } else {
+                logger.warn("loopOnce caught exception", t);
+            }
         }
     }
 
@@ -459,6 +465,10 @@ public class DisruptorEventLoop extends AbstractEventLoop {
                     // 不好的等待策略实现
                     // 这是和BatchEventProcessor不一样的地方，这里并不会更新sequence，不会导致数据丢失问题！
                     logger.error("bad waitStrategy imp", e);
+                    // 检测退出
+                    if (isShuttingDown()) {
+                        break;
+                    }
                 }
             }
         }

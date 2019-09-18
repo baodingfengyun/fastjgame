@@ -82,7 +82,7 @@ import java.util.stream.IntStream;
 public class ExampleRpcClientLoop extends DisruptorEventLoop {
 
     private final NetEventLoopGroup netGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET-EVENT-LOOP"),
-            RejectedExecutionHandlers.log());
+            RejectedExecutionHandlers.discard());
 
     private NetContext netContext;
 
@@ -195,7 +195,7 @@ public class ExampleRpcClientLoop extends DisruptorEventLoop {
     public static void main(String[] args) {
         ExampleRpcClientLoop echoClientLoop = new ExampleRpcClientLoop(
                 new DefaultThreadFactory("CLIENT"),
-                RejectedExecutionHandlers.log(),
+                RejectedExecutionHandlers.discard(),
                 null);
 
         // 唤醒线程

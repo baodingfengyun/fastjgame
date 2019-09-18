@@ -153,8 +153,8 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
         try {
             task.run();
         } catch (Throwable t) {
-            if (t instanceof OutOfMemoryError) {
-                throw t;
+            if (t instanceof VirtualMachineError) {
+                logger.error("A task raised an exception. Task: {}", task, t);
             } else {
                 logger.warn("A task raised an exception. Task: {}", task, t);
             }

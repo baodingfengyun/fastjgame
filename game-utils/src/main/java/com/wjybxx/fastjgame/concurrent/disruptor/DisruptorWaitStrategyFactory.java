@@ -78,12 +78,14 @@ class DisruptorWaitStrategyFactory {
                             final SequenceBarrier barrier) throws AlertException {
             long availableSequence;
             int counter = retries;
+            int waitTimes = 0;
 
             // dependentSequence 该项目组织架构中，其实只是生产者的sequence。
             while ((availableSequence = dependentSequence.get()) < sequence) {
                 counter = applyWaitMethod(barrier, counter);
                 // 每隔一段时间执行一次循环
-                if ((counter & DisruptorEventLoop.LOOP_ONCE_INTERVAL) == 0) {
+                if (++waitTimes == DisruptorEventLoop.LOOP_ONCE_INTERVAL) {
+                    waitTimes = 0;
                     eventLoop.safeLoopOnce();
                 }
             }
@@ -109,7 +111,6 @@ class DisruptorWaitStrategyFactory {
                 Thread.yield();
             } else {
                 // 等到最大次数了，睡眠等待
-                --counter;
                 LockSupport.parkNanos(sleepTimeNs);
             }
             return counter;
@@ -137,11 +138,13 @@ class DisruptorWaitStrategyFactory {
                             final SequenceBarrier barrier) throws AlertException {
             long availableSequence;
             int counter = SPIN_TRIES;
+            int waitTimes = 0;
 
             while ((availableSequence = dependentSequence.get()) < sequence) {
                 counter = applyWaitMethod(barrier, counter);
                 // 每隔一段时间执行一次循环
-                if ((counter & DisruptorEventLoop.LOOP_ONCE_INTERVAL) == 0) {
+                if (++waitTimes == DisruptorEventLoop.LOOP_ONCE_INTERVAL) {
+                    waitTimes = 0;
                     eventLoop.safeLoopOnce();
                 }
             }
@@ -159,10 +162,12 @@ class DisruptorWaitStrategyFactory {
             // 检查中断、停止信号
             barrier.checkAlert();
 
-            if (counter < 0) {
+            if (counter > 0) {
+                --counter;
+            } else {
                 Thread.yield();
             }
-            return --counter;
+            return counter;
         }
     }
 
@@ -188,14 +193,14 @@ class DisruptorWaitStrategyFactory {
                             final SequenceBarrier barrier) throws AlertException, InterruptedException {
 
             long availableSequence;
-            int counter = 0;
+            int waitTimes = 0;
 
             while ((availableSequence = dependentSequence.get()) < sequence) {
-                // 完全的自旋，会导致极高的CPU使用率
                 barrier.checkAlert();
                 ThreadHints.onSpinWait();
 
-                if ((++counter & DisruptorEventLoop.LOOP_ONCE_INTERVAL) == 0) {
+                if (++waitTimes == DisruptorEventLoop.LOOP_ONCE_INTERVAL) {
+                    waitTimes = 0;
                     eventLoop.safeLoopOnce();
                 }
             }

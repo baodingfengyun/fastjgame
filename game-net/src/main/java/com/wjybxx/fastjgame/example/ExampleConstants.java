@@ -53,7 +53,7 @@ public final class ExampleConstants {
     public static final ReflectBasedProtocolCodec reflectBasedCodec = ReflectBasedProtocolCodec.newInstance(messageMapper);
 
     public static final NetEventLoopGroup netGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET-EVENT-LOOP"),
-            RejectedExecutionHandlers.log());
+            RejectedExecutionHandlers.discard());
     /**
      * tcp端口
      */

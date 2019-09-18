@@ -1,9 +1,8 @@
 ### fastjgame
 fastjgame 为 fast java game framework的缩写，如名字一样，该项目的目标是一个高性能，高稳定性的游戏架构。  
-1. 它将是一个**分布式多进程多线程**架构，它有着良好的多线程模型，兼具简单性和高性能。  
+1. 它将是一个**分布式多进程多线程**架构，它有着优秀的多线程模型，兼具简单性和高性能。-- 结合了**Netty**与**Disruptor**两者的优势，诞生了**DisruptorEventLoop**。  
 2. 高性能的网络层: 采用protoBuf实现自定义二进制协议，**体积小，编解码速度快**，再辅以代码生成 -- **简单极速的rpc调用**。
 3. 代码自动生成: RpcService、Subscribe等相应代码自动生成。代码生成一时爽，一直生成一直爽。
-4. **Netty**线程模型与**Disruptor**线程模型合二为一，高性能的并发组件**DisruptorEventLoop**。
 
 ***
 ### 多线程框架的好与坏
@@ -96,15 +95,15 @@ fastjgame 为 fast java game framework的缩写，如名字一样，该项目的
 3. 想到再说...
 ***
 
-### 高性能从网络层开始  
+### 高性能易使用的网络层  
 1. IO框架为Netty,HttpClient为OkHttp3;   
 2. 支持断线重连/防闪断，支持websocket和tcp同时接入。  
 3. 支持自定义协议解析（实现**ProtocolCodec**）。
 4. 采用protoBuf实现自定义二进制协议，**体积小，编解码速度快**，再辅以代码生成 -- **简单极速的rpc调用**。
-5. 支持*双向的***单向消息，异步rpc调用，同步rpc调用。**
+5. 支持**双向的单向消息，异步rpc调用，同步rpc调用。**
 6. JVM内线程通信与跨进程通信具有几乎完全相同的API。你可以向另一个**进程**发起RPC请求，也可以向另一个**线程**发起RPC请求。
 
-### 服务器的节点发现
+#### 服务器的节点发现
 * 基于zookeeper实现，同时zookeeper作为配置中心，以及分布式锁.  
   zookeeper的配置在**game-start**的doc文件夹下可以找到。
   如果你想使用中文配置zkui，请使用我修正后的[zkui](https://github.com/hl845740757/zkui)，内部有可运行jar包，你也可以自己编译一遍。
@@ -128,18 +127,18 @@ fastjgame 为 fast java game framework的缩写，如名字一样，该项目的
 缺陷：如果一个玩家要保存的数据较多，那么玩家切换场景的时间可能较长。
 
 ***
-### 如何使用注解处理器？
+#### 如何使用注解处理器？
 1. 将game-auto添加到project-structure
 2. install game-auto 到本地仓库
 3. 将game-auto从项目project-structure中移除，注解处理器必须以jar包形式工作。
 4. 在game-parent下clean，再compile，可消除缺少类文件的报错。
 
-### 编译出现找不到符号问题怎么解决？
+#### 编译出现找不到符号问题怎么解决？
 1. 确保注解处理器已install到本地仓库。
 2. clean
 3. compile
 
-### 数据库引入-MongoDB  
+#### 数据库引入-MongoDB  
 * MongoDB是NOSQL数据库，个人感觉其对程序员非常友好，而且数据扩展容易（很适合游戏），性能也好。
 
 #### 视野管理已加入(9宫格)
@@ -190,6 +189,8 @@ fastjgame 为 fast java game framework的缩写，如名字一样，该项目的
 #### 修改sync语义 2019年9月13日
 同步rpc调用不再插队，而是刷新缓冲区，和其它消息之间也满足先发的先到，后发的后到。
 
-#### 正确的实现DisruptorEventLoop 2019年9月15日
-之前没有想清楚，这两日突然想明白了，重新进行了实现，性能相对于SingleThreadEventLoop提升20%以上！而且两者之间的迁移很容易。
-基于DisruptorEventLoop重写了GameEventLoop和NetEventLoop。
+#### 正确的实现DisruptorEventLoop 2019年9月17日
+之前实现的Disruptor跑偏了，这两日突然想明白了，进行了正确的实现，相对于**SingleThreadEventLoop**，内存利用率更高，性能也更好，对于追求极致性能的EventLoop提供了很好的框架。  
+顺便基于DisruptorEventLoop重写了GameEventLoop。  
+如果你想要学习**Disruptor**，那么推荐你看我详细注释过的源码[disruptor-translation](https://github.com/hl845740757/disruptor-translation)  
+如果你想学习**Netty**的线程模型，你可以看看我注释过的源码[netty-translation](https://github.com/hl845740757/netty-translation)，netty并没有全部注释，不过并发包是基本是完整注释的。  

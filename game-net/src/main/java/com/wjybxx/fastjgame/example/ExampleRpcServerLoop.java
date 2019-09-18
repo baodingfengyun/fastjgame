@@ -49,7 +49,7 @@ import java.util.concurrent.ThreadFactory;
 class ExampleRpcServerLoop extends DisruptorEventLoop {
 
     private final NetEventLoopGroup netGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET-EVENT-LOOP"),
-            RejectedExecutionHandlers.log());
+            RejectedExecutionHandlers.discard());
 
     private final DefaultProtocolDispatcher protocolDispatcher = new DefaultProtocolDispatcher();
 
@@ -130,7 +130,7 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
 
     public static void main(String[] args) {
         final ExampleRpcServerLoop serviceLoop = new ExampleRpcServerLoop(new DefaultThreadFactory("SERVICE"),
-                RejectedExecutionHandlers.log(),
+                RejectedExecutionHandlers.discard(),
                 null);
         // 唤醒线程
         serviceLoop.execute(ConcurrentUtils.NO_OP_TASK);

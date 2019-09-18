@@ -31,6 +31,6 @@ public final class NetTimeManager extends SystemTimeHelper {
 
     @Inject
     public NetTimeManager() {
-        changeToCacheStrategy();
+
     }
 }

@@ -343,7 +343,11 @@ public class ConcurrentUtils {
             task.run();
         } catch (Throwable e) {
             interrupted = isInterrupted(e);
-            logger.warn("A task raised an exception. Task: {}", task, e);
+            if (e instanceof VirtualMachineError) {
+                logger.error("A task raised an exception. Task: {}", task, e);
+            } else {
+                logger.warn("A task raised an exception. Task: {}", task, e);
+            }
         }
         return interrupted;
     }
@@ -361,7 +365,11 @@ public class ConcurrentUtils {
             task.run();
         } catch (Throwable e) {
             interrupted = isInterrupted(e);
-            logger.warn("A task raised an exception. Task: {}", task, e);
+            if (e instanceof VirtualMachineError) {
+                logger.error("A task raised an exception. Task: {}", task, e);
+            } else {
+                logger.warn("A task raised an exception. Task: {}", task, e);
+            }
         }
         return interrupted;
     }

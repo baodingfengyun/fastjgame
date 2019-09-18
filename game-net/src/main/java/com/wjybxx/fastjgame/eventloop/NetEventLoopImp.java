@@ -21,9 +21,11 @@ import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
+import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
 import com.wjybxx.fastjgame.manager.*;
 import com.wjybxx.fastjgame.module.NetEventLoopModule;
 import com.wjybxx.fastjgame.net.*;
+import com.wjybxx.fastjgame.timer.FixedDelayHandle;
 import com.wjybxx.fastjgame.utils.CollectionUtils;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.FunctionUtils;
@@ -38,7 +40,10 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.locks.LockSupport;
 
 /**
- * 网络事件循环
+ * 网络事件循环。
+ * <p>
+ * 其实网络层使用{@link DisruptorEventLoop}实现可以大幅降低延迟和提高吞吐量，但是有风险，因为网络层服务的用户太多，一旦网络层阻塞，会引发死锁风险。
+ * 如果能预估最大的消息数量，那么可以考虑使用{@link DisruptorEventLoop}实现，改动很小。
  *
  * @author wjybxx
  * @version 1.0
@@ -157,6 +162,10 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         // A:本来想使用的，但是如果提供一个全局的接口的话，它也会对逻辑层开放，而逻辑层如果调用了一定会导致错误。使用threadLocal暴露了不该暴露的接口。
         // 发布自身，使得该eventLoop的其它管理器可以方便的获取该对象
         netEventLoopManager.publish(this);
+        // 10ms一次tick足够了
+        netTimerManager.newFixedDelay(10, this::tick);
+        // 切换到缓存策略
+        netTimeManager.changeToCacheStrategy();
     }
 
     @Override
@@ -168,11 +177,6 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
             netTimeManager.update(System.currentTimeMillis());
             // 检测定时器
             netTimerManager.tick();
-            // 刷帧
-            socketS2CSessionManager.tick();
-            socketC2SSessionManager.tick();
-            jvms2CSessionManager.tick();
-            jvmc2SSessionManager.tick();
 
             if (confirmShutdown()) {
                 break;
@@ -180,6 +184,15 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
             // 降低cpu利用率
             LockSupport.parkNanos(100);
         }
+    }
+
+
+    private void tick(FixedDelayHandle handle) {
+        // 刷帧
+        socketS2CSessionManager.tick();
+        socketC2SSessionManager.tick();
+        jvms2CSessionManager.tick();
+        jvmc2SSessionManager.tick();
     }
 
     @Override
