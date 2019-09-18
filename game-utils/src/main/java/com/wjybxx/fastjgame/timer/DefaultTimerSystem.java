@@ -39,7 +39,10 @@ import java.util.function.Consumer;
 public class DefaultTimerSystem implements TimerSystem {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultTimerSystem.class);
-
+    /**
+     * 无效的timerId
+     */
+    private static final int INVALID_TIMER_ID = -1;
     /**
      * 默认空间大小，使用JDK默认大小
      */
@@ -65,6 +68,10 @@ public class DefaultTimerSystem implements TimerSystem {
      * 是否已关闭
      */
     private boolean closed = false;
+    /**
+     * 正在执行回调的timer
+     */
+    private long runningTimerId = INVALID_TIMER_ID;
 
     public DefaultTimerSystem() {
         this(DEFAULT_TIME_PROVIDER, DEFAULT_INITIAL_CAPACITY);
@@ -132,7 +139,7 @@ public class DefaultTimerSystem implements TimerSystem {
                 return;
             }
             // 先弹出队列
-            timerQueue.poll();
+            runningTimerId = timerQueue.poll().getTimerId();
 
             do {
                 callbackSafely(timerHandle, curMillTime);
@@ -145,6 +152,8 @@ public class DefaultTimerSystem implements TimerSystem {
                 // 如果未取消的话，压入队列稍后执行
                 timerQueue.offer(timerHandle);
             }
+
+            runningTimerId = INVALID_TIMER_ID;
         }
     }
 
@@ -194,9 +203,23 @@ public class DefaultTimerSystem implements TimerSystem {
             timerHandle.setTerminated();
             return timerHandle;
         } else {
+            // 先初始化，才能获得首次执行时间
             timerHandle.init();
             queue.add(timerHandle);
             return timerHandle;
+        }
+    }
+
+    /**
+     * 删除一个timer
+     */
+    private void remove(AbstractTimerHandle timerHandle) {
+        if (timerHandle.getTimerId() == runningTimerId) {
+            // 正在执行的时候，请求取消
+            timerHandle.setTerminated();
+        } else {
+            // 其它时候请求取消
+            timerQueue.remove(timerHandle);
         }
     }
 
@@ -240,7 +263,7 @@ public class DefaultTimerSystem implements TimerSystem {
 
         @Override
         protected void doCancel() {
-            timerSystem().timerQueue.remove(this);
+            timerSystem().remove(this);
         }
 
         @Override
@@ -264,7 +287,7 @@ public class DefaultTimerSystem implements TimerSystem {
 
         @Override
         protected void doCancel() {
-            timerSystem().timerQueue.remove(this);
+            timerSystem().remove(this);
         }
 
         @Override
@@ -288,7 +311,7 @@ public class DefaultTimerSystem implements TimerSystem {
 
         @Override
         protected void doCancel() {
-            timerSystem().timerQueue.remove(this);
+            timerSystem().remove(this);
         }
 
         @Override
