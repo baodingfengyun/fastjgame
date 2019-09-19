@@ -23,12 +23,13 @@ package com.wjybxx.fastjgame.timer;
  * date - 2019/8/14
  * github - https://github.com/hl845740757
  */
-public abstract class AbstractTimeoutHandle extends AbstractTimerHandle implements TimeoutHandle {
+class TimeoutHandleImp extends AbstractTimerHandle implements TimeoutHandle {
 
     private long timeout;
 
-    protected AbstractTimeoutHandle(TimerSystem timerSystem, long createTimeMs, TimerTask timerTask, long timeout) {
-        super(timerSystem, timerTask, createTimeMs);
+    TimeoutHandleImp(DefaultTimerSystem timerSystem, TimerTask timerTask,
+                     long timeout) {
+        super(timerSystem, timerTask);
         this.timeout = timeout;
     }
 
@@ -43,30 +44,23 @@ public abstract class AbstractTimeoutHandle extends AbstractTimerHandle implemen
             return false;
         }
         this.timeout = timeout;
-        adjust();
+        timerSystem().adjust(this);
         return true;
     }
 
-    /**
-     * 当修改完timeout的时候，进行必要的调整，此时还未修改下次执行时间。
-     */
-    protected abstract void adjust();
-
     @Override
     protected final void init() {
-        setNextExecuteTimeMs(createTimeMs() + timeout);
-    }
-
-    /**
-     * 更新下一次的执行时间
-     */
-    protected final void updateNextExecuteTime() {
-        setNextExecuteTimeMs(createTimeMs() + timeout);
+        setNextExecuteTimeMs(getCreateTimeMs() + timeout);
     }
 
     @Override
-    protected final void afterExecute(long curTimeMs) {
+    protected final void afterExecuteOnce(long curTimeMs) {
         // 执行一次之后就结束了。
         setTerminated();
     }
+
+    protected void adjustNextExecuteTime() {
+        setNextExecuteTimeMs(getCreateTimeMs() + timeout);
+    }
+
 }

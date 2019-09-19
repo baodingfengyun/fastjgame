@@ -23,7 +23,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.PriorityQueue;
 import java.util.Queue;
-import java.util.function.Consumer;
 
 /**
  * 定时器系统的默认实现。
@@ -47,7 +46,7 @@ public class DefaultTimerSystem implements TimerSystem {
      */
     private static final int DEFAULT_INITIAL_CAPACITY = 11;
     /**
-     * 默认的时间提供器
+     * 默认的时间提供器（它是线程安全的，不可以使用非线程安全的作为静态变量）
      */
     private static final SystemTimeProvider DEFAULT_TIME_PROVIDER = SystemTimeProviders.getRealtimeProvider();
 
@@ -96,8 +95,8 @@ public class DefaultTimerSystem implements TimerSystem {
      * @param initCapacity 初始timer空间，当你能预见timer的空间大小时，指定空间大小能提高性能和空间利用率
      */
     public DefaultTimerSystem(SystemTimeProvider timeProvider, int initCapacity) {
-        timerQueue = new PriorityQueue<>(initCapacity, AbstractTimerHandle.timerComparator);
         this.timeProvider = timeProvider;
+        timerQueue = new PriorityQueue<>(initCapacity, AbstractTimerHandle.timerComparator);
     }
 
     @Override
@@ -106,24 +105,6 @@ public class DefaultTimerSystem implements TimerSystem {
             return;
         }
         tickTimer();
-    }
-
-    /**
-     * 安全的执行timer的回调。
-     *
-     * @param timerHandle timer
-     * @param curMillTime 当前时间戳
-     */
-    @SuppressWarnings("unchecked")
-    private static void callbackSafely(AbstractTimerHandle timerHandle, long curMillTime) {
-        try {
-            timerHandle.timerTask().run(timerHandle);
-            timerHandle.afterExecute(curMillTime);
-        } catch (Exception e) {
-            // 取消执行
-            timerHandle.setTerminated();
-            logger.warn("timer callback caught exception!", e);
-        }
     }
 
     /**
@@ -157,6 +138,23 @@ public class DefaultTimerSystem implements TimerSystem {
         }
     }
 
+    /**
+     * 安全的执行timer的回调。
+     *
+     * @param timerHandle timer
+     * @param curMillTime 当前时间戳
+     */
+    private static void callbackSafely(AbstractTimerHandle timerHandle, long curMillTime) {
+        try {
+            timerHandle.run();
+            timerHandle.afterExecuteOnce(curMillTime);
+        } catch (Exception e) {
+            // 取消执行
+            timerHandle.setTerminated();
+            logger.warn("timer callback caught exception!", e);
+        }
+    }
+
     @Override
     public boolean isClosed() {
         return closed;
@@ -167,19 +165,8 @@ public class DefaultTimerSystem implements TimerSystem {
         if (closed) {
             return;
         }
-        closeQueue(timerQueue);
         closed = true;
-    }
-
-    @Nonnull
-    @Override
-    public SystemTimeProvider timeProvider() {
-        return timeProvider;
-    }
-
-    @Override
-    public long allocTimerId() {
-        return ++timerIdSequencer;
+        closeQueue(timerQueue);
     }
 
     /**
@@ -197,12 +184,9 @@ public class DefaultTimerSystem implements TimerSystem {
     /**
      * 删除一个timer
      */
-    private void remove(AbstractTimerHandle timerHandle) {
-        if (timerHandle.getTimerId() == runningTimerId) {
-            // 正在执行的时候，请求取消
-            timerHandle.setTerminated();
-        } else {
-            // 其它时候请求取消
+    void remove(AbstractTimerHandle timerHandle) {
+        // 此时已调用 isTerminated() 为 true， 因此不必再次赋值
+        if (timerHandle.getTimerId() != runningTimerId) {
             timerQueue.remove(timerHandle);
         }
     }
@@ -210,18 +194,17 @@ public class DefaultTimerSystem implements TimerSystem {
     /**
      * 调整handle在timerSystem中的优先级(暂时先删除再插入，如果切换底层数据结构，那么可能会修改)
      *
-     * @param handle       定时器句柄
-     * @param adjustAction 调整优先级的函数
-     * @param <T>          定时器句柄类型
+     * @param <T>    定时器句柄类型
+     * @param handle 定时器句柄
      */
-    private <T extends AbstractTimerHandle> void adjust(T handle, Consumer<T> adjustAction) {
+    <T extends AbstractTimerHandle> void adjust(T handle) {
         if (runningTimerId == handle.getTimerId()) {
             // 正在执行的时候调整间隔
-            adjustAction.accept(handle);
+            handle.adjustNextExecuteTime();
         } else {
             // 其它时候调整间隔
             timerQueue.remove(handle);
-            adjustAction.accept(handle);
+            handle.adjustNextExecuteTime();
             timerQueue.add(handle);
         }
     }
@@ -244,98 +227,32 @@ public class DefaultTimerSystem implements TimerSystem {
     @Nonnull
     @Override
     public TimeoutHandle newTimeout(long timeout, @Nonnull TimerTask<TimeoutHandle> task) {
-        TimeoutHandleImp timeoutHandleImp = new TimeoutHandleImp(this, task, timeProvider.getSystemMillTime(), timeout);
+        TimeoutHandleImp timeoutHandleImp = new TimeoutHandleImp(this, task, timeout);
         return tryAddTimerAndInit(timeoutHandleImp);
     }
 
     @Nonnull
     @Override
     public FixedDelayHandle newFixedDelay(long initialDelay, long delay, @Nonnull TimerTask<FixedDelayHandle> task) {
-        AbstractFixedDelayHandle.ensureDelay(delay);
-        FixedDelayHandleImp fixedDelayHandleImp = new FixedDelayHandleImp(this, task, timeProvider.getSystemMillTime(), initialDelay, delay);
+        FixedDelayHandleImp.ensureDelay(delay);
+        FixedDelayHandleImp fixedDelayHandleImp = new FixedDelayHandleImp(this, task, initialDelay, delay);
         return tryAddTimerAndInit(fixedDelayHandleImp);
     }
 
     @Nonnull
     @Override
     public FixedRateHandle newFixRate(long initialDelay, long period, @Nonnull TimerTask<FixedRateHandle> task) {
-        AbstractFixRateHandle.ensurePeriod(period);
-        FixRateHandleImp fixRateHandleImp = new FixRateHandleImp(this, task, timeProvider.getSystemMillTime(), initialDelay, period);
+        FixRateHandleImp.ensurePeriod(period);
+        FixRateHandleImp fixRateHandleImp = new FixRateHandleImp(this, task, initialDelay, period);
         return tryAddTimerAndInit(fixRateHandleImp);
     }
 
-    // ------------------------------------- handle实现 --------------------------------------------
-
-    private static class TimeoutHandleImp extends AbstractTimeoutHandle {
-
-        TimeoutHandleImp(DefaultTimerSystem timerSystem, TimerTask timerTask, long createTimeMs,
-                         long timeout) {
-            super(timerSystem, createTimeMs, timerTask, timeout);
-        }
-
-        @Nonnull
-        @Override
-        public DefaultTimerSystem timerSystem() {
-            return (DefaultTimerSystem) super.timerSystem();
-        }
-
-        @Override
-        protected void doCancel() {
-            timerSystem().remove(this);
-        }
-
-        @Override
-        protected void adjust() {
-            timerSystem().adjust(this, TimeoutHandleImp::updateNextExecuteTime);
-        }
+    long nextTimerId() {
+        return ++timerIdSequencer;
     }
 
-    private static class FixedDelayHandleImp extends AbstractFixedDelayHandle {
-
-        FixedDelayHandleImp(DefaultTimerSystem timerSystem, TimerTask timerTask, long createTimeMs,
-                            long initialDelay, long delay) {
-            super(timerSystem, createTimeMs, timerTask, initialDelay, delay);
-        }
-
-        @Nonnull
-        @Override
-        public DefaultTimerSystem timerSystem() {
-            return (DefaultTimerSystem) super.timerSystem();
-        }
-
-        @Override
-        protected void doCancel() {
-            timerSystem().remove(this);
-        }
-
-        @Override
-        protected void adjust() {
-            timerSystem().adjust(this, FixedDelayHandleImp::updateNextExecuteTime);
-        }
-    }
-
-    private static class FixRateHandleImp extends AbstractFixRateHandle {
-
-        FixRateHandleImp(DefaultTimerSystem timerSystem, TimerTask timerTask, long createTimeMs,
-                         long initialDelay, long period) {
-            super(timerSystem, createTimeMs, timerTask, initialDelay, period);
-        }
-
-        @Nonnull
-        @Override
-        public DefaultTimerSystem timerSystem() {
-            return (DefaultTimerSystem) super.timerSystem();
-        }
-
-        @Override
-        protected void doCancel() {
-            timerSystem().remove(this);
-        }
-
-        @Override
-        protected void adjust() {
-            timerSystem().adjust(this, FixRateHandleImp::updateNextExecuteTime);
-        }
+    long getSystemMillTime() {
+        return timeProvider.getSystemMillTime();
     }
 
 }

@@ -24,19 +24,24 @@ package com.wjybxx.fastjgame.timer;
  * date - 2019/8/14
  * github - https://github.com/hl845740757
  */
-public abstract class AbstractFixRateHandle extends AbstractTimerHandle implements FixedRateHandle {
+class FixRateHandleImp extends AbstractTimerHandle implements FixedRateHandle {
 
+    /**
+     * 第一次执行的延迟
+     */
     private final long initialDelay;
-
+    /**
+     * 循环时的周期
+     */
     private long period;
     /**
      * 上次执行时间
      */
     private long lastExecuteTimeMs;
 
-    protected AbstractFixRateHandle(TimerSystem timerSystem, long createTimeMs, TimerTask timerTask,
-                                    long initialDelay, long period) {
-        super(timerSystem, timerTask, createTimeMs);
+    FixRateHandleImp(DefaultTimerSystem timerSystem, TimerTask timerTask,
+                     long initialDelay, long period) {
+        super(timerSystem, timerTask);
         this.initialDelay = initialDelay;
         this.period = period;
     }
@@ -52,7 +57,7 @@ public abstract class AbstractFixRateHandle extends AbstractTimerHandle implemen
     }
 
     @Override
-    public final boolean setPeriod(long period) {
+    public final boolean setPeriodLazy(long period) {
         ensurePeriod(period);
         if (isTerminated()) {
             return false;
@@ -63,9 +68,9 @@ public abstract class AbstractFixRateHandle extends AbstractTimerHandle implemen
     }
 
     @Override
-    public boolean setPeriodImmediately(long period) {
-        if (setPeriod(period)) {
-            adjust();
+    public boolean setPeriod(long period) {
+        if (setPeriodLazy(period)) {
+            timerSystem().adjust(this);
             return true;
         } else {
             return false;
@@ -74,37 +79,26 @@ public abstract class AbstractFixRateHandle extends AbstractTimerHandle implemen
 
     @Override
     protected final void init() {
-        setNextExecuteTimeMs(createTimeMs() + initialDelay);
+        setNextExecuteTimeMs(getCreateTimeMs() + initialDelay);
     }
 
     @Override
-    protected final void afterExecute(long curTimeMs) {
+    protected final void afterExecuteOnce(long curTimeMs) {
         // 上次执行时间非真实时间
         lastExecuteTimeMs = getNextExecuteTimeMs();
         // 下次执行时间为上次执行时间 + 周期
         setNextExecuteTimeMs(lastExecuteTimeMs + period);
     }
 
-    /**
-     * 更新下一次的执行时间
-     */
-    protected final void updateNextExecuteTime() {
+    protected void adjustNextExecuteTime() {
         if (lastExecuteTimeMs > 0) {
             setNextExecuteTimeMs(lastExecuteTimeMs + period);
         } else {
-            setNextExecuteTimeMs(createTimeMs() + initialDelay);
+            setNextExecuteTimeMs(getCreateTimeMs() + initialDelay);
         }
     }
 
-    /**
-     * 当修改完period的时候，进行必要的调整，此时还未修改下次执行时间。
-     * 注意：虽然三个抽象类中都有{@link #adjust()} {@link #updateNextExecuteTime()}两个函数，
-     * 但是不代表它们应该提炼到父类！
-     */
-    @SuppressWarnings("JavaDoc")
-    protected abstract void adjust();
-
-    public static void ensurePeriod(long period) {
+    static void ensurePeriod(long period) {
         if (period <= 0) {
             throw new IllegalArgumentException("period " + period);
         }

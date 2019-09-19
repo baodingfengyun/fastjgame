@@ -28,30 +28,31 @@ import java.util.Comparator;
  * date - 2019/8/14
  * github - https://github.com/hl845740757
  */
-public abstract class AbstractTimerHandle implements TimerHandle {
+abstract class AbstractTimerHandle implements TimerHandle {
 
     /**
      * 执行时间越小越靠前，执行时间相同的，timerId越小越靠前(越先添加timerId越小)
      */
-    public static final Comparator<AbstractTimerHandle> timerComparator = Comparator.comparingLong(AbstractTimerHandle::getNextExecuteTimeMs)
+    static final Comparator<AbstractTimerHandle> timerComparator = Comparator.comparingLong(AbstractTimerHandle::getNextExecuteTimeMs)
             .thenComparingLong(AbstractTimerHandle::getTimerId);
 
     /**
-     * 定时器id，先添加的必定更小...
-     */
-    private final long timerId;
-    /**
      * 绑定的timer系统
      */
-    private final TimerSystem timerSystem;
+    private final DefaultTimerSystem timerSystem;
     /**
      * 该handle关联的timerTask
      */
     private final TimerTask timerTask;
     /**
+     * 定时器id，先添加的必定更小...
+     */
+    private final long timerId;
+    /**
      * timer的创建时间
      */
     private final long createTimeMs;
+
     /**
      * 上下文/附加属性
      */
@@ -67,36 +68,11 @@ public abstract class AbstractTimerHandle implements TimerHandle {
      */
     private boolean terminated = false;
 
-    protected AbstractTimerHandle(TimerSystem timerSystem, TimerTask timerTask, long createTimeMs) {
-        this.timerId = timerSystem.allocTimerId();
+    AbstractTimerHandle(DefaultTimerSystem timerSystem, TimerTask timerTask) {
         this.timerSystem = timerSystem;
-        this.createTimeMs = createTimeMs;
         this.timerTask = timerTask;
-    }
-
-    @Nonnull
-    @Override
-    public TimerSystem timerSystem() {
-        return timerSystem;
-    }
-
-    @Nonnull
-    @Override
-    public TimerTask timerTask() {
-        return timerTask;
-    }
-
-    @Override
-    public long createTimeMs() {
-        return createTimeMs;
-    }
-
-    @Override
-    public long executeDelay() {
-        if (terminated) {
-            return -1;
-        }
-        return Math.max(0, nextExecuteTimeMs - timeProvider().getSystemMillTime());
+        this.timerId = timerSystem.nextTimerId();
+        this.createTimeMs = timerSystem.getSystemMillTime();
     }
 
     @Override
@@ -108,16 +84,30 @@ public abstract class AbstractTimerHandle implements TimerHandle {
     }
 
     @SuppressWarnings("unchecked")
+    @Nullable
     @Override
     public final <T> T attachment() {
         return (T) attachment;
     }
 
+    @SuppressWarnings("unchecked")
+    public void run() throws Exception {
+        timerTask.run(this);
+    }
+
+    @Override
+    public long executeDelay() {
+        if (terminated) {
+            return -1;
+        }
+        return Math.max(0, nextExecuteTimeMs - timerSystem.getSystemMillTime());
+    }
+
     @Override
     public final void cancel() {
         if (!terminated) {
-            doCancel();
             terminated = true;
+            timerSystem.remove(this);
         }
     }
 
@@ -126,12 +116,15 @@ public abstract class AbstractTimerHandle implements TimerHandle {
         return terminated;
     }
 
-    protected SystemTimeProvider timeProvider() {
-        return timerSystem.timeProvider();
+    DefaultTimerSystem timerSystem() {
+        return timerSystem;
     }
 
-    @SuppressWarnings("WeakerAccess")
-    public final long getTimerId() {
+    long getCreateTimeMs() {
+        return createTimeMs;
+    }
+
+    final long getTimerId() {
         return timerId;
     }
 
@@ -157,11 +150,10 @@ public abstract class AbstractTimerHandle implements TimerHandle {
      *
      * @param curTimeMs 当前系统时间
      */
-    protected abstract void afterExecute(long curTimeMs);
+    protected abstract void afterExecuteOnce(long curTimeMs);
 
     /**
-     * 执行取消操作
+     * 调整下一次的执行时间
      */
-    protected abstract void doCancel();
-
+    protected abstract void adjustNextExecuteTime();
 }

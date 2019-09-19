@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.timer;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -30,24 +29,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public interface TimerHandle {
-
-    // ----------------------------------- timer的创建信息 ------------------------------
-
-    /**
-     * timer注册到的容器。对于一个timerHandle而言，该值不会改变。
-     *
-     * @return TimerSystem
-     */
-    @Nonnull
-    TimerSystem timerSystem();
-
-    /**
-     * timerHandle关联的任务
-     *
-     * @return task
-     */
-    @Nonnull
-    TimerTask timerTask();
 
     /**
      * 设置附加属性(使得task在运行的时候可以获取该值)。
@@ -64,6 +45,7 @@ public interface TimerHandle {
      * @param <T> 结果类型，方便强制类型转换
      * @return nullable，如果未调用过attach，一定为null
      */
+    @Nullable
     <T> T attachment();
 
     /**
@@ -72,14 +54,6 @@ public interface TimerHandle {
      * @return -1 表示已停止，否则返回大于等于0的值。
      */
     long executeDelay();
-
-    /**
-     * timer的创建时间。
-     *
-     * @return 毫秒
-     */
-    long createTimeMs();
-    // ------------------------------------ timer支持的操作 ---------------------------------
 
     /**
      * 尝试关闭该handle关联的TimerTask，如果handle关联的timer早已关闭，则该方法什么也不会做。

@@ -67,7 +67,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     /**
      * 执行{@link #loopOnce()}的间隔，该值越小{@link #loopOnce()}调用频率越高。
      */
-    static final int LOOP_ONCE_INTERVAL = 8192;
+    static final int LOOP_ONCE_INTERVAL = 8191;
 
     /**
      * 默认ringBuffer大小 - 大一点可以减少降低阻塞概率

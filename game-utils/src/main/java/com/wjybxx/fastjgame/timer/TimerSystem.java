@@ -120,18 +120,4 @@ public interface TimerSystem {
      */
     void close();
 
-    /**
-     * 获取该timer系统关联的时间提供器
-     *
-     * @return timeProvider
-     */
-    @Nonnull
-    SystemTimeProvider timeProvider();
-
-    /**
-     * 分配一个timerId
-     *
-     * @return timerId
-     */
-    long allocTimerId();
 }

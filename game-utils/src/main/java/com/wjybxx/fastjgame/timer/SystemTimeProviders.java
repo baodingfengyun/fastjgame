@@ -17,6 +17,8 @@
 package com.wjybxx.fastjgame.timer;
 
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * 常用系统时间提供器
  *
@@ -42,6 +44,7 @@ public final class SystemTimeProviders {
     /**
      * 实时系统时间提供者
      */
+    @ThreadSafe
     private static class RealTimeProvider implements SystemTimeProvider {
 
         public static final RealTimeProvider INSTANCE = new RealTimeProvider();

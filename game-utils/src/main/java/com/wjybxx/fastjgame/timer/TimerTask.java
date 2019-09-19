@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.timer;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 /**
  * 定时器任务。
  *
@@ -26,7 +24,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  * date - 2019/8/7
  * github - https://github.com/hl845740757
  */
-@NotThreadSafe
 @FunctionalInterface
 public interface TimerTask<T extends TimerHandle> {
 

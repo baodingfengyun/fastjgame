@@ -44,19 +44,19 @@ public interface FixedDelayHandle extends TimerHandle {
     long delay();
 
     /**
-     * 尝试修改timer的执行间隔。
+     * 尝试修改timer的执行间隔，修改成功立即生效!
      *
      * @param delay 延迟时间，必须大于0！
      * @return 当且仅当成功修改TimerTask的执行间隔时返回true，其它情况下返回false(比如已取消，或已终止)。
-     * @apiNote 注意：该方法实现不保证立即生效，但保证其后续的调用的间隔
      */
     boolean setDelay(long delay);
 
     /**
-     * 尝试修改timer的执行间隔，修改成功时立即生效!
+     * 修改timer下一次执行的间隔，对当前“排期”不生效。
      *
      * @param delay 延迟时间，必须大于0！
      * @return 当且仅当成功修改TimerTask的执行间隔时返回true，其它情况下返回false(比如已取消，或已终止)。
      */
-    boolean setDelayImmediately(long delay);
+    boolean setDelayLazy(long delay);
+
 }

@@ -44,19 +44,19 @@ public interface FixedRateHandle extends TimerHandle {
     long period();
 
     /**
-     * 尝试修改timer的执行周期。
+     * 尝试修改timer的执行周期，修改成功立即生效!
      *
      * @param period 执行周期
      * @return 当且仅当成功修改TimerTask的执行周期时返回true，否则返回false(比如已取消，或已终止)。
-     * @apiNote 注意：该方法实现不保证立即生效，但保证其后续的调用的周期。
      */
     boolean setPeriod(long period);
 
     /**
-     * 尝试修改timer的执行周期，修改成功时立即生效!
+     * 修改timer下一次执行的间隔，对当前“排期”不生效。
      *
      * @param period 执行周期
      * @return 当且仅当成功修改TimerTask的执行周期时返回true，否则返回false(比如已取消，或已终止)。
      */
-    boolean setPeriodImmediately(long period);
+    boolean setPeriodLazy(long period);
+
 }

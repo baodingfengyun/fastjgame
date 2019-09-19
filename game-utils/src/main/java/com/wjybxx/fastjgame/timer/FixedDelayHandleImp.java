@@ -24,10 +24,15 @@ package com.wjybxx.fastjgame.timer;
  * date - 2019/8/14
  * github - https://github.com/hl845740757
  */
-public abstract class AbstractFixedDelayHandle extends AbstractTimerHandle implements FixedDelayHandle {
+class FixedDelayHandleImp extends AbstractTimerHandle implements FixedDelayHandle {
 
+    /**
+     * 初始延迟
+     */
     private final long initialDelay;
-
+    /**
+     * 循环时的延迟
+     */
     private long delay;
 
     /**
@@ -35,9 +40,9 @@ public abstract class AbstractFixedDelayHandle extends AbstractTimerHandle imple
      */
     private long lastExecuteTimeMs;
 
-    protected AbstractFixedDelayHandle(TimerSystem timerSystem, long createTimeMs, TimerTask timerTask,
-                                       long initialDelay, long delay) {
-        super(timerSystem, timerTask, createTimeMs);
+    FixedDelayHandleImp(DefaultTimerSystem timerSystem, TimerTask timerTask,
+                        long initialDelay, long delay) {
+        super(timerSystem, timerTask);
         this.initialDelay = initialDelay;
         this.delay = delay;
     }
@@ -53,7 +58,7 @@ public abstract class AbstractFixedDelayHandle extends AbstractTimerHandle imple
     }
 
     @Override
-    public final boolean setDelay(long delay) {
+    public final boolean setDelayLazy(long delay) {
         ensureDelay(delay);
         if (isTerminated()) {
             return false;
@@ -64,27 +69,22 @@ public abstract class AbstractFixedDelayHandle extends AbstractTimerHandle imple
     }
 
     @Override
-    public boolean setDelayImmediately(long delay) {
-        if (setDelay(delay)) {
-            adjust();
+    public boolean setDelay(long delay) {
+        if (setDelayLazy(delay)) {
+            timerSystem().adjust(this);
             return true;
         } else {
             return false;
         }
     }
 
-    /**
-     * 当修改完delay的时候，进行必要的调整，此时还未修改下次执行时间。
-     */
-    protected abstract void adjust();
-
     @Override
     protected final void init() {
-        setNextExecuteTimeMs(createTimeMs() + initialDelay);
+        setNextExecuteTimeMs(getCreateTimeMs() + initialDelay);
     }
 
     @Override
-    protected final void afterExecute(long curTimeMs) {
+    protected final void afterExecuteOnce(long curTimeMs) {
         // 上次执行时间为真实时间
         lastExecuteTimeMs = curTimeMs;
         // 下次执行时间为上次执行时间 + 延迟
@@ -94,15 +94,15 @@ public abstract class AbstractFixedDelayHandle extends AbstractTimerHandle imple
     /**
      * 更新下一次的执行时间
      */
-    protected final void updateNextExecuteTime() {
+    protected void adjustNextExecuteTime() {
         if (lastExecuteTimeMs > 0) {
             setNextExecuteTimeMs(lastExecuteTimeMs + delay);
         } else {
-            setNextExecuteTimeMs(createTimeMs() + initialDelay);
+            setNextExecuteTimeMs(getCreateTimeMs() + initialDelay);
         }
     }
 
-    public static void ensureDelay(long delay) {
+    static void ensureDelay(long delay) {
         if (delay <= 0) {
             throw new IllegalArgumentException("delay " + delay);
         }
