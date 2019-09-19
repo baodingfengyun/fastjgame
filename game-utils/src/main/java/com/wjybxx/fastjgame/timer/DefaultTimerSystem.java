@@ -99,6 +99,44 @@ public class DefaultTimerSystem implements TimerSystem {
         timerQueue = new PriorityQueue<>(initCapacity, AbstractTimerHandle.timerComparator);
     }
 
+    @Nonnull
+    @Override
+    public TimeoutHandle newTimeout(long timeout, @Nonnull TimerTask<TimeoutHandle> task) {
+        TimeoutHandleImp timeoutHandleImp = new TimeoutHandleImp(this, task, timeout);
+        return tryAddTimerAndInit(timeoutHandleImp);
+    }
+
+    @Nonnull
+    @Override
+    public FixedDelayHandle newFixedDelay(long initialDelay, long delay, @Nonnull TimerTask<FixedDelayHandle> task) {
+        FixedDelayHandleImp.ensureDelay(delay);
+        FixedDelayHandleImp fixedDelayHandleImp = new FixedDelayHandleImp(this, task, initialDelay, delay);
+        return tryAddTimerAndInit(fixedDelayHandleImp);
+    }
+
+    @Nonnull
+    @Override
+    public FixedRateHandle newFixRate(long initialDelay, long period, @Nonnull TimerTask<FixedRateHandle> task) {
+        FixRateHandleImp.ensurePeriod(period);
+        FixRateHandleImp fixRateHandleImp = new FixRateHandleImp(this, task, initialDelay, period);
+        return tryAddTimerAndInit(fixRateHandleImp);
+    }
+
+    /**
+     * 将timer压入队列，并进行适当的初始化。
+     */
+    private <T extends AbstractTimerHandle> T tryAddTimerAndInit(T timerHandle) {
+        if (closed) {
+            // timer系统已关闭，不压入队列
+            timerHandle.setTerminated();
+        } else {
+            // 先初始化，才能获得首次执行时间
+            timerHandle.init();
+            timerQueue.add(timerHandle);
+        }
+        return timerHandle;
+    }
+
     @Override
     public void tick() {
         if (closed) {
@@ -207,44 +245,6 @@ public class DefaultTimerSystem implements TimerSystem {
             handle.adjustNextExecuteTime();
             timerQueue.add(handle);
         }
-    }
-
-    /**
-     * 将timer压入队列，并进行适当的初始化。
-     */
-    private <T extends AbstractTimerHandle> T tryAddTimerAndInit(T timerHandle) {
-        if (closed) {
-            // timer系统已关闭，不压入队列
-            timerHandle.setTerminated();
-        } else {
-            // 先初始化，才能获得首次执行时间
-            timerHandle.init();
-            timerQueue.add(timerHandle);
-        }
-        return timerHandle;
-    }
-
-    @Nonnull
-    @Override
-    public TimeoutHandle newTimeout(long timeout, @Nonnull TimerTask<TimeoutHandle> task) {
-        TimeoutHandleImp timeoutHandleImp = new TimeoutHandleImp(this, task, timeout);
-        return tryAddTimerAndInit(timeoutHandleImp);
-    }
-
-    @Nonnull
-    @Override
-    public FixedDelayHandle newFixedDelay(long initialDelay, long delay, @Nonnull TimerTask<FixedDelayHandle> task) {
-        FixedDelayHandleImp.ensureDelay(delay);
-        FixedDelayHandleImp fixedDelayHandleImp = new FixedDelayHandleImp(this, task, initialDelay, delay);
-        return tryAddTimerAndInit(fixedDelayHandleImp);
-    }
-
-    @Nonnull
-    @Override
-    public FixedRateHandle newFixRate(long initialDelay, long period, @Nonnull TimerTask<FixedRateHandle> task) {
-        FixRateHandleImp.ensurePeriod(period);
-        FixRateHandleImp fixRateHandleImp = new FixRateHandleImp(this, task, initialDelay, period);
-        return tryAddTimerAndInit(fixRateHandleImp);
     }
 
     long nextTimerId() {

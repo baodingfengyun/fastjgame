@@ -43,5 +43,5 @@ public interface TimeoutHandle extends TimerHandle {
      * @param timeout 新的超时时间
      * @return 更新成功则返回true
      */
-    boolean setTimeoutImmediately(long timeout);
+    boolean setTimeout(long timeout);
 }

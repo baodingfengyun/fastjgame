@@ -39,7 +39,7 @@ class TimeoutHandleImp extends AbstractTimerHandle implements TimeoutHandle {
     }
 
     @Override
-    public boolean setTimeoutImmediately(long timeout) {
+    public boolean setTimeout(long timeout) {
         if (isTerminated()) {
             return false;
         }

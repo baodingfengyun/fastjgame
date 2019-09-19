@@ -58,6 +58,16 @@ class FixedDelayHandleImp extends AbstractTimerHandle implements FixedDelayHandl
     }
 
     @Override
+    public boolean setDelay(long delay) {
+        if (setDelayLazy(delay)) {
+            timerSystem().adjust(this);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
     public final boolean setDelayLazy(long delay) {
         ensureDelay(delay);
         if (isTerminated()) {
@@ -65,16 +75,6 @@ class FixedDelayHandleImp extends AbstractTimerHandle implements FixedDelayHandl
         } else {
             this.delay = delay;
             return true;
-        }
-    }
-
-    @Override
-    public boolean setDelay(long delay) {
-        if (setDelayLazy(delay)) {
-            timerSystem().adjust(this);
-            return true;
-        } else {
-            return false;
         }
     }
 

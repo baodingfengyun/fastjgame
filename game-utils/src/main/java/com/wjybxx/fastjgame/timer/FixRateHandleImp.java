@@ -57,6 +57,16 @@ class FixRateHandleImp extends AbstractTimerHandle implements FixedRateHandle {
     }
 
     @Override
+    public boolean setPeriod(long period) {
+        if (setPeriodLazy(period)) {
+            timerSystem().adjust(this);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
     public final boolean setPeriodLazy(long period) {
         ensurePeriod(period);
         if (isTerminated()) {
@@ -64,16 +74,6 @@ class FixRateHandleImp extends AbstractTimerHandle implements FixedRateHandle {
         } else {
             this.period = period;
             return true;
-        }
-    }
-
-    @Override
-    public boolean setPeriod(long period) {
-        if (setPeriodLazy(period)) {
-            timerSystem().adjust(this);
-            return true;
-        } else {
-            return false;
         }
     }
 
