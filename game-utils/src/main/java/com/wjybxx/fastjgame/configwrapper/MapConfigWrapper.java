@@ -17,7 +17,10 @@
 package com.wjybxx.fastjgame.configwrapper;
 
 import javax.annotation.concurrent.Immutable;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 基于map的配置的包装器

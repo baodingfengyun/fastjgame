@@ -21,9 +21,7 @@ import com.wjybxx.fastjgame.concurrent.FutureListener;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 
 import javax.annotation.Nonnull;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Rpc调用的future。

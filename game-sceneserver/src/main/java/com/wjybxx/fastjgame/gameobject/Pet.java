@@ -21,7 +21,6 @@ import com.wjybxx.fastjgame.scene.Scene;
 import com.wjybxx.fastjgame.timer.SystemTimeProvider;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 /**
  * 宠物对象

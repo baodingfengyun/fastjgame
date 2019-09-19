@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.misc.PlatformType;
-
 /**
  * 中心服在登录服的信息
  *

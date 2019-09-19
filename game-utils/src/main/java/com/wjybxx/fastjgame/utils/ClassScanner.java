@@ -29,7 +29,7 @@ import java.util.function.Predicate;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-import static com.wjybxx.fastjgame.utils.ClassScannerFilters.*;
+import static com.wjybxx.fastjgame.utils.ClassScannerFilters.exceptInnerClass;
 
 /**
  * 类扫描器

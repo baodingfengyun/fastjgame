@@ -26,7 +26,6 @@ import com.wjybxx.fastjgame.net.injvm.JVMPort;
 import com.wjybxx.fastjgame.utils.GameUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.SystemUtils;
-import com.wjybxx.fastjgame.world.GameEventLoopMrg;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;

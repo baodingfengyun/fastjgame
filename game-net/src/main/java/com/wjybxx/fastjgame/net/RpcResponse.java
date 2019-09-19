@@ -37,7 +37,7 @@ public final class RpcResponse {
     /**
      * 执行成功但是没有返回值的body
      */
-    public static final RpcResponse SUCCESS = new RpcResponse(RpcResultCode.SUCCESS, null);
+    public static final RpcResponse SUCCESS = newSucceedResponse(null);
 
     public static final RpcResponse SESSION_NULL = newFailResponse(RpcResultCode.SESSION_NULL);
     public static final RpcResponse SESSION_CLOSED = newFailResponse(RpcResultCode.SESSION_CLOSED);
@@ -81,11 +81,7 @@ public final class RpcResponse {
     }
 
     public static RpcResponse newSucceedResponse(@Nullable Object body) {
-        if (null == body) {
-            return SUCCESS;
-        } else {
-            return new RpcResponse(RpcResultCode.SUCCESS, body);
-        }
+        return new RpcResponse(RpcResultCode.SUCCESS, body);
     }
 
     @Override

@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.misc.PlatformType;
 import com.wjybxx.fastjgame.net.Session;
 
 /**

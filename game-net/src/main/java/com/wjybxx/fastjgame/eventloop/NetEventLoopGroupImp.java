@@ -20,8 +20,8 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.wjybxx.fastjgame.concurrent.*;
 import com.wjybxx.fastjgame.manager.HttpClientManager;
-import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.module.NetEventLoopGroupModule;
+import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.net.RoleType;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 

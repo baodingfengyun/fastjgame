@@ -20,7 +20,6 @@ import com.google.inject.Inject;
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
 import com.wjybxx.fastjgame.misc.MessageMappingStrategy;
 import com.wjybxx.fastjgame.mrg.*;
-import com.wjybxx.fastjgame.net.HttpRequestHandler;
 import com.wjybxx.fastjgame.net.RoleType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

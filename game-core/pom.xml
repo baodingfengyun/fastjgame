@@ -21,6 +21,13 @@
             <version>1.0</version>
         </dependency>
 
+        <!-- DB依赖 -->
+        <dependency>
+            <groupId>com.wjybxx.fastjgame</groupId>
+            <artifactId>game-db</artifactId>
+            <version>1.0</version>
+        </dependency>
+
         <!-- zookeeper客户端curator 调了半天才找到一个合适版本 2.12 -->
         <!-- curator 3.x 开始是针对 zookeeper 3.5.x，目前3.5.x还处于测试阶段，目前稳定版最新为3.4.14-->
         <!-- curator的依赖有点坑爹 -->
@@ -50,14 +57,6 @@
                     <artifactId>netty</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-
-        <!-- mongoDB java驱动 -->
-        <!-- https://mvnrepository.com/artifact/org.mongodb/mongo-java-driver -->
-        <dependency>
-            <groupId>org.mongodb</groupId>
-            <artifactId>mongo-java-driver</artifactId>
-            <version>3.10.2</version>
         </dependency>
 
     </dependencies>

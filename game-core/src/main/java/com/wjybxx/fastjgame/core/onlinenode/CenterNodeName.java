@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.core.onlinenode;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.wjybxx.fastjgame.misc.PlatformType;
 
 /**

@@ -19,7 +19,6 @@ package com.wjybxx.fastjgame.gameobject;
 import com.wjybxx.fastjgame.misc.PlatformType;
 import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.scene.Scene;
-import com.wjybxx.fastjgame.scene.gameobjectdata.GameObjectType;
 import com.wjybxx.fastjgame.scene.gameobjectdata.PlayerData;
 import com.wjybxx.fastjgame.timer.SystemTimeProvider;
 

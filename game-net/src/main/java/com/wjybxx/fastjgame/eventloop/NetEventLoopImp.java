@@ -186,7 +186,9 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         }
     }
 
-
+    /**
+     * 定时刷帧，不必频繁刷帧
+     */
     private void tick(FixedDelayHandle handle) {
         // 刷帧
         socketS2CSessionManager.tick();

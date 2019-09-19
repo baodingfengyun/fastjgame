@@ -25,7 +25,6 @@ import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
@@ -105,7 +104,7 @@ public class SerializableNumberProcessor extends AbstractProcessor {
         // 只允许枚举和类使用
         if (typeElement.getKind() == ElementKind.ENUM) {
             checkEnum(typeElement);
-        } else if (typeElement.getKind() == ElementKind.CLASS){
+        } else if (typeElement.getKind() == ElementKind.CLASS) {
             if (typeUtils.isSubtype(typeUtils.getDeclaredType(typeElement), numberEnumDeclaredType)) {
                 // numberEnum
                 checkEnum(typeElement);
@@ -152,9 +151,10 @@ public class SerializableNumberProcessor extends AbstractProcessor {
 
     /**
      * 查找方法{@code
-     *      static T forNumber(int) {
-     *      }
+     * static T forNumber(int) {
      * }
+     * }
+     *
      * @param typeElement 要检索的类
      */
     private void checkEnum(TypeElement typeElement) {

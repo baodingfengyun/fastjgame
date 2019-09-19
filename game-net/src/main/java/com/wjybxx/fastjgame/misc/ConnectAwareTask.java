@@ -27,7 +27,7 @@ import com.wjybxx.fastjgame.net.SessionLifecycleAware;
  * date - 2019/9/18
  * github - https://github.com/hl845740757
  */
-public class ConnectAwareTask implements Runnable{
+public class ConnectAwareTask implements Runnable {
 
     private final Session session;
     private final SessionLifecycleAware lifecycleAware;

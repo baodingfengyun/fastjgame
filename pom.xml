@@ -21,6 +21,7 @@
     <modules>
         <module>game-utils</module>
         <module>game-net</module>
+        <module>game-db</module>
         <module>game-core</module>
         <module>game-centerserver</module>
         <module>game-sceneserver</module>
