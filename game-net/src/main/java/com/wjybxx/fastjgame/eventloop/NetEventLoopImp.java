@@ -52,7 +52,7 @@ import java.util.concurrent.locks.LockSupport;
  */
 public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLoop {
 
-    private static final int MAX_BATCH_SIZE = 64 * 1024;
+    private static final int MAX_BATCH_SIZE = 32 * 1024;
 
     private final NetManagerWrapper managerWrapper;
     private final NetEventLoopManager netEventLoopManager;

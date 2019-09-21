@@ -23,9 +23,11 @@ import com.wjybxx.fastjgame.utils.CollectionUtils;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.objects.ObjectIterator;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -41,47 +43,30 @@ public abstract class AbstractSessionManager implements SessionManager {
 
     protected final NetTimeManager netTimeManager;
 
-    /**
-     * 这是一项特定的优化：消除大量的lambda表达式对象，你通常并不需要这样。
-     */
-    private final Predicate<RpcPromiseInfo> timeoutPredicate;
-    /**
-     * 这是一项特定的优化：消除大量的lambda表达式对象，你通常并不需要这样。
-     */
-    private final TimeoutConsumer timeoutConsumer;
-
     @Inject
     protected AbstractSessionManager(NetTimeManager netTimeManager) {
         this.netTimeManager = netTimeManager;
-        this.timeoutPredicate = new TimeoutPredicate();
-        this.timeoutConsumer = new TimeoutConsumer();
     }
 
+    /**
+     * 检查rpc超时信息
+     * 为了减少大量的lambda表达式对象创建，这里写了与{@link CollectionUtils#removeIfAndThen(Collection, Predicate, Consumer)}
+     * 重复的代码。
+     *
+     * @param sessionWrapper session包装对象
+     */
     @SuppressWarnings("unchecked")
     protected final void checkRpcTimeout(ISessionWrapper sessionWrapper) {
-        // 检测超时的rpc调用
-        timeoutConsumer.session = sessionWrapper.getSession();
-        CollectionUtils.removeIfAndThen(sessionWrapper.getRpcPromiseInfoMap().values(),
-                timeoutPredicate,
-                timeoutConsumer);
-        timeoutConsumer.session = null;
-    }
-
-    private class TimeoutPredicate implements Predicate<RpcPromiseInfo> {
-
-        @Override
-        public boolean test(RpcPromiseInfo rpcPromiseInfo) {
-            return netTimeManager.getSystemMillTime() >= rpcPromiseInfo.deadline;
+        if (sessionWrapper.rpcPromiseInfoMap.size() == 0) {
+            return;
         }
-    }
-
-    private class TimeoutConsumer implements Consumer<RpcPromiseInfo> {
-
-        private Session session;
-
-        @Override
-        public void accept(RpcPromiseInfo rpcPromiseInfo) {
-            commitRpcResponse(session, rpcPromiseInfo, RpcResponse.TIMEOUT);
+        ObjectIterator<RpcPromiseInfo> iterator = sessionWrapper.rpcPromiseInfoMap.values().iterator();
+        while (iterator.hasNext()) {
+            RpcPromiseInfo rpcPromiseInfo = iterator.next();
+            if (netTimeManager.getSystemMillTime() >= rpcPromiseInfo.deadline) {
+                iterator.remove();
+                commitRpcResponse(sessionWrapper.session, rpcPromiseInfo, RpcResponse.TIMEOUT);
+            }
         }
     }
 
@@ -179,12 +164,14 @@ public abstract class AbstractSessionManager implements SessionManager {
      */
     protected final void commitRpcResponse(Session session, RpcPromiseInfo rpcPromiseInfo, RpcResponse rpcResponse) {
         if (rpcPromiseInfo.rpcPromise != null) {
+            // 同步rpc调用
             if (session.isActive()) {
                 rpcPromiseInfo.rpcPromise.trySuccess(rpcResponse);
             } else {
                 rpcPromiseInfo.rpcPromise.trySuccess(RpcResponse.SESSION_CLOSED);
             }
         } else {
+            // 异步rpc调用
             RpcResponseCommitTask rpcResponseCommitTask;
             if (session.isActive()) {
                 rpcResponseCommitTask = new RpcResponseCommitTask(rpcPromiseInfo.rpcCallback, rpcResponse);

@@ -20,7 +20,8 @@ import com.wjybxx.fastjgame.net.RpcCallback;
 import com.wjybxx.fastjgame.net.RpcResponse;
 
 /**
- * 适配器模式的一个运用。
+ * Rpc回调适配器。
+ * (适配器模式)
  *
  * @author wjybxx
  * @version 1.0

@@ -137,6 +137,7 @@ public abstract class SocketSessionManager extends AbstractSessionManager {
      * @param channel      会话关联的channel
      * @param messageQueue 消息队列
      */
+    @SuppressWarnings("ConstantConditions")
     protected final void flushAllUnsentMessage(Channel channel, MessageQueue messageQueue) {
         if (messageQueue.getUnsentQueue().size() == 1) {
             // 单个发送

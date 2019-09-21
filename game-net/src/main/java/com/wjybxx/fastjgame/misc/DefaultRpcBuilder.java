@@ -64,14 +64,32 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V> {
     }
 
     @Override
+    public <T> RpcBuilder<V> ifSuccess(@Nonnull SaferSucceedRpcCallback<V, T> callback, @Nonnull T context) {
+        addCallback(new RpcCallbackAdapter<>(callback, context));
+        return this;
+    }
+
+    @Override
     public final RpcBuilder<V> ifFailure(@Nonnull FailedRpcCallback callback) {
         addCallback(callback);
         return this;
     }
 
     @Override
+    public <T> RpcBuilder<V> ifFailure(@Nonnull SaferFailedRpcCallback<T> callback, @Nonnull T context) {
+        addCallback(new RpcCallbackAdapter<>(callback, context));
+        return this;
+    }
+
+    @Override
     public final RpcBuilder<V> any(@Nonnull RpcCallback callback) {
         addCallback(callback);
+        return this;
+    }
+
+    @Override
+    public <T> RpcBuilder<V> any(@Nonnull SaferRpcCallback<T> callback, @Nonnull T context) {
+        addCallback(new RpcCallbackAdapter<>(callback, context));
         return this;
     }
 
@@ -91,25 +109,27 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V> {
     }
 
     @Override
-    public void send(@Nullable Session session) throws IllegalStateException {
+    public RpcBuilder<V> send(@Nullable Session session) throws IllegalStateException {
         ensureSendAvailable();
         if (session != null) {
             session.send(call);
         }
         // else do nothing
+        return this;
     }
 
     @Override
-    public void broadcast(@Nullable Iterable<Session> sessionIterable) throws IllegalStateException {
+    public RpcBuilder<V> broadcast(@Nullable Iterable<Session> sessionIterable) throws IllegalStateException {
         ensureSendAvailable();
         if (sessionIterable == null) {
-            return;
+            return this;
         }
         for (Session session : sessionIterable) {
             if (session != null) {
                 session.send(call);
             }
         }
+        return this;
     }
 
     /**

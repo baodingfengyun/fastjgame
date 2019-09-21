@@ -26,7 +26,8 @@ import com.wjybxx.fastjgame.net.RpcResponse;
  * date - 2019/9/21
  * github - https://github.com/hl845740757
  */
-public interface SaferSucceedRpcCallback<T, V> extends SaferRpcCallback<T> {
+@FunctionalInterface
+public interface SaferSucceedRpcCallback<V, T> extends SaferRpcCallback<T> {
 
     @SuppressWarnings("unchecked")
     @Override
@@ -36,6 +37,11 @@ public interface SaferSucceedRpcCallback<T, V> extends SaferRpcCallback<T> {
         }
     }
 
+    /**
+     * 当执行成功时
+     *
+     * @param result 调用结果
+     */
     void onSuccess(V result, T context);
 
 }

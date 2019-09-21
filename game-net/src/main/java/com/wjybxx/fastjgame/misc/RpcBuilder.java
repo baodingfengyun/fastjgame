@@ -86,6 +86,16 @@ public interface RpcBuilder<V> {
     RpcBuilder<V> ifSuccess(@Nonnull SucceedRpcCallback<V> callback);
 
     /**
+     * 设置成功时执行的回调。
+     * 注意：如果你最后调用的是{@link #send(Session)}方法，那么该回调会被忽略。
+     *
+     * @param callback 回调逻辑 - 方法引用 {@code this::method}
+     * @param context  存储的上下文
+     * @return this
+     */
+    <T> RpcBuilder<V> ifSuccess(@Nonnull SaferSucceedRpcCallback<V, T> callback, @Nonnull T context);
+
+    /**
      * 设置失败时执行的回调。
      * 注意：如果你最后调用的是{@link #send(Session)}方法，那么该回调会被忽略。
      *
@@ -93,6 +103,16 @@ public interface RpcBuilder<V> {
      * @return this
      */
     RpcBuilder<V> ifFailure(@Nonnull FailedRpcCallback callback);
+
+    /**
+     * 设置失败时执行的回调。
+     * 注意：如果你最后调用的是{@link #send(Session)}方法，那么该回调会被忽略。
+     *
+     * @param callback 回调逻辑 - 方法引用 {@code this::method}
+     * @param context  存储的上下文
+     * @return this
+     */
+    <T> RpcBuilder<V> ifFailure(@Nonnull SaferFailedRpcCallback<T> callback, @Nonnull T context);
 
     /**
      * 设置无论成功还是失败都会执行的回调。
@@ -103,15 +123,26 @@ public interface RpcBuilder<V> {
      */
     RpcBuilder<V> any(@Nonnull RpcCallback callback);
 
+    /**
+     * 设置无论成功还是失败都会执行的回调。
+     * 注意：如果你最后调用的是{@link #send(Session)}方法，那么该回调会被忽略。
+     *
+     * @param callback 回调逻辑 - 方法引用 {@code this::method}
+     * @param context  存储的上下文
+     * @return this
+     */
+    <T> RpcBuilder<V> any(@Nonnull SaferRpcCallback<T> callback, @Nonnull T context);
+
     // --------------------------------------------- 真正执行 --------------------------------------------------
 
     /**
      * 发送一个单向通知 - 它也可以调用rpc方法，不过结果不会被传输回来。
      *
      * @param session 要通知的session
+     * @return this 可以继续发送
      * @throws IllegalStateException 如果调用过send、broadcast以外的请求方法，则会抛出异常
      */
-    void send(@Nullable Session session) throws IllegalStateException;
+    RpcBuilder<V> send(@Nullable Session session) throws IllegalStateException;
 
     /**
      * 广播一个通知，它是对{@link #send(Session)}的一个包装。
@@ -120,9 +151,10 @@ public interface RpcBuilder<V> {
      * 2. 即使添加了回调，这些回调也会被忽略。
      *
      * @param sessionIterable 要广播的所有session
+     * @return this 可以继续发送
      * @throws IllegalStateException 如果调用过send、broadcast以外的请求方法，则会抛出异常。
      */
-    void broadcast(@Nullable Iterable<Session> sessionIterable) throws IllegalStateException;
+    RpcBuilder<V> broadcast(@Nullable Iterable<Session> sessionIterable) throws IllegalStateException;
 
     /**
      * 执行异步rpc调用，无论如何对方都会返回一个结果。

@@ -47,6 +47,7 @@ import com.wjybxx.fastjgame.net.RpcResponse;
  * date - 2019/9/21
  * github - https://github.com/hl845740757
  */
+@FunctionalInterface
 public interface SaferRpcCallback<T> {
 
     /**
