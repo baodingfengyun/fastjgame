@@ -15,6 +15,10 @@
  */
 
 /**
+ * 注意：虽然定义为{@link com.wjybxx.fastjgame.annotation.RpcService}，但是架构并不是基于service的，
+ * 而是基于{@link com.wjybxx.fastjgame.world.World}的，rpc是用于world（模块）之间通信的，正常的开发都是在world内完成的。
+ *
+ * <p>
  * Q: 为什么跨module的RPC接口必须定义在core模块？不能编译其它模块的时候将代码生成在core模块吗？<br>
  * A: 我之前确实是这个思路，不过遇见了一个奇怪的现象，那就是java文件确确实实存在于core模块下，写代码的时候
  * 也没提示任何错误，但是一旦开始编译，就会提示<b>找不到符号</b>！类明明在那里啊，为啥找不到符号啊？？？

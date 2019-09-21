@@ -74,7 +74,8 @@ public interface ListenableFuture<V> extends Future<V> {
     /**
      * 查询future关联的任务是否可以被取消。
      * <p>
-     * returns 当且仅当future关联的任务可以通过{@link #cancel(boolean)}被取消时返回true。
+     *
+     * @return 当且仅当future关联的任务可以通过{@link #cancel(boolean)}被取消时返回true。
      */
     boolean isCancellable();
 

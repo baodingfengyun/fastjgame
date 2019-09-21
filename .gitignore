@@ -33,7 +33,7 @@ Thumbs.db
 *.iws
 *.idea
 
-# Package Files #
+# Package Files
 *.jar
 *.war
 *.nar
@@ -43,6 +43,6 @@ Thumbs.db
 *.rar
 
 
-# ����ר�ú����ļ���
+# 专用ignore文件夹
 *ignorefiles/
 _obstacleInfo.txt
