@@ -147,6 +147,11 @@ public class ExampleRpcClientLoop extends DisruptorEventLoop {
                 .ifSuccess(result -> System.out.println("queryId - " + index + " - " + result))
                 .call(session);
 
+        // - SaferRpcCallback
+        ExampleRpcServiceRpcProxy.queryId("wjybxx-" + index)
+                .ifSuccess(this::afterQueryId, index)
+                .call(session);
+
         ExampleRpcServiceRpcProxy.inc(index)
                 .ifSuccess(result -> System.out.println("inc - " + index + " - " + result))
                 .call(session);
@@ -170,6 +175,14 @@ public class ExampleRpcClientLoop extends DisruptorEventLoop {
         // 阻塞到前面的rpc都返回，使得每次combine调用不被其它rpc调用影响
         // 因为调用的是sync(Session),对方的网络底层一定会返回一个结果，如果方法本身为void，那么返回的就是null。
         ExampleRpcServiceRpcProxy.sync().sync(session);
+    }
+
+    /**
+     * @param result rpc调用结果
+     * @param index  保存的索引(一个简单的上下文)
+     */
+    private void afterQueryId(Integer result, int index) {
+        System.out.println("saferQueryId - " + index + " - " + result);
     }
 
     @Override

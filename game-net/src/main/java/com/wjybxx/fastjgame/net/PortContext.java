@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.net;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * 某个端口的绑定信息
+ * 某个端口的绑定信息 - 它解释如何处理该端口上接收到的连接和消息。
  *
  * @author wjybxx
  * @version 1.0

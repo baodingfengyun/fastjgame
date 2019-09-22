@@ -83,7 +83,7 @@ public class NetConfigManager {
         serverMaxCacheNum = configWrapper.getAsInt("serverMaxCacheNum");
         clientMaxCacheNum = configWrapper.getAsInt("clientMaxCacheNum");
 
-        flushThreshold = configWrapper.getAsInt("flushThreshold", 50);
+        flushThreshold = configWrapper.getAsInt("flushThreshold");
 
         connectMaxTryTimes = configWrapper.getAsInt("connectMaxTryTimes");
         connectTimeout = configWrapper.getAsInt("connectTimeout");

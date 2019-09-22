@@ -16,10 +16,9 @@
 
 package com.wjybxx.fastjgame.test;
 
-import com.google.common.base.Preconditions;
 import com.wjybxx.fastjgame.example.ExampleConstants;
 import com.wjybxx.fastjgame.example.ExampleMessages;
-import com.wjybxx.fastjgame.example.ReflectBasedProtoCodecExample;
+import com.wjybxx.fastjgame.example.ReflectBasedProtoCodecTest;
 import com.wjybxx.fastjgame.net.ProtocolCodec;
 import com.wjybxx.fastjgame.utils.NetUtils;
 
@@ -44,7 +43,7 @@ public class ProtocolCloneTest {
 
     private static void cloneTest(ProtocolCodec codec) throws IOException {
         System.out.println("\n" + codec.getClass().getName());
-        final ExampleMessages.FullMessage fullMessage = ReflectBasedProtoCodecExample.newFullMessage();
+        final ExampleMessages.FullMessage fullMessage = ReflectBasedProtoCodecTest.newFullMessage();
         System.out.println("cloneMessage "  + codec.cloneMessage(fullMessage).equals(fullMessage));
         System.out.println("cloneRpcRequest" + codec.cloneRpcRequest(fullMessage).equals(fullMessage));
         System.out.println("cloneRpcResponse" + codec.cloneRpcResponse(fullMessage).equals(fullMessage));

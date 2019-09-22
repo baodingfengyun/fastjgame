@@ -127,6 +127,11 @@ public class SocketC2SSessionManager extends SocketSessionManager {
         return userInfo.sessionWrapperMap.get(serverGuid);
     }
 
+    @Override
+    protected int getMaxUnsentMessageNum() {
+        return netConfigManager.clientMaxCacheNum();
+    }
+
     /**
      * 链接到远程。
      *

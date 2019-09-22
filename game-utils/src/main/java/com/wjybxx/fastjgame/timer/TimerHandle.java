@@ -32,7 +32,7 @@ public interface TimerHandle {
 
     /**
      * 设置附加属性(使得task在运行的时候可以获取该值)。
-     * 注意：attachment在关闭或取消时不会自动删除，当你不需要使用时，可以尽早的释放它(设置为null)。
+     * 注意：attachment在timer关闭或取消时不会自动删除，当你不需要使用时，可以尽早的释放它(设置为null)。
      *
      * @param newData 新值
      * @return 之前的值，如果不存在，则返回null

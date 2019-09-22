@@ -342,7 +342,6 @@ public class JVMS2CSessionManager extends JVMSessionManager {
         }
 
         PortContext getPortContext() {
-            assert netEventLoop.inEventLoop();
             return portContext;
         }
 

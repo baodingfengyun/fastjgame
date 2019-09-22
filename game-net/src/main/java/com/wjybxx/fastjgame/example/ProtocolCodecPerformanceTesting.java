@@ -37,7 +37,7 @@ public class ProtocolCodecPerformanceTesting {
 
     public static void main(String[] args) throws IOException {
         ByteBufAllocator byteBufAllocator = PooledByteBufAllocator.DEFAULT;
-        ExampleMessages.FullMessage fullMessage = ReflectBasedProtoCodecExample.newFullMessage();
+        ExampleMessages.FullMessage fullMessage = ReflectBasedProtoCodecTest.newFullMessage();
 
         JsonBasedProtocolCodec jsonBasedCodec = ExampleConstants.jsonBasedCodec;
         ReflectBasedProtocolCodec reflectBasedCodec = ExampleConstants.reflectBasedCodec;

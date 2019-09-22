@@ -83,7 +83,7 @@ public class ClassScanner {
     public static Set<Class<?>> findClasses(String pkgName, Predicate<String> classNameFilter, Predicate<Class<?>> classFilter) {
         //第一个class类的集合
         Set<Class<?>> classes = new LinkedHashSet<>();
-        // 获取包的名字 并进行替换
+        // 获取文件路径
         String pkgDirName = pkgName.replace('.', '/');
         try {
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
@@ -183,26 +183,22 @@ public class ClassScanner {
      */
     public static void findClassesByJar(ClassLoader classLoader, String pkgName, JarFile jar, Set<Class<?>> classes,
                                         Predicate<String> classNameFilter, Predicate<Class<?>> classFilter) {
-        String pkgDir = pkgName.replace(".", "/");
-        Enumeration<JarEntry> entry = jar.entries();
+        // 这里需要 + "/"，避免startWith判断错误的情况
+        final String pkgDir = pkgName.replace(".", "/") + "/";
+        final Enumeration<JarEntry> entry = jar.entries();
 
         // 同样的进行循环迭代
         while (entry.hasMoreElements()) {
             // 获取jar里的一个实体 可以是目录 和一些jar包里的其他文件 如META-INF等文
             JarEntry jarEntry = entry.nextElement();
 
-            // 包也是一个entry
+            // jar包中的文件夹
             if (jarEntry.isDirectory()) {
                 continue;
             }
-
+            // jar包中的文件
             String name = jarEntry.getName();
-            // 如果是以/开头的
-            if (name.charAt(0) == '/') {
-                // 获取后面的字符串
-                name = name.substring(1);
-            }
-
+            // 使用startWith一定要加"/"，否则可能出现错误
             if (!name.startsWith(pkgDir) || !name.endsWith(".class")) {
                 continue;
             }

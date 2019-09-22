@@ -425,34 +425,6 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     }
 
     // ----------------------------------------- 等待 ----------------------------------------------------
-
-    @Override
-    public void await() throws InterruptedException {
-        // 先检查一次是否已完成，减小锁竞争，同时在完成的情况下，等待不会死锁。
-        if (isDone()) {
-            return;
-        }
-        // 检查中断 --- 在执行一个耗时操作之前检查中断是有必要的
-        ConcurrentUtils.checkInterrupted();
-        // 检查死锁可能
-        checkDeadlock();
-
-        // 锁的标准模式
-        // while(!condition()) {
-        //      this.wait();
-        // }
-        synchronized (this) {
-            while (!isDone()) {
-                incWaiters();
-                try {
-                    this.wait();
-                } finally {
-                    decWaiters();
-                }
-            }
-        }
-    }
-
     /**
      * 检查死锁可能，定义为方法是为了方便子类特殊逻辑
      */
@@ -475,9 +447,61 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     }
 
     @Override
+    public void await() throws InterruptedException {
+        // 先检查一次是否已完成，减小锁竞争，同时在完成的情况下，等待不会死锁。
+        if (isDone()) {
+            return;
+        }
+        // 检查死锁可能
+        checkDeadlock();
+
+        // 检查中断 --- 在执行一个耗时操作之前检查中断是有必要的
+        ConcurrentUtils.checkInterrupted();
+
+        // 锁的标准模式
+        // while(!condition()) {
+        //      this.wait();
+        // }
+        synchronized (this) {
+            while (!isDone()) {
+                incWaiters();
+                try {
+                    this.wait();
+                } finally {
+                    decWaiters();
+                }
+            }
+        }
+    }
+
+    @Override
     public void awaitUninterruptibly() {
-        // 重复代码写多了容易出事故。
-        ConcurrentUtils.awaitUninterruptibly(this::await);
+        // 先检查一次是否已完成，减小锁竞争，同时在完成的情况下，等待不会死锁。
+        if (isDone()) {
+            return;
+        }
+        // 检查死锁可能
+        checkDeadlock();
+
+        // 先清除当前中断状态(避免无谓的中断异常)
+        boolean interrupted = Thread.interrupted();
+        try {
+            synchronized (this) {
+                while (!isDone()) {
+                    incWaiters();
+                    try {
+                        this.wait();
+                    } catch (InterruptedException e) {
+                        interrupted = true;
+                    } finally {
+                        decWaiters();
+                    }
+                }
+            }
+        } finally {
+            // 恢复中断
+            ConcurrentUtils.recoveryInterrupted(interrupted);
+        }
     }
 
     @Override
@@ -490,11 +514,11 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         if (isDone()) {
             return true;
         }
-        // 即将等待之前检查中断标记（在耗时操作开始前检查中断是有必要的 -- 要养成习惯）
-        ConcurrentUtils.checkInterrupted();
         // 等待之前检查死锁可能
         checkDeadlock();
 
+        // 即将等待之前检查中断标记（在耗时操作开始前检查中断是有必要的 -- 要养成习惯）
+        ConcurrentUtils.checkInterrupted();
         final long endTime = System.nanoTime() + unit.toNanos(timeout);
         synchronized (this) {
             // 获取锁需要时间，因此应该在获取锁之后计算剩余时间
@@ -532,7 +556,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         final long endTime = System.nanoTime() + unit.toNanos(timeout);
         try {
             synchronized (this) {
-                // 获取锁需要时间
+                // 获取锁需要时间，因此应该在获取锁之后计算剩余时间
                 for (long remainNano = endTime - System.nanoTime(); remainNano > 0; remainNano = endTime - System.nanoTime()) {
                     if (isDone()) {
                         return true;

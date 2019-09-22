@@ -33,7 +33,7 @@ import java.util.*;
  * date - 2019/8/19
  * github - https://github.com/hl845740757
  */
-public class ReflectBasedProtoCodecExample {
+public class ReflectBasedProtoCodecTest {
 
     public static void main(String[] args) throws IOException {
         ReflectBasedProtocolCodec codec = ExampleConstants.reflectBasedCodec;

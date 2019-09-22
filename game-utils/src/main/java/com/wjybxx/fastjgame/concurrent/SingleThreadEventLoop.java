@@ -121,7 +121,9 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     }
 
     /**
-     * 创建任务队列，如果子类不需要阻塞操作 或 需要控制资源，则可以创建特定类型的队列。
+     * 创建任务队列，如果子类不需要阻塞操作 或 需要控制资源，则可以创建特定类型的队列。<br>
+     * 我自己测试了好多遍，{@link LinkedBlockingQueue} 和 {@link ConcurrentLinkedQueue}在
+     * EventLoop架构下基本没啥差别。
      *
      * @return queue
      */

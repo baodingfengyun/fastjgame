@@ -62,6 +62,7 @@ public interface NetContext {
     /**
      * 该context绑定到的NetEventLoop。
      * 底层会尽可能的让用户的网络请求执行在该{@link NetEventLoop}上，但不保证全部在该{@link NetEventLoop}上。
+     * 你应该尽量使用{@link Session#netEventLoop()}。
      */
     NetEventLoop netEventLoop();
 

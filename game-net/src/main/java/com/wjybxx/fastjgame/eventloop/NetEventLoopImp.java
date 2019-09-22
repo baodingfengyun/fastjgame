@@ -109,7 +109,6 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         jvmc2SSessionManager.setNetManagerWrapper(managerWrapper);
     }
 
-
     @Nullable
     @Override
     public NetEventLoopGroup parent() {

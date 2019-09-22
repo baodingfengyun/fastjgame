@@ -117,7 +117,7 @@ public abstract class Params {
      * @return true, yes, 1, y表示为真，其余为假。
      */
     public boolean getAsBool(String key, boolean defaultValue) {
-        return ConfigUtils.getAsBool(key, defaultValue);
+        return ConfigUtils.getAsBool(getAsString(key), defaultValue);
     }
     // endregion
 

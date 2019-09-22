@@ -15,6 +15,8 @@
  */
 package com.wjybxx.fastjgame.net;
 
+import com.wjybxx.fastjgame.utils.SystemUtils;
+
 import javax.annotation.Nonnull;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -28,14 +30,28 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public abstract class AbstractRpcResponseChannel<T> implements RpcResponseChannel<T> {
 
-    private final AtomicBoolean writable = new AtomicBoolean(true);
+    /**
+     * 默认检查{@link #writable}标记。<br>
+     * 如果有大量的RPC调用，可以选择关闭检查，以减少volatile带来的内存同步开销。
+     */
+    private static final boolean CHECK_WRITABLE = SystemUtils.getProperties().getAsBool("AbstractRpcResponseChannel.CHECK_WRITABLE", true);
+
+    private final AtomicBoolean writable;
+
+    protected AbstractRpcResponseChannel() {
+        writable = CHECK_WRITABLE ? new AtomicBoolean(true) : null;
+    }
 
     @Override
     public final void write(@Nonnull RpcResponse rpcResponse) {
-        if (writable.compareAndSet(true, false)) {
+        if (writable == null) {
             doWrite(rpcResponse);
         } else {
-            throw new IllegalStateException("ResponseChannel can't be reused!");
+            if (writable.compareAndSet(true, false)) {
+                doWrite(rpcResponse);
+            } else {
+                throw new IllegalStateException("ResponseChannel can't be reused!");
+            }
         }
     }
 

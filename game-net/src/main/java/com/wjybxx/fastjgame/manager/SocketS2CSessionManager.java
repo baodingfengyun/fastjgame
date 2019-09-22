@@ -144,6 +144,11 @@ public class SocketS2CSessionManager extends SocketSessionManager {
         return userInfo.sessionWrapperMap.get(clientGuid);
     }
 
+    @Override
+    protected int getMaxUnsentMessageNum() {
+        return netConfigManager.serverMaxCacheNum();
+    }
+
     /**
      * 请求移除一个会话
      *

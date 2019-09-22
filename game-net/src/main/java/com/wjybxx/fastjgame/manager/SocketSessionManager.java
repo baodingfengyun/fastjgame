@@ -80,13 +80,19 @@ public abstract class SocketSessionManager extends AbstractSessionManager {
             return null;
         }
         // 未确认消息过多，删除会话
-        if (sessionWrapper.getUnsentMessageNum() >= netConfigManager.clientMaxCacheNum()) {
+        if (sessionWrapper.getUnsentMessageNum() >= getMaxUnsentMessageNum()) {
             removeSession(localGuid, remoteGuid, "cacheMessage is too much, num = " + sessionWrapper.getUnsentMessageNum());
             return null;
         } else {
             return sessionWrapper;
         }
     }
+
+    /**
+     * 获取允许的最大未发送消息数量
+     * @return 未发送消息数
+     */
+    protected abstract int getMaxUnsentMessageNum();
 
     // -----------------------------------------------------------  发送缓冲区 --------------------------------------------------------------
 

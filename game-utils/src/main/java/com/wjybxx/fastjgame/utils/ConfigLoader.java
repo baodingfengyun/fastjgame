@@ -53,6 +53,7 @@ public final class ConfigLoader {
     static {
         final String defaultGameConfigDir = new File("").getAbsolutePath() + File.separator + "config";
         GAME_CONFIG_DIR = System.getProperty("fastjgameConfigDir", defaultGameConfigDir);
+        logger.info("GAME_CONFIG_DIR = {} ", GAME_CONFIG_DIR);
     }
 
     private ConfigLoader() {

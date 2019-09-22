@@ -162,8 +162,8 @@ public class JVMC2SSessionManager extends JVMSessionManager {
         // 清理未完成的rpc请求
         cleanRpcPromiseInfo(session, sessionWrapper.detachRpcPromiseInfoMap());
 
-        // 验证成功过才执行断开回调操作(即调用过onSessionConnected方法)
-        if (postEvent && sessionWrapper.remoteEventLoop != null) {
+        // 需要提交事件
+        if (postEvent) {
             // 提交到用户线程
             ConcurrentUtils.tryCommit(session.localEventLoop(), new DisconnectAwareTask(session, sessionWrapper.lifecycleAware));
         }
@@ -256,7 +256,7 @@ public class JVMC2SSessionManager extends JVMSessionManager {
                 // 保存会话
                 userInfo.sessionWrapperMap.put(remoteGuid, sessionWrapper);
                 // 会话建立成功
-                ConcurrentUtils.tryCommit(netContext.localEventLoop(), new ConnectAwareTask(session, lifecycleAware));
+                ConcurrentUtils.tryCommit(session.localEventLoop(), new ConnectAwareTask(session, lifecycleAware));
                 // 监听服务端线程关闭
                 if (remoteEventLoopSet.add(remoteEventLoop)) {
                     remoteEventLoop.terminationFuture().addListener(future -> {
@@ -305,7 +305,7 @@ public class JVMC2SSessionManager extends JVMSessionManager {
         private final ProtocolDispatcher protocolDispatcher;
 
         /**
-         * 会话另一方所在的线程(建立连接成功才会有)
+         * 会话另一方所在的线程
          */
         private final EventLoop remoteEventLoop;
 
