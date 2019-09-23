@@ -383,7 +383,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     }
 
     /**
-     * 安全的通知一个监听器，不可以抛出异常
+     * 安全的通知一个监听器，不可以抛出异常，否则可能死锁
      *
      * @param future   future
      * @param listener 监听器
@@ -391,19 +391,24 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
      */
     @SuppressWarnings("unchecked")
     protected static void notifyListenerSafely(@Nonnull ListenableFuture future, @Nonnull FutureListener listener, @Nonnull EventLoop executor) {
-        EventLoopUtils.executeOrRun2(executor, () -> listener.onComplete(future), DefaultPromise::handleException);
-    }
-
-    /**
-     * 处理通知时异常
-     *
-     * @param e 执行异常或拒绝异常
-     */
-    private static void handleException(Exception e) {
-        if (e instanceof RejectedExecutionException) {
-            logger.info("Target EventLoop my shutdown. Task is rejected.");
-        } else {
-            logger.warn("notify task caught exception.", e);
+        try {
+            if (executor.inEventLoop()) {
+                listener.onComplete(future);
+            } else {
+                executor.execute(() -> {
+                    try {
+                        listener.onComplete(future);
+                    } catch (Exception e) {
+                        ConcurrentUtils.rethrow(e);
+                    }
+                });
+            }
+        } catch (Throwable e) {
+            if (e instanceof RejectedExecutionException) {
+                logger.info("Target EventLoop my shutdown. Notify task is rejected.");
+            } else {
+                logger.warn("An exception was thrown by " + listener.getClass().getName() + ".onComplete()", e);
+            }
         }
     }
 
@@ -425,6 +430,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     }
 
     // ----------------------------------------- 等待 ----------------------------------------------------
+
     /**
      * 检查死锁可能，定义为方法是为了方便子类特殊逻辑
      */

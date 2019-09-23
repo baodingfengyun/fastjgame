@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.utils;
 
 import com.wjybxx.fastjgame.concurrent.*;
 import com.wjybxx.fastjgame.function.AnyRunnable;
-import com.wjybxx.fastjgame.function.ExceptionHandler;
+import com.wjybxx.fastjgame.concurrent.ExceptionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -108,7 +108,7 @@ public class EventLoopUtils {
         } else {
             try {
                 eventLoop.execute(ConcurrentUtils.safeRunnable(task, exceptionHandler));
-            } catch (RejectedExecutionException e) {
+            } catch (Exception e) {
                 exceptionHandler.handleException(e);
             }
         }

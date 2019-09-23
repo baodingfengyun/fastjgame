@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.utils;
 
+import com.wjybxx.fastjgame.concurrent.ExceptionHandler;
 import com.wjybxx.fastjgame.function.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

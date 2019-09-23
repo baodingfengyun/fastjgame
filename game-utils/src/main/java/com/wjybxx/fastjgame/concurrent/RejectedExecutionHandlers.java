@@ -40,7 +40,12 @@ public class RejectedExecutionHandlers {
         throw new RejectedExecutionException();
     };
 
-    private static final RejectedExecutionHandler CALLER_RUNS_POLICY = (r, eventLoop) -> r.run();
+    /**
+     * 调用者执行
+     */
+    private static final RejectedExecutionHandler CALLER_RUNS_POLICY = (r, eventLoop) -> {
+        r.run();
+    };
 
     /**
      * 忽略
@@ -70,7 +75,7 @@ public class RejectedExecutionHandlers {
     }
 
     /**
-     * 调用者execute的线程执行。
+     * 调用者执行策略：调用execute方法的线程执行。
      * 注意：
      * 1. 需要访问其它线程执行的任务不能使用该策略。
      * 2. 必须有序执行的任务不能使用该策略。

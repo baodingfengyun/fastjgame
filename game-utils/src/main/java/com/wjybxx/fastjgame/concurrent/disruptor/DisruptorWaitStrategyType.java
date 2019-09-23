@@ -32,7 +32,7 @@ public enum DisruptorWaitStrategyType {
      * 适用于那些延迟和吞吐量不那么重要的场景，eg: 日志，网络。
      * <p>
      * 注意：
-     * 1. 复写{@link DisruptorEventLoop#timeoutInNano()}以指定超时时间。
+     * 1. 重写{@link DisruptorEventLoop#timeoutInNano()}方法以指定超时时间。
      * 2. 等待期间不会执行{@link DisruptorEventLoop#loopOnce()}，而是在每次超时之后执行一次{@link DisruptorEventLoop#loopOnce()}
      */
     TIMEOUT,

@@ -44,8 +44,8 @@ public class ProtocolCloneTest {
     private static void cloneTest(ProtocolCodec codec) throws IOException {
         System.out.println("\n" + codec.getClass().getName());
         final ExampleMessages.FullMessage fullMessage = ReflectBasedProtoCodecTest.newFullMessage();
-        System.out.println("cloneMessage "  + codec.cloneMessage(fullMessage).equals(fullMessage));
-        System.out.println("cloneRpcRequest" + codec.cloneRpcRequest(fullMessage).equals(fullMessage));
-        System.out.println("cloneRpcResponse" + codec.cloneRpcResponse(fullMessage).equals(fullMessage));
+        System.out.println("cloneMessage " + codec.cloneMessage(fullMessage).equals(fullMessage));
+        System.out.println("cloneRpcRequest " + codec.cloneRpcRequest(fullMessage).equals(fullMessage));
+        System.out.println("cloneRpcResponse " + codec.cloneRpcResponse(fullMessage).equals(fullMessage));
     }
 }
