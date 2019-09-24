@@ -17,15 +17,12 @@
 package com.wjybxx.fastjgame.utils;
 
 import com.wjybxx.fastjgame.concurrent.*;
-import com.wjybxx.fastjgame.function.AnyRunnable;
-import com.wjybxx.fastjgame.concurrent.ExceptionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
-import java.util.concurrent.RejectedExecutionException;
 
 /**
  * 事件循环辅助方法。
@@ -83,40 +80,6 @@ public class EventLoopUtils {
     /**
      * 如果当前线程就是EventLoop线程，则直接执行任务，否则进行提交
      *
-     * @param eventLoop        事件循环
-     * @param task             任务
-     * @param exceptionHandler 异常处理器，执行异常以及拒绝异常。
-     */
-    public static void executeOrRun(@Nonnull EventLoop eventLoop, Runnable task, ExceptionHandler exceptionHandler) {
-        executeOrRun2(eventLoop, task::run, exceptionHandler);
-    }
-
-    /**
-     * 如果当前线程就是EventLoop线程，则直接执行任务，否则进行提交
-     *
-     * @param eventLoop        事件循环
-     * @param task             任务
-     * @param exceptionHandler 异常处理器，执行异常以及拒绝异常。
-     */
-    public static void executeOrRun2(@Nonnull EventLoop eventLoop, AnyRunnable task, ExceptionHandler exceptionHandler) {
-        if (eventLoop.inEventLoop()) {
-            try {
-                task.run();
-            } catch (Exception e) {
-                exceptionHandler.handleException(e);
-            }
-        } else {
-            try {
-                eventLoop.execute(ConcurrentUtils.safeRunnable(task, exceptionHandler));
-            } catch (Exception e) {
-                exceptionHandler.handleException(e);
-            }
-        }
-    }
-
-    /**
-     * 如果当前线程就是EventLoop线程，则直接执行任务，否则进行提交
-     *
      * @param eventLoop 事件循环
      * @param task      任务
      * @return future
@@ -145,26 +108,4 @@ public class EventLoopUtils {
         }
     }
 
-    /**
-     * 如果当前线程就是EventLoop线程，则直接执行任务，否则尝试提交
-     *
-     * @param eventLoop 任务提交的目的地
-     * @param task      待提交的任务
-     */
-    public static void tryCommitOrRun(@Nonnull EventLoop eventLoop, @Nonnull Runnable task) {
-        if (eventLoop.inEventLoop()) {
-            task.run();
-        } else {
-            try {
-                eventLoop.execute(task);
-            } catch (Exception e) {
-                // may reject
-                if (e instanceof RejectedExecutionException) {
-                    logger.info("Target EventLoop my shutdown. Task is rejected.");
-                } else {
-                    ConcurrentUtils.rethrow(e);
-                }
-            }
-        }
-    }
 }

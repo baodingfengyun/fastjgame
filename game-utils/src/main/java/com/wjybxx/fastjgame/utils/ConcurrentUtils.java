@@ -316,7 +316,7 @@ public class ConcurrentUtils {
      * @param exceptionHandler 异常处理器
      * @return Runnable
      */
-    public static Runnable safeRunnable(Runnable r, ExceptionHandler exceptionHandler) {
+    public static Runnable runnable(Runnable r, ExceptionHandler exceptionHandler) {
         return new SafeRunnable(r, exceptionHandler);
     }
 
@@ -327,7 +327,7 @@ public class ConcurrentUtils {
      * @param exceptionHandler 异常处理器
      * @return Runnable
      */
-    public static Runnable safeRunnable(AnyRunnable r, ExceptionHandler exceptionHandler) {
+    public static Runnable runnable(AnyRunnable r, ExceptionHandler exceptionHandler) {
         return new SafeRunnable2(r, exceptionHandler);
     }
 
@@ -381,6 +381,7 @@ public class ConcurrentUtils {
      * @param executor 任务提交的目的地
      * @param task     待提交的任务
      * @return 如果提交成功则返回true，否则返回false。
+     * 注意：这里即使返回true，也不代表一定提交成功了，因为并不清楚目标executor的拒绝策略。
      */
     public static boolean tryCommit(@Nonnull Executor executor, @Nonnull Runnable task) {
         try {
@@ -423,7 +424,7 @@ public class ConcurrentUtils {
      * @throws E 绕过编译时检查
      */
     @SuppressWarnings("unchecked")
-    public static <E extends Exception> void rethrow(@Nonnull Exception ex) throws E {
+    public static <E extends Exception> void rethrow(@Nonnull Throwable ex) throws E {
         throw (E) ex;
     }
 
@@ -443,7 +444,7 @@ public class ConcurrentUtils {
         public void run() {
             try {
                 task.run();
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 exceptionHandler.handleException(e);
             }
         }
@@ -463,7 +464,7 @@ public class ConcurrentUtils {
         public void run() {
             try {
                 task.run();
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 exceptionHandler.handleException(e);
             }
         }

@@ -34,7 +34,7 @@ public class RethrowExceptionHandler implements ExceptionHandler{
     }
 
     @Override
-    public void handleException(Exception e) {
+    public void handleException(Throwable e) {
         ConcurrentUtils.rethrow(e);
     }
 }

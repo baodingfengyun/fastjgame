@@ -67,7 +67,7 @@ public class BackoffRetryForever implements RetryPolicy {
         try {
             sleeper.sleepFor(getSleepTimeMs(retryCount, elapsedTimeMs), TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
-            // 捕获中断一般需要在退出前恢复中断，要养成习惯
+            // 用户期望从当前线程醒来 - 捕获中断一般需要在退出前恢复中断，要养成习惯
             Thread.currentThread().interrupt();
             logger.warn("Error occurred while sleeping", e);
             return false;

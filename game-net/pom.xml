@@ -65,9 +65,8 @@
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
-            <version>4.1.0</version>
+            <version>4.2.0</version>
         </dependency>
-
 
         <!-- 依赖注入框架 -->
         <!-- https://mvnrepository.com/artifact/com.google.inject/guice -->
@@ -83,6 +82,7 @@
             <!--</exclusion>-->
             <!--</exclusions>-->
         </dependency>
+
     </dependencies>
 
 </project>

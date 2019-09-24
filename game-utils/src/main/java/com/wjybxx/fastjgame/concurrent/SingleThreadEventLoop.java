@@ -364,7 +364,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
                     // 退出前进行必要的清理，释放系统资源
                     try {
                         clean();
-                    } catch (Exception e) {
+                    } catch (Throwable e) {
                         logger.error("thread clean caught exception!", e);
                     } finally {
                         // 设置为终止状态

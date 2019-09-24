@@ -253,9 +253,29 @@ public class DisruptorEventLoop extends AbstractEventLoop {
             stateHolder.set(ST_TERMINATED);
             terminationFuture.setSuccess(null);
         } else {
-            // 中断当前线程，即使inEventLoop也需要中断，否则可能丢失信号，在waitFor处无法停止
+            // 消费者可能阻塞在等待事件的地方，即使inEventLoop也需要中断，否则可能丢失信号，在waitFor处无法停止
             worker.sequenceBarrier.alert();
+
+            // 唤醒线程 - 如果线程可能阻塞在其它地方
+            if (!inEventLoop()){
+                weakUp();
+            }
         }
+    }
+
+    /**
+     * 如果子类可能阻塞在其它地方，那么应该重写该方法以唤醒线程
+     */
+    protected void weakUp() {
+
+    }
+
+    /**
+     * 中断消费者线程。
+     * 通常用于唤醒线程，如果线程需要通过中断唤醒。
+     */
+    protected void interruptThread() {
+        thread.interrupt();
     }
 
     /**
@@ -421,7 +441,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
                     // 退出前进行必要的清理，释放系统资源
                     try {
                         clean();
-                    } catch (Exception e) {
+                    } catch (Throwable e) {
                         logger.error("thread clean caught exception!", e);
                     } finally {
                         // 设置为终止状态
