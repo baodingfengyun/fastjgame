@@ -96,7 +96,7 @@ class NetContextImp implements NetContext {
 
     void afterRemoved() {
         // 尝试删除自己的痕迹
-        managerWrapper.getSessionManager().removeUserSession(localGuid, "deregister");
+        managerWrapper.getSessionManager().removeUserSession(localGuid);
         managerWrapper.getHttpSessionManager().removeUserSession(localGuid);
 
         logger.info("User {}-{} NetContext removed!", localRole, localGuid);

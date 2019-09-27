@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.PortRange;
+import com.wjybxx.fastjgame.misc.SessionRepository;
 import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.net.initializer.ChannelInitializerSupplier;
 import com.wjybxx.fastjgame.net.injvm.JVMPort;
@@ -43,6 +44,7 @@ public class SessionManager {
     private final NetTimeManager netTimeManager;
     private final NetTimerManager netTimerManager;
     private final AcceptorManager acceptorManager;
+    private final SessionRepository sessionRepository = new SessionRepository();
 
     @Inject
     public SessionManager(NetTimeManager netTimeManager, NetTimerManager netTimerManager, AcceptorManager acceptorManager) {
@@ -56,13 +58,12 @@ public class SessionManager {
     }
 
     public void tick() {
-
+        sessionRepository.tick();
     }
 
     // --------------------------------------------- 事件处理 -----------------------------------------
 
     public void onRcvConnectRequest(ConnectRequestEventParam eventParam) {
-
 
     }
 
@@ -93,16 +94,19 @@ public class SessionManager {
     // ---------------------------------------------------------------
 
     public void onUserEventLoopTerminal(EventLoop userEventLoop) {
-
+        sessionRepository.removeUserSession(userEventLoop);
     }
 
-    public void removeUserSession(long localGuid, String deregister) {
+    public void removeSession(Session session) {
+        sessionRepository.removeSession(session.localGuid(), session.remoteGuid());
+    }
 
+    public void removeUserSession(long userGuid) {
+        sessionRepository.removeUserSession(userGuid);
     }
 
     public HostAndPort bindRange(NetContext netContextImp, String host, PortRange portRange, ChannelInitializer<SocketChannel> initializer) throws BindException {
-
-
+        
         return null;
     }
 
@@ -113,4 +117,6 @@ public class SessionManager {
     public JVMPort bind(NetContext netContext, ProtocolCodec codec, PortContext portContext) {
         return null;
     }
+
+
 }

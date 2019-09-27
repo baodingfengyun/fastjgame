@@ -42,4 +42,5 @@ public interface SocketSessionConfig extends SessionConfig {
      * @return int
      */
     int maxFrameLength();
+
 }

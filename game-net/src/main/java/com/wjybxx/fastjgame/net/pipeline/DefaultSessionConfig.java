@@ -78,6 +78,10 @@ public class DefaultSessionConfig implements SessionConfig {
         return syncRpcTimeoutMs;
     }
 
+    public static Builder newBuilder() {
+        return new Builder();
+    }
+
     public static class Builder {
 
         private SessionLifecycleAware lifecycleAware;
@@ -87,7 +91,7 @@ public class DefaultSessionConfig implements SessionConfig {
         private int rpcCallbackTimeoutMs;
         private int syncRpcTimeoutMs;
 
-        public Builder setLifecycleAware(@Nonnull SessionLifecycleAware lifecycleAware) {
+        private Builder setLifecycleAware(@Nonnull SessionLifecycleAware lifecycleAware) {
             this.lifecycleAware = lifecycleAware;
             return this;
         }

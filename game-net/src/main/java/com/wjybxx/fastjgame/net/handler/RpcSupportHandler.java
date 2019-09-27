@@ -73,23 +73,20 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
         }
     }
 
-    private void commitRpcResponse(Session session, RpcTimeoutInfo rpcTimeoutInfo, RpcResponse rpcResponse) {
+    /**
+     * rpc回调必须执行 - 否则可能造成逻辑错误(信号丢失 - 该执行的没执行)
+     *
+     * @param rpcTimeoutInfo rpc请求时的一些信息
+     * @param rcvRpcResponse 期望提交的rpc调用结果。
+     */
+    private void commitRpcResponse(Session session, RpcTimeoutInfo rpcTimeoutInfo, RpcResponse rcvRpcResponse) {
+        RpcResponse rpcResponse = session.isActive() ? rcvRpcResponse : RpcResponse.SESSION_CLOSED;
         if (rpcTimeoutInfo.rpcPromise != null) {
             // 同步rpc调用
-            if (session.isActive()) {
-                rpcTimeoutInfo.rpcPromise.trySuccess(rpcResponse);
-            } else {
-                rpcTimeoutInfo.rpcPromise.trySuccess(RpcResponse.SESSION_CLOSED);
-            }
+            rpcTimeoutInfo.rpcPromise.trySuccess(rpcResponse);
         } else {
             // 异步rpc调用
-            RpcResponseCommitTask rpcResponseCommitTask;
-            if (session.isActive()) {
-                rpcResponseCommitTask = new RpcResponseCommitTask(rpcTimeoutInfo.rpcCallback, rpcResponse);
-            } else {
-                rpcResponseCommitTask = new RpcResponseCommitTask(rpcTimeoutInfo.rpcCallback, RpcResponse.SESSION_CLOSED);
-            }
-            ConcurrentUtils.tryCommit(session.localEventLoop(), rpcResponseCommitTask);
+            ConcurrentUtils.tryCommit(session.localEventLoop(), new RpcResponseCommitTask(rpcTimeoutInfo.rpcCallback, rpcResponse));
         }
     }
 
@@ -116,17 +113,18 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             long requestGuid = ++requestGuidSequencer;
             rpcPromiseInfoMap.put(requestGuid, rpcTimeoutInfo);
 
-            ctx.fireWrite(new RpcRequestMessage(requestGuid, true, writeTask.getRequest()));
-            // 同步调用，需要刷新缓冲区
-            ctx.fireFlush();
-
+            // 执行发送 - 并清空缓冲区
+            ctx.fireWriteAndFlush(new RpcRequestMessage(requestGuid, true, writeTask.getRequest()));
         } else if (msg instanceof RpcResponseWriteTask) {
-            // rpc结果任务
+            // rpc调用结果
             RpcResponseWriteTask writeTask = (RpcResponseWriteTask) msg;
-            ctx.fireWrite(new RpcResponseMessage(writeTask.getRequestGuid(), writeTask.getResponse()));
-            // 同步调用的结果，需要刷新缓冲区，尽快的返回结果
+            final RpcResponseMessage responseMessage = new RpcResponseMessage(writeTask.getRequestGuid(), writeTask.getResponse());
+
+            // 同步调用的结果，需要刷新缓冲区，尽快的返回结果，异步的则无需着急刷新缓冲区
             if (writeTask.isSync()) {
-                ctx.fireFlush();
+                ctx.fireWriteAndFlush(responseMessage);
+            } else {
+                ctx.fireWrite(responseMessage);
             }
         } else {
             ctx.fireWrite(msg);
@@ -159,13 +157,13 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
     @Override
     public void close(SessionHandlerContext ctx, Promise<?> promise) throws Exception {
         try {
-            cleanRpcPromiseInfo(ctx);
+            cancelAllRpcRequest(ctx);
         } finally {
             ctx.fireClose(promise);
         }
     }
 
-    private void cleanRpcPromiseInfo(SessionHandlerContext ctx) {
+    private void cancelAllRpcRequest(SessionHandlerContext ctx) {
         if (rpcPromiseInfoMap.size() == 0) {
             return;
         }

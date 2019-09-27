@@ -66,13 +66,13 @@ abstract class AbstractSessionHandlerContext implements SessionHandlerContext {
     }
 
     @Override
-    public SessionPipeline pipeline() {
-        return pipeline;
+    public Session session() {
+        return pipeline.session();
     }
 
     @Override
-    public Session session() {
-        return pipeline.session();
+    public SessionPipeline pipeline() {
+        return pipeline;
     }
 
     @Override

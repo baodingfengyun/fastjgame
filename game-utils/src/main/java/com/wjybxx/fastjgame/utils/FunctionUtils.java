@@ -16,8 +16,12 @@
 
 package com.wjybxx.fastjgame.utils;
 
+import it.unimi.dsi.fastutil.shorts.ShortConsumer;
+
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
+import java.util.function.LongConsumer;
 
 /**
  * 常用函数式方法
@@ -38,8 +42,18 @@ public final class FunctionUtils {
     private static final BiConsumer<?, ?> _emptyBiConsumer = (a, b) -> {
     };
 
-    private static final Consumer<?> _emptyConsumer = (a) -> {
+    private static final Consumer<?> _emptyConsumer = v -> {
     };
+
+    private static final ShortConsumer _emptyShortConsumer = v -> {
+    };
+
+    private static final IntConsumer _emptyIntConsumer = v -> {
+    };
+
+    private static final LongConsumer _emptyLongConsumer = v -> {
+    };
+
 
     private FunctionUtils() {
 
@@ -53,6 +67,18 @@ public final class FunctionUtils {
     @SuppressWarnings("unchecked")
     public static <T> Consumer<T> emptyConsumer() {
         return (Consumer<T>) _emptyConsumer;
+    }
+
+    public static ShortConsumer emptyShortConsumer() {
+        return _emptyShortConsumer;
+    }
+
+    public static IntConsumer emptyIntConsumer() {
+        return _emptyIntConsumer;
+    }
+
+    public static LongConsumer emptyLongConsumer() {
+        return _emptyLongConsumer;
     }
 
     public static <T> boolean TRUE(T t) {

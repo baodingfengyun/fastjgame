@@ -36,14 +36,14 @@ import com.wjybxx.fastjgame.net.Session;
 public interface SessionHandlerContext extends SessionInboundInvoker, SessionOutboundInvoker {
 
     /**
-     * @return session的pipeline
-     */
-    SessionPipeline pipeline();
-
-    /**
      * @return 该context所属的session
      */
     Session session();
+
+    /**
+     * @return session的pipeline
+     */
+    SessionPipeline pipeline();
 
     /**
      * @return session所在的netEventLoop

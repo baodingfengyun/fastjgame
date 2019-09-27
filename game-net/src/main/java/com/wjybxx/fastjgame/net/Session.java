@@ -155,11 +155,12 @@ public interface Session {
     SessionPipeline pipeline();
 
     @Internal
+    void tick();
+
+    @Internal
     void fireRead(@Nullable Object msg);
 
     @Internal
     void fireWrite(@Nonnull Object msg);
 
-    @Internal
-    void fireWriteAndFlush(@Nonnull Object msg);
 }

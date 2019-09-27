@@ -70,11 +70,6 @@ public class DefaultSessionPipeline implements SessionPipeline {
     }
 
     @Override
-    public boolean isActive() {
-        return session.isActive();
-    }
-
-    @Override
     public NetEventLoop netEventLoop() {
         return session.netEventLoop();
     }
@@ -207,8 +202,10 @@ public class DefaultSessionPipeline implements SessionPipeline {
 
         @Override
         public void close(SessionHandlerContext ctx, Promise<?> promise) throws Exception {
-            // NO OP
-            // 最好不要把关闭操作传递到这里
+            // 删除session - 下一次tick的时候删除，避免在刷帧的时候删除
+            managerWrapper().getNetTimerManager().nextTick((handle) -> {
+                managerWrapper().getSessionManager().removeSession(session());
+            });
         }
     }
 

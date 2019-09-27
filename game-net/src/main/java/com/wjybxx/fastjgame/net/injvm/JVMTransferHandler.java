@@ -16,9 +16,9 @@
 
 package com.wjybxx.fastjgame.net.injvm;
 
-import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.net.pipeline.SessionHandlerContext;
 import com.wjybxx.fastjgame.net.pipeline.SessionOutboundHandlerAdapter;
+import com.wjybxx.fastjgame.net.pipeline.SessionPipeline;
 
 /**
  * JVM 内部传输实现
@@ -30,15 +30,13 @@ import com.wjybxx.fastjgame.net.pipeline.SessionOutboundHandlerAdapter;
  */
 public class JVMTransferHandler extends SessionOutboundHandlerAdapter {
 
-    private final Session remoteSession;
+    public JVMTransferHandler() {
 
-    public JVMTransferHandler(Session remoteSession) {
-        this.remoteSession = remoteSession;
     }
 
     @Override
     public void write(SessionHandlerContext ctx, Object msg) throws Exception {
-        // 直接出发另一个session的读事件
-        remoteSession.fireRead(msg);
+        // 直接触发另一个session的读事件
+        ((JVMSessionImp) ctx.session()).getRemoteSession().fireRead(msg);
     }
 }

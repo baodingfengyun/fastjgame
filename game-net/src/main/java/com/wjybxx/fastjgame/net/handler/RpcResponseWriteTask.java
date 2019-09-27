@@ -53,11 +53,7 @@ public class RpcResponseWriteTask implements WriteTask {
 
     @Override
     public void run() {
-        if (sync) {
-            session.fireWrite(this);
-        } else {
-            session.fireWriteAndFlush(this);
-        }
+        session.fireWrite(this);
     }
 
 }

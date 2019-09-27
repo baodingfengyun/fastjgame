@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.net.pipeline;
 
+import com.wjybxx.fastjgame.net.Session;
+
 /**
  * {@link SessionPipeline}入站事件处理器。
  *
@@ -27,14 +29,16 @@ package com.wjybxx.fastjgame.net.pipeline;
 public interface SessionInboundHandler extends SessionHandler {
 
     /**
-     * 当session激活时
+     * 当session激活时。
+     * 注意：此时{@link Session#isActive() true}
      *
      * @param ctx handler所处的上下文
      */
     void onSessionActive(SessionHandlerContext ctx) throws Exception;
 
     /**
-     * 当session被关闭时
+     * 当session被关闭时。
+     * 注意：此时{@link Session#isActive() false}
      *
      * @param ctx handler所处的上下文
      */
@@ -42,6 +46,8 @@ public interface SessionInboundHandler extends SessionHandler {
 
     /**
      * 读取一个消息。
+     * 注意：此时{@link Session#isActive() true}
+     * <p>
      * Q: 为什么没有定义成三个方法？
      * A: 这就是很坑的一点了，因为即使是同一个事件，每一层需要的参数也不一样，所以只能使用Object了！
      * 代码要易扩展，性能就有损失。

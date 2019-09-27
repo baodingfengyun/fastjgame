@@ -47,7 +47,7 @@ public class SyncRpcRequestWriteTask implements WriteTask {
 
     @Override
     public void run() {
-        session.fireWriteAndFlush(this);
+        session.fireWrite(this);
     }
 
 }

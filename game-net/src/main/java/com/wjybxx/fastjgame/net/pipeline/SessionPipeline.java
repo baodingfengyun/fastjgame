@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.net.pipeline;
 
+import com.wjybxx.fastjgame.annotation.Internal;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.net.Session;
@@ -41,12 +42,6 @@ public interface SessionPipeline extends SessionInboundInvoker, SessionOutboundI
      * @return pipeline所属的session
      */
     Session session();
-
-    /**
-     * 查询关联的session是否处于活动状态
-     * {@link Session#isActive()}
-     */
-    boolean isActive();
 
     /**
      * @return session所在的netEventLoop

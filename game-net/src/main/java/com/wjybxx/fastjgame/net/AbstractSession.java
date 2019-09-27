@@ -157,6 +157,15 @@ public abstract class AbstractSession implements Session {
         }
     }
 
+    @Override
+    public final void tick() {
+        if (netEventLoop.inEventLoop()) {
+            pipeline.tick();
+        } else {
+            throw new IllegalStateException("internal api");
+        }
+    }
+
     @Internal
     @Override
     public void fireRead(@Nullable Object msg) {
@@ -177,13 +186,4 @@ public abstract class AbstractSession implements Session {
         }
     }
 
-    @Internal
-    @Override
-    public void fireWriteAndFlush(@Nonnull Object msg) {
-        if (netEventLoop.inEventLoop()) {
-            pipeline.fireWriteAndFlush(msg);
-        } else {
-            throw new IllegalStateException("internal api");
-        }
-    }
 }

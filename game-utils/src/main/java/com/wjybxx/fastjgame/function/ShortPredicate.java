@@ -14,37 +14,31 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.handler;
+package com.wjybxx.fastjgame.function;
 
-import com.wjybxx.fastjgame.net.Session;
-
-import java.util.List;
+import java.util.Objects;
 
 /**
- * 批量的单向消息任务
- *
  * @author wjybxx
  * @version 1.0
  * date - 2019/9/27
  * github - https://github.com/hl845740757
  */
-public class BatchOneWayWriteTask implements WriteTask {
+public interface ShortPredicate {
 
-    private final Session session;
-    private final List<Object> messageList;
+    boolean test(short value);
 
-    public BatchOneWayWriteTask(Session session, List<Object> messageList) {
-        this.session = session;
-        this.messageList = messageList;
+    default ShortPredicate and(ShortPredicate other) {
+        Objects.requireNonNull(other);
+        return (value) -> test(value) && other.test(value);
     }
 
-    public List<Object> getMessageList() {
-        return messageList;
+    default ShortPredicate negate() {
+        return (value) -> !test(value);
     }
 
-    @Override
-    public void run() {
-        session.fireWrite(this);
+    default ShortPredicate or(ShortPredicate other) {
+        Objects.requireNonNull(other);
+        return (value) -> test(value) || other.test(value);
     }
-
 }

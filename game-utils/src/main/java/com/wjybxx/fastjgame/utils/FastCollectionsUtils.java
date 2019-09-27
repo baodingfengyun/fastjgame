@@ -19,13 +19,20 @@ package com.wjybxx.fastjgame.utils;
 import com.wjybxx.fastjgame.function.*;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntCollection;
+import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongCollection;
+import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
-import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
-import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.shorts.*;
 
 import java.util.Map;
+import java.util.function.IntConsumer;
+import java.util.function.IntPredicate;
+import java.util.function.LongConsumer;
+import java.util.function.LongPredicate;
 
 /**
  * 针对fastUtil集合的帮助类。
@@ -134,6 +141,60 @@ public class FastCollectionsUtils {
                 itr.remove();
                 removeNum++;
                 then.accept(k, v);
+            }
+        }
+        return removeNum;
+    }
+
+    public static int removeIfAndThen(LongCollection collection, LongPredicate predicate, LongConsumer then) {
+        if (collection.size() == 0) {
+            return 0;
+        }
+        final LongIterator itr = collection.iterator();
+        long value;
+        int removeNum = 0;
+        while (itr.hasNext()) {
+            value = itr.nextLong();
+            if (predicate.test(value)) {
+                itr.remove();
+                removeNum++;
+                then.accept(value);
+            }
+        }
+        return removeNum;
+    }
+
+    public static int removeIfAndThen(IntCollection collection, IntPredicate predicate, IntConsumer then) {
+        if (collection.size() == 0) {
+            return 0;
+        }
+        final IntIterator itr = collection.iterator();
+        int value;
+        int removeNum = 0;
+        while (itr.hasNext()) {
+            value = itr.nextInt();
+            if (predicate.test(value)) {
+                itr.remove();
+                removeNum++;
+                then.accept(value);
+            }
+        }
+        return removeNum;
+    }
+
+    public static int removeIfAndThen(ShortCollection collection, ShortPredicate predicate, ShortConsumer then) {
+        if (collection.size() == 0) {
+            return 0;
+        }
+        final ShortIterator itr = collection.iterator();
+        short value;
+        int removeNum = 0;
+        while (itr.hasNext()) {
+            value = itr.nextShort();
+            if (predicate.test(value)) {
+                itr.remove();
+                removeNum++;
+                then.accept(value);
             }
         }
         return removeNum;

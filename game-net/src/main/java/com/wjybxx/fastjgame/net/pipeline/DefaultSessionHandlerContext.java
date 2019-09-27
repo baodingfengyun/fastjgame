@@ -28,7 +28,8 @@ class DefaultSessionHandlerContext extends AbstractSessionHandlerContext {
 
     private final SessionHandler handler;
 
-    DefaultSessionHandlerContext(DefaultSessionPipeline pipeline, NetManagerWrapper netManagerWrapper, SessionHandler handler) {
+    DefaultSessionHandlerContext(DefaultSessionPipeline pipeline, NetManagerWrapper netManagerWrapper,
+                                 SessionHandler handler) {
         super(pipeline, netManagerWrapper);
         this.handler = handler;
     }

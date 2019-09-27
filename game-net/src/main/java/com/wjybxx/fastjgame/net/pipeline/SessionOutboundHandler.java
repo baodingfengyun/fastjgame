@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.net.pipeline;
 
 import com.wjybxx.fastjgame.concurrent.Promise;
+import com.wjybxx.fastjgame.net.Session;
 
 /**
  * {@link SessionPipeline} 出站事件处理器。
@@ -31,13 +32,15 @@ public interface SessionOutboundHandler extends SessionHandler {
     /**
      * 发送一个消息。
      * 为了扩展性变成了这样，导致丧失了部分可读性和性能。
+     * 注意：此时{@link Session#isActive() true}
      *
      * @param msg 消息内容
      */
     void write(SessionHandlerContext ctx, Object msg) throws Exception;
 
     /**
-     * 刷新缓冲区，如果有缓存的话
+     * 刷新缓冲区，如果有缓存的话。
+     * 注意：此时{@link Session#isActive() true}
      *
      * @param ctx handler所属的上下文
      */
@@ -45,6 +48,7 @@ public interface SessionOutboundHandler extends SessionHandler {
 
     /**
      * 请求关闭session，并且当关闭成功时通知promise。
+     * 注意：此时{@link Session#isActive() false}
      *
      * @param ctx     handler所属的上下文
      * @param promise 用于获取关闭结果
