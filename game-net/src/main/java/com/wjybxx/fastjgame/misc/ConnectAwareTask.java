@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.misc;
 
 import com.wjybxx.fastjgame.net.Session;
-import com.wjybxx.fastjgame.net.SessionLifecycleAware;
 
 /**
  * 连接建立时的通知任务 - 消lambda表达式
@@ -30,15 +29,13 @@ import com.wjybxx.fastjgame.net.SessionLifecycleAware;
 public class ConnectAwareTask implements Runnable {
 
     private final Session session;
-    private final SessionLifecycleAware lifecycleAware;
 
-    public ConnectAwareTask(Session session, SessionLifecycleAware lifecycleAware) {
+    public ConnectAwareTask(Session session) {
         this.session = session;
-        this.lifecycleAware = lifecycleAware;
     }
 
     @Override
     public void run() {
-        lifecycleAware.onSessionConnected(session);
+        session.config().lifecycleAware().onSessionDisconnected(session);
     }
 }

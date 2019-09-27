@@ -16,62 +16,18 @@
 
 package com.wjybxx.fastjgame.net.injvm;
 
-import com.wjybxx.fastjgame.manager.NetManagerWrapper;
-import com.wjybxx.fastjgame.net.AbstractSession;
-import com.wjybxx.fastjgame.net.NetContext;
-import com.wjybxx.fastjgame.net.RoleType;
 import com.wjybxx.fastjgame.net.Session;
-import com.wjybxx.fastjgame.net.pipeline.SessionConfig;
 
 /**
- * JVM内部会话
+ * jvm内部session
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/9/9
+ * date - 2019/9/27
  * github - https://github.com/hl845740757
  */
-public class JVMSession extends AbstractSession {
-
-    /**
-     * 配置信息
-     */
-    private final JVMSessionConfig sessionConfig;
-    /**
-     * 会话另一方的信息
-     */
-    private Session remoteSession;
-
-    public JVMSession(NetContext netContext, NetManagerWrapper managerWrapper, JVMSessionConfig sessionConfig) {
-        super(netContext, managerWrapper);
-        this.sessionConfig = sessionConfig;
-    }
-
-    public Session getRemoteSession() {
-        return remoteSession;
-    }
-
-    public void setRemoteSession(Session remoteSession) {
-        this.remoteSession = remoteSession;
-    }
+public interface JVMSession extends Session {
 
     @Override
-    public SessionConfig config() {
-        return sessionConfig;
-    }
-
-    @Override
-    public long remoteGuid() {
-        return remoteSession.localGuid();
-    }
-
-    @Override
-    public RoleType remoteRole() {
-        return remoteSession.localRole();
-    }
-
-    @Override
-    public boolean isActive() {
-        return false;
-    }
+    JVMSessionConfig config();
 }

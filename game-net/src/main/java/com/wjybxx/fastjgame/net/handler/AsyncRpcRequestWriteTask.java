@@ -25,18 +25,16 @@ import com.wjybxx.fastjgame.net.Session;
  * date - 2019/9/26
  * github - https://github.com/hl845740757
  */
-public class AsyncRpcRequestWriteTask implements Runnable {
+public class AsyncRpcRequestWriteTask implements WriteTask {
 
     private final Session session;
     private final Object request;
     private final RpcCallback rpcCallback;
-    private final long timeoutMs;
 
-    public AsyncRpcRequestWriteTask(Session session, Object request, RpcCallback rpcCallback, long timeoutMs) {
+    public AsyncRpcRequestWriteTask(Session session, Object request, RpcCallback rpcCallback) {
         this.session = session;
         this.request = request;
         this.rpcCallback = rpcCallback;
-        this.timeoutMs = timeoutMs;
     }
 
     public Object getRequest() {
@@ -47,12 +45,9 @@ public class AsyncRpcRequestWriteTask implements Runnable {
         return rpcCallback;
     }
 
-    public long getTimeoutMs() {
-        return timeoutMs;
-    }
-
     @Override
     public void run() {
-        session.write(this);
+        session.fireWrite(this);
     }
+
 }

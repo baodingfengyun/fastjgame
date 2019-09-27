@@ -24,7 +24,7 @@ import com.wjybxx.fastjgame.net.Session;
  * date - 2019/9/26
  * github - https://github.com/hl845740757
  */
-public class OneWayMessageWriteTask implements Runnable {
+public class OneWayMessageWriteTask implements WriteTask {
 
     private final Session session;
     private Object message;
@@ -40,6 +40,7 @@ public class OneWayMessageWriteTask implements Runnable {
 
     @Override
     public void run() {
-        session.write(this);
+        session.fireWrite(this);
     }
+
 }

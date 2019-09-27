@@ -36,18 +36,18 @@ public interface SessionOutboundInvoker {
      *
      * @param msg 消息内容
      */
-    void write(@Nonnull Object msg);
+    void fireWrite(@Nonnull Object msg);
 
     /**
      * 向下传递清空缓冲区请求；
      * 它将导致{@link SessionPipeline}中的下一个{@link SessionOutboundHandler#flush(SessionHandlerContext)}方法被调用。
      */
-    void flush();
+    void fireFlush();
 
     /**
-     * {@link #write(Object)}和{@link #flush()}的一个快捷调用方式
+     * {@link #fireWrite(Object)}和{@link #fireFlush()}的一个快捷调用方式
      */
-    void writeAndFlush(@Nonnull Object msg);
+    void fireWriteAndFlush(@Nonnull Object msg);
 
     /**
      * 向下发送关闭session请求；
@@ -55,6 +55,6 @@ public interface SessionOutboundInvoker {
      *
      * @param promise 用于获取结果的future
      */
-    void close(Promise<?> promise);
+    void fireClose(Promise<?> promise);
 
 }

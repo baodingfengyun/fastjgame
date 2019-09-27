@@ -101,7 +101,7 @@ public class SceneWorld extends AbstractWorld {
 
         HostAndPort outerWebsocketHostAndPort = netContext.bindWSRange(NetUtils.getOuterIp(), GameUtils.OUTER_WS_PORT_RANGE, "/ws",
                 protocolCodecMrg.getInnerProtocolCodec(), new PlayerLifeAware(),
-                protocolDispatcherMrg, SessionSenderMode.DIRECT).get();
+                protocolDispatcherMrg).get();
 
         SceneNodeData sceneNodeData = new SceneNodeData(innerTcpAddress.toString(), innerHttpAddress.toString(), localAddress.toString(), SystemUtils.getMAC(),
                 sceneWorldInfoMrg.getChannelId(), outerTcpHostAndPort.toString(), outerWebsocketHostAndPort.toString());

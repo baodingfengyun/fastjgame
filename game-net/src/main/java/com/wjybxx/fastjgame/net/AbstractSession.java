@@ -16,18 +16,24 @@
 
 package com.wjybxx.fastjgame.net;
 
+import com.wjybxx.fastjgame.annotation.Internal;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
 import com.wjybxx.fastjgame.net.handler.AsyncRpcRequestWriteTask;
+import com.wjybxx.fastjgame.net.handler.BatchOneWayWriteTask;
 import com.wjybxx.fastjgame.net.handler.OneWayMessageWriteTask;
 import com.wjybxx.fastjgame.net.handler.SyncRpcRequestWriteTask;
 import com.wjybxx.fastjgame.net.pipeline.DefaultSessionPipeline;
 import com.wjybxx.fastjgame.net.pipeline.SessionPipeline;
+import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Session的模板实现。
@@ -44,21 +50,20 @@ public abstract class AbstractSession implements Session {
      */
     protected final NetContext netContext;
     /**
-     * session关联的管道
-     */
-    protected final SessionPipeline pipeline;
-    /**
-     * {@link NetEventLoop}关联的所有逻辑控制器
-     */
-    protected final NetManagerWrapper managerWrapper;
-    /**
      * session绑定到的EventLoop
      */
     private final NetEventLoop netEventLoop;
+    /**
+     * session关联的管道
+     */
+    private final SessionPipeline pipeline;
+    /**
+     * 激活状态 - 因为session都是建立成功的时候创建，因此默认true
+     */
+    private final AtomicBoolean stateHolder = new AtomicBoolean(true);
 
     protected AbstractSession(NetContext netContext, NetManagerWrapper managerWrapper) {
         this.netContext = netContext;
-        this.managerWrapper = managerWrapper;
         this.pipeline = new DefaultSessionPipeline(this, managerWrapper);
         this.netEventLoop = managerWrapper.getNetEventLoopManager().eventLoop();
     }
@@ -85,45 +90,40 @@ public abstract class AbstractSession implements Session {
     }
 
     @Override
-    public SessionPipeline pipeline() {
-        return pipeline;
-    }
-
-    @Override
-    public void send(@Nonnull Object message) {
-        netEventLoop.execute(new OneWayMessageWriteTask(this, message));
-    }
-
-    @Override
-    public void call(@Nonnull Object request, @Nonnull RpcCallback callback) {
-        call(request, callback, config().getRpcCallbackTimeoutMs());
-    }
-
-    @Override
-    public void call(@Nonnull Object request, @Nonnull RpcCallback callback, long timeoutMs) {
-        if (timeoutMs <= 0) {
-            throw new IllegalArgumentException("timeoutMs");
+    public final void send(@Nonnull Object message) {
+        if (isActive()) {
+            // 会话活动的状态下才会发送
+            netEventLoop.execute(new OneWayMessageWriteTask(this, message));
         }
-        netEventLoop.execute(new AsyncRpcRequestWriteTask(this, request, callback, timeoutMs));
+    }
+
+    @Override
+    public final void send(@Nonnull List<Object> messageList) {
+        if (isActive()) {
+            // 会话活动的状态下才会发送
+            netEventLoop.execute(new BatchOneWayWriteTask(this, messageList));
+        }
+    }
+
+    @Override
+    public final void call(@Nonnull Object request, @Nonnull RpcCallback callback) {
+        if (isActive()) {
+            // 会话活动的状态下才会发送
+            netEventLoop.execute(new AsyncRpcRequestWriteTask(this, request, callback));
+        } else {
+            // 会话关闭的情况下，直接执行回调
+            callback.onComplete(RpcResponse.SESSION_CLOSED);
+        }
     }
 
     @Override
     @Nonnull
-    public RpcResponse sync(@Nonnull Object request) {
-        return sync(request, config().getSyncRpcTimeoutMs());
-    }
-
-    @Override
-    @Nonnull
-    public RpcResponse sync(@Nonnull Object request, long timeoutMs) {
-        if (timeoutMs <= 0) {
-            throw new IllegalArgumentException("timeoutMs");
-        }
+    public final RpcResponse sync(@Nonnull Object request) {
         // 逻辑层校验，会话已关闭，立即返回结果
         if (!isActive()) {
             return RpcResponse.SESSION_CLOSED;
         }
-        final RpcPromise rpcPromise = netEventLoop().newRpcPromise(localEventLoop(), timeoutMs);
+        final RpcPromise rpcPromise = netEventLoop().newRpcPromise(localEventLoop(), config().getSyncRpcTimeoutMs());
         // 提交到网络层执行
         netEventLoop.execute(new SyncRpcRequestWriteTask(this, request, rpcPromise));
         // RpcPromise保证了不会等待超过限时时间
@@ -132,30 +132,58 @@ public abstract class AbstractSession implements Session {
     }
 
     @Override
-    public void write(@Nonnull Object msg) {
-        pipeline.write(msg);
+    public final boolean isActive() {
+        return stateHolder.get();
     }
 
     @Override
-    public void flush() {
-        pipeline.flush();
-    }
-
-    @Override
-    public void writeAndFlush(@Nonnull Object msg) {
-        pipeline.writeAndFlush(msg);
-    }
-
-    @Override
-    public ListenableFuture<?> close() {
+    public final ListenableFuture<?> close() {
+        // 设置为未激活状态
+        stateHolder.set(false);
         final Promise<Object> promise = netEventLoop.newPromise();
-        pipeline.close(promise);
+        // 可能是网络层关闭
+        ConcurrentUtils.executeOrRun(netEventLoop, () -> {
+            pipeline.fireClose(promise);
+        });
         return promise;
     }
 
     @Override
-    public void close(Promise<?> promise) {
-        pipeline.close(promise);
+    public final SessionPipeline pipeline() {
+        if (netEventLoop.inEventLoop()) {
+            return pipeline;
+        } else {
+            throw new IllegalStateException("internal api");
+        }
     }
 
+    @Internal
+    @Override
+    public void fireRead(@Nullable Object msg) {
+        if (netEventLoop.inEventLoop()) {
+            pipeline.fireRead(msg);
+        } else {
+            throw new IllegalStateException("internal api");
+        }
+    }
+
+    @Internal
+    @Override
+    public void fireWrite(@Nonnull Object msg) {
+        if (netEventLoop.inEventLoop()) {
+            pipeline.fireWrite(msg);
+        } else {
+            throw new IllegalStateException("internal api");
+        }
+    }
+
+    @Internal
+    @Override
+    public void fireWriteAndFlush(@Nonnull Object msg) {
+        if (netEventLoop.inEventLoop()) {
+            pipeline.fireWriteAndFlush(msg);
+        } else {
+            throw new IllegalStateException("internal api");
+        }
+    }
 }

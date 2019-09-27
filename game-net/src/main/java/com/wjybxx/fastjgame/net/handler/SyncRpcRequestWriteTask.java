@@ -25,7 +25,7 @@ import com.wjybxx.fastjgame.net.Session;
  * date - 2019/9/26
  * github - https://github.com/hl845740757
  */
-public class SyncRpcRequestWriteTask implements Runnable {
+public class SyncRpcRequestWriteTask implements WriteTask {
 
     private final Session session;
     private final Object request;
@@ -47,6 +47,7 @@ public class SyncRpcRequestWriteTask implements Runnable {
 
     @Override
     public void run() {
-        session.write(this);
+        session.fireWriteAndFlush(this);
     }
+
 }

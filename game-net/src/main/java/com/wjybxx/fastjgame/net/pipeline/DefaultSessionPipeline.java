@@ -20,7 +20,10 @@ import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
+import com.wjybxx.fastjgame.misc.ConnectAwareTask;
+import com.wjybxx.fastjgame.misc.DisconnectAwareTask;
 import com.wjybxx.fastjgame.net.Session;
+import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +31,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
+ * 默认的{@link SessionPipeline}实现。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/9/25
@@ -65,6 +70,11 @@ public class DefaultSessionPipeline implements SessionPipeline {
     }
 
     @Override
+    public boolean isActive() {
+        return session.isActive();
+    }
+
+    @Override
     public NetEventLoop netEventLoop() {
         return session.netEventLoop();
     }
@@ -77,13 +87,7 @@ public class DefaultSessionPipeline implements SessionPipeline {
     @Override
     public SessionPipeline addLast(SessionHandler handler) {
         final AbstractSessionHandlerContext newCtx = new DefaultSessionHandlerContext(this, netManagerWrapper, handler);
-        if (netEventLoop().inEventLoop()) {
-            addLast0(newCtx);
-        } else {
-            netEventLoop().execute(() -> {
-                addLast0(newCtx);
-            });
-        }
+        addLast0(newCtx);
         return this;
     }
 
@@ -98,13 +102,7 @@ public class DefaultSessionPipeline implements SessionPipeline {
     @Override
     public SessionPipeline addFirst(SessionHandler handler) {
         final AbstractSessionHandlerContext newCtx = new DefaultSessionHandlerContext(this, netManagerWrapper, handler);
-        if (netEventLoop().inEventLoop()) {
-            addFirst0(newCtx);
-        } else {
-            netEventLoop().execute(() -> {
-                addFirst0(newCtx);
-            });
-        }
+        addFirst0(newCtx);
         return this;
     }
 
@@ -120,42 +118,22 @@ public class DefaultSessionPipeline implements SessionPipeline {
 
     @Override
     public void fireSessionActive() {
-        if (netEventLoop().inEventLoop()) {
-            head.fireSessionActive();
-        } else {
-            netEventLoop().execute(head::fireSessionActive);
-        }
+        head.fireSessionActive();
     }
 
     @Override
     public void fireSessionInactive() {
-        if (netEventLoop().inEventLoop()) {
-            head.fireSessionInactive();
-        } else {
-            netEventLoop().execute(head::fireSessionInactive);
-        }
+        head.fireSessionInactive();
     }
 
     @Override
     public void fireRead(@Nullable Object msg) {
-        if (netEventLoop().inEventLoop()) {
-            head.fireRead(msg);
-        } else {
-            netEventLoop().execute(() -> {
-                head.fireRead(msg);
-            });
-        }
+        head.fireRead(msg);
     }
 
     @Override
     public void fireExceptionCaught(Throwable cause) {
-        if (netEventLoop().inEventLoop()) {
-            head.fireExceptionCaught(cause);
-        } else {
-            netEventLoop().execute(() -> {
-                head.fireExceptionCaught(cause);
-            });
-        }
+        head.fireExceptionCaught(cause);
     }
 
     @Override
@@ -170,45 +148,23 @@ public class DefaultSessionPipeline implements SessionPipeline {
     // ------------------------------------------------- outbound -----------------------------------------------------
 
     @Override
-    public void write(@Nonnull Object msg) {
-        if (netEventLoop().inEventLoop()) {
-            tail.write(msg);
-        } else {
-            netEventLoop().execute(() -> {
-                tail.write(msg);
-            });
-        }
+    public void fireWrite(@Nonnull Object msg) {
+        tail.fireWrite(msg);
     }
 
     @Override
-    public void flush() {
-        if (netEventLoop().inEventLoop()) {
-            tail.flush();
-        } else {
-            netEventLoop().execute(tail::flush);
-        }
+    public void fireFlush() {
+        tail.fireFlush();
     }
 
     @Override
-    public void writeAndFlush(@Nonnull Object msg) {
-        if (netEventLoop().inEventLoop()) {
-            tail.writeAndFlush(msg);
-        } else {
-            netEventLoop().execute(() -> {
-                tail.writeAndFlush(msg);
-            });
-        }
+    public void fireWriteAndFlush(@Nonnull Object msg) {
+        tail.fireWriteAndFlush(msg);
     }
 
     @Override
-    public void close(Promise<?> promise) {
-        if (netEventLoop().inEventLoop()) {
-            tail.close(promise);
-        } else {
-            netEventLoop().execute(() -> {
-                tail.close(promise);
-            });
-        }
+    public void fireClose(Promise<?> promise) {
+        tail.fireClose(promise);
     }
 
     // ------------------------------------------------- inner -----------------------------------------------------
@@ -222,16 +178,6 @@ public class DefaultSessionPipeline implements SessionPipeline {
 
         HeadContext(DefaultSessionPipeline pipeline, NetManagerWrapper netManagerWrapper) {
             super(pipeline, netManagerWrapper);
-        }
-
-        @Override
-        protected boolean isInbound() {
-            return false;
-        }
-
-        @Override
-        protected boolean isOutbound() {
-            return true;
         }
 
         @Override
@@ -251,7 +197,7 @@ public class DefaultSessionPipeline implements SessionPipeline {
 
         @Override
         public void write(SessionHandlerContext ctx, Object msg) {
-            // NO OP
+            logger.warn("Unhandled msg " + msg.getClass().getName());
         }
 
         @Override
@@ -262,6 +208,7 @@ public class DefaultSessionPipeline implements SessionPipeline {
         @Override
         public void close(SessionHandlerContext ctx, Promise<?> promise) throws Exception {
             // NO OP
+            // 最好不要把关闭操作传递到这里
         }
     }
 
@@ -274,16 +221,6 @@ public class DefaultSessionPipeline implements SessionPipeline {
 
         TailContext(DefaultSessionPipeline pipeline, NetManagerWrapper managerWrapper) {
             super(pipeline, managerWrapper);
-        }
-
-        @Override
-        protected final boolean isInbound() {
-            return true;
-        }
-
-        @Override
-        protected boolean isOutbound() {
-            return false;
         }
 
         @Override
@@ -303,12 +240,14 @@ public class DefaultSessionPipeline implements SessionPipeline {
 
         @Override
         public void onSessionActive(SessionHandlerContext ctx) throws Exception {
-            // NO OP
+            // 告诉用户session激活
+            ConcurrentUtils.tryCommit(localEventLoop(), new ConnectAwareTask(ctx.session()));
         }
 
         @Override
         public void onSessionInactive(SessionHandlerContext ctx) throws Exception {
-            // NO OP
+            // 告诉用户session断开
+            ConcurrentUtils.tryCommit(localEventLoop(), new DisconnectAwareTask(ctx.session()));
         }
 
         @Override

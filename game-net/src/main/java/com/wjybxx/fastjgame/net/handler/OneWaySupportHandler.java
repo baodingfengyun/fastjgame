@@ -24,7 +24,7 @@ import com.wjybxx.fastjgame.net.pipeline.SessionHandlerContext;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
 /**
- * 单项消息支持
+ * 单向消息支持
  *
  * @author wjybxx
  * @version 1.0
@@ -53,10 +53,17 @@ public class OneWaySupportHandler extends SessionDuplexHandlerAdapter {
     @Override
     public void write(SessionHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof OneWayMessageWriteTask) {
+            // 单个消息
             OneWayMessageWriteTask writeTask = (OneWayMessageWriteTask) msg;
-            ctx.write(new OneWayMessage(writeTask.getMessage()));
+            ctx.fireWrite(new OneWayMessage(writeTask.getMessage()));
+        } else if (msg instanceof BatchOneWayWriteTask) {
+            // 批量发送的消息
+            BatchOneWayWriteTask writeTask = (BatchOneWayWriteTask) msg;
+            for (Object message : writeTask.getMessageList()) {
+                ctx.fireWrite(new OneWayMessage(message));
+            }
         } else {
-            ctx.write(msg);
+            ctx.fireWrite(msg);
         }
     }
 }

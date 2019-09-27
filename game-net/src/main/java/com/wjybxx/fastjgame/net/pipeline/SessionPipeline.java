@@ -16,27 +16,37 @@
 
 package com.wjybxx.fastjgame.net.pipeline;
 
-import com.wjybxx.fastjgame.annotation.Internal;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.net.Session;
 import io.netty.channel.ChannelPipeline;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * 其意义可参考{@link ChannelPipeline}。
  * 出站方向和入站方向和{@link ChannelPipeline}保持一致。
+ * <p>
+ * 它不是线程安全的 - 它只会在{@link NetEventLoop}中使用它，线程封闭以消除不必要的同步操作。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/9/25
  * github - https://github.com/hl845740757
  */
+@NotThreadSafe
 public interface SessionPipeline extends SessionInboundInvoker, SessionOutboundInvoker {
 
     /**
      * @return pipeline所属的session
      */
     Session session();
+
+    /**
+     * 查询关联的session是否处于活动状态
+     * {@link Session#isActive()}
+     */
+    boolean isActive();
 
     /**
      * @return session所在的netEventLoop
@@ -64,6 +74,8 @@ public interface SessionPipeline extends SessionInboundInvoker, SessionOutboundI
      */
     SessionPipeline addFirst(SessionHandler handler);
 
-    @Internal
+    /**
+     * 刷帧
+     */
     void tick();
 }

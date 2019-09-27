@@ -119,9 +119,4 @@ public class InnerAcceptorMrg {
     private ProtocolCodec getInnerProtocolCodec() {
         return protocolCodecMrg.getInnerProtocolCodec();
     }
-
-    @Nonnull
-    private SessionSenderMode getInnerSenderMode() {
-        return GameUtils.INNER_SENDER_MODE;
-    }
 }

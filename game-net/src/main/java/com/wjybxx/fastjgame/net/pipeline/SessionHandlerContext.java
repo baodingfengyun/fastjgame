@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.net.pipeline;
 
-import com.wjybxx.fastjgame.annotation.Internal;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
@@ -66,12 +65,15 @@ public interface SessionHandlerContext extends SessionInboundInvoker, SessionOut
      *
      * @return NetManagerWrapper
      */
-    @Internal
     NetManagerWrapper managerWrapper();
+
+    /**
+     * 执行自己的初始化操作，并调用{@link SessionHandler#init(SessionHandlerContext)}方法。
+     */
+    void init();
 
     /**
      * 刷帧
      */
-    @Internal
     void tick();
 }

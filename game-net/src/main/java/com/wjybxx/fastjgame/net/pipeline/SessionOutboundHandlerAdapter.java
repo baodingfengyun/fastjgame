@@ -31,17 +31,17 @@ public class SessionOutboundHandlerAdapter extends SessionHandlerAdapter impleme
 
     @Override
     public void write(SessionHandlerContext ctx, Object msg) throws Exception {
-        ctx.write(msg);
+        ctx.fireWrite(msg);
     }
 
     @Override
     public void flush(SessionHandlerContext ctx) throws Exception {
-        ctx.flush();
+        ctx.fireFlush();
     }
 
     @Override
     public void close(SessionHandlerContext ctx, Promise<?> promise) throws Exception {
-        ctx.close(promise);
+        ctx.fireClose(promise);
     }
 
 }

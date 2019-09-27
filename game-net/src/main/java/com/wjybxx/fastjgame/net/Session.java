@@ -16,15 +16,16 @@
 
 package com.wjybxx.fastjgame.net;
 
+import com.wjybxx.fastjgame.annotation.Internal;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.net.pipeline.SessionConfig;
-import com.wjybxx.fastjgame.net.pipeline.SessionOutboundInvoker;
 import com.wjybxx.fastjgame.net.pipeline.SessionPipeline;
 
 import javax.annotation.Nonnull;
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * 一个连接的抽象，它可能是一个socket连接，也可能是JVM内的线程之间内的连接，不论它真的是什么，你都可以以相同的方式使用它们发送消息。
@@ -48,8 +49,9 @@ import javax.annotation.concurrent.ThreadSafe;
  * date - 2019/7/29
  * github - https://github.com/hl845740757
  */
-@ThreadSafe
-public interface Session extends SessionOutboundInvoker {
+public interface Session {
+
+    // ---------------------------------------------- 用户注册信息 --------------------------------------------
 
     /**
      * 会话关联的本地对象guid
@@ -78,6 +80,58 @@ public interface Session extends SessionOutboundInvoker {
      */
     SessionConfig config();
 
+    // ------------------------------------------- session运行的网络环境 ----------------------------------------
+
+    /**
+     * session所属的网络线程。
+     * - 注意：不一定和创建它的NetContext所属的线程一致
+     * Q: why?
+     * A: 为了更好的性能，消除不必要的同步！
+     */
+
+    NetEventLoop netEventLoop();
+
+    /**
+     * session所属的用户线程
+     */
+    EventLoop localEventLoop();
+
+    // ------------------------------------------------ 发送消息 ---------------------------------------------
+
+    /**
+     * 发送一个单向消息给对方
+     *
+     * @param message 单向消息
+     */
+    void send(@Nonnull Object message);
+
+    /**
+     * 批量发送单向消息 - 用户自己实现缓存，主要是用于与玩家通信，与服务器之间不需要缓存。
+     *
+     * @param messageList 批量的单向消息 - 注意，不可共享
+     */
+    void send(@Nonnull List<Object> messageList);
+
+    /**
+     * 发送一个rpc请求给对方，会使用默认的超时时间（配置文件中指定）。
+     * <p>
+     * Q: 为什么异步RPC调用不是返回一个Future? <br>
+     * A: 使用future将增加额外的消耗，而且容易错误使用。
+     *
+     * @param request  rpc请求对象
+     * @param callback 回调函数
+     */
+    void call(@Nonnull Object request, @Nonnull RpcCallback callback);
+
+    /**
+     * 发送一个rpc请求给对方，并阻塞到结果返回或超时。
+     *
+     * @param request rpc请求对象
+     * @return rpc返回结果
+     */
+    @Nonnull
+    RpcResponse sync(@Nonnull Object request);
+
     // ----------------------------------------------- 生命周期 ----------------------------------------------
 
     /**
@@ -95,77 +149,17 @@ public interface Session extends SessionOutboundInvoker {
      */
     ListenableFuture<?> close();
 
-    // ------------------------------------------------ 发送消息 ------------------------------------------
+    // ------------------------------------------- 内部API，其它线程调用会抛出异常 -----------------------------------
 
-    /**
-     * 发送一个单向消息给对方
-     *
-     * @param message 单向消息
-     */
-    void send(@Nonnull Object message);
-
-    /**
-     * 发送一个rpc请求给对方，会使用默认的超时时间（配置文件中指定）。
-     * 注意：
-     * 1. {@link RpcCallback}执行在用户线程。如果是用户线程发起rpc请求，则不必担心线程安全问题。否则需要注意callback的线程安全问题。
-     * <p>
-     * Q: 为什么异步RPC调用不是返回一个Future? <br>
-     * A: 使用future将增加额外的消耗，而且容易错误使用。
-     *
-     * @param request  rpc请求对象
-     * @param callback 回调函数
-     */
-    void call(@Nonnull Object request, @Nonnull RpcCallback callback);
-
-    /**
-     * 发送一个rpc请求给对方。
-     *
-     * @param request   rpc请求对象
-     * @param callback  回调函数
-     * @param timeoutMs 超时时间，毫秒，必须大于0，必须有超时时间。
-     * @see #call(Object, RpcCallback)
-     */
-    void call(@Nonnull Object request, @Nonnull RpcCallback callback, long timeoutMs);
-
-    /**
-     * 发送一个rpc请求给对方，并阻塞到结果返回或超时。
-     *
-     * @param request rpc请求对象
-     * @return rpc返回结果
-     */
-    @Nonnull
-    RpcResponse sync(@Nonnull Object request);
-
-    /**
-     * 发送一个rpc请求给对方，并阻塞到结果返回或超时。
-     * 注意与{@link #sync(Object)}相同的警告。
-     *
-     * @param request   rpc请求对象
-     * @param timeoutMs 超时时间，毫秒，必须大于0，否则死锁可能！！！
-     * @return rpc返回结果
-     */
-    @Nonnull
-    RpcResponse sync(@Nonnull Object request, long timeoutMs);
-
-    // --------------------------------------- session运行的网络环境（不是给用户的API） -------------------------------------
-
-    /**
-     * session所属的网络线程。
-     * - 注意：不一定和创建它的NetContext所属的线程一致
-     * Q: why?
-     * A: 为了更好的性能，消除不必要的同步！
-     */
-    NetEventLoop netEventLoop();
-
-    /**
-     * session所属的用户线程
-     */
-    EventLoop localEventLoop();
-
-    /**
-     * 获取session关联的pipeline，不是给用户的API
-     *
-     * @return pipeline
-     */
+    @Internal
     SessionPipeline pipeline();
+
+    @Internal
+    void fireRead(@Nullable Object msg);
+
+    @Internal
+    void fireWrite(@Nonnull Object msg);
+
+    @Internal
+    void fireWriteAndFlush(@Nonnull Object msg);
 }

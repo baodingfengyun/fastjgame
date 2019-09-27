@@ -46,9 +46,9 @@ public interface SessionConfig {
     ProtocolDispatcher dispatcher();
 
     /**
-     * @return 连接超时时间，毫秒
+     * @return 会话超时时间，毫秒
      */
-    int getConnectTimeoutMs();
+    int getSessionTimeoutMs();
 
     /**
      * @return 异步rpc调用超时时间，毫秒
@@ -59,4 +59,5 @@ public interface SessionConfig {
      * @return 同步rpc调用超时时间，毫秒
      */
     int getSyncRpcTimeoutMs();
+
 }

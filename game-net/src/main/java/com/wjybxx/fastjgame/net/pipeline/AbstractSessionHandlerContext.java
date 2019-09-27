@@ -52,6 +52,13 @@ abstract class AbstractSessionHandlerContext implements SessionHandlerContext {
      * 下一个handlerContext
      */
     AbstractSessionHandlerContext next;
+    /**
+     * 最新版的Netty，这个已经进行了优化，判断handler重写了哪些方法，然后直接找到下一个重写了指定方法的handler，
+     * 不但可以有更短的事件流，而且可以大幅减少匿名内部类对象(lambda表达式也是一样)。
+     * 我们暂时不必如此。
+     */
+    private boolean isInbound;
+    private boolean isOutbound;
 
     AbstractSessionHandlerContext(DefaultSessionPipeline pipeline, NetManagerWrapper managerWrapper) {
         this.pipeline = pipeline;
@@ -84,8 +91,23 @@ abstract class AbstractSessionHandlerContext implements SessionHandlerContext {
     }
 
     @Override
+    public void init() {
+        isInbound = handler() instanceof SessionInboundHandler;
+        isOutbound = handler() instanceof SessionOutboundHandler;
+        try {
+            handler().init(this);
+        } catch (Throwable e) {
+            onExceptionCaught(e, this);
+        }
+    }
+
+    @Override
     public void tick() {
-        handler().tick(this);
+        try {
+            handler().tick(this);
+        } catch (Exception e) {
+            onExceptionCaught(e, this);
+        }
     }
 
     // --------------------------------------------------- inbound ----------------------------------------------
@@ -101,7 +123,7 @@ abstract class AbstractSessionHandlerContext implements SessionHandlerContext {
         try {
             handler.onSessionActive(nextInboundContext);
         } catch (Throwable e) {
-            notifyExceptionCaught(e, nextInboundContext);
+            onExceptionCaught(e, nextInboundContext);
         }
     }
 
@@ -116,7 +138,7 @@ abstract class AbstractSessionHandlerContext implements SessionHandlerContext {
         try {
             handler.onSessionInactive(nextInboundContext);
         } catch (Throwable e) {
-            notifyExceptionCaught(e, nextInboundContext);
+            onExceptionCaught(e, nextInboundContext);
         }
     }
 
@@ -131,13 +153,17 @@ abstract class AbstractSessionHandlerContext implements SessionHandlerContext {
         try {
             handler.read(nextInboundContext, message);
         } catch (Throwable e) {
-            notifyExceptionCaught(e, nextInboundContext);
+            onExceptionCaught(e, nextInboundContext);
         }
     }
 
     @Override
     public void fireExceptionCaught(Throwable cause) {
         final AbstractSessionHandlerContext nextInboundContext = findNextInboundContext();
+        invokeExceptionCaught(cause, nextInboundContext);
+    }
+
+    private static void invokeExceptionCaught(Throwable cause, AbstractSessionHandlerContext nextInboundContext) {
         final SessionInboundHandler handler = (SessionInboundHandler) nextInboundContext.handler();
         try {
             handler.onExceptionCaught(nextInboundContext, cause);
@@ -146,19 +172,17 @@ abstract class AbstractSessionHandlerContext implements SessionHandlerContext {
         }
     }
 
-    private static void notifyExceptionCaught(Throwable cause, AbstractSessionHandlerContext curContext) {
-        final AbstractSessionHandlerContext nextInboundContext = curContext.findNextInboundContext();
-        final SessionInboundHandler handler = (SessionInboundHandler) nextInboundContext.handler();
-        try {
-            handler.onExceptionCaught(nextInboundContext, cause);
-        } catch (Throwable e) {
-            logger.warn("An exception was thrown by a user handler while handling an exceptionCaught event", e);
+    private static void onExceptionCaught(Throwable cause, AbstractSessionHandlerContext curContext) {
+        if (curContext.isInbound) {
+            invokeExceptionCaught(cause, curContext);
+        } else {
+            invokeExceptionCaught(cause, curContext.findNextInboundContext());
         }
     }
     // --------------------------------------------------- outbound ----------------------------------------------
 
     @Override
-    public void write(@Nonnull Object msg) {
+    public void fireWrite(@Nonnull Object msg) {
         final AbstractSessionHandlerContext nextOutboundContext = findNextOutboundContext();
         invokeWrite(msg, nextOutboundContext);
     }
@@ -168,12 +192,12 @@ abstract class AbstractSessionHandlerContext implements SessionHandlerContext {
         try {
             handler.write(nextOutboundContext, msg);
         } catch (Throwable e) {
-            notifyExceptionCaught(e, nextOutboundContext);
+            onExceptionCaught(e, nextOutboundContext);
         }
     }
 
     @Override
-    public void flush() {
+    public void fireFlush() {
         final AbstractSessionHandlerContext nextOutboundContext = findNextOutboundContext();
         invokeFlush(nextOutboundContext);
     }
@@ -183,19 +207,19 @@ abstract class AbstractSessionHandlerContext implements SessionHandlerContext {
         try {
             handler.flush(nextOutboundContext);
         } catch (Throwable e) {
-            notifyExceptionCaught(e, nextOutboundContext);
+            onExceptionCaught(e, nextOutboundContext);
         }
     }
 
     @Override
-    public void writeAndFlush(@Nonnull Object msg) {
+    public void fireWriteAndFlush(@Nonnull Object msg) {
         final AbstractSessionHandlerContext nextOutboundContext = findNextOutboundContext();
         invokeWrite(msg, nextOutboundContext);
         invokeFlush(nextOutboundContext);
     }
 
     @Override
-    public void close(Promise<?> promise) {
+    public void fireClose(Promise<?> promise) {
         final AbstractSessionHandlerContext nextOutboundContext = findNextOutboundContext();
         invokeClose(promise, nextOutboundContext);
     }
@@ -205,7 +229,7 @@ abstract class AbstractSessionHandlerContext implements SessionHandlerContext {
         try {
             handler.close(nextOutboundContext, promise);
         } catch (Throwable e) {
-            notifyExceptionCaught(e, nextOutboundContext);
+            onExceptionCaught(e, nextOutboundContext);
         }
     }
 
@@ -220,7 +244,7 @@ abstract class AbstractSessionHandlerContext implements SessionHandlerContext {
         AbstractSessionHandlerContext ctx = this;
         do {
             ctx = ctx.next;
-        } while (!ctx.isInbound());
+        } while (!ctx.isInbound);
         return ctx;
     }
 
@@ -234,22 +258,8 @@ abstract class AbstractSessionHandlerContext implements SessionHandlerContext {
         AbstractSessionHandlerContext ctx = this;
         do {
             ctx = ctx.prev;
-        } while (!ctx.isOutbound());
+        } while (!ctx.isOutbound);
         return ctx;
     }
 
-    /**
-     * 管理的handler是否是入站处理器。
-     * 注意：与{@link #isOutbound()}并不一定互斥
-     *
-     * @return true/false
-     */
-    protected abstract boolean isInbound();
-
-    /**
-     * 管理的handler是否是出站处理器
-     *
-     * @return true/false
-     */
-    protected abstract boolean isOutbound();
 }

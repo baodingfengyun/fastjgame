@@ -19,6 +19,8 @@ package com.wjybxx.fastjgame.net.injvm;
 import com.wjybxx.fastjgame.net.pipeline.SessionConfig;
 
 /**
+ * jvm内部session配置
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/9/26

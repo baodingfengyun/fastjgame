@@ -14,18 +14,22 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.socket;
-
-import com.wjybxx.fastjgame.net.Session;
+package com.wjybxx.fastjgame.net.handler;
 
 /**
+ * 发送消息任务 - 实现{@link Runnable}是为了减少不必要的中间对象。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/9/27
  * github - https://github.com/hl845740757
  */
-public interface SocketSession extends Session {
+public interface WriteTask extends Runnable {
 
-    @Override
-    SocketSessionConfig config();
+    /**
+     * 执行发送操作，运行在网络线程下。
+     * 实现{@link Runnable}接口可以减少lambda表达式。
+     */
+    void run();
+
 }

@@ -33,6 +33,7 @@ public abstract class AbstractRpcResponseChannel<T> implements RpcResponseChanne
     /**
      * 默认检查{@link #writable}标记。<br>
      * 如果有大量的RPC调用，可以选择关闭检查，以减少volatile带来的内存同步开销。
+     * 其实影响不大，测试期间一定要开着，可以帮助你排除一些错误。
      */
     private static final boolean CHECK_WRITABLE = SystemUtils.getProperties().getAsBool("AbstractRpcResponseChannel.CHECK_WRITABLE", true);
 

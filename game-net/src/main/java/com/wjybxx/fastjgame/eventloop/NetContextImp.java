@@ -23,10 +23,7 @@ import com.wjybxx.fastjgame.manager.NetManagerWrapper;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.PortRange;
 import com.wjybxx.fastjgame.net.*;
-import com.wjybxx.fastjgame.net.initializer.ChannelInitializerSupplier;
-import com.wjybxx.fastjgame.net.initializer.HttpServerInitializer;
-import com.wjybxx.fastjgame.net.initializer.TCPClientChannelInitializer;
-import com.wjybxx.fastjgame.net.initializer.TCPServerChannelInitializer;
+import com.wjybxx.fastjgame.net.initializer.*;
 import com.wjybxx.fastjgame.net.injvm.JVMPort;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import io.netty.channel.ChannelInitializer;
@@ -120,6 +117,17 @@ class NetContextImp implements NetContext {
         return bindRange(host, portRange, tcpServerChannelInitializer);
     }
 
+    @Override
+    public ListenableFuture<HostAndPort> bindWSRange(String host, PortRange portRange, String websocketUrl,
+                                                     @Nonnull ProtocolCodec codec,
+                                                     @Nonnull SessionLifecycleAware lifecycleAware,
+                                                     @Nonnull ProtocolDispatcher protocolDispatcher) {
+        final PortContext portContext = new PortContext(lifecycleAware, protocolDispatcher);
+        final WsServerChannelInitializer wsServerChannelInitializer = new WsServerChannelInitializer(localGuid, websocketUrl, maxFrameLength(),
+                codec, portContext, managerWrapper.getNetEventManager());
+        return bindRange(host, portRange, wsServerChannelInitializer);
+    }
+
     private ListenableFuture<HostAndPort> bindRange(String host, PortRange portRange, @Nonnull ChannelInitializer<SocketChannel> initializer) {
         // 这里一定不是网络层，只有逻辑层才会调用bind
         return netEventLoop.submit(() -> {
@@ -144,6 +152,18 @@ class NetContextImp implements NetContext {
         return connect(remoteGuid, remoteRole, remoteAddress, lifecycleAware, protocolDispatcher, initializerSupplier);
     }
 
+
+    @Override
+    public ListenableFuture<Session> connectWS(long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress, String websocketUrl,
+                                               @Nonnull ProtocolCodec codec,
+                                               @Nonnull SessionLifecycleAware lifecycleAware,
+                                               @Nonnull ProtocolDispatcher protocolDispatcher) {
+        final WsClientChannelInitializer initializer = new WsClientChannelInitializer(localGuid, remoteGuid, websocketUrl, maxFrameLength(),
+                codec, managerWrapper.getNetEventManager());
+        ChannelInitializerSupplier initializerSupplier = () -> initializer;
+        return connect(remoteGuid, remoteRole, remoteAddress, lifecycleAware, protocolDispatcher, initializerSupplier);
+    }
+
     @Nonnull
     private ListenableFuture<Session> connect(long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress,
                                               @Nonnull SessionLifecycleAware lifecycleAware,
@@ -156,6 +176,26 @@ class NetContextImp implements NetContext {
                     initializerSupplier, lifecycleAware, protocolDispatcher, promise);
         });
         return promise;
+    }
+
+
+    // ----------------------------------------------- 本地调用支持 --------------------------------------------
+
+    @Override
+    public ListenableFuture<JVMPort> bindInJVM(@Nonnull ProtocolCodec codec,
+                                               @Nonnull SessionLifecycleAware lifecycleAware,
+                                               @Nonnull ProtocolDispatcher protocolDispatcher) {
+        final PortContext portContext = new PortContext(lifecycleAware, protocolDispatcher);
+        return netEventLoop.submit(() -> {
+            return managerWrapper.getSessionManager().bind(this, codec, portContext);
+        });
+    }
+
+    @Override
+    public ListenableFuture<Session> connectInJVM(@Nonnull JVMPort jvmPort,
+                                                  @Nonnull SessionLifecycleAware lifecycleAware,
+                                                  @Nonnull ProtocolDispatcher protocolDispatcher) {
+        return jvmPort.connect(this, lifecycleAware, protocolDispatcher);
     }
 
     // ------------------------------------------- http 实现 ----------------------------------------
@@ -195,23 +235,4 @@ class NetContextImp implements NetContext {
         managerWrapper.getHttpClientManager().asyncPost(url, params, localEventLoop, okHttpCallback);
     }
 
-    // ----------------------------------------------- 本地调用支持 --------------------------------------------
-
-
-    @Override
-    public ListenableFuture<JVMPort> bindInJVM(@Nonnull ProtocolCodec codec,
-                                               @Nonnull SessionLifecycleAware lifecycleAware,
-                                               @Nonnull ProtocolDispatcher protocolDispatcher) {
-        final PortContext portContext = new PortContext(lifecycleAware, protocolDispatcher);
-        return netEventLoop.submit(() -> {
-            return managerWrapper.getSessionManager().bind(this, codec, portContext);
-        });
-    }
-
-    @Override
-    public ListenableFuture<Session> connectInJVM(@Nonnull JVMPort jvmPort,
-                                                  @Nonnull SessionLifecycleAware lifecycleAware,
-                                                  @Nonnull ProtocolDispatcher protocolDispatcher) {
-        return jvmPort.connect(this, lifecycleAware, protocolDispatcher);
-    }
 }

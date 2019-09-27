@@ -38,5 +38,5 @@ public interface SessionHandler {
      *
      * @param ctx handler所属的context
      */
-    void tick(SessionHandlerContext ctx);
+    void tick(SessionHandlerContext ctx) throws Exception;
 }

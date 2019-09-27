@@ -30,12 +30,15 @@ import com.wjybxx.fastjgame.net.pipeline.SessionOutboundHandlerAdapter;
  */
 public class JVMTransferHandler extends SessionOutboundHandlerAdapter {
 
-    @Override
-    public void write(SessionHandlerContext ctx, Object msg) throws Exception {
-        getRemoteSession(ctx).pipeline().fireRead(msg);
+    private final Session remoteSession;
+
+    public JVMTransferHandler(Session remoteSession) {
+        this.remoteSession = remoteSession;
     }
 
-    private static Session getRemoteSession(SessionHandlerContext ctx) {
-        return ((JVMSession) ctx.session()).getRemoteSession();
+    @Override
+    public void write(SessionHandlerContext ctx, Object msg) throws Exception {
+        // 直接出发另一个session的读事件
+        remoteSession.fireRead(msg);
     }
 }

@@ -100,13 +100,13 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             AsyncRpcRequestWriteTask writeTask = (AsyncRpcRequestWriteTask) msg;
 
             // 保存rpc请求上下文
-            long deadline = ctx.managerWrapper().getNetTimeManager().getSystemMillTime() + writeTask.getTimeoutMs();
+            long deadline = ctx.managerWrapper().getNetTimeManager().getSystemMillTime() + ctx.session().config().getRpcCallbackTimeoutMs();
             RpcTimeoutInfo rpcTimeoutInfo = RpcTimeoutInfo.newInstance(writeTask.getRpcCallback(), deadline);
             long requestGuid = ++requestGuidSequencer;
             rpcPromiseInfoMap.put(requestGuid, rpcTimeoutInfo);
 
             // 执行发送
-            ctx.write(new RpcRequestMessage(requestGuid, false, writeTask.getRequest()));
+            ctx.fireWrite(new RpcRequestMessage(requestGuid, false, writeTask.getRequest()));
         } else if (msg instanceof SyncRpcRequestWriteTask) {
             // 同步rpc请求
             SyncRpcRequestWriteTask writeTask = (SyncRpcRequestWriteTask) msg;
@@ -116,20 +116,20 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             long requestGuid = ++requestGuidSequencer;
             rpcPromiseInfoMap.put(requestGuid, rpcTimeoutInfo);
 
-            ctx.write(new RpcRequestMessage(requestGuid, true, writeTask.getRequest()));
+            ctx.fireWrite(new RpcRequestMessage(requestGuid, true, writeTask.getRequest()));
             // 同步调用，需要刷新缓冲区
-            ctx.flush();
+            ctx.fireFlush();
 
         } else if (msg instanceof RpcResponseWriteTask) {
             // rpc结果任务
             RpcResponseWriteTask writeTask = (RpcResponseWriteTask) msg;
-            ctx.write(new RpcResponseMessage(writeTask.getRequestGuid(), writeTask.getResponse()));
+            ctx.fireWrite(new RpcResponseMessage(writeTask.getRequestGuid(), writeTask.getResponse()));
             // 同步调用的结果，需要刷新缓冲区，尽快的返回结果
             if (writeTask.isSync()) {
-                ctx.flush();
+                ctx.fireFlush();
             }
         } else {
-            ctx.write(msg);
+            ctx.fireWrite(msg);
         }
     }
 
@@ -138,7 +138,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
         if (msg instanceof RpcRequestMessage) {
             // 读取到一个Rpc请求消息，提交给应用层
             RpcRequestMessage requestMessage = (RpcRequestMessage) msg;
-            DefaultRpcResponseChannel<?> rpcResponseChannel = new DefaultRpcResponseChannel(ctx.session(),
+            RpcResponseChannel<?> rpcResponseChannel = new DefaultRpcResponseChannel<>(ctx.session(),
                     requestMessage.getRequestGuid(), requestMessage.isSync());
 
             ConcurrentUtils.tryCommit(ctx.localEventLoop(),
@@ -161,7 +161,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
         try {
             cleanRpcPromiseInfo(ctx);
         } finally {
-            ctx.close(promise);
+            ctx.fireClose(promise);
         }
     }
 
@@ -189,18 +189,20 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
     private static class DefaultRpcResponseChannel<T> extends AbstractRpcResponseChannel<T> {
 
         private final Session session;
-        private final long rpcRequestGuid;
+        private final long requestGuid;
         private final boolean sync;
 
-        private DefaultRpcResponseChannel(Session session, long rpcRequestGuid, boolean sync) {
+        private DefaultRpcResponseChannel(Session session, long requestGuid, boolean sync) {
             this.session = session;
-            this.rpcRequestGuid = rpcRequestGuid;
+            this.requestGuid = requestGuid;
             this.sync = sync;
         }
 
         @Override
         protected void doWrite(RpcResponse rpcResponse) {
-            session.write(new RpcResponseWriteTask(session, rpcRequestGuid, sync, rpcResponse));
+            if (session.isActive()) {
+                session.netEventLoop().execute(new RpcResponseWriteTask(session, requestGuid, sync, rpcResponse));
+            }
         }
     }
 }

@@ -42,11 +42,13 @@ public class SessionManager {
     private NetManagerWrapper netManagerWrapper;
     private final NetTimeManager netTimeManager;
     private final NetTimerManager netTimerManager;
+    private final AcceptorManager acceptorManager;
 
     @Inject
-    public SessionManager(NetTimeManager netTimeManager, NetTimerManager netTimerManager) {
+    public SessionManager(NetTimeManager netTimeManager, NetTimerManager netTimerManager, AcceptorManager acceptorManager) {
         this.netTimeManager = netTimeManager;
         this.netTimerManager = netTimerManager;
+        this.acceptorManager = acceptorManager;
     }
 
     public void setManagerWrapper(NetManagerWrapper managerWrapper) {
@@ -99,6 +101,8 @@ public class SessionManager {
     }
 
     public HostAndPort bindRange(NetContext netContextImp, String host, PortRange portRange, ChannelInitializer<SocketChannel> initializer) throws BindException {
+
+
         return null;
     }
 

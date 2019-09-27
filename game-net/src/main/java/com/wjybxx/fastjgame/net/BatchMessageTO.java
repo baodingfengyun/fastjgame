@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.net;
 import java.util.List;
 
 /**
- * 一个纯粹的传输对象,用于一次将一批对象发送到channel。
+ * 一个纯粹的传输对象,用于一次将一批对象发送到IO线程。
  *
  * @author wjybxx
  * @version 1.0

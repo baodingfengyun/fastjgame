@@ -54,6 +54,6 @@ public class JVMCodecHandler extends SessionDuplexHandlerAdapter {
             responseMessage.setRpcResponse(copiedRpcResponse);
         }
         // 传递给下一个handler
-        ctx.write(msg);
+        ctx.fireWrite(msg);
     }
 }
