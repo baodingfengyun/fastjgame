@@ -70,7 +70,7 @@ public class SessionRepository {
      *
      * @param localGuid  自身guid
      * @param remoteGuid 会话另一方guid
-     * @return
+     * @return 删除的session
      */
     @Nullable
     public Session removeSession(long localGuid, long remoteGuid) {

@@ -18,8 +18,8 @@ package com.wjybxx.fastjgame.net.socket;
 
 import com.wjybxx.fastjgame.net.ProtocolCodec;
 import com.wjybxx.fastjgame.net.ProtocolDispatcher;
-import com.wjybxx.fastjgame.net.SessionLifecycleAware;
-import com.wjybxx.fastjgame.net.pipeline.DefaultSessionConfig;
+import com.wjybxx.fastjgame.misc.SessionLifecycleAware;
+import com.wjybxx.fastjgame.net.DefaultSessionConfig;
 import io.netty.channel.ChannelOption;
 
 import java.util.Collections;

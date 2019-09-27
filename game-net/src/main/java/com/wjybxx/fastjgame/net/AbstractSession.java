@@ -22,12 +22,10 @@ import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
-import com.wjybxx.fastjgame.net.handler.AsyncRpcRequestWriteTask;
-import com.wjybxx.fastjgame.net.handler.BatchOneWayWriteTask;
-import com.wjybxx.fastjgame.net.handler.OneWayMessageWriteTask;
-import com.wjybxx.fastjgame.net.handler.SyncRpcRequestWriteTask;
-import com.wjybxx.fastjgame.net.pipeline.DefaultSessionPipeline;
-import com.wjybxx.fastjgame.net.pipeline.SessionPipeline;
+import com.wjybxx.fastjgame.net.task.AsyncRpcRequestWriteTask;
+import com.wjybxx.fastjgame.net.task.BatchOneWayWriteTask;
+import com.wjybxx.fastjgame.net.task.OneWayMessageWriteTask;
+import com.wjybxx.fastjgame.net.task.SyncRpcRequestWriteTask;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
 import javax.annotation.Nonnull;

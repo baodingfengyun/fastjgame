@@ -24,7 +24,7 @@ import com.wjybxx.fastjgame.mrg.WarzoneSendMrg;
 import com.wjybxx.fastjgame.mrg.WarzoneWorldInfoMrg;
 import com.wjybxx.fastjgame.mrg.WorldWrapper;
 import com.wjybxx.fastjgame.net.Session;
-import com.wjybxx.fastjgame.net.SessionLifecycleAware;
+import com.wjybxx.fastjgame.misc.SessionLifecycleAware;
 import com.wjybxx.fastjgame.rpcservice.ICenterInWarzoneInfoMrgRpcRegister;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.JsonUtils;

@@ -17,8 +17,6 @@
 package com.wjybxx.fastjgame.net.http;
 
 import com.wjybxx.fastjgame.manager.NetEventManager;
-import com.wjybxx.fastjgame.misc.HttpResponseHelper;
-import com.wjybxx.fastjgame.net.NetEventType;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -106,8 +104,8 @@ public class HttpRequestParamDecoder extends SimpleChannelInboundHandler<FullHtt
             }
         }
         final HttpRequestParam httpRequestParam = new HttpRequestParam(method, paramsMap);
-        HttpRequestEventParam httpRequestEventParam = new HttpRequestEventParam(ctx.channel(), localGuid, httpRequestDispatcher, path, httpRequestParam);
-        netEventManager.publishEvent(NetEventType.HTTP_REQUEST, httpRequestEventParam);
+        HttpRequestEvent httpRequestEvent = new HttpRequestEvent(ctx.channel(), localGuid, httpRequestDispatcher, path, httpRequestParam);
+        netEventManager.fireHttpRequest(httpRequestEvent);
     }
 
     @Override

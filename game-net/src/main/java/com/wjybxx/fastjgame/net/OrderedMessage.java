@@ -16,6 +16,9 @@
 
 package com.wjybxx.fastjgame.net;
 
+import com.wjybxx.fastjgame.net.socket.BatchMessageTO;
+import com.wjybxx.fastjgame.net.socket.SingleMessageTO;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

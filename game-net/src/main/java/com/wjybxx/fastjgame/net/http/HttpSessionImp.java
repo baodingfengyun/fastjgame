@@ -20,7 +20,6 @@ import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.manager.HttpSessionManager;
-import com.wjybxx.fastjgame.misc.HttpResponseBuilder;
 import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.net.RoleType;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;

@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.net.injvm;
 
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.misc.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.*;
 
 import javax.annotation.Nonnull;

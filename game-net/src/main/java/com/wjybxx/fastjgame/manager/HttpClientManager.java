@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.manager;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.annotation.EventLoopGroupSingleton;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.net.OkHttpCallback;
+import com.wjybxx.fastjgame.net.http.OkHttpCallback;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import okhttp3.*;

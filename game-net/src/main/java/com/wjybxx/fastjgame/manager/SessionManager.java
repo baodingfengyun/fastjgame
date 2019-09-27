@@ -19,12 +19,12 @@ package com.wjybxx.fastjgame.manager;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.Promise;
-import com.wjybxx.fastjgame.misc.HostAndPort;
-import com.wjybxx.fastjgame.misc.PortRange;
-import com.wjybxx.fastjgame.misc.SessionRepository;
+import com.wjybxx.fastjgame.misc.*;
 import com.wjybxx.fastjgame.net.*;
-import com.wjybxx.fastjgame.net.initializer.ChannelInitializerSupplier;
 import com.wjybxx.fastjgame.net.injvm.JVMPort;
+import com.wjybxx.fastjgame.net.socket.ConnectRequestEvent;
+import com.wjybxx.fastjgame.net.socket.ConnectResponseEvent;
+import com.wjybxx.fastjgame.net.socket.OrderedMessageEvent;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 
@@ -63,43 +63,15 @@ public class SessionManager {
 
     // --------------------------------------------- 事件处理 -----------------------------------------
 
-    public void onRcvConnectRequest(ConnectRequestEventParam eventParam) {
+    public void onRcvConnectRequest(ConnectRequestEvent eventParam) {
 
     }
 
-    public void onRcvConnectResponse(ConnectResponseEventParam eventParam) {
+    public void onRcvConnectResponse(ConnectResponseEvent eventParam) {
 
     }
 
-    public void onRcvAckPing(AckPingPongEventParam eventParam) {
-        final Session session = sessionRepository.getSession(eventParam.localGuid(), eventParam.remoteGuid());
-        if (session != null) {
-            session.fireRead(eventParam);
-        }
-    }
-
-    public void onRevAckPong(AckPingPongEventParam eventParam) {
-        final Session session = sessionRepository.getSession(eventParam.localGuid(), eventParam.remoteGuid());
-        if (session != null) {
-            session.fireRead(eventParam);
-        }
-    }
-
-    public void onRcvRpcRequest(RpcRequestEventParam eventParam) {
-        final Session session = sessionRepository.getSession(eventParam.localGuid(), eventParam.remoteGuid());
-        if (session != null) {
-            session.fireRead(eventParam);
-        }
-    }
-
-    public void onRcvRpcResponse(RpcResponseEventParam eventParam) {
-        final Session session = sessionRepository.getSession(eventParam.localGuid(), eventParam.remoteGuid());
-        if (session != null) {
-            session.fireRead(eventParam);
-        }
-    }
-
-    public void onRcvOneWayMessage(OneWayMessageEventParam eventParam) {
+    public void onRcvMessage(OrderedMessageEvent eventParam) {
         final Session session = sessionRepository.getSession(eventParam.localGuid(), eventParam.remoteGuid());
         if (session != null) {
             session.fireRead(eventParam);

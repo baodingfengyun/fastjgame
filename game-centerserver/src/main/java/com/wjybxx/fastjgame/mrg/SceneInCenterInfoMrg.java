@@ -29,7 +29,7 @@ import com.wjybxx.fastjgame.misc.SceneWorldChooser;
 import com.wjybxx.fastjgame.net.RoleType;
 import com.wjybxx.fastjgame.net.RpcResponse;
 import com.wjybxx.fastjgame.net.Session;
-import com.wjybxx.fastjgame.net.SessionLifecycleAware;
+import com.wjybxx.fastjgame.misc.SessionLifecycleAware;
 import com.wjybxx.fastjgame.rpcservice.ICenterInSceneInfoMrgRpcProxy;
 import com.wjybxx.fastjgame.rpcservice.ISceneRegionMrgRpcProxy;
 import com.wjybxx.fastjgame.serializebale.ConnectCrossSceneResult;

@@ -20,8 +20,6 @@ import com.wjybxx.fastjgame.annotation.Internal;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
-import com.wjybxx.fastjgame.net.pipeline.SessionConfig;
-import com.wjybxx.fastjgame.net.pipeline.SessionPipeline;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

@@ -18,7 +18,6 @@ package com.wjybxx.fastjgame.test;
 
 import com.wjybxx.fastjgame.enummapper.NumberEnum;
 import com.wjybxx.fastjgame.enummapper.NumberEnumMapper;
-import com.wjybxx.fastjgame.net.NetEventType;
 import com.wjybxx.fastjgame.net.RoleType;
 import com.wjybxx.fastjgame.scene.GridObstacle;
 import com.wjybxx.fastjgame.utils.EnumUtils;
@@ -37,10 +36,6 @@ public class NumberEnumTest {
         System.out.println(ReflectionUtils.class.getSimpleName());
         // 第一次加载的时候有点慢啊
         System.out.println(EEE.forNumber(1));
-
-        // 老式的看看
-        System.out.println(NetEventType.forNumber((byte) 1));
-        System.out.println(NetEventType.forNumber((byte) 2));
 
         System.out.println(GridObstacle.forNumber(0));
         System.out.println(GridObstacle.forNumber(1));

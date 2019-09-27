@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.injvm;
 
-import com.wjybxx.fastjgame.net.pipeline.SessionConfig;
+import com.wjybxx.fastjgame.net.SessionConfig;
 
 /**
  * jvm内部session配置

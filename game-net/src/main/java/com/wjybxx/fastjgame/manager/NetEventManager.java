@@ -18,13 +18,15 @@ package com.wjybxx.fastjgame.manager;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopManager;
-import com.wjybxx.fastjgame.net.*;
-import com.wjybxx.fastjgame.net.http.HttpRequestEventParam;
+import com.wjybxx.fastjgame.net.socket.ConnectRequestEvent;
+import com.wjybxx.fastjgame.net.socket.ConnectResponseEvent;
+import com.wjybxx.fastjgame.net.socket.OrderedMessageEvent;
+import com.wjybxx.fastjgame.net.http.HttpRequestEvent;
+import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
-import java.util.concurrent.RejectedExecutionException;
 
 /**
  * 网络事件管理器。
@@ -51,64 +53,28 @@ public class NetEventManager {
         this.netEventLoopManager = netEventLoopManager;
     }
 
-    /**
-     * 发布一个网络事件
-     *
-     * @param netEventType 事件类型
-     * @param eventParam   事件参数。类型决定参数
-     */
-    public void publishEvent(NetEventType netEventType, NetEventParam eventParam) {
-        // netty线程执行，一定不在NetEventLoop中，提交到netEventLoop线程
-        try {
-            netEventLoopManager.eventLoop().execute(() -> {
-                onNetEvent(netEventType, eventParam);
-            });
-        } catch (RejectedExecutionException e) {
-            // may shutdown
-            logger.info("NetEventLoop may shutdown.");
-        }
+    public void fireConnectRequest(ConnectRequestEvent eventParam) {
+        ConcurrentUtils.tryCommit(netEventLoopManager.eventLoop(), () -> {
+            sessionManager.onRcvConnectRequest(eventParam);
+        });
     }
 
-    /**
-     * 网络事件
-     */
-    private void onNetEvent(NetEventType eventType, NetEventParam eventParam) {
-        switch (eventType) {
-            // connect request response
-            case CONNECT_REQUEST:
-                sessionManager.onRcvConnectRequest((ConnectRequestEventParam) eventParam);
-                break;
-            case CONNECT_RESPONSE:
-                sessionManager.onRcvConnectResponse((ConnectResponseEventParam) eventParam);
-                break;
-
-            // ping-pong message
-            case ACK_PING:
-                sessionManager.onRcvAckPing((AckPingPongEventParam) eventParam);
-                break;
-            case ACK_PONG:
-                sessionManager.onRevAckPong((AckPingPongEventParam) eventParam);
-                break;
-
-            // rpc
-            case RPC_REQUEST:
-                sessionManager.onRcvRpcRequest((RpcRequestEventParam) eventParam);
-                break;
-            case RPC_RESPONSE:
-                sessionManager.onRcvRpcResponse((RpcResponseEventParam) eventParam);
-                break;
-
-            // 单向消息
-            case ONE_WAY_MESSAGE:
-                sessionManager.onRcvOneWayMessage((OneWayMessageEventParam) eventParam);
-                break;
-
-            // http request
-            case HTTP_REQUEST:
-                httpSessionManager.onRcvHttpRequest((HttpRequestEventParam) eventParam);
-                break;
-            default:
-                throw new IllegalArgumentException("unexpected event type " + eventType);
-        }
+    public void fireConnectResponse(ConnectResponseEvent eventParam) {
+        ConcurrentUtils.tryCommit(netEventLoopManager.eventLoop(), () -> {
+            sessionManager.onRcvConnectResponse(eventParam);
+        });
     }
+
+    public void fireMessage(OrderedMessageEvent eventParam) {
+        ConcurrentUtils.tryCommit(netEventLoopManager.eventLoop(), () -> {
+            sessionManager.onRcvMessage(eventParam);
+        });
+    }
+
+    public void fireHttpRequest(HttpRequestEvent eventParam) {
+        ConcurrentUtils.tryCommit(netEventLoopManager.eventLoop(), () -> {
+            httpSessionManager.onRcvHttpRequest(eventParam);
+        });
+    }
+
 }

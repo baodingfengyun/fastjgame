@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.net.pipeline.SessionConfig;
+import com.wjybxx.fastjgame.net.SessionConfig;
 import io.netty.channel.ChannelOption;
 
 import java.util.Map;

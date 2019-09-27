@@ -17,8 +17,8 @@
 package com.wjybxx.fastjgame.net.injvm;
 
 import com.wjybxx.fastjgame.net.*;
-import com.wjybxx.fastjgame.net.pipeline.SessionDuplexHandlerAdapter;
-import com.wjybxx.fastjgame.net.pipeline.SessionHandlerContext;
+import com.wjybxx.fastjgame.net.SessionDuplexHandlerAdapter;
+import com.wjybxx.fastjgame.net.SessionHandlerContext;
 
 /**
  * 对于在JVM内传输的数据，进行保护性拷贝。

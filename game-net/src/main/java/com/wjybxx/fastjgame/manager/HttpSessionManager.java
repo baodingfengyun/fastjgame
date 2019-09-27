@@ -21,11 +21,11 @@ import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopManager;
 import com.wjybxx.fastjgame.misc.BindResult;
 import com.wjybxx.fastjgame.misc.HostAndPort;
-import com.wjybxx.fastjgame.misc.HttpResponseHelper;
+import com.wjybxx.fastjgame.net.http.HttpResponseHelper;
 import com.wjybxx.fastjgame.misc.PortRange;
-import com.wjybxx.fastjgame.net.*;
+import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.net.http.HttpRequestDispatcher;
-import com.wjybxx.fastjgame.net.http.HttpRequestEventParam;
+import com.wjybxx.fastjgame.net.http.HttpRequestEvent;
 import com.wjybxx.fastjgame.net.http.HttpRequestParam;
 import com.wjybxx.fastjgame.net.http.HttpSessionImp;
 import com.wjybxx.fastjgame.timer.FixedDelayHandle;
@@ -149,7 +149,7 @@ public class HttpSessionManager {
      *
      * @param requestEventParam 请参数
      */
-    public void onRcvHttpRequest(HttpRequestEventParam requestEventParam) {
+    public void onRcvHttpRequest(HttpRequestEvent requestEventParam) {
         final Channel channel = requestEventParam.channel();
         final UserInfo userInfo = userInfoMap.get(requestEventParam.localGuid());
         if (userInfo == null) {

@@ -7,7 +7,7 @@ import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.mrg.*;
 import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.net.Session;
-import com.wjybxx.fastjgame.net.SessionLifecycleAware;
+import com.wjybxx.fastjgame.misc.SessionLifecycleAware;
 import com.wjybxx.fastjgame.rpcservice.ICenterInSceneInfoMrgRpcRegister;
 import com.wjybxx.fastjgame.rpcservice.ISceneRegionMrgRpcRegister;
 import com.wjybxx.fastjgame.utils.*;
