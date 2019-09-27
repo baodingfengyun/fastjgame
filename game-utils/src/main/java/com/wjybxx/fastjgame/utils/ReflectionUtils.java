@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.utils;
 
 import com.google.protobuf.Parser;
 import com.wjybxx.fastjgame.ref.NettyTypeParameterFinderAdapter;
+import com.wjybxx.fastjgame.ref.TypeParameterMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,19 +41,6 @@ public class ReflectionUtils {
 
     private ReflectionUtils() {
         // close
-    }
-
-    /**
-     * 查找父类/父接口定义的且被子类声明为具体类型的泛型参数的具体类型
-     *
-     * @param instance              superClazzOrInterface的子类实例
-     * @param superClazzOrInterface 泛型参数typeParamName存在的类,class或interface
-     * @param typeParamName         泛型参数名字
-     * @param <T>                   约束必须有继承关系或实现关系
-     * @return 如果定义的泛型存在，则返回对应的泛型clazz
-     */
-    public static <T> Class<?> findTypeParameter(@Nonnull T instance, Class<? super T> superClazzOrInterface, String typeParamName) throws Exception {
-        return NettyTypeParameterFinderAdapter.DEFAULT_INSTANCE.findTypeParameter(instance, superClazzOrInterface, typeParamName);
     }
 
     /**
@@ -86,5 +74,4 @@ public class ReflectionUtils {
         }
         throw new ReflectiveOperationException("invalid protocol buffer class " + clazz.getSimpleName());
     }
-
 }

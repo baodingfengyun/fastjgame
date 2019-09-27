@@ -19,6 +19,9 @@ package com.wjybxx.fastjgame.net;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
+import com.wjybxx.fastjgame.net.pipeline.SessionConfig;
+import com.wjybxx.fastjgame.net.pipeline.SessionOutboundInvoker;
+import com.wjybxx.fastjgame.net.pipeline.SessionPipeline;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
@@ -35,15 +38,6 @@ import javax.annotation.concurrent.ThreadSafe;
  * 3. 先发送的请求不一定先获得结果！对方什么时候返回给你结果是不确定的！
  *
  * <p><br>
- * Q: Netty线程和用户线程之间会竞争NetEventLoop资源，这个竞争可能非常激烈，如何降低Netty线程和用户线程之间的竞争？<br>
- * A: 为了解决这个问题，提炼了{@link Sender}接口，你可以使用带有缓冲的sender -  {@link UnsharableSender}，
- * 可以对用户的异步消息进行一定的缓存，使得可以进行批量发送，可以有效的降低竞争。
- *
- * <p><br>
- * Q: 为何抽象层没有提供address之类的信息？<br>
- * A: 因为底层会自动处理断线重连等等，这些信息可能会变化，暂时不提供。如果需要，你可以在应用层添加，让对方带过来。
- *
- * <p><br>
  * 注意：
  * 1. 特定的 localGuid 和 remoteGuid 在同一个NetEventLoop下只能建立一个链接！！！它俩确定唯一的一个session。
  * 并不支持在不同的端口的上以相同的id再建立连接，只能存在于不同于的{@link NetEventLoop}。<br>
@@ -55,7 +49,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * github - https://github.com/hl845740757
  */
 @ThreadSafe
-public interface Session {
+public interface Session extends SessionOutboundInvoker {
 
     /**
      * 会话关联的本地对象guid
@@ -78,9 +72,11 @@ public interface Session {
     RoleType remoteRole();
 
     /**
-     * 创建会话时指定的消息发送方式。
+     * session相关的配置信息
+     *
+     * @return config
      */
-    SessionSenderMode senderMode();
+    SessionConfig config();
 
     // ----------------------------------------------- 生命周期 ----------------------------------------------
 
@@ -107,8 +103,6 @@ public interface Session {
      * @param message 单向消息
      */
     void send(@Nonnull Object message);
-
-    // ------------------------------------------------ 异步Rpc请求 ---------------------------------------------
 
     /**
      * 发送一个rpc请求给对方，会使用默认的超时时间（配置文件中指定）。
@@ -153,14 +147,6 @@ public interface Session {
     @Nonnull
     RpcResponse sync(@Nonnull Object request, long timeoutMs);
 
-    // ---------------------------------------------- 缓冲区处理 -------------------------------------------------
-
-    /**
-     * 如果存在缓冲，则清空缓冲区。
-     * 注意：如果为session创建的是带有缓冲的sender，那么必须在特定的时候调用flush，否则可能有消息残留。
-     */
-    void flush();
-
     // --------------------------------------- session运行的网络环境（不是给用户的API） -------------------------------------
 
     /**
@@ -177,7 +163,9 @@ public interface Session {
     EventLoop localEventLoop();
 
     /**
-     * 获取该session关联的消息发送器，不建议应用层使用。
+     * 获取session关联的pipeline，不是给用户的API
+     *
+     * @return pipeline
      */
-    Sender sender();
+    SessionPipeline pipeline();
 }

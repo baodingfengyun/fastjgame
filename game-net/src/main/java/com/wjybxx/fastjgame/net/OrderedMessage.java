@@ -19,15 +19,12 @@ package com.wjybxx.fastjgame.net;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * 网络消息包。
- * 它并非线程安全的，但是有多线程下的时序保证，网络层可以安全的访问{@link #timeout}之外的任意字段。
+ * 有序的消息体，通过ack-sequence实现断线重连/消息确认机制
+ * Q: ack为什么不在这？
+ * A: ack是每次发送的时候获取最新的ack。 在这里{@link SingleMessageTO} {@link BatchMessageTO}
+ *
  * <p>
- * 一个包的{@link #sequence}一旦赋值便不会改变，{@link #setSequence(long)} happens-before {@link #getSequence()}。
- * <p>
- * 消息包发送流程：
- * step1  ->  create
- * step2  ->  setSequence,setTimeout
- * step3  ->  write
+ * 中间有过 使用包装组合实现消息确认机制 的想法，但是一想起来网关就头疼，包装有点多。
  *
  * @author wjybxx
  * @version 1.0
@@ -35,9 +32,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public abstract class NetMessage {
+public class OrderedMessage {
     /**
-     * 当前包id。一个网络包一旦被构建，则不再改变！
+     * 当前包id。
      */
     private long sequence;
     /**
@@ -45,10 +42,6 @@ public abstract class NetMessage {
      * 发送的时候设置超时时间
      */
     private long timeout;
-
-    public NetMessage() {
-
-    }
 
     public long getSequence() {
         return sequence;
@@ -65,5 +58,4 @@ public abstract class NetMessage {
     public void setTimeout(long timeout) {
         this.timeout = timeout;
     }
-
 }

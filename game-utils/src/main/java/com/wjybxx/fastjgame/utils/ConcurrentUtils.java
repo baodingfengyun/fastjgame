@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.utils;
 
-import com.wjybxx.fastjgame.concurrent.ExceptionHandler;
+import com.wjybxx.fastjgame.concurrent.*;
 import com.wjybxx.fastjgame.function.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -428,6 +428,76 @@ public class ConcurrentUtils {
         throw (E) ex;
     }
 
+
+    // ---------------------------------------------- 事件循环相关 ------------------------------------------------
+    /**
+     * 检查死锁，由于EventLoop是单线程的，因此不能在当前EventLoop上等待另一个任务完成，很可能导致死锁。
+     *
+     * @param e executor
+     */
+    public static void checkDeadLock(EventLoop e) {
+        if (e != null && e.inEventLoop()) {
+            throw new BlockingOperationException();
+        }
+    }
+
+    /**
+     * 检查死锁，由于EventLoop是单线程的，因此不能在当前EventLoop上等待另一个任务完成，很可能导致死锁。
+     *
+     * @param e   executor
+     * @param msg 造成死锁的信息，尽量少拼接字符串。
+     */
+    public static void checkDeadLock(EventLoop e, String msg) {
+        if (e != null && e.inEventLoop()) {
+            throw new BlockingOperationException(msg);
+        }
+    }
+
+    /**
+     * 如果当前线程就是EventLoop线程，则直接执行任务，否则进行提交
+     *
+     * @param eventLoop 事件循环
+     * @param task      任务
+     */
+    public static void executeOrRun(@Nonnull EventLoop eventLoop, Runnable task) {
+        if (eventLoop.inEventLoop()) {
+            task.run();
+        } else {
+            eventLoop.execute(task);
+        }
+    }
+
+    /**
+     * 如果当前线程就是EventLoop线程，则直接执行任务，否则进行提交
+     *
+     * @param eventLoop 事件循环
+     * @param task      任务
+     * @return future
+     */
+    public static ListenableFuture<?> submitOrRun(@Nonnull EventLoop eventLoop, Runnable task) {
+        return submitOrRun(eventLoop, Executors.callable(task, null));
+    }
+
+    /**
+     * 如果当前线程就是EventLoop线程，则直接执行任务，否则进行提交
+     *
+     * @param eventLoop 事件循环
+     * @param task      任务
+     * @return future
+     */
+    public static <V> ListenableFuture<V> submitOrRun(@Nonnull EventLoop eventLoop, Callable<V> task) {
+        if (eventLoop.inEventLoop()) {
+            try {
+                V result = task.call();
+                return new SucceededFuture<>(eventLoop, result);
+            } catch (Exception e) {
+                return new FailedFuture<>(eventLoop, e);
+            }
+        } else {
+            return eventLoop.submit(task);
+        }
+    }
+
     //  ------------------------------------ 内部的一些封装，指不定什么时候可能就换成lambda表达式 --------------------
 
     private static class SafeRunnable implements Runnable {
@@ -469,4 +539,5 @@ public class ConcurrentUtils {
             }
         }
     }
+
 }

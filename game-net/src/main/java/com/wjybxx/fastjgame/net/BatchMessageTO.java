@@ -30,18 +30,18 @@ public class BatchMessageTO {
 
     private long ack;
 
-    private List<NetMessage> netMessages;
+    private List<OrderedMessage> orderedMessageList;
 
-    public BatchMessageTO(long ack, List<NetMessage> netMessages) {
+    public BatchMessageTO(long ack, List<OrderedMessage> orderedMessageList) {
         this.ack = ack;
-        this.netMessages = netMessages;
+        this.orderedMessageList = orderedMessageList;
     }
 
     public long getAck() {
         return ack;
     }
 
-    public List<NetMessage> getNetMessages() {
-        return netMessages;
+    public List<OrderedMessage> getOrderedMessageList() {
+        return orderedMessageList;
     }
 }

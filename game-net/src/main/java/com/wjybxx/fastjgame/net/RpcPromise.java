@@ -28,4 +28,10 @@ import com.wjybxx.fastjgame.concurrent.Promise;
  */
 public interface RpcPromise extends RpcFuture, Promise<RpcResponse> {
 
+    /**
+     * 获取rpcPromise的超时时间。
+     *
+     * @return 超时时间
+     */
+    long deadline();
 }

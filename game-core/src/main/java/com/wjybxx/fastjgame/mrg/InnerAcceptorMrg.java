@@ -65,7 +65,7 @@ public class InnerAcceptorMrg {
 
     public void bindInnerJvmPort(SessionLifecycleAware lifecycleAware) throws ExecutionException, InterruptedException {
         final ListenableFuture<JVMPort> jvmPortFuture = netContextMrg.getNetContext().bindInJVM(getInnerProtocolCodec(),
-                lifecycleAware, protocolDispatcherMrg, getInnerSenderMode());
+                lifecycleAware, protocolDispatcherMrg);
         final JVMPort jvmPort = jvmPortFuture.get();
         jvmPortMrg.register(worldInfoMrg.getWorldGuid(), jvmPort);
     }
@@ -78,7 +78,7 @@ public class InnerAcceptorMrg {
         NetContext netContext = netContextMrg.getNetContext();
 
         ListenableFuture<HostAndPort> bindFuture = netContext.bindTcpRange(host, portRange,
-                getInnerProtocolCodec(), lifecycleAware, protocolDispatcherMrg, getInnerSenderMode());
+                getInnerProtocolCodec(), lifecycleAware, protocolDispatcherMrg);
 
         return bindFuture.get();
     }
@@ -98,7 +98,7 @@ public class InnerAcceptorMrg {
         final JVMPort jvmPort = jvmPortMrg.getJVMPort(remoteGuid);
         if (null != jvmPort) {
             // 两个world在同一个进程内
-            netContextMrg.getNetContext().connectInJVM(jvmPort, lifecycleAware, protocolDispatcherMrg, getInnerSenderMode());
+            netContextMrg.getNetContext().connectInJVM(jvmPort, lifecycleAware, protocolDispatcherMrg);
             return;
         }
         if (Objects.equals(macAddress, SystemUtils.getMAC())) {
@@ -112,7 +112,7 @@ public class InnerAcceptorMrg {
 
     private void connectTcp(long remoteGuid, RoleType remoteRole, HostAndPort hostAndPort, SessionLifecycleAware lifecycleAware) {
         netContextMrg.getNetContext().connectTcp(remoteGuid, remoteRole, hostAndPort, getInnerProtocolCodec(),
-                lifecycleAware, protocolDispatcherMrg, getInnerSenderMode());
+                lifecycleAware, protocolDispatcherMrg);
     }
 
     @Nonnull

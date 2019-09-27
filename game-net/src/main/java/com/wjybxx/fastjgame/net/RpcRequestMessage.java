@@ -27,7 +27,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class RpcRequestMessage extends NetMessage {
+public class RpcRequestMessage extends OrderedMessage {
 
     /**
      * rpc请求编号，用于返回消息
@@ -43,7 +43,6 @@ public class RpcRequestMessage extends NetMessage {
     private Object request;
 
     public RpcRequestMessage(long requestGuid, boolean sync, Object request) {
-        super();
         this.requestGuid = requestGuid;
         this.sync = sync;
         this.request = request;
@@ -59,5 +58,9 @@ public class RpcRequestMessage extends NetMessage {
 
     public Object getRequest() {
         return request;
+    }
+
+    public void setRequest(Object request) {
+        this.request = request;
     }
 }

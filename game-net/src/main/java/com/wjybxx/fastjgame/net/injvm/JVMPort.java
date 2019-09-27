@@ -24,7 +24,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * 用于建立JVM内部session的“端口”，它并非一个真正的端口。
- * 注意：每次调用{@link NetContext#bindInJVM(ProtocolCodec, SessionLifecycleAware, ProtocolDispatcher, SessionSenderMode)}都会产生一个新的jvmPort。
+ * 注意：每次调用{@link NetContext#bindInJVM(ProtocolCodec, SessionLifecycleAware, ProtocolDispatcher)}都会产生一个新的jvmPort。
  *
  * @author wjybxx
  * @version 1.0
@@ -41,11 +41,9 @@ public interface JVMPort {
      * @param netContext         用户所属的网络环境
      * @param lifecycleAware     生命周期监听器
      * @param protocolDispatcher 消息分发器
-     * @param sessionSenderMode  消息的发送方式
      * @return future
      */
     ListenableFuture<Session> connect(@Nonnull NetContext netContext,
                                       @Nonnull SessionLifecycleAware lifecycleAware,
-                                      @Nonnull ProtocolDispatcher protocolDispatcher,
-                                      @Nonnull SessionSenderMode sessionSenderMode);
+                                      @Nonnull ProtocolDispatcher protocolDispatcher);
 }

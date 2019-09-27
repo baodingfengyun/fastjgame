@@ -34,42 +34,50 @@ public enum NetPackageType implements NumberEnum {
     /**
      * 客户端请求建立链接
      */
-    CONNECT_REQUEST((byte) 1),
+    CONNECT_REQUEST(1),
     /**
      * 服务器通知建立连接结果(验证结果)
      */
-    CONNECT_RESPONSE((byte) 2),
+    CONNECT_RESPONSE(2),
 
     /**
      * Rpc请求包，必须有一个响应。 -- Rpc消息使用protoBuf编解码，内部使用。
      */
 
-    RPC_REQUEST((byte) 3),
+    RPC_REQUEST(3),
     /**
      * Rpc响应包。
      */
-    RPC_RESPONSE((byte) 4),
+    RPC_RESPONSE(4),
 
     /**
      * 单向消息包。
      */
-    ONE_WAY_MESSAGE((byte) 5),
+    ONE_WAY_MESSAGE(5),
 
     /**
      * 心跳包 -- 客户端发起
      */
-    ACK_PING((byte) 6),
+    ACK_PING(6),
     /**
      * 心跳包 -- 服务器响应
      */
-    ACK_PONG((byte) 7),
+    ACK_PONG(7),
 
-    ;
+    /**
+     * 主动断开连接
+     */
+    DISCONNECT(8),
+
+    /**
+     * 重定向 - 让网关服连接另一个服务器
+     */
+    RELOCATION(9);
 
     public final byte pkgType;
 
-    NetPackageType(byte pkgType) {
-        this.pkgType = pkgType;
+    NetPackageType(int pkgType) {
+        this.pkgType = (byte) pkgType;
     }
 
     /**

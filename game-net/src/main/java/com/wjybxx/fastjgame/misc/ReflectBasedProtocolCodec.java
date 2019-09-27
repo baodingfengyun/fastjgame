@@ -83,6 +83,8 @@ import java.util.*;
 @ThreadSafe
 public class ReflectBasedProtocolCodec implements ProtocolCodec {
 
+    private static final ThreadLocal<byte[]> LOCAL_BUFFER = ThreadLocal.withInitial(() -> new byte[NetUtils.MAX_BUFFER_SIZE]);
+
     private final MessageMapper messageMapper;
     /**
      * proto message 解析方法
@@ -192,7 +194,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
      * @throws IOException error
      */
     private ByteBuf encode(ByteBufAllocator bufAllocator, Object object) throws IOException {
-        final byte[] localBuffer = NetUtils.LOCAL_BUFFER.get();
+        final byte[] localBuffer = LOCAL_BUFFER.get();
         // 减少字节数组创建，即使使用输出流构造，其内部还是做了缓存。
         CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(localBuffer);
         writeObject(codedOutputStream, object);
@@ -210,7 +212,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
      * @throws IOException error
      */
     private Object decode(ByteBuf data) throws IOException {
-        final byte[] localBuffer = NetUtils.LOCAL_BUFFER.get();
+        final byte[] localBuffer = LOCAL_BUFFER.get();
         final int readableBytes = data.readableBytes();
         data.readBytes(localBuffer, 0, readableBytes);
         // 减少字节数组创建，即使使用输入流构造，其内部还是做了缓存。

@@ -38,7 +38,8 @@ public class RpcResponseEventParam extends MessageEventParam {
      */
     private RpcResponse rpcResponse;
 
-    public RpcResponseEventParam(Channel channel, long localGuid, long remoteGuid, long ack, long sequence, long requestGuid, RpcResponse rpcResponse) {
+    public RpcResponseEventParam(Channel channel, long localGuid, long remoteGuid, long ack, long sequence,
+                                 long requestGuid, RpcResponse rpcResponse) {
         super(channel, localGuid, remoteGuid, ack, sequence);
         this.requestGuid = requestGuid;
         this.rpcResponse = rpcResponse;

@@ -39,6 +39,8 @@ import java.io.OutputStream;
 @ThreadSafe
 public class JsonBasedProtocolCodec implements ProtocolCodec {
 
+    private static final ThreadLocal<byte[]> LOCAL_BUFFER = ThreadLocal.withInitial(() -> new byte[NetUtils.MAX_BUFFER_SIZE]);
+
     private final MessageMapper messageMapper;
 
     public JsonBasedProtocolCodec(MessageMapper messageMapper) {
@@ -76,7 +78,7 @@ public class JsonBasedProtocolCodec implements ProtocolCodec {
     }
 
     private ByteBuf encode(ByteBufAllocator bufAllocator, Object obj) throws IOException {
-        ByteBuf cacheBuffer = Unpooled.wrappedBuffer(NetUtils.LOCAL_BUFFER.get());
+        ByteBuf cacheBuffer = Unpooled.wrappedBuffer(LOCAL_BUFFER.get());
         try {
             // wrap会认为bytes中的数据都是可读的，我们需要清空这些标记。
             cacheBuffer.clear();
@@ -118,7 +120,7 @@ public class JsonBasedProtocolCodec implements ProtocolCodec {
     }
 
     private Object cloneObject(@Nonnull Object obj) throws IOException {
-        ByteBuf cacheBuffer = Unpooled.wrappedBuffer(NetUtils.LOCAL_BUFFER.get());
+        ByteBuf cacheBuffer = Unpooled.wrappedBuffer(LOCAL_BUFFER.get());
         try {
             // wrap会认为bytes中的数据都是可读的，我们需要清空这些标记。
             cacheBuffer.clear();

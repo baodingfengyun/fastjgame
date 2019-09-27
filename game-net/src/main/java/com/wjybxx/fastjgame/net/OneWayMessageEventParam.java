@@ -34,7 +34,8 @@ public class OneWayMessageEventParam extends MessageEventParam {
      */
     private Object message;
 
-    public OneWayMessageEventParam(Channel channel, long localGuid, long remoteGuid, long ack, long sequence, Object message) {
+    public OneWayMessageEventParam(Channel channel, long localGuid, long remoteGuid, long ack, long sequence,
+                                   Object message) {
         super(channel, localGuid, remoteGuid, ack, sequence);
         this.message = message;
     }

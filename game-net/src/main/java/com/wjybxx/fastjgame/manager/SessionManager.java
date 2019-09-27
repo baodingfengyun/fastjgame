@@ -16,89 +16,97 @@
 
 package com.wjybxx.fastjgame.manager;
 
+import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.net.RpcCallback;
-import com.wjybxx.fastjgame.net.RpcPromise;
-import com.wjybxx.fastjgame.net.RpcResponse;
+import com.wjybxx.fastjgame.concurrent.Promise;
+import com.wjybxx.fastjgame.misc.HostAndPort;
+import com.wjybxx.fastjgame.misc.PortRange;
+import com.wjybxx.fastjgame.net.*;
+import com.wjybxx.fastjgame.net.initializer.ChannelInitializerSupplier;
+import com.wjybxx.fastjgame.net.injvm.JVMPort;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.socket.SocketChannel;
 
-import javax.annotation.Nonnull;
+import java.net.BindException;
 
 /**
- * session管理器接口
+ * session管理器 -  算是一个大黑板
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/9/9
  * github - https://github.com/hl845740757
  */
-public interface SessionManager {
+public class SessionManager {
 
-    /**
-     * 发送一个单向消息到远程
-     *
-     * @param localGuid  我的标识
-     * @param remoteGuid 远程节点标识
-     * @param message    单向消息内容
-     */
-    void sendOneWayMessage(long localGuid, long remoteGuid, @Nonnull Object message);
+    private NetManagerWrapper netManagerWrapper;
+    private final NetTimeManager netTimeManager;
+    private final NetTimerManager netTimerManager;
 
-    /**
-     * 向远程发送一个异步rpc请求
-     *
-     * @param localGuid     我的标识
-     * @param remoteGuid    远程节点标识
-     * @param request       rpc请求内容
-     * @param timeoutMs     超时时间，大于0
-     * @param userEventLoop 用户线程
-     * @param rpcCallback   rpc回调
-     */
-    void sendRpcRequest(long localGuid, long remoteGuid, @Nonnull Object request, long timeoutMs, EventLoop userEventLoop, RpcCallback rpcCallback);
+    @Inject
+    public SessionManager(NetTimeManager netTimeManager, NetTimerManager netTimerManager) {
+        this.netTimeManager = netTimeManager;
+        this.netTimerManager = netTimerManager;
+    }
 
-    /**
-     * 向远程发送一个同步rpc请求
-     *
-     * @param localGuid  我的标识
-     * @param remoteGuid 远程节点标识
-     * @param request    rpc请求内容
-     * @param timeoutMs  超时时间，大于0
-     * @param rpcPromise 用于监听结果
-     */
-    void sendSyncRpcRequest(long localGuid, long remoteGuid, @Nonnull Object request, long timeoutMs, RpcPromise rpcPromise);
+    public void setManagerWrapper(NetManagerWrapper managerWrapper) {
+        this.netManagerWrapper = managerWrapper;
+    }
 
-    /**
-     * 发送rpc响应
-     *
-     * @param localGuid   我的id
-     * @param remoteGuid  远程节点id
-     * @param requestGuid 请求对应的编号
-     * @param sync        是否是同步rpc调用的结果
-     * @param response    响应结果
-     */
-    void sendRpcResponse(long localGuid, long remoteGuid, long requestGuid, boolean sync, @Nonnull RpcResponse response);
+    public void tick() {
 
-    /**
-     * 删除指定session
-     *
-     * @param localGuid  我的id
-     * @param remoteGuid 远程节点id
-     * @param reason     删除会话的原因
-     * @return 删除成功，或节点已删除，则返回true。
-     */
-    boolean removeSession(long localGuid, long remoteGuid, String reason);
+    }
 
-    /**
-     * 删除指定用户的所有session
-     *
-     * @param localGuid 我的id
-     * @param reason    删除会话的原因
-     */
-    void removeUserSession(long localGuid, String reason);
+    // --------------------------------------------- 事件处理 -----------------------------------------
 
-    /**
-     * 当检测到用户所在的线程终止(注册NetContext的用户)
-     *
-     * @param userEventLoop 用户所在的EventLoop
-     */
-    void onUserEventLoopTerminal(EventLoop userEventLoop);
+    public void onRcvConnectRequest(ConnectRequestEventParam eventParam) {
 
+
+    }
+
+    public void onRcvConnectResponse(ConnectResponseEventParam eventParam) {
+
+    }
+
+    public void onRcvAckPing(AckPingPongEventParam eventParam) {
+
+    }
+
+    public void onRevAckPong(AckPingPongEventParam eventParam) {
+
+    }
+
+    public void onRcvRpcRequest(RpcRequestEventParam eventParam) {
+
+    }
+
+    public void onRcvRpcResponse(RpcResponseEventParam eventParam) {
+
+    }
+
+    public void onRcvOneWayMessage(OneWayMessageEventParam eventParam) {
+
+    }
+
+    // ---------------------------------------------------------------
+
+    public void onUserEventLoopTerminal(EventLoop userEventLoop) {
+
+    }
+
+    public void removeUserSession(long localGuid, String deregister) {
+
+    }
+
+    public HostAndPort bindRange(NetContext netContextImp, String host, PortRange portRange, ChannelInitializer<SocketChannel> initializer) throws BindException {
+        return null;
+    }
+
+    public void connect(NetContext netContext, long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress, ChannelInitializerSupplier initializerSupplier, SessionLifecycleAware lifecycleAware, ProtocolDispatcher protocolDispatcher, Promise<Session> promise) {
+
+    }
+
+    public JVMPort bind(NetContext netContext, ProtocolCodec codec, PortContext portContext) {
+        return null;
+    }
 }

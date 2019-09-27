@@ -69,7 +69,7 @@ public class EchoClientLoop extends SingleThreadEventLoop {
         // 必须先启动服务器
         final HostAndPort address = new HostAndPort(NetUtils.getLocalIp(), ExampleConstants.tcpPort);
         session = netContext.connectTcp(ExampleConstants.serverGuid, ExampleConstants.serverRole, address,
-                ExampleConstants.jsonBasedCodec, new ServerDisconnectAware(), new EchoProtocolDispatcher(), SessionSenderMode.DIRECT)
+                ExampleConstants.jsonBasedCodec, new ServerDisconnectAware(), new EchoProtocolDispatcher())
                 .get();
     }
 

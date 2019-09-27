@@ -16,13 +16,8 @@
 
 package com.wjybxx.fastjgame.utils;
 
-import com.google.protobuf.AbstractMessage;
-import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.CodedOutputStream;
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
 import com.wjybxx.fastjgame.manager.NetConfigManager;
-import com.wjybxx.fastjgame.net.ProtocolCodec;
-import com.wjybxx.fastjgame.net.RpcResponse;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
@@ -33,7 +28,6 @@ import io.netty.channel.socket.DefaultSocketChannelConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.*;
@@ -53,6 +47,11 @@ public class NetUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(NetUtils.class);
 
+    /**
+     * 最大缓冲区大小1M,一个消息如果超过1M不能忍。
+     */
+    public static final int MAX_BUFFER_SIZE = 1024 * 1024;
+
     private static final List<Class<?>> BOX_CLASSES = Arrays.asList(
             Integer.class,
             Long.class,
@@ -63,15 +62,6 @@ public class NetUtils {
             Boolean.class,
             Character.class
     );
-
-    /**
-     * 最大缓冲区大小1M,一个消息如果超过1M不能忍。
-     */
-    private static final int MAX_BUFFER_SIZE = 1024 * 1024;
-    /**
-     * 用于编解码的缓冲区，避免{@link CodedInputStream} 和 {@link CodedOutputStream}内部频繁的创建字节数组。
-     */
-    public static final ThreadLocal<byte[]> LOCAL_BUFFER = ThreadLocal.withInitial(() -> new byte[MAX_BUFFER_SIZE]);
 
     /**
      * 本机内网地址
@@ -321,75 +311,10 @@ public class NetUtils {
             DefaultSocketChannelConfig socketChannelConfig = (DefaultSocketChannelConfig) channelConfig;
             socketChannelConfig.setPerformancePreferences(0, 1, 2);
             socketChannelConfig.setAllocator(PooledByteBufAllocator.DEFAULT);
+
         }
-    }
-
-    // ----------------------------------------------------- 拷贝消息 --------------------------------------------
-
-    /**
-     * 是否是不可变对象
-     *
-     * @param object 被检测对象
-     * @return true/false
-     */
-    public static boolean isImmutable(@Nonnull Object object) {
-        return object instanceof String
-                || object instanceof AbstractMessage
-                || BOX_CLASSES.contains(object.getClass())
-                || object instanceof Enum;
-    }
-
-    /**
-     * 拷贝一个单向消息
-     *
-     * @param message 消息内容
-     * @param codec   编解码器
-     * @return newInstance or the same object
-     */
-    public static Object cloneMessage(Object message, ProtocolCodec codec) {
-        try {
-            return codec.cloneMessage(message);
-        } catch (Exception e) {
-            logger.warn("cloneMessage {} caught exception, use null instead", message.getClass().getName(), e);
-        }
-        return null;
-    }
-
-    /**
-     * 拷贝一个rpc请求
-     *
-     * @param rpcRequest 请求内容
-     * @param codec      编解码器
-     * @return newInstance or the same object
-     */
-    public static Object cloneRpcRequest(Object rpcRequest, ProtocolCodec codec) {
-        try {
-            return codec.cloneRpcRequest(rpcRequest);
-        } catch (Exception e) {
-            logger.warn("cloneRpcRequest {} caught exception, use null instead", rpcRequest.getClass().getName(), e);
-        }
-        return null;
-    }
-
-    /**
-     * 拷贝一个rpc响应
-     *
-     * @param response 响应内容
-     * @param codec    编解码器
-     * @return newInstance or the same object
-     */
-    public static RpcResponse cloneRpcResponse(RpcResponse response, ProtocolCodec codec) {
-        if (response.getBody() == null) {
-            return new RpcResponse(response.getResultCode(), null);
-        } else {
-            try {
-                Object body = codec.cloneRpcResponse(response.getBody());
-                return new RpcResponse(response.getResultCode(), body);
-            } catch (Exception e) {
-                logger.warn("cloneRpcResponse {} caught exception, use null instead", response.getBody().getClass().getName(), e);
-            }
-            return new RpcResponse(response.getResultCode(), null);
-        }
+        channelConfig.setWriteBufferLowWaterMark(64 * 1024);
+        channelConfig.setWriteBufferHighWaterMark(128 * 1024);
     }
 
     public static void main(String[] args) {

@@ -18,7 +18,6 @@ package com.wjybxx.fastjgame.utils;
 
 import com.wjybxx.fastjgame.misc.PlatformType;
 import com.wjybxx.fastjgame.misc.PortRange;
-import com.wjybxx.fastjgame.net.SessionSenderMode;
 
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;

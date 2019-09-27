@@ -20,7 +20,7 @@ import io.netty.channel.Channel;
 
 /**
  * 消息事件参数。
- * 它对于{@link NetMessage}，对方发送一个{@link NetMessage}，则产生一个{@link MessageEventParam}事件。
+ * 它对于{@link OrderedMessage}，对方发送一个{@link OrderedMessage}，则产生一个{@link MessageEventParam}事件。
  *
  * @author wjybxx
  * @version 1.0

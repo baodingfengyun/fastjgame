@@ -14,18 +14,14 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.remote;
-
-import com.wjybxx.fastjgame.net.Session;
+package com.wjybxx.fastjgame.net.pipeline;
 
 /**
- * 通过socket建立的远程连接。
- *
  * @author wjybxx
  * @version 1.0
- * date - 2019/9/9
+ * date - 2019/9/26
  * github - https://github.com/hl845740757
  */
-public interface SocketSession extends Session {
+public interface SessionDuplexHandler extends SessionInboundHandler, SessionOutboundHandler {
 
 }

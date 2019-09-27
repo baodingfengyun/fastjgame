@@ -30,7 +30,6 @@ import com.wjybxx.fastjgame.misc.RpcBuilder;
 import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.net.SessionDisconnectAware;
-import com.wjybxx.fastjgame.net.SessionSenderMode;
 import com.wjybxx.fastjgame.net.injvm.JVMPort;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.TimeUtils;
@@ -109,16 +108,16 @@ public class ExampleRpcClientLoop extends DisruptorEventLoop {
         if (jvmPort != null) {
             session = netContext.connectInJVM(jvmPort,
                     new ServerDisconnectAward(),
-                    new DefaultProtocolDispatcher(),
-                    SessionSenderMode.DIRECT).get();
+                    new DefaultProtocolDispatcher()
+            ).get();
         } else {
             // 必须先启动服务器
             final HostAndPort address = new HostAndPort(NetUtils.getLocalIp(), ExampleConstants.tcpPort);
             session = netContext.connectTcp(ExampleConstants.serverGuid, ExampleConstants.serverRole, address,
                     ExampleConstants.reflectBasedCodec,
                     new ServerDisconnectAward(),
-                    new DefaultProtocolDispatcher(),
-                    SessionSenderMode.DIRECT).get();
+                    new DefaultProtocolDispatcher()
+            ).get();
         }
         startTime = System.currentTimeMillis();
     }

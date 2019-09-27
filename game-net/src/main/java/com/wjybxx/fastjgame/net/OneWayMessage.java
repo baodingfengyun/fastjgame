@@ -27,7 +27,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class OneWayMessage extends NetMessage {
+public class OneWayMessage extends OrderedMessage {
 
     /**
      * 消息内容
@@ -35,11 +35,14 @@ public class OneWayMessage extends NetMessage {
     private Object message;
 
     public OneWayMessage(Object message) {
-        super();
         this.message = message;
     }
 
     public Object getMessage() {
         return message;
+    }
+
+    public void setMessage(Object message) {
+        this.message = message;
     }
 }

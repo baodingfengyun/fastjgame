@@ -67,13 +67,13 @@ public class ClientCodec extends BaseCodec {
             // 批量协议包
             BatchMessageTO batchMessageTO = (BatchMessageTO) msgTO;
             long ack = batchMessageTO.getAck();
-            for (NetMessage message : batchMessageTO.getNetMessages()) {
+            for (OrderedMessage message : batchMessageTO.getOrderedMessageList()) {
                 writeSingleMsg(ctx, ack, message, ctx.voidPromise());
             }
         } else if (msgTO instanceof SingleMessageTO) {
             // 单个协议包
             SingleMessageTO singleMessageTO = (SingleMessageTO) msgTO;
-            writeSingleMsg(ctx, singleMessageTO.getAck(), singleMessageTO.getNetMessage(), promise);
+            writeSingleMsg(ctx, singleMessageTO.getAck(), singleMessageTO.getOrderedMessage(), promise);
         } else if (msgTO instanceof ConnectRequestTO) {
             // 请求建立连接包
             writeConnectRequest(ctx, (ConnectRequestTO) msgTO, promise);
@@ -85,7 +85,7 @@ public class ClientCodec extends BaseCodec {
     /**
      * 发送单个消息
      */
-    private void writeSingleMsg(ChannelHandlerContext ctx, long ack, NetMessage netMessage, ChannelPromise promise) throws Exception {
+    private void writeSingleMsg(ChannelHandlerContext ctx, long ack, OrderedMessage netMessage, ChannelPromise promise) throws Exception {
         // 按出现的几率判断
         if (netMessage instanceof RpcRequestMessage) {
             // rpc请，向另一个服务器发起rpc请求
@@ -161,7 +161,7 @@ public class ClientCodec extends BaseCodec {
         ensureConnected();
 
         RpcRequestEventParam rpcRequestEventParam = readRpcRequestMessage(ctx.channel(), localGuid, serverGuid, msg);
-        netEventManager.publishEvent(NetEventType.S2C_RPC_REQUEST, rpcRequestEventParam);
+        netEventManager.publishEvent(NetEventType.RPC_REQUEST, rpcRequestEventParam);
     }
 
     /**
@@ -171,7 +171,7 @@ public class ClientCodec extends BaseCodec {
         ensureConnected();
 
         RpcResponseEventParam rpcResponseEventParam = readRpcResponseMessage(ctx.channel(), localGuid, serverGuid, msg);
-        netEventManager.publishEvent(NetEventType.C2S_RPC_RESPONSE, rpcResponseEventParam);
+        netEventManager.publishEvent(NetEventType.RPC_RESPONSE, rpcResponseEventParam);
     }
 
     /**
@@ -181,7 +181,7 @@ public class ClientCodec extends BaseCodec {
         ensureConnected();
 
         OneWayMessageEventParam oneWayMessageEventParam = readOneWayMessage(ctx.channel(), localGuid, serverGuid, msg);
-        netEventManager.publishEvent(NetEventType.S2C_ONE_WAY_MESSAGE, oneWayMessageEventParam);
+        netEventManager.publishEvent(NetEventType.ONE_WAY_MESSAGE, oneWayMessageEventParam);
     }
     // endregion
 

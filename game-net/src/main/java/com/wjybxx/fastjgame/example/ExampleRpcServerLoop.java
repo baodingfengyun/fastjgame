@@ -28,7 +28,6 @@ import com.wjybxx.fastjgame.misc.DefaultProtocolDispatcher;
 import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.net.SessionLifecycleAware;
-import com.wjybxx.fastjgame.net.SessionSenderMode;
 import com.wjybxx.fastjgame.net.injvm.JVMPort;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
@@ -79,8 +78,8 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
             try {
                 final JVMPort jvmPort = netContext.bindInJVM(ExampleConstants.reflectBasedCodec,
                         new ClientLifeAware(),
-                        protocolDispatcher,
-                        SessionSenderMode.DIRECT).get();
+                        protocolDispatcher
+                ).get();
                 jvmPortPromise.trySuccess(jvmPort);
             } catch (Exception e) {
                 jvmPortPromise.tryFailure(e);
@@ -91,8 +90,8 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
                     ExampleConstants.tcpPort,
                     ExampleConstants.reflectBasedCodec,
                     new ClientLifeAware(),
-                    protocolDispatcher,
-                    SessionSenderMode.DIRECT);
+                    protocolDispatcher
+            );
         }
         startTime = System.currentTimeMillis();
     }

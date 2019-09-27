@@ -16,25 +16,26 @@
 
 package com.wjybxx.fastjgame.net.injvm;
 
-import com.wjybxx.fastjgame.manager.NetManagerWrapper;
-import com.wjybxx.fastjgame.net.AbstractSession;
-import com.wjybxx.fastjgame.net.NetContext;
-import com.wjybxx.fastjgame.net.RoleType;
-import com.wjybxx.fastjgame.net.SessionSenderMode;
+import com.wjybxx.fastjgame.net.Session;
+import com.wjybxx.fastjgame.net.pipeline.SessionHandlerContext;
+import com.wjybxx.fastjgame.net.pipeline.SessionOutboundHandlerAdapter;
 
 /**
- * JVMSession的抽象实现
+ * JVM 内部传输实现
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/9/9
+ * date - 2019/9/26
  * github - https://github.com/hl845740757
  */
-public abstract class AbstractJVMSession extends AbstractSession implements JVMSession {
+public class JVMTransferHandler extends SessionOutboundHandlerAdapter {
 
-    public AbstractJVMSession(NetContext netContext, long remoteGuid, RoleType remoteRole,
-                              NetManagerWrapper managerWrapper, SessionSenderMode sessionSenderMode) {
-        super(netContext, remoteGuid, remoteRole, managerWrapper, sessionSenderMode);
+    @Override
+    public void write(SessionHandlerContext ctx, Object msg) throws Exception {
+        getRemoteSession(ctx).pipeline().fireRead(msg);
     }
 
+    private static Session getRemoteSession(SessionHandlerContext ctx) {
+        return ((JVMSession) ctx.session()).getRemoteSession();
+    }
 }

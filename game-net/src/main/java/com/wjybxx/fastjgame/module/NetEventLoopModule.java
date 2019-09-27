@@ -36,14 +36,10 @@ public class NetEventLoopModule extends AbstractModule {
         binder().requireExplicitBindings();
 
         bind(NetEventLoopManager.class).in(Singleton.class);
-
         bind(NetEventManager.class).in(Singleton.class);
-        bind(SocketC2SSessionManager.class).in(Singleton.class);
-        bind(SocketS2CSessionManager.class).in(Singleton.class);
-        bind(HttpSessionManager.class).in(Singleton.class);
 
-        bind(JVMC2SSessionManager.class).in(Singleton.class);
-        bind(JVMS2CSessionManager.class).in(Singleton.class);
+        bind(SessionManager.class).in(Singleton.class);
+        bind(HttpSessionManager.class).in(Singleton.class);
 
         bind(NettyThreadManager.class).in(Singleton.class);
         bind(AcceptorManager.class).in(Singleton.class);

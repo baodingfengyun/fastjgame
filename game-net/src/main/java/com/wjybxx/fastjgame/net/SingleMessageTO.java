@@ -29,18 +29,18 @@ public class SingleMessageTO {
 
     private long ack;
 
-    private NetMessage netMessage;
+    private OrderedMessage orderedMessage;
 
-    public SingleMessageTO(long ack, NetMessage netMessage) {
+    public SingleMessageTO(long ack, OrderedMessage orderedMessage) {
         this.ack = ack;
-        this.netMessage = netMessage;
+        this.orderedMessage = orderedMessage;
     }
 
     public long getAck() {
         return ack;
     }
 
-    public NetMessage getNetMessage() {
-        return netMessage;
+    public OrderedMessage getOrderedMessage() {
+        return orderedMessage;
     }
 }

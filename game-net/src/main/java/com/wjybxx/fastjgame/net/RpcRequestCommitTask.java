@@ -31,29 +31,24 @@ public class RpcRequestCommitTask implements CommitTask {
      */
     private ProtocolDispatcher protocolDispatcher;
     /**
-     * rpc请求编号，用于返回消息
+     * 返回结果的通道
      */
-    public long requestGuid;
+    private RpcResponseChannel<?> rpcResponseChannel;
     /**
-     * 是否是同步rpc调用
-     */
-    public boolean sync;
-    /**
-     * Rpc请求内容
+     * 请求内容
      */
     private Object request;
 
-    public RpcRequestCommitTask(Session session, ProtocolDispatcher protocolDispatcher, long requestGuid, boolean sync, Object request) {
+    public RpcRequestCommitTask(Session session, ProtocolDispatcher protocolDispatcher, RpcResponseChannel<?> rpcResponseChannel,
+                                Object request) {
         this.session = session;
         this.protocolDispatcher = protocolDispatcher;
-        this.requestGuid = requestGuid;
-        this.sync = sync;
+        this.rpcResponseChannel = rpcResponseChannel;
         this.request = request;
     }
 
     @Override
     public void run() {
-        final RpcResponseChannel<?> responseChannel = session.sender().newResponseChannel(requestGuid, sync);
-        protocolDispatcher.postRpcRequest(session, request, responseChannel);
+        protocolDispatcher.postRpcRequest(session, request, rpcResponseChannel);
     }
 }

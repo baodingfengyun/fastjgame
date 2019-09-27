@@ -58,12 +58,12 @@ public final class MessageQueue {
      * Q: 为什么不使用arrayList?
      * A: 1.存在大量的删除操作 2.ArrayList存在空间浪费。3.遍历很少
      */
-    private LinkedList<NetMessage> sentQueue = new LinkedList<>();
+    private LinkedList<OrderedMessage> sentQueue = new LinkedList<>();
 
     /**
      * 未发送的消息队列,还没有尝试过发送的消息
      */
-    private LinkedList<NetMessage> unsentQueue = new LinkedList<>();
+    private LinkedList<OrderedMessage> unsentQueue = new LinkedList<>();
 
     /**
      * 对方发送过来的ack是否有效。
@@ -138,19 +138,19 @@ public final class MessageQueue {
         this.ack = ack;
     }
 
-    public LinkedList<NetMessage> getSentQueue() {
+    public LinkedList<OrderedMessage> getSentQueue() {
         return sentQueue;
     }
 
-    public LinkedList<NetMessage> getUnsentQueue() {
+    public LinkedList<OrderedMessage> getUnsentQueue() {
         return unsentQueue;
     }
 
     /**
      * 交换未发送的缓冲区
      */
-    public LinkedList<NetMessage> exchangeUnsentMessages() {
-        LinkedList<NetMessage> result = unsentQueue;
+    public LinkedList<OrderedMessage> exchangeUnsentMessages() {
+        LinkedList<OrderedMessage> result = unsentQueue;
         unsentQueue = new LinkedList<>();
         return result;
     }

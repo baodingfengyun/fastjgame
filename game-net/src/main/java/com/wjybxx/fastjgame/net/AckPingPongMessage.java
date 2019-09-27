@@ -28,7 +28,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class AckPingPongMessage extends NetMessage {
+public class AckPingPongMessage extends OrderedMessage {
 
     public AckPingPongMessage() {
         super();

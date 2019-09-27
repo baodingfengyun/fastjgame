@@ -42,7 +42,7 @@ public class DefaultRpcPromise extends DefaultPromise<RpcResponse> implements Rp
     /**
      * 最终过期时间(毫秒)
      */
-    private final long timeoutMs;
+    private final long deadline;
 
     /**
      * @param workerEventLoop 创建该promise的EventLoop，为了支持用户调用{@link #await()}系列方法，避免死锁问题。
@@ -52,7 +52,7 @@ public class DefaultRpcPromise extends DefaultPromise<RpcResponse> implements Rp
     public DefaultRpcPromise(NetEventLoop workerEventLoop, EventLoop userEventLoop, long timeoutMs) {
         super(workerEventLoop);
         this.userEventLoop = userEventLoop;
-        this.timeoutMs = System.currentTimeMillis() + timeoutMs;
+        this.deadline = System.currentTimeMillis() + timeoutMs;
     }
 
     protected EventLoop getUserEventLoop() {
@@ -73,12 +73,17 @@ public class DefaultRpcPromise extends DefaultPromise<RpcResponse> implements Rp
         return getNow();
     }
 
+    @Override
+    public long deadline() {
+        return deadline;
+    }
+
     // ---------------------------------------------- 超时检测 ------------------------------------------------
 
     @Override
     public RpcResponse getNow() {
         // 如果时间到了，还没有结果，那么需要标记为超时
-        if (System.currentTimeMillis() >= timeoutMs && !isDone()) {
+        if (System.currentTimeMillis() >= deadline && !isDone()) {
             trySuccess(RpcResponse.TIMEOUT);
         }
         return super.getNow();
@@ -87,21 +92,21 @@ public class DefaultRpcPromise extends DefaultPromise<RpcResponse> implements Rp
     @Override
     public void await() throws InterruptedException {
         // 有限的等待
-        await(timeoutMs - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+        await(deadline - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
         assert isDone();
     }
 
     @Override
     public void awaitUninterruptibly() {
         // 有限的等待
-        awaitUninterruptibly(timeoutMs - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+        awaitUninterruptibly(deadline - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
         assert isDone();
     }
 
     @Override
     public boolean await(long timeout, TimeUnit unit) throws InterruptedException {
         final long expectMillis = unit.toMillis(timeout);
-        final long remainMillis = timeoutMs - System.currentTimeMillis();
+        final long remainMillis = deadline - System.currentTimeMillis();
         //  如果期望的时间超过剩余时间，那么必须有结果
         if (expectMillis >= remainMillis) {
             if (super.await(remainMillis, TimeUnit.MILLISECONDS)) {
@@ -117,7 +122,7 @@ public class DefaultRpcPromise extends DefaultPromise<RpcResponse> implements Rp
     @Override
     public boolean awaitUninterruptibly(long timeout, TimeUnit unit) {
         final long expectMillis = unit.toMillis(timeout);
-        final long remainMillis = timeoutMs - System.currentTimeMillis();
+        final long remainMillis = deadline - System.currentTimeMillis();
         //  如果期望的时间超过剩余时间，那么必须有结果
         if (expectMillis >= remainMillis) {
             if (super.awaitUninterruptibly(remainMillis, TimeUnit.MILLISECONDS)) {

@@ -21,14 +21,14 @@ import com.wjybxx.fastjgame.concurrent.Promise;
 import javax.annotation.Nonnull;
 
 /**
- * RpcPromise信息
+ * rpc请求超时信息
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/3
  * github - https://github.com/hl845740757
  */
-public class RpcPromiseInfo {
+public class RpcTimeoutInfo {
 
     // promise与callback二者存一
     /**
@@ -45,17 +45,17 @@ public class RpcPromiseInfo {
      */
     public long deadline;
 
-    private RpcPromiseInfo(Promise<RpcResponse> rpcPromise, RpcCallback rpcCallback, long deadline) {
+    private RpcTimeoutInfo(Promise<RpcResponse> rpcPromise, RpcCallback rpcCallback, long deadline) {
         this.rpcPromise = rpcPromise;
         this.rpcCallback = rpcCallback;
         this.deadline = deadline;
     }
 
-    public static RpcPromiseInfo newInstance(@Nonnull Promise<RpcResponse> rpcPromise, long deadline) {
-        return new RpcPromiseInfo(rpcPromise, null, deadline);
+    public static RpcTimeoutInfo newInstance(@Nonnull Promise<RpcResponse> rpcPromise, long deadline) {
+        return new RpcTimeoutInfo(rpcPromise, null, deadline);
     }
 
-    public static RpcPromiseInfo newInstance(@Nonnull RpcCallback rpcCallback, long deadline) {
-        return new RpcPromiseInfo(null, rpcCallback, deadline);
+    public static RpcTimeoutInfo newInstance(@Nonnull RpcCallback rpcCallback, long deadline) {
+        return new RpcTimeoutInfo(null, rpcCallback, deadline);
     }
 }

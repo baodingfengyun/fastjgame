@@ -21,7 +21,7 @@ import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.manager.HttpSessionManager;
 import com.wjybxx.fastjgame.misc.HttpResponseBuilder;
-import com.wjybxx.fastjgame.utils.EventLoopUtils;
+import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http.HttpResponse;
 
@@ -88,7 +88,7 @@ public final class HttpSessionImp implements HttpSession {
     @Override
     public ListenableFuture<?> close() {
         setClosed();
-        return EventLoopUtils.submitOrRun(netEventLoop(), () -> {
+        return ConcurrentUtils.submitOrRun(netEventLoop(), () -> {
             httpSessionManager.removeSession(this, channel);
         });
     }

@@ -56,7 +56,7 @@ public class EchoServerLoop extends SingleThreadEventLoop {
 
         // 监听tcp端口
         netContext.bindTcp(NetUtils.getLocalIp(), ExampleConstants.tcpPort,
-                ExampleConstants.jsonBasedCodec, new ClientLifeAware(), new EchoProtocolDispatcher(), SessionSenderMode.DIRECT);
+                ExampleConstants.jsonBasedCodec, new ClientLifeAware(), new EchoProtocolDispatcher());
 
         // 监听http端口
         netContext.bindHttp(NetUtils.getLocalIp(), ExampleConstants.httpPort, new EchoHttpRequestDispatcher());

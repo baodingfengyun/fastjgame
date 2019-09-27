@@ -8,7 +8,6 @@ import com.wjybxx.fastjgame.mrg.*;
 import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.net.SessionLifecycleAware;
-import com.wjybxx.fastjgame.net.SessionSenderMode;
 import com.wjybxx.fastjgame.rpcservice.ICenterInSceneInfoMrgRpcRegister;
 import com.wjybxx.fastjgame.rpcservice.ISceneRegionMrgRpcRegister;
 import com.wjybxx.fastjgame.utils.*;
@@ -98,7 +97,7 @@ public class SceneWorld extends AbstractWorld {
 
         HostAndPort outerTcpHostAndPort = netContext.bindTcpRange(NetUtils.getOuterIp(), GameUtils.OUTER_TCP_PORT_RANGE,
                 protocolCodecMrg.getInnerProtocolCodec(), new PlayerLifeAware(),
-                protocolDispatcherMrg, SessionSenderMode.DIRECT).get();
+                protocolDispatcherMrg).get();
 
         HostAndPort outerWebsocketHostAndPort = netContext.bindWSRange(NetUtils.getOuterIp(), GameUtils.OUTER_WS_PORT_RANGE, "/ws",
                 protocolCodecMrg.getInnerProtocolCodec(), new PlayerLifeAware(),

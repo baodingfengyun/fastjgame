@@ -31,11 +31,9 @@ public class PortContext {
 
     public final SessionLifecycleAware lifecycleAware;
     public final ProtocolDispatcher protocolDispatcher;
-    public final SessionSenderMode sessionSenderMode;
 
-    public PortContext(SessionLifecycleAware lifecycleAware, ProtocolDispatcher protocolDispatcher, SessionSenderMode sessionSenderMode) {
+    public PortContext(SessionLifecycleAware lifecycleAware, ProtocolDispatcher protocolDispatcher) {
         this.lifecycleAware = lifecycleAware;
         this.protocolDispatcher = protocolDispatcher;
-        this.sessionSenderMode = sessionSenderMode;
     }
 }

@@ -18,7 +18,6 @@ package com.wjybxx.fastjgame.concurrent;
 
 import com.wjybxx.fastjgame.utils.CollectionUtils;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-import com.wjybxx.fastjgame.utils.EventLoopUtils;
 import com.wjybxx.fastjgame.utils.TimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -435,7 +434,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
      * 检查死锁可能，定义为方法是为了方便子类特殊逻辑
      */
     protected void checkDeadlock() {
-        EventLoopUtils.checkDeadLock(executor());
+        ConcurrentUtils.checkDeadLock(executor());
     }
 
     /**

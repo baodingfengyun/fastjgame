@@ -17,10 +17,15 @@
 package com.wjybxx.fastjgame.net;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.wjybxx.fastjgame.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
-import com.wjybxx.fastjgame.manager.NetConfigManager;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
-import com.wjybxx.fastjgame.manager.SessionManager;
+import com.wjybxx.fastjgame.net.handler.AsyncRpcRequestWriteTask;
+import com.wjybxx.fastjgame.net.handler.OneWayMessageWriteTask;
+import com.wjybxx.fastjgame.net.handler.SyncRpcRequestWriteTask;
+import com.wjybxx.fastjgame.net.pipeline.DefaultSessionPipeline;
+import com.wjybxx.fastjgame.net.pipeline.SessionPipeline;
 
 import javax.annotation.Nonnull;
 
@@ -39,63 +44,24 @@ public abstract class AbstractSession implements Session {
      */
     protected final NetContext netContext;
     /**
-     * session关联的远程角色guid
+     * session关联的管道
      */
-    protected final long remoteGuid;
-    /**
-     * session关联的远程角色类型
-     */
-    protected final RoleType remoteRole;
+    protected final SessionPipeline pipeline;
     /**
      * {@link NetEventLoop}关联的所有逻辑控制器
      */
     protected final NetManagerWrapper managerWrapper;
     /**
-     * 消息发送模式
-     */
-    private final SessionSenderMode sessionSenderMode;
-    /**
-     * 真正执行消息发送组件
-     */
-    private final Sender sender;
-    /**
      * session绑定到的EventLoop
      */
     private final NetEventLoop netEventLoop;
 
-    protected AbstractSession(NetContext netContext, long remoteGuid, RoleType remoteRole,
-                              NetManagerWrapper managerWrapper, SessionSenderMode sessionSenderMode) {
+    protected AbstractSession(NetContext netContext, NetManagerWrapper managerWrapper) {
         this.netContext = netContext;
-        this.remoteGuid = remoteGuid;
-        this.remoteRole = remoteRole;
         this.managerWrapper = managerWrapper;
-        this.sessionSenderMode = sessionSenderMode;
+        this.pipeline = new DefaultSessionPipeline(this, managerWrapper);
         this.netEventLoop = managerWrapper.getNetEventLoopManager().eventLoop();
-        if (sessionSenderMode == SessionSenderMode.DIRECT) {
-            sender = new DirectSender(this);
-        } else if (sessionSenderMode == SessionSenderMode.UNSHARABLE) {
-            sender = new UnsharableSender(this);
-        } else {
-            throw new IllegalArgumentException("Unsupported sessionSenderMode " + sessionSenderMode);
-        }
     }
-
-    /**
-     * 获取网络配置管理器
-     *
-     * @return NetConfigManager
-     */
-    protected final NetConfigManager getNetConfigManager() {
-        return managerWrapper.getNetConfigManager();
-    }
-
-    /**
-     * 获取该session对应的管理器
-     *
-     * @return SessionManager
-     */
-    @Nonnull
-    protected abstract SessionManager getSessionManager();
 
     @Override
     public final long localGuid() {
@@ -106,57 +72,6 @@ public abstract class AbstractSession implements Session {
     public final RoleType localRole() {
         return netContext.localRole();
     }
-
-    @Override
-    public final long remoteGuid() {
-        return remoteGuid;
-    }
-
-    @Override
-    public final RoleType remoteRole() {
-        return remoteRole;
-    }
-
-    @Override
-    public final SessionSenderMode senderMode() {
-        return sessionSenderMode;
-    }
-
-    @Override
-    public void send(@Nonnull Object message) {
-        sender.send(message);
-    }
-
-    @Override
-    public void call(@Nonnull Object request, @Nonnull RpcCallback callback) {
-        sender.call(request, callback, getNetConfigManager().rpcCallbackTimeoutMs());
-    }
-
-    @Override
-    public void call(@Nonnull Object request, @Nonnull RpcCallback callback, long timeoutMs) {
-        sender.call(request, callback, timeoutMs);
-    }
-
-    @Override
-    @Nonnull
-    public RpcResponse sync(@Nonnull Object request) {
-        return sender.sync(request, getNetConfigManager().syncRpcTimeoutMs());
-    }
-
-    @Override
-    @Nonnull
-    public RpcResponse sync(@Nonnull Object request, long timeoutMs) {
-        return sender.sync(request, timeoutMs);
-    }
-
-    // ---------------------------------------------  立即发送消息的接口 --------------------------------------
-
-    @Override
-    public void flush() {
-        sender.flush();
-    }
-
-    // -------------------------------------------------- 运行环境 ------------------------------------------------------
 
     @Override
     public final NetEventLoop netEventLoop() {
@@ -170,51 +85,77 @@ public abstract class AbstractSession implements Session {
     }
 
     @Override
-    public final Sender sender() {
-        return sender;
+    public SessionPipeline pipeline() {
+        return pipeline;
     }
 
-    // ---------------------------------------------- 发送消息接口，必须运行在网络线程下 ---------------------------------------
-
-    /**
-     * 发送单向消息
-     *
-     * @param message 消息内容
-     */
-    final void sendOneWayMessage(@Nonnull Object message) {
-        getSessionManager().sendOneWayMessage(localGuid(), remoteGuid(), message);
+    @Override
+    public void send(@Nonnull Object message) {
+        netEventLoop.execute(new OneWayMessageWriteTask(this, message));
     }
 
-    /**
-     * 发送rpc请求
-     *
-     * @param request     请求内容
-     * @param timeoutMs   超时时间
-     * @param rpcCallback 回调函数
-     */
-    final void sendRpcRequest(@Nonnull Object request, long timeoutMs, @Nonnull RpcCallback rpcCallback) {
-        getSessionManager().sendRpcRequest(localGuid(), remoteGuid(), request, timeoutMs, localEventLoop(), rpcCallback);
+    @Override
+    public void call(@Nonnull Object request, @Nonnull RpcCallback callback) {
+        call(request, callback, config().getRpcCallbackTimeoutMs());
     }
 
-    /**
-     * 发送rpc请求
-     *
-     * @param request    请求内容
-     * @param timeoutMs  超时时间
-     * @param rpcPromise 存储结果的promise
-     */
-    final void sendSyncRpcRequest(@Nonnull Object request, long timeoutMs, RpcPromise rpcPromise) {
-        getSessionManager().sendSyncRpcRequest(localGuid(), remoteGuid(), request, timeoutMs, rpcPromise);
+    @Override
+    public void call(@Nonnull Object request, @Nonnull RpcCallback callback, long timeoutMs) {
+        if (timeoutMs <= 0) {
+            throw new IllegalArgumentException("timeoutMs");
+        }
+        netEventLoop.execute(new AsyncRpcRequestWriteTask(this, request, callback, timeoutMs));
     }
 
-    /**
-     * 发送rpc响应
-     *
-     * @param requestGuid 请求对应的id
-     * @param sync        是否是同步rpc调用的结果
-     * @param rpcResponse 请求对应的响应
-     */
-    final void sendRpcResponse(long requestGuid, boolean sync, RpcResponse rpcResponse) {
-        getSessionManager().sendRpcResponse(localGuid(), remoteGuid(), requestGuid, sync, rpcResponse);
+    @Override
+    @Nonnull
+    public RpcResponse sync(@Nonnull Object request) {
+        return sync(request, config().getSyncRpcTimeoutMs());
     }
+
+    @Override
+    @Nonnull
+    public RpcResponse sync(@Nonnull Object request, long timeoutMs) {
+        if (timeoutMs <= 0) {
+            throw new IllegalArgumentException("timeoutMs");
+        }
+        // 逻辑层校验，会话已关闭，立即返回结果
+        if (!isActive()) {
+            return RpcResponse.SESSION_CLOSED;
+        }
+        final RpcPromise rpcPromise = netEventLoop().newRpcPromise(localEventLoop(), timeoutMs);
+        // 提交到网络层执行
+        netEventLoop.execute(new SyncRpcRequestWriteTask(this, request, rpcPromise));
+        // RpcPromise保证了不会等待超过限时时间
+        rpcPromise.awaitUninterruptibly();
+        return rpcPromise.getNow();
+    }
+
+    @Override
+    public void write(@Nonnull Object msg) {
+        pipeline.write(msg);
+    }
+
+    @Override
+    public void flush() {
+        pipeline.flush();
+    }
+
+    @Override
+    public void writeAndFlush(@Nonnull Object msg) {
+        pipeline.writeAndFlush(msg);
+    }
+
+    @Override
+    public ListenableFuture<?> close() {
+        final Promise<Object> promise = netEventLoop.newPromise();
+        pipeline.close(promise);
+        return promise;
+    }
+
+    @Override
+    public void close(Promise<?> promise) {
+        pipeline.close(promise);
+    }
+
 }
