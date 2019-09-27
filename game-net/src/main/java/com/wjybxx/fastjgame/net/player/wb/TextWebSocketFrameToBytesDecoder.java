@@ -14,29 +14,29 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.codec.wb;
+package com.wjybxx.fastjgame.net.player.wb;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 
 /**
- * websocket二进制帧 -> ByteBuf 解码器，取出内容传递给下一个handler {@link io.netty.handler.codec.LengthFieldBasedFrameDecoder}
+ * 文本帧->ByteBuf解码器
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/4/27 22:31
+ * date - 2019/4/27 22:36
  * github - https://github.com/hl845740757
  */
-public class BinaryWebSocketFrameToBytesDecoder extends SimpleChannelInboundHandler<BinaryWebSocketFrame> {
+public class TextWebSocketFrameToBytesDecoder extends SimpleChannelInboundHandler<TextWebSocketFrame> {
 
-    public BinaryWebSocketFrameToBytesDecoder() {
+    public TextWebSocketFrameToBytesDecoder() {
         // 不释放资源，由下一个handler负责释放
         super(false);
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, BinaryWebSocketFrame msg) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame msg) throws Exception {
         ctx.fireChannelRead(msg.content());
     }
 }

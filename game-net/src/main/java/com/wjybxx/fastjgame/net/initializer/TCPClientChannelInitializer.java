@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.net.initializer;
 
 import com.wjybxx.fastjgame.manager.NetEventManager;
 import com.wjybxx.fastjgame.net.ProtocolCodec;
-import com.wjybxx.fastjgame.net.codec.ClientCodec;
+import com.wjybxx.fastjgame.net.player.ClientCodec;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;

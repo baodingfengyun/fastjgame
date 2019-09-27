@@ -14,32 +14,28 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.codec;
+package com.wjybxx.fastjgame.net.player.wb;
 
-import com.google.protobuf.AbstractMessage;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageEncoder;
+import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 
 import java.util.List;
 
 /**
- * 将protoBuf中的builder转换为message对象，因为消息映射用的是它对应的message。
- * 因为人总是容易忘记，容易老发送builder。
- * <p>
- * 发送builder的好处：可以将一部分操作转移到io线程。
- * 发送builder的坏处：
- * 1.builder是可变对象，如果发送builder后，再次修改builder，是很危险的！！！
- * 2.反复构建多次
+ * 将二进制数据编码为WebSocket的二进制帧
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/6/23 13:39
+ * date - 2019/4/27 22:45
  * github - https://github.com/hl845740757
  */
-public class BuilderToMessageEncoder extends MessageToMessageEncoder<AbstractMessage.Builder> {
+public class BytesToBinaryWebSocketFrameEncoder extends MessageToMessageEncoder<ByteBuf> {
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, AbstractMessage.Builder msg, List<Object> out) throws Exception {
-        out.add(msg.build());
+    protected void encode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
+        // 超类强制性的调用了release，因此需要引用计数+1
+        out.add(new BinaryWebSocketFrame(msg.retain()));
     }
 }

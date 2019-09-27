@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.net.pipeline;
 
-import com.wjybxx.fastjgame.annotation.Internal;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.net.Session;

@@ -27,7 +27,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class RpcRequestMessage extends OrderedMessage {
+public class RpcRequestMessage {
 
     /**
      * rpc请求编号，用于返回消息

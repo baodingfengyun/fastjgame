@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net;
+package com.wjybxx.fastjgame.net.http;
 
 import com.wjybxx.fastjgame.configwrapper.Params;
 import io.netty.handler.codec.http.HttpMethod;

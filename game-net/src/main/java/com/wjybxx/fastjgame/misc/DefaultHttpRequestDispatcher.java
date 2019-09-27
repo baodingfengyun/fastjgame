@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.net.*;
+import com.wjybxx.fastjgame.net.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

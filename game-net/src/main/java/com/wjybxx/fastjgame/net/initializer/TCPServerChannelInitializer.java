@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.net.initializer;
 import com.wjybxx.fastjgame.manager.NetEventManager;
 import com.wjybxx.fastjgame.net.PortContext;
 import com.wjybxx.fastjgame.net.ProtocolCodec;
-import com.wjybxx.fastjgame.net.codec.ServerCodec;
+import com.wjybxx.fastjgame.net.player.ServerCodec;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;

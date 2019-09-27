@@ -1,20 +1,20 @@
 /*
- * Copyright 2019 wjybxx
+ *  Copyright 2019 wjybxx
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to iBn writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.codec;
+package com.wjybxx.fastjgame.net.player;
 
 import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.utils.NetUtils;
@@ -161,11 +161,12 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
     /**
      * 3. 编码rpc请求包
      */
-    final void writeRpcRequestMessage(ChannelHandlerContext ctx, long ack, RpcRequestMessage rpcRequest, ChannelPromise promise) {
+    final void writeRpcRequestMessage(ChannelHandlerContext ctx, long ack, OrderedMessage orderedMessage, ChannelPromise promise) {
+        RpcRequestMessage rpcRequest = (RpcRequestMessage) orderedMessage.getWrappedMessage();
         ByteBuf head = newInitializedByteBuf(ctx, 8 + 8 + 8 + 1, NetPackageType.RPC_REQUEST);
         // 捎带确认消息
         head.writeLong(ack);
-        head.writeLong(rpcRequest.getSequence());
+        head.writeLong(orderedMessage.getSequence());
         // rpc请求头
         head.writeLong(rpcRequest.getRequestGuid());
         head.writeByte(rpcRequest.isSync() ? 1 : 0);
@@ -191,14 +192,15 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
     /**
      * 4. 编码rpc 响应包
      */
-    final void writeRpcResponseMessage(ChannelHandlerContext ctx, long ack, RpcResponseMessage sentRpcResponse, ChannelPromise promise) {
+    final void writeRpcResponseMessage(ChannelHandlerContext ctx, long ack, OrderedMessage orderedMessage, ChannelPromise promise) {
+        RpcResponseMessage rpcResponseMessage = (RpcResponseMessage) orderedMessage.getWrappedMessage();
         ByteBuf head = newInitializedByteBuf(ctx, 8 + 8 + 8 + 4, NetPackageType.RPC_RESPONSE);
         // 捎带确认信息
         head.writeLong(ack);
-        head.writeLong(sentRpcResponse.getSequence());
+        head.writeLong(orderedMessage.getSequence());
         // 响应内容
-        head.writeLong(sentRpcResponse.getRequestGuid());
-        final RpcResponse rpcResponse = sentRpcResponse.getRpcResponse();
+        head.writeLong(rpcResponseMessage.getRequestGuid());
+        final RpcResponse rpcResponse = rpcResponseMessage.getRpcResponse();
         head.writeInt(rpcResponse.getResultCode().getNumber());
 
         ByteBuf byteBuf;
@@ -234,13 +236,14 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
     /**
      * 5.编码单向协议包
      */
-    final void writeOneWayMessage(ChannelHandlerContext ctx, long ack, OneWayMessage sentOneWayMessage, ChannelPromise promise) {
+    final void writeOneWayMessage(ChannelHandlerContext ctx, long ack, OrderedMessage orderedMessage, ChannelPromise promise) {
+        OneWayMessage oneWayMessage = (OneWayMessage) orderedMessage.getWrappedMessage();
         ByteBuf head = newInitializedByteBuf(ctx, 8 + 8, NetPackageType.ONE_WAY_MESSAGE);
         // 捎带确认
         head.writeLong(ack);
-        head.writeLong(sentOneWayMessage.getSequence());
+        head.writeLong(orderedMessage.getSequence());
         // 合并之后发送
-        appendSumAndWrite(ctx, tryMergeBody(ctx.alloc(), head, sentOneWayMessage.getMessage(), codec::encodeMessage), promise);
+        appendSumAndWrite(ctx, tryMergeBody(ctx.alloc(), head, oneWayMessage.getMessage(), codec::encodeMessage), promise);
     }
 
     /**
@@ -298,11 +301,11 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
     /**
      * 编码协议6/7 - ack心跳包
      */
-    final void writeAckPingPongMessage(ChannelHandlerContext ctx, long ack, AckPingPongMessage sentAckPingPong, ChannelPromise promise,
+    final void writeAckPingPongMessage(ChannelHandlerContext ctx, long ack, OrderedMessage orderedMessage, ChannelPromise promise,
                                        NetPackageType netPackageType) {
         ByteBuf byteBuf = newInitializedByteBuf(ctx, 8 + 8, netPackageType);
         byteBuf.writeLong(ack);
-        byteBuf.writeLong(sentAckPingPong.getSequence());
+        byteBuf.writeLong(orderedMessage.getSequence());
         appendSumAndWrite(ctx, byteBuf, promise);
     }
 

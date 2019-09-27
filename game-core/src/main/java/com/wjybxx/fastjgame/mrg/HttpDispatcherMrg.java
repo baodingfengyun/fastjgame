@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.mrg;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.annotation.EventLoopSingleton;
 import com.wjybxx.fastjgame.misc.DefaultHttpRequestDispatcher;
-import com.wjybxx.fastjgame.net.*;
+import com.wjybxx.fastjgame.net.http.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;

@@ -27,7 +27,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class OneWayMessage extends OrderedMessage {
+public class OneWayMessage {
 
     /**
      * 消息内容

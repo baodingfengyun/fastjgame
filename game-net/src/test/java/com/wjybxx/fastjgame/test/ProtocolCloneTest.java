@@ -36,7 +36,8 @@ public class ProtocolCloneTest {
 
     public static void main(String[] args) throws IOException {
         // 触发NetUtils类加载，避免输出干扰
-        NetUtils.isImmutable("a");
+        System.out.println(NetUtils.FAVICON_PATH);
+
         cloneTest(ExampleConstants.reflectBasedCodec);
         cloneTest(ExampleConstants.jsonBasedCodec);
     }

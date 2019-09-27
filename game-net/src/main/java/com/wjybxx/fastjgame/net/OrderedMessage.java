@@ -24,7 +24,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * A: ack是每次发送的时候获取最新的ack。 在这里{@link SingleMessageTO} {@link BatchMessageTO}
  *
  * <p>
- * 中间有过 使用包装组合实现消息确认机制 的想法，但是一想起来网关就头疼，包装有点多。
+ * 通过包装的方式，某些方面更加清晰，但有些方面会让人觉得绕的厉害，也增加了一部分内存消耗吧。
+ * (本想的内网服务器之间不开启消息确认机制，这样可以减少很多不必要的传输)
  *
  * @author wjybxx
  * @version 1.0
@@ -42,6 +43,14 @@ public class OrderedMessage {
      * 发送的时候设置超时时间
      */
     private long timeout;
+    /**
+     * 被包装的消息
+     */
+    private Object wrappedMessage;
+
+    public OrderedMessage(Object wrappedMessage) {
+        this.wrappedMessage = wrappedMessage;
+    }
 
     public long getSequence() {
         return sequence;
@@ -57,5 +66,13 @@ public class OrderedMessage {
 
     public void setTimeout(long timeout) {
         this.timeout = timeout;
+    }
+
+    public Object getWrappedMessage() {
+        return wrappedMessage;
+    }
+
+    public void setWrappedMessage(Object wrappedMessage) {
+        this.wrappedMessage = wrappedMessage;
     }
 }

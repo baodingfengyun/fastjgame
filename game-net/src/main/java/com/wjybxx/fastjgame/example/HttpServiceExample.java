@@ -19,8 +19,8 @@ package com.wjybxx.fastjgame.example;
 import com.wjybxx.fastjgame.annotation.HttpRequestMapping;
 import com.wjybxx.fastjgame.misc.DefaultHttpRequestDispatcher;
 import com.wjybxx.fastjgame.misc.HttpResponseHelper;
-import com.wjybxx.fastjgame.net.HttpRequestParam;
-import com.wjybxx.fastjgame.net.HttpSession;
+import com.wjybxx.fastjgame.net.http.HttpRequestParam;
+import com.wjybxx.fastjgame.net.http.HttpSession;
 import com.wjybxx.fastjgame.utils.NetUtils;
 
 /**

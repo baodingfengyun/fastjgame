@@ -16,9 +16,9 @@
 
 package com.wjybxx.fastjgame.annotation;
 
-import com.wjybxx.fastjgame.net.HttpRequestHandler;
-import com.wjybxx.fastjgame.net.HttpRequestParam;
-import com.wjybxx.fastjgame.net.HttpSession;
+import com.wjybxx.fastjgame.net.http.HttpRequestHandler;
+import com.wjybxx.fastjgame.net.http.HttpRequestParam;
+import com.wjybxx.fastjgame.net.http.HttpSession;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

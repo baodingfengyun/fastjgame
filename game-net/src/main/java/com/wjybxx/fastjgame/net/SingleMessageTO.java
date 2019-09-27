@@ -27,9 +27,9 @@ package com.wjybxx.fastjgame.net;
 @TransferObject
 public class SingleMessageTO {
 
-    private long ack;
+    private final long ack;
 
-    private OrderedMessage orderedMessage;
+    private final OrderedMessage orderedMessage;
 
     public SingleMessageTO(long ack, OrderedMessage orderedMessage) {
         this.ack = ack;

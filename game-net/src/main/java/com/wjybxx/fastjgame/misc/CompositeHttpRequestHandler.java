@@ -16,9 +16,9 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.net.HttpRequestHandler;
-import com.wjybxx.fastjgame.net.HttpRequestParam;
-import com.wjybxx.fastjgame.net.HttpSession;
+import com.wjybxx.fastjgame.net.http.HttpRequestHandler;
+import com.wjybxx.fastjgame.net.http.HttpRequestParam;
+import com.wjybxx.fastjgame.net.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

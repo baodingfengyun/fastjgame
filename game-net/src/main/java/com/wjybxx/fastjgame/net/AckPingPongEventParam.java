@@ -27,7 +27,7 @@ import io.netty.channel.Channel;
  * github - https://github.com/hl845740757
  */
 @TransferObject
-public class AckPingPongEventParam extends MessageEventParam {
+public class AckPingPongEventParam extends OrderedMessageEventParam {
 
     public AckPingPongEventParam(Channel channel, long localGuid, long remoteGuid, long ack, long sequence) {
         super(channel, localGuid, remoteGuid, ack, sequence);

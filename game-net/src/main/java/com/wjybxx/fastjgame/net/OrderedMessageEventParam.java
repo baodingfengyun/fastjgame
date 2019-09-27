@@ -20,7 +20,7 @@ import io.netty.channel.Channel;
 
 /**
  * 消息事件参数。
- * 它对于{@link OrderedMessage}，对方发送一个{@link OrderedMessage}，则产生一个{@link MessageEventParam}事件。
+ * 它对于{@link OrderedMessage}，对方发送一个{@link OrderedMessage}，则产生一个{@link OrderedMessageEventParam}事件。
  *
  * @author wjybxx
  * @version 1.0
@@ -28,7 +28,7 @@ import io.netty.channel.Channel;
  * github - https://github.com/hl845740757
  */
 @TransferObject
-public abstract class MessageEventParam implements NetEventParam {
+public abstract class OrderedMessageEventParam implements NetEventParam {
 
     /**
      * 该事件对应的channel
@@ -51,7 +51,7 @@ public abstract class MessageEventParam implements NetEventParam {
      */
     private long sequence;
 
-    public MessageEventParam(Channel channel, long localGuid, long remoteGuid, long ack, long sequence) {
+    public OrderedMessageEventParam(Channel channel, long localGuid, long remoteGuid, long ack, long sequence) {
         this.channel = channel;
         this.localGuid = localGuid;
         this.remoteGuid = remoteGuid;

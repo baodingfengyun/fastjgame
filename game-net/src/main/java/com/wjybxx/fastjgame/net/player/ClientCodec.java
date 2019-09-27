@@ -1,20 +1,20 @@
 /*
- * Copyright 2019 wjybxx
+ *  Copyright 2019 wjybxx
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to iBn writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.codec;
+package com.wjybxx.fastjgame.net.player;
 
 import com.wjybxx.fastjgame.manager.NetEventManager;
 import com.wjybxx.fastjgame.net.*;
@@ -85,22 +85,22 @@ public class ClientCodec extends BaseCodec {
     /**
      * 发送单个消息
      */
-    private void writeSingleMsg(ChannelHandlerContext ctx, long ack, OrderedMessage netMessage, ChannelPromise promise) throws Exception {
+    private void writeSingleMsg(ChannelHandlerContext ctx, long ack, OrderedMessage orderedMessage, ChannelPromise promise) throws Exception {
         // 按出现的几率判断
-        if (netMessage instanceof RpcRequestMessage) {
+        if (orderedMessage.getWrappedMessage() instanceof RpcRequestMessage) {
             // rpc请，向另一个服务器发起rpc请求
-            writeRpcRequestMessage(ctx, ack, (RpcRequestMessage) netMessage, promise);
-        } else if (netMessage instanceof OneWayMessage) {
+            writeRpcRequestMessage(ctx, ack, orderedMessage, promise);
+        } else if (orderedMessage.getWrappedMessage() instanceof OneWayMessage) {
             // 单向消息，向另一个服务器发送单向消息
-            writeOneWayMessage(ctx, ack, (OneWayMessage) netMessage, promise);
-        } else if (netMessage instanceof RpcResponseMessage) {
+            writeOneWayMessage(ctx, ack, orderedMessage, promise);
+        } else if (orderedMessage.getWrappedMessage() instanceof RpcResponseMessage) {
             // rpc返回结果
-            writeRpcResponseMessage(ctx, ack, (RpcResponseMessage) netMessage, promise);
-        } else if (netMessage instanceof AckPingPongMessage) {
+            writeRpcResponseMessage(ctx, ack, orderedMessage, promise);
+        } else if (orderedMessage.getWrappedMessage() instanceof AckPingPongMessage) {
             // 客户端ack-ping包
-            writeAckPingPongMessage(ctx, ack, (AckPingPongMessage) netMessage, promise, NetPackageType.ACK_PING);
+            writeAckPingPongMessage(ctx, ack, orderedMessage, promise, NetPackageType.ACK_PING);
         } else {
-            super.write(ctx, netMessage, promise);
+            super.write(ctx, orderedMessage, promise);
         }
     }
     // endregion

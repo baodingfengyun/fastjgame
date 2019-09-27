@@ -18,7 +18,6 @@ package com.wjybxx.fastjgame.net.injvm;
 
 import com.wjybxx.fastjgame.net.pipeline.SessionHandlerContext;
 import com.wjybxx.fastjgame.net.pipeline.SessionOutboundHandlerAdapter;
-import com.wjybxx.fastjgame.net.pipeline.SessionPipeline;
 
 /**
  * JVM 内部传输实现

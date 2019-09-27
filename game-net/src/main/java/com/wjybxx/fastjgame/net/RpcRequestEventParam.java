@@ -27,7 +27,7 @@ import io.netty.channel.Channel;
  * github - https://github.com/hl845740757
  */
 @TransferObject
-public class RpcRequestEventParam extends MessageEventParam {
+public class RpcRequestEventParam extends OrderedMessageEventParam {
 
     /**
      * rpc请求编号，用于返回消息

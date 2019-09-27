@@ -72,23 +72,38 @@ public class SessionManager {
     }
 
     public void onRcvAckPing(AckPingPongEventParam eventParam) {
-
+        final Session session = sessionRepository.getSession(eventParam.localGuid(), eventParam.remoteGuid());
+        if (session != null) {
+            session.fireRead(eventParam);
+        }
     }
 
     public void onRevAckPong(AckPingPongEventParam eventParam) {
-
+        final Session session = sessionRepository.getSession(eventParam.localGuid(), eventParam.remoteGuid());
+        if (session != null) {
+            session.fireRead(eventParam);
+        }
     }
 
     public void onRcvRpcRequest(RpcRequestEventParam eventParam) {
-
+        final Session session = sessionRepository.getSession(eventParam.localGuid(), eventParam.remoteGuid());
+        if (session != null) {
+            session.fireRead(eventParam);
+        }
     }
 
     public void onRcvRpcResponse(RpcResponseEventParam eventParam) {
-
+        final Session session = sessionRepository.getSession(eventParam.localGuid(), eventParam.remoteGuid());
+        if (session != null) {
+            session.fireRead(eventParam);
+        }
     }
 
     public void onRcvOneWayMessage(OneWayMessageEventParam eventParam) {
-
+        final Session session = sessionRepository.getSession(eventParam.localGuid(), eventParam.remoteGuid());
+        if (session != null) {
+            session.fireRead(eventParam);
+        }
     }
 
     // ---------------------------------------------------------------
@@ -106,16 +121,16 @@ public class SessionManager {
     }
 
     public HostAndPort bindRange(NetContext netContextImp, String host, PortRange portRange, ChannelInitializer<SocketChannel> initializer) throws BindException {
-        
+
+        return null;
+    }
+
+    public JVMPort bind(NetContext netContext, ProtocolCodec codec, PortContext portContext) {
         return null;
     }
 
     public void connect(NetContext netContext, long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress, ChannelInitializerSupplier initializerSupplier, SessionLifecycleAware lifecycleAware, ProtocolDispatcher protocolDispatcher, Promise<Session> promise) {
 
-    }
-
-    public JVMPort bind(NetContext netContext, ProtocolCodec codec, PortContext portContext) {
-        return null;
     }
 
 

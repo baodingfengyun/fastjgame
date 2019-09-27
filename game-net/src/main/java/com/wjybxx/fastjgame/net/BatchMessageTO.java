@@ -28,9 +28,9 @@ import java.util.List;
 @TransferObject
 public class BatchMessageTO {
 
-    private long ack;
+    private final long ack;
 
-    private List<OrderedMessage> orderedMessageList;
+    private final List<OrderedMessage> orderedMessageList;
 
     public BatchMessageTO(long ack, List<OrderedMessage> orderedMessageList) {
         this.ack = ack;
