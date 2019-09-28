@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.world;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.annotation.EventLoopSingleton;
-import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
+import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -46,8 +46,8 @@ public class GameEventLoopMrg {
         return eventLoop;
     }
 
-    public NetEventLoopGroup getNetEventLoopGroup() {
-        return getEventLoop().netEventLoopGroup();
+    public NetEventLoop getNetEventLoop() {
+        return getEventLoop().netEventLoop();
     }
 
     void publish(@Nonnull GameEventLoop eventLoop) {

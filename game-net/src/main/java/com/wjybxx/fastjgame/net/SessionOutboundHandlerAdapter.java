@@ -43,5 +43,4 @@ public class SessionOutboundHandlerAdapter extends SessionHandlerAdapter impleme
     public void close(SessionHandlerContext ctx, Promise<?> promise) throws Exception {
         ctx.fireClose(promise);
     }
-
 }

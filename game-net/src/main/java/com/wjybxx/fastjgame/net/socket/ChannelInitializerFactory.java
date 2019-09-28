@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.misc;
+package com.wjybxx.fastjgame.net.socket;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;

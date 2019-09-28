@@ -63,7 +63,8 @@ public class MessageHashMappingStrategy implements MessageMappingStrategy {
 
     private static int getUniqueId(Class<?> rpcCallClass) {
         // 不能直接使用hashCode，直接使用hashCode，在不同的进程的值是不一样的
-        return rpcCallClass.getCanonicalName().hashCode();
+        // 为什么要simple Name? protoBuf的消息的名字就是java的类名，也方便前端计算该值 - 相同的hash算法即可
+        return rpcCallClass.getSimpleName().hashCode();
     }
 
     @Override

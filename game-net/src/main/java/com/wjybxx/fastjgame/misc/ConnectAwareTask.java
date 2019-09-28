@@ -36,6 +36,6 @@ public class ConnectAwareTask implements Runnable {
 
     @Override
     public void run() {
-        session.config().lifecycleAware().onSessionDisconnected(session);
+        session.config().lifecycleAware().onSessionConnected(session);
     }
 }

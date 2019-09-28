@@ -16,6 +16,9 @@
 
 package com.wjybxx.fastjgame.net;
 
+import com.wjybxx.fastjgame.timer.TimerSystem;
+import com.wjybxx.fastjgame.timer.TimerTask;
+
 /**
  * {@link io.netty.channel.ChannelHandler}
  *
@@ -34,9 +37,10 @@ public interface SessionHandler {
     void init(SessionHandlerContext ctx) throws Exception;
 
     /**
-     * 刷帧
+     * 刷帧。
      *
      * @param ctx handler所属的context
+     * @apiNote 不允许在tick的时候关闭session，如果需要关闭，请使用{@link TimerSystem#nextTick(TimerTask)}下一帧关闭。
      */
     void tick(SessionHandlerContext ctx) throws Exception;
 }

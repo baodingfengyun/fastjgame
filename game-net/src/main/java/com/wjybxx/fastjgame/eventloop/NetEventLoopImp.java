@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.eventloop;
 
+import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
@@ -35,7 +36,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ThreadFactory;
@@ -60,6 +60,7 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     private final NetManagerWrapper managerWrapper;
     private final NetEventLoopManager netEventLoopManager;
     private final NettyThreadManager nettyThreadManager;
+    private final HttpClientManager httpClientManager;
     private final HttpSessionManager httpSessionManager;
     private final SessionManager sessionManager;
     private final NetTimeManager netTimeManager;
@@ -75,14 +76,10 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
      */
     private final Long2ObjectMap<NetContextImp> registeredUserMap = new Long2ObjectOpenHashMap<>();
 
-    NetEventLoopImp(@Nonnull NetEventLoopGroup parent,
-                    @Nonnull ThreadFactory threadFactory,
-                    @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
-                    @Nonnull Injector parentInjector) {
-        super(parent, threadFactory, rejectedExecutionHandler);
+    public NetEventLoopImp(@Nonnull ThreadFactory threadFactory, @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
+        super(null, threadFactory, rejectedExecutionHandler);
 
-        // 使得新创建的injector可以直接使用全局单例
-        Injector injector = parentInjector.createChildInjector(new NetEventLoopModule());
+        Injector injector = Guice.createInjector(new NetEventLoopModule());
         managerWrapper = injector.getInstance(NetManagerWrapper.class);
         // 用于发布自己
         netEventLoopManager = managerWrapper.getNetEventLoopManager();
@@ -90,8 +87,9 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         sessionManager = managerWrapper.getSessionManager();
         httpSessionManager = managerWrapper.getHttpSessionManager();
 
-        // NetEventLoop私有的资源
+        // NetEventLoop管理的资源
         nettyThreadManager = managerWrapper.getNettyThreadManager();
+        httpClientManager = managerWrapper.getHttpClientManager();
 
         // 时间管理器和timer管理器
         netTimeManager = managerWrapper.getNetTimeManager();
@@ -100,12 +98,6 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         // 解决循环依赖
         sessionManager.setManagerWrapper(managerWrapper);
         httpSessionManager.setManagerWrapper(managerWrapper);
-    }
-
-    @Nullable
-    @Override
-    public NetEventLoopGroup parent() {
-        return (NetEventLoopGroup) super.parent();
     }
 
     @Nonnull
@@ -200,8 +192,9 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         CollectionUtils.removeIfAndThen(registeredUserMap.values(),
                 FunctionUtils::TRUE,
                 NetContextImp::afterRemoved);
-        // 关闭netty线程
+        // 关闭持有的线程资源
         ConcurrentUtils.safeExecute((Runnable) nettyThreadManager::shutdown);
+        ConcurrentUtils.safeExecute((Runnable) httpClientManager::shutdown);
     }
 
     @Nonnull

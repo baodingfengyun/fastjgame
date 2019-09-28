@@ -14,26 +14,19 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net;
+package com.wjybxx.fastjgame.net.socket;
+
+import com.wjybxx.fastjgame.misc.HostAndPort;
+import com.wjybxx.fastjgame.misc.NetPort;
 
 /**
- * {@link SessionHandler}的缺省适配器
- *
  * @author wjybxx
  * @version 1.0
- * date - 2019/9/26
+ * date - 2019/9/28
  * github - https://github.com/hl845740757
  */
-public class SessionHandlerAdapter implements SessionHandler {
+public interface SocketPort extends NetPort {
 
-    @Override
-    public void init(SessionHandlerContext ctx) throws Exception {
-        // NO OP
-    }
+    HostAndPort getHostAndPort();
 
-
-    @Override
-    public void tick(SessionHandlerContext ctx) {
-        // NO OP
-    }
 }

@@ -18,7 +18,6 @@ package com.wjybxx.fastjgame.manager;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
-import com.wjybxx.fastjgame.eventloop.NetEventLoopManager;
 
 /**
  * 封装{@link NetEventLoop}可能使用到的所有管理器，算是一个超大黑板。
@@ -99,4 +98,5 @@ public class NetManagerWrapper {
     public SessionManager getSessionManager() {
         return sessionManager;
     }
+
 }

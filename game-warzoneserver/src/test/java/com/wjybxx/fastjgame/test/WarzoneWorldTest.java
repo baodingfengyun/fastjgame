@@ -19,8 +19,8 @@ package com.wjybxx.fastjgame.test;
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.configwrapper.ArrayConfigWrapper;
-import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
-import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupImp;
+import com.wjybxx.fastjgame.eventloop.NetEventLoop;
+import com.wjybxx.fastjgame.eventloop.NetEventLoopImp;
 import com.wjybxx.fastjgame.module.WarzoneModule;
 import com.wjybxx.fastjgame.world.GameEventLoopGroupImp;
 
@@ -29,8 +29,9 @@ import java.io.File;
 /**
  * wazone启动参数：
  * warzoneId=1
- *
+ * <p>
  * 虚拟机参数，强烈建议打开断言，并以服务器模式运行 -ea -server
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/17 19:12
@@ -39,14 +40,14 @@ import java.io.File;
 public class WarzoneWorldTest {
 
     public static void main(String[] args) throws Exception {
-        String logDir=new File("").getAbsolutePath() + File.separator + "log";
+        String logDir = new File("").getAbsolutePath() + File.separator + "log";
         String logPath = logDir + File.separator + "warzone.log";
         System.setProperty("logPath", logPath);
 
 
-        NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET"), RejectedExecutionHandlers.abort());
+        NetEventLoop netEventLoopGroup = new NetEventLoopImp(new DefaultThreadFactory("NET"), RejectedExecutionHandlers.abort());
         GameEventLoopGroupImp.newBuilder()
-                .setNetEventLoopGroup(netEventLoopGroup)
+                .setNetEventLoop(netEventLoopGroup)
                 .addWorld(new WarzoneModule(), new ArrayConfigWrapper(args), 5)
                 .build();
     }

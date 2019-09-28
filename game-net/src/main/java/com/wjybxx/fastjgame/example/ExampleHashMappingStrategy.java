@@ -41,17 +41,22 @@ public class ExampleHashMappingStrategy implements MessageMappingStrategy {
         final Object2IntMap<Class<?>> result = new Object2IntOpenHashMap<>();
         Class<?>[] allClass = ExampleMessages.class.getDeclaredClasses();
         for (Class<?> messageClass : allClass) {
-            result.put(messageClass, messageClass.getCanonicalName().hashCode());
+            result.put(messageClass, getUniqueId(messageClass));
         }
         // rpc调用必须放里面
-        result.put(RpcCall.class, RpcCall.class.getCanonicalName().hashCode());
+        result.put(RpcCall.class, getUniqueId(RpcCall.class));
         // 测试协议文件
         Arrays.stream(p_test.class.getDeclaredClasses())
                 .filter(ExampleHashMappingStrategy::isSerializable)
                 .forEach(clazz -> {
-                    result.put(clazz, clazz.getCanonicalName().hashCode());
+                    result.put(clazz, getUniqueId(clazz));
                 });
         return result;
+    }
+
+    private int getUniqueId(Class<?> messageClass) {
+        // 为什么要simple Name? protoBuf的消息的名字就是java的类名
+        return messageClass.getSimpleName().hashCode();
     }
 
     private static boolean isSerializable(Class<?> clazz) {

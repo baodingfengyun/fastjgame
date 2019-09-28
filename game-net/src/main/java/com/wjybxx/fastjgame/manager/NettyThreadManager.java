@@ -20,6 +20,8 @@ import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -40,13 +42,15 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class NettyThreadManager {
 
+    private static final Logger logger = LoggerFactory.getLogger(NettyThreadManager.class);
+
     private final EventLoopGroup bossGroup;
     private final EventLoopGroup workerGroup;
 
     @Inject
     public NettyThreadManager(NetConfigManager netConfigManager) {
         bossGroup = new NioEventLoopGroup(1, new DefaultThreadFactory("ACCEPTOR_THREAD"));
-        workerGroup = new NioEventLoopGroup(netConfigManager.maxIOThreadNumPerEventLoop(), new DefaultThreadFactory("IO_THREAD"));
+        workerGroup = new NioEventLoopGroup(netConfigManager.nettyIOThreadNum(), new DefaultThreadFactory("IO_THREAD"));
     }
 
     /**
@@ -55,6 +59,8 @@ public class NettyThreadManager {
     public void shutdown() {
         bossGroup.shutdownGracefully();
         workerGroup.shutdownGracefully();
+        logger.info("NettyThreadManager shutdown success");
+
     }
 
     public EventLoopGroup getBossGroup() {

@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.net.injvm;
 
 import com.wjybxx.fastjgame.concurrent.Promise;
-import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.net.SessionHandlerContext;
 import com.wjybxx.fastjgame.net.SessionOutboundHandlerAdapter;
 
@@ -31,15 +30,10 @@ import com.wjybxx.fastjgame.net.SessionOutboundHandlerAdapter;
  */
 public class JVMTransferHandler extends SessionOutboundHandlerAdapter {
 
-    private Session remoteSession;
+    private final JVMSession remoteSession;
 
-    public JVMTransferHandler() {
-
-    }
-
-    @Override
-    public void init(SessionHandlerContext ctx) throws Exception {
-        remoteSession = ((JVMSessionImp) ctx.session()).getRemoteSession();
+    public JVMTransferHandler(JVMSession remoteSession) {
+        this.remoteSession = remoteSession;
     }
 
     @Override
@@ -50,9 +44,18 @@ public class JVMTransferHandler extends SessionOutboundHandlerAdapter {
 
     @Override
     public void close(SessionHandlerContext ctx, Promise<?> promise) throws Exception {
-        ((JVMSessionImp) ctx.session()).setRemoteSession(null);
-        promise.trySuccess(null);
-
-        ctx.fireClose(promise);
+        try {
+            // 删除session
+            ctx.managerWrapper().getSessionManager().removeSession(ctx.session());
+            // 标记为成功
+            promise.trySuccess(null);
+            // 执行关闭通知
+            ctx.session().pipeline().fireSessionInactive();
+        } finally {
+            // 关闭另一方session，判断条件不能少，否则死循环了
+            if (ctx.managerWrapper().getSessionManager().containsSession(remoteSession)) {
+                remoteSession.close();
+            }
+        }
     }
 }

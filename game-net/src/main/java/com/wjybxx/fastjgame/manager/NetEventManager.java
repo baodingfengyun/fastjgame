@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.manager;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.eventloop.NetEventLoopManager;
 import com.wjybxx.fastjgame.net.http.HttpRequestEvent;
 import com.wjybxx.fastjgame.net.socket.ConnectRequestEvent;
 import com.wjybxx.fastjgame.net.socket.ConnectResponseEvent;

@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.world;
 import com.google.inject.Injector;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
-import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
+import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.module.WorldGroupModule;
 import com.wjybxx.fastjgame.timer.DefaultTimerSystem;
 import com.wjybxx.fastjgame.timer.FixedDelayHandle;
@@ -47,7 +47,7 @@ public class GameEventLoopImp extends DisruptorEventLoop implements GameEventLoo
     /**
      * 游戏世界需要的网络模块
      */
-    private final NetEventLoopGroup netEventLoopGroup;
+    private final NetEventLoop netEventLoop;
 
     /**
      * {@link WorldGroupModule}管理的线程安全的控制器
@@ -67,12 +67,12 @@ public class GameEventLoopImp extends DisruptorEventLoop implements GameEventLoo
     GameEventLoopImp(@Nullable GameEventLoopGroup parent,
                      @Nonnull ThreadFactory threadFactory,
                      @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
-                     @Nonnull NetEventLoopGroup netEventLoopGroup,
+                     @Nonnull NetEventLoop netEventLoop,
                      @Nonnull Injector groupInjector,
                      @Nonnull WorldStartInfo worldStartInfo) {
 
         super(parent, threadFactory, rejectedExecutionHandler);
-        this.netEventLoopGroup = netEventLoopGroup;
+        this.netEventLoop = netEventLoop;
         this.groupInjector = groupInjector;
         this.worldStartInfo = worldStartInfo;
     }
@@ -144,8 +144,8 @@ public class GameEventLoopImp extends DisruptorEventLoop implements GameEventLoo
 
     @Nonnull
     @Override
-    public NetEventLoopGroup netEventLoopGroup() {
-        return netEventLoopGroup;
+    public NetEventLoop netEventLoop() {
+        return netEventLoop;
     }
 
 }

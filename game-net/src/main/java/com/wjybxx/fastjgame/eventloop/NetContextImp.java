@@ -20,13 +20,17 @@ import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
-import com.wjybxx.fastjgame.misc.*;
+import com.wjybxx.fastjgame.misc.HostAndPort;
+import com.wjybxx.fastjgame.misc.PortContext;
+import com.wjybxx.fastjgame.misc.PortRange;
+import com.wjybxx.fastjgame.misc.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.net.http.HttpRequestDispatcher;
 import com.wjybxx.fastjgame.net.http.HttpServerInitializer;
 import com.wjybxx.fastjgame.net.http.OkHttpCallback;
 import com.wjybxx.fastjgame.net.injvm.JVMPort;
 import com.wjybxx.fastjgame.net.injvm.JVMSessionConfig;
+import com.wjybxx.fastjgame.net.socket.ChannelInitializerSupplier;
 import com.wjybxx.fastjgame.net.socket.TCPClientChannelInitializer;
 import com.wjybxx.fastjgame.net.socket.TCPServerChannelInitializer;
 import com.wjybxx.fastjgame.net.ws.WsClientChannelInitializer;
@@ -60,11 +64,11 @@ class NetContextImp implements NetContext {
     private final long localGuid;
     private final RoleType localRole;
     private final EventLoop localEventLoop;
-    private final NetEventLoopImp netEventLoop;
+    private final NetEventLoop netEventLoop;
     private final NetManagerWrapper managerWrapper;
 
     NetContextImp(long localGuid, RoleType localRole, EventLoop localEventLoop,
-                  NetEventLoopImp netEventLoop, NetManagerWrapper managerWrapper) {
+                  NetEventLoop netEventLoop, NetManagerWrapper managerWrapper) {
         this.localGuid = localGuid;
         this.localRole = localRole;
         this.localEventLoop = localEventLoop;

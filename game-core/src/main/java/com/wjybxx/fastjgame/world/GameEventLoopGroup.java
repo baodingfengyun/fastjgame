@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.world;
 
 import com.wjybxx.fastjgame.concurrent.EventLoopGroup;
-import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
+import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 
 import javax.annotation.Nonnull;
 
@@ -41,6 +41,6 @@ public interface GameEventLoopGroup extends EventLoopGroup {
      * @return 游戏模块依赖的网络模块
      */
     @Nonnull
-    NetEventLoopGroup netEventLoopGroup();
+    NetEventLoop netEventLoop();
 
 }

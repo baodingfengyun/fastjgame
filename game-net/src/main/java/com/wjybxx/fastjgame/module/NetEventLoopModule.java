@@ -18,7 +18,6 @@ package com.wjybxx.fastjgame.module;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
-import com.wjybxx.fastjgame.eventloop.NetEventLoopManager;
 import com.wjybxx.fastjgame.manager.*;
 
 /**
@@ -34,6 +33,10 @@ public class NetEventLoopModule extends AbstractModule {
     @Override
     protected void configure() {
         binder().requireExplicitBindings();
+
+        binder().requireExplicitBindings();
+        bind(NetConfigManager.class).in(Singleton.class);
+        bind(HttpClientManager.class).in(Singleton.class);
 
         bind(NetEventLoopManager.class).in(Singleton.class);
         bind(NetEventManager.class).in(Singleton.class);

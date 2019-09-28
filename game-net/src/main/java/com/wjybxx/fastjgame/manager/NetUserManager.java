@@ -14,24 +14,17 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.misc;
-
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.socket.SocketChannel;
-
-import java.util.function.Supplier;
+package com.wjybxx.fastjgame.manager;
 
 /**
- * ChannelInitializer提供者，如果initializer是线程安全的，可以始终返回该对象，否则应该创建新的对象。
+ * 网络层用户管理器
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/1
+ * date - 2019/9/28
  * github - https://github.com/hl845740757
  */
-public interface ChannelInitializerSupplier extends Supplier<ChannelInitializer<SocketChannel>> {
+public class NetUserManager {
 
-    @Override
-    ChannelInitializer<SocketChannel> get();
 
 }

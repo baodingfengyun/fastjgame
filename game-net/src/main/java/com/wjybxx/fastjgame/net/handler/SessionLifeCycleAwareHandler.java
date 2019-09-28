@@ -16,8 +16,10 @@
 
 package com.wjybxx.fastjgame.net.handler;
 
+import com.wjybxx.fastjgame.misc.ConnectAwareTask;
+import com.wjybxx.fastjgame.misc.DisconnectAwareTask;
+import com.wjybxx.fastjgame.net.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.SessionHandlerContext;
-import com.wjybxx.fastjgame.net.SessionInbounHandlerAdapter;
 
 /**
  * 生命周期通知处理器
@@ -27,15 +29,15 @@ import com.wjybxx.fastjgame.net.SessionInbounHandlerAdapter;
  * date - 2019/9/28
  * github - https://github.com/hl845740757
  */
-public class SessionLifeCycleAwareHandler extends SessionInbounHandlerAdapter {
+public class SessionLifeCycleAwareHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void onSessionActive(SessionHandlerContext ctx) throws Exception {
-        ctx.session().config().lifecycleAware().onSessionConnected(ctx.session());
+        ctx.localEventLoop().execute(new ConnectAwareTask(ctx.session()));
     }
 
     @Override
     public void onSessionInactive(SessionHandlerContext ctx) throws Exception {
-        ctx.session().config().lifecycleAware().onSessionDisconnected(ctx.session());
+        ctx.localEventLoop().execute(new DisconnectAwareTask(ctx.session()));
     }
 }

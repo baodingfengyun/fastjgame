@@ -45,7 +45,7 @@ public class NetConfigManager {
      */
     private final ConfigWrapper configWrapper;
 
-    private final int maxIOThreadNumPerEventLoop;
+    private final int nettyIOThreadNum;
     private final int maxFrameLength;
     private final int sndBufferAsServer;
     private final int revBufferAsServer;
@@ -73,7 +73,7 @@ public class NetConfigManager {
     public NetConfigManager() throws IOException {
         configWrapper = ConfigLoader.loadConfig(NetConfigManager.class.getClassLoader(), NET_CONFIG_NAME);
 
-        maxIOThreadNumPerEventLoop = configWrapper.getAsInt("maxIOThreadNumPerEventLoop");
+        nettyIOThreadNum = configWrapper.getAsInt("nettyIOThreadNum");
         maxFrameLength = configWrapper.getAsInt("maxFrameLength");
         sndBufferAsServer = configWrapper.getAsInt("sndBufferAsServer");
         revBufferAsServer = configWrapper.getAsInt("revBufferAsServer");
@@ -108,8 +108,8 @@ public class NetConfigManager {
     /**
      * netty IO 线程数量
      */
-    public int maxIOThreadNumPerEventLoop() {
-        return maxIOThreadNumPerEventLoop;
+    public int nettyIOThreadNum() {
+        return nettyIOThreadNum;
     }
 
     /**

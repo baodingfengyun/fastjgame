@@ -15,6 +15,7 @@
  */
 package com.wjybxx.fastjgame.misc;
 
+import com.wjybxx.fastjgame.net.socket.SocketPort;
 import io.netty.channel.Channel;
 
 /**
@@ -25,7 +26,7 @@ import io.netty.channel.Channel;
  * date - 2019/8/5
  * github - https://github.com/hl845740757
  */
-public class BindResult {
+public class DefaultSocketPort implements SocketPort {
 
     /**
      * 绑定到的channel
@@ -36,16 +37,18 @@ public class BindResult {
      */
     private final HostAndPort hostAndPort;
 
-    public BindResult(Channel channel, HostAndPort hostAndPort) {
+    public DefaultSocketPort(Channel channel, HostAndPort hostAndPort) {
         this.channel = channel;
         this.hostAndPort = hostAndPort;
     }
 
-    public Channel getChannel() {
-        return channel;
-    }
-
+    @Override
     public HostAndPort getHostAndPort() {
         return hostAndPort;
+    }
+
+    @Override
+    public void close() {
+        channel.close();
     }
 }

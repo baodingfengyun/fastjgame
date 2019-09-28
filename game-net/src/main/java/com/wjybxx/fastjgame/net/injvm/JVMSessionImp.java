@@ -46,10 +46,6 @@ public class JVMSessionImp extends AbstractSession implements JVMSession {
         this.config = config;
     }
 
-    public Session getRemoteSession() {
-        return remoteSession;
-    }
-
     public void setRemoteSession(Session remoteSession) {
         this.remoteSession = remoteSession;
     }

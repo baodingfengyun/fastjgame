@@ -17,10 +17,8 @@
 package com.wjybxx.fastjgame.net.injvm;
 
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
-import com.wjybxx.fastjgame.misc.SessionLifecycleAware;
+import com.wjybxx.fastjgame.misc.NetPort;
 import com.wjybxx.fastjgame.net.NetContext;
-import com.wjybxx.fastjgame.net.ProtocolCodec;
-import com.wjybxx.fastjgame.net.ProtocolDispatcher;
 import com.wjybxx.fastjgame.net.Session;
 
 import javax.annotation.Nonnull;
@@ -28,7 +26,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * 用于建立JVM内部session的“端口”，它并非一个真正的端口。
- * 注意：每次调用{@link NetContext#bindInJVM(ProtocolCodec, SessionLifecycleAware, ProtocolDispatcher)}都会产生一个新的jvmPort。
+ * 注意：每次调用{@link NetContext#bindInJVM(JVMSessionConfig)}都会产生一个新的jvmPort。
  *
  * @author wjybxx
  * @version 1.0
@@ -36,7 +34,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public interface JVMPort {
+public interface JVMPort extends NetPort {
 
     /**
      * 连接到该JVMPort上。
@@ -48,10 +46,4 @@ public interface JVMPort {
      */
     ListenableFuture<Session> connect(@Nonnull NetContext netContext, @Nonnull JVMSessionConfig config);
 
-    /**
-     * 关闭该端口，不可继续建立连接
-     *
-     * @return future
-     */
-    ListenableFuture<?> close();
 }

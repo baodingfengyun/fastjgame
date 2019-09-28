@@ -19,8 +19,8 @@ import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
-import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
-import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupImp;
+import com.wjybxx.fastjgame.eventloop.NetEventLoop;
+import com.wjybxx.fastjgame.eventloop.NetEventLoopImp;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.SessionDisconnectAware;
 import com.wjybxx.fastjgame.net.*;
@@ -49,7 +49,7 @@ import java.util.concurrent.locks.LockSupport;
  */
 public class EchoClientLoop extends SingleThreadEventLoop {
 
-    private final NetEventLoopGroup netGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET-EVENT-LOOP"),
+    private final NetEventLoop netGroup = new NetEventLoopImp(new DefaultThreadFactory("NET-EVENT-LOOP"),
             RejectedExecutionHandlers.log());
 
     private NetContext netContext;

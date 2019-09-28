@@ -14,26 +14,22 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net;
+package com.wjybxx.fastjgame.misc;
+
+import java.io.Closeable;
 
 /**
- * {@link SessionHandler}的缺省适配器
+ * 网络端口抽象，允许关闭
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/9/26
+ * date - 2019/9/28
  * github - https://github.com/hl845740757
  */
-public class SessionHandlerAdapter implements SessionHandler {
+public interface NetPort extends Closeable {
 
-    @Override
-    public void init(SessionHandlerContext ctx) throws Exception {
-        // NO OP
-    }
-
-
-    @Override
-    public void tick(SessionHandlerContext ctx) {
-        // NO OP
-    }
+    /**
+     * 关闭端口资源
+     */
+    void close();
 }

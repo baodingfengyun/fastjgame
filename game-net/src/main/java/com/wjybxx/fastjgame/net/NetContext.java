@@ -26,8 +26,8 @@ import com.wjybxx.fastjgame.net.http.HttpRequestDispatcher;
 import com.wjybxx.fastjgame.net.http.HttpSession;
 import com.wjybxx.fastjgame.net.http.OkHttpCallback;
 import com.wjybxx.fastjgame.net.injvm.JVMPort;
+import com.wjybxx.fastjgame.net.injvm.JVMSession;
 import com.wjybxx.fastjgame.net.injvm.JVMSessionConfig;
-import com.wjybxx.fastjgame.net.injvm.JVMSessionImp;
 import okhttp3.Response;
 
 import javax.annotation.Nonnull;
@@ -183,7 +183,7 @@ public interface NetContext {
 
     /**
      * 绑定一个JVM端口，用于其它线程建立会话。
-     * 其性能与socket的不在一个数量级，如果你的session的双方在同一个进程下，那么强烈建议使用{@link JVMSessionImp}。
+     * 其性能与socket的不在一个数量级，如果你的session的双方在同一个进程下，那么强烈建议使用{@link JVMSession}。
      * <pre>
      * 1. 它没有网络传输开销，纯粹的内存数据转移。
      * 2. 没有复杂的网络情况要处理。
@@ -196,7 +196,7 @@ public interface NetContext {
 
     /**
      * 与JVM内的另一个线程建立session。
-     * 注意：由于在同一个JVM内，因此使用的是对方的{@link ProtocolCodec}。
+     * 注意：{@link JVMPort}必须是同一个{@link NetEventLoop}创建的。
      *
      * @param jvmPort 远程“端口”信息
      * @param config  配置信息

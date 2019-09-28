@@ -20,12 +20,19 @@ import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.concurrent.Promise;
-import com.wjybxx.fastjgame.misc.*;
-import com.wjybxx.fastjgame.net.*;
+import com.wjybxx.fastjgame.misc.HostAndPort;
+import com.wjybxx.fastjgame.misc.PortRange;
+import com.wjybxx.fastjgame.misc.SessionLifecycleAware;
+import com.wjybxx.fastjgame.misc.SessionRepository;
+import com.wjybxx.fastjgame.net.NetContext;
+import com.wjybxx.fastjgame.net.ProtocolDispatcher;
+import com.wjybxx.fastjgame.net.RoleType;
+import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.net.handler.OneWaySupportHandler;
 import com.wjybxx.fastjgame.net.handler.RpcSupportHandler;
 import com.wjybxx.fastjgame.net.handler.SessionLifeCycleAwareHandler;
 import com.wjybxx.fastjgame.net.injvm.*;
+import com.wjybxx.fastjgame.net.socket.ChannelInitializerSupplier;
 import com.wjybxx.fastjgame.net.socket.ConnectRequestEvent;
 import com.wjybxx.fastjgame.net.socket.ConnectResponseEvent;
 import com.wjybxx.fastjgame.net.socket.ordered.OrderedMessageEvent;
@@ -79,27 +86,30 @@ public class SessionManager {
 
     public void onRcvMessage(OrderedMessageEvent eventParam) {
         final Session session = sessionRepository.getSession(eventParam.localGuid(), eventParam.remoteGuid());
-        if (session != null) {
+        if (session != null && session.isActive()) {
+            // session 存活的情况下才读取消息
             session.fireRead(eventParam);
         }
     }
 
-    // ---------------------------------------------------------------
-
-    public void onUserEventLoopTerminal(EventLoop userEventLoop) {
-        sessionRepository.removeUserSession(userEventLoop);
+    public Session removeSession(Session session) {
+        return sessionRepository.removeSession(session.localGuid(), session.remoteGuid());
     }
 
-    public void removeSession(Session session) {
-        sessionRepository.removeSession(session.localGuid(), session.remoteGuid());
+    public boolean containsSession(Session session) {
+        return sessionRepository.getSession(session.localGuid(), session.remoteGuid()) != null;
     }
 
     public void removeUserSession(long userGuid) {
         sessionRepository.removeUserSession(userGuid);
     }
 
-    public HostAndPort bindRange(NetContext netContextImp, String host, PortRange portRange, ChannelInitializer<SocketChannel> initializer) throws BindException {
+    public void onUserEventLoopTerminal(EventLoop userEventLoop) {
+        sessionRepository.removeUserSession(userEventLoop);
+    }
+    // ---------------------------------------------------------------
 
+    public HostAndPort bindRange(NetContext netContextImp, String host, PortRange portRange, ChannelInitializer<SocketChannel> initializer) throws BindException {
         return null;
     }
 
@@ -141,8 +151,8 @@ public class SessionManager {
         acceptorSession.setRemoteSession(connectorSession);
 
         // 初始化管道
-        initJVMSessionPipeline(connectorSession);
-        initJVMSessionPipeline(acceptorSession);
+        initJVMSessionPipeline(connectorSession, acceptorSession);
+        initJVMSessionPipeline(acceptorSession, connectorSession);
 
         if (promise.trySuccess(connectorSession)) {
             // 保存
@@ -156,18 +166,16 @@ public class SessionManager {
         // else 丢弃session
     }
 
-    private static void initJVMSessionPipeline(JVMSession session) {
-        SessionPipeline pipeline = session.pipeline();
+    private static void initJVMSessionPipeline(JVMSession session, JVMSession remoteSession) {
         // 入站 从上到下
         // 出站 从下往上
-        pipeline.addLast(new JVMTransferHandler());
-        pipeline.addLast(new JVMCodecHandler());
-
-        pipeline.addLast(new OneWaySupportHandler());
-        pipeline.addLast(new RpcSupportHandler());
-        pipeline.addLast(new SessionLifeCycleAwareHandler());
-
-        pipeline.fireInit();
+        session.pipeline()
+                .addLast(new JVMTransferHandler(remoteSession))
+                .addLast(new JVMCodecHandler())
+                .addLast(new OneWaySupportHandler())
+                .addLast(new RpcSupportHandler())
+                .addLast(new SessionLifeCycleAwareHandler())
+                .fireInit();
     }
 
     private static class JVMPortImp implements JVMPort {
@@ -199,14 +207,13 @@ public class SessionManager {
             return localContext.localGuid();
         }
 
-        public RoleType localRole() {
-            return localContext.localRole();
-        }
-
         @Override
         public ListenableFuture<Session> connect(@Nonnull NetContext netContext, @Nonnull JVMSessionConfig config) {
+            if (netContext.netEventLoop() != localContext.netEventLoop()) {
+                // 使用JVMPort通信，用户必须是同一个NetEventLoop的用户
+                return netContext.netEventLoop().newFailedFuture(new IllegalArgumentException("Incompatible user"));
+            }
             final Promise<Session> promise = localContext.netEventLoop().newPromise();
-            // 注意：这里是提交到jvmPort所在的NetEventLoop, 是实现线程安全，消除同步的关键
             localContext.netEventLoop().execute(() -> {
                 sessionManager.connectInJVM(netContext, this, config, promise);
             });
@@ -214,9 +221,8 @@ public class SessionManager {
         }
 
         @Override
-        public ListenableFuture<?> close() {
+        public void close() {
             active = false;
-            return localContext.netEventLoop().newSucceededFuture(null);
         }
     }
 }

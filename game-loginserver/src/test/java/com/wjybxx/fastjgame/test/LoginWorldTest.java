@@ -19,8 +19,8 @@ package com.wjybxx.fastjgame.test;
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.configwrapper.ArrayConfigWrapper;
-import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
-import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupImp;
+import com.wjybxx.fastjgame.eventloop.NetEventLoop;
+import com.wjybxx.fastjgame.eventloop.NetEventLoopImp;
 import com.wjybxx.fastjgame.module.LoginModule;
 import com.wjybxx.fastjgame.world.GameEventLoopGroupImp;
 
@@ -44,10 +44,10 @@ public class LoginWorldTest {
         String logPath = logDir + File.separator + "login.log";
         System.setProperty("logPath", logPath);
 
-        NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET"), RejectedExecutionHandlers.abort());
+        NetEventLoop netEventLoopGroup = new NetEventLoopImp(new DefaultThreadFactory("NET"), RejectedExecutionHandlers.abort());
 
         GameEventLoopGroupImp.newBuilder()
-                .setNetEventLoopGroup(netEventLoopGroup)
+                .setNetEventLoop(netEventLoopGroup)
                 .addWorld(new LoginModule(), new ArrayConfigWrapper(args), 5)
                 .build();
     }

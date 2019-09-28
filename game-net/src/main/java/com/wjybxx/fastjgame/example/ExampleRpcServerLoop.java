@@ -22,8 +22,6 @@ import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorWaitStrategyType;
-import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
-import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupImp;
 import com.wjybxx.fastjgame.misc.DefaultProtocolDispatcher;
 import com.wjybxx.fastjgame.misc.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.NetContext;
@@ -49,9 +47,6 @@ import java.util.concurrent.ThreadFactory;
  */
 class ExampleRpcServerLoop extends DisruptorEventLoop {
 
-    private final NetEventLoopGroup netGroup = new NetEventLoopGroupImp(1, new DefaultThreadFactory("NET-EVENT-LOOP"),
-            RejectedExecutionHandlers.discard());
-
     private final DefaultProtocolDispatcher protocolDispatcher = new DefaultProtocolDispatcher();
 
     private NetContext netContext;
@@ -71,7 +66,7 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
     protected void init() throws Exception {
         super.init();
         // 创建网络环境
-        netContext = netGroup.createContext(ExampleConstants.serverGuid, ExampleConstants.serverRole, this).get();
+        netContext = ExampleConstants.netEventLoop.createContext(ExampleConstants.serverGuid, ExampleConstants.serverRole, this).get();
         // 注册rpc服务
         ExampleRpcServiceRpcRegister.register(protocolDispatcher, new ExampleRpcService());
 
@@ -114,7 +109,7 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
         if (null != netContext) {
             netContext.deregister();
         }
-        netGroup.shutdown();
+        ExampleConstants.netEventLoop.shutdown();
     }
 
     private class ClientLifeAware implements SessionLifecycleAware {

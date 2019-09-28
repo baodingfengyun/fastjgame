@@ -18,8 +18,7 @@ package com.wjybxx.fastjgame.manager;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.eventloop.NetEventLoopManager;
-import com.wjybxx.fastjgame.misc.BindResult;
+import com.wjybxx.fastjgame.misc.DefaultSocketPort;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.PortRange;
 import com.wjybxx.fastjgame.net.NetContext;
@@ -87,13 +86,13 @@ public class HttpSessionManager {
                                  @Nonnull ChannelInitializer<SocketChannel> initializer) throws BindException {
         assert netEventLoopManager.inEventLoop();
         // 绑定端口
-        BindResult bindResult = acceptorManager.bindRange(host, portRange, initializer);
+        DefaultSocketPort defaultSocketPort = acceptorManager.bindRange(host, portRange, initializer);
         // 保存用户信息
         final UserInfo userInfo = userInfoMap.computeIfAbsent(netContext.localGuid(), localGuid -> new UserInfo(netContext));
         // 保存绑定的端口
-        userInfo.bindResultList.add(bindResult);
+        userInfo.defaultSocketPortList.add(defaultSocketPort);
 
-        return bindResult.getHostAndPort();
+        return defaultSocketPort.getHostAndPort();
     }
 
     /**
@@ -125,7 +124,7 @@ public class HttpSessionManager {
         // 如果 用户 持有了httpSession的引用，长时间没有完成响应的话，这里关闭可能导致一些错误
         CollectionUtils.removeIfAndThen(userInfo.sessionWrapperMap, FunctionUtils::TRUE, this::afterRemoved);
         // 绑定的端口需要释放
-        userInfo.bindResultList.forEach(bindResult -> NetUtils.closeQuietly(bindResult.getChannel()));
+        userInfo.defaultSocketPortList.forEach(NetUtils::closeQuietly);
     }
 
     /**
@@ -203,7 +202,7 @@ public class HttpSessionManager {
         /**
          * 绑定的端口信息等，关联的channel需要再用户取消注册后关闭
          */
-        private final List<BindResult> bindResultList = new ArrayList<>(4);
+        private final List<DefaultSocketPort> defaultSocketPortList = new ArrayList<>(4);
         /**
          * 该用户关联的所有的会话
          */
