@@ -17,8 +17,6 @@
 package com.wjybxx.fastjgame.net.injvm;
 
 import com.wjybxx.fastjgame.net.*;
-import com.wjybxx.fastjgame.net.SessionDuplexHandlerAdapter;
-import com.wjybxx.fastjgame.net.SessionHandlerContext;
 
 /**
  * 对于在JVM内传输的数据，进行保护性拷贝。
@@ -41,16 +39,16 @@ public class JVMCodecHandler extends SessionDuplexHandlerAdapter {
         if (msg instanceof RpcRequestMessage) {
             // rpc请求
             RpcRequestMessage rpcRequestMessage = (RpcRequestMessage) msg;
-            rpcRequestMessage.setRequest(protocolCodec.cloneRpcRequest(rpcRequestMessage.getRequest()));
+            rpcRequestMessage.setRequest(protocolCodec.cloneObject(rpcRequestMessage.getRequest()));
         } else if (msg instanceof OneWayMessage) {
             // 单向消息
             OneWayMessage oneWayMessage = (OneWayMessage) msg;
-            oneWayMessage.setMessage(protocolCodec.cloneMessage(oneWayMessage));
+            oneWayMessage.setMessage(protocolCodec.cloneObject(oneWayMessage));
         } else if (msg instanceof RpcResponseMessage) {
             // rpc响应
             RpcResponseMessage responseMessage = (RpcResponseMessage) msg;
             final RpcResponse rpcResponse = responseMessage.getRpcResponse();
-            final RpcResponse copiedRpcResponse = new RpcResponse(rpcResponse.getResultCode(), protocolCodec.cloneRpcResponse(rpcResponse.getBody()));
+            final RpcResponse copiedRpcResponse = new RpcResponse(rpcResponse.getResultCode(), protocolCodec.cloneObject(rpcResponse.getBody()));
             responseMessage.setRpcResponse(copiedRpcResponse);
         }
         // 传递给下一个handler

@@ -61,10 +61,10 @@ public class ProtocolCodecPerformanceTesting {
 
     private static void equalsTest(ProtocolCodec codec, ByteBufAllocator byteBufAllocator, ExampleMessages.FullMessage fullMessage) throws IOException {
         final String name = codec.getClass().getSimpleName();
-        ByteBuf byteBuf = codec.encodeMessage(byteBufAllocator, fullMessage);
+        ByteBuf byteBuf = codec.writeObject(byteBufAllocator, fullMessage);
         System.out.println(name + " encode result bytes = " + byteBuf.readableBytes());
 
-        Object decodeMessage = codec.decodeMessage(byteBuf);
+        Object decodeMessage = codec.readObject(byteBuf);
         System.out.println(name + " codec equals result = " + fullMessage.equals(decodeMessage));
         // 总是忘记release
         byteBuf.release();
@@ -74,8 +74,8 @@ public class ProtocolCodecPerformanceTesting {
         final String name = codec.getClass().getSimpleName();
         long start = System.currentTimeMillis();
         for (int index = 0; index < loopTimes; index++) {
-            ByteBuf byteBuf = codec.encodeMessage(byteBufAllocator, fullMessage);
-            Object decodeMessage = codec.decodeMessage(byteBuf);
+            ByteBuf byteBuf = codec.writeObject(byteBufAllocator, fullMessage);
+            Object decodeMessage = codec.readObject(byteBuf);
             // 由于没真正发送，显式的进行释放
             byteBuf.release();
         }

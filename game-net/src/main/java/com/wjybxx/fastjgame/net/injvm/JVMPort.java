@@ -18,7 +18,10 @@ package com.wjybxx.fastjgame.net.injvm;
 
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.misc.SessionLifecycleAware;
-import com.wjybxx.fastjgame.net.*;
+import com.wjybxx.fastjgame.net.NetContext;
+import com.wjybxx.fastjgame.net.ProtocolCodec;
+import com.wjybxx.fastjgame.net.ProtocolDispatcher;
+import com.wjybxx.fastjgame.net.Session;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;

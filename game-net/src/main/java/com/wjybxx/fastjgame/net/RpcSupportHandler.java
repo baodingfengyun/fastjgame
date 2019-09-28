@@ -48,7 +48,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
      * 当前会话上的rpc请求
      * (提供顺序保证，先发起的请求先超时)
      */
-    private Long2ObjectMap<RpcTimeoutInfo> rpcPromiseInfoMap = new Long2ObjectLinkedOpenHashMap<>();
+    private Long2ObjectMap<RpcTimeoutInfo> rpcTimeoutInfoMap = new Long2ObjectLinkedOpenHashMap<>();
 
     private final ProtocolDispatcher protocolDispatcher;
 
@@ -58,11 +58,11 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void tick(SessionHandlerContext ctx) {
-        if (rpcPromiseInfoMap.size() == 0) {
+        if (rpcTimeoutInfoMap.size() == 0) {
             return;
         }
         long systemMillTime = ctx.managerWrapper().getNetTimeManager().getSystemMillTime();
-        ObjectIterator<RpcTimeoutInfo> iterator = rpcPromiseInfoMap.values().iterator();
+        ObjectIterator<RpcTimeoutInfo> iterator = rpcTimeoutInfoMap.values().iterator();
         while (iterator.hasNext()) {
             RpcTimeoutInfo rpcTimeoutInfo = iterator.next();
             if (systemMillTime >= rpcTimeoutInfo.deadline) {
@@ -99,7 +99,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             long deadline = ctx.managerWrapper().getNetTimeManager().getSystemMillTime() + ctx.session().config().getRpcCallbackTimeoutMs();
             RpcTimeoutInfo rpcTimeoutInfo = RpcTimeoutInfo.newInstance(writeTask.getRpcCallback(), deadline);
             long requestGuid = ++requestGuidSequencer;
-            rpcPromiseInfoMap.put(requestGuid, rpcTimeoutInfo);
+            rpcTimeoutInfoMap.put(requestGuid, rpcTimeoutInfo);
 
             // 执行发送
             ctx.fireWrite(new RpcRequestMessage(requestGuid, false, writeTask.getRequest()));
@@ -110,7 +110,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             // 保存rpc请求上下文
             RpcTimeoutInfo rpcTimeoutInfo = RpcTimeoutInfo.newInstance(writeTask.getRpcPromise(), writeTask.getRpcPromise().deadline());
             long requestGuid = ++requestGuidSequencer;
-            rpcPromiseInfoMap.put(requestGuid, rpcTimeoutInfo);
+            rpcTimeoutInfoMap.put(requestGuid, rpcTimeoutInfo);
 
             // 执行发送 - 并清空缓冲区
             ctx.fireWriteAndFlush(new RpcRequestMessage(requestGuid, true, writeTask.getRequest()));
@@ -143,7 +143,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
         } else if (msg instanceof RpcResponseMessage) {
             // 读取到一个Rpc响应消息，提交给应用层
             RpcResponseMessage responseMessage = (RpcResponseMessage) msg;
-            final RpcTimeoutInfo rpcTimeoutInfo = rpcPromiseInfoMap.remove(responseMessage.getRequestGuid());
+            final RpcTimeoutInfo rpcTimeoutInfo = rpcTimeoutInfoMap.remove(responseMessage.getRequestGuid());
             if (null != rpcTimeoutInfo) {
                 commitRpcResponse(ctx.session(), rpcTimeoutInfo, responseMessage.getRpcResponse());
             }
@@ -163,21 +163,21 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
     }
 
     private void cancelAllRpcRequest(SessionHandlerContext ctx) {
-        if (rpcPromiseInfoMap.size() == 0) {
+        if (rpcTimeoutInfoMap.size() == 0) {
             return;
         }
         // 立即通知所有rpcPromise - 因为用户可能阻塞在上面。
-        CollectionUtils.removeIfAndThen(rpcPromiseInfoMap.values(),
+        CollectionUtils.removeIfAndThen(rpcTimeoutInfoMap.values(),
                 rpcTimeoutInfo -> rpcTimeoutInfo.rpcPromise != null,
                 rpcTimeoutInfo -> rpcTimeoutInfo.rpcPromise.trySuccess(RpcResponse.SESSION_CLOSED));
         // 减少不必要的提交
-        if (rpcPromiseInfoMap.size() == 0) {
+        if (rpcTimeoutInfoMap.size() == 0) {
             return;
         }
         // 异步rpc回调，需要提交到用户线程才能执行。
         // 这里批量提交的影响较小，因此选择批量提交
         ConcurrentUtils.tryCommit(ctx.localEventLoop(), () -> {
-            for (RpcTimeoutInfo rpcTimeoutInfo : rpcPromiseInfoMap.values()) {
+            for (RpcTimeoutInfo rpcTimeoutInfo : rpcTimeoutInfoMap.values()) {
                 ConcurrentUtils.safeExecute((Runnable) () -> rpcTimeoutInfo.rpcCallback.onComplete(RpcResponse.SESSION_CLOSED));
             }
         });

@@ -26,7 +26,7 @@ import io.netty.channel.Channel;
  * date - 2019/5/7 13:08
  * github - https://github.com/hl845740757
  */
-public class ConnectResponseEvent implements NetEvent {
+public class ConnectResponseEvent implements SocketEvent {
 
     /**
      * 发起请求的channel

@@ -16,11 +16,13 @@
 
 package com.wjybxx.fastjgame.net;
 
+import com.wjybxx.fastjgame.net.socket.NetMessage;
+import com.wjybxx.fastjgame.net.socket.NetMessageType;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * ack心跳包，网络底层使用的。
- * 除了一般概念下心跳包的保活作用以外，还包括ack捎带确认。
+ * 心跳包。
  *
  * @author wjybxx
  * @version 1.0
@@ -28,12 +30,16 @@ import javax.annotation.concurrent.NotThreadSafe;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class AckPingPongMessage {
+public class PingPongMessage implements NetMessage {
 
-    public static final AckPingPongMessage INSTANCE = new AckPingPongMessage();
+    public static final PingPongMessage INSTANCE = new PingPongMessage();
 
-    private AckPingPongMessage() {
+    private PingPongMessage() {
         super();
     }
 
+    @Override
+    public NetMessageType type() {
+        return NetMessageType.PING_PONG;
+    }
 }

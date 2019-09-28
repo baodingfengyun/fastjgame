@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.net.socket;
 
 import com.wjybxx.fastjgame.net.RoleType;
-import com.wjybxx.fastjgame.net.socket.TransferObject;
 
 /**
  * 客户端发起连接请求的传输对象.
@@ -27,7 +26,6 @@ import com.wjybxx.fastjgame.net.socket.TransferObject;
  * date - 2019/4/27 11:54
  * github - https://github.com/hl845740757
  */
-@TransferObject
 public class ConnectRequest {
 
     /**

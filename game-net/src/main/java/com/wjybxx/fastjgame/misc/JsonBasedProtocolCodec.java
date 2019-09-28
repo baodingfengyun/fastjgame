@@ -21,7 +21,7 @@ import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import io.netty.buffer.*;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,36 +48,7 @@ public class JsonBasedProtocolCodec implements ProtocolCodec {
     }
 
     @Override
-    public ByteBuf encodeRpcRequest(ByteBufAllocator bufAllocator, @Nonnull Object request) throws IOException {
-        return encode(bufAllocator, request);
-    }
-
-    @Override
-    public Object decodeRpcRequest(ByteBuf data) throws IOException {
-        return decode(data);
-    }
-
-    @Override
-    public ByteBuf encodeRpcResponse(ByteBufAllocator bufAllocator, @Nonnull Object body) throws IOException {
-        return encode(bufAllocator, body);
-    }
-
-    @Override
-    public Object decodeRpcResponse(ByteBuf data) throws IOException {
-        return decode(data);
-    }
-
-    @Override
-    public ByteBuf encodeMessage(ByteBufAllocator bufAllocator, Object message) throws IOException {
-        return encode(bufAllocator, message);
-    }
-
-    @Override
-    public Object decodeMessage(ByteBuf data) throws IOException {
-        return decode(data);
-    }
-
-    private ByteBuf encode(ByteBufAllocator bufAllocator, Object obj) throws IOException {
+    public ByteBuf writeObject(ByteBufAllocator bufAllocator, Object obj) throws IOException {
         ByteBuf cacheBuffer = Unpooled.wrappedBuffer(LOCAL_BUFFER.get());
         try {
             // wrap会认为bytes中的数据都是可读的，我们需要清空这些标记。
@@ -98,28 +69,18 @@ public class JsonBasedProtocolCodec implements ProtocolCodec {
         }
     }
 
-    private Object decode(ByteBuf data) throws IOException {
+    @Override
+    public Object readObject(ByteBuf data) throws IOException {
         final Class<?> messageClazz = messageMapper.getMessageClazz(data.readInt());
         final ByteBufInputStream inputStream = new ByteBufInputStream(data);
         return JsonUtils.getMapper().readValue((InputStream) inputStream, messageClazz);
     }
 
     @Override
-    public Object cloneRpcRequest(@Nonnull Object request) throws IOException {
-        return cloneObject(request);
-    }
-
-    @Override
-    public Object cloneRpcResponse(@Nonnull Object body) throws IOException {
-        return cloneObject(body);
-    }
-
-    @Override
-    public Object cloneMessage(@Nonnull Object message) throws IOException {
-        return cloneObject(message);
-    }
-
-    private Object cloneObject(@Nonnull Object obj) throws IOException {
+    public Object cloneObject(@Nullable Object obj) throws IOException {
+        if (null == obj) {
+            return null;
+        }
         ByteBuf cacheBuffer = Unpooled.wrappedBuffer(LOCAL_BUFFER.get());
         try {
             // wrap会认为bytes中的数据都是可读的，我们需要清空这些标记。

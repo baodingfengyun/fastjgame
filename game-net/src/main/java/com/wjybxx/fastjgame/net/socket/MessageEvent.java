@@ -16,48 +16,40 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.net.OrderedMessage;
 import io.netty.channel.Channel;
 
 /**
- * 消息事件参数。
- * 它对于{@link OrderedMessage}，对方发送一个{@link OrderedMessage}，则产生一个{@link OrderedMessageEvent}事件。
+ * 逻辑消息包事件
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/5/9 9:09
+ * date - 2019/9/28
  * github - https://github.com/hl845740757
  */
-@TransferObject
-public abstract class OrderedMessageEvent implements NetEvent {
+public final class MessageEvent implements SocketEvent {
 
     /**
      * 该事件对应的channel
      */
-    private Channel channel;
+    private final Channel channel;
     /**
      * 该事件关联的本地角色guid
      */
-    private long localGuid;
+    private final long localGuid;
     /**
      * 该事件关联的远程guid
      */
-    private long remoteGuid;
+    private final long remoteGuid;
     /**
-     * 捎带确认的ack
+     * 被包装的消息
      */
-    private long ack;
-    /**
-     * 当前包id
-     */
-    private long sequence;
+    private final NetMessage wrappedMessage;
 
-    public OrderedMessageEvent(Channel channel, long localGuid, long remoteGuid, long ack, long sequence) {
+    public MessageEvent(Channel channel, long localGuid, long remoteGuid, NetMessage wrappedMessage) {
         this.channel = channel;
         this.localGuid = localGuid;
         this.remoteGuid = remoteGuid;
-        this.ack = ack;
-        this.sequence = sequence;
+        this.wrappedMessage = wrappedMessage;
     }
 
     @Override
@@ -75,12 +67,7 @@ public abstract class OrderedMessageEvent implements NetEvent {
         return remoteGuid;
     }
 
-    public long getAck() {
-        return ack;
+    public NetMessage getWrappedMessage() {
+        return wrappedMessage;
     }
-
-    public long getSequence() {
-        return sequence;
-    }
-
 }

@@ -24,7 +24,7 @@ import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.net.injvm.JVMPort;
 import com.wjybxx.fastjgame.net.socket.ConnectRequestEvent;
 import com.wjybxx.fastjgame.net.socket.ConnectResponseEvent;
-import com.wjybxx.fastjgame.net.socket.OrderedMessageEvent;
+import com.wjybxx.fastjgame.net.socket.ordered.OrderedMessageEvent;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 

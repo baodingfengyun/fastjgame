@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.net.OrderedMessage;
+import com.wjybxx.fastjgame.net.socket.ordered.OrderedMessage;
 
 import java.util.LinkedList;
 

@@ -104,7 +104,8 @@ public interface Session {
     void send(@Nonnull Object message);
 
     /**
-     * 批量发送单向消息 - 用户自己实现缓存，主要是用于与玩家通信，与服务器之间不需要缓存。
+     * 批量发送单向消息 - 用户自己实现缓存，可大大降低与网络层之间的交互。
+     * 主要是用于与玩家通信，与服务器之间不需要缓存。
      *
      * @param messageList 批量的单向消息 - 注意，不可共享
      */

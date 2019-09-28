@@ -14,15 +14,20 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.socket;
+package com.wjybxx.fastjgame.net.socket.ordered;
 
 import com.wjybxx.fastjgame.manager.NetEventManager;
-import com.wjybxx.fastjgame.net.*;
+import com.wjybxx.fastjgame.net.ProtocolCodec;
+import com.wjybxx.fastjgame.net.socket.ConnectRequest;
+import com.wjybxx.fastjgame.net.socket.ConnectResponse;
+import com.wjybxx.fastjgame.net.socket.ConnectResponseEvent;
+import com.wjybxx.fastjgame.net.socket.NetMessageType;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import java.io.IOException;
 
 /**
  * 客户端用编解码器。
@@ -34,7 +39,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class ClientCodec extends BaseCodec {
+public class OrderedClientCodec extends OrderedBaseCodec {
 
     /**
      * 该channel关联的本地对象标识
@@ -53,7 +58,7 @@ public class ClientCodec extends BaseCodec {
      */
     private final NetEventManager netEventManager;
 
-    public ClientCodec(ProtocolCodec codec, long localGuid, long serverGuid, NetEventManager netEventManager) {
+    public OrderedClientCodec(ProtocolCodec codec, long localGuid, long serverGuid, NetEventManager netEventManager) {
         super(codec);
         this.localGuid = localGuid;
         this.serverGuid = serverGuid;
@@ -63,17 +68,12 @@ public class ClientCodec extends BaseCodec {
     // region 编码消息
     @Override
     public void write(ChannelHandlerContext ctx, Object msgTO, ChannelPromise promise) throws Exception {
-        if (msgTO instanceof BatchMessageTO) {
+        if (msgTO instanceof BatchOrderedMessageTO) {
             // 批量协议包
-            BatchMessageTO batchMessageTO = (BatchMessageTO) msgTO;
-            long ack = batchMessageTO.getAck();
-            for (OrderedMessage message : batchMessageTO.getOrderedMessageList()) {
-                writeSingleMsg(ctx, ack, message, ctx.voidPromise());
-            }
-        } else if (msgTO instanceof SingleMessageTO) {
+            writeBatchMessage(ctx, (BatchOrderedMessageTO) msgTO);
+        } else if (msgTO instanceof SingleOrderedMessageTO) {
             // 单个协议包
-            SingleMessageTO singleMessageTO = (SingleMessageTO) msgTO;
-            writeSingleMsg(ctx, singleMessageTO.getAck(), singleMessageTO.getOrderedMessage(), promise);
+            writeSingleMsg(ctx, (SingleOrderedMessageTO) msgTO, promise);
         } else if (msgTO instanceof ConnectRequest) {
             // 请求建立连接包
             writeConnectRequest(ctx, (ConnectRequest) msgTO, promise);
@@ -82,33 +82,12 @@ public class ClientCodec extends BaseCodec {
         }
     }
 
-    /**
-     * 发送单个消息
-     */
-    private void writeSingleMsg(ChannelHandlerContext ctx, long ack, OrderedMessage orderedMessage, ChannelPromise promise) throws Exception {
-        // 按出现的几率判断
-        if (orderedMessage.getWrappedMessage() instanceof RpcRequestMessage) {
-            // rpc请，向另一个服务器发起rpc请求
-            writeRpcRequestMessage(ctx, ack, orderedMessage, promise);
-        } else if (orderedMessage.getWrappedMessage() instanceof OneWayMessage) {
-            // 单向消息，向另一个服务器发送单向消息
-            writeOneWayMessage(ctx, ack, orderedMessage, promise);
-        } else if (orderedMessage.getWrappedMessage() instanceof RpcResponseMessage) {
-            // rpc返回结果
-            writeRpcResponseMessage(ctx, ack, orderedMessage, promise);
-        } else if (orderedMessage.getWrappedMessage() instanceof AckPingPongMessage) {
-            // 客户端ack-ping包
-            writeAckPingPongMessage(ctx, ack, orderedMessage, promise, NetPackageType.ACK_PING);
-        } else {
-            super.write(ctx, orderedMessage, promise);
-        }
-    }
     // endregion
 
     // region 读取消息
     @Override
-    protected void readMsg(ChannelHandlerContext ctx, NetPackageType netPackageType, ByteBuf msg) {
-        switch (netPackageType) {
+    protected void readMsg(ChannelHandlerContext ctx, NetMessageType netMessageType, ByteBuf msg) throws IOException {
+        switch (netMessageType) {
             case CONNECT_RESPONSE:
                 tryReadConnectResponse(ctx, msg);
                 break;
@@ -121,12 +100,11 @@ public class ClientCodec extends BaseCodec {
             case ONE_WAY_MESSAGE:
                 tryReadOneWayMessage(ctx, msg);
                 break;
-            case ACK_PONG:
+            case PING_PONG:
                 tryReadAckPongMessage(ctx, msg);
                 break;
             default:
-                closeCtx(ctx, "unexpected netEventType " + netPackageType);
-                break;
+                throw new IOException("unexpected netEventType " + netMessageType);
         }
     }
 
@@ -145,23 +123,13 @@ public class ClientCodec extends BaseCodec {
     }
 
     /**
-     * 服务器返回的ack-pong包
-     */
-    private void tryReadAckPongMessage(ChannelHandlerContext ctx, ByteBuf msg) {
-        ensureConnected();
-
-        AckPingPongEvent ackPongParam = readAckPingPongMessage(ctx.channel(), localGuid, serverGuid, msg);
-        netEventManager.fireMessage(ackPongParam);
-    }
-
-    /**
      * 尝试读取远程的rpc请求消息
      */
     private void tryReadRpcRequestMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureConnected();
 
-        RpcRequestEvent rpcRequestEventParam = readRpcRequestMessage(ctx.channel(), localGuid, serverGuid, msg);
-        netEventManager.fireMessage(rpcRequestEventParam);
+        OrderedMessageEvent orderedMessageEvent = readRpcRequestMessage(ctx.channel(), localGuid, serverGuid, msg);
+        netEventManager.fireMessage(orderedMessageEvent);
     }
 
     /**
@@ -170,8 +138,8 @@ public class ClientCodec extends BaseCodec {
     private void tryReadRpcResponseMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureConnected();
 
-        RpcResponseEvent rpcResponseEventParam = readRpcResponseMessage(ctx.channel(), localGuid, serverGuid, msg);
-        netEventManager.fireMessage(rpcResponseEventParam);
+        OrderedMessageEvent orderedMessageEvent = readRpcResponseMessage(ctx.channel(), localGuid, serverGuid, msg);
+        netEventManager.fireMessage(orderedMessageEvent);
     }
 
     /**
@@ -180,8 +148,17 @@ public class ClientCodec extends BaseCodec {
     private void tryReadOneWayMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureConnected();
 
-        OneWayMessageEvent oneWayMessageEventParam = readOneWayMessage(ctx.channel(), localGuid, serverGuid, msg);
-        netEventManager.fireMessage(oneWayMessageEventParam);
+        netEventManager.fireMessage(readOneWayMessage(ctx.channel(), localGuid, serverGuid, msg));
+    }
+
+    /**
+     * 服务器返回的ack-pong包
+     */
+    private void tryReadAckPongMessage(ChannelHandlerContext ctx, ByteBuf msg) {
+        ensureConnected();
+
+        OrderedMessageEvent orderedMessageEvent = readAckPingPongMessage(ctx.channel(), localGuid, serverGuid, msg);
+        netEventManager.fireMessage(orderedMessageEvent);
     }
     // endregion
 

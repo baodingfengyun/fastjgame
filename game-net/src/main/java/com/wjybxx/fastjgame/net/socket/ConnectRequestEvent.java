@@ -28,7 +28,7 @@ import io.netty.channel.Channel;
  * date - 2019/8/2
  * github - https://github.com/hl845740757
  */
-public class ConnectRequestEvent implements NetEvent {
+public class ConnectRequestEvent implements SocketEvent {
 
     private Channel channel;
     private long localGuid;

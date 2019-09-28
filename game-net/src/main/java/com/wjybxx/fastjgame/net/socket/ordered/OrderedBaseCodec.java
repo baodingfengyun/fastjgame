@@ -14,9 +14,13 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.socket;
+package com.wjybxx.fastjgame.net.socket.ordered;
 
 import com.wjybxx.fastjgame.net.*;
+import com.wjybxx.fastjgame.net.socket.ConnectRequest;
+import com.wjybxx.fastjgame.net.socket.ConnectResponse;
+import com.wjybxx.fastjgame.net.socket.MessageEvent;
+import com.wjybxx.fastjgame.net.socket.NetMessageType;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -47,15 +51,19 @@ import java.io.IOException;
  * date - 2019/5/7 12:26
  * github - https://github.com/hl845740757
  */
-public abstract class BaseCodec extends ChannelDuplexHandler {
+public abstract class OrderedBaseCodec extends ChannelDuplexHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(BaseCodec.class);
+    private static final Logger logger = LoggerFactory.getLogger(OrderedBaseCodec.class);
     /**
      * 协议编解码工具
      */
     private final ProtocolCodec codec;
+    /**
+     * 出现异常次数
+     */
+    private int errorCount;
 
-    protected BaseCodec(ProtocolCodec codec) {
+    protected OrderedBaseCodec(ProtocolCodec codec) {
         this.codec = codec;
     }
 
@@ -73,18 +81,16 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
             long logicSum = NetUtils.calChecksum(msg, msg.readerIndex(), msg.readableBytes());
             if (realSum != logicSum) {
                 // 校验和不一致
-                closeCtx(ctx, "realSum=" + realSum + ", logicSum=" + logicSum);
-                return;
+                throw new IOException("realSum=" + realSum + ", logicSum=" + logicSum);
             }
             // 任何编解码出现问题都会在上层消息判断哪里出现问题，这里并不处理channel数据是否异常
             byte pkgTypeNumber = msg.readByte();
-            NetPackageType netPackageType = NetPackageType.forNumber(pkgTypeNumber);
-            if (null == netPackageType) {
+            NetMessageType netMessageType = NetMessageType.forNumber(pkgTypeNumber);
+            if (null == netMessageType) {
                 // 约定之外的包类型
-                closeCtx(ctx, "null==netEventType " + pkgTypeNumber);
-                return;
+                throw new IOException("null==netEventType " + pkgTypeNumber);
             }
-            readMsg(ctx, netPackageType, msg);
+            readMsg(ctx, netMessageType, msg);
         } finally {
             // 解码结束，释放资源
             msg.release();
@@ -95,11 +101,60 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
      * 子类真正的读取数据
      *
      * @param ctx            ctx
-     * @param netPackageType 事件类型
+     * @param netMessageType 事件类型
      * @param msg            收到的网络包
      */
-    protected abstract void readMsg(ChannelHandlerContext ctx, NetPackageType netPackageType, ByteBuf msg) throws Exception;
+    protected abstract void readMsg(ChannelHandlerContext ctx, NetMessageType netMessageType, ByteBuf msg) throws Exception;
 
+    /**
+     * 批量消息传输
+     *
+     * @param ctx                   ctx
+     * @param batchOrderedMessageTO 批量消息包
+     * @throws Exception error
+     */
+    protected final void writeBatchMessage(ChannelHandlerContext ctx, BatchOrderedMessageTO batchOrderedMessageTO) throws Exception {
+        // 批量协议包
+        long ack = batchOrderedMessageTO.getAck();
+        for (OrderedMessage message : batchOrderedMessageTO.getOrderedMessageList()) {
+            writeSingleMsg(ctx, ack, message, ctx.voidPromise());
+        }
+        ctx.flush();
+    }
+
+    /**
+     * 单个消息传输
+     *
+     * @param ctx                    ctx
+     * @param singleOrderedMessageTO 单个消息对象
+     * @throws Exception error
+     */
+    protected final void writeSingleMsg(ChannelHandlerContext ctx, SingleOrderedMessageTO singleOrderedMessageTO, ChannelPromise promise) throws Exception {
+        writeSingleMsg(ctx, singleOrderedMessageTO.getAck(), singleOrderedMessageTO.getOrderedMessage(), promise);
+    }
+
+    private void writeSingleMsg(ChannelHandlerContext ctx, long ack, OrderedMessage orderedMessage, ChannelPromise promise) throws Exception {
+        switch (orderedMessage.getWrappedMessage().type()) {
+            case RPC_REQUEST:
+                // rpc请求
+                writeRpcRequestMessage(ctx, ack, orderedMessage, promise);
+                break;
+            case RPC_RESPONSE:
+                // RPC响应
+                writeRpcResponseMessage(ctx, ack, orderedMessage, promise);
+                break;
+            case ONE_WAY_MESSAGE:
+                // 单向消息
+                writeOneWayMessage(ctx, ack, orderedMessage, promise);
+                break;
+            case PING_PONG:
+                // 心跳消息
+                writeAckPingPongMessage(ctx, ack, orderedMessage, promise);
+                break;
+            default:
+                throw new IOException("Unexpected message type " + orderedMessage.getWrappedMessage().type());
+        }
+    }
     // ---------------------------------------------- 协议1、2  ---------------------------------------
 
     /**
@@ -110,7 +165,7 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
      */
     final void writeConnectRequest(ChannelHandlerContext ctx, ConnectRequest msgTO, ChannelPromise promise) {
         int contentLength = 8 + 4 + 4 + 8;
-        ByteBuf byteBuf = newInitializedByteBuf(ctx, contentLength, NetPackageType.CONNECT_REQUEST);
+        ByteBuf byteBuf = newInitializedByteBuf(ctx, contentLength, NetMessageType.CONNECT_REQUEST);
 
         byteBuf.writeLong(msgTO.getClientGuid());
         byteBuf.writeInt(msgTO.getClientRole().getNumber());
@@ -136,11 +191,11 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
      * 编码协议2 - 连接响应
      */
     final void writeConnectResponse(ChannelHandlerContext ctx, ConnectResponse msgTO, ChannelPromise promise) {
-        int contentLength = 4 + 1 + 8;
-        ByteBuf byteBuf = newInitializedByteBuf(ctx, contentLength, NetPackageType.CONNECT_RESPONSE);
+        int contentLength = 1 + 4 + 8;
+        ByteBuf byteBuf = newInitializedByteBuf(ctx, contentLength, NetMessageType.CONNECT_RESPONSE);
 
-        byteBuf.writeInt(msgTO.getVerifyingTimes());
         byteBuf.writeByte(msgTO.isSuccess() ? 1 : 0);
+        byteBuf.writeInt(msgTO.getVerifyingTimes());
         byteBuf.writeLong(msgTO.getAck());
 
         appendSumAndWrite(ctx, byteBuf, promise);
@@ -150,10 +205,10 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
      * 解码协议2 - 连接响应
      */
     final ConnectResponse readConnectResponse(ByteBuf msg) {
-        int verifyingTimes = msg.readInt();
         boolean success = msg.readByte() == 1;
+        int verifyingTimes = msg.readInt();
         long ack = msg.readLong();
-        return new ConnectResponse(verifyingTimes, success, ack);
+        return new ConnectResponse(success, verifyingTimes, ack);
     }
 
     // ---------------------------------------------- 协议3、4 ---------------------------------------
@@ -161,9 +216,9 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
     /**
      * 3. 编码rpc请求包
      */
-    final void writeRpcRequestMessage(ChannelHandlerContext ctx, long ack, OrderedMessage orderedMessage, ChannelPromise promise) {
+    private void writeRpcRequestMessage(ChannelHandlerContext ctx, long ack, OrderedMessage orderedMessage, ChannelPromise promise) {
         RpcRequestMessage rpcRequest = (RpcRequestMessage) orderedMessage.getWrappedMessage();
-        ByteBuf head = newInitializedByteBuf(ctx, 8 + 8 + 8 + 1, NetPackageType.RPC_REQUEST);
+        ByteBuf head = newInitializedByteBuf(ctx, 8 + 8 + 8 + 1, NetMessageType.RPC_REQUEST);
         // 捎带确认消息
         head.writeLong(ack);
         head.writeLong(orderedMessage.getSequence());
@@ -171,13 +226,13 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
         head.writeLong(rpcRequest.getRequestGuid());
         head.writeByte(rpcRequest.isSync() ? 1 : 0);
         // 合并之后发送
-        appendSumAndWrite(ctx, tryMergeBody(ctx.alloc(), head, rpcRequest.getRequest(), codec::encodeRpcRequest), promise);
+        appendSumAndWrite(ctx, tryMergeBody(ctx.alloc(), head, rpcRequest.getRequest()), promise);
     }
 
     /**
      * 3. 解码rpc请求包
      */
-    final RpcRequestEvent readRpcRequestMessage(Channel channel, long localGuid, long remoteGuid, ByteBuf msg) {
+    final OrderedMessageEvent readRpcRequestMessage(Channel channel, long localGuid, long remoteGuid, ByteBuf msg) {
         // 捎带确认消息
         long ack = msg.readLong();
         long sequence = msg.readLong();
@@ -185,16 +240,19 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
         long requestGuid = msg.readLong();
         boolean sync = msg.readByte() == 1;
         // 请求内容
-        Object request = tryDecodeBody(msg, codec::decodeRpcRequest);
-        return new RpcRequestEvent(channel, localGuid, remoteGuid, ack, sequence, requestGuid, sync, request);
+        Object request = tryDecodeBody(msg);
+
+        RpcRequestMessage rpcRequestMessage = new RpcRequestMessage(requestGuid, sync, request);
+        MessageEvent messageEvent = new MessageEvent(channel, localGuid, remoteGuid, rpcRequestMessage);
+        return new OrderedMessageEvent(ack, sequence, messageEvent);
     }
 
     /**
      * 4. 编码rpc 响应包
      */
-    final void writeRpcResponseMessage(ChannelHandlerContext ctx, long ack, OrderedMessage orderedMessage, ChannelPromise promise) {
+    private void writeRpcResponseMessage(ChannelHandlerContext ctx, long ack, OrderedMessage orderedMessage, ChannelPromise promise) {
         RpcResponseMessage rpcResponseMessage = (RpcResponseMessage) orderedMessage.getWrappedMessage();
-        ByteBuf head = newInitializedByteBuf(ctx, 8 + 8 + 8 + 4, NetPackageType.RPC_RESPONSE);
+        ByteBuf head = newInitializedByteBuf(ctx, 8 + 8 + 8 + 4, NetMessageType.RPC_RESPONSE);
         // 捎带确认信息
         head.writeLong(ack);
         head.writeLong(orderedMessage.getSequence());
@@ -206,7 +264,7 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
         ByteBuf byteBuf;
         if (rpcResponse.getBody() != null) {
             // 合并之后发送
-            byteBuf = tryMergeBody(ctx.alloc(), head, rpcResponse.getBody(), codec::encodeRpcResponse);
+            byteBuf = tryMergeBody(ctx.alloc(), head, rpcResponse.getBody());
         } else {
             byteBuf = head;
         }
@@ -216,7 +274,7 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
     /**
      * 4. 解码rpc 响应包
      */
-    final RpcResponseEvent readRpcResponseMessage(Channel channel, long localGuid, long remoteGuid, ByteBuf msg) {
+    final OrderedMessageEvent readRpcResponseMessage(Channel channel, long localGuid, long remoteGuid, ByteBuf msg) {
         // 捎带确认信息
         long ack = msg.readLong();
         long sequence = msg.readLong();
@@ -226,9 +284,12 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
         Object body = null;
         // 有可读的内容，证明有body
         if (msg.readableBytes() > 0) {
-            body = tryDecodeBody(msg, codec::decodeRpcResponse);
+            body = tryDecodeBody(msg);
         }
-        return new RpcResponseEvent(channel, localGuid, remoteGuid, ack, sequence, requestGuid, new RpcResponse(resultCode, body));
+        // 这个包装有点多
+        RpcResponseMessage rpcResponseMessage = new RpcResponseMessage(requestGuid, new RpcResponse(resultCode, body));
+        MessageEvent messageEvent = new MessageEvent(channel, localGuid, remoteGuid, rpcResponseMessage);
+        return new OrderedMessageEvent(ack, sequence, messageEvent);
     }
 
     // ------------------------------------------ 协议5 --------------------------------------------
@@ -236,26 +297,29 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
     /**
      * 5.编码单向协议包
      */
-    final void writeOneWayMessage(ChannelHandlerContext ctx, long ack, OrderedMessage orderedMessage, ChannelPromise promise) {
+    private void writeOneWayMessage(ChannelHandlerContext ctx, long ack, OrderedMessage orderedMessage, ChannelPromise promise) {
         OneWayMessage oneWayMessage = (OneWayMessage) orderedMessage.getWrappedMessage();
-        ByteBuf head = newInitializedByteBuf(ctx, 8 + 8, NetPackageType.ONE_WAY_MESSAGE);
+        ByteBuf head = newInitializedByteBuf(ctx, 8 + 8, NetMessageType.ONE_WAY_MESSAGE);
         // 捎带确认
         head.writeLong(ack);
         head.writeLong(orderedMessage.getSequence());
         // 合并之后发送
-        appendSumAndWrite(ctx, tryMergeBody(ctx.alloc(), head, oneWayMessage.getMessage(), codec::encodeMessage), promise);
+        appendSumAndWrite(ctx, tryMergeBody(ctx.alloc(), head, oneWayMessage.getMessage()), promise);
     }
 
     /**
      * 5.解码单向协议
      */
-    final OneWayMessageEvent readOneWayMessage(Channel channel, long localGuid, long remoteGuid, ByteBuf msg) {
+    final OrderedMessageEvent readOneWayMessage(Channel channel, long localGuid, long remoteGuid, ByteBuf msg) {
         // 捎带确认
         long ack = msg.readLong();
         long sequence = msg.readLong();
         // 消息内容
-        Object message = tryDecodeBody(msg, codec::decodeMessage);
-        return new OneWayMessageEvent(channel, localGuid, remoteGuid, ack, sequence, message);
+        Object message = tryDecodeBody(msg);
+
+        OneWayMessage oneWayMessage = new OneWayMessage(message);
+        MessageEvent messageEvent = new MessageEvent(channel, localGuid, remoteGuid, oneWayMessage);
+        return new OrderedMessageEvent(ack, sequence, messageEvent);
     }
 
     /**
@@ -264,13 +328,12 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
      * @param allocator byteBuf分配器
      * @param head      协议头
      * @param bodyData  待编码的body
-     * @param encoder   编码器
      * @return 合并后的byteBuf
      */
     @Nonnull
-    private ByteBuf tryMergeBody(ByteBufAllocator allocator, ByteBuf head, Object bodyData, EncodeFunction encoder) {
+    private ByteBuf tryMergeBody(ByteBufAllocator allocator, ByteBuf head, Object bodyData) {
         try {
-            ByteBuf body = encoder.encode(allocator, bodyData);
+            ByteBuf body = codec.writeObject(allocator, bodyData);
             return Unpooled.wrappedBuffer(head, body);
         } catch (Exception e) {
             // 为了不影响该连接上的其它消息，需要捕获异常
@@ -286,10 +349,10 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
      * @return 为了不引用该连接上的其它消息，如果解码失败返回null。
      */
     @Nullable
-    private Object tryDecodeBody(ByteBuf data, DecodeFunction decoder) {
+    private Object tryDecodeBody(ByteBuf data) {
         Object message = null;
         try {
-            message = decoder.decode(data);
+            message = codec.readObject(data);
         } catch (Exception e) {
             // 为了不影响该连接上的其它消息，需要捕获异常
             logger.warn("deserialize body caught exception", e);
@@ -299,11 +362,10 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
     // ---------------------------------------------- 协议6/7  ---------------------------------------
 
     /**
-     * 编码协议6/7 - ack心跳包
+     * 编码协议6 心跳包
      */
-    final void writeAckPingPongMessage(ChannelHandlerContext ctx, long ack, OrderedMessage orderedMessage, ChannelPromise promise,
-                                       NetPackageType netPackageType) {
-        ByteBuf byteBuf = newInitializedByteBuf(ctx, 8 + 8, netPackageType);
+    private void writeAckPingPongMessage(ChannelHandlerContext ctx, long ack, OrderedMessage orderedMessage, ChannelPromise promise) {
+        ByteBuf byteBuf = newInitializedByteBuf(ctx, 8 + 8, NetMessageType.PING_PONG);
         byteBuf.writeLong(ack);
         byteBuf.writeLong(orderedMessage.getSequence());
         appendSumAndWrite(ctx, byteBuf, promise);
@@ -312,31 +374,25 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
     /**
      * 解码协议6/7 - ack心跳包
      */
-    final AckPingPongEvent readAckPingPongMessage(Channel channel, long localGuid, long remoteGuid, ByteBuf msg) {
+    final OrderedMessageEvent readAckPingPongMessage(Channel channel, long localGuid, long remoteGuid, ByteBuf msg) {
         long ack = msg.readLong();
         long sequence = msg.readLong();
-        return new AckPingPongEvent(channel, localGuid, remoteGuid, ack, sequence);
+
+        MessageEvent messageEvent = new MessageEvent(channel, localGuid, remoteGuid, PingPongMessage.INSTANCE);
+        return new OrderedMessageEvent(ack, sequence, messageEvent);
     }
     // ------------------------------------------ 分割线 --------------------------------------------
-
-    /**
-     * 关闭channel
-     *
-     * @param ctx    待关闭的context
-     * @param reason 关闭context的原因
-     */
-    final void closeCtx(ChannelHandlerContext ctx, String reason) {
-        logger.warn("close channel by reason of {}", reason);
-        NetUtils.closeQuietly(ctx);
-    }
 
     /**
      * 远程主机强制关闭了一个连接，这个异常真的有点坑爹
      */
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        closeCtx(ctx, "decode exceptionCaught.");
         logger.warn("", cause);
+        if (++errorCount > 3) {
+            logger.error("close channel by reason of too many error caught!");
+            NetUtils.closeQuietly(ctx);
+        }
     }
 
     /**
@@ -347,8 +403,8 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
      * @param contentLength 有效内容的长度
      * @return 足够空间的byteBuf可以直接写入内容部分
      */
-    private ByteBuf newInitializedByteBuf(ChannelHandlerContext ctx, int contentLength, NetPackageType netNetPackageType) {
-        return NetUtils.newInitializedByteBuf(ctx, contentLength, netNetPackageType.pkgType);
+    private ByteBuf newInitializedByteBuf(ChannelHandlerContext ctx, int contentLength, NetMessageType netNetMessageType) {
+        return NetUtils.newInitializedByteBuf(ctx, contentLength, netNetMessageType.pkgType);
     }
 
     /**
@@ -361,17 +417,5 @@ public abstract class BaseCodec extends ChannelDuplexHandler {
     private void appendSumAndWrite(ChannelHandlerContext ctx, ByteBuf byteBuf, ChannelPromise promise) {
         NetUtils.appendLengthAndCheckSum(byteBuf);
         ctx.write(byteBuf, promise);
-    }
-
-    @FunctionalInterface
-    private interface DecodeFunction {
-
-        Object decode(ByteBuf data) throws IOException;
-    }
-
-    @FunctionalInterface
-    private interface EncodeFunction {
-
-        ByteBuf encode(ByteBufAllocator allocator, Object obj) throws IOException;
     }
 }

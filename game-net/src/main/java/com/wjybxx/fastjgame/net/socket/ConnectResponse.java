@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.net.socket.TransferObject;
-
 /**
  * 服务器连接请求的响应的传输对象
  *
@@ -26,22 +24,22 @@ import com.wjybxx.fastjgame.net.socket.TransferObject;
  * date - 2019/4/27 11:55
  * github - https://github.com/hl845740757
  */
-@TransferObject
 public class ConnectResponse {
-    /**
-     * 这是客户端第几次验证的结果
-     */
-    private int verifyingTimes;
+
     /**
      * 验证是否成功
      */
     private boolean success;
     /**
+     * 这是客户端第几次验证的结果
+     */
+    private int verifyingTimes;
+    /**
      * 服务器确认收到的最大消息号，ack
      */
     private long ack;
 
-    public ConnectResponse(int verifyingTimes, boolean success, long ack) {
+    public ConnectResponse(boolean success, int verifyingTimes, long ack) {
         this.verifyingTimes = verifyingTimes;
         this.success = success;
         this.ack = ack;

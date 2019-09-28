@@ -13,37 +13,29 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.net.OrderedMessage;
+package com.wjybxx.fastjgame.net.socket;
 
 import java.util.List;
 
 /**
- * 一个纯粹的传输对象,用于一次将一批对象发送到IO线程。
+ * 批量消息传输对象 - 可减少与IO线程的交互
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/9
+ * date - 2019/9/28
  * github - https://github.com/hl845740757
  */
 @TransferObject
 public class BatchMessageTO {
 
-    private final long ack;
+    private final List<NetMessage> messageList;
 
-    private final List<OrderedMessage> orderedMessageList;
-
-    public BatchMessageTO(long ack, List<OrderedMessage> orderedMessageList) {
-        this.ack = ack;
-        this.orderedMessageList = orderedMessageList;
+    public BatchMessageTO(List<NetMessage> messageList) {
+        this.messageList = messageList;
     }
 
-    public long getAck() {
-        return ack;
-    }
-
-    public List<OrderedMessage> getOrderedMessageList() {
-        return orderedMessageList;
+    public List<NetMessage> getMessageList() {
+        return messageList;
     }
 }

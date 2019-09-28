@@ -20,9 +20,6 @@ import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
-import com.wjybxx.fastjgame.misc.ConnectAwareTask;
-import com.wjybxx.fastjgame.misc.DisconnectAwareTask;
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +34,7 @@ import javax.annotation.Nullable;
  * date - 2019/9/25
  * github - https://github.com/hl845740757
  */
-public class DefaultSessionPipeline implements SessionPipeline {
+class DefaultSessionPipeline implements SessionPipeline {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultSessionPipeline.class);
 
@@ -53,7 +50,7 @@ public class DefaultSessionPipeline implements SessionPipeline {
      */
     private final HeadContext head;
 
-    public DefaultSessionPipeline(Session session, NetManagerWrapper netManagerWrapper) {
+    DefaultSessionPipeline(Session session, NetManagerWrapper netManagerWrapper) {
         this.session = session;
         this.netManagerWrapper = netManagerWrapper;
         this.tail = new TailContext(this, netManagerWrapper);
@@ -191,20 +188,17 @@ public class DefaultSessionPipeline implements SessionPipeline {
 
         @Override
         public void write(SessionHandlerContext ctx, Object msg) {
-            logger.warn("Unhandled msg " + msg.getClass().getName());
+            logger.info("Unhandled outboundMessage " + msg.getClass().getName());
         }
 
         @Override
         public void flush(SessionHandlerContext ctx) throws Exception {
-            // NO OP
+            logger.info("Unhandled flushEvent");
         }
 
         @Override
         public void close(SessionHandlerContext ctx, Promise<?> promise) throws Exception {
-            // 删除session - 下一次tick的时候删除，避免在刷帧的时候删除
-            managerWrapper().getNetTimerManager().nextTick((handle) -> {
-                managerWrapper().getSessionManager().removeSession(session());
-            });
+            logger.info("Unhandled closeEvent");
         }
     }
 
@@ -236,26 +230,24 @@ public class DefaultSessionPipeline implements SessionPipeline {
 
         @Override
         public void onSessionActive(SessionHandlerContext ctx) throws Exception {
-            // 告诉用户session激活
-            ConcurrentUtils.tryCommit(localEventLoop(), new ConnectAwareTask(ctx.session()));
+            logger.info("Unhandled active event");
         }
 
         @Override
         public void onSessionInactive(SessionHandlerContext ctx) throws Exception {
-            // 告诉用户session断开
-            ConcurrentUtils.tryCommit(localEventLoop(), new DisconnectAwareTask(ctx.session()));
+            logger.info("Unhandled inactive event");
         }
 
         @Override
         public void read(SessionHandlerContext ctx, Object msg) {
             if (null != msg) {
-                logger.warn("Unhandled message {}", msg.getClass().getName());
+                logger.info("Unhandled inboundMessage {}", msg.getClass().getName());
             }
         }
 
         @Override
         public void onExceptionCaught(SessionHandlerContext ctx, Throwable cause) throws Exception {
-            logger.warn("Unhandled exception", cause);
+            logger.info("Unhandled exception", cause);
         }
     }
 }

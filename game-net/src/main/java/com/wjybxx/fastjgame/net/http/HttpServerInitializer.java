@@ -17,8 +17,6 @@
 package com.wjybxx.fastjgame.net.http;
 
 import com.wjybxx.fastjgame.manager.NetEventManager;
-import com.wjybxx.fastjgame.net.http.HttpRequestDispatcher;
-import com.wjybxx.fastjgame.net.http.HttpRequestParamDecoder;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;

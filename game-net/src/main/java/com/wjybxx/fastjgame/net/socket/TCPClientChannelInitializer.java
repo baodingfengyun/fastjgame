@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.net.socket;
 
 import com.wjybxx.fastjgame.manager.NetEventManager;
 import com.wjybxx.fastjgame.net.ProtocolCodec;
+import com.wjybxx.fastjgame.net.socket.ordered.OrderedClientCodec;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
@@ -59,6 +60,6 @@ public class TCPClientChannelInitializer extends ChannelInitializer<SocketChanne
     protected void initChannel(SocketChannel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
         pipeline.addLast(new LengthFieldBasedFrameDecoder(maxFrameLength, 0, 4, 0, 4));
-        pipeline.addLast(new ClientCodec(codec, localGuid, serverGuid, netEventManager));
+        pipeline.addLast(new OrderedClientCodec(codec, localGuid, serverGuid, netEventManager));
     }
 }

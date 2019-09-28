@@ -16,6 +16,9 @@
 
 package com.wjybxx.fastjgame.net;
 
+import com.wjybxx.fastjgame.net.socket.NetMessage;
+import com.wjybxx.fastjgame.net.socket.NetMessageType;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -27,16 +30,16 @@ import javax.annotation.concurrent.NotThreadSafe;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class RpcRequestMessage {
+public class RpcRequestMessage implements NetMessage {
 
     /**
      * rpc请求编号，用于返回消息
      */
-    private long requestGuid;
+    private final long requestGuid;
     /**
      * 是否是同步rpc调用
      */
-    private boolean sync;
+    private final boolean sync;
     /**
      * rpc请求内容
      */
@@ -62,5 +65,10 @@ public class RpcRequestMessage {
 
     public void setRequest(Object request) {
         this.request = request;
+    }
+
+    @Override
+    public NetMessageType type() {
+        return NetMessageType.RPC_REQUEST;
     }
 }

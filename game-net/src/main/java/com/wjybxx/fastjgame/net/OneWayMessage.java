@@ -16,6 +16,9 @@
 
 package com.wjybxx.fastjgame.net;
 
+import com.wjybxx.fastjgame.net.socket.NetMessage;
+import com.wjybxx.fastjgame.net.socket.NetMessageType;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -27,7 +30,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class OneWayMessage {
+public class OneWayMessage implements NetMessage {
 
     /**
      * 消息内容
@@ -44,5 +47,10 @@ public class OneWayMessage {
 
     public void setMessage(Object message) {
         this.message = message;
+    }
+
+    @Override
+    public NetMessageType type() {
+        return NetMessageType.ONE_WAY_MESSAGE;
     }
 }

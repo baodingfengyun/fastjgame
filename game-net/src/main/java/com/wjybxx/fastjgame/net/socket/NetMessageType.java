@@ -21,15 +21,14 @@ import com.wjybxx.fastjgame.enummapper.NumberEnumMapper;
 import com.wjybxx.fastjgame.utils.EnumUtils;
 
 /**
- * 网络包类型 -- 7种
- * (严格来说还有一个：http网络包，不过由于不是自定义格式，因此不在这里)
+ * 网络包类型
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/7/24
  * github - https://github.com/hl845740757
  */
-public enum NetPackageType implements NumberEnum {
+public enum NetMessageType implements NumberEnum {
 
     /**
      * 客户端请求建立链接
@@ -56,13 +55,9 @@ public enum NetPackageType implements NumberEnum {
     ONE_WAY_MESSAGE(5),
 
     /**
-     * 心跳包 -- 客户端发起
+     * 心跳包
      */
-    ACK_PING(6),
-    /**
-     * 心跳包 -- 服务器响应
-     */
-    ACK_PONG(7),
+    PING_PONG(6),
 
     /**
      * 主动断开连接
@@ -76,7 +71,7 @@ public enum NetPackageType implements NumberEnum {
 
     public final byte pkgType;
 
-    NetPackageType(int pkgType) {
+    NetMessageType(int pkgType) {
         this.pkgType = (byte) pkgType;
     }
 
@@ -93,7 +88,7 @@ public enum NetPackageType implements NumberEnum {
     /**
      * 排序号的枚举数组，方便查找
      */
-    private static final NumberEnumMapper<NetPackageType> mapper = EnumUtils.indexNumberEnum(values());
+    private static final NumberEnumMapper<NetMessageType> mapper = EnumUtils.indexNumberEnum(values());
 
     /**
      * 通过网络包中的pkgType找到对应的枚举。
@@ -101,7 +96,7 @@ public enum NetPackageType implements NumberEnum {
      * @param pkgType 包类型
      * @return 包类型对应的枚举
      */
-    public static NetPackageType forNumber(byte pkgType) {
+    public static NetMessageType forNumber(byte pkgType) {
         return mapper.forNumber(pkgType);
     }
 }

@@ -13,34 +13,37 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+package com.wjybxx.fastjgame.net.socket.ordered;
 
-package com.wjybxx.fastjgame.net.socket;
+import com.wjybxx.fastjgame.net.socket.TransferObject;
 
-import io.netty.channel.Channel;
+import java.util.List;
 
 /**
- * 单向消息事件参数。
+ * 批量消息的传输对象 - 之所以需要该对象进行传输，是因为ack字段是发送的时候才赋值的
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/7/31
+ * date - 2019/8/9
  * github - https://github.com/hl845740757
  */
 @TransferObject
-public class OneWayMessageEvent extends OrderedMessageEvent {
+public class BatchOrderedMessageTO {
 
-    /**
-     * 消息内容
-     */
-    private Object message;
+    private final long ack;
 
-    public OneWayMessageEvent(Channel channel, long localGuid, long remoteGuid, long ack, long sequence,
-                              Object message) {
-        super(channel, localGuid, remoteGuid, ack, sequence);
-        this.message = message;
+    private final List<OrderedMessage> orderedMessageList;
+
+    public BatchOrderedMessageTO(long ack, List<OrderedMessage> orderedMessageList) {
+        this.ack = ack;
+        this.orderedMessageList = orderedMessageList;
     }
 
-    public Object getMessage() {
-        return message;
+    public long getAck() {
+        return ack;
+    }
+
+    public List<OrderedMessage> getOrderedMessageList() {
+        return orderedMessageList;
     }
 }

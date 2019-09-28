@@ -36,7 +36,7 @@ public class ProtocolCloneTest {
 
     public static void main(String[] args) throws IOException {
         // 触发NetUtils类加载，避免输出干扰
-        System.out.println(NetUtils.FAVICON_PATH);
+        System.out.println(NetUtils.getOuterIp());
 
         cloneTest(ExampleConstants.reflectBasedCodec);
         cloneTest(ExampleConstants.jsonBasedCodec);
@@ -45,8 +45,6 @@ public class ProtocolCloneTest {
     private static void cloneTest(ProtocolCodec codec) throws IOException {
         System.out.println("\n" + codec.getClass().getName());
         final ExampleMessages.FullMessage fullMessage = ReflectBasedProtoCodecTest.newFullMessage();
-        System.out.println("cloneMessage " + codec.cloneMessage(fullMessage).equals(fullMessage));
-        System.out.println("cloneRpcRequest " + codec.cloneRpcRequest(fullMessage).equals(fullMessage));
-        System.out.println("cloneRpcResponse " + codec.cloneRpcResponse(fullMessage).equals(fullMessage));
+        System.out.println("clone " + codec.cloneObject(fullMessage).equals(fullMessage));
     }
 }

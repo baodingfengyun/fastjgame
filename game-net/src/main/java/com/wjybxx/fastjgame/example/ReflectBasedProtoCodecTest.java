@@ -44,9 +44,9 @@ public class ReflectBasedProtoCodecTest {
         ExampleMessages.FullMessage fullMessage = newFullMessage();
         System.out.println(fullMessage);
 
-        ByteBuf encodeResult = codec.encodeMessage(byteBufAllocator, fullMessage);
+        ByteBuf encodeResult = codec.writeObject(byteBufAllocator, fullMessage);
 
-        Object decodeResult = codec.decodeMessage(encodeResult);
+        Object decodeResult = codec.readObject(encodeResult);
         System.out.println(decodeResult);
 
         System.out.println("equals = " + fullMessage.equals(decodeResult));

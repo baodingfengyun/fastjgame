@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.misc.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.ProtocolDispatcher;
 
 import javax.annotation.concurrent.NotThreadSafe;

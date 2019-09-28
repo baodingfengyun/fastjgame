@@ -16,9 +16,8 @@
  long  8字节     ack               客户端收到的最大消息号(捎带确认的ack)
 
 2. 建立连接响应
- int   4字节     verifyingTimes    这是客户端第几次发起的连接请求
  byte  1字节     success           token验证结果(成功为 1,失败为 0)
-
+ int   4字节     verifyingTimes    这是客户端第几次发起的连接请求
  long  8字节     ack               服务器收到的最大消息号
 
 3. Rpc请求包(服务器之间)

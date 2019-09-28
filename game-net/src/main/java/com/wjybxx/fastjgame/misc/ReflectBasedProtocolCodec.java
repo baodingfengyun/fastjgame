@@ -156,44 +156,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
     }
 
     @Override
-    public ByteBuf encodeRpcRequest(ByteBufAllocator bufAllocator, @Nonnull Object request) throws IOException {
-        return encode(bufAllocator, request);
-    }
-
-    @Override
-    public Object decodeRpcRequest(ByteBuf data) throws IOException {
-        return decode(data);
-    }
-
-    @Override
-    public ByteBuf encodeRpcResponse(ByteBufAllocator bufAllocator, @Nonnull Object body) throws IOException {
-        return encode(bufAllocator, body);
-    }
-
-    @Override
-    public Object decodeRpcResponse(ByteBuf data) throws IOException {
-        return decode(data);
-    }
-
-    @Override
-    public ByteBuf encodeMessage(ByteBufAllocator bufAllocator, Object message) throws IOException {
-        return encode(bufAllocator, message);
-    }
-
-    @Override
-    public Object decodeMessage(ByteBuf data) throws IOException {
-        return decode(data);
-    }
-
-    /**
-     * 编码一个对象。
-     *
-     * @param bufAllocator byteBuf分配器
-     * @param object       待序列化的对象
-     * @return encodeResult
-     * @throws IOException error
-     */
-    private ByteBuf encode(ByteBufAllocator bufAllocator, Object object) throws IOException {
+    public ByteBuf writeObject(ByteBufAllocator bufAllocator, @Nonnull Object object) throws IOException {
         final byte[] localBuffer = LOCAL_BUFFER.get();
         // 减少字节数组创建，即使使用输出流构造，其内部还是做了缓存。
         CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(localBuffer);
@@ -204,14 +167,8 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         return buffer;
     }
 
-    /**
-     * 解码一个对象
-     *
-     * @param data byteBuf的输入流
-     * @return value
-     * @throws IOException error
-     */
-    private Object decode(ByteBuf data) throws IOException {
+    @Override
+    public Object readObject(ByteBuf data) throws IOException {
         final byte[] localBuffer = LOCAL_BUFFER.get();
         final int readableBytes = data.readableBytes();
         data.readBytes(localBuffer, 0, readableBytes);
@@ -219,6 +176,22 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         CodedInputStream codedInputStream = CodedInputStream.newInstance(localBuffer, 0, readableBytes);
         // 真正读取数据
         return readObject(codedInputStream);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Object cloneObject(@Nullable Object object) throws IOException {
+        if (object == null) {
+            return null;
+        }
+
+        final Class<?> type = object.getClass();
+        for (Codec codec : codecMapper.values()) {
+            if (codec.isSupport(type)) {
+                return codec.clone(object);
+            }
+        }
+        throw new IOException("unsupported class " + object.getClass().getName());
     }
 
     @SuppressWarnings("unchecked")
@@ -1553,45 +1526,6 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
             System.arraycopy(obj, 0, result, 0, obj.length);
             return result;
         }
-    }
-
-    // -------------------------------------------------  拷贝对象 --------------------------------------------------
-    @Override
-    public Object cloneRpcRequest(@Nonnull Object request) throws IOException {
-        return cloneObject(request);
-    }
-
-    @Override
-    public Object cloneRpcResponse(@Nonnull Object body) throws IOException {
-        return cloneObject(body);
-    }
-
-    @Override
-    public Object cloneMessage(@Nonnull Object message) throws IOException {
-        return cloneObject(message);
-    }
-
-    @SuppressWarnings("unchecked")
-    private Object cloneObject(@Nullable Object object) throws IOException {
-        if (object == null) {
-            return null;
-        }
-
-        final Class<?> type = object.getClass();
-        for (Codec codec : codecMapper.values()) {
-            if (codec.isSupport(type)) {
-                return codec.clone(object);
-            }
-        }
-        throw new IOException("unsupported class " + object.getClass().getName());
-        // 旧版本实现
-//        final byte[] localBuffer = NetUtils.LOCAL_BUFFER.get();
-//        // 写进去
-//        CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(localBuffer);
-//        writeObject(codedOutputStream, object);
-//        // 再读出来
-//        CodedInputStream codedInputStream = CodedInputStream.newInstance(localBuffer, 0, codedOutputStream.getTotalBytesWritten());
-//        return readObject(codedInputStream);
     }
 
     // ------------------------------------------------- 工厂方法 ------------------------------------------------------

@@ -13,40 +13,36 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.wjybxx.fastjgame.net.socket;
 
-import io.netty.channel.Channel;
+package com.wjybxx.fastjgame.net.socket.ordered;
+
+import com.wjybxx.fastjgame.net.socket.TransferObject;
 
 /**
- * 网络事件参数，提供统一的抽象(窄)视图。
- * 子类实现必须是不可变对象，以保证线程安全性。
+ * 单个消息传输对象 - 之所以需要该对象进行传输，是因为ack字段是发送的时候才赋值的
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/4/27 9:16
+ * date - 2019/9/7
  * github - https://github.com/hl845740757
  */
-public interface NetEvent {
+@TransferObject
+public class SingleOrderedMessageTO {
 
-    /**
-     * 获取网络事件对于的channel
-     *
-     * @return eventChannel
-     */
-    Channel channel();
+    private final long ack;
 
-    /**
-     * 本地节点的guid.
-     *
-     * @return long
-     */
-    long localGuid();
+    private final OrderedMessage orderedMessage;
 
-    /**
-     * 远程节点的guid
-     *
-     * @return long
-     */
-    long remoteGuid();
+    public SingleOrderedMessageTO(long ack, OrderedMessage orderedMessage) {
+        this.ack = ack;
+        this.orderedMessage = orderedMessage;
+    }
 
+    public long getAck() {
+        return ack;
+    }
+
+    public OrderedMessage getOrderedMessage() {
+        return orderedMessage;
+    }
 }

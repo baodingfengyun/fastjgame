@@ -16,20 +16,19 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
-import io.netty.channel.Channel;
-
 /**
- * ack心跳包事件参数
+ * 网络消息
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/4/27 11:59
+ * date - 2019/9/28
  * github - https://github.com/hl845740757
  */
-@TransferObject
-public class AckPingPongEvent extends OrderedMessageEvent {
+public interface NetMessage {
 
-    public AckPingPongEvent(Channel channel, long localGuid, long remoteGuid, long ack, long sequence) {
-        super(channel, localGuid, remoteGuid, ack, sequence);
-    }
+    /**
+     * @return 消息包类型
+     */
+    NetMessageType type();
+
 }

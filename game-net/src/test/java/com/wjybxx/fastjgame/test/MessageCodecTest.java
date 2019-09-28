@@ -51,9 +51,9 @@ public class MessageCodecTest {
                 .setK(p_test.ERole.AGE)
                 .build();
 
-        ByteBuf encodeResult = codec.encodeMessage(byteBufAllocator, hello);
+        ByteBuf encodeResult = codec.writeObject(byteBufAllocator, hello);
 
-        Object decodeResult = codec.decodeMessage(encodeResult);
+        Object decodeResult = codec.readObject(encodeResult);
         System.out.println(decodeResult);
 
         System.out.println("equals = " + hello.equals(decodeResult));

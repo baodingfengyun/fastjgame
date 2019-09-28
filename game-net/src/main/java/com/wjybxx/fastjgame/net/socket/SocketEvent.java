@@ -13,44 +13,40 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
 package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.net.RpcResponse;
 import io.netty.channel.Channel;
 
 /**
- * Rpc响应事件参数
+ * 网络事件参数，提供统一的抽象(窄)视图。
+ * 子类实现必须是不可变对象，以保证线程安全性。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/7/30
+ * date - 2019/4/27 9:16
  * github - https://github.com/hl845740757
  */
-@TransferObject
-public class RpcResponseEvent extends OrderedMessageEvent {
+public interface SocketEvent {
 
     /**
-     * 客户端的哪一个请求
+     * 获取网络事件对于的channel
+     *
+     * @return eventChannel
      */
-    private long requestGuid;
+    Channel channel();
+
     /**
-     * rpc响应结果
+     * 本地节点的guid.
+     *
+     * @return long
      */
-    private RpcResponse rpcResponse;
+    long localGuid();
 
-    public RpcResponseEvent(Channel channel, long localGuid, long remoteGuid, long ack, long sequence,
-                            long requestGuid, RpcResponse rpcResponse) {
-        super(channel, localGuid, remoteGuid, ack, sequence);
-        this.requestGuid = requestGuid;
-        this.rpcResponse = rpcResponse;
-    }
+    /**
+     * 远程节点的guid
+     *
+     * @return long
+     */
+    long remoteGuid();
 
-    public long getRequestGuid() {
-        return requestGuid;
-    }
-
-    public RpcResponse getRpcResponse() {
-        return rpcResponse;
-    }
 }
