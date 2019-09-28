@@ -26,9 +26,9 @@ import com.wjybxx.fastjgame.misc.DefaultProtocolDispatcher;
 import com.wjybxx.fastjgame.misc.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.net.Session;
-import com.wjybxx.fastjgame.net.injvm.DefaultJVMSessionConfig;
 import com.wjybxx.fastjgame.net.injvm.JVMPort;
 import com.wjybxx.fastjgame.net.injvm.JVMSessionConfig;
+import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.TimeUtils;
@@ -73,7 +73,7 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
         if (jvmPortPromise != null) {
             // 绑定jvm端口
             try {
-                JVMSessionConfig config = DefaultJVMSessionConfig.newBuilder()
+                JVMSessionConfig config = JVMSessionConfig.newBuilder()
                         .setCodec(ExampleConstants.reflectBasedCodec)
                         .setLifecycleAware(new ClientLifeAware())
                         .setDispatcher(protocolDispatcher)
@@ -86,12 +86,13 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
             }
         } else {
             // 监听tcp端口
-            netContext.bindTcp(NetUtils.getLocalIp(),
-                    ExampleConstants.tcpPort,
-                    ExampleConstants.reflectBasedCodec,
-                    new ClientLifeAware(),
-                    protocolDispatcher
-            );
+            SocketSessionConfig config = SocketSessionConfig.newBuilder()
+                    .setCodec(ExampleConstants.reflectBasedCodec)
+                    .setLifecycleAware(new ClientLifeAware())
+                    .setDispatcher(protocolDispatcher)
+                    .build();
+
+            netContext.bindTcp(NetUtils.getLocalIp(), ExampleConstants.tcpPort, config).get();
         }
         startTime = System.currentTimeMillis();
     }

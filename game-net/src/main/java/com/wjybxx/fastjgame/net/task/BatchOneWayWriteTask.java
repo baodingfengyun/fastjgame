@@ -21,7 +21,7 @@ import com.wjybxx.fastjgame.net.Session;
 import java.util.List;
 
 /**
- * 批量的单向消息任务
+ * 批量的单向消息发送任务
  *
  * @author wjybxx
  * @version 1.0

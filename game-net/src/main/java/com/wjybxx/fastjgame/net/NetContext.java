@@ -21,13 +21,14 @@ import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.PortRange;
-import com.wjybxx.fastjgame.misc.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.http.HttpRequestDispatcher;
 import com.wjybxx.fastjgame.net.http.HttpSession;
 import com.wjybxx.fastjgame.net.http.OkHttpCallback;
 import com.wjybxx.fastjgame.net.injvm.JVMPort;
 import com.wjybxx.fastjgame.net.injvm.JVMSession;
 import com.wjybxx.fastjgame.net.injvm.JVMSessionConfig;
+import com.wjybxx.fastjgame.net.socket.SocketPort;
+import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
 import okhttp3.Response;
 
 import javax.annotation.Nonnull;
@@ -82,101 +83,76 @@ public interface NetContext {
     /**
      * 在指定端口监听tcp连接
      *
-     * @param host               地址
-     * @param port               端口号
-     * @param codec              网络协议解码器
-     * @param lifecycleAware     生命周期监听器
-     * @param protocolDispatcher 协议处理器
+     * @param host   地址
+     * @param port   端口号
+     * @param config session配置信息
      * @return future
      */
-    default ListenableFuture<HostAndPort> bindTcp(String host, int port,
-                                                  @Nonnull ProtocolCodec codec,
-                                                  @Nonnull SessionLifecycleAware lifecycleAware,
-                                                  @Nonnull ProtocolDispatcher protocolDispatcher) {
-        return this.bindTcpRange(host, new PortRange(port, port), codec, lifecycleAware, protocolDispatcher);
+    default ListenableFuture<SocketPort> bindTcp(String host, int port,
+                                                  @Nonnull SocketSessionConfig config) {
+        return this.bindTcpRange(host, new PortRange(port, port), config);
     }
 
     /**
      * 在指定端口范围内选择一个合适的端口监听tcp连接
      *
-     * @param host               地址
-     * @param portRange          端口范围
-     * @param codec              网络协议解码器
-     * @param lifecycleAware     生命周期监听器
-     * @param protocolDispatcher 协议处理器
+     * @param host      地址
+     * @param portRange 端口范围
+     * @param config    session配置信息
      * @return future
      */
-    ListenableFuture<HostAndPort> bindTcpRange(String host, PortRange portRange,
-                                               @Nonnull ProtocolCodec codec,
-                                               @Nonnull SessionLifecycleAware lifecycleAware,
-                                               @Nonnull ProtocolDispatcher protocolDispatcher);
+    ListenableFuture<SocketPort> bindTcpRange(String host, PortRange portRange,
+                                              @Nonnull SocketSessionConfig config);
 
     /**
      * 以tcp方式连接远程某个端口
      *
-     * @param remoteGuid         远程角色guid
-     * @param remoteRole         远程角色类型
-     * @param remoteAddress      远程地址
-     * @param codec              协议编解码器
-     * @param lifecycleAware     生命周期监听器
-     * @param protocolDispatcher 协议处理器
+     * @param remoteGuid    远程角色guid
+     * @param remoteRole    远程角色类型
+     * @param remoteAddress 远程地址
+     * @param config        session配置信息
      * @return future
      */
     ListenableFuture<Session> connectTcp(long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress,
-                                         @Nonnull ProtocolCodec codec,
-                                         @Nonnull SessionLifecycleAware lifecycleAware,
-                                         @Nonnull ProtocolDispatcher protocolDispatcher);
+                                         @Nonnull SocketSessionConfig config);
 
     /**
      * 在指定端口监听WebSocket连接
      *
-     * @param host               地址
-     * @param port               端口
-     * @param websocketUrl       触发websocket升级的地址
-     * @param codec              网络协议解码器
-     * @param lifecycleAware     生命周期监听器
-     * @param protocolDispatcher 协议处理器
+     * @param host          地址
+     * @param port          端口
+     * @param websocketPath 触发websocket升级的地址
+     * @param config        session配置信息
      * @return future
      */
-    default ListenableFuture<HostAndPort> bindWS(String host, int port, String websocketUrl,
-                                                 @Nonnull ProtocolCodec codec,
-                                                 @Nonnull SessionLifecycleAware lifecycleAware,
-                                                 @Nonnull ProtocolDispatcher protocolDispatcher) {
-        return this.bindWSRange(host, new PortRange(port, port), websocketUrl,
-                codec, lifecycleAware, protocolDispatcher);
+    default ListenableFuture<SocketPort> bindWS(String host, int port, String websocketPath,
+                                                 @Nonnull SocketSessionConfig config) {
+        return this.bindWSRange(host, new PortRange(port, port), websocketPath, config);
     }
 
     /**
      * 在指定端口范围内选择一个合适的端口监听WebSocket连接
      *
-     * @param host               地址
-     * @param portRange          端口范围
-     * @param websocketUrl       触发websocket升级的地址
-     * @param codec              网络协议解码器
-     * @param lifecycleAware     生命周期监听器
-     * @param protocolDispatcher 协议处理器
+     * @param host          地址
+     * @param portRange     端口范围
+     * @param websocketPath 触发websocket升级的地址
+     * @param config        session配置信息
      * @return future
      */
-    ListenableFuture<HostAndPort> bindWSRange(String host, PortRange portRange, String websocketUrl,
-                                              @Nonnull ProtocolCodec codec,
-                                              @Nonnull SessionLifecycleAware lifecycleAware,
-                                              @Nonnull ProtocolDispatcher protocolDispatcher);
+    ListenableFuture<SocketPort> bindWSRange(String host, PortRange portRange, String websocketPath,
+                                              @Nonnull SocketSessionConfig config);
 
     /**
      * 以websocket方式连接远程某个端口
      *
-     * @param remoteGuid         远程角色guid
-     * @param remoteRole         远程角色类型
-     * @param remoteAddress      远程地址
-     * @param codec              协议编解码器
-     * @param lifecycleAware     生命周期监听器
-     * @param protocolDispatcher 协议处理器
+     * @param remoteGuid    远程角色guid
+     * @param remoteRole    远程角色类型
+     * @param remoteAddress 远程地址
+     * @param config        session配置信息
      * @return future 如果想消除同步，添加监听器时请绑定EventLoop
      */
     ListenableFuture<Session> connectWS(long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress, String websocketUrl,
-                                        @Nonnull ProtocolCodec codec,
-                                        @Nonnull SessionLifecycleAware lifecycleAware,
-                                        @Nonnull ProtocolDispatcher protocolDispatcher);
+                                        @Nonnull SocketSessionConfig config);
 
 
     // -------------------------------------- 用于支持JVM内部通信 -------------------------------

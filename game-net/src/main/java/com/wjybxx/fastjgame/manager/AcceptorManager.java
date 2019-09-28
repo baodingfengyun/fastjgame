@@ -50,12 +50,10 @@ public class AcceptorManager {
 
     private static final Logger logger = LoggerFactory.getLogger(AcceptorManager.class);
 
-    private final NetConfigManager netConfigManager;
     private final NettyThreadManager nettyThreadManager;
 
     @Inject
-    public AcceptorManager(NetConfigManager netConfigManager, NettyThreadManager nettyThreadManager) {
-        this.netConfigManager = netConfigManager;
+    public AcceptorManager(NettyThreadManager nettyThreadManager) {
         this.nettyThreadManager = nettyThreadManager;
     }
 
@@ -69,7 +67,7 @@ public class AcceptorManager {
      * @param initializer channel初始化类，根据使用的协议(eg:tcp,ws) 和 序列化方式(eg:json,protoBuf)确定
      * @return 监听成功成功则返回绑定的地址，失败则返回null
      */
-    public DefaultSocketPort bind(String host, int port, ChannelInitializer<SocketChannel> initializer) throws BindException {
+    public DefaultSocketPort bind(String host, int port, int sndBuffer, int rcvBuffer, ChannelInitializer<SocketChannel> initializer) throws BindException {
         ServerBootstrap serverBootstrap = new ServerBootstrap();
         serverBootstrap.group(nettyThreadManager.getBossGroup(), nettyThreadManager.getWorkerGroup());
 
@@ -77,14 +75,14 @@ public class AcceptorManager {
         serverBootstrap.childHandler(initializer);
 
         // parentGroup参数
-        serverBootstrap.option(ChannelOption.SO_BACKLOG, 400);
+        serverBootstrap.option(ChannelOption.SO_BACKLOG, 1024);
         serverBootstrap.option(ChannelOption.SO_REUSEADDR, true);
 
         // childGroup参数
         serverBootstrap.childOption(ChannelOption.SO_KEEPALIVE, false);
         serverBootstrap.childOption(ChannelOption.TCP_NODELAY, true);
-        serverBootstrap.childOption(ChannelOption.SO_SNDBUF, netConfigManager.sndBufferAsServer());
-        serverBootstrap.childOption(ChannelOption.SO_RCVBUF, netConfigManager.revBufferAsServer());
+        serverBootstrap.childOption(ChannelOption.SO_SNDBUF, sndBuffer);
+        serverBootstrap.childOption(ChannelOption.SO_RCVBUF, rcvBuffer);
         serverBootstrap.childOption(ChannelOption.SO_LINGER, 0);
         serverBootstrap.childOption(ChannelOption.SO_REUSEADDR, true);
 
@@ -112,7 +110,7 @@ public class AcceptorManager {
      * @param initializer channel初始化类
      * @return 监听成功的端口号，失败返回null
      */
-    public DefaultSocketPort bindRange(String host, PortRange portRange, ChannelInitializer<SocketChannel> initializer) throws BindException {
+    public DefaultSocketPort bindRange(String host, PortRange portRange, int sndBuffer, int rcvBuffer, ChannelInitializer<SocketChannel> initializer) throws BindException {
         if (portRange.startPort <= 0) {
             throw new IllegalArgumentException("fromPort " + portRange.startPort);
         }
@@ -121,7 +119,7 @@ public class AcceptorManager {
         }
         for (int port = portRange.startPort; port <= portRange.endPort; port++) {
             try {
-                return bind(host, port, initializer);
+                return bind(host, port, sndBuffer, rcvBuffer, initializer);
             } catch (BindException e) {
                 // ignore
             }
@@ -138,7 +136,7 @@ public class AcceptorManager {
      * 使用{@link ChannelFuture#await()} 和{@link ChannelFuture#isSuccess()} 安全处理。
      * 此外，使用channel 需要调用 {@link Channel#isActive()}检查是否成功和远程建立连接
      */
-    public ChannelFuture connectAsyn(HostAndPort hostAndPort, ChannelInitializer<SocketChannel> initializer) {
+    public ChannelFuture connectAsyn(HostAndPort hostAndPort, int sndBuffer, int rcvBuffer, ChannelInitializer<SocketChannel> initializer) {
         Bootstrap bootstrap = new Bootstrap();
         bootstrap.group(nettyThreadManager.getWorkerGroup());
 
@@ -147,8 +145,8 @@ public class AcceptorManager {
 
         bootstrap.option(ChannelOption.SO_KEEPALIVE, false);
         bootstrap.option(ChannelOption.TCP_NODELAY, true);
-        bootstrap.option(ChannelOption.SO_SNDBUF, netConfigManager.sndBufferAsClient());
-        bootstrap.option(ChannelOption.SO_RCVBUF, netConfigManager.revBufferAsClient());
+        bootstrap.option(ChannelOption.SO_SNDBUF, sndBuffer);
+        bootstrap.option(ChannelOption.SO_RCVBUF, rcvBuffer);
         bootstrap.option(ChannelOption.SO_LINGER, 0);
         bootstrap.option(ChannelOption.SO_REUSEADDR, true);
         return bootstrap.connect(hostAndPort.getHost(), hostAndPort.getPort());
@@ -161,8 +159,8 @@ public class AcceptorManager {
      * @param initializer channel初始化类，根据使用的协议(eg:tcp,ws) 和 序列化方式(eg:json,protoBuf)确定
      * @return 注意！使用channel 需要调用 {@link Channel#isActive()}检查是否成功和远程建立连接
      */
-    public Channel connectSyn(HostAndPort hostAndPort, ChannelInitializer<SocketChannel> initializer) {
-        ChannelFuture channelFuture = connectAsyn(hostAndPort, initializer);
+    public Channel connectSyn(HostAndPort hostAndPort, int sndBuffer, int rcvBuffer, ChannelInitializer<SocketChannel> initializer) {
+        ChannelFuture channelFuture = connectAsyn(hostAndPort, sndBuffer, rcvBuffer, initializer);
         channelFuture.awaitUninterruptibly();
         return channelFuture.channel();
     }

@@ -19,6 +19,8 @@ package com.wjybxx.fastjgame.net.task;
 import com.wjybxx.fastjgame.net.Session;
 
 /**
+ * 单向消息发送任务
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/9/26

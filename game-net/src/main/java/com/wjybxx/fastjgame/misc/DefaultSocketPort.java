@@ -28,13 +28,7 @@ import io.netty.channel.Channel;
  */
 public class DefaultSocketPort implements SocketPort {
 
-    /**
-     * 绑定到的channel
-     */
     private final Channel channel;
-    /**
-     * 成功绑定的端口
-     */
     private final HostAndPort hostAndPort;
 
     public DefaultSocketPort(Channel channel, HostAndPort hostAndPort) {
@@ -51,4 +45,5 @@ public class DefaultSocketPort implements SocketPort {
     public void close() {
         channel.close();
     }
+
 }

@@ -17,12 +17,9 @@
 package com.wjybxx.fastjgame.net.socket.ordered;
 
 import com.wjybxx.fastjgame.manager.NetEventManager;
-import com.wjybxx.fastjgame.misc.PortContext;
+import com.wjybxx.fastjgame.misc.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.ProtocolCodec;
-import com.wjybxx.fastjgame.net.socket.ConnectRequest;
-import com.wjybxx.fastjgame.net.socket.ConnectRequestEvent;
-import com.wjybxx.fastjgame.net.socket.ConnectResponse;
-import com.wjybxx.fastjgame.net.socket.NetMessageType;
+import com.wjybxx.fastjgame.net.socket.*;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
@@ -49,14 +46,17 @@ public class OrderedServerCodec extends OrderedBaseCodec {
      * 缓存的客户端guid，关联的远程
      */
     private long clientGuid = Long.MIN_VALUE;
+    /**
+     * 新建立的连接的生命周期通知器
+     */
+    private final SessionLifecycleAware lifecycleAware;
 
-    private final PortContext portContext;
     private final NetEventManager netEventManager;
 
-    public OrderedServerCodec(ProtocolCodec codec, long localGuid, PortContext portContext, NetEventManager netEventManager) {
+    public OrderedServerCodec(ProtocolCodec codec, long localGuid, SessionLifecycleAware lifecycleAware, NetEventManager netEventManager) {
         super(codec);
         this.localGuid = localGuid;
-        this.portContext = portContext;
+        this.lifecycleAware = lifecycleAware;
         this.netEventManager = netEventManager;
     }
 
@@ -123,7 +123,7 @@ public class OrderedServerCodec extends OrderedBaseCodec {
      */
     private void tryReadConnectRequest(ChannelHandlerContext ctx, ByteBuf msg) {
         ConnectRequest connectRequest = readConnectRequest(msg);
-        ConnectRequestEvent connectRequestEventParam = new ConnectRequestEvent(ctx.channel(), localGuid, portContext, connectRequest);
+        ConnectRequestEvent connectRequestEventParam = new ConnectRequestEvent(ctx.channel(), localGuid, lifecycleAware, connectRequest);
         netEventManager.fireConnectRequest(connectRequestEventParam);
 
         if (!isInited()) {

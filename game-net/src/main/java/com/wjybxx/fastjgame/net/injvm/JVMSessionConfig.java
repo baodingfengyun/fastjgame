@@ -26,6 +26,21 @@ import com.wjybxx.fastjgame.net.SessionConfig;
  * date - 2019/9/26
  * github - https://github.com/hl845740757
  */
-public interface JVMSessionConfig extends SessionConfig {
+public final class JVMSessionConfig extends SessionConfig {
 
+    private JVMSessionConfig(JVMSessionConfigBuilder builder) {
+        super(builder);
+    }
+
+    public static JVMSessionConfigBuilder newBuilder() {
+        return new JVMSessionConfigBuilder();
+    }
+
+    public static class JVMSessionConfigBuilder extends SessionConfigBuilder<JVMSessionConfigBuilder> {
+
+        @Override
+        public JVMSessionConfig build() {
+            return new JVMSessionConfig(this);
+        }
+    }
 }

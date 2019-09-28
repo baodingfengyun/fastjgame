@@ -16,6 +16,9 @@
 
 package com.wjybxx.fastjgame.misc;
 
+import com.wjybxx.fastjgame.net.ProtocolCodec;
+import com.wjybxx.fastjgame.net.ProtocolDispatcher;
+
 import java.io.Closeable;
 
 /**

@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.net.socket;
 
 import com.wjybxx.fastjgame.manager.NetEventManager;
-import com.wjybxx.fastjgame.net.ProtocolCodec;
 import com.wjybxx.fastjgame.net.socket.ordered.OrderedClientCodec;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -42,24 +41,20 @@ public class TCPClientChannelInitializer extends ChannelInitializer<SocketChanne
      */
     private final long localGuid;
     private final long serverGuid;
-
-    private final int maxFrameLength;
-    private final ProtocolCodec codec;
+    private final SocketSessionConfig config;
     private final NetEventManager netEventManager;
 
-    public TCPClientChannelInitializer(long localGuid, long serverGuid, int maxFrameLength,
-                                       ProtocolCodec codec, NetEventManager netEventManager) {
+    public TCPClientChannelInitializer(long localGuid, long serverGuid, SocketSessionConfig config, NetEventManager netEventManager) {
         this.localGuid = localGuid;
         this.serverGuid = serverGuid;
-        this.maxFrameLength = maxFrameLength;
+        this.config = config;
         this.netEventManager = netEventManager;
-        this.codec = codec;
     }
 
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
-        pipeline.addLast(new LengthFieldBasedFrameDecoder(maxFrameLength, 0, 4, 0, 4));
-        pipeline.addLast(new OrderedClientCodec(codec, localGuid, serverGuid, netEventManager));
+        pipeline.addLast(new LengthFieldBasedFrameDecoder(config.maxFrameLength(), 0, 4, 0, 4));
+        pipeline.addLast(new OrderedClientCodec(config.codec(), localGuid, serverGuid, netEventManager));
     }
 }

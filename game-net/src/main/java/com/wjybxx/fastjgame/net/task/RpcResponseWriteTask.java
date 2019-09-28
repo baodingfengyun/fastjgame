@@ -20,6 +20,8 @@ import com.wjybxx.fastjgame.net.RpcResponse;
 import com.wjybxx.fastjgame.net.Session;
 
 /**
+ * rpc响应发送任务
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/9/26

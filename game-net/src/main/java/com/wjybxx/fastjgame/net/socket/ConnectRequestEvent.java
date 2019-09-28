@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.net.socket;
 
 import com.wjybxx.fastjgame.misc.PortContext;
+import com.wjybxx.fastjgame.misc.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.RoleType;
 import io.netty.channel.Channel;
 
@@ -30,20 +31,20 @@ import io.netty.channel.Channel;
  */
 public class ConnectRequestEvent implements SocketEvent {
 
-    private Channel channel;
-    private long localGuid;
-    private PortContext portContext;
-    private ConnectRequest connectRequest;
+    private final Channel channel;
+    private final long localGuid;
+    private final SessionLifecycleAware lifecycleAware;
+    private final ConnectRequest connectRequest;
 
-    public ConnectRequestEvent(Channel channel, long localGuid, PortContext portContext, ConnectRequest connectRequest) {
+    public ConnectRequestEvent(Channel channel, long localGuid, SessionLifecycleAware lifecycleAware, ConnectRequest connectRequest) {
         this.localGuid = localGuid;
         this.channel = channel;
-        this.portContext = portContext;
+        this.lifecycleAware = lifecycleAware;
         this.connectRequest = connectRequest;
     }
 
-    public PortContext getPortContext() {
-        return portContext;
+    public SessionLifecycleAware getLifecycleAware() {
+        return lifecycleAware;
     }
 
     public long getClientGuid() {

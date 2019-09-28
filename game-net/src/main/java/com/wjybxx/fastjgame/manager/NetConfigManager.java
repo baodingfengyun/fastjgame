@@ -46,17 +46,12 @@ public class NetConfigManager {
     private final ConfigWrapper configWrapper;
 
     private final int nettyIOThreadNum;
-    private final int maxFrameLength;
-    private final int sndBufferAsServer;
-    private final int revBufferAsServer;
-    private final int sndBufferAsClient;
-    private final int revBufferAsClient;
 
     private final int connectMaxTryTimes;
     private final int connectTimeout;
     private final int waitVerifyResultTimeout;
     private final int ackTimeout;
-    private final int sessionTimeout;
+
 
     private final int serverMaxCacheNum;
     private final int clientMaxCacheNum;
@@ -66,19 +61,11 @@ public class NetConfigManager {
     private final int httpRequestTimeout;
     private final int httpSessionTimeout;
 
-    private final int rpcCallbackTimeoutMs;
-    private final int syncRpcTimeoutMs;
-
     @Inject
     public NetConfigManager() throws IOException {
         configWrapper = ConfigLoader.loadConfig(NetConfigManager.class.getClassLoader(), NET_CONFIG_NAME);
 
         nettyIOThreadNum = configWrapper.getAsInt("nettyIOThreadNum");
-        maxFrameLength = configWrapper.getAsInt("maxFrameLength");
-        sndBufferAsServer = configWrapper.getAsInt("sndBufferAsServer");
-        revBufferAsServer = configWrapper.getAsInt("revBufferAsServer");
-        sndBufferAsClient = configWrapper.getAsInt("sndBufferAsClient");
-        revBufferAsClient = configWrapper.getAsInt("revBufferAsClient");
 
         serverMaxCacheNum = configWrapper.getAsInt("serverMaxCacheNum");
         clientMaxCacheNum = configWrapper.getAsInt("clientMaxCacheNum");
@@ -89,13 +76,9 @@ public class NetConfigManager {
         connectTimeout = configWrapper.getAsInt("connectTimeout");
         waitVerifyResultTimeout = configWrapper.getAsInt("waitVerifyResultTimeout");
         ackTimeout = configWrapper.getAsInt("ackTimeout");
-        sessionTimeout = configWrapper.getAsInt("sessionTimeout");
 
         httpRequestTimeout = configWrapper.getAsInt("httpRequestTimeout");
         httpSessionTimeout = configWrapper.getAsInt("httpSessionTimeout");
-
-        rpcCallbackTimeoutMs = configWrapper.getAsInt("rpcCallbackTimeoutMs");
-        syncRpcTimeoutMs = configWrapper.getAsInt("syncRpcTimeoutMs");
     }
 
     /**
@@ -112,40 +95,6 @@ public class NetConfigManager {
         return nettyIOThreadNum;
     }
 
-    /**
-     * 最大帧长度
-     */
-    public int maxFrameLength() {
-        return maxFrameLength;
-    }
-
-    /**
-     * 作为服务器时的发送缓冲区
-     */
-    public int sndBufferAsServer() {
-        return sndBufferAsServer;
-    }
-
-    /**
-     * 作为服务器时的接收缓冲区
-     */
-    public int revBufferAsServer() {
-        return revBufferAsServer;
-    }
-
-    /**
-     * 作为客户端时的发送缓冲区
-     */
-    public int sndBufferAsClient() {
-        return sndBufferAsClient;
-    }
-
-    /**
-     * 作为客户端时的接收缓冲区
-     */
-    public int revBufferAsClient() {
-        return revBufferAsClient;
-    }
 
     /**
      * 获取服务器最大可缓存消息数
@@ -159,13 +108,6 @@ public class NetConfigManager {
      */
     public int clientMaxCacheNum() {
         return clientMaxCacheNum;
-    }
-
-    /**
-     * 异步通信会话超时时间(秒)
-     */
-    public int sessionTimeout() {
-        return sessionTimeout;
     }
 
     /**
@@ -209,20 +151,6 @@ public class NetConfigManager {
      */
     public int httpSessionTimeout() {
         return httpSessionTimeout;
-    }
-
-    /**
-     * rpc异步回调超时时间(毫秒)
-     */
-    public int rpcCallbackTimeoutMs() {
-        return rpcCallbackTimeoutMs;
-    }
-
-    /**
-     * 同步rpc调用超时时间(毫秒)
-     */
-    public int syncRpcTimeoutMs() {
-        return syncRpcTimeoutMs;
     }
 
     /**

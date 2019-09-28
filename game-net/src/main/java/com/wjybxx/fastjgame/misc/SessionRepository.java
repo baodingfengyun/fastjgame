@@ -53,7 +53,9 @@ public class SessionRepository {
      * @param session 待注册的session
      */
     public void registerSession(Session session) {
-        assert getSession(session.localGuid(), session.remoteGuid()) == null;
+        if (getSession(session.localGuid(), session.remoteGuid()) != null) {
+            throw new IllegalArgumentException("session " + session.localGuid() + " - " + session.remoteGuid() + " already registered");
+        }
         final Long2ObjectMap<Session> sessionMap = guid_guid_session_map.computeIfAbsent(session.localGuid(),
                 k -> new Long2ObjectOpenHashMap<>());
         sessionMap.put(session.remoteGuid(), session);

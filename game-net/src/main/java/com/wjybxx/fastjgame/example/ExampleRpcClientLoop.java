@@ -27,9 +27,9 @@ import com.wjybxx.fastjgame.misc.RpcBuilder;
 import com.wjybxx.fastjgame.misc.SessionDisconnectAware;
 import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.net.Session;
-import com.wjybxx.fastjgame.net.injvm.DefaultJVMSessionConfig;
 import com.wjybxx.fastjgame.net.injvm.JVMPort;
 import com.wjybxx.fastjgame.net.injvm.JVMSessionConfig;
+import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.TimeUtils;
 
@@ -69,7 +69,7 @@ public class ExampleRpcClientLoop extends DisruptorEventLoop {
         netContext = ExampleConstants.netEventLoop.createContext(ExampleConstants.clientGuid, ExampleConstants.clientRole, this).get();
 
         if (jvmPort != null) {
-            JVMSessionConfig config = DefaultJVMSessionConfig.newBuilder()
+            JVMSessionConfig config = JVMSessionConfig.newBuilder()
                     .setCodec(ExampleConstants.reflectBasedCodec)
                     .setLifecycleAware(new ServerDisconnectAward())
                     .setDispatcher(new DefaultProtocolDispatcher())
@@ -79,11 +79,15 @@ public class ExampleRpcClientLoop extends DisruptorEventLoop {
         } else {
             // 必须先启动服务器
             final HostAndPort address = new HostAndPort(NetUtils.getLocalIp(), ExampleConstants.tcpPort);
-            session = netContext.connectTcp(ExampleConstants.serverGuid, ExampleConstants.serverRole, address,
-                    ExampleConstants.reflectBasedCodec,
-                    new ServerDisconnectAward(),
-                    new DefaultProtocolDispatcher()
-            ).get();
+
+            SocketSessionConfig config = SocketSessionConfig.newBuilder()
+                    .setCodec(ExampleConstants.reflectBasedCodec)
+                    .setLifecycleAware(new ServerDisconnectAward())
+                    .setDispatcher(new DefaultProtocolDispatcher())
+                    .build();
+
+            session = netContext.connectTcp(ExampleConstants.serverGuid, ExampleConstants.serverRole, address,config)
+                    .get();
         }
         startTime = System.currentTimeMillis();
     }

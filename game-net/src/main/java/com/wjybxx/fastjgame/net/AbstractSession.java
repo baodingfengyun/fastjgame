@@ -183,5 +183,4 @@ public abstract class AbstractSession implements Session {
             throw new IllegalStateException("internal api");
         }
     }
-
 }

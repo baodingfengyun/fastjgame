@@ -17,8 +17,7 @@
 package com.wjybxx.fastjgame.net.ws;
 
 import com.wjybxx.fastjgame.manager.NetEventManager;
-import com.wjybxx.fastjgame.misc.PortContext;
-import com.wjybxx.fastjgame.net.ProtocolCodec;
+import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
 import com.wjybxx.fastjgame.net.socket.ordered.OrderedServerCodec;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -47,19 +46,17 @@ public class WsServerChannelInitializer extends ChannelInitializer<SocketChannel
      * url路径(eg: "http://127.0.0.1:8888/ws" 中的 /ws )
      */
     private final String websocketPath;
-    private final int maxFrameLength;
-    private final ProtocolCodec codec;
-    private final PortContext portContext;
+    /**
+     * session配置信息
+     */
+    private final SocketSessionConfig config;
     private final NetEventManager netEventManager;
 
-    public WsServerChannelInitializer(long localGuid, String websocketPath, int maxFrameLength,
-                                      ProtocolCodec codec, PortContext portContext, NetEventManager netEventManager) {
+    public WsServerChannelInitializer(long localGuid, String websocketPath, SocketSessionConfig config, NetEventManager netEventManager) {
         this.localGuid = localGuid;
         this.websocketPath = websocketPath;
-        this.maxFrameLength = maxFrameLength;
-        this.portContext = portContext;
+        this.config = config;
         this.netEventManager = netEventManager;
-        this.codec = codec;
     }
 
     /**
@@ -99,7 +96,7 @@ public class WsServerChannelInitializer extends ChannelInitializer<SocketChannel
     }
 
     private void appendCustomProtocolCodec(ChannelPipeline pipeline) {
-        pipeline.addLast(new LengthFieldBasedFrameDecoder(maxFrameLength, 0, 4, 0, 4));
-        pipeline.addLast(new OrderedServerCodec(codec, localGuid, portContext, netEventManager));
+        pipeline.addLast(new LengthFieldBasedFrameDecoder(config.maxFrameLength(), 0, 4, 0, 4));
+        pipeline.addLast(new OrderedServerCodec(config.codec(), localGuid, config.lifecycleAware(), netEventManager));
     }
 }

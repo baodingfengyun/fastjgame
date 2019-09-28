@@ -18,6 +18,9 @@ package com.wjybxx.fastjgame.net;
 
 import com.wjybxx.fastjgame.misc.SessionLifecycleAware;
 
+import javax.annotation.Nonnull;
+import java.util.Objects;
+
 /**
  * sesion的一些配置
  *
@@ -26,36 +29,140 @@ import com.wjybxx.fastjgame.misc.SessionLifecycleAware;
  * date - 2019/9/26
  * github - https://github.com/hl845740757
  */
-public interface SessionConfig {
+public class SessionConfig {
+
+    private final SessionLifecycleAware lifecycleAware;
+    private final ProtocolCodec codec;
+    private final ProtocolDispatcher dispatcher;
+    private final int sessionTimeoutMs;
+    private final int rpcCallbackTimeoutMs;
+    private final int syncRpcTimeoutMs;
+
+    protected SessionConfig(SessionConfigBuilder builder) {
+        this.lifecycleAware = builder.lifecycleAware;
+        this.codec = builder.protocolCodec;
+        this.dispatcher = builder.protocolDispatcher;
+        this.sessionTimeoutMs = builder.sessionTimeoutMs;
+        this.rpcCallbackTimeoutMs = builder.rpcCallbackTimeoutMs;
+        this.syncRpcTimeoutMs = builder.syncRpcTimeoutMs;
+    }
 
     /**
      * @return 生命周期回调
      */
-    SessionLifecycleAware lifecycleAware();
+    public SessionLifecycleAware lifecycleAware() {
+        return lifecycleAware;
+    }
 
     /**
      * @return 协议内容编解码器
      */
-    ProtocolCodec codec();
+    public ProtocolCodec codec() {
+        return codec;
+    }
 
     /**
      * @return 协议内容分发器
      */
-    ProtocolDispatcher dispatcher();
+    public ProtocolDispatcher dispatcher() {
+        return dispatcher;
+    }
+
 
     /**
      * @return 会话超时时间，毫秒
      */
-    int getSessionTimeoutMs();
+    public int getSessionTimeoutMs() {
+        return sessionTimeoutMs;
+    }
 
     /**
      * @return 异步rpc调用超时时间，毫秒
      */
-    int getRpcCallbackTimeoutMs();
+    public int getRpcCallbackTimeoutMs() {
+        return rpcCallbackTimeoutMs;
+    }
 
     /**
      * @return 同步rpc调用超时时间，毫秒
      */
-    int getSyncRpcTimeoutMs();
+    public int getSyncRpcTimeoutMs() {
+        return syncRpcTimeoutMs;
+    }
+
+    public static SessionConfigBuilder newBuilder() {
+        return new SessionConfigBuilder();
+    }
+
+    public static class SessionConfigBuilder<T extends SessionConfigBuilder<T>> {
+
+        private SessionLifecycleAware lifecycleAware;
+        private ProtocolCodec protocolCodec;
+        private ProtocolDispatcher protocolDispatcher;
+        private int sessionTimeoutMs = 60 * 1000;
+        private int rpcCallbackTimeoutMs = 15 * 1000;
+        private int syncRpcTimeoutMs = 5 * 1000;
+
+        public T setLifecycleAware(@Nonnull SessionLifecycleAware lifecycleAware) {
+            this.lifecycleAware = lifecycleAware;
+            return self();
+        }
+
+        public T setCodec(@Nonnull ProtocolCodec protocolCodec) {
+            this.protocolCodec = protocolCodec;
+            return self();
+        }
+
+        public T setDispatcher(@Nonnull ProtocolDispatcher protocolDispatcher) {
+            this.protocolDispatcher = protocolDispatcher;
+            return self();
+        }
+
+        public T setSessionTimeoutMs(int sessionTimeoutMs) {
+            checkPositive(sessionTimeoutMs, "sessionTimeoutMs");
+            this.sessionTimeoutMs = sessionTimeoutMs;
+            return self();
+        }
+
+        public T setRpcCallbackTimeoutMs(int rpcCallbackTimeoutMs) {
+            checkPositive(rpcCallbackTimeoutMs, "rpcCallbackTimeoutMs");
+            this.rpcCallbackTimeoutMs = rpcCallbackTimeoutMs;
+            return self();
+        }
+
+        public T setSyncRpcTimeoutMs(int syncRpcTimeoutMs) {
+            checkPositive(rpcCallbackTimeoutMs, "syncRpcTimeoutMs");
+            this.syncRpcTimeoutMs = syncRpcTimeoutMs;
+            return self();
+        }
+
+        public SessionConfig build() {
+            checkParams();
+            return new SessionConfig(this);
+        }
+
+        protected void checkParams() {
+            Objects.requireNonNull(lifecycleAware, "lifecycleAware");
+            Objects.requireNonNull(protocolCodec, "protocolCodec");
+            Objects.requireNonNull(protocolDispatcher, "protocolDispatcher");
+        }
+
+        @SuppressWarnings("unchecked")
+        protected final T self() {
+            return (T) this;
+        }
+
+        /**
+         * 检查一个数是否是正数
+         *
+         * @param param 参数
+         * @param msg   信息
+         */
+        public static void checkPositive(int param, String msg) {
+            if (param <= 0) {
+                throw new IllegalArgumentException(msg + " must greater than zero");
+            }
+        }
+    }
 
 }

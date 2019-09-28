@@ -25,6 +25,7 @@ import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.SessionDisconnectAware;
 import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.net.http.OkHttpCallback;
+import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.TimeUtils;
@@ -70,8 +71,13 @@ public class EchoClientLoop extends SingleThreadEventLoop {
         netContext = netGroup.createContext(ExampleConstants.clientGuid, ExampleConstants.clientRole, this).get();
         // 必须先启动服务器
         final HostAndPort address = new HostAndPort(NetUtils.getLocalIp(), ExampleConstants.tcpPort);
-        session = netContext.connectTcp(ExampleConstants.serverGuid, ExampleConstants.serverRole, address,
-                ExampleConstants.jsonBasedCodec, new ServerDisconnectAware(), new EchoProtocolDispatcher())
+        SocketSessionConfig config = SocketSessionConfig.newBuilder()
+                .setCodec(ExampleConstants.jsonBasedCodec)
+                .setLifecycleAware(new ServerDisconnectAware())
+                .setDispatcher(new EchoProtocolDispatcher())
+                .build();
+
+        session = netContext.connectTcp(ExampleConstants.serverGuid, ExampleConstants.serverRole, address, config)
                 .get();
     }
 

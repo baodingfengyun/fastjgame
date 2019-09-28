@@ -22,8 +22,13 @@ import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.PortRange;
 import com.wjybxx.fastjgame.misc.SessionLifecycleAware;
-import com.wjybxx.fastjgame.net.*;
+import com.wjybxx.fastjgame.net.NetContext;
+import com.wjybxx.fastjgame.net.ProtocolCodec;
+import com.wjybxx.fastjgame.net.RoleType;
 import com.wjybxx.fastjgame.net.injvm.JVMPort;
+import com.wjybxx.fastjgame.net.injvm.JVMSessionConfig;
+import com.wjybxx.fastjgame.net.socket.SocketPort;
+import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
 import com.wjybxx.fastjgame.utils.GameUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.SystemUtils;
@@ -65,8 +70,8 @@ public class InnerAcceptorMrg {
     }
 
     public void bindInnerJvmPort(SessionLifecycleAware lifecycleAware) throws ExecutionException, InterruptedException {
-        final ListenableFuture<JVMPort> jvmPortFuture = netContextMrg.getNetContext().bindInJVM(getInnerProtocolCodec(),
-                lifecycleAware, protocolDispatcherMrg);
+        JVMSessionConfig config = newJVMSessionConfig(lifecycleAware);
+        final ListenableFuture<JVMPort> jvmPortFuture = netContextMrg.getNetContext().bindInJVM(config);
         final JVMPort jvmPort = jvmPortFuture.get();
         jvmPortMrg.register(worldInfoMrg.getWorldGuid(), jvmPort);
     }
@@ -78,10 +83,10 @@ public class InnerAcceptorMrg {
     private HostAndPort bindTcpPort(String host, PortRange portRange, SessionLifecycleAware lifecycleAware) throws ExecutionException, InterruptedException {
         NetContext netContext = netContextMrg.getNetContext();
 
-        ListenableFuture<HostAndPort> bindFuture = netContext.bindTcpRange(host, portRange,
-                getInnerProtocolCodec(), lifecycleAware, protocolDispatcherMrg);
+        ListenableFuture<SocketPort> bindFuture = netContext.bindTcpRange(host, portRange,
+                newSocketSessionConfig(lifecycleAware));
 
-        return bindFuture.get();
+        return bindFuture.get().getHostAndPort();
     }
 
     public HostAndPort bindLocalTcpPort(SessionLifecycleAware lifecycleAware) throws ExecutionException, InterruptedException {
@@ -99,7 +104,8 @@ public class InnerAcceptorMrg {
         final JVMPort jvmPort = jvmPortMrg.getJVMPort(remoteGuid);
         if (null != jvmPort) {
             // 两个world在同一个进程内
-            netContextMrg.getNetContext().connectInJVM(jvmPort, lifecycleAware, protocolDispatcherMrg);
+            JVMSessionConfig config = newJVMSessionConfig(lifecycleAware);
+            netContextMrg.getNetContext().connectInJVM(jvmPort, config);
             return;
         }
         if (Objects.equals(macAddress, SystemUtils.getMAC())) {
@@ -112,8 +118,24 @@ public class InnerAcceptorMrg {
     }
 
     private void connectTcp(long remoteGuid, RoleType remoteRole, HostAndPort hostAndPort, SessionLifecycleAware lifecycleAware) {
-        netContextMrg.getNetContext().connectTcp(remoteGuid, remoteRole, hostAndPort, getInnerProtocolCodec(),
-                lifecycleAware, protocolDispatcherMrg);
+        netContextMrg.getNetContext().connectTcp(remoteGuid, remoteRole, hostAndPort,
+                newSocketSessionConfig(lifecycleAware));
+    }
+
+    public SocketSessionConfig newSocketSessionConfig(SessionLifecycleAware lifecycleAware) {
+        return SocketSessionConfig.newBuilder()
+                .setCodec(getInnerProtocolCodec())
+                .setLifecycleAware(lifecycleAware)
+                .setDispatcher(protocolDispatcherMrg)
+                .build();
+    }
+
+    public JVMSessionConfig newJVMSessionConfig(SessionLifecycleAware lifecycleAware) {
+        return JVMSessionConfig.newBuilder()
+                .setCodec(getInnerProtocolCodec())
+                .setLifecycleAware(lifecycleAware)
+                .setDispatcher(protocolDispatcherMrg)
+                .build();
     }
 
     @Nonnull

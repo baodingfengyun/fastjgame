@@ -17,13 +17,13 @@
 package com.wjybxx.fastjgame.net.socket;
 
 import com.wjybxx.fastjgame.manager.NetEventManager;
-import com.wjybxx.fastjgame.misc.PortContext;
-import com.wjybxx.fastjgame.net.ProtocolCodec;
 import com.wjybxx.fastjgame.net.socket.ordered.OrderedServerCodec;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * 服务器channel初始化器示例
@@ -33,30 +33,26 @@ import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
  * date - 2019/4/27 22:17
  * github - https://github.com/hl845740757
  */
+@ThreadSafe
 public class TCPServerChannelInitializer extends ChannelInitializer<SocketChannel> {
 
     /**
      * 本地发起监听的角色guid
      */
     private final long localGuid;
-    private final int maxFrameLength;
-    private final ProtocolCodec codec;
-    private final PortContext portContext;
+    private final SocketSessionConfig config;
     private final NetEventManager netEventManager;
 
-    public TCPServerChannelInitializer(long localGuid, int maxFrameLength, ProtocolCodec codec,
-                                       PortContext portContext, NetEventManager netEventManager) {
+    public TCPServerChannelInitializer(long localGuid, SocketSessionConfig config, NetEventManager netEventManager) {
         this.localGuid = localGuid;
-        this.maxFrameLength = maxFrameLength;
-        this.portContext = portContext;
+        this.config = config;
         this.netEventManager = netEventManager;
-        this.codec = codec;
     }
 
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
-        pipeline.addLast(new LengthFieldBasedFrameDecoder(maxFrameLength, 0, 4, 0, 4));
-        pipeline.addLast(new OrderedServerCodec(codec, localGuid, portContext, netEventManager));
+        pipeline.addLast(new LengthFieldBasedFrameDecoder(config.maxFrameLength(), 0, 4, 0, 4));
+        pipeline.addLast(new OrderedServerCodec(config.codec(), localGuid, config.lifecycleAware(), netEventManager));
     }
 }

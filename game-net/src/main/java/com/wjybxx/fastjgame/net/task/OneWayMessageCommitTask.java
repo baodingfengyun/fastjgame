@@ -19,7 +19,7 @@ import com.wjybxx.fastjgame.net.ProtocolDispatcher;
 import com.wjybxx.fastjgame.net.Session;
 
 /**
- * 单向消息任务
+ * 单向消息提交任务
  *
  * @author wjybxx
  * @version 1.0

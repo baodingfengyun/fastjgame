@@ -19,7 +19,7 @@ import com.wjybxx.fastjgame.net.RpcCallback;
 import com.wjybxx.fastjgame.net.RpcResponse;
 
 /**
- * rpc响应任务
+ * rpc响应提交任务
  *
  * @author wjybxx
  * @version 1.0

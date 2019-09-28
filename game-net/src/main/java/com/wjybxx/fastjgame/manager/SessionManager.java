@@ -22,20 +22,18 @@ import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.PortRange;
-import com.wjybxx.fastjgame.misc.SessionLifecycleAware;
 import com.wjybxx.fastjgame.misc.SessionRepository;
-import com.wjybxx.fastjgame.net.NetContext;
-import com.wjybxx.fastjgame.net.ProtocolDispatcher;
-import com.wjybxx.fastjgame.net.RoleType;
-import com.wjybxx.fastjgame.net.Session;
+import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.net.handler.OneWaySupportHandler;
 import com.wjybxx.fastjgame.net.handler.RpcSupportHandler;
 import com.wjybxx.fastjgame.net.handler.SessionLifeCycleAwareHandler;
 import com.wjybxx.fastjgame.net.injvm.*;
-import com.wjybxx.fastjgame.net.socket.ChannelInitializerSupplier;
 import com.wjybxx.fastjgame.net.socket.ConnectRequestEvent;
 import com.wjybxx.fastjgame.net.socket.ConnectResponseEvent;
+import com.wjybxx.fastjgame.net.socket.SocketPort;
+import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
 import com.wjybxx.fastjgame.net.socket.ordered.OrderedMessageEvent;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 
@@ -109,18 +107,6 @@ public class SessionManager {
     }
     // ---------------------------------------------------------------
 
-    public HostAndPort bindRange(NetContext netContextImp, String host, PortRange portRange, ChannelInitializer<SocketChannel> initializer) throws BindException {
-        return null;
-    }
-
-    public void connect(NetContext netContext, long remoteGuid, RoleType remoteRole,
-                        HostAndPort remoteAddress, ChannelInitializerSupplier initializerSupplier,
-                        SessionLifecycleAware lifecycleAware,
-                        ProtocolDispatcher protocolDispatcher,
-                        Promise<Session> promise) {
-
-    }
-
 
     public JVMPort bindInJVM(NetContext netContext, JVMSessionConfig config) {
         return new JVMPortImp(netContext, config, this);
@@ -176,6 +162,19 @@ public class SessionManager {
                 .addLast(new RpcSupportHandler())
                 .addLast(new SessionLifeCycleAwareHandler())
                 .fireInit();
+    }
+
+    public void connect(NetContext netContext, long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress,
+                        SocketSessionConfig config, ChannelInitializer<SocketChannel> initializer,
+                        Promise<Session> promise) {
+        ChannelFuture channelFuture = acceptorManager.connectAsyn(remoteAddress, config.sndBuffer(), config.rcvBuffer(), initializer)
+                .syncUninterruptibly();
+
+    }
+
+    public SocketPort bindRange(String host, PortRange portRange, SocketSessionConfig config,
+                                ChannelInitializer<SocketChannel> initializer) throws BindException {
+        return acceptorManager.bindRange(host, portRange, config.sndBuffer(), config.rcvBuffer(), initializer);
     }
 
     private static class JVMPortImp implements JVMPort {

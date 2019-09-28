@@ -20,7 +20,7 @@ import com.wjybxx.fastjgame.net.RpcResponseChannel;
 import com.wjybxx.fastjgame.net.Session;
 
 /**
- * rpc请求任务
+ * rpc请求提交任务
  *
  * @author wjybxx
  * @version 1.0

@@ -27,6 +27,7 @@ import com.wjybxx.fastjgame.net.http.HttpRequestDispatcher;
 import com.wjybxx.fastjgame.net.http.HttpRequestParam;
 import com.wjybxx.fastjgame.net.http.HttpResponseHelper;
 import com.wjybxx.fastjgame.net.http.HttpSession;
+import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.TimeUtils;
 
@@ -62,8 +63,12 @@ public class EchoServerLoop extends SingleThreadEventLoop {
         netContext = netGroup.createContext(ExampleConstants.serverGuid, ExampleConstants.serverRole, this).get();
 
         // 监听tcp端口
+        SocketSessionConfig config = SocketSessionConfig.newBuilder().setCodec(ExampleConstants.jsonBasedCodec)
+                .setLifecycleAware(new ClientLifeAware())
+                .setDispatcher(new EchoProtocolDispatcher())
+                .build();
         netContext.bindTcp(NetUtils.getLocalIp(), ExampleConstants.tcpPort,
-                ExampleConstants.jsonBasedCodec, new ClientLifeAware(), new EchoProtocolDispatcher());
+                config);
 
         // 监听http端口
         netContext.bindHttp(NetUtils.getLocalIp(), ExampleConstants.httpPort, new EchoHttpRequestDispatcher());
