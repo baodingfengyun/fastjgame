@@ -42,12 +42,16 @@ public interface JVMPort {
      * 连接到该JVMPort上。
      * 这样设计的目的：对用户屏蔽底层实现。
      *
-     * @param netContext         用户所属的网络环境
-     * @param lifecycleAware     生命周期监听器
-     * @param protocolDispatcher 消息分发器
+     * @param netContext 用户所属的网络环境
+     * @param config     session 配置新
      * @return future
      */
-    ListenableFuture<Session> connect(@Nonnull NetContext netContext,
-                                      @Nonnull SessionLifecycleAware lifecycleAware,
-                                      @Nonnull ProtocolDispatcher protocolDispatcher);
+    ListenableFuture<Session> connect(@Nonnull NetContext netContext, @Nonnull JVMSessionConfig config);
+
+    /**
+     * 关闭该端口，不可继续建立连接
+     *
+     * @return future
+     */
+    ListenableFuture<?> close();
 }

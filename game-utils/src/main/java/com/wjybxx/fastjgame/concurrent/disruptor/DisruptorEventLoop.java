@@ -497,7 +497,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
             // 删除自己：这是解决生产者死锁问题的关键，生产者一定能从next中醒来
             ringBuffer.removeGatingSequence(sequence);
             // 清理数据，有最大尝试次数，是为了避免长时间无法关闭
-            long startNanoTime = System.nanoTime();
+            long startTimeMillis = System.currentTimeMillis();
             for (int triTimes = 0; triTimes < 100_0000; triTimes++) {
                 try {
                     // 申请整个空间，因此与真正的生产者之间是互斥的！这是关键
@@ -511,7 +511,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
                         break;
                     } finally {
                         ringBuffer.publish(initialSequence, finalSequence);
-                        logger.info("cleanRingBuffer success! tryTimes = {}, cost nanoTime = {}", triTimes, System.nanoTime() - startNanoTime);
+                        logger.info("cleanRingBuffer success! tryTimes = {}, cost timeMillis = {}", triTimes, System.currentTimeMillis() - startTimeMillis);
                     }
                 } catch (InsufficientCapacityException ignore) {
                     // 等待真实的生产者发布数据

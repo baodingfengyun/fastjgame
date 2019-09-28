@@ -14,10 +14,11 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net;
+package com.wjybxx.fastjgame.net.handler;
 
 import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.misc.RpcTimeoutInfo;
+import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.net.task.*;
 import com.wjybxx.fastjgame.utils.CollectionUtils;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
@@ -48,12 +49,17 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
      * 当前会话上的rpc请求
      * (提供顺序保证，先发起的请求先超时)
      */
-    private Long2ObjectMap<RpcTimeoutInfo> rpcTimeoutInfoMap = new Long2ObjectLinkedOpenHashMap<>();
+    private final Long2ObjectMap<RpcTimeoutInfo> rpcTimeoutInfoMap = new Long2ObjectLinkedOpenHashMap<>();
 
-    private final ProtocolDispatcher protocolDispatcher;
+    private ProtocolDispatcher protocolDispatcher;
 
-    public RpcSupportHandler(ProtocolDispatcher protocolDispatcher) {
-        this.protocolDispatcher = protocolDispatcher;
+    public RpcSupportHandler() {
+
+    }
+
+    @Override
+    public void init(SessionHandlerContext ctx) throws Exception {
+        protocolDispatcher = ctx.session().config().dispatcher();
     }
 
     @Override

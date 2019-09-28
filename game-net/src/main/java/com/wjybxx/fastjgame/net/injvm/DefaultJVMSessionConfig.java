@@ -14,46 +14,28 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.socket;
+package com.wjybxx.fastjgame.net.injvm;
 
 import com.wjybxx.fastjgame.misc.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.DefaultSessionConfig;
 import com.wjybxx.fastjgame.net.ProtocolCodec;
 import com.wjybxx.fastjgame.net.ProtocolDispatcher;
 import com.wjybxx.fastjgame.net.SessionConfig;
-import io.netty.channel.ChannelOption;
 
 import javax.annotation.Nonnull;
-import java.util.Collections;
-import java.util.Map;
 
 /**
- * 默认的socketSession的配置
- *
  * @author wjybxx
  * @version 1.0
- * date - 2019/9/27
+ * date - 2019/9/28
  * github - https://github.com/hl845740757
  */
-public class DefaultSocketSessionConfig implements SocketSessionConfig {
+public class DefaultJVMSessionConfig implements JVMSessionConfig {
 
-    /**
-     * 基本配置信息
-     */
     private final SessionConfig parentConfig;
-    /**
-     * channel选项
-     */
-    private final Map<ChannelOption<?>, Object> options;
-    /**
-     * 最大帧长度
-     */
-    private final int maxFrameLength;
 
-    private DefaultSocketSessionConfig(SessionConfig parentConfig, SocketSessionConfigBuilder builder) {
+    public DefaultJVMSessionConfig(SessionConfig parentConfig) {
         this.parentConfig = parentConfig;
-        this.options = Collections.unmodifiableMap(builder.options);
-        this.maxFrameLength = builder.maxFrameLength;
     }
 
     @Override
@@ -86,68 +68,46 @@ public class DefaultSocketSessionConfig implements SocketSessionConfig {
         return parentConfig.getSyncRpcTimeoutMs();
     }
 
-    @Override
-    public Map<ChannelOption<?>, Object> getOptions() {
-        return options;
+    public static JVMSessionConfigBuilder newBuilder() {
+        return new JVMSessionConfigBuilder();
     }
 
-    @Override
-    public int maxFrameLength() {
-        return maxFrameLength;
-    }
-
-    public static SocketSessionConfigBuilder newBuilder() {
-        return new SocketSessionConfigBuilder();
-    }
-
-    public static class SocketSessionConfigBuilder {
+    public static class JVMSessionConfigBuilder {
 
         private final DefaultSessionConfig.SessionConfigBuilder parentBuilder = DefaultSessionConfig.newBuilder();
-        private Map<ChannelOption<?>, Object> options;
-        private int maxFrameLength;
 
-        public SocketSessionConfigBuilder setLifecycleAware(@Nonnull SessionLifecycleAware lifecycleAware) {
+        public JVMSessionConfigBuilder setLifecycleAware(@Nonnull SessionLifecycleAware lifecycleAware) {
             parentBuilder.setLifecycleAware(lifecycleAware);
             return this;
         }
 
-        public SocketSessionConfigBuilder setCodec(@Nonnull ProtocolCodec codec) {
+        public JVMSessionConfigBuilder setCodec(@Nonnull ProtocolCodec codec) {
             parentBuilder.setProtocolCodec(codec);
             return this;
         }
 
-        public SocketSessionConfigBuilder setDispatcher(@Nonnull ProtocolDispatcher dispatcher) {
+        public JVMSessionConfigBuilder setDispatcher(@Nonnull ProtocolDispatcher dispatcher) {
             parentBuilder.setProtocolDispatcher(dispatcher);
             return this;
         }
 
-        public SocketSessionConfigBuilder setSessionTimeoutMs(int sessionTimeoutMs) {
+        public JVMSessionConfigBuilder setSessionTimeoutMs(int sessionTimeoutMs) {
             parentBuilder.setSessionTimeoutMs(sessionTimeoutMs);
             return this;
         }
 
-        public SocketSessionConfigBuilder setRpcCallbackTimeoutMs(int rpcCallbackTimeoutMs) {
+        public JVMSessionConfigBuilder setRpcCallbackTimeoutMs(int rpcCallbackTimeoutMs) {
             parentBuilder.setRpcCallbackTimeoutMs(rpcCallbackTimeoutMs);
             return this;
         }
 
-        public SocketSessionConfigBuilder setSyncRpcTimeoutMs(int syncRpcTimeoutMs) {
+        public JVMSessionConfigBuilder setSyncRpcTimeoutMs(int syncRpcTimeoutMs) {
             parentBuilder.setSyncRpcTimeoutMs(syncRpcTimeoutMs);
             return this;
         }
 
-        public SocketSessionConfigBuilder setOptions(Map<ChannelOption<?>, Object> options) {
-            this.options = options;
-            return this;
-        }
-
-        public SocketSessionConfigBuilder setMaxFrameLength(int maxFrameLength) {
-            this.maxFrameLength = maxFrameLength;
-            return this;
-        }
-
-        public DefaultSocketSessionConfig build() {
-            return new DefaultSocketSessionConfig(parentBuilder.build(), this);
+        public JVMSessionConfig build() {
+            return new DefaultJVMSessionConfig(parentBuilder.build());
         }
     }
 }

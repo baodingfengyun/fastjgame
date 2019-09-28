@@ -128,6 +128,15 @@ class DefaultSessionPipeline implements SessionPipeline {
     }
 
     @Override
+    public void fireInit() {
+        AbstractSessionHandlerContext context = head;
+        do {
+            context.init();
+            context = context.next;
+        } while (context != null);
+    }
+
+    @Override
     public void tick() {
         AbstractSessionHandlerContext context = head;
         do {
@@ -193,7 +202,7 @@ class DefaultSessionPipeline implements SessionPipeline {
 
         @Override
         public void flush(SessionHandlerContext ctx) throws Exception {
-            logger.info("Unhandled flushEvent");
+
         }
 
         @Override

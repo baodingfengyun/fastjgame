@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.net;
 import com.wjybxx.fastjgame.misc.SessionLifecycleAware;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 
 /**
  * 默认session配置
@@ -37,10 +38,10 @@ public class DefaultSessionConfig implements SessionConfig {
     private final int rpcCallbackTimeoutMs;
     private final int syncRpcTimeoutMs;
 
-    private DefaultSessionConfig(Builder builder) {
+    private DefaultSessionConfig(SessionConfigBuilder builder) {
         this.lifecycleAware = builder.lifecycleAware;
-        this.codec = builder.codec;
-        this.dispatcher = builder.dispatcher;
+        this.codec = builder.protocolCodec;
+        this.dispatcher = builder.protocolDispatcher;
         this.sessionTimeoutMs = builder.sessionTimeoutMs;
         this.rpcCallbackTimeoutMs = builder.rpcCallbackTimeoutMs;
         this.syncRpcTimeoutMs = builder.syncRpcTimeoutMs;
@@ -76,53 +77,57 @@ public class DefaultSessionConfig implements SessionConfig {
         return syncRpcTimeoutMs;
     }
 
-    public static Builder newBuilder() {
-        return new Builder();
+    public static SessionConfigBuilder newBuilder() {
+        return new SessionConfigBuilder();
     }
 
-    public static class Builder {
+    public static class SessionConfigBuilder {
 
         private SessionLifecycleAware lifecycleAware;
-        private ProtocolCodec codec;
-        private ProtocolDispatcher dispatcher;
-        private int sessionTimeoutMs;
-        private int rpcCallbackTimeoutMs;
-        private int syncRpcTimeoutMs;
+        private ProtocolCodec protocolCodec;
+        private ProtocolDispatcher protocolDispatcher;
+        private int sessionTimeoutMs = 60 * 1000;
+        private int rpcCallbackTimeoutMs = 15 * 1000;
+        private int syncRpcTimeoutMs = 5 * 1000;
 
-        private Builder setLifecycleAware(@Nonnull SessionLifecycleAware lifecycleAware) {
+        public SessionConfigBuilder setLifecycleAware(@Nonnull SessionLifecycleAware lifecycleAware) {
             this.lifecycleAware = lifecycleAware;
             return this;
         }
 
-        public Builder setCodec(@Nonnull ProtocolCodec codec) {
-            this.codec = codec;
+        public SessionConfigBuilder setProtocolCodec(@Nonnull ProtocolCodec protocolCodec) {
+            this.protocolCodec = protocolCodec;
             return this;
         }
 
-        public Builder setDispatcher(@Nonnull ProtocolDispatcher dispatcher) {
-            this.dispatcher = dispatcher;
+        public SessionConfigBuilder setProtocolDispatcher(@Nonnull ProtocolDispatcher protocolDispatcher) {
+            this.protocolDispatcher = protocolDispatcher;
             return this;
         }
 
-        public Builder setSessionTimeoutMs(int sessionTimeoutMs) {
+        public SessionConfigBuilder setSessionTimeoutMs(int sessionTimeoutMs) {
             checkPositive(sessionTimeoutMs, "sessionTimeoutMs must greater than zero");
             this.sessionTimeoutMs = sessionTimeoutMs;
             return this;
         }
 
-        public Builder setRpcCallbackTimeoutMs(int rpcCallbackTimeoutMs) {
+        public SessionConfigBuilder setRpcCallbackTimeoutMs(int rpcCallbackTimeoutMs) {
             checkPositive(rpcCallbackTimeoutMs, "rpcCallbackTimeoutMs must greater than zero");
             this.rpcCallbackTimeoutMs = rpcCallbackTimeoutMs;
             return this;
         }
 
-        public Builder setSyncRpcTimeoutMs(int syncRpcTimeoutMs) {
+        public SessionConfigBuilder setSyncRpcTimeoutMs(int syncRpcTimeoutMs) {
             checkPositive(rpcCallbackTimeoutMs, "syncRpcTimeoutMs must greater than zero");
             this.syncRpcTimeoutMs = syncRpcTimeoutMs;
             return this;
         }
 
-        public DefaultSessionConfig build() {
+        public SessionConfig build() {
+            Objects.requireNonNull(lifecycleAware, "lifecycleAware");
+            Objects.requireNonNull(protocolCodec, "protocolCodec");
+            Objects.requireNonNull(protocolDispatcher, "protocolDispatcher");
+
             return new DefaultSessionConfig(this);
         }
 
@@ -132,7 +137,7 @@ public class DefaultSessionConfig implements SessionConfig {
          * @param param 参数
          * @param msg   信息
          */
-        private static void checkPositive(int param, String msg) {
+        public static void checkPositive(int param, String msg) {
             if (param <= 0) {
                 throw new IllegalArgumentException(msg);
             }

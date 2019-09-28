@@ -14,8 +14,12 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net;
+package com.wjybxx.fastjgame.net.handler;
 
+import com.wjybxx.fastjgame.net.OneWayMessage;
+import com.wjybxx.fastjgame.net.ProtocolDispatcher;
+import com.wjybxx.fastjgame.net.SessionDuplexHandlerAdapter;
+import com.wjybxx.fastjgame.net.SessionHandlerContext;
 import com.wjybxx.fastjgame.net.task.BatchOneWayWriteTask;
 import com.wjybxx.fastjgame.net.task.OneWayMessageCommitTask;
 import com.wjybxx.fastjgame.net.task.OneWayMessageWriteTask;
@@ -31,10 +35,14 @@ import com.wjybxx.fastjgame.utils.ConcurrentUtils;
  */
 public class OneWaySupportHandler extends SessionDuplexHandlerAdapter {
 
-    private final ProtocolDispatcher protocolDispatcher;
+    private ProtocolDispatcher protocolDispatcher;
 
-    public OneWaySupportHandler(ProtocolDispatcher protocolDispatcher) {
-        this.protocolDispatcher = protocolDispatcher;
+    public OneWaySupportHandler() {
+    }
+
+    @Override
+    public void init(SessionHandlerContext ctx) throws Exception {
+        protocolDispatcher = ctx.session().config().dispatcher();
     }
 
     @Override

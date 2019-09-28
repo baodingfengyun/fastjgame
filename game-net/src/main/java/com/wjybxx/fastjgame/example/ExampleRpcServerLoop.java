@@ -28,7 +28,9 @@ import com.wjybxx.fastjgame.misc.DefaultProtocolDispatcher;
 import com.wjybxx.fastjgame.misc.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.net.Session;
+import com.wjybxx.fastjgame.net.injvm.DefaultJVMSessionConfig;
 import com.wjybxx.fastjgame.net.injvm.JVMPort;
+import com.wjybxx.fastjgame.net.injvm.JVMSessionConfig;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.TimeUtils;
@@ -76,10 +78,13 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
         if (jvmPortPromise != null) {
             // 绑定jvm端口
             try {
-                final JVMPort jvmPort = netContext.bindInJVM(ExampleConstants.reflectBasedCodec,
-                        new ClientLifeAware(),
-                        protocolDispatcher
-                ).get();
+                JVMSessionConfig config = DefaultJVMSessionConfig.newBuilder()
+                        .setCodec(ExampleConstants.reflectBasedCodec)
+                        .setLifecycleAware(new ClientLifeAware())
+                        .setDispatcher(protocolDispatcher)
+                        .build();
+
+                final JVMPort jvmPort = netContext.bindInJVM(config).get();
                 jvmPortPromise.trySuccess(jvmPort);
             } catch (Exception e) {
                 jvmPortPromise.tryFailure(e);

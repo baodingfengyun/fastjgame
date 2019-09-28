@@ -48,6 +48,18 @@ public class SessionRepository {
     }
 
     /**
+     * 注册一个session
+     *
+     * @param session 待注册的session
+     */
+    public void registerSession(Session session) {
+        assert getSession(session.localGuid(), session.remoteGuid()) == null;
+        final Long2ObjectMap<Session> sessionMap = guid_guid_session_map.computeIfAbsent(session.localGuid(),
+                k -> new Long2ObjectOpenHashMap<>());
+        sessionMap.put(session.remoteGuid(), session);
+    }
+
+    /**
      * 获取一个session。
      * 注意：参数顺序不一样的意义不一样。
      *

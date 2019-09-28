@@ -30,7 +30,9 @@ import com.wjybxx.fastjgame.misc.RpcBuilder;
 import com.wjybxx.fastjgame.misc.SessionDisconnectAware;
 import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.net.Session;
+import com.wjybxx.fastjgame.net.injvm.DefaultJVMSessionConfig;
 import com.wjybxx.fastjgame.net.injvm.JVMPort;
+import com.wjybxx.fastjgame.net.injvm.JVMSessionConfig;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.TimeUtils;
 
@@ -106,10 +108,13 @@ public class ExampleRpcClientLoop extends DisruptorEventLoop {
         netContext = netGroup.createContext(ExampleConstants.clientGuid, ExampleConstants.clientRole, this).get();
 
         if (jvmPort != null) {
-            session = netContext.connectInJVM(jvmPort,
-                    new ServerDisconnectAward(),
-                    new DefaultProtocolDispatcher()
-            ).get();
+            JVMSessionConfig config = DefaultJVMSessionConfig.newBuilder()
+                    .setCodec(ExampleConstants.reflectBasedCodec)
+                    .setLifecycleAware(new ServerDisconnectAward())
+                    .setDispatcher(new DefaultProtocolDispatcher())
+                    .build();
+
+            session = netContext.connectInJVM(jvmPort, config).get();
         } else {
             // 必须先启动服务器
             final HostAndPort address = new HostAndPort(NetUtils.getLocalIp(), ExampleConstants.tcpPort);

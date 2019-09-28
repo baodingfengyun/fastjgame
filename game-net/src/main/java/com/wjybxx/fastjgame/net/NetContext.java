@@ -26,6 +26,7 @@ import com.wjybxx.fastjgame.net.http.HttpRequestDispatcher;
 import com.wjybxx.fastjgame.net.http.HttpSession;
 import com.wjybxx.fastjgame.net.http.OkHttpCallback;
 import com.wjybxx.fastjgame.net.injvm.JVMPort;
+import com.wjybxx.fastjgame.net.injvm.JVMSessionConfig;
 import com.wjybxx.fastjgame.net.injvm.JVMSessionImp;
 import okhttp3.Response;
 
@@ -188,29 +189,20 @@ public interface NetContext {
      * 2. 没有复杂的网络情况要处理。
      * </pre>
      *
-     * @param codec              协议编解码器<br>
-     *                           Q: 为什么需要？ <br>
-     *                           A: 发送可变对象时，保证线程安全。否则用户还是需要关心是否是进程内还是跨进程问题。
-     * @param lifecycleAware     生命周期监听器
-     * @param protocolDispatcher 消息分发器
+     * @param config 配置信息
      * @return future 如果想消除同步，添加监听器时请绑定EventLoop
      */
-    ListenableFuture<JVMPort> bindInJVM(@Nonnull ProtocolCodec codec,
-                                        @Nonnull SessionLifecycleAware lifecycleAware,
-                                        @Nonnull ProtocolDispatcher protocolDispatcher);
+    ListenableFuture<JVMPort> bindInJVM(@Nonnull JVMSessionConfig config);
 
     /**
      * 与JVM内的另一个线程建立session。
      * 注意：由于在同一个JVM内，因此使用的是对方的{@link ProtocolCodec}。
      *
-     * @param jvmPort            远程“端口”信息
-     * @param lifecycleAware     生命周期监听器
-     * @param protocolDispatcher 消息分发器
+     * @param jvmPort 远程“端口”信息
+     * @param config  配置信息
      * @return future 如果想消除同步，添加监听器时请绑定EventLoop
      */
-    ListenableFuture<Session> connectInJVM(@Nonnull JVMPort jvmPort,
-                                           @Nonnull SessionLifecycleAware lifecycleAware,
-                                           @Nonnull ProtocolDispatcher protocolDispatcher);
+    ListenableFuture<Session> connectInJVM(@Nonnull JVMPort jvmPort, @Nonnull JVMSessionConfig config);
 
     //  --------------------------------------- http支持 -----------------------------------------
 

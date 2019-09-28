@@ -26,12 +26,17 @@ import com.wjybxx.fastjgame.net.*;
  * date - 2019/9/25
  * github - https://github.com/hl845740757
  */
-public class JVMCodecHandler extends SessionDuplexHandlerAdapter {
+public class JVMCodecHandler extends SessionOutboundHandlerAdapter {
 
-    private final ProtocolCodec protocolCodec;
+    private ProtocolCodec codec;
 
-    public JVMCodecHandler(ProtocolCodec protocolCodec) {
-        this.protocolCodec = protocolCodec;
+    public JVMCodecHandler() {
+
+    }
+
+    @Override
+    public void init(SessionHandlerContext ctx) throws Exception {
+        codec = ctx.session().config().codec();
     }
 
     @Override
@@ -39,19 +44,20 @@ public class JVMCodecHandler extends SessionDuplexHandlerAdapter {
         if (msg instanceof RpcRequestMessage) {
             // rpc请求
             RpcRequestMessage rpcRequestMessage = (RpcRequestMessage) msg;
-            rpcRequestMessage.setRequest(protocolCodec.cloneObject(rpcRequestMessage.getRequest()));
+            rpcRequestMessage.setRequest(codec.cloneObject(rpcRequestMessage.getRequest()));
         } else if (msg instanceof OneWayMessage) {
             // 单向消息
             OneWayMessage oneWayMessage = (OneWayMessage) msg;
-            oneWayMessage.setMessage(protocolCodec.cloneObject(oneWayMessage));
+            oneWayMessage.setMessage(codec.cloneObject(oneWayMessage.getMessage()));
         } else if (msg instanceof RpcResponseMessage) {
             // rpc响应
             RpcResponseMessage responseMessage = (RpcResponseMessage) msg;
             final RpcResponse rpcResponse = responseMessage.getRpcResponse();
-            final RpcResponse copiedRpcResponse = new RpcResponse(rpcResponse.getResultCode(), protocolCodec.cloneObject(rpcResponse.getBody()));
+            final RpcResponse copiedRpcResponse = new RpcResponse(rpcResponse.getResultCode(), codec.cloneObject(rpcResponse.getBody()));
             responseMessage.setRpcResponse(copiedRpcResponse);
         }
         // 传递给下一个handler
         ctx.fireWrite(msg);
     }
+
 }

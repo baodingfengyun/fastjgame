@@ -18,16 +18,22 @@ package com.wjybxx.fastjgame.manager;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.misc.*;
 import com.wjybxx.fastjgame.net.*;
-import com.wjybxx.fastjgame.net.injvm.JVMPort;
+import com.wjybxx.fastjgame.net.handler.OneWaySupportHandler;
+import com.wjybxx.fastjgame.net.handler.RpcSupportHandler;
+import com.wjybxx.fastjgame.net.handler.SessionLifeCycleAwareHandler;
+import com.wjybxx.fastjgame.net.injvm.*;
 import com.wjybxx.fastjgame.net.socket.ConnectRequestEvent;
 import com.wjybxx.fastjgame.net.socket.ConnectResponseEvent;
 import com.wjybxx.fastjgame.net.socket.ordered.OrderedMessageEvent;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 
+import javax.annotation.Nonnull;
+import java.io.IOException;
 import java.net.BindException;
 
 /**
@@ -97,13 +103,120 @@ public class SessionManager {
         return null;
     }
 
-    public JVMPort bind(NetContext netContext, ProtocolCodec codec, PortContext portContext) {
-        return null;
+    public void connect(NetContext netContext, long remoteGuid, RoleType remoteRole,
+                        HostAndPort remoteAddress, ChannelInitializerSupplier initializerSupplier,
+                        SessionLifecycleAware lifecycleAware,
+                        ProtocolDispatcher protocolDispatcher,
+                        Promise<Session> promise) {
+
     }
 
-    public void connect(NetContext netContext, long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress, ChannelInitializerSupplier initializerSupplier, SessionLifecycleAware lifecycleAware, ProtocolDispatcher protocolDispatcher, Promise<Session> promise) {
 
+    public JVMPort bindInJVM(NetContext netContext, JVMSessionConfig config) {
+        return new JVMPortImp(netContext, config, this);
     }
 
+    private void connectInJVM(NetContext netContext, JVMPortImp jvmPort,
+                              JVMSessionConfig config,
+                              Promise<Session> promise) {
+        // 端口已关闭
+        if (!jvmPort.active) {
+            promise.tryFailure(new IOException("remote node not exist"));
+        }
 
+        final long localGuid = netContext.localGuid();
+        final long remoteGuid = jvmPort.localGuid();
+        // 会话已存在
+        if (sessionRepository.getSession(localGuid, remoteGuid) != null ||
+                sessionRepository.getSession(remoteGuid, localGuid) != null) {
+            promise.tryFailure(new IOException("session already registered."));
+            return;
+        }
+        // 创建session
+        JVMSessionImp connectorSession = new JVMSessionImp(netContext, netManagerWrapper, config);
+        JVMSessionImp acceptorSession = new JVMSessionImp(jvmPort.localContext, netManagerWrapper, jvmPort.localConfig);
+
+        // 保存双方引用
+        connectorSession.setRemoteSession(acceptorSession);
+        acceptorSession.setRemoteSession(connectorSession);
+
+        // 初始化管道
+        initJVMSessionPipeline(connectorSession);
+        initJVMSessionPipeline(acceptorSession);
+
+        if (promise.trySuccess(connectorSession)) {
+            // 保存
+            sessionRepository.registerSession(connectorSession);
+            sessionRepository.registerSession(acceptorSession);
+
+            // 传递激活事件
+            connectorSession.pipeline().fireSessionActive();
+            acceptorSession.pipeline().fireSessionActive();
+        }
+        // else 丢弃session
+    }
+
+    private static void initJVMSessionPipeline(JVMSession session) {
+        SessionPipeline pipeline = session.pipeline();
+        // 入站 从上到下
+        // 出站 从下往上
+        pipeline.addLast(new JVMTransferHandler());
+        pipeline.addLast(new JVMCodecHandler());
+
+        pipeline.addLast(new OneWaySupportHandler());
+        pipeline.addLast(new RpcSupportHandler());
+        pipeline.addLast(new SessionLifeCycleAwareHandler());
+
+        pipeline.fireInit();
+    }
+
+    private static class JVMPortImp implements JVMPort {
+
+        /**
+         * 监听者的信息
+         */
+        private final NetContext localContext;
+        /**
+         * session配置信息
+         */
+        private final JVMSessionConfig localConfig;
+        /**
+         * 建立连接的管理器
+         */
+        private final SessionManager sessionManager;
+        /**
+         * 激活状态
+         */
+        private volatile boolean active = true;
+
+        JVMPortImp(NetContext localContext, JVMSessionConfig localConfig, SessionManager sessionManager) {
+            this.localContext = localContext;
+            this.localConfig = localConfig;
+            this.sessionManager = sessionManager;
+        }
+
+        public long localGuid() {
+            return localContext.localGuid();
+        }
+
+        public RoleType localRole() {
+            return localContext.localRole();
+        }
+
+        @Override
+        public ListenableFuture<Session> connect(@Nonnull NetContext netContext, @Nonnull JVMSessionConfig config) {
+            final Promise<Session> promise = localContext.netEventLoop().newPromise();
+            // 注意：这里是提交到jvmPort所在的NetEventLoop, 是实现线程安全，消除同步的关键
+            localContext.netEventLoop().execute(() -> {
+                sessionManager.connectInJVM(netContext, this, config, promise);
+            });
+            return promise;
+        }
+
+        @Override
+        public ListenableFuture<?> close() {
+            active = false;
+            return localContext.netEventLoop().newSucceededFuture(null);
+        }
+    }
 }

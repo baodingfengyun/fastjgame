@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.net.injvm;
 
 import com.wjybxx.fastjgame.concurrent.Promise;
+import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.net.SessionHandlerContext;
 import com.wjybxx.fastjgame.net.SessionOutboundHandlerAdapter;
 
@@ -30,14 +31,21 @@ import com.wjybxx.fastjgame.net.SessionOutboundHandlerAdapter;
  */
 public class JVMTransferHandler extends SessionOutboundHandlerAdapter {
 
+    private Session remoteSession;
+
     public JVMTransferHandler() {
 
     }
 
     @Override
+    public void init(SessionHandlerContext ctx) throws Exception {
+        remoteSession = ((JVMSessionImp) ctx.session()).getRemoteSession();
+    }
+
+    @Override
     public void write(SessionHandlerContext ctx, Object msg) throws Exception {
         // 直接触发另一个session的读事件
-        ((JVMSessionImp) ctx.session()).getRemoteSession().fireRead(msg);
+        remoteSession.fireRead(msg);
     }
 
     @Override
