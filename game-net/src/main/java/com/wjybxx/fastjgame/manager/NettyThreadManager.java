@@ -44,21 +44,30 @@ public class NettyThreadManager {
 
     private static final Logger logger = LoggerFactory.getLogger(NettyThreadManager.class);
 
-    private final EventLoopGroup bossGroup;
-    private final EventLoopGroup workerGroup;
+    private EventLoopGroup bossGroup;
+    private EventLoopGroup workerGroup;
 
     @Inject
-    public NettyThreadManager(NetConfigManager netConfigManager) {
+    public NettyThreadManager() {
+
+    }
+
+    public void start(int nettyIOThreadNum) {
         bossGroup = new NioEventLoopGroup(1, new DefaultThreadFactory("ACCEPTOR_THREAD"));
-        workerGroup = new NioEventLoopGroup(netConfigManager.nettyIOThreadNum(), new DefaultThreadFactory("IO_THREAD"));
+        workerGroup = new NioEventLoopGroup(nettyIOThreadNum, new DefaultThreadFactory("IO_THREAD"));
+        logger.info("NettyThreadManager start success");
     }
 
     /**
      * 关闭Netty的线程
      */
     public void shutdown() {
-        bossGroup.shutdownGracefully();
-        workerGroup.shutdownGracefully();
+        if (bossGroup != null) {
+            bossGroup.shutdownGracefully();
+        }
+        if (workerGroup != null) {
+            workerGroup.shutdownGracefully();
+        }
         logger.info("NettyThreadManager shutdown success");
 
     }

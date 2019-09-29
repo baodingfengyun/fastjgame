@@ -259,7 +259,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
             worker.sequenceBarrier.alert();
 
             // 唤醒线程 - 如果线程可能阻塞在其它地方
-            if (!inEventLoop()){
+            if (!inEventLoop()) {
                 weakUp();
             }
         }
@@ -506,8 +506,16 @@ public class DisruptorEventLoop extends AbstractEventLoop {
                     final long finalSequence = ringBuffer.tryNext(ringBuffer.getBufferSize());
                     final long initialSequence = finalSequence - (ringBuffer.getBufferSize() - 1);
                     try {
-                        for (long sequence = initialSequence; sequence <= finalSequence; sequence++) {
-                            final Runnable task = ringBuffer.get(sequence).detachTask();
+                        // Q: 为什么可以继续消费
+                        // A: 保证了生产者不会覆盖未消费的数据 - shutdown处的处理是必须的
+                        // 以前是丢弃任务，简单粗暴，但是不安全。
+                        // 但是继续执行剩余的任务，也不安全。这就是多线程比较坑的一些问题了，执行也不是，不执行也不是。
+                        long nextSequence = sequence.get() + 1;
+                        final long endSequence = sequence.get() + ringBuffer.getBufferSize();
+                        for (; nextSequence <= endSequence; nextSequence++) {
+                            final Runnable task = ringBuffer.get(nextSequence).detachTask();
+                            // Q: 这里可能为null吗？
+                            // A: 这里可能为null - 因为是多生产者模式，关闭前发布的数据可能是不连续的
                             if (null != task) {
                                 safeExecute(task);
                             }

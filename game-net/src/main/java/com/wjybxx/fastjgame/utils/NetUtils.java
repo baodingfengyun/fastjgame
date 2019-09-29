@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.utils;
 
+import com.wjybxx.fastjgame.annotation.UnstableApi;
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
 import com.wjybxx.fastjgame.manager.NetConfigManager;
 import io.netty.buffer.ByteBuf;
@@ -175,6 +176,7 @@ public class NetUtils {
      *
      * @return 内网地址
      */
+    @UnstableApi
     public static String getLocalIp() {
         return localIp;
     }
@@ -184,6 +186,7 @@ public class NetUtils {
      *
      * @return 如果无法获取到外网地址，返回的是内网地址
      */
+    @UnstableApi
     public static String getOuterIp() {
         return outerIp;
     }

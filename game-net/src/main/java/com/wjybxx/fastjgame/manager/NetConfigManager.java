@@ -45,8 +45,6 @@ public class NetConfigManager {
      */
     private final ConfigWrapper configWrapper;
 
-    private final int nettyIOThreadNum;
-
     private final int connectMaxTryTimes;
     private final int connectTimeout;
     private final int waitVerifyResultTimeout;
@@ -64,8 +62,6 @@ public class NetConfigManager {
     @Inject
     public NetConfigManager() throws IOException {
         configWrapper = ConfigLoader.loadConfig(NetConfigManager.class.getClassLoader(), NET_CONFIG_NAME);
-
-        nettyIOThreadNum = configWrapper.getAsInt("nettyIOThreadNum");
 
         serverMaxCacheNum = configWrapper.getAsInt("serverMaxCacheNum");
         clientMaxCacheNum = configWrapper.getAsInt("clientMaxCacheNum");
@@ -86,13 +82,6 @@ public class NetConfigManager {
      */
     public ConfigWrapper properties() {
         return configWrapper;
-    }
-
-    /**
-     * netty IO 线程数量
-     */
-    public int nettyIOThreadNum() {
-        return nettyIOThreadNum;
     }
 
     /**

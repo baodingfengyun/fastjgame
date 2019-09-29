@@ -86,7 +86,7 @@ public class ExampleRpcClientLoop extends DisruptorEventLoop {
                     .setDispatcher(new DefaultProtocolDispatcher())
                     .build();
 
-            session = netContext.connectTcp(ExampleConstants.serverGuid, ExampleConstants.serverRole, address,config)
+            session = netContext.connectTcp(ExampleConstants.serverGuid, ExampleConstants.serverRole, address, config)
                     .get();
         }
         startTime = System.currentTimeMillis();

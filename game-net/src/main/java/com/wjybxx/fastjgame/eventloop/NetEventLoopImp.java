@@ -50,6 +50,7 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
 
     private static final Logger logger = LoggerFactory.getLogger(NetEventLoopImp.class);
     private static final int MAX_BATCH_SIZE = 32 * 1024;
+    private static final int DEFAULT_IO_THREAD_NUM = 8;
 
     private final NetManagerWrapper managerWrapper;
     private final NetEventLoopManager netEventLoopManager;
@@ -60,9 +61,18 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     private final NetTimeManager netTimeManager;
     private final NetTimerManager netTimerManager;
     private final NetContextManager netContextManager;
+    private final int nettyIOThreadNum;
 
-    public NetEventLoopImp(@Nonnull ThreadFactory threadFactory, @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
+    public NetEventLoopImp(@Nonnull ThreadFactory threadFactory,
+                           @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
+        this(threadFactory, rejectedExecutionHandler, DEFAULT_IO_THREAD_NUM);
+    }
+
+    public NetEventLoopImp(@Nonnull ThreadFactory threadFactory,
+                           @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
+                           int nettyIOThreadNum) {
         super(null, threadFactory, rejectedExecutionHandler);
+        this.nettyIOThreadNum = nettyIOThreadNum;
 
         Injector injector = Guice.createInjector(new NetEventLoopModule());
         managerWrapper = injector.getInstance(NetManagerWrapper.class);
@@ -122,6 +132,8 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         // Q: 为什么没使用threadLocal？
         // A: 本来想使用的，但是如果提供一个全局的接口的话，它也会对逻辑层开放，而逻辑层如果调用了一定会导致错误。使用threadLocal暴露了不该暴露的接口。
         netEventLoopManager.publish(this);
+        // 启动netty线程
+        nettyThreadManager.start(nettyIOThreadNum);
         // 10ms一次tick足够了
         netTimerManager.newFixedDelay(10, this::tick);
         // 切换到缓存策略

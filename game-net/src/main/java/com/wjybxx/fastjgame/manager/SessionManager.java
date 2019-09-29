@@ -23,7 +23,9 @@ import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.PortRange;
 import com.wjybxx.fastjgame.misc.SessionRegistry;
-import com.wjybxx.fastjgame.net.*;
+import com.wjybxx.fastjgame.net.NetContext;
+import com.wjybxx.fastjgame.net.RoleType;
+import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.net.handler.OneWaySupportHandler;
 import com.wjybxx.fastjgame.net.handler.RpcSupportHandler;
 import com.wjybxx.fastjgame.net.handler.SessionLifeCycleAwareHandler;
@@ -121,7 +123,6 @@ public class SessionManager {
     public void closeUserSession(long localGuid) {
 
     }
-
 
 
     // ---------------------------------------------------------------

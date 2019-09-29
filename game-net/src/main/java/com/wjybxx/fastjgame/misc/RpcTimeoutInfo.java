@@ -36,16 +36,16 @@ public class RpcTimeoutInfo {
     /**
      * promise
      */
-    public Promise<RpcResponse> rpcPromise;
+    public final Promise<RpcResponse> rpcPromise;
     /**
      * 回调
      */
-    public RpcCallback rpcCallback;
+    public final RpcCallback rpcCallback;
 
     /**
      * rpc超时时间
      */
-    public long deadline;
+    public final long deadline;
 
     private RpcTimeoutInfo(Promise<RpcResponse> rpcPromise, RpcCallback rpcCallback, long deadline) {
         this.rpcPromise = rpcPromise;
