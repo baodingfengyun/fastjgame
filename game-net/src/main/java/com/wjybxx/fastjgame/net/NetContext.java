@@ -37,7 +37,7 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * 逻辑层使用的网络上下文
+ * 逻辑层使用的网络上下文 - 它主要负责用户与{@link NetEventLoop}之间的交互。
  *
  * @author wjybxx
  * @version 1.0

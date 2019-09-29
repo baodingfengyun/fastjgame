@@ -22,6 +22,7 @@ import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
+import com.wjybxx.fastjgame.exception.InternalApiException;
 import com.wjybxx.fastjgame.net.task.AsyncRpcRequestWriteTask;
 import com.wjybxx.fastjgame.net.task.OneWayMessageWriteTask;
 import com.wjybxx.fastjgame.net.task.SyncRpcRequestWriteTask;
@@ -57,11 +58,20 @@ public abstract class AbstractSession implements Session {
      * 激活状态 - 因为session都是建立成功的时候创建，因此默认true
      */
     private final AtomicBoolean stateHolder = new AtomicBoolean(true);
+    /**
+     * 获取session关闭结果的future
+     */
+    private final Promise<?> closeFuture;
+    /**
+     * 是否调用过close，保证只执行一次
+     */
+    private boolean closeInitiated = false;
 
     protected AbstractSession(NetContext netContext, NetManagerWrapper managerWrapper) {
         this.netContext = netContext;
         this.pipeline = new DefaultSessionPipeline(this, managerWrapper);
         this.netEventLoop = managerWrapper.getNetEventLoopManager().eventLoop();
+        this.closeFuture = netEventLoop.newPromise();
     }
 
     @Override
@@ -128,12 +138,15 @@ public abstract class AbstractSession implements Session {
     public final ListenableFuture<?> close() {
         // 设置为未激活状态
         stateHolder.set(false);
-        final Promise<Object> promise = netEventLoop.newPromise();
         // 可能是网络层关闭
         ConcurrentUtils.executeOrRun(netEventLoop, () -> {
-            pipeline.fireClose(promise);
+            // 保证逻辑只执行一次
+            if (!closeInitiated) {
+                closeInitiated = true;
+                pipeline.fireClose(closeFuture);
+            }
         });
-        return promise;
+        return closeFuture;
     }
 
     @Override
@@ -141,7 +154,7 @@ public abstract class AbstractSession implements Session {
         if (netEventLoop.inEventLoop()) {
             return pipeline;
         } else {
-            throw new IllegalStateException("internal api");
+            throw new InternalApiException();
         }
     }
 
@@ -150,7 +163,7 @@ public abstract class AbstractSession implements Session {
         if (netEventLoop.inEventLoop()) {
             pipeline.tick();
         } else {
-            throw new IllegalStateException("internal api");
+            throw new InternalApiException();
         }
     }
 
@@ -160,7 +173,7 @@ public abstract class AbstractSession implements Session {
         if (netEventLoop.inEventLoop()) {
             pipeline.fireRead(msg);
         } else {
-            throw new IllegalStateException("internal api");
+            throw new InternalApiException();
         }
     }
 
@@ -170,7 +183,7 @@ public abstract class AbstractSession implements Session {
         if (netEventLoop.inEventLoop()) {
             pipeline.fireWrite(msg);
         } else {
-            throw new IllegalStateException("internal api");
+            throw new InternalApiException();
         }
     }
 }

@@ -51,7 +51,7 @@ public enum DisruptorWaitStrategyType {
      * 该策略在等待时，延迟较低，但有较高的CPU使用率。但是当其它线程需要CPU资源时，比{@link #BUSY_SPIN}更容易让出CPU资源。<b>
      * 当CPU资源足够时，推荐使用该策略。
      * 注意：<p>
-     * 1. 每等待一段时间才会执行一次{@link DisruptorEventLoop#loopOnce()}
+     * 1. 每自旋一定次数才会执行一次{@link DisruptorEventLoop#loopOnce()}
      */
     YIELD,
     /**

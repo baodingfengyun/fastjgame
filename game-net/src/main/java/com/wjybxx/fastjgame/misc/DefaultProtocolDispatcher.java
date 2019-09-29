@@ -69,6 +69,7 @@ public class DefaultProtocolDispatcher implements RpcFunctionRegistry, ProtocolD
             return;
         }
         if (message instanceof RpcCall) {
+            // 这是可以使用send代替无回调的call调用的关键
             rpcCallDispatcher.post(session, (RpcCall) message, VoidRpcResponseChannel.INSTANCE);
         } else {
             dispatchOneWayMessage(session, message);

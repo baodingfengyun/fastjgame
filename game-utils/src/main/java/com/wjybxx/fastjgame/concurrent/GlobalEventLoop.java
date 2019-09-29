@@ -17,8 +17,6 @@
 package com.wjybxx.fastjgame.concurrent;
 
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.security.AccessController;
@@ -37,8 +35,6 @@ import java.util.concurrent.*;
  * github - https://github.com/hl845740757
  */
 public class GlobalEventLoop extends AbstractEventLoop {
-
-    private static final Logger logger = LoggerFactory.getLogger(GlobalEventLoop.class);
 
     public static final GlobalEventLoop INSTANCE = new GlobalEventLoop();
 

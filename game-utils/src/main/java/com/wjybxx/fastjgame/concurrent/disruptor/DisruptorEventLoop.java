@@ -66,6 +66,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 
     /**
      * 执行{@link #loopOnce()}的间隔，该值越小{@link #loopOnce()}调用频率越高。
+     * 2^n - 1 方便与运算
      */
     static final int LOOP_ONCE_INTERVAL = 8191;
 
@@ -188,6 +189,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 
         // 保存线程对象
         this.thread = threadFactory.newThread(worker);
+        UncaughtExceptionHandlers.logIfAbsent(thread, logger);
     }
 
     @Override
@@ -308,17 +310,17 @@ public class DisruptorEventLoop extends AbstractEventLoop {
             final long sequence = ringBuffer.next(1);
             try {
                 if (isShuttingDown()) {
-                    // 申请sequence是一个过程，判断如果申请完毕之后开始关闭，发布一个无操作的Task，避免Null
-                    ringBuffer.get(sequence).setTask(ConcurrentUtils.NO_OP_TASK);
-                    // 拒绝任务
+                    // 申请sequence是一个过程，如果申请槽位之后开始关闭，则拒绝任务
+                    // 不能操作该槽上数据，否则可能覆盖之前的数据
                     rejectedExecutionHandler.rejected(task, this);
                 } else {
-                    // 发布真正的任务
+                    // 发布任务
                     ringBuffer.get(sequence).setTask(task);
                     // 确保线程已启动
                     ensureThreadStarted();
                 }
             } finally {
+                // publish之后，才可能走到 cleanRingBuffer
                 ringBuffer.publish(sequence);
             }
         }
@@ -505,8 +507,10 @@ public class DisruptorEventLoop extends AbstractEventLoop {
                     final long initialSequence = finalSequence - (ringBuffer.getBufferSize() - 1);
                     try {
                         for (long sequence = initialSequence; sequence <= finalSequence; sequence++) {
-                            // 丢弃数据，避免内存泄漏
-                            ringBuffer.get(sequence).disCard();
+                            final Runnable task = ringBuffer.get(sequence).detachTask();
+                            if (null != task) {
+                                safeExecute(task);
+                            }
                         }
                         break;
                     } finally {

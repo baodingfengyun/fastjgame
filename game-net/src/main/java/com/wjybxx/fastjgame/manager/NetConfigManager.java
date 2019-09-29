@@ -95,7 +95,6 @@ public class NetConfigManager {
         return nettyIOThreadNum;
     }
 
-
     /**
      * 获取服务器最大可缓存消息数
      */

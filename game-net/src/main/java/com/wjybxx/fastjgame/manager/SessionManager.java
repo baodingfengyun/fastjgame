@@ -22,7 +22,7 @@ import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.PortRange;
-import com.wjybxx.fastjgame.misc.SessionRepository;
+import com.wjybxx.fastjgame.misc.SessionRegistry;
 import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.net.handler.OneWaySupportHandler;
 import com.wjybxx.fastjgame.net.handler.RpcSupportHandler;
@@ -38,6 +38,7 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.BindException;
 
@@ -55,7 +56,7 @@ public class SessionManager {
     private final NetTimeManager netTimeManager;
     private final NetTimerManager netTimerManager;
     private final AcceptorManager acceptorManager;
-    private final SessionRepository sessionRepository = new SessionRepository();
+    private final SessionRegistry sessionRegistry = new SessionRegistry();
 
     @Inject
     public SessionManager(NetTimeManager netTimeManager, NetTimerManager netTimerManager, AcceptorManager acceptorManager) {
@@ -69,7 +70,7 @@ public class SessionManager {
     }
 
     public void tick() {
-        sessionRepository.tick();
+        sessionRegistry.tick();
     }
 
     // --------------------------------------------- 事件处理 -----------------------------------------
@@ -83,30 +84,47 @@ public class SessionManager {
     }
 
     public void onRcvMessage(OrderedMessageEvent eventParam) {
-        final Session session = sessionRepository.getSession(eventParam.localGuid(), eventParam.remoteGuid());
+        final Session session = sessionRegistry.getSession(eventParam.localGuid(), eventParam.remoteGuid());
         if (session != null && session.isActive()) {
             // session 存活的情况下才读取消息
             session.fireRead(eventParam);
         }
     }
 
-    public Session removeSession(Session session) {
-        return sessionRepository.removeSession(session.localGuid(), session.remoteGuid());
+    public void registerSession(Session session) {
+        sessionRegistry.registerSession(session);
+    }
+
+    @Nullable
+    public Session getSession(long localGuid, long remoteGuid) {
+        return sessionRegistry.getSession(localGuid, remoteGuid);
+    }
+
+    @Nullable
+    public Session removeSession(long localGuid, long remoteGuid) {
+        return sessionRegistry.removeSession(localGuid, remoteGuid);
+    }
+
+    public boolean removeSession(Session session) {
+        return sessionRegistry.removeSession(session.localGuid(), session.remoteGuid()) != null;
     }
 
     public boolean containsSession(Session session) {
-        return sessionRepository.getSession(session.localGuid(), session.remoteGuid()) != null;
+        return getSession(session.localGuid(), session.remoteGuid()) != null;
     }
 
-    public void removeUserSession(long userGuid) {
-        sessionRepository.removeUserSession(userGuid);
-    }
 
     public void onUserEventLoopTerminal(EventLoop userEventLoop) {
-        sessionRepository.removeUserSession(userEventLoop);
-    }
-    // ---------------------------------------------------------------
 
+    }
+
+    public void closeUserSession(long localGuid) {
+
+    }
+
+
+
+    // ---------------------------------------------------------------
 
     public JVMPort bindInJVM(NetContext netContext, JVMSessionConfig config) {
         return new JVMPortImp(netContext, config, this);
@@ -118,13 +136,14 @@ public class SessionManager {
         // 端口已关闭
         if (!jvmPort.active) {
             promise.tryFailure(new IOException("remote node not exist"));
+            return;
         }
 
         final long localGuid = netContext.localGuid();
         final long remoteGuid = jvmPort.localGuid();
         // 会话已存在
-        if (sessionRepository.getSession(localGuid, remoteGuid) != null ||
-                sessionRepository.getSession(remoteGuid, localGuid) != null) {
+        if (sessionRegistry.getSession(localGuid, remoteGuid) != null ||
+                sessionRegistry.getSession(remoteGuid, localGuid) != null) {
             promise.tryFailure(new IOException("session already registered."));
             return;
         }
@@ -142,8 +161,8 @@ public class SessionManager {
 
         if (promise.trySuccess(connectorSession)) {
             // 保存
-            sessionRepository.registerSession(connectorSession);
-            sessionRepository.registerSession(acceptorSession);
+            sessionRegistry.registerSession(connectorSession);
+            sessionRegistry.registerSession(acceptorSession);
 
             // 传递激活事件
             connectorSession.pipeline().fireSessionActive();
@@ -180,6 +199,7 @@ public class SessionManager {
     public void clean() {
 
     }
+
 
     private static class JVMPortImp implements JVMPort {
 

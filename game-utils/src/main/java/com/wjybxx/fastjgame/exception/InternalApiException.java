@@ -14,49 +14,21 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.concurrent.disruptor;
+package com.wjybxx.fastjgame.exception;
 
-import javax.annotation.Nonnull;
+import com.wjybxx.fastjgame.annotation.Internal;
 
 /**
- * {@link DisruptorEventLoop}使用的事件
+ * 如果外部调用带有{@link Internal}的方法，则会抛出该异常。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/7/24
+ * date - 2019/9/29
  * github - https://github.com/hl845740757
  */
-final class RunnableEvent {
+public class InternalApiException extends RuntimeException {
 
-    /**
-     * 事件参数
-     */
-    private Runnable task;
-
-    RunnableEvent() {
-
+    public InternalApiException() {
+        super("internal api");
     }
-
-    /**
-     * 返回当前任务
-     *
-     * @return task
-     */
-    Runnable detachTask() {
-        Runnable r = task;
-        task = null;
-        return r;
-    }
-
-    void setTask(@Nonnull Runnable task) {
-        this.task = task;
-    }
-
-    /**
-     * 丢弃任务 - help GC
-     */
-    void disCard() {
-        task = null;
-    }
-
 }

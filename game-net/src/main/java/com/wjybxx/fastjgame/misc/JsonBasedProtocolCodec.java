@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import io.netty.buffer.*;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
@@ -48,7 +49,7 @@ public class JsonBasedProtocolCodec implements ProtocolCodec {
     }
 
     @Override
-    public ByteBuf writeObject(ByteBufAllocator bufAllocator, Object obj) throws IOException {
+    public ByteBuf writeObject(ByteBufAllocator bufAllocator, @Nonnull Object obj) throws IOException {
         ByteBuf cacheBuffer = Unpooled.wrappedBuffer(LOCAL_BUFFER.get());
         try {
             // wrap会认为bytes中的数据都是可读的，我们需要清空这些标记。

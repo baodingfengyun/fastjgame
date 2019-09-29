@@ -104,8 +104,8 @@ public class NetContextManager {
     }
 
     private void clean(NetContext netContext) {
-        httpSessionManager.removeUserSession(netContext.localGuid());
-        sessionManager.removeUserSession(netContext.localGuid());
+        httpSessionManager.closeUserSession(netContext.localGuid());
+        sessionManager.closeUserSession(netContext.localGuid());
         logger.info("User {}-{} NetContext removed!", netContext.localRole(), netContext.localGuid());
     }
 

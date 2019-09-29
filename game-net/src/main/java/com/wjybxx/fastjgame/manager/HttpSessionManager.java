@@ -104,7 +104,7 @@ public class HttpSessionManager {
         assert netEventLoopManager.inEventLoop();
         CollectionUtils.removeIfAndThen(userInfoMap.values(),
                 userInfo -> userInfo.netContext.localEventLoop() == eventLoop,
-                this::removeUserSession);
+                this::closeUserSession);
     }
 
     /**
@@ -112,15 +112,15 @@ public class HttpSessionManager {
      *
      * @param localGuid 用户id
      */
-    public void removeUserSession(long localGuid) {
+    public void closeUserSession(long localGuid) {
         UserInfo userInfo = userInfoMap.remove(localGuid);
         if (null == userInfo) {
             return;
         }
-        removeUserSession(userInfo);
+        closeUserSession(userInfo);
     }
 
-    private void removeUserSession(UserInfo userInfo) {
+    private void closeUserSession(UserInfo userInfo) {
         // 如果 用户 持有了httpSession的引用，长时间没有完成响应的话，这里关闭可能导致一些错误
         CollectionUtils.removeIfAndThen(userInfo.sessionWrapperMap, FunctionUtils::TRUE, this::afterRemoved);
         // 绑定的端口需要释放

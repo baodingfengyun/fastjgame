@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.manager;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
+import com.wjybxx.fastjgame.exception.InternalApiException;
 import com.wjybxx.fastjgame.module.NetEventLoopModule;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -47,7 +48,7 @@ public class NetEventLoopManager {
         if (eventLoop.inEventLoop()) {
             this.eventLoop = eventLoop;
         } else {
-            throw new IllegalStateException("internal api");
+            throw new InternalApiException();
         }
     }
 

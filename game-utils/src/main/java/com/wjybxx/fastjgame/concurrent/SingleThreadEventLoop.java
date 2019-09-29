@@ -293,10 +293,12 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     }
 
     /**
-     * 子类自己决定如何实现事件循环.
+     * 子类自己决定如何实现事件循环。
      *
      * @apiNote 子类实现应该是一个死循环方法，并在适当的时候调用{@link #confirmShutdown()}确认是否需要退出循环。
      * 子类可以有更多的判断，但是至少需要调用{@link #confirmShutdown()}确定是否需要退出。
+     * <p>
+     * 警告：如果子类未捕获异常则会导致线程退出。
      */
     protected abstract void loop();
 
@@ -583,7 +585,8 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
             int runTaskNum = 0;
             int size;
             while ((size = taskQueue.drainTo(cacheQueue, CACHE_QUEUE_CAPACITY)) > 0) {
-                // 批量拉取任务执行(可减少竞争) - 目前测试的表现，好像没什么效果 - 必须顺序执行，否则会打乱顺序
+                // 批量拉取任务执行(可减少竞争) - 目前测试的表现，没感觉到性能上的提升，可能是因为竞争小
+                // 必须顺序执行，否则会打乱顺序
                 // 存在两次三次冗余遍历 1. drainQueue插入元素的时候 2.执行任务的时候 3.clear的时候 额外消耗是不是大了点
                 for (int index = 0; index < size; index++) {
                     safeExecute(cacheQueue.get(index));
@@ -592,8 +595,8 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
                 runTaskNum += size;
                 cacheQueue.clear();
 
-                // 执行一批任务之后检查是否退出
-                if (runTaskNum >= batchSize) {
+                // <0表示可能溢出了，执行一批任务之后检查是否退出
+                if (batchSize < 0 || runTaskNum >= batchSize) {
                     break;
                 }
             }

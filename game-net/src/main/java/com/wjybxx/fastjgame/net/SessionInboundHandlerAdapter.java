@@ -24,7 +24,7 @@ package com.wjybxx.fastjgame.net;
  * date - 2019/9/25
  * github - https://github.com/hl845740757
  */
-public class SessionInbounHandlerAdapter extends SessionHandlerAdapter implements SessionInboundHandler {
+public class SessionInboundHandlerAdapter extends SessionHandlerAdapter implements SessionInboundHandler {
 
     @Override
     public void onSessionActive(SessionHandlerContext ctx) throws Exception {

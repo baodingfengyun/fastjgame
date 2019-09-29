@@ -44,11 +44,11 @@ public class JVMTransferHandler extends SessionOutboundHandlerAdapter {
 
     @Override
     public void close(SessionHandlerContext ctx, Promise<?> promise) throws Exception {
+        // 标记为成功
+        promise.trySuccess(null);
         try {
             // 删除session
             ctx.managerWrapper().getSessionManager().removeSession(ctx.session());
-            // 标记为成功
-            promise.trySuccess(null);
             // 执行关闭通知
             ctx.session().pipeline().fireSessionInactive();
         } finally {
