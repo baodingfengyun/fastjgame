@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.misc.PortContext;
 import com.wjybxx.fastjgame.misc.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.RoleType;
 import io.netty.channel.Channel;

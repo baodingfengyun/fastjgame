@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.manager;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.misc.DefaultSocketPort;
+import com.wjybxx.fastjgame.net.socket.DefaultSocketPort;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.PortRange;
 import com.wjybxx.fastjgame.utils.NetUtils;

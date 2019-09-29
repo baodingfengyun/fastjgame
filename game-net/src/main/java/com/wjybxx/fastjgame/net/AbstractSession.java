@@ -23,14 +23,12 @@ import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
 import com.wjybxx.fastjgame.net.task.AsyncRpcRequestWriteTask;
-import com.wjybxx.fastjgame.net.task.BatchOneWayWriteTask;
 import com.wjybxx.fastjgame.net.task.OneWayMessageWriteTask;
 import com.wjybxx.fastjgame.net.task.SyncRpcRequestWriteTask;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -92,14 +90,6 @@ public abstract class AbstractSession implements Session {
         if (isActive()) {
             // 会话活动的状态下才会发送
             netEventLoop.execute(new OneWayMessageWriteTask(this, message));
-        }
-    }
-
-    @Override
-    public final void send(@Nonnull List<Object> messageList) {
-        if (isActive()) {
-            // 会话活动的状态下才会发送
-            netEventLoop.execute(new BatchOneWayWriteTask(this, messageList));
         }
     }
 

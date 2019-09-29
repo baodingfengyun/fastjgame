@@ -89,7 +89,7 @@ public interface NetContext {
      * @return future
      */
     default ListenableFuture<SocketPort> bindTcp(String host, int port,
-                                                  @Nonnull SocketSessionConfig config) {
+                                                 @Nonnull SocketSessionConfig config) {
         return this.bindTcpRange(host, new PortRange(port, port), config);
     }
 
@@ -126,7 +126,7 @@ public interface NetContext {
      * @return future
      */
     default ListenableFuture<SocketPort> bindWS(String host, int port, String websocketPath,
-                                                 @Nonnull SocketSessionConfig config) {
+                                                @Nonnull SocketSessionConfig config) {
         return this.bindWSRange(host, new PortRange(port, port), websocketPath, config);
     }
 
@@ -140,7 +140,7 @@ public interface NetContext {
      * @return future
      */
     ListenableFuture<SocketPort> bindWSRange(String host, PortRange portRange, String websocketPath,
-                                              @Nonnull SocketSessionConfig config);
+                                             @Nonnull SocketSessionConfig config);
 
     /**
      * 以websocket方式连接远程某个端口

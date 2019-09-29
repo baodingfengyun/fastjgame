@@ -1,17 +1,17 @@
 /*
- * Copyright 2019 wjybxx
+ *  Copyright 2019 wjybxx
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to iBn writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 
 package com.wjybxx.fastjgame.eventloop;
@@ -40,8 +40,6 @@ import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import okhttp3.Response;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
@@ -58,9 +56,7 @@ import java.util.Map;
  * github - https://github.com/hl845740757
  */
 @ThreadSafe
-class NetContextImp implements NetContext {
-
-    private static final Logger logger = LoggerFactory.getLogger(NetContextImp.class);
+public class NetContextImp implements NetContext {
 
     private final long localGuid;
     private final RoleType localRole;
@@ -68,15 +64,13 @@ class NetContextImp implements NetContext {
     private final NetEventLoop netEventLoop;
     private final NetManagerWrapper managerWrapper;
 
-    NetContextImp(long localGuid, RoleType localRole, EventLoop localEventLoop,
-                  NetEventLoop netEventLoop, NetManagerWrapper managerWrapper) {
+    public NetContextImp(long localGuid, RoleType localRole, EventLoop localEventLoop,
+                         NetEventLoop netEventLoop, NetManagerWrapper managerWrapper) {
         this.localGuid = localGuid;
         this.localRole = localRole;
         this.localEventLoop = localEventLoop;
         this.netEventLoop = netEventLoop;
         this.managerWrapper = managerWrapper;
-
-        logger.info("User {}-{} create NetContext!", localRole, localGuid);
     }
 
     @Override
@@ -101,16 +95,9 @@ class NetContextImp implements NetContext {
 
     @Override
     public ListenableFuture<?> deregister() {
-        // 逻辑层调用
-        return netEventLoop.deregisterContext(localGuid);
-    }
-
-    void afterRemoved() {
-        // 尝试删除自己的痕迹
-        managerWrapper.getSessionManager().removeUserSession(localGuid);
-        managerWrapper.getHttpSessionManager().removeUserSession(localGuid);
-
-        logger.info("User {}-{} NetContext removed!", localRole, localGuid);
+        return netEventLoop.submit(() -> {
+            managerWrapper.getNetContextManager().deregister(this);
+        });
     }
 
     @Override

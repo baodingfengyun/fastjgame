@@ -15,7 +15,6 @@
  */
 package com.wjybxx.fastjgame.net.task;
 
-import com.wjybxx.fastjgame.net.ProtocolDispatcher;
 import com.wjybxx.fastjgame.net.RpcResponseChannel;
 import com.wjybxx.fastjgame.net.Session;
 
@@ -29,11 +28,10 @@ import com.wjybxx.fastjgame.net.Session;
  */
 public class RpcRequestCommitTask implements CommitTask {
 
-    private Session session;
     /**
-     * 消息分发器
+     * session - 包含协议分发器
      */
-    private ProtocolDispatcher protocolDispatcher;
+    private Session session;
     /**
      * 返回结果的通道
      */
@@ -43,16 +41,15 @@ public class RpcRequestCommitTask implements CommitTask {
      */
     private Object request;
 
-    public RpcRequestCommitTask(Session session, ProtocolDispatcher protocolDispatcher, RpcResponseChannel<?> rpcResponseChannel,
+    public RpcRequestCommitTask(Session session, RpcResponseChannel<?> rpcResponseChannel,
                                 Object request) {
         this.session = session;
-        this.protocolDispatcher = protocolDispatcher;
         this.rpcResponseChannel = rpcResponseChannel;
         this.request = request;
     }
 
     @Override
     public void run() {
-        protocolDispatcher.postRpcRequest(session, request, rpcResponseChannel);
+        session.config().dispatcher().postRpcRequest(session, request, rpcResponseChannel);
     }
 }

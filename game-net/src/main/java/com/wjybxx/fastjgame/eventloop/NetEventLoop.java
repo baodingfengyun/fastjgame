@@ -43,8 +43,7 @@ public interface NetEventLoop extends EventLoop {
 
     /**
      * 注册一个NetEventLoop的用户(创建一个网络上下文)。
-     * 当用户不再使用NetEventLoop时，避免内存泄漏，必须调用
-     * {@link NetContext#deregister()} 或 {@link NetEventLoop#deregisterContext(long)}取消注册。
+     * 当用户不再使用NetEventLoop时，避免内存泄漏，必须调用{@link NetContext#deregister()}取消注册。
      * <p>
      * 注意：一个localGuid表示一个用户，在同一个NetEventLoop下只能创建一个Context，必须在取消注册成功之后才能再次注册。
      *
@@ -54,15 +53,6 @@ public interface NetEventLoop extends EventLoop {
      * @return NetContext 创建的context可以用于监听，建立连接，和http请求
      */
     ListenableFuture<NetContext> createContext(long localGuid, RoleType localRole, @Nonnull EventLoop localEventLoop);
-
-    /**
-     * 取消context的注册
-     *
-     * @param localGuid 注册的用户
-     * @return future
-     */
-    @Nonnull
-    ListenableFuture<?> deregisterContext(long localGuid);
 
     /**
      * 创建一个RpcPromise

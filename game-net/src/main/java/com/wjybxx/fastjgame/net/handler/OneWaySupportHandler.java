@@ -17,10 +17,8 @@
 package com.wjybxx.fastjgame.net.handler;
 
 import com.wjybxx.fastjgame.net.OneWayMessage;
-import com.wjybxx.fastjgame.net.ProtocolDispatcher;
 import com.wjybxx.fastjgame.net.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.SessionHandlerContext;
-import com.wjybxx.fastjgame.net.task.BatchOneWayWriteTask;
 import com.wjybxx.fastjgame.net.task.OneWayMessageCommitTask;
 import com.wjybxx.fastjgame.net.task.OneWayMessageWriteTask;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
@@ -35,14 +33,7 @@ import com.wjybxx.fastjgame.utils.ConcurrentUtils;
  */
 public class OneWaySupportHandler extends SessionDuplexHandlerAdapter {
 
-    private ProtocolDispatcher protocolDispatcher;
-
     public OneWaySupportHandler() {
-    }
-
-    @Override
-    public void init(SessionHandlerContext ctx) throws Exception {
-        protocolDispatcher = ctx.session().config().dispatcher();
     }
 
     @Override
@@ -51,7 +42,7 @@ public class OneWaySupportHandler extends SessionDuplexHandlerAdapter {
             // 读取到一个单向消息
             OneWayMessage oneWayMessage = (OneWayMessage) msg;
             ConcurrentUtils.tryCommit(ctx.localEventLoop(),
-                    new OneWayMessageCommitTask(ctx.session(), protocolDispatcher, oneWayMessage.getMessage()));
+                    new OneWayMessageCommitTask(ctx.session(), oneWayMessage.getMessage()));
         } else {
             ctx.fireRead(msg);
         }
@@ -63,14 +54,6 @@ public class OneWaySupportHandler extends SessionDuplexHandlerAdapter {
             // 单个消息
             OneWayMessageWriteTask writeTask = (OneWayMessageWriteTask) msg;
             ctx.fireWrite(new OneWayMessage(writeTask.getMessage()));
-        } else if (msg instanceof BatchOneWayWriteTask) {
-            // 批量发送的消息
-            BatchOneWayWriteTask writeTask = (BatchOneWayWriteTask) msg;
-            for (Object message : writeTask.getMessageList()) {
-                ctx.fireWrite(new OneWayMessage(message));
-            }
-            // 清空缓冲区
-            ctx.fireFlush();
         } else {
             ctx.fireWrite(msg);
         }

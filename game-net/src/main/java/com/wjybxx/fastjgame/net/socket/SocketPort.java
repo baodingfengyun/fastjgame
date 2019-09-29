@@ -20,6 +20,8 @@ import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.NetPort;
 
 /**
+ * socket绑定端口结果
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/9/28

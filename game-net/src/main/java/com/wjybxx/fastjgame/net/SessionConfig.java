@@ -156,11 +156,11 @@ public class SessionConfig {
          * 检查一个数是否是正数
          *
          * @param param 参数
-         * @param msg   信息
+         * @param name  属性的名字
          */
-        public static void checkPositive(int param, String msg) {
+        public static void checkPositive(int param, String name) {
             if (param <= 0) {
-                throw new IllegalArgumentException(msg + " must greater than zero");
+                throw new IllegalArgumentException(name + ": " + param + " (expected: > 0)");
             }
         }
     }

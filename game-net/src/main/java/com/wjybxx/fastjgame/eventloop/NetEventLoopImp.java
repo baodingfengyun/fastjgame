@@ -27,17 +27,11 @@ import com.wjybxx.fastjgame.manager.*;
 import com.wjybxx.fastjgame.module.NetEventLoopModule;
 import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.timer.FixedDelayHandle;
-import com.wjybxx.fastjgame.utils.CollectionUtils;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-import com.wjybxx.fastjgame.utils.FunctionUtils;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.locks.LockSupport;
 
@@ -65,16 +59,7 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     private final SessionManager sessionManager;
     private final NetTimeManager netTimeManager;
     private final NetTimerManager netTimerManager;
-
-    /**
-     * 已注册的用户的EventLoop集合，它是一个安全措施，如果用户在退出时如果没有执行取消操作，
-     * 那么当监听到所在的EventLoop进入终止状态时，取消该EventLoop上注册的用户。
-     */
-    private final Set<EventLoop> registeredUserEventLoopSet = new HashSet<>();
-    /**
-     * 已注册的用户集合
-     */
-    private final Long2ObjectMap<NetContextImp> registeredUserMap = new Long2ObjectOpenHashMap<>();
+    private final NetContextManager netContextManager;
 
     public NetEventLoopImp(@Nonnull ThreadFactory threadFactory, @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
         super(null, threadFactory, rejectedExecutionHandler);
@@ -83,6 +68,7 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         managerWrapper = injector.getInstance(NetManagerWrapper.class);
         // 用于发布自己
         netEventLoopManager = managerWrapper.getNetEventLoopManager();
+        netContextManager = managerWrapper.getNetContextManager();
         // session管理
         sessionManager = managerWrapper.getSessionManager();
         httpSessionManager = managerWrapper.getHttpSessionManager();
@@ -96,6 +82,7 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         netTimerManager = managerWrapper.getNetTimerManager();
 
         // 解决循环依赖
+        netContextManager.setManagerWrapper(managerWrapper);
         sessionManager.setManagerWrapper(managerWrapper);
         httpSessionManager.setManagerWrapper(managerWrapper);
     }
@@ -121,30 +108,19 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     @Override
     public ListenableFuture<NetContext> createContext(long localGuid, RoleType localRole, @Nonnull EventLoop localEventLoop) {
         if (localEventLoop instanceof NetEventLoop) {
-            throw new IllegalArgumentException("Unexpected invoke.");
+            throw new IllegalArgumentException("Bad EventLoop");
         }
-        // 这里一定是逻辑层，不同线程
         return submit(() -> {
-            if (registeredUserMap.containsKey(localGuid)) {
-                throw new IllegalArgumentException("user " + localGuid + " is already registered!");
-            }
-            // 创建context
-            NetContextImp netContext = new NetContextImp(localGuid, localRole, localEventLoop, this, managerWrapper);
-            registeredUserMap.put(localGuid, netContext);
-            // 监听用户线程关闭
-            if (registeredUserEventLoopSet.add(localEventLoop)) {
-                localEventLoop.terminationFuture().addListener(future -> onUserEventLoopTerminal(localEventLoop), this);
-            }
-            return netContext;
+            return netContextManager.createContext(localGuid, localRole, localEventLoop);
         });
     }
 
     @Override
     protected void init() throws Exception {
         super.init();
-        // Q:为什么没使用threadLocal？
-        // A:本来想使用的，但是如果提供一个全局的接口的话，它也会对逻辑层开放，而逻辑层如果调用了一定会导致错误。使用threadLocal暴露了不该暴露的接口。
-        // 发布自身，使得该eventLoop的其它管理器可以方便的获取该对象
+        // 发布自身，使得该eventLoop的其它管理器可以方便的获取该对象，在这里才是正确的线程，构造方法里不能发布自己
+        // Q: 为什么没使用threadLocal？
+        // A: 本来想使用的，但是如果提供一个全局的接口的话，它也会对逻辑层开放，而逻辑层如果调用了一定会导致错误。使用threadLocal暴露了不该暴露的接口。
         netEventLoopManager.publish(this);
         // 10ms一次tick足够了
         netTimerManager.newFixedDelay(10, this::tick);
@@ -188,37 +164,15 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         super.clean();
         // 清理定时器
         netTimerManager.close();
+
         // 删除所有的用户信息
-        CollectionUtils.removeIfAndThen(registeredUserMap.values(),
-                FunctionUtils::TRUE,
-                NetContextImp::afterRemoved);
+        ConcurrentUtils.safeExecute((Runnable) netContextManager::clean);
+        ConcurrentUtils.safeExecute((Runnable) sessionManager::clean);
+        ConcurrentUtils.safeExecute((Runnable) httpSessionManager::clean);
+
         // 关闭持有的线程资源
         ConcurrentUtils.safeExecute((Runnable) nettyThreadManager::shutdown);
         ConcurrentUtils.safeExecute((Runnable) httpClientManager::shutdown);
     }
 
-    @Nonnull
-    @Override
-    public ListenableFuture<?> deregisterContext(long localGuid) {
-        // 逻辑层调用
-        return submit(() -> {
-            NetContextImp netContext = registeredUserMap.remove(localGuid);
-            if (null == netContext) {
-                // 早已取消
-                return;
-            }
-            netContext.afterRemoved();
-        });
-    }
-
-    private void onUserEventLoopTerminal(EventLoop userEventLoop) {
-        // 删除该EventLoop相关的所有context
-        CollectionUtils.removeIfAndThen(registeredUserMap.values(),
-                netContext -> netContext.localEventLoop() == userEventLoop,
-                NetContextImp::afterRemoved);
-
-        // 更彻底的清理
-        managerWrapper.getSessionManager().onUserEventLoopTerminal(userEventLoop);
-        managerWrapper.getHttpSessionManager().onUserEventLoopTerminal(userEventLoop);
-    }
 }

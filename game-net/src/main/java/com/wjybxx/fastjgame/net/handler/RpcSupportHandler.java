@@ -51,15 +51,8 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
      */
     private final Long2ObjectMap<RpcTimeoutInfo> rpcTimeoutInfoMap = new Long2ObjectLinkedOpenHashMap<>();
 
-    private ProtocolDispatcher protocolDispatcher;
-
     public RpcSupportHandler() {
 
-    }
-
-    @Override
-    public void init(SessionHandlerContext ctx) throws Exception {
-        protocolDispatcher = ctx.session().config().dispatcher();
     }
 
     @Override
@@ -145,7 +138,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
                     requestMessage.getRequestGuid(), requestMessage.isSync());
 
             ConcurrentUtils.tryCommit(ctx.localEventLoop(),
-                    new RpcRequestCommitTask(ctx.session(), protocolDispatcher, rpcResponseChannel, requestMessage.getRequest()));
+                    new RpcRequestCommitTask(ctx.session(), rpcResponseChannel, requestMessage.getRequest()));
         } else if (msg instanceof RpcResponseMessage) {
             // 读取到一个Rpc响应消息，提交给应用层
             RpcResponseMessage responseMessage = (RpcResponseMessage) msg;

@@ -13,29 +13,37 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+package com.wjybxx.fastjgame.net.socket;
 
-package com.wjybxx.fastjgame.misc;
-
-import com.wjybxx.fastjgame.net.ProtocolDispatcher;
-
-import javax.annotation.concurrent.NotThreadSafe;
+import com.wjybxx.fastjgame.misc.HostAndPort;
+import io.netty.channel.Channel;
 
 /**
- * 某个端口的绑定信息 - 它解释如何处理该端口上接收到的连接和消息。
+ * 绑定端口结果
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/9/10
+ * date - 2019/8/5
  * github - https://github.com/hl845740757
  */
-@NotThreadSafe
-public class PortContext {
+public class DefaultSocketPort implements SocketPort {
 
-    public final SessionLifecycleAware lifecycleAware;
-    public final ProtocolDispatcher protocolDispatcher;
+    private final Channel channel;
+    private final HostAndPort hostAndPort;
 
-    public PortContext(SessionLifecycleAware lifecycleAware, ProtocolDispatcher protocolDispatcher) {
-        this.lifecycleAware = lifecycleAware;
-        this.protocolDispatcher = protocolDispatcher;
+    public DefaultSocketPort(Channel channel, HostAndPort hostAndPort) {
+        this.channel = channel;
+        this.hostAndPort = hostAndPort;
     }
+
+    @Override
+    public HostAndPort getHostAndPort() {
+        return hostAndPort;
+    }
+
+    @Override
+    public void close() {
+        channel.close();
+    }
+
 }

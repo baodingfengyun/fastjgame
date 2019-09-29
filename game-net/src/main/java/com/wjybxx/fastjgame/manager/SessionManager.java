@@ -177,6 +177,10 @@ public class SessionManager {
         return acceptorManager.bindRange(host, portRange, config.sndBuffer(), config.rcvBuffer(), initializer);
     }
 
+    public void clean() {
+
+    }
+
     private static class JVMPortImp implements JVMPort {
 
         /**
@@ -208,10 +212,7 @@ public class SessionManager {
 
         @Override
         public ListenableFuture<Session> connect(@Nonnull NetContext netContext, @Nonnull JVMSessionConfig config) {
-            if (netContext.netEventLoop() != localContext.netEventLoop()) {
-                // 使用JVMPort通信，用户必须是同一个NetEventLoop的用户
-                return netContext.netEventLoop().newFailedFuture(new IllegalArgumentException("Incompatible user"));
-            }
+            // 提交到绑定端口的用户所在的NetEventLoop - 消除同步的关键
             final Promise<Session> promise = localContext.netEventLoop().newPromise();
             localContext.netEventLoop().execute(() -> {
                 sessionManager.connectInJVM(netContext, this, config, promise);

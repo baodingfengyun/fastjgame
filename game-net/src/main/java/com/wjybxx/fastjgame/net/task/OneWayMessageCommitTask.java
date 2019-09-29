@@ -15,7 +15,6 @@
  */
 package com.wjybxx.fastjgame.net.task;
 
-import com.wjybxx.fastjgame.net.ProtocolDispatcher;
 import com.wjybxx.fastjgame.net.Session;
 
 /**
@@ -28,24 +27,22 @@ import com.wjybxx.fastjgame.net.Session;
  */
 public class OneWayMessageCommitTask implements CommitTask {
 
-    private Session session;
     /**
-     * 消息分发器
+     * session - 包含协议分发器
      */
-    private ProtocolDispatcher protocolDispatcher;
+    private Session session;
     /**
      * 单向消息的内容
      */
     private Object message;
 
-    public OneWayMessageCommitTask(Session session, ProtocolDispatcher protocolDispatcher, Object message) {
+    public OneWayMessageCommitTask(Session session, Object message) {
         this.session = session;
-        this.protocolDispatcher = protocolDispatcher;
         this.message = message;
     }
 
     @Override
     public void run() {
-        protocolDispatcher.postOneWayMessage(session, message);
+        session.config().dispatcher().postOneWayMessage(session, message);
     }
 }
