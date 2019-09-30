@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.injvm;
+package com.wjybxx.fastjgame.net.local;
 
 import com.wjybxx.fastjgame.net.*;
 
@@ -26,11 +26,11 @@ import com.wjybxx.fastjgame.net.*;
  * date - 2019/9/25
  * github - https://github.com/hl845740757
  */
-public class JVMCodecHandler extends SessionOutboundHandlerAdapter {
+public class LocalCodecHandler extends SessionOutboundHandlerAdapter {
 
     private ProtocolCodec codec;
 
-    public JVMCodecHandler() {
+    public LocalCodecHandler() {
 
     }
 

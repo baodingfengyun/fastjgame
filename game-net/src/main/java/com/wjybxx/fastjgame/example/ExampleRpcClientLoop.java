@@ -27,8 +27,8 @@ import com.wjybxx.fastjgame.misc.RpcBuilder;
 import com.wjybxx.fastjgame.misc.SessionDisconnectAware;
 import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.net.Session;
-import com.wjybxx.fastjgame.net.injvm.JVMPort;
-import com.wjybxx.fastjgame.net.injvm.JVMSessionConfig;
+import com.wjybxx.fastjgame.net.local.LocalPort;
+import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
 import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.TimeUtils;
@@ -48,7 +48,7 @@ public class ExampleRpcClientLoop extends DisruptorEventLoop {
 
     private NetContext netContext;
 
-    private final JVMPort jvmPort;
+    private final LocalPort localPort;
     /**
      * 是否已建立tcp连接
      */
@@ -58,9 +58,9 @@ public class ExampleRpcClientLoop extends DisruptorEventLoop {
 
     public ExampleRpcClientLoop(@Nonnull ThreadFactory threadFactory,
                                 @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
-                                @Nullable JVMPort jvmPort) {
+                                @Nullable LocalPort localPort) {
         super(null, threadFactory, rejectedExecutionHandler, DisruptorWaitStrategyType.YIELD);
-        this.jvmPort = jvmPort;
+        this.localPort = localPort;
     }
 
     @Override
@@ -68,14 +68,14 @@ public class ExampleRpcClientLoop extends DisruptorEventLoop {
         super.init();
         netContext = ExampleConstants.netEventLoop.createContext(ExampleConstants.clientGuid, ExampleConstants.clientRole, this).get();
 
-        if (jvmPort != null) {
-            JVMSessionConfig config = JVMSessionConfig.newBuilder()
+        if (localPort != null) {
+            LocalSessionConfig config = LocalSessionConfig.newBuilder()
                     .setCodec(ExampleConstants.reflectBasedCodec)
                     .setLifecycleAware(new ServerDisconnectAward())
                     .setDispatcher(new DefaultProtocolDispatcher())
                     .build();
 
-            session = netContext.connectInJVM(jvmPort, config).get();
+            session = netContext.connectInJVM(localPort, config).get();
         } else {
             // 必须先启动服务器
             final HostAndPort address = new HostAndPort(NetUtils.getLocalIp(), ExampleConstants.tcpPort);

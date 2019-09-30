@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.injvm;
+package com.wjybxx.fastjgame.net.local;
 
 import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.net.SessionHandlerContext;
@@ -28,11 +28,11 @@ import com.wjybxx.fastjgame.net.SessionOutboundHandlerAdapter;
  * date - 2019/9/26
  * github - https://github.com/hl845740757
  */
-public class JVMTransferHandler extends SessionOutboundHandlerAdapter {
+public class LocalTransferHandler extends SessionOutboundHandlerAdapter {
 
-    private final JVMSession remoteSession;
+    private final LocalSession remoteSession;
 
-    public JVMTransferHandler(JVMSession remoteSession) {
+    public LocalTransferHandler(LocalSession remoteSession) {
         this.remoteSession = remoteSession;
     }
 

@@ -24,9 +24,9 @@ import com.wjybxx.fastjgame.misc.PortRange;
 import com.wjybxx.fastjgame.net.http.HttpRequestDispatcher;
 import com.wjybxx.fastjgame.net.http.HttpSession;
 import com.wjybxx.fastjgame.net.http.OkHttpCallback;
-import com.wjybxx.fastjgame.net.injvm.JVMPort;
-import com.wjybxx.fastjgame.net.injvm.JVMSession;
-import com.wjybxx.fastjgame.net.injvm.JVMSessionConfig;
+import com.wjybxx.fastjgame.net.local.LocalPort;
+import com.wjybxx.fastjgame.net.local.LocalSession;
+import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
 import com.wjybxx.fastjgame.net.socket.SocketPort;
 import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
 import okhttp3.Response;
@@ -159,7 +159,7 @@ public interface NetContext {
 
     /**
      * 绑定一个JVM端口，用于其它线程建立会话。
-     * 其性能与socket的不在一个数量级，如果你的session的双方在同一个进程下，那么强烈建议使用{@link JVMSession}。
+     * 其性能与socket的不在一个数量级，如果你的session的双方在同一个进程下，那么强烈建议使用{@link LocalSession}。
      * <pre>
      * 1. 它没有网络传输开销，纯粹的内存数据转移。
      * 2. 没有复杂的网络情况要处理。
@@ -168,17 +168,17 @@ public interface NetContext {
      * @param config 配置信息
      * @return future 如果想消除同步，添加监听器时请绑定EventLoop
      */
-    ListenableFuture<JVMPort> bindInJVM(@Nonnull JVMSessionConfig config);
+    ListenableFuture<LocalPort> bindInJVM(@Nonnull LocalSessionConfig config);
 
     /**
      * 与JVM内的另一个线程建立session。
-     * 注意：{@link JVMPort}必须是同一个{@link NetEventLoop}创建的。
+     * 注意：{@link LocalPort}必须是同一个{@link NetEventLoop}创建的。
      *
-     * @param jvmPort 远程“端口”信息
+     * @param localPort 远程“端口”信息
      * @param config  配置信息
      * @return future 如果想消除同步，添加监听器时请绑定EventLoop
      */
-    ListenableFuture<Session> connectInJVM(@Nonnull JVMPort jvmPort, @Nonnull JVMSessionConfig config);
+    ListenableFuture<Session> connectInJVM(@Nonnull LocalPort localPort, @Nonnull LocalSessionConfig config);
 
     //  --------------------------------------- http支持 -----------------------------------------
 

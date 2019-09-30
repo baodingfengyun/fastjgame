@@ -14,33 +14,24 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.injvm;
-
-import com.wjybxx.fastjgame.net.SessionConfig;
+package com.wjybxx.fastjgame.net;
 
 /**
- * jvm内部session配置
- *
  * @author wjybxx
  * @version 1.0
- * date - 2019/9/26
+ * date - 2019/9/30
  * github - https://github.com/hl845740757
  */
-public final class JVMSessionConfig extends SessionConfig {
+public class ServerSessionConfig extends SessionConfig {
 
-    private JVMSessionConfig(JVMSessionConfigBuilder builder) {
+    public ServerSessionConfig(ServerSessionConfigBuilder builder) {
         super(builder);
     }
 
-    public static JVMSessionConfigBuilder newBuilder() {
-        return new JVMSessionConfigBuilder();
-    }
+    public static class ServerSessionConfigBuilder<T extends ServerSessionConfigBuilder<T>> extends SessionConfigBuilder<T> {
 
-    public static class JVMSessionConfigBuilder extends SessionConfigBuilder<JVMSessionConfigBuilder> {
+        public ServerSessionConfigBuilder() {
 
-        @Override
-        public JVMSessionConfig build() {
-            return new JVMSessionConfig(this);
         }
     }
 }

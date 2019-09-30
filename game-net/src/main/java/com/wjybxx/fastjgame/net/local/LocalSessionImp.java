@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.injvm;
+package com.wjybxx.fastjgame.net.local;
 
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
 import com.wjybxx.fastjgame.net.AbstractSession;
@@ -30,18 +30,18 @@ import com.wjybxx.fastjgame.net.Session;
  * date - 2019/9/9
  * github - https://github.com/hl845740757
  */
-public class JVMSessionImp extends AbstractSession implements JVMSession {
+public class LocalSessionImp extends AbstractSession implements LocalSession {
 
     /**
      * 配置信息
      */
-    private final JVMSessionConfig config;
+    private final LocalSessionConfig config;
     /**
      * 会话另一方的信息
      */
     private Session remoteSession;
 
-    public JVMSessionImp(NetContext netContext, NetManagerWrapper managerWrapper, JVMSessionConfig config) {
+    public LocalSessionImp(NetContext netContext, NetManagerWrapper managerWrapper, LocalSessionConfig config) {
         super(netContext, managerWrapper);
         this.config = config;
     }
@@ -51,7 +51,7 @@ public class JVMSessionImp extends AbstractSession implements JVMSession {
     }
 
     @Override
-    public JVMSessionConfig config() {
+    public LocalSessionConfig config() {
         return config;
     }
 

@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.injvm;
+package com.wjybxx.fastjgame.net.local;
 
 import com.wjybxx.fastjgame.net.Session;
 
@@ -26,8 +26,8 @@ import com.wjybxx.fastjgame.net.Session;
  * date - 2019/9/27
  * github - https://github.com/hl845740757
  */
-public interface JVMSession extends Session {
+public interface LocalSession extends Session {
 
     @Override
-    JVMSessionConfig config();
+    LocalSessionConfig config();
 }

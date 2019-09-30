@@ -26,8 +26,8 @@ import com.wjybxx.fastjgame.misc.DefaultProtocolDispatcher;
 import com.wjybxx.fastjgame.misc.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.net.Session;
-import com.wjybxx.fastjgame.net.injvm.JVMPort;
-import com.wjybxx.fastjgame.net.injvm.JVMSessionConfig;
+import com.wjybxx.fastjgame.net.local.LocalPort;
+import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
 import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
@@ -50,16 +50,16 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
     private final DefaultProtocolDispatcher protocolDispatcher = new DefaultProtocolDispatcher();
 
     private NetContext netContext;
-    private final Promise<JVMPort> jvmPortPromise;
+    private final Promise<LocalPort> localPortPromise;
 
     private long startTime;
     private Session session;
 
     public ExampleRpcServerLoop(@Nonnull ThreadFactory threadFactory,
                                 @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
-                                @Nullable Promise<JVMPort> jvmPortPromise) {
+                                @Nullable Promise<LocalPort> localPortPromise) {
         super(null, threadFactory, rejectedExecutionHandler, DisruptorWaitStrategyType.YIELD);
-        this.jvmPortPromise = jvmPortPromise;
+        this.localPortPromise = localPortPromise;
     }
 
     @Override
@@ -70,19 +70,19 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
         // 注册rpc服务
         ExampleRpcServiceRpcRegister.register(protocolDispatcher, new ExampleRpcService());
 
-        if (jvmPortPromise != null) {
+        if (localPortPromise != null) {
             // 绑定jvm端口
             try {
-                JVMSessionConfig config = JVMSessionConfig.newBuilder()
+                LocalSessionConfig config = LocalSessionConfig.newBuilder()
                         .setCodec(ExampleConstants.reflectBasedCodec)
                         .setLifecycleAware(new ClientLifeAware())
                         .setDispatcher(protocolDispatcher)
                         .build();
 
-                final JVMPort jvmPort = netContext.bindInJVM(config).get();
-                jvmPortPromise.trySuccess(jvmPort);
+                final LocalPort localPort = netContext.bindInJVM(config).get();
+                localPortPromise.trySuccess(localPort);
             } catch (Exception e) {
-                jvmPortPromise.tryFailure(e);
+                localPortPromise.tryFailure(e);
             }
         } else {
             // 监听tcp端口

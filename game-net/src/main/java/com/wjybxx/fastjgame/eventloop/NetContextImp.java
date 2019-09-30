@@ -28,8 +28,8 @@ import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.net.http.HttpRequestDispatcher;
 import com.wjybxx.fastjgame.net.http.HttpServerInitializer;
 import com.wjybxx.fastjgame.net.http.OkHttpCallback;
-import com.wjybxx.fastjgame.net.injvm.JVMPort;
-import com.wjybxx.fastjgame.net.injvm.JVMSessionConfig;
+import com.wjybxx.fastjgame.net.local.LocalPort;
+import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
 import com.wjybxx.fastjgame.net.socket.SocketPort;
 import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
 import com.wjybxx.fastjgame.net.socket.TCPClientChannelInitializer;
@@ -156,15 +156,15 @@ public class NetContextImp implements NetContext {
     // ----------------------------------------------- 本地调用支持 --------------------------------------------
 
     @Override
-    public ListenableFuture<JVMPort> bindInJVM(@Nonnull JVMSessionConfig config) {
+    public ListenableFuture<LocalPort> bindInJVM(@Nonnull LocalSessionConfig config) {
         return netEventLoop.submit(() -> {
             return managerWrapper.getSessionManager().bindInJVM(this, config);
         });
     }
 
     @Override
-    public ListenableFuture<Session> connectInJVM(@Nonnull JVMPort jvmPort, @Nonnull JVMSessionConfig config) {
-        return jvmPort.connect(this, config);
+    public ListenableFuture<Session> connectInJVM(@Nonnull LocalPort localPort, @Nonnull LocalSessionConfig config) {
+        return localPort.connect(this, config);
     }
 
     // ------------------------------------------- http 实现 ----------------------------------------

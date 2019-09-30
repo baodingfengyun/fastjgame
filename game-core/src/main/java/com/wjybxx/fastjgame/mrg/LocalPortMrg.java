@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.net.injvm.JVMPort;
+import com.wjybxx.fastjgame.net.local.LocalPort;
 import com.wjybxx.fastjgame.world.GameEventLoopGroup;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -34,7 +34,7 @@ import java.util.concurrent.ConcurrentMap;
  * github - https://github.com/hl845740757
  */
 @ThreadSafe
-public class JVMPortMrg {
+public class LocalPortMrg {
 
     /**
      * 写到这里很有感慨啊...
@@ -61,32 +61,32 @@ public class JVMPortMrg {
      * 建议：优先消除同步逻辑！当你无法消除同步的时候，再考虑{@link ConcurrentHashMap}这种并发组件。<br>
      * 我习惯于：先想办法消除同步，再考虑其它的并发组件。这套框架的底层，也都是这样做的！我在这里的时候很自然的发现{@link ConcurrentHashMap}很适合，就用了。
      */
-    private final ConcurrentMap<Long, JVMPort> jvmPortMap = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Long, LocalPort> localPortMap = new ConcurrentHashMap<>();
 
     @Inject
-    public JVMPortMrg() {
+    public LocalPortMrg() {
 
     }
 
     /**
-     * 发布一个JVMPort，使得其它线程可以通过该jvmPort建立连接。
-     * 注意：该方法必须在world将自己注册到zookeeper之前执行！以保证其它world在zookeeper上发现它以后一定能取出它的jvmPort.
+     * 发布一个{@link LocalPort}，使得其它线程可以通过该{@link LocalPort}建立连接。
+     * 注意：该方法必须在world将自己注册到zookeeper之前执行！以保证其它world在zookeeper上发现它以后一定能取出它的{@link LocalPort}.
      *
      * @param worldGuid worldGuid
-     * @param jvmPort   该world监听的jvm端口
+     * @param localPort   该world监听的jvm端口
      */
-    public void register(long worldGuid, JVMPort jvmPort) {
-        final JVMPort exist = jvmPortMap.putIfAbsent(worldGuid, jvmPort);
+    public void register(long worldGuid, LocalPort localPort) {
+        final LocalPort exist = localPortMap.putIfAbsent(worldGuid, localPort);
         if (null != exist) {
             throw new IllegalArgumentException("worldGuid " + worldGuid + " is already registered");
         }
     }
 
-    public JVMPort deregister(long worldGuid) {
-        return jvmPortMap.remove(worldGuid);
+    public LocalPort deregister(long worldGuid) {
+        return localPortMap.remove(worldGuid);
     }
 
-    public JVMPort getJVMPort(long worldGuid) {
-        return jvmPortMap.get(worldGuid);
+    public LocalPort getLocalPort(long worldGuid) {
+        return localPortMap.get(worldGuid);
     }
 }

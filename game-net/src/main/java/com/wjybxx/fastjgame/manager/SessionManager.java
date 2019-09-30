@@ -29,7 +29,7 @@ import com.wjybxx.fastjgame.net.Session;
 import com.wjybxx.fastjgame.net.handler.OneWaySupportHandler;
 import com.wjybxx.fastjgame.net.handler.RpcSupportHandler;
 import com.wjybxx.fastjgame.net.handler.SessionLifeCycleAwareHandler;
-import com.wjybxx.fastjgame.net.injvm.*;
+import com.wjybxx.fastjgame.net.local.*;
 import com.wjybxx.fastjgame.net.socket.ConnectRequestEvent;
 import com.wjybxx.fastjgame.net.socket.ConnectResponseEvent;
 import com.wjybxx.fastjgame.net.socket.SocketPort;
@@ -127,21 +127,21 @@ public class SessionManager {
 
     // ---------------------------------------------------------------
 
-    public JVMPort bindInJVM(NetContext netContext, JVMSessionConfig config) {
-        return new JVMPortImp(netContext, config, this);
+    public LocalPort bindInJVM(NetContext netContext, LocalSessionConfig config) {
+        return new LocalPortImp(netContext, config, this);
     }
 
-    private void connectInJVM(NetContext netContext, JVMPortImp jvmPort,
-                              JVMSessionConfig config,
+    private void connectInJVM(NetContext netContext, LocalPortImp localPort,
+                              LocalSessionConfig config,
                               Promise<Session> promise) {
         // 端口已关闭
-        if (!jvmPort.active) {
+        if (!localPort.active) {
             promise.tryFailure(new IOException("remote node not exist"));
             return;
         }
 
         final long localGuid = netContext.localGuid();
-        final long remoteGuid = jvmPort.localGuid();
+        final long remoteGuid = localPort.localGuid();
         // 会话已存在
         if (sessionRegistry.getSession(localGuid, remoteGuid) != null ||
                 sessionRegistry.getSession(remoteGuid, localGuid) != null) {
@@ -149,8 +149,8 @@ public class SessionManager {
             return;
         }
         // 创建session
-        JVMSessionImp connectorSession = new JVMSessionImp(netContext, netManagerWrapper, config);
-        JVMSessionImp acceptorSession = new JVMSessionImp(jvmPort.localContext, netManagerWrapper, jvmPort.localConfig);
+        LocalSessionImp connectorSession = new LocalSessionImp(netContext, netManagerWrapper, config);
+        LocalSessionImp acceptorSession = new LocalSessionImp(localPort.localContext, netManagerWrapper, localPort.localConfig);
 
         // 保存双方引用
         connectorSession.setRemoteSession(acceptorSession);
@@ -172,12 +172,12 @@ public class SessionManager {
         // else 丢弃session
     }
 
-    private static void initJVMSessionPipeline(JVMSession session, JVMSession remoteSession) {
+    private static void initJVMSessionPipeline(LocalSession session, LocalSession remoteSession) {
         // 入站 从上到下
         // 出站 从下往上
         session.pipeline()
-                .addLast(new JVMTransferHandler(remoteSession))
-                .addLast(new JVMCodecHandler())
+                .addLast(new LocalTransferHandler(remoteSession))
+                .addLast(new LocalCodecHandler())
                 .addLast(new OneWaySupportHandler())
                 .addLast(new RpcSupportHandler())
                 .addLast(new SessionLifeCycleAwareHandler())
@@ -202,7 +202,7 @@ public class SessionManager {
     }
 
 
-    private static class JVMPortImp implements JVMPort {
+    private static class LocalPortImp implements LocalPort {
 
         /**
          * 监听者的信息
@@ -211,7 +211,7 @@ public class SessionManager {
         /**
          * session配置信息
          */
-        private final JVMSessionConfig localConfig;
+        private final LocalSessionConfig localConfig;
         /**
          * 建立连接的管理器
          */
@@ -221,7 +221,7 @@ public class SessionManager {
          */
         private volatile boolean active = true;
 
-        JVMPortImp(NetContext localContext, JVMSessionConfig localConfig, SessionManager sessionManager) {
+        LocalPortImp(NetContext localContext, LocalSessionConfig localConfig, SessionManager sessionManager) {
             this.localContext = localContext;
             this.localConfig = localConfig;
             this.sessionManager = sessionManager;
@@ -232,7 +232,7 @@ public class SessionManager {
         }
 
         @Override
-        public ListenableFuture<Session> connect(@Nonnull NetContext netContext, @Nonnull JVMSessionConfig config) {
+        public ListenableFuture<Session> connect(@Nonnull NetContext netContext, @Nonnull LocalSessionConfig config) {
             // 提交到绑定端口的用户所在的NetEventLoop - 消除同步的关键
             final Promise<Session> promise = localContext.netEventLoop().newPromise();
             localContext.netEventLoop().execute(() -> {

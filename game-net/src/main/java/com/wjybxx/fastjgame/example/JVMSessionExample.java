@@ -20,7 +20,7 @@ import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.GlobalEventLoop;
 import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
-import com.wjybxx.fastjgame.net.injvm.JVMPort;
+import com.wjybxx.fastjgame.net.local.LocalPort;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
 import java.util.concurrent.ExecutionException;
@@ -34,7 +34,7 @@ import java.util.concurrent.ExecutionException;
 public class JVMSessionExample {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-        final Promise<JVMPort> promise = GlobalEventLoop.INSTANCE.newPromise();
+        final Promise<LocalPort> promise = GlobalEventLoop.INSTANCE.newPromise();
         {
             ExampleRpcServerLoop exampleRpcServerLoop = new ExampleRpcServerLoop(new DefaultThreadFactory("SERVER"),
                     RejectedExecutionHandlers.discard(),
@@ -43,12 +43,12 @@ public class JVMSessionExample {
             exampleRpcServerLoop.execute(ConcurrentUtils.NO_OP_TASK);
         }
 
-        final JVMPort jvmPort = promise.get();
+        final LocalPort localPort = promise.get();
         {
             ExampleRpcClientLoop echoClientLoop = new ExampleRpcClientLoop(
                     new DefaultThreadFactory("CLIENT"),
                     RejectedExecutionHandlers.discard(),
-                    jvmPort);
+                    localPort);
 
             // 唤醒线程
             echoClientLoop.execute(ConcurrentUtils.NO_OP_TASK);
