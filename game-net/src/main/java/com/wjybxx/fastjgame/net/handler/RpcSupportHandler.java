@@ -22,8 +22,8 @@ import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.net.task.*;
 import com.wjybxx.fastjgame.utils.CollectionUtils;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -46,10 +46,11 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
     private long requestGuidSequencer = 0;
 
     /**
-     * 当前会话上的rpc请求
-     * (提供顺序保证，先发起的请求先超时)
+     * 当前会话上的rpc请求。
+     * - 在现在的设计中，只有服务器之间有rpc支持，与玩家之间是没有该handler的，因此不会浪费资源。
+     * - 避免频繁的扩容，扩容和重新计算hash值是非常消耗资源的。
      */
-    private final Long2ObjectMap<RpcTimeoutInfo> rpcTimeoutInfoMap = new Long2ObjectLinkedOpenHashMap<>();
+    private final Long2ObjectMap<RpcTimeoutInfo> rpcTimeoutInfoMap = new Long2ObjectOpenHashMap<>(1024);
 
     public RpcSupportHandler() {
 
@@ -84,7 +85,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             rpcTimeoutInfo.rpcPromise.trySuccess(rpcResponse);
         } else {
             // 异步rpc调用
-            ConcurrentUtils.tryCommit(session.localEventLoop(), new RpcResponseCommitTask(rpcTimeoutInfo.rpcCallback, rpcResponse));
+            ConcurrentUtils.tryCommit(session.localEventLoop(), new RpcResponseCommitTask(session, rpcTimeoutInfo.rpcCallback, rpcResponse));
         }
     }
 

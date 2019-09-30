@@ -80,13 +80,22 @@ public class NetContextManager {
         // 创建context
         NetContextImp netContext = new NetContextImp(localGuid, localRole, localEventLoop, netEventLoopManager.eventLoop(), managerWrapper);
         registeredUserMap.put(localGuid, netContext);
-        // 监听用户线程关闭 - 回调到当前线程
-        if (registeredUserEventLoopSet.add(localEventLoop)) {
-            localEventLoop.terminationFuture().addListener(future -> onUserEventLoopTerminal(localEventLoop),
-                    netEventLoopManager.eventLoop());
-        }
+        monitor(localEventLoop);
         logger.info("User {}-{} create NetContext!", localRole, localGuid);
         return netContext;
+    }
+
+    /**
+     * 监听用户线程关闭
+     *
+     * @param userEventLoop 用户线程
+     */
+    public void monitor(@Nonnull EventLoop userEventLoop) {
+        // 监听用户线程关闭 - 回调到当前线程
+        if (registeredUserEventLoopSet.add(userEventLoop)) {
+            userEventLoop.terminationFuture().addListener(future -> onUserEventLoopTerminal(userEventLoop),
+                    netEventLoopManager.eventLoop());
+        }
     }
 
     public void deregister(NetContext netContext) {

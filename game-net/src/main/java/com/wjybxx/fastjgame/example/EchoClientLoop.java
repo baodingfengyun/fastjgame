@@ -194,6 +194,10 @@ public class EchoClientLoop extends SingleThreadEventLoop {
             // unreachable
         }
 
+        @Override
+        public void postRpcCallback(Session session, RpcCallback rpcCallback, RpcResponse rpcResponse) {
+            rpcCallback.onComplete(rpcResponse);
+        }
     }
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {

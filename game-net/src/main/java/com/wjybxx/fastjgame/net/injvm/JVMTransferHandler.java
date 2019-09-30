@@ -46,16 +46,9 @@ public class JVMTransferHandler extends SessionOutboundHandlerAdapter {
     public void close(SessionHandlerContext ctx, Promise<?> promise) throws Exception {
         // 标记为成功
         promise.trySuccess(null);
-        try {
-            // 删除session
-            ctx.managerWrapper().getSessionManager().removeSession(ctx.session());
-            // 执行关闭通知
-            ctx.session().pipeline().fireSessionInactive();
-        } finally {
-            // 关闭另一方session，判断条件不能少，否则死循环了
-            if (ctx.managerWrapper().getSessionManager().containsSession(remoteSession)) {
-                remoteSession.close();
-            }
+        // 关闭另一方session，判断条件不能少，否则死循环了
+        if (ctx.managerWrapper().getSessionManager().containsSession(remoteSession)) {
+            remoteSession.close();
         }
     }
 }

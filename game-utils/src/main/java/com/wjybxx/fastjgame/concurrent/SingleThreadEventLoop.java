@@ -238,6 +238,26 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     }
 
     /**
+     * 确保线程可终止。
+     * - terminable
+     *
+     * @param oldState 切换到shutdown之前的状态
+     */
+    private void ensureThreadTerminable(int oldState) {
+        if (oldState == ST_NOT_STARTED) {
+            stateHolder.set(ST_TERMINATED);
+            terminationFuture.setSuccess(null);
+        } else if (oldState == ST_STARTED) {
+            if (!inEventLoop()) {
+                // 不确定是活跃状态
+                wakeUp();
+            }
+            // else 当前是活跃状态(自己调用，当然是活跃状态)
+        }
+        // else 其它状态下不应该阻塞，不需要唤醒
+    }
+
+    /**
      * 用于其它线程友好的唤醒EventLoop线程，默认实现是向taskQueue中填充一个任务。
      * 如果填充任务不能唤醒线程，则子类需要复写该方法
      * <p>
@@ -261,26 +281,6 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     protected void interruptThread() {
         assert !inEventLoop();
         thread.interrupt();
-    }
-
-    /**
-     * 确保线程可终止。
-     * - terminable
-     *
-     * @param oldState 切换到shutdown之前的状态
-     */
-    private void ensureThreadTerminable(int oldState) {
-        if (oldState == ST_NOT_STARTED) {
-            stateHolder.set(ST_TERMINATED);
-            terminationFuture.setSuccess(null);
-        } else if (oldState == ST_STARTED) {
-            if (!inEventLoop()) {
-                // 不确定是活跃状态
-                wakeUp();
-            }
-            // else 当前是活跃状态(自己调用，当然是活跃状态)
-        }
-        // else 其它状态下不应该阻塞，不需要唤醒
     }
 
     // -------------------------------------------- 任务调度，事件循环 -----------------------------------
@@ -459,15 +459,6 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     }
 
     /**
-     * @see Queue#peek()
-     */
-    @Nullable
-    protected final Runnable peekTask() {
-        assert inEventLoop();
-        return taskQueue.peek();
-    }
-
-    /**
      * @see Queue#isEmpty()
      */
     protected final boolean hasTasks() {
@@ -482,13 +473,6 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
      */
     protected final void reject(@Nonnull Runnable task) {
         rejectedExecutionHandler.rejected(task, this);
-    }
-
-    /**
-     * @see Queue#remove(Object)
-     */
-    protected final boolean removeTask(@Nonnull Runnable task) {
-        return taskQueue.remove(task);
     }
 
     /**

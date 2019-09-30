@@ -29,7 +29,7 @@ import com.wjybxx.fastjgame.net.Session;
 public class OneWayMessageWriteTask implements WriteTask {
 
     private final Session session;
-    private Object message;
+    private final Object message;
 
     public OneWayMessageWriteTask(Session session, Object message) {
         this.session = session;

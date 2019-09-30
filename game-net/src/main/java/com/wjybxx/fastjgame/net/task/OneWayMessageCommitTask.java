@@ -30,11 +30,11 @@ public class OneWayMessageCommitTask implements CommitTask {
     /**
      * session - 包含协议分发器
      */
-    private Session session;
+    private final Session session;
     /**
      * 单向消息的内容
      */
-    private Object message;
+    private final Object message;
 
     public OneWayMessageCommitTask(Session session, Object message) {
         this.session = session;

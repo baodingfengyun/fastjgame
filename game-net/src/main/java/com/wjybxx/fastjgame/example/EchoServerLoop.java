@@ -19,10 +19,7 @@ import com.wjybxx.fastjgame.concurrent.*;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopImp;
 import com.wjybxx.fastjgame.misc.SessionLifecycleAware;
-import com.wjybxx.fastjgame.net.NetContext;
-import com.wjybxx.fastjgame.net.ProtocolDispatcher;
-import com.wjybxx.fastjgame.net.RpcResponseChannel;
-import com.wjybxx.fastjgame.net.Session;
+import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.net.http.HttpRequestDispatcher;
 import com.wjybxx.fastjgame.net.http.HttpRequestParam;
 import com.wjybxx.fastjgame.net.http.HttpResponseHelper;
@@ -130,6 +127,11 @@ public class EchoServerLoop extends SingleThreadEventLoop {
             @SuppressWarnings("unchecked")
             RpcResponseChannel<Object> channel = (RpcResponseChannel<Object>) responseChannel;
             channel.writeSuccess(request);
+        }
+
+        @Override
+        public void postRpcCallback(Session session, RpcCallback rpcCallback, RpcResponse rpcResponse) {
+            rpcCallback.onComplete(rpcResponse);
         }
     }
 

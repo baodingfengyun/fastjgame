@@ -22,8 +22,6 @@ import com.wjybxx.fastjgame.net.socket.ConnectRequestEvent;
 import com.wjybxx.fastjgame.net.socket.ConnectResponseEvent;
 import com.wjybxx.fastjgame.net.socket.ordered.OrderedMessageEvent;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -37,8 +35,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class NetEventManager {
-
-    private static final Logger logger = LoggerFactory.getLogger(NetEventManager.class);
 
     private final SessionManager sessionManager;
     private final HttpSessionManager httpSessionManager;

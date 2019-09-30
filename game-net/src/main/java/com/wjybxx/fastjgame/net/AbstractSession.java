@@ -58,20 +58,14 @@ public abstract class AbstractSession implements Session {
      * 激活状态 - 因为session都是建立成功的时候创建，因此默认true
      */
     private final AtomicBoolean stateHolder = new AtomicBoolean(true);
-    /**
-     * 获取session关闭结果的future
-     */
-    private final Promise<?> closeFuture;
-    /**
-     * 是否调用过close，保证只执行一次
-     */
-    private boolean closeInitiated = false;
+
+    private final NetManagerWrapper managerWrapper;
 
     protected AbstractSession(NetContext netContext, NetManagerWrapper managerWrapper) {
         this.netContext = netContext;
+        this.managerWrapper = managerWrapper;
         this.pipeline = new DefaultSessionPipeline(this, managerWrapper);
         this.netEventLoop = managerWrapper.getNetEventLoopManager().eventLoop();
-        this.closeFuture = netEventLoop.newPromise();
     }
 
     @Override
@@ -138,15 +132,17 @@ public abstract class AbstractSession implements Session {
     public final ListenableFuture<?> close() {
         // 设置为未激活状态
         stateHolder.set(false);
+        final Promise<?> promise = netEventLoop.newPromise();
         // 可能是网络层关闭
         ConcurrentUtils.executeOrRun(netEventLoop, () -> {
-            // 保证逻辑只执行一次
-            if (!closeInitiated) {
-                closeInitiated = true;
-                pipeline.fireClose(closeFuture);
+            if (managerWrapper.getSessionManager().removeSession(this)) {
+                // 保证逻辑只执行一次
+                pipeline.fireClose(promise);
+            } else {
+                promise.trySuccess(null);
             }
         });
-        return closeFuture;
+        return promise;
     }
 
     @Override

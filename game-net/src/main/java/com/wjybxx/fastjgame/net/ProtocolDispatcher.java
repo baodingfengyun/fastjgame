@@ -49,4 +49,16 @@ public interface ProtocolDispatcher {
      */
     void postOneWayMessage(Session session, @Nullable Object message);
 
+    /**
+     * 处理该会话发来的rpc响应。
+     * Q: 为什么回调还要走这里？
+     * A: 1. 回调悄悄的执行的话会导致一些问题。
+     * 2.不在用户的监控范围内。
+     *
+     * @param session     会话信息
+     * @param rpcCallback 回调逻辑
+     * @param rpcResponse rpc调用结果
+     */
+    void postRpcCallback(Session session, RpcCallback rpcCallback, RpcResponse rpcResponse);
+
 }

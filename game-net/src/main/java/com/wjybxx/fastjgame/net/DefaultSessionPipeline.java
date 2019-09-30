@@ -145,6 +145,11 @@ class DefaultSessionPipeline implements SessionPipeline {
         } while (context != null);
     }
 
+    @Override
+    public void fireCloseAndInactive(Promise<?> promise) {
+        fireClose(promise);
+        fireSessionInactive();
+    }
     // ------------------------------------------------- outbound -----------------------------------------------------
 
     @Override

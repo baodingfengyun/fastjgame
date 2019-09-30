@@ -19,6 +19,8 @@ package com.wjybxx.fastjgame.net;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
 
 /**
+ * {@link SessionHandlerContext}的默认实现
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/9/25

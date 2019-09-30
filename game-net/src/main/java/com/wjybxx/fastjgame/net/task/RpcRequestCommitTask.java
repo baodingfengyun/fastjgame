@@ -31,15 +31,15 @@ public class RpcRequestCommitTask implements CommitTask {
     /**
      * session - 包含协议分发器
      */
-    private Session session;
+    private final Session session;
     /**
      * 返回结果的通道
      */
-    private RpcResponseChannel<?> rpcResponseChannel;
+    private final RpcResponseChannel<?> rpcResponseChannel;
     /**
      * 请求内容
      */
-    private Object request;
+    private final Object request;
 
     public RpcRequestCommitTask(Session session, RpcResponseChannel<?> rpcResponseChannel,
                                 Object request) {

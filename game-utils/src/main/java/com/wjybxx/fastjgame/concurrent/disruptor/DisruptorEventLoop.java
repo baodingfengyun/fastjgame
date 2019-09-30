@@ -497,41 +497,34 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 
         private void cleanRingBuffer() {
             // 删除自己：这是解决生产者死锁问题的关键，生产者一定能从next中醒来
+            // 由于此时已经不存在gatingSequence，因此生产者都能很快的申请到空间，不会阻塞
             ringBuffer.removeGatingSequence(sequence);
-            // 清理数据，有最大尝试次数，是为了避免长时间无法关闭
+
             long startTimeMillis = System.currentTimeMillis();
-            for (int triTimes = 0; triTimes < 100_0000; triTimes++) {
-                try {
-                    // 申请整个空间，因此与真正的生产者之间是互斥的！这是关键
-                    final long finalSequence = ringBuffer.tryNext(ringBuffer.getBufferSize());
-                    final long initialSequence = finalSequence - (ringBuffer.getBufferSize() - 1);
-                    try {
-                        // Q: 为什么可以继续消费
-                        // A: 保证了生产者不会覆盖未消费的数据 - shutdown处的处理是必须的
-                        // 以前是丢弃任务，简单粗暴，但是不安全。
-                        // 但是继续执行剩余的任务，也不安全。这就是多线程比较坑的一些问题了，执行也不是，不执行也不是。
-                        long nextSequence = sequence.get() + 1;
-                        final long endSequence = sequence.get() + ringBuffer.getBufferSize();
-                        for (; nextSequence <= endSequence; nextSequence++) {
-                            final Runnable task = ringBuffer.get(nextSequence).detachTask();
-                            // Q: 这里可能为null吗？
-                            // A: 这里可能为null - 因为是多生产者模式，关闭前发布的数据可能是不连续的
-                            if (null != task) {
-                                safeExecute(task);
-                            }
-                        }
-                        break;
-                    } finally {
-                        ringBuffer.publish(initialSequence, finalSequence);
-                        logger.info("cleanRingBuffer success! tryTimes = {}, cost timeMillis = {}", triTimes, System.currentTimeMillis() - startTimeMillis);
+            // 申请整个空间，因此与真正的生产者之间是互斥的！这是关键
+            final long finalSequence = ringBuffer.next(ringBuffer.getBufferSize());
+            final long initialSequence = finalSequence - (ringBuffer.getBufferSize() - 1);
+            try {
+                // Q: 为什么可以继续消费
+                // A: 保证了生产者不会覆盖未消费的数据 - shutdown处的处理是必须的
+                // 以前是丢弃任务，简单粗暴，但是不安全。
+                // 但是继续执行剩余的任务，也不安全。这就是多线程比较坑的一些问题了，执行也不是，不执行也不是。
+                long nextSequence = sequence.get() + 1;
+                final long endSequence = sequence.get() + ringBuffer.getBufferSize();
+                for (; nextSequence <= endSequence; nextSequence++) {
+                    final Runnable task = ringBuffer.get(nextSequence).detachTask();
+                    // Q: 这里可能为null吗？
+                    // A: 这里可能为null - 因为是多生产者模式，关闭前发布的数据可能是不连续的
+                    if (null != task) {
+                        safeExecute(task);
                     }
-                } catch (InsufficientCapacityException ignore) {
-                    // 等待真实的生产者发布数据
-                    LockSupport.parkNanos(100);
                 }
+            } finally {
+                ringBuffer.publish(initialSequence, finalSequence);
+                logger.info("cleanRingBuffer success! cost timeMillis = {}", System.currentTimeMillis() - startTimeMillis);
+                // 标记为已进入最终清理阶段
+                advanceRunState(ST_SHUTDOWN);
             }
-            // 标记为已进入最终清理阶段
-            advanceRunState(ST_SHUTDOWN);
         }
     }
 

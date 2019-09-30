@@ -16,9 +16,7 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.net.ProtocolDispatcher;
-import com.wjybxx.fastjgame.net.RpcResponseChannel;
-import com.wjybxx.fastjgame.net.Session;
+import com.wjybxx.fastjgame.net.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,5 +82,10 @@ public class DefaultProtocolDispatcher implements RpcFunctionRegistry, ProtocolD
      */
     protected void dispatchOneWayMessage(Session session, @Nonnull Object message) {
         logger.info("unhandled {}-{} message {}", session.remoteRole(), session.remoteGuid(), message.getClass().getSimpleName());
+    }
+
+    @Override
+    public void postRpcCallback(Session session, RpcCallback rpcCallback, RpcResponse rpcResponse) {
+        rpcCallback.onComplete(rpcResponse);
     }
 }

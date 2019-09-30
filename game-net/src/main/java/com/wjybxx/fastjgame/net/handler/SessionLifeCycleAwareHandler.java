@@ -31,22 +31,14 @@ import com.wjybxx.fastjgame.net.SessionHandlerContext;
  */
 public class SessionLifeCycleAwareHandler extends SessionDuplexHandlerAdapter {
 
-    private boolean invokedActive = false;
-    private boolean invokedInactive = false;
 
     @Override
     public void onSessionActive(SessionHandlerContext ctx) throws Exception {
-        if (!invokedActive) {
-            invokedActive = true;
-            ctx.localEventLoop().execute(new ConnectAwareTask(ctx.session()));
-        }
+        ctx.localEventLoop().execute(new ConnectAwareTask(ctx.session()));
     }
 
     @Override
     public void onSessionInactive(SessionHandlerContext ctx) throws Exception {
-        if (!invokedInactive) {
-            invokedInactive = true;
-            ctx.localEventLoop().execute(new DisconnectAwareTask(ctx.session()));
-        }
+        ctx.localEventLoop().execute(new DisconnectAwareTask(ctx.session()));
     }
 }
