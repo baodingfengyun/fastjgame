@@ -78,10 +78,4 @@ public interface SessionPipeline extends SessionInboundInvoker, SessionOutboundI
      */
     void tick();
 
-    /**
-     * 通知pipeline中的handler执行关闭流程，并通知session已关闭
-     *
-     * @param promise 获取结果的future
-     */
-    void fireCloseAndInactive(Promise<?> promise);
 }

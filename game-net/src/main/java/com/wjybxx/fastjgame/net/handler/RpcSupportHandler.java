@@ -20,7 +20,6 @@ import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.misc.RpcTimeoutInfo;
 import com.wjybxx.fastjgame.net.*;
 import com.wjybxx.fastjgame.net.task.*;
-import com.wjybxx.fastjgame.utils.CollectionUtils;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -138,8 +137,8 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             RpcResponseChannel<?> rpcResponseChannel = new DefaultRpcResponseChannel<>(ctx.session(),
                     requestMessage.getRequestGuid(), requestMessage.isSync());
 
-            ConcurrentUtils.tryCommit(ctx.localEventLoop(),
-                    new RpcRequestCommitTask(ctx.session(), rpcResponseChannel, requestMessage.getRequest()));
+            ConcurrentUtils.tryCommit(ctx.localEventLoop(), new RpcRequestCommitTask(ctx.session(),
+                    rpcResponseChannel, requestMessage.getRequest()));
         } else if (msg instanceof RpcResponseMessage) {
             // 读取到一个Rpc响应消息，提交给应用层
             RpcResponseMessage responseMessage = (RpcResponseMessage) msg;
@@ -162,25 +161,13 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
         }
     }
 
+    /**
+     * 取消所有的rpc请求
+     */
     private void cancelAllRpcRequest(SessionHandlerContext ctx) {
-        if (rpcTimeoutInfoMap.size() == 0) {
-            return;
+        for (RpcTimeoutInfo rpcTimeoutInfo : rpcTimeoutInfoMap.values()) {
+            commitRpcResponse(ctx.session(), rpcTimeoutInfo, RpcResponse.SESSION_CLOSED);
         }
-        // 立即通知所有rpcPromise - 因为用户可能阻塞在上面。
-        CollectionUtils.removeIfAndThen(rpcTimeoutInfoMap.values(),
-                rpcTimeoutInfo -> rpcTimeoutInfo.rpcPromise != null,
-                rpcTimeoutInfo -> rpcTimeoutInfo.rpcPromise.trySuccess(RpcResponse.SESSION_CLOSED));
-        // 减少不必要的提交
-        if (rpcTimeoutInfoMap.size() == 0) {
-            return;
-        }
-        // 异步rpc回调，需要提交到用户线程才能执行。
-        // 这里批量提交的影响较小，因此选择批量提交
-        ConcurrentUtils.tryCommit(ctx.localEventLoop(), () -> {
-            for (RpcTimeoutInfo rpcTimeoutInfo : rpcTimeoutInfoMap.values()) {
-                ConcurrentUtils.safeExecute((Runnable) () -> rpcTimeoutInfo.rpcCallback.onComplete(RpcResponse.SESSION_CLOSED));
-            }
-        });
     }
 
     private static class DefaultRpcResponseChannel<T> extends AbstractRpcResponseChannel<T> {

@@ -50,10 +50,11 @@ public interface ProtocolDispatcher {
     void postOneWayMessage(Session session, @Nullable Object message);
 
     /**
-     * 处理该会话发来的rpc响应。
+     * 处理会话对方发来的rpc响应。
+     * 如果允许执行，你应该调用{@link RpcCallback#onComplete(RpcResponse)}方法。
+     *
      * Q: 为什么回调还要走这里？
-     * A: 1. 回调悄悄的执行的话会导致一些问题。
-     * 2.不在用户的监控范围内。
+     * A: 如果回调不在用户的监控范围内，回调悄悄的执行的话会导致一些问题 - 允许用户控制哪些回调执行，哪些不执行（过滤拦截）。
      *
      * @param session     会话信息
      * @param rpcCallback 回调逻辑

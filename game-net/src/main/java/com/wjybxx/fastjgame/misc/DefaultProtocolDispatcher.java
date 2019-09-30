@@ -35,7 +35,7 @@ public class DefaultProtocolDispatcher implements RpcFunctionRegistry, ProtocolD
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultProtocolDispatcher.class);
 
-    protected final DefaultRpcCallDispatcher rpcCallDispatcher = new DefaultRpcCallDispatcher();
+    private final DefaultRpcCallDispatcher rpcCallDispatcher = new DefaultRpcCallDispatcher();
 
     public DefaultProtocolDispatcher() {
 

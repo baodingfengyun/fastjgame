@@ -46,7 +46,7 @@ import javax.annotation.Nullable;
  * date - 2019/7/29
  * github - https://github.com/hl845740757
  */
-public interface Session {
+public interface Session extends Comparable<Session> {
 
     // ---------------------------------------------- 用户注册信息 --------------------------------------------
 

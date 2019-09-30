@@ -42,10 +42,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public abstract class AbstractSession implements Session {
 
-    /**
-     * session关联的本地信息
-     */
     protected final NetContext netContext;
+    protected final NetManagerWrapper managerWrapper;
     /**
      * session绑定到的EventLoop
      */
@@ -58,8 +56,6 @@ public abstract class AbstractSession implements Session {
      * 激活状态 - 因为session都是建立成功的时候创建，因此默认true
      */
     private final AtomicBoolean stateHolder = new AtomicBoolean(true);
-
-    private final NetManagerWrapper managerWrapper;
 
     protected AbstractSession(NetContext netContext, NetManagerWrapper managerWrapper) {
         this.netContext = netContext;
@@ -181,5 +177,24 @@ public abstract class AbstractSession implements Session {
         } else {
             throw new InternalApiException();
         }
+    }
+
+    @Override
+    public final int hashCode() {
+        return Long.hashCode(localGuid()) + Long.hashCode(remoteGuid());
+    }
+
+    @Override
+    public final boolean equals(Object obj) {
+        return this == obj;
+    }
+
+    @Override
+    public final int compareTo(@Nonnull Session other) {
+        final int localGuidComparedResult = Long.compare(localGuid(), other.localGuid());
+        if (localGuidComparedResult != 0) {
+            return localGuidComparedResult;
+        }
+        return Long.compare(remoteGuid(), other.remoteGuid());
     }
 }
