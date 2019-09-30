@@ -71,7 +71,7 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
         ExampleRpcServiceRpcRegister.register(protocolDispatcher, new ExampleRpcService());
 
         if (localPortPromise != null) {
-            // 绑定jvm端口
+            // 绑定jvm内部端口
             try {
                 LocalSessionConfig config = LocalSessionConfig.newBuilder()
                         .setCodec(ExampleConstants.reflectBasedCodec)
@@ -79,7 +79,7 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
                         .setDispatcher(protocolDispatcher)
                         .build();
 
-                final LocalPort localPort = netContext.bindInJVM(config).get();
+                final LocalPort localPort = netContext.bindLocal(config).get();
                 localPortPromise.trySuccess(localPort);
             } catch (Exception e) {
                 localPortPromise.tryFailure(e);

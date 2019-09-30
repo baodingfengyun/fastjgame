@@ -26,7 +26,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * 用于建立JVM内部session的“端口”，它并非一个真正的端口。
- * 注意：每次调用{@link NetContext#bindInJVM(LocalSessionConfig)}都会产生一个新的{@link LocalPort}。
+ * 注意：每次调用{@link NetContext#bindLocal(LocalSessionConfig)}都会产生一个新的{@link LocalPort}。
  *
  * @author wjybxx
  * @version 1.0

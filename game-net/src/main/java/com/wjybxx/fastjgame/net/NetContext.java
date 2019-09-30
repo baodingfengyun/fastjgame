@@ -168,17 +168,17 @@ public interface NetContext {
      * @param config 配置信息
      * @return future 如果想消除同步，添加监听器时请绑定EventLoop
      */
-    ListenableFuture<LocalPort> bindInJVM(@Nonnull LocalSessionConfig config);
+    ListenableFuture<LocalPort> bindLocal(@Nonnull LocalSessionConfig config);
 
     /**
      * 与JVM内的另一个线程建立session。
      * 注意：{@link LocalPort}必须是同一个{@link NetEventLoop}创建的。
      *
      * @param localPort 远程“端口”信息
-     * @param config  配置信息
+     * @param config    配置信息
      * @return future 如果想消除同步，添加监听器时请绑定EventLoop
      */
-    ListenableFuture<Session> connectInJVM(@Nonnull LocalPort localPort, @Nonnull LocalSessionConfig config);
+    ListenableFuture<Session> connectLocal(@Nonnull LocalPort localPort, @Nonnull LocalSessionConfig config);
 
     //  --------------------------------------- http支持 -----------------------------------------
 

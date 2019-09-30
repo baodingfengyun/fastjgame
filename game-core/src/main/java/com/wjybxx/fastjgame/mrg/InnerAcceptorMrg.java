@@ -69,9 +69,9 @@ public class InnerAcceptorMrg {
         this.worldInfoMrg = worldInfoMrg;
     }
 
-    public void bindInnerJvmPort(SessionLifecycleAware lifecycleAware) throws ExecutionException, InterruptedException {
-        LocalSessionConfig config = newJVMSessionConfig(lifecycleAware);
-        final ListenableFuture<LocalPort> localPortFuture = netContextMrg.getNetContext().bindInJVM(config);
+    public void bindLocalPort(SessionLifecycleAware lifecycleAware) throws ExecutionException, InterruptedException {
+        LocalSessionConfig config = newLocalSessionConfig(lifecycleAware);
+        final ListenableFuture<LocalPort> localPortFuture = netContextMrg.getNetContext().bindLocal(config);
         final LocalPort localPort = localPortFuture.get();
         localPortMrg.register(worldInfoMrg.getWorldGuid(), localPort);
     }
@@ -104,8 +104,8 @@ public class InnerAcceptorMrg {
         final LocalPort localPort = localPortMrg.getLocalPort(remoteGuid);
         if (null != localPort) {
             // 两个world在同一个进程内
-            LocalSessionConfig config = newJVMSessionConfig(lifecycleAware);
-            netContextMrg.getNetContext().connectInJVM(localPort, config);
+            LocalSessionConfig config = newLocalSessionConfig(lifecycleAware);
+            netContextMrg.getNetContext().connectLocal(localPort, config);
             return;
         }
         if (Objects.equals(macAddress, SystemUtils.getMAC())) {
@@ -130,7 +130,7 @@ public class InnerAcceptorMrg {
                 .build();
     }
 
-    public LocalSessionConfig newJVMSessionConfig(SessionLifecycleAware lifecycleAware) {
+    public LocalSessionConfig newLocalSessionConfig(SessionLifecycleAware lifecycleAware) {
         return LocalSessionConfig.newBuilder()
                 .setCodec(getInnerProtocolCodec())
                 .setLifecycleAware(lifecycleAware)

@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.net;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import io.netty.channel.ChannelPipeline;
 

@@ -85,7 +85,7 @@ public class SceneWorld extends AbstractWorld {
     private void bindAndRegisterToZK() throws Exception {
         final CenterLifeAware centerLifeAware = new CenterLifeAware();
         // 绑定jvm内部通信的端口
-        innerAcceptorMrg.bindInnerJvmPort(centerLifeAware);
+        innerAcceptorMrg.bindLocalPort(centerLifeAware);
         // 绑定3个内部交互的端口
         HostAndPort innerTcpAddress = innerAcceptorMrg.bindInnerTcpPort(centerLifeAware);
         HostAndPort innerHttpAddress = innerAcceptorMrg.bindInnerHttpPort();

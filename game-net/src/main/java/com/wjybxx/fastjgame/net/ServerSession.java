@@ -18,12 +18,13 @@ package com.wjybxx.fastjgame.net;
 
 /**
  * 这是一个标记接口
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/9/30
  * github - https://github.com/hl845740757
  */
-public interface ServerSession extends Session{
+public interface ServerSession extends Session {
 
     @Override
     ServerSessionConfig config();

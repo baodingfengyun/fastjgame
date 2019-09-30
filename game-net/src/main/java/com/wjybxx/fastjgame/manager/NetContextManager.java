@@ -78,7 +78,7 @@ public class NetContextManager {
             throw new IllegalArgumentException("user " + localRole + " : " + localGuid + " is already registered!");
         }
         // 创建context
-        NetContextImp netContext = new NetContextImp(localGuid, localRole, localEventLoop, netEventLoopManager.eventLoop(), managerWrapper);
+        NetContextImp netContext = new NetContextImp(localGuid, localRole, localEventLoop, managerWrapper);
         registeredUserMap.put(localGuid, netContext);
         monitor(localEventLoop);
         logger.info("User {}-{} create NetContext!", localRole, localGuid);

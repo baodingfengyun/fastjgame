@@ -28,15 +28,15 @@ import com.wjybxx.fastjgame.net.SessionConfig;
  */
 public final class LocalSessionConfig extends SessionConfig {
 
-    private LocalSessionConfig(JVMSessionConfigBuilder builder) {
+    private LocalSessionConfig(LocalSessionConfigBuilder builder) {
         super(builder);
     }
 
-    public static JVMSessionConfigBuilder newBuilder() {
-        return new JVMSessionConfigBuilder();
+    public static LocalSessionConfigBuilder newBuilder() {
+        return new LocalSessionConfigBuilder();
     }
 
-    public static class JVMSessionConfigBuilder extends SessionConfigBuilder<JVMSessionConfigBuilder> {
+    public static class LocalSessionConfigBuilder extends SessionConfigBuilder<LocalSessionConfigBuilder> {
 
         @Override
         public LocalSessionConfig build() {

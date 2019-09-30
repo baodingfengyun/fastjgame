@@ -77,7 +77,7 @@ public class WarzoneWorld extends AbstractWorld {
     private void bindAndRegisterToZK() throws Exception {
         final CenterLifeAware centerLifeAware = new CenterLifeAware();
         // 绑定jvm内部通信端口
-        innerAcceptorMrg.bindInnerJvmPort(centerLifeAware);
+        innerAcceptorMrg.bindLocalPort(centerLifeAware);
         // 绑定3个内部交互的端口
         HostAndPort tcpHostAndPort = innerAcceptorMrg.bindInnerTcpPort(centerLifeAware);
         HostAndPort httpHostAndPort = innerAcceptorMrg.bindInnerHttpPort();

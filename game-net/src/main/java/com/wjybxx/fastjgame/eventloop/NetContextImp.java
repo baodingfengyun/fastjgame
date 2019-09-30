@@ -61,16 +61,15 @@ public class NetContextImp implements NetContext {
     private final long localGuid;
     private final RoleType localRole;
     private final EventLoop localEventLoop;
-    private final NetEventLoop netEventLoop;
     private final NetManagerWrapper managerWrapper;
+    private final NetEventLoop netEventLoop;
 
-    public NetContextImp(long localGuid, RoleType localRole, EventLoop localEventLoop,
-                         NetEventLoop netEventLoop, NetManagerWrapper managerWrapper) {
+    public NetContextImp(long localGuid, RoleType localRole, EventLoop localEventLoop, NetManagerWrapper managerWrapper) {
         this.localGuid = localGuid;
         this.localRole = localRole;
         this.localEventLoop = localEventLoop;
-        this.netEventLoop = netEventLoop;
         this.managerWrapper = managerWrapper;
+        this.netEventLoop = managerWrapper.getNetEventLoopManager().eventLoop();
     }
 
     @Override
@@ -152,18 +151,17 @@ public class NetContextImp implements NetContext {
         return promise;
     }
 
-
     // ----------------------------------------------- 本地调用支持 --------------------------------------------
 
     @Override
-    public ListenableFuture<LocalPort> bindInJVM(@Nonnull LocalSessionConfig config) {
+    public ListenableFuture<LocalPort> bindLocal(@Nonnull LocalSessionConfig config) {
         return netEventLoop.submit(() -> {
-            return managerWrapper.getSessionManager().bindInJVM(this, config);
+            return managerWrapper.getSessionManager().bindLocal(this, config);
         });
     }
 
     @Override
-    public ListenableFuture<Session> connectInJVM(@Nonnull LocalPort localPort, @Nonnull LocalSessionConfig config) {
+    public ListenableFuture<Session> connectLocal(@Nonnull LocalPort localPort, @Nonnull LocalSessionConfig config) {
         return localPort.connect(this, config);
     }
 

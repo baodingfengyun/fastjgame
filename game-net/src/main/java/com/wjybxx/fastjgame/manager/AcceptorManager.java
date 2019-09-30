@@ -23,10 +23,7 @@ import com.wjybxx.fastjgame.net.socket.DefaultSocketPort;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
+import io.netty.channel.*;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -49,6 +46,11 @@ import java.net.BindException;
 public class AcceptorManager {
 
     private static final Logger logger = LoggerFactory.getLogger(AcceptorManager.class);
+    /**
+     * 开启限流，多分配一点空间，否则容易被限流，导致数据丢失。
+     * （默认流量的8倍）
+     */
+    private static final WriteBufferWaterMark WRITE_BUFFER_WATER_MARK = new WriteBufferWaterMark(8 * 32 * 1024, 8 * 64 * 1024);
 
     private final NettyThreadManager nettyThreadManager;
 
@@ -77,6 +79,7 @@ public class AcceptorManager {
         // parentGroup参数
         serverBootstrap.option(ChannelOption.SO_BACKLOG, 1024);
         serverBootstrap.option(ChannelOption.SO_REUSEADDR, true);
+        serverBootstrap.option(ChannelOption.WRITE_BUFFER_WATER_MARK, WRITE_BUFFER_WATER_MARK);
 
         // childGroup参数
         serverBootstrap.childOption(ChannelOption.SO_KEEPALIVE, false);
@@ -85,6 +88,7 @@ public class AcceptorManager {
         serverBootstrap.childOption(ChannelOption.SO_RCVBUF, rcvBuffer);
         serverBootstrap.childOption(ChannelOption.SO_LINGER, 0);
         serverBootstrap.childOption(ChannelOption.SO_REUSEADDR, true);
+        serverBootstrap.childOption(ChannelOption.WRITE_BUFFER_WATER_MARK, WRITE_BUFFER_WATER_MARK);
 
         ChannelFuture channelFuture = serverBootstrap.bind(host, port);
         try {
@@ -149,6 +153,7 @@ public class AcceptorManager {
         bootstrap.option(ChannelOption.SO_RCVBUF, rcvBuffer);
         bootstrap.option(ChannelOption.SO_LINGER, 0);
         bootstrap.option(ChannelOption.SO_REUSEADDR, true);
+        bootstrap.option(ChannelOption.WRITE_BUFFER_WATER_MARK, WRITE_BUFFER_WATER_MARK);
         return bootstrap.connect(hostAndPort.getHost(), hostAndPort.getPort());
     }
 

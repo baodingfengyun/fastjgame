@@ -127,16 +127,14 @@ public class SessionManager {
 
     // ---------------------------------------------------------------
 
-    public LocalPort bindInJVM(NetContext netContext, LocalSessionConfig config) {
-        return new LocalPortImp(netContext, config, this);
+    public LocalPort bindLocal(NetContext netContext, LocalSessionConfig config) {
+        return new DefaultLocalPort(netContext, config, this);
     }
 
-    private void connectInJVM(NetContext netContext, LocalPortImp localPort,
-                              LocalSessionConfig config,
-                              Promise<Session> promise) {
+    private void connectLocal(NetContext netContext, DefaultLocalPort localPort, LocalSessionConfig config, Promise<Session> promise) {
         // 端口已关闭
         if (!localPort.active) {
-            promise.tryFailure(new IOException("remote node not exist"));
+            promise.tryFailure(new IOException("local port closed"));
             return;
         }
 
@@ -145,7 +143,7 @@ public class SessionManager {
         // 会话已存在
         if (sessionRegistry.getSession(localGuid, remoteGuid) != null ||
                 sessionRegistry.getSession(remoteGuid, localGuid) != null) {
-            promise.tryFailure(new IOException("session already registered."));
+            promise.tryFailure(new IOException("session already registered"));
             return;
         }
         // 创建session
@@ -157,8 +155,8 @@ public class SessionManager {
         acceptorSession.setRemoteSession(connectorSession);
 
         // 初始化管道
-        initJVMSessionPipeline(connectorSession, acceptorSession);
-        initJVMSessionPipeline(acceptorSession, connectorSession);
+        initLocalSessionPipeline(connectorSession, acceptorSession);
+        initLocalSessionPipeline(acceptorSession, connectorSession);
 
         if (promise.trySuccess(connectorSession)) {
             // 保存
@@ -172,7 +170,7 @@ public class SessionManager {
         // else 丢弃session
     }
 
-    private static void initJVMSessionPipeline(LocalSession session, LocalSession remoteSession) {
+    private static void initLocalSessionPipeline(LocalSession session, LocalSession remoteSession) {
         // 入站 从上到下
         // 出站 从下往上
         session.pipeline()
@@ -202,7 +200,7 @@ public class SessionManager {
     }
 
 
-    private static class LocalPortImp implements LocalPort {
+    private static class DefaultLocalPort implements LocalPort {
 
         /**
          * 监听者的信息
@@ -221,7 +219,7 @@ public class SessionManager {
          */
         private volatile boolean active = true;
 
-        LocalPortImp(NetContext localContext, LocalSessionConfig localConfig, SessionManager sessionManager) {
+        private DefaultLocalPort(NetContext localContext, LocalSessionConfig localConfig, SessionManager sessionManager) {
             this.localContext = localContext;
             this.localConfig = localConfig;
             this.sessionManager = sessionManager;
@@ -236,7 +234,7 @@ public class SessionManager {
             // 提交到绑定端口的用户所在的NetEventLoop - 消除同步的关键
             final Promise<Session> promise = localContext.netEventLoop().newPromise();
             localContext.netEventLoop().execute(() -> {
-                sessionManager.connectInJVM(netContext, this, config, promise);
+                sessionManager.connectLocal(netContext, this, config, promise);
             });
             return promise;
         }

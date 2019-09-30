@@ -183,8 +183,9 @@ fastjgame 为 fast java game framework的缩写，如名字一样，该项目的
 #### 线程模型调整 2019年9月06日
 一个GameEventLoop只承载单个World，具有更简单的编程模型，且更加安全。
 
-#### JVMSession 2019年9月10日
-为JVM内部线程提供session支持，JVM内通信和跨进程之间的通信有相同的API。你可以通过**NetContext**轻松的连接到另一个线程，其通信开销远远小于socket。
+#### LocalSession 2019年9月10日
+为JVM内部线程提供session支持，JVM内通信和跨进程之间的通信有相同的API。你可以通过**NetContext**轻松的连接到另一个线程，其通信开销远远小于socket。  
+**LocalSessionExample**是一个测试用例。
 
 #### 修改sync语义 2019年9月13日
 同步rpc调用不再插队，而是刷新缓冲区，和其它消息之间也满足先发的先到，后发的后到。
@@ -197,7 +198,7 @@ fastjgame 为 fast java game framework的缩写，如名字一样，该项目的
 
 ### NetEventLoop固定单线程，通过SessionPipeline提供功能插拔特性 2019年9月28日
 之前的NetEventLoopGroup属于过度设计了，NetEventLoop单线程完全足够，能够获得更简单的编程模型，以及保证Session的唯一性。  
-之前的SockectSessionManager/JVMSessionManager代码组织较为混乱，扩展功能较为困难，一直在想办法解决这个问题，这版本引入了类似Netty的ChannelPipeline的SessionPipeline。
+之前的SessionManager代码组织较为混乱，扩展功能较为困难，一直在想办法解决这个问题，这版本引入了类似Netty的ChannelPipeline的SessionPipeline。
 通过handler的方式实现插拔功能，以消除重复代码和提升扩展性。  
 如：是否使用消息确认机制通过增删handler来实现，内网通信可以不开启，这样内网通信传输的数据量就会减少许多，走到的代码也会少很多。   
 又如：服务器与玩家之间是没有rpc的，因此与玩家的session之间也不会有rpc相关的逻辑。  

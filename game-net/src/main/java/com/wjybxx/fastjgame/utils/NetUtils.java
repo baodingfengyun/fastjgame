@@ -316,8 +316,6 @@ public class NetUtils {
             socketChannelConfig.setAllocator(PooledByteBufAllocator.DEFAULT);
 
         }
-        channelConfig.setWriteBufferLowWaterMark(64 * 1024);
-        channelConfig.setWriteBufferHighWaterMark(128 * 1024);
     }
 
     public static void main(String[] args) {

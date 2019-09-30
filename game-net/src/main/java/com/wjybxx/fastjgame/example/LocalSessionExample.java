@@ -31,7 +31,7 @@ import java.util.concurrent.ExecutionException;
  * date - 2019/9/10
  * github - https://github.com/hl845740757
  */
-public class JVMSessionExample {
+public class LocalSessionExample {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         final Promise<LocalPort> promise = GlobalEventLoop.INSTANCE.newPromise();
