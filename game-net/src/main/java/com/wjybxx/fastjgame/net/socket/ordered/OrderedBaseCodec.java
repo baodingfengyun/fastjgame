@@ -16,11 +16,9 @@
 
 package com.wjybxx.fastjgame.net.socket.ordered;
 
+import com.wjybxx.fastjgame.misc.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.*;
-import com.wjybxx.fastjgame.net.socket.ConnectRequest;
-import com.wjybxx.fastjgame.net.socket.ConnectResponse;
-import com.wjybxx.fastjgame.net.socket.MessageEvent;
-import com.wjybxx.fastjgame.net.socket.NetMessageType;
+import com.wjybxx.fastjgame.net.socket.*;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -160,43 +158,46 @@ public abstract class OrderedBaseCodec extends ChannelDuplexHandler {
     /**
      * 编码协议1 - 连接请求
      *
-     * @param ctx   ctx
-     * @param msgTO 发送的消息
+     * @param ctx                   ctx
+     * @param orderedConnectRequest 发送的消息
      */
-    final void writeConnectRequest(ChannelHandlerContext ctx, ConnectRequest msgTO, ChannelPromise promise) {
+    final void writeConnectRequest(ChannelHandlerContext ctx, OrderedConnectRequest orderedConnectRequest, ChannelPromise promise) {
         int contentLength = 8 + 4 + 4 + 8;
         ByteBuf byteBuf = newInitializedByteBuf(ctx, contentLength, NetMessageType.CONNECT_REQUEST);
-
-        byteBuf.writeLong(msgTO.getClientGuid());
-        byteBuf.writeInt(msgTO.getClientRole().getNumber());
-        byteBuf.writeInt(msgTO.getVerifyingTimes());
-        byteBuf.writeLong(msgTO.getAck());
-
+        // 原始内容
+        ConnectRequest connectRequest = orderedConnectRequest.getConnectRequest();
+        byteBuf.writeLong(connectRequest.getClientGuid());
+        byteBuf.writeInt(connectRequest.getClientRole().getNumber());
+        byteBuf.writeInt(connectRequest.getVerifyingTimes());
+        // ack
+        byteBuf.writeLong(orderedConnectRequest.getAck());
         appendSumAndWrite(ctx, byteBuf, promise);
     }
 
     /**
      * 解码协议1 - 连接请求
      */
-    final ConnectRequest readConnectRequest(ByteBuf msg) {
+    final OrderedConnectRequestEvent readConnectRequest(Channel channel, long localGuid, SessionLifecycleAware lifecycleAware, ByteBuf msg) {
         long clientGuid = msg.readLong();
         RoleType clientRole = RoleType.forNumber(msg.readInt());
         int verifyingTimes = msg.readInt();
         long ack = msg.readLong();
 
-        return new ConnectRequest(clientGuid, clientRole, verifyingTimes, ack);
+        ConnectRequest connectRequest = new ConnectRequest(clientGuid, clientRole, verifyingTimes);
+        ConnectRequestEvent connectRequestEvent = new ConnectRequestEvent(channel, localGuid, lifecycleAware, connectRequest);
+        return new OrderedConnectRequestEvent(connectRequestEvent, ack);
     }
 
     /**
      * 编码协议2 - 连接响应
      */
-    final void writeConnectResponse(ChannelHandlerContext ctx, ConnectResponse msgTO, ChannelPromise promise) {
+    final void writeConnectResponse(ChannelHandlerContext ctx, OrderedConnectResponse connectResponse, ChannelPromise promise) {
         int contentLength = 1 + 4 + 8;
         ByteBuf byteBuf = newInitializedByteBuf(ctx, contentLength, NetMessageType.CONNECT_RESPONSE);
 
-        byteBuf.writeByte(msgTO.isSuccess() ? 1 : 0);
-        byteBuf.writeInt(msgTO.getVerifyingTimes());
-        byteBuf.writeLong(msgTO.getAck());
+        byteBuf.writeByte(connectResponse.getConnectResponse().isSuccess() ? 1 : 0);
+        byteBuf.writeInt(connectResponse.getConnectResponse().getVerifyingTimes());
+        byteBuf.writeLong(connectResponse.getAck());
 
         appendSumAndWrite(ctx, byteBuf, promise);
     }
@@ -204,11 +205,14 @@ public abstract class OrderedBaseCodec extends ChannelDuplexHandler {
     /**
      * 解码协议2 - 连接响应
      */
-    final ConnectResponse readConnectResponse(ByteBuf msg) {
+    final OrderedConnectResponseEvent readConnectResponse(Channel channel, long localGuid, long remoteGuid, ByteBuf msg) {
         boolean success = msg.readByte() == 1;
         int verifyingTimes = msg.readInt();
         long ack = msg.readLong();
-        return new ConnectResponse(success, verifyingTimes, ack);
+
+        ConnectResponse connectResponse = new ConnectResponse(success, verifyingTimes);
+        ConnectResponseEvent connectResponseEvent = new ConnectResponseEvent(channel, localGuid, remoteGuid, connectResponse);
+        return new OrderedConnectResponseEvent(connectResponseEvent, ack);
     }
 
     // ---------------------------------------------- 协议3、4 ---------------------------------------

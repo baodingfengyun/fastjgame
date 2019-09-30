@@ -45,29 +45,25 @@ public class ConnectResponseEvent implements SocketEvent {
     /**
      * 响应参数
      */
-    private ConnectResponse responseTO;
+    private ConnectResponse connectResponse;
 
-    public ConnectResponseEvent(Channel channel, long localGuid, long serverGuid, ConnectResponse responseTO) {
+    public ConnectResponseEvent(Channel channel, long localGuid, long serverGuid, ConnectResponse connectResponse) {
         this.localGuid = localGuid;
         this.channel = channel;
         this.serverGuid = serverGuid;
-        this.responseTO = responseTO;
+        this.connectResponse = connectResponse;
     }
 
     public int getVerifyingTimes() {
-        return responseTO.getVerifyingTimes();
+        return connectResponse.getVerifyingTimes();
     }
 
     public boolean isSuccess() {
-        return responseTO.isSuccess();
+        return connectResponse.isSuccess();
     }
 
     public long getServerGuid() {
         return serverGuid;
-    }
-
-    public long getAck() {
-        return responseTO.getAck();
     }
 
     @Override

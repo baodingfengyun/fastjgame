@@ -186,7 +186,7 @@ public class DefaultTimerSystem implements TimerSystem {
         try {
             timerHandle.run();
             timerHandle.afterExecuteOnce(curMillTime);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             // 取消执行
             timerHandle.setTerminated();
             logger.warn("timer callback caught exception!", e);

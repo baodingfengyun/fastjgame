@@ -18,9 +18,6 @@ package com.wjybxx.fastjgame.net.socket.ordered;
 
 import com.wjybxx.fastjgame.manager.NetEventManager;
 import com.wjybxx.fastjgame.net.ProtocolCodec;
-import com.wjybxx.fastjgame.net.socket.ConnectRequest;
-import com.wjybxx.fastjgame.net.socket.ConnectResponse;
-import com.wjybxx.fastjgame.net.socket.ConnectResponseEvent;
 import com.wjybxx.fastjgame.net.socket.NetMessageType;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -67,18 +64,18 @@ public class OrderedClientCodec extends OrderedBaseCodec {
 
     // region 编码消息
     @Override
-    public void write(ChannelHandlerContext ctx, Object msgTO, ChannelPromise promise) throws Exception {
-        if (msgTO instanceof BatchOrderedMessageTO) {
+    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+        if (msg instanceof BatchOrderedMessageTO) {
             // 批量协议包
-            writeBatchMessage(ctx, (BatchOrderedMessageTO) msgTO);
-        } else if (msgTO instanceof SingleOrderedMessageTO) {
+            writeBatchMessage(ctx, (BatchOrderedMessageTO) msg);
+        } else if (msg instanceof SingleOrderedMessageTO) {
             // 单个协议包
-            writeSingleMsg(ctx, (SingleOrderedMessageTO) msgTO, promise);
-        } else if (msgTO instanceof ConnectRequest) {
+            writeSingleMsg(ctx, (SingleOrderedMessageTO) msg, promise);
+        } else if (msg instanceof OrderedConnectRequest) {
             // 请求建立连接包
-            writeConnectRequest(ctx, (ConnectRequest) msgTO, promise);
+            writeConnectRequest(ctx, (OrderedConnectRequest) msg, promise);
         } else {
-            super.write(ctx, msgTO, promise);
+            super.write(ctx, msg, promise);
         }
     }
 
@@ -112,12 +109,11 @@ public class OrderedClientCodec extends OrderedBaseCodec {
      * 服务器返回的建立连接验证结果
      */
     private void tryReadConnectResponse(ChannelHandlerContext ctx, ByteBuf msg) {
-        ConnectResponse responseTO = readConnectResponse(msg);
-        ConnectResponseEvent connectResponseParam = new ConnectResponseEvent(ctx.channel(), localGuid, serverGuid, responseTO);
-        netEventManager.fireConnectResponse(connectResponseParam);
+        OrderedConnectResponseEvent connectResponseEvent = readConnectResponse(ctx.channel(), localGuid, serverGuid, msg);
+        netEventManager.fireConnectResponse(connectResponseEvent);
 
         // 标记为已连接
-        if (connectResponseParam.isSuccess()) {
+        if (connectResponseEvent.isSuccess()) {
             connect = true;
         }
     }

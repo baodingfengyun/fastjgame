@@ -82,18 +82,18 @@ public class OrderedServerCodec extends OrderedBaseCodec {
     }
 
     @Override
-    public void write(ChannelHandlerContext ctx, Object msgTO, ChannelPromise promise) throws Exception {
-        if (msgTO instanceof BatchOrderedMessageTO) {
+    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+        if (msg instanceof BatchOrderedMessageTO) {
             // 批量协议包
-            writeBatchMessage(ctx, (BatchOrderedMessageTO) msgTO);
-        } else if (msgTO instanceof SingleOrderedMessageTO) {
+            writeBatchMessage(ctx, (BatchOrderedMessageTO) msg);
+        } else if (msg instanceof SingleOrderedMessageTO) {
             // 单个协议包
-            writeSingleMsg(ctx, (SingleOrderedMessageTO) msgTO, promise);
-        } else if (msgTO instanceof ConnectResponse) {
+            writeSingleMsg(ctx, (SingleOrderedMessageTO) msg, promise);
+        } else if (msg instanceof OrderedConnectResponse) {
             // 建立连接验证结果
-            writeConnectResponse(ctx, (ConnectResponse) msgTO, promise);
+            writeConnectResponse(ctx, (OrderedConnectResponse) msg, promise);
         } else {
-            super.write(ctx, msgTO, promise);
+            super.write(ctx, msg, promise);
         }
     }
 
@@ -125,12 +125,11 @@ public class OrderedServerCodec extends OrderedBaseCodec {
      * 客户端请求建立连接
      */
     private void tryReadConnectRequest(ChannelHandlerContext ctx, ByteBuf msg) {
-        ConnectRequest connectRequest = readConnectRequest(msg);
-        ConnectRequestEvent connectRequestEventParam = new ConnectRequestEvent(ctx.channel(), localGuid, lifecycleAware, connectRequest);
-        netEventManager.fireConnectRequest(connectRequestEventParam);
+        OrderedConnectRequestEvent connectRequestEvent = readConnectRequest(ctx.channel(), localGuid, lifecycleAware, msg);
+        netEventManager.fireConnectRequest(connectRequestEvent);
 
         if (!isInited()) {
-            init(connectRequest.getClientGuid());
+            init(connectRequestEvent.getClientGuid());
         }
     }
 

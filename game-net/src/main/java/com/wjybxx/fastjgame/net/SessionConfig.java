@@ -68,7 +68,6 @@ public class SessionConfig {
         return dispatcher;
     }
 
-
     /**
      * @return 会话超时时间，毫秒
      */

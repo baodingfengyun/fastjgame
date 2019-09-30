@@ -20,6 +20,8 @@ import com.google.inject.Inject;
 import com.wjybxx.fastjgame.net.http.HttpRequestEvent;
 import com.wjybxx.fastjgame.net.socket.ConnectRequestEvent;
 import com.wjybxx.fastjgame.net.socket.ConnectResponseEvent;
+import com.wjybxx.fastjgame.net.socket.ordered.OrderedConnectRequestEvent;
+import com.wjybxx.fastjgame.net.socket.ordered.OrderedConnectResponseEvent;
 import com.wjybxx.fastjgame.net.socket.ordered.OrderedMessageEvent;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
@@ -48,13 +50,13 @@ public class NetEventManager {
         this.netEventLoopManager = netEventLoopManager;
     }
 
-    public void fireConnectRequest(ConnectRequestEvent eventParam) {
+    public void fireConnectRequest(OrderedConnectRequestEvent eventParam) {
         ConcurrentUtils.tryCommit(netEventLoopManager.eventLoop(), () -> {
             sessionManager.onRcvConnectRequest(eventParam);
         });
     }
 
-    public void fireConnectResponse(ConnectResponseEvent eventParam) {
+    public void fireConnectResponse(OrderedConnectResponseEvent eventParam) {
         ConcurrentUtils.tryCommit(netEventLoopManager.eventLoop(), () -> {
             sessionManager.onRcvConnectResponse(eventParam);
         });

@@ -41,17 +41,11 @@ public class ConnectRequest {
      * 这是客户端的第几次连接请求，每次重连时都必须增加，用于识别最新的请求。
      */
     private int verifyingTimes;
-    /**
-     * 客户端已收到的最大协议号
-     * (与tcp的ack有细微区别，tcp的ack表示期望的下一个包)
-     */
-    private long ack;
 
-    public ConnectRequest(long clientGuid, RoleType clientRole, int verifyingTimes, long ack) {
+    public ConnectRequest(long clientGuid, RoleType clientRole, int verifyingTimes) {
         this.clientGuid = clientGuid;
         this.clientRole = clientRole;
         this.verifyingTimes = verifyingTimes;
-        this.ack = ack;
     }
 
     public long getClientGuid() {
@@ -66,7 +60,4 @@ public class ConnectRequest {
         return verifyingTimes;
     }
 
-    public long getAck() {
-        return ack;
-    }
 }

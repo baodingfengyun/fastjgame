@@ -14,37 +14,37 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.socket;
+package com.wjybxx.fastjgame.net.socket.ordered;
+
+import com.wjybxx.fastjgame.net.socket.ConnectRequestEvent;
 
 /**
- * 服务器连接请求的响应的传输对象
+ * 带有消息确认机制的连接请求事件
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/4/27 11:55
+ * date - 2019/9/30
  * github - https://github.com/hl845740757
  */
-public class ConnectResponse {
-    /**
-     * 验证是否成功
-     */
-    private boolean success;
-    /**
-     * 这是客户端第几次验证的结果
-     */
-    private int verifyingTimes;
+public class OrderedConnectRequestEvent {
 
-    public ConnectResponse(boolean success, int verifyingTimes) {
-        this.verifyingTimes = verifyingTimes;
-        this.success = success;
+    private final ConnectRequestEvent connectRequestEvent;
+    private final long ack;
+
+    public OrderedConnectRequestEvent(ConnectRequestEvent connectRequestEvent, long ack) {
+        this.connectRequestEvent = connectRequestEvent;
+        this.ack = ack;
     }
 
-    public int getVerifyingTimes() {
-        return verifyingTimes;
+    public ConnectRequestEvent getConnectRequestEvent() {
+        return connectRequestEvent;
     }
 
-    public boolean isSuccess() {
-        return success;
+    public long getClientGuid() {
+        return connectRequestEvent.getClientGuid();
     }
 
+    public long getAck() {
+        return ack;
+    }
 }

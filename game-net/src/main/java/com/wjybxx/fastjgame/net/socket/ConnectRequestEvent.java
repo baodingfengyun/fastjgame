@@ -54,10 +54,6 @@ public class ConnectRequestEvent implements SocketEvent {
         return connectRequest.getClientRole();
     }
 
-    public long getAck() {
-        return connectRequest.getAck();
-    }
-
     public int getVerifyingTimes() {
         return connectRequest.getVerifyingTimes();
     }

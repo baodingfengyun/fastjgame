@@ -71,7 +71,6 @@ public class EchoServerLoop extends SingleThreadEventLoop {
         netContext.bindHttp(NetUtils.getLocalIp(), ExampleConstants.httpPort, new EchoHttpRequestDispatcher());
     }
 
-
     @Override
     protected void loop() {
         final long starrTime = System.currentTimeMillis();

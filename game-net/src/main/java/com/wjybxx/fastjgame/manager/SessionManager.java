@@ -34,6 +34,8 @@ import com.wjybxx.fastjgame.net.socket.ConnectRequestEvent;
 import com.wjybxx.fastjgame.net.socket.ConnectResponseEvent;
 import com.wjybxx.fastjgame.net.socket.SocketPort;
 import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
+import com.wjybxx.fastjgame.net.socket.ordered.OrderedConnectRequestEvent;
+import com.wjybxx.fastjgame.net.socket.ordered.OrderedConnectResponseEvent;
 import com.wjybxx.fastjgame.net.socket.ordered.OrderedMessageEvent;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -77,11 +79,11 @@ public class SessionManager {
 
     // --------------------------------------------- 事件处理 -----------------------------------------
 
-    public void onRcvConnectRequest(ConnectRequestEvent eventParam) {
+    public void onRcvConnectRequest(OrderedConnectRequestEvent eventParam) {
 
     }
 
-    public void onRcvConnectResponse(ConnectResponseEvent eventParam) {
+    public void onRcvConnectResponse(OrderedConnectResponseEvent eventParam) {
 
     }
 
