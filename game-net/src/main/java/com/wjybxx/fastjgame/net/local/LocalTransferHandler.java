@@ -46,7 +46,7 @@ public class LocalTransferHandler extends SessionOutboundHandlerAdapter {
     public void close(SessionHandlerContext ctx, Promise<?> promise) throws Exception {
         // 标记为成功
         promise.trySuccess(null);
-        // 关闭另一方session，判断条件不能少，否则死循环了
+        // 减少不必要的调用
         if (ctx.managerWrapper().getSessionManager().containsSession(remoteSession)) {
             remoteSession.close();
         }

@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.net.http;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.concurrent.adapter.NettyListenableFutureAdapter;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.manager.HttpSessionManager;
 import com.wjybxx.fastjgame.net.NetContext;
@@ -25,8 +26,6 @@ import com.wjybxx.fastjgame.net.RoleType;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http.HttpResponse;
-
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * http会话信息
@@ -44,10 +43,6 @@ public final class HttpSessionImp implements HttpSession {
      * session对应的channel
      */
     private final Channel channel;
-    /**
-     * 是否是激活状态
-     */
-    private final AtomicBoolean stateHolder = new AtomicBoolean(true);
 
     public HttpSessionImp(NetContext netContext, HttpSessionManager httpSessionManager, Channel channel) {
         this.netContext = netContext;
@@ -70,25 +65,22 @@ public final class HttpSessionImp implements HttpSession {
     }
 
     @Override
-    public boolean isAlive() {
-        return stateHolder.get();
+    public boolean isActive() {
+        return channel.isActive();
     }
 
-    public void setClosed() {
-        stateHolder.set(true);
+    public ListenableFuture<?> writeAndFlush(HttpResponse response) {
+        return new NettyListenableFutureAdapter<>(localEventLoop(), channel.writeAndFlush(response));
     }
 
-    public void writeAndFlush(HttpResponse response) {
-        channel.writeAndFlush(response, channel.voidPromise());
-    }
-
-    public <T extends HttpResponseBuilder<T>> void writeAndFlush(HttpResponseBuilder<T> builder) {
-        writeAndFlush(builder.build());
+    public <T extends HttpResponseBuilder<T>> ListenableFuture<?> writeAndFlush(HttpResponseBuilder<T> builder) {
+        return writeAndFlush(builder.build());
     }
 
     @Override
     public ListenableFuture<?> close() {
-        setClosed();
+        channel.close();
+
         return ConcurrentUtils.submitOrRun(netEventLoop(), () -> {
             httpSessionManager.removeSession(this, channel);
         });

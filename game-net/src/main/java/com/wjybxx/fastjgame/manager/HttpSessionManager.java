@@ -187,7 +187,6 @@ public class HttpSessionManager {
     }
 
     private void afterRemoved(Channel channel, SessionWrapper sessionWrapper) {
-        sessionWrapper.session.setClosed();
         NetUtils.closeQuietly(channel);
     }
 

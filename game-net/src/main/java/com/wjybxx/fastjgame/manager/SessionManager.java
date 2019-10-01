@@ -30,8 +30,6 @@ import com.wjybxx.fastjgame.net.handler.OneWaySupportHandler;
 import com.wjybxx.fastjgame.net.handler.RpcSupportHandler;
 import com.wjybxx.fastjgame.net.handler.SessionLifeCycleAwareHandler;
 import com.wjybxx.fastjgame.net.local.*;
-import com.wjybxx.fastjgame.net.socket.ConnectRequestEvent;
-import com.wjybxx.fastjgame.net.socket.ConnectResponseEvent;
 import com.wjybxx.fastjgame.net.socket.SocketPort;
 import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
 import com.wjybxx.fastjgame.net.socket.ordered.OrderedConnectRequestEvent;

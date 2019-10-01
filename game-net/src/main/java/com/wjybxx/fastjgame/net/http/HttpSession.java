@@ -48,7 +48,7 @@ public interface HttpSession {
      *
      * @return true/false
      */
-    boolean isAlive();
+    boolean isActive();
 
     /**
      * 关闭session。
@@ -60,16 +60,18 @@ public interface HttpSession {
      * 发送一个响应
      *
      * @param response 响应内容
+     * @return future，该future的回调执行环境为用户线程。
      */
-    void writeAndFlush(HttpResponse response);
+    ListenableFuture<?> writeAndFlush(HttpResponse response);
 
     /**
      * 发送一个http结果对象
      *
      * @param <T>     builder自身
      * @param builder 建造者
+     * @return future，该future的回调执行环境为用户线程。
      */
-    <T extends HttpResponseBuilder<T>> void writeAndFlush(HttpResponseBuilder<T> builder);
+    <T extends HttpResponseBuilder<T>> ListenableFuture<?> writeAndFlush(HttpResponseBuilder<T> builder);
 
     // ------------------------------------- session的运行环境(不建议用户使用) -------------------------
 
