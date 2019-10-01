@@ -26,7 +26,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * A: ack是每次发送的时候获取最新的ack。 在这里{@link SingleSocketMessageTO} {@link BatchSockectMessageTO}
  * <p>
  * 通过包装的方式，某些方面更加清晰，但有些方面会让人觉得绕的厉害，也增加了一部分内存消耗吧。
- * (本想的内网服务器之间不开启消息确认机制，这样可以减少很多不必要的传输)
+ * (本想的内网服务器之间不开启消息确认机制，也不传输sequence和ack，这样可以减少很多不必要的传输，但是那样包装就有点过度了，也导致了维护难度的增加)
  *
  * @author wjybxx
  * @version 1.0

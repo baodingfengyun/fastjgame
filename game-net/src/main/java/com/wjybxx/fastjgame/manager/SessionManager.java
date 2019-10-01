@@ -27,7 +27,6 @@ import com.wjybxx.fastjgame.misc.SessionRegistry;
 import com.wjybxx.fastjgame.net.common.OneWaySupportHandler;
 import com.wjybxx.fastjgame.net.common.RoleType;
 import com.wjybxx.fastjgame.net.common.RpcSupportHandler;
-import com.wjybxx.fastjgame.net.common.SessionLifeCycleHandler;
 import com.wjybxx.fastjgame.net.local.*;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.socket.*;
@@ -150,32 +149,35 @@ public class SessionManager {
         connectorSession.setRemoteSession(acceptorSession);
         acceptorSession.setRemoteSession(connectorSession);
 
-        // 初始化管道
-        initLocalSessionPipeline(connectorSession, acceptorSession);
-        initLocalSessionPipeline(acceptorSession, connectorSession);
-
         if (promise.trySuccess(connectorSession)) {
             // 保存
             sessionRegistry.registerSession(connectorSession);
             sessionRegistry.registerSession(acceptorSession);
+
+            // 初始化管道，入站 从上到下，出站 从下往上
+            connectorSession.pipeline()
+                    .addLast(new LocalTransferHandler())
+                    .addLast(new LocalPingSupportHandler())
+                    .addLast(new LocalCodecHandler())
+                    .addLast(new OneWaySupportHandler())
+                    .addLast(new RpcSupportHandler());
+
+            acceptorSession.pipeline()
+                    .addLast(new LocalTransferHandler())
+                    .addLast(new LocalPongSupportHandler())
+                    .addLast(new LocalCodecHandler())
+                    .addLast(new OneWaySupportHandler())
+                    .addLast(new RpcSupportHandler());
+
+            // 初始化
+            connectorSession.pipeline().fireInit();
+            acceptorSession.pipeline().fireInit();
 
             // 传递激活事件
             connectorSession.pipeline().fireSessionActive();
             acceptorSession.pipeline().fireSessionActive();
         }
         // else 丢弃session
-    }
-
-    private static void initLocalSessionPipeline(LocalSession session, LocalSession remoteSession) {
-        // 入站 从上到下
-        // 出站 从下往上
-        session.pipeline()
-                .addLast(new SessionLifeCycleHandler())
-                .addLast(new LocalTransferHandler(remoteSession))
-                .addLast(new LocalCodecHandler())
-                .addLast(new OneWaySupportHandler())
-                .addLast(new RpcSupportHandler())
-                .fireInit();
     }
 
     public void connect(NetContext netContext, long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress,

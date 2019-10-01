@@ -57,7 +57,7 @@ public final class HttpResponseHelper {
     /**
      * 非空字节数组
      */
-    private static final byte[] NO_EMPTY_BYTES = "".getBytes(StandardCharsets.UTF_8);
+    private static final byte[] EMPTY_BYTES = "".getBytes(StandardCharsets.UTF_8);
 
     private HttpResponseHelper() {
         // close

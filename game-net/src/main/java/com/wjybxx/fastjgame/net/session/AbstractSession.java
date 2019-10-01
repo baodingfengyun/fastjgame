@@ -58,7 +58,7 @@ public abstract class AbstractSession implements Session {
      */
     private final SessionPipeline pipeline;
     /**
-     * 激活状态 - 因为session都是建立成功的时候创建，因此默认true
+     * 激活状态 - 默认true，因为在激活之前不会返回给用户。
      */
     private final AtomicBoolean stateHolder = new AtomicBoolean(true);
 

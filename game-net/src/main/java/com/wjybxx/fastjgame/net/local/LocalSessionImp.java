@@ -50,6 +50,10 @@ public class LocalSessionImp extends AbstractSession implements LocalSession {
         this.remoteSession = remoteSession;
     }
 
+    public Session getRemoteSession() {
+        return remoteSession;
+    }
+
     @Override
     public LocalSessionConfig config() {
         return config;

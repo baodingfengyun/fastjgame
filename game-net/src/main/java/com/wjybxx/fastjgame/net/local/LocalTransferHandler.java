@@ -17,11 +17,12 @@
 package com.wjybxx.fastjgame.net.local;
 
 import com.wjybxx.fastjgame.concurrent.Promise;
+import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 import com.wjybxx.fastjgame.net.session.SessionOutboundHandlerAdapter;
 
 /**
- * JVM 内部传输实现
+ * JVM 内部传输实现 - 它是出站的最后一个处理器，因此也是真正实现关闭的handler
  *
  * @author wjybxx
  * @version 1.0
@@ -30,10 +31,11 @@ import com.wjybxx.fastjgame.net.session.SessionOutboundHandlerAdapter;
  */
 public class LocalTransferHandler extends SessionOutboundHandlerAdapter {
 
-    private final LocalSession remoteSession;
+    private Session remoteSession;
 
-    public LocalTransferHandler(LocalSession remoteSession) {
-        this.remoteSession = remoteSession;
+    @Override
+    public void init(SessionHandlerContext ctx) throws Exception {
+        remoteSession = ((LocalSessionImp) (ctx.session())).getRemoteSession();
     }
 
     @Override

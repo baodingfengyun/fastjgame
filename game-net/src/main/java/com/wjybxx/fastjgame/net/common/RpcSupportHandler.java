@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.net.common;
 
 import com.wjybxx.fastjgame.concurrent.Promise;
+import com.wjybxx.fastjgame.manager.NetTimeManager;
 import com.wjybxx.fastjgame.misc.RpcTimeoutInfo;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
@@ -41,6 +42,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
 
+    private NetTimeManager netTimeManager;
     /**
      * RpcRequestId分配器
      */
@@ -58,11 +60,16 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
     }
 
     @Override
+    public void init(SessionHandlerContext ctx) throws Exception {
+        netTimeManager = ctx.managerWrapper().getNetTimeManager();
+    }
+
+    @Override
     public void tick(SessionHandlerContext ctx) {
         if (rpcTimeoutInfoMap.size() == 0) {
             return;
         }
-        long systemMillTime = ctx.managerWrapper().getNetTimeManager().getSystemMillTime();
+        long systemMillTime = netTimeManager.getSystemMillTime();
         ObjectIterator<RpcTimeoutInfo> iterator = rpcTimeoutInfoMap.values().iterator();
         while (iterator.hasNext()) {
             RpcTimeoutInfo rpcTimeoutInfo = iterator.next();

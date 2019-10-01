@@ -36,9 +36,10 @@ public class SessionConfig {
     private final SessionLifecycleAware lifecycleAware;
     private final ProtocolCodec codec;
     private final ProtocolDispatcher dispatcher;
-    private final int sessionTimeoutMs;
-    private final int rpcCallbackTimeoutMs;
-    private final int syncRpcTimeoutMs;
+    private final long sessionTimeoutMs;
+    private final long rpcCallbackTimeoutMs;
+    private final long syncRpcTimeoutMs;
+    private final long pingIntervalMs;
 
     protected SessionConfig(SessionConfigBuilder builder) {
         this.lifecycleAware = builder.lifecycleAware;
@@ -47,6 +48,7 @@ public class SessionConfig {
         this.sessionTimeoutMs = builder.sessionTimeoutMs;
         this.rpcCallbackTimeoutMs = builder.rpcCallbackTimeoutMs;
         this.syncRpcTimeoutMs = builder.syncRpcTimeoutMs;
+        this.pingIntervalMs = builder.pingIntervalMs;
     }
 
     /**
@@ -73,22 +75,29 @@ public class SessionConfig {
     /**
      * @return 会话超时时间，毫秒
      */
-    public int getSessionTimeoutMs() {
+    public long getSessionTimeoutMs() {
         return sessionTimeoutMs;
     }
 
     /**
      * @return 异步rpc调用超时时间，毫秒
      */
-    public int getRpcCallbackTimeoutMs() {
+    public long getRpcCallbackTimeoutMs() {
         return rpcCallbackTimeoutMs;
     }
 
     /**
      * @return 同步rpc调用超时时间，毫秒
      */
-    public int getSyncRpcTimeoutMs() {
+    public long getSyncRpcTimeoutMs() {
         return syncRpcTimeoutMs;
+    }
+
+    /**
+     * @return 心跳时间间隔，毫秒
+     */
+    public long getPingIntervalMs() {
+        return pingIntervalMs;
     }
 
     public static SessionConfigBuilder newBuilder() {
@@ -103,6 +112,7 @@ public class SessionConfig {
         private int sessionTimeoutMs = 60 * 1000;
         private int rpcCallbackTimeoutMs = 15 * 1000;
         private int syncRpcTimeoutMs = 5 * 1000;
+        private int pingIntervalMs = 5 * 1000;
 
         public T setLifecycleAware(@Nonnull SessionLifecycleAware lifecycleAware) {
             this.lifecycleAware = lifecycleAware;
@@ -134,6 +144,12 @@ public class SessionConfig {
         public T setSyncRpcTimeoutMs(int syncRpcTimeoutMs) {
             checkPositive(rpcCallbackTimeoutMs, "syncRpcTimeoutMs");
             this.syncRpcTimeoutMs = syncRpcTimeoutMs;
+            return self();
+        }
+
+        public T setPingIntervalMs(int pingIntervalMs) {
+            checkPositive(pingIntervalMs, "pingIntervalMs");
+            this.pingIntervalMs = pingIntervalMs;
             return self();
         }
 

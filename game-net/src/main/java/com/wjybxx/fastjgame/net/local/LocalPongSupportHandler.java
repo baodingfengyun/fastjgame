@@ -14,62 +14,62 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.common;
+package com.wjybxx.fastjgame.net.local;
 
 import com.wjybxx.fastjgame.manager.NetTimeManager;
 import com.wjybxx.fastjgame.misc.ConnectAwareTask;
 import com.wjybxx.fastjgame.misc.DisconnectAwareTask;
+import com.wjybxx.fastjgame.net.common.PingPongMessage;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 import com.wjybxx.fastjgame.net.session.SessionInboundHandlerAdapter;
 
 /**
- * session生命周期处理器
+ * 心跳响应支持 - 入站第一个
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/9/28
+ * date - 2019/10/1
  * github - https://github.com/hl845740757
  */
-public class SessionLifeCycleHandler extends SessionInboundHandlerAdapter {
+public class LocalPongSupportHandler extends SessionInboundHandlerAdapter {
 
-    private long lastReadTime;
     private NetTimeManager timeManager;
+    private long lastReadTime;
     private long sessionTimeoutMs;
 
     @Override
     public void init(SessionHandlerContext ctx) throws Exception {
-        // 缓存减少堆栈深度
+        // 缓存 - 减少栈深度
         timeManager = ctx.managerWrapper().getNetTimeManager();
-        sessionTimeoutMs = ctx.session().config().getSessionTimeoutMs();
         lastReadTime = timeManager.getSystemMillTime();
+        sessionTimeoutMs = ctx.session().config().getSessionTimeoutMs();
     }
 
     @Override
     public void tick(SessionHandlerContext ctx) {
-        // 超时时间内，没读取到消息了
         if (timeManager.getSystemMillTime() - lastReadTime > sessionTimeoutMs) {
-            // tick的时候不能直接删除session
-            ctx.managerWrapper().getNetTimerManager().nextTick(handle -> {
-                ctx.session().close();
-            });
+            // 太长时间未读到对方的消息了
+            ctx.session().close();
         }
     }
 
     @Override
     public void onSessionActive(SessionHandlerContext ctx) throws Exception {
         ctx.localEventLoop().execute(new ConnectAwareTask(ctx.session()));
+        ctx.fireSessionActive();
     }
 
     @Override
     public void onSessionInactive(SessionHandlerContext ctx) throws Exception {
         ctx.localEventLoop().execute(new DisconnectAwareTask(ctx.session()));
+        ctx.fireSessionInactive();
     }
 
     @Override
     public void read(SessionHandlerContext ctx, Object msg) {
         lastReadTime = timeManager.getSystemMillTime();
+        // 读取到一个心跳包，立即返回一个心跳包
         if (msg == PingPongMessage.INSTANCE) {
-            // 读取到一个ping，立即返回一个消息
             ctx.session().fireWrite(PingPongMessage.INSTANCE);
         } else {
             ctx.fireRead(msg);
