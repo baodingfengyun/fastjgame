@@ -47,16 +47,16 @@ public class LocalCodecHandler extends SessionOutboundHandlerAdapter {
             // rpc请求
             RpcRequestMessage rpcRequestMessage = (RpcRequestMessage) msg;
             rpcRequestMessage.setRequest(codec.cloneObject(rpcRequestMessage.getRequest()));
-        } else if (msg instanceof OneWayMessage) {
-            // 单向消息
-            OneWayMessage oneWayMessage = (OneWayMessage) msg;
-            oneWayMessage.setMessage(codec.cloneObject(oneWayMessage.getMessage()));
         } else if (msg instanceof RpcResponseMessage) {
             // rpc响应
             RpcResponseMessage responseMessage = (RpcResponseMessage) msg;
             final RpcResponse rpcResponse = responseMessage.getRpcResponse();
             final RpcResponse copiedRpcResponse = new RpcResponse(rpcResponse.getResultCode(), codec.cloneObject(rpcResponse.getBody()));
             responseMessage.setRpcResponse(copiedRpcResponse);
+        } else if (msg instanceof OneWayMessage) {
+            // 单向消息
+            OneWayMessage oneWayMessage = (OneWayMessage) msg;
+            oneWayMessage.setMessage(codec.cloneObject(oneWayMessage.getMessage()));
         }
         // 传递给下一个handler
         ctx.fireWrite(msg);

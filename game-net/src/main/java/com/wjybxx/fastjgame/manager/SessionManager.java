@@ -27,7 +27,7 @@ import com.wjybxx.fastjgame.misc.SessionRegistry;
 import com.wjybxx.fastjgame.net.common.OneWaySupportHandler;
 import com.wjybxx.fastjgame.net.common.RoleType;
 import com.wjybxx.fastjgame.net.common.RpcSupportHandler;
-import com.wjybxx.fastjgame.net.common.SessionLifeCycleAwareHandler;
+import com.wjybxx.fastjgame.net.common.SessionLifeCycleHandler;
 import com.wjybxx.fastjgame.net.local.*;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.socket.*;
@@ -170,11 +170,11 @@ public class SessionManager {
         // 入站 从上到下
         // 出站 从下往上
         session.pipeline()
+                .addLast(new SessionLifeCycleHandler())
                 .addLast(new LocalTransferHandler(remoteSession))
                 .addLast(new LocalCodecHandler())
                 .addLast(new OneWaySupportHandler())
                 .addLast(new RpcSupportHandler())
-                .addLast(new SessionLifeCycleAwareHandler())
                 .fireInit();
     }
 

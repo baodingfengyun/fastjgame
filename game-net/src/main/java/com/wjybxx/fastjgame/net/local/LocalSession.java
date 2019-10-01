@@ -17,9 +17,11 @@
 package com.wjybxx.fastjgame.net.local;
 
 import com.wjybxx.fastjgame.net.session.Session;
+import io.netty.channel.local.LocalChannel;
 
 /**
- * jvm内部session
+ * jvm内部session。
+ * - 其实Netty有个{@link LocalChannel}... 我感觉我要重写才行。
  *
  * @author wjybxx
  * @version 1.0
