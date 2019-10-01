@@ -17,8 +17,8 @@
 package com.wjybxx.fastjgame.net.local;
 
 import com.wjybxx.fastjgame.manager.NetTimeManager;
-import com.wjybxx.fastjgame.misc.ConnectAwareTask;
-import com.wjybxx.fastjgame.misc.DisconnectAwareTask;
+import com.wjybxx.fastjgame.net.common.ConnectAwareTask;
+import com.wjybxx.fastjgame.net.common.DisconnectAwareTask;
 import com.wjybxx.fastjgame.net.common.PingPongMessage;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 import com.wjybxx.fastjgame.net.session.SessionInboundHandlerAdapter;

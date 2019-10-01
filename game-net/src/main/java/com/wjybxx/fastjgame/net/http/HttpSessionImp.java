@@ -22,7 +22,6 @@ import com.wjybxx.fastjgame.concurrent.adapter.NettyListenableFutureAdapter;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.manager.HttpSessionManager;
-import com.wjybxx.fastjgame.net.common.RoleType;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http.HttpResponse;
@@ -53,11 +52,6 @@ public final class HttpSessionImp implements HttpSession {
     @Override
     public long localGuid() {
         return netContext.localGuid();
-    }
-
-    @Override
-    public RoleType localRole() {
-        return netContext.localRole();
     }
 
     public Channel getChannel() {

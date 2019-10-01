@@ -24,7 +24,7 @@ import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorWaitStrategyType;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.misc.DefaultProtocolDispatcher;
-import com.wjybxx.fastjgame.misc.SessionLifecycleAware;
+import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.local.LocalPort;
 import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
 import com.wjybxx.fastjgame.net.session.Session;
@@ -66,7 +66,7 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
     protected void init() throws Exception {
         super.init();
         // 创建网络环境
-        netContext = ExampleConstants.netEventLoop.createContext(ExampleConstants.serverGuid, ExampleConstants.serverRole, this).get();
+        netContext = ExampleConstants.netEventLoop.createContext(ExampleConstants.serverGuid, this).get();
         // 注册rpc服务
         ExampleRpcServiceRpcRegister.register(protocolDispatcher, new ExampleRpcService());
 

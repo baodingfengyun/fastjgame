@@ -25,7 +25,7 @@ import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.misc.DefaultProtocolDispatcher;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.RpcBuilder;
-import com.wjybxx.fastjgame.misc.SessionDisconnectAware;
+import com.wjybxx.fastjgame.net.common.SessionDisconnectAware;
 import com.wjybxx.fastjgame.net.local.LocalPort;
 import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
 import com.wjybxx.fastjgame.net.session.Session;
@@ -38,6 +38,8 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.concurrent.ThreadFactory;
 import java.util.stream.IntStream;
+
+import static com.wjybxx.fastjgame.example.ExampleConstants.EMPTY_TOKEN;
 
 /**
  * rpc请求客户端示例
@@ -67,7 +69,7 @@ public class ExampleRpcClientLoop extends DisruptorEventLoop {
     @Override
     protected void init() throws Exception {
         super.init();
-        netContext = ExampleConstants.netEventLoop.createContext(ExampleConstants.clientGuid, ExampleConstants.clientRole, this).get();
+        netContext = ExampleConstants.netEventLoop.createContext(ExampleConstants.clientGuid, this).get();
 
         if (localPort != null) {
             LocalSessionConfig config = LocalSessionConfig.newBuilder()
@@ -76,7 +78,7 @@ public class ExampleRpcClientLoop extends DisruptorEventLoop {
                     .setDispatcher(new DefaultProtocolDispatcher())
                     .build();
 
-            session = netContext.connectLocal(localPort, config).get();
+            session = netContext.connectLocal(localPort, EMPTY_TOKEN, config).get();
         } else {
             // 必须先启动服务器
             final HostAndPort address = new HostAndPort(NetUtils.getLocalIp(), ExampleConstants.tcpPort);
@@ -87,7 +89,7 @@ public class ExampleRpcClientLoop extends DisruptorEventLoop {
                     .setDispatcher(new DefaultProtocolDispatcher())
                     .build();
 
-            session = netContext.connectTcp(ExampleConstants.serverGuid, ExampleConstants.serverRole, address, config)
+            session = netContext.connectTcp(ExampleConstants.serverGuid, address, EMPTY_TOKEN, config)
                     .get();
         }
         startTime = System.currentTimeMillis();

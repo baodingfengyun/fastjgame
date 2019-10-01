@@ -25,7 +25,6 @@ import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.PortRange;
 import com.wjybxx.fastjgame.misc.SessionRegistry;
 import com.wjybxx.fastjgame.net.common.OneWaySupportHandler;
-import com.wjybxx.fastjgame.net.common.RoleType;
 import com.wjybxx.fastjgame.net.common.RpcSupportHandler;
 import com.wjybxx.fastjgame.net.local.*;
 import com.wjybxx.fastjgame.net.session.Session;
@@ -180,8 +179,9 @@ public class SessionManager {
         // else 丢弃session
     }
 
-    public void connect(NetContext netContext, long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress,
-                        SocketSessionConfig config, ChannelInitializer<SocketChannel> initializer,
+    public void connect(NetContext netContext, long remoteGuid, HostAndPort remoteAddress, byte[] token,
+                        SocketSessionConfig config,
+                        ChannelInitializer<SocketChannel> initializer,
                         Promise<Session> promise) {
         ChannelFuture channelFuture = acceptorManager.connectAsyn(remoteAddress, config.sndBuffer(), config.rcvBuffer(), initializer)
                 .syncUninterruptibly();

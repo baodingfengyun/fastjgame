@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.net.local;
 
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.eventloop.NetContext;
-import com.wjybxx.fastjgame.misc.NetPort;
+import com.wjybxx.fastjgame.net.common.NetPort;
 import com.wjybxx.fastjgame.net.session.Session;
 
 import javax.annotation.Nonnull;

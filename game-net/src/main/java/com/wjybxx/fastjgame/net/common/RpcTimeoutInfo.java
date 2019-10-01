@@ -14,11 +14,9 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.misc;
+package com.wjybxx.fastjgame.net.common;
 
 import com.wjybxx.fastjgame.concurrent.Promise;
-import com.wjybxx.fastjgame.net.common.RpcCallback;
-import com.wjybxx.fastjgame.net.common.RpcResponse;
 
 import javax.annotation.Nonnull;
 

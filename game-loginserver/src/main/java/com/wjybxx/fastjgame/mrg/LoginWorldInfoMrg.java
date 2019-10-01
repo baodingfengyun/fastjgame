@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
-import com.wjybxx.fastjgame.net.common.RoleType;
+import com.wjybxx.fastjgame.misc.RoleType;
 
 /**
  * 登录服需要启动参数吗？

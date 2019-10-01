@@ -22,7 +22,6 @@ import com.wjybxx.fastjgame.gameobject.Player;
 import com.wjybxx.fastjgame.misc.DefaultPlayerMessageDispatcher;
 import com.wjybxx.fastjgame.misc.PlayerMessageFunction;
 import com.wjybxx.fastjgame.misc.PlayerMessageFunctionRegistry;
-import com.wjybxx.fastjgame.net.common.RoleType;
 import com.wjybxx.fastjgame.net.session.Session;
 
 import javax.annotation.Nonnull;
@@ -46,7 +45,8 @@ public class SceneProtocolDispatcherMrg extends ProtocolDispatcherMrg implements
 
     @Override
     protected final void dispatchOneWayMessage(Session session, @Nonnull Object message) {
-        if (session.remoteRole() == RoleType.PLAYER && message instanceof AbstractMessage) {
+        // TODO 判断是否是玩家
+        if (message instanceof AbstractMessage) {
             Player player = playerSessionMrg.getPlayer(session.remoteGuid());
             if (player != null) {
                 // 玩家已成功连入场景

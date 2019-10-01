@@ -19,16 +19,17 @@ package com.wjybxx.fastjgame.mrg;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.annotation.EventLoopSingleton;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.PortRange;
-import com.wjybxx.fastjgame.misc.SessionLifecycleAware;
-import com.wjybxx.fastjgame.eventloop.NetContext;
+import com.wjybxx.fastjgame.misc.RoleType;
 import com.wjybxx.fastjgame.net.common.ProtocolCodec;
-import com.wjybxx.fastjgame.net.common.RoleType;
+import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.local.LocalPort;
 import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
 import com.wjybxx.fastjgame.net.socket.SocketPort;
 import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
+import com.wjybxx.fastjgame.utils.CodecUtils;
 import com.wjybxx.fastjgame.utils.GameUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.SystemUtils;
@@ -105,7 +106,7 @@ public class InnerAcceptorMrg {
         if (null != localPort) {
             // 两个world在同一个进程内
             LocalSessionConfig config = newLocalSessionConfig(lifecycleAware);
-            netContextMrg.getNetContext().connectLocal(localPort, config);
+            netContextMrg.getNetContext().connectLocal(localPort, newToken(remoteRole), config);
             return;
         }
         if (Objects.equals(macAddress, SystemUtils.getMAC())) {
@@ -118,8 +119,8 @@ public class InnerAcceptorMrg {
     }
 
     private void connectTcp(long remoteGuid, RoleType remoteRole, HostAndPort hostAndPort, SessionLifecycleAware lifecycleAware) {
-        netContextMrg.getNetContext().connectTcp(remoteGuid, remoteRole, hostAndPort,
-                newSocketSessionConfig(lifecycleAware));
+        netContextMrg.getNetContext().connectTcp(remoteGuid, hostAndPort,
+                newToken(remoteRole), newSocketSessionConfig(lifecycleAware));
     }
 
     public SocketSessionConfig newSocketSessionConfig(SessionLifecycleAware lifecycleAware) {
@@ -141,5 +142,10 @@ public class InnerAcceptorMrg {
     @Nonnull
     private ProtocolCodec getInnerProtocolCodec() {
         return protocolCodecMrg.getInnerProtocolCodec();
+    }
+
+    private byte[] newToken(RoleType roleType) {
+        // TODO
+        return CodecUtils.getBytesUTF8(roleType.name());
     }
 }

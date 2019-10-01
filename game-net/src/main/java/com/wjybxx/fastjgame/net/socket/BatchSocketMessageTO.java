@@ -13,23 +13,23 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+package com.wjybxx.fastjgame.net.socket;
 
-package com.wjybxx.fastjgame.misc;
-
-import java.io.Closeable;
+import java.util.List;
 
 /**
- * 网络端口抽象，允许关闭
+ * 批量{@link SocketMessage}消息的传输对象 - 之所以需要该对象进行传输，是因为ack字段是发送的时候才赋值的
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/9/28
+ * date - 2019/8/9
  * github - https://github.com/hl845740757
  */
-public interface NetPort extends Closeable {
+@TransferObject
+public interface BatchSocketMessageTO {
 
-    /**
-     * 关闭端口资源
-     */
-    void close();
+    long getAck();
+
+    List<SocketMessage> getSocketMessageList();
+
 }

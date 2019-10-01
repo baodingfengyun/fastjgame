@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.net.socket;
 
 import com.wjybxx.fastjgame.manager.NetEventManager;
-import com.wjybxx.fastjgame.misc.SessionLifecycleAware;
+import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.common.NetMessageType;
 import com.wjybxx.fastjgame.net.common.ProtocolCodec;
 import io.netty.buffer.ByteBuf;
@@ -80,9 +80,9 @@ public class ServerSocketCodec extends BaseSocketCodec {
 
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-        if (msg instanceof BatchSockectMessageTO) {
+        if (msg instanceof BatchSocketMessageTO) {
             // 批量协议包
-            writeBatchMessage(ctx, (BatchSockectMessageTO) msg);
+            writeBatchMessage(ctx, (BatchSocketMessageTO) msg);
         } else if (msg instanceof SingleSocketMessageTO) {
             // 单个协议包
             writeSingleMsg(ctx, (SingleSocketMessageTO) msg, promise);
@@ -126,7 +126,7 @@ public class ServerSocketCodec extends BaseSocketCodec {
         netEventManager.fireConnectRequest(connectRequestEvent);
 
         if (!isInited()) {
-            init(connectRequestEvent.getClientGuid());
+            init(connectRequestEvent.remoteGuid());
         }
     }
 

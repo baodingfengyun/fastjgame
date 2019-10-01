@@ -13,35 +13,13 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.wjybxx.fastjgame.net.socket;
-
-import java.util.List;
 
 /**
- * 批量{@link SocketMessage}消息的传输对象 - 之所以需要该对象进行传输，是因为ack字段是发送的时候才赋值的
+ * misc包主要是一些默认的实现，和一些特殊的增强实现。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/9
+ * date - 2019/10/1
  * github - https://github.com/hl845740757
  */
-@TransferObject
-public class BatchSockectMessageTO {
-
-    private final long ack;
-
-    private final List<SocketMessage> socketMessageList;
-
-    public BatchSockectMessageTO(long ack, List<SocketMessage> socketMessageList) {
-        this.ack = ack;
-        this.socketMessageList = socketMessageList;
-    }
-
-    public long getAck() {
-        return ack;
-    }
-
-    public List<SocketMessage> getSocketMessageList() {
-        return socketMessageList;
-    }
-}
+package com.wjybxx.fastjgame.misc;

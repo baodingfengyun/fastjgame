@@ -20,7 +20,6 @@ import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.PortRange;
-import com.wjybxx.fastjgame.net.common.RoleType;
 import com.wjybxx.fastjgame.net.http.HttpRequestDispatcher;
 import com.wjybxx.fastjgame.net.http.HttpSession;
 import com.wjybxx.fastjgame.net.http.OkHttpCallback;
@@ -56,11 +55,6 @@ public interface NetContext {
     long localGuid();
 
     /**
-     * 注册的本地角色
-     */
-    RoleType localRole();
-
-    /**
      * 本地角色的运行环境，用于实现线程安全。
      * 网络层保证所有的业务逻辑处理最终都会运行在该EventLoop上。
      */
@@ -89,8 +83,7 @@ public interface NetContext {
      * @param config session配置信息
      * @return future
      */
-    default ListenableFuture<SocketPort> bindTcp(String host, int port,
-                                                 @Nonnull SocketSessionConfig config) {
+    default ListenableFuture<SocketPort> bindTcp(String host, int port, @Nonnull SocketSessionConfig config) {
         return this.bindTcpRange(host, new PortRange(port, port), config);
     }
 
@@ -109,12 +102,12 @@ public interface NetContext {
      * 以tcp方式连接远程某个端口
      *
      * @param remoteGuid    远程角色guid
-     * @param remoteRole    远程角色类型
      * @param remoteAddress 远程地址
+     * @param token         建立连接验证信息，同时也存储一些额外信息
      * @param config        session配置信息
      * @return future
      */
-    ListenableFuture<Session> connectTcp(long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress,
+    ListenableFuture<Session> connectTcp(long remoteGuid, HostAndPort remoteAddress, byte[] token,
                                          @Nonnull SocketSessionConfig config);
 
     /**
@@ -147,12 +140,12 @@ public interface NetContext {
      * 以websocket方式连接远程某个端口
      *
      * @param remoteGuid    远程角色guid
-     * @param remoteRole    远程角色类型
      * @param remoteAddress 远程地址
+     * @param token         建立连接验证信息，同时也存储一些额外信息
      * @param config        session配置信息
      * @return future 如果想消除同步，添加监听器时请绑定EventLoop
      */
-    ListenableFuture<Session> connectWS(long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress, String websocketUrl,
+    ListenableFuture<Session> connectWS(long remoteGuid, HostAndPort remoteAddress, String websocketUrl, byte[] token,
                                         @Nonnull SocketSessionConfig config);
 
 
@@ -176,10 +169,12 @@ public interface NetContext {
      * 注意：{@link LocalPort}必须是同一个{@link NetEventLoop}创建的。
      *
      * @param localPort 远程“端口”信息
+     * @param token     建立连接的验证信息，也可以存储额外信息
      * @param config    配置信息
      * @return future 如果想消除同步，添加监听器时请绑定EventLoop
      */
-    ListenableFuture<Session> connectLocal(@Nonnull LocalPort localPort, @Nonnull LocalSessionConfig config);
+    ListenableFuture<Session> connectLocal(@Nonnull LocalPort localPort, byte[] token,
+                                           @Nonnull LocalSessionConfig config);
 
     //  --------------------------------------- http支持 -----------------------------------------
 
@@ -191,7 +186,8 @@ public interface NetContext {
      * @param httpRequestDispatcher 该端口上的协议处理器
      * @return future 可以等待绑定完成。
      */
-    default ListenableFuture<HostAndPort> bindHttp(String host, int port, @Nonnull HttpRequestDispatcher httpRequestDispatcher) {
+    default ListenableFuture<HostAndPort> bindHttp(String host, int port,
+                                                   @Nonnull HttpRequestDispatcher httpRequestDispatcher) {
         return this.bindHttpRange(host, new PortRange(port, port), httpRequestDispatcher);
     }
 
@@ -203,7 +199,8 @@ public interface NetContext {
      * @param httpRequestDispatcher 该端口上的协议处理器
      * @return future 可以等待绑定完成。
      */
-    ListenableFuture<HostAndPort> bindHttpRange(String host, PortRange portRange, @Nonnull HttpRequestDispatcher httpRequestDispatcher);
+    ListenableFuture<HostAndPort> bindHttpRange(String host, PortRange portRange,
+                                                @Nonnull HttpRequestDispatcher httpRequestDispatcher);
 
     /**
      * 同步get请求

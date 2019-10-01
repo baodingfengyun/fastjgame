@@ -20,7 +20,6 @@ import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.eventloop.NetContextImp;
-import com.wjybxx.fastjgame.net.common.RoleType;
 import com.wjybxx.fastjgame.utils.CollectionUtils;
 import com.wjybxx.fastjgame.utils.FunctionUtils;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -73,15 +72,15 @@ public class NetContextManager {
         this.managerWrapper = managerWrapper;
     }
 
-    public NetContext createContext(long localGuid, RoleType localRole, @Nonnull EventLoop localEventLoop) {
+    public NetContext createContext(long localGuid, @Nonnull EventLoop localEventLoop) {
         if (registeredUserMap.containsKey(localGuid)) {
-            throw new IllegalArgumentException("user " + localRole + " : " + localGuid + " is already registered!");
+            throw new IllegalArgumentException("user " + localGuid + " is already registered!");
         }
         // 创建context
-        NetContextImp netContext = new NetContextImp(localGuid, localRole, localEventLoop, managerWrapper);
+        NetContextImp netContext = new NetContextImp(localGuid, localEventLoop, managerWrapper);
         registeredUserMap.put(localGuid, netContext);
         monitor(localEventLoop);
-        logger.info("User {}-{} create NetContext!", localRole, localGuid);
+        logger.info("User {} create NetContext!", localGuid);
         return netContext;
     }
 
@@ -115,7 +114,7 @@ public class NetContextManager {
     private void clean(NetContext netContext) {
         httpSessionManager.closeUserSession(netContext.localGuid());
         sessionManager.closeUserSession(netContext.localGuid());
-        logger.info("User {}-{} NetContext removed!", netContext.localRole(), netContext.localGuid());
+        logger.info("User {} NetContext removed!", netContext.localGuid());
     }
 
     private void onUserEventLoopTerminal(EventLoop userEventLoop) {

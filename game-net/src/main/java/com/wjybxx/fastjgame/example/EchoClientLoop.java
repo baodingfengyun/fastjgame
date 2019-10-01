@@ -23,7 +23,7 @@ import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopImp;
 import com.wjybxx.fastjgame.misc.HostAndPort;
-import com.wjybxx.fastjgame.misc.SessionDisconnectAware;
+import com.wjybxx.fastjgame.net.common.SessionDisconnectAware;
 import com.wjybxx.fastjgame.net.common.ProtocolDispatcher;
 import com.wjybxx.fastjgame.net.common.RpcCallback;
 import com.wjybxx.fastjgame.net.common.RpcResponse;
@@ -44,6 +44,8 @@ import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.locks.LockSupport;
+
+import static com.wjybxx.fastjgame.example.ExampleConstants.EMPTY_TOKEN;
 
 /**
  * 测试客户端
@@ -73,7 +75,7 @@ public class EchoClientLoop extends SingleThreadEventLoop {
     @Override
     protected void init() throws Exception {
         super.init();
-        netContext = netGroup.createContext(ExampleConstants.clientGuid, ExampleConstants.clientRole, this).get();
+        netContext = netGroup.createContext(ExampleConstants.clientGuid, this).get();
         // 必须先启动服务器
         final HostAndPort address = new HostAndPort(NetUtils.getLocalIp(), ExampleConstants.tcpPort);
         SocketSessionConfig config = SocketSessionConfig.newBuilder()
@@ -82,7 +84,7 @@ public class EchoClientLoop extends SingleThreadEventLoop {
                 .setDispatcher(new EchoProtocolDispatcher())
                 .build();
 
-        session = netContext.connectTcp(ExampleConstants.serverGuid, ExampleConstants.serverRole, address, config)
+        session = netContext.connectTcp(ExampleConstants.serverGuid, address, EMPTY_TOKEN, config)
                 .get();
     }
 

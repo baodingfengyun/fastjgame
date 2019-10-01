@@ -14,31 +14,27 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.misc;
+package com.wjybxx.fastjgame.net.common;
 
 import com.wjybxx.fastjgame.net.session.Session;
 
 /**
- * 会话生命周期观察者
+ * session断开连接事件处理器
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/4/27 11:48
+ * date - 2019/9/10
  * github - https://github.com/hl845740757
  */
-public interface SessionLifecycleAware {
+public interface SessionDisconnectAware extends SessionLifecycleAware {
 
-    /**
-     * 当会话第一次成功建立时调用，表示会话正式可用，只会调用一次
-     * 断线重连不会触发这里
-     *
-     * @param session 注册时的会话信息
-     */
-    void onSessionConnected(Session session);
+    @Override
+    default void onSessionConnected(Session session) {
+        // ignore
+    }
 
     /**
      * 当会话彻底断开连接(无法继续断线重连)时会被调用，只会调用一次
-     * 只有调用过{@link #onSessionConnected(Session)}方法，才会走到该方法
      *
      * @param session 注册时的会话信息
      */

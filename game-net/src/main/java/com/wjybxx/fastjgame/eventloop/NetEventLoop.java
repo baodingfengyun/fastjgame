@@ -18,7 +18,6 @@ package com.wjybxx.fastjgame.eventloop;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
-import com.wjybxx.fastjgame.net.common.RoleType;
 import com.wjybxx.fastjgame.net.common.RpcFuture;
 import com.wjybxx.fastjgame.net.common.RpcPromise;
 import com.wjybxx.fastjgame.net.common.RpcResponse;
@@ -51,11 +50,10 @@ public interface NetEventLoop extends EventLoop {
      * 注意：一个localGuid表示一个用户，在同一个NetEventLoop下只能创建一个Context，必须在取消注册成功之后才能再次注册。
      *
      * @param localGuid      context绑定到的角色guid
-     * @param localRole      context绑定到的角色类型
      * @param localEventLoop 方法的调用者所在的eventLoop
      * @return NetContext 创建的context可以用于监听，建立连接，和http请求
      */
-    ListenableFuture<NetContext> createContext(long localGuid, RoleType localRole, @Nonnull EventLoop localEventLoop);
+    ListenableFuture<NetContext> createContext(long localGuid, @Nonnull EventLoop localEventLoop);
 
     /**
      * 创建一个RpcPromise

@@ -24,23 +24,9 @@ package com.wjybxx.fastjgame.net.socket;
  * date - 2019/9/7
  * github - https://github.com/hl845740757
  */
-@TransferObject
-public class SingleSocketMessageTO {
+public interface SingleSocketMessageTO {
 
-    private final long ack;
+    long getAck();
 
-    private final SocketMessage socketMessage;
-
-    public SingleSocketMessageTO(long ack, SocketMessage socketMessage) {
-        this.ack = ack;
-        this.socketMessage = socketMessage;
-    }
-
-    public long getAck() {
-        return ack;
-    }
-
-    public SocketMessage getSocketMessage() {
-        return socketMessage;
-    }
+    SocketMessage getSocketMessage();
 }

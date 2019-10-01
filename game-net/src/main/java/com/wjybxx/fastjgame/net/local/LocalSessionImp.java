@@ -18,7 +18,6 @@ package com.wjybxx.fastjgame.net.local;
 
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
-import com.wjybxx.fastjgame.net.common.RoleType;
 import com.wjybxx.fastjgame.net.session.AbstractSession;
 import com.wjybxx.fastjgame.net.session.Session;
 
@@ -64,8 +63,4 @@ public class LocalSessionImp extends AbstractSession implements LocalSession {
         return remoteSession.localGuid();
     }
 
-    @Override
-    public RoleType remoteRole() {
-        return remoteSession.localRole();
-    }
 }

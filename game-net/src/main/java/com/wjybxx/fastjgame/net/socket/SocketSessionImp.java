@@ -18,7 +18,6 @@ package com.wjybxx.fastjgame.net.socket;
 
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
-import com.wjybxx.fastjgame.net.common.RoleType;
 import com.wjybxx.fastjgame.net.session.AbstractSession;
 import io.netty.channel.Channel;
 
@@ -33,7 +32,6 @@ import io.netty.channel.Channel;
 public class SocketSessionImp extends AbstractSession implements SocketSession {
 
     private final long remoteGuid;
-    private final RoleType remoteRole;
     private final SocketSessionConfig config;
     /**
      * 不声明为final，是因为可能变更
@@ -41,11 +39,10 @@ public class SocketSessionImp extends AbstractSession implements SocketSession {
     private Channel channel;
 
     public SocketSessionImp(NetContext netContext, NetManagerWrapper managerWrapper,
-                            long remoteGuid, RoleType remoteRole,
+                            long remoteGuid,
                             SocketSessionConfig config, Channel channel) {
         super(netContext, managerWrapper);
         this.remoteGuid = remoteGuid;
-        this.remoteRole = remoteRole;
         this.config = config;
         this.channel = channel;
     }
@@ -53,11 +50,6 @@ public class SocketSessionImp extends AbstractSession implements SocketSession {
     @Override
     public long remoteGuid() {
         return remoteGuid;
-    }
-
-    @Override
-    public RoleType remoteRole() {
-        return remoteRole;
     }
 
     @Override

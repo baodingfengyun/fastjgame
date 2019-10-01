@@ -22,7 +22,6 @@ import com.wjybxx.fastjgame.eventloop.NetEventLoopImp;
 import com.wjybxx.fastjgame.misc.JsonBasedProtocolCodec;
 import com.wjybxx.fastjgame.misc.MessageMapper;
 import com.wjybxx.fastjgame.misc.ReflectBasedProtocolCodec;
-import com.wjybxx.fastjgame.net.common.RoleType;
 
 /**
  * 测试用例的常量
@@ -35,15 +34,17 @@ import com.wjybxx.fastjgame.net.common.RoleType;
 public final class ExampleConstants {
 
     /**
-     * 服务端信息
+     * 服务端guid
      */
     public static final long serverGuid = 22222;
-    public static final RoleType serverRole = RoleType.TEST_SERVER;
     /**
-     * 客户端信息
+     * 客户端guid
      */
     public static final long clientGuid = 11111;
-    public static final RoleType clientRole = RoleType.TEST_CLIENT;
+    /**
+     * 空的token
+     */
+    public static final byte[] EMPTY_TOKEN = new byte[0];
 
     /**
      * 测试用例使用的codec

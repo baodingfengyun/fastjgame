@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.misc;
+package com.wjybxx.fastjgame.net.common;
 
 import com.wjybxx.fastjgame.net.session.Session;
 

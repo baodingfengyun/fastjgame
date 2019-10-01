@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.net.common.ConnectResponse;
-
 /**
  * socket建立连接响应 - 必普通的建立连接响应多一个ack
  *
@@ -28,19 +26,31 @@ import com.wjybxx.fastjgame.net.common.ConnectResponse;
  */
 public class SocketConnectResponse {
 
-    private final ConnectResponse connectResponse;
+    /**
+     * 验证是否成功
+     */
+    private final boolean success;
+    /**
+     * 这是客户端第几次验证的结果 - 与连接请求匹配
+     */
+    private final int verifyingTimes;
     /**
      * 对方期望的下一个消息号
      */
     private final long ack;
 
-    public SocketConnectResponse(ConnectResponse connectResponse, long ack) {
-        this.connectResponse = connectResponse;
+    public SocketConnectResponse(boolean success, int verifyingTimes, long ack) {
+        this.success = success;
+        this.verifyingTimes = verifyingTimes;
         this.ack = ack;
     }
 
-    public ConnectResponse getConnectResponse() {
-        return connectResponse;
+    public int getVerifyingTimes() {
+        return verifyingTimes;
+    }
+
+    public boolean isSuccess() {
+        return success;
     }
 
     public long getAck() {

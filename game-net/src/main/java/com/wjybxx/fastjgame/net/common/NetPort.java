@@ -14,29 +14,22 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.misc;
+package com.wjybxx.fastjgame.net.common;
 
-import com.wjybxx.fastjgame.net.session.Session;
+import java.io.Closeable;
 
 /**
- * session断开连接事件处理器
+ * 网络端口抽象，允许关闭
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/9/10
+ * date - 2019/9/28
  * github - https://github.com/hl845740757
  */
-public interface SessionDisconnectAware extends SessionLifecycleAware {
-
-    @Override
-    default void onSessionConnected(Session session) {
-        // ignore
-    }
+public interface NetPort extends Closeable {
 
     /**
-     * 当会话彻底断开连接(无法继续断线重连)时会被调用，只会调用一次
-     *
-     * @param session 注册时的会话信息
+     * 关闭端口资源
      */
-    void onSessionDisconnected(Session session);
+    void close();
 }

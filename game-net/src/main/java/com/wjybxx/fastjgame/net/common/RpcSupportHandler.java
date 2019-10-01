@@ -18,7 +18,6 @@ package com.wjybxx.fastjgame.net.common;
 
 import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.manager.NetTimeManager;
-import com.wjybxx.fastjgame.misc.RpcTimeoutInfo;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;

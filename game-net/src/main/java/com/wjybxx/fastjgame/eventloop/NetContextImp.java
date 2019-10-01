@@ -22,7 +22,6 @@ import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.PortRange;
-import com.wjybxx.fastjgame.net.common.RoleType;
 import com.wjybxx.fastjgame.net.http.HttpRequestDispatcher;
 import com.wjybxx.fastjgame.net.http.HttpServerInitializer;
 import com.wjybxx.fastjgame.net.http.OkHttpCallback;
@@ -58,14 +57,12 @@ import java.util.Map;
 public class NetContextImp implements NetContext {
 
     private final long localGuid;
-    private final RoleType localRole;
     private final EventLoop localEventLoop;
     private final NetManagerWrapper managerWrapper;
     private final NetEventLoop netEventLoop;
 
-    public NetContextImp(long localGuid, RoleType localRole, EventLoop localEventLoop, NetManagerWrapper managerWrapper) {
+    public NetContextImp(long localGuid, EventLoop localEventLoop, NetManagerWrapper managerWrapper) {
         this.localGuid = localGuid;
-        this.localRole = localRole;
         this.localEventLoop = localEventLoop;
         this.managerWrapper = managerWrapper;
         this.netEventLoop = managerWrapper.getNetEventLoopManager().eventLoop();
@@ -74,11 +71,6 @@ public class NetContextImp implements NetContext {
     @Override
     public long localGuid() {
         return localGuid;
-    }
-
-    @Override
-    public RoleType localRole() {
-        return localRole;
     }
 
     @Override
@@ -125,27 +117,27 @@ public class NetContextImp implements NetContext {
     }
 
     @Override
-    public ListenableFuture<Session> connectTcp(long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress, @Nonnull SocketSessionConfig config) {
+    public ListenableFuture<Session> connectTcp(long remoteGuid, HostAndPort remoteAddress, byte[] token, @Nonnull SocketSessionConfig config) {
         final TCPClientChannelInitializer initializer = new TCPClientChannelInitializer(localGuid, remoteGuid, config, managerWrapper.getNetEventManager());
-        return connect(remoteGuid, remoteRole, remoteAddress, config, initializer);
+        return connect(remoteGuid, remoteAddress, token, config, initializer);
     }
 
     @Override
-    public ListenableFuture<Session> connectWS(long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress, String websocketUrl, @Nonnull SocketSessionConfig config) {
+    public ListenableFuture<Session> connectWS(long remoteGuid, HostAndPort remoteAddress, String websocketUrl, byte[] token, @Nonnull SocketSessionConfig config) {
         final WsClientChannelInitializer initializer = new WsClientChannelInitializer(localGuid, remoteGuid, websocketUrl, config.maxFrameLength(),
                 config.codec(), managerWrapper.getNetEventManager());
-        return connect(remoteGuid, remoteRole, remoteAddress, config, initializer);
+        return connect(remoteGuid, remoteAddress, token, config, initializer);
     }
 
     @Nonnull
-    private ListenableFuture<Session> connect(long remoteGuid, RoleType remoteRole, HostAndPort remoteAddress,
-                                              SocketSessionConfig config,
+    private ListenableFuture<Session> connect(long remoteGuid, HostAndPort remoteAddress,
+                                              byte[] token, SocketSessionConfig config,
                                               ChannelInitializer<SocketChannel> initializer) {
         final Promise<Session> promise = netEventLoop.newPromise();
         // 这里一定不是网络层，只有逻辑层才会调用connect
         netEventLoop.execute(() -> {
-            managerWrapper.getSessionManager().connect(this, remoteGuid, remoteRole, remoteAddress,
-                    config, initializer, promise);
+            managerWrapper.getSessionManager().connect(this, remoteGuid, remoteAddress,
+                    token, config, initializer, promise);
         });
         return promise;
     }
@@ -160,7 +152,7 @@ public class NetContextImp implements NetContext {
     }
 
     @Override
-    public ListenableFuture<Session> connectLocal(@Nonnull LocalPort localPort, @Nonnull LocalSessionConfig config) {
+    public ListenableFuture<Session> connectLocal(@Nonnull LocalPort localPort, byte[] token, @Nonnull LocalSessionConfig config) {
         return localPort.connect(this, config);
     }
 

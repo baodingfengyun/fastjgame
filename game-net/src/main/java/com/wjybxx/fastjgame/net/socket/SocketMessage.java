@@ -23,7 +23,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * 有序的消息体，通过ack-sequence实现断线重连/消息确认机制
  * Q: ack为什么不在这？
- * A: ack是每次发送的时候获取最新的ack。 在这里{@link SingleSocketMessageTO} {@link BatchSockectMessageTO}
+ * A: ack是每次发送的时候获取最新的ack。 在这里{@link SingleSocketMessageTO} {@link BatchSocketMessageTO}
  * <p>
  * 通过包装的方式，某些方面更加清晰，但有些方面会让人觉得绕的厉害，也增加了一部分内存消耗吧。
  * (本想的内网服务器之间不开启消息确认机制，也不传输sequence和ack，这样可以减少很多不必要的传输，但是那样包装就有点过度了，也导致了维护难度的增加)
@@ -34,40 +34,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class SocketMessage {
-    /**
-     * 当前包id。
-     */
-    private final long sequence;
-    /**
-     * 被包装的消息
-     */
-    private final NetMessage wrappedMessage;
-    /**
-     * 消息确认超时时间
-     * 每次发送的时候设置超时时间 - 线程封闭(NetEventLoop线程访问)
-     */
-    private long timeout;
+public interface SocketMessage {
 
-    public SocketMessage(long sequence, NetMessage wrappedMessage) {
-        this.sequence = sequence;
-        this.wrappedMessage = wrappedMessage;
-    }
+    long getSequence();
 
-    public long getSequence() {
-        return sequence;
-    }
-
-    public long getTimeout() {
-        return timeout;
-    }
-
-    public void setTimeout(long timeout) {
-        this.timeout = timeout;
-    }
-
-    public NetMessage getWrappedMessage() {
-        return wrappedMessage;
-    }
-
+    NetMessage getWrappedMessage();
 }

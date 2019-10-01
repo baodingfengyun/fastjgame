@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.net.common.ConnectResponse;
 import io.netty.channel.Channel;
 
 /**
@@ -37,20 +36,19 @@ public class SocketConnectResponseEvent implements SocketEvent {
      * 本地会话guid
      */
     private final long localGuid;
-
     /**
-     * 对方期望的下一个消息号
+     * 谁返回给我的结果。
      */
-    private final long ack;
+    private final long remoteGuid;
     /**
      * 建立连接结果
      */
-    private final ConnectResponse connectResponse;
+    private final SocketConnectResponse connectResponse;
 
-    public SocketConnectResponseEvent(Channel channel, long localGuid, long ack, ConnectResponse connectResponse) {
+    public SocketConnectResponseEvent(Channel channel, long localGuid, long remoteGuid, SocketConnectResponse connectResponse) {
         this.channel = channel;
         this.localGuid = localGuid;
-        this.ack = ack;
+        this.remoteGuid = remoteGuid;
         this.connectResponse = connectResponse;
     }
 
@@ -66,14 +64,15 @@ public class SocketConnectResponseEvent implements SocketEvent {
 
     @Override
     public long remoteGuid() {
-        return connectResponse.getRemoteGuid();
+        return remoteGuid;
+    }
+
+    public SocketConnectResponse getConnectResponse() {
+        return connectResponse;
     }
 
     public boolean isSuccess() {
         return connectResponse.isSuccess();
     }
 
-    public long getAck() {
-        return ack;
-    }
 }

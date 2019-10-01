@@ -20,10 +20,10 @@ import com.wjybxx.fastjgame.annotation.Internal;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
-import com.wjybxx.fastjgame.net.common.RoleType;
 import com.wjybxx.fastjgame.net.common.RpcCallback;
 import com.wjybxx.fastjgame.net.common.RpcResponse;
 import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
+import com.wjybxx.fastjgame.net.socket.SocketConnectRequest;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -39,6 +39,10 @@ import javax.annotation.Nullable;
  * <p>
  * 3. 先发送的请求不一定先获得结果！对方什么时候返回给你结果是不确定的！
  *
+ * <p>
+ * Q: 为什么删除了{@code remoteRole}和{@code localRole}?
+ * A: 协议中显式传输角色类型是不安全的，用户请从{@link SocketConnectRequest#getToken()}中获取，如果需要的话，在token中存储关键信息。
+ *
  * <p><br>
  * 注意：
  * 1. 特定的 localGuid 和 remoteGuid 在同一个NetEventLoop下只能建立一个链接！！！它俩确定唯一的一个session。
@@ -46,7 +50,7 @@ import javax.annotation.Nullable;
  * 2. 这里提供的接口并不是那么的清晰易懂，偏原始、偏底层，应用层可以提供更良好的封装。
  *
  * @author wjybxx
- * @version 1.0
+ * @version 1.2
  * date - 2019/7/29
  * github - https://github.com/hl845740757
  */
@@ -60,19 +64,9 @@ public interface Session extends Comparable<Session> {
     long localGuid();
 
     /**
-     * 会话关联的本地角色类型
-     */
-    RoleType localRole();
-
-    /**
      * 远程的guid
      */
     long remoteGuid();
-
-    /**
-     * 远程的角色类型
-     */
-    RoleType remoteRole();
 
     /**
      * session相关的配置信息

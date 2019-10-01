@@ -19,7 +19,7 @@ import com.wjybxx.fastjgame.concurrent.*;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopImp;
-import com.wjybxx.fastjgame.misc.SessionLifecycleAware;
+import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.common.ProtocolDispatcher;
 import com.wjybxx.fastjgame.net.common.RpcCallback;
 import com.wjybxx.fastjgame.net.common.RpcResponse;
@@ -62,7 +62,7 @@ public class EchoServerLoop extends SingleThreadEventLoop {
     protected void init() throws Exception {
         super.init();
         // 创建网络环境
-        netContext = netGroup.createContext(ExampleConstants.serverGuid, ExampleConstants.serverRole, this).get();
+        netContext = netGroup.createContext(ExampleConstants.serverGuid, this).get();
 
         // 监听tcp端口
         SocketSessionConfig config = SocketSessionConfig.newBuilder().setCodec(ExampleConstants.jsonBasedCodec)

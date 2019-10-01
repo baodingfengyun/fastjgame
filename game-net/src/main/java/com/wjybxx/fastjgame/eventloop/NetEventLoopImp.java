@@ -116,12 +116,12 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     }
 
     @Override
-    public ListenableFuture<NetContext> createContext(long localGuid, RoleType localRole, @Nonnull EventLoop localEventLoop) {
+    public ListenableFuture<NetContext> createContext(long localGuid, @Nonnull EventLoop localEventLoop) {
         if (localEventLoop instanceof NetEventLoop) {
             throw new IllegalArgumentException("Bad EventLoop");
         }
         return submit(() -> {
-            return netContextManager.createContext(localGuid, localRole, localEventLoop);
+            return netContextManager.createContext(localGuid, localEventLoop);
         });
     }
 

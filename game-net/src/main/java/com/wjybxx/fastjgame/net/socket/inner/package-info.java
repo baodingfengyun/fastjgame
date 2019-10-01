@@ -14,21 +14,12 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.socket;
-
-import com.wjybxx.fastjgame.misc.HostAndPort;
-import com.wjybxx.fastjgame.net.common.NetPort;
-
 /**
- * socket绑定端口结果
+ * 该包中负责内网通信逻辑
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/9/28
+ * date - 2019/10/1
  * github - https://github.com/hl845740757
  */
-public interface SocketPort extends NetPort {
-
-    HostAndPort getHostAndPort();
-
-}
+package com.wjybxx.fastjgame.net.socket.inner;

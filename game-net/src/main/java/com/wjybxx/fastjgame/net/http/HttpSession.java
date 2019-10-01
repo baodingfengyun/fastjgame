@@ -20,7 +20,6 @@ import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
-import com.wjybxx.fastjgame.net.common.RoleType;
 import io.netty.handler.codec.http.HttpResponse;
 
 /**
@@ -37,11 +36,6 @@ public interface HttpSession {
      * 监听端口的本地对象的guid
      */
     long localGuid();
-
-    /**
-     * 监听端口的本地对象的类型
-     */
-    RoleType localRole();
 
     /**
      * session是否处于活动状态

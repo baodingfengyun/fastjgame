@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.net.common.ConnectRequest;
-
 /**
  * 带有消息确认机制的连接请求
  *
@@ -28,19 +26,44 @@ import com.wjybxx.fastjgame.net.common.ConnectRequest;
  */
 public class SocketConnectRequest {
 
-    private final ConnectRequest connectRequest;
+    /**
+     * 我的标识(我是谁)
+     * （对于玩家来讲，该标识就是玩家角色id）
+     */
+    private final long clientGuid;
+    /**
+     * 建立连接需要的token信息 - 还可以包括一些额外信息
+     */
+    private final byte[] token;
+    /**
+     * 这是客户端的第几次连接请求。
+     * 1. 每次重连时都必须增加。
+     * 2. 用于识别最新的请求。
+     * 3. 用于识别对应的结果。
+     */
+    private final int verifyingTimes;
     /**
      * 我期望的下一个消息号
      */
     private final long ack;
 
-    public SocketConnectRequest(ConnectRequest connectRequest, long ack) {
-        this.connectRequest = connectRequest;
+    public SocketConnectRequest(long clientGuid, int verifyingTimes, long ack, byte[] token) {
+        this.clientGuid = clientGuid;
+        this.verifyingTimes = verifyingTimes;
+        this.token = token;
         this.ack = ack;
     }
 
-    public ConnectRequest getConnectRequest() {
-        return connectRequest;
+    public long getClientGuid() {
+        return clientGuid;
+    }
+
+    public int getVerifyingTimes() {
+        return verifyingTimes;
+    }
+
+    public byte[] getToken() {
+        return token;
     }
 
     public long getAck() {

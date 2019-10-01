@@ -24,7 +24,6 @@ import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.exception.InternalApiException;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
-import com.wjybxx.fastjgame.net.common.RoleType;
 import com.wjybxx.fastjgame.net.common.RpcCallback;
 import com.wjybxx.fastjgame.net.common.RpcPromise;
 import com.wjybxx.fastjgame.net.common.RpcResponse;
@@ -72,11 +71,6 @@ public abstract class AbstractSession implements Session {
     @Override
     public final long localGuid() {
         return netContext.localGuid();
-    }
-
-    @Override
-    public final RoleType localRole() {
-        return netContext.localRole();
     }
 
     @Override

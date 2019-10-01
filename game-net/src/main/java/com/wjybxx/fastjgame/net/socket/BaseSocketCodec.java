@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.misc.SessionLifecycleAware;
+import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.common.*;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import io.netty.buffer.ByteBuf;
@@ -106,14 +106,14 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
     /**
      * 批量消息传输
      *
-     * @param ctx                   ctx
-     * @param batchSockectMessageTO 批量消息包
+     * @param ctx                  ctx
+     * @param batchSocketMessageTO 批量消息包
      * @throws Exception error
      */
-    protected final void writeBatchMessage(ChannelHandlerContext ctx, BatchSockectMessageTO batchSockectMessageTO) throws Exception {
+    protected final void writeBatchMessage(ChannelHandlerContext ctx, BatchSocketMessageTO batchSocketMessageTO) throws Exception {
         // 批量协议包
-        long ack = batchSockectMessageTO.getAck();
-        for (SocketMessage message : batchSockectMessageTO.getSocketMessageList()) {
+        long ack = batchSocketMessageTO.getAck();
+        for (SocketMessage message : batchSocketMessageTO.getSocketMessageList()) {
             writeSingleMsg(ctx, ack, message, ctx.voidPromise());
         }
         ctx.flush();
@@ -161,15 +161,14 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
      * @param socketConnectRequest 发送的消息
      */
     final void writeConnectRequest(ChannelHandlerContext ctx, SocketConnectRequest socketConnectRequest, ChannelPromise promise) {
-        int contentLength = 8 + 4 + 4 + 8;
+        int contentLength = 8 + 4 + 8 + socketConnectRequest.getToken().length;
         ByteBuf byteBuf = newInitializedByteBuf(ctx, contentLength, NetMessageType.CONNECT_REQUEST);
-        // 原始内容
-        ConnectRequest connectRequest = socketConnectRequest.getConnectRequest();
-        byteBuf.writeLong(connectRequest.getClientGuid());
-        byteBuf.writeInt(connectRequest.getClientRole().getNumber());
-        byteBuf.writeInt(connectRequest.getVerifyingTimes());
-        // ack
+
+        byteBuf.writeLong(socketConnectRequest.getClientGuid());
+        byteBuf.writeInt(socketConnectRequest.getVerifyingTimes());
         byteBuf.writeLong(socketConnectRequest.getAck());
+        byteBuf.writeBytes(socketConnectRequest.getToken());
+
         appendSumAndWrite(ctx, byteBuf, promise);
     }
 
@@ -178,13 +177,12 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
      */
     final SocketConnectRequestEvent readConnectRequest(Channel channel, long localGuid, SessionLifecycleAware lifecycleAware, ByteBuf msg) {
         long clientGuid = msg.readLong();
-        RoleType clientRole = RoleType.forNumber(msg.readInt());
         int verifyingTimes = msg.readInt();
         long ack = msg.readLong();
-        final byte[] token = NetUtils.readRemainBytes(msg);
+        byte[] token = NetUtils.readRemainBytes(msg);
 
-        ConnectRequest connectRequest = new ConnectRequest(clientGuid, clientRole, verifyingTimes, token);
-        return new SocketConnectRequestEvent(channel, localGuid, ack, connectRequest);
+        SocketConnectRequest connectRequest = new SocketConnectRequest(clientGuid, verifyingTimes, ack, token);
+        return new SocketConnectRequestEvent(channel, localGuid, connectRequest);
     }
 
     /**
@@ -194,8 +192,8 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
         int contentLength = 1 + 4 + 8;
         ByteBuf byteBuf = newInitializedByteBuf(ctx, contentLength, NetMessageType.CONNECT_RESPONSE);
 
-        byteBuf.writeByte(socketConnectResponse.getConnectResponse().isSuccess() ? 1 : 0);
-        byteBuf.writeInt(socketConnectResponse.getConnectResponse().getVerifyingTimes());
+        byteBuf.writeByte(socketConnectResponse.isSuccess() ? 1 : 0);
+        byteBuf.writeInt(socketConnectResponse.getVerifyingTimes());
         byteBuf.writeLong(socketConnectResponse.getAck());
 
         appendSumAndWrite(ctx, byteBuf, promise);
@@ -209,8 +207,8 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
         int verifyingTimes = msg.readInt();
         long ack = msg.readLong();
 
-        ConnectResponse connectResponse = new ConnectResponse(remoteGuid, success, verifyingTimes);
-        return new SocketConnectResponseEvent(channel, localGuid, ack, connectResponse);
+        SocketConnectResponse connectResponse = new SocketConnectResponse(success, verifyingTimes, ack);
+        return new SocketConnectResponseEvent(channel, localGuid, remoteGuid, connectResponse);
     }
 
     // ---------------------------------------------- 协议3、4 ---------------------------------------

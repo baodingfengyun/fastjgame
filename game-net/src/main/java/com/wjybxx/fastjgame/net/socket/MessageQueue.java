@@ -42,15 +42,18 @@ import java.util.LinkedList;
  */
 public final class MessageQueue {
 
+    public static final int INIT_SEQUENCE = 0;
+    public static final int INIT_ACK = INIT_SEQUENCE + 1;
+
     /**
      * 消息号分配器
      */
-    private long sequencer = 0;
+    private long sequencer = INIT_SEQUENCE;
 
     /**
      * 期望的下一个消息号
      */
-    private long ack = 1;
+    private long ack = INIT_ACK;
 
     /**
      * 已发送待确认的消息队列，只要发送过就不会再放入{@link #unsentQueue}

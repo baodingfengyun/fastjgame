@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.net.common.ConnectRequest;
-import com.wjybxx.fastjgame.net.common.RoleType;
 import io.netty.channel.Channel;
 
 /**
@@ -32,14 +30,12 @@ public class SocketConnectRequestEvent implements SocketEvent {
 
     private final Channel channel;
     private final long localGuid;
-    private final long ack;
-    private final ConnectRequest connectRequest;
+    private final SocketConnectRequest connectRequest;
     // TODO 该端口上需要的监听者信息 config
 
-    public SocketConnectRequestEvent(Channel channel, long localGuid, long ack, ConnectRequest connectRequest) {
+    public SocketConnectRequestEvent(Channel channel, long localGuid, SocketConnectRequest connectRequest) {
         this.localGuid = localGuid;
         this.channel = channel;
-        this.ack = ack;
         this.connectRequest = connectRequest;
     }
 
@@ -58,20 +54,7 @@ public class SocketConnectRequestEvent implements SocketEvent {
         return connectRequest.getClientGuid();
     }
 
-    public long getClientGuid() {
-        return connectRequest.getClientGuid();
+    public SocketConnectRequest getConnectRequest() {
+        return connectRequest;
     }
-
-    public RoleType getClientRole() {
-        return connectRequest.getClientRole();
-    }
-
-    public int getVerifyingTimes() {
-        return connectRequest.getVerifyingTimes();
-    }
-
-    public long getAck() {
-        return ack;
-    }
-
 }

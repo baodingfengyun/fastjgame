@@ -14,21 +14,36 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.socket;
+package com.wjybxx.fastjgame.net.socket.outer;
 
-import com.wjybxx.fastjgame.misc.HostAndPort;
-import com.wjybxx.fastjgame.net.common.NetPort;
+import com.wjybxx.fastjgame.net.socket.SingleSocketMessageTO;
+import com.wjybxx.fastjgame.net.socket.SocketMessage;
 
 /**
- * socket绑定端口结果
+ * 对外的socket消息传输对象
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/9/28
+ * date - 2019/10/1
  * github - https://github.com/hl845740757
  */
-public interface SocketPort extends NetPort {
+public class OuterSingleSocketMessageTO implements SingleSocketMessageTO {
 
-    HostAndPort getHostAndPort();
+    private final long ack;
+    private final SocketMessage socketMessage;
 
+    OuterSingleSocketMessageTO(long ack, SocketMessage socketMessage) {
+        this.ack = ack;
+        this.socketMessage = socketMessage;
+    }
+
+    @Override
+    public long getAck() {
+        return ack;
+    }
+
+    @Override
+    public SocketMessage getSocketMessage() {
+        return socketMessage;
+    }
 }

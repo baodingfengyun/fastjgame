@@ -68,8 +68,8 @@ public class DefaultMessageDispatcher implements MessageFunctionRegistry, Messag
     public final <T extends AbstractMessage> void post(@Nonnull Session session, @Nonnull T message) {
         @SuppressWarnings("unchecked") final MessageFunction<T> messageFunction = (MessageFunction<T>) handlerMap.get(message.getClass());
         if (null == messageFunction) {
-            logger.warn("{} - {} send unregistered message {}",
-                    session.remoteRole(), session.remoteGuid(), message.getClass().getName());
+            logger.warn("{} send unregistered message {}",
+                    session.remoteGuid(), message.getClass().getName());
             return;
         }
         try {
