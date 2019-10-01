@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.net.Session;
+import com.wjybxx.fastjgame.net.session.Session;
 
 /**
  * 连接断开通知任务 - 消除lambda表达式

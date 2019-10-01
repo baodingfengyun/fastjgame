@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.annotation;
 
+import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -25,9 +27,9 @@ import java.lang.annotation.Target;
  * 该注解表示该方法是一个Rpc调用。
  * 该注解分三种情况：
  * 1. 当方法返回值类型不为void或Void时，表明可以立即返回结果，代码生成工具会捕获返回值类型。
- * 2. 当返回值为void或Void时，如果参数中有 {@link com.wjybxx.fastjgame.net.RpcResponseChannel}，表明需要异步返回结果，
+ * 2. 当返回值为void或Void时，如果参数中有 {@link RpcResponseChannel}，表明需要异步返回结果，
  * 代码生成工具会那么会捕获其泛型参数作为Rpc调用结果。
- * 3. 如果返回值为void或Void，且参数中没有{@link com.wjybxx.fastjgame.net.RpcResponseChannel}，那么表示没有返回值。
+ * 3. 如果返回值为void或Void，且参数中没有{@link RpcResponseChannel}，那么表示没有返回值。
  * 即：
  * <pre>
  * {@code

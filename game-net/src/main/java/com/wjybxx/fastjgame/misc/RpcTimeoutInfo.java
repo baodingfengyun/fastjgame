@@ -17,8 +17,8 @@
 package com.wjybxx.fastjgame.misc;
 
 import com.wjybxx.fastjgame.concurrent.Promise;
-import com.wjybxx.fastjgame.net.RpcCallback;
-import com.wjybxx.fastjgame.net.RpcResponse;
+import com.wjybxx.fastjgame.net.common.RpcCallback;
+import com.wjybxx.fastjgame.net.common.RpcResponse;
 
 import javax.annotation.Nonnull;
 

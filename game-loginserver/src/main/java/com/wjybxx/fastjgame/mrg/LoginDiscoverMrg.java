@@ -20,7 +20,7 @@ import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.core.onlinenode.CenterNodeData;
 import com.wjybxx.fastjgame.core.onlinenode.CenterNodeName;
-import com.wjybxx.fastjgame.net.RoleType;
+import com.wjybxx.fastjgame.net.common.RoleType;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import com.wjybxx.fastjgame.world.GameEventLoopMrg;

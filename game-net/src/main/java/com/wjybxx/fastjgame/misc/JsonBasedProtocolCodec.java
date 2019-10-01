@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.net.ProtocolCodec;
+import com.wjybxx.fastjgame.net.common.ProtocolCodec;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import io.netty.buffer.*;

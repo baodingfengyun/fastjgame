@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.task;
 
-import com.wjybxx.fastjgame.net.Session;
+import com.wjybxx.fastjgame.net.session.Session;
 
 /**
  * 单向消息发送任务

@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.world;
 
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
-import com.wjybxx.fastjgame.net.RoleType;
+import com.wjybxx.fastjgame.net.common.RoleType;
 
 import javax.annotation.Nonnull;
 

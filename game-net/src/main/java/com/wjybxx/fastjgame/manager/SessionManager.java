@@ -20,21 +20,17 @@ import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.concurrent.Promise;
+import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.PortRange;
 import com.wjybxx.fastjgame.misc.SessionRegistry;
-import com.wjybxx.fastjgame.net.NetContext;
-import com.wjybxx.fastjgame.net.RoleType;
-import com.wjybxx.fastjgame.net.Session;
-import com.wjybxx.fastjgame.net.handler.OneWaySupportHandler;
-import com.wjybxx.fastjgame.net.handler.RpcSupportHandler;
-import com.wjybxx.fastjgame.net.handler.SessionLifeCycleAwareHandler;
+import com.wjybxx.fastjgame.net.common.OneWaySupportHandler;
+import com.wjybxx.fastjgame.net.common.RoleType;
+import com.wjybxx.fastjgame.net.common.RpcSupportHandler;
+import com.wjybxx.fastjgame.net.common.SessionLifeCycleAwareHandler;
 import com.wjybxx.fastjgame.net.local.*;
-import com.wjybxx.fastjgame.net.socket.SocketPort;
-import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
-import com.wjybxx.fastjgame.net.socket.ordered.OrderedConnectRequestEvent;
-import com.wjybxx.fastjgame.net.socket.ordered.OrderedConnectResponseEvent;
-import com.wjybxx.fastjgame.net.socket.ordered.OrderedMessageEvent;
+import com.wjybxx.fastjgame.net.session.Session;
+import com.wjybxx.fastjgame.net.socket.*;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
@@ -77,15 +73,15 @@ public class SessionManager {
 
     // --------------------------------------------- 事件处理 -----------------------------------------
 
-    public void onRcvConnectRequest(OrderedConnectRequestEvent eventParam) {
+    public void onRcvConnectRequest(SocketConnectRequestEvent eventParam) {
 
     }
 
-    public void onRcvConnectResponse(OrderedConnectResponseEvent eventParam) {
+    public void onRcvConnectResponse(SocketConnectResponseEvent eventParam) {
 
     }
 
-    public void onRcvMessage(OrderedMessageEvent eventParam) {
+    public void onRcvMessage(SocketMessageEvent eventParam) {
         final Session session = sessionRegistry.getSession(eventParam.localGuid(), eventParam.remoteGuid());
         if (session != null && session.isActive()) {
             // session 存活的情况下才读取消息

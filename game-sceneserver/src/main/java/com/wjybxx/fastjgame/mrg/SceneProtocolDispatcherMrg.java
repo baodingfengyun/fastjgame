@@ -22,8 +22,8 @@ import com.wjybxx.fastjgame.gameobject.Player;
 import com.wjybxx.fastjgame.misc.DefaultPlayerMessageDispatcher;
 import com.wjybxx.fastjgame.misc.PlayerMessageFunction;
 import com.wjybxx.fastjgame.misc.PlayerMessageFunctionRegistry;
-import com.wjybxx.fastjgame.net.RoleType;
-import com.wjybxx.fastjgame.net.Session;
+import com.wjybxx.fastjgame.net.common.RoleType;
+import com.wjybxx.fastjgame.net.session.Session;
 
 import javax.annotation.Nonnull;
 

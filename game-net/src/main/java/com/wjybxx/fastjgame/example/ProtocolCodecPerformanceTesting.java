@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.example;
 
 import com.wjybxx.fastjgame.misc.JsonBasedProtocolCodec;
 import com.wjybxx.fastjgame.misc.ReflectBasedProtocolCodec;
-import com.wjybxx.fastjgame.net.ProtocolCodec;
+import com.wjybxx.fastjgame.net.common.ProtocolCodec;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;

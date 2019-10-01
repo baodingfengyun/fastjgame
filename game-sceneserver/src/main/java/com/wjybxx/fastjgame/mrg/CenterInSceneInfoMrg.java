@@ -22,7 +22,7 @@ import com.wjybxx.fastjgame.core.SceneRegion;
 import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.misc.CenterInSceneInfo;
 import com.wjybxx.fastjgame.misc.PlatformType;
-import com.wjybxx.fastjgame.net.Session;
+import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.rpcservice.ICenterInSceneInfoMrg;
 import com.wjybxx.fastjgame.serializebale.ConnectCrossSceneResult;
 import com.wjybxx.fastjgame.world.SceneWorld;

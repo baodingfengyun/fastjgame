@@ -16,7 +16,9 @@
 
 package com.wjybxx.fastjgame.net.local;
 
-import com.wjybxx.fastjgame.net.*;
+import com.wjybxx.fastjgame.net.common.*;
+import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
+import com.wjybxx.fastjgame.net.session.SessionOutboundHandlerAdapter;
 
 /**
  * 对于在JVM内传输的数据，进行保护性拷贝。

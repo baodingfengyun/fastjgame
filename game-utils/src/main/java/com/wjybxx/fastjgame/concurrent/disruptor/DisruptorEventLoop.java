@@ -29,7 +29,6 @@ import javax.annotation.Nullable;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.LockSupport;
 
 /**
  * 基于Disruptor的事件循环。

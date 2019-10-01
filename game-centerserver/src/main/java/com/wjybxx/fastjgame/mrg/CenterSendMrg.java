@@ -23,7 +23,7 @@ import com.google.protobuf.MessageLite;
 import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.misc.SceneInCenterInfo;
 import com.wjybxx.fastjgame.misc.WarzoneInCenterInfo;
-import com.wjybxx.fastjgame.net.RpcResponse;
+import com.wjybxx.fastjgame.net.common.RpcResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

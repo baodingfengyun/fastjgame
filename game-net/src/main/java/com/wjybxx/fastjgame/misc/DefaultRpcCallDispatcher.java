@@ -16,9 +16,9 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.net.RpcResponse;
-import com.wjybxx.fastjgame.net.RpcResponseChannel;
-import com.wjybxx.fastjgame.net.Session;
+import com.wjybxx.fastjgame.net.common.RpcResponse;
+import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
+import com.wjybxx.fastjgame.net.session.Session;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.slf4j.Logger;

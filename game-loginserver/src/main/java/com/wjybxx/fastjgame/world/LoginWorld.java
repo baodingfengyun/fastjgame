@@ -23,7 +23,7 @@ import com.wjybxx.fastjgame.mrg.CenterInLoginInfoMrg;
 import com.wjybxx.fastjgame.mrg.LoginDiscoverMrg;
 import com.wjybxx.fastjgame.mrg.LoginWorldInfoMrg;
 import com.wjybxx.fastjgame.mrg.WorldWrapper;
-import com.wjybxx.fastjgame.net.NetContext;
+import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;

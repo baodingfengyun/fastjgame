@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.net.RpcCallback;
-import com.wjybxx.fastjgame.net.RpcResponse;
+import com.wjybxx.fastjgame.net.common.RpcCallback;
+import com.wjybxx.fastjgame.net.common.RpcResponse;
 
 /**
  * Rpc回调适配器。

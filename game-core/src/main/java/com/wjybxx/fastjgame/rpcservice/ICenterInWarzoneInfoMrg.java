@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.rpcservice;
 
 import com.wjybxx.fastjgame.annotation.RpcMethod;
 import com.wjybxx.fastjgame.annotation.RpcService;
-import com.wjybxx.fastjgame.net.Session;
+import com.wjybxx.fastjgame.net.session.Session;
 
 /**
  * 中心服在战区服的信息管理器

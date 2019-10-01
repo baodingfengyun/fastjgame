@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.net.SessionConfig;
+import com.wjybxx.fastjgame.net.session.SessionConfig;
 
 /**
  * socket连接配置
@@ -75,9 +75,9 @@ public final class SocketSessionConfig extends SessionConfig {
 
     public static class SocketSessionConfigBuilder extends SessionConfigBuilder<SocketSessionConfigBuilder> {
 
-        private int sndBuffer = 8192;
-        private int rcvBuffer = 8192;
-        private int maxFrameLength = 8192;
+        private int sndBuffer = 64 * 1024;
+        private int rcvBuffer = 64 * 1024;
+        private int maxFrameLength = 8 * 1024;
 
         @Override
         protected void checkParams() {

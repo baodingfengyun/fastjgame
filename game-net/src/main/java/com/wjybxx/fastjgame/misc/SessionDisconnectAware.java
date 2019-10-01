@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.net.Session;
+import com.wjybxx.fastjgame.net.session.Session;
 
 /**
  * session断开连接事件处理器

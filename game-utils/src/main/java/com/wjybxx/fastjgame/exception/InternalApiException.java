@@ -31,4 +31,8 @@ public class InternalApiException extends RuntimeException {
     public InternalApiException() {
         super("internal api");
     }
+
+    public InternalApiException(String message) {
+        super(message);
+    }
 }

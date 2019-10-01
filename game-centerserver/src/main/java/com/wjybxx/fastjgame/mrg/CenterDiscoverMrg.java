@@ -20,7 +20,7 @@ import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.core.onlinenode.*;
 import com.wjybxx.fastjgame.misc.ResourceCloseHandle;
-import com.wjybxx.fastjgame.net.RoleType;
+import com.wjybxx.fastjgame.net.common.RoleType;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.curator.framework.recipes.cache.ChildData;

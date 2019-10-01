@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.utils;
 import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.core.onlinenode.*;
 import com.wjybxx.fastjgame.misc.PlatformType;
-import com.wjybxx.fastjgame.net.RoleType;
+import com.wjybxx.fastjgame.net.common.RoleType;
 import org.apache.curator.utils.PathUtils;
 
 import java.io.File;

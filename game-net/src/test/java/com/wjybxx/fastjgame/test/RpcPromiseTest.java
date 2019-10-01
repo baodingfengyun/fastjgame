@@ -5,8 +5,8 @@ import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopImp;
-import com.wjybxx.fastjgame.net.DefaultRpcPromise;
-import com.wjybxx.fastjgame.net.RpcPromise;
+import com.wjybxx.fastjgame.net.common.DefaultRpcPromise;
+import com.wjybxx.fastjgame.net.common.RpcPromise;
 import com.wjybxx.fastjgame.utils.TimeUtils;
 
 /**

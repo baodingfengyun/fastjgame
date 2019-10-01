@@ -288,6 +288,9 @@ public class NetUtils {
      * @return new instance
      */
     public static byte[] readRemainBytes(ByteBuf byteBuf) {
+        if (byteBuf.readableBytes() == 0) {
+            return new byte[0];
+        }
         byte[] result = new byte[byteBuf.readableBytes()];
         byteBuf.readBytes(result);
         return result;

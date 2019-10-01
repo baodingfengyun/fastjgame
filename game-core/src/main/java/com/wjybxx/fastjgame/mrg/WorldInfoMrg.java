@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.mrg;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.annotation.EventLoopSingleton;
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
-import com.wjybxx.fastjgame.net.RoleType;
+import com.wjybxx.fastjgame.net.common.RoleType;
 
 import javax.annotation.concurrent.NotThreadSafe;
 

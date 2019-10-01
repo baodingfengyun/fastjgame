@@ -23,7 +23,7 @@ import com.wjybxx.fastjgame.gameobject.GameObject;
 import com.wjybxx.fastjgame.gameobject.Player;
 import com.wjybxx.fastjgame.misc.PlatformType;
 import com.wjybxx.fastjgame.misc.ViewGrid;
-import com.wjybxx.fastjgame.net.Session;
+import com.wjybxx.fastjgame.net.session.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

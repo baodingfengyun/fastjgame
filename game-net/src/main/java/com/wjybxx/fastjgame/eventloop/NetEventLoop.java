@@ -18,7 +18,10 @@ package com.wjybxx.fastjgame.eventloop;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
-import com.wjybxx.fastjgame.net.*;
+import com.wjybxx.fastjgame.net.common.RoleType;
+import com.wjybxx.fastjgame.net.common.RpcFuture;
+import com.wjybxx.fastjgame.net.common.RpcPromise;
+import com.wjybxx.fastjgame.net.common.RpcResponse;
 
 import javax.annotation.Nonnull;
 

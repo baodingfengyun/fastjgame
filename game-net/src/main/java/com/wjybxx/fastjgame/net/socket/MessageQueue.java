@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.net.socket.ordered.OrderedMessage;
-
 import java.util.LinkedList;
 
 /**
@@ -26,12 +24,15 @@ import java.util.LinkedList;
  * <pre>
  * 消息队列的视图大致如下：
  *
- *              ↓nextSequence
+ *  ack   ~    ack
+ *  ↓           ↓
+ *  ↓           ↓nextSequence
  * |---------------------------
  * | sentQueue |  unsentQueue  |
  * | --------------------------|
  * |    0~n    |      0~n      |
  * |---------------------------
+ *
  * </pre>
  *
  * @author wjybxx
@@ -40,36 +41,32 @@ import java.util.LinkedList;
  * github - https://github.com/hl845740757
  */
 public final class MessageQueue {
-    /**
-     * 初始ACK
-     */
-    public static final int INIT_ACK = 0;
 
     /**
-     * 序号分配器
+     * 消息号分配器
      */
-    private long sequencer = INIT_ACK;
+    private long sequencer = 0;
 
     /**
-     * 接收到对方的最大消息编号
+     * 期望的下一个消息号
      */
-    private long ack = INIT_ACK;
+    private long ack = 1;
 
     /**
      * 已发送待确认的消息队列，只要发送过就不会再放入{@link #unsentQueue}
      * Q: 为什么不使用arrayList?
      * A: 1.存在大量的删除操作 2.ArrayList存在空间浪费。3.遍历很少
      */
-    private LinkedList<OrderedMessage> sentQueue = new LinkedList<>();
+    private LinkedList<SocketMessage> sentQueue = new LinkedList<>();
 
     /**
      * 未发送的消息队列,还没有尝试过发送的消息
      */
-    private LinkedList<OrderedMessage> unsentQueue = new LinkedList<>();
+    private LinkedList<SocketMessage> unsentQueue = new LinkedList<>();
 
     /**
      * 对方发送过来的ack是否有效。
-     * 每次返回的Ack不小于上次返回的ack,不大于发出去的最大消息号
+     * (期望的下一个消息号是否合法)
      */
     public boolean isAckOK(long ack) {
         return ack >= getAckLowerBound() && ack <= getAckUpperBound();
@@ -79,24 +76,20 @@ public final class MessageQueue {
      * 获取上一个已确认的消息号
      */
     private long getAckLowerBound() {
-        // 有已发送未确认的消息，那么它的上一个就是ack下界
+        // 如果有消息未确认，那么ack的最小值就是未确认的第一个消息
         if (sentQueue.size() > 0) {
-            return sentQueue.getFirst().getSequence() - 1;
+            return sentQueue.getFirst().getSequence();
         }
-        // 都已确认，且没有新消息，那么上次分配的就是ack下界
-        return sequencer;
+        // 都已确认，那么期望的消息号就是我的下一个消息
+        return sequencer + 1;
     }
 
     /**
      * 获取下一个可能的最大ackGuid，
      */
     private long getAckUpperBound() {
-        // 有已发送待确认的消息，那么它的最后一个就是ack上界
-        if (sentQueue.size() > 0) {
-            return sentQueue.getLast().getSequence();
-        }
-        // 都已确认，且没有新消息，那么上次分配的就是ack上界
-        return sequencer;
+        // 对方期望的最大消息号就是我的下一个消息
+        return sequencer + 1;
     }
 
     /**
@@ -105,11 +98,9 @@ public final class MessageQueue {
      * @param ack 对方发来的ack
      */
     public void updateSentQueue(long ack) {
-        if (!isAckOK(ack)) {
-            throw new IllegalArgumentException(generateAckErrorInfo(ack));
-        }
+        assert isAckOK(ack);
         while (sentQueue.size() > 0) {
-            if (sentQueue.getFirst().getSequence() > ack) {
+            if (sentQueue.getFirst().getSequence() >= ack) {
                 break;
             }
             sentQueue.removeFirst();
@@ -140,19 +131,19 @@ public final class MessageQueue {
         this.ack = ack;
     }
 
-    public LinkedList<OrderedMessage> getSentQueue() {
+    public LinkedList<SocketMessage> getSentQueue() {
         return sentQueue;
     }
 
-    public LinkedList<OrderedMessage> getUnsentQueue() {
+    public LinkedList<SocketMessage> getUnsentQueue() {
         return unsentQueue;
     }
 
     /**
      * 交换未发送的缓冲区
      */
-    public LinkedList<OrderedMessage> exchangeUnsentMessages() {
-        LinkedList<OrderedMessage> result = unsentQueue;
+    public LinkedList<SocketMessage> exchangeUnsentMessages() {
+        LinkedList<SocketMessage> result = unsentQueue;
         unsentQueue = new LinkedList<>();
         return result;
     }

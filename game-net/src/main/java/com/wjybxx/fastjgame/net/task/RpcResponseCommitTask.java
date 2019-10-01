@@ -15,9 +15,9 @@
  */
 package com.wjybxx.fastjgame.net.task;
 
-import com.wjybxx.fastjgame.net.RpcCallback;
-import com.wjybxx.fastjgame.net.RpcResponse;
-import com.wjybxx.fastjgame.net.Session;
+import com.wjybxx.fastjgame.net.common.RpcCallback;
+import com.wjybxx.fastjgame.net.common.RpcResponse;
+import com.wjybxx.fastjgame.net.session.Session;
 
 /**
  * rpc响应提交任务

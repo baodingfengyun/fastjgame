@@ -17,8 +17,8 @@
 package com.wjybxx.fastjgame.net.ws;
 
 import com.wjybxx.fastjgame.manager.NetEventManager;
-import com.wjybxx.fastjgame.net.ProtocolCodec;
-import com.wjybxx.fastjgame.net.socket.ordered.OrderedClientCodec;
+import com.wjybxx.fastjgame.net.common.ProtocolCodec;
+import com.wjybxx.fastjgame.net.socket.ClientSocketCodec;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
@@ -112,6 +112,6 @@ public class WsClientChannelInitializer extends ChannelInitializer<SocketChannel
      */
     private void appendCustomProtocolCodec(ChannelPipeline pipeline) {
         pipeline.addLast(new LengthFieldBasedFrameDecoder(maxFrameLength, 0, 4, 0, 4));
-        pipeline.addLast(new OrderedClientCodec(codec, localGuid, serverGuid, netEventManager));
+        pipeline.addLast(new ClientSocketCodec(codec, localGuid, serverGuid, netEventManager));
     }
 }

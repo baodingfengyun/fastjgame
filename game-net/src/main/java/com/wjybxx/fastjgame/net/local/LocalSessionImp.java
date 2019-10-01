@@ -16,11 +16,11 @@
 
 package com.wjybxx.fastjgame.net.local;
 
+import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
-import com.wjybxx.fastjgame.net.AbstractSession;
-import com.wjybxx.fastjgame.net.NetContext;
-import com.wjybxx.fastjgame.net.RoleType;
-import com.wjybxx.fastjgame.net.Session;
+import com.wjybxx.fastjgame.net.common.RoleType;
+import com.wjybxx.fastjgame.net.session.AbstractSession;
+import com.wjybxx.fastjgame.net.session.Session;
 
 /**
  * JVM内部会话

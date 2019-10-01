@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.misc;
 
 import com.wjybxx.fastjgame.core.SceneRegion;
 import com.wjybxx.fastjgame.core.SceneWorldType;
-import com.wjybxx.fastjgame.net.Session;
+import com.wjybxx.fastjgame.net.session.Session;
 
 import java.util.EnumSet;
 import java.util.Set;

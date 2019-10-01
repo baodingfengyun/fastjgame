@@ -18,8 +18,8 @@ package com.wjybxx.fastjgame.example;
 
 import com.wjybxx.fastjgame.annotation.RpcMethod;
 import com.wjybxx.fastjgame.annotation.RpcService;
-import com.wjybxx.fastjgame.net.RpcResponseChannel;
-import com.wjybxx.fastjgame.net.Session;
+import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
+import com.wjybxx.fastjgame.net.session.Session;
 
 /**
  * 示例rpcService

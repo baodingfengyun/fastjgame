@@ -26,7 +26,7 @@ import com.wjybxx.fastjgame.utils.ConcurrentUtils;
  * date - 2019/9/23
  * github - https://github.com/hl845740757
  */
-public class RethrowExceptionHandler implements ExceptionHandler{
+public class RethrowExceptionHandler implements ExceptionHandler {
 
     public static final RethrowExceptionHandler INSTANCE = new RethrowExceptionHandler();
 

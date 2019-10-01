@@ -1,0 +1,47 @@
+/*
+ *  Copyright 2019 wjybxx
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to iBn writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+package com.wjybxx.fastjgame.net.socket;
+
+import java.util.List;
+
+/**
+ * 批量{@link SocketMessage}消息的传输对象 - 之所以需要该对象进行传输，是因为ack字段是发送的时候才赋值的
+ *
+ * @author wjybxx
+ * @version 1.0
+ * date - 2019/8/9
+ * github - https://github.com/hl845740757
+ */
+@TransferObject
+public class BatchSockectMessageTO {
+
+    private final long ack;
+
+    private final List<SocketMessage> socketMessageList;
+
+    public BatchSockectMessageTO(long ack, List<SocketMessage> socketMessageList) {
+        this.ack = ack;
+        this.socketMessageList = socketMessageList;
+    }
+
+    public long getAck() {
+        return ack;
+    }
+
+    public List<SocketMessage> getSocketMessageList() {
+        return socketMessageList;
+    }
+}

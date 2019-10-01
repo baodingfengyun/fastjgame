@@ -19,7 +19,7 @@ import io.netty.channel.Channel;
 
 /**
  * 网络事件参数，提供统一的抽象(窄)视图。
- * 子类实现必须是不可变对象，以保证线程安全性。
+ * {@link #localGuid()}{@link #remoteGuid()}主要用于定位唯一一个session。
  *
  * @author wjybxx
  * @version 1.0

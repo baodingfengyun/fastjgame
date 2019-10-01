@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.test;
 import com.wjybxx.fastjgame.example.ExampleConstants;
 import com.wjybxx.fastjgame.example.ExampleMessages;
 import com.wjybxx.fastjgame.example.ReflectBasedProtoCodecTest;
-import com.wjybxx.fastjgame.net.ProtocolCodec;
+import com.wjybxx.fastjgame.net.common.ProtocolCodec;
 import com.wjybxx.fastjgame.utils.NetUtils;
 
 import java.io.IOException;

@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.misc;
 
 import com.google.protobuf.AbstractMessage;
-import com.wjybxx.fastjgame.net.Session;
+import com.wjybxx.fastjgame.net.session.Session;
 
 import javax.annotation.Nonnull;
 

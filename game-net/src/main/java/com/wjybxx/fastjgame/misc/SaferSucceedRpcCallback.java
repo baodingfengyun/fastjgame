@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.net.RpcResponse;
+import com.wjybxx.fastjgame.net.common.RpcResponse;
 
 /**
  * 更安全的成功时才回调的rpc回调

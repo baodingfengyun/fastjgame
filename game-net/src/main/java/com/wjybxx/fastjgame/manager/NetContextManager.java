@@ -18,9 +18,9 @@ package com.wjybxx.fastjgame.manager;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.eventloop.NetContextImp;
-import com.wjybxx.fastjgame.net.NetContext;
-import com.wjybxx.fastjgame.net.RoleType;
+import com.wjybxx.fastjgame.net.common.RoleType;
 import com.wjybxx.fastjgame.utils.CollectionUtils;
 import com.wjybxx.fastjgame.utils.FunctionUtils;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -34,7 +34,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * 管理分配的{@link com.wjybxx.fastjgame.net.NetContext}。
+ * 管理分配的{@link NetContext}。
  * 它通过线程封闭实现线程安全。
  *
  * @author wjybxx

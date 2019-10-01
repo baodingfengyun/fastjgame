@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.test;
 
 import com.wjybxx.fastjgame.enummapper.NumberEnum;
 import com.wjybxx.fastjgame.enummapper.NumberEnumMapper;
-import com.wjybxx.fastjgame.net.RoleType;
+import com.wjybxx.fastjgame.net.common.RoleType;
 import com.wjybxx.fastjgame.scene.GridObstacle;
 import com.wjybxx.fastjgame.utils.EnumUtils;
 import com.wjybxx.fastjgame.utils.ReflectionUtils;

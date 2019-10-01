@@ -18,9 +18,9 @@ package com.wjybxx.fastjgame.manager;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.net.http.HttpRequestEvent;
-import com.wjybxx.fastjgame.net.socket.ordered.OrderedConnectRequestEvent;
-import com.wjybxx.fastjgame.net.socket.ordered.OrderedConnectResponseEvent;
-import com.wjybxx.fastjgame.net.socket.ordered.OrderedMessageEvent;
+import com.wjybxx.fastjgame.net.socket.SocketConnectRequestEvent;
+import com.wjybxx.fastjgame.net.socket.SocketConnectResponseEvent;
+import com.wjybxx.fastjgame.net.socket.SocketMessageEvent;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -48,19 +48,19 @@ public class NetEventManager {
         this.netEventLoopManager = netEventLoopManager;
     }
 
-    public void fireConnectRequest(OrderedConnectRequestEvent eventParam) {
+    public void fireConnectRequest(SocketConnectRequestEvent eventParam) {
         ConcurrentUtils.tryCommit(netEventLoopManager.eventLoop(), () -> {
             sessionManager.onRcvConnectRequest(eventParam);
         });
     }
 
-    public void fireConnectResponse(OrderedConnectResponseEvent eventParam) {
+    public void fireConnectResponse(SocketConnectResponseEvent eventParam) {
         ConcurrentUtils.tryCommit(netEventLoopManager.eventLoop(), () -> {
             sessionManager.onRcvConnectResponse(eventParam);
         });
     }
 
-    public void fireMessage(OrderedMessageEvent eventParam) {
+    public void fireMessage(SocketMessageEvent eventParam) {
         ConcurrentUtils.tryCommit(netEventLoopManager.eventLoop(), () -> {
             sessionManager.onRcvMessage(eventParam);
         });

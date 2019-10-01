@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.net.Session;
+import com.wjybxx.fastjgame.net.session.Session;
 
 /**
  * @author wjybxx

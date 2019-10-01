@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.net.RpcCallback;
-import com.wjybxx.fastjgame.net.RpcResponse;
+import com.wjybxx.fastjgame.net.common.RpcCallback;
+import com.wjybxx.fastjgame.net.common.RpcResponse;
 
 /**
  * 更加安全的{@link RpcCallback}，它的目的是建议大家尽量使用方法引用代替lambda表达式。

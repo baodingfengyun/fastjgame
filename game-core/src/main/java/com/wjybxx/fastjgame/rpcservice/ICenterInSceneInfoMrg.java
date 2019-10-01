@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.rpcservice;
 
 import com.wjybxx.fastjgame.annotation.RpcMethod;
 import com.wjybxx.fastjgame.annotation.RpcService;
-import com.wjybxx.fastjgame.net.Session;
+import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.serializebale.ConnectCrossSceneResult;
 
 import java.util.List;

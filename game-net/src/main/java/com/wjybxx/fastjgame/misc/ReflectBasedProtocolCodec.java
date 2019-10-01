@@ -21,7 +21,7 @@ import com.wjybxx.fastjgame.annotation.SerializableClass;
 import com.wjybxx.fastjgame.annotation.SerializableField;
 import com.wjybxx.fastjgame.enummapper.NumberEnum;
 import com.wjybxx.fastjgame.enummapper.NumberEnumMapper;
-import com.wjybxx.fastjgame.net.ProtocolCodec;
+import com.wjybxx.fastjgame.net.common.ProtocolCodec;
 import com.wjybxx.fastjgame.utils.*;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;

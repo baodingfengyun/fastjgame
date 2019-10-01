@@ -20,7 +20,7 @@ import com.google.inject.Inject;
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
 import com.wjybxx.fastjgame.configwrapper.MapConfigWrapper;
 import com.wjybxx.fastjgame.misc.PlatformType;
-import com.wjybxx.fastjgame.net.RoleType;
+import com.wjybxx.fastjgame.net.common.RoleType;
 import com.wjybxx.fastjgame.utils.GameUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 

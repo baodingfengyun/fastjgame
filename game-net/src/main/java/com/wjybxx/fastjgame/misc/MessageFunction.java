@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.misc;
 
 import com.google.protobuf.AbstractMessage;
-import com.wjybxx.fastjgame.net.Session;
+import com.wjybxx.fastjgame.net.session.Session;
 
 /**
  * 当基于protoBuf对象进行通信时，通过该接口进行处理。

@@ -16,10 +16,10 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
+import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
-import com.wjybxx.fastjgame.net.AbstractSession;
-import com.wjybxx.fastjgame.net.NetContext;
-import com.wjybxx.fastjgame.net.RoleType;
+import com.wjybxx.fastjgame.net.common.RoleType;
+import com.wjybxx.fastjgame.net.session.AbstractSession;
 import io.netty.channel.Channel;
 
 /**

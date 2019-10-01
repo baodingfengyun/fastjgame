@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.mrg;
 import com.google.inject.Inject;
 import com.google.protobuf.Message;
 import com.wjybxx.fastjgame.misc.PlatformType;
-import com.wjybxx.fastjgame.net.Session;
+import com.wjybxx.fastjgame.net.session.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

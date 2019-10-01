@@ -17,8 +17,8 @@
 package com.wjybxx.fastjgame.net.local;
 
 import com.wjybxx.fastjgame.concurrent.Promise;
-import com.wjybxx.fastjgame.net.SessionHandlerContext;
-import com.wjybxx.fastjgame.net.SessionOutboundHandlerAdapter;
+import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
+import com.wjybxx.fastjgame.net.session.SessionOutboundHandlerAdapter;
 
 /**
  * JVM 内部传输实现

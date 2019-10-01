@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.mrg;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.misc.CenterInWarzoneInfo;
 import com.wjybxx.fastjgame.misc.PlatformType;
-import com.wjybxx.fastjgame.net.Session;
+import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.rpcservice.ICenterInWarzoneInfoMrg;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;

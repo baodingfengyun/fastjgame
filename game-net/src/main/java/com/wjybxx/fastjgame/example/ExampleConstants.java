@@ -22,7 +22,7 @@ import com.wjybxx.fastjgame.eventloop.NetEventLoopImp;
 import com.wjybxx.fastjgame.misc.JsonBasedProtocolCodec;
 import com.wjybxx.fastjgame.misc.MessageMapper;
 import com.wjybxx.fastjgame.misc.ReflectBasedProtocolCodec;
-import com.wjybxx.fastjgame.net.RoleType;
+import com.wjybxx.fastjgame.net.common.RoleType;
 
 /**
  * 测试用例的常量

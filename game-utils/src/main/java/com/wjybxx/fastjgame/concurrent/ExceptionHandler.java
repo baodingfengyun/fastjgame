@@ -27,7 +27,6 @@ package com.wjybxx.fastjgame.concurrent;
 public interface ExceptionHandler {
 
     /**
-     *
      * @param e 对不信任的代码保持怀疑 - 因此使用{@link Throwable}。
      */
     void handleException(Throwable e);

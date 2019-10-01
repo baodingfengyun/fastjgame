@@ -22,7 +22,7 @@ import com.wjybxx.fastjgame.misc.MessageHashMappingStrategy;
 import com.wjybxx.fastjgame.misc.MessageMapper;
 import com.wjybxx.fastjgame.misc.MessageMappingStrategy;
 import com.wjybxx.fastjgame.misc.ReflectBasedProtocolCodec;
-import com.wjybxx.fastjgame.net.ProtocolCodec;
+import com.wjybxx.fastjgame.net.common.ProtocolCodec;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;

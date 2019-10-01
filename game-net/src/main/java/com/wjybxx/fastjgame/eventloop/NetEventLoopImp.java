@@ -25,7 +25,7 @@ import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
 import com.wjybxx.fastjgame.manager.*;
 import com.wjybxx.fastjgame.module.NetEventLoopModule;
-import com.wjybxx.fastjgame.net.*;
+import com.wjybxx.fastjgame.net.common.*;
 import com.wjybxx.fastjgame.timer.FixedDelayHandle;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import org.slf4j.Logger;

@@ -18,9 +18,9 @@ package com.wjybxx.fastjgame.manager;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.PortRange;
-import com.wjybxx.fastjgame.net.NetContext;
 import com.wjybxx.fastjgame.net.http.*;
 import com.wjybxx.fastjgame.net.socket.DefaultSocketPort;
 import com.wjybxx.fastjgame.timer.FixedDelayHandle;

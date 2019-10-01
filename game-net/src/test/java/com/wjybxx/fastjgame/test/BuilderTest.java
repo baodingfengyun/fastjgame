@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.test;
 
 import com.wjybxx.fastjgame.misc.DefaultRpcBuilder;
-import com.wjybxx.fastjgame.net.RpcResponse;
+import com.wjybxx.fastjgame.net.common.RpcResponse;
 
 import java.util.Collections;
 

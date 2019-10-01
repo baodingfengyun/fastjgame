@@ -78,15 +78,15 @@ public class RpcServiceProcessor extends AbstractProcessor {
 
     private static final String BUILDER_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.RpcBuilder";
     private static final String DEFAULT_BUILDER_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.DefaultRpcBuilder";
-    private static final String SESSION_CANONICAL_NAME = "com.wjybxx.fastjgame.net.Session";
+    private static final String SESSION_CANONICAL_NAME = "com.wjybxx.fastjgame.net.session.Session";
 
     private static final String RPC_SERVICE_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.RpcService";
     private static final String RPC_METHOD_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.RpcMethod";
     private static final String RPC_SERVICE_PROXY_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.RpcServiceProxy";
     private static final String RPC_METHOD_PROXY_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.RpcMethodProxy";
 
-    private static final String CHANNEL_CANONICAL_NAME = "com.wjybxx.fastjgame.net.RpcResponseChannel";
-    private static final String RPC_RESPONSE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.RpcResponse";
+    private static final String CHANNEL_CANONICAL_NAME = "com.wjybxx.fastjgame.net.common.RpcResponseChannel";
+    private static final String RPC_RESPONSE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.common.RpcResponse";
 
     private static final String REGISTRY_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.RpcFunctionRegistry";
 

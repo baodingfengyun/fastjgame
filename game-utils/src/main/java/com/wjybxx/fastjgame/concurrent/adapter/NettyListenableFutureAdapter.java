@@ -126,7 +126,7 @@ public final class NettyListenableFutureAdapter<V> implements ListenableFuture<V
 
     @Override
     public boolean removeListener(@Nonnull FutureListener<? super V> listener) {
-        // 需要保存映射才能删除，比较麻烦，先不支持
+        // 需要ConcurrentMap保存映射才能删除，比较麻烦，先不支持
         throw new UnsupportedOperationException();
     }
 
