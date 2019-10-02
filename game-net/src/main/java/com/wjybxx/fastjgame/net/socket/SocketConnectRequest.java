@@ -27,15 +27,6 @@ package com.wjybxx.fastjgame.net.socket;
 public class SocketConnectRequest {
 
     /**
-     * 我的标识(我是谁)
-     * （对于玩家来讲，该标识就是玩家角色id）
-     */
-    private final long clientGuid;
-    /**
-     * 建立连接需要的token信息 - 还可以包括一些额外信息
-     */
-    private final byte[] token;
-    /**
      * 这是客户端的第几次连接请求。
      * 1. 每次重连时都必须增加。
      * 2. 用于识别最新的请求。
@@ -43,19 +34,13 @@ public class SocketConnectRequest {
      */
     private final int verifyingTimes;
     /**
-     * 我期望的下一个消息号
+     * 建立连接需要的token信息 - 还可以包括一些额外信息
      */
-    private final long ack;
+    private final byte[] token;
 
-    public SocketConnectRequest(long clientGuid, int verifyingTimes, long ack, byte[] token) {
-        this.clientGuid = clientGuid;
+    public SocketConnectRequest(int verifyingTimes, byte[] token) {
         this.verifyingTimes = verifyingTimes;
         this.token = token;
-        this.ack = ack;
-    }
-
-    public long getClientGuid() {
-        return clientGuid;
     }
 
     public int getVerifyingTimes() {
@@ -66,7 +51,4 @@ public class SocketConnectRequest {
         return token;
     }
 
-    public long getAck() {
-        return ack;
-    }
 }

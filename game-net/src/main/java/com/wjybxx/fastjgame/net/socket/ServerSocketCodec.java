@@ -17,9 +17,9 @@
 package com.wjybxx.fastjgame.net.socket;
 
 import com.wjybxx.fastjgame.manager.NetEventManager;
-import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.common.NetMessageType;
 import com.wjybxx.fastjgame.net.common.ProtocolCodec;
+import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
@@ -79,18 +79,18 @@ public class ServerSocketCodec extends BaseSocketCodec {
     }
 
     @Override
-    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-        if (msg instanceof BatchSocketMessageTO) {
-            // 批量协议包
-            writeBatchMessage(ctx, (BatchSocketMessageTO) msg);
-        } else if (msg instanceof SingleSocketMessageTO) {
+    public void write(ChannelHandlerContext ctx, Object msgTO, ChannelPromise promise) throws Exception {
+        if (msgTO instanceof SocketMessageTO) {
             // 单个协议包
-            writeSingleMsg(ctx, (SingleSocketMessageTO) msg, promise);
-        } else if (msg instanceof SocketConnectResponse) {
+            writeSingleMsg(ctx, (SocketMessageTO) msgTO, promise);
+        } else if (msgTO instanceof BatchSocketMessageTO) {
+            // 批量协议包
+            writeBatchMessage(ctx, (BatchSocketMessageTO) msgTO);
+        } else if (msgTO instanceof SocketConnectResponseTO) {
             // 建立连接验证结果
-            writeConnectResponse(ctx, (SocketConnectResponse) msg, promise);
+            writeConnectResponse(ctx, (SocketConnectResponseTO) msgTO, promise);
         } else {
-            super.write(ctx, msg, promise);
+            super.write(ctx, msgTO, promise);
         }
     }
 
@@ -122,7 +122,7 @@ public class ServerSocketCodec extends BaseSocketCodec {
      * 客户端请求建立连接
      */
     private void tryReadConnectRequest(ChannelHandlerContext ctx, ByteBuf msg) {
-        SocketConnectRequestEvent connectRequestEvent = readConnectRequest(ctx.channel(), localGuid, lifecycleAware, msg);
+        SocketConnectRequestEvent connectRequestEvent = readConnectRequest(ctx.channel(), localGuid, msg);
         netEventManager.fireConnectRequest(connectRequestEvent);
 
         if (!isInited()) {

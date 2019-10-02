@@ -14,36 +14,19 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.socket.outer;
-
-import com.wjybxx.fastjgame.net.socket.SingleSocketMessageTO;
-import com.wjybxx.fastjgame.net.socket.SocketMessage;
+package com.wjybxx.fastjgame.net.socket;
 
 /**
- * 对外的socket消息传输对象
+ * 单个{@link SocketMessage}的传输对象 - 之所以需要该对象进行传输，是因为ack字段是发送的时候才赋值的
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/10/1
+ * date - 2019/9/7
  * github - https://github.com/hl845740757
  */
-public class OuterSingleSocketMessageTO implements SingleSocketMessageTO {
+public interface SocketMessageTO {
 
-    private final long ack;
-    private final SocketMessage socketMessage;
+    long getAck();
 
-    OuterSingleSocketMessageTO(long ack, SocketMessage socketMessage) {
-        this.ack = ack;
-        this.socketMessage = socketMessage;
-    }
-
-    @Override
-    public long getAck() {
-        return ack;
-    }
-
-    @Override
-    public SocketMessage getSocketMessage() {
-        return socketMessage;
-    }
+    SocketMessage getSocketMessage();
 }

@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.local;
+package com.wjybxx.fastjgame.net.socket.inner;
 
 import com.wjybxx.fastjgame.manager.NetTimeManager;
 import com.wjybxx.fastjgame.net.common.PingPongMessage;
@@ -29,7 +29,7 @@ import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
  * date - 2019/10/1
  * github - https://github.com/hl845740757
  */
-public class LocalPingSupportHandler extends SessionDuplexHandlerAdapter {
+public class InnerPingSupportHandler extends SessionDuplexHandlerAdapter {
 
     private NetTimeManager timeManager;
     private long lastWriteTime;

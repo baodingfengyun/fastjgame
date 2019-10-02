@@ -156,14 +156,12 @@ public class SessionManager {
             // 初始化管道，入站 从上到下，出站 从下往上
             connectorSession.pipeline()
                     .addLast(new LocalTransferHandler())
-                    .addLast(new LocalPingSupportHandler())
                     .addLast(new LocalCodecHandler())
                     .addLast(new OneWaySupportHandler())
                     .addLast(new RpcSupportHandler());
 
             acceptorSession.pipeline()
                     .addLast(new LocalTransferHandler())
-                    .addLast(new LocalPongSupportHandler())
                     .addLast(new LocalCodecHandler())
                     .addLast(new OneWaySupportHandler())
                     .addLast(new RpcSupportHandler());

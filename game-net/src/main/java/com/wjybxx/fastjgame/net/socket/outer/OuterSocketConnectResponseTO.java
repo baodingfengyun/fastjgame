@@ -14,38 +14,36 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.socket;
+package com.wjybxx.fastjgame.net.socket.outer;
+
+import com.wjybxx.fastjgame.net.socket.SocketConnectResponse;
+import com.wjybxx.fastjgame.net.socket.SocketConnectResponseTO;
 
 /**
- * socket建立连接响应 - 必普通的建立连接响应多一个ack
+ * 对外连接响应传输对象
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/9/30
+ * date - 2019/10/2
  * github - https://github.com/hl845740757
  */
-public class SocketConnectResponse {
+public class OuterSocketConnectResponseTO implements SocketConnectResponseTO {
 
-    /**
-     * 验证是否成功
-     */
-    private final boolean success;
-    /**
-     * 这是客户端第几次验证的结果 - 与连接请求匹配
-     */
-    private final int verifyingTimes;
+    private final long ack;
+    private final SocketConnectResponse connectResponse;
 
-    public SocketConnectResponse(boolean success, int verifyingTimes) {
-        this.success = success;
-        this.verifyingTimes = verifyingTimes;
+    OuterSocketConnectResponseTO(long ack, SocketConnectResponse connectResponse) {
+        this.ack = ack;
+        this.connectResponse = connectResponse;
     }
 
-    public int getVerifyingTimes() {
-        return verifyingTimes;
+    @Override
+    public long getAck() {
+        return ack;
     }
 
-    public boolean isSuccess() {
-        return success;
+    @Override
+    public SocketConnectResponse getConnectResponse() {
+        return connectResponse;
     }
-
 }

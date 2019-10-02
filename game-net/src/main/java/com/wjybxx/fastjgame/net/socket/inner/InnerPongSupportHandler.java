@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.local;
+package com.wjybxx.fastjgame.net.socket.inner;
 
 import com.wjybxx.fastjgame.manager.NetTimeManager;
 import com.wjybxx.fastjgame.net.common.ConnectAwareTask;
@@ -31,7 +31,7 @@ import com.wjybxx.fastjgame.net.session.SessionInboundHandlerAdapter;
  * date - 2019/10/1
  * github - https://github.com/hl845740757
  */
-public class LocalPongSupportHandler extends SessionInboundHandlerAdapter {
+public class InnerPongSupportHandler extends SessionInboundHandlerAdapter {
 
     private NetTimeManager timeManager;
     private long lastReadTime;

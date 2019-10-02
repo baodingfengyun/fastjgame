@@ -41,14 +41,19 @@ public class SocketConnectResponseEvent implements SocketEvent {
      */
     private final long remoteGuid;
     /**
+     * 对方期望的下一个消息号
+     */
+    private final long ack;
+    /**
      * 建立连接结果
      */
     private final SocketConnectResponse connectResponse;
 
-    public SocketConnectResponseEvent(Channel channel, long localGuid, long remoteGuid, SocketConnectResponse connectResponse) {
+    public SocketConnectResponseEvent(Channel channel, long localGuid, long remoteGuid, long ack, SocketConnectResponse connectResponse) {
         this.channel = channel;
         this.localGuid = localGuid;
         this.remoteGuid = remoteGuid;
+        this.ack = ack;
         this.connectResponse = connectResponse;
     }
 
@@ -65,6 +70,10 @@ public class SocketConnectResponseEvent implements SocketEvent {
     @Override
     public long remoteGuid() {
         return remoteGuid;
+    }
+
+    public long getAck() {
+        return ack;
     }
 
     public SocketConnectResponse getConnectResponse() {

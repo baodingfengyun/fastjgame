@@ -16,20 +16,15 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 /**
- * 传输对象，用于将逻辑线程的数据传输到IO线程 或 将IO线程的数据传输到逻辑线程。
- *
  * @author wjybxx
  * @version 1.0
- * date - 2019/4/27 9:23
+ * date - 2019/10/2
+ * github - https://github.com/hl845740757
  */
-@Retention(RetentionPolicy.SOURCE)
-@Target(ElementType.TYPE)
-public @interface TransferObject {
+public interface SocketConnectRequestTO {
 
+    long getAck();
+
+    SocketConnectRequest getConnectRequest();
 }

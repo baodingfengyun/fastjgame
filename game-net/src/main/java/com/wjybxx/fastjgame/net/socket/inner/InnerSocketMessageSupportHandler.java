@@ -19,8 +19,8 @@ package com.wjybxx.fastjgame.net.socket.inner;
 import com.wjybxx.fastjgame.net.common.NetMessage;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
-import com.wjybxx.fastjgame.net.socket.SingleSocketMessageTO;
 import com.wjybxx.fastjgame.net.socket.SocketMessageEvent;
+import com.wjybxx.fastjgame.net.socket.SocketMessageTO;
 
 /**
  * 内网服务器之间使用的消息支持 - 不校验ack和sequence
@@ -46,8 +46,8 @@ public class InnerSocketMessageSupportHandler extends SessionDuplexHandlerAdapte
     public void write(SessionHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof NetMessage) {
             // 内网不使用真正的ack和sequence
-            final SingleSocketMessageTO singleSocketMessageTO = new InnerSocketMessage((NetMessage) msg);
-            ctx.fireWrite(singleSocketMessageTO);
+            final SocketMessageTO socketMessageTO = new InnerSocketMessage((NetMessage) msg);
+            ctx.fireWrite(socketMessageTO);
         } else {
             ctx.fireWrite(msg);
         }

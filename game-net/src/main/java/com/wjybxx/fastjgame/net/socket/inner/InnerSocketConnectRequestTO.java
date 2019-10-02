@@ -14,57 +14,34 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.socket;
+package com.wjybxx.fastjgame.net.socket.inner;
 
-import io.netty.channel.Channel;
+import com.wjybxx.fastjgame.net.socket.MessageQueue;
+import com.wjybxx.fastjgame.net.socket.SocketConnectRequest;
+import com.wjybxx.fastjgame.net.socket.SocketConnectRequestTO;
 
 /**
- * 连接请求事件参数
+ * 内网建立连接请求传输对象 - 没有真正的ack
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/2
+ * date - 2019/10/2
  * github - https://github.com/hl845740757
  */
-public class SocketConnectRequestEvent implements SocketEvent {
+public class InnerSocketConnectRequestTO implements SocketConnectRequestTO {
 
-    private final Channel channel;
-    private final long localGuid;
-    private final long remoteGuid;
-    /**
-     * 我期望的下一个消息号
-     */
-    private final long ack;
     private final SocketConnectRequest connectRequest;
-    // TODO 该端口上需要的监听者信息 config
 
-    public SocketConnectRequestEvent(Channel channel, long localGuid, long remoteGuid, long ack, SocketConnectRequest connectRequest) {
-        this.localGuid = localGuid;
-        this.channel = channel;
-        this.remoteGuid = remoteGuid;
-        this.ack = ack;
+    InnerSocketConnectRequestTO(SocketConnectRequest connectRequest) {
         this.connectRequest = connectRequest;
     }
 
     @Override
-    public Channel channel() {
-        return channel;
-    }
-
-    @Override
-    public long localGuid() {
-        return localGuid;
-    }
-
-    @Override
-    public long remoteGuid() {
-        return remoteGuid;
-    }
-
     public long getAck() {
-        return ack;
+        return MessageQueue.INIT_ACK;
     }
 
+    @Override
     public SocketConnectRequest getConnectRequest() {
         return connectRequest;
     }

@@ -13,22 +13,18 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package com.wjybxx.fastjgame.net.socket;
 
-import java.util.List;
-
 /**
- * 批量{@link SocketMessage}消息的传输对象 - 之所以需要该对象进行传输，是因为ack字段是发送的时候才赋值的
- *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/9
+ * date - 2019/10/2
  * github - https://github.com/hl845740757
  */
-public interface BatchSocketMessageTO {
+public interface SocketConnectResponseTO {
 
     long getAck();
 
-    List<SocketMessage> getSocketMessageList();
-
+    SocketConnectResponse getConnectResponse();
 }

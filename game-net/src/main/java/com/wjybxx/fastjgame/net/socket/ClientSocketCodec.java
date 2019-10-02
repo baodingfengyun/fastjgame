@@ -64,18 +64,18 @@ public class ClientSocketCodec extends BaseSocketCodec {
 
     // region 编码消息
     @Override
-    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-        if (msg instanceof BatchSocketMessageTO) {
-            // 批量协议包
-            writeBatchMessage(ctx, (BatchSocketMessageTO) msg);
-        } else if (msg instanceof SingleSocketMessageTO) {
+    public void write(ChannelHandlerContext ctx, Object msgTO, ChannelPromise promise) throws Exception {
+        if (msgTO instanceof SocketMessageTO) {
             // 单个协议包
-            writeSingleMsg(ctx, (SingleSocketMessageTO) msg, promise);
-        } else if (msg instanceof SocketConnectRequest) {
+            writeSingleMsg(ctx, (SocketMessageTO) msgTO, promise);
+        } else if (msgTO instanceof BatchSocketMessageTO) {
+            // 批量协议包
+            writeBatchMessage(ctx, (BatchSocketMessageTO) msgTO);
+        } else if (msgTO instanceof SocketConnectRequestTO) {
             // 请求建立连接包
-            writeConnectRequest(ctx, (SocketConnectRequest) msg, promise);
+            writeConnectRequest(ctx, localGuid, (SocketConnectRequestTO) msgTO, promise);
         } else {
-            super.write(ctx, msg, promise);
+            super.write(ctx, msgTO, promise);
         }
     }
 

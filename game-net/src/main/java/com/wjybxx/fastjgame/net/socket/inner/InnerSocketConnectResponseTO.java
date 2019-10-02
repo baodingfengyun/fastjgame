@@ -16,38 +16,24 @@
 
 package com.wjybxx.fastjgame.net.socket.inner;
 
-import com.wjybxx.fastjgame.net.common.NetMessage;
 import com.wjybxx.fastjgame.net.socket.MessageQueue;
-import com.wjybxx.fastjgame.net.socket.SocketMessage;
-import com.wjybxx.fastjgame.net.socket.SocketMessageTO;
+import com.wjybxx.fastjgame.net.socket.SocketConnectResponse;
+import com.wjybxx.fastjgame.net.socket.SocketConnectResponseTO;
 
 /**
- * 内网单个socket消息 - 自己负责传输
+ * 内网连接响应传输对象
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/10/1
+ * date - 2019/10/2
  * github - https://github.com/hl845740757
  */
-public class InnerSocketMessage implements SocketMessage, SocketMessageTO {
+public class InnerSocketConnectResponseTO implements SocketConnectResponseTO {
 
-    /**
-     * 被包装的消息
-     */
-    private final NetMessage wrappedMessage;
+    private final SocketConnectResponse connectResponse;
 
-    InnerSocketMessage(NetMessage wrappedMessage) {
-        this.wrappedMessage = wrappedMessage;
-    }
-
-    @Override
-    public long getSequence() {
-        return MessageQueue.INIT_SEQUENCE;
-    }
-
-    @Override
-    public NetMessage getWrappedMessage() {
-        return wrappedMessage;
+    InnerSocketConnectResponseTO(SocketConnectResponse connectResponse) {
+        this.connectResponse = connectResponse;
     }
 
     @Override
@@ -56,7 +42,7 @@ public class InnerSocketMessage implements SocketMessage, SocketMessageTO {
     }
 
     @Override
-    public SocketMessage getSocketMessage() {
-        return this;
+    public SocketConnectResponse getConnectResponse() {
+        return connectResponse;
     }
 }
