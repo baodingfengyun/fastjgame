@@ -50,6 +50,7 @@ fastjgame 为 fast java game framework的缩写，如名字一样，该项目的
 > 而对于游戏而言，service数量很多，且service之间交互很多，service之间涉及大量的数据共享，要解决这种问题，要么加锁处理竞争，要么使用消息进行通信（异步化），无论哪一种都会大大加重开发人员的负担。
 > （如果你在开发的时候感觉很轻松，那么你可能没有认真的处理异步问题，或者根本没有意识到有哪些问题）  
 > ps: 只有当service之间是独立的时候，才有最大的并发性能，当service之间存在大量依赖的时候，其实是不适合多线程化的。
+> 其实类似的还有actor模式，actor数量爆炸的时候，带来的就不是优势了。
 
 + **按执行阶段拆分为单线程阶段、多线程阶段**。服务器逻辑分为事件驱动(网络事件)和心跳驱动，其中事件处理必须是单线程的，而**心跳**有机会拆分为单线程执行阶段和多线程执行阶段。
 对于MMO游戏而言，**场景**是一个很好的隔离单位！场景内的心跳逻辑大多只与场景内的数据有关，而场景心跳却是场景服务器耗时最多的部分，解决了该部分，性能瓶颈基本也就解决了。
@@ -196,11 +197,12 @@ fastjgame 为 fast java game framework的缩写，如名字一样，该项目的
 如果你想要学习**Disruptor**，那么推荐你看我详细注释过的源码[disruptor-translation](https://github.com/hl845740757/disruptor-translation)  
 如果你想学习**Netty**的线程模型，你可以看看我注释过的源码[netty-translation](https://github.com/hl845740757/netty-translation)，netty并没有全部注释，不过并发包是基本是完整注释的。  
 
-### NetEventLoop固定单线程，通过SessionPipeline提供功能插拔特性 2019年9月28日
-之前的NetEventLoopGroup属于过度设计了，NetEventLoop单线程完全足够，能够获得更简单的编程模型，以及保证Session的唯一性。  
-之前的SessionManager代码组织较为混乱，扩展功能较为困难，一直在想办法解决这个问题，这版本引入了类似Netty的ChannelPipeline的SessionPipeline。
+### NetEventLoop固定单线程，通过SessionPipeline提供功能插拔特性 2019年10月02日
+1. 之前的NetEventLoopGroup属于过度设计了，NetEventLoop单线程完全足够，能够获得更简单的编程模型，以及保证Session的唯一性。  
+2. 之前的SessionManager代码组织较为混乱，扩展功能较为困难，一直在想办法解决这个问题，这版本引入了类似Netty的ChannelPipeline的SessionPipeline。
 通过handler的方式实现插拔功能，以消除重复代码和提升扩展性。  
 如：是否使用消息确认机制通过增删handler来实现，内网通信可以不开启，这样内网通信传输的数据量就会减少许多，走到的代码也会少很多。   
 又如：服务器与玩家之间是没有rpc的，因此与玩家的session之间也不会有rpc相关的逻辑。  
 当然，这是有代价的，代价就是JVM内部传输数据速度变慢，因为有大量的空方法需要执行和冗余判断 - 这些在JVM内部通信之间占的比重还挺大。  
-注意：该版本需要重新生成注解处理器（文件重新归档导致）。
+3. **该版本需要重新生成注解处理器**（文件重新归档导致）。
+4. 还有很多尚未完成的地方，只是都可以重新运行起来了，还需要继续迭代。
