@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.net.ws;
 
 import com.wjybxx.fastjgame.manager.NetEventManager;
 import com.wjybxx.fastjgame.net.socket.ServerSocketCodec;
-import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
+import com.wjybxx.fastjgame.net.socket.SocketPortExtraInfo;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
@@ -46,16 +46,13 @@ public class WsServerChannelInitializer extends ChannelInitializer<SocketChannel
      * url路径(eg: "http://127.0.0.1:8888/ws" 中的 /ws )
      */
     private final String websocketPath;
-    /**
-     * session配置信息
-     */
-    private final SocketSessionConfig config;
+    private final SocketPortExtraInfo portExtraInfo;
     private final NetEventManager netEventManager;
 
-    public WsServerChannelInitializer(long localGuid, String websocketPath, SocketSessionConfig config, NetEventManager netEventManager) {
+    public WsServerChannelInitializer(long localGuid, String websocketPath, SocketPortExtraInfo portExtraInfo, NetEventManager netEventManager) {
         this.localGuid = localGuid;
         this.websocketPath = websocketPath;
-        this.config = config;
+        this.portExtraInfo = portExtraInfo;
         this.netEventManager = netEventManager;
     }
 
@@ -96,7 +93,7 @@ public class WsServerChannelInitializer extends ChannelInitializer<SocketChannel
     }
 
     private void appendCustomProtocolCodec(ChannelPipeline pipeline) {
-        pipeline.addLast(new LengthFieldBasedFrameDecoder(config.maxFrameLength(), 0, 4, 0, 4));
-        pipeline.addLast(new ServerSocketCodec(config.codec(), localGuid, config.lifecycleAware(), netEventManager));
+        pipeline.addLast(new LengthFieldBasedFrameDecoder(portExtraInfo.getSessionConfig().maxFrameLength(), 0, 4, 0, 4));
+        pipeline.addLast(new ServerSocketCodec(portExtraInfo.getSessionConfig().codec(), localGuid, portExtraInfo, netEventManager));
     }
 }

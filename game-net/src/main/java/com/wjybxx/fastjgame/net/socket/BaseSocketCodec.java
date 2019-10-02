@@ -175,14 +175,14 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
     /**
      * 解码协议1 - 连接请求
      */
-    final SocketConnectRequestEvent readConnectRequest(Channel channel, long localGuid, ByteBuf msg) {
+    final SocketConnectRequestEvent readConnectRequest(Channel channel, long localGuid, ByteBuf msg, SocketPortExtraInfo portExtraInfo) {
         long remoteGuid = msg.readLong();
         long ack = msg.readLong();
         int verifyingTimes = msg.readInt();
         byte[] token = NetUtils.readRemainBytes(msg);
 
         SocketConnectRequest connectRequest = new SocketConnectRequest(verifyingTimes, token);
-        return new SocketConnectRequestEvent(channel, localGuid, remoteGuid, ack, connectRequest);
+        return new SocketConnectRequestEvent(channel, localGuid, remoteGuid, ack, connectRequest, portExtraInfo);
     }
 
     /**

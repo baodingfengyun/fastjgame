@@ -29,6 +29,11 @@ import com.wjybxx.fastjgame.net.common.RpcSupportHandler;
 import com.wjybxx.fastjgame.net.local.*;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.socket.*;
+import com.wjybxx.fastjgame.net.socket.inner.InnerPingSupportHandler;
+import com.wjybxx.fastjgame.net.socket.inner.InnerPongSupportHandler;
+import com.wjybxx.fastjgame.net.socket.inner.InnerSocketMessageSupportHandler;
+import com.wjybxx.fastjgame.net.socket.inner.InnerSocketTransferHandler;
+import com.wjybxx.fastjgame.utils.NetUtils;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
@@ -69,23 +74,105 @@ public class SessionManager {
         sessionRegistry.tick();
     }
 
-    // --------------------------------------------- 事件处理 -----------------------------------------
+    // --------------------------------------------------- socket ----------------------------------------------
 
-    public void onRcvConnectRequest(SocketConnectRequestEvent eventParam) {
-
+    public SocketPort bindRange(String host, PortRange portRange, SocketSessionConfig config,
+                                ChannelInitializer<SocketChannel> initializer) throws BindException {
+        return acceptorManager.bindRange(host, portRange, config.sndBuffer(), config.rcvBuffer(), initializer);
     }
 
-    public void onRcvConnectResponse(SocketConnectResponseEvent eventParam) {
 
+    public Session connect(NetContext netContext, long remoteGuid, HostAndPort remoteAddress, byte[] token,
+                           SocketSessionConfig config,
+                           ChannelInitializer<SocketChannel> initializer) {
+
+        final Session existSession = sessionRegistry.getSession(netContext.localGuid(), remoteGuid);
+        if (existSession != null) {
+            throw new IllegalArgumentException("session " + existSession.localGuid() + " - " + existSession.remoteGuid() + " already registered");
+        }
+        // TODO 异步化、连接超时
+        ChannelFuture channelFuture = acceptorManager.connectAsyn(remoteAddress, config.sndBuffer(), config.rcvBuffer(), initializer)
+                .syncUninterruptibly();
+
+        final SocketSessionImp socketSessionImp = new SocketSessionImp(netContext, netManagerWrapper, remoteGuid, config, channelFuture.channel());
+        sessionRegistry.registerSession(socketSessionImp);
+
+        socketSessionImp.pipeline()
+                .addLast(new InnerSocketTransferHandler())
+                .addLast(new InnerPingSupportHandler())
+                .addLast(new InnerSocketMessageSupportHandler())
+                .addLast(new OneWaySupportHandler())
+                .addLast(new RpcSupportHandler())
+                .fireInit();
+
+        socketSessionImp.fireWrite(new SocketConnectRequest(1, token));
+
+        return socketSessionImp;
     }
 
-    public void onRcvMessage(SocketMessageEvent eventParam) {
-        final Session session = sessionRegistry.getSession(eventParam.localGuid(), eventParam.remoteGuid());
-        if (session != null && session.isActive()) {
-            // session 存活的情况下才读取消息
-            session.fireRead(eventParam);
+    /**
+     * 接收到一个请求建立连接事件
+     *
+     * @param connectRequestEvent 请求事件参数
+     */
+    public void onRcvConnectRequest(SocketConnectRequestEvent connectRequestEvent) {
+        final Session existSession = sessionRegistry.getSession(connectRequestEvent.localGuid(), connectRequestEvent.remoteGuid());
+        if (existSession == null) {
+            // TODO 建立连接验证
+            final SocketPortExtraInfo portExtraInfo = connectRequestEvent.getPortExtraInfo();
+            SocketSessionImp socketSessionImp = new SocketSessionImp(portExtraInfo.getNetContext(), netManagerWrapper, connectRequestEvent.remoteGuid(),
+                    portExtraInfo.getSessionConfig(), connectRequestEvent.channel());
+            sessionRegistry.registerSession(socketSessionImp);
+
+            socketSessionImp.pipeline()
+                    .addLast(new InnerSocketTransferHandler())
+                    .addLast(new InnerPongSupportHandler())
+                    .addLast(new InnerSocketMessageSupportHandler())
+                    .addLast(new OneWaySupportHandler())
+                    .addLast(new RpcSupportHandler())
+                    .fireInit()
+                    .fireSessionActive();
+
+            final SocketConnectResponse connectResponse = new SocketConnectResponse(true, connectRequestEvent.getConnectRequest().getVerifyingTimes());
+            socketSessionImp.fireWrite(connectResponse);
+
+        } else {
+            NetUtils.closeQuietly(connectRequestEvent.channel());
         }
     }
+
+    /**
+     * 接收到一个建立连接响应
+     *
+     * @param connectResponseEvent 连接响应事件参数
+     */
+    public void onRcvConnectResponse(SocketConnectResponseEvent connectResponseEvent) {
+        final Session session = sessionRegistry.getSession(connectResponseEvent.localGuid(), connectResponseEvent.remoteGuid());
+        if (session == null) {
+            return;
+        }
+        if (!connectResponseEvent.isSuccess()) {
+            session.close();
+            return;
+        }
+        // TODO 详细验证
+        session.pipeline().fireSessionActive();
+    }
+
+    /**
+     * 接收到一个socket消息
+     *
+     * @param messageEvent 消息事件参数
+     */
+    public void onRcvMessage(SocketMessageEvent messageEvent) {
+        final Session session = sessionRegistry.getSession(messageEvent.localGuid(), messageEvent.remoteGuid());
+        if (session != null && session.isActive()) {
+            // session 存活的情况下才读取消息
+            session.fireRead(messageEvent);
+        }
+    }
+
+    // --------------------------------------------------------------------------------------------------------
 
     public void registerSession(Session session) {
         sessionRegistry.registerSession(session);
@@ -177,19 +264,6 @@ public class SessionManager {
         // else 丢弃session
     }
 
-    public void connect(NetContext netContext, long remoteGuid, HostAndPort remoteAddress, byte[] token,
-                        SocketSessionConfig config,
-                        ChannelInitializer<SocketChannel> initializer,
-                        Promise<Session> promise) {
-        ChannelFuture channelFuture = acceptorManager.connectAsyn(remoteAddress, config.sndBuffer(), config.rcvBuffer(), initializer)
-                .syncUninterruptibly();
-
-    }
-
-    public SocketPort bindRange(String host, PortRange portRange, SocketSessionConfig config,
-                                ChannelInitializer<SocketChannel> initializer) throws BindException {
-        return acceptorManager.bindRange(host, portRange, config.sndBuffer(), config.rcvBuffer(), initializer);
-    }
 
     public void clean() {
 

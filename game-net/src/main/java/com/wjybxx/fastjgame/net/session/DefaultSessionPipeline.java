@@ -128,12 +128,13 @@ class DefaultSessionPipeline implements SessionPipeline {
     }
 
     @Override
-    public void fireInit() {
+    public SessionPipeline fireInit() {
         AbstractSessionHandlerContext context = head;
         do {
             context.init();
             context = context.next;
         } while (context != null);
+        return this;
     }
 
     @Override

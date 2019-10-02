@@ -19,8 +19,7 @@ package com.wjybxx.fastjgame.net.socket.inner;
 import com.wjybxx.fastjgame.net.common.NetMessage;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
-import com.wjybxx.fastjgame.net.socket.SocketMessageEvent;
-import com.wjybxx.fastjgame.net.socket.SocketMessageTO;
+import com.wjybxx.fastjgame.net.socket.*;
 
 /**
  * 内网服务器之间使用的消息支持 - 不校验ack和sequence
@@ -35,8 +34,14 @@ public class InnerSocketMessageSupportHandler extends SessionDuplexHandlerAdapte
     @Override
     public void read(SessionHandlerContext ctx, Object msg) {
         if (msg instanceof SocketMessageEvent) {
-            // 读取有效内容 - 不校验ack和sequence
+            // 普通消息
             ctx.fireRead(((SocketMessageEvent) msg).getWrappedMessage());
+        } else if (msg instanceof SocketConnectRequestEvent) {
+            // 请求连接(重连)
+            ctx.fireWrite(((SocketConnectRequestEvent) msg).getConnectRequest());
+        } else if (msg instanceof SocketConnectResponseEvent) {
+            // 建立连接响应
+            ctx.fireWrite(((SocketConnectResponseEvent) msg).getConnectResponse());
         } else {
             ctx.fireRead(msg);
         }
@@ -45,9 +50,14 @@ public class InnerSocketMessageSupportHandler extends SessionDuplexHandlerAdapte
     @Override
     public void write(SessionHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof NetMessage) {
-            // 内网不使用真正的ack和sequence
-            final SocketMessageTO socketMessageTO = new InnerSocketMessage((NetMessage) msg);
-            ctx.fireWrite(socketMessageTO);
+            // 普通消息
+            ctx.fireWrite(new InnerSocketMessage((NetMessage) msg));
+        } else if (msg instanceof SocketConnectRequest) {
+            // 建立连接请求
+            ctx.fireWrite(new InnerSocketConnectRequestTO((SocketConnectRequest) msg));
+        } else if (msg instanceof SocketConnectResponse) {
+            // 建立连接响应
+            ctx.fireWrite(new InnerSocketConnectResponseTO((SocketConnectResponse) msg));
         } else {
             ctx.fireWrite(msg);
         }

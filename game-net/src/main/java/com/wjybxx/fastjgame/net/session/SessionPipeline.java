@@ -70,7 +70,7 @@ public interface SessionPipeline extends SessionInboundInvoker, SessionOutboundI
     /**
      * 将调用每一个handler的{@link SessionHandler#init(SessionHandlerContext)}方法。
      */
-    void fireInit();
+    SessionPipeline fireInit();
 
     /**
      * 刷帧

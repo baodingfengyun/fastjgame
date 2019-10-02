@@ -19,7 +19,6 @@ package com.wjybxx.fastjgame.net.socket;
 import com.wjybxx.fastjgame.manager.NetEventManager;
 import com.wjybxx.fastjgame.net.common.NetMessageType;
 import com.wjybxx.fastjgame.net.common.ProtocolCodec;
-import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
@@ -47,16 +46,15 @@ public class ServerSocketCodec extends BaseSocketCodec {
      */
     private long clientGuid = Long.MIN_VALUE;
     /**
-     * 新建立的连接的生命周期通知器
+     * 端口额外信息
      */
-    private final SessionLifecycleAware lifecycleAware;
-
+    private final SocketPortExtraInfo portExtraInfo;
     private final NetEventManager netEventManager;
 
-    public ServerSocketCodec(ProtocolCodec codec, long localGuid, SessionLifecycleAware lifecycleAware, NetEventManager netEventManager) {
+    public ServerSocketCodec(ProtocolCodec codec, long localGuid, SocketPortExtraInfo portExtraInfo, NetEventManager netEventManager) {
         super(codec);
         this.localGuid = localGuid;
-        this.lifecycleAware = lifecycleAware;
+        this.portExtraInfo = portExtraInfo;
         this.netEventManager = netEventManager;
     }
 
@@ -122,7 +120,7 @@ public class ServerSocketCodec extends BaseSocketCodec {
      * 客户端请求建立连接
      */
     private void tryReadConnectRequest(ChannelHandlerContext ctx, ByteBuf msg) {
-        SocketConnectRequestEvent connectRequestEvent = readConnectRequest(ctx.channel(), localGuid, msg);
+        SocketConnectRequestEvent connectRequestEvent = readConnectRequest(ctx.channel(), localGuid, msg, portExtraInfo);
         netEventManager.fireConnectRequest(connectRequestEvent);
 
         if (!isInited()) {

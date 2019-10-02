@@ -36,14 +36,15 @@ public class SocketConnectRequestEvent implements SocketEvent {
      */
     private final long ack;
     private final SocketConnectRequest connectRequest;
-    // TODO 该端口上需要的监听者信息 config
+    private final SocketPortExtraInfo portExtraInfo;
 
-    public SocketConnectRequestEvent(Channel channel, long localGuid, long remoteGuid, long ack, SocketConnectRequest connectRequest) {
+    public SocketConnectRequestEvent(Channel channel, long localGuid, long remoteGuid, long ack, SocketConnectRequest connectRequest, SocketPortExtraInfo portExtraInfo) {
         this.localGuid = localGuid;
         this.channel = channel;
         this.remoteGuid = remoteGuid;
         this.ack = ack;
         this.connectRequest = connectRequest;
+        this.portExtraInfo = portExtraInfo;
     }
 
     @Override
@@ -67,5 +68,9 @@ public class SocketConnectRequestEvent implements SocketEvent {
 
     public SocketConnectRequest getConnectRequest() {
         return connectRequest;
+    }
+
+    public SocketPortExtraInfo getPortExtraInfo() {
+        return portExtraInfo;
     }
 }

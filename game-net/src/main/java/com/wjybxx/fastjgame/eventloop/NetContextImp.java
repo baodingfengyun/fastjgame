@@ -18,7 +18,6 @@ package com.wjybxx.fastjgame.eventloop;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
-import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.PortRange;
@@ -28,10 +27,7 @@ import com.wjybxx.fastjgame.net.http.OkHttpCallback;
 import com.wjybxx.fastjgame.net.local.LocalPort;
 import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
 import com.wjybxx.fastjgame.net.session.Session;
-import com.wjybxx.fastjgame.net.socket.SocketPort;
-import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
-import com.wjybxx.fastjgame.net.socket.TCPClientChannelInitializer;
-import com.wjybxx.fastjgame.net.socket.TCPServerChannelInitializer;
+import com.wjybxx.fastjgame.net.socket.*;
 import com.wjybxx.fastjgame.net.ws.WsClientChannelInitializer;
 import com.wjybxx.fastjgame.net.ws.WsServerChannelInitializer;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
@@ -92,13 +88,15 @@ public class NetContextImp implements NetContext {
 
     @Override
     public ListenableFuture<SocketPort> bindTcpRange(String host, PortRange portRange, @Nonnull SocketSessionConfig config) {
-        TCPServerChannelInitializer initializer = new TCPServerChannelInitializer(localGuid, config, managerWrapper.getNetEventManager());
+        SocketPortExtraInfo portExtraInfo = new SocketPortExtraInfo(this, config);
+        TCPServerChannelInitializer initializer = new TCPServerChannelInitializer(localGuid, portExtraInfo, managerWrapper.getNetEventManager());
         return bindRange(host, portRange, config, initializer);
     }
 
     @Override
     public ListenableFuture<SocketPort> bindWSRange(String host, PortRange portRange, String websocketPath, @Nonnull SocketSessionConfig config) {
-        WsServerChannelInitializer initializer = new WsServerChannelInitializer(localGuid, websocketPath, config, managerWrapper.getNetEventManager());
+        SocketPortExtraInfo portExtraInfo = new SocketPortExtraInfo(this, config);
+        WsServerChannelInitializer initializer = new WsServerChannelInitializer(localGuid, websocketPath, portExtraInfo, managerWrapper.getNetEventManager());
         return bindRange(host, portRange, config, initializer);
     }
 
@@ -133,13 +131,11 @@ public class NetContextImp implements NetContext {
     private ListenableFuture<Session> connect(long remoteGuid, HostAndPort remoteAddress,
                                               byte[] token, SocketSessionConfig config,
                                               ChannelInitializer<SocketChannel> initializer) {
-        final Promise<Session> promise = netEventLoop.newPromise();
         // 这里一定不是网络层，只有逻辑层才会调用connect
-        netEventLoop.execute(() -> {
-            managerWrapper.getSessionManager().connect(this, remoteGuid, remoteAddress,
-                    token, config, initializer, promise);
+        return netEventLoop.submit(() -> {
+            return managerWrapper.getSessionManager().connect(this, remoteGuid, remoteAddress,
+                    token, config, initializer);
         });
-        return promise;
     }
 
     // ----------------------------------------------- 本地调用支持 --------------------------------------------

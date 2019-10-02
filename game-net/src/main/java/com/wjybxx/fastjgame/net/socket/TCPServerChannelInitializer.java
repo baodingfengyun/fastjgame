@@ -39,19 +39,19 @@ public class TCPServerChannelInitializer extends ChannelInitializer<SocketChanne
      * 本地发起监听的角色guid
      */
     private final long localGuid;
-    private final SocketSessionConfig config;
+    private final SocketPortExtraInfo portExtraInfo;
     private final NetEventManager netEventManager;
 
-    public TCPServerChannelInitializer(long localGuid, SocketSessionConfig config, NetEventManager netEventManager) {
+    public TCPServerChannelInitializer(long localGuid, SocketPortExtraInfo portExtraInfo, NetEventManager netEventManager) {
         this.localGuid = localGuid;
-        this.config = config;
+        this.portExtraInfo = portExtraInfo;
         this.netEventManager = netEventManager;
     }
 
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
-        pipeline.addLast(new LengthFieldBasedFrameDecoder(config.maxFrameLength(), 0, 4, 0, 4));
-        pipeline.addLast(new ServerSocketCodec(config.codec(), localGuid, config.lifecycleAware(), netEventManager));
+        pipeline.addLast(new LengthFieldBasedFrameDecoder(portExtraInfo.getSessionConfig().maxFrameLength(), 0, 4, 0, 4));
+        pipeline.addLast(new ServerSocketCodec(portExtraInfo.getSessionConfig().codec(), localGuid, portExtraInfo, netEventManager));
     }
 }
