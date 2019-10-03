@@ -70,7 +70,7 @@ public class InnerPongSupportHandler extends SessionInboundHandlerAdapter {
         lastReadTime = timeManager.getSystemMillTime();
         // 读取到一个心跳包，立即返回一个心跳包
         if (msg == PingPongMessage.INSTANCE) {
-            ctx.session().fireWrite(PingPongMessage.INSTANCE);
+            ctx.session().fireWriteAndFlush(PingPongMessage.INSTANCE);
         } else {
             ctx.fireRead(msg);
         }

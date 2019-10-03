@@ -58,7 +58,7 @@ public class InnerPingSupportHandler extends SessionDuplexHandlerAdapter {
         if (timeManager.getSystemMillTime() - lastWriteTime > pingIntervalMs) {
             // 这里一定要标记发送时间，否则如果fireWrite方法被拦截就爆炸了
             lastWriteTime = timeManager.getSystemMillTime();
-            ctx.session().fireWrite(PingPongMessage.INSTANCE);
+            ctx.session().fireWriteAndFlush(PingPongMessage.INSTANCE);
         }
     }
 

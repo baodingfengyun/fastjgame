@@ -60,12 +60,17 @@ public abstract class AbstractSession implements Session {
      * 激活状态 - 默认true，因为在激活之前不会返回给用户。
      */
     private final AtomicBoolean stateHolder = new AtomicBoolean(true);
+    /**
+     * 刷新缓冲区的任务 - 避免大量无意义的对象
+     */
+    private final Runnable flushTask;
 
     protected AbstractSession(NetContext netContext, NetManagerWrapper managerWrapper) {
         this.netContext = netContext;
         this.managerWrapper = managerWrapper;
         this.pipeline = new DefaultSessionPipeline(this, managerWrapper);
         this.netEventLoop = managerWrapper.getNetEventLoopManager().eventLoop();
+        this.flushTask = pipeline::fireFlush;
     }
 
     @Override
@@ -116,6 +121,11 @@ public abstract class AbstractSession implements Session {
         // RpcPromise保证了不会等待超过限时时间
         rpcPromise.awaitUninterruptibly();
         return rpcPromise.getNow();
+    }
+
+    @Override
+    public void flush() {
+        netEventLoop.execute(flushTask);
     }
 
     @Override
@@ -173,6 +183,15 @@ public abstract class AbstractSession implements Session {
     public void fireWrite(@Nonnull Object msg) {
         if (netEventLoop.inEventLoop()) {
             pipeline.fireWrite(msg);
+        } else {
+            throw new InternalApiException();
+        }
+    }
+
+    @Override
+    public void fireWriteAndFlush(@Nonnull Object msg) {
+        if (netEventLoop.inEventLoop()) {
+            pipeline.fireWriteAndFlush(msg);
         } else {
             throw new InternalApiException();
         }

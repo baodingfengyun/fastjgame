@@ -105,7 +105,7 @@ public class SessionManager {
                 .addLast(new RpcSupportHandler())
                 .fireInit();
 
-        socketSessionImp.fireWrite(new SocketConnectRequest(1, token));
+        socketSessionImp.fireWriteAndFlush(new SocketConnectRequest(1, token));
 
         return socketSessionImp;
     }
@@ -134,7 +134,7 @@ public class SessionManager {
                     .fireSessionActive();
 
             final SocketConnectResponse connectResponse = new SocketConnectResponse(true, connectRequestEvent.getConnectRequest().getVerifyingTimes());
-            socketSessionImp.fireWrite(connectResponse);
+            socketSessionImp.fireWriteAndFlush(connectResponse);
 
         } else {
             NetUtils.closeQuietly(connectRequestEvent.channel());
