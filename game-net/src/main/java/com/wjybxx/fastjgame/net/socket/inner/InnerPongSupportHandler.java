@@ -24,7 +24,7 @@ import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 import com.wjybxx.fastjgame.net.session.SessionInboundHandlerAdapter;
 
 /**
- * 心跳响应支持 - 入站第一个
+ * 心跳响应支持
  *
  * @author wjybxx
  * @version 1.0

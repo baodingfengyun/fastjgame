@@ -42,7 +42,7 @@ class DefaultSessionPipeline implements SessionPipeline {
     private final NetManagerWrapper netManagerWrapper;
 
     /**
-     * 尾部处理器 - 入站最后一个处理器
+     * 尾部处理器 - 出站第一个处理器，入站最后一个处理器
      */
     private final TailContext tail;
     /**
@@ -204,7 +204,7 @@ class DefaultSessionPipeline implements SessionPipeline {
 
         @Override
         public void flush(SessionHandlerContext ctx) throws Exception {
-
+            logger.info("Unhandled flush request");
         }
 
         @Override
@@ -241,12 +241,12 @@ class DefaultSessionPipeline implements SessionPipeline {
 
         @Override
         public void onSessionActive(SessionHandlerContext ctx) throws Exception {
-            logger.info("Unhandled active event");
+            // NO OP
         }
 
         @Override
         public void onSessionInactive(SessionHandlerContext ctx) throws Exception {
-            logger.info("Unhandled inactive event");
+            // NO OP
         }
 
         @Override

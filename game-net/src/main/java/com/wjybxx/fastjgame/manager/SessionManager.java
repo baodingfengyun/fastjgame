@@ -99,8 +99,8 @@ public class SessionManager {
 
         socketSessionImp.pipeline()
                 .addLast(new InnerSocketTransferHandler())
-                .addLast(new InnerPingSupportHandler())
                 .addLast(new InnerSocketMessageSupportHandler())
+                .addLast(new InnerPingSupportHandler())
                 .addLast(new OneWaySupportHandler())
                 .addLast(new RpcSupportHandler())
                 .fireInit();
@@ -126,8 +126,8 @@ public class SessionManager {
 
             socketSessionImp.pipeline()
                     .addLast(new InnerSocketTransferHandler())
-                    .addLast(new InnerPongSupportHandler())
                     .addLast(new InnerSocketMessageSupportHandler())
+                    .addLast(new InnerPongSupportHandler())
                     .addLast(new OneWaySupportHandler())
                     .addLast(new RpcSupportHandler())
                     .fireInit()

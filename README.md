@@ -49,7 +49,7 @@ fastjgame 为 fast java game framework的缩写，如名字一样，该项目的
 > 6. 我不推荐这样的模型！这种模型其实更适合做一般的企业应用或web服务器，因为这些应用service数量较少，且service之间一般只有很少的交互。
 > 而对于游戏而言，service数量很多，且service之间交互很多，service之间涉及大量的数据共享，要解决这种问题，要么加锁处理竞争，要么使用消息进行通信（异步化），无论哪一种都会大大加重开发人员的负担。
 > （如果你在开发的时候感觉很轻松，那么你可能没有认真的处理异步问题，或者根本没有意识到有哪些问题）  
-> ps: 只有当service之间是独立的时候，才有最大的并发性能，当service之间存在大量依赖的时候，其实是不适合多线程化的。
+> ps: 只有当service之间是独立的时候，才有最大的并发性能，当service之间存在大量依赖的时候，其实是不适合多线程化的。  
 > 其实类似的还有actor模式，actor数量爆炸的时候，带来的就不是优势了。
 
 + **按执行阶段拆分为单线程阶段、多线程阶段**。服务器逻辑分为事件驱动(网络事件)和心跳驱动，其中事件处理必须是单线程的，而**心跳**有机会拆分为单线程执行阶段和多线程执行阶段。
@@ -197,7 +197,7 @@ fastjgame 为 fast java game framework的缩写，如名字一样，该项目的
 如果你想要学习**Disruptor**，那么推荐你看我详细注释过的源码[disruptor-translation](https://github.com/hl845740757/disruptor-translation)  
 如果你想学习**Netty**的线程模型，你可以看看我注释过的源码[netty-translation](https://github.com/hl845740757/netty-translation)，netty并没有全部注释，不过并发包是基本是完整注释的。  
 
-### NetEventLoop固定单线程，通过SessionPipeline提供功能插拔特性 2019年10月02日
+#### NetEventLoop固定单线程，通过SessionPipeline提供功能插拔特性 2019年10月02日
 1. 之前的NetEventLoopGroup属于过度设计了，NetEventLoop单线程完全足够，能够获得更简单的编程模型，以及保证Session的唯一性。  
 2. 之前的SessionManager代码组织较为混乱，扩展功能较为困难，一直在想办法解决这个问题，这版本引入了类似Netty的ChannelPipeline的SessionPipeline。
 通过handler的方式实现插拔功能，以消除重复代码和提升扩展性。  

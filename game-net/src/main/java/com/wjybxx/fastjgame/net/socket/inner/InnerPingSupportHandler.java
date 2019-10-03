@@ -22,7 +22,7 @@ import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 
 /**
- * 心跳支持 （入站第一个，出站倒是第二个）
+ * 心跳支持
  *
  * @author wjybxx
  * @version 1.0

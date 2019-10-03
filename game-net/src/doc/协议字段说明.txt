@@ -11,9 +11,8 @@
 
 1. 请求建立连接(重连)
  long  8字节     clientGuid        客户端唯一标识，用于关联会话
- int   4字节     clientRole        客户端类型
- int   4字节     verifyingTimes    这是客户端第几次发起连接请求：用于识别最新请求和客户端追踪结果
  long  8字节     ack               客户端期望的下一个消息号(捎带确认的ack)
+ int   4字节     verifyingTimes    这是客户端第几次发起连接请求：用于识别最新请求和客户端追踪结果
  bytes 字节数组   token             客户端请求建立连接时的验证信息 - token可以考虑使用redis存储
 
 2. 建立连接响应
