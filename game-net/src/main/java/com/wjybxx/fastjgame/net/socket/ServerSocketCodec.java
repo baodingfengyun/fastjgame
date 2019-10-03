@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.net.socket;
 import com.wjybxx.fastjgame.manager.NetEventManager;
 import com.wjybxx.fastjgame.net.common.NetMessageType;
 import com.wjybxx.fastjgame.net.common.ProtocolCodec;
+import com.wjybxx.fastjgame.utils.NetUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
@@ -125,6 +126,8 @@ public class ServerSocketCodec extends BaseSocketCodec {
 
         if (!isInited()) {
             init(connectRequestEvent.remoteGuid());
+            // 删除读超时控制，由session负责超时控制 - 只要读取到建立session请求后，NetEventLoop就能管理channel，否则无法管理channel
+            ctx.channel().pipeline().remove(NetUtils.READ_TIMEOUT_HANDLER_NAME);
         }
     }
 

@@ -95,8 +95,7 @@ public interface NetContext {
      * @param config    session配置信息
      * @return future
      */
-    ListenableFuture<SocketPort> bindTcpRange(String host, PortRange portRange,
-                                              @Nonnull SocketSessionConfig config);
+    ListenableFuture<SocketPort> bindTcpRange(String host, PortRange portRange, @Nonnull SocketSessionConfig config);
 
     /**
      * 以tcp方式连接远程某个端口

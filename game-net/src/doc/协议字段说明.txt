@@ -1,8 +1,3 @@
-带有ack 和 sequence的就完全是网关服的逻辑了。
-正常服务器与服务器之间就可以不需要这些了，如果需要的话，加个组件就可以。
-网络本身就是个数据流 - 要演化为对流操作。
-
-
 协议约定：
 公共部分：
  int  4字节      frameLength       有效帧长度(不包含自身)
@@ -20,13 +15,14 @@
  int   4字节     verifyingTimes    这是客户端第几次发起的连接请求
  long  8字节     ack               服务器期望的下一个消息号
 
+
 3. Rpc请求包(服务器之间)
  long  8字节     ack              我期望的下一个消息号(捎带确认的ack)
  long  8字节     sequence         这是我发送的第几个包/帧。
 
  long  8字节     requestGuid      请求id
  byte  1字节     sync             是否是同步rpc调用
- bytes 字节数组   requestBytes     请求的内容，用户自定义解析
+ bytes 字节数组   bytes            请求的内容，用户自定义解析
 
 4. Rpc响应包(服务器之间)
  long  8字节     ack              我期望的下一个消息号(捎带确认的ack)
@@ -34,23 +30,31 @@
 
  long  8字节     requestGuid      请求id
  int   4字节     resultCode       错误码
- bytes 字节数组   responseBytes    响应结果，用户自定义解析
+ bytes 字节数组   bytes            响应结果，用户自定义解析
 
 5. 单向消息包(服务器之间/玩家与服务器)
  long  8字节     ack              我期望的下一个消息号(捎带确认的ack)
  long  8字节     sequence         这是我发送的第几个包/帧。
 
- bytes 字节数组   messageBytes     消息的内容，用户自定义解析
+ bytes 字节数组   bytes            消息的内容，用户自定义解析
 
 6、7 客户端ack-ping消息 和 服务器返回的ack-pong消息 同结构 定长消息
  long  8字节      ack              我期望的下一个消息号(捎带确认的ack)
  long  8字节      sequence         这是我发送的第几个包/帧。
 
-8. 重定向(让网关断开当前连接，将玩家连接另一个服务器) - 玩家不必参与进来
- long 8字节       targetGuid      要连接的另一个服务器guid
+8. 转发
+ long  8字节      ack              我期望的下一个消息号(捎带确认的ack)
+ long  8字节      sequence         这是我发送的第几个包/帧。
+ long  8字节      targetGuid       要转发给谁
+ bytes 字节数组    bytes            要转发的内容，不解码
+
+9. 重定向(让网关断开当前连接，将玩家连接另一个服务器) - 玩家不必参与进来
+ long  8字节      ack              我期望的下一个消息号(捎带确认的ack)
+ long  8字节      sequence         这是我发送的第几个包/帧。
+ long  8字节      targetGuid       要连接的另一个服务器guid
 
 
-在3、4、5都有捎带确认的ack情况下为什么还需要6和7 （单独的心跳包）？
+其它消息都有ack和sequence的情况下为什么还需要6和7 （单独的心跳包）？
 1.采用捎带确认基于这样的假设：请求一般会存在一个响应，且双方总是有消息要发给另一方，而且间隔不会太长,。
 2.但请求可能没有响应信息,在长时间没有新的消息通信情况下，需要有机制对前面的消息进行确认。
 3.此外，用于避免双方消息队列缓存过多(尤其是要降低服务器缓存压力)

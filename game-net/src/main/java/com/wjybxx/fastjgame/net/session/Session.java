@@ -120,11 +120,6 @@ public interface Session extends Comparable<Session> {
     @Nonnull
     RpcResponse sync(@Nonnull Object request);
 
-    /**
-     * 清空缓冲区
-     */
-    void flush();
-
     // ----------------------------------------------- 生命周期 ----------------------------------------------
 
     /**

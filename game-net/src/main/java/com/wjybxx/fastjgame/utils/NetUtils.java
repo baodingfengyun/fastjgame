@@ -32,9 +32,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.*;
-import java.util.Arrays;
 import java.util.Enumeration;
-import java.util.List;
 
 /**
  * 网络包工具类
@@ -52,18 +50,10 @@ public class NetUtils {
      * 最大缓冲区大小1M,一个消息如果超过1M不能忍。
      */
     public static final int MAX_BUFFER_SIZE = 1024 * 1024;
-
-    private static final List<Class<?>> BOX_CLASSES = Arrays.asList(
-            Integer.class,
-            Long.class,
-            Float.class,
-            Double.class,
-            Byte.class,
-            Short.class,
-            Boolean.class,
-            Character.class
-    );
-
+    /**
+     * 读超时handler的名字
+     */
+    public static final String READ_TIMEOUT_HANDLER_NAME = "readTimeoutHandler";
     /**
      * 本机内网地址
      */

@@ -124,11 +124,6 @@ public abstract class AbstractSession implements Session {
     }
 
     @Override
-    public void flush() {
-        netEventLoop.execute(flushTask);
-    }
-
-    @Override
     public final boolean isActive() {
         return stateHolder.get();
     }

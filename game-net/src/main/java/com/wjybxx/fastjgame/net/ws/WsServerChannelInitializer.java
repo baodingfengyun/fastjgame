@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.net.ws;
 import com.wjybxx.fastjgame.manager.NetEventManager;
 import com.wjybxx.fastjgame.net.socket.ServerSocketCodec;
 import com.wjybxx.fastjgame.net.socket.SocketPortExtraInfo;
+import com.wjybxx.fastjgame.utils.NetUtils;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
@@ -27,6 +28,9 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.WebSocket13FrameEncoder;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
+import io.netty.handler.timeout.IdleStateHandler;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * 使用websocket时使用
@@ -93,6 +97,7 @@ public class WsServerChannelInitializer extends ChannelInitializer<SocketChannel
     }
 
     private void appendCustomProtocolCodec(ChannelPipeline pipeline) {
+        pipeline.addLast(NetUtils.READ_TIMEOUT_HANDLER_NAME, new IdleStateHandler(60, 0, 0, TimeUnit.SECONDS));
         pipeline.addLast(new LengthFieldBasedFrameDecoder(portExtraInfo.getSessionConfig().maxFrameLength(), 0, 4, 0, 4));
         pipeline.addLast(new ServerSocketCodec(portExtraInfo.getSessionConfig().codec(), localGuid, portExtraInfo, netEventManager));
     }

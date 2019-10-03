@@ -49,7 +49,6 @@ public class InnerSocketTransferHandler extends SessionOutboundHandlerAdapter {
 
     @Override
     public void flush(SessionHandlerContext ctx) throws Exception {
-        // 单独调用flush 会产生一些浪费
         channel.flush();
     }
 

@@ -27,6 +27,8 @@ import javax.annotation.Nonnull;
 /**
  * 网络循环。
  * <p>
+ * 最开始一直想的是做一个网络层，因此取名为{@link NetEventLoop}，后面发现吧，其实就是事件分发线程！
+ * <p>
  * Q: 为什么2.x开始不再使用{@code NetEventLoopGroup}了？
  * A: 主要是正确性问题，当使用{@code NetEventLoopGroup}时，要保证session在{@code NetEventLoopGroup}中的唯一性较为困难，
  * {@link NetEventLoop}的主要作用是管理连接，以及JVM内部通信的序列化，其实它的工作量很小，单线程也完全足够。
