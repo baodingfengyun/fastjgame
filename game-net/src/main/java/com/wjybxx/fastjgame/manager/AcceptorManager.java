@@ -1,172 +1,179 @@
 /*
- * Copyright 2019 wjybxx
+ *  Copyright 2019 wjybxx
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to iBn writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 
 package com.wjybxx.fastjgame.manager;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.misc.HostAndPort;
+import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.misc.PortRange;
-import com.wjybxx.fastjgame.net.socket.DefaultSocketPort;
+import com.wjybxx.fastjgame.misc.SessionRegistry;
+import com.wjybxx.fastjgame.net.common.OneWaySupportHandler;
+import com.wjybxx.fastjgame.net.common.RpcSupportHandler;
+import com.wjybxx.fastjgame.net.local.*;
+import com.wjybxx.fastjgame.net.session.Session;
+import com.wjybxx.fastjgame.net.socket.*;
+import com.wjybxx.fastjgame.net.socket.inner.InnerPongSupportHandler;
+import com.wjybxx.fastjgame.net.socket.inner.InnerSocketMessageSupportHandler;
+import com.wjybxx.fastjgame.net.socket.inner.InnerSocketTransferHandler;
 import com.wjybxx.fastjgame.utils.NetUtils;
-import io.netty.bootstrap.Bootstrap;
-import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.*;
+import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.ThreadSafe;
+import java.io.IOException;
 import java.net.BindException;
+import java.util.Map;
 
 /**
- * 建立链接的帮助类。
- * (Acceptor/Connector)
+ * session接收器。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/5/16 11:00
+ * date - 2019/9/9
  * github - https://github.com/hl845740757
  */
-@ThreadSafe
 public class AcceptorManager {
 
-    private static final Logger logger = LoggerFactory.getLogger(AcceptorManager.class);
-    /**
-     * 开启限流，多分配一点空间，否则容易被限流，导致数据丢失。
-     * （默认流量的8倍）
-     */
-    private static final WriteBufferWaterMark WRITE_BUFFER_WATER_MARK = new WriteBufferWaterMark(8 * 32 * 1024, 8 * 64 * 1024);
-
+    private NetManagerWrapper netManagerWrapper;
     private final NettyThreadManager nettyThreadManager;
+    private final SessionRegistry sessionRegistry = new SessionRegistry();
 
     @Inject
     public AcceptorManager(NettyThreadManager nettyThreadManager) {
         this.nettyThreadManager = nettyThreadManager;
     }
 
-    /**
-     * 监听某个端口,阻塞直到成功或失败。
-     * 参数意义可参考{@link java.net.StandardSocketOptions}
-     * 或 - https://www.cnblogs.com/googlemeoften/p/6082785.html
-     *
-     * @param host        地址
-     * @param port        需要绑定的端口
-     * @param initializer channel初始化类，根据使用的协议(eg:tcp,ws) 和 序列化方式(eg:json,protoBuf)确定
-     * @return 监听成功成功则返回绑定的地址，失败则返回null
-     */
-    public DefaultSocketPort bind(String host, int port, int sndBuffer, int rcvBuffer, ChannelInitializer<SocketChannel> initializer) throws BindException {
-        ServerBootstrap serverBootstrap = new ServerBootstrap();
-        serverBootstrap.group(nettyThreadManager.getBossGroup(), nettyThreadManager.getWorkerGroup());
-
-        serverBootstrap.channel(NioServerSocketChannel.class);
-        serverBootstrap.childHandler(initializer);
-
-        // parentGroup参数
-        serverBootstrap.option(ChannelOption.SO_BACKLOG, 1024);
-        serverBootstrap.option(ChannelOption.SO_REUSEADDR, true);
-        serverBootstrap.option(ChannelOption.WRITE_BUFFER_WATER_MARK, WRITE_BUFFER_WATER_MARK);
-
-        // childGroup参数
-        serverBootstrap.childOption(ChannelOption.SO_KEEPALIVE, false);
-        serverBootstrap.childOption(ChannelOption.TCP_NODELAY, true);
-        serverBootstrap.childOption(ChannelOption.SO_SNDBUF, sndBuffer);
-        serverBootstrap.childOption(ChannelOption.SO_RCVBUF, rcvBuffer);
-        serverBootstrap.childOption(ChannelOption.SO_LINGER, 0);
-        serverBootstrap.childOption(ChannelOption.SO_REUSEADDR, true);
-        serverBootstrap.childOption(ChannelOption.WRITE_BUFFER_WATER_MARK, WRITE_BUFFER_WATER_MARK);
-
-        ChannelFuture channelFuture = serverBootstrap.bind(host, port);
-        try {
-            channelFuture.sync();
-            logger.info("bind {}:{} success.", host, port);
-            return new DefaultSocketPort(channelFuture.channel(), new HostAndPort(host, port));
-        } catch (InterruptedException e) {
-            // ignore e
-            NetUtils.closeQuietly(channelFuture);
-            Thread.currentThread().interrupt();
-        } catch (Exception e) {
-            // ignore, may another process bind this port
-            NetUtils.closeQuietly(channelFuture);
-        }
-        throw new BindException("can't bind " + host + ":" + port);
+    public void setManagerWrapper(NetManagerWrapper managerWrapper) {
+        this.netManagerWrapper = managerWrapper;
     }
 
+    public void tick() {
+        sessionRegistry.tick();
+    }
+
+    // --------------------------------------------------- socket ----------------------------------------------
+
+
     /**
-     * 在某个端口范围内选择一个端口监听.
+     * 绑定到某个端口
      *
      * @param host        地址
      * @param portRange   端口范围
-     * @param initializer channel初始化类
-     * @return 监听成功的端口号，失败返回null
+     * @param config      session配置信息
+     * @param initializer channel初始化方式
+     * @return Port
+     * @throws BindException 找不到可用端口时抛出该异常
      */
-    public DefaultSocketPort bindRange(String host, PortRange portRange, int sndBuffer, int rcvBuffer, ChannelInitializer<SocketChannel> initializer) throws BindException {
-        if (portRange.startPort <= 0) {
-            throw new IllegalArgumentException("fromPort " + portRange.startPort);
-        }
-        if (portRange.startPort > portRange.endPort) {
-            throw new IllegalArgumentException("fromPort " + portRange.startPort + " toPort " + portRange.endPort);
-        }
-        for (int port = portRange.startPort; port <= portRange.endPort; port++) {
-            try {
-                return bind(host, port, sndBuffer, rcvBuffer, initializer);
-            } catch (BindException e) {
-                // ignore
-            }
-        }
-        throw new BindException("can't bind port from " + portRange.startPort + " to " + portRange.endPort);
+    public SocketPort bindRange(String host, PortRange portRange, SocketSessionConfig config,
+                                ChannelInitializer<SocketChannel> initializer) throws BindException {
+        return nettyThreadManager.bindRange(host, portRange, config.sndBuffer(), config.rcvBuffer(), initializer);
     }
 
     /**
-     * 异步建立连接localHost
+     * 接收到一个请求建立连接事件
      *
-     * @param hostAndPort 服务器地址
-     * @param initializer channel初始化类，根据使用的协议(eg:tcp,ws) 和 序列化方式(eg:json,protoBuf)确定
-     * @return channelFuture 注意使用{@link ChannelFuture#sync()} 会抛出异常。
-     * 使用{@link ChannelFuture#await()} 和{@link ChannelFuture#isSuccess()} 安全处理。
-     * 此外，使用channel 需要调用 {@link Channel#isActive()}检查是否成功和远程建立连接
+     * @param connectRequestEvent 请求事件参数
      */
-    public ChannelFuture connectAsyn(HostAndPort hostAndPort, int sndBuffer, int rcvBuffer, ChannelInitializer<SocketChannel> initializer) {
-        Bootstrap bootstrap = new Bootstrap();
-        bootstrap.group(nettyThreadManager.getWorkerGroup());
+    public void onRcvConnectRequest(SocketConnectRequestEvent connectRequestEvent) {
+        final Session existSession = sessionRegistry.getSession(connectRequestEvent.sessionGuid());
+        if (existSession == null) {
+            // TODO 首次建立连接验证
+            final SocketPortExtraInfo portExtraInfo = connectRequestEvent.getPortExtraInfo();
+            SocketSessionImp socketSessionImp = new SocketSessionImp(connectRequestEvent.sessionGuid(), portExtraInfo.getNetContext(), netManagerWrapper,
+                    connectRequestEvent.channel(), portExtraInfo.getSessionConfig());
+            sessionRegistry.registerSession(socketSessionImp);
 
-        bootstrap.channel(NioSocketChannel.class);
-        bootstrap.handler(initializer);
+            socketSessionImp.pipeline()
+                    .addLast(new InnerSocketTransferHandler())
+                    .addLast(new InnerSocketMessageSupportHandler())
+                    .addLast(new InnerPongSupportHandler())
+                    .addLast(new OneWaySupportHandler())
+                    .addLast(new RpcSupportHandler())
+                    .fireInit()
+                    .fireSessionActive();
 
-        bootstrap.option(ChannelOption.SO_KEEPALIVE, false);
-        bootstrap.option(ChannelOption.TCP_NODELAY, true);
-        bootstrap.option(ChannelOption.SO_SNDBUF, sndBuffer);
-        bootstrap.option(ChannelOption.SO_RCVBUF, rcvBuffer);
-        bootstrap.option(ChannelOption.SO_LINGER, 0);
-        bootstrap.option(ChannelOption.SO_REUSEADDR, true);
-        bootstrap.option(ChannelOption.WRITE_BUFFER_WATER_MARK, WRITE_BUFFER_WATER_MARK);
-        return bootstrap.connect(hostAndPort.getHost(), hostAndPort.getPort());
+            final SocketConnectResponse connectResponse = new SocketConnectResponse(true, connectRequestEvent.getConnectRequest().getVerifyingTimes());
+            socketSessionImp.fireWriteAndFlush(connectResponse);
+        } else {
+            // TODO 断线重连验证
+            NetUtils.closeQuietly(connectRequestEvent.channel());
+        }
+    }
+
+
+    /**
+     * 接收到一个socket消息
+     *
+     * @param messageEvent 消息事件参数
+     */
+    public void onRcvMessage(SocketMessageEvent messageEvent) {
+        final Session session = sessionRegistry.getSession(messageEvent.sessionGuid());
+        if (session != null && session.isActive()) {
+            // session 存活的情况下才读取消息
+            session.fireRead(messageEvent);
+        }
+    }
+
+    // -------------------------------------------------- 本地session支持 ------------------------------------------------
+
+    /**
+     * 绑定JVM内部端口
+     *
+     * @param netContext 用户网络上下文
+     * @param config     创建session需要的配置
+     * @return localPort
+     */
+    public LocalPort bindLocal(NetContext netContext, LocalSessionConfig config) {
+        return new DefaultLocalPort(netContext, config, netManagerWrapper.getConnectorManager());
     }
 
     /**
-     * 同步建立连接
+     * 接收到一个连接请
      *
-     * @param hostAndPort 服务器地址
-     * @param initializer channel初始化类，根据使用的协议(eg:tcp,ws) 和 序列化方式(eg:json,protoBuf)确定
-     * @return 注意！使用channel 需要调用 {@link Channel#isActive()}检查是否成功和远程建立连接
+     * @param localPort   本地“端口”
+     * @param sessionGuid session唯一标识
+     * @return session
+     * @throws IOException error
      */
-    public Channel connectSyn(HostAndPort hostAndPort, int sndBuffer, int rcvBuffer, ChannelInitializer<SocketChannel> initializer) {
-        ChannelFuture channelFuture = connectAsyn(hostAndPort, sndBuffer, rcvBuffer, initializer);
-        channelFuture.awaitUninterruptibly();
-        return channelFuture.channel();
+    public LocalSessionImp onRcvConnectRequest(DefaultLocalPort localPort, long sessionGuid) throws IOException {
+        if (sessionRegistry.getSession(sessionGuid) != null) {
+            throw new IOException("session " + sessionGuid + " is already registered");
+        }
+        // 创建session并保存
+        LocalSessionImp session = new LocalSessionImp(sessionGuid, localPort.getNetContext(), netManagerWrapper, localPort.getLocalConfig());
+        sessionRegistry.registerSession(session);
+
+        // 创建管道，但是这里还不能初始化 - 因为还没有对方的引用
+        session.pipeline()
+                .addLast(new LocalTransferHandler())
+                .addLast(new LocalCodecHandler())
+                .addLast(new OneWaySupportHandler())
+                .addLast(new RpcSupportHandler());
+
+        return session;
     }
+
+    // -------------------------------------------------------- 用户线程关闭事件 ------------------------------------------------
+
+    public void onUserEventLoopTerminal(EventLoop userEventLoop) {
+        sessionRegistry.onUserEventLoopTerminal(userEventLoop);
+    }
+
+    public void clean() {
+        sessionRegistry.closeAll();
+    }
+
 }

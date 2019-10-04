@@ -19,7 +19,6 @@ package com.wjybxx.fastjgame.eventloop;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
@@ -57,10 +56,10 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     private final NettyThreadManager nettyThreadManager;
     private final HttpClientManager httpClientManager;
     private final HttpSessionManager httpSessionManager;
-    private final SessionManager sessionManager;
+    private final AcceptorManager acceptorManager;
+    private final ConnectorManager connectorManager;
     private final NetTimeManager netTimeManager;
     private final NetTimerManager netTimerManager;
-    private final NetContextManager netContextManager;
     private final int nettyIOThreadNum;
 
     public NetEventLoopImp(@Nonnull ThreadFactory threadFactory,
@@ -78,9 +77,9 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         managerWrapper = injector.getInstance(NetManagerWrapper.class);
         // 用于发布自己
         netEventLoopManager = managerWrapper.getNetEventLoopManager();
-        netContextManager = managerWrapper.getNetContextManager();
         // session管理
-        sessionManager = managerWrapper.getSessionManager();
+        acceptorManager = managerWrapper.getAcceptorManager();
+        connectorManager = managerWrapper.getConnectorManager();
         httpSessionManager = managerWrapper.getHttpSessionManager();
 
         // NetEventLoop管理的资源
@@ -92,8 +91,8 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         netTimerManager = managerWrapper.getNetTimerManager();
 
         // 解决循环依赖
-        netContextManager.setManagerWrapper(managerWrapper);
-        sessionManager.setManagerWrapper(managerWrapper);
+        acceptorManager.setManagerWrapper(managerWrapper);
+        connectorManager.setNetManagerWrapper(managerWrapper);
         httpSessionManager.setManagerWrapper(managerWrapper);
     }
 
@@ -116,13 +115,16 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     }
 
     @Override
-    public ListenableFuture<NetContext> createContext(long localGuid, @Nonnull EventLoop localEventLoop) {
+    public NetContext createContext(@Nonnull EventLoop localEventLoop) {
         if (localEventLoop instanceof NetEventLoop) {
             throw new IllegalArgumentException("Bad EventLoop");
         }
-        return submit(() -> {
-            return netContextManager.createContext(localGuid, localEventLoop);
-        });
+        // 监听用户线程关闭事件
+        localEventLoop.terminationFuture().addListener(future -> {
+            onUserEventLoopTerminal(localEventLoop);
+        }, this);
+
+        return new NetContextImp(this, localEventLoop, managerWrapper);
     }
 
     @Override
@@ -168,7 +170,13 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
      */
     private void tick(FixedDelayHandle handle) {
         // 刷帧
-        sessionManager.tick();
+        acceptorManager.tick();
+        connectorManager.tick();
+    }
+
+    public void onUserEventLoopTerminal(EventLoop userEventLoop) {
+        managerWrapper.getAcceptorManager().onUserEventLoopTerminal(userEventLoop);
+        managerWrapper.getHttpSessionManager().onUserEventLoopTerminal(userEventLoop);
     }
 
     @Override
@@ -178,8 +186,7 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         netTimerManager.close();
 
         // 删除所有的用户信息
-        ConcurrentUtils.safeExecute((Runnable) netContextManager::clean);
-        ConcurrentUtils.safeExecute((Runnable) sessionManager::clean);
+        ConcurrentUtils.safeExecute((Runnable) acceptorManager::clean);
         ConcurrentUtils.safeExecute((Runnable) httpSessionManager::clean);
 
         // 关闭持有的线程资源

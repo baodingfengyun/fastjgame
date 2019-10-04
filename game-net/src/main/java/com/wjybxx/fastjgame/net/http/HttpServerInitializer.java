@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.net.http;
 
 import com.wjybxx.fastjgame.manager.NetEventManager;
+import com.wjybxx.fastjgame.misc.HttpPortExtraInfo;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -37,17 +38,12 @@ import java.util.concurrent.TimeUnit;
  */
 public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
 
-    /**
-     * 是哪一个用户在监听
-     */
-    private final long localGuid;
-    private final HttpRequestDispatcher httpRequestDispatcher;
     private final NetEventManager netEventManager;
+    private final HttpPortExtraInfo portExtraInfo;
 
-    public HttpServerInitializer(long localGuid, HttpRequestDispatcher httpRequestDispatcher, NetEventManager netEventManager) {
-        this.localGuid = localGuid;
-        this.httpRequestDispatcher = httpRequestDispatcher;
+    public HttpServerInitializer(NetEventManager netEventManager, HttpPortExtraInfo portExtraInfo) {
         this.netEventManager = netEventManager;
+        this.portExtraInfo = portExtraInfo;
     }
 
     @Override
@@ -57,6 +53,6 @@ public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
         pipeline.addLast(new HttpServerCodec());
         // http请求和响应可能被分段，利用聚合器将http请求合并为完整的Http请求
         pipeline.addLast(new HttpObjectAggregator(65535));
-        pipeline.addLast(new HttpRequestParamDecoder(localGuid, httpRequestDispatcher, netEventManager));
+        pipeline.addLast(new HttpRequestParamDecoder(netEventManager, portExtraInfo));
     }
 }

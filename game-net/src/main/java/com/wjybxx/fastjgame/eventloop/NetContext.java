@@ -21,7 +21,6 @@ import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.PortRange;
 import com.wjybxx.fastjgame.net.http.HttpRequestDispatcher;
-import com.wjybxx.fastjgame.net.http.HttpSession;
 import com.wjybxx.fastjgame.net.http.OkHttpCallback;
 import com.wjybxx.fastjgame.net.local.LocalPort;
 import com.wjybxx.fastjgame.net.local.LocalSession;
@@ -47,33 +46,20 @@ import java.util.Map;
 @ThreadSafe
 public interface NetContext {
 
-    // --- 注册到网络模块时的信息
-
     /**
-     * 注册的本地guid
-     */
-    long localGuid();
-
-    /**
-     * 本地角色的运行环境，用于实现线程安全。
-     * 网络层保证所有的业务逻辑处理最终都会运行在该EventLoop上。
+     * 用户线程
+     * 网络层保证所有的业务逻辑处理最终都会运行在该用户线程。
      */
     EventLoop localEventLoop();
 
     /**
-     * 该context绑定到的NetEventLoop。
+     * 创建{@link NetContext}的{@link NetEventLoop}.
      * 底层会尽可能的让用户的网络请求执行在该{@link NetEventLoop}上，但不保证全部在该{@link NetEventLoop}上。
      * 你应该尽量使用{@link Session#netEventLoop()}。
      */
     NetEventLoop netEventLoop();
 
-    /**
-     * 从注册的NetEventLoop上取消注册，会关闭该context关联的所有{@link Session} {@link HttpSession}。
-     */
-    ListenableFuture<?> deregister();
-
     // ----------------------------------- tcp/ws支持 ---------------------------------------
-
 
     /**
      * 在指定端口监听tcp连接
@@ -100,13 +86,13 @@ public interface NetContext {
     /**
      * 以tcp方式连接远程某个端口
      *
-     * @param remoteGuid    远程角色guid
+     * @param sessionGuid   session唯一标识
      * @param remoteAddress 远程地址
      * @param token         建立连接验证信息，同时也存储一些额外信息
      * @param config        session配置信息
      * @return future
      */
-    ListenableFuture<Session> connectTcp(long remoteGuid, HostAndPort remoteAddress, byte[] token,
+    ListenableFuture<Session> connectTcp(long sessionGuid, HostAndPort remoteAddress, byte[] token,
                                          @Nonnull SocketSessionConfig config);
 
     /**
@@ -138,13 +124,13 @@ public interface NetContext {
     /**
      * 以websocket方式连接远程某个端口
      *
-     * @param remoteGuid    远程角色guid
+     * @param sessionGuid   session唯一标识
      * @param remoteAddress 远程地址
      * @param token         建立连接验证信息，同时也存储一些额外信息
      * @param config        session配置信息
      * @return future 如果想消除同步，添加监听器时请绑定EventLoop
      */
-    ListenableFuture<Session> connectWS(long remoteGuid, HostAndPort remoteAddress, String websocketUrl, byte[] token,
+    ListenableFuture<Session> connectWS(long sessionGuid, HostAndPort remoteAddress, String websocketUrl, byte[] token,
                                         @Nonnull SocketSessionConfig config);
 
 
@@ -167,12 +153,13 @@ public interface NetContext {
      * 与JVM内的另一个线程建立session。
      * 注意：{@link LocalPort}必须是同一个{@link NetEventLoop}创建的。
      *
-     * @param localPort 远程“端口”信息
-     * @param token     建立连接的验证信息，也可以存储额外信息
-     * @param config    配置信息
+     * @param sessionGuid session唯一标识
+     * @param localPort   远程“端口”信息
+     * @param token       建立连接的验证信息，也可以存储额外信息
+     * @param config      配置信息
      * @return future 如果想消除同步，添加监听器时请绑定EventLoop
      */
-    ListenableFuture<Session> connectLocal(@Nonnull LocalPort localPort, byte[] token,
+    ListenableFuture<Session> connectLocal(long sessionGuid, @Nonnull LocalPort localPort, byte[] token,
                                            @Nonnull LocalSessionConfig config);
 
     //  --------------------------------------- http支持 -----------------------------------------
@@ -185,7 +172,7 @@ public interface NetContext {
      * @param httpRequestDispatcher 该端口上的协议处理器
      * @return future 可以等待绑定完成。
      */
-    default ListenableFuture<HostAndPort> bindHttp(String host, int port,
+    default ListenableFuture<SocketPort> bindHttp(String host, int port,
                                                    @Nonnull HttpRequestDispatcher httpRequestDispatcher) {
         return this.bindHttpRange(host, new PortRange(port, port), httpRequestDispatcher);
     }
@@ -198,7 +185,7 @@ public interface NetContext {
      * @param httpRequestDispatcher 该端口上的协议处理器
      * @return future 可以等待绑定完成。
      */
-    ListenableFuture<HostAndPort> bindHttpRange(String host, PortRange portRange,
+    ListenableFuture<SocketPort> bindHttpRange(String host, PortRange portRange,
                                                 @Nonnull HttpRequestDispatcher httpRequestDispatcher);
 
     /**

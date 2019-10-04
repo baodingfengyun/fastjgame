@@ -45,11 +45,16 @@ public class LocalTransferHandler extends SessionOutboundHandlerAdapter {
     }
 
     @Override
+    public void flush(SessionHandlerContext ctx) throws Exception {
+
+    }
+
+    @Override
     public void close(SessionHandlerContext ctx, Promise<?> promise) throws Exception {
         // 标记为成功
         promise.trySuccess(null);
         // 减少不必要的调用
-        if (ctx.managerWrapper().getSessionManager().containsSession(remoteSession)) {
+        if (remoteSession.isActive()) {
             remoteSession.close();
         }
     }

@@ -35,30 +35,27 @@ public class NetManagerWrapper {
     private final NetEventManager netEventManager;
     private final NettyThreadManager nettyThreadManager;
     private final NetConfigManager netConfigManager;
-    private final AcceptorManager acceptorManager;
     private final HttpClientManager httpClientManager;
     private final NetTimeManager netTimeManager;
     private final NetTimerManager netTimerManager;
-    private final SessionManager sessionManager;
-    private final NetContextManager netContextManager;
+    private final AcceptorManager acceptorManager;
+    private final ConnectorManager connectorManager;
 
     @Inject
     public NetManagerWrapper(NetEventLoopManager netEventLoopManager, HttpSessionManager httpSessionManager,
                              NetEventManager netEventManager, NettyThreadManager nettyThreadManager,
-                             NetConfigManager netConfigManager, AcceptorManager acceptorManager,
-                             HttpClientManager httpClientManager, NetTimeManager netTimeManager,
-                             NetTimerManager netTimerManager, SessionManager sessionManager, NetContextManager netContextManager) {
+                             NetConfigManager netConfigManager, HttpClientManager httpClientManager, NetTimeManager netTimeManager,
+                             NetTimerManager netTimerManager, AcceptorManager acceptorManager, ConnectorManager connectorManager) {
         this.netEventLoopManager = netEventLoopManager;
         this.httpSessionManager = httpSessionManager;
         this.netEventManager = netEventManager;
         this.nettyThreadManager = nettyThreadManager;
         this.netConfigManager = netConfigManager;
-        this.acceptorManager = acceptorManager;
         this.httpClientManager = httpClientManager;
         this.netTimeManager = netTimeManager;
         this.netTimerManager = netTimerManager;
-        this.sessionManager = sessionManager;
-        this.netContextManager = netContextManager;
+        this.acceptorManager = acceptorManager;
+        this.connectorManager = connectorManager;
     }
 
     public NetEventLoopManager getNetEventLoopManager() {
@@ -77,10 +74,6 @@ public class NetManagerWrapper {
         return nettyThreadManager;
     }
 
-    public AcceptorManager getAcceptorManager() {
-        return acceptorManager;
-    }
-
     public HttpClientManager getHttpClientManager() {
         return httpClientManager;
     }
@@ -97,11 +90,11 @@ public class NetManagerWrapper {
         return netConfigManager;
     }
 
-    public SessionManager getSessionManager() {
-        return sessionManager;
+    public AcceptorManager getAcceptorManager() {
+        return acceptorManager;
     }
 
-    public NetContextManager getNetContextManager() {
-        return netContextManager;
+    public ConnectorManager getConnectorManager() {
+        return connectorManager;
     }
 }

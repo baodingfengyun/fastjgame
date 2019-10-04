@@ -25,6 +25,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
+import io.netty.handler.timeout.ReadTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -159,12 +160,12 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
      * @param ctx                    ctx
      * @param socketConnectRequestTO 请求传输对象
      */
-    final void writeConnectRequest(ChannelHandlerContext ctx, long localGuid, SocketConnectRequestTO socketConnectRequestTO, ChannelPromise promise) {
+    final void writeConnectRequest(ChannelHandlerContext ctx, long sessionGuid, SocketConnectRequestTO socketConnectRequestTO, ChannelPromise promise) {
         final SocketConnectRequest socketConnectRequest = socketConnectRequestTO.getConnectRequest();
         int contentLength = 8 + 8 + 4 + socketConnectRequest.getToken().length;
         ByteBuf byteBuf = newInitializedByteBuf(ctx, contentLength, NetMessageType.CONNECT_REQUEST);
 
-        byteBuf.writeLong(localGuid);
+        byteBuf.writeLong(sessionGuid);
         byteBuf.writeLong(socketConnectRequestTO.getAck());
         byteBuf.writeInt(socketConnectRequest.getVerifyingTimes());
         byteBuf.writeBytes(socketConnectRequest.getToken());
@@ -175,14 +176,14 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
     /**
      * 解码协议1 - 连接请求
      */
-    final SocketConnectRequestEvent readConnectRequest(Channel channel, long localGuid, ByteBuf msg, SocketPortExtraInfo portExtraInfo) {
-        long remoteGuid = msg.readLong();
+    final SocketConnectRequestEvent readConnectRequest(Channel channel, ByteBuf msg, SocketPortExtraInfo portExtraInfo) {
+        long sessionGuid = msg.readLong();
         long ack = msg.readLong();
         int verifyingTimes = msg.readInt();
         byte[] token = NetUtils.readRemainBytes(msg);
 
         SocketConnectRequest connectRequest = new SocketConnectRequest(verifyingTimes, token);
-        return new SocketConnectRequestEvent(channel, localGuid, remoteGuid, ack, connectRequest, portExtraInfo);
+        return new SocketConnectRequestEvent(channel, sessionGuid, ack, connectRequest, portExtraInfo);
     }
 
     /**
@@ -203,13 +204,13 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
     /**
      * 解码协议2 - 连接响应
      */
-    final SocketConnectResponseEvent readConnectResponse(Channel channel, long localGuid, long remoteGuid, ByteBuf msg) {
+    final SocketConnectResponseEvent readConnectResponse(Channel channel, long sessionGuid, ByteBuf msg) {
         boolean success = msg.readByte() == 1;
         int verifyingTimes = msg.readInt();
         long ack = msg.readLong();
 
         SocketConnectResponse connectResponse = new SocketConnectResponse(success, verifyingTimes);
-        return new SocketConnectResponseEvent(channel, localGuid, remoteGuid, ack, connectResponse);
+        return new SocketConnectResponseEvent(channel, sessionGuid, ack, connectResponse);
     }
 
     // ---------------------------------------------- 协议3、4 ---------------------------------------
@@ -233,7 +234,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
     /**
      * 3. 解码rpc请求包
      */
-    final SocketMessageEvent readRpcRequestMessage(Channel channel, long localGuid, long remoteGuid, ByteBuf msg) {
+    final SocketMessageEvent readRpcRequestMessage(Channel channel, long sessionGuid, ByteBuf msg) {
         // 捎带确认消息
         long ack = msg.readLong();
         long sequence = msg.readLong();
@@ -244,7 +245,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
         Object request = tryDecodeBody(msg);
 
         RpcRequestMessage rpcRequestMessage = new RpcRequestMessage(requestGuid, sync, request);
-        return new SocketMessageEvent(channel, localGuid, remoteGuid, ack, sequence, rpcRequestMessage);
+        return new SocketMessageEvent(channel, sessionGuid, ack, sequence, rpcRequestMessage);
     }
 
     /**
@@ -274,7 +275,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
     /**
      * 4. 解码rpc 响应包
      */
-    final SocketMessageEvent readRpcResponseMessage(Channel channel, long localGuid, long remoteGuid, ByteBuf msg) {
+    final SocketMessageEvent readRpcResponseMessage(Channel channel, long sessionGuid, ByteBuf msg) {
         // 捎带确认信息
         long ack = msg.readLong();
         long sequence = msg.readLong();
@@ -288,7 +289,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
         }
         // 这个包装有点多
         RpcResponseMessage rpcResponseMessage = new RpcResponseMessage(requestGuid, new RpcResponse(resultCode, body));
-        return new SocketMessageEvent(channel, localGuid, remoteGuid, ack, sequence, rpcResponseMessage);
+        return new SocketMessageEvent(channel, sessionGuid, ack, sequence, rpcResponseMessage);
     }
 
     // ------------------------------------------ 协议5 --------------------------------------------
@@ -309,7 +310,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
     /**
      * 5.解码单向协议
      */
-    final SocketMessageEvent readOneWayMessage(Channel channel, long localGuid, long remoteGuid, ByteBuf msg) {
+    final SocketMessageEvent readOneWayMessage(Channel channel, long sessionGuid, ByteBuf msg) {
         // 捎带确认
         long ack = msg.readLong();
         long sequence = msg.readLong();
@@ -317,7 +318,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
         Object message = tryDecodeBody(msg);
 
         OneWayMessage oneWayMessage = new OneWayMessage(message);
-        return new SocketMessageEvent(channel, localGuid, remoteGuid, ack, sequence, oneWayMessage);
+        return new SocketMessageEvent(channel, sessionGuid, ack, sequence, oneWayMessage);
     }
 
     /**
@@ -372,11 +373,11 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
     /**
      * 解码协议6/7 - ack心跳包
      */
-    final SocketMessageEvent readAckPingPongMessage(Channel channel, long localGuid, long remoteGuid, ByteBuf msg) {
+    final SocketMessageEvent readAckPingPongMessage(Channel channel, long sessionGuid, ByteBuf msg) {
         long ack = msg.readLong();
         long sequence = msg.readLong();
 
-        return new SocketMessageEvent(channel, localGuid, remoteGuid, ack, sequence, PingPongMessage.INSTANCE);
+        return new SocketMessageEvent(channel, sessionGuid, ack, sequence, PingPongMessage.INSTANCE);
     }
     // ------------------------------------------ 分割线 --------------------------------------------
 
@@ -385,10 +386,14 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
      */
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        logger.warn("", cause);
-        if (++errorCount > 3) {
-            logger.error("close channel by reason of too many error caught!");
-            NetUtils.closeQuietly(ctx);
+        if (cause instanceof ReadTimeoutException) {
+            logger.info("close channel by reason of read timeout!");
+        } else {
+            logger.warn("", cause);
+            if (++errorCount > 3) {
+                logger.error("close channel by reason of too many error caught!");
+                NetUtils.closeQuietly(ctx);
+            }
         }
     }
 

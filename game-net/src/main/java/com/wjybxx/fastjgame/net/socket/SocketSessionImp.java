@@ -31,25 +31,17 @@ import io.netty.channel.Channel;
  */
 public class SocketSessionImp extends AbstractSession implements SocketSession {
 
-    private final long remoteGuid;
-    private final SocketSessionConfig config;
     /**
      * 不声明为final，是因为可能变更
      */
     private Channel channel;
+    private final SocketSessionConfig config;
 
-    public SocketSessionImp(NetContext netContext, NetManagerWrapper managerWrapper,
-                            long remoteGuid,
-                            SocketSessionConfig config, Channel channel) {
-        super(netContext, managerWrapper);
-        this.remoteGuid = remoteGuid;
+    public SocketSessionImp(long sessionGuid, NetContext netContext, NetManagerWrapper managerWrapper,
+                            Channel channel, SocketSessionConfig config) {
+        super(sessionGuid, netContext, managerWrapper);
         this.config = config;
         this.channel = channel;
-    }
-
-    @Override
-    public long remoteGuid() {
-        return remoteGuid;
     }
 
     @Override

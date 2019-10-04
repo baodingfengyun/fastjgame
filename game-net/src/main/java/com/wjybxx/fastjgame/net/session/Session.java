@@ -43,11 +43,8 @@ import javax.annotation.Nullable;
  * Q: 为什么删除了{@code remoteRole}和{@code localRole}?
  * A: 协议中显式传输角色类型是不安全的，用户请从{@link SocketConnectRequest#getToken()}中获取，如果需要的话，在token中存储关键信息。
  *
- * <p><br>
- * 注意：
- * 1. 特定的 localGuid 和 remoteGuid 在同一个NetEventLoop下只能建立一个链接！！！它俩确定唯一的一个session。
- * 并不支持在不同的端口的上以相同的id再建立连接，只能存在于不同于的{@link NetEventLoop}。<br>
- * 2. 这里提供的接口并不是那么的清晰易懂，偏原始、偏底层，应用层可以提供更良好的封装。
+ * <p>
+ * 这里提供的接口偏原始、偏底层，应用层可以提供更良好的封装。
  *
  * @author wjybxx
  * @version 1.2
@@ -56,17 +53,11 @@ import javax.annotation.Nullable;
  */
 public interface Session extends Comparable<Session> {
 
-    // ---------------------------------------------- 用户注册信息 --------------------------------------------
-
     /**
-     * 会话关联的本地对象guid
+     * session唯一id - 由发起连接请求的一方指定。
+     * 用户自己决定sessionGuid的含义，以及token的内容
      */
-    long localGuid();
-
-    /**
-     * 远程的guid
-     */
-    long remoteGuid();
+    long sessionGuid();
 
     /**
      * session相关的配置信息

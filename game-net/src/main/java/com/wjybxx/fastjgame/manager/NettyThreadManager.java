@@ -18,21 +18,25 @@ package com.wjybxx.fastjgame.manager;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
-import io.netty.channel.EventLoopGroup;
+import com.wjybxx.fastjgame.misc.HostAndPort;
+import com.wjybxx.fastjgame.misc.PortRange;
+import com.wjybxx.fastjgame.net.socket.DefaultSocketPort;
+import com.wjybxx.fastjgame.utils.NetUtils;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.net.BindException;
 
 /**
  * Netty线程管理器。
- * 最终决定还是每一个NetEventLoop一个，因为资源分配各有缺陷。
- * why?
- * 如果以NetEventLoopGroup进行分配，在用户不清楚的情况下，用户可能认为调整NetEventLoopGroup的线程数就可以提高网络性能，但实际上不行。
- * 如果没有调整Netty的线程数，它不能做到随着NetEventLoop线程的增加使性能也增加的目的。
- * <p>
- * 以NetEventLoop为单位分配资源也有坏处，最明显的坏处就是线程数很多。
  *
  * @author wjybxx
  * @version 1.0
@@ -43,6 +47,12 @@ import javax.annotation.concurrent.ThreadSafe;
 public class NettyThreadManager {
 
     private static final Logger logger = LoggerFactory.getLogger(NettyThreadManager.class);
+    /**
+     * 开启限流，多分配一点空间，否则容易被限流，导致数据丢失。
+     * （默认流量的8倍）
+     */
+    private static final WriteBufferWaterMark WRITE_BUFFER_WATER_MARK = new WriteBufferWaterMark(8 * 32 * 1024, 8 * 64 * 1024);
+
 
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
@@ -80,4 +90,122 @@ public class NettyThreadManager {
         return workerGroup;
     }
 
+    /**
+     * 监听某个端口,阻塞直到成功或失败。
+     * 参数意义可参考{@link java.net.StandardSocketOptions}
+     * 或 - https://www.cnblogs.com/googlemeoften/p/6082785.html
+     *
+     * @param host        地址
+     * @param port        需要绑定的端口
+     * @param sndBuffer   socket发送缓冲区
+     * @param rcvBuffer   socket接收缓冲区
+     * @param initializer channel初始化类，根据使用的协议(eg:tcp,ws) 和 序列化方式(eg:json,protoBuf)确定
+     * @return 监听成功成功则返回绑定的地址，失败则返回null
+     */
+    public DefaultSocketPort bind(String host, int port, int sndBuffer, int rcvBuffer, ChannelInitializer<SocketChannel> initializer) throws BindException {
+        ServerBootstrap serverBootstrap = new ServerBootstrap();
+        serverBootstrap.group(getBossGroup(), getWorkerGroup());
+
+        serverBootstrap.channel(NioServerSocketChannel.class);
+        serverBootstrap.childHandler(initializer);
+
+        // parentGroup参数
+        serverBootstrap.option(ChannelOption.SO_BACKLOG, 1024);
+        serverBootstrap.option(ChannelOption.SO_REUSEADDR, true);
+        serverBootstrap.option(ChannelOption.WRITE_BUFFER_WATER_MARK, WRITE_BUFFER_WATER_MARK);
+
+        // childGroup参数
+        serverBootstrap.childOption(ChannelOption.SO_KEEPALIVE, false);
+        serverBootstrap.childOption(ChannelOption.TCP_NODELAY, true);
+        serverBootstrap.childOption(ChannelOption.SO_SNDBUF, sndBuffer);
+        serverBootstrap.childOption(ChannelOption.SO_RCVBUF, rcvBuffer);
+        serverBootstrap.childOption(ChannelOption.SO_LINGER, 0);
+        serverBootstrap.childOption(ChannelOption.SO_REUSEADDR, true);
+        serverBootstrap.childOption(ChannelOption.WRITE_BUFFER_WATER_MARK, WRITE_BUFFER_WATER_MARK);
+
+        ChannelFuture channelFuture = serverBootstrap.bind(host, port);
+        try {
+            channelFuture.sync();
+            logger.info("bind {}:{} success.", host, port);
+            return new DefaultSocketPort(channelFuture.channel(), new HostAndPort(host, port));
+        } catch (InterruptedException e) {
+            // ignore e
+            NetUtils.closeQuietly(channelFuture);
+            Thread.currentThread().interrupt();
+        } catch (Exception e) {
+            // ignore, may another process bind this port
+            NetUtils.closeQuietly(channelFuture);
+        }
+        throw new BindException("can't bind " + host + ":" + port);
+    }
+
+    /**
+     * 在某个端口范围内选择一个端口监听.
+     *
+     * @param host        地址
+     * @param portRange   端口范围
+     * @param sndBuffer   socket发送缓冲区
+     * @param rcvBuffer   socket接收缓冲区
+     * @param initializer channel初始化类
+     * @return 监听成功的端口号，失败返回null
+     */
+    public DefaultSocketPort bindRange(String host, PortRange portRange, int sndBuffer, int rcvBuffer, ChannelInitializer<SocketChannel> initializer) throws BindException {
+        if (portRange.startPort <= 0) {
+            throw new IllegalArgumentException("fromPort " + portRange.startPort);
+        }
+        if (portRange.startPort > portRange.endPort) {
+            throw new IllegalArgumentException("fromPort " + portRange.startPort + " toPort " + portRange.endPort);
+        }
+        for (int port = portRange.startPort; port <= portRange.endPort; port++) {
+            try {
+                return bind(host, port, sndBuffer, rcvBuffer, initializer);
+            } catch (BindException e) {
+                // ignore
+            }
+        }
+        throw new BindException("can't bind port from " + portRange.startPort + " to " + portRange.endPort);
+    }
+
+    /**
+     * 异步建立连接localHost
+     *
+     * @param hostAndPort 服务器地址
+     * @param sndBuffer   socket发送缓冲区
+     * @param rcvBuffer   socket接收缓冲区
+     * @param initializer channel初始化类，根据使用的协议(eg:tcp,ws) 和 序列化方式(eg:json,protoBuf)确定
+     * @return channelFuture 注意使用{@link ChannelFuture#sync()} 会抛出异常。
+     * 使用{@link ChannelFuture#await()} 和{@link ChannelFuture#isSuccess()} 安全处理。
+     * 此外，使用channel 需要调用 {@link Channel#isActive()}检查是否成功和远程建立连接
+     */
+    public ChannelFuture connectAsyn(HostAndPort hostAndPort, int sndBuffer, int rcvBuffer, ChannelInitializer<SocketChannel> initializer) {
+        Bootstrap bootstrap = new Bootstrap();
+        bootstrap.group(getWorkerGroup());
+
+        bootstrap.channel(NioSocketChannel.class);
+        bootstrap.handler(initializer);
+
+        bootstrap.option(ChannelOption.SO_KEEPALIVE, false);
+        bootstrap.option(ChannelOption.TCP_NODELAY, true);
+        bootstrap.option(ChannelOption.SO_SNDBUF, sndBuffer);
+        bootstrap.option(ChannelOption.SO_RCVBUF, rcvBuffer);
+        bootstrap.option(ChannelOption.SO_LINGER, 0);
+        bootstrap.option(ChannelOption.SO_REUSEADDR, true);
+        bootstrap.option(ChannelOption.WRITE_BUFFER_WATER_MARK, WRITE_BUFFER_WATER_MARK);
+        return bootstrap.connect(hostAndPort.getHost(), hostAndPort.getPort());
+    }
+
+    /**
+     * 同步建立连接
+     *
+     * @param hostAndPort 服务器地址
+     * @param sndBuffer   socket发送缓冲区
+     * @param rcvBuffer   socket接收缓冲区
+     * @param initializer channel初始化类，根据使用的协议(eg:tcp,ws) 和 序列化方式(eg:json,protoBuf)确定
+     * @return 注意！使用channel 需要调用 {@link Channel#isActive()}检查是否成功和远程建立连接
+     */
+    public Channel connectSyn(HostAndPort hostAndPort, int sndBuffer, int rcvBuffer, ChannelInitializer<SocketChannel> initializer) {
+        ChannelFuture channelFuture = connectAsyn(hostAndPort, sndBuffer, rcvBuffer, initializer);
+        channelFuture.awaitUninterruptibly();
+        return channelFuture.channel();
+    }
 }

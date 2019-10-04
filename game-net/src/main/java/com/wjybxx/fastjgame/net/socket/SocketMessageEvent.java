@@ -34,13 +34,9 @@ public final class SocketMessageEvent implements SocketEvent {
      */
     private final Channel channel;
     /**
-     * 该事件关联的本地角色guid
+     * 事件关联的session标识
      */
-    private final long localGuid;
-    /**
-     * 该事件关联的远程guid
-     */
-    private final long remoteGuid;
+    private final long sessionGuid;
     /**
      * 捎带确认的ack
      */
@@ -54,10 +50,9 @@ public final class SocketMessageEvent implements SocketEvent {
      */
     private final NetMessage wrappedMessage;
 
-    public SocketMessageEvent(Channel channel, long localGuid, long remoteGuid, long ack, long sequence, NetMessage wrappedMessage) {
+    public SocketMessageEvent(Channel channel, long sessionGuid, long ack, long sequence, NetMessage wrappedMessage) {
         this.channel = channel;
-        this.localGuid = localGuid;
-        this.remoteGuid = remoteGuid;
+        this.sessionGuid = sessionGuid;
         this.ack = ack;
         this.sequence = sequence;
         this.wrappedMessage = wrappedMessage;
@@ -69,13 +64,8 @@ public final class SocketMessageEvent implements SocketEvent {
     }
 
     @Override
-    public final long localGuid() {
-        return localGuid;
-    }
-
-    @Override
-    public long remoteGuid() {
-        return remoteGuid;
+    public long sessionGuid() {
+        return sessionGuid;
     }
 
     public long getAck() {

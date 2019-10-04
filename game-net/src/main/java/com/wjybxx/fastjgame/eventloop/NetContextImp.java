@@ -20,6 +20,7 @@ import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
 import com.wjybxx.fastjgame.misc.HostAndPort;
+import com.wjybxx.fastjgame.misc.HttpPortExtraInfo;
 import com.wjybxx.fastjgame.misc.PortRange;
 import com.wjybxx.fastjgame.net.http.HttpRequestDispatcher;
 import com.wjybxx.fastjgame.net.http.HttpServerInitializer;
@@ -52,21 +53,14 @@ import java.util.Map;
 @ThreadSafe
 public class NetContextImp implements NetContext {
 
-    private final long localGuid;
+    private final NetEventLoop netEventLoop;
     private final EventLoop localEventLoop;
     private final NetManagerWrapper managerWrapper;
-    private final NetEventLoop netEventLoop;
 
-    public NetContextImp(long localGuid, EventLoop localEventLoop, NetManagerWrapper managerWrapper) {
-        this.localGuid = localGuid;
+    public NetContextImp(NetEventLoop netEventLoop, EventLoop localEventLoop, NetManagerWrapper managerWrapper) {
         this.localEventLoop = localEventLoop;
+        this.netEventLoop = netEventLoop;
         this.managerWrapper = managerWrapper;
-        this.netEventLoop = managerWrapper.getNetEventLoopManager().eventLoop();
-    }
-
-    @Override
-    public long localGuid() {
-        return localGuid;
     }
 
     @Override
@@ -80,23 +74,16 @@ public class NetContextImp implements NetContext {
     }
 
     @Override
-    public ListenableFuture<?> deregister() {
-        return netEventLoop.submit(() -> {
-            managerWrapper.getNetContextManager().deregister(this);
-        });
-    }
-
-    @Override
     public ListenableFuture<SocketPort> bindTcpRange(String host, PortRange portRange, @Nonnull SocketSessionConfig config) {
         SocketPortExtraInfo portExtraInfo = new SocketPortExtraInfo(this, config);
-        TCPServerChannelInitializer initializer = new TCPServerChannelInitializer(localGuid, portExtraInfo, managerWrapper.getNetEventManager());
+        TCPServerChannelInitializer initializer = new TCPServerChannelInitializer(portExtraInfo, managerWrapper.getNetEventManager());
         return bindRange(host, portRange, config, initializer);
     }
 
     @Override
     public ListenableFuture<SocketPort> bindWSRange(String host, PortRange portRange, String websocketPath, @Nonnull SocketSessionConfig config) {
         SocketPortExtraInfo portExtraInfo = new SocketPortExtraInfo(this, config);
-        WsServerChannelInitializer initializer = new WsServerChannelInitializer(localGuid, websocketPath, portExtraInfo, managerWrapper.getNetEventManager());
+        WsServerChannelInitializer initializer = new WsServerChannelInitializer(websocketPath, portExtraInfo, managerWrapper.getNetEventManager());
         return bindRange(host, portRange, config, initializer);
     }
 
@@ -105,7 +92,7 @@ public class NetContextImp implements NetContext {
         // 这里一定不是网络层，只有逻辑层才会调用bind
         return netEventLoop.submit(() -> {
             try {
-                return managerWrapper.getSessionManager().bindRange(host, portRange, config, initializer);
+                return managerWrapper.getAcceptorManager().bindRange(host, portRange, config, initializer);
             } catch (BindException e) {
                 ConcurrentUtils.rethrow(e);
                 // unreachable
@@ -115,25 +102,24 @@ public class NetContextImp implements NetContext {
     }
 
     @Override
-    public ListenableFuture<Session> connectTcp(long remoteGuid, HostAndPort remoteAddress, byte[] token, @Nonnull SocketSessionConfig config) {
-        final TCPClientChannelInitializer initializer = new TCPClientChannelInitializer(localGuid, remoteGuid, config, managerWrapper.getNetEventManager());
-        return connect(remoteGuid, remoteAddress, token, config, initializer);
+    public ListenableFuture<Session> connectTcp(long sessionGuid, HostAndPort remoteAddress, byte[] token, @Nonnull SocketSessionConfig config) {
+        final TCPClientChannelInitializer initializer = new TCPClientChannelInitializer(sessionGuid, config, managerWrapper.getNetEventManager());
+        return connect(sessionGuid, remoteAddress, token, config, initializer);
     }
 
     @Override
-    public ListenableFuture<Session> connectWS(long remoteGuid, HostAndPort remoteAddress, String websocketUrl, byte[] token, @Nonnull SocketSessionConfig config) {
-        final WsClientChannelInitializer initializer = new WsClientChannelInitializer(localGuid, remoteGuid, websocketUrl, config.maxFrameLength(),
+    public ListenableFuture<Session> connectWS(long sessionGuid, HostAndPort remoteAddress, String websocketUrl, byte[] token, @Nonnull SocketSessionConfig config) {
+        final WsClientChannelInitializer initializer = new WsClientChannelInitializer(sessionGuid, websocketUrl, config.maxFrameLength(),
                 config.codec(), managerWrapper.getNetEventManager());
-        return connect(remoteGuid, remoteAddress, token, config, initializer);
+        return connect(sessionGuid, remoteAddress, token, config, initializer);
     }
 
     @Nonnull
-    private ListenableFuture<Session> connect(long remoteGuid, HostAndPort remoteAddress,
-                                              byte[] token, SocketSessionConfig config,
+    private ListenableFuture<Session> connect(long sessionGuid, HostAndPort remoteAddress, byte[] token, SocketSessionConfig config,
                                               ChannelInitializer<SocketChannel> initializer) {
         // 这里一定不是网络层，只有逻辑层才会调用connect
         return netEventLoop.submit(() -> {
-            return managerWrapper.getSessionManager().connect(this, remoteGuid, remoteAddress,
+            return managerWrapper.getConnectorManager().connect(this, sessionGuid, remoteAddress,
                     token, config, initializer);
         });
     }
@@ -143,20 +129,21 @@ public class NetContextImp implements NetContext {
     @Override
     public ListenableFuture<LocalPort> bindLocal(@Nonnull LocalSessionConfig config) {
         return netEventLoop.submit(() -> {
-            return managerWrapper.getSessionManager().bindLocal(this, config);
+            return managerWrapper.getAcceptorManager().bindLocal(this, config);
         });
     }
 
     @Override
-    public ListenableFuture<Session> connectLocal(@Nonnull LocalPort localPort, byte[] token, @Nonnull LocalSessionConfig config) {
-        return localPort.connect(this, config);
+    public ListenableFuture<Session> connectLocal(long sessionGuid, @Nonnull LocalPort localPort, byte[] token, @Nonnull LocalSessionConfig config) {
+        return localPort.connect(this, sessionGuid, config);
     }
 
     // ------------------------------------------- http 实现 ----------------------------------------
 
     @Override
-    public ListenableFuture<HostAndPort> bindHttpRange(String host, PortRange portRange, @Nonnull HttpRequestDispatcher httpRequestDispatcher) {
-        final HttpServerInitializer initializer = new HttpServerInitializer(localGuid, httpRequestDispatcher, managerWrapper.getNetEventManager());
+    public ListenableFuture<SocketPort> bindHttpRange(String host, PortRange portRange, @Nonnull HttpRequestDispatcher httpRequestDispatcher) {
+        final HttpPortExtraInfo portExtraInfo = new HttpPortExtraInfo(this, httpRequestDispatcher);
+        final HttpServerInitializer initializer = new HttpServerInitializer(managerWrapper.getNetEventManager(), portExtraInfo);
         // 这里一定不是网络层，只有逻辑层才会调用bind
         return netEventLoop.submit(() -> {
             try {

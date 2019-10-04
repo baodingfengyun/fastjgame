@@ -66,7 +66,7 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
     protected void init() throws Exception {
         super.init();
         // 创建网络环境
-        netContext = ExampleConstants.netEventLoop.createContext(ExampleConstants.serverGuid, this).get();
+        netContext = ExampleConstants.netEventLoop.createContext(this);
         // 注册rpc服务
         ExampleRpcServiceRpcRegister.register(protocolDispatcher, new ExampleRpcService());
 
@@ -107,9 +107,6 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
     @Override
     protected void clean() throws Exception {
         super.clean();
-        if (null != netContext) {
-            netContext.deregister();
-        }
         ExampleConstants.netEventLoop.shutdown();
     }
 

@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.net.http;
 
 import com.wjybxx.fastjgame.manager.NetEventManager;
+import com.wjybxx.fastjgame.misc.HttpPortExtraInfo;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -46,21 +47,13 @@ public class HttpRequestParamDecoder extends SimpleChannelInboundHandler<FullHtt
 
     private static final Logger logger = LoggerFactory.getLogger(HttpRequestParamDecoder.class);
 
-    /**
-     * localGuid
-     */
-    private final long localGuid;
-    /**
-     * 该端口上关联的消息处理器
-     */
-    private final HttpRequestDispatcher httpRequestDispatcher;
     private final NetEventManager netEventManager;
+    private final HttpPortExtraInfo portExtraInfo;
 
-    public HttpRequestParamDecoder(long localGuid, HttpRequestDispatcher httpRequestDispatcher, NetEventManager netEventManager) {
+    public HttpRequestParamDecoder(NetEventManager netEventManager, HttpPortExtraInfo portExtraInfo) {
         super(true);
-        this.localGuid = localGuid;
-        this.httpRequestDispatcher = httpRequestDispatcher;
         this.netEventManager = netEventManager;
+        this.portExtraInfo = portExtraInfo;
     }
 
     @Override
@@ -104,7 +97,7 @@ public class HttpRequestParamDecoder extends SimpleChannelInboundHandler<FullHtt
             }
         }
         final HttpRequestParam httpRequestParam = new HttpRequestParam(method, paramsMap);
-        HttpRequestEvent httpRequestEvent = new HttpRequestEvent(ctx.channel(), localGuid, httpRequestDispatcher, path, httpRequestParam);
+        HttpRequestEvent httpRequestEvent = new HttpRequestEvent(ctx.channel(), path, httpRequestParam, portExtraInfo);
         netEventManager.fireHttpRequest(httpRequestEvent);
     }
 

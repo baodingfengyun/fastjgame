@@ -13,27 +13,31 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.wjybxx.fastjgame.net.socket;
 
-import io.netty.channel.Channel;
+package com.wjybxx.fastjgame.net.http;
 
 /**
- * 网络事件参数，提供统一的抽象(窄)视图。
- *
  * @author wjybxx
  * @version 1.0
- * date - 2019/4/27 9:16
+ * date - 2019/10/4
  * github - https://github.com/hl845740757
  */
-public interface SocketEvent {
+public class HttpRequestCommitTask implements Runnable{
 
-    /**
-     * 获取网络事件对于的channel
-     */
-    Channel channel();
+    private final HttpSession httpSession;
+    private final String path;
+    private final HttpRequestParam params;
+    private final HttpRequestDispatcher dispatcher;
 
-    /**
-     * 对应的session的标识
-     */
-    long sessionGuid();
+    public HttpRequestCommitTask(HttpSession httpSession, String path, HttpRequestParam params, HttpRequestDispatcher dispatcher) {
+        this.httpSession = httpSession;
+        this.dispatcher = dispatcher;
+        this.path = path;
+        this.params = params;
+    }
+
+    @Override
+    public void run() {
+        dispatcher.post(httpSession, path, params);
+    }
 }

@@ -22,10 +22,9 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
-import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.handler.timeout.ReadTimeoutHandler;
 
 import javax.annotation.concurrent.ThreadSafe;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 服务器channel初始化器示例
@@ -38,15 +37,10 @@ import java.util.concurrent.TimeUnit;
 @ThreadSafe
 public class TCPServerChannelInitializer extends ChannelInitializer<SocketChannel> {
 
-    /**
-     * 本地发起监听的角色guid
-     */
-    private final long localGuid;
     private final SocketPortExtraInfo portExtraInfo;
     private final NetEventManager netEventManager;
 
-    public TCPServerChannelInitializer(long localGuid, SocketPortExtraInfo portExtraInfo, NetEventManager netEventManager) {
-        this.localGuid = localGuid;
+    public TCPServerChannelInitializer(SocketPortExtraInfo portExtraInfo, NetEventManager netEventManager) {
         this.portExtraInfo = portExtraInfo;
         this.netEventManager = netEventManager;
     }
@@ -55,8 +49,8 @@ public class TCPServerChannelInitializer extends ChannelInitializer<SocketChanne
     protected void initChannel(SocketChannel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
         // 读超时控制 - 注意：netty的EventLoop虽然支持定时任务任务，但是定时任务对EventLoop非常不友好，要尽量减少这种定时任务。
-        pipeline.addLast(NetUtils.READ_TIMEOUT_HANDLER_NAME, new IdleStateHandler(60, 0, 0, TimeUnit.SECONDS));
+        pipeline.addLast(NetUtils.READ_TIMEOUT_HANDLER_NAME, new ReadTimeoutHandler(45));
         pipeline.addLast(new LengthFieldBasedFrameDecoder(portExtraInfo.getSessionConfig().maxFrameLength(), 0, 4, 0, 4));
-        pipeline.addLast(new ServerSocketCodec(portExtraInfo.getSessionConfig().codec(), localGuid, portExtraInfo, netEventManager));
+        pipeline.addLast(new ServerSocketCodec(portExtraInfo.getSessionConfig().codec(), portExtraInfo, netEventManager));
     }
 }

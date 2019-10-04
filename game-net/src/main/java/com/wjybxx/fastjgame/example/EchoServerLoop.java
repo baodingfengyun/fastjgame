@@ -58,7 +58,7 @@ public class EchoServerLoop extends SingleThreadEventLoop {
     protected void init() throws Exception {
         super.init();
         // 创建网络环境
-        netContext = netGroup.createContext(ExampleConstants.serverGuid, this).get();
+        netContext = netGroup.createContext(this);
 
         // 监听tcp端口
         SocketSessionConfig config = SocketSessionConfig.newBuilder().setCodec(ExampleConstants.jsonBasedCodec)
@@ -94,9 +94,6 @@ public class EchoServerLoop extends SingleThreadEventLoop {
     @Override
     protected void clean() throws Exception {
         super.clean();
-        if (null != netContext) {
-            netContext.deregister();
-        }
         netGroup.shutdown();
     }
 

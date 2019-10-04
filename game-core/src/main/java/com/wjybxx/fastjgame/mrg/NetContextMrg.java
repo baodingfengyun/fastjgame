@@ -49,16 +49,11 @@ public class NetContextMrg {
 
     public void start() throws ExecutionException, InterruptedException {
         // 创建上下文
-        ListenableFuture<NetContext> future = gameEventLoopMrg.getNetEventLoop().createContext(worldInfoMrg.getWorldGuid(),
-                gameEventLoopMrg.getEventLoop());
-
-        netContext = future.get();
+        netContext = gameEventLoopMrg.getNetEventLoop().createContext(gameEventLoopMrg.getEventLoop());
     }
 
     public void shutdown() {
-        if (null != netContext) {
-            netContext.deregister();
-        }
+
     }
 
     public NetContext getNetContext() {

@@ -46,6 +46,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public abstract class AbstractSession implements Session {
 
+    protected final long sessionGuid;
     protected final NetContext netContext;
     protected final NetManagerWrapper managerWrapper;
     /**
@@ -60,22 +61,18 @@ public abstract class AbstractSession implements Session {
      * 激活状态 - 默认true，因为在激活之前不会返回给用户。
      */
     private final AtomicBoolean stateHolder = new AtomicBoolean(true);
-    /**
-     * 刷新缓冲区的任务 - 避免大量无意义的对象
-     */
-    private final Runnable flushTask;
 
-    protected AbstractSession(NetContext netContext, NetManagerWrapper managerWrapper) {
+    protected AbstractSession(long sessionGuid, NetContext netContext, NetManagerWrapper managerWrapper) {
+        this.sessionGuid = sessionGuid;
         this.netContext = netContext;
         this.managerWrapper = managerWrapper;
         this.pipeline = new DefaultSessionPipeline(this, managerWrapper);
         this.netEventLoop = managerWrapper.getNetEventLoopManager().eventLoop();
-        this.flushTask = pipeline::fireFlush;
     }
 
     @Override
-    public final long localGuid() {
-        return netContext.localGuid();
+    public final long sessionGuid() {
+        return sessionGuid;
     }
 
     @Override
@@ -135,12 +132,8 @@ public abstract class AbstractSession implements Session {
         final Promise<?> promise = netEventLoop.newPromise();
         // 可能是网络层关闭
         ConcurrentUtils.executeOrRun(netEventLoop, () -> {
-            if (managerWrapper.getSessionManager().removeSession(this)) {
-                // 保证逻辑只执行一次
-                pipeline.fireClose(promise);
-            } else {
-                promise.trySuccess(null);
-            }
+            // TODO
+            pipeline.fireClose(promise);
         });
         return promise;
     }
@@ -194,7 +187,7 @@ public abstract class AbstractSession implements Session {
 
     @Override
     public final int hashCode() {
-        return Long.hashCode(localGuid()) + Long.hashCode(remoteGuid());
+        return Long.hashCode(sessionGuid);
     }
 
     @Override
@@ -204,10 +197,6 @@ public abstract class AbstractSession implements Session {
 
     @Override
     public final int compareTo(@Nonnull Session other) {
-        final int localGuidComparedResult = Long.compare(localGuid(), other.localGuid());
-        if (localGuidComparedResult != 0) {
-            return localGuidComparedResult;
-        }
-        return Long.compare(remoteGuid(), other.remoteGuid());
+        return Long.compare(sessionGuid, other.sessionGuid());
     }
 }

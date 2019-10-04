@@ -13,27 +13,35 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.wjybxx.fastjgame.net.socket;
 
-import io.netty.channel.Channel;
+package com.wjybxx.fastjgame.misc;
+
+import com.wjybxx.fastjgame.eventloop.NetContext;
+import com.wjybxx.fastjgame.net.http.HttpRequestDispatcher;
 
 /**
- * 网络事件参数，提供统一的抽象(窄)视图。
+ * 绑定的http端口上的一些信息
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/4/27 9:16
+ * date - 2019/10/4
  * github - https://github.com/hl845740757
  */
-public interface SocketEvent {
+public class HttpPortExtraInfo {
 
-    /**
-     * 获取网络事件对于的channel
-     */
-    Channel channel();
+    private final NetContext netContext;
+    private final HttpRequestDispatcher dispatcher;
 
-    /**
-     * 对应的session的标识
-     */
-    long sessionGuid();
+    public HttpPortExtraInfo(NetContext netContext, HttpRequestDispatcher dispatcher) {
+        this.netContext = netContext;
+        this.dispatcher = dispatcher;
+    }
+
+    public NetContext getNetContext() {
+        return netContext;
+    }
+
+    public HttpRequestDispatcher getDispatcher() {
+        return dispatcher;
+    }
 }

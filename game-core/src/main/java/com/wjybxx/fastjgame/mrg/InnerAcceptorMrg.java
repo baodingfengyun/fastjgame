@@ -96,9 +96,8 @@ public class InnerAcceptorMrg {
 
     public HostAndPort bindInnerHttpPort() throws ExecutionException, InterruptedException {
         NetContext netContext = netContextMrg.getNetContext();
-
-        ListenableFuture<HostAndPort> bindFuture = netContext.bindHttpRange(NetUtils.getLocalIp(), GameUtils.INNER_HTTP_PORT_RANGE, httpDispatcherMrg);
-        return bindFuture.get();
+        ListenableFuture<SocketPort> bindFuture = netContext.bindHttpRange(NetUtils.getLocalIp(), GameUtils.INNER_HTTP_PORT_RANGE, httpDispatcherMrg);
+        return bindFuture.get().getHostAndPort();
     }
 
     public void connect(long remoteGuid, RoleType remoteRole, String innerTcpAddress, String localAddress, String macAddress, SessionLifecycleAware lifecycleAware) {
@@ -106,7 +105,7 @@ public class InnerAcceptorMrg {
         if (null != localPort) {
             // 两个world在同一个进程内
             LocalSessionConfig config = newLocalSessionConfig(lifecycleAware);
-            netContextMrg.getNetContext().connectLocal(localPort, newToken(remoteRole), config);
+            netContextMrg.getNetContext().connectLocal(worldInfoMrg.getWorldGuid(), localPort, newToken(remoteGuid, remoteRole), config);
             return;
         }
         if (Objects.equals(macAddress, SystemUtils.getMAC())) {
@@ -119,8 +118,8 @@ public class InnerAcceptorMrg {
     }
 
     private void connectTcp(long remoteGuid, RoleType remoteRole, HostAndPort hostAndPort, SessionLifecycleAware lifecycleAware) {
-        netContextMrg.getNetContext().connectTcp(remoteGuid, hostAndPort,
-                newToken(remoteRole), newSocketSessionConfig(lifecycleAware));
+        netContextMrg.getNetContext().connectTcp(worldInfoMrg.getWorldGuid(), hostAndPort,
+                newToken(remoteGuid, remoteRole), newSocketSessionConfig(lifecycleAware));
     }
 
     public SocketSessionConfig newSocketSessionConfig(SessionLifecycleAware lifecycleAware) {
@@ -144,8 +143,8 @@ public class InnerAcceptorMrg {
         return protocolCodecMrg.getInnerProtocolCodec();
     }
 
-    private byte[] newToken(RoleType roleType) {
+    private byte[] newToken(long remoteGuid, RoleType roleType) {
         // TODO
-        return CodecUtils.getBytesUTF8(roleType.name());
+        return CodecUtils.getBytesUTF8(roleType.name() + "_" + remoteGuid);
     }
 }

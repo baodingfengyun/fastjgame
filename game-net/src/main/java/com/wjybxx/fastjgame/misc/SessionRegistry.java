@@ -16,11 +16,14 @@
 
 package com.wjybxx.fastjgame.misc;
 
+import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.net.session.Session;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import javax.annotation.Nullable;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * session注册表
@@ -32,14 +35,12 @@ import javax.annotation.Nullable;
  */
 public class SessionRegistry {
 
-    private final Long2ObjectMap<Long2ObjectMap<Session>> guid_guid_session_map = new Long2ObjectOpenHashMap<>();
+    private final Long2ObjectMap<Session> sessionMap = new Long2ObjectOpenHashMap<>();
 
     public void tick() {
-        for (Long2ObjectMap<Session> sessionMap : guid_guid_session_map.values()) {
-            for (Session session : sessionMap.values()) {
-                // TODO tick内部大量的线程判断在这里是不必要的
-                session.tick();
-            }
+        for (Session session : sessionMap.values()) {
+            // TODO tick内部大量的线程判断在这里是不必要的
+            session.tick();
         }
     }
 
@@ -49,45 +50,46 @@ public class SessionRegistry {
      * @param session 待注册的session
      */
     public void registerSession(Session session) {
-        if (getSession(session.localGuid(), session.remoteGuid()) != null) {
-            throw new IllegalArgumentException("session " + session.localGuid() + " - " + session.remoteGuid() + " already registered");
+        if (sessionMap.containsKey(session.sessionGuid())) {
+            throw new IllegalArgumentException("session " + session.sessionGuid() + " already registered");
         }
-        final Long2ObjectMap<Session> sessionMap = guid_guid_session_map.computeIfAbsent(session.localGuid(),
-                k -> new Long2ObjectOpenHashMap<>());
-        sessionMap.put(session.remoteGuid(), session);
+        sessionMap.put(session.sessionGuid(), session);
     }
 
     /**
      * 删除一个session 。
-     * 注意：参数顺序不一样的意义不一样。
      *
-     * @param localGuid  自身guid
-     * @param remoteGuid 会话另一方guid
+     * @param sessionGuid session唯一标识
      * @return 删除的session
      */
     @Nullable
-    public Session removeSession(long localGuid, long remoteGuid) {
-        final Long2ObjectMap<Session> sessionMap = guid_guid_session_map.get(localGuid);
-        if (null == sessionMap) {
-            return null;
-        }
-        return sessionMap.remove(remoteGuid);
+    public Session removeSession(long sessionGuid) {
+        return sessionMap.remove(sessionGuid);
     }
 
     /**
      * 获取一个session。
-     * 注意：参数顺序不一样的意义不一样。
      *
-     * @param localGuid  自身guid
-     * @param remoteGuid 会话另一方guid
+     * @param sessionGuid session唯一标识
      * @return session
      */
     @Nullable
-    public Session getSession(long localGuid, long remoteGuid) {
-        final Long2ObjectMap<Session> sessionMap = guid_guid_session_map.get(localGuid);
-        if (null == sessionMap) {
-            return null;
+    public Session getSession(long sessionGuid) {
+        return sessionMap.get(sessionGuid);
+    }
+
+    public void onUserEventLoopTerminal(EventLoop userEventLoop) {
+        // 防止迭代的时候删除
+        List<Session> needRemovedSession = sessionMap.values().stream()
+                .filter(session -> session.localEventLoop() == userEventLoop)
+                .collect(Collectors.toList());
+
+        for (Session session : needRemovedSession) {
+            session.close();
         }
-        return sessionMap.get(remoteGuid);
+    }
+
+    public void closeAll() {
+
     }
 }

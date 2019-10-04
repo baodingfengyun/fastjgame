@@ -20,16 +20,18 @@ import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.misc.HostAndPort;
+import com.wjybxx.fastjgame.misc.HttpPortExtraInfo;
 import com.wjybxx.fastjgame.misc.PortRange;
 import com.wjybxx.fastjgame.net.http.*;
 import com.wjybxx.fastjgame.net.socket.DefaultSocketPort;
 import com.wjybxx.fastjgame.timer.FixedDelayHandle;
-import com.wjybxx.fastjgame.utils.*;
+import com.wjybxx.fastjgame.utils.CollectionUtils;
+import com.wjybxx.fastjgame.utils.ConcurrentUtils;
+import com.wjybxx.fastjgame.utils.NetUtils;
+import com.wjybxx.fastjgame.utils.TimeUtils;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -54,20 +56,19 @@ public class HttpSessionManager {
     private final NetEventLoopManager netEventLoopManager;
     private final NetConfigManager netConfigManager;
     private final NetTimeManager netTimeManager;
-    private final AcceptorManager acceptorManager;
-
+    private final NettyThreadManager nettyThreadManager;
     /**
-     * 所有使用HttpSession的用户信息
+     * session映射
      */
-    private final Long2ObjectMap<UserInfo> userInfoMap = new Long2ObjectOpenHashMap<>();
+    private final Map<Channel, SessionWrapper> sessionWrapperMap = new IdentityHashMap<>(128);
 
     @Inject
     public HttpSessionManager(NetTimerManager netTimerManager, NetEventLoopManager netEventLoopManager, NetConfigManager netConfigManager,
-                              NetTimeManager netTimeManager, AcceptorManager acceptorManager) {
+                              NetTimeManager netTimeManager, NettyThreadManager nettyThreadManager) {
         this.netEventLoopManager = netEventLoopManager;
         this.netConfigManager = netConfigManager;
         this.netTimeManager = netTimeManager;
-        this.acceptorManager = acceptorManager;
+        this.nettyThreadManager = nettyThreadManager;
 
         netTimerManager.newFixedDelay(this.netConfigManager.httpSessionTimeout() * TimeUtils.SEC, this::checkSessionTimeout);
     }
@@ -80,19 +81,12 @@ public class HttpSessionManager {
     }
 
     /**
-     * @see AcceptorManager#bindRange(String, PortRange, int, int, ChannelInitializer)
+     * @see NettyThreadManager#bindRange(String, PortRange, int, int, ChannelInitializer)
      */
-    public HostAndPort bindRange(NetContext netContext, String host, PortRange portRange,
+    public DefaultSocketPort bindRange(NetContext netContext, String host, PortRange portRange,
                                  @Nonnull ChannelInitializer<SocketChannel> initializer) throws BindException {
         assert netEventLoopManager.inEventLoop();
-        // 绑定端口
-        DefaultSocketPort defaultSocketPort = acceptorManager.bindRange(host, portRange, 8192, 8192, initializer);
-        // 保存用户信息
-        final UserInfo userInfo = userInfoMap.computeIfAbsent(netContext.localGuid(), localGuid -> new UserInfo(netContext));
-        // 保存绑定的端口
-        userInfo.defaultSocketPortList.add(defaultSocketPort);
-
-        return defaultSocketPort.getHostAndPort();
+        return nettyThreadManager.bindRange(host, portRange, 8192, 8192, initializer);
     }
 
     /**
@@ -102,41 +96,23 @@ public class HttpSessionManager {
      */
     public void onUserEventLoopTerminal(EventLoop eventLoop) {
         assert netEventLoopManager.inEventLoop();
-        CollectionUtils.removeIfAndThen(userInfoMap.values(),
-                userInfo -> userInfo.netContext.localEventLoop() == eventLoop,
+        CollectionUtils.removeIfAndThen(sessionWrapperMap,
+                (channel, sessionWrapper) -> sessionWrapper.getSession().localEventLoop() == eventLoop,
                 this::closeUserSession);
     }
 
-    /**
-     * 删除某个用户的所有session
-     *
-     * @param localGuid 用户id
-     */
-    public void closeUserSession(long localGuid) {
-        UserInfo userInfo = userInfoMap.remove(localGuid);
-        if (null == userInfo) {
-            return;
-        }
-        closeUserSession(userInfo);
-    }
+    private <K, V> void closeUserSession(K k, V v) {
 
-    private void closeUserSession(UserInfo userInfo) {
-        // 如果 用户 持有了httpSession的引用，长时间没有完成响应的话，这里关闭可能导致一些错误
-        CollectionUtils.removeIfAndThen(userInfo.sessionWrapperMap, FunctionUtils::TRUE, this::afterRemoved);
-        // 绑定的端口需要释放
-        userInfo.defaultSocketPortList.forEach(NetUtils::closeQuietly);
     }
 
     /**
      * 检查session超时
      */
     private void checkSessionTimeout(FixedDelayHandle handle) {
-        for (UserInfo userInfo : userInfoMap.values()) {
-            // 如果用户持有了httpSession的引用，长时间没有完成响应的话，这里关闭可能导致一些错误
-            CollectionUtils.removeIfAndThen(userInfo.sessionWrapperMap,
-                    (channel, sessionWrapper) -> netTimeManager.getSystemSecTime() >= sessionWrapper.getSessionTimeout(),
-                    this::afterRemoved);
-        }
+        // 如果用户持有了httpSession的引用，长时间没有完成响应的话，这里关闭可能导致一些错误
+        CollectionUtils.removeIfAndThen(sessionWrapperMap,
+                (channel, sessionWrapper) -> netTimeManager.getSystemSecTime() >= sessionWrapper.getSessionTimeout(),
+                this::afterRemoved);
     }
 
     /**
@@ -146,40 +122,26 @@ public class HttpSessionManager {
      */
     public void onRcvHttpRequest(HttpRequestEvent requestEventParam) {
         final Channel channel = requestEventParam.channel();
-        final UserInfo userInfo = userInfoMap.get(requestEventParam.localGuid());
-        if (userInfo == null) {
-            // 请求的逻辑用户不存在
-            channel.writeAndFlush(HttpResponseHelper.newNotFoundResponse(), channel.voidPromise());
-            return;
-        }
+        final HttpPortExtraInfo portExtraInfo = requestEventParam.getPortExtraInfo();
         // 保存session
-        SessionWrapper sessionWrapper = userInfo.sessionWrapperMap.computeIfAbsent(channel,
-                k -> new SessionWrapper(new HttpSessionImp(userInfo.netContext, this, channel)));
+        SessionWrapper sessionWrapper = sessionWrapperMap.computeIfAbsent(channel,
+                k -> new SessionWrapper(new HttpSessionImp(portExtraInfo.getNetContext(), this, channel)));
 
         // 保持一段时间的活性
         sessionWrapper.setSessionTimeout(netConfigManager.httpSessionTimeout() + netTimeManager.getSystemSecTime());
 
         final HttpSessionImp httpSession = sessionWrapper.session;
-        final String path = requestEventParam.getPath();
-        final HttpRequestParam param = requestEventParam.getParams();
-        // 避免捕获多于的对象，导致内存泄漏
-        final HttpRequestDispatcher httpRequestDispatcher = requestEventParam.getHttpRequestDispatcher();
 
         // 处理请求，提交到用户所在的线程，实现线程安全
-        ConcurrentUtils.tryCommit(httpSession.localEventLoop(), () -> {
-            httpRequestDispatcher.post(httpSession, path, param);
-        });
+        ConcurrentUtils.tryCommit(httpSession.localEventLoop(), new HttpRequestCommitTask(httpSession, requestEventParam.getPath(),
+                requestEventParam.getParams(), portExtraInfo.getDispatcher()));
     }
 
     /**
      * 关闭session。
      */
-    public void removeSession(HttpSessionImp httpSession, Channel channel) {
-        UserInfo userInfo = userInfoMap.get(httpSession.localGuid());
-        if (null == userInfo) {
-            return;
-        }
-        SessionWrapper sessionWrapper = userInfo.sessionWrapperMap.remove(channel);
+    public void removeSession(Channel channel) {
+        SessionWrapper sessionWrapper = sessionWrapperMap.remove(channel);
         if (null == sessionWrapper) {
             return;
         }
@@ -194,27 +156,6 @@ public class HttpSessionManager {
 
     }
 
-    /**
-     * http客户端使用者信息
-     */
-    private static class UserInfo {
-        /**
-         * 用户关联的上下文
-         */
-        private final NetContext netContext;
-        /**
-         * 绑定的端口信息等，关联的channel需要再用户取消注册后关闭
-         */
-        private final List<DefaultSocketPort> defaultSocketPortList = new ArrayList<>(4);
-        /**
-         * 该用户关联的所有的会话
-         */
-        private final Map<Channel, SessionWrapper> sessionWrapperMap = new IdentityHashMap<>();
-
-        private UserInfo(NetContext netContext) {
-            this.netContext = netContext;
-        }
-    }
 
     private static class SessionWrapper {
 

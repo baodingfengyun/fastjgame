@@ -49,11 +49,6 @@ public final class HttpSessionImp implements HttpSession {
         this.channel = channel;
     }
 
-    @Override
-    public long localGuid() {
-        return netContext.localGuid();
-    }
-
     public Channel getChannel() {
         return channel;
     }
@@ -76,7 +71,7 @@ public final class HttpSessionImp implements HttpSession {
         channel.close();
 
         return ConcurrentUtils.submitOrRun(netEventLoop(), () -> {
-            httpSessionManager.removeSession(this, channel);
+            httpSessionManager.removeSession(channel);
         });
     }
 

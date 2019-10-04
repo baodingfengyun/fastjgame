@@ -36,33 +36,41 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class NetEventManager {
 
-    private final SessionManager sessionManager;
+    private final AcceptorManager acceptorManager;
+    private final ConnectorManager connectorManager;
     private final HttpSessionManager httpSessionManager;
     private final NetEventLoopManager netEventLoopManager;
 
     @Inject
-    public NetEventManager(SessionManager sessionManager, HttpSessionManager httpSessionManager,
+    public NetEventManager(AcceptorManager acceptorManager, ConnectorManager connectorManager, HttpSessionManager httpSessionManager,
                            NetEventLoopManager netEventLoopManager) {
-        this.sessionManager = sessionManager;
+        this.acceptorManager = acceptorManager;
+        this.connectorManager = connectorManager;
         this.httpSessionManager = httpSessionManager;
         this.netEventLoopManager = netEventLoopManager;
     }
 
     public void fireConnectRequest(SocketConnectRequestEvent eventParam) {
         ConcurrentUtils.tryCommit(netEventLoopManager.eventLoop(), () -> {
-            sessionManager.onRcvConnectRequest(eventParam);
+            acceptorManager.onRcvConnectRequest(eventParam);
         });
     }
 
     public void fireConnectResponse(SocketConnectResponseEvent eventParam) {
         ConcurrentUtils.tryCommit(netEventLoopManager.eventLoop(), () -> {
-            sessionManager.onRcvConnectResponse(eventParam);
+            connectorManager.onRcvConnectResponse(eventParam);
         });
     }
 
-    public void fireMessage(SocketMessageEvent eventParam) {
+    public void fireMessage_acceptor(SocketMessageEvent eventParam) {
         ConcurrentUtils.tryCommit(netEventLoopManager.eventLoop(), () -> {
-            sessionManager.onRcvMessage(eventParam);
+            acceptorManager.onRcvMessage(eventParam);
+        });
+    }
+
+    public void fireMessage_connector(SocketMessageEvent eventParam) {
+        ConcurrentUtils.tryCommit(netEventLoopManager.eventLoop(), () -> {
+            connectorManager.onRcvMessage(eventParam);
         });
     }
 

@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.net.http;
 
+import com.wjybxx.fastjgame.misc.HttpPortExtraInfo;
+import com.wjybxx.fastjgame.net.socket.SocketPortExtraInfo;
 import io.netty.channel.Channel;
 
 /**
@@ -28,32 +30,28 @@ import io.netty.channel.Channel;
  */
 public class HttpRequestEvent {
 
-    private Channel channel;
-    private long localGuid;
-    private final HttpRequestDispatcher httpRequestDispatcher;
+    /**
+     * 事件对应的channel
+     */
+    private final Channel channel;
     /**
      * 请求的资源路径
      */
-    private String path;
+    private final String path;
     /**
      * 请求参数
      */
-    private HttpRequestParam params;
+    private final HttpRequestParam params;
+    /**
+     * 端口上的一些信息
+     */
+    private final HttpPortExtraInfo portExtraInfo;
 
-    public HttpRequestEvent(Channel channel, long localGuid, HttpRequestDispatcher httpRequestDispatcher, String path, HttpRequestParam params) {
+    public HttpRequestEvent(Channel channel, String path, HttpRequestParam params, HttpPortExtraInfo portExtraInfo) {
         this.channel = channel;
-        this.localGuid = localGuid;
-        this.httpRequestDispatcher = httpRequestDispatcher;
         this.path = path;
         this.params = params;
-    }
-
-    public long localGuid() {
-        return localGuid;
-    }
-
-    public HttpRequestDispatcher getHttpRequestDispatcher() {
-        return httpRequestDispatcher;
+        this.portExtraInfo = portExtraInfo;
     }
 
     public Channel channel() {
@@ -66,5 +64,9 @@ public class HttpRequestEvent {
 
     public HttpRequestParam getParams() {
         return params;
+    }
+
+    public HttpPortExtraInfo getPortExtraInfo() {
+        return portExtraInfo;
     }
 }
