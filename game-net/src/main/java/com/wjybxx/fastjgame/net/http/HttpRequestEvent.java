@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.net.http;
 
 import com.wjybxx.fastjgame.misc.HttpPortExtraInfo;
-import com.wjybxx.fastjgame.net.socket.SocketPortExtraInfo;
 import io.netty.channel.Channel;
 
 /**

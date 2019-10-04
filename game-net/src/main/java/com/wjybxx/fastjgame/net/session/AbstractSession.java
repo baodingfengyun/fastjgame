@@ -46,7 +46,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public abstract class AbstractSession implements Session {
 
-    protected final long sessionGuid;
     protected final NetContext netContext;
     protected final NetManagerWrapper managerWrapper;
     /**
@@ -61,18 +60,22 @@ public abstract class AbstractSession implements Session {
      * 激活状态 - 默认true，因为在激活之前不会返回给用户。
      */
     private final AtomicBoolean stateHolder = new AtomicBoolean(true);
+    /**
+     * 刷新缓冲区的任务 - 避免大量无意义的对象
+     */
+    private final Runnable flushTask;
 
-    protected AbstractSession(long sessionGuid, NetContext netContext, NetManagerWrapper managerWrapper) {
-        this.sessionGuid = sessionGuid;
+    protected AbstractSession(NetContext netContext, NetManagerWrapper managerWrapper) {
         this.netContext = netContext;
         this.managerWrapper = managerWrapper;
         this.pipeline = new DefaultSessionPipeline(this, managerWrapper);
         this.netEventLoop = managerWrapper.getNetEventLoopManager().eventLoop();
+        this.flushTask = pipeline::fireFlush;
     }
 
     @Override
-    public final long sessionGuid() {
-        return sessionGuid;
+    public final long localGuid() {
+        return netContext.localGuid();
     }
 
     @Override
@@ -132,7 +135,7 @@ public abstract class AbstractSession implements Session {
         final Promise<?> promise = netEventLoop.newPromise();
         // 可能是网络层关闭
         ConcurrentUtils.executeOrRun(netEventLoop, () -> {
-            // TODO
+            // TODO 保证逻辑只执行一次
             pipeline.fireClose(promise);
         });
         return promise;
@@ -187,7 +190,7 @@ public abstract class AbstractSession implements Session {
 
     @Override
     public final int hashCode() {
-        return Long.hashCode(sessionGuid);
+        return Long.hashCode(localGuid()) + Long.hashCode(remoteGuid());
     }
 
     @Override
@@ -197,6 +200,10 @@ public abstract class AbstractSession implements Session {
 
     @Override
     public final int compareTo(@Nonnull Session other) {
-        return Long.compare(sessionGuid, other.sessionGuid());
+        final int localGuidComparedResult = Long.compare(localGuid(), other.localGuid());
+        if (localGuidComparedResult != 0) {
+            return localGuidComparedResult;
+        }
+        return Long.compare(remoteGuid(), other.remoteGuid());
     }
 }

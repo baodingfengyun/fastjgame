@@ -35,7 +35,6 @@ import io.netty.channel.socket.SocketChannel;
 
 import java.io.IOException;
 import java.net.BindException;
-import java.util.Map;
 
 /**
  * session接收器。
@@ -88,11 +87,11 @@ public class AcceptorManager {
      * @param connectRequestEvent 请求事件参数
      */
     public void onRcvConnectRequest(SocketConnectRequestEvent connectRequestEvent) {
-        final Session existSession = sessionRegistry.getSession(connectRequestEvent.sessionGuid());
+        final Session existSession = sessionRegistry.getSession(connectRequestEvent.localGuid(), connectRequestEvent.remoteGuid());
         if (existSession == null) {
             // TODO 首次建立连接验证
             final SocketPortExtraInfo portExtraInfo = connectRequestEvent.getPortExtraInfo();
-            SocketSessionImp socketSessionImp = new SocketSessionImp(connectRequestEvent.sessionGuid(), portExtraInfo.getNetContext(), netManagerWrapper,
+            SocketSessionImp socketSessionImp = new SocketSessionImp(portExtraInfo.getNetContext(), netManagerWrapper, connectRequestEvent.remoteGuid(),
                     connectRequestEvent.channel(), portExtraInfo.getSessionConfig());
             sessionRegistry.registerSession(socketSessionImp);
 
@@ -120,7 +119,7 @@ public class AcceptorManager {
      * @param messageEvent 消息事件参数
      */
     public void onRcvMessage(SocketMessageEvent messageEvent) {
-        final Session session = sessionRegistry.getSession(messageEvent.sessionGuid());
+        final Session session = sessionRegistry.getSession(messageEvent.localGuid(), messageEvent.remoteGuid());
         if (session != null && session.isActive()) {
             // session 存活的情况下才读取消息
             session.fireRead(messageEvent);
@@ -144,16 +143,17 @@ public class AcceptorManager {
      * 接收到一个连接请
      *
      * @param localPort   本地“端口”
-     * @param sessionGuid session唯一标识
+     * @param remoteGuid session唯一标识
      * @return session
      * @throws IOException error
      */
-    public LocalSessionImp onRcvConnectRequest(DefaultLocalPort localPort, long sessionGuid) throws IOException {
-        if (sessionRegistry.getSession(sessionGuid) != null) {
-            throw new IOException("session " + sessionGuid + " is already registered");
+    public LocalSessionImp onRcvConnectRequest(DefaultLocalPort localPort, long remoteGuid) throws IOException {
+        final long localGuid = localPort.getNetContext().localGuid();
+        if (sessionRegistry.getSession(localGuid, remoteGuid) != null) {
+            throw new IOException("session " + remoteGuid + " is already registered");
         }
         // 创建session并保存
-        LocalSessionImp session = new LocalSessionImp(sessionGuid, localPort.getNetContext(), netManagerWrapper, localPort.getLocalConfig());
+        LocalSessionImp session = new LocalSessionImp(localPort.getNetContext(), netManagerWrapper, localPort.getLocalConfig());
         sessionRegistry.registerSession(session);
 
         // 创建管道，但是这里还不能初始化 - 因为还没有对方的引用

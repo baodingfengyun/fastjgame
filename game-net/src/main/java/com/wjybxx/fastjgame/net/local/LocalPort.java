@@ -41,10 +41,9 @@ public interface LocalPort extends NetPort {
      * 这样设计的目的：对用户屏蔽底层实现。
      *
      * @param netContext  用户所属的网络环境
-     * @param sessionGuid session唯一配置
      * @param config      session 配置信息
      * @return future
      */
-    ListenableFuture<Session> connect(@Nonnull NetContext netContext, long sessionGuid, @Nonnull LocalSessionConfig config);
+    ListenableFuture<Session> connect(@Nonnull NetContext netContext, @Nonnull LocalSessionConfig config);
 
 }

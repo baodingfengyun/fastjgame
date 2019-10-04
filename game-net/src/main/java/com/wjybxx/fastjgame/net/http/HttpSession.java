@@ -33,6 +33,11 @@ import io.netty.handler.codec.http.HttpResponse;
 public interface HttpSession {
 
     /**
+     * 本地用户guid
+     */
+    long localGuid();
+
+    /**
      * session是否处于活动状态
      *
      * @return true/false

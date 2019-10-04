@@ -41,13 +41,18 @@ import io.netty.handler.timeout.ReadTimeoutHandler;
 public class WsServerChannelInitializer extends ChannelInitializer<SocketChannel> {
 
     /**
+     * 本地监听端口的角色guid
+     */
+    private final long localGuid;
+    /**
      * url路径(eg: "http://127.0.0.1:8888/ws" 中的 /ws )
      */
     private final String websocketPath;
     private final SocketPortExtraInfo portExtraInfo;
     private final NetEventManager netEventManager;
 
-    public WsServerChannelInitializer(String websocketPath, SocketPortExtraInfo portExtraInfo, NetEventManager netEventManager) {
+    public WsServerChannelInitializer(long localGuid, String websocketPath, SocketPortExtraInfo portExtraInfo, NetEventManager netEventManager) {
+        this.localGuid = localGuid;
         this.websocketPath = websocketPath;
         this.portExtraInfo = portExtraInfo;
         this.netEventManager = netEventManager;
@@ -92,6 +97,6 @@ public class WsServerChannelInitializer extends ChannelInitializer<SocketChannel
     private void appendCustomProtocolCodec(ChannelPipeline pipeline) {
         pipeline.addLast(NetUtils.READ_TIMEOUT_HANDLER_NAME, new ReadTimeoutHandler(45));
         pipeline.addLast(new LengthFieldBasedFrameDecoder(portExtraInfo.getSessionConfig().maxFrameLength(), 0, 4, 0, 4));
-        pipeline.addLast(new ServerSocketCodec(portExtraInfo.getSessionConfig().codec(), portExtraInfo, netEventManager));
+        pipeline.addLast(new ServerSocketCodec(portExtraInfo.getSessionConfig().codec(), localGuid, portExtraInfo, netEventManager));
     }
 }

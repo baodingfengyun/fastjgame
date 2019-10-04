@@ -61,17 +61,17 @@ public class ConnectorManager {
         sessionRegistry.tick();
     }
 
-    public Session connect(NetContext netContext, long sessionGuid, HostAndPort remoteAddress, byte[] token, SocketSessionConfig config,
+    public Session connect(NetContext netContext, long remoteGuid, HostAndPort remoteAddress, byte[] token, SocketSessionConfig config,
                            ChannelInitializer<SocketChannel> initializer) throws IOException {
-        Session existSession = sessionRegistry.getSession(sessionGuid);
+        Session existSession = sessionRegistry.getSession(netContext.localGuid(), remoteGuid);
         if (existSession != null) {
-            throw new IOException("session " + sessionGuid + " already registered");
+            throw new IOException("session " + netContext.localGuid() +  "-" + remoteAddress + " already registered");
         }
         // TODO 异步化、连接超时
         ChannelFuture channelFuture = nettyThreadManager.connectAsyn(remoteAddress, config.sndBuffer(), config.rcvBuffer(), initializer)
                 .syncUninterruptibly();
 
-        final SocketSessionImp socketSessionImp = new SocketSessionImp(sessionGuid, netContext, netManagerWrapper, channelFuture.channel(), config);
+        final SocketSessionImp socketSessionImp = new SocketSessionImp(netContext, netManagerWrapper, remoteGuid, channelFuture.channel(), config);
         sessionRegistry.registerSession(socketSessionImp);
 
         socketSessionImp.pipeline()
@@ -93,7 +93,7 @@ public class ConnectorManager {
      * @param connectResponseEvent 连接响应事件参数
      */
     public void onRcvConnectResponse(SocketConnectResponseEvent connectResponseEvent) {
-        final Session session = sessionRegistry.getSession(connectResponseEvent.sessionGuid());
+        final Session session = sessionRegistry.getSession(connectResponseEvent.localGuid(), connectResponseEvent.remoteGuid());
         if (session == null) {
             return;
         }
@@ -112,26 +112,28 @@ public class ConnectorManager {
      * @param messageEvent 消息事件参数
      */
     public void onRcvMessage(SocketMessageEvent messageEvent) {
-        final Session session = sessionRegistry.getSession(messageEvent.sessionGuid());
+        final Session session = sessionRegistry.getSession(messageEvent.localGuid(), messageEvent.remoteGuid());
         if (session != null && session.isActive()) {
             // session 存活的情况下才读取消息
             session.fireRead(messageEvent);
         }
     }
 
-    public Session connectLocal(DefaultLocalPort localPort, NetContext netContext, long sessionGuid, LocalSessionConfig config) throws IOException {
+    public Session connectLocal(DefaultLocalPort localPort, NetContext netContext, LocalSessionConfig config) throws IOException {
         // 端口已关闭
         if (!localPort.isActive()) {
             throw new IOException("local port closed");
         }
+        final long localGuid = netContext.localGuid();
+        final long remoteGuid = localPort.getNetContext().localGuid();
         // 会话已存在
-        if (sessionRegistry.getSession(sessionGuid) != null) {
-            throw new IOException("session " + sessionGuid + " already registered");
+        if (sessionRegistry.getSession(localGuid, remoteGuid) != null) {
+            throw new IOException("session " + remoteGuid + " already registered");
         }
-        final LocalSessionImp remoteSession = netManagerWrapper.getAcceptorManager().onRcvConnectRequest(localPort, sessionGuid);
+        final LocalSessionImp remoteSession = netManagerWrapper.getAcceptorManager().onRcvConnectRequest(localPort, localGuid);
 
         // 创建session并保存
-        LocalSessionImp session = new LocalSessionImp(sessionGuid, netContext, netManagerWrapper, config);
+        LocalSessionImp session = new LocalSessionImp(netContext, netManagerWrapper, config);
         sessionRegistry.registerSession(session);
 
         // 初始化管道，入站 从上到下，出站 从下往上

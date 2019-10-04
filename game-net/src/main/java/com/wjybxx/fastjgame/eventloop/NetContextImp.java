@@ -53,14 +53,21 @@ import java.util.Map;
 @ThreadSafe
 public class NetContextImp implements NetContext {
 
-    private final NetEventLoop netEventLoop;
     private final EventLoop localEventLoop;
+    private final long localGuid;
+    private final NetEventLoop netEventLoop;
     private final NetManagerWrapper managerWrapper;
 
-    public NetContextImp(NetEventLoop netEventLoop, EventLoop localEventLoop, NetManagerWrapper managerWrapper) {
+    NetContextImp(NetEventLoop netEventLoop, EventLoop localEventLoop, long localGuid, NetManagerWrapper managerWrapper) {
         this.localEventLoop = localEventLoop;
         this.netEventLoop = netEventLoop;
+        this.localGuid = localGuid;
         this.managerWrapper = managerWrapper;
+    }
+
+    @Override
+    public long localGuid() {
+        return localGuid;
     }
 
     @Override
@@ -76,14 +83,14 @@ public class NetContextImp implements NetContext {
     @Override
     public ListenableFuture<SocketPort> bindTcpRange(String host, PortRange portRange, @Nonnull SocketSessionConfig config) {
         SocketPortExtraInfo portExtraInfo = new SocketPortExtraInfo(this, config);
-        TCPServerChannelInitializer initializer = new TCPServerChannelInitializer(portExtraInfo, managerWrapper.getNetEventManager());
+        TCPServerChannelInitializer initializer = new TCPServerChannelInitializer(localGuid, portExtraInfo, managerWrapper.getNetEventManager());
         return bindRange(host, portRange, config, initializer);
     }
 
     @Override
     public ListenableFuture<SocketPort> bindWSRange(String host, PortRange portRange, String websocketPath, @Nonnull SocketSessionConfig config) {
         SocketPortExtraInfo portExtraInfo = new SocketPortExtraInfo(this, config);
-        WsServerChannelInitializer initializer = new WsServerChannelInitializer(websocketPath, portExtraInfo, managerWrapper.getNetEventManager());
+        WsServerChannelInitializer initializer = new WsServerChannelInitializer(localGuid, websocketPath, portExtraInfo, managerWrapper.getNetEventManager());
         return bindRange(host, portRange, config, initializer);
     }
 
@@ -102,24 +109,24 @@ public class NetContextImp implements NetContext {
     }
 
     @Override
-    public ListenableFuture<Session> connectTcp(long sessionGuid, HostAndPort remoteAddress, byte[] token, @Nonnull SocketSessionConfig config) {
-        final TCPClientChannelInitializer initializer = new TCPClientChannelInitializer(sessionGuid, config, managerWrapper.getNetEventManager());
-        return connect(sessionGuid, remoteAddress, token, config, initializer);
+    public ListenableFuture<Session> connectTcp(long remoteGuid, HostAndPort remoteAddress, byte[] token, @Nonnull SocketSessionConfig config) {
+        final TCPClientChannelInitializer initializer = new TCPClientChannelInitializer(localGuid, remoteGuid, config, managerWrapper.getNetEventManager());
+        return connect(remoteGuid, remoteAddress, token, config, initializer);
     }
 
     @Override
-    public ListenableFuture<Session> connectWS(long sessionGuid, HostAndPort remoteAddress, String websocketUrl, byte[] token, @Nonnull SocketSessionConfig config) {
-        final WsClientChannelInitializer initializer = new WsClientChannelInitializer(sessionGuid, websocketUrl, config.maxFrameLength(),
+    public ListenableFuture<Session> connectWS(long remoteGuid, HostAndPort remoteAddress, String websocketUrl, byte[] token, @Nonnull SocketSessionConfig config) {
+        final WsClientChannelInitializer initializer = new WsClientChannelInitializer(localGuid, remoteGuid, websocketUrl, config.maxFrameLength(),
                 config.codec(), managerWrapper.getNetEventManager());
-        return connect(sessionGuid, remoteAddress, token, config, initializer);
+        return connect(remoteGuid, remoteAddress, token, config, initializer);
     }
 
     @Nonnull
-    private ListenableFuture<Session> connect(long sessionGuid, HostAndPort remoteAddress, byte[] token, SocketSessionConfig config,
+    private ListenableFuture<Session> connect(long remoteGuid, HostAndPort remoteAddress, byte[] token, SocketSessionConfig config,
                                               ChannelInitializer<SocketChannel> initializer) {
         // 这里一定不是网络层，只有逻辑层才会调用connect
         return netEventLoop.submit(() -> {
-            return managerWrapper.getConnectorManager().connect(this, sessionGuid, remoteAddress,
+            return managerWrapper.getConnectorManager().connect(this, remoteGuid, remoteAddress,
                     token, config, initializer);
         });
     }
@@ -134,8 +141,8 @@ public class NetContextImp implements NetContext {
     }
 
     @Override
-    public ListenableFuture<Session> connectLocal(long sessionGuid, @Nonnull LocalPort localPort, byte[] token, @Nonnull LocalSessionConfig config) {
-        return localPort.connect(this, sessionGuid, config);
+    public ListenableFuture<Session> connectLocal(@Nonnull LocalPort localPort, byte[] token, @Nonnull LocalSessionConfig config) {
+        return localPort.connect(this, config);
     }
 
     // ------------------------------------------- http 实现 ----------------------------------------

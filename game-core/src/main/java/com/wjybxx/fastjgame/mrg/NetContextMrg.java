@@ -18,7 +18,6 @@ package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.annotation.EventLoopSingleton;
-import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.world.GameEventLoopMrg;
 
@@ -49,7 +48,7 @@ public class NetContextMrg {
 
     public void start() throws ExecutionException, InterruptedException {
         // 创建上下文
-        netContext = gameEventLoopMrg.getNetEventLoop().createContext(gameEventLoopMrg.getEventLoop());
+        netContext = gameEventLoopMrg.getNetEventLoop().createContext(worldInfoMrg.getWorldGuid(), gameEventLoopMrg.getEventLoop());
     }
 
     public void shutdown() {

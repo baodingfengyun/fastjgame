@@ -105,7 +105,7 @@ public class InnerAcceptorMrg {
         if (null != localPort) {
             // 两个world在同一个进程内
             LocalSessionConfig config = newLocalSessionConfig(lifecycleAware);
-            netContextMrg.getNetContext().connectLocal(worldInfoMrg.getWorldGuid(), localPort, newToken(remoteGuid, remoteRole), config);
+            netContextMrg.getNetContext().connectLocal(localPort, newToken(remoteGuid, remoteRole), config);
             return;
         }
         if (Objects.equals(macAddress, SystemUtils.getMAC())) {

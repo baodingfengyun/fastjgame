@@ -55,10 +55,10 @@ public class DefaultLocalPort implements LocalPort {
     }
 
     @Override
-    public ListenableFuture<Session> connect(@Nonnull NetContext netContext, long sessionGuid, @Nonnull LocalSessionConfig config) {
+    public ListenableFuture<Session> connect(@Nonnull NetContext netContext, @Nonnull LocalSessionConfig config) {
         // 提交到绑定端口的用户所在的NetEventLoop - 消除同步的关键
         return this.netContext.netEventLoop().submit(() -> {
-            return connectorManager.connectLocal(this, netContext, sessionGuid, config);
+            return connectorManager.connectLocal(this, netContext, config);
         });
     }
 

@@ -29,14 +29,9 @@ import io.netty.channel.Channel;
  */
 public final class SocketMessageEvent implements SocketEvent {
 
-    /**
-     * 该事件对应的channel
-     */
     private final Channel channel;
-    /**
-     * 事件关联的session标识
-     */
-    private final long sessionGuid;
+    private final long localGuid;
+    private final long remoteGuid;
     /**
      * 捎带确认的ack
      */
@@ -50,9 +45,10 @@ public final class SocketMessageEvent implements SocketEvent {
      */
     private final NetMessage wrappedMessage;
 
-    public SocketMessageEvent(Channel channel, long sessionGuid, long ack, long sequence, NetMessage wrappedMessage) {
+    public SocketMessageEvent(Channel channel, long localGuid, long remoteGuid, long ack, long sequence, NetMessage wrappedMessage) {
         this.channel = channel;
-        this.sessionGuid = sessionGuid;
+        this.localGuid = localGuid;
+        this.remoteGuid = remoteGuid;
         this.ack = ack;
         this.sequence = sequence;
         this.wrappedMessage = wrappedMessage;
@@ -64,8 +60,13 @@ public final class SocketMessageEvent implements SocketEvent {
     }
 
     @Override
-    public long sessionGuid() {
-        return sessionGuid;
+    public long localGuid() {
+        return localGuid;
+    }
+
+    @Override
+    public long remoteGuid() {
+        return remoteGuid;
     }
 
     public long getAck() {

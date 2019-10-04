@@ -47,6 +47,11 @@ import java.util.Map;
 public interface NetContext {
 
     /**
+     * 用户guid
+     */
+    long localGuid();
+
+    /**
      * 用户线程
      * 网络层保证所有的业务逻辑处理最终都会运行在该用户线程。
      */
@@ -86,13 +91,13 @@ public interface NetContext {
     /**
      * 以tcp方式连接远程某个端口
      *
-     * @param sessionGuid   session唯一标识
+     * @param remoteGuid    远程用户guid
      * @param remoteAddress 远程地址
      * @param token         建立连接验证信息，同时也存储一些额外信息
      * @param config        session配置信息
      * @return future
      */
-    ListenableFuture<Session> connectTcp(long sessionGuid, HostAndPort remoteAddress, byte[] token,
+    ListenableFuture<Session> connectTcp(long remoteGuid, HostAndPort remoteAddress, byte[] token,
                                          @Nonnull SocketSessionConfig config);
 
     /**
@@ -124,13 +129,13 @@ public interface NetContext {
     /**
      * 以websocket方式连接远程某个端口
      *
-     * @param sessionGuid   session唯一标识
+     * @param remoteGuid    远程用户guid
      * @param remoteAddress 远程地址
      * @param token         建立连接验证信息，同时也存储一些额外信息
      * @param config        session配置信息
      * @return future 如果想消除同步，添加监听器时请绑定EventLoop
      */
-    ListenableFuture<Session> connectWS(long sessionGuid, HostAndPort remoteAddress, String websocketUrl, byte[] token,
+    ListenableFuture<Session> connectWS(long remoteGuid, HostAndPort remoteAddress, String websocketUrl, byte[] token,
                                         @Nonnull SocketSessionConfig config);
 
 
@@ -153,13 +158,12 @@ public interface NetContext {
      * 与JVM内的另一个线程建立session。
      * 注意：{@link LocalPort}必须是同一个{@link NetEventLoop}创建的。
      *
-     * @param sessionGuid session唯一标识
      * @param localPort   远程“端口”信息
      * @param token       建立连接的验证信息，也可以存储额外信息
      * @param config      配置信息
      * @return future 如果想消除同步，添加监听器时请绑定EventLoop
      */
-    ListenableFuture<Session> connectLocal(long sessionGuid, @Nonnull LocalPort localPort, byte[] token,
+    ListenableFuture<Session> connectLocal(@Nonnull LocalPort localPort, byte[] token,
                                            @Nonnull LocalSessionConfig config);
 
     //  --------------------------------------- http支持 -----------------------------------------
@@ -173,7 +177,7 @@ public interface NetContext {
      * @return future 可以等待绑定完成。
      */
     default ListenableFuture<SocketPort> bindHttp(String host, int port,
-                                                   @Nonnull HttpRequestDispatcher httpRequestDispatcher) {
+                                                  @Nonnull HttpRequestDispatcher httpRequestDispatcher) {
         return this.bindHttpRange(host, new PortRange(port, port), httpRequestDispatcher);
     }
 
@@ -186,7 +190,7 @@ public interface NetContext {
      * @return future 可以等待绑定完成。
      */
     ListenableFuture<SocketPort> bindHttpRange(String host, PortRange portRange,
-                                                @Nonnull HttpRequestDispatcher httpRequestDispatcher);
+                                               @Nonnull HttpRequestDispatcher httpRequestDispatcher);
 
     /**
      * 同步get请求

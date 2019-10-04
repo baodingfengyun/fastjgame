@@ -33,7 +33,13 @@ public interface SocketEvent {
     Channel channel();
 
     /**
-     * 对应的session的标识
+     * 事件对应的本地用户
      */
-    long sessionGuid();
+    long localGuid();
+
+    /**
+     * 事件对应的远程用户
+     */
+    long remoteGuid();
+
 }

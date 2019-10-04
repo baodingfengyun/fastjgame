@@ -28,14 +28,9 @@ import io.netty.channel.Channel;
  */
 public class SocketConnectRequestEvent implements SocketEvent {
 
-    /**
-     * 该事件对应的channel
-     */
     private final Channel channel;
-    /**
-     * 事件关联的session标识
-     */
-    private final long sessionGuid;
+    private final long localGuid;
+    private final long remoteGuid;
     /**
      * 我期望的下一个消息号
      */
@@ -49,9 +44,10 @@ public class SocketConnectRequestEvent implements SocketEvent {
      */
     private final SocketPortExtraInfo portExtraInfo;
 
-    public SocketConnectRequestEvent(Channel channel, long sessionGuid, long ack, SocketConnectRequest connectRequest, SocketPortExtraInfo portExtraInfo) {
+    public SocketConnectRequestEvent(Channel channel, long localGuid, long remoteGuid, long ack, SocketConnectRequest connectRequest, SocketPortExtraInfo portExtraInfo) {
         this.channel = channel;
-        this.sessionGuid = sessionGuid;
+        this.localGuid = localGuid;
+        this.remoteGuid = remoteGuid;
         this.ack = ack;
         this.connectRequest = connectRequest;
         this.portExtraInfo = portExtraInfo;
@@ -63,8 +59,13 @@ public class SocketConnectRequestEvent implements SocketEvent {
     }
 
     @Override
-    public long sessionGuid() {
-        return sessionGuid;
+    public long localGuid() {
+        return localGuid;
+    }
+
+    @Override
+    public long remoteGuid() {
+        return remoteGuid;
     }
 
     public long getAck() {

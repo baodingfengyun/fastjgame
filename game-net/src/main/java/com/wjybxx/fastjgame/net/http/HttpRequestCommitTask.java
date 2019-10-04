@@ -22,7 +22,7 @@ package com.wjybxx.fastjgame.net.http;
  * date - 2019/10/4
  * github - https://github.com/hl845740757
  */
-public class HttpRequestCommitTask implements Runnable{
+public class HttpRequestCommitTask implements Runnable {
 
     private final HttpSession httpSession;
     private final String path;
