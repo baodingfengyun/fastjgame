@@ -104,6 +104,12 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
 
     @Nonnull
     @Override
+    public NetEventLoop select(int key) {
+        return (NetEventLoop) super.select(key);
+    }
+
+    @Nonnull
+    @Override
     public RpcPromise newRpcPromise(@Nonnull EventLoop userEventLoop, long timeoutMs) {
         return new DefaultRpcPromise(this, userEventLoop, timeoutMs);
     }

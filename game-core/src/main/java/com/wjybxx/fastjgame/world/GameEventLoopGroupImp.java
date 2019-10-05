@@ -61,6 +61,12 @@ public class GameEventLoopGroupImp extends MultiThreadEventLoopGroup implements 
 
     @Nonnull
     @Override
+    public GameEventLoop select(int key) {
+        return (GameEventLoop) super.select(key);
+    }
+
+    @Nonnull
+    @Override
     protected GameEventLoop newChild(int childIndex, ThreadFactory threadFactory, RejectedExecutionHandler rejectedExecutionHandler, Object context) {
         RealContext realContext = (RealContext) context;
         return new GameEventLoopImp(this, threadFactory, rejectedExecutionHandler,

@@ -68,6 +68,12 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
         return this;
     }
 
+    @Nonnull
+    @Override
+    public EventLoop select(int key) {
+        return this;
+    }
+
     @Deprecated
     @Nonnull
     @Override

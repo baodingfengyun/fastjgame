@@ -185,6 +185,12 @@ public abstract class MultiThreadEventLoopGroup extends AbstractEventLoopGroup {
 
     @Nonnull
     @Override
+    public EventLoop select(int key) {
+        return chooser.select(key);
+    }
+
+    @Nonnull
+    @Override
     public Iterator<EventLoop> iterator() {
         return readonlyChildren.iterator();
     }

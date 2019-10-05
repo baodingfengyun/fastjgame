@@ -45,6 +45,10 @@ public interface NetEventLoop extends EventLoop {
     @Override
     NetEventLoop next();
 
+    @Nonnull
+    @Override
+    NetEventLoop select(int key);
+
     /**
      * 注册一个NetEventLoop的用户(创建一个网络上下文)。
      * <p>

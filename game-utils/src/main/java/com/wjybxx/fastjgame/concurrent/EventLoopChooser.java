@@ -32,10 +32,20 @@ import javax.annotation.concurrent.ThreadSafe;
 public interface EventLoopChooser {
 
     /**
-     * 获取下一个执行用的EventLoop，子类实现需要是线程安全的。
+     * 获取下一个执行用的EventLoop。
      *
      * @return EventLoop
+     * @apiNote 子类实现需要是线程安全的。
      */
     @Nonnull
     EventLoop next();
+
+    /**
+     * 给定一个键，分配一个{@link EventLoop}。
+     * 目的：这样用户总是可以通过key指定选中某一个线程，消除不必要的同步。
+     *
+     * @return EventLoop
+     * @apiNote 子类实现需要是线程安全的。且同一个key的选择结果必须是相同的
+     */
+    EventLoop select(int key);
 }

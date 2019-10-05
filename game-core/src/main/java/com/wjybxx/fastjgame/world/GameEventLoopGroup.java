@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.world;
 
+import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.EventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 
@@ -34,6 +35,10 @@ public interface GameEventLoopGroup extends EventLoopGroup {
     @Nonnull
     @Override
     GameEventLoop next();
+
+    @Nonnull
+    @Override
+    GameEventLoop select(int key);
 
     /**
      * 获取游戏循环依赖的网络模块组件

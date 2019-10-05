@@ -49,9 +49,6 @@ import javax.annotation.Nullable;
  * 并不支持在不同的端口的上以相同的id再建立连接，只能存在于不同于的{@link NetEventLoop}。<br>
  * 2. 这里提供的接口并不是那么的清晰易懂，偏原始、偏底层，应用层可以提供更良好的封装。
  *
- * Q: 那么如何在两端建立多个连接？？？？
- * A: 使用不同的{@link #localGuid()}，并在token等地方告诉对方额外的身份信息。
- *
  * @author wjybxx
  * @version 1.2
  * date - 2019/7/29
@@ -59,17 +56,10 @@ import javax.annotation.Nullable;
  */
 public interface Session extends Comparable<Session> {
 
-    // ---------------------------------------------- 用户注册信息 --------------------------------------------
-
     /**
-     * 会话关联的本地对象guid
+     * 请为本连接取一个有意义的名字
      */
-    long localGuid();
-
-    /**
-     * 远程的guid
-     */
-    long remoteGuid();
+    String sessionId();
 
     /**
      * session相关的配置信息

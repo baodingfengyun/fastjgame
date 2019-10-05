@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.world;
 
 import com.google.inject.Injector;
+import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
@@ -87,6 +88,12 @@ public class GameEventLoopImp extends DisruptorEventLoop implements GameEventLoo
     @Override
     public GameEventLoop next() {
         return (GameEventLoop) super.next();
+    }
+
+    @Nonnull
+    @Override
+    public GameEventLoop select(int key) {
+        return (GameEventLoop) super.select(key);
     }
 
     @Override

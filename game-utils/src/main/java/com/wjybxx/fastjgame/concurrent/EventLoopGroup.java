@@ -149,6 +149,16 @@ public interface EventLoopGroup extends ExecutorService, Iterable<EventLoop> {
     @Nonnull
     EventLoop next();
 
+    /**
+     * 给定一个键 - 分配一个{@link EventLoop}。
+     * 目的：这样用户总是可以通过key指定选中某一个线程，消除不必要的同步。
+     *
+     * @param key 计算索引的键
+     * @apiNote 必须保证同一个key分配的结果一定是相同的
+     */
+    @Nonnull
+    EventLoop select(int key);
+
     @Nonnull
     @Override
     Iterator<EventLoop> iterator();

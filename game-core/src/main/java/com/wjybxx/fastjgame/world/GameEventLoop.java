@@ -39,4 +39,8 @@ public interface GameEventLoop extends GameEventLoopGroup, EventLoop {
     @Nonnull
     @Override
     GameEventLoop next();
+
+    @Nonnull
+    @Override
+    GameEventLoop select(int key);
 }

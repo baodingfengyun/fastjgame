@@ -35,13 +35,19 @@ import javax.annotation.Nullable;
 public interface EventLoop extends EventLoopGroup {
 
     /**
-     * GameEventLoop表示非容器组件，始终由自己执行调用。
-     *
-     * @return EventLoop, 用于接下来的调度操作
+     * @return this - 由于{@link EventLoop}表示单个线程，因此总是分配自己。
      */
     @Nonnull
     @Override
     EventLoop next();
+
+    /**
+     * @param key 计算索引的键
+     * @return this - 由于{@link EventLoop}表示单个线程，因此总是选中自己
+     */
+    @Nonnull
+    @Override
+    EventLoop select(int key);
 
     /**
      * 返回该EventLoop线程所在的线程组（管理该EventLoop的容器）。
