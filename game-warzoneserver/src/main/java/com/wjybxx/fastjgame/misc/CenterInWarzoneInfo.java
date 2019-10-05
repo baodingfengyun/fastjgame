@@ -27,23 +27,20 @@ import com.wjybxx.fastjgame.net.session.Session;
  */
 public class CenterInWarzoneInfo {
 
-    private final long gameWorldGuid;
-
+    private final Session session;
+    private final long centerWorldGuid;
     private final PlatformType platformType;
-
     private final int serverId;
 
-    private final Session session;
-
-    public CenterInWarzoneInfo(long gameWorldGuid, PlatformType platformType, int serverId, Session session) {
-        this.gameWorldGuid = gameWorldGuid;
+    public CenterInWarzoneInfo(Session session, long centerWorldGuid, PlatformType platformType, int serverId) {
+        this.centerWorldGuid = centerWorldGuid;
         this.platformType = platformType;
         this.serverId = serverId;
         this.session = session;
     }
 
-    public long getGameWorldGuid() {
-        return gameWorldGuid;
+    public long getCenterWorldGuid() {
+        return centerWorldGuid;
     }
 
     public PlatformType getPlatformType() {

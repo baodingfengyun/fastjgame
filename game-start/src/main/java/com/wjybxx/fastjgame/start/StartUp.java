@@ -16,12 +16,11 @@
 
 package com.wjybxx.fastjgame.start;
 
-import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.core.SceneRegion;
 import com.wjybxx.fastjgame.core.SceneWorldType;
-import com.wjybxx.fastjgame.eventloop.NetEventLoop;
-import com.wjybxx.fastjgame.eventloop.NetEventLoopImp;
+import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
+import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupBuilder;
 import com.wjybxx.fastjgame.misc.PlatformType;
 import com.wjybxx.fastjgame.module.CenterModule;
 import com.wjybxx.fastjgame.module.LoginModule;
@@ -93,10 +92,10 @@ public class StartUp {
 
         // 试一试ALL IN ONE
         // NET线程数最少1个
-        final NetEventLoop netEventLoopGroup = new NetEventLoopImp(new DefaultThreadFactory("NET"), RejectedExecutionHandlers.log());
+        NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupBuilder().build();
 
         final GameEventLoopGroupImp gameEventLoopGroup = GameEventLoopGroupImp.newBuilder()
-                .setNetEventLoop(netEventLoopGroup)
+                .setNetEventLoopGroup(netEventLoopGroup)
                 .setRejectedExecutionHandler(RejectedExecutionHandlers.log())
                 .addWorld(new LoginModule(), loginArgs, 10)
                 .addWorld(new WarzoneModule(), warzoneArgs, 10)

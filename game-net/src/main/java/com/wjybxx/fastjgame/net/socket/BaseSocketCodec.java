@@ -180,7 +180,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
     /**
      * 解码协议1 - 连接请求
      */
-    final SocketConnectRequestEvent readConnectRequest(Channel channel, ByteBuf msg, SocketPortExtraInfo portExtraInfo) {
+    final SocketConnectRequestEvent readConnectRequest(Channel channel, ByteBuf msg, SocketPortContext portExtraInfo) {
         // 读取sessionId
         short sessionIdLength = msg.readShort();
         byte[] sessionIdBytes = new byte[sessionIdLength];

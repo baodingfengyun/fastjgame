@@ -15,10 +15,8 @@
  */
 package com.wjybxx.fastjgame.example;
 
-import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
-import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
-import com.wjybxx.fastjgame.eventloop.NetEventLoop;
-import com.wjybxx.fastjgame.eventloop.NetEventLoopImp;
+import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
+import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupBuilder;
 import com.wjybxx.fastjgame.misc.JsonBasedProtocolCodec;
 import com.wjybxx.fastjgame.misc.MessageMapper;
 import com.wjybxx.fastjgame.misc.ReflectBasedProtocolCodec;
@@ -34,13 +32,9 @@ import com.wjybxx.fastjgame.misc.ReflectBasedProtocolCodec;
 public final class ExampleConstants {
 
     /**
-     * 服务端guid
+     * sessionId
      */
-    public static final long serverGuid = 22222;
-    /**
-     * 客户端guid
-     */
-    public static final long clientGuid = 11111;
+    public static final String SESSION_ID = "client-10001";
     /**
      * 空的token
      */
@@ -53,8 +47,7 @@ public final class ExampleConstants {
     public static final JsonBasedProtocolCodec jsonBasedCodec = new JsonBasedProtocolCodec(messageMapper);
     public static final ReflectBasedProtocolCodec reflectBasedCodec = ReflectBasedProtocolCodec.newInstance(messageMapper);
 
-    public static final NetEventLoop netEventLoop = new NetEventLoopImp(new DefaultThreadFactory("NET-EVENT-LOOP"),
-            RejectedExecutionHandlers.discard());
+    public static final NetEventLoopGroup netEventLoop = new NetEventLoopGroupBuilder().build();
     /**
      * tcp端口
      */

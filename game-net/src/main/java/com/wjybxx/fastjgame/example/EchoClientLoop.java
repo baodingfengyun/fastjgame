@@ -20,8 +20,8 @@ import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
 import com.wjybxx.fastjgame.eventloop.NetContext;
-import com.wjybxx.fastjgame.eventloop.NetEventLoop;
-import com.wjybxx.fastjgame.eventloop.NetEventLoopImp;
+import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
+import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupBuilder;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.net.common.*;
 import com.wjybxx.fastjgame.net.http.OkHttpCallback;
@@ -53,9 +53,7 @@ import static com.wjybxx.fastjgame.example.ExampleConstants.EMPTY_TOKEN;
  */
 public class EchoClientLoop extends SingleThreadEventLoop {
 
-    private final NetEventLoop netGroup = new NetEventLoopImp(new DefaultThreadFactory("NET-EVENT-LOOP"),
-            RejectedExecutionHandlers.log());
-
+    private final NetEventLoopGroup netGroup = new NetEventLoopGroupBuilder().build();
     private NetContext netContext;
 
     /**
@@ -80,7 +78,7 @@ public class EchoClientLoop extends SingleThreadEventLoop {
                 .setDispatcher(new EchoProtocolDispatcher())
                 .build();
 
-        session = netContext.connectTcp(ExampleConstants.clientGuid, address, EMPTY_TOKEN, config)
+        session = netContext.connectTcp(ExampleConstants.SESSION_ID, address, EMPTY_TOKEN, config)
                 .get();
     }
 

@@ -21,7 +21,7 @@ import com.google.inject.Injector;
 import com.wjybxx.fastjgame.concurrent.*;
 import com.wjybxx.fastjgame.configwrapper.ArrayConfigWrapper;
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
-import com.wjybxx.fastjgame.eventloop.NetEventLoop;
+import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.module.WorldGroupModule;
 import com.wjybxx.fastjgame.module.WorldModule;
 import com.wjybxx.fastjgame.mrg.CuratorClientMrg;
@@ -70,17 +70,17 @@ public class GameEventLoopGroupImp extends MultiThreadEventLoopGroup implements 
     protected GameEventLoop newChild(int childIndex, ThreadFactory threadFactory, RejectedExecutionHandler rejectedExecutionHandler, Object context) {
         RealContext realContext = (RealContext) context;
         return new GameEventLoopImp(this, threadFactory, rejectedExecutionHandler,
-                realContext.netEventLoop, realContext.groupInjector, realContext.children.get(childIndex));
+                realContext.netEventLoopGroup, realContext.groupInjector, realContext.children.get(childIndex));
     }
 
     @Nonnull
     @Override
-    public NetEventLoop netEventLoop() {
-        return getContext().netEventLoop;
+    public NetEventLoopGroup netEventLoopGroup() {
+        return getContext().netEventLoopGroup;
     }
 
-    private RealContext getContext() {
-        return (RealContext) context;
+    protected RealContext getContext() {
+        return (RealContext) super.getContext();
     }
 
     /**
@@ -103,7 +103,7 @@ public class GameEventLoopGroupImp extends MultiThreadEventLoopGroup implements 
         private RejectedExecutionHandler rejectedExecutionHandler = RejectedExecutionHandlers.abort();
         private EventLoopChooserFactory chooserFactory = null;
 
-        private NetEventLoop netEventLoop;
+        private NetEventLoopGroup netEventLoopGroup;
         private final List<WorldStartInfo> children = new ArrayList<>();
 
         private Builder() {
@@ -124,8 +124,8 @@ public class GameEventLoopGroupImp extends MultiThreadEventLoopGroup implements 
             return this;
         }
 
-        public Builder setNetEventLoop(@Nonnull NetEventLoop netEventLoop) {
-            this.netEventLoop = netEventLoop;
+        public Builder setNetEventLoopGroup(@Nonnull NetEventLoopGroup netEventLoopGroup) {
+            this.netEventLoopGroup = netEventLoopGroup;
             return this;
         }
 
@@ -140,10 +140,10 @@ public class GameEventLoopGroupImp extends MultiThreadEventLoopGroup implements 
         }
 
         public GameEventLoopGroupImp build() {
-            if (null == netEventLoop) {
-                throw new IllegalStateException("netEventLoop is null");
+            if (null == netEventLoopGroup) {
+                throw new IllegalStateException("netEventLoopGroup is null");
             }
-            final RealContext realContext = new RealContext(netEventLoop, children);
+            final RealContext realContext = new RealContext(netEventLoopGroup, children);
             final GameEventLoopGroupImp gameEventLoopGroup = new GameEventLoopGroupImp(threadFactory, rejectedExecutionHandler, chooserFactory, realContext);
             // 构造完成之后，启动所有线程
             gameEventLoopGroup.forEach(eventLoop -> eventLoop.execute(ConcurrentUtils.WEAK_UP_TASK));
@@ -160,14 +160,14 @@ public class GameEventLoopGroupImp extends MultiThreadEventLoopGroup implements 
         /**
          * 网络模块
          */
-        private final NetEventLoop netEventLoop;
+        private final NetEventLoopGroup netEventLoopGroup;
         /**
          * 所有的子节点
          */
         private final List<WorldStartInfo> children;
 
-        private RealContext(NetEventLoop netEventLoop, List<WorldStartInfo> children) {
-            this.netEventLoop = netEventLoop;
+        private RealContext(NetEventLoopGroup netEventLoopGroup, List<WorldStartInfo> children) {
+            this.netEventLoopGroup = netEventLoopGroup;
             this.children = Collections.unmodifiableList(children);
         }
     }

@@ -16,21 +16,35 @@
 
 package com.wjybxx.fastjgame.eventloop;
 
-import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
-import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
+import com.wjybxx.fastjgame.concurrent.*;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
 import com.wjybxx.fastjgame.manager.*;
+import com.wjybxx.fastjgame.misc.HostAndPort;
+import com.wjybxx.fastjgame.misc.HttpPortContext;
+import com.wjybxx.fastjgame.misc.PortRange;
 import com.wjybxx.fastjgame.module.NetEventLoopModule;
 import com.wjybxx.fastjgame.net.common.*;
+import com.wjybxx.fastjgame.net.http.HttpRequestDispatcher;
+import com.wjybxx.fastjgame.net.http.HttpRequestEvent;
+import com.wjybxx.fastjgame.net.http.HttpServerInitializer;
+import com.wjybxx.fastjgame.net.http.OkHttpCallback;
+import com.wjybxx.fastjgame.net.local.DefaultLocalPort;
+import com.wjybxx.fastjgame.net.local.LocalPort;
+import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
+import com.wjybxx.fastjgame.net.session.Session;
+import com.wjybxx.fastjgame.net.socket.*;
+import com.wjybxx.fastjgame.net.ws.WsClientChannelInitializer;
+import com.wjybxx.fastjgame.net.ws.WsServerChannelInitializer;
 import com.wjybxx.fastjgame.timer.FixedDelayHandle;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
+import okhttp3.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.locks.LockSupport;
 
@@ -49,42 +63,30 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
 
     private static final Logger logger = LoggerFactory.getLogger(NetEventLoopImp.class);
     private static final int MAX_BATCH_SIZE = 32 * 1024;
-    private static final int DEFAULT_IO_THREAD_NUM = 8;
 
-    private final NetManagerWrapper managerWrapper;
     private final NetEventLoopManager netEventLoopManager;
-    private final NettyThreadManager nettyThreadManager;
     private final HttpClientManager httpClientManager;
     private final HttpSessionManager httpSessionManager;
     private final AcceptorManager acceptorManager;
     private final ConnectorManager connectorManager;
     private final NetTimeManager netTimeManager;
     private final NetTimerManager netTimerManager;
-    private final int nettyIOThreadNum;
 
-    public NetEventLoopImp(@Nonnull ThreadFactory threadFactory,
-                           @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
-        this(threadFactory, rejectedExecutionHandler, DEFAULT_IO_THREAD_NUM);
-    }
 
-    public NetEventLoopImp(@Nonnull ThreadFactory threadFactory,
-                           @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
-                           int nettyIOThreadNum) {
-        super(null, threadFactory, rejectedExecutionHandler);
-        this.nettyIOThreadNum = nettyIOThreadNum;
+    NetEventLoopImp(@Nonnull NetEventLoopGroup parent,
+                    @Nonnull ThreadFactory threadFactory,
+                    @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
+                    @Nonnull Injector parentInjector) {
+        super(parent, threadFactory, rejectedExecutionHandler);
 
-        Injector injector = Guice.createInjector(new NetEventLoopModule());
-        managerWrapper = injector.getInstance(NetManagerWrapper.class);
+        Injector injector = parentInjector.createChildInjector(new NetEventLoopModule());
+        NetManagerWrapper managerWrapper = injector.getInstance(NetManagerWrapper.class);
         // 用于发布自己
         netEventLoopManager = managerWrapper.getNetEventLoopManager();
         // session管理
         acceptorManager = managerWrapper.getAcceptorManager();
         connectorManager = managerWrapper.getConnectorManager();
         httpSessionManager = managerWrapper.getHttpSessionManager();
-
-        // NetEventLoop管理的资源
-        nettyThreadManager = managerWrapper.getNettyThreadManager();
-        httpClientManager = managerWrapper.getHttpClientManager();
 
         // 时间管理器和timer管理器
         netTimeManager = managerWrapper.getNetTimeManager();
@@ -94,6 +96,9 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         acceptorManager.setManagerWrapper(managerWrapper);
         connectorManager.setNetManagerWrapper(managerWrapper);
         httpSessionManager.setManagerWrapper(managerWrapper);
+
+        // 全局httpClient资源
+        httpClientManager = managerWrapper.getHttpClientManager();
     }
 
     @Nonnull
@@ -121,27 +126,12 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     }
 
     @Override
-    public NetContext createContext(@Nonnull EventLoop localEventLoop) {
-        if (localEventLoop instanceof NetEventLoop) {
-            throw new IllegalArgumentException("Bad EventLoop");
-        }
-        // 监听用户线程关闭事件
-        localEventLoop.terminationFuture().addListener(future -> {
-            onUserEventLoopTerminal(localEventLoop);
-        }, this);
-
-        return new NetContextImp(this, localEventLoop, managerWrapper);
-    }
-
-    @Override
     protected void init() throws Exception {
         super.init();
         // 发布自身，使得该eventLoop的其它管理器可以方便的获取该对象，在这里才是正确的线程，构造方法里不能发布自己
         // Q: 为什么没使用threadLocal？
         // A: 本来想使用的，但是如果提供一个全局的接口的话，它也会对逻辑层开放，而逻辑层如果调用了一定会导致错误。使用threadLocal暴露了不该暴露的接口。
         netEventLoopManager.publish(this);
-        // 启动netty线程
-        nettyThreadManager.start(nettyIOThreadNum);
         // 10ms一次tick足够了
         netTimerManager.newFixedDelay(10, this::tick);
         // 切换到缓存策略
@@ -181,8 +171,9 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     }
 
     public void onUserEventLoopTerminal(EventLoop userEventLoop) {
-        managerWrapper.getAcceptorManager().onUserEventLoopTerminal(userEventLoop);
-        managerWrapper.getHttpSessionManager().onUserEventLoopTerminal(userEventLoop);
+        acceptorManager.onUserEventLoopTerminal(userEventLoop);
+        connectorManager.onUserEventLoopTerminal(userEventLoop);
+        httpSessionManager.onUserEventLoopTerminal(userEventLoop);
     }
 
     @Override
@@ -191,13 +182,143 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         // 清理定时器
         netTimerManager.close();
 
-        // 删除所有的用户信息
+        // 清理资源
         ConcurrentUtils.safeExecute((Runnable) acceptorManager::clean);
+        ConcurrentUtils.safeExecute((Runnable) connectorManager::clean);
         ConcurrentUtils.safeExecute((Runnable) httpSessionManager::clean);
+    }
 
-        // 关闭持有的线程资源
-        ConcurrentUtils.safeExecute((Runnable) nettyThreadManager::shutdown);
-        ConcurrentUtils.safeExecute((Runnable) httpClientManager::shutdown);
+    @Override
+    public NetContext createContext(@Nonnull EventLoop localEventLoop) {
+        if (localEventLoop instanceof NetEventLoop) {
+            throw new IllegalArgumentException("Bad EventLoop");
+        }
+        // 监听用户线程关闭事件
+        localEventLoop.terminationFuture().addListener(future -> {
+            onUserEventLoopTerminal(localEventLoop);
+        }, this);
+
+        return new NetContextImp(this, localEventLoop);
+    }
+
+    // ------------------------------------------------------------- socket -------------------------------------------------
+
+    @Override
+    public void fireConnectRequest(SocketConnectRequestEvent event) {
+        execute(() -> {
+            acceptorManager.onRcvConnectRequest(event);
+        });
+    }
+
+    @Override
+    public void fireMessage_acceptor(SocketMessageEvent event) {
+        execute(() -> {
+            acceptorManager.onRcvMessage(event);
+        });
+    }
+
+    @Override
+    public void fireHttpRequest(HttpRequestEvent event) {
+        execute(() -> {
+            httpSessionManager.onRcvHttpRequest(event);
+        });
+    }
+
+    @Override
+    public void fireConnectResponse(SocketConnectResponseEvent event) {
+        execute(() -> {
+            connectorManager.onRcvConnectResponse(event);
+        });
+    }
+
+    @Override
+    public void fireMessage_connector(SocketMessageEvent event) {
+        execute(() -> {
+            connectorManager.onRcvMessage(event);
+        });
+    }
+
+    @Override
+    public ListenableFuture<SocketPort> bindTcpRange(String host, PortRange portRange, SocketSessionConfig config, NetContext netContext) {
+        SocketPortContext portExtraInfo = new SocketPortContext(netContext, config);
+        TCPServerChannelInitializer initializer = new TCPServerChannelInitializer(portExtraInfo);
+        return submit(() -> {
+            return acceptorManager.bindRange(host, portRange, config, initializer);
+        });
+    }
+
+    @Override
+    public ListenableFuture<Session> connect(String sessionId, HostAndPort remoteAddress, byte[] token, SocketSessionConfig config, NetContext netContext) {
+        final TCPClientChannelInitializer initializer = new TCPClientChannelInitializer(sessionId, config, this);
+        return submit(() -> {
+            return connectorManager.connect(netContext.localEventLoop(), sessionId, remoteAddress, token, config, initializer);
+        });
+    }
+
+    @Override
+    public ListenableFuture<SocketPort> bindWSRange(String host, PortRange portRange, String websocketPath, SocketSessionConfig config, NetContext netContext) {
+        SocketPortContext portExtraInfo = new SocketPortContext(netContext, config);
+        WsServerChannelInitializer initializer = new WsServerChannelInitializer(websocketPath, portExtraInfo);
+        return submit(() -> {
+            return acceptorManager.bindRange(host, portRange, config, initializer);
+        });
+    }
+
+    @Override
+    public ListenableFuture<Session> connect(String sessionId, HostAndPort remoteAddress, String websocketUrl, byte[] token, SocketSessionConfig config, NetContext netContext) {
+        final WsClientChannelInitializer initializer = new WsClientChannelInitializer(sessionId, websocketUrl, config, this);
+        return submit(() -> {
+            return connectorManager.connect(netContext.localEventLoop(), sessionId, remoteAddress, token, config, initializer);
+        });
+    }
+
+    // --------------------------------------------------------- localSession ----------------------------------------------------
+
+    @Override
+    public ListenableFuture<LocalPort> bindLocal(NetContext netContext, LocalSessionConfig config) {
+        return submit(() -> {
+            return acceptorManager.bindLocal(netContext, config);
+        });
+    }
+
+    @Override
+    public ListenableFuture<Session> connect(LocalPort localPort, String sessionId, byte[] token, LocalSessionConfig config, NetContext netContext) {
+        if (!(localPort instanceof DefaultLocalPort)) {
+            return new FailedFuture<>(this, new UnsupportedOperationException());
+        }
+        return submit(() -> {
+            return connectorManager.connectLocal((DefaultLocalPort) localPort, netContext.localEventLoop(), sessionId, token, config);
+        });
+    }
+    // -------------------------------------------------------------- http --------------------------------------------------------
+
+    @Override
+    public ListenableFuture<SocketPort> bindHttpRange(String host, PortRange portRange, @Nonnull HttpRequestDispatcher httpRequestDispatcher, @Nonnull NetContext netContext) {
+        final HttpPortContext httpPortContext = new HttpPortContext(netContext, httpRequestDispatcher);
+        final HttpServerInitializer initializer = new HttpServerInitializer(httpPortContext);
+        return submit(() -> {
+            return httpSessionManager.bindRange(host, portRange, initializer);
+        });
+    }
+
+    @Override
+    public Response syncGet(String url, @Nonnull Map<String, String> params) throws IOException {
+        return httpClientManager.syncGet(url, params);
+    }
+
+    @Override
+    public void asyncGet(String url, @Nonnull Map<String, String> params, @Nonnull OkHttpCallback okHttpCallback, @Nonnull EventLoop localEventLoop) {
+        httpClientManager.asyncGet(url, params, localEventLoop, okHttpCallback);
+    }
+
+    @Override
+    public Response syncPost(String url, @Nonnull Map<String, String> params) throws IOException {
+        return httpClientManager.syncPost(url, params);
+    }
+
+    @Override
+    public void asyncPost(String url, @Nonnull Map<String, String> params, @Nonnull OkHttpCallback okHttpCallback, EventLoop localEventLoop) {
+        httpClientManager.asyncPost(url, params, localEventLoop, okHttpCallback);
     }
 
 }

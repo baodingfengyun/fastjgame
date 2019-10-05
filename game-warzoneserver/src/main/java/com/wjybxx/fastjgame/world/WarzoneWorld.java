@@ -23,8 +23,8 @@ import com.wjybxx.fastjgame.mrg.CenterInWarzoneInfoMrg;
 import com.wjybxx.fastjgame.mrg.WarzoneSendMrg;
 import com.wjybxx.fastjgame.mrg.WarzoneWorldInfoMrg;
 import com.wjybxx.fastjgame.mrg.WorldWrapper;
-import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
+import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.rpcservice.ICenterInWarzoneInfoMrgRpcRegister;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.JsonUtils;
@@ -117,7 +117,8 @@ public class WarzoneWorld extends AbstractWorld {
 
         @Override
         public void onSessionDisconnected(Session session) {
-            centerInWarzoneInfoMrg.onCenterServerDisconnect(session);
+            final long centerWorldGuid = innerAcceptorMrg.parseRemoteGuid(session.sessionId());
+            centerInWarzoneInfoMrg.onCenterServerDisconnect(centerWorldGuid);
         }
     }
 }

@@ -35,10 +35,11 @@ public interface ICenterInWarzoneInfoMrg {
      * 中心服请求注册到战区服
      *
      * @param session       关联的会话
+     * @param centerWorldGuid 中心服的world标识
      * @param platfomNumber 中心服的平台
      * @param serverId      中心服的服ID
      * @return 返回一个结果告知已完成
      */
     @RpcMethod(methodId = 1)
-    boolean connectWarzone(Session session, int platfomNumber, int serverId);
+    boolean connectWarzone(Session session, long centerWorldGuid, int platfomNumber, int serverId);
 }

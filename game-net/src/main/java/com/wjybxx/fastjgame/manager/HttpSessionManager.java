@@ -18,8 +18,7 @@ package com.wjybxx.fastjgame.manager;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.eventloop.NetContext;
-import com.wjybxx.fastjgame.misc.HttpPortExtraInfo;
+import com.wjybxx.fastjgame.misc.HttpPortContext;
 import com.wjybxx.fastjgame.misc.PortRange;
 import com.wjybxx.fastjgame.net.http.HttpRequestCommitTask;
 import com.wjybxx.fastjgame.net.http.HttpRequestEvent;
@@ -82,8 +81,7 @@ public class HttpSessionManager {
     /**
      * @see NettyThreadManager#bindRange(String, PortRange, int, int, ChannelInitializer)
      */
-    public DefaultSocketPort bindRange(NetContext netContext, String host, PortRange portRange,
-                                       @Nonnull ChannelInitializer<SocketChannel> initializer) throws BindException {
+    public DefaultSocketPort bindRange(String host, PortRange portRange, @Nonnull ChannelInitializer<SocketChannel> initializer) throws BindException {
         assert netEventLoopManager.inEventLoop();
         return nettyThreadManager.bindRange(host, portRange, 8192, 8192, initializer);
     }
@@ -121,10 +119,10 @@ public class HttpSessionManager {
      */
     public void onRcvHttpRequest(HttpRequestEvent requestEventParam) {
         final Channel channel = requestEventParam.channel();
-        final HttpPortExtraInfo portExtraInfo = requestEventParam.getPortExtraInfo();
+        final HttpPortContext portExtraInfo = requestEventParam.getPortExtraInfo();
         // 保存session
         SessionWrapper sessionWrapper = sessionWrapperMap.computeIfAbsent(channel,
-                k -> new SessionWrapper(new HttpSessionImp(portExtraInfo.getNetContext(), this, channel)));
+                k -> new SessionWrapper(new HttpSessionImp(portExtraInfo.localEventLoop(), netEventLoopManager.eventLoop(), this, channel)));
 
         // 保持一段时间的活性
         sessionWrapper.setSessionTimeout(netConfigManager.httpSessionTimeout() + netTimeManager.getSystemSecTime());

@@ -93,6 +93,26 @@ public class NetUtils {
     }
 
     /**
+     * 计算sessionId对应的固定的key
+     *
+     * @param sessionId 待计算的sessionId
+     * @return 对于同一个sessionId，它计算得到的key是不变的
+     */
+    public static int fixedKey(String sessionId) {
+        return sessionId.hashCode();
+    }
+
+    /**
+     * 计算Channel对应的固定的key
+     *
+     * @param channel 待计算的channel
+     * @return 对于同一个Channel，它计算得到的key是不变的
+     */
+    public static int fixedKey(Channel channel) {
+        return channel.hashCode();
+    }
+
+    /**
      * 安静的关闭channel,不产生任何影响
      */
     public static void closeQuietly(Channel channel) {
@@ -307,7 +327,6 @@ public class NetUtils {
             DefaultSocketChannelConfig socketChannelConfig = (DefaultSocketChannelConfig) channelConfig;
             socketChannelConfig.setPerformancePreferences(0, 1, 2);
             socketChannelConfig.setAllocator(PooledByteBufAllocator.DEFAULT);
-
         }
     }
 

@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.manager.NetEventManager;
+import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
@@ -37,18 +37,18 @@ public class TCPClientChannelInitializer extends ChannelInitializer<SocketChanne
 
     private final String sessionId;
     private final SocketSessionConfig config;
-    private final NetEventManager netEventManager;
+    private final NetEventLoop netEventLoop;
 
-    public TCPClientChannelInitializer(String sessionId, SocketSessionConfig config, NetEventManager netEventManager) {
+    public TCPClientChannelInitializer(String sessionId, SocketSessionConfig config, NetEventLoop netEventLoop) {
         this.sessionId = sessionId;
         this.config = config;
-        this.netEventManager = netEventManager;
+        this.netEventLoop = netEventLoop;
     }
 
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
         pipeline.addLast(new LengthFieldBasedFrameDecoder(config.maxFrameLength(), 0, 4, 0, 4));
-        pipeline.addLast(new ClientSocketCodec(config.codec(), sessionId, netEventManager));
+        pipeline.addLast(new ClientSocketCodec(config.codec(), sessionId, netEventLoop));
     }
 }

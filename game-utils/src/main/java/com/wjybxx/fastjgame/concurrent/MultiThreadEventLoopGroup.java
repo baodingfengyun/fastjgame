@@ -133,6 +133,10 @@ public abstract class MultiThreadEventLoopGroup extends AbstractEventLoopGroup {
     @Nonnull
     protected abstract EventLoop newChild(int childIndex, ThreadFactory threadFactory, RejectedExecutionHandler rejectedExecutionHandler, Object context);
 
+    protected Object getContext() {
+        return context;
+    }
+
     // -------------------------------------  子类生命周期管理 --------------------------------
 
     @Override

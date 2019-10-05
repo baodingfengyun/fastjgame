@@ -59,7 +59,7 @@ public class CenterInWarzoneInfoMrg implements ICenterInWarzoneInfoMrg {
     }
 
     private void addInfo(CenterInWarzoneInfo centerInWarzoneInfo) {
-        guid2InfoMap.put(centerInWarzoneInfo.getGameWorldGuid(), centerInWarzoneInfo);
+        guid2InfoMap.put(centerInWarzoneInfo.getCenterWorldGuid(), centerInWarzoneInfo);
 
         Int2ObjectMap<CenterInWarzoneInfo> serverId2InfoMap = getServerId2InfoMap(centerInWarzoneInfo.getPlatformType());
         serverId2InfoMap.put(centerInWarzoneInfo.getServerId(), centerInWarzoneInfo);
@@ -73,25 +73,28 @@ public class CenterInWarzoneInfoMrg implements ICenterInWarzoneInfoMrg {
     }
 
     private void removeInfo(CenterInWarzoneInfo centerInWarzoneInfo) {
-        guid2InfoMap.remove(centerInWarzoneInfo.getGameWorldGuid());
+        guid2InfoMap.remove(centerInWarzoneInfo.getCenterWorldGuid());
         getServerId2InfoMap(centerInWarzoneInfo.getPlatformType()).remove(centerInWarzoneInfo.getServerId());
 
         logger.info("server {}-{} disconnect.", centerInWarzoneInfo.getPlatformType(), centerInWarzoneInfo.getServerId());
     }
 
     @Override
-    public boolean connectWarzone(Session session, int platfomNumber, int serverId) {
+    public boolean connectWarzone(Session session, long centerWorldGuid, int platfomNumber, int serverId) {
         PlatformType platformType = PlatformType.forNumber(platfomNumber);
-        assert !guid2InfoMap.containsKey(session.remoteGuid());
+        assert !guid2InfoMap.containsKey(centerWorldGuid);
         assert !platInfoMap.containsKey(platformType) || !platInfoMap.get(platformType).containsKey(serverId);
 
-        CenterInWarzoneInfo centerInWarzoneInfo = new CenterInWarzoneInfo(session.remoteGuid(), platformType, serverId, session);
+        // 标记session对应的worldGuid
+        session.attach(centerWorldGuid);
+
+        CenterInWarzoneInfo centerInWarzoneInfo = new CenterInWarzoneInfo(session, centerWorldGuid, platformType, serverId);
         addInfo(centerInWarzoneInfo);
         return true;
     }
 
-    public void onCenterServerDisconnect(Session session) {
-        CenterInWarzoneInfo centerInWarzoneInfo = guid2InfoMap.get(session.remoteGuid());
+    public void onCenterServerDisconnect(long centerWorldGuid) {
+        CenterInWarzoneInfo centerInWarzoneInfo = guid2InfoMap.get(centerWorldGuid);
         if (null == centerInWarzoneInfo) {
             return;
         }

@@ -90,8 +90,8 @@ public class AcceptorManager {
         final Session existSession = sessionRegistry.getSession(connectRequestEvent.sessionId());
         if (existSession == null) {
             // TODO 首次建立连接验证
-            final SocketPortExtraInfo portExtraInfo = connectRequestEvent.getPortExtraInfo();
-            SocketSessionImp socketSessionImp = new SocketSessionImp(portExtraInfo.getLocalEventLoop(), netManagerWrapper,
+            final SocketPortContext portExtraInfo = connectRequestEvent.getPortExtraInfo();
+            SocketSessionImp socketSessionImp = new SocketSessionImp(portExtraInfo.localEventLoop(), netManagerWrapper,
                     connectRequestEvent.sessionId(), connectRequestEvent.channel(), portExtraInfo.getSessionConfig());
             sessionRegistry.registerSession(socketSessionImp);
 
@@ -136,13 +136,13 @@ public class AcceptorManager {
      * @return localPort
      */
     public LocalPort bindLocal(NetContext netContext, LocalSessionConfig config) {
-        return new DefaultLocalPort(netContext, config, netManagerWrapper.getConnectorManager());
+        return new DefaultLocalPort(netContext, config);
     }
 
     /**
      * 接收到一个连接请
      *
-     * @param localPort   本地“端口”
+     * @param localPort 本地“端口”
      * @param sessionId session唯一标识
      * @return session
      * @throws IOException error
@@ -152,7 +152,7 @@ public class AcceptorManager {
             throw new IOException("session " + sessionId + " is already registered");
         }
         // 创建session并保存
-        LocalSessionImp session = new LocalSessionImp(localPort.getNetContext(), netManagerWrapper, sessionId, localPort.getLocalConfig());
+        LocalSessionImp session = new LocalSessionImp(localPort.localEventLoop(), netManagerWrapper, sessionId, localPort.getLocalConfig());
         sessionRegistry.registerSession(session);
 
         // 创建管道，但是这里还不能初始化 - 因为还没有对方的引用

@@ -16,11 +16,9 @@
 
 package com.wjybxx.fastjgame.test;
 
-import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
-import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.configwrapper.ArrayConfigWrapper;
-import com.wjybxx.fastjgame.eventloop.NetEventLoop;
-import com.wjybxx.fastjgame.eventloop.NetEventLoopImp;
+import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
+import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupBuilder;
 import com.wjybxx.fastjgame.module.WarzoneModule;
 import com.wjybxx.fastjgame.world.GameEventLoopGroupImp;
 
@@ -44,10 +42,9 @@ public class WarzoneWorldTest {
         String logPath = logDir + File.separator + "warzone.log";
         System.setProperty("logPath", logPath);
 
-
-        NetEventLoop netEventLoopGroup = new NetEventLoopImp(new DefaultThreadFactory("NET"), RejectedExecutionHandlers.abort());
+        NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupBuilder().build();
         GameEventLoopGroupImp.newBuilder()
-                .setNetEventLoop(netEventLoopGroup)
+                .setNetEventLoopGroup(netEventLoopGroup)
                 .addWorld(new WarzoneModule(), new ArrayConfigWrapper(args), 5)
                 .build();
     }

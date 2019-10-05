@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.manager.NetEventManager;
+import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.net.common.NetMessageType;
 import com.wjybxx.fastjgame.net.common.ProtocolCodec;
 import io.netty.buffer.ByteBuf;
@@ -47,14 +47,16 @@ public class ClientSocketCodec extends BaseSocketCodec {
      */
     private boolean connect = false;
     /**
-     * 用于发布网络事件
+     * 该session所属的运行环境。
+     * <p>
+     * 对于连接的发起方来讲，它的运行环境是确定的。
      */
-    private final NetEventManager netEventManager;
+    private final NetEventLoop netEventLoop;
 
-    public ClientSocketCodec(ProtocolCodec codec, String sessionId, NetEventManager netEventManager) {
+    public ClientSocketCodec(ProtocolCodec codec, String sessionId, NetEventLoop netEventLoop) {
         super(codec);
         this.sessionId = sessionId;
-        this.netEventManager = netEventManager;
+        this.netEventLoop = netEventLoop;
     }
 
     // region 编码消息
@@ -105,7 +107,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
      */
     private void tryReadConnectResponse(ChannelHandlerContext ctx, ByteBuf msg) {
         final SocketConnectResponseEvent socketConnectResponseEvent = readConnectResponse(ctx.channel(), sessionId, msg);
-        netEventManager.fireConnectResponse(socketConnectResponseEvent);
+        netEventLoop.fireConnectResponse(socketConnectResponseEvent);
 
         // 标记为已连接
         if (socketConnectResponseEvent.isSuccess()) {
@@ -120,7 +122,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
         ensureConnected();
 
         SocketMessageEvent socketMessageEvent = readRpcRequestMessage(ctx.channel(), sessionId, msg);
-        netEventManager.fireMessage_connector(socketMessageEvent);
+        netEventLoop.fireMessage_connector(socketMessageEvent);
     }
 
     /**
@@ -130,7 +132,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
         ensureConnected();
 
         SocketMessageEvent socketMessageEvent = readRpcResponseMessage(ctx.channel(), sessionId, msg);
-        netEventManager.fireMessage_connector(socketMessageEvent);
+        netEventLoop.fireMessage_connector(socketMessageEvent);
     }
 
     /**
@@ -139,7 +141,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
     private void tryReadOneWayMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureConnected();
 
-        netEventManager.fireMessage_connector(readOneWayMessage(ctx.channel(), sessionId, msg));
+        netEventLoop.fireMessage_connector(readOneWayMessage(ctx.channel(), sessionId, msg));
     }
 
     /**
@@ -149,7 +151,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
         ensureConnected();
 
         SocketMessageEvent socketMessageEvent = readAckPingPongMessage(ctx.channel(), sessionId, msg);
-        netEventManager.fireMessage_connector(socketMessageEvent);
+        netEventLoop.fireMessage_connector(socketMessageEvent);
     }
     // endregion
 

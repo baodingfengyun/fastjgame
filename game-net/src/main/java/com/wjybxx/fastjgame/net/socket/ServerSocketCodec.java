@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.manager.NetEventManager;
 import com.wjybxx.fastjgame.net.common.NetMessageType;
 import com.wjybxx.fastjgame.net.common.ProtocolCodec;
 import com.wjybxx.fastjgame.utils.NetUtils;
@@ -39,13 +38,11 @@ import java.io.IOException;
 public class ServerSocketCodec extends BaseSocketCodec {
 
     private String sessionId;
-    private final SocketPortExtraInfo portExtraInfo;
-    private final NetEventManager netEventManager;
+    private final SocketPortContext portExtraInfo;
 
-    public ServerSocketCodec(ProtocolCodec codec, SocketPortExtraInfo portExtraInfo, NetEventManager netEventManager) {
+    public ServerSocketCodec(ProtocolCodec codec, SocketPortContext portExtraInfo) {
         super(codec);
         this.portExtraInfo = portExtraInfo;
-        this.netEventManager = netEventManager;
     }
 
     /**
@@ -111,7 +108,7 @@ public class ServerSocketCodec extends BaseSocketCodec {
      */
     private void tryReadConnectRequest(ChannelHandlerContext ctx, ByteBuf msg) {
         SocketConnectRequestEvent connectRequestEvent = readConnectRequest(ctx.channel(), msg, portExtraInfo);
-        netEventManager.fireConnectRequest(connectRequestEvent);
+        portExtraInfo.netEventLoopGroup().fireConnectRequest(connectRequestEvent);
 
         if (!isInited()) {
             init(connectRequestEvent.sessionId());
@@ -126,7 +123,7 @@ public class ServerSocketCodec extends BaseSocketCodec {
     private void tryReadRpcRequestMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureInited();
 
-        netEventManager.fireMessage_acceptor(readRpcRequestMessage(ctx.channel(), sessionId, msg));
+        portExtraInfo.netEventLoopGroup().fireMessage_acceptor(readRpcRequestMessage(ctx.channel(), sessionId, msg));
     }
 
     /**
@@ -135,7 +132,7 @@ public class ServerSocketCodec extends BaseSocketCodec {
     private void tryReadRpcResponseMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureInited();
 
-        netEventManager.fireMessage_acceptor(readRpcResponseMessage(ctx.channel(), sessionId, msg));
+        portExtraInfo.netEventLoopGroup().fireMessage_acceptor(readRpcResponseMessage(ctx.channel(), sessionId, msg));
     }
 
     /**
@@ -144,7 +141,7 @@ public class ServerSocketCodec extends BaseSocketCodec {
     private void tryReadOneWayMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureInited();
 
-        netEventManager.fireMessage_acceptor(readOneWayMessage(ctx.channel(), sessionId, msg));
+        portExtraInfo.netEventLoopGroup().fireMessage_acceptor(readOneWayMessage(ctx.channel(), sessionId, msg));
     }
 
     /**
@@ -153,7 +150,7 @@ public class ServerSocketCodec extends BaseSocketCodec {
     private void tryReadAckPingMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureInited();
 
-        netEventManager.fireMessage_acceptor(readAckPingPongMessage(ctx.channel(), sessionId, msg));
+        portExtraInfo.netEventLoopGroup().fireMessage_acceptor(readAckPingPongMessage(ctx.channel(), sessionId, msg));
     }
 
     // endregion

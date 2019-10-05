@@ -16,9 +16,9 @@
 
 package com.wjybxx.fastjgame.net.ws;
 
-import com.wjybxx.fastjgame.manager.NetEventManager;
-import com.wjybxx.fastjgame.net.common.ProtocolCodec;
+import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.net.socket.ClientSocketCodec;
+import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
@@ -50,17 +50,15 @@ public class WsClientChannelInitializer extends ChannelInitializer<SocketChannel
      * 触发升级为websocket的url (eg: http://localhost:8088/ws)
      */
     private final String websocketUrl;
-    private final int maxFrameLength;
-    private final ProtocolCodec codec;
-    private final NetEventManager netEventManager;
+    private final SocketSessionConfig sessionConfig;
+    private final NetEventLoop netEventLoop;
 
-    public WsClientChannelInitializer(String sessionId, String websocketUrl, int maxFrameLength,
-                                      ProtocolCodec codec, NetEventManager netEventManager) {
+    public WsClientChannelInitializer(String sessionId, String websocketUrl,
+                                      SocketSessionConfig sessionConfig, NetEventLoop netEventLoop) {
         this.sessionId = sessionId;
         this.websocketUrl = websocketUrl;
-        this.maxFrameLength = maxFrameLength;
-        this.netEventManager = netEventManager;
-        this.codec = codec;
+        this.sessionConfig = sessionConfig;
+        this.netEventLoop = netEventLoop;
     }
 
     @Override
@@ -91,7 +89,7 @@ public class WsClientChannelInitializer extends ChannelInitializer<SocketChannel
         // websocket 解码流程
         URI uri = new URI(websocketUrl);
         pipeline.addLast(new WebSocketClientProtocolHandler(uri, WebSocketVersion.V13,
-                null, true, new DefaultHttpHeaders(), maxFrameLength));
+                null, true, new DefaultHttpHeaders(), sessionConfig.maxFrameLength()));
         pipeline.addLast(new BinaryWebSocketFrameToBytesDecoder());
 
         // websocket 编码流程
@@ -106,7 +104,7 @@ public class WsClientChannelInitializer extends ChannelInitializer<SocketChannel
      * 自定义二进制协议支持
      */
     private void appendCustomProtocolCodec(ChannelPipeline pipeline) {
-        pipeline.addLast(new LengthFieldBasedFrameDecoder(maxFrameLength, 0, 4, 0, 4));
-        pipeline.addLast(new ClientSocketCodec(codec, sessionId, netEventManager));
+        pipeline.addLast(new LengthFieldBasedFrameDecoder(sessionConfig.maxFrameLength(), 0, 4, 0, 4));
+        pipeline.addLast(new ClientSocketCodec(sessionConfig.codec(), sessionId, netEventLoop));
     }
 }

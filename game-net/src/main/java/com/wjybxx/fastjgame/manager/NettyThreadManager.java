@@ -53,7 +53,6 @@ public class NettyThreadManager {
      */
     private static final WriteBufferWaterMark WRITE_BUFFER_WATER_MARK = new WriteBufferWaterMark(8 * 32 * 1024, 8 * 64 * 1024);
 
-
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
 
@@ -62,9 +61,9 @@ public class NettyThreadManager {
 
     }
 
-    public void start(int nettyIOThreadNum) {
-        bossGroup = new NioEventLoopGroup(1, new DefaultThreadFactory("ACCEPTOR_THREAD"));
-        workerGroup = new NioEventLoopGroup(nettyIOThreadNum, new DefaultThreadFactory("IO_THREAD"));
+    public void start(int bossGroupThreadNum, int workerGroupThreadNum) {
+        bossGroup = new NioEventLoopGroup(bossGroupThreadNum, new DefaultThreadFactory("BOSS_GROUP_THREAD"));
+        workerGroup = new NioEventLoopGroup(workerGroupThreadNum, new DefaultThreadFactory("WORKER_GROUP_THREAD"));
         logger.info("NettyThreadManager start success");
     }
 

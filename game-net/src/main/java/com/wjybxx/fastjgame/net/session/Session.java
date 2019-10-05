@@ -20,7 +20,6 @@ import com.wjybxx.fastjgame.annotation.Internal;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
-import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.net.common.RpcCallback;
 import com.wjybxx.fastjgame.net.common.RpcResponse;
 import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
@@ -55,9 +54,13 @@ public interface Session extends Comparable<Session> {
      * 1. 必须是全局唯一
      * 2. 尽量有意义
      * <p>
-     * 它的重要意义：
-     * 1. 线程封闭 - 一个sessionId的总是运行在一个特定的{@link NetEventLoop}。
-     * 2. 只要单个{@link NetEventLoop}能保证sessionId不重复，那么整个{@link NetEventLoopGroup}中的sessionId就是不重复的。
+     * 它的重要意义：线程封闭。
+     * <p>
+     * Q: 为什么要用户分配？而不是网络层自动分配？
+     * A:
+     * 1. 用户比网络层更容易做到唯一。<br>
+     * 2. 用户能赋予sessionId更确切的含义。<br>
+     * 3. 用户可以使sessionId更短，你肯定不想每个sessionId都是60个字节 - {@link io.netty.channel.ChannelId}<br>
      */
     String sessionId();
 
@@ -72,6 +75,27 @@ public interface Session extends Comparable<Session> {
     EventLoop localEventLoop();
 
     // ---------------------------------------------- 配置信息 ----------------------------------------------
+
+    /**
+     * 设置附加属性。
+     * 注意：
+     * 1. attachment在不会自动删除，当你不需要使用时，可以尽早的释放它(设置为null)。
+     * 2. 只有用户线程可以使用它，目前并没有做多线程访问支持。
+     *
+     * @param newData 新值
+     * @return 之前的值，如果不存在，则返回null
+     */
+    <T> T attach(@Nullable Object newData);
+
+    /**
+     * 返回当前的附加属性（上一次attach的值）。
+     * 注意：只有用户线程可以使用它，目前并没有做多线程访问支持。
+     *
+     * @param <T> 结果类型，方便强制类型转换
+     * @return nullable，如果未调用过attach，一定为null
+     */
+    @Nullable
+    <T> T attachment();
 
     /**
      * session相关的配置信息

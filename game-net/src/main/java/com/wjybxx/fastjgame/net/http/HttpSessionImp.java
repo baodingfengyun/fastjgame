@@ -19,7 +19,6 @@ package com.wjybxx.fastjgame.net.http;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.concurrent.adapter.NettyListenableFutureAdapter;
-import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.manager.HttpSessionManager;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
@@ -36,15 +35,14 @@ import io.netty.handler.codec.http.HttpResponse;
  */
 public final class HttpSessionImp implements HttpSession {
 
-    private final NetContext netContext;
+    private final EventLoop localEventLoop;
+    private final NetEventLoop netEventLoop;
     private final HttpSessionManager httpSessionManager;
-    /**
-     * session对应的channel
-     */
     private final Channel channel;
 
-    public HttpSessionImp(NetContext netContext, HttpSessionManager httpSessionManager, Channel channel) {
-        this.netContext = netContext;
+    public HttpSessionImp(EventLoop localEventLoop, NetEventLoop netEventLoop, HttpSessionManager httpSessionManager, Channel channel) {
+        this.localEventLoop = localEventLoop;
+        this.netEventLoop = netEventLoop;
         this.httpSessionManager = httpSessionManager;
         this.channel = channel;
     }
@@ -69,7 +67,6 @@ public final class HttpSessionImp implements HttpSession {
     @Override
     public ListenableFuture<?> close() {
         channel.close();
-
         return ConcurrentUtils.submitOrRun(netEventLoop(), () -> {
             httpSessionManager.removeSession(channel);
         });
@@ -77,11 +74,11 @@ public final class HttpSessionImp implements HttpSession {
 
     @Override
     public NetEventLoop netEventLoop() {
-        return netContext.netEventLoop();
+        return netEventLoop;
     }
 
     @Override
     public EventLoop localEventLoop() {
-        return netContext.localEventLoop();
+        return localEventLoop;
     }
 }

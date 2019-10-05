@@ -3,10 +3,10 @@ package com.wjybxx.fastjgame.world;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.core.onlinenode.SceneNodeData;
-import com.wjybxx.fastjgame.misc.HostAndPort;
-import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
-import com.wjybxx.fastjgame.mrg.*;
 import com.wjybxx.fastjgame.eventloop.NetContext;
+import com.wjybxx.fastjgame.misc.HostAndPort;
+import com.wjybxx.fastjgame.mrg.*;
+import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.rpcservice.ICenterInSceneInfoMrgRpcRegister;
 import com.wjybxx.fastjgame.rpcservice.ISceneRegionMrgRpcRegister;
@@ -125,6 +125,7 @@ public class SceneWorld extends AbstractWorld {
     }
 
     private class CenterLifeAware implements SessionLifecycleAware {
+
         @Override
         public void onSessionConnected(Session session) {
 
@@ -132,7 +133,8 @@ public class SceneWorld extends AbstractWorld {
 
         @Override
         public void onSessionDisconnected(Session session) {
-            centerInSceneInfoMrg.onDisconnect(session.remoteGuid(), SceneWorld.this);
+            final long centerWorldGuid = innerAcceptorMrg.parseRemoteGuid(session.sessionId());
+            centerInSceneInfoMrg.onDisconnect(centerWorldGuid, SceneWorld.this);
         }
     }
 

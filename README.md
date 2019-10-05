@@ -197,12 +197,14 @@ fastjgame 为 fast java game framework的缩写，如名字一样，该项目的
 如果你想要学习**Disruptor**，那么推荐你看我详细注释过的源码[disruptor-translation](https://github.com/hl845740757/disruptor-translation)  
 如果你想学习**Netty**的线程模型，你可以看看我注释过的源码[netty-translation](https://github.com/hl845740757/netty-translation)，netty并没有全部注释，不过并发包是基本是完整注释的。  
 
-#### NetEventLoop固定单线程，通过SessionPipeline提供功能插拔特性 2019年10月02日
-1. 之前的NetEventLoopGroup属于过度设计了，NetEventLoop单线程完全足够，能够获得更简单的编程模型，以及保证Session的唯一性。  
-2. 之前的SessionManager代码组织较为混乱，扩展功能较为困难，一直在想办法解决这个问题，这版本引入了类似Netty的ChannelPipeline的SessionPipeline。
+#### 通过SessionPipeline提供功能插拔特性 2019年10月02日
+1. 之前的SessionManager代码组织较为混乱，扩展功能较为困难，一直在想办法解决这个问题，这版本引入了类似Netty的ChannelPipeline的SessionPipeline。
 通过handler的方式实现插拔功能，以消除重复代码和提升扩展性。  
 如：是否使用消息确认机制通过增删handler来实现，内网通信可以不开启，这样内网通信传输的数据量就会减少许多，走到的代码也会少很多。   
 又如：服务器与玩家之间是没有rpc的，因此与玩家的session之间也不会有rpc相关的逻辑。  
 当然，这是有代价的，代价就是JVM内部传输数据速度变慢，因为有大量的空方法需要执行和冗余判断 - 这些在JVM内部通信之间占的比重还挺大。  
-3. **该版本需要重新生成注解处理器**（文件重新归档导致）。
-4. 还有很多尚未完成的地方，只是都可以重新运行起来了，还需要继续迭代。
+2. **该版本需要重新生成注解处理器**（文件重新归档导致）。
+3. 还有很多尚未完成的地方，只是都可以重新运行起来了，还需要继续迭代。
+
+#### 真香警告，恢复NetEventLoop多线程模型 2019年10月05日
+通过sessionId实现粘性session，使得同一个sessionId的数据总是由同一个NetEventLoop来处理，从而保证数据安全性，即使更换channel，仍然支持消息确认机制。

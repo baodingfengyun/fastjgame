@@ -20,7 +20,6 @@ import com.wjybxx.fastjgame.annotation.Internal;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.concurrent.Promise;
-import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.exception.InternalApiException;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
@@ -62,6 +61,10 @@ public abstract class AbstractSession implements Session {
      * 激活状态 - 默认true，因为在激活之前不会返回给用户。
      */
     private final AtomicBoolean stateHolder = new AtomicBoolean(true);
+    /**
+     * 上下文/附加属性 - 非volatile，只有用户线程可以使用
+     */
+    private Object attachment;
 
     protected AbstractSession(String sessionId, EventLoop localEventLoop, NetManagerWrapper managerWrapper) {
         this.sessionId = sessionId;
@@ -84,6 +87,29 @@ public abstract class AbstractSession implements Session {
     @Override
     public final EventLoop localEventLoop() {
         return localEventLoop;
+    }
+
+    @Override
+    public final <T> T attach(@Nullable Object newData) {
+        if (localEventLoop.inEventLoop()) {
+            @SuppressWarnings("unchecked")
+            T pre = (T) attachment;
+            this.attachment = newData;
+            return pre;
+        } else {
+            throw new IllegalStateException("Unsafe op");
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Nullable
+    @Override
+    public final <T> T attachment() {
+        if (localEventLoop.inEventLoop()) {
+            return (T) attachment;
+        } else {
+            throw new IllegalStateException("Unsafe op");
+        }
     }
 
     @Override

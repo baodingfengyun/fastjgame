@@ -17,6 +17,8 @@
 package com.wjybxx.fastjgame.net.socket;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.wjybxx.fastjgame.eventloop.NetContext;
+import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 
 /**
  * socket端口监听信息 - 存储监听者的一些信息
@@ -26,26 +28,39 @@ import com.wjybxx.fastjgame.concurrent.EventLoop;
  * date - 2019/10/2
  * github - https://github.com/hl845740757
  */
-public class SocketPortExtraInfo {
+public class SocketPortContext {
 
     /**
      * 监听者的信息
      */
-    private final EventLoop localEventLoop;
+    private final NetContext netContext;
     /**
      * session配置信息
      */
     private final SocketSessionConfig sessionConfig;
 
-    public SocketPortExtraInfo(EventLoop localEventLoop, SocketSessionConfig sessionConfig) {
-        this.localEventLoop = localEventLoop;
+    public SocketPortContext(NetContext netContext, SocketSessionConfig sessionConfig) {
+        this.netContext = netContext;
         this.sessionConfig = sessionConfig;
     }
 
-    public EventLoop getLocalEventLoop() {
-        return localEventLoop;
+    /**
+     * @return 网络线程组
+     */
+    public NetEventLoopGroup netEventLoopGroup() {
+        return netContext.netEventLoopGroup();
     }
 
+    /**
+     * @return session所属的用户线程
+     */
+    public EventLoop localEventLoop() {
+        return netContext.localEventLoop();
+    }
+
+    /**
+     * @return 创建session的配置
+     */
     public SocketSessionConfig getSessionConfig() {
         return sessionConfig;
     }

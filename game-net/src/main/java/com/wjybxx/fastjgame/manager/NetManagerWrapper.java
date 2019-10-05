@@ -32,7 +32,6 @@ public class NetManagerWrapper {
 
     private final NetEventLoopManager netEventLoopManager;
     private final HttpSessionManager httpSessionManager;
-    private final NetEventManager netEventManager;
     private final NettyThreadManager nettyThreadManager;
     private final NetConfigManager netConfigManager;
     private final HttpClientManager httpClientManager;
@@ -42,13 +41,11 @@ public class NetManagerWrapper {
     private final ConnectorManager connectorManager;
 
     @Inject
-    public NetManagerWrapper(NetEventLoopManager netEventLoopManager, HttpSessionManager httpSessionManager,
-                             NetEventManager netEventManager, NettyThreadManager nettyThreadManager,
+    public NetManagerWrapper(NetEventLoopManager netEventLoopManager, HttpSessionManager httpSessionManager, NettyThreadManager nettyThreadManager,
                              NetConfigManager netConfigManager, HttpClientManager httpClientManager, NetTimeManager netTimeManager,
                              NetTimerManager netTimerManager, AcceptorManager acceptorManager, ConnectorManager connectorManager) {
         this.netEventLoopManager = netEventLoopManager;
         this.httpSessionManager = httpSessionManager;
-        this.netEventManager = netEventManager;
         this.nettyThreadManager = nettyThreadManager;
         this.netConfigManager = netConfigManager;
         this.httpClientManager = httpClientManager;
@@ -64,10 +61,6 @@ public class NetManagerWrapper {
 
     public HttpSessionManager getHttpSessionManager() {
         return httpSessionManager;
-    }
-
-    public NetEventManager getNetEventManager() {
-        return netEventManager;
     }
 
     public NettyThreadManager getNettyThreadManager() {

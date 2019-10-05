@@ -16,7 +16,9 @@
 
 package com.wjybxx.fastjgame.misc;
 
+import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.eventloop.NetContext;
+import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.net.http.HttpRequestDispatcher;
 
 /**
@@ -27,21 +29,36 @@ import com.wjybxx.fastjgame.net.http.HttpRequestDispatcher;
  * date - 2019/10/4
  * github - https://github.com/hl845740757
  */
-public class HttpPortExtraInfo {
+public class HttpPortContext {
 
     private final NetContext netContext;
     private final HttpRequestDispatcher dispatcher;
 
-    public HttpPortExtraInfo(NetContext netContext, HttpRequestDispatcher dispatcher) {
+    public HttpPortContext(NetContext netContext, HttpRequestDispatcher dispatcher) {
         this.netContext = netContext;
         this.dispatcher = dispatcher;
     }
 
-    public NetContext getNetContext() {
-        return netContext;
-    }
-
+    /**
+     * @return 用户指定的http请求分发器
+     */
     public HttpRequestDispatcher getDispatcher() {
         return dispatcher;
     }
+
+    /**
+     * @return 用户线程组
+     */
+    public EventLoop localEventLoop() {
+        return netContext.localEventLoop();
+    }
+
+    /**
+     * @return 网络线程组
+     */
+    public NetEventLoopGroup netEventLoopGroup() {
+        return netContext.netEventLoopGroup();
+    }
+
+
 }

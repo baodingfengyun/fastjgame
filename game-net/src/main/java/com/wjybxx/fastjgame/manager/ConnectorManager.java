@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.manager;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.eventloop.NetContext;
+import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.SessionRegistry;
 import com.wjybxx.fastjgame.net.common.OneWaySupportHandler;
@@ -61,7 +61,7 @@ public class ConnectorManager {
         sessionRegistry.tick();
     }
 
-    public Session connect(NetContext netContext, String sessionId, HostAndPort remoteAddress, byte[] token, SocketSessionConfig config,
+    public Session connect(EventLoop localEventLoop, String sessionId, HostAndPort remoteAddress, byte[] token, SocketSessionConfig config,
                            ChannelInitializer<SocketChannel> initializer) throws IOException {
         Session existSession = sessionRegistry.getSession(sessionId);
         if (existSession != null) {
@@ -71,7 +71,7 @@ public class ConnectorManager {
         ChannelFuture channelFuture = nettyThreadManager.connectAsyn(remoteAddress, config.sndBuffer(), config.rcvBuffer(), initializer)
                 .syncUninterruptibly();
 
-        final SocketSessionImp socketSessionImp = new SocketSessionImp(netContext, netManagerWrapper, sessionId, channelFuture.channel(), config);
+        final SocketSessionImp socketSessionImp = new SocketSessionImp(localEventLoop, netManagerWrapper, sessionId, channelFuture.channel(), config);
         sessionRegistry.registerSession(socketSessionImp);
 
         socketSessionImp.pipeline()
@@ -119,7 +119,7 @@ public class ConnectorManager {
         }
     }
 
-    public Session connectLocal(DefaultLocalPort localPort, NetContext netContext, String sessionId, LocalSessionConfig config) throws IOException {
+    public Session connectLocal(DefaultLocalPort localPort, EventLoop localEventLoop, String sessionId, byte[] token, LocalSessionConfig config) throws IOException {
         // 端口已关闭
         if (!localPort.isActive()) {
             throw new IOException("local port closed");
@@ -131,7 +131,7 @@ public class ConnectorManager {
         final LocalSessionImp remoteSession = netManagerWrapper.getAcceptorManager().onRcvConnectRequest(localPort, sessionId);
 
         // 创建session并保存
-        LocalSessionImp session = new LocalSessionImp(netContext, netManagerWrapper, sessionId, config);
+        LocalSessionImp session = new LocalSessionImp(localEventLoop, netManagerWrapper, sessionId, config);
         sessionRegistry.registerSession(session);
 
         // 初始化管道，入站 从上到下，出站 从下往上
@@ -150,5 +150,13 @@ public class ConnectorManager {
         remoteSession.pipeline().fireInit().fireSessionActive();
 
         return session;
+    }
+
+    public void onUserEventLoopTerminal(EventLoop userEventLoop) {
+
+    }
+
+    public void clean() {
+
     }
 }

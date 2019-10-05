@@ -16,12 +16,9 @@
 
 package com.wjybxx.fastjgame.net.local;
 
-import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.net.common.NetPort;
-import com.wjybxx.fastjgame.net.session.Session;
 
-import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -35,16 +32,5 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public interface LocalPort extends NetPort {
-
-    /**
-     * 连接到该{@link LocalPort}上。
-     * 这样设计的目的：对用户屏蔽底层实现。
-     *
-     * @param netContext  用户所属的网络环境
-     * @param sessionId   session唯一Id
-     * @param config      session 配置信息
-     * @return future
-     */
-    ListenableFuture<Session> connect(@Nonnull NetContext netContext, String sessionId, @Nonnull LocalSessionConfig config);
 
 }

@@ -78,7 +78,7 @@ public class ExampleRpcClientLoop extends DisruptorEventLoop {
                     .setDispatcher(new DefaultProtocolDispatcher())
                     .build();
 
-            session = netContext.connectLocal(localPort, EMPTY_TOKEN, config).get();
+            session = netContext.connectLocal(localPort, ExampleConstants.SESSION_ID, EMPTY_TOKEN, config).get();
         } else {
             // 必须先启动服务器
             final HostAndPort address = new HostAndPort(NetUtils.getLocalIp(), ExampleConstants.tcpPort);
@@ -89,7 +89,7 @@ public class ExampleRpcClientLoop extends DisruptorEventLoop {
                     .setDispatcher(new DefaultProtocolDispatcher())
                     .build();
 
-            session = netContext.connectTcp(ExampleConstants.clientGuid, address, EMPTY_TOKEN, config)
+            session = netContext.connectTcp(ExampleConstants.SESSION_ID, address, EMPTY_TOKEN, config)
                     .get();
         }
         startTime = System.currentTimeMillis();

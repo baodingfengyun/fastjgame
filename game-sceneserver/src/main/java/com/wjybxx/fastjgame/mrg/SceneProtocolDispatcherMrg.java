@@ -45,9 +45,13 @@ public class SceneProtocolDispatcherMrg extends ProtocolDispatcherMrg implements
 
     @Override
     protected final void dispatchOneWayMessage(Session session, @Nonnull Object message) {
+        final Long sessionGuid = session.attachment();
+        if (null == sessionGuid) {
+            return;
+        }
         // TODO 判断是否是玩家
         if (message instanceof AbstractMessage) {
-            Player player = playerSessionMrg.getPlayer(session.remoteGuid());
+            Player player = playerSessionMrg.getPlayer(sessionGuid);
             if (player != null) {
                 // 玩家已成功连入场景
                 messageDispatcher.post(player, (AbstractMessage) message);

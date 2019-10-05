@@ -3,8 +3,7 @@ package com.wjybxx.fastjgame.test;
 import com.wjybxx.fastjgame.concurrent.DefaultEventLoopGroup;
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
-import com.wjybxx.fastjgame.eventloop.NetEventLoop;
-import com.wjybxx.fastjgame.eventloop.NetEventLoopImp;
+import com.wjybxx.fastjgame.eventloop.*;
 import com.wjybxx.fastjgame.net.common.DefaultRpcPromise;
 import com.wjybxx.fastjgame.net.common.RpcPromise;
 import com.wjybxx.fastjgame.utils.TimeUtils;
@@ -19,7 +18,7 @@ import com.wjybxx.fastjgame.utils.TimeUtils;
 public class RpcPromiseTest {
 
     public static void main(String[] args) throws InterruptedException {
-        NetEventLoop netEventLoopGroup = new NetEventLoopImp(new DefaultThreadFactory("Net"), RejectedExecutionHandlers.log());
+        NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupBuilder().build();
         DefaultEventLoopGroup defaultEventLoopGroup = new DefaultEventLoopGroup(1, new DefaultThreadFactory("DEF"), RejectedExecutionHandlers.log());
 
         RpcPromise rpcPromise = new DefaultRpcPromise(netEventLoopGroup.next(), defaultEventLoopGroup.next(), 10 * TimeUtils.SEC);

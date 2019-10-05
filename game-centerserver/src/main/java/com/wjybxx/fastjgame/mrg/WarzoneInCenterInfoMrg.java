@@ -19,10 +19,10 @@ package com.wjybxx.fastjgame.mrg;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.onlinenode.WarzoneNodeData;
 import com.wjybxx.fastjgame.core.onlinenode.WarzoneNodeName;
-import com.wjybxx.fastjgame.misc.WarzoneInCenterInfo;
 import com.wjybxx.fastjgame.misc.RoleType;
-import com.wjybxx.fastjgame.net.session.Session;
+import com.wjybxx.fastjgame.misc.WarzoneInCenterInfo;
 import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
+import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.rpcservice.ICenterInWarzoneInfoMrgRpcProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,7 +74,7 @@ public class WarzoneInCenterInfoMrg {
                 warzoneNodeData.getInnerTcpAddress(),
                 warzoneNodeData.getLocalAddress(),
                 warzoneNodeData.getMacAddress(),
-                new WarzoneSessionLifeAware());
+                new WarzoneSessionLifeAware(warzoneNodeData.getWorldGuid()));
     }
 
     /**
@@ -112,16 +112,23 @@ public class WarzoneInCenterInfoMrg {
 
     private class WarzoneSessionLifeAware implements SessionLifecycleAware {
 
+        private final long warzoneWorldGuid;
+
+        private WarzoneSessionLifeAware(long warzoneWorldGuid) {
+            this.warzoneWorldGuid = warzoneWorldGuid;
+        }
+
         @Override
         public void onSessionConnected(Session session) {
-            ICenterInWarzoneInfoMrgRpcProxy.connectWarzone(centerWorldInfoMrg.getPlatformType().getNumber(), centerWorldInfoMrg.getServerId())
+            ICenterInWarzoneInfoMrgRpcProxy.connectWarzone(centerWorldInfoMrg.getWorldGuid(),
+                    centerWorldInfoMrg.getPlatformType().getNumber(), centerWorldInfoMrg.getServerId())
                     .ifSuccess(result -> connectWarzoneSuccess(session))
                     .call(session);
         }
 
         @Override
         public void onSessionDisconnected(Session session) {
-            onWarzoneDisconnect(session.remoteGuid());
+            onWarzoneDisconnect(warzoneWorldGuid);
         }
     }
 
@@ -132,7 +139,10 @@ public class WarzoneInCenterInfoMrg {
      */
     private void connectWarzoneSuccess(Session session) {
         assert null == warzoneInCenterInfo;
-        warzoneInCenterInfo = new WarzoneInCenterInfo(session.remoteGuid(), session);
+        final Long attachment = session.attachment();
+        assert null != attachment;
+        long warzoneWorldGuid = attachment;
+        warzoneInCenterInfo = new WarzoneInCenterInfo(warzoneWorldGuid, session);
 
         // TODO 战区连接成功逻辑(eg.恢复特殊玩法)
         logger.info("connect WARZONE-{} success", centerWorldInfoMrg.getWarzoneId());

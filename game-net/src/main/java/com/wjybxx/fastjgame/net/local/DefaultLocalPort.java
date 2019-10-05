@@ -16,12 +16,9 @@
 
 package com.wjybxx.fastjgame.net.local;
 
-import com.wjybxx.fastjgame.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.eventloop.NetContext;
-import com.wjybxx.fastjgame.manager.ConnectorManager;
-import com.wjybxx.fastjgame.net.session.Session;
-
-import javax.annotation.Nonnull;
+import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 
 /**
  * @author wjybxx
@@ -40,30 +37,25 @@ public class DefaultLocalPort implements LocalPort {
      */
     private final LocalSessionConfig localConfig;
     /**
-     * 建立连接的管理器
-     */
-    private final ConnectorManager connectorManager;
-    /**
      * 激活状态
      */
     private volatile boolean active = true;
 
-    public DefaultLocalPort(NetContext netContext, LocalSessionConfig localConfig, ConnectorManager connectorManager) {
+    public DefaultLocalPort(NetContext netContext, LocalSessionConfig localConfig) {
         this.netContext = netContext;
         this.localConfig = localConfig;
-        this.connectorManager = connectorManager;
-    }
-
-    @Override
-    public ListenableFuture<Session> connect(@Nonnull NetContext netContext, String sessionId, @Nonnull LocalSessionConfig config) {
-        // 提交到绑定端口的用户所在的NetEventLoop - 本地通信消除同步的关键
-        return this.netContext.netEventLoop().submit(() -> {
-            return connectorManager.connectLocal(this, netContext, sessionId, config);
-        });
     }
 
     public NetContext getNetContext() {
         return netContext;
+    }
+
+    public NetEventLoopGroup netEventLoopGroup() {
+        return netContext.netEventLoopGroup();
+    }
+
+    public EventLoop localEventLoop() {
+        return netContext.localEventLoop();
     }
 
     public LocalSessionConfig getLocalConfig() {

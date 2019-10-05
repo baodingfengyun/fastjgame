@@ -28,6 +28,7 @@ import com.wjybxx.fastjgame.net.session.Session;
  */
 public class CenterInSceneInfo {
 
+    private final Session session;
     /**
      * CenterServer的worldguid
      */
@@ -41,9 +42,7 @@ public class CenterInSceneInfo {
      */
     private final int serverId;
 
-    private final Session session;
-
-    public CenterInSceneInfo(long centerWorldGuid, PlatformType platformType, int serverId, Session session) {
+    public CenterInSceneInfo(Session session, long centerWorldGuid, PlatformType platformType, int serverId) {
         this.centerWorldGuid = centerWorldGuid;
         this.platformType = platformType;
         this.serverId = serverId;

@@ -17,8 +17,8 @@ package com.wjybxx.fastjgame.example;
 
 import com.wjybxx.fastjgame.concurrent.*;
 import com.wjybxx.fastjgame.eventloop.NetContext;
-import com.wjybxx.fastjgame.eventloop.NetEventLoop;
-import com.wjybxx.fastjgame.eventloop.NetEventLoopImp;
+import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
+import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupBuilder;
 import com.wjybxx.fastjgame.net.common.*;
 import com.wjybxx.fastjgame.net.http.HttpRequestDispatcher;
 import com.wjybxx.fastjgame.net.http.HttpRequestParam;
@@ -45,9 +45,7 @@ import java.util.concurrent.locks.LockSupport;
  */
 public class EchoServerLoop extends SingleThreadEventLoop {
 
-    private final NetEventLoop netGroup = new NetEventLoopImp(new DefaultThreadFactory("NET-EVENT-LOOP"),
-            RejectedExecutionHandlers.log());
-
+    private final NetEventLoopGroup netGroup = new NetEventLoopGroupBuilder().build();
     private NetContext netContext;
 
     public EchoServerLoop(@Nullable EventLoopGroup parent, @Nonnull ThreadFactory threadFactory, @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {

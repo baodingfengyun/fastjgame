@@ -105,7 +105,7 @@ public class InnerAcceptorMrg {
         if (null != localPort) {
             // 两个world在同一个进程内
             LocalSessionConfig config = newLocalSessionConfig(lifecycleAware);
-            netContextMrg.getNetContext().connectLocal(localPort, newToken(remoteGuid, remoteRole), config);
+            netContextMrg.getNetContext().connectLocal(localPort, newSessionId(remoteGuid), newToken(remoteGuid, remoteRole), config);
             return;
         }
         if (Objects.equals(macAddress, SystemUtils.getMAC())) {
@@ -118,7 +118,7 @@ public class InnerAcceptorMrg {
     }
 
     private void connectTcp(long remoteGuid, RoleType remoteRole, HostAndPort hostAndPort, SessionLifecycleAware lifecycleAware) {
-        netContextMrg.getNetContext().connectTcp(worldInfoMrg.getWorldGuid(), hostAndPort,
+        netContextMrg.getNetContext().connectTcp(newSessionId(remoteGuid), hostAndPort,
                 newToken(remoteGuid, remoteRole), newSocketSessionConfig(lifecycleAware));
     }
 
@@ -146,5 +146,13 @@ public class InnerAcceptorMrg {
     private byte[] newToken(long remoteGuid, RoleType roleType) {
         // TODO
         return CodecUtils.getBytesUTF8(roleType.name() + "_" + remoteGuid);
+    }
+
+    private String newSessionId(long remoteGuid) {
+        return worldInfoMrg.getWorldGuid() + "-" + remoteGuid;
+    }
+
+    public long parseRemoteGuid(String sessionId) {
+        return Long.parseLong(sessionId.split("-", 2)[1]);
     }
 }

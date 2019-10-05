@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.http;
 
-import com.wjybxx.fastjgame.misc.HttpPortExtraInfo;
+import com.wjybxx.fastjgame.misc.HttpPortContext;
 import io.netty.channel.Channel;
 
 /**
@@ -44,9 +44,9 @@ public class HttpRequestEvent {
     /**
      * 端口上的一些信息
      */
-    private final HttpPortExtraInfo portExtraInfo;
+    private final HttpPortContext portExtraInfo;
 
-    public HttpRequestEvent(Channel channel, String path, HttpRequestParam params, HttpPortExtraInfo portExtraInfo) {
+    public HttpRequestEvent(Channel channel, String path, HttpRequestParam params, HttpPortContext portExtraInfo) {
         this.channel = channel;
         this.path = path;
         this.params = params;
@@ -65,7 +65,7 @@ public class HttpRequestEvent {
         return params;
     }
 
-    public HttpPortExtraInfo getPortExtraInfo() {
+    public HttpPortContext getPortExtraInfo() {
         return portExtraInfo;
     }
 }

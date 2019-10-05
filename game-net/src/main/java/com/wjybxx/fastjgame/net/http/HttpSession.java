@@ -66,7 +66,7 @@ public interface HttpSession {
 
     /**
      * 该session所在的NetEventLoop。
-     * <li>注意：不保证是{@link NetContext#netEventLoop()} </li>
+     * <li>注意：不保证是{@link NetContext#netEventLoopGroup()} </li>
      */
     NetEventLoop netEventLoop();
 

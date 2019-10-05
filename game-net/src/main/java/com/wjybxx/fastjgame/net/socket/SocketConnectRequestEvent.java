@@ -41,9 +41,9 @@ public class SocketConnectRequestEvent implements SocketEvent {
     /**
      * 该端口存储的额外信息
      */
-    private final SocketPortExtraInfo portExtraInfo;
+    private final SocketPortContext portExtraInfo;
 
-    public SocketConnectRequestEvent(Channel channel, String sessionId, long ack, SocketConnectRequest connectRequest, SocketPortExtraInfo portExtraInfo) {
+    public SocketConnectRequestEvent(Channel channel, String sessionId, long ack, SocketConnectRequest connectRequest, SocketPortContext portExtraInfo) {
         this.channel = channel;
         this.sessionId = sessionId;
         this.ack = ack;
@@ -69,7 +69,7 @@ public class SocketConnectRequestEvent implements SocketEvent {
         return connectRequest;
     }
 
-    public SocketPortExtraInfo getPortExtraInfo() {
+    public SocketPortContext getPortExtraInfo() {
         return portExtraInfo;
     }
 }

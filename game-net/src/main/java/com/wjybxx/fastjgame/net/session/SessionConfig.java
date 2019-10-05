@@ -21,16 +21,19 @@ import com.wjybxx.fastjgame.net.common.ProtocolDispatcher;
 import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 
 import javax.annotation.Nonnull;
+import javax.annotation.concurrent.Immutable;
 import java.util.Objects;
 
 /**
- * sesion的一些配置
+ * sesion的一些配置。
+ * 目前决定使用不可变对象，可以减少对象数量。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/9/26
  * github - https://github.com/hl845740757
  */
+@Immutable
 public class SessionConfig {
 
     private final SessionLifecycleAware lifecycleAware;
