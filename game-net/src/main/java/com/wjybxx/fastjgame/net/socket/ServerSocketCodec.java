@@ -38,23 +38,12 @@ import java.io.IOException;
 @NotThreadSafe
 public class ServerSocketCodec extends BaseSocketCodec {
 
-    /**
-     * 该channel关联哪本地哪一个用户
-     */
-    private final long localGuid;
-    /**
-     * 缓存的客户端guid，关联的远程
-     */
-    private long clientGuid = Long.MIN_VALUE;
-    /**
-     * 端口额外信息
-     */
+    private String sessionId;
     private final SocketPortExtraInfo portExtraInfo;
     private final NetEventManager netEventManager;
 
-    public ServerSocketCodec(ProtocolCodec codec, long localGuid, SocketPortExtraInfo portExtraInfo, NetEventManager netEventManager) {
+    public ServerSocketCodec(ProtocolCodec codec, SocketPortExtraInfo portExtraInfo, NetEventManager netEventManager) {
         super(codec);
-        this.localGuid = localGuid;
         this.portExtraInfo = portExtraInfo;
         this.netEventManager = netEventManager;
     }
@@ -65,16 +54,16 @@ public class ServerSocketCodec extends BaseSocketCodec {
      * @return 是否已接收到建立连接请求
      */
     private boolean isInited() {
-        return clientGuid != Long.MIN_VALUE;
+        return sessionId != null;
     }
 
     /**
      * 标记为已接收过连接请求
      *
-     * @param clientGuid 客户端请求建立连接时的guid
+     * @param sessionId 客户端请求建立连接时的带过来的唯一标识
      */
-    private void init(long clientGuid) {
-        this.clientGuid = clientGuid;
+    private void init(String sessionId) {
+        this.sessionId = sessionId;
     }
 
     @Override
@@ -121,11 +110,11 @@ public class ServerSocketCodec extends BaseSocketCodec {
      * 客户端请求建立连接
      */
     private void tryReadConnectRequest(ChannelHandlerContext ctx, ByteBuf msg) {
-        SocketConnectRequestEvent connectRequestEvent = readConnectRequest(ctx.channel(), localGuid, msg, portExtraInfo);
+        SocketConnectRequestEvent connectRequestEvent = readConnectRequest(ctx.channel(), msg, portExtraInfo);
         netEventManager.fireConnectRequest(connectRequestEvent);
 
         if (!isInited()) {
-            init(connectRequestEvent.remoteGuid());
+            init(connectRequestEvent.sessionId());
             // 删除读超时控制，由session负责超时控制 - 只要读取到建立session请求后，NetEventLoop就能管理channel，否则无法管理channel
             ctx.channel().pipeline().remove(NetUtils.READ_TIMEOUT_HANDLER_NAME);
         }
@@ -137,7 +126,7 @@ public class ServerSocketCodec extends BaseSocketCodec {
     private void tryReadRpcRequestMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureInited();
 
-        netEventManager.fireMessage_acceptor(readRpcRequestMessage(ctx.channel(), localGuid, clientGuid, msg));
+        netEventManager.fireMessage_acceptor(readRpcRequestMessage(ctx.channel(), sessionId, msg));
     }
 
     /**
@@ -146,7 +135,7 @@ public class ServerSocketCodec extends BaseSocketCodec {
     private void tryReadRpcResponseMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureInited();
 
-        netEventManager.fireMessage_acceptor(readRpcResponseMessage(ctx.channel(), localGuid, clientGuid, msg));
+        netEventManager.fireMessage_acceptor(readRpcResponseMessage(ctx.channel(), sessionId, msg));
     }
 
     /**
@@ -155,7 +144,7 @@ public class ServerSocketCodec extends BaseSocketCodec {
     private void tryReadOneWayMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureInited();
 
-        netEventManager.fireMessage_acceptor(readOneWayMessage(ctx.channel(), localGuid, clientGuid, msg));
+        netEventManager.fireMessage_acceptor(readOneWayMessage(ctx.channel(), sessionId, msg));
     }
 
     /**
@@ -164,7 +153,7 @@ public class ServerSocketCodec extends BaseSocketCodec {
     private void tryReadAckPingMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureInited();
 
-        netEventManager.fireMessage_acceptor(readAckPingPongMessage(ctx.channel(), localGuid, clientGuid, msg));
+        netEventManager.fireMessage_acceptor(readAckPingPongMessage(ctx.channel(), sessionId, msg));
     }
 
     // endregion

@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.eventloop.NetContext;
+import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
 import com.wjybxx.fastjgame.net.session.AbstractSession;
 import io.netty.channel.Channel;
@@ -31,17 +31,15 @@ import io.netty.channel.Channel;
  */
 public class SocketSessionImp extends AbstractSession implements SocketSession {
 
-    private final long remoteGuid;
     /**
      * 不声明为final，是因为可能变更
      */
     private Channel channel;
     private final SocketSessionConfig config;
 
-    public SocketSessionImp(NetContext netContext, NetManagerWrapper managerWrapper,
-                            long remoteGuid, Channel channel, SocketSessionConfig config) {
-        super(netContext, managerWrapper);
-        this.remoteGuid = remoteGuid;
+    public SocketSessionImp(EventLoop localEventLoop, NetManagerWrapper managerWrapper,
+                            String sessionId, Channel channel, SocketSessionConfig config) {
+        super(sessionId, localEventLoop, managerWrapper);
         this.config = config;
         this.channel = channel;
     }
@@ -59,8 +57,4 @@ public class SocketSessionImp extends AbstractSession implements SocketSession {
         this.channel = channel;
     }
 
-    @Override
-    public long remoteGuid() {
-        return remoteGuid;
-    }
 }

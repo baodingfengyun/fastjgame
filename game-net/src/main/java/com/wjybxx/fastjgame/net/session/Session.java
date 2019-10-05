@@ -20,10 +20,10 @@ import com.wjybxx.fastjgame.annotation.Internal;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
+import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.net.common.RpcCallback;
 import com.wjybxx.fastjgame.net.common.RpcResponse;
 import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
-import com.wjybxx.fastjgame.net.socket.SocketConnectRequest;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -40,14 +40,7 @@ import javax.annotation.Nullable;
  * 3. 先发送的请求不一定先获得结果！对方什么时候返回给你结果是不确定的！
  *
  * <p>
- * Q: 为什么删除了{@code remoteRole}和{@code localRole}?
- * A: 协议中显式传输角色类型是不安全的，用户请从{@link SocketConnectRequest#getToken()}中获取，如果需要的话，在token中存储关键信息。
- *
- * <p><br>
- * 注意：
- * 1. 特定的 localGuid 和 remoteGuid 在同一个NetEventLoop下只能建立一个链接！！！它俩确定唯一的一个session。
- * 并不支持在不同的端口的上以相同的id再建立连接，只能存在于不同于的{@link NetEventLoop}。<br>
- * 2. 这里提供的接口并不是那么的清晰易懂，偏原始、偏底层，应用层可以提供更良好的封装。
+ * 注意：这里提供的接口并不是那么的清晰易懂，偏原始、偏底层，应用层可以提供更良好的封装。
  *
  * @author wjybxx
  * @version 1.2
@@ -57,9 +50,28 @@ import javax.annotation.Nullable;
 public interface Session extends Comparable<Session> {
 
     /**
-     * 请为本连接取一个有意义的名字
+     * 用户为session分配的sessionId。
+     * 注意：
+     * 1. 必须是全局唯一
+     * 2. 尽量有意义
+     * <p>
+     * 它的重要意义：
+     * 1. 线程封闭 - 一个sessionId的总是运行在一个特定的{@link NetEventLoop}。
+     * 2. 只要单个{@link NetEventLoop}能保证sessionId不重复，那么整个{@link NetEventLoopGroup}中的sessionId就是不重复的。
      */
     String sessionId();
+
+    /**
+     * session所属的网络线程。
+     */
+    NetEventLoop netEventLoop();
+
+    /**
+     * session所属的用户线程
+     */
+    EventLoop localEventLoop();
+
+    // ---------------------------------------------- 配置信息 ----------------------------------------------
 
     /**
      * session相关的配置信息
@@ -68,23 +80,7 @@ public interface Session extends Comparable<Session> {
      */
     SessionConfig config();
 
-    // ------------------------------------------- session运行的网络环境 ----------------------------------------
-
-    /**
-     * session所属的网络线程。
-     * - 注意：不一定和创建它的NetContext所属的线程一致
-     * Q: why?
-     * A: 为了更好的性能，消除不必要的同步！
-     */
-
-    NetEventLoop netEventLoop();
-
-    /**
-     * session所属的用户线程
-     */
-    EventLoop localEventLoop();
-
-    // ------------------------------------------------ 发送消息 ---------------------------------------------
+    // -----------------------------------------------发送消息API ---------------------------------------------
 
     /**
      * 发送一个单向消息给对方

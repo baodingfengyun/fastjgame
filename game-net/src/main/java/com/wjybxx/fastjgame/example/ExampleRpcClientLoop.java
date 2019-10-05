@@ -69,7 +69,7 @@ public class ExampleRpcClientLoop extends DisruptorEventLoop {
     @Override
     protected void init() throws Exception {
         super.init();
-        netContext = ExampleConstants.netEventLoop.createContext(ExampleConstants.clientGuid, this);
+        netContext = ExampleConstants.netEventLoop.createContext(this);
 
         if (localPort != null) {
             LocalSessionConfig config = LocalSessionConfig.newBuilder()

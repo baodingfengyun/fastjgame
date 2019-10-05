@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.local;
 
-import com.wjybxx.fastjgame.eventloop.NetContext;
+import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
 import com.wjybxx.fastjgame.net.session.AbstractSession;
 import com.wjybxx.fastjgame.net.session.Session;
@@ -40,8 +40,8 @@ public class LocalSessionImp extends AbstractSession implements LocalSession {
      */
     private Session remoteSession;
 
-    public LocalSessionImp(NetContext netContext, NetManagerWrapper managerWrapper, LocalSessionConfig config) {
-        super(netContext, managerWrapper);
+    public LocalSessionImp(EventLoop localEventLoop, NetManagerWrapper managerWrapper, String sessionId, LocalSessionConfig config) {
+        super(sessionId, localEventLoop, managerWrapper);
         this.config = config;
     }
 
@@ -58,8 +58,4 @@ public class LocalSessionImp extends AbstractSession implements LocalSession {
         return config;
     }
 
-    @Override
-    public long remoteGuid() {
-        return remoteSession.localGuid();
-    }
 }

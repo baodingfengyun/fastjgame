@@ -47,22 +47,15 @@ import java.util.Map;
 public interface NetContext {
 
     /**
-     * 用户guid
-     */
-    long localGuid();
-
-    /**
      * 用户线程
      * 网络层保证所有的业务逻辑处理最终都会运行在该用户线程。
      */
     EventLoop localEventLoop();
 
     /**
-     * 创建{@link NetContext}的{@link NetEventLoop}.
-     * 底层会尽可能的让用户的网络请求执行在该{@link NetEventLoop}上，但不保证全部在该{@link NetEventLoop}上。
-     * 你应该尽量使用{@link Session#netEventLoop()}。
+     * 创建{@link NetContext}的{@link NetEventLoopGroup}.
      */
-    NetEventLoop netEventLoop();
+    NetEventLoopGroup netEventLoop();
 
     // ----------------------------------- tcp/ws支持 ---------------------------------------
 
@@ -158,9 +151,9 @@ public interface NetContext {
      * 与JVM内的另一个线程建立session。
      * 注意：{@link LocalPort}必须是同一个{@link NetEventLoop}创建的。
      *
-     * @param localPort   远程“端口”信息
-     * @param token       建立连接的验证信息，也可以存储额外信息
-     * @param config      配置信息
+     * @param localPort 远程“端口”信息
+     * @param token     建立连接的验证信息，也可以存储额外信息
+     * @param config    配置信息
      * @return future 如果想消除同步，添加监听器时请绑定EventLoop
      */
     ListenableFuture<Session> connectLocal(@Nonnull LocalPort localPort, byte[] token,

@@ -31,6 +31,7 @@ import com.wjybxx.fastjgame.net.task.AsyncRpcRequestWriteTask;
 import com.wjybxx.fastjgame.net.task.OneWayMessageWriteTask;
 import com.wjybxx.fastjgame.net.task.SyncRpcRequestWriteTask;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -46,7 +47,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public abstract class AbstractSession implements Session {
 
-    protected final NetContext netContext;
+    protected final String sessionId;
+    protected final EventLoop localEventLoop;
     protected final NetManagerWrapper managerWrapper;
     /**
      * session绑定到的EventLoop
@@ -60,33 +62,28 @@ public abstract class AbstractSession implements Session {
      * 激活状态 - 默认true，因为在激活之前不会返回给用户。
      */
     private final AtomicBoolean stateHolder = new AtomicBoolean(true);
-    /**
-     * 刷新缓冲区的任务 - 避免大量无意义的对象
-     */
-    private final Runnable flushTask;
 
-    protected AbstractSession(NetContext netContext, NetManagerWrapper managerWrapper) {
-        this.netContext = netContext;
+    protected AbstractSession(String sessionId, EventLoop localEventLoop, NetManagerWrapper managerWrapper) {
+        this.sessionId = sessionId;
+        this.localEventLoop = localEventLoop;
         this.managerWrapper = managerWrapper;
         this.pipeline = new DefaultSessionPipeline(this, managerWrapper);
         this.netEventLoop = managerWrapper.getNetEventLoopManager().eventLoop();
-        this.flushTask = pipeline::fireFlush;
     }
 
     @Override
-    public final long localGuid() {
-        return netContext.localGuid();
+    public String sessionId() {
+        return sessionId;
     }
 
     @Override
     public final NetEventLoop netEventLoop() {
-        // 注意：这里可能和session所属的NetContext中的NetEventLoop不一样
         return netEventLoop;
     }
 
     @Override
     public final EventLoop localEventLoop() {
-        return netContext.localEventLoop();
+        return localEventLoop;
     }
 
     @Override
@@ -190,7 +187,7 @@ public abstract class AbstractSession implements Session {
 
     @Override
     public final int hashCode() {
-        return Long.hashCode(localGuid()) + Long.hashCode(remoteGuid());
+        return sessionId.hashCode();
     }
 
     @Override
@@ -199,11 +196,7 @@ public abstract class AbstractSession implements Session {
     }
 
     @Override
-    public final int compareTo(@Nonnull Session other) {
-        final int localGuidComparedResult = Long.compare(localGuid(), other.localGuid());
-        if (localGuidComparedResult != 0) {
-            return localGuidComparedResult;
-        }
-        return Long.compare(remoteGuid(), other.remoteGuid());
+    public final int compareTo(@NotNull Session o) {
+        return sessionId.compareTo(o.sessionId());
     }
 }

@@ -13,28 +13,38 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.wjybxx.fastjgame.net.socket;
 
-import io.netty.channel.Channel;
+package com.wjybxx.fastjgame.eventloop;
+
+import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.wjybxx.fastjgame.concurrent.EventLoopGroup;
+
+import javax.annotation.Nonnull;
 
 /**
- * 网络事件参数，提供统一的抽象(窄)视图。
+ * 网络事件循环组
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/4/27 9:16
+ * date - 2019/10/5
  * github - https://github.com/hl845740757
  */
-public interface SocketEvent {
+public interface NetEventLoopGroup extends EventLoopGroup {
 
     /**
-     * 获取网络事件对于的channel
+     * 创建一个网络上下文
+     *
+     * @param localEventLoop 方法的调用者所在的eventLoop
+     * @return NetContext 创建的context可以用于监听，建立连接，和http请求
      */
-    Channel channel();
+    NetContext createContext(@Nonnull EventLoop localEventLoop);
 
-    /**
-     * 事件对应的session标识
-     */
-    String sessionId();
+    @Nonnull
+    @Override
+    NetEventLoop next();
+
+    @Nonnull
+    @Override
+    NetEventLoop select(int key);
 
 }

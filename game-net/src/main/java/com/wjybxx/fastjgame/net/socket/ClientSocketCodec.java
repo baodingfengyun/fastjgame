@@ -39,13 +39,9 @@ import java.io.IOException;
 public class ClientSocketCodec extends BaseSocketCodec {
 
     /**
-     * 该channel关联的本地对象标识
+     * channel关联的sessionId
      */
-    private final long localGuid;
-    /**
-     * 该channel关联的远程对象标识
-     */
-    private final long serverGuid;
+    private final String sessionId;
     /**
      * 是否已建立链接
      */
@@ -55,10 +51,9 @@ public class ClientSocketCodec extends BaseSocketCodec {
      */
     private final NetEventManager netEventManager;
 
-    public ClientSocketCodec(ProtocolCodec codec, long localGuid, long serverGuid, NetEventManager netEventManager) {
+    public ClientSocketCodec(ProtocolCodec codec, String sessionId, NetEventManager netEventManager) {
         super(codec);
-        this.localGuid = localGuid;
-        this.serverGuid = serverGuid;
+        this.sessionId = sessionId;
         this.netEventManager = netEventManager;
     }
 
@@ -73,7 +68,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
             writeBatchMessage(ctx, (BatchSocketMessageTO) msgTO);
         } else if (msgTO instanceof SocketConnectRequestTO) {
             // 请求建立连接包
-            writeConnectRequest(ctx, localGuid, (SocketConnectRequestTO) msgTO, promise);
+            writeConnectRequest(ctx, sessionId, (SocketConnectRequestTO) msgTO, promise);
         } else {
             super.write(ctx, msgTO, promise);
         }
@@ -109,7 +104,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
      * 服务器返回的建立连接验证结果
      */
     private void tryReadConnectResponse(ChannelHandlerContext ctx, ByteBuf msg) {
-        final SocketConnectResponseEvent socketConnectResponseEvent = readConnectResponse(ctx.channel(), localGuid, serverGuid, msg);
+        final SocketConnectResponseEvent socketConnectResponseEvent = readConnectResponse(ctx.channel(), sessionId, msg);
         netEventManager.fireConnectResponse(socketConnectResponseEvent);
 
         // 标记为已连接
@@ -124,7 +119,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
     private void tryReadRpcRequestMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureConnected();
 
-        SocketMessageEvent socketMessageEvent = readRpcRequestMessage(ctx.channel(), localGuid, serverGuid, msg);
+        SocketMessageEvent socketMessageEvent = readRpcRequestMessage(ctx.channel(), sessionId, msg);
         netEventManager.fireMessage_connector(socketMessageEvent);
     }
 
@@ -134,7 +129,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
     private void tryReadRpcResponseMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureConnected();
 
-        SocketMessageEvent socketMessageEvent = readRpcResponseMessage(ctx.channel(), localGuid, serverGuid, msg);
+        SocketMessageEvent socketMessageEvent = readRpcResponseMessage(ctx.channel(), sessionId, msg);
         netEventManager.fireMessage_connector(socketMessageEvent);
     }
 
@@ -144,7 +139,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
     private void tryReadOneWayMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureConnected();
 
-        netEventManager.fireMessage_connector(readOneWayMessage(ctx.channel(), localGuid, serverGuid, msg));
+        netEventManager.fireMessage_connector(readOneWayMessage(ctx.channel(), sessionId, msg));
     }
 
     /**
@@ -153,7 +148,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
     private void tryReadAckPongMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureConnected();
 
-        SocketMessageEvent socketMessageEvent = readAckPingPongMessage(ctx.channel(), localGuid, serverGuid, msg);
+        SocketMessageEvent socketMessageEvent = readAckPingPongMessage(ctx.channel(), sessionId, msg);
         netEventManager.fireMessage_connector(socketMessageEvent);
     }
     // endregion

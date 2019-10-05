@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.concurrent;
 
+import com.wjybxx.fastjgame.utils.MathUtils;
+
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -33,11 +35,64 @@ public class DefaultChooserFactory implements EventLoopChooserFactory {
     @Nonnull
     @Override
     public EventLoopChooser newChooser(EventLoop[] children) {
+        if (children.length == 1) {
+            return new SingleEventLoopChooser(children[0]);
+        }
+        if (MathUtils.isPowerOfTwo(children.length)) {
+            return new PowerOfTwoEventLoopChooser(children);
+        }
         return new RoundRobinEventLoopChooser(children);
     }
 
     /**
-     * 简单轮询的方式进行EventExecutor的负载均衡。
+     * 只有单个{@link EventLoop}的选择器
+     */
+    private static final class SingleEventLoopChooser implements EventLoopChooser {
+
+        private final EventLoop eventLoop;
+
+        private SingleEventLoopChooser(EventLoop eventLoop) {
+            this.eventLoop = eventLoop;
+        }
+
+        @Nonnull
+        @Override
+        public EventLoop next() {
+            return eventLoop;
+        }
+
+        @Override
+        public EventLoop select(int key) {
+            return eventLoop;
+        }
+    }
+
+    /**
+     * 如果线程数为2的整次幂，使用与运算代替除法
+     */
+    private static final class PowerOfTwoEventLoopChooser implements EventLoopChooser {
+        private final AtomicInteger idx = new AtomicInteger();
+        private final EventLoop[] executors;
+
+        PowerOfTwoEventLoopChooser(EventLoop[] executors) {
+            this.executors = executors;
+        }
+
+        @Nonnull
+        @Override
+        public EventLoop next() {
+            return select(idx.getAndIncrement());
+        }
+
+        @Nonnull
+        @Override
+        public EventLoop select(int key) {
+            return executors[key & executors.length - 1];
+        }
+    }
+
+    /**
+     * 简单轮询的方式进行EventLoop的负载均衡。
      */
     @ThreadSafe
     private static final class RoundRobinEventLoopChooser implements EventLoopChooser {

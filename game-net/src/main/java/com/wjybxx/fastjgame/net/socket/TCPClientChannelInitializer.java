@@ -35,17 +35,12 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class TCPClientChannelInitializer extends ChannelInitializer<SocketChannel> {
 
-    /**
-     * 是哪一个用户发起的连接
-     */
-    private final long localGuid;
-    private final long serverGuid;
+    private final String sessionId;
     private final SocketSessionConfig config;
     private final NetEventManager netEventManager;
 
-    public TCPClientChannelInitializer(long localGuid, long serverGuid, SocketSessionConfig config, NetEventManager netEventManager) {
-        this.localGuid = localGuid;
-        this.serverGuid = serverGuid;
+    public TCPClientChannelInitializer(String sessionId, SocketSessionConfig config, NetEventManager netEventManager) {
+        this.sessionId = sessionId;
         this.config = config;
         this.netEventManager = netEventManager;
     }
@@ -54,6 +49,6 @@ public class TCPClientChannelInitializer extends ChannelInitializer<SocketChanne
     protected void initChannel(SocketChannel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
         pipeline.addLast(new LengthFieldBasedFrameDecoder(config.maxFrameLength(), 0, 4, 0, 4));
-        pipeline.addLast(new ClientSocketCodec(config.codec(), localGuid, serverGuid, netEventManager));
+        pipeline.addLast(new ClientSocketCodec(config.codec(), sessionId, netEventManager));
     }
 }

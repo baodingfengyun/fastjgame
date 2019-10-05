@@ -121,7 +121,7 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     }
 
     @Override
-    public NetContext createContext(long localGuid, @Nonnull EventLoop localEventLoop) {
+    public NetContext createContext(@Nonnull EventLoop localEventLoop) {
         if (localEventLoop instanceof NetEventLoop) {
             throw new IllegalArgumentException("Bad EventLoop");
         }
@@ -130,7 +130,7 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
             onUserEventLoopTerminal(localEventLoop);
         }, this);
 
-        return new NetContextImp(this, localEventLoop, localGuid, managerWrapper);
+        return new NetContextImp(this, localEventLoop, managerWrapper);
     }
 
     @Override

@@ -91,6 +91,13 @@ public class MathUtils {
     }
 
     /**
+     * 判断一个值是否是2的整次幂
+     */
+    public static boolean isPowerOfTwo(int val) {
+        return (val & -val) == val;
+    }
+
+    /**
      * 求两个点的距离
      *
      * @param a 坐标a

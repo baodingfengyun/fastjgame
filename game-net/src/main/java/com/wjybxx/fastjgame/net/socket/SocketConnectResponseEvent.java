@@ -29,8 +29,7 @@ import io.netty.channel.Channel;
 public class SocketConnectResponseEvent implements SocketEvent {
 
     private final Channel channel;
-    private final long localGuid;
-    private final long remoteGuid;
+    private final String sessionId;
     /**
      * 对方期望的下一个消息号
      */
@@ -40,10 +39,9 @@ public class SocketConnectResponseEvent implements SocketEvent {
      */
     private final SocketConnectResponse connectResponse;
 
-    public SocketConnectResponseEvent(Channel channel, long localGuid, long remoteGuid, long ack, SocketConnectResponse connectResponse) {
+    public SocketConnectResponseEvent(Channel channel, String sessionId, long ack, SocketConnectResponse connectResponse) {
         this.channel = channel;
-        this.localGuid = localGuid;
-        this.remoteGuid = remoteGuid;
+        this.sessionId = sessionId;
         this.ack = ack;
         this.connectResponse = connectResponse;
     }
@@ -54,13 +52,8 @@ public class SocketConnectResponseEvent implements SocketEvent {
     }
 
     @Override
-    public long localGuid() {
-        return localGuid;
-    }
-
-    @Override
-    public long remoteGuid() {
-        return remoteGuid;
+    public String sessionId() {
+        return sessionId;
     }
 
     public long getAck() {

@@ -54,20 +54,13 @@ import java.util.Map;
 public class NetContextImp implements NetContext {
 
     private final EventLoop localEventLoop;
-    private final long localGuid;
     private final NetEventLoop netEventLoop;
     private final NetManagerWrapper managerWrapper;
 
-    NetContextImp(NetEventLoop netEventLoop, EventLoop localEventLoop, long localGuid, NetManagerWrapper managerWrapper) {
+    NetContextImp(NetEventLoop netEventLoop, EventLoop localEventLoop, NetManagerWrapper managerWrapper) {
         this.localEventLoop = localEventLoop;
         this.netEventLoop = netEventLoop;
-        this.localGuid = localGuid;
         this.managerWrapper = managerWrapper;
-    }
-
-    @Override
-    public long localGuid() {
-        return localGuid;
     }
 
     @Override
@@ -76,21 +69,21 @@ public class NetContextImp implements NetContext {
     }
 
     @Override
-    public NetEventLoop netEventLoop() {
+    public NetEventLoopGroup netEventLoop() {
         return netEventLoop;
     }
 
     @Override
     public ListenableFuture<SocketPort> bindTcpRange(String host, PortRange portRange, @Nonnull SocketSessionConfig config) {
         SocketPortExtraInfo portExtraInfo = new SocketPortExtraInfo(this, config);
-        TCPServerChannelInitializer initializer = new TCPServerChannelInitializer(localGuid, portExtraInfo, managerWrapper.getNetEventManager());
+        TCPServerChannelInitializer initializer = new TCPServerChannelInitializer(portExtraInfo, managerWrapper.getNetEventManager());
         return bindRange(host, portRange, config, initializer);
     }
 
     @Override
     public ListenableFuture<SocketPort> bindWSRange(String host, PortRange portRange, String websocketPath, @Nonnull SocketSessionConfig config) {
         SocketPortExtraInfo portExtraInfo = new SocketPortExtraInfo(this, config);
-        WsServerChannelInitializer initializer = new WsServerChannelInitializer(localGuid, websocketPath, portExtraInfo, managerWrapper.getNetEventManager());
+        WsServerChannelInitializer initializer = new WsServerChannelInitializer(websocketPath, portExtraInfo, managerWrapper.getNetEventManager());
         return bindRange(host, portRange, config, initializer);
     }
 
@@ -110,13 +103,13 @@ public class NetContextImp implements NetContext {
 
     @Override
     public ListenableFuture<Session> connectTcp(long remoteGuid, HostAndPort remoteAddress, byte[] token, @Nonnull SocketSessionConfig config) {
-        final TCPClientChannelInitializer initializer = new TCPClientChannelInitializer(localGuid, remoteGuid, config, managerWrapper.getNetEventManager());
+        final TCPClientChannelInitializer initializer = new TCPClientChannelInitializer(sessionId, config, managerWrapper.getNetEventManager());
         return connect(remoteGuid, remoteAddress, token, config, initializer);
     }
 
     @Override
     public ListenableFuture<Session> connectWS(long remoteGuid, HostAndPort remoteAddress, String websocketUrl, byte[] token, @Nonnull SocketSessionConfig config) {
-        final WsClientChannelInitializer initializer = new WsClientChannelInitializer(localGuid, remoteGuid, websocketUrl, config.maxFrameLength(),
+        final WsClientChannelInitializer initializer = new WsClientChannelInitializer(sessionId, websocketUrl, config.maxFrameLength(),
                 config.codec(), managerWrapper.getNetEventManager());
         return connect(remoteGuid, remoteAddress, token, config, initializer);
     }
@@ -142,7 +135,7 @@ public class NetContextImp implements NetContext {
 
     @Override
     public ListenableFuture<Session> connectLocal(@Nonnull LocalPort localPort, byte[] token, @Nonnull LocalSessionConfig config) {
-        return localPort.connect(this, config);
+        return localPort.connect(this, , config);
     }
 
     // ------------------------------------------- http 实现 ----------------------------------------

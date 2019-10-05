@@ -30,8 +30,7 @@ import io.netty.channel.Channel;
 public final class SocketMessageEvent implements SocketEvent {
 
     private final Channel channel;
-    private final long localGuid;
-    private final long remoteGuid;
+    private final String sessionId;
     /**
      * 捎带确认的ack
      */
@@ -45,10 +44,9 @@ public final class SocketMessageEvent implements SocketEvent {
      */
     private final NetMessage wrappedMessage;
 
-    public SocketMessageEvent(Channel channel, long localGuid, long remoteGuid, long ack, long sequence, NetMessage wrappedMessage) {
+    public SocketMessageEvent(Channel channel, String sessionId, long ack, long sequence, NetMessage wrappedMessage) {
         this.channel = channel;
-        this.localGuid = localGuid;
-        this.remoteGuid = remoteGuid;
+        this.sessionId = sessionId;
         this.ack = ack;
         this.sequence = sequence;
         this.wrappedMessage = wrappedMessage;
@@ -60,13 +58,8 @@ public final class SocketMessageEvent implements SocketEvent {
     }
 
     @Override
-    public long localGuid() {
-        return localGuid;
-    }
-
-    @Override
-    public long remoteGuid() {
-        return remoteGuid;
+    public String sessionId() {
+        return sessionId;
     }
 
     public long getAck() {

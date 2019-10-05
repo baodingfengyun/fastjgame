@@ -58,7 +58,7 @@ public class DefaultProtocolDispatcher implements RpcFunctionRegistry, ProtocolD
     @Override
     public void postRpcRequest(Session session, @Nullable Object request, @Nonnull RpcResponseChannel<?> responseChannel) {
         if (null == request) {
-            logger.warn("{} send null request", session.remoteGuid());
+            logger.warn("{} send null request", session.sessionId());
             return;
         }
         rpcCallDispatcher.post(session, (RpcCall) request, responseChannel);
@@ -67,7 +67,7 @@ public class DefaultProtocolDispatcher implements RpcFunctionRegistry, ProtocolD
     @Override
     public void postOneWayMessage(Session session, @Nullable Object message) {
         if (null == message) {
-            logger.warn("{} send null message", session.remoteGuid());
+            logger.warn("{} send null message", session.sessionId());
             return;
         }
         if (message instanceof RpcCall) {
@@ -85,7 +85,7 @@ public class DefaultProtocolDispatcher implements RpcFunctionRegistry, ProtocolD
      * @param message 单向消息
      */
     protected void dispatchOneWayMessage(Session session, @Nonnull Object message) {
-        logger.info("unhandled {} message {}", session.remoteGuid(), message.getClass().getSimpleName());
+        logger.info("unhandled {} message {}", session.sessionId(), message.getClass().getSimpleName());
     }
 
     @Override

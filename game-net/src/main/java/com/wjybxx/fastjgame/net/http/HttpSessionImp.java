@@ -54,11 +54,6 @@ public final class HttpSessionImp implements HttpSession {
     }
 
     @Override
-    public long localGuid() {
-        return netContext.localGuid();
-    }
-
-    @Override
     public boolean isActive() {
         return channel.isActive();
     }
