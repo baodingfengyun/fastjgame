@@ -19,23 +19,17 @@ package com.wjybxx.fastjgame.manager;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.misc.HttpPortContext;
-import com.wjybxx.fastjgame.misc.PortRange;
 import com.wjybxx.fastjgame.net.http.HttpRequestCommitTask;
 import com.wjybxx.fastjgame.net.http.HttpRequestEvent;
 import com.wjybxx.fastjgame.net.http.HttpSessionImp;
-import com.wjybxx.fastjgame.net.socket.DefaultSocketPort;
 import com.wjybxx.fastjgame.timer.FixedDelayHandle;
 import com.wjybxx.fastjgame.utils.CollectionUtils;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.TimeUtils;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.socket.SocketChannel;
 
-import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
-import java.net.BindException;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
@@ -54,7 +48,6 @@ public class HttpSessionManager {
     private final NetEventLoopManager netEventLoopManager;
     private final NetConfigManager netConfigManager;
     private final NetTimeManager netTimeManager;
-    private final NettyThreadManager nettyThreadManager;
     /**
      * session映射
      */
@@ -62,11 +55,10 @@ public class HttpSessionManager {
 
     @Inject
     public HttpSessionManager(NetTimerManager netTimerManager, NetEventLoopManager netEventLoopManager, NetConfigManager netConfigManager,
-                              NetTimeManager netTimeManager, NettyThreadManager nettyThreadManager) {
+                              NetTimeManager netTimeManager) {
         this.netEventLoopManager = netEventLoopManager;
         this.netConfigManager = netConfigManager;
         this.netTimeManager = netTimeManager;
-        this.nettyThreadManager = nettyThreadManager;
 
         netTimerManager.newFixedDelay(this.netConfigManager.httpSessionTimeout() * TimeUtils.SEC, this::checkSessionTimeout);
     }
@@ -76,14 +68,6 @@ public class HttpSessionManager {
      */
     public void setManagerWrapper(NetManagerWrapper managerWrapper) {
         this.managerWrapper = managerWrapper;
-    }
-
-    /**
-     * @see NettyThreadManager#bindRange(String, PortRange, int, int, ChannelInitializer)
-     */
-    public DefaultSocketPort bindRange(String host, PortRange portRange, @Nonnull ChannelInitializer<SocketChannel> initializer) throws BindException {
-        assert netEventLoopManager.inEventLoop();
-        return nettyThreadManager.bindRange(host, portRange, 8192, 8192, initializer);
     }
 
     /**
@@ -152,7 +136,6 @@ public class HttpSessionManager {
     public void clean() {
 
     }
-
 
     private static class SessionWrapper {
 

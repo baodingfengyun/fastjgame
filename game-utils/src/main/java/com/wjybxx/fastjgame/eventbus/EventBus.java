@@ -39,9 +39,21 @@ public class EventBus implements EventHandlerRegistry, EventDispatcher {
 
     private static final Logger logger = LoggerFactory.getLogger(EventBus.class);
     /**
+     * 默认的初始容量
+     */
+    private static final int DEFAULT_INIT_CAPACITY = 128;
+    /**
      * 事件类型到处理器的映射
      */
-    private final Map<Class<?>, EventHandler<?>> handlerMap = new IdentityHashMap<>(512);
+    private final Map<Class<?>, EventHandler<?>> handlerMap;
+
+    public EventBus() {
+        this(DEFAULT_INIT_CAPACITY);
+    }
+
+    public EventBus(int initCapacity) {
+        handlerMap = new IdentityHashMap<>(initCapacity);
+    }
 
     @SuppressWarnings("unchecked")
     @Override
@@ -55,7 +67,6 @@ public class EventBus implements EventHandlerRegistry, EventDispatcher {
         try {
             eventHandler.onEvent(event);
         } catch (Exception e) {
-            // 不能因为某个异常导致其它监听器接收不到事件
             logger.warn("onEvent caught exception! EventInfo {}, handler info {}",
                     event.getClass().getName(), eventHandler.getClass().getName(), e);
         }

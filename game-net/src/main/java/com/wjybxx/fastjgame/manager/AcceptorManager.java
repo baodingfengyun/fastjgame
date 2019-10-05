@@ -19,7 +19,6 @@ package com.wjybxx.fastjgame.manager;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.eventloop.NetContext;
-import com.wjybxx.fastjgame.misc.PortRange;
 import com.wjybxx.fastjgame.misc.SessionRegistry;
 import com.wjybxx.fastjgame.net.common.OneWaySupportHandler;
 import com.wjybxx.fastjgame.net.common.RpcSupportHandler;
@@ -30,11 +29,8 @@ import com.wjybxx.fastjgame.net.socket.inner.InnerPongSupportHandler;
 import com.wjybxx.fastjgame.net.socket.inner.InnerSocketMessageSupportHandler;
 import com.wjybxx.fastjgame.net.socket.inner.InnerSocketTransferHandler;
 import com.wjybxx.fastjgame.utils.NetUtils;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.socket.SocketChannel;
 
 import java.io.IOException;
-import java.net.BindException;
 
 /**
  * session接收器。
@@ -47,12 +43,10 @@ import java.net.BindException;
 public class AcceptorManager {
 
     private NetManagerWrapper netManagerWrapper;
-    private final NettyThreadManager nettyThreadManager;
     private final SessionRegistry sessionRegistry = new SessionRegistry();
 
     @Inject
-    public AcceptorManager(NettyThreadManager nettyThreadManager) {
-        this.nettyThreadManager = nettyThreadManager;
+    public AcceptorManager() {
     }
 
     public void setManagerWrapper(NetManagerWrapper managerWrapper) {
@@ -64,22 +58,6 @@ public class AcceptorManager {
     }
 
     // --------------------------------------------------- socket ----------------------------------------------
-
-
-    /**
-     * 绑定到某个端口
-     *
-     * @param host        地址
-     * @param portRange   端口范围
-     * @param config      session配置信息
-     * @param initializer channel初始化方式
-     * @return Port
-     * @throws BindException 找不到可用端口时抛出该异常
-     */
-    public SocketPort bindRange(String host, PortRange portRange, SocketSessionConfig config,
-                                ChannelInitializer<SocketChannel> initializer) throws BindException {
-        return nettyThreadManager.bindRange(host, portRange, config.sndBuffer(), config.rcvBuffer(), initializer);
-    }
 
     /**
      * 接收到一个请求建立连接事件
@@ -111,7 +89,6 @@ public class AcceptorManager {
             NetUtils.closeQuietly(connectRequestEvent.channel());
         }
     }
-
 
     /**
      * 接收到一个socket消息

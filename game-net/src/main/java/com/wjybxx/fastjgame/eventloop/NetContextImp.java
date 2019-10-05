@@ -75,12 +75,12 @@ public class NetContextImp implements NetContext {
 
     @Override
     public ListenableFuture<Session> connectTcp(String sessionId, HostAndPort remoteAddress, byte[] token, @Nonnull SocketSessionConfig config) {
-        return netEventLoopGroup.connect(sessionId, remoteAddress, token, config, this);
+        return netEventLoopGroup.connectTcp(sessionId, remoteAddress, token, config, this);
     }
 
     @Override
     public ListenableFuture<Session> connectWS(String sessionId, HostAndPort remoteAddress, String websocketUrl, byte[] token, @Nonnull SocketSessionConfig config) {
-        return netEventLoopGroup.connect(sessionId, remoteAddress, websocketUrl, token, config, this);
+        return netEventLoopGroup.connectWS(sessionId, remoteAddress, websocketUrl, token, config, this);
     }
 
     // ----------------------------------------------- 本地调用支持 --------------------------------------------
@@ -92,10 +92,10 @@ public class NetContextImp implements NetContext {
 
     @Override
     public ListenableFuture<Session> connectLocal(@Nonnull LocalPort localPort, String sessionId, byte[] token, @Nonnull LocalSessionConfig config) {
-        return netEventLoopGroup().connect(localPort, sessionId, token, config, this);
+        return netEventLoopGroup().connectLocal(localPort, sessionId, token, config, this);
     }
 
-    // ------------------------------------------- http 实现 ----------------------------------------
+    // ------------------------------------------------- http 实现 --------------------------------------------
 
     @Override
     public ListenableFuture<SocketPort> bindHttpRange(String host, PortRange portRange, @Nonnull HttpRequestDispatcher httpRequestDispatcher) {

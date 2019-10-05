@@ -41,6 +41,9 @@ import javax.annotation.Nonnull;
  * <p>
  * Q: 为什么要计算归属线程？{@link #select(int)}？
  * A: 当{@link SocketSession}的channel发生改变时，我们需要能找到它之前所在的线程，{@link Session#sessionId()}就是key。
+ * <p>
+ * Q: {@code connectXXX}系列方法为什么不能放在{@link NetEventLoop}接口？
+ * A: 如果将{@code connectXXX}系列方法放在{@link NetEventLoop}接口将无法处理重复调用问题，用户的同一个sessionId可能出现在多个{@link NetEventLoop}。
  *
  * @author wjybxx
  * @version 1.0
@@ -100,7 +103,7 @@ public interface NetEventLoopGroup extends EventLoopGroup {
      * @param netContext    调用方
      * @return future
      */
-    ListenableFuture<Session> connect(String sessionId, HostAndPort remoteAddress, byte[] token, SocketSessionConfig config, NetContext netContext);
+    ListenableFuture<Session> connectTcp(String sessionId, HostAndPort remoteAddress, byte[] token, SocketSessionConfig config, NetContext netContext);
 
     /**
      * 以websocket方式连接远程某个端口
@@ -113,7 +116,7 @@ public interface NetEventLoopGroup extends EventLoopGroup {
      * @param netContext    调用方
      * @return future 如果想消除同步，添加监听器时请绑定EventLoop
      */
-    ListenableFuture<Session> connect(String sessionId, HostAndPort remoteAddress, String websocketUrl, byte[] token, SocketSessionConfig config, NetContext netContext);
+    ListenableFuture<Session> connectWS(String sessionId, HostAndPort remoteAddress, String websocketUrl, byte[] token, SocketSessionConfig config, NetContext netContext);
 
     /**
      * 与JVM内的另一个线程建立session。
@@ -126,5 +129,5 @@ public interface NetEventLoopGroup extends EventLoopGroup {
      * @param netContext 调用方
      * @return future 如果想消除同步，添加监听器时请绑定EventLoop
      */
-    ListenableFuture<Session> connect(LocalPort localPort, String sessionId, byte[] token, LocalSessionConfig config, NetContext netContext);
+    ListenableFuture<Session> connectLocal(LocalPort localPort, String sessionId, byte[] token, LocalSessionConfig config, NetContext netContext);
 }

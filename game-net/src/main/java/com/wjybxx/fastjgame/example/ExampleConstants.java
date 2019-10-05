@@ -34,7 +34,7 @@ public final class ExampleConstants {
     /**
      * sessionId
      */
-    public static final String SESSION_ID = "client-10001";
+    public static final String SESSION_ID = "10001-20001";
     /**
      * 空的token
      */

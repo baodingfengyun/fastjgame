@@ -71,7 +71,7 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     private final ConnectorManager connectorManager;
     private final NetTimeManager netTimeManager;
     private final NetTimerManager netTimerManager;
-
+    private final NettyThreadManager nettyThreadManager;
 
     NetEventLoopImp(@Nonnull NetEventLoopGroup parent,
                     @Nonnull ThreadFactory threadFactory,
@@ -99,6 +99,7 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
 
         // 全局httpClient资源
         httpClientManager = managerWrapper.getHttpClientManager();
+        nettyThreadManager = managerWrapper.getNettyThreadManager();
     }
 
     @Nonnull
@@ -170,7 +171,7 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         connectorManager.tick();
     }
 
-    public void onUserEventLoopTerminal(EventLoop userEventLoop) {
+    private void onUserEventLoopTerminal(EventLoop userEventLoop) {
         acceptorManager.onUserEventLoopTerminal(userEventLoop);
         connectorManager.onUserEventLoopTerminal(userEventLoop);
         httpSessionManager.onUserEventLoopTerminal(userEventLoop);
@@ -197,7 +198,6 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         localEventLoop.terminationFuture().addListener(future -> {
             onUserEventLoopTerminal(localEventLoop);
         }, this);
-
         return new NetContextImp(this, localEventLoop);
     }
 
@@ -243,12 +243,12 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         SocketPortContext portExtraInfo = new SocketPortContext(netContext, config);
         TCPServerChannelInitializer initializer = new TCPServerChannelInitializer(portExtraInfo);
         return submit(() -> {
-            return acceptorManager.bindRange(host, portRange, config, initializer);
+            return nettyThreadManager.bindRange(host, portRange, config.sndBuffer(), config.rcvBuffer(), initializer);
         });
     }
 
     @Override
-    public ListenableFuture<Session> connect(String sessionId, HostAndPort remoteAddress, byte[] token, SocketSessionConfig config, NetContext netContext) {
+    public ListenableFuture<Session> connectTcp(String sessionId, HostAndPort remoteAddress, byte[] token, SocketSessionConfig config, NetContext netContext) {
         final TCPClientChannelInitializer initializer = new TCPClientChannelInitializer(sessionId, config, this);
         return submit(() -> {
             return connectorManager.connect(netContext.localEventLoop(), sessionId, remoteAddress, token, config, initializer);
@@ -260,12 +260,12 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         SocketPortContext portExtraInfo = new SocketPortContext(netContext, config);
         WsServerChannelInitializer initializer = new WsServerChannelInitializer(websocketPath, portExtraInfo);
         return submit(() -> {
-            return acceptorManager.bindRange(host, portRange, config, initializer);
+            return nettyThreadManager.bindRange(host, portRange, config.sndBuffer(), config.rcvBuffer(), initializer);
         });
     }
 
     @Override
-    public ListenableFuture<Session> connect(String sessionId, HostAndPort remoteAddress, String websocketUrl, byte[] token, SocketSessionConfig config, NetContext netContext) {
+    public ListenableFuture<Session> connectWS(String sessionId, HostAndPort remoteAddress, String websocketUrl, byte[] token, SocketSessionConfig config, NetContext netContext) {
         final WsClientChannelInitializer initializer = new WsClientChannelInitializer(sessionId, websocketUrl, config, this);
         return submit(() -> {
             return connectorManager.connect(netContext.localEventLoop(), sessionId, remoteAddress, token, config, initializer);
@@ -282,7 +282,7 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     }
 
     @Override
-    public ListenableFuture<Session> connect(LocalPort localPort, String sessionId, byte[] token, LocalSessionConfig config, NetContext netContext) {
+    public ListenableFuture<Session> connectLocal(LocalPort localPort, String sessionId, byte[] token, LocalSessionConfig config, NetContext netContext) {
         if (!(localPort instanceof DefaultLocalPort)) {
             return new FailedFuture<>(this, new UnsupportedOperationException());
         }
@@ -297,7 +297,7 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         final HttpPortContext httpPortContext = new HttpPortContext(netContext, httpRequestDispatcher);
         final HttpServerInitializer initializer = new HttpServerInitializer(httpPortContext);
         return submit(() -> {
-            return httpSessionManager.bindRange(host, portRange, initializer);
+            return nettyThreadManager.bindRange(host, portRange, 8192, 8192, initializer);
         });
     }
 

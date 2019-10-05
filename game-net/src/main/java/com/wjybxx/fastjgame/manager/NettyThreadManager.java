@@ -32,7 +32,6 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.net.BindException;
 
 /**
@@ -43,7 +42,6 @@ import java.net.BindException;
  * date - 2019/4/29 20:02
  * github - https://github.com/hl845740757
  */
-@ThreadSafe
 public class NettyThreadManager {
 
     private static final Logger logger = LoggerFactory.getLogger(NettyThreadManager.class);
@@ -61,6 +59,9 @@ public class NettyThreadManager {
 
     }
 
+    /**
+     * happens - before other methods
+     */
     public void start(int bossGroupThreadNum, int workerGroupThreadNum) {
         bossGroup = new NioEventLoopGroup(bossGroupThreadNum, new DefaultThreadFactory("BOSS_GROUP_THREAD"));
         workerGroup = new NioEventLoopGroup(workerGroupThreadNum, new DefaultThreadFactory("WORKER_GROUP_THREAD"));
@@ -78,7 +79,6 @@ public class NettyThreadManager {
             workerGroup.shutdownGracefully();
         }
         logger.info("NettyThreadManager shutdown success");
-
     }
 
     public EventLoopGroup getBossGroup() {

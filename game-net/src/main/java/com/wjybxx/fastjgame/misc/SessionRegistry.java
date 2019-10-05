@@ -33,8 +33,10 @@ import java.util.Map;
  */
 public class SessionRegistry {
 
+    /**
+     * sessionId到session的映射
+     */
     private final Map<String, Session> sessionMap = new HashMap<>(256);
-
 
     public void tick() {
         for (Session session : sessionMap.values()) {
