@@ -21,6 +21,8 @@ import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 
 /**
+ * JVM 内部端口的实现
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/10/4
@@ -44,10 +46,6 @@ public class DefaultLocalPort implements LocalPort {
     public DefaultLocalPort(NetContext netContext, LocalSessionConfig localConfig) {
         this.netContext = netContext;
         this.localConfig = localConfig;
-    }
-
-    public NetContext getNetContext() {
-        return netContext;
     }
 
     public NetEventLoopGroup netEventLoopGroup() {

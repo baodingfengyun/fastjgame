@@ -20,8 +20,8 @@ import com.wjybxx.fastjgame.net.session.Session;
 import io.netty.channel.local.LocalChannel;
 
 /**
- * jvm内部session。
- * - 其实Netty有个{@link LocalChannel}... 我感觉我要重写才行。
+ * jvm内部建立session。
+ * - 其实Netty有个{@link LocalChannel}，不过肯定没有现在这种方式快。
  *
  * @author wjybxx
  * @version 1.0

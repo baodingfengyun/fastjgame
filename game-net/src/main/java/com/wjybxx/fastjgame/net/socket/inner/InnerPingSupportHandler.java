@@ -41,10 +41,11 @@ public class InnerPingSupportHandler extends SessionDuplexHandlerAdapter {
     public void init(SessionHandlerContext ctx) throws Exception {
         // 缓存减少堆栈深度
         timeManager = ctx.managerWrapper().getNetTimeManager();
-        lastWriteTime = timeManager.getSystemMillTime();
-        lastReadTime = timeManager.getSystemMillTime();
         pingIntervalMs = ctx.session().config().getPingIntervalMs();
         sessionTimeoutMs = ctx.session().config().getSessionTimeoutMs();
+
+        lastWriteTime = timeManager.getSystemMillTime();
+        lastReadTime = timeManager.getSystemMillTime();
     }
 
     @Override

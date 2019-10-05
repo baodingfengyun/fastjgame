@@ -153,6 +153,6 @@ public class InnerAcceptorMrg {
     }
 
     public long parseRemoteGuid(String sessionId) {
-        return Long.parseLong(sessionId.split("-", 2)[1]);
+        return Long.parseLong(sessionId.split("-", 2)[0]);
     }
 }

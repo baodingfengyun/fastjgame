@@ -56,7 +56,7 @@ public class SceneProtocolDispatcherMrg extends ProtocolDispatcherMrg implements
                 // 玩家已成功连入场景
                 messageDispatcher.post(player, (AbstractMessage) message);
             } else {
-                // TODO 玩家登录
+                // TODO 判断是玩家登录消息
             }
         }
     }

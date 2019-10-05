@@ -37,8 +37,8 @@ public class SocketSessionImp extends AbstractSession implements SocketSession {
     private Channel channel;
     private final SocketSessionConfig config;
 
-    public SocketSessionImp(EventLoop localEventLoop, NetManagerWrapper managerWrapper,
-                            String sessionId, Channel channel, SocketSessionConfig config) {
+    public SocketSessionImp(String sessionId, EventLoop localEventLoop, NetManagerWrapper managerWrapper,
+                            Channel channel, SocketSessionConfig config) {
         super(sessionId, localEventLoop, managerWrapper);
         this.config = config;
         this.channel = channel;
@@ -49,6 +49,7 @@ public class SocketSessionImp extends AbstractSession implements SocketSession {
         return config;
     }
 
+    @Override
     public Channel channel() {
         return channel;
     }

@@ -37,6 +37,11 @@ public class DefaultSocketPort implements SocketPort {
     }
 
     @Override
+    public Channel channel() {
+        return channel;
+    }
+
+    @Override
     public HostAndPort getHostAndPort() {
         return hostAndPort;
     }

@@ -69,8 +69,8 @@ public class AcceptorManager {
         if (existSession == null) {
             // TODO 首次建立连接验证
             final SocketPortContext portExtraInfo = connectRequestEvent.getPortExtraInfo();
-            SocketSessionImp socketSessionImp = new SocketSessionImp(portExtraInfo.localEventLoop(), netManagerWrapper,
-                    connectRequestEvent.sessionId(), connectRequestEvent.channel(), portExtraInfo.getSessionConfig());
+            SocketSessionImp socketSessionImp = new SocketSessionImp(connectRequestEvent.sessionId(), portExtraInfo.localEventLoop(), netManagerWrapper,
+                    connectRequestEvent.channel(), portExtraInfo.getSessionConfig());
             sessionRegistry.registerSession(socketSessionImp);
 
             socketSessionImp.pipeline()
@@ -125,11 +125,15 @@ public class AcceptorManager {
      * @throws IOException error
      */
     public LocalSessionImp onRcvConnectRequest(DefaultLocalPort localPort, String sessionId) throws IOException {
+        // 端口已关闭
+        if (!localPort.isActive()) {
+            throw new IOException("local port closed");
+        }
         if (sessionRegistry.getSession(sessionId) != null) {
             throw new IOException("session " + sessionId + " is already registered");
         }
         // 创建session并保存
-        LocalSessionImp session = new LocalSessionImp(localPort.localEventLoop(), netManagerWrapper, sessionId, localPort.getLocalConfig());
+        LocalSessionImp session = new LocalSessionImp(sessionId, localPort.localEventLoop(), netManagerWrapper, localPort.getLocalConfig());
         sessionRegistry.registerSession(session);
 
         // 创建管道，但是这里还不能初始化 - 因为还没有对方的引用

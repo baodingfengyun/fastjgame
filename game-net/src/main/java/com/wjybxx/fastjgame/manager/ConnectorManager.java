@@ -71,7 +71,7 @@ public class ConnectorManager {
         ChannelFuture channelFuture = nettyThreadManager.connectAsyn(remoteAddress, config.sndBuffer(), config.rcvBuffer(), initializer)
                 .syncUninterruptibly();
 
-        final SocketSessionImp socketSessionImp = new SocketSessionImp(localEventLoop, netManagerWrapper, sessionId, channelFuture.channel(), config);
+        final SocketSessionImp socketSessionImp = new SocketSessionImp(sessionId, localEventLoop, netManagerWrapper, channelFuture.channel(), config);
         sessionRegistry.registerSession(socketSessionImp);
 
         socketSessionImp.pipeline()
@@ -120,10 +120,6 @@ public class ConnectorManager {
     }
 
     public Session connectLocal(DefaultLocalPort localPort, EventLoop localEventLoop, String sessionId, byte[] token, LocalSessionConfig config) throws IOException {
-        // 端口已关闭
-        if (!localPort.isActive()) {
-            throw new IOException("local port closed");
-        }
         // 会话已存在
         if (sessionRegistry.getSession(sessionId) != null) {
             throw new IOException("session " + sessionId + " already registered");
@@ -131,7 +127,7 @@ public class ConnectorManager {
         final LocalSessionImp remoteSession = netManagerWrapper.getAcceptorManager().onRcvConnectRequest(localPort, sessionId);
 
         // 创建session并保存
-        LocalSessionImp session = new LocalSessionImp(localEventLoop, netManagerWrapper, sessionId, config);
+        LocalSessionImp session = new LocalSessionImp(sessionId, localEventLoop, netManagerWrapper, config);
         sessionRegistry.registerSession(session);
 
         // 初始化管道，入站 从上到下，出站 从下往上

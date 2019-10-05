@@ -26,6 +26,7 @@ import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * 一个连接的抽象，它可能是一个socket连接，也可能是JVM内的线程之间内的连接，不论它真的是什么，你都可以以相同的方式使用它们发送消息。
@@ -39,6 +40,9 @@ import javax.annotation.Nullable;
  * 3. 先发送的请求不一定先获得结果！对方什么时候返回给你结果是不确定的！
  *
  * <p>
+ * 暂时并不提供完全的线程安全性保障，如果不是那么有必要的话，便不添加，我的意识里需要session是完全的线程安全的情况并不多。
+ *
+ * <p>
  * 注意：这里提供的接口并不是那么的清晰易懂，偏原始、偏底层，应用层可以提供更良好的封装。
  *
  * @author wjybxx
@@ -46,6 +50,7 @@ import javax.annotation.Nullable;
  * date - 2019/7/29
  * github - https://github.com/hl845740757
  */
+@NotThreadSafe
 public interface Session extends Comparable<Session> {
 
     /**
@@ -60,7 +65,7 @@ public interface Session extends Comparable<Session> {
      * A:
      * 1. 用户比网络层更容易做到唯一。<br>
      * 2. 用户能赋予sessionId更确切的含义。<br>
-     * 3. 用户可以使sessionId更短，你肯定不想每个sessionId都是60个字节 - {@link io.netty.channel.ChannelId}<br>
+     * 3. 用户可以使sessionId更短，你肯定不想每个sessionId都是60个字节 - 比如使用{@link io.netty.channel.ChannelId}<br>
      */
     String sessionId();
 

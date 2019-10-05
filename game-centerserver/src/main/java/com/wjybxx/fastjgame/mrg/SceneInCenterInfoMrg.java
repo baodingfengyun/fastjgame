@@ -224,7 +224,7 @@ public class SceneInCenterInfoMrg {
             getSceneInfo(sceneWorldGuid).setSession(session);
             ICenterInSceneInfoMrgRpcProxy.connectSingleScene(centerWorldInfoMrg.getWorldGuid(),
                     centerWorldInfoMrg.getPlatformType().getNumber(), centerWorldInfoMrg.getServerId())
-                    .ifSuccess(result -> connectSingleSuccessResult(session, result))
+                    .ifSuccess(result -> connectSingleSuccessResult(session, sceneWorldGuid, result))
                     .call(session);
         }
 
@@ -250,7 +250,7 @@ public class SceneInCenterInfoMrg {
             getSceneInfo(sceneWorldGuid).setSession(session);
             ICenterInSceneInfoMrgRpcProxy.connectCrossScene(centerWorldInfoMrg.getWorldGuid(),
                     centerWorldInfoMrg.getPlatformType().getNumber(), centerWorldInfoMrg.getServerId())
-                    .ifSuccess(result -> connectCrossSceneSuccess(session, result))
+                    .ifSuccess(result -> connectCrossSceneSuccess(session, sceneWorldGuid, result))
                     .call(session);
         }
 
@@ -264,13 +264,10 @@ public class SceneInCenterInfoMrg {
      * 收到单服场景的响应信息
      *
      * @param session               scene会话信息
+     * @param sceneWorldGuid        scene服id
      * @param configuredRegionsList 配置的区域
      */
-    private void connectSingleSuccessResult(Session session, List<Integer> configuredRegionsList) {
-        final Long attachment = session.attachment();
-        assert null != attachment;
-        long sceneWorldGuid = attachment;
-
+    private void connectSingleSuccessResult(Session session, long sceneWorldGuid, List<Integer> configuredRegionsList) {
         assert guid2InfoMap.containsKey(sceneWorldGuid);
         SceneInCenterInfo sceneInCenterInfo = guid2InfoMap.get(sceneWorldGuid);
 
@@ -303,14 +300,11 @@ public class SceneInCenterInfoMrg {
     /**
      * 收到跨服场景的连接响应
      *
-     * @param session 与跨服场景的会话
-     * @param result  响应结果
+     * @param session        与跨服场景的会话
+     * @param sceneWorldGuid scene服id
+     * @param result         响应结果
      */
-    private void connectCrossSceneSuccess(Session session, ConnectCrossSceneResult result) {
-        final Long attachment = session.attachment();
-        assert null != attachment;
-        long sceneWorldGuid = attachment;
-
+    private void connectCrossSceneSuccess(Session session, long sceneWorldGuid, ConnectCrossSceneResult result) {
         assert guid2InfoMap.containsKey(sceneWorldGuid);
         SceneInCenterInfo sceneInCenterInfo = guid2InfoMap.get(sceneWorldGuid);
         // 配置的区域

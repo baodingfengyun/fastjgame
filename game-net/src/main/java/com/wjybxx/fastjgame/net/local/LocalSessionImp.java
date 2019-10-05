@@ -40,7 +40,7 @@ public class LocalSessionImp extends AbstractSession implements LocalSession {
      */
     private Session remoteSession;
 
-    public LocalSessionImp(EventLoop localEventLoop, NetManagerWrapper managerWrapper, String sessionId, LocalSessionConfig config) {
+    public LocalSessionImp(String sessionId, EventLoop localEventLoop, NetManagerWrapper managerWrapper, LocalSessionConfig config) {
         super(sessionId, localEventLoop, managerWrapper);
         this.config = config;
     }

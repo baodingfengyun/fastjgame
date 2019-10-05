@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.net.socket;
 
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.net.common.NetPort;
+import io.netty.channel.Channel;
 
 /**
  * socket绑定端口结果
@@ -29,6 +30,7 @@ import com.wjybxx.fastjgame.net.common.NetPort;
  */
 public interface SocketPort extends NetPort {
 
-    HostAndPort getHostAndPort();
+    Channel channel();
 
+    HostAndPort getHostAndPort();
 }

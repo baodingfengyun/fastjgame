@@ -39,10 +39,21 @@ public class InnerSocketTransferHandler extends SessionDuplexHandlerAdapter {
      * 内网不执行重连机制 - channel不会改变，因此可以缓存
      */
     private Channel channel;
+    /**
+     * flush之前的消息数
+     */
+    private int msgCount;
 
     @Override
     public void init(SessionHandlerContext ctx) throws Exception {
         this.channel = ((SocketSessionImp) ctx.session()).channel();
+    }
+
+    @Override
+    public void tick(SessionHandlerContext ctx) {
+        if (msgCount > 0) {
+            channel.flush();
+        }
     }
 
     @Override
@@ -60,11 +71,13 @@ public class InnerSocketTransferHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void write(SessionHandlerContext ctx, Object msg) throws Exception {
+        msgCount++;
         channel.write(msg, channel.voidPromise());
     }
 
     @Override
     public void flush(SessionHandlerContext ctx) throws Exception {
+        msgCount = 0;
         channel.flush();
     }
 

@@ -41,8 +41,9 @@ public class InnerPongSupportHandler extends SessionInboundHandlerAdapter {
     public void init(SessionHandlerContext ctx) throws Exception {
         // 缓存 - 减少栈深度
         timeManager = ctx.managerWrapper().getNetTimeManager();
-        lastReadTime = timeManager.getSystemMillTime();
         sessionTimeoutMs = ctx.session().config().getSessionTimeoutMs();
+        
+        lastReadTime = timeManager.getSystemMillTime();
     }
 
     @Override

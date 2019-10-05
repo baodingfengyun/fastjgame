@@ -122,7 +122,7 @@ public class WarzoneInCenterInfoMrg {
         public void onSessionConnected(Session session) {
             ICenterInWarzoneInfoMrgRpcProxy.connectWarzone(centerWorldInfoMrg.getWorldGuid(),
                     centerWorldInfoMrg.getPlatformType().getNumber(), centerWorldInfoMrg.getServerId())
-                    .ifSuccess(result -> connectWarzoneSuccess(session))
+                    .ifSuccess(result -> connectWarzoneSuccess(session, warzoneWorldGuid))
                     .call(session);
         }
 
@@ -135,13 +135,11 @@ public class WarzoneInCenterInfoMrg {
     /**
      * 连接争取安全成功(收到了战区的响应信息)。
      *
-     * @param session 与战区的会话
+     * @param session          与战区的会话
+     * @param warzoneWorldGuid 战区服id
      */
-    private void connectWarzoneSuccess(Session session) {
+    private void connectWarzoneSuccess(Session session, long warzoneWorldGuid) {
         assert null == warzoneInCenterInfo;
-        final Long attachment = session.attachment();
-        assert null != attachment;
-        long warzoneWorldGuid = attachment;
         warzoneInCenterInfo = new WarzoneInCenterInfo(warzoneWorldGuid, session);
 
         // TODO 战区连接成功逻辑(eg.恢复特殊玩法)
