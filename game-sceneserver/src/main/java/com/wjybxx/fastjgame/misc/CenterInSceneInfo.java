@@ -30,10 +30,6 @@ public class CenterInSceneInfo {
 
     private final Session session;
     /**
-     * CenterServer的worldguid
-     */
-    private final long centerWorldGuid;
-    /**
      * 归属的平台
      */
     private final PlatformType platformType;
@@ -42,15 +38,14 @@ public class CenterInSceneInfo {
      */
     private final int serverId;
 
-    public CenterInSceneInfo(Session session, long centerWorldGuid, PlatformType platformType, int serverId) {
-        this.centerWorldGuid = centerWorldGuid;
+    public CenterInSceneInfo(Session session, PlatformType platformType, int serverId) {
         this.platformType = platformType;
         this.serverId = serverId;
         this.session = session;
     }
 
     public long getCenterWorldGuid() {
-        return centerWorldGuid;
+        return session.remoteGuid();
     }
 
     public PlatformType getPlatformType() {

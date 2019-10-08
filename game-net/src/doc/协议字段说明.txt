@@ -47,7 +47,7 @@
  long  8字节      ack              我期望的下一个消息号(捎带确认的ack)
  long  8字节      sequence         这是我发送的第几个包/帧。
 
- long  8字节      destination      转发给谁
+ long  8字节      desUserGuid      转发给谁
  bytes 字节数组    bytes            转发的内容 - 内容可能是任何一条协议
 
 

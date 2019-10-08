@@ -123,7 +123,7 @@ public class SceneInCenterInfoMrg {
                 onlineSceneNode.getInnerTcpAddress(),
                 onlineSceneNode.getLocalAddress(),
                 onlineSceneNode.getMacAddress(),
-                new SingleSceneAware(singleSceneNodeName.getWorldGuid()));
+                new SingleSceneAware());
 
         // 保存信息
         SceneInCenterInfo sceneInCenterInfo = new SceneInCenterInfo(singleSceneNodeName.getWorldGuid(),
@@ -156,7 +156,7 @@ public class SceneInCenterInfoMrg {
                 onlineSceneNode.getInnerTcpAddress(),
                 onlineSceneNode.getLocalAddress(),
                 onlineSceneNode.getMacAddress(),
-                new CrossSceneAware(crossSceneNodeName.getWorldGuid()));
+                new CrossSceneAware());
 
         // 保存信息
         SceneInCenterInfo sceneInCenterInfo = new SceneInCenterInfo(crossSceneNodeName.getWorldGuid(),
@@ -212,24 +212,17 @@ public class SceneInCenterInfoMrg {
      */
     private class SingleSceneAware implements SessionLifecycleAware {
 
-        private final long sceneWorldGuid;
-
-        private SingleSceneAware(long sceneWorldGuid) {
-            this.sceneWorldGuid = sceneWorldGuid;
-        }
-
         @Override
         public void onSessionConnected(Session session) {
-            getSceneInfo(sceneWorldGuid).setSession(session);
-            ICenterInSceneInfoMrgRpcProxy.connectSingleScene(centerWorldInfoMrg.getWorldGuid(),
-                    centerWorldInfoMrg.getPlatformType().getNumber(), centerWorldInfoMrg.getServerId())
-                    .ifSuccess(result -> connectSingleSuccessResult(session, sceneWorldGuid, result))
+            getSceneInfo(session.remoteGuid()).setSession(session);
+            ICenterInSceneInfoMrgRpcProxy.connectSingleScene(centerWorldInfoMrg.getPlatformType().getNumber(), centerWorldInfoMrg.getServerId())
+                    .ifSuccess(result -> connectSingleSuccessResult(session, result))
                     .call(session);
         }
 
         @Override
         public void onSessionDisconnected(Session session) {
-            onSceneDisconnect(sceneWorldGuid);
+            onSceneDisconnect(session.remoteGuid());
         }
     }
 
@@ -238,24 +231,17 @@ public class SceneInCenterInfoMrg {
      */
     private class CrossSceneAware implements SessionLifecycleAware {
 
-        private final long sceneWorldGuid;
-
-        public CrossSceneAware(long sceneWorldGuid) {
-            this.sceneWorldGuid = sceneWorldGuid;
-        }
-
         @Override
         public void onSessionConnected(Session session) {
-            getSceneInfo(sceneWorldGuid).setSession(session);
-            ICenterInSceneInfoMrgRpcProxy.connectCrossScene(centerWorldInfoMrg.getWorldGuid(),
-                    centerWorldInfoMrg.getPlatformType().getNumber(), centerWorldInfoMrg.getServerId())
-                    .ifSuccess(result -> connectCrossSceneSuccess(session, sceneWorldGuid, result))
+            getSceneInfo(session.remoteGuid()).setSession(session);
+            ICenterInSceneInfoMrgRpcProxy.connectCrossScene(centerWorldInfoMrg.getPlatformType().getNumber(), centerWorldInfoMrg.getServerId())
+                    .ifSuccess(result -> connectCrossSceneSuccess(session, result))
                     .call(session);
         }
 
         @Override
         public void onSessionDisconnected(Session session) {
-            onSceneDisconnect(sceneWorldGuid);
+            onSceneDisconnect(session.remoteGuid());
         }
     }
 
@@ -263,12 +249,11 @@ public class SceneInCenterInfoMrg {
      * 收到单服场景的响应信息
      *
      * @param session               scene会话信息
-     * @param sceneWorldGuid        scene服id
      * @param configuredRegionsList 配置的区域
      */
-    private void connectSingleSuccessResult(Session session, long sceneWorldGuid, List<Integer> configuredRegionsList) {
-        assert guid2InfoMap.containsKey(sceneWorldGuid);
-        SceneInCenterInfo sceneInCenterInfo = guid2InfoMap.get(sceneWorldGuid);
+    private void connectSingleSuccessResult(Session session, List<Integer> configuredRegionsList) {
+        assert guid2InfoMap.containsKey(session.remoteGuid());
+        SceneInCenterInfo sceneInCenterInfo = guid2InfoMap.get(session.remoteGuid());
 
         Set<SceneRegion> configuredRegions = sceneInCenterInfo.getConfiguredRegions();
         Set<SceneRegion> activeRegions = sceneInCenterInfo.getActiveRegions();
@@ -299,13 +284,12 @@ public class SceneInCenterInfoMrg {
     /**
      * 收到跨服场景的连接响应
      *
-     * @param session        与跨服场景的会话
-     * @param sceneWorldGuid scene服id
-     * @param result         响应结果
+     * @param session 与跨服场景的会话
+     * @param result  响应结果
      */
-    private void connectCrossSceneSuccess(Session session, long sceneWorldGuid, ConnectCrossSceneResult result) {
-        assert guid2InfoMap.containsKey(sceneWorldGuid);
-        SceneInCenterInfo sceneInCenterInfo = guid2InfoMap.get(sceneWorldGuid);
+    private void connectCrossSceneSuccess(Session session, ConnectCrossSceneResult result) {
+        assert guid2InfoMap.containsKey(session.remoteGuid());
+        SceneInCenterInfo sceneInCenterInfo = guid2InfoMap.get(session.remoteGuid());
         // 配置的区域
         Set<SceneRegion> configuredRegions = sceneInCenterInfo.getConfiguredRegions();
         for (int regionId : result.getConfiguredRegions()) {

@@ -73,7 +73,7 @@ public class WarzoneInCenterInfoMrg {
                 warzoneNodeData.getInnerTcpAddress(),
                 warzoneNodeData.getLocalAddress(),
                 warzoneNodeData.getMacAddress(),
-                new WarzoneSessionLifeAware(warzoneNodeData.getWorldGuid()));
+                new WarzoneSessionLifeAware());
     }
 
     /**
@@ -111,35 +111,27 @@ public class WarzoneInCenterInfoMrg {
 
     private class WarzoneSessionLifeAware implements SessionLifecycleAware {
 
-        private final long warzoneWorldGuid;
-
-        private WarzoneSessionLifeAware(long warzoneWorldGuid) {
-            this.warzoneWorldGuid = warzoneWorldGuid;
-        }
-
         @Override
         public void onSessionConnected(Session session) {
-            ICenterInWarzoneInfoMrgRpcProxy.connectWarzone(centerWorldInfoMrg.getWorldGuid(),
-                    centerWorldInfoMrg.getPlatformType().getNumber(), centerWorldInfoMrg.getServerId())
-                    .ifSuccess(result -> connectWarzoneSuccess(session, warzoneWorldGuid))
+            ICenterInWarzoneInfoMrgRpcProxy.connectWarzone(centerWorldInfoMrg.getPlatformType().getNumber(), centerWorldInfoMrg.getServerId())
+                    .ifSuccess(result -> connectWarzoneSuccess(session))
                     .call(session);
         }
 
         @Override
         public void onSessionDisconnected(Session session) {
-            onWarzoneDisconnect(warzoneWorldGuid);
+            onWarzoneDisconnect(session.remoteGuid());
         }
     }
 
     /**
      * 连接争取安全成功(收到了战区的响应信息)。
      *
-     * @param session          与战区的会话
-     * @param warzoneWorldGuid 战区服id
+     * @param session 与战区的会话
      */
-    private void connectWarzoneSuccess(Session session, long warzoneWorldGuid) {
+    private void connectWarzoneSuccess(Session session) {
         assert null == warzoneInCenterInfo;
-        warzoneInCenterInfo = new WarzoneInCenterInfo(warzoneWorldGuid, session);
+        warzoneInCenterInfo = new WarzoneInCenterInfo(session);
 
         // TODO 战区连接成功逻辑(eg.恢复特殊玩法)
         logger.info("connect WARZONE-{} success", centerWorldInfoMrg.getWarzoneId());

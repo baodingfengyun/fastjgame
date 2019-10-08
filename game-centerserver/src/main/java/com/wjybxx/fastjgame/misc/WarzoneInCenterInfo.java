@@ -27,20 +27,15 @@ import com.wjybxx.fastjgame.net.session.Session;
  * github - https://github.com/hl845740757
  */
 public class WarzoneInCenterInfo {
-    /**
-     * 战区worldguid，也是会话id
-     */
-    private final long warzoneWorldGuid;
 
     private final Session session;
 
-    public WarzoneInCenterInfo(long warzoneWorldGuid, Session session) {
-        this.warzoneWorldGuid = warzoneWorldGuid;
+    public WarzoneInCenterInfo(Session session) {
         this.session = session;
     }
 
     public long getWarzoneWorldGuid() {
-        return warzoneWorldGuid;
+        return session.remoteGuid();
     }
 
     public Session getSession() {

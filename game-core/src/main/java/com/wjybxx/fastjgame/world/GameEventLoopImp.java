@@ -19,7 +19,6 @@ package com.wjybxx.fastjgame.world;
 import com.google.inject.Injector;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
-import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.module.WorldGroupModule;
 import com.wjybxx.fastjgame.timer.DefaultTimerSystem;

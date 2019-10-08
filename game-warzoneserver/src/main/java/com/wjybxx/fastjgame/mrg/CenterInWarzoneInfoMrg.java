@@ -80,12 +80,12 @@ public class CenterInWarzoneInfoMrg implements ICenterInWarzoneInfoMrg {
     }
 
     @Override
-    public boolean connectWarzone(Session session, long centerWorldGuid, int platfomNumber, int serverId) {
+    public boolean connectWarzone(Session session, int platfomNumber, int serverId) {
         PlatformType platformType = PlatformType.forNumber(platfomNumber);
-        assert !guid2InfoMap.containsKey(centerWorldGuid);
+        assert !guid2InfoMap.containsKey(session.remoteGuid());
         assert !platInfoMap.containsKey(platformType) || !platInfoMap.get(platformType).containsKey(serverId);
 
-        CenterInWarzoneInfo centerInWarzoneInfo = new CenterInWarzoneInfo(session, centerWorldGuid, platformType, serverId);
+        CenterInWarzoneInfo centerInWarzoneInfo = new CenterInWarzoneInfo(session, platformType, serverId);
         addInfo(centerInWarzoneInfo);
         return true;
     }

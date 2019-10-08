@@ -73,7 +73,7 @@ public class LocalPortMrg {
      * 注意：该方法必须在world将自己注册到zookeeper之前执行！以保证其它world在zookeeper上发现它以后一定能取出它的{@link LocalPort}.
      *
      * @param worldGuid worldGuid
-     * @param localPort   该world监听的jvm端口
+     * @param localPort 该world监听的jvm端口
      */
     public void register(long worldGuid, LocalPort localPort) {
         final LocalPort exist = localPortMap.putIfAbsent(worldGuid, localPort);

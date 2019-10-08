@@ -138,12 +138,12 @@ public class CenterInSceneInfoMrg implements ICenterInSceneInfoMrg {
     }
 
     @Override
-    public List<Integer> connectSingleScene(Session session, long centerWorldGuid, int platformNumber, int serverId) {
+    public List<Integer> connectSingleScene(Session session, int platformNumber, int serverId) {
         PlatformType platformType = PlatformType.forNumber(platformNumber);
-        assert !guid2InfoMap.containsKey(centerWorldGuid);
+        assert !guid2InfoMap.containsKey(session.remoteGuid());
         assert !platInfoMap.containsKey(platformType) || !platInfoMap.get(platformType).containsKey(serverId);
 
-        CenterInSceneInfo centerInSceneInfo = new CenterInSceneInfo(session, centerWorldGuid, platformType, serverId);
+        CenterInSceneInfo centerInSceneInfo = new CenterInSceneInfo(session, platformType, serverId);
         addInfo(centerInSceneInfo);
 
         // 返回配置的所有区域即可，非互斥区域已启动
@@ -155,12 +155,12 @@ public class CenterInSceneInfoMrg implements ICenterInSceneInfoMrg {
     }
 
     @Override
-    public ConnectCrossSceneResult connectCrossScene(Session session, long centerWorldGuid, int platformNumber, int serverId) {
+    public ConnectCrossSceneResult connectCrossScene(Session session, int platformNumber, int serverId) {
         PlatformType platformType = PlatformType.forNumber(platformNumber);
-        assert !guid2InfoMap.containsKey(centerWorldGuid);
+        assert !guid2InfoMap.containsKey(session.remoteGuid());
         assert !platInfoMap.containsKey(platformType) || !platInfoMap.get(platformType).containsKey(serverId);
 
-        CenterInSceneInfo centerInSceneInfo = new CenterInSceneInfo(session, centerWorldGuid, platformType, serverId);
+        CenterInSceneInfo centerInSceneInfo = new CenterInSceneInfo(session, platformType, serverId);
         addInfo(centerInSceneInfo);
 
         // 配置的区域

@@ -17,9 +17,11 @@
 package com.wjybxx.fastjgame.net.local;
 
 import com.wjybxx.fastjgame.concurrent.Promise;
+import com.wjybxx.fastjgame.net.common.ConnectAwareTask;
+import com.wjybxx.fastjgame.net.common.DisconnectAwareTask;
 import com.wjybxx.fastjgame.net.session.Session;
+import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
-import com.wjybxx.fastjgame.net.session.SessionOutboundHandlerAdapter;
 
 /**
  * JVM 内部传输实现 - 它是出站的最后一个处理器，因此也是真正实现关闭的handler
@@ -29,13 +31,25 @@ import com.wjybxx.fastjgame.net.session.SessionOutboundHandlerAdapter;
  * date - 2019/9/26
  * github - https://github.com/hl845740757
  */
-public class LocalTransferHandler extends SessionOutboundHandlerAdapter {
+public class LocalTransferHandler extends SessionDuplexHandlerAdapter {
 
     private Session remoteSession;
 
     @Override
     public void init(SessionHandlerContext ctx) throws Exception {
         remoteSession = ((LocalSessionImp) ctx.session()).getRemoteSession();
+    }
+
+    @Override
+    public void onSessionActive(SessionHandlerContext ctx) throws Exception {
+        ctx.localEventLoop().execute(new ConnectAwareTask(ctx.session()));
+        ctx.fireSessionActive();
+    }
+
+    @Override
+    public void onSessionInactive(SessionHandlerContext ctx) throws Exception {
+        ctx.localEventLoop().execute(new DisconnectAwareTask(ctx.session()));
+        ctx.fireSessionInactive();
     }
 
     @Override

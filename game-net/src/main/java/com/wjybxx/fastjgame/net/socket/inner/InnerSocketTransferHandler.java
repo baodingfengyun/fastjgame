@@ -17,6 +17,8 @@
 package com.wjybxx.fastjgame.net.socket.inner;
 
 import com.wjybxx.fastjgame.concurrent.Promise;
+import com.wjybxx.fastjgame.net.common.ConnectAwareTask;
+import com.wjybxx.fastjgame.net.common.DisconnectAwareTask;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 import com.wjybxx.fastjgame.net.socket.SocketEvent;
@@ -55,6 +57,18 @@ public class InnerSocketTransferHandler extends SessionDuplexHandlerAdapter {
             msgCount = 0;
             channel.flush();
         }
+    }
+
+    @Override
+    public void onSessionActive(SessionHandlerContext ctx) throws Exception {
+        ctx.localEventLoop().execute(new ConnectAwareTask(ctx.session()));
+        ctx.fireSessionActive();
+    }
+
+    @Override
+    public void onSessionInactive(SessionHandlerContext ctx) throws Exception {
+        ctx.localEventLoop().execute(new DisconnectAwareTask(ctx.session()));
+        ctx.fireSessionInactive();
     }
 
     @Override

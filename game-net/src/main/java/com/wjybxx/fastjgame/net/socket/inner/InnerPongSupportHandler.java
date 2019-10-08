@@ -17,8 +17,6 @@
 package com.wjybxx.fastjgame.net.socket.inner;
 
 import com.wjybxx.fastjgame.manager.NetTimeManager;
-import com.wjybxx.fastjgame.net.common.ConnectAwareTask;
-import com.wjybxx.fastjgame.net.common.DisconnectAwareTask;
 import com.wjybxx.fastjgame.net.common.PingPongMessage;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 import com.wjybxx.fastjgame.net.session.SessionInboundHandlerAdapter;
@@ -42,7 +40,7 @@ public class InnerPongSupportHandler extends SessionInboundHandlerAdapter {
         // 缓存 - 减少栈深度
         timeManager = ctx.managerWrapper().getNetTimeManager();
         sessionTimeoutMs = ctx.session().config().getSessionTimeoutMs();
-        
+
         lastReadTime = timeManager.getSystemMillTime();
     }
 
@@ -52,18 +50,6 @@ public class InnerPongSupportHandler extends SessionInboundHandlerAdapter {
             // 太长时间未读到对方的消息了
             ctx.session().close();
         }
-    }
-
-    @Override
-    public void onSessionActive(SessionHandlerContext ctx) throws Exception {
-        ctx.localEventLoop().execute(new ConnectAwareTask(ctx.session()));
-        ctx.fireSessionActive();
-    }
-
-    @Override
-    public void onSessionInactive(SessionHandlerContext ctx) throws Exception {
-        ctx.localEventLoop().execute(new DisconnectAwareTask(ctx.session()));
-        ctx.fireSessionInactive();
     }
 
     @Override
