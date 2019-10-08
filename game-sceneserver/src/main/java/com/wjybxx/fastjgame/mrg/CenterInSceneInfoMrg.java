@@ -143,9 +143,6 @@ public class CenterInSceneInfoMrg implements ICenterInSceneInfoMrg {
         assert !guid2InfoMap.containsKey(centerWorldGuid);
         assert !platInfoMap.containsKey(platformType) || !platInfoMap.get(platformType).containsKey(serverId);
 
-        // 标记session对应的worldGuid
-        session.attach(centerWorldGuid);
-
         CenterInSceneInfo centerInSceneInfo = new CenterInSceneInfo(session, centerWorldGuid, platformType, serverId);
         addInfo(centerInSceneInfo);
 
@@ -162,9 +159,6 @@ public class CenterInSceneInfoMrg implements ICenterInSceneInfoMrg {
         PlatformType platformType = PlatformType.forNumber(platformNumber);
         assert !guid2InfoMap.containsKey(centerWorldGuid);
         assert !platInfoMap.containsKey(platformType) || !platInfoMap.get(platformType).containsKey(serverId);
-
-        // 标记session对应的worldGuid
-        session.attach(centerWorldGuid);
 
         CenterInSceneInfo centerInSceneInfo = new CenterInSceneInfo(session, centerWorldGuid, platformType, serverId);
         addInfo(centerInSceneInfo);

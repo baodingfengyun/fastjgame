@@ -42,6 +42,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
      * channel关联的sessionId
      */
     private final String sessionId;
+    private final long localGuid;
     /**
      * 是否已建立链接
      */
@@ -53,9 +54,10 @@ public class ClientSocketCodec extends BaseSocketCodec {
      */
     private final NetEventLoop netEventLoop;
 
-    public ClientSocketCodec(ProtocolCodec codec, String sessionId, NetEventLoop netEventLoop) {
+    public ClientSocketCodec(ProtocolCodec codec, String sessionId, long localGuid, NetEventLoop netEventLoop) {
         super(codec);
         this.sessionId = sessionId;
+        this.localGuid = localGuid;
         this.netEventLoop = netEventLoop;
     }
 
@@ -70,7 +72,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
             writeBatchMessage(ctx, (BatchSocketMessageTO) msgTO);
         } else if (msgTO instanceof SocketConnectRequestTO) {
             // 请求建立连接包
-            writeConnectRequest(ctx, sessionId, (SocketConnectRequestTO) msgTO, promise);
+            writeConnectRequest(ctx, sessionId, localGuid, (SocketConnectRequestTO) msgTO, promise);
         } else {
             super.write(ctx, msgTO, promise);
         }

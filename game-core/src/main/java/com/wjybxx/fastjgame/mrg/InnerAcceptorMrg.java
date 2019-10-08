@@ -22,14 +22,12 @@ import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.PortRange;
-import com.wjybxx.fastjgame.misc.RoleType;
 import com.wjybxx.fastjgame.net.common.ProtocolCodec;
 import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.local.LocalPort;
 import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
 import com.wjybxx.fastjgame.net.socket.SocketPort;
 import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
-import com.wjybxx.fastjgame.utils.CodecUtils;
 import com.wjybxx.fastjgame.utils.GameUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.SystemUtils;
@@ -50,6 +48,8 @@ import java.util.concurrent.ExecutionException;
 @EventLoopSingleton
 @NotThreadSafe
 public class InnerAcceptorMrg {
+
+    private static final byte[] EMPTY_TOKEN = new byte[0];
 
     private final ProtocolCodecMrg protocolCodecMrg;
     private final ProtocolDispatcherMrg protocolDispatcherMrg;
@@ -100,26 +100,26 @@ public class InnerAcceptorMrg {
         return bindFuture.get().getHostAndPort();
     }
 
-    public void connect(long remoteGuid, RoleType remoteRole, String innerTcpAddress, String localAddress, String macAddress, SessionLifecycleAware lifecycleAware) {
+    public void connect(long remoteGuid, String innerTcpAddress, String localAddress, String macAddress, SessionLifecycleAware lifecycleAware) {
         final LocalPort localPort = localPortMrg.getLocalPort(remoteGuid);
         if (null != localPort) {
             // 两个world在同一个进程内
             LocalSessionConfig config = newLocalSessionConfig(lifecycleAware);
-            netContextMrg.getNetContext().connectLocal(localPort, newSessionId(remoteGuid), newToken(remoteGuid, remoteRole), config);
+            netContextMrg.getNetContext().connectLocal(localPort, newSessionId(remoteGuid), remoteGuid, EMPTY_TOKEN, config);
             return;
         }
         if (Objects.equals(macAddress, SystemUtils.getMAC())) {
             // 两个world在同一台机器，不走网卡
-            connectTcp(remoteGuid, remoteRole, HostAndPort.parseHostAndPort(localAddress), lifecycleAware);
+            connectTcp(remoteGuid, HostAndPort.parseHostAndPort(localAddress), lifecycleAware);
         } else {
             // 两个world在不同机器，走正常socket
-            connectTcp(remoteGuid, remoteRole, HostAndPort.parseHostAndPort(innerTcpAddress), lifecycleAware);
+            connectTcp(remoteGuid, HostAndPort.parseHostAndPort(innerTcpAddress), lifecycleAware);
         }
     }
 
-    private void connectTcp(long remoteGuid, RoleType remoteRole, HostAndPort hostAndPort, SessionLifecycleAware lifecycleAware) {
-        netContextMrg.getNetContext().connectTcp(newSessionId(remoteGuid), hostAndPort,
-                newToken(remoteGuid, remoteRole), newSocketSessionConfig(lifecycleAware));
+    private void connectTcp(long remoteGuid, HostAndPort hostAndPort, SessionLifecycleAware lifecycleAware) {
+        netContextMrg.getNetContext().connectTcp(newSessionId(remoteGuid), remoteGuid,
+                hostAndPort, EMPTY_TOKEN, newSocketSessionConfig(lifecycleAware));
     }
 
     public SocketSessionConfig newSocketSessionConfig(SessionLifecycleAware lifecycleAware) {
@@ -143,16 +143,8 @@ public class InnerAcceptorMrg {
         return protocolCodecMrg.getInnerProtocolCodec();
     }
 
-    private byte[] newToken(long remoteGuid, RoleType roleType) {
-        // TODO
-        return CodecUtils.getBytesUTF8(roleType.name() + "_" + remoteGuid);
-    }
-
     private String newSessionId(long remoteGuid) {
         return worldInfoMrg.getWorldGuid() + "-" + remoteGuid;
     }
 
-    public long parseRemoteGuid(String sessionId) {
-        return Long.parseLong(sessionId.split("-", 2)[0]);
-    }
 }

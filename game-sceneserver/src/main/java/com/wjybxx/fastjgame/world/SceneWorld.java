@@ -133,8 +133,7 @@ public class SceneWorld extends AbstractWorld {
 
         @Override
         public void onSessionDisconnected(Session session) {
-            final long centerWorldGuid = innerAcceptorMrg.parseRemoteGuid(session.sessionId());
-            centerInSceneInfoMrg.onDisconnect(centerWorldGuid, SceneWorld.this);
+            centerInSceneInfoMrg.onDisconnect(session.remoteGuid(), SceneWorld.this);
         }
     }
 

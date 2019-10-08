@@ -31,6 +31,8 @@ import com.wjybxx.fastjgame.misc.ReflectBasedProtocolCodec;
  */
 public final class ExampleConstants {
 
+    public static final long CLIENT_GUID = 10001;
+    public static final long SERVER_GUID = 20001;
     /**
      * sessionId
      */

@@ -30,6 +30,7 @@ public class SocketConnectRequestEvent implements SocketEvent {
 
     private final Channel channel;
     private final String sessionId;
+    private final long remoteGuid;
     /**
      * 我期望的下一个消息号
      */
@@ -43,9 +44,10 @@ public class SocketConnectRequestEvent implements SocketEvent {
      */
     private final SocketPortContext portExtraInfo;
 
-    public SocketConnectRequestEvent(Channel channel, String sessionId, long ack, SocketConnectRequest connectRequest, SocketPortContext portExtraInfo) {
+    public SocketConnectRequestEvent(Channel channel, String sessionId, long remoteGuid, long ack, SocketConnectRequest connectRequest, SocketPortContext portExtraInfo) {
         this.channel = channel;
         this.sessionId = sessionId;
+        this.remoteGuid = remoteGuid;
         this.ack = ack;
         this.connectRequest = connectRequest;
         this.portExtraInfo = portExtraInfo;
@@ -59,6 +61,10 @@ public class SocketConnectRequestEvent implements SocketEvent {
     @Override
     public String sessionId() {
         return sessionId;
+    }
+
+    public long remoteGuid() {
+        return remoteGuid;
     }
 
     public long getAck() {

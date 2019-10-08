@@ -48,6 +48,10 @@ public class DefaultLocalPort implements LocalPort {
         this.localConfig = localConfig;
     }
 
+    public NetContext getNetContext() {
+        return netContext;
+    }
+
     public NetEventLoopGroup netEventLoopGroup() {
         return netContext.netEventLoopGroup();
     }

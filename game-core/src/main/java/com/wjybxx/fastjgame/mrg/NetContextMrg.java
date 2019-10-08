@@ -48,7 +48,7 @@ public class NetContextMrg {
 
     public void start() throws ExecutionException, InterruptedException {
         // 创建上下文
-        netContext = gameEventLoopMrg.getNetEventLoopGroup().createContext(gameEventLoopMrg.getEventLoop());
+        netContext = gameEventLoopMrg.getNetEventLoopGroup().createContext(worldInfoMrg.getWorldGuid(), gameEventLoopMrg.getEventLoop());
     }
 
     public void shutdown() {

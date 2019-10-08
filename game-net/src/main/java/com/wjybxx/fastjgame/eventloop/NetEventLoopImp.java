@@ -190,7 +190,7 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     }
 
     @Override
-    public NetContext createContext(@Nonnull EventLoop localEventLoop) {
+    public NetContext createContext(long localGuid, @Nonnull EventLoop localEventLoop) {
         if (localEventLoop instanceof NetEventLoop) {
             throw new IllegalArgumentException("Bad EventLoop");
         }
@@ -198,7 +198,7 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         localEventLoop.terminationFuture().addListener(future -> {
             onUserEventLoopTerminal(localEventLoop);
         }, this);
-        return new NetContextImp(this, localEventLoop);
+        return new NetContextImp(localGuid, localEventLoop, this);
     }
 
     // ------------------------------------------------------------- socket -------------------------------------------------
@@ -248,10 +248,10 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     }
 
     @Override
-    public ListenableFuture<Session> connectTcp(String sessionId, HostAndPort remoteAddress, byte[] token, SocketSessionConfig config, NetContext netContext) {
-        final TCPClientChannelInitializer initializer = new TCPClientChannelInitializer(sessionId, config, this);
+    public ListenableFuture<Session> connectTcp(String sessionId, long remoteGuid, HostAndPort remoteAddress, byte[] token, SocketSessionConfig config, NetContext netContext) {
+        final TCPClientChannelInitializer initializer = new TCPClientChannelInitializer(sessionId, netContext.localGuid(), config, this);
         return submit(() -> {
-            return connectorManager.connect(netContext.localEventLoop(), sessionId, remoteAddress, token, config, initializer);
+            return connectorManager.connect(netContext, sessionId, remoteGuid, remoteAddress, token, config, initializer);
         });
     }
 
@@ -265,10 +265,10 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     }
 
     @Override
-    public ListenableFuture<Session> connectWS(String sessionId, HostAndPort remoteAddress, String websocketUrl, byte[] token, SocketSessionConfig config, NetContext netContext) {
-        final WsClientChannelInitializer initializer = new WsClientChannelInitializer(sessionId, websocketUrl, config, this);
+    public ListenableFuture<Session> connectWS(String sessionId, long remoteGuid, HostAndPort remoteAddress, String websocketUrl, byte[] token, SocketSessionConfig config, NetContext netContext) {
+        final WsClientChannelInitializer initializer = new WsClientChannelInitializer(sessionId, remoteGuid, websocketUrl, config, this);
         return submit(() -> {
-            return connectorManager.connect(netContext.localEventLoop(), sessionId, remoteAddress, token, config, initializer);
+            return connectorManager.connect(netContext, sessionId, remoteGuid, remoteAddress, token, config, initializer);
         });
     }
 
@@ -282,12 +282,12 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     }
 
     @Override
-    public ListenableFuture<Session> connectLocal(LocalPort localPort, String sessionId, byte[] token, LocalSessionConfig config, NetContext netContext) {
+    public ListenableFuture<Session> connectLocal(LocalPort localPort, String sessionId, long remoteGuid, byte[] token, LocalSessionConfig config, NetContext netContext) {
         if (!(localPort instanceof DefaultLocalPort)) {
             return new FailedFuture<>(this, new UnsupportedOperationException());
         }
         return submit(() -> {
-            return connectorManager.connectLocal((DefaultLocalPort) localPort, netContext.localEventLoop(), sessionId, token, config);
+            return connectorManager.connectLocal((DefaultLocalPort) localPort, netContext, sessionId, remoteGuid, token, config);
         });
     }
     // -------------------------------------------------------------- http --------------------------------------------------------

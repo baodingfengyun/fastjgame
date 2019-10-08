@@ -110,8 +110,8 @@ public class NetEventLoopGroupImp extends MultiThreadEventLoopGroup implements N
     }
 
     @Override
-    public NetContext createContext(@Nonnull EventLoop localEventLoop) {
-        return new NetContextImp(this, localEventLoop);
+    public NetContext createContext(long localGuid, @Nonnull EventLoop localEventLoop) {
+        return new NetContextImp(localGuid, localEventLoop, this);
     }
 
     @Override
@@ -130,17 +130,17 @@ public class NetEventLoopGroupImp extends MultiThreadEventLoopGroup implements N
     }
 
     @Override
-    public ListenableFuture<Session> connectTcp(String sessionId, HostAndPort remoteAddress, byte[] token, SocketSessionConfig config, NetContext netContext) {
-        return select(NetUtils.fixedKey(sessionId)).connectTcp(sessionId, remoteAddress, token, config, netContext);
+    public ListenableFuture<Session> connectTcp(String sessionId, long remoteGuid, HostAndPort remoteAddress, byte[] token, SocketSessionConfig config, NetContext netContext) {
+        return select(NetUtils.fixedKey(sessionId)).connectTcp(sessionId, remoteGuid, remoteAddress, token, config, netContext);
     }
 
     @Override
-    public ListenableFuture<Session> connectWS(String sessionId, HostAndPort remoteAddress, String websocketUrl, byte[] token, SocketSessionConfig config, NetContext netContext) {
-        return select(NetUtils.fixedKey(sessionId)).connectWS(sessionId, remoteAddress, websocketUrl, token, config, netContext);
+    public ListenableFuture<Session> connectWS(String sessionId, long remoteGuid, HostAndPort remoteAddress, String websocketUrl, byte[] token, SocketSessionConfig config, NetContext netContext) {
+        return select(NetUtils.fixedKey(sessionId)).connectWS(sessionId, remoteGuid, remoteAddress, websocketUrl, token, config, netContext);
     }
 
     @Override
-    public ListenableFuture<Session> connectLocal(LocalPort localPort, String sessionId, byte[] token, LocalSessionConfig config, NetContext netContext) {
-        return select(NetUtils.fixedKey(sessionId)).connectLocal(localPort, sessionId, token, config, netContext);
+    public ListenableFuture<Session> connectLocal(LocalPort localPort, String sessionId, long remoteGuid, byte[] token, LocalSessionConfig config, NetContext netContext) {
+        return select(NetUtils.fixedKey(sessionId)).connectLocal(localPort, sessionId, remoteGuid, token, config, netContext);
     }
 }

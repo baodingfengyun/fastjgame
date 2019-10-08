@@ -36,11 +36,13 @@ import javax.annotation.concurrent.ThreadSafe;
 public class TCPClientChannelInitializer extends ChannelInitializer<SocketChannel> {
 
     private final String sessionId;
+    private final long localGuid;
     private final SocketSessionConfig config;
     private final NetEventLoop netEventLoop;
 
-    public TCPClientChannelInitializer(String sessionId, SocketSessionConfig config, NetEventLoop netEventLoop) {
+    public TCPClientChannelInitializer(String sessionId, long localGuid, SocketSessionConfig config, NetEventLoop netEventLoop) {
         this.sessionId = sessionId;
+        this.localGuid = localGuid;
         this.config = config;
         this.netEventLoop = netEventLoop;
     }
@@ -49,6 +51,6 @@ public class TCPClientChannelInitializer extends ChannelInitializer<SocketChanne
     protected void initChannel(SocketChannel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
         pipeline.addLast(new LengthFieldBasedFrameDecoder(config.maxFrameLength(), 0, 4, 0, 4));
-        pipeline.addLast(new ClientSocketCodec(config.codec(), sessionId, netEventLoop));
+        pipeline.addLast(new ClientSocketCodec(config.codec(), sessionId, localGuid, netEventLoop));
     }
 }

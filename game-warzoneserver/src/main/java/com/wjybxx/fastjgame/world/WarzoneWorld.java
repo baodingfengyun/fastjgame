@@ -117,8 +117,7 @@ public class WarzoneWorld extends AbstractWorld {
 
         @Override
         public void onSessionDisconnected(Session session) {
-            final long centerWorldGuid = innerAcceptorMrg.parseRemoteGuid(session.sessionId());
-            centerInWarzoneInfoMrg.onCenterServerDisconnect(centerWorldGuid);
+            centerInWarzoneInfoMrg.onCenterServerDisconnect(session.remoteGuid());
         }
     }
 }

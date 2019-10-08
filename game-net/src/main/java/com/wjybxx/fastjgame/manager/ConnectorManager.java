@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.manager;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.SessionRegistry;
 import com.wjybxx.fastjgame.net.common.OneWaySupportHandler;
@@ -61,7 +62,7 @@ public class ConnectorManager {
         sessionRegistry.tick();
     }
 
-    public Session connect(EventLoop localEventLoop, String sessionId, HostAndPort remoteAddress, byte[] token, SocketSessionConfig config,
+    public Session connect(NetContext netContext, String sessionId, long remoteGuid, HostAndPort remoteAddress, byte[] token, SocketSessionConfig config,
                            ChannelInitializer<SocketChannel> initializer) throws IOException {
         Session existSession = sessionRegistry.getSession(sessionId);
         if (existSession != null) {
@@ -71,7 +72,8 @@ public class ConnectorManager {
         ChannelFuture channelFuture = nettyThreadManager.connectAsyn(remoteAddress, config.sndBuffer(), config.rcvBuffer(), initializer)
                 .syncUninterruptibly();
 
-        final SocketSessionImp socketSessionImp = new SocketSessionImp(sessionId, localEventLoop, netManagerWrapper, channelFuture.channel(), config);
+        final SocketSessionImp socketSessionImp = new SocketSessionImp(netContext, sessionId, remoteGuid, netManagerWrapper,
+                channelFuture.channel(), config);
         sessionRegistry.registerSession(socketSessionImp);
 
         socketSessionImp.pipeline()
@@ -119,15 +121,15 @@ public class ConnectorManager {
         }
     }
 
-    public Session connectLocal(DefaultLocalPort localPort, EventLoop localEventLoop, String sessionId, byte[] token, LocalSessionConfig config) throws IOException {
+    public Session connectLocal(DefaultLocalPort localPort, NetContext netContext, String sessionId, long remoteGuid, byte[] token, LocalSessionConfig config) throws IOException {
         // 会话已存在
         if (sessionRegistry.getSession(sessionId) != null) {
             throw new IOException("session " + sessionId + " already registered");
         }
-        final LocalSessionImp remoteSession = netManagerWrapper.getAcceptorManager().onRcvConnectRequest(localPort, sessionId);
+        final LocalSessionImp remoteSession = netManagerWrapper.getAcceptorManager().onRcvConnectRequest(localPort, sessionId, netContext.localGuid());
 
         // 创建session并保存
-        LocalSessionImp session = new LocalSessionImp(sessionId, localEventLoop, netManagerWrapper, config);
+        LocalSessionImp session = new LocalSessionImp(netContext, sessionId, remoteGuid, netManagerWrapper, config);
         sessionRegistry.registerSession(session);
 
         // 初始化管道，入站 从上到下，出站 从下往上

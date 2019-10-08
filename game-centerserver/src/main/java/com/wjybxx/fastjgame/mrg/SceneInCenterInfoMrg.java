@@ -24,7 +24,6 @@ import com.wjybxx.fastjgame.core.onlinenode.CrossSceneNodeName;
 import com.wjybxx.fastjgame.core.onlinenode.SceneNodeData;
 import com.wjybxx.fastjgame.core.onlinenode.SingleSceneNodeName;
 import com.wjybxx.fastjgame.misc.LeastPlayerWorldChooser;
-import com.wjybxx.fastjgame.misc.RoleType;
 import com.wjybxx.fastjgame.misc.SceneInCenterInfo;
 import com.wjybxx.fastjgame.misc.SceneWorldChooser;
 import com.wjybxx.fastjgame.net.common.RpcResponse;
@@ -120,7 +119,7 @@ public class SceneInCenterInfoMrg {
      */
     public void onDiscoverSingleScene(SingleSceneNodeName singleSceneNodeName, SceneNodeData onlineSceneNode) {
         // 建立tcp连接
-        innerAcceptorMrg.connect(singleSceneNodeName.getWorldGuid(), RoleType.SCENE,
+        innerAcceptorMrg.connect(singleSceneNodeName.getWorldGuid(),
                 onlineSceneNode.getInnerTcpAddress(),
                 onlineSceneNode.getLocalAddress(),
                 onlineSceneNode.getMacAddress(),
@@ -153,7 +152,7 @@ public class SceneInCenterInfoMrg {
      */
     public void onDiscoverCrossScene(CrossSceneNodeName crossSceneNodeName, SceneNodeData onlineSceneNode) {
         // 建立tcp连接
-        innerAcceptorMrg.connect(crossSceneNodeName.getWorldGuid(), RoleType.SCENE,
+        innerAcceptorMrg.connect(crossSceneNodeName.getWorldGuid(),
                 onlineSceneNode.getInnerTcpAddress(),
                 onlineSceneNode.getLocalAddress(),
                 onlineSceneNode.getMacAddress(),

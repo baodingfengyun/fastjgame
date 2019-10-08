@@ -45,12 +45,19 @@ import java.util.Map;
 @ThreadSafe
 public class NetContextImp implements NetContext {
 
-    private final NetEventLoopGroup netEventLoopGroup;
+    private final long localGuid;
     private final EventLoop localEventLoop;
+    private final NetEventLoopGroup netEventLoopGroup;
 
-    NetContextImp(NetEventLoopGroup NetEventLoopGroup, EventLoop localEventLoop) {
+    NetContextImp(long localGuid, EventLoop localEventLoop, NetEventLoopGroup NetEventLoopGroup) {
+        this.localGuid = localGuid;
         this.localEventLoop = localEventLoop;
         this.netEventLoopGroup = NetEventLoopGroup;
+    }
+
+    @Override
+    public long localGuid() {
+        return localGuid;
     }
 
     @Override
@@ -69,8 +76,8 @@ public class NetContextImp implements NetContext {
     }
 
     @Override
-    public ListenableFuture<Session> connectTcp(String sessionId, HostAndPort remoteAddress, byte[] token, @Nonnull SocketSessionConfig config) {
-        return netEventLoopGroup.connectTcp(sessionId, remoteAddress, token, config, this);
+    public ListenableFuture<Session> connectTcp(String sessionId, long remoteGuid, HostAndPort remoteAddress, byte[] token, @Nonnull SocketSessionConfig config) {
+        return netEventLoopGroup.connectTcp(sessionId, remoteGuid, remoteAddress, token, config, this);
     }
 
     @Override
@@ -79,8 +86,8 @@ public class NetContextImp implements NetContext {
     }
 
     @Override
-    public ListenableFuture<Session> connectWS(String sessionId, HostAndPort remoteAddress, String websocketUrl, byte[] token, @Nonnull SocketSessionConfig config) {
-        return netEventLoopGroup.connectWS(sessionId, remoteAddress, websocketUrl, token, config, this);
+    public ListenableFuture<Session> connectWS(String sessionId, long remoteGuid, HostAndPort remoteAddress, String websocketUrl, byte[] token, @Nonnull SocketSessionConfig config) {
+        return netEventLoopGroup.connectWS(sessionId, remoteGuid, remoteAddress, websocketUrl, token, config, this);
     }
 
     // ----------------------------------------------- 本地调用支持 --------------------------------------------
@@ -91,8 +98,8 @@ public class NetContextImp implements NetContext {
     }
 
     @Override
-    public ListenableFuture<Session> connectLocal(@Nonnull LocalPort localPort, String sessionId, byte[] token, @Nonnull LocalSessionConfig config) {
-        return netEventLoopGroup().connectLocal(localPort, sessionId, token, config, this);
+    public ListenableFuture<Session> connectLocal(@Nonnull LocalPort localPort, String sessionId, long remoteGuid, byte[] token, @Nonnull LocalSessionConfig config) {
+        return netEventLoopGroup().connectLocal(localPort, sessionId, remoteGuid, token, config, this);
     }
 
     // ------------------------------------------------- http 实现 --------------------------------------------

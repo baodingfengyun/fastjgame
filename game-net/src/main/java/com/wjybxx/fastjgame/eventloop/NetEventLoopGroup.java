@@ -69,10 +69,11 @@ public interface NetEventLoopGroup extends EventLoopGroup {
     /**
      * 创建一个网络上下文，你通过该上下文可以更方便的使用这里提供的方法。
      *
+     * @param localGuid      用户唯一标识
      * @param localEventLoop 方法的调用者所在的eventLoop
      * @return NetContext 创建的context可以用于监听，建立连接，和http请求
      */
-    NetContext createContext(@Nonnull EventLoop localEventLoop);
+    NetContext createContext(long localGuid, @Nonnull EventLoop localEventLoop);
 
     // --------------------------------------------------- 非用户接口 ----------------------------------------
 
@@ -104,18 +105,20 @@ public interface NetEventLoopGroup extends EventLoopGroup {
      * 以tcp方式连接远程某个端口
      *
      * @param sessionId     为要建立的session分配一个全局唯一的id，尽量保持有意义。
+     * @param remoteGuid    远程对端唯一标识
      * @param remoteAddress 远程地址
      * @param token         建立连接验证信息，同时也存储一些额外信息
      * @param config        session配置信息
      * @param netContext    调用方
      * @return future
      */
-    ListenableFuture<Session> connectTcp(String sessionId, HostAndPort remoteAddress, byte[] token, SocketSessionConfig config, NetContext netContext);
+    ListenableFuture<Session> connectTcp(String sessionId, long remoteGuid, HostAndPort remoteAddress, byte[] token, SocketSessionConfig config, NetContext netContext);
 
     /**
      * 以websocket方式连接远程某个端口
      *
      * @param sessionId     为要建立的session分配一个全局唯一的id，尽量保持有意义。
+     * @param remoteGuid    远程对端唯一标识
      * @param remoteAddress 远程地址
      * @param websocketUrl  升级为webSocket的地址
      * @param token         建立连接验证信息，同时也存储一些额外信息
@@ -123,7 +126,7 @@ public interface NetEventLoopGroup extends EventLoopGroup {
      * @param netContext    调用方
      * @return future 如果想消除同步，添加监听器时请绑定EventLoop
      */
-    ListenableFuture<Session> connectWS(String sessionId, HostAndPort remoteAddress, String websocketUrl, byte[] token, SocketSessionConfig config, NetContext netContext);
+    ListenableFuture<Session> connectWS(String sessionId, long remoteGuid, HostAndPort remoteAddress, String websocketUrl, byte[] token, SocketSessionConfig config, NetContext netContext);
 
     /**
      * 与JVM内的另一个线程建立session。
@@ -131,10 +134,11 @@ public interface NetEventLoopGroup extends EventLoopGroup {
      *
      * @param localPort  远程“端口”信息
      * @param sessionId  为要建立的session分配一个全局唯一的id，尽量保持有意义。
+     * @param remoteGuid 远程对端唯一标识
      * @param token      建立连接的验证信息，也可以存储额外信息
      * @param config     配置信息
      * @param netContext 调用方
      * @return future 如果想消除同步，添加监听器时请绑定EventLoop
      */
-    ListenableFuture<Session> connectLocal(LocalPort localPort, String sessionId, byte[] token, LocalSessionConfig config, NetContext netContext);
+    ListenableFuture<Session> connectLocal(LocalPort localPort, String sessionId, long remoteGuid, byte[] token, LocalSessionConfig config, NetContext netContext);
 }

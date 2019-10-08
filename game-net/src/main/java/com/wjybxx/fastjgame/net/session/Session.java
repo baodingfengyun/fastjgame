@@ -70,6 +70,16 @@ public interface Session extends Comparable<Session> {
     String sessionId();
 
     /**
+     * 用户标识
+     */
+    long localGuid();
+
+    /**
+     * session对端唯一标识 - 它还是有必要的
+     */
+    long remoteGuid();
+
+    /**
      * session所属的网络线程。
      */
     NetEventLoop netEventLoop();

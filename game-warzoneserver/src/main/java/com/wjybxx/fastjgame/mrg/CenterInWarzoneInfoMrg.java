@@ -85,9 +85,6 @@ public class CenterInWarzoneInfoMrg implements ICenterInWarzoneInfoMrg {
         assert !guid2InfoMap.containsKey(centerWorldGuid);
         assert !platInfoMap.containsKey(platformType) || !platInfoMap.get(platformType).containsKey(serverId);
 
-        // 标记session对应的worldGuid
-        session.attach(centerWorldGuid);
-
         CenterInWarzoneInfo centerInWarzoneInfo = new CenterInWarzoneInfo(session, centerWorldGuid, platformType, serverId);
         addInfo(centerInWarzoneInfo);
         return true;

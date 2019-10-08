@@ -20,6 +20,7 @@ import com.wjybxx.fastjgame.annotation.Internal;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.concurrent.Promise;
+import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.exception.InternalApiException;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
@@ -46,8 +47,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public abstract class AbstractSession implements Session {
 
+    protected final NetContext netContext;
     protected final String sessionId;
-    protected final EventLoop localEventLoop;
+    protected final long remoteGuid;
     protected final NetManagerWrapper managerWrapper;
     /**
      * session绑定到的EventLoop
@@ -66,17 +68,28 @@ public abstract class AbstractSession implements Session {
      */
     private Object attachment;
 
-    protected AbstractSession(String sessionId, EventLoop localEventLoop, NetManagerWrapper managerWrapper) {
+    protected AbstractSession(NetContext netContext, String sessionId, long remoteGuid, NetManagerWrapper managerWrapper) {
+        this.netContext = netContext;
         this.sessionId = sessionId;
-        this.localEventLoop = localEventLoop;
+        this.remoteGuid = remoteGuid;
         this.managerWrapper = managerWrapper;
         this.pipeline = new DefaultSessionPipeline(this, managerWrapper);
         this.netEventLoop = managerWrapper.getNetEventLoopManager().eventLoop();
     }
 
     @Override
-    public String sessionId() {
+    public final String sessionId() {
         return sessionId;
+    }
+
+    @Override
+    public final long localGuid() {
+        return netContext.localGuid();
+    }
+
+    @Override
+    public final long remoteGuid() {
+        return remoteGuid;
     }
 
     @Override
@@ -86,12 +99,12 @@ public abstract class AbstractSession implements Session {
 
     @Override
     public final EventLoop localEventLoop() {
-        return localEventLoop;
+        return netContext.localEventLoop();
     }
 
     @Override
     public final <T> T attach(@Nullable Object newData) {
-        if (localEventLoop.inEventLoop()) {
+        if (localEventLoop().inEventLoop()) {
             @SuppressWarnings("unchecked")
             T pre = (T) attachment;
             this.attachment = newData;
@@ -105,7 +118,7 @@ public abstract class AbstractSession implements Session {
     @Nullable
     @Override
     public final <T> T attachment() {
-        if (localEventLoop.inEventLoop()) {
+        if (localEventLoop().inEventLoop()) {
             return (T) attachment;
         } else {
             throw new IllegalStateException("Unsafe op");

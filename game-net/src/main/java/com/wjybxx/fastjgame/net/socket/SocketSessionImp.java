@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
 import com.wjybxx.fastjgame.net.session.AbstractSession;
 import io.netty.channel.Channel;
@@ -37,9 +37,9 @@ public class SocketSessionImp extends AbstractSession implements SocketSession {
     private Channel channel;
     private final SocketSessionConfig config;
 
-    public SocketSessionImp(String sessionId, EventLoop localEventLoop, NetManagerWrapper managerWrapper,
+    public SocketSessionImp(NetContext netContext, String sessionId, long remoteGuid, NetManagerWrapper managerWrapper,
                             Channel channel, SocketSessionConfig config) {
-        super(sessionId, localEventLoop, managerWrapper);
+        super(netContext, sessionId, remoteGuid, managerWrapper);
         this.config = config;
         this.channel = channel;
     }

@@ -69,7 +69,7 @@ public class EchoClientLoop extends SingleThreadEventLoop {
     @Override
     protected void init() throws Exception {
         super.init();
-        netContext = netGroup.createContext(this);
+        netContext = netGroup.createContext(ExampleConstants.CLIENT_GUID, this);
         // 必须先启动服务器
         final HostAndPort address = new HostAndPort(NetUtils.getLocalIp(), ExampleConstants.tcpPort);
         SocketSessionConfig config = SocketSessionConfig.newBuilder()
@@ -78,7 +78,7 @@ public class EchoClientLoop extends SingleThreadEventLoop {
                 .setDispatcher(new EchoProtocolDispatcher())
                 .build();
 
-        session = netContext.connectTcp(ExampleConstants.SESSION_ID, address, EMPTY_TOKEN, config)
+        session = netContext.connectTcp(ExampleConstants.SESSION_ID, ExampleConstants.SERVER_GUID, address, EMPTY_TOKEN, config)
                 .get();
     }
 

@@ -19,7 +19,6 @@ package com.wjybxx.fastjgame.mrg;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.onlinenode.WarzoneNodeData;
 import com.wjybxx.fastjgame.core.onlinenode.WarzoneNodeName;
-import com.wjybxx.fastjgame.misc.RoleType;
 import com.wjybxx.fastjgame.misc.WarzoneInCenterInfo;
 import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.session.Session;
@@ -70,7 +69,7 @@ public class WarzoneInCenterInfoMrg {
             onWarzoneDisconnect(warzoneInCenterInfo.getWarzoneWorldGuid());
         }
         // 注册tcp会话
-        innerAcceptorMrg.connect(warzoneNodeData.getWorldGuid(), RoleType.WARZONE,
+        innerAcceptorMrg.connect(warzoneNodeData.getWorldGuid(),
                 warzoneNodeData.getInnerTcpAddress(),
                 warzoneNodeData.getLocalAddress(),
                 warzoneNodeData.getMacAddress(),

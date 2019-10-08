@@ -44,6 +44,10 @@ public class SocketPortContext {
         this.sessionConfig = sessionConfig;
     }
 
+    public NetContext getNetContext() {
+        return netContext;
+    }
+
     /**
      * @return 网络线程组
      */
