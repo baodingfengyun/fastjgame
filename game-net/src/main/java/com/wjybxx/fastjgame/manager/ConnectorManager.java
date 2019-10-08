@@ -62,8 +62,8 @@ public class ConnectorManager {
         sessionRegistry.tick();
     }
 
-    public Session connect(NetContext netContext, String sessionId, long remoteGuid, HostAndPort remoteAddress, byte[] token, SocketSessionConfig config,
-                           ChannelInitializer<SocketChannel> initializer) throws IOException {
+    public Session connect(String sessionId, long remoteGuid, HostAndPort remoteAddress, SocketSessionConfig config,
+                           ChannelInitializer<SocketChannel> initializer, NetContext netContext) throws IOException {
         Session existSession = sessionRegistry.getSession(sessionId);
         if (existSession != null) {
             throw new IOException("session " + sessionId + " already registered");
@@ -84,7 +84,7 @@ public class ConnectorManager {
                 .addLast(new RpcSupportHandler())
                 .fireInit();
 
-        socketSessionImp.fireWriteAndFlush(new SocketConnectRequest(1, token));
+        socketSessionImp.fireWriteAndFlush(new SocketConnectRequest(1));
 
         return socketSessionImp;
     }
@@ -121,7 +121,8 @@ public class ConnectorManager {
         }
     }
 
-    public Session connectLocal(DefaultLocalPort localPort, NetContext netContext, String sessionId, long remoteGuid, byte[] token, LocalSessionConfig config) throws IOException {
+    public Session connectLocal(String sessionId, long remoteGuid, DefaultLocalPort localPort,
+                                LocalSessionConfig config, NetContext netContext) throws IOException {
         // 会话已存在
         if (sessionRegistry.getSession(sessionId) != null) {
             throw new IOException("session " + sessionId + " already registered");

@@ -248,10 +248,10 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     }
 
     @Override
-    public ListenableFuture<Session> connectTcp(String sessionId, long remoteGuid, HostAndPort remoteAddress, byte[] token, SocketSessionConfig config, NetContext netContext) {
+    public ListenableFuture<Session> connectTcp(String sessionId, long remoteGuid, HostAndPort remoteAddress, SocketSessionConfig config, NetContext netContext) {
         final TCPClientChannelInitializer initializer = new TCPClientChannelInitializer(sessionId, netContext.localGuid(), config, this);
         return submit(() -> {
-            return connectorManager.connect(netContext, sessionId, remoteGuid, remoteAddress, token, config, initializer);
+            return connectorManager.connect(sessionId, remoteGuid, remoteAddress, config, initializer, netContext);
         });
     }
 
@@ -265,10 +265,10 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     }
 
     @Override
-    public ListenableFuture<Session> connectWS(String sessionId, long remoteGuid, HostAndPort remoteAddress, String websocketUrl, byte[] token, SocketSessionConfig config, NetContext netContext) {
+    public ListenableFuture<Session> connectWS(String sessionId, long remoteGuid, HostAndPort remoteAddress, String websocketUrl, SocketSessionConfig config, NetContext netContext) {
         final WsClientChannelInitializer initializer = new WsClientChannelInitializer(sessionId, remoteGuid, websocketUrl, config, this);
         return submit(() -> {
-            return connectorManager.connect(netContext, sessionId, remoteGuid, remoteAddress, token, config, initializer);
+            return connectorManager.connect(sessionId, remoteGuid, remoteAddress, config, initializer, netContext);
         });
     }
 
@@ -282,12 +282,12 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     }
 
     @Override
-    public ListenableFuture<Session> connectLocal(LocalPort localPort, String sessionId, long remoteGuid, byte[] token, LocalSessionConfig config, NetContext netContext) {
+    public ListenableFuture<Session> connectLocal(String sessionId, long remoteGuid, LocalPort localPort, LocalSessionConfig config, NetContext netContext) {
         if (!(localPort instanceof DefaultLocalPort)) {
             return new FailedFuture<>(this, new UnsupportedOperationException());
         }
         return submit(() -> {
-            return connectorManager.connectLocal((DefaultLocalPort) localPort, netContext, sessionId, remoteGuid, token, config);
+            return connectorManager.connectLocal(sessionId, remoteGuid, (DefaultLocalPort) localPort, config, netContext);
         });
     }
     // -------------------------------------------------------------- http --------------------------------------------------------

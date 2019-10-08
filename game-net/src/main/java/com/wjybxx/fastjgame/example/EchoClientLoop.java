@@ -41,8 +41,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.locks.LockSupport;
 
-import static com.wjybxx.fastjgame.example.ExampleConstants.EMPTY_TOKEN;
-
 /**
  * 测试客户端
  *
@@ -78,7 +76,7 @@ public class EchoClientLoop extends SingleThreadEventLoop {
                 .setDispatcher(new EchoProtocolDispatcher())
                 .build();
 
-        session = netContext.connectTcp(ExampleConstants.SESSION_ID, ExampleConstants.SERVER_GUID, address, EMPTY_TOKEN, config)
+        session = netContext.connectTcp(ExampleConstants.SESSION_ID, ExampleConstants.SERVER_GUID, address, config)
                 .get();
     }
 

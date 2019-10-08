@@ -33,22 +33,13 @@ public class SocketConnectRequest {
      * 3. 用于识别对应的结果。
      */
     private final int verifyingTimes;
-    /**
-     * 建立连接需要的token信息 - 还可以包括一些额外信息
-     */
-    private final byte[] token;
 
-    public SocketConnectRequest(int verifyingTimes, byte[] token) {
+    public SocketConnectRequest(int verifyingTimes) {
         this.verifyingTimes = verifyingTimes;
-        this.token = token;
     }
 
     public int getVerifyingTimes() {
         return verifyingTimes;
-    }
-
-    public byte[] getToken() {
-        return token;
     }
 
 }

@@ -49,8 +49,6 @@ import java.util.concurrent.ExecutionException;
 @NotThreadSafe
 public class InnerAcceptorMrg {
 
-    private static final byte[] EMPTY_TOKEN = new byte[0];
-
     private final ProtocolCodecMrg protocolCodecMrg;
     private final ProtocolDispatcherMrg protocolDispatcherMrg;
     private final HttpDispatcherMrg httpDispatcherMrg;
@@ -105,7 +103,7 @@ public class InnerAcceptorMrg {
         if (null != localPort) {
             // 两个world在同一个进程内
             LocalSessionConfig config = newLocalSessionConfig(lifecycleAware);
-            netContextMrg.getNetContext().connectLocal(localPort, newSessionId(remoteGuid), remoteGuid, EMPTY_TOKEN, config);
+            netContextMrg.getNetContext().connectLocal(newSessionId(remoteGuid), remoteGuid, localPort, config);
             return;
         }
         if (Objects.equals(macAddress, SystemUtils.getMAC())) {
@@ -119,7 +117,7 @@ public class InnerAcceptorMrg {
 
     private void connectTcp(long remoteGuid, HostAndPort hostAndPort, SessionLifecycleAware lifecycleAware) {
         netContextMrg.getNetContext().connectTcp(newSessionId(remoteGuid), remoteGuid,
-                hostAndPort, EMPTY_TOKEN, newSocketSessionConfig(lifecycleAware));
+                hostAndPort, newSocketSessionConfig(lifecycleAware));
     }
 
     public SocketSessionConfig newSocketSessionConfig(SessionLifecycleAware lifecycleAware) {

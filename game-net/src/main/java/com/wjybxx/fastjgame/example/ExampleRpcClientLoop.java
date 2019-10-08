@@ -39,8 +39,6 @@ import java.util.Arrays;
 import java.util.concurrent.ThreadFactory;
 import java.util.stream.IntStream;
 
-import static com.wjybxx.fastjgame.example.ExampleConstants.EMPTY_TOKEN;
-
 /**
  * rpc请求客户端示例
  *
@@ -78,7 +76,7 @@ public class ExampleRpcClientLoop extends DisruptorEventLoop {
                     .setDispatcher(new DefaultProtocolDispatcher())
                     .build();
 
-            session = netContext.connectLocal(localPort, ExampleConstants.SESSION_ID, ExampleConstants.SERVER_GUID, EMPTY_TOKEN, config).get();
+            session = netContext.connectLocal(ExampleConstants.SESSION_ID, ExampleConstants.SERVER_GUID, localPort, config).get();
         } else {
             // 必须先启动服务器
             final HostAndPort address = new HostAndPort(NetUtils.getLocalIp(), ExampleConstants.tcpPort);
@@ -89,7 +87,7 @@ public class ExampleRpcClientLoop extends DisruptorEventLoop {
                     .setDispatcher(new DefaultProtocolDispatcher())
                     .build();
 
-            session = netContext.connectTcp(ExampleConstants.SESSION_ID, ExampleConstants.SERVER_GUID, address, EMPTY_TOKEN, config)
+            session = netContext.connectTcp(ExampleConstants.SESSION_ID, ExampleConstants.SERVER_GUID, address, config)
                     .get();
         }
         startTime = System.currentTimeMillis();

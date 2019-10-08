@@ -165,7 +165,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
      */
     final void writeConnectRequest(ChannelHandlerContext ctx, String sessionId, long localGuid, SocketConnectRequestTO socketConnectRequestTO, ChannelPromise promise) {
         final SocketConnectRequest socketConnectRequest = socketConnectRequestTO.getConnectRequest();
-        final int contentLength = 2 + sessionId.length() + 8 + 8 + 4 + socketConnectRequest.getToken().length;
+        final int contentLength = 2 + sessionId.length() + 8 + 8 + 4;
         ByteBuf byteBuf = newInitializedByteBuf(ctx, contentLength, NetMessageType.CONNECT_REQUEST);
 
         // sessionId
@@ -176,7 +176,6 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
         byteBuf.writeLong(localGuid);
         byteBuf.writeLong(socketConnectRequestTO.getAck());
         byteBuf.writeInt(socketConnectRequest.getVerifyingTimes());
-        byteBuf.writeBytes(socketConnectRequest.getToken());
 
         appendSumAndWrite(ctx, byteBuf, promise);
     }
@@ -194,9 +193,8 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
         long remoteGuid = msg.readLong();
         long ack = msg.readLong();
         int verifyingTimes = msg.readInt();
-        byte[] token = NetUtils.readRemainBytes(msg);
 
-        SocketConnectRequest connectRequest = new SocketConnectRequest(verifyingTimes, token);
+        SocketConnectRequest connectRequest = new SocketConnectRequest(verifyingTimes);
         return new SocketConnectRequestEvent(channel, sessionId, remoteGuid, ack, connectRequest, portExtraInfo);
     }
 

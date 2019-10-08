@@ -93,11 +93,10 @@ public interface NetContext {
      * @param sessionId     为要建立的session分配一个全局唯一的id，尽量保持有意义。
      * @param remoteGuid    远程对端标识
      * @param remoteAddress 远程地址
-     * @param token         建立连接验证信息，同时也存储一些额外信息
      * @param config        session配置信息
      * @return future
      */
-    ListenableFuture<Session> connectTcp(String sessionId, long remoteGuid, HostAndPort remoteAddress, byte[] token, @Nonnull SocketSessionConfig config);
+    ListenableFuture<Session> connectTcp(String sessionId, long remoteGuid, HostAndPort remoteAddress, @Nonnull SocketSessionConfig config);
 
     /**
      * 在指定端口监听WebSocket连接
@@ -129,11 +128,10 @@ public interface NetContext {
      * @param sessionId     为要建立的session分配一个全局唯一的id，尽量保持有意义。
      * @param remoteGuid    远程对端标识
      * @param remoteAddress 远程地址
-     * @param token         建立连接验证信息，同时也存储一些额外信息
      * @param config        session配置信息
      * @return future 如果想消除同步，添加监听器时请绑定EventLoop
      */
-    ListenableFuture<Session> connectWS(String sessionId, long remoteGuid, HostAndPort remoteAddress, String websocketUrl, byte[] token, @Nonnull SocketSessionConfig config);
+    ListenableFuture<Session> connectWS(String sessionId, long remoteGuid, HostAndPort remoteAddress, String websocketUrl, @Nonnull SocketSessionConfig config);
 
 
     // -------------------------------------- 用于支持JVM内部通信 -------------------------------
@@ -155,15 +153,13 @@ public interface NetContext {
      * 与JVM内的另一个线程建立session。
      * 注意：{@link LocalPort}必须是同一个{@link NetEventLoop}创建的。
      *
-     * @param localPort  远程“端口”信息
      * @param sessionId  为要建立的session分配一个全局唯一的id，尽量保持有意义。
      * @param remoteGuid 远程对端标识
-     * @param token      建立连接的验证信息，也可以存储额外信息
+     * @param localPort  远程“端口”信息
      * @param config     配置信息
      * @return future 如果想消除同步，添加监听器时请绑定EventLoop
      */
-    ListenableFuture<Session> connectLocal(@Nonnull LocalPort localPort, String sessionId, long remoteGuid, byte[] token,
-                                           @Nonnull LocalSessionConfig config);
+    ListenableFuture<Session> connectLocal(String sessionId, long remoteGuid, @Nonnull LocalPort localPort, @Nonnull LocalSessionConfig config);
 
     //  --------------------------------------- http支持 -----------------------------------------
 
