@@ -69,13 +69,13 @@ public class NetContextImp implements NetContext {
     }
 
     @Override
-    public ListenableFuture<SocketPort> bindWSRange(String host, PortRange portRange, String websocketPath, @Nonnull SocketSessionConfig config) {
-        return netEventLoopGroup.next().bindWSRange(host, portRange, websocketPath, config, this);
+    public ListenableFuture<Session> connectTcp(String sessionId, HostAndPort remoteAddress, byte[] token, @Nonnull SocketSessionConfig config) {
+        return netEventLoopGroup.connectTcp(sessionId, remoteAddress, token, config, this);
     }
 
     @Override
-    public ListenableFuture<Session> connectTcp(String sessionId, HostAndPort remoteAddress, byte[] token, @Nonnull SocketSessionConfig config) {
-        return netEventLoopGroup.connectTcp(sessionId, remoteAddress, token, config, this);
+    public ListenableFuture<SocketPort> bindWSRange(String host, PortRange portRange, String websocketPath, @Nonnull SocketSessionConfig config) {
+        return netEventLoopGroup.next().bindWSRange(host, portRange, websocketPath, config, this);
     }
 
     @Override

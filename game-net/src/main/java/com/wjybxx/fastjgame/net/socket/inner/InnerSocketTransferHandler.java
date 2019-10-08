@@ -52,6 +52,7 @@ public class InnerSocketTransferHandler extends SessionDuplexHandlerAdapter {
     @Override
     public void tick(SessionHandlerContext ctx) {
         if (msgCount > 0) {
+            msgCount = 0;
             channel.flush();
         }
     }

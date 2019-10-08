@@ -152,7 +152,8 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
                 throw new IOException("Unexpected message type " + socketMessage.getWrappedMessage().type());
         }
     }
-    // ---------------------------------------------- 协议1、2  ---------------------------------------
+
+    // ---------------------------------------------- 请求和应答协议  ---------------------------------------
 
     /**
      * 编码协议1 - 连接请求
@@ -199,8 +200,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
      * 编码协议2 - 连接响应
      */
     final void writeConnectResponse(ChannelHandlerContext ctx, SocketConnectResponseTO socketConnectResponseTO, ChannelPromise promise) {
-        int contentLength = 1 + 4 + 8;
-        ByteBuf byteBuf = newInitializedByteBuf(ctx, contentLength, NetMessageType.CONNECT_RESPONSE);
+        ByteBuf byteBuf = newInitializedByteBuf(ctx, 1 + 4 + 8, NetMessageType.CONNECT_RESPONSE);
 
         SocketConnectResponse socketConnectResponse = socketConnectResponseTO.getConnectResponse();
         byteBuf.writeByte(socketConnectResponse.isSuccess() ? 1 : 0);
@@ -222,10 +222,34 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
         return new SocketConnectResponseEvent(channel, sessionId, ack, connectResponse);
     }
 
-    // ---------------------------------------------- 协议3、4 ---------------------------------------
+    // ---------------------------------------------- 心跳协议  ---------------------------------------
 
     /**
-     * 3. 编码rpc请求包
+     * 编码协议3/4 ping-pong
+     */
+    private void writeAckPingPongMessage(ChannelHandlerContext ctx, long ack, SocketMessage socketMessage, ChannelPromise promise) {
+        ByteBuf byteBuf = newInitializedByteBuf(ctx, 8 + 8, NetMessageType.PING_PONG);
+
+        byteBuf.writeLong(ack);
+        byteBuf.writeLong(socketMessage.getSequence());
+
+        appendSumAndWrite(ctx, byteBuf, promise);
+    }
+
+    /**
+     * 解码协议3/4 - ping-pong
+     */
+    final SocketMessageEvent readAckPingPongMessage(Channel channel, String sessionId, ByteBuf msg) {
+        long ack = msg.readLong();
+        long sequence = msg.readLong();
+
+        return new SocketMessageEvent(channel, sessionId, ack, sequence, PingPongMessage.INSTANCE);
+    }
+
+    // ---------------------------------------------- rpc请求和响应 ---------------------------------------
+
+    /**
+     * 5. 编码rpc请求包
      */
     private void writeRpcRequestMessage(ChannelHandlerContext ctx, long ack, SocketMessage socketMessage, ChannelPromise promise) {
         RpcRequestMessage rpcRequest = (RpcRequestMessage) socketMessage.getWrappedMessage();
@@ -241,7 +265,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
     }
 
     /**
-     * 3. 解码rpc请求包
+     * 5. 解码rpc请求包
      */
     final SocketMessageEvent readRpcRequestMessage(Channel channel, String sessionId, ByteBuf msg) {
         // 捎带确认消息
@@ -258,7 +282,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
     }
 
     /**
-     * 4. 编码rpc 响应包
+     * 6. 编码rpc 响应包
      */
     private void writeRpcResponseMessage(ChannelHandlerContext ctx, long ack, SocketMessage socketMessage, ChannelPromise promise) {
         RpcResponseMessage rpcResponseMessage = (RpcResponseMessage) socketMessage.getWrappedMessage();
@@ -282,7 +306,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
     }
 
     /**
-     * 4. 解码rpc 响应包
+     * 6. 解码rpc 响应包
      */
     final SocketMessageEvent readRpcResponseMessage(Channel channel, String sessionId, ByteBuf msg) {
         // 捎带确认信息
@@ -301,10 +325,10 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
         return new SocketMessageEvent(channel, sessionId, ack, sequence, rpcResponseMessage);
     }
 
-    // ------------------------------------------ 协议5 --------------------------------------------
+    // ------------------------------------------ 单向消息 --------------------------------------------
 
     /**
-     * 5.编码单向协议包
+     * 7.编码单向协议包
      */
     private void writeOneWayMessage(ChannelHandlerContext ctx, long ack, SocketMessage socketMessage, ChannelPromise promise) {
         OneWayMessage oneWayMessage = (OneWayMessage) socketMessage.getWrappedMessage();
@@ -317,7 +341,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
     }
 
     /**
-     * 5.解码单向协议
+     * 7.解码单向协议
      */
     final SocketMessageEvent readOneWayMessage(Channel channel, String sessionId, ByteBuf msg) {
         // 捎带确认
@@ -367,27 +391,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
         }
         return message;
     }
-    // ---------------------------------------------- 协议6/7  ---------------------------------------
 
-    /**
-     * 编码协议6 心跳包
-     */
-    private void writeAckPingPongMessage(ChannelHandlerContext ctx, long ack, SocketMessage socketMessage, ChannelPromise promise) {
-        ByteBuf byteBuf = newInitializedByteBuf(ctx, 8 + 8, NetMessageType.PING_PONG);
-        byteBuf.writeLong(ack);
-        byteBuf.writeLong(socketMessage.getSequence());
-        appendSumAndWrite(ctx, byteBuf, promise);
-    }
-
-    /**
-     * 解码协议6/7 - ack心跳包
-     */
-    final SocketMessageEvent readAckPingPongMessage(Channel channel, String sessionId, ByteBuf msg) {
-        long ack = msg.readLong();
-        long sequence = msg.readLong();
-
-        return new SocketMessageEvent(channel, sessionId, ack, sequence, PingPongMessage.INSTANCE);
-    }
     // ------------------------------------------ 分割线 --------------------------------------------
 
     /**

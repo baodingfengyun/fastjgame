@@ -109,7 +109,7 @@ public class NetUtils {
      * @return 对于同一个Channel，它计算得到的key是不变的
      */
     public static int fixedKey(Channel channel) {
-        return channel.hashCode();
+        return channel.id().hashCode();
     }
 
     /**

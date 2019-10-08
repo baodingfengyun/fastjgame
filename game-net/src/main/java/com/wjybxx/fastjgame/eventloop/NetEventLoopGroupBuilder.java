@@ -19,29 +19,33 @@ package com.wjybxx.fastjgame.eventloop;
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
+import com.wjybxx.fastjgame.utils.CheckUtils;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.ThreadFactory;
 
 public class NetEventLoopGroupBuilder {
 
-    private int nThreads = 2;
-    private int bossGroupThreadNum = 2;
+    private int nThreads = 1;
+    private int bossGroupThreadNum = 1;
     private int workerGroupThreadNum = 8;
     private ThreadFactory threadFactory = new DefaultThreadFactory("NetEventLoop");
     private RejectedExecutionHandler rejectedExecutionHandler = RejectedExecutionHandlers.abort();
 
     public NetEventLoopGroupBuilder setnThreads(int nThreads) {
+        CheckUtils.checkPositive(nThreads, "nThreads");
         this.nThreads = nThreads;
         return this;
     }
 
     public NetEventLoopGroupBuilder setBossGroupThreadNum(int bossGroupThreadNum) {
+        CheckUtils.checkPositive(bossGroupThreadNum, "bossGroupThreadNum");
         this.bossGroupThreadNum = bossGroupThreadNum;
         return this;
     }
 
     public NetEventLoopGroupBuilder setWorkerGroupThreadNum(int workerGroupThreadNum) {
+        CheckUtils.checkPositive(workerGroupThreadNum, "workerGroupThreadNum");
         this.workerGroupThreadNum = workerGroupThreadNum;
         return this;
     }

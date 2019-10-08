@@ -74,7 +74,7 @@ public interface NetEventLoop extends EventLoop, NetEventLoopGroup {
     // ---------------------------------------- socket ------------------------------------------------------
 
     /**
-     * 该方法的被调用意味着它归属的某一个{@link Session}接收到对方的连接响应。
+     * 该方法的被调用意味着它管理的某一个{@link Session}接收到对方的连接响应。
      * 它将导致{@link ConnectorManager#onRcvConnectResponse(SocketConnectResponseEvent)}方法被调用。
      *
      * @param event 接收到建立连接响应
@@ -82,7 +82,7 @@ public interface NetEventLoop extends EventLoop, NetEventLoopGroup {
     void fireConnectResponse(SocketConnectResponseEvent event);
 
     /**
-     * 该方法的被调用意味着它归属的某一个{@link Session}接收到了对方的一个消息。
+     * 该方法的被调用意味着它管理的某一个{@link Session}接收到了对方的一个消息。
      * 它将导致{@link ConnectorManager#onRcvMessage(SocketMessageEvent)} 方法被调用。
      *
      * @param event 接收到的消息事件

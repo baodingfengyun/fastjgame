@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.net.session;
 import com.wjybxx.fastjgame.net.common.ProtocolCodec;
 import com.wjybxx.fastjgame.net.common.ProtocolDispatcher;
 import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
+import com.wjybxx.fastjgame.utils.CheckUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
@@ -133,25 +134,25 @@ public class SessionConfig {
         }
 
         public T setSessionTimeoutMs(int sessionTimeoutMs) {
-            checkPositive(sessionTimeoutMs, "sessionTimeoutMs");
+            CheckUtils.checkPositive(sessionTimeoutMs, "sessionTimeoutMs");
             this.sessionTimeoutMs = sessionTimeoutMs;
             return self();
         }
 
         public T setRpcCallbackTimeoutMs(int rpcCallbackTimeoutMs) {
-            checkPositive(rpcCallbackTimeoutMs, "rpcCallbackTimeoutMs");
+            CheckUtils.checkPositive(rpcCallbackTimeoutMs, "rpcCallbackTimeoutMs");
             this.rpcCallbackTimeoutMs = rpcCallbackTimeoutMs;
             return self();
         }
 
         public T setSyncRpcTimeoutMs(int syncRpcTimeoutMs) {
-            checkPositive(rpcCallbackTimeoutMs, "syncRpcTimeoutMs");
+            CheckUtils.checkPositive(rpcCallbackTimeoutMs, "syncRpcTimeoutMs");
             this.syncRpcTimeoutMs = syncRpcTimeoutMs;
             return self();
         }
 
         public T setPingIntervalMs(int pingIntervalMs) {
-            checkPositive(pingIntervalMs, "pingIntervalMs");
+            CheckUtils.checkPositive(pingIntervalMs, "pingIntervalMs");
             this.pingIntervalMs = pingIntervalMs;
             return self();
         }
@@ -172,17 +173,6 @@ public class SessionConfig {
             return (T) this;
         }
 
-        /**
-         * 检查一个数是否是正数
-         *
-         * @param param 参数
-         * @param name  属性的名字
-         */
-        public static void checkPositive(int param, String name) {
-            if (param <= 0) {
-                throw new IllegalArgumentException(name + ": " + param + " (expected: > 0)");
-            }
-        }
     }
 
 }

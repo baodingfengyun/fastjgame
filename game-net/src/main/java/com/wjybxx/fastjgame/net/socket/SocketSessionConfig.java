@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.net.socket;
 
 import com.wjybxx.fastjgame.net.session.SessionConfig;
+import com.wjybxx.fastjgame.utils.CheckUtils;
 
 /**
  * socket连接配置
@@ -85,19 +86,19 @@ public final class SocketSessionConfig extends SessionConfig {
         }
 
         public SocketSessionConfigBuilder setSndBuffer(int sndBuffer) {
-            checkPositive(sndBuffer, "sndBuffer");
+            CheckUtils.checkPositive(sndBuffer, "sndBuffer");
             this.sndBuffer = sndBuffer;
             return this;
         }
 
         public SocketSessionConfigBuilder setRcvBuffer(int rcvBuffer) {
-            checkPositive(rcvBuffer, "rcvBuffer");
+            CheckUtils.checkPositive(rcvBuffer, "rcvBuffer");
             this.rcvBuffer = rcvBuffer;
             return this;
         }
 
         public SocketSessionConfigBuilder setMaxFrameLength(int maxFrameLength) {
-            checkPositive(maxFrameLength, "maxFrameLength");
+            CheckUtils.checkPositive(maxFrameLength, "maxFrameLength");
             this.maxFrameLength = maxFrameLength;
             return this;
         }
