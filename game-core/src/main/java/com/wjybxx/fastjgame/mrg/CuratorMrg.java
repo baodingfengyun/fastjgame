@@ -22,7 +22,6 @@ import com.wjybxx.fastjgame.misc.LockPathAction;
 import com.wjybxx.fastjgame.misc.ObjectHolder;
 import com.wjybxx.fastjgame.misc.ResourceCloseHandle;
 import com.wjybxx.fastjgame.utils.*;
-import com.wjybxx.fastjgame.world.GameEventLoopMrg;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.barriers.DistributedBarrier;
 import org.apache.curator.framework.recipes.cache.NodeCache;

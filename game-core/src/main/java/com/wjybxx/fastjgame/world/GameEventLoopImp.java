@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.module.WorldGroupModule;
+import com.wjybxx.fastjgame.mrg.GameEventLoopMrg;
 import com.wjybxx.fastjgame.timer.DefaultTimerSystem;
 import com.wjybxx.fastjgame.timer.FixedDelayHandle;
 import com.wjybxx.fastjgame.timer.TimerSystem;

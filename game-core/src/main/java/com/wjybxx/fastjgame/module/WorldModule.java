@@ -20,7 +20,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import com.wjybxx.fastjgame.annotation.EventLoopSingleton;
 import com.wjybxx.fastjgame.mrg.*;
-import com.wjybxx.fastjgame.world.GameEventLoopMrg;
 import com.wjybxx.fastjgame.world.World;
 
 /**

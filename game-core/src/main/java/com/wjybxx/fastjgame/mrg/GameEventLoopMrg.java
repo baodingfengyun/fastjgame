@@ -14,29 +14,35 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.manager;
+package com.wjybxx.fastjgame.mrg;
 
 import com.google.inject.Inject;
+import com.wjybxx.fastjgame.annotation.EventLoopSingleton;
 import com.wjybxx.fastjgame.concurrent.EventLoopHolder;
-import com.wjybxx.fastjgame.eventloop.NetEventLoop;
-import com.wjybxx.fastjgame.exception.InternalApiException;
-import com.wjybxx.fastjgame.module.NetEventLoopModule;
+import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
+import com.wjybxx.fastjgame.world.GameEventLoop;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * NetEventLoop管理器，使得{@link NetEventLoopModule}中的管理器可以获取运行环境。
+ * 管理World所属的{@link GameEventLoop}。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/3
+ * date - 2019/8/4
  * github - https://github.com/hl845740757
  */
+@EventLoopSingleton
 @NotThreadSafe
-public class NetEventLoopManager extends EventLoopHolder<NetEventLoop> {
+public class GameEventLoopMrg extends EventLoopHolder<GameEventLoop> {
 
     @Inject
-    public NetEventLoopManager() {
+    public GameEventLoopMrg() {
 
     }
+
+    public NetEventLoopGroup getNetEventLoopGroup() {
+        return getEventLoop().netEventLoopGroup();
+    }
+
 }

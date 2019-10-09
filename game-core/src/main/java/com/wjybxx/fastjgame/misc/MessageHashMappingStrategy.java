@@ -36,9 +36,6 @@ import java.util.Set;
  */
 public class MessageHashMappingStrategy implements MessageMappingStrategy {
 
-    private static final String protoBufferPkg = "com.wjybxx.fastjgame.protobuffer";
-    private static final String serializablePkg = "com.wjybxx.fastjgame.serializebale";
-
     /**
      * 同一个进程下使用是的相同的消息类，不必反复扫描
      */
@@ -61,10 +58,10 @@ public class MessageHashMappingStrategy implements MessageMappingStrategy {
                 || ProtocolMessageEnum.class.isAssignableFrom(clazz);
     }
 
-    private static int getUniqueId(Class<?> rpcCallClass) {
+    private static int getUniqueId(Class<?> messageClass) {
         // 不能直接使用hashCode，直接使用hashCode，在不同的进程的值是不一样的
         // 为什么要simple Name? protoBuf的消息的名字就是java的类名，也方便前端计算该值 - 相同的hash算法即可
-        return rpcCallClass.getSimpleName().hashCode();
+        return messageClass.getSimpleName().hashCode();
     }
 
     @Override

@@ -106,7 +106,7 @@ public class HttpSessionManager {
         final HttpPortContext portExtraInfo = requestEventParam.getPortExtraInfo();
         // 保存session
         SessionWrapper sessionWrapper = sessionWrapperMap.computeIfAbsent(channel,
-                k -> new SessionWrapper(new HttpSessionImp(portExtraInfo.localEventLoop(), netEventLoopManager.eventLoop(), this, channel)));
+                k -> new SessionWrapper(new HttpSessionImp(portExtraInfo.localEventLoop(), netEventLoopManager.getEventLoop(), this, channel)));
 
         // 保持一段时间的活性
         sessionWrapper.setSessionTimeout(netConfigManager.httpSessionTimeout() + netTimeManager.getSystemSecTime());

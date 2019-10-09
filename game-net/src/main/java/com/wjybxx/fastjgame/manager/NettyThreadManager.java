@@ -24,6 +24,7 @@ import com.wjybxx.fastjgame.net.socket.DefaultSocketPort;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
@@ -111,6 +112,7 @@ public class NettyThreadManager {
         // parentGroup参数
         serverBootstrap.option(ChannelOption.SO_BACKLOG, 1024);
         serverBootstrap.option(ChannelOption.SO_REUSEADDR, true);
+        serverBootstrap.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
         serverBootstrap.option(ChannelOption.WRITE_BUFFER_WATER_MARK, WRITE_BUFFER_WATER_MARK);
 
         // childGroup参数
@@ -120,6 +122,7 @@ public class NettyThreadManager {
         serverBootstrap.childOption(ChannelOption.SO_RCVBUF, rcvBuffer);
         serverBootstrap.childOption(ChannelOption.SO_LINGER, 0);
         serverBootstrap.childOption(ChannelOption.SO_REUSEADDR, true);
+        serverBootstrap.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
         serverBootstrap.childOption(ChannelOption.WRITE_BUFFER_WATER_MARK, WRITE_BUFFER_WATER_MARK);
 
         ChannelFuture channelFuture = serverBootstrap.bind(host, port);

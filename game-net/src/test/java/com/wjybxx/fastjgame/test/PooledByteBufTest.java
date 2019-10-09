@@ -14,29 +14,30 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.manager;
+package com.wjybxx.fastjgame.test;
 
-import com.google.inject.Inject;
-import com.wjybxx.fastjgame.concurrent.EventLoopHolder;
-import com.wjybxx.fastjgame.eventloop.NetEventLoop;
-import com.wjybxx.fastjgame.exception.InternalApiException;
-import com.wjybxx.fastjgame.module.NetEventLoopModule;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * NetEventLoop管理器，使得{@link NetEventLoopModule}中的管理器可以获取运行环境。
- *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/3
+ * date - 2019/10/9
  * github - https://github.com/hl845740757
  */
-@NotThreadSafe
-public class NetEventLoopManager extends EventLoopHolder<NetEventLoop> {
+public class PooledByteBufTest {
 
-    @Inject
-    public NetEventLoopManager() {
+    private static final int MAX_SIZE = 64;
 
+    public static void main(String[] args) throws InterruptedException {
+        List<ByteBuf> byteBufList = new ArrayList<>(MAX_SIZE);
+        for (int index = 0; index < MAX_SIZE; index++) {
+            ByteBuf byteBuf = PooledByteBufAllocator.DEFAULT.directBuffer(1024 * 1024);
+            byteBufList.add(byteBuf.slice(800, 200).retain());
+        }
+        Thread.sleep(60 * 60 * 1000);
     }
 }

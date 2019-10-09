@@ -74,7 +74,7 @@ public abstract class AbstractSession implements Session {
         this.remoteGuid = remoteGuid;
         this.managerWrapper = managerWrapper;
         this.pipeline = new DefaultSessionPipeline(this, managerWrapper);
-        this.netEventLoop = managerWrapper.getNetEventLoopManager().eventLoop();
+        this.netEventLoop = managerWrapper.getNetEventLoopManager().getEventLoop();
     }
 
     @Override
