@@ -266,15 +266,15 @@ public class NetUtils {
     }
 
     /**
-     * 创建一个初始化好的byteBuf
+     * 创建一个消息头的byteBuf
      * 预分配消息长度 校验和 和包类型字段
      *
      * @param ctx           获取allocator
      * @param contentLength 有效内容长度
      * @param pkgType       包类型
-     * @return 以初始化前三个字段
+     * @return 已初始化前三个字段
      */
-    public static ByteBuf newInitializedByteBuf(ChannelHandlerContext ctx, int contentLength, byte pkgType) {
+    public static ByteBuf newHeadByteBuf(ChannelHandlerContext ctx, int contentLength, byte pkgType) {
         // 消息长度字段 + 校验和 + 包类型
         ByteBuf byteBuf = ctx.alloc().buffer(4 + 8 + 1 + contentLength);
         byteBuf.writeInt(0);

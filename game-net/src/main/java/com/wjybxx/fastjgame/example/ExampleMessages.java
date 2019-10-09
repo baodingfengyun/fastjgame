@@ -93,6 +93,9 @@ public final class ExampleMessages {
     @SerializableClass
     public static class FullMessage {
 
+        @SerializableField(number = 0)
+        private Object any;
+
         @SerializableField(number = 1)
         private byte aByte;
 
@@ -158,6 +161,14 @@ public final class ExampleMessages {
 
         @SerializableField(number = 22)
         private char[] aCharArray;
+
+        public Object getAny() {
+            return any;
+        }
+
+        public void setAny(Object any) {
+            this.any = any;
+        }
 
         public byte getaByte() {
             return aByte;
@@ -337,12 +348,12 @@ public final class ExampleMessages {
         }
 
         @Override
-        public boolean equals(Object object) {
-            if (this == object) return true;
+        public boolean equals(Object o) {
+            if (this == o) return true;
 
-            if (object == null || getClass() != object.getClass()) return false;
+            if (o == null || getClass() != o.getClass()) return false;
 
-            FullMessage that = (FullMessage) object;
+            FullMessage that = (FullMessage) o;
 
             return new EqualsBuilder()
                     .append(aByte, that.aByte)
@@ -353,6 +364,7 @@ public final class ExampleMessages {
                     .append(aFloat, that.aFloat)
                     .append(aDouble, that.aDouble)
                     .append(aBoolean, that.aBoolean)
+                    .append(any, that.any)
                     .append(name, that.name)
                     .append(profession, that.profession)
                     .append(stringList, that.stringList)
@@ -373,6 +385,7 @@ public final class ExampleMessages {
         @Override
         public int hashCode() {
             return new HashCodeBuilder(17, 37)
+                    .append(any)
                     .append(aByte)
                     .append(aChar)
                     .append(aShort)
@@ -401,7 +414,8 @@ public final class ExampleMessages {
         @Override
         public String toString() {
             return "FullMessage{" +
-                    "aByte=" + aByte +
+                    "any=" + any +
+                    ", aByte=" + aByte +
                     ", aChar=" + aChar +
                     ", aShort=" + aShort +
                     ", anInt=" + anInt +

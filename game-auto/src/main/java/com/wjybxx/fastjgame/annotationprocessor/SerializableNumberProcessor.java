@@ -139,13 +139,24 @@ public class SerializableNumberProcessor extends AbstractProcessor {
             // value中，基本类型会被封装为包装类型，number是int类型
             final int number = (Integer) AutoUtils.getAnnotationValueNotDefault(first.get(), NUMBER_METHOD_NAME);
             // 取值范围检测
-            if (number < 0 || number > 127) {
-                messager.printMessage(Diagnostic.Kind.ERROR, "number " + number + " must between [0, 127]", variableElement);
+            if (number < 0 || number > 65535) {
+                messager.printMessage(Diagnostic.Kind.ERROR, "number " + number + " must between [0, 65535]", variableElement);
             }
             // 重复检测
             if (!numberSet.add(number)) {
                 messager.printMessage(Diagnostic.Kind.ERROR, "number " + number + " is duplicate!", variableElement);
             }
+        }
+
+        // 无参构造方法检测
+        final ExecutableElement constructor = typeElement.getEnclosedElements().stream()
+                .filter(e -> e.getKind() == ElementKind.CONSTRUCTOR)
+                .map(e -> (ExecutableElement) e)
+                .filter(e -> e.getParameters().size() == 0)
+                .findFirst()
+                .orElse(null);
+        if (null == constructor) {
+            messager.printMessage(Diagnostic.Kind.ERROR, "SerializableClass " + typeElement.getSimpleName() + " must contains no-arg constructor, private is ok", typeElement);
         }
     }
 

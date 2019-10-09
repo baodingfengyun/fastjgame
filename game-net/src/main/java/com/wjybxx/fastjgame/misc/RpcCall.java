@@ -25,6 +25,7 @@ import java.util.List;
 
 /**
  * 较为标准的rpc调用，推荐格式，但是仍然不限制rpc调用的形式！
+ * 注意：如果使用该形式的rpc调用，请保证{@link RpcCall}在{@link MessageMapper}中存在。
  *
  * @author wjybxx
  * @version 1.0

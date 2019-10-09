@@ -184,7 +184,6 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         if (object == null) {
             return null;
         }
-
         final Class<?> type = object.getClass();
         for (Codec codec : codecMapper.values()) {
             if (codec.isSupport(type)) {
@@ -224,13 +223,12 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         if (wireType == WireType.NULL) {
             return null;
         }
-        Codec<?> codec = getCodec(wireType);
-        return codec.readData(inputStream, true);
+        return getCodec(wireType).readData(inputStream, true);
     }
 
     @Nonnull
-    private Codec<?> getCodec(int wireType) throws IOException {
-        Codec<?> codec = codecMapper.forNumber(wireType);
+    private Codec getCodec(int wireType) throws IOException {
+        Codec codec = codecMapper.forNumber(wireType);
         if (null == codec) {
             throw new IOException("unsupported wireType " + wireType);
         }
@@ -311,7 +309,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
          */
         private final boolean mayNegative;
         /**
-         * 数据类型(该缓存是为了提高编码速度的)
+         * 数据类型缓存 - 可大幅提高编解码速度
          */
         private final byte wireType;
 
@@ -1048,18 +1046,27 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
             int size = CodedOutputStream.computeSInt32SizeNoTag(messageMapper.getMessageId(obj.getClass()));
             try {
                 for (FieldDescriptor fieldDescriptor : descriptor.fieldDescriptorMapper.values()) {
-                    // nullable
                     Object fieldValue = fieldDescriptor.field.get(obj);
-                    // null不序列化
+                    // nullable null也需要序列化
                     if (null == fieldValue) {
+                        size += calTagSize(WireType.NULL) + CodedOutputStream.computeUInt32SizeNoTag(fieldDescriptor.number);
                         continue;
                     }
-                    // 先写tag才能判断是否结束
-                    size += calTagSize(fieldDescriptor.wireType);
-                    // number,认为一般不会出现负数，但是保留出现负数的可能
-                    size += calInt32Size(fieldDescriptor.number, false);
-                    Codec codec = getCodec(fieldDescriptor.wireType);
-                    size += codec.calSerializeDataSize(fieldValue, fieldDescriptor.mayNegative);
+                    // 存在索引的
+                    if (fieldDescriptor.wireType != WireType.RUN_TIME) {
+                        size += calTagSize(fieldDescriptor.wireType) + CodedOutputStream.computeUInt32SizeNoTag(fieldDescriptor.number);
+                        size += getCodec(fieldDescriptor.wireType).calSerializeDataSize(fieldValue, fieldDescriptor.mayNegative);
+                        continue;
+                    }
+                    // 运行时才知道的类型
+                    final Class<?> type = fieldValue.getClass();
+                    for (Codec codec : codecMapper.values()) {
+                        if (codec.isSupport(type)) {
+                            size += calTagSize(codec.getWireType()) + CodedOutputStream.computeUInt32SizeNoTag(fieldDescriptor.number);
+                            size += codec.calSerializeDataSize(fieldValue, fieldDescriptor.mayNegative);
+                            break;
+                        }
+                    }
                 }
                 // 加上一个终止标记
                 size += calTagSize(WireType.REFERENCE_END);
@@ -1069,32 +1076,52 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
             return size;
         }
 
-        @SuppressWarnings("unchecked")
         @Override
         public void writeData(CodedOutputStream outputStream, @Nonnull Object obj, boolean ignore) throws IOException {
             ClassDescriptor descriptor = descriptorMap.get(obj.getClass());
             outputStream.writeSInt32NoTag(messageMapper.getMessageId(obj.getClass()));
             try {
                 for (FieldDescriptor fieldDescriptor : descriptor.fieldDescriptorMapper.values()) {
-                    // nullable
-                    Object fieldValue = fieldDescriptor.field.get(obj);
-                    // null不序列化
-                    if (null == fieldValue) {
-                        continue;
-                    }
-                    // 先写tag才能判断是否结束
-                    writeTag(outputStream, fieldDescriptor.wireType);
-                    // number,认为一般不会出现负数，但是保留出现负数的可能
-                    writeInt32(outputStream, fieldDescriptor.number, false);
-                    // 编码真正的内容
-                    Codec codec = getCodec(fieldDescriptor.wireType);
-                    codec.writeData(outputStream, fieldValue, fieldDescriptor.mayNegative);
+                    // 逐个写入
+                    writeField(outputStream, fieldDescriptor, fieldDescriptor.field.get(obj));
                 }
                 // 加上一个终止标记
                 writeTag(outputStream, WireType.REFERENCE_END);
             } catch (Exception e) {
                 throw new IOException(obj.getClass().getName(), e);
             }
+        }
+
+        // tag 和 number必须写入
+        @SuppressWarnings("unchecked")
+        private void writeField(CodedOutputStream outputStream, FieldDescriptor fieldDescriptor, Object fieldValue) throws IOException {
+            // null也需要写入，因为新对象的属性不一定也是null
+            if (fieldValue == null) {
+                writeTag(outputStream, WireType.NULL);
+                outputStream.writeUInt32NoTag(fieldDescriptor.number);
+                return;
+            }
+            // 存在索引的字段
+            if (fieldDescriptor.wireType != WireType.RUN_TIME) {
+                writeTag(outputStream, fieldDescriptor.wireType);
+                outputStream.writeUInt32NoTag(fieldDescriptor.number);
+                getCodec(fieldDescriptor.wireType).writeData(outputStream, fieldValue, fieldDescriptor.mayNegative);
+                return;
+            }
+            // 运行时才知道的类型
+            final Class<?> type = fieldValue.getClass();
+            for (Codec codec : codecMapper.values()) {
+                if (codec.isSupport(type)) {
+                    // 先写tag才能判断是否结束
+                    writeTag(outputStream, codec.getWireType());
+                    // number,不会出现负数 - 编译时注解处理器会检查
+                    outputStream.writeUInt32NoTag(fieldDescriptor.number);
+                    // 写入该字段的值
+                    codec.writeData(outputStream, fieldValue, fieldDescriptor.mayNegative);
+                    return;
+                }
+            }
+            throw new IOException("unsupported class " + type.getName());
         }
 
         @Override
@@ -1107,13 +1134,14 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
                 Object instance = descriptor.constructor.newInstance();
                 int wireType;
                 while ((wireType = readTag(inputStream)) != WireType.REFERENCE_END) {
-                    int number = readInt32(inputStream, false);
-                    // nullable
+                    int number = inputStream.readUInt32();
                     FieldDescriptor fieldDescriptor = descriptor.fieldDescriptorMapper.forNumber(number);
+                    // nullable，双方该类数据不同，不存在的字段 -> 丢弃， 兼容性支持
                     if (null == fieldDescriptor) {
-                        throw new IOException("Incompatible type " + messageClass.getName() + ", number = " + number);
+                        continue;
                     }
-                    Object fieldValue = getCodec(wireType).readData(inputStream, fieldDescriptor.mayNegative);
+                    // 必须显式赋值，否则可能和序列化的结果不一致
+                    final Object fieldValue = wireType == WireType.NULL ? null : getCodec(wireType).readData(inputStream, fieldDescriptor.mayNegative);
                     fieldDescriptor.field.set(instance, fieldValue);
                 }
                 return instance;
@@ -1134,15 +1162,20 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
             try {
                 Object instance = descriptor.constructor.newInstance();
                 for (FieldDescriptor fieldDescriptor : descriptor.fieldDescriptorMapper.values()) {
-                    // nullable
-                    Object fieldValue = fieldDescriptor.field.get(obj);
-                    // null不拷贝
+                    // 逐个拷贝
+                    final Object fieldValue = fieldDescriptor.field.get(obj);
                     if (null == fieldValue) {
-                        continue;
+                        // null
+                        fieldDescriptor.field.set(instance, null);
+                    } else if (fieldDescriptor.wireType != WireType.RUN_TIME) {
+                        // 存在类型缓存
+                        final Object newValue = getCodec(fieldDescriptor.wireType).clone(fieldValue);
+                        fieldDescriptor.field.set(instance, newValue);
+                    } else {
+                        // 运行时类型
+                        final Object newValue = cloneObject(fieldValue);
+                        fieldDescriptor.field.set(instance, newValue);
                     }
-                    Codec codec = getCodec(fieldDescriptor.wireType);
-                    final Object newValue = codec.clone(fieldValue);
-                    fieldDescriptor.field.set(instance, newValue);
                 }
                 return instance;
             } catch (Exception e) {

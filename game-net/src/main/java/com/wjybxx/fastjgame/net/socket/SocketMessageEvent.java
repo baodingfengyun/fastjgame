@@ -32,19 +32,19 @@ public final class SocketMessageEvent implements SocketEvent {
     private final Channel channel;
     private final String sessionId;
     /**
-     * 捎带确认的ack
-     */
-    private final long ack;
-    /**
      * 当前包id
      */
     private final long sequence;
+    /**
+     * 捎带确认的ack
+     */
+    private final long ack;
     /**
      * 被包装的消息
      */
     private final NetMessage wrappedMessage;
 
-    public SocketMessageEvent(Channel channel, String sessionId, long ack, long sequence, NetMessage wrappedMessage) {
+    public SocketMessageEvent(Channel channel, String sessionId, long sequence, long ack, NetMessage wrappedMessage) {
         this.channel = channel;
         this.sessionId = sessionId;
         this.ack = ack;

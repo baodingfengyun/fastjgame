@@ -59,6 +59,7 @@ public class ReflectBasedProtoCodecTest {
      */
     public static ExampleMessages.FullMessage newFullMessage() {
         ExampleMessages.FullMessage fullMessage = new ExampleMessages.FullMessage();
+        fullMessage.setAny("any");
         fullMessage.setaByte((byte) 25);
         fullMessage.setaChar('a');
         fullMessage.setaShort((short) 3222);

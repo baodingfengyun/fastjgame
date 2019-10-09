@@ -48,6 +48,7 @@ public class NettyThreadManager {
     private static final Logger logger = LoggerFactory.getLogger(NettyThreadManager.class);
     /**
      * 开启限流，多分配一点空间，否则容易被限流，导致数据丢失。
+     * 发送消息时判断{@link Channel#isWritable()}
      * （默认流量的8倍）
      */
     private static final WriteBufferWaterMark WRITE_BUFFER_WATER_MARK = new WriteBufferWaterMark(8 * 32 * 1024, 8 * 64 * 1024);

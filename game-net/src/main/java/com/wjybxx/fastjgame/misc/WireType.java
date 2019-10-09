@@ -109,6 +109,7 @@ public class WireType {
      * NULL
      */
     public static final byte NULL = 16;
+
     /**
      * 可序列化的普通对象，最好是简单的Bean -- POJO，必须带有{@link SerializableClass}注解。
      * 必须有无参构造方法，可以是private。
@@ -118,37 +119,41 @@ public class WireType {
      * 它不代表内容，仅仅表示一个分隔符
      */
     public static final byte REFERENCE_END = 18;
+    /**
+     * 动态类型 - 运行时才能确定的类型（它是也标记类型）
+     */
+    public static final byte RUN_TIME = 19;
 
     // -- 常用数组
     /**
      * 字节数组
      */
-    public static final byte BYTE_ARRAY = 19;
+    public static final byte BYTE_ARRAY = 20;
     /**
      * short数组
      */
-    public static final byte SHORT_ARRAY = 20;
+    public static final byte SHORT_ARRAY = 21;
 
     /**
      * int数组
      */
-    public static final byte INT_ARRAY = 21;
+    public static final byte INT_ARRAY = 22;
     /**
      * long数组
      */
-    public static final byte LONG_ARRAY = 22;
+    public static final byte LONG_ARRAY = 23;
     /**
      * float数组
      */
-    public static final byte FLOAT_ARRAY = 23;
+    public static final byte FLOAT_ARRAY = 24;
     /**
      * double数组
      */
-    public static final byte DOUBLE_ARRAY = 24;
+    public static final byte DOUBLE_ARRAY = 25;
     /**
      * char数组
      */
-    public static final byte CHAR_ARRAY = 25;
+    public static final byte CHAR_ARRAY = 26;
 
     /**
      * 查找一个class对应的wireType
@@ -244,6 +249,6 @@ public class WireType {
         if (type == char[].class) {
             return WireType.CHAR_ARRAY;
         }
-        throw new IllegalArgumentException("unsupported type " + type.getName());
+        return WireType.RUN_TIME;
     }
 }

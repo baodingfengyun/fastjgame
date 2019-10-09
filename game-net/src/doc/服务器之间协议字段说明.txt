@@ -8,41 +8,49 @@
  short 2字节     sessionIdLength   sessionId占用的字节数
  bytes 指定      sessionId         要建立的session的唯一标识
  long  8字节     clientGuid        用户唯一标识(发起方guid)
- long  8字节     ack               客户端期望的下一个消息号(捎带确认的ack)
  int   4字节     verifyingTimes    这是客户端第几次发起连接请求：用于识别最新请求和客户端追踪结果
+ long  8字节     ack               客户端期望的下一个消息号(捎带确认的ack)
+ bytes 字节数组   extension         用于扩展的信息
 
 2. 建立连接应答
- byte  1字节     success           token验证结果(成功为 1,失败为 0)
+ byte  1字节     success           是否允许建立连接
  int   4字节     verifyingTimes    这是客户端第几次发起的连接请求
  long  8字节     ack               服务器期望的下一个消息号
 
 3、4 心跳协议 - ping/pong
- long  8字节      ack              我期望的下一个消息号(捎带确认的ack)
  long  8字节      sequence         这是我发送的第几个包/帧。
+ long  8字节      ack              我期望的下一个消息号(捎带确认的ack)
 
-5. Rpc请求包
- long  8字节     ack              我期望的下一个消息号(捎带确认的ack)
+5. Rpc请求包（正式消息）
  long  8字节     sequence         这是我发送的第几个包/帧。
+ long  8字节     ack              我期望的下一个消息号(捎带确认的ack)
 
  long  8字节     requestGuid      请求id
  byte  1字节     sync             是否是同步rpc调用
- bytes 字节数组   bytes            请求的内容，用户自定义解析
+ bytes 字节数组   bytes            请求的内容
 
-6. Rpc响应包
- long  8字节     ack              我期望的下一个消息号(捎带确认的ack)
+6. Rpc响应包（正式消息）
  long  8字节     sequence         这是我发送的第几个包/帧
+ long  8字节     ack              我期望的下一个消息号(捎带确认的ack)
 
  long  8字节     requestGuid      请求id
  int   4字节     resultCode       错误码
- bytes 字节数组   bytes            响应结果，用户自定义解析
+ bytes 字节数组   bytes            响应结果
 
-7. 单向消息包
- long  8字节     ack              我期望的下一个消息号(捎带确认的ack)
+7. 单向消息包（正式消息）
  long  8字节     sequence         这是我发送的第几个包/帧。
+ long  8字节     ack              我期望的下一个消息号(捎带确认的ack)
 
- bytes 字节数组   bytes            消息的内容，用户自定义解析
+ bytes 字节数组   bytes            消息的内容
 
-其它消息都有ack和sequence的情况下为什么还需要6和7 （单独的心跳包）？
+本质上讲，协议只有4种：
+1. 建立连接请求
+2. 建立连接应答
+3. 心跳
+4. 正式消息（rpc请求、rpc响应、单向消息都是它的细分类型而已） - 甚至说心跳也可以算做正式消息的一种。
+可参考tcp通信进行理解，感觉也很像websocket。
+
+其它消息都有ack和sequence的情况下为什么还需要单独的心跳包？
 1.采用捎带确认基于这样的假设：请求一般会存在一个响应，且双方总是有消息要发给另一方，而且间隔不会太长,。
 2.但请求可能没有响应信息,在长时间没有新的消息通信情况下，需要有机制对前面的消息进行确认。
 3.此外，用于避免双方消息队列缓存过多(尤其是要降低服务器缓存压力)

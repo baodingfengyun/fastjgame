@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
+import javax.annotation.Nullable;
+
 /**
  * 带有消息确认机制的连接请求
  *
@@ -33,13 +35,26 @@ public class SocketConnectRequest {
      * 3. 用于识别对应的结果。
      */
     private final int verifyingTimes;
+    /**
+     * 扩展信息
+     */
+    private final Object extension;
 
     public SocketConnectRequest(int verifyingTimes) {
+        this(verifyingTimes, null);
+    }
+
+    public SocketConnectRequest(int verifyingTimes, Object extension) {
         this.verifyingTimes = verifyingTimes;
+        this.extension = extension;
     }
 
     public int getVerifyingTimes() {
         return verifyingTimes;
     }
 
+    @Nullable
+    public Object getExtension() {
+        return extension;
+    }
 }
