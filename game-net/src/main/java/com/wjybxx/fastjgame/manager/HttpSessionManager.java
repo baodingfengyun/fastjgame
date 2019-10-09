@@ -23,10 +23,7 @@ import com.wjybxx.fastjgame.net.http.HttpRequestCommitTask;
 import com.wjybxx.fastjgame.net.http.HttpRequestEvent;
 import com.wjybxx.fastjgame.net.http.HttpSessionImp;
 import com.wjybxx.fastjgame.timer.FixedDelayHandle;
-import com.wjybxx.fastjgame.utils.CollectionUtils;
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-import com.wjybxx.fastjgame.utils.NetUtils;
-import com.wjybxx.fastjgame.utils.TimeUtils;
+import com.wjybxx.fastjgame.utils.*;
 import io.netty.channel.Channel;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -71,22 +68,6 @@ public class HttpSessionManager {
     }
 
     /**
-     * 当接收到用户所在eventLoop终止时
-     *
-     * @param eventLoop 用户所在的eventLoop
-     */
-    public void onUserEventLoopTerminal(EventLoop eventLoop) {
-        assert netEventLoopManager.inEventLoop();
-        CollectionUtils.removeIfAndThen(sessionWrapperMap,
-                (channel, sessionWrapper) -> sessionWrapper.getSession().localEventLoop() == eventLoop,
-                this::closeUserSession);
-    }
-
-    private <K, V> void closeUserSession(K k, V v) {
-
-    }
-
-    /**
      * 检查session超时
      */
     private void checkSessionTimeout(FixedDelayHandle handle) {
@@ -96,26 +77,26 @@ public class HttpSessionManager {
                 this::afterRemoved);
     }
 
+    private void afterRemoved(Channel channel, SessionWrapper sessionWrapper) {
+        NetUtils.closeQuietly(channel);
+    }
+
     /**
-     * 当收到http请求时
+     * 当接收到用户所在eventLoop终止时
      *
-     * @param requestEventParam 请参数
+     * @param eventLoop 用户所在的eventLoop
      */
-    public void onRcvHttpRequest(HttpRequestEvent requestEventParam) {
-        final Channel channel = requestEventParam.channel();
-        final HttpPortContext portExtraInfo = requestEventParam.getPortExtraInfo();
-        // 保存session
-        SessionWrapper sessionWrapper = sessionWrapperMap.computeIfAbsent(channel,
-                k -> new SessionWrapper(new HttpSessionImp(portExtraInfo.localEventLoop(), netEventLoopManager.getEventLoop(), this, channel)));
+    public void onUserEventLoopTerminal(EventLoop eventLoop) {
+        assert netEventLoopManager.inEventLoop();
+        CollectionUtils.removeIfAndThen(sessionWrapperMap,
+                (channel, sessionWrapper) -> sessionWrapper.getSession().localEventLoop() == eventLoop,
+                this::afterRemoved);
+    }
 
-        // 保持一段时间的活性
-        sessionWrapper.setSessionTimeout(netConfigManager.httpSessionTimeout() + netTimeManager.getSystemSecTime());
-
-        final HttpSessionImp httpSession = sessionWrapper.session;
-
-        // 处理请求，提交到用户所在的线程，实现线程安全
-        ConcurrentUtils.tryCommit(httpSession.localEventLoop(), new HttpRequestCommitTask(httpSession, requestEventParam.getPath(),
-                requestEventParam.getParams(), portExtraInfo.getDispatcher()));
+    public void clean() {
+        CollectionUtils.removeIfAndThen(sessionWrapperMap,
+                FunctionUtils::TRUE,
+                this::afterRemoved);
     }
 
     /**
@@ -129,13 +110,28 @@ public class HttpSessionManager {
         afterRemoved(channel, sessionWrapper);
     }
 
-    private void afterRemoved(Channel channel, SessionWrapper sessionWrapper) {
-        NetUtils.closeQuietly(channel);
+    /**
+     * 当收到http请求时
+     *
+     * @param requestEventParam 请参数
+     */
+    public void onRcvHttpRequest(HttpRequestEvent requestEventParam) {
+        final Channel channel = requestEventParam.channel();
+        final HttpPortContext portExtraInfo = requestEventParam.getPortExtraInfo();
+        // 保存session
+        SessionWrapper sessionWrapper = sessionWrapperMap.computeIfAbsent(channel,
+                k -> new SessionWrapper(new HttpSessionImp(portExtraInfo.getNetContext(), netEventLoopManager.getEventLoop(), this, channel)));
+
+        // 保持一段时间的活性
+        sessionWrapper.setSessionTimeout(netConfigManager.httpSessionTimeout() + netTimeManager.getSystemSecTime());
+
+        final HttpSessionImp httpSession = sessionWrapper.session;
+
+        // 处理请求，提交到用户所在的线程，实现线程安全
+        ConcurrentUtils.tryCommit(httpSession.localEventLoop(), new HttpRequestCommitTask(httpSession, requestEventParam.getPath(),
+                requestEventParam.getParams(), portExtraInfo.getDispatcher()));
     }
 
-    public void clean() {
-
-    }
 
     private static class SessionWrapper {
 

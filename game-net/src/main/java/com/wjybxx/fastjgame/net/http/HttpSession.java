@@ -20,6 +20,7 @@ import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
+import io.netty.channel.Channel;
 import io.netty.handler.codec.http.HttpResponse;
 
 /**
@@ -31,6 +32,27 @@ import io.netty.handler.codec.http.HttpResponse;
  * github - https://github.com/hl845740757
  */
 public interface HttpSession {
+
+
+    /**
+     * {@link HttpSession}所属的本地用户
+     */
+    long localGuid();
+
+    /**
+     * 该session所在的NetEventLoop。
+     */
+    NetEventLoop netEventLoop();
+
+    /**
+     * 该session所在的用户线程，一定是{@link NetContext#localEventLoop()}
+     */
+    EventLoop localEventLoop();
+
+    /**
+     * 该session关联的netty的{@link Channel}
+     */
+    Channel channel();
 
     /**
      * session是否处于活动状态
@@ -61,17 +83,4 @@ public interface HttpSession {
      * @return future，该future的回调执行环境为用户线程。
      */
     <T extends HttpResponseBuilder<T>> ListenableFuture<?> writeAndFlush(HttpResponseBuilder<T> builder);
-
-    // ------------------------------------- session的运行环境(不建议用户使用) -------------------------
-
-    /**
-     * 该session所在的NetEventLoop。
-     * <li>注意：不保证是{@link NetContext#netEventLoopGroup()} </li>
-     */
-    NetEventLoop netEventLoop();
-
-    /**
-     * 该session所在的用户线程，一定是{@link NetContext#localEventLoop()}
-     */
-    EventLoop localEventLoop();
 }

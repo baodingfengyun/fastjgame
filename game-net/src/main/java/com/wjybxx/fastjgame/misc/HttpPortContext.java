@@ -39,6 +39,10 @@ public class HttpPortContext {
         this.dispatcher = dispatcher;
     }
 
+    public NetContext getNetContext() {
+        return netContext;
+    }
+
     /**
      * @return 用户指定的http请求分发器
      */
@@ -59,6 +63,5 @@ public class HttpPortContext {
     public NetEventLoopGroup netEventLoopGroup() {
         return netContext.netEventLoopGroup();
     }
-
 
 }

@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.net.http;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.concurrent.adapter.NettyListenableFutureAdapter;
+import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.manager.HttpSessionManager;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
@@ -35,19 +36,35 @@ import io.netty.handler.codec.http.HttpResponse;
  */
 public final class HttpSessionImp implements HttpSession {
 
-    private final EventLoop localEventLoop;
+    private final NetContext netContext;
     private final NetEventLoop netEventLoop;
     private final HttpSessionManager httpSessionManager;
     private final Channel channel;
 
-    public HttpSessionImp(EventLoop localEventLoop, NetEventLoop netEventLoop, HttpSessionManager httpSessionManager, Channel channel) {
-        this.localEventLoop = localEventLoop;
+    public HttpSessionImp(NetContext netContext, NetEventLoop netEventLoop, HttpSessionManager httpSessionManager, Channel channel) {
+        this.netContext = netContext;
         this.netEventLoop = netEventLoop;
         this.httpSessionManager = httpSessionManager;
         this.channel = channel;
     }
 
-    public Channel getChannel() {
+    @Override
+    public long localGuid() {
+        return netContext.localGuid();
+    }
+
+    @Override
+    public NetEventLoop netEventLoop() {
+        return netEventLoop;
+    }
+
+    @Override
+    public EventLoop localEventLoop() {
+        return netContext.localEventLoop();
+    }
+
+    @Override
+    public Channel channel() {
         return channel;
     }
 
@@ -72,13 +89,4 @@ public final class HttpSessionImp implements HttpSession {
         });
     }
 
-    @Override
-    public NetEventLoop netEventLoop() {
-        return netEventLoop;
-    }
-
-    @Override
-    public EventLoop localEventLoop() {
-        return localEventLoop;
-    }
 }

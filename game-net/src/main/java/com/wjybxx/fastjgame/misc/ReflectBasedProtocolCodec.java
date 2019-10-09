@@ -131,11 +131,11 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
                 new MapCodec(),
                 new SetCodec(),
 
-                new ProtoEnumCodec(),
-                new NumberEnumCodec(),
-
                 // 字节数组比较常见
                 new ByteArrayCodec(),
+
+                new ProtoEnumCodec(),
+                new NumberEnumCodec(),
 
                 new BoolCodec(),
                 new ByteCodec(),
