@@ -18,14 +18,14 @@ package com.wjybxx.fastjgame.world;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.onlinenode.WarzoneNodeData;
+import com.wjybxx.fastjgame.mgr.CenterInWarzoneInfoMgr;
 import com.wjybxx.fastjgame.misc.HostAndPort;
-import com.wjybxx.fastjgame.mrg.CenterInWarzoneInfoMrg;
-import com.wjybxx.fastjgame.mrg.WarzoneSendMrg;
-import com.wjybxx.fastjgame.mrg.WarzoneWorldInfoMrg;
-import com.wjybxx.fastjgame.mrg.WorldWrapper;
+import com.wjybxx.fastjgame.mgr.WarzoneSendMgr;
+import com.wjybxx.fastjgame.mgr.WarzoneWorldInfoMgr;
+import com.wjybxx.fastjgame.mgr.WorldWrapper;
 import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.session.Session;
-import com.wjybxx.fastjgame.rpcservice.ICenterInWarzoneInfoMrgRpcRegister;
+import com.wjybxx.fastjgame.rpcservice.ICenterInWarzoneInfoMgrRpcRegister;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.SystemUtils;
@@ -46,13 +46,13 @@ import java.util.concurrent.TimeUnit;
  */
 public class WarzoneWorld extends AbstractWorld {
 
-    private final WarzoneWorldInfoMrg warzoneWorldInfoMrg;
-    private final CenterInWarzoneInfoMrg centerInWarzoneInfoMrg;
-    private final WarzoneSendMrg sendMrg;
+    private final WarzoneWorldInfoMgr warzoneWorldInfoMrg;
+    private final CenterInWarzoneInfoMgr centerInWarzoneInfoMrg;
+    private final WarzoneSendMgr sendMrg;
 
     @Inject
-    public WarzoneWorld(WorldWrapper worldWrapper, WarzoneWorldInfoMrg warzoneWorldInfoMrg,
-                        CenterInWarzoneInfoMrg centerInWarzoneInfoMrg, WarzoneSendMrg sendMrg) {
+    public WarzoneWorld(WorldWrapper worldWrapper, WarzoneWorldInfoMgr warzoneWorldInfoMrg,
+                        CenterInWarzoneInfoMgr centerInWarzoneInfoMrg, WarzoneSendMgr sendMrg) {
         super(worldWrapper);
         this.warzoneWorldInfoMrg = warzoneWorldInfoMrg;
         this.centerInWarzoneInfoMrg = centerInWarzoneInfoMrg;
@@ -61,7 +61,7 @@ public class WarzoneWorld extends AbstractWorld {
 
     @Override
     protected void registerRpcService() {
-        ICenterInWarzoneInfoMrgRpcRegister.register(protocolDispatcherMrg, centerInWarzoneInfoMrg);
+        ICenterInWarzoneInfoMgrRpcRegister.register(protocolDispatcherMgr, centerInWarzoneInfoMrg);
     }
 
     @Override
@@ -77,11 +77,11 @@ public class WarzoneWorld extends AbstractWorld {
     private void bindAndRegisterToZK() throws Exception {
         final CenterLifeAware centerLifeAware = new CenterLifeAware();
         // 绑定jvm内部通信端口
-        innerAcceptorMrg.bindLocalPort(centerLifeAware);
+        innerAcceptorMgr.bindLocalPort(centerLifeAware);
         // 绑定3个内部交互的端口
-        HostAndPort tcpHostAndPort = innerAcceptorMrg.bindInnerTcpPort(centerLifeAware);
-        HostAndPort httpHostAndPort = innerAcceptorMrg.bindInnerHttpPort();
-        HostAndPort localAddress = innerAcceptorMrg.bindLocalTcpPort(centerLifeAware);
+        HostAndPort tcpHostAndPort = innerAcceptorMgr.bindInnerTcpPort(centerLifeAware);
+        HostAndPort httpHostAndPort = innerAcceptorMgr.bindInnerHttpPort();
+        HostAndPort localAddress = innerAcceptorMgr.bindLocalTcpPort(centerLifeAware);
 
         // 注册到zk
         String parentPath = ZKPathUtils.onlineParentPath(warzoneWorldInfoMrg.getWarzoneId());
@@ -91,11 +91,11 @@ public class WarzoneWorld extends AbstractWorld {
                 warzoneWorldInfoMrg.getWorldGuid());
 
         final String path = ZKPaths.makePath(parentPath, nodeName);
-        curatorMrg.waitForNodeDelete(path);
+        curatorMgr.waitForNodeDelete(path);
 
         final byte[] initData = JsonUtils.toJsonBytes(centerNodeData);
         ConcurrentUtils.awaitRemoteWithSleepingRetry(
-                () -> curatorMrg.createNodeIfAbsent(path, CreateMode.EPHEMERAL, initData),
+                () -> curatorMgr.createNodeIfAbsent(path, CreateMode.EPHEMERAL, initData),
                 3, TimeUnit.SECONDS);
     }
 

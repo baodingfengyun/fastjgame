@@ -19,10 +19,10 @@ package com.wjybxx.fastjgame.world;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.onlinenode.LoginNodeData;
 import com.wjybxx.fastjgame.misc.HostAndPort;
-import com.wjybxx.fastjgame.mrg.CenterInLoginInfoMrg;
-import com.wjybxx.fastjgame.mrg.LoginDiscoverMrg;
-import com.wjybxx.fastjgame.mrg.LoginWorldInfoMrg;
-import com.wjybxx.fastjgame.mrg.WorldWrapper;
+import com.wjybxx.fastjgame.mgr.CenterInLoginInfoMgr;
+import com.wjybxx.fastjgame.mgr.LoginDiscoverMgr;
+import com.wjybxx.fastjgame.mgr.LoginWorldInfoMgr;
+import com.wjybxx.fastjgame.mgr.WorldWrapper;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
@@ -40,17 +40,17 @@ import org.apache.zookeeper.CreateMode;
  */
 public class LoginWorld extends AbstractWorld {
 
-    private final LoginDiscoverMrg loginDiscoverMrg;
-    private final LoginWorldInfoMrg loginWorldInfoMrg;
-    private final CenterInLoginInfoMrg centerInLoginInfoMrg;
+    private final LoginDiscoverMgr loginDiscoverMgr;
+    private final LoginWorldInfoMgr loginWorldInfoMrg;
+    private final CenterInLoginInfoMgr centerInLoginInfoMgr;
 
     @Inject
-    public LoginWorld(WorldWrapper worldWrapper, LoginDiscoverMrg loginDiscoverMrg,
-                      CenterInLoginInfoMrg centerInLoginInfoMrg) {
+    public LoginWorld(WorldWrapper worldWrapper, LoginDiscoverMgr loginDiscoverMgr,
+                      CenterInLoginInfoMgr centerInLoginInfoMgr) {
         super(worldWrapper);
-        this.loginDiscoverMrg = loginDiscoverMrg;
-        this.loginWorldInfoMrg = (LoginWorldInfoMrg) worldWrapper.getWorldInfoMrg();
-        this.centerInLoginInfoMrg = centerInLoginInfoMrg;
+        this.loginDiscoverMgr = loginDiscoverMgr;
+        this.loginWorldInfoMrg = (LoginWorldInfoMgr) worldWrapper.getWorldInfoMgr();
+        this.centerInLoginInfoMgr = centerInLoginInfoMgr;
     }
 
     @Override
@@ -66,14 +66,14 @@ public class LoginWorld extends AbstractWorld {
     @Override
     protected void startHook() throws Exception {
         bindAndregisterToZK();
-        loginDiscoverMrg.start();
+        loginDiscoverMgr.start();
     }
 
     private void bindAndregisterToZK() throws Exception {
-        HostAndPort innerHttpAddress = innerAcceptorMrg.bindInnerHttpPort();
-        NetContext netContext = netContextMrg.getNetContext();
+        HostAndPort innerHttpAddress = innerAcceptorMgr.bindInnerHttpPort();
+        NetContext netContext = netContextMgr.getNetContext();
 
-        HostAndPort outerHttpAddress = netContext.bindHttp(NetUtils.getOuterIp(), loginWorldInfoMrg.getPort(), httpDispatcherMrg)
+        HostAndPort outerHttpAddress = netContext.bindHttp(NetUtils.getOuterIp(), loginWorldInfoMrg.getPort(), httpDispatcherMgr)
                 .get().getHostAndPort();
 
         String parentPath = ZKPathUtils.onlineRootPath();
@@ -84,7 +84,7 @@ public class LoginWorld extends AbstractWorld {
 
         final String path = ZKPaths.makePath(parentPath, nodeName);
         final byte[] initData = JsonUtils.toJsonBytes(loginNodeData);
-        curatorMrg.createNode(path, CreateMode.EPHEMERAL, initData);
+        curatorMgr.createNode(path, CreateMode.EPHEMERAL, initData);
     }
 
     @Override
@@ -94,6 +94,6 @@ public class LoginWorld extends AbstractWorld {
 
     @Override
     protected void shutdownHook() {
-        loginDiscoverMrg.shutdown();
+        loginDiscoverMgr.shutdown();
     }
 }

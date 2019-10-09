@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.module;
 
 import com.google.inject.Singleton;
-import com.wjybxx.fastjgame.mrg.*;
+import com.wjybxx.fastjgame.mgr.*;
 import com.wjybxx.fastjgame.world.SceneWorld;
 import com.wjybxx.fastjgame.world.World;
 
@@ -32,23 +32,23 @@ import com.wjybxx.fastjgame.world.World;
 public class SceneModule extends WorldModule {
 
     @Override
-    protected void bindWorldAndWorldInfoMrg() {
-        bind(WorldInfoMrg.class).to(SceneWorldInfoMrg.class).in(Singleton.class);
+    protected void bindWorldAndWorldInfoMgr() {
+        bind(WorldInfoMgr.class).to(SceneWorldInfoMgr.class).in(Singleton.class);
         bind(World.class).to(SceneWorld.class).in(Singleton.class);
-        bind(ProtocolDispatcherMrg.class).to(SceneProtocolDispatcherMrg.class).in(Singleton.class);
+        bind(ProtocolDispatcherMgr.class).to(SceneProtocolDispatcherMgr.class).in(Singleton.class);
     }
 
     @Override
     protected void bindOthers() {
-        bind(SceneWorldInfoMrg.class).in(Singleton.class);
-        bind(CenterInSceneInfoMrg.class).in(Singleton.class);
-        bind(SceneRegionMrg.class).in(Singleton.class);
-        bind(SceneSendMrg.class).in(Singleton.class);
-        bind(MapDataLoadMrg.class).in(Singleton.class);
+        bind(SceneWorldInfoMgr.class).in(Singleton.class);
+        bind(CenterInSceneInfoMgr.class).in(Singleton.class);
+        bind(SceneRegionMgr.class).in(Singleton.class);
+        bind(SceneSendMgr.class).in(Singleton.class);
+        bind(MapDataLoadMgr.class).in(Singleton.class);
         bind(SceneWrapper.class).in(Singleton.class);
-        bind(SceneMrg.class).in(Singleton.class);
-        bind(PlayerSessionMrg.class).in(Singleton.class);
+        bind(SceneMgr.class).in(Singleton.class);
+        bind(PlayerSessionMgr.class).in(Singleton.class);
         // 再绑一次方便食用
-        bind(SceneProtocolDispatcherMrg.class).in(Singleton.class);
+        bind(SceneProtocolDispatcherMgr.class).in(Singleton.class);
     }
 }

@@ -1,11 +1,11 @@
 package com.wjybxx.fastjgame.test;
 
 import com.wjybxx.fastjgame.misc.ResourceCloseHandle;
-import com.wjybxx.fastjgame.mrg.CuratorClientMrg;
-import com.wjybxx.fastjgame.mrg.CuratorMrg;
-import com.wjybxx.fastjgame.mrg.GameConfigMrg;
+import com.wjybxx.fastjgame.mgr.CuratorClientMgr;
+import com.wjybxx.fastjgame.mgr.CuratorMgr;
+import com.wjybxx.fastjgame.mgr.GameConfigMgr;
 import com.wjybxx.fastjgame.utils.TimeUtils;
-import com.wjybxx.fastjgame.mrg.GameEventLoopMrg;
+import com.wjybxx.fastjgame.mgr.GameEventLoopMgr;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
@@ -21,16 +21,16 @@ import java.util.concurrent.locks.LockSupport;
  */
 public class CuratorTest {
 
-    public static CuratorMrg newCuratorMrg() throws Exception {
-        GameConfigMrg gameConfigMrg = new GameConfigMrg();
-        CuratorClientMrg curatorClientMrg = new CuratorClientMrg(gameConfigMrg);
-        GameEventLoopMrg gameEventLoopMrg = new GameEventLoopMrg();
-        return new CuratorMrg(curatorClientMrg, gameEventLoopMrg);
+    public static CuratorMgr newCuratorMrg() throws Exception {
+        GameConfigMgr gameConfigMgr = new GameConfigMgr();
+        CuratorClientMgr curatorClientMgr = new CuratorClientMgr(gameConfigMgr);
+        GameEventLoopMgr gameEventLoopMgr = new GameEventLoopMgr();
+        return new CuratorMgr(curatorClientMgr, gameEventLoopMgr);
     }
 
     public static void main(String[] args) throws Exception {
-        CuratorMrg curatorMrg = newCuratorMrg();
-        ResourceCloseHandle closeHandle = curatorMrg.watchChildren("/", CuratorTest::onEvent);
+        CuratorMgr curatorMgr = newCuratorMrg();
+        ResourceCloseHandle closeHandle = curatorMgr.watchChildren("/", CuratorTest::onEvent);
 
         LockSupport.parkNanos(TimeUtils.NANO_PER_MILLISECOND * TimeUtils.MIN);
 

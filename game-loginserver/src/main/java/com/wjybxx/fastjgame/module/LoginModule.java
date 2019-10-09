@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.module;
 
 import com.google.inject.Singleton;
-import com.wjybxx.fastjgame.mrg.*;
+import com.wjybxx.fastjgame.mgr.*;
 import com.wjybxx.fastjgame.world.LoginWorld;
 import com.wjybxx.fastjgame.world.World;
 
@@ -32,18 +32,18 @@ import com.wjybxx.fastjgame.world.World;
 public class LoginModule extends WorldModule {
 
     @Override
-    protected void bindWorldAndWorldInfoMrg() {
+    protected void bindWorldAndWorldInfoMgr() {
         bind(World.class).to(LoginWorld.class).in(Singleton.class);
-        bind(WorldInfoMrg.class).to(LoginWorldInfoMrg.class).in(Singleton.class);
-        bind(ProtocolDispatcherMrg.class).in(Singleton.class);
+        bind(WorldInfoMgr.class).to(LoginWorldInfoMgr.class).in(Singleton.class);
+        bind(ProtocolDispatcherMgr.class).in(Singleton.class);
     }
 
     @Override
     protected void bindOthers() {
         // 再显式绑定一次，方便直接使用
-        bind(LoginWorldInfoMrg.class).in(Singleton.class);
-        bind(LoginDiscoverMrg.class).in(Singleton.class);
-        bind(CenterInLoginInfoMrg.class).in(Singleton.class);
-        bind(LoginMongoDBMrg.class).in(Singleton.class);
+        bind(LoginWorldInfoMgr.class).in(Singleton.class);
+        bind(LoginDiscoverMgr.class).in(Singleton.class);
+        bind(CenterInLoginInfoMgr.class).in(Singleton.class);
+        bind(LoginMongoDBMgr.class).in(Singleton.class);
     }
 }

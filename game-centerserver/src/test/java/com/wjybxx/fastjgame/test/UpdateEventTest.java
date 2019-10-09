@@ -21,7 +21,7 @@ import com.google.inject.Injector;
 import com.wjybxx.fastjgame.misc.IntSequencer;
 import com.wjybxx.fastjgame.module.CenterModule;
 import com.wjybxx.fastjgame.module.WorldGroupModule;
-import com.wjybxx.fastjgame.mrg.CuratorMrg;
+import com.wjybxx.fastjgame.mgr.CuratorMgr;
 import com.wjybxx.fastjgame.utils.GameUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.curator.utils.ZKPaths;
@@ -45,7 +45,7 @@ public class UpdateEventTest {
         System.setProperty("logPath", logPath);
 
         Injector injector = Guice.createInjector(new WorldGroupModule(), new CenterModule());
-        CuratorMrg curatorMrg = injector.getInstance(CuratorMrg.class);
+        CuratorMgr curatorMgr = injector.getInstance(CuratorMgr.class);
 
         // 注册到zk
         String parentPath = ZKPathUtils.onlineParentPath(1);
@@ -58,11 +58,11 @@ public class UpdateEventTest {
         while (intSequencer.get() < 1000) {
             byte[] data = GameUtils.serializeToStringBytes(intSequencer.incAndGet());
 
-            curatorMrg.delete(pathA);
-            curatorMrg.createNodeIfAbsent(pathA, CreateMode.EPHEMERAL, data);
+            curatorMgr.delete(pathA);
+            curatorMgr.createNodeIfAbsent(pathA, CreateMode.EPHEMERAL, data);
 
-            curatorMrg.delete(pathB);
-            curatorMrg.createNodeIfAbsent(pathB, CreateMode.EPHEMERAL, data);
+            curatorMgr.delete(pathB);
+            curatorMgr.createNodeIfAbsent(pathB, CreateMode.EPHEMERAL, data);
             Thread.sleep(50);
         }
     }

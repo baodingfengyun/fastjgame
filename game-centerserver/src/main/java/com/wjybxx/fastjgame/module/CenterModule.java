@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.module;
 
 import com.google.inject.Singleton;
-import com.wjybxx.fastjgame.mrg.*;
+import com.wjybxx.fastjgame.mgr.*;
 import com.wjybxx.fastjgame.world.CenterWorld;
 import com.wjybxx.fastjgame.world.World;
 
@@ -30,19 +30,19 @@ import com.wjybxx.fastjgame.world.World;
 public class CenterModule extends WorldModule {
 
     @Override
-    protected void bindWorldAndWorldInfoMrg() {
+    protected void bindWorldAndWorldInfoMgr() {
         bind(World.class).to(CenterWorld.class).in(Singleton.class);
-        bind(WorldInfoMrg.class).to(CenterWorldInfoMrg.class).in(Singleton.class);
-        bind(ProtocolDispatcherMrg.class).in(Singleton.class);
+        bind(WorldInfoMgr.class).to(CenterWorldInfoMgr.class).in(Singleton.class);
+        bind(ProtocolDispatcherMgr.class).in(Singleton.class);
     }
 
     @Override
     protected void bindOthers() {
-        bind(CenterWorldInfoMrg.class).in(Singleton.class);
-        bind(CenterDiscoverMrg.class).in(Singleton.class);
-        bind(SceneInCenterInfoMrg.class).in(Singleton.class);
-        bind(WarzoneInCenterInfoMrg.class).in(Singleton.class);
-        bind(CenterMongoDBMrg.class).in(Singleton.class);
-        bind(CenterSendMrg.class).in(Singleton.class);
+        bind(CenterWorldInfoMgr.class).in(Singleton.class);
+        bind(CenterDiscoverMgr.class).in(Singleton.class);
+        bind(SceneInCenterInfoMgr.class).in(Singleton.class);
+        bind(WarzoneInCenterInfoMgr.class).in(Singleton.class);
+        bind(CenterMongoDBMgr.class).in(Singleton.class);
+        bind(CenterSendMgr.class).in(Singleton.class);
     }
 }

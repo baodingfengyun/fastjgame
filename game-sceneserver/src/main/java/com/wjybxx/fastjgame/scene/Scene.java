@@ -24,9 +24,9 @@ import com.wjybxx.fastjgame.gameobject.Npc;
 import com.wjybxx.fastjgame.gameobject.Pet;
 import com.wjybxx.fastjgame.gameobject.Player;
 import com.wjybxx.fastjgame.misc.*;
-import com.wjybxx.fastjgame.mrg.MapDataLoadMrg;
-import com.wjybxx.fastjgame.mrg.SceneSendMrg;
-import com.wjybxx.fastjgame.mrg.SceneWrapper;
+import com.wjybxx.fastjgame.mgr.MapDataLoadMgr;
+import com.wjybxx.fastjgame.mgr.SceneSendMgr;
+import com.wjybxx.fastjgame.mgr.SceneWrapper;
 import com.wjybxx.fastjgame.scene.gameobjectdata.GameObjectType;
 import com.wjybxx.fastjgame.timer.*;
 import com.wjybxx.fastjgame.utils.GameConstant;
@@ -72,8 +72,8 @@ public abstract class Scene {
     private static final long PET_FRAME_INTERVAL = MathUtils.frameInterval(30);
     private static final long NPC_FRAME_INTERVAL = MathUtils.frameInterval(10);
 
-    private final SceneSendMrg sendMrg;
-    private final MapDataLoadMrg mapDataLoadMrg;
+    private final SceneSendMgr sendMrg;
+    private final MapDataLoadMgr mapDataLoadMgr;
 
     /**
      * 该对象上绑定的timer，会随着场景对象的删除而删除
@@ -120,15 +120,15 @@ public abstract class Scene {
     private final GameObjectHandlerMapper<GameObjectSerializer<?>> serializerMapper = new GameObjectHandlerMapper<>();
 
     public Scene(long guid, SceneConfig sceneConfig, SceneWrapper sceneWrapper) {
-        timerSystem = new DefaultTimerSystem(sceneWrapper.getWorldTimeMrg());
+        timerSystem = new DefaultTimerSystem(sceneWrapper.getWorldTimeMgr());
 
         this.guid = guid;
         this.sceneConfig = sceneConfig;
         this.sendMrg = sceneWrapper.getSendMrg();
-        this.mapDataLoadMrg = sceneWrapper.getMapDataLoadMrg();
+        this.mapDataLoadMgr = sceneWrapper.getMapDataLoadMgr();
 
         // 以后再考虑是否需要重用
-        MapData mapData = mapDataLoadMrg.loadMapData(sceneConfig.mapId);
+        MapData mapData = mapDataLoadMgr.loadMapData(sceneConfig.mapId);
         this.viewGridSet = new ViewGridSet(mapData.getMapWidth(),
                 mapData.getMapHeight(),
                 sceneConfig.viewableRange,

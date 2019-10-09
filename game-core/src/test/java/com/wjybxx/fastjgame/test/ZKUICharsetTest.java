@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.test;
 
-import com.wjybxx.fastjgame.mrg.CuratorMrg;
+import com.wjybxx.fastjgame.mgr.CuratorMgr;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.TreeCache;
@@ -34,10 +34,10 @@ import java.nio.charset.StandardCharsets;
  */
 public class ZKUICharsetTest {
     public static void main(String[] args) throws Exception {
-        CuratorMrg curatorMrg = CuratorTest.newCuratorMrg();
+        CuratorMgr curatorMgr = CuratorTest.newCuratorMrg();
 
         TreeCache treeCache = TreeCache
-                .newBuilder(curatorMrg.getClient(), "/")
+                .newBuilder(curatorMgr.getClient(), "/")
                 .build();
         treeCache.getListenable().addListener(ZKUICharsetTest::onEvent);
         treeCache.start();

@@ -5,11 +5,11 @@ import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.core.onlinenode.SceneNodeData;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.misc.HostAndPort;
-import com.wjybxx.fastjgame.mrg.*;
+import com.wjybxx.fastjgame.mgr.*;
 import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.session.Session;
-import com.wjybxx.fastjgame.rpcservice.ICenterInSceneInfoMrgRpcRegister;
-import com.wjybxx.fastjgame.rpcservice.ISceneRegionMrgRpcRegister;
+import com.wjybxx.fastjgame.rpcservice.ICenterInSceneInfoMgrRpcRegister;
+import com.wjybxx.fastjgame.rpcservice.ISceneRegionMgrRpcRegister;
 import com.wjybxx.fastjgame.utils.*;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.CreateMode;
@@ -29,23 +29,23 @@ public class SceneWorld extends AbstractWorld {
 
     private static final Logger logger = LoggerFactory.getLogger(SceneWorld.class);
 
-    private final CenterInSceneInfoMrg centerInSceneInfoMrg;
-    private final SceneRegionMrg sceneRegionMrg;
-    private final SceneWorldInfoMrg sceneWorldInfoMrg;
-    private final SceneSendMrg sendMrg;
-    private final SceneMrg sceneMrg;
-    private final SceneProtocolDispatcherMrg sceneProtocolDispatcherMrg;
+    private final CenterInSceneInfoMgr centerInSceneInfoMgr;
+    private final SceneRegionMgr sceneRegionMrg;
+    private final SceneWorldInfoMgr sceneWorldInfoMrg;
+    private final SceneSendMgr sendMrg;
+    private final SceneMgr sceneMgr;
+    private final SceneProtocolDispatcherMgr sceneProtocolDispatcherMrg;
 
     @Inject
-    public SceneWorld(WorldWrapper worldWrapper, CenterInSceneInfoMrg centerInSceneInfoMrg,
-                      SceneRegionMrg sceneRegionMrg, SceneSendMrg sendMrg, SceneMrg sceneMrg,
-                      SceneProtocolDispatcherMrg sceneProtocolDispatcherMrg) {
+    public SceneWorld(WorldWrapper worldWrapper, CenterInSceneInfoMgr centerInSceneInfoMgr,
+                      SceneRegionMgr sceneRegionMrg, SceneSendMgr sendMrg, SceneMgr sceneMgr,
+                      SceneProtocolDispatcherMgr sceneProtocolDispatcherMrg) {
         super(worldWrapper);
-        this.centerInSceneInfoMrg = centerInSceneInfoMrg;
+        this.centerInSceneInfoMgr = centerInSceneInfoMgr;
         this.sceneRegionMrg = sceneRegionMrg;
-        this.sceneWorldInfoMrg = (SceneWorldInfoMrg) worldWrapper.getWorldInfoMrg();
+        this.sceneWorldInfoMrg = (SceneWorldInfoMgr) worldWrapper.getWorldInfoMgr();
         this.sendMrg = sendMrg;
-        this.sceneMrg = sceneMrg;
+        this.sceneMgr = sceneMgr;
         this.sceneProtocolDispatcherMrg = sceneProtocolDispatcherMrg;
     }
 
@@ -64,8 +64,8 @@ public class SceneWorld extends AbstractWorld {
     @Override
     protected void registerRpcService() {
         // 也可以在管理器里进行注册
-        ISceneRegionMrgRpcRegister.register(protocolDispatcherMrg, sceneRegionMrg);
-        ICenterInSceneInfoMrgRpcRegister.register(protocolDispatcherMrg, centerInSceneInfoMrg);
+        ISceneRegionMgrRpcRegister.register(protocolDispatcherMgr, sceneRegionMrg);
+        ICenterInSceneInfoMgrRpcRegister.register(protocolDispatcherMgr, centerInSceneInfoMgr);
     }
 
     @Override
@@ -85,21 +85,21 @@ public class SceneWorld extends AbstractWorld {
     private void bindAndRegisterToZK() throws Exception {
         final CenterLifeAware centerLifeAware = new CenterLifeAware();
         // 绑定jvm内部通信的端口
-        innerAcceptorMrg.bindLocalPort(centerLifeAware);
+        innerAcceptorMgr.bindLocalPort(centerLifeAware);
         // 绑定3个内部交互的端口
-        HostAndPort innerTcpAddress = innerAcceptorMrg.bindInnerTcpPort(centerLifeAware);
-        HostAndPort innerHttpAddress = innerAcceptorMrg.bindInnerHttpPort();
-        HostAndPort localAddress = innerAcceptorMrg.bindLocalTcpPort(centerLifeAware);
+        HostAndPort innerTcpAddress = innerAcceptorMgr.bindInnerTcpPort(centerLifeAware);
+        HostAndPort innerHttpAddress = innerAcceptorMgr.bindInnerHttpPort();
+        HostAndPort localAddress = innerAcceptorMgr.bindLocalTcpPort(centerLifeAware);
 
         // 绑定与玩家交互的两个端口
         // TODO 这里需要和前端确定到底使用什么通信方式，暂时使用服务器之间机制
-        NetContext netContext = netContextMrg.getNetContext();
+        NetContext netContext = netContextMgr.getNetContext();
 
         HostAndPort outerTcpHostAndPort = netContext.bindTcpRange(NetUtils.getOuterIp(), GameUtils.OUTER_TCP_PORT_RANGE,
-                innerAcceptorMrg.newSocketSessionConfig(new PlayerLifeAware())).get().getHostAndPort();
+                innerAcceptorMgr.newSocketSessionConfig(new PlayerLifeAware())).get().getHostAndPort();
 
         HostAndPort outerWebsocketHostAndPort = netContext.bindWSRange(NetUtils.getOuterIp(), GameUtils.OUTER_WS_PORT_RANGE, "/ws",
-                innerAcceptorMrg.newSocketSessionConfig(new PlayerLifeAware())).get().getHostAndPort();
+                innerAcceptorMgr.newSocketSessionConfig(new PlayerLifeAware())).get().getHostAndPort();
 
         SceneNodeData sceneNodeData = new SceneNodeData(innerTcpAddress.toString(), innerHttpAddress.toString(), localAddress.toString(), SystemUtils.getMAC(),
                 sceneWorldInfoMrg.getChannelId(), outerTcpHostAndPort.toString(), outerWebsocketHostAndPort.toString());
@@ -111,12 +111,12 @@ public class SceneWorld extends AbstractWorld {
         } else {
             nodeName = ZKPathUtils.buildCrossSceneNodeName(sceneWorldInfoMrg.getWorldGuid());
         }
-        curatorMrg.createNode(ZKPaths.makePath(parentPath, nodeName), CreateMode.EPHEMERAL, JsonUtils.toJsonBytes(sceneNodeData));
+        curatorMgr.createNode(ZKPaths.makePath(parentPath, nodeName), CreateMode.EPHEMERAL, JsonUtils.toJsonBytes(sceneNodeData));
     }
 
     @Override
     protected void tickHook() {
-        sceneMrg.tick();
+        sceneMgr.tick();
     }
 
     @Override
@@ -133,7 +133,7 @@ public class SceneWorld extends AbstractWorld {
 
         @Override
         public void onSessionDisconnected(Session session) {
-            centerInSceneInfoMrg.onDisconnect(session.remoteGuid(), SceneWorld.this);
+            centerInSceneInfoMgr.onDisconnect(session.remoteGuid(), SceneWorld.this);
         }
     }
 

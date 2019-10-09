@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.module;
 
 import com.google.inject.Singleton;
-import com.wjybxx.fastjgame.mrg.*;
+import com.wjybxx.fastjgame.mgr.*;
 import com.wjybxx.fastjgame.world.WarzoneWorld;
 import com.wjybxx.fastjgame.world.World;
 
@@ -30,18 +30,18 @@ import com.wjybxx.fastjgame.world.World;
 public class WarzoneModule extends WorldModule {
 
     @Override
-    protected void bindWorldAndWorldInfoMrg() {
+    protected void bindWorldAndWorldInfoMgr() {
         bind(World.class).to(WarzoneWorld.class).in(Singleton.class);
-        bind(WorldInfoMrg.class).to(WarzoneWorldInfoMrg.class).in(Singleton.class);
-        bind(ProtocolDispatcherMrg.class).in(Singleton.class);
+        bind(WorldInfoMgr.class).to(WarzoneWorldInfoMgr.class).in(Singleton.class);
+        bind(ProtocolDispatcherMgr.class).in(Singleton.class);
     }
 
     @Override
     protected void bindOthers() {
         // 方便子类直接使用
-        bind(WarzoneWorldInfoMrg.class).in(Singleton.class);
-        bind(CenterInWarzoneInfoMrg.class).in(Singleton.class);
-        bind(WarzoneMongoDBMrg.class).in(Singleton.class);
-        bind(WarzoneSendMrg.class).in(Singleton.class);
+        bind(WarzoneWorldInfoMgr.class).in(Singleton.class);
+        bind(CenterInWarzoneInfoMgr.class).in(Singleton.class);
+        bind(WarzoneMongoDBMgr.class).in(Singleton.class);
+        bind(WarzoneSendMgr.class).in(Singleton.class);
     }
 }

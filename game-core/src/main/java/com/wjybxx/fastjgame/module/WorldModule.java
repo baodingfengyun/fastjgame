@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.module;
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import com.wjybxx.fastjgame.annotation.EventLoopSingleton;
-import com.wjybxx.fastjgame.mrg.*;
+import com.wjybxx.fastjgame.mgr.*;
 import com.wjybxx.fastjgame.world.World;
 
 /**
@@ -40,35 +40,35 @@ public abstract class WorldModule extends AbstractModule {
         binder().requireExplicitBindings();
         configCore();
 
-        bindWorldAndWorldInfoMrg();
+        bindWorldAndWorldInfoMgr();
 
         bindOthers();
     }
 
     private void configCore() {
-        bind(ProtocolCodecMrg.class).in(Singleton.class);
-        bind(InnerAcceptorMrg.class).in(Singleton.class);
+        bind(ProtocolCodecMgr.class).in(Singleton.class);
+        bind(InnerAcceptorMgr.class).in(Singleton.class);
 
-        bind(NetContextMrg.class).in(Singleton.class);
-        bind(HttpDispatcherMrg.class).in(Singleton.class);
+        bind(NetContextMgr.class).in(Singleton.class);
+        bind(HttpDispatcherMgr.class).in(Singleton.class);
 
-        bind(WorldTimeMrg.class).in(Singleton.class);
-        bind(WorldTimerMrg.class).in(Singleton.class);
+        bind(WorldTimeMgr.class).in(Singleton.class);
+        bind(WorldTimerMgr.class).in(Singleton.class);
 
         bind(WorldWrapper.class).in(Singleton.class);
 
-        bind(GameEventLoopMrg.class).in(Singleton.class);
-        bind(CuratorMrg.class).in(Singleton.class);
-        bind(GuidMrg.class).to(ZkGuidMrg.class).in(Singleton.class);
+        bind(GameEventLoopMgr.class).in(Singleton.class);
+        bind(CuratorMgr.class).in(Singleton.class);
+        bind(GuidMgr.class).to(ZkGuidMgr.class).in(Singleton.class);
 
         // 表格读取 （如果表格全是不可变对象，那么可能是多线程模块中的）
-        bind(TemplateMrg.class).in(Singleton.class);
+        bind(TemplateMgr.class).in(Singleton.class);
     }
 
     /**
-     * 请注意绑定{@link World}类和{@link WorldInfoMrg}
+     * 请注意绑定{@link World}类和{@link WorldInfoMgr}
      */
-    protected abstract void bindWorldAndWorldInfoMrg();
+    protected abstract void bindWorldAndWorldInfoMgr();
 
     /**
      * 绑定其它的类

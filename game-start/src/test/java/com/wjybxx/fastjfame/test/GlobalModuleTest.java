@@ -20,7 +20,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.wjybxx.fastjgame.module.WorldGroupModule;
 import com.wjybxx.fastjgame.module.SceneModule;
-import com.wjybxx.fastjgame.mrg.GameConfigMrg;
+import com.wjybxx.fastjgame.mgr.GameConfigMgr;
 
 /**
  * 测试同一个module在不同的injector中是会保持单例，并不能。
@@ -42,9 +42,9 @@ public class GlobalModuleTest {
 		Injector childModule2 = parentModule.createChildInjector(new SceneModule());
 
 		// 不等。。
-		System.out.println(parentModule.getInstance(GameConfigMrg.class) == injector2.getInstance(GameConfigMrg.class));
+		System.out.println(parentModule.getInstance(GameConfigMgr.class) == injector2.getInstance(GameConfigMgr.class));
 		// 相等
-		System.out.println(parentModule.getInstance(GameConfigMrg.class) == childModule1.getInstance(GameConfigMrg.class));
-		System.out.println(parentModule.getInstance(GameConfigMrg.class) == childModule2.getInstance(GameConfigMrg.class));
+		System.out.println(parentModule.getInstance(GameConfigMgr.class) == childModule1.getInstance(GameConfigMgr.class));
+		System.out.println(parentModule.getInstance(GameConfigMgr.class) == childModule2.getInstance(GameConfigMgr.class));
 	}
 }

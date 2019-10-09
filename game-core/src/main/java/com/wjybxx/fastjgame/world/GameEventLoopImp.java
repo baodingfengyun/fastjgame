@@ -21,7 +21,7 @@ import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.module.WorldGroupModule;
-import com.wjybxx.fastjgame.mrg.GameEventLoopMrg;
+import com.wjybxx.fastjgame.mgr.GameEventLoopMgr;
 import com.wjybxx.fastjgame.timer.DefaultTimerSystem;
 import com.wjybxx.fastjgame.timer.FixedDelayHandle;
 import com.wjybxx.fastjgame.timer.TimerSystem;
@@ -101,8 +101,8 @@ public class GameEventLoopImp extends DisruptorEventLoop implements GameEventLoo
         super.init();
         final Injector worldInjector = groupInjector.createChildInjector(worldStartInfo.worldModule);
         // 发布自己，使得world内部可以访问 - 现在的模型下使用threadLocal也是可以的。
-        final GameEventLoopMrg gameEventLoopMrg = worldInjector.getInstance(GameEventLoopMrg.class);
-        gameEventLoopMrg.publish(this);
+        final GameEventLoopMgr gameEventLoopMgr = worldInjector.getInstance(GameEventLoopMgr.class);
+        gameEventLoopMgr.publish(this);
 
         // 创建world并尝试启动
         this.world = worldInjector.getInstance(World.class);

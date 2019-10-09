@@ -21,7 +21,7 @@ import com.google.inject.Injector;
 import com.wjybxx.fastjgame.misc.ViewGridSet;
 import com.wjybxx.fastjgame.module.WorldGroupModule;
 import com.wjybxx.fastjgame.module.SceneModule;
-import com.wjybxx.fastjgame.mrg.MapDataLoadMrg;
+import com.wjybxx.fastjgame.mgr.MapDataLoadMgr;
 import com.wjybxx.fastjgame.scene.MapData;
 
 /**
@@ -36,9 +36,9 @@ public class MapDataLoadTest {
 
         Injector injector = Guice.createInjector(new WorldGroupModule(), new SceneModule());
 
-        MapDataLoadMrg mapDataLoadMrg = injector.getInstance(MapDataLoadMrg.class);
+        MapDataLoadMgr mapDataLoadMgr = injector.getInstance(MapDataLoadMgr.class);
 
-        MapData mapData = mapDataLoadMrg.loadMapData(1);
+        MapData mapData = mapDataLoadMgr.loadMapData(1);
         ViewGridSet viewGridSet = new ViewGridSet(mapData.getMapWidth(), mapData.getMapHeight(), 600);
         System.out.println(mapData);
     }

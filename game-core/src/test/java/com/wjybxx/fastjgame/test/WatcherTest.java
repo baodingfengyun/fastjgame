@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.test;
 
-import com.wjybxx.fastjgame.mrg.CuratorMrg;
+import com.wjybxx.fastjgame.mgr.CuratorMgr;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import org.apache.curator.framework.api.CuratorWatcher;
 import org.apache.zookeeper.CreateMode;
@@ -41,18 +41,18 @@ public class WatcherTest {
     private static final CountDownLatch countDownLatch = new CountDownLatch(1);
 
     public static void main(String[] args) throws Exception {
-        CuratorMrg curatorMrg = CuratorTest.newCuratorMrg();
+        CuratorMgr curatorMgr = CuratorTest.newCuratorMrg();
 
         // checkExist 使用watcher之后
         // 1. 如果当前节点不存在，会在节点创建之后收到通知
         // 2. 如果节点存在，则会在节点删除之后收到通知
-        Stat stat = curatorMrg.getClient().checkExists().usingWatcher((CuratorWatcher) WatcherTest::existCallBack).forPath(path);
+        Stat stat = curatorMgr.getClient().checkExists().usingWatcher((CuratorWatcher) WatcherTest::existCallBack).forPath(path);
         if (null == stat) {
             System.out.println("path " + path + " non-exist");
-            curatorMrg.createNode(path, CreateMode.PERSISTENT, "checkExists".getBytes(StandardCharsets.UTF_8));
+            curatorMgr.createNode(path, CreateMode.PERSISTENT, "checkExists".getBytes(StandardCharsets.UTF_8));
         } else {
             System.out.println("path " + path + " already exists");
-            curatorMrg.delete(path);
+            curatorMgr.delete(path);
         }
 
         // 等待回调完成

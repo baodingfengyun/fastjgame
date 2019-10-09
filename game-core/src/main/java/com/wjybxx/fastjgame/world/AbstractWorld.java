@@ -20,7 +20,7 @@ import com.google.inject.Inject;
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
 import com.wjybxx.fastjgame.misc.MessageMappingStrategy;
 import com.wjybxx.fastjgame.misc.RoleType;
-import com.wjybxx.fastjgame.mrg.*;
+import com.wjybxx.fastjgame.mgr.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,36 +39,36 @@ public abstract class AbstractWorld implements World {
     private static final Logger logger = LoggerFactory.getLogger(AbstractWorld.class);
 
     protected final WorldWrapper worldWrapper;
-    protected final GameEventLoopMrg gameEventLoopMrg;
-    protected final ProtocolDispatcherMrg protocolDispatcherMrg;
-    protected final WorldTimeMrg worldTimeMrg;
-    protected final ProtocolCodecMrg protocolCodecMrg;
-    protected final WorldTimerMrg worldTimerMrg;
-    protected final HttpDispatcherMrg httpDispatcherMrg;
-    protected final WorldInfoMrg worldInfoMrg;
+    protected final GameEventLoopMgr gameEventLoopMgr;
+    protected final ProtocolDispatcherMgr protocolDispatcherMgr;
+    protected final WorldTimeMgr worldTimeMgr;
+    protected final ProtocolCodecMgr protocolCodecMgr;
+    protected final WorldTimerMgr worldTimerMgr;
+    protected final HttpDispatcherMgr httpDispatcherMgr;
+    protected final WorldInfoMgr worldInfoMgr;
     protected final GlobalExecutorMrg globalExecutorMrg;
-    protected final CuratorMrg curatorMrg;
-    protected final GameConfigMrg gameConfigMrg;
-    protected final GuidMrg guidMrg;
-    protected final InnerAcceptorMrg innerAcceptorMrg;
-    protected final NetContextMrg netContextMrg;
+    protected final CuratorMgr curatorMgr;
+    protected final GameConfigMgr gameConfigMgr;
+    protected final GuidMgr guidMgr;
+    protected final InnerAcceptorMgr innerAcceptorMgr;
+    protected final NetContextMgr netContextMgr;
 
     @Inject
     public AbstractWorld(WorldWrapper worldWrapper) {
         this.worldWrapper = worldWrapper;
-        this.gameEventLoopMrg = worldWrapper.getGameEventLoopMrg();
-        protocolDispatcherMrg = worldWrapper.getProtocolDispatcherMrg();
-        worldTimeMrg = worldWrapper.getWorldTimeMrg();
-        protocolCodecMrg = worldWrapper.getProtocolCodecMrg();
-        worldTimerMrg = worldWrapper.getWorldTimerMrg();
-        httpDispatcherMrg = worldWrapper.getHttpDispatcherMrg();
-        worldInfoMrg = worldWrapper.getWorldInfoMrg();
+        this.gameEventLoopMgr = worldWrapper.getGameEventLoopMgr();
+        protocolDispatcherMgr = worldWrapper.getProtocolDispatcherMgr();
+        worldTimeMgr = worldWrapper.getWorldTimeMgr();
+        protocolCodecMgr = worldWrapper.getProtocolCodecMgr();
+        worldTimerMgr = worldWrapper.getWorldTimerMgr();
+        httpDispatcherMgr = worldWrapper.getHttpDispatcherMgr();
+        worldInfoMgr = worldWrapper.getWorldInfoMgr();
         globalExecutorMrg = worldWrapper.getGlobalExecutorMrg();
-        curatorMrg = worldWrapper.getCuratorMrg();
-        gameConfigMrg = worldWrapper.getGameConfigMrg();
-        guidMrg = worldWrapper.getGuidMrg();
-        innerAcceptorMrg = worldWrapper.getInnerAcceptorMrg();
-        netContextMrg = worldWrapper.getNetContextMrg();
+        curatorMgr = worldWrapper.getCuratorMgr();
+        gameConfigMgr = worldWrapper.getGameConfigMgr();
+        guidMgr = worldWrapper.getGuidMgr();
+        innerAcceptorMgr = worldWrapper.getInnerAcceptorMgr();
+        netContextMgr = worldWrapper.getNetContextMgr();
     }
 
     /**
@@ -86,7 +86,7 @@ public abstract class AbstractWorld implements World {
      * @param mappingStrategy 消息id到消息映射策略
      */
     protected final void registerProtocolCodec(String name, MessageMappingStrategy mappingStrategy) throws Exception {
-        protocolCodecMrg.registerProtocolCodec(name, mappingStrategy);
+        protocolCodecMgr.registerProtocolCodec(name, mappingStrategy);
     }
 
     // --------------------------------- rpc请求、玩家消息、http请求处理器注册--------------------------
@@ -116,20 +116,20 @@ public abstract class AbstractWorld implements World {
 
     @Override
     public final long worldGuid() {
-        return worldInfoMrg.getWorldGuid();
+        return worldInfoMgr.getWorldGuid();
     }
 
     @Nonnull
     @Override
     public final RoleType worldRole() {
-        return worldInfoMrg.getWorldType();
+        return worldInfoMgr.getWorldType();
     }
 
     public final void startUp(ConfigWrapper startArgs) throws Exception {
         // 必须先初始world信息
-        worldInfoMrg.init(startArgs);
+        worldInfoMgr.init(startArgs);
         // 初始化网络上下文
-        netContextMrg.start();
+        netContextMgr.start();
 
         // 初始化网络层需要的组件(codec帮助类)
         registerProtocolCodecs();
@@ -143,7 +143,7 @@ public abstract class AbstractWorld implements World {
         startHook();
 
         // 启动成功，时间切换到缓存策略
-        worldTimeMrg.changeToCacheStrategy();
+        worldTimeMgr.changeToCacheStrategy();
     }
 
     /**
@@ -166,8 +166,8 @@ public abstract class AbstractWorld implements World {
      */
     private void tickCore(long curMillTime) {
         // 优先更新系统时间缓存
-        worldTimeMrg.update(curMillTime);
-        worldTimerMrg.tick();
+        worldTimeMgr.update(curMillTime);
+        worldTimerMgr.tick();
     }
 
     /**
@@ -183,7 +183,7 @@ public abstract class AbstractWorld implements World {
             return;
         }
         // 关闭期间可能较为耗时，切换到实时策略
-        worldTimeMrg.changeToRealTimeStrategy();
+        worldTimeMgr.changeToRealTimeStrategy();
 
         try {
             shutdownHook();
@@ -199,10 +199,10 @@ public abstract class AbstractWorld implements World {
      * 关闭公共服务
      */
     private void shutdownCore() {
-        netContextMrg.shutdown();
-        curatorMrg.shutdown();
-        protocolDispatcherMrg.release();
-        httpDispatcherMrg.release();
+        netContextMgr.shutdown();
+        curatorMgr.shutdown();
+        protocolDispatcherMgr.release();
+        httpDispatcherMgr.release();
     }
 
     /**
@@ -217,7 +217,7 @@ public abstract class AbstractWorld implements World {
      */
     @Nonnull
     protected final GameEventLoop gameEventLoop() {
-        return gameEventLoopMrg.getEventLoop();
+        return gameEventLoopMgr.getEventLoop();
     }
 
 }

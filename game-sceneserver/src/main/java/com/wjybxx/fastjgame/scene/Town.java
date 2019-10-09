@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.scene;
 
 import com.wjybxx.fastjgame.config.SceneConfig;
 import com.wjybxx.fastjgame.misc.SceneType;
-import com.wjybxx.fastjgame.mrg.SceneWrapper;
+import com.wjybxx.fastjgame.mgr.SceneWrapper;
 
 /**
  * 城镇场景，不销毁；

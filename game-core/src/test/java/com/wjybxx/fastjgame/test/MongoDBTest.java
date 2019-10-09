@@ -16,9 +16,9 @@
 
 package com.wjybxx.fastjgame.test;
 
-import com.wjybxx.fastjgame.mrg.CuratorMrg;
-import com.wjybxx.fastjgame.mrg.GameConfigMrg;
-import com.wjybxx.fastjgame.mrg.MongoDBMrg;
+import com.wjybxx.fastjgame.mgr.CuratorMgr;
+import com.wjybxx.fastjgame.mgr.GameConfigMgr;
+import com.wjybxx.fastjgame.mgr.MongoDBMgr;
 
 /**
  * @author wjybxx
@@ -29,17 +29,17 @@ import com.wjybxx.fastjgame.mrg.MongoDBMrg;
 public class MongoDBTest {
 
     public static void main(String[] args) throws Exception {
-        GameConfigMrg gameConfigMrg = new GameConfigMrg();
-        CuratorMrg curatorMrg = CuratorTest.newCuratorMrg();
-        MongoDBMrg mongoDBMrg = new MongoDBMrgImp(gameConfigMrg, curatorMrg);
+        GameConfigMgr gameConfigMgr = new GameConfigMgr();
+        CuratorMgr curatorMgr = CuratorTest.newCuratorMrg();
+        MongoDBMgr mongoDBMgr = new MongoDBMgrImp(gameConfigMgr, curatorMgr);
 
         System.out.println("在这里打个断点,使用idea debug 界面测试");
     }
 
-    private static class MongoDBMrgImp extends MongoDBMrg {
+    private static class MongoDBMgrImp extends MongoDBMgr {
 
-        public MongoDBMrgImp(GameConfigMrg gameConfigMrg, CuratorMrg curatorMrg) throws Exception {
-            super(gameConfigMrg, curatorMrg);
+        public MongoDBMgrImp(GameConfigMgr gameConfigMgr, CuratorMgr curatorMgr) throws Exception {
+            super(gameConfigMgr, curatorMgr);
         }
 
         @Override

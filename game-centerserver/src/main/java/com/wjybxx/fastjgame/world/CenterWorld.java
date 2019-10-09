@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.world;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.onlinenode.CenterNodeData;
 import com.wjybxx.fastjgame.misc.HostAndPort;
-import com.wjybxx.fastjgame.mrg.*;
+import com.wjybxx.fastjgame.mgr.*;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
@@ -40,21 +40,21 @@ import java.util.concurrent.TimeUnit;
  */
 public class CenterWorld extends AbstractWorld {
 
-    private final CenterDiscoverMrg centerDiscoverMrg;
-    private final SceneInCenterInfoMrg sceneInCenterInfoMrg;
-    private final CenterWorldInfoMrg centerWorldInfoMrg;
-    private final WarzoneInCenterInfoMrg warzoneInCenterInfoMrg;
-    private final CenterSendMrg sendMrg;
+    private final CenterDiscoverMgr centerDiscoverMgr;
+    private final SceneInCenterInfoMgr sceneInCenterInfoMgr;
+    private final CenterWorldInfoMgr centerWorldInfoMgr;
+    private final WarzoneInCenterInfoMgr warzoneInCenterInfoMgr;
+    private final CenterSendMgr sendMgr;
 
     @Inject
-    public CenterWorld(WorldWrapper worldWrapper, CenterDiscoverMrg centerDiscoverMrg,
-                       SceneInCenterInfoMrg sceneInCenterInfoMrg, WarzoneInCenterInfoMrg warzoneInCenterInfoMrg, CenterSendMrg sendMrg) {
+    public CenterWorld(WorldWrapper worldWrapper, CenterDiscoverMgr centerDiscoverMgr,
+                       SceneInCenterInfoMgr sceneInCenterInfoMgr, WarzoneInCenterInfoMgr warzoneInCenterInfoMgr, CenterSendMgr sendMgr) {
         super(worldWrapper);
-        this.centerDiscoverMrg = centerDiscoverMrg;
-        this.sceneInCenterInfoMrg = sceneInCenterInfoMrg;
-        centerWorldInfoMrg = (CenterWorldInfoMrg) worldWrapper.getWorldInfoMrg();
-        this.warzoneInCenterInfoMrg = warzoneInCenterInfoMrg;
-        this.sendMrg = sendMrg;
+        this.centerDiscoverMgr = centerDiscoverMgr;
+        this.sceneInCenterInfoMgr = sceneInCenterInfoMgr;
+        centerWorldInfoMgr = (CenterWorldInfoMgr) worldWrapper.getWorldInfoMgr();
+        this.warzoneInCenterInfoMgr = warzoneInCenterInfoMgr;
+        this.sendMgr = sendMgr;
     }
 
     @Override
@@ -73,26 +73,26 @@ public class CenterWorld extends AbstractWorld {
         bindAndRegisterToZK();
 
         // 注册成功再启动服务发现
-        centerDiscoverMrg.start();
+        centerDiscoverMgr.start();
     }
 
     private void bindAndRegisterToZK() throws Exception {
         // 它主动发起连接，不监听tcp，只监听http即可
-        HostAndPort httpHostAndPort = innerAcceptorMrg.bindInnerHttpPort();
+        HostAndPort httpHostAndPort = innerAcceptorMgr.bindInnerHttpPort();
 
         // 注册到zk
-        String parentPath = ZKPathUtils.onlineParentPath(centerWorldInfoMrg.getWarzoneId());
-        String nodeName = ZKPathUtils.buildCenterNodeName(centerWorldInfoMrg.getPlatformType(), centerWorldInfoMrg.getServerId());
+        String parentPath = ZKPathUtils.onlineParentPath(centerWorldInfoMgr.getWarzoneId());
+        String nodeName = ZKPathUtils.buildCenterNodeName(centerWorldInfoMgr.getPlatformType(), centerWorldInfoMgr.getServerId());
 
         CenterNodeData centerNodeData = new CenterNodeData(httpHostAndPort.toString(),
-                centerWorldInfoMrg.getWorldGuid());
+                centerWorldInfoMgr.getWorldGuid());
 
         final String path = ZKPaths.makePath(parentPath, nodeName);
-        curatorMrg.waitForNodeDelete(path);
+        curatorMgr.waitForNodeDelete(path);
 
         final byte[] initData = JsonUtils.toJsonBytes(centerNodeData);
         ConcurrentUtils.awaitRemoteWithSleepingRetry(
-                () -> curatorMrg.createNodeIfAbsent(path, CreateMode.EPHEMERAL, initData),
+                () -> curatorMgr.createNodeIfAbsent(path, CreateMode.EPHEMERAL, initData),
                 3, TimeUnit.SECONDS);
     }
 
@@ -103,6 +103,6 @@ public class CenterWorld extends AbstractWorld {
 
     @Override
     protected void shutdownHook() throws IOException {
-        centerDiscoverMrg.shutdown();
+        centerDiscoverMgr.shutdown();
     }
 }

@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.test;
 
-import com.wjybxx.fastjgame.mrg.CuratorMrg;
+import com.wjybxx.fastjgame.mgr.CuratorMgr;
 
 /**
  * @author wjybxx
@@ -30,10 +30,10 @@ public class BarrierTest {
 
     @SuppressWarnings("deprecation")
     public static void main(String[] args) throws Exception {
-        CuratorMrg curatorMrg = CuratorTest.newCuratorMrg();
+        CuratorMgr curatorMgr = CuratorTest.newCuratorMrg();
 
         System.out.println("------start wait------");
-        curatorMrg.waitForNodeDelete(path);
+        curatorMgr.waitForNodeDelete(path);
         System.out.println("------ weak  up ------");
     }
 }
