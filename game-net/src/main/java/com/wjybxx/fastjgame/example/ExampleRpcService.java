@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.example;
 
+import com.wjybxx.fastjgame.annotation.LazySerializable;
 import com.wjybxx.fastjgame.annotation.RpcMethod;
 import com.wjybxx.fastjgame.annotation.RpcService;
 import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
@@ -91,5 +92,23 @@ public class ExampleRpcService {
     @RpcMethod(methodId = 9)
     public ExampleMessages.FullMessage echo(ExampleMessages.FullMessage message) {
         return message;
+    }
+
+    /**
+     * 转发消息给player
+     *
+     * @param playerGuid 玩家标识，用在非byte[]上没有用
+     * @param proto      生成的代理方法类型为Object
+     * @param extra      额外信息
+     */
+    @RpcMethod(methodId = 10)
+    public void sendToPlayer(@LazySerializable long playerGuid,
+                             @LazySerializable byte[] proto,
+                             @LazySerializable byte[] extra,
+                             byte[] any) {
+        System.out.println("playerGuid " + playerGuid +
+                " , protoLength = " + proto.length +
+                " , extraLength = " + extra.length + "" +
+                " , anyLength = " + any.length);
     }
 }

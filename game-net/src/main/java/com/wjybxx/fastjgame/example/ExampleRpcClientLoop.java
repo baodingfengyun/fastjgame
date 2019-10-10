@@ -138,6 +138,11 @@ public class ExampleRpcClientLoop extends DisruptorEventLoop {
                 .ifSuccess(result -> System.out.println("incWithSessionAndChannel - " + index + " - " + result))
                 .call(session);
 
+        // 模拟通过网关发送给玩家
+        ExampleRpcServiceRpcProxy.sendToPlayer(12345, "这里后期替换为protoBuf消息", new byte[]{1, 2, 3}, new byte[]{9, 9, 9})
+                .ifSuccess(result -> System.out.println("sendToPlayer - " + index + " - invoke success"))
+                .call(session);
+
         // 模拟广播X次
         final RpcBuilder<?> builder = ExampleRpcServiceRpcProxy.notifySuccess(index);
         IntStream.rangeClosed(1, 3).forEach(i -> builder.send(session));

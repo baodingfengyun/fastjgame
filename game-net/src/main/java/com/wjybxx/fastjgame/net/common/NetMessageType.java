@@ -59,14 +59,9 @@ public enum NetMessageType implements NumberEnum {
     ONE_WAY_MESSAGE(6),
 
     /**
-     * 转发包
-     */
-    FORWARD(7),
-
-    /**
      * 主动断开连接
      */
-    DISCONNECT(8);
+    DISCONNECT(7);
 
     public final byte pkgType;
 

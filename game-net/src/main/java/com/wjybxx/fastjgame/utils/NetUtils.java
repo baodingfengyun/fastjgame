@@ -19,6 +19,8 @@ package com.wjybxx.fastjgame.utils;
 import com.wjybxx.fastjgame.annotation.UnstableApi;
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
 import com.wjybxx.fastjgame.manager.NetConfigManager;
+import com.wjybxx.fastjgame.misc.RpcCall;
+import com.wjybxx.fastjgame.net.common.ProtocolCodec;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
@@ -307,6 +309,28 @@ public class NetUtils {
     }
 
     /**
+     * 检查延迟初始化
+     *
+     * @param rpcCall 方法调用信息
+     * @param codec   序列化实现
+     * @throws IOException error
+     */
+    public static void checkLazySerialize(RpcCall rpcCall, ProtocolCodec codec) throws IOException {
+        if (rpcCall.getLazyIndexes() <= 0) {
+            return;
+        }
+        for (int index = 0, end = rpcCall.getMethodParams().size(); index < end; index++) {
+            if ((rpcCall.getLazyIndexes() & (1L << index)) != 0) {
+                final Object parameter = rpcCall.getMethodParams().get(index);
+                if (parameter instanceof byte[]) {
+                    continue;
+                }
+                rpcCall.getMethodParams().set(index, codec.serializeToBytes(parameter));
+            }
+        }
+    }
+
+    /**
      * 设置channel性能偏好.
      * <p>
      * 可参考 - https://blog.csdn.net/zero__007/article/details/51723434
@@ -334,4 +358,5 @@ public class NetUtils {
         System.out.println("localIp " + localIp);
         System.out.println("outerIp " + outerIp);
     }
+
 }

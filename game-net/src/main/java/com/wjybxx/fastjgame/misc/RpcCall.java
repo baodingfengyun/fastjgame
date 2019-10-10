@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.misc;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.wjybxx.fastjgame.annotation.SerializableClass;
 import com.wjybxx.fastjgame.annotation.SerializableField;
 
@@ -47,15 +48,23 @@ public class RpcCall {
     @SerializableField(number = 2)
     private final List<Object> methodParams;
 
+    /**
+     * 需要延迟序列化为byte[]的参数位置信息 - 不序列化。
+     */
+    @JsonIgnore
+    private final int lazyIndexes;
+
     // 反射创建对象
     private RpcCall() {
         methodKey = -1;
         methodParams = null;
+        lazyIndexes = 0;
     }
 
-    public RpcCall(int methodKey, List<Object> methodParams) {
+    public RpcCall(int methodKey, List<Object> methodParams, int lazyIndexes) {
         this.methodKey = methodKey;
         this.methodParams = methodParams;
+        this.lazyIndexes = lazyIndexes;
     }
 
     public int getMethodKey() {
@@ -66,4 +75,7 @@ public class RpcCall {
         return methodParams;
     }
 
+    public int getLazyIndexes() {
+        return lazyIndexes;
+    }
 }

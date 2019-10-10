@@ -52,7 +52,8 @@ public interface ProtocolCodec {
      * @return 编码后的字节数组
      * @throws IOException error
      */
-    ByteBuf writeObject(ByteBufAllocator bufAllocator, @Nonnull Object object) throws IOException;
+    @Nonnull
+    ByteBuf writeObject(ByteBufAllocator bufAllocator, @Nullable Object object) throws IOException;
 
     /**
      * 读取一个对象
@@ -72,4 +73,23 @@ public interface ProtocolCodec {
      * @throws IOException error
      */
     Object cloneObject(@Nullable Object object) throws IOException;
+
+    /**
+     * 将一个对象序列化为字节数组，为了直接转发到玩家，该格式应当是兼容的。
+     * (服务器之间、玩家与服务器之间对于protoBuf的编码格式应当是相同的)
+     *
+     * @param obj 待序列化的对象 - 当前不是字节数组
+     * @return 字节数组
+     */
+    @Nonnull
+    byte[] serializeToBytes(@Nullable Object obj) throws IOException;
+
+    /**
+     * 将一个对象反序列化。
+     * (服务器之间、玩家与服务器之间对于protoBuf的编码格式应当是相同的)
+     *
+     * @param data 序列化后的数组
+     * @return 反序列化的结果
+     */
+    Object deserializeToBytes(@Nonnull byte[] data) throws IOException;
 }

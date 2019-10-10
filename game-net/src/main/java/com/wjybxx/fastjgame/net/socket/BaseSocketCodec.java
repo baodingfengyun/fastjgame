@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
+import com.wjybxx.fastjgame.misc.RpcCall;
 import com.wjybxx.fastjgame.net.common.*;
 import com.wjybxx.fastjgame.utils.CodecUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
@@ -349,6 +350,8 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
         return new SocketMessageEvent(channel, sessionId, sequence, ack, oneWayMessage);
     }
 
+    // ---------------------------------------------- 分割线 ----------------------------------------------------
+
     /**
      * 尝试合并协议头和身体
      *
@@ -371,6 +374,10 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
      */
     private ByteBuf tryEncodeBody(ByteBufAllocator allocator, Object bodyData) {
         try {
+            // 检查延迟初始化
+            if (bodyData instanceof RpcCall) {
+                NetUtils.checkLazySerialize((RpcCall) bodyData, codec);
+            }
             return codec.writeObject(allocator, bodyData);
         } catch (Exception e) {
             // 为了不影响该连接上的其它消息，需要捕获异常

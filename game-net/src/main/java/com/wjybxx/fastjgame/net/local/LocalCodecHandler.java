@@ -16,9 +16,11 @@
 
 package com.wjybxx.fastjgame.net.local;
 
+import com.wjybxx.fastjgame.misc.RpcCall;
 import com.wjybxx.fastjgame.net.common.*;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 import com.wjybxx.fastjgame.net.session.SessionOutboundHandlerAdapter;
+import com.wjybxx.fastjgame.utils.NetUtils;
 
 /**
  * 对于在JVM内传输的数据，进行保护性拷贝。
@@ -46,6 +48,10 @@ public class LocalCodecHandler extends SessionOutboundHandlerAdapter {
         if (msg instanceof RpcRequestMessage) {
             // rpc请求
             RpcRequestMessage rpcRequestMessage = (RpcRequestMessage) msg;
+            // 检查延迟序列化的属性
+            if (rpcRequestMessage.getRequest() instanceof RpcCall) {
+                NetUtils.checkLazySerialize((RpcCall) rpcRequestMessage.getRequest(), codec);
+            }
             rpcRequestMessage.setRequest(codec.cloneObject(rpcRequestMessage.getRequest()));
         } else if (msg instanceof RpcResponseMessage) {
             // rpc响应
@@ -56,6 +62,10 @@ public class LocalCodecHandler extends SessionOutboundHandlerAdapter {
         } else if (msg instanceof OneWayMessage) {
             // 单向消息
             OneWayMessage oneWayMessage = (OneWayMessage) msg;
+            // 检查延迟序列化的属性
+            if (oneWayMessage.getMessage() instanceof RpcCall) {
+                NetUtils.checkLazySerialize((RpcCall) oneWayMessage.getMessage(), codec);
+            }
             oneWayMessage.setMessage(codec.cloneObject(oneWayMessage.getMessage()));
         }
         // 传递给下一个handler

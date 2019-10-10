@@ -373,4 +373,20 @@ public class AutoUtils {
 
         }, null);
     }
+
+    public static boolean isTargetArrayType(VariableElement variableElement, TypeKind primitiveType) {
+        return variableElement.asType().accept(new SimpleTypeVisitor8<Boolean, Void>() {
+
+            @Override
+            public Boolean visitArray(ArrayType t, Void aVoid) {
+                return t.getComponentType().getKind() == primitiveType;
+            }
+
+            @Override
+            protected Boolean defaultAction(TypeMirror e, Void aVoid) {
+                return false;
+            }
+
+        }, null);
+    }
 }

@@ -14,25 +14,18 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.test;
-
-import com.wjybxx.fastjgame.misc.DefaultRpcBuilder;
-import com.wjybxx.fastjgame.net.common.RpcResponse;
-
-import java.util.Collections;
+package com.wjybxx.fastjgame.annotation;
 
 /**
+ * 可预反序列化的，与{@link LazySerializable}配对，其实它的实现难度高于{@link LazySerializable}，暂时先不处理它。
+ * 等待确实需要的时候再说。
+ * 它需要知道即将被调用的方法的信息，才可以做到。
+ *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/23
+ * date - 2019/10/10
+ * github - https://github.com/hl845740757
  */
-public class BuilderTest {
+public @interface PreDeserializable {
 
-    @SuppressWarnings("unchecked")
-    public static void main(String[] args) {
-        final DefaultRpcBuilder<String> builder = new DefaultRpcBuilder<>(1, Collections.EMPTY_LIST, 0);
-        final RpcResponse sync = builder.sync(null);
-        System.out.println(sync);
-        builder.call(null);
-    }
 }

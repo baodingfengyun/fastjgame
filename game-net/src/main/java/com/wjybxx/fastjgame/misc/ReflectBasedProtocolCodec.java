@@ -155,8 +155,10 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         };
     }
 
+    @Nonnull
     @Override
-    public ByteBuf writeObject(ByteBufAllocator bufAllocator, @Nonnull Object object) throws IOException {
+    public ByteBuf writeObject(ByteBufAllocator bufAllocator, @Nullable Object object) throws IOException {
+        // 这里的测试结果是：拷贝字节数组，比先计算一次大小，再写入ByteBuf快，而且快很多。
         final byte[] localBuffer = LOCAL_BUFFER.get();
         // 减少字节数组创建，即使使用输出流构造，其内部还是做了缓存。
         CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(localBuffer);
@@ -191,6 +193,24 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
             }
         }
         throw new IOException("unsupported class " + object.getClass().getName());
+    }
+
+    @Nonnull
+    @Override
+    public byte[] serializeToBytes(@Nullable Object obj) throws IOException {
+        // 这里测试也是拷贝字节数组快于先计算大小（两轮反射）
+        final byte[] localBuffer = LOCAL_BUFFER.get();
+        CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(localBuffer);
+        writeObject(codedOutputStream, obj);
+
+        final byte[] resultBytes = new byte[codedOutputStream.getTotalBytesWritten()];
+        System.arraycopy(localBuffer, 0, resultBytes, 0, resultBytes.length);
+        return resultBytes;
+    }
+
+    @Override
+    public Object deserializeToBytes(@Nonnull byte[] data) throws IOException {
+        return readObject(CodedInputStream.newInstance(data));
     }
 
     @SuppressWarnings("unchecked")

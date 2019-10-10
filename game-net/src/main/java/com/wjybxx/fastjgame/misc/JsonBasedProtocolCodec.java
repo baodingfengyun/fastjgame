@@ -48,8 +48,12 @@ public class JsonBasedProtocolCodec implements ProtocolCodec {
         this.messageMapper = messageMapper;
     }
 
+    @Nonnull
     @Override
-    public ByteBuf writeObject(ByteBufAllocator bufAllocator, @Nonnull Object obj) throws IOException {
+    public ByteBuf writeObject(ByteBufAllocator bufAllocator, @Nullable Object obj) throws IOException {
+        if (null == obj) {
+            return bufAllocator.buffer(0);
+        }
         ByteBuf cacheBuffer = Unpooled.wrappedBuffer(LOCAL_BUFFER.get());
         try {
             // wrap会认为bytes中的数据都是可读的，我们需要清空这些标记。
@@ -96,6 +100,47 @@ public class JsonBasedProtocolCodec implements ProtocolCodec {
             return JsonUtils.getMapper().readValue((InputStream) byteBufInputStream, obj.getClass());
         } finally {
             cacheBuffer.release();
+        }
+    }
+
+    @Nonnull
+    @Override
+    public byte[] serializeToBytes(@Nullable Object obj) throws IOException {
+        if (null == obj) {
+            return new byte[0];
+        }
+        final byte[] localBuffer = LOCAL_BUFFER.get();
+        ByteBuf cacheBuffer = Unpooled.wrappedBuffer(localBuffer);
+        try {
+            // wrap会认为bytes中的数据都是可读的，我们需要清空这些标记。
+            cacheBuffer.clear();
+
+            ByteBufOutputStream byteBufOutputStream = new ByteBufOutputStream(cacheBuffer);
+            // 协议classId
+            int messageId = messageMapper.getMessageId(obj.getClass());
+            byteBufOutputStream.writeInt(messageId);
+            // 写入序列化的内容
+            JsonUtils.getMapper().writeValue((OutputStream) byteBufOutputStream, obj);
+
+            // 拷贝结果
+            byte[] result = new byte[cacheBuffer.readableBytes()];
+            System.arraycopy(localBuffer, 0, result, 0, result.length);
+            return result;
+        } finally {
+            cacheBuffer.release();
+        }
+    }
+
+    @Override
+    public Object deserializeToBytes(@Nonnull byte[] data) throws IOException {
+        if (data.length == 0) {
+            return null;
+        }
+        ByteBuf byteBuf = Unpooled.wrappedBuffer(data);
+        try {
+            return readObject(byteBuf);
+        } finally {
+            byteBuf.release();
         }
     }
 }
