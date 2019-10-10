@@ -38,7 +38,7 @@ public class RpcRequestMessage implements NetMessage {
      */
     private final boolean sync;
     /**
-     * rpc请求内容
+     * rpc请求内容 - 默认实现为{@link com.wjybxx.fastjgame.misc.RpcCall}
      */
     private Object request;
 

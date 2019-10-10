@@ -224,7 +224,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
     // ---------------------------------------------- 心跳协议  ---------------------------------------
 
     /**
-     * 编码协议3/4 ping-pong
+     * 心跳协议编码
      */
     private void writeAckPingPongMessage(ChannelHandlerContext ctx, long ack, SocketMessage socketMessage, ChannelPromise promise) {
         ByteBuf byteBuf = newHeadByteBuf(ctx, 8 + 8, NetMessageType.PING_PONG);
@@ -236,7 +236,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
     }
 
     /**
-     * 解码协议3/4 - ping-pong
+     * 心跳协议解码
      */
     final SocketMessageEvent readAckPingPongMessage(Channel channel, String sessionId, ByteBuf msg) {
         long sequence = msg.readLong();
@@ -248,7 +248,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
     // ---------------------------------------------- rpc请求和响应 ---------------------------------------
 
     /**
-     * 5. 编码rpc请求包
+     * 编码rpc请求包
      */
     private void writeRpcRequestMessage(ChannelHandlerContext ctx, long ack, SocketMessage socketMessage, ChannelPromise promise) {
         RpcRequestMessage rpcRequest = (RpcRequestMessage) socketMessage.getWrappedMessage();
@@ -260,11 +260,11 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
         head.writeLong(rpcRequest.getRequestGuid());
         head.writeByte(rpcRequest.isSync() ? 1 : 0);
         // 合并之后发送
-        appendSumAndWrite(ctx, tryMergeBody(ctx.alloc(), head, rpcRequest.getRequest()), promise);
+        appendSumAndWrite(ctx, tryEncodeAndMergeBody(ctx.alloc(), head, rpcRequest.getRequest()), promise);
     }
 
     /**
-     * 5. 解码rpc请求包
+     * 解码rpc请求包
      */
     final SocketMessageEvent readRpcRequestMessage(Channel channel, String sessionId, ByteBuf msg) {
         // 捎带确认消息
@@ -281,7 +281,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
     }
 
     /**
-     * 6. 编码rpc 响应包
+     * 编码rpc响应包
      */
     private void writeRpcResponseMessage(ChannelHandlerContext ctx, long ack, SocketMessage socketMessage, ChannelPromise promise) {
         RpcResponseMessage rpcResponseMessage = (RpcResponseMessage) socketMessage.getWrappedMessage();
@@ -295,7 +295,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
         head.writeInt(rpcResponse.getResultCode().getNumber());
 
         if (rpcResponse.getBody() != null) {
-            appendSumAndWrite(ctx, tryMergeBody(ctx.alloc(), head, rpcResponse.getBody()), promise);
+            appendSumAndWrite(ctx, tryEncodeAndMergeBody(ctx.alloc(), head, rpcResponse.getBody()), promise);
         } else {
             appendSumAndWrite(ctx, head, promise);
         }
@@ -303,7 +303,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
     }
 
     /**
-     * 6. 解码rpc 响应包
+     * 解码rpc响应包
      */
     final SocketMessageEvent readRpcResponseMessage(Channel channel, String sessionId, ByteBuf msg) {
         // 捎带确认信息
@@ -323,7 +323,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
     // ------------------------------------------ 单向消息 --------------------------------------------
 
     /**
-     * 7.编码单向协议包
+     * 编码单向协议包
      */
     private void writeOneWayMessage(ChannelHandlerContext ctx, long ack, SocketMessage socketMessage, ChannelPromise promise) {
         OneWayMessage oneWayMessage = (OneWayMessage) socketMessage.getWrappedMessage();
@@ -332,11 +332,11 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
         head.writeLong(socketMessage.getSequence());
         head.writeLong(ack);
         // 合并之后发送
-        appendSumAndWrite(ctx, tryMergeBody(ctx.alloc(), head, oneWayMessage.getMessage()), promise);
+        appendSumAndWrite(ctx, tryEncodeAndMergeBody(ctx.alloc(), head, oneWayMessage.getMessage()), promise);
     }
 
     /**
-     * 7.解码单向协议
+     * 解码单向协议
      */
     final SocketMessageEvent readOneWayMessage(Channel channel, String sessionId, ByteBuf msg) {
         // 捎带确认
@@ -358,15 +358,25 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
      * @return 合并后的byteBuf
      */
     @Nonnull
-    private ByteBuf tryMergeBody(ByteBufAllocator allocator, ByteBuf head, Object bodyData) {
+    private ByteBuf tryEncodeAndMergeBody(ByteBufAllocator allocator, ByteBuf head, Object bodyData) {
+        return Unpooled.wrappedBuffer(head, tryEncodeBody(allocator, bodyData));
+    }
+
+    /**
+     * 尝试编码body
+     *
+     * @param allocator byteBuf分配器
+     * @param bodyData  待编码的body
+     * @return 编码后的数据
+     */
+    private ByteBuf tryEncodeBody(ByteBufAllocator allocator, Object bodyData) {
         try {
-            ByteBuf body = codec.writeObject(allocator, bodyData);
-            return Unpooled.wrappedBuffer(head, body);
+            return codec.writeObject(allocator, bodyData);
         } catch (Exception e) {
             // 为了不影响该连接上的其它消息，需要捕获异常
-            logger.warn("deserialize body {} caught exception.", bodyData.getClass().getName(), e);
-            return head;
+            logger.warn("serialize body {} caught exception.", bodyData.getClass().getName(), e);
         }
+        return Unpooled.EMPTY_BUFFER;
     }
 
     /**
@@ -377,14 +387,13 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
      */
     @Nullable
     private Object tryDecodeBody(ByteBuf data) {
-        Object message = null;
         try {
-            message = codec.readObject(data);
+            return codec.readObject(data);
         } catch (Exception e) {
             // 为了不影响该连接上的其它消息，需要捕获异常
             logger.warn("deserialize body caught exception", e);
         }
-        return message;
+        return null;
     }
 
     // ------------------------------------------ 分割线 --------------------------------------------

@@ -57,6 +57,12 @@ public enum NetMessageType implements NumberEnum {
      * 单向消息包。
      */
     ONE_WAY_MESSAGE(6),
+
+    /**
+     * 转发包
+     */
+    FORWARD(7),
+
     /**
      * 主动断开连接
      */
