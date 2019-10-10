@@ -374,7 +374,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
      */
     private ByteBuf tryEncodeBody(ByteBufAllocator allocator, Object bodyData) {
         try {
-            // 检查延迟初始化
+            // 检查延迟序列化
             if (bodyData instanceof RpcCall) {
                 NetUtils.checkLazySerialize((RpcCall) bodyData, codec);
             }

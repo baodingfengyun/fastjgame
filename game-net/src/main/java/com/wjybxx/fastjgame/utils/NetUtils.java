@@ -316,11 +316,12 @@ public class NetUtils {
      * @throws IOException error
      */
     public static void checkLazySerialize(RpcCall rpcCall, ProtocolCodec codec) throws IOException {
-        if (rpcCall.getLazyIndexes() <= 0) {
+        final int lazyIndexes = rpcCall.getLazyIndexes();
+        if (lazyIndexes <= 0) {
             return;
         }
         for (int index = 0, end = rpcCall.getMethodParams().size(); index < end; index++) {
-            if ((rpcCall.getLazyIndexes() & (1L << index)) != 0) {
+            if ((lazyIndexes & (1L << index)) != 0) {
                 final Object parameter = rpcCall.getMethodParams().get(index);
                 if (parameter instanceof byte[]) {
                     continue;
