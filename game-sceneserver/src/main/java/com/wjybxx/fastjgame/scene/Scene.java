@@ -72,7 +72,7 @@ public abstract class Scene {
     private static final long PET_FRAME_INTERVAL = MathUtils.frameInterval(30);
     private static final long NPC_FRAME_INTERVAL = MathUtils.frameInterval(10);
 
-    private final SceneSendMgr sendMrg;
+    private final SceneSendMgr sendMgr;
     private final MapDataLoadMgr mapDataLoadMgr;
 
     /**
@@ -124,7 +124,7 @@ public abstract class Scene {
 
         this.guid = guid;
         this.sceneConfig = sceneConfig;
-        this.sendMrg = sceneWrapper.getSendMrg();
+        this.sendMgr = sceneWrapper.getSendMgr();
         this.mapDataLoadMgr = sceneWrapper.getMapDataLoadMgr();
 
         // 以后再考虑是否需要重用
@@ -443,9 +443,9 @@ public abstract class Scene {
 
             // 通知这些格子的玩家，我进入了你们的视野，不通知自己(gameObject可能在range中)
             if (gameObject.getObjectType() == PLAYER) {
-                sendMrg.broadcastPlayerExcept(range, message, (Player) gameObject);
+                sendMgr.broadcastPlayerExcept(range, message, (Player) gameObject);
             } else {
-                sendMrg.broadcastPlayer(range, message);
+                sendMgr.broadcastPlayer(range, message);
             }
         }
 
@@ -456,7 +456,7 @@ public abstract class Scene {
                     .build();
 
             // 通知这些格子里的玩家，我离开了你们的视野 (gameObject已经不在range中了！)
-            sendMrg.broadcastPlayer(range, message);
+            sendMgr.broadcastPlayer(range, message);
         }
     }
 
@@ -487,7 +487,7 @@ public abstract class Scene {
                 }
             }
             if (count > 0) {
-                sendMrg.sendToPlayer(player, builder.build());
+                sendMgr.sendToPlayer(player, builder.build());
 
             }
         }
@@ -506,7 +506,7 @@ public abstract class Scene {
             }
             // 这些格子里没有单位
             if (builder.getGuidsCount() > 0) {
-                sendMrg.sendToPlayer(player, builder.build());
+                sendMgr.sendToPlayer(player, builder.build());
             }
         }
     }

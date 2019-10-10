@@ -18,11 +18,11 @@ public class OuterSocketConnectRequestTO implements SocketConnectRequestTO {
      */
     private final long ack;
 
-    private final SocketConnectRequest socketConnectRequest;
+    private final SocketConnectRequest connectRequest;
 
-    OuterSocketConnectRequestTO(long ack, SocketConnectRequest socketConnectRequest) {
+    OuterSocketConnectRequestTO(long ack, SocketConnectRequest connectRequest) {
         this.ack = ack;
-        this.socketConnectRequest = socketConnectRequest;
+        this.connectRequest = connectRequest;
     }
 
     @Override
@@ -32,6 +32,6 @@ public class OuterSocketConnectRequestTO implements SocketConnectRequestTO {
 
     @Override
     public SocketConnectRequest getConnectRequest() {
-        return socketConnectRequest;
+        return connectRequest;
     }
 }

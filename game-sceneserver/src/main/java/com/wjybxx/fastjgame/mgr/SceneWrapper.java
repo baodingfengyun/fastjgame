@@ -28,23 +28,23 @@ import com.google.inject.Inject;
  */
 public class SceneWrapper {
 
-    private final SceneSendMgr sendMrg;
+    private final SceneSendMgr sendMgr;
     private final MapDataLoadMgr mapDataLoadMgr;
     private final WorldTimeMgr worldTimeMgr;
     private final WorldTimerMgr worldTimerMgr;
     private final GuidMgr guidMgr;
 
     @Inject
-    public SceneWrapper(SceneSendMgr sendMrg, MapDataLoadMgr mapDataLoadMgr, WorldTimeMgr worldTimeMgr, WorldTimerMgr worldTimerMgr, GuidMgr guidMgr) {
-        this.sendMrg = sendMrg;
+    public SceneWrapper(SceneSendMgr sendMgr, MapDataLoadMgr mapDataLoadMgr, WorldTimeMgr worldTimeMgr, WorldTimerMgr worldTimerMgr, GuidMgr guidMgr) {
+        this.sendMgr = sendMgr;
         this.mapDataLoadMgr = mapDataLoadMgr;
         this.worldTimeMgr = worldTimeMgr;
         this.worldTimerMgr = worldTimerMgr;
         this.guidMgr = guidMgr;
     }
 
-    public SceneSendMgr getSendMrg() {
-        return sendMrg;
+    public SceneSendMgr getSendMgr() {
+        return sendMgr;
     }
 
     public MapDataLoadMgr getMapDataLoadMgr() {

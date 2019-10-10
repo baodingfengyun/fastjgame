@@ -21,7 +21,7 @@ import java.util.concurrent.locks.LockSupport;
  */
 public class CuratorTest {
 
-    public static CuratorMgr newCuratorMrg() throws Exception {
+    public static CuratorMgr newCuratorMgr() throws Exception {
         GameConfigMgr gameConfigMgr = new GameConfigMgr();
         CuratorClientMgr curatorClientMgr = new CuratorClientMgr(gameConfigMgr);
         GameEventLoopMgr gameEventLoopMgr = new GameEventLoopMgr();
@@ -29,7 +29,7 @@ public class CuratorTest {
     }
 
     public static void main(String[] args) throws Exception {
-        CuratorMgr curatorMgr = newCuratorMrg();
+        CuratorMgr curatorMgr = newCuratorMgr();
         ResourceCloseHandle closeHandle = curatorMgr.watchChildren("/", CuratorTest::onEvent);
 
         LockSupport.parkNanos(TimeUtils.NANO_PER_MILLISECOND * TimeUtils.MIN);

@@ -34,7 +34,7 @@ import java.nio.charset.StandardCharsets;
  */
 public class ZKUICharsetTest {
     public static void main(String[] args) throws Exception {
-        CuratorMgr curatorMgr = CuratorTest.newCuratorMrg();
+        CuratorMgr curatorMgr = CuratorTest.newCuratorMgr();
 
         TreeCache treeCache = TreeCache
                 .newBuilder(curatorMgr.getClient(), "/")

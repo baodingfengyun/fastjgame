@@ -30,7 +30,7 @@ public class MongoDBTest {
 
     public static void main(String[] args) throws Exception {
         GameConfigMgr gameConfigMgr = new GameConfigMgr();
-        CuratorMgr curatorMgr = CuratorTest.newCuratorMrg();
+        CuratorMgr curatorMgr = CuratorTest.newCuratorMgr();
         MongoDBMgr mongoDBMgr = new MongoDBMgrImp(gameConfigMgr, curatorMgr);
 
         System.out.println("在这里打个断点,使用idea debug 界面测试");

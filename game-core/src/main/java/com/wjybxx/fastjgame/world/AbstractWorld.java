@@ -46,7 +46,7 @@ public abstract class AbstractWorld implements World {
     protected final WorldTimerMgr worldTimerMgr;
     protected final HttpDispatcherMgr httpDispatcherMgr;
     protected final WorldInfoMgr worldInfoMgr;
-    protected final GlobalExecutorMrg globalExecutorMrg;
+    protected final GlobalExecutorMgr globalExecutorMgr;
     protected final CuratorMgr curatorMgr;
     protected final GameConfigMgr gameConfigMgr;
     protected final GuidMgr guidMgr;
@@ -63,7 +63,7 @@ public abstract class AbstractWorld implements World {
         worldTimerMgr = worldWrapper.getWorldTimerMgr();
         httpDispatcherMgr = worldWrapper.getHttpDispatcherMgr();
         worldInfoMgr = worldWrapper.getWorldInfoMgr();
-        globalExecutorMrg = worldWrapper.getGlobalExecutorMrg();
+        globalExecutorMgr = worldWrapper.getGlobalExecutorMgr();
         curatorMgr = worldWrapper.getCuratorMgr();
         gameConfigMgr = worldWrapper.getGameConfigMgr();
         guidMgr = worldWrapper.getGuidMgr();
@@ -94,7 +94,7 @@ public abstract class AbstractWorld implements World {
     /**
      * 注册玩家消息处理器，主要是scene服注册
      * 使用注解处理器生成的{@code xxxMsgFunRegister}进行注册
-     * 也可以在自己的类中使用messageDispatcherMrg自己注册，不一定需要在world中注册。
+     * 也可以在自己的类中使用messageDispatcherMgr自己注册，不一定需要在world中注册。
      */
     protected void registerMessageHandlers() {
 

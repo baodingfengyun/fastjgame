@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 public class ZKLockTest {
 
     public static void main(String[] args) throws Exception {
-        CuratorMgr curatorMgr = CuratorTest.newCuratorMrg();
+        CuratorMgr curatorMgr = CuratorTest.newCuratorMgr();
 
         curatorMgr.lock("/mutex/guid");
 

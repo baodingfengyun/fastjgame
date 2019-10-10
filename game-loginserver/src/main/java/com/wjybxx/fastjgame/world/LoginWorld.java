@@ -41,7 +41,7 @@ import org.apache.zookeeper.CreateMode;
 public class LoginWorld extends AbstractWorld {
 
     private final LoginDiscoverMgr loginDiscoverMgr;
-    private final LoginWorldInfoMgr loginWorldInfoMrg;
+    private final LoginWorldInfoMgr loginWorldInfoMgr;
     private final CenterInLoginInfoMgr centerInLoginInfoMgr;
 
     @Inject
@@ -49,7 +49,7 @@ public class LoginWorld extends AbstractWorld {
                       CenterInLoginInfoMgr centerInLoginInfoMgr) {
         super(worldWrapper);
         this.loginDiscoverMgr = loginDiscoverMgr;
-        this.loginWorldInfoMrg = (LoginWorldInfoMgr) worldWrapper.getWorldInfoMgr();
+        this.loginWorldInfoMgr = (LoginWorldInfoMgr) worldWrapper.getWorldInfoMgr();
         this.centerInLoginInfoMgr = centerInLoginInfoMgr;
     }
 
@@ -73,11 +73,11 @@ public class LoginWorld extends AbstractWorld {
         HostAndPort innerHttpAddress = innerAcceptorMgr.bindInnerHttpPort();
         NetContext netContext = netContextMgr.getNetContext();
 
-        HostAndPort outerHttpAddress = netContext.bindHttp(NetUtils.getOuterIp(), loginWorldInfoMrg.getPort(), httpDispatcherMgr)
+        HostAndPort outerHttpAddress = netContext.bindHttp(NetUtils.getOuterIp(), loginWorldInfoMgr.getPort(), httpDispatcherMgr)
                 .get().getHostAndPort();
 
         String parentPath = ZKPathUtils.onlineRootPath();
-        String nodeName = ZKPathUtils.buildLoginNodeName(loginWorldInfoMrg.getPort(), loginWorldInfoMrg.getWorldGuid());
+        String nodeName = ZKPathUtils.buildLoginNodeName(loginWorldInfoMgr.getPort(), loginWorldInfoMgr.getWorldGuid());
 
         LoginNodeData loginNodeData = new LoginNodeData(innerHttpAddress.toString(),
                 outerHttpAddress.toString());

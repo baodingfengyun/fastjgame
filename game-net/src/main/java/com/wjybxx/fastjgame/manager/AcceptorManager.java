@@ -83,8 +83,8 @@ public class AcceptorManager {
                     .fireInit()
                     .fireSessionActive();
 
-            final SocketConnectResponse connectResponse = new SocketConnectResponse(true, connectRequestEvent.getConnectRequest().getVerifyingTimes());
-            socketSessionImp.fireWriteAndFlush(connectResponse);
+            final SocketConnectResponse socketConnectResponse = new SocketConnectResponse(true, connectRequestEvent.getConnectRequest().getVerifyingTimes());
+            socketSessionImp.fireWriteAndFlush(socketConnectResponse);
         } else {
             // TODO 断线重连验证
             NetUtils.closeQuietly(connectRequestEvent.channel());

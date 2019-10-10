@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.net.socket;
 
 /**
- * socket建立连接响应 - 必普通的建立连接响应多一个ack
+ * 建立连接应答
  *
  * @author wjybxx
  * @version 1.0

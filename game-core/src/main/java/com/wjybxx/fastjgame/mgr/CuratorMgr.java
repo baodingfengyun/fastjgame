@@ -99,13 +99,13 @@ public class CuratorMgr {
      */
     private final List<PathChildrenCache> allocateNodeCache = new ArrayList<>(10);
 
-    private final CuratorClientMgr clientMrg;
+    private final CuratorClientMgr clientMgr;
     private final CuratorFramework client;
     private final GameEventLoopMgr gameEventLoopMgr;
 
     @Inject
     public CuratorMgr(CuratorClientMgr curatorClientMgr, GameEventLoopMgr gameEventLoopMgr) {
-        this.clientMrg = curatorClientMgr;
+        this.clientMgr = curatorClientMgr;
         this.client = curatorClientMgr.getClient();
         this.gameEventLoopMgr = gameEventLoopMgr;
     }
@@ -378,7 +378,7 @@ public class CuratorMgr {
      */
     public ResourceCloseHandle watchChildren(String path, @Nonnull PathChildrenCacheListener listener) throws Exception {
         // CloseableExecutorService这个还是不共享的好
-        CloseableExecutorService watcherService = clientMrg.newClosableExecutorService();
+        CloseableExecutorService watcherService = clientMgr.newClosableExecutorService();
         // 指定pathChildrenCache接收事件的线程，复用线程池，以节省开销。
         PathChildrenCache pathChildrenCache = new PathChildrenCache(client, path, true, false, watcherService);
 

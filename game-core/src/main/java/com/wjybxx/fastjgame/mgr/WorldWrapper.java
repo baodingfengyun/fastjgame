@@ -38,7 +38,7 @@ public class WorldWrapper {
     private final CuratorMgr curatorMgr;
     private final GameConfigMgr gameConfigMgr;
     private final GameEventLoopMgr gameEventLoopMgr;
-    private final GlobalExecutorMrg globalExecutorMrg;
+    private final GlobalExecutorMgr globalExecutorMgr;
     private final HttpDispatcherMgr httpDispatcherMgr;
     private final ProtocolDispatcherMgr protocolDispatcherMgr;
     private final InnerAcceptorMgr innerAcceptorMgr;
@@ -52,7 +52,7 @@ public class WorldWrapper {
     @Inject
     public WorldWrapper(GameEventLoopMgr gameEventLoopMgr, WorldInfoMgr worldInfoMgr, WorldTimeMgr worldTimeMgr,
                         ProtocolDispatcherMgr protocolDispatcherMgr, HttpDispatcherMgr httpDispatcherMgr,
-                        ProtocolCodecMgr protocolCodecMgr, WorldTimerMgr worldTimerMgr, GlobalExecutorMrg globalExecutorMrg,
+                        ProtocolCodecMgr protocolCodecMgr, WorldTimerMgr worldTimerMgr, GlobalExecutorMgr globalExecutorMgr,
                         CuratorMgr curatorMgr, GuidMgr guidMgr, GameConfigMgr gameConfigMgr, NetContextMgr netContextMgr, CuratorClientMgr curatorClientMgr, TemplateMgr templateMgr, InnerAcceptorMgr innerAcceptorMgr) {
         this.gameEventLoopMgr = gameEventLoopMgr;
         this.worldInfoMgr = worldInfoMgr;
@@ -61,7 +61,7 @@ public class WorldWrapper {
         this.httpDispatcherMgr = httpDispatcherMgr;
         this.protocolCodecMgr = protocolCodecMgr;
         this.worldTimerMgr = worldTimerMgr;
-        this.globalExecutorMrg = globalExecutorMrg;
+        this.globalExecutorMgr = globalExecutorMgr;
         this.curatorMgr = curatorMgr;
         this.guidMgr = guidMgr;
         this.gameConfigMgr = gameConfigMgr;
@@ -99,8 +99,8 @@ public class WorldWrapper {
         return worldTimerMgr;
     }
 
-    public GlobalExecutorMrg getGlobalExecutorMrg() {
-        return globalExecutorMrg;
+    public GlobalExecutorMgr getGlobalExecutorMgr() {
+        return globalExecutorMgr;
     }
 
     public CuratorMgr getCuratorMgr() {

@@ -165,45 +165,34 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
      */
     final void writeConnectRequest(ChannelHandlerContext ctx, String sessionId, long localGuid, SocketConnectRequestTO socketConnectRequestTO, ChannelPromise promise) {
         final SocketConnectRequest socketConnectRequest = socketConnectRequestTO.getConnectRequest();
-        final int contentLength = 2 + sessionId.length() + 8 + 4 + 8;
+        final int contentLength = 8 + 4 + 8 + sessionId.length();
         ByteBuf head = newHeadByteBuf(ctx, contentLength, NetMessageType.CONNECT_REQUEST);
-
-        // sessionId
-        final byte[] sessionIdBytes = CodecUtils.getBytesUTF8(sessionId);
-        head.writeShort(sessionIdBytes.length);
-        head.writeBytes(sessionIdBytes);
 
         head.writeLong(localGuid);
         head.writeInt(socketConnectRequest.getVerifyingTimes());
         head.writeLong(socketConnectRequestTO.getAck());
 
-        if (socketConnectRequest.getExtension() != null) {
-            // 合并之后发送
-            appendSumAndWrite(ctx, tryMergeBody(ctx.alloc(), head, socketConnectRequest.getExtension()), promise);
-        } else {
-            appendSumAndWrite(ctx, head, promise);
-        }
+        // sessionId
+        final byte[] sessionIdBytes = CodecUtils.getBytesUTF8(sessionId);
+        head.writeBytes(sessionIdBytes);
+
+        appendSumAndWrite(ctx, head, promise);
     }
 
     /**
      * 解码协议1 - 建立连接请求
      */
     final SocketConnectRequestEvent readConnectRequest(Channel channel, ByteBuf msg, SocketPortContext portExtraInfo) {
-        // 读取sessionId
-        short sessionIdLength = msg.readShort();
-        byte[] sessionIdBytes = new byte[sessionIdLength];
-        msg.readBytes(sessionIdBytes);
-        String sessionId = CodecUtils.newStringUTF8(sessionIdBytes);
-
         long remoteGuid = msg.readLong();
         int verifyingTimes = msg.readInt();
         long ack = msg.readLong();
 
-        // 用于扩展的信息
-        final Object extension = msg.readableBytes() > 0 ? tryDecodeBody(msg) : null;
+        // sessionId
+        byte[] sessionIdBytes = NetUtils.readRemainBytes(msg);
+        String sessionId = CodecUtils.newStringUTF8(sessionIdBytes);
 
-        SocketConnectRequest connectRequest = new SocketConnectRequest(verifyingTimes, extension);
-        return new SocketConnectRequestEvent(channel, sessionId, remoteGuid, ack, connectRequest, portExtraInfo);
+        SocketConnectRequest socketConnectRequest = new SocketConnectRequest(verifyingTimes);
+        return new SocketConnectRequestEvent(channel, sessionId, remoteGuid, ack, socketConnectRequest, portExtraInfo);
     }
 
     /**
@@ -228,8 +217,8 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
         int verifyingTimes = msg.readInt();
         long ack = msg.readLong();
 
-        SocketConnectResponse connectResponse = new SocketConnectResponse(success, verifyingTimes);
-        return new SocketConnectResponseEvent(channel, sessionId, ack, connectResponse);
+        SocketConnectResponse socketConnectResponse = new SocketConnectResponse(success, verifyingTimes);
+        return new SocketConnectResponseEvent(channel, sessionId, ack, socketConnectResponse);
     }
 
     // ---------------------------------------------- 心跳协议  ---------------------------------------

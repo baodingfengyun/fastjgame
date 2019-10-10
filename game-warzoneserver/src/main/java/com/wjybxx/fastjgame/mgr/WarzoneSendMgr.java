@@ -35,11 +35,11 @@ public class WarzoneSendMgr {
 
     private static final Logger logger = LoggerFactory.getLogger(WarzoneSendMgr.class);
 
-    private final CenterInWarzoneInfoMgr centerInWarzoneInfoMrg;
+    private final CenterInWarzoneInfoMgr centerInWarzoneInfoMgr;
 
     @Inject
-    public WarzoneSendMgr(CenterInWarzoneInfoMgr centerInWarzoneInfoMrg) {
-        this.centerInWarzoneInfoMrg = centerInWarzoneInfoMrg;
+    public WarzoneSendMgr(CenterInWarzoneInfoMgr centerInWarzoneInfoMgr) {
+        this.centerInWarzoneInfoMgr = centerInWarzoneInfoMgr;
     }
 
     /**
@@ -49,7 +49,7 @@ public class WarzoneSendMgr {
      * @param serverId     服id
      */
     public void sendToCenter(PlatformType platformType, int serverId, Message msg) {
-        Session session = centerInWarzoneInfoMrg.getCenterSession(platformType, serverId);
+        Session session = centerInWarzoneInfoMgr.getCenterSession(platformType, serverId);
         if (null != session) {
             session.send(msg);
         } else {

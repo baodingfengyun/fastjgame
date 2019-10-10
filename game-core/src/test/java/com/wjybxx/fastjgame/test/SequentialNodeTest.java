@@ -32,7 +32,7 @@ import org.apache.zookeeper.CreateMode;
 public class SequentialNodeTest {
 
     public static void main(String[] args) throws Exception {
-        CuratorMgr curatorMgr = CuratorTest.newCuratorMrg();
+        CuratorMgr curatorMgr = CuratorTest.newCuratorMgr();
 
         String nodeName = curatorMgr.createNode("/online/channel/lock-", CreateMode.EPHEMERAL_SEQUENTIAL);
         System.out.println(nodeName);

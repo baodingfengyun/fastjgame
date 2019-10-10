@@ -41,7 +41,7 @@ public class WatcherTest {
     private static final CountDownLatch countDownLatch = new CountDownLatch(1);
 
     public static void main(String[] args) throws Exception {
-        CuratorMgr curatorMgr = CuratorTest.newCuratorMrg();
+        CuratorMgr curatorMgr = CuratorTest.newCuratorMgr();
 
         // checkExist 使用watcher之后
         // 1. 如果当前节点不存在，会在节点创建之后收到通知

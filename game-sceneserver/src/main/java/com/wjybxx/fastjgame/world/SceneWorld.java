@@ -30,23 +30,23 @@ public class SceneWorld extends AbstractWorld {
     private static final Logger logger = LoggerFactory.getLogger(SceneWorld.class);
 
     private final CenterInSceneInfoMgr centerInSceneInfoMgr;
-    private final SceneRegionMgr sceneRegionMrg;
-    private final SceneWorldInfoMgr sceneWorldInfoMrg;
-    private final SceneSendMgr sendMrg;
+    private final SceneRegionMgr sceneRegionMgr;
+    private final SceneWorldInfoMgr sceneWorldInfoMgr;
+    private final SceneSendMgr sendMgr;
     private final SceneMgr sceneMgr;
-    private final SceneProtocolDispatcherMgr sceneProtocolDispatcherMrg;
+    private final SceneProtocolDispatcherMgr sceneProtocolDispatcherMgr;
 
     @Inject
     public SceneWorld(WorldWrapper worldWrapper, CenterInSceneInfoMgr centerInSceneInfoMgr,
-                      SceneRegionMgr sceneRegionMrg, SceneSendMgr sendMrg, SceneMgr sceneMgr,
-                      SceneProtocolDispatcherMgr sceneProtocolDispatcherMrg) {
+                      SceneRegionMgr sceneRegionMgr, SceneSendMgr sendMgr, SceneMgr sceneMgr,
+                      SceneProtocolDispatcherMgr sceneProtocolDispatcherMgr) {
         super(worldWrapper);
         this.centerInSceneInfoMgr = centerInSceneInfoMgr;
-        this.sceneRegionMrg = sceneRegionMrg;
-        this.sceneWorldInfoMrg = (SceneWorldInfoMgr) worldWrapper.getWorldInfoMgr();
-        this.sendMrg = sendMrg;
+        this.sceneRegionMgr = sceneRegionMgr;
+        this.sceneWorldInfoMgr = (SceneWorldInfoMgr) worldWrapper.getWorldInfoMgr();
+        this.sendMgr = sendMgr;
         this.sceneMgr = sceneMgr;
-        this.sceneProtocolDispatcherMrg = sceneProtocolDispatcherMrg;
+        this.sceneProtocolDispatcherMgr = sceneProtocolDispatcherMgr;
     }
 
     @Override
@@ -64,7 +64,7 @@ public class SceneWorld extends AbstractWorld {
     @Override
     protected void registerRpcService() {
         // 也可以在管理器里进行注册
-        ISceneRegionMgrRpcRegister.register(protocolDispatcherMgr, sceneRegionMrg);
+        ISceneRegionMgrRpcRegister.register(protocolDispatcherMgr, sceneRegionMgr);
         ICenterInSceneInfoMgrRpcRegister.register(protocolDispatcherMgr, centerInSceneInfoMgr);
     }
 
@@ -76,7 +76,7 @@ public class SceneWorld extends AbstractWorld {
     @Override
     protected void startHook() throws Exception {
         // 启动场景
-        sceneRegionMrg.onWorldStart();
+        sceneRegionMgr.onWorldStart();
         // 注册到zookeeper
         bindAndRegisterToZK();
 
@@ -102,14 +102,14 @@ public class SceneWorld extends AbstractWorld {
                 innerAcceptorMgr.newSocketSessionConfig(new PlayerLifeAware())).get().getHostAndPort();
 
         SceneNodeData sceneNodeData = new SceneNodeData(innerTcpAddress.toString(), innerHttpAddress.toString(), localAddress.toString(), SystemUtils.getMAC(),
-                sceneWorldInfoMrg.getChannelId(), outerTcpHostAndPort.toString(), outerWebsocketHostAndPort.toString());
+                sceneWorldInfoMgr.getChannelId(), outerTcpHostAndPort.toString(), outerWebsocketHostAndPort.toString());
 
-        String parentPath = ZKPathUtils.onlineParentPath(sceneWorldInfoMrg.getWarzoneId());
+        String parentPath = ZKPathUtils.onlineParentPath(sceneWorldInfoMgr.getWarzoneId());
         String nodeName;
-        if (sceneWorldInfoMrg.getSceneWorldType() == SceneWorldType.SINGLE) {
-            nodeName = ZKPathUtils.buildSingleSceneNodeName(sceneWorldInfoMrg.getPlatformType(), sceneWorldInfoMrg.getServerId(), sceneWorldInfoMrg.getWorldGuid());
+        if (sceneWorldInfoMgr.getSceneWorldType() == SceneWorldType.SINGLE) {
+            nodeName = ZKPathUtils.buildSingleSceneNodeName(sceneWorldInfoMgr.getPlatformType(), sceneWorldInfoMgr.getServerId(), sceneWorldInfoMgr.getWorldGuid());
         } else {
-            nodeName = ZKPathUtils.buildCrossSceneNodeName(sceneWorldInfoMrg.getWorldGuid());
+            nodeName = ZKPathUtils.buildCrossSceneNodeName(sceneWorldInfoMgr.getWorldGuid());
         }
         curatorMgr.createNode(ZKPaths.makePath(parentPath, nodeName), CreateMode.EPHEMERAL, JsonUtils.toJsonBytes(sceneNodeData));
     }

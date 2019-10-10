@@ -16,31 +16,38 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
+import com.wjybxx.fastjgame.net.common.DisconnectMessage;
+import io.netty.channel.Channel;
+
 /**
- * 建立连接请求
+ * 接收到一个断开连接事件
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/9/30
+ * date - 2019/10/10
  * github - https://github.com/hl845740757
  */
-public class SocketConnectRequest {
+public class DisconnectMessageEvent implements SocketEvent {
 
-    /**
-     * 这是客户端的第几次连接请求。
-     * 1. 每次重连时都必须增加。
-     * 2. 用于识别最新的请求。
-     * 3. 用于识别对应的结果。
-     * 即使不校验sequence和ack，该字段也是必须校验的。
-     */
-    private final int verifyingTimes;
+    private final Channel channel;
+    private final String sessionId;
 
-    public SocketConnectRequest(int verifyingTimes) {
-        this.verifyingTimes = verifyingTimes;
+    public DisconnectMessageEvent(Channel channel, String sessionId) {
+        this.channel = channel;
+        this.sessionId = sessionId;
     }
 
+    @Override
+    public Channel channel() {
+        return channel;
+    }
 
-    public int getVerifyingTimes() {
-        return verifyingTimes;
+    @Override
+    public String sessionId() {
+        return sessionId;
+    }
+
+    public DisconnectMessage getDisconnectMessage() {
+        return DisconnectMessage.INSTANCE;
     }
 }

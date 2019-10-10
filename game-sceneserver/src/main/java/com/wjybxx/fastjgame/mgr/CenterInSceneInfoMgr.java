@@ -52,8 +52,8 @@ import java.util.Map;
 public class CenterInSceneInfoMgr implements ICenterInSceneInfoMgr {
 
     private static final Logger logger = LoggerFactory.getLogger(CenterInSceneInfoMgr.class);
-    private final SceneWorldInfoMgr sceneWorldInfoMrg;
-    private final SceneRegionMgr sceneRegionMrg;
+    private final SceneWorldInfoMgr sceneWorldInfoMgr;
+    private final SceneRegionMgr sceneRegionMgr;
 
     /**
      * wolrdguid到信息的映射
@@ -65,9 +65,9 @@ public class CenterInSceneInfoMgr implements ICenterInSceneInfoMgr {
     private final Map<PlatformType, Int2ObjectMap<CenterInSceneInfo>> platInfoMap = new EnumMap<>(PlatformType.class);
 
     @Inject
-    public CenterInSceneInfoMgr(SceneWorldInfoMgr sceneWorldInfoMrg, SceneRegionMgr sceneRegionMrg) {
-        this.sceneWorldInfoMrg = sceneWorldInfoMrg;
-        this.sceneRegionMrg = sceneRegionMrg;
+    public CenterInSceneInfoMgr(SceneWorldInfoMgr sceneWorldInfoMgr, SceneRegionMgr sceneRegionMgr) {
+        this.sceneWorldInfoMgr = sceneWorldInfoMgr;
+        this.sceneRegionMgr = sceneRegionMgr;
     }
 
     private void addInfo(CenterInSceneInfo centerInSceneInfo) {
@@ -104,7 +104,7 @@ public class CenterInSceneInfoMgr implements ICenterInSceneInfoMgr {
         removeInfo(centerInSceneInfo);
 
         // 跨服场景，收到某个center服宕机，无所谓(跨服场景会链接很多个center服)
-        if (sceneWorldInfoMrg.getSceneWorldType() == SceneWorldType.CROSS) {
+        if (sceneWorldInfoMgr.getSceneWorldType() == SceneWorldType.CROSS) {
             // 将该服的玩家下线
             offlineSpecialCenterPlayer(centerInSceneInfo.getPlatformType(), centerInSceneInfo.getServerId());
 
@@ -113,8 +113,8 @@ public class CenterInSceneInfoMgr implements ICenterInSceneInfoMgr {
         }
 
         // 单服场景(讲道理单服场景只会连接自己的服，因此这里必须成立)，自己的center服宕机，需要通知所有玩家下线，然后退出
-        assert centerInSceneInfo.getPlatformType() == sceneWorldInfoMrg.getPlatformType();
-        assert centerInSceneInfo.getServerId() == sceneWorldInfoMrg.getServerId();
+        assert centerInSceneInfo.getPlatformType() == sceneWorldInfoMgr.getPlatformType();
+        assert centerInSceneInfo.getServerId() == sceneWorldInfoMgr.getServerId();
         offlineAllOnlinePlayer();
         // 自己的中心服宕机，场景服需要自动关闭
         sceneWorld.shutdown();
@@ -147,8 +147,8 @@ public class CenterInSceneInfoMgr implements ICenterInSceneInfoMgr {
         addInfo(centerInSceneInfo);
 
         // 返回配置的所有区域即可，非互斥区域已启动
-        IntList configuredRegions = new IntArrayList(sceneWorldInfoMrg.getConfiguredRegions().size());
-        for (SceneRegion sceneRegion : sceneWorldInfoMrg.getConfiguredRegions()) {
+        IntList configuredRegions = new IntArrayList(sceneWorldInfoMgr.getConfiguredRegions().size());
+        for (SceneRegion sceneRegion : sceneWorldInfoMgr.getConfiguredRegions()) {
             configuredRegions.add(sceneRegion.getNumber());
         }
         return configuredRegions;
@@ -164,14 +164,14 @@ public class CenterInSceneInfoMgr implements ICenterInSceneInfoMgr {
         addInfo(centerInSceneInfo);
 
         // 配置的区域
-        IntList configuredRegions = new IntArrayList(sceneWorldInfoMrg.getConfiguredRegions().size());
-        for (SceneRegion sceneRegion : sceneWorldInfoMrg.getConfiguredRegions()) {
+        IntList configuredRegions = new IntArrayList(sceneWorldInfoMgr.getConfiguredRegions().size());
+        for (SceneRegion sceneRegion : sceneWorldInfoMgr.getConfiguredRegions()) {
             configuredRegions.add(sceneRegion.getNumber());
         }
 
         // 实际激活的区域
-        IntList activeRegions = new IntArrayList(sceneRegionMrg.getActiveRegions().size());
-        for (SceneRegion sceneRegion : sceneRegionMrg.getActiveRegions()) {
+        IntList activeRegions = new IntArrayList(sceneRegionMgr.getActiveRegions().size());
+        for (SceneRegion sceneRegion : sceneRegionMgr.getActiveRegions()) {
             activeRegions.add(sceneRegion.getNumber());
         }
         return new ConnectCrossSceneResult(configuredRegions, activeRegions);

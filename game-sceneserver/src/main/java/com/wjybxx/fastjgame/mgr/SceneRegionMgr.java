@@ -40,19 +40,19 @@ public class SceneRegionMgr implements ISceneRegionMgr {
 
     private static final Logger logger = LoggerFactory.getLogger(SceneRegionMgr.class);
 
-    private final SceneWorldInfoMgr sceneWorldInfoMrg;
+    private final SceneWorldInfoMgr sceneWorldInfoMgr;
     /**
      * 已激活的场景区域
      */
     private final Set<SceneRegion> activeRegions = EnumSet.noneOf(SceneRegion.class);
 
     @Inject
-    public SceneRegionMgr(SceneWorldInfoMgr sceneWorldInfoMrg) {
-        this.sceneWorldInfoMrg = sceneWorldInfoMrg;
+    public SceneRegionMgr(SceneWorldInfoMgr sceneWorldInfoMgr) {
+        this.sceneWorldInfoMgr = sceneWorldInfoMgr;
     }
 
     public void onWorldStart() {
-        if (sceneWorldInfoMrg.getSceneWorldType() == SceneWorldType.SINGLE) {
+        if (sceneWorldInfoMgr.getSceneWorldType() == SceneWorldType.SINGLE) {
             activeSingleSceneNormalRegions();
         } else {
             activeAllCrossSceneRegions();
@@ -67,7 +67,7 @@ public class SceneRegionMgr implements ISceneRegionMgr {
      * 启动所有跨服场景(目前跨服场景不做互斥)
      */
     private void activeAllCrossSceneRegions() {
-        for (SceneRegion sceneRegion : sceneWorldInfoMrg.getConfiguredRegions()) {
+        for (SceneRegion sceneRegion : sceneWorldInfoMgr.getConfiguredRegions()) {
             activeOneRegion(sceneRegion);
         }
     }
@@ -76,7 +76,7 @@ public class SceneRegionMgr implements ISceneRegionMgr {
      * 启动所有本服普通场景
      */
     private void activeSingleSceneNormalRegions() {
-        for (SceneRegion sceneRegion : sceneWorldInfoMrg.getConfiguredRegions()) {
+        for (SceneRegion sceneRegion : sceneWorldInfoMgr.getConfiguredRegions()) {
             // 互斥区域等待centerserver通知再启动
             if (sceneRegion.isMutex()) {
                 continue;
@@ -104,7 +104,7 @@ public class SceneRegionMgr implements ISceneRegionMgr {
 
     @Override
     public boolean startMutexRegion(List<Integer> activeMutexRegionsList) {
-        assert sceneWorldInfoMrg.getSceneWorldType() == SceneWorldType.SINGLE;
+        assert sceneWorldInfoMgr.getSceneWorldType() == SceneWorldType.SINGLE;
         for (int regionId : activeMutexRegionsList) {
             SceneRegion sceneRegion = SceneRegion.forNumber(regionId);
             // 这里应该有互斥区域
@@ -119,7 +119,7 @@ public class SceneRegionMgr implements ISceneRegionMgr {
 
     @Override
     public boolean activeRegions(List<Integer> activeRegionsList) {
-        assert sceneWorldInfoMrg.getSceneWorldType() == SceneWorldType.SINGLE;
+        assert sceneWorldInfoMgr.getSceneWorldType() == SceneWorldType.SINGLE;
         for (int regionId : activeRegionsList) {
             SceneRegion sceneRegion = SceneRegion.forNumber(regionId);
             // 这里可以是任意类型区域

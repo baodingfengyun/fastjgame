@@ -46,22 +46,22 @@ import java.util.concurrent.TimeUnit;
  */
 public class WarzoneWorld extends AbstractWorld {
 
-    private final WarzoneWorldInfoMgr warzoneWorldInfoMrg;
-    private final CenterInWarzoneInfoMgr centerInWarzoneInfoMrg;
-    private final WarzoneSendMgr sendMrg;
+    private final WarzoneWorldInfoMgr warzoneWorldInfoMgr;
+    private final CenterInWarzoneInfoMgr centerInWarzoneInfoMgr;
+    private final WarzoneSendMgr sendMgr;
 
     @Inject
-    public WarzoneWorld(WorldWrapper worldWrapper, WarzoneWorldInfoMgr warzoneWorldInfoMrg,
-                        CenterInWarzoneInfoMgr centerInWarzoneInfoMrg, WarzoneSendMgr sendMrg) {
+    public WarzoneWorld(WorldWrapper worldWrapper, WarzoneWorldInfoMgr warzoneWorldInfoMgr,
+                        CenterInWarzoneInfoMgr centerInWarzoneInfoMgr, WarzoneSendMgr sendMgr) {
         super(worldWrapper);
-        this.warzoneWorldInfoMrg = warzoneWorldInfoMrg;
-        this.centerInWarzoneInfoMrg = centerInWarzoneInfoMrg;
-        this.sendMrg = sendMrg;
+        this.warzoneWorldInfoMgr = warzoneWorldInfoMgr;
+        this.centerInWarzoneInfoMgr = centerInWarzoneInfoMgr;
+        this.sendMgr = sendMgr;
     }
 
     @Override
     protected void registerRpcService() {
-        ICenterInWarzoneInfoMgrRpcRegister.register(protocolDispatcherMgr, centerInWarzoneInfoMrg);
+        ICenterInWarzoneInfoMgrRpcRegister.register(protocolDispatcherMgr, centerInWarzoneInfoMgr);
     }
 
     @Override
@@ -84,11 +84,11 @@ public class WarzoneWorld extends AbstractWorld {
         HostAndPort localAddress = innerAcceptorMgr.bindLocalTcpPort(centerLifeAware);
 
         // 注册到zk
-        String parentPath = ZKPathUtils.onlineParentPath(warzoneWorldInfoMrg.getWarzoneId());
-        String nodeName = ZKPathUtils.buildWarzoneNodeName(warzoneWorldInfoMrg.getWarzoneId());
+        String parentPath = ZKPathUtils.onlineParentPath(warzoneWorldInfoMgr.getWarzoneId());
+        String nodeName = ZKPathUtils.buildWarzoneNodeName(warzoneWorldInfoMgr.getWarzoneId());
 
         WarzoneNodeData centerNodeData = new WarzoneNodeData(tcpHostAndPort.toString(), httpHostAndPort.toString(), localAddress.toString(), SystemUtils.getMAC(),
-                warzoneWorldInfoMrg.getWorldGuid());
+                warzoneWorldInfoMgr.getWorldGuid());
 
         final String path = ZKPaths.makePath(parentPath, nodeName);
         curatorMgr.waitForNodeDelete(path);
@@ -117,7 +117,7 @@ public class WarzoneWorld extends AbstractWorld {
 
         @Override
         public void onSessionDisconnected(Session session) {
-            centerInWarzoneInfoMrg.onCenterServerDisconnect(session.remoteGuid());
+            centerInWarzoneInfoMgr.onCenterServerDisconnect(session.remoteGuid());
         }
     }
 }

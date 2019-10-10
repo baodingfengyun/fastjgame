@@ -21,9 +21,11 @@ import com.wjybxx.fastjgame.net.common.ConnectAwareTask;
 import com.wjybxx.fastjgame.net.common.DisconnectAwareTask;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
+import com.wjybxx.fastjgame.net.socket.DisconnectMessageTO;
 import com.wjybxx.fastjgame.net.socket.SocketEvent;
 import com.wjybxx.fastjgame.net.socket.SocketSessionImp;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFutureListener;
 
 /**
  * 内网服务器之间传输支持。
@@ -98,6 +100,8 @@ public class InnerSocketTransferHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void close(SessionHandlerContext ctx, Promise<?> promise) throws Exception {
-        channel.close().addListener(future -> promise.trySuccess(null));
+        channel.writeAndFlush(DisconnectMessageTO.INSTANCE)
+                .addListener(ChannelFutureListener.CLOSE)
+                .addListener(future -> promise.trySuccess(null));
     }
 }

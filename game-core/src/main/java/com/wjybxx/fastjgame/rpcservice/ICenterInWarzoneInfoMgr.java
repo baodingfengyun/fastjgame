@@ -28,7 +28,7 @@ import com.wjybxx.fastjgame.net.session.Session;
  * date - 2019/8/22
  * github - https://github.com/hl845740757
  */
-@RpcService(serviceId = ServiceTable.CENTER_IN_WARZONE_INFO_MRG)
+@RpcService(serviceId = ServiceTable.CENTER_IN_WARZONE_INFO_MGR)
 public interface ICenterInWarzoneInfoMgr {
 
     /**

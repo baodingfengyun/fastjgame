@@ -25,7 +25,7 @@ import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.module.WorldGroupModule;
 import com.wjybxx.fastjgame.module.WorldModule;
 import com.wjybxx.fastjgame.mgr.CuratorClientMgr;
-import com.wjybxx.fastjgame.mgr.GlobalExecutorMrg;
+import com.wjybxx.fastjgame.mgr.GlobalExecutorMgr;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.MathUtils;
 
@@ -89,7 +89,7 @@ public class GameEventLoopGroupImp extends MultiThreadEventLoopGroup implements 
     @Override
     protected void clean() {
         Injector groupModule = getContext().groupInjector;
-        groupModule.getInstance(GlobalExecutorMrg.class).shutdown();
+        groupModule.getInstance(GlobalExecutorMgr.class).shutdown();
         groupModule.getInstance(CuratorClientMgr.class).shutdown();
     }
 

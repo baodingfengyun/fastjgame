@@ -39,14 +39,14 @@ import java.util.concurrent.TimeUnit;
  */
 @EventLoopGroupSingleton
 @ThreadSafe
-public class GlobalExecutorMrg {
+public class GlobalExecutorMgr {
 
-    private static final Logger logger = LoggerFactory.getLogger(GlobalExecutorMrg.class);
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExecutorMgr.class);
 
     private final ThreadPoolExecutor executorService;
 
     @Inject
-    public GlobalExecutorMrg(GameConfigMgr gameConfigMgr) {
+    public GlobalExecutorMgr(GameConfigMgr gameConfigMgr) {
         // 最多创建配置个数的线程
         executorService = new ThreadPoolExecutor(1, gameConfigMgr.getGlobalExecutorThreadNum(),
                 5, TimeUnit.SECONDS,
@@ -61,7 +61,7 @@ public class GlobalExecutorMrg {
 
     public void shutdown() {
         executorService.shutdownNow();
-        logger.info("GlobalExecutorMrg shutdown success.");
+        logger.info("GlobalExecutorMgr shutdown success.");
     }
 
 }

@@ -28,17 +28,17 @@ import com.wjybxx.fastjgame.utils.GameUtils;
  */
 public class WarzoneMongoDBMgr extends MongoDBMgr {
 
-    private final WarzoneWorldInfoMgr worldInfoMrg;
+    private final WarzoneWorldInfoMgr worldInfoMgr;
 
     @Inject
-    public WarzoneMongoDBMgr(GameConfigMgr gameConfigMgr, CuratorMgr curatorMgr, WarzoneWorldInfoMgr worldInfoMrg) throws Exception {
+    public WarzoneMongoDBMgr(GameConfigMgr gameConfigMgr, CuratorMgr curatorMgr, WarzoneWorldInfoMgr worldInfoMgr) throws Exception {
         super(gameConfigMgr, curatorMgr);
-        this.worldInfoMrg = worldInfoMrg;
+        this.worldInfoMgr = worldInfoMgr;
     }
 
     @Override
     protected void cacheDB() {
-        String warzoneDBName = GameUtils.warzoneDBName(worldInfoMrg.getWarzoneId());
+        String warzoneDBName = GameUtils.warzoneDBName(worldInfoMgr.getWarzoneId());
         dbMap.put(MongoDBType.WARZONE, getMongoDatabase(warzoneDBName));
     }
 

@@ -30,7 +30,7 @@ public class BarrierTest {
 
     @SuppressWarnings("deprecation")
     public static void main(String[] args) throws Exception {
-        CuratorMgr curatorMgr = CuratorTest.newCuratorMrg();
+        CuratorMgr curatorMgr = CuratorTest.newCuratorMgr();
 
         System.out.println("------start wait------");
         curatorMgr.waitForNodeDelete(path);

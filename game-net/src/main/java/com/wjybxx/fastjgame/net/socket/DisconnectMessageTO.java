@@ -14,32 +14,26 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.rpcservice;
+package com.wjybxx.fastjgame.net.socket;
+
+import com.wjybxx.fastjgame.net.common.DisconnectMessage;
 
 /**
- * 所有的rpcServiceId,方便管理
+ * 断开连接传输事件
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/20
+ * date - 2019/10/10
  * github - https://github.com/hl845740757
  */
-public final class ServiceTable {
+public class DisconnectMessageTO {
 
-    /**
-     * 中心服在战区服的信息管理
-     */
-    public static final short CENTER_IN_WARZONE_INFO_MGR = 1;
-    /**
-     * 中心服在场景服的信息管理
-     */
-    public static final short CENTER_IN_SCENE_INFO_MGR = 2;
-    /**
-     * 场景服区域管理器
-     */
-    public static final short SCENE_REGION_MGR = 3;
-    /**
-     * 玩家协议处理器
-     */
-    public static final short PLAYER_MESSAGE_MGR = 4;
+    public static final DisconnectMessageTO INSTANCE = new DisconnectMessageTO();
+
+    private DisconnectMessageTO() {
+    }
+
+    public DisconnectMessage getDisconnectMessage() {
+        return DisconnectMessage.INSTANCE;
+    }
 }

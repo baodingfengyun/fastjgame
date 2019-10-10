@@ -40,34 +40,27 @@ public enum NetMessageType implements NumberEnum {
     CONNECT_RESPONSE(2),
 
     /**
+     * 心跳包
+     */
+    PING_PONG(3),
+
+    /**
      * Rpc请求包，必须有一个响应。 -- Rpc消息使用protoBuf编解码，内部使用。
      */
-
-    RPC_REQUEST(3),
+    RPC_REQUEST(4),
     /**
      * Rpc响应包。
      */
-    RPC_RESPONSE(4),
+    RPC_RESPONSE(5),
 
     /**
      * 单向消息包。
      */
-    ONE_WAY_MESSAGE(5),
-
-    /**
-     * 心跳包
-     */
-    PING_PONG(6),
-
+    ONE_WAY_MESSAGE(6),
     /**
      * 主动断开连接
      */
-    DISCONNECT(8),
-
-    /**
-     * 重定向 - 让网关服连接另一个服务器
-     */
-    RELOCATION(9);
+    DISCONNECT(8);
 
     public final byte pkgType;
 
