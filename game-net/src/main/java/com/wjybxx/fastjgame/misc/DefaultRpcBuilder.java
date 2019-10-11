@@ -58,37 +58,37 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V> {
     }
 
     @Override
-    public final RpcBuilder<V> ifSuccess(@Nonnull SucceedRpcCallback<V> callback) {
+    public final RpcBuilder<V> onSuccess(@Nonnull SucceedRpcCallback<V> callback) {
         addCallback(callback);
         return this;
     }
 
     @Override
-    public <T> RpcBuilder<V> ifSuccess(@Nonnull SaferSucceedRpcCallback<V, T> callback, @Nonnull T context) {
+    public <T> RpcBuilder<V> onSuccess(@Nonnull SaferSucceedRpcCallback<V, T> callback, @Nonnull T context) {
         addCallback(new RpcCallbackAdapter<>(callback, context));
         return this;
     }
 
     @Override
-    public final RpcBuilder<V> ifFailure(@Nonnull FailedRpcCallback callback) {
+    public final RpcBuilder<V> onFailure(@Nonnull FailedRpcCallback callback) {
         addCallback(callback);
         return this;
     }
 
     @Override
-    public <T> RpcBuilder<V> ifFailure(@Nonnull SaferFailedRpcCallback<T> callback, @Nonnull T context) {
+    public <T> RpcBuilder<V> onFailure(@Nonnull SaferFailedRpcCallback<T> callback, @Nonnull T context) {
         addCallback(new RpcCallbackAdapter<>(callback, context));
         return this;
     }
 
     @Override
-    public final RpcBuilder<V> any(@Nonnull RpcCallback callback) {
+    public final RpcBuilder<V> onComplete(@Nonnull RpcCallback callback) {
         addCallback(callback);
         return this;
     }
 
     @Override
-    public <T> RpcBuilder<V> any(@Nonnull SaferRpcCallback<T> callback, @Nonnull T context) {
+    public <T> RpcBuilder<V> onComplete(@Nonnull SaferRpcCallback<T> callback, @Nonnull T context) {
         addCallback(new RpcCallbackAdapter<>(callback, context));
         return this;
     }
@@ -101,7 +101,7 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V> {
         }
         // 添加超过两次
         if (callback instanceof CompositeRpcCallback) {
-            ((CompositeRpcCallback) this.callback).any(newCallback);
+            ((CompositeRpcCallback) this.callback).onComplete(newCallback);
         } else {
             // 添加的第二个回调
             callback = new CompositeRpcCallback<>(callback, newCallback);

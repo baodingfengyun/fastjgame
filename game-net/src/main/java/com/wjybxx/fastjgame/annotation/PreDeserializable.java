@@ -22,9 +22,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 可预反序列化的，与{@link LazySerializable}配对，其实它的实现难度高于{@link LazySerializable}，暂时先不处理它。
- * 等待确实需要的时候再说。
- * 它需要知道即将被调用的方法的信息，才可以做到。
+ * 可预反序列化的，与{@link LazySerializable}配对，它表示需要网络层帮我提前反序列化。
+ * 它需要知道被调用的方法的信息，才可以做到。
  * <p>
  * 注意：
  * 1. 该注解只可以用在非byte[]参数，否则编译报错。

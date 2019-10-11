@@ -46,7 +46,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 1. rpc调用：
  * {@code
  *      Proxy.methodName(a, b, c)
- *          .ifSuccess(result -> onSuccess(result))
+ *          .onSuccess(result -> onSuccess(result))
  *          .call(session);
  * }
  * </pre>
@@ -83,7 +83,7 @@ public interface RpcBuilder<V> {
      * @param callback 回调逻辑
      * @return this
      */
-    RpcBuilder<V> ifSuccess(@Nonnull SucceedRpcCallback<V> callback);
+    RpcBuilder<V> onSuccess(@Nonnull SucceedRpcCallback<V> callback);
 
     /**
      * 设置成功时执行的回调。
@@ -93,7 +93,7 @@ public interface RpcBuilder<V> {
      * @param context  存储的上下文
      * @return this
      */
-    <T> RpcBuilder<V> ifSuccess(@Nonnull SaferSucceedRpcCallback<V, T> callback, @Nonnull T context);
+    <T> RpcBuilder<V> onSuccess(@Nonnull SaferSucceedRpcCallback<V, T> callback, @Nonnull T context);
 
     /**
      * 设置失败时执行的回调。
@@ -102,7 +102,7 @@ public interface RpcBuilder<V> {
      * @param callback 回调逻辑
      * @return this
      */
-    RpcBuilder<V> ifFailure(@Nonnull FailedRpcCallback callback);
+    RpcBuilder<V> onFailure(@Nonnull FailedRpcCallback callback);
 
     /**
      * 设置失败时执行的回调。
@@ -112,7 +112,7 @@ public interface RpcBuilder<V> {
      * @param context  存储的上下文
      * @return this
      */
-    <T> RpcBuilder<V> ifFailure(@Nonnull SaferFailedRpcCallback<T> callback, @Nonnull T context);
+    <T> RpcBuilder<V> onFailure(@Nonnull SaferFailedRpcCallback<T> callback, @Nonnull T context);
 
     /**
      * 设置无论成功还是失败都会执行的回调。
@@ -121,7 +121,7 @@ public interface RpcBuilder<V> {
      * @param callback 回调逻辑
      * @return this
      */
-    RpcBuilder<V> any(@Nonnull RpcCallback callback);
+    RpcBuilder<V> onComplete(@Nonnull RpcCallback callback);
 
     /**
      * 设置无论成功还是失败都会执行的回调。
@@ -131,7 +131,7 @@ public interface RpcBuilder<V> {
      * @param context  存储的上下文
      * @return this
      */
-    <T> RpcBuilder<V> any(@Nonnull SaferRpcCallback<T> callback, @Nonnull T context);
+    <T> RpcBuilder<V> onComplete(@Nonnull SaferRpcCallback<T> callback, @Nonnull T context);
 
     // --------------------------------------------- 真正执行 --------------------------------------------------
 

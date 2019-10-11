@@ -65,7 +65,7 @@ public final class CompositeRpcCallback<V> implements RpcCallback {
      *
      * @return this
      */
-    public CompositeRpcCallback<V> ifSuccess(SucceedRpcCallback<V> rpcCallback) {
+    public CompositeRpcCallback<V> onSuccess(SucceedRpcCallback<V> rpcCallback) {
         children.add(rpcCallback);
         return this;
     }
@@ -75,7 +75,7 @@ public final class CompositeRpcCallback<V> implements RpcCallback {
      *
      * @return this
      */
-    public CompositeRpcCallback<V> ifFailure(FailedRpcCallback rpcCallback) {
+    public CompositeRpcCallback<V> onFailure(FailedRpcCallback rpcCallback) {
         children.add(rpcCallback);
         return this;
     }
@@ -85,7 +85,7 @@ public final class CompositeRpcCallback<V> implements RpcCallback {
      *
      * @return this
      */
-    public CompositeRpcCallback<V> any(RpcCallback rpcCallback) {
+    public CompositeRpcCallback<V> onComplete(RpcCallback rpcCallback) {
         children.add(rpcCallback);
         return this;
     }

@@ -216,7 +216,7 @@ public class SceneInCenterInfoMgr {
         public void onSessionConnected(Session session) {
             getSceneInfo(session.remoteGuid()).setSession(session);
             ICenterInSceneInfoMgrRpcProxy.connectSingleScene(centerWorldInfoMgr.getPlatformType().getNumber(), centerWorldInfoMgr.getServerId())
-                    .ifSuccess(result -> connectSingleSuccessResult(session, result))
+                    .onSuccess(result -> connectSingleSuccessResult(session, result))
                     .call(session);
         }
 
@@ -235,7 +235,7 @@ public class SceneInCenterInfoMgr {
         public void onSessionConnected(Session session) {
             getSceneInfo(session.remoteGuid()).setSession(session);
             ICenterInSceneInfoMgrRpcProxy.connectCrossScene(centerWorldInfoMgr.getPlatformType().getNumber(), centerWorldInfoMgr.getServerId())
-                    .ifSuccess(result -> connectCrossSceneSuccess(session, result))
+                    .onSuccess(result -> connectCrossSceneSuccess(session, result))
                     .call(session);
         }
 

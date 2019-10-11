@@ -87,7 +87,7 @@ public class LocalCodecHandler extends SessionOutboundHandlerAdapter {
             for (int index = 0, end = methodParams.size(); index < end; index++) {
                 final Object parameter = methodParams.get(index);
                 final Object newParameter;
-                if ((lazyIndexes & (1L << index)) != 0) {
+                if (lazyIndexes > 0 && (lazyIndexes & (1L << index)) != 0) {
                     // 需要延迟序列化的参数
                     if (parameter instanceof byte[]) {
                         // 已经是字节数组了，拷贝一下即可
@@ -98,7 +98,7 @@ public class LocalCodecHandler extends SessionOutboundHandlerAdapter {
                         // 还不是字节数组，执行序列化，减少不必要的拷贝
                         newParameter = codec.serializeToBytes(parameter);
                     }
-                } else if ((preIndexes & (1L << index)) != 0) {
+                } else if (preIndexes > 0 && (preIndexes & (1L << index)) != 0) {
                     // 需要网络层反序列化的参数 - 由于代理方法是bytes[]，所有这里一定是byte[]
                     newParameter = codec.deserializeToBytes((byte[]) parameter);
                 } else {
