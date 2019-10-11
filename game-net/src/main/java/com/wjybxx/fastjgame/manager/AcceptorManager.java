@@ -67,7 +67,11 @@ public class AcceptorManager {
     public void onRcvConnectRequest(SocketConnectRequestEvent connectRequestEvent) {
         final Session existSession = sessionRegistry.getSession(connectRequestEvent.sessionId());
         if (existSession == null) {
-            // TODO 首次建立连接验证
+            // 初始ack错误 - 证明是个失效逻辑
+            if (connectRequestEvent.getAck() != MessageQueue.INIT_ACK) {
+                NetUtils.closeQuietly(connectRequestEvent.channel());
+                return;
+            }
             final SocketPortContext portExtraInfo = connectRequestEvent.getPortExtraInfo();
             SocketSessionImp socketSessionImp = new SocketSessionImp(portExtraInfo.getNetContext(), connectRequestEvent.sessionId(), connectRequestEvent.remoteGuid(),
                     netManagerWrapper,

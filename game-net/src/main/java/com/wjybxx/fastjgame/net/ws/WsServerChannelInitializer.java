@@ -57,6 +57,7 @@ public class WsServerChannelInitializer extends ChannelInitializer<SocketChannel
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
+        pipeline.addLast(NetUtils.READ_TIMEOUT_HANDLER_NAME, new ReadTimeoutHandler(45));
 
         appendHttpCodec(pipeline);
 
@@ -87,7 +88,6 @@ public class WsServerChannelInitializer extends ChannelInitializer<SocketChannel
     }
 
     private void appendCustomProtocolCodec(ChannelPipeline pipeline) {
-        pipeline.addLast(NetUtils.READ_TIMEOUT_HANDLER_NAME, new ReadTimeoutHandler(45));
         pipeline.addLast(new LengthFieldBasedFrameDecoder(portExtraInfo.getSessionConfig().maxFrameLength(), 0, 4, 0, 4));
         pipeline.addLast(new ServerSocketCodec(portExtraInfo.getSessionConfig().codec(), portExtraInfo));
     }

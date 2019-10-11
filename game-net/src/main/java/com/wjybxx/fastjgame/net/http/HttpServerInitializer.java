@@ -23,9 +23,7 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
-import io.netty.handler.timeout.IdleStateHandler;
-
-import java.util.concurrent.TimeUnit;
+import io.netty.handler.timeout.ReadTimeoutHandler;
 
 /**
  * 作为http服务器时的channel初始化器
@@ -46,7 +44,7 @@ public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
-        pipeline.addLast(NetUtils.READ_TIMEOUT_HANDLER_NAME, new IdleStateHandler(60, 0, 0, TimeUnit.SECONDS));
+        pipeline.addLast(NetUtils.READ_TIMEOUT_HANDLER_NAME, new ReadTimeoutHandler(45));
         pipeline.addLast(new HttpServerCodec());
         // http请求和响应可能被分段，利用聚合器将http请求合并为完整的Http请求
         pipeline.addLast(new HttpObjectAggregator(65535));

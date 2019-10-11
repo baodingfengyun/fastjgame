@@ -35,8 +35,9 @@ public class SessionRegistry {
 
     /**
      * sessionId到session的映射
+     * (发现session只用于服务器与服务器之间，因此不需要太高的容量)
      */
-    private final Map<String, Session> sessionMap = new HashMap<>(256);
+    private final Map<String, Session> sessionMap = new HashMap<>(32);
 
     public void tick() {
         for (Session session : sessionMap.values()) {
@@ -81,10 +82,10 @@ public class SessionRegistry {
     }
 
     public void onUserEventLoopTerminal(EventLoop userEventLoop) {
-
+        // TODO
     }
 
     public void closeAll() {
-
+        // TODO
     }
 }

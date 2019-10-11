@@ -16,10 +16,6 @@
 
 package com.wjybxx.fastjgame.net.common;
 
-import com.wjybxx.fastjgame.enummapper.NumberEnum;
-import com.wjybxx.fastjgame.enummapper.NumberEnumMapper;
-import com.wjybxx.fastjgame.utils.EnumUtils;
-
 /**
  * 网络包类型
  *
@@ -28,7 +24,7 @@ import com.wjybxx.fastjgame.utils.EnumUtils;
  * date - 2019/7/24
  * github - https://github.com/hl845740757
  */
-public enum NetMessageType implements NumberEnum {
+public enum NetMessageType {
 
     /**
      * 客户端请求建立链接
@@ -70,27 +66,12 @@ public enum NetMessageType implements NumberEnum {
     }
 
     /**
-     * 仅仅用于初始化映射
-     *
-     * @return 枚举对应的编号
-     */
-    @Override
-    public int getNumber() {
-        return pkgType;
-    }
-
-    /**
-     * 排序号的枚举数组，方便查找
-     */
-    private static final NumberEnumMapper<NetMessageType> mapper = EnumUtils.indexNumberEnum(values());
-
-    /**
      * 通过网络包中的pkgType找到对应的枚举。
      *
      * @param pkgType 包类型
      * @return 包类型对应的枚举
      */
     public static NetMessageType forNumber(byte pkgType) {
-        return mapper.forNumber(pkgType);
+        return values()[pkgType - 1];
     }
 }

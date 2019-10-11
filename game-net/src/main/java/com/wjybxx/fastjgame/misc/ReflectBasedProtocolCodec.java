@@ -209,7 +209,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
     }
 
     @Override
-    public Object deserializeToBytes(@Nonnull byte[] data) throws IOException {
+    public Object deserializeFromBytes(@Nonnull byte[] data) throws IOException {
         return readObject(CodedInputStream.newInstance(data));
     }
 
@@ -276,6 +276,8 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         throw new UnsupportedOperationException("un support type " + object.getClass().getName());
     }
 
+    // ------------------------------------------- tag相关 ------------------------------------
+
     /**
      * 计算tag大小，也就是类型符号的大小，tag都是整数，使用uint32编解码
      *
@@ -287,10 +289,24 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         return 1;
     }
 
+    /**
+     * 写入一个tag
+     *
+     * @param outputStream 输出流
+     * @param wireType     tag
+     * @throws IOException error
+     */
     private static void writeTag(CodedOutputStream outputStream, byte wireType) throws IOException {
         outputStream.writeRawByte(wireType);
     }
 
+    /**
+     * 读取一个tag
+     *
+     * @param inputStream 输入流
+     * @return tag
+     * @throws IOException error
+     */
     private static byte readTag(CodedInputStream inputStream) throws IOException {
         return inputStream.readRawByte();
     }
@@ -774,6 +790,8 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
     }
 
+    // protoBuf消息编解码支持
+    // TODO 不确定前端代码是否支持以相同的方式编解码，如果不支持，可能需要将这里的MessageId变为Fixed32
     private class MessageCodec implements Codec<AbstractMessage> {
 
         @Override

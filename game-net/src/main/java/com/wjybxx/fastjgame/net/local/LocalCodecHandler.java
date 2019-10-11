@@ -100,7 +100,7 @@ public class LocalCodecHandler extends SessionOutboundHandlerAdapter {
                     }
                 } else if (preIndexes > 0 && (preIndexes & (1L << index)) != 0) {
                     // 需要网络层反序列化的参数 - 由于代理方法是bytes[]，所有这里一定是byte[]
-                    newParameter = codec.deserializeToBytes((byte[]) parameter);
+                    newParameter = codec.deserializeFromBytes((byte[]) parameter);
                 } else {
                     // 普通参数
                     newParameter = codec.cloneObject(parameter);

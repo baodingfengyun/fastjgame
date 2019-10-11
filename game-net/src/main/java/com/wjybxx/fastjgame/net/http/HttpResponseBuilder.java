@@ -43,7 +43,7 @@ public abstract class HttpResponseBuilder<T extends HttpResponseBuilder<T>> {
             httpHeaders = new DefaultHttpHeaders();
         }
         httpHeaders.set(headerName, headerValue);
-        return castThis();
+        return self();
     }
 
     /**
@@ -52,7 +52,7 @@ public abstract class HttpResponseBuilder<T extends HttpResponseBuilder<T>> {
      * @return 返回具体类型的子类自身
      */
     @SuppressWarnings("unchecked")
-    protected final T castThis() {
+    protected final T self() {
         return (T) this;
     }
 

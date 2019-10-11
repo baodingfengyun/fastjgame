@@ -17,10 +17,12 @@
 package com.wjybxx.fastjgame.net.socket;
 
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
+import com.wjybxx.fastjgame.utils.NetUtils;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import io.netty.handler.timeout.ReadTimeoutHandler;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -50,6 +52,8 @@ public class TCPClientChannelInitializer extends ChannelInitializer<SocketChanne
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
+        // 读超时控制 - 注意：netty的EventLoop虽然支持定时任务任务，但是定时任务对EventLoop非常不友好，要尽量减少这种定时任务。
+        pipeline.addLast(NetUtils.READ_TIMEOUT_HANDLER_NAME, new ReadTimeoutHandler(45));
         pipeline.addLast(new LengthFieldBasedFrameDecoder(config.maxFrameLength(), 0, 4, 0, 4));
         pipeline.addLast(new ClientSocketCodec(config.codec(), sessionId, localGuid, netEventLoop));
     }

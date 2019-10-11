@@ -22,7 +22,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 表示rpc方法中的某个参数，可以延迟到网络层序列化为字节数组！
+ * 表示rpc方法中的某个参数可以延迟到网络层序列化为字节数组！
  * <p>
  * Q: 我是在什么情境下想到这个的呢？<b>
  * A: 逻辑服务器向网关服务器发送消息，而这个消息是需要转发给玩家的。我并不想这个消息在网关服进行不必要的编解码操作。最开始想到的方案有两种：<b>

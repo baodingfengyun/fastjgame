@@ -60,7 +60,7 @@ public class SerializePerformanceTesting {
         byte[] byteBuf = codec.serializeToBytes(fullMessage);
         System.out.println(name + " encode result bytes = " + byteBuf.length);
 
-        Object decodeMessage = codec.deserializeToBytes(byteBuf);
+        Object decodeMessage = codec.deserializeFromBytes(byteBuf);
         System.out.println(name + " codec equals result = " + fullMessage.equals(decodeMessage));
     }
 
@@ -69,7 +69,7 @@ public class SerializePerformanceTesting {
         long start = System.currentTimeMillis();
         for (int index = 0; index < loopTimes; index++) {
             byte[] byteBuf = codec.serializeToBytes(fullMessage);
-            Object decodeMessage = codec.deserializeToBytes(byteBuf);
+            Object decodeMessage = codec.deserializeFromBytes(byteBuf);
         }
         System.out.println(name + " codec " + loopTimes + " times cost timeMs " + (System.currentTimeMillis() - start));
     }

@@ -84,7 +84,7 @@ public class ExampleRpcClientLoop extends DisruptorEventLoop {
                     .setLifecycleAware(new ServerDisconnectAward())
                     .setDispatcher(new DefaultProtocolDispatcher())
                     .build();
-            
+
             final HostAndPort address = new HostAndPort(NetUtils.getLocalIp(), ExampleConstants.tcpPort);
             session = netContext.connectTcp(ExampleConstants.SESSION_ID, ExampleConstants.SERVER_GUID, address, config)
                     .get();

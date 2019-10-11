@@ -132,7 +132,7 @@ public class JsonBasedProtocolCodec implements ProtocolCodec {
     }
 
     @Override
-    public Object deserializeToBytes(@Nonnull byte[] data) throws IOException {
+    public Object deserializeFromBytes(@Nonnull byte[] data) throws IOException {
         if (data.length == 0) {
             return null;
         }

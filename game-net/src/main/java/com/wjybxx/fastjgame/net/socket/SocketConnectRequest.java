@@ -39,7 +39,6 @@ public class SocketConnectRequest {
         this.verifyingTimes = verifyingTimes;
     }
 
-
     public int getVerifyingTimes() {
         return verifyingTimes;
     }

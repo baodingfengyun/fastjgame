@@ -49,7 +49,9 @@ public final class ExampleConstants {
     public static final JsonBasedProtocolCodec jsonBasedCodec = new JsonBasedProtocolCodec(messageMapper);
     public static final ReflectBasedProtocolCodec reflectBasedCodec = ReflectBasedProtocolCodec.newInstance(messageMapper);
 
-    public static final NetEventLoopGroup netEventLoop = new NetEventLoopGroupBuilder().build();
+    public static final NetEventLoopGroup netEventLoop = new NetEventLoopGroupBuilder()
+            .setWorkerGroupThreadNum(2)
+            .build();
     /**
      * tcp端口
      */

@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.net.ws;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.net.socket.ClientSocketCodec;
 import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
+import com.wjybxx.fastjgame.utils.NetUtils;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
@@ -29,6 +30,7 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.websocketx.WebSocket13FrameEncoder;
 import io.netty.handler.codec.http.websocketx.WebSocketClientProtocolHandler;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
+import io.netty.handler.timeout.ReadTimeoutHandler;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.net.URI;
@@ -67,6 +69,7 @@ public class WsClientChannelInitializer extends ChannelInitializer<SocketChannel
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
+        pipeline.addLast(NetUtils.READ_TIMEOUT_HANDLER_NAME, new ReadTimeoutHandler(45));
 
         appendHttpCodec(pipeline);
 

@@ -91,5 +91,5 @@ public interface ProtocolCodec {
      * @param data 序列化后的数组
      * @return 反序列化的结果
      */
-    Object deserializeToBytes(@Nonnull byte[] data) throws IOException;
+    Object deserializeFromBytes(@Nonnull byte[] data) throws IOException;
 }

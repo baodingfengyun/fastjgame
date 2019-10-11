@@ -152,10 +152,10 @@ public class ConnectorManager {
     }
 
     public void onUserEventLoopTerminal(EventLoop userEventLoop) {
-
+        sessionRegistry.onUserEventLoopTerminal(userEventLoop);
     }
 
     public void clean() {
-
+        sessionRegistry.closeAll();
     }
 }

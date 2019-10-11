@@ -169,7 +169,7 @@ public class NetUtils {
     }
 
     /**
-     * 计算byteBuf指定区域字节的校验和
+     * 计算byteBuf指定区域字节的校验和 - 讲道理，在数据较多的时候，消耗蛮大。
      *
      * @param byteBuf byteBuf
      * @param offset  偏移量
@@ -340,7 +340,7 @@ public class NetUtils {
      * @param codec   反序列化实现
      * @throws IOException error
      */
-    public static void checkPredeserialize(RpcCall rpcCall, ProtocolCodec codec) throws IOException {
+    public static void checkPreDeserialize(RpcCall rpcCall, ProtocolCodec codec) throws IOException {
         final int preIndexes = rpcCall.getPreIndexes();
         if (preIndexes <= 0) {
             return;
@@ -349,7 +349,7 @@ public class NetUtils {
         for (int index = 0, end = methodParams.size(); index < end; index++) {
             if ((preIndexes & (1L << index)) != 0) {
                 final byte[] parameter = (byte[]) methodParams.get(index);
-                methodParams.set(index, codec.deserializeToBytes(parameter));
+                methodParams.set(index, codec.deserializeFromBytes(parameter));
             }
         }
     }

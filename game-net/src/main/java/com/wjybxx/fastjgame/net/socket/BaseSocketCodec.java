@@ -56,10 +56,6 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
      * 协议编解码工具
      */
     private final ProtocolCodec codec;
-    /**
-     * 出现异常次数
-     */
-    private int errorCount;
 
     protected BaseSocketCodec(ProtocolCodec codec) {
         this.codec = codec;
@@ -398,7 +394,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
             final Object body = codec.readObject(data);
             // 检查预反序列化
             if (body instanceof RpcCall) {
-                NetUtils.checkPredeserialize((RpcCall) body, codec);
+                NetUtils.checkPreDeserialize((RpcCall) body, codec);
             }
             return body;
         } catch (Exception e) {
@@ -416,10 +412,6 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         logger.warn("", cause);
-        if (++errorCount > 3) {
-            logger.error("close channel by reason of too many error caught!");
-            NetUtils.closeQuietly(ctx);
-        }
     }
 
     /**
