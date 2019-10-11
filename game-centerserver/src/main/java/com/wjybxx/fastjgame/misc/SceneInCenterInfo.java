@@ -47,14 +47,6 @@ public class SceneInCenterInfo {
      * 进程类型(本服/跨服)
      */
     private final SceneWorldType worldType;
-    /**
-     * 对玩家开放的tcp端口
-     */
-    private final String outerTcpAddress;
-    /**
-     * 对玩家开放的websocket端口
-     */
-    private final String outerWsAddress;
 
     /**
      * 配置的期望启动的区域，尽可能的都启动它们，且不启动额外的区域。
@@ -78,12 +70,10 @@ public class SceneInCenterInfo {
      */
     private Session session;
 
-    public SceneInCenterInfo(long sceneWorldGuid, int chanelId, SceneWorldType worldType, String outerTcpAddress, String outerWsAddress) {
+    public SceneInCenterInfo(long sceneWorldGuid, int chanelId, SceneWorldType worldType) {
         this.sceneWorldGuid = sceneWorldGuid;
         this.chanelId = chanelId;
         this.worldType = worldType;
-        this.outerTcpAddress = outerTcpAddress;
-        this.outerWsAddress = outerWsAddress;
     }
 
     public long getSceneWorldGuid() {
@@ -96,14 +86,6 @@ public class SceneInCenterInfo {
 
     public SceneWorldType getWorldType() {
         return worldType;
-    }
-
-    public String getOuterTcpAddress() {
-        return outerTcpAddress;
-    }
-
-    public String getOuterWsAddress() {
-        return outerWsAddress;
     }
 
     public Set<SceneRegion> getConfiguredRegions() {

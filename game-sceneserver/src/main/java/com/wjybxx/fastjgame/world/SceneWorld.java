@@ -91,18 +91,8 @@ public class SceneWorld extends AbstractWorld {
         HostAndPort innerHttpAddress = innerAcceptorMgr.bindInnerHttpPort();
         HostAndPort localAddress = innerAcceptorMgr.bindLocalTcpPort(centerLifeAware);
 
-        // 绑定与玩家交互的两个端口
-        // TODO 这里需要和前端确定到底使用什么通信方式，暂时使用服务器之间机制
-        NetContext netContext = netContextMgr.getNetContext();
-
-        HostAndPort outerTcpHostAndPort = netContext.bindTcpRange(NetUtils.getOuterIp(), GameUtils.OUTER_TCP_PORT_RANGE,
-                innerAcceptorMgr.newSocketSessionConfig(new PlayerLifeAware())).get().getHostAndPort();
-
-        HostAndPort outerWebsocketHostAndPort = netContext.bindWSRange(NetUtils.getOuterIp(), GameUtils.OUTER_WS_PORT_RANGE, "/ws",
-                innerAcceptorMgr.newSocketSessionConfig(new PlayerLifeAware())).get().getHostAndPort();
-
         SceneNodeData sceneNodeData = new SceneNodeData(innerTcpAddress.toString(), innerHttpAddress.toString(), localAddress.toString(), SystemUtils.getMAC(),
-                sceneWorldInfoMgr.getChannelId(), outerTcpHostAndPort.toString(), outerWebsocketHostAndPort.toString());
+                sceneWorldInfoMgr.getChannelId());
 
         String parentPath = ZKPathUtils.onlineParentPath(sceneWorldInfoMgr.getWarzoneId());
         String nodeName;

@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.ref;
+package com.wjybxx.fastjgame.reflect;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;

@@ -65,8 +65,8 @@ public class NettyThreadManager {
      * happens - before other methods
      */
     public void start(int bossGroupThreadNum, int workerGroupThreadNum) {
-        bossGroup = new NioEventLoopGroup(bossGroupThreadNum, new DefaultThreadFactory("BOSS_GROUP_THREAD"));
-        workerGroup = new NioEventLoopGroup(workerGroupThreadNum, new DefaultThreadFactory("WORKER_GROUP_THREAD"));
+        bossGroup = new NioEventLoopGroup(bossGroupThreadNum, new DefaultThreadFactory("ACCEPTOR_THREAD"));
+        workerGroup = new NioEventLoopGroup(workerGroupThreadNum, new DefaultThreadFactory("WORKER_THREAD"));
         logger.info("NettyThreadManager start success");
     }
 

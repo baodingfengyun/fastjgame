@@ -127,10 +127,7 @@ public class SceneInCenterInfoMgr {
 
         // 保存信息
         SceneInCenterInfo sceneInCenterInfo = new SceneInCenterInfo(singleSceneNodeName.getWorldGuid(),
-                onlineSceneNode.getChannelId(),
-                SceneWorldType.SINGLE,
-                onlineSceneNode.getOuterTcpAddress(),
-                onlineSceneNode.getOuterWebsocketAddress());
+                onlineSceneNode.getChannelId(), SceneWorldType.SINGLE);
 
         addSceneInfo(sceneInCenterInfo);
     }
@@ -160,10 +157,7 @@ public class SceneInCenterInfoMgr {
 
         // 保存信息
         SceneInCenterInfo sceneInCenterInfo = new SceneInCenterInfo(crossSceneNodeName.getWorldGuid(),
-                onlineSceneNode.getChannelId(),
-                SceneWorldType.CROSS,
-                onlineSceneNode.getOuterTcpAddress(),
-                onlineSceneNode.getOuterWebsocketAddress());
+                onlineSceneNode.getChannelId(), SceneWorldType.CROSS);
 
         addSceneInfo(sceneInCenterInfo);
     }

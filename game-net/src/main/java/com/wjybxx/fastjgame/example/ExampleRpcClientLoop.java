@@ -79,14 +79,13 @@ public class ExampleRpcClientLoop extends DisruptorEventLoop {
             session = netContext.connectLocal(ExampleConstants.SESSION_ID, ExampleConstants.SERVER_GUID, localPort, config).get();
         } else {
             // 必须先启动服务器
-            final HostAndPort address = new HostAndPort(NetUtils.getLocalIp(), ExampleConstants.tcpPort);
-
             SocketSessionConfig config = SocketSessionConfig.newBuilder()
                     .setCodec(ExampleConstants.reflectBasedCodec)
                     .setLifecycleAware(new ServerDisconnectAward())
                     .setDispatcher(new DefaultProtocolDispatcher())
                     .build();
-
+            
+            final HostAndPort address = new HostAndPort(NetUtils.getLocalIp(), ExampleConstants.tcpPort);
             session = netContext.connectTcp(ExampleConstants.SESSION_ID, ExampleConstants.SERVER_GUID, address, config)
                     .get();
         }

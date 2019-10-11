@@ -32,38 +32,19 @@ public class SceneNodeData extends TcpServerNodeData {
      * 该场景进程的频道id
      */
     private final int channelId;
-    /**
-     * 对外开放的绑定的tcp端口信息(与玩家通信用)
-     */
-    private final String outerTcpAddress;
-    /**
-     * 对外开放的绑定的websocket端口信息(与玩家通信用)
-     */
-    private final String outerWebsocketAddress;
 
     @JsonCreator
     public SceneNodeData(@JsonProperty("innerTcpAddress") String innerTcpAddress,
                          @JsonProperty("innerHttpAddress") String innerHttpAddress,
                          @JsonProperty("localAddress") String localAddress,
                          @JsonProperty("macAddress") String macAddress,
-                         @JsonProperty("channelId") int channelId,
-                         @JsonProperty("outerTcpAddress") String outerTcpAddress,
-                         @JsonProperty("outerWebsocketAddress") String outerWebsocketAddress) {
+                         @JsonProperty("channelId") int channelId) {
         super(innerTcpAddress, innerHttpAddress, localAddress, macAddress);
         this.channelId = channelId;
-        this.outerTcpAddress = outerTcpAddress;
-        this.outerWebsocketAddress = outerWebsocketAddress;
     }
 
     public int getChannelId() {
         return channelId;
     }
 
-    public String getOuterTcpAddress() {
-        return outerTcpAddress;
-    }
-
-    public String getOuterWebsocketAddress() {
-        return outerWebsocketAddress;
-    }
 }
