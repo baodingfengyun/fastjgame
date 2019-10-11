@@ -395,7 +395,12 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
     @Nullable
     private Object tryDecodeBody(ByteBuf data) {
         try {
-            return codec.readObject(data);
+            final Object body = codec.readObject(data);
+            // 检查预反序列化
+            if (body instanceof RpcCall) {
+                NetUtils.checkPredeserialize((RpcCall) body, codec);
+            }
+            return body;
         } catch (Exception e) {
             // 为了不影响该连接上的其它消息，需要捕获异常
             logger.warn("deserialize body caught exception", e);

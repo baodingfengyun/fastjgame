@@ -85,6 +85,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
     private static final String RPC_SERVICE_PROXY_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.RpcServiceProxy";
     private static final String RPC_METHOD_PROXY_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.RpcMethodProxy";
     private static final String LAZY_SERIALIZABLE_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.LazySerializable";
+    private static final String PRE_DESERIALIZE_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.PreDeserializable";
 
     private static final String CHANNEL_CANONICAL_NAME = "com.wjybxx.fastjgame.net.common.RpcResponseChannel";
     private static final String RPC_RESPONSE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.common.RpcResponse";
@@ -142,6 +143,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
      * {@code LazySerializable}对应的类型
      */
     private DeclaredType lazySerializeType;
+    private DeclaredType preDeserializeType;
 
     private TypeElement rpcServiceElement;
     private DeclaredType rpcServiceDeclaredType;
@@ -201,7 +203,9 @@ public class RpcServiceProcessor extends AbstractProcessor {
 
         responseChannelType = typeUtils.getDeclaredType(elementUtils.getTypeElement(CHANNEL_CANONICAL_NAME));
         sessionType = typeUtils.getDeclaredType(elementUtils.getTypeElement(SESSION_CANONICAL_NAME));
+
         lazySerializeType = typeUtils.getDeclaredType(elementUtils.getTypeElement(LAZY_SERIALIZABLE_CANONICAL_NAME));
+        preDeserializeType = typeUtils.getDeclaredType(elementUtils.getTypeElement(PRE_DESERIALIZE_CANONICAL_NAME));
 
         defaultBuilderRawTypeName = TypeName.get(typeUtils.getDeclaredType(elementUtils.getTypeElement(DEFAULT_BUILDER_CANONICAL_NAME)));
     }
@@ -387,13 +391,15 @@ public class RpcServiceProcessor extends AbstractProcessor {
         // 搜集参数代码块（一个参数时不能使用singleTonList了，因为可能要修改内容）
         if (realParameters.size() == 0) {
             // 无参时，使用 Collections.emptyList();
-            builder.addStatement("return new $T<>($L, $T.emptyList(), $L)", defaultBuilderRawTypeName, methodKey, Collections.class, parseResult.lazyIndexes);
+            builder.addStatement("return new $T<>($L, $T.emptyList(), $L, $L)", defaultBuilderRawTypeName, methodKey, Collections.class,
+                    parseResult.lazyIndexes, parseResult.preIndexes);
         } else {
-            builder.addStatement("$T<Object> $L = new $T<>($L)", List.class, methodParams, ArrayList.class, realParameters.size());
+            builder.addStatement("$T<Object> $L = new $T<>($L)", ArrayList.class, methodParams, ArrayList.class, realParameters.size());
             for (ParameterSpec parameterSpec : realParameters) {
                 builder.addStatement("$L.add($L)", methodParams, parameterSpec.name);
             }
-            builder.addStatement("return new $T<>($L, $L, $L)", defaultBuilderRawTypeName, methodKey, methodParams, parseResult.lazyIndexes);
+            builder.addStatement("return new $T<>($L, $L, $L, $L)", defaultBuilderRawTypeName, methodKey, methodParams,
+                    parseResult.lazyIndexes, parseResult.preIndexes);
         }
         return builder.build();
     }
@@ -404,10 +410,15 @@ public class RpcServiceProcessor extends AbstractProcessor {
         final List<VariableElement> originParameters = (List<VariableElement>) method.getParameters();
         // 真实参数列表
         final List<ParameterSpec> realParameters = new ArrayList<>(originParameters.size());
+
         // 返回值类型
         TypeMirror callReturenType = null;
+
         // 需要延迟初始化的参数所在的位置
         int lazyIndexes = 0;
+        // 需要提前反序列化的参数所在的位置
+        int preIndexes = 0;
+
         // 筛选参数
         for (VariableElement variableElement : originParameters) {
             // rpcResponseChannel需要从参数列表删除，并捕获泛型类型
@@ -419,13 +430,18 @@ public class RpcServiceProcessor extends AbstractProcessor {
             if (isSession(variableElement)) {
                 continue;
             }
-            // 延迟初始化的参数 - 要替换为Object
             if (isLazySerializeParameter(variableElement)) {
+                // 延迟初始化的参数 - 要替换为Object
                 lazyIndexes |= 1 << realParameters.size();
-                // 替换为Object
                 final ParameterSpec parameterSpec = ParameterSpec.builder(Object.class, variableElement.getSimpleName().toString()).build();
                 realParameters.add(parameterSpec);
+            } else if (isPreDeserializeParameter(variableElement)) {
+                // 查看是否需要提前反序列化 - 要替换为byte[]
+                preIndexes |= 1 << realParameters.size();
+                final ParameterSpec parameterSpec = ParameterSpec.builder(byte[].class, variableElement.getSimpleName().toString()).build();
+                realParameters.add(parameterSpec);
             } else {
+                // 普通参数
                 realParameters.add(ParameterSpec.get(variableElement));
             }
         }
@@ -447,7 +463,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
                 callReturenType = typeUtils.boxedClass((PrimitiveType) callReturenType).asType();
             }
         }
-        return new ParseResult(realParameters, lazyIndexes, callReturenType);
+        return new ParseResult(realParameters, lazyIndexes, preIndexes, callReturenType);
     }
 
     /**
@@ -467,12 +483,34 @@ public class RpcServiceProcessor extends AbstractProcessor {
 
     /**
      * 是否可延迟序列化的参数？
-     * 1. 必须是字节数组
-     * 2. 必须带有{@link #LAZY_SERIALIZABLE_CANONICAL_NAME}注解
+     * 1. 必须带有{@link #LAZY_SERIALIZABLE_CANONICAL_NAME}注解
+     * 2. 必须是字节数组
      */
     private boolean isLazySerializeParameter(VariableElement variableElement) {
-        return AutoUtils.isTargetArrayType(variableElement, TypeKind.BYTE)
-                && AutoUtils.findFirstAnnotationNotInheritance(typeUtils, variableElement, lazySerializeType).isPresent();
+        if (!AutoUtils.findFirstAnnotationNotInheritance(typeUtils, variableElement, lazySerializeType).isPresent()) {
+            return false;
+        }
+        if (AutoUtils.isTargetArrayType(variableElement, TypeKind.BYTE)) {
+            return true;
+        }
+        processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Annotation LazySerializable only support byte[]", variableElement);
+        return false;
+    }
+
+    /**
+     * 是否是需要提前反序列化的参数？
+     * 1. 必须带有{@link #PRE_DESERIALIZE_CANONICAL_NAME}注解
+     * 2. 不能是字节数组
+     */
+    private boolean isPreDeserializeParameter(VariableElement variableElement) {
+        if (!AutoUtils.findFirstAnnotationNotInheritance(typeUtils, variableElement, preDeserializeType).isPresent()) {
+            return false;
+        }
+        if (AutoUtils.isTargetArrayType(variableElement, TypeKind.BYTE)) {
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Annotation PreDeserializable doesn't support byte[]", variableElement);
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -708,12 +746,15 @@ public class RpcServiceProcessor extends AbstractProcessor {
         private final List<ParameterSpec> realParameters;
         // 需要延迟初始化的位置
         private final int lazyIndexes;
+        // 需要提前反序列化的位置
+        private final int preIndexes;
         // 远程调用的返回值类型
         private final TypeMirror callReturnType;
 
-        ParseResult(List<ParameterSpec> realParameters, int lazyIndexes, TypeMirror callReturnType) {
+        ParseResult(List<ParameterSpec> realParameters, int lazyIndexes, int preIndexes, TypeMirror callReturnType) {
             this.realParameters = realParameters;
             this.lazyIndexes = lazyIndexes;
+            this.preIndexes = preIndexes;
             this.callReturnType = callReturnType;
         }
     }

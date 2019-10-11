@@ -35,6 +35,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.*;
 import java.util.Enumeration;
+import java.util.List;
 
 /**
  * 网络包工具类
@@ -320,13 +321,35 @@ public class NetUtils {
         if (lazyIndexes <= 0) {
             return;
         }
-        for (int index = 0, end = rpcCall.getMethodParams().size(); index < end; index++) {
+        final List<Object> methodParams = rpcCall.getMethodParams();
+        for (int index = 0, end = methodParams.size(); index < end; index++) {
             if ((lazyIndexes & (1L << index)) != 0) {
-                final Object parameter = rpcCall.getMethodParams().get(index);
+                final Object parameter = methodParams.get(index);
                 if (parameter instanceof byte[]) {
                     continue;
                 }
-                rpcCall.getMethodParams().set(index, codec.serializeToBytes(parameter));
+                methodParams.set(index, codec.serializeToBytes(parameter));
+            }
+        }
+    }
+
+    /**
+     * 检查提前反序列化
+     *
+     * @param rpcCall 方法调用信息
+     * @param codec   反序列化实现
+     * @throws IOException error
+     */
+    public static void checkPredeserialize(RpcCall rpcCall, ProtocolCodec codec) throws IOException {
+        final int preIndexes = rpcCall.getPreIndexes();
+        if (preIndexes <= 0) {
+            return;
+        }
+        final List<Object> methodParams = rpcCall.getMethodParams();
+        for (int index = 0, end = methodParams.size(); index < end; index++) {
+            if ((preIndexes & (1L << index)) != 0) {
+                final byte[] parameter = (byte[]) methodParams.get(index);
+                methodParams.set(index, codec.deserializeToBytes(parameter));
             }
         }
     }

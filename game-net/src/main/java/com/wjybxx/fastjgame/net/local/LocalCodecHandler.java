@@ -70,26 +70,25 @@ public class LocalCodecHandler extends SessionOutboundHandlerAdapter {
     }
 
     /**
-     * 这里是为了解决一件事情：一个非字节数组对象，序列化为字节数组后，再进行拷贝是冗余的，序列化已经实现了拷贝（安全性）。
+     * 这里是为了解决一件事情：一个非字节数组对象，序列化为字节数组后，再进行拷贝是冗余的，序列化已经实现了拷贝。
      * 不过增加了复杂度，降低了可维护性。
      */
-    @SuppressWarnings({"SuspiciousSystemArraycopy", "unchecked"})
+    @SuppressWarnings({"SuspiciousSystemArraycopy"})
     private Object cloneBody(Object body) throws IOException {
         // 检查延迟序列化的属性
         if (body instanceof RpcCall) {
             final RpcCall rpcCall = (RpcCall) body;
+            final List<Object> methodParams = rpcCall.getMethodParams();
+            final ArrayList<Object> newMethodParams = new ArrayList<>(methodParams.size());
             final int lazyIndexes = rpcCall.getLazyIndexes();
-            if (lazyIndexes <= 0) {
-                // 拷贝参数列表即可
-                return new RpcCall(rpcCall.getMethodKey(), (List<Object>) codec.cloneObject(rpcCall.getMethodParams()), lazyIndexes);
-            }
-            // 逐个检查
-            final RpcCall newCall = new RpcCall(rpcCall.getMethodKey(), new ArrayList<>(rpcCall.getMethodParams().size()), lazyIndexes);
-            for (int index = 0, end = rpcCall.getMethodParams().size(); index < end; index++) {
-                final Object parameter = rpcCall.getMethodParams().get(index);
+            final int preIndexes = rpcCall.getPreIndexes();
+
+            final RpcCall newCall = new RpcCall(rpcCall.getMethodKey(), newMethodParams, lazyIndexes, preIndexes);
+            for (int index = 0, end = methodParams.size(); index < end; index++) {
+                final Object parameter = methodParams.get(index);
                 final Object newParameter;
                 if ((lazyIndexes & (1L << index)) != 0) {
-                    // 需要延迟初始化的属性
+                    // 需要延迟序列化的参数
                     if (parameter instanceof byte[]) {
                         // 已经是字节数组了，拷贝一下即可
                         byte[] bytesParameter = (byte[]) parameter;
@@ -99,11 +98,14 @@ public class LocalCodecHandler extends SessionOutboundHandlerAdapter {
                         // 还不是字节数组，执行序列化，减少不必要的拷贝
                         newParameter = codec.serializeToBytes(parameter);
                     }
+                } else if ((preIndexes & (1L << index)) != 0) {
+                    // 需要网络层反序列化的参数 - 由于代理方法是bytes[]，所有这里一定是byte[]
+                    newParameter = codec.deserializeToBytes((byte[]) parameter);
                 } else {
-                    // 不需要延迟初始化的属性，进行显式拷贝
+                    // 普通参数
                     newParameter = codec.cloneObject(parameter);
                 }
-                newCall.getMethodParams().add(newParameter);
+                newMethodParams.add(newParameter);
             }
             return newCall;
         } else {

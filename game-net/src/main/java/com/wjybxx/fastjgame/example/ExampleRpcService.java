@@ -17,10 +17,13 @@
 package com.wjybxx.fastjgame.example;
 
 import com.wjybxx.fastjgame.annotation.LazySerializable;
+import com.wjybxx.fastjgame.annotation.PreDeserializable;
 import com.wjybxx.fastjgame.annotation.RpcMethod;
 import com.wjybxx.fastjgame.annotation.RpcService;
 import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
 import com.wjybxx.fastjgame.net.session.Session;
+
+import java.io.IOException;
 
 /**
  * 示例rpcService
@@ -95,20 +98,24 @@ public class ExampleRpcService {
     }
 
     /**
-     * 转发消息给player
+     * 模拟场景服务器将消息通过网关发送给玩家
      *
-     * @param playerGuid 玩家标识，用在非byte[]上没有用
+     * @param playerGuid 玩家标识
      * @param proto      生成的代理方法类型为Object
-     * @param extra      额外信息
      */
     @RpcMethod(methodId = 10)
-    public void sendToPlayer(@LazySerializable long playerGuid,
-                             @LazySerializable byte[] proto,
-                             @LazySerializable byte[] extra,
-                             byte[] any) {
-        System.out.println("playerGuid " + playerGuid +
-                " , protoLength = " + proto.length +
-                " , extraLength = " + extra.length + "" +
-                " , anyLength = " + any.length);
+    public void sendToPlayer(long playerGuid, @LazySerializable byte[] proto) throws IOException {
+        System.out.println("playerGuid " + playerGuid + ", " + ExampleConstants.reflectBasedCodec.deserializeToBytes(proto));
+    }
+
+    /**
+     * 模拟玩家将消息通过网关发送到场景服务器
+     *
+     * @param playerGuid 玩家标识
+     * @param msg        玩家发来的消息
+     */
+    @RpcMethod(methodId = 11)
+    public void sendToScene(long playerGuid, @PreDeserializable String msg) {
+        System.out.println("playerGuid " + playerGuid + ", " + msg);
     }
 }

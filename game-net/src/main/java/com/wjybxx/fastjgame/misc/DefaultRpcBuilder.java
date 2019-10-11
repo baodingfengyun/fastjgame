@@ -53,8 +53,8 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V> {
      */
     private int shareMode = SHARE_MODE_ANY;
 
-    public DefaultRpcBuilder(int methodKey, List<Object> methodParams, int lazyIndexes) {
-        this.call = new RpcCall(methodKey, methodParams, lazyIndexes);
+    public DefaultRpcBuilder(int methodKey, List<Object> methodParams, int lazyIndexes, int preIndexes) {
+        this.call = new RpcCall(methodKey, methodParams, lazyIndexes, preIndexes);
     }
 
     @Override

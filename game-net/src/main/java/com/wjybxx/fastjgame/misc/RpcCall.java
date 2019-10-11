@@ -53,18 +53,25 @@ public class RpcCall {
      */
     @JsonIgnore
     private final int lazyIndexes;
+    /**
+     * 需要网络层提前反序列化的参数位置信息 - 需要序列化到接收方
+     */
+    @SerializableField(number = 3)
+    private final int preIndexes;
 
     // 反射创建对象
     private RpcCall() {
         methodKey = -1;
         methodParams = null;
         lazyIndexes = 0;
+        preIndexes = 0;
     }
 
-    public RpcCall(int methodKey, List<Object> methodParams, int lazyIndexes) {
+    public RpcCall(int methodKey, List<Object> methodParams, int lazyIndexes, int preIndexes) {
         this.methodKey = methodKey;
         this.methodParams = methodParams;
         this.lazyIndexes = lazyIndexes;
+        this.preIndexes = preIndexes;
     }
 
     public int getMethodKey() {
@@ -77,5 +84,9 @@ public class RpcCall {
 
     public int getLazyIndexes() {
         return lazyIndexes;
+    }
+
+    public int getPreIndexes() {
+        return preIndexes;
     }
 }
