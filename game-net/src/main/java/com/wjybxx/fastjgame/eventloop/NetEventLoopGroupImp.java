@@ -31,6 +31,7 @@ import com.wjybxx.fastjgame.net.local.LocalPort;
 import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.socket.SocketConnectRequestEvent;
+import com.wjybxx.fastjgame.net.socket.SocketDisconnectEvent;
 import com.wjybxx.fastjgame.net.socket.SocketMessageEvent;
 import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
@@ -131,6 +132,11 @@ public class NetEventLoopGroupImp extends MultiThreadEventLoopGroup implements N
     @Override
     public void fireMessage_acceptor(SocketMessageEvent event) {
         select(NetUtils.fixedKey(event.sessionId())).fireMessage_acceptor(event);
+    }
+
+    @Override
+    public void fireDisconnect_acceptor(SocketDisconnectEvent event) {
+        select(NetUtils.fixedKey(event.sessionId())).fireDisconnect_acceptor(event);
     }
 
     @Override

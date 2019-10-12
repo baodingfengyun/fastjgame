@@ -99,6 +99,9 @@ public class ClientSocketCodec extends BaseSocketCodec {
             case PING_PONG:
                 tryReadAckPongMessage(ctx, msg);
                 break;
+            case DISCONNECT:
+                tryReadDisconnectMessage(ctx, msg);
+                break;
             default:
                 throw new IOException("unexpected netEventType " + netMessageType);
         }
@@ -154,6 +157,15 @@ public class ClientSocketCodec extends BaseSocketCodec {
 
         SocketMessageEvent socketMessageEvent = readAckPingPongMessage(ctx.channel(), sessionId, msg);
         netEventLoop.fireMessage_connector(socketMessageEvent);
+    }
+
+    /**
+     * 尝试读取一个断开连接请求
+     */
+    private void tryReadDisconnectMessage(ChannelHandlerContext ctx, ByteBuf msg) {
+        netEventLoop.fireDisconnect_connector(new SocketDisconnectEvent(ctx.channel(), sessionId));
+        // 关闭channel
+        ctx.close();
     }
     // endregion
 
