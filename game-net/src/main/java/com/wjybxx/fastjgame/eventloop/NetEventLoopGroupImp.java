@@ -111,6 +111,15 @@ public class NetEventLoopGroupImp extends MultiThreadEventLoopGroup implements N
 
     @Override
     public NetContext createContext(long localGuid, @Nonnull EventLoop localEventLoop) {
+        if (localEventLoop instanceof NetEventLoop) {
+            throw new IllegalArgumentException("Bad EventLoop");
+        }
+        // 监听用户线程关闭
+        for (EventLoop eventLoop:this) {
+            localEventLoop.terminationFuture().addListener(future -> {
+                ((NetEventLoop)eventLoop).onUserEventLoopTerminal(localEventLoop);
+            });
+        }
         return new NetContextImp(localGuid, localEventLoop, this);
     }
 

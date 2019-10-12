@@ -163,4 +163,10 @@ public class AcceptorManager {
         sessionRegistry.closeAll();
     }
 
+    public void onRcvDisconnect(SocketDisconnectEvent event) {
+        final Session session = sessionRegistry.getSession(event.sessionId());
+        if (null != session) {
+            session.close();
+        }
+    }
 }

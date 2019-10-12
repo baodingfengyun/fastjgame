@@ -171,7 +171,12 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         connectorManager.tick();
     }
 
-    private void onUserEventLoopTerminal(EventLoop userEventLoop) {
+    @Override
+    public void onUserEventLoopTerminal(EventLoop userEventLoop) {
+        execute(() -> onUserEventLoopTerminalInternal(userEventLoop));
+    }
+
+    private void onUserEventLoopTerminalInternal(EventLoop userEventLoop) {
         acceptorManager.onUserEventLoopTerminal(userEventLoop);
         connectorManager.onUserEventLoopTerminal(userEventLoop);
         httpSessionManager.onUserEventLoopTerminal(userEventLoop);
@@ -197,7 +202,7 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         // 监听用户线程关闭事件
         localEventLoop.terminationFuture().addListener(future -> {
             onUserEventLoopTerminal(localEventLoop);
-        }, this);
+        });
         return new NetContextImp(localGuid, localEventLoop, this);
     }
 
@@ -214,6 +219,13 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     public void fireMessage_acceptor(SocketMessageEvent event) {
         execute(() -> {
             acceptorManager.onRcvMessage(event);
+        });
+    }
+
+    @Override
+    public void fireDisconnect_acceptor(SocketDisconnectEvent event) {
+        execute(() -> {
+            acceptorManager.onRcvDisconnect(event);
         });
     }
 
@@ -235,6 +247,13 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     public void fireMessage_connector(SocketMessageEvent event) {
         execute(() -> {
             connectorManager.onRcvMessage(event);
+        });
+    }
+
+    @Override
+    public void fireDisconnect_connector(SocketDisconnectEvent event) {
+        execute(() -> {
+            connectorManager.onRcvDisconnect(event);
         });
     }
 

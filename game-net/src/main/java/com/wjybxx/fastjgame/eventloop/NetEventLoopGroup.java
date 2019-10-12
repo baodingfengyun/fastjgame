@@ -26,10 +26,7 @@ import com.wjybxx.fastjgame.net.http.HttpRequestEvent;
 import com.wjybxx.fastjgame.net.local.LocalPort;
 import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
 import com.wjybxx.fastjgame.net.session.Session;
-import com.wjybxx.fastjgame.net.socket.SocketConnectRequestEvent;
-import com.wjybxx.fastjgame.net.socket.SocketMessageEvent;
-import com.wjybxx.fastjgame.net.socket.SocketSession;
-import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
+import com.wjybxx.fastjgame.net.socket.*;
 
 import javax.annotation.Nonnull;
 
@@ -92,6 +89,13 @@ public interface NetEventLoopGroup extends EventLoopGroup {
      * @param event 事件参数
      */
     void fireMessage_acceptor(SocketMessageEvent event);
+
+    /**
+     * 告诉session所在的acceptor断开连接
+     *
+     * @param event 事件参数
+     */
+    void fireDisconnect_acceptor(SocketDisconnectEvent event);
 
     /**
      * 接收到一个http请求。

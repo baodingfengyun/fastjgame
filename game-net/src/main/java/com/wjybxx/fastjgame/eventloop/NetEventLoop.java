@@ -29,10 +29,7 @@ import com.wjybxx.fastjgame.net.local.LocalPort;
 import com.wjybxx.fastjgame.net.local.LocalSession;
 import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
 import com.wjybxx.fastjgame.net.session.Session;
-import com.wjybxx.fastjgame.net.socket.SocketConnectResponseEvent;
-import com.wjybxx.fastjgame.net.socket.SocketMessageEvent;
-import com.wjybxx.fastjgame.net.socket.SocketPort;
-import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
+import com.wjybxx.fastjgame.net.socket.*;
 import okhttp3.Response;
 
 import javax.annotation.Nonnull;
@@ -88,6 +85,13 @@ public interface NetEventLoop extends EventLoop, NetEventLoopGroup {
      * @param event 接收到的消息事件
      */
     void fireMessage_connector(SocketMessageEvent event);
+
+    /**
+     * 告诉session所在的connector断开连接
+     *
+     * @param event 事件参数
+     */
+    void fireDisconnect_connector(SocketDisconnectEvent event);
 
     /**
      * 在指定端口范围内选择一个合适的端口监听tcp连接
@@ -176,4 +180,11 @@ public interface NetEventLoop extends EventLoop, NetEventLoopGroup {
      * @param localEventLoop 用户线程 - 回调执行线程
      */
     void asyncPost(String url, @Nonnull Map<String, String> params, @Nonnull OkHttpCallback okHttpCallback, EventLoop localEventLoop);
+
+    /**
+     * 当监听到用户线程关闭时
+     *
+     * @param userEventLoop 终止的用户线程
+     */
+    void onUserEventLoopTerminal(EventLoop userEventLoop);
 }

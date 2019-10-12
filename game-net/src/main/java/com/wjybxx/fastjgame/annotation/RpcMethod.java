@@ -37,7 +37,7 @@ import java.lang.annotation.Target;
  * 		String rpcMethod(long id);
  * 		// 2. 不能立即返回结果，代理方法返回值 RpcBuilder<String>
  * 		void rpcMethod(RpcResponseChannel<String> channel, ling id);
- * 		// 3. 不返回结果，代理方法返回值 RpcBuilder<Void>
+ * 		// 3. 不返回结果，代理方法返回值 RpcBuilder<?>
  * 		void oneWayMethod(long id);
  * }
  * </pre>

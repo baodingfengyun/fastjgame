@@ -20,8 +20,11 @@ import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.net.session.Session;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * session注册表
@@ -82,10 +85,15 @@ public class SessionRegistry {
     }
 
     public void onUserEventLoopTerminal(EventLoop userEventLoop) {
-        // TODO
+        final List<Session> userSessionList = sessionMap.values().stream()
+                .filter(session -> session.localEventLoop() == userEventLoop)
+                .collect(Collectors.toList());
+        // 保存下来防止遍历的时候触发删除
+        userSessionList.forEach(Session::close);
     }
 
     public void closeAll() {
-        // TODO
+        final List<Session> allSessions = new ArrayList<>(sessionMap.values());
+        allSessions.forEach(Session::close);
     }
 }

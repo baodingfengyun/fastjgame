@@ -174,7 +174,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         final byte[] localBuffer = LOCAL_BUFFER.get();
         final int readableBytes = data.readableBytes();
         data.readBytes(localBuffer, 0, readableBytes);
-        // 减少字节数组创建，即使使用输入流构造，其内部还是做了缓存。
+        // 减少字节数组创建，即使使用输入流构造，其内部还是做了缓 - 而且编解码速度更快
         CodedInputStream codedInputStream = CodedInputStream.newInstance(localBuffer, 0, readableBytes);
         // 真正读取数据
         return readObject(codedInputStream);
