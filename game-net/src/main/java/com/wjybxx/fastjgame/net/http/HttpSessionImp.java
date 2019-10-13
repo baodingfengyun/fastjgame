@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.net.http;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
-import com.wjybxx.fastjgame.concurrent.adapter.NettyListenableFutureAdapter;
+import com.wjybxx.fastjgame.concurrent.adapter.NettyFutureAdapter;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.manager.HttpSessionManager;
@@ -74,7 +74,7 @@ public final class HttpSessionImp implements HttpSession {
     }
 
     public ListenableFuture<?> writeAndFlush(HttpResponse response) {
-        return new NettyListenableFutureAdapter<>(localEventLoop(), channel.writeAndFlush(response));
+        return new NettyFutureAdapter<>(localEventLoop(), channel.writeAndFlush(response));
     }
 
     public <T extends HttpResponseBuilder<T>> ListenableFuture<?> writeAndFlush(HttpResponseBuilder<T> builder) {

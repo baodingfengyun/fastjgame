@@ -17,6 +17,8 @@
 package com.wjybxx.fastjgame.net.socket;
 
 /**
+ * 建立链接应答对应的传输对象
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/10/2

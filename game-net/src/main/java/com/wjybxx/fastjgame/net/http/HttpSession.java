@@ -33,7 +33,6 @@ import io.netty.handler.codec.http.HttpResponse;
  */
 public interface HttpSession {
 
-
     /**
      * {@link HttpSession}所属的本地用户
      */

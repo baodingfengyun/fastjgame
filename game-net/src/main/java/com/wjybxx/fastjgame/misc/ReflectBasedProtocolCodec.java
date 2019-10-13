@@ -791,7 +791,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
     }
 
     // protoBuf消息编解码支持
-    // TODO 不确定前端代码是否支持以相同的方式编解码，如果不支持，可能需要将这里的MessageId变为Fixed32
+    // messageId 使用大端模式写入，和json序列化方式一致，也方便客户端解析
     private class MessageCodec implements Codec<AbstractMessage> {
 
         @Override
@@ -801,20 +801,31 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
 
         @Override
         public int calSerializeDataSize(@Nonnull AbstractMessage obj, boolean mayNegative) {
-            return CodedOutputStream.computeSInt32SizeNoTag(messageMapper.getMessageId(obj.getClass())) +
-                    CodedOutputStream.computeMessageSizeNoTag(obj);
+            return 4 + CodedOutputStream.computeMessageSizeNoTag(obj);
         }
 
         @Override
         public void writeData(CodedOutputStream outputStream, @Nonnull AbstractMessage obj, boolean mayNegative) throws IOException {
-            outputStream.writeSInt32NoTag(messageMapper.getMessageId(obj.getClass()));
+            int messageId = messageMapper.getMessageId(obj.getClass());
+
+            // 大端模式写入一个int
+            outputStream.writeRawByte((messageId >>> 24));
+            outputStream.writeRawByte((messageId >>> 16));
+            outputStream.writeRawByte((messageId >>> 8));
+            outputStream.writeRawByte(messageId);
+
             outputStream.writeMessageNoTag(obj);
         }
 
         @SuppressWarnings("unchecked")
         @Override
         public AbstractMessage readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
-            final int messageId = inputStream.readSInt32();
+            // 大端模式读取一个int
+            final int messageId = (inputStream.readRawByte() & 0xFF) << 24
+                    | (inputStream.readRawByte() & 0xFF) << 16
+                    | (inputStream.readRawByte() & 0xFF) << 8
+                    | inputStream.readRawByte() & 0xFF;
+
             final Class<?> messageClazz = messageMapper.getMessageClazz(messageId);
             final Parser<AbstractMessage> parser = (Parser<AbstractMessage>) parserMap.get(messageClazz);
             return inputStream.readMessage(parser, ExtensionRegistryLite.getEmptyRegistry());

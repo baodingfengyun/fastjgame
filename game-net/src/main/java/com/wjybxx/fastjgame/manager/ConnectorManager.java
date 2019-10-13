@@ -121,6 +121,18 @@ public class ConnectorManager {
         }
     }
 
+    /**
+     * 当接收对方的断开连接请求时
+     *
+     * @param event 事件参数
+     */
+    public void onRcvDisconnect(SocketDisconnectEvent event) {
+        final Session session = sessionRegistry.getSession(event.sessionId());
+        if (null != session) {
+            session.close();
+        }
+    }
+
     public Session connectLocal(String sessionId, long remoteGuid, DefaultLocalPort localPort,
                                 LocalSessionConfig config, NetContext netContext) throws IOException {
         // 会话已存在
@@ -159,10 +171,4 @@ public class ConnectorManager {
         sessionRegistry.closeAll();
     }
 
-    public void onRcvDisconnect(SocketDisconnectEvent event) {
-        final Session session = sessionRegistry.getSession(event.sessionId());
-        if (null != session) {
-            session.close();
-        }
-    }
 }

@@ -20,12 +20,14 @@ import com.wjybxx.fastjgame.net.common.DisconnectMessage;
 import io.netty.channel.Channel;
 
 /**
+ * 对方请求断开连接事件
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/10/12
  * github - https://github.com/hl845740757
  */
-public class SocketDisconnectEvent implements SocketEvent{
+public class SocketDisconnectEvent implements SocketEvent {
 
     private final Channel channel;
     private final String sessionId;
@@ -44,7 +46,7 @@ public class SocketDisconnectEvent implements SocketEvent{
     public String sessionId() {
         return sessionId;
     }
-    
+
     public DisconnectMessage getMessage() {
         return DisconnectMessage.INSTANCE;
     }

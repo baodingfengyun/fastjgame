@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.net.socket;
 
 /**
- * 单个{@link SocketMessage}的传输对象 - 之所以需要该对象进行传输，是因为ack字段是发送的时候才赋值的
+ * 单个{@link SocketMessage}对应的传输对象 - 之所以需要该对象进行传输，是因为ack字段是发送的时候才赋值的
  *
  * @author wjybxx
  * @version 1.0

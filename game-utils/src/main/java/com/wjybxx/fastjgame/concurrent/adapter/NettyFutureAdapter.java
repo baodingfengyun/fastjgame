@@ -36,12 +36,12 @@ import java.util.concurrent.TimeoutException;
  * date - 2019/10/1
  * github - https://github.com/hl845740757
  */
-public final class NettyListenableFutureAdapter<V> implements ListenableFuture<V> {
+public final class NettyFutureAdapter<V> implements ListenableFuture<V> {
 
     private final EventLoop executor;
     private final Future<V> future;
 
-    public NettyListenableFutureAdapter(@Nonnull EventLoop executor, Future<V> future) {
+    public NettyFutureAdapter(@Nonnull EventLoop executor, Future<V> future) {
         this.executor = executor;
         this.future = future;
     }
