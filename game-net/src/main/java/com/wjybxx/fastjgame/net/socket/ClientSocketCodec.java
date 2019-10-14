@@ -61,15 +61,18 @@ public class ClientSocketCodec extends BaseSocketCodec {
         this.netEventLoop = netEventLoop;
     }
 
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        super.channelInactive(ctx);
+        netEventLoop.fireEvent_connector(new SocketDisconnectEvent(ctx.channel(), sessionId));
+    }
+
     // region 编码消息
     @Override
     public void write(ChannelHandlerContext ctx, Object msgTO, ChannelPromise promise) throws Exception {
         if (msgTO instanceof SocketMessageTO) {
-            // 单个协议包
+            // 消息包
             writeSingleMsg(ctx, (SocketMessageTO) msgTO, promise);
-        } else if (msgTO instanceof BatchSocketMessageTO) {
-            // 批量协议包
-            writeBatchMessage(ctx, (BatchSocketMessageTO) msgTO);
         } else if (msgTO instanceof SocketConnectRequestTO) {
             // 请求建立连接包
             writeConnectRequest(ctx, sessionId, localGuid, (SocketConnectRequestTO) msgTO, promise);
@@ -99,9 +102,6 @@ public class ClientSocketCodec extends BaseSocketCodec {
             case PING_PONG:
                 tryReadAckPongMessage(ctx, msg);
                 break;
-            case DISCONNECT:
-                tryReadDisconnectMessage(ctx, msg);
-                break;
             default:
                 throw new IOException("unexpected netEventType " + netMessageType);
         }
@@ -127,7 +127,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
         ensureConnected();
 
         SocketMessageEvent socketMessageEvent = readRpcRequestMessage(ctx.channel(), sessionId, msg);
-        netEventLoop.fireMessage_connector(socketMessageEvent);
+        netEventLoop.fireEvent_connector(socketMessageEvent);
     }
 
     /**
@@ -137,7 +137,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
         ensureConnected();
 
         SocketMessageEvent socketMessageEvent = readRpcResponseMessage(ctx.channel(), sessionId, msg);
-        netEventLoop.fireMessage_connector(socketMessageEvent);
+        netEventLoop.fireEvent_connector(socketMessageEvent);
     }
 
     /**
@@ -146,7 +146,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
     private void tryReadOneWayMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureConnected();
 
-        netEventLoop.fireMessage_connector(readOneWayMessage(ctx.channel(), sessionId, msg));
+        netEventLoop.fireEvent_connector(readOneWayMessage(ctx.channel(), sessionId, msg));
     }
 
     /**
@@ -156,16 +156,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
         ensureConnected();
 
         SocketMessageEvent socketMessageEvent = readAckPingPongMessage(ctx.channel(), sessionId, msg);
-        netEventLoop.fireMessage_connector(socketMessageEvent);
-    }
-
-    /**
-     * 尝试读取一个断开连接请求
-     */
-    private void tryReadDisconnectMessage(ChannelHandlerContext ctx, ByteBuf msg) {
-        netEventLoop.fireDisconnect_connector(new SocketDisconnectEvent(ctx.channel(), sessionId));
-        // 关闭channel
-        ctx.close();
+        netEventLoop.fireEvent_connector(socketMessageEvent);
     }
     // endregion
 

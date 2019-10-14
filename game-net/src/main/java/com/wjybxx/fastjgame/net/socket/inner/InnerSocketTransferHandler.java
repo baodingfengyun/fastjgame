@@ -16,16 +16,14 @@
 
 package com.wjybxx.fastjgame.net.socket.inner;
 
-import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.net.common.ConnectAwareTask;
 import com.wjybxx.fastjgame.net.common.DisconnectAwareTask;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
-import com.wjybxx.fastjgame.net.socket.DisconnectMessageTO;
+import com.wjybxx.fastjgame.net.socket.SocketDisconnectEvent;
 import com.wjybxx.fastjgame.net.socket.SocketEvent;
 import com.wjybxx.fastjgame.net.socket.SocketSessionImp;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFutureListener;
 
 /**
  * 内网服务器之间传输支持。
@@ -49,15 +47,14 @@ public class InnerSocketTransferHandler extends SessionDuplexHandlerAdapter {
     private int msgCount;
 
     @Override
-    public void init(SessionHandlerContext ctx) throws Exception {
+    public void handlerAdded(SessionHandlerContext ctx) throws Exception {
         this.channel = ((SocketSessionImp) ctx.session()).channel();
     }
 
     @Override
     public void tick(SessionHandlerContext ctx) {
         if (msgCount > 0) {
-            msgCount = 0;
-            channel.flush();
+            doFlush();
         }
     }
 
@@ -78,7 +75,12 @@ public class InnerSocketTransferHandler extends SessionDuplexHandlerAdapter {
         if (msg instanceof SocketEvent) {
             SocketEvent socketEvent = (SocketEvent) msg;
             if (socketEvent.channel() == channel) {
-                ctx.fireRead(msg);
+                // 内网不断线重连 - 不使用消息确认机制
+                if (socketEvent instanceof SocketDisconnectEvent) {
+                    ctx.session().close();
+                } else {
+                    ctx.fireRead(msg);
+                }
             }
             // else 过滤丢弃
         } else {
@@ -94,14 +96,16 @@ public class InnerSocketTransferHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void flush(SessionHandlerContext ctx) throws Exception {
+        doFlush();
+    }
+
+    private void doFlush() {
         msgCount = 0;
         channel.flush();
     }
 
     @Override
-    public void close(SessionHandlerContext ctx, Promise<?> promise) throws Exception {
-        channel.writeAndFlush(DisconnectMessageTO.INSTANCE)
-                .addListener(ChannelFutureListener.CLOSE)
-                .addListener(future -> promise.trySuccess(null));
+    public void close(SessionHandlerContext ctx) throws Exception {
+        channel.close();
     }
 }

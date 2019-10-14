@@ -18,8 +18,6 @@ package com.wjybxx.fastjgame.net.session;
 
 import com.wjybxx.fastjgame.annotation.Internal;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.concurrent.ListenableFuture;
-import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.exception.InternalApiException;
@@ -35,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Session的模板实现。
@@ -46,6 +44,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * github - https://github.com/hl845740757
  */
 public abstract class AbstractSession implements Session {
+
+    private static final int ST_BOUND = 0;
+    private static final int ST_CONNECTED = 1;
+    private static final int ST_CLOSED = 2;
 
     protected final NetContext netContext;
     protected final String sessionId;
@@ -60,9 +62,9 @@ public abstract class AbstractSession implements Session {
      */
     private final SessionPipeline pipeline;
     /**
-     * 激活状态 - 默认true，因为在激活之前不会返回给用户。
+     * session状态
      */
-    private final AtomicBoolean stateHolder = new AtomicBoolean(true);
+    private final AtomicInteger stateHolder = new AtomicInteger(ST_BOUND);
     /**
      * 上下文/附加属性 - 非volatile，只有用户线程可以使用
      */
@@ -151,7 +153,7 @@ public abstract class AbstractSession implements Session {
         if (!isActive()) {
             return RpcResponse.SESSION_CLOSED;
         }
-        final RpcPromise rpcPromise = netEventLoop().newRpcPromise(localEventLoop(), config().getSyncRpcTimeoutMs());
+        final RpcPromise rpcPromise = netEventLoop.newRpcPromise(localEventLoop(), config().getSyncRpcTimeoutMs());
         // 提交到网络层执行
         netEventLoop.execute(new SyncRpcRequestWriteTask(this, request, rpcPromise));
         // RpcPromise保证了不会等待超过限时时间
@@ -161,35 +163,37 @@ public abstract class AbstractSession implements Session {
 
     @Override
     public final boolean isActive() {
-        return stateHolder.get();
+        return stateHolder.get() == ST_CONNECTED;
     }
 
     @Override
-    public final ListenableFuture<?> close() {
-        // 设置为未激活状态
-        stateHolder.set(false);
-        final Promise<?> promise = netEventLoop.newPromise();
+    public final void close() {
+        final int oldState = stateHolder.getAndSet(ST_CLOSED);
+        if (oldState == ST_CLOSED) {
+            // 非首次调用
+            return;
+        }
         // 可能是网络层关闭
         ConcurrentUtils.executeOrRun(netEventLoop, () -> {
-            // TODO 保证逻辑只执行一次
-            pipeline.fireClose(promise);
+            try {
+                pipeline.fireClose();
+            } finally {
+                checkNotify(oldState);
+            }
         });
-        return promise;
+    }
+
+    private void checkNotify(int oldState) {
+        if (oldState == ST_CONNECTED) {
+            // 之前已建立连接，则需要调用inactive方法
+            pipeline.fireSessionInactive();
+        }
     }
 
     @Override
     public final SessionPipeline pipeline() {
         if (netEventLoop.inEventLoop()) {
             return pipeline;
-        } else {
-            throw new InternalApiException();
-        }
-    }
-
-    @Override
-    public final void tick() {
-        if (netEventLoop.inEventLoop()) {
-            pipeline.tick();
         } else {
             throw new InternalApiException();
         }
@@ -222,6 +226,39 @@ public abstract class AbstractSession implements Session {
         } else {
             throw new InternalApiException();
         }
+    }
+
+    /**
+     * @return 如果切换为激活状态，则返回true
+     */
+    public boolean tryActive() {
+        return stateHolder.compareAndSet(ST_BOUND, ST_CONNECTED);
+    }
+
+    /**
+     * @return 查询session是否已开始关闭
+     */
+    public boolean isClosed() {
+        return stateHolder.get() == ST_CLOSED;
+    }
+
+    /**
+     * tick刷帧 - 不暴露给应用层
+     */
+    public final void tick() {
+        pipeline.fireTick();
+    }
+
+    /**
+     * 网络层强制关闭，不调用事件通知
+     */
+    public final void closeForcibly() {
+        final int oldState = stateHolder.getAndSet(ST_CLOSED);
+        if (oldState == ST_CLOSED) {
+            // 已关闭
+            return;
+        }
+        pipeline.fireClose();
     }
 
     @Override

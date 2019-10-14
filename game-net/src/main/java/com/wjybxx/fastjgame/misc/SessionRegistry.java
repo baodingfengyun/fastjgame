@@ -17,14 +17,15 @@
 package com.wjybxx.fastjgame.misc;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.net.session.Session;
+import com.wjybxx.fastjgame.net.session.AbstractSession;
+import com.wjybxx.fastjgame.utils.CollectionUtils;
+import com.wjybxx.fastjgame.utils.FunctionUtils;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * session注册表
@@ -40,12 +41,18 @@ public class SessionRegistry {
      * sessionId到session的映射
      * (发现session只用于服务器与服务器之间，因此不需要太高的容量)
      */
-    private final Map<String, Session> sessionMap = new HashMap<>(32);
+    private final Map<String, AbstractSession> sessionMap = new HashMap<>(32);
 
     public void tick() {
-        for (Session session : sessionMap.values()) {
-            // TODO tick内部大量的线程判断在这里是不必要的
-            session.tick();
+        final Iterator<AbstractSession> itr = sessionMap.values().iterator();
+        while (itr.hasNext()) {
+            AbstractSession session = itr.next();
+            if (session.isClosed()) {
+                // 延迟删除
+                itr.remove();
+            } else {
+                session.tick();
+            }
         }
     }
 
@@ -54,46 +61,34 @@ public class SessionRegistry {
      *
      * @param session 待注册的session
      */
-    public void registerSession(Session session) {
+    public void registerSession(@Nonnull AbstractSession session) {
         if (sessionMap.containsKey(session.sessionId())) {
             throw new IllegalArgumentException("session " + session.sessionId() + " already registered");
         }
         sessionMap.put(session.sessionId(), session);
     }
 
-    /**
-     * 删除一个session 。
-     *
-     * @param sessionId session唯一标识
-     * @return 删除的session
-     */
-    @Nullable
-    public Session removeSession(String sessionId) {
-        return sessionMap.remove(sessionId);
-    }
 
     /**
      * 获取一个session。
-     * 注意：参数顺序不一样的意义不一样。
      *
      * @param sessionId session唯一标识
      * @return session
      */
     @Nullable
-    public Session getSession(String sessionId) {
+    public AbstractSession getSession(@Nonnull String sessionId) {
         return sessionMap.get(sessionId);
     }
 
     public void onUserEventLoopTerminal(EventLoop userEventLoop) {
-        final List<Session> userSessionList = sessionMap.values().stream()
-                .filter(session -> session.localEventLoop() == userEventLoop)
-                .collect(Collectors.toList());
-        // 保存下来防止遍历的时候触发删除
-        userSessionList.forEach(Session::close);
+        CollectionUtils.removeIfAndThen(sessionMap.values(),
+                abstractSession -> abstractSession.localEventLoop() == userEventLoop,
+                AbstractSession::closeForcibly);
     }
 
     public void closeAll() {
-        final List<Session> allSessions = new ArrayList<>(sessionMap.values());
-        allSessions.forEach(Session::close);
+        CollectionUtils.removeIfAndThen(sessionMap.values(),
+                FunctionUtils::TRUE,
+                AbstractSession::closeForcibly);
     }
 }

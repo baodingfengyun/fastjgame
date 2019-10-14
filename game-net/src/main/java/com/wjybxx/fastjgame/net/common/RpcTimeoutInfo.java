@@ -28,22 +28,22 @@ import javax.annotation.Nonnull;
  * date - 2019/8/3
  * github - https://github.com/hl845740757
  */
-public class RpcTimeoutInfo {
+class RpcTimeoutInfo {
 
     // promise与callback二者存一
     /**
      * promise
      */
-    public final Promise<RpcResponse> rpcPromise;
+    final Promise<RpcResponse> rpcPromise;
     /**
      * 回调
      */
-    public final RpcCallback rpcCallback;
+    final RpcCallback rpcCallback;
 
     /**
      * rpc超时时间
      */
-    public final long deadline;
+    final long deadline;
 
     private RpcTimeoutInfo(Promise<RpcResponse> rpcPromise, RpcCallback rpcCallback, long deadline) {
         this.rpcPromise = rpcPromise;
@@ -51,11 +51,11 @@ public class RpcTimeoutInfo {
         this.deadline = deadline;
     }
 
-    public static RpcTimeoutInfo newInstance(@Nonnull Promise<RpcResponse> rpcPromise, long deadline) {
+    static RpcTimeoutInfo newInstance(@Nonnull Promise<RpcResponse> rpcPromise, long deadline) {
         return new RpcTimeoutInfo(rpcPromise, null, deadline);
     }
 
-    public static RpcTimeoutInfo newInstance(@Nonnull RpcCallback rpcCallback, long deadline) {
+    static RpcTimeoutInfo newInstance(@Nonnull RpcCallback rpcCallback, long deadline) {
         return new RpcTimeoutInfo(null, rpcCallback, deadline);
     }
 }

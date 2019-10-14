@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.net.common;
 
-import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.manager.NetTimeManager;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
@@ -42,6 +41,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
 
     private NetTimeManager netTimeManager;
+    private long rpcCallbackTimeoutMs;
     /**
      * RpcRequestId分配器
      */
@@ -59,8 +59,9 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
     }
 
     @Override
-    public void init(SessionHandlerContext ctx) throws Exception {
+    public void handlerAdded(SessionHandlerContext ctx) throws Exception {
         netTimeManager = ctx.managerWrapper().getNetTimeManager();
+        rpcCallbackTimeoutMs = ctx.session().config().getRpcCallbackTimeoutMs();
     }
 
     @Override
@@ -103,7 +104,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             AsyncRpcRequestWriteTask writeTask = (AsyncRpcRequestWriteTask) msg;
 
             // 保存rpc请求上下文
-            long deadline = ctx.managerWrapper().getNetTimeManager().getSystemMillTime() + ctx.session().config().getRpcCallbackTimeoutMs();
+            long deadline = netTimeManager.getSystemMillTime() + rpcCallbackTimeoutMs;
             RpcTimeoutInfo rpcTimeoutInfo = RpcTimeoutInfo.newInstance(writeTask.getRpcCallback(), deadline);
             long requestGuid = ++requestGuidSequencer;
             rpcTimeoutInfoMap.put(requestGuid, rpcTimeoutInfo);
@@ -119,19 +120,15 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             long requestGuid = ++requestGuidSequencer;
             rpcTimeoutInfoMap.put(requestGuid, rpcTimeoutInfo);
 
-            // 执行发送 - 并清空缓冲区
-            ctx.fireWriteAndFlush(new RpcRequestMessage(requestGuid, true, writeTask.getRequest()));
+            // 执行发送
+            ctx.fireWrite(new RpcRequestMessage(requestGuid, true, writeTask.getRequest()));
         } else if (msg instanceof RpcResponseWriteTask) {
             // rpc调用结果
             RpcResponseWriteTask writeTask = (RpcResponseWriteTask) msg;
             final RpcResponseMessage responseMessage = new RpcResponseMessage(writeTask.getRequestGuid(), writeTask.getResponse());
 
-            // 同步调用的结果，需要刷新缓冲区，尽快的返回结果，异步的则无需着急刷新缓冲区
-            if (writeTask.isSync()) {
-                ctx.fireWriteAndFlush(responseMessage);
-            } else {
-                ctx.fireWrite(responseMessage);
-            }
+            // 执行发送
+            ctx.fireWrite(responseMessage);
         } else {
             ctx.fireWrite(msg);
         }
@@ -161,11 +158,11 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
     }
 
     @Override
-    public void close(SessionHandlerContext ctx, Promise<?> promise) throws Exception {
+    public void close(SessionHandlerContext ctx) throws Exception {
         try {
             cancelAllRpcRequest(ctx);
         } finally {
-            ctx.fireClose(promise);
+            ctx.fireClose();
         }
     }
 

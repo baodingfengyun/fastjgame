@@ -52,12 +52,7 @@ public enum NetMessageType {
     /**
      * 单向消息包。
      */
-    ONE_WAY_MESSAGE(6),
-
-    /**
-     * 主动断开连接
-     */
-    DISCONNECT(7);
+    ONE_WAY_MESSAGE(6);
 
     public final byte pkgType;
 

@@ -63,13 +63,18 @@ public class ServerSocketCodec extends BaseSocketCodec {
     }
 
     @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        super.channelInactive(ctx);
+        if (isInited()) {
+            portExtraInfo.netEventLoopGroup().fireEvent_acceptor(new SocketDisconnectEvent(ctx.channel(), sessionId));
+        }
+    }
+
+    @Override
     public void write(ChannelHandlerContext ctx, Object msgTO, ChannelPromise promise) throws Exception {
         if (msgTO instanceof SocketMessageTO) {
-            // 单个协议包
+            // 消息包
             writeSingleMsg(ctx, (SocketMessageTO) msgTO, promise);
-        } else if (msgTO instanceof BatchSocketMessageTO) {
-            // 批量协议包
-            writeBatchMessage(ctx, (BatchSocketMessageTO) msgTO);
         } else if (msgTO instanceof SocketConnectResponseTO) {
             // 建立连接验证结果
             writeConnectResponse(ctx, (SocketConnectResponseTO) msgTO, promise);
@@ -97,9 +102,6 @@ public class ServerSocketCodec extends BaseSocketCodec {
             case PING_PONG:
                 tryReadAckPingMessage(ctx, msg);
                 break;
-            case DISCONNECT:
-                tryReadDisconnectMessage(ctx, msg);
-                break;
             default:
                 throw new IOException("unexpected netEventType " + netMessageType);
         }
@@ -123,7 +125,7 @@ public class ServerSocketCodec extends BaseSocketCodec {
     private void tryReadRpcRequestMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureInited();
 
-        portExtraInfo.netEventLoopGroup().fireMessage_acceptor(readRpcRequestMessage(ctx.channel(), sessionId, msg));
+        portExtraInfo.netEventLoopGroup().fireEvent_acceptor(readRpcRequestMessage(ctx.channel(), sessionId, msg));
     }
 
     /**
@@ -132,7 +134,7 @@ public class ServerSocketCodec extends BaseSocketCodec {
     private void tryReadRpcResponseMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureInited();
 
-        portExtraInfo.netEventLoopGroup().fireMessage_acceptor(readRpcResponseMessage(ctx.channel(), sessionId, msg));
+        portExtraInfo.netEventLoopGroup().fireEvent_acceptor(readRpcResponseMessage(ctx.channel(), sessionId, msg));
     }
 
     /**
@@ -141,7 +143,7 @@ public class ServerSocketCodec extends BaseSocketCodec {
     private void tryReadOneWayMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureInited();
 
-        portExtraInfo.netEventLoopGroup().fireMessage_acceptor(readOneWayMessage(ctx.channel(), sessionId, msg));
+        portExtraInfo.netEventLoopGroup().fireEvent_acceptor(readOneWayMessage(ctx.channel(), sessionId, msg));
     }
 
     /**
@@ -150,17 +152,9 @@ public class ServerSocketCodec extends BaseSocketCodec {
     private void tryReadAckPingMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureInited();
 
-        portExtraInfo.netEventLoopGroup().fireMessage_acceptor(readAckPingPongMessage(ctx.channel(), sessionId, msg));
+        portExtraInfo.netEventLoopGroup().fireEvent_acceptor(readAckPingPongMessage(ctx.channel(), sessionId, msg));
     }
 
-    /**
-     * 尝试读取一个断开连接请求
-     */
-    private void tryReadDisconnectMessage(ChannelHandlerContext ctx, ByteBuf msg) {
-        portExtraInfo.netEventLoopGroup().fireDisconnect_acceptor(new SocketDisconnectEvent(ctx.channel(), sessionId));
-        // 关闭channel
-        ctx.close();
-    }
     // endregion
 
     private void ensureInited() {

@@ -55,7 +55,13 @@ public class RpcResponseWriteTask implements WriteTask {
 
     @Override
     public void run() {
-        session.fireWrite(this);
+        if (sync) {
+            // 同步调用的结果，需要刷新缓冲区，尽快的返回结果，异步的则无需着急刷新缓冲区
+            session.fireWriteAndFlush(this);
+        } else {
+            session.fireWrite(this);
+        }
+
     }
 
 }

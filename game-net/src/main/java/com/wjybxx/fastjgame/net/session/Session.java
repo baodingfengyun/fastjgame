@@ -18,7 +18,6 @@ package com.wjybxx.fastjgame.net.session;
 
 import com.wjybxx.fastjgame.annotation.Internal;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.net.common.RpcCallback;
 import com.wjybxx.fastjgame.net.common.RpcResponse;
@@ -27,6 +26,7 @@ import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
+import java.io.Closeable;
 
 /**
  * 一个连接的抽象，它可能是一个socket连接，也可能是JVM内的线程之间内的连接，不论它真的是什么，你都可以以相同的方式使用它们发送消息。
@@ -51,17 +51,19 @@ import javax.annotation.concurrent.NotThreadSafe;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public interface Session extends Comparable<Session> {
+public interface Session extends Comparable<Session>, Closeable {
 
     /**
      * 用户为session分配的sessionId。
      * 注意：
      * 1. 必须是全局唯一
      * 2. 尽量有意义
+     * 3. 不建议重复使用。
      * <p>
      * 它的重要意义：
      * 1. 线程封闭。
      * 2. 允许连接池。允许同一个客户端与服务器建立多个连接。
+     * 3. 允许消息确认机制，跨channel断线重连。
      * <p>
      * Q: 为什么要用户分配？而不是网络层自动分配？
      * A:
@@ -131,7 +133,7 @@ public interface Session extends Comparable<Session> {
     void send(@Nonnull Object message);
 
     /**
-     * 发送一个rpc请求给对方，会使用默认的超时时间（配置文件中指定）。
+     * 发送一个rpc请求给对方。
      * <p>
      * Q: 为什么异步RPC调用不是返回一个Future? <br>
      * A: 使用future将增加额外的消耗，而且容易错误使用。
@@ -158,22 +160,19 @@ public interface Session extends Comparable<Session> {
     boolean isActive();
 
     /**
-     * 移除当前session
+     * 关闭当前session
      * <p>
      * 注意：
      * 逻辑层的校验+网络层的校验并不能保证在session活跃的状态下才有事件！
      * 因为事件会被提交到session所在的executor，因此即使 {@link #isActive() false}，也仍然可能收到该session的消息或事件。
      * 逻辑层必须加以处理，因为网络层并不知道这时候逻辑层到底需不需要这些消息。
      */
-    ListenableFuture<?> close();
+    void close();
 
     // ------------------------------------------- 内部API，其它线程调用会抛出异常 -----------------------------------
 
     @Internal
     SessionPipeline pipeline();
-
-    @Internal
-    void tick();
 
     @Internal
     void fireRead(@Nullable Object msg);

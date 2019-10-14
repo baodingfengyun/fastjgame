@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.net.session;
 
-import com.wjybxx.fastjgame.concurrent.Promise;
-
 import javax.annotation.Nonnull;
 
 /**
@@ -51,10 +49,8 @@ public interface SessionOutboundInvoker {
 
     /**
      * 向下发送关闭session请求；
-     * 它将导致{@link SessionPipeline}中的下一个{@link SessionOutboundHandler#close(SessionHandlerContext, Promise)} 方法被调用。
-     *
-     * @param promise 用于获取结果的future
+     * 它将导致{@link SessionPipeline}中的下一个{@link SessionOutboundHandler#close(SessionHandlerContext)} 方法被调用。
      */
-    void fireClose(Promise<?> promise);
+    void fireClose();
 
 }

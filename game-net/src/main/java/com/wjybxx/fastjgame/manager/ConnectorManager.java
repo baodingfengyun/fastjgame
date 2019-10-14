@@ -81,8 +81,10 @@ public class ConnectorManager {
                 .addLast(new InnerSocketMessageSupportHandler())
                 .addLast(new InnerPingSupportHandler())
                 .addLast(new OneWaySupportHandler())
-                .addLast(new RpcSupportHandler())
-                .fireInit();
+                .addLast(new RpcSupportHandler());
+
+        socketSessionImp.tryActive();
+        socketSessionImp.pipeline().fireSessionActive();
 
         socketSessionImp.fireWriteAndFlush(new SocketConnectRequest(1));
 
@@ -113,23 +115,11 @@ public class ConnectorManager {
      *
      * @param messageEvent 消息事件参数
      */
-    public void onRcvMessage(SocketMessageEvent messageEvent) {
+    public void onRcvMessage(SocketEvent messageEvent) {
         final Session session = sessionRegistry.getSession(messageEvent.sessionId());
         if (session != null && session.isActive()) {
             // session 存活的情况下才读取消息
             session.fireRead(messageEvent);
-        }
-    }
-
-    /**
-     * 当接收对方的断开连接请求时
-     *
-     * @param event 事件参数
-     */
-    public void onRcvDisconnect(SocketDisconnectEvent event) {
-        final Session session = sessionRegistry.getSession(event.sessionId());
-        if (null != session) {
-            session.close();
         }
     }
 
@@ -156,10 +146,11 @@ public class ConnectorManager {
         session.setRemoteSession(remoteSession);
         remoteSession.setRemoteSession(session);
 
-        // 触发双方的init和active
-        session.pipeline().fireInit().fireSessionActive();
-        remoteSession.pipeline().fireInit().fireSessionActive();
-
+        // 激活双方
+        if (session.tryActive() && remoteSession.tryActive()) {
+            session.pipeline().fireSessionActive();
+            remoteSession.pipeline().fireSessionActive();
+        }
         return session;
     }
 

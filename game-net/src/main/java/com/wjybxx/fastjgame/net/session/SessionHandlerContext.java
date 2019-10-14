@@ -67,9 +67,14 @@ public interface SessionHandlerContext extends SessionInboundInvoker, SessionOut
     NetManagerWrapper managerWrapper();
 
     /**
-     * 执行自己的初始化操作，并调用{@link SessionHandler#init(SessionHandlerContext)}方法。
+     * 调用{@link SessionHandler#handlerAdded(SessionHandlerContext)}方法。
      */
-    void init();
+    void handlerAdded();
+
+    /**
+     * 调用{@link SessionHandler#handlerRemoved(SessionHandlerContext)} 方法。
+     */
+    void handlerRemoved();
 
     /**
      * 刷帧

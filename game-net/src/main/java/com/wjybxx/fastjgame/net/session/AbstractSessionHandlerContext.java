@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.net.session;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
 import org.slf4j.Logger;
@@ -90,11 +89,20 @@ abstract class AbstractSessionHandlerContext implements SessionHandlerContext {
     }
 
     @Override
-    public void init() {
+    public void handlerAdded() {
         isInbound = handler() instanceof SessionInboundHandler;
         isOutbound = handler() instanceof SessionOutboundHandler;
         try {
-            handler().init(this);
+            handler().handlerAdded(this);
+        } catch (Throwable e) {
+            onExceptionCaught(e, this);
+        }
+    }
+
+    @Override
+    public void handlerRemoved() {
+        try {
+            handler().handlerRemoved(this);
         } catch (Throwable e) {
             onExceptionCaught(e, this);
         }
@@ -218,15 +226,15 @@ abstract class AbstractSessionHandlerContext implements SessionHandlerContext {
     }
 
     @Override
-    public void fireClose(Promise<?> promise) {
+    public void fireClose() {
         final AbstractSessionHandlerContext nextOutboundContext = findNextOutboundContext();
-        invokeClose(promise, nextOutboundContext);
+        invokeClose(nextOutboundContext);
     }
 
-    private void invokeClose(Promise<?> promise, AbstractSessionHandlerContext nextOutboundContext) {
+    private void invokeClose(AbstractSessionHandlerContext nextOutboundContext) {
         final SessionOutboundHandler handler = (SessionOutboundHandler) nextOutboundContext.handler();
         try {
-            handler.close(nextOutboundContext, promise);
+            handler.close(nextOutboundContext);
         } catch (Throwable e) {
             onExceptionCaught(e, nextOutboundContext);
         }

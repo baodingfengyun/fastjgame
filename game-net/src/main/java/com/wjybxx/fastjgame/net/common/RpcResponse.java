@@ -76,6 +76,10 @@ public final class RpcResponse {
         return resultCode == RpcResultCode.SUCCESS;
     }
 
+    public boolean isFailure() {
+        return resultCode != RpcResultCode.SUCCESS;
+    }
+
     public static RpcResponse newFailResponse(@Nonnull RpcResultCode resultCode) {
         return new RpcResponse(resultCode, null);
     }

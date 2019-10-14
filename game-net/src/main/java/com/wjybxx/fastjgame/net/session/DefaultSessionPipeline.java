@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.net.session;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
 import org.slf4j.Logger;
@@ -58,6 +57,9 @@ class DefaultSessionPipeline implements SessionPipeline {
 
         head.next = tail;
         tail.prev = head;
+
+        callHandlerAdded0(head);
+        callHandlerAdded0(tail);
     }
 
     @Override
@@ -79,6 +81,7 @@ class DefaultSessionPipeline implements SessionPipeline {
     public SessionPipeline addLast(SessionHandler handler) {
         final AbstractSessionHandlerContext newCtx = new DefaultSessionHandlerContext(this, netManagerWrapper, handler);
         addLast0(newCtx);
+        callHandlerAdded0(newCtx);
         return this;
     }
 
@@ -94,6 +97,7 @@ class DefaultSessionPipeline implements SessionPipeline {
     public SessionPipeline addFirst(SessionHandler handler) {
         final AbstractSessionHandlerContext newCtx = new DefaultSessionHandlerContext(this, netManagerWrapper, handler);
         addFirst0(newCtx);
+        callHandlerAdded0(newCtx);
         return this;
     }
 
@@ -105,6 +109,13 @@ class DefaultSessionPipeline implements SessionPipeline {
         nextCtx.prev = newCtx;
     }
 
+    private void callHandlerAdded0(AbstractSessionHandlerContext newCtx) {
+        newCtx.handlerAdded();
+    }
+
+    private void callHandlerRemoved0(AbstractSessionHandlerContext newCtx) {
+        newCtx.handlerRemoved();
+    }
     // ------------------------------------------------- inbound -----------------------------------------------------
 
     @Override
@@ -128,23 +139,14 @@ class DefaultSessionPipeline implements SessionPipeline {
     }
 
     @Override
-    public SessionPipeline fireInit() {
-        AbstractSessionHandlerContext context = head;
-        do {
-            context.init();
-            context = context.next;
-        } while (context != null);
-        return this;
-    }
-
-    @Override
-    public void tick() {
+    public void fireTick() {
         AbstractSessionHandlerContext context = head;
         do {
             context.tick();
             context = context.next;
         } while (context != null);
     }
+
 
     // ------------------------------------------------- outbound -----------------------------------------------------
 
@@ -164,9 +166,8 @@ class DefaultSessionPipeline implements SessionPipeline {
     }
 
     @Override
-    public void fireClose(Promise<?> promise) {
-        tail.fireClose(promise);
-        head.fireSessionInactive();
+    public void fireClose() {
+        tail.fireClose();
     }
 
     // ------------------------------------------------- inner -----------------------------------------------------
@@ -188,7 +189,12 @@ class DefaultSessionPipeline implements SessionPipeline {
         }
 
         @Override
-        public void init(SessionHandlerContext ctx) throws Exception {
+        public void handlerAdded(SessionHandlerContext ctx) throws Exception {
+            // NO OP
+        }
+
+        @Override
+        public void handlerRemoved(SessionHandlerContext ctx) throws Exception {
             // NO OP
         }
 
@@ -208,7 +214,7 @@ class DefaultSessionPipeline implements SessionPipeline {
         }
 
         @Override
-        public void close(SessionHandlerContext ctx, Promise<?> promise) throws Exception {
+        public void close(SessionHandlerContext ctx) throws Exception {
             logger.info("Unhandled closeEvent");
         }
     }
@@ -230,7 +236,12 @@ class DefaultSessionPipeline implements SessionPipeline {
         }
 
         @Override
-        public void init(SessionHandlerContext ctx) throws Exception {
+        public void handlerAdded(SessionHandlerContext ctx) throws Exception {
+            // NO OP
+        }
+
+        @Override
+        public void handlerRemoved(SessionHandlerContext ctx) throws Exception {
             // NO OP
         }
 

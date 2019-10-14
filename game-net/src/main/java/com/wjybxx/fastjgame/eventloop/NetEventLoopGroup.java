@@ -26,7 +26,10 @@ import com.wjybxx.fastjgame.net.http.HttpRequestEvent;
 import com.wjybxx.fastjgame.net.local.LocalPort;
 import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
 import com.wjybxx.fastjgame.net.session.Session;
-import com.wjybxx.fastjgame.net.socket.*;
+import com.wjybxx.fastjgame.net.socket.SocketConnectRequestEvent;
+import com.wjybxx.fastjgame.net.socket.SocketEvent;
+import com.wjybxx.fastjgame.net.socket.SocketSession;
+import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
 
 import javax.annotation.Nonnull;
 
@@ -83,27 +86,12 @@ public interface NetEventLoopGroup extends EventLoopGroup {
     void fireConnectRequest(SocketConnectRequestEvent event);
 
     /**
-     * 接收到一个session发来的消息。
-     * 它将导致一个<b>确定的</b>{@link NetEventLoop}的{@link AcceptorManager#onRcvMessage(SocketMessageEvent)} 方法被调用。
+     * 该方法的被调用意味着它管理的某一个{@link Session}接收产生了一个事件。
+     * 它将导致一个<b>确定的</b>{@link NetEventLoop}的{@link AcceptorManager#onSessionEvent(SocketEvent)} 方法被调用。
      *
      * @param event 事件参数
      */
-    void fireMessage_acceptor(SocketMessageEvent event);
-
-    /**
-     * 告诉session所在的acceptor断开连接
-     *
-     * @param event 事件参数
-     */
-    void fireDisconnect_acceptor(SocketDisconnectEvent event);
-
-    /**
-     * 接收到一个http请求。
-     * 它将导致一个<b>确定的</b>{@link NetEventLoop}的{@link HttpSessionManager#onRcvHttpRequest(HttpRequestEvent)} 方法被调用。
-     *
-     * @param event 事件参数
-     */
-    void fireHttpRequest(HttpRequestEvent event);
+    void fireEvent_acceptor(SocketEvent event);
 
     /**
      * 以tcp方式连接远程某个端口
@@ -142,4 +130,12 @@ public interface NetEventLoopGroup extends EventLoopGroup {
      * @return future 如果想消除同步，添加监听器时请绑定EventLoop
      */
     ListenableFuture<Session> connectLocal(String sessionId, long remoteGuid, LocalPort localPort, LocalSessionConfig config, NetContext netContext);
+
+    /**
+     * 接收到一个http请求。
+     * 它将导致一个<b>确定的</b>{@link NetEventLoop}的{@link HttpSessionManager#onRcvHttpRequest(HttpRequestEvent)} 方法被调用。
+     *
+     * @param event 事件参数
+     */
+    void fireHttpRequest(HttpRequestEvent event);
 }

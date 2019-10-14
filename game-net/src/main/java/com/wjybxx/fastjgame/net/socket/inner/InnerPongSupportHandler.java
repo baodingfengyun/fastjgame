@@ -36,7 +36,7 @@ public class InnerPongSupportHandler extends SessionInboundHandlerAdapter {
     private long sessionTimeoutMs;
 
     @Override
-    public void init(SessionHandlerContext ctx) throws Exception {
+    public void handlerAdded(SessionHandlerContext ctx) throws Exception {
         // 缓存 - 减少栈深度
         timeManager = ctx.managerWrapper().getNetTimeManager();
         sessionTimeoutMs = ctx.session().config().getSessionTimeoutMs();

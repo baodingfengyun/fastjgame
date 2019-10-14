@@ -101,6 +101,6 @@ public class HttpRequestParamDecoder extends SimpleChannelInboundHandler<FullHtt
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         ctx.close();
-        logger.info("", cause);
+        logger.warn("", cause);
     }
 }

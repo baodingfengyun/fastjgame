@@ -27,10 +27,14 @@ package com.wjybxx.fastjgame.net.session;
 public class SessionHandlerAdapter implements SessionHandler {
 
     @Override
-    public void init(SessionHandlerContext ctx) throws Exception {
+    public void handlerAdded(SessionHandlerContext ctx) throws Exception {
         // NO OP
     }
 
+    @Override
+    public void handlerRemoved(SessionHandlerContext ctx) throws Exception {
+        // NO OP
+    }
 
     @Override
     public void tick(SessionHandlerContext ctx) {

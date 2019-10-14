@@ -49,7 +49,8 @@ public class SyncRpcRequestWriteTask implements WriteTask {
 
     @Override
     public void run() {
-        session.fireWrite(this);
+        // 同步rpc调用，需要刷新缓冲区，尽快的发送出去，异步调用的则无需着急刷新缓冲区
+        session.fireWriteAndFlush(this);
     }
 
 }

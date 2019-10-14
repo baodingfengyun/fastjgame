@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.eventloop;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.manager.AcceptorManager;
 import com.wjybxx.fastjgame.manager.ConnectorManager;
 import com.wjybxx.fastjgame.misc.PortRange;
 import com.wjybxx.fastjgame.net.common.RpcFuture;
@@ -29,7 +30,10 @@ import com.wjybxx.fastjgame.net.local.LocalPort;
 import com.wjybxx.fastjgame.net.local.LocalSession;
 import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
 import com.wjybxx.fastjgame.net.session.Session;
-import com.wjybxx.fastjgame.net.socket.*;
+import com.wjybxx.fastjgame.net.socket.SocketConnectResponseEvent;
+import com.wjybxx.fastjgame.net.socket.SocketEvent;
+import com.wjybxx.fastjgame.net.socket.SocketPort;
+import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
 import okhttp3.Response;
 
 import javax.annotation.Nonnull;
@@ -79,19 +83,12 @@ public interface NetEventLoop extends EventLoop, NetEventLoopGroup {
     void fireConnectResponse(SocketConnectResponseEvent event);
 
     /**
-     * 该方法的被调用意味着它管理的某一个{@link Session}接收到了对方的一个消息。
-     * 它将导致{@link ConnectorManager#onRcvMessage(SocketMessageEvent)} 方法被调用。
+     * 该方法的被调用意味着它管理的某一个{@link Session}接收产生了一个事件。
+     * 它将导致{@link ConnectorManager#onRcvMessage(SocketEvent)} 方法被调用。
      *
      * @param event 接收到的消息事件
      */
-    void fireMessage_connector(SocketMessageEvent event);
-
-    /**
-     * 告诉session所在的connector断开连接
-     *
-     * @param event 事件参数
-     */
-    void fireDisconnect_connector(SocketDisconnectEvent event);
+    void fireEvent_connector(SocketEvent event);
 
     /**
      * 在指定端口范围内选择一个合适的端口监听tcp连接

@@ -68,13 +68,8 @@ public interface SessionPipeline extends SessionInboundInvoker, SessionOutboundI
     SessionPipeline addFirst(SessionHandler handler);
 
     /**
-     * 将调用每一个handler的{@link SessionHandler#init(SessionHandlerContext)}方法。
+     * 刷帧，调用每一个handler的{@link SessionHandler#tick(SessionHandlerContext)}方法
      */
-    SessionPipeline fireInit();
-
-    /**
-     * 刷帧
-     */
-    void tick();
+    void fireTick();
 
 }

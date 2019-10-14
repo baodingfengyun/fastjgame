@@ -171,8 +171,7 @@ public interface NetContext {
      * @param httpRequestDispatcher 该端口上的协议处理器
      * @return future 可以等待绑定完成。
      */
-    default ListenableFuture<SocketPort> bindHttp(String host, int port,
-                                                  @Nonnull HttpRequestDispatcher httpRequestDispatcher) {
+    default ListenableFuture<SocketPort> bindHttp(String host, int port, @Nonnull HttpRequestDispatcher httpRequestDispatcher) {
         return this.bindHttpRange(host, new PortRange(port, port), httpRequestDispatcher);
     }
 

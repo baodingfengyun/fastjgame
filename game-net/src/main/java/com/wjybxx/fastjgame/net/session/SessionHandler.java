@@ -16,9 +16,6 @@
 
 package com.wjybxx.fastjgame.net.session;
 
-import com.wjybxx.fastjgame.timer.TimerSystem;
-import com.wjybxx.fastjgame.timer.TimerTask;
-
 /**
  * {@link io.netty.channel.ChannelHandler}
  *
@@ -34,13 +31,21 @@ public interface SessionHandler {
      *
      * @param ctx handler所属的context
      */
-    void init(SessionHandlerContext ctx) throws Exception;
+    void handlerAdded(SessionHandlerContext ctx) throws Exception;
+
+    /**
+     * 当{@link SessionHandler}从{@link SessionPipeline}移除时。
+     *
+     * @param ctx handler所属的context
+     */
+    void handlerRemoved(SessionHandlerContext ctx) throws Exception;
 
     /**
      * 刷帧。
+     * Q: 为什么使用tick接口，而不是各自添加定时任务？
+     * A: 使用timer可能产生大量的定时任务，对性能很不友好。
      *
      * @param ctx handler所属的context
-     * @apiNote 不允许在tick的时候关闭session，如果需要关闭，请使用{@link TimerSystem#nextTick(TimerTask)}下一帧关闭。
      */
     void tick(SessionHandlerContext ctx) throws Exception;
 }

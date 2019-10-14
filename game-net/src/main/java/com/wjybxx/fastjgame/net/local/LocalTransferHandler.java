@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.net.local;
 
-import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.net.common.ConnectAwareTask;
 import com.wjybxx.fastjgame.net.common.DisconnectAwareTask;
 import com.wjybxx.fastjgame.net.session.Session;
@@ -36,18 +35,15 @@ public class LocalTransferHandler extends SessionDuplexHandlerAdapter {
     private Session remoteSession;
 
     @Override
-    public void init(SessionHandlerContext ctx) throws Exception {
-        remoteSession = ((LocalSessionImp) ctx.session()).getRemoteSession();
-    }
-
-    @Override
     public void onSessionActive(SessionHandlerContext ctx) throws Exception {
+        remoteSession = ((LocalSessionImp) ctx.session()).getRemoteSession();
         ctx.localEventLoop().execute(new ConnectAwareTask(ctx.session()));
         ctx.fireSessionActive();
     }
 
     @Override
     public void onSessionInactive(SessionHandlerContext ctx) throws Exception {
+        remoteSession = null;
         ctx.localEventLoop().execute(new DisconnectAwareTask(ctx.session()));
         ctx.fireSessionInactive();
     }
@@ -60,16 +56,18 @@ public class LocalTransferHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void flush(SessionHandlerContext ctx) throws Exception {
-
+        // 终止
     }
 
     @Override
-    public void close(SessionHandlerContext ctx, Promise<?> promise) throws Exception {
-        // 标记为成功
-        promise.trySuccess(null);
-        // 减少不必要的调用
+    public void close(SessionHandlerContext ctx) throws Exception {
+        // 下一帧关闭对方（总是使对方晚于自己关闭）
         if (remoteSession.isActive()) {
-            remoteSession.close();
+            // 存为临时变量，避免NPE，少捕获变量
+            final Session remoteSession = this.remoteSession;
+            ctx.managerWrapper().getNetTimerManager().nextTick(handle -> {
+                remoteSession.close();
+            });
         }
     }
 }

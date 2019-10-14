@@ -31,8 +31,7 @@ import com.wjybxx.fastjgame.net.local.LocalPort;
 import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.socket.SocketConnectRequestEvent;
-import com.wjybxx.fastjgame.net.socket.SocketDisconnectEvent;
-import com.wjybxx.fastjgame.net.socket.SocketMessageEvent;
+import com.wjybxx.fastjgame.net.socket.SocketEvent;
 import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
@@ -116,9 +115,9 @@ public class NetEventLoopGroupImp extends MultiThreadEventLoopGroup implements N
             throw new IllegalArgumentException("Bad EventLoop");
         }
         // 监听用户线程关闭
-        for (EventLoop eventLoop:this) {
+        for (EventLoop eventLoop : this) {
             localEventLoop.terminationFuture().addListener(future -> {
-                ((NetEventLoop)eventLoop).onUserEventLoopTerminal(localEventLoop);
+                ((NetEventLoop) eventLoop).onUserEventLoopTerminal(localEventLoop);
             });
         }
         return new NetContextImp(localGuid, localEventLoop, this);
@@ -130,18 +129,8 @@ public class NetEventLoopGroupImp extends MultiThreadEventLoopGroup implements N
     }
 
     @Override
-    public void fireMessage_acceptor(SocketMessageEvent event) {
-        select(NetUtils.fixedKey(event.sessionId())).fireMessage_acceptor(event);
-    }
-
-    @Override
-    public void fireDisconnect_acceptor(SocketDisconnectEvent event) {
-        select(NetUtils.fixedKey(event.sessionId())).fireDisconnect_acceptor(event);
-    }
-
-    @Override
-    public void fireHttpRequest(HttpRequestEvent event) {
-        select(NetUtils.fixedKey(event.channel())).fireHttpRequest(event);
+    public void fireEvent_acceptor(SocketEvent event) {
+        select(NetUtils.fixedKey(event.sessionId())).fireEvent_acceptor(event);
     }
 
     @Override
@@ -157,5 +146,10 @@ public class NetEventLoopGroupImp extends MultiThreadEventLoopGroup implements N
     @Override
     public ListenableFuture<Session> connectLocal(String sessionId, long remoteGuid, LocalPort localPort, LocalSessionConfig config, NetContext netContext) {
         return select(NetUtils.fixedKey(sessionId)).connectLocal(sessionId, remoteGuid, localPort, config, netContext);
+    }
+
+    @Override
+    public void fireHttpRequest(HttpRequestEvent event) {
+        select(NetUtils.fixedKey(event.channel())).fireHttpRequest(event);
     }
 }

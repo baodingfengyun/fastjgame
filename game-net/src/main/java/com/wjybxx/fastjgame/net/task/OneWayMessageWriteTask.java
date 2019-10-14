@@ -42,6 +42,7 @@ public class OneWayMessageWriteTask implements WriteTask {
 
     @Override
     public void run() {
+        // 单向通知无需刷新缓冲区
         session.fireWrite(this);
     }
 

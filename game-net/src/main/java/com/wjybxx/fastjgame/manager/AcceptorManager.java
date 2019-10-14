@@ -30,6 +30,7 @@ import com.wjybxx.fastjgame.net.socket.inner.InnerSocketMessageSupportHandler;
 import com.wjybxx.fastjgame.net.socket.inner.InnerSocketTransferHandler;
 import com.wjybxx.fastjgame.utils.NetUtils;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 
 /**
@@ -40,6 +41,7 @@ import java.io.IOException;
  * date - 2019/9/9
  * github - https://github.com/hl845740757
  */
+@NotThreadSafe
 public class AcceptorManager {
 
     private NetManagerWrapper netManagerWrapper;
@@ -83,9 +85,10 @@ public class AcceptorManager {
                     .addLast(new InnerSocketMessageSupportHandler())
                     .addLast(new InnerPongSupportHandler())
                     .addLast(new OneWaySupportHandler())
-                    .addLast(new RpcSupportHandler())
-                    .fireInit()
-                    .fireSessionActive();
+                    .addLast(new RpcSupportHandler());
+
+            socketSessionImp.tryActive();
+            socketSessionImp.pipeline().fireSessionActive();
 
             final SocketConnectResponse socketConnectResponse = new SocketConnectResponse(true, connectRequestEvent.getConnectRequest().getVerifyingTimes());
             socketSessionImp.fireWriteAndFlush(socketConnectResponse);
@@ -98,27 +101,16 @@ public class AcceptorManager {
     /**
      * 接收到一个socket消息
      *
-     * @param messageEvent 消息事件参数
+     * @param socketEvent 消息事件参数
      */
-    public void onRcvMessage(SocketMessageEvent messageEvent) {
-        final Session session = sessionRegistry.getSession(messageEvent.sessionId());
+    public void onSessionEvent(SocketEvent socketEvent) {
+        final Session session = sessionRegistry.getSession(socketEvent.sessionId());
         if (session != null && session.isActive()) {
             // session 存活的情况下才读取消息
-            session.fireRead(messageEvent);
+            session.fireRead(socketEvent);
         }
     }
 
-    /**
-     * 当接收对方的断开连接请求时
-     *
-     * @param event 事件参数
-     */
-    public void onRcvDisconnect(SocketDisconnectEvent event) {
-        final Session session = sessionRegistry.getSession(event.sessionId());
-        if (null != session) {
-            session.close();
-        }
-    }
     // -------------------------------------------------- 本地session支持 ------------------------------------------------
 
     /**
@@ -154,7 +146,7 @@ public class AcceptorManager {
                 localPort.getLocalConfig());
         sessionRegistry.registerSession(session);
 
-        // 创建管道，但是这里还不能初始化 - 因为还没有对方的引用
+        // 创建管道
         session.pipeline()
                 .addLast(new LocalTransferHandler())
                 .addLast(new LocalCodecHandler())

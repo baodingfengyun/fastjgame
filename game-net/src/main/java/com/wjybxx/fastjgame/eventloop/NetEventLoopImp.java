@@ -216,25 +216,12 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     }
 
     @Override
-    public void fireMessage_acceptor(SocketMessageEvent event) {
+    public void fireEvent_acceptor(SocketEvent event) {
         execute(() -> {
-            acceptorManager.onRcvMessage(event);
+            acceptorManager.onSessionEvent(event);
         });
     }
 
-    @Override
-    public void fireDisconnect_acceptor(SocketDisconnectEvent event) {
-        execute(() -> {
-            acceptorManager.onRcvDisconnect(event);
-        });
-    }
-
-    @Override
-    public void fireHttpRequest(HttpRequestEvent event) {
-        execute(() -> {
-            httpSessionManager.onRcvHttpRequest(event);
-        });
-    }
 
     @Override
     public void fireConnectResponse(SocketConnectResponseEvent event) {
@@ -244,16 +231,9 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     }
 
     @Override
-    public void fireMessage_connector(SocketMessageEvent event) {
+    public void fireEvent_connector(SocketEvent event) {
         execute(() -> {
             connectorManager.onRcvMessage(event);
-        });
-    }
-
-    @Override
-    public void fireDisconnect_connector(SocketDisconnectEvent event) {
-        execute(() -> {
-            connectorManager.onRcvDisconnect(event);
         });
     }
 
@@ -310,6 +290,13 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         });
     }
     // -------------------------------------------------------------- http --------------------------------------------------------
+
+    @Override
+    public void fireHttpRequest(HttpRequestEvent event) {
+        execute(() -> {
+            httpSessionManager.onRcvHttpRequest(event);
+        });
+    }
 
     @Override
     public ListenableFuture<SocketPort> bindHttpRange(String host, PortRange portRange, @Nonnull HttpRequestDispatcher httpRequestDispatcher, @Nonnull NetContext netContext) {

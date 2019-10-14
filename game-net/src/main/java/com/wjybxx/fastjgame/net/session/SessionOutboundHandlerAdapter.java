@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.net.session;
 
-import com.wjybxx.fastjgame.concurrent.Promise;
-
 
 /**
  * {@link SessionOutboundHandler}的适配器，默认将事件传递给{@link SessionPipeline}的下一个{@link SessionOutboundHandler}.
@@ -40,7 +38,7 @@ public class SessionOutboundHandlerAdapter extends SessionHandlerAdapter impleme
     }
 
     @Override
-    public void close(SessionHandlerContext ctx, Promise<?> promise) throws Exception {
-        ctx.fireClose(promise);
+    public void close(SessionHandlerContext ctx) throws Exception {
+        ctx.fireClose();
     }
 }

@@ -49,6 +49,7 @@ public class AsyncRpcRequestWriteTask implements WriteTask {
 
     @Override
     public void run() {
+        // 异步rpc调用无需刷新缓冲区
         session.fireWrite(this);
     }
 

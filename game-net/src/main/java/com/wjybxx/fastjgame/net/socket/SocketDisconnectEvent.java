@@ -16,15 +16,15 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.net.common.DisconnectMessage;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
 
 /**
- * 对方请求断开连接事件
+ * {@link io.netty.channel.ChannelInboundHandler#channelInactive(ChannelHandlerContext)}事件
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/10/12
+ * date - 2019/10/14
  * github - https://github.com/hl845740757
  */
 public class SocketDisconnectEvent implements SocketEvent {
@@ -45,9 +45,5 @@ public class SocketDisconnectEvent implements SocketEvent {
     @Override
     public String sessionId() {
         return sessionId;
-    }
-
-    public DisconnectMessage getMessage() {
-        return DisconnectMessage.INSTANCE;
     }
 }

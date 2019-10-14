@@ -42,7 +42,7 @@ public class LocalCodecHandler extends SessionOutboundHandlerAdapter {
     }
 
     @Override
-    public void init(SessionHandlerContext ctx) throws Exception {
+    public void handlerAdded(SessionHandlerContext ctx) throws Exception {
         codec = ctx.session().config().codec();
     }
 
