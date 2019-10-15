@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.eventloop;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.wjybxx.fastjgame.concurrent.GlobalEventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.PortRange;
@@ -33,11 +34,16 @@ import okhttp3.Response;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
+import java.net.BindException;
 import java.util.Map;
 
 /**
  * 逻辑层使用的网络上下文 - 它主要负责用户与{@link NetEventLoop}之间的交互。
  * 提供封装 - 降低用户使用难度.
+ * <p>
+ * Q: 为什么绑定端口实现为了阻塞方法？
+ * A: 绑定端口一般发生在服务器启动时，启动时阻塞影响较小，此外绑定失败更加安全，更容易处理。
+ * -> 如果以后要改成异步的，可考虑提交到{@link GlobalEventLoop}阻塞执行。
  *
  * @author wjybxx
  * @version 1.0
@@ -71,9 +77,9 @@ public interface NetContext {
      * @param host   地址
      * @param port   端口号
      * @param config session配置信息
-     * @return future
+     * @return netPort
      */
-    default ListenableFuture<SocketPort> bindTcp(String host, int port, @Nonnull SocketSessionConfig config) {
+    default SocketPort bindTcp(String host, int port, @Nonnull SocketSessionConfig config) throws BindException {
         return this.bindTcpRange(host, new PortRange(port, port), config);
     }
 
@@ -83,9 +89,9 @@ public interface NetContext {
      * @param host      地址
      * @param portRange 端口范围
      * @param config    session配置信息
-     * @return future
+     * @return netPort
      */
-    ListenableFuture<SocketPort> bindTcpRange(String host, PortRange portRange, @Nonnull SocketSessionConfig config);
+    SocketPort bindTcpRange(String host, PortRange portRange, @Nonnull SocketSessionConfig config) throws BindException;
 
     /**
      * 以tcp方式连接远程某个端口
@@ -105,9 +111,9 @@ public interface NetContext {
      * @param port          端口
      * @param websocketPath 触发websocket升级的地址
      * @param config        session配置信息
-     * @return future
+     * @return netPort
      */
-    default ListenableFuture<SocketPort> bindWS(String host, int port, String websocketPath, @Nonnull SocketSessionConfig config) {
+    default SocketPort bindWS(String host, int port, String websocketPath, @Nonnull SocketSessionConfig config) throws BindException {
         return this.bindWSRange(host, new PortRange(port, port), websocketPath, config);
     }
 
@@ -118,9 +124,9 @@ public interface NetContext {
      * @param portRange     端口范围
      * @param websocketPath 触发websocket升级的地址
      * @param config        session配置信息
-     * @return future
+     * @return netPort
      */
-    ListenableFuture<SocketPort> bindWSRange(String host, PortRange portRange, String websocketPath, @Nonnull SocketSessionConfig config);
+    SocketPort bindWSRange(String host, PortRange portRange, String websocketPath, @Nonnull SocketSessionConfig config) throws BindException;
 
     /**
      * 以websocket方式连接远程某个端口
@@ -145,9 +151,9 @@ public interface NetContext {
      * </pre>
      *
      * @param config 配置信息
-     * @return future 如果想消除同步，添加监听器时请绑定EventLoop
+     * @return netPort
      */
-    ListenableFuture<LocalPort> bindLocal(@Nonnull LocalSessionConfig config);
+    LocalPort bindLocal(@Nonnull LocalSessionConfig config);
 
     /**
      * 与JVM内的另一个线程建立session。
@@ -169,9 +175,9 @@ public interface NetContext {
      * @param host                  地址
      * @param port                  指定端口号
      * @param httpRequestDispatcher 该端口上的协议处理器
-     * @return future 可以等待绑定完成。
+     * @return netPort
      */
-    default ListenableFuture<SocketPort> bindHttp(String host, int port, @Nonnull HttpRequestDispatcher httpRequestDispatcher) {
+    default SocketPort bindHttp(String host, int port, @Nonnull HttpRequestDispatcher httpRequestDispatcher) throws BindException {
         return this.bindHttpRange(host, new PortRange(port, port), httpRequestDispatcher);
     }
 
@@ -183,7 +189,7 @@ public interface NetContext {
      * @param httpRequestDispatcher 该端口上的协议处理器
      * @return future 可以等待绑定完成。
      */
-    ListenableFuture<SocketPort> bindHttpRange(String host, PortRange portRange, @Nonnull HttpRequestDispatcher httpRequestDispatcher);
+    SocketPort bindHttpRange(String host, PortRange portRange, @Nonnull HttpRequestDispatcher httpRequestDispatcher) throws BindException;
 
     /**
      * 同步get请求

@@ -18,7 +18,6 @@ package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.annotation.EventLoopSingleton;
-import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.PortRange;
@@ -26,7 +25,6 @@ import com.wjybxx.fastjgame.net.common.ProtocolCodec;
 import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.local.LocalPort;
 import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
-import com.wjybxx.fastjgame.net.socket.SocketPort;
 import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
 import com.wjybxx.fastjgame.utils.GameUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
@@ -34,8 +32,8 @@ import com.wjybxx.fastjgame.utils.SystemUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
+import java.net.BindException;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
 
 /**
  * 内部通信建立连接的辅助类
@@ -68,34 +66,28 @@ public class InnerAcceptorMgr {
         this.worldInfoMgr = worldInfoMgr;
     }
 
-    public void bindLocalPort(SessionLifecycleAware lifecycleAware) throws ExecutionException, InterruptedException {
+    public void bindLocalPort(SessionLifecycleAware lifecycleAware) {
         LocalSessionConfig config = newLocalSessionConfig(lifecycleAware);
-        final ListenableFuture<LocalPort> localPortFuture = netContextMgr.getNetContext().bindLocal(config);
-        final LocalPort localPort = localPortFuture.get();
+        final LocalPort localPort = netContextMgr.getNetContext().bindLocal(config);
         localPortMgr.register(worldInfoMgr.getWorldGuid(), localPort);
     }
 
-    public HostAndPort bindInnerTcpPort(SessionLifecycleAware lifecycleAware) throws ExecutionException, InterruptedException {
+    public HostAndPort bindInnerTcpPort(SessionLifecycleAware lifecycleAware) throws BindException {
         return bindTcpPort(NetUtils.getLocalIp(), GameUtils.INNER_TCP_PORT_RANGE, lifecycleAware);
     }
 
-    private HostAndPort bindTcpPort(String host, PortRange portRange, SessionLifecycleAware lifecycleAware) throws ExecutionException, InterruptedException {
+    private HostAndPort bindTcpPort(String host, PortRange portRange, SessionLifecycleAware lifecycleAware) throws BindException {
         NetContext netContext = netContextMgr.getNetContext();
-
-        ListenableFuture<SocketPort> bindFuture = netContext.bindTcpRange(host, portRange,
-                newSocketSessionConfig(lifecycleAware));
-
-        return bindFuture.get().getHostAndPort();
+        return netContext.bindTcpRange(host, portRange, newSocketSessionConfig(lifecycleAware)).getHostAndPort();
     }
 
-    public HostAndPort bindLocalTcpPort(SessionLifecycleAware lifecycleAware) throws ExecutionException, InterruptedException {
+    public HostAndPort bindLocalTcpPort(SessionLifecycleAware lifecycleAware) throws BindException {
         return bindTcpPort("localhost", GameUtils.LOCAL_TCP_PORT_RANGE, lifecycleAware);
     }
 
-    public HostAndPort bindInnerHttpPort() throws ExecutionException, InterruptedException {
+    public HostAndPort bindInnerHttpPort() throws BindException {
         NetContext netContext = netContextMgr.getNetContext();
-        ListenableFuture<SocketPort> bindFuture = netContext.bindHttpRange(NetUtils.getLocalIp(), GameUtils.INNER_HTTP_PORT_RANGE, httpDispatcherMgr);
-        return bindFuture.get().getHostAndPort();
+        return netContext.bindHttpRange(NetUtils.getLocalIp(), GameUtils.INNER_HTTP_PORT_RANGE, httpDispatcherMgr).getHostAndPort();
     }
 
     public void connect(long remoteGuid, String innerTcpAddress, String localAddress, String macAddress, SessionLifecycleAware lifecycleAware) {

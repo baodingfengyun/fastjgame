@@ -53,8 +53,8 @@ class DefaultSessionPipeline implements SessionPipeline {
     DefaultSessionPipeline(Session session, NetManagerWrapper netManagerWrapper) {
         this.session = session;
         this.netManagerWrapper = netManagerWrapper;
-        this.tail = new TailContext(this, netManagerWrapper);
-        this.head = new HeadContext(this, netManagerWrapper);
+        this.tail = new TailContext(this);
+        this.head = new HeadContext(this);
 
         head.next = tail;
         tail.prev = head;
@@ -79,8 +79,13 @@ class DefaultSessionPipeline implements SessionPipeline {
     }
 
     @Override
+    public NetManagerWrapper managerWrapper() {
+        return netManagerWrapper;
+    }
+
+    @Override
     public SessionPipeline addLast(@Nonnull SessionHandler handler) {
-        final AbstractSessionHandlerContext newCtx = new DefaultSessionHandlerContext(this, netManagerWrapper, handler);
+        final AbstractSessionHandlerContext newCtx = new DefaultSessionHandlerContext(this, handler);
         addLast0(newCtx);
         callHandlerAdded0(newCtx);
         return this;
@@ -96,7 +101,7 @@ class DefaultSessionPipeline implements SessionPipeline {
 
     @Override
     public SessionPipeline addFirst(@Nonnull SessionHandler handler) {
-        final AbstractSessionHandlerContext newCtx = new DefaultSessionHandlerContext(this, netManagerWrapper, handler);
+        final AbstractSessionHandlerContext newCtx = new DefaultSessionHandlerContext(this, handler);
         addFirst0(newCtx);
         callHandlerAdded0(newCtx);
         return this;
@@ -163,7 +168,9 @@ class DefaultSessionPipeline implements SessionPipeline {
         }
     }
 
-    private SessionHandlerContext context(@Nonnull SessionHandler handler) {
+    @Nullable
+    @Override
+    public SessionHandlerContext context(@Nonnull SessionHandler handler) {
         AbstractSessionHandlerContext ctx = head.next;
         for (; ; ) {
             if (ctx == null) {
@@ -190,12 +197,14 @@ class DefaultSessionPipeline implements SessionPipeline {
         return null == lastContext ? null : lastContext.handler();
     }
 
+    @Nullable
     @Override
     public SessionHandlerContext firstContext() {
         final AbstractSessionHandlerContext next = head.next;
         return next == tail ? null : next;
     }
 
+    @Nullable
     @Override
     public SessionHandlerContext lastContext() {
         final AbstractSessionHandlerContext prev = tail.prev;
@@ -264,8 +273,8 @@ class DefaultSessionPipeline implements SessionPipeline {
      */
     private static class HeadContext extends AbstractSessionHandlerContext implements SessionOutboundHandler {
 
-        HeadContext(DefaultSessionPipeline pipeline, NetManagerWrapper netManagerWrapper) {
-            super(pipeline, netManagerWrapper);
+        HeadContext(DefaultSessionPipeline pipeline) {
+            super(pipeline);
         }
 
         @Override
@@ -311,8 +320,8 @@ class DefaultSessionPipeline implements SessionPipeline {
      */
     private static class TailContext extends AbstractSessionHandlerContext implements SessionInboundHandler {
 
-        TailContext(DefaultSessionPipeline pipeline, NetManagerWrapper managerWrapper) {
-            super(pipeline, managerWrapper);
+        TailContext(DefaultSessionPipeline pipeline) {
+            super(pipeline);
         }
 
         @Override

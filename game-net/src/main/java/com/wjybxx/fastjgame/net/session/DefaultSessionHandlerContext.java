@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.net.session;
 
-import com.wjybxx.fastjgame.manager.NetManagerWrapper;
-
 /**
  * {@link SessionHandlerContext}的默认实现
  *
@@ -30,9 +28,8 @@ class DefaultSessionHandlerContext extends AbstractSessionHandlerContext {
 
     private final SessionHandler handler;
 
-    DefaultSessionHandlerContext(DefaultSessionPipeline pipeline, NetManagerWrapper netManagerWrapper,
-                                 SessionHandler handler) {
-        super(pipeline, netManagerWrapper);
+    DefaultSessionHandlerContext(DefaultSessionPipeline pipeline, SessionHandler handler) {
+        super(pipeline);
         this.handler = handler;
     }
 

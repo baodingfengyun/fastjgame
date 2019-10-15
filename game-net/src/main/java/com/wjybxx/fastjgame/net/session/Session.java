@@ -84,14 +84,14 @@ public interface Session extends Comparable<Session>, Closeable {
     long remoteGuid();
 
     /**
-     * session所属的网络线程。
-     */
-    NetEventLoop netEventLoop();
-
-    /**
      * session所属的用户线程
      */
     EventLoop localEventLoop();
+
+    /**
+     * session所属的网络线程。
+     */
+    NetEventLoop netEventLoop();
 
     // ---------------------------------------------- 配置信息 ----------------------------------------------
 

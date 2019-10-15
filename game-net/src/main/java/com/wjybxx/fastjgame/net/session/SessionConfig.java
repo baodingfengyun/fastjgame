@@ -108,7 +108,7 @@ public class SessionConfig {
         return new SessionConfigBuilder();
     }
 
-    public static class SessionConfigBuilder<T extends SessionConfigBuilder<T>> {
+    public static class SessionConfigBuilder<T extends SessionConfigBuilder<T, U>, U extends SessionConfig> {
 
         private SessionLifecycleAware lifecycleAware;
         private ProtocolCodec protocolCodec;
@@ -157,9 +157,14 @@ public class SessionConfig {
             return self();
         }
 
-        public SessionConfig build() {
+        public final U build() {
             checkParams();
-            return new SessionConfig(this);
+            return newInstance();
+        }
+
+        @SuppressWarnings("unchecked")
+        protected U newInstance() {
+            return (U) new SessionConfig(this);
         }
 
         protected void checkParams() {

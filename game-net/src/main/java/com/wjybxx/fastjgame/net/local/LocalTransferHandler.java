@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.net.common.DisconnectAwareTask;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
+import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
 /**
  * JVM 内部传输实现 - 它是出站的最后一个处理器，因此也是真正实现关闭的handler
@@ -40,25 +41,34 @@ public class LocalTransferHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void onSessionActive(SessionHandlerContext ctx) throws Exception {
-        ctx.localEventLoop().execute(new ConnectAwareTask(ctx.session()));
+        ConcurrentUtils.safeExecute(ctx.localEventLoop(), new ConnectAwareTask(ctx.session()));
         ctx.fireSessionActive();
     }
 
     @Override
     public void onSessionInactive(SessionHandlerContext ctx) throws Exception {
-        ctx.localEventLoop().execute(new DisconnectAwareTask(ctx.session()));
+        ConcurrentUtils.safeExecute(ctx.localEventLoop(), new DisconnectAwareTask(ctx.session()));
         ctx.fireSessionInactive();
     }
 
     @Override
     public void write(SessionHandlerContext ctx, Object msg) throws Exception {
-        // 直接触发另一个session的读事件
-        remoteSession.fireRead(msg);
+        if (ctx.session().isActive()) {
+            // 直接触发另一个session的读事件
+            remoteSession.fireRead(msg);
+        }
     }
 
     @Override
     public void flush(SessionHandlerContext ctx) throws Exception {
         // 终止
+    }
+
+    @Override
+    public void read(SessionHandlerContext ctx, Object msg) {
+        if (ctx.session().isActive()) {
+            ctx.fireRead(msg);
+        }
     }
 
     @Override

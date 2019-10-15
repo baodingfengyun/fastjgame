@@ -376,18 +376,15 @@ public class ConcurrentUtils {
     }
 
     /**
-     * 尝试提交任务到指定executor
+     * 安全的提交任务到指定executor
      *
      * @param executor 任务提交的目的地
      * @param task     待提交的任务
-     * @return 如果提交成功则返回true，否则返回false。
-     * 注意：这里即使返回true，也不代表一定提交成功了，因为并不清楚目标executor的拒绝策略。
      */
-    public static boolean tryCommit(@Nonnull Executor executor, @Nonnull Runnable task) {
+    public static void safeExecute(@Nonnull Executor executor, @Nonnull Runnable task) {
         try {
             executor.execute(task);
             // 这里也不一定真正的提交成功了，因为目标executor的拒绝策略我们并不知晓
-            return true;
         } catch (Exception e) {
             // may reject
             if (e instanceof RejectedExecutionException) {
@@ -396,7 +393,6 @@ public class ConcurrentUtils {
                 logger.warn("execute caught exception!", e);
             }
         }
-        return false;
     }
 
     /**

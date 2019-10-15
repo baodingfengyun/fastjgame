@@ -41,7 +41,6 @@ abstract class AbstractSessionHandlerContext implements SessionHandlerContext {
     private static final Logger logger = LoggerFactory.getLogger(AbstractSessionHandlerContext.class);
 
     private final DefaultSessionPipeline pipeline;
-    private final NetManagerWrapper managerWrapper;
     /**
      * 上一个handlerContext
      */
@@ -58,9 +57,8 @@ abstract class AbstractSessionHandlerContext implements SessionHandlerContext {
     private boolean isInbound;
     private boolean isOutbound;
 
-    AbstractSessionHandlerContext(DefaultSessionPipeline pipeline, NetManagerWrapper managerWrapper) {
+    AbstractSessionHandlerContext(DefaultSessionPipeline pipeline) {
         this.pipeline = pipeline;
-        this.managerWrapper = managerWrapper;
     }
 
     @Override
@@ -85,7 +83,7 @@ abstract class AbstractSessionHandlerContext implements SessionHandlerContext {
 
     @Override
     public NetManagerWrapper managerWrapper() {
-        return managerWrapper;
+        return pipeline.managerWrapper();
     }
 
     @Override

@@ -55,16 +55,16 @@ public interface SessionHandlerContext extends SessionInboundInvoker, SessionOut
     EventLoop localEventLoop();
 
     /**
-     * @return 该context管理的handler。
-     */
-    SessionHandler handler();
-
-    /**
      * 获取所属的{@link NetEventLoop}内的所有管理器
      *
      * @return NetManagerWrapper
      */
     NetManagerWrapper managerWrapper();
+
+    /**
+     * @return 该context管理的handler。
+     */
+    SessionHandler handler();
 
     /**
      * 调用{@link SessionHandler#handlerAdded(SessionHandlerContext)}方法。

@@ -30,16 +30,13 @@ import com.wjybxx.fastjgame.net.session.AbstractSession;
  */
 public class SocketSessionImp extends AbstractSession implements SocketSession {
 
-    private final SocketSessionConfig config;
-
-    public SocketSessionImp(NetContext netContext, String sessionId, long remoteGuid, NetManagerWrapper managerWrapper,
-                            SocketSessionConfig config) {
-        super(netContext, sessionId, remoteGuid, managerWrapper);
-        this.config = config;
+    public SocketSessionImp(NetContext netContext, String sessionId, long remoteGuid, SocketSessionConfig config,
+                            NetManagerWrapper managerWrapper) {
+        super(netContext, sessionId, remoteGuid, config, managerWrapper);
     }
 
     @Override
     public SocketSessionConfig config() {
-        return config;
+        return (SocketSessionConfig) config;
     }
 }

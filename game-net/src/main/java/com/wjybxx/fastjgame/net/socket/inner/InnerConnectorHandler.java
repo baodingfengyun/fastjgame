@@ -35,7 +35,7 @@ import io.netty.channel.ChannelFuture;
  */
 public class InnerConnectorHandler extends SessionDuplexHandlerAdapter {
 
-    private static final int INNER_VERIFY_TIMES = 1;
+    public static final int INNER_VERIFY_TIMES = 1;
 
     private final ChannelFuture channelFuture;
 
@@ -75,47 +75,55 @@ public class InnerConnectorHandler extends SessionDuplexHandlerAdapter {
             final SocketSessionImp session = (SocketSessionImp) ctx.session();
             if (socketEvent instanceof SocketConnectResponseEvent) {
                 // 建立连接响应
-                final SocketConnectResponseEvent connectResponseEvent = (SocketConnectResponseEvent) msg;
-                // 初始化ack错误
-                if (connectResponseEvent.getAck() != MessageQueue.INIT_ACK) {
-                    session.close();
-                    return;
-                }
-                // 验证次数不对
-                SocketConnectResponse connectResponse = connectResponseEvent.getConnectResponse();
-                if (connectResponse.getVerifyingTimes() != INNER_VERIFY_TIMES) {
-                    session.close();
-                    return;
-                }
-                // 不允许建立连接
-                if (!connectResponse.isSuccess()) {
-                    session.close();
-                    return;
-
-                }
-                // 建立连接成功，删除自己，添加真正的handler逻辑
-                session.pipeline()
-                        .remove(this)
-                        .addLast(new InnerSocketTransferHandler(channelFuture.channel()))
-                        .addLast(new InnerPingSupportHandler())
-                        .addLast(new OneWaySupportHandler())
-                        .addLast(new RpcSupportHandler());
-
-                // 尝试激活session
-                if (session.tryActive()) {
-                    session.pipeline().fireSessionActive();
-                } else {
-                    session.closeForcibly();
-                }
+                onRcvConnectResponse(session, (SocketConnectResponseEvent) msg);
                 return;
             }
             // socket断开事件，无法建立连接
             if (socketEvent instanceof SocketDisconnectEvent) {
                 session.close();
+                return;
             }
+            // 错误的消息
+            NetUtils.closeQuietly(socketEvent.channel());
         } else {
             // 错误的channel
             NetUtils.closeQuietly(socketEvent.channel());
+        }
+    }
+
+    /**
+     * 接收到建立连接响应
+     */
+    private void onRcvConnectResponse(SocketSessionImp session, SocketConnectResponseEvent connectResponseEvent) {
+        // 验证次数不对 - 先核对次数
+        SocketConnectResponse connectResponse = connectResponseEvent.getConnectResponse();
+        if (connectResponse.getVerifyingTimes() != INNER_VERIFY_TIMES) {
+            session.close();
+            return;
+        }
+        // 初始化ack错误
+        if (connectResponseEvent.getAck() != MessageQueue.INIT_ACK) {
+            session.close();
+            return;
+        }
+        // 不允许建立连接
+        if (!connectResponse.isSuccess()) {
+            session.close();
+            return;
+        }
+        // 建立连接成功，删除自己，添加真正的handler逻辑
+        session.pipeline()
+                .remove(this)
+                .addLast(new InnerSocketTransferHandler(channelFuture.channel()))
+                .addLast(new InnerPingSupportHandler())
+                .addLast(new OneWaySupportHandler())
+                .addLast(new RpcSupportHandler());
+
+        // 尝试激活session
+        if (session.tryActive()) {
+            session.pipeline().fireSessionActive();
+        } else {
+            session.closeForcibly();
         }
     }
 

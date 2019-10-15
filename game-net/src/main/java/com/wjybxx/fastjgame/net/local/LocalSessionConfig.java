@@ -36,10 +36,10 @@ public final class LocalSessionConfig extends SessionConfig {
         return new LocalSessionConfigBuilder();
     }
 
-    public static class LocalSessionConfigBuilder extends SessionConfigBuilder<LocalSessionConfigBuilder> {
+    public static class LocalSessionConfigBuilder extends SessionConfigBuilder<LocalSessionConfigBuilder, LocalSessionConfig> {
 
         @Override
-        public LocalSessionConfig build() {
+        public LocalSessionConfig newInstance() {
             return new LocalSessionConfig(this);
         }
     }

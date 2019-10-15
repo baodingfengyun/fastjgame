@@ -79,7 +79,7 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
                         .setDispatcher(protocolDispatcher)
                         .build();
 
-                final LocalPort localPort = netContext.bindLocal(config).get();
+                final LocalPort localPort = netContext.bindLocal(config);
                 localPortPromise.trySuccess(localPort);
             } catch (Exception e) {
                 localPortPromise.tryFailure(e);
@@ -92,7 +92,7 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
                     .setDispatcher(protocolDispatcher)
                     .build();
 
-            netContext.bindTcp(NetUtils.getLocalIp(), ExampleConstants.tcpPort, config).get();
+            netContext.bindTcp(NetUtils.getLocalIp(), ExampleConstants.tcpPort, config);
         }
         startTime = System.currentTimeMillis();
     }

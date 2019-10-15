@@ -178,7 +178,7 @@ public class HttpClientManager {
         @Override
         public void onFailure(@Nonnull Call call, @Nonnull IOException cause) {
             // 提交到用户所在线程，以保证线程安全
-            ConcurrentUtils.tryCommit(eventLoop, () -> {
+            ConcurrentUtils.safeExecute(eventLoop, () -> {
                 try {
                     responseCallback.onFailure(call, cause);
                 } catch (Exception e2) {
@@ -190,7 +190,7 @@ public class HttpClientManager {
         @Override
         public void onResponse(@Nonnull Call call, @Nonnull Response response) throws IOException {
             // 提交到用户所在线程，以保证线程安全
-            ConcurrentUtils.tryCommit(eventLoop, () -> {
+            ConcurrentUtils.safeExecute(eventLoop, () -> {
                 try {
                     responseCallback.onResponse(call, response);
                 } catch (Exception e) {

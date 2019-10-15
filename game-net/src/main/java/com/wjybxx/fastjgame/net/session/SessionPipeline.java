@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.net.session;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
+import com.wjybxx.fastjgame.manager.NetManagerWrapper;
 import io.netty.channel.ChannelPipeline;
 
 import javax.annotation.Nonnull;
@@ -53,6 +54,13 @@ public interface SessionPipeline extends SessionInboundInvoker, SessionOutboundI
      * @return session所在的逻辑线程
      */
     EventLoop localEventLoop();
+
+    /**
+     * 获取所属的{@link NetEventLoop}内的所有管理器
+     *
+     * @return NetManagerWrapper
+     */
+    NetManagerWrapper managerWrapper();
 
     /**
      * 添加一个handler到pipeline的尾部
@@ -95,24 +103,35 @@ public interface SessionPipeline extends SessionInboundInvoker, SessionOutboundI
     SessionPipeline remove(@Nonnull SessionHandler handler);
 
     /**
-     * 返回pipeline中的第一个handler
-     *
-     * @return the first handler.  {@code null} if this pipeline is empty.
+     * @return pipeline中的第一个handler，如果pipeline为空，则返回null
      */
     @Nullable
     SessionHandler first();
 
     /**
-     * 返回pipeline中的最后一个handler
-     *
-     * @return the last handler.  {@code null} if this pipeline is empty.
+     * @return pipeline中的最后一个handler，如果pipeline为空，则返回null
      */
     @Nullable
     SessionHandler last();
 
+    /**
+     * @return 返回pipeline中的第一个handler的context，如果pipeline为空，则返回null
+     */
+    @Nullable
     SessionHandlerContext firstContext();
 
+    /**
+     * @return 返回pipeline中的最后一个handler的context，如果pipeline为空，则返回null
+     */
+    @Nullable
     SessionHandlerContext lastContext();
+
+    /**
+     * @param handler 要查找的handler
+     * @return handler对应的context，如果不存在则返回null
+     */
+    @Nullable
+    SessionHandlerContext context(SessionHandler handler);
 
     /**
      * 刷帧，调用每一个handler的{@link SessionHandler#tick(SessionHandlerContext)}方法

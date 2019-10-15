@@ -45,11 +45,11 @@ public class NetConfigManager {
      */
     private final ConfigWrapper configWrapper;
 
-    private final int connectMaxTryTimes;
     private final int connectTimeout;
+
+    private final int connectMaxTryTimes;
     private final int waitVerifyResultTimeout;
     private final int ackTimeout;
-
 
     private final int serverMaxCacheNum;
     private final int clientMaxCacheNum;
@@ -103,13 +103,6 @@ public class NetConfigManager {
      */
     public int connectMaxTryTimes() {
         return connectMaxTryTimes;
-    }
-
-    /**
-     * 异步建立连接超时时间(毫秒)
-     */
-    public long connectTimeout() {
-        return connectTimeout;
     }
 
     /**

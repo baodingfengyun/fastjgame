@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 import com.wjybxx.fastjgame.net.task.*;
+import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
@@ -91,7 +92,8 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             rpcTimeoutInfo.rpcPromise.trySuccess(rpcResponse);
         } else {
             // 异步rpc调用
-            session.localEventLoop().execute(new RpcResponseCommitTask(session, rpcTimeoutInfo.rpcCallback, rpcResponse));
+            ConcurrentUtils.safeExecute(session.localEventLoop(),
+                    new RpcResponseCommitTask(session, rpcTimeoutInfo.rpcCallback, rpcResponse));
         }
     }
 

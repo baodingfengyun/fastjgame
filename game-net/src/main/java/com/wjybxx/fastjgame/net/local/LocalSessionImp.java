@@ -30,20 +30,14 @@ import com.wjybxx.fastjgame.net.session.AbstractSession;
  */
 public class LocalSessionImp extends AbstractSession implements LocalSession {
 
-    /**
-     * 配置信息
-     */
-    private final LocalSessionConfig config;
-
-    public LocalSessionImp(NetContext netContext, String sessionId, long remoteGuid,
-                           NetManagerWrapper managerWrapper, LocalSessionConfig config) {
-        super(netContext, sessionId, remoteGuid, managerWrapper);
-        this.config = config;
+    public LocalSessionImp(NetContext netContext, String sessionId, long remoteGuid, LocalSessionConfig config,
+                           NetManagerWrapper managerWrapper) {
+        super(netContext, sessionId, remoteGuid, config, managerWrapper);
     }
 
     @Override
     public LocalSessionConfig config() {
-        return config;
+        return (LocalSessionConfig) config;
     }
 
 }

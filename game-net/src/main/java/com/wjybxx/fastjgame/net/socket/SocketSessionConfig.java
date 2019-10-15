@@ -110,7 +110,7 @@ public final class SocketSessionConfig extends SessionConfig {
         return new SocketSessionConfigBuilder();
     }
 
-    public static class SocketSessionConfigBuilder extends SessionConfigBuilder<SocketSessionConfigBuilder> {
+    public static class SocketSessionConfigBuilder extends SessionConfigBuilder<SocketSessionConfigBuilder, SocketSessionConfig> {
 
         private int sndBuffer = 64 * 1024;
         private int rcvBuffer = 64 * 1024;
@@ -143,11 +143,13 @@ public final class SocketSessionConfig extends SessionConfig {
         }
 
         public SocketSessionConfigBuilder setConnectTimeoutMs(int connectTimeoutMs) {
+            CheckUtils.checkPositive(connectTimeoutMs, "connectTimeoutMs");
             this.connectTimeoutMs = connectTimeoutMs;
             return this;
         }
 
         public SocketSessionConfigBuilder setReadTimeout(int readTimeout) {
+            CheckUtils.checkPositive(readTimeout, "readTimeout");
             this.readTimeout = readTimeout;
             return this;
         }
@@ -158,7 +160,7 @@ public final class SocketSessionConfig extends SessionConfig {
         }
 
         @Override
-        public SocketSessionConfig build() {
+        public SocketSessionConfig newInstance() {
             return new SocketSessionConfig(this);
         }
     }

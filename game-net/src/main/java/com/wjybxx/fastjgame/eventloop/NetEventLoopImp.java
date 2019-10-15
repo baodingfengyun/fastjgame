@@ -21,30 +21,21 @@ import com.wjybxx.fastjgame.concurrent.*;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
 import com.wjybxx.fastjgame.manager.*;
 import com.wjybxx.fastjgame.misc.HostAndPort;
-import com.wjybxx.fastjgame.misc.HttpPortContext;
-import com.wjybxx.fastjgame.misc.PortRange;
 import com.wjybxx.fastjgame.module.NetEventLoopModule;
 import com.wjybxx.fastjgame.net.common.*;
-import com.wjybxx.fastjgame.net.http.HttpRequestDispatcher;
 import com.wjybxx.fastjgame.net.http.HttpRequestEvent;
-import com.wjybxx.fastjgame.net.http.HttpServerInitializer;
-import com.wjybxx.fastjgame.net.http.OkHttpCallback;
 import com.wjybxx.fastjgame.net.local.DefaultLocalPort;
 import com.wjybxx.fastjgame.net.local.LocalPort;
 import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.socket.*;
 import com.wjybxx.fastjgame.net.ws.WsClientChannelInitializer;
-import com.wjybxx.fastjgame.net.ws.WsServerChannelInitializer;
 import com.wjybxx.fastjgame.timer.FixedDelayHandle;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-import okhttp3.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
-import java.util.Map;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.locks.LockSupport;
 
@@ -124,6 +115,16 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     @Override
     public RpcFuture newCompletedRpcFuture(@Nonnull EventLoop userEventLoop, @Nonnull RpcResponse rpcResponse) {
         return new CompletedRpcFuture(userEventLoop, rpcResponse);
+    }
+
+    @Override
+    public HttpClientManager getHttpClientManager() {
+        return httpClientManager;
+    }
+
+    @Override
+    public NettyThreadManager getNettyThreadManager() {
+        return nettyThreadManager;
     }
 
     @Override
@@ -233,16 +234,7 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     @Override
     public void fireEvent_connector(SocketEvent event) {
         execute(() -> {
-            connectorManager.onRcvMessage(event);
-        });
-    }
-
-    @Override
-    public ListenableFuture<SocketPort> bindTcpRange(String host, PortRange portRange, SocketSessionConfig config, NetContext netContext) {
-        SocketPortContext portExtraInfo = new SocketPortContext(netContext, config);
-        TCPServerChannelInitializer initializer = new TCPServerChannelInitializer(portExtraInfo);
-        return submit(() -> {
-            return nettyThreadManager.bindRange(host, portRange, config.sndBuffer(), config.rcvBuffer(), initializer);
+            connectorManager.onSessionEvent(event);
         });
     }
 
@@ -255,15 +247,6 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     }
 
     @Override
-    public ListenableFuture<SocketPort> bindWSRange(String host, PortRange portRange, String websocketPath, SocketSessionConfig config, NetContext netContext) {
-        SocketPortContext portExtraInfo = new SocketPortContext(netContext, config);
-        WsServerChannelInitializer initializer = new WsServerChannelInitializer(websocketPath, portExtraInfo);
-        return submit(() -> {
-            return nettyThreadManager.bindRange(host, portRange, config.sndBuffer(), config.rcvBuffer(), initializer);
-        });
-    }
-
-    @Override
     public ListenableFuture<Session> connectWS(String sessionId, long remoteGuid, HostAndPort remoteAddress, String websocketUrl, SocketSessionConfig config, NetContext netContext) {
         final WsClientChannelInitializer initializer = new WsClientChannelInitializer(sessionId, remoteGuid, websocketUrl, config, this);
         return submit(() -> {
@@ -272,13 +255,6 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     }
 
     // --------------------------------------------------------- localSession ----------------------------------------------------
-
-    @Override
-    public ListenableFuture<LocalPort> bindLocal(NetContext netContext, LocalSessionConfig config) {
-        return submit(() -> {
-            return acceptorManager.bindLocal(netContext, config);
-        });
-    }
 
     @Override
     public ListenableFuture<Session> connectLocal(String sessionId, long remoteGuid, LocalPort localPort, LocalSessionConfig config, NetContext netContext) {
@@ -296,35 +272,6 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         execute(() -> {
             httpSessionManager.onRcvHttpRequest(event);
         });
-    }
-
-    @Override
-    public ListenableFuture<SocketPort> bindHttpRange(String host, PortRange portRange, @Nonnull HttpRequestDispatcher httpRequestDispatcher, @Nonnull NetContext netContext) {
-        final HttpPortContext httpPortContext = new HttpPortContext(netContext, httpRequestDispatcher);
-        final HttpServerInitializer initializer = new HttpServerInitializer(httpPortContext);
-        return submit(() -> {
-            return nettyThreadManager.bindRange(host, portRange, 8192, 8192, initializer);
-        });
-    }
-
-    @Override
-    public Response syncGet(String url, @Nonnull Map<String, String> params) throws IOException {
-        return httpClientManager.syncGet(url, params);
-    }
-
-    @Override
-    public void asyncGet(String url, @Nonnull Map<String, String> params, @Nonnull OkHttpCallback okHttpCallback, @Nonnull EventLoop localEventLoop) {
-        httpClientManager.asyncGet(url, params, localEventLoop, okHttpCallback);
-    }
-
-    @Override
-    public Response syncPost(String url, @Nonnull Map<String, String> params) throws IOException {
-        return httpClientManager.syncPost(url, params);
-    }
-
-    @Override
-    public void asyncPost(String url, @Nonnull Map<String, String> params, @Nonnull OkHttpCallback okHttpCallback, EventLoop localEventLoop) {
-        httpClientManager.asyncPost(url, params, localEventLoop, okHttpCallback);
     }
 
 }

@@ -61,34 +61,22 @@ public class NettyThreadManager {
 
     }
 
-    /**
-     * happens - before other methods
-     */
-    public void start(int bossGroupThreadNum, int workerGroupThreadNum) {
+    public void init(int bossGroupThreadNum, int workerGroupThreadNum) {
+        if (bossGroup != null) {
+            // 非法调用
+            throw new IllegalStateException();
+        }
         bossGroup = new NioEventLoopGroup(bossGroupThreadNum, new DefaultThreadFactory("ACCEPTOR_THREAD"));
         workerGroup = new NioEventLoopGroup(workerGroupThreadNum, new DefaultThreadFactory("WORKER_THREAD"));
-        logger.info("NettyThreadManager start success");
     }
 
     /**
      * 关闭Netty的线程
      */
     public void shutdown() {
-        if (bossGroup != null) {
-            bossGroup.shutdownGracefully();
-        }
-        if (workerGroup != null) {
-            workerGroup.shutdownGracefully();
-        }
+        bossGroup.shutdownGracefully();
+        workerGroup.shutdownGracefully();
         logger.info("NettyThreadManager shutdown success");
-    }
-
-    public EventLoopGroup getBossGroup() {
-        return bossGroup;
-    }
-
-    public EventLoopGroup getWorkerGroup() {
-        return workerGroup;
     }
 
     /**
@@ -105,7 +93,7 @@ public class NettyThreadManager {
      */
     public DefaultSocketPort bind(String host, int port, int sndBuffer, int rcvBuffer, ChannelInitializer<SocketChannel> initializer) throws BindException {
         ServerBootstrap serverBootstrap = new ServerBootstrap();
-        serverBootstrap.group(getBossGroup(), getWorkerGroup());
+        serverBootstrap.group(bossGroup, workerGroup);
 
         serverBootstrap.channel(NioServerSocketChannel.class);
         serverBootstrap.childHandler(initializer);
@@ -184,7 +172,7 @@ public class NettyThreadManager {
     public ChannelFuture connectAsyn(HostAndPort hostAndPort, int sndBuffer, int rcvBuffer, int connectTimeoutMs,
                                      ChannelInitializer<SocketChannel> initializer) {
         Bootstrap bootstrap = new Bootstrap();
-        bootstrap.group(getWorkerGroup());
+        bootstrap.group(workerGroup);
 
         bootstrap.channel(NioSocketChannel.class);
         bootstrap.handler(initializer);

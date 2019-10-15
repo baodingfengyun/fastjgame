@@ -52,6 +52,7 @@ public abstract class AbstractSession implements Session {
     protected final NetContext netContext;
     protected final String sessionId;
     protected final long remoteGuid;
+    protected final SessionConfig config;
     protected final NetManagerWrapper managerWrapper;
     /**
      * session绑定到的EventLoop
@@ -70,10 +71,11 @@ public abstract class AbstractSession implements Session {
      */
     private Object attachment;
 
-    protected AbstractSession(NetContext netContext, String sessionId, long remoteGuid, NetManagerWrapper managerWrapper) {
+    protected AbstractSession(NetContext netContext, String sessionId, long remoteGuid, SessionConfig config, NetManagerWrapper managerWrapper) {
         this.netContext = netContext;
         this.sessionId = sessionId;
         this.remoteGuid = remoteGuid;
+        this.config = config;
         this.managerWrapper = managerWrapper;
         this.pipeline = new DefaultSessionPipeline(this, managerWrapper);
         this.netEventLoop = managerWrapper.getNetEventLoopManager().getEventLoop();
@@ -95,13 +97,18 @@ public abstract class AbstractSession implements Session {
     }
 
     @Override
-    public final NetEventLoop netEventLoop() {
-        return netEventLoop;
+    public SessionConfig config() {
+        return config;
     }
 
     @Override
     public final EventLoop localEventLoop() {
         return netContext.localEventLoop();
+    }
+
+    @Override
+    public final NetEventLoop netEventLoop() {
+        return netEventLoop;
     }
 
     @Override

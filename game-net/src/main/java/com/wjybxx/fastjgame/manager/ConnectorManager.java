@@ -69,7 +69,7 @@ public class ConnectorManager {
             throw new IOException("session " + sessionId + " already registered");
         }
 
-        final SocketSessionImp session = new SocketSessionImp(netContext, sessionId, remoteGuid, netManagerWrapper, config);
+        final SocketSessionImp session = new SocketSessionImp(netContext, sessionId, remoteGuid, config, netManagerWrapper);
         // 注册session
         sessionRegistry.registerSession(session);
 
@@ -124,10 +124,12 @@ public class ConnectorManager {
      *
      * @param messageEvent 消息事件参数
      */
-    public void onRcvMessage(SocketEvent messageEvent) {
+    public void onSessionEvent(SocketEvent messageEvent) {
         final Session session = sessionRegistry.getSession(messageEvent.sessionId());
         if (session != null) {
             session.fireRead(messageEvent);
+        } else {
+            NetUtils.closeQuietly(messageEvent.channel());
         }
     }
 
@@ -140,7 +142,7 @@ public class ConnectorManager {
         final LocalSessionImp remoteSession = netManagerWrapper.getAcceptorManager().onRcvConnectRequest(localPort, sessionId, netContext.localGuid());
 
         // 创建session并保存
-        LocalSessionImp session = new LocalSessionImp(netContext, sessionId, remoteGuid, netManagerWrapper, config);
+        LocalSessionImp session = new LocalSessionImp(netContext, sessionId, remoteGuid, config, netManagerWrapper);
         sessionRegistry.registerSession(session);
 
         // 初始化管道，入站 从上到下，出站 从下往上

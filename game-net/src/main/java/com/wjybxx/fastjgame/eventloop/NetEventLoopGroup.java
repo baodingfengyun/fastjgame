@@ -16,11 +16,14 @@
 
 package com.wjybxx.fastjgame.eventloop;
 
+import com.wjybxx.fastjgame.annotation.Internal;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.EventLoopGroup;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.manager.AcceptorManager;
+import com.wjybxx.fastjgame.manager.HttpClientManager;
 import com.wjybxx.fastjgame.manager.HttpSessionManager;
+import com.wjybxx.fastjgame.manager.NettyThreadManager;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.net.http.HttpRequestEvent;
 import com.wjybxx.fastjgame.net.local.LocalPort;
@@ -76,6 +79,18 @@ public interface NetEventLoopGroup extends EventLoopGroup {
     NetContext createContext(long localGuid, @Nonnull EventLoop localEventLoop);
 
     // --------------------------------------------------- 非用户接口 ----------------------------------------
+
+    /**
+     * @return http客户端工具类
+     */
+    @Internal
+    HttpClientManager getHttpClientManager();
+
+    /**
+     * @return netty线程管理器
+     */
+    @Internal
+    NettyThreadManager getNettyThreadManager();
 
     /**
      * 接收到一个建立连接请求。

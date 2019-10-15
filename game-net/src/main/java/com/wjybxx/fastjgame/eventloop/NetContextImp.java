@@ -19,19 +19,26 @@ package com.wjybxx.fastjgame.eventloop;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.misc.HostAndPort;
+import com.wjybxx.fastjgame.misc.HttpPortContext;
 import com.wjybxx.fastjgame.misc.PortRange;
 import com.wjybxx.fastjgame.net.http.HttpRequestDispatcher;
+import com.wjybxx.fastjgame.net.http.HttpServerInitializer;
 import com.wjybxx.fastjgame.net.http.OkHttpCallback;
+import com.wjybxx.fastjgame.net.local.DefaultLocalPort;
 import com.wjybxx.fastjgame.net.local.LocalPort;
 import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.socket.SocketPort;
+import com.wjybxx.fastjgame.net.socket.SocketPortContext;
 import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
+import com.wjybxx.fastjgame.net.socket.TCPServerChannelInitializer;
+import com.wjybxx.fastjgame.net.ws.WsServerChannelInitializer;
 import okhttp3.Response;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
+import java.net.BindException;
 import java.util.Map;
 
 /**
@@ -70,9 +77,13 @@ public class NetContextImp implements NetContext {
         return netEventLoopGroup;
     }
 
+    // ----------------------------------------------------- socket 支持 --------------------------------------------------
+
     @Override
-    public ListenableFuture<SocketPort> bindTcpRange(String host, PortRange portRange, @Nonnull SocketSessionConfig config) {
-        return netEventLoopGroup.next().bindTcpRange(host, portRange, config, this);
+    public SocketPort bindTcpRange(String host, PortRange portRange, @Nonnull SocketSessionConfig config) throws BindException {
+        SocketPortContext portExtraInfo = new SocketPortContext(this, config);
+        TCPServerChannelInitializer initializer = new TCPServerChannelInitializer(portExtraInfo);
+        return netEventLoopGroup.getNettyThreadManager().bindRange(host, portRange, config.sndBuffer(), config.rcvBuffer(), initializer);
     }
 
     @Override
@@ -81,8 +92,10 @@ public class NetContextImp implements NetContext {
     }
 
     @Override
-    public ListenableFuture<SocketPort> bindWSRange(String host, PortRange portRange, String websocketPath, @Nonnull SocketSessionConfig config) {
-        return netEventLoopGroup.next().bindWSRange(host, portRange, websocketPath, config, this);
+    public SocketPort bindWSRange(String host, PortRange portRange, String websocketPath, @Nonnull SocketSessionConfig config) throws BindException {
+        SocketPortContext portExtraInfo = new SocketPortContext(this, config);
+        WsServerChannelInitializer initializer = new WsServerChannelInitializer(websocketPath, portExtraInfo);
+        return netEventLoopGroup.getNettyThreadManager().bindRange(host, portRange, config.sndBuffer(), config.rcvBuffer(), initializer);
     }
 
     @Override
@@ -93,8 +106,8 @@ public class NetContextImp implements NetContext {
     // ----------------------------------------------- 本地调用支持 --------------------------------------------
 
     @Override
-    public ListenableFuture<LocalPort> bindLocal(@Nonnull LocalSessionConfig config) {
-        return netEventLoopGroup.next().bindLocal(this, config);
+    public LocalPort bindLocal(@Nonnull LocalSessionConfig config) {
+        return new DefaultLocalPort(this, config);
     }
 
     @Override
@@ -105,27 +118,29 @@ public class NetContextImp implements NetContext {
     // ------------------------------------------------- http 实现 --------------------------------------------
 
     @Override
-    public ListenableFuture<SocketPort> bindHttpRange(String host, PortRange portRange, @Nonnull HttpRequestDispatcher httpRequestDispatcher) {
-        return netEventLoopGroup().next().bindHttpRange(host, portRange, httpRequestDispatcher, this);
+    public SocketPort bindHttpRange(String host, PortRange portRange, @Nonnull HttpRequestDispatcher httpRequestDispatcher) throws BindException {
+        final HttpPortContext httpPortContext = new HttpPortContext(this, httpRequestDispatcher);
+        final HttpServerInitializer initializer = new HttpServerInitializer(httpPortContext);
+        return netEventLoopGroup.getNettyThreadManager().bindRange(host, portRange, 8192, 8192, initializer);
     }
 
     @Override
     public Response syncGet(String url, @Nonnull Map<String, String> params) throws IOException {
-        return netEventLoopGroup.next().syncGet(url, params);
+        return netEventLoopGroup.getHttpClientManager().syncGet(url, params);
     }
 
     @Override
     public void asyncGet(String url, @Nonnull Map<String, String> params, @Nonnull OkHttpCallback okHttpCallback) {
-        netEventLoopGroup.next().asyncGet(url, params, okHttpCallback, localEventLoop);
+        netEventLoopGroup.getHttpClientManager().asyncGet(url, params, localEventLoop, okHttpCallback);
     }
 
     @Override
     public Response syncPost(String url, @Nonnull Map<String, String> params) throws IOException {
-        return netEventLoopGroup.next().syncPost(url, params);
+        return netEventLoopGroup.getHttpClientManager().syncPost(url, params);
     }
 
     @Override
     public void asyncPost(String url, @Nonnull Map<String, String> params, @Nonnull OkHttpCallback okHttpCallback) {
-        netEventLoopGroup.next().asyncPost(url, params, okHttpCallback, localEventLoop);
+        netEventLoopGroup.getHttpClientManager().asyncPost(url, params, localEventLoop, okHttpCallback);
     }
 }

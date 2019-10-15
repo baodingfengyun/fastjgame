@@ -37,7 +37,6 @@ import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.concurrent.ThreadFactory;
 
 /**
@@ -48,26 +47,34 @@ import java.util.concurrent.ThreadFactory;
  */
 public class NetEventLoopGroupImp extends MultiThreadEventLoopGroup implements NetEventLoopGroup {
 
+    private final NettyThreadManager nettyThreadManager;
+    private final HttpClientManager httpClientManager;
+
     NetEventLoopGroupImp(int nThreads, @Nonnull ThreadFactory threadFactory,
                          @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
-                         @Nullable GroupConfig context) {
-        super(nThreads, threadFactory, rejectedExecutionHandler, context);
-        init();
-    }
+                         @Nonnull GroupConfig groupConfig) {
+        super(nThreads, threadFactory, rejectedExecutionHandler, groupConfig);
 
-    private void init() {
-        final GroupConfig groupConfig = getContext();
         final NettyThreadManager nettyThreadManager = groupConfig.injector.getInstance(NettyThreadManager.class);
-        // 在子类线程启动之前赋值，提供安全保障
-        nettyThreadManager.start(groupConfig.bossGroupThreadNum, groupConfig.workerGroupThreadNum);
+        final HttpClientManager httpClientManager = groupConfig.injector.getInstance(HttpClientManager.class);
+        nettyThreadManager.init(groupConfig.bossGroupThreadNum, groupConfig.workerGroupThreadNum);
+
+        this.nettyThreadManager = nettyThreadManager;
+        this.httpClientManager = httpClientManager;
     }
 
+    @Override
+    public HttpClientManager getHttpClientManager() {
+        return httpClientManager;
+    }
+
+    @Override
+    public NettyThreadManager getNettyThreadManager() {
+        return nettyThreadManager;
+    }
 
     @Override
     protected void clean() {
-        final GroupConfig groupConfig = getContext();
-        final NettyThreadManager nettyThreadManager = groupConfig.injector.getInstance(NettyThreadManager.class);
-        final HttpClientManager httpClientManager = groupConfig.injector.getInstance(HttpClientManager.class);
         // 关闭持有的线程资源
         ConcurrentUtils.safeExecute((Runnable) nettyThreadManager::shutdown);
         ConcurrentUtils.safeExecute((Runnable) httpClientManager::shutdown);
