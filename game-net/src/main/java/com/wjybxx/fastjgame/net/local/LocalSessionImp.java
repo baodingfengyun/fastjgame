@@ -19,7 +19,6 @@ package com.wjybxx.fastjgame.net.local;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
 import com.wjybxx.fastjgame.net.session.AbstractSession;
-import com.wjybxx.fastjgame.net.session.Session;
 
 /**
  * JVM内部会话
@@ -35,23 +34,11 @@ public class LocalSessionImp extends AbstractSession implements LocalSession {
      * 配置信息
      */
     private final LocalSessionConfig config;
-    /**
-     * 会话另一方的信息
-     */
-    private Session remoteSession;
 
     public LocalSessionImp(NetContext netContext, String sessionId, long remoteGuid,
                            NetManagerWrapper managerWrapper, LocalSessionConfig config) {
         super(netContext, sessionId, remoteGuid, managerWrapper);
         this.config = config;
-    }
-
-    public void setRemoteSession(Session remoteSession) {
-        this.remoteSession = remoteSession;
-    }
-
-    public Session getRemoteSession() {
-        return remoteSession;
     }
 
     @Override

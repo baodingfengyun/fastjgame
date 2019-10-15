@@ -18,11 +18,13 @@ package com.wjybxx.fastjgame.net.socket.inner;
 
 import com.wjybxx.fastjgame.net.common.ConnectAwareTask;
 import com.wjybxx.fastjgame.net.common.DisconnectAwareTask;
+import com.wjybxx.fastjgame.net.common.NetMessage;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 import com.wjybxx.fastjgame.net.socket.SocketDisconnectEvent;
 import com.wjybxx.fastjgame.net.socket.SocketEvent;
-import com.wjybxx.fastjgame.net.socket.SocketSessionImp;
+import com.wjybxx.fastjgame.net.socket.SocketMessageEvent;
+import com.wjybxx.fastjgame.utils.NetUtils;
 import io.netty.channel.Channel;
 
 /**
@@ -38,17 +40,16 @@ import io.netty.channel.Channel;
 public class InnerSocketTransferHandler extends SessionDuplexHandlerAdapter {
 
     /**
-     * 内网不执行重连机制 - channel不会改变，因此可以缓存
+     * 真正通信的channel。
      */
-    private Channel channel;
+    private final Channel channel;
     /**
      * flush之前的消息数
      */
     private int msgCount;
 
-    @Override
-    public void handlerAdded(SessionHandlerContext ctx) throws Exception {
-        this.channel = ((SocketSessionImp) ctx.session()).channel();
+    public InnerSocketTransferHandler(Channel channel) {
+        this.channel = channel;
     }
 
     @Override
@@ -72,26 +73,27 @@ public class InnerSocketTransferHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void read(SessionHandlerContext ctx, Object msg) {
-        if (msg instanceof SocketEvent) {
-            SocketEvent socketEvent = (SocketEvent) msg;
-            if (socketEvent.channel() == channel) {
-                // 内网不断线重连 - 不使用消息确认机制
-                if (socketEvent instanceof SocketDisconnectEvent) {
-                    ctx.session().close();
-                } else {
-                    ctx.fireRead(msg);
-                }
+        SocketEvent socketEvent = (SocketEvent) msg;
+        if (socketEvent.channel() == channel) {
+            // 接收到一个消息
+            if (socketEvent instanceof SocketMessageEvent) {
+                ctx.fireRead(((SocketMessageEvent) msg).getWrappedMessage());
+                return;
             }
-            // else 过滤丢弃
+            // socket断开事件 - 内网不断线重连，不使用消息确认机制，socket断开就关闭session
+            if (socketEvent instanceof SocketDisconnectEvent) {
+                ctx.session().close();
+            }
         } else {
-            ctx.fireRead(msg);
+            // 错误的channel
+            NetUtils.closeQuietly(socketEvent.channel());
         }
     }
 
     @Override
     public void write(SessionHandlerContext ctx, Object msg) throws Exception {
         msgCount++;
-        channel.write(msg, channel.voidPromise());
+        channel.write(new InnerSocketMessage((NetMessage) msg), channel.voidPromise());
     }
 
     @Override

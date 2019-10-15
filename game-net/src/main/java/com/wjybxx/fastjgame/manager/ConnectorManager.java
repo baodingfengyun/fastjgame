@@ -25,10 +25,10 @@ import com.wjybxx.fastjgame.net.common.OneWaySupportHandler;
 import com.wjybxx.fastjgame.net.common.RpcSupportHandler;
 import com.wjybxx.fastjgame.net.local.*;
 import com.wjybxx.fastjgame.net.session.Session;
+import com.wjybxx.fastjgame.net.session.SessionHandler;
 import com.wjybxx.fastjgame.net.socket.*;
-import com.wjybxx.fastjgame.net.socket.inner.InnerPingSupportHandler;
-import com.wjybxx.fastjgame.net.socket.inner.InnerSocketMessageSupportHandler;
-import com.wjybxx.fastjgame.net.socket.inner.InnerSocketTransferHandler;
+import com.wjybxx.fastjgame.net.socket.inner.InnerConnectorHandler;
+import com.wjybxx.fastjgame.utils.NetUtils;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
@@ -68,27 +68,20 @@ public class ConnectorManager {
         if (existSession != null) {
             throw new IOException("session " + sessionId + " already registered");
         }
-        // TODO 异步化、连接超时
-        ChannelFuture channelFuture = nettyThreadManager.connectAsyn(remoteAddress, config.sndBuffer(), config.rcvBuffer(), initializer)
-                .syncUninterruptibly();
 
-        final SocketSessionImp socketSessionImp = new SocketSessionImp(netContext, sessionId, remoteGuid, netManagerWrapper,
-                channelFuture.channel(), config);
-        sessionRegistry.registerSession(socketSessionImp);
+        final SocketSessionImp session = new SocketSessionImp(netContext, sessionId, remoteGuid, netManagerWrapper, config);
+        // 注册session
+        sessionRegistry.registerSession(session);
 
-        socketSessionImp.pipeline()
-                .addLast(new InnerSocketTransferHandler())
-                .addLast(new InnerSocketMessageSupportHandler())
-                .addLast(new InnerPingSupportHandler())
-                .addLast(new OneWaySupportHandler())
-                .addLast(new RpcSupportHandler());
+        ChannelFuture channelFuture = nettyThreadManager.connectAsyn(remoteAddress,
+                config.sndBuffer(),
+                config.rcvBuffer(),
+                config.connectTimeoutMs(),
+                initializer);
 
-        socketSessionImp.tryActive();
-        socketSessionImp.pipeline().fireSessionActive();
-
-        socketSessionImp.fireWriteAndFlush(new SocketConnectRequest(1));
-
-        return socketSessionImp;
+        // 异步建立连接
+        session.pipeline().addLast(new InnerConnectorHandler(channelFuture));
+        return session;
     }
 
     /**
@@ -97,17 +90,33 @@ public class ConnectorManager {
      * @param connectResponseEvent 连接响应事件参数
      */
     public void onRcvConnectResponse(SocketConnectResponseEvent connectResponseEvent) {
-        final Session session = sessionRegistry.getSession(connectResponseEvent.sessionId());
+        final SocketSession session = (SocketSession) sessionRegistry.getSession(connectResponseEvent.sessionId());
         if (session == null) {
             return;
         }
-        // 建立session失败 - 关闭session
-        if (!connectResponseEvent.isSuccess()) {
-            session.close();
-            return;
+        if (session.config().isAutoReconnect()) {
+            onRcvOuterConnectResponse(session, connectResponseEvent);
+        } else {
+            onRcvInnerConnectResponse(session, connectResponseEvent);
         }
-        // TODO 详细验证
-        session.pipeline().fireSessionActive();
+    }
+
+    private void onRcvOuterConnectResponse(SocketSession session, SocketConnectResponseEvent connectResponseEvent) {
+
+    }
+
+    /**
+     * 接收到一个内网建立连接应答
+     */
+    private void onRcvInnerConnectResponse(SocketSession session, SocketConnectResponseEvent connectResponseEvent) {
+        final SessionHandler first = session.pipeline().first();
+        if (first instanceof InnerConnectorHandler) {
+            // 此时session应该还未建立成功，第一个handler应该是用于建立连接的handler
+            session.fireRead(connectResponseEvent);
+        } else {
+            // 错误的消息
+            NetUtils.closeQuietly(connectResponseEvent.channel());
+        }
     }
 
     /**
@@ -117,8 +126,7 @@ public class ConnectorManager {
      */
     public void onRcvMessage(SocketEvent messageEvent) {
         final Session session = sessionRegistry.getSession(messageEvent.sessionId());
-        if (session != null && session.isActive()) {
-            // session 存活的情况下才读取消息
+        if (session != null) {
             session.fireRead(messageEvent);
         }
     }
@@ -142,16 +150,25 @@ public class ConnectorManager {
                 .addLast(new OneWaySupportHandler())
                 .addLast(new RpcSupportHandler());
 
-        // 保存双方引用
-        session.setRemoteSession(remoteSession);
-        remoteSession.setRemoteSession(session);
+        // 保存双方引用 - 实现传输
+        setRemoteSession(session, remoteSession);
+        setRemoteSession(remoteSession, session);
 
         // 激活双方
         if (session.tryActive() && remoteSession.tryActive()) {
             session.pipeline().fireSessionActive();
             remoteSession.pipeline().fireSessionActive();
+        } else {
+            session.closeForcibly();
+            remoteSession.closeForcibly();
         }
         return session;
+    }
+
+    private void setRemoteSession(Session session, Session remoteSession) {
+        final LocalTransferHandler first = (LocalTransferHandler) session.pipeline().first();
+        assert null != first;
+        first.setRemoteSession(remoteSession);
     }
 
     public void onUserEventLoopTerminal(EventLoop userEventLoop) {

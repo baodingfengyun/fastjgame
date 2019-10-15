@@ -41,12 +41,27 @@ public final class SocketSessionConfig extends SessionConfig {
      * 最大帧长度
      */
     private final int maxFrameLength;
+    /**
+     * 建立连接超时时间 - 毫秒
+     */
+    private final int connectTimeoutMs;
+    /**
+     * socket读超时时间 - 秒
+     */
+    private final int readTimeout;
+    /**
+     * 是否开启断线重连/消息确认机制
+     */
+    private final boolean autoReconnect;
 
     private SocketSessionConfig(SocketSessionConfigBuilder builder) {
         super(builder);
         this.sndBuffer = builder.sndBuffer;
         this.rcvBuffer = builder.rcvBuffer;
         this.maxFrameLength = builder.maxFrameLength;
+        this.connectTimeoutMs = builder.connectTimeoutMs;
+        this.readTimeout = builder.readTimeout;
+        this.autoReconnect = builder.autoReconnect;
     }
 
     /**
@@ -70,6 +85,27 @@ public final class SocketSessionConfig extends SessionConfig {
         return maxFrameLength;
     }
 
+    /**
+     * @return 建立连接超时时间- 毫秒
+     */
+    public int connectTimeoutMs() {
+        return connectTimeoutMs;
+    }
+
+    /**
+     * @return 读超时时间 - 秒
+     */
+    public int readTimeout() {
+        return readTimeout;
+    }
+
+    /**
+     * @return 是否开启了断线重连/消息确认机制
+     */
+    public boolean isAutoReconnect() {
+        return autoReconnect;
+    }
+
     public static SocketSessionConfigBuilder newBuilder() {
         return new SocketSessionConfigBuilder();
     }
@@ -79,6 +115,9 @@ public final class SocketSessionConfig extends SessionConfig {
         private int sndBuffer = 64 * 1024;
         private int rcvBuffer = 64 * 1024;
         private int maxFrameLength = 8 * 1024;
+        private int connectTimeoutMs = 30 * 1000;
+        private int readTimeout = 45;
+        private boolean autoReconnect = false;
 
         @Override
         protected void checkParams() {
@@ -100,6 +139,21 @@ public final class SocketSessionConfig extends SessionConfig {
         public SocketSessionConfigBuilder setMaxFrameLength(int maxFrameLength) {
             CheckUtils.checkPositive(maxFrameLength, "maxFrameLength");
             this.maxFrameLength = maxFrameLength;
+            return this;
+        }
+
+        public SocketSessionConfigBuilder setConnectTimeoutMs(int connectTimeoutMs) {
+            this.connectTimeoutMs = connectTimeoutMs;
+            return this;
+        }
+
+        public SocketSessionConfigBuilder setReadTimeout(int readTimeout) {
+            this.readTimeout = readTimeout;
+            return this;
+        }
+
+        public SocketSessionConfigBuilder setAutoReconnect(boolean autoReconnect) {
+            this.autoReconnect = autoReconnect;
             return this;
         }
 

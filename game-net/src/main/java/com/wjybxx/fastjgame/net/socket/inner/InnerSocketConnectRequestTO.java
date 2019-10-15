@@ -32,7 +32,7 @@ public class InnerSocketConnectRequestTO implements SocketConnectRequestTO {
 
     private final SocketConnectRequest connectRequest;
 
-    InnerSocketConnectRequestTO(SocketConnectRequest connectRequest) {
+    public InnerSocketConnectRequestTO(SocketConnectRequest connectRequest) {
         this.connectRequest = connectRequest;
     }
 

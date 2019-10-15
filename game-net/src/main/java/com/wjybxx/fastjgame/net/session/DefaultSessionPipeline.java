@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.NoSuchElementException;
 
 /**
  * 默认的{@link SessionPipeline}实现。
@@ -78,7 +79,7 @@ class DefaultSessionPipeline implements SessionPipeline {
     }
 
     @Override
-    public SessionPipeline addLast(SessionHandler handler) {
+    public SessionPipeline addLast(@Nonnull SessionHandler handler) {
         final AbstractSessionHandlerContext newCtx = new DefaultSessionHandlerContext(this, netManagerWrapper, handler);
         addLast0(newCtx);
         callHandlerAdded0(newCtx);
@@ -94,7 +95,7 @@ class DefaultSessionPipeline implements SessionPipeline {
     }
 
     @Override
-    public SessionPipeline addFirst(SessionHandler handler) {
+    public SessionPipeline addFirst(@Nonnull SessionHandler handler) {
         final AbstractSessionHandlerContext newCtx = new DefaultSessionHandlerContext(this, netManagerWrapper, handler);
         addFirst0(newCtx);
         callHandlerAdded0(newCtx);
@@ -113,9 +114,94 @@ class DefaultSessionPipeline implements SessionPipeline {
         newCtx.handlerAdded();
     }
 
+    @Override
+    public final SessionHandler removeFirst() {
+        if (head.next == tail) {
+            throw new NoSuchElementException();
+        }
+        return remove(head.next).handler();
+    }
+
+    @Override
+    public final SessionHandler removeLast() {
+        if (tail.prev == head) {
+            throw new NoSuchElementException();
+        }
+        return remove(tail.prev).handler();
+    }
+
+    @Override
+    public SessionPipeline remove(@Nonnull SessionHandler handler) {
+        remove(getContextOrDie(handler));
+        return this;
+    }
+
+    private AbstractSessionHandlerContext remove(final AbstractSessionHandlerContext ctx) {
+        assert ctx != head && ctx != tail;
+        remove0(ctx);
+        callHandlerRemoved0(ctx);
+        return ctx;
+    }
+
+    private void remove0(AbstractSessionHandlerContext ctx) {
+        AbstractSessionHandlerContext prev = ctx.prev;
+        AbstractSessionHandlerContext next = ctx.next;
+        prev.next = next;
+        next.prev = prev;
+    }
+
     private void callHandlerRemoved0(AbstractSessionHandlerContext newCtx) {
         newCtx.handlerRemoved();
     }
+
+    private AbstractSessionHandlerContext getContextOrDie(@Nonnull SessionHandler sessionHandler) {
+        AbstractSessionHandlerContext ctx = (AbstractSessionHandlerContext) context(sessionHandler);
+        if (ctx == null) {
+            throw new NoSuchElementException("handler");
+        } else {
+            return ctx;
+        }
+    }
+
+    private SessionHandlerContext context(@Nonnull SessionHandler handler) {
+        AbstractSessionHandlerContext ctx = head.next;
+        for (; ; ) {
+            if (ctx == null) {
+                return null;
+            }
+            if (ctx.handler() == handler) {
+                return ctx;
+            }
+            ctx = ctx.next;
+        }
+    }
+
+    @Nullable
+    @Override
+    public SessionHandler first() {
+        final SessionHandlerContext firstContext = firstContext();
+        return null == firstContext ? null : firstContext.handler();
+    }
+
+    @Nullable
+    @Override
+    public SessionHandler last() {
+        final SessionHandlerContext lastContext = lastContext();
+        return null == lastContext ? null : lastContext.handler();
+    }
+
+    @Override
+    public SessionHandlerContext firstContext() {
+        final AbstractSessionHandlerContext next = head.next;
+        return next == tail ? null : next;
+    }
+
+    @Override
+    public SessionHandlerContext lastContext() {
+        final AbstractSessionHandlerContext prev = tail.prev;
+        return prev == head ? null : prev;
+    }
+
     // ------------------------------------------------- inbound -----------------------------------------------------
 
     @Override
@@ -146,7 +232,6 @@ class DefaultSessionPipeline implements SessionPipeline {
             context = context.next;
         } while (context != null);
     }
-
 
     // ------------------------------------------------- outbound -----------------------------------------------------
 

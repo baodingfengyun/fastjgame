@@ -172,15 +172,17 @@ public class NettyThreadManager {
     /**
      * 异步建立连接localHost
      *
-     * @param hostAndPort 服务器地址
-     * @param sndBuffer   socket发送缓冲区
-     * @param rcvBuffer   socket接收缓冲区
-     * @param initializer channel初始化类，根据使用的协议(eg:tcp,ws) 和 序列化方式(eg:json,protoBuf)确定
+     * @param hostAndPort      服务器地址
+     * @param sndBuffer        socket发送缓冲区
+     * @param rcvBuffer        socket接收缓冲区
+     * @param connectTimeoutMs 建立连接超时时间
+     * @param initializer      channel初始化类，根据使用的协议(eg:tcp,ws) 和 序列化方式(eg:json,protoBuf)确定
      * @return channelFuture 注意使用{@link ChannelFuture#sync()} 会抛出异常。
      * 使用{@link ChannelFuture#await()} 和{@link ChannelFuture#isSuccess()} 安全处理。
      * 此外，使用channel 需要调用 {@link Channel#isActive()}检查是否成功和远程建立连接
      */
-    public ChannelFuture connectAsyn(HostAndPort hostAndPort, int sndBuffer, int rcvBuffer, ChannelInitializer<SocketChannel> initializer) {
+    public ChannelFuture connectAsyn(HostAndPort hostAndPort, int sndBuffer, int rcvBuffer, int connectTimeoutMs,
+                                     ChannelInitializer<SocketChannel> initializer) {
         Bootstrap bootstrap = new Bootstrap();
         bootstrap.group(getWorkerGroup());
 
@@ -194,20 +196,23 @@ public class NettyThreadManager {
         bootstrap.option(ChannelOption.SO_LINGER, 0);
         bootstrap.option(ChannelOption.SO_REUSEADDR, true);
         bootstrap.option(ChannelOption.WRITE_BUFFER_WATER_MARK, WRITE_BUFFER_WATER_MARK);
+        bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeoutMs);
         return bootstrap.connect(hostAndPort.getHost(), hostAndPort.getPort());
     }
 
     /**
      * 同步建立连接
      *
-     * @param hostAndPort 服务器地址
-     * @param sndBuffer   socket发送缓冲区
-     * @param rcvBuffer   socket接收缓冲区
-     * @param initializer channel初始化类，根据使用的协议(eg:tcp,ws) 和 序列化方式(eg:json,protoBuf)确定
+     * @param hostAndPort      服务器地址
+     * @param sndBuffer        socket发送缓冲区
+     * @param rcvBuffer        socket接收缓冲区
+     * @param connectTimeoutMs 建立连接超时时间
+     * @param initializer      channel初始化类，根据使用的协议(eg:tcp,ws) 和 序列化方式(eg:json,protoBuf)确定
      * @return 注意！使用channel 需要调用 {@link Channel#isActive()}检查是否成功和远程建立连接
      */
-    public Channel connectSyn(HostAndPort hostAndPort, int sndBuffer, int rcvBuffer, ChannelInitializer<SocketChannel> initializer) {
-        ChannelFuture channelFuture = connectAsyn(hostAndPort, sndBuffer, rcvBuffer, initializer);
+    public Channel connectSyn(HostAndPort hostAndPort, int sndBuffer, int rcvBuffer, int connectTimeoutMs,
+                              ChannelInitializer<SocketChannel> initializer) {
+        ChannelFuture channelFuture = connectAsyn(hostAndPort, sndBuffer, rcvBuffer, connectTimeoutMs, initializer);
         channelFuture.awaitUninterruptibly();
         return channelFuture.channel();
     }

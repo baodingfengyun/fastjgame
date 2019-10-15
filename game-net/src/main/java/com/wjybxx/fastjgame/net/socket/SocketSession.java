@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.net.socket;
 
 import com.wjybxx.fastjgame.net.session.Session;
-import io.netty.channel.Channel;
 
 /**
  * 基于socket建立的session
@@ -32,5 +31,4 @@ public interface SocketSession extends Session {
     @Override
     SocketSessionConfig config();
 
-    Channel channel();
 }

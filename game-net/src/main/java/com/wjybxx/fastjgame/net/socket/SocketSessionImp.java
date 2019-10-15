@@ -19,7 +19,6 @@ package com.wjybxx.fastjgame.net.socket;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
 import com.wjybxx.fastjgame.net.session.AbstractSession;
-import io.netty.channel.Channel;
 
 /**
  * 通过socket建立的远程连接。
@@ -31,31 +30,16 @@ import io.netty.channel.Channel;
  */
 public class SocketSessionImp extends AbstractSession implements SocketSession {
 
-    /**
-     * 不声明为final，是因为可能变更
-     */
-    private Channel channel;
     private final SocketSessionConfig config;
 
     public SocketSessionImp(NetContext netContext, String sessionId, long remoteGuid, NetManagerWrapper managerWrapper,
-                            Channel channel, SocketSessionConfig config) {
+                            SocketSessionConfig config) {
         super(netContext, sessionId, remoteGuid, managerWrapper);
         this.config = config;
-        this.channel = channel;
     }
 
     @Override
     public SocketSessionConfig config() {
         return config;
     }
-
-    @Override
-    public Channel channel() {
-        return channel;
-    }
-
-    public void setChannel(Channel channel) {
-        this.channel = channel;
-    }
-
 }

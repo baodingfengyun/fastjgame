@@ -48,10 +48,14 @@ public class SessionRegistry {
         while (itr.hasNext()) {
             AbstractSession session = itr.next();
             if (session.isClosed()) {
-                // 延迟删除
+                // 延迟删除的session
                 itr.remove();
             } else {
                 session.tick();
+                // tick过程中关闭的session
+                if (session.isClosed()) {
+                    itr.remove();
+                }
             }
         }
     }

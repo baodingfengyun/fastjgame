@@ -34,16 +34,18 @@ public class LocalTransferHandler extends SessionDuplexHandlerAdapter {
 
     private Session remoteSession;
 
+    public void setRemoteSession(Session remoteSession) {
+        this.remoteSession = remoteSession;
+    }
+
     @Override
     public void onSessionActive(SessionHandlerContext ctx) throws Exception {
-        remoteSession = ((LocalSessionImp) ctx.session()).getRemoteSession();
         ctx.localEventLoop().execute(new ConnectAwareTask(ctx.session()));
         ctx.fireSessionActive();
     }
 
     @Override
     public void onSessionInactive(SessionHandlerContext ctx) throws Exception {
-        remoteSession = null;
         ctx.localEventLoop().execute(new DisconnectAwareTask(ctx.session()));
         ctx.fireSessionInactive();
     }

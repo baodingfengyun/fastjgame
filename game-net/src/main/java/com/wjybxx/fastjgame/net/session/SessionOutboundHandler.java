@@ -44,7 +44,7 @@ public interface SessionOutboundHandler extends SessionHandler {
     void flush(SessionHandlerContext ctx) throws Exception;
 
     /**
-     * 请求关闭session，并且当关闭成功时通知promise。
+     * 请求关闭session。
      * 注意：此时{@link Session#isActive() false}
      *
      * @param ctx handler所属的上下文

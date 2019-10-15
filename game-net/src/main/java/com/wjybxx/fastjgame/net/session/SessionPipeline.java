@@ -20,7 +20,10 @@ import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import io.netty.channel.ChannelPipeline;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
+import java.util.NoSuchElementException;
 
 /**
  * 其意义可参考{@link ChannelPipeline}。
@@ -57,7 +60,7 @@ public interface SessionPipeline extends SessionInboundInvoker, SessionOutboundI
      * @param handler handler
      * @return this
      */
-    SessionPipeline addLast(SessionHandler handler);
+    SessionPipeline addLast(@Nonnull SessionHandler handler);
 
     /**
      * 添加一个handler到pipeline的头部
@@ -65,7 +68,51 @@ public interface SessionPipeline extends SessionInboundInvoker, SessionOutboundI
      * @param handler handler
      * @return this
      */
-    SessionPipeline addFirst(SessionHandler handler);
+    SessionPipeline addFirst(@Nonnull SessionHandler handler);
+
+    /**
+     * 移除pipeline中的第一个{@link SessionHandler}
+     *
+     * @return 成功移除的handler
+     * @throws NoSuchElementException 如果管道中为空，则抛出该异常
+     */
+    SessionHandler removeFirst();
+
+    /**
+     * 移除pipeline中的最后一个{@link SessionHandler}
+     *
+     * @return 成功移除的handler
+     * @throws NoSuchElementException 如果管道中为空，则抛出该异常
+     */
+    SessionHandler removeLast();
+
+    /**
+     * 从管道中移除指定{@link SessionHandler}
+     *
+     * @return this
+     * @throws NoSuchElementException 如果管道中不存在该handler，则抛出该异常
+     */
+    SessionPipeline remove(@Nonnull SessionHandler handler);
+
+    /**
+     * 返回pipeline中的第一个handler
+     *
+     * @return the first handler.  {@code null} if this pipeline is empty.
+     */
+    @Nullable
+    SessionHandler first();
+
+    /**
+     * 返回pipeline中的最后一个handler
+     *
+     * @return the last handler.  {@code null} if this pipeline is empty.
+     */
+    @Nullable
+    SessionHandler last();
+
+    SessionHandlerContext firstContext();
+
+    SessionHandlerContext lastContext();
 
     /**
      * 刷帧，调用每一个handler的{@link SessionHandler#tick(SessionHandlerContext)}方法

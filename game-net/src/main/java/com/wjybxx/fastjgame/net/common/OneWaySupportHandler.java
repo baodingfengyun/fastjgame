@@ -20,7 +20,6 @@ import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 import com.wjybxx.fastjgame.net.task.OneWayMessageCommitTask;
 import com.wjybxx.fastjgame.net.task.OneWayMessageWriteTask;
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
 /**
  * 单向消息支持
@@ -40,8 +39,7 @@ public class OneWaySupportHandler extends SessionDuplexHandlerAdapter {
         if (msg instanceof OneWayMessage) {
             // 读取到一个单向消息
             OneWayMessage oneWayMessage = (OneWayMessage) msg;
-            ConcurrentUtils.tryCommit(ctx.localEventLoop(),
-                    new OneWayMessageCommitTask(ctx.session(), oneWayMessage.getMessage()));
+            ctx.localEventLoop().execute(new OneWayMessageCommitTask(ctx.session(), oneWayMessage.getMessage()));
         } else {
             ctx.fireRead(msg);
         }

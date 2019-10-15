@@ -21,7 +21,6 @@ import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 import com.wjybxx.fastjgame.net.task.*;
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
@@ -84,16 +83,24 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
      * rpc回调必须执行 - 否则可能造成逻辑错误(信号丢失 - 该执行的没执行)
      *
      * @param rpcTimeoutInfo rpc请求时的一些信息
-     * @param rcvRpcResponse 期望提交的rpc调用结果。
+     * @param rpcResponse    期望提交的rpc调用结果。
      */
-    private void commitRpcResponse(Session session, RpcTimeoutInfo rpcTimeoutInfo, RpcResponse rcvRpcResponse) {
-        RpcResponse rpcResponse = session.isActive() ? rcvRpcResponse : RpcResponse.SESSION_CLOSED;
+    private void commitRpcResponse(Session session, RpcTimeoutInfo rpcTimeoutInfo, RpcResponse rpcResponse) {
         if (rpcTimeoutInfo.rpcPromise != null) {
             // 同步rpc调用
             rpcTimeoutInfo.rpcPromise.trySuccess(rpcResponse);
         } else {
             // 异步rpc调用
-            ConcurrentUtils.tryCommit(session.localEventLoop(), new RpcResponseCommitTask(session, rpcTimeoutInfo.rpcCallback, rpcResponse));
+            session.localEventLoop().execute(new RpcResponseCommitTask(session, rpcTimeoutInfo.rpcCallback, rpcResponse));
+        }
+    }
+
+    @Override
+    public void onSessionInactive(SessionHandlerContext ctx) throws Exception {
+        try {
+            cancelAllRpcRequest(ctx);
+        } finally {
+            ctx.fireSessionInactive();
         }
     }
 
@@ -142,8 +149,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             RpcResponseChannel<?> rpcResponseChannel = new DefaultRpcResponseChannel<>(ctx.session(),
                     requestMessage.getRequestGuid(), requestMessage.isSync());
 
-            ConcurrentUtils.tryCommit(ctx.localEventLoop(), new RpcRequestCommitTask(ctx.session(),
-                    rpcResponseChannel, requestMessage.getRequest()));
+            ctx.localEventLoop().execute(new RpcRequestCommitTask(ctx.session(), rpcResponseChannel, requestMessage.getRequest()));
         } else if (msg instanceof RpcResponseMessage) {
             // 读取到一个Rpc响应消息，提交给应用层
             RpcResponseMessage responseMessage = (RpcResponseMessage) msg;
@@ -154,15 +160,6 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             // else 可能超时了
         } else {
             ctx.fireRead(msg);
-        }
-    }
-
-    @Override
-    public void close(SessionHandlerContext ctx) throws Exception {
-        try {
-            cancelAllRpcRequest(ctx);
-        } finally {
-            ctx.fireClose();
         }
     }
 

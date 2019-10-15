@@ -32,7 +32,7 @@ public class InnerSocketConnectResponseTO implements SocketConnectResponseTO {
 
     private final SocketConnectResponse connectResponse;
 
-    InnerSocketConnectResponseTO(SocketConnectResponse connectResponse) {
+    public InnerSocketConnectResponseTO(SocketConnectResponse connectResponse) {
         this.connectResponse = connectResponse;
     }
 

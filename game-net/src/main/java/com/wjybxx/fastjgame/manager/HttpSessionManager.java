@@ -23,7 +23,10 @@ import com.wjybxx.fastjgame.net.http.HttpRequestCommitTask;
 import com.wjybxx.fastjgame.net.http.HttpRequestEvent;
 import com.wjybxx.fastjgame.net.http.HttpSessionImp;
 import com.wjybxx.fastjgame.timer.FixedDelayHandle;
-import com.wjybxx.fastjgame.utils.*;
+import com.wjybxx.fastjgame.utils.CollectionUtils;
+import com.wjybxx.fastjgame.utils.FunctionUtils;
+import com.wjybxx.fastjgame.utils.NetUtils;
+import com.wjybxx.fastjgame.utils.TimeUtils;
 import io.netty.channel.Channel;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -128,7 +131,7 @@ public class HttpSessionManager {
         final HttpSessionImp httpSession = sessionWrapper.session;
 
         // 处理请求，提交到用户所在的线程，实现线程安全
-        ConcurrentUtils.tryCommit(httpSession.localEventLoop(), new HttpRequestCommitTask(httpSession, requestEventParam.getPath(),
+        httpSession.localEventLoop().execute(new HttpRequestCommitTask(httpSession, requestEventParam.getPath(),
                 requestEventParam.getParams(), portExtraInfo.getDispatcher()));
     }
 
