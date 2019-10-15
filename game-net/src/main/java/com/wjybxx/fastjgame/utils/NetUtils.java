@@ -123,7 +123,7 @@ public class NetUtils {
             try {
                 channel.close();
             } catch (Exception e) {
-                // ignore
+                logger.info("", e);
             }
         }
     }
@@ -137,7 +137,7 @@ public class NetUtils {
                 channelFuture.cancel(true);
                 channelFuture.channel().close();
             } catch (Exception e) {
-                // ignore
+                logger.info("", e);
             }
         }
     }
@@ -150,7 +150,7 @@ public class NetUtils {
             try {
                 ctx.close();
             } catch (Exception e) {
-                // ignore
+                logger.info("", e);
             }
         }
     }
@@ -163,7 +163,7 @@ public class NetUtils {
             try {
                 resource.close();
             } catch (Exception e) {
-                // ignore
+                logger.info("", e);
             }
         }
     }

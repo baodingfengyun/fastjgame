@@ -37,7 +37,7 @@ public class NetTimerManager {
 
     @Inject
     public NetTimerManager(NetTimeManager netTimeManager) {
-        timerSystem = new DefaultTimerSystem(netTimeManager);
+        timerSystem = new DefaultTimerSystem(netTimeManager, 1023);
     }
 
     public void tick() {

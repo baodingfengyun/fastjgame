@@ -30,12 +30,12 @@ import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.socket.*;
 import com.wjybxx.fastjgame.net.ws.WsClientChannelInitializer;
-import com.wjybxx.fastjgame.timer.FixedDelayHandle;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.locks.LockSupport;
 
@@ -86,7 +86,6 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         // 解决循环依赖
         acceptorManager.setManagerWrapper(managerWrapper);
         connectorManager.setNetManagerWrapper(managerWrapper);
-        httpSessionManager.setManagerWrapper(managerWrapper);
 
         // 全局httpClient资源
         httpClientManager = managerWrapper.getHttpClientManager();
@@ -97,6 +96,12 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     @Override
     public NetEventLoop next() {
         return (NetEventLoop) super.next();
+    }
+
+    @Nullable
+    @Override
+    public NetEventLoopGroup parent() {
+        return (NetEventLoopGroup) super.parent();
     }
 
     @Nonnull
@@ -134,8 +139,6 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         // Q: 为什么没使用threadLocal？
         // A: 本来想使用的，但是如果提供一个全局的接口的话，它也会对逻辑层开放，而逻辑层如果调用了一定会导致错误。使用threadLocal暴露了不该暴露的接口。
         netEventLoopManager.publish(this);
-        // 10ms一次tick足够了
-        netTimerManager.newFixedDelay(10, this::tick);
         // 切换到缓存策略
         netTimeManager.changeToCacheStrategy();
     }
@@ -163,15 +166,6 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         }
     }
 
-    /**
-     * 定时刷帧，不必频繁刷帧
-     */
-    private void tick(FixedDelayHandle handle) {
-        // 刷帧
-        acceptorManager.tick();
-        connectorManager.tick();
-    }
-
     @Override
     public void onUserEventLoopTerminal(EventLoop userEventLoop) {
         execute(() -> onUserEventLoopTerminalInternal(userEventLoop));
@@ -197,14 +191,9 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
 
     @Override
     public NetContext createContext(long localGuid, @Nonnull EventLoop localEventLoop) {
-        if (localEventLoop instanceof NetEventLoop) {
-            throw new IllegalArgumentException("Bad EventLoop");
-        }
-        // 监听用户线程关闭事件
-        localEventLoop.terminationFuture().addListener(future -> {
-            onUserEventLoopTerminal(localEventLoop);
-        });
-        return new NetContextImp(localGuid, localEventLoop, this);
+        final NetEventLoopGroup netEventLoopGroup = parent();
+        assert null != netEventLoopGroup;
+        return netEventLoopGroup.createContext(localGuid, localEventLoop);
     }
 
     // ------------------------------------------------------------- socket -------------------------------------------------

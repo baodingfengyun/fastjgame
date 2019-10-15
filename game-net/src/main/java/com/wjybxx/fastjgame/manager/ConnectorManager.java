@@ -19,11 +19,13 @@ package com.wjybxx.fastjgame.manager;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.eventloop.NetContext;
+import com.wjybxx.fastjgame.misc.DefaultSessionRegistry;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.SessionRegistry;
 import com.wjybxx.fastjgame.net.common.OneWaySupportHandler;
 import com.wjybxx.fastjgame.net.common.RpcSupportHandler;
 import com.wjybxx.fastjgame.net.local.*;
+import com.wjybxx.fastjgame.net.session.AbstractSession;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionHandler;
 import com.wjybxx.fastjgame.net.socket.*;
@@ -33,6 +35,8 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.IOException;
 
 /**
@@ -43,11 +47,11 @@ import java.io.IOException;
  * date - 2019/10/4
  * github - https://github.com/hl845740757
  */
-public class ConnectorManager {
+public class ConnectorManager implements SessionRegistry {
 
     private NetManagerWrapper netManagerWrapper;
     private final NettyThreadManager nettyThreadManager;
-    private final SessionRegistry sessionRegistry = new SessionRegistry();
+    private final DefaultSessionRegistry sessionRegistry = new DefaultSessionRegistry();
 
     @Inject
     public ConnectorManager(NettyThreadManager nettyThreadManager) {
@@ -58,9 +62,40 @@ public class ConnectorManager {
         this.netManagerWrapper = netManagerWrapper;
     }
 
-    public void tick() {
-        sessionRegistry.tick();
+    @Override
+    public void registerSession(@Nonnull AbstractSession session) {
+        sessionRegistry.registerSession(session);
     }
+
+    @Override
+    @Nullable
+    public AbstractSession removeSession(@Nonnull String sessionId) {
+        return sessionRegistry.removeSession(sessionId);
+    }
+
+    @Override
+    @Nullable
+    public AbstractSession getSession(@Nonnull String sessionId) {
+        return sessionRegistry.getSession(sessionId);
+    }
+
+    @Override
+    public void onUserEventLoopTerminal(EventLoop userEventLoop) {
+        sessionRegistry.onUserEventLoopTerminal(userEventLoop);
+    }
+
+    @Override
+    public void closeAll() {
+        sessionRegistry.closeAll();
+    }
+
+    /**
+     * 退出前进行必要的清理
+     */
+    public void clean() {
+        sessionRegistry.closeAll();
+    }
+    // --------------------------------------------分割线 -----------------------------------------------------
 
     public Session connect(String sessionId, long remoteGuid, HostAndPort remoteAddress, SocketSessionConfig config,
                            ChannelInitializer<SocketChannel> initializer, NetContext netContext) throws IOException {
@@ -69,9 +104,8 @@ public class ConnectorManager {
             throw new IOException("session " + sessionId + " already registered");
         }
 
-        final SocketSessionImp session = new SocketSessionImp(netContext, sessionId, remoteGuid, config, netManagerWrapper);
-        // 注册session
-        sessionRegistry.registerSession(session);
+        final SocketSessionImp session = new SocketSessionImp(netContext, sessionId, remoteGuid, config,
+                netManagerWrapper, this);
 
         ChannelFuture channelFuture = nettyThreadManager.connectAsyn(remoteAddress,
                 config.sndBuffer(),
@@ -141,9 +175,9 @@ public class ConnectorManager {
         }
         final LocalSessionImp remoteSession = netManagerWrapper.getAcceptorManager().onRcvConnectRequest(localPort, sessionId, netContext.localGuid());
 
-        // 创建session并保存
-        LocalSessionImp session = new LocalSessionImp(netContext, sessionId, remoteGuid, config, netManagerWrapper);
-        sessionRegistry.registerSession(session);
+        // 创建session
+        LocalSessionImp session = new LocalSessionImp(netContext, sessionId, remoteGuid, config,
+                netManagerWrapper, this);
 
         // 初始化管道，入站 从上到下，出站 从下往上
         session.pipeline()
@@ -171,14 +205,6 @@ public class ConnectorManager {
         final LocalTransferHandler first = (LocalTransferHandler) session.pipeline().first();
         assert null != first;
         first.setRemoteSession(remoteSession);
-    }
-
-    public void onUserEventLoopTerminal(EventLoop userEventLoop) {
-        sessionRegistry.onUserEventLoopTerminal(userEventLoop);
-    }
-
-    public void clean() {
-        sessionRegistry.closeAll();
     }
 
 }

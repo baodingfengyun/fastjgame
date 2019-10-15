@@ -110,7 +110,7 @@ abstract class AbstractSessionHandlerContext implements SessionHandlerContext {
     public void tick() {
         try {
             handler().tick(this);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             onExceptionCaught(e, this);
         }
     }

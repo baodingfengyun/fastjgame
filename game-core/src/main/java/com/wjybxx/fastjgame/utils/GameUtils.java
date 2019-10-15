@@ -18,6 +18,8 @@ package com.wjybxx.fastjgame.utils;
 
 import com.wjybxx.fastjgame.misc.PlatformType;
 import com.wjybxx.fastjgame.misc.PortRange;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
@@ -33,6 +35,8 @@ import java.util.Map;
  * github - https://github.com/hl845740757
  */
 public class GameUtils {
+
+    private static final Logger logger = LoggerFactory.getLogger(GameUtils.class);
 
     /**
      * TCP监听端口
@@ -66,7 +70,7 @@ public class GameUtils {
             try {
                 closeable.close();
             } catch (Exception e) {
-                // ignore
+                logger.info("", e);
             }
         }
     }

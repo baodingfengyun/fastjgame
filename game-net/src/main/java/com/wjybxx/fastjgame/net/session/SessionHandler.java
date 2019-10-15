@@ -41,9 +41,7 @@ public interface SessionHandler {
     void handlerRemoved(SessionHandlerContext ctx) throws Exception;
 
     /**
-     * 刷帧。
-     * Q: 为什么使用tick接口，而不是各自添加定时任务？
-     * A: 使用timer可能产生大量的定时任务，对性能很不友好。
+     * 刷帧
      *
      * @param ctx handler所属的context
      */

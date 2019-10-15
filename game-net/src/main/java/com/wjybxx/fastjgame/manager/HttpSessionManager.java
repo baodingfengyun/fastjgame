@@ -44,7 +44,6 @@ import java.util.Map;
 @NotThreadSafe
 public class HttpSessionManager {
 
-    private NetManagerWrapper managerWrapper;
     private final NetEventLoopManager netEventLoopManager;
     private final NetConfigManager netConfigManager;
     private final NetTimeManager netTimeManager;
@@ -61,13 +60,6 @@ public class HttpSessionManager {
         this.netTimeManager = netTimeManager;
 
         netTimerManager.newFixedDelay(this.netConfigManager.httpSessionTimeout() * TimeUtils.SEC, this::checkSessionTimeout);
-    }
-
-    /**
-     * 解决循环依赖
-     */
-    public void setManagerWrapper(NetManagerWrapper managerWrapper) {
-        this.managerWrapper = managerWrapper;
     }
 
     /**
@@ -96,6 +88,9 @@ public class HttpSessionManager {
                 this::afterRemoved);
     }
 
+    /**
+     * 关闭前进行必要的清理
+     */
     public void clean() {
         CollectionUtils.removeIfAndThen(sessionWrapperMap,
                 FunctionUtils::TRUE,
@@ -103,7 +98,7 @@ public class HttpSessionManager {
     }
 
     /**
-     * 关闭session。
+     * 关闭session
      */
     public void removeSession(Channel channel) {
         SessionWrapper sessionWrapper = sessionWrapperMap.remove(channel);

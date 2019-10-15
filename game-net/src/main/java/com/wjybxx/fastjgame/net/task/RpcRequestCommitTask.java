@@ -41,8 +41,7 @@ public class RpcRequestCommitTask implements CommitTask {
      */
     private final Object request;
 
-    public RpcRequestCommitTask(Session session, RpcResponseChannel<?> rpcResponseChannel,
-                                Object request) {
+    public RpcRequestCommitTask(Session session, RpcResponseChannel<?> rpcResponseChannel, Object request) {
         this.session = session;
         this.rpcResponseChannel = rpcResponseChannel;
         this.request = request;

@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.net.socket;
 
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
+import com.wjybxx.fastjgame.misc.SessionRegistry;
 import com.wjybxx.fastjgame.net.session.AbstractSession;
 
 /**
@@ -31,12 +32,12 @@ import com.wjybxx.fastjgame.net.session.AbstractSession;
 public class SocketSessionImp extends AbstractSession implements SocketSession {
 
     public SocketSessionImp(NetContext netContext, String sessionId, long remoteGuid, SocketSessionConfig config,
-                            NetManagerWrapper managerWrapper) {
-        super(netContext, sessionId, remoteGuid, config, managerWrapper);
+                            NetManagerWrapper managerWrapper, SessionRegistry sessionRegistry) {
+        super(netContext, sessionId, remoteGuid, config, managerWrapper, sessionRegistry);
     }
 
     @Override
     public SocketSessionConfig config() {
-        return (SocketSessionConfig) config;
+        return (SocketSessionConfig) super.config();
     }
 }

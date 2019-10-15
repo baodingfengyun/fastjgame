@@ -18,60 +18,31 @@ package com.wjybxx.fastjgame.misc;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.net.session.AbstractSession;
-import com.wjybxx.fastjgame.utils.CollectionUtils;
-import com.wjybxx.fastjgame.utils.FunctionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 
 /**
- * session注册表
- *
  * @author wjybxx
  * @version 1.0
- * date - 2019/9/27
+ * date - 2019/10/15
  * github - https://github.com/hl845740757
  */
-public class SessionRegistry {
-
-    /**
-     * sessionId到session的映射
-     * (发现session只用于服务器与服务器之间，因此不需要太高的容量)
-     */
-    private final Map<String, AbstractSession> sessionMap = new HashMap<>(32);
-
-    public void tick() {
-        final Iterator<AbstractSession> itr = sessionMap.values().iterator();
-        while (itr.hasNext()) {
-            AbstractSession session = itr.next();
-            if (session.isClosed()) {
-                // 延迟删除的session
-                itr.remove();
-            } else {
-                session.tick();
-                // tick过程中关闭的session
-                if (session.isClosed()) {
-                    itr.remove();
-                }
-            }
-        }
-    }
+public interface SessionRegistry {
 
     /**
      * 注册一个session
      *
      * @param session 待注册的session
      */
-    public void registerSession(@Nonnull AbstractSession session) {
-        if (sessionMap.containsKey(session.sessionId())) {
-            throw new IllegalArgumentException("session " + session.sessionId() + " already registered");
-        }
-        sessionMap.put(session.sessionId(), session);
-    }
+    void registerSession(@Nonnull AbstractSession session);
 
+    /**
+     * @param sessionId session唯一标识
+     * @return 移除的session，如果不存在，则返回null
+     */
+    @Nullable
+    AbstractSession removeSession(@Nonnull String sessionId);
 
     /**
      * 获取一个session。
@@ -80,19 +51,17 @@ public class SessionRegistry {
      * @return session
      */
     @Nullable
-    public AbstractSession getSession(@Nonnull String sessionId) {
-        return sessionMap.get(sessionId);
-    }
+    AbstractSession getSession(@Nonnull String sessionId);
 
-    public void onUserEventLoopTerminal(EventLoop userEventLoop) {
-        CollectionUtils.removeIfAndThen(sessionMap.values(),
-                abstractSession -> abstractSession.localEventLoop() == userEventLoop,
-                AbstractSession::closeForcibly);
-    }
+    /**
+     * 当监听到用户线程关闭时，关闭用户的所有session，并且不发送通知
+     *
+     * @param userEventLoop 进入终止状态的用户线程
+     */
+    void onUserEventLoopTerminal(EventLoop userEventLoop);
 
-    public void closeAll() {
-        CollectionUtils.removeIfAndThen(sessionMap.values(),
-                FunctionUtils::TRUE,
-                AbstractSession::closeForcibly);
-    }
+    /**
+     * 关闭注册表中的所有session，并且不发送通知
+     */
+    void closeAll();
 }

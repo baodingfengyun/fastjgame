@@ -22,12 +22,14 @@ import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.exception.InternalApiException;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
+import com.wjybxx.fastjgame.misc.SessionRegistry;
 import com.wjybxx.fastjgame.net.common.RpcCallback;
 import com.wjybxx.fastjgame.net.common.RpcPromise;
 import com.wjybxx.fastjgame.net.common.RpcResponse;
 import com.wjybxx.fastjgame.net.task.AsyncRpcRequestWriteTask;
 import com.wjybxx.fastjgame.net.task.OneWayMessageWriteTask;
 import com.wjybxx.fastjgame.net.task.SyncRpcRequestWriteTask;
+import com.wjybxx.fastjgame.timer.FixedDelayHandle;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,11 +51,14 @@ public abstract class AbstractSession implements Session {
     private static final int ST_CONNECTED = 1;
     private static final int ST_CLOSED = 2;
 
-    protected final NetContext netContext;
-    protected final String sessionId;
-    protected final long remoteGuid;
-    protected final SessionConfig config;
-    protected final NetManagerWrapper managerWrapper;
+    private final NetContext netContext;
+    private final String sessionId;
+    private final long remoteGuid;
+    private final SessionConfig config;
+    /**
+     * session所属的注册表
+     */
+    private final SessionRegistry sessionRegistry;
     /**
      * session绑定到的EventLoop
      */
@@ -67,18 +72,25 @@ public abstract class AbstractSession implements Session {
      */
     private final AtomicInteger stateHolder = new AtomicInteger(ST_BOUND);
     /**
-     * 上下文/附加属性 - 非volatile，只有用户线程可以使用
+     * tick用的handle
+     */
+    private final FixedDelayHandle fixedDelayHandle;
+    /**
+     * 附加属性 - 非volatile，只有用户线程可以使用
      */
     private Object attachment;
 
-    protected AbstractSession(NetContext netContext, String sessionId, long remoteGuid, SessionConfig config, NetManagerWrapper managerWrapper) {
+    protected AbstractSession(NetContext netContext, String sessionId, long remoteGuid, SessionConfig config,
+                              NetManagerWrapper managerWrapper, SessionRegistry sessionRegistry) {
         this.netContext = netContext;
         this.sessionId = sessionId;
         this.remoteGuid = remoteGuid;
         this.config = config;
-        this.managerWrapper = managerWrapper;
+        this.sessionRegistry = sessionRegistry;
         this.pipeline = new DefaultSessionPipeline(this, managerWrapper);
         this.netEventLoop = managerWrapper.getNetEventLoopManager().getEventLoop();
+        this.fixedDelayHandle = managerWrapper.getNetTimerManager().newFixedDelay(10, this::tick);
+        sessionRegistry.registerSession(this);
     }
 
     @Override
@@ -183,11 +195,17 @@ public abstract class AbstractSession implements Session {
         // 可能是网络层关闭
         ConcurrentUtils.executeOrRun(netEventLoop, () -> {
             try {
-                pipeline.fireClose();
+                doClose();
             } finally {
                 checkNotify(oldState);
             }
         });
+    }
+
+    private void doClose() {
+        sessionRegistry.removeSession(sessionId);
+        fixedDelayHandle.cancel();
+        pipeline.fireClose();
     }
 
     private void checkNotify(int oldState) {
@@ -252,7 +270,7 @@ public abstract class AbstractSession implements Session {
     /**
      * tick刷帧 - 不暴露给应用层
      */
-    public final void tick() {
+    private void tick(FixedDelayHandle handle) {
         pipeline.fireTick();
     }
 
@@ -260,12 +278,13 @@ public abstract class AbstractSession implements Session {
      * 网络层强制关闭，不调用事件通知
      */
     public final void closeForcibly() {
+        assert netEventLoop.inEventLoop();
         final int oldState = stateHolder.getAndSet(ST_CLOSED);
         if (oldState == ST_CLOSED) {
             // 已关闭
             return;
         }
-        pipeline.fireClose();
+        doClose();
     }
 
     @Override

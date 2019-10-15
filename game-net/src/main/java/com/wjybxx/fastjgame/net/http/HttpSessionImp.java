@@ -83,7 +83,6 @@ public final class HttpSessionImp implements HttpSession {
 
     @Override
     public ListenableFuture<?> close() {
-        channel.close();
         return ConcurrentUtils.submitOrRun(netEventLoop(), () -> {
             httpSessionManager.removeSession(channel);
         });

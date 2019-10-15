@@ -31,6 +31,7 @@ public interface TimerTask<T extends TimerHandle> {
      * 执行需要的任务
      *
      * @param handle 该任务绑定的句柄
+     * @apiNote 如果运行时抛出异常，则会取消执行
      */
     void run(T handle) throws Exception;
 

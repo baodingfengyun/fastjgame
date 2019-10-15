@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.manager;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.wjybxx.fastjgame.misc.DefaultSessionRegistry;
 import com.wjybxx.fastjgame.misc.SessionRegistry;
 import com.wjybxx.fastjgame.net.common.OneWaySupportHandler;
 import com.wjybxx.fastjgame.net.common.RpcSupportHandler;
@@ -25,6 +26,7 @@ import com.wjybxx.fastjgame.net.local.DefaultLocalPort;
 import com.wjybxx.fastjgame.net.local.LocalCodecHandler;
 import com.wjybxx.fastjgame.net.local.LocalSessionImp;
 import com.wjybxx.fastjgame.net.local.LocalTransferHandler;
+import com.wjybxx.fastjgame.net.session.AbstractSession;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.socket.*;
 import com.wjybxx.fastjgame.net.socket.inner.InnerConnectorHandler;
@@ -35,6 +37,8 @@ import com.wjybxx.fastjgame.utils.NetUtils;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 
@@ -47,10 +51,10 @@ import java.io.IOException;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class AcceptorManager {
+public class AcceptorManager implements SessionRegistry {
 
     private NetManagerWrapper netManagerWrapper;
-    private final SessionRegistry sessionRegistry = new SessionRegistry();
+    private final DefaultSessionRegistry sessionRegistry = new DefaultSessionRegistry();
 
     @Inject
     public AcceptorManager() {
@@ -60,10 +64,39 @@ public class AcceptorManager {
         this.netManagerWrapper = managerWrapper;
     }
 
-    public void tick() {
-        sessionRegistry.tick();
+    @Override
+    public void registerSession(@Nonnull AbstractSession session) {
+        sessionRegistry.registerSession(session);
     }
 
+    @Override
+    @Nullable
+    public AbstractSession removeSession(@Nonnull String sessionId) {
+        return sessionRegistry.removeSession(sessionId);
+    }
+
+    @Override
+    @Nullable
+    public AbstractSession getSession(@Nonnull String sessionId) {
+        return sessionRegistry.getSession(sessionId);
+    }
+
+    @Override
+    public void onUserEventLoopTerminal(EventLoop userEventLoop) {
+        sessionRegistry.onUserEventLoopTerminal(userEventLoop);
+    }
+
+    @Override
+    public void closeAll() {
+        sessionRegistry.closeAll();
+    }
+
+    /**
+     * 线程退出时进行必要的清理
+     */
+    public void clean() {
+        sessionRegistry.closeAll();
+    }
     // --------------------------------------------------- socket ----------------------------------------------
 
     /**
@@ -103,7 +136,8 @@ public class AcceptorManager {
                     connectRequestEvent.sessionId(),
                     connectRequestEvent.remoteGuid(),
                     portExtraInfo.getSessionConfig(),
-                    netManagerWrapper);
+                    netManagerWrapper,
+                    this);
 
             socketSessionImp.pipeline()
                     .addLast(new InnerSocketTransferHandler(channel))
@@ -113,9 +147,6 @@ public class AcceptorManager {
 
             socketSessionImp.tryActive();
             socketSessionImp.pipeline().fireSessionActive();
-
-            // 注册session
-            sessionRegistry.registerSession(socketSessionImp);
 
             // 建立连接成功，告知对方
             onInnerConnectSuccess(channel, connectRequestEvent);
@@ -178,10 +209,9 @@ public class AcceptorManager {
         if (sessionRegistry.getSession(sessionId) != null) {
             throw new IOException("session " + sessionId + " is already registered");
         }
-        // 创建session并保存
+        // 创建session
         LocalSessionImp session = new LocalSessionImp(localPort.getNetContext(), sessionId, remoteGuid, localPort.getLocalConfig(),
-                netManagerWrapper);
-        sessionRegistry.registerSession(session);
+                netManagerWrapper, this);
 
         // 创建管道
         session.pipeline()
@@ -193,13 +223,4 @@ public class AcceptorManager {
         return session;
     }
 
-    // -------------------------------------------------------- 用户线程关闭事件 ------------------------------------------------
-
-    public void onUserEventLoopTerminal(EventLoop userEventLoop) {
-        sessionRegistry.onUserEventLoopTerminal(userEventLoop);
-    }
-
-    public void clean() {
-        sessionRegistry.closeAll();
-    }
 }
