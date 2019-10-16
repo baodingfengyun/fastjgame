@@ -30,6 +30,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * session服务端方维持socket使用的handler
@@ -106,28 +107,83 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
         messageQueue.updateSentQueue(messageEvent.getAck());
         messageQueue.setAck(messageEvent.getSequence() + 1);
 
+        // 继续发送消息
+        emit(ctx);
+
         // 传递给下一个handler
         ctx.fireRead(messageEvent.getWrappedMessage());
     }
 
+    private void emit(SessionHandlerContext ctx) {
+        int cacheMessages = messageQueue.getCacheMessages();
+        if (cacheMessages == 0) {
+            // 没有待发送的消息
+            return;
+        }
+        int emitNum = maxCacheMessages - messageQueue.getPendingMessages();
+        if (emitNum <= 0) {
+            // 不可以继续发送，判断它比判断isWritable的消耗更小，因此放前面
+            return;
+        }
+        if (!channel.isWritable()) {
+            // channel暂时不可写
+            return;
+        }
+        if (cacheMessages == 1) {
+            // 未发送到发送队列
+            OuterSocketMessage outerSocketMessage = messageQueue.getUnsentQueue().pollFirst();
+            messageQueue.getSentQueue().add(outerSocketMessage);
+            // 真正发送
+            OuterSocketMessageTO outerSocketMessageTO = new OuterSocketMessageTO(messageQueue.getAck(), outerSocketMessage);
+            channel.write(outerSocketMessageTO);
+        } else {
+            int realEmitNum = Math.min(cacheMessages, emitNum);
+            List<OuterSocketMessage> messageList = new ArrayList<>(realEmitNum);
+
+        }
+    }
+
     @Override
     public void write(SessionHandlerContext ctx, Object msg) throws Exception {
-        // TODO 暂时先直接入未发送队列，逻辑比较简单
         NetMessage netMessage = (NetMessage) msg;
         OuterSocketMessage outerSocketMessage = new OuterSocketMessage(messageQueue.nextSequence(), netMessage);
-        messageQueue.getUnsentQueue().addLast(outerSocketMessage);
+        if (!channel.isWritable()) {
+            // channel暂时不可写 - 这是netty自身的流量整形功能
+            messageQueue.getUnsentQueue().addLast(outerSocketMessage);
+            return;
+        }
+        if (messageQueue.getPendingMessages() < maxPendingMessages) {
+            // 未达流量限制条件，直接尝试发送
+            messageQueue.getSentQueue().add(outerSocketMessage);
+            // 服务器不处理超时信息
+            OuterSocketMessageTO outerSocketMessageTO = new OuterSocketMessageTO(messageQueue.getAck(), outerSocketMessage);
+            channel.write(outerSocketMessageTO);
+        } else {
+            if (messageQueue.getCacheMessages() >= maxCacheMessages) {
+                // 超出缓存上限，关闭session
+                ctx.session().close();
+                return;
+            }
+            // 达到流量限制，压入队列稍后发送
+            messageQueue.getUnsentQueue().addLast(outerSocketMessage);
+        }
     }
 
     @Override
     public void flush(SessionHandlerContext ctx) throws Exception {
         final OuterSocketMessage outerSocketMessage = messageQueue.getUnsentQueue().peekLast();
         if (null != outerSocketMessage) {
+            // 还有消息在队列中，标记一下
             outerSocketMessage.setAutoFlush(true);
+        } else {
+            // 所有消息都已发送到channel，直接flush
+            channel.flush();
         }
     }
 
     @Override
     public void close(SessionHandlerContext ctx) throws Exception {
+        // 通知对方关闭，同时关闭channel
         notifyConnectFail(channel, verifyingTimes);
     }
 

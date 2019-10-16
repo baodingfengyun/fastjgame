@@ -21,6 +21,8 @@ import com.wjybxx.fastjgame.utils.CheckUtils;
 
 /**
  * socket连接配置
+ * <p>
+ * 消息队列中的消息总限制为： {@link #maxPendingMessages} + {@link #maxCacheMessages}，一个不包含另一个，容易配置。
  *
  * @author wjybxx
  * @version 1.0
@@ -117,14 +119,16 @@ public final class SocketSessionConfig extends SessionConfig {
     }
 
     /**
-     * @return 消息队列中允许的已发送未确认消息数，一旦到达该阈值，则暂停消息发送 (限流)
+     * @return 消息队列中允许的已发送未确认消息数，一旦到达该阈值，则暂停消息发送 (限流)。
+     * 与{@link #maxCacheMessages()}独立。
      */
     public int maxPendingMessages() {
         return maxPendingMessages;
     }
 
     /**
-     * @return 消息队列中允许缓存的消息总数，一旦到达该值，则关闭session (避免无限缓存，内存溢出)
+     * @return 消息队列中允许缓存的尚未发送的消息总数（还未发送的消息数），一旦到达该值，则关闭session (避免无限缓存，内存溢出)。
+     * 与{@link #maxPendingMessages()}独立。
      */
     public int maxCacheMessages() {
         return maxCacheMessages;

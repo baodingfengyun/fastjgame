@@ -116,7 +116,7 @@ public final class MessageQueue {
     }
 
     public int getCacheMessages() {
-        return sentQueue.size() + unsentQueue.size();
+        return sentQueue.size();
     }
 
     /**
