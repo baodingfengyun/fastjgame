@@ -13,31 +13,22 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+package com.wjybxx.fastjgame.net.socket;
 
-package com.wjybxx.fastjgame.net.session;
+import java.util.List;
 
 /**
- * {@link SessionHandler}的缺省适配器
+ * 批量{@link SocketMessage}消息的传输对象 - 之所以需要该对象进行传输，是因为ack字段是发送的时候才赋值的
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/9/26
+ * date - 2019/8/9
  * github - https://github.com/hl845740757
  */
-public class SessionHandlerAdapter implements SessionHandler {
+public interface BatchSocketMessageTO {
 
-    @Override
-    public void handlerAdded(SessionHandlerContext ctx) throws Exception {
-        // NO OP
-    }
+    long getAck();
 
-    @Override
-    public void handlerRemoved(SessionHandlerContext ctx) throws Exception {
-        // NO OP
-    }
+    List<SocketMessage> getSocketMessageList();
 
-    @Override
-    public void tick(SessionHandlerContext ctx) throws Exception {
-        // NO OP
-    }
 }

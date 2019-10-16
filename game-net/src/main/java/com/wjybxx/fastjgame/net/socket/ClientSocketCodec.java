@@ -71,8 +71,11 @@ public class ClientSocketCodec extends BaseSocketCodec {
     @Override
     public void write(ChannelHandlerContext ctx, Object msgTO, ChannelPromise promise) throws Exception {
         if (msgTO instanceof SocketMessageTO) {
-            // 消息包
+            // 单个消息包
             writeSingleMsg(ctx, (SocketMessageTO) msgTO, promise);
+        } else if (msgTO instanceof BatchSocketMessageTO) {
+            // 批量协议包
+            writeBatchMessage(ctx, (BatchSocketMessageTO) msgTO);
         } else if (msgTO instanceof SocketConnectRequestTO) {
             // 请求建立连接包
             writeConnectRequest(ctx, sessionId, localGuid, (SocketConnectRequestTO) msgTO, promise);

@@ -45,33 +45,12 @@ public class NetConfigManager {
      */
     private final ConfigWrapper configWrapper;
 
-    private final int connectTimeout;
-
-    private final int connectMaxTryTimes;
-    private final int waitVerifyResultTimeout;
-    private final int ackTimeout;
-
-    private final int serverMaxCacheNum;
-    private final int clientMaxCacheNum;
-
-    private final int flushThreshold;
-
     private final int httpRequestTimeout;
     private final int httpSessionTimeout;
 
     @Inject
     public NetConfigManager() throws IOException {
         configWrapper = ConfigLoader.loadConfig(NetConfigManager.class.getClassLoader(), NET_CONFIG_NAME);
-
-        serverMaxCacheNum = configWrapper.getAsInt("serverMaxCacheNum");
-        clientMaxCacheNum = configWrapper.getAsInt("clientMaxCacheNum");
-
-        flushThreshold = configWrapper.getAsInt("flushThreshold");
-
-        connectMaxTryTimes = configWrapper.getAsInt("connectMaxTryTimes");
-        connectTimeout = configWrapper.getAsInt("connectTimeout");
-        waitVerifyResultTimeout = configWrapper.getAsInt("waitVerifyResultTimeout");
-        ackTimeout = configWrapper.getAsInt("ackTimeout");
 
         httpRequestTimeout = configWrapper.getAsInt("httpRequestTimeout");
         httpSessionTimeout = configWrapper.getAsInt("httpSessionTimeout");
@@ -82,41 +61,6 @@ public class NetConfigManager {
      */
     public ConfigWrapper properties() {
         return configWrapper;
-    }
-
-    /**
-     * 获取服务器最大可缓存消息数
-     */
-    public int serverMaxCacheNum() {
-        return serverMaxCacheNum;
-    }
-
-    /**
-     * 获取客户端最大可缓存消息数
-     */
-    public int clientMaxCacheNum() {
-        return clientMaxCacheNum;
-    }
-
-    /**
-     * 最大重连尝试次数(连接状态下尝试连接次数)
-     */
-    public int connectMaxTryTimes() {
-        return connectMaxTryTimes;
-    }
-
-    /**
-     * 等待验证结果超时时间，需要适当的长一点(毫秒)
-     */
-    public long waitVerifyResultTimeout() {
-        return waitVerifyResultTimeout;
-    }
-
-    /**
-     * 异步通信中ack超时时间(毫秒)
-     */
-    public long ackTimeout() {
-        return ackTimeout;
     }
 
     /**
@@ -132,14 +76,6 @@ public class NetConfigManager {
      */
     public int httpSessionTimeout() {
         return httpSessionTimeout;
-    }
-
-    /**
-     * 当缓存的消息数到达该值时，立即清空缓冲区
-     * 该值等于0表示关闭缓冲区
-     */
-    public int flushThreshold() {
-        return flushThreshold;
     }
 
 }

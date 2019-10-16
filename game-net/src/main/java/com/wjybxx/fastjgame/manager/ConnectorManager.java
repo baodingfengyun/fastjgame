@@ -143,7 +143,7 @@ public class ConnectorManager implements SessionRegistry {
      * 接收到一个内网建立连接应答
      */
     private void onRcvInnerConnectResponse(SocketSession session, SocketConnectResponseEvent connectResponseEvent) {
-        final SessionHandler first = session.pipeline().first();
+        final SessionHandler first = session.pipeline().firstHandler();
         if (first instanceof InnerConnectorHandler) {
             // 此时session应该还未建立成功，第一个handler应该是用于建立连接的handler
             session.fireRead(connectResponseEvent);
@@ -202,7 +202,7 @@ public class ConnectorManager implements SessionRegistry {
     }
 
     private void setRemoteSession(Session session, Session remoteSession) {
-        final LocalTransferHandler first = (LocalTransferHandler) session.pipeline().first();
+        final LocalTransferHandler first = (LocalTransferHandler) session.pipeline().firstHandler();
         assert null != first;
         first.setRemoteSession(remoteSession);
     }

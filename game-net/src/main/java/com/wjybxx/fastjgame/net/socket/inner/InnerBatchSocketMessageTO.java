@@ -14,36 +14,39 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.socket.outer;
+package com.wjybxx.fastjgame.net.socket.inner;
 
-import com.wjybxx.fastjgame.net.socket.SocketConnectResponse;
-import com.wjybxx.fastjgame.net.socket.SocketConnectResponseTO;
+import com.wjybxx.fastjgame.net.socket.BatchSocketMessageTO;
+import com.wjybxx.fastjgame.net.socket.MessageQueue;
+import com.wjybxx.fastjgame.net.socket.SocketMessage;
+
+import java.util.List;
 
 /**
- * 对外连接响应传输对象
+ * 内网批量socket消息传输对象
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/10/2
+ * date - 2019/10/1
  * github - https://github.com/hl845740757
  */
-public class OuterSocketConnectResponseTO implements SocketConnectResponseTO {
+public class InnerBatchSocketMessageTO implements BatchSocketMessageTO {
+    /**
+     * {@link InnerSocketMessage}
+     */
+    private final List<SocketMessage> socketMessageList;
 
-    private final long ack;
-    private final SocketConnectResponse connectResponse;
-
-    public OuterSocketConnectResponseTO(long ack, SocketConnectResponse connectResponse) {
-        this.ack = ack;
-        this.connectResponse = connectResponse;
+    InnerBatchSocketMessageTO(List<SocketMessage> socketMessageList) {
+        this.socketMessageList = socketMessageList;
     }
 
     @Override
     public long getAck() {
-        return ack;
+        return MessageQueue.INIT_ACK;
     }
 
     @Override
-    public SocketConnectResponse getConnectResponse() {
-        return connectResponse;
+    public List<SocketMessage> getSocketMessageList() {
+        return socketMessageList;
     }
 }

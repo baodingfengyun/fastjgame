@@ -30,13 +30,17 @@ import com.wjybxx.fastjgame.net.socket.SocketMessage;
 public class OuterSocketMessage implements SocketMessage {
 
     /**
-     * 当前包id。
+     * 当前包id - 一旦分配就不会改变
      */
     private final long sequence;
     /**
      * 被包装的消息
      */
     private final NetMessage wrappedMessage;
+    /**
+     * 是否应该调用flush
+     */
+    private boolean autoFlush;
     /**
      * 消息确认超时时间
      * 每次发送的时候设置超时时间 - 线程封闭(NetEventLoop线程访问)
@@ -56,6 +60,14 @@ public class OuterSocketMessage implements SocketMessage {
     @Override
     public NetMessage getWrappedMessage() {
         return wrappedMessage;
+    }
+
+    public boolean isAutoFlush() {
+        return autoFlush;
+    }
+
+    public void setAutoFlush(boolean autoFlush) {
+        this.autoFlush = autoFlush;
     }
 
     public long getTimeout() {

@@ -31,7 +31,6 @@ public class CheckUtils {
     private CheckUtils() {
     }
 
-
     /**
      * 检查一个数是否是正数
      *
@@ -39,6 +38,12 @@ public class CheckUtils {
      * @param name  属性的名字
      */
     public static void checkPositive(final int param, String name) {
+        if (param <= 0) {
+            throw new IllegalArgumentException(name + ": " + param + " (expected: > 0)");
+        }
+    }
+
+    public static void checkPositive(final long param, String name) {
         if (param <= 0) {
             throw new IllegalArgumentException(name + ": " + param + " (expected: > 0)");
         }

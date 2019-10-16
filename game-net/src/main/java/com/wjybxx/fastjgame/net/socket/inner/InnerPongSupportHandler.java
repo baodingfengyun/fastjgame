@@ -22,7 +22,7 @@ import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 import com.wjybxx.fastjgame.net.session.SessionInboundHandlerAdapter;
 
 /**
- * 心跳响应支持
+ * 心跳支持
  *
  * @author wjybxx
  * @version 1.0
@@ -32,8 +32,8 @@ import com.wjybxx.fastjgame.net.session.SessionInboundHandlerAdapter;
 public class InnerPongSupportHandler extends SessionInboundHandlerAdapter {
 
     private NetTimeManager timeManager;
-    private long lastReadTime;
     private long sessionTimeoutMs;
+    private long lastReadTime;
 
     @Override
     public void handlerAdded(SessionHandlerContext ctx) throws Exception {
@@ -46,8 +46,8 @@ public class InnerPongSupportHandler extends SessionInboundHandlerAdapter {
 
     @Override
     public void tick(SessionHandlerContext ctx) {
+        // session超时
         if (timeManager.getSystemMillTime() - lastReadTime > sessionTimeoutMs) {
-            // 太长时间未读到对方的消息了
             ctx.session().close();
         }
     }
@@ -57,7 +57,8 @@ public class InnerPongSupportHandler extends SessionInboundHandlerAdapter {
         lastReadTime = timeManager.getSystemMillTime();
         // 读取到一个心跳包，立即返回一个心跳包
         if (msg == PingPongMessage.INSTANCE) {
-            ctx.session().fireWriteAndFlush(PingPongMessage.INSTANCE);
+            // 从当前位置直接返回心跳响应
+            ctx.fireWriteAndFlush(PingPongMessage.INSTANCE);
         } else {
             ctx.fireRead(msg);
         }

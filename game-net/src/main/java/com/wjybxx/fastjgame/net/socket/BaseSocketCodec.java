@@ -101,6 +101,22 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
     protected abstract void readMsg(ChannelHandlerContext ctx, NetMessageType netMessageType, ByteBuf msg) throws Exception;
 
     /**
+     * 批量消息传输
+     *
+     * @param ctx                  ctx
+     * @param batchSocketMessageTO 批量消息包
+     * @throws Exception error
+     */
+    protected final void writeBatchMessage(ChannelHandlerContext ctx, BatchSocketMessageTO batchSocketMessageTO) throws Exception {
+        // 批量协议包
+        long ack = batchSocketMessageTO.getAck();
+        for (SocketMessage message : batchSocketMessageTO.getSocketMessageList()) {
+            writeSingleMsg(ctx, ack, message, ctx.voidPromise());
+        }
+        ctx.flush();
+    }
+
+    /**
      * 单个消息传输
      *
      * @param ctx             ctx

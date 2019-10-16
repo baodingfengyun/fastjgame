@@ -41,8 +41,11 @@ public class SessionConfig {
     private final ProtocolCodec codec;
     private final ProtocolDispatcher dispatcher;
     private final long sessionTimeoutMs;
+
+    private final boolean rpcAvailable;
     private final long rpcCallbackTimeoutMs;
     private final long syncRpcTimeoutMs;
+
     private final long pingIntervalMs;
 
     protected SessionConfig(SessionConfigBuilder builder) {
@@ -50,8 +53,11 @@ public class SessionConfig {
         this.codec = builder.protocolCodec;
         this.dispatcher = builder.protocolDispatcher;
         this.sessionTimeoutMs = builder.sessionTimeoutMs;
+
+        this.rpcAvailable = builder.rpcAvailable;
         this.rpcCallbackTimeoutMs = builder.rpcCallbackTimeoutMs;
         this.syncRpcTimeoutMs = builder.syncRpcTimeoutMs;
+
         this.pingIntervalMs = builder.pingIntervalMs;
     }
 
@@ -81,6 +87,13 @@ public class SessionConfig {
      */
     public long getSessionTimeoutMs() {
         return sessionTimeoutMs;
+    }
+
+    /**
+     * @return rpc是否可用(是否启用rpc支持)
+     */
+    public boolean isRpcAvailable() {
+        return rpcAvailable;
     }
 
     /**
@@ -114,8 +127,11 @@ public class SessionConfig {
         private ProtocolCodec protocolCodec;
         private ProtocolDispatcher protocolDispatcher;
         private int sessionTimeoutMs = 60 * 1000;
+
+        private boolean rpcAvailable = true;
         private int rpcCallbackTimeoutMs = 15 * 1000;
         private int syncRpcTimeoutMs = 5 * 1000;
+
         private int pingIntervalMs = 5 * 1000;
 
         public T setLifecycleAware(@Nonnull SessionLifecycleAware lifecycleAware) {
@@ -137,6 +153,11 @@ public class SessionConfig {
             CheckUtils.checkPositive(sessionTimeoutMs, "sessionTimeoutMs");
             this.sessionTimeoutMs = sessionTimeoutMs;
             return self();
+        }
+
+        public SessionConfigBuilder<T, U> setRpcAvailable(boolean rpcAvailable) {
+            this.rpcAvailable = rpcAvailable;
+            return this;
         }
 
         public T setRpcCallbackTimeoutMs(int rpcCallbackTimeoutMs) {

@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
+import com.wjybxx.fastjgame.net.socket.outer.OuterSocketMessage;
+
 import java.util.LinkedList;
 
 /**
@@ -60,12 +62,12 @@ public final class MessageQueue {
      * Q: 为什么不使用arrayList?
      * A: 1.存在大量的删除操作 2.ArrayList存在空间浪费。3.遍历很少
      */
-    private LinkedList<SocketMessage> sentQueue = new LinkedList<>();
+    private LinkedList<OuterSocketMessage> sentQueue = new LinkedList<>();
 
     /**
      * 未发送的消息队列,还没有尝试过发送的消息
      */
-    private LinkedList<SocketMessage> unsentQueue = new LinkedList<>();
+    private LinkedList<OuterSocketMessage> unsentQueue = new LinkedList<>();
 
     /**
      * 对方发送过来的ack是否有效。
@@ -101,13 +103,20 @@ public final class MessageQueue {
      * @param ack 对方发来的ack
      */
     public void updateSentQueue(long ack) {
-        assert isAckOK(ack);
         while (sentQueue.size() > 0) {
             if (sentQueue.getFirst().getSequence() >= ack) {
                 break;
             }
             sentQueue.removeFirst();
         }
+    }
+
+    public int getPendingMessages() {
+        return sentQueue.size();
+    }
+
+    public int getCacheMessages() {
+        return sentQueue.size() + unsentQueue.size();
     }
 
     /**
@@ -134,36 +143,30 @@ public final class MessageQueue {
         this.ack = ack;
     }
 
-    public LinkedList<SocketMessage> getSentQueue() {
+    public LinkedList<OuterSocketMessage> getSentQueue() {
         return sentQueue;
     }
 
-    public LinkedList<SocketMessage> getUnsentQueue() {
+    public LinkedList<OuterSocketMessage> getUnsentQueue() {
         return unsentQueue;
     }
 
     /**
      * 交换未发送的缓冲区
      */
-    public LinkedList<SocketMessage> exchangeUnsentMessages() {
-        LinkedList<SocketMessage> result = unsentQueue;
+    public LinkedList<OuterSocketMessage> exchangeUnsentMessages() {
+        LinkedList<OuterSocketMessage> result = unsentQueue;
         unsentQueue = new LinkedList<>();
         return result;
     }
 
     /**
      * 删除已发送和未发送的消息队列
+     * help gc
      */
     public void detachMessageQueue() {
         sentQueue = null;
         unsentQueue = null;
-    }
-
-    /**
-     * 获取当前缓存的消息数
-     */
-    public int getUnsentMessageNum() {
-        return sentQueue.size();
     }
 
     @Override

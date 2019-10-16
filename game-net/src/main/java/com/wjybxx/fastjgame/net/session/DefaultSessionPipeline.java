@@ -185,14 +185,14 @@ class DefaultSessionPipeline implements SessionPipeline {
 
     @Nullable
     @Override
-    public SessionHandler first() {
+    public SessionHandler firstHandler() {
         final SessionHandlerContext firstContext = firstContext();
         return null == firstContext ? null : firstContext.handler();
     }
 
     @Nullable
     @Override
-    public SessionHandler last() {
+    public SessionHandler lastHandler() {
         final SessionHandlerContext lastContext = lastContext();
         return null == lastContext ? null : lastContext.handler();
     }

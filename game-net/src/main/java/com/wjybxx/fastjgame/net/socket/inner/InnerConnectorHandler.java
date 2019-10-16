@@ -35,9 +35,13 @@ import io.netty.channel.ChannelFuture;
  */
 public class InnerConnectorHandler extends SessionDuplexHandlerAdapter {
 
-    public static final int INNER_VERIFY_TIMES = 1;
+    static final int INNER_VERIFY_TIMES = 1;
 
     private final ChannelFuture channelFuture;
+    /**
+     * 建立连接的超时时间
+     */
+    private long deadline;
 
     public InnerConnectorHandler(ChannelFuture channelFuture) {
         this.channelFuture = channelFuture;
@@ -45,6 +49,9 @@ public class InnerConnectorHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void handlerAdded(SessionHandlerContext ctx) throws Exception {
+        SocketSessionConfig config = (SocketSessionConfig) ctx.session().config();
+        deadline = ctx.managerWrapper().getNetTimeManager().getSystemMillTime() + config.connectTimeoutMs();
+
         // 监听操作完成
         new NettyFutureAdapter<>(ctx.netEventLoop(), channelFuture)
                 .addListener(future -> onConnectDone(ctx));
@@ -53,17 +60,26 @@ public class InnerConnectorHandler extends SessionDuplexHandlerAdapter {
     private void onConnectDone(SessionHandlerContext ctx) {
         assert ctx.netEventLoop().inEventLoop();
         final SocketSessionImp session = (SocketSessionImp) ctx.session();
-        // 在等待的过程中，session被关闭了
         if (session.isClosed()) {
+            // 在等待的过程中，session被关闭了
             NetUtils.closeQuietly(channelFuture);
             return;
         }
-        // socket连接成功，则发送建立session请求，否则关闭session
         if (channelFuture.isSuccess()) {
+            // socket连接成功，则发送建立session请求
             SocketConnectRequest connectRequest = new SocketConnectRequest(INNER_VERIFY_TIMES);
             InnerSocketConnectRequestTO connectRequestTO = new InnerSocketConnectRequestTO(connectRequest);
             channelFuture.channel().writeAndFlush(connectRequestTO);
         } else {
+            // socket建立失败，关闭session
+            ctx.session().close();
+        }
+    }
+
+    @Override
+    public void tick(SessionHandlerContext ctx) throws Exception {
+        if (ctx.managerWrapper().getNetTimeManager().getSystemMillTime() > deadline) {
+            // 指定时间内未连接到对方，关闭session
             ctx.session().close();
         }
     }
@@ -78,8 +94,8 @@ public class InnerConnectorHandler extends SessionDuplexHandlerAdapter {
                 onRcvConnectResponse(session, (SocketConnectResponseEvent) msg);
                 return;
             }
-            // socket断开事件，无法建立连接
             if (socketEvent instanceof SocketDisconnectEvent) {
+                // socket断开事件，无法建立连接
                 session.close();
                 return;
             }
@@ -95,32 +111,36 @@ public class InnerConnectorHandler extends SessionDuplexHandlerAdapter {
      * 接收到建立连接响应
      */
     private void onRcvConnectResponse(SocketSessionImp session, SocketConnectResponseEvent connectResponseEvent) {
-        // 验证次数不对 - 先核对次数
         SocketConnectResponse connectResponse = connectResponseEvent.getConnectResponse();
         if (connectResponse.getVerifyingTimes() != INNER_VERIFY_TIMES) {
+            // 验证次数不对
             session.close();
             return;
         }
-        // 初始化ack错误
         if (connectResponseEvent.getAck() != MessageQueue.INIT_ACK) {
+            // 初始化ack错误
             session.close();
             return;
         }
-        // 不允许建立连接
         if (!connectResponse.isSuccess()) {
+            // 不允许建立连接
             session.close();
             return;
         }
-        // 建立连接成功，删除自己，添加真正的handler逻辑
-        session.pipeline()
-                .remove(this)
-                .addLast(new InnerSocketTransferHandler(channelFuture.channel()))
-                .addLast(new InnerPingSupportHandler())
-                .addLast(new OneWaySupportHandler())
-                .addLast(new RpcSupportHandler());
-
-        // 尝试激活session
         if (session.tryActive()) {
+            // 激活session成功，删除自己，添加真正的handler逻辑
+            session.pipeline()
+                    .remove(this)
+                    .addLast(new InnerSocketTransferHandler(channelFuture.channel()))
+                    .addLast(new InnerPingSupportHandler())
+                    .addLast(new OneWaySupportHandler());
+
+            // 判断是否支持rpc
+            if (session.config().isRpcAvailable()) {
+                session.pipeline().addLast(new RpcSupportHandler());
+            }
+
+            // 传递session激活事件
             session.pipeline().fireSessionActive();
         } else {
             session.closeForcibly();

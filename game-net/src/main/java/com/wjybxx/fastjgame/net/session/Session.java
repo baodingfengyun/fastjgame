@@ -26,7 +26,6 @@ import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
-import java.io.Closeable;
 
 /**
  * 一个连接的抽象，它可能是一个socket连接，也可能是JVM内的线程之间内的连接，不论它真的是什么，你都可以以相同的方式使用它们发送消息。
@@ -51,7 +50,7 @@ import java.io.Closeable;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public interface Session extends Comparable<Session>, Closeable {
+public interface Session extends Comparable<Session> {
 
     /**
      * 用户为session分配的sessionId。

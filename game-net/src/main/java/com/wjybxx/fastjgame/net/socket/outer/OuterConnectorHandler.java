@@ -14,50 +14,54 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.socket.inner;
+package com.wjybxx.fastjgame.net.socket.outer;
 
+import com.wjybxx.fastjgame.misc.IntSequencer;
 import com.wjybxx.fastjgame.net.common.ConnectAwareTask;
 import com.wjybxx.fastjgame.net.common.DisconnectAwareTask;
-import com.wjybxx.fastjgame.net.common.NetMessage;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
-import com.wjybxx.fastjgame.net.socket.SocketDisconnectEvent;
-import com.wjybxx.fastjgame.net.socket.SocketEvent;
-import com.wjybxx.fastjgame.net.socket.SocketMessageEvent;
+import com.wjybxx.fastjgame.net.socket.MessageQueue;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-import com.wjybxx.fastjgame.utils.NetUtils;
-import io.netty.channel.Channel;
+
+import javax.annotation.Nullable;
 
 /**
- * 内网服务器之间传输支持。
- * 1. 由于它真正的向{@link Channel}中写入数据，因此也负责关闭channel
- * 2. 它负责过滤无效的消息
+ * session客户端方维持socket使用的handler
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/10/1
+ * date - 2019/10/16
  * github - https://github.com/hl845740757
  */
-public class InnerSocketTransferHandler extends SessionDuplexHandlerAdapter {
-
+public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
     /**
-     * 真正通信的channel。
+     * 发起验证请求的次数
      */
-    private final Channel channel;
+    private final IntSequencer verifyingSequencer = new IntSequencer(0);
     /**
-     * flush之前的消息数
+     * 验证成功的次数
      */
-    private int msgCount;
+    private final IntSequencer verifiedSequencer = new IntSequencer(0);
+    /**
+     * 消息队列
+     */
+    private final MessageQueue messageQueue = new MessageQueue();
+    private HandlerState state;
 
-    public InnerSocketTransferHandler(Channel channel) {
-        this.channel = channel;
+    @Override
+    public void handlerAdded(SessionHandlerContext ctx) throws Exception {
+        super.handlerAdded(ctx);
     }
 
     @Override
-    public void tick(SessionHandlerContext ctx) {
-        if (msgCount > 0) {
-            doFlush();
-        }
+    public void handlerRemoved(SessionHandlerContext ctx) throws Exception {
+        super.handlerRemoved(ctx);
+    }
+
+    @Override
+    public void tick(SessionHandlerContext ctx) throws Exception {
+        super.tick(ctx);
     }
 
     @Override
@@ -74,46 +78,47 @@ public class InnerSocketTransferHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void read(SessionHandlerContext ctx, Object msg) {
-        SocketEvent socketEvent = (SocketEvent) msg;
         if (ctx.session().isActive()) {
-            // 接收到一个消息
-            if (socketEvent instanceof SocketMessageEvent) {
-                ctx.fireRead(((SocketMessageEvent) msg).getWrappedMessage());
-                return;
-            }
-            // socket断开事件 - 内网不断线重连，不使用消息确认机制，socket断开就关闭session
-            if (socketEvent instanceof SocketDisconnectEvent) {
-                ctx.session().close();
-            }
-        } else {
-            // session已关闭，丢弃消息
-            NetUtils.closeQuietly(socketEvent.channel());
+            ctx.fireRead(msg);
         }
     }
 
     @Override
     public void write(SessionHandlerContext ctx, Object msg) throws Exception {
         if (ctx.session().isActive()) {
-            msgCount++;
-            channel.write(new InnerSocketMessage((NetMessage) msg), channel.voidPromise());
+
         }
-        // else session已关闭，丢弃消息
     }
 
     @Override
     public void flush(SessionHandlerContext ctx) throws Exception {
-        if (msgCount > 0) {
-            doFlush();
-        }
-    }
-
-    private void doFlush() {
-        msgCount = 0;
-        channel.flush();
+        super.flush(ctx);
     }
 
     @Override
     public void close(SessionHandlerContext ctx) throws Exception {
-        channel.close();
+        super.close(ctx);
+    }
+
+    // ------------------------------------------ 状态机管理 --------------------------------------------
+
+    private void changeState(@Nullable HandlerState newState) {
+        HandlerState oldState = this.state;
+        if (null != oldState) {
+            oldState.exit();
+        }
+        this.state = newState;
+        if (null != newState) {
+            newState.enter();
+        }
+    }
+
+    private abstract class HandlerState {
+
+        abstract void enter();
+
+        abstract void tick();
+
+        abstract void exit();
     }
 }

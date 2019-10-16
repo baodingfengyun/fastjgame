@@ -28,14 +28,11 @@ import com.wjybxx.fastjgame.net.local.LocalSessionImp;
 import com.wjybxx.fastjgame.net.local.LocalTransferHandler;
 import com.wjybxx.fastjgame.net.session.AbstractSession;
 import com.wjybxx.fastjgame.net.session.Session;
-import com.wjybxx.fastjgame.net.socket.*;
-import com.wjybxx.fastjgame.net.socket.inner.InnerConnectorHandler;
-import com.wjybxx.fastjgame.net.socket.inner.InnerPongSupportHandler;
-import com.wjybxx.fastjgame.net.socket.inner.InnerSocketConnectResponseTO;
-import com.wjybxx.fastjgame.net.socket.inner.InnerSocketTransferHandler;
+import com.wjybxx.fastjgame.net.socket.SocketConnectRequestEvent;
+import com.wjybxx.fastjgame.net.socket.SocketEvent;
+import com.wjybxx.fastjgame.net.socket.inner.InnerAcceptorHandler;
+import com.wjybxx.fastjgame.net.socket.outer.OuterAcceptorHandler;
 import com.wjybxx.fastjgame.utils.NetUtils;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFutureListener;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -107,73 +104,11 @@ public class AcceptorManager implements SessionRegistry {
     public void onRcvConnectRequest(SocketConnectRequestEvent connectRequestEvent) {
         if (connectRequestEvent.getPortExtraInfo().getSessionConfig().isAutoReconnect()) {
             // 外网逻辑 - 带有消息确认机制
+            OuterAcceptorHandler.onRcvOuterConnectRequest(connectRequestEvent, netManagerWrapper, this);
         } else {
             // 内网逻辑 - 不带消息确认机制
-            onRcvInnerConnectRequest(connectRequestEvent);
+            InnerAcceptorHandler.onRcvInnerConnectRequest(connectRequestEvent, netManagerWrapper, this);
         }
-    }
-
-    /**
-     * 接收到一个内网连接请求 - 不开启消息确认机制的请求
-     */
-    private void onRcvInnerConnectRequest(SocketConnectRequestEvent connectRequestEvent) {
-        final Channel channel = connectRequestEvent.channel();
-        final Session existSession = sessionRegistry.getSession(connectRequestEvent.sessionId());
-        if (existSession == null) {
-            // 初始ack错误
-            if (connectRequestEvent.getAck() != MessageQueue.INIT_ACK) {
-                onInnerConnectFail(channel, connectRequestEvent);
-                return;
-            }
-            // 验证次数不对
-            if (connectRequestEvent.getConnectRequest().getVerifyingTimes() != InnerConnectorHandler.INNER_VERIFY_TIMES) {
-                onInnerConnectFail(channel, connectRequestEvent);
-                return;
-            }
-            // 建立连接成功
-            final SocketPortContext portExtraInfo = connectRequestEvent.getPortExtraInfo();
-            final SocketSessionImp socketSessionImp = new SocketSessionImp(portExtraInfo.getNetContext(),
-                    connectRequestEvent.sessionId(),
-                    connectRequestEvent.remoteGuid(),
-                    portExtraInfo.getSessionConfig(),
-                    netManagerWrapper,
-                    this);
-
-            socketSessionImp.pipeline()
-                    .addLast(new InnerSocketTransferHandler(channel))
-                    .addLast(new InnerPongSupportHandler())
-                    .addLast(new OneWaySupportHandler())
-                    .addLast(new RpcSupportHandler());
-
-            socketSessionImp.tryActive();
-            socketSessionImp.pipeline().fireSessionActive();
-
-            // 建立连接成功，告知对方
-            onInnerConnectSuccess(channel, connectRequestEvent);
-        } else {
-            // 内网无消息确认机制，无法跨越channel通信
-            onInnerConnectFail(channel, connectRequestEvent);
-        }
-    }
-
-    /**
-     * 建立连接成功 - 告知对方成功
-     */
-    private void onInnerConnectSuccess(final Channel channel, final SocketConnectRequestEvent connectRequestEvent) {
-        final SocketConnectResponse connectResponse = new SocketConnectResponse(true, connectRequestEvent.getConnectRequest().getVerifyingTimes());
-        final InnerSocketConnectResponseTO connectResponseTO = new InnerSocketConnectResponseTO(connectResponse);
-        channel.writeAndFlush(connectResponseTO);
-    }
-
-    /**
-     * 建立连接失败 - 告知对方关闭
-     */
-    private void onInnerConnectFail(final Channel channel, final SocketConnectRequestEvent connectRequestEvent) {
-        final SocketConnectResponse connectResponse = new SocketConnectResponse(false, connectRequestEvent.getConnectRequest().getVerifyingTimes());
-        final InnerSocketConnectResponseTO connectResponseTO = new InnerSocketConnectResponseTO(connectResponse);
-        // 告知验证失败，且发送之后关闭channel
-        channel.writeAndFlush(connectResponseTO)
-                .addListener(ChannelFutureListener.CLOSE);
     }
 
     /**

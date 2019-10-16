@@ -14,30 +14,39 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.session;
+package com.wjybxx.fastjgame.net.socket.outer;
+
+import com.wjybxx.fastjgame.net.socket.BatchSocketMessageTO;
+import com.wjybxx.fastjgame.net.socket.SocketMessage;
+
+import java.util.List;
 
 /**
- * {@link SessionHandler}的缺省适配器
+ * 对外的消息传输对象
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/9/26
+ * date - 2019/10/1
  * github - https://github.com/hl845740757
  */
-public class SessionHandlerAdapter implements SessionHandler {
+public class OuterBatchSocketMessageTO implements BatchSocketMessageTO {
 
-    @Override
-    public void handlerAdded(SessionHandlerContext ctx) throws Exception {
-        // NO OP
+    private final long ack;
+
+    private final List<SocketMessage> socketMessageList;
+
+    OuterBatchSocketMessageTO(long ack, List<SocketMessage> socketMessageList) {
+        this.ack = ack;
+        this.socketMessageList = socketMessageList;
     }
 
     @Override
-    public void handlerRemoved(SessionHandlerContext ctx) throws Exception {
-        // NO OP
+    public long getAck() {
+        return ack;
     }
 
     @Override
-    public void tick(SessionHandlerContext ctx) throws Exception {
-        // NO OP
+    public List<SocketMessage> getSocketMessageList() {
+        return socketMessageList;
     }
 }

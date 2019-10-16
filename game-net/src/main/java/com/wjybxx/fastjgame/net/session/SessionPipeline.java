@@ -106,13 +106,13 @@ public interface SessionPipeline extends SessionInboundInvoker, SessionOutboundI
      * @return pipeline中的第一个handler，如果pipeline为空，则返回null
      */
     @Nullable
-    SessionHandler first();
+    SessionHandler firstHandler();
 
     /**
      * @return pipeline中的最后一个handler，如果pipeline为空，则返回null
      */
     @Nullable
-    SessionHandler last();
+    SessionHandler lastHandler();
 
     /**
      * @return 返回pipeline中的第一个handler的context，如果pipeline为空，则返回null

@@ -49,7 +49,7 @@ public class InnerPingSupportHandler extends SessionDuplexHandlerAdapter {
     }
 
     @Override
-    public void tick(SessionHandlerContext ctx) {
+    public void tick(SessionHandlerContext ctx) throws Exception {
         // session超时
         if (timeManager.getSystemMillTime() - lastReadTime > sessionTimeoutMs) {
             ctx.session().close();
@@ -57,9 +57,8 @@ public class InnerPingSupportHandler extends SessionDuplexHandlerAdapter {
         }
         // 有一段时间没发送消息了，发一个包
         if (timeManager.getSystemMillTime() - lastWriteTime > pingIntervalMs) {
-            // 这里一定要标记发送时间，否则如果fireWrite方法被拦截就爆炸了
-            lastWriteTime = timeManager.getSystemMillTime();
-            ctx.session().fireWriteAndFlush(PingPongMessage.INSTANCE);
+            // 从当前位置开始发送心跳包
+            write(ctx, PingPongMessage.INSTANCE);
         }
     }
 

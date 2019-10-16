@@ -29,30 +29,20 @@ import com.wjybxx.fastjgame.utils.CheckUtils;
  */
 public final class SocketSessionConfig extends SessionConfig {
 
-    /**
-     * 发送缓冲区
-     */
     private final int sndBuffer;
-    /**
-     * 接收缓冲区
-     */
     private final int rcvBuffer;
-    /**
-     * 最大帧长度
-     */
     private final int maxFrameLength;
-    /**
-     * 建立连接超时时间 - 毫秒
-     */
+
     private final int connectTimeoutMs;
-    /**
-     * socket读超时时间 - 秒
-     */
     private final int readTimeout;
-    /**
-     * 是否开启断线重连/消息确认机制
-     */
+
+    // ------------------------------------- 消息确认机制参数 -----------------------------
     private final boolean autoReconnect;
+    private final int maxConnectTryTimes;
+    private final int ackTimeoutMs;
+
+    private final int maxPendingMessages;
+    private final int maxCacheMessages;
 
     private SocketSessionConfig(SocketSessionConfigBuilder builder) {
         super(builder);
@@ -61,7 +51,12 @@ public final class SocketSessionConfig extends SessionConfig {
         this.maxFrameLength = builder.maxFrameLength;
         this.connectTimeoutMs = builder.connectTimeoutMs;
         this.readTimeout = builder.readTimeout;
+
         this.autoReconnect = builder.autoReconnect;
+        this.maxConnectTryTimes = builder.maxConnectTryTimes;
+        this.ackTimeoutMs = builder.ackTimeoutMs;
+        this.maxPendingMessages = builder.maxPendingMessages;
+        this.maxCacheMessages = builder.maxCacheMessages;
     }
 
     /**
@@ -100,10 +95,39 @@ public final class SocketSessionConfig extends SessionConfig {
     }
 
     /**
-     * @return 是否开启了断线重连/消息确认机制
+     * @return 是否开启了断线重连/消息确认机制。注意：必须双方都开启，否则消息确认将失败。
      */
     public boolean isAutoReconnect() {
         return autoReconnect;
+    }
+
+    /**
+     * @return <b>每一次</b>建立socket的最大尝试次数，如果指定次数内无法连接到对方，则关闭session。
+     */
+    public int maxConnectTryTimes() {
+        return maxConnectTryTimes;
+    }
+
+    /**
+     * @return 一个消息的超时时间 - 毫秒
+     * 解释：一个包在指定时间内得不到对方确认，则发起重连请求，它决定什么时候发起重连，应稍微大一点
+     */
+    public int ackTimeoutMs() {
+        return ackTimeoutMs;
+    }
+
+    /**
+     * @return 消息队列中允许的已发送未确认消息数，一旦到达该阈值，则暂停消息发送 (限流)
+     */
+    public int maxPendingMessages() {
+        return maxPendingMessages;
+    }
+
+    /**
+     * @return 消息队列中允许缓存的消息总数，一旦到达该值，则关闭session (避免无限缓存，内存溢出)
+     */
+    public int maxCacheMessages() {
+        return maxCacheMessages;
     }
 
     public static SocketSessionConfigBuilder newBuilder() {
@@ -117,7 +141,12 @@ public final class SocketSessionConfig extends SessionConfig {
         private int maxFrameLength = 8 * 1024;
         private int connectTimeoutMs = 30 * 1000;
         private int readTimeout = 45;
+
         private boolean autoReconnect = false;
+        private int maxConnectTryTimes = 5;
+        private int ackTimeoutMs = 5 * 1000;
+        private int maxPendingMessages = 50;
+        private int maxCacheMessages = 500;
 
         @Override
         protected void checkParams() {
@@ -156,6 +185,30 @@ public final class SocketSessionConfig extends SessionConfig {
 
         public SocketSessionConfigBuilder setAutoReconnect(boolean autoReconnect) {
             this.autoReconnect = autoReconnect;
+            return this;
+        }
+
+        public SocketSessionConfigBuilder setMaxPendingMessages(int maxPendingMessages) {
+            CheckUtils.checkPositive(maxPendingMessages, "maxPendingMessages");
+            this.maxPendingMessages = maxPendingMessages;
+            return this;
+        }
+
+        public SocketSessionConfigBuilder setMaxCacheMessages(int maxCacheMessages) {
+            CheckUtils.checkPositive(maxCacheMessages, "maxCacheMessages");
+            this.maxCacheMessages = maxCacheMessages;
+            return this;
+        }
+
+        public SocketSessionConfigBuilder setMaxConnectTryTimes(int maxConnectTryTimes) {
+            CheckUtils.checkPositive(maxConnectTryTimes, "maxConnectTryTimes");
+            this.maxConnectTryTimes = maxConnectTryTimes;
+            return this;
+        }
+
+        public SocketSessionConfigBuilder setAckTimeoutMs(int ackTimeoutMs) {
+            CheckUtils.checkPositive(ackTimeoutMs, "ackTimeoutMs");
+            this.ackTimeoutMs = ackTimeoutMs;
             return this;
         }
 
