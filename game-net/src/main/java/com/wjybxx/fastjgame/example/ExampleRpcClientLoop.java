@@ -95,7 +95,7 @@ public class ExampleRpcClientLoop extends DisruptorEventLoop {
 
     @Override
     protected void loopOnce() {
-        if (session == null || System.currentTimeMillis() - startTime > TimeUtils.MIN) {
+        if (session == null || System.currentTimeMillis() - startTime > 5 * TimeUtils.MIN) {
             shutdown();
             return;
         }

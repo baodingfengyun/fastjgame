@@ -445,7 +445,7 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
 
                 // 因为采用的是捎带确认，且一个消息不一定对应的返回，因此需要别的方式进行确认
                 // 如果在过去一定时间之后还未收到确认消息，立即发送一个心跳，尝试对前面的消息进行确认 - 心跳对方会立即返回
-                if (!firstMessage.isTraced() && firstMessage.getAckDeadline() - netTimeManager.getSystemMillTime() >= config.ackTimeoutMs() / 2) {
+                if (!firstMessage.isTraced() && firstMessage.getAckDeadline() - netTimeManager.getSystemMillTime() < config.ackTimeoutMs() / 2) {
                     firstMessage.setTraced(true);
                     // 调用session的fireWrite方法，使得能流经心跳控制逻辑
                     ctx.session().fireWrite(PingPongMessage.INSTANCE);
