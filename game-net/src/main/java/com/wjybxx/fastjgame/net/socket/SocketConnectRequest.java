@@ -34,12 +34,23 @@ public class SocketConnectRequest {
      * 即使不校验sequence和ack，该字段也是必须校验的。
      */
     private final int verifyingTimes;
+    /**
+     * 客户端已验证成功次数
+     * （成功接收到建立连接响应）
+     */
+    private final int verifiedTimes;
 
-    public SocketConnectRequest(int verifyingTimes) {
+    public SocketConnectRequest(int verifyingTimes, int verifiedTimes) {
         this.verifyingTimes = verifyingTimes;
+        this.verifiedTimes = verifiedTimes;
     }
 
     public int getVerifyingTimes() {
         return verifyingTimes;
     }
+
+    public int getVerifiedTimes() {
+        return verifiedTimes;
+    }
+
 }

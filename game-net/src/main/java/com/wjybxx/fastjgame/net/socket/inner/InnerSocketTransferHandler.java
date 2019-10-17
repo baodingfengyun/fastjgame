@@ -21,7 +21,7 @@ import com.wjybxx.fastjgame.net.common.DisconnectAwareTask;
 import com.wjybxx.fastjgame.net.common.NetMessage;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
-import com.wjybxx.fastjgame.net.socket.SocketDisconnectEvent;
+import com.wjybxx.fastjgame.net.socket.SocketChannelInactiveEvent;
 import com.wjybxx.fastjgame.net.socket.SocketEvent;
 import com.wjybxx.fastjgame.net.socket.SocketMessageEvent;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
@@ -49,7 +49,7 @@ public class InnerSocketTransferHandler extends SessionDuplexHandlerAdapter {
      */
     private int msgCount;
 
-    public InnerSocketTransferHandler(Channel channel) {
+    InnerSocketTransferHandler(Channel channel) {
         this.channel = channel;
     }
 
@@ -75,33 +75,40 @@ public class InnerSocketTransferHandler extends SessionDuplexHandlerAdapter {
     @Override
     public void read(SessionHandlerContext ctx, Object msg) {
         SocketEvent socketEvent = (SocketEvent) msg;
-        if (ctx.session().isActive()) {
-            // 接收到一个消息
-            if (socketEvent instanceof SocketMessageEvent) {
-                ctx.fireRead(((SocketMessageEvent) msg).getWrappedMessage());
-                return;
-            }
-            // socket断开事件 - 内网不断线重连，不使用消息确认机制，socket断开就关闭session
-            if (socketEvent instanceof SocketDisconnectEvent) {
-                ctx.session().close();
-            }
-        } else {
+        if (ctx.session().isClosed()) {
             // session已关闭，丢弃消息
             NetUtils.closeQuietly(socketEvent.channel());
+            return;
+        }
+        if (socketEvent instanceof SocketMessageEvent) {
+            // 接收到一个消息 - 它出现的概率更高，因此放在断开连接事件前
+            ctx.fireRead(((SocketMessageEvent) msg).getWrappedMessage());
+            return;
+        }
+        if (socketEvent instanceof SocketChannelInactiveEvent) {
+            // socket断开事件 - 内网不断线重连，不使用消息确认机制，socket断开就关闭session
+            ctx.session().close();
         }
     }
 
     @Override
     public void write(SessionHandlerContext ctx, Object msg) throws Exception {
-        if (ctx.session().isActive()) {
-            msgCount++;
-            channel.write(new InnerSocketMessage((NetMessage) msg), channel.voidPromise());
+        if (ctx.session().isClosed()) {
+            // session已关闭，丢弃消息
+            return;
         }
-        // else session已关闭，丢弃消息
+        msgCount++;
+        channel.write(new InnerSocketMessage((NetMessage) msg), channel.voidPromise());
+        // else
     }
 
     @Override
     public void flush(SessionHandlerContext ctx) throws Exception {
+        if (ctx.session().isClosed()) {
+            // session已关闭，丢弃消息
+            return;
+        }
+
         if (msgCount > 0) {
             doFlush();
         }
@@ -114,6 +121,6 @@ public class InnerSocketTransferHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void close(SessionHandlerContext ctx) throws Exception {
-        channel.close();
+        NetUtils.closeQuietly(channel);
     }
 }

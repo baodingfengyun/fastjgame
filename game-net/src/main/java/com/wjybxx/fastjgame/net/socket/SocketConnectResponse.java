@@ -30,22 +30,30 @@ public class SocketConnectResponse {
      * 验证是否成功
      */
     private final boolean success;
-    /**
-     * 这是客户端第几次验证的结果 - 与连接请求匹配
-     */
+    // 请求参数
     private final int verifyingTimes;
+    private final int verifiedTimes;
 
-    public SocketConnectResponse(boolean success, int verifyingTimes) {
+    public SocketConnectResponse(boolean success, SocketConnectRequest connectRequest) {
+        this(success, connectRequest.getVerifyingTimes(), connectRequest.getVerifiedTimes());
+    }
+
+    public SocketConnectResponse(boolean success, int verifyingTimes, int verifiedTimes) {
         this.success = success;
         this.verifyingTimes = verifyingTimes;
+        this.verifiedTimes = verifiedTimes;
+    }
+
+    public boolean isSuccess() {
+        return success;
     }
 
     public int getVerifyingTimes() {
         return verifyingTimes;
     }
 
-    public boolean isSuccess() {
-        return success;
+    public int getVerifiedTimes() {
+        return verifiedTimes;
     }
 
 }

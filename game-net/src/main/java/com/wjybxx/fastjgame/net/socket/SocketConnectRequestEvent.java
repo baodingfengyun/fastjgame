@@ -32,6 +32,10 @@ public class SocketConnectRequestEvent implements SocketEvent {
     private final String sessionId;
     private final long remoteGuid;
     /**
+     * 我的初始sequence
+     */
+    private final long initSequence;
+    /**
      * 我期望的下一个消息号
      */
     private final long ack;
@@ -44,10 +48,11 @@ public class SocketConnectRequestEvent implements SocketEvent {
      */
     private final SocketPortContext portExtraInfo;
 
-    public SocketConnectRequestEvent(Channel channel, String sessionId, long remoteGuid, long ack, SocketConnectRequest connectRequest, SocketPortContext portExtraInfo) {
+    public SocketConnectRequestEvent(Channel channel, String sessionId, long remoteGuid, long initSequence, long ack, SocketConnectRequest connectRequest, SocketPortContext portExtraInfo) {
         this.channel = channel;
         this.sessionId = sessionId;
         this.remoteGuid = remoteGuid;
+        this.initSequence = initSequence;
         this.ack = ack;
         this.connectRequest = connectRequest;
         this.portExtraInfo = portExtraInfo;
@@ -65,6 +70,10 @@ public class SocketConnectRequestEvent implements SocketEvent {
 
     public long remoteGuid() {
         return remoteGuid;
+    }
+
+    public long getInitSequence() {
+        return initSequence;
     }
 
     public long getAck() {

@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.net.socket.inner;
 
 import com.wjybxx.fastjgame.net.socket.BatchSocketMessageTO;
-import com.wjybxx.fastjgame.net.socket.MessageQueue;
 import com.wjybxx.fastjgame.net.socket.SocketMessage;
 
 import java.util.List;
@@ -42,7 +41,7 @@ public class InnerBatchSocketMessageTO implements BatchSocketMessageTO {
 
     @Override
     public long getAck() {
-        return MessageQueue.INIT_ACK;
+        return InnerUtils.INNER_ACK;
     }
 
     @Override

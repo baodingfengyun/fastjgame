@@ -29,7 +29,6 @@ public interface SessionOutboundHandler extends SessionHandler {
     /**
      * 发送一个消息。
      * 为了扩展性变成了这样，导致丧失了部分可读性和性能。
-     * 注意：此时{@link Session#isActive() true}
      *
      * @param msg 消息内容
      */
@@ -37,7 +36,6 @@ public interface SessionOutboundHandler extends SessionHandler {
 
     /**
      * 刷新缓冲区，如果有缓存的话。
-     * 注意：此时{@link Session#isActive() true}
      *
      * @param ctx handler所属的上下文
      */
@@ -45,7 +43,7 @@ public interface SessionOutboundHandler extends SessionHandler {
 
     /**
      * 请求关闭session。
-     * 注意：此时{@link Session#isActive() false}
+     * 注意：不要轻易重写该方法。
      *
      * @param ctx handler所属的上下文
      */

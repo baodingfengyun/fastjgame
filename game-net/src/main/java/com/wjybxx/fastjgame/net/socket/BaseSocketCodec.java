@@ -162,11 +162,14 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
      */
     final void writeConnectRequest(ChannelHandlerContext ctx, String sessionId, long localGuid, SocketConnectRequestTO socketConnectRequestTO, ChannelPromise promise) {
         final SocketConnectRequest socketConnectRequest = socketConnectRequestTO.getConnectRequest();
-        final int contentLength = 8 + 4 + 8 + sessionId.length();
+        final int contentLength = 8 + 4 + 4 + 8 + 8 + sessionId.length();
         ByteBuf head = newHeadByteBuf(ctx, contentLength, NetMessageType.CONNECT_REQUEST);
 
         head.writeLong(localGuid);
         head.writeInt(socketConnectRequest.getVerifyingTimes());
+        head.writeInt(socketConnectRequest.getVerifiedTimes());
+
+        head.writeLong(socketConnectRequestTO.getInitSequence());
         head.writeLong(socketConnectRequestTO.getAck());
 
         // sessionId
@@ -180,27 +183,39 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
      * 解码协议1 - 建立连接请求
      */
     final SocketConnectRequestEvent readConnectRequest(Channel channel, ByteBuf msg, SocketPortContext portExtraInfo) {
+
+        // 建立连接请求
         long remoteGuid = msg.readLong();
         int verifyingTimes = msg.readInt();
+        int verifiedTimes = msg.readInt();
+
+        // initSequence和ack
+        long initSequence = msg.readLong();
         long ack = msg.readLong();
 
         // sessionId
         byte[] sessionIdBytes = NetUtils.readRemainBytes(msg);
         String sessionId = CodecUtils.newStringUTF8(sessionIdBytes);
 
-        SocketConnectRequest socketConnectRequest = new SocketConnectRequest(verifyingTimes);
-        return new SocketConnectRequestEvent(channel, sessionId, remoteGuid, ack, socketConnectRequest, portExtraInfo);
+        SocketConnectRequest socketConnectRequest = new SocketConnectRequest(verifyingTimes, verifiedTimes);
+        return new SocketConnectRequestEvent(channel, sessionId, remoteGuid, initSequence, ack, socketConnectRequest, portExtraInfo);
     }
 
     /**
      * 编码协议2 - 建立连接应答
      */
     final void writeConnectResponse(ChannelHandlerContext ctx, SocketConnectResponseTO socketConnectResponseTO, ChannelPromise promise) {
-        ByteBuf byteBuf = newHeadByteBuf(ctx, 1 + 4 + 8, NetMessageType.CONNECT_RESPONSE);
+        ByteBuf byteBuf = newHeadByteBuf(ctx, 1 + 4 + 4 + 8 + 8, NetMessageType.CONNECT_RESPONSE);
 
         SocketConnectResponse socketConnectResponse = socketConnectResponseTO.getConnectResponse();
+
+        // 建立连接结果
         byteBuf.writeByte(socketConnectResponse.isSuccess() ? 1 : 0);
         byteBuf.writeInt(socketConnectResponse.getVerifyingTimes());
+        byteBuf.writeInt(socketConnectResponse.getVerifiedTimes());
+
+        // initSequence和ack
+        byteBuf.writeLong(socketConnectResponseTO.getInitSequence());
         byteBuf.writeLong(socketConnectResponseTO.getAck());
 
         appendSumAndWrite(ctx, byteBuf, promise);
@@ -211,11 +226,15 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
      */
     final SocketConnectResponseEvent readConnectResponse(Channel channel, String sessionId, ByteBuf msg) {
         boolean success = msg.readByte() == 1;
+
         int verifyingTimes = msg.readInt();
+        int verifiedTimes = msg.readInt();
+
+        long initSequence = msg.readLong();
         long ack = msg.readLong();
 
-        SocketConnectResponse socketConnectResponse = new SocketConnectResponse(success, verifyingTimes);
-        return new SocketConnectResponseEvent(channel, sessionId, ack, socketConnectResponse);
+        SocketConnectResponse socketConnectResponse = new SocketConnectResponse(success, verifyingTimes, verifiedTimes);
+        return new SocketConnectResponseEvent(channel, sessionId, initSequence, ack, socketConnectResponse);
     }
 
     // ---------------------------------------------- 心跳协议  ---------------------------------------

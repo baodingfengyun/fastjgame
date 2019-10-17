@@ -35,7 +35,7 @@ public class OuterBatchSocketMessageTO implements BatchSocketMessageTO {
 
     private final List<SocketMessage> socketMessageList;
 
-    OuterBatchSocketMessageTO(long ack, List<SocketMessage> socketMessageList) {
+    public OuterBatchSocketMessageTO(long ack, List<SocketMessage> socketMessageList) {
         this.ack = ack;
         this.socketMessageList = socketMessageList;
     }

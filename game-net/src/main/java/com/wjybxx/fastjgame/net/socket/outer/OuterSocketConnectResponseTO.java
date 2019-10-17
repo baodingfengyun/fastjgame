@@ -29,12 +29,19 @@ import com.wjybxx.fastjgame.net.socket.SocketConnectResponseTO;
  */
 public class OuterSocketConnectResponseTO implements SocketConnectResponseTO {
 
+    private final long initSequence;
     private final long ack;
     private final SocketConnectResponse connectResponse;
 
-    public OuterSocketConnectResponseTO(long ack, SocketConnectResponse connectResponse) {
+    public OuterSocketConnectResponseTO(long initSequence, long ack, SocketConnectResponse connectResponse) {
+        this.initSequence = initSequence;
         this.ack = ack;
         this.connectResponse = connectResponse;
+    }
+
+    @Override
+    public long getInitSequence() {
+        return initSequence;
     }
 
     @Override

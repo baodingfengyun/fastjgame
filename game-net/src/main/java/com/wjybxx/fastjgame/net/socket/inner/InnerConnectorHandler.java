@@ -16,9 +16,11 @@
 
 package com.wjybxx.fastjgame.net.socket.inner;
 
+import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.concurrent.adapter.NettyFutureAdapter;
 import com.wjybxx.fastjgame.net.common.OneWaySupportHandler;
 import com.wjybxx.fastjgame.net.common.RpcSupportHandler;
+import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 import com.wjybxx.fastjgame.net.socket.*;
@@ -35,16 +37,16 @@ import io.netty.channel.ChannelFuture;
  */
 public class InnerConnectorHandler extends SessionDuplexHandlerAdapter {
 
-    static final int INNER_VERIFY_TIMES = 1;
-
     private final ChannelFuture channelFuture;
+    private final Promise<Session> connectPromise;
     /**
      * 建立连接的超时时间
      */
     private long deadline;
 
-    public InnerConnectorHandler(ChannelFuture channelFuture) {
+    public InnerConnectorHandler(ChannelFuture channelFuture, Promise<Session> connectPromise) {
         this.channelFuture = channelFuture;
+        this.connectPromise = connectPromise;
     }
 
     @Override
@@ -65,9 +67,12 @@ public class InnerConnectorHandler extends SessionDuplexHandlerAdapter {
             NetUtils.closeQuietly(channelFuture);
             return;
         }
+
         if (channelFuture.isSuccess()) {
             // socket连接成功，则发送建立session请求
-            SocketConnectRequest connectRequest = new SocketConnectRequest(INNER_VERIFY_TIMES);
+            SocketConnectRequest connectRequest = new SocketConnectRequest(InnerUtils.INNER_VERIFY_TIMES,
+                    InnerUtils.INNER_VERIFIED_TIMES);
+
             InnerSocketConnectRequestTO connectRequestTO = new InnerSocketConnectRequestTO(connectRequest);
             channelFuture.channel().writeAndFlush(connectRequestTO);
         } else {
@@ -89,12 +94,14 @@ public class InnerConnectorHandler extends SessionDuplexHandlerAdapter {
         SocketEvent socketEvent = (SocketEvent) msg;
         if (socketEvent.channel() == channelFuture.channel()) {
             final SocketSessionImp session = (SocketSessionImp) ctx.session();
+
             if (socketEvent instanceof SocketConnectResponseEvent) {
                 // 建立连接响应
                 onRcvConnectResponse(session, (SocketConnectResponseEvent) msg);
                 return;
             }
-            if (socketEvent instanceof SocketDisconnectEvent) {
+
+            if (socketEvent instanceof SocketChannelInactiveEvent) {
                 // socket断开事件，无法建立连接
                 session.close();
                 return;
@@ -112,27 +119,31 @@ public class InnerConnectorHandler extends SessionDuplexHandlerAdapter {
      */
     private void onRcvConnectResponse(SocketSessionImp session, SocketConnectResponseEvent connectResponseEvent) {
         SocketConnectResponse connectResponse = connectResponseEvent.getConnectResponse();
-        if (connectResponse.getVerifyingTimes() != INNER_VERIFY_TIMES) {
+        if (connectResponse.getVerifyingTimes() != InnerUtils.INNER_VERIFY_TIMES) {
             // 验证次数不对
             session.close();
             return;
         }
-        if (connectResponseEvent.getAck() != MessageQueue.INIT_ACK) {
+
+        if (connectResponseEvent.getAck() != InnerUtils.INNER_ACK) {
             // 初始化ack错误
             session.close();
             return;
         }
+
         if (!connectResponse.isSuccess()) {
             // 不允许建立连接
             session.close();
             return;
         }
-        if (session.tryActive()) {
+
+        if (connectPromise.trySuccess(session)) {
             // 激活session成功，删除自己，添加真正的handler逻辑
+            session.tryActive();
             session.pipeline()
                     .remove(this)
                     .addLast(new InnerSocketTransferHandler(channelFuture.channel()))
-                    .addLast(new InnerPingSupportHandler())
+                    .addLast(new PingSupportHandler())
                     .addLast(new OneWaySupportHandler());
 
             // 判断是否支持rpc
@@ -143,6 +154,7 @@ public class InnerConnectorHandler extends SessionDuplexHandlerAdapter {
             // 传递session激活事件
             session.pipeline().fireSessionActive();
         } else {
+            // 用户取消了连接
             session.closeForcibly();
         }
     }

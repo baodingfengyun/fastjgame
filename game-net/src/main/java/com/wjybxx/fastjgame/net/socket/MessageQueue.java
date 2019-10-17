@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.net.socket;
 
 import com.wjybxx.fastjgame.net.socket.outer.OuterSocketMessage;
+import org.apache.commons.lang3.RandomUtils;
 
 import java.util.LinkedList;
 
@@ -26,14 +27,14 @@ import java.util.LinkedList;
  * <pre>
  * 消息队列的视图大致如下：
  *
- *  ack   ~    ack
- *  ↓           ↓
- *  ↓           ↓nextSequence
- * |---------------------------
- * | sentQueue |  unsentQueue  |
- * | --------------------------|
- * |    0~n    |      0~n      |
- * |---------------------------
+ *  ack    ~      ack
+ *  ↓              ↓
+ *  ↓              ↓nextSequence
+ * |-----------------------------
+ * | pendingQueue |  cacheQueue  |
+ * | ----------------------------|
+ * | 0~maxPending |  0~maxCache  |
+ * |------------------------------
  *
  * </pre>
  *
@@ -44,30 +45,33 @@ import java.util.LinkedList;
  */
 public final class MessageQueue {
 
-    public static final int INIT_SEQUENCE = 0;
-    public static final int INIT_ACK = INIT_SEQUENCE + 1;
+    /**
+     * 初始sequence
+     * 不从0开始，可以有效降低脏连接的情况
+     */
+    private final long initSequence = RandomUtils.nextInt(0, 23333);
 
     /**
      * 消息号分配器
      */
-    private long sequencer = INIT_SEQUENCE;
+    private long sequencer = initSequence;
 
     /**
      * 期望的下一个消息号
      */
-    private long ack = INIT_ACK;
+    private long ack;
 
     /**
-     * 已发送待确认的消息队列，只要发送过就不会再放入{@link #unsentQueue}
+     * 已发送待确认的消息队列，只要发送过就不会再放入{@link #cacheQueue}
      * Q: 为什么不使用arrayList?
      * A: 1.存在大量的删除操作 2.ArrayList存在空间浪费。3.遍历很少
      */
-    private LinkedList<OuterSocketMessage> sentQueue = new LinkedList<>();
+    private LinkedList<OuterSocketMessage> pendingQueue = new LinkedList<>();
 
     /**
      * 未发送的消息队列,还没有尝试过发送的消息
      */
-    private LinkedList<OuterSocketMessage> unsentQueue = new LinkedList<>();
+    private LinkedList<OuterSocketMessage> cacheQueue = new LinkedList<>();
 
     /**
      * 对方发送过来的ack是否有效。
@@ -82,8 +86,8 @@ public final class MessageQueue {
      */
     private long getAckLowerBound() {
         // 如果有消息未确认，那么ack的最小值就是未确认的第一个消息
-        if (sentQueue.size() > 0) {
-            return sentQueue.getFirst().getSequence();
+        if (pendingQueue.size() > 0) {
+            return pendingQueue.getFirst().getSequence();
         }
         // 都已确认，那么期望的消息号就是我的下一个消息
         return sequencer + 1;
@@ -102,21 +106,21 @@ public final class MessageQueue {
      *
      * @param ack 对方发来的ack
      */
-    public void updateSentQueue(long ack) {
-        while (sentQueue.size() > 0) {
-            if (sentQueue.getFirst().getSequence() >= ack) {
+    public void updatePendingQueue(long ack) {
+        while (pendingQueue.size() > 0) {
+            if (pendingQueue.getFirst().getSequence() >= ack) {
                 break;
             }
-            sentQueue.removeFirst();
+            pendingQueue.removeFirst();
         }
     }
 
     public int getPendingMessages() {
-        return sentQueue.size();
+        return pendingQueue.size();
     }
 
     public int getCacheMessages() {
-        return sentQueue.size();
+        return cacheQueue.size();
     }
 
     /**
@@ -126,6 +130,13 @@ public final class MessageQueue {
      */
     public String generateAckErrorInfo(long ack) {
         return String.format("{ack=%d, lastAckGuid=%d, nextMaxAckGuid=%d}", ack, getAckLowerBound(), getAckUpperBound());
+    }
+
+    /**
+     * @return 获取初始sequence
+     */
+    public long getInitSequence() {
+        return initSequence;
     }
 
     /**
@@ -143,30 +154,21 @@ public final class MessageQueue {
         this.ack = ack;
     }
 
-    public LinkedList<OuterSocketMessage> getSentQueue() {
-        return sentQueue;
+    public LinkedList<OuterSocketMessage> getPendingQueue() {
+        return pendingQueue;
     }
 
-    public LinkedList<OuterSocketMessage> getUnsentQueue() {
-        return unsentQueue;
-    }
-
-    /**
-     * 交换未发送的缓冲区
-     */
-    public LinkedList<OuterSocketMessage> exchangeUnsentMessages() {
-        LinkedList<OuterSocketMessage> result = unsentQueue;
-        unsentQueue = new LinkedList<>();
-        return result;
+    public LinkedList<OuterSocketMessage> getCacheQueue() {
+        return cacheQueue;
     }
 
     /**
      * 删除已发送和未发送的消息队列
      * help gc
      */
-    public void detachMessageQueue() {
-        sentQueue = null;
-        unsentQueue = null;
+    public void cleanMessageQueue() {
+        pendingQueue = null;
+        cacheQueue = null;
     }
 
     @Override
@@ -174,8 +176,8 @@ public final class MessageQueue {
         return "MessageQueue{" +
                 "sequencer=" + sequencer +
                 ", ack=" + ack +
-                ", sentQueueSize=" + sentQueue.size() +
-                ", needSendQueueSize=" + unsentQueue.size() +
+                ", pendingQueueSize=" + pendingQueue.size() +
+                ", cacheQueueSize=" + cacheQueue.size() +
                 "}";
     }
 }

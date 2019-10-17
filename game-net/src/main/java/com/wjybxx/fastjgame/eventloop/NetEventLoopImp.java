@@ -230,17 +230,22 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     @Override
     public ListenableFuture<Session> connectTcp(String sessionId, long remoteGuid, HostAndPort remoteAddress, SocketSessionConfig config, NetContext netContext) {
         final TCPClientChannelInitializer initializer = new TCPClientChannelInitializer(sessionId, netContext.localGuid(), config, this);
-        return submit(() -> {
-            return connectorManager.connect(sessionId, remoteGuid, remoteAddress, config, initializer, netContext);
+        final Promise<Session> connectPromise = newPromise();
+        // 使用connectPromise的好处是，可以避免在session激活前交给应用层，导致一些额外的复杂度
+        execute(() -> {
+            connectorManager.connect(sessionId, remoteGuid, remoteAddress, config, initializer, netContext, connectPromise);
         });
+        return connectPromise;
     }
 
     @Override
     public ListenableFuture<Session> connectWS(String sessionId, long remoteGuid, HostAndPort remoteAddress, String websocketUrl, SocketSessionConfig config, NetContext netContext) {
         final WsClientChannelInitializer initializer = new WsClientChannelInitializer(sessionId, remoteGuid, websocketUrl, config, this);
-        return submit(() -> {
-            return connectorManager.connect(sessionId, remoteGuid, remoteAddress, config, initializer, netContext);
+        final Promise<Session> connectPromise = newPromise();
+        execute(() -> {
+            connectorManager.connect(sessionId, remoteGuid, remoteAddress, config, initializer, netContext, connectPromise);
         });
+        return connectPromise;
     }
 
     // --------------------------------------------------------- localSession ----------------------------------------------------
@@ -250,9 +255,11 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         if (!(localPort instanceof DefaultLocalPort)) {
             return new FailedFuture<>(this, new UnsupportedOperationException());
         }
-        return submit(() -> {
-            return connectorManager.connectLocal(sessionId, remoteGuid, (DefaultLocalPort) localPort, config, netContext);
+        final Promise<Session> connectPromise = newPromise();
+        execute(() -> {
+            connectorManager.connectLocal(sessionId, remoteGuid, (DefaultLocalPort) localPort, config, netContext, connectPromise);
         });
+        return connectPromise;
     }
     // -------------------------------------------------------------- http --------------------------------------------------------
 

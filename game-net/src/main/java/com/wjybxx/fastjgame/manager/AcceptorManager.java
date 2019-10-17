@@ -104,7 +104,7 @@ public class AcceptorManager implements SessionRegistry {
     public void onRcvConnectRequest(SocketConnectRequestEvent connectRequestEvent) {
         if (connectRequestEvent.getPortExtraInfo().getSessionConfig().isAutoReconnect()) {
             // 外网逻辑 - 带有消息确认机制
-            OuterAcceptorHandler.onRcvOuterConnectRequest(connectRequestEvent, netManagerWrapper, this);
+            OuterAcceptorHandler.onRcvConnectRequest(connectRequestEvent, netManagerWrapper, this);
         } else {
             // 内网逻辑 - 不带消息确认机制
             InnerAcceptorHandler.onRcvInnerConnectRequest(connectRequestEvent, netManagerWrapper, this);
@@ -136,7 +136,7 @@ public class AcceptorManager implements SessionRegistry {
      * @return session
      * @throws IOException error
      */
-    public LocalSessionImp onRcvConnectRequest(DefaultLocalPort localPort, String sessionId, long remoteGuid) throws IOException {
+    LocalSessionImp onRcvConnectRequest(DefaultLocalPort localPort, String sessionId, long remoteGuid) throws IOException {
         // 端口已关闭
         if (!localPort.isActive()) {
             throw new IOException("local port closed");

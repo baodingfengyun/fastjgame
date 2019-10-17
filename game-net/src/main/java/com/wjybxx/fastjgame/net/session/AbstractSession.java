@@ -148,28 +148,29 @@ public abstract class AbstractSession implements Session {
 
     @Override
     public final void send(@Nonnull Object message) {
-        if (isActive()) {
-            // 会话活动的状态下才会发送
-            netEventLoop.execute(new OneWayMessageWriteTask(this, message));
+        if (isClosed()) {
+            // 会话关闭的情况下丢弃消息
+            return;
         }
+        netEventLoop.execute(new OneWayMessageWriteTask(this, message));
     }
 
     @Override
     public final void call(@Nonnull Object request, @Nonnull RpcCallback callback) {
-        if (isActive()) {
+        if (isClosed()) {
+            // 会话关闭的情况下直接执行回调
+            callback.onComplete(RpcResponse.SESSION_CLOSED);
+        } else {
             // 会话活动的状态下才会发送
             netEventLoop.execute(new AsyncRpcRequestWriteTask(this, request, callback));
-        } else {
-            // 会话关闭的情况下，直接执行回调
-            callback.onComplete(RpcResponse.SESSION_CLOSED);
         }
     }
 
     @Override
     @Nonnull
     public final RpcResponse sync(@Nonnull Object request) {
-        // 逻辑层校验，会话已关闭，立即返回结果
-        if (!isActive()) {
+        if (isClosed()) {
+            // 会话关闭的情况下直接返回
             return RpcResponse.SESSION_CLOSED;
         }
         final RpcPromise rpcPromise = netEventLoop.newRpcPromise(localEventLoop(), config().getSyncRpcTimeoutMs());
@@ -183,6 +184,11 @@ public abstract class AbstractSession implements Session {
     @Override
     public final boolean isActive() {
         return stateHolder.get() == ST_CONNECTED;
+    }
+
+    @Override
+    public boolean isClosed() {
+        return stateHolder.get() == ST_CLOSED;
     }
 
     @Override
@@ -217,54 +223,37 @@ public abstract class AbstractSession implements Session {
 
     @Override
     public final SessionPipeline pipeline() {
-        if (netEventLoop.inEventLoop()) {
-            return pipeline;
-        } else {
-            throw new InternalApiException();
-        }
+        ensureInternal();
+        return pipeline;
     }
 
     @Internal
     @Override
     public void fireRead(@Nullable Object msg) {
-        if (netEventLoop.inEventLoop()) {
-            pipeline.fireRead(msg);
-        } else {
-            throw new InternalApiException();
-        }
+        ensureInternal();
+        pipeline.fireRead(msg);
     }
 
     @Internal
     @Override
     public void fireWrite(@Nonnull Object msg) {
-        if (netEventLoop.inEventLoop()) {
-            pipeline.fireWrite(msg);
-        } else {
-            throw new InternalApiException();
-        }
+        ensureInternal();
+        pipeline.fireWrite(msg);
     }
 
     @Override
     public void fireWriteAndFlush(@Nonnull Object msg) {
-        if (netEventLoop.inEventLoop()) {
-            pipeline.fireWriteAndFlush(msg);
-        } else {
-            throw new InternalApiException();
-        }
+        ensureInternal();
+        pipeline.fireWriteAndFlush(msg);
     }
 
     /**
      * @return 如果切换为激活状态，则返回true
      */
+    @Internal
     public boolean tryActive() {
+        ensureInternal();
         return stateHolder.compareAndSet(ST_BOUND, ST_CONNECTED);
-    }
-
-    /**
-     * @return 查询session是否已开始关闭
-     */
-    public boolean isClosed() {
-        return stateHolder.get() == ST_CLOSED;
     }
 
     /**
@@ -277,14 +266,26 @@ public abstract class AbstractSession implements Session {
     /**
      * 网络层强制关闭，不调用事件通知
      */
+    @Internal
     public final void closeForcibly() {
-        assert netEventLoop.inEventLoop();
+        ensureInternal();
+
         final int oldState = stateHolder.getAndSet(ST_CLOSED);
         if (oldState == ST_CLOSED) {
             // 已关闭
             return;
         }
         doClose();
+    }
+
+    /**
+     * 线程判断 - 线程保护
+     */
+    private void ensureInternal() {
+        if (netEventLoop.inEventLoop()) {
+            return;
+        }
+        throw new InternalApiException();
     }
 
     @Override

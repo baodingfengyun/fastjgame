@@ -31,6 +31,10 @@ public class SocketConnectResponseEvent implements SocketEvent {
     private final Channel channel;
     private final String sessionId;
     /**
+     * 对方的初始sequence
+     */
+    private final long initSequence;
+    /**
      * 对方期望的下一个消息号
      */
     private final long ack;
@@ -39,9 +43,10 @@ public class SocketConnectResponseEvent implements SocketEvent {
      */
     private final SocketConnectResponse connectResponse;
 
-    public SocketConnectResponseEvent(Channel channel, String sessionId, long ack, SocketConnectResponse connectResponse) {
+    public SocketConnectResponseEvent(Channel channel, String sessionId, long initSequence, long ack, SocketConnectResponse connectResponse) {
         this.channel = channel;
         this.sessionId = sessionId;
+        this.initSequence = initSequence;
         this.ack = ack;
         this.connectResponse = connectResponse;
     }
@@ -56,16 +61,16 @@ public class SocketConnectResponseEvent implements SocketEvent {
         return sessionId;
     }
 
+    public long getInitSequence() {
+        return initSequence;
+    }
+
     public long getAck() {
         return ack;
     }
 
     public SocketConnectResponse getConnectResponse() {
         return connectResponse;
-    }
-
-    public boolean isSuccess() {
-        return connectResponse.isSuccess();
     }
 
 }

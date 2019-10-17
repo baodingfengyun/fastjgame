@@ -14,36 +14,25 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.socket;
-
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
+package com.wjybxx.fastjgame.net.socket.inner;
 
 /**
- * {@link io.netty.channel.ChannelInboundHandler#channelInactive(ChannelHandlerContext)}事件
+ * 内网连接工具类
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/10/14
+ * date - 2019/10/17
  * github - https://github.com/hl845740757
  */
-public class SocketDisconnectEvent implements SocketEvent {
+class InnerUtils {
 
-    private final Channel channel;
-    private final String sessionId;
+    static final int INNER_VERIFY_TIMES = 1234;
+    static final int INNER_VERIFIED_TIMES = INNER_VERIFY_TIMES - 1;
 
-    public SocketDisconnectEvent(Channel channel, String sessionId) {
-        this.channel = channel;
-        this.sessionId = sessionId;
-    }
+    static final int INNER_SEQUENCE = 2333;
+    static final int INNER_ACK = INNER_SEQUENCE + 1;
 
-    @Override
-    public Channel channel() {
-        return channel;
-    }
-
-    @Override
-    public String sessionId() {
-        return sessionId;
+    private InnerUtils() {
+        // close
     }
 }

@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.net.socket.inner;
 
 import com.wjybxx.fastjgame.net.common.NetMessage;
-import com.wjybxx.fastjgame.net.socket.MessageQueue;
 import com.wjybxx.fastjgame.net.socket.SocketMessage;
 import com.wjybxx.fastjgame.net.socket.SocketMessageTO;
 
@@ -42,7 +41,7 @@ public class InnerSocketMessage implements SocketMessage, SocketMessageTO {
 
     @Override
     public long getSequence() {
-        return MessageQueue.INIT_SEQUENCE;
+        return InnerUtils.INNER_SEQUENCE;
     }
 
     @Override
@@ -52,7 +51,7 @@ public class InnerSocketMessage implements SocketMessage, SocketMessageTO {
 
     @Override
     public long getAck() {
-        return MessageQueue.INIT_ACK;
+        return InnerUtils.INNER_ACK;
     }
 
     @Override

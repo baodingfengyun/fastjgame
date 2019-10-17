@@ -83,6 +83,7 @@ public class ExampleRpcClientLoop extends DisruptorEventLoop {
                     .setCodec(ExampleConstants.reflectBasedCodec)
                     .setLifecycleAware(new ServerDisconnectAward())
                     .setDispatcher(new DefaultProtocolDispatcher())
+                    .setAutoReconnect(true)
                     .build();
 
             final HostAndPort address = new HostAndPort(NetUtils.getLocalIp(), ExampleConstants.tcpPort);

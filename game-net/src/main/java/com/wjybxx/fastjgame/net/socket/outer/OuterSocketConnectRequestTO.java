@@ -13,16 +13,20 @@ import com.wjybxx.fastjgame.net.socket.SocketConnectRequestTO;
  */
 public class OuterSocketConnectRequestTO implements SocketConnectRequestTO {
 
-    /**
-     * 我期望的下一个消息号
-     */
+    private final long initSequence;
     private final long ack;
 
     private final SocketConnectRequest connectRequest;
 
-    OuterSocketConnectRequestTO(long ack, SocketConnectRequest connectRequest) {
+    OuterSocketConnectRequestTO(long initSequence, long ack, SocketConnectRequest connectRequest) {
+        this.initSequence = initSequence;
         this.ack = ack;
         this.connectRequest = connectRequest;
+    }
+
+    @Override
+    public long getInitSequence() {
+        return initSequence;
     }
 
     @Override

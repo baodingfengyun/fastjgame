@@ -41,6 +41,8 @@ public final class SocketSessionConfig extends SessionConfig {
     // ------------------------------------- 消息确认机制参数 -----------------------------
     private final boolean autoReconnect;
     private final int maxConnectTryTimes;
+    private final int verifyTimeoutMs;
+    private final int maxVerifyTimes;
     private final int ackTimeoutMs;
 
     private final int maxPendingMessages;
@@ -56,6 +58,10 @@ public final class SocketSessionConfig extends SessionConfig {
 
         this.autoReconnect = builder.autoReconnect;
         this.maxConnectTryTimes = builder.maxConnectTryTimes;
+
+        this.verifyTimeoutMs = builder.verifyTimeoutMs;
+        this.maxVerifyTimes = builder.maxVerifyTimes;
+
         this.ackTimeoutMs = builder.ackTimeoutMs;
         this.maxPendingMessages = builder.maxPendingMessages;
         this.maxCacheMessages = builder.maxCacheMessages;
@@ -111,6 +117,21 @@ public final class SocketSessionConfig extends SessionConfig {
     }
 
     /**
+     * @return 建立socket后，发起session连接请求的超时时间 （毫秒）
+     * (等待建立连接应答的超时时间)
+     */
+    public int verifyTimeoutMs() {
+        return verifyTimeoutMs;
+    }
+
+    /**
+     * @return 建立socket后的验证阶段的最大尝试验证次数
+     */
+    public int maxVerifyTimes() {
+        return maxVerifyTimes;
+    }
+
+    /**
      * @return 一个消息的超时时间 - 毫秒
      * 解释：一个包在指定时间内得不到对方确认，则发起重连请求，它决定什么时候发起重连，应稍微大一点
      */
@@ -148,6 +169,10 @@ public final class SocketSessionConfig extends SessionConfig {
 
         private boolean autoReconnect = false;
         private int maxConnectTryTimes = 5;
+
+        private int verifyTimeoutMs = 15 * 1000;
+        private int maxVerifyTimes = 3;
+
         private int ackTimeoutMs = 5 * 1000;
         private int maxPendingMessages = 50;
         private int maxCacheMessages = 500;
@@ -189,6 +214,16 @@ public final class SocketSessionConfig extends SessionConfig {
 
         public SocketSessionConfigBuilder setAutoReconnect(boolean autoReconnect) {
             this.autoReconnect = autoReconnect;
+            return this;
+        }
+
+        public SocketSessionConfigBuilder setVerifyTimeoutMs(int verifyTimeoutMs) {
+            this.verifyTimeoutMs = verifyTimeoutMs;
+            return this;
+        }
+
+        public SocketSessionConfigBuilder setMaxVerifyTimes(int maxVerifyTimes) {
+            this.maxVerifyTimes = maxVerifyTimes;
             return this;
         }
 

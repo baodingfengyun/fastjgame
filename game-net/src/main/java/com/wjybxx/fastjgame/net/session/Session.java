@@ -159,11 +159,16 @@ public interface Session extends Comparable<Session> {
     boolean isActive();
 
     /**
+     * @return 查询session是否已开始关闭，已开始关闭则返回true
+     */
+    boolean isClosed();
+
+    /**
      * 关闭当前session
      * <p>
      * 注意：
      * 逻辑层的校验+网络层的校验并不能保证在session活跃的状态下才有事件！
-     * 因为事件会被提交到session所在的executor，因此即使 {@link #isActive() false}，也仍然可能收到该session的消息或事件。
+     * 因为事件会被提交到session所在的executor，因此即使 {@link #isClosed()} true}，也仍然可能收到该session的消息或事件。
      * 逻辑层必须加以处理，因为网络层并不知道这时候逻辑层到底需不需要这些消息。
      */
     void close();

@@ -90,6 +90,7 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
                     .setCodec(ExampleConstants.reflectBasedCodec)
                     .setLifecycleAware(new ClientLifeAware())
                     .setDispatcher(protocolDispatcher)
+                    .setAutoReconnect(true)
                     .build();
 
             netContext.bindTcp(NetUtils.getLocalIp(), ExampleConstants.tcpPort, config);

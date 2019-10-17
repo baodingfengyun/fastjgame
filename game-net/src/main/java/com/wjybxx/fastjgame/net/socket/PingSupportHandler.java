@@ -14,12 +14,12 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.socket.inner;
+package com.wjybxx.fastjgame.net.socket;
 
 import com.wjybxx.fastjgame.manager.NetTimeManager;
 import com.wjybxx.fastjgame.net.common.PingPongMessage;
+import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
-import com.wjybxx.fastjgame.net.session.SessionInboundHandlerAdapter;
 
 /**
  * 心跳支持
@@ -29,38 +29,50 @@ import com.wjybxx.fastjgame.net.session.SessionInboundHandlerAdapter;
  * date - 2019/10/1
  * github - https://github.com/hl845740757
  */
-public class InnerPongSupportHandler extends SessionInboundHandlerAdapter {
+public class PingSupportHandler extends SessionDuplexHandlerAdapter {
 
     private NetTimeManager timeManager;
-    private long sessionTimeoutMs;
+    private long lastWriteTime;
     private long lastReadTime;
+    private long pingIntervalMs;
+    private long sessionTimeoutMs;
 
     @Override
     public void handlerAdded(SessionHandlerContext ctx) throws Exception {
-        // 缓存 - 减少栈深度
+        // 缓存减少堆栈深度
         timeManager = ctx.managerWrapper().getNetTimeManager();
+        pingIntervalMs = ctx.session().config().getPingIntervalMs();
         sessionTimeoutMs = ctx.session().config().getSessionTimeoutMs();
 
+        lastWriteTime = timeManager.getSystemMillTime();
         lastReadTime = timeManager.getSystemMillTime();
     }
 
     @Override
-    public void tick(SessionHandlerContext ctx) {
+    public void tick(SessionHandlerContext ctx) throws Exception {
         // session超时
         if (timeManager.getSystemMillTime() - lastReadTime > sessionTimeoutMs) {
             ctx.session().close();
+            return;
+        }
+        // 有一段时间没发送消息了，发一个包
+        if (timeManager.getSystemMillTime() - lastWriteTime > pingIntervalMs) {
+            // 从当前位置开始发送心跳包
+            write(ctx, PingPongMessage.INSTANCE);
         }
     }
 
     @Override
     public void read(SessionHandlerContext ctx, Object msg) {
         lastReadTime = timeManager.getSystemMillTime();
-        // 读取到一个心跳包，立即返回一个心跳包
-        if (msg == PingPongMessage.INSTANCE) {
-            // 从当前位置直接返回心跳响应
-            ctx.fireWriteAndFlush(PingPongMessage.INSTANCE);
-        } else {
+        if (msg != PingPongMessage.INSTANCE) {
             ctx.fireRead(msg);
         }
+    }
+
+    @Override
+    public void write(SessionHandlerContext ctx, Object msg) throws Exception {
+        lastWriteTime = timeManager.getSystemMillTime();
+        ctx.fireWrite(msg);
     }
 }

@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.manager;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.misc.DefaultSessionRegistry;
 import com.wjybxx.fastjgame.misc.HostAndPort;
@@ -30,6 +31,7 @@ import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionHandler;
 import com.wjybxx.fastjgame.net.socket.*;
 import com.wjybxx.fastjgame.net.socket.inner.InnerConnectorHandler;
+import com.wjybxx.fastjgame.net.socket.outer.OuterConnectorHandler;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -97,25 +99,31 @@ public class ConnectorManager implements SessionRegistry {
     }
     // --------------------------------------------分割线 -----------------------------------------------------
 
-    public Session connect(String sessionId, long remoteGuid, HostAndPort remoteAddress, SocketSessionConfig config,
-                           ChannelInitializer<SocketChannel> initializer, NetContext netContext) throws IOException {
+    public void connect(String sessionId, long remoteGuid, HostAndPort remoteAddress, SocketSessionConfig config,
+                        ChannelInitializer<SocketChannel> initializer, NetContext netContext,
+                        Promise<Session> connectPromise) {
         Session existSession = sessionRegistry.getSession(sessionId);
         if (existSession != null) {
-            throw new IOException("session " + sessionId + " already registered");
+            connectPromise.tryFailure(new IOException("session " + sessionId + " already registered"));
+            return;
         }
 
         final SocketSessionImp session = new SocketSessionImp(netContext, sessionId, remoteGuid, config,
                 netManagerWrapper, this);
 
-        ChannelFuture channelFuture = nettyThreadManager.connectAsyn(remoteAddress,
-                config.sndBuffer(),
-                config.rcvBuffer(),
-                config.connectTimeoutMs(),
-                initializer);
+        if (config.isAutoReconnect()) {
+            // 异步建立连接
+            session.pipeline().addLast(new OuterConnectorHandler(remoteAddress, initializer, connectPromise));
+        } else {
+            ChannelFuture channelFuture = nettyThreadManager.connectAsyn(remoteAddress,
+                    config.sndBuffer(),
+                    config.rcvBuffer(),
+                    config.connectTimeoutMs(),
+                    initializer);
 
-        // 异步建立连接
-        session.pipeline().addLast(new InnerConnectorHandler(channelFuture));
-        return session;
+            // 异步建立连接
+            session.pipeline().addLast(new InnerConnectorHandler(channelFuture, connectPromise));
+        }
     }
 
     /**
@@ -136,7 +144,14 @@ public class ConnectorManager implements SessionRegistry {
     }
 
     private void onRcvOuterConnectResponse(SocketSession session, SocketConnectResponseEvent connectResponseEvent) {
-
+        final SessionHandler first = session.pipeline().firstHandler();
+        if (first instanceof OuterConnectorHandler) {
+            // 第一个handler是用于建立连接的handler
+            session.fireRead(connectResponseEvent);
+        } else {
+            // 错误的消息
+            NetUtils.closeQuietly(connectResponseEvent.channel());
+        }
     }
 
     /**
@@ -167,38 +182,46 @@ public class ConnectorManager implements SessionRegistry {
         }
     }
 
-    public Session connectLocal(String sessionId, long remoteGuid, DefaultLocalPort localPort,
-                                LocalSessionConfig config, NetContext netContext) throws IOException {
+    public void connectLocal(String sessionId, long remoteGuid, DefaultLocalPort localPort,
+                             LocalSessionConfig config, NetContext netContext, Promise<Session> connectPromise) {
         // 会话已存在
         if (sessionRegistry.getSession(sessionId) != null) {
-            throw new IOException("session " + sessionId + " already registered");
+            connectPromise.tryFailure(new IOException("session " + sessionId + " already registered"));
+            return;
         }
-        final LocalSessionImp remoteSession = netManagerWrapper.getAcceptorManager().onRcvConnectRequest(localPort, sessionId, netContext.localGuid());
+        try {
+            final LocalSessionImp remoteSession = netManagerWrapper.getAcceptorManager().onRcvConnectRequest(localPort, sessionId, netContext.localGuid());
 
-        // 创建session
-        LocalSessionImp session = new LocalSessionImp(netContext, sessionId, remoteGuid, config,
-                netManagerWrapper, this);
+            // 创建session
+            LocalSessionImp session = new LocalSessionImp(netContext, sessionId, remoteGuid, config,
+                    netManagerWrapper, this);
 
-        // 初始化管道，入站 从上到下，出站 从下往上
-        session.pipeline()
-                .addLast(new LocalTransferHandler())
-                .addLast(new LocalCodecHandler())
-                .addLast(new OneWaySupportHandler())
-                .addLast(new RpcSupportHandler());
+            // 初始化管道，入站 从上到下，出站 从下往上
+            session.pipeline()
+                    .addLast(new LocalTransferHandler())
+                    .addLast(new LocalCodecHandler())
+                    .addLast(new OneWaySupportHandler())
+                    .addLast(new RpcSupportHandler());
 
-        // 保存双方引用 - 实现传输
-        setRemoteSession(session, remoteSession);
-        setRemoteSession(remoteSession, session);
+            // 保存双方引用 - 实现传输
+            setRemoteSession(session, remoteSession);
+            setRemoteSession(remoteSession, session);
 
-        // 激活双方
-        if (session.tryActive() && remoteSession.tryActive()) {
-            session.pipeline().fireSessionActive();
-            remoteSession.pipeline().fireSessionActive();
-        } else {
-            session.closeForcibly();
-            remoteSession.closeForcibly();
+            // 激活双方
+            if (connectPromise.trySuccess(session)) {
+
+                session.tryActive();
+                remoteSession.tryActive();
+
+                session.pipeline().fireSessionActive();
+                remoteSession.pipeline().fireSessionActive();
+            } else {
+                session.closeForcibly();
+                remoteSession.closeForcibly();
+            }
+        } catch (Exception e) {
+            connectPromise.tryFailure(new IOException("session " + sessionId + " already registered"));
         }
-        return session;
     }
 
     private void setRemoteSession(Session session, Session remoteSession) {

@@ -188,7 +188,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
 
         @Override
         protected void doWrite(RpcResponse rpcResponse) {
-            if (session.isActive()) {
+            if (!session.isClosed()) {
                 session.netEventLoop().execute(new RpcResponseWriteTask(session, requestGuid, sync, rpcResponse));
             }
         }

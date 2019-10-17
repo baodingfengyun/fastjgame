@@ -26,7 +26,21 @@ package com.wjybxx.fastjgame.net.socket;
  */
 public interface SocketConnectRequestTO {
 
+    /**
+     * 客户端的初始sequence
+     * 1. 用于首次建立连接时。
+     * 2. 不从0开始，可以降低出现脏连接的情况。
+     */
+    long getInitSequence();
+
+    /**
+     * 客户端期望的下一个消息号
+     * 1. 用于重连时
+     */
     long getAck();
 
+    /**
+     * 建立连接请求
+     */
     SocketConnectRequest getConnectRequest();
 }

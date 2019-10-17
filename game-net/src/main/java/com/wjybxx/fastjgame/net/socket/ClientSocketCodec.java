@@ -64,7 +64,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
-        netEventLoop.fireEvent_connector(new SocketDisconnectEvent(ctx.channel(), sessionId));
+        netEventLoop.fireEvent_connector(new SocketChannelInactiveEvent(ctx.channel(), sessionId));
     }
 
     // region 编码消息
@@ -118,7 +118,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
         netEventLoop.fireConnectResponse(socketConnectResponseEvent);
 
         // 标记为已连接
-        if (socketConnectResponseEvent.isSuccess()) {
+        if (socketConnectResponseEvent.getConnectResponse().isSuccess()) {
             connect = true;
         }
     }

@@ -53,7 +53,7 @@ public class LocalTransferHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void write(SessionHandlerContext ctx, Object msg) throws Exception {
-        if (ctx.session().isActive()) {
+        if (!ctx.session().isClosed()) {
             // 直接触发另一个session的读事件
             remoteSession.fireRead(msg);
         }
@@ -66,7 +66,7 @@ public class LocalTransferHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void read(SessionHandlerContext ctx, Object msg) {
-        if (ctx.session().isActive()) {
+        if (!ctx.session().isClosed()) {
             ctx.fireRead(msg);
         }
     }
@@ -74,7 +74,7 @@ public class LocalTransferHandler extends SessionDuplexHandlerAdapter {
     @Override
     public void close(SessionHandlerContext ctx) throws Exception {
         // 下一帧关闭对方（总是使对方晚于自己关闭）
-        if (remoteSession.isActive()) {
+        if (!remoteSession.isClosed()) {
             // 存为临时变量，避免NPE，少捕获变量
             final Session remoteSession = this.remoteSession;
             ctx.managerWrapper().getNetTimerManager().nextTick(handle -> {

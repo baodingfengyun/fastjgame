@@ -66,7 +66,7 @@ public class ServerSocketCodec extends BaseSocketCodec {
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
         if (isInited()) {
-            portExtraInfo.netEventLoopGroup().fireEvent_acceptor(new SocketDisconnectEvent(ctx.channel(), sessionId));
+            portExtraInfo.netEventLoopGroup().fireEvent_acceptor(new SocketChannelInactiveEvent(ctx.channel(), sessionId));
         }
     }
 

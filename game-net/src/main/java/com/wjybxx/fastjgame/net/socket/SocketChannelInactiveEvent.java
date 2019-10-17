@@ -14,39 +14,36 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.socket.inner;
+package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.net.socket.SocketConnectResponse;
-import com.wjybxx.fastjgame.net.socket.SocketConnectResponseTO;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
 
 /**
- * 内网连接响应传输对象
+ * {@link io.netty.channel.ChannelInboundHandler#channelInactive(ChannelHandlerContext)}事件
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/10/2
+ * date - 2019/10/14
  * github - https://github.com/hl845740757
  */
-public class InnerSocketConnectResponseTO implements SocketConnectResponseTO {
+public class SocketChannelInactiveEvent implements SocketEvent {
 
-    private final SocketConnectResponse connectResponse;
+    private final Channel channel;
+    private final String sessionId;
 
-    public InnerSocketConnectResponseTO(SocketConnectResponse connectResponse) {
-        this.connectResponse = connectResponse;
+    public SocketChannelInactiveEvent(Channel channel, String sessionId) {
+        this.channel = channel;
+        this.sessionId = sessionId;
     }
 
     @Override
-    public long getInitSequence() {
-        return InnerUtils.INNER_SEQUENCE;
+    public Channel channel() {
+        return channel;
     }
 
     @Override
-    public long getAck() {
-        return InnerUtils.INNER_ACK;
-    }
-
-    @Override
-    public SocketConnectResponse getConnectResponse() {
-        return connectResponse;
+    public String sessionId() {
+        return sessionId;
     }
 }

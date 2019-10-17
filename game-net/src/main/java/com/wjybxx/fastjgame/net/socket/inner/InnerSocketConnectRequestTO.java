@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.net.socket.inner;
 
-import com.wjybxx.fastjgame.net.socket.MessageQueue;
 import com.wjybxx.fastjgame.net.socket.SocketConnectRequest;
 import com.wjybxx.fastjgame.net.socket.SocketConnectRequestTO;
 
@@ -37,8 +36,13 @@ public class InnerSocketConnectRequestTO implements SocketConnectRequestTO {
     }
 
     @Override
+    public long getInitSequence() {
+        return InnerUtils.INNER_SEQUENCE;
+    }
+
+    @Override
     public long getAck() {
-        return MessageQueue.INIT_ACK;
+        return InnerUtils.INNER_ACK;
     }
 
     @Override

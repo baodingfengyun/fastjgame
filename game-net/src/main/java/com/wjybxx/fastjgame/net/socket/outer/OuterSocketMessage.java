@@ -19,37 +19,46 @@ package com.wjybxx.fastjgame.net.socket.outer;
 import com.wjybxx.fastjgame.net.common.NetMessage;
 import com.wjybxx.fastjgame.net.socket.SocketMessage;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * 对外的socket消息对象 - 启用了消息确认机制
+ * 它并非线程安全的，通过以下方式保证安全性：
+ * 1. netty线程只会访问{@link #wrappedMessage}和{@link #sequence}，这俩一旦赋值便不会变更
+ * 2. {@link #setSequence(long)} happens - before {@link #getSequence()}
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/10/1
  * github - https://github.com/hl845740757
  */
+@NotThreadSafe
 public class OuterSocketMessage implements SocketMessage {
 
-    /**
-     * 当前包id - 一旦分配就不会改变
-     */
-    private final long sequence;
     /**
      * 被包装的消息
      */
     private final NetMessage wrappedMessage;
     /**
-     * 是否应该调用flush
+     * 当前包id - 一旦分配就不会改变
      */
-    private boolean autoFlush;
+    private long sequence;
     /**
      * 消息确认超时时间
      * 每次发送的时候设置超时时间 - 线程封闭(NetEventLoop线程访问)
      */
-    private long timeout;
+    private long ackDeadline;
+    /**
+     * 是否使用心跳包进行了跟踪 - 每个包最多使用一次
+     */
+    private boolean traced = false;
 
-    OuterSocketMessage(long sequence, NetMessage wrappedMessage) {
-        this.sequence = sequence;
+    OuterSocketMessage(NetMessage wrappedMessage) {
         this.wrappedMessage = wrappedMessage;
+    }
+
+    public void setSequence(long sequence) {
+        this.sequence = sequence;
     }
 
     @Override
@@ -62,20 +71,19 @@ public class OuterSocketMessage implements SocketMessage {
         return wrappedMessage;
     }
 
-    public boolean isAutoFlush() {
-        return autoFlush;
+    public long getAckDeadline() {
+        return ackDeadline;
     }
 
-    public void setAutoFlush(boolean autoFlush) {
-        this.autoFlush = autoFlush;
+    public void setAckDeadline(long ackDeadline) {
+        this.ackDeadline = ackDeadline;
     }
 
-    public long getTimeout() {
-        return timeout;
+    public boolean isTraced() {
+        return traced;
     }
 
-    public void setTimeout(long timeout) {
-        this.timeout = timeout;
+    public void setTraced(boolean traced) {
+        this.traced = traced;
     }
-
 }
