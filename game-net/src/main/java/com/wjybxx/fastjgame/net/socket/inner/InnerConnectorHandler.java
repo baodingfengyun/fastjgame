@@ -138,7 +138,7 @@ public class InnerConnectorHandler extends SessionDuplexHandlerAdapter {
         }
 
         if (connectPromise.trySuccess(session)) {
-            // 激活session成功，删除自己，添加真正的handler逻辑
+            // 激活session成功并初始化通道 - 删除自己，添加真正的handler逻辑
             session.tryActive();
             session.pipeline()
                     .remove(this)

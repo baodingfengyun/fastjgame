@@ -32,6 +32,7 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 
 import javax.annotation.Nullable;
+import java.net.ConnectException;
 
 /**
  * session客户端方维持socket使用的handler
@@ -354,21 +355,22 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
         @Override
         void onRcvConnectResponse(SocketConnectResponseEvent event) {
             final SocketConnectResponse connectResponse = event.getConnectResponse();
-            if (!isConnectResponseMatch(connectResponse)) {
+            if (connectResponse.getVerifyingTimes() != verifyingTimes
+                    || connectResponse.getVerifiedTimes() != verifiedTimes) {
                 // 不是对应的应答
                 return;
             }
 
             if (!connectResponse.isSuccess()) {
                 // 禁止建立连接
-                ctx.session().close();
+                onVerifyingFailure();
                 return;
             }
 
             // 不论首次建立连接应答，还是重连，ack都应该是正确的了
             if (!messageQueue.isAckOK(event.getAck())) {
                 // 收到的ack有误(有丢包)，这里重连已没有意义(始终有消息漏掉了，无法恢复)
-                ctx.session().close();
+                onVerifyingFailure();
                 return;
             }
 
@@ -380,37 +382,31 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
                 messageQueue.updatePendingQueue(event.getAck());
             }
 
-            // 验证成功，更新状态
-            verifiedTimes++;
+            // 验证成功
             changeState(new VerifiedState());
         }
-    }
 
-    /**
-     * 是否是匹配的建立连接应答
-     *
-     * @return true/false
-     */
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    private boolean isConnectResponseMatch(SocketConnectResponse connectResponse) {
-        return connectResponse.getVerifyingTimes() == verifyingTimes
-                && connectResponse.getVerifiedTimes() == verifiedTimes;
+        private void onVerifyingFailure() {
+            if (connectPromise != null) {
+                // 告知用户建立连接失败
+                connectPromise.tryFailure(new ConnectException("bad request"));
+                connectPromise = null;
+            }
+            ctx.session().close();
+        }
     }
 
     private class VerifiedState extends HandlerState {
 
         @Override
         void enter() {
-            SocketSessionImp session = (SocketSessionImp) ctx.session();
-            if (verifiedTimes == 1) {
-                // 首次建立连接
-                final Promise<Session> connectPromise = OuterConnectorHandler.this.connectPromise;
-                OuterConnectorHandler.this.connectPromise = null;
-
+            // 增加验证成功次数
+            verifiedTimes++;
+            final SocketSessionImp session = (SocketSessionImp) ctx.session();
+            if (connectPromise != null) {
                 if (connectPromise.trySuccess(session)) {
-                    // 激活session成功
+                    // 激活session并初始化管道
                     session.tryActive();
-                    // 初始化管道
                     session.pipeline()
                             .addLast(new PingSupportHandler())
                             .addLast(new OneWaySupportHandler());
@@ -426,6 +422,7 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
                     // 用户取消了连接
                     session.closeForcibly();
                 }
+                connectPromise = null;
             } else {
                 // 重发消息
                 OuterUtils.resend(session, channel, messageQueue, netTimeManager.getSystemMillTime() + config.ackTimeoutMs());
@@ -463,10 +460,13 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
         @Override
         void onRcvConnectResponse(SocketConnectResponseEvent event) {
             final SocketConnectResponse connectResponse = event.getConnectResponse();
-            if (!isConnectResponseMatch(connectResponse)) {
+            // 对方保存的是我上一次的请求信息
+            if (connectResponse.getVerifyingTimes() != verifyingTimes - 1
+                    || connectResponse.getVerifiedTimes() != verifiedTimes - 1) {
                 // 不是对应的应答
                 return;
             }
+
             if (!connectResponse.isSuccess()) {
                 // 对方通知我关闭
                 ctx.session().close();

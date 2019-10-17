@@ -33,16 +33,17 @@ public final class SocketSessionConfig extends SessionConfig {
 
     private final int sndBuffer;
     private final int rcvBuffer;
+    private final int readTimeout;
     private final int maxFrameLength;
 
     private final int connectTimeoutMs;
-    private final int readTimeout;
-
     // ------------------------------------- 消息确认机制参数 -----------------------------
     private final boolean autoReconnect;
     private final int maxConnectTryTimes;
+
     private final int verifyTimeoutMs;
     private final int maxVerifyTimes;
+
     private final int ackTimeoutMs;
 
     private final int maxPendingMessages;
@@ -163,14 +164,14 @@ public final class SocketSessionConfig extends SessionConfig {
 
         private int sndBuffer = 64 * 1024;
         private int rcvBuffer = 64 * 1024;
+        private int readTimeout = 60;
         private int maxFrameLength = 8 * 1024;
-        private int connectTimeoutMs = 30 * 1000;
-        private int readTimeout = 45;
 
+        private int connectTimeoutMs = 15 * 1000;
         private boolean autoReconnect = false;
-        private int maxConnectTryTimes = 5;
+        private int maxConnectTryTimes = 3;
 
-        private int verifyTimeoutMs = 15 * 1000;
+        private int verifyTimeoutMs = 10 * 1000;
         private int maxVerifyTimes = 3;
 
         private int ackTimeoutMs = 5 * 1000;

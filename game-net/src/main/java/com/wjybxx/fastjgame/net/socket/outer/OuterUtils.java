@@ -194,6 +194,7 @@ class OuterUtils {
 
     /**
      * 重发填充队列中的消息
+     * 注意：调用resend方法的时候，必须处于能立即发送心跳包的状态。
      *
      * @param session      session - 心跳包需要流经整个管道
      * @param channel      socket对应的channel

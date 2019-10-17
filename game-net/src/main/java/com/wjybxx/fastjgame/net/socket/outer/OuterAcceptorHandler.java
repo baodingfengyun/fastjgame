@@ -53,7 +53,7 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
      */
     private final MessageQueue messageQueue = new MessageQueue();
     /**
-     * 最后一次成功建立连接时对应的请求信息
+     * 最后一次成功建立连接时对应的请求信息 - 客户端上一次的请求信息
      */
     private SocketConnectRequest connectRequest;
 
@@ -141,13 +141,16 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
             return;
         }
 
-        if (connectRequest.getVerifiedTimes() == 0) {
-            // 这是一个旧请求 - 大于0才是重连
+        // verifyingTimes一定是增加的
+        if (connectRequest.getVerifyingTimes() <= this.connectRequest.getVerifyingTimes()) {
+            // 这是一个旧请求
             notifyConnectFail(event.channel(), connectRequest);
             return;
         }
 
-        if (connectRequest.getVerifyingTimes() <= this.connectRequest.getVerifyingTimes()) {
+        // verifiedTimes要么和上次相同，要么+1
+        if (connectRequest.getVerifiedTimes() != this.connectRequest.getVerifiedTimes()
+                && connectRequest.getVerifiedTimes() != this.connectRequest.getVerifiedTimes() + 1) {
             // 这是一个旧请求
             notifyConnectFail(event.channel(), connectRequest);
             return;
@@ -193,7 +196,7 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
             // 尝试建立一个新的session
 
             if (connectRequest.getVerifiedTimes() != 0) {
-                // 这是旧请求，等于0才是首次建立连接请求
+                // 这是旧请求，等于0才是首次建立连接请求 - 大于0表示期望重连
                 notifyConnectFail(channel, connectRequest);
                 return;
             }
