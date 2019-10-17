@@ -27,6 +27,7 @@ import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -127,6 +128,11 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
     public void close(SessionHandlerContext ctx) throws Exception {
         // 通知对方关闭，同时会关闭channel
         notifyClientExit(channel, connectRequest);
+
+        if (logger.isDebugEnabled()) {
+            // 打印关闭原因
+            logger.debug("close stacktrace {} ", ExceptionUtils.getStackTrace(new RuntimeException()));
+        }
     }
 
     /**

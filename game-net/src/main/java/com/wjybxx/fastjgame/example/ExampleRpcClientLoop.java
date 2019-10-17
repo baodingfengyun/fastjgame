@@ -47,8 +47,6 @@ import java.util.stream.IntStream;
  */
 public class ExampleRpcClientLoop extends DisruptorEventLoop {
 
-    private NetContext netContext;
-
     private final LocalPort localPort;
     /**
      * 是否已建立tcp连接
@@ -67,7 +65,7 @@ public class ExampleRpcClientLoop extends DisruptorEventLoop {
     @Override
     protected void init() throws Exception {
         super.init();
-        netContext = ExampleConstants.netEventLoop.createContext(ExampleConstants.CLIENT_GUID, this);
+        NetContext netContext = ExampleConstants.netEventLoop.createContext(ExampleConstants.CLIENT_GUID, this);
 
         if (localPort != null) {
             LocalSessionConfig config = LocalSessionConfig.newBuilder()

@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.misc.PortRange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -65,11 +66,11 @@ public class GameUtils {
      *
      * @param closeable 实现了close方法的对象
      */
-    public static void closeQuietly(AutoCloseable closeable) {
+    public static void closeQuietly(@Nullable AutoCloseable closeable) {
         if (null != closeable) {
             try {
                 closeable.close();
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 logger.info("", e);
             }
         }

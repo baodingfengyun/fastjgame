@@ -31,6 +31,7 @@ import io.netty.channel.socket.DefaultSocketChannelConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.*;
@@ -118,11 +119,11 @@ public class NetUtils {
     /**
      * 安静的关闭channel,不产生任何影响
      */
-    public static void closeQuietly(Channel channel) {
+    public static void closeQuietly(@Nullable Channel channel) {
         if (null != channel) {
             try {
                 channel.close();
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 logger.info("", e);
             }
         }
@@ -131,12 +132,12 @@ public class NetUtils {
     /**
      * 安静的关闭future，不产生任何影响
      */
-    public static void closeQuietly(ChannelFuture channelFuture) {
+    public static void closeQuietly(@Nullable ChannelFuture channelFuture) {
         if (null != channelFuture) {
             try {
                 channelFuture.cancel(true);
                 channelFuture.channel().close();
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 logger.info("", e);
             }
         }
@@ -145,11 +146,11 @@ public class NetUtils {
     /**
      * 安静的关闭ctx，不产生任何影响
      */
-    public static void closeQuietly(ChannelHandlerContext ctx) {
+    public static void closeQuietly(@Nullable ChannelHandlerContext ctx) {
         if (null != ctx) {
             try {
                 ctx.close();
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 logger.info("", e);
             }
         }
@@ -158,11 +159,11 @@ public class NetUtils {
     /**
      * 关闭一个资源
      */
-    public static void closeQuietly(Closeable resource) {
+    public static void closeQuietly(@Nullable Closeable resource) {
         if (null != resource) {
             try {
                 resource.close();
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 logger.info("", e);
             }
         }

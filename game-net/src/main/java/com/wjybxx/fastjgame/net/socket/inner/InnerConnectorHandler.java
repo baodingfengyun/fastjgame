@@ -26,6 +26,11 @@ import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 import com.wjybxx.fastjgame.net.socket.*;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import io.netty.channel.ChannelFuture;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 /**
  * 内网建立连接的处理器
@@ -36,6 +41,8 @@ import io.netty.channel.ChannelFuture;
  * github - https://github.com/hl845740757
  */
 public class InnerConnectorHandler extends SessionDuplexHandlerAdapter {
+
+    private static final Logger logger = LoggerFactory.getLogger(InnerConnectorHandler.class);
 
     private final ChannelFuture channelFuture;
     private final Promise<Session> connectPromise;
@@ -162,5 +169,12 @@ public class InnerConnectorHandler extends SessionDuplexHandlerAdapter {
     @Override
     public void close(SessionHandlerContext ctx) throws Exception {
         NetUtils.closeQuietly(channelFuture);
+        // 无法建立连接
+        connectPromise.tryFailure(new IOException("connect failure"));
+
+        if (logger.isDebugEnabled()) {
+            // 打印关闭原因
+            logger.debug("close stacktrace {} ", ExceptionUtils.getStackTrace(new RuntimeException()));
+        }
     }
 }

@@ -30,9 +30,12 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-import java.net.ConnectException;
+import java.io.IOException;
 
 /**
  * session客户端方维持socket使用的handler
@@ -44,13 +47,15 @@ import java.net.ConnectException;
  */
 public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
 
+    private static final Logger logger = LoggerFactory.getLogger(OuterConnectorHandler.class);
+
     private final HostAndPort remoteAddress;
     private final ChannelInitializer<SocketChannel> initializer;
 
     private NetTimeManager netTimeManager;
     private SessionHandlerContext ctx;
     private SocketSessionConfig config;
-    private Promise<Session> connectPromise;
+    private Promise<Session> _connectPromise;
     /**
      * 消息队列
      */
@@ -75,7 +80,7 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
     public OuterConnectorHandler(HostAndPort remoteAddress, ChannelInitializer<SocketChannel> initializer, Promise<Session> connectPromise) {
         this.remoteAddress = remoteAddress;
         this.initializer = initializer;
-        this.connectPromise = connectPromise;
+        this._connectPromise = connectPromise;
     }
 
     @Override
@@ -161,6 +166,15 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
     @Override
     public void close(SessionHandlerContext ctx) throws Exception {
         NetUtils.closeQuietly(channel);
+        final Promise<Session> connectPromise = detachConnectPromise();
+        if (null != connectPromise) {
+            // 无法建立连接
+            connectPromise.tryFailure(new IOException("connect failure"));
+        }
+        if (logger.isDebugEnabled()) {
+            // 打印关闭原因
+            logger.debug("close stacktrace {} ", ExceptionUtils.getStackTrace(new RuntimeException()));
+        }
     }
 
     // ------------------------------------------ 状态机管理 --------------------------------------------
@@ -211,7 +225,7 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
          */
         void write(NetMessage msg) {
             if (messageQueue.getPendingMessages() >= config.maxCacheMessages()) {
-                // 超出限制了
+                // 超出缓存限制
                 ctx.session().close();
                 return;
             }
@@ -363,14 +377,14 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
 
             if (!connectResponse.isSuccess()) {
                 // 禁止建立连接
-                onVerifyingFailure();
+                ctx.session().close();
                 return;
             }
 
             // 不论首次建立连接应答，还是重连，ack都应该是正确的了
             if (!messageQueue.isAckOK(event.getAck())) {
                 // 收到的ack有误(有丢包)，这里重连已没有意义(始终有消息漏掉了，无法恢复)
-                onVerifyingFailure();
+                ctx.session().close();
                 return;
             }
 
@@ -383,27 +397,30 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
             }
 
             // 验证成功
+            verifiedTimes++;
+            // 切换到验证成功状态，执行余下逻辑
             changeState(new VerifiedState());
         }
+    }
 
-        private void onVerifyingFailure() {
-            if (connectPromise != null) {
-                // 告知用户建立连接失败
-                connectPromise.tryFailure(new ConnectException("bad request"));
-                connectPromise = null;
-            }
-            ctx.session().close();
-        }
+    /**
+     * 删除{@link #_connectPromise}并返回
+     */
+    private Promise<Session> detachConnectPromise() {
+        Promise<Session> result = this._connectPromise;
+        this._connectPromise = null;
+        return result;
     }
 
     private class VerifiedState extends HandlerState {
 
         @Override
         void enter() {
-            // 增加验证成功次数
-            verifiedTimes++;
             final SocketSessionImp session = (SocketSessionImp) ctx.session();
+            final Promise<Session> connectPromise = detachConnectPromise();
             if (connectPromise != null) {
+                // 首次建立连接成功
+                assert verifiedTimes == 1;
                 if (connectPromise.trySuccess(session)) {
                     // 激活session并初始化管道
                     session.tryActive();
@@ -422,9 +439,8 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
                     // 用户取消了连接
                     session.closeForcibly();
                 }
-                connectPromise = null;
             } else {
-                // 重发消息
+                // 重连成功 - 重发填充队列，由于必须能直接发送心跳包，因此必须在该状态下重发
                 OuterUtils.resend(session, channel, messageQueue, netTimeManager.getSystemMillTime() + config.ackTimeoutMs());
             }
         }

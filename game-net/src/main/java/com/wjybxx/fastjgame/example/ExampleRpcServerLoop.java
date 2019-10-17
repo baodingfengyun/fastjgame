@@ -49,7 +49,6 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
 
     private final DefaultProtocolDispatcher protocolDispatcher = new DefaultProtocolDispatcher();
 
-    private NetContext netContext;
     private final Promise<LocalPort> localPortPromise;
 
     private long startTime;
@@ -66,7 +65,7 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
     protected void init() throws Exception {
         super.init();
         // 创建网络环境
-        netContext = ExampleConstants.netEventLoop.createContext(ExampleConstants.SERVER_GUID, this);
+        NetContext netContext = ExampleConstants.netEventLoop.createContext(ExampleConstants.SERVER_GUID, this);
         // 注册rpc服务
         ExampleRpcServiceRpcRegister.register(protocolDispatcher, new ExampleRpcService());
 
@@ -100,7 +99,7 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
 
     @Override
     protected void loopOnce() {
-        if (System.currentTimeMillis() - startTime > 5 * TimeUtils.MIN) {
+        if (System.currentTimeMillis() - startTime > 3 * TimeUtils.MIN) {
             shutdown();
         }
     }
