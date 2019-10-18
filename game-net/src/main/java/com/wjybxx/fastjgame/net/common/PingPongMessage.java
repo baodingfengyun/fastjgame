@@ -29,7 +29,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class PingPongMessage implements NetMessage {
 
-    public static final PingPongMessage INSTANCE = new PingPongMessage();
+    public static final PingPongMessage PING = new PingPongMessage();
+    public static final PingPongMessage PONG = new PingPongMessage();
 
     private PingPongMessage() {
     }

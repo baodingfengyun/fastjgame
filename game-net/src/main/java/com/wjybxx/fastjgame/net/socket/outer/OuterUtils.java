@@ -121,7 +121,7 @@ class OuterUtils {
             return;
         }
 
-        if (msg == PingPongMessage.INSTANCE) {
+        if (msg == PingPongMessage.PING || msg == PingPongMessage.PONG) {
             // 心跳协议立即发送
             // 填充过多心跳协议没有意义，而且可能使得已发送队列超出限制过多
             OuterSocketMessage lastMessage = messageQueue.getPendingQueue().peekLast();

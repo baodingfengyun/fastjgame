@@ -22,11 +22,16 @@ import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 
 /**
- * 心跳支持
+ * 双向心跳支持。
+ * <p>
+ * ping包的特性：
+ * 1. 对方收到以后会立即返回一个pong包 - 具有立即返回机制，而业务逻辑消息并不具备该性质。
+ * 2. ping、pong包不会进入缓存队列，会直接进行发送。
+ * <p>
  * Q: 为何使用ping-ping心跳机制，而不是ping-pong机制？
  * A:
  * 1. 在具有流量控制机制的情况下，使用ping-ping心跳对服务器更友好，服务器也可以及时的更新自己的填充队列。
- * 而使用ping-pong机制的话，如果客户端不进行消息响应，将长时间无法更新填充队列，导致长时间无法发包。
+ * 而使用ping-pong机制的话，服务器是被动的方式更新填充队列，可能长时间无法更新填充队列，导致长时间无法发包。
  * 2. 使用ping-ping可以更快的识别网络故障
  *
  * @author wjybxx
@@ -37,10 +42,11 @@ import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 public class PingPingSupportHandler extends SessionDuplexHandlerAdapter {
 
     private NetTimeManager timeManager;
-    private long lastWriteTime;
-    private long lastReadTime;
     private long pingIntervalMs;
     private long sessionTimeoutMs;
+
+    private long lastReadTime;
+    private long lastWriteTime;
 
     @Override
     public void handlerAdded(SessionHandlerContext ctx) throws Exception {
@@ -49,8 +55,8 @@ public class PingPingSupportHandler extends SessionDuplexHandlerAdapter {
         pingIntervalMs = ctx.session().config().getPingIntervalMs();
         sessionTimeoutMs = ctx.session().config().getSessionTimeoutMs();
 
-        lastWriteTime = timeManager.getSystemMillTime();
         lastReadTime = timeManager.getSystemMillTime();
+        lastWriteTime = timeManager.getSystemMillTime();
     }
 
     @Override
@@ -60,17 +66,22 @@ public class PingPingSupportHandler extends SessionDuplexHandlerAdapter {
             ctx.session().close();
             return;
         }
-        if (timeManager.getSystemMillTime() - lastWriteTime > pingIntervalMs) {
-            // 有一段时间没发送消息了，发一个包
-            // 从当前位置开始发送心跳包 - 否则如果被拦截，时间得不到更新就爆炸
-            write(ctx, PingPongMessage.INSTANCE);
+        if (timeManager.getSystemMillTime() - lastReadTime > pingIntervalMs
+                || timeManager.getSystemMillTime() - lastWriteTime > pingIntervalMs) {
+            // 尝试发一个心跳包 - 从当前位置开始发送心跳包
+            write(ctx, PingPongMessage.PING);
         }
     }
 
     @Override
     public void read(SessionHandlerContext ctx, Object msg) throws Exception {
         lastReadTime = timeManager.getSystemMillTime();
-        if (msg != PingPongMessage.INSTANCE) {
+        if (msg == PingPongMessage.PING) {
+            // 心跳请求包，需要立即返回
+            write(ctx, PingPongMessage.PONG);
+            return;
+        }
+        if (msg != PingPongMessage.PONG) {
             // 非心跳包
             ctx.fireRead(msg);
         }

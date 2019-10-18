@@ -102,7 +102,7 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
             if (!firstMessage.isTraced() && firstMessage.getAckDeadline() - netTimeManager.getSystemMillTime() < ackTimeoutMs / 2) {
                 firstMessage.setTraced(true);
                 // 调用session的fireWrite方法，使得能流经心跳控制逻辑
-                ctx.session().fireWrite(PingPongMessage.INSTANCE);
+                ctx.session().fireWrite(PingPongMessage.PING);
             }
         }
 
@@ -175,22 +175,31 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
         SocketSessionImp session = (SocketSessionImp) ctx.session();
         if (session.isClosed()) {
             // session 已关闭
-            notifyConnectFail(event.channel(), connectRequest);
+            notifyConnectFail(event);
             return;
         }
 
-        // verifyingTimes一定是增加的
+        // verifyingTimes必须增加
         if (connectRequest.getVerifyingTimes() <= this.connectRequest.getVerifyingTimes()) {
             // 这是一个旧请求
-            notifyConnectFail(event.channel(), connectRequest);
+            notifyConnectFail(event);
             return;
+        }
+
+        if (connectRequest.getVerifiedTimes() == 0) {
+            // 客户端丢失了建立连接应答 - 那么需要验证初始sequence是否和之前一致
+            if (event.getInitSequence() + 1 != messageQueue.getAck()) {
+                // 不是相同的请求
+                notifyConnectFail(event);
+                return;
+            }
         }
 
         // verifiedTimes要么和上次相同，要么+1
         if (connectRequest.getVerifiedTimes() != this.connectRequest.getVerifiedTimes()
                 && connectRequest.getVerifiedTimes() != this.connectRequest.getVerifiedTimes() + 1) {
             // 这是一个旧请求
-            notifyConnectFail(event.channel(), connectRequest);
+            notifyConnectFail(event);
             return;
         }
 
@@ -203,7 +212,7 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
 
         if (!messageQueue.isAckOK(event.getAck())) {
             // ack错误 - 无法重连（消息彻底丢失）
-            notifyConnectFail(event.channel(), connectRequest);
+            notifyConnectFail(event);
             return;
         }
 
@@ -226,7 +235,7 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
 
         // 服务器重连成功要干两件事
         // 1. 触发一次读，避免session超时
-        ctx.fireRead(PingPongMessage.INSTANCE);
+        ctx.fireRead(PingPongMessage.PONG);
         // 2. 重发消息
         OuterUtils.resend(channel, messageQueue, netTimeManager.getSystemMillTime() + ackTimeoutMs);
     }
@@ -250,12 +259,12 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
             // 尝试建立一个新的session
             if (connectRequest.getVerifiedTimes() != 0) {
                 // 这是旧请求，等于0才是首次建立连接请求 - 大于0表示期望重连
-                notifyConnectFail(channel, connectRequest);
+                notifyConnectFail(event);
                 return;
             }
             if (event.getAck() != 0) {
                 // 建立新连接时ack应该为0，需要根据响应初始化ack
-                notifyConnectFail(channel, connectRequest);
+                notifyConnectFail(event);
                 return;
             }
 
@@ -294,7 +303,7 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
             final SessionHandlerContext firstContext = existSession.pipeline().firstContext();
             if (firstContext == null) {
                 // 错误的请求
-                notifyConnectFail(channel, connectRequest);
+                notifyConnectFail(event);
                 return;
             }
             if (firstContext.handler() instanceof OuterAcceptorHandler) {
@@ -302,7 +311,7 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
                 ((OuterAcceptorHandler) firstContext.handler()).onRcvReconnectRequest(firstContext, event);
             } else {
                 // 错误的请求
-                notifyConnectFail(channel, connectRequest);
+                notifyConnectFail(event);
             }
         }
     }
@@ -321,11 +330,14 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
     /**
      * 建立连接失败 - 告知对方失败
      */
-    private static void notifyConnectFail(Channel channel, SocketConnectRequest connectRequest) {
-        final SocketConnectResponse connectResponse = new SocketConnectResponse(false, connectRequest);
-        final OuterSocketConnectResponseTO connectResponseTO = new OuterSocketConnectResponseTO(-1, -1, false, connectResponse);
-        // 告知验证失败
-        channel.writeAndFlush(connectResponseTO);
+    private static void notifyConnectFail(SocketConnectRequestEvent event) {
+        if (!event.isClose()) {
+            SocketConnectRequest connectRequest = event.getConnectRequest();
+            final SocketConnectResponse connectResponse = new SocketConnectResponse(false, connectRequest);
+            final OuterSocketConnectResponseTO connectResponseTO = new OuterSocketConnectResponseTO(-1, -1, false, connectResponse);
+            // 告知验证失败
+            event.channel().writeAndFlush(connectResponseTO);
+        }
     }
 
     /**

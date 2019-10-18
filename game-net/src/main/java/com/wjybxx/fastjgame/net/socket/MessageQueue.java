@@ -70,6 +70,7 @@ public final class MessageQueue {
 
     /**
      * 未发送的消息队列,还没有尝试过发送的消息
+     * 注意：这里一定没有心跳包。
      */
     private LinkedList<OuterSocketMessage> cacheQueue = new LinkedList<>();
 

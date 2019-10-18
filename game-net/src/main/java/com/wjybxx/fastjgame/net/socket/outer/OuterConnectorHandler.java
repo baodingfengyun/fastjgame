@@ -485,7 +485,7 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
             } else {
                 // 客户端重连成功之后要干两件事：
                 // 1. 触发一次读，避免session超时
-                ctx.fireRead(PingPongMessage.INSTANCE);
+                ctx.fireRead(PingPongMessage.PONG);
                 // 2. 重发消息
                 OuterUtils.resend(channel, messageQueue, netTimeManager.getSystemMillTime() + config.ackTimeoutMs());
             }
@@ -507,7 +507,7 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
                 if (!firstMessage.isTraced() && firstMessage.getAckDeadline() - netTimeManager.getSystemMillTime() < config.ackTimeoutMs() / 2) {
                     firstMessage.setTraced(true);
                     // 调用session的fireWrite方法，使得能流经心跳控制逻辑
-                    ctx.session().fireWrite(PingPongMessage.INSTANCE);
+                    ctx.session().fireWrite(PingPongMessage.PING);
                 }
             }
 

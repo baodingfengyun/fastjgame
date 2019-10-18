@@ -246,10 +246,13 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
      * 心跳协议编码
      */
     private void writeAckPingPongMessage(ChannelHandlerContext ctx, long ack, SocketMessage socketMessage, ChannelPromise promise) {
-        ByteBuf byteBuf = newHeadByteBuf(ctx, 8 + 8, NetMessageType.PING_PONG);
+        ByteBuf byteBuf = newHeadByteBuf(ctx, 8 + 8 + 1, NetMessageType.PING_PONG);
 
         byteBuf.writeLong(socketMessage.getSequence());
         byteBuf.writeLong(ack);
+
+        // pingOrPong
+        byteBuf.writeByte(socketMessage.getWrappedMessage() == PingPongMessage.PING ? 1 : 0);
 
         appendSumAndWrite(ctx, byteBuf, promise);
     }
@@ -261,7 +264,11 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
         long sequence = msg.readLong();
         long ack = msg.readLong();
 
-        return new SocketMessageEvent(channel, sessionId, sequence, ack, PingPongMessage.INSTANCE);
+        if (msg.readByte() == 1) {
+            return new SocketMessageEvent(channel, sessionId, sequence, ack, PingPongMessage.PING);
+        } else {
+            return new SocketMessageEvent(channel, sessionId, sequence, ack, PingPongMessage.PONG);
+        }
     }
 
     // ---------------------------------------------- rpc请求和响应 ---------------------------------------

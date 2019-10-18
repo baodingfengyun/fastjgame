@@ -137,13 +137,14 @@ public final class SocketSessionConfig extends SessionConfig {
      * 解释：
      * 1. 一个包在<b>一定时间</b>内得不到对方确认，则发送心跳包，进行追踪。
      * 2. 一个包在指定时间内得不到对方确认，则发起重传请求。
+     * 注意：如果发包速率很高，该值一定要小
      */
     public int ackTimeoutMs() {
         return ackTimeoutMs;
     }
 
     /**
-     * @return 消息队列中允许的已发送未确认消息数，一旦到达该阈值，则暂停消息发送 (限流)。
+     * @return 消息队列中允许的已发送未确认消息数，一旦到达该阈值，则暂停消息发送 (限流) - 实际是漏桶大小。
      * 与{@link #maxCacheMessages()}独立。
      */
     public int maxPendingMessages() {
