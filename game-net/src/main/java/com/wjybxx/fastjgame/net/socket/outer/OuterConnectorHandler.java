@@ -174,9 +174,7 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void flush(SessionHandlerContext ctx) throws Exception {
-        if (!ctx.session().isClosed()) {
-            state.flush();
-        }
+
     }
 
     @Override
@@ -289,12 +287,6 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
                 // 心跳消息丢弃，非心跳消息，加入缓存队列
                 messageQueue.getCacheQueue().addLast(new OuterSocketMessage(msg));
             }
-        }
-
-        /**
-         * 接收到用户的清空缓冲区请求
-         */
-        void flush() {
         }
 
     }
@@ -512,21 +504,12 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
             // 检查ack超时
             final OuterSocketMessage firstMessage = messageQueue.getPendingQueue().peekFirst();
             if (null != firstMessage) {
-                if (netTimeManager.getSystemMillTime() - firstMessage.getAckDeadline() > config.ackTimeoutMs()) {
-                    // 额外等待一段时间后还没确认，进行重传验证
+                if (netTimeManager.getSystemMillTime() > firstMessage.getAckDeadline()) {
+                    // ack超时，进行重传验证
                     changeState(new VerifyingState());
                     return;
                 }
-
-                // 因为采用的是捎带确认，且一个消息不一定对应的返回，因此需要别的方式进行确认
-                // 如果在过去一定时间之后还未收到确认消息，立即发送一个心跳，尝试对前面的消息进行确认 - 心跳对方会立即返回
-                if (!firstMessage.isTraced() && firstMessage.getAckDeadline() - netTimeManager.getSystemMillTime() < config.ackTimeoutMs() / 3) {
-                    firstMessage.setTraced(true);
-                    // 调用session的fireWrite方法，使得能流经心跳控制逻辑
-                    ctx.session().fireWrite(PingPongMessage.PING);
-                }
             }
-
             // 继续发送消息
             OuterUtils.emit(channel, messageQueue,
                     config.maxPendingMessages(),
@@ -563,10 +546,6 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
                     netTimeManager.getSystemMillTime() + config.ackTimeoutMs());
         }
 
-        @Override
-        void flush() {
-            OuterUtils.flush(ctx.session(), channel, messageQueue);
-        }
     }
 
 }

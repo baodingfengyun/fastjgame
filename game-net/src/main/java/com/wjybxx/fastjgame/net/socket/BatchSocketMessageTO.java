@@ -15,7 +15,7 @@
  */
 package com.wjybxx.fastjgame.net.socket;
 
-import java.util.List;
+import java.util.ArrayList;
 
 /**
  * 批量{@link SocketMessage}消息的传输对象 - 之所以需要该对象进行传输，是因为ack字段是发送的时候才赋值的
@@ -29,6 +29,6 @@ public interface BatchSocketMessageTO {
 
     long getAck();
 
-    List<SocketMessage> getSocketMessageList();
+    ArrayList<SocketMessage> getSocketMessageList();
 
 }

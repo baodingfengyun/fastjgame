@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.net.socket.inner;
 import com.wjybxx.fastjgame.net.socket.BatchSocketMessageTO;
 import com.wjybxx.fastjgame.net.socket.SocketMessage;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -33,9 +34,9 @@ public class InnerBatchSocketMessageTO implements BatchSocketMessageTO {
     /**
      * {@link InnerSocketMessage}
      */
-    private final List<SocketMessage> socketMessageList;
+    private final ArrayList<SocketMessage> socketMessageList;
 
-    InnerBatchSocketMessageTO(List<SocketMessage> socketMessageList) {
+    InnerBatchSocketMessageTO(ArrayList<SocketMessage> socketMessageList) {
         this.socketMessageList = socketMessageList;
     }
 
@@ -45,7 +46,7 @@ public class InnerBatchSocketMessageTO implements BatchSocketMessageTO {
     }
 
     @Override
-    public List<SocketMessage> getSocketMessageList() {
+    public ArrayList<SocketMessage> getSocketMessageList() {
         return socketMessageList;
     }
 }

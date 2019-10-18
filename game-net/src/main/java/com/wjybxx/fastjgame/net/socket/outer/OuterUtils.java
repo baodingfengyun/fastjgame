@@ -24,7 +24,6 @@ import com.wjybxx.fastjgame.net.socket.*;
 import io.netty.channel.Channel;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author wjybxx
@@ -77,7 +76,7 @@ class OuterUtils {
             channel.writeAndFlush(outerSocketMessageTO, channel.voidPromise());
         } else {
             // 可发送多个消息，批量传输
-            final List<SocketMessage> messageList = new ArrayList<>(realEmitNum);
+            final ArrayList<SocketMessage> messageList = new ArrayList<>(realEmitNum);
             for (int index = 0; index < realEmitNum; index++) {
                 // 分配sequence，并添加到已发送队列
                 final OuterSocketMessage outerSocketMessage = messageQueue.getCacheQueue().pollFirst();
@@ -131,41 +130,15 @@ class OuterUtils {
             return;
         }
 
+        // 压入缓存队列稍后发送
         final OuterSocketMessage outerSocketMessage = new OuterSocketMessage(msg);
-        if (messageQueue.getPendingMessages() >= maxPendingMessages) {
-            // 达到流量限制，压入队列稍后发送
-            messageQueue.getCacheQueue().addLast(outerSocketMessage);
-            return;
+        messageQueue.getCacheQueue().addLast(outerSocketMessage);
+
+        if (messageQueue.getPendingMessages() <= maxPendingMessages / 2
+                && messageQueue.getCacheMessages() >= maxPendingMessages / 2) {
+            // 缓存的足够多了，尝试发送
+            emit(channel, messageQueue, maxPendingMessages, ackDeadline);
         }
-
-        if (!channel.isWritable()) {
-            // channel暂时不可写 - 这是netty自身的流量整形功能
-            messageQueue.getCacheQueue().addLast(outerSocketMessage);
-            return;
-        }
-
-        // 未达流量限制条件，且channel可写
-        // 分配sequence，并添加到已发送队列
-        outerSocketMessage.setSequence(messageQueue.nextSequence());
-        messageQueue.getPendingQueue().add(outerSocketMessage);
-
-        // 设置ack超时时间
-        outerSocketMessage.setAckDeadline(ackDeadline);
-
-        // 执行发送 - 什么时候调用flush还不太好确定啊
-        OuterSocketMessageTO outerSocketMessageTO = new OuterSocketMessageTO(messageQueue.getAck(), outerSocketMessage);
-        channel.writeAndFlush(outerSocketMessageTO, channel.voidPromise());
-    }
-
-    /**
-     * 清空socket缓冲区
-     *
-     * @param session      session，需要处理session的状态
-     * @param channel      socket对应的channel
-     * @param messageQueue 消息队列
-     */
-    static void flush(Session session, final Channel channel, final MessageQueue messageQueue) {
-
     }
 
     /**
@@ -184,11 +157,9 @@ class OuterUtils {
         // 注意：
         // 1. 必须进行拷贝，因为原列表可能在发出之后被修改，不可共享
         // 2. 每次真正发送的时候都需要更新ack超时时间
-        // 3. 对重发的消息取消追踪标记
-        final List<SocketMessage> socketMessageList = new ArrayList<>(pendingMessages);
+        final ArrayList<SocketMessage> socketMessageList = new ArrayList<>(pendingMessages);
         for (OuterSocketMessage socketMessage : messageQueue.getPendingQueue()) {
             socketMessage.setAckDeadline(ackDeadline);
-            socketMessage.setTraced(false);
             socketMessageList.add(socketMessage);
         }
 
@@ -227,6 +198,12 @@ class OuterUtils {
 
             // 继续发送消息
             emit(channel, messageQueue, maxPendingMessages, ackDeadline);
+        }
+
+        if (event.isEndOfBatch()) {
+            // 立即返回一个响应包进行确认
+            SocketPingPongMessageTO pingPongMessageTO = new OuterPingPongMessageTO(messageQueue.getAck(), PingPongMessage.PONG);
+            channel.writeAndFlush(pingPongMessageTO, channel.voidPromise());
         }
     }
 

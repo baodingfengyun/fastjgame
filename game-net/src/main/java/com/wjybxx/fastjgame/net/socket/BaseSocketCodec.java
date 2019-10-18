@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * 最开始时为分离的Encoder和Decoder。
@@ -52,6 +53,7 @@ import java.io.IOException;
 public abstract class BaseSocketCodec extends ChannelDuplexHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(BaseSocketCodec.class);
+
     /**
      * 协议编解码工具
      */
@@ -109,11 +111,11 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
      */
     protected final void writeBatchMessage(ChannelHandlerContext ctx, BatchSocketMessageTO batchSocketMessageTO) throws Exception {
         // 批量协议包
-        long ack = batchSocketMessageTO.getAck();
-        for (SocketMessage message : batchSocketMessageTO.getSocketMessageList()) {
-            writeSingleMsg(ctx, ack, message, ctx.voidPromise());
+        final long ack = batchSocketMessageTO.getAck();
+        final ArrayList<SocketMessage> messageList = batchSocketMessageTO.getSocketMessageList();
+        for (int index = 0, end = messageList.size(); index < end; index++) {
+            writeSingleMsg(ctx, ack, index == end - 1, messageList.get(index), ctx.voidPromise());
         }
-        ctx.flush();
     }
 
     /**
@@ -124,22 +126,22 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
      * @throws Exception error
      */
     protected final void writeSingleMsg(ChannelHandlerContext ctx, SocketMessageTO socketMessageTO, ChannelPromise promise) throws Exception {
-        writeSingleMsg(ctx, socketMessageTO.getAck(), socketMessageTO.getSocketMessage(), promise);
+        writeSingleMsg(ctx, socketMessageTO.getAck(), true, socketMessageTO.getSocketMessage(), promise);
     }
 
-    private void writeSingleMsg(ChannelHandlerContext ctx, long ack, SocketMessage socketMessage, ChannelPromise promise) throws Exception {
+    private void writeSingleMsg(ChannelHandlerContext ctx, long ack, boolean endOfBatch, SocketMessage socketMessage, ChannelPromise promise) throws Exception {
         switch (socketMessage.getWrappedMessage().type()) {
             case RPC_REQUEST:
                 // rpc请求
-                writeRpcRequestMessage(ctx, ack, socketMessage, promise);
+                writeRpcRequestMessage(ctx, ack, endOfBatch, socketMessage, promise);
                 break;
             case RPC_RESPONSE:
                 // RPC响应
-                writeRpcResponseMessage(ctx, ack, socketMessage, promise);
+                writeRpcResponseMessage(ctx, ack, endOfBatch, socketMessage, promise);
                 break;
             case ONE_WAY_MESSAGE:
                 // 单向消息
-                writeOneWayMessage(ctx, ack, socketMessage, promise);
+                writeOneWayMessage(ctx, ack, endOfBatch, socketMessage, promise);
                 break;
             default:
                 throw new IOException("Unexpected message type " + socketMessage.getWrappedMessage().type());
@@ -224,7 +226,6 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
      */
     final SocketConnectResponseEvent readConnectResponse(Channel channel, String sessionId, ByteBuf msg) {
         boolean success = msg.readByte() == 1;
-
         int verifyingTimes = msg.readInt();
         int verifiedTimes = msg.readInt();
 
@@ -267,15 +268,19 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
     /**
      * 编码rpc请求包
      */
-    private void writeRpcRequestMessage(ChannelHandlerContext ctx, long ack, SocketMessage socketMessage, ChannelPromise promise) {
+    private void writeRpcRequestMessage(ChannelHandlerContext ctx, long ack, boolean endOfBatch, SocketMessage socketMessage, ChannelPromise promise) {
         RpcRequestMessage rpcRequest = (RpcRequestMessage) socketMessage.getWrappedMessage();
-        ByteBuf head = newHeadByteBuf(ctx, 8 + 8 + 8 + 1, NetMessageType.RPC_REQUEST);
+        ByteBuf head = newHeadByteBuf(ctx, 8 + 8 + 1 + 8 + 1, NetMessageType.RPC_REQUEST);
+
         // 捎带确认消息
         head.writeLong(socketMessage.getSequence());
         head.writeLong(ack);
+        head.writeByte(endOfBatch ? 1 : 0);
+
         // rpc请求头
         head.writeLong(rpcRequest.getRequestGuid());
         head.writeByte(rpcRequest.isSync() ? 1 : 0);
+
         // 合并之后发送
         appendSumAndWrite(ctx, tryEncodeAndMergeBody(ctx.alloc(), head, rpcRequest.getRequest()), promise);
     }
@@ -287,6 +292,8 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
         // 捎带确认消息
         long sequence = msg.readLong();
         long ack = msg.readLong();
+        boolean endOfBatch = msg.readByte() == 1;
+
         // rpc请求头
         long requestGuid = msg.readLong();
         boolean sync = msg.readByte() == 1;
@@ -294,18 +301,21 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
         Object request = tryDecodeBody(msg);
 
         RpcRequestMessage rpcRequestMessage = new RpcRequestMessage(requestGuid, sync, request);
-        return new SocketMessageEvent(channel, sessionId, sequence, ack, rpcRequestMessage);
+        return new SocketMessageEvent(channel, sessionId, sequence, ack, endOfBatch, rpcRequestMessage);
     }
 
     /**
      * 编码rpc响应包
      */
-    private void writeRpcResponseMessage(ChannelHandlerContext ctx, long ack, SocketMessage socketMessage, ChannelPromise promise) {
+    private void writeRpcResponseMessage(ChannelHandlerContext ctx, long ack, boolean endOfBatch, SocketMessage socketMessage, ChannelPromise promise) {
         RpcResponseMessage rpcResponseMessage = (RpcResponseMessage) socketMessage.getWrappedMessage();
-        ByteBuf head = newHeadByteBuf(ctx, 8 + 8 + 8 + 4, NetMessageType.RPC_RESPONSE);
+        ByteBuf head = newHeadByteBuf(ctx, 8 + 8 + 1 + 8 + 4, NetMessageType.RPC_RESPONSE);
+
         // 捎带确认信息
         head.writeLong(socketMessage.getSequence());
         head.writeLong(ack);
+        head.writeByte(endOfBatch ? 1 : 0);
+
         // 响应内容
         head.writeLong(rpcResponseMessage.getRequestGuid());
         final RpcResponse rpcResponse = rpcResponseMessage.getRpcResponse();
@@ -326,6 +336,8 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
         // 捎带确认信息
         long sequence = msg.readLong();
         long ack = msg.readLong();
+        boolean endOfBatch = msg.readByte() == 1;
+
         // 响应内容
         long requestGuid = msg.readLong();
         RpcResultCode resultCode = RpcResultCode.forNumber(msg.readInt());
@@ -334,7 +346,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
         final Object body = msg.readableBytes() > 0 ? tryDecodeBody(msg) : null;
 
         RpcResponseMessage rpcResponseMessage = new RpcResponseMessage(requestGuid, new RpcResponse(resultCode, body));
-        return new SocketMessageEvent(channel, sessionId, sequence, ack, rpcResponseMessage);
+        return new SocketMessageEvent(channel, sessionId, sequence, ack, endOfBatch, rpcResponseMessage);
     }
 
     // ------------------------------------------ 单向消息 --------------------------------------------
@@ -342,12 +354,15 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
     /**
      * 编码单向协议包
      */
-    private void writeOneWayMessage(ChannelHandlerContext ctx, long ack, SocketMessage socketMessage, ChannelPromise promise) {
+    private void writeOneWayMessage(ChannelHandlerContext ctx, long ack, boolean endOfBatch, SocketMessage socketMessage, ChannelPromise promise) {
         OneWayMessage oneWayMessage = (OneWayMessage) socketMessage.getWrappedMessage();
-        ByteBuf head = newHeadByteBuf(ctx, 8 + 8, NetMessageType.ONE_WAY_MESSAGE);
+        ByteBuf head = newHeadByteBuf(ctx, 8 + 8 + 1, NetMessageType.ONE_WAY_MESSAGE);
+
         // 捎带确认
         head.writeLong(socketMessage.getSequence());
         head.writeLong(ack);
+        head.writeByte(endOfBatch ? 1 : 0);
+
         // 合并之后发送
         appendSumAndWrite(ctx, tryEncodeAndMergeBody(ctx.alloc(), head, oneWayMessage.getMessage()), promise);
     }
@@ -359,11 +374,13 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
         // 捎带确认
         long sequence = msg.readLong();
         long ack = msg.readLong();
+        boolean endOfBatch = msg.readBoolean();
+
         // 消息内容
         Object message = tryDecodeBody(msg);
 
         OneWayMessage oneWayMessage = new OneWayMessage(message);
-        return new SocketMessageEvent(channel, sessionId, sequence, ack, oneWayMessage);
+        return new SocketMessageEvent(channel, sessionId, sequence, ack, endOfBatch, oneWayMessage);
     }
 
     // ---------------------------------------------- 分割线 ----------------------------------------------------

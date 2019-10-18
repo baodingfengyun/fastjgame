@@ -48,10 +48,6 @@ public class OuterSocketMessage implements SocketMessage {
      * 每次发送的时候设置超时时间 - 线程封闭(NetEventLoop线程访问)
      */
     private long ackDeadline;
-    /**
-     * 在发送之后是否使用心跳包进行了跟踪
-     */
-    private boolean traced = false;
 
     OuterSocketMessage(NetMessage wrappedMessage) {
         this.wrappedMessage = wrappedMessage;
@@ -77,13 +73,5 @@ public class OuterSocketMessage implements SocketMessage {
 
     public void setAckDeadline(long ackDeadline) {
         this.ackDeadline = ackDeadline;
-    }
-
-    public boolean isTraced() {
-        return traced;
-    }
-
-    public void setTraced(boolean traced) {
-        this.traced = traced;
     }
 }

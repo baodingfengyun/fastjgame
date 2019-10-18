@@ -40,15 +40,20 @@ public final class SocketMessageEvent implements SocketEvent {
      */
     private final long ack;
     /**
+     * 是否是批量消息的最后一个？ 需要立即进行确认
+     */
+    private final boolean endOfBatch;
+    /**
      * 被包装的消息
      */
     private final NetMessage wrappedMessage;
 
-    public SocketMessageEvent(Channel channel, String sessionId, long sequence, long ack, NetMessage wrappedMessage) {
+    public SocketMessageEvent(Channel channel, String sessionId, long sequence, long ack, boolean endOfBatch, NetMessage wrappedMessage) {
         this.channel = channel;
         this.sessionId = sessionId;
         this.ack = ack;
         this.sequence = sequence;
+        this.endOfBatch = endOfBatch;
         this.wrappedMessage = wrappedMessage;
     }
 
@@ -68,6 +73,10 @@ public final class SocketMessageEvent implements SocketEvent {
 
     public long getSequence() {
         return sequence;
+    }
+
+    public boolean isEndOfBatch() {
+        return endOfBatch;
     }
 
     public NetMessage getWrappedMessage() {
