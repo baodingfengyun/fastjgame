@@ -46,8 +46,8 @@ public class PongSupportHandler extends SessionInboundHandlerAdapter {
 
     @Override
     public void tick(SessionHandlerContext ctx) {
-        // session超时
         if (timeManager.getSystemMillTime() - lastReadTime > sessionTimeoutMs) {
+            // session超时
             ctx.session().close();
         }
     }
@@ -55,12 +55,15 @@ public class PongSupportHandler extends SessionInboundHandlerAdapter {
     @Override
     public void read(SessionHandlerContext ctx, Object msg) {
         lastReadTime = timeManager.getSystemMillTime();
-        // 读取到一个心跳包，立即返回一个心跳包
         if (msg == PingPongMessage.INSTANCE) {
+            // 读取到一个需要返回的心跳包，立即返回一个心跳包
             // 从当前位置直接返回心跳响应
             ctx.fireWriteAndFlush(PingPongMessage.INSTANCE);
         } else {
-            ctx.fireRead(msg);
+            if (msg != PingPongMessage.INSTANCE2) {
+                // 读取到一个逻辑消息
+                ctx.fireRead(msg);
+            }
         }
     }
 }

@@ -198,12 +198,11 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
         // 通知对方重连成功
         notifyConnectSuccess(channel, connectRequest, messageQueue);
 
-        // 重发未确认消息
+        // 服务器重连成功要干两件事
+        // 1. 触发一次读，避免session超时 - 使用instance2不需要返回包
+        ctx.fireRead(PingPongMessage.INSTANCE2);
+        // 2. 重发消息
         OuterUtils.resend(channel, messageQueue, 0);
-
-        // 使用心跳协议进行追踪 -
-        // 使用session的fireRead，使得消息能流过PongSupportHandler，产生一个心跳返回，同时触发一次心跳
-        ctx.fireRead(PingPongMessage.INSTANCE);
     }
 
     // ------------------------------------------------------- 建立连接请求 ----------------------------------------------

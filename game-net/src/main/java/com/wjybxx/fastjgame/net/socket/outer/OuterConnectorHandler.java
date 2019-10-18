@@ -483,8 +483,15 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
                     session.closeForcibly();
                 }
             } else {
-                // 重连成功 - 重发消息，由于必须能直接发送心跳包，因此必须在该状态下重发
+                // 重连成功
+                // 客户端重发消息之后要干3件事：
+                // 1. 触发一次读，避免session超时 - 使用instance2
+                ctx.fireRead(PingPongMessage.INSTANCE2);
+                // 2. 重发消息
                 OuterUtils.resend(channel, messageQueue, netTimeManager.getSystemMillTime() + config.ackTimeoutMs());
+                // 3. 发送一个心跳包对重发的消息进行追踪
+                // 3.1 由于要能直接发送心跳包，因此必须在该状态下重发
+                // 3.2 使用session.fireWrite可以更新发送消息的时间戳
                 ctx.session().fireWrite(PingPongMessage.INSTANCE);
             }
         }
