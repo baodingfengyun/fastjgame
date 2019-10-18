@@ -125,7 +125,7 @@ class OuterUtils {
             // 心跳协议立即发送
             // 填充过多心跳协议没有意义，而且可能使得已发送队列超出限制过多
             OuterSocketMessage lastMessage = messageQueue.getPendingQueue().peekLast();
-            if (null != lastMessage && lastMessage.getWrappedMessage() != msg) {
+            if (null == lastMessage || lastMessage.getWrappedMessage() != msg) {
                 final OuterSocketMessage outerSocketMessage = new OuterSocketMessage(msg);
                 // 分配sequence，并添加到已发送队列
                 outerSocketMessage.setSequence(messageQueue.nextSequence());

@@ -28,6 +28,7 @@ import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -39,6 +40,8 @@ import java.io.IOException;
 
 /**
  * session客户端方维持socket使用的handler
+ * Q: 为何{@link OuterConnectorHandler}如此复杂而{@link OuterAcceptorHandler}代码较为简单？
+ * A: 扩展客户端比扩展服务器更为简单！通过扩展客户端代码增加功能比扩展服务器更加容易。
  *
  * @author wjybxx
  * @version 1.0
@@ -61,15 +64,15 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
      */
     private final MessageQueue messageQueue = new MessageQueue();
     /**
-     * 发起验证请求的次数
+     * 发起验证请求的次数 - 每次发起验证请求时增加
      */
     private int verifyingTimes = 0;
     /**
-     * 验证成功的次数
+     * 验证成功的次数 - 每次收到成功建立连接应答时增加
      */
     private int verifiedTimes = 0;
     /**
-     * 真正通信的channel
+     * 真正通信的channel - 每次建立socket时更新
      */
     private Channel channel;
     /**
@@ -92,11 +95,6 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
 
         // 尝试建立socket
         changeState(new ConnectingState());
-    }
-
-    @Override
-    public void handlerRemoved(SessionHandlerContext ctx) throws Exception {
-        super.handlerRemoved(ctx);
     }
 
     @Override
@@ -165,7 +163,8 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void close(SessionHandlerContext ctx) throws Exception {
-        NetUtils.closeQuietly(channel);
+        notifyServerExit();
+
         final Promise<Session> connectPromise = detachConnectPromise();
         if (null != connectPromise) {
             // 无法建立连接
@@ -175,6 +174,16 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
             // 打印关闭原因
             logger.debug("close stacktrace {} ", ExceptionUtils.getStackTrace(new RuntimeException()));
         }
+    }
+
+    private void notifyServerExit() {
+        // 通知服务器关闭session
+        // verifyingTimes必须增加，否则无法通过验证
+        final SocketConnectRequest connectRequest = new SocketConnectRequest(++verifyingTimes, verifiedTimes);
+        final OuterSocketConnectRequestTO connectRequestTO = new OuterSocketConnectRequestTO(messageQueue.getInitSequence(), messageQueue.getAck(),
+                true, connectRequest);
+        channel.writeAndFlush(connectRequestTO)
+                .addListener(ChannelFutureListener.CLOSE);
     }
 
     // ------------------------------------------ 状态机管理 --------------------------------------------
@@ -261,6 +270,8 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
 
         @Override
         void enter() {
+            // 关闭旧连接
+            NetUtils.closeQuietly(channel);
             doConnect();
         }
 
@@ -338,13 +349,13 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
 
             final SocketConnectRequest connectRequest = new SocketConnectRequest(verifyingTimes, verifiedTimes);
             final OuterSocketConnectRequestTO connectRequestTO = new OuterSocketConnectRequestTO(messageQueue.getInitSequence(), messageQueue.getAck(),
-                    connectRequest);
+                    false, connectRequest);
             channel.writeAndFlush(connectRequestTO, channel.voidPromise());
         }
 
         @Override
         void tick() {
-            if (netTimeManager.getSystemMillTime() - verifyingStateMillTime <= config.connectTimeoutMs()) {
+            if (netTimeManager.getSystemMillTime() - verifyingStateMillTime <= config.verifyTimeoutMs()) {
                 // 应答还未超时，继续等待
                 return;
             }
@@ -352,7 +363,6 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
             // -- 等待建立连接应答超时
             if (verifyingTimes - enterStateVerifyingTimes >= config.maxVerifyTimes()) {
                 // 达到最大验证次数，还是没有对应的建立连接应答，重新建立socket -- 未来可能直接关闭session
-                NetUtils.closeQuietly(channel);
                 changeState(new ConnectingState());
             } else {
                 // 重发验证请求
@@ -375,15 +385,15 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
                 return;
             }
 
-            if (!connectResponse.isSuccess()) {
-                // 禁止建立连接
+            // 不论首次建立连接应答，还是重连，ack都应该是正确的了
+            if (!messageQueue.isAckOK(event.getAck())) {
+                // 收到的ack有误(有丢包)，这里重连已没有意义(始终有消息漏掉了，无法恢复)
                 ctx.session().close();
                 return;
             }
 
-            // 不论首次建立连接应答，还是重连，ack都应该是正确的了
-            if (!messageQueue.isAckOK(event.getAck())) {
-                // 收到的ack有误(有丢包)，这里重连已没有意义(始终有消息漏掉了，无法恢复)
+            if (!connectResponse.isSuccess()) {
+                // 禁止建立连接
                 ctx.session().close();
                 return;
             }
@@ -480,6 +490,11 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
             if (connectResponse.getVerifyingTimes() != verifyingTimes - 1
                     || connectResponse.getVerifiedTimes() != verifiedTimes - 1) {
                 // 不是对应的应答
+                return;
+            }
+
+            if (!messageQueue.isAckOK(event.getAck())) {
+                // ack错误 - 无法确认是同一个连接
                 return;
             }
 

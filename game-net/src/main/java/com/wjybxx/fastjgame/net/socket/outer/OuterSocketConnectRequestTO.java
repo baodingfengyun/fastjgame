@@ -15,12 +15,13 @@ public class OuterSocketConnectRequestTO implements SocketConnectRequestTO {
 
     private final long initSequence;
     private final long ack;
-
+    private final boolean close;
     private final SocketConnectRequest connectRequest;
 
-    OuterSocketConnectRequestTO(long initSequence, long ack, SocketConnectRequest connectRequest) {
+    OuterSocketConnectRequestTO(long initSequence, long ack, boolean close, SocketConnectRequest connectRequest) {
         this.initSequence = initSequence;
         this.ack = ack;
+        this.close = close;
         this.connectRequest = connectRequest;
     }
 
@@ -32,6 +33,11 @@ public class OuterSocketConnectRequestTO implements SocketConnectRequestTO {
     @Override
     public long getAck() {
         return ack;
+    }
+
+    @Override
+    public boolean isClose() {
+        return close;
     }
 
     @Override

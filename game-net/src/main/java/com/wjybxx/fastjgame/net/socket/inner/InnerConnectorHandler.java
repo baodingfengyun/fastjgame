@@ -59,7 +59,8 @@ public class InnerConnectorHandler extends SessionDuplexHandlerAdapter {
     @Override
     public void handlerAdded(SessionHandlerContext ctx) throws Exception {
         SocketSessionConfig config = (SocketSessionConfig) ctx.session().config();
-        deadline = ctx.managerWrapper().getNetTimeManager().getSystemMillTime() + config.connectTimeoutMs();
+        deadline = ctx.managerWrapper().getNetTimeManager().getSystemMillTime()
+                + config.connectTimeoutMs() + config.verifyTimeoutMs();
 
         // 监听操作完成
         new NettyFutureAdapter<>(ctx.netEventLoop(), channelFuture)
@@ -77,11 +78,7 @@ public class InnerConnectorHandler extends SessionDuplexHandlerAdapter {
 
         if (channelFuture.isSuccess()) {
             // socket连接成功，则发送建立session请求
-            SocketConnectRequest connectRequest = new SocketConnectRequest(InnerUtils.INNER_VERIFY_TIMES,
-                    InnerUtils.INNER_VERIFIED_TIMES);
-
-            InnerSocketConnectRequestTO connectRequestTO = new InnerSocketConnectRequestTO(connectRequest);
-            channelFuture.channel().writeAndFlush(connectRequestTO);
+            channelFuture.channel().writeAndFlush(InnerUtils.INNER_CONNECT_REQUEST_TO);
         } else {
             // socket建立失败，关闭session
             ctx.session().close();
@@ -124,15 +121,15 @@ public class InnerConnectorHandler extends SessionDuplexHandlerAdapter {
     /**
      * 接收到建立连接响应
      */
-    private void onRcvConnectResponse(SocketSessionImp session, SocketConnectResponseEvent connectResponseEvent) {
-        SocketConnectResponse connectResponse = connectResponseEvent.getConnectResponse();
+    private void onRcvConnectResponse(SocketSessionImp session, SocketConnectResponseEvent event) {
+        SocketConnectResponse connectResponse = event.getConnectResponse();
         if (connectResponse.getVerifyingTimes() != InnerUtils.INNER_VERIFY_TIMES) {
             // 验证次数不对
             session.close();
             return;
         }
 
-        if (connectResponseEvent.getAck() != InnerUtils.INNER_ACK) {
+        if (event.getAck() != InnerUtils.INNER_ACK) {
             // 初始化ack错误
             session.close();
             return;

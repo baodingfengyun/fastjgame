@@ -40,6 +40,12 @@ public interface SocketConnectRequestTO {
     long getAck();
 
     /**
+     * 是否是断开连接请求 - 当其它参数验证成功时，如果该值为true，则表示主动通知断开连接
+     * 1. 用于外网连接时，尽快的通知服务端关闭session释放资源 - 友好的关闭。
+     */
+    boolean isClose();
+
+    /**
      * 建立连接请求
      */
     SocketConnectRequest getConnectRequest();

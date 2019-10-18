@@ -162,7 +162,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
      */
     final void writeConnectRequest(ChannelHandlerContext ctx, String sessionId, long localGuid, SocketConnectRequestTO socketConnectRequestTO, ChannelPromise promise) {
         final SocketConnectRequest socketConnectRequest = socketConnectRequestTO.getConnectRequest();
-        final int contentLength = 8 + 4 + 4 + 8 + 8 + sessionId.length();
+        final int contentLength = 8 + 4 + 4 + 8 + 8 + 1 + sessionId.length();
         ByteBuf head = newHeadByteBuf(ctx, contentLength, NetMessageType.CONNECT_REQUEST);
 
         head.writeLong(localGuid);
@@ -171,6 +171,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
 
         head.writeLong(socketConnectRequestTO.getInitSequence());
         head.writeLong(socketConnectRequestTO.getAck());
+        head.writeByte(socketConnectRequestTO.isClose() ? 1 : 0);
 
         // sessionId
         final byte[] sessionIdBytes = CodecUtils.getBytesUTF8(sessionId);
@@ -183,7 +184,6 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
      * 解码协议1 - 建立连接请求
      */
     final SocketConnectRequestEvent readConnectRequest(Channel channel, ByteBuf msg, SocketPortContext portExtraInfo) {
-
         // 建立连接请求
         long remoteGuid = msg.readLong();
         int verifyingTimes = msg.readInt();
@@ -192,13 +192,14 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
         // initSequence和ack
         long initSequence = msg.readLong();
         long ack = msg.readLong();
+        boolean close = msg.readByte() == 1;
 
         // sessionId
         byte[] sessionIdBytes = NetUtils.readRemainBytes(msg);
         String sessionId = CodecUtils.newStringUTF8(sessionIdBytes);
 
         SocketConnectRequest socketConnectRequest = new SocketConnectRequest(verifyingTimes, verifiedTimes);
-        return new SocketConnectRequestEvent(channel, sessionId, remoteGuid, initSequence, ack, socketConnectRequest, portExtraInfo);
+        return new SocketConnectRequestEvent(channel, sessionId, remoteGuid, initSequence, ack, close, socketConnectRequest, portExtraInfo);
     }
 
     /**

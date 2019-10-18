@@ -40,6 +40,10 @@ public class SocketConnectRequestEvent implements SocketEvent {
      */
     private final long ack;
     /**
+     * 是否是关闭连接请求
+     */
+    private final boolean close;
+    /**
      * 请求信息
      */
     private final SocketConnectRequest connectRequest;
@@ -48,12 +52,13 @@ public class SocketConnectRequestEvent implements SocketEvent {
      */
     private final SocketPortContext portExtraInfo;
 
-    public SocketConnectRequestEvent(Channel channel, String sessionId, long remoteGuid, long initSequence, long ack, SocketConnectRequest connectRequest, SocketPortContext portExtraInfo) {
+    public SocketConnectRequestEvent(Channel channel, String sessionId, long remoteGuid, long initSequence, long ack, boolean close, SocketConnectRequest connectRequest, SocketPortContext portExtraInfo) {
         this.channel = channel;
         this.sessionId = sessionId;
         this.remoteGuid = remoteGuid;
         this.initSequence = initSequence;
         this.ack = ack;
+        this.close = close;
         this.connectRequest = connectRequest;
         this.portExtraInfo = portExtraInfo;
     }
@@ -78,6 +83,10 @@ public class SocketConnectRequestEvent implements SocketEvent {
 
     public long getAck() {
         return ack;
+    }
+
+    public boolean isClose() {
+        return close;
     }
 
     public SocketConnectRequest getConnectRequest() {

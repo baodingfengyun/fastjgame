@@ -82,6 +82,9 @@ public class ExampleRpcClientLoop extends DisruptorEventLoop {
                     .setLifecycleAware(new ServerDisconnectAward())
                     .setDispatcher(new DefaultProtocolDispatcher())
                     .setAutoReconnect(true)
+                    .setRpcCallbackTimeoutMs((int) TimeUtils.MIN)
+                    .setMaxPendingMessages(100)
+                    .setMaxCacheMessages(1000)
                     .build();
 
             final HostAndPort address = new HostAndPort(NetUtils.getLocalIp(), ExampleConstants.tcpPort);

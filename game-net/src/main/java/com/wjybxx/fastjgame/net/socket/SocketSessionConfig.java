@@ -164,10 +164,10 @@ public final class SocketSessionConfig extends SessionConfig {
 
         private int sndBuffer = 64 * 1024;
         private int rcvBuffer = 64 * 1024;
-        private int readTimeout = 60;
+        private int readTimeout = 30;
         private int maxFrameLength = 8 * 1024;
 
-        private int connectTimeoutMs = 15 * 1000;
+        private int connectTimeoutMs = 10 * 1000;
         private boolean autoReconnect = false;
         private int maxConnectTryTimes = 3;
 

@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.net.socket.inner;
 
+import com.wjybxx.fastjgame.net.socket.SocketConnectRequest;
+
 /**
  * 内网连接工具类
  *
@@ -31,6 +33,9 @@ class InnerUtils {
 
     static final int INNER_SEQUENCE = 2333;
     static final int INNER_ACK = INNER_SEQUENCE + 1;
+
+    static final InnerSocketConnectRequestTO INNER_CONNECT_REQUEST_TO = new InnerSocketConnectRequestTO(
+            new SocketConnectRequest(InnerUtils.INNER_VERIFY_TIMES, InnerUtils.INNER_VERIFIED_TIMES));
 
     private InnerUtils() {
         // close

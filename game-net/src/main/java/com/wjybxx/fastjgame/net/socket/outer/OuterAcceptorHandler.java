@@ -127,7 +127,7 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
     @Override
     public void close(SessionHandlerContext ctx) throws Exception {
         // 通知对方关闭，同时会关闭channel
-        notifyClientExit(channel, connectRequest);
+        notifyClientExit(channel, connectRequest, messageQueue);
 
         if (logger.isDebugEnabled()) {
             // 打印关闭原因
@@ -165,6 +165,12 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
         if (!messageQueue.isAckOK(event.getAck())) {
             // ack错误 - 无法重连（消息彻底丢失）
             notifyConnectFail(event.channel(), connectRequest);
+            return;
+        }
+
+        if (event.isClose()) {
+            // 通过层层验证之后，如果这是一个关闭session请求，则关闭session
+            ctx.session().close();
             return;
         }
 
@@ -206,6 +212,12 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
                 notifyConnectFail(channel, connectRequest);
                 return;
             }
+
+            if (event.isClose()) {
+                // 通过层层验证之后，如果这是一个关闭session请求，则不建立新连接
+                return;
+            }
+
             // -- 建立连接成功
             final SocketPortContext portExtraInfo = event.getPortExtraInfo();
             final SocketSessionImp session = new SocketSessionImp(portExtraInfo.getNetContext(),
@@ -278,9 +290,10 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
     /**
      * 通知客户端退出
      */
-    private static void notifyClientExit(Channel channel, SocketConnectRequest connectRequest) {
+    private static void notifyClientExit(Channel channel, SocketConnectRequest connectRequest, MessageQueue messageQueue) {
         final SocketConnectResponse connectResponse = new SocketConnectResponse(false, connectRequest);
-        final OuterSocketConnectResponseTO connectResponseTO = new OuterSocketConnectResponseTO(-1, -1, connectResponse);
+        final OuterSocketConnectResponseTO connectResponseTO = new OuterSocketConnectResponseTO(messageQueue.getInitSequence(), messageQueue.getAck(),
+                connectResponse);
         // 告知验证失败，且发送之后关闭channel
         channel.writeAndFlush(connectResponseTO)
                 .addListener(ChannelFutureListener.CLOSE);

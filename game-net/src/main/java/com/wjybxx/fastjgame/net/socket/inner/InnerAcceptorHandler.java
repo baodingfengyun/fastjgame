@@ -45,7 +45,8 @@ public class InnerAcceptorHandler {
         if (existSession == null) {
             // 尝试建立新的session
 
-            if (event.getInitSequence() != InnerUtils.INNER_SEQUENCE || event.getAck() != InnerUtils.INNER_ACK) {
+            if (event.getInitSequence() != InnerUtils.INNER_SEQUENCE
+                    || event.getAck() != InnerUtils.INNER_ACK) {
                 // 不匹配内网ack和sequence参数
                 onInnerConnectFail(channel, connectRequest);
                 return;
@@ -53,7 +54,13 @@ public class InnerAcceptorHandler {
 
             if (connectRequest.getVerifyingTimes() != InnerUtils.INNER_VERIFY_TIMES
                     || connectRequest.getVerifiedTimes() != InnerUtils.INNER_VERIFIED_TIMES) {
-                // 不匹配内网请参数
+                // 不匹配内网请求参数
+                onInnerConnectFail(channel, connectRequest);
+                return;
+            }
+
+            if (event.isClose()) {
+                // 内网不应该出现close为true
                 onInnerConnectFail(channel, connectRequest);
                 return;
             }
