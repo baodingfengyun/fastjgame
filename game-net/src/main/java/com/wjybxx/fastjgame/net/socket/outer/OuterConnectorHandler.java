@@ -133,9 +133,16 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
             NetUtils.closeQuietly(event.channel());
             return;
         }
+
         if (event instanceof SocketMessageEvent) {
             // 对方的消息 - 出现的概率更大，因此放在其他事件前面
-            state.read((SocketMessageEvent) event);
+            state.readMessage((SocketMessageEvent) event);
+            return;
+        }
+
+        if (event instanceof SocketPingPongEvent) {
+            // 心跳事件
+            state.readPingPong((SocketPingPongEvent) event);
             return;
         }
 
@@ -260,7 +267,13 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
         /**
          * 接收到对方的一个消息
          */
-        void read(SocketMessageEvent event) {
+        void readMessage(SocketMessageEvent event) {
+        }
+
+        /**
+         * 接收到一个心跳事件
+         */
+        void readPingPong(SocketPingPongEvent event) {
         }
 
         /**
@@ -272,8 +285,10 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
                 ctx.session().close();
                 return;
             }
-            // 加入缓存队列
-            messageQueue.getCacheQueue().addLast(new OuterSocketMessage(msg));
+            if (msg != PingPongMessage.PING && msg != PingPongMessage.PONG) {
+                // 心跳消息丢弃，非心跳消息，加入缓存队列
+                messageQueue.getCacheQueue().addLast(new OuterSocketMessage(msg));
+            }
         }
 
         /**
@@ -281,6 +296,7 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
          */
         void flush() {
         }
+
     }
 
     /**
@@ -340,7 +356,7 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
             // 本次建立连接超时，关闭当前future,并再次尝试
             NetUtils.closeQuietly(channelFuture);
 
-            if (tryTimes < config.maxConnectTryTimes()) {
+            if (tryTimes < config.maxConnectTimes()) {
                 // 还可以继续尝试
                 doConnect();
             } else {
@@ -496,15 +512,15 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
             // 检查ack超时
             final OuterSocketMessage firstMessage = messageQueue.getPendingQueue().peekFirst();
             if (null != firstMessage) {
-                if (netTimeManager.getSystemMillTime() >= firstMessage.getAckDeadline()) {
-                    // ack超时了，进行重传验证
+                if (netTimeManager.getSystemMillTime() - firstMessage.getAckDeadline() > config.ackTimeoutMs()) {
+                    // 额外等待一段时间后还没确认，进行重传验证
                     changeState(new VerifyingState());
                     return;
                 }
 
                 // 因为采用的是捎带确认，且一个消息不一定对应的返回，因此需要别的方式进行确认
                 // 如果在过去一定时间之后还未收到确认消息，立即发送一个心跳，尝试对前面的消息进行确认 - 心跳对方会立即返回
-                if (!firstMessage.isTraced() && firstMessage.getAckDeadline() - netTimeManager.getSystemMillTime() < config.ackTimeoutMs() / 2) {
+                if (!firstMessage.isTraced() && firstMessage.getAckDeadline() - netTimeManager.getSystemMillTime() < config.ackTimeoutMs() / 3) {
                     firstMessage.setTraced(true);
                     // 调用session的fireWrite方法，使得能流经心跳控制逻辑
                     ctx.session().fireWrite(PingPongMessage.PING);
@@ -523,8 +539,16 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
         }
 
         @Override
-        void read(SocketMessageEvent event) {
+        void readMessage(SocketMessageEvent event) {
             OuterUtils.readMessage(ctx, event, messageQueue,
+                    channel,
+                    config.maxPendingMessages(),
+                    netTimeManager.getSystemMillTime() + config.ackTimeoutMs());
+        }
+
+        @Override
+        void readPingPong(SocketPingPongEvent event) {
+            OuterUtils.readPingPong(ctx, event, messageQueue,
                     channel,
                     config.maxPendingMessages(),
                     netTimeManager.getSystemMillTime() + config.ackTimeoutMs());

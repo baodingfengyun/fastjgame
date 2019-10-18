@@ -46,8 +46,6 @@ public class SessionConfig {
     private final long rpcCallbackTimeoutMs;
     private final long syncRpcTimeoutMs;
 
-    private final long pingIntervalMs;
-
     protected SessionConfig(SessionConfigBuilder builder) {
         this.lifecycleAware = builder.lifecycleAware;
         this.codec = builder.protocolCodec;
@@ -57,8 +55,6 @@ public class SessionConfig {
         this.rpcAvailable = builder.rpcAvailable;
         this.rpcCallbackTimeoutMs = builder.rpcCallbackTimeoutMs;
         this.syncRpcTimeoutMs = builder.syncRpcTimeoutMs;
-
-        this.pingIntervalMs = builder.pingIntervalMs;
     }
 
     /**
@@ -108,13 +104,6 @@ public class SessionConfig {
      */
     public long getSyncRpcTimeoutMs() {
         return syncRpcTimeoutMs;
-    }
-
-    /**
-     * @return 心跳时间间隔，毫秒
-     */
-    public long getPingIntervalMs() {
-        return pingIntervalMs;
     }
 
     public static SessionConfigBuilder newBuilder() {
@@ -169,12 +158,6 @@ public class SessionConfig {
         public T setSyncRpcTimeoutMs(int syncRpcTimeoutMs) {
             CheckUtils.checkPositive(rpcCallbackTimeoutMs, "syncRpcTimeoutMs");
             this.syncRpcTimeoutMs = syncRpcTimeoutMs;
-            return self();
-        }
-
-        public T setPingIntervalMs(int pingIntervalMs) {
-            CheckUtils.checkPositive(pingIntervalMs, "pingIntervalMs");
-            this.pingIntervalMs = pingIntervalMs;
             return self();
         }
 

@@ -99,7 +99,7 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
         if (null != firstMessage) {
             // 因为采用的是捎带确认，且一个消息不一定对应的返回，因此需要别的方式进行确认
             // 如果在过去一定时间之后还未收到确认消息，立即发送一个心跳，尝试对前面的消息进行确认 - 心跳对方会立即返回
-            if (!firstMessage.isTraced() && firstMessage.getAckDeadline() - netTimeManager.getSystemMillTime() < ackTimeoutMs / 2) {
+            if (!firstMessage.isTraced() && firstMessage.getAckDeadline() - netTimeManager.getSystemMillTime() < ackTimeoutMs / 3) {
                 firstMessage.setTraced(true);
                 // 调用session的fireWrite方法，使得能流经心跳控制逻辑
                 ctx.session().fireWrite(PingPongMessage.PING);
@@ -130,6 +130,15 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
         if (event instanceof SocketMessageEvent) {
             // 对方发来的消息事件 - 它出现的概率更高，因此放在socket断开之前处理
             OuterUtils.readMessage(ctx, (SocketMessageEvent) event,
+                    messageQueue, channel,
+                    maxPendingMessages,
+                    netTimeManager.getSystemMillTime() + ackTimeoutMs);
+            return;
+        }
+
+        if (event instanceof SocketPingPongEvent) {
+            // 对方发来的心跳事件
+            OuterUtils.readPingPong(ctx, (SocketPingPongEvent) event,
                     messageQueue, channel,
                     maxPendingMessages,
                     netTimeManager.getSystemMillTime() + ackTimeoutMs);
@@ -187,9 +196,8 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
         }
 
         if (connectRequest.getVerifiedTimes() == 0) {
-            // 客户端丢失了建立连接应答 - 那么需要验证初始sequence是否和之前一致
-            if (event.getInitSequence() + 1 != messageQueue.getAck()) {
-                // 不是相同的请求
+            // 重发的新连接请求，ack必须是0 且服务器的ack就是initSequence +1
+            if (event.getAck() != 0 || event.getInitSequence() + 1 != messageQueue.getAck()) {
                 notifyConnectFail(event);
                 return;
             }
@@ -257,13 +265,8 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
             }
 
             // 尝试建立一个新的session
-            if (connectRequest.getVerifiedTimes() != 0) {
-                // 这是旧请求，等于0才是首次建立连接请求 - 大于0表示期望重连
-                notifyConnectFail(event);
-                return;
-            }
-            if (event.getAck() != 0) {
-                // 建立新连接时ack应该为0，需要根据响应初始化ack
+            if (connectRequest.getVerifiedTimes() != 0 || event.getAck() != 0) {
+                // 这是旧请求，新连接请求的 verifiedTimes 和 ack都应该为0
                 notifyConnectFail(event);
                 return;
             }

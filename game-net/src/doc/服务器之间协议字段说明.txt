@@ -4,7 +4,7 @@
  long 8字节      checkSum          消息的内容的校验和(不包含第一个字段和自身)
  byte 1字节      pkgType           协议的类型(每种协议一个固定值)
 
-1. 请求建立连接(或重连) -  服务器之间不需要token
+1. 请求建立连接(或重连)               [传输控制协议]
  long  8字节     clientGuid        客户端唯一标识(发起方guid)
  int   4字节     verifyingTimes    这是客户端第几次发起连接请求：用于识别最新请求和客户端追踪结果
  int   4字节     verifiedTimes     客户端验证成功次数(判断是重连还是首次建立连接)
@@ -15,7 +15,7 @@
 
  bytes 指定      sessionId         要建立的session的唯一标识(放最后可以省去额外的长度字段)
 
-2. 建立连接应答
+2. 建立连接应答                      [传输控制协议]
  byte  1字节     success           是否允许建立连接
  int   4字节     verifyingTimes    这是客户端第几次发起的连接请求
  int   4字节     verifiedTimes     客户端验证成功次数
@@ -24,12 +24,11 @@
  long  8字节     ack               服务器期望的下一个消息号(首次建立连接时就是正式的ack了)
  byte  1字节     close             是否是断开连接消息
 
-3. 心跳协议 - ping/pong （请注意：这是网络层心跳，网络层心跳不能代替逻辑层心跳）
- long  8字节      sequence         这是我发送的第几个包/帧。
+3. 心跳协议 - ping/pong            [传输控制协议] （请注意：网络层心跳不能代替逻辑层心跳）
  long  8字节      ack              我期望的下一个消息号(捎带确认的ack)
  byte  1字节      pingOrPong       ping还是pong
 
-4. Rpc请求包（正式消息）
+4. Rpc请求包                      （用户数据）
  long  8字节     sequence         这是我发送的第几个包/帧。
  long  8字节     ack              我期望的下一个消息号(捎带确认的ack)
 
@@ -37,7 +36,7 @@
  byte  1字节     sync             是否是同步rpc调用
  bytes 字节数组   bytes            请求的内容
 
-5. Rpc响应包（正式消息）
+5. Rpc响应包                     （用户数据）
  long  8字节     sequence         这是我发送的第几个包/帧
  long  8字节     ack              我期望的下一个消息号(捎带确认的ack)
 
@@ -45,7 +44,7 @@
  int   4字节     resultCode       错误码
  bytes 字节数组   bytes            响应结果
 
-6. 单向消息包（正式消息）
+6. 单向消息包                      （用户数据）
  long  8字节     sequence         这是我发送的第几个包/帧。
  long  8字节     ack              我期望的下一个消息号(捎带确认的ack)
 

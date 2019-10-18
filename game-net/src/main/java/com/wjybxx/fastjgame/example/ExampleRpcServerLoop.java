@@ -91,8 +91,8 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
                     .setDispatcher(protocolDispatcher)
                     .setAutoReconnect(true)
                     .setRpcCallbackTimeoutMs((int) TimeUtils.MIN)
-                    .setMaxPendingMessages(200)
-                    .setMaxCacheMessages(1000)
+                    .setMaxPendingMessages(100)
+                    .setMaxCacheMessages(10000)
                     .build();
 
             netContext.bindTcp(NetUtils.getLocalIp(), ExampleConstants.tcpPort, config);

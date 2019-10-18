@@ -16,6 +16,9 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
+import com.wjybxx.fastjgame.net.common.NetMessage;
+import com.wjybxx.fastjgame.net.common.NetMessageType;
+
 /**
  * 建立连接请求
  *
@@ -24,7 +27,7 @@ package com.wjybxx.fastjgame.net.socket;
  * date - 2019/9/30
  * github - https://github.com/hl845740757
  */
-public class SocketConnectRequest {
+public class SocketConnectRequest implements NetMessage {
 
     /**
      * 这是客户端的第几次连接请求。
@@ -53,4 +56,9 @@ public class SocketConnectRequest {
         return verifiedTimes;
     }
 
+
+    @Override
+    public NetMessageType type() {
+        return NetMessageType.CONNECT_REQUEST;
+    }
 }

@@ -76,6 +76,9 @@ public class ClientSocketCodec extends BaseSocketCodec {
         } else if (msgTO instanceof BatchSocketMessageTO) {
             // 批量协议包
             writeBatchMessage(ctx, (BatchSocketMessageTO) msgTO);
+        } else if (msgTO instanceof SocketPingPongMessageTO) {
+            // 心跳包
+            writeAckPingPongMessage(ctx, (SocketPingPongMessageTO) msgTO, promise);
         } else if (msgTO instanceof SocketConnectRequestTO) {
             // 请求建立连接包
             writeConnectRequest(ctx, sessionId, localGuid, (SocketConnectRequestTO) msgTO, promise);
@@ -129,8 +132,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
     private void tryReadRpcRequestMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureConnected();
 
-        SocketMessageEvent socketMessageEvent = readRpcRequestMessage(ctx.channel(), sessionId, msg);
-        netEventLoop.fireEvent_connector(socketMessageEvent);
+        netEventLoop.fireEvent_connector(readRpcRequestMessage(ctx.channel(), sessionId, msg));
     }
 
     /**
@@ -139,8 +141,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
     private void tryReadRpcResponseMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureConnected();
 
-        SocketMessageEvent socketMessageEvent = readRpcResponseMessage(ctx.channel(), sessionId, msg);
-        netEventLoop.fireEvent_connector(socketMessageEvent);
+        netEventLoop.fireEvent_connector(readRpcResponseMessage(ctx.channel(), sessionId, msg));
     }
 
     /**
@@ -158,8 +159,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
     private void tryReadAckPongMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureConnected();
 
-        SocketMessageEvent socketMessageEvent = readAckPingPongMessage(ctx.channel(), sessionId, msg);
-        netEventLoop.fireEvent_connector(socketMessageEvent);
+        netEventLoop.fireEvent_connector(readAckPingPongMessage(ctx.channel(), sessionId, msg));
     }
     // endregion
 

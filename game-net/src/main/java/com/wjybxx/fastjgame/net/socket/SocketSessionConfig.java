@@ -33,13 +33,14 @@ public final class SocketSessionConfig extends SessionConfig {
 
     private final int sndBuffer;
     private final int rcvBuffer;
-    private final int readTimeout;
     private final int maxFrameLength;
+    private final int readTimeout;
+    private final int pingIntervalMs;
 
     private final int connectTimeoutMs;
     // ------------------------------------- 消息确认机制参数 -----------------------------
     private final boolean autoReconnect;
-    private final int maxConnectTryTimes;
+    private final int maxConnectTimes;
 
     private final int verifyTimeoutMs;
     private final int maxVerifyTimes;
@@ -56,9 +57,10 @@ public final class SocketSessionConfig extends SessionConfig {
         this.maxFrameLength = builder.maxFrameLength;
         this.connectTimeoutMs = builder.connectTimeoutMs;
         this.readTimeout = builder.readTimeout;
+        this.pingIntervalMs = builder.pingIntervalMs;
 
         this.autoReconnect = builder.autoReconnect;
-        this.maxConnectTryTimes = builder.maxConnectTryTimes;
+        this.maxConnectTimes = builder.maxConnectTimes;
 
         this.verifyTimeoutMs = builder.verifyTimeoutMs;
         this.maxVerifyTimes = builder.maxVerifyTimes;
@@ -104,6 +106,13 @@ public final class SocketSessionConfig extends SessionConfig {
     }
 
     /**
+     * @return 心跳时间间隔，毫秒
+     */
+    public long getPingIntervalMs() {
+        return pingIntervalMs;
+    }
+
+    /**
      * @return 是否开启了断线重连/消息确认机制。注意：必须双方都开启，否则消息确认将失败。
      */
     public boolean isAutoReconnect() {
@@ -113,8 +122,8 @@ public final class SocketSessionConfig extends SessionConfig {
     /**
      * @return <b>每一次</b>建立socket的最大尝试次数，如果指定次数内无法连接到对方，则关闭session。
      */
-    public int maxConnectTryTimes() {
-        return maxConnectTryTimes;
+    public int maxConnectTimes() {
+        return maxConnectTimes;
     }
 
     /**
@@ -134,10 +143,6 @@ public final class SocketSessionConfig extends SessionConfig {
 
     /**
      * @return 一个消息的超时时间 - 毫秒
-     * 解释：
-     * 1. 一个包在<b>一定时间</b>内得不到对方确认，则发送心跳包，进行追踪。
-     * 2. 一个包在指定时间内得不到对方确认，则发起重传请求。
-     * 注意：如果发包速率很高，该值一定要小
      */
     public int ackTimeoutMs() {
         return ackTimeoutMs;
@@ -153,6 +158,7 @@ public final class SocketSessionConfig extends SessionConfig {
 
     /**
      * @return 消息队列中允许缓存的尚未发送的消息总数（还未发送的消息数），一旦到达该值，则关闭session (避免无限缓存，内存溢出)。
+     * 注意：如果发包频率太快，则容易导致session关闭。
      * 与{@link #maxPendingMessages()}独立。
      */
     public int maxCacheMessages() {
@@ -167,17 +173,19 @@ public final class SocketSessionConfig extends SessionConfig {
 
         private int sndBuffer = 64 * 1024;
         private int rcvBuffer = 64 * 1024;
-        private int readTimeout = 30;
         private int maxFrameLength = 8 * 1024;
-
+        private int readTimeout = 30;
+        private int pingIntervalMs = 5000;
         private int connectTimeoutMs = 10 * 1000;
+
         private boolean autoReconnect = false;
-        private int maxConnectTryTimes = 3;
+        private int maxConnectTimes = 3;
 
         private int verifyTimeoutMs = 10 * 1000;
         private int maxVerifyTimes = 3;
 
         private int ackTimeoutMs = 5 * 1000;
+
         private int maxPendingMessages = 50;
         private int maxCacheMessages = 500;
 
@@ -204,15 +212,21 @@ public final class SocketSessionConfig extends SessionConfig {
             return this;
         }
 
-        public SocketSessionConfigBuilder setConnectTimeoutMs(int connectTimeoutMs) {
-            CheckUtils.checkPositive(connectTimeoutMs, "connectTimeoutMs");
-            this.connectTimeoutMs = connectTimeoutMs;
+        public SocketSessionConfigBuilder setPingIntervalMs(int pingIntervalMs) {
+            CheckUtils.checkPositive(pingIntervalMs, "pingIntervalMs");
+            this.pingIntervalMs = pingIntervalMs;
             return this;
         }
 
         public SocketSessionConfigBuilder setReadTimeout(int readTimeout) {
             CheckUtils.checkPositive(readTimeout, "readTimeout");
             this.readTimeout = readTimeout;
+            return this;
+        }
+
+        public SocketSessionConfigBuilder setConnectTimeoutMs(int connectTimeoutMs) {
+            CheckUtils.checkPositive(connectTimeoutMs, "connectTimeoutMs");
+            this.connectTimeoutMs = connectTimeoutMs;
             return this;
         }
 
@@ -243,9 +257,9 @@ public final class SocketSessionConfig extends SessionConfig {
             return this;
         }
 
-        public SocketSessionConfigBuilder setMaxConnectTryTimes(int maxConnectTryTimes) {
-            CheckUtils.checkPositive(maxConnectTryTimes, "maxConnectTryTimes");
-            this.maxConnectTryTimes = maxConnectTryTimes;
+        public SocketSessionConfigBuilder setMaxConnectTimes(int maxConnectTimes) {
+            CheckUtils.checkPositive(maxConnectTimes, "maxConnectTimes");
+            this.maxConnectTimes = maxConnectTimes;
             return this;
         }
 

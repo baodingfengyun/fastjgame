@@ -16,6 +16,9 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
+import com.wjybxx.fastjgame.net.common.NetMessage;
+import com.wjybxx.fastjgame.net.common.NetMessageType;
+
 /**
  * 建立连接应答
  *
@@ -24,7 +27,7 @@ package com.wjybxx.fastjgame.net.socket;
  * date - 2019/9/30
  * github - https://github.com/hl845740757
  */
-public class SocketConnectResponse {
+public class SocketConnectResponse implements NetMessage {
 
     /**
      * 验证是否成功
@@ -56,4 +59,8 @@ public class SocketConnectResponse {
         return verifiedTimes;
     }
 
+    @Override
+    public NetMessageType type() {
+        return NetMessageType.CONNECT_RESPONSE;
+    }
 }

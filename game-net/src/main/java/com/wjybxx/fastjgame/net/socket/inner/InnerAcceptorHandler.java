@@ -42,59 +42,59 @@ public class InnerAcceptorHandler {
         final Channel channel = event.channel();
         final SocketConnectRequest connectRequest = event.getConnectRequest();
         final Session existSession = acceptorManager.getSession(event.sessionId());
-        if (existSession == null) {
-            // 尝试建立新的session
-
-            if (event.getInitSequence() != InnerUtils.INNER_SEQUENCE
-                    || event.getAck() != InnerUtils.INNER_ACK) {
-                // 不匹配内网ack和sequence参数
-                onInnerConnectFail(channel, connectRequest);
-                return;
-            }
-
-            if (connectRequest.getVerifyingTimes() != InnerUtils.INNER_VERIFY_TIMES
-                    || connectRequest.getVerifiedTimes() != InnerUtils.INNER_VERIFIED_TIMES) {
-                // 不匹配内网请求参数
-                onInnerConnectFail(channel, connectRequest);
-                return;
-            }
-
-            if (event.isClose()) {
-                // 内网不应该出现close为true
-                onInnerConnectFail(channel, connectRequest);
-                return;
-            }
-
-            // 建立连接成功
-            final SocketPortContext portExtraInfo = event.getPortExtraInfo();
-            final SocketSessionImp session = new SocketSessionImp(portExtraInfo.getNetContext(),
-                    event.sessionId(),
-                    event.remoteGuid(),
-                    portExtraInfo.getSessionConfig(),
-                    netManagerWrapper,
-                    acceptorManager);
-
-            // 初始化管道
-            session.pipeline()
-                    .addLast(new InnerSocketTransferHandler(channel))
-                    .addLast(new PingPingSupportHandler())
-                    .addLast(new OneWaySupportHandler());
-
-            // 判断是否支持rpc
-            if (session.config().isRpcAvailable()) {
-                session.pipeline().addLast(new RpcSupportHandler());
-            }
-
-            // 激活session并传递激活事件
-            session.tryActive();
-            session.pipeline().fireSessionActive();
-
-            // 建立连接成功，告知对方
-            onInnerConnectSuccess(channel, connectRequest);
-        } else {
+        if (existSession != null) {
             // 内网无消息确认机制，不支持重连
             onInnerConnectFail(channel, connectRequest);
+            return;
         }
+
+        if (event.isClose()) {
+            // 内网不应该出现close为true
+            onInnerConnectFail(channel, connectRequest);
+            return;
+        }
+
+        // -- 尝试建立新的session
+        if (event.getInitSequence() != InnerUtils.INNER_SEQUENCE
+                || event.getAck() != InnerUtils.INNER_ACK) {
+            // 不匹配内网ack和sequence参数
+            onInnerConnectFail(channel, connectRequest);
+            return;
+        }
+
+        if (connectRequest.getVerifyingTimes() != InnerUtils.INNER_VERIFY_TIMES
+                || connectRequest.getVerifiedTimes() != InnerUtils.INNER_VERIFIED_TIMES) {
+            // 不匹配内网请求参数
+            onInnerConnectFail(channel, connectRequest);
+            return;
+        }
+
+        // 建立连接成功
+        final SocketPortContext portExtraInfo = event.getPortExtraInfo();
+        final SocketSessionImp session = new SocketSessionImp(portExtraInfo.getNetContext(),
+                event.sessionId(),
+                event.remoteGuid(),
+                portExtraInfo.getSessionConfig(),
+                netManagerWrapper,
+                acceptorManager);
+
+        // 初始化管道
+        session.pipeline()
+                .addLast(new InnerSocketTransferHandler(channel))
+                .addLast(new PingPingSupportHandler())
+                .addLast(new OneWaySupportHandler());
+
+        // 判断是否支持rpc
+        if (session.config().isRpcAvailable()) {
+            session.pipeline().addLast(new RpcSupportHandler());
+        }
+
+        // 激活session并传递激活事件
+        session.tryActive();
+        session.pipeline().fireSessionActive();
+
+        // 建立连接成功，告知对方
+        onInnerConnectSuccess(channel, connectRequest);
     }
 
     /**

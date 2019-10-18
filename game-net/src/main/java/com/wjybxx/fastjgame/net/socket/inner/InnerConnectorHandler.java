@@ -111,7 +111,7 @@ public class InnerConnectorHandler extends SessionDuplexHandlerAdapter {
                 return;
             }
             // 错误的消息
-            NetUtils.closeQuietly(socketEvent.channel());
+            session.close();
         } else {
             // 错误的channel
             NetUtils.closeQuietly(socketEvent.channel());
@@ -123,14 +123,23 @@ public class InnerConnectorHandler extends SessionDuplexHandlerAdapter {
      */
     private void onRcvConnectResponse(SocketSessionImp session, SocketConnectResponseEvent event) {
         SocketConnectResponse connectResponse = event.getConnectResponse();
-        if (connectResponse.getVerifyingTimes() != InnerUtils.INNER_VERIFY_TIMES) {
-            // 验证次数不对
+
+        if (event.isClose()) {
+            // 内网不应该出现close为true
             session.close();
             return;
         }
 
-        if (event.getAck() != InnerUtils.INNER_ACK) {
-            // 初始化ack错误
+        if (event.getInitSequence() != InnerUtils.INNER_SEQUENCE
+                || event.getAck() != InnerUtils.INNER_ACK) {
+            // 不匹配内网ack和sequence参数
+            session.close();
+            return;
+        }
+
+        if (connectResponse.getVerifyingTimes() != InnerUtils.INNER_VERIFY_TIMES
+                || connectResponse.getVerifiedTimes() != InnerUtils.INNER_VERIFIED_TIMES) {
+            // 不匹配内网请求参数
             session.close();
             return;
         }
@@ -141,6 +150,7 @@ public class InnerConnectorHandler extends SessionDuplexHandlerAdapter {
             return;
         }
 
+        // 验证成功 - 可以建立连接
         if (connectPromise.trySuccess(session)) {
             // 激活session成功并初始化通道 - 删除自己，添加真正的handler逻辑
             session.tryActive();

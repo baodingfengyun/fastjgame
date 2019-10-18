@@ -78,6 +78,9 @@ public class ServerSocketCodec extends BaseSocketCodec {
         } else if (msgTO instanceof BatchSocketMessageTO) {
             // 批量协议包
             writeBatchMessage(ctx, (BatchSocketMessageTO) msgTO);
+        } else if (msgTO instanceof SocketPingPongMessageTO) {
+            // 心跳包
+            writeAckPingPongMessage(ctx, (SocketPingPongMessageTO) msgTO, promise);
         } else if (msgTO instanceof SocketConnectResponseTO) {
             // 建立连接验证结果
             writeConnectResponse(ctx, (SocketConnectResponseTO) msgTO, promise);

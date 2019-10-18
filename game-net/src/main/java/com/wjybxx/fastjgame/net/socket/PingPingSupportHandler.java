@@ -52,8 +52,9 @@ public class PingPingSupportHandler extends SessionDuplexHandlerAdapter {
     public void handlerAdded(SessionHandlerContext ctx) throws Exception {
         // 缓存减少堆栈深度
         timeManager = ctx.managerWrapper().getNetTimeManager();
-        pingIntervalMs = ctx.session().config().getPingIntervalMs();
-        sessionTimeoutMs = ctx.session().config().getSessionTimeoutMs();
+        SocketSessionConfig config = (SocketSessionConfig) ctx.session().config();
+        pingIntervalMs = config.getPingIntervalMs();
+        sessionTimeoutMs = config.getSessionTimeoutMs();
 
         lastReadTime = timeManager.getSystemMillTime();
         lastWriteTime = timeManager.getSystemMillTime();

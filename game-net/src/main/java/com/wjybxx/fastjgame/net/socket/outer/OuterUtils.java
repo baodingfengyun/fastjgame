@@ -20,10 +20,7 @@ import com.wjybxx.fastjgame.net.common.NetMessage;
 import com.wjybxx.fastjgame.net.common.PingPongMessage;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
-import com.wjybxx.fastjgame.net.socket.BatchSocketMessageTO;
-import com.wjybxx.fastjgame.net.socket.MessageQueue;
-import com.wjybxx.fastjgame.net.socket.SocketMessage;
-import com.wjybxx.fastjgame.net.socket.SocketMessageEvent;
+import com.wjybxx.fastjgame.net.socket.*;
 import io.netty.channel.Channel;
 
 import java.util.ArrayList;
@@ -122,22 +119,9 @@ class OuterUtils {
         }
 
         if (msg == PingPongMessage.PING || msg == PingPongMessage.PONG) {
-            // 心跳协议立即发送
-            // 填充过多心跳协议没有意义，而且可能使得已发送队列超出限制过多
-            OuterSocketMessage lastMessage = messageQueue.getPendingQueue().peekLast();
-            if (null == lastMessage || lastMessage.getWrappedMessage() != msg) {
-                final OuterSocketMessage outerSocketMessage = new OuterSocketMessage(msg);
-                // 分配sequence，并添加到已发送队列
-                outerSocketMessage.setSequence(messageQueue.nextSequence());
-                messageQueue.getPendingQueue().add(outerSocketMessage);
-
-                // 设置ack超时时间
-                outerSocketMessage.setAckDeadline(ackDeadline);
-
-                // 执行发送并flush
-                OuterSocketMessageTO outerSocketMessageTO = new OuterSocketMessageTO(messageQueue.getAck(), outerSocketMessage);
-                channel.writeAndFlush(outerSocketMessageTO, channel.voidPromise());
-            }
+            // 心跳协议立即发送 - 且不入队列
+            SocketPingPongMessageTO pingPongMessageTO = new OuterPingPongMessageTO(messageQueue.getAck(), (PingPongMessage) msg);
+            channel.writeAndFlush(pingPongMessageTO, channel.voidPromise());
             return;
         }
 
@@ -168,9 +152,9 @@ class OuterUtils {
         // 设置ack超时时间
         outerSocketMessage.setAckDeadline(ackDeadline);
 
-        // 执行发送，不着急flush
+        // 执行发送 - 什么时候调用flush还不太好确定啊
         OuterSocketMessageTO outerSocketMessageTO = new OuterSocketMessageTO(messageQueue.getAck(), outerSocketMessage);
-        channel.write(outerSocketMessageTO, channel.voidPromise());
+        channel.writeAndFlush(outerSocketMessageTO, channel.voidPromise());
     }
 
     /**
@@ -181,19 +165,7 @@ class OuterUtils {
      * @param messageQueue 消息队列
      */
     static void flush(Session session, final Channel channel, final MessageQueue messageQueue) {
-        if (session.isClosed()) {
-            // session活跃状态下才发送
-            return;
-        }
-        if (messageQueue.getPendingMessages() == 0) {
-            // 没有消息
-            return;
-        }
-        if (messageQueue.getCacheMessages() == 0) {
-            // 数据全部在channel中
-            channel.flush();
-        }
-        // else 不需要flush，真正发送的时候会flush
+
     }
 
     /**
@@ -226,7 +198,7 @@ class OuterUtils {
     }
 
     /**
-     * 读取一个消息
+     * 读取用户消息
      *
      * @param ctx                读取消息的handler对应的ctx，需要向下传递消息
      * @param event              消息事件
@@ -240,24 +212,48 @@ class OuterUtils {
                             final Channel channel,
                             final int maxPendingMessages,
                             final long ackDeadline) {
-        if (event.getSequence() != messageQueue.getAck()) {
-            // 不是期望的下一个消息，证明出现了丢包/乱序等错误，丢弃该包 - go-back-n重传机制
-            return;
+
+        if (event.getSequence() == messageQueue.getAck()) {
+            // 是期望的消息
+            messageQueue.setAck(event.getSequence() + 1);
+
+            // 传递给下一个handler进行逻辑处理
+            ctx.fireRead(event.getWrappedMessage());
         }
 
-        if (!messageQueue.isAckOK(event.getAck())) {
-            // ack错误，需要进行纠正 - 部分包未接收到
-            return;
+        if (messageQueue.isAckOK(event.getAck())) {
+            // 更新消息队列
+            messageQueue.updatePendingQueue(event.getAck());
+
+            // 继续发送消息
+            emit(channel, messageQueue, maxPendingMessages, ackDeadline);
         }
+    }
 
-        // 更新消息队列和ack
-        messageQueue.updatePendingQueue(event.getAck());
-        messageQueue.setAck(event.getSequence() + 1);
+    /**
+     * 读取心跳消息
+     *
+     * @param ctx                读取消息的handler对应的ctx，需要向下传递消息
+     * @param event              消息事件
+     * @param messageQueue       消息队列 - 需要校验sequence、ack，以及发送消息
+     * @param channel            socket对应的channel
+     * @param maxPendingMessages 最大可填充的消息数
+     * @param ackDeadline        ack超时时间
+     */
+    static void readPingPong(final SessionHandlerContext ctx, final SocketPingPongEvent event,
+                             final MessageQueue messageQueue,
+                             final Channel channel,
+                             final int maxPendingMessages,
+                             final long ackDeadline) {
+        if (messageQueue.isAckOK(event.getAck())) {
+            // 更新消息队列
+            messageQueue.updatePendingQueue(event.getAck());
 
-        // 传递给下一个handler进行逻辑处理
-        ctx.fireRead(event.getWrappedMessage());
+            // 传递给心跳处理器
+            ctx.fireRead(event.getPingOrPong());
 
-        // 继续发送消息
-        emit(channel, messageQueue, maxPendingMessages, ackDeadline);
+            // 继续发送消息
+            emit(channel, messageQueue, maxPendingMessages, ackDeadline);
+        }
     }
 }

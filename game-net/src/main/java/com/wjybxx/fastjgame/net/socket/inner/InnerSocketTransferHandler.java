@@ -19,11 +19,13 @@ package com.wjybxx.fastjgame.net.socket.inner;
 import com.wjybxx.fastjgame.net.common.ConnectAwareTask;
 import com.wjybxx.fastjgame.net.common.DisconnectAwareTask;
 import com.wjybxx.fastjgame.net.common.NetMessage;
+import com.wjybxx.fastjgame.net.common.PingPongMessage;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 import com.wjybxx.fastjgame.net.socket.SocketChannelInactiveEvent;
 import com.wjybxx.fastjgame.net.socket.SocketEvent;
 import com.wjybxx.fastjgame.net.socket.SocketMessageEvent;
+import com.wjybxx.fastjgame.net.socket.SocketPingPongEvent;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import io.netty.channel.Channel;
@@ -74,18 +76,25 @@ public class InnerSocketTransferHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void read(SessionHandlerContext ctx, Object msg) {
-        SocketEvent socketEvent = (SocketEvent) msg;
         if (ctx.session().isClosed()) {
             // session已关闭，丢弃消息
-            NetUtils.closeQuietly(socketEvent.channel());
+            NetUtils.closeQuietly(((SocketEvent) msg).channel());
             return;
         }
-        if (socketEvent instanceof SocketMessageEvent) {
-            // 接收到一个消息 - 它出现的概率更高，因此放在断开连接事件前
+
+        if (msg instanceof SocketMessageEvent) {
+            // 消息事件 - 它出现的概率更高，因此放在前面
             ctx.fireRead(((SocketMessageEvent) msg).getWrappedMessage());
             return;
         }
-        if (socketEvent instanceof SocketChannelInactiveEvent) {
+
+        if (msg instanceof SocketPingPongEvent) {
+            // 心跳事件
+            ctx.fireRead(((SocketPingPongEvent) msg).getPingOrPong());
+            return;
+        }
+
+        if (msg instanceof SocketChannelInactiveEvent) {
             // socket断开事件 - 内网不断线重连，不使用消息确认机制，socket断开就关闭session
             ctx.session().close();
         }
@@ -98,7 +107,14 @@ public class InnerSocketTransferHandler extends SessionDuplexHandlerAdapter {
             return;
         }
         msgCount++;
-        channel.write(new InnerSocketMessage((NetMessage) msg), channel.voidPromise());
+        if (msg == PingPongMessage.PING || msg == PingPongMessage.PONG) {
+            // 心跳包
+            channel.write(new InnerPingPongMessageTO((PingPongMessage) msg));
+        } else {
+            // 用户数据
+            channel.write(new InnerSocketMessage((NetMessage) msg), channel.voidPromise());
+        }
+
         // else
     }
 

@@ -141,10 +141,6 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
                 // 单向消息
                 writeOneWayMessage(ctx, ack, socketMessage, promise);
                 break;
-            case PING_PONG:
-                // 心跳消息
-                writeAckPingPongMessage(ctx, ack, socketMessage, promise);
-                break;
             default:
                 throw new IOException("Unexpected message type " + socketMessage.getWrappedMessage().type());
         }
@@ -245,14 +241,11 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
     /**
      * 心跳协议编码
      */
-    private void writeAckPingPongMessage(ChannelHandlerContext ctx, long ack, SocketMessage socketMessage, ChannelPromise promise) {
-        ByteBuf byteBuf = newHeadByteBuf(ctx, 8 + 8 + 1, NetMessageType.PING_PONG);
+    final void writeAckPingPongMessage(ChannelHandlerContext ctx, SocketPingPongMessageTO pingPongMessageTO, ChannelPromise promise) {
+        ByteBuf byteBuf = newHeadByteBuf(ctx, 8 + 1, NetMessageType.PING_PONG);
 
-        byteBuf.writeLong(socketMessage.getSequence());
-        byteBuf.writeLong(ack);
-
-        // pingOrPong
-        byteBuf.writeByte(socketMessage.getWrappedMessage() == PingPongMessage.PING ? 1 : 0);
+        byteBuf.writeLong(pingPongMessageTO.getAck());
+        byteBuf.writeByte(pingPongMessageTO.getPingOrPong() == PingPongMessage.PING ? 1 : 0);
 
         appendSumAndWrite(ctx, byteBuf, promise);
     }
@@ -260,14 +253,12 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
     /**
      * 心跳协议解码
      */
-    final SocketMessageEvent readAckPingPongMessage(Channel channel, String sessionId, ByteBuf msg) {
-        long sequence = msg.readLong();
+    final SocketPingPongEvent readAckPingPongMessage(Channel channel, String sessionId, ByteBuf msg) {
         long ack = msg.readLong();
-
         if (msg.readByte() == 1) {
-            return new SocketMessageEvent(channel, sessionId, sequence, ack, PingPongMessage.PING);
+            return new SocketPingPongEvent(channel, sessionId, ack, PingPongMessage.PING);
         } else {
-            return new SocketMessageEvent(channel, sessionId, sequence, ack, PingPongMessage.PONG);
+            return new SocketPingPongEvent(channel, sessionId, ack, PingPongMessage.PONG);
         }
     }
 
