@@ -40,6 +40,11 @@ public interface SocketConnectResponseTO {
     long getAck();
 
     /**
+     * 是否是关闭连接
+     */
+    boolean isClose();
+
+    /**
      * 建立连接应答
      */
     SocketConnectResponse getConnectResponse();

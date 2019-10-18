@@ -194,14 +194,12 @@ class OuterUtils {
 
     /**
      * 重发填充队列中的消息
-     * 注意：调用resend方法的时候，必须处于能立即发送心跳包的状态。
      *
-     * @param session      session - 心跳包需要流经整个管道
      * @param channel      socket对应的channel
      * @param messageQueue 消息队列
      * @param ackDeadline  ack超时时间
      */
-    static void resend(final Session session, final Channel channel, final MessageQueue messageQueue, final long ackDeadline) {
+    static void resend(final Channel channel, final MessageQueue messageQueue, final long ackDeadline) {
         final int pendingMessages = messageQueue.getPendingMessages();
         if (pendingMessages == 0) {
             // 没有消息待发送
@@ -219,10 +217,6 @@ class OuterUtils {
         // 执行发送，使用voidPromise，不追踪操作结果(可减少消耗)
         BatchSocketMessageTO batchSocketMessageTO = new OuterBatchSocketMessageTO(messageQueue.getAck(), socketMessageList);
         channel.writeAndFlush(batchSocketMessageTO, channel.voidPromise());
-
-        // 使用心跳协议进行追踪 -  使得尽可能快的进行确认
-        // 使用session的fireWrite，使得消息能流过心跳handler
-        session.fireWrite(PingPongMessage.INSTANCE);
     }
 
     /**

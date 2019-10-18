@@ -31,11 +31,13 @@ public class OuterSocketConnectResponseTO implements SocketConnectResponseTO {
 
     private final long initSequence;
     private final long ack;
+    private final boolean close;
     private final SocketConnectResponse connectResponse;
 
-    public OuterSocketConnectResponseTO(long initSequence, long ack, SocketConnectResponse connectResponse) {
+    OuterSocketConnectResponseTO(long initSequence, long ack, boolean close, SocketConnectResponse connectResponse) {
         this.initSequence = initSequence;
         this.ack = ack;
+        this.close = close;
         this.connectResponse = connectResponse;
     }
 
@@ -47,6 +49,11 @@ public class OuterSocketConnectResponseTO implements SocketConnectResponseTO {
     @Override
     public long getAck() {
         return ack;
+    }
+
+    @Override
+    public boolean isClose() {
+        return close;
     }
 
     @Override

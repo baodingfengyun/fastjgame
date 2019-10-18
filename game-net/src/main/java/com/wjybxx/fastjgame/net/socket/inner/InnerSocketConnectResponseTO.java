@@ -31,7 +31,7 @@ public class InnerSocketConnectResponseTO implements SocketConnectResponseTO {
 
     private final SocketConnectResponse connectResponse;
 
-    public InnerSocketConnectResponseTO(SocketConnectResponse connectResponse) {
+    InnerSocketConnectResponseTO(SocketConnectResponse connectResponse) {
         this.connectResponse = connectResponse;
     }
 
@@ -43,6 +43,11 @@ public class InnerSocketConnectResponseTO implements SocketConnectResponseTO {
     @Override
     public long getAck() {
         return InnerUtils.INNER_ACK;
+    }
+
+    @Override
+    public boolean isClose() {
+        return false;
     }
 
     @Override

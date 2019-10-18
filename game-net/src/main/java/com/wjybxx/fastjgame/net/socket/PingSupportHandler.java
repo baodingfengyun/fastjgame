@@ -57,7 +57,7 @@ public class PingSupportHandler extends SessionDuplexHandlerAdapter {
         }
         // 有一段时间没发送消息了，发一个包
         if (timeManager.getSystemMillTime() - lastWriteTime > pingIntervalMs) {
-            // 从当前位置开始发送心跳包
+            // 从当前位置开始发送心跳包 - 否则如果被拦截，时间得不到更新就爆炸
             write(ctx, PingPongMessage.INSTANCE);
         }
     }

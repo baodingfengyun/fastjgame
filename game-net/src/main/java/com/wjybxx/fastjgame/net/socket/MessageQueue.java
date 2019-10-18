@@ -57,9 +57,9 @@ public final class MessageQueue {
     private long sequencer = initSequence;
 
     /**
-     * 期望的下一个消息号
+     * 期望的下一个消息号 - 初始为0，收到initSequence之后进行真正初始化
      */
-    private long ack;
+    private long ack = 0;
 
     /**
      * 已发送待确认的消息队列，只要发送过就不会再放入{@link #cacheQueue}

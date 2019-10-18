@@ -57,6 +57,10 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
      * 最后一次成功建立连接时对应的请求信息 - 客户端上一次的请求信息
      */
     private SocketConnectRequest connectRequest;
+    /**
+     * 是否通知对方关闭 - 主动关闭时通知
+     */
+    private boolean notify = true;
 
     private OuterAcceptorHandler(Channel channel, SocketConnectRequest connectRequest) {
         this.channel = channel;
@@ -126,8 +130,10 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void close(SessionHandlerContext ctx) throws Exception {
-        // 通知对方关闭，同时会关闭channel
-        notifyClientExit(channel, connectRequest, messageQueue);
+        if (notify) {
+            // 通知对方关闭，同时会关闭channel
+            notifyClientExit(channel, connectRequest, messageQueue);
+        }
 
         if (logger.isDebugEnabled()) {
             // 打印关闭原因
@@ -162,15 +168,16 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
             return;
         }
 
-        if (!messageQueue.isAckOK(event.getAck())) {
-            // ack错误 - 无法重连（消息彻底丢失）
-            notifyConnectFail(event.channel(), connectRequest);
+        if (event.isClose()) {
+            // 如果这是一个关闭session请求，则关闭session
+            notify = false;
+            ctx.session().close();
             return;
         }
 
-        if (event.isClose()) {
-            // 通过层层验证之后，如果这是一个关闭session请求，则关闭session
-            ctx.session().close();
+        if (!messageQueue.isAckOK(event.getAck())) {
+            // ack错误 - 无法重连（消息彻底丢失）
+            notifyConnectFail(event.channel(), connectRequest);
             return;
         }
 
@@ -192,7 +199,11 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
         notifyConnectSuccess(channel, connectRequest, messageQueue);
 
         // 重发未确认消息
-        OuterUtils.resend(ctx.session(), channel, messageQueue, 0);
+        OuterUtils.resend(channel, messageQueue, 0);
+
+        // 使用心跳协议进行追踪 -
+        // 使用session的fireRead，使得消息能流过PongSupportHandler，产生一个心跳返回，同时触发一次心跳
+        ctx.fireRead(PingPongMessage.INSTANCE);
     }
 
     // ------------------------------------------------------- 建立连接请求 ----------------------------------------------
@@ -205,16 +216,21 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
         final SocketConnectRequest connectRequest = event.getConnectRequest();
         final Session existSession = acceptorManager.getSession(event.sessionId());
         if (existSession == null) {
-            // 尝试建立一个新的session
 
+            if (event.isClose()) {
+                // 如果这是一个关闭session请求，则不建立新连接
+                return;
+            }
+
+            // 尝试建立一个新的session
             if (connectRequest.getVerifiedTimes() != 0) {
                 // 这是旧请求，等于0才是首次建立连接请求 - 大于0表示期望重连
                 notifyConnectFail(channel, connectRequest);
                 return;
             }
-
-            if (event.isClose()) {
-                // 通过层层验证之后，如果这是一个关闭session请求，则不建立新连接
+            if (event.getAck() != 0) {
+                // 建立新连接时ack应该为0，需要根据响应初始化ack
+                notifyConnectFail(channel, connectRequest);
                 return;
             }
 
@@ -272,7 +288,7 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
     private static void notifyConnectSuccess(Channel channel, SocketConnectRequest connectRequest, MessageQueue messageQueue) {
         final SocketConnectResponse connectResponse = new SocketConnectResponse(true, connectRequest);
         final OuterSocketConnectResponseTO connectResponseTO = new OuterSocketConnectResponseTO(messageQueue.getInitSequence(), messageQueue.getAck(),
-                connectResponse);
+                false, connectResponse);
         // 告知重连成功
         channel.writeAndFlush(connectResponseTO);
     }
@@ -282,19 +298,19 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
      */
     private static void notifyConnectFail(Channel channel, SocketConnectRequest connectRequest) {
         final SocketConnectResponse connectResponse = new SocketConnectResponse(false, connectRequest);
-        final OuterSocketConnectResponseTO connectResponseTO = new OuterSocketConnectResponseTO(-1, -1, connectResponse);
+        final OuterSocketConnectResponseTO connectResponseTO = new OuterSocketConnectResponseTO(-1, -1, false, connectResponse);
         // 告知验证失败
         channel.writeAndFlush(connectResponseTO);
     }
 
     /**
-     * 通知客户端退出
+     * 通知客户端退出 - 完成之后关闭channnel
      */
     private static void notifyClientExit(Channel channel, SocketConnectRequest connectRequest, MessageQueue messageQueue) {
-        final SocketConnectResponse connectResponse = new SocketConnectResponse(false, connectRequest);
+        final SocketConnectResponse connectResponse = new SocketConnectResponse(true, connectRequest);
         final OuterSocketConnectResponseTO connectResponseTO = new OuterSocketConnectResponseTO(messageQueue.getInitSequence(), messageQueue.getAck(),
-                connectResponse);
-        // 告知验证失败，且发送之后关闭channel
+                true, connectResponse);
+
         channel.writeAndFlush(connectResponseTO)
                 .addListener(ChannelFutureListener.CLOSE);
     }

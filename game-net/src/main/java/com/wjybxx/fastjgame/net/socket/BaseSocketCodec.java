@@ -206,7 +206,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
      * 编码协议2 - 建立连接应答
      */
     final void writeConnectResponse(ChannelHandlerContext ctx, SocketConnectResponseTO socketConnectResponseTO, ChannelPromise promise) {
-        ByteBuf byteBuf = newHeadByteBuf(ctx, 1 + 4 + 4 + 8 + 8, NetMessageType.CONNECT_RESPONSE);
+        ByteBuf byteBuf = newHeadByteBuf(ctx, 1 + 4 + 4 + 8 + 8 + 1, NetMessageType.CONNECT_RESPONSE);
 
         SocketConnectResponse socketConnectResponse = socketConnectResponseTO.getConnectResponse();
 
@@ -218,6 +218,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
         // initSequence和ack
         byteBuf.writeLong(socketConnectResponseTO.getInitSequence());
         byteBuf.writeLong(socketConnectResponseTO.getAck());
+        byteBuf.writeByte(socketConnectResponseTO.isClose() ? 1 : 0);
 
         appendSumAndWrite(ctx, byteBuf, promise);
     }
@@ -233,9 +234,10 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
 
         long initSequence = msg.readLong();
         long ack = msg.readLong();
+        boolean close = msg.readByte() == 1;
 
         SocketConnectResponse socketConnectResponse = new SocketConnectResponse(success, verifyingTimes, verifiedTimes);
-        return new SocketConnectResponseEvent(channel, sessionId, initSequence, ack, socketConnectResponse);
+        return new SocketConnectResponseEvent(channel, sessionId, initSequence, ack, close, socketConnectResponse);
     }
 
     // ---------------------------------------------- 心跳协议  ---------------------------------------

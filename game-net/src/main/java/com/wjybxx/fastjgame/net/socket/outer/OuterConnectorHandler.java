@@ -79,6 +79,10 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
      * socket当前状态(不为null)
      */
     private HandlerState state;
+    /**
+     * 关闭时是否通知对方 - (主动关闭时通知)
+     */
+    private boolean notify = true;
 
     public OuterConnectorHandler(HostAndPort remoteAddress, ChannelInitializer<SocketChannel> initializer, Promise<Session> connectPromise) {
         this.remoteAddress = remoteAddress;
@@ -142,8 +146,15 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
         }
 
         if (event instanceof SocketConnectResponseEvent) {
-            // 建立连接应答
-            state.onRcvConnectResponse((SocketConnectResponseEvent) event);
+            // 建立连接响应 或 通知关闭
+            final SocketConnectResponseEvent connectResponseEvent = (SocketConnectResponseEvent) event;
+            if (connectResponseEvent.isClose()) {
+                // 通知关闭连接
+                checkPassiveClose(connectResponseEvent);
+            } else {
+                // 建立连接应答
+                state.onRcvConnectResponse(connectResponseEvent);
+            }
         }
     }
 
@@ -163,7 +174,9 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void close(SessionHandlerContext ctx) throws Exception {
-        notifyServerExit();
+        if (notify) {
+            notifyServerExit();
+        }
 
         final Promise<Session> connectPromise = detachConnectPromise();
         if (null != connectPromise) {
@@ -186,6 +199,29 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
                 .addListener(ChannelFutureListener.CLOSE);
     }
 
+    /**
+     * 检查被动关闭
+     */
+    private void checkPassiveClose(SocketConnectResponseEvent event) {
+        final SocketConnectResponse connectResponse = event.getConnectResponse();
+        // 对方保存的是我上一次的请求信息 - verifyingTimes相同，而verifiedTimes少1
+        if (connectResponse.getVerifyingTimes() != verifyingTimes
+                || connectResponse.getVerifiedTimes() != verifiedTimes - 1) {
+            // 不是对应的应答
+            return;
+        }
+
+        if (!connectResponse.isSuccess()) {
+            // 错误的通知
+            return;
+        }
+
+        if (event.isClose()) {
+            // 对方通知我关闭
+            notify = false;
+            ctx.session().close();
+        }
+    }
     // ------------------------------------------ 状态机管理 --------------------------------------------
 
     private void changeState(@Nullable HandlerState newState) {
@@ -219,14 +255,12 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
          * 接收到建立连接应答
          */
         void onRcvConnectResponse(SocketConnectResponseEvent event) {
-            // 默认丢弃
         }
 
         /**
          * 接收到对方的一个消息
          */
         void read(SocketMessageEvent event) {
-            // 默认丢弃
         }
 
         /**
@@ -246,7 +280,6 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
          * 接收到用户的清空缓冲区请求
          */
         void flush() {
-            // 默认不处理
         }
     }
 
@@ -385,15 +418,15 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
                 return;
             }
 
-            // 不论首次建立连接应答，还是重连，ack都应该是正确的了
-            if (!messageQueue.isAckOK(event.getAck())) {
-                // 收到的ack有误(有丢包)，这里重连已没有意义(始终有消息漏掉了，无法恢复)
+            if (!connectResponse.isSuccess()) {
+                // 验证失败 - 禁止建立连接
                 ctx.session().close();
                 return;
             }
 
-            if (!connectResponse.isSuccess()) {
-                // 禁止建立连接
+            // 不论首次建立连接应答，还是重连，ack都应该是正确的了
+            if (!messageQueue.isAckOK(event.getAck())) {
+                // 收到的ack有误(有丢包)，这里重连已没有意义(始终有消息漏掉了，无法恢复)
                 ctx.session().close();
                 return;
             }
@@ -450,8 +483,9 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
                     session.closeForcibly();
                 }
             } else {
-                // 重连成功 - 重发填充队列，由于必须能直接发送心跳包，因此必须在该状态下重发
-                OuterUtils.resend(session, channel, messageQueue, netTimeManager.getSystemMillTime() + config.ackTimeoutMs());
+                // 重连成功 - 重发消息，由于必须能直接发送心跳包，因此必须在该状态下重发
+                OuterUtils.resend(channel, messageQueue, netTimeManager.getSystemMillTime() + config.ackTimeoutMs());
+                ctx.session().fireWrite(PingPongMessage.INSTANCE);
             }
         }
 
@@ -481,27 +515,6 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
         @Override
         void onChannelInactive(SocketChannelInactiveEvent event) {
             changeState(new ConnectingState());
-        }
-
-        @Override
-        void onRcvConnectResponse(SocketConnectResponseEvent event) {
-            final SocketConnectResponse connectResponse = event.getConnectResponse();
-            // 对方保存的是我上一次的请求信息
-            if (connectResponse.getVerifyingTimes() != verifyingTimes - 1
-                    || connectResponse.getVerifiedTimes() != verifiedTimes - 1) {
-                // 不是对应的应答
-                return;
-            }
-
-            if (!messageQueue.isAckOK(event.getAck())) {
-                // ack错误 - 无法确认是同一个连接
-                return;
-            }
-
-            if (!connectResponse.isSuccess()) {
-                // 对方通知我关闭
-                ctx.session().close();
-            }
         }
 
         @Override

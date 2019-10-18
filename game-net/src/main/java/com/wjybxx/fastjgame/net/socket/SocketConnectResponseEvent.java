@@ -39,15 +39,20 @@ public class SocketConnectResponseEvent implements SocketEvent {
      */
     private final long ack;
     /**
+     * 是否是关闭session通知
+     */
+    private final boolean close;
+    /**
      * 建立连接结果
      */
     private final SocketConnectResponse connectResponse;
 
-    public SocketConnectResponseEvent(Channel channel, String sessionId, long initSequence, long ack, SocketConnectResponse connectResponse) {
+    public SocketConnectResponseEvent(Channel channel, String sessionId, long initSequence, long ack, boolean close, SocketConnectResponse connectResponse) {
         this.channel = channel;
         this.sessionId = sessionId;
         this.initSequence = initSequence;
         this.ack = ack;
+        this.close = close;
         this.connectResponse = connectResponse;
     }
 
@@ -67,6 +72,10 @@ public class SocketConnectResponseEvent implements SocketEvent {
 
     public long getAck() {
         return ack;
+    }
+
+    public boolean isClose() {
+        return close;
     }
 
     public SocketConnectResponse getConnectResponse() {
