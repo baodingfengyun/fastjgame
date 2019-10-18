@@ -22,13 +22,12 @@ import com.wjybxx.fastjgame.net.common.NetMessage;
 import com.wjybxx.fastjgame.net.common.PingPongMessage;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
-import com.wjybxx.fastjgame.net.socket.SocketChannelInactiveEvent;
-import com.wjybxx.fastjgame.net.socket.SocketEvent;
-import com.wjybxx.fastjgame.net.socket.SocketMessageEvent;
-import com.wjybxx.fastjgame.net.socket.SocketPingPongEvent;
+import com.wjybxx.fastjgame.net.socket.*;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import io.netty.channel.Channel;
+
+import java.util.LinkedList;
 
 /**
  * 内网服务器之间传输支持。
@@ -46,18 +45,25 @@ public class InnerSocketTransferHandler extends SessionDuplexHandlerAdapter {
      * 真正通信的channel。
      */
     private final Channel channel;
+    private int maxPendingMessages;
     /**
-     * flush之前的消息数
+     * 缓冲区 - 减少与netty的交互
      */
-    private int msgCount;
+    private LinkedList<SocketMessage> buffer = new LinkedList<>();
 
     InnerSocketTransferHandler(Channel channel) {
         this.channel = channel;
     }
 
     @Override
+    public void handlerAdded(SessionHandlerContext ctx) throws Exception {
+        SocketSessionConfig config = (SocketSessionConfig) ctx.session().config();
+        maxPendingMessages = config.maxPendingMessages();
+    }
+
+    @Override
     public void tick(SessionHandlerContext ctx) {
-        if (msgCount > 0) {
+        if (buffer.size() > 0) {
             doFlush();
         }
     }
@@ -106,15 +112,18 @@ public class InnerSocketTransferHandler extends SessionDuplexHandlerAdapter {
             // session已关闭，丢弃消息
             return;
         }
-        msgCount++;
         if (msg == PingPongMessage.PING || msg == PingPongMessage.PONG) {
             // 心跳包
-            channel.write(new InnerPingPongMessageTO((PingPongMessage) msg));
+            channel.writeAndFlush(new InnerPingPongMessageTO((PingPongMessage) msg));
         } else {
-            // 用户数据
-            channel.write(new InnerSocketMessage((NetMessage) msg), channel.voidPromise());
-        }
+            // 用户数据包
+            buffer.add(new InnerSocketMessage((NetMessage) msg));
 
+            if (buffer.size() >= maxPendingMessages) {
+                // 检测是否需要清空缓冲区了
+                doFlush();
+            }
+        }
         // else
     }
 
@@ -125,14 +134,18 @@ public class InnerSocketTransferHandler extends SessionDuplexHandlerAdapter {
             return;
         }
 
-        if (msgCount > 0) {
+        if (buffer.size() > 0) {
             doFlush();
         }
     }
 
     private void doFlush() {
-        msgCount = 0;
-        channel.flush();
+        if (buffer.size() == 1) {
+            channel.writeAndFlush(buffer.pollFirst());
+        } else {
+            channel.writeAndFlush(new InnerBatchSocketMessageTO(buffer));
+            buffer = new LinkedList<>();
+        }
     }
 
     @Override

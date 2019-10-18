@@ -40,8 +40,11 @@ import java.io.IOException;
 
 /**
  * session客户端方维持socket使用的handler
+ * <p>
  * Q: 为何{@link OuterConnectorHandler}如此复杂而{@link OuterAcceptorHandler}代码较为简单？
  * A: 扩展客户端比扩展服务器更为简单！通过扩展客户端代码增加功能比扩展服务器更加容易。
+ * <p>
+ * 需要将该代码翻译为前端语言，玩家与服务器之间使用该模式进行通信。
  *
  * @author wjybxx
  * @version 1.0

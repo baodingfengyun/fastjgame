@@ -75,7 +75,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
             writeSingleMsg(ctx, (SocketMessageTO) msgTO, promise);
         } else if (msgTO instanceof BatchSocketMessageTO) {
             // 批量协议包
-            writeBatchMessage(ctx, (BatchSocketMessageTO) msgTO);
+            writeBatchMessage(ctx, (BatchSocketMessageTO) msgTO, promise);
         } else if (msgTO instanceof SocketPingPongMessageTO) {
             // 心跳包
             writeAckPingPongMessage(ctx, (SocketPingPongMessageTO) msgTO, promise);

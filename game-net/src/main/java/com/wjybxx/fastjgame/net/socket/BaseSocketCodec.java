@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * 最开始时为分离的Encoder和Decoder。
@@ -109,13 +109,15 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
      * @param batchSocketMessageTO 批量消息包
      * @throws Exception error
      */
-    protected final void writeBatchMessage(ChannelHandlerContext ctx, BatchSocketMessageTO batchSocketMessageTO) throws Exception {
+    protected final void writeBatchMessage(ChannelHandlerContext ctx, BatchSocketMessageTO batchSocketMessageTO, ChannelPromise promise) throws Exception {
         // 批量协议包
         final long ack = batchSocketMessageTO.getAck();
-        final ArrayList<SocketMessage> messageList = batchSocketMessageTO.getSocketMessageList();
-        for (int index = 0, end = messageList.size(); index < end; index++) {
-            writeSingleMsg(ctx, ack, index == end - 1, messageList.get(index), ctx.voidPromise());
+        final Iterator<SocketMessage> iterator = batchSocketMessageTO.getSocketMessageList().iterator();
+        while (iterator.hasNext()) {
+            SocketMessage socketMessage = iterator.next();
+            writeSingleMsg(ctx, ack, !iterator.hasNext(), socketMessage, ctx.voidPromise());
         }
+        promise.trySuccess();
     }
 
     /**

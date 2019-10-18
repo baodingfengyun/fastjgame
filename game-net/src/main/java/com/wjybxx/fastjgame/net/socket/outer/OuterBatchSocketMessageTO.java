@@ -19,7 +19,6 @@ package com.wjybxx.fastjgame.net.socket.outer;
 import com.wjybxx.fastjgame.net.socket.BatchSocketMessageTO;
 import com.wjybxx.fastjgame.net.socket.SocketMessage;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,9 +33,9 @@ public class OuterBatchSocketMessageTO implements BatchSocketMessageTO {
 
     private final long ack;
 
-    private final ArrayList<SocketMessage> socketMessageList;
+    private final List<SocketMessage> socketMessageList;
 
-    public OuterBatchSocketMessageTO(long ack, ArrayList<SocketMessage> socketMessageList) {
+    public OuterBatchSocketMessageTO(long ack, List<SocketMessage> socketMessageList) {
         this.ack = ack;
         this.socketMessageList = socketMessageList;
     }
@@ -47,7 +46,7 @@ public class OuterBatchSocketMessageTO implements BatchSocketMessageTO {
     }
 
     @Override
-    public ArrayList<SocketMessage> getSocketMessageList() {
+    public List<SocketMessage> getSocketMessageList() {
         return socketMessageList;
     }
 }
