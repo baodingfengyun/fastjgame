@@ -23,13 +23,18 @@ import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 
 /**
  * 心跳支持
+ * Q: 为何使用ping-ping心跳机制，而不是ping-pong机制？
+ * A:
+ * 1. 在具有流量控制机制的情况下，使用ping-ping心跳对服务器更友好，服务器也可以及时的更新自己的填充队列。
+ * 而使用ping-pong机制的话，如果客户端不进行消息响应，将长时间无法更新填充队列，导致长时间无法发包。
+ * 2. 使用ping-ping可以更快的识别网络故障
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/10/1
  * github - https://github.com/hl845740757
  */
-public class PingSupportHandler extends SessionDuplexHandlerAdapter {
+public class PingPingSupportHandler extends SessionDuplexHandlerAdapter {
 
     private NetTimeManager timeManager;
     private long lastWriteTime;
@@ -63,9 +68,9 @@ public class PingSupportHandler extends SessionDuplexHandlerAdapter {
     }
 
     @Override
-    public void read(SessionHandlerContext ctx, Object msg) {
+    public void read(SessionHandlerContext ctx, Object msg) throws Exception {
         lastReadTime = timeManager.getSystemMillTime();
-        if (msg != PingPongMessage.INSTANCE && msg != PingPongMessage.INSTANCE2) {
+        if (msg != PingPongMessage.INSTANCE) {
             // 非心跳包
             ctx.fireRead(msg);
         }

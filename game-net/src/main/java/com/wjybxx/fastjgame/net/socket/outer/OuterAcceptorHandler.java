@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.net.socket.outer;
 
 import com.wjybxx.fastjgame.manager.AcceptorManager;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
+import com.wjybxx.fastjgame.manager.NetTimeManager;
 import com.wjybxx.fastjgame.net.common.*;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
@@ -43,8 +44,10 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
 
     private static final Logger logger = LoggerFactory.getLogger(OuterAcceptorHandler.class);
 
+    private NetTimeManager netTimeManager;
     private int maxPendingMessages;
     private int maxCacheMessages;
+    private int ackTimeoutMs;
     /**
      * 会话channel一定不为null
      */
@@ -69,10 +72,12 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void handlerAdded(SessionHandlerContext ctx) throws Exception {
+        netTimeManager = ctx.managerWrapper().getNetTimeManager();
         // 缓存，减少堆栈深度
         final SocketSessionConfig config = (SocketSessionConfig) ctx.session().config();
         maxPendingMessages = config.maxPendingMessages();
         maxCacheMessages = config.maxCacheMessages();
+        ackTimeoutMs = config.ackTimeoutMs();
     }
 
     @Override
@@ -89,8 +94,22 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void tick(SessionHandlerContext ctx) throws Exception {
-        // 继续发送消息，服务端不处理超时，因此ackDeadline赋0即可
-        OuterUtils.emit(channel, messageQueue, maxPendingMessages, 0);
+        // 检查ack超时
+        final OuterSocketMessage firstMessage = messageQueue.getPendingQueue().peekFirst();
+        if (null != firstMessage) {
+            // 因为采用的是捎带确认，且一个消息不一定对应的返回，因此需要别的方式进行确认
+            // 如果在过去一定时间之后还未收到确认消息，立即发送一个心跳，尝试对前面的消息进行确认 - 心跳对方会立即返回
+            if (!firstMessage.isTraced() && firstMessage.getAckDeadline() - netTimeManager.getSystemMillTime() < ackTimeoutMs / 2) {
+                firstMessage.setTraced(true);
+                // 调用session的fireWrite方法，使得能流经心跳控制逻辑
+                ctx.session().fireWrite(PingPongMessage.INSTANCE);
+            }
+        }
+
+        // 继续发送消息
+        OuterUtils.emit(channel, messageQueue,
+                maxPendingMessages,
+                netTimeManager.getSystemMillTime() + ackTimeoutMs);
     }
 
     @Override
@@ -110,7 +129,10 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
 
         if (event instanceof SocketMessageEvent) {
             // 对方发来的消息事件 - 它出现的概率更高，因此放在socket断开之前处理
-            OuterUtils.readMessage(ctx, (SocketMessageEvent) event, messageQueue, channel, maxPendingMessages, 0);
+            OuterUtils.readMessage(ctx, (SocketMessageEvent) event,
+                    messageQueue, channel,
+                    maxPendingMessages,
+                    netTimeManager.getSystemMillTime() + ackTimeoutMs);
             return;
         }
 
@@ -120,7 +142,11 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void write(SessionHandlerContext ctx, Object msg) throws Exception {
-        OuterUtils.write(ctx.session(), channel, messageQueue, (NetMessage) msg, maxPendingMessages, maxCacheMessages, 0);
+        OuterUtils.write(ctx.session(), channel, messageQueue,
+                (NetMessage) msg,
+                maxPendingMessages,
+                maxCacheMessages,
+                netTimeManager.getSystemMillTime() + ackTimeoutMs);
     }
 
     @Override
@@ -199,10 +225,10 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
         notifyConnectSuccess(channel, connectRequest, messageQueue);
 
         // 服务器重连成功要干两件事
-        // 1. 触发一次读，避免session超时 - 使用instance2不需要返回包
-        ctx.fireRead(PingPongMessage.INSTANCE2);
+        // 1. 触发一次读，避免session超时
+        ctx.fireRead(PingPongMessage.INSTANCE);
         // 2. 重发消息
-        OuterUtils.resend(channel, messageQueue, 0);
+        OuterUtils.resend(channel, messageQueue, netTimeManager.getSystemMillTime() + ackTimeoutMs);
     }
 
     // ------------------------------------------------------- 建立连接请求 ----------------------------------------------
@@ -249,7 +275,7 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
             // 初始化管道
             session.pipeline()
                     .addLast(acceptorHandler)
-                    .addLast(new PongSupportHandler())
+                    .addLast(new PingPingSupportHandler())
                     .addLast(new OneWaySupportHandler());
 
             // 判断是否支持rpc

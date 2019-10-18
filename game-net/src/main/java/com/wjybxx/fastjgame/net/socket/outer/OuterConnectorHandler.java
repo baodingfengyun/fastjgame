@@ -468,7 +468,7 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
                     // 激活session并初始化管道
                     session.tryActive();
                     session.pipeline()
-                            .addLast(new PingSupportHandler())
+                            .addLast(new PingPingSupportHandler())
                             .addLast(new OneWaySupportHandler());
 
                     // 判断是否支持rpc
@@ -483,16 +483,11 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
                     session.closeForcibly();
                 }
             } else {
-                // 重连成功
-                // 客户端重发消息之后要干3件事：
-                // 1. 触发一次读，避免session超时 - 使用instance2
-                ctx.fireRead(PingPongMessage.INSTANCE2);
+                // 客户端重连成功之后要干两件事：
+                // 1. 触发一次读，避免session超时
+                ctx.fireRead(PingPongMessage.INSTANCE);
                 // 2. 重发消息
                 OuterUtils.resend(channel, messageQueue, netTimeManager.getSystemMillTime() + config.ackTimeoutMs());
-                // 3. 发送一个心跳包对重发的消息进行追踪
-                // 3.1 由于要能直接发送心跳包，因此必须在该状态下重发
-                // 3.2 使用session.fireWrite可以更新发送消息的时间戳
-                ctx.session().fireWrite(PingPongMessage.INSTANCE);
             }
         }
 
@@ -515,8 +510,11 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
                     ctx.session().fireWrite(PingPongMessage.INSTANCE);
                 }
             }
+
             // 继续发送消息
-            OuterUtils.emit(channel, messageQueue, config.maxPendingMessages(), netTimeManager.getSystemMillTime() + config.ackTimeoutMs());
+            OuterUtils.emit(channel, messageQueue,
+                    config.maxPendingMessages(),
+                    netTimeManager.getSystemMillTime() + config.ackTimeoutMs());
         }
 
         @Override

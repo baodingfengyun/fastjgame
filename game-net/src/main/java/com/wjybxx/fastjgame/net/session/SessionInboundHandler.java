@@ -50,7 +50,7 @@ public interface SessionInboundHandler extends SessionHandler {
      * @param ctx handler所处的上下文
      * @param msg 前一个handler转来的消息对象
      */
-    void read(SessionHandlerContext ctx, Object msg);
+    void read(SessionHandlerContext ctx, Object msg) throws Exception;
 
     /**
      * 当某一个handler处理事件出现异常时。

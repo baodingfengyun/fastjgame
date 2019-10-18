@@ -37,7 +37,7 @@ public class SessionInboundHandlerAdapter extends SessionHandlerAdapter implemen
     }
 
     @Override
-    public void read(SessionHandlerContext ctx, Object msg) {
+    public void read(SessionHandlerContext ctx, Object msg) throws Exception {
         ctx.fireRead(msg);
     }
 

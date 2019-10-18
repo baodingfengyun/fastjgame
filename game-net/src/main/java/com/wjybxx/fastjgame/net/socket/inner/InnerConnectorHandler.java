@@ -147,7 +147,7 @@ public class InnerConnectorHandler extends SessionDuplexHandlerAdapter {
             session.pipeline()
                     .remove(this)
                     .addLast(new InnerSocketTransferHandler(channelFuture.channel()))
-                    .addLast(new PingSupportHandler())
+                    .addLast(new PingPingSupportHandler())
                     .addLast(new OneWaySupportHandler());
 
             // 判断是否支持rpc

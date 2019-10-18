@@ -49,7 +49,7 @@ public class OuterSocketMessage implements SocketMessage {
      */
     private long ackDeadline;
     /**
-     * 是否使用心跳包进行了跟踪 - 每个包最多使用一次
+     * 在发送之后是否使用心跳包进行了跟踪
      */
     private boolean traced = false;
 

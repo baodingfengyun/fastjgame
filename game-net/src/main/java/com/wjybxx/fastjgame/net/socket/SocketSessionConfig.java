@@ -134,7 +134,9 @@ public final class SocketSessionConfig extends SessionConfig {
 
     /**
      * @return 一个消息的超时时间 - 毫秒
-     * 解释：一个包在指定时间内得不到对方确认，则发起重连请求，它决定什么时候发起重连，应稍微大一点
+     * 解释：
+     * 1. 一个包在<b>一定时间</b>内得不到对方确认，则发送心跳包，进行追踪。
+     * 2. 一个包在指定时间内得不到对方确认，则发起重传请求。
      */
     public int ackTimeoutMs() {
         return ackTimeoutMs;

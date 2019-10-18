@@ -29,17 +29,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class PingPongMessage implements NetMessage {
 
-    /**
-     * 需要返回包的心跳
-     */
     public static final PingPongMessage INSTANCE = new PingPongMessage();
-    /**
-     * 不需要返回包的心跳 - 用于重连成功时
-     */
-    public static final PingPongMessage INSTANCE2 = new PingPongMessage();
 
     private PingPongMessage() {
-        super();
     }
 
     @Override

@@ -77,7 +77,7 @@ public class InnerAcceptorHandler {
             // 初始化管道
             session.pipeline()
                     .addLast(new InnerSocketTransferHandler(channel))
-                    .addLast(new PongSupportHandler())
+                    .addLast(new PingPingSupportHandler())
                     .addLast(new OneWaySupportHandler());
 
             // 判断是否支持rpc

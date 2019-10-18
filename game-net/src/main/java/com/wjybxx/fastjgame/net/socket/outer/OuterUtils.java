@@ -185,8 +185,12 @@ class OuterUtils {
             // session活跃状态下才发送
             return;
         }
+        if (messageQueue.getPendingMessages() == 0) {
+            // 没有消息
+            return;
+        }
         if (messageQueue.getCacheMessages() == 0) {
-            // 所有消息都已发送到channel，直接flush
+            // 数据全部在channel中
             channel.flush();
         }
         // else 不需要flush，真正发送的时候会flush
@@ -208,9 +212,11 @@ class OuterUtils {
         // 注意：
         // 1. 必须进行拷贝，因为原列表可能在发出之后被修改，不可共享
         // 2. 每次真正发送的时候都需要更新ack超时时间
+        // 3. 对重发的消息取消追踪标记
         final List<SocketMessage> socketMessageList = new ArrayList<>(pendingMessages);
         for (OuterSocketMessage socketMessage : messageQueue.getPendingQueue()) {
             socketMessage.setAckDeadline(ackDeadline);
+            socketMessage.setTraced(false);
             socketMessageList.add(socketMessage);
         }
 
