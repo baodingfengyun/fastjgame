@@ -110,12 +110,14 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
      * @throws Exception error
      */
     protected final void writeBatchMessage(ChannelHandlerContext ctx, BatchSocketMessageTO batchSocketMessageTO, ChannelPromise promise) throws Exception {
-        // 批量协议包
+        // 批量协议包 - 主要是这里的list不一定是arrayList，因此不能消除iterator
         final long ack = batchSocketMessageTO.getAck();
+        final int size = batchSocketMessageTO.getSocketMessageList().size();
         final Iterator<SocketMessage> iterator = batchSocketMessageTO.getSocketMessageList().iterator();
-        while (iterator.hasNext()) {
+        for (int count = 1; iterator.hasNext(); count++) {
             SocketMessage socketMessage = iterator.next();
-            writeSingleMsg(ctx, ack, !iterator.hasNext(), socketMessage, ctx.voidPromise());
+            // 避免太多消息共用一个endOfBatch 1 ~ 23 个包为一个endOfBatch，大于23个包，拆为两个endOfBatch - 16个共用一个endOfBatch
+            writeSingleMsg(ctx, ack, count == size || (size - count > 7 && (count & 15) == 0), socketMessage, ctx.voidPromise());
         }
         promise.trySuccess();
     }

@@ -25,7 +25,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 对外的socket消息对象 - 启用了消息确认机制
  * 它并非线程安全的，通过以下方式保证安全性：
  * 1. netty线程只会访问{@link #wrappedMessage}和{@link #sequence}，这俩一旦赋值便不会变更
- * 2. {@link #setSequence(long)} happens - before {@link #getSequence()}
  *
  * @author wjybxx
  * @version 1.0
@@ -36,25 +35,22 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class OuterSocketMessage implements SocketMessage {
 
     /**
+     * 当前包id - 一旦分配就不会改变
+     */
+    private final long sequence;
+    /**
      * 被包装的消息
      */
     private final NetMessage wrappedMessage;
-    /**
-     * 当前包id - 一旦分配就不会改变
-     */
-    private long sequence;
     /**
      * 消息确认超时时间
      * 每次发送的时候设置超时时间 - 线程封闭(NetEventLoop线程访问)
      */
     private long ackDeadline;
 
-    OuterSocketMessage(NetMessage wrappedMessage) {
-        this.wrappedMessage = wrappedMessage;
-    }
-
-    public void setSequence(long sequence) {
+    OuterSocketMessage(long sequence, NetMessage wrappedMessage) {
         this.sequence = sequence;
+        this.wrappedMessage = wrappedMessage;
     }
 
     @Override

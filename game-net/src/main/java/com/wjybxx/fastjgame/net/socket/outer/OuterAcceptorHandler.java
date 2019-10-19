@@ -94,9 +94,9 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void tick(SessionHandlerContext ctx) throws Exception {
-        // 继续发送消息
-        OuterUtils.emit(channel, messageQueue,
-                maxPendingMessages,
+        // 清空缓冲队列
+        OuterUtils.flush(channel,
+                messageQueue, maxPendingMessages,
                 netTimeManager.getSystemMillTime() + ackTimeoutMs);
     }
 
@@ -139,16 +139,18 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void write(SessionHandlerContext ctx, Object msg) throws Exception {
-        OuterUtils.write(ctx.session(), channel, messageQueue,
+        OuterUtils.write(ctx, channel,
+                messageQueue, maxCacheMessages,
                 (NetMessage) msg,
                 maxPendingMessages,
-                maxCacheMessages,
                 netTimeManager.getSystemMillTime() + ackTimeoutMs);
     }
 
     @Override
     public void flush(SessionHandlerContext ctx) throws Exception {
-
+        OuterUtils.flush(channel,
+                messageQueue, maxPendingMessages,
+                netTimeManager.getSystemMillTime() + ackTimeoutMs);
     }
 
     @Override
@@ -170,25 +172,29 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
     private void onRcvReconnectRequest(SessionHandlerContext ctx, SocketConnectRequestEvent event) {
         final SocketConnectRequest connectRequest = event.getConnectRequest();
         SocketSessionImp session = (SocketSessionImp) ctx.session();
+
+        if (event.isClose()) {
+            // 如果这是一个关闭session请求
+            if (event.channel() == channel && !session.isClosed()) {
+                // session未关闭，则关闭
+                notify = false;
+                ctx.session().close();
+            }
+            return;
+        }
+
+        // --- 建立连接请求
         if (session.isClosed()) {
             // session 已关闭
             notifyConnectFail(event);
             return;
         }
 
-        // verifyingTimes必须增加
+        // verifyingTimes必须增加 - 识别最新请求
         if (connectRequest.getVerifyingTimes() <= this.connectRequest.getVerifyingTimes()) {
             // 这是一个旧请求
             notifyConnectFail(event);
             return;
-        }
-
-        if (connectRequest.getVerifiedTimes() == 0) {
-            // 重发的新连接请求，ack必须是0 且服务器的ack就是initSequence +1
-            if (event.getAck() != 0 || event.getInitSequence() + 1 != messageQueue.getAck()) {
-                notifyConnectFail(event);
-                return;
-            }
         }
 
         // verifiedTimes要么和上次相同，要么+1
@@ -199,17 +205,20 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
             return;
         }
 
-        if (event.isClose()) {
-            // 如果这是一个关闭session请求，则关闭session
-            notify = false;
-            ctx.session().close();
-            return;
-        }
-
-        if (!messageQueue.isAckOK(event.getAck())) {
-            // ack错误 - 无法重连（消息彻底丢失）
-            notifyConnectFail(event);
-            return;
+        if (connectRequest.getVerifiedTimes() == 0) {
+            // 客户端可能丢失了响应，因此verifiedTimes可能为0
+            // 新连接请求，ack必须是0 且 服务器的ack就是客户端的initSequence +1
+            if (event.getAck() != 0 || event.getInitSequence() + 1 != messageQueue.getAck()) {
+                notifyConnectFail(event);
+                return;
+            }
+        } else {
+            // 重连请求，ack必须是合法的
+            if (!messageQueue.isAckOK(event.getAck())) {
+                // ack错误 - 无法重连（消息彻底丢失）
+                notifyConnectFail(event);
+                return;
+            }
         }
 
         // -- 验证完成
@@ -220,8 +229,12 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
 
         // 更新状态
         channel = event.channel();
-        messageQueue.updatePendingQueue(event.getAck());
         this.connectRequest = connectRequest;
+
+        if (connectRequest.getVerifiedTimes() > 0) {
+            // 重连成功 需要更新ack
+            messageQueue.updatePendingQueue(event.getAck());
+        }
 
         // 重连日志
         logger.info("{} reconnect success, verifyingTimes = {}", session.sessionId(), connectRequest.getVerifyingTimes());

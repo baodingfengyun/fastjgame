@@ -51,7 +51,7 @@ public final class MessageQueue {
      * 初始sequence
      * 不从0开始，可以有效降低脏连接的情况
      */
-    private final long initSequence = RandomUtils.nextInt(0, 23333);
+    private final long initSequence = RandomUtils.nextInt(0, 10000);
 
     /**
      * 消息号分配器
@@ -59,7 +59,7 @@ public final class MessageQueue {
     private long sequencer = initSequence;
 
     /**
-     * 期望的下一个消息号 - 初始为0，收到initSequence之后进行真正初始化
+     * 期望的下一个消息号 - 收到initSequence之后进行初始化
      */
     private long ack = 0;
 
@@ -109,6 +109,7 @@ public final class MessageQueue {
      * @param ack 对方发来的ack
      */
     public void updatePendingQueue(long ack) {
+        assert isAckOK(ack);
         while (pendingQueue.size() > 0) {
             if (pendingQueue.getFirst().getSequence() >= ack) {
                 break;

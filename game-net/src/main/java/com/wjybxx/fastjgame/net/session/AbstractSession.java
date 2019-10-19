@@ -51,6 +51,8 @@ public abstract class AbstractSession implements Session {
     private static final int ST_CONNECTED = 1;
     private static final int ST_CLOSED = 2;
 
+    private static final int TICK_INTERVAL = 20;
+
     private final NetContext netContext;
     private final String sessionId;
     private final long remoteGuid;
@@ -89,7 +91,7 @@ public abstract class AbstractSession implements Session {
         this.sessionRegistry = sessionRegistry;
         this.pipeline = new DefaultSessionPipeline(this, managerWrapper);
         this.netEventLoop = managerWrapper.getNetEventLoopManager().getEventLoop();
-        this.fixedDelayHandle = managerWrapper.getNetTimerManager().newFixedDelay(10, this::tick);
+        this.fixedDelayHandle = managerWrapper.getNetTimerManager().newFixedDelay(TICK_INTERVAL, this::tick);
         sessionRegistry.registerSession(this);
     }
 

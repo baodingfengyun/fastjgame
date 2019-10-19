@@ -31,6 +31,9 @@ import com.wjybxx.fastjgame.utils.CheckUtils;
  */
 public final class SocketSessionConfig extends SessionConfig {
 
+    private static final int MIN_PENDING_MESSAGES = 20;
+    private static final int MIN_CACHE_MESSAGE = 100;
+
     private final int sndBuffer;
     private final int rcvBuffer;
     private final int maxFrameLength;
@@ -108,7 +111,7 @@ public final class SocketSessionConfig extends SessionConfig {
     /**
      * @return 心跳时间间隔，毫秒
      */
-    public long getPingIntervalMs() {
+    public long pingIntervalMs() {
         return pingIntervalMs;
     }
 
@@ -150,7 +153,7 @@ public final class SocketSessionConfig extends SessionConfig {
 
     /**
      * @return 消息队列中允许的已发送未确认消息数，一旦到达该阈值，则暂停消息发送 (限流) - 实际是漏桶大小。
-     * 与{@link #maxCacheMessages()}独立。
+     * 注意：该值不建议太大，太大会加大消息重发压力。
      */
     public int maxPendingMessages() {
         return maxPendingMessages;
@@ -158,8 +161,7 @@ public final class SocketSessionConfig extends SessionConfig {
 
     /**
      * @return 消息队列中允许缓存的尚未发送的消息总数（还未发送的消息数），一旦到达该值，则关闭session (避免无限缓存，内存溢出)。
-     * 注意：如果发包频率太快，则容易导致session关闭。
-     * 与{@link #maxPendingMessages()}独立。
+     * 注意：该值太小，容易造成session关闭；该值太大，会增加内存压力。
      */
     public int maxCacheMessages() {
         return maxCacheMessages;
@@ -174,7 +176,7 @@ public final class SocketSessionConfig extends SessionConfig {
         private int sndBuffer = 64 * 1024;
         private int rcvBuffer = 64 * 1024;
         private int maxFrameLength = 8 * 1024;
-        private int readTimeout = 30;
+        private int readTimeout = 45;
         private int pingIntervalMs = 5000;
         private int connectTimeoutMs = 10 * 1000;
 
@@ -247,13 +249,13 @@ public final class SocketSessionConfig extends SessionConfig {
 
         public SocketSessionConfigBuilder setMaxPendingMessages(int maxPendingMessages) {
             CheckUtils.checkPositive(maxPendingMessages, "maxPendingMessages");
-            this.maxPendingMessages = maxPendingMessages;
+            this.maxPendingMessages = Math.max(MIN_PENDING_MESSAGES, maxPendingMessages);
             return this;
         }
 
         public SocketSessionConfigBuilder setMaxCacheMessages(int maxCacheMessages) {
             CheckUtils.checkPositive(maxCacheMessages, "maxCacheMessages");
-            this.maxCacheMessages = maxCacheMessages;
+            this.maxCacheMessages = Math.max(MIN_CACHE_MESSAGE, maxCacheMessages);
             return this;
         }
 

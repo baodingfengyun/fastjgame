@@ -39,7 +39,7 @@ public class SocketConnectRequest implements NetMessage {
     private final int verifyingTimes;
     /**
      * 客户端已验证成功次数
-     * （成功接收到建立连接响应）
+     * 注意：客户端接收到建立连接响应时才可能加1
      */
     private final int verifiedTimes;
 

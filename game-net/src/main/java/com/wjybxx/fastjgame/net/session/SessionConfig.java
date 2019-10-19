@@ -121,8 +121,6 @@ public class SessionConfig {
         private int rpcCallbackTimeoutMs = 15 * 1000;
         private int syncRpcTimeoutMs = 5 * 1000;
 
-        private int pingIntervalMs = 5 * 1000;
-
         public T setLifecycleAware(@Nonnull SessionLifecycleAware lifecycleAware) {
             this.lifecycleAware = lifecycleAware;
             return self();

@@ -160,24 +160,23 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
             final SocketConnectResponseEvent connectResponseEvent = (SocketConnectResponseEvent) event;
             if (connectResponseEvent.isClose()) {
                 // 通知关闭连接
-                checkPassiveClose(connectResponseEvent);
-            } else {
-                // 建立连接应答
-                state.onRcvConnectResponse(connectResponseEvent);
+                notify = false;
+                this.ctx.session().close();
+                return;
             }
+            // 建立连接应答
+            state.onRcvConnectResponse(connectResponseEvent);
         }
     }
 
     @Override
     public void write(SessionHandlerContext ctx, Object msg) throws Exception {
-        if (!ctx.session().isClosed()) {
-            state.write((NetMessage) msg);
-        }
+        state.write((NetMessage) msg);
     }
 
     @Override
     public void flush(SessionHandlerContext ctx) throws Exception {
-
+        state.flush();
     }
 
     @Override
@@ -199,37 +198,13 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
 
     private void notifyServerExit() {
         // 通知服务器关闭session
-        // verifyingTimes必须增加，否则无法通过验证
-        final SocketConnectRequest connectRequest = new SocketConnectRequest(++verifyingTimes, verifiedTimes);
-        final OuterSocketConnectRequestTO connectRequestTO = new OuterSocketConnectRequestTO(messageQueue.getInitSequence(), messageQueue.getAck(),
-                true, connectRequest);
+        final SocketConnectRequest connectRequest = new SocketConnectRequest(verifyingTimes, verifiedTimes);
+        final OuterSocketConnectRequestTO connectRequestTO =
+                new OuterSocketConnectRequestTO(messageQueue.getInitSequence(), messageQueue.getAck(), true, connectRequest);
         channel.writeAndFlush(connectRequestTO)
                 .addListener(ChannelFutureListener.CLOSE);
     }
 
-    /**
-     * 检查被动关闭
-     */
-    private void checkPassiveClose(SocketConnectResponseEvent event) {
-        final SocketConnectResponse connectResponse = event.getConnectResponse();
-        // 对方保存的是我上一次的请求信息 - verifyingTimes相同，而verifiedTimes少1
-        if (connectResponse.getVerifyingTimes() != verifyingTimes
-                || connectResponse.getVerifiedTimes() != verifiedTimes - 1) {
-            // 不是对应的应答
-            return;
-        }
-
-        if (!connectResponse.isSuccess()) {
-            // 错误的通知
-            return;
-        }
-
-        if (event.isClose()) {
-            // 对方通知我关闭
-            notify = false;
-            ctx.session().close();
-        }
-    }
     // ------------------------------------------ 状态机管理 --------------------------------------------
 
     private void changeState(@Nullable HandlerState newState) {
@@ -281,17 +256,20 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
          * 接收到用户的写请求
          */
         void write(NetMessage msg) {
-            if (messageQueue.getPendingMessages() >= config.maxCacheMessages()) {
+            if (messageQueue.getCacheMessages() >= config.maxCacheMessages()) {
                 // 超出缓存限制
                 ctx.session().close();
                 return;
             }
             if (msg != PingPongMessage.PING && msg != PingPongMessage.PONG) {
                 // 心跳消息丢弃，非心跳消息，加入缓存队列
-                messageQueue.getCacheQueue().addLast(new OuterSocketMessage(msg));
+                messageQueue.getCacheQueue().addLast(new OuterSocketMessage(messageQueue.nextSequence(), msg));
             }
         }
 
+        void flush() {
+
+        }
     }
 
     /**
@@ -334,15 +312,24 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
 
         @Override
         void tick() {
-            // 建立连接成功
-            if (channelFuture.isSuccess() && channel.isActive()) {
-                changeState(new VerifyingState());
+            if (channelFuture.isDone()) {
+                // 操作完成
+                if (channelFuture.isSuccess()) {
+                    // 建立连接成功
+                    changeState(new VerifyingState());
+                } else {
+                    // 建立连接失败
+                    retryConnect();
+                }
                 return;
             }
-            // 还未超时
+
+            // - 操作尚未完成
             if (netTimeManager.getSystemMillTime() - connectStartTime < config.connectTimeoutMs()) {
+                // 还未超时
                 return;
             }
+
             // 重试连接
             retryConnect();
         }
@@ -376,7 +363,7 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
         /**
          * 验证开始时间
          */
-        private long verifyingStateMillTime;
+        private long verifyingStartMillTime;
 
         @Override
         void enter() {
@@ -389,17 +376,17 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
          */
         private void doVerify() {
             verifyingTimes++;
-            verifyingStateMillTime = netTimeManager.getSystemMillTime();
+            verifyingStartMillTime = netTimeManager.getSystemMillTime();
 
             final SocketConnectRequest connectRequest = new SocketConnectRequest(verifyingTimes, verifiedTimes);
-            final OuterSocketConnectRequestTO connectRequestTO = new OuterSocketConnectRequestTO(messageQueue.getInitSequence(), messageQueue.getAck(),
-                    false, connectRequest);
+            final OuterSocketConnectRequestTO connectRequestTO =
+                    new OuterSocketConnectRequestTO(messageQueue.getInitSequence(), messageQueue.getAck(), false, connectRequest);
             channel.writeAndFlush(connectRequestTO, channel.voidPromise());
         }
 
         @Override
         void tick() {
-            if (netTimeManager.getSystemMillTime() - verifyingStateMillTime <= config.verifyTimeoutMs()) {
+            if (netTimeManager.getSystemMillTime() - verifyingStartMillTime <= config.verifyTimeoutMs()) {
                 // 应答还未超时，继续等待
                 return;
             }
@@ -435,23 +422,24 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
                 return;
             }
 
-            // 不论首次建立连接应答，还是重连，ack都应该是正确的了
+            // 不论首次建立连接应答，还是重连，服务器的ack都应该是正确的了
             if (!messageQueue.isAckOK(event.getAck())) {
                 // 收到的ack有误(有丢包)，这里重连已没有意义(始终有消息漏掉了，无法恢复)
                 ctx.session().close();
                 return;
             }
 
-            if (verifiedTimes == 0) {
-                // 首次建立连接应答 - 需要初始化ack
+            // 验证成功
+            verifiedTimes++;
+
+            if (verifiedTimes == 1) {
+                // 首次建立连接成功 - 需要初始化ack
                 messageQueue.setAck(event.getInitSequence() + 1);
             } else {
                 // 重连成功 - 需要更新消息队列
                 messageQueue.updatePendingQueue(event.getAck());
             }
 
-            // 验证成功
-            verifiedTimes++;
             // 切换到验证成功状态，执行余下逻辑
             changeState(new VerifiedState());
         }
@@ -506,16 +494,15 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
         void tick() {
             // 检查ack超时
             final OuterSocketMessage firstMessage = messageQueue.getPendingQueue().peekFirst();
-            if (null != firstMessage) {
-                if (netTimeManager.getSystemMillTime() > firstMessage.getAckDeadline()) {
-                    // ack超时，进行重传验证
-                    changeState(new VerifyingState());
-                    return;
-                }
+            if (null != firstMessage && netTimeManager.getSystemMillTime() > firstMessage.getAckDeadline()) {
+                // ack超时，进行重传验证
+                changeState(new VerifyingState());
+                return;
             }
-            // 继续发送消息
-            OuterUtils.emit(channel, messageQueue,
-                    config.maxPendingMessages(),
+
+            // 清空缓冲队列
+            OuterUtils.flush(channel,
+                    messageQueue, config.maxPendingMessages(),
                     netTimeManager.getSystemMillTime() + config.ackTimeoutMs());
         }
 
@@ -542,13 +529,19 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
 
         @Override
         void write(NetMessage msg) {
-            OuterUtils.write(ctx.session(), channel, messageQueue,
+            OuterUtils.write(ctx, channel,
+                    messageQueue, config.maxCacheMessages(),
                     msg,
                     config.maxPendingMessages(),
-                    config.maxCacheMessages(),
                     netTimeManager.getSystemMillTime() + config.ackTimeoutMs());
         }
 
+        @Override
+        void flush() {
+            OuterUtils.flush(channel,
+                    messageQueue, config.maxPendingMessages(),
+                    netTimeManager.getSystemMillTime() + config.ackTimeoutMs());
+        }
     }
 
 }
