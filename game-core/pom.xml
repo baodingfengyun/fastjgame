@@ -28,37 +28,51 @@
             <version>1.0</version>
         </dependency>
 
-        <!-- zookeeper说自己3.5.5是稳定版本了，高兴半天，结果下载下来压缩包已损坏？？？ -->
-        <!-- zookeeper客户端curator 调了半天才找到一个合适版本 2.12 -->
-        <!-- curator 3.x 开始是针对 zookeeper 3.5.x，目前3.5.x还处于测试阶段，目前稳定版最新为3.4.14-->
-        <!-- curator的依赖有点坑爹 -->
-        <!-- https://mvnrepository.com/artifact/org.apache.curator/curator-recipes -->
+        <!-- zookeeper curator begin -->
+        <!-- zookeeper 3.5.6是最新稳定版本，netty也升级到了4.1.42 -->
+        <!-- https://mvnrepository.com/artifact/org.apache.zookeeper/zookeeper -->
         <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-recipes</artifactId>
-            <version>2.12.0</version>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+            <version>3.5.6</version>
+
+            <!-- 去除zookeeper中日志和netty相关依赖 -->
             <exclusions>
-                <!-- guava排除，影响Guice框架... -->
-                <exclusion>
-                    <groupId>com.google.guava</groupId>
-                    <artifactId>guava</artifactId>
-                </exclusion>
-                <!-- 日志排除-->
                 <exclusion>
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-api</artifactId>
                 </exclusion>
+
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+
                 <exclusion>
                     <groupId>log4j</groupId>
                     <artifactId>log4j</artifactId>
                 </exclusion>
-                <!-- netty 排除 -->
+
                 <exclusion>
                     <groupId>io.netty</groupId>
-                    <artifactId>netty</artifactId>
+                    <artifactId>netty-handler</artifactId>
+                </exclusion>
+
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-transport-native-epoll</artifactId>
                 </exclusion>
             </exclusions>
+
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.apache.curator/curator-recipes -->
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-recipes</artifactId>
+            <version>4.2.0</version>
+        </dependency>
+        <!-- zookeeper curator end -->
 
     </dependencies>
 

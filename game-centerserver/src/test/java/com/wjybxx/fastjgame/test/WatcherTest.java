@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.test;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.wjybxx.fastjgame.misc.ResourceCloseHandle;
+import com.wjybxx.fastjgame.misc.CloseableHandle;
 import com.wjybxx.fastjgame.module.CenterModule;
 import com.wjybxx.fastjgame.module.WorldGroupModule;
 import com.wjybxx.fastjgame.mgr.CuratorMgr;
@@ -71,7 +71,7 @@ public class WatcherTest {
         CuratorMgr curatorMgr = injector.getInstance(CuratorMgr.class);
 
         String watchPath = ZKPathUtils.onlineParentPath(1);
-        ResourceCloseHandle closeHandle = curatorMgr.watchChildren(watchPath, (client, event) -> eventQueue.offer(event));
+        CloseableHandle closeHandle = curatorMgr.watchChildren(watchPath, (client, event) -> eventQueue.offer(event));
 
         for (int index = 0; index < 10000; index++) {
             Thread.sleep(50);

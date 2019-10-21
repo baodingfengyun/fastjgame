@@ -29,11 +29,11 @@ import java.io.IOException;
  * date - 2019/8/6
  * github - https://github.com/hl845740757
  */
-public class ResourceCloseHandle implements Closeable {
+public class CloseableHandle implements Closeable {
 
     private final Closeable resource;
 
-    public ResourceCloseHandle(PathChildrenCache resource) {
+    public CloseableHandle(PathChildrenCache resource) {
         this.resource = resource;
     }
 

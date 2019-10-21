@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.mgr;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.core.onlinenode.*;
-import com.wjybxx.fastjgame.misc.ResourceCloseHandle;
+import com.wjybxx.fastjgame.misc.CloseableHandle;
 import com.wjybxx.fastjgame.misc.RoleType;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
@@ -55,7 +55,7 @@ public class CenterDiscoverMgr {
     /**
      * 资源句柄，提供关闭关联的资源的方法
      */
-    private ResourceCloseHandle resourceCloseHandle;
+    private CloseableHandle closeableHandle;
     /**
      * 当前在先节点信息，只在逻辑线程使用
      */
@@ -72,12 +72,12 @@ public class CenterDiscoverMgr {
 
     public void start() throws Exception {
         String watchPath = ZKPathUtils.onlineParentPath(centerWorldInfoMgr.getWarzoneId());
-        resourceCloseHandle = curatorMgr.watchChildren(watchPath, (client, event) -> onEvent(event.getType(), event.getData()));
+        closeableHandle = curatorMgr.watchChildren(watchPath, (client, event) -> onEvent(event.getType(), event.getData()));
     }
 
     public void shutdown() throws IOException {
-        if (resourceCloseHandle != null) {
-            resourceCloseHandle.close();
+        if (closeableHandle != null) {
+            closeableHandle.close();
         }
     }
 

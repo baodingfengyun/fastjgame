@@ -20,7 +20,7 @@ import com.google.inject.Inject;
 import com.wjybxx.fastjgame.annotation.EventLoopSingleton;
 import com.wjybxx.fastjgame.misc.LockPathAction;
 import com.wjybxx.fastjgame.misc.ObjectHolder;
-import com.wjybxx.fastjgame.misc.ResourceCloseHandle;
+import com.wjybxx.fastjgame.misc.CloseableHandle;
 import com.wjybxx.fastjgame.utils.*;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.barriers.DistributedBarrier;
@@ -376,7 +376,7 @@ public class CuratorMgr {
      * @return PathChildrenCache 不再使用时需要手动关闭！不要使用{@link PathChildrenCache}获取数据
      * @throws Exception zk errors
      */
-    public ResourceCloseHandle watchChildren(String path, @Nonnull PathChildrenCacheListener listener) throws Exception {
+    public CloseableHandle watchChildren(String path, @Nonnull PathChildrenCacheListener listener) throws Exception {
         // CloseableExecutorService这个还是不共享的好
         CloseableExecutorService watcherService = clientMgr.newClosableExecutorService();
         // 指定pathChildrenCache接收事件的线程，复用线程池，以节省开销。
@@ -389,7 +389,7 @@ public class CuratorMgr {
 
         // 启动缓存
         pathChildrenCache.start(PathChildrenCache.StartMode.NORMAL);
-        return new ResourceCloseHandle(pathChildrenCache);
+        return new CloseableHandle(pathChildrenCache);
     }
 
     /**

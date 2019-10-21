@@ -1,6 +1,6 @@
 package com.wjybxx.fastjgame.test;
 
-import com.wjybxx.fastjgame.misc.ResourceCloseHandle;
+import com.wjybxx.fastjgame.misc.CloseableHandle;
 import com.wjybxx.fastjgame.mgr.CuratorClientMgr;
 import com.wjybxx.fastjgame.mgr.CuratorMgr;
 import com.wjybxx.fastjgame.mgr.GameConfigMgr;
@@ -30,7 +30,7 @@ public class CuratorTest {
 
     public static void main(String[] args) throws Exception {
         CuratorMgr curatorMgr = newCuratorMgr();
-        ResourceCloseHandle closeHandle = curatorMgr.watchChildren("/", CuratorTest::onEvent);
+        CloseableHandle closeHandle = curatorMgr.watchChildren("/", CuratorTest::onEvent);
 
         LockSupport.parkNanos(TimeUtils.NANO_PER_MILLISECOND * TimeUtils.MIN);
 
