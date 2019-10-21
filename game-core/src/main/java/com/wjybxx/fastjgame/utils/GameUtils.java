@@ -52,11 +52,13 @@ public class GameUtils {
      * 两台服务器在同一台机器上时，不走网卡。
      */
     public static final PortRange LOCAL_TCP_PORT_RANGE = new PortRange(22001, 22500);
+
     /**
      * 与玩家之间通信端口
      */
     public static final PortRange OUTER_TCP_PORT_RANGE = new PortRange(23001, 23500);
     public static final PortRange OUTER_WS_PORT_RANGE = new PortRange(24001, 24500);
+    public static final PortRange OUTER_HTTP_PORT_RANGE = new PortRange(25001, 25500);
 
     private GameUtils() {
     }

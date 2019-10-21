@@ -20,10 +20,7 @@ import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupBuilder;
 import com.wjybxx.fastjgame.net.common.*;
-import com.wjybxx.fastjgame.net.http.HttpRequestDispatcher;
-import com.wjybxx.fastjgame.net.http.HttpRequestParam;
-import com.wjybxx.fastjgame.net.http.HttpResponseHelper;
-import com.wjybxx.fastjgame.net.http.HttpSession;
+import com.wjybxx.fastjgame.net.http.*;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
 import com.wjybxx.fastjgame.utils.NetUtils;
@@ -63,11 +60,13 @@ public class EchoServerLoop extends SingleThreadEventLoop {
                 .setLifecycleAware(new ClientLifeAware())
                 .setDispatcher(new EchoProtocolDispatcher())
                 .build();
-        netContext.bindTcp(NetUtils.getLocalIp(), ExampleConstants.tcpPort,
-                config);
+        netContext.bindTcp(NetUtils.getLocalIp(), ExampleConstants.tcpPort, config);
 
         // 监听http端口
-        netContext.bindHttp(NetUtils.getLocalIp(), ExampleConstants.httpPort, new EchoHttpRequestDispatcher());
+        final HttpPortConfig httpPortConfig = HttpPortConfig.newBuilder()
+                .setDispatcher(new EchoHttpRequestDispatcher())
+                .build();
+        netContext.bindHttp(NetUtils.getLocalIp(), ExampleConstants.httpPort, httpPortConfig);
     }
 
     @Override

@@ -76,13 +76,13 @@ public class SceneInCenterInfoMgr {
      */
     private final Int2ObjectMap<SceneInCenterInfo> channelId2InfoMap = new Int2ObjectOpenHashMap<>();
 
-    private final InnerAcceptorMgr innerAcceptorMgr;
+    private final GameAcceptorMgr gameAcceptorMgr;
 
     @Inject
-    public SceneInCenterInfoMgr(CenterWorldInfoMgr centerWorldInfoMgr, TemplateMgr templateMgr, InnerAcceptorMgr innerAcceptorMgr) {
+    public SceneInCenterInfoMgr(CenterWorldInfoMgr centerWorldInfoMgr, TemplateMgr templateMgr, GameAcceptorMgr gameAcceptorMgr) {
         this.centerWorldInfoMgr = centerWorldInfoMgr;
         this.templateMgr = templateMgr;
-        this.innerAcceptorMgr = innerAcceptorMgr;
+        this.gameAcceptorMgr = gameAcceptorMgr;
     }
 
     private void addSceneInfo(SceneInCenterInfo sceneInCenterInfo) {
@@ -119,7 +119,7 @@ public class SceneInCenterInfoMgr {
      */
     public void onDiscoverSingleScene(SingleSceneNodeName singleSceneNodeName, SceneNodeData onlineSceneNode) {
         // 建立tcp连接
-        innerAcceptorMgr.connect(singleSceneNodeName.getWorldGuid(),
+        gameAcceptorMgr.connect(singleSceneNodeName.getWorldGuid(),
                 onlineSceneNode.getInnerTcpAddress(),
                 onlineSceneNode.getLocalAddress(),
                 onlineSceneNode.getMacAddress(),
@@ -149,7 +149,7 @@ public class SceneInCenterInfoMgr {
      */
     public void onDiscoverCrossScene(CrossSceneNodeName crossSceneNodeName, SceneNodeData onlineSceneNode) {
         // 建立tcp连接
-        innerAcceptorMgr.connect(crossSceneNodeName.getWorldGuid(),
+        gameAcceptorMgr.connect(crossSceneNodeName.getWorldGuid(),
                 onlineSceneNode.getInnerTcpAddress(),
                 onlineSceneNode.getLocalAddress(),
                 onlineSceneNode.getMacAddress(),

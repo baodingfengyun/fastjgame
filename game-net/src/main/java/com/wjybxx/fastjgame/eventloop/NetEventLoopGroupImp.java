@@ -55,10 +55,14 @@ public class NetEventLoopGroupImp extends MultiThreadEventLoopGroup implements N
                          @Nonnull GroupConfig groupConfig) {
         super(nThreads, threadFactory, rejectedExecutionHandler, groupConfig);
 
+        // 初始化配置
         final NettyThreadManager nettyThreadManager = groupConfig.injector.getInstance(NettyThreadManager.class);
-        final HttpClientManager httpClientManager = groupConfig.injector.getInstance(HttpClientManager.class);
         nettyThreadManager.init(groupConfig.bossGroupThreadNum, groupConfig.workerGroupThreadNum);
 
+        final HttpClientManager httpClientManager = groupConfig.injector.getInstance(HttpClientManager.class);
+        httpClientManager.init(groupConfig.httpRequestTimeout);
+
+        // 这里使用final可以保证初始化完成
         this.nettyThreadManager = nettyThreadManager;
         this.httpClientManager = httpClientManager;
     }
@@ -85,10 +89,12 @@ public class NetEventLoopGroupImp extends MultiThreadEventLoopGroup implements N
         private final Injector injector = Guice.createInjector(new NetEventLoopGroupModule());
         private final int bossGroupThreadNum;
         private final int workerGroupThreadNum;
+        private final int httpRequestTimeout;
 
-        GroupConfig(int bossGroupThreadNum, int workerGroupThreadNum) {
+        GroupConfig(int bossGroupThreadNum, int workerGroupThreadNum, int httpRequestTimeout) {
             this.bossGroupThreadNum = bossGroupThreadNum;
             this.workerGroupThreadNum = workerGroupThreadNum;
+            this.httpRequestTimeout = httpRequestTimeout;
         }
     }
 

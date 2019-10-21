@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.manager;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.misc.HttpPortContext;
+import com.wjybxx.fastjgame.net.http.HttpPortContext;
 import com.wjybxx.fastjgame.net.http.HttpRequestCommitTask;
 import com.wjybxx.fastjgame.net.http.HttpRequestEvent;
 import com.wjybxx.fastjgame.net.http.HttpSessionImp;
@@ -44,8 +44,9 @@ import java.util.Map;
 @NotThreadSafe
 public class HttpSessionManager {
 
+    private static final int httpSessionTimeout = 15;
+
     private final NetEventLoopManager netEventLoopManager;
-    private final NetConfigManager netConfigManager;
     private final NetTimeManager netTimeManager;
     /**
      * session映射
@@ -53,13 +54,11 @@ public class HttpSessionManager {
     private final Map<Channel, SessionWrapper> sessionWrapperMap = new IdentityHashMap<>(128);
 
     @Inject
-    public HttpSessionManager(NetTimerManager netTimerManager, NetEventLoopManager netEventLoopManager, NetConfigManager netConfigManager,
-                              NetTimeManager netTimeManager) {
+    public HttpSessionManager(NetTimerManager netTimerManager, NetEventLoopManager netEventLoopManager, NetTimeManager netTimeManager) {
         this.netEventLoopManager = netEventLoopManager;
-        this.netConfigManager = netConfigManager;
         this.netTimeManager = netTimeManager;
 
-        netTimerManager.newFixedDelay(this.netConfigManager.httpSessionTimeout() * TimeUtils.SEC, this::checkSessionTimeout);
+        netTimerManager.newFixedDelay(httpSessionTimeout * TimeUtils.SEC, this::checkSessionTimeout);
     }
 
     /**
@@ -121,7 +120,7 @@ public class HttpSessionManager {
                 k -> new SessionWrapper(new HttpSessionImp(portExtraInfo.getNetContext(), netEventLoopManager.getEventLoop(), this, channel)));
 
         // 保持一段时间的活性
-        sessionWrapper.setSessionTimeout(netConfigManager.httpSessionTimeout() + netTimeManager.getSystemSecTime());
+        sessionWrapper.setSessionTimeout(httpSessionTimeout + netTimeManager.getSystemSecTime());
 
         final HttpSessionImp httpSession = sessionWrapper.session;
 

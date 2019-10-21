@@ -35,8 +35,10 @@ public class PooledByteBufTest {
     public static void main(String[] args) throws InterruptedException {
         List<ByteBuf> byteBufList = new ArrayList<>(MAX_SIZE);
         for (int index = 0; index < MAX_SIZE; index++) {
-            ByteBuf byteBuf = PooledByteBufAllocator.DEFAULT.directBuffer(1024 * 1024);
-            byteBufList.add(byteBuf.slice(800, 200).retain());
+            final ByteBuf byteBuf = PooledByteBufAllocator.DEFAULT.directBuffer(1024 * 1024);
+            final ByteBuf slice = byteBuf.slice(800, 200).retain();
+            byteBufList.add(slice);
+            byteBuf.release();
         }
         Thread.sleep(60 * 60 * 1000);
     }

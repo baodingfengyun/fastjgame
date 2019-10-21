@@ -3,7 +3,6 @@ package com.wjybxx.fastjgame.world;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.core.onlinenode.SceneNodeData;
-import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.mgr.*;
 import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
@@ -85,11 +84,11 @@ public class SceneWorld extends AbstractWorld {
     private void bindAndRegisterToZK() throws Exception {
         final CenterLifeAware centerLifeAware = new CenterLifeAware();
         // 绑定jvm内部通信的端口
-        innerAcceptorMgr.bindLocalPort(centerLifeAware);
+        gameAcceptorMgr.bindLocalPort(centerLifeAware);
         // 绑定3个内部交互的端口
-        HostAndPort innerTcpAddress = innerAcceptorMgr.bindInnerTcpPort(centerLifeAware);
-        HostAndPort innerHttpAddress = innerAcceptorMgr.bindInnerHttpPort();
-        HostAndPort localAddress = innerAcceptorMgr.bindLocalTcpPort(centerLifeAware);
+        HostAndPort innerTcpAddress = gameAcceptorMgr.bindInnerTcpPort(centerLifeAware);
+        HostAndPort innerHttpAddress = gameAcceptorMgr.bindInnerHttpPort();
+        HostAndPort localAddress = gameAcceptorMgr.bindLocalTcpPort(centerLifeAware);
 
         SceneNodeData sceneNodeData = new SceneNodeData(innerTcpAddress.toString(), innerHttpAddress.toString(), localAddress.toString(), SystemUtils.getMAC(),
                 sceneWorldInfoMgr.getChannelId());

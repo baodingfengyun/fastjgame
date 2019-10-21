@@ -50,7 +50,7 @@ public abstract class AbstractWorld implements World {
     protected final CuratorMgr curatorMgr;
     protected final GameConfigMgr gameConfigMgr;
     protected final GuidMgr guidMgr;
-    protected final InnerAcceptorMgr innerAcceptorMgr;
+    protected final GameAcceptorMgr gameAcceptorMgr;
     protected final NetContextMgr netContextMgr;
 
     @Inject
@@ -67,7 +67,7 @@ public abstract class AbstractWorld implements World {
         curatorMgr = worldWrapper.getCuratorMgr();
         gameConfigMgr = worldWrapper.getGameConfigMgr();
         guidMgr = worldWrapper.getGuidMgr();
-        innerAcceptorMgr = worldWrapper.getInnerAcceptorMgr();
+        gameAcceptorMgr = worldWrapper.getGameAcceptorMgr();
         netContextMgr = worldWrapper.getNetContextMgr();
     }
 

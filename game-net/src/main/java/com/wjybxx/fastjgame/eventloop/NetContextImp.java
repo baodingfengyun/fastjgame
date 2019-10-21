@@ -19,11 +19,8 @@ package com.wjybxx.fastjgame.eventloop;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.misc.HostAndPort;
-import com.wjybxx.fastjgame.misc.HttpPortContext;
+import com.wjybxx.fastjgame.net.http.*;
 import com.wjybxx.fastjgame.misc.PortRange;
-import com.wjybxx.fastjgame.net.http.HttpRequestDispatcher;
-import com.wjybxx.fastjgame.net.http.HttpServerInitializer;
-import com.wjybxx.fastjgame.net.http.OkHttpCallback;
 import com.wjybxx.fastjgame.net.local.DefaultLocalPort;
 import com.wjybxx.fastjgame.net.local.LocalPort;
 import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
@@ -118,8 +115,8 @@ public class NetContextImp implements NetContext {
     // ------------------------------------------------- http 实现 --------------------------------------------
 
     @Override
-    public SocketPort bindHttpRange(String host, PortRange portRange, @Nonnull HttpRequestDispatcher httpRequestDispatcher) throws BindException {
-        final HttpPortContext httpPortContext = new HttpPortContext(this, httpRequestDispatcher);
+    public SocketPort bindHttpRange(String host, PortRange portRange, @Nonnull HttpPortConfig config) throws BindException {
+        final HttpPortContext httpPortContext = new HttpPortContext(this, config);
         final HttpServerInitializer initializer = new HttpServerInitializer(httpPortContext);
         return netEventLoopGroup.getNettyThreadManager().bindRange(host, portRange, 8192, 8192, initializer);
     }

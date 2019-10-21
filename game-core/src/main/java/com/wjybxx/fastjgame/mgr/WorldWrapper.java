@@ -41,7 +41,7 @@ public class WorldWrapper {
     private final GlobalExecutorMgr globalExecutorMgr;
     private final HttpDispatcherMgr httpDispatcherMgr;
     private final ProtocolDispatcherMgr protocolDispatcherMgr;
-    private final InnerAcceptorMgr innerAcceptorMgr;
+    private final GameAcceptorMgr gameAcceptorMgr;
     private final NetContextMgr netContextMgr;
     private final WorldTimeMgr worldTimeMgr;
     private final TemplateMgr templateMgr;
@@ -53,7 +53,7 @@ public class WorldWrapper {
     public WorldWrapper(GameEventLoopMgr gameEventLoopMgr, WorldInfoMgr worldInfoMgr, WorldTimeMgr worldTimeMgr,
                         ProtocolDispatcherMgr protocolDispatcherMgr, HttpDispatcherMgr httpDispatcherMgr,
                         ProtocolCodecMgr protocolCodecMgr, WorldTimerMgr worldTimerMgr, GlobalExecutorMgr globalExecutorMgr,
-                        CuratorMgr curatorMgr, GuidMgr guidMgr, GameConfigMgr gameConfigMgr, NetContextMgr netContextMgr, CuratorClientMgr curatorClientMgr, TemplateMgr templateMgr, InnerAcceptorMgr innerAcceptorMgr) {
+                        CuratorMgr curatorMgr, GuidMgr guidMgr, GameConfigMgr gameConfigMgr, NetContextMgr netContextMgr, CuratorClientMgr curatorClientMgr, TemplateMgr templateMgr, GameAcceptorMgr gameAcceptorMgr) {
         this.gameEventLoopMgr = gameEventLoopMgr;
         this.worldInfoMgr = worldInfoMgr;
         this.worldTimeMgr = worldTimeMgr;
@@ -68,7 +68,7 @@ public class WorldWrapper {
         this.netContextMgr = netContextMgr;
         this.curatorClientMgr = curatorClientMgr;
         this.templateMgr = templateMgr;
-        this.innerAcceptorMgr = innerAcceptorMgr;
+        this.gameAcceptorMgr = gameAcceptorMgr;
     }
 
     public GameEventLoopMgr getGameEventLoopMgr() {
@@ -127,7 +127,7 @@ public class WorldWrapper {
         return templateMgr;
     }
 
-    public InnerAcceptorMgr getInnerAcceptorMgr() {
-        return innerAcceptorMgr;
+    public GameAcceptorMgr getGameAcceptorMgr() {
+        return gameAcceptorMgr;
     }
 }

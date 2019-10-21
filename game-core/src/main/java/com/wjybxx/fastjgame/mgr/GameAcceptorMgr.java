@@ -21,8 +21,8 @@ import com.wjybxx.fastjgame.annotation.EventLoopSingleton;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.PortRange;
-import com.wjybxx.fastjgame.net.common.ProtocolCodec;
 import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
+import com.wjybxx.fastjgame.net.http.HttpPortConfig;
 import com.wjybxx.fastjgame.net.local.LocalPort;
 import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
 import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
@@ -30,7 +30,6 @@ import com.wjybxx.fastjgame.utils.GameUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.SystemUtils;
 
-import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.net.BindException;
 import java.util.Objects;
@@ -45,31 +44,44 @@ import java.util.Objects;
  */
 @EventLoopSingleton
 @NotThreadSafe
-public class InnerAcceptorMgr {
+public class GameAcceptorMgr {
 
     private final ProtocolCodecMgr protocolCodecMgr;
     private final ProtocolDispatcherMgr protocolDispatcherMgr;
-    private final HttpDispatcherMgr httpDispatcherMgr;
     private final NetContextMgr netContextMgr;
     private final LocalPortMgr localPortMgr;
     private final WorldInfoMgr worldInfoMgr;
+    private final HttpPortConfig httpPortConfig;
 
     @Inject
-    public InnerAcceptorMgr(ProtocolCodecMgr protocolCodecMgr, ProtocolDispatcherMgr protocolDispatcherMgr, HttpDispatcherMgr httpDispatcherMgr,
-                            NetContextMgr netContextMgr, LocalPortMgr localPortMgr, WorldInfoMgr worldInfoMgr) {
+    public GameAcceptorMgr(ProtocolCodecMgr protocolCodecMgr, ProtocolDispatcherMgr protocolDispatcherMgr, HttpDispatcherMgr httpDispatcherMgr,
+                           NetContextMgr netContextMgr, LocalPortMgr localPortMgr, WorldInfoMgr worldInfoMgr) {
         this.protocolCodecMgr = protocolCodecMgr;
         this.protocolDispatcherMgr = protocolDispatcherMgr;
 
-        this.httpDispatcherMgr = httpDispatcherMgr;
         this.netContextMgr = netContextMgr;
         this.localPortMgr = localPortMgr;
         this.worldInfoMgr = worldInfoMgr;
+
+        this.httpPortConfig = HttpPortConfig.newBuilder()
+                .setDispatcher(httpDispatcherMgr)
+                .build();
     }
+
+    public HttpPortConfig getHttpPortConfig() {
+        return httpPortConfig;
+    }
+
 
     public void bindLocalPort(SessionLifecycleAware lifecycleAware) {
         LocalSessionConfig config = newLocalSessionConfig(lifecycleAware);
         final LocalPort localPort = netContextMgr.getNetContext().bindLocal(config);
         localPortMgr.register(worldInfoMgr.getWorldGuid(), localPort);
+    }
+
+    // --- tcp
+    public HostAndPort bindLocalTcpPort(SessionLifecycleAware lifecycleAware) throws BindException {
+        return bindTcpPort("localhost", GameUtils.LOCAL_TCP_PORT_RANGE, lifecycleAware);
     }
 
     public HostAndPort bindInnerTcpPort(SessionLifecycleAware lifecycleAware) throws BindException {
@@ -81,13 +93,25 @@ public class InnerAcceptorMgr {
         return netContext.bindTcpRange(host, portRange, newSocketSessionConfig(lifecycleAware)).getHostAndPort();
     }
 
-    public HostAndPort bindLocalTcpPort(SessionLifecycleAware lifecycleAware) throws BindException {
-        return bindTcpPort("localhost", GameUtils.LOCAL_TCP_PORT_RANGE, lifecycleAware);
-    }
-
+    // --- http
     public HostAndPort bindInnerHttpPort() throws BindException {
         NetContext netContext = netContextMgr.getNetContext();
-        return netContext.bindHttpRange(NetUtils.getLocalIp(), GameUtils.INNER_HTTP_PORT_RANGE, httpDispatcherMgr).getHostAndPort();
+        return netContext.bindHttpRange(NetUtils.getLocalIp(), GameUtils.INNER_HTTP_PORT_RANGE, httpPortConfig).getHostAndPort();
+    }
+
+    public HostAndPort bindInnerHttpPort(int port) throws BindException {
+        NetContext netContext = netContextMgr.getNetContext();
+        return netContext.bindHttp(NetUtils.getLocalIp(), port, httpPortConfig).getHostAndPort();
+    }
+
+    public HostAndPort bindOuterHttpPort() throws BindException {
+        NetContext netContext = netContextMgr.getNetContext();
+        return netContext.bindHttpRange(NetUtils.getOuterIp(), GameUtils.OUTER_HTTP_PORT_RANGE, httpPortConfig).getHostAndPort();
+    }
+
+    public HostAndPort bindOuterHttpPort(int port) throws BindException {
+        NetContext netContext = netContextMgr.getNetContext();
+        return netContext.bindHttp(NetUtils.getOuterIp(), port, httpPortConfig).getHostAndPort();
     }
 
     public void connect(long remoteGuid, String innerTcpAddress, String localAddress, String macAddress, SessionLifecycleAware lifecycleAware) {
@@ -112,25 +136,20 @@ public class InnerAcceptorMgr {
                 hostAndPort, newSocketSessionConfig(lifecycleAware));
     }
 
-    public SocketSessionConfig newSocketSessionConfig(SessionLifecycleAware lifecycleAware) {
+    private SocketSessionConfig newSocketSessionConfig(SessionLifecycleAware lifecycleAware) {
         return SocketSessionConfig.newBuilder()
-                .setCodec(getInnerProtocolCodec())
+                .setCodec(protocolCodecMgr.getInnerProtocolCodec())
                 .setLifecycleAware(lifecycleAware)
                 .setDispatcher(protocolDispatcherMgr)
                 .build();
     }
 
-    public LocalSessionConfig newLocalSessionConfig(SessionLifecycleAware lifecycleAware) {
+    private LocalSessionConfig newLocalSessionConfig(SessionLifecycleAware lifecycleAware) {
         return LocalSessionConfig.newBuilder()
-                .setCodec(getInnerProtocolCodec())
+                .setCodec(protocolCodecMgr.getInnerProtocolCodec())
                 .setLifecycleAware(lifecycleAware)
                 .setDispatcher(protocolDispatcherMgr)
                 .build();
-    }
-
-    @Nonnull
-    private ProtocolCodec getInnerProtocolCodec() {
-        return protocolCodecMgr.getInnerProtocolCodec();
     }
 
     private String newSessionId(long remoteGuid) {

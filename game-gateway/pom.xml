@@ -29,6 +29,7 @@
     <artifactId>game-gateway</artifactId>
 
     <dependencies>
+        <!-- core包依赖，应该不需要别的依赖了-->
         <dependency>
             <groupId>com.wjybxx.fastjgame</groupId>
             <artifactId>game-core</artifactId>

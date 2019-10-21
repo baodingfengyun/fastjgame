@@ -49,12 +49,19 @@ public class HttpClientManager {
     /**
      * 请注意查看{@link Dispatcher#executorService()}默认创建executorService的方式。
      */
-    private final OkHttpClient okHttpClient;
+    private OkHttpClient okHttpClient;
 
     @Inject
-    public HttpClientManager(NetConfigManager netConfigManager) {
+    public HttpClientManager() {
+
+    }
+
+    public void init(int httpRequestTimeout) {
+        if (null != okHttpClient) {
+            throw new IllegalStateException();
+        }
         okHttpClient = new OkHttpClient.Builder()
-                .callTimeout(netConfigManager.httpRequestTimeout(), TimeUnit.SECONDS)
+                .callTimeout(httpRequestTimeout, TimeUnit.SECONDS)
                 .build();
     }
 

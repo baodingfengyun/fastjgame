@@ -18,14 +18,12 @@ package com.wjybxx.fastjgame.world;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.onlinenode.LoginNodeData;
-import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.mgr.CenterInLoginInfoMgr;
 import com.wjybxx.fastjgame.mgr.LoginDiscoverMgr;
 import com.wjybxx.fastjgame.mgr.LoginWorldInfoMgr;
 import com.wjybxx.fastjgame.mgr.WorldWrapper;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.utils.JsonUtils;
-import com.wjybxx.fastjgame.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.CreateMode;
@@ -70,10 +68,8 @@ public class LoginWorld extends AbstractWorld {
     }
 
     private void bindAndregisterToZK() throws Exception {
-        HostAndPort innerHttpAddress = innerAcceptorMgr.bindInnerHttpPort();
-        NetContext netContext = netContextMgr.getNetContext();
-
-        HostAndPort outerHttpAddress = netContext.bindHttp(NetUtils.getOuterIp(), loginWorldInfoMgr.getPort(), httpDispatcherMgr).getHostAndPort();
+        HostAndPort innerHttpAddress = gameAcceptorMgr.bindInnerHttpPort();
+        HostAndPort outerHttpAddress = gameAcceptorMgr.bindOuterHttpPort(loginWorldInfoMgr.getPort());
 
         String parentPath = ZKPathUtils.onlineRootPath();
         String nodeName = ZKPathUtils.buildLoginNodeName(loginWorldInfoMgr.getPort(), loginWorldInfoMgr.getWorldGuid());

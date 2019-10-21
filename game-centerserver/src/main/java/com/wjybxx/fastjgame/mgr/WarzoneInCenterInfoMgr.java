@@ -40,16 +40,16 @@ public class WarzoneInCenterInfoMgr {
     private static final Logger logger = LoggerFactory.getLogger(WarzoneInCenterInfoMgr.class);
 
     private final CenterWorldInfoMgr centerWorldInfoMgr;
-    private final InnerAcceptorMgr innerAcceptorMgr;
+    private final GameAcceptorMgr gameAcceptorMgr;
     /**
      * 连接的战区信息，一定是发现的那个节点的session。
      */
     private WarzoneInCenterInfo warzoneInCenterInfo;
 
     @Inject
-    public WarzoneInCenterInfoMgr(CenterWorldInfoMgr centerWorldInfoMgr, InnerAcceptorMgr innerAcceptorMgr) {
+    public WarzoneInCenterInfoMgr(CenterWorldInfoMgr centerWorldInfoMgr, GameAcceptorMgr gameAcceptorMgr) {
         this.centerWorldInfoMgr = centerWorldInfoMgr;
-        this.innerAcceptorMgr = innerAcceptorMgr;
+        this.gameAcceptorMgr = gameAcceptorMgr;
     }
 
     public WarzoneInCenterInfo getWarzoneInCenterInfo() {
@@ -69,7 +69,7 @@ public class WarzoneInCenterInfoMgr {
             onWarzoneDisconnect(warzoneInCenterInfo.getWarzoneWorldGuid());
         }
         // 注册tcp会话
-        innerAcceptorMgr.connect(warzoneNodeData.getWorldGuid(),
+        gameAcceptorMgr.connect(warzoneNodeData.getWorldGuid(),
                 warzoneNodeData.getInnerTcpAddress(),
                 warzoneNodeData.getLocalAddress(),
                 warzoneNodeData.getMacAddress(),

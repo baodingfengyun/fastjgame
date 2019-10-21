@@ -220,7 +220,7 @@ public class ConnectorManager implements SessionRegistry {
                 remoteSession.closeForcibly();
             }
         } catch (Exception e) {
-            connectPromise.tryFailure(new IOException("session " + sessionId + " already registered"));
+            connectPromise.tryFailure(e);
         }
     }
 

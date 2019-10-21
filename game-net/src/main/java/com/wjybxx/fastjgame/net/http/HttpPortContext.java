@@ -14,12 +14,11 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.misc;
+package com.wjybxx.fastjgame.net.http;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
-import com.wjybxx.fastjgame.net.http.HttpRequestDispatcher;
 
 /**
  * 绑定的http端口上的一些信息
@@ -32,11 +31,11 @@ import com.wjybxx.fastjgame.net.http.HttpRequestDispatcher;
 public class HttpPortContext {
 
     private final NetContext netContext;
-    private final HttpRequestDispatcher dispatcher;
+    private final HttpPortConfig config;
 
-    public HttpPortContext(NetContext netContext, HttpRequestDispatcher dispatcher) {
+    public HttpPortContext(NetContext netContext, HttpPortConfig config) {
         this.netContext = netContext;
-        this.dispatcher = dispatcher;
+        this.config = config;
     }
 
     public NetContext getNetContext() {
@@ -47,7 +46,14 @@ public class HttpPortContext {
      * @return 用户指定的http请求分发器
      */
     public HttpRequestDispatcher getDispatcher() {
-        return dispatcher;
+        return config.getDispatcher();
+    }
+
+    /**
+     * @return session超时时间
+     */
+    public int getHttpSessionTimeout() {
+        return config.getHttpSessionTimeout();
     }
 
     /**

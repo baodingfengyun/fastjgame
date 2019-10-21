@@ -78,7 +78,7 @@ public class CenterWorld extends AbstractWorld {
 
     private void bindAndRegisterToZK() throws Exception {
         // 它主动发起连接，不监听tcp，只监听http即可
-        HostAndPort httpHostAndPort = innerAcceptorMgr.bindInnerHttpPort();
+        HostAndPort httpHostAndPort = gameAcceptorMgr.bindInnerHttpPort();
 
         // 注册到zk
         String parentPath = ZKPathUtils.onlineParentPath(centerWorldInfoMgr.getWarzoneId());

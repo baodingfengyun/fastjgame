@@ -21,7 +21,6 @@ import com.google.inject.Singleton;
 import com.wjybxx.fastjgame.concurrent.EventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.manager.HttpClientManager;
-import com.wjybxx.fastjgame.manager.NetConfigManager;
 import com.wjybxx.fastjgame.manager.NettyThreadManager;
 
 /**
@@ -37,7 +36,6 @@ public class NetEventLoopGroupModule extends AbstractModule {
     @Override
     protected void configure() {
         binder().requireExplicitBindings();
-        bind(NetConfigManager.class).in(Singleton.class);
         bind(HttpClientManager.class).in(Singleton.class);
         bind(NettyThreadManager.class).in(Singleton.class);
     }

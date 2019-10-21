@@ -21,7 +21,7 @@ import com.wjybxx.fastjgame.concurrent.GlobalEventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.PortRange;
-import com.wjybxx.fastjgame.net.http.HttpRequestDispatcher;
+import com.wjybxx.fastjgame.net.http.HttpPortConfig;
 import com.wjybxx.fastjgame.net.http.OkHttpCallback;
 import com.wjybxx.fastjgame.net.local.LocalPort;
 import com.wjybxx.fastjgame.net.local.LocalSession;
@@ -172,24 +172,24 @@ public interface NetContext {
     /**
      * 监听某个端口
      *
-     * @param host                  地址
-     * @param port                  指定端口号
-     * @param httpRequestDispatcher 该端口上的协议处理器
+     * @param host   地址
+     * @param port   指定端口号
+     * @param config 该端口上的配置信息
      * @return netPort
      */
-    default SocketPort bindHttp(String host, int port, @Nonnull HttpRequestDispatcher httpRequestDispatcher) throws BindException {
-        return this.bindHttpRange(host, new PortRange(port, port), httpRequestDispatcher);
+    default SocketPort bindHttp(String host, int port, @Nonnull HttpPortConfig config) throws BindException {
+        return this.bindHttpRange(host, new PortRange(port, port), config);
     }
 
     /**
      * 在指定端口范围内监听某一个端口。
      *
-     * @param host                  地址
-     * @param portRange             端口范围
-     * @param httpRequestDispatcher 该端口上的协议处理器
+     * @param host      地址
+     * @param portRange 端口范围
+     * @param config    该端口上的一些配置
      * @return future 可以等待绑定完成。
      */
-    SocketPort bindHttpRange(String host, PortRange portRange, @Nonnull HttpRequestDispatcher httpRequestDispatcher) throws BindException;
+    SocketPort bindHttpRange(String host, PortRange portRange, @Nonnull HttpPortConfig config) throws BindException;
 
     /**
      * 同步get请求

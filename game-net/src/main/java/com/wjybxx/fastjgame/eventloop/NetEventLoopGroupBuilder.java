@@ -26,11 +26,22 @@ import java.util.concurrent.ThreadFactory;
 
 public class NetEventLoopGroupBuilder {
 
+    /**
+     * 设置{@link NetEventLoopGroup}中的{@link NetEventLoop}数量，如果session数较多，建议多个。
+     */
     private int nThreads = 1;
+    /**
+     * netty线程配置
+     */
     private int bossGroupThreadNum = 1;
     private int workerGroupThreadNum = 8;
+
     private ThreadFactory threadFactory = new DefaultThreadFactory("NetEventLoop");
     private RejectedExecutionHandler rejectedExecutionHandler = RejectedExecutionHandlers.abort();
+    /**
+     * http请求超时时间（秒）
+     */
+    private int httpRequestTimeout = 15;
 
     public NetEventLoopGroupBuilder setnThreads(int nThreads) {
         CheckUtils.checkPositive(nThreads, "nThreads");
@@ -60,8 +71,13 @@ public class NetEventLoopGroupBuilder {
         return this;
     }
 
+    public NetEventLoopGroupBuilder setHttpRequestTimeout(int httpRequestTimeout) {
+        this.httpRequestTimeout = httpRequestTimeout;
+        return this;
+    }
+
     public NetEventLoopGroupImp build() {
-        final NetEventLoopGroupImp.GroupConfig groupConfig = new NetEventLoopGroupImp.GroupConfig(bossGroupThreadNum, workerGroupThreadNum);
+        final NetEventLoopGroupImp.GroupConfig groupConfig = new NetEventLoopGroupImp.GroupConfig(bossGroupThreadNum, workerGroupThreadNum, httpRequestTimeout);
         return new NetEventLoopGroupImp(nThreads, threadFactory, rejectedExecutionHandler, groupConfig);
     }
 }

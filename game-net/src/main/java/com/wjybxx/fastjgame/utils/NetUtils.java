@@ -17,12 +17,9 @@
 package com.wjybxx.fastjgame.utils;
 
 import com.wjybxx.fastjgame.annotation.UnstableApi;
-import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
-import com.wjybxx.fastjgame.manager.NetConfigManager;
 import com.wjybxx.fastjgame.misc.RpcCall;
 import com.wjybxx.fastjgame.net.common.ProtocolCodec;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelConfig;
 import io.netty.channel.ChannelFuture;
@@ -31,6 +28,7 @@ import io.netty.channel.socket.DefaultSocketChannelConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
@@ -61,31 +59,20 @@ public class NetUtils {
     /**
      * 本机内网地址
      */
-    private static final String localIp;
+    private static volatile String localIp;
     /**
      * 本机外网地址
      */
-    private static final String outerIp;
+    private static volatile String outerIp;
     /**
      * 请求图标的路径
      */
     public static final String FAVICON_PATH = "/favicon.ico";
 
     static {
-        String tempLocalIp = null;
-        String tempOuterIp = null;
-
-        // 优先使用配置指定的ip
-        try {
-            ConfigWrapper configWrapper = ConfigLoader.loadConfig(ClassLoader.getSystemClassLoader(), NetConfigManager.NET_CONFIG_NAME);
-            tempLocalIp = configWrapper.getAsString("localIp");
-            tempOuterIp = configWrapper.getAsString("outerIp");
-
-        } catch (IOException ignore) {
-        }
-
-        localIp = null == tempLocalIp ? findLocalIp() : tempLocalIp;
-        outerIp = null == tempOuterIp ? findOuterIp() : tempOuterIp;
+        // 尝试查找一下内外网ip
+        localIp = findLocalIp();
+        outerIp = findOuterIp();
 
         logger.info("localIp {}", localIp);
         logger.info("outerIp {}", outerIp);
@@ -183,6 +170,24 @@ public class NetUtils {
             checkSum += (byteBuf.getByte(index) & 255);
         }
         return checkSum;
+    }
+
+    /**
+     * 设置内网Ip
+     *
+     * @param localIp ip
+     */
+    public static void setLocalIp(@Nonnull String localIp) {
+        NetUtils.localIp = localIp;
+    }
+
+    /**
+     * 设置外网ip
+     *
+     * @param outerIp ip
+     */
+    public static void setOuterIp(@Nonnull String outerIp) {
+        NetUtils.outerIp = outerIp;
     }
 
     /**
@@ -375,7 +380,6 @@ public class NetUtils {
         if (channelConfig instanceof DefaultSocketChannelConfig) {
             DefaultSocketChannelConfig socketChannelConfig = (DefaultSocketChannelConfig) channelConfig;
             socketChannelConfig.setPerformancePreferences(0, 1, 2);
-            socketChannelConfig.setAllocator(PooledByteBufAllocator.DEFAULT);
         }
     }
 

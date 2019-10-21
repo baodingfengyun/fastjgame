@@ -35,6 +35,9 @@ public class PortRange {
     public final int endPort;
 
     public PortRange(int startPort, int endPort) {
+        if (startPort > endPort) {
+            throw new IllegalArgumentException("endPort");
+        }
         this.startPort = startPort;
         this.endPort = endPort;
     }
