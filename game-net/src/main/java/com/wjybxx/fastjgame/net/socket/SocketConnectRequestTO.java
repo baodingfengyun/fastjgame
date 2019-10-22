@@ -35,7 +35,7 @@ public interface SocketConnectRequestTO {
 
     /**
      * 客户端期望的下一个消息号
-     * 1. 用于重连时
+     * 1. 用于重连时 - 初始时应该为0
      */
     long getAck();
 

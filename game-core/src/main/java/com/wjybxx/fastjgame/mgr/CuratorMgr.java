@@ -18,9 +18,9 @@ package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.annotation.EventLoopSingleton;
+import com.wjybxx.fastjgame.misc.CloseableHandle;
 import com.wjybxx.fastjgame.misc.LockPathAction;
 import com.wjybxx.fastjgame.misc.ObjectHolder;
-import com.wjybxx.fastjgame.misc.CloseableHandle;
 import com.wjybxx.fastjgame.utils.*;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.barriers.DistributedBarrier;

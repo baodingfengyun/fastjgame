@@ -99,11 +99,13 @@ public interface EventLoopGroup extends ExecutorService, Iterable<EventLoop> {
      * <p>
      * 该方法会立即返回，如果想等待 ExecutorService 进入终止状态，可以使用{@link #awaitTermination(long, TimeUnit)}
      * 或{@link #terminationFuture()} 进行等待
+     * <p>
+     * 注意：虽然去除了{@link Deprecated}注解，但是仍然不保证标准的实现，只保证尽快的关闭，基于以下原因：
+     * <li>1. 可能无法安全的获取所有的任务</li>
+     * <li>2. 剩余任务数可能过多</li>
      *
      * @return 当前待执行的任务列表。
-     * @deprecated 该方法关闭并不友好，因此不推荐使用，也不保证标准的实现。
      */
-    @Deprecated
     @Nonnull
     @Override
     List<Runnable> shutdownNow();

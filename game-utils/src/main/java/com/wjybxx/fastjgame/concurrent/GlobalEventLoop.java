@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import javax.annotation.Nonnull;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.List;
 import java.util.concurrent.*;
 
 /**
@@ -89,6 +90,12 @@ public class GlobalEventLoop extends AbstractEventLoop {
     @Override
     public void shutdown() {
         throw new UnsupportedOperationException("shutdown");
+    }
+
+    @Nonnull
+    @Override
+    public List<Runnable> shutdownNow() {
+        throw new UnsupportedOperationException("shutdownNow");
     }
 
     @Override

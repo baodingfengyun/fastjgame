@@ -36,9 +36,9 @@ public interface IPlayerMessageMgr {
     /**
      * 接收到一个网关转发过来的玩家消息
      *
-     * @param session 网关session - 如果是玩家登录场景协议，则可以保存该session，
+     * @param session    网关session - 如果是玩家登录场景协议，则可以保存该session，
      * @param playerGuid 玩家guid
-     * @param message 玩家发来的消息
+     * @param message    玩家发来的消息
      */
     @RpcMethod(methodId = 1)
     void onPlayerMessage(Session session, long playerGuid, @Nullable Object message);

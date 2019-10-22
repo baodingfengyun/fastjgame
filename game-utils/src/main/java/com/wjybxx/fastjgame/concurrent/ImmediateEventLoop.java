@@ -20,7 +20,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 
@@ -84,6 +86,12 @@ public class ImmediateEventLoop extends AbstractEventLoop {
     @Deprecated
     public void shutdown() {
 
+    }
+
+    @Nonnull
+    @Override
+    public List<Runnable> shutdownNow() {
+        return Collections.emptyList();
     }
 
     @Override

@@ -18,9 +18,9 @@ package com.wjybxx.fastjgame.world;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
+import com.wjybxx.fastjgame.mgr.*;
 import com.wjybxx.fastjgame.misc.MessageMappingStrategy;
 import com.wjybxx.fastjgame.misc.RoleType;
-import com.wjybxx.fastjgame.mgr.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

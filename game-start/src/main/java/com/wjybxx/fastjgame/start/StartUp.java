@@ -103,6 +103,7 @@ public class StartUp {
                 .addWorld(new SceneModule(), singleSceneArgs, 20)
                 .addWorld(new SceneModule(), singleSceneArgs, 20)
                 .addWorld(new SceneModule(), crossSceneArgs, 20)
+                .addWorld(new SceneModule(), crossSceneArgs, 20)
                 .build();
         try {
             Thread.sleep(2 * TimeUtils.MIN);

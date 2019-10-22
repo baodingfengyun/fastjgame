@@ -107,6 +107,11 @@ class OuterUtils {
                       final NetMessage msg,
                       int maxPendingMessages, long ackDeadline) {
 
+        if (ctx.session().isClosed()) {
+            // session已关闭，丢弃消息
+            return;
+        }
+
         if (msg == PingPongMessage.PING || msg == PingPongMessage.PONG) {
             // 心跳协议立即发送 - 且不入队列
             SocketPingPongMessageTO pingPongMessageTO = new OuterPingPongMessageTO(messageQueue.getAck(), (PingPongMessage) msg);
@@ -134,15 +139,19 @@ class OuterUtils {
     /**
      * 清空缓冲队列
      *
+     * @param ctx                handler的上下文
      * @param channel            socket对应的channel
      * @param messageQueue       消息队列
      * @param maxPendingMessages 最大填充消息数
      * @param ackDeadline        ack超时时间
      */
-    static void flush(final Channel channel,
+    static void flush(SessionHandlerContext ctx, final Channel channel,
                       final MessageQueue messageQueue, final int maxPendingMessages,
                       final long ackDeadline) {
-
+        if (ctx.session().isClosed()) {
+            // session已关闭，丢弃消息
+            return;
+        }
         emit(channel, messageQueue, maxPendingMessages, ackDeadline);
     }
 

@@ -103,7 +103,11 @@ public class InnerSocketTransferHandler extends SessionDuplexHandlerAdapter {
         if (msg instanceof SocketChannelInactiveEvent) {
             // socket断开事件 - 内网不断线重连，不使用消息确认机制，socket断开就关闭session
             ctx.session().close();
+            return;
         }
+
+        // 期望之外的消息
+        NetUtils.closeQuietly(((SocketEvent) msg).channel());
     }
 
     @Override

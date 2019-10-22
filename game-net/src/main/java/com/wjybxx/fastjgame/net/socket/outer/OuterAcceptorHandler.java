@@ -95,7 +95,7 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
     @Override
     public void tick(SessionHandlerContext ctx) throws Exception {
         // 清空缓冲队列
-        OuterUtils.flush(channel,
+        OuterUtils.flush(ctx, channel,
                 messageQueue, maxPendingMessages,
                 netTimeManager.getSystemMillTime() + ackTimeoutMs);
     }
@@ -148,7 +148,7 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void flush(SessionHandlerContext ctx) throws Exception {
-        OuterUtils.flush(channel,
+        OuterUtils.flush(ctx, channel,
                 messageQueue, maxPendingMessages,
                 netTimeManager.getSystemMillTime() + ackTimeoutMs);
     }

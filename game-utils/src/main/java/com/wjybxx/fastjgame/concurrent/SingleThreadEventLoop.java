@@ -23,9 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Objects;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
@@ -42,6 +40,11 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 
     private static final Logger logger = LoggerFactory.getLogger(SingleThreadEventLoop.class);
+    /**
+     * 缓存队列的大小，不宜过大，但也不能过小。
+     * 过大容易造成内存浪费，过小对于性能无太大意义。
+     */
+    private static final int CACHE_QUEUE_CAPACITY = 1024;
 
     /**
      * 用于友好的唤醒当前线程的任务
@@ -83,14 +86,13 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
      */
     private final AtomicInteger stateHolder = new AtomicInteger(ST_NOT_STARTED);
     /**
-     * 任务队列，如果子类不需要阻塞操作，则可以创建特定类型的队列。
+     * 任务队列
      */
-    private final Queue<Runnable> taskQueue;
+    private final BlockingQueue<Runnable> taskQueue;
     /**
-     * 任务队列上的操作处理策略
+     * 缓存队列，用于批量的将{@link #taskQueue}中的任务拉取到本地线程下，减少锁竞争，
      */
-    private final TaskQueueHandler taskQueueHandler;
-
+    private final ArrayList<Runnable> cacheQueue = new ArrayList<>(CACHE_QUEUE_CAPACITY);
     /**
      * 任务被拒绝时的处理策略
      */
@@ -117,29 +119,17 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 
         this.rejectedExecutionHandler = rejectedExecutionHandler;
         this.taskQueue = newTaskQueue();
-        this.taskQueueHandler = newTaskQueueHandler(taskQueue);
     }
 
     /**
-     * 创建任务队列，如果子类不需要阻塞操作 或 需要控制资源，则可以创建特定类型的队列。<br>
      * 我自己测试了好多遍，{@link LinkedBlockingQueue} 和 {@link ConcurrentLinkedQueue}在
      * EventLoop架构下基本没啥差别。
+     * (多生产者单消费者)
      *
      * @return queue
      */
-    protected Queue<Runnable> newTaskQueue() {
+    protected BlockingQueue<Runnable> newTaskQueue() {
         return new LinkedBlockingQueue<>();
-    }
-
-    /**
-     * 创建对应的队列处理器
-     */
-    protected TaskQueueHandler newTaskQueueHandler(Queue<Runnable> taskQueue) {
-        if (taskQueue instanceof BlockingQueue) {
-            return new BlockingQueueHandler((BlockingQueue<Runnable>) taskQueue);
-        } else {
-            return new NoBlockingQueueHandler();
-        }
     }
 
     @Override
@@ -237,6 +227,26 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
         }
     }
 
+    @Nonnull
+    @Override
+    public List<Runnable> shutdownNow() {
+        for (; ; ) {
+            int oldState = stateHolder.get();
+            if (isShutdown0(oldState)) {
+                break;
+            }
+            // 尝试切换为一阶段清理状态，不再执行任务
+            if (stateHolder.compareAndSet(oldState, ST_SHUTDOWN)) {
+                // 确保线程可进入终止状态
+                // 这里不能安全的调用clear，需要EventLoop自己清空，因为并没做提交任务的互斥。
+                // 如果这里调用clear，可能导致EventLoop执行到clear之后提交的任务，从而破坏顺序性。
+                ensureThreadTerminable(oldState);
+                break;
+            }
+        }
+        return Collections.emptyList();
+    }
+
     /**
      * 确保线程可终止。
      * - terminable
@@ -316,6 +326,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
         }
         // 它只在关闭阶段出现
         if (isShutdown()) {
+            taskQueue.clear();
             return true;
         }
         // shuttingDown状态下，已不会接收新的任务，执行完当前所有未执行的任务就可以退出了。
@@ -431,7 +442,12 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     @Nullable
     protected final Runnable takeTask() {
         assert inEventLoop();
-        return taskQueueHandler.takeTask();
+        try {
+            return taskQueue.take();
+        } catch (InterruptedException ignore) {
+            // 被中断唤醒 wake up
+            return null;
+        }
     }
 
     /**
@@ -443,7 +459,12 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     @Nullable
     protected final Runnable takeTask(long timeoutMs) {
         assert inEventLoop();
-        return taskQueueHandler.takeTask(timeoutMs);
+        try {
+            return taskQueue.poll(timeoutMs, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException ignore) {
+            // 被中断唤醒 wake up
+            return null;
+        }
     }
 
     /**
@@ -481,7 +502,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
      * @return 至少有一个任务执行时返回true。
      */
     protected final boolean runAllTasks() {
-        return taskQueueHandler.runTasksBatch(Integer.MAX_VALUE);
+        return runTasksBatch(Integer.MAX_VALUE);
     }
 
     /**
@@ -491,133 +512,25 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
      *                  注意：它并不是一个精确的控制，可能只需的任务比该值多，但是会在一个范围之类。精确的控制意义不大。
      * @return 至少有一个任务执行时返回true。
      */
-    protected final boolean runTasksBatch(int batchSize) {
-        return taskQueueHandler.runTasksBatch(batchSize);
-    }
-    // ------------------------- 不同队列的处理  ---------------------------
+    protected final boolean runTasksBatch(final int batchSize) {
+        int runTaskNum = 0;
+        int size;
+        while (!isShutdown() && (size = taskQueue.drainTo(cacheQueue, CACHE_QUEUE_CAPACITY)) > 0) {
+            // 批量拉取任务执行(可减少竞争) - 目前测试的表现，没感觉到性能上的提升，可能是因为竞争小
+            // 必须顺序执行，否则会打乱顺序
+            // 存在两次三次冗余遍历 1. drainQueue插入元素的时候 2.执行任务的时候 3.clear的时候 额外消耗是不是大了点
+            for (int index = 0; index < size; index++) {
+                safeExecute(cacheQueue.get(index));
+            }
+            // 计数
+            runTaskNum += size;
+            cacheQueue.clear();
 
-    protected interface TaskQueueHandler {
-
-        /**
-         * 以阻塞的方式从任务队列中取出一个任务，直到被中断或被唤醒
-         *
-         * @return task
-         */
-        @Nullable
-        Runnable takeTask();
-
-        /**
-         * 以阻塞的方式从任务队列中取出一个任务，直到被中断或被唤醒，或时间到
-         *
-         * @param timeoutMs 超时时间，毫秒
-         * @return task
-         */
-        Runnable takeTask(long timeoutMs);
-
-        /**
-         * 尝试批量运行任务队列中的任务。
-         *
-         * @param batchSize 执行的最大任务数，避免执行任务耗费太多时间。
-         *                  注意：它并不是一个精确的控制，可能只需的任务比该值多，但是会在一个范围之类。精确的控制意义不大。
-         * @return 至少有一个任务执行时返回true。
-         */
-        boolean runTasksBatch(int batchSize);
-    }
-
-    protected static class BlockingQueueHandler implements TaskQueueHandler {
-
-        /**
-         * 缓存队列的大小，不宜过大，但也不能过小。
-         * 过大容易造成内存浪费，过小对于性能无太大意义。
-         */
-        private static final int CACHE_QUEUE_CAPACITY = 8 * 1024;
-
-        /**
-         * 缓存队列，用于批量的将{@link #taskQueue}中的任务拉取到本地线程下，减少锁竞争，
-         */
-        private final ArrayList<Runnable> cacheQueue = new ArrayList<>(CACHE_QUEUE_CAPACITY);
-
-        private final BlockingQueue<Runnable> taskQueue;
-
-        protected BlockingQueueHandler(BlockingQueue<Runnable> taskQueue) {
-            this.taskQueue = taskQueue;
-        }
-
-        @Nullable
-        @Override
-        public Runnable takeTask() {
-            try {
-                return taskQueue.take();
-            } catch (InterruptedException ignore) {
-                // 被中断唤醒 wake up
-                return null;
+            // <0表示可能溢出了，执行一批任务之后检查是否退出
+            if (runTaskNum < 0 || runTaskNum >= batchSize) {
+                break;
             }
         }
-
-        @Override
-        public Runnable takeTask(long timeoutMs) {
-            try {
-                return taskQueue.poll(timeoutMs, TimeUnit.MILLISECONDS);
-            } catch (InterruptedException ignore) {
-                // 被中断唤醒 wake up
-                return null;
-            }
-        }
-
-        @Override
-        public boolean runTasksBatch(int batchSize) {
-            int runTaskNum = 0;
-            int size;
-            while ((size = taskQueue.drainTo(cacheQueue, CACHE_QUEUE_CAPACITY)) > 0) {
-                // 批量拉取任务执行(可减少竞争) - 目前测试的表现，没感觉到性能上的提升，可能是因为竞争小
-                // 必须顺序执行，否则会打乱顺序
-                // 存在两次三次冗余遍历 1. drainQueue插入元素的时候 2.执行任务的时候 3.clear的时候 额外消耗是不是大了点
-                for (int index = 0; index < size; index++) {
-                    safeExecute(cacheQueue.get(index));
-                }
-                // 计数
-                runTaskNum += size;
-                cacheQueue.clear();
-
-                // <0表示可能溢出了，执行一批任务之后检查是否退出
-                if (batchSize < 0 || runTaskNum >= batchSize) {
-                    break;
-                }
-            }
-            return runTaskNum > 0;
-        }
-
-    }
-
-    protected class NoBlockingQueueHandler implements TaskQueueHandler {
-
-        protected NoBlockingQueueHandler() {
-
-        }
-
-        @Nullable
-        @Override
-        public Runnable takeTask() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Runnable takeTask(long timeoutMs) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean runTasksBatch(int batchSize) {
-            int runTaskNum = 0;
-            Runnable task;
-            while ((task = taskQueue.poll()) != null) {
-                safeExecute(task);
-                runTaskNum++;
-                if (runTaskNum >= batchSize) {
-                    break;
-                }
-            }
-            return runTaskNum > 0;
-        }
+        return runTaskNum > 0;
     }
 }

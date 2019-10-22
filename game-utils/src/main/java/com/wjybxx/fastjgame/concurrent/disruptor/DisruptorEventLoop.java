@@ -26,6 +26,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -241,6 +243,24 @@ public class DisruptorEventLoop extends AbstractEventLoop {
                 ensureThreadTerminable(oldState);
             }
         }
+    }
+
+    @Nonnull
+    @Override
+    public List<Runnable> shutdownNow() {
+        for (; ; ) {
+            int oldState = stateHolder.get();
+            if (isShutdown0(oldState)) {
+                break;
+            }
+            if (stateHolder.compareAndSet(oldState, ST_SHUTDOWN)) {
+                // 确保线程能够关闭
+                // 这里申请所有空间也不一定能进行清理，因为不确定谁先申请到整个空间，因此也需要EventLoop自身来清理
+                ensureThreadTerminable(oldState);
+                break;
+            }
+        }
+        return Collections.emptyList();
     }
 
     /**
@@ -506,15 +526,14 @@ public class DisruptorEventLoop extends AbstractEventLoop {
             try {
                 // Q: 为什么可以继续消费
                 // A: 保证了生产者不会覆盖未消费的数据 - shutdown处的处理是必须的
-                // 以前是丢弃任务，简单粗暴，但是不安全。
-                // 但是继续执行剩余的任务，也不安全。这就是多线程比较坑的一些问题了，执行也不是，不执行也不是。
                 long nextSequence = sequence.get() + 1;
                 final long endSequence = sequence.get() + ringBuffer.getBufferSize();
                 for (; nextSequence <= endSequence; nextSequence++) {
                     final Runnable task = ringBuffer.get(nextSequence).detachTask();
                     // Q: 这里可能为null吗？
                     // A: 这里可能为null - 因为是多生产者模式，关闭前发布的数据可能是不连续的
-                    if (null != task) {
+                    // 如果已进入shutdown阶段，则直接丢弃任务，而不是执行
+                    if (!isShutdown() && null != task) {
                         safeExecute(task);
                     }
                 }

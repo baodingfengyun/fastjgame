@@ -80,8 +80,8 @@ public class CenterInWarzoneInfoMgr implements ICenterInWarzoneInfoMgr {
     }
 
     @Override
-    public boolean connectWarzone(Session session, int platfomNumber, int serverId) {
-        PlatformType platformType = PlatformType.forNumber(platfomNumber);
+    public boolean connectWarzone(Session session, int platformNumber, int serverId) {
+        PlatformType platformType = PlatformType.forNumber(platformNumber);
         assert !guid2InfoMap.containsKey(session.remoteGuid());
         assert !platInfoMap.containsKey(platformType) || !platInfoMap.get(platformType).containsKey(serverId);
 

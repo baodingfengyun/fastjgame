@@ -501,7 +501,7 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
             }
 
             // 清空缓冲队列
-            OuterUtils.flush(channel,
+            OuterUtils.flush(ctx, channel,
                     messageQueue, config.maxPendingMessages(),
                     netTimeManager.getSystemMillTime() + config.ackTimeoutMs());
         }
@@ -538,7 +538,7 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
 
         @Override
         void flush() {
-            OuterUtils.flush(channel,
+            OuterUtils.flush(ctx, channel,
                     messageQueue, config.maxPendingMessages(),
                     netTimeManager.getSystemMillTime() + config.ackTimeoutMs());
         }

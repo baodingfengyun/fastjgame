@@ -169,7 +169,6 @@ public abstract class MultiThreadEventLoopGroup extends AbstractEventLoopGroup {
         forEach(EventLoop::shutdown);
     }
 
-    @Deprecated
     @Nonnull
     @Override
     public List<Runnable> shutdownNow() {

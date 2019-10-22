@@ -35,7 +35,7 @@ public interface SocketConnectResponseTO {
 
     /**
      * 服务端期望的下一个消息号
-     * 1. 用于重连时
+     * (始终校验)
      */
     long getAck();
 

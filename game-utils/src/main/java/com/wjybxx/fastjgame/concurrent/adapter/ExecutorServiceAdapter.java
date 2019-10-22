@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.concurrent.FailedFuture;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -65,6 +66,12 @@ public class ExecutorServiceAdapter extends AbstractEventLoop {
     @Override
     public void shutdown() {
         executor.shutdown();
+    }
+
+    @Nonnull
+    @Override
+    public List<Runnable> shutdownNow() {
+        return executor.shutdownNow();
     }
 
     @Override
