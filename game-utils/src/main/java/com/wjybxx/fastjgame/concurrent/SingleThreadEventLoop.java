@@ -239,7 +239,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
             if (stateHolder.compareAndSet(oldState, ST_SHUTDOWN)) {
                 // 确保线程可进入终止状态
                 // 这里不能安全的调用clear，需要EventLoop自己清空，因为并没做提交任务的互斥。
-                // 如果这里调用clear，可能导致EventLoop执行到clear之后提交的任务，从而破坏顺序性。
+                // 如果这里调用clear，可能导致EventLoop执行到clear之后提交的任务，从而破坏顺序性（单消费者变成多消费者）。
                 ensureThreadTerminable(oldState);
                 break;
             }
@@ -316,6 +316,8 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
      * 确认是否需要立即退出事件循环，即是否可以立即退出{@link #loop()}方法。
      * <p>
      * Confirm that the shutdown if the instance should be done now!
+     *
+     * @apiNote 如果返回true，应该立即退出。
      */
     protected final boolean confirmShutdown() {
         // 用于EventLoop确认自己是否应该退出，不应该由外部线程调用
@@ -330,7 +332,10 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
             return true;
         }
         // shuttingDown状态下，已不会接收新的任务，执行完当前所有未执行的任务就可以退出了。
+        // 由于shutdownNow，可能任务没有完全执行完毕，需要进行清理
         runAllTasks();
+        taskQueue.clear();
+
         // 切换至SHUTDOWN状态，准备执行最后的清理动作
         advanceRunState(ST_SHUTDOWN);
         return true;
@@ -497,7 +502,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     }
 
     /**
-     * 运行任务队列中当前所有的任务
+     * 运行任务队列中当前所有的任务。
      *
      * @return 至少有一个任务执行时返回true。
      */
@@ -509,28 +514,32 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
      * 尝试批量运行任务队列中的任务。
      *
      * @param batchSize 执行的最大任务数，避免执行任务耗费太多时间。
-     *                  注意：它并不是一个精确的控制，可能只需的任务比该值多，但是会在一个范围之类。精确的控制意义不大。
+     *                  注意：它并不是一个精确的控制，可能执行的任务比该值多，但是会在一个范围之类{@link #CACHE_QUEUE_CAPACITY}。精确的控制意义不大。
      * @return 至少有一个任务执行时返回true。
      */
     protected final boolean runTasksBatch(final int batchSize) {
-        int runTaskNum = 0;
+        long runTaskNum = 0;
         int size;
         while (!isShutdown() && (size = taskQueue.drainTo(cacheQueue, CACHE_QUEUE_CAPACITY)) > 0) {
             // 批量拉取任务执行(可减少竞争) - 目前测试的表现，没感觉到性能上的提升，可能是因为竞争小
-            // 必须顺序执行，否则会打乱顺序
-            // 存在两次三次冗余遍历 1. drainQueue插入元素的时候 2.执行任务的时候 3.clear的时候 额外消耗是不是大了点
+            // 存在三次冗余遍历，额外消耗是不是大了点
+            // 1. drainQueue插入元素的时候
+            // 2. 执行任务的时候
+            // 3. clear的时候
             for (int index = 0; index < size; index++) {
                 safeExecute(cacheQueue.get(index));
             }
+
             // 计数
             runTaskNum += size;
             cacheQueue.clear();
 
-            // <0表示可能溢出了，执行一批任务之后检查是否退出
-            if (runTaskNum < 0 || runTaskNum >= batchSize) {
+            // 执行一批任务之后检查是否退出
+            if (runTaskNum >= batchSize) {
                 break;
             }
         }
+        // 不能出现负数
         return runTaskNum > 0;
     }
 }
