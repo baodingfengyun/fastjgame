@@ -21,7 +21,6 @@ import com.wjybxx.fastjgame.annotation.EventLoopSingleton;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 
 import javax.annotation.concurrent.NotThreadSafe;
-import java.util.concurrent.ExecutionException;
 
 /**
  * 管理当前World拥有的NetContext
@@ -45,7 +44,7 @@ public class NetContextMgr {
         this.gameEventLoopMgr = gameEventLoopMgr;
     }
 
-    public void start() throws ExecutionException, InterruptedException {
+    public void start() {
         // 创建上下文
         netContext = gameEventLoopMgr.getNetEventLoopGroup().createContext(worldInfoMgr.getWorldGuid(), gameEventLoopMgr.getEventLoop());
     }

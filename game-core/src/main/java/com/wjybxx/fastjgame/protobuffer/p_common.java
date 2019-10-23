@@ -20,6 +20,7 @@ public final class p_common {
 
     /**
      * <code>int64 playerGuid = 1;</code>
+     * @return The playerGuid.
      */
     long getPlayerGuid();
 
@@ -29,6 +30,7 @@ public final class p_common {
      * </pre>
      *
      * <code>int32 platformNumber = 2;</code>
+     * @return The platformNumber.
      */
     int getPlatformNumber();
 
@@ -38,6 +40,7 @@ public final class p_common {
      * </pre>
      *
      * <code>int32 logicServerId = 3;</code>
+     * @return The logicServerId.
      */
     int getLogicServerId();
   }
@@ -61,6 +64,13 @@ public final class p_common {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new p_player_data();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -73,7 +83,6 @@ public final class p_common {
       if (extensionRegistry == null) {
         throw new java.lang.NullPointerException();
       }
-      int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -135,6 +144,7 @@ public final class p_common {
     private long playerGuid_;
     /**
      * <code>int64 playerGuid = 1;</code>
+     * @return The playerGuid.
      */
     public long getPlayerGuid() {
       return playerGuid_;
@@ -148,6 +158,7 @@ public final class p_common {
      * </pre>
      *
      * <code>int32 platformNumber = 2;</code>
+     * @return The platformNumber.
      */
     public int getPlatformNumber() {
       return platformNumber_;
@@ -161,6 +172,7 @@ public final class p_common {
      * </pre>
      *
      * <code>int32 logicServerId = 3;</code>
+     * @return The logicServerId.
      */
     public int getLogicServerId() {
       return logicServerId_;
@@ -510,12 +522,15 @@ public final class p_common {
       private long playerGuid_ ;
       /**
        * <code>int64 playerGuid = 1;</code>
+       * @return The playerGuid.
        */
       public long getPlayerGuid() {
         return playerGuid_;
       }
       /**
        * <code>int64 playerGuid = 1;</code>
+       * @param value The playerGuid to set.
+       * @return This builder for chaining.
        */
       public Builder setPlayerGuid(long value) {
         
@@ -525,6 +540,7 @@ public final class p_common {
       }
       /**
        * <code>int64 playerGuid = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearPlayerGuid() {
         
@@ -540,6 +556,7 @@ public final class p_common {
        * </pre>
        *
        * <code>int32 platformNumber = 2;</code>
+       * @return The platformNumber.
        */
       public int getPlatformNumber() {
         return platformNumber_;
@@ -550,6 +567,8 @@ public final class p_common {
        * </pre>
        *
        * <code>int32 platformNumber = 2;</code>
+       * @param value The platformNumber to set.
+       * @return This builder for chaining.
        */
       public Builder setPlatformNumber(int value) {
         
@@ -563,6 +582,7 @@ public final class p_common {
        * </pre>
        *
        * <code>int32 platformNumber = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearPlatformNumber() {
         
@@ -578,6 +598,7 @@ public final class p_common {
        * </pre>
        *
        * <code>int32 logicServerId = 3;</code>
+       * @return The logicServerId.
        */
       public int getLogicServerId() {
         return logicServerId_;
@@ -588,6 +609,8 @@ public final class p_common {
        * </pre>
        *
        * <code>int32 logicServerId = 3;</code>
+       * @param value The logicServerId to set.
+       * @return This builder for chaining.
        */
       public Builder setLogicServerId(int value) {
         
@@ -601,6 +624,7 @@ public final class p_common {
        * </pre>
        *
        * <code>int32 logicServerId = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearLogicServerId() {
         
@@ -681,18 +705,10 @@ public final class p_common {
       "jybxx.fastjgame.protobufferB\010p_commonH\001b" +
       "\006proto3"
     };
-    com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
-          public com.google.protobuf.ExtensionRegistry assignDescriptors(
-              com.google.protobuf.Descriptors.FileDescriptor root) {
-            descriptor = root;
-            return null;
-          }
-        };
-    com.google.protobuf.Descriptors.FileDescriptor
+    descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
-        }, assigner);
+        });
     internal_static_fastjgame_p_player_data_descriptor =
       getDescriptor().getMessageTypes().get(0);
     internal_static_fastjgame_p_player_data_fieldAccessorTable = new

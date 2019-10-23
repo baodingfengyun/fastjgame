@@ -87,7 +87,7 @@ public class DefaultChooserFactory implements EventLoopChooserFactory {
         @Nonnull
         @Override
         public EventLoop select(int key) {
-            return executors[key & executors.length - 1];
+            return executors[key & (executors.length - 1)];
         }
     }
 

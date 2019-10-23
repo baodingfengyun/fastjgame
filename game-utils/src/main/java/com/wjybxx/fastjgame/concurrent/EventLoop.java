@@ -20,11 +20,14 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * 事件循环
+ * 事件循环。
  *
  * <h>它是单线程的，提供以下保证：</h>
  * <li>保证任务不会并发执行。</li>
  * <li>还保证任务的执行顺序和提交顺序一致！{@link #execute(Runnable)}{@link #submit(Runnable)}</li>
+ *
+ * <p>
+ * EventLoop架构属于<b>多生产者单消费者模型</b>，请避免其它线程消费数据。
  *
  * @author wjybxx
  * @version 1.0

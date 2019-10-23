@@ -297,6 +297,8 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 
     /**
      * 在开启事件循环之前的初始化动作
+     *
+     * @apiNote 初始化方法抛出任何异常都将导致线程退出
      */
     protected void init() throws Exception {
 

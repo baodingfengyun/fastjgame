@@ -34,6 +34,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ThreadFactory;
 
 /**
@@ -140,13 +141,12 @@ public class GameEventLoopGroupImp extends MultiThreadEventLoopGroup implements 
         }
 
         public GameEventLoopGroupImp build() {
-            if (null == netEventLoopGroup) {
-                throw new IllegalStateException("netEventLoopGroup is null");
-            }
+            Objects.requireNonNull(netEventLoopGroup, "netEventLoopGroup");
+
             final RealContext realContext = new RealContext(netEventLoopGroup, children);
             final GameEventLoopGroupImp gameEventLoopGroup = new GameEventLoopGroupImp(threadFactory, rejectedExecutionHandler, chooserFactory, realContext);
             // 构造完成之后，启动所有线程
-            gameEventLoopGroup.forEach(eventLoop -> eventLoop.execute(ConcurrentUtils.WEAK_UP_TASK));
+            gameEventLoopGroup.forEach(eventLoop -> eventLoop.execute(ConcurrentUtils.NO_OP_TASK));
             // 返回引用
             return gameEventLoopGroup;
         }

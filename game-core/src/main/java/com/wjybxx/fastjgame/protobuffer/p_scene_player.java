@@ -24,16 +24,19 @@ public final class p_scene_player {
      * </pre>
      *
      * <code>int64 playerGuid = 1;</code>
+     * @return The playerGuid.
      */
     long getPlayerGuid();
 
     /**
      * <code>int32 logicServerId = 2;</code>
+     * @return The logicServerId.
      */
     int getLogicServerId();
 
     /**
      * <code>int32 actualServerId = 3;</code>
+     * @return The actualServerId.
      */
     int getActualServerId();
   }
@@ -57,6 +60,13 @@ public final class p_scene_player {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new p_scene_player_data();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -69,7 +79,6 @@ public final class p_scene_player {
       if (extensionRegistry == null) {
         throw new java.lang.NullPointerException();
       }
-      int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -135,6 +144,7 @@ public final class p_scene_player {
      * </pre>
      *
      * <code>int64 playerGuid = 1;</code>
+     * @return The playerGuid.
      */
     public long getPlayerGuid() {
       return playerGuid_;
@@ -144,6 +154,7 @@ public final class p_scene_player {
     private int logicServerId_;
     /**
      * <code>int32 logicServerId = 2;</code>
+     * @return The logicServerId.
      */
     public int getLogicServerId() {
       return logicServerId_;
@@ -153,6 +164,7 @@ public final class p_scene_player {
     private int actualServerId_;
     /**
      * <code>int32 actualServerId = 3;</code>
+     * @return The actualServerId.
      */
     public int getActualServerId() {
       return actualServerId_;
@@ -506,6 +518,7 @@ public final class p_scene_player {
        * </pre>
        *
        * <code>int64 playerGuid = 1;</code>
+       * @return The playerGuid.
        */
       public long getPlayerGuid() {
         return playerGuid_;
@@ -516,6 +529,8 @@ public final class p_scene_player {
        * </pre>
        *
        * <code>int64 playerGuid = 1;</code>
+       * @param value The playerGuid to set.
+       * @return This builder for chaining.
        */
       public Builder setPlayerGuid(long value) {
         
@@ -529,6 +544,7 @@ public final class p_scene_player {
        * </pre>
        *
        * <code>int64 playerGuid = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearPlayerGuid() {
         
@@ -540,12 +556,15 @@ public final class p_scene_player {
       private int logicServerId_ ;
       /**
        * <code>int32 logicServerId = 2;</code>
+       * @return The logicServerId.
        */
       public int getLogicServerId() {
         return logicServerId_;
       }
       /**
        * <code>int32 logicServerId = 2;</code>
+       * @param value The logicServerId to set.
+       * @return This builder for chaining.
        */
       public Builder setLogicServerId(int value) {
         
@@ -555,6 +574,7 @@ public final class p_scene_player {
       }
       /**
        * <code>int32 logicServerId = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearLogicServerId() {
         
@@ -566,12 +586,15 @@ public final class p_scene_player {
       private int actualServerId_ ;
       /**
        * <code>int32 actualServerId = 3;</code>
+       * @return The actualServerId.
        */
       public int getActualServerId() {
         return actualServerId_;
       }
       /**
        * <code>int32 actualServerId = 3;</code>
+       * @param value The actualServerId to set.
+       * @return This builder for chaining.
        */
       public Builder setActualServerId(int value) {
         
@@ -581,6 +604,7 @@ public final class p_scene_player {
       }
       /**
        * <code>int32 actualServerId = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearActualServerId() {
         
@@ -651,6 +675,7 @@ public final class p_scene_player {
      * </pre>
      *
      * <code>int64 npcGuid = 1;</code>
+     * @return The npcGuid.
      */
     long getNpcGuid();
 
@@ -660,6 +685,7 @@ public final class p_scene_player {
      * </pre>
      *
      * <code>int32 npcId = 2;</code>
+     * @return The npcId.
      */
     int getNpcId();
   }
@@ -683,6 +709,13 @@ public final class p_scene_player {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new p_scene_npc_data();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -695,7 +728,6 @@ public final class p_scene_player {
       if (extensionRegistry == null) {
         throw new java.lang.NullPointerException();
       }
-      int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -756,6 +788,7 @@ public final class p_scene_player {
      * </pre>
      *
      * <code>int64 npcGuid = 1;</code>
+     * @return The npcGuid.
      */
     public long getNpcGuid() {
       return npcGuid_;
@@ -769,6 +802,7 @@ public final class p_scene_player {
      * </pre>
      *
      * <code>int32 npcId = 2;</code>
+     * @return The npcId.
      */
     public int getNpcId() {
       return npcId_;
@@ -1105,6 +1139,7 @@ public final class p_scene_player {
        * </pre>
        *
        * <code>int64 npcGuid = 1;</code>
+       * @return The npcGuid.
        */
       public long getNpcGuid() {
         return npcGuid_;
@@ -1115,6 +1150,8 @@ public final class p_scene_player {
        * </pre>
        *
        * <code>int64 npcGuid = 1;</code>
+       * @param value The npcGuid to set.
+       * @return This builder for chaining.
        */
       public Builder setNpcGuid(long value) {
         
@@ -1128,6 +1165,7 @@ public final class p_scene_player {
        * </pre>
        *
        * <code>int64 npcGuid = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearNpcGuid() {
         
@@ -1143,6 +1181,7 @@ public final class p_scene_player {
        * </pre>
        *
        * <code>int32 npcId = 2;</code>
+       * @return The npcId.
        */
       public int getNpcId() {
         return npcId_;
@@ -1153,6 +1192,8 @@ public final class p_scene_player {
        * </pre>
        *
        * <code>int32 npcId = 2;</code>
+       * @param value The npcId to set.
+       * @return This builder for chaining.
        */
       public Builder setNpcId(int value) {
         
@@ -1166,6 +1207,7 @@ public final class p_scene_player {
        * </pre>
        *
        * <code>int32 npcId = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearNpcId() {
         
@@ -1236,6 +1278,7 @@ public final class p_scene_player {
      * </pre>
      *
      * <code>int64 ownerGuid = 1;</code>
+     * @return The ownerGuid.
      */
     long getOwnerGuid();
 
@@ -1245,6 +1288,7 @@ public final class p_scene_player {
      * </pre>
      *
      * <code>int64 petGuid = 2;</code>
+     * @return The petGuid.
      */
     long getPetGuid();
 
@@ -1254,6 +1298,7 @@ public final class p_scene_player {
      * </pre>
      *
      * <code>int32 petId = 3;</code>
+     * @return The petId.
      */
     int getPetId();
   }
@@ -1277,6 +1322,13 @@ public final class p_scene_player {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new p_scene_pet_data();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -1289,7 +1341,6 @@ public final class p_scene_player {
       if (extensionRegistry == null) {
         throw new java.lang.NullPointerException();
       }
-      int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -1355,6 +1406,7 @@ public final class p_scene_player {
      * </pre>
      *
      * <code>int64 ownerGuid = 1;</code>
+     * @return The ownerGuid.
      */
     public long getOwnerGuid() {
       return ownerGuid_;
@@ -1368,6 +1420,7 @@ public final class p_scene_player {
      * </pre>
      *
      * <code>int64 petGuid = 2;</code>
+     * @return The petGuid.
      */
     public long getPetGuid() {
       return petGuid_;
@@ -1381,6 +1434,7 @@ public final class p_scene_player {
      * </pre>
      *
      * <code>int32 petId = 3;</code>
+     * @return The petId.
      */
     public int getPetId() {
       return petId_;
@@ -1735,6 +1789,7 @@ public final class p_scene_player {
        * </pre>
        *
        * <code>int64 ownerGuid = 1;</code>
+       * @return The ownerGuid.
        */
       public long getOwnerGuid() {
         return ownerGuid_;
@@ -1745,6 +1800,8 @@ public final class p_scene_player {
        * </pre>
        *
        * <code>int64 ownerGuid = 1;</code>
+       * @param value The ownerGuid to set.
+       * @return This builder for chaining.
        */
       public Builder setOwnerGuid(long value) {
         
@@ -1758,6 +1815,7 @@ public final class p_scene_player {
        * </pre>
        *
        * <code>int64 ownerGuid = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearOwnerGuid() {
         
@@ -1773,6 +1831,7 @@ public final class p_scene_player {
        * </pre>
        *
        * <code>int64 petGuid = 2;</code>
+       * @return The petGuid.
        */
       public long getPetGuid() {
         return petGuid_;
@@ -1783,6 +1842,8 @@ public final class p_scene_player {
        * </pre>
        *
        * <code>int64 petGuid = 2;</code>
+       * @param value The petGuid to set.
+       * @return This builder for chaining.
        */
       public Builder setPetGuid(long value) {
         
@@ -1796,6 +1857,7 @@ public final class p_scene_player {
        * </pre>
        *
        * <code>int64 petGuid = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearPetGuid() {
         
@@ -1811,6 +1873,7 @@ public final class p_scene_player {
        * </pre>
        *
        * <code>int32 petId = 3;</code>
+       * @return The petId.
        */
       public int getPetId() {
         return petId_;
@@ -1821,6 +1884,8 @@ public final class p_scene_player {
        * </pre>
        *
        * <code>int32 petId = 3;</code>
+       * @param value The petId to set.
+       * @return This builder for chaining.
        */
       public Builder setPetId(int value) {
         
@@ -1834,6 +1899,7 @@ public final class p_scene_player {
        * </pre>
        *
        * <code>int32 petId = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearPetId() {
         
@@ -2050,6 +2116,13 @@ public final class p_scene_player {
       players_ = java.util.Collections.emptyList();
       npcs_ = java.util.Collections.emptyList();
       pets_ = java.util.Collections.emptyList();
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new p_notify_player_others_in();
     }
 
     @java.lang.Override
@@ -3759,14 +3832,18 @@ public final class p_scene_player {
 
     /**
      * <code>repeated int64 guids = 1;</code>
+     * @return A list containing the guids.
      */
     java.util.List<java.lang.Long> getGuidsList();
     /**
      * <code>repeated int64 guids = 1;</code>
+     * @return The count of guids.
      */
     int getGuidsCount();
     /**
      * <code>repeated int64 guids = 1;</code>
+     * @param index The index of the element to return.
+     * @return The guids at the given index.
      */
     long getGuids(int index);
   }
@@ -3788,6 +3865,13 @@ public final class p_scene_player {
     }
     private p_notify_player_others_out() {
       guids_ = emptyLongList();
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new p_notify_player_others_out();
     }
 
     @java.lang.Override
@@ -3874,6 +3958,7 @@ public final class p_scene_player {
     private com.google.protobuf.Internal.LongList guids_;
     /**
      * <code>repeated int64 guids = 1;</code>
+     * @return A list containing the guids.
      */
     public java.util.List<java.lang.Long>
         getGuidsList() {
@@ -3881,12 +3966,15 @@ public final class p_scene_player {
     }
     /**
      * <code>repeated int64 guids = 1;</code>
+     * @return The count of guids.
      */
     public int getGuidsCount() {
       return guids_.size();
     }
     /**
      * <code>repeated int64 guids = 1;</code>
+     * @param index The index of the element to return.
+     * @return The guids at the given index.
      */
     public long getGuids(int index) {
       return guids_.getLong(index);
@@ -4238,6 +4326,7 @@ public final class p_scene_player {
       }
       /**
        * <code>repeated int64 guids = 1;</code>
+       * @return A list containing the guids.
        */
       public java.util.List<java.lang.Long>
           getGuidsList() {
@@ -4246,18 +4335,24 @@ public final class p_scene_player {
       }
       /**
        * <code>repeated int64 guids = 1;</code>
+       * @return The count of guids.
        */
       public int getGuidsCount() {
         return guids_.size();
       }
       /**
        * <code>repeated int64 guids = 1;</code>
+       * @param index The index of the element to return.
+       * @return The guids at the given index.
        */
       public long getGuids(int index) {
         return guids_.getLong(index);
       }
       /**
        * <code>repeated int64 guids = 1;</code>
+       * @param index The index to set the value at.
+       * @param value The guids to set.
+       * @return This builder for chaining.
        */
       public Builder setGuids(
           int index, long value) {
@@ -4268,6 +4363,8 @@ public final class p_scene_player {
       }
       /**
        * <code>repeated int64 guids = 1;</code>
+       * @param value The guids to add.
+       * @return This builder for chaining.
        */
       public Builder addGuids(long value) {
         ensureGuidsIsMutable();
@@ -4277,6 +4374,8 @@ public final class p_scene_player {
       }
       /**
        * <code>repeated int64 guids = 1;</code>
+       * @param values The guids to add.
+       * @return This builder for chaining.
        */
       public Builder addAllGuids(
           java.lang.Iterable<? extends java.lang.Long> values) {
@@ -4288,6 +4387,7 @@ public final class p_scene_player {
       }
       /**
        * <code>repeated int64 guids = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearGuids() {
         guids_ = emptyLongList();
@@ -4397,19 +4497,11 @@ public final class p_scene_player {
       "wjybxx.fastjgame.protobufferB\016p_scene_pl" +
       "ayerH\001b\006proto3"
     };
-    com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
-          public com.google.protobuf.ExtensionRegistry assignDescriptors(
-              com.google.protobuf.Descriptors.FileDescriptor root) {
-            descriptor = root;
-            return null;
-          }
-        };
-    com.google.protobuf.Descriptors.FileDescriptor
+    descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
           com.wjybxx.fastjgame.protobuffer.p_common.getDescriptor(),
-        }, assigner);
+        });
     internal_static_fastjgame_p_scene_player_data_descriptor =
       getDescriptor().getMessageTypes().get(0);
     internal_static_fastjgame_p_scene_player_data_fieldAccessorTable = new

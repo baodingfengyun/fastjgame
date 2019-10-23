@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.concurrent;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
 /**
- * 重新抛出异常的异常处理器你
+ * 重新抛出异常的异常处理器
  *
  * @author wjybxx
  * @version 1.0

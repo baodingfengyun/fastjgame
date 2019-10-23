@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.rpcservice;
 
+import com.google.protobuf.AbstractMessage;
+import com.wjybxx.fastjgame.annotation.PreDeserializable;
 import com.wjybxx.fastjgame.annotation.RpcMethod;
 import com.wjybxx.fastjgame.annotation.RpcService;
 import com.wjybxx.fastjgame.net.session.Session;
@@ -30,17 +32,17 @@ import javax.annotation.Nullable;
  * date - 2019/10/10
  * github - https://github.com/hl845740757
  */
-@RpcService(serviceId = ServiceTable.PLAYER_MESSAGE_MGR)
-public interface IPlayerMessageMgr {
+@RpcService(serviceId = ServiceTable.PLAYER_MESSAGE_DISPATCHER_MGR)
+public interface IPlayerMessageDispatcherMgr {
 
     /**
      * 接收到一个网关转发过来的玩家消息
      *
-     * @param session    网关session - 如果是玩家登录场景协议，则可以保存该session，
+     * @param session    网关session
      * @param playerGuid 玩家guid
-     * @param message    玩家发来的消息
+     * @param message    玩家发来的消息，使用{@link PreDeserializable}注解，网络层可以提前反序列化
      */
     @RpcMethod(methodId = 1)
-    void onPlayerMessage(Session session, long playerGuid, @Nullable Object message);
+    void onPlayerMessage(Session session, long playerGuid, @Nullable @PreDeserializable AbstractMessage message);
 
 }

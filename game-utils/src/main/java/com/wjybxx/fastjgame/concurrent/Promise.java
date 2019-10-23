@@ -67,7 +67,7 @@ public interface Promise<V> extends ListenableFuture<V> {
      *
      * @return 1. 如果成功设置为不可取消 或 已经是不可取消状态 则返回true.
      * 2. 已经进入完成状态(不是被取消进入的完成状态) 返回true。
-     * 否则返回false。
+     * 否则返回false（其实也就是被取消返回false）。
      */
     boolean setUncancellable();
 }

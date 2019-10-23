@@ -52,7 +52,7 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
     /**
      * 封装一个只包含自己的集合。方便实现迭代查询等等。
      */
-    private final Collection<EventLoop> selfCollection = Collections.<EventLoop>singleton(this);
+    private final Collection<EventLoop> selfCollection = Collections.singleton(this);
 
     protected AbstractEventLoop(@Nullable EventLoopGroup parent) {
         this.parent = parent;

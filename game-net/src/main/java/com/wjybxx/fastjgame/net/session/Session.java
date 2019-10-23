@@ -97,7 +97,7 @@ public interface Session extends Comparable<Session> {
     /**
      * 设置附加属性。
      * 注意：
-     * 1. attachment在关闭时不会自动删除，当你不需要使用时，可以尽早的释放它(设置为null)。
+     * 1. attachment在session关闭时不会自动删除，当你不需要使用时，可以尽早的释放它(设置为null)。
      * 2. 只有用户线程可以使用它，目前并没有做多线程访问支持。
      *
      * @param newData 新值

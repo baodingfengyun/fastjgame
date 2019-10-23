@@ -41,29 +41,7 @@ public class PlayerSessionMgr {
      */
     private final Long2ObjectMap<Player> guid2SessionMap = new Long2ObjectOpenHashMap<>();
 
-    /**
-     * 玩家是否登录scene进程成功了，玩家连接上scene这个事件是请求登录scene。
-     * 必须等到center服的验证结果之后，玩家数据才会从center到scene。
-     *
-     * @param playerGuid 玩家guid
-     * @return true/false
-     */
-    public boolean isLoginSuccess(long playerGuid) {
-        return guid2SessionMap.containsKey(playerGuid);
-    }
-
     public Player getPlayer(long playerGuid) {
         return guid2SessionMap.get(playerGuid);
     }
-
-    /**
-     * 当玩家断开连接
-     *
-     * @param playerGuid 玩家guid
-     */
-    public void onPlayerDisconnect(long playerGuid) {
-        // TODO 处理玩家掉线的情况
-    }
-
-    // TODO 处理玩家请求进入场景的消息
 }

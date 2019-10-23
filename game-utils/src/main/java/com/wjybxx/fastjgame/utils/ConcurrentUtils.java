@@ -43,12 +43,6 @@ public class ConcurrentUtils {
     public static final Runnable NO_OP_TASK = () -> {
     };
 
-    /**
-     * 用于唤醒的任务
-     */
-    public static final Runnable WEAK_UP_TASK = () -> {
-    };
-
     private ConcurrentUtils() {
 
     }

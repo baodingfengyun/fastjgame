@@ -33,19 +33,19 @@ public class SceneWorld extends AbstractWorld {
     private final SceneWorldInfoMgr sceneWorldInfoMgr;
     private final SceneSendMgr sendMgr;
     private final SceneMgr sceneMgr;
-    private final SceneProtocolDispatcherMgr sceneProtocolDispatcherMgr;
+    private final PlayerMessageDispatcherMgr playerMessageDispatcherMgr;
 
     @Inject
     public SceneWorld(WorldWrapper worldWrapper, CenterInSceneInfoMgr centerInSceneInfoMgr,
                       SceneRegionMgr sceneRegionMgr, SceneSendMgr sendMgr, SceneMgr sceneMgr,
-                      SceneProtocolDispatcherMgr sceneProtocolDispatcherMgr) {
+                      PlayerMessageDispatcherMgr playerMessageDispatcherMgr) {
         super(worldWrapper);
         this.centerInSceneInfoMgr = centerInSceneInfoMgr;
         this.sceneRegionMgr = sceneRegionMgr;
         this.sceneWorldInfoMgr = (SceneWorldInfoMgr) worldWrapper.getWorldInfoMgr();
         this.sendMgr = sendMgr;
         this.sceneMgr = sceneMgr;
-        this.sceneProtocolDispatcherMgr = sceneProtocolDispatcherMgr;
+        this.playerMessageDispatcherMgr = playerMessageDispatcherMgr;
     }
 
     @Override
@@ -110,7 +110,7 @@ public class SceneWorld extends AbstractWorld {
 
     @Override
     protected void shutdownHook() {
-
+        playerMessageDispatcherMgr.release();
     }
 
     private class CenterLifeAware implements SessionLifecycleAware {

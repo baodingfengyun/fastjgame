@@ -39,8 +39,6 @@ public class HttpDispatcherMgr implements HttpRequestHandlerRegistry, HttpReques
 
     private final DefaultHttpRequestDispatcher httpRequestDispatcher = new DefaultHttpRequestDispatcher();
 
-    private boolean shutdown = false;
-
     @Inject
     public HttpDispatcherMgr() {
 
@@ -54,14 +52,10 @@ public class HttpDispatcherMgr implements HttpRequestHandlerRegistry, HttpReques
     @Override
     public void release() {
         httpRequestDispatcher.release();
-        shutdown = true;
     }
 
     @Override
     public void post(HttpSession httpSession, String path, HttpRequestParam params) {
-        if (shutdown) {
-            return;
-        }
         httpRequestDispatcher.post(httpSession, path, params);
     }
 }

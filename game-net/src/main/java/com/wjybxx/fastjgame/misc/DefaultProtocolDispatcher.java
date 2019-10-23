@@ -70,22 +70,8 @@ public class DefaultProtocolDispatcher implements RpcFunctionRegistry, ProtocolD
             logger.warn("{} send null message", session.sessionId());
             return;
         }
-        if (message instanceof RpcCall) {
-            // 这是可以使用send代替无回调的call调用的关键
-            rpcCallDispatcher.post(session, (RpcCall) message, VoidRpcResponseChannel.INSTANCE);
-        } else {
-            dispatchOneWayMessage(session, message);
-        }
-    }
-
-    /**
-     * 分发一个单向消息
-     *
-     * @param session 所在的会话
-     * @param message 单向消息
-     */
-    protected void dispatchOneWayMessage(Session session, @Nonnull Object message) {
-        logger.info("unhandled {} message {}", session.sessionId(), message.getClass().getSimpleName());
+        // 这是可以使用send代替无回调的call调用的关键
+        rpcCallDispatcher.post(session, (RpcCall) message, VoidRpcResponseChannel.INSTANCE);
     }
 
     @Override

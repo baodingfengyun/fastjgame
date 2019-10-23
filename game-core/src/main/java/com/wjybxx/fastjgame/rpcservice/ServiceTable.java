@@ -41,5 +41,5 @@ public final class ServiceTable {
     /**
      * 玩家协议处理器
      */
-    public static final short PLAYER_MESSAGE_MGR = 4;
+    public static final short PLAYER_MESSAGE_DISPATCHER_MGR = 4;
 }
