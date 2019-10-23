@@ -185,6 +185,8 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
             notifyServerExit();
         }
 
+        messageQueue.cleanMessageQueue();
+
         final Promise<Session> connectPromise = detachConnectPromise();
         if (null != connectPromise) {
             // 无法建立连接

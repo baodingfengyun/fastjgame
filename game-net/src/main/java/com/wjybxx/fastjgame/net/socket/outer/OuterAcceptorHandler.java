@@ -160,6 +160,8 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
             notifyClientExit(channel, connectRequest, messageQueue);
         }
 
+        messageQueue.cleanMessageQueue();
+
         if (logger.isDebugEnabled()) {
             // 打印关闭原因
             logger.debug("close stacktrace {} ", ExceptionUtils.getStackTrace(new RuntimeException()));

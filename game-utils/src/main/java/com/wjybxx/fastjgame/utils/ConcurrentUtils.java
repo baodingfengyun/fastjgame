@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.utils;
 
 import com.wjybxx.fastjgame.concurrent.*;
 import com.wjybxx.fastjgame.function.*;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -409,15 +410,11 @@ public class ConcurrentUtils {
     /**
      * 重新抛出异常，绕过编译时检查。
      *
-     * @param ex  受检异常
-     * @param <E> 异常类型
-     * @throws E 绕过编译时检查
+     * @param ex 受检异常
      */
-    @SuppressWarnings("unchecked")
-    public static <E extends Exception> void rethrow(@Nonnull Throwable ex) throws E {
-        throw (E) ex;
+    public static void rethrow(@Nonnull Throwable ex) {
+        ExceptionUtils.rethrow(ex);
     }
-
 
     // ---------------------------------------------- 事件循环相关 ------------------------------------------------
 
