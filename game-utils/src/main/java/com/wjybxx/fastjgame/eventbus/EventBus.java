@@ -55,20 +55,31 @@ public class EventBus implements EventHandlerRegistry, EventDispatcher {
         handlerMap = new IdentityHashMap<>(initCapacity);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public <T> void post(@Nonnull T event) {
-        final EventHandler<T> eventHandler = (EventHandler<T>) handlerMap.get(event.getClass());
+        postInternal(event.getClass(), event);
+    }
+
+    @Override
+    public <T> void post(Class<? super T> keyClazz, @Nonnull T event) {
+        postInternal(keyClazz, event);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> void postInternal(Class<?> keyClazz, @Nonnull T event) {
+        final EventHandler<T> eventHandler = (EventHandler<T>) handlerMap.get(keyClazz);
         if (null == eventHandler) {
             // 对应的事件处理器可能忘记了注册
-            logger.warn("{}'s listeners may forgot register!", event.getClass().getName());
+            logger.warn("{}'s listeners may forgot register!", keyClazz.getName());
             return;
         }
         try {
             eventHandler.onEvent(event);
         } catch (Exception e) {
-            logger.warn("onEvent caught exception! EventInfo {}, handler info {}",
-                    event.getClass().getName(), eventHandler.getClass().getName(), e);
+            logger.warn("onEvent caught exception! KeyClassInfo {}, EventInfo {}, handler info {}",
+                    keyClazz.getName(),
+                    event.getClass().getName(),
+                    eventHandler.getClass().getName(), e);
         }
     }
 

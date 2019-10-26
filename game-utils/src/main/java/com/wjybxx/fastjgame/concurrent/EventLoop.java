@@ -73,7 +73,11 @@ public interface EventLoop extends EventLoopGroup {
      */
     @UnstableApi
     @Override
-    void publish(@Nonnull Object event);
+    <T> void publish(@Nonnull T event);
+
+    @UnstableApi
+    @Override
+    <T> void publish(Class<? super T> keyClazz, @Nonnull T event);
 
     /**
      * 当前线程是否是EventLoop线程。

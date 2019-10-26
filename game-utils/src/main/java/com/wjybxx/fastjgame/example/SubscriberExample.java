@@ -22,6 +22,7 @@ import com.wjybxx.fastjgame.eventbus.EventBus;
 import com.wjybxx.fastjgame.eventbus.Subscribe;
 
 import java.util.HashSet;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * {@link com.wjybxx.fastjgame.eventbus.EventBus}的注册者例子。
@@ -44,12 +45,12 @@ public class SubscriberExample {
     }
 
     @Subscribe
-    public void hello2(String name) {
+    protected void hello2(String name) {
         System.out.println("hello2-" + name);
     }
 
     @Subscribe
-    public void hello3(String name) {
+    void hello3(String name) {
         System.out.println("hello3-" + name);
     }
 
@@ -101,5 +102,6 @@ public class SubscriberExample {
         bus.post(250);
 
         bus.post(new DefaultThreadFactory("bus"));
+        bus.post(ThreadFactory.class, new DefaultThreadFactory("bus"));
     }
 }

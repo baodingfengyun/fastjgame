@@ -39,9 +39,15 @@ import java.util.concurrent.*;
 public abstract class AbstractEventLoopGroup implements EventLoopGroup {
 
     // ------------------------------------ 发布一个事件 ----------------------------------
+
     @Override
-    public final void publish(@Nonnull Object event) {
+    public <T> void publish(@Nonnull T event) {
         next().publish(event);
+    }
+
+    @Override
+    public <T> void publish(Class<? super T> keyClazz, @Nonnull T event) {
+        next().publish(keyClazz, event);
     }
 
     // ----------------------------------- 主要是为了支持 execute和submit -------------------

@@ -14,34 +14,32 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.eventbus;
+package com.wjybxx.fastjgame.concurrent.event;
 
-import javax.annotation.Nonnull;
+import com.wjybxx.fastjgame.eventbus.EventDispatcher;
 
 /**
- * 事件分发器
+ * 发布事件任务
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/27
+ * date - 2019/10/26
  * github - https://github.com/hl845740757
  */
-public interface EventDispatcher {
+public class EventDispatchTask2<T> implements Runnable {
 
-    /**
-     * 发布一个事件
-     *
-     * @param event 要发布的事件
-     * @param <T>   事件的类型
-     */
-    <T> void post(@Nonnull T event);
+    private final EventDispatcher dispatcher;
+    private final Class<? super T> keyClazz;
+    private final T event;
 
-    /**
-     * 发布一个事件，并指定触发的事件类型
-     *
-     * @param keyClazz 希望事件以某个类型被处理，手动指定更加灵活。否则每次过滤筛选，效率差还容易造成错误。
-     * @param event    要发布的事件
-     * @param <T>      事件的类型
-     */
-    <T> void post(Class<? super T> keyClazz, @Nonnull T event);
+    public EventDispatchTask2(EventDispatcher dispatcher, Class<? super T> keyClazz, T event) {
+        this.dispatcher = dispatcher;
+        this.keyClazz = keyClazz;
+        this.event = event;
+    }
+
+    @Override
+    public void run() {
+        dispatcher.post(keyClazz, event);
+    }
 }

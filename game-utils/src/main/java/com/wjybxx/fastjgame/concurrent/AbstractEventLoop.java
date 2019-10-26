@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.concurrent;
 
 import com.wjybxx.fastjgame.concurrent.event.EventDispatchTask;
+import com.wjybxx.fastjgame.concurrent.event.EventDispatchTask2;
 import com.wjybxx.fastjgame.eventbus.EventDispatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,12 +101,21 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
     }
 
     @Override
-    public final void publish(@Nonnull Object event) {
+    public final <T> void publish(@Nonnull T event) {
         final EventDispatcher dispatcher = dispatcher();
         if (null == dispatcher) {
             throw new UnsupportedOperationException();
         }
         execute(new EventDispatchTask(dispatcher, event));
+    }
+
+    @Override
+    public final <T> void publish(Class<? super T> keyClazz, @Nonnull T event) {
+        final EventDispatcher dispatcher = dispatcher();
+        if (null == dispatcher) {
+            throw new UnsupportedOperationException();
+        }
+        execute(new EventDispatchTask2<>(dispatcher, keyClazz, event));
     }
 
     /**
