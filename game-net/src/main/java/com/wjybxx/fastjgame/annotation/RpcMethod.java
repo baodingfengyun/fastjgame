@@ -43,8 +43,8 @@ import java.lang.annotation.Target;
  * </pre>
  * <p>
  * 注意：
- * 1.RpcResponseChannel不参与生成的代理方法的参数列表，因此上面 1，2生成的代理方法签名是一致的！你必须避免这种情况。
- * 2.方法必须是public
+ * 1. RpcResponseChannel不参与生成的代理方法的参数列表，因此上面 1，2生成的代理方法签名是一致的！你必须避免这种情况。
+ * 2. 方法不能是private - 至少是包级访问权限。
  * 3. methodId必须
  *
  * @author wjybxx

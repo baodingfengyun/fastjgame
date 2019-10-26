@@ -155,9 +155,9 @@ public class HttpRequestMapProcessor extends AbstractProcessor {
             if (!checkPath(method, childPath)) {
                 continue;
             }
-            // 访问权限必须是public
-            if (!method.getModifiers().contains(Modifier.PUBLIC)) {
-                messager.printMessage(Diagnostic.Kind.ERROR, "HttpRequestMapping method must be public！", method);
+            // 访问权限不可以是private - 因为生成的类和该类属于同一个包，不必public，只要不是private即可
+            if (method.getModifiers().contains(Modifier.PRIVATE)) {
+                messager.printMessage(Diagnostic.Kind.ERROR, "HttpRequestMapping method can't be private！", method);
                 continue;
             }
             // 必须是3个参数

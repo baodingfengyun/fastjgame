@@ -135,9 +135,9 @@ public class PlayerMessageSubscribeProcessor extends AbstractProcessor {
 
         for (Element element : subscribeMethods) {
             ExecutableElement method = (ExecutableElement) element;
-            // 访问权限必须是public
-            if (!method.getModifiers().contains(Modifier.PUBLIC)) {
-                messager.printMessage(Diagnostic.Kind.ERROR, "Subscriber method must be public！", method);
+            // 访问权限不可以是private - 因为生成的类和该类属于同一个包，不必public，只要不是private即可
+            if (method.getModifiers().contains(Modifier.PRIVATE)) {
+                messager.printMessage(Diagnostic.Kind.ERROR, "RpcMethod method can't be private！", method);
                 continue;
             }
             // 保证必须是两个参数

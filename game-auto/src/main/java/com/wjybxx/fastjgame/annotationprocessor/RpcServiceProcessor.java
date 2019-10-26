@@ -268,8 +268,9 @@ public class RpcServiceProcessor extends AbstractProcessor {
                 messager.printMessage(Diagnostic.Kind.ERROR, "RpcMethod is not support varArgs!", method);
                 continue;
             }
-            if (!method.getModifiers().contains(Modifier.PUBLIC)) {
-                messager.printMessage(Diagnostic.Kind.ERROR, "RpcMethod must be public!", method);
+            // 访问权限不可以是private - 因为生成的类和该类属于同一个包，不必public，只要不是private即可
+            if (method.getModifiers().contains(Modifier.PRIVATE)) {
+                messager.printMessage(Diagnostic.Kind.ERROR, "RpcMethod method can't be private！", method);
                 continue;
             }
             // 方法id，基本类型会被封装为包装类型，Object并不能直接转换到基本类型

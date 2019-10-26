@@ -32,7 +32,7 @@ import java.lang.annotation.Target;
  * 方法必须满足以下要求，否则编译会报错：
  * <li>1. 必须是3个参数：第一个必须{@link HttpSession}，第二个参数为{@link String}，第三个参数必须是{@link HttpRequestParam}。
  * 也就是可以转换为{@link HttpRequestHandler}</li>
- * <li>2. 必须是public </li>
+ * <li>2. 方法不能是private - 至少是包级访问权限。 </li>
  * <p>
  * eg:
  * <pre>{@code

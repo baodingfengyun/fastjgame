@@ -27,6 +27,7 @@ import java.lang.annotation.Target;
  * 1.使用该注解的方法有且仅有一个参数，参数类型就是自己订阅的事件类型。如果没有参数 或 超过一个参数，那么编译时会报错。
  * 2.参数不可以带泛型，因为泛型是不具备区分度的，如果存在泛型，那么编译时会报错。
  * 3.参数类型不可以是基本类型，因为发布事件的时候会封装为Object，基本类型会被装箱，会导致问题。
+ * 4.方法不能是private - 至少是包级访问权限。
  * <p>
  * 示例类：{@link com.wjybxx.fastjgame.example.SubscriberExample}
  * <p>
