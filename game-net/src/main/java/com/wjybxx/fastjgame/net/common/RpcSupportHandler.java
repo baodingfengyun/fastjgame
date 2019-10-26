@@ -69,11 +69,11 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
         if (rpcTimeoutInfoMap.size() == 0) {
             return;
         }
-        long systemMillTime = netTimeManager.getSystemMillTime();
+        long curTimeMillis = netTimeManager.curTimeMillis();
         ObjectIterator<RpcTimeoutInfo> iterator = rpcTimeoutInfoMap.values().iterator();
         while (iterator.hasNext()) {
             RpcTimeoutInfo rpcTimeoutInfo = iterator.next();
-            if (systemMillTime >= rpcTimeoutInfo.deadline) {
+            if (curTimeMillis >= rpcTimeoutInfo.deadline) {
                 iterator.remove();
                 commitRpcResponse(ctx.session(), rpcTimeoutInfo, RpcResponse.TIMEOUT);
             }
@@ -113,7 +113,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             AsyncRpcRequestWriteTask writeTask = (AsyncRpcRequestWriteTask) msg;
 
             // 保存rpc请求上下文
-            long deadline = netTimeManager.getSystemMillTime() + rpcCallbackTimeoutMs;
+            long deadline = netTimeManager.curTimeMillis() + rpcCallbackTimeoutMs;
             RpcTimeoutInfo rpcTimeoutInfo = RpcTimeoutInfo.newInstance(writeTask.getRpcCallback(), deadline);
             long requestGuid = ++requestGuidSequencer;
             rpcTimeoutInfoMap.put(requestGuid, rpcTimeoutInfo);

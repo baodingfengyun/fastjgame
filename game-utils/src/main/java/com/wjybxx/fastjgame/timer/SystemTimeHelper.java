@@ -45,8 +45,8 @@ public class SystemTimeHelper implements SystemTimeProvider {
      * @return 毫秒
      */
     @Override
-    public long getSystemMillTime() {
-        return strategy.getSystemMillTime();
+    public long curTimeMillis() {
+        return strategy.curTimeMillis();
     }
 
     /**
@@ -55,18 +55,18 @@ public class SystemTimeHelper implements SystemTimeProvider {
      * @return 秒
      */
     @Override
-    public int getSystemSecTime() {
-        return strategy.getSystemSecTime();
+    public int curTimeSeconds() {
+        return strategy.curTimeSeconds();
     }
 
     /**
      * 尝试更新系统时间
      *
-     * @param systemTimeMillis 指定的系统毫秒时间
+     * @param curTimeMillis 指定的系统毫秒时间
      * @return 更新成功则返回true
      */
-    public boolean update(long systemTimeMillis) {
-        return strategy.update(systemTimeMillis);
+    public boolean update(long curTimeMillis) {
+        return strategy.update(curTimeMillis);
     }
 
     /**
@@ -94,18 +94,18 @@ public class SystemTimeHelper implements SystemTimeProvider {
     public interface SystemTimeStrategy extends SystemTimeProvider {
 
         @Override
-        long getSystemMillTime();
+        long curTimeMillis();
 
         @Override
-        int getSystemSecTime();
+        int curTimeSeconds();
 
         /**
          * 尝试更新系统时间
          *
-         * @param systemTimeMillis 指定的系统毫秒时间
+         * @param curTimeMillis 指定的系统毫秒时间
          * @return 更新成功则返回true
          */
-        boolean update(long systemTimeMillis);
+        boolean update(long curTimeMillis);
     }
 
     /**
@@ -117,37 +117,37 @@ public class SystemTimeHelper implements SystemTimeProvider {
         /**
          * 当前帧毫秒时间(非实时时间)
          */
-        private long systemMillTime;
+        private long curTimeMillis;
         /**
          * 当前帧秒时间(非实时时间)
          */
-        private int systemSecTime;
+        private int curTimeSeconds;
 
         CacheTimeStrategy() {
             update(System.currentTimeMillis());
         }
 
-        public boolean update(long systemTimeMillis) {
-            this.systemMillTime = systemTimeMillis;
-            this.systemSecTime = (int) (systemTimeMillis / 1000);
+        public boolean update(long curTimeMillis) {
+            this.curTimeMillis = curTimeMillis;
+            this.curTimeSeconds = (int) (curTimeMillis / 1000);
             return true;
         }
 
         @Override
-        public long getSystemMillTime() {
-            return systemMillTime;
+        public long curTimeMillis() {
+            return curTimeMillis;
         }
 
         @Override
-        public int getSystemSecTime() {
-            return systemSecTime;
+        public int curTimeSeconds() {
+            return curTimeSeconds;
         }
 
         @Override
         public String toString() {
             return "CacheTimeStrategy{" +
-                    "systemMillTime=" + systemMillTime +
-                    ", systemSecTime=" + systemSecTime +
+                    "curTimeMillis=" + curTimeMillis +
+                    ", curTimeSeconds=" + curTimeSeconds +
                     '}';
         }
     }
@@ -168,17 +168,17 @@ public class SystemTimeHelper implements SystemTimeProvider {
         }
 
         @Override
-        public long getSystemMillTime() {
+        public long curTimeMillis() {
             return System.currentTimeMillis();
         }
 
         @Override
-        public int getSystemSecTime() {
+        public int curTimeSeconds() {
             return (int) (System.currentTimeMillis() / 1000);
         }
 
         @Override
-        public boolean update(long systemTimeMillis) {
+        public boolean update(long curTimeMillis) {
             return false;
         }
     }

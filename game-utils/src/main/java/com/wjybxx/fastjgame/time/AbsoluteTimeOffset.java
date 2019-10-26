@@ -57,7 +57,7 @@ public class AbsoluteTimeOffset implements TimeOffset {
      * @return AbsoluteTimeOffset
      */
     public static AbsoluteTimeOffset parseFromConf(String confParam) {
-        long curMillTime = TimeUtils.parseMillTime(confParam);
-        return new AbsoluteTimeOffset(curMillTime);
+        long timeMillis = TimeUtils.parseTimeMillis(confParam);
+        return new AbsoluteTimeOffset(timeMillis);
     }
 }

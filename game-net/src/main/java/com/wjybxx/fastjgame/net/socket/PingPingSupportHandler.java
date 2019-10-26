@@ -62,15 +62,15 @@ public class PingPingSupportHandler extends SessionDuplexHandlerAdapter {
         pingIntervalMs = config.pingIntervalMs();
         sessionTimeoutMs = config.getSessionTimeoutMs();
 
-        lastReadTime = timeManager.getSystemMillTime();
-        lastWriteTime = timeManager.getSystemMillTime();
+        lastReadTime = timeManager.curTimeMillis();
+        lastWriteTime = timeManager.curTimeMillis();
 
         pingTimerHandle = ctx.managerWrapper().getNetTimerManager().newFixedDelay(pingIntervalMs, pingIntervalMs, this::checkPing);
     }
 
     private void checkPing(FixedDelayHandle handle) throws Exception {
-        if (timeManager.getSystemMillTime() - lastReadTime > pingIntervalMs
-                || timeManager.getSystemMillTime() - lastWriteTime > pingIntervalMs) {
+        if (timeManager.curTimeMillis() - lastReadTime > pingIntervalMs
+                || timeManager.curTimeMillis() - lastWriteTime > pingIntervalMs) {
             // 尝试发一个心跳包 - 从当前位置开始发送心跳包
             write(ctx, PingPongMessage.PING);
         }
@@ -78,7 +78,7 @@ public class PingPingSupportHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void tick(SessionHandlerContext ctx) throws Exception {
-        if (timeManager.getSystemMillTime() - lastReadTime > sessionTimeoutMs) {
+        if (timeManager.curTimeMillis() - lastReadTime > sessionTimeoutMs) {
             // session超时
             ctx.session().close();
         }
@@ -86,7 +86,7 @@ public class PingPingSupportHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void read(SessionHandlerContext ctx, Object msg) throws Exception {
-        lastReadTime = timeManager.getSystemMillTime();
+        lastReadTime = timeManager.curTimeMillis();
         if (msg == PingPongMessage.PING) {
             // 心跳请求包，需要立即返回
             write(ctx, PingPongMessage.PONG);
@@ -100,7 +100,7 @@ public class PingPingSupportHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void write(SessionHandlerContext ctx, Object msg) throws Exception {
-        lastWriteTime = timeManager.getSystemMillTime();
+        lastWriteTime = timeManager.curTimeMillis();
         ctx.fireWrite(msg);
     }
 

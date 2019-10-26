@@ -54,12 +54,12 @@ public final class SystemTimeProviders {
         }
 
         @Override
-        public long getSystemMillTime() {
+        public long curTimeMillis() {
             return System.currentTimeMillis();
         }
 
         @Override
-        public int getSystemSecTime() {
+        public int curTimeSeconds() {
             return (int) (System.currentTimeMillis() / 1000);
         }
     }

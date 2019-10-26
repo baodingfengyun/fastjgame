@@ -150,20 +150,20 @@ public class DefaultTimerSystem implements TimerSystem {
      */
     private void tickTimer() {
         AbstractTimerHandle timerHandle;
-        final long curMillTime = timeProvider.getSystemMillTime();
+        final long curTimeMillis = timeProvider.curTimeMillis();
 
         while ((timerHandle = timerQueue.peek()) != null) {
             // 优先级最高的timer不需要执行，那么后面的也不需要执行
-            if (curMillTime < timerHandle.getNextExecuteTimeMs()) {
+            if (curTimeMillis < timerHandle.getNextExecuteTimeMs()) {
                 return;
             }
             // 先弹出队列，并记录正在执行
             runningTimerId = timerQueue.poll().getTimerId();
 
             do {
-                callbackSafely(timerHandle, curMillTime);
+                callbackSafely(timerHandle, curTimeMillis);
                 // 可能由于延迟导致需要执行多次(可以避免在当前轮反复压入弹出)，也可能在执行回调之后被取消了。do while用的不甚习惯...
-            } while (!timerHandle.isTerminated() && curMillTime >= timerHandle.getNextExecuteTimeMs());
+            } while (!timerHandle.isTerminated() && curTimeMillis >= timerHandle.getNextExecuteTimeMs());
 
             // 出现异常的timer会被取消，不再压入队列
 
@@ -179,13 +179,13 @@ public class DefaultTimerSystem implements TimerSystem {
     /**
      * 安全的执行timer的回调。
      *
-     * @param timerHandle timer
-     * @param curMillTime 当前时间戳
+     * @param timerHandle   timer
+     * @param curTimeMillis 当前时间戳
      */
-    private static void callbackSafely(AbstractTimerHandle timerHandle, long curMillTime) {
+    private static void callbackSafely(AbstractTimerHandle timerHandle, long curTimeMillis) {
         try {
             timerHandle.run();
-            timerHandle.afterExecuteOnce(curMillTime);
+            timerHandle.afterExecuteOnce(curTimeMillis);
         } catch (Throwable e) {
             // 取消执行
             timerHandle.setTerminated();
@@ -251,8 +251,13 @@ public class DefaultTimerSystem implements TimerSystem {
         return ++timerIdSequencer;
     }
 
-    long getSystemMillTime() {
-        return timeProvider.getSystemMillTime();
+    @Override
+    public long curTimeMillis() {
+        return timeProvider.curTimeMillis();
     }
 
+    @Override
+    public int curTimeSeconds() {
+        return timeProvider.curTimeSeconds();
+    }
 }

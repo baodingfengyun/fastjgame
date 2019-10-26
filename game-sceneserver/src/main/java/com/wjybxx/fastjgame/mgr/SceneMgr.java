@@ -68,10 +68,10 @@ public class SceneMgr {
         if (sceneMap.size() == 0) {
             return;
         }
-        long curMillTime = worldTimeMgr.getSystemMillTime();
+        long curTimeMillis = worldTimeMgr.curTimeMillis();
         for (Scene scene : sceneMap.values()) {
             try {
-                scene.tick(curMillTime);
+                scene.tick(curTimeMillis);
             } catch (Exception e) {
                 logger.error("tick caught exception, sceneType={}", scene.sceneType(), e);
             }

@@ -31,13 +31,13 @@ public interface SystemTimeProvider {
      *
      * @return 毫秒
      */
-    long getSystemMillTime();
+    long curTimeMillis();
 
     /**
      * 获取系统秒数时间戳
      *
      * @return 秒
      */
-    int getSystemSecTime();
+    int curTimeSeconds();
 
 }

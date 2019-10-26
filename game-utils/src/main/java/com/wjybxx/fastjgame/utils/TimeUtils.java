@@ -139,7 +139,7 @@ public class TimeUtils {
      * @param confParam {@link #DEFAULT_PATTERN}格式的字符串
      * @return millSecond
      */
-    public static long parseMillTime(String confParam) {
+    public static long parseTimeMillis(String confParam) {
         return LocalDateTime.parse(confParam, DEFAULT_FORMATTER).toInstant(ZONE_OFFSET).toEpochMilli();
     }
 

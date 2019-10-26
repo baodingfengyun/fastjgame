@@ -71,7 +71,7 @@ abstract class AbstractTimerHandle implements TimerHandle {
         this.timerSystem = timerSystem;
         this.timerTask = timerTask;
         this.timerId = timerSystem.nextTimerId();
-        this.createTimeMs = timerSystem.getSystemMillTime();
+        this.createTimeMs = timerSystem.curTimeMillis();
     }
 
     @Override
@@ -99,7 +99,7 @@ abstract class AbstractTimerHandle implements TimerHandle {
         if (terminated) {
             return -1;
         }
-        return Math.max(0, nextExecuteTimeMs - timerSystem.getSystemMillTime());
+        return Math.max(0, nextExecuteTimeMs - timerSystem.curTimeMillis());
     }
 
     @Override

@@ -26,13 +26,18 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 1. {@link #newTimeout(long, TimerTask)}类型的任务之间，有严格的时序保证，当过期时间(超时时间)相同时，先提交的一定先执行。
  * 2. {@link #newFixedDelay(long, long, TimerTask)} {@link #newFixRate(long, long, TimerTask)}类型的任务，与其它任何一个任务都不具备时序保证。
  *
+ * <p>
+ * Q: 为什么继承{@link SystemTimeProvider}？
+ * A: timer的运行一定依赖于一个时钟，可以把该时钟告诉给用户。
+ * </p>
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/7
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public interface TimerSystem {
+public interface TimerSystem extends SystemTimeProvider {
 
     // ------------------------------------------ 添加定时器的方法 -----------------------------------
 
@@ -120,4 +125,11 @@ public interface TimerSystem {
      */
     void close();
 
+    // ------------------------------------------- 系统时钟 --------------------------------------------
+
+    @Override
+    long curTimeMillis();
+
+    @Override
+    int curTimeSeconds();
 }

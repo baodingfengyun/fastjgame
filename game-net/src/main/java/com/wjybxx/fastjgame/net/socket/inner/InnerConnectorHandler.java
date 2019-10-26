@@ -59,7 +59,7 @@ public class InnerConnectorHandler extends SessionDuplexHandlerAdapter {
     @Override
     public void handlerAdded(SessionHandlerContext ctx) throws Exception {
         SocketSessionConfig config = (SocketSessionConfig) ctx.session().config();
-        deadline = ctx.managerWrapper().getNetTimeManager().getSystemMillTime()
+        deadline = ctx.managerWrapper().getNetTimeManager().curTimeMillis()
                 + config.connectTimeoutMs() + config.verifyTimeoutMs();
 
         // 监听操作完成
@@ -87,7 +87,7 @@ public class InnerConnectorHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void tick(SessionHandlerContext ctx) throws Exception {
-        if (ctx.managerWrapper().getNetTimeManager().getSystemMillTime() > deadline) {
+        if (ctx.managerWrapper().getNetTimeManager().curTimeMillis() > deadline) {
             // 指定时间内未连接到对方，关闭session
             ctx.session().close();
         }

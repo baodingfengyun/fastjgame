@@ -301,7 +301,7 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
 
         private void doConnect() {
             tryTimes++;
-            connectStartTime = netTimeManager.getSystemMillTime();
+            connectStartTime = netTimeManager.curTimeMillis();
 
             channelFuture = ctx.managerWrapper().getNettyThreadManager().connectAsyn(
                     remoteAddress,
@@ -327,7 +327,7 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
             }
 
             // - 操作尚未完成
-            if (netTimeManager.getSystemMillTime() - connectStartTime < config.connectTimeoutMs()) {
+            if (netTimeManager.curTimeMillis() - connectStartTime < config.connectTimeoutMs()) {
                 // 还未超时
                 return;
             }
@@ -378,7 +378,7 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
          */
         private void doVerify() {
             verifyingTimes++;
-            verifyingStartMillTime = netTimeManager.getSystemMillTime();
+            verifyingStartMillTime = netTimeManager.curTimeMillis();
 
             final SocketConnectRequest connectRequest = new SocketConnectRequest(verifyingTimes, verifiedTimes);
             final OuterSocketConnectRequestTO connectRequestTO =
@@ -388,7 +388,7 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
 
         @Override
         void tick() {
-            if (netTimeManager.getSystemMillTime() - verifyingStartMillTime <= config.verifyTimeoutMs()) {
+            if (netTimeManager.curTimeMillis() - verifyingStartMillTime <= config.verifyTimeoutMs()) {
                 // 应答还未超时，继续等待
                 return;
             }
@@ -488,7 +488,7 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
                 // 1. 触发一次读，避免session超时
                 ctx.fireRead(PingPongMessage.PONG);
                 // 2. 重发消息
-                OuterUtils.resend(channel, messageQueue, netTimeManager.getSystemMillTime() + config.ackTimeoutMs());
+                OuterUtils.resend(channel, messageQueue, netTimeManager.curTimeMillis() + config.ackTimeoutMs());
             }
         }
 
@@ -496,7 +496,7 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
         void tick() {
             // 检查ack超时
             final OuterSocketMessage firstMessage = messageQueue.getPendingQueue().peekFirst();
-            if (null != firstMessage && netTimeManager.getSystemMillTime() > firstMessage.getAckDeadline()) {
+            if (null != firstMessage && netTimeManager.curTimeMillis() > firstMessage.getAckDeadline()) {
                 // ack超时，进行重传验证
                 changeState(new VerifyingState());
                 return;
@@ -505,7 +505,7 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
             // 清空缓冲队列
             OuterUtils.flush(ctx, channel,
                     messageQueue, config.maxPendingMessages(),
-                    netTimeManager.getSystemMillTime() + config.ackTimeoutMs());
+                    netTimeManager.curTimeMillis() + config.ackTimeoutMs());
         }
 
         @Override
@@ -518,7 +518,7 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
             OuterUtils.readMessage(ctx, event, messageQueue,
                     channel,
                     config.maxPendingMessages(),
-                    netTimeManager.getSystemMillTime() + config.ackTimeoutMs());
+                    netTimeManager.curTimeMillis() + config.ackTimeoutMs());
         }
 
         @Override
@@ -526,7 +526,7 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
             OuterUtils.readPingPong(ctx, event, messageQueue,
                     channel,
                     config.maxPendingMessages(),
-                    netTimeManager.getSystemMillTime() + config.ackTimeoutMs());
+                    netTimeManager.curTimeMillis() + config.ackTimeoutMs());
         }
 
         @Override
@@ -535,14 +535,14 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
                     messageQueue, config.maxCacheMessages(),
                     msg,
                     config.maxPendingMessages(),
-                    netTimeManager.getSystemMillTime() + config.ackTimeoutMs());
+                    netTimeManager.curTimeMillis() + config.ackTimeoutMs());
         }
 
         @Override
         void flush() {
             OuterUtils.flush(ctx, channel,
                     messageQueue, config.maxPendingMessages(),
-                    netTimeManager.getSystemMillTime() + config.ackTimeoutMs());
+                    netTimeManager.curTimeMillis() + config.ackTimeoutMs());
         }
     }
 

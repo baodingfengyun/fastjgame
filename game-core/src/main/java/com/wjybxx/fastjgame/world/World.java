@@ -53,9 +53,9 @@ public interface World {
     /**
      * 游戏世界刷帧
      *
-     * @param curTimeMills 当前时间戳
+     * @param curTimeMillis 当前时间戳
      */
-    void tick(long curTimeMills);
+    void tick(long curTimeMillis);
 
     /**
      * 关闭world（同时会关闭world所在线程）。

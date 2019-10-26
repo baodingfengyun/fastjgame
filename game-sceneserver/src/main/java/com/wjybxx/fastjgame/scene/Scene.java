@@ -228,24 +228,24 @@ public abstract class Scene {
     /**
      * scene刷帧
      *
-     * @param curMillTime 当前系统时间戳
+     * @param curTimeMillis 当前系统时间戳
      */
-    public void tick(long curMillTime) throws Exception {
+    public void tick(long curTimeMillis) throws Exception {
         // 检查timer执行
         timerSystem.tick();
 
         // 场景对象刷帧(场景对象之间刷帧最好也是没有依赖的)
         for (GameObjectType gameObjectType : GameObjectType.values()) {
             GameObjectTickContext<?> tickContext = tickContextMapper.getHandler(gameObjectType);
-            if (curMillTime >= tickContext.nextTickTimeMills) {
-                tickContext.nextTickTimeMills = curMillTime + tickContext.frameInterval;
+            if (curTimeMillis >= tickContext.nextTickTimeMills) {
+                tickContext.nextTickTimeMills = curTimeMillis + tickContext.frameInterval;
                 tickGameObjects(gameObjectType, tickContext.handler);
             }
         }
 
         // 检测视野格子刷新
-        if (curMillTime >= nextUpdateViewGridTime) {
-            nextUpdateViewGridTime = curMillTime + DELTA_UPDATE_VIEW_GRIDS;
+        if (curTimeMillis >= nextUpdateViewGridTime) {
+            nextUpdateViewGridTime = curTimeMillis + DELTA_UPDATE_VIEW_GRIDS;
             updateViewableGrid();
         }
 

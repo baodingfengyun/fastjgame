@@ -154,19 +154,19 @@ public abstract class AbstractWorld implements World {
     /**
      * 游戏世界帧
      *
-     * @param curMillTime 当前系统时间
+     * @param curTimeMillis 当前系统时间
      */
-    public final void tick(long curMillTime) {
-        tickCore(curMillTime);
+    public final void tick(long curTimeMillis) {
+        tickCore(curTimeMillis);
         tickHook();
     }
 
     /**
      * 超类tick逻辑
      */
-    private void tickCore(long curMillTime) {
+    private void tickCore(long curTimeMillis) {
         // 优先更新系统时间缓存
-        worldTimeMgr.update(curMillTime);
+        worldTimeMgr.update(curTimeMillis);
         worldTimerMgr.tick();
     }
 

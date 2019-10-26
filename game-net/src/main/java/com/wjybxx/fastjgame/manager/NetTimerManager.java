@@ -76,4 +76,12 @@ public class NetTimerManager {
     public FixedRateHandle newFixRate(long period, @Nonnull TimerTask<FixedRateHandle> task) {
         return timerSystem.newFixRate(period, task);
     }
+
+    public long curTimeMillis() {
+        return timerSystem.curTimeMillis();
+    }
+
+    public int curTimeSeconds() {
+        return timerSystem.curTimeSeconds();
+    }
 }

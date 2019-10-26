@@ -67,7 +67,7 @@ public class HttpSessionManager {
     private void checkSessionTimeout(FixedDelayHandle handle) {
         // 如果用户持有了httpSession的引用，长时间没有完成响应的话，这里关闭可能导致一些错误
         CollectionUtils.removeIfAndThen(sessionWrapperMap,
-                (channel, sessionWrapper) -> netTimeManager.getSystemSecTime() >= sessionWrapper.getSessionTimeout(),
+                (channel, sessionWrapper) -> netTimeManager.curTimeSeconds() >= sessionWrapper.getSessionTimeout(),
                 this::afterRemoved);
     }
 
@@ -120,7 +120,7 @@ public class HttpSessionManager {
                 k -> new SessionWrapper(new HttpSessionImp(portExtraInfo.getNetContext(), netEventLoopManager.getEventLoop(), this, channel)));
 
         // 保持一段时间的活性
-        sessionWrapper.setSessionTimeout(httpSessionTimeout + netTimeManager.getSystemSecTime());
+        sessionWrapper.setSessionTimeout(httpSessionTimeout + netTimeManager.curTimeSeconds());
 
         final HttpSessionImp httpSession = sessionWrapper.session;
 
