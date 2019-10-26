@@ -31,7 +31,6 @@ import com.wjybxx.fastjgame.net.task.OneWayMessageWriteTask;
 import com.wjybxx.fastjgame.net.task.SyncRpcRequestWriteTask;
 import com.wjybxx.fastjgame.timer.FixedDelayHandle;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -89,7 +88,7 @@ public abstract class AbstractSession implements Session {
         this.remoteGuid = remoteGuid;
         this.config = config;
         this.sessionRegistry = sessionRegistry;
-        this.pipeline = new DefaultSessionPipeline(this, managerWrapper);
+        this.pipeline = new DefaultSessionPipeline(this, managerWrapper.getNetTimeManager());
         this.netEventLoop = managerWrapper.getNetEventLoopManager().getEventLoop();
         this.fixedDelayHandle = managerWrapper.getNetTimerManager().newFixedDelay(TICK_INTERVAL, this::tick);
         sessionRegistry.registerSession(this);
@@ -301,7 +300,7 @@ public abstract class AbstractSession implements Session {
     }
 
     @Override
-    public final int compareTo(@NotNull Session o) {
+    public final int compareTo(@Nonnull Session o) {
         return sessionId.compareTo(o.sessionId());
     }
 }

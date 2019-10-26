@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.net.common;
 
-import com.wjybxx.fastjgame.manager.NetTimeManager;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
@@ -40,7 +39,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
 
-    private NetTimeManager netTimeManager;
     private long rpcCallbackTimeoutMs;
     /**
      * RpcRequestId分配器
@@ -60,7 +58,6 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void handlerAdded(SessionHandlerContext ctx) throws Exception {
-        netTimeManager = ctx.managerWrapper().getNetTimeManager();
         rpcCallbackTimeoutMs = ctx.session().config().getRpcCallbackTimeoutMs();
     }
 
@@ -69,7 +66,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
         if (rpcTimeoutInfoMap.size() == 0) {
             return;
         }
-        long curTimeMillis = netTimeManager.curTimeMillis();
+        long curTimeMillis = ctx.timerSystem().curTimeMillis();
         ObjectIterator<RpcTimeoutInfo> iterator = rpcTimeoutInfoMap.values().iterator();
         while (iterator.hasNext()) {
             RpcTimeoutInfo rpcTimeoutInfo = iterator.next();
@@ -113,7 +110,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             AsyncRpcRequestWriteTask writeTask = (AsyncRpcRequestWriteTask) msg;
 
             // 保存rpc请求上下文
-            long deadline = netTimeManager.curTimeMillis() + rpcCallbackTimeoutMs;
+            long deadline = ctx.timerSystem().curTimeMillis() + rpcCallbackTimeoutMs;
             RpcTimeoutInfo rpcTimeoutInfo = RpcTimeoutInfo.newInstance(writeTask.getRpcCallback(), deadline);
             long requestGuid = ++requestGuidSequencer;
             rpcTimeoutInfoMap.put(requestGuid, rpcTimeoutInfo);

@@ -63,7 +63,7 @@ public class SectorTest {
             sector.hasPoint(p2);
         }
         // 我的机器(7年前的本)上大概比三角形少10毫秒 50 VS 60
-        System.out.println("costMillTime=" + (System.currentTimeMillis() - startTime));
+        System.out.println("costTimeMillis=" + (System.currentTimeMillis() - startTime));
     }
 
 

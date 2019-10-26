@@ -18,7 +18,6 @@ package com.wjybxx.fastjgame.net.socket.outer;
 
 import com.wjybxx.fastjgame.manager.AcceptorManager;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
-import com.wjybxx.fastjgame.manager.NetTimeManager;
 import com.wjybxx.fastjgame.net.common.*;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
@@ -44,7 +43,6 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
 
     private static final Logger logger = LoggerFactory.getLogger(OuterAcceptorHandler.class);
 
-    private NetTimeManager netTimeManager;
     private int maxPendingMessages;
     private int maxCacheMessages;
     private int ackTimeoutMs;
@@ -72,7 +70,6 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void handlerAdded(SessionHandlerContext ctx) throws Exception {
-        netTimeManager = ctx.managerWrapper().getNetTimeManager();
         // 缓存，减少堆栈深度
         final SocketSessionConfig config = (SocketSessionConfig) ctx.session().config();
         maxPendingMessages = config.maxPendingMessages();
@@ -97,7 +94,7 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
         // 清空缓冲队列
         OuterUtils.flush(ctx, channel,
                 messageQueue, maxPendingMessages,
-                netTimeManager.curTimeMillis() + ackTimeoutMs);
+                ctx.timerSystem().curTimeMillis() + ackTimeoutMs);
     }
 
     @Override
@@ -120,7 +117,7 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
             OuterUtils.readMessage(ctx, (SocketMessageEvent) event,
                     messageQueue, channel,
                     maxPendingMessages,
-                    netTimeManager.curTimeMillis() + ackTimeoutMs);
+                    ctx.timerSystem().curTimeMillis() + ackTimeoutMs);
             return;
         }
 
@@ -129,7 +126,7 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
             OuterUtils.readPingPong(ctx, (SocketPingPongEvent) event,
                     messageQueue, channel,
                     maxPendingMessages,
-                    netTimeManager.curTimeMillis() + ackTimeoutMs);
+                    ctx.timerSystem().curTimeMillis() + ackTimeoutMs);
             return;
         }
 
@@ -143,14 +140,14 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
                 messageQueue, maxCacheMessages,
                 (NetMessage) msg,
                 maxPendingMessages,
-                netTimeManager.curTimeMillis() + ackTimeoutMs);
+                ctx.timerSystem().curTimeMillis() + ackTimeoutMs);
     }
 
     @Override
     public void flush(SessionHandlerContext ctx) throws Exception {
         OuterUtils.flush(ctx, channel,
                 messageQueue, maxPendingMessages,
-                netTimeManager.curTimeMillis() + ackTimeoutMs);
+                ctx.timerSystem().curTimeMillis() + ackTimeoutMs);
     }
 
     @Override
@@ -248,7 +245,7 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
         // 1. 触发一次读，避免session超时
         ctx.fireRead(PingPongMessage.PONG);
         // 2. 重发消息
-        OuterUtils.resend(channel, messageQueue, netTimeManager.curTimeMillis() + ackTimeoutMs);
+        OuterUtils.resend(channel, messageQueue, ctx.timerSystem().curTimeMillis() + ackTimeoutMs);
     }
 
     // ------------------------------------------------------- 建立连接请求 ----------------------------------------------

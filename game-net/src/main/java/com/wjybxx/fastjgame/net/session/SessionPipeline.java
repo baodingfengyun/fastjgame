@@ -18,7 +18,8 @@ package com.wjybxx.fastjgame.net.session;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
-import com.wjybxx.fastjgame.manager.NetManagerWrapper;
+import com.wjybxx.fastjgame.timer.SystemTimeProvider;
+import com.wjybxx.fastjgame.timer.TimerSystem;
 import io.netty.channel.ChannelPipeline;
 
 import javax.annotation.Nonnull;
@@ -56,11 +57,9 @@ public interface SessionPipeline extends SessionInboundInvoker, SessionOutboundI
     EventLoop localEventLoop();
 
     /**
-     * 获取所属的{@link NetEventLoop}内的所有管理器
-     *
-     * @return NetManagerWrapper
+     * @return pipeline私有的定时器系统，在session关闭后停止运行。
      */
-    NetManagerWrapper managerWrapper();
+    TimerSystem timerSystem();
 
     /**
      * 添加一个handler到pipeline的尾部

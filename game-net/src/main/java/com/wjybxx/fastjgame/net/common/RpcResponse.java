@@ -68,6 +68,7 @@ public final class RpcResponse {
         return resultCode;
     }
 
+    @Nullable
     public Object getBody() {
         return body;
     }

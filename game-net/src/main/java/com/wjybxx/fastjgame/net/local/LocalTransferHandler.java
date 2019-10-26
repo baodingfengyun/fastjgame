@@ -77,7 +77,7 @@ public class LocalTransferHandler extends SessionDuplexHandlerAdapter {
         if (!remoteSession.isClosed()) {
             // 存为临时变量，避免NPE，少捕获变量
             final Session remoteSession = this.remoteSession;
-            ctx.managerWrapper().getNetTimerManager().nextTick(handle -> {
+            ctx.timerSystem().nextTick(handle -> {
                 remoteSession.close();
             });
         }

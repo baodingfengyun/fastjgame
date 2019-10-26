@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.net.session;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
+import com.wjybxx.fastjgame.timer.TimerSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,8 +83,8 @@ abstract class AbstractSessionHandlerContext implements SessionHandlerContext {
     }
 
     @Override
-    public NetManagerWrapper managerWrapper() {
-        return pipeline.managerWrapper();
+    public TimerSystem timerSystem() {
+        return pipeline.timerSystem();
     }
 
     @Override

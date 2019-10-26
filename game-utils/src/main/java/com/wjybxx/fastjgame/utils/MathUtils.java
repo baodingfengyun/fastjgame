@@ -57,7 +57,7 @@ public class MathUtils {
      * 帧间隔(毫秒)
      *
      * @param framePerSecond 每秒帧数 1 ~ 1000
-     * @return millTime
+     * @return timeMillis
      */
     public static long frameInterval(int framePerSecond) {
         if (framePerSecond < 1 || framePerSecond > 1000) {

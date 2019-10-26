@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.net.socket.outer;
 
 import com.wjybxx.fastjgame.concurrent.Promise;
-import com.wjybxx.fastjgame.manager.NetTimeManager;
+import com.wjybxx.fastjgame.manager.NettyThreadManager;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.net.common.*;
 import com.wjybxx.fastjgame.net.session.Session;
@@ -57,8 +57,8 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
 
     private final HostAndPort remoteAddress;
     private final ChannelInitializer<SocketChannel> initializer;
+    private final NettyThreadManager nettyThreadManager;
 
-    private NetTimeManager netTimeManager;
     private SessionHandlerContext ctx;
     private SocketSessionConfig config;
     private Promise<Session> _connectPromise;
@@ -87,16 +87,19 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
      */
     private boolean notify = true;
 
-    public OuterConnectorHandler(HostAndPort remoteAddress, ChannelInitializer<SocketChannel> initializer, Promise<Session> connectPromise) {
+    public OuterConnectorHandler(HostAndPort remoteAddress,
+                                 ChannelInitializer<SocketChannel> initializer,
+                                 NettyThreadManager nettyThreadManager,
+                                 Promise<Session> connectPromise) {
         this.remoteAddress = remoteAddress;
         this.initializer = initializer;
+        this.nettyThreadManager = nettyThreadManager;
         this._connectPromise = connectPromise;
     }
 
     @Override
     public void handlerAdded(SessionHandlerContext ctx) throws Exception {
         // 缓存，减少堆栈深度
-        netTimeManager = ctx.managerWrapper().getNetTimeManager();
         this.ctx = ctx;
         config = (SocketSessionConfig) ctx.session().config();
 
@@ -310,9 +313,9 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
 
         private void doConnect() {
             tryTimes++;
-            connectStartTime = netTimeManager.curTimeMillis();
+            connectStartTime = ctx.timerSystem().curTimeMillis();
 
-            channelFuture = ctx.managerWrapper().getNettyThreadManager().connectAsyn(
+            channelFuture = nettyThreadManager.connectAsyn(
                     remoteAddress,
                     config.sndBuffer(),
                     config.rcvBuffer(),
@@ -336,7 +339,7 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
             }
 
             // - 操作尚未完成
-            if (netTimeManager.curTimeMillis() - connectStartTime < config.connectTimeoutMs()) {
+            if (ctx.timerSystem().curTimeMillis() - connectStartTime < config.connectTimeoutMs()) {
                 // 还未超时
                 return;
             }
@@ -374,7 +377,7 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
         /**
          * 验证开始时间
          */
-        private long verifyingStartMillTime;
+        private long verifyingStartTimeMillis;
 
         @Override
         void enter() {
@@ -387,7 +390,7 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
          */
         private void doVerify() {
             verifyingTimes++;
-            verifyingStartMillTime = netTimeManager.curTimeMillis();
+            verifyingStartTimeMillis = ctx.timerSystem().curTimeMillis();
 
             final SocketConnectRequest connectRequest = new SocketConnectRequest(verifyingTimes, verifiedTimes);
             final OuterSocketConnectRequestTO connectRequestTO =
@@ -397,7 +400,7 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
 
         @Override
         void tick() {
-            if (netTimeManager.curTimeMillis() - verifyingStartMillTime <= config.verifyTimeoutMs()) {
+            if (ctx.timerSystem().curTimeMillis() - verifyingStartTimeMillis <= config.verifyTimeoutMs()) {
                 // 应答还未超时，继续等待
                 return;
             }
@@ -497,7 +500,7 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
                 // 1. 触发一次读，避免session超时
                 ctx.fireRead(PingPongMessage.PONG);
                 // 2. 重发消息
-                OuterUtils.resend(channel, messageQueue, netTimeManager.curTimeMillis() + config.ackTimeoutMs());
+                OuterUtils.resend(channel, messageQueue, ctx.timerSystem().curTimeMillis() + config.ackTimeoutMs());
             }
         }
 
@@ -505,7 +508,7 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
         void tick() {
             // 检查ack超时
             final OuterSocketMessage firstMessage = messageQueue.getPendingQueue().peekFirst();
-            if (null != firstMessage && netTimeManager.curTimeMillis() > firstMessage.getAckDeadline()) {
+            if (null != firstMessage && ctx.timerSystem().curTimeMillis() > firstMessage.getAckDeadline()) {
                 // ack超时，进行重传验证
                 changeState(new VerifyingState());
                 return;
@@ -514,7 +517,7 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
             // 清空缓冲队列
             OuterUtils.flush(ctx, channel,
                     messageQueue, config.maxPendingMessages(),
-                    netTimeManager.curTimeMillis() + config.ackTimeoutMs());
+                    ctx.timerSystem().curTimeMillis() + config.ackTimeoutMs());
         }
 
         @Override
@@ -527,7 +530,7 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
             OuterUtils.readMessage(ctx, event, messageQueue,
                     channel,
                     config.maxPendingMessages(),
-                    netTimeManager.curTimeMillis() + config.ackTimeoutMs());
+                    ctx.timerSystem().curTimeMillis() + config.ackTimeoutMs());
         }
 
         @Override
@@ -535,7 +538,7 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
             OuterUtils.readPingPong(ctx, event, messageQueue,
                     channel,
                     config.maxPendingMessages(),
-                    netTimeManager.curTimeMillis() + config.ackTimeoutMs());
+                    ctx.timerSystem().curTimeMillis() + config.ackTimeoutMs());
         }
 
         @Override
@@ -544,14 +547,14 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
                     messageQueue, config.maxCacheMessages(),
                     msg,
                     config.maxPendingMessages(),
-                    netTimeManager.curTimeMillis() + config.ackTimeoutMs());
+                    ctx.timerSystem().curTimeMillis() + config.ackTimeoutMs());
         }
 
         @Override
         void flush() {
             OuterUtils.flush(ctx, channel,
                     messageQueue, config.maxPendingMessages(),
-                    netTimeManager.curTimeMillis() + config.ackTimeoutMs());
+                    ctx.timerSystem().curTimeMillis() + config.ackTimeoutMs());
         }
     }
 

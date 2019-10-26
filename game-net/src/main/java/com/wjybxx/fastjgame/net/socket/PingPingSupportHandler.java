@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.manager.NetTimeManager;
 import com.wjybxx.fastjgame.net.common.PingPongMessage;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
@@ -42,7 +41,6 @@ import com.wjybxx.fastjgame.timer.FixedDelayHandle;
  */
 public class PingPingSupportHandler extends SessionDuplexHandlerAdapter {
 
-    private NetTimeManager timeManager;
     private long pingIntervalMs;
     private long sessionTimeoutMs;
 
@@ -50,27 +48,25 @@ public class PingPingSupportHandler extends SessionDuplexHandlerAdapter {
     private long lastWriteTime;
 
     private SessionHandlerContext ctx;
-    private FixedDelayHandle pingTimerHandle;
 
     @Override
     public void handlerAdded(SessionHandlerContext ctx) throws Exception {
         this.ctx = ctx;
         // 缓存减少堆栈深度
-        timeManager = ctx.managerWrapper().getNetTimeManager();
-
         SocketSessionConfig config = (SocketSessionConfig) ctx.session().config();
         pingIntervalMs = config.pingIntervalMs();
         sessionTimeoutMs = config.getSessionTimeoutMs();
 
-        lastReadTime = timeManager.curTimeMillis();
-        lastWriteTime = timeManager.curTimeMillis();
+        lastReadTime = ctx.timerSystem().curTimeMillis();
+        lastWriteTime = ctx.timerSystem().curTimeMillis();
 
-        pingTimerHandle = ctx.managerWrapper().getNetTimerManager().newFixedDelay(pingIntervalMs, pingIntervalMs, this::checkPing);
+        // 心跳检测timer
+        ctx.timerSystem().newFixedDelay(pingIntervalMs, pingIntervalMs, this::checkPing);
     }
 
     private void checkPing(FixedDelayHandle handle) throws Exception {
-        if (timeManager.curTimeMillis() - lastReadTime > pingIntervalMs
-                || timeManager.curTimeMillis() - lastWriteTime > pingIntervalMs) {
+        if (ctx.timerSystem().curTimeMillis() - lastReadTime > pingIntervalMs
+                || ctx.timerSystem().curTimeMillis() - lastWriteTime > pingIntervalMs) {
             // 尝试发一个心跳包 - 从当前位置开始发送心跳包
             write(ctx, PingPongMessage.PING);
         }
@@ -78,7 +74,7 @@ public class PingPingSupportHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void tick(SessionHandlerContext ctx) throws Exception {
-        if (timeManager.curTimeMillis() - lastReadTime > sessionTimeoutMs) {
+        if (ctx.timerSystem().curTimeMillis() - lastReadTime > sessionTimeoutMs) {
             // session超时
             ctx.session().close();
         }
@@ -86,7 +82,7 @@ public class PingPingSupportHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void read(SessionHandlerContext ctx, Object msg) throws Exception {
-        lastReadTime = timeManager.curTimeMillis();
+        lastReadTime = ctx.timerSystem().curTimeMillis();
         if (msg == PingPongMessage.PING) {
             // 心跳请求包，需要立即返回
             write(ctx, PingPongMessage.PONG);
@@ -100,16 +96,7 @@ public class PingPingSupportHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void write(SessionHandlerContext ctx, Object msg) throws Exception {
-        lastWriteTime = timeManager.curTimeMillis();
+        lastWriteTime = ctx.timerSystem().curTimeMillis();
         ctx.fireWrite(msg);
-    }
-
-    @Override
-    public void close(SessionHandlerContext ctx) throws Exception {
-        try {
-            pingTimerHandle.cancel();
-        } finally {
-            ctx.fireClose();
-        }
     }
 }

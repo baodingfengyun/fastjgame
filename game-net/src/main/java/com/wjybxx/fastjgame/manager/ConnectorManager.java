@@ -113,7 +113,7 @@ public class ConnectorManager implements SessionRegistry {
 
         if (config.isAutoReconnect()) {
             // 异步建立连接
-            session.pipeline().addLast(new OuterConnectorHandler(remoteAddress, initializer, connectPromise));
+            session.pipeline().addLast(new OuterConnectorHandler(remoteAddress, initializer, nettyThreadManager, connectPromise));
         } else {
             ChannelFuture channelFuture = nettyThreadManager.connectAsyn(remoteAddress,
                     config.sndBuffer(),

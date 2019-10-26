@@ -53,7 +53,7 @@ public class TriangleTest {
             triangle.hasPoint(p1);
             triangle.hasPoint(p2);
         }
-        System.out.println("costMillTimes=" + (System.currentTimeMillis() - startTime));
+        System.out.println("costTimeMillis=" + (System.currentTimeMillis() - startTime));
     }
 
 }

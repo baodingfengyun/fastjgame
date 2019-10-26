@@ -18,7 +18,9 @@ package com.wjybxx.fastjgame.net.session;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
-import com.wjybxx.fastjgame.manager.NetManagerWrapper;
+import com.wjybxx.fastjgame.timer.DefaultTimerSystem;
+import com.wjybxx.fastjgame.timer.SystemTimeProvider;
+import com.wjybxx.fastjgame.timer.TimerSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,9 +39,10 @@ import java.util.NoSuchElementException;
 class DefaultSessionPipeline implements SessionPipeline {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultSessionPipeline.class);
+    private static final int TIMER_SYSTEM_CAPACITY = 5;
 
     private final Session session;
-    private final NetManagerWrapper netManagerWrapper;
+    private final TimerSystem timerSystem;
 
     /**
      * 尾部处理器 - 出站第一个处理器，入站最后一个处理器
@@ -50,9 +53,9 @@ class DefaultSessionPipeline implements SessionPipeline {
      */
     private final HeadContext head;
 
-    DefaultSessionPipeline(Session session, NetManagerWrapper netManagerWrapper) {
+    DefaultSessionPipeline(Session session, SystemTimeProvider timeProvider) {
         this.session = session;
-        this.netManagerWrapper = netManagerWrapper;
+        this.timerSystem = new DefaultTimerSystem(timeProvider, TIMER_SYSTEM_CAPACITY);
         this.tail = new TailContext(this);
         this.head = new HeadContext(this);
 
@@ -79,8 +82,8 @@ class DefaultSessionPipeline implements SessionPipeline {
     }
 
     @Override
-    public NetManagerWrapper managerWrapper() {
-        return netManagerWrapper;
+    public TimerSystem timerSystem() {
+        return timerSystem;
     }
 
     @Override
@@ -235,6 +238,12 @@ class DefaultSessionPipeline implements SessionPipeline {
 
     @Override
     public void fireTick() {
+        try {
+            timerSystem.tick();
+        } catch (Throwable e) {
+            fireExceptionCaught(e);
+        }
+
         AbstractSessionHandlerContext context = head;
         do {
             context.tick();

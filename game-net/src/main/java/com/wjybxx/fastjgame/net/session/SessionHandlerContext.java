@@ -19,6 +19,8 @@ package com.wjybxx.fastjgame.net.session;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
+import com.wjybxx.fastjgame.timer.SystemTimeProvider;
+import com.wjybxx.fastjgame.timer.TimerSystem;
 
 /**
  * {@link SessionInboundHandler} {@link SessionOutboundHandler}的运行环境。
@@ -55,11 +57,9 @@ public interface SessionHandlerContext extends SessionInboundInvoker, SessionOut
     EventLoop localEventLoop();
 
     /**
-     * 获取所属的{@link NetEventLoop}内的所有管理器
-     *
-     * @return NetManagerWrapper
+     * @return pipeline私有的定时器系统，在session关闭后停止运行。
      */
-    NetManagerWrapper managerWrapper();
+    TimerSystem timerSystem();
 
     /**
      * @return 该context管理的handler。

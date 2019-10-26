@@ -42,6 +42,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 暂时并不提供完全的线程安全性保障，如果不是那么有必要的话，便不添加，我的意识里需要session是完全的线程安全的情况并不多。
  *
  * <p>
+ * 功能实现都在{@link SessionPipeline}上，session只是一个简单的中介对象。
+ *
+ * <p>
  * 注意：这里提供的接口并不是那么的清晰易懂，偏原始、偏底层，应用层可以提供更良好的封装。
  *
  * @author wjybxx
@@ -95,6 +98,13 @@ public interface Session extends Comparable<Session> {
     // ---------------------------------------------- 配置信息 ----------------------------------------------
 
     /**
+     * session相关的配置信息
+     *
+     * @return config
+     */
+    SessionConfig config();
+
+    /**
      * 设置附加属性。
      * 注意：
      * 1. attachment在session关闭时不会自动删除，当你不需要使用时，可以尽早的释放它(设置为null)。
@@ -103,6 +113,7 @@ public interface Session extends Comparable<Session> {
      * @param newData 新值
      * @return 之前的值，如果不存在，则返回null
      */
+    @Nullable
     <T> T attach(@Nullable Object newData);
 
     /**
@@ -114,13 +125,6 @@ public interface Session extends Comparable<Session> {
      */
     @Nullable
     <T> T attachment();
-
-    /**
-     * session相关的配置信息
-     *
-     * @return config
-     */
-    SessionConfig config();
 
     // -----------------------------------------------发送消息API ---------------------------------------------
 
