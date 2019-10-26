@@ -42,6 +42,7 @@ public class NetEventLoopModule extends AbstractModule {
 
         bind(NetTimeManager.class).in(Singleton.class);
         bind(NetTimerManager.class).in(Singleton.class);
+        bind(NetEventBusManager.class).in(Singleton.class);
 
         bind(NetManagerWrapper.class).in(Singleton.class);
     }

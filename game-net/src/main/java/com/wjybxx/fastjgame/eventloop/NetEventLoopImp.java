@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.eventloop;
 import com.google.inject.Injector;
 import com.wjybxx.fastjgame.concurrent.*;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
+import com.wjybxx.fastjgame.eventbus.EventDispatcher;
 import com.wjybxx.fastjgame.manager.*;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.module.NetEventLoopModule;
@@ -63,6 +64,7 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     private final NetTimeManager netTimeManager;
     private final NetTimerManager netTimerManager;
     private final NettyThreadManager nettyThreadManager;
+    private final NetEventBusManager netEventBusManager;
 
     NetEventLoopImp(@Nonnull NetEventLoopGroup parent,
                     @Nonnull ThreadFactory threadFactory,
@@ -82,6 +84,9 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         // 时间管理器和timer管理器
         netTimeManager = managerWrapper.getNetTimeManager();
         netTimerManager = managerWrapper.getNetTimerManager();
+
+        // EventBus
+        netEventBusManager = managerWrapper.getEventBusManager();
 
         // 解决循环依赖
         acceptorManager.setManagerWrapper(managerWrapper);
@@ -108,6 +113,12 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     @Override
     public NetEventLoop select(int key) {
         return (NetEventLoop) super.select(key);
+    }
+
+    @Nullable
+    @Override
+    protected EventDispatcher dispatcher() {
+        return netEventBusManager;
     }
 
     @Nonnull

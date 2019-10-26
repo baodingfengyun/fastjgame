@@ -40,7 +40,7 @@ public abstract class AbstractEventLoopGroup implements EventLoopGroup {
 
     // ------------------------------------ 发布一个事件 ----------------------------------
     @Override
-    public void publish(@Nonnull Object event) {
+    public final void publish(@Nonnull Object event) {
         next().publish(event);
     }
 
@@ -52,25 +52,25 @@ public abstract class AbstractEventLoopGroup implements EventLoopGroup {
      * @param command 任务
      */
     @Override
-    public void execute(@Nonnull Runnable command) {
+    public final void execute(@Nonnull Runnable command) {
         next().execute(command);
     }
 
     @Nonnull
     @Override
-    public ListenableFuture<?> submit(@Nonnull Runnable task) {
+    public final ListenableFuture<?> submit(@Nonnull Runnable task) {
         return next().submit(task);
     }
 
     @Nonnull
     @Override
-    public <T> ListenableFuture<T> submit(@Nonnull Runnable task, T result) {
+    public final <T> ListenableFuture<T> submit(@Nonnull Runnable task, T result) {
         return next().submit(task, result);
     }
 
     @Nonnull
     @Override
-    public <T> ListenableFuture<T> submit(@Nonnull Callable<T> task) {
+    public final <T> ListenableFuture<T> submit(@Nonnull Callable<T> task) {
         return next().submit(task);
     }
 
@@ -79,26 +79,26 @@ public abstract class AbstractEventLoopGroup implements EventLoopGroup {
 
     @Nonnull
     @Override
-    public <T> List<Future<T>> invokeAll(@Nonnull Collection<? extends Callable<T>> tasks)
+    public final <T> List<Future<T>> invokeAll(@Nonnull Collection<? extends Callable<T>> tasks)
             throws InterruptedException {
         return next().invokeAll(tasks);
     }
 
     @Nonnull
     @Override
-    public <T> List<Future<T>> invokeAll(@Nonnull Collection<? extends Callable<T>> tasks, long timeout, @Nonnull TimeUnit unit)
+    public final <T> List<Future<T>> invokeAll(@Nonnull Collection<? extends Callable<T>> tasks, long timeout, @Nonnull TimeUnit unit)
             throws InterruptedException {
         return next().invokeAll(tasks, timeout, unit);
     }
 
     @Nonnull
     @Override
-    public <T> T invokeAny(@Nonnull Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
+    public final <T> T invokeAny(@Nonnull Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
         return next().invokeAny(tasks);
     }
 
     @Override
-    public <T> T invokeAny(@Nonnull Collection<? extends Callable<T>> tasks, long timeout, @Nonnull TimeUnit unit)
+    public final <T> T invokeAny(@Nonnull Collection<? extends Callable<T>> tasks, long timeout, @Nonnull TimeUnit unit)
             throws InterruptedException, ExecutionException, TimeoutException {
         return next().invokeAny(tasks, timeout, unit);
     }

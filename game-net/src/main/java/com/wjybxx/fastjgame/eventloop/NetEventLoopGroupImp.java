@@ -24,6 +24,7 @@ import com.wjybxx.fastjgame.concurrent.MultiThreadEventLoopGroup;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.manager.HttpClientManager;
 import com.wjybxx.fastjgame.manager.NettyThreadManager;
+import com.wjybxx.fastjgame.misc.DefaultNetContext;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.module.NetEventLoopGroupModule;
 import com.wjybxx.fastjgame.net.http.HttpRequestEvent;
@@ -133,7 +134,7 @@ public class NetEventLoopGroupImp extends MultiThreadEventLoopGroup implements N
                 ((NetEventLoop) eventLoop).onUserEventLoopTerminal(localEventLoop);
             });
         }
-        return new NetContextImp(localGuid, localEventLoop, this);
+        return new DefaultNetContext(localGuid, localEventLoop, this);
     }
 
     @Override

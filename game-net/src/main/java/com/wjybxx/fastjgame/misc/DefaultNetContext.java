@@ -14,10 +14,12 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.eventloop;
+package com.wjybxx.fastjgame.misc;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.eventloop.NetContext;
+import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.PortRange;
 import com.wjybxx.fastjgame.net.http.HttpPortConfig;
@@ -50,13 +52,13 @@ import java.util.Map;
  * github - https://github.com/hl845740757
  */
 @ThreadSafe
-public class NetContextImp implements NetContext {
+public class DefaultNetContext implements NetContext {
 
     private final long localGuid;
     private final EventLoop localEventLoop;
     private final NetEventLoopGroup netEventLoopGroup;
 
-    NetContextImp(long localGuid, EventLoop localEventLoop, NetEventLoopGroup NetEventLoopGroup) {
+    public DefaultNetContext(long localGuid, EventLoop localEventLoop, NetEventLoopGroup NetEventLoopGroup) {
         this.localGuid = localGuid;
         this.localEventLoop = localEventLoop;
         this.netEventLoopGroup = NetEventLoopGroup;

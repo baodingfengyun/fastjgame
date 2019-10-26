@@ -16,7 +16,9 @@
 
 package com.wjybxx.fastjgame.concurrent.event;
 
-import com.wjybxx.fastjgame.eventbus.EventBus;
+import com.wjybxx.fastjgame.eventbus.EventDispatcher;
+
+import javax.annotation.Nonnull;
 
 /**
  * 提交事件任务
@@ -26,18 +28,18 @@ import com.wjybxx.fastjgame.eventbus.EventBus;
  * date - 2019/10/26
  * github - https://github.com/hl845740757
  */
-class EventBusTask implements Runnable {
+public class EventDispatchTask implements Runnable {
 
-    private final EventBus eventBus;
+    private final EventDispatcher dispatcher;
     private final Object event;
 
-    EventBusTask(EventBus eventBus, Object event) {
-        this.eventBus = eventBus;
+    public EventDispatchTask(@Nonnull EventDispatcher dispatcher, @Nonnull Object event) {
+        this.dispatcher = dispatcher;
         this.event = event;
     }
 
     @Override
     public void run() {
-        eventBus.post(event);
+        dispatcher.post(event);
     }
 }

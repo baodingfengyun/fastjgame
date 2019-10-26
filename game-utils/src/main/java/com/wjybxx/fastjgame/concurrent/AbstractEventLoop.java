@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.concurrent;
 
+import com.wjybxx.fastjgame.concurrent.event.EventDispatchTask;
+import com.wjybxx.fastjgame.eventbus.EventDispatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,27 +100,40 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
     }
 
     @Override
-    public void publish(@Nonnull Object event) {
-        throw new UnsupportedOperationException("Unsupported event " + event.getClass().getName());
+    public final void publish(@Nonnull Object event) {
+        final EventDispatcher dispatcher = dispatcher();
+        if (null == dispatcher) {
+            throw new UnsupportedOperationException();
+        }
+        execute(new EventDispatchTask(dispatcher, event));
+    }
+
+    /**
+     * @return 该eventLoop拥有的事件分发器
+     * @apiNote 线程安全，请确保该方法不会看见未完成构造的对象 - (尽量是final的)
+     */
+    @Nullable
+    protected EventDispatcher dispatcher() {
+        return null;
     }
 
     // --------------------------------------- 任务提交 ----------------------------------------
     // region 重写 AbstractExecutorService中的部分方法,返回特定的Future类型
     @Nonnull
     @Override
-    public ListenableFuture<?> submit(@Nonnull Runnable task) {
+    public final ListenableFuture<?> submit(@Nonnull Runnable task) {
         return (ListenableFuture<?>) super.submit(task);
     }
 
     @Nonnull
     @Override
-    public <T> ListenableFuture<T> submit(@Nonnull Runnable task, T result) {
+    public final <T> ListenableFuture<T> submit(@Nonnull Runnable task, T result) {
         return (ListenableFuture<T>) super.submit(task, result);
     }
 
     @Nonnull
     @Override
-    public <T> ListenableFuture<T> submit(@Nonnull Callable<T> task) {
+    public final <T> ListenableFuture<T> submit(@Nonnull Callable<T> task) {
         return (ListenableFuture<T>) super.submit(task);
     }
 
@@ -137,17 +152,17 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
     // ---------------------------------------- 迭代 ---------------------------------------
     @Nonnull
     @Override
-    public Iterator<EventLoop> iterator() {
+    public final Iterator<EventLoop> iterator() {
         return selfCollection.iterator();
     }
 
     @Override
-    public void forEach(Consumer<? super EventLoop> action) {
+    public final void forEach(Consumer<? super EventLoop> action) {
         selfCollection.forEach(action);
     }
 
     @Override
-    public Spliterator<EventLoop> spliterator() {
+    public final Spliterator<EventLoop> spliterator() {
         return selfCollection.spliterator();
     }
 

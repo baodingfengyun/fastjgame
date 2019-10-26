@@ -69,6 +69,7 @@ public interface EventLoop extends EventLoopGroup {
      * 发布一个事件
      *
      * @param event 必须是受支持的事件，否则该事件会被默默的丢弃 或 抛出一个异常
+     * @apiNote 顺序保证：实现需要和{@link #execute(Runnable)}具有相同的时序保证，也就是底层应该是{@link #execute(Runnable)}的一个封装。
      */
     @UnstableApi
     @Override

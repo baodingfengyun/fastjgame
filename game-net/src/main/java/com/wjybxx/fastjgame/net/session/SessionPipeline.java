@@ -18,7 +18,6 @@ package com.wjybxx.fastjgame.net.session;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
-import com.wjybxx.fastjgame.timer.SystemTimeProvider;
 import com.wjybxx.fastjgame.timer.TimerSystem;
 import io.netty.channel.ChannelPipeline;
 

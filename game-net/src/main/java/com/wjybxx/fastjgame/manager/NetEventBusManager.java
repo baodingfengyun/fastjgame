@@ -14,59 +14,43 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.concurrent.event;
+package com.wjybxx.fastjgame.manager;
 
-import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.google.inject.Inject;
 import com.wjybxx.fastjgame.eventbus.EventBus;
 import com.wjybxx.fastjgame.eventbus.EventDispatcher;
 import com.wjybxx.fastjgame.eventbus.EventHandler;
 import com.wjybxx.fastjgame.eventbus.EventHandlerRegistry;
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
 import javax.annotation.Nonnull;
 
 /**
- * {@link EventBus}的代理，实现线程安全
- *
  * @author wjybxx
  * @version 1.0
  * date - 2019/10/26
  * github - https://github.com/hl845740757
  */
-public class EventLoopEventBus implements EventHandlerRegistry, EventDispatcher {
+public class NetEventBusManager implements EventHandlerRegistry, EventDispatcher {
 
-    private final EventLoop eventLoop;
+    private final EventBus eventBus = new EventBus();
 
-    private final EventBus eventBus;
+    @Inject
+    public NetEventBusManager() {
 
-    public EventLoopEventBus(EventLoop eventLoop, EventBus eventBus) {
-        this.eventLoop = eventLoop;
-        this.eventBus = eventBus;
     }
-
 
     @Override
     public <T> void post(@Nonnull T event) {
-        if (eventLoop.inEventLoop()) {
-            // 当前处于事件循环线程，直接提交事件
-            eventBus.post(event);
-        } else {
-            // 提交到事件循环线程
-            eventLoop.execute(new EventBusTask(eventBus, event));
-        }
+        eventBus.post(event);
     }
 
     @Override
     public <T> void register(@Nonnull Class<T> eventType, @Nonnull EventHandler<T> handler) {
-        ConcurrentUtils.ensureInEventLoop(eventLoop);
         eventBus.register(eventType, handler);
     }
 
     @Override
     public void release() {
-        ConcurrentUtils.ensureInEventLoop(eventLoop);
         eventBus.release();
     }
-
-
 }
