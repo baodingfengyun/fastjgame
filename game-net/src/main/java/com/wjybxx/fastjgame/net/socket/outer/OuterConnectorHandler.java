@@ -258,15 +258,24 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
          * 接收到用户的写请求
          */
         void write(NetMessage msg) {
+            if (ctx.session().isClosed()) {
+                // session已关闭，丢弃消息
+                return;
+            }
+
+            if (msg == PingPongMessage.PING || msg == PingPongMessage.PONG) {
+                // 心跳消息丢弃
+                return;
+            }
+
             if (messageQueue.getCacheMessages() >= config.maxCacheMessages()) {
                 // 超出缓存限制
                 ctx.session().close();
                 return;
             }
-            if (msg != PingPongMessage.PING && msg != PingPongMessage.PONG) {
-                // 心跳消息丢弃，非心跳消息，加入缓存队列
-                messageQueue.getCacheQueue().addLast(new OuterSocketMessage(messageQueue.nextSequence(), msg));
-            }
+
+            // 放入缓存队列，稍后发送
+            messageQueue.getCacheQueue().addLast(new OuterSocketMessage(messageQueue.nextSequence(), msg));
         }
 
         void flush() {

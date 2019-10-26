@@ -45,7 +45,9 @@ class OuterUtils {
      * @param maxPendingMessages 最大填充消息数
      * @param ackDeadline        ack超时时间
      */
-    private static void emit(final Channel channel, final MessageQueue messageQueue, final int maxPendingMessages, final long ackDeadline) {
+    private static void emit(final Channel channel, final MessageQueue messageQueue,
+                             final int maxPendingMessages,
+                             final long ackDeadline) {
         // 计算本批次发送的消息数
         final int emitNum = Math.min(messageQueue.getCacheMessages(), maxPendingMessages - messageQueue.getPendingMessages());
         if (emitNum <= 0) {

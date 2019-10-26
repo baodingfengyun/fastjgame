@@ -111,7 +111,7 @@ public class InnerConnectorHandler extends SessionDuplexHandlerAdapter {
                 return;
             }
             // 错误的消息
-            session.close();
+            NetUtils.closeQuietly(socketEvent.channel());
         } else {
             // 错误的channel
             NetUtils.closeQuietly(socketEvent.channel());
