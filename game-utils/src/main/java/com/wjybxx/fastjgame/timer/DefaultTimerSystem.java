@@ -60,7 +60,7 @@ public class DefaultTimerSystem implements TimerSystem {
     private final SystemTimeProvider timeProvider;
     /**
      * 用于分配timerId。
-     * 如果是静态的将存在线程安全问题(或使用AtomicLong - 不想产生不必要的竞争，因此每个timerSystem一个)
+     * 如果是静态的将存在线程安全问题(或使用AtomicLong) - 不想产生不必要的竞争，因此每个timerSystem一个。
      */
     private long timerIdSequencer = 0;
     /**

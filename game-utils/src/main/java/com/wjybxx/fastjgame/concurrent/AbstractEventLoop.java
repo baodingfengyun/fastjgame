@@ -97,6 +97,11 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
         return new FailedFuture<V>(this, cause);
     }
 
+    @Override
+    public void publish(@Nonnull Object event) {
+        throw new UnsupportedOperationException("Unsupported event " + event.getClass().getName());
+    }
+
     // --------------------------------------- 任务提交 ----------------------------------------
     // region 重写 AbstractExecutorService中的部分方法,返回特定的Future类型
     @Nonnull

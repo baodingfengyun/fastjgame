@@ -17,6 +17,8 @@
 package com.wjybxx.fastjgame.concurrent;
 
 
+import com.wjybxx.fastjgame.annotation.UnstableApi;
+
 import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Iterator;
@@ -109,6 +111,17 @@ public interface EventLoopGroup extends ExecutorService, Iterable<EventLoop> {
     @Nonnull
     @Override
     List<Runnable> shutdownNow();
+
+    // ---------------------------------- 事件操作 --------------------------------
+
+    /**
+     * 发布一个事件
+     *
+     * @param event 必须是受支持的事件，否则该事件会被默默的丢弃 或 抛出一个异常
+     */
+    @UnstableApi
+    void publish(@Nonnull Object event);
+
     // ----------------------------- 这是我想要支持的任务调度 ------------------------
 
     @Override

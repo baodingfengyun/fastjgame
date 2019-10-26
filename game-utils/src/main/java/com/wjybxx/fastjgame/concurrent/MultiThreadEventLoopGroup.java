@@ -227,7 +227,7 @@ public abstract class MultiThreadEventLoopGroup extends AbstractEventLoopGroup {
             if (terminatedChildren.incrementAndGet() == children.length) {
                 try {
                     clean();
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     logger.error("clean caught exception!", e);
                 } finally {
                     terminationFuture.setSuccess(null);

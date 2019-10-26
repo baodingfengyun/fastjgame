@@ -59,7 +59,7 @@ public class CompositePlayerMessageFunction<T extends AbstractMessage> implement
         for (PlayerMessageFunction<T> function : children) {
             try {
                 function.onMessage(player, message);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 logger.warn("Child onMessage caught exception, playerGuid = {}, message = {}",
                         player.getGuid(), message.getClass().getName(), e);
             }

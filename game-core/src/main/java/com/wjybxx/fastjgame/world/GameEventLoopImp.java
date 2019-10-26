@@ -120,7 +120,7 @@ public class GameEventLoopImp extends DisruptorEventLoop implements GameEventLoo
     private void safeTickWorld(FixedDelayHandle handle) {
         try {
             world.tick(System.currentTimeMillis());
-        } catch (Exception e) {
+        } catch (Throwable e) {
             logger.warn("world {}-{} tick caught exception.", world.worldRole(), world.worldGuid(), e);
         }
     }
@@ -138,7 +138,7 @@ public class GameEventLoopImp extends DisruptorEventLoop implements GameEventLoo
     private void safeShutdownWorld() {
         try {
             world.shutdown();
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             logger.warn("world shutdown caught exception.", ex);
         }
     }

@@ -54,7 +54,7 @@ public final class CompositeRpcCallback<V> implements RpcCallback {
         for (RpcCallback rpcCallback : children) {
             try {
                 rpcCallback.onComplete(rpcResponse);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 logger.warn("Child {} callback caught exception!", rpcCallback.getClass().getName(), e);
             }
         }

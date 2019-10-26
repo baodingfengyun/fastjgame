@@ -57,7 +57,7 @@ public class CompositeHttpRequestHandler implements HttpRequestHandler {
         for (HttpRequestHandler httpRequestHandler : children) {
             try {
                 httpRequestHandler.onHttpRequest(httpSession, path, params);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 logger.warn("Child onHttpRequest caught exception, path {}", path, e);
             }
         }

@@ -62,7 +62,7 @@ public final class CompositeMessageFunction<T extends AbstractMessage> implement
         for (MessageFunction<T> handler : children) {
             try {
                 handler.onMessage(session, message);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 logger.warn("Child onMessage caught exception, child {}, message {}",
                         handler.getClass().getName(), message.getClass().getName(), e);
             }

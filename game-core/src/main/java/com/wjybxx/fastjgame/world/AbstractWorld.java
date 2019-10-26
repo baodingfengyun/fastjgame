@@ -187,7 +187,7 @@ public abstract class AbstractWorld implements World {
 
         try {
             shutdownHook();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             // 关闭操作和启动操作都是重要操作尽量不要产生异常
             logger.error("shutdown caught exception", e);
         } finally {

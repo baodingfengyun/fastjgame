@@ -16,6 +16,9 @@
 
 package com.wjybxx.fastjgame.concurrent;
 
+import com.wjybxx.fastjgame.annotation.UnstableApi;
+import com.wjybxx.fastjgame.eventbus.EventBus;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -28,6 +31,9 @@ import javax.annotation.Nullable;
  *
  * <p>
  * EventLoop架构属于<b>多生产者单消费者模型</b>，请避免其它线程消费数据。
+ *
+ * <p>
+ * 2019年10月26日新增{@link #publish(Object)} 接口，搭配{@link EventBus}可消除强耦合关系，简化接口。
  *
  * @author wjybxx
  * @version 1.0
@@ -58,6 +64,15 @@ public interface EventLoop extends EventLoopGroup {
      */
     @Nullable
     EventLoopGroup parent();
+
+    /**
+     * 发布一个事件
+     *
+     * @param event 必须是受支持的事件，否则该事件会被默默的丢弃 或 抛出一个异常
+     */
+    @UnstableApi
+    @Override
+    void publish(@Nonnull Object event);
 
     /**
      * 当前线程是否是EventLoop线程。

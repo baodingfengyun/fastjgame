@@ -80,7 +80,7 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
 
                 final LocalPort localPort = netContext.bindLocal(config);
                 localPortPromise.trySuccess(localPort);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 localPortPromise.tryFailure(e);
             }
         } else {

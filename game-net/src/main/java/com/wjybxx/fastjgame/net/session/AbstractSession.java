@@ -20,7 +20,6 @@ import com.wjybxx.fastjgame.annotation.Internal;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
-import com.wjybxx.fastjgame.exception.InternalApiException;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
 import com.wjybxx.fastjgame.misc.SessionRegistry;
 import com.wjybxx.fastjgame.net.common.RpcCallback;
@@ -224,27 +223,27 @@ public abstract class AbstractSession implements Session {
 
     @Override
     public final SessionPipeline pipeline() {
-        ensureInternal();
+        ensureInEventLoop();
         return pipeline;
     }
 
     @Internal
     @Override
     public void fireRead(@Nullable Object msg) {
-        ensureInternal();
+        ensureInEventLoop();
         pipeline.fireRead(msg);
     }
 
     @Internal
     @Override
     public void fireWrite(@Nonnull Object msg) {
-        ensureInternal();
+        ensureInEventLoop();
         pipeline.fireWrite(msg);
     }
 
     @Override
     public void fireWriteAndFlush(@Nonnull Object msg) {
-        ensureInternal();
+        ensureInEventLoop();
         pipeline.fireWriteAndFlush(msg);
     }
 
@@ -253,7 +252,7 @@ public abstract class AbstractSession implements Session {
      */
     @Internal
     public boolean tryActive() {
-        ensureInternal();
+        ensureInEventLoop();
         return stateHolder.compareAndSet(ST_BOUND, ST_CONNECTED);
     }
 
@@ -269,7 +268,7 @@ public abstract class AbstractSession implements Session {
      */
     @Internal
     public final void closeForcibly() {
-        ensureInternal();
+        ensureInEventLoop();
 
         final int oldState = stateHolder.getAndSet(ST_CLOSED);
         if (oldState == ST_CLOSED) {
@@ -280,13 +279,10 @@ public abstract class AbstractSession implements Session {
     }
 
     /**
-     * 线程判断 - 线程保护
+     * 线程保护
      */
-    private void ensureInternal() {
-        if (netEventLoop.inEventLoop()) {
-            return;
-        }
-        throw new InternalApiException();
+    private void ensureInEventLoop() {
+        ConcurrentUtils.ensureInEventLoop(netEventLoop);
     }
 
     @Override

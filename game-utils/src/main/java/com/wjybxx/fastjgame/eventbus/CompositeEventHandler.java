@@ -59,7 +59,7 @@ public class CompositeEventHandler<T> implements EventHandler<T> {
         for (EventHandler<T> handler : children) {
             try {
                 handler.onEvent(event);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 logger.warn("Child {} onEvent caught exception!", handler.getClass().getName(), e);
             }
         }

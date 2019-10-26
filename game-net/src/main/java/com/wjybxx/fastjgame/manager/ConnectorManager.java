@@ -219,7 +219,7 @@ public class ConnectorManager implements SessionRegistry {
                 session.closeForcibly();
                 remoteSession.closeForcibly();
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             connectPromise.tryFailure(e);
         }
     }

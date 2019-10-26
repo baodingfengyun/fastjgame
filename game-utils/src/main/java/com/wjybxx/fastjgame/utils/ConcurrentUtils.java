@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.utils;
 
 import com.wjybxx.fastjgame.concurrent.*;
+import com.wjybxx.fastjgame.exception.InternalApiException;
 import com.wjybxx.fastjgame.function.*;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -380,7 +381,7 @@ public class ConcurrentUtils {
         try {
             executor.execute(task);
             // 这里也不一定真正的提交成功了，因为目标executor的拒绝策略我们并不知晓
-        } catch (Exception e) {
+        } catch (Throwable e) {
             // may reject
             if (e instanceof RejectedExecutionException) {
                 logger.info("Try commit failure, target executor may shutdown.");
@@ -417,6 +418,17 @@ public class ConcurrentUtils {
     }
 
     // ---------------------------------------------- 事件循环相关 ------------------------------------------------
+
+    /**
+     * 线程保护
+     *
+     * @param eventLoop 事件循环
+     */
+    public static void ensureInEventLoop(EventLoop eventLoop) {
+        if (!eventLoop.inEventLoop()) {
+            throw new InternalApiException();
+        }
+    }
 
     /**
      * 检查死锁，由于EventLoop是单线程的，因此不能在当前EventLoop上等待另一个任务完成，很可能导致死锁。
@@ -478,7 +490,7 @@ public class ConcurrentUtils {
             try {
                 V result = task.call();
                 return new SucceededFuture<>(eventLoop, result);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 return new FailedFuture<>(eventLoop, e);
             }
         } else {
