@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
 @AutoService(Processor.class)
 public class EventSubscribeProcessor extends AbstractProcessor {
 
-    private static final String EVENT_BUS_CANONICAL_NAME = "com.wjybxx.fastjgame.eventbus.EventBus";
+    private static final String HANDLER_REGISTRY_CANONICAL_NAME = "com.wjybxx.fastjgame.eventbus.EventHandlerRegistry";
     private static final String SUBSCRIBE_CANONICAL_NAME = "com.wjybxx.fastjgame.eventbus.Subscribe";
 
     // 工具类
@@ -62,7 +62,7 @@ public class EventSubscribeProcessor extends AbstractProcessor {
      * {@code Subscribe对应的注解元素}
      */
     private TypeElement subscribeElement;
-    private TypeName eventBusTypeName;
+    private TypeName eventRegistryTypeName;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
@@ -95,7 +95,7 @@ public class EventSubscribeProcessor extends AbstractProcessor {
         }
 
         subscribeElement = elementUtils.getTypeElement(SUBSCRIBE_CANONICAL_NAME);
-        eventBusTypeName = TypeName.get(elementUtils.getTypeElement(EVENT_BUS_CANONICAL_NAME).asType());
+        eventRegistryTypeName = TypeName.get(elementUtils.getTypeElement(HANDLER_REGISTRY_CANONICAL_NAME).asType());
     }
 
     @Override
@@ -122,7 +122,7 @@ public class EventSubscribeProcessor extends AbstractProcessor {
 
         final MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("register")
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                .addParameter(eventBusTypeName, "bus")
+                .addParameter(eventRegistryTypeName, "registry")
                 .addParameter(TypeName.get(typeElement.asType()), "instance");
 
         for (Element element : methodList) {
@@ -149,8 +149,8 @@ public class EventSubscribeProcessor extends AbstractProcessor {
                 continue;
             }
             TypeName typeName = ParameterizedTypeName.get(variableElement.asType());
-            // bus.register(EventA.class, event -> instance.method(event));
-            methodBuilder.addStatement("bus.register($T.class, event -> instance.$L(event))", typeName, method.getSimpleName().toString());
+            // registry.register(EventA.class, event -> instance.method(event));
+            methodBuilder.addStatement("registry.register($T.class, event -> instance.$L(event))", typeName, method.getSimpleName().toString());
         }
 
         typeBuilder.addMethod(methodBuilder.build());
