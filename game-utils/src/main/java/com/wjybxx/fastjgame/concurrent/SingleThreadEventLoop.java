@@ -92,7 +92,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     /**
      * 缓存队列，用于批量的将{@link #taskQueue}中的任务拉取到本地线程下，减少锁竞争，
      */
-    private final ArrayList<Runnable> cacheQueue = new ArrayList<>(CACHE_QUEUE_CAPACITY);
+    private final ArrayDeque<Runnable> cacheQueue = new ArrayDeque<>(CACHE_QUEUE_CAPACITY);
     /**
      * 任务被拒绝时的处理策略
      */
@@ -520,28 +520,23 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
      * @return 至少有一个任务执行时返回true。
      */
     protected final boolean runTasksBatch(final int batchSize) {
+        // 不能出现负数
         long runTaskNum = 0;
         int size;
+        // drainTo - 批量拉取可执行任务(可减少竞争)
         while (!isShutdown() && (size = taskQueue.drainTo(cacheQueue, CACHE_QUEUE_CAPACITY)) > 0) {
-            // 批量拉取任务执行(可减少竞争) - 目前测试的表现，没感觉到性能上的提升，可能是因为竞争小
-            // 存在三次冗余遍历，额外消耗是不是大了点
-            // 1. drainQueue插入元素的时候
-            // 2. 执行任务的时候
-            // 3. clear的时候
             for (int index = 0; index < size; index++) {
-                safeExecute(cacheQueue.get(index));
+                safeExecute(cacheQueue.pollFirst());
             }
 
             // 计数
             runTaskNum += size;
-            cacheQueue.clear();
 
             // 执行一批任务之后检查是否退出
             if (runTaskNum >= batchSize) {
                 break;
             }
         }
-        // 不能出现负数
         return runTaskNum > 0;
     }
 }
