@@ -17,7 +17,9 @@
 package com.wjybxx.fastjgame.misc;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.wjybxx.fastjgame.concurrent.FailedFuture;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
@@ -27,14 +29,13 @@ import com.wjybxx.fastjgame.net.http.HttpPortConfig;
 import com.wjybxx.fastjgame.net.http.HttpPortContext;
 import com.wjybxx.fastjgame.net.http.HttpServerInitializer;
 import com.wjybxx.fastjgame.net.http.OkHttpCallback;
+import com.wjybxx.fastjgame.net.local.ConnectLocalRequest;
 import com.wjybxx.fastjgame.net.local.DefaultLocalPort;
 import com.wjybxx.fastjgame.net.local.LocalPort;
 import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
 import com.wjybxx.fastjgame.net.session.Session;
-import com.wjybxx.fastjgame.net.socket.SocketPort;
-import com.wjybxx.fastjgame.net.socket.SocketPortContext;
-import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
-import com.wjybxx.fastjgame.net.socket.TCPServerChannelInitializer;
+import com.wjybxx.fastjgame.net.socket.*;
+import com.wjybxx.fastjgame.net.ws.WsClientChannelInitializer;
 import com.wjybxx.fastjgame.net.ws.WsServerChannelInitializer;
 import okhttp3.Response;
 
@@ -101,7 +102,12 @@ public class DefaultNetContext implements NetContext {
 
     @Override
     public ListenableFuture<Session> connectTcp(String sessionId, long remoteGuid, HostAndPort remoteAddress, @Nonnull SocketSessionConfig config) {
-        return selectNetEventLoop(sessionId).connectTcp(sessionId, remoteGuid, remoteAddress, config, this);
+        final NetEventLoop netEventLoop = selectNetEventLoop(sessionId);
+        final TCPClientChannelInitializer initializer = new TCPClientChannelInitializer(sessionId, localGuid, config, netEventLoop);
+        final Promise<Session> connectPromise = netEventLoop.newPromise();
+
+        netEventLoop.publish(new ConnectRemoteRequest(sessionId, remoteGuid, remoteAddress, config, initializer, this, connectPromise));
+        return connectPromise;
     }
 
     @Override
@@ -113,7 +119,12 @@ public class DefaultNetContext implements NetContext {
 
     @Override
     public ListenableFuture<Session> connectWS(String sessionId, long remoteGuid, HostAndPort remoteAddress, String websocketUrl, @Nonnull SocketSessionConfig config) {
-        return selectNetEventLoop(sessionId).connectWS(sessionId, remoteGuid, remoteAddress, websocketUrl, config, this);
+        final NetEventLoop netEventLoop = selectNetEventLoop(sessionId);
+        final WsClientChannelInitializer initializer = new WsClientChannelInitializer(sessionId, remoteGuid, websocketUrl, config, netEventLoop);
+        final Promise<Session> connectPromise = netEventLoop.newPromise();
+
+        netEventLoop.publish(new ConnectRemoteRequest(sessionId, remoteGuid, remoteAddress, config, initializer, this, connectPromise));
+        return connectPromise;
     }
 
     // ----------------------------------------------- 本地调用支持 --------------------------------------------
@@ -125,7 +136,14 @@ public class DefaultNetContext implements NetContext {
 
     @Override
     public ListenableFuture<Session> connectLocal(String sessionId, long remoteGuid, @Nonnull LocalPort localPort, @Nonnull LocalSessionConfig config) {
-        return selectNetEventLoop(sessionId).connectLocal(sessionId, remoteGuid, localPort, config, this);
+        final NetEventLoop netEventLoop = selectNetEventLoop(sessionId);
+        if (!(localPort instanceof DefaultLocalPort)) {
+            return new FailedFuture<>(netEventLoop, new UnsupportedOperationException());
+        }
+
+        final Promise<Session> connectPromise = netEventLoop.newPromise();
+        netEventLoop.publish(new ConnectLocalRequest(sessionId, remoteGuid, (DefaultLocalPort) localPort, config, this, connectPromise));
+        return connectPromise;
     }
 
     // ------------------------------------------------- http 实现 --------------------------------------------

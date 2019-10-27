@@ -23,6 +23,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 
@@ -64,7 +65,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
-        netEventLoop.fireEvent_connector(new SocketChannelInactiveEvent(ctx.channel(), sessionId));
+        publish(new SocketChannelInactiveEvent(ctx.channel(), sessionId, false));
     }
 
     // region 编码消息
@@ -118,12 +119,11 @@ public class ClientSocketCodec extends BaseSocketCodec {
      */
     private void tryReadConnectResponse(ChannelHandlerContext ctx, ByteBuf msg) {
         final SocketConnectResponseEvent socketConnectResponseEvent = readConnectResponse(ctx.channel(), sessionId, msg);
-        netEventLoop.fireConnectResponse(socketConnectResponseEvent);
-
         // 标记为已连接
         if (socketConnectResponseEvent.getConnectResponse().isSuccess()) {
             connect = true;
         }
+        publish(socketConnectResponseEvent);
     }
 
     /**
@@ -131,8 +131,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
      */
     private void tryReadRpcRequestMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureConnected();
-
-        netEventLoop.fireEvent_connector(readRpcRequestMessage(ctx.channel(), sessionId, msg));
+        publish(readRpcRequestMessage(ctx.channel(), sessionId, false, msg));
     }
 
     /**
@@ -140,8 +139,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
      */
     private void tryReadRpcResponseMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureConnected();
-
-        netEventLoop.fireEvent_connector(readRpcResponseMessage(ctx.channel(), sessionId, msg));
+        publish(readRpcResponseMessage(ctx.channel(), sessionId, false, msg));
     }
 
     /**
@@ -149,8 +147,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
      */
     private void tryReadOneWayMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureConnected();
-
-        netEventLoop.fireEvent_connector(readOneWayMessage(ctx.channel(), sessionId, msg));
+        publish(readOneWayMessage(ctx.channel(), sessionId, false, msg));
     }
 
     /**
@@ -158,8 +155,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
      */
     private void tryReadAckPongMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureConnected();
-
-        netEventLoop.fireEvent_connector(readAckPingPongMessage(ctx.channel(), sessionId, msg));
+        publish(readAckPingPongMessage(ctx.channel(), sessionId, false, msg));
     }
     // endregion
 
@@ -167,5 +163,9 @@ public class ClientSocketCodec extends BaseSocketCodec {
         if (!connect) {
             throw new IllegalStateException();
         }
+    }
+
+    private void publish(@Nonnull Object event) {
+        netEventLoop.publish(event);
     }
 }

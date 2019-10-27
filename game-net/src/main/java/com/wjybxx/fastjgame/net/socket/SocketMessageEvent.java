@@ -31,6 +31,7 @@ public final class SocketMessageEvent implements SocketEvent {
 
     private final Channel channel;
     private final String sessionId;
+    private final boolean forAcceptor;
     /**
      * 当前包id
      */
@@ -48,9 +49,10 @@ public final class SocketMessageEvent implements SocketEvent {
      */
     private final NetMessage wrappedMessage;
 
-    public SocketMessageEvent(Channel channel, String sessionId, long sequence, long ack, boolean endOfBatch, NetMessage wrappedMessage) {
+    public SocketMessageEvent(Channel channel, String sessionId, boolean forAcceptor, long sequence, long ack, boolean endOfBatch, NetMessage wrappedMessage) {
         this.channel = channel;
         this.sessionId = sessionId;
+        this.forAcceptor = forAcceptor;
         this.ack = ack;
         this.sequence = sequence;
         this.endOfBatch = endOfBatch;
@@ -81,5 +83,10 @@ public final class SocketMessageEvent implements SocketEvent {
 
     public NetMessage getWrappedMessage() {
         return wrappedMessage;
+    }
+
+    @Override
+    public boolean isForAcceptor() {
+        return forAcceptor;
     }
 }

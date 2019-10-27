@@ -82,4 +82,8 @@ public class SocketConnectResponseEvent implements SocketEvent {
         return connectResponse;
     }
 
+    @Override
+    public boolean isForAcceptor() {
+        return false;
+    }
 }

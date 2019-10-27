@@ -31,6 +31,7 @@ public class SocketPingPongEvent implements SocketEvent {
 
     private final Channel channel;
     private final String sessionId;
+    private final boolean forAcceptor;
     /**
      * 捎带确认的ack
      */
@@ -41,9 +42,10 @@ public class SocketPingPongEvent implements SocketEvent {
      */
     private final PingPongMessage pingOrPong;
 
-    public SocketPingPongEvent(Channel channel, String sessionId, long ack, PingPongMessage pingOrPong) {
+    public SocketPingPongEvent(Channel channel, String sessionId, boolean forAcceptor, long ack, PingPongMessage pingOrPong) {
         this.channel = channel;
         this.sessionId = sessionId;
+        this.forAcceptor = forAcceptor;
         this.ack = ack;
         this.pingOrPong = pingOrPong;
     }
@@ -64,5 +66,10 @@ public class SocketPingPongEvent implements SocketEvent {
 
     public PingPongMessage getPingOrPong() {
         return pingOrPong;
+    }
+
+    @Override
+    public boolean isForAcceptor() {
+        return forAcceptor;
     }
 }

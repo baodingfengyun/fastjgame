@@ -99,9 +99,15 @@ public class ConnectorManager implements SessionRegistry {
     }
     // --------------------------------------------分割线 -----------------------------------------------------
 
-    public void connect(String sessionId, long remoteGuid, HostAndPort remoteAddress, SocketSessionConfig config,
-                        ChannelInitializer<SocketChannel> initializer, NetContext netContext,
-                        Promise<Session> connectPromise) {
+    public void connect(final ConnectRemoteRequest request) {
+        final String sessionId = request.getSessionId();
+        final long remoteGuid = request.getRemoteGuid();
+        final HostAndPort remoteAddress = request.getRemoteAddress();
+        final SocketSessionConfig config = request.getConfig();
+        final ChannelInitializer<SocketChannel> initializer = request.getInitializer();
+        final NetContext netContext = request.getNetContext();
+        final Promise<Session> connectPromise = request.getConnectPromise();
+
         Session existSession = sessionRegistry.getSession(sessionId);
         if (existSession != null) {
             connectPromise.tryFailure(new IOException("session " + sessionId + " already registered"));
@@ -182,8 +188,14 @@ public class ConnectorManager implements SessionRegistry {
         }
     }
 
-    public void connectLocal(String sessionId, long remoteGuid, DefaultLocalPort localPort,
-                             LocalSessionConfig config, NetContext netContext, Promise<Session> connectPromise) {
+    public void connectLocal(ConnectLocalRequest request) {
+        final String sessionId = request.getSessionId();
+        final long remoteGuid = request.getRemoteGuid();
+        final DefaultLocalPort localPort = request.getLocalPort();
+        final LocalSessionConfig config = request.getConfig();
+        final NetContext netContext = request.getNetContext();
+        final Promise<Session> connectPromise = request.getConnectPromise();
+
         // 会话已存在
         if (sessionRegistry.getSession(sessionId) != null) {
             connectPromise.tryFailure(new IOException("session " + sessionId + " already registered"));

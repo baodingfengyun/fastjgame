@@ -17,23 +17,20 @@
 package com.wjybxx.fastjgame.eventloop;
 
 import com.google.inject.Injector;
-import com.wjybxx.fastjgame.concurrent.*;
+import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
+import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
 import com.wjybxx.fastjgame.concurrent.event.EventLoopTerminalEvent;
 import com.wjybxx.fastjgame.eventbus.EventDispatcher;
 import com.wjybxx.fastjgame.eventbus.Subscribe;
 import com.wjybxx.fastjgame.manager.*;
 import com.wjybxx.fastjgame.misc.DefaultNetContext;
-import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.module.NetEventLoopModule;
 import com.wjybxx.fastjgame.net.common.*;
 import com.wjybxx.fastjgame.net.http.HttpRequestEvent;
-import com.wjybxx.fastjgame.net.local.DefaultLocalPort;
-import com.wjybxx.fastjgame.net.local.LocalPort;
-import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
-import com.wjybxx.fastjgame.net.session.Session;
+import com.wjybxx.fastjgame.net.local.ConnectLocalRequest;
 import com.wjybxx.fastjgame.net.socket.*;
-import com.wjybxx.fastjgame.net.ws.WsClientChannelInitializer;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
@@ -169,6 +166,7 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     }
 
     private void registerEventSubscriber() {
+        // XXXBusRegister 是注解处理器编译时生成的
         NetEventLoopImpBusRegister.register(netEventBusManager, this);
     }
 
@@ -197,7 +195,7 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
 
     @Subscribe
     void onUserEventLoopTerminalInternal(EventLoopTerminalEvent event) {
-        EventLoop userEventLoop = event.getTerminatedEventLoop();
+        final EventLoop userEventLoop = event.getTerminatedEventLoop();
         acceptorManager.onUserEventLoopTerminal(userEventLoop);
         connectorManager.onUserEventLoopTerminal(userEventLoop);
         httpSessionManager.onUserEventLoopTerminal(userEventLoop);
@@ -234,76 +232,55 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
 
     // ------------------------------------------------------------- socket -------------------------------------------------
 
-    @Override
-    public void fireConnectRequest(SocketConnectRequestEvent event) {
-        execute(() -> {
-            acceptorManager.onRcvConnectRequest(event);
-        });
+    @Subscribe
+    void fireRcvConnectRequest(SocketConnectRequestEvent event) {
+        acceptorManager.onRcvConnectRequest(event);
     }
 
-    @Override
-    public void fireEvent_acceptor(SocketEvent event) {
-        execute(() -> {
+    @Subscribe
+    void fireConnectResponse(SocketConnectResponseEvent event) {
+        connectorManager.onRcvConnectResponse(event);
+    }
+
+    @Subscribe
+    void firePingPongMessage(SocketPingPongEvent event) {
+        if (event.isForAcceptor()) {
             acceptorManager.onSessionEvent(event);
-        });
-    }
-
-
-    @Override
-    public void fireConnectResponse(SocketConnectResponseEvent event) {
-        execute(() -> {
-            connectorManager.onRcvConnectResponse(event);
-        });
-    }
-
-    @Override
-    public void fireEvent_connector(SocketEvent event) {
-        execute(() -> {
+        } else {
             connectorManager.onSessionEvent(event);
-        });
-    }
-
-    @Override
-    public ListenableFuture<Session> connectTcp(String sessionId, long remoteGuid, HostAndPort remoteAddress, SocketSessionConfig config, NetContext netContext) {
-        final TCPClientChannelInitializer initializer = new TCPClientChannelInitializer(sessionId, netContext.localGuid(), config, this);
-        final Promise<Session> connectPromise = newPromise();
-        // 使用connectPromise的好处是，可以避免在session激活前交给应用层，导致一些额外的复杂度
-        execute(() -> {
-            connectorManager.connect(sessionId, remoteGuid, remoteAddress, config, initializer, netContext, connectPromise);
-        });
-        return connectPromise;
-    }
-
-    @Override
-    public ListenableFuture<Session> connectWS(String sessionId, long remoteGuid, HostAndPort remoteAddress, String websocketUrl, SocketSessionConfig config, NetContext netContext) {
-        final WsClientChannelInitializer initializer = new WsClientChannelInitializer(sessionId, remoteGuid, websocketUrl, config, this);
-        final Promise<Session> connectPromise = newPromise();
-        execute(() -> {
-            connectorManager.connect(sessionId, remoteGuid, remoteAddress, config, initializer, netContext, connectPromise);
-        });
-        return connectPromise;
-    }
-
-    // --------------------------------------------------------- localSession ----------------------------------------------------
-
-    @Override
-    public ListenableFuture<Session> connectLocal(String sessionId, long remoteGuid, LocalPort localPort, LocalSessionConfig config, NetContext netContext) {
-        if (!(localPort instanceof DefaultLocalPort)) {
-            return new FailedFuture<>(this, new UnsupportedOperationException());
         }
-        final Promise<Session> connectPromise = newPromise();
-        execute(() -> {
-            connectorManager.connectLocal(sessionId, remoteGuid, (DefaultLocalPort) localPort, config, netContext, connectPromise);
-        });
-        return connectPromise;
-    }
-    // -------------------------------------------------------------- http --------------------------------------------------------
-
-    @Override
-    public void fireHttpRequest(HttpRequestEvent event) {
-        execute(() -> {
-            httpSessionManager.onRcvHttpRequest(event);
-        });
     }
 
+    @Subscribe
+    void fireSocketMessage(SocketMessageEvent event) {
+        if (event.isForAcceptor()) {
+            acceptorManager.onSessionEvent(event);
+        } else {
+            connectorManager.onSessionEvent(event);
+        }
+    }
+
+    @Subscribe
+    void fireChannelInactive(SocketChannelInactiveEvent event) {
+        if (event.isForAcceptor()) {
+            acceptorManager.onSessionEvent(event);
+        } else {
+            connectorManager.onSessionEvent(event);
+        }
+    }
+
+    @Subscribe
+    void fireConnectRemoteRequest(ConnectRemoteRequest request) {
+        connectorManager.connect(request);
+    }
+
+    @Subscribe
+    void fireConnectLocalRequest(ConnectLocalRequest request) {
+        connectorManager.connectLocal(request);
+    }
+
+    @Subscribe
+    void fireHttpRequest(HttpRequestEvent event) {
+        httpSessionManager.onRcvHttpRequest(event);
+    }
 }

@@ -258,12 +258,12 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
     /**
      * 心跳协议解码
      */
-    final SocketPingPongEvent readAckPingPongMessage(Channel channel, String sessionId, ByteBuf msg) {
+    final SocketPingPongEvent readAckPingPongMessage(Channel channel, String sessionId, boolean forAcceptor, ByteBuf msg) {
         long ack = msg.readLong();
         if (msg.readByte() == 1) {
-            return new SocketPingPongEvent(channel, sessionId, ack, PingPongMessage.PING);
+            return new SocketPingPongEvent(channel, sessionId, forAcceptor, ack, PingPongMessage.PING);
         } else {
-            return new SocketPingPongEvent(channel, sessionId, ack, PingPongMessage.PONG);
+            return new SocketPingPongEvent(channel, sessionId, forAcceptor, ack, PingPongMessage.PONG);
         }
     }
 
@@ -292,7 +292,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
     /**
      * 解码rpc请求包
      */
-    final SocketMessageEvent readRpcRequestMessage(Channel channel, String sessionId, ByteBuf msg) {
+    final SocketMessageEvent readRpcRequestMessage(Channel channel, String sessionId, boolean forAcceptor, ByteBuf msg) {
         // 捎带确认消息
         long sequence = msg.readLong();
         long ack = msg.readLong();
@@ -305,7 +305,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
         Object request = tryDecodeBody(msg);
 
         RpcRequestMessage rpcRequestMessage = new RpcRequestMessage(requestGuid, sync, request);
-        return new SocketMessageEvent(channel, sessionId, sequence, ack, endOfBatch, rpcRequestMessage);
+        return new SocketMessageEvent(channel, sessionId, forAcceptor, sequence, ack, endOfBatch, rpcRequestMessage);
     }
 
     /**
@@ -336,7 +336,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
     /**
      * 解码rpc响应包
      */
-    final SocketMessageEvent readRpcResponseMessage(Channel channel, String sessionId, ByteBuf msg) {
+    final SocketMessageEvent readRpcResponseMessage(Channel channel, String sessionId, boolean forAcceptor, ByteBuf msg) {
         // 捎带确认信息
         long sequence = msg.readLong();
         long ack = msg.readLong();
@@ -350,7 +350,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
         final Object body = msg.readableBytes() > 0 ? tryDecodeBody(msg) : null;
 
         RpcResponseMessage rpcResponseMessage = new RpcResponseMessage(requestGuid, new RpcResponse(resultCode, body));
-        return new SocketMessageEvent(channel, sessionId, sequence, ack, endOfBatch, rpcResponseMessage);
+        return new SocketMessageEvent(channel, sessionId, forAcceptor, sequence, ack, endOfBatch, rpcResponseMessage);
     }
 
     // ------------------------------------------ 单向消息 --------------------------------------------
@@ -374,7 +374,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
     /**
      * 解码单向协议
      */
-    final SocketMessageEvent readOneWayMessage(Channel channel, String sessionId, ByteBuf msg) {
+    final SocketMessageEvent readOneWayMessage(Channel channel, String sessionId, boolean forAcceptor, ByteBuf msg) {
         // 捎带确认
         long sequence = msg.readLong();
         long ack = msg.readLong();
@@ -384,7 +384,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
         Object message = tryDecodeBody(msg);
 
         OneWayMessage oneWayMessage = new OneWayMessage(message);
-        return new SocketMessageEvent(channel, sessionId, sequence, ack, endOfBatch, oneWayMessage);
+        return new SocketMessageEvent(channel, sessionId, forAcceptor, sequence, ack, endOfBatch, oneWayMessage);
     }
 
     // ---------------------------------------------- 分割线 ----------------------------------------------------

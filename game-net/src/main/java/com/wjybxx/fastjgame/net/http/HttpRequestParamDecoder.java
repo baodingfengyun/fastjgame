@@ -93,14 +93,16 @@ public class HttpRequestParamDecoder extends SimpleChannelInboundHandler<FullHtt
             }
         }
         final HttpRequestParam httpRequestParam = new HttpRequestParam(method, paramsMap);
-        HttpRequestEvent httpRequestEvent = new HttpRequestEvent(ctx.channel(), path, httpRequestParam, portExtraInfo);
-
-        portExtraInfo.netEventLoopGroup().select(ctx.channel()).fireHttpRequest(httpRequestEvent);
+        publish(new HttpRequestEvent(ctx.channel(), path, httpRequestParam, portExtraInfo));
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         ctx.close();
         logger.warn("", cause);
+    }
+
+    private void publish(HttpRequestEvent httpRequestEvent) {
+        portExtraInfo.netEventLoopGroup().select(httpRequestEvent.channel()).publish(httpRequestEvent);
     }
 }

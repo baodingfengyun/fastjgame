@@ -96,4 +96,9 @@ public class SocketConnectRequestEvent implements SocketEvent {
     public SocketPortContext getPortExtraInfo() {
         return portExtraInfo;
     }
+
+    @Override
+    public boolean isForAcceptor() {
+        return true;
+    }
 }
