@@ -18,6 +18,8 @@ package com.wjybxx.fastjgame.concurrent.event;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 
+import javax.annotation.concurrent.Immutable;
+
 /**
  * {@link com.wjybxx.fastjgame.concurrent.EventLoop}进入终止状态事件
  *
@@ -26,6 +28,7 @@ import com.wjybxx.fastjgame.concurrent.EventLoop;
  * date - 2019/10/26
  * github - https://github.com/hl845740757
  */
+@Immutable
 public class EventLoopTerminalEvent {
 
     private final EventLoop terminatedEventLoop;

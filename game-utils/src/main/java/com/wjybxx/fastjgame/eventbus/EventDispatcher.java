@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.eventbus;
 
+import com.wjybxx.fastjgame.annotation.UnstableApi;
+
 import javax.annotation.Nonnull;
 
 /**
@@ -43,5 +45,6 @@ public interface EventDispatcher {
      * @param event    要发布的事件
      * @param <T>      事件的类型
      */
+    @UnstableApi
     <T> void post(Class<? super T> keyClazz, @Nonnull T event);
 }

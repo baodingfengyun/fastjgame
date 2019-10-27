@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.eventbus.EventBus;
 import com.wjybxx.fastjgame.eventbus.EventDispatcher;
 import com.wjybxx.fastjgame.eventbus.EventHandler;
 import com.wjybxx.fastjgame.eventbus.EventHandlerRegistry;
+import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
 import javax.annotation.Nonnull;
 
@@ -33,10 +34,11 @@ import javax.annotation.Nonnull;
 public class NetEventBusManager implements EventHandlerRegistry, EventDispatcher {
 
     private final EventBus eventBus = new EventBus();
+    private final NetEventLoopManager eventLoopManager;
 
     @Inject
-    public NetEventBusManager() {
-
+    public NetEventBusManager(NetEventLoopManager eventLoopManager) {
+        this.eventLoopManager = eventLoopManager;
     }
 
     @Override
@@ -51,6 +53,8 @@ public class NetEventBusManager implements EventHandlerRegistry, EventDispatcher
 
     @Override
     public <T> void register(@Nonnull Class<T> eventType, @Nonnull EventHandler<T> handler) {
+        // 避免在错误的时间调用
+        ConcurrentUtils.ensureInEventLoop(eventLoopManager.getEventLoop());
         eventBus.register(eventType, handler);
     }
 

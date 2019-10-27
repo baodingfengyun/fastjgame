@@ -43,7 +43,6 @@ import java.util.concurrent.locks.LockSupport;
 public class EchoServerLoop extends SingleThreadEventLoop {
 
     private final NetEventLoopGroup netGroup = new NetEventLoopGroupBuilder().build();
-    private NetContext netContext;
 
     public EchoServerLoop(@Nullable EventLoopGroup parent, @Nonnull ThreadFactory threadFactory, @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
         super(parent, threadFactory, rejectedExecutionHandler);
@@ -53,7 +52,7 @@ public class EchoServerLoop extends SingleThreadEventLoop {
     protected void init() throws Exception {
         super.init();
         // 创建网络环境
-        netContext = netGroup.createContext(ExampleConstants.SERVER_GUID, this);
+        NetContext netContext = netGroup.createContext(ExampleConstants.SERVER_GUID, this);
 
         // 监听tcp端口
         SocketSessionConfig config = SocketSessionConfig.newBuilder().setCodec(ExampleConstants.jsonBasedCodec)

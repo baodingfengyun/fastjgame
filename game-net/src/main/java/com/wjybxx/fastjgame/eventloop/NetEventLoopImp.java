@@ -19,8 +19,11 @@ package com.wjybxx.fastjgame.eventloop;
 import com.google.inject.Injector;
 import com.wjybxx.fastjgame.concurrent.*;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
+import com.wjybxx.fastjgame.concurrent.event.EventLoopTerminalEvent;
 import com.wjybxx.fastjgame.eventbus.EventDispatcher;
+import com.wjybxx.fastjgame.eventbus.Subscribe;
 import com.wjybxx.fastjgame.manager.*;
+import com.wjybxx.fastjgame.misc.DefaultNetContext;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.module.NetEventLoopModule;
 import com.wjybxx.fastjgame.net.common.*;
@@ -32,11 +35,15 @@ import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.socket.*;
 import com.wjybxx.fastjgame.net.ws.WsClientChannelInitializer;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
+import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.locks.LockSupport;
 
@@ -56,6 +63,7 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     private static final Logger logger = LoggerFactory.getLogger(NetEventLoopImp.class);
     private static final int MAX_BATCH_SIZE = 32 * 1024;
 
+    private final Set<EventLoop> userEventLoopSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private final NetEventLoopManager netEventLoopManager;
     private final HttpClientManager httpClientManager;
     private final HttpSessionManager httpSessionManager;
@@ -115,6 +123,18 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         return (NetEventLoop) super.select(key);
     }
 
+    @Nonnull
+    @Override
+    public NetEventLoop select(@Nonnull String sessionId) {
+        return this;
+    }
+
+    @Nonnull
+    @Override
+    public NetEventLoop select(@Nonnull Channel channel) {
+        return this;
+    }
+
     @Nullable
     @Override
     protected EventDispatcher dispatcher() {
@@ -134,24 +154,22 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     }
 
     @Override
-    public HttpClientManager getHttpClientManager() {
-        return httpClientManager;
-    }
-
-    @Override
-    public NettyThreadManager getNettyThreadManager() {
-        return nettyThreadManager;
-    }
-
-    @Override
     protected void init() throws Exception {
         super.init();
         // 发布自身，使得该eventLoop的其它管理器可以方便的获取该对象，在这里才是正确的线程，构造方法里不能发布自己
         // Q: 为什么没使用threadLocal？
         // A: 本来想使用的，但是如果提供一个全局的接口的话，它也会对逻辑层开放，而逻辑层如果调用了一定会导致错误。使用threadLocal暴露了不该暴露的接口。
         netEventLoopManager.publish(this);
+
+        // 注册事件订阅者
+        registerEventSubscriber();
+
         // 切换到缓存策略
         netTimeManager.changeToCacheStrategy();
+    }
+
+    private void registerEventSubscriber() {
+        NetEventLoopImpBusRegister.register(netEventBusManager, this);
     }
 
     @Override
@@ -177,12 +195,9 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         }
     }
 
-    @Override
-    public void onUserEventLoopTerminal(EventLoop userEventLoop) {
-        execute(() -> onUserEventLoopTerminalInternal(userEventLoop));
-    }
-
-    private void onUserEventLoopTerminalInternal(EventLoop userEventLoop) {
+    @Subscribe
+    void onUserEventLoopTerminalInternal(EventLoopTerminalEvent event) {
+        EventLoop userEventLoop = event.getTerminatedEventLoop();
         acceptorManager.onUserEventLoopTerminal(userEventLoop);
         connectorManager.onUserEventLoopTerminal(userEventLoop);
         httpSessionManager.onUserEventLoopTerminal(userEventLoop);
@@ -202,9 +217,19 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
 
     @Override
     public NetContext createContext(long localGuid, @Nonnull EventLoop localEventLoop) {
-        final NetEventLoopGroup netEventLoopGroup = parent();
-        assert null != netEventLoopGroup;
-        return netEventLoopGroup.createContext(localGuid, localEventLoop);
+        if (localEventLoop instanceof NetEventLoop) {
+            throw new IllegalArgumentException("Bad EventLoop");
+        }
+
+        if (userEventLoopSet.add(localEventLoop)) {
+            // 监听用户线程关闭
+            localEventLoop.terminationFuture().addListener(future -> {
+                final EventLoopTerminalEvent terminalEvent = new EventLoopTerminalEvent(localEventLoop);
+                publish(terminalEvent);
+            });
+        }
+
+        return new DefaultNetContext(localGuid, localEventLoop, this, httpClientManager, nettyThreadManager);
     }
 
     // ------------------------------------------------------------- socket -------------------------------------------------

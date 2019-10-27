@@ -94,7 +94,8 @@ public class HttpRequestParamDecoder extends SimpleChannelInboundHandler<FullHtt
         }
         final HttpRequestParam httpRequestParam = new HttpRequestParam(method, paramsMap);
         HttpRequestEvent httpRequestEvent = new HttpRequestEvent(ctx.channel(), path, httpRequestParam, portExtraInfo);
-        portExtraInfo.netEventLoopGroup().fireHttpRequest(httpRequestEvent);
+
+        portExtraInfo.netEventLoopGroup().select(ctx.channel()).fireHttpRequest(httpRequestEvent);
     }
 
     @Override

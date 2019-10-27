@@ -45,7 +45,7 @@ import java.util.stream.IntStream;
  * @version 1.2
  * date - 2019/8/26
  */
-public class ExampleRpcClientLoop extends DisruptorEventLoop {
+class ExampleRpcClientLoop extends DisruptorEventLoop {
 
     private final LocalPort localPort;
     /**
