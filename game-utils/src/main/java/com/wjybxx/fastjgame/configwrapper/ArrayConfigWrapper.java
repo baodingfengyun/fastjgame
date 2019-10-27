@@ -17,8 +17,8 @@
 package com.wjybxx.fastjgame.configwrapper;
 
 
-import com.wjybxx.fastjgame.constants.UtilConstants;
 import com.wjybxx.fastjgame.utils.CollectionUtils;
+import com.wjybxx.fastjgame.utils.ConfigUtils;
 
 import javax.annotation.concurrent.Immutable;
 import java.util.HashMap;
@@ -43,7 +43,7 @@ public final class ArrayConfigWrapper extends ConfigWrapper {
     private final Map<String, String> indexedMap;
 
     public ArrayConfigWrapper(String[] pairsArray) {
-        this(pairsArray, UtilConstants.DEFAULT_KEY_VALUE_DELIMITER);
+        this(pairsArray, ConfigUtils.DEFAULT_KEY_VALUE_DELIMITER);
     }
 
     /**

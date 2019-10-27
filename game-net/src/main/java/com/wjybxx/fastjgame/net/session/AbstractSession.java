@@ -223,27 +223,27 @@ public abstract class AbstractSession implements Session {
 
     @Override
     public final SessionPipeline pipeline() {
-        ensureInEventLoop();
+        ensureInNetEventLoop();
         return pipeline;
     }
 
     @Internal
     @Override
     public void fireRead(@Nullable Object msg) {
-        ensureInEventLoop();
+        ensureInNetEventLoop();
         pipeline.fireRead(msg);
     }
 
     @Internal
     @Override
     public void fireWrite(@Nonnull Object msg) {
-        ensureInEventLoop();
+        ensureInNetEventLoop();
         pipeline.fireWrite(msg);
     }
 
     @Override
     public void fireWriteAndFlush(@Nonnull Object msg) {
-        ensureInEventLoop();
+        ensureInNetEventLoop();
         pipeline.fireWriteAndFlush(msg);
     }
 
@@ -252,7 +252,7 @@ public abstract class AbstractSession implements Session {
      */
     @Internal
     public boolean tryActive() {
-        ensureInEventLoop();
+        ensureInNetEventLoop();
         return stateHolder.compareAndSet(ST_BOUND, ST_CONNECTED);
     }
 
@@ -268,7 +268,7 @@ public abstract class AbstractSession implements Session {
      */
     @Internal
     public final void closeForcibly() {
-        ensureInEventLoop();
+        ensureInNetEventLoop();
 
         final int oldState = stateHolder.getAndSet(ST_CLOSED);
         if (oldState == ST_CLOSED) {
@@ -281,7 +281,7 @@ public abstract class AbstractSession implements Session {
     /**
      * 线程保护
      */
-    private void ensureInEventLoop() {
+    private void ensureInNetEventLoop() {
         ConcurrentUtils.ensureInEventLoop(netEventLoop);
     }
 

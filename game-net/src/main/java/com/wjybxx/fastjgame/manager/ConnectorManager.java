@@ -171,14 +171,14 @@ public class ConnectorManager implements SessionRegistry {
     /**
      * 接收到一个socket消息
      *
-     * @param messageEvent 消息事件参数
+     * @param event 消息事件参数
      */
-    public void onSessionEvent(SocketEvent messageEvent) {
-        final Session session = sessionRegistry.getSession(messageEvent.sessionId());
+    public void onSessionEvent(SocketEvent event) {
+        final Session session = sessionRegistry.getSession(event.sessionId());
         if (session != null) {
-            session.fireRead(messageEvent);
+            session.fireRead(event);
         } else {
-            NetUtils.closeQuietly(messageEvent.channel());
+            NetUtils.closeQuietly(event.channel());
         }
     }
 
@@ -209,7 +209,6 @@ public class ConnectorManager implements SessionRegistry {
 
             // 激活双方
             if (connectPromise.trySuccess(session)) {
-
                 session.tryActive();
                 remoteSession.tryActive();
 

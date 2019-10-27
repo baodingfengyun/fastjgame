@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.utils;
 
 
-import com.wjybxx.fastjgame.constants.UtilConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
@@ -38,6 +37,16 @@ import java.util.function.Function;
  * github - https://github.com/hl845740757
  */
 public class ConfigUtils {
+
+    /**
+     * 默认数组分隔符 '|'
+     * 逗号在某些场合下效果不好，逗号使用面太广。
+     */
+    public static final String DEFAULT_ARRAY_DELIMITER = "\\|";
+    /**
+     * 默认键值对分隔符, '=' 与 ':' 都是不错的选择， ':'更贴近于json
+     */
+    public static final String DEFAULT_KEY_VALUE_DELIMITER = "=";
 
     private ConfigUtils() {
 
@@ -168,7 +177,7 @@ public class ConfigUtils {
     // ----------------------------------------------- 基本类型数组支持 -------------------------------------------
 
     public static String[] getAsStringArray(String value) {
-        return value.split(UtilConstants.DEFAULT_ARRAY_DELIMITER);
+        return value.split(DEFAULT_ARRAY_DELIMITER);
     }
 
     /**
@@ -220,7 +229,7 @@ public class ConfigUtils {
      * @return map 保持有序
      */
     public static <K, V> Map<K, V> parseToMap(String content, Function<String, K> keyParser, Function<String, V> valueParser) {
-        return parseToMap(content, UtilConstants.DEFAULT_ARRAY_DELIMITER, UtilConstants.DEFAULT_KEY_VALUE_DELIMITER,
+        return parseToMap(content, DEFAULT_ARRAY_DELIMITER, DEFAULT_KEY_VALUE_DELIMITER,
                 keyParser, valueParser);
     }
 

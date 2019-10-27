@@ -23,6 +23,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
+ * Session注册表
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/10/15

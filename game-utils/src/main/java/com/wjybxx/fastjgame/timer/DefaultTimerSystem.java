@@ -117,9 +117,9 @@ public class DefaultTimerSystem implements TimerSystem {
     @Nonnull
     @Override
     public FixedRateHandle newFixRate(long initialDelay, long period, @Nonnull TimerTask<FixedRateHandle> task) {
-        FixRateHandleImp.ensurePeriod(period);
-        FixRateHandleImp fixRateHandleImp = new FixRateHandleImp(this, task, initialDelay, period);
-        return tryAddTimerAndInit(fixRateHandleImp);
+        FixedRateHandleImp.ensurePeriod(period);
+        FixedRateHandleImp fixedRateHandleImp = new FixedRateHandleImp(this, task, initialDelay, period);
+        return tryAddTimerAndInit(fixedRateHandleImp);
     }
 
     /**

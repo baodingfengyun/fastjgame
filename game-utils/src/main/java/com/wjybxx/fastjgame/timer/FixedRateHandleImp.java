@@ -24,7 +24,7 @@ package com.wjybxx.fastjgame.timer;
  * date - 2019/8/14
  * github - https://github.com/hl845740757
  */
-class FixRateHandleImp extends AbstractTimerHandle implements FixedRateHandle {
+class FixedRateHandleImp extends AbstractTimerHandle implements FixedRateHandle {
 
     /**
      * 第一次执行的延迟
@@ -39,8 +39,8 @@ class FixRateHandleImp extends AbstractTimerHandle implements FixedRateHandle {
      */
     private long lastExecuteTimeMs;
 
-    FixRateHandleImp(DefaultTimerSystem timerSystem, TimerTask timerTask,
-                     long initialDelay, long period) {
+    FixedRateHandleImp(DefaultTimerSystem timerSystem, TimerTask timerTask,
+                       long initialDelay, long period) {
         super(timerSystem, timerTask);
         this.initialDelay = initialDelay;
         this.period = period;

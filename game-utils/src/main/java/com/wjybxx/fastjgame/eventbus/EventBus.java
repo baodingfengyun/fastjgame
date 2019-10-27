@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.eventbus;
 
+import com.google.common.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +29,8 @@ import java.util.Map;
  * EventBus的一个简单实现。
  * 1. 它并不是一个线程安全的对象
  * 2. 它也不是一个标准的EventBus实现，比如就没有取消注册的接口，也没有单独的dispatcher、Registry
+ * 3. 它也没有对继承体系进行完整的支持（监听接口或抽象类），主要考虑到性能可能不好 - 等到我确实需要的时候再添加吧。
+ * -{@link TypeToken#getTypes()}会有所帮助。
  *
  * @author wjybxx
  * @version 1.0

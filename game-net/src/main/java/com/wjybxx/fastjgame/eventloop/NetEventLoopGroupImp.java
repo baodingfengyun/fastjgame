@@ -46,7 +46,7 @@ import java.util.concurrent.ThreadFactory;
  * date - 2019/10/5
  * github - https://github.com/hl845740757
  */
-public class NetEventLoopGroupImp extends MultiThreadEventLoopGroup implements NetEventLoopGroup {
+class NetEventLoopGroupImp extends MultiThreadEventLoopGroup implements NetEventLoopGroup {
 
     private final NettyThreadManager nettyThreadManager;
     private final HttpClientManager httpClientManager;

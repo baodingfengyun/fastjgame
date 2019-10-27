@@ -23,10 +23,7 @@ import com.wjybxx.fastjgame.net.http.HttpRequestCommitTask;
 import com.wjybxx.fastjgame.net.http.HttpRequestEvent;
 import com.wjybxx.fastjgame.net.http.HttpSessionImp;
 import com.wjybxx.fastjgame.timer.FixedDelayHandle;
-import com.wjybxx.fastjgame.utils.CollectionUtils;
-import com.wjybxx.fastjgame.utils.FunctionUtils;
-import com.wjybxx.fastjgame.utils.NetUtils;
-import com.wjybxx.fastjgame.utils.TimeUtils;
+import com.wjybxx.fastjgame.utils.*;
 import io.netty.channel.Channel;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -44,7 +41,8 @@ import java.util.Map;
 @NotThreadSafe
 public class HttpSessionManager {
 
-    private static final int httpSessionTimeout = 15;
+    private static final int httpSessionTimeout = SystemUtils.getProperties()
+            .getAsInt("HttpSessionManager.httpSessionTimeout", 15);
 
     private final NetEventLoopManager netEventLoopManager;
     private final NetTimeManager netTimeManager;

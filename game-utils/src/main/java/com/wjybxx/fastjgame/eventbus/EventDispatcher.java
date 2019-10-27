@@ -29,7 +29,7 @@ import javax.annotation.Nonnull;
 public interface EventDispatcher {
 
     /**
-     * 发布一个事件
+     * 发布一个事件，以{@code event.getClass()}作为事件类型。
      *
      * @param event 要发布的事件
      * @param <T>   事件的类型

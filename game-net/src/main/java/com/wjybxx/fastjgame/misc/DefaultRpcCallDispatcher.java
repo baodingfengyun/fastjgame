@@ -48,7 +48,7 @@ public class DefaultRpcCallDispatcher implements RpcFunctionRegistry, RpcCallDis
 
     @Override
     public final void register(int methodKey, @Nonnull RpcFunction function) {
-        // rpc请求id不可以重复，编译时保证了生成的代码不会重复，但是手动注册不在检测范围内
+        // rpc请求id不可以重复
         if (functionInfoMap.containsKey(methodKey)) {
             throw new IllegalArgumentException("methodKey " + methodKey + " is already registered!");
         }

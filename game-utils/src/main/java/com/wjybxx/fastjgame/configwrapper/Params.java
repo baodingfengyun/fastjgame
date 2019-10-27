@@ -15,7 +15,6 @@
  */
 package com.wjybxx.fastjgame.configwrapper;
 
-import com.wjybxx.fastjgame.constants.UtilConstants;
 import com.wjybxx.fastjgame.utils.ConfigUtils;
 
 import java.util.Set;
@@ -23,7 +22,7 @@ import java.util.Set;
 /**
  * 基于字符串键值对配置的帮助类。
  * <p>
- * 注意：数组分隔为{@link UtilConstants#DEFAULT_ARRAY_DELIMITER} 即'|'
+ * 注意：数组分隔为{@link ConfigUtils#DEFAULT_ARRAY_DELIMITER} 即'|'
  *
  * @author wjybxx
  * @version 1.0
