@@ -152,8 +152,12 @@ public class AcceptorManager implements SessionRegistry {
         session.pipeline()
                 .addLast(new LocalTransferHandler())
                 .addLast(new LocalCodecHandler())
-                .addLast(new OneWaySupportHandler())
-                .addLast(new RpcSupportHandler());
+                .addLast(new OneWaySupportHandler());
+
+        // 是否开启rpc
+        if (localPort.getLocalConfig().isRpcAvailable()) {
+            session.pipeline().addLast(new RpcSupportHandler());
+        }
 
         return session;
     }

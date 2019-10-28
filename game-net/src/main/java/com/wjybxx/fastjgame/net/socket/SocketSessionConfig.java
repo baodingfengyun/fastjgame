@@ -272,7 +272,7 @@ public final class SocketSessionConfig extends SessionConfig {
         }
 
         @Override
-        public SocketSessionConfig newInstance() {
+        protected SocketSessionConfig newInstance() {
             return new SocketSessionConfig(this);
         }
     }

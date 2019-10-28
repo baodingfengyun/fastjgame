@@ -233,7 +233,7 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     // ------------------------------------------------------------- socket -------------------------------------------------
 
     @Subscribe
-    void fireRcvConnectRequest(SocketConnectRequestEvent event) {
+    void fireConnectRequest(SocketConnectRequestEvent event) {
         acceptorManager.onRcvConnectRequest(event);
     }
 

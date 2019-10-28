@@ -23,7 +23,10 @@ import com.wjybxx.fastjgame.net.http.HttpRequestCommitTask;
 import com.wjybxx.fastjgame.net.http.HttpRequestEvent;
 import com.wjybxx.fastjgame.net.http.HttpSessionImp;
 import com.wjybxx.fastjgame.timer.FixedDelayHandle;
-import com.wjybxx.fastjgame.utils.*;
+import com.wjybxx.fastjgame.utils.CollectionUtils;
+import com.wjybxx.fastjgame.utils.FunctionUtils;
+import com.wjybxx.fastjgame.utils.NetUtils;
+import com.wjybxx.fastjgame.utils.TimeUtils;
 import io.netty.channel.Channel;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -41,8 +44,7 @@ import java.util.Map;
 @NotThreadSafe
 public class HttpSessionManager {
 
-    private static final int httpSessionTimeout = SystemUtils.getProperties()
-            .getAsInt("HttpSessionManager.httpSessionTimeout", 15);
+    private static final int TICK_INTERVAL = 5;
 
     private final NetEventLoopManager netEventLoopManager;
     private final NetTimeManager netTimeManager;
@@ -56,7 +58,7 @@ public class HttpSessionManager {
         this.netEventLoopManager = netEventLoopManager;
         this.netTimeManager = netTimeManager;
 
-        netTimerManager.newFixedDelay(httpSessionTimeout * TimeUtils.SEC, this::checkSessionTimeout);
+        netTimerManager.newFixedDelay(TICK_INTERVAL * TimeUtils.SEC, this::checkSessionTimeout);
     }
 
     /**
@@ -118,7 +120,7 @@ public class HttpSessionManager {
                 k -> new SessionWrapper(new HttpSessionImp(portExtraInfo.getNetContext(), netEventLoopManager.getEventLoop(), this, channel)));
 
         // 保持一段时间的活性
-        sessionWrapper.setSessionTimeout(httpSessionTimeout + netTimeManager.curTimeSeconds());
+        sessionWrapper.setSessionTimeout(portExtraInfo.getHttpSessionTimeout() + netTimeManager.curTimeSeconds());
 
         final HttpSessionImp httpSession = sessionWrapper.session;
 

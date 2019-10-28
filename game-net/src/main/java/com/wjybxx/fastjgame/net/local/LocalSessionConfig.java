@@ -39,7 +39,7 @@ public final class LocalSessionConfig extends SessionConfig {
     public static class LocalSessionConfigBuilder extends SessionConfigBuilder<LocalSessionConfigBuilder, LocalSessionConfig> {
 
         @Override
-        public LocalSessionConfig newInstance() {
+        protected LocalSessionConfig newInstance() {
             return new LocalSessionConfig(this);
         }
     }

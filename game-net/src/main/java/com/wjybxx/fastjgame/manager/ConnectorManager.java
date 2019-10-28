@@ -212,8 +212,12 @@ public class ConnectorManager implements SessionRegistry {
             session.pipeline()
                     .addLast(new LocalTransferHandler())
                     .addLast(new LocalCodecHandler())
-                    .addLast(new OneWaySupportHandler())
-                    .addLast(new RpcSupportHandler());
+                    .addLast(new OneWaySupportHandler());
+
+            // 是否开启rpc
+            if (config.isRpcAvailable()) {
+                session.pipeline().addLast(new RpcSupportHandler());
+            }
 
             // 保存双方引用 - 实现传输
             setRemoteSession(session, remoteSession);

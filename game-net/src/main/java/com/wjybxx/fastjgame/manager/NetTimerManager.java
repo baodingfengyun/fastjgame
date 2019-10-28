@@ -53,6 +53,7 @@ public class NetTimerManager {
         return timerSystem.newTimeout(timeout, task);
     }
 
+    @Nonnull
     public TimeoutHandle nextTick(@Nonnull TimerTask<TimeoutHandle> task) {
         return timerSystem.nextTick(task);
     }
