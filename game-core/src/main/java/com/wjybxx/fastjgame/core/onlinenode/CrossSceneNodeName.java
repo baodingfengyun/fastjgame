@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.core.onlinenode;
 /**
  * 跨服场景节点名字。
  * 场景服需要不同的名字，场景进程之间没有直接的互斥关系，后启动的可以和先启动的同时存在。
+ * channelId达成互斥
  *
  * @author wjybxx
  * @version 1.0
@@ -31,28 +32,28 @@ public class CrossSceneNodeName {
      */
     private final int warzoneId;
     /**
-     * guid
+     * 频道id
      */
-    private final long worldGuid;
+    private final int channelId;
 
-    public CrossSceneNodeName(int warzoneId, long worldGuid) {
+    public CrossSceneNodeName(int warzoneId, int channelId) {
         this.warzoneId = warzoneId;
-        this.worldGuid = worldGuid;
+        this.channelId = channelId;
     }
 
     public int getWarzoneId() {
         return warzoneId;
     }
 
-    public long getWorldGuid() {
-        return worldGuid;
+    public int getChannelId() {
+        return channelId;
     }
 
     @Override
     public String toString() {
         return "CrossSceneNodeName{" +
                 "warzoneId=" + warzoneId +
-                ", worldGuid=" + worldGuid +
+                ", channelId=" + channelId +
                 '}';
     }
 }

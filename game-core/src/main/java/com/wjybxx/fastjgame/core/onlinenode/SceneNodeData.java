@@ -28,23 +28,20 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * github - https://github.com/hl845740757
  */
 public class SceneNodeData extends TcpServerNodeData {
-    /**
-     * 该场景进程的频道id
-     */
-    private final int channelId;
+
+    private final long worldGuid;
 
     @JsonCreator
     public SceneNodeData(@JsonProperty("innerTcpAddress") String innerTcpAddress,
                          @JsonProperty("innerHttpAddress") String innerHttpAddress,
                          @JsonProperty("localAddress") String localAddress,
                          @JsonProperty("macAddress") String macAddress,
-                         @JsonProperty("channelId") int channelId) {
+                         @JsonProperty("worldGuid") long worldGuid) {
         super(innerTcpAddress, innerHttpAddress, localAddress, macAddress);
-        this.channelId = channelId;
+        this.worldGuid = worldGuid;
     }
 
-    public int getChannelId() {
-        return channelId;
+    public long getWorldGuid() {
+        return worldGuid;
     }
-
 }

@@ -43,6 +43,9 @@ public class EventLoopHolder<T extends EventLoop> {
     }
 
     public final T getEventLoop() {
+        if (null == eventLoop) {
+            throw new IllegalStateException();
+        }
         return eventLoop;
     }
 

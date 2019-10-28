@@ -71,13 +71,12 @@ public class LoginWorld extends AbstractWorld {
         HostAndPort innerHttpAddress = gameAcceptorMgr.bindInnerHttpPort();
         HostAndPort outerHttpAddress = gameAcceptorMgr.bindOuterHttpPort(loginWorldInfoMgr.getPort());
 
-        String parentPath = ZKPathUtils.onlineRootPath();
         String nodeName = ZKPathUtils.buildLoginNodeName(loginWorldInfoMgr.getPort(), loginWorldInfoMgr.getWorldGuid());
 
         LoginNodeData loginNodeData = new LoginNodeData(innerHttpAddress.toString(),
                 outerHttpAddress.toString());
 
-        final String path = ZKPaths.makePath(parentPath, nodeName);
+        final String path = ZKPaths.makePath(ZKPathUtils.onlineLoginRootPath(), nodeName);
         final byte[] initData = JsonUtils.toJsonBytes(loginNodeData);
         curatorMgr.createNode(path, CreateMode.EPHEMERAL, initData);
     }

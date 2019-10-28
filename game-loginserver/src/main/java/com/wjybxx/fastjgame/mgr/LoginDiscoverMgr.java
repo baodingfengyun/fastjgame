@@ -27,6 +27,7 @@ import org.apache.curator.framework.recipes.cache.*;
 
 /**
  * 登录服，用于发现所有的CenterServer。
+ * <p>
  * 调用{@link TreeCache#close()}的时候会关闭executor...
  * {@link PathChildrenCache}还能选是否关闭，{@link TreeCache}不能选择。
  * 不能随便关闭他人的线程池，所以如果要使用{@link TreeCache}必须新建线程池。
@@ -122,13 +123,13 @@ public class LoginDiscoverMgr {
         @Override
         public boolean acceptChild(String fullPath) {
             String nodeName = ZKPathUtils.findNodeName(fullPath);
-            // 战区节点(容器)
             if (nodeName.startsWith("warzone")) {
+                // 战区节点(容器)
                 return true;
             } else {
                 // 叶子节点
-                RoleType serverType = ZKPathUtils.parseServerType(nodeName);
-                return serverType == RoleType.CENTER;
+                final String parentNodeName = ZKPathUtils.findParentNodeName(fullPath);
+                return parentNodeName.startsWith("warzone") && ZKPathUtils.parseServerType(nodeName) == RoleType.CENTER;
             }
         }
     }

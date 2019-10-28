@@ -73,7 +73,7 @@ public class ZKPathUtils {
      * @param path 节点路径
      * @return
      */
-    private static String findParentNodeName(String path) {
+    public static String findParentNodeName(String path) {
         return findNodeName(findParentPath(path));
     }
 
@@ -312,21 +312,21 @@ public class ZKPathUtils {
      *
      * @param platformType 所属的平台
      * @param serverId     几服
-     * @param worldGuid    worldGuid
+     * @param channelId    频道id
      * @return 唯一的有意义的名字
      */
-    public static String buildSingleSceneNodeName(PlatformType platformType, int serverId, long worldGuid) {
-        return RoleType.SCENE + "-" + SceneWorldType.SINGLE.name() + "-" + platformType + "-" + serverId + "-" + worldGuid;
+    public static String buildSingleSceneNodeName(PlatformType platformType, int serverId, int channelId) {
+        return RoleType.SCENE + "-" + SceneWorldType.SINGLE.name() + "-" + platformType + "-" + serverId + "-" + channelId;
     }
 
     /**
      * 为跨服节点创建一个有意义的节点名字，用于注册到zookeeper
      *
-     * @param worldGuid worldGuid
+     * @param channelId 频道号
      * @return 唯一的有意义的名字
      */
-    public static String buildCrossSceneNodeName(long worldGuid) {
-        return RoleType.SCENE + "-" + SceneWorldType.CROSS.name() + "-" + worldGuid;
+    public static String buildCrossSceneNodeName(int channelId) {
+        return RoleType.SCENE + "-" + SceneWorldType.CROSS.name() + "-" + channelId;
     }
 
     /**
@@ -351,8 +351,8 @@ public class ZKPathUtils {
         String[] params = findNodeName(path).split("-");
         PlatformType platformType = PlatformType.valueOf(params[2]);
         int serverId = Integer.parseInt(params[3]);
-        long worldGuid = Long.parseLong(params[4]);
-        return new SingleSceneNodeName(warzoneId, platformType, serverId, worldGuid);
+        int channelId = Integer.parseInt(params[4]);
+        return new SingleSceneNodeName(warzoneId, platformType, serverId, channelId);
     }
 
     /**
@@ -364,8 +364,14 @@ public class ZKPathUtils {
     public static CrossSceneNodeName parseCrossSceneNodeName(String path) {
         int warzoneId = findWarzoneId(path);
         String[] params = findNodeName(path).split("-");
-        long worldGuid = Long.parseLong(params[2]);
-        return new CrossSceneNodeName(warzoneId, worldGuid);
+        int channelId = Integer.parseInt(params[2]);
+        return new CrossSceneNodeName(warzoneId, channelId);
+    }
+
+    // ------------------------------------------- 登录服 ---------------------------------------
+
+    public static String onlineLoginRootPath() {
+        return onlineRootPath() + "/login";
     }
 
     /**

@@ -114,20 +114,20 @@ public class SceneInCenterInfoMgr {
     /**
      * 当在zk上发现单服scene节点
      *
-     * @param singleSceneNodeName 本服scene节点名字信息
-     * @param onlineSceneNode     本服scene节点其它信息
+     * @param nodeName 本服scene节点名字信息
+     * @param nodeData 本服scene节点其它信息
      */
-    public void onDiscoverSingleScene(SingleSceneNodeName singleSceneNodeName, SceneNodeData onlineSceneNode) {
+    public void onDiscoverSingleScene(SingleSceneNodeName nodeName, SceneNodeData nodeData) {
         // 建立tcp连接
-        gameAcceptorMgr.connect(singleSceneNodeName.getWorldGuid(),
-                onlineSceneNode.getInnerTcpAddress(),
-                onlineSceneNode.getLocalAddress(),
-                onlineSceneNode.getMacAddress(),
+        gameAcceptorMgr.connect(nodeData.getWorldGuid(),
+                nodeData.getInnerTcpAddress(),
+                nodeData.getLocalAddress(),
+                nodeData.getMacAddress(),
                 new SingleSceneAware());
 
         // 保存信息
-        SceneInCenterInfo sceneInCenterInfo = new SceneInCenterInfo(singleSceneNodeName.getWorldGuid(),
-                onlineSceneNode.getChannelId(), SceneWorldType.SINGLE);
+        SceneInCenterInfo sceneInCenterInfo = new SceneInCenterInfo(nodeData.getWorldGuid(),
+                nodeName.getChannelId(), SceneWorldType.SINGLE);
 
         addSceneInfo(sceneInCenterInfo);
     }
@@ -138,26 +138,26 @@ public class SceneInCenterInfoMgr {
      * @param singleSceneNodeName 单服节点名字
      */
     public void onSingleSceneNodeRemoved(SingleSceneNodeName singleSceneNodeName) {
-        onSceneDisconnect(singleSceneNodeName.getWorldGuid());
+        onSceneDisconnect(singleSceneNodeName.getChannelId());
     }
 
     /**
      * 当在zk上发现跨服scene节点
      *
-     * @param crossSceneNodeName 跨服场景名字信息
-     * @param onlineSceneNode    跨服场景其它信息
+     * @param nodeName 跨服场景名字信息
+     * @param nodeData 跨服场景其它信息
      */
-    public void onDiscoverCrossScene(CrossSceneNodeName crossSceneNodeName, SceneNodeData onlineSceneNode) {
+    public void onDiscoverCrossScene(CrossSceneNodeName nodeName, SceneNodeData nodeData) {
         // 建立tcp连接
-        gameAcceptorMgr.connect(crossSceneNodeName.getWorldGuid(),
-                onlineSceneNode.getInnerTcpAddress(),
-                onlineSceneNode.getLocalAddress(),
-                onlineSceneNode.getMacAddress(),
+        gameAcceptorMgr.connect(nodeData.getWorldGuid(),
+                nodeData.getInnerTcpAddress(),
+                nodeData.getLocalAddress(),
+                nodeData.getMacAddress(),
                 new CrossSceneAware());
 
         // 保存信息
-        SceneInCenterInfo sceneInCenterInfo = new SceneInCenterInfo(crossSceneNodeName.getWorldGuid(),
-                onlineSceneNode.getChannelId(), SceneWorldType.CROSS);
+        SceneInCenterInfo sceneInCenterInfo = new SceneInCenterInfo(nodeData.getWorldGuid(),
+                nodeName.getChannelId(), SceneWorldType.CROSS);
 
         addSceneInfo(sceneInCenterInfo);
     }
@@ -168,14 +168,14 @@ public class SceneInCenterInfoMgr {
      * @param crossSceneNodeName 跨服节点名字
      */
     public void onCrossSceneNodeRemoved(CrossSceneNodeName crossSceneNodeName) {
-        onSceneDisconnect(crossSceneNodeName.getWorldGuid());
+        onSceneDisconnect(crossSceneNodeName.getChannelId());
     }
 
     /**
      * 当与scene断开连接(异步tcp会话断掉，或zk节点消失)
      */
-    private void onSceneDisconnect(long sceneWorldGuid) {
-        SceneInCenterInfo sceneInCenterInfo = guid2InfoMap.get(sceneWorldGuid);
+    private void onSceneDisconnect(final int channelId) {
+        SceneInCenterInfo sceneInCenterInfo = channelId2InfoMap.get(channelId);
         // 可能是一个无效的会话
         if (null == sceneInCenterInfo) {
             return;
@@ -216,7 +216,10 @@ public class SceneInCenterInfoMgr {
 
         @Override
         public void onSessionDisconnected(Session session) {
-            onSceneDisconnect(session.remoteGuid());
+            final SceneInCenterInfo sceneInCenterInfo = guid2InfoMap.get(session.remoteGuid());
+            if (null != sceneInCenterInfo) {
+                onSceneDisconnect(sceneInCenterInfo.getChanelId());
+            }
         }
     }
 
@@ -235,7 +238,10 @@ public class SceneInCenterInfoMgr {
 
         @Override
         public void onSessionDisconnected(Session session) {
-            onSceneDisconnect(session.remoteGuid());
+            final SceneInCenterInfo sceneInCenterInfo = guid2InfoMap.get(session.remoteGuid());
+            if (null != sceneInCenterInfo) {
+                onSceneDisconnect(sceneInCenterInfo.getChanelId());
+            }
         }
     }
 

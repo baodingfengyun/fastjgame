@@ -41,7 +41,7 @@ public class CenterInLoginInfoMgr {
 
     private static final Logger logger = LoggerFactory.getLogger(CenterInLoginInfoMgr.class);
     /**
-     * 平台 -> 服id-> 服信息的映射，暂时未涉及跨平台
+     * 平台 -> 服id-> 服信息的映射
      */
     private final Map<PlatformType, Int2ObjectMap<CenterInLoginInfo>> platInfoMap = new EnumMap<>(PlatformType.class);
 
@@ -58,8 +58,7 @@ public class CenterInLoginInfoMgr {
         Int2ObjectMap<CenterInLoginInfo> serverId2InfoMap = getServerId2InfoMap(nodeName.getPlatformType());
         assert !serverId2InfoMap.containsKey(nodeName.getServerId());
 
-        CenterInLoginInfo centerInLoginInfo = new CenterInLoginInfo(nodeData.getWorldGuid(), nodeName.getPlatformType(),
-                nodeName.getServerId(), nodeData.getInnerHttpAddress());
+        CenterInLoginInfo centerInLoginInfo = new CenterInLoginInfo(nodeName, nodeData);
         serverId2InfoMap.put(nodeName.getServerId(), centerInLoginInfo);
         logger.info("{}-{} nodeData added.", nodeName.getPlatformType(), nodeName.getServerId());
     }

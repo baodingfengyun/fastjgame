@@ -3,13 +3,15 @@ package com.wjybxx.fastjgame.world;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.core.onlinenode.SceneNodeData;
-import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.mgr.*;
+import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.rpcservice.ICenterInSceneInfoMgrRpcRegister;
 import com.wjybxx.fastjgame.rpcservice.ISceneRegionMgrRpcRegister;
-import com.wjybxx.fastjgame.utils.*;
+import com.wjybxx.fastjgame.utils.JsonUtils;
+import com.wjybxx.fastjgame.utils.SystemUtils;
+import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
@@ -90,16 +92,24 @@ public class SceneWorld extends AbstractWorld {
         HostAndPort innerHttpAddress = gameAcceptorMgr.bindInnerHttpPort();
         HostAndPort localAddress = gameAcceptorMgr.bindLocalTcpPort(centerLifeAware);
 
-        SceneNodeData sceneNodeData = new SceneNodeData(innerTcpAddress.toString(), innerHttpAddress.toString(), localAddress.toString(), SystemUtils.getMAC(),
-                sceneWorldInfoMgr.getChannelId());
+        final SceneNodeData sceneNodeData = new SceneNodeData(innerTcpAddress.toString(),
+                innerHttpAddress.toString(),
+                localAddress.toString(), SystemUtils.getMAC(),
+                sceneWorldInfoMgr.getWorldGuid());
 
         String parentPath = ZKPathUtils.onlineParentPath(sceneWorldInfoMgr.getWarzoneId());
         String nodeName;
         if (sceneWorldInfoMgr.getSceneWorldType() == SceneWorldType.SINGLE) {
-            nodeName = ZKPathUtils.buildSingleSceneNodeName(sceneWorldInfoMgr.getPlatformType(), sceneWorldInfoMgr.getServerId(), sceneWorldInfoMgr.getWorldGuid());
+            nodeName = ZKPathUtils.buildSingleSceneNodeName(sceneWorldInfoMgr.getPlatformType(),
+                    sceneWorldInfoMgr.getServerId(),
+                    sceneWorldInfoMgr.getChannelId());
         } else {
-            nodeName = ZKPathUtils.buildCrossSceneNodeName(sceneWorldInfoMgr.getWorldGuid());
+            nodeName = ZKPathUtils.buildCrossSceneNodeName(sceneWorldInfoMgr.getChannelId()
+            );
         }
+        // 当前批次获得的channelId可能和上一批次获得的channelId重复，因此需要等待
+        curatorMgr.waitForNodeDelete(ZKPaths.makePath(parentPath, nodeName));
+        // 这里创建可能会失败，失败则退出线程
         curatorMgr.createNode(ZKPaths.makePath(parentPath, nodeName), CreateMode.EPHEMERAL, JsonUtils.toJsonBytes(sceneNodeData));
     }
 

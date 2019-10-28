@@ -34,7 +34,7 @@ import java.util.Map;
 import static org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent.Type;
 
 /**
- * CenterServer端的节点发现逻辑，类似服务发现，但不一样。
+ * CenterServer端的节点发现逻辑，类似服务发现。
  * <p>
  * CenterServer需要探测所有的scene和warzone，并派发事件与之建立链接
  *
@@ -129,22 +129,22 @@ public class CenterDiscoverMgr {
             }
             if (type == Type.CHILD_ADDED) {
                 sceneInCenterInfoMgr.onDiscoverSingleScene(singleSceneNodeName, sceneNodeData);
-                logger.info("discover single scene {}-{}-{}", singleSceneNodeName.getPlatformType(), singleSceneNodeName.getServerId(), sceneNodeData.getChannelId());
+                logger.info("discover single scene {}-{}-{}", singleSceneNodeName.getPlatformType(), singleSceneNodeName.getServerId(), singleSceneNodeName.getChannelId());
             } else {
                 // remove
                 sceneInCenterInfoMgr.onSingleSceneNodeRemoved(singleSceneNodeName);
-                logger.info("remove single scene {}-{}-{}", singleSceneNodeName.getPlatformType(), singleSceneNodeName.getServerId(), sceneNodeData.getChannelId());
+                logger.info("remove single scene {}-{}-{}", singleSceneNodeName.getPlatformType(), singleSceneNodeName.getServerId(), singleSceneNodeName.getChannelId());
             }
         } else {
             // 跨服场景
             CrossSceneNodeName crossSceneNodeName = ZKPathUtils.parseCrossSceneNodeName(childData.getPath());
             if (type == Type.CHILD_ADDED) {
                 sceneInCenterInfoMgr.onDiscoverCrossScene(crossSceneNodeName, sceneNodeData);
-                logger.debug("discover cross scene {}", sceneNodeData.getChannelId());
+                logger.debug("discover cross scene {}", crossSceneNodeName.getChannelId());
             } else {
                 // remove
                 sceneInCenterInfoMgr.onCrossSceneNodeRemoved(crossSceneNodeName);
-                logger.debug("remove cross scene {}", sceneNodeData.getChannelId());
+                logger.debug("remove cross scene {}", crossSceneNodeName.getChannelId());
             }
         }
     }

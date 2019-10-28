@@ -67,4 +67,5 @@ public class GateNodeName {
     public long getWorldGuid() {
         return worldGuid;
     }
+
 }

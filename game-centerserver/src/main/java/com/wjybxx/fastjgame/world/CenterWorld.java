@@ -18,10 +18,13 @@ package com.wjybxx.fastjgame.world;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.onlinenode.CenterNodeData;
-import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.mgr.*;
+import com.wjybxx.fastjgame.misc.HostAndPort;
+import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
+import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.JsonUtils;
+import com.wjybxx.fastjgame.utils.SystemUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.CreateMode;
@@ -77,14 +80,22 @@ public class CenterWorld extends AbstractWorld {
     }
 
     private void bindAndRegisterToZK() throws Exception {
-        // 它主动发起连接，不监听tcp，只监听http即可
+        final GateLifeAware gateLifeAware = new GateLifeAware();
+        // 绑定jvm内部通信端口
+        gameAcceptorMgr.bindLocalPort(gateLifeAware);
+        // 绑定3个内部交互的端口
+        HostAndPort tcpHostAndPort = gameAcceptorMgr.bindInnerTcpPort(gateLifeAware);
         HostAndPort httpHostAndPort = gameAcceptorMgr.bindInnerHttpPort();
+        HostAndPort localAddress = gameAcceptorMgr.bindLocalTcpPort(gateLifeAware);
 
         // 注册到zk
         String parentPath = ZKPathUtils.onlineParentPath(centerWorldInfoMgr.getWarzoneId());
         String nodeName = ZKPathUtils.buildCenterNodeName(centerWorldInfoMgr.getPlatformType(), centerWorldInfoMgr.getServerId());
 
-        CenterNodeData centerNodeData = new CenterNodeData(httpHostAndPort.toString(),
+        final CenterNodeData centerNodeData = new CenterNodeData(tcpHostAndPort.toString(),
+                httpHostAndPort.toString(),
+                localAddress.toString(),
+                SystemUtils.getMAC(),
                 centerWorldInfoMgr.getWorldGuid());
 
         final String path = ZKPaths.makePath(parentPath, nodeName);
@@ -104,5 +115,18 @@ public class CenterWorld extends AbstractWorld {
     @Override
     protected void shutdownHook() throws IOException {
         centerDiscoverMgr.shutdown();
+    }
+
+    private class GateLifeAware implements SessionLifecycleAware {
+
+        @Override
+        public void onSessionConnected(Session session) {
+
+        }
+
+        @Override
+        public void onSessionDisconnected(Session session) {
+
+        }
     }
 }

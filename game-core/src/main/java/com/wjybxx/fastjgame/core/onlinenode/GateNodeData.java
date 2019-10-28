@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.core.onlinenode;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * 网关节点数据
  *
@@ -39,7 +41,9 @@ public class GateNodeData {
      */
     private final String outerWebsocketAddress;
 
-    public GateNodeData(String innerHttpAddress, String outerTcpAddress, String outerWebsocketAddress) {
+    public GateNodeData(@JsonProperty("innerHttpAddress") String innerHttpAddress,
+                        @JsonProperty("outerTcpAddress") String outerTcpAddress,
+                        @JsonProperty("outerWebsocketAddress") String outerWebsocketAddress) {
         this.innerHttpAddress = innerHttpAddress;
         this.outerTcpAddress = outerTcpAddress;
         this.outerWebsocketAddress = outerWebsocketAddress;

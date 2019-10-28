@@ -115,7 +115,7 @@ public class CuratorClientMgr {
      * @return RetryPolicy
      */
     public BackoffRetryForever newForeverRetry() {
-        // 50ms - 3s 默认时间是很难调整和确定的
+        // 50ms - 5s 默认时间是很难调整和确定的
         return newForeverRetry(200, 5000);
     }
 

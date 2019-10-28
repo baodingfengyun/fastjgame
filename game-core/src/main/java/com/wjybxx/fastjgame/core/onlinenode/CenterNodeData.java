@@ -27,9 +27,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * date - 2019/5/15 17:21
  * github - https://github.com/hl845740757
  */
-public class CenterNodeData {
+public class CenterNodeData extends TcpServerNodeData {
 
-    private final String innerHttpAddress;
     /**
      * world唯一标识。
      * 因为center节点需要互斥存在，因此guid不在名字里，而是在这里。
@@ -37,14 +36,13 @@ public class CenterNodeData {
     private final long worldGuid;
 
     @JsonCreator
-    public CenterNodeData(@JsonProperty("innerHttpAddress") String innerHttpAddress,
+    public CenterNodeData(@JsonProperty("innerTcpAddress") String innerTcpAddress,
+                          @JsonProperty("innerHttpAddres") String innerHttpAddress,
+                          @JsonProperty("localAddress") String localAddress,
+                          @JsonProperty("macAddress") String macAddress,
                           @JsonProperty("worldGuid") long worldGuid) {
-        this.innerHttpAddress = innerHttpAddress;
+        super(innerTcpAddress, innerHttpAddress, localAddress, macAddress);
         this.worldGuid = worldGuid;
-    }
-
-    public String getInnerHttpAddress() {
-        return innerHttpAddress;
     }
 
     public long getWorldGuid() {

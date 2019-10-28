@@ -16,6 +16,9 @@
 
 package com.wjybxx.fastjgame.misc;
 
+import com.wjybxx.fastjgame.core.onlinenode.CenterNodeData;
+import com.wjybxx.fastjgame.core.onlinenode.CenterNodeName;
+
 /**
  * 中心服在登录服的信息
  *
@@ -25,43 +28,44 @@ package com.wjybxx.fastjgame.misc;
  * github - https://github.com/hl845740757
  */
 public class CenterInLoginInfo {
-    /**
-     * worldGuid
-     */
-    private final long worldGuid;
-    /**
-     * 平台
-     */
-    private final PlatformType platformType;
-    /**
-     * 服id
-     */
-    private final int serverId;
-    /**
-     * 使用http与center通信(没必要长链接)
-     */
-    private final String innerHttpAddress;
 
-    public CenterInLoginInfo(long worldGuid, PlatformType platformType, int serverId, String innerHttpAddress) {
-        this.worldGuid = worldGuid;
-        this.platformType = platformType;
-        this.serverId = serverId;
-        this.innerHttpAddress = innerHttpAddress;
+    private final CenterNodeName nodeName;
+    private final CenterNodeData nodeData;
+
+    public CenterInLoginInfo(CenterNodeName nodeName, CenterNodeData nodeData) {
+        this.nodeName = nodeName;
+        this.nodeData = nodeData;
     }
 
-    public long getWorldGuid() {
-        return worldGuid;
+    public int getWarzoneId() {
+        return nodeName.getWarzoneId();
     }
 
     public PlatformType getPlatformType() {
-        return platformType;
+        return nodeName.getPlatformType();
     }
 
     public int getServerId() {
-        return serverId;
+        return nodeName.getServerId();
+    }
+
+    public long getWorldGuid() {
+        return nodeData.getWorldGuid();
+    }
+
+    public String getInnerTcpAddress() {
+        return nodeData.getInnerTcpAddress();
     }
 
     public String getInnerHttpAddress() {
-        return innerHttpAddress;
+        return nodeData.getInnerHttpAddress();
+    }
+
+    public String getLocalAddress() {
+        return nodeData.getLocalAddress();
+    }
+
+    public String getMacAddress() {
+        return nodeData.getMacAddress();
     }
 }

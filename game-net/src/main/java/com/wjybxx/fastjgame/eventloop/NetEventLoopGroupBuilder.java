@@ -29,7 +29,7 @@ public class NetEventLoopGroupBuilder {
     /**
      * 设置{@link NetEventLoopGroup}中的{@link NetEventLoop}数量，如果session数较多，建议多个。
      */
-    private int nThreads = 1;
+    private int netEventLoopNum = 1;
     /**
      * netty线程配置
      */
@@ -43,9 +43,9 @@ public class NetEventLoopGroupBuilder {
      */
     private int httpRequestTimeout = 15;
 
-    public NetEventLoopGroupBuilder setnThreads(int nThreads) {
-        CheckUtils.checkPositive(nThreads, "nThreads");
-        this.nThreads = nThreads;
+    public NetEventLoopGroupBuilder setNetEventLoopNum(int netEventLoopNum) {
+        CheckUtils.checkPositive(netEventLoopNum, "netEventLoopNum");
+        this.netEventLoopNum = netEventLoopNum;
         return this;
     }
 
@@ -78,6 +78,6 @@ public class NetEventLoopGroupBuilder {
 
     public NetEventLoopGroupImp build() {
         final NetEventLoopGroupImp.GroupConfig groupConfig = new NetEventLoopGroupImp.GroupConfig(bossGroupThreadNum, workerGroupThreadNum, httpRequestTimeout);
-        return new NetEventLoopGroupImp(nThreads, threadFactory, rejectedExecutionHandler, groupConfig);
+        return new NetEventLoopGroupImp(netEventLoopNum, threadFactory, rejectedExecutionHandler, groupConfig);
     }
 }

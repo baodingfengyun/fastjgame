@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.misc.PlatformType;
 /**
  * 单服场景节点名字。
  * 场景服需要不同的名字，场景进程之间没有直接的互斥关系，后启动的可以和先启动的同时存在。
+ * platformType-serverId-channelId达成互斥
  *
  * @author wjybxx
  * @version 1.0
@@ -41,15 +42,15 @@ public class SingleSceneNodeName {
      */
     private final int serverId;
     /**
-     * guid
+     * 频道id
      */
-    private final long worldGuid;
+    private final int channelId;
 
-    public SingleSceneNodeName(int warzoneId, PlatformType platformType, int serverId, long worldGuid) {
+    public SingleSceneNodeName(int warzoneId, PlatformType platformType, int serverId, int channelId) {
         this.warzoneId = warzoneId;
         this.platformType = platformType;
         this.serverId = serverId;
-        this.worldGuid = worldGuid;
+        this.channelId = channelId;
     }
 
     public int getWarzoneId() {
@@ -64,16 +65,17 @@ public class SingleSceneNodeName {
         return serverId;
     }
 
-    public long getWorldGuid() {
-        return worldGuid;
+    public int getChannelId() {
+        return channelId;
     }
 
     @Override
     public String toString() {
         return "SingleSceneNodeName{" +
                 "warzoneId=" + warzoneId +
+                ", platformType=" + platformType +
                 ", serverId=" + serverId +
-                ", worldGuid=" + worldGuid +
+                ", channelId=" + channelId +
                 '}';
     }
 }
