@@ -117,7 +117,7 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     @Nonnull
     @Override
     public NetEventLoop select(int key) {
-        return (NetEventLoop) super.select(key);
+        return this;
     }
 
     @Nonnull
@@ -222,15 +222,17 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         if (userEventLoopSet.add(localEventLoop)) {
             // 监听用户线程关闭
             localEventLoop.terminationFuture().addListener(future -> {
-                final EventLoopTerminalEvent terminalEvent = new EventLoopTerminalEvent(localEventLoop);
-                publish(terminalEvent);
+                if (!isShuttingDown()) {
+                    final EventLoopTerminalEvent terminalEvent = new EventLoopTerminalEvent(localEventLoop);
+                    publish(terminalEvent);
+                }
             });
         }
 
         return new DefaultNetContext(localGuid, localEventLoop, this, httpClientManager, nettyThreadManager);
     }
 
-    // ------------------------------------------------------------- socket -------------------------------------------------
+    // ---------------------------------------------- socket -------------------------------------------------
 
     @Subscribe
     void fireConnectRequest(SocketConnectRequestEvent event) {

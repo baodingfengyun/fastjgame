@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.misc;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.concurrent.FailedFuture;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.eventloop.NetContext;
@@ -104,8 +103,8 @@ public class DefaultNetContext implements NetContext {
     public ListenableFuture<Session> connectTcp(String sessionId, long remoteGuid, HostAndPort remoteAddress, @Nonnull SocketSessionConfig config) {
         final NetEventLoop netEventLoop = selectNetEventLoop(sessionId);
         final TCPClientChannelInitializer initializer = new TCPClientChannelInitializer(sessionId, localGuid, config, netEventLoop);
-        final Promise<Session> connectPromise = netEventLoop.newPromise();
 
+        final Promise<Session> connectPromise = netEventLoop.newPromise();
         netEventLoop.publish(new ConnectRemoteRequest(sessionId, remoteGuid, remoteAddress, config, initializer, this, connectPromise));
         return connectPromise;
     }
@@ -121,8 +120,8 @@ public class DefaultNetContext implements NetContext {
     public ListenableFuture<Session> connectWS(String sessionId, long remoteGuid, HostAndPort remoteAddress, String websocketUrl, @Nonnull SocketSessionConfig config) {
         final NetEventLoop netEventLoop = selectNetEventLoop(sessionId);
         final WsClientChannelInitializer initializer = new WsClientChannelInitializer(sessionId, remoteGuid, websocketUrl, config, netEventLoop);
-        final Promise<Session> connectPromise = netEventLoop.newPromise();
 
+        final Promise<Session> connectPromise = netEventLoop.newPromise();
         netEventLoop.publish(new ConnectRemoteRequest(sessionId, remoteGuid, remoteAddress, config, initializer, this, connectPromise));
         return connectPromise;
     }
@@ -138,7 +137,7 @@ public class DefaultNetContext implements NetContext {
     public ListenableFuture<Session> connectLocal(String sessionId, long remoteGuid, @Nonnull LocalPort localPort, @Nonnull LocalSessionConfig config) {
         final NetEventLoop netEventLoop = selectNetEventLoop(sessionId);
         if (!(localPort instanceof DefaultLocalPort)) {
-            return new FailedFuture<>(netEventLoop, new UnsupportedOperationException());
+            throw new UnsupportedOperationException();
         }
 
         final Promise<Session> connectPromise = netEventLoop.newPromise();

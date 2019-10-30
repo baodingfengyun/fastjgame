@@ -134,7 +134,9 @@ class NetEventLoopGroupImp extends MultiThreadEventLoopGroup implements NetEvent
             for (EventLoop eventLoop : this) {
                 // 分开监听 -> 避免某一个出现异常导致其它EventLoop丢失信号
                 localEventLoop.terminationFuture().addListener(future -> {
-                    eventLoop.publish(terminalEvent);
+                    if (!eventLoop.isShuttingDown()) {
+                        eventLoop.publish(terminalEvent);
+                    }
                 });
             }
         }

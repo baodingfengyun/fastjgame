@@ -93,7 +93,7 @@ public class GameEventLoopImp extends DisruptorEventLoop implements GameEventLoo
     @Nonnull
     @Override
     public GameEventLoop select(int key) {
-        return (GameEventLoop) super.select(key);
+        return this;
     }
 
     @Override

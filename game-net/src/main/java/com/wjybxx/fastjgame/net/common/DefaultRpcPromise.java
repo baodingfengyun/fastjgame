@@ -19,7 +19,9 @@ package com.wjybxx.fastjgame.net.common;
 import com.wjybxx.fastjgame.concurrent.DefaultPromise;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.FutureListener;
+import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
+import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.TimeUnit;
@@ -35,28 +37,28 @@ import java.util.concurrent.TimeUnit;
 public class DefaultRpcPromise extends DefaultPromise<RpcResponse> implements RpcPromise {
 
     /**
-     * 发起rpc请求的用户的线程。
-     * (默认的通知线程，这样的目的是可以避免死锁)
+     * 工作线程 - 检查死锁的线程
      */
-    private final EventLoop userEventLoop;
+    private final NetEventLoop workerEventLoop;
     /**
      * 最终过期时间(毫秒)
      */
     private final long deadline;
 
     /**
-     * @param workerEventLoop 创建该promise的EventLoop，为了支持用户调用{@link #await()}系列方法，避免死锁问题。
+     * @param workerEventLoop 创建该promise的EventLoop，禁止等待的线程。
      * @param userEventLoop   发起rpc调用的用户所在的EventLoop
      * @param timeoutMs       promise超时时间
      */
     public DefaultRpcPromise(NetEventLoop workerEventLoop, EventLoop userEventLoop, long timeoutMs) {
-        super(workerEventLoop);
-        this.userEventLoop = userEventLoop;
+        super(userEventLoop);
+        this.workerEventLoop = workerEventLoop;
         this.deadline = System.currentTimeMillis() + timeoutMs;
     }
 
-    protected EventLoop getUserEventLoop() {
-        return userEventLoop;
+    @Override
+    protected void checkDeadlock() {
+        ConcurrentUtils.checkDeadLock(workerEventLoop);
     }
 
     // ------------------------------------------- get不抛出中断以外异常 ----------------------------------------
@@ -155,21 +157,26 @@ public class DefaultRpcPromise extends DefaultPromise<RpcResponse> implements Rp
     // ------------------------------------------------- 监听器管理 ----------------------------------------------------
 
     @Override
-    public void addListener(@Nonnull FutureListener<? super RpcResponse> listener) {
-        // 监听器也默认执行在用户线程中，保证时序
-        addListener(listener, userEventLoop);
-    }
-
-    @Override
     public void addCallback(RpcCallback rpcCallback) {
-        // Rpc回调默认执行在用户线程下
-        addCallback(rpcCallback, userEventLoop);
+        addListener(new RpcFutureListener(rpcCallback));
     }
 
     @Override
     public void addCallback(RpcCallback rpcCallback, EventLoop eventLoop) {
-        addListener(future -> {
+        addListener(new RpcFutureListener(rpcCallback), eventLoop);
+    }
+
+    private static class RpcFutureListener implements FutureListener<RpcResponse> {
+
+        private final RpcCallback rpcCallback;
+
+        private RpcFutureListener(RpcCallback rpcCallback) {
+            this.rpcCallback = rpcCallback;
+        }
+
+        @Override
+        public void onComplete(ListenableFuture<? extends RpcResponse> future) throws Exception {
             rpcCallback.onComplete(future.getNow());
-        }, eventLoop);
+        }
     }
 }

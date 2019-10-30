@@ -18,6 +18,8 @@ package com.wjybxx.fastjgame.world;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.mgr.WorldWrapper;
+import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
+import com.wjybxx.fastjgame.net.session.Session;
 
 /**
  * 网关服world
@@ -57,5 +59,18 @@ public class GateWorld extends AbstractWorld{
     @Override
     protected void shutdownHook() throws Exception {
 
+    }
+
+    private class PlayerLifeAware implements SessionLifecycleAware {
+
+        @Override
+        public void onSessionConnected(Session session) {
+
+        }
+
+        @Override
+        public void onSessionDisconnected(Session session) {
+
+        }
     }
 }

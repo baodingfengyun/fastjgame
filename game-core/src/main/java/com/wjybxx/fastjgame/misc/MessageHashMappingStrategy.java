@@ -38,6 +38,7 @@ public class MessageHashMappingStrategy implements MessageMappingStrategy {
 
     /**
      * 同一个进程下使用是的相同的消息类，不必反复扫描
+     * (初始化线程安全)
      */
     private static final Object2IntMap<Class<?>> messageClass2IdMap = new Object2IntOpenHashMap<>(512);
 

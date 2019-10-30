@@ -58,7 +58,8 @@ public class SceneInCenterInfoMgr {
 
     private static final Logger logger = LoggerFactory.getLogger(SceneInCenterInfoMgr.class);
 
-    private static final List<SceneInCenterInfo> availableSceneProcessListCache = new ArrayList<>(8);
+    // 不可以是static的，否则会导致线程安全问题
+    private final List<SceneInCenterInfo> availableSceneProcessListCache = new ArrayList<>(8);
 
     private final CenterWorldInfoMgr centerWorldInfoMgr;
     private final TemplateMgr templateMgr;
@@ -210,7 +211,7 @@ public class SceneInCenterInfoMgr {
         public void onSessionConnected(Session session) {
             getSceneInfo(session.remoteGuid()).setSession(session);
             ICenterInSceneInfoMgrRpcProxy.connectSingleScene(centerWorldInfoMgr.getPlatformType().getNumber(), centerWorldInfoMgr.getServerId())
-                    .onSuccess(result -> connectSingleSuccessResult(session, result))
+                    .onSuccess(result -> onConnectSingleSceneSuccess(session, result))
                     .call(session);
         }
 
@@ -232,7 +233,7 @@ public class SceneInCenterInfoMgr {
         public void onSessionConnected(Session session) {
             getSceneInfo(session.remoteGuid()).setSession(session);
             ICenterInSceneInfoMgrRpcProxy.connectCrossScene(centerWorldInfoMgr.getPlatformType().getNumber(), centerWorldInfoMgr.getServerId())
-                    .onSuccess(result -> connectCrossSceneSuccess(session, result))
+                    .onSuccess(result -> onConnectCrossSceneSuccess(session, result))
                     .call(session);
         }
 
@@ -251,7 +252,7 @@ public class SceneInCenterInfoMgr {
      * @param session               scene会话信息
      * @param configuredRegionsList 配置的区域
      */
-    private void connectSingleSuccessResult(Session session, List<Integer> configuredRegionsList) {
+    private void onConnectSingleSceneSuccess(Session session, List<Integer> configuredRegionsList) {
         assert guid2InfoMap.containsKey(session.remoteGuid());
         SceneInCenterInfo sceneInCenterInfo = guid2InfoMap.get(session.remoteGuid());
 
@@ -287,7 +288,7 @@ public class SceneInCenterInfoMgr {
      * @param session 与跨服场景的会话
      * @param result  响应结果
      */
-    private void connectCrossSceneSuccess(Session session, ConnectCrossSceneResult result) {
+    private void onConnectCrossSceneSuccess(Session session, ConnectCrossSceneResult result) {
         assert guid2InfoMap.containsKey(session.remoteGuid());
         SceneInCenterInfo sceneInCenterInfo = guid2InfoMap.get(session.remoteGuid());
         // 配置的区域

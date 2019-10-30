@@ -136,16 +136,4 @@ public class SceneWorld extends AbstractWorld {
         }
     }
 
-    private class PlayerLifeAware implements SessionLifecycleAware {
-
-        @Override
-        public void onSessionConnected(Session session) {
-
-        }
-
-        @Override
-        public void onSessionDisconnected(Session session) {
-
-        }
-    }
 }

@@ -83,10 +83,13 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     private final AtomicReference<Object> resultHolder = new AtomicReference<>();
 
     /**
-     * 创建Promise的EventLoop，也是任务执行的线程，也是默认的通知用的executor。
-     * 如果任务执行期间可能改变executor，那么需要重写{@link #executor()}，以返回最新的executor。
+     * 默认的通知用的executor。
+     *
+     * @apiNote 1. 如果在创建promise时不能确定，那么需要重写{@link #notifyExecutor()}，以返回最新的executor。
+     * 2. 默认情况下：认为该executor就是执行任务的executor，因此检查死锁时也是检查该executor；
+     * 如果该executor不是任务的执行环境，你还需要重写{@link #checkDeadlock()}确保检查死锁的正确性。
      */
-    private final EventLoop _executor;
+    private final EventLoop _notifyExecutor;
 
     /**
      * 该future上注册的监听器们。
@@ -107,15 +110,18 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     @GuardedBy("this")
     private int waiters = 0;
 
-    public DefaultPromise(@Nonnull EventLoop executor) {
-        this._executor = executor;
+    /**
+     * @param notifyExecutor 默认的事件通知线程
+     */
+    public DefaultPromise(@Nonnull EventLoop notifyExecutor) {
+        this._notifyExecutor = notifyExecutor;
     }
 
     /**
-     * 供子类使用的构造方法。如果使用该构造方法，必须重写{@link #executor()}方法
+     * 供子类使用的构造方法。如果使用该构造方法，必须重写{@link #notifyExecutor()}方法
      */
     protected DefaultPromise() {
-        this._executor = null;
+        this._notifyExecutor = null;
     }
 
     private Object getResult() {
@@ -129,8 +135,8 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
      */
     @SuppressWarnings("ConstantConditions")
     @Nonnull
-    protected EventLoop executor() {
-        return _executor;
+    protected EventLoop notifyExecutor() {
+        return _notifyExecutor;
     }
 
     // ----------------------------------------- state begin --------------------------------------------
@@ -377,7 +383,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
      */
     private void notifyListener(FutureListener<? super V> listener, @Nullable EventLoop bindExecutor) {
         // 如果注册监听器时没有绑定执行环境(执行线程)，则使用当前最新的executor
-        EventLoop executor = null == bindExecutor ? executor() : bindExecutor;
+        EventLoop executor = null == bindExecutor ? notifyExecutor() : bindExecutor;
         notifyListenerSafely(this, listener, executor);
     }
 
@@ -431,10 +437,10 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     // ----------------------------------------- 等待 ----------------------------------------------------
 
     /**
-     * 检查死锁可能，定义为方法是为了方便子类特殊逻辑
+     * 检查死锁可能。
      */
     protected void checkDeadlock() {
-        ConcurrentUtils.checkDeadLock(executor());
+        ConcurrentUtils.checkDeadLock(notifyExecutor());
     }
 
     /**
@@ -587,13 +593,13 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     // ------------------------------------------------- 监听器 ------------------------------------------
 
     @Override
-    public void addListener(@Nonnull FutureListener<? super V> listener) {
+    public final void addListener(@Nonnull FutureListener<? super V> listener) {
         // null is safe
         addListener0(listener, null);
     }
 
     @Override
-    public void addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor) {
+    public final void addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor) {
         addListener0(listener, bindExecutor);
     }
 
