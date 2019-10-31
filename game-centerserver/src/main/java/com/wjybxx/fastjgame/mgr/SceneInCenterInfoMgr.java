@@ -116,33 +116,36 @@ public class SceneInCenterInfoMgr {
      * @param nodeData 本服scene节点其它信息
      */
     public void onDiscoverSceneNode(SceneNodeName nodeName, SceneNodeData nodeData) {
+        final SceneInCenterInfo sceneInCenterInfo = channelId2InfoMap.get(nodeName.getChannelId());
+        if (null != sceneInCenterInfo) {
+            // 可能丢失了节点消失事件
+            logger.error("my loss childRemove event");
+            onSceneDisconnect(sceneInCenterInfo.getWorldGuid());
+        }
+
         // 建立tcp连接
         gameAcceptorMgr.connect(nodeData.getWorldGuid(),
                 nodeData.getInnerTcpAddress(),
                 nodeData.getLocalAddress(),
                 nodeData.getMacAddress(),
-                new SingleSceneAware());
-
-        // 保存信息
-        SceneInCenterInfo sceneInCenterInfo = new SceneInCenterInfo(nodeName, nodeData.getWorldGuid());
-
-        addSceneInfo(sceneInCenterInfo);
+                new SingleSceneAware(nodeName, nodeData));
     }
 
     /**
      * 当本服scene节点移除
      *
      * @param sceneNodeName 单服节点名字
+     * @param sceneNodeData 场景节点数据
      */
-    public void onSceneNodeRemoved(SceneNodeName sceneNodeName) {
-        onSceneDisconnect(sceneNodeName.getChannelId());
+    public void onSceneNodeRemoved(SceneNodeName sceneNodeName, SceneNodeData sceneNodeData) {
+        onSceneDisconnect(sceneNodeData.getWorldGuid());
     }
 
     /**
      * 当与scene断开连接(异步tcp会话断掉，或zk节点消失)
      */
-    private void onSceneDisconnect(final int channelId) {
-        SceneInCenterInfo sceneInCenterInfo = channelId2InfoMap.get(channelId);
+    private void onSceneDisconnect(final long worldGuid) {
+        SceneInCenterInfo sceneInCenterInfo = guid2InfoMap.get(worldGuid);
         // 可能是一个无效的会话
         if (null == sceneInCenterInfo) {
             return;
@@ -169,32 +172,44 @@ public class SceneInCenterInfoMgr {
      */
     private class SingleSceneAware implements SessionLifecycleAware {
 
+        private final SceneNodeName nodeName;
+        private final SceneNodeData nodeData;
+
+        private SingleSceneAware(SceneNodeName nodeName, SceneNodeData nodeData) {
+            this.nodeName = nodeName;
+            this.nodeData = nodeData;
+        }
+
         @Override
         public void onSessionConnected(Session session) {
-            getSceneInfo(session.remoteGuid()).setSession(session);
             ICenterInSceneInfoMgrRpcProxy.connectScene(worldInfoMgr.getPlatformType().getNumber(), worldInfoMgr.getServerId())
-                    .onSuccess(result -> onConnectSceneSuccess(session, result))
+                    .onSuccess(result -> onConnectSceneSuccess(nodeName, nodeData, session, result))
                     .call(session);
         }
 
         @Override
         public void onSessionDisconnected(Session session) {
-            final SceneInCenterInfo sceneInCenterInfo = guid2InfoMap.get(session.remoteGuid());
-            if (null != sceneInCenterInfo) {
-                onSceneDisconnect(sceneInCenterInfo.getChanelId());
-            }
+            onSceneDisconnect(session.remoteGuid());
         }
     }
 
     /**
      * 收到场景服务器的响应信息
      *
+     * @param nodeName              场景节点名字
+     * @param nodeData              场景节点数据
      * @param session               scene会话信息
      * @param configuredRegionsList 配置的区域
      */
-    private void onConnectSceneSuccess(Session session, List<Integer> configuredRegionsList) {
-        assert guid2InfoMap.containsKey(session.remoteGuid());
-        SceneInCenterInfo sceneInCenterInfo = guid2InfoMap.get(session.remoteGuid());
+    private void onConnectSceneSuccess(SceneNodeName nodeName, SceneNodeData nodeData, Session session, List<Integer> configuredRegionsList) {
+        if (channelId2InfoMap.containsKey(nodeName.getChannelId())) {
+            session.close();
+            logger.error("connect same channelId {} scene", nodeName.getChannelId());
+            return;
+        }
+        final SceneInCenterInfo sceneInCenterInfo = new SceneInCenterInfo(nodeName, nodeData.getWorldGuid(), session);
+        guid2InfoMap.put(session.remoteGuid(), sceneInCenterInfo);
+        addSceneInfo(sceneInCenterInfo);
 
         Set<SceneRegion> configuredRegions = sceneInCenterInfo.getConfiguredRegions();
         Set<SceneRegion> activeRegions = sceneInCenterInfo.getActiveRegions();
@@ -213,10 +228,8 @@ public class SceneInCenterInfoMgr {
         }
 
         // TODO 检查该场景可以启动哪些互斥场景
-        // TODO 如果目标World和当前World在一个EventLoop还可能死锁？
-        // 会话id是相同的(使用同步方法调用，会大大简化逻辑)
-
         // TODO 这里现在是测试的
+        // 这里使用同步方法调用，会大大简化逻辑
         final RpcResponse rpcResponse = ISceneRegionMgrRpcProxy.startMutexRegion(Collections.singletonList(SceneRegion.LOCAL_PKC.getNumber()))
                 .sync(session);
         if (rpcResponse.isSuccess()) {

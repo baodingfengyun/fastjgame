@@ -61,11 +61,12 @@ public class SceneInCenterInfo {
     /**
      * 会话信息
      */
-    private Session session;
+    private final Session session;
 
-    public SceneInCenterInfo(SceneNodeName nodeName, long worldGuid) {
+    public SceneInCenterInfo(SceneNodeName nodeName, long worldGuid, Session session) {
         this.nodeName = nodeName;
         this.worldGuid = worldGuid;
+        this.session = session;
     }
 
     public PlatformType getPlatformType() {
@@ -108,7 +109,4 @@ public class SceneInCenterInfo {
         return session;
     }
 
-    public void setSession(Session session) {
-        this.session = session;
-    }
 }

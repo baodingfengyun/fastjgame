@@ -126,7 +126,7 @@ public class CenterDiscoverMgr {
             logger.info("discover scene {}-{}-{}", sceneNodeName.getPlatformType(), sceneNodeName.getServerId(), sceneNodeName.getChannelId());
         } else {
             // remove
-            sceneInCenterInfoMgr.onSceneNodeRemoved(sceneNodeName);
+            sceneInCenterInfoMgr.onSceneNodeRemoved(sceneNodeName, sceneNodeData);
             logger.info("remove scene {}-{}-{}", sceneNodeName.getPlatformType(), sceneNodeName.getServerId(), sceneNodeName.getChannelId());
         }
     }

@@ -76,6 +76,39 @@ public class WarzoneInCenterInfoMgr {
                 new WarzoneSessionLifeAware());
     }
 
+    private class WarzoneSessionLifeAware implements SessionLifecycleAware {
+
+        @Override
+        public void onSessionConnected(Session session) {
+            ICenterInWarzoneInfoMgrRpcProxy.connectWarzone(centerWorldInfoMgr.getPlatformType().getNumber(), centerWorldInfoMgr.getServerId())
+                    .onSuccess(result -> connectWarzoneSuccess(session))
+                    .call(session);
+        }
+
+        @Override
+        public void onSessionDisconnected(Session session) {
+            onWarzoneDisconnect(session.remoteGuid());
+        }
+    }
+
+    /**
+     * 连接争取安全成功(收到了战区的响应信息)。
+     *
+     * @param session 与战区的会话
+     */
+    private void connectWarzoneSuccess(Session session) {
+        if (warzoneInCenterInfo != null) {
+            session.close();
+            logger.error("connect two warzone session.");
+            return;
+        }
+        warzoneInCenterInfo = new WarzoneInCenterInfo(session);
+
+        // TODO 战区连接成功逻辑(eg.恢复特殊玩法)
+        logger.info("connect WARZONE-{} success", centerWorldInfoMgr.getWarzoneId());
+    }
+
+
     /**
      * 发现战区断开连接(这里现在没有严格的测试，是否可能是不同的节点)
      *
@@ -107,34 +140,7 @@ public class WarzoneInCenterInfoMgr {
 
         warzoneInCenterInfo = null;
         // TODO 战区宕机需要处理的逻辑
-    }
-
-    private class WarzoneSessionLifeAware implements SessionLifecycleAware {
-
-        @Override
-        public void onSessionConnected(Session session) {
-            ICenterInWarzoneInfoMgrRpcProxy.connectWarzone(centerWorldInfoMgr.getPlatformType().getNumber(), centerWorldInfoMgr.getServerId())
-                    .onSuccess(result -> connectWarzoneSuccess(session))
-                    .call(session);
-        }
-
-        @Override
-        public void onSessionDisconnected(Session session) {
-            onWarzoneDisconnect(session.remoteGuid());
-        }
-    }
-
-    /**
-     * 连接争取安全成功(收到了战区的响应信息)。
-     *
-     * @param session 与战区的会话
-     */
-    private void connectWarzoneSuccess(Session session) {
-        assert null == warzoneInCenterInfo;
-        warzoneInCenterInfo = new WarzoneInCenterInfo(session);
-
-        // TODO 战区连接成功逻辑(eg.恢复特殊玩法)
-        logger.info("connect WARZONE-{} success", centerWorldInfoMgr.getWarzoneId());
+        logger.warn("WARZONE-{} disconnect", centerWorldInfoMgr.getWarzoneId());
     }
 
 }
