@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.misc;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * Bool值持对象，用于lambda表达式
  *
@@ -24,6 +26,7 @@ package com.wjybxx.fastjgame.misc;
  * date - 2019/8/24
  * github - https://github.com/hl845740757
  */
+@NotThreadSafe
 public class BooleanHolder {
 
     private boolean value;

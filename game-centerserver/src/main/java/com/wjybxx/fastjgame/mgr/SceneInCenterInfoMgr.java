@@ -58,7 +58,7 @@ public class SceneInCenterInfoMgr {
     // 不可以是static的，否则会导致线程安全问题
     private final List<SceneInCenterInfo> availableSceneProcessListCache = new ArrayList<>(8);
 
-    private final CenterWorldInfoMgr centerWorldInfoMgr;
+    private final CenterWorldInfoMgr worldInfoMgr;
     private final TemplateMgr templateMgr;
     /**
      * 负载均衡策略，当玩家请求进入某个场景的时候，由chooser负责选择。
@@ -77,8 +77,8 @@ public class SceneInCenterInfoMgr {
     private final GameAcceptorMgr gameAcceptorMgr;
 
     @Inject
-    public SceneInCenterInfoMgr(CenterWorldInfoMgr centerWorldInfoMgr, TemplateMgr templateMgr, GameAcceptorMgr gameAcceptorMgr) {
-        this.centerWorldInfoMgr = centerWorldInfoMgr;
+    public SceneInCenterInfoMgr(CenterWorldInfoMgr worldInfoMgr, TemplateMgr templateMgr, GameAcceptorMgr gameAcceptorMgr) {
+        this.worldInfoMgr = worldInfoMgr;
         this.templateMgr = templateMgr;
         this.gameAcceptorMgr = gameAcceptorMgr;
     }
@@ -87,14 +87,14 @@ public class SceneInCenterInfoMgr {
         guid2InfoMap.put(sceneInCenterInfo.getWorldGuid(), sceneInCenterInfo);
         channelId2InfoMap.put(sceneInCenterInfo.getChanelId(), sceneInCenterInfo);
 
-        logger.info("add scene {} - {}", sceneInCenterInfo.getServerId(), sceneInCenterInfo.getChanelId());
+        logger.info("add scene {}-{}", sceneInCenterInfo.getServerId(), sceneInCenterInfo.getChanelId());
     }
 
     private void removeSceneInfo(SceneInCenterInfo sceneInCenterInfo) {
         guid2InfoMap.remove(sceneInCenterInfo.getWorldGuid());
         channelId2InfoMap.remove(sceneInCenterInfo.getChanelId());
 
-        logger.info("remove scene {} - {}", sceneInCenterInfo.getServerId(), sceneInCenterInfo.getChanelId());
+        logger.info("remove scene {}-{}", sceneInCenterInfo.getServerId(), sceneInCenterInfo.getChanelId());
     }
 
     public SceneInCenterInfo getSceneInfo(long worldGuid) {
@@ -172,7 +172,7 @@ public class SceneInCenterInfoMgr {
         @Override
         public void onSessionConnected(Session session) {
             getSceneInfo(session.remoteGuid()).setSession(session);
-            ICenterInSceneInfoMgrRpcProxy.connectScene(centerWorldInfoMgr.getPlatformType().getNumber(), centerWorldInfoMgr.getServerId())
+            ICenterInSceneInfoMgrRpcProxy.connectScene(worldInfoMgr.getPlatformType().getNumber(), worldInfoMgr.getServerId())
                     .onSuccess(result -> onConnectSceneSuccess(session, result))
                     .call(session);
         }
@@ -207,7 +207,8 @@ public class SceneInCenterInfoMgr {
             }
         }
 
-        if (sceneInCenterInfo.getServerId() != centerWorldInfoMgr.getServerId()) {
+        if (sceneInCenterInfo.getPlatformType() != worldInfoMgr.getPlatformType()
+                || sceneInCenterInfo.getServerId() != worldInfoMgr.getServerId()) {
             return;
         }
 

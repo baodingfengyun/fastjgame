@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.test;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.wjybxx.fastjgame.misc.IntSequencer;
+import com.wjybxx.fastjgame.misc.IntHolder;
 import com.wjybxx.fastjgame.module.CenterModule;
 import com.wjybxx.fastjgame.module.WorldGroupModule;
 import com.wjybxx.fastjgame.mgr.CuratorMgr;
@@ -53,10 +53,10 @@ public class UpdateEventTest {
         final String pathA = ZKPaths.makePath(parentPath, "a");
         final String pathB = ZKPaths.makePath(parentPath, "b");
 
-        IntSequencer intSequencer = new IntSequencer(0);
+        IntHolder intHolder = new IntHolder(0);
 
-        while (intSequencer.get() < 1000) {
-            byte[] data = GameUtils.serializeToStringBytes(intSequencer.incAndGet());
+        while (intHolder.get() < 1000) {
+            byte[] data = GameUtils.serializeToStringBytes(intHolder.incAndGet());
 
             curatorMgr.delete(pathA);
             curatorMgr.createNodeIfAbsent(pathA, CreateMode.EPHEMERAL, data);

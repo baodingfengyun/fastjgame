@@ -15,6 +15,8 @@
  */
 package com.wjybxx.fastjgame.misc;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * 引用类型实例持有者，在lambda表达式中使用
  *
@@ -23,6 +25,7 @@ package com.wjybxx.fastjgame.misc;
  * date - 2019/5/14 16:03
  * github - https://github.com/hl845740757
  */
+@NotThreadSafe
 public class ObjectHolder<T> {
 
     private T value;

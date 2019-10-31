@@ -13,33 +13,76 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.wjybxx.fastjgame.misc;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
- * long变量holder，在lambda表达式中使用
+ * long类型的序号分配器。
+ * 采用递增方式分配。
+ * 由于使用的地方还挺多，整合出一个类来。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/5/14 16:04
+ * date - 2019/5/6 20:42
  * github - https://github.com/hl845740757
  */
-public class LongHolder {
-
+@NotThreadSafe
+public final class LongHolder {
+    /**
+     * 上一次分配的序号,也就是当前Sequence
+     */
     private long value;
 
     public LongHolder() {
-        this(0);
+        this(0L);
     }
 
-    public LongHolder(long value) {
-        this.value = value;
+    public LongHolder(long initSequence) {
+        this.value = initSequence;
     }
 
-    public long getValue() {
+    /**
+     * 获取当前值
+     *
+     * @return
+     */
+    public long get() {
         return value;
     }
 
-    public void setValue(long value) {
-        this.value = value;
+    /**
+     * 设置序号
+     *
+     * @param sequence 指定值
+     */
+    public void set(long sequence) {
+        this.value = sequence;
+    }
+
+    /**
+     * 返回之后+1
+     *
+     * @return
+     */
+    public long getAndInc() {
+        return value++;
+    }
+
+    /**
+     * +1之后返回
+     *
+     * @return
+     */
+    public long incAndGet() {
+        return ++value;
+    }
+
+    @Override
+    public String toString() {
+        return "LongHolder{" +
+                "value=" + value +
+                '}';
     }
 }

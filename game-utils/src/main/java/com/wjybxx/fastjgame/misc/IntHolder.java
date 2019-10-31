@@ -13,33 +13,74 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.wjybxx.fastjgame.misc;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
- * int变量holder，在lambda表达式中使用
+ * int值包装。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/5/14 16:03
+ * date - 2019/5/6 20:58
  * github - https://github.com/hl845740757
  */
+@NotThreadSafe
 public class IntHolder {
-
+    /**
+     * 上一次分配的序号,也就是当前Sequence
+     */
     private int value;
 
     public IntHolder() {
         this(0);
     }
 
-    public IntHolder(int value) {
-        this.value = value;
+    public IntHolder(int initSequence) {
+        this.value = initSequence;
     }
 
-    public int getValue() {
+    /**
+     * 获取当前值
+     *
+     * @return
+     */
+    public int get() {
         return value;
     }
 
-    public void setValue(int value) {
-        this.value = value;
+    /**
+     * 设置序号
+     *
+     * @param sequence
+     */
+    public void set(int sequence) {
+        this.value = sequence;
+    }
+
+    /**
+     * 返回之后+1
+     *
+     * @return
+     */
+    public int getAndInc() {
+        return value++;
+    }
+
+    /**
+     * +1之后返回
+     *
+     * @return
+     */
+    public int incAndGet() {
+        return ++value;
+    }
+
+    @Override
+    public String toString() {
+        return "IntHolder{" +
+                "value=" + value +
+                '}';
     }
 }

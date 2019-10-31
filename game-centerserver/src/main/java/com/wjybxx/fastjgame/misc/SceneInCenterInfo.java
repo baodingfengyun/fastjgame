@@ -57,7 +57,7 @@ public class SceneInCenterInfo {
      * 在线玩家数量计数器。
      * 本服玩家在当前scene的数量。
      */
-    private final IntSequencer onlinePlayerSequencer = new IntSequencer(0);
+    private final IntHolder onlinePlayerSequencer = new IntHolder(0);
     /**
      * 会话信息
      */
@@ -92,7 +92,7 @@ public class SceneInCenterInfo {
         return activeRegions;
     }
 
-    public IntSequencer getOnlinePlayerSequencer() {
+    public IntHolder getOnlinePlayerSequencer() {
         return onlinePlayerSequencer;
     }
 
