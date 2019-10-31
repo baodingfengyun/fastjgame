@@ -18,15 +18,14 @@ package com.wjybxx.fastjgame.scene;
 
 import com.wjybxx.fastjgame.config.SceneConfig;
 import com.wjybxx.fastjgame.core.SceneRegion;
-import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.gameobject.GameObject;
 import com.wjybxx.fastjgame.gameobject.Npc;
 import com.wjybxx.fastjgame.gameobject.Pet;
 import com.wjybxx.fastjgame.gameobject.Player;
-import com.wjybxx.fastjgame.misc.*;
 import com.wjybxx.fastjgame.mgr.MapDataLoadMgr;
 import com.wjybxx.fastjgame.mgr.SceneSendMgr;
 import com.wjybxx.fastjgame.mgr.SceneWrapper;
+import com.wjybxx.fastjgame.misc.*;
 import com.wjybxx.fastjgame.scene.gameobjectdata.GameObjectType;
 import com.wjybxx.fastjgame.timer.*;
 import com.wjybxx.fastjgame.utils.GameConstant;
@@ -219,7 +218,7 @@ public abstract class Scene {
     public abstract SceneType sceneType();
 
     public boolean isCross() {
-        return sceneConfig.sceneRegion.getSceneWorldType() == SceneWorldType.CROSS;
+        return sceneConfig.sceneRegion.isCross();
     }
 
     // ----------------------------------------核心逻辑开始------------------------------

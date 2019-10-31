@@ -18,7 +18,6 @@ package com.wjybxx.fastjgame.start;
 
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.core.SceneRegion;
-import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupBuilder;
 import com.wjybxx.fastjgame.misc.PlatformType;
@@ -57,10 +56,9 @@ public class StartUp {
     };
 
     /**
-     * 本服scene参数
+     * 单服scene参数
      */
     private static final String[] singleSceneArgs = new String[]{
-            "sceneType=" + SceneWorldType.SINGLE.name(),
             "platform=" + PlatformType.TEST.name(),
             "serverId=" + 1,
             "configuredRegions=" + SceneRegion.LOCAL_PKC.name() + "|" + SceneRegion.LOCAL_NORMAL.name()
@@ -70,7 +68,6 @@ public class StartUp {
      * 跨服scene参数
      */
     private static final String[] crossSceneArgs = new String[]{
-            "sceneType=" + SceneWorldType.CROSS.name(),
             "warzoneId=" + 1,
             "configuredRegions=" + SceneRegion.WARZONE_ANTON.name() + "|" + SceneRegion.WARZONE_LUKE.name()
     };

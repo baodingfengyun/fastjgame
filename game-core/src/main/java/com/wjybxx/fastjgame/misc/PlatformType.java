@@ -31,10 +31,17 @@ import com.wjybxx.fastjgame.utils.EnumUtils;
  */
 @SerializableClass
 public enum PlatformType implements NumberEnum {
+
+    /**
+     * 跨服平台，仅仅用于场景服表示自己是一个完全的共享场景服。
+     * 注意：必须是0，不可以变更
+     */
+    CROSS(0),
+
     /**
      * 测试用的运营平台
      */
-    TEST(0),
+    TEST(1),
     ;
 
     /**

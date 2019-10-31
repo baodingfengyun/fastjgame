@@ -41,13 +41,4 @@ public interface ISceneRegionMgr {
     @RpcMethod(methodId = 1)
     boolean startMutexRegion(List<Integer> activeMutexRegionsList);
 
-    /**
-     * 收到game的激活区域命名(宕机恢复，挂载其他场景进程宕掉的区域)
-     *
-     * @param activeRegionsList 需要启动的区域(可能包含互斥和非互斥区域)
-     * @return 启动成功
-     */
-    @RpcMethod(methodId = 2)
-    boolean activeRegions(List<Integer> activeRegionsList);
-
 }

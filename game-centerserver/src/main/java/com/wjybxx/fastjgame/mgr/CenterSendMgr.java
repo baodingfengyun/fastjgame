@@ -20,7 +20,7 @@ import com.google.inject.Inject;
 import com.google.protobuf.Message;
 import com.google.protobuf.Message.Builder;
 import com.google.protobuf.MessageLite;
-import com.wjybxx.fastjgame.core.SceneWorldType;
+import com.wjybxx.fastjgame.misc.PlatformType;
 import com.wjybxx.fastjgame.misc.SceneInCenterInfo;
 import com.wjybxx.fastjgame.misc.WarzoneInCenterInfo;
 import com.wjybxx.fastjgame.net.common.RpcResponse;
@@ -44,11 +44,13 @@ public class CenterSendMgr {
 
     private static final Logger logger = LoggerFactory.getLogger(CenterSendMgr.class);
 
+    private final CenterWorldInfoMgr worldInfoMgr;
     private final SceneInCenterInfoMgr sceneInCenterInfoMgr;
     private final WarzoneInCenterInfoMgr warzoneInCenterInfoMgr;
 
     @Inject
-    public CenterSendMgr(SceneInCenterInfoMgr sceneInCenterInfoMgr, WarzoneInCenterInfoMgr warzoneInCenterInfoMgr) {
+    public CenterSendMgr(CenterWorldInfoMgr worldInfoMgr, SceneInCenterInfoMgr sceneInCenterInfoMgr, WarzoneInCenterInfoMgr warzoneInCenterInfoMgr) {
+        this.worldInfoMgr = worldInfoMgr;
         this.sceneInCenterInfoMgr = sceneInCenterInfoMgr;
         this.warzoneInCenterInfoMgr = warzoneInCenterInfoMgr;
     }
@@ -115,7 +117,8 @@ public class CenterSendMgr {
             if (null == sceneInCenterInfo.getSession()) {
                 continue;
             }
-            if (sceneInCenterInfo.getWorldType() == SceneWorldType.SINGLE) {
+            if (sceneInCenterInfo.getPlatformType() == worldInfoMgr.getPlatformType()
+                    && sceneInCenterInfo.getServerId() == worldInfoMgr.getServerId()) {
                 sceneInCenterInfo.getSession().send(msg);
             }
         }
@@ -131,7 +134,7 @@ public class CenterSendMgr {
             if (null == sceneInCenterInfo.getSession()) {
                 continue;
             }
-            if (sceneInCenterInfo.getWorldType() == SceneWorldType.CROSS) {
+            if (sceneInCenterInfo.getPlatformType() == PlatformType.CROSS) {
                 sceneInCenterInfo.getSession().send(msg);
             }
         }

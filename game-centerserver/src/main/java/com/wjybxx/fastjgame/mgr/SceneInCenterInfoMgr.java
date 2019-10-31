@@ -19,10 +19,8 @@ package com.wjybxx.fastjgame.mgr;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.config.SceneConfig;
 import com.wjybxx.fastjgame.core.SceneRegion;
-import com.wjybxx.fastjgame.core.SceneWorldType;
-import com.wjybxx.fastjgame.core.onlinenode.CrossSceneNodeName;
 import com.wjybxx.fastjgame.core.onlinenode.SceneNodeData;
-import com.wjybxx.fastjgame.core.onlinenode.SingleSceneNodeName;
+import com.wjybxx.fastjgame.core.onlinenode.SceneNodeName;
 import com.wjybxx.fastjgame.misc.LeastPlayerWorldChooser;
 import com.wjybxx.fastjgame.misc.SceneInCenterInfo;
 import com.wjybxx.fastjgame.misc.SceneWorldChooser;
@@ -31,7 +29,6 @@ import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.rpcservice.ICenterInSceneInfoMgrRpcProxy;
 import com.wjybxx.fastjgame.rpcservice.ISceneRegionMgrRpcProxy;
-import com.wjybxx.fastjgame.serializebale.ConnectCrossSceneResult;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -87,17 +84,17 @@ public class SceneInCenterInfoMgr {
     }
 
     private void addSceneInfo(SceneInCenterInfo sceneInCenterInfo) {
-        guid2InfoMap.put(sceneInCenterInfo.getSceneWorldGuid(), sceneInCenterInfo);
+        guid2InfoMap.put(sceneInCenterInfo.getWorldGuid(), sceneInCenterInfo);
         channelId2InfoMap.put(sceneInCenterInfo.getChanelId(), sceneInCenterInfo);
 
-        logger.info("add {} scene ,channelId={}", sceneInCenterInfo.getWorldType(), sceneInCenterInfo.getChanelId());
+        logger.info("add scene {} - {}", sceneInCenterInfo.getServerId(), sceneInCenterInfo.getChanelId());
     }
 
     private void removeSceneInfo(SceneInCenterInfo sceneInCenterInfo) {
-        guid2InfoMap.remove(sceneInCenterInfo.getSceneWorldGuid());
+        guid2InfoMap.remove(sceneInCenterInfo.getWorldGuid());
         channelId2InfoMap.remove(sceneInCenterInfo.getChanelId());
 
-        logger.info("remove {} scene ,channelId={}", sceneInCenterInfo.getWorldType(), sceneInCenterInfo.getChanelId());
+        logger.info("remove scene {} - {}", sceneInCenterInfo.getServerId(), sceneInCenterInfo.getChanelId());
     }
 
     public SceneInCenterInfo getSceneInfo(long worldGuid) {
@@ -118,7 +115,7 @@ public class SceneInCenterInfoMgr {
      * @param nodeName 本服scene节点名字信息
      * @param nodeData 本服scene节点其它信息
      */
-    public void onDiscoverSingleScene(SingleSceneNodeName nodeName, SceneNodeData nodeData) {
+    public void onDiscoverSceneNode(SceneNodeName nodeName, SceneNodeData nodeData) {
         // 建立tcp连接
         gameAcceptorMgr.connect(nodeData.getWorldGuid(),
                 nodeData.getInnerTcpAddress(),
@@ -127,8 +124,7 @@ public class SceneInCenterInfoMgr {
                 new SingleSceneAware());
 
         // 保存信息
-        SceneInCenterInfo sceneInCenterInfo = new SceneInCenterInfo(nodeData.getWorldGuid(),
-                nodeName.getChannelId(), SceneWorldType.SINGLE);
+        SceneInCenterInfo sceneInCenterInfo = new SceneInCenterInfo(nodeName, nodeData.getWorldGuid());
 
         addSceneInfo(sceneInCenterInfo);
     }
@@ -136,40 +132,10 @@ public class SceneInCenterInfoMgr {
     /**
      * 当本服scene节点移除
      *
-     * @param singleSceneNodeName 单服节点名字
+     * @param sceneNodeName 单服节点名字
      */
-    public void onSingleSceneNodeRemoved(SingleSceneNodeName singleSceneNodeName) {
-        onSceneDisconnect(singleSceneNodeName.getChannelId());
-    }
-
-    /**
-     * 当在zk上发现跨服scene节点
-     *
-     * @param nodeName 跨服场景名字信息
-     * @param nodeData 跨服场景其它信息
-     */
-    public void onDiscoverCrossScene(CrossSceneNodeName nodeName, SceneNodeData nodeData) {
-        // 建立tcp连接
-        gameAcceptorMgr.connect(nodeData.getWorldGuid(),
-                nodeData.getInnerTcpAddress(),
-                nodeData.getLocalAddress(),
-                nodeData.getMacAddress(),
-                new CrossSceneAware());
-
-        // 保存信息
-        SceneInCenterInfo sceneInCenterInfo = new SceneInCenterInfo(nodeData.getWorldGuid(),
-                nodeName.getChannelId(), SceneWorldType.CROSS);
-
-        addSceneInfo(sceneInCenterInfo);
-    }
-
-    /**
-     * 当跨服scene节点移除
-     *
-     * @param crossSceneNodeName 跨服节点名字
-     */
-    public void onCrossSceneNodeRemoved(CrossSceneNodeName crossSceneNodeName) {
-        onSceneDisconnect(crossSceneNodeName.getChannelId());
+    public void onSceneNodeRemoved(SceneNodeName sceneNodeName) {
+        onSceneDisconnect(sceneNodeName.getChannelId());
     }
 
     /**
@@ -188,14 +154,10 @@ public class SceneInCenterInfoMgr {
         // 真正删除信息
         removeSceneInfo(sceneInCenterInfo);
 
+        // 将在该场景服务器的玩家下线
         offlinePlayer(sceneInCenterInfo);
 
-        // 跨服场景就此打住
-        if (sceneInCenterInfo.getWorldType() == SceneWorldType.CROSS) {
-            return;
-        }
-        // 本服场景
-        // TODO 如果该场景启动的区域消失，需要让别的场景进程启动这些区域
+        // TODO 宕机恢复？
     }
 
     private void offlinePlayer(SceneInCenterInfo sceneInCenterInfo) {
@@ -210,8 +172,8 @@ public class SceneInCenterInfoMgr {
         @Override
         public void onSessionConnected(Session session) {
             getSceneInfo(session.remoteGuid()).setSession(session);
-            ICenterInSceneInfoMgrRpcProxy.connectSingleScene(centerWorldInfoMgr.getPlatformType().getNumber(), centerWorldInfoMgr.getServerId())
-                    .onSuccess(result -> onConnectSingleSceneSuccess(session, result))
+            ICenterInSceneInfoMgrRpcProxy.connectScene(centerWorldInfoMgr.getPlatformType().getNumber(), centerWorldInfoMgr.getServerId())
+                    .onSuccess(result -> onConnectSceneSuccess(session, result))
                     .call(session);
         }
 
@@ -225,34 +187,12 @@ public class SceneInCenterInfoMgr {
     }
 
     /**
-     * 跨服会话信息
-     */
-    private class CrossSceneAware implements SessionLifecycleAware {
-
-        @Override
-        public void onSessionConnected(Session session) {
-            getSceneInfo(session.remoteGuid()).setSession(session);
-            ICenterInSceneInfoMgrRpcProxy.connectCrossScene(centerWorldInfoMgr.getPlatformType().getNumber(), centerWorldInfoMgr.getServerId())
-                    .onSuccess(result -> onConnectCrossSceneSuccess(session, result))
-                    .call(session);
-        }
-
-        @Override
-        public void onSessionDisconnected(Session session) {
-            final SceneInCenterInfo sceneInCenterInfo = guid2InfoMap.get(session.remoteGuid());
-            if (null != sceneInCenterInfo) {
-                onSceneDisconnect(sceneInCenterInfo.getChanelId());
-            }
-        }
-    }
-
-    /**
-     * 收到单服场景的响应信息
+     * 收到场景服务器的响应信息
      *
      * @param session               scene会话信息
      * @param configuredRegionsList 配置的区域
      */
-    private void onConnectSingleSceneSuccess(Session session, List<Integer> configuredRegionsList) {
+    private void onConnectSceneSuccess(Session session, List<Integer> configuredRegionsList) {
         assert guid2InfoMap.containsKey(session.remoteGuid());
         SceneInCenterInfo sceneInCenterInfo = guid2InfoMap.get(session.remoteGuid());
 
@@ -266,10 +206,14 @@ public class SceneInCenterInfoMgr {
                 activeRegions.add(sceneRegion);
             }
         }
+
+        if (sceneInCenterInfo.getServerId() != centerWorldInfoMgr.getServerId()) {
+            return;
+        }
+
         // TODO 检查该场景可以启动哪些互斥场景
         // TODO 如果目标World和当前World在一个EventLoop还可能死锁？
         // 会话id是相同的(使用同步方法调用，会大大简化逻辑)
-
 
         // TODO 这里现在是测试的
         final RpcResponse rpcResponse = ISceneRegionMgrRpcProxy.startMutexRegion(Collections.singletonList(SceneRegion.LOCAL_PKC.getNumber()))
@@ -279,27 +223,6 @@ public class SceneInCenterInfoMgr {
         } else {
             // 遇见这个需要好好处理(适当增加超时时间)，尽量不能失败
             logger.error("active region failed, code={}", rpcResponse.getResultCode());
-        }
-    }
-
-    /**
-     * 收到跨服场景的连接响应
-     *
-     * @param session 与跨服场景的会话
-     * @param result  响应结果
-     */
-    private void onConnectCrossSceneSuccess(Session session, ConnectCrossSceneResult result) {
-        assert guid2InfoMap.containsKey(session.remoteGuid());
-        SceneInCenterInfo sceneInCenterInfo = guid2InfoMap.get(session.remoteGuid());
-        // 配置的区域
-        Set<SceneRegion> configuredRegions = sceneInCenterInfo.getConfiguredRegions();
-        for (int regionId : result.getConfiguredRegions()) {
-            configuredRegions.add(SceneRegion.forNumber(regionId));
-        }
-        // 成功启动的区域
-        Set<SceneRegion> activeRegions = sceneInCenterInfo.getActiveRegions();
-        for (int regionId : result.getActiveRegions()) {
-            activeRegions.add(SceneRegion.forNumber(regionId));
         }
     }
 
@@ -324,10 +247,10 @@ public class SceneInCenterInfoMgr {
         }
         try {
             if (availableSceneProcessList.size() == 1) {
-                return availableSceneProcessList.get(0).getSceneWorldGuid();
+                return availableSceneProcessList.get(0).getWorldGuid();
             }
             SceneInCenterInfo choose = sceneWorldChooser.choose(availableSceneProcessList);
-            return choose.getSceneWorldGuid();
+            return choose.getWorldGuid();
         } finally {
             availableSceneProcessList.clear();
         }

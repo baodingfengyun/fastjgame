@@ -23,8 +23,9 @@ import com.wjybxx.fastjgame.utils.EnumUtils;
 
 /**
  * 场景区域划分。
- * 建议每个区域至少拥有一个城镇，通过城镇进入其它类型的地图(普通副本，活动副本)。
- * 没有城镇也是可以的，传图时需要指定要传入的地图id。
+ * 划重点：
+ * 1. 场景区域互斥区域和非互斥区域。
+ * 2. 场景区域分单服区域和跨服区域。
  *
  * @author wjybxx
  * @version 1.0
@@ -37,37 +38,37 @@ public enum SceneRegion implements NumberEnum {
     /**
      * 本服普通区域，不互斥，大多数地图都应该属于它。
      */
-    LOCAL_NORMAL(1, SceneWorldType.SINGLE, false),
+    LOCAL_NORMAL(1, false, false),
     /**
      * 本服竞技场(DNF玩习惯了，习惯叫PKC)，互斥
      */
-    LOCAL_PKC(2, SceneWorldType.SINGLE, true),
+    LOCAL_PKC(2, false, true),
     /**
      * 安徒恩，跨服，不互斥。
      */
-    WARZONE_ANTON(3, SceneWorldType.CROSS, false),
+    WARZONE_ANTON(3, true, false),
     /**
      * 卢克，跨服，不互斥。
      */
-    WARZONE_LUKE(4, SceneWorldType.CROSS, false);
-
-    /**
-     * 区域所在的进程类型(是否是跨服区域)
-     */
-    private final SceneWorldType sceneWorldType;
+    WARZONE_LUKE(4, true, false);
 
     /**
      * 数字标记，不使用ordinal
      */
     private final int number;
     /**
+     * 是否是跨服区域(未来配置到表格)
+     */
+    private final boolean cross;
+
+    /**
      * 该区域是否互斥，只能存在一个
      */
     private final boolean mutex;
 
-    SceneRegion(int number, SceneWorldType sceneWorldType, boolean mutex) {
+    SceneRegion(int number, boolean cross, boolean mutex) {
         this.number = number;
-        this.sceneWorldType = sceneWorldType;
+        this.cross = cross;
         this.mutex = mutex;
     }
 
@@ -87,12 +88,11 @@ public enum SceneRegion implements NumberEnum {
         return number;
     }
 
-    public SceneWorldType getSceneWorldType() {
-        return sceneWorldType;
+    public boolean isCross() {
+        return cross;
     }
 
     public boolean isMutex() {
         return mutex;
     }
-
 }

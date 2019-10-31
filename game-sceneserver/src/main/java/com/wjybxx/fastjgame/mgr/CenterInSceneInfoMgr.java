@@ -19,12 +19,10 @@ package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.SceneRegion;
-import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.misc.CenterInSceneInfo;
 import com.wjybxx.fastjgame.misc.PlatformType;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.rpcservice.ICenterInSceneInfoMgr;
-import com.wjybxx.fastjgame.serializebale.ConnectCrossSceneResult;
 import com.wjybxx.fastjgame.world.SceneWorld;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -53,7 +51,6 @@ public class CenterInSceneInfoMgr implements ICenterInSceneInfoMgr {
 
     private static final Logger logger = LoggerFactory.getLogger(CenterInSceneInfoMgr.class);
     private final SceneWorldInfoMgr sceneWorldInfoMgr;
-    private final SceneRegionMgr sceneRegionMgr;
 
     /**
      * wolrdguid到信息的映射
@@ -65,9 +62,8 @@ public class CenterInSceneInfoMgr implements ICenterInSceneInfoMgr {
     private final Map<PlatformType, Int2ObjectMap<CenterInSceneInfo>> platInfoMap = new EnumMap<>(PlatformType.class);
 
     @Inject
-    public CenterInSceneInfoMgr(SceneWorldInfoMgr sceneWorldInfoMgr, SceneRegionMgr sceneRegionMgr) {
+    public CenterInSceneInfoMgr(SceneWorldInfoMgr sceneWorldInfoMgr) {
         this.sceneWorldInfoMgr = sceneWorldInfoMgr;
-        this.sceneRegionMgr = sceneRegionMgr;
     }
 
     private void addInfo(CenterInSceneInfo centerInSceneInfo) {
@@ -103,21 +99,10 @@ public class CenterInSceneInfoMgr implements ICenterInSceneInfoMgr {
         }
         removeInfo(centerInSceneInfo);
 
-        // 跨服场景，收到某个center服宕机，无所谓(跨服场景会链接很多个center服)
-        if (sceneWorldInfoMgr.getSceneWorldType() == SceneWorldType.CROSS) {
-            // 将该服的玩家下线
-            offlineSpecialCenterPlayer(centerInSceneInfo.getPlatformType(), centerInSceneInfo.getServerId());
+        // 将该服的玩家下线
+        offlineSpecialCenterPlayer(centerInSceneInfo.getPlatformType(), centerInSceneInfo.getServerId());
 
-            // TODO 如果所有服都断开了，且一段时间内没有服务器接入，需要关闭
-            return;
-        }
-
-        // 单服场景(讲道理单服场景只会连接自己的服，因此这里必须成立)，自己的center服宕机，需要通知所有玩家下线，然后退出
-        assert centerInSceneInfo.getPlatformType() == sceneWorldInfoMgr.getPlatformType();
-        assert centerInSceneInfo.getServerId() == sceneWorldInfoMgr.getServerId();
-        offlineAllOnlinePlayer();
-        // 自己的中心服宕机，场景服需要自动关闭
-        sceneWorld.shutdown();
+        // TODO 关闭检测
     }
 
     /**
@@ -130,15 +115,8 @@ public class CenterInSceneInfoMgr implements ICenterInSceneInfoMgr {
 
     }
 
-    /**
-     * 踢掉当前场景所有在线玩家
-     */
-    private void offlineAllOnlinePlayer() {
-        // TODO 踢掉所有玩家，shutdown
-    }
-
     @Override
-    public List<Integer> connectSingleScene(Session session, int platformNumber, int serverId) {
+    public List<Integer> connectScene(Session session, int platformNumber, int serverId) {
         PlatformType platformType = PlatformType.forNumber(platformNumber);
         assert !guid2InfoMap.containsKey(session.remoteGuid());
         assert !platInfoMap.containsKey(platformType) || !platInfoMap.get(platformType).containsKey(serverId);
@@ -152,29 +130,6 @@ public class CenterInSceneInfoMgr implements ICenterInSceneInfoMgr {
             configuredRegions.add(sceneRegion.getNumber());
         }
         return configuredRegions;
-    }
-
-    @Override
-    public ConnectCrossSceneResult connectCrossScene(Session session, int platformNumber, int serverId) {
-        PlatformType platformType = PlatformType.forNumber(platformNumber);
-        assert !guid2InfoMap.containsKey(session.remoteGuid());
-        assert !platInfoMap.containsKey(platformType) || !platInfoMap.get(platformType).containsKey(serverId);
-
-        CenterInSceneInfo centerInSceneInfo = new CenterInSceneInfo(session, platformType, serverId);
-        addInfo(centerInSceneInfo);
-
-        // 配置的区域
-        IntList configuredRegions = new IntArrayList(sceneWorldInfoMgr.getConfiguredRegions().size());
-        for (SceneRegion sceneRegion : sceneWorldInfoMgr.getConfiguredRegions()) {
-            configuredRegions.add(sceneRegion.getNumber());
-        }
-
-        // 实际激活的区域
-        IntList activeRegions = new IntArrayList(sceneRegionMgr.getActiveRegions().size());
-        for (SceneRegion sceneRegion : sceneRegionMgr.getActiveRegions()) {
-            activeRegions.add(sceneRegion.getNumber());
-        }
-        return new ConnectCrossSceneResult(configuredRegions, activeRegions);
     }
 
     /**

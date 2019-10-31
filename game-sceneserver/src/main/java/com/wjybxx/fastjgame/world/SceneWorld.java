@@ -1,7 +1,6 @@
 package com.wjybxx.fastjgame.world;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.core.onlinenode.SceneNodeData;
 import com.wjybxx.fastjgame.mgr.*;
 import com.wjybxx.fastjgame.misc.HostAndPort;
@@ -97,16 +96,10 @@ public class SceneWorld extends AbstractWorld {
                 localAddress.toString(), SystemUtils.getMAC(),
                 sceneWorldInfoMgr.getWorldGuid());
 
-        String parentPath = ZKPathUtils.onlineParentPath(sceneWorldInfoMgr.getWarzoneId());
-        String nodeName;
-        if (sceneWorldInfoMgr.getSceneWorldType() == SceneWorldType.SINGLE) {
-            nodeName = ZKPathUtils.buildSingleSceneNodeName(sceneWorldInfoMgr.getPlatformType(),
+        final String parentPath = ZKPathUtils.onlineParentPath(sceneWorldInfoMgr.getWarzoneId());
+        final String nodeName = ZKPathUtils.buildSceneNodeName(sceneWorldInfoMgr.getPlatformType(),
                     sceneWorldInfoMgr.getServerId(),
                     sceneWorldInfoMgr.getChannelId());
-        } else {
-            nodeName = ZKPathUtils.buildCrossSceneNodeName(sceneWorldInfoMgr.getChannelId()
-            );
-        }
         // 当前批次获得的channelId可能和上一批次获得的channelId重复，因此需要等待
         curatorMgr.waitForNodeDelete(ZKPaths.makePath(parentPath, nodeName));
         // 这里创建可能会失败，失败则退出线程

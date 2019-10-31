@@ -16,8 +16,10 @@
 
 package com.wjybxx.fastjgame.utils;
 
-import com.wjybxx.fastjgame.core.SceneWorldType;
-import com.wjybxx.fastjgame.core.onlinenode.*;
+import com.wjybxx.fastjgame.core.onlinenode.CenterNodeName;
+import com.wjybxx.fastjgame.core.onlinenode.LoginNodeName;
+import com.wjybxx.fastjgame.core.onlinenode.SceneNodeName;
+import com.wjybxx.fastjgame.core.onlinenode.WarzoneNodeName;
 import com.wjybxx.fastjgame.misc.PlatformType;
 import com.wjybxx.fastjgame.misc.RoleType;
 import org.apache.curator.utils.PathUtils;
@@ -315,29 +317,8 @@ public class ZKPathUtils {
      * @param channelId    频道id
      * @return 唯一的有意义的名字
      */
-    public static String buildSingleSceneNodeName(PlatformType platformType, int serverId, int channelId) {
-        return RoleType.SCENE + "-" + SceneWorldType.SINGLE.name() + "-" + platformType + "-" + serverId + "-" + channelId;
-    }
-
-    /**
-     * 为跨服节点创建一个有意义的节点名字，用于注册到zookeeper
-     *
-     * @param channelId 频道号
-     * @return 唯一的有意义的名字
-     */
-    public static String buildCrossSceneNodeName(int channelId) {
-        return RoleType.SCENE + "-" + SceneWorldType.CROSS.name() + "-" + channelId;
-    }
-
-    /**
-     * 通过场景节点的名字解析场景进程的类型
-     *
-     * @param sceneNodePath scene节点的名字
-     * @return scene进程的类型
-     */
-    public static SceneWorldType parseSceneType(String sceneNodePath) {
-        String[] params = findNodeName(sceneNodePath).split("-", 3);
-        return SceneWorldType.valueOf(params[1]);
+    public static String buildSceneNodeName(PlatformType platformType, int serverId, int channelId) {
+        return RoleType.SCENE + "-" + platformType + "-" + serverId + "-" + channelId;
     }
 
     /**
@@ -346,26 +327,13 @@ public class ZKPathUtils {
      * @param path fullpath
      * @return scene包含的基本信息
      */
-    public static SingleSceneNodeName parseSingleSceneNodeName(String path) {
+    public static SceneNodeName parseSceneNodeName(String path) {
         int warzoneId = findWarzoneId(path);
         String[] params = findNodeName(path).split("-");
-        PlatformType platformType = PlatformType.valueOf(params[2]);
-        int serverId = Integer.parseInt(params[3]);
-        int channelId = Integer.parseInt(params[4]);
-        return new SingleSceneNodeName(warzoneId, platformType, serverId, channelId);
-    }
-
-    /**
-     * 解析跨服节点的节点路径(名字)
-     *
-     * @param path fullpath
-     * @return 跨服节点信息
-     */
-    public static CrossSceneNodeName parseCrossSceneNodeName(String path) {
-        int warzoneId = findWarzoneId(path);
-        String[] params = findNodeName(path).split("-");
-        int channelId = Integer.parseInt(params[2]);
-        return new CrossSceneNodeName(warzoneId, channelId);
+        PlatformType platformType = PlatformType.valueOf(params[1]);
+        int serverId = Integer.parseInt(params[2]);
+        int channelId = Integer.parseInt(params[3]);
+        return new SceneNodeName(warzoneId, platformType, serverId, channelId);
     }
 
     // ------------------------------------------- 登录服 ---------------------------------------

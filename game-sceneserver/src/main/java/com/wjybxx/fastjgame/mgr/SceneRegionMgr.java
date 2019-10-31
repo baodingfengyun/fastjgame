@@ -18,7 +18,6 @@ package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.SceneRegion;
-import com.wjybxx.fastjgame.core.SceneWorldType;
 import com.wjybxx.fastjgame.rpcservice.ISceneRegionMgr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,11 +51,7 @@ public class SceneRegionMgr implements ISceneRegionMgr {
     }
 
     public void onWorldStart() {
-        if (sceneWorldInfoMgr.getSceneWorldType() == SceneWorldType.SINGLE) {
-            activeSingleSceneNormalRegions();
-        } else {
-            activeAllCrossSceneRegions();
-        }
+        activeNormalRegions();
     }
 
     public Set<SceneRegion> getActiveRegions() {
@@ -64,18 +59,9 @@ public class SceneRegionMgr implements ISceneRegionMgr {
     }
 
     /**
-     * 启动所有跨服场景(目前跨服场景不做互斥)
+     * 启动所有非互斥区域
      */
-    private void activeAllCrossSceneRegions() {
-        for (SceneRegion sceneRegion : sceneWorldInfoMgr.getConfiguredRegions()) {
-            activeOneRegion(sceneRegion);
-        }
-    }
-
-    /**
-     * 启动所有本服普通场景
-     */
-    private void activeSingleSceneNormalRegions() {
+    private void activeNormalRegions() {
         for (SceneRegion sceneRegion : sceneWorldInfoMgr.getConfiguredRegions()) {
             // 互斥区域等待centerserver通知再启动
             if (sceneRegion.isMutex()) {
@@ -104,7 +90,6 @@ public class SceneRegionMgr implements ISceneRegionMgr {
 
     @Override
     public boolean startMutexRegion(List<Integer> activeMutexRegionsList) {
-        assert sceneWorldInfoMgr.getSceneWorldType() == SceneWorldType.SINGLE;
         for (int regionId : activeMutexRegionsList) {
             SceneRegion sceneRegion = SceneRegion.forNumber(regionId);
             // 这里应该有互斥区域
@@ -116,19 +101,4 @@ public class SceneRegionMgr implements ISceneRegionMgr {
         }
         return true;
     }
-
-    @Override
-    public boolean activeRegions(List<Integer> activeRegionsList) {
-        assert sceneWorldInfoMgr.getSceneWorldType() == SceneWorldType.SINGLE;
-        for (int regionId : activeRegionsList) {
-            SceneRegion sceneRegion = SceneRegion.forNumber(regionId);
-            // 这里可以是任意类型区域
-            if (activeRegions.contains(sceneRegion)) {
-                continue;
-            }
-            activeOneRegion(sceneRegion);
-        }
-        return true;
-    }
-
 }

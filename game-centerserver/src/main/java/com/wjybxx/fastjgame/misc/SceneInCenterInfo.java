@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.misc;
 
 import com.wjybxx.fastjgame.core.SceneRegion;
-import com.wjybxx.fastjgame.core.SceneWorldType;
+import com.wjybxx.fastjgame.core.onlinenode.SceneNodeName;
 import com.wjybxx.fastjgame.net.session.Session;
 
 import java.util.EnumSet;
@@ -34,20 +34,13 @@ import java.util.Set;
 public class SceneInCenterInfo {
 
     /**
-     * scene进程会话guid
+     * 场景服所属的中心服平台
      */
-    private final long sceneWorldGuid;
+    private final SceneNodeName nodeName;
     /**
-     * 分配该场景进程的频道id。
-     * 该channel和IO什么的没任何关系，别混淆了。
+     * worldGuid
      */
-    private final int chanelId;
-
-    /**
-     * 进程类型(本服/跨服)
-     */
-    private final SceneWorldType worldType;
-
+    private final long worldGuid;
     /**
      * 配置的期望启动的区域，尽可能的都启动它们，且不启动额外的区域。
      * (本服scene进程才会有)
@@ -70,22 +63,25 @@ public class SceneInCenterInfo {
      */
     private Session session;
 
-    public SceneInCenterInfo(long sceneWorldGuid, int chanelId, SceneWorldType worldType) {
-        this.sceneWorldGuid = sceneWorldGuid;
-        this.chanelId = chanelId;
-        this.worldType = worldType;
+    public SceneInCenterInfo(SceneNodeName nodeName, long worldGuid) {
+        this.nodeName = nodeName;
+        this.worldGuid = worldGuid;
     }
 
-    public long getSceneWorldGuid() {
-        return sceneWorldGuid;
+    public PlatformType getPlatformType() {
+        return nodeName.getPlatformType();
+    }
+
+    public int getServerId() {
+        return nodeName.getServerId();
     }
 
     public int getChanelId() {
-        return chanelId;
+        return nodeName.getChannelId();
     }
 
-    public SceneWorldType getWorldType() {
-        return worldType;
+    public long getWorldGuid() {
+        return worldGuid;
     }
 
     public Set<SceneRegion> getConfiguredRegions() {

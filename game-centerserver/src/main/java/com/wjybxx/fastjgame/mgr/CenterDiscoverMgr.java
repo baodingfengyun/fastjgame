@@ -17,8 +17,10 @@
 package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.core.SceneWorldType;
-import com.wjybxx.fastjgame.core.onlinenode.*;
+import com.wjybxx.fastjgame.core.onlinenode.SceneNodeData;
+import com.wjybxx.fastjgame.core.onlinenode.SceneNodeName;
+import com.wjybxx.fastjgame.core.onlinenode.WarzoneNodeData;
+import com.wjybxx.fastjgame.core.onlinenode.WarzoneNodeName;
 import com.wjybxx.fastjgame.misc.CloseableHandle;
 import com.wjybxx.fastjgame.misc.RoleType;
 import com.wjybxx.fastjgame.utils.JsonUtils;
@@ -117,35 +119,15 @@ public class CenterDiscoverMgr {
      * @param childData 场景数据
      */
     private void onSceneEvent(Type type, ChildData childData) {
-        SceneWorldType sceneWorldType = ZKPathUtils.parseSceneType(childData.getPath());
-        SceneNodeData sceneNodeData = JsonUtils.parseJsonBytes(childData.getData(), SceneNodeData.class);
-        if (sceneWorldType == SceneWorldType.SINGLE) {
-            // 单服场景
-            SingleSceneNodeName singleSceneNodeName = ZKPathUtils.parseSingleSceneNodeName(childData.getPath());
-            if (singleSceneNodeName.getPlatformType() != centerWorldInfoMgr.getPlatformType()
-                    || singleSceneNodeName.getServerId() != centerWorldInfoMgr.getServerId()) {
-                // 不是我的场景
-                return;
-            }
-            if (type == Type.CHILD_ADDED) {
-                sceneInCenterInfoMgr.onDiscoverSingleScene(singleSceneNodeName, sceneNodeData);
-                logger.info("discover single scene {}-{}-{}", singleSceneNodeName.getPlatformType(), singleSceneNodeName.getServerId(), singleSceneNodeName.getChannelId());
-            } else {
-                // remove
-                sceneInCenterInfoMgr.onSingleSceneNodeRemoved(singleSceneNodeName);
-                logger.info("remove single scene {}-{}-{}", singleSceneNodeName.getPlatformType(), singleSceneNodeName.getServerId(), singleSceneNodeName.getChannelId());
-            }
+        final SceneNodeName sceneNodeName = ZKPathUtils.parseSceneNodeName(childData.getPath());
+        final SceneNodeData sceneNodeData = JsonUtils.parseJsonBytes(childData.getData(), SceneNodeData.class);
+        if (type == Type.CHILD_ADDED) {
+            sceneInCenterInfoMgr.onDiscoverSceneNode(sceneNodeName, sceneNodeData);
+            logger.info("discover scene {}-{}-{}", sceneNodeName.getPlatformType(), sceneNodeName.getServerId(), sceneNodeName.getChannelId());
         } else {
-            // 跨服场景
-            CrossSceneNodeName crossSceneNodeName = ZKPathUtils.parseCrossSceneNodeName(childData.getPath());
-            if (type == Type.CHILD_ADDED) {
-                sceneInCenterInfoMgr.onDiscoverCrossScene(crossSceneNodeName, sceneNodeData);
-                logger.debug("discover cross scene {}", crossSceneNodeName.getChannelId());
-            } else {
-                // remove
-                sceneInCenterInfoMgr.onCrossSceneNodeRemoved(crossSceneNodeName);
-                logger.debug("remove cross scene {}", crossSceneNodeName.getChannelId());
-            }
+            // remove
+            sceneInCenterInfoMgr.onSceneNodeRemoved(sceneNodeName);
+            logger.info("remove scene {}-{}-{}", sceneNodeName.getPlatformType(), sceneNodeName.getServerId(), sceneNodeName.getChannelId());
         }
     }
 
