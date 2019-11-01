@@ -21,10 +21,7 @@ import com.wjybxx.fastjgame.core.SceneRegion;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupBuilder;
 import com.wjybxx.fastjgame.misc.PlatformType;
-import com.wjybxx.fastjgame.module.CenterModule;
-import com.wjybxx.fastjgame.module.LoginModule;
-import com.wjybxx.fastjgame.module.SceneModule;
-import com.wjybxx.fastjgame.module.WarzoneModule;
+import com.wjybxx.fastjgame.module.*;
 import com.wjybxx.fastjgame.world.GameEventLoopGroupImp;
 
 import java.io.File;
@@ -78,6 +75,10 @@ public class StartUp {
             "port=" + 12345
     };
 
+    private static final String[] gateArgs = new String[]{
+            "warzoneId=" + 1,
+    };
+
 
     public static void main(String[] args) throws Exception {
         // 指定一下日志文件
@@ -97,6 +98,7 @@ public class StartUp {
         final GameEventLoopGroupImp gameEventLoopGroup = GameEventLoopGroupImp.newBuilder()
                 .setNetEventLoopGroup(netEventLoopGroup)
                 .setRejectedExecutionHandler(RejectedExecutionHandlers.log())
+                .addWorld(new GateModule(), gateArgs, 20)
                 .addWorld(new LoginModule(), loginArgs, 10)
                 .addWorld(new WarzoneModule(), warzoneArgs, 10)
                 .addWorld(new CenterModule(), centerArgs, 10)

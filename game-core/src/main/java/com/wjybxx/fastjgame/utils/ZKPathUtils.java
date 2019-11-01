@@ -339,4 +339,10 @@ public class ZKPathUtils {
     public static String onlineGateRootPath() {
         return onlineRootPath() + "/gate";
     }
+
+    public static String buildGateNodeName(long worldGuid) {
+        return RoleType.GATE + "-" + worldGuid;
+    }
+
+
 }

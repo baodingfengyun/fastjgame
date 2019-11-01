@@ -42,6 +42,5 @@ public class WarzoneModule extends WorldModule {
         bind(WarzoneWorldInfoMgr.class).in(Singleton.class);
         bind(CenterInWarzoneInfoMgr.class).in(Singleton.class);
         bind(WarzoneMongoDBMgr.class).in(Singleton.class);
-        bind(WarzoneSendMgr.class).in(Singleton.class);
     }
 }

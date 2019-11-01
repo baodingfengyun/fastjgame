@@ -47,17 +47,15 @@ public class CenterWorld extends AbstractWorld {
     private final SceneInCenterInfoMgr sceneInCenterInfoMgr;
     private final CenterWorldInfoMgr centerWorldInfoMgr;
     private final WarzoneInCenterInfoMgr warzoneInCenterInfoMgr;
-    private final CenterSendMgr sendMgr;
 
     @Inject
     public CenterWorld(WorldWrapper worldWrapper, CenterDiscoverMgr centerDiscoverMgr,
-                       SceneInCenterInfoMgr sceneInCenterInfoMgr, WarzoneInCenterInfoMgr warzoneInCenterInfoMgr, CenterSendMgr sendMgr) {
+                       SceneInCenterInfoMgr sceneInCenterInfoMgr, WarzoneInCenterInfoMgr warzoneInCenterInfoMgr) {
         super(worldWrapper);
         this.centerDiscoverMgr = centerDiscoverMgr;
         this.sceneInCenterInfoMgr = sceneInCenterInfoMgr;
         centerWorldInfoMgr = (CenterWorldInfoMgr) worldWrapper.getWorldInfoMgr();
         this.warzoneInCenterInfoMgr = warzoneInCenterInfoMgr;
-        this.sendMgr = sendMgr;
     }
 
     @Override

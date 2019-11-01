@@ -43,6 +43,5 @@ public class CenterModule extends WorldModule {
         bind(SceneInCenterInfoMgr.class).in(Singleton.class);
         bind(WarzoneInCenterInfoMgr.class).in(Singleton.class);
         bind(CenterMongoDBMgr.class).in(Singleton.class);
-        bind(CenterSendMgr.class).in(Singleton.class);
     }
 }

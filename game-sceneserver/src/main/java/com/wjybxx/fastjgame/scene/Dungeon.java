@@ -17,8 +17,8 @@
 package com.wjybxx.fastjgame.scene;
 
 import com.wjybxx.fastjgame.config.SceneConfig;
-import com.wjybxx.fastjgame.misc.SceneType;
 import com.wjybxx.fastjgame.mgr.SceneWrapper;
+import com.wjybxx.fastjgame.misc.SceneType;
 
 /**
  * 副本场景，当玩家退出后销毁；

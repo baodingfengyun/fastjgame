@@ -63,8 +63,8 @@ public class LoginWorld extends AbstractWorld {
 
     @Override
     protected void startHook() throws Exception {
-        bindAndregisterToZK();
         loginDiscoverMgr.start();
+        bindAndregisterToZK();
     }
 
     private void bindAndregisterToZK() throws Exception {
