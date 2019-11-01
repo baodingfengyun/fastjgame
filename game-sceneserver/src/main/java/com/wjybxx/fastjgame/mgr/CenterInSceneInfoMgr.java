@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -116,8 +117,7 @@ public class CenterInSceneInfoMgr implements ICenterInSceneInfoMgr {
     }
 
     @Override
-    public List<Integer> connectScene(Session session, int platformNumber, int serverId) {
-        PlatformType platformType = PlatformType.forNumber(platformNumber);
+    public List<SceneRegion> connectScene(Session session, PlatformType platformType, int serverId) {
         assert !guid2InfoMap.containsKey(session.remoteGuid());
         assert !platInfoMap.containsKey(platformType) || !platInfoMap.get(platformType).containsKey(serverId);
 
@@ -125,11 +125,8 @@ public class CenterInSceneInfoMgr implements ICenterInSceneInfoMgr {
         addInfo(centerInSceneInfo);
 
         // 返回配置的所有区域即可，非互斥区域已启动
-        IntList configuredRegions = new IntArrayList(sceneWorldInfoMgr.getConfiguredRegions().size());
-        for (SceneRegion sceneRegion : sceneWorldInfoMgr.getConfiguredRegions()) {
-            configuredRegions.add(sceneRegion.getNumber());
-        }
-        return configuredRegions;
+        // 必须返回拷贝
+        return new ArrayList<>(sceneWorldInfoMgr.getConfiguredRegions());
     }
 
     /**

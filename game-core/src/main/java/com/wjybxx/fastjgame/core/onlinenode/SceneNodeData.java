@@ -29,19 +29,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class SceneNodeData extends TcpServerNodeData {
 
-    private final long worldGuid;
-
     @JsonCreator
     public SceneNodeData(@JsonProperty("innerTcpAddress") String innerTcpAddress,
                          @JsonProperty("innerHttpAddress") String innerHttpAddress,
                          @JsonProperty("localAddress") String localAddress,
-                         @JsonProperty("macAddress") String macAddress,
-                         @JsonProperty("worldGuid") long worldGuid) {
+                         @JsonProperty("macAddress") String macAddress) {
         super(innerTcpAddress, innerHttpAddress, localAddress, macAddress);
-        this.worldGuid = worldGuid;
     }
 
-    public long getWorldGuid() {
-        return worldGuid;
-    }
 }

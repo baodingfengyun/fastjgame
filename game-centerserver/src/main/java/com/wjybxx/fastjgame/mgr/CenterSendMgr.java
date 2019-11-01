@@ -20,7 +20,6 @@ import com.google.inject.Inject;
 import com.google.protobuf.Message;
 import com.google.protobuf.Message.Builder;
 import com.google.protobuf.MessageLite;
-import com.wjybxx.fastjgame.misc.PlatformType;
 import com.wjybxx.fastjgame.misc.SceneInCenterInfo;
 import com.wjybxx.fastjgame.misc.WarzoneInCenterInfo;
 import com.wjybxx.fastjgame.net.common.RpcResponse;
@@ -75,25 +74,6 @@ public class CenterSendMgr {
     }
 
     /**
-     * 发送异步消息到指定场景进程频道
-     *
-     * @param channelId 场景对应的频道id
-     * @param msg       发送的消息
-     */
-    public void sendToScene(int channelId, @Nonnull Message msg) {
-        SceneInCenterInfo sceneInfo = sceneInCenterInfoMgr.getSceneInfo(channelId);
-        if (null != sceneInfo && sceneInfo.getSession() != null) {
-            sceneInfo.getSession().send(msg);
-        } else {
-            logger.info("channel {} is disconnect already.", channelId);
-        }
-    }
-
-    public void sendToScene(int channelId, @Nonnull Builder builder) {
-        sendToScene(channelId, builder.build());
-    }
-
-    /**
      * 广播所有scene
      *
      * @param msg 广播消息
@@ -104,39 +84,6 @@ public class CenterSendMgr {
                 continue;
             }
             sceneInCenterInfo.getSession().send(msg);
-        }
-    }
-
-    /**
-     * 广播所有本服场景
-     *
-     * @param msg 广播消息
-     */
-    public void broadcastSingleScene(Message msg) {
-        for (SceneInCenterInfo sceneInCenterInfo : sceneInCenterInfoMgr.getAllSceneInfo()) {
-            if (null == sceneInCenterInfo.getSession()) {
-                continue;
-            }
-            if (sceneInCenterInfo.getPlatformType() == worldInfoMgr.getPlatformType()
-                    && sceneInCenterInfo.getServerId() == worldInfoMgr.getServerId()) {
-                sceneInCenterInfo.getSession().send(msg);
-            }
-        }
-    }
-
-    /**
-     * 广播所有跨服场景
-     *
-     * @param msg 广播消息
-     */
-    public void broadcastCrossScene(Message msg) {
-        for (SceneInCenterInfo sceneInCenterInfo : sceneInCenterInfoMgr.getAllSceneInfo()) {
-            if (null == sceneInCenterInfo.getSession()) {
-                continue;
-            }
-            if (sceneInCenterInfo.getPlatformType() == PlatformType.CROSS) {
-                sceneInCenterInfo.getSession().send(msg);
-            }
         }
     }
 
@@ -154,24 +101,6 @@ public class CenterSendMgr {
             return sceneInfo.getSession().sync(msg);
         } else {
             logger.info("scene process {} is disconnect already.", worldGuid);
-            return RpcResponse.SESSION_CLOSED;
-        }
-    }
-
-    /**
-     * 同步rpc scene
-     *
-     * @param <T>       帮助外部强转
-     * @param channelId 场景频道
-     * @param msg       发送的消息(请求)
-     * @return rpc调用结果 如果{@link Optional#isPresent()} 为true，表示调用成功，否则表示失败
-     */
-    public <T extends MessageLite> RpcResponse syncRpcScene(int channelId, @Nonnull Message msg) {
-        SceneInCenterInfo sceneInfo = sceneInCenterInfoMgr.getSceneInfo(channelId);
-        if (null != sceneInfo && sceneInfo.getSession() != null) {
-            return sceneInfo.getSession().sync(msg);
-        } else {
-            logger.info("channel {} is disconnect already.", channelId);
             return RpcResponse.SESSION_CLOSED;
         }
     }

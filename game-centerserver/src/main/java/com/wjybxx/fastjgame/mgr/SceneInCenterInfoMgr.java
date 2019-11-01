@@ -29,8 +29,6 @@ import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.rpcservice.ICenterInSceneInfoMgrRpcProxy;
 import com.wjybxx.fastjgame.rpcservice.ISceneRegionMgrRpcProxy;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectCollection;
@@ -69,10 +67,6 @@ public class SceneInCenterInfoMgr {
      * sceneGuid->sceneInfo
      */
     private final Long2ObjectMap<SceneInCenterInfo> guid2InfoMap = new Long2ObjectOpenHashMap<>();
-    /**
-     * channelId->sceneInfo
-     */
-    private final Int2ObjectMap<SceneInCenterInfo> channelId2InfoMap = new Int2ObjectOpenHashMap<>();
 
     private final GameAcceptorMgr gameAcceptorMgr;
 
@@ -85,24 +79,16 @@ public class SceneInCenterInfoMgr {
 
     private void addSceneInfo(SceneInCenterInfo sceneInCenterInfo) {
         guid2InfoMap.put(sceneInCenterInfo.getWorldGuid(), sceneInCenterInfo);
-        channelId2InfoMap.put(sceneInCenterInfo.getChanelId(), sceneInCenterInfo);
-
-        logger.info("add scene {}-{}", sceneInCenterInfo.getServerId(), sceneInCenterInfo.getChanelId());
+        logger.info("add scene {}", sceneInCenterInfo.getWorldGuid());
     }
 
     private void removeSceneInfo(SceneInCenterInfo sceneInCenterInfo) {
         guid2InfoMap.remove(sceneInCenterInfo.getWorldGuid());
-        channelId2InfoMap.remove(sceneInCenterInfo.getChanelId());
-
-        logger.info("remove scene {}-{}", sceneInCenterInfo.getServerId(), sceneInCenterInfo.getChanelId());
+        logger.info("remove scene {}", sceneInCenterInfo.getWorldGuid());
     }
 
     public SceneInCenterInfo getSceneInfo(long worldGuid) {
         return guid2InfoMap.get(worldGuid);
-    }
-
-    public SceneInCenterInfo getSceneInfo(int channelId) {
-        return channelId2InfoMap.get(channelId);
     }
 
     public ObjectCollection<SceneInCenterInfo> getAllSceneInfo() {
@@ -116,19 +102,12 @@ public class SceneInCenterInfoMgr {
      * @param nodeData 本服scene节点其它信息
      */
     public void onDiscoverSceneNode(SceneNodeName nodeName, SceneNodeData nodeData) {
-        final SceneInCenterInfo sceneInCenterInfo = channelId2InfoMap.get(nodeName.getChannelId());
-        if (null != sceneInCenterInfo) {
-            // 可能丢失了节点消失事件
-            logger.error("my loss childRemove event");
-            onSceneDisconnect(sceneInCenterInfo.getWorldGuid());
-        }
-
         // 建立tcp连接
-        gameAcceptorMgr.connect(nodeData.getWorldGuid(),
+        gameAcceptorMgr.connect(nodeName.getWorldGuid(),
                 nodeData.getInnerTcpAddress(),
                 nodeData.getLocalAddress(),
                 nodeData.getMacAddress(),
-                new SingleSceneAware(nodeName, nodeData));
+                new SingleSceneAware());
     }
 
     /**
@@ -138,7 +117,7 @@ public class SceneInCenterInfoMgr {
      * @param sceneNodeData 场景节点数据
      */
     public void onSceneNodeRemoved(SceneNodeName sceneNodeName, SceneNodeData sceneNodeData) {
-        onSceneDisconnect(sceneNodeData.getWorldGuid());
+        onSceneDisconnect(sceneNodeName.getWorldGuid());
     }
 
     /**
@@ -172,18 +151,13 @@ public class SceneInCenterInfoMgr {
      */
     private class SingleSceneAware implements SessionLifecycleAware {
 
-        private final SceneNodeName nodeName;
-        private final SceneNodeData nodeData;
-
-        private SingleSceneAware(SceneNodeName nodeName, SceneNodeData nodeData) {
-            this.nodeName = nodeName;
-            this.nodeData = nodeData;
+        private SingleSceneAware() {
         }
 
         @Override
         public void onSessionConnected(Session session) {
-            ICenterInSceneInfoMgrRpcProxy.connectScene(worldInfoMgr.getPlatformType().getNumber(), worldInfoMgr.getServerId())
-                    .onSuccess(result -> onConnectSceneSuccess(nodeName, nodeData, session, result))
+            ICenterInSceneInfoMgrRpcProxy.connectScene(worldInfoMgr.getPlatformType(), worldInfoMgr.getServerId())
+                    .onSuccess(result -> onConnectSceneSuccess(session, result))
                     .call(session);
         }
 
@@ -196,35 +170,22 @@ public class SceneInCenterInfoMgr {
     /**
      * 收到场景服务器的响应信息
      *
-     * @param nodeName              场景节点名字
-     * @param nodeData              场景节点数据
      * @param session               scene会话信息
      * @param configuredRegionsList 配置的区域
      */
-    private void onConnectSceneSuccess(SceneNodeName nodeName, SceneNodeData nodeData, Session session, List<Integer> configuredRegionsList) {
-        if (channelId2InfoMap.containsKey(nodeName.getChannelId())) {
-            session.close();
-            logger.error("connect same channelId {} scene", nodeName.getChannelId());
-            return;
-        }
-        final SceneInCenterInfo sceneInCenterInfo = new SceneInCenterInfo(nodeName, nodeData.getWorldGuid(), session);
+    private void onConnectSceneSuccess(Session session, List<SceneRegion> configuredRegionsList) {
+        final SceneInCenterInfo sceneInCenterInfo = new SceneInCenterInfo(session);
         guid2InfoMap.put(session.remoteGuid(), sceneInCenterInfo);
         addSceneInfo(sceneInCenterInfo);
 
-        Set<SceneRegion> configuredRegions = sceneInCenterInfo.getConfiguredRegions();
-        Set<SceneRegion> activeRegions = sceneInCenterInfo.getActiveRegions();
-        for (int regionId : configuredRegionsList) {
-            SceneRegion sceneRegion = SceneRegion.forNumber(regionId);
+        final Set<SceneRegion> configuredRegions = sceneInCenterInfo.getConfiguredRegions();
+        final Set<SceneRegion> activeRegions = sceneInCenterInfo.getActiveRegions();
+        for (SceneRegion sceneRegion : configuredRegionsList) {
             configuredRegions.add(sceneRegion);
             // 非互斥的区域已经启动了
             if (!sceneRegion.isMutex()) {
                 activeRegions.add(sceneRegion);
             }
-        }
-
-        if (sceneInCenterInfo.getPlatformType() != worldInfoMgr.getPlatformType()
-                || sceneInCenterInfo.getServerId() != worldInfoMgr.getServerId()) {
-            return;
         }
 
         // TODO 检查该场景可以启动哪些互斥场景

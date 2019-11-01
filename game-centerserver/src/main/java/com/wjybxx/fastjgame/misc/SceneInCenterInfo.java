@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.misc;
 
 import com.wjybxx.fastjgame.core.SceneRegion;
-import com.wjybxx.fastjgame.core.onlinenode.SceneNodeName;
 import com.wjybxx.fastjgame.net.session.Session;
 
 import java.util.EnumSet;
@@ -34,13 +33,9 @@ import java.util.Set;
 public class SceneInCenterInfo {
 
     /**
-     * 场景服所属的中心服平台
+     * 会话信息
      */
-    private final SceneNodeName nodeName;
-    /**
-     * worldGuid
-     */
-    private final long worldGuid;
+    private final Session session;
     /**
      * 配置的期望启动的区域，尽可能的都启动它们，且不启动额外的区域。
      * (本服scene进程才会有)
@@ -58,31 +53,13 @@ public class SceneInCenterInfo {
      * 本服玩家在当前scene的数量。
      */
     private final IntHolder onlinePlayerSequencer = new IntHolder(0);
-    /**
-     * 会话信息
-     */
-    private final Session session;
 
-    public SceneInCenterInfo(SceneNodeName nodeName, long worldGuid, Session session) {
-        this.nodeName = nodeName;
-        this.worldGuid = worldGuid;
+    public SceneInCenterInfo(Session session) {
         this.session = session;
     }
 
-    public PlatformType getPlatformType() {
-        return nodeName.getPlatformType();
-    }
-
-    public int getServerId() {
-        return nodeName.getServerId();
-    }
-
-    public int getChanelId() {
-        return nodeName.getChannelId();
-    }
-
     public long getWorldGuid() {
-        return worldGuid;
+        return session.remoteGuid();
     }
 
     public Set<SceneRegion> getConfiguredRegions() {

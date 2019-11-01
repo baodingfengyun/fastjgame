@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.core.onlinenode;
 
-import com.wjybxx.fastjgame.misc.PlatformType;
-
 /**
  * 场景节点名字。
  * 场景服需要不同的名字，场景进程之间没有直接的互斥关系，后启动的可以和先启动的同时存在。
@@ -34,48 +32,28 @@ public class SceneNodeName {
      */
     private final int warzoneId;
     /**
-     * 所属的平台
+     * world标识
      */
-    private final PlatformType platformType;
-    /**
-     * 所属的服 - 如果为0，表示不指定中心服，只可以使用该场景服提供的跨服区域。
-     */
-    private final int serverId;
-    /**
-     * 频道id
-     */
-    private final int channelId;
+    private final long worldGuid;
 
-    public SceneNodeName(int warzoneId, PlatformType platformType, int serverId, int channelId) {
+    public SceneNodeName(int warzoneId, long worldGuid) {
         this.warzoneId = warzoneId;
-        this.platformType = platformType;
-        this.serverId = serverId;
-        this.channelId = channelId;
+        this.worldGuid = worldGuid;
     }
 
     public int getWarzoneId() {
         return warzoneId;
     }
 
-    public PlatformType getPlatformType() {
-        return platformType;
-    }
-
-    public int getServerId() {
-        return serverId;
-    }
-
-    public int getChannelId() {
-        return channelId;
+    public long getWorldGuid() {
+        return worldGuid;
     }
 
     @Override
     public String toString() {
         return "SceneNodeName{" +
                 "warzoneId=" + warzoneId +
-                ", platformType=" + platformType +
-                ", serverId=" + serverId +
-                ", channelId=" + channelId +
+                ", worldGuid=" + worldGuid +
                 '}';
     }
 }

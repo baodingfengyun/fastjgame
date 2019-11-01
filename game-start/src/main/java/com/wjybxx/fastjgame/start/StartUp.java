@@ -25,10 +25,10 @@ import com.wjybxx.fastjgame.module.CenterModule;
 import com.wjybxx.fastjgame.module.LoginModule;
 import com.wjybxx.fastjgame.module.SceneModule;
 import com.wjybxx.fastjgame.module.WarzoneModule;
-import com.wjybxx.fastjgame.utils.TimeUtils;
 import com.wjybxx.fastjgame.world.GameEventLoopGroupImp;
 
 import java.io.File;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 启动器
@@ -59,8 +59,7 @@ public class StartUp {
      * 单服scene参数
      */
     private static final String[] singleSceneArgs = new String[]{
-            "platform=" + PlatformType.TEST.name(),
-            "serverId=" + 1,
+            "warzoneId=" + 1,
             "configuredRegions=" + SceneRegion.LOCAL_PKC.name() + "|" + SceneRegion.LOCAL_NORMAL.name()
     };
 
@@ -106,11 +105,10 @@ public class StartUp {
                 .addWorld(new SceneModule(), crossSceneArgs, 20)
                 .addWorld(new SceneModule(), crossSceneArgs, 20)
                 .build();
-        try {
-            Thread.sleep(2 * TimeUtils.MIN);
-        } catch (InterruptedException ignore) {
-        }
+
         // 试一试能否安全关闭
+        gameEventLoopGroup.awaitTermination(2, TimeUnit.MINUTES);
+
         gameEventLoopGroup.shutdown();
         netEventLoopGroup.shutdown();
         System.out.println(" ******* invoked shutdown *******");

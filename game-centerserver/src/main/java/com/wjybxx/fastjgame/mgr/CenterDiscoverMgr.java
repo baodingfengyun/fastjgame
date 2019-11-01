@@ -123,11 +123,11 @@ public class CenterDiscoverMgr {
         final SceneNodeData sceneNodeData = JsonUtils.parseJsonBytes(childData.getData(), SceneNodeData.class);
         if (type == Type.CHILD_ADDED) {
             sceneInCenterInfoMgr.onDiscoverSceneNode(sceneNodeName, sceneNodeData);
-            logger.info("discover scene {}-{}-{}", sceneNodeName.getPlatformType(), sceneNodeName.getServerId(), sceneNodeName.getChannelId());
+            logger.info("discover scene {}", sceneNodeName.getWorldGuid());
         } else {
             // remove
             sceneInCenterInfoMgr.onSceneNodeRemoved(sceneNodeName, sceneNodeData);
-            logger.info("remove scene {}-{}-{}", sceneNodeName.getPlatformType(), sceneNodeName.getServerId(), sceneNodeName.getChannelId());
+            logger.info("remove scene {}", sceneNodeName.getWorldGuid());
         }
     }
 

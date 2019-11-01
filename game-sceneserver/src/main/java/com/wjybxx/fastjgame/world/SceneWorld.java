@@ -91,18 +91,14 @@ public class SceneWorld extends AbstractWorld {
         HostAndPort innerHttpAddress = gameAcceptorMgr.bindInnerHttpPort();
         HostAndPort localAddress = gameAcceptorMgr.bindLocalTcpPort(centerLifeAware);
 
+        // 节点数据
+        final String nodeName = ZKPathUtils.buildSceneNodeName(sceneWorldInfoMgr.getWorldGuid());
         final SceneNodeData sceneNodeData = new SceneNodeData(innerTcpAddress.toString(),
                 innerHttpAddress.toString(),
-                localAddress.toString(), SystemUtils.getMAC(),
-                sceneWorldInfoMgr.getWorldGuid());
+                localAddress.toString(),
+                SystemUtils.getMAC());
 
         final String parentPath = ZKPathUtils.onlineParentPath(sceneWorldInfoMgr.getWarzoneId());
-        final String nodeName = ZKPathUtils.buildSceneNodeName(sceneWorldInfoMgr.getPlatformType(),
-                    sceneWorldInfoMgr.getServerId(),
-                    sceneWorldInfoMgr.getChannelId());
-        // 当前批次获得的channelId可能和上一批次获得的channelId重复，因此需要等待
-        curatorMgr.waitForNodeDelete(ZKPaths.makePath(parentPath, nodeName));
-        // 这里创建可能会失败，失败则退出线程
         curatorMgr.createNode(ZKPaths.makePath(parentPath, nodeName), CreateMode.EPHEMERAL, JsonUtils.toJsonBytes(sceneNodeData));
     }
 
