@@ -21,8 +21,10 @@ import com.wjybxx.fastjgame.enummapper.NumberEnum;
 import com.wjybxx.fastjgame.enummapper.NumberEnumMapper;
 import com.wjybxx.fastjgame.utils.EnumUtils;
 
+
 /**
- * 运行平台类型，平台问题最终还是会遇见，这里先处理。
+ * 平台类型，平台问题最终还是会遇见，这里先处理。
+ * 可以是：android、ios，也可以运营平台，终究应该是选中其中一个。
  *
  * @author wjybxx
  * @version 1.0
@@ -33,9 +35,9 @@ import com.wjybxx.fastjgame.utils.EnumUtils;
 public enum PlatformType implements NumberEnum {
 
     /**
-     * 测试用的运营平台
+     * 测试用的平台
      */
-    TEST(1),
+    TEST(0),
     ;
 
     /**

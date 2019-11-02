@@ -80,7 +80,7 @@ public class WarzoneInCenterInfoMgr {
 
         @Override
         public void onSessionConnected(Session session) {
-            ICenterInWarzoneInfoMgrRpcProxy.connectWarzone(centerWorldInfoMgr.getPlatformType(), centerWorldInfoMgr.getServerId())
+            ICenterInWarzoneInfoMgrRpcProxy.connectWarzone(centerWorldInfoMgr.getServerId())
                     .onSuccess(result -> connectWarzoneSuccess(session))
                     .call(session);
         }

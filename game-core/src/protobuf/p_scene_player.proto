@@ -19,8 +19,10 @@ option java_outer_classname="p_scene_player";
 message p_scene_player_data {
 	// 玩家的唯一标识，一定是不变的
 	int64 playerGuid = 1;
-	int32 logicServerId = 2;
-	int32 actualServerId = 3;
+	// 玩家原始服务器id
+	PCenterServerId originalServerId = 2;
+	// 玩家当前服务器id
+	PCenterServerId actualServerId = 3;
 }
 
 // npc在进入视野时，需要广播的数据

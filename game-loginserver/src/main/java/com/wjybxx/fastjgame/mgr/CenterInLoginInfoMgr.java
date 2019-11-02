@@ -20,13 +20,11 @@ import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.onlinenode.CenterNodeData;
 import com.wjybxx.fastjgame.core.onlinenode.CenterNodeName;
 import com.wjybxx.fastjgame.misc.CenterInLoginInfo;
-import com.wjybxx.fastjgame.misc.PlatformType;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import com.wjybxx.fastjgame.misc.CenterServerId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -41,34 +39,29 @@ public class CenterInLoginInfoMgr {
 
     private static final Logger logger = LoggerFactory.getLogger(CenterInLoginInfoMgr.class);
     /**
-     * 平台 -> 服id-> 服信息的映射
+     * 中心服id -> 中心服信息
      */
-    private final Map<PlatformType, Int2ObjectMap<CenterInLoginInfo>> platInfoMap = new EnumMap<>(PlatformType.class);
+    private final Map<CenterServerId, CenterInLoginInfo> serverId2InfoMap = new HashMap<>();
 
     @Inject
     public CenterInLoginInfoMgr() {
 
     }
 
-    private Int2ObjectMap<CenterInLoginInfo> getServerId2InfoMap(PlatformType platformType) {
-        return platInfoMap.computeIfAbsent(platformType, type -> new Int2ObjectOpenHashMap<>());
-    }
-
     public void onDiscoverCenterServer(CenterNodeName nodeName, CenterNodeData nodeData) {
-        Int2ObjectMap<CenterInLoginInfo> serverId2InfoMap = getServerId2InfoMap(nodeName.getPlatformType());
         assert !serverId2InfoMap.containsKey(nodeName.getServerId());
 
-        CenterInLoginInfo centerInLoginInfo = new CenterInLoginInfo(nodeName, nodeData);
+        final CenterInLoginInfo centerInLoginInfo = new CenterInLoginInfo(nodeName, nodeData);
         serverId2InfoMap.put(nodeName.getServerId(), centerInLoginInfo);
-        logger.info("{}-{} nodeData added.", nodeName.getPlatformType(), nodeName.getServerId());
+
+        logger.info("{} nodeData added.", nodeName.getServerId());
     }
 
     public void onCenterServerNodeRemove(CenterNodeName nodeName, CenterNodeData nodeData) {
-        Int2ObjectMap<CenterInLoginInfo> serverId2InfoMap = getServerId2InfoMap(nodeName.getPlatformType());
         assert serverId2InfoMap.containsKey(nodeName.getServerId());
 
         serverId2InfoMap.remove(nodeName.getServerId());
-        logger.info("{}-{} nodeData removed.", nodeName.getPlatformType(), nodeName.getServerId());
+        logger.info("{} nodeData removed.", nodeName.getServerId());
     }
 
 }

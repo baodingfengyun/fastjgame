@@ -29,35 +29,23 @@ import com.wjybxx.fastjgame.net.session.Session;
 public class CenterInSceneInfo {
 
     private final Session session;
-    /**
-     * 归属的平台
-     */
-    private final PlatformType platformType;
-    /**
-     * 连接的是哪个服
-     */
-    private final int serverId;
+    private final CenterServerId serverId;
 
-    public CenterInSceneInfo(Session session, PlatformType platformType, int serverId) {
-        this.platformType = platformType;
-        this.serverId = serverId;
+    public CenterInSceneInfo(Session session, CenterServerId serverId) {
         this.session = session;
-    }
-
-    public long getCenterWorldGuid() {
-        return session.remoteGuid();
-    }
-
-    public PlatformType getPlatformType() {
-        return platformType;
-    }
-
-    public int getServerId() {
-        return serverId;
+        this.serverId = serverId;
     }
 
     public Session getSession() {
         return session;
+    }
+
+    public CenterServerId getServerId() {
+        return serverId;
+    }
+
+    public long getCenterWorldGuid() {
+        return session.remoteGuid();
     }
 }
 

@@ -72,8 +72,7 @@ public class GateWorld extends AbstractWorld {
         final HostAndPort outerWsPort = gameAcceptorMgr.bindInnerTcpPort(new PlayerLifeAware());
 
 
-        final String nodeName = ZKPathUtils.buildGateNodeName(gateWorldInfoMgr.getPlatformType(),
-                gateWorldInfoMgr.getServerId(),
+        final String nodeName = ZKPathUtils.buildGateNodeName(gateWorldInfoMgr.getServerId(),
                 gateWorldInfoMgr.getWorldGuid());
 
         final GateNodeData nodeData = new GateNodeData(innerHttpAddress.toString(),

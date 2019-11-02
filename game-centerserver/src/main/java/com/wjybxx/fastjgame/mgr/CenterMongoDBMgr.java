@@ -39,7 +39,7 @@ public class CenterMongoDBMgr extends MongoDBMgr {
 
     @Override
     protected void cacheDB() {
-        String centerDBName = GameUtils.centerDBName(worldInfoMgr.getPlatformType(), worldInfoMgr.getServerId());
+        String centerDBName = GameUtils.centerDBName(worldInfoMgr.getServerId());
         dbMap.put(MongoDBType.CENTER, getMongoDatabase(centerDBName));
     }
 

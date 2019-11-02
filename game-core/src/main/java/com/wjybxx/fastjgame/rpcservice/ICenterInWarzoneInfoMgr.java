@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.rpcservice;
 
 import com.wjybxx.fastjgame.annotation.RpcMethod;
 import com.wjybxx.fastjgame.annotation.RpcService;
-import com.wjybxx.fastjgame.misc.PlatformType;
+import com.wjybxx.fastjgame.misc.CenterServerId;
 import com.wjybxx.fastjgame.net.session.Session;
 
 /**
@@ -35,11 +35,10 @@ public interface ICenterInWarzoneInfoMgr {
     /**
      * 中心服请求注册到战区服
      *
-     * @param session      关联的会话
-     * @param platformType 中心服的平台
-     * @param serverId     中心服的服ID
+     * @param session  关联的会话
+     * @param serverId 中心服的服ID
      * @return 返回一个结果告知已完成
      */
     @RpcMethod(methodId = 1)
-    boolean connectWarzone(Session session, PlatformType platformType, int serverId);
+    boolean connectWarzone(Session session, CenterServerId serverId);
 }

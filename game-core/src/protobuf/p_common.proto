@@ -11,10 +11,17 @@ option java_outer_classname="p_common";
 
 // 玩家需要序列化的数据
 message p_player_data{
+	// 玩家唯一id
 	int64 playerGuid = 1;
-	// 所属的平台号
-	int32 platformNumber=2;
-	// 逻辑服，注册时的服务器
-	int32 logicServerId = 3;
+	// 玩家原始服务器id
+	PCenterServerId originalServerId = 2;
+	// 玩家当前服务器id
+	PCenterServerId actualServerId = 3;
 }
 
+message PCenterServerId {
+	// 所属的平台号
+	int32 platformNumber = 1;
+	// 平台内服务器id
+	int32 serverId = 2;
+}

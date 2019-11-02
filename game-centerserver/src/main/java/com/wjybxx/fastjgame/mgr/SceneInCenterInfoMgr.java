@@ -156,7 +156,7 @@ public class SceneInCenterInfoMgr {
 
         @Override
         public void onSessionConnected(Session session) {
-            ICenterInSceneInfoMgrRpcProxy.connectScene(worldInfoMgr.getPlatformType(), worldInfoMgr.getServerId())
+            ICenterInSceneInfoMgrRpcProxy.connectScene(worldInfoMgr.getServerId())
                     .onSuccess(result -> onConnectSceneSuccess(session, result))
                     .call(session);
         }

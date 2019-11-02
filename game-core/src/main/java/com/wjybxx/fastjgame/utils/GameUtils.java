@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.utils;
 
-import com.wjybxx.fastjgame.misc.PlatformType;
+import com.wjybxx.fastjgame.misc.CenterServerId;
 import com.wjybxx.fastjgame.misc.PortRange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -135,13 +135,12 @@ public class GameUtils {
     /**
      * 获取中心服的数据库名字
      *
-     * @param platformType   运营平台
      * @param actualServerId 服id
      * @return dbName
      */
-    public static String centerDBName(PlatformType platformType, int actualServerId) {
+    public static String centerDBName(CenterServerId actualServerId) {
         // platform的名字可能被修改，但是数字标记不可以被修改
-        return "center_" + platformType.getNumber() + "_" + actualServerId;
+        return "center_" + actualServerId.getPlatformType().getNumber() + "_" + actualServerId.getInnerServerId();
     }
 
     /**

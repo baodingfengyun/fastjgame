@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.core.onlinenode;
 
-import com.wjybxx.fastjgame.misc.PlatformType;
+import com.wjybxx.fastjgame.misc.CenterServerId;
 
 /**
  * 中心服需要总是生成相同的名字，以使得只有一个center进程存在
@@ -27,43 +27,21 @@ import com.wjybxx.fastjgame.misc.PlatformType;
  * github - https://github.com/hl845740757
  */
 public class CenterNodeName {
-    /**
-     * 战区id来自父节点
-     */
-    private final int warzoneId;
-    /**
-     * 平台类型
-     */
-    private final PlatformType platformType;
-    /**
-     * 服id
-     */
-    private final int serverId;
 
-    public CenterNodeName(int warzoneId, PlatformType platformType, int serverId) {
-        this.platformType = platformType;
-        this.warzoneId = warzoneId;
+    private final CenterServerId serverId;
+
+    public CenterNodeName(CenterServerId serverId) {
         this.serverId = serverId;
     }
 
-    public int getWarzoneId() {
-        return warzoneId;
-    }
-
-    public PlatformType getPlatformType() {
-        return platformType;
-    }
-
-    public int getServerId() {
+    public CenterServerId getServerId() {
         return serverId;
     }
 
     @Override
     public String toString() {
         return "CenterNodeName{" +
-                "platformType=" + platformType +
-                ", warzoneId=" + warzoneId +
-                ", serverId=" + serverId +
+                "serverId=" + serverId +
                 '}';
     }
 }

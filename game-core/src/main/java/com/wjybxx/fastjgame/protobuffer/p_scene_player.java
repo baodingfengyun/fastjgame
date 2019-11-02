@@ -29,16 +29,58 @@ public final class p_scene_player {
     long getPlayerGuid();
 
     /**
-     * <code>int32 logicServerId = 2;</code>
-     * @return The logicServerId.
+     * <pre>
+     * 玩家原始服务器id
+     * </pre>
+     *
+     * <code>.fastjgame.PCenterServerId originalServerId = 2;</code>
+     * @return Whether the originalServerId field is set.
      */
-    int getLogicServerId();
+    boolean hasOriginalServerId();
+    /**
+     * <pre>
+     * 玩家原始服务器id
+     * </pre>
+     *
+     * <code>.fastjgame.PCenterServerId originalServerId = 2;</code>
+     * @return The originalServerId.
+     */
+    com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId getOriginalServerId();
+    /**
+     * <pre>
+     * 玩家原始服务器id
+     * </pre>
+     *
+     * <code>.fastjgame.PCenterServerId originalServerId = 2;</code>
+     */
+    com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerIdOrBuilder getOriginalServerIdOrBuilder();
 
     /**
-     * <code>int32 actualServerId = 3;</code>
+     * <pre>
+     * 玩家当前服务器id
+     * </pre>
+     *
+     * <code>.fastjgame.PCenterServerId actualServerId = 3;</code>
+     * @return Whether the actualServerId field is set.
+     */
+    boolean hasActualServerId();
+    /**
+     * <pre>
+     * 玩家当前服务器id
+     * </pre>
+     *
+     * <code>.fastjgame.PCenterServerId actualServerId = 3;</code>
      * @return The actualServerId.
      */
-    int getActualServerId();
+    com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId getActualServerId();
+    /**
+     * <pre>
+     * 玩家当前服务器id
+     * </pre>
+     *
+     * <code>.fastjgame.PCenterServerId actualServerId = 3;</code>
+     */
+    com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerIdOrBuilder getActualServerIdOrBuilder();
   }
   /**
    * <pre>
@@ -94,14 +136,30 @@ public final class p_scene_player {
               playerGuid_ = input.readInt64();
               break;
             }
-            case 16: {
+            case 18: {
+              com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId.Builder subBuilder = null;
+              if (originalServerId_ != null) {
+                subBuilder = originalServerId_.toBuilder();
+              }
+              originalServerId_ = input.readMessage(com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(originalServerId_);
+                originalServerId_ = subBuilder.buildPartial();
+              }
 
-              logicServerId_ = input.readInt32();
               break;
             }
-            case 24: {
+            case 26: {
+              com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId.Builder subBuilder = null;
+              if (actualServerId_ != null) {
+                subBuilder = actualServerId_.toBuilder();
+              }
+              actualServerId_ = input.readMessage(com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(actualServerId_);
+                actualServerId_ = subBuilder.buildPartial();
+              }
 
-              actualServerId_ = input.readInt32();
               break;
             }
             default: {
@@ -150,24 +208,74 @@ public final class p_scene_player {
       return playerGuid_;
     }
 
-    public static final int LOGICSERVERID_FIELD_NUMBER = 2;
-    private int logicServerId_;
+    public static final int ORIGINALSERVERID_FIELD_NUMBER = 2;
+    private com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId originalServerId_;
     /**
-     * <code>int32 logicServerId = 2;</code>
-     * @return The logicServerId.
+     * <pre>
+     * 玩家原始服务器id
+     * </pre>
+     *
+     * <code>.fastjgame.PCenterServerId originalServerId = 2;</code>
+     * @return Whether the originalServerId field is set.
      */
-    public int getLogicServerId() {
-      return logicServerId_;
+    public boolean hasOriginalServerId() {
+      return originalServerId_ != null;
+    }
+    /**
+     * <pre>
+     * 玩家原始服务器id
+     * </pre>
+     *
+     * <code>.fastjgame.PCenterServerId originalServerId = 2;</code>
+     * @return The originalServerId.
+     */
+    public com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId getOriginalServerId() {
+      return originalServerId_ == null ? com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId.getDefaultInstance() : originalServerId_;
+    }
+    /**
+     * <pre>
+     * 玩家原始服务器id
+     * </pre>
+     *
+     * <code>.fastjgame.PCenterServerId originalServerId = 2;</code>
+     */
+    public com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerIdOrBuilder getOriginalServerIdOrBuilder() {
+      return getOriginalServerId();
     }
 
     public static final int ACTUALSERVERID_FIELD_NUMBER = 3;
-    private int actualServerId_;
+    private com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId actualServerId_;
     /**
-     * <code>int32 actualServerId = 3;</code>
+     * <pre>
+     * 玩家当前服务器id
+     * </pre>
+     *
+     * <code>.fastjgame.PCenterServerId actualServerId = 3;</code>
+     * @return Whether the actualServerId field is set.
+     */
+    public boolean hasActualServerId() {
+      return actualServerId_ != null;
+    }
+    /**
+     * <pre>
+     * 玩家当前服务器id
+     * </pre>
+     *
+     * <code>.fastjgame.PCenterServerId actualServerId = 3;</code>
      * @return The actualServerId.
      */
-    public int getActualServerId() {
-      return actualServerId_;
+    public com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId getActualServerId() {
+      return actualServerId_ == null ? com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId.getDefaultInstance() : actualServerId_;
+    }
+    /**
+     * <pre>
+     * 玩家当前服务器id
+     * </pre>
+     *
+     * <code>.fastjgame.PCenterServerId actualServerId = 3;</code>
+     */
+    public com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerIdOrBuilder getActualServerIdOrBuilder() {
+      return getActualServerId();
     }
 
     private byte memoizedIsInitialized = -1;
@@ -187,11 +295,11 @@ public final class p_scene_player {
       if (playerGuid_ != 0L) {
         output.writeInt64(1, playerGuid_);
       }
-      if (logicServerId_ != 0) {
-        output.writeInt32(2, logicServerId_);
+      if (originalServerId_ != null) {
+        output.writeMessage(2, getOriginalServerId());
       }
-      if (actualServerId_ != 0) {
-        output.writeInt32(3, actualServerId_);
+      if (actualServerId_ != null) {
+        output.writeMessage(3, getActualServerId());
       }
       unknownFields.writeTo(output);
     }
@@ -206,13 +314,13 @@ public final class p_scene_player {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(1, playerGuid_);
       }
-      if (logicServerId_ != 0) {
+      if (originalServerId_ != null) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(2, logicServerId_);
+          .computeMessageSize(2, getOriginalServerId());
       }
-      if (actualServerId_ != 0) {
+      if (actualServerId_ != null) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(3, actualServerId_);
+          .computeMessageSize(3, getActualServerId());
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -231,10 +339,16 @@ public final class p_scene_player {
 
       if (getPlayerGuid()
           != other.getPlayerGuid()) return false;
-      if (getLogicServerId()
-          != other.getLogicServerId()) return false;
-      if (getActualServerId()
-          != other.getActualServerId()) return false;
+      if (hasOriginalServerId() != other.hasOriginalServerId()) return false;
+      if (hasOriginalServerId()) {
+        if (!getOriginalServerId()
+            .equals(other.getOriginalServerId())) return false;
+      }
+      if (hasActualServerId() != other.hasActualServerId()) return false;
+      if (hasActualServerId()) {
+        if (!getActualServerId()
+            .equals(other.getActualServerId())) return false;
+      }
       if (!unknownFields.equals(other.unknownFields)) return false;
       return true;
     }
@@ -249,10 +363,14 @@ public final class p_scene_player {
       hash = (37 * hash) + PLAYERGUID_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
           getPlayerGuid());
-      hash = (37 * hash) + LOGICSERVERID_FIELD_NUMBER;
-      hash = (53 * hash) + getLogicServerId();
-      hash = (37 * hash) + ACTUALSERVERID_FIELD_NUMBER;
-      hash = (53 * hash) + getActualServerId();
+      if (hasOriginalServerId()) {
+        hash = (37 * hash) + ORIGINALSERVERID_FIELD_NUMBER;
+        hash = (53 * hash) + getOriginalServerId().hashCode();
+      }
+      if (hasActualServerId()) {
+        hash = (37 * hash) + ACTUALSERVERID_FIELD_NUMBER;
+        hash = (53 * hash) + getActualServerId().hashCode();
+      }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -392,10 +510,18 @@ public final class p_scene_player {
         super.clear();
         playerGuid_ = 0L;
 
-        logicServerId_ = 0;
-
-        actualServerId_ = 0;
-
+        if (originalServerIdBuilder_ == null) {
+          originalServerId_ = null;
+        } else {
+          originalServerId_ = null;
+          originalServerIdBuilder_ = null;
+        }
+        if (actualServerIdBuilder_ == null) {
+          actualServerId_ = null;
+        } else {
+          actualServerId_ = null;
+          actualServerIdBuilder_ = null;
+        }
         return this;
       }
 
@@ -423,8 +549,16 @@ public final class p_scene_player {
       public com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data buildPartial() {
         com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data result = new com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_player_data(this);
         result.playerGuid_ = playerGuid_;
-        result.logicServerId_ = logicServerId_;
-        result.actualServerId_ = actualServerId_;
+        if (originalServerIdBuilder_ == null) {
+          result.originalServerId_ = originalServerId_;
+        } else {
+          result.originalServerId_ = originalServerIdBuilder_.build();
+        }
+        if (actualServerIdBuilder_ == null) {
+          result.actualServerId_ = actualServerId_;
+        } else {
+          result.actualServerId_ = actualServerIdBuilder_.build();
+        }
         onBuilt();
         return result;
       }
@@ -476,11 +610,11 @@ public final class p_scene_player {
         if (other.getPlayerGuid() != 0L) {
           setPlayerGuid(other.getPlayerGuid());
         }
-        if (other.getLogicServerId() != 0) {
-          setLogicServerId(other.getLogicServerId());
+        if (other.hasOriginalServerId()) {
+          mergeOriginalServerId(other.getOriginalServerId());
         }
-        if (other.getActualServerId() != 0) {
-          setActualServerId(other.getActualServerId());
+        if (other.hasActualServerId()) {
+          mergeActualServerId(other.getActualServerId());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -553,64 +687,314 @@ public final class p_scene_player {
         return this;
       }
 
-      private int logicServerId_ ;
+      private com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId originalServerId_;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId, com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId.Builder, com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerIdOrBuilder> originalServerIdBuilder_;
       /**
-       * <code>int32 logicServerId = 2;</code>
-       * @return The logicServerId.
+       * <pre>
+       * 玩家原始服务器id
+       * </pre>
+       *
+       * <code>.fastjgame.PCenterServerId originalServerId = 2;</code>
+       * @return Whether the originalServerId field is set.
        */
-      public int getLogicServerId() {
-        return logicServerId_;
+      public boolean hasOriginalServerId() {
+        return originalServerIdBuilder_ != null || originalServerId_ != null;
       }
       /**
-       * <code>int32 logicServerId = 2;</code>
-       * @param value The logicServerId to set.
-       * @return This builder for chaining.
+       * <pre>
+       * 玩家原始服务器id
+       * </pre>
+       *
+       * <code>.fastjgame.PCenterServerId originalServerId = 2;</code>
+       * @return The originalServerId.
        */
-      public Builder setLogicServerId(int value) {
-        
-        logicServerId_ = value;
-        onChanged();
+      public com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId getOriginalServerId() {
+        if (originalServerIdBuilder_ == null) {
+          return originalServerId_ == null ? com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId.getDefaultInstance() : originalServerId_;
+        } else {
+          return originalServerIdBuilder_.getMessage();
+        }
+      }
+      /**
+       * <pre>
+       * 玩家原始服务器id
+       * </pre>
+       *
+       * <code>.fastjgame.PCenterServerId originalServerId = 2;</code>
+       */
+      public Builder setOriginalServerId(com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId value) {
+        if (originalServerIdBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          originalServerId_ = value;
+          onChanged();
+        } else {
+          originalServerIdBuilder_.setMessage(value);
+        }
+
         return this;
       }
       /**
-       * <code>int32 logicServerId = 2;</code>
-       * @return This builder for chaining.
+       * <pre>
+       * 玩家原始服务器id
+       * </pre>
+       *
+       * <code>.fastjgame.PCenterServerId originalServerId = 2;</code>
        */
-      public Builder clearLogicServerId() {
-        
-        logicServerId_ = 0;
-        onChanged();
+      public Builder setOriginalServerId(
+          com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId.Builder builderForValue) {
+        if (originalServerIdBuilder_ == null) {
+          originalServerId_ = builderForValue.build();
+          onChanged();
+        } else {
+          originalServerIdBuilder_.setMessage(builderForValue.build());
+        }
+
         return this;
+      }
+      /**
+       * <pre>
+       * 玩家原始服务器id
+       * </pre>
+       *
+       * <code>.fastjgame.PCenterServerId originalServerId = 2;</code>
+       */
+      public Builder mergeOriginalServerId(com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId value) {
+        if (originalServerIdBuilder_ == null) {
+          if (originalServerId_ != null) {
+            originalServerId_ =
+              com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId.newBuilder(originalServerId_).mergeFrom(value).buildPartial();
+          } else {
+            originalServerId_ = value;
+          }
+          onChanged();
+        } else {
+          originalServerIdBuilder_.mergeFrom(value);
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * 玩家原始服务器id
+       * </pre>
+       *
+       * <code>.fastjgame.PCenterServerId originalServerId = 2;</code>
+       */
+      public Builder clearOriginalServerId() {
+        if (originalServerIdBuilder_ == null) {
+          originalServerId_ = null;
+          onChanged();
+        } else {
+          originalServerId_ = null;
+          originalServerIdBuilder_ = null;
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * 玩家原始服务器id
+       * </pre>
+       *
+       * <code>.fastjgame.PCenterServerId originalServerId = 2;</code>
+       */
+      public com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId.Builder getOriginalServerIdBuilder() {
+        
+        onChanged();
+        return getOriginalServerIdFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * 玩家原始服务器id
+       * </pre>
+       *
+       * <code>.fastjgame.PCenterServerId originalServerId = 2;</code>
+       */
+      public com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerIdOrBuilder getOriginalServerIdOrBuilder() {
+        if (originalServerIdBuilder_ != null) {
+          return originalServerIdBuilder_.getMessageOrBuilder();
+        } else {
+          return originalServerId_ == null ?
+              com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId.getDefaultInstance() : originalServerId_;
+        }
+      }
+      /**
+       * <pre>
+       * 玩家原始服务器id
+       * </pre>
+       *
+       * <code>.fastjgame.PCenterServerId originalServerId = 2;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId, com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId.Builder, com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerIdOrBuilder> 
+          getOriginalServerIdFieldBuilder() {
+        if (originalServerIdBuilder_ == null) {
+          originalServerIdBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId, com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId.Builder, com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerIdOrBuilder>(
+                  getOriginalServerId(),
+                  getParentForChildren(),
+                  isClean());
+          originalServerId_ = null;
+        }
+        return originalServerIdBuilder_;
       }
 
-      private int actualServerId_ ;
+      private com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId actualServerId_;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId, com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId.Builder, com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerIdOrBuilder> actualServerIdBuilder_;
       /**
-       * <code>int32 actualServerId = 3;</code>
+       * <pre>
+       * 玩家当前服务器id
+       * </pre>
+       *
+       * <code>.fastjgame.PCenterServerId actualServerId = 3;</code>
+       * @return Whether the actualServerId field is set.
+       */
+      public boolean hasActualServerId() {
+        return actualServerIdBuilder_ != null || actualServerId_ != null;
+      }
+      /**
+       * <pre>
+       * 玩家当前服务器id
+       * </pre>
+       *
+       * <code>.fastjgame.PCenterServerId actualServerId = 3;</code>
        * @return The actualServerId.
        */
-      public int getActualServerId() {
-        return actualServerId_;
+      public com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId getActualServerId() {
+        if (actualServerIdBuilder_ == null) {
+          return actualServerId_ == null ? com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId.getDefaultInstance() : actualServerId_;
+        } else {
+          return actualServerIdBuilder_.getMessage();
+        }
       }
       /**
-       * <code>int32 actualServerId = 3;</code>
-       * @param value The actualServerId to set.
-       * @return This builder for chaining.
+       * <pre>
+       * 玩家当前服务器id
+       * </pre>
+       *
+       * <code>.fastjgame.PCenterServerId actualServerId = 3;</code>
        */
-      public Builder setActualServerId(int value) {
-        
-        actualServerId_ = value;
-        onChanged();
+      public Builder setActualServerId(com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId value) {
+        if (actualServerIdBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          actualServerId_ = value;
+          onChanged();
+        } else {
+          actualServerIdBuilder_.setMessage(value);
+        }
+
         return this;
       }
       /**
-       * <code>int32 actualServerId = 3;</code>
-       * @return This builder for chaining.
+       * <pre>
+       * 玩家当前服务器id
+       * </pre>
+       *
+       * <code>.fastjgame.PCenterServerId actualServerId = 3;</code>
+       */
+      public Builder setActualServerId(
+          com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId.Builder builderForValue) {
+        if (actualServerIdBuilder_ == null) {
+          actualServerId_ = builderForValue.build();
+          onChanged();
+        } else {
+          actualServerIdBuilder_.setMessage(builderForValue.build());
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * 玩家当前服务器id
+       * </pre>
+       *
+       * <code>.fastjgame.PCenterServerId actualServerId = 3;</code>
+       */
+      public Builder mergeActualServerId(com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId value) {
+        if (actualServerIdBuilder_ == null) {
+          if (actualServerId_ != null) {
+            actualServerId_ =
+              com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId.newBuilder(actualServerId_).mergeFrom(value).buildPartial();
+          } else {
+            actualServerId_ = value;
+          }
+          onChanged();
+        } else {
+          actualServerIdBuilder_.mergeFrom(value);
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * 玩家当前服务器id
+       * </pre>
+       *
+       * <code>.fastjgame.PCenterServerId actualServerId = 3;</code>
        */
       public Builder clearActualServerId() {
-        
-        actualServerId_ = 0;
-        onChanged();
+        if (actualServerIdBuilder_ == null) {
+          actualServerId_ = null;
+          onChanged();
+        } else {
+          actualServerId_ = null;
+          actualServerIdBuilder_ = null;
+        }
+
         return this;
+      }
+      /**
+       * <pre>
+       * 玩家当前服务器id
+       * </pre>
+       *
+       * <code>.fastjgame.PCenterServerId actualServerId = 3;</code>
+       */
+      public com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId.Builder getActualServerIdBuilder() {
+        
+        onChanged();
+        return getActualServerIdFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * 玩家当前服务器id
+       * </pre>
+       *
+       * <code>.fastjgame.PCenterServerId actualServerId = 3;</code>
+       */
+      public com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerIdOrBuilder getActualServerIdOrBuilder() {
+        if (actualServerIdBuilder_ != null) {
+          return actualServerIdBuilder_.getMessageOrBuilder();
+        } else {
+          return actualServerId_ == null ?
+              com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId.getDefaultInstance() : actualServerId_;
+        }
+      }
+      /**
+       * <pre>
+       * 玩家当前服务器id
+       * </pre>
+       *
+       * <code>.fastjgame.PCenterServerId actualServerId = 3;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId, com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId.Builder, com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerIdOrBuilder> 
+          getActualServerIdFieldBuilder() {
+        if (actualServerIdBuilder_ == null) {
+          actualServerIdBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId, com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId.Builder, com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerIdOrBuilder>(
+                  getActualServerId(),
+                  getParentForChildren(),
+                  isClean());
+          actualServerId_ = null;
+        }
+        return actualServerIdBuilder_;
       }
       @java.lang.Override
       public final Builder setUnknownFields(
@@ -4483,19 +4867,20 @@ public final class p_scene_player {
   static {
     java.lang.String[] descriptorData = {
       "\n\024p_scene_player.proto\022\tfastjgame\032\016p_com" +
-      "mon.proto\"X\n\023p_scene_player_data\022\022\n\nplay" +
-      "erGuid\030\001 \001(\003\022\025\n\rlogicServerId\030\002 \001(\005\022\026\n\016a" +
-      "ctualServerId\030\003 \001(\005\"2\n\020p_scene_npc_data\022" +
-      "\017\n\007npcGuid\030\001 \001(\003\022\r\n\005npcId\030\002 \001(\005\"E\n\020p_sce" +
-      "ne_pet_data\022\021\n\townerGuid\030\001 \001(\003\022\017\n\007petGui" +
-      "d\030\002 \001(\003\022\r\n\005petId\030\003 \001(\005\"\242\001\n\031p_notify_play" +
-      "er_others_in\022/\n\007players\030\001 \003(\0132\036.fastjgam" +
-      "e.p_scene_player_data\022)\n\004npcs\030\002 \003(\0132\033.fa" +
-      "stjgame.p_scene_npc_data\022)\n\004pets\030\003 \003(\0132\033" +
-      ".fastjgame.p_scene_pet_data\"+\n\032p_notify_" +
-      "player_others_out\022\r\n\005guids\030\001 \003(\003B4\n com." +
-      "wjybxx.fastjgame.protobufferB\016p_scene_pl" +
-      "ayerH\001b\006proto3"
+      "mon.proto\"\223\001\n\023p_scene_player_data\022\022\n\npla" +
+      "yerGuid\030\001 \001(\003\0224\n\020originalServerId\030\002 \001(\0132" +
+      "\032.fastjgame.PCenterServerId\0222\n\016actualSer" +
+      "verId\030\003 \001(\0132\032.fastjgame.PCenterServerId\"" +
+      "2\n\020p_scene_npc_data\022\017\n\007npcGuid\030\001 \001(\003\022\r\n\005" +
+      "npcId\030\002 \001(\005\"E\n\020p_scene_pet_data\022\021\n\towner" +
+      "Guid\030\001 \001(\003\022\017\n\007petGuid\030\002 \001(\003\022\r\n\005petId\030\003 \001" +
+      "(\005\"\242\001\n\031p_notify_player_others_in\022/\n\007play" +
+      "ers\030\001 \003(\0132\036.fastjgame.p_scene_player_dat" +
+      "a\022)\n\004npcs\030\002 \003(\0132\033.fastjgame.p_scene_npc_" +
+      "data\022)\n\004pets\030\003 \003(\0132\033.fastjgame.p_scene_p" +
+      "et_data\"+\n\032p_notify_player_others_out\022\r\n" +
+      "\005guids\030\001 \003(\003B4\n com.wjybxx.fastjgame.pro" +
+      "tobufferB\016p_scene_playerH\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -4507,7 +4892,7 @@ public final class p_scene_player {
     internal_static_fastjgame_p_scene_player_data_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_fastjgame_p_scene_player_data_descriptor,
-        new java.lang.String[] { "PlayerGuid", "LogicServerId", "ActualServerId", });
+        new java.lang.String[] { "PlayerGuid", "OriginalServerId", "ActualServerId", });
     internal_static_fastjgame_p_scene_npc_data_descriptor =
       getDescriptor().getMessageTypes().get(1);
     internal_static_fastjgame_p_scene_npc_data_fieldAccessorTable = new

@@ -374,8 +374,6 @@ public abstract class Scene {
         public void serialize(Player player, p_notify_player_others_in.Builder out) {
             p_scene_player_data.Builder builder = p_scene_player_data.newBuilder();
             builder.setPlayerGuid(player.getGuid());
-            builder.setLogicServerId(player.getLogicServerId());
-            builder.setActualServerId(player.getActualServerId());
 
             // TODO more
             out.addPlayers(builder);

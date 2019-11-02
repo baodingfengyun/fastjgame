@@ -88,7 +88,7 @@ public class CenterWorld extends AbstractWorld {
 
         // 注册到zk
         String parentPath = ZKPathUtils.onlineWarzonePath(centerWorldInfoMgr.getWarzoneId());
-        String nodeName = ZKPathUtils.buildCenterNodeName(centerWorldInfoMgr.getPlatformType(), centerWorldInfoMgr.getServerId());
+        String nodeName = ZKPathUtils.buildCenterNodeName(centerWorldInfoMgr.getServerId());
 
         final CenterNodeData centerNodeData = new CenterNodeData(tcpHostAndPort.toString(),
                 httpHostAndPort.toString(),

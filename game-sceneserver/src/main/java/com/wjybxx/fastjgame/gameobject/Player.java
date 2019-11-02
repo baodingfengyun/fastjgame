@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.gameobject;
 
-import com.wjybxx.fastjgame.misc.PlatformType;
+import com.wjybxx.fastjgame.misc.CenterServerId;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.scene.Scene;
 import com.wjybxx.fastjgame.scene.gameobjectdata.PlayerData;
@@ -57,24 +57,17 @@ public class Player extends GameObject<PlayerData> {
         return playerData;
     }
 
-    // --------------这三个是非常常用的属性，因此进行一下代理----------------------------
-
-    /**
-     * 玩家所属的运营平台
-     */
-    public PlatformType getPlatformType() {
-        return playerData.getPlatformType();
-    }
+    // 常用方法代理
 
     /**
      * 玩家注册账号时的服务器id。
      * 是玩家的逻辑服，它并不一定是一个真实的服务器。
      */
-    public int getLogicServerId() {
-        return playerData.getLogicServerId();
+    public CenterServerId getOriginalServerId() {
+        return playerData.getOriginalServerId();
     }
 
-    public int getActualServerId() {
+    public CenterServerId getActualServerId() {
         return playerData.getActualServerId();
     }
 

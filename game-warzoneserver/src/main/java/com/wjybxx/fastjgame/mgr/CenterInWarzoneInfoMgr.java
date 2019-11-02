@@ -18,19 +18,16 @@ package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.misc.CenterInWarzoneInfo;
-import com.wjybxx.fastjgame.misc.PlatformType;
+import com.wjybxx.fastjgame.misc.CenterServerId;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.rpcservice.ICenterInWarzoneInfoMgr;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -49,9 +46,9 @@ public class CenterInWarzoneInfoMgr implements ICenterInWarzoneInfoMgr {
      */
     private final Long2ObjectMap<CenterInWarzoneInfo> guid2InfoMap = new Long2ObjectOpenHashMap<>();
     /**
-     * plat -> serverId -> info
+     * 服务器id -> info
      */
-    private final Map<PlatformType, Int2ObjectMap<CenterInWarzoneInfo>> platInfoMap = new EnumMap<>(PlatformType.class);
+    private final Map<CenterServerId, CenterInWarzoneInfo> serverId2InfoMap = new HashMap<>();
 
     @Inject
     public CenterInWarzoneInfoMgr() {
@@ -60,31 +57,24 @@ public class CenterInWarzoneInfoMgr implements ICenterInWarzoneInfoMgr {
 
     private void addInfo(CenterInWarzoneInfo centerInWarzoneInfo) {
         guid2InfoMap.put(centerInWarzoneInfo.getCenterWorldGuid(), centerInWarzoneInfo);
-
-        Int2ObjectMap<CenterInWarzoneInfo> serverId2InfoMap = getServerId2InfoMap(centerInWarzoneInfo.getPlatformType());
         serverId2InfoMap.put(centerInWarzoneInfo.getServerId(), centerInWarzoneInfo);
 
-        logger.info("server {}-{} register success.", centerInWarzoneInfo.getPlatformType(), centerInWarzoneInfo.getServerId());
-    }
-
-    @Nonnull
-    private Int2ObjectMap<CenterInWarzoneInfo> getServerId2InfoMap(PlatformType platformType) {
-        return platInfoMap.computeIfAbsent(platformType, k -> new Int2ObjectOpenHashMap<>());
+        logger.info("server {} register success.", centerInWarzoneInfo.getServerId());
     }
 
     private void removeInfo(CenterInWarzoneInfo centerInWarzoneInfo) {
         guid2InfoMap.remove(centerInWarzoneInfo.getCenterWorldGuid());
-        getServerId2InfoMap(centerInWarzoneInfo.getPlatformType()).remove(centerInWarzoneInfo.getServerId());
+        serverId2InfoMap.remove(centerInWarzoneInfo.getServerId());
 
-        logger.info("server {}-{} disconnect.", centerInWarzoneInfo.getPlatformType(), centerInWarzoneInfo.getServerId());
+        logger.info("server {} disconnect.", centerInWarzoneInfo);
     }
 
     @Override
-    public boolean connectWarzone(Session session, PlatformType platformType, int serverId) {
+    public boolean connectWarzone(Session session, CenterServerId serverId) {
         assert !guid2InfoMap.containsKey(session.remoteGuid());
-        assert !platInfoMap.containsKey(platformType) || !platInfoMap.get(platformType).containsKey(serverId);
+        assert !serverId2InfoMap.containsKey(serverId);
 
-        CenterInWarzoneInfo centerInWarzoneInfo = new CenterInWarzoneInfo(session, platformType, serverId);
+        CenterInWarzoneInfo centerInWarzoneInfo = new CenterInWarzoneInfo(session, serverId);
         addInfo(centerInWarzoneInfo);
         return true;
     }
@@ -100,13 +90,12 @@ public class CenterInWarzoneInfoMgr implements ICenterInWarzoneInfoMgr {
     /**
      * 获取center服的会话
      *
-     * @param platformType center服所属的平台
-     * @param serverId     服务器id
+     * @param serverId 服务器id
      * @return session
      */
     @Nullable
-    public Session getCenterSession(PlatformType platformType, int serverId) {
-        final CenterInWarzoneInfo centerInWarzoneInfo = getServerId2InfoMap(platformType).get(serverId);
+    public Session getCenterSession(CenterServerId serverId) {
+        final CenterInWarzoneInfo centerInWarzoneInfo = serverId2InfoMap.get(serverId);
         return null == centerInWarzoneInfo ? null : centerInWarzoneInfo.getSession();
     }
 

@@ -32,7 +32,7 @@ package com.wjybxx.fastjgame.misc;
 public enum MongoDBType {
 
     /**
-     * 中心服数据库
+     * 中心服数据库(单服数据库)
      */
     CENTER,
 
@@ -42,12 +42,7 @@ public enum MongoDBType {
     WARZONE,
 
     /**
-     * 登录服(或称auth)
-     */
-    LOGIN,
-
-    /**
-     * 全局数据库
+     * 全局数据库(账号数据库)
      */
     GLOBAL;
 }

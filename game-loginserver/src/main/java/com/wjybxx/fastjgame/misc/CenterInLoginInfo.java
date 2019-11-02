@@ -37,15 +37,7 @@ public class CenterInLoginInfo {
         this.nodeData = nodeData;
     }
 
-    public int getWarzoneId() {
-        return nodeName.getWarzoneId();
-    }
-
-    public PlatformType getPlatformType() {
-        return nodeName.getPlatformType();
-    }
-
-    public int getServerId() {
+    public CenterServerId getServerID() {
         return nodeName.getServerId();
     }
 

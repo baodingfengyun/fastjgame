@@ -25,6 +25,7 @@ import com.wjybxx.fastjgame.core.onlinenode.SceneNodeName;
 import com.wjybxx.fastjgame.misc.RoleType;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
+import com.wjybxx.fastjgame.world.GateWorldInfoMgr;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.TreeCache;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
@@ -44,13 +45,15 @@ public class GateDiscoverMgr {
 
     private final CuratorMgr curatorMgr;
     private final GameEventLoopMgr gameEventLoopMgr;
+    private final GateWorldInfoMgr worldInfoMgr;
 
     private TreeCache treeCache;
 
     @Inject
-    public GateDiscoverMgr(CuratorMgr curatorMgr, GameEventLoopMgr gameEventLoopMgr) {
+    public GateDiscoverMgr(CuratorMgr curatorMgr, GameEventLoopMgr gameEventLoopMgr, GateWorldInfoMgr worldInfoMgr) {
         this.curatorMgr = curatorMgr;
         this.gameEventLoopMgr = gameEventLoopMgr;
+        this.worldInfoMgr = worldInfoMgr;
     }
 
     public void start() throws Exception {
@@ -99,6 +102,11 @@ public class GateDiscoverMgr {
 
     private void onCenterEvent(TreeCacheEvent.Type type, ChildData childData) {
         final CenterNodeName nodeName = ZKPathUtils.parseCenterNodeName(childData.getPath());
+        if (!nodeName.getServerId().equals(worldInfoMgr.getServerId())) {
+            // 不是我关心的服务器
+            return;
+        }
+
         final CenterNodeData nodeData = JsonUtils.parseJsonBytes(childData.getData(), CenterNodeData.class);
         if (type == TreeCacheEvent.Type.NODE_ADDED) {
             // todo

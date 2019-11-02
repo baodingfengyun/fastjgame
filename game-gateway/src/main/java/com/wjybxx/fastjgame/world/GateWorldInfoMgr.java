@@ -22,6 +22,7 @@ import com.wjybxx.fastjgame.configwrapper.MapConfigWrapper;
 import com.wjybxx.fastjgame.mgr.CuratorMgr;
 import com.wjybxx.fastjgame.mgr.GuidMgr;
 import com.wjybxx.fastjgame.mgr.WorldInfoMgr;
+import com.wjybxx.fastjgame.misc.CenterServerId;
 import com.wjybxx.fastjgame.misc.PlatformType;
 import com.wjybxx.fastjgame.misc.RoleType;
 import com.wjybxx.fastjgame.utils.GameUtils;
@@ -40,8 +41,7 @@ public class GateWorldInfoMgr extends WorldInfoMgr {
     private final CuratorMgr curatorMgr;
 
     private int warzoneId;
-    private PlatformType platformType;
-    private int serverId;
+    private CenterServerId serverId;
 
     @Inject
     public GateWorldInfoMgr(GuidMgr guidMgr, CuratorMgr curatorMgr) {
@@ -52,11 +52,12 @@ public class GateWorldInfoMgr extends WorldInfoMgr {
     @Override
     protected void initImp(ConfigWrapper startArgs) throws Exception {
         // 战区id由zookeeper配置指定
-        this.platformType = PlatformType.valueOf(startArgs.getAsString("platform"));
-        this.serverId = startArgs.getAsInt("serverId");
+        final PlatformType platformType = PlatformType.valueOf(startArgs.getAsString("platform"));
+        final int serverId = startArgs.getAsInt("serverId");
+        this.serverId = new CenterServerId(platformType, serverId);
 
         // 查询zookeeper，获取该平台该服对应的战区id
-        final String actualServerConfigPath = ZKPathUtils.actualServerConfigPath(platformType, this.serverId);
+        final String actualServerConfigPath = ZKPathUtils.actualServerConfigPath(this.serverId);
         ConfigWrapper serverConfig = new MapConfigWrapper(GameUtils.newJsonMap(curatorMgr.getData(actualServerConfigPath)));
         warzoneId = serverConfig.getAsInt("warzoneId");
     }
@@ -70,11 +71,7 @@ public class GateWorldInfoMgr extends WorldInfoMgr {
         return warzoneId;
     }
 
-    public PlatformType getPlatformType() {
-        return platformType;
-    }
-
-    public int getServerId() {
+    public CenterServerId getServerId() {
         return serverId;
     }
 }

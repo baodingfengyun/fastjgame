@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.scene.gameobjectdata;
 
-import com.wjybxx.fastjgame.misc.PlatformType;
+import com.wjybxx.fastjgame.misc.CenterServerId;
 
 import javax.annotation.Nonnull;
 
@@ -29,22 +29,16 @@ import javax.annotation.Nonnull;
  * github - https://github.com/hl845740757
  */
 public class PlayerData extends GameObjectData {
-
-    /**
-     * 玩家所在的平台
-     */
-    private PlatformType platformType;
     /**
      * 玩家注册账号时的服务器id。
      * 是玩家的逻辑服，它并不一定是一个真实的服务器。
      */
-    private int logicServerId;
+    private CenterServerId originalServerId;
 
     /**
      * 玩家当前真正所属的服务器（合服之后的服）；
-     * 登录时决定；
      */
-    private int actualServerId;
+    private CenterServerId actualServerId;
 
     public PlayerData(long guid) {
         super(guid);
@@ -56,27 +50,19 @@ public class PlayerData extends GameObjectData {
         return GameObjectType.PLAYER;
     }
 
-    public PlatformType getPlatformType() {
-        return platformType;
+    public CenterServerId getOriginalServerId() {
+        return originalServerId;
     }
 
-    public void setPlatformType(PlatformType platformType) {
-        this.platformType = platformType;
+    public void setOriginalServerId(CenterServerId originalServerId) {
+        this.originalServerId = originalServerId;
     }
 
-    public int getLogicServerId() {
-        return logicServerId;
-    }
-
-    public void setLogicServerId(int logicServerId) {
-        this.logicServerId = logicServerId;
-    }
-
-    public int getActualServerId() {
+    public CenterServerId getActualServerId() {
         return actualServerId;
     }
 
-    public void setActualServerId(int actualServerId) {
+    public void setActualServerId(CenterServerId actualServerId) {
         this.actualServerId = actualServerId;
     }
 }

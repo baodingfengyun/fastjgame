@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.utils;
 
 import com.wjybxx.fastjgame.core.onlinenode.*;
+import com.wjybxx.fastjgame.misc.CenterServerId;
 import com.wjybxx.fastjgame.misc.PlatformType;
 import com.wjybxx.fastjgame.misc.RoleType;
 import org.apache.commons.lang3.StringUtils;
@@ -126,21 +127,19 @@ public class ZKPathUtils {
     /**
      * 真实服配置节点
      *
-     * @param platformType   平台枚举
      * @param actualServerId 真实服id，现存的服务器
      */
-    public static String actualServerConfigPath(PlatformType platformType, int actualServerId) {
-        return platParamPath(platformType) + "/actualserver/" + actualServerId;
+    public static String actualServerConfigPath(CenterServerId actualServerId) {
+        return platParamPath(actualServerId.getPlatformType()) + "/actualserver/" + actualServerId.getInnerServerId();
     }
 
     /**
      * 逻辑服到真实服映射节点
      *
-     * @param platformType  平台枚举
-     * @param logicServerId 逻辑服id(合服前的服id)
+     * @param originalServerId 逻辑服id(合服前的服id)
      */
-    public static String logicServerConfigPath(PlatformType platformType, int logicServerId) {
-        return platParamPath(platformType) + "/logicserver/" + logicServerId;
+    public static String originalServerConfigPath(CenterServerId originalServerId) {
+        return platParamPath(originalServerId.getPlatformType()) + "/originalserver/" + originalServerId.getInnerServerId();
     }
 
     /**
@@ -257,12 +256,11 @@ public class ZKPathUtils {
      * 为指定服创建一个有意义的节点名字
      * {@code CENTER-TEST-1}
      *
-     * @param platformType 平台
-     * @param serverId     几服
+     * @param serverId 平台唯一id
      * @return 唯一的有意义的名字
      */
-    public static String buildCenterNodeName(PlatformType platformType, int serverId) {
-        return StringUtils.joinWith("-", RoleType.CENTER, platformType, serverId);
+    public static String buildCenterNodeName(CenterServerId serverId) {
+        return StringUtils.joinWith("-", RoleType.CENTER, serverId.getPlatformType(), serverId.getInnerServerId());
     }
 
     /**
@@ -272,11 +270,10 @@ public class ZKPathUtils {
      * @return game服的信息
      */
     public static CenterNodeName parseCenterNodeName(String centerPath) {
-        int warzoneId = findWarzoneId(centerPath);
         String[] params = findNodeName(centerPath).split("-");
         PlatformType platformType = PlatformType.valueOf(params[1]);
         int serverId = Integer.parseInt(params[2]);
-        return new CenterNodeName(warzoneId, platformType, serverId);
+        return new CenterNodeName(new CenterServerId(platformType, serverId));
     }
 
     // ----------------------------------------- 场景服 -------------------------------------------
@@ -343,13 +340,12 @@ public class ZKPathUtils {
     /**
      * 为网关服创建一个有意义的名字
      *
-     * @param platformType 中心服平台类型
-     * @param serverId     中心服id
-     * @param worldGuid    网关服唯一标识
+     * @param serverId  中心服id
+     * @param worldGuid 网关服唯一标识
      * @return nodeName
      */
-    public static String buildGateNodeName(PlatformType platformType, int serverId, long worldGuid) {
-        return StringUtils.joinWith("-", RoleType.GATE, platformType, serverId, worldGuid);
+    public static String buildGateNodeName(CenterServerId serverId, long worldGuid) {
+        return StringUtils.joinWith("-", RoleType.GATE, serverId.getPlatformType(), serverId.getInnerServerId(), worldGuid);
     }
 
     /**

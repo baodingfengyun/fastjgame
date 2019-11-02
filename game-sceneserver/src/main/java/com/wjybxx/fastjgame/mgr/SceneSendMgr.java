@@ -21,7 +21,7 @@ import com.google.protobuf.Message;
 import com.google.protobuf.Message.Builder;
 import com.wjybxx.fastjgame.gameobject.GameObject;
 import com.wjybxx.fastjgame.gameobject.Player;
-import com.wjybxx.fastjgame.misc.PlatformType;
+import com.wjybxx.fastjgame.misc.CenterServerId;
 import com.wjybxx.fastjgame.misc.ViewGrid;
 import com.wjybxx.fastjgame.net.session.Session;
 import org.slf4j.Logger;
@@ -85,20 +85,19 @@ public class SceneSendMgr {
      * @param msg    消息
      */
     public void sendToCenter(Player player, Message msg) {
-        sendToCenter(player.getPlatformType(), player.getActualServerId(), msg);
+        sendToCenter(player.getActualServerId(), msg);
     }
 
     /**
      * 发送到指定中心服
      *
-     * @param platformType 中心服所在的平台
-     * @param serverId     中心服的id
-     * @param msg          消息
+     * @param serverId 中心服的id
+     * @param msg      消息
      */
-    public void sendToCenter(PlatformType platformType, int serverId, Message msg) {
-        Session session = centerInSceneInfoMgr.getCenterSession(platformType, serverId);
+    public void sendToCenter(CenterServerId serverId, Message msg) {
+        Session session = centerInSceneInfoMgr.getCenterSession(serverId);
         if (session == null) {
-            logger.warn("send to disconnected center {}-{}", platformType, serverId);
+            logger.warn("send to disconnected center {}", serverId);
             return;
         }
         session.send(msg);

@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.mgr;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
 import com.wjybxx.fastjgame.configwrapper.MapConfigWrapper;
+import com.wjybxx.fastjgame.misc.CenterServerId;
 import com.wjybxx.fastjgame.misc.PlatformType;
 import com.wjybxx.fastjgame.misc.RoleType;
 import com.wjybxx.fastjgame.utils.GameUtils;
@@ -42,19 +43,15 @@ public class CenterWorldInfoMgr extends WorldInfoMgr {
     /**
      * 逻辑服信息配置
      */
-    private ConfigWrapper logicServerConfig;
+    private ConfigWrapper originalServerConfig;
     /**
      * 从属的战区
      */
     private int warzoneId;
     /**
-     * 所属的运营平台
+     * 服务器唯一标识
      */
-    private PlatformType platformType;
-    /**
-     * 服id
-     */
-    private int serverId;
+    private CenterServerId serverId;
 
     @Inject
     public CenterWorldInfoMgr(GuidMgr guidMgr, CuratorMgr curatorMgr) {
@@ -64,13 +61,17 @@ public class CenterWorldInfoMgr extends WorldInfoMgr {
 
     @Override
     protected void initImp(ConfigWrapper startArgs) throws Exception {
-        platformType = PlatformType.valueOf(startArgs.getAsString("platform"));
-        serverId = startArgs.getAsInt("serverId");
+        final PlatformType platformType = PlatformType.valueOf(startArgs.getAsString("platform"));
+        final int serverId = startArgs.getAsInt("serverId");
+        this.serverId = new CenterServerId(platformType, serverId);
 
-        String actualServerPath = ZKPathUtils.actualServerConfigPath(platformType, serverId);
+        // 合服前配置
+        String actualServerPath = ZKPathUtils.actualServerConfigPath(this.serverId);
         this.actualServerConfig = new MapConfigWrapper(GameUtils.newJsonMap(curatorMgr.getData(actualServerPath)));
-        String logicServerPath = ZKPathUtils.logicServerConfigPath(platformType, serverId);
-        this.logicServerConfig = new MapConfigWrapper(GameUtils.newJsonMap(curatorMgr.getData(logicServerPath)));
+
+        // 合服后配置
+        String originalServerPath = ZKPathUtils.originalServerConfigPath(this.serverId);
+        this.originalServerConfig = new MapConfigWrapper(GameUtils.newJsonMap(curatorMgr.getData(originalServerPath)));
 
         // 战区通过zookeeper节点获取
         warzoneId = actualServerConfig.getAsInt("warzoneId");
@@ -81,15 +82,11 @@ public class CenterWorldInfoMgr extends WorldInfoMgr {
         return RoleType.CENTER;
     }
 
-    public PlatformType getPlatformType() {
-        return platformType;
-    }
-
     public int getWarzoneId() {
         return warzoneId;
     }
 
-    public int getServerId() {
+    public CenterServerId getServerId() {
         return serverId;
     }
 
@@ -97,7 +94,7 @@ public class CenterWorldInfoMgr extends WorldInfoMgr {
         return actualServerConfig;
     }
 
-    public ConfigWrapper getLogicServerConfig() {
-        return logicServerConfig;
+    public ConfigWrapper getOriginalServerConfig() {
+        return originalServerConfig;
     }
 }
