@@ -16,9 +16,14 @@
 
 package com.wjybxx.fastjgame.utils;
 
+import com.google.common.math.IntMath;
+import com.wjybxx.fastjgame.misc.IntPair;
+import com.wjybxx.fastjgame.misc.ShortPair;
 import com.wjybxx.fastjgame.shape.Point2D;
 import com.wjybxx.fastjgame.shape.Point3D;
 import com.wjybxx.fastjgame.shape.shape2d.StraightLine;
+
+import java.math.RoundingMode;
 
 /**
  * 数学计算辅助类
@@ -51,6 +56,51 @@ public class MathUtils {
     public static final double DOUBLE_DEVIATION = 0.0000001d;
 
     private MathUtils() {
+
+    }
+
+    /**
+     * 将两个int聚合为long
+     *
+     * @param a 高32位
+     * @param b 低32位
+     * @return long
+     */
+    public static long composeToLong(int a, int b) {
+        // 保留b符号扩充以后的低32位
+        return ((long) a << 32) | ((long) b & 0xFF_FF_FF_FFL);
+    }
+
+    /**
+     * 将一个{@link #composeToLong(int, int)}得到的long分解为原始的int
+     *
+     * @param value {@link #composeToLong(int, int)}得到的long
+     * @return intPair
+     */
+    public static IntPair decomposeToInt(long value) {
+        return new IntPair((int) (value >>> 32), (int) value);
+    }
+
+    /**
+     * 将两个short聚合为int
+     *
+     * @param a 高16位
+     * @param b 低16位
+     * @return int
+     */
+    public static int composeToInt(short a, short b) {
+        // 保留b符号扩充以后的低16位
+        return ((int) a << 16) | ((int) b & 0xFF_FF);
+    }
+
+    /**
+     * 将一个{@link #composeToInt(short, short)} 得到的int分解为原始的short
+     *
+     * @param value {@link #composeToInt(short, short)} 得到的int
+     * @return intPair
+     */
+    public static ShortPair decomposeToShort(int value) {
+        return new ShortPair((short) (value >>> 16), (short) value);
     }
 
     /**
@@ -91,6 +141,17 @@ public class MathUtils {
     }
 
     /**
+     * 两个int相除，如果余数大于0，则进一
+     *
+     * @param a int
+     * @param b int
+     * @return int
+     */
+    public static int divideIntCeil(int a, int b) {
+        return IntMath.divide(a, b, RoundingMode.CEILING);
+    }
+
+    /**
      * 判断一个值是否是2的整次幂
      */
     public static boolean isPowerOfTwo(int val) {
@@ -122,21 +183,7 @@ public class MathUtils {
         return x * x + y * y;
     }
 
-    /**
-     * 两个int相除，如果余数大于0，则进一
-     *
-     * @param a int
-     * @param b int
-     * @return int
-     */
-    public static int divideIntCeil(int a, int b) {
-        int remainder = a % b;
-        if (remainder > 0) {
-            return a / b + 1;
-        } else {
-            return a / b;
-        }
-    }
+    // region 范围
 
     /**
      * 是否在区间段内，左闭右开，包含左边界，不包含右边界
@@ -172,6 +219,7 @@ public class MathUtils {
     public static boolean betweenRange(int start, int end, int value) {
         return value > start && value < end;
     }
+    // endregion
 
     /**
      * 计算直线函数(直线函数不一定存在)
