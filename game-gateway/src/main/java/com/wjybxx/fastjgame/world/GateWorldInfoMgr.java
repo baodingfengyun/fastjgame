@@ -18,9 +18,14 @@ package com.wjybxx.fastjgame.world;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
+import com.wjybxx.fastjgame.configwrapper.MapConfigWrapper;
+import com.wjybxx.fastjgame.mgr.CuratorMgr;
 import com.wjybxx.fastjgame.mgr.GuidMgr;
 import com.wjybxx.fastjgame.mgr.WorldInfoMgr;
+import com.wjybxx.fastjgame.misc.PlatformType;
 import com.wjybxx.fastjgame.misc.RoleType;
+import com.wjybxx.fastjgame.utils.GameUtils;
+import com.wjybxx.fastjgame.utils.ZKPathUtils;
 
 /**
  * 网关服信息
@@ -32,16 +37,28 @@ import com.wjybxx.fastjgame.misc.RoleType;
  */
 public class GateWorldInfoMgr extends WorldInfoMgr {
 
+    private final CuratorMgr curatorMgr;
+
     private int warzoneId;
+    private PlatformType platformType;
+    private int serverId;
 
     @Inject
-    public GateWorldInfoMgr(GuidMgr guidMgr) {
+    public GateWorldInfoMgr(GuidMgr guidMgr, CuratorMgr curatorMgr) {
         super(guidMgr);
+        this.curatorMgr = curatorMgr;
     }
 
     @Override
     protected void initImp(ConfigWrapper startArgs) throws Exception {
-        warzoneId = startArgs.getAsInt("warzoneId");
+        // 战区id由zookeeper配置指定
+        this.platformType = PlatformType.valueOf(startArgs.getAsString("platform"));
+        this.serverId = startArgs.getAsInt("serverId");
+
+        // 查询zookeeper，获取该平台该服对应的战区id
+        final String actualServerConfigPath = ZKPathUtils.actualServerConfigPath(platformType, this.serverId);
+        ConfigWrapper serverConfig = new MapConfigWrapper(GameUtils.newJsonMap(curatorMgr.getData(actualServerConfigPath)));
+        warzoneId = serverConfig.getAsInt("warzoneId");
     }
 
     @Override
@@ -51,5 +68,13 @@ public class GateWorldInfoMgr extends WorldInfoMgr {
 
     public int getWarzoneId() {
         return warzoneId;
+    }
+
+    public PlatformType getPlatformType() {
+        return platformType;
+    }
+
+    public int getServerId() {
+        return serverId;
     }
 }

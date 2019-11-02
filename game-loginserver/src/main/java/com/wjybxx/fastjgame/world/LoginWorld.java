@@ -71,7 +71,7 @@ public class LoginWorld extends AbstractWorld {
         HostAndPort innerHttpAddress = gameAcceptorMgr.bindInnerHttpPort();
         HostAndPort outerHttpAddress = gameAcceptorMgr.bindOuterHttpPort(loginWorldInfoMgr.getPort());
 
-        String nodeName = ZKPathUtils.buildLoginNodeName(loginWorldInfoMgr.getPort(), loginWorldInfoMgr.getWorldGuid());
+        String nodeName = ZKPathUtils.buildLoginNodeName(loginWorldInfoMgr.getWorldGuid());
 
         LoginNodeData loginNodeData = new LoginNodeData(innerHttpAddress.toString(),
                 outerHttpAddress.toString());

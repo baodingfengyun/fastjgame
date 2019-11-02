@@ -76,7 +76,8 @@ public class StartUp {
     };
 
     private static final String[] gateArgs = new String[]{
-            "warzoneId=" + 1,
+            "platform=" + PlatformType.TEST.name(),
+            "serverId=" + 1
     };
 
 

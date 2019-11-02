@@ -26,7 +26,7 @@ package com.wjybxx.fastjgame.core.onlinenode;
  */
 public class WarzoneNodeName {
     /**
-     * 其实可以不要的
+     * 战区id
      */
     private final int warzoneId;
 
@@ -37,7 +37,6 @@ public class WarzoneNodeName {
     public int getWarzoneId() {
         return warzoneId;
     }
-
 
     @Override
     public String toString() {

@@ -73,7 +73,7 @@ public class CenterDiscoverMgr {
     }
 
     public void start() throws Exception {
-        String watchPath = ZKPathUtils.onlineParentPath(centerWorldInfoMgr.getWarzoneId());
+        String watchPath = ZKPathUtils.onlineWarzonePath(centerWorldInfoMgr.getWarzoneId());
         closeableHandle = curatorMgr.watchChildren(watchPath, (client, event) -> onEvent(event.getType(), event.getData()));
     }
 

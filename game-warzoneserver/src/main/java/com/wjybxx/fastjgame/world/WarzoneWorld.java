@@ -81,7 +81,7 @@ public class WarzoneWorld extends AbstractWorld {
         HostAndPort localAddress = gameAcceptorMgr.bindLocalTcpPort(centerLifeAware);
 
         // 注册到zk
-        String parentPath = ZKPathUtils.onlineParentPath(warzoneWorldInfoMgr.getWarzoneId());
+        String parentPath = ZKPathUtils.onlineWarzonePath(warzoneWorldInfoMgr.getWarzoneId());
         String nodeName = ZKPathUtils.buildWarzoneNodeName(warzoneWorldInfoMgr.getWarzoneId());
 
         WarzoneNodeData centerNodeData = new WarzoneNodeData(tcpHostAndPort.toString(), httpHostAndPort.toString(), localAddress.toString(), SystemUtils.getMAC(),

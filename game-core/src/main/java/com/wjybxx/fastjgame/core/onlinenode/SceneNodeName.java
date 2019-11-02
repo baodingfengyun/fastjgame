@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.core.onlinenode;
 /**
  * 场景节点名字。
  * 场景服需要不同的名字，场景进程之间没有直接的互斥关系，后启动的可以和先启动的同时存在。
- * platformType-serverId-channelId达成互斥
+ * （场景服不再互斥）
  *
  * @author wjybxx
  * @version 1.0

@@ -16,12 +16,10 @@
 
 package com.wjybxx.fastjgame.utils;
 
-import com.wjybxx.fastjgame.core.onlinenode.CenterNodeName;
-import com.wjybxx.fastjgame.core.onlinenode.LoginNodeName;
-import com.wjybxx.fastjgame.core.onlinenode.SceneNodeName;
-import com.wjybxx.fastjgame.core.onlinenode.WarzoneNodeName;
+import com.wjybxx.fastjgame.core.onlinenode.*;
 import com.wjybxx.fastjgame.misc.PlatformType;
 import com.wjybxx.fastjgame.misc.RoleType;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.utils.PathUtils;
 
 import java.io.File;
@@ -40,6 +38,7 @@ import java.io.File;
 public class ZKPathUtils {
 
     private static final String ONLINE_ROOT_PATH = "/online";
+    private static final String NODE_NAME_SEPARATOR = "-";
 
     /**
      * 寻找节点的名字，即最后一部分
@@ -195,7 +194,7 @@ public class ZKPathUtils {
      * @param warzoneId 战区id
      * @return
      */
-    public static String onlineParentPath(int warzoneId) {
+    public static String onlineWarzonePath(int warzoneId) {
         return "/online/warzone-" + warzoneId;
     }
 
@@ -227,14 +226,17 @@ public class ZKPathUtils {
         return RoleType.valueOf(nodeName.split("-", 2)[0]);
     }
 
+    // ----------------------------------------- 战区服 -------------------------------------------
+
     /**
      * 为战区创建一个有意义的节点名字
+     * {@code WARZONE-1}
      *
      * @param warzoneId 战区id
      * @return 唯一的有意义的名字
      */
     public static String buildWarzoneNodeName(int warzoneId) {
-        return RoleType.WARZONE + "-" + warzoneId;
+        return StringUtils.joinWith("-", RoleType.WARZONE, warzoneId);
     }
 
     /**
@@ -249,15 +251,18 @@ public class ZKPathUtils {
         return new WarzoneNodeName(warzoneId);
     }
 
+    // ----------------------------------------- 中心服 -------------------------------------------
+
     /**
      * 为指定服创建一个有意义的节点名字
+     * {@code CENTER-TEST-1}
      *
      * @param platformType 平台
      * @param serverId     几服
      * @return 唯一的有意义的名字
      */
     public static String buildCenterNodeName(PlatformType platformType, int serverId) {
-        return RoleType.CENTER + "-" + platformType + "-" + serverId;
+        return StringUtils.joinWith("-", RoleType.CENTER, platformType, serverId);
     }
 
     /**
@@ -274,14 +279,17 @@ public class ZKPathUtils {
         return new CenterNodeName(warzoneId, platformType, serverId);
     }
 
+    // ----------------------------------------- 场景服 -------------------------------------------
+
     /**
      * 为指定本服scene进程创建一个有意义的节点名字，用于注册到zookeeper
+     * {@code SCENE-12345}
      *
      * @param worldGuid worldGuid
      * @return 唯一的有意义的名字
      */
     public static String buildSceneNodeName(long worldGuid) {
-        return RoleType.SCENE + "-" + worldGuid;
+        return StringUtils.joinWith("-", RoleType.SCENE, worldGuid);
     }
 
     /**
@@ -308,41 +316,54 @@ public class ZKPathUtils {
 
     /**
      * 为loginserver创建一个节点名字
+     * {@code LOGIN-12345}
      *
-     * @param port      端口号
      * @param worldGuid worldGuid
      * @return 一个唯一的有意义的名字
      */
-    public static String buildLoginNodeName(int port, long worldGuid) {
-        return RoleType.LOGIN + "-" + port + "-" + worldGuid;
+    public static String buildLoginNodeName(long worldGuid) {
+        return StringUtils.joinWith("-", RoleType.LOGIN, worldGuid);
     }
 
     /**
      * 解析loginserver的节点名字
      *
      * @param path 节点路径
-     * @return
+     * @return name
      */
     public static LoginNodeName parseLoginNodeName(String path) {
-        String[] params = findNodeName(path).split("-");
-        int port = Integer.parseInt(params[1]);
-        long worldGuid = Long.parseLong(params[2]);
-        return new LoginNodeName(port, worldGuid);
+        final String[] params = findNodeName(path).split("-");
+        long worldGuid = Long.parseLong(params[1]);
+        return new LoginNodeName(worldGuid);
     }
     // endregion
 
     // ---------------------------------------- 网关服 --------------------------------------------
 
     /**
-     * @return 网关服在线信息根节点
+     * 为网关服创建一个有意义的名字
+     *
+     * @param platformType 中心服平台类型
+     * @param serverId     中心服id
+     * @param worldGuid    网关服唯一标识
+     * @return nodeName
      */
-    public static String onlineGateRootPath() {
-        return onlineRootPath() + "/gate";
+    public static String buildGateNodeName(PlatformType platformType, int serverId, long worldGuid) {
+        return StringUtils.joinWith("-", RoleType.GATE, platformType, serverId, worldGuid);
     }
 
-    public static String buildGateNodeName(long worldGuid) {
-        return RoleType.GATE + "-" + worldGuid;
+    /**
+     * 解析网关节点名字
+     *
+     * @param path 网关节点名字
+     * @return name
+     */
+    public static GateNodeName parseGateNodeName(String path) {
+        final int warzoneId = findWarzoneId(path);
+        final String[] params = findNodeName(path).split("-");
+        final PlatformType platformType = PlatformType.valueOf(params[1]);
+        final int serverId = Integer.parseInt(params[2]);
+        final long worldGuid = Long.parseLong(params[3]);
+        return new GateNodeName(warzoneId, platformType, serverId, worldGuid);
     }
-
-
 }

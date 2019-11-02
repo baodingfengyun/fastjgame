@@ -38,11 +38,13 @@ import org.apache.zookeeper.CreateMode;
  */
 public class GateWorld extends AbstractWorld {
 
+    private final GateWorldInfoMgr gateWorldInfoMgr;
     private final GateDiscoverMgr discoverMgr;
 
     @Inject
-    public GateWorld(WorldWrapper worldWrapper, GateDiscoverMgr discoverMgr) {
+    public GateWorld(WorldWrapper worldWrapper, GateWorldInfoMgr gateWorldInfoMgr, GateDiscoverMgr discoverMgr) {
         super(worldWrapper);
+        this.gateWorldInfoMgr = gateWorldInfoMgr;
         this.discoverMgr = discoverMgr;
     }
 
@@ -70,12 +72,15 @@ public class GateWorld extends AbstractWorld {
         final HostAndPort outerWsPort = gameAcceptorMgr.bindInnerTcpPort(new PlayerLifeAware());
 
 
-        final String nodeName = ZKPathUtils.buildGateNodeName(worldInfoMgr.getWorldGuid());
+        final String nodeName = ZKPathUtils.buildGateNodeName(gateWorldInfoMgr.getPlatformType(),
+                gateWorldInfoMgr.getServerId(),
+                gateWorldInfoMgr.getWorldGuid());
+
         final GateNodeData nodeData = new GateNodeData(innerHttpAddress.toString(),
                 outerTcpPort.toString(),
                 outerWsPort.toString());
 
-        final String path = ZKPaths.makePath(ZKPathUtils.onlineGateRootPath(), nodeName);
+        final String path = ZKPaths.makePath(ZKPathUtils.onlineWarzonePath(gateWorldInfoMgr.getWarzoneId()), nodeName);
         final byte[] initData = JsonUtils.toJsonBytes(nodeData);
         curatorMgr.createNode(path, CreateMode.EPHEMERAL, initData);
     }

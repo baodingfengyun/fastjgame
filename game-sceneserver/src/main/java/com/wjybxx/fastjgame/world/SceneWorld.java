@@ -98,7 +98,7 @@ public class SceneWorld extends AbstractWorld {
                 localAddress.toString(),
                 SystemUtils.getMAC());
 
-        final String parentPath = ZKPathUtils.onlineParentPath(sceneWorldInfoMgr.getWarzoneId());
+        final String parentPath = ZKPathUtils.onlineWarzonePath(sceneWorldInfoMgr.getWarzoneId());
         curatorMgr.createNode(ZKPaths.makePath(parentPath, nodeName), CreateMode.EPHEMERAL, JsonUtils.toJsonBytes(sceneNodeData));
     }
 

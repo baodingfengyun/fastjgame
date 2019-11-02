@@ -155,7 +155,7 @@ public class MathUtils {
      * 判断一个值是否是2的整次幂
      */
     public static boolean isPowerOfTwo(int val) {
-        return (val & -val) == val;
+        return IntMath.isPowerOfTwo(val);
     }
 
     /**

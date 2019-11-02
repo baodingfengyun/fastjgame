@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.core.onlinenode;
 
 /**
- * 登录服务器节点名字
+ * 登录服务器节点名字（不互斥）
  *
  * @author wjybxx
  * @version 1.0
@@ -25,23 +25,13 @@ package com.wjybxx.fastjgame.core.onlinenode;
  * github - https://github.com/hl845740757
  */
 public class LoginNodeName {
-
-    /**
-     * 登录服绑定的端口
-     */
-    private final int port;
     /**
      * 登录服worldGuid
      */
     private final long loginWorldGuid;
 
-    public LoginNodeName(int port, long loginWorldGuid) {
-        this.port = port;
+    public LoginNodeName(long loginWorldGuid) {
         this.loginWorldGuid = loginWorldGuid;
-    }
-
-    public int getPort() {
-        return port;
     }
 
     public long getLoginWorldGuid() {

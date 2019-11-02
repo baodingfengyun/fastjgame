@@ -39,13 +39,13 @@ public abstract class AbstractWorld implements World {
     private static final Logger logger = LoggerFactory.getLogger(AbstractWorld.class);
 
     protected final WorldWrapper worldWrapper;
+    protected final WorldInfoMgr worldInfoMgr;
     protected final GameEventLoopMgr gameEventLoopMgr;
     protected final ProtocolDispatcherMgr protocolDispatcherMgr;
     protected final WorldTimeMgr worldTimeMgr;
     protected final ProtocolCodecMgr protocolCodecMgr;
     protected final WorldTimerMgr worldTimerMgr;
     protected final HttpDispatcherMgr httpDispatcherMgr;
-    protected final WorldInfoMgr worldInfoMgr;
     protected final GlobalExecutorMgr globalExecutorMgr;
     protected final CuratorMgr curatorMgr;
     protected final GameConfigMgr gameConfigMgr;
@@ -56,13 +56,13 @@ public abstract class AbstractWorld implements World {
     @Inject
     public AbstractWorld(WorldWrapper worldWrapper) {
         this.worldWrapper = worldWrapper;
+        worldInfoMgr = worldWrapper.getWorldInfoMgr();
         this.gameEventLoopMgr = worldWrapper.getGameEventLoopMgr();
         protocolDispatcherMgr = worldWrapper.getProtocolDispatcherMgr();
         worldTimeMgr = worldWrapper.getWorldTimeMgr();
         protocolCodecMgr = worldWrapper.getProtocolCodecMgr();
         worldTimerMgr = worldWrapper.getWorldTimerMgr();
         httpDispatcherMgr = worldWrapper.getHttpDispatcherMgr();
-        worldInfoMgr = worldWrapper.getWorldInfoMgr();
         globalExecutorMgr = worldWrapper.getGlobalExecutorMgr();
         curatorMgr = worldWrapper.getCuratorMgr();
         gameConfigMgr = worldWrapper.getGameConfigMgr();

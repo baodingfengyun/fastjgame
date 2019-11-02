@@ -48,7 +48,7 @@ public class UpdateEventTest {
         CuratorMgr curatorMgr = injector.getInstance(CuratorMgr.class);
 
         // 注册到zk
-        String parentPath = ZKPathUtils.onlineParentPath(1);
+        String parentPath = ZKPathUtils.onlineWarzonePath(1);
 
         final String pathA = ZKPaths.makePath(parentPath, "a");
         final String pathB = ZKPaths.makePath(parentPath, "b");

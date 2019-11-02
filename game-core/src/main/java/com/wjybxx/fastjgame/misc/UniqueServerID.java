@@ -14,46 +14,28 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.core.onlinenode;
+package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.misc.PlatformType;
+import com.wjybxx.fastjgame.utils.MathUtils;
+
+import javax.annotation.Nonnull;
 
 /**
- * 网关节点名字(网关节点不互斥)
+ * 唯一服务器编号
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/10/11
+ * date - 2019/11/2
  * github - https://github.com/hl845740757
  */
-public class GateNodeName {
+public class UniqueServerID {
 
-    /**
-     * 战区id来自父节点
-     */
-    private final int warzoneId;
-    /**
-     * 所属的平台
-     */
     private final PlatformType platformType;
-    /**
-     * 所属的服
-     */
     private final int serverId;
-    /**
-     * guid
-     */
-    private final long worldGuid;
 
-    public GateNodeName(int warzoneId, PlatformType platformType, int serverId, long worldGuid) {
-        this.warzoneId = warzoneId;
+    public UniqueServerID(@Nonnull PlatformType platformType, int serverId) {
         this.platformType = platformType;
         this.serverId = serverId;
-        this.worldGuid = worldGuid;
-    }
-
-    public int getWarzoneId() {
-        return warzoneId;
     }
 
     public PlatformType getPlatformType() {
@@ -64,8 +46,22 @@ public class GateNodeName {
         return serverId;
     }
 
-    public long getWorldGuid() {
-        return worldGuid;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        final UniqueServerID that = (UniqueServerID) o;
+        return platformType == that.platformType && serverId == that.serverId;
     }
 
+    @Override
+    public int hashCode() {
+        return Long.hashCode(MathUtils.composeToLong(platformType.getNumber(), serverId));
+    }
 }

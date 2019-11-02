@@ -70,7 +70,7 @@ public class WatcherTest {
         Injector injector = Guice.createInjector(new WorldGroupModule(), new CenterModule());
         CuratorMgr curatorMgr = injector.getInstance(CuratorMgr.class);
 
-        String watchPath = ZKPathUtils.onlineParentPath(1);
+        String watchPath = ZKPathUtils.onlineWarzonePath(1);
         CloseableHandle closeHandle = curatorMgr.watchChildren(watchPath, (client, event) -> eventQueue.offer(event));
 
         for (int index = 0; index < 10000; index++) {
