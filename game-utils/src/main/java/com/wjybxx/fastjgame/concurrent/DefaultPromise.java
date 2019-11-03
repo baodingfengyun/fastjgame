@@ -469,10 +469,23 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         // 检查中断 --- 在执行一个耗时操作之前检查中断是有必要的
         ConcurrentUtils.checkInterrupted();
 
-        // 锁的标准模式
-        // while(!condition()) {
-        //      this.wait();
-        // }
+        // synchronized的标准模式
+//        synchronized (this) {
+//            while(!condition()) {
+//                this.wait();
+//            }
+//        }
+
+        // 显式锁的标准模式
+//        lock.lock();
+//        try {
+//            while (!isOK()) {
+//                condition.await();
+//            }
+//        } finally {
+//            lock.unlock();
+//        }
+
         synchronized (this) {
             while (!isDone()) {
                 incWaiters();
@@ -532,10 +545,12 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         ConcurrentUtils.checkInterrupted();
         final long endTime = System.nanoTime() + unit.toNanos(timeout);
         synchronized (this) {
-            // 获取锁需要时间，因此应该在获取锁之后计算剩余时间
-            for (long remainNano = endTime - System.nanoTime(); remainNano > 0; remainNano = endTime - System.nanoTime()) {
-                if (isDone()) {
-                    return true;
+            while (!isDone()) {
+                // 获取锁需要时间，因此应该在获取锁之后计算剩余时间
+                final long remainNano = endTime - System.nanoTime();
+                if (remainNano <= 0) {
+                    // 再尝试一下
+                    return isDone();
                 }
                 incWaiters();
                 try {
@@ -544,9 +559,8 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
                     decWaiters();
                 }
             }
+            return true;
         }
-        // 再努力尝试一次
-        return isDone();
     }
 
     @Override
@@ -567,10 +581,12 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         final long endTime = System.nanoTime() + unit.toNanos(timeout);
         try {
             synchronized (this) {
-                // 获取锁需要时间，因此应该在获取锁之后计算剩余时间
-                for (long remainNano = endTime - System.nanoTime(); remainNano > 0; remainNano = endTime - System.nanoTime()) {
-                    if (isDone()) {
-                        return true;
+                while (!isDone()) {
+                    // 获取锁需要时间，因此应该在获取锁之后计算剩余时间
+                    final long remainNano = endTime - System.nanoTime();
+                    if (remainNano <= 0) {
+                        // 再尝试一下
+                        return isDone();
                     }
                     incWaiters();
                     try {
@@ -581,9 +597,8 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
                         decWaiters();
                     }
                 }
+                return true;
             }
-            // 再努力尝试一次
-            return isDone();
         } finally {
             // 恢复中断状态
             ConcurrentUtils.recoveryInterrupted(interrupted);
