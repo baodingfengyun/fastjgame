@@ -128,7 +128,7 @@ public class SceneWorld extends AbstractWorld {
             final Session centerSession = centerInSceneInfoMgr.getCenterSession(session.remoteGuid());
             if (null != centerSession) {
                 // 中心服
-                centerInSceneInfoMgr.onSessionDisconnect(session.remoteGuid());
+                centerInSceneInfoMgr.onCenterDisconnect(session.remoteGuid());
                 return;
             }
 

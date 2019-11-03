@@ -77,7 +77,7 @@ public class CenterInSceneInfoMgr implements ICenterInSceneInfoMgr {
      *
      * @param centerWorldGuid center服务器worldGuid
      */
-    public void onSessionDisconnect(long centerWorldGuid) {
+    public void onCenterDisconnect(long centerWorldGuid) {
         CenterInSceneInfo centerInSceneInfo = guid2InfoMap.get(centerWorldGuid);
         if (null == centerInSceneInfo) {
             return;

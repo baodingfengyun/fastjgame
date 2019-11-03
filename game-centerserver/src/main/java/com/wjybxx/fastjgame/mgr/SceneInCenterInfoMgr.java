@@ -182,12 +182,12 @@ public class SceneInCenterInfoMgr {
             session.close();
             return;
         }
+        // 连接成功日志
         logger.info("connect scene {} success", session.remoteGuid());
 
         final SceneInCenterInfo sceneInCenterInfo = new SceneInCenterInfo(session);
         guid2InfoMap.put(session.remoteGuid(), sceneInCenterInfo);
         addSceneInfo(sceneInCenterInfo);
-
 
         final Set<SceneRegion> configuredRegions = sceneInCenterInfo.getConfiguredRegions();
         final Set<SceneRegion> activeRegions = sceneInCenterInfo.getActiveRegions();
