@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.utils;
 
 import com.wjybxx.fastjgame.misc.CenterServerId;
 import com.wjybxx.fastjgame.misc.PortRange;
+import com.wjybxx.fastjgame.misc.RoleType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -119,7 +120,6 @@ public class GameUtils {
         return JsonUtils.parseJsonBytesToMap(jsonBytes, LinkedHashMap.class, String.class, String.class);
     }
 
-
     /**
      * 是否是null字符串或空字符串
      *
@@ -140,7 +140,7 @@ public class GameUtils {
      */
     public static String centerDBName(CenterServerId actualServerId) {
         // platform的名字可能被修改，但是数字标记不可以被修改
-        return "center_" + actualServerId.getPlatformType().getNumber() + "_" + actualServerId.getInnerServerId();
+        return RoleType.CENTER + "_" + actualServerId.getPlatformType().getNumber() + "_" + actualServerId.getPlatformServerId();
     }
 
     /**
@@ -150,7 +150,7 @@ public class GameUtils {
      * @return dbName
      */
     public static String warzoneDBName(int warzoneId) {
-        return "warzone_" + warzoneId;
+        return RoleType.WARZONE + "_" + warzoneId;
     }
 
     /**

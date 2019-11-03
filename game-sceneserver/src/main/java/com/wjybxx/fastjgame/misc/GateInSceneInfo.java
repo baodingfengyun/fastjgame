@@ -14,31 +14,37 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.rpcservice;
+package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.annotation.RpcMethod;
-import com.wjybxx.fastjgame.annotation.RpcService;
-import com.wjybxx.fastjgame.misc.CenterServerId;
 import com.wjybxx.fastjgame.net.session.Session;
 
 /**
- * 中心服在战区服的信息管理器
+ * 网关在场景服中的信息
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/22
+ * date - 2019/11/3
  * github - https://github.com/hl845740757
  */
-@RpcService(serviceId = ServiceTable.CENTER_IN_WARZONE_INFO_MGR)
-public interface ICenterInWarzoneInfoMgr {
+public class GateInSceneInfo {
 
-    /**
-     * 中心服请求注册到战区服
-     *
-     * @param session  关联的会话
-     * @param serverId 中心服的服ID
-     * @return 返回一个结果告知已完成
-     */
-    @RpcMethod(methodId = 1)
-    boolean register(Session session, CenterServerId serverId);
+    private final Session session;
+    private final CenterServerId serverId;
+
+    public GateInSceneInfo(Session session, CenterServerId serverId) {
+        this.session = session;
+        this.serverId = serverId;
+    }
+
+    public Session getSession() {
+        return session;
+    }
+
+    public CenterServerId getServerId() {
+        return serverId;
+    }
+
+    public long worldGuid() {
+        return session.remoteGuid();
+    }
 }

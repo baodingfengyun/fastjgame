@@ -63,8 +63,7 @@ public class SceneInCenterInfoMgr {
      */
     private final SceneWorldChooser sceneWorldChooser = new LeastPlayerWorldChooser();
     /**
-     * scene信息集合（我的私有场景和跨服场景）
-     * sceneGuid->sceneInfo
+     * sceneGuid -> sceneInfo
      */
     private final Long2ObjectMap<SceneInCenterInfo> guid2InfoMap = new Long2ObjectOpenHashMap<>();
 
@@ -79,12 +78,10 @@ public class SceneInCenterInfoMgr {
 
     private void addSceneInfo(SceneInCenterInfo sceneInCenterInfo) {
         guid2InfoMap.put(sceneInCenterInfo.getWorldGuid(), sceneInCenterInfo);
-        logger.info("add scene {}", sceneInCenterInfo.getWorldGuid());
     }
 
     private void removeSceneInfo(SceneInCenterInfo sceneInCenterInfo) {
         guid2InfoMap.remove(sceneInCenterInfo.getWorldGuid());
-        logger.info("remove scene {}", sceneInCenterInfo.getWorldGuid());
     }
 
     public SceneInCenterInfo getSceneInfo(long worldGuid) {
@@ -98,8 +95,8 @@ public class SceneInCenterInfoMgr {
     /**
      * 当在zk上发现单服scene节点
      *
-     * @param nodeName 本服scene节点名字信息
-     * @param nodeData 本服scene节点其它信息
+     * @param nodeName scene节点名字信息
+     * @param nodeData scene节点其它信息
      */
     public void onDiscoverSceneNode(SceneNodeName nodeName, SceneNodeData nodeData) {
         // 建立tcp连接
@@ -107,14 +104,14 @@ public class SceneInCenterInfoMgr {
                 nodeData.getInnerTcpAddress(),
                 nodeData.getLocalAddress(),
                 nodeData.getMacAddress(),
-                new SingleSceneAware());
+                new SceneLifecycleAware());
     }
 
     /**
-     * 当本服scene节点移除
+     * 当scene节点移除
      *
-     * @param sceneNodeName 单服节点名字
-     * @param sceneNodeData 场景节点数据
+     * @param sceneNodeName 节点名字
+     * @param sceneNodeData 节点数据
      */
     public void onSceneNodeRemoved(SceneNodeName sceneNodeName, SceneNodeData sceneNodeData) {
         onSceneDisconnect(sceneNodeName.getWorldGuid());
@@ -129,17 +126,23 @@ public class SceneInCenterInfoMgr {
         if (null == sceneInCenterInfo) {
             return;
         }
+
         // 关闭会话
         if (null != sceneInCenterInfo.getSession()) {
             sceneInCenterInfo.getSession().close();
         }
+
+        // 断开连接日志
+        logger.info("scene {} disconnect", sceneInCenterInfo.getWorldGuid());
+
         // 真正删除信息
         removeSceneInfo(sceneInCenterInfo);
 
         // 将在该场景服务器的玩家下线
         offlinePlayer(sceneInCenterInfo);
 
-        // TODO 宕机恢复？
+
+        // TODO 宕机恢复
     }
 
     private void offlinePlayer(SceneInCenterInfo sceneInCenterInfo) {
@@ -147,17 +150,18 @@ public class SceneInCenterInfoMgr {
     }
 
     /**
-     * 本服scene会话信息
+     * 场景服session生命周期通知
      */
-    private class SingleSceneAware implements SessionLifecycleAware {
+    private class SceneLifecycleAware implements SessionLifecycleAware {
 
-        private SingleSceneAware() {
+        private SceneLifecycleAware() {
         }
 
         @Override
         public void onSessionConnected(Session session) {
-            ICenterInSceneInfoMgrRpcProxy.connectScene(worldInfoMgr.getServerId())
-                    .onSuccess(result -> onConnectSceneSuccess(session, result))
+            ICenterInSceneInfoMgrRpcProxy.register(worldInfoMgr.getServerId())
+                    .onSuccess(result -> onRegisterSceneResult(session, result))
+                    .onFailure(rpcResponse -> session.close())
                     .call(session);
         }
 
@@ -173,10 +177,17 @@ public class SceneInCenterInfoMgr {
      * @param session               scene会话信息
      * @param configuredRegionsList 配置的区域
      */
-    private void onConnectSceneSuccess(Session session, List<SceneRegion> configuredRegionsList) {
+    private void onRegisterSceneResult(Session session, List<SceneRegion> configuredRegionsList) {
+        if (configuredRegionsList.isEmpty()) {
+            session.close();
+            return;
+        }
+        logger.info("connect scene {} success", session.remoteGuid());
+
         final SceneInCenterInfo sceneInCenterInfo = new SceneInCenterInfo(session);
         guid2InfoMap.put(session.remoteGuid(), sceneInCenterInfo);
         addSceneInfo(sceneInCenterInfo);
+
 
         final Set<SceneRegion> configuredRegions = sceneInCenterInfo.getConfiguredRegions();
         final Set<SceneRegion> activeRegions = sceneInCenterInfo.getActiveRegions();

@@ -39,9 +39,14 @@ public class CenterModule extends WorldModule {
     @Override
     protected void bindOthers() {
         bind(CenterWorldInfoMgr.class).in(Singleton.class);
+        bind(CenterMongoDBMgr.class).in(Singleton.class);
+
+        // 节点发现
         bind(CenterDiscoverMgr.class).in(Singleton.class);
+        // 服务器会话管理
         bind(SceneInCenterInfoMgr.class).in(Singleton.class);
         bind(WarzoneInCenterInfoMgr.class).in(Singleton.class);
-        bind(CenterMongoDBMgr.class).in(Singleton.class);
+        bind(GateInCenterInfoMgr.class).in(Singleton.class);
+
     }
 }

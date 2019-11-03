@@ -21,7 +21,7 @@ message p_player_data{
 
 message PCenterServerId {
 	// 所属的平台号
-	int32 platformNumber = 1;
+	int32 platformTypeNumber = 1;
 	// 平台内服务器id
-	int32 serverId = 2;
+	int32 platformServerId = 2;
 }

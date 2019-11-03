@@ -17,6 +17,7 @@ package com.wjybxx.fastjgame.configwrapper;
 
 import com.wjybxx.fastjgame.utils.ConfigUtils;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 
 /**
@@ -32,18 +33,26 @@ import java.util.Set;
 public abstract class Params {
 
     /**
-     * 返回所有的键的集合。
-     */
-    public abstract Set<String> keys();
-
-    /**
      * 如果属性名获取属性的值，如果不存在则返回null
      * 子类可以有不同的存储结构，这里需要自己实现。
      *
      * @param key 键
      * @return value
      */
+    @Nullable
     public abstract String getAsString(String key);
+
+    /**
+     * 判断一个键是否存在
+     */
+    public boolean containsKey(String key) {
+        return null != getAsString(key);
+    }
+
+    /**
+     * 返回所有的键的集合。
+     */
+    public abstract Set<String> keys();
 
     public String getAsString(String key, String defaultValue) {
         return ConfigUtils.getAsString(getAsString(key), defaultValue);

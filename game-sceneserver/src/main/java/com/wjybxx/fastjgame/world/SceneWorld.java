@@ -7,6 +7,7 @@ import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.rpcservice.ICenterInSceneInfoMgrRpcRegister;
+import com.wjybxx.fastjgame.rpcservice.IGateInSceneInfoMgrRpcRegister;
 import com.wjybxx.fastjgame.rpcservice.ISceneRegionMgrRpcRegister;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.SystemUtils;
@@ -30,6 +31,7 @@ public class SceneWorld extends AbstractWorld {
     private static final Logger logger = LoggerFactory.getLogger(SceneWorld.class);
 
     private final CenterInSceneInfoMgr centerInSceneInfoMgr;
+    private final GateInSceneInfoMgr gateInSceneInfoMgr;
     private final SceneRegionMgr sceneRegionMgr;
     private final SceneWorldInfoMgr sceneWorldInfoMgr;
     private final SceneSendMgr sendMgr;
@@ -38,10 +40,12 @@ public class SceneWorld extends AbstractWorld {
 
     @Inject
     public SceneWorld(WorldWrapper worldWrapper, CenterInSceneInfoMgr centerInSceneInfoMgr,
-                      SceneRegionMgr sceneRegionMgr, SceneSendMgr sendMgr, SceneMgr sceneMgr,
+                      GateInSceneInfoMgr gateInSceneInfoMgr, SceneRegionMgr sceneRegionMgr,
+                      SceneSendMgr sendMgr, SceneMgr sceneMgr,
                       PlayerMessageDispatcherMgr playerMessageDispatcherMgr) {
         super(worldWrapper);
         this.centerInSceneInfoMgr = centerInSceneInfoMgr;
+        this.gateInSceneInfoMgr = gateInSceneInfoMgr;
         this.sceneRegionMgr = sceneRegionMgr;
         this.sceneWorldInfoMgr = (SceneWorldInfoMgr) worldWrapper.getWorldInfoMgr();
         this.sendMgr = sendMgr;
@@ -66,6 +70,7 @@ public class SceneWorld extends AbstractWorld {
         // 也可以在管理器里进行注册
         ISceneRegionMgrRpcRegister.register(protocolDispatcherMgr, sceneRegionMgr);
         ICenterInSceneInfoMgrRpcRegister.register(protocolDispatcherMgr, centerInSceneInfoMgr);
+        IGateInSceneInfoMgrRpcRegister.register(protocolDispatcherMgr, gateInSceneInfoMgr);
     }
 
     @Override
@@ -79,17 +84,16 @@ public class SceneWorld extends AbstractWorld {
         sceneRegionMgr.onWorldStart();
         // 注册到zookeeper
         bindAndRegisterToZK();
-
     }
 
     private void bindAndRegisterToZK() throws Exception {
-        final CenterLifeAware centerLifeAware = new CenterLifeAware();
+        final CenterOrGateLifeAware centerOrGateLifeAware = new CenterOrGateLifeAware();
         // 绑定jvm内部通信的端口
-        gameAcceptorMgr.bindLocalPort(centerLifeAware);
+        gameAcceptorMgr.bindLocalPort(centerOrGateLifeAware);
         // 绑定3个内部交互的端口
-        HostAndPort innerTcpAddress = gameAcceptorMgr.bindInnerTcpPort(centerLifeAware);
+        HostAndPort innerTcpAddress = gameAcceptorMgr.bindInnerTcpPort(centerOrGateLifeAware);
         HostAndPort innerHttpAddress = gameAcceptorMgr.bindInnerHttpPort();
-        HostAndPort localAddress = gameAcceptorMgr.bindLocalTcpPort(centerLifeAware);
+        HostAndPort localAddress = gameAcceptorMgr.bindLocalTcpPort(centerOrGateLifeAware);
 
         // 节点数据
         final String nodeName = ZKPathUtils.buildSceneNodeName(sceneWorldInfoMgr.getWorldGuid());
@@ -112,7 +116,7 @@ public class SceneWorld extends AbstractWorld {
         playerMessageDispatcherMgr.release();
     }
 
-    private class CenterLifeAware implements SessionLifecycleAware {
+    private class CenterOrGateLifeAware implements SessionLifecycleAware {
 
         @Override
         public void onSessionConnected(Session session) {
@@ -121,7 +125,19 @@ public class SceneWorld extends AbstractWorld {
 
         @Override
         public void onSessionDisconnected(Session session) {
-            centerInSceneInfoMgr.onDisconnect(session.remoteGuid(), SceneWorld.this);
+            final Session centerSession = centerInSceneInfoMgr.getCenterSession(session.remoteGuid());
+            if (null != centerSession) {
+                // 中心服
+                centerInSceneInfoMgr.onSessionDisconnect(session.remoteGuid());
+                return;
+            }
+
+            final Session gateSession = gateInSceneInfoMgr.getGateSession(session.remoteGuid());
+            if (null != gateSession) {
+                // 网关服
+                gateInSceneInfoMgr.onSessionDisconnect(session.remoteGuid());
+            }
+
         }
     }
 

@@ -58,24 +58,22 @@ public class CenterInWarzoneInfoMgr implements ICenterInWarzoneInfoMgr {
     private void addInfo(CenterInWarzoneInfo centerInWarzoneInfo) {
         guid2InfoMap.put(centerInWarzoneInfo.getCenterWorldGuid(), centerInWarzoneInfo);
         serverId2InfoMap.put(centerInWarzoneInfo.getServerId(), centerInWarzoneInfo);
-
-        logger.info("server {} register success.", centerInWarzoneInfo.getServerId());
     }
 
     private void removeInfo(CenterInWarzoneInfo centerInWarzoneInfo) {
         guid2InfoMap.remove(centerInWarzoneInfo.getCenterWorldGuid());
         serverId2InfoMap.remove(centerInWarzoneInfo.getServerId());
-
-        logger.info("server {} disconnect.", centerInWarzoneInfo);
     }
 
     @Override
-    public boolean connectWarzone(Session session, CenterServerId serverId) {
-        assert !guid2InfoMap.containsKey(session.remoteGuid());
-        assert !serverId2InfoMap.containsKey(serverId);
+    public boolean register(Session session, CenterServerId serverId) {
+        if (serverId2InfoMap.containsKey(serverId)) {
+            return false;
+        }
 
         CenterInWarzoneInfo centerInWarzoneInfo = new CenterInWarzoneInfo(session, serverId);
         addInfo(centerInWarzoneInfo);
+        logger.info("center server {} register success.", centerInWarzoneInfo.getServerId());
         return true;
     }
 
@@ -85,6 +83,7 @@ public class CenterInWarzoneInfoMgr implements ICenterInWarzoneInfoMgr {
             return;
         }
         removeInfo(centerInWarzoneInfo);
+        logger.info("center server {} disconnect.", centerInWarzoneInfo);
     }
 
     /**

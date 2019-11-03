@@ -41,7 +41,10 @@ public class SceneModule extends WorldModule {
     @Override
     protected void bindOthers() {
         bind(SceneWorldInfoMgr.class).in(Singleton.class);
+
         bind(CenterInSceneInfoMgr.class).in(Singleton.class);
+        bind(GateInSceneInfoMgr.class).in(Singleton.class);
+
         bind(SceneRegionMgr.class).in(Singleton.class);
         bind(SceneSendMgr.class).in(Singleton.class);
         bind(MapDataLoadMgr.class).in(Singleton.class);

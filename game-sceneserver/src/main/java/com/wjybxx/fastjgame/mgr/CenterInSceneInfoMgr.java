@@ -23,17 +23,13 @@ import com.wjybxx.fastjgame.misc.CenterInSceneInfo;
 import com.wjybxx.fastjgame.misc.CenterServerId;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.rpcservice.ICenterInSceneInfoMgr;
-import com.wjybxx.fastjgame.world.SceneWorld;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * CenterServer在SceneServer中的连接管理等。
@@ -66,14 +62,14 @@ public class CenterInSceneInfoMgr implements ICenterInSceneInfoMgr {
         guid2InfoMap.put(centerInSceneInfo.getCenterWorldGuid(), centerInSceneInfo);
         serverId2InfoMap.put(centerInSceneInfo.getServerId(), centerInSceneInfo);
 
-        logger.info("connect center server {}", centerInSceneInfo.getServerId());
+        logger.info("center server {} register success", centerInSceneInfo.getServerId());
     }
 
     private void removeInfo(CenterInSceneInfo centerInSceneInfo) {
         guid2InfoMap.remove(centerInSceneInfo.getCenterWorldGuid());
         serverId2InfoMap.remove(centerInSceneInfo.getServerId());
 
-        logger.info("remove center server {}", centerInSceneInfo.getServerId());
+        logger.info("center server {} disconnect", centerInSceneInfo.getServerId());
     }
 
     /**
@@ -81,7 +77,7 @@ public class CenterInSceneInfoMgr implements ICenterInSceneInfoMgr {
      *
      * @param centerWorldGuid center服务器worldGuid
      */
-    public void onDisconnect(long centerWorldGuid, SceneWorld sceneWorld) {
+    public void onSessionDisconnect(long centerWorldGuid) {
         CenterInSceneInfo centerInSceneInfo = guid2InfoMap.get(centerWorldGuid);
         if (null == centerInSceneInfo) {
             return;
@@ -104,9 +100,10 @@ public class CenterInSceneInfoMgr implements ICenterInSceneInfoMgr {
     }
 
     @Override
-    public List<SceneRegion> connectScene(Session session, CenterServerId serverId) {
-        assert !guid2InfoMap.containsKey(session.remoteGuid());
-        assert !serverId2InfoMap.containsKey(serverId);
+    public List<SceneRegion> register(Session session, CenterServerId serverId) {
+        if (serverId2InfoMap.containsKey(serverId)) {
+            return Collections.emptyList();
+        }
 
         CenterInSceneInfo centerInSceneInfo = new CenterInSceneInfo(session, serverId);
         addInfo(centerInSceneInfo);

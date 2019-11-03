@@ -24,7 +24,9 @@ import com.wjybxx.fastjgame.utils.EnumUtils;
 
 /**
  * 平台类型，平台问题最终还是会遇见，这里先处理。
- * 可以是：android、ios，也可以运营平台，终究应该是选中其中一个。
+ * 可能是：
+ * 1. android、ios - ios 和 android进度不一样
+ * 2. 运营平台类型，给多个平台运营的时候
  *
  * @author wjybxx
  * @version 1.0

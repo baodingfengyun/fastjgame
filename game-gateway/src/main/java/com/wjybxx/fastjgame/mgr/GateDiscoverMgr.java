@@ -35,6 +35,8 @@ import org.apache.curator.framework.recipes.cache.TreeCacheSelector;
  * 网关服节点发现管理器
  * <p>
  * 网关服需要发现<b>CenterServer</b>和<b>SceneServer</b>，并建立长链接。
+ * <p>
+ * 这里其实有个选择，是通过zookeeper发现scene，还是通过中心服发现scene？
  *
  * @author wjybxx
  * @version 1.0
@@ -46,14 +48,20 @@ public class GateDiscoverMgr {
     private final CuratorMgr curatorMgr;
     private final GameEventLoopMgr gameEventLoopMgr;
     private final GateWorldInfoMgr worldInfoMgr;
+    private final CenterInGateInfoMgr centerInGateInfoMgr;
+    private final SceneInGateInfoMgr sceneInGateInfoMgr;
 
     private TreeCache treeCache;
 
     @Inject
-    public GateDiscoverMgr(CuratorMgr curatorMgr, GameEventLoopMgr gameEventLoopMgr, GateWorldInfoMgr worldInfoMgr) {
+    public GateDiscoverMgr(CuratorMgr curatorMgr, GameEventLoopMgr gameEventLoopMgr,
+                           GateWorldInfoMgr worldInfoMgr, CenterInGateInfoMgr centerInGateInfoMgr,
+                           SceneInGateInfoMgr sceneInGateInfoMgr) {
         this.curatorMgr = curatorMgr;
         this.gameEventLoopMgr = gameEventLoopMgr;
         this.worldInfoMgr = worldInfoMgr;
+        this.centerInGateInfoMgr = centerInGateInfoMgr;
+        this.sceneInGateInfoMgr = sceneInGateInfoMgr;
     }
 
     public void start() throws Exception {
@@ -109,9 +117,9 @@ public class GateDiscoverMgr {
 
         final CenterNodeData nodeData = JsonUtils.parseJsonBytes(childData.getData(), CenterNodeData.class);
         if (type == TreeCacheEvent.Type.NODE_ADDED) {
-            // todo
+            centerInGateInfoMgr.onDiscoverCenterNode(nodeName, nodeData);
         } else {
-            // todo
+            centerInGateInfoMgr.onCenterNodeRemoved(nodeName, nodeData);
         }
     }
 
@@ -119,9 +127,9 @@ public class GateDiscoverMgr {
         final SceneNodeName nodeName = ZKPathUtils.parseSceneNodeName(childData.getPath());
         final SceneNodeData nodeData = JsonUtils.parseJsonBytes(childData.getData(), SceneNodeData.class);
         if (type == TreeCacheEvent.Type.NODE_ADDED) {
-            // todo
+            sceneInGateInfoMgr.onDiscoverSceneNode(nodeName, nodeData);
         } else {
-            // todo
+            sceneInGateInfoMgr.onSceneNodeRemoved(nodeName, nodeData);
         }
     }
 

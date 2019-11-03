@@ -43,34 +43,40 @@ public class CenterServerId implements Comparable<CenterServerId> {
     private final PlatformType platformType;
 
     @SerializableField(number = 2)
-    private final int innerServerId;
+    private final int platformServerId;
 
     private CenterServerId() {
         // 序列化专用
         // noinspection ConstantConditions
         platformType = null;
-        innerServerId = 0;
+        platformServerId = 0;
     }
 
-    public CenterServerId(@Nonnull PlatformType platformType, int innerServerId) {
+    public CenterServerId(@Nonnull PlatformType platformType, int platformServerId) {
         this.platformType = platformType;
-        this.innerServerId = innerServerId;
+        this.platformServerId = platformServerId;
     }
 
     /**
      * @return 唯一标识
      */
     public long uniqueId() {
-        return MathUtils.composeToLong(platformType.getNumber(), innerServerId);
+        return MathUtils.composeToLong(platformType.getNumber(), platformServerId);
     }
 
+    /**
+     * @return 平台类型
+     */
     @Nonnull
     public PlatformType getPlatformType() {
         return platformType;
     }
 
-    public int getInnerServerId() {
-        return innerServerId;
+    /**
+     * @return 平台内的区服id
+     */
+    public int getPlatformServerId() {
+        return platformServerId;
     }
 
     @Override
@@ -94,7 +100,7 @@ public class CenterServerId implements Comparable<CenterServerId> {
 
     @Override
     public String toString() {
-        return StringUtils.joinWith("-", platformType, innerServerId);
+        return StringUtils.joinWith("-", platformType, platformServerId);
     }
 
     @Override
@@ -104,8 +110,8 @@ public class CenterServerId implements Comparable<CenterServerId> {
 
     public p_common.PCenterServerId toMsg() {
         return p_common.PCenterServerId.newBuilder()
-                .setPlatformNumber(platformType.getNumber())
-                .setServerId(innerServerId)
+                .setPlatformTypeNumber(platformType.getNumber())
+                .setPlatformServerId(platformServerId)
                 .build();
     }
 }

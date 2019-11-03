@@ -80,8 +80,9 @@ public class WarzoneInCenterInfoMgr {
 
         @Override
         public void onSessionConnected(Session session) {
-            ICenterInWarzoneInfoMgrRpcProxy.connectWarzone(centerWorldInfoMgr.getServerId())
-                    .onSuccess(result -> connectWarzoneSuccess(session))
+            ICenterInWarzoneInfoMgrRpcProxy.register(centerWorldInfoMgr.getServerId())
+                    .onSuccess(result -> onRegisterWarzoneResult(session, result))
+                    .onFailure(rpcResponse -> session.close())
                     .call(session);
         }
 
@@ -95,8 +96,15 @@ public class WarzoneInCenterInfoMgr {
      * 连接争取安全成功(收到了战区的响应信息)。
      *
      * @param session 与战区的会话
+     * @param result  建立连接是否成功
      */
-    private void connectWarzoneSuccess(Session session) {
+    private void onRegisterWarzoneResult(Session session, boolean result) {
+        if (!result) {
+            // 连接失败
+            session.close();
+            return;
+        }
+
         if (warzoneInCenterInfo != null) {
             session.close();
             logger.error("connect two warzone session.");

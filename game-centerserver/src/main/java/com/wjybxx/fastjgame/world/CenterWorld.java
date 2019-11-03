@@ -22,6 +22,7 @@ import com.wjybxx.fastjgame.mgr.*;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.session.Session;
+import com.wjybxx.fastjgame.rpcservice.IGateInCenterInfoMgrRpcRegister;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.SystemUtils;
@@ -45,22 +46,24 @@ public class CenterWorld extends AbstractWorld {
 
     private final CenterDiscoverMgr centerDiscoverMgr;
     private final SceneInCenterInfoMgr sceneInCenterInfoMgr;
+    private final GateInCenterInfoMgr gateInCenterInfoMgr;
     private final CenterWorldInfoMgr centerWorldInfoMgr;
     private final WarzoneInCenterInfoMgr warzoneInCenterInfoMgr;
 
     @Inject
     public CenterWorld(WorldWrapper worldWrapper, CenterDiscoverMgr centerDiscoverMgr,
-                       SceneInCenterInfoMgr sceneInCenterInfoMgr, WarzoneInCenterInfoMgr warzoneInCenterInfoMgr) {
+                       SceneInCenterInfoMgr sceneInCenterInfoMgr, GateInCenterInfoMgr gateInCenterInfoMgr, WarzoneInCenterInfoMgr warzoneInCenterInfoMgr) {
         super(worldWrapper);
         this.centerDiscoverMgr = centerDiscoverMgr;
         this.sceneInCenterInfoMgr = sceneInCenterInfoMgr;
         centerWorldInfoMgr = (CenterWorldInfoMgr) worldWrapper.getWorldInfoMgr();
+        this.gateInCenterInfoMgr = gateInCenterInfoMgr;
         this.warzoneInCenterInfoMgr = warzoneInCenterInfoMgr;
     }
 
     @Override
     protected void registerRpcService() {
-
+        IGateInCenterInfoMgrRpcRegister.register(protocolDispatcherMgr, gateInCenterInfoMgr);
     }
 
     @Override

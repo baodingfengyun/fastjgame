@@ -30,16 +30,29 @@ public final class ServiceTable {
      * 中心服在战区服的信息管理
      */
     public static final short CENTER_IN_WARZONE_INFO_MGR = 1;
+
     /**
      * 中心服在场景服的信息管理
      */
     public static final short CENTER_IN_SCENE_INFO_MGR = 2;
+
+    /**
+     * 网关服在中心服的信息管理
+     */
+    public static final short GATE_IN_CENTER_INFO_MGR = 3;
+
+    /**
+     * 网关服在场景服的信息管理
+     */
+    public static final short GATE_IN_SCENE_INFO_MGR = 4;
+
     /**
      * 场景服区域管理器
      */
-    public static final short SCENE_REGION_MGR = 3;
+    public static final short SCENE_REGION_MGR = 5;
+
     /**
      * 玩家协议处理器
      */
-    public static final short PLAYER_MESSAGE_DISPATCHER_MGR = 4;
+    public static final short PLAYER_MESSAGE_DISPATCHER_MGR = 6;
 }

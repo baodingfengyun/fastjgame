@@ -1058,20 +1058,20 @@ public final class p_common {
      * 所属的平台号
      * </pre>
      *
-     * <code>int32 platformNumber = 1;</code>
-     * @return The platformNumber.
+     * <code>int32 platformTypeNumber = 1;</code>
+     * @return The platformTypeNumber.
      */
-    int getPlatformNumber();
+    int getPlatformTypeNumber();
 
     /**
      * <pre>
      * 平台内服务器id
      * </pre>
      *
-     * <code>int32 serverId = 2;</code>
-     * @return The serverId.
+     * <code>int32 platformServerId = 2;</code>
+     * @return The platformServerId.
      */
-    int getServerId();
+    int getPlatformServerId();
   }
   /**
    * Protobuf type {@code fastjgame.PCenterServerId}
@@ -1120,12 +1120,12 @@ public final class p_common {
               break;
             case 8: {
 
-              platformNumber_ = input.readInt32();
+              platformTypeNumber_ = input.readInt32();
               break;
             }
             case 16: {
 
-              serverId_ = input.readInt32();
+              platformServerId_ = input.readInt32();
               break;
             }
             default: {
@@ -1160,32 +1160,32 @@ public final class p_common {
               com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId.class, com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId.Builder.class);
     }
 
-    public static final int PLATFORMNUMBER_FIELD_NUMBER = 1;
-    private int platformNumber_;
+    public static final int PLATFORMTYPENUMBER_FIELD_NUMBER = 1;
+    private int platformTypeNumber_;
     /**
      * <pre>
      * 所属的平台号
      * </pre>
      *
-     * <code>int32 platformNumber = 1;</code>
-     * @return The platformNumber.
+     * <code>int32 platformTypeNumber = 1;</code>
+     * @return The platformTypeNumber.
      */
-    public int getPlatformNumber() {
-      return platformNumber_;
+    public int getPlatformTypeNumber() {
+      return platformTypeNumber_;
     }
 
-    public static final int SERVERID_FIELD_NUMBER = 2;
-    private int serverId_;
+    public static final int PLATFORMSERVERID_FIELD_NUMBER = 2;
+    private int platformServerId_;
     /**
      * <pre>
      * 平台内服务器id
      * </pre>
      *
-     * <code>int32 serverId = 2;</code>
-     * @return The serverId.
+     * <code>int32 platformServerId = 2;</code>
+     * @return The platformServerId.
      */
-    public int getServerId() {
-      return serverId_;
+    public int getPlatformServerId() {
+      return platformServerId_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -1202,11 +1202,11 @@ public final class p_common {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (platformNumber_ != 0) {
-        output.writeInt32(1, platformNumber_);
+      if (platformTypeNumber_ != 0) {
+        output.writeInt32(1, platformTypeNumber_);
       }
-      if (serverId_ != 0) {
-        output.writeInt32(2, serverId_);
+      if (platformServerId_ != 0) {
+        output.writeInt32(2, platformServerId_);
       }
       unknownFields.writeTo(output);
     }
@@ -1217,13 +1217,13 @@ public final class p_common {
       if (size != -1) return size;
 
       size = 0;
-      if (platformNumber_ != 0) {
+      if (platformTypeNumber_ != 0) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(1, platformNumber_);
+          .computeInt32Size(1, platformTypeNumber_);
       }
-      if (serverId_ != 0) {
+      if (platformServerId_ != 0) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(2, serverId_);
+          .computeInt32Size(2, platformServerId_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -1240,10 +1240,10 @@ public final class p_common {
       }
       com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId other = (com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId) obj;
 
-      if (getPlatformNumber()
-          != other.getPlatformNumber()) return false;
-      if (getServerId()
-          != other.getServerId()) return false;
+      if (getPlatformTypeNumber()
+          != other.getPlatformTypeNumber()) return false;
+      if (getPlatformServerId()
+          != other.getPlatformServerId()) return false;
       if (!unknownFields.equals(other.unknownFields)) return false;
       return true;
     }
@@ -1255,10 +1255,10 @@ public final class p_common {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + PLATFORMNUMBER_FIELD_NUMBER;
-      hash = (53 * hash) + getPlatformNumber();
-      hash = (37 * hash) + SERVERID_FIELD_NUMBER;
-      hash = (53 * hash) + getServerId();
+      hash = (37 * hash) + PLATFORMTYPENUMBER_FIELD_NUMBER;
+      hash = (53 * hash) + getPlatformTypeNumber();
+      hash = (37 * hash) + PLATFORMSERVERID_FIELD_NUMBER;
+      hash = (53 * hash) + getPlatformServerId();
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -1392,9 +1392,9 @@ public final class p_common {
       @java.lang.Override
       public Builder clear() {
         super.clear();
-        platformNumber_ = 0;
+        platformTypeNumber_ = 0;
 
-        serverId_ = 0;
+        platformServerId_ = 0;
 
         return this;
       }
@@ -1422,8 +1422,8 @@ public final class p_common {
       @java.lang.Override
       public com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId buildPartial() {
         com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId result = new com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId(this);
-        result.platformNumber_ = platformNumber_;
-        result.serverId_ = serverId_;
+        result.platformTypeNumber_ = platformTypeNumber_;
+        result.platformServerId_ = platformServerId_;
         onBuilt();
         return result;
       }
@@ -1472,11 +1472,11 @@ public final class p_common {
 
       public Builder mergeFrom(com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId other) {
         if (other == com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId.getDefaultInstance()) return this;
-        if (other.getPlatformNumber() != 0) {
-          setPlatformNumber(other.getPlatformNumber());
+        if (other.getPlatformTypeNumber() != 0) {
+          setPlatformTypeNumber(other.getPlatformTypeNumber());
         }
-        if (other.getServerId() != 0) {
-          setServerId(other.getServerId());
+        if (other.getPlatformServerId() != 0) {
+          setPlatformServerId(other.getPlatformServerId());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -1507,30 +1507,30 @@ public final class p_common {
         return this;
       }
 
-      private int platformNumber_ ;
+      private int platformTypeNumber_ ;
       /**
        * <pre>
        * 所属的平台号
        * </pre>
        *
-       * <code>int32 platformNumber = 1;</code>
-       * @return The platformNumber.
+       * <code>int32 platformTypeNumber = 1;</code>
+       * @return The platformTypeNumber.
        */
-      public int getPlatformNumber() {
-        return platformNumber_;
+      public int getPlatformTypeNumber() {
+        return platformTypeNumber_;
       }
       /**
        * <pre>
        * 所属的平台号
        * </pre>
        *
-       * <code>int32 platformNumber = 1;</code>
-       * @param value The platformNumber to set.
+       * <code>int32 platformTypeNumber = 1;</code>
+       * @param value The platformTypeNumber to set.
        * @return This builder for chaining.
        */
-      public Builder setPlatformNumber(int value) {
+      public Builder setPlatformTypeNumber(int value) {
         
-        platformNumber_ = value;
+        platformTypeNumber_ = value;
         onChanged();
         return this;
       }
@@ -1539,40 +1539,40 @@ public final class p_common {
        * 所属的平台号
        * </pre>
        *
-       * <code>int32 platformNumber = 1;</code>
+       * <code>int32 platformTypeNumber = 1;</code>
        * @return This builder for chaining.
        */
-      public Builder clearPlatformNumber() {
+      public Builder clearPlatformTypeNumber() {
         
-        platformNumber_ = 0;
+        platformTypeNumber_ = 0;
         onChanged();
         return this;
       }
 
-      private int serverId_ ;
+      private int platformServerId_ ;
       /**
        * <pre>
        * 平台内服务器id
        * </pre>
        *
-       * <code>int32 serverId = 2;</code>
-       * @return The serverId.
+       * <code>int32 platformServerId = 2;</code>
+       * @return The platformServerId.
        */
-      public int getServerId() {
-        return serverId_;
+      public int getPlatformServerId() {
+        return platformServerId_;
       }
       /**
        * <pre>
        * 平台内服务器id
        * </pre>
        *
-       * <code>int32 serverId = 2;</code>
-       * @param value The serverId to set.
+       * <code>int32 platformServerId = 2;</code>
+       * @param value The platformServerId to set.
        * @return This builder for chaining.
        */
-      public Builder setServerId(int value) {
+      public Builder setPlatformServerId(int value) {
         
-        serverId_ = value;
+        platformServerId_ = value;
         onChanged();
         return this;
       }
@@ -1581,12 +1581,12 @@ public final class p_common {
        * 平台内服务器id
        * </pre>
        *
-       * <code>int32 serverId = 2;</code>
+       * <code>int32 platformServerId = 2;</code>
        * @return This builder for chaining.
        */
-      public Builder clearServerId() {
+      public Builder clearPlatformServerId() {
         
-        serverId_ = 0;
+        platformServerId_ = 0;
         onChanged();
         return this;
       }
@@ -1666,10 +1666,10 @@ public final class p_common {
       "_data\022\022\n\nplayerGuid\030\001 \001(\003\0224\n\020originalSer" +
       "verId\030\002 \001(\0132\032.fastjgame.PCenterServerId\022" +
       "2\n\016actualServerId\030\003 \001(\0132\032.fastjgame.PCen" +
-      "terServerId\";\n\017PCenterServerId\022\026\n\016platfo" +
-      "rmNumber\030\001 \001(\005\022\020\n\010serverId\030\002 \001(\005B.\n com." +
-      "wjybxx.fastjgame.protobufferB\010p_commonH\001" +
-      "b\006proto3"
+      "terServerId\"G\n\017PCenterServerId\022\032\n\022platfo" +
+      "rmTypeNumber\030\001 \001(\005\022\030\n\020platformServerId\030\002" +
+      " \001(\005B.\n com.wjybxx.fastjgame.protobuffer" +
+      "B\010p_commonH\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -1686,7 +1686,7 @@ public final class p_common {
     internal_static_fastjgame_PCenterServerId_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_fastjgame_PCenterServerId_descriptor,
-        new java.lang.String[] { "PlatformNumber", "ServerId", });
+        new java.lang.String[] { "PlatformTypeNumber", "PlatformServerId", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

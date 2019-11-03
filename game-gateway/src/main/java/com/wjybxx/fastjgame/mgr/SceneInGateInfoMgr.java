@@ -17,6 +17,17 @@
 package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
+import com.wjybxx.fastjgame.core.onlinenode.SceneNodeData;
+import com.wjybxx.fastjgame.core.onlinenode.SceneNodeName;
+import com.wjybxx.fastjgame.misc.SceneInGateInfo;
+import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
+import com.wjybxx.fastjgame.net.session.Session;
+import com.wjybxx.fastjgame.rpcservice.IGateInSceneInfoMgrRpcProxy;
+import com.wjybxx.fastjgame.world.GateWorldInfoMgr;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 场景服在网关服的信息
@@ -28,8 +39,89 @@ import com.google.inject.Inject;
  */
 public class SceneInGateInfoMgr {
 
-    @Inject
-    public SceneInGateInfoMgr() {
+    private static final Logger logger = LoggerFactory.getLogger(SceneInGateInfoMgr.class);
 
+    private final GateWorldInfoMgr worldInfoMgr;
+    private final GameAcceptorMgr gameAcceptorMgr;
+    /**
+     * guid -> session
+     */
+    private final Long2ObjectMap<SceneInGateInfo> guid2SessionMap = new Long2ObjectOpenHashMap<>();
+
+    @Inject
+    public SceneInGateInfoMgr(GateWorldInfoMgr worldInfoMgr, GameAcceptorMgr gameAcceptorMgr) {
+        this.worldInfoMgr = worldInfoMgr;
+        this.gameAcceptorMgr = gameAcceptorMgr;
+    }
+
+    public Session getSceneSession(long worldGuid) {
+        final SceneInGateInfo sceneInGateInfo = guid2SessionMap.get(worldGuid);
+        return null == sceneInGateInfo ? null : sceneInGateInfo.getSession();
+    }
+
+    /**
+     * 当在zk上发现单服scene节点
+     *
+     * @param nodeName scene节点名字信息
+     * @param nodeData scene节点其它信息
+     */
+    public void onDiscoverSceneNode(SceneNodeName nodeName, SceneNodeData nodeData) {
+        // 建立tcp连接
+        gameAcceptorMgr.connect(nodeName.getWorldGuid(),
+                nodeData.getInnerTcpAddress(),
+                nodeData.getLocalAddress(),
+                nodeData.getMacAddress(),
+                new SceneLifecycleAware());
+    }
+
+    /**
+     * 当scene节点移除
+     *
+     * @param sceneNodeName 节点名字
+     * @param sceneNodeData 节点数据
+     */
+    public void onSceneNodeRemoved(SceneNodeName sceneNodeName, SceneNodeData sceneNodeData) {
+        onSceneDisconnect(sceneNodeName.getWorldGuid());
+    }
+
+    /**
+     * 当场景服断开连接
+     *
+     * @param worldGuid 场景服务器id
+     */
+    public void onSceneDisconnect(long worldGuid) {
+        final SceneInGateInfo sceneInGateInfo = guid2SessionMap.get(worldGuid);
+        if (null == sceneInGateInfo) {
+            return;
+        }
+        sceneInGateInfo.getSession().close();
+        logger.info("scene {} disconnect", worldGuid);
+        // TODO 下线该场景服上的玩家
+    }
+
+    private class SceneLifecycleAware implements SessionLifecycleAware {
+
+        @Override
+        public void onSessionConnected(Session session) {
+            IGateInSceneInfoMgrRpcProxy.register(worldInfoMgr.getServerId())
+                    .onSuccess(result -> onRegisterSceneResult(session, result))
+                    .onFailure(rpcResponse -> session.close())
+                    .call(session);
+        }
+
+        @Override
+        public void onSessionDisconnected(Session session) {
+            onSceneDisconnect(session.remoteGuid());
+        }
+    }
+
+    private void onRegisterSceneResult(Session session, boolean result) {
+        if (!result) {
+            session.close();
+            return;
+        }
+
+        guid2SessionMap.put(session.remoteGuid(), new SceneInGateInfo(session));
+        logger.info("connect scene {} success", session.remoteGuid());
     }
 }

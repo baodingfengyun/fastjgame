@@ -66,12 +66,12 @@ public class CenterWorldInfoMgr extends WorldInfoMgr {
         this.serverId = new CenterServerId(platformType, serverId);
 
         // 合服前配置
-        String actualServerPath = ZKPathUtils.actualServerConfigPath(this.serverId);
-        this.actualServerConfig = new MapConfigWrapper(GameUtils.newJsonMap(curatorMgr.getData(actualServerPath)));
-
-        // 合服后配置
         String originalServerPath = ZKPathUtils.originalServerConfigPath(this.serverId);
         this.originalServerConfig = new MapConfigWrapper(GameUtils.newJsonMap(curatorMgr.getData(originalServerPath)));
+
+        // 合服后配置
+        String actualServerPath = ZKPathUtils.actualServerConfigPath(this.serverId);
+        this.actualServerConfig = new MapConfigWrapper(GameUtils.newJsonMap(curatorMgr.getData(actualServerPath)));
 
         // 战区通过zookeeper节点获取
         warzoneId = actualServerConfig.getAsInt("warzoneId");

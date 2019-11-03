@@ -42,9 +42,9 @@ public class GateModule extends WorldModule {
     @Override
     protected void bindOthers() {
         bind(GateWorldInfoMgr.class).in(Singleton.class);
+
         bind(GateDiscoverMgr.class).in(Singleton.class);
         bind(CenterInGateInfoMgr.class).in(Singleton.class);
         bind(SceneInGateInfoMgr.class).in(Singleton.class);
-
     }
 }

@@ -38,7 +38,6 @@ public class SceneInCenterInfo {
     private final Session session;
     /**
      * 配置的期望启动的区域，尽可能的都启动它们，且不启动额外的区域。
-     * (本服scene进程才会有)
      */
     private final Set<SceneRegion> configuredRegions = EnumSet.noneOf(SceneRegion.class);
     /**

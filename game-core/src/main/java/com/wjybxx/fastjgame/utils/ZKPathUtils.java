@@ -130,7 +130,7 @@ public class ZKPathUtils {
      * @param actualServerId 真实服id，现存的服务器
      */
     public static String actualServerConfigPath(CenterServerId actualServerId) {
-        return platParamPath(actualServerId.getPlatformType()) + "/actualserver/" + actualServerId.getInnerServerId();
+        return platParamPath(actualServerId.getPlatformType()) + "/actualserver/" + actualServerId.getPlatformServerId();
     }
 
     /**
@@ -139,7 +139,7 @@ public class ZKPathUtils {
      * @param originalServerId 逻辑服id(合服前的服id)
      */
     public static String originalServerConfigPath(CenterServerId originalServerId) {
-        return platParamPath(originalServerId.getPlatformType()) + "/originalserver/" + originalServerId.getInnerServerId();
+        return platParamPath(originalServerId.getPlatformType()) + "/originalserver/" + originalServerId.getPlatformServerId();
     }
 
     /**
@@ -260,7 +260,7 @@ public class ZKPathUtils {
      * @return 唯一的有意义的名字
      */
     public static String buildCenterNodeName(CenterServerId serverId) {
-        return StringUtils.joinWith("-", RoleType.CENTER, serverId.getPlatformType(), serverId.getInnerServerId());
+        return StringUtils.joinWith("-", RoleType.CENTER, serverId.getPlatformType(), serverId.getPlatformServerId());
     }
 
     /**
@@ -345,7 +345,7 @@ public class ZKPathUtils {
      * @return nodeName
      */
     public static String buildGateNodeName(CenterServerId serverId, long worldGuid) {
-        return StringUtils.joinWith("-", RoleType.GATE, serverId.getPlatformType(), serverId.getInnerServerId(), worldGuid);
+        return StringUtils.joinWith("-", RoleType.GATE, serverId.getPlatformType(), serverId.getPlatformServerId(), worldGuid);
     }
 
     /**
