@@ -29,26 +29,26 @@ import com.wjybxx.zset.generic.ScoreHandler;
 public class PlayerLevelRankScore implements RankScore {
 
     private final int level;
-    private final long timeStamp;
+    private final long timestamp;
 
-    public PlayerLevelRankScore(int level, long timeStamp) {
+    public PlayerLevelRankScore(int level, long timestamp) {
         this.level = level;
-        this.timeStamp = timeStamp;
+        this.timestamp = timestamp;
     }
 
     public int getLevel() {
         return level;
     }
 
-    public long getTimeStamp() {
-        return timeStamp;
+    public long getTimestamp() {
+        return timestamp;
     }
 
     @Override
     public String toString() {
         return "PlayerLevelRankScore{" +
                 "level=" + level +
-                ", timeStamp=" + timeStamp +
+                ", timestamp=" + timestamp +
                 '}';
     }
 
@@ -65,13 +65,13 @@ public class PlayerLevelRankScore implements RankScore {
 
         @Override
         public int compare(PlayerLevelRankScore o1, PlayerLevelRankScore o2) {
-            // 等级逆序
+            // 等级逆序(等级高的排前面)
             final int levelCompareR = Integer.compare(o2.level, o1.level);
             if (levelCompareR != 0) {
                 return levelCompareR;
             }
-            // 时间戳升序
-            return Long.compare(o1.timeStamp, o2.timeStamp);
+            // 时间戳升序(时间戳小的排前面)
+            return Long.compare(o1.timestamp, o2.timestamp);
         }
 
         @Override
@@ -79,4 +79,6 @@ public class PlayerLevelRankScore implements RankScore {
             throw new UnsupportedOperationException();
         }
     }
+
+
 }

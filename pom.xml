@@ -27,6 +27,7 @@
         <module>game-sceneserver</module>
         <module>game-warzoneserver</module>
         <module>game-loginserver</module>
+        <module>game-gateway</module>
         <module>game-start</module>
     </modules>
 
