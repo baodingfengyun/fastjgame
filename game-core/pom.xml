@@ -11,7 +11,7 @@
     </parent>
 
     <artifactId>game-core</artifactId>
-	
+
     <dependencies>
 
         <!-- 网络包依赖 -->
@@ -25,6 +25,14 @@
         <dependency>
             <groupId>com.wjybxx.fastjgame</groupId>
             <artifactId>game-db</artifactId>
+            <version>1.0</version>
+        </dependency>
+
+        <!-- 请下载安装到本地仓库后使用-->
+        <!-- https://github.com/hl845740757/java-zset -->
+        <dependency>
+            <groupId>com.wjybxx.zset</groupId>
+            <artifactId>java-zset</artifactId>
             <version>1.0</version>
         </dependency>
 
