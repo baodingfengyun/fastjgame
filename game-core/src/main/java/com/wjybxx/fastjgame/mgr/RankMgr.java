@@ -58,20 +58,17 @@ public class RankMgr {
 
 
     // 等级等级排行榜测试
-    @SuppressWarnings("unchecked")
     public static void main(String[] args) {
-        RankMgr rankMgr = new RankMgr();
-        final GenericZSet<Long, PlayerLevelRankScore> playerLevelRankZSet = (GenericZSet<Long, PlayerLevelRankScore>) rankMgr.rankInfo.computeIfAbsent(RankType.PLAYER_LEVEL,
-                rankType -> GenericZSet.newLongKeyZSet(PlayerLevelRankScore.handler()));
+        final GenericZSet<Long, PlayerLevelRankScore> playerLevelRankZSet = GenericZSet.newLongKeyZSet(PlayerLevelRankScore.handler());
 
         // 插入数据
-        LongStream.range(1, 10000).forEach(playerId -> {
-            playerLevelRankZSet.zadd(randomLevelScore(), playerId);
+        LongStream.range(1, 10000).forEach(playerGuid -> {
+            playerLevelRankZSet.zadd(randomLevelScore(), playerGuid);
         });
 
         // 覆盖数据
-        LongStream.rangeClosed(1, 10000).forEach(playerId -> {
-            playerLevelRankZSet.zadd(randomLevelScore(), playerId);
+        LongStream.rangeClosed(1, 10000).forEach(playerGuid -> {
+            playerLevelRankZSet.zadd(randomLevelScore(), playerGuid);
         });
 
         System.out.println("------------------------- dump ----------------------");

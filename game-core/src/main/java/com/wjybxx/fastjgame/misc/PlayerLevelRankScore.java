@@ -80,5 +80,4 @@ public class PlayerLevelRankScore implements RankScore {
         }
     }
 
-
 }
