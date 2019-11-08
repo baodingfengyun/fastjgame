@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.misc;
+package com.wjybxx.fastjgame.misc.rank;
 
 import javax.annotation.concurrent.Immutable;
 

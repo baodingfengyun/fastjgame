@@ -46,7 +46,8 @@ public class NetContextMgr {
 
     public void start() {
         // 创建上下文
-        netContext = gameEventLoopMgr.getNetEventLoopGroup().createContext(worldInfoMgr.getWorldGuid(), gameEventLoopMgr.getEventLoop());
+        netContext = gameEventLoopMgr.getNetEventLoopGroup()
+                .createContext(worldInfoMgr.getWorldGuid(), gameEventLoopMgr.getEventLoop());
     }
 
     public void shutdown() {

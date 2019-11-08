@@ -46,7 +46,12 @@ public class EnumUtils {
      */
     @Nullable
     public static <T extends NumberEnum> T forNumber(T[] values, int number) {
-        return forNumber(values, NumberEnum::getNumber, number);
+        for (T t : values) {
+            if (t.getNumber() == number) {
+                return t;
+            }
+        }
+        return null;
     }
 
     /**

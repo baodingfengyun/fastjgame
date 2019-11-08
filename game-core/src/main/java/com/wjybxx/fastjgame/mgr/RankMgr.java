@@ -17,9 +17,9 @@
 package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.misc.PlayerLevelRankScore;
-import com.wjybxx.fastjgame.misc.RankScore;
-import com.wjybxx.fastjgame.misc.RankType;
+import com.wjybxx.fastjgame.misc.rank.PlayerLevelRankScore;
+import com.wjybxx.fastjgame.misc.rank.RankScore;
+import com.wjybxx.fastjgame.misc.rank.RankType;
 import com.wjybxx.zset.generic.GenericZSet;
 
 import java.util.EnumMap;
