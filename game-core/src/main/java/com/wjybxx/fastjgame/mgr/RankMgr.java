@@ -20,7 +20,7 @@ import com.google.inject.Inject;
 import com.wjybxx.fastjgame.misc.rank.PlayerLevelRankScore;
 import com.wjybxx.fastjgame.misc.rank.RankScore;
 import com.wjybxx.fastjgame.misc.rank.RankType;
-import com.wjybxx.zset.generic.GenericZSet;
+import com.wjybxx.zset.long2obj.Long2ObjZSet;
 
 import java.util.EnumMap;
 import java.util.concurrent.ThreadLocalRandom;
@@ -31,9 +31,9 @@ import java.util.stream.LongStream;
  * <p>
  * 游戏内的排序很多时候较为复杂，不能简单的描述为一个double或long，redis的zset不能很好的支持游戏内的排序功能。
  * 此外，由于数据存储在redis中，因此不能很好的做实时排行。
- *
+ * <p>
  * 参考redis的zset实现了java版的zset，作为该项目将来的排行榜组件。
- * <P>
+ * <p>
  * ZSET可能还会添加新特性，因此还未合并到该项目，需要先下载到本地，再注册到本地maven仓库。
  * <p>
  * ZSET代码地址：- https://github.com/hl845740757/java-zset
@@ -49,17 +49,16 @@ public class RankMgr {
     /**
      * 排行榜信息
      */
-    private final EnumMap<RankType, GenericZSet<Long, ? extends RankScore>> rankInfo = new EnumMap<>(RankType.class);
+    private final EnumMap<RankType, Long2ObjZSet<? extends RankScore>> rankInfo = new EnumMap<>(RankType.class);
 
     @Inject
     public RankMgr() {
 
     }
 
-
     // 等级等级排行榜测试
     public static void main(String[] args) {
-        final GenericZSet<Long, PlayerLevelRankScore> playerLevelRankZSet = GenericZSet.newLongKeyZSet(PlayerLevelRankScore.handler());
+        final Long2ObjZSet<PlayerLevelRankScore> playerLevelRankZSet = Long2ObjZSet.newZSet(PlayerLevelRankScore.handler());
 
         // 插入数据
         LongStream.range(1, 10000).forEach(playerGuid -> {
