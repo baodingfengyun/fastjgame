@@ -320,12 +320,11 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 
             throw new BlockingOperationException("");
         } else {
-            // 消费者线程已开始关闭，则直接拒绝
-            if (isShuttingDown()) {
-                rejectedExecutionHandler.rejected(task, this);
-                return;
-            }
-            // 这里之所以可以安全的调用 next()，是因为我实现了自己的事件处理器(Worker)，否则next()是可能死锁的！
+            // 1. 这里不再先判断{@code isShuttingDown()}，这里的判断只会在“请求了关闭EventLoop而EventLoop还未响应关闭请求”这段时间内有意义，
+            // 因为一旦EventLoop响应了关闭请求，删除了自己的sequence之后，next是不会阻塞的，可以在申请sequence拒绝任务。
+            // 乐观执行，降低关闭期间的响应速度以提高运行期间的响应速度，整体看来，这样是划算的。
+
+            // 2. 这里之所以可以安全的调用 next()，是因为我实现了自己的事件处理器(Worker)，否则next()是可能死锁的！
             final long sequence = ringBuffer.next(1);
             try {
                 if (isShuttingDown()) {
