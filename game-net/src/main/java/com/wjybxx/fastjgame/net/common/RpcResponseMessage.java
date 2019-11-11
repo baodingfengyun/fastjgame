@@ -36,7 +36,7 @@ public class RpcResponseMessage implements NetMessage {
     /**
      * rpc响应结果
      */
-    private final RpcResponse rpcResponse;
+    private RpcResponse rpcResponse;
 
     public RpcResponseMessage(long requestGuid, RpcResponse rpcResponse) {
         this.rpcResponse = rpcResponse;
@@ -49,6 +49,10 @@ public class RpcResponseMessage implements NetMessage {
 
     public RpcResponse getRpcResponse() {
         return rpcResponse;
+    }
+
+    public void setRpcResponse(RpcResponse rpcResponse) {
+        this.rpcResponse = rpcResponse;
     }
 
     @Override
