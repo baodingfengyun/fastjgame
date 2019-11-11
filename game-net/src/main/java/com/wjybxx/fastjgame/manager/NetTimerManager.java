@@ -49,32 +49,32 @@ public class NetTimerManager {
     }
 
     @Nonnull
-    public TimeoutHandle newTimeout(long timeout, @Nonnull TimerTask<TimeoutHandle> task) {
+    public TimeoutHandle newTimeout(long timeout, @Nonnull TimerTask task) {
         return timerSystem.newTimeout(timeout, task);
     }
 
     @Nonnull
-    public TimeoutHandle nextTick(@Nonnull TimerTask<TimeoutHandle> task) {
+    public TimeoutHandle nextTick(@Nonnull TimerTask task) {
         return timerSystem.nextTick(task);
     }
 
     @Nonnull
-    public FixedDelayHandle newFixedDelay(long initialDelay, long delay, @Nonnull TimerTask<FixedDelayHandle> task) {
+    public FixedDelayHandle newFixedDelay(long initialDelay, long delay, @Nonnull TimerTask task) {
         return timerSystem.newFixedDelay(initialDelay, delay, task);
     }
 
     @Nonnull
-    public FixedDelayHandle newFixedDelay(long delay, @Nonnull TimerTask<FixedDelayHandle> task) {
+    public FixedDelayHandle newFixedDelay(long delay, @Nonnull TimerTask task) {
         return timerSystem.newFixedDelay(delay, task);
     }
 
     @Nonnull
-    public FixedRateHandle newFixRate(long initialDelay, long period, @Nonnull TimerTask<FixedRateHandle> task) {
+    public FixedRateHandle newFixRate(long initialDelay, long period, @Nonnull TimerTask task) {
         return timerSystem.newFixRate(initialDelay, period, task);
     }
 
     @Nonnull
-    public FixedRateHandle newFixRate(long period, @Nonnull TimerTask<FixedRateHandle> task) {
+    public FixedRateHandle newFixRate(long period, @Nonnull TimerTask task) {
         return timerSystem.newFixRate(period, task);
     }
 

@@ -17,7 +17,8 @@
 package com.wjybxx.fastjgame.timer;
 
 /**
- * 抽象的固定频率的TimerHandle实现
+ * 固定频率的定时器的句柄。
+ * {@link TimerSystem#newFixRate(long, long, TimerTask)}
  *
  * @author wjybxx
  * @version 1.0

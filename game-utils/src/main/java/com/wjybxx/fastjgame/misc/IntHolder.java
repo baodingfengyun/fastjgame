@@ -28,17 +28,15 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class IntHolder {
-    /**
-     * 上一次分配的序号,也就是当前Sequence
-     */
+
     private int value;
 
     public IntHolder() {
         this(0);
     }
 
-    public IntHolder(int initSequence) {
-        this.value = initSequence;
+    public IntHolder(int value) {
+        this.value = value;
     }
 
     /**
@@ -53,10 +51,10 @@ public class IntHolder {
     /**
      * 设置序号
      *
-     * @param sequence
+     * @param value
      */
-    public void set(int sequence) {
-        this.value = sequence;
+    public void set(int value) {
+        this.value = value;
     }
 
     /**
@@ -75,6 +73,18 @@ public class IntHolder {
      */
     public int incAndGet() {
         return ++value;
+    }
+
+    /**
+     * 修改当前值，并返回之前的值
+     *
+     * @param value
+     * @return
+     */
+    public int getAndSet(int value) {
+        int result = this.value;
+        this.value = value;
+        return result;
     }
 
     @Override

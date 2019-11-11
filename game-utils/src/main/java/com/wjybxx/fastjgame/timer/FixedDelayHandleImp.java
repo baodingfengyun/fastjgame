@@ -17,7 +17,8 @@
 package com.wjybxx.fastjgame.timer;
 
 /**
- * 抽象的固定延迟的TimerHandle实现
+ * 固定时间间隔的timer对应的handle。
+ * {@link TimerSystem#newFixedDelay(long, long, TimerTask)}
  *
  * @author wjybxx
  * @version 1.0

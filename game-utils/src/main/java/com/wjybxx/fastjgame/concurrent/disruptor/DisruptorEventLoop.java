@@ -19,7 +19,6 @@ package com.wjybxx.fastjgame.concurrent.disruptor;
 import com.lmax.disruptor.*;
 import com.wjybxx.fastjgame.concurrent.*;
 import com.wjybxx.fastjgame.timer.TimerSystem;
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -446,11 +445,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 
                 loop();
             } catch (Throwable e) {
-                if (ConcurrentUtils.isInterrupted(e)) {
-                    logger.info("thread exit due to interrupted!", e);
-                } else {
-                    logger.error("thread exit due to exception!", e);
-                }
+                logger.error("thread exit due to exception!", e);
             } finally {
                 // 如果是非正常退出，需要切换到正在关闭状态 - 告知其它线程，已经开始关闭
                 advanceRunState(ST_SHUTTING_DOWN);

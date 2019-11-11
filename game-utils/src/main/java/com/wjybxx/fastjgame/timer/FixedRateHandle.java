@@ -20,6 +20,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * 固定频率的定时器的句柄。
+ * {@link TimerSystem#newFixRate(long, long, TimerTask)}
  *
  * @author wjybxx
  * @version 1.0

@@ -339,10 +339,10 @@ public class ConcurrentUtils {
         try {
             task.run();
         } catch (Throwable e) {
-            interrupted = isInterrupted(e);
             if (e instanceof VirtualMachineError) {
                 logger.error("A task raised an exception. Task: {}", task, e);
             } else {
+                interrupted = isInterrupted(e);
                 logger.warn("A task raised an exception. Task: {}", task, e);
             }
         }
@@ -361,10 +361,10 @@ public class ConcurrentUtils {
         try {
             task.run();
         } catch (Throwable e) {
-            interrupted = isInterrupted(e);
             if (e instanceof VirtualMachineError) {
                 logger.error("A task raised an exception. Task: {}", task, e);
             } else {
+                interrupted = isInterrupted(e);
                 logger.warn("A task raised an exception. Task: {}", task, e);
             }
         }

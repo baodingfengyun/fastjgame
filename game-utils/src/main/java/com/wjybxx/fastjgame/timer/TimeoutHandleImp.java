@@ -16,7 +16,8 @@
 package com.wjybxx.fastjgame.timer;
 
 /**
- * 抽象的只执行一次的timer系统
+ * 只执行一次的Timer的handle。
+ * {@link TimerSystem#newTimeout(long, TimerTask)}
  *
  * @author wjybxx
  * @version 1.0

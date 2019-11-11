@@ -50,7 +50,7 @@ public interface TimerSystem extends SystemTimeProvider {
      * @return Timer对应的句柄
      */
     @Nonnull
-    TimeoutHandle newTimeout(long timeout, @Nonnull TimerTask<TimeoutHandle> task);
+    TimeoutHandle newTimeout(long timeout, @Nonnull TimerTask task);
 
     /**
      * 下一次{@link #tick()}的时候执行
@@ -58,7 +58,7 @@ public interface TimerSystem extends SystemTimeProvider {
      * @param task 需要执行的任务
      * @return Timer对应的句柄
      */
-    default TimeoutHandle nextTick(@Nonnull TimerTask<TimeoutHandle> task) {
+    default TimeoutHandle nextTick(@Nonnull TimerTask task) {
         return newTimeout(0, task);
     }
 
@@ -73,13 +73,13 @@ public interface TimerSystem extends SystemTimeProvider {
      * @return Timer对应的句柄
      */
     @Nonnull
-    FixedDelayHandle newFixedDelay(long initialDelay, long delay, @Nonnull TimerTask<FixedDelayHandle> task);
+    FixedDelayHandle newFixedDelay(long initialDelay, long delay, @Nonnull TimerTask task);
 
     /**
      * {@link #newFixedDelay(long, long, TimerTask)}的快捷调用方式，首次执行延迟为0，下一次tick的时候就会执行。
      */
     @Nonnull
-    default FixedDelayHandle newFixedDelay(long delay, @Nonnull TimerTask<FixedDelayHandle> task) {
+    default FixedDelayHandle newFixedDelay(long delay, @Nonnull TimerTask task) {
         return newFixedDelay(0, delay, task);
     }
 
@@ -94,13 +94,13 @@ public interface TimerSystem extends SystemTimeProvider {
      * @return Timer对应的句柄
      */
     @Nonnull
-    FixedRateHandle newFixRate(long initialDelay, long period, @Nonnull TimerTask<FixedRateHandle> task);
+    FixedRateHandle newFixRate(long initialDelay, long period, @Nonnull TimerTask task);
 
     /**
      * {@link #newFixRate(long, long, TimerTask)}的快捷调用方式，首次执行延迟为0，下一次tick的时候就会执行。
      */
     @Nonnull
-    default FixedRateHandle newFixRate(long period, @Nonnull TimerTask<FixedRateHandle> task) {
+    default FixedRateHandle newFixRate(long period, @Nonnull TimerTask task) {
         return newFixRate(0, period, task);
     }
 

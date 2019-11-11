@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.timer;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * 只调用一次的Timer的handle。
+ * 只执行一次的Timer的handle。
  * {@link TimerSystem#newTimeout(long, TimerTask)}
  *
  * @author wjybxx

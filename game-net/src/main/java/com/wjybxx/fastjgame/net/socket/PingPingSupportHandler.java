@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.net.socket;
 import com.wjybxx.fastjgame.net.common.PingPongMessage;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
-import com.wjybxx.fastjgame.timer.FixedDelayHandle;
+import com.wjybxx.fastjgame.timer.TimerHandle;
 
 /**
  * 双向心跳支持。
@@ -64,7 +64,7 @@ public class PingPingSupportHandler extends SessionDuplexHandlerAdapter {
         ctx.timerSystem().newFixedDelay(pingIntervalMs, pingIntervalMs, this::checkPing);
     }
 
-    private void checkPing(FixedDelayHandle handle) throws Exception {
+    private void checkPing(TimerHandle handle) throws Exception {
         if (ctx.timerSystem().curTimeMillis() - lastReadTime > pingIntervalMs
                 || ctx.timerSystem().curTimeMillis() - lastWriteTime > pingIntervalMs) {
             // 尝试发一个心跳包 - 从当前位置开始发送心跳包

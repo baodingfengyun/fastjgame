@@ -101,14 +101,14 @@ public class DefaultTimerSystem implements TimerSystem {
 
     @Nonnull
     @Override
-    public TimeoutHandle newTimeout(long timeout, @Nonnull TimerTask<TimeoutHandle> task) {
+    public TimeoutHandle newTimeout(long timeout, @Nonnull TimerTask task) {
         TimeoutHandleImp timeoutHandleImp = new TimeoutHandleImp(this, task, timeout);
         return tryAddTimerAndInit(timeoutHandleImp);
     }
 
     @Nonnull
     @Override
-    public FixedDelayHandle newFixedDelay(long initialDelay, long delay, @Nonnull TimerTask<FixedDelayHandle> task) {
+    public FixedDelayHandle newFixedDelay(long initialDelay, long delay, @Nonnull TimerTask task) {
         FixedDelayHandleImp.ensureDelay(delay);
         FixedDelayHandleImp fixedDelayHandleImp = new FixedDelayHandleImp(this, task, initialDelay, delay);
         return tryAddTimerAndInit(fixedDelayHandleImp);
@@ -116,7 +116,7 @@ public class DefaultTimerSystem implements TimerSystem {
 
     @Nonnull
     @Override
-    public FixedRateHandle newFixRate(long initialDelay, long period, @Nonnull TimerTask<FixedRateHandle> task) {
+    public FixedRateHandle newFixRate(long initialDelay, long period, @Nonnull TimerTask task) {
         FixedRateHandleImp.ensurePeriod(period);
         FixedRateHandleImp fixedRateHandleImp = new FixedRateHandleImp(this, task, initialDelay, period);
         return tryAddTimerAndInit(fixedRateHandleImp);

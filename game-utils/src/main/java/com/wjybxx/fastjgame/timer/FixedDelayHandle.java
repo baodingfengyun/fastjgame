@@ -20,6 +20,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * 固定时间间隔的timer对应的handle。
+ * {@link TimerSystem#newFixedDelay(long, long, TimerTask)}
  *
  * @author wjybxx
  * @version 1.0

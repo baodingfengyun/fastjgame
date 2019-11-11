@@ -243,49 +243,6 @@ public final class CollectionUtils {
         return out.size() - preSize;
     }
 
-
-    /**
-     * 在blockingQueue中使用poll方式寻找某个元素
-     *
-     * @param blockingQueue 元素队列，元素中除了期望的一个元素以外都无用
-     * @param matcher       匹配函数
-     * @param <E>           the type of element
-     * @return 如果找不到则返回null
-     */
-    public static <E> E findElementWithPoll(BlockingQueue<E> blockingQueue, Predicate<E> matcher) {
-        return findElementWithPollImp(blockingQueue, matcher);
-    }
-
-    /**
-     * 在concurrentLinkedQueue中使用poll方式寻找某个元素
-     *
-     * @param concurrentLinkedQueue 元素队列，元素中除了期望的一个元素以外都无用
-     * @param matcher               匹配函数
-     * @param <E>                   the type of element
-     * @return 如果找不到则返回null
-     */
-    public static <E> E findElementWithPoll(ConcurrentLinkedQueue<E> concurrentLinkedQueue, Predicate<E> matcher) {
-        return findElementWithPollImp(concurrentLinkedQueue, matcher);
-    }
-
-    /**
-     * 使用poll方式在队列中寻找元素的真正实现，之所以不暴露，是因为主要是用于解决并发队列问题的。
-     *
-     * @param queue   元素队列，元素中除了期望的一个元素以外都无用
-     * @param matcher 匹配函数
-     * @param <E>     the type of element
-     * @return 如果找不到则返回null，其实函数式方式可以返回 {@link Optional}
-     */
-    private static <E> E findElementWithPollImp(Queue<E> queue, Predicate<E> matcher) {
-        E e;
-        while ((e = queue.poll()) != null) {
-            if (matcher.test(e)) {
-                return e;
-            }
-        }
-        return null;
-    }
-
     /**
      * 使用poll方式等待blockingQueue中出现某个元素
      *

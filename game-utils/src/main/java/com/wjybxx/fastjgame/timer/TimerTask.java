@@ -18,6 +18,8 @@ package com.wjybxx.fastjgame.timer;
 
 /**
  * 定时器任务。
+ * Q: 为什么{@link #run(TimerHandle)}不再是泛型参数？
+ * A: 解除耦合，{@link TimerHandle}属于控制单元，而{@link TimerTask}仅仅是执行单元。执行单元不应该过多的了解控制单元的属性。
  *
  * @author wjybxx
  * @version 1.0
@@ -25,14 +27,14 @@ package com.wjybxx.fastjgame.timer;
  * github - https://github.com/hl845740757
  */
 @FunctionalInterface
-public interface TimerTask<T extends TimerHandle> {
+public interface TimerTask {
 
     /**
      * 执行需要的任务
      *
-     * @param handle 该任务绑定的句柄
+     * @param handle 该任务绑定的句柄，可以获取一些附加属性。
      * @apiNote 如果运行时抛出异常，则会取消执行
      */
-    void run(T handle) throws Exception;
+    void run(TimerHandle handle) throws Exception;
 
 }

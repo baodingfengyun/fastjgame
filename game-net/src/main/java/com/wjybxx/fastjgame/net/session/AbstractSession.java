@@ -29,6 +29,7 @@ import com.wjybxx.fastjgame.net.task.AsyncRpcRequestWriteTask;
 import com.wjybxx.fastjgame.net.task.OneWayMessageWriteTask;
 import com.wjybxx.fastjgame.net.task.SyncRpcRequestWriteTask;
 import com.wjybxx.fastjgame.timer.FixedDelayHandle;
+import com.wjybxx.fastjgame.timer.TimerHandle;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
 import javax.annotation.Nonnull;
@@ -259,7 +260,7 @@ public abstract class AbstractSession implements Session {
     /**
      * tick刷帧 - 不暴露给应用层
      */
-    private void tick(FixedDelayHandle handle) {
+    private void tick(TimerHandle handle) {
         pipeline.fireTick();
     }
 

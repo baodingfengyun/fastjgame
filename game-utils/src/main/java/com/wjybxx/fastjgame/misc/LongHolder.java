@@ -30,17 +30,15 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class LongHolder {
-    /**
-     * 上一次分配的序号,也就是当前Sequence
-     */
+
     private long value;
 
     public LongHolder() {
         this(0L);
     }
 
-    public LongHolder(long initSequence) {
-        this.value = initSequence;
+    public LongHolder(long value) {
+        this.value = value;
     }
 
     /**
@@ -55,10 +53,10 @@ public final class LongHolder {
     /**
      * 设置序号
      *
-     * @param sequence 指定值
+     * @param value 指定值
      */
-    public void set(long sequence) {
-        this.value = sequence;
+    public void set(long value) {
+        this.value = value;
     }
 
     /**
@@ -77,6 +75,18 @@ public final class LongHolder {
      */
     public long incAndGet() {
         return ++value;
+    }
+
+    /**
+     * 修改当前值，并返回之前的值
+     *
+     * @param value
+     * @return
+     */
+    public long getAndSet(long value) {
+        long result = this.value;
+        this.value = value;
+        return result;
     }
 
     @Override

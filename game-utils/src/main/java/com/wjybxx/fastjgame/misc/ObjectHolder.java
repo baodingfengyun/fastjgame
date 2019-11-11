@@ -45,4 +45,11 @@ public class ObjectHolder<T> {
     public void setValue(T value) {
         this.value = value;
     }
+
+    public T getAndSet(T value) {
+        T result = this.value;
+        this.value = value;
+        return result;
+    }
+
 }

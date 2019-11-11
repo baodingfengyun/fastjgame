@@ -98,21 +98,4 @@ public final class FunctionUtils {
         return false;
     }
 
-    // ---------------------------------- int - obj -----------------------------
-    public static <T> boolean TRUE(int a, T b) {
-        return true;
-    }
-
-    public static <T> boolean FALSE(int a, T b) {
-        return false;
-    }
-
-    // ---------------------------------- long - obj -----------------------------
-    public static <T> boolean TRUE(long a, T b) {
-        return true;
-    }
-
-    public static <T> boolean FALSE(long a, T b) {
-        return false;
-    }
 }

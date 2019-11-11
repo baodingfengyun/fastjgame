@@ -23,7 +23,7 @@ import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.mgr.GameEventLoopMgr;
 import com.wjybxx.fastjgame.module.WorldGroupModule;
 import com.wjybxx.fastjgame.timer.DefaultTimerSystem;
-import com.wjybxx.fastjgame.timer.FixedDelayHandle;
+import com.wjybxx.fastjgame.timer.TimerHandle;
 import com.wjybxx.fastjgame.timer.TimerSystem;
 import com.wjybxx.fastjgame.world.GameEventLoopGroupImp.WorldStartInfo;
 import org.slf4j.Logger;
@@ -117,7 +117,7 @@ public class GameEventLoopImp extends DisruptorEventLoop implements GameEventLoo
         timerSystem.tick();
     }
 
-    private void safeTickWorld(FixedDelayHandle handle) {
+    private void safeTickWorld(TimerHandle handle) {
         try {
             world.tick(System.currentTimeMillis());
         } catch (Throwable e) {

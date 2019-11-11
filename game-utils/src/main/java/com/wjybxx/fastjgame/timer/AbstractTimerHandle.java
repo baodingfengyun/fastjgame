@@ -89,7 +89,6 @@ abstract class AbstractTimerHandle implements TimerHandle {
         return (T) attachment;
     }
 
-    @SuppressWarnings("unchecked")
     public void run() throws Exception {
         timerTask.run(this);
     }

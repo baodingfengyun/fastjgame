@@ -22,7 +22,7 @@ import com.wjybxx.fastjgame.net.http.HttpPortContext;
 import com.wjybxx.fastjgame.net.http.HttpRequestCommitTask;
 import com.wjybxx.fastjgame.net.http.HttpRequestEvent;
 import com.wjybxx.fastjgame.net.http.HttpSessionImp;
-import com.wjybxx.fastjgame.timer.FixedDelayHandle;
+import com.wjybxx.fastjgame.timer.TimerHandle;
 import com.wjybxx.fastjgame.utils.CollectionUtils;
 import com.wjybxx.fastjgame.utils.FunctionUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
@@ -64,7 +64,7 @@ public class HttpSessionManager {
     /**
      * 检查session超时
      */
-    private void checkSessionTimeout(FixedDelayHandle handle) {
+    private void checkSessionTimeout(TimerHandle handle) {
         // 如果用户持有了httpSession的引用，长时间没有完成响应的话，这里关闭可能导致一些错误
         CollectionUtils.removeIfAndThen(sessionWrapperMap,
                 (channel, sessionWrapper) -> netTimeManager.curTimeSeconds() >= sessionWrapper.getSessionTimeout(),

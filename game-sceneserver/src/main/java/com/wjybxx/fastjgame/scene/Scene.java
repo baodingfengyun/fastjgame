@@ -736,27 +736,27 @@ public abstract class Scene {
 
     // ------------------------------------------ 代理timerSystem的方法，只暴露需要暴露的口 -------------------------
     @Nonnull
-    protected final TimeoutHandle newTimeout(long timeout, @Nonnull TimerTask<TimeoutHandle> task) {
+    protected final TimeoutHandle newTimeout(long timeout, @Nonnull TimerTask task) {
         return timerSystem.newTimeout(timeout, task);
     }
 
     @Nonnull
-    protected final FixedDelayHandle newFixedDelay(long initialDelay, long delay, @Nonnull TimerTask<FixedDelayHandle> timerTask) {
+    protected final FixedDelayHandle newFixedDelay(long initialDelay, long delay, @Nonnull TimerTask timerTask) {
         return timerSystem.newFixedDelay(initialDelay, delay, timerTask);
     }
 
     @Nonnull
-    protected FixedDelayHandle newFixedDelay(long delay, @Nonnull TimerTask<FixedDelayHandle> timerTask) {
+    protected FixedDelayHandle newFixedDelay(long delay, @Nonnull TimerTask timerTask) {
         return timerSystem.newFixedDelay(delay, timerTask);
     }
 
     @Nonnull
-    protected final FixedRateHandle newFixRate(long initialDelay, long period, @Nonnull TimerTask<FixedRateHandle> timerTask) {
+    protected final FixedRateHandle newFixRate(long initialDelay, long period, @Nonnull TimerTask timerTask) {
         return timerSystem.newFixRate(initialDelay, period, timerTask);
     }
 
     @Nonnull
-    protected final FixedRateHandle newFixRate(long period, @Nonnull TimerTask<FixedRateHandle> timerTask) {
+    protected final FixedRateHandle newFixRate(long period, @Nonnull TimerTask timerTask) {
         return timerSystem.newFixRate(period, timerTask);
     }
 
