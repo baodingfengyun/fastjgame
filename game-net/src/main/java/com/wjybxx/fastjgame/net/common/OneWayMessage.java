@@ -32,7 +32,7 @@ public class OneWayMessage implements NetMessage {
     /**
      * 消息内容
      */
-    private Object message;
+    private final Object message;
 
     public OneWayMessage(Object message) {
         this.message = message;
@@ -40,10 +40,6 @@ public class OneWayMessage implements NetMessage {
 
     public Object getMessage() {
         return message;
-    }
-
-    public void setMessage(Object message) {
-        this.message = message;
     }
 
     @Override

@@ -40,7 +40,7 @@ public class RpcRequestMessage implements NetMessage {
     /**
      * rpc请求内容 - 默认实现为{@link com.wjybxx.fastjgame.misc.RpcCall}
      */
-    private Object request;
+    private final Object request;
 
     public RpcRequestMessage(long requestGuid, boolean sync, Object request) {
         this.requestGuid = requestGuid;
@@ -58,10 +58,6 @@ public class RpcRequestMessage implements NetMessage {
 
     public Object getRequest() {
         return request;
-    }
-
-    public void setRequest(Object request) {
-        this.request = request;
     }
 
     @Override

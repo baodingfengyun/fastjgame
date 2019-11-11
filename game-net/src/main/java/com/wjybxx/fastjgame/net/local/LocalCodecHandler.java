@@ -50,20 +50,24 @@ public class LocalCodecHandler extends SessionOutboundHandlerAdapter {
     public void write(SessionHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof RpcRequestMessage) {
             // rpc请求
-            RpcRequestMessage rpcRequestMessage = (RpcRequestMessage) msg;
-            // 拷贝body
-            rpcRequestMessage.setRequest(cloneBody(rpcRequestMessage.getRequest()));
+            final RpcRequestMessage rpcRequestMessage = (RpcRequestMessage) msg;
+
+            msg = new RpcRequestMessage(rpcRequestMessage.getRequestGuid(), rpcRequestMessage.isSync(),
+                    cloneBody(rpcRequestMessage.getRequest()));
         } else if (msg instanceof RpcResponseMessage) {
             // rpc响应
-            RpcResponseMessage responseMessage = (RpcResponseMessage) msg;
+            final RpcResponseMessage responseMessage = (RpcResponseMessage) msg;
+
             final RpcResponse rpcResponse = responseMessage.getRpcResponse();
-            final RpcResponse copiedRpcResponse = new RpcResponse(rpcResponse.getResultCode(), codec.cloneObject(rpcResponse.getBody()));
-            responseMessage.setRpcResponse(copiedRpcResponse);
+            final RpcResponse copiedRpcResponse = new RpcResponse(rpcResponse.getResultCode(),
+                    codec.cloneObject(rpcResponse.getBody()));
+
+            msg = new RpcResponseMessage(responseMessage.getRequestGuid(), copiedRpcResponse);
         } else if (msg instanceof OneWayMessage) {
             // 单向消息
-            OneWayMessage oneWayMessage = (OneWayMessage) msg;
-            // 拷贝body
-            oneWayMessage.setMessage(cloneBody(oneWayMessage.getMessage()));
+            final OneWayMessage oneWayMessage = (OneWayMessage) msg;
+
+            msg = new OneWayMessage(cloneBody(oneWayMessage.getMessage()));
         }
         // 传递给下一个handler
         ctx.fireWrite(msg);
