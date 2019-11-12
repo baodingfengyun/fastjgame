@@ -28,7 +28,6 @@ import com.wjybxx.fastjgame.net.common.RpcResponse;
 import com.wjybxx.fastjgame.net.task.AsyncRpcRequestWriteTask;
 import com.wjybxx.fastjgame.net.task.OneWayMessageWriteTask;
 import com.wjybxx.fastjgame.net.task.SyncRpcRequestWriteTask;
-import com.wjybxx.fastjgame.timer.FixedDelayHandle;
 import com.wjybxx.fastjgame.timer.TimerHandle;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
@@ -75,7 +74,7 @@ public abstract class AbstractSession implements Session {
     /**
      * tick用的handle
      */
-    private final FixedDelayHandle fixedDelayHandle;
+    private final TimerHandle tickHandle;
     /**
      * 附加属性 - 非volatile，只有用户线程可以使用
      */
@@ -90,7 +89,7 @@ public abstract class AbstractSession implements Session {
         this.sessionRegistry = sessionRegistry;
         this.pipeline = new DefaultSessionPipeline(this, managerWrapper.getNetTimeManager());
         this.netEventLoop = managerWrapper.getNetEventLoopManager().getEventLoop();
-        this.fixedDelayHandle = managerWrapper.getNetTimerManager().newFixedDelay(TICK_INTERVAL, this::tick);
+        this.tickHandle = managerWrapper.getNetTimerManager().newFixedDelay(TICK_INTERVAL, this::tick);
         sessionRegistry.registerSession(this);
     }
 
@@ -211,7 +210,7 @@ public abstract class AbstractSession implements Session {
 
     private void doClose() {
         sessionRegistry.removeSession(sessionId);
-        fixedDelayHandle.cancel();
+        tickHandle.cancel();
         pipeline.fireClose();
     }
 

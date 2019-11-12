@@ -36,8 +36,17 @@ import java.util.List;
 @NotThreadSafe
 public class DefaultRpcBuilder<V> implements RpcBuilder<V> {
 
+    /**
+     * 可以调用任意发送消息的接口
+     */
     private static final int SHARE_MODE_ANY = 0;
+    /**
+     * 只可以调用{@link #send(Session)}或{@link #broadcast(Iterable)}方法发送消息
+     */
     private static final int SHARE_MODE_SEND = 1;
+    /**
+     * 不可以再发送消息
+     */
     private static final int SHARE_MODE_NONE = 2;
 
     /**

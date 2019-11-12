@@ -17,6 +17,8 @@
 package com.wjybxx.fastjgame.misc;
 
 /**
+ * 端口范围
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/16 17:00

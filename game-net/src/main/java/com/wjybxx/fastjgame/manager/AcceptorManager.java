@@ -128,7 +128,7 @@ public class AcceptorManager implements SessionRegistry {
     // -------------------------------------------------- 本地session支持 ------------------------------------------------
 
     /**
-     * 接收到一个连接请
+     * 接收到一个连接请求
      *
      * @param localPort  本地“端口”
      * @param sessionId  session唯一标识
