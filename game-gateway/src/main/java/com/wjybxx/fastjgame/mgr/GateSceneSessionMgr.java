@@ -19,10 +19,10 @@ package com.wjybxx.fastjgame.mgr;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.onlinenode.SceneNodeData;
 import com.wjybxx.fastjgame.core.onlinenode.SceneNodeName;
-import com.wjybxx.fastjgame.misc.SceneInGateInfo;
+import com.wjybxx.fastjgame.misc.GateSceneSession;
 import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.session.Session;
-import com.wjybxx.fastjgame.rpcservice.IGateInSceneInfoMgrRpcProxy;
+import com.wjybxx.fastjgame.rpcservice.ISceneGateSessionMgrRpcProxy;
 import com.wjybxx.fastjgame.world.GateWorldInfoMgr;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -37,26 +37,26 @@ import org.slf4j.LoggerFactory;
  * date - 2019/11/1
  * github - https://github.com/hl845740757
  */
-public class SceneInGateInfoMgr {
+public class GateSceneSessionMgr {
 
-    private static final Logger logger = LoggerFactory.getLogger(SceneInGateInfoMgr.class);
+    private static final Logger logger = LoggerFactory.getLogger(GateSceneSessionMgr.class);
 
     private final GateWorldInfoMgr worldInfoMgr;
     private final GameAcceptorMgr gameAcceptorMgr;
     /**
      * guid -> session
      */
-    private final Long2ObjectMap<SceneInGateInfo> guid2SessionMap = new Long2ObjectOpenHashMap<>();
+    private final Long2ObjectMap<GateSceneSession> guid2SessionMap = new Long2ObjectOpenHashMap<>();
 
     @Inject
-    public SceneInGateInfoMgr(GateWorldInfoMgr worldInfoMgr, GameAcceptorMgr gameAcceptorMgr) {
+    public GateSceneSessionMgr(GateWorldInfoMgr worldInfoMgr, GameAcceptorMgr gameAcceptorMgr) {
         this.worldInfoMgr = worldInfoMgr;
         this.gameAcceptorMgr = gameAcceptorMgr;
     }
 
     public Session getSceneSession(long worldGuid) {
-        final SceneInGateInfo sceneInGateInfo = guid2SessionMap.get(worldGuid);
-        return null == sceneInGateInfo ? null : sceneInGateInfo.getSession();
+        final GateSceneSession gateSceneSession = guid2SessionMap.get(worldGuid);
+        return null == gateSceneSession ? null : gateSceneSession.getSession();
     }
 
     /**
@@ -90,11 +90,11 @@ public class SceneInGateInfoMgr {
      * @param worldGuid 场景服务器id
      */
     public void onSceneDisconnect(long worldGuid) {
-        final SceneInGateInfo sceneInGateInfo = guid2SessionMap.get(worldGuid);
-        if (null == sceneInGateInfo) {
+        final GateSceneSession gateSceneSession = guid2SessionMap.get(worldGuid);
+        if (null == gateSceneSession) {
             return;
         }
-        sceneInGateInfo.getSession().close();
+        gateSceneSession.getSession().close();
         logger.info("scene {} disconnect", worldGuid);
         // TODO 下线该场景服上的玩家
     }
@@ -103,7 +103,7 @@ public class SceneInGateInfoMgr {
 
         @Override
         public void onSessionConnected(Session session) {
-            IGateInSceneInfoMgrRpcProxy.register(worldInfoMgr.getServerId())
+            ISceneGateSessionMgrRpcProxy.register(worldInfoMgr.getServerId())
                     .onSuccess(result -> onRegisterSceneResult(session, result))
                     .onFailure(rpcResponse -> session.close())
                     .call(session);
@@ -121,7 +121,7 @@ public class SceneInGateInfoMgr {
             return;
         }
 
-        guid2SessionMap.put(session.remoteGuid(), new SceneInGateInfo(session));
+        guid2SessionMap.put(session.remoteGuid(), new GateSceneSession(session));
         logger.info("connect scene {} success", session.remoteGuid());
     }
 }

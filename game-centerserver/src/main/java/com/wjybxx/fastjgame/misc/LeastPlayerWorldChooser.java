@@ -31,11 +31,11 @@ import java.util.List;
  */
 public class LeastPlayerWorldChooser implements SceneWorldChooser {
 
-    private static final Comparator<SceneInCenterInfo> comparator = Comparator.comparingInt(SceneInCenterInfo::getOnlinePlayerNum);
+    private static final Comparator<CenterSceneSession> comparator = Comparator.comparingInt(CenterSceneSession::getOnlinePlayerNum);
 
     @Nonnull
     @Override
-    public SceneInCenterInfo choose(List<SceneInCenterInfo> availableProcesses) {
+    public CenterSceneSession choose(List<CenterSceneSession> availableProcesses) {
         return Collections.min(availableProcesses, comparator);
     }
 }

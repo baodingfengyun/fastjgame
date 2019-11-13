@@ -19,10 +19,10 @@ package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.SceneRegion;
-import com.wjybxx.fastjgame.misc.CenterInSceneInfo;
+import com.wjybxx.fastjgame.misc.SceneCenterSession;
 import com.wjybxx.fastjgame.misc.CenterServerId;
 import com.wjybxx.fastjgame.net.session.Session;
-import com.wjybxx.fastjgame.rpcservice.ICenterInSceneInfoMgr;
+import com.wjybxx.fastjgame.rpcservice.ISceneCenterSessionMgr;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.slf4j.Logger;
@@ -39,37 +39,37 @@ import java.util.*;
  * date - 2019/5/15 22:08
  * github - https://github.com/hl845740757
  */
-public class CenterInSceneInfoMgr implements ICenterInSceneInfoMgr {
+public class SceneCenterSessionMgr implements ISceneCenterSessionMgr {
 
-    private static final Logger logger = LoggerFactory.getLogger(CenterInSceneInfoMgr.class);
+    private static final Logger logger = LoggerFactory.getLogger(SceneCenterSessionMgr.class);
     private final SceneWorldInfoMgr sceneWorldInfoMgr;
 
     /**
      * wolrdguid到信息的映射
      */
-    private final Long2ObjectMap<CenterInSceneInfo> guid2InfoMap = new Long2ObjectOpenHashMap<>();
+    private final Long2ObjectMap<SceneCenterSession> guid2InfoMap = new Long2ObjectOpenHashMap<>();
     /**
      * serverId到信息的映射
      */
-    private final Map<CenterServerId, CenterInSceneInfo> serverId2InfoMap = new HashMap<>();
+    private final Map<CenterServerId, SceneCenterSession> serverId2InfoMap = new HashMap<>();
 
     @Inject
-    public CenterInSceneInfoMgr(SceneWorldInfoMgr sceneWorldInfoMgr) {
+    public SceneCenterSessionMgr(SceneWorldInfoMgr sceneWorldInfoMgr) {
         this.sceneWorldInfoMgr = sceneWorldInfoMgr;
     }
 
-    private void addInfo(CenterInSceneInfo centerInSceneInfo) {
-        guid2InfoMap.put(centerInSceneInfo.getCenterWorldGuid(), centerInSceneInfo);
-        serverId2InfoMap.put(centerInSceneInfo.getServerId(), centerInSceneInfo);
+    private void addInfo(SceneCenterSession sceneCenterSession) {
+        guid2InfoMap.put(sceneCenterSession.getCenterWorldGuid(), sceneCenterSession);
+        serverId2InfoMap.put(sceneCenterSession.getServerId(), sceneCenterSession);
 
-        logger.info("center server {} register success", centerInSceneInfo.getServerId());
+        logger.info("center server {} register success", sceneCenterSession.getServerId());
     }
 
-    private void removeInfo(CenterInSceneInfo centerInSceneInfo) {
-        guid2InfoMap.remove(centerInSceneInfo.getCenterWorldGuid());
-        serverId2InfoMap.remove(centerInSceneInfo.getServerId());
+    private void removeInfo(SceneCenterSession sceneCenterSession) {
+        guid2InfoMap.remove(sceneCenterSession.getCenterWorldGuid());
+        serverId2InfoMap.remove(sceneCenterSession.getServerId());
 
-        logger.info("center server {} disconnect", centerInSceneInfo.getServerId());
+        logger.info("center server {} disconnect", sceneCenterSession.getServerId());
     }
 
     /**
@@ -78,14 +78,14 @@ public class CenterInSceneInfoMgr implements ICenterInSceneInfoMgr {
      * @param centerWorldGuid center服务器worldGuid
      */
     public void onCenterDisconnect(long centerWorldGuid) {
-        CenterInSceneInfo centerInSceneInfo = guid2InfoMap.get(centerWorldGuid);
-        if (null == centerInSceneInfo) {
+        SceneCenterSession sceneCenterSession = guid2InfoMap.get(centerWorldGuid);
+        if (null == sceneCenterSession) {
             return;
         }
-        removeInfo(centerInSceneInfo);
+        removeInfo(sceneCenterSession);
 
         // 将该服的玩家下线
-        offlineSpecialCenterPlayer(centerInSceneInfo.getServerId());
+        offlineSpecialCenterPlayer(sceneCenterSession.getServerId());
 
         // TODO 关闭检测
     }
@@ -105,8 +105,8 @@ public class CenterInSceneInfoMgr implements ICenterInSceneInfoMgr {
             return Collections.emptyList();
         }
 
-        CenterInSceneInfo centerInSceneInfo = new CenterInSceneInfo(session, serverId);
-        addInfo(centerInSceneInfo);
+        SceneCenterSession sceneCenterSession = new SceneCenterSession(session, serverId);
+        addInfo(sceneCenterSession);
 
         // 返回配置的所有区域即可，非互斥区域已启动
         // 必须返回拷贝
@@ -121,8 +121,8 @@ public class CenterInSceneInfoMgr implements ICenterInSceneInfoMgr {
      */
     @Nullable
     public Session getCenterSession(CenterServerId serverId) {
-        final CenterInSceneInfo centerInSceneInfo = serverId2InfoMap.get(serverId);
-        return null == centerInSceneInfo ? null : centerInSceneInfo.getSession();
+        final SceneCenterSession sceneCenterSession = serverId2InfoMap.get(serverId);
+        return null == sceneCenterSession ? null : sceneCenterSession.getSession();
     }
 
     /**
@@ -133,8 +133,8 @@ public class CenterInSceneInfoMgr implements ICenterInSceneInfoMgr {
      */
     @Nullable
     public Session getCenterSession(long worldGuid) {
-        final CenterInSceneInfo centerInSceneInfo = guid2InfoMap.get(worldGuid);
-        return null == centerInSceneInfo ? null : centerInSceneInfo.getSession();
+        final SceneCenterSession sceneCenterSession = guid2InfoMap.get(worldGuid);
+        return null == sceneCenterSession ? null : sceneCenterSession.getSession();
     }
 
 }

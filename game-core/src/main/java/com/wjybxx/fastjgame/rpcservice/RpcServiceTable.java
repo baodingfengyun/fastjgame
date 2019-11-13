@@ -24,35 +24,40 @@ package com.wjybxx.fastjgame.rpcservice;
  * date - 2019/8/20
  * github - https://github.com/hl845740757
  */
-public final class ServiceTable {
+public final class RpcServiceTable {
 
     /**
      * 中心服在战区服的信息管理
      */
-    public static final short CENTER_IN_WARZONE_INFO_MGR = 1;
+    public static final short WARZONE_CENTER_SESSION_MGR = 1;
 
     /**
      * 中心服在场景服的信息管理
      */
-    public static final short CENTER_IN_SCENE_INFO_MGR = 2;
-
-    /**
-     * 网关服在中心服的信息管理
-     */
-    public static final short GATE_IN_CENTER_INFO_MGR = 3;
+    public static final short SCENE_CENTER_SESSION_MGR = 2;
 
     /**
      * 网关服在场景服的信息管理
      */
-    public static final short GATE_IN_SCENE_INFO_MGR = 4;
+    public static final short SCENE_GATE_SESSION_MGR = 3;
 
     /**
      * 场景服区域管理器
      */
-    public static final short SCENE_REGION_MGR = 5;
+    public static final short SCENE_REGION_MGR = 4;
 
     /**
      * 玩家协议处理器
      */
-    public static final short PLAYER_MESSAGE_DISPATCHER_MGR = 6;
+    public static final short PLAYER_MESSAGE_DISPATCHER_MGR = 5;
+
+    /**
+     * 网关服在中心服的信息管理
+     */
+    public static final short CENTER_GATE_SESSION_MGR = 6;
+
+    /**
+     * 玩家在网关服的会话管理器
+     */
+    public static final short GATE_PLAYER_SESSION_MGR = 7;
 }

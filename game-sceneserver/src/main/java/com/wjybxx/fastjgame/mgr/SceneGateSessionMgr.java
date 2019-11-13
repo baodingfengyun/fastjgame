@@ -18,9 +18,9 @@ package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.misc.CenterServerId;
-import com.wjybxx.fastjgame.misc.GateInSceneInfo;
+import com.wjybxx.fastjgame.misc.SceneGateSession;
 import com.wjybxx.fastjgame.net.session.Session;
-import com.wjybxx.fastjgame.rpcservice.IGateInSceneInfoMgr;
+import com.wjybxx.fastjgame.rpcservice.ISceneGateSessionMgr;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.slf4j.Logger;
@@ -34,43 +34,43 @@ import org.slf4j.LoggerFactory;
  * date - 2019/11/3
  * github - https://github.com/hl845740757
  */
-public class GateInSceneInfoMgr implements IGateInSceneInfoMgr {
+public class SceneGateSessionMgr implements ISceneGateSessionMgr {
 
-    private static final Logger logger = LoggerFactory.getLogger(GateInSceneInfoMgr.class);
+    private static final Logger logger = LoggerFactory.getLogger(SceneGateSessionMgr.class);
 
     /**
      * worldGuid -> info
      * 一个scene可能连接同一个中心服的多个网关
      */
-    private final Long2ObjectMap<GateInSceneInfo> guid2InfoMap = new Long2ObjectOpenHashMap<>();
+    private final Long2ObjectMap<SceneGateSession> guid2InfoMap = new Long2ObjectOpenHashMap<>();
 
     @Inject
-    public GateInSceneInfoMgr() {
+    public SceneGateSessionMgr() {
 
     }
 
     @Override
     public boolean register(Session session, CenterServerId serverId) {
-        final GateInSceneInfo gateInSceneInfo = new GateInSceneInfo(session, serverId);
-        guid2InfoMap.put(session.remoteGuid(), gateInSceneInfo);
+        final SceneGateSession sceneGateSession = new SceneGateSession(session, serverId);
+        guid2InfoMap.put(session.remoteGuid(), sceneGateSession);
 
         logger.info("gate server {} register success", session.sessionId());
         return true;
     }
 
     public Session getGateSession(long worldGuid) {
-        final GateInSceneInfo gateInSceneInfo = guid2InfoMap.get(worldGuid);
-        return null == gateInSceneInfo ? null : gateInSceneInfo.getSession();
+        final SceneGateSession sceneGateSession = guid2InfoMap.get(worldGuid);
+        return null == sceneGateSession ? null : sceneGateSession.getSession();
     }
 
     public void onSessionDisconnect(long worldGuid) {
-        final GateInSceneInfo gateInSceneInfo = guid2InfoMap.remove(worldGuid);
-        if (null == gateInSceneInfo) {
+        final SceneGateSession sceneGateSession = guid2InfoMap.remove(worldGuid);
+        if (null == sceneGateSession) {
             // 无效guid
             return;
         }
-        gateInSceneInfo.getSession().close();
-        logger.info("gate server {} disconnect", gateInSceneInfo.getSession().sessionId());
+        sceneGateSession.getSession().close();
+        logger.info("gate server {} disconnect", sceneGateSession.getSession().sessionId());
 
         // TODO 下线该网关上的玩家
     }

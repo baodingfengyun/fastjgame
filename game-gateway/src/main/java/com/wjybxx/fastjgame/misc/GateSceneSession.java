@@ -14,31 +14,31 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.rpcservice;
+package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.annotation.RpcMethod;
-import com.wjybxx.fastjgame.annotation.RpcService;
-
-import java.util.List;
+import com.wjybxx.fastjgame.net.session.Session;
 
 /**
- * 场景服区域管理器，Center会与该管理器进行通信。
+ * 场景服在网关服的信息
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/22
+ * date - 2019/11/3
  * github - https://github.com/hl845740757
  */
-@RpcService(serviceId = RpcServiceTable.SCENE_REGION_MGR)
-public interface ISceneRegionMgr {
+public class GateSceneSession {
 
-    /**
-     * 收到中心服启动互斥区域的命令 (建立连接后)
-     *
-     * @param activeMutexRegionsList 需要启动的互斥区域
-     * @return 启动成功
-     */
-    @RpcMethod(methodId = 1)
-    boolean startMutexRegion(List<Integer> activeMutexRegionsList);
+    private final Session session;
 
+    public GateSceneSession(Session session) {
+        this.session = session;
+    }
+
+    public Session getSession() {
+        return session;
+    }
+
+    public long worldGuid() {
+        return session.remoteGuid();
+    }
 }

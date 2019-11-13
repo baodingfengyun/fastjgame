@@ -13,37 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.wjybxx.fastjgame.misc;
 
 import com.wjybxx.fastjgame.net.session.Session;
 
 /**
- * CenterServer在WarzoneServer信息
+ * WarzoneServer在CenterServer中的信息
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/5/15 14:06
+ * date - 2019/5/15 13:51
  * github - https://github.com/hl845740757
  */
-public class CenterInWarzoneInfo {
+public class CenterWarzoneSession {
 
     private final Session session;
-    private final CenterServerId serverId;
 
-    public CenterInWarzoneInfo(Session session, CenterServerId serverId) {
+    public CenterWarzoneSession(Session session) {
         this.session = session;
-        this.serverId = serverId;
+    }
+
+    public long getWarzoneWorldGuid() {
+        return session.remoteGuid();
     }
 
     public Session getSession() {
         return session;
     }
 
-    public CenterServerId getServerId() {
-        return serverId;
-    }
-
-    public long getCenterWorldGuid() {
-        return session.remoteGuid();
-    }
 }

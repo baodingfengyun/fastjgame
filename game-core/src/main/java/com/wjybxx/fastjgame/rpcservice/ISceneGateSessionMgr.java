@@ -16,33 +16,29 @@
 
 package com.wjybxx.fastjgame.rpcservice;
 
-import com.google.protobuf.AbstractMessage;
-import com.wjybxx.fastjgame.annotation.PreDeserializable;
 import com.wjybxx.fastjgame.annotation.RpcMethod;
 import com.wjybxx.fastjgame.annotation.RpcService;
+import com.wjybxx.fastjgame.misc.CenterServerId;
 import com.wjybxx.fastjgame.net.session.Session;
 
-import javax.annotation.Nullable;
-
 /**
- * 玩家消息处理器(网关通过这种方式转发消息)
+ * 网关服在场景服的信息管理
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/10/10
+ * date - 2019/11/3
  * github - https://github.com/hl845740757
  */
-@RpcService(serviceId = RpcServiceTable.PLAYER_MESSAGE_DISPATCHER_MGR)
-public interface IPlayerMessageDispatcherMgr {
+@RpcService(serviceId = RpcServiceTable.SCENE_GATE_SESSION_MGR)
+public interface ISceneGateSessionMgr {
 
     /**
-     * 接收到一个网关转发过来的玩家消息
+     * 网关服请求注册到场景服上
      *
-     * @param session    网关session
-     * @param playerGuid 玩家guid
-     * @param message    玩家发来的消息，使用{@link PreDeserializable}注解，网络层可以提前反序列化
+     * @param session  网关服session
+     * @param serverId 网关服所属的中心服Id
+     * @return 注册是否成功
      */
     @RpcMethod(methodId = 1)
-    void onPlayerMessage(Session session, long playerGuid, @Nullable @PreDeserializable AbstractMessage message);
-
+    boolean register(Session session, CenterServerId serverId);
 }

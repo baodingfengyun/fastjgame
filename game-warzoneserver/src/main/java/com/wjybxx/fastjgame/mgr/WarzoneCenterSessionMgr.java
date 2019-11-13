@@ -17,10 +17,10 @@
 package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.misc.CenterInWarzoneInfo;
+import com.wjybxx.fastjgame.misc.WarzoneCenterSession;
 import com.wjybxx.fastjgame.misc.CenterServerId;
 import com.wjybxx.fastjgame.net.session.Session;
-import com.wjybxx.fastjgame.rpcservice.ICenterInWarzoneInfoMgr;
+import com.wjybxx.fastjgame.rpcservice.IWarzoneCenterSessionMgr;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.slf4j.Logger;
@@ -38,31 +38,31 @@ import java.util.Map;
  * date - 2019/5/17 15:43
  * github - https://github.com/hl845740757
  */
-public class CenterInWarzoneInfoMgr implements ICenterInWarzoneInfoMgr {
+public class WarzoneCenterSessionMgr implements IWarzoneCenterSessionMgr {
 
-    private static final Logger logger = LoggerFactory.getLogger(CenterInWarzoneInfoMgr.class);
+    private static final Logger logger = LoggerFactory.getLogger(WarzoneCenterSessionMgr.class);
     /**
      * guid -> info
      */
-    private final Long2ObjectMap<CenterInWarzoneInfo> guid2InfoMap = new Long2ObjectOpenHashMap<>();
+    private final Long2ObjectMap<WarzoneCenterSession> guid2InfoMap = new Long2ObjectOpenHashMap<>();
     /**
      * 服务器id -> info
      */
-    private final Map<CenterServerId, CenterInWarzoneInfo> serverId2InfoMap = new HashMap<>();
+    private final Map<CenterServerId, WarzoneCenterSession> serverId2InfoMap = new HashMap<>();
 
     @Inject
-    public CenterInWarzoneInfoMgr() {
+    public WarzoneCenterSessionMgr() {
 
     }
 
-    private void addInfo(CenterInWarzoneInfo centerInWarzoneInfo) {
-        guid2InfoMap.put(centerInWarzoneInfo.getCenterWorldGuid(), centerInWarzoneInfo);
-        serverId2InfoMap.put(centerInWarzoneInfo.getServerId(), centerInWarzoneInfo);
+    private void addInfo(WarzoneCenterSession warzoneCenterSession) {
+        guid2InfoMap.put(warzoneCenterSession.getCenterWorldGuid(), warzoneCenterSession);
+        serverId2InfoMap.put(warzoneCenterSession.getServerId(), warzoneCenterSession);
     }
 
-    private void removeInfo(CenterInWarzoneInfo centerInWarzoneInfo) {
-        guid2InfoMap.remove(centerInWarzoneInfo.getCenterWorldGuid());
-        serverId2InfoMap.remove(centerInWarzoneInfo.getServerId());
+    private void removeInfo(WarzoneCenterSession warzoneCenterSession) {
+        guid2InfoMap.remove(warzoneCenterSession.getCenterWorldGuid());
+        serverId2InfoMap.remove(warzoneCenterSession.getServerId());
     }
 
     @Override
@@ -71,19 +71,19 @@ public class CenterInWarzoneInfoMgr implements ICenterInWarzoneInfoMgr {
             return false;
         }
 
-        CenterInWarzoneInfo centerInWarzoneInfo = new CenterInWarzoneInfo(session, serverId);
-        addInfo(centerInWarzoneInfo);
-        logger.info("center server {} register success.", centerInWarzoneInfo.getServerId());
+        WarzoneCenterSession warzoneCenterSession = new WarzoneCenterSession(session, serverId);
+        addInfo(warzoneCenterSession);
+        logger.info("center server {} register success.", warzoneCenterSession.getServerId());
         return true;
     }
 
     public void onCenterServerDisconnect(long centerWorldGuid) {
-        CenterInWarzoneInfo centerInWarzoneInfo = guid2InfoMap.get(centerWorldGuid);
-        if (null == centerInWarzoneInfo) {
+        WarzoneCenterSession warzoneCenterSession = guid2InfoMap.get(centerWorldGuid);
+        if (null == warzoneCenterSession) {
             return;
         }
-        removeInfo(centerInWarzoneInfo);
-        logger.info("center server {} disconnect.", centerInWarzoneInfo);
+        removeInfo(warzoneCenterSession);
+        logger.info("center server {} disconnect.", warzoneCenterSession);
     }
 
     /**
@@ -94,8 +94,8 @@ public class CenterInWarzoneInfoMgr implements ICenterInWarzoneInfoMgr {
      */
     @Nullable
     public Session getCenterSession(CenterServerId serverId) {
-        final CenterInWarzoneInfo centerInWarzoneInfo = serverId2InfoMap.get(serverId);
-        return null == centerInWarzoneInfo ? null : centerInWarzoneInfo.getSession();
+        final WarzoneCenterSession warzoneCenterSession = serverId2InfoMap.get(serverId);
+        return null == warzoneCenterSession ? null : warzoneCenterSession.getSession();
     }
 
     /**
@@ -106,7 +106,7 @@ public class CenterInWarzoneInfoMgr implements ICenterInWarzoneInfoMgr {
      */
     @Nullable
     public Session getCenterSession(long worldGuid) {
-        final CenterInWarzoneInfo centerInWarzoneInfo = guid2InfoMap.get(worldGuid);
-        return null == centerInWarzoneInfo ? null : centerInWarzoneInfo.getSession();
+        final WarzoneCenterSession warzoneCenterSession = guid2InfoMap.get(worldGuid);
+        return null == warzoneCenterSession ? null : warzoneCenterSession.getSession();
     }
 }

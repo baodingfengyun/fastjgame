@@ -39,6 +39,6 @@ public interface SceneWorldChooser {
      * @return selection
      */
     @Nonnull
-    SceneInCenterInfo choose(List<SceneInCenterInfo> availableProcesses);
+    CenterSceneSession choose(List<CenterSceneSession> availableProcesses);
 
 }

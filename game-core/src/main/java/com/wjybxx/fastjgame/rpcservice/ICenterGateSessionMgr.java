@@ -18,31 +18,33 @@ package com.wjybxx.fastjgame.rpcservice;
 
 import com.wjybxx.fastjgame.annotation.RpcMethod;
 import com.wjybxx.fastjgame.annotation.RpcService;
-import com.wjybxx.fastjgame.core.SceneRegion;
-import com.wjybxx.fastjgame.misc.CenterServerId;
 import com.wjybxx.fastjgame.net.session.Session;
 
-import java.util.List;
-
 /**
- * CenterServer在SceneServer中的连接管理等。
+ * 网关服在中心服的信息管理器
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/22
+ * date - 2019/11/3
  * github - https://github.com/hl845740757
  */
-@RpcService(serviceId = ServiceTable.CENTER_IN_SCENE_INFO_MGR)
-public interface ICenterInSceneInfoMgr {
+@RpcService(serviceId = RpcServiceTable.CENTER_GATE_SESSION_MGR)
+public interface ICenterGateSessionMgr {
 
     /**
-     * 中心服请求与scene建立连接
-     * 返回配置(或启动参数)中的支持的区域(非互斥区域已启动)，互斥区域是否启动由center协调。
+     * 网关服请求注册到中心服上
      *
-     * @param session  会话信息
-     * @param serverId 中心服标识
-     * @return scene配置的区域，如果返回的集合为空，则该场景服无效。
+     * @param session 网关服session
      */
     @RpcMethod(methodId = 1)
-    List<SceneRegion> register(Session session, CenterServerId serverId);
+    boolean register(Session session);
+
+    /**
+     * 同步在线玩家数量
+     *
+     * @param session         网关服session
+     * @param onlinePlayerNum 在线玩家数
+     */
+    @RpcMethod(methodId = 2)
+    void syncOnlinePlayerNum(Session session, int onlinePlayerNum);
 }

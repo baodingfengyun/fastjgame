@@ -19,25 +19,18 @@ package com.wjybxx.fastjgame.misc;
 import com.wjybxx.fastjgame.net.session.Session;
 
 /**
- * 网关服在中心服的信息
+ * 中心服在网关服的信息
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/11/3
  * github - https://github.com/hl845740757
  */
-public class GateInCenterInfo {
+public class GateCenterSession {
 
-    /**
-     * session
-     */
     private final Session session;
-    /**
-     * 网关上在线玩家数量
-     */
-    private final IntHolder onlinePlayerSequencer = new IntHolder(0);
 
-    public GateInCenterInfo(Session session) {
+    public GateCenterSession(Session session) {
         this.session = session;
     }
 
@@ -45,11 +38,7 @@ public class GateInCenterInfo {
         return session;
     }
 
-    public IntHolder getOnlinePlayerSequencer() {
-        return onlinePlayerSequencer;
-    }
-
-    public long getWorldGuid() {
+    public long worldGuid() {
         return session.remoteGuid();
     }
 }

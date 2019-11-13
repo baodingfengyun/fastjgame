@@ -19,27 +19,33 @@ package com.wjybxx.fastjgame.misc;
 import com.wjybxx.fastjgame.net.session.Session;
 
 /**
- * WarzoneServer在CenterServer中的信息
+ * CenterServer在SceneServer中的信息
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/5/15 13:51
+ * date - 2019/5/15 12:30
  * github - https://github.com/hl845740757
  */
-public class WarzoneInCenterInfo {
+public class SceneCenterSession {
 
     private final Session session;
+    private final CenterServerId serverId;
 
-    public WarzoneInCenterInfo(Session session) {
+    public SceneCenterSession(Session session, CenterServerId serverId) {
         this.session = session;
-    }
-
-    public long getWarzoneWorldGuid() {
-        return session.remoteGuid();
+        this.serverId = serverId;
     }
 
     public Session getSession() {
         return session;
     }
 
+    public CenterServerId getServerId() {
+        return serverId;
+    }
+
+    public long getCenterWorldGuid() {
+        return session.remoteGuid();
+    }
 }
+

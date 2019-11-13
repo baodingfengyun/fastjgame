@@ -26,12 +26,12 @@ import com.wjybxx.fastjgame.net.session.Session;
  * date - 2019/11/3
  * github - https://github.com/hl845740757
  */
-public class GateInSceneInfo {
+public class SceneGateSession {
 
     private final Session session;
     private final CenterServerId serverId;
 
-    public GateInSceneInfo(Session session, CenterServerId serverId) {
+    public SceneGateSession(Session session, CenterServerId serverId) {
         this.session = session;
         this.serverId = serverId;
     }

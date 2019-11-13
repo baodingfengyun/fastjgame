@@ -6,8 +6,8 @@ import com.wjybxx.fastjgame.mgr.*;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.session.Session;
-import com.wjybxx.fastjgame.rpcservice.ICenterInSceneInfoMgrRpcRegister;
-import com.wjybxx.fastjgame.rpcservice.IGateInSceneInfoMgrRpcRegister;
+import com.wjybxx.fastjgame.rpcservice.ISceneCenterSessionMgrRpcRegister;
+import com.wjybxx.fastjgame.rpcservice.ISceneGateSessionMgrRpcRegister;
 import com.wjybxx.fastjgame.rpcservice.ISceneRegionMgrRpcRegister;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.SystemUtils;
@@ -30,8 +30,8 @@ public class SceneWorld extends AbstractWorld {
 
     private static final Logger logger = LoggerFactory.getLogger(SceneWorld.class);
 
-    private final CenterInSceneInfoMgr centerInSceneInfoMgr;
-    private final GateInSceneInfoMgr gateInSceneInfoMgr;
+    private final SceneCenterSessionMgr sceneCenterSessionMgr;
+    private final SceneGateSessionMgr sceneGateSessionMgr;
     private final SceneRegionMgr sceneRegionMgr;
     private final SceneWorldInfoMgr sceneWorldInfoMgr;
     private final SceneSendMgr sendMgr;
@@ -39,13 +39,13 @@ public class SceneWorld extends AbstractWorld {
     private final PlayerMessageDispatcherMgr playerMessageDispatcherMgr;
 
     @Inject
-    public SceneWorld(WorldWrapper worldWrapper, CenterInSceneInfoMgr centerInSceneInfoMgr,
-                      GateInSceneInfoMgr gateInSceneInfoMgr, SceneRegionMgr sceneRegionMgr,
+    public SceneWorld(WorldWrapper worldWrapper, SceneCenterSessionMgr sceneCenterSessionMgr,
+                      SceneGateSessionMgr sceneGateSessionMgr, SceneRegionMgr sceneRegionMgr,
                       SceneSendMgr sendMgr, SceneMgr sceneMgr,
                       PlayerMessageDispatcherMgr playerMessageDispatcherMgr) {
         super(worldWrapper);
-        this.centerInSceneInfoMgr = centerInSceneInfoMgr;
-        this.gateInSceneInfoMgr = gateInSceneInfoMgr;
+        this.sceneCenterSessionMgr = sceneCenterSessionMgr;
+        this.sceneGateSessionMgr = sceneGateSessionMgr;
         this.sceneRegionMgr = sceneRegionMgr;
         this.sceneWorldInfoMgr = (SceneWorldInfoMgr) worldWrapper.getWorldInfoMgr();
         this.sendMgr = sendMgr;
@@ -69,8 +69,8 @@ public class SceneWorld extends AbstractWorld {
     protected void registerRpcService() {
         // 也可以在管理器里进行注册
         ISceneRegionMgrRpcRegister.register(protocolDispatcherMgr, sceneRegionMgr);
-        ICenterInSceneInfoMgrRpcRegister.register(protocolDispatcherMgr, centerInSceneInfoMgr);
-        IGateInSceneInfoMgrRpcRegister.register(protocolDispatcherMgr, gateInSceneInfoMgr);
+        ISceneCenterSessionMgrRpcRegister.register(protocolDispatcherMgr, sceneCenterSessionMgr);
+        ISceneGateSessionMgrRpcRegister.register(protocolDispatcherMgr, sceneGateSessionMgr);
     }
 
     @Override
@@ -125,17 +125,17 @@ public class SceneWorld extends AbstractWorld {
 
         @Override
         public void onSessionDisconnected(Session session) {
-            final Session centerSession = centerInSceneInfoMgr.getCenterSession(session.remoteGuid());
+            final Session centerSession = sceneCenterSessionMgr.getCenterSession(session.remoteGuid());
             if (null != centerSession) {
                 // 中心服
-                centerInSceneInfoMgr.onCenterDisconnect(session.remoteGuid());
+                sceneCenterSessionMgr.onCenterDisconnect(session.remoteGuid());
                 return;
             }
 
-            final Session gateSession = gateInSceneInfoMgr.getGateSession(session.remoteGuid());
+            final Session gateSession = sceneGateSessionMgr.getGateSession(session.remoteGuid());
             if (null != gateSession) {
                 // 网关服
-                gateInSceneInfoMgr.onSessionDisconnect(session.remoteGuid());
+                sceneGateSessionMgr.onSessionDisconnect(session.remoteGuid());
             }
 
         }

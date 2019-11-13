@@ -22,7 +22,7 @@ import com.wjybxx.fastjgame.mgr.*;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.session.Session;
-import com.wjybxx.fastjgame.rpcservice.IGateInCenterInfoMgrRpcRegister;
+import com.wjybxx.fastjgame.rpcservice.ICenterGateSessionMgrRpcRegister;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.SystemUtils;
@@ -45,25 +45,25 @@ import java.util.concurrent.TimeUnit;
 public class CenterWorld extends AbstractWorld {
 
     private final CenterDiscoverMgr centerDiscoverMgr;
-    private final SceneInCenterInfoMgr sceneInCenterInfoMgr;
-    private final GateInCenterInfoMgr gateInCenterInfoMgr;
+    private final CenterSceneSessionMgr centerSceneSessionMgr;
+    private final CenterGateSessionMgr centerGateSessionMgr;
     private final CenterWorldInfoMgr centerWorldInfoMgr;
-    private final WarzoneInCenterInfoMgr warzoneInCenterInfoMgr;
+    private final CenterWarzoneSessionMgr centerWarzoneSessionMgr;
 
     @Inject
     public CenterWorld(WorldWrapper worldWrapper, CenterDiscoverMgr centerDiscoverMgr,
-                       SceneInCenterInfoMgr sceneInCenterInfoMgr, GateInCenterInfoMgr gateInCenterInfoMgr, WarzoneInCenterInfoMgr warzoneInCenterInfoMgr) {
+                       CenterSceneSessionMgr centerSceneSessionMgr, CenterGateSessionMgr centerGateSessionMgr, CenterWarzoneSessionMgr centerWarzoneSessionMgr) {
         super(worldWrapper);
         this.centerDiscoverMgr = centerDiscoverMgr;
-        this.sceneInCenterInfoMgr = sceneInCenterInfoMgr;
+        this.centerSceneSessionMgr = centerSceneSessionMgr;
         centerWorldInfoMgr = (CenterWorldInfoMgr) worldWrapper.getWorldInfoMgr();
-        this.gateInCenterInfoMgr = gateInCenterInfoMgr;
-        this.warzoneInCenterInfoMgr = warzoneInCenterInfoMgr;
+        this.centerGateSessionMgr = centerGateSessionMgr;
+        this.centerWarzoneSessionMgr = centerWarzoneSessionMgr;
     }
 
     @Override
     protected void registerRpcService() {
-        IGateInCenterInfoMgrRpcRegister.register(protocolDispatcherMgr, gateInCenterInfoMgr);
+        ICenterGateSessionMgrRpcRegister.register(protocolDispatcherMgr, centerGateSessionMgr);
     }
 
     @Override

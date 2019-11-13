@@ -17,9 +17,9 @@
 package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.misc.GateInCenterInfo;
+import com.wjybxx.fastjgame.misc.CenterGateSession;
 import com.wjybxx.fastjgame.net.session.Session;
-import com.wjybxx.fastjgame.rpcservice.IGateInCenterInfoMgr;
+import com.wjybxx.fastjgame.rpcservice.ICenterGateSessionMgr;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.slf4j.Logger;
@@ -33,38 +33,38 @@ import org.slf4j.LoggerFactory;
  * date - 2019/11/3
  * github - https://github.com/hl845740757
  */
-public class GateInCenterInfoMgr implements IGateInCenterInfoMgr {
+public class CenterGateSessionMgr implements ICenterGateSessionMgr {
 
-    private static final Logger logger = LoggerFactory.getLogger(GateInCenterInfoMgr.class);
+    private static final Logger logger = LoggerFactory.getLogger(CenterGateSessionMgr.class);
 
     /**
      * worldGuid -> info
      * 网关只有本服的网关，因此只需要建立一个映射即可
      */
-    private final Long2ObjectMap<GateInCenterInfo> guid2InfoMap = new Long2ObjectOpenHashMap<>();
+    private final Long2ObjectMap<CenterGateSession> guid2InfoMap = new Long2ObjectOpenHashMap<>();
 
     @Inject
-    public GateInCenterInfoMgr() {
+    public CenterGateSessionMgr() {
     }
 
     @Override
     public boolean register(Session session) {
-        guid2InfoMap.put(session.remoteGuid(), new GateInCenterInfo(session));
+        guid2InfoMap.put(session.remoteGuid(), new CenterGateSession(session));
         logger.info("gate {} registered", session.sessionId());
         return true;
     }
 
     @Override
     public void syncOnlinePlayerNum(Session session, int onlinePlayerNum) {
-        final GateInCenterInfo gateInCenterInfo = guid2InfoMap.get(session.remoteGuid());
-        if (null != gateInCenterInfo) {
-            gateInCenterInfo.getOnlinePlayerSequencer().set(onlinePlayerNum);
+        final CenterGateSession centerGateSession = guid2InfoMap.get(session.remoteGuid());
+        if (null != centerGateSession) {
+            centerGateSession.getOnlinePlayerSequencer().set(onlinePlayerNum);
         }
     }
 
     public Session getGateSession(long worldGuid) {
-        final GateInCenterInfo gateInCenterInfo = guid2InfoMap.get(worldGuid);
-        return null == gateInCenterInfo ? null : gateInCenterInfo.getSession();
+        final CenterGateSession centerGateSession = guid2InfoMap.get(worldGuid);
+        return null == centerGateSession ? null : centerGateSession.getSession();
     }
 
     public void onSessionDisconnect(Session session) {

@@ -44,7 +44,8 @@ public class GateModule extends WorldModule {
         bind(GateWorldInfoMgr.class).in(Singleton.class);
 
         bind(GateDiscoverMgr.class).in(Singleton.class);
-        bind(CenterInGateInfoMgr.class).in(Singleton.class);
-        bind(SceneInGateInfoMgr.class).in(Singleton.class);
+        bind(GateCenterSessionMgr.class).in(Singleton.class);
+        bind(GateSceneSessionMgr.class).in(Singleton.class);
+        bind(GatePlayerSessionMgr.class).in(Singleton.class);
     }
 }

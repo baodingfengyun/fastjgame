@@ -19,18 +19,25 @@ package com.wjybxx.fastjgame.misc;
 import com.wjybxx.fastjgame.net.session.Session;
 
 /**
- * 场景服在网关服的信息
+ * 玩家在网关服的session
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/11/3
+ * date - 2019/11/13
  * github - https://github.com/hl845740757
  */
-public class SceneInGateInfo {
+public class GatePlayerSession {
 
+    /**
+     * 玩家的真实session
+     */
     private final Session session;
+    /**
+     * 玩家当前的状态
+     */
+    private State state = State.LOGIN_GATE;
 
-    public SceneInGateInfo(Session session) {
+    public GatePlayerSession(Session session) {
         this.session = session;
     }
 
@@ -38,7 +45,26 @@ public class SceneInGateInfo {
         return session;
     }
 
-    public long worldGuid() {
-        return session.remoteGuid();
+    public State getState() {
+        return state;
+    }
+
+    public enum State {
+        /**
+         * 登录到网关服 - 初始状态
+         */
+        LOGIN_GATE,
+        /**
+         * 登录到中心服 - 等待进入游戏(场景)
+         */
+        LOGIN_CENTER,
+        /**
+         * 登录到场景服 - 已进入场景
+         */
+        LOGIN_SCENE,
+        /**
+         * 已断开连接
+         */
+        DISCONNECT,
     }
 }

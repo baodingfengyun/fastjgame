@@ -13,25 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.wjybxx.fastjgame.misc;
 
 import com.wjybxx.fastjgame.net.session.Session;
 
 /**
- * CenterServer在SceneServer中的信息
+ * CenterServer在WarzoneServer信息
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/5/15 12:30
+ * date - 2019/5/15 14:06
  * github - https://github.com/hl845740757
  */
-public class CenterInSceneInfo {
+public class WarzoneCenterSession {
 
     private final Session session;
     private final CenterServerId serverId;
 
-    public CenterInSceneInfo(Session session, CenterServerId serverId) {
+    public WarzoneCenterSession(Session session, CenterServerId serverId) {
         this.session = session;
         this.serverId = serverId;
     }
@@ -48,4 +47,3 @@ public class CenterInSceneInfo {
         return session.remoteGuid();
     }
 }
-

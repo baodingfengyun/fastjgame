@@ -48,20 +48,20 @@ public class GateDiscoverMgr {
     private final CuratorMgr curatorMgr;
     private final GameEventLoopMgr gameEventLoopMgr;
     private final GateWorldInfoMgr worldInfoMgr;
-    private final CenterInGateInfoMgr centerInGateInfoMgr;
-    private final SceneInGateInfoMgr sceneInGateInfoMgr;
+    private final GateCenterSessionMgr gateCenterSessionMgr;
+    private final GateSceneSessionMgr gateSceneSessionMgr;
 
     private TreeCache treeCache;
 
     @Inject
     public GateDiscoverMgr(CuratorMgr curatorMgr, GameEventLoopMgr gameEventLoopMgr,
-                           GateWorldInfoMgr worldInfoMgr, CenterInGateInfoMgr centerInGateInfoMgr,
-                           SceneInGateInfoMgr sceneInGateInfoMgr) {
+                           GateWorldInfoMgr worldInfoMgr, GateCenterSessionMgr gateCenterSessionMgr,
+                           GateSceneSessionMgr gateSceneSessionMgr) {
         this.curatorMgr = curatorMgr;
         this.gameEventLoopMgr = gameEventLoopMgr;
         this.worldInfoMgr = worldInfoMgr;
-        this.centerInGateInfoMgr = centerInGateInfoMgr;
-        this.sceneInGateInfoMgr = sceneInGateInfoMgr;
+        this.gateCenterSessionMgr = gateCenterSessionMgr;
+        this.gateSceneSessionMgr = gateSceneSessionMgr;
     }
 
     public void start() throws Exception {
@@ -117,9 +117,9 @@ public class GateDiscoverMgr {
 
         final CenterNodeData nodeData = JsonUtils.parseJsonBytes(childData.getData(), CenterNodeData.class);
         if (type == TreeCacheEvent.Type.NODE_ADDED) {
-            centerInGateInfoMgr.onDiscoverCenterNode(nodeName, nodeData);
+            gateCenterSessionMgr.onDiscoverCenterNode(nodeName, nodeData);
         } else {
-            centerInGateInfoMgr.onCenterNodeRemoved(nodeName, nodeData);
+            gateCenterSessionMgr.onCenterNodeRemoved(nodeName, nodeData);
         }
     }
 
@@ -127,9 +127,9 @@ public class GateDiscoverMgr {
         final SceneNodeName nodeName = ZKPathUtils.parseSceneNodeName(childData.getPath());
         final SceneNodeData nodeData = JsonUtils.parseJsonBytes(childData.getData(), SceneNodeData.class);
         if (type == TreeCacheEvent.Type.NODE_ADDED) {
-            sceneInGateInfoMgr.onDiscoverSceneNode(nodeName, nodeData);
+            gateSceneSessionMgr.onDiscoverSceneNode(nodeName, nodeData);
         } else {
-            sceneInGateInfoMgr.onSceneNodeRemoved(nodeName, nodeData);
+            gateSceneSessionMgr.onSceneNodeRemoved(nodeName, nodeData);
         }
     }
 

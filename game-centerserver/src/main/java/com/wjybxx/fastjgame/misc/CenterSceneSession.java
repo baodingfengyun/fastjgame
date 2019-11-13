@@ -30,7 +30,7 @@ import java.util.Set;
  * date - 2019/5/15 12:22
  * github - https://github.com/hl845740757
  */
-public class SceneInCenterInfo {
+public class CenterSceneSession {
 
     /**
      * 会话信息
@@ -53,7 +53,7 @@ public class SceneInCenterInfo {
      */
     private final IntHolder onlinePlayerSequencer = new IntHolder(0);
 
-    public SceneInCenterInfo(Session session) {
+    public CenterSceneSession(Session session) {
         this.session = session;
     }
 

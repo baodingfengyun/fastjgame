@@ -19,10 +19,10 @@ package com.wjybxx.fastjgame.mgr;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.onlinenode.WarzoneNodeData;
 import com.wjybxx.fastjgame.core.onlinenode.WarzoneNodeName;
-import com.wjybxx.fastjgame.misc.WarzoneInCenterInfo;
+import com.wjybxx.fastjgame.misc.CenterWarzoneSession;
 import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.session.Session;
-import com.wjybxx.fastjgame.rpcservice.ICenterInWarzoneInfoMgrRpcProxy;
+import com.wjybxx.fastjgame.rpcservice.IWarzoneCenterSessionMgrRpcProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,25 +35,25 @@ import org.slf4j.LoggerFactory;
  * date - 2019/5/15 23:11
  * github - https://github.com/hl845740757
  */
-public class WarzoneInCenterInfoMgr {
+public class CenterWarzoneSessionMgr {
 
-    private static final Logger logger = LoggerFactory.getLogger(WarzoneInCenterInfoMgr.class);
+    private static final Logger logger = LoggerFactory.getLogger(CenterWarzoneSessionMgr.class);
 
     private final CenterWorldInfoMgr centerWorldInfoMgr;
     private final GameAcceptorMgr gameAcceptorMgr;
     /**
      * 连接的战区信息，一定是发现的那个节点的session。
      */
-    private WarzoneInCenterInfo warzoneInCenterInfo;
+    private CenterWarzoneSession warzoneSession;
 
     @Inject
-    public WarzoneInCenterInfoMgr(CenterWorldInfoMgr centerWorldInfoMgr, GameAcceptorMgr gameAcceptorMgr) {
+    public CenterWarzoneSessionMgr(CenterWorldInfoMgr centerWorldInfoMgr, GameAcceptorMgr gameAcceptorMgr) {
         this.centerWorldInfoMgr = centerWorldInfoMgr;
         this.gameAcceptorMgr = gameAcceptorMgr;
     }
 
-    public WarzoneInCenterInfo getWarzoneInCenterInfo() {
-        return warzoneInCenterInfo;
+    public CenterWarzoneSession getWarzoneSession() {
+        return warzoneSession;
     }
 
     /**
@@ -63,10 +63,10 @@ public class WarzoneInCenterInfoMgr {
      * @param warzoneNodeData 战区其它信息
      */
     public void onDiscoverWarzone(WarzoneNodeName warzoneNodeName, WarzoneNodeData warzoneNodeData) {
-        if (null != warzoneInCenterInfo) {
+        if (null != warzoneSession) {
             // 可能丢失了节点消失事件
             logger.error("my loss childRemove event");
-            onWarzoneDisconnect(warzoneInCenterInfo.getWarzoneWorldGuid());
+            onWarzoneDisconnect(warzoneSession.getWarzoneWorldGuid());
         }
         // 注册tcp会话
         gameAcceptorMgr.connect(warzoneNodeData.getWorldGuid(),
@@ -80,7 +80,7 @@ public class WarzoneInCenterInfoMgr {
 
         @Override
         public void onSessionConnected(Session session) {
-            ICenterInWarzoneInfoMgrRpcProxy.register(centerWorldInfoMgr.getServerId())
+            IWarzoneCenterSessionMgrRpcProxy.register(centerWorldInfoMgr.getServerId())
                     .onSuccess(result -> onRegisterWarzoneResult(session, result))
                     .onFailure(rpcResponse -> session.close())
                     .call(session);
@@ -105,12 +105,12 @@ public class WarzoneInCenterInfoMgr {
             return;
         }
 
-        if (warzoneInCenterInfo != null) {
+        if (warzoneSession != null) {
             session.close();
             logger.error("connect two warzone session.");
             return;
         }
-        warzoneInCenterInfo = new WarzoneInCenterInfo(session);
+        warzoneSession = new CenterWarzoneSession(session);
 
         // TODO 战区连接成功逻辑(eg.恢复特殊玩法)
         logger.info("connect WARZONE-{} success", centerWorldInfoMgr.getWarzoneId());
@@ -136,17 +136,17 @@ public class WarzoneInCenterInfoMgr {
      * @param worldGuid 战区进程id
      */
     private void onWarzoneDisconnect(long worldGuid) {
-        if (null == warzoneInCenterInfo) {
+        if (null == warzoneSession) {
             return;
         }
-        if (warzoneInCenterInfo.getWarzoneWorldGuid() != worldGuid) {
+        if (warzoneSession.getWarzoneWorldGuid() != worldGuid) {
             return;
         }
-        if (warzoneInCenterInfo.getSession() != null) {
-            warzoneInCenterInfo.getSession().close();
+        if (warzoneSession.getSession() != null) {
+            warzoneSession.getSession().close();
         }
 
-        warzoneInCenterInfo = null;
+        warzoneSession = null;
         // TODO 战区宕机需要处理的逻辑
         logger.warn("WARZONE-{} disconnect", centerWorldInfoMgr.getWarzoneId());
     }

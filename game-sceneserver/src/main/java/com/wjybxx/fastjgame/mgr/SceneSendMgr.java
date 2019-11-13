@@ -24,6 +24,7 @@ import com.wjybxx.fastjgame.gameobject.Player;
 import com.wjybxx.fastjgame.misc.CenterServerId;
 import com.wjybxx.fastjgame.misc.ViewGrid;
 import com.wjybxx.fastjgame.net.session.Session;
+import com.wjybxx.fastjgame.rpcservice.IGatePlayerSessionMgrRpcProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,12 +48,12 @@ public class SceneSendMgr {
     /**
      * center服在scene服中的信息
      */
-    private final CenterInSceneInfoMgr centerInSceneInfoMgr;
+    private final SceneCenterSessionMgr sceneCenterSessionMgr;
     private final PlayerSessionMgr playerSessionMgr;
 
     @Inject
-    public SceneSendMgr(CenterInSceneInfoMgr centerInSceneInfoMgr, PlayerSessionMgr playerSessionMgr) {
-        this.centerInSceneInfoMgr = centerInSceneInfoMgr;
+    public SceneSendMgr(SceneCenterSessionMgr sceneCenterSessionMgr, PlayerSessionMgr playerSessionMgr) {
+        this.sceneCenterSessionMgr = sceneCenterSessionMgr;
         this.playerSessionMgr = playerSessionMgr;
     }
 
@@ -63,8 +64,9 @@ public class SceneSendMgr {
      * @param msg    消息
      */
     public void sendToPlayer(Player player, Message msg) {
-        if (null != player.getSession()) {
-            player.getSession().send(msg);
+        if (null != player.getGateSession()) {
+            IGatePlayerSessionMgrRpcProxy.sendToPlayer(player.getGuid(), msg)
+                    .call(player.getGateSession());
         }
     }
 
@@ -95,7 +97,7 @@ public class SceneSendMgr {
      * @param msg      消息
      */
     public void sendToCenter(CenterServerId serverId, Message msg) {
-        Session session = centerInSceneInfoMgr.getCenterSession(serverId);
+        Session session = sceneCenterSessionMgr.getCenterSession(serverId);
         if (session == null) {
             logger.warn("send to disconnected center {}", serverId);
             return;

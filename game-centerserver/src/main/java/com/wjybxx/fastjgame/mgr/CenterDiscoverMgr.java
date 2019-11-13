@@ -51,8 +51,8 @@ public class CenterDiscoverMgr {
 
     private final CuratorMgr curatorMgr;
     private final CenterWorldInfoMgr centerWorldInfoMgr;
-    private final WarzoneInCenterInfoMgr warzoneInCenterInfoMgr;
-    private final SceneInCenterInfoMgr sceneInCenterInfoMgr;
+    private final CenterWarzoneSessionMgr centerWarzoneSessionMgr;
+    private final CenterSceneSessionMgr centerSceneSessionMgr;
 
     /**
      * 资源句柄，提供关闭关联的资源的方法
@@ -65,11 +65,11 @@ public class CenterDiscoverMgr {
 
     @Inject
     public CenterDiscoverMgr(CuratorMgr curatorMgr, CenterWorldInfoMgr centerWorldInfoMgr,
-                             WarzoneInCenterInfoMgr warzoneInCenterInfoMgr, SceneInCenterInfoMgr sceneInCenterInfoMgr) {
+                             CenterWarzoneSessionMgr centerWarzoneSessionMgr, CenterSceneSessionMgr centerSceneSessionMgr) {
         this.curatorMgr = curatorMgr;
         this.centerWorldInfoMgr = centerWorldInfoMgr;
-        this.warzoneInCenterInfoMgr = warzoneInCenterInfoMgr;
-        this.sceneInCenterInfoMgr = sceneInCenterInfoMgr;
+        this.centerWarzoneSessionMgr = centerWarzoneSessionMgr;
+        this.centerSceneSessionMgr = centerSceneSessionMgr;
     }
 
     public void start() throws Exception {
@@ -122,11 +122,11 @@ public class CenterDiscoverMgr {
         final SceneNodeName sceneNodeName = ZKPathUtils.parseSceneNodeName(childData.getPath());
         final SceneNodeData sceneNodeData = JsonUtils.parseJsonBytes(childData.getData(), SceneNodeData.class);
         if (type == Type.CHILD_ADDED) {
-            sceneInCenterInfoMgr.onDiscoverSceneNode(sceneNodeName, sceneNodeData);
+            centerSceneSessionMgr.onDiscoverSceneNode(sceneNodeName, sceneNodeData);
             logger.info("discover scene {}", sceneNodeName.getWorldGuid());
         } else {
             // remove
-            sceneInCenterInfoMgr.onSceneNodeRemoved(sceneNodeName, sceneNodeData);
+            centerSceneSessionMgr.onSceneNodeRemoved(sceneNodeName, sceneNodeData);
             logger.info("remove scene {}", sceneNodeName.getWorldGuid());
         }
     }
@@ -144,11 +144,11 @@ public class CenterDiscoverMgr {
         WarzoneNodeName warzoneNodeName = ZKPathUtils.parseWarzoneNodeName(childData.getPath());
         WarzoneNodeData warzoneNodeData = JsonUtils.parseJsonBytes(childData.getData(), WarzoneNodeData.class);
         if (type == Type.CHILD_ADDED) {
-            warzoneInCenterInfoMgr.onDiscoverWarzone(warzoneNodeName, warzoneNodeData);
+            centerWarzoneSessionMgr.onDiscoverWarzone(warzoneNodeName, warzoneNodeData);
             logger.debug("discover warzone {}", warzoneNodeName.getWarzoneId());
         } else {
             // child remove
-            warzoneInCenterInfoMgr.onWarzoneNodeRemoved(warzoneNodeName, warzoneNodeData);
+            centerWarzoneSessionMgr.onWarzoneNodeRemoved(warzoneNodeName, warzoneNodeData);
             logger.debug("remove warzone {}", warzoneNodeName.getWarzoneId());
         }
     }

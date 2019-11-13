@@ -19,10 +19,10 @@ package com.wjybxx.fastjgame.mgr;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.onlinenode.CenterNodeData;
 import com.wjybxx.fastjgame.core.onlinenode.CenterNodeName;
-import com.wjybxx.fastjgame.misc.CenterInGateInfo;
+import com.wjybxx.fastjgame.misc.GateCenterSession;
 import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.session.Session;
-import com.wjybxx.fastjgame.rpcservice.IGateInCenterInfoMgrRpcProxy;
+import com.wjybxx.fastjgame.rpcservice.ICenterGateSessionMgrRpcProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,21 +36,21 @@ import javax.annotation.Nullable;
  * date - 2019/11/1
  * github - https://github.com/hl845740757
  */
-public class CenterInGateInfoMgr {
+public class GateCenterSessionMgr {
 
-    private static final Logger logger = LoggerFactory.getLogger(CenterInGateInfoMgr.class);
+    private static final Logger logger = LoggerFactory.getLogger(GateCenterSessionMgr.class);
 
     private final GameAcceptorMgr gameAcceptorMgr;
-    private CenterInGateInfo centerInGateInfo;
+    private GateCenterSession gateCenterSession;
 
     @Inject
-    public CenterInGateInfoMgr(GameAcceptorMgr gameAcceptorMgr) {
+    public GateCenterSessionMgr(GameAcceptorMgr gameAcceptorMgr) {
         this.gameAcceptorMgr = gameAcceptorMgr;
     }
 
     @Nullable
     public Session getCenterSession() {
-        return null == centerInGateInfo ? null : centerInGateInfo.getSession();
+        return null == gateCenterSession ? null : gateCenterSession.getSession();
     }
 
     /**
@@ -60,9 +60,9 @@ public class CenterInGateInfoMgr {
      * @param nodeData 中心服节点数据
      */
     public void onDiscoverCenterNode(CenterNodeName nodeName, CenterNodeData nodeData) {
-        if (centerInGateInfo != null) {
+        if (gateCenterSession != null) {
             logger.error("may loss disconnect event");
-            onCenterDisconnect(centerInGateInfo.worldGuid());
+            onCenterDisconnect(gateCenterSession.worldGuid());
             return;
         }
 
@@ -87,7 +87,7 @@ public class CenterInGateInfoMgr {
 
         @Override
         public void onSessionConnected(Session session) {
-            IGateInCenterInfoMgrRpcProxy.register()
+            ICenterGateSessionMgrRpcProxy.register()
                     .onSuccess(result -> onRegisterCenterResult(session, result))
                     .onFailure(rpcResponse -> session.close())
                     .call(session);
@@ -100,19 +100,19 @@ public class CenterInGateInfoMgr {
 
     private void onRegisterCenterResult(Session session, boolean result) {
         assert result;
-        centerInGateInfo = new CenterInGateInfo(session);
+        gateCenterSession = new GateCenterSession(session);
         logger.info("connect center {} success", session.remoteGuid());
     }
 
     private void onCenterDisconnect(long worldGuid) {
-        if (centerInGateInfo == null) {
+        if (gateCenterSession == null) {
             return;
         }
-        if (worldGuid != centerInGateInfo.worldGuid()) {
+        if (worldGuid != gateCenterSession.worldGuid()) {
             return;
         }
-        centerInGateInfo.getSession().close();
-        logger.info("center {} disconnect", centerInGateInfo.worldGuid());
+        gateCenterSession.getSession().close();
+        logger.info("center {} disconnect", gateCenterSession.worldGuid());
 
         // TODO 下线所有玩家
     }

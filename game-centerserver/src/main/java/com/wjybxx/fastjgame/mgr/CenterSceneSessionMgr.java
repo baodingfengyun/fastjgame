@@ -21,13 +21,13 @@ import com.wjybxx.fastjgame.config.SceneConfig;
 import com.wjybxx.fastjgame.core.SceneRegion;
 import com.wjybxx.fastjgame.core.onlinenode.SceneNodeData;
 import com.wjybxx.fastjgame.core.onlinenode.SceneNodeName;
+import com.wjybxx.fastjgame.misc.CenterSceneSession;
 import com.wjybxx.fastjgame.misc.LeastPlayerWorldChooser;
-import com.wjybxx.fastjgame.misc.SceneInCenterInfo;
 import com.wjybxx.fastjgame.misc.SceneWorldChooser;
 import com.wjybxx.fastjgame.net.common.RpcResponse;
 import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.session.Session;
-import com.wjybxx.fastjgame.rpcservice.ICenterInSceneInfoMgrRpcProxy;
+import com.wjybxx.fastjgame.rpcservice.ISceneCenterSessionMgrRpcProxy;
 import com.wjybxx.fastjgame.rpcservice.ISceneRegionMgrRpcProxy;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -49,12 +49,12 @@ import java.util.Set;
  * date - 2019/5/15 23:11
  * github - https://github.com/hl845740757
  */
-public class SceneInCenterInfoMgr {
+public class CenterSceneSessionMgr {
 
-    private static final Logger logger = LoggerFactory.getLogger(SceneInCenterInfoMgr.class);
+    private static final Logger logger = LoggerFactory.getLogger(CenterSceneSessionMgr.class);
 
     // 不可以是static的，否则会导致线程安全问题
-    private final List<SceneInCenterInfo> availableSceneProcessListCache = new ArrayList<>(8);
+    private final List<CenterSceneSession> availableSceneProcessListCache = new ArrayList<>(8);
 
     private final CenterWorldInfoMgr worldInfoMgr;
     private final TemplateMgr templateMgr;
@@ -65,30 +65,30 @@ public class SceneInCenterInfoMgr {
     /**
      * sceneGuid -> sceneInfo
      */
-    private final Long2ObjectMap<SceneInCenterInfo> guid2InfoMap = new Long2ObjectOpenHashMap<>();
+    private final Long2ObjectMap<CenterSceneSession> guid2InfoMap = new Long2ObjectOpenHashMap<>();
 
     private final GameAcceptorMgr gameAcceptorMgr;
 
     @Inject
-    public SceneInCenterInfoMgr(CenterWorldInfoMgr worldInfoMgr, TemplateMgr templateMgr, GameAcceptorMgr gameAcceptorMgr) {
+    public CenterSceneSessionMgr(CenterWorldInfoMgr worldInfoMgr, TemplateMgr templateMgr, GameAcceptorMgr gameAcceptorMgr) {
         this.worldInfoMgr = worldInfoMgr;
         this.templateMgr = templateMgr;
         this.gameAcceptorMgr = gameAcceptorMgr;
     }
 
-    private void addSceneInfo(SceneInCenterInfo sceneInCenterInfo) {
-        guid2InfoMap.put(sceneInCenterInfo.getWorldGuid(), sceneInCenterInfo);
+    private void addSceneInfo(CenterSceneSession centerSceneSession) {
+        guid2InfoMap.put(centerSceneSession.getWorldGuid(), centerSceneSession);
     }
 
-    private void removeSceneInfo(SceneInCenterInfo sceneInCenterInfo) {
-        guid2InfoMap.remove(sceneInCenterInfo.getWorldGuid());
+    private void removeSceneInfo(CenterSceneSession centerSceneSession) {
+        guid2InfoMap.remove(centerSceneSession.getWorldGuid());
     }
 
-    public SceneInCenterInfo getSceneInfo(long worldGuid) {
+    public CenterSceneSession getSceneInfo(long worldGuid) {
         return guid2InfoMap.get(worldGuid);
     }
 
-    public ObjectCollection<SceneInCenterInfo> getAllSceneInfo() {
+    public ObjectCollection<CenterSceneSession> getAllSceneInfo() {
         return guid2InfoMap.values();
     }
 
@@ -121,31 +121,31 @@ public class SceneInCenterInfoMgr {
      * 当与scene断开连接(异步tcp会话断掉，或zk节点消失)
      */
     private void onSceneDisconnect(final long worldGuid) {
-        SceneInCenterInfo sceneInCenterInfo = guid2InfoMap.get(worldGuid);
+        CenterSceneSession centerSceneSession = guid2InfoMap.get(worldGuid);
         // 可能是一个无效的会话
-        if (null == sceneInCenterInfo) {
+        if (null == centerSceneSession) {
             return;
         }
 
         // 关闭会话
-        if (null != sceneInCenterInfo.getSession()) {
-            sceneInCenterInfo.getSession().close();
+        if (null != centerSceneSession.getSession()) {
+            centerSceneSession.getSession().close();
         }
 
         // 断开连接日志
-        logger.info("scene {} disconnect", sceneInCenterInfo.getWorldGuid());
+        logger.info("scene {} disconnect", centerSceneSession.getWorldGuid());
 
         // 真正删除信息
-        removeSceneInfo(sceneInCenterInfo);
+        removeSceneInfo(centerSceneSession);
 
         // 将在该场景服务器的玩家下线
-        offlinePlayer(sceneInCenterInfo);
+        offlinePlayer(centerSceneSession);
 
 
         // TODO 宕机恢复
     }
 
-    private void offlinePlayer(SceneInCenterInfo sceneInCenterInfo) {
+    private void offlinePlayer(CenterSceneSession centerSceneSession) {
         // TODO 需要把本服在这些进程的玩家下线处理
     }
 
@@ -159,7 +159,7 @@ public class SceneInCenterInfoMgr {
 
         @Override
         public void onSessionConnected(Session session) {
-            ICenterInSceneInfoMgrRpcProxy.register(worldInfoMgr.getServerId())
+            ISceneCenterSessionMgrRpcProxy.register(worldInfoMgr.getServerId())
                     .onSuccess(result -> onRegisterSceneResult(session, result))
                     .onFailure(rpcResponse -> session.close())
                     .call(session);
@@ -185,12 +185,12 @@ public class SceneInCenterInfoMgr {
         // 连接成功日志
         logger.info("connect scene {} success", session.remoteGuid());
 
-        final SceneInCenterInfo sceneInCenterInfo = new SceneInCenterInfo(session);
-        guid2InfoMap.put(session.remoteGuid(), sceneInCenterInfo);
-        addSceneInfo(sceneInCenterInfo);
+        final CenterSceneSession centerSceneSession = new CenterSceneSession(session);
+        guid2InfoMap.put(session.remoteGuid(), centerSceneSession);
+        addSceneInfo(centerSceneSession);
 
-        final Set<SceneRegion> configuredRegions = sceneInCenterInfo.getConfiguredRegions();
-        final Set<SceneRegion> activeRegions = sceneInCenterInfo.getActiveRegions();
+        final Set<SceneRegion> configuredRegions = centerSceneSession.getConfiguredRegions();
+        final Set<SceneRegion> activeRegions = centerSceneSession.getActiveRegions();
         for (SceneRegion sceneRegion : configuredRegionsList) {
             configuredRegions.add(sceneRegion);
             // 非互斥的区域已经启动了
@@ -222,10 +222,10 @@ public class SceneInCenterInfoMgr {
         SceneConfig sceneConfig = templateMgr.sceneConfigInfo.get(sceneId);
         SceneRegion sceneRegion = sceneConfig.sceneRegion;
 
-        List<SceneInCenterInfo> availableSceneProcessList = availableSceneProcessListCache;
-        for (SceneInCenterInfo sceneInCenterInfo : guid2InfoMap.values()) {
-            if (sceneInCenterInfo.getActiveRegions().contains(sceneRegion)) {
-                availableSceneProcessList.add(sceneInCenterInfo);
+        List<CenterSceneSession> availableSceneProcessList = availableSceneProcessListCache;
+        for (CenterSceneSession centerSceneSession : guid2InfoMap.values()) {
+            if (centerSceneSession.getActiveRegions().contains(sceneRegion)) {
+                availableSceneProcessList.add(centerSceneSession);
             }
         }
         if (availableSceneProcessList.size() == 0) {
@@ -235,7 +235,7 @@ public class SceneInCenterInfoMgr {
             if (availableSceneProcessList.size() == 1) {
                 return availableSceneProcessList.get(0).getWorldGuid();
             }
-            SceneInCenterInfo choose = sceneWorldChooser.choose(availableSceneProcessList);
+            CenterSceneSession choose = sceneWorldChooser.choose(availableSceneProcessList);
             return choose.getWorldGuid();
         } finally {
             availableSceneProcessList.clear();

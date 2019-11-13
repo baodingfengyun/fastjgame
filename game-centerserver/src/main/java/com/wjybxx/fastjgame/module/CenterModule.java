@@ -44,9 +44,9 @@ public class CenterModule extends WorldModule {
         // 节点发现
         bind(CenterDiscoverMgr.class).in(Singleton.class);
         // 服务器会话管理
-        bind(SceneInCenterInfoMgr.class).in(Singleton.class);
-        bind(WarzoneInCenterInfoMgr.class).in(Singleton.class);
-        bind(GateInCenterInfoMgr.class).in(Singleton.class);
+        bind(CenterSceneSessionMgr.class).in(Singleton.class);
+        bind(CenterWarzoneSessionMgr.class).in(Singleton.class);
+        bind(CenterGateSessionMgr.class).in(Singleton.class);
 
     }
 }

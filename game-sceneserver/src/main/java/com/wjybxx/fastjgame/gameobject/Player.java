@@ -43,12 +43,12 @@ public class Player extends GameObject<PlayerData> {
     /**
      * 玩家身上的session
      */
-    private Session session;
+    private Session gateSession;
 
-    public Player(Scene scene, SystemTimeProvider timeProvider, PlayerData playerData, Session session) {
+    public Player(Scene scene, SystemTimeProvider timeProvider, PlayerData playerData, Session gateSession) {
         super(scene, timeProvider);
         this.playerData = playerData;
-        this.session = session;
+        this.gateSession = gateSession;
     }
 
     @Nonnull
@@ -71,11 +71,11 @@ public class Player extends GameObject<PlayerData> {
         return playerData.getActualServerId();
     }
 
-    public Session getSession() {
-        return session;
+    public Session getGateSession() {
+        return gateSession;
     }
 
-    public void setSession(Session session) {
-        this.session = session;
+    public void setGateSession(Session gateSession) {
+        this.gateSession = gateSession;
     }
 }
