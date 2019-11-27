@@ -41,13 +41,13 @@ public abstract class AbstractEventLoopGroup implements EventLoopGroup {
     // ------------------------------------ 发布一个事件 ----------------------------------
 
     @Override
-    public final <T> void publish(@Nonnull T event) {
-        next().publish(event);
+    public final <T> void post(@Nonnull T event) {
+        next().post(event);
     }
 
     @Override
-    public final <T> void publish(Class<? super T> keyClazz, @Nonnull T event) {
-        next().publish(keyClazz, event);
+    public final <T> void post(Class<? super T> keyClazz, @Nonnull T event) {
+        next().post(keyClazz, event);
     }
 
     // ----------------------------------- 主要是为了支持 execute和submit -------------------

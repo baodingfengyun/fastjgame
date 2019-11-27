@@ -105,7 +105,7 @@ public class DefaultNetContext implements NetContext {
         final TCPClientChannelInitializer initializer = new TCPClientChannelInitializer(sessionId, localGuid, config, netEventLoop);
 
         final Promise<Session> connectPromise = netEventLoop.newPromise();
-        netEventLoop.publish(new ConnectRemoteRequest(sessionId, remoteGuid, remoteAddress, config, initializer, this, connectPromise));
+        netEventLoop.post(new ConnectRemoteRequest(sessionId, remoteGuid, remoteAddress, config, initializer, this, connectPromise));
         return connectPromise;
     }
 
@@ -122,7 +122,7 @@ public class DefaultNetContext implements NetContext {
         final WsClientChannelInitializer initializer = new WsClientChannelInitializer(sessionId, remoteGuid, websocketUrl, config, netEventLoop);
 
         final Promise<Session> connectPromise = netEventLoop.newPromise();
-        netEventLoop.publish(new ConnectRemoteRequest(sessionId, remoteGuid, remoteAddress, config, initializer, this, connectPromise));
+        netEventLoop.post(new ConnectRemoteRequest(sessionId, remoteGuid, remoteAddress, config, initializer, this, connectPromise));
         return connectPromise;
     }
 
@@ -141,7 +141,7 @@ public class DefaultNetContext implements NetContext {
         }
 
         final Promise<Session> connectPromise = netEventLoop.newPromise();
-        netEventLoop.publish(new ConnectLocalRequest(sessionId, remoteGuid, (DefaultLocalPort) localPort, config, this, connectPromise));
+        netEventLoop.post(new ConnectLocalRequest(sessionId, remoteGuid, (DefaultLocalPort) localPort, config, this, connectPromise));
         return connectPromise;
     }
 

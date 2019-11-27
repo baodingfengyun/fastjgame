@@ -166,6 +166,6 @@ public class ServerSocketCodec extends BaseSocketCodec {
     }
 
     private void publish(@Nonnull Object event) {
-        portExtraInfo.netEventLoopGroup().select(sessionId).publish(event);
+        portExtraInfo.netEventLoopGroup().select(sessionId).post(event);
     }
 }

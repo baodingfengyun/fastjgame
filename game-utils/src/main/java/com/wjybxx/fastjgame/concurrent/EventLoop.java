@@ -33,7 +33,7 @@ import javax.annotation.Nullable;
  * EventLoop架构属于<b>多生产者单消费者模型</b>，请避免其它线程消费数据。
  *
  * <p>
- * 2019年10月26日新增{@link #publish(Object)} 接口，搭配{@link EventBus}可消除强耦合关系，简化接口。
+ * 2019年10月26日新增{@link #post(Object)} 接口，搭配{@link EventBus}可消除强耦合关系，简化接口。
  *
  * @author wjybxx
  * @version 1.0
@@ -73,11 +73,11 @@ public interface EventLoop extends EventLoopGroup {
      */
     @UnstableApi
     @Override
-    <T> void publish(@Nonnull T event);
+    <T> void post(@Nonnull T event);
 
     @UnstableApi
     @Override
-    <T> void publish(Class<? super T> keyClazz, @Nonnull T event);
+    <T> void post(Class<? super T> keyClazz, @Nonnull T event);
 
     /**
      * 当前线程是否是EventLoop线程。

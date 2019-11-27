@@ -101,19 +101,19 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
     }
 
     @Override
-    public final <T> void publish(@Nonnull T event) {
+    public final <T> void post(@Nonnull T event) {
         final EventDispatcher dispatcher = dispatcher();
         if (null == dispatcher) {
-            throw new UnsupportedOperationException();
+            throw new UnsupportedOperationException("postEvent");
         }
         execute(new EventDispatchTask(dispatcher, event));
     }
 
     @Override
-    public final <T> void publish(Class<? super T> keyClazz, @Nonnull T event) {
+    public final <T> void post(Class<? super T> keyClazz, @Nonnull T event) {
         final EventDispatcher dispatcher = dispatcher();
         if (null == dispatcher) {
-            throw new UnsupportedOperationException();
+            throw new UnsupportedOperationException("postEvent");
         }
         execute(new EventDispatchTask2<>(dispatcher, keyClazz, event));
     }

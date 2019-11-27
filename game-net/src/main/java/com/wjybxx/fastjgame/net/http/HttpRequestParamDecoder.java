@@ -103,6 +103,6 @@ public class HttpRequestParamDecoder extends SimpleChannelInboundHandler<FullHtt
     }
 
     private void publish(HttpRequestEvent httpRequestEvent) {
-        portExtraInfo.netEventLoopGroup().select(httpRequestEvent.channel()).publish(httpRequestEvent);
+        portExtraInfo.netEventLoopGroup().select(httpRequestEvent.channel()).post(httpRequestEvent);
     }
 }

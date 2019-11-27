@@ -224,7 +224,7 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
             localEventLoop.terminationFuture().addListener(future -> {
                 if (!isShuttingDown()) {
                     final EventLoopTerminalEvent terminalEvent = new EventLoopTerminalEvent(localEventLoop);
-                    publish(terminalEvent);
+                    post(terminalEvent);
                 }
             });
         }

@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.concurrent;
 
 
 import com.wjybxx.fastjgame.annotation.UnstableApi;
+import com.wjybxx.fastjgame.eventbus.EventDispatcher;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -37,7 +38,7 @@ import java.util.concurrent.*;
  * date - 2019/7/14
  * github - https://github.com/hl845740757
  */
-public interface EventLoopGroup extends ExecutorService, Iterable<EventLoop> {
+public interface EventLoopGroup extends ExecutorService, EventDispatcher, Iterable<EventLoop> {
 
     // ------------------------------ 生命周期相关方法 ----------------------------
 
@@ -112,29 +113,6 @@ public interface EventLoopGroup extends ExecutorService, Iterable<EventLoop> {
     @Override
     List<Runnable> shutdownNow();
 
-    // ---------------------------------- 事件操作 --------------------------------
-
-    /**
-     * 发布一个事件
-     *
-     * @param event 要发布的事件，必须是受支持的事件，否则该事件会被默默的丢弃 或 抛出一个异常
-     * @param <T>   事件的类型
-     * @see com.wjybxx.fastjgame.eventbus.EventDispatcher#post(Object)
-     */
-    @UnstableApi
-    <T> void publish(@Nonnull T event);
-
-    /**
-     * 发布一个事件，并指定触发的事件类型
-     *
-     * @param keyClazz 希望事件以某个类型被处理，手动指定更加灵活。否则每次过滤筛选，效率差还容易造成错误。
-     * @param event    要发布的事件，必须是受支持的事件，否则该事件会被默默的丢弃 或 抛出一个异常
-     * @param <T>      事件的类型
-     * @see com.wjybxx.fastjgame.eventbus.EventDispatcher#post(Class, Object)
-     */
-    @UnstableApi
-    <T> void publish(Class<? super T> keyClazz, @Nonnull T event);
-
     // ----------------------------- 这是我想要支持的任务调度 ------------------------
 
     @Override
@@ -168,6 +146,15 @@ public interface EventLoopGroup extends ExecutorService, Iterable<EventLoop> {
 
     @Override
     <T> T invokeAny(@Nonnull Collection<? extends Callable<T>> tasks, long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException;
+
+    // ---------------------------------- 事件操作 --------------------------------
+
+    @Override
+    <T> void post(@Nonnull T event);
+
+    @UnstableApi
+    @Override
+    <T> void post(Class<? super T> keyClazz, @Nonnull T event);
 
     // --------------------------------- EventLoop管理   --------------------------------
 
