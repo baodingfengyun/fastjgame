@@ -228,7 +228,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 
     @Nonnull
     @Override
-    public List<Runnable> shutdownNow() {
+    public final List<Runnable> shutdownNow() {
         for (; ; ) {
             int oldState = stateHolder.get();
             if (isShutdown0(oldState)) {

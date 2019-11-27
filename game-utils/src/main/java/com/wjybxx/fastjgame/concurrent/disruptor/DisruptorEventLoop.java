@@ -193,12 +193,12 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     }
 
     @Override
-    public boolean inEventLoop() {
+    public final boolean inEventLoop() {
         return thread == Thread.currentThread();
     }
 
     @Override
-    public boolean isShuttingDown() {
+    public final boolean isShuttingDown() {
         return isShuttingDown0(stateHolder.get());
     }
 
@@ -207,7 +207,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     }
 
     @Override
-    public boolean isShutdown() {
+    public final boolean isShutdown() {
         return isShutdown0(stateHolder.get());
     }
 
@@ -216,22 +216,22 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     }
 
     @Override
-    public boolean isTerminated() {
+    public final boolean isTerminated() {
         return stateHolder.get() == ST_TERMINATED;
     }
 
     @Override
-    public ListenableFuture<?> terminationFuture() {
-        return terminationFuture;
-    }
-
-    @Override
-    public boolean awaitTermination(long timeout, @Nonnull TimeUnit unit) throws InterruptedException {
+    public final boolean awaitTermination(long timeout, @Nonnull TimeUnit unit) throws InterruptedException {
         return terminationFuture.await(timeout, unit);
     }
 
     @Override
-    public void shutdown() {
+    public final ListenableFuture<?> terminationFuture() {
+        return terminationFuture;
+    }
+
+    @Override
+    public final void shutdown() {
         for (; ; ) {
             int oldState = stateHolder.get();
             if (isShuttingDown0(oldState)) {
@@ -246,7 +246,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 
     @Nonnull
     @Override
-    public List<Runnable> shutdownNow() {
+    public final List<Runnable> shutdownNow() {
         for (; ; ) {
             int oldState = stateHolder.get();
             if (isShutdown0(oldState)) {
@@ -306,7 +306,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
      * 2. 如果是在{@link Worker#cleanRingBuffer()}之前申请的sequence，那么{@link Worker#cleanRingBuffer()}一定能清理掉它！
      */
     @Override
-    public void execute(@Nonnull Runnable task) {
+    public final void execute(@Nonnull Runnable task) {
         if (inEventLoop()) {
             // 防止死锁 - 因为是单消费者模型，自己发布事件时，如果没有足够空间，会导致死锁。
             // 线程内部，请使用TimerSystem延迟执行
