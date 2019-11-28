@@ -25,6 +25,10 @@ package com.wjybxx.fastjgame.misc.log;
  * github - https://github.com/hl845740757
  */
 public enum LogTopic {
+    /**
+     * 测试日志
+     */
+    TEST,
 
     /**
      * 玩家行为日志
@@ -35,9 +39,5 @@ public enum LogTopic {
      * 系统日志
      */
     SYSTEM,
-
-    /**
-     * 测试日志
-     */
-    TEST,
+    ;
 }

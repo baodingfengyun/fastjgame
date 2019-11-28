@@ -52,7 +52,6 @@ public class LogProducerEventLoop extends DisruptorEventLoop {
 
     private final KafkaProducer<String, String> producer;
 
-    // TODO kafka配置需要传入
     public LogProducerEventLoop(@Nonnull String brokerList,
                                 @Nonnull ThreadFactory threadFactory,
                                 @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {

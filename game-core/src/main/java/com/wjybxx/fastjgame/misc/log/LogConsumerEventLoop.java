@@ -49,33 +49,35 @@ public class LogConsumerEventLoop extends DisruptorEventLoop {
     /**
      * 无事件消费时阻塞等待事件
      */
-    private static final int CONSUMER_BLOCK_TIME = 100;
+    private static final int CONSUMER_BLOCK_TIME_MS = 500;
 
-    private static final int MAX_POLL_RECORDS = 1024;
-    private static final int MAX_POLL_INTERVAL_MS = 5 * 1000;
     /**
-     * 消费者拉取数据阻塞时间
+     * 每次拉取的最大日志条数 - 由于逻辑较为简单，处理较为快速，因此可以稍大一些
      */
-    private static final Duration CONSUMER_POLL_DURATION = Duration.ofMillis(MAX_POLL_INTERVAL_MS);
+    private static final int MAX_POLL_RECORDS = 1024;
+    /**
+     * 消费者拉取数据最长阻塞时间
+     */
+    private static final Duration CONSUMER_POLL_DURATION = Duration.ofMillis(1000);
 
     private final KafkaConsumer<String, String> consumer;
-    private final Set<String> topics;
+    private final Set<String> subscribedTopics;
 
-    public LogConsumerEventLoop(@Nonnull String brokerList, @Nonnull Set<String> topics, @Nonnull String groupId,
+    public LogConsumerEventLoop(@Nonnull String brokerList, @Nonnull Set<String> subscribedTopics, @Nonnull String groupId,
                                 @Nonnull ThreadFactory threadFactory, @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
         super(null, threadFactory, rejectedExecutionHandler, CONSUMER_RING_BUFFER_SIZE, DisruptorWaitStrategyType.TIMEOUT);
         consumer = new KafkaConsumer<>(newConfig(brokerList, groupId), new StringDeserializer(), new StringDeserializer());
-        this.topics = topics;
+        this.subscribedTopics = subscribedTopics;
     }
 
     @Override
     protected long timeoutInNano() {
-        return TimeUnit.MILLISECONDS.toNanos(CONSUMER_BLOCK_TIME);
+        return TimeUnit.MILLISECONDS.toNanos(CONSUMER_BLOCK_TIME_MS);
     }
 
     @Override
     protected void init() throws Exception {
-        consumer.subscribe(topics);
+        consumer.subscribe(subscribedTopics);
     }
 
     @Override
@@ -84,11 +86,13 @@ public class LogConsumerEventLoop extends DisruptorEventLoop {
         if (records.isEmpty()) {
             return;
         }
+
         // TODO 日志处理
         for (ConsumerRecord<String, String> record : records) {
             System.out.println(record.toString());
         }
 
+        // 提交消费记录 - 如果使用自动提交，参数设置不当时，容易导致重复消费。
         consumer.commitSync();
     }
 
@@ -102,7 +106,6 @@ public class LogConsumerEventLoop extends DisruptorEventLoop {
         properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerList);
         properties.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
         properties.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, MAX_POLL_RECORDS);
-        properties.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, MAX_POLL_INTERVAL_MS);
         properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
         properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         // TODO 更多参数调整

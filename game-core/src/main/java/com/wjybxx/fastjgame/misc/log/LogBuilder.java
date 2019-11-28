@@ -84,10 +84,11 @@ public class LogBuilder {
 
     private String doFilter(LogKey key, String value) {
         if (key.doFilter) {
-            value = value.replace(KV_SEPARATOR, KV_SEPARATOR_REPLACER);
-            value = value.replace(ENTRY_SEPARATOR, ENTRY_SEPARATOR_REPLACER);
+            return value.replace(KV_SEPARATOR, KV_SEPARATOR_REPLACER)
+                    .replace(ENTRY_SEPARATOR, ENTRY_SEPARATOR_REPLACER);
+        } else {
+            return value;
         }
-        return value;
     }
 
     public LogBuilder append(LogKey key, final int value) {
