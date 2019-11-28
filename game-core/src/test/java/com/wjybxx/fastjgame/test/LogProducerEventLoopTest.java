@@ -22,10 +22,11 @@ import com.wjybxx.fastjgame.misc.log.LogBuilder;
 import com.wjybxx.fastjgame.misc.log.LogKey;
 import com.wjybxx.fastjgame.misc.log.LogProducerEventLoop;
 import com.wjybxx.fastjgame.misc.log.LogType;
+import com.wjybxx.fastjgame.utils.TimeUtils;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.IntStream;
+import java.util.concurrent.locks.LockSupport;
 
 /**
  * 测试发送消息到kafka
@@ -46,9 +47,11 @@ public class LogProducerEventLoopTest {
     }
 
     private static void doProduce(LogProducerEventLoop producer) {
-        IntStream.rangeClosed(1, 10000).forEach(playerGuid -> {
+        final long endTime = System.currentTimeMillis() + TimeUtils.MIN * 5;
+        for (int playerGuid = 1; System.currentTimeMillis() < endTime; playerGuid++) {
             producer.log(newLog(playerGuid));
-        });
+            LockSupport.parkNanos(TimeUtils.NANO_PER_MILLISECOND);
+        }
     }
 
     private static void waitTerminate(LogProducerEventLoop producer) {
@@ -65,8 +68,8 @@ public class LogProducerEventLoopTest {
 
     private static LogBuilder newLog(long playerGuid) {
         return new LogBuilder(LogType.TEST)
-                .append(LogKey.playerName, "wjybxx")
                 .append(LogKey.playerGuid, playerGuid)
-                .append(LogKey.chatContent, "这是一句没什么用的胡话&=，只不过带了点屏蔽字符=&");
+                .append(LogKey.playerName, "wjybxx")
+                .append(LogKey.chatContent, "这是一句没什么用的胡话&=，只不过带了点特殊字符=&");
     }
 }

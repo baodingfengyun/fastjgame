@@ -30,7 +30,6 @@ import java.util.concurrent.ThreadFactory;
 
 /**
  * 日志线程 - 该线程作为kafka日志生产者。
- * TODO 目前只是简略的写了下，日后完善
  *
  * @author wjybxx
  * @version 1.0
@@ -82,7 +81,6 @@ public class LogProducerEventLoop extends DisruptorEventLoop {
         properties.put(ProducerConfig.ACKS_CONFIG, "1");
         properties.put(ProducerConfig.BATCH_SIZE_CONFIG, BATCH_SIZE);
         properties.put(ProducerConfig.LINGER_MS_CONFIG, LINGER_MS);
-        // TODO 更多参数调整
         return properties;
     }
 
@@ -97,8 +95,8 @@ public class LogProducerEventLoop extends DisruptorEventLoop {
         @Override
         public void run() {
             final String content = builder.build(System.currentTimeMillis());
-            final ProducerRecord<String, String> record = new ProducerRecord<>(builder.getLogTopic().name(), PARTITION_ID,
-                    builder.getLogType().name(), content);
+            // 指定partitionId，不通过key分发
+            final ProducerRecord<String, String> record = new ProducerRecord<>(builder.getLogTopic().name(), PARTITION_ID, null, content);
             producer.send(record);
         }
     }

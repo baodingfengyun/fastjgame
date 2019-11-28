@@ -32,9 +32,9 @@ public class LogBuilderTest {
 
     public static void main(String[] args) {
         final String content = new LogBuilder(LogType.CHAT)
-                .append(LogKey.playerName, "wjybxx")
                 .append(LogKey.playerGuid, 123456789)
-                .append(LogKey.chatContent, "这是一句没什么用的胡话&=，只不过带了点屏蔽字符=&")
+                .append(LogKey.playerName, "wjybxx")
+                .append(LogKey.chatContent, "这是一句没什么用的胡话&=，只不过带了点特殊字符=&")
                 .build(System.currentTimeMillis());
 
         System.out.println(content);
