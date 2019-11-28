@@ -19,10 +19,7 @@ package com.wjybxx.fastjgame.module;
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import com.wjybxx.fastjgame.annotation.EventLoopGroupSingleton;
-import com.wjybxx.fastjgame.mgr.CuratorClientMgr;
-import com.wjybxx.fastjgame.mgr.GameConfigMgr;
-import com.wjybxx.fastjgame.mgr.GlobalExecutorMgr;
-import com.wjybxx.fastjgame.mgr.LocalPortMgr;
+import com.wjybxx.fastjgame.mgr.*;
 import com.wjybxx.fastjgame.world.GameEventLoopGroup;
 
 /**
@@ -46,5 +43,6 @@ public class WorldGroupModule extends AbstractModule {
         bind(GlobalExecutorMgr.class).in(Singleton.class);
         bind(CuratorClientMgr.class).in(Singleton.class);
         bind(LocalPortMgr.class).in(Singleton.class);
+        bind(LogProducerMgr.class).in(Singleton.class);
     }
 }

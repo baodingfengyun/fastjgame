@@ -52,6 +52,7 @@ public abstract class AbstractWorld implements World {
     protected final GuidMgr guidMgr;
     protected final GameAcceptorMgr gameAcceptorMgr;
     protected final NetContextMgr netContextMgr;
+    protected final LogProducerMgr logProducerMgr;
 
     @Inject
     public AbstractWorld(WorldWrapper worldWrapper) {
@@ -69,6 +70,7 @@ public abstract class AbstractWorld implements World {
         guidMgr = worldWrapper.getGuidMgr();
         gameAcceptorMgr = worldWrapper.getGameAcceptorMgr();
         netContextMgr = worldWrapper.getNetContextMgr();
+        logProducerMgr = worldWrapper.getLogProducerMgr();
     }
 
     /**
@@ -130,6 +132,8 @@ public abstract class AbstractWorld implements World {
         worldInfoMgr.init(startArgs);
         // 初始化网络上下文
         netContextMgr.start();
+        // 启动kafka线程
+        logProducerMgr.start();
 
         // 初始化网络层需要的组件(codec帮助类)
         registerProtocolCodecs();

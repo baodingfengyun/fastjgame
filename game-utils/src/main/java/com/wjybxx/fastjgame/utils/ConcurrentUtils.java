@@ -42,8 +42,7 @@ public class ConcurrentUtils {
     /**
      * 什么都不做的任务
      */
-    public static final Runnable NO_OP_TASK = () -> {
-    };
+    public static final Runnable NO_OP_TASK = FunctionUtils.NO_OP_TASK;
 
     private ConcurrentUtils() {
 

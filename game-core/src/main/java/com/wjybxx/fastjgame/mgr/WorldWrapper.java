@@ -48,12 +48,15 @@ public class WorldWrapper {
     private final WorldTimerMgr worldTimerMgr;
     private final WorldInfoMgr worldInfoMgr;
     private final GuidMgr guidMgr;
+    private final LogProducerMgr logProducerMgr;
 
     @Inject
     public WorldWrapper(GameEventLoopMgr gameEventLoopMgr, WorldInfoMgr worldInfoMgr, WorldTimeMgr worldTimeMgr,
                         ProtocolDispatcherMgr protocolDispatcherMgr, HttpDispatcherMgr httpDispatcherMgr,
                         ProtocolCodecMgr protocolCodecMgr, WorldTimerMgr worldTimerMgr, GlobalExecutorMgr globalExecutorMgr,
-                        CuratorMgr curatorMgr, GuidMgr guidMgr, GameConfigMgr gameConfigMgr, NetContextMgr netContextMgr, CuratorClientMgr curatorClientMgr, TemplateMgr templateMgr, GameAcceptorMgr gameAcceptorMgr) {
+                        CuratorMgr curatorMgr, GuidMgr guidMgr, GameConfigMgr gameConfigMgr, NetContextMgr netContextMgr,
+                        CuratorClientMgr curatorClientMgr, TemplateMgr templateMgr, GameAcceptorMgr gameAcceptorMgr,
+                        LogProducerMgr logProducerMgr) {
         this.gameEventLoopMgr = gameEventLoopMgr;
         this.worldInfoMgr = worldInfoMgr;
         this.worldTimeMgr = worldTimeMgr;
@@ -69,6 +72,7 @@ public class WorldWrapper {
         this.curatorClientMgr = curatorClientMgr;
         this.templateMgr = templateMgr;
         this.gameAcceptorMgr = gameAcceptorMgr;
+        this.logProducerMgr = logProducerMgr;
     }
 
     public GameEventLoopMgr getGameEventLoopMgr() {
@@ -129,5 +133,9 @@ public class WorldWrapper {
 
     public GameAcceptorMgr getGameAcceptorMgr() {
         return gameAcceptorMgr;
+    }
+
+    public LogProducerMgr getLogProducerMgr() {
+        return logProducerMgr;
     }
 }

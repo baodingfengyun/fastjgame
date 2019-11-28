@@ -36,7 +36,7 @@ public final class FunctionUtils {
     /**
      * 什么也不做的Action
      */
-    public static final Runnable NO_OP_ACTION = () -> {
+    public static final Runnable NO_OP_TASK = () -> {
     };
 
     private static final BiConsumer<?, ?> _emptyBiConsumer = (a, b) -> {

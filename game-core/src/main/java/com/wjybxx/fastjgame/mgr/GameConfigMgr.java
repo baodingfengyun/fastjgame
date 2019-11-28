@@ -66,6 +66,11 @@ public class GameConfigMgr {
      */
     private final int mongoConnectionsPerHost;
 
+    /**
+     * kafka服务器列表
+     */
+    private final String kafkaBrokerList;
+
     @Inject
     public GameConfigMgr() throws IOException {
         configWrapper = ConfigLoader.loadConfig(GameConfigMgr.class.getClassLoader(), "game_config.properties");
@@ -76,6 +81,7 @@ public class GameConfigMgr {
         zkNameSpace = configWrapper.getAsString("zkNameSpace");
         mongoConnectionTimeoutMs = configWrapper.getAsInt("mongoConnectionTimeoutMs");
         mongoConnectionsPerHost = configWrapper.getAsInt("mongoConnectionsPerHost");
+        kafkaBrokerList = configWrapper.getAsString("kafkaBrokerList");
     }
 
     public ConfigWrapper getConfigWrapper() {
@@ -108,5 +114,9 @@ public class GameConfigMgr {
 
     public int getGlobalExecutorThreadNum() {
         return globalExecutorThreadNum;
+    }
+
+    public String getKafkaBrokerList() {
+        return kafkaBrokerList;
     }
 }

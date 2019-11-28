@@ -28,7 +28,7 @@
             <version>1.0</version>
         </dependency>
 
-        <!-- 请下载安装到本地仓库后使用-->
+        <!-- 排行榜组件，请下载安装到本地仓库后使用-->
         <!-- https://github.com/hl845740757/java-zset -->
         <dependency>
             <groupId>com.wjybxx.zset</groupId>
@@ -81,6 +81,21 @@
             <version>4.2.0</version>
         </dependency>
         <!-- zookeeper curator end -->
+
+        <!-- kafka日志组件 -->
+        <!-- https://mvnrepository.com/artifact/org.apache.kafka/kafka -->
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka_2.12</artifactId>
+            <version>2.3.1</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.apache.kafka/kafka-clients -->
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>2.3.1</version>
+        </dependency>
 
     </dependencies>
 
