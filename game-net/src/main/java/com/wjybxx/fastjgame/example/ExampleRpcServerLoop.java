@@ -21,7 +21,7 @@ import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
-import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorWaitStrategyType;
+import com.wjybxx.fastjgame.concurrent.disruptor.YieldWaitStrategyFactory;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.misc.DefaultProtocolDispatcher;
 import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
@@ -57,7 +57,7 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
     public ExampleRpcServerLoop(@Nonnull ThreadFactory threadFactory,
                                 @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
                                 @Nullable Promise<LocalPort> localPortPromise) {
-        super(null, threadFactory, rejectedExecutionHandler, DisruptorWaitStrategyType.YIELD);
+        super(null, threadFactory, rejectedExecutionHandler, new YieldWaitStrategyFactory());
         this.localPortPromise = localPortPromise;
     }
 

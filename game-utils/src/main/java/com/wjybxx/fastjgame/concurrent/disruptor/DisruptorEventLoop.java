@@ -68,7 +68,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
      * 执行{@link #loopOnce()}的间隔，该值越小{@link #loopOnce()}调用频率越高。
      * 2^n - 1 方便与运算
      */
-    static final int LOOP_ONCE_INTERVAL = 8191;
+    public static final int LOOP_ONCE_INTERVAL = 8191;
 
     /**
      * 默认ringBuffer大小 - 大一点可以减少降低阻塞概率
@@ -133,7 +133,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     public DisruptorEventLoop(@Nullable EventLoopGroup parent,
                               @Nonnull ThreadFactory threadFactory,
                               @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
-        this(parent, threadFactory, rejectedExecutionHandler, DEFAULT_RING_BUFFER_SIZE, DisruptorWaitStrategyType.SLEEP);
+        this(parent, threadFactory, rejectedExecutionHandler, DEFAULT_RING_BUFFER_SIZE, new SleepWaitStrategyFactory());
     }
 
     /**
@@ -146,21 +146,20 @@ public class DisruptorEventLoop extends AbstractEventLoop {
                               @Nonnull ThreadFactory threadFactory,
                               @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
                               int ringBufferSize) {
-        this(parent, threadFactory, rejectedExecutionHandler, ringBufferSize, DisruptorWaitStrategyType.SLEEP);
+        this(parent, threadFactory, rejectedExecutionHandler, ringBufferSize, new SleepWaitStrategyFactory());
     }
-
 
     /**
      * @param parent                   容器节点
      * @param threadFactory            线程工厂
      * @param rejectedExecutionHandler 拒绝策略
-     * @param waitStrategyType         等待策略
+     * @param waitStrategyFactory      等待策略工厂
      */
     public DisruptorEventLoop(@Nullable EventLoopGroup parent,
                               @Nonnull ThreadFactory threadFactory,
                               @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
-                              @Nonnull DisruptorWaitStrategyType waitStrategyType) {
-        this(parent, threadFactory, rejectedExecutionHandler, DEFAULT_RING_BUFFER_SIZE, waitStrategyType);
+                              @Nonnull WaitStrategyFactory waitStrategyFactory) {
+        this(parent, threadFactory, rejectedExecutionHandler, DEFAULT_RING_BUFFER_SIZE, waitStrategyFactory);
     }
 
     /**
@@ -168,19 +167,19 @@ public class DisruptorEventLoop extends AbstractEventLoop {
      * @param threadFactory            线程工厂
      * @param rejectedExecutionHandler 拒绝策略
      * @param ringBufferSize           环形缓冲区大小
-     * @param waitStrategyType         等待策略
+     * @param waitStrategyFactory      等待策略工厂
      */
     public DisruptorEventLoop(@Nullable EventLoopGroup parent,
                               @Nonnull ThreadFactory threadFactory,
                               @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
                               int ringBufferSize,
-                              @Nonnull DisruptorWaitStrategyType waitStrategyType) {
+                              @Nonnull WaitStrategyFactory waitStrategyFactory) {
 
         super(parent);
         this.rejectedExecutionHandler = rejectedExecutionHandler;
         this.ringBuffer = RingBuffer.createMultiProducer(RunnableEvent::new,
                 ringBufferSize,
-                DisruptorWaitStrategyFactory.newWaitStrategy(this, waitStrategyType));
+                waitStrategyFactory.newWaitStrategy(this));
 
         // 它不依赖于其它消费者，只依赖生产者的sequence
         worker = new Worker(ringBuffer.newBarrier());
@@ -397,19 +396,10 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     }
 
     /**
-     * 如果使用超时等待策略，返回超时对应的纳秒数，默认1毫秒对应的纳秒数。
-     *
-     * @return nanoTime
-     */
-    protected long timeoutInNano() {
-        return TimeUnit.MILLISECONDS.toNanos(1);
-    }
-
-    /**
      * 安全的执行一次循环。
-     * 注意：该方法不是给子类的API
+     * 注意：该方法不是给子类的API。用于{@link WaitStrategy}的api
      */
-    final void safeLoopOnce() {
+    public final void safeLoopOnce() {
         try {
             loopOnce();
         } catch (Throwable t) {

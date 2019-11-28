@@ -20,7 +20,7 @@ import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
-import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorWaitStrategyType;
+import com.wjybxx.fastjgame.concurrent.disruptor.YieldWaitStrategyFactory;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.misc.DefaultProtocolDispatcher;
 import com.wjybxx.fastjgame.misc.HostAndPort;
@@ -58,7 +58,7 @@ class ExampleRpcClientLoop extends DisruptorEventLoop {
     public ExampleRpcClientLoop(@Nonnull ThreadFactory threadFactory,
                                 @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
                                 @Nullable LocalPort localPort) {
-        super(null, threadFactory, rejectedExecutionHandler, DisruptorWaitStrategyType.YIELD);
+        super(null, threadFactory, rejectedExecutionHandler, new YieldWaitStrategyFactory());
         this.localPort = localPort;
     }
 

@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.misc.log;
 
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
-import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorWaitStrategyType;
+import com.wjybxx.fastjgame.concurrent.disruptor.SleepWaitStrategyFactory;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -55,7 +55,7 @@ public class LogProducerEventLoop extends DisruptorEventLoop {
     public LogProducerEventLoop(@Nonnull String brokerList,
                                 @Nonnull ThreadFactory threadFactory,
                                 @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
-        super(null, threadFactory, rejectedExecutionHandler, PRODUCER_RING_BUFFER_SIZE, DisruptorWaitStrategyType.SLEEP);
+        super(null, threadFactory, rejectedExecutionHandler, PRODUCER_RING_BUFFER_SIZE, new SleepWaitStrategyFactory());
         this.producer = new KafkaProducer<>(newConfig(brokerList), new StringSerializer(), new StringSerializer());
     }
 

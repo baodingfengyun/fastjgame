@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.misc.log;
 
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
-import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorWaitStrategyType;
+import com.wjybxx.fastjgame.concurrent.disruptor.TimeoutWaitStrategyFactory;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -65,14 +65,14 @@ public class LogConsumerEventLoop extends DisruptorEventLoop {
 
     public LogConsumerEventLoop(@Nonnull String brokerList, @Nonnull Set<String> subscribedTopics, @Nonnull String groupId,
                                 @Nonnull ThreadFactory threadFactory, @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
-        super(null, threadFactory, rejectedExecutionHandler, CONSUMER_RING_BUFFER_SIZE, DisruptorWaitStrategyType.TIMEOUT);
+        super(null, threadFactory, rejectedExecutionHandler, CONSUMER_RING_BUFFER_SIZE, newWaitStrategyFactory());
         consumer = new KafkaConsumer<>(newConfig(brokerList, groupId), new StringDeserializer(), new StringDeserializer());
         this.subscribedTopics = subscribedTopics;
     }
 
-    @Override
-    protected long timeoutInNano() {
-        return TimeUnit.MILLISECONDS.toNanos(CONSUMER_BLOCK_TIME_MS);
+    @Nonnull
+    private static TimeoutWaitStrategyFactory newWaitStrategyFactory() {
+        return new TimeoutWaitStrategyFactory(CONSUMER_BLOCK_TIME_MS, TimeUnit.MILLISECONDS);
     }
 
     @Override
