@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration status="WARN" monitorInterval="60">
+
+    <!--先定义所有的appender-->
+    <appenders>
+
+        <!-- 控制台输出 -->
+        <!-- 打印所有非ERROR日志 -->
+        <Console name="Console" target="SYSTEM_OUT" level="INFO">
+            <ThresholdFilter level="ERROR" onMatch="DENY" onMismatch="ACCEPT"/>
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss,SSS} [%p] [%t] [%F:%L] %m%n" charset="UTF-8"/>
+        </Console>
+
+        <!-- 打印ERROR日志 -->
+        <Console name="ConsoleErr" target="SYSTEM_ERR" level="ERROR">
+            <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss,SSS} [%p] [%t] [%F:%L] %m%n" charset="UTF-8"/>
+        </Console>
+
+        <!-- 文件输出，按照日期归档 -->
+        <RollingRandomAccessFile name="RollingFile" level="INFO"
+                                 fileName="${sys:logDir}/${sys:serverId}/${sys:logFileName}.log"
+                                 filePattern="${sys:logDir}/${sys:serverId}/$${date:yyyy-MM-dd}/${sys:logFileName}-%d{yyyy-MM-dd}.log-%i.log">
+            <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss,SSS} [%p] [%t] [%F:%L] %m%n" charset="UTF-8"/>
+
+            <!-- 每100M滚动一个文件 -->
+            <Policies>
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+
+            <!-- 保留最近的n个文件，DefaultRolloverStrategy属性如不设置，则默认为7，这里设置了14 -->
+            <DefaultRolloverStrategy max="14"/>
+        </RollingRandomAccessFile>
+    </appenders>
+
+    <!--然后定义logger，只有定义了logger并引入的appender，appender才会生效-->
+    <loggers>
+        <!--过滤掉spring和mybatis的一些无用的DEBUG信息-->
+        <logger name="org.springframework" level="INFO"/>
+        <logger name="org.mybatis" level="INFO"/>
+
+        <root level="warn">
+            <appender-ref ref="Console"/>
+            <appender-ref ref="ConsoleErr"/>
+            <appender-ref ref="RollingFile"/>
+        </root>
+
+    </loggers>
+</configuration>

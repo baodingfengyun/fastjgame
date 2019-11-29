@@ -84,7 +84,7 @@ public class StartUp {
     public static void main(String[] args) throws Exception {
         // 指定一下日志文件
         String logDir = new File("").getAbsolutePath() + File.separator + "log";
-        String logPath = logDir + File.separator + "fastjgame.log";
+        String logPath = logDir + File.separator + "fastjgame";
         System.out.println("logPath " + logPath);
         System.setProperty("logPath", logPath);
 
