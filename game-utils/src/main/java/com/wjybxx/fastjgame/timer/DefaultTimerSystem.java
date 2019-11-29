@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.timer;
 
+import com.wjybxx.fastjgame.timeprovider.TimeProvider;
+import com.wjybxx.fastjgame.timeprovider.TimeProviders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +50,7 @@ public class DefaultTimerSystem implements TimerSystem {
     /**
      * 默认的时间提供器（它是线程安全的，不可以使用非线程安全的作为静态变量）
      */
-    private static final SystemTimeProvider DEFAULT_TIME_PROVIDER = SystemTimeProviders.getRealtimeProvider();
+    private static final TimeProvider DEFAULT_TIME_PROVIDER = TimeProviders.realtimeProvider();
 
     /**
      * timer队列
@@ -57,7 +59,7 @@ public class DefaultTimerSystem implements TimerSystem {
     /**
      * 用于获取当前时间
      */
-    private final SystemTimeProvider timeProvider;
+    private final TimeProvider timeProvider;
     /**
      * 用于分配timerId。
      * 如果是静态的将存在线程安全问题(或使用AtomicLong) - 不想产生不必要的竞争，因此每个timerSystem一个。
@@ -77,16 +79,16 @@ public class DefaultTimerSystem implements TimerSystem {
     }
 
     /**
-     * @see DefaultTimerSystem#DefaultTimerSystem(SystemTimeProvider, int)
+     * @see DefaultTimerSystem#DefaultTimerSystem(TimeProvider, int)
      */
     public DefaultTimerSystem(int initCapacity) {
         this(DEFAULT_TIME_PROVIDER, initCapacity);
     }
 
     /**
-     * @see DefaultTimerSystem#DefaultTimerSystem(SystemTimeProvider, int)
+     * @see DefaultTimerSystem#DefaultTimerSystem(TimeProvider, int)
      */
-    public DefaultTimerSystem(SystemTimeProvider timeProvider) {
+    public DefaultTimerSystem(TimeProvider timeProvider) {
         this(timeProvider, DEFAULT_INITIAL_CAPACITY);
     }
 
@@ -94,7 +96,7 @@ public class DefaultTimerSystem implements TimerSystem {
      * @param timeProvider 时间提供函数
      * @param initCapacity 初始timer空间，当你能预见timer的空间大小时，指定空间大小能提高性能和空间利用率
      */
-    public DefaultTimerSystem(SystemTimeProvider timeProvider, int initCapacity) {
+    public DefaultTimerSystem(TimeProvider timeProvider, int initCapacity) {
         this.timeProvider = timeProvider;
         timerQueue = new PriorityQueue<>(initCapacity, AbstractTimerHandle.timerComparator);
     }

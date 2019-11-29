@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.manager;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.timer.SystemTimeHelper;
+import com.wjybxx.fastjgame.timeprovider.SimpleTimeProvider;
 
 /**
  * NetEventLoop时间管理器
@@ -27,7 +27,7 @@ import com.wjybxx.fastjgame.timer.SystemTimeHelper;
  * date - 2019/8/3
  * github - https://github.com/hl845740757
  */
-public final class NetTimeManager extends SystemTimeHelper {
+public final class NetTimeManager extends SimpleTimeProvider {
 
     @Inject
     public NetTimeManager() {

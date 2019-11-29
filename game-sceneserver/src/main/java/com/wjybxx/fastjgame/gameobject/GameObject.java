@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.scene.Scene;
 import com.wjybxx.fastjgame.scene.gameobjectdata.GameObjectData;
 import com.wjybxx.fastjgame.scene.gameobjectdata.GameObjectType;
 import com.wjybxx.fastjgame.shape.Point2D;
+import com.wjybxx.fastjgame.timeprovider.TimeProvider;
 import com.wjybxx.fastjgame.timer.*;
 
 import javax.annotation.Nonnull;
@@ -55,7 +56,7 @@ public abstract class GameObject<T extends GameObjectData> {
      */
     private ViewGrid viewGrid;
 
-    public GameObject(Scene scene, SystemTimeProvider timeProvider) {
+    public GameObject(Scene scene, TimeProvider timeProvider) {
         this.scene = scene;
         this.timerSystem = new DefaultTimerSystem(timeProvider);
     }

@@ -20,7 +20,7 @@ import com.wjybxx.fastjgame.misc.CenterServerId;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.scene.Scene;
 import com.wjybxx.fastjgame.scene.gameobjectdata.PlayerData;
-import com.wjybxx.fastjgame.timer.SystemTimeProvider;
+import com.wjybxx.fastjgame.timeprovider.TimeProvider;
 
 import javax.annotation.Nonnull;
 
@@ -45,7 +45,7 @@ public class Player extends GameObject<PlayerData> {
      */
     private Session gateSession;
 
-    public Player(Scene scene, SystemTimeProvider timeProvider, PlayerData playerData, Session gateSession) {
+    public Player(Scene scene, TimeProvider timeProvider, PlayerData playerData, Session gateSession) {
         super(scene, timeProvider);
         this.playerData = playerData;
         this.gateSession = gateSession;

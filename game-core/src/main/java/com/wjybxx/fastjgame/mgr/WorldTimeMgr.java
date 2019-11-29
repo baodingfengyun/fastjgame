@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.annotation.EventLoopSingleton;
-import com.wjybxx.fastjgame.timer.SystemTimeHelper;
+import com.wjybxx.fastjgame.timeprovider.SimpleTimeProvider;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -33,7 +33,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @EventLoopSingleton
 @NotThreadSafe
-public class WorldTimeMgr extends SystemTimeHelper {
+public class WorldTimeMgr extends SimpleTimeProvider {
 
     @Inject
     public WorldTimeMgr() {

@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.timer;
 
+import com.wjybxx.fastjgame.timeprovider.TimeProvider;
+
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -27,7 +29,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 2. {@link #newFixedDelay(long, long, TimerTask)} {@link #newFixRate(long, long, TimerTask)}类型的任务，与其它任何一个任务都不具备时序保证。
  *
  * <p>
- * Q: 为什么继承{@link SystemTimeProvider}？
+ * Q: 为什么继承{@link TimeProvider}？
  * A: timer的运行一定依赖于一个时钟，可以把该时钟告诉给用户。
  * </p>
  *
@@ -37,7 +39,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public interface TimerSystem extends SystemTimeProvider {
+public interface TimerSystem extends TimeProvider {
 
     // ------------------------------------------ 添加定时器的方法 -----------------------------------
 

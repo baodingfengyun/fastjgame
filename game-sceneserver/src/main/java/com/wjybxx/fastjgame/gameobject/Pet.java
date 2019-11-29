@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.gameobject;
 
 import com.wjybxx.fastjgame.config.PetConfig;
 import com.wjybxx.fastjgame.scene.Scene;
-import com.wjybxx.fastjgame.timer.SystemTimeProvider;
+import com.wjybxx.fastjgame.timeprovider.TimeProvider;
 
 import javax.annotation.Nonnull;
 
@@ -34,7 +34,7 @@ public class Pet extends Follower<PetData> {
 
     private final PetData petData;
 
-    public Pet(Scene scene, SystemTimeProvider timeProvider, GameObject owner, PetData petData) {
+    public Pet(Scene scene, TimeProvider timeProvider, GameObject owner, PetData petData) {
         super(scene, timeProvider, owner);
         this.petData = petData;
     }

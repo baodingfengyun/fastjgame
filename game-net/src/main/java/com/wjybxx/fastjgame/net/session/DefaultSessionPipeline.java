@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.net.session;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.timer.DefaultTimerSystem;
-import com.wjybxx.fastjgame.timer.SystemTimeProvider;
+import com.wjybxx.fastjgame.timeprovider.TimeProvider;
 import com.wjybxx.fastjgame.timer.TimerSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +53,7 @@ class DefaultSessionPipeline implements SessionPipeline {
      */
     private final HeadContext head;
 
-    DefaultSessionPipeline(Session session, SystemTimeProvider timeProvider) {
+    DefaultSessionPipeline(Session session, TimeProvider timeProvider) {
         this.session = session;
         this.timerSystem = new DefaultTimerSystem(timeProvider, TIMER_SYSTEM_CAPACITY);
         this.tail = new TailContext(this);
