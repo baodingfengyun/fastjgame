@@ -42,7 +42,7 @@ public class LogProducerEventLoop extends DisruptorEventLoop {
      */
     private static final int PRODUCER_RING_BUFFER_SIZE = 64 * 1024;
     /**
-     * 由于游戏打点日志并不是太多，可以将日志总是打在同一个partition下
+     * 由于游戏打点日志并不是太多，可以将日志总是打在同一个partition下（可以获得全局的顺序性）
      */
     private static final Integer PARTITION_ID = 0;
 

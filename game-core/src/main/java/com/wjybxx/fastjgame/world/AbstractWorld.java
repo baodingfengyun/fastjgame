@@ -205,6 +205,7 @@ public abstract class AbstractWorld implements World {
     private void shutdownCore() {
         netContextMgr.shutdown();
         curatorMgr.shutdown();
+        logProducerMgr.shutdown();
         protocolDispatcherMgr.release();
         httpDispatcherMgr.release();
     }

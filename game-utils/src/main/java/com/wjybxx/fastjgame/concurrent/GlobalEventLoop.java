@@ -28,7 +28,7 @@ import java.util.concurrent.*;
  * 全局的EventLoop。它是一个单线程的EventLoop，它不适合处理一些耗时的、阻塞的操作，
  * 仅仅适合处理一些简单的事件，当没有其它的更好的选择时可以使用{@link GlobalEventLoop}。
  * <p>
- * 它会在没有任务后自动的关闭。
+ * 它会在没有任务后自动关闭。
  *
  * @author wjybxx
  * @version 1.0

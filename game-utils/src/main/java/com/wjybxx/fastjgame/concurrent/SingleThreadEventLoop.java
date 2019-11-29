@@ -217,7 +217,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
             if (isShuttingDown0(oldState)) {
                 return;
             }
-            // 尝试切换为正在关闭状态，不再接收新任务
+
             if (stateHolder.compareAndSet(oldState, ST_SHUTTING_DOWN)) {
                 // 确保线程可进入终止状态
                 ensureThreadTerminable(oldState);
@@ -232,18 +232,15 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
         for (; ; ) {
             int oldState = stateHolder.get();
             if (isShutdown0(oldState)) {
-                break;
+                return Collections.emptyList();
             }
-            // 尝试切换为一阶段清理状态，不再执行任务
+
             if (stateHolder.compareAndSet(oldState, ST_SHUTDOWN)) {
-                // 确保线程可进入终止状态
-                // 这里不能安全的调用clear，需要EventLoop自己清空，因为并没做提交任务的互斥。
-                // 如果这里调用clear，可能导致EventLoop执行到clear之后提交的任务，从而破坏顺序性（单消费者变成多消费者）。
+                // 确保线程可进入终止状态 - 这里不能操作TaskQueue中的数据，不能打破[多生产者单消费者]的架构
                 ensureThreadTerminable(oldState);
-                break;
+                return Collections.emptyList();
             }
         }
-        return Collections.emptyList();
     }
 
     /**
@@ -292,7 +289,146 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
         thread.interrupt();
     }
 
-    // -------------------------------------------- 任务调度，事件循环 -----------------------------------
+    @Override
+    public final void execute(@Nonnull Runnable task) {
+        if (addTask(task) && !inEventLoop()) {
+            // 其它线程添加任务成功后，需要确保executor已启动，自己添加任务的话，自然已经启动过了
+            ensureStarted();
+        }
+    }
+
+    /**
+     * 尝试添加一个任务到任务队列
+     *
+     * @param task 期望运行的任务
+     * @return 添加任务是否成功
+     */
+    private boolean addTask(@Nonnull Runnable task) {
+        // 1. 在检测到未关闭的状态下尝试压入队列
+        if (!isShuttingDown() && taskQueue.offer(task)) {
+            // 2. 压入队列是一个过程！在压入队列的过程中，executor的状态可能改变，因此必须再次校验 - 以判断线程是否在任务压入队列之后已经开始关闭了
+            // remove失败表示executor已经处理了该任务
+            if (isShuttingDown() && taskQueue.remove(task)) {
+                reject(task);
+                return false;
+            }
+            return true;
+        } else {
+            // executor已关闭 或 压入队列失败，拒绝
+            reject(task);
+            return false;
+        }
+    }
+
+    protected final void reject(@Nonnull Runnable task) {
+        rejectedExecutionHandler.rejected(task, this);
+    }
+
+    /**
+     * 确保线程已启动。
+     * <p>
+     * 外部线程提交任务后需要保证线程已启动。
+     */
+    private void ensureStarted() {
+        int state = stateHolder.get();
+        if (state == ST_NOT_STARTED) {
+            if (stateHolder.compareAndSet(ST_NOT_STARTED, ST_STARTED)) {
+                thread.start();
+            }
+        }
+    }
+
+    /**
+     * 阻塞式地从阻塞队列中获取一个任务。
+     *
+     * @return 如果executor被唤醒或被中断，则返回null
+     */
+    @Nullable
+    protected final Runnable takeTask() {
+        assert inEventLoop();
+        try {
+            return taskQueue.take();
+        } catch (InterruptedException ignore) {
+            // 被中断唤醒 wake up
+            return null;
+        }
+    }
+
+    /**
+     * 阻塞式地从阻塞队列中获取一个任务。
+     *
+     * @param timeoutMs 超时时间 - 毫秒
+     * @return 如果executor被唤醒或被中断或实时间到，则返回null
+     */
+    @Nullable
+    protected final Runnable takeTask(long timeoutMs) {
+        assert inEventLoop();
+        try {
+            return taskQueue.poll(timeoutMs, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException ignore) {
+            // 被中断唤醒 wake up
+            return null;
+        }
+    }
+
+    /**
+     * 从任务队列中尝试获取一个有效任务
+     *
+     * @return 如果没有可执行任务则返回null
+     * @see Queue#poll()
+     */
+    @Nullable
+    protected final Runnable pollTask() {
+        assert inEventLoop();
+        return taskQueue.poll();
+    }
+
+    /**
+     * @see Queue#isEmpty()
+     */
+    protected final boolean hasTasks() {
+        assert inEventLoop();
+        return !taskQueue.isEmpty();
+    }
+
+    /**
+     * 运行任务队列中当前所有的任务。
+     *
+     * @return 至少有一个任务执行时返回true。
+     */
+    protected final boolean runAllTasks() {
+        return runTasksBatch(Integer.MAX_VALUE);
+    }
+
+    /**
+     * 尝试批量运行任务队列中的任务。
+     *
+     * @param batchSize 执行的最大任务数，避免执行任务耗费太多时间。
+     *                  注意：它并不是一个精确的控制，可能执行的任务比该值多，但是会在一个范围之类{@link #CACHE_QUEUE_CAPACITY}。精确的控制意义不大。
+     * @return 至少有一个任务执行时返回true。
+     */
+    protected final boolean runTasksBatch(final int batchSize) {
+        // 不能出现负数
+        long runTaskNum = 0;
+        int size;
+        // drainTo - 批量拉取可执行任务(可减少竞争)
+        while (!isShutdown() && (size = taskQueue.drainTo(cacheQueue, CACHE_QUEUE_CAPACITY)) > 0) {
+            for (int index = 0; index < size; index++) {
+                safeExecute(cacheQueue.pollFirst());
+            }
+
+            // 计数
+            runTaskNum += size;
+
+            // 执行一批任务之后检查是否退出
+            if (runTaskNum >= batchSize) {
+                break;
+            }
+        }
+        return runTaskNum > 0;
+    }
+
+    // --------------------------------------- 线程管理 ----------------------------------------
 
     /**
      * 在开启事件循环之前的初始化动作
@@ -389,149 +525,5 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
                 }
             }
         }
-    }
-
-    @Override
-    public final void execute(@Nonnull Runnable task) {
-        if (addTask(task) && !inEventLoop()) {
-            // 其它线程添加任务成功后，需要确保executor已启动，自己添加任务的话，自然已经启动过了
-            ensureStarted();
-        }
-    }
-
-    /**
-     * 尝试添加一个任务到任务队列
-     *
-     * @param task 期望运行的任务
-     * @return 添加任务是否成功
-     */
-    private boolean addTask(@Nonnull Runnable task) {
-        // 1. 在检测到未关闭的状态下尝试压入队列
-        if (!isShuttingDown() && taskQueue.offer(task)) {
-            // 2. 压入队列是一个过程！在压入队列的过程中，executor的状态可能改变，因此必须再次校验 - 以判断线程是否在任务压入队列之后已经开始关闭了
-            // remove失败表示executor已经处理了该任务
-            if (isShuttingDown() && taskQueue.remove(task)) {
-                reject(task);
-                return false;
-            }
-            return true;
-        } else {
-            // executor已关闭 或 压入队列失败，拒绝
-            reject(task);
-            return false;
-        }
-    }
-
-    /**
-     * 确保线程已启动。
-     * <p>
-     * 外部线程提交任务后需要保证线程已启动。
-     */
-    private void ensureStarted() {
-        int state = stateHolder.get();
-        if (state == ST_NOT_STARTED) {
-            if (stateHolder.compareAndSet(ST_NOT_STARTED, ST_STARTED)) {
-                thread.start();
-            }
-        }
-    }
-
-    /**
-     * 阻塞式地从阻塞队列中获取一个任务。
-     *
-     * @return 如果executor被唤醒或被中断，则返回null
-     */
-    @Nullable
-    protected final Runnable takeTask() {
-        assert inEventLoop();
-        try {
-            return taskQueue.take();
-        } catch (InterruptedException ignore) {
-            // 被中断唤醒 wake up
-            return null;
-        }
-    }
-
-    /**
-     * 阻塞式地从阻塞队列中获取一个任务。
-     *
-     * @param timeoutMs 超时时间 - 毫秒
-     * @return 如果executor被唤醒或被中断或实时间到，则返回null
-     */
-    @Nullable
-    protected final Runnable takeTask(long timeoutMs) {
-        assert inEventLoop();
-        try {
-            return taskQueue.poll(timeoutMs, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException ignore) {
-            // 被中断唤醒 wake up
-            return null;
-        }
-    }
-
-    /**
-     * 从任务队列中尝试获取一个有效任务
-     *
-     * @return 如果没有可执行任务则返回null
-     * @see Queue#poll()
-     */
-    @Nullable
-    protected final Runnable pollTask() {
-        assert inEventLoop();
-        return taskQueue.poll();
-    }
-
-    /**
-     * @see Queue#isEmpty()
-     */
-    protected final boolean hasTasks() {
-        assert inEventLoop();
-        return !taskQueue.isEmpty();
-    }
-
-    /**
-     * Offers the task to the associated {@link RejectedExecutionHandler}.
-     *
-     * @param task to reject.
-     */
-    protected final void reject(@Nonnull Runnable task) {
-        rejectedExecutionHandler.rejected(task, this);
-    }
-
-    /**
-     * 运行任务队列中当前所有的任务。
-     *
-     * @return 至少有一个任务执行时返回true。
-     */
-    protected final boolean runAllTasks() {
-        return runTasksBatch(Integer.MAX_VALUE);
-    }
-
-    /**
-     * 尝试批量运行任务队列中的任务。
-     *
-     * @param batchSize 执行的最大任务数，避免执行任务耗费太多时间。
-     *                  注意：它并不是一个精确的控制，可能执行的任务比该值多，但是会在一个范围之类{@link #CACHE_QUEUE_CAPACITY}。精确的控制意义不大。
-     * @return 至少有一个任务执行时返回true。
-     */
-    protected final boolean runTasksBatch(final int batchSize) {
-        // 不能出现负数
-        long runTaskNum = 0;
-        int size;
-        // drainTo - 批量拉取可执行任务(可减少竞争)
-        while (!isShutdown() && (size = taskQueue.drainTo(cacheQueue, CACHE_QUEUE_CAPACITY)) > 0) {
-            for (int index = 0; index < size; index++) {
-                safeExecute(cacheQueue.pollFirst());
-            }
-
-            // 计数
-            runTaskNum += size;
-
-            // 执行一批任务之后检查是否退出
-            if (runTaskNum >= batchSize) {
-                break;
-            }
-        }
-        return runTaskNum > 0;
     }
 }

@@ -34,8 +34,8 @@ import java.util.function.Consumer;
  * @version 1.0
  * date - 2019/7/14
  * github - https://github.com/hl845740757
- * @apiNote 1. {@link #newChild(int, ThreadFactory, RejectedExecutionHandler, Object)}
- * 此时子类属性还未被赋值，因此创建子类需要的属性必须在context中！
+ * @apiNote 1. 调用{@link #newChild(int, ThreadFactory, RejectedExecutionHandler, Object)}方法时，
+ * 子类属性还未被赋值，因此子类创建child需要的属性必须在context中！
  * <p>
  * 2. {@link #clean()} 该方法执行在{@link GlobalEventLoop}线程，因此必须保证线程安全。
  */

@@ -19,7 +19,6 @@ package com.wjybxx.fastjgame.concurrent.disruptor;
 import com.lmax.disruptor.*;
 import com.wjybxx.fastjgame.concurrent.*;
 import com.wjybxx.fastjgame.timer.TimerSystem;
-import com.wjybxx.fastjgame.utils.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,9 +71,10 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 
     /**
      * 默认ringBuffer大小 - 大一点可以减少降低阻塞概率
-     * 1024 * 1024 个对象大概 16M
+     * 1024 * 1024 个{@link RunnableEvent}对象大概16M。
+     * 如果提交的任务较大，那么内存占用可能较大，用户请根据实际情况调整。
      */
-    public static final int DEFAULT_RING_BUFFER_SIZE = SystemUtils.getProperties().getAsInt("DisruptorEventLoop.ringBufferSize", 1024 * 1024);
+    public static final int DEFAULT_RING_BUFFER_SIZE = 1024 * 1024;
 
     // 线程的状态
     /**
@@ -183,7 +183,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 
         // 它不依赖于其它消费者，只依赖生产者的sequence
         worker = new Worker(ringBuffer.newBarrier());
-        // worker的sequence添加为网关sequence，生产者们会监听到该sequence
+        // 添加worker的sequence为网关sequence，生产者们会监听到该sequence
         ringBuffer.addGatingSequences(worker.sequence);
 
         // 保存线程对象
@@ -232,13 +232,16 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     @Override
     public final void shutdown() {
         for (; ; ) {
+            // 为何要存为临时变量？表示我们是基于特定的状态执行代码，compareAndSet才有意义
             int oldState = stateHolder.get();
             if (isShuttingDown0(oldState)) {
                 return;
             }
+
             if (stateHolder.compareAndSet(oldState, ST_SHUTTING_DOWN)) {
                 // 确保线程能够关闭
                 ensureThreadTerminable(oldState);
+                return;
             }
         }
     }
@@ -249,16 +252,15 @@ public class DisruptorEventLoop extends AbstractEventLoop {
         for (; ; ) {
             int oldState = stateHolder.get();
             if (isShutdown0(oldState)) {
-                break;
+                return Collections.emptyList();
             }
+
             if (stateHolder.compareAndSet(oldState, ST_SHUTDOWN)) {
-                // 确保线程能够关闭
-                // 这里申请所有空间也不一定能进行清理，因为不确定谁先申请到整个空间，因此也需要EventLoop自身来清理
+                // 确保线程能够关闭 - 这里不能操作ringBuffer中的数据，不能打破[多生产者单消费者]的架构
                 ensureThreadTerminable(oldState);
-                break;
+                return Collections.emptyList();
             }
         }
-        return Collections.emptyList();
     }
 
     /**
@@ -319,7 +321,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
             throw new BlockingOperationException("");
         } else {
             // 1. 这里不再先判断{@code isShuttingDown()}，这里的判断只会在“请求了关闭EventLoop而EventLoop还未响应关闭请求”这段时间内有意义，
-            // 因为一旦EventLoop响应了关闭请求，删除了自己的sequence之后，next是不会阻塞的，可以在申请sequence拒绝任务。
+            // 因为一旦EventLoop响应了关闭请求，删除了自己的sequence之后，next是不会阻塞的，可以在申请sequence后拒绝任务。
             // 乐观执行，降低关闭期间的响应速度以提高运行期间的响应速度，整体看来，这样是划算的。
 
             // 2. 这里之所以可以安全的调用 next()，是因为我实现了自己的事件处理器(Worker)，否则next()是可能死锁的！
@@ -354,7 +356,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
         }
     }
 
-    // ----------------------------- 生命周期begin ------------------------------
+    // --------------------------------------- 线程管理 ----------------------------------------
 
     /**
      * 将运行状态转换为给定目标，或者至少保留给定状态。
@@ -410,8 +412,6 @@ public class DisruptorEventLoop extends AbstractEventLoop {
             }
         }
     }
-
-    // ------------------------------ 生命周期end --------------------------------
 
     /**
      * 实现{@link RingBuffer}的消费者，实现基本和{@link BatchEventProcessor}一致。

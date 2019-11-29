@@ -457,6 +457,30 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         waiters++;
     }
 
+    /**
+     * <pre>
+     * {@code
+     *         // synchronized的标准模式
+     *         synchronized (this) {
+     *             while(!condition()) {
+     *                 this.wait();
+     *             }
+     *             doSomething();
+     *         }
+     *
+     *         // 显式锁的标准模式
+     *         lock.lock();
+     *         try {
+     *             while (!isOK()) {
+     *                 condition.await();
+     *             }
+     *             doSomething();
+     *         } finally {
+     *             lock.unlock();
+     *         }
+     * }
+     * </pre>
+     */
     @Override
     public void await() throws InterruptedException {
         // 先检查一次是否已完成，减小锁竞争，同时在完成的情况下，等待不会死锁。
@@ -468,23 +492,6 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
 
         // 检查中断 --- 在执行一个耗时操作之前检查中断是有必要的
         ConcurrentUtils.checkInterrupted();
-
-        // synchronized的标准模式
-//        synchronized (this) {
-//            while(!condition()) {
-//                this.wait();
-//            }
-//        }
-
-        // 显式锁的标准模式
-//        lock.lock();
-//        try {
-//            while (!isOK()) {
-//                condition.await();
-//            }
-//        } finally {
-//            lock.unlock();
-//        }
 
         synchronized (this) {
             while (!isDone()) {
