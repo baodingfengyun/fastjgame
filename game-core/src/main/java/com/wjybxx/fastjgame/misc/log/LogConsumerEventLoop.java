@@ -49,7 +49,7 @@ public class LogConsumerEventLoop extends DisruptorEventLoop {
     /**
      * 无事件消费时阻塞等待时间
      */
-    private static final int CONSUMER_BLOCK_TIME_MS = 500;
+    private static final int CONSUMER_BLOCK_TIME_MS = 50;
 
     /**
      * 每次拉取的最大日志条数 - 由于逻辑较为简单，处理较为快速，因此可以稍大一些
@@ -58,7 +58,7 @@ public class LogConsumerEventLoop extends DisruptorEventLoop {
     /**
      * 消费者拉取数据最长阻塞时间
      */
-    private static final Duration CONSUMER_POLL_DURATION = Duration.ofMillis(1000);
+    private static final Duration CONSUMER_POLL_DURATION = Duration.ofMillis(100);
 
     private final KafkaConsumer<String, String> consumer;
     private final Set<String> subscribedTopics;
@@ -87,13 +87,15 @@ public class LogConsumerEventLoop extends DisruptorEventLoop {
             return;
         }
 
-        // TODO 日志处理/消费
-        for (ConsumerRecord<String, String> record : records) {
-            System.out.println(record.toString());
+        try {
+            // TODO 日志处理/消费
+            for (ConsumerRecord<String, String> record : records) {
+                System.out.println(record.toString());
+            }
+        } finally {
+            // 提交消费记录 - 如果使用自动提交，参数设置不当时，容易导致重复消费。
+            consumer.commitSync();
         }
-
-        // 提交消费记录 - 如果使用自动提交，参数设置不当时，容易导致重复消费。
-        consumer.commitSync();
     }
 
     @Override

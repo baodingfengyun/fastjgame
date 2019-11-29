@@ -46,8 +46,14 @@ public class LogProducerEventLoop extends DisruptorEventLoop {
      */
     private static final Integer PARTITION_ID = 0;
 
-    private static final int BATCH_SIZE = 1024;
-    private static final int LINGER_MS = 1000;
+    /**
+     * 不使用"all"机制是为了提高吞吐量。
+     * 该配置允许了一定程度内的日志丢失，对于游戏打点日志而言觉得是可以接受的
+     */
+    private static final String ACKS_CONFIG = "1";
+    private static final int BATCH_SIZE_BYTES = 16 * 1024;
+    private static final int LINGER_MS = 100;
+    private static final int RETRIES = 3;
 
     private final KafkaProducer<String, String> producer;
 
@@ -78,9 +84,10 @@ public class LogProducerEventLoop extends DisruptorEventLoop {
     private static Properties newConfig(String brokerList) {
         Properties properties = new Properties();
         properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerList);
-        properties.put(ProducerConfig.ACKS_CONFIG, "1");
-        properties.put(ProducerConfig.BATCH_SIZE_CONFIG, BATCH_SIZE);
+        properties.put(ProducerConfig.ACKS_CONFIG, ACKS_CONFIG);
+        properties.put(ProducerConfig.BATCH_SIZE_CONFIG, BATCH_SIZE_BYTES);
         properties.put(ProducerConfig.LINGER_MS_CONFIG, LINGER_MS);
+        properties.put(ProducerConfig.RETRIES_CONFIG, RETRIES);
         return properties;
     }
 
