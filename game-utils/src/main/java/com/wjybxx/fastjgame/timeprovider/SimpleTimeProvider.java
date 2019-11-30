@@ -19,7 +19,8 @@ package com.wjybxx.fastjgame.timeprovider;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * 可切换的，非线程安全。
+ * {@link TimeProvider}的实现，提供了切换时间策略方法。
+ * 非线程安全。
  *
  * @author wjybxx
  * @version 1.0
@@ -32,10 +33,14 @@ public class SimpleTimeProvider implements CachedTimeProvider {
     /**
      * 获取时间策略
      */
-    private CachedTimeProvider timeProvider = TimeProviders.realtimeProvider();
+    private CachedTimeProvider timeProvider;
 
     public SimpleTimeProvider() {
+        this(TimeProviders.realtimeProvider());
+    }
 
+    public SimpleTimeProvider(CachedTimeProvider timeProvider) {
+        this.timeProvider = timeProvider;
     }
 
     /**

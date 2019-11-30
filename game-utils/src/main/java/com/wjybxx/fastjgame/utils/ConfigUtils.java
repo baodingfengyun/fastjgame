@@ -177,6 +177,9 @@ public class ConfigUtils {
     // ----------------------------------------------- 基本类型数组支持 -------------------------------------------
 
     public static String[] getAsStringArray(String value) {
+        if (null == value) {
+            throw new NullPointerException("value");
+        }
         return value.split(DEFAULT_ARRAY_DELIMITER);
     }
 

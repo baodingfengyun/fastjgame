@@ -2,14 +2,14 @@
 <configuration>
 
     <!-- 控制台输出 -->
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender" level = "INFO">
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <pattern>%d{yyyy-MM-dd HH:mm:ss,SSS} [%p] [%t] [%F:%L] %msg%n</pattern>
+            <pattern>%d{"yyyy-MM-dd HH:mm:ss,SSS"} [%p] [%t] [%F:%L] %msg%n</pattern>
         </encoder>
     </appender>
 
     <!-- 输出日志到文件 -->
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender" level = "INFO">
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <append>true</append>
 
         <!-- 按照每天生成日志文件 -->
@@ -26,13 +26,13 @@
         </triggeringPolicy>
 
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <pattern>%d{yyyy-MM-dd HH:mm:ss,SSS} [%p] [%t] [%F:%L] %msg%n</pattern>
+            <pattern>%d{"yyyy-MM-dd HH:mm:ss,SSS"} [%p] [%t] [%F:%L] %msg%n</pattern>
         </encoder>
     </appender>
 
     <!-- 日志输出级别 -->
     <root level="INFO">
-        <appender-ref ref="STDOUT" />
-        <appender-ref ref="FILE" />
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
     </root>
 </configuration>

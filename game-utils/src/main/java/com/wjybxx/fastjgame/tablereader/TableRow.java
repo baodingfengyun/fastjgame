@@ -15,8 +15,7 @@
  */
 package com.wjybxx.fastjgame.tablereader;
 
-import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
-import com.wjybxx.fastjgame.configwrapper.MapConfigWrapper;
+import com.wjybxx.fastjgame.configwrapper.Params;
 
 import java.util.Map;
 import java.util.Set;
@@ -29,7 +28,7 @@ import java.util.Set;
  * date - 2019/5/11 16:11
  * github - https://github.com/hl845740757
  */
-public class TableRow extends ConfigWrapper {
+public class TableRow extends Params {
 
     /**
      * 所属的行号，0开始
@@ -65,11 +64,6 @@ public class TableRow extends ConfigWrapper {
 
     public int getRowIndex() {
         return rowIndex;
-    }
-
-    @Override
-    public MapConfigWrapper convert2MapWrapper() {
-        return new MapConfigWrapper(colName2Value);
     }
 
     @Override

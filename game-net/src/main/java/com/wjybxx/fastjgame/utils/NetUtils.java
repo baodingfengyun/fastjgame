@@ -267,10 +267,10 @@ public class NetUtils {
                 }
             }
         } catch (SocketException e) {
-            logger.error("find outerIp caught exception,will use localIp instead.", e);
+            logger.info("find outerIp caught exception,will use localIp instead.", e);
             return findLocalIp();
         }
-        logger.error("can't find outerIp, will use localIp instead.");
+        logger.info("can't find outerIp, will use localIp instead.");
         return findLocalIp();
     }
 
