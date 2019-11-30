@@ -18,7 +18,6 @@ package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.misc.rank.PlayerLevelRankScore;
-import com.wjybxx.fastjgame.misc.rank.RankScore;
 import com.wjybxx.fastjgame.misc.rank.RankType;
 import com.wjybxx.zset.long2obj.Long2ObjZSet;
 
@@ -49,7 +48,7 @@ public class RankMgr {
     /**
      * 排行榜信息
      */
-    private final EnumMap<RankType, Long2ObjZSet<? extends RankScore>> rankInfo = new EnumMap<>(RankType.class);
+    private final EnumMap<RankType, Long2ObjZSet<Object>> rankInfo = new EnumMap<>(RankType.class);
 
     @Inject
     public RankMgr() {

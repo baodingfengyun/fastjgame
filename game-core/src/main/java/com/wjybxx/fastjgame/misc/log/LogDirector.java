@@ -14,20 +14,30 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.misc.rank;
+package com.wjybxx.fastjgame.misc.log;
 
-import javax.annotation.concurrent.Immutable;
+import javax.annotation.Nonnull;
 
 /**
- * 排行榜分数
+ * 日志建造指挥官，构建最终的日志内容
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/11/7
+ * date - 2019/11/30
  * github - https://github.com/hl845740757
- * @apiNote 子类必须实现为不可变对象
  */
-@Immutable
-public interface RankScore {
+public interface LogDirector {
 
+    /**
+     * @param logBuilder    含有日志内容的builder
+     * @param curTimeMillis 当前时间
+     * @return 传输的内容
+     */
+    @Nonnull
+    String build(LogBuilder logBuilder, long curTimeMillis);
+
+    /**
+     * 恢复到初始状态，如果{@link #build(LogBuilder, long)}修改了状态的话
+     */
+    void reset();
 }

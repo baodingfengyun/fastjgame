@@ -55,11 +55,11 @@ public class GatePlayerSession {
          */
         LOGIN_GATE,
         /**
-         * 登录到中心服 - 等待进入游戏(场景)
+         * 登录到中心服 - 等待进入游戏(选角)
          */
         LOGIN_CENTER,
         /**
-         * 登录到场景服 - 已进入场景
+         * 登录到场景服 - 已进入场景(游戏中)
          */
         LOGIN_SCENE,
         /**

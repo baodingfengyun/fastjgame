@@ -53,10 +53,6 @@ public class LogConsumerEventLoop extends DisruptorEventLoop {
     private static final int CONSUMER_BLOCK_TIME_MS = 50;
 
     /**
-     * 每次拉取的最大日志条数 - 由于逻辑较为简单，处理较为快速，因此可以稍大一些
-     */
-    private static final int MAX_POLL_RECORDS = 500;
-    /**
      * 消费者拉取数据最长阻塞时间
      */
     private static final Duration CONSUMER_POLL_DURATION = Duration.ofMillis(100);
@@ -108,7 +104,7 @@ public class LogConsumerEventLoop extends DisruptorEventLoop {
         Properties properties = new Properties();
         properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerList);
         properties.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-        properties.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, MAX_POLL_RECORDS);
+        properties.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 500);
         properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
         properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         return properties;

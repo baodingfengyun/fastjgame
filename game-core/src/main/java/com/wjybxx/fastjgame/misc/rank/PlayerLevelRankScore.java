@@ -26,7 +26,7 @@ import com.wjybxx.zset.generic.ScoreHandler;
  * date - 2019/11/7
  * github - https://github.com/hl845740757
  */
-public class PlayerLevelRankScore implements RankScore {
+public class PlayerLevelRankScore {
 
     private final int level;
     private final long timestamp;

@@ -46,16 +46,8 @@ public class LogProducerEventLoop extends DisruptorEventLoop {
      */
     private static final Integer PARTITION_ID = 0;
 
-    /**
-     * 不使用"all"机制是为了提高吞吐量。
-     * 该配置允许了一定程度内的日志丢失，对于游戏打点日志而言觉得是可以接受的
-     */
-    private static final String ACKS_CONFIG = "1";
-    private static final int BATCH_SIZE_BYTES = 16 * 1024;
-    private static final int LINGER_MS = 100;
-    private static final int RETRIES = 3;
-
     private final KafkaProducer<String, String> producer;
+    private final LogDirector logDirector = new DefaultLogDirector();
 
     public LogProducerEventLoop(@Nonnull String brokerList,
                                 @Nonnull ThreadFactory threadFactory,
@@ -84,10 +76,11 @@ public class LogProducerEventLoop extends DisruptorEventLoop {
     private static Properties newConfig(String brokerList) {
         Properties properties = new Properties();
         properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerList);
-        properties.put(ProducerConfig.ACKS_CONFIG, ACKS_CONFIG);
-        properties.put(ProducerConfig.BATCH_SIZE_CONFIG, BATCH_SIZE_BYTES);
-        properties.put(ProducerConfig.LINGER_MS_CONFIG, LINGER_MS);
-        properties.put(ProducerConfig.RETRIES_CONFIG, RETRIES);
+        // 不使用"all"机制是为了提高吞吐量。
+        properties.put(ProducerConfig.ACKS_CONFIG, "1");
+        properties.put(ProducerConfig.BATCH_SIZE_CONFIG, 16 * 1024);
+        properties.put(ProducerConfig.LINGER_MS_CONFIG, 100);
+        properties.put(ProducerConfig.RETRIES_CONFIG, 3);
         return properties;
     }
 
@@ -101,10 +94,14 @@ public class LogProducerEventLoop extends DisruptorEventLoop {
 
         @Override
         public void run() {
-            final String content = builder.build(System.currentTimeMillis());
-            // 指定partitionId，不通过key分发
-            final ProducerRecord<String, String> record = new ProducerRecord<>(builder.getLogTopic().name(), PARTITION_ID, null, content);
-            producer.send(record);
+            try {
+                final String content = logDirector.build(builder, System.currentTimeMillis());
+                // 指定partitionId，不通过key分发
+                producer.send(new ProducerRecord<>(builder.getLogTopic().toString(), PARTITION_ID,
+                        null, content));
+            } finally {
+                logDirector.reset();
+            }
         }
     }
 }

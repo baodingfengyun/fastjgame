@@ -54,10 +54,6 @@ public final class HttpResponseHelper {
      * image/png（PNG图像）
      */
     public static final String IMAGE_PNG = "image/png";
-    /**
-     * 非空字节数组
-     */
-    private static final byte[] EMPTY_BYTES = "".getBytes(StandardCharsets.UTF_8);
 
     private HttpResponseHelper() {
         // close

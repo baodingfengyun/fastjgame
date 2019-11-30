@@ -25,6 +25,7 @@ import io.netty.channel.ChannelConfig;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.DefaultSocketChannelConfig;
+import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -308,7 +309,7 @@ public class NetUtils {
      */
     public static byte[] readRemainBytes(ByteBuf byteBuf) {
         if (byteBuf.readableBytes() == 0) {
-            return new byte[0];
+            return ArrayUtils.EMPTY_BYTE_ARRAY;
         }
         byte[] result = new byte[byteBuf.readableBytes()];
         byteBuf.readBytes(result);

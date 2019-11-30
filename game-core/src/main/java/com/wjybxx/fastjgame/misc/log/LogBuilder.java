@@ -16,11 +16,13 @@
 
 package com.wjybxx.fastjgame.misc.log;
 
+import java.util.LinkedList;
+
 /**
  * 日志内容构建器。
  * 1. 它通过分隔符的方式组织内容， '='分隔键和值，'&'分隔键值对。
- * 2. 通过分隔符分隔必然面临特殊符号的问题，如'\' '\r' '\n' ，有时候可能需要按行分析日志，那么这些都需要处理。
- * 3. 如果有内容是Base64编码的，那么'='可能造成一些问题。
+ * 2. 如果有内容是Base64编码的，那么'='可能造成一些问题。
+ * 3. 目前的实现是在当前线程(逻辑线程)进行过滤，可能影响逻辑线程性能。
  * <p>
  * 直接构建为字符串是方便阅读，更安全的方式是序列化为字节数组。
  *
@@ -31,117 +33,46 @@ package com.wjybxx.fastjgame.misc.log;
  */
 public class LogBuilder {
 
-    /**
-     * 键与值之间的分隔符
-     */
-    private static final char KV_SEPARATOR = '=';
-    /**
-     * 键值对与键值对之间的分隔符
-     */
-    private static final char ENTRY_SEPARATOR = '&';
-
-    /**
-     * {@link #KV_SEPARATOR}的替换符
-     */
-    private static final char KV_SEPARATOR_REPLACER = '*';
-    /**
-     * {@link #ENTRY_SEPARATOR}的替换符
-     */
-    private static final char ENTRY_SEPARATOR_REPLACER = '*';
-
-    /**
-     * 游戏日志一般较长，尽量减少扩容操作 - 这个值可以在使用一段时间之后修正的更贴近。
-     */
-    private static final int BUILDER_INIT_CAPACITY = 150;
-
-    /**
-     * 日志类型
-     */
     private final LogType logType;
-    /**
-     * 存放日志内容的builder
-     */
-    private final StringBuilder builder;
+    private final LinkedList<LogEntry> entryList = new LinkedList<>();
 
     public LogBuilder(LogType logType) {
-        this(logType, BUILDER_INIT_CAPACITY);
-    }
-
-    public LogBuilder(LogType logType, int initCapacity) {
         this.logType = logType;
-        this.builder = new StringBuilder(initCapacity);
     }
 
     public LogBuilder append(LogKey key, final String value) {
-        appendKey(key);
-        builder.append(doFilter(key, value));
+        entryList.add(new LogEntry(key, value));
         return this;
     }
 
-    private void appendKey(LogKey key) {
-        if (builder.length() > 0) {
-            builder.append(ENTRY_SEPARATOR);
-        }
-
-        builder.append(key.name());
-        builder.append(KV_SEPARATOR);
-    }
-
-    private String doFilter(LogKey key, String value) {
-        if (key.doFilter) {
-            return value.replace(KV_SEPARATOR, KV_SEPARATOR_REPLACER)
-                    .replace(ENTRY_SEPARATOR, ENTRY_SEPARATOR_REPLACER);
-        } else {
-            return value;
-        }
-    }
-
     public LogBuilder append(LogKey key, final int value) {
-        appendKey(key);
-        builder.append(value);
+        append(key, Integer.toString(value));
         return this;
     }
 
     public LogBuilder append(LogKey key, final long value) {
-        appendKey(key);
-        builder.append(value);
+        append(key, Long.toString(value));
         return this;
     }
 
     public LogBuilder append(LogKey key, final float value) {
-        appendKey(key);
-        builder.append(value);
+        append(key, Float.toString(value));
         return this;
     }
 
     public LogBuilder append(LogKey key, final double value) {
-        appendKey(key);
-        builder.append(value);
+        append(key, Double.toString(value));
         return this;
     }
 
     public LogBuilder append(LogKey key, final Enum value) {
-        appendKey(key);
-        builder.append(value.name());
+        append(key, value.toString());
         return this;
     }
 
     public LogBuilder append(LogKey key, final boolean value) {
-        appendKey(key);
-        builder.append(value);
+        append(key, Boolean.toString(value));
         return this;
-    }
-
-    /**
-     * 构建最终的日志内容
-     *
-     * @param curTimeMillis 当前系统时间
-     * @return 日志完整内容
-     */
-    public String build(long curTimeMillis) {
-        append(LogKey.LOG_TYPE, logType);
-        append(LogKey.LOG_TIME, curTimeMillis);
-        return builder.toString();
     }
 
     public LogType getLogType() {
@@ -150,5 +81,9 @@ public class LogBuilder {
 
     public LogTopic getLogTopic() {
         return logType.topic;
+    }
+
+    public LinkedList<LogEntry> getEntryList() {
+        return entryList;
     }
 }

@@ -63,16 +63,15 @@ public class DefaultRpcCallDispatcher implements RpcFunctionRegistry, RpcCallDis
         final RpcFunction rpcFunction = functionInfoMap.get(methodKey);
         if (null == rpcFunction) {
             rpcResponseChannel.write(RpcResponse.BAD_REQUEST);
-            // 不打印参数详情，消耗可能较大，注意：这里的参数大小和真实的方法参数大小不一定一样，主要是ResponseChannel和Session不需要客户端传。
-            logger.warn("{} send unregistered request, methodKey={}, parameters size={}",
-                    session.sessionId(), methodKey, params.size());
+            logger.warn("{} send unregistered request, methodKey={}, parameters={}",
+                    session.sessionId(), methodKey, params);
             return;
         }
         try {
             rpcFunction.call(session, params, rpcResponseChannel);
         } catch (Exception e) {
-            logger.warn("handle {} rpcCall caught exception, methodKey={}",
-                    session.sessionId(), methodKey, e);
+            logger.warn("handle {} rpcCall caught exception, methodKey={}, parameters={}",
+                    session.sessionId(), methodKey, params);
         }
     }
 
