@@ -38,7 +38,7 @@ import java.util.concurrent.ThreadFactory;
  */
 public class LogProducerEventLoop extends DisruptorEventLoop {
     /**
-     * 日志线程缓冲区大小
+     * 日志线程任务缓冲区大小
      */
     private static final int PRODUCER_RING_BUFFER_SIZE = 64 * 1024;
     /**

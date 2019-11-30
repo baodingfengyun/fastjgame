@@ -42,19 +42,25 @@ public class YieldWaitStrategyFactory implements WaitStrategyFactory {
     private static final int SPIN_TRIES = 100;
 
     private final int spinTries;
+    private final int waitTimesThreshold;
 
     public YieldWaitStrategyFactory() {
-        this(SPIN_TRIES);
+        this(SPIN_TRIES, WaitStrategyFactory.DEFAULT_WAIT_TIMES_THRESHOLD);
     }
 
-    public YieldWaitStrategyFactory(int spinTries) {
+    /**
+     * @param spinTries          最大自旋次数，超过等待次数后尝试让出CPU
+     * @param waitTimesThreshold 每等待多少次执行一次事件循环
+     */
+    public YieldWaitStrategyFactory(int spinTries, int waitTimesThreshold) {
         this.spinTries = spinTries;
+        this.waitTimesThreshold = waitTimesThreshold;
     }
 
     @Nonnull
     @Override
     public WaitStrategy newWaitStrategy(DisruptorEventLoop eventLoop) {
-        return new YieldWaitStrategy(eventLoop, spinTries);
+        return new YieldWaitStrategy(eventLoop, spinTries, waitTimesThreshold);
     }
 
     /**
@@ -67,10 +73,12 @@ public class YieldWaitStrategyFactory implements WaitStrategyFactory {
 
         private final DisruptorEventLoop eventLoop;
         private final int spinTries;
+        private final int waitTimesThreshold;
 
-        YieldWaitStrategy(DisruptorEventLoop eventLoop, int spinTries) {
+        YieldWaitStrategy(DisruptorEventLoop eventLoop, int spinTries, int waitTimesThreshold) {
             this.eventLoop = eventLoop;
             this.spinTries = spinTries;
+            this.waitTimesThreshold = waitTimesThreshold;
         }
 
         @Override
@@ -83,7 +91,7 @@ public class YieldWaitStrategyFactory implements WaitStrategyFactory {
             while ((availableSequence = dependentSequence.get()) < sequence) {
                 counter = applyWaitMethod(barrier, counter);
                 // 每隔一段时间执行一次循环
-                if (++waitTimes == DisruptorEventLoop.LOOP_ONCE_INTERVAL) {
+                if (++waitTimes == waitTimesThreshold) {
                     waitTimes = 0;
                     eventLoop.safeLoopOnce();
                 }

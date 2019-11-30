@@ -47,20 +47,28 @@ public class SleepWaitStrategyFactory implements WaitStrategyFactory {
 
     private final int retries;
     private final long sleepTimeNs;
+    private final int waitTimesThreshold;
 
     public SleepWaitStrategyFactory() {
-        this(DEFAULT_RETRIES, DEFAULT_SLEEP_NS, TimeUnit.NANOSECONDS);
+        this(DEFAULT_RETRIES, DEFAULT_SLEEP_NS, TimeUnit.NANOSECONDS, WaitStrategyFactory.DEFAULT_WAIT_TIMES_THRESHOLD);
     }
 
-    public SleepWaitStrategyFactory(int retries, long sleepTimeout, TimeUnit sleepTimeUnit) {
+    /**
+     * @param retries            尝试多少次空循环后开始睡眠
+     * @param sleepTimeout       睡眠时间
+     * @param sleepTimeUnit      时间单位
+     * @param waitTimesThreshold 每等待多少次执行一次事件循环
+     */
+    public SleepWaitStrategyFactory(int retries, long sleepTimeout, TimeUnit sleepTimeUnit, int waitTimesThreshold) {
         this.retries = retries;
         this.sleepTimeNs = sleepTimeUnit.toNanos(sleepTimeout);
+        this.waitTimesThreshold = waitTimesThreshold;
     }
 
     @Nonnull
     @Override
     public WaitStrategy newWaitStrategy(DisruptorEventLoop eventLoop) {
-        return new SleepWaitStrategy(eventLoop, retries, sleepTimeNs);
+        return new SleepWaitStrategy(eventLoop, retries, sleepTimeNs, waitTimesThreshold);
     }
 
     /**
@@ -72,11 +80,13 @@ public class SleepWaitStrategyFactory implements WaitStrategyFactory {
         private final DisruptorEventLoop eventLoop;
         private final int retries;
         private final long sleepTimeNs;
+        private final int waitTimesThreshold;
 
-        SleepWaitStrategy(DisruptorEventLoop eventLoop, int retries, long sleepTimeNs) {
+        SleepWaitStrategy(DisruptorEventLoop eventLoop, int retries, long sleepTimeNs, int waitTimesThreshold) {
             this.eventLoop = eventLoop;
             this.retries = retries;
             this.sleepTimeNs = sleepTimeNs;
+            this.waitTimesThreshold = waitTimesThreshold;
         }
 
         @Override
@@ -90,7 +100,7 @@ public class SleepWaitStrategyFactory implements WaitStrategyFactory {
             while ((availableSequence = dependentSequence.get()) < sequence) {
                 counter = applyWaitMethod(barrier, counter);
                 // 每隔一段时间执行一次循环
-                if (++waitTimes == DisruptorEventLoop.LOOP_ONCE_INTERVAL) {
+                if (++waitTimes == waitTimesThreshold) {
                     waitTimes = 0;
                     eventLoop.safeLoopOnce();
                 }

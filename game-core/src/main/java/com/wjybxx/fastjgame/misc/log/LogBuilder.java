@@ -17,7 +17,12 @@
 package com.wjybxx.fastjgame.misc.log;
 
 /**
- * 日志内容构建器
+ * 日志内容构建器。
+ * 1. 它通过分隔符的方式组织内容， '='分隔键和值，'&'分隔键值对。
+ * 2. 通过分隔符分隔必然面临特殊符号的问题，如'\' '\r' '\n' ，有时候可能需要按行分析日志，那么这些都需要处理。
+ * 3. 如果有内容是Base64编码的，那么'='可能造成一些问题。
+ * <p>
+ * 直接构建为字符串是方便阅读，更安全的方式是序列化为字节数组。
  *
  * @author wjybxx
  * @version 1.0
@@ -78,7 +83,7 @@ public class LogBuilder {
             builder.append(ENTRY_SEPARATOR);
         }
 
-        builder.append(key);
+        builder.append(key.name());
         builder.append(KV_SEPARATOR);
     }
 
@@ -117,7 +122,7 @@ public class LogBuilder {
 
     public LogBuilder append(LogKey key, final Enum value) {
         appendKey(key);
-        builder.append(value);
+        builder.append(value.name());
         return this;
     }
 

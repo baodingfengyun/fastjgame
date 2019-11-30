@@ -31,6 +31,12 @@ import javax.annotation.Nonnull;
 public interface WaitStrategyFactory {
 
     /**
+     * 等待多少个循环执行一次{@link DisruptorEventLoop#safeLoopOnce()} 。
+     * 默认值并没有特别的意义。
+     */
+    int DEFAULT_WAIT_TIMES_THRESHOLD = 1024;
+
+    /**
      * @param eventLoop 创建等待策略的eventLoop。
      *                  注意：
      *                  1. 该方法在{@link DisruptorEventLoop}构造的过程中调用，尝试访问对象的属性可能导致异常！！！

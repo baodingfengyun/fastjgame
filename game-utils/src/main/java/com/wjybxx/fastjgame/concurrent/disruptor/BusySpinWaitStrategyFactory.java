@@ -41,10 +41,23 @@ import javax.annotation.Nonnull;
  */
 public class BusySpinWaitStrategyFactory implements WaitStrategyFactory {
 
+    private final int waitTimesThreshold;
+
+    public BusySpinWaitStrategyFactory() {
+        this(WaitStrategyFactory.DEFAULT_WAIT_TIMES_THRESHOLD);
+    }
+
+    /**
+     * @param waitTimesThreshold 每等待多少次执行一次事件循环
+     */
+    public BusySpinWaitStrategyFactory(int waitTimesThreshold) {
+        this.waitTimesThreshold = waitTimesThreshold;
+    }
+
     @Nonnull
     @Override
     public WaitStrategy newWaitStrategy(DisruptorEventLoop eventLoop) {
-        return new BusySpinWaitStrategy(eventLoop);
+        return new BusySpinWaitStrategy(eventLoop, waitTimesThreshold);
     }
 
     /**
@@ -59,9 +72,11 @@ public class BusySpinWaitStrategyFactory implements WaitStrategyFactory {
     static final class BusySpinWaitStrategy implements WaitStrategy {
 
         private final DisruptorEventLoop eventLoop;
+        private final int waitTimesThreshold;
 
-        BusySpinWaitStrategy(DisruptorEventLoop eventLoop) {
+        BusySpinWaitStrategy(DisruptorEventLoop eventLoop, int waitTimesThreshold) {
             this.eventLoop = eventLoop;
+            this.waitTimesThreshold = waitTimesThreshold;
         }
 
         @Override
@@ -75,7 +90,7 @@ public class BusySpinWaitStrategyFactory implements WaitStrategyFactory {
                 barrier.checkAlert();
                 ThreadHints.onSpinWait();
 
-                if (++waitTimes == DisruptorEventLoop.LOOP_ONCE_INTERVAL) {
+                if (++waitTimes == waitTimesThreshold) {
                     waitTimes = 0;
                     eventLoop.safeLoopOnce();
                 }

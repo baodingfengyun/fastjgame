@@ -20,6 +20,9 @@ import com.wjybxx.fastjgame.misc.log.LogBuilder;
 import com.wjybxx.fastjgame.misc.log.LogKey;
 import com.wjybxx.fastjgame.misc.log.LogType;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * 日志构建器测试
  *
@@ -30,11 +33,16 @@ import com.wjybxx.fastjgame.misc.log.LogType;
  */
 public class LogBuilderTest {
 
+    /**
+     * 替换换行符，回车符，制表符，反斜杠，'&' '='
+     */
+    private static final Pattern PATTERN = Pattern.compile("[\\s\\\\&=?]");
+
     public static void main(String[] args) {
         final String content = new LogBuilder(LogType.CHAT)
                 .append(LogKey.playerGuid, 123456789)
                 .append(LogKey.playerName, "wjybxx")
-                .append(LogKey.chatContent, "这是一句没什么用的胡话&=，只不过带了点特殊字符=&")
+                .append(LogKey.chatContent, "&=\r\n\t\f\\rn\\\\rn&=")
                 .build(System.currentTimeMillis());
 
         System.out.println(content);

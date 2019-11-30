@@ -35,7 +35,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * <p>
  * Q: {@link DisruptorEventLoop}比起{@link SingleThreadEventLoop}，优势在哪？<br>
- * A: {@link DisruptorEventLoop}对资源的利用率远胜{@link SingleThreadEventLoop}，性能也要高出不少。
+ * A: 1. {@link DisruptorEventLoop}采用的是无锁队列，性能高于{@link SingleThreadEventLoop}。
+ * 2. {@link DisruptorEventLoop}对资源的利用率远胜{@link SingleThreadEventLoop}。
  * <p>
  * Q: 那缺陷在哪呢？
  * A: 1. 最大的缺陷就是它只能是有界的队列。<br>
@@ -64,17 +65,11 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     private static final Logger logger = LoggerFactory.getLogger(DisruptorEventLoop.class);
 
     /**
-     * 执行{@link #loopOnce()}的间隔，该值越小{@link #loopOnce()}调用频率越高。
-     * 2^n - 1 方便与运算
-     */
-    public static final int LOOP_ONCE_INTERVAL = 8191;
-
-    /**
      * 默认ringBuffer大小 - 大一点可以减少降低阻塞概率
      * 1024 * 1024 个{@link RunnableEvent}对象大概16M。
      * 如果提交的任务较大，那么内存占用可能较大，用户请根据实际情况调整。
      */
-    public static final int DEFAULT_RING_BUFFER_SIZE = 1024 * 1024;
+    private static final int DEFAULT_RING_BUFFER_SIZE = 1024 * 1024;
 
     // 线程的状态
     /**
@@ -326,20 +321,20 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 
             // 2. 这里之所以可以安全的调用 next()，是因为我实现了自己的事件处理器(Worker)，否则next()是可能死锁的！
             final long sequence = ringBuffer.next(1);
-            try {
-                if (isShuttingDown()) {
-                    // 申请sequence是一个过程，如果申请槽位之后开始关闭，则拒绝任务
-                    // 不能操作该槽上数据，否则可能覆盖之前的数据
-                    rejectedExecutionHandler.rejected(task, this);
-                } else {
+            if (isShuttingDown()) {
+                // 如果申请sequence之后发现EventLoop已开始关闭，则申请到的sequence对应的数据可能未被EventLoop消费，
+                // 需要先放弃申请到的sequence(避免阻塞EventLoop，同时避免破坏数据)，再拒绝任务。
+                ringBuffer.publish(sequence);
+                rejectedExecutionHandler.rejected(task, this);
+            } else {
+                try {
                     // 发布任务
                     ringBuffer.get(sequence).setTask(task);
                     // 确保线程已启动
                     ensureThreadStarted();
+                } finally {
+                    ringBuffer.publish(sequence);
                 }
-            } finally {
-                // publish之后，才可能走到 cleanRingBuffer
-                ringBuffer.publish(sequence);
             }
         }
     }
@@ -474,10 +469,8 @@ public class DisruptorEventLoop extends AbstractEventLoop {
                     // 标记这批事件已处理
                     sequence.set(availableSequence);
 
-                    if ((LOOP_ONCE_INTERVAL & availableSequence) == 0) {
-                        // 处理完一批事件，执行一次循环
-                        safeLoopOnce();
-                    }
+                    // 处理完一批事件，执行一次循环
+                    safeLoopOnce();
                 } catch (AlertException | InterruptedException e) {
                     // 请求了关闭 BatchEventProcessor并没有响应中断请求，会导致中断信号丢失。
                     if (isShuttingDown()) {

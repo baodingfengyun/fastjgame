@@ -43,7 +43,8 @@ import java.util.concurrent.TimeUnit;
 public class LogConsumerEventLoop extends DisruptorEventLoop {
 
     /**
-     * 消费者需要响应的事件不多
+     * 日志线程任务缓冲区大小
+     * 消费者需要响应的事件不多，因此较小
      */
     private static final int CONSUMER_RING_BUFFER_SIZE = 8192;
     /**
