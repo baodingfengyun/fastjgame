@@ -43,7 +43,7 @@ public class LoginModule extends WorldModule {
         // 再显式绑定一次，方便直接使用
         bind(LoginWorldInfoMgr.class).in(Singleton.class);
         bind(LoginDiscoverMgr.class).in(Singleton.class);
-        bind(CenterInLoginInfoMgr.class).in(Singleton.class);
+        bind(LoginCenterSessionMgr.class).in(Singleton.class);
         bind(LoginMongoDBMgr.class).in(Singleton.class);
     }
 }

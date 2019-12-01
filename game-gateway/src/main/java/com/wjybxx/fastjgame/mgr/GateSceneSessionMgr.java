@@ -69,8 +69,6 @@ public class GateSceneSessionMgr {
         // 建立tcp连接
         gameAcceptorMgr.connect(nodeName.getWorldGuid(),
                 nodeData.getInnerTcpAddress(),
-                nodeData.getLocalAddress(),
-                nodeData.getMacAddress(),
                 new SceneLifecycleAware());
     }
 

@@ -18,8 +18,8 @@ package com.wjybxx.fastjgame.net.session;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
-import com.wjybxx.fastjgame.timer.DefaultTimerSystem;
 import com.wjybxx.fastjgame.timeprovider.TimeProvider;
+import com.wjybxx.fastjgame.timer.DefaultTimerSystem;
 import com.wjybxx.fastjgame.timer.TimerSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

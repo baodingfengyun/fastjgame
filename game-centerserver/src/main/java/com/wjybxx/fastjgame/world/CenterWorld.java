@@ -25,7 +25,6 @@ import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.rpcservice.ICenterGateSessionMgrRpcRegister;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.JsonUtils;
-import com.wjybxx.fastjgame.utils.SystemUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.CreateMode;
@@ -82,21 +81,18 @@ public class CenterWorld extends AbstractWorld {
 
     private void bindAndRegisterToZK() throws Exception {
         final GateLifeAware gateLifeAware = new GateLifeAware();
-        // 绑定jvm内部通信端口
+        // 绑定JVM内部端口
         gameAcceptorMgr.bindLocalPort(gateLifeAware);
-        // 绑定3个内部交互的端口
+        // 绑定socket端口
         HostAndPort tcpHostAndPort = gameAcceptorMgr.bindInnerTcpPort(gateLifeAware);
         HostAndPort httpHostAndPort = gameAcceptorMgr.bindInnerHttpPort();
-        HostAndPort localAddress = gameAcceptorMgr.bindLocalTcpPort(gateLifeAware);
 
         // 注册到zk
         String parentPath = ZKPathUtils.onlineWarzonePath(centerWorldInfoMgr.getWarzoneId());
         String nodeName = ZKPathUtils.buildCenterNodeName(centerWorldInfoMgr.getServerId());
 
-        final CenterNodeData centerNodeData = new CenterNodeData(tcpHostAndPort.toString(),
-                httpHostAndPort.toString(),
-                localAddress.toString(),
-                SystemUtils.getMAC(),
+        final CenterNodeData centerNodeData = new CenterNodeData(httpHostAndPort.toString(),
+                tcpHostAndPort.toString(),
                 centerWorldInfoMgr.getWorldGuid());
 
         final String path = ZKPaths.makePath(parentPath, nodeName);

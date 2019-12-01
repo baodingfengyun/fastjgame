@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.world;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.onlinenode.LoginNodeData;
-import com.wjybxx.fastjgame.mgr.CenterInLoginInfoMgr;
+import com.wjybxx.fastjgame.mgr.LoginCenterSessionMgr;
 import com.wjybxx.fastjgame.mgr.LoginDiscoverMgr;
 import com.wjybxx.fastjgame.mgr.LoginWorldInfoMgr;
 import com.wjybxx.fastjgame.mgr.WorldWrapper;
@@ -40,15 +40,15 @@ public class LoginWorld extends AbstractWorld {
 
     private final LoginDiscoverMgr loginDiscoverMgr;
     private final LoginWorldInfoMgr loginWorldInfoMgr;
-    private final CenterInLoginInfoMgr centerInLoginInfoMgr;
+    private final LoginCenterSessionMgr loginCenterSessionMgr;
 
     @Inject
     public LoginWorld(WorldWrapper worldWrapper, LoginDiscoverMgr loginDiscoverMgr,
-                      CenterInLoginInfoMgr centerInLoginInfoMgr) {
+                      LoginCenterSessionMgr loginCenterSessionMgr) {
         super(worldWrapper);
         this.loginDiscoverMgr = loginDiscoverMgr;
         this.loginWorldInfoMgr = (LoginWorldInfoMgr) worldWrapper.getWorldInfoMgr();
-        this.centerInLoginInfoMgr = centerInLoginInfoMgr;
+        this.loginCenterSessionMgr = loginCenterSessionMgr;
     }
 
     @Override

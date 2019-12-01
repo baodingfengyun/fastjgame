@@ -18,10 +18,10 @@ package com.wjybxx.fastjgame.test;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.wjybxx.fastjgame.misc.ViewGridSet;
-import com.wjybxx.fastjgame.module.WorldGroupModule;
-import com.wjybxx.fastjgame.module.SceneModule;
 import com.wjybxx.fastjgame.mgr.MapDataLoadMgr;
+import com.wjybxx.fastjgame.misc.ViewGridSet;
+import com.wjybxx.fastjgame.module.SceneModule;
+import com.wjybxx.fastjgame.module.WorldGroupModule;
 import com.wjybxx.fastjgame.scene.MapData;
 
 /**

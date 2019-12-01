@@ -18,10 +18,10 @@ package com.wjybxx.fastjgame.test;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.wjybxx.fastjgame.mgr.CuratorMgr;
 import com.wjybxx.fastjgame.misc.CloseableHandle;
 import com.wjybxx.fastjgame.module.CenterModule;
 import com.wjybxx.fastjgame.module.WorldGroupModule;
-import com.wjybxx.fastjgame.mgr.CuratorMgr;
 import com.wjybxx.fastjgame.utils.GameUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.curator.framework.recipes.cache.ChildData;

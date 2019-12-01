@@ -43,15 +43,15 @@ import org.apache.curator.framework.recipes.cache.*;
 public class LoginDiscoverMgr {
 
     private final CuratorMgr curatorMgr;
-    private final CenterInLoginInfoMgr centerInLoginInfoMgr;
+    private final LoginCenterSessionMgr loginCenterSessionMgr;
     private final GameEventLoopMgr gameEventLoopMgr;
 
     private TreeCache treeCache;
 
     @Inject
-    public LoginDiscoverMgr(CuratorMgr curatorMgr, CenterInLoginInfoMgr centerInLoginInfoMgr, GameEventLoopMgr gameEventLoopMgr) {
+    public LoginDiscoverMgr(CuratorMgr curatorMgr, LoginCenterSessionMgr loginCenterSessionMgr, GameEventLoopMgr gameEventLoopMgr) {
         this.curatorMgr = curatorMgr;
-        this.centerInLoginInfoMgr = centerInLoginInfoMgr;
+        this.loginCenterSessionMgr = loginCenterSessionMgr;
         this.gameEventLoopMgr = gameEventLoopMgr;
     }
 
@@ -94,9 +94,9 @@ public class LoginDiscoverMgr {
         CenterNodeName centerNodeName = ZKPathUtils.parseCenterNodeName(childData.getPath());
         CenterNodeData centerNode = JsonUtils.parseJsonBytes(childData.getData(), CenterNodeData.class);
         if (event.getType() == TreeCacheEvent.Type.NODE_ADDED) {
-            centerInLoginInfoMgr.onDiscoverCenterServer(centerNodeName, centerNode);
+            loginCenterSessionMgr.onDiscoverCenterServer(centerNodeName, centerNode);
         } else if (event.getType() == TreeCacheEvent.Type.NODE_REMOVED) {
-            centerInLoginInfoMgr.onCenterServerNodeRemove(centerNodeName, centerNode);
+            loginCenterSessionMgr.onCenterServerNodeRemove(centerNodeName, centerNode);
         }
     }
 

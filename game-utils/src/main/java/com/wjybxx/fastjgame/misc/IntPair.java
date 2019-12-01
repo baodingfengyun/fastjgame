@@ -18,14 +18,14 @@ package com.wjybxx.fastjgame.misc;
 
 /**
  * int值对
- * 
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/11/2
  * github - https://github.com/hl845740757
  */
 public class IntPair {
-    
+
     private final int first;
     private final int second;
 

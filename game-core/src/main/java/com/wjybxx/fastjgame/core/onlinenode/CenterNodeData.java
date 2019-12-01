@@ -36,12 +36,10 @@ public class CenterNodeData extends TcpServerNodeData {
     private final long worldGuid;
 
     @JsonCreator
-    public CenterNodeData(@JsonProperty("innerTcpAddress") String innerTcpAddress,
-                          @JsonProperty("innerHttpAddres") String innerHttpAddress,
-                          @JsonProperty("localAddress") String localAddress,
-                          @JsonProperty("macAddress") String macAddress,
+    public CenterNodeData(@JsonProperty("innerHttpAddres") String innerHttpAddress,
+                          @JsonProperty("innerTcpAddress") String innerTcpAddress,
                           @JsonProperty("worldGuid") long worldGuid) {
-        super(innerTcpAddress, innerHttpAddress, localAddress, macAddress);
+        super(innerHttpAddress, innerTcpAddress);
         this.worldGuid = worldGuid;
     }
 

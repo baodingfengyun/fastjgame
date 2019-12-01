@@ -71,8 +71,6 @@ public class CenterWarzoneSessionMgr {
         // 注册tcp会话
         gameAcceptorMgr.connect(warzoneNodeData.getWorldGuid(),
                 warzoneNodeData.getInnerTcpAddress(),
-                warzoneNodeData.getLocalAddress(),
-                warzoneNodeData.getMacAddress(),
                 new WarzoneSessionLifeAware());
     }
 

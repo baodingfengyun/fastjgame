@@ -10,7 +10,6 @@ import com.wjybxx.fastjgame.rpcservice.ISceneCenterSessionMgrRpcRegister;
 import com.wjybxx.fastjgame.rpcservice.ISceneGateSessionMgrRpcRegister;
 import com.wjybxx.fastjgame.rpcservice.ISceneRegionMgrRpcRegister;
 import com.wjybxx.fastjgame.utils.JsonUtils;
-import com.wjybxx.fastjgame.utils.SystemUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.CreateMode;
@@ -88,19 +87,16 @@ public class SceneWorld extends AbstractWorld {
 
     private void bindAndRegisterToZK() throws Exception {
         final CenterOrGateLifeAware centerOrGateLifeAware = new CenterOrGateLifeAware();
-        // 绑定jvm内部通信的端口
+        // 绑定JVM内部端口
         gameAcceptorMgr.bindLocalPort(centerOrGateLifeAware);
-        // 绑定3个内部交互的端口
+        // 绑定socket端口
         HostAndPort innerTcpAddress = gameAcceptorMgr.bindInnerTcpPort(centerOrGateLifeAware);
         HostAndPort innerHttpAddress = gameAcceptorMgr.bindInnerHttpPort();
-        HostAndPort localAddress = gameAcceptorMgr.bindLocalTcpPort(centerOrGateLifeAware);
 
         // 节点数据
         final String nodeName = ZKPathUtils.buildSceneNodeName(sceneWorldInfoMgr.getWorldGuid());
-        final SceneNodeData sceneNodeData = new SceneNodeData(innerTcpAddress.toString(),
-                innerHttpAddress.toString(),
-                localAddress.toString(),
-                SystemUtils.getMAC());
+        final SceneNodeData sceneNodeData = new SceneNodeData(innerHttpAddress.toString(),
+                innerTcpAddress.toString());
 
         final String parentPath = ZKPathUtils.onlineWarzonePath(sceneWorldInfoMgr.getWarzoneId());
         curatorMgr.createNode(ZKPaths.makePath(parentPath, nodeName), CreateMode.EPHEMERAL, JsonUtils.toJsonBytes(sceneNodeData));

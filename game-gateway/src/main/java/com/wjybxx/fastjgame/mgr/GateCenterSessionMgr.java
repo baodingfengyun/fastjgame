@@ -68,8 +68,6 @@ public class GateCenterSessionMgr {
 
         gameAcceptorMgr.connect(nodeData.getWorldGuid(),
                 nodeData.getInnerTcpAddress(),
-                nodeData.getLocalAddress(),
-                nodeData.getMacAddress(),
                 new CenterLifecycleAware());
     }
 

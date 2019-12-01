@@ -18,9 +18,9 @@ package com.wjybxx.fastjfame.test;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.wjybxx.fastjgame.module.WorldGroupModule;
-import com.wjybxx.fastjgame.module.SceneModule;
 import com.wjybxx.fastjgame.mgr.GameConfigMgr;
+import com.wjybxx.fastjgame.module.SceneModule;
+import com.wjybxx.fastjgame.module.WorldGroupModule;
 
 /**
  * 测试同一个module在不同的injector中是会保持单例，并不能。
@@ -32,19 +32,19 @@ import com.wjybxx.fastjgame.mgr.GameConfigMgr;
  */
 public class GlobalModuleTest {
 
-	public static void main(String[] args) {
-		WorldGroupModule worldGroupModule = new WorldGroupModule();
+    public static void main(String[] args) {
+        WorldGroupModule worldGroupModule = new WorldGroupModule();
 
-		Injector parentModule = Guice.createInjector(worldGroupModule);
-		Injector injector2 = Guice.createInjector(worldGroupModule);
+        Injector parentModule = Guice.createInjector(worldGroupModule);
+        Injector injector2 = Guice.createInjector(worldGroupModule);
 
-		Injector childModule1 = parentModule.createChildInjector(new SceneModule());
-		Injector childModule2 = parentModule.createChildInjector(new SceneModule());
+        Injector childModule1 = parentModule.createChildInjector(new SceneModule());
+        Injector childModule2 = parentModule.createChildInjector(new SceneModule());
 
-		// 不等。。
-		System.out.println(parentModule.getInstance(GameConfigMgr.class) == injector2.getInstance(GameConfigMgr.class));
-		// 相等
-		System.out.println(parentModule.getInstance(GameConfigMgr.class) == childModule1.getInstance(GameConfigMgr.class));
-		System.out.println(parentModule.getInstance(GameConfigMgr.class) == childModule2.getInstance(GameConfigMgr.class));
-	}
+        // 不等。。
+        System.out.println(parentModule.getInstance(GameConfigMgr.class) == injector2.getInstance(GameConfigMgr.class));
+        // 相等
+        System.out.println(parentModule.getInstance(GameConfigMgr.class) == childModule1.getInstance(GameConfigMgr.class));
+        System.out.println(parentModule.getInstance(GameConfigMgr.class) == childModule2.getInstance(GameConfigMgr.class));
+    }
 }

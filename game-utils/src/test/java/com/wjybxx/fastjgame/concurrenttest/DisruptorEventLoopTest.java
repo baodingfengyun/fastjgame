@@ -35,7 +35,7 @@ public class DisruptorEventLoopTest {
                 new DefaultThreadFactory("Disruptor-Thread"),
                 RejectedExecutionHandlers.abort());
 
-        eventLoop.execute(() ->  System.out.println("hello world!"));
+        eventLoop.execute(() -> System.out.println("hello world!"));
 
         eventLoop.terminationFuture().awaitUninterruptibly(5, TimeUnit.SECONDS);
 

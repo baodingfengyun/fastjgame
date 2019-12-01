@@ -27,7 +27,6 @@ import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.rpcservice.IWarzoneCenterSessionMgrRpcRegister;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.JsonUtils;
-import com.wjybxx.fastjgame.utils.SystemUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.CreateMode;
@@ -73,18 +72,18 @@ public class WarzoneWorld extends AbstractWorld {
 
     private void bindAndRegisterToZK() throws Exception {
         final CenterLifeAware centerLifeAware = new CenterLifeAware();
-        // 绑定jvm内部通信端口
+        // 绑定JVM内部端口
         gameAcceptorMgr.bindLocalPort(centerLifeAware);
-        // 绑定3个内部交互的端口
+        // 绑定socket端口
         HostAndPort tcpHostAndPort = gameAcceptorMgr.bindInnerTcpPort(centerLifeAware);
         HostAndPort httpHostAndPort = gameAcceptorMgr.bindInnerHttpPort();
-        HostAndPort localAddress = gameAcceptorMgr.bindLocalTcpPort(centerLifeAware);
 
         // 注册到zk
         String parentPath = ZKPathUtils.onlineWarzonePath(warzoneWorldInfoMgr.getWarzoneId());
         String nodeName = ZKPathUtils.buildWarzoneNodeName(warzoneWorldInfoMgr.getWarzoneId());
 
-        WarzoneNodeData centerNodeData = new WarzoneNodeData(tcpHostAndPort.toString(), httpHostAndPort.toString(), localAddress.toString(), SystemUtils.getMAC(),
+        WarzoneNodeData centerNodeData = new WarzoneNodeData(httpHostAndPort.toString(),
+                tcpHostAndPort.toString(),
                 warzoneWorldInfoMgr.getWorldGuid());
 
         final String path = ZKPaths.makePath(parentPath, nodeName);

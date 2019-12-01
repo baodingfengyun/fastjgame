@@ -19,8 +19,8 @@ package com.wjybxx.fastjgame.mgr;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.onlinenode.CenterNodeData;
 import com.wjybxx.fastjgame.core.onlinenode.CenterNodeName;
-import com.wjybxx.fastjgame.misc.CenterInLoginInfo;
 import com.wjybxx.fastjgame.misc.CenterServerId;
+import com.wjybxx.fastjgame.misc.LoginCenterSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,24 +35,24 @@ import java.util.Map;
  * date - 2019/5/17 21:23
  * github - https://github.com/hl845740757
  */
-public class CenterInLoginInfoMgr {
+public class LoginCenterSessionMgr {
 
-    private static final Logger logger = LoggerFactory.getLogger(CenterInLoginInfoMgr.class);
+    private static final Logger logger = LoggerFactory.getLogger(LoginCenterSessionMgr.class);
     /**
      * 中心服id -> 中心服信息
      */
-    private final Map<CenterServerId, CenterInLoginInfo> serverId2InfoMap = new HashMap<>();
+    private final Map<CenterServerId, LoginCenterSession> serverId2InfoMap = new HashMap<>();
 
     @Inject
-    public CenterInLoginInfoMgr() {
+    public LoginCenterSessionMgr() {
 
     }
 
     public void onDiscoverCenterServer(CenterNodeName nodeName, CenterNodeData nodeData) {
         assert !serverId2InfoMap.containsKey(nodeName.getServerId());
 
-        final CenterInLoginInfo centerInLoginInfo = new CenterInLoginInfo(nodeName, nodeData);
-        serverId2InfoMap.put(nodeName.getServerId(), centerInLoginInfo);
+        final LoginCenterSession loginCenterSession = new LoginCenterSession(nodeName, nodeData);
+        serverId2InfoMap.put(nodeName.getServerId(), loginCenterSession);
 
         logger.info("{} nodeData added.", nodeName.getServerId());
     }

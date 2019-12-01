@@ -17,8 +17,8 @@
 package com.wjybxx.fastjgame.test;
 
 import com.wjybxx.fastjgame.config.SceneConfig;
-import com.wjybxx.fastjgame.misc.SceneType;
 import com.wjybxx.fastjgame.mgr.SceneWrapper;
+import com.wjybxx.fastjgame.misc.SceneType;
 import com.wjybxx.fastjgame.scene.Scene;
 
 /**

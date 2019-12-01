@@ -30,11 +30,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class SceneNodeData extends TcpServerNodeData {
 
     @JsonCreator
-    public SceneNodeData(@JsonProperty("innerTcpAddress") String innerTcpAddress,
-                         @JsonProperty("innerHttpAddress") String innerHttpAddress,
-                         @JsonProperty("localAddress") String localAddress,
-                         @JsonProperty("macAddress") String macAddress) {
-        super(innerTcpAddress, innerHttpAddress, localAddress, macAddress);
+    public SceneNodeData(@JsonProperty("innerHttpAddress") String innerHttpAddress,
+                         @JsonProperty("innerTcpAddress") String innerTcpAddress) {
+        super(innerHttpAddress, innerTcpAddress);
     }
 
 }

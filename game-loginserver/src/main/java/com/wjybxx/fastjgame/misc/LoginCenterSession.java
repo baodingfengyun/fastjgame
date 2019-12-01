@@ -27,12 +27,12 @@ import com.wjybxx.fastjgame.core.onlinenode.CenterNodeName;
  * date - 2019/5/17 21:24
  * github - https://github.com/hl845740757
  */
-public class CenterInLoginInfo {
+public class LoginCenterSession {
 
     private final CenterNodeName nodeName;
     private final CenterNodeData nodeData;
 
-    public CenterInLoginInfo(CenterNodeName nodeName, CenterNodeData nodeData) {
+    public LoginCenterSession(CenterNodeName nodeName, CenterNodeData nodeData) {
         this.nodeName = nodeName;
         this.nodeData = nodeData;
     }
@@ -53,11 +53,4 @@ public class CenterInLoginInfo {
         return nodeData.getInnerHttpAddress();
     }
 
-    public String getLocalAddress() {
-        return nodeData.getLocalAddress();
-    }
-
-    public String getMacAddress() {
-        return nodeData.getMacAddress();
-    }
 }

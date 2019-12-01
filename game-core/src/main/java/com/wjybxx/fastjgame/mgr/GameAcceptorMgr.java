@@ -28,11 +28,9 @@ import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
 import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
 import com.wjybxx.fastjgame.utils.GameUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
-import com.wjybxx.fastjgame.utils.SystemUtils;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.net.BindException;
-import java.util.Objects;
 
 /**
  * 内部通信建立连接的辅助类
@@ -80,9 +78,6 @@ public class GameAcceptorMgr {
     }
 
     // --- tcp
-    public HostAndPort bindLocalTcpPort(SessionLifecycleAware lifecycleAware) throws BindException {
-        return bindTcpPort("localhost", GameUtils.LOCAL_TCP_PORT_RANGE, lifecycleAware);
-    }
 
     public HostAndPort bindInnerTcpPort(SessionLifecycleAware lifecycleAware) throws BindException {
         return bindTcpPort(NetUtils.getLocalIp(), GameUtils.INNER_TCP_PORT_RANGE, lifecycleAware);
@@ -114,26 +109,27 @@ public class GameAcceptorMgr {
         return netContext.bindHttp(NetUtils.getOuterIp(), port, httpPortConfig).getHostAndPort();
     }
 
-    public void connect(long remoteGuid, String innerTcpAddress, String localAddress, String macAddress, SessionLifecycleAware lifecycleAware) {
+    public void connect(long remoteGuid, String innerTcpAddress, SessionLifecycleAware lifecycleAware) {
         final LocalPort localPort = localPortMgr.getLocalPort(remoteGuid);
-        if (null != localPort) {
-            // 两个world在同一个进程内
-            LocalSessionConfig config = newLocalSessionConfig(lifecycleAware);
-            netContextMgr.getNetContext().connectLocal(newSessionId(remoteGuid), remoteGuid, localPort, config);
-            return;
-        }
-        if (Objects.equals(macAddress, SystemUtils.getMAC())) {
-            // 两个world在同一台机器，不走网卡
-            connectTcp(remoteGuid, HostAndPort.parseHostAndPort(localAddress), lifecycleAware);
+        if (inSameJVM(localPort)) {
+            connectLocal(remoteGuid, lifecycleAware, localPort);
         } else {
-            // 两个world在不同机器，走正常socket
             connectTcp(remoteGuid, HostAndPort.parseHostAndPort(innerTcpAddress), lifecycleAware);
         }
     }
 
+    private static boolean inSameJVM(LocalPort localPort) {
+        return null != localPort;
+    }
+
+    private void connectLocal(long remoteGuid, SessionLifecycleAware lifecycleAware, LocalPort localPort) {
+        netContextMgr.getNetContext().connectLocal(newSessionId(remoteGuid), remoteGuid, localPort,
+                newLocalSessionConfig(lifecycleAware));
+    }
+
     private void connectTcp(long remoteGuid, HostAndPort hostAndPort, SessionLifecycleAware lifecycleAware) {
-        netContextMgr.getNetContext().connectTcp(newSessionId(remoteGuid), remoteGuid,
-                hostAndPort, newSocketSessionConfig(lifecycleAware));
+        netContextMgr.getNetContext().connectTcp(newSessionId(remoteGuid), remoteGuid, hostAndPort,
+                newSocketSessionConfig(lifecycleAware));
     }
 
     private SocketSessionConfig newSocketSessionConfig(SessionLifecycleAware lifecycleAware) {
