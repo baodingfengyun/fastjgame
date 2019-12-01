@@ -69,7 +69,7 @@ public class LogProducerEventLoop extends DisruptorEventLoop {
         producer.close();
     }
 
-    public void log(LogBuilder logBuilder) {
+    public void publish(LogBuilder logBuilder) {
         execute(new KafkaLogTask(logBuilder));
     }
 
@@ -94,14 +94,9 @@ public class LogProducerEventLoop extends DisruptorEventLoop {
 
         @Override
         public void run() {
-            try {
-                final String content = logDirector.build(builder, System.currentTimeMillis());
-                // 指定partitionId，不通过key分发
-                producer.send(new ProducerRecord<>(builder.getLogTopic().toString(), PARTITION_ID,
-                        null, content));
-            } finally {
-                logDirector.reset();
-            }
+            final String content = logDirector.build(builder, System.currentTimeMillis());
+            // 指定partitionId，不通过key分发
+            producer.send(new ProducerRecord<>(builder.getLogTopic().toString(), PARTITION_ID, null, content));
         }
     }
 }

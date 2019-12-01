@@ -53,8 +53,7 @@ public class LogProducerMgr {
         producer.shutdown();
     }
 
-    public void log(LogBuilder logBuilder) {
-        producer.log(logBuilder);
+    public void publish(LogBuilder logBuilder) {
+        producer.publish(logBuilder);
     }
-
 }

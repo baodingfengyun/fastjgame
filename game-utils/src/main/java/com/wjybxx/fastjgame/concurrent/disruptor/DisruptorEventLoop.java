@@ -325,15 +325,16 @@ public class DisruptorEventLoop extends AbstractEventLoop {
                 // 如果申请sequence之后发现EventLoop已开始关闭，则申请到的sequence对应的数据可能未被EventLoop消费，
                 // 需要先放弃申请到的sequence(避免阻塞EventLoop，同时避免破坏数据)，再拒绝任务。
                 ringBuffer.publish(sequence);
+
                 rejectedExecutionHandler.rejected(task, this);
             } else {
                 try {
                     // 发布任务
                     ringBuffer.get(sequence).setTask(task);
-                    // 确保线程已启动
-                    ensureThreadStarted();
                 } finally {
                     ringBuffer.publish(sequence);
+                    // 确保线程已启动
+                    ensureThreadStarted();
                 }
             }
         }

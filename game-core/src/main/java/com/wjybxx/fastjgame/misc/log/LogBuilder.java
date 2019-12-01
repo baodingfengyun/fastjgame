@@ -16,21 +16,22 @@
 
 package com.wjybxx.fastjgame.misc.log;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.util.LinkedList;
 
 /**
  * 日志内容构建器。
- * 1. 它通过分隔符的方式组织内容， '='分隔键和值，'&'分隔键值对。
- * 2. 如果有内容是Base64编码的，那么'='可能造成一些问题。
- * 3. 目前的实现是在当前线程(逻辑线程)进行过滤，可能影响逻辑线程性能。
- * <p>
- * 直接构建为字符串是方便阅读，更安全的方式是序列化为字节数组。
+ * 注意：
+ * 1. 每条日志务必使用新的对象，发布之后再修改会导致线程安全问题。(加了检测又去掉了，我相信很容易遵守)
+ * 2. 添加完数据之后，调用{@link LogProducerEventLoop#publish(LogBuilder)}发布自己。
+ * 3. {@link #append(LogKey, String)}是关键方法，其它方法都是它的简单包装，添加新的api时需要注意。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/11/27
  * github - https://github.com/hl845740757
  */
+@NotThreadSafe
 public class LogBuilder {
 
     private final LogType logType;
@@ -83,7 +84,7 @@ public class LogBuilder {
         return logType.topic;
     }
 
-    public LinkedList<LogEntry> getEntryList() {
+    LinkedList<LogEntry> getEntryList() {
         return entryList;
     }
 }

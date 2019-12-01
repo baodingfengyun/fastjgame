@@ -21,6 +21,9 @@ import java.util.regex.Pattern;
 
 /**
  * 建造指挥者默认实现
+ * 1. 它通过分隔符的方式组织内容， '='分隔键和值，'&'分隔键值对。
+ * 2. 如果有内容是Base64编码的，那么'='可能造成一些问题。
+ * 3. 构建为字符串是方便阅读，更安全的方式是序列化为字节数组。
  *
  * @author wjybxx
  * @version 1.0
@@ -32,7 +35,7 @@ public class DefaultLogDirector implements LogDirector {
     /**
      * 替换换行符，回车符，制表符，反斜杠，'&' '='
      */
-    private static final Pattern PATTERN = Pattern.compile("[\\s\\\\&=?]");
+    private static final Pattern PATTERN = Pattern.compile("[\\r\\n\\t\\v\\f\\\\&=]");
 
     /**
      * 键与值之间的分隔符
@@ -48,9 +51,10 @@ public class DefaultLogDirector implements LogDirector {
     private static final String REPLACEMENT = "_";
 
     /**
-     * 游戏日志一般较长，尽量减少扩容操作 - 这个值可以在使用一段时间之后修正的更贴近。
+     * 游戏日志一般较长，合适的初始容量可以减少扩容操作。
+     * 这个值可以在使用一段时间之后修正的更贴近。
      */
-    private static final int BUILDER_INIT_CAPACITY = 150;
+    private static final int BUILDER_INIT_CAPACITY = 300;
     /**
      * 存放日志内容的builder
      */
@@ -59,6 +63,8 @@ public class DefaultLogDirector implements LogDirector {
     @Nonnull
     @Override
     public String build(LogBuilder logBuilder, long curTimeMillis) {
+        stringBuilder.setLength(0);
+
         appendKey(LogKey.LOG_TYPE);
         stringBuilder.append(logBuilder.getLogType().toString());
 
@@ -71,11 +77,6 @@ public class DefaultLogDirector implements LogDirector {
         }
 
         return stringBuilder.toString();
-    }
-
-    @Override
-    public void reset() {
-        stringBuilder.setLength(0);
     }
 
     private void appendKey(LogKey key) {

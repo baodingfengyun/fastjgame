@@ -36,8 +36,4 @@ public interface LogDirector {
     @Nonnull
     String build(LogBuilder logBuilder, long curTimeMillis);
 
-    /**
-     * 恢复到初始状态，如果{@link #build(LogBuilder, long)}修改了状态的话
-     */
-    void reset();
 }

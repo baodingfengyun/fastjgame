@@ -40,8 +40,8 @@ public class LogMgr {
         this.logProducerMgr = logProducerMgr;
     }
 
-    public void log(LogBuilder logBuilder) {
-        logProducerMgr.log(logBuilder);
+    public void publish(LogBuilder logBuilder) {
+        logProducerMgr.publish(logBuilder);
     }
 
     // TODO 日志代码在这里添加

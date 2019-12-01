@@ -49,7 +49,7 @@ public class LogProducerEventLoopTest {
     private static void doProduce(LogProducerEventLoop producer) {
         final long endTime = System.currentTimeMillis() + TimeUtils.MIN * 5;
         for (int playerGuid = 1; System.currentTimeMillis() < endTime; playerGuid++) {
-            producer.log(newLog(playerGuid));
+            producer.publish(newLog(playerGuid));
             LockSupport.parkNanos(TimeUtils.NANO_PER_MILLISECOND);
         }
     }
@@ -70,6 +70,6 @@ public class LogProducerEventLoopTest {
         return new LogBuilder(LogType.TEST)
                 .append(LogKey.playerGuid, playerGuid)
                 .append(LogKey.playerName, "wjybxx")
-                .append(LogKey.chatContent, "这是一句没什么用的胡话&=，只不过带了点特殊字符=&");
+                .append(LogKey.chatContent, "\r\n\t\f\\这是一句没什么用的胡话&=，\r\n\t\f\\只不过带了点特殊字符=&");
     }
 }
