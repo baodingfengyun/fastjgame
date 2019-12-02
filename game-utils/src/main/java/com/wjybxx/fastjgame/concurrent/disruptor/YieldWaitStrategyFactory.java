@@ -40,12 +40,13 @@ import javax.annotation.Nonnull;
 public class YieldWaitStrategyFactory implements WaitStrategyFactory {
 
     private static final int SPIN_TRIES = 100;
+    private static final int DEFAULT_WAIT_TIMES_THRESHOLD = 1024;
 
     private final int spinTries;
     private final int waitTimesThreshold;
 
     public YieldWaitStrategyFactory() {
-        this(SPIN_TRIES, WaitStrategyFactory.DEFAULT_WAIT_TIMES_THRESHOLD);
+        this(SPIN_TRIES, DEFAULT_WAIT_TIMES_THRESHOLD);
     }
 
     /**

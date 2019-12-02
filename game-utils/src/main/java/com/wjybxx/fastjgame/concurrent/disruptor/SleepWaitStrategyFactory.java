@@ -44,13 +44,14 @@ public class SleepWaitStrategyFactory implements WaitStrategyFactory {
 
     private static final int DEFAULT_RETRIES = 200;
     private static final long DEFAULT_SLEEP_NS = 100;
+    private static final int DEFAULT_WAIT_TIMES_THRESHOLD = 256;
 
     private final int retries;
     private final long sleepTimeNs;
     private final int waitTimesThreshold;
 
     public SleepWaitStrategyFactory() {
-        this(DEFAULT_RETRIES, DEFAULT_SLEEP_NS, TimeUnit.NANOSECONDS, WaitStrategyFactory.DEFAULT_WAIT_TIMES_THRESHOLD);
+        this(DEFAULT_RETRIES, DEFAULT_SLEEP_NS, TimeUnit.NANOSECONDS, DEFAULT_WAIT_TIMES_THRESHOLD);
     }
 
     /**

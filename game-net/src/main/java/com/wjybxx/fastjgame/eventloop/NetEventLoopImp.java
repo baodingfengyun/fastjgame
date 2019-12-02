@@ -58,7 +58,7 @@ import java.util.concurrent.locks.LockSupport;
 public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLoop {
 
     private static final Logger logger = LoggerFactory.getLogger(NetEventLoopImp.class);
-    private static final int MAX_BATCH_SIZE = 32 * 1024;
+    private static final int BATCH_SIZE = 8 * 1024;
 
     private final Set<EventLoop> userEventLoopSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private final NetEventLoopManager netEventLoopManager;
@@ -174,7 +174,7 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     protected void loop() {
         while (true) {
             try {
-                runTasksBatch(MAX_BATCH_SIZE);
+                runTasksBatch(BATCH_SIZE);
 
                 // 更新时间
                 netTimeManager.update(System.currentTimeMillis());

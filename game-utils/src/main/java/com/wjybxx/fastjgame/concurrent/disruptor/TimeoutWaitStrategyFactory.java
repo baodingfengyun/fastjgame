@@ -38,13 +38,13 @@ import java.util.concurrent.TimeUnit;
  */
 public class TimeoutWaitStrategyFactory implements WaitStrategyFactory {
 
-    private static final int TIMEOUT_MS = 1;
+    private static final int DEFAULT_TIMEOUT = 1;
 
     private final int timeout;
     private final TimeUnit timeUnit;
 
     public TimeoutWaitStrategyFactory() {
-        this(TIMEOUT_MS, TimeUnit.MILLISECONDS);
+        this(DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
     }
 
     public TimeoutWaitStrategyFactory(int timeout, TimeUnit timeUnit) {

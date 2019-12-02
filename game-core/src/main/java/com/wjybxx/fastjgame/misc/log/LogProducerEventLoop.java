@@ -38,9 +38,11 @@ import java.util.concurrent.ThreadFactory;
  */
 public class LogProducerEventLoop extends DisruptorEventLoop {
     /**
-     * 日志线程任务缓冲区大小
+     * 日志线程任务缓冲区大小，也不需要太大
      */
     private static final int PRODUCER_RING_BUFFER_SIZE = 64 * 1024;
+    private static final int PRODUCER_BATCH_SIZE = 1024;
+
     /**
      * 由于游戏打点日志并不是太多，可以将日志总是打在同一个partition下（可以获得全局的顺序性）
      */
@@ -52,7 +54,7 @@ public class LogProducerEventLoop extends DisruptorEventLoop {
     public LogProducerEventLoop(@Nonnull String brokerList,
                                 @Nonnull ThreadFactory threadFactory,
                                 @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
-        super(null, threadFactory, rejectedExecutionHandler, PRODUCER_RING_BUFFER_SIZE, new SleepWaitStrategyFactory());
+        super(null, threadFactory, rejectedExecutionHandler, PRODUCER_RING_BUFFER_SIZE, PRODUCER_BATCH_SIZE, new SleepWaitStrategyFactory());
         this.producer = new KafkaProducer<>(newConfig(brokerList), new StringSerializer(), new StringSerializer());
     }
 

@@ -41,10 +41,12 @@ import javax.annotation.Nonnull;
  */
 public class BusySpinWaitStrategyFactory implements WaitStrategyFactory {
 
+    private static final int DEFAULT_WAIT_TIMES_THRESHOLD = 2048;
+
     private final int waitTimesThreshold;
 
     public BusySpinWaitStrategyFactory() {
-        this(WaitStrategyFactory.DEFAULT_WAIT_TIMES_THRESHOLD);
+        this(DEFAULT_WAIT_TIMES_THRESHOLD);
     }
 
     /**
