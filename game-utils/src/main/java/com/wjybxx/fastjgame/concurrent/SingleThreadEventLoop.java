@@ -397,14 +397,14 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
      * @return 至少有一个任务执行时返回true。
      */
     protected final boolean runAllTasks() {
-        return runTasksBatch(Integer.MAX_VALUE);
+        return runTasksBatch(-1);
     }
 
     /**
      * 尝试批量运行任务队列中的任务。
      *
-     * @param batchSize 执行的最大任务数，避免执行任务耗费太多时间。
-     *                  注意：它并不是一个精确的控制，可能执行的任务比该值多，但是会在一个范围之类{@link #CACHE_QUEUE_CAPACITY}。精确的控制意义不大。
+     * @param batchSize 执行的最大任务数，小于等于0表示不限制，设定限制数可避免执行任务耗费太多时间。
+     *                  注意：它并不是一个精确的控制(意义不大)，可能执行的任务比该值多，但是会在一个范围之类{@link #CACHE_QUEUE_CAPACITY}。
      * @return 至少有一个任务执行时返回true。
      */
     protected final boolean runTasksBatch(final int batchSize) {
@@ -421,7 +421,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
             runTaskNum += size;
 
             // 执行一批任务之后检查是否退出
-            if (runTaskNum >= batchSize) {
+            if (batchSize > 0 && runTaskNum >= batchSize) {
                 break;
             }
         }

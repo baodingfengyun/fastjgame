@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.concurrent;
 
+import com.wjybxx.fastjgame.annotation.UnstableApi;
 import com.wjybxx.fastjgame.concurrent.event.EventDispatchTask;
 import com.wjybxx.fastjgame.concurrent.event.EventDispatchTask2;
 import com.wjybxx.fastjgame.eventbus.EventDispatcher;
@@ -24,13 +25,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Spliterator;
-import java.util.concurrent.AbstractExecutorService;
-import java.util.concurrent.Callable;
-import java.util.concurrent.RunnableFuture;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
 
 /**
@@ -100,6 +96,8 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
         return new FailedFuture<V>(this, cause);
     }
 
+    // --------------------------------------- 事件分发 ----------------------------------------
+
     @Override
     public final <T> void post(@Nonnull T event) {
         final EventDispatcher dispatcher = dispatcher();
@@ -109,6 +107,7 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
         execute(new EventDispatchTask(dispatcher, event));
     }
 
+    @UnstableApi
     @Override
     public final <T> void post(Class<? super T> keyClazz, @Nonnull T event) {
         final EventDispatcher dispatcher = dispatcher();
@@ -158,6 +157,44 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
         return new PromiseTask<>(this, callable);
     }
     // endregion
+
+    // -------------------------------------- invoke阻塞调用检测 --------------------------------------
+    @Nonnull
+    @Override
+    public <T> T invokeAny(@Nonnull Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
+        throwIfInEventLoop("invokeAny");
+        return super.invokeAny(tasks);
+    }
+
+    @Nonnull
+    @Override
+    public <T> T invokeAny(@Nonnull Collection<? extends Callable<T>> tasks, long timeout, @Nonnull TimeUnit unit)
+            throws InterruptedException, ExecutionException, TimeoutException {
+        throwIfInEventLoop("invokeAny");
+        return super.invokeAny(tasks, timeout, unit);
+    }
+
+    @Nonnull
+    @Override
+    public <T> List<Future<T>> invokeAll(@Nonnull Collection<? extends Callable<T>> tasks)
+            throws InterruptedException {
+        throwIfInEventLoop("invokeAll");
+        return super.invokeAll(tasks);
+    }
+
+    @Nonnull
+    @Override
+    public <T> List<Future<T>> invokeAll(@Nonnull Collection<? extends Callable<T>> tasks,
+                                         long timeout, @Nonnull TimeUnit unit) throws InterruptedException {
+        throwIfInEventLoop("invokeAll");
+        return super.invokeAll(tasks, timeout, unit);
+    }
+
+    private void throwIfInEventLoop(String method) {
+        if (inEventLoop()) {
+            throw new RejectedExecutionException("Calling " + method + " from within the EventLoop is not allowed");
+        }
+    }
 
     // ---------------------------------------- 迭代 ---------------------------------------
     @Nonnull
