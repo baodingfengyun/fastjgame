@@ -141,9 +141,8 @@ public class ConcurrentUtils {
      * @param tryAcquireFun 资源申请函数
      * @param heartbeat     心跳间隔
      * @param timeUnit      时间单位
-     * @param <T>           资源的类型
      */
-    public static <T> void awaitWithSleepingRetry(TryAcquireFun2 tryAcquireFun, long heartbeat, TimeUnit timeUnit) {
+    public static void awaitWithSleepingRetry(TryAcquireFun2 tryAcquireFun, long heartbeat, TimeUnit timeUnit) {
         awaitWithRetry(toAcquireFunWithSleep(tryAcquireFun), heartbeat, timeUnit);
     }
 
@@ -155,7 +154,7 @@ public class ConcurrentUtils {
      * @param acquireFun 如果在资源上申请资源
      * @throws Exception error
      */
-    public static <T> void awaitRemoteUninterruptibly(RemoteAcquireFun acquireFun) throws Exception {
+    public static void awaitRemoteUninterruptibly(RemoteAcquireFun acquireFun) throws Exception {
         boolean interrupted = Thread.interrupted();
         try {
             while (true) {
@@ -174,13 +173,12 @@ public class ConcurrentUtils {
     /**
      * 使用重试的方式申请远程资源
      *
-     * @param <T>           资源类型
      * @param tryAcquireFun 尝试申请
      * @param heartbeat     心跳间隔
      * @param timeUnit      时间单位
      * @throws Exception error
      */
-    public static <T> void awaitRemoteWithRetry(RemoteTryAcquireFun tryAcquireFun, long heartbeat, TimeUnit timeUnit) throws Exception {
+    public static void awaitRemoteWithRetry(RemoteTryAcquireFun tryAcquireFun, long heartbeat, TimeUnit timeUnit) throws Exception {
         // 虽然是重复代码，但是不好消除
         boolean interrupted = Thread.interrupted();
         try {
@@ -205,7 +203,7 @@ public class ConcurrentUtils {
      * @param heartbeat     心跳间隔
      * @param timeUnit      时间单位
      */
-    public static <T> void awaitRemoteWithSleepingRetry(RemoteTryAcquireFun2 tryAcquireFun, long heartbeat, TimeUnit timeUnit) throws Exception {
+    public static void awaitRemoteWithSleepingRetry(RemoteTryAcquireFun2 tryAcquireFun, long heartbeat, TimeUnit timeUnit) throws Exception {
         awaitRemoteWithRetry(toAcquireRemoteFunWithSleep(tryAcquireFun), heartbeat, timeUnit);
     }
 
@@ -214,11 +212,10 @@ public class ConcurrentUtils {
     /**
      * 使用sleep转换为{@link TryAcquireFun}类型。
      *
-     * @param tryAcquireFun2 CAS的尝试函数
-     * @param <T>            资源类型
+     * @param tryAcquireFun2 无中断资源申请函数
      * @return
      */
-    private static <T> TryAcquireFun toAcquireFunWithSleep(TryAcquireFun2 tryAcquireFun2) {
+    private static TryAcquireFun toAcquireFunWithSleep(TryAcquireFun2 tryAcquireFun2) {
         return (timeout, timeUnit) -> {
             if (tryAcquireFun2.tryAcquire()) {
                 return true;
@@ -235,7 +232,7 @@ public class ConcurrentUtils {
      * @param tryAcquireFun2 CAS的尝试函数
      * @return
      */
-    private static <T> RemoteTryAcquireFun toAcquireRemoteFunWithSleep(RemoteTryAcquireFun2 tryAcquireFun2) {
+    private static RemoteTryAcquireFun toAcquireRemoteFunWithSleep(RemoteTryAcquireFun2 tryAcquireFun2) {
         return (timeout, timeUnit) -> {
             if (tryAcquireFun2.tryAcquire()) {
                 return true;
@@ -311,7 +308,7 @@ public class ConcurrentUtils {
      * @param exceptionHandler 异常处理器
      * @return Runnable
      */
-    public static Runnable runnable(Runnable r, ExceptionHandler exceptionHandler) {
+    public static Runnable safeRunnable(Runnable r, ExceptionHandler exceptionHandler) {
         return new SafeRunnable(r, exceptionHandler);
     }
 
@@ -322,7 +319,7 @@ public class ConcurrentUtils {
      * @param exceptionHandler 异常处理器
      * @return Runnable
      */
-    public static Runnable runnable(AnyRunnable r, ExceptionHandler exceptionHandler) {
+    public static Runnable safeRunnable(AnyRunnable r, ExceptionHandler exceptionHandler) {
         return new SafeRunnable2(r, exceptionHandler);
     }
 

@@ -75,11 +75,14 @@ public class TimeUtils {
      * 默认的时间格式
      */
     public static final String DEFAULT_PATTERN = "yyyy-MM-dd HH:mm:ss";
-
     /**
      * 默认时间格式器
      */
     public static final DateTimeFormatter DEFAULT_FORMATTER = DateTimeFormatter.ofPattern(DEFAULT_PATTERN);
+    /**
+     * 年月日的格式化器
+     */
+    public static final DateTimeFormatter YYYY_MM_DD = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     /**
      * 时分秒的格式化器
      */
@@ -117,8 +120,7 @@ public class TimeUtils {
      * @return 格式化后的字符串表示
      */
     public static String formatTime(long timeMs) {
-        LocalDateTime localDateTime = toLocalDateTime(timeMs);
-        return DEFAULT_FORMATTER.format(localDateTime);
+        return formatTime(timeMs, DEFAULT_FORMATTER);
     }
 
     /**
@@ -129,18 +131,29 @@ public class TimeUtils {
      * @return 格式化后的字符串表示
      */
     public static String formatTime(long timeMs, String pattern) {
+        return formatTime(timeMs, DateTimeFormatter.ofPattern(pattern));
+    }
+
+    /**
+     * 将 毫秒时间 格式化为 指定格式
+     *
+     * @param timeMs    毫秒时间
+     * @param formatter 时间格式器
+     * @return 格式化后的字符串表示
+     */
+    public static String formatTime(long timeMs, DateTimeFormatter formatter) {
         LocalDateTime localDateTime = toLocalDateTime(timeMs);
-        return DateTimeFormatter.ofPattern(pattern).format(localDateTime);
+        return formatter.format(localDateTime);
     }
 
     /**
      * 解析为毫秒时间戳
      *
-     * @param confParam {@link #DEFAULT_PATTERN}格式的字符串
+     * @param dateString {@link #DEFAULT_PATTERN}格式的字符串
      * @return millSecond
      */
-    public static long parseTimeMillis(String confParam) {
-        return LocalDateTime.parse(confParam, DEFAULT_FORMATTER).toInstant(ZONE_OFFSET).toEpochMilli();
+    public static long parseTimeMillis(String dateString) {
+        return LocalDateTime.parse(dateString, DEFAULT_FORMATTER).toInstant(ZONE_OFFSET).toEpochMilli();
     }
 
     /**
@@ -161,12 +174,11 @@ public class TimeUtils {
      * @return end time of special day
      */
     public static long getTimeEndOfToday(long curTimeMs) {
-        LocalDateTime localDateTime = toLocalDateTimeIgnoreMs(curTimeMs);
-        return localDateTime.with(MIDNIGHT).toEpochSecond(ZONE_OFFSET) * 1000 + (DAY - 1);
+        return getTimeBeginOfToday(curTimeMs) + DAY - 1;
     }
 
     /**
-     * 获取指定时间戳所在那一周的周一00:00:00的毫秒时间戳
+     * 获取指定时间戳所在周的周一00:00:00的毫秒时间戳
      *
      * @param curTimeMs 指定时间戳，用于确定所在的周
      * @return midnight of monday
@@ -175,6 +187,16 @@ public class TimeUtils {
         long beginOfToday = getTimeBeginOfToday(curTimeMs);
         LocalDateTime localDateTime = toLocalDateTimeIgnoreMs(curTimeMs);
         return beginOfToday - (localDateTime.getDayOfWeek().getValue() - DayOfWeek.MONDAY.getValue()) * DAY;
+    }
+
+    /**
+     * 获取指定时间戳所在周的周日23:59:59的毫秒时间戳
+     *
+     * @param curTimeMs 指定时间戳，用于确定所在的周
+     * @return midnight of monday
+     */
+    public static long getTimeEndOfWeek(long curTimeMs) {
+        return getTimeBeginOfWeek(curTimeMs) + WEEK - 1;
     }
 
     /**
@@ -196,7 +218,7 @@ public class TimeUtils {
      * @return >=0,同一天返回0，否则返回值大于0
      */
     public static int differDays(long time1, long time2) {
-        return (int) Math.abs(getTimeBeginOfToday(time1) - getTimeBeginOfToday(time2) / DAY);
+        return (int) (Math.abs(getTimeBeginOfToday(time1) - getTimeBeginOfToday(time2)) / DAY);
     }
 
     /**
@@ -224,9 +246,15 @@ public class TimeUtils {
     public static void main(String[] args) {
         final long timeMillis = System.currentTimeMillis();
         System.out.println("Current " + formatTime(timeMillis));
-        System.out.println("Today " + formatTime(getTimeBeginOfToday(timeMillis)));
-        System.out.println("Monday " + formatTime(getTimeBeginOfWeek(timeMillis)));
-        System.out.println("SameDay " + isSameDay(timeMillis, timeMillis));
-        System.out.println("Yesterday " + isSameDay(timeMillis, timeMillis - DAY));
+
+        System.out.println("\nBeginOfToday " + formatTime(getTimeBeginOfToday(timeMillis)));
+        System.out.println("EndOfToday " + formatTime(getTimeEndOfToday(timeMillis)));
+
+        System.out.println("\nToday is same day? " + isSameDay(timeMillis, timeMillis));
+        System.out.println("Yesterday is same day? " + isSameDay(timeMillis, timeMillis - DAY));
+        System.out.println("Yesterday differ days = " + differDays(timeMillis, timeMillis - DAY));
+
+        System.out.println("\nBeginOfWeek " + formatTime(getTimeBeginOfWeek(timeMillis)));
+        System.out.println("EndOfWeek " + formatTime(getTimeEndOfWeek(timeMillis)));
     }
 }
