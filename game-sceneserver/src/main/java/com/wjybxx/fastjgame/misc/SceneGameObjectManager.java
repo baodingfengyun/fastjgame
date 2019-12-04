@@ -30,10 +30,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class SceneGameObjectManager extends GameObjectContainer {
 
     public SceneGameObjectManager() {
-        this(InitCapacityHolder.EMPTY);
-    }
 
-    public SceneGameObjectManager(InitCapacityHolder capacityHolder) {
-        super(capacityHolder);
     }
 }

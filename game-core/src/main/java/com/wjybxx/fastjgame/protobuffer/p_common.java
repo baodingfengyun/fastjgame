@@ -1068,12 +1068,16 @@ public final class p_common {
      * 平台内服务器id
      * </pre>
      *
-     * <code>int32 platformServerId = 2;</code>
-     * @return The platformServerId.
+     * <code>int32 innerServerId = 2;</code>
+     * @return The innerServerId.
      */
-    int getPlatformServerId();
+    int getInnerServerId();
   }
   /**
+   * <pre>
+   * 中心服服务器id
+   * </pre>
+   *
    * Protobuf type {@code fastjgame.PCenterServerId}
    */
   public  static final class PCenterServerId extends
@@ -1125,7 +1129,7 @@ public final class p_common {
             }
             case 16: {
 
-              platformServerId_ = input.readInt32();
+              innerServerId_ = input.readInt32();
               break;
             }
             default: {
@@ -1174,18 +1178,18 @@ public final class p_common {
       return platformTypeNumber_;
     }
 
-    public static final int PLATFORMSERVERID_FIELD_NUMBER = 2;
-    private int platformServerId_;
+    public static final int INNERSERVERID_FIELD_NUMBER = 2;
+    private int innerServerId_;
     /**
      * <pre>
      * 平台内服务器id
      * </pre>
      *
-     * <code>int32 platformServerId = 2;</code>
-     * @return The platformServerId.
+     * <code>int32 innerServerId = 2;</code>
+     * @return The innerServerId.
      */
-    public int getPlatformServerId() {
-      return platformServerId_;
+    public int getInnerServerId() {
+      return innerServerId_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -1205,8 +1209,8 @@ public final class p_common {
       if (platformTypeNumber_ != 0) {
         output.writeInt32(1, platformTypeNumber_);
       }
-      if (platformServerId_ != 0) {
-        output.writeInt32(2, platformServerId_);
+      if (innerServerId_ != 0) {
+        output.writeInt32(2, innerServerId_);
       }
       unknownFields.writeTo(output);
     }
@@ -1221,9 +1225,9 @@ public final class p_common {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(1, platformTypeNumber_);
       }
-      if (platformServerId_ != 0) {
+      if (innerServerId_ != 0) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(2, platformServerId_);
+          .computeInt32Size(2, innerServerId_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -1242,8 +1246,8 @@ public final class p_common {
 
       if (getPlatformTypeNumber()
           != other.getPlatformTypeNumber()) return false;
-      if (getPlatformServerId()
-          != other.getPlatformServerId()) return false;
+      if (getInnerServerId()
+          != other.getInnerServerId()) return false;
       if (!unknownFields.equals(other.unknownFields)) return false;
       return true;
     }
@@ -1257,8 +1261,8 @@ public final class p_common {
       hash = (19 * hash) + getDescriptor().hashCode();
       hash = (37 * hash) + PLATFORMTYPENUMBER_FIELD_NUMBER;
       hash = (53 * hash) + getPlatformTypeNumber();
-      hash = (37 * hash) + PLATFORMSERVERID_FIELD_NUMBER;
-      hash = (53 * hash) + getPlatformServerId();
+      hash = (37 * hash) + INNERSERVERID_FIELD_NUMBER;
+      hash = (53 * hash) + getInnerServerId();
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -1355,6 +1359,10 @@ public final class p_common {
       return builder;
     }
     /**
+     * <pre>
+     * 中心服服务器id
+     * </pre>
+     *
      * Protobuf type {@code fastjgame.PCenterServerId}
      */
     public static final class Builder extends
@@ -1394,7 +1402,7 @@ public final class p_common {
         super.clear();
         platformTypeNumber_ = 0;
 
-        platformServerId_ = 0;
+        innerServerId_ = 0;
 
         return this;
       }
@@ -1423,7 +1431,7 @@ public final class p_common {
       public com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId buildPartial() {
         com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId result = new com.wjybxx.fastjgame.protobuffer.p_common.PCenterServerId(this);
         result.platformTypeNumber_ = platformTypeNumber_;
-        result.platformServerId_ = platformServerId_;
+        result.innerServerId_ = innerServerId_;
         onBuilt();
         return result;
       }
@@ -1475,8 +1483,8 @@ public final class p_common {
         if (other.getPlatformTypeNumber() != 0) {
           setPlatformTypeNumber(other.getPlatformTypeNumber());
         }
-        if (other.getPlatformServerId() != 0) {
-          setPlatformServerId(other.getPlatformServerId());
+        if (other.getInnerServerId() != 0) {
+          setInnerServerId(other.getInnerServerId());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -1549,30 +1557,30 @@ public final class p_common {
         return this;
       }
 
-      private int platformServerId_ ;
+      private int innerServerId_ ;
       /**
        * <pre>
        * 平台内服务器id
        * </pre>
        *
-       * <code>int32 platformServerId = 2;</code>
-       * @return The platformServerId.
+       * <code>int32 innerServerId = 2;</code>
+       * @return The innerServerId.
        */
-      public int getPlatformServerId() {
-        return platformServerId_;
+      public int getInnerServerId() {
+        return innerServerId_;
       }
       /**
        * <pre>
        * 平台内服务器id
        * </pre>
        *
-       * <code>int32 platformServerId = 2;</code>
-       * @param value The platformServerId to set.
+       * <code>int32 innerServerId = 2;</code>
+       * @param value The innerServerId to set.
        * @return This builder for chaining.
        */
-      public Builder setPlatformServerId(int value) {
+      public Builder setInnerServerId(int value) {
         
-        platformServerId_ = value;
+        innerServerId_ = value;
         onChanged();
         return this;
       }
@@ -1581,12 +1589,12 @@ public final class p_common {
        * 平台内服务器id
        * </pre>
        *
-       * <code>int32 platformServerId = 2;</code>
+       * <code>int32 innerServerId = 2;</code>
        * @return This builder for chaining.
        */
-      public Builder clearPlatformServerId() {
+      public Builder clearInnerServerId() {
         
-        platformServerId_ = 0;
+        innerServerId_ = 0;
         onChanged();
         return this;
       }
@@ -1666,10 +1674,10 @@ public final class p_common {
       "_data\022\022\n\nplayerGuid\030\001 \001(\003\0224\n\020originalSer" +
       "verId\030\002 \001(\0132\032.fastjgame.PCenterServerId\022" +
       "2\n\016actualServerId\030\003 \001(\0132\032.fastjgame.PCen" +
-      "terServerId\"G\n\017PCenterServerId\022\032\n\022platfo" +
-      "rmTypeNumber\030\001 \001(\005\022\030\n\020platformServerId\030\002" +
-      " \001(\005B.\n com.wjybxx.fastjgame.protobuffer" +
-      "B\010p_commonH\001b\006proto3"
+      "terServerId\"D\n\017PCenterServerId\022\032\n\022platfo" +
+      "rmTypeNumber\030\001 \001(\005\022\025\n\rinnerServerId\030\002 \001(" +
+      "\005B.\n com.wjybxx.fastjgame.protobufferB\010p" +
+      "_commonH\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -1686,7 +1694,7 @@ public final class p_common {
     internal_static_fastjgame_PCenterServerId_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_fastjgame_PCenterServerId_descriptor,
-        new java.lang.String[] { "PlatformTypeNumber", "PlatformServerId", });
+        new java.lang.String[] { "PlatformTypeNumber", "InnerServerId", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

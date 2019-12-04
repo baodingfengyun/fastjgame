@@ -43,25 +43,25 @@ public class CenterServerId implements Comparable<CenterServerId> {
     private final PlatformType platformType;
 
     @SerializableField(number = 2)
-    private final int platformServerId;
+    private final int innerServerId;
 
     private CenterServerId() {
         // 序列化专用
         // noinspection ConstantConditions
         platformType = null;
-        platformServerId = 0;
+        innerServerId = 0;
     }
 
-    public CenterServerId(@Nonnull PlatformType platformType, int platformServerId) {
+    public CenterServerId(@Nonnull PlatformType platformType, int innerServerId) {
         this.platformType = platformType;
-        this.platformServerId = platformServerId;
+        this.innerServerId = innerServerId;
     }
 
     /**
      * @return 唯一标识
      */
     public long uniqueId() {
-        return MathUtils.composeToLong(platformType.getNumber(), platformServerId);
+        return MathUtils.composeToLong(platformType.getNumber(), innerServerId);
     }
 
     /**
@@ -75,8 +75,8 @@ public class CenterServerId implements Comparable<CenterServerId> {
     /**
      * @return 平台内的区服id
      */
-    public int getPlatformServerId() {
-        return platformServerId;
+    public int getInnerServerId() {
+        return innerServerId;
     }
 
     @Override
@@ -100,7 +100,7 @@ public class CenterServerId implements Comparable<CenterServerId> {
 
     @Override
     public String toString() {
-        return StringUtils.joinWith("-", platformType, platformServerId);
+        return StringUtils.joinWith("-", platformType, innerServerId);
     }
 
     @Override
@@ -111,7 +111,7 @@ public class CenterServerId implements Comparable<CenterServerId> {
     public p_common.PCenterServerId toMsg() {
         return p_common.PCenterServerId.newBuilder()
                 .setPlatformTypeNumber(platformType.getNumber())
-                .setPlatformServerId(platformServerId)
+                .setInnerServerId(innerServerId)
                 .build();
     }
 }

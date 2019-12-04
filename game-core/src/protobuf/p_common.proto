@@ -19,9 +19,10 @@ message p_player_data{
 	PCenterServerId actualServerId = 3;
 }
 
+// 中心服服务器id
 message PCenterServerId {
 	// 所属的平台号
 	int32 platformTypeNumber = 1;
 	// 平台内服务器id
-	int32 platformServerId = 2;
+	int32 innerServerId = 2;
 }

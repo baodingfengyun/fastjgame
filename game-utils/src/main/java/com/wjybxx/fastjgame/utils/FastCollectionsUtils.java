@@ -17,6 +17,8 @@
 package com.wjybxx.fastjgame.utils;
 
 import com.wjybxx.fastjgame.function.*;
+import it.unimi.dsi.fastutil.Hash;
+import it.unimi.dsi.fastutil.HashCommon;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntCollection;
@@ -243,42 +245,38 @@ public class FastCollectionsUtils {
     // region 创建足够容量的Map
 
     /**
-     * 创建足够容量的Map，容量到达指定容量之后才会开始扩容；
-     * 适合用在能估算最大容量的时候;
-     * 和JDK的loadFactor有区别，FastUtil无法使得大于{@code initCapacity}时才扩容
+     * 创建足够容量的Map，在存放指定数量元素之前不会发生扩容；
+     * 如果能预估元素数量，可以提高性能和内存使用率。
+     * FastUtil和JDK的loadFactor有区别：
      * FastUtil的集合是基于数组的，解决冲突采用的是线性探测法！因此不扩容的情况下能存储的元素个数是确定的；
-     * 而Jdk的集合特殊基于数组的，但是解决冲突采用的是链表/树，因此能存储大于数组容量的元素。
+     * 而JDK的集合也是基于数组的，但是解决冲突采用的是链表/树，因此能存储大于数组容量的元素。
      *
-     * @param constructor  map的构造器函数
-     * @param initCapacity 初始容量 大于0有效
-     * @param <K>          key的类型
-     * @param <V>          value的类型
+     * @param constructor map的构造器函数
+     * @param numElement  期望添加的元素数量
+     * @param <K>         key的类型
+     * @param <V>         value的类型
      * @return M
      */
-    public static <K, V, M extends Map<K, V>> M newEnoughCapacityMap(MapConstructor<M> constructor, int initCapacity) {
-        // fastUtil 需要 + 1,JDK的不需要
-        return initCapacity > 0 ? constructor.newMap(initCapacity + 1, 1) : constructor.newMap(16, 0.75f);
+    public static <K, V, M extends Map<K, V>> M newMapWithExpectedSize(MapConstructor<M> constructor, int numElement) {
+        if (numElement > 0) {
+            return constructor.newMap(HashCommon.arraySize(numElement, Hash.DEFAULT_LOAD_FACTOR), Hash.DEFAULT_LOAD_FACTOR);
+        } else {
+            return constructor.newMap(Hash.DEFAULT_INITIAL_SIZE, Hash.DEFAULT_LOAD_FACTOR);
+        }
     }
 
     /**
-     * @see #newEnoughCapacityMap(MapConstructor, int)
+     * @see #newMapWithExpectedSize(MapConstructor, int)
      */
-    public static <V> Long2ObjectMap<V> newEnoughCapacityLongMap(int initCapacity) {
-        return newEnoughCapacityMap(Long2ObjectOpenHashMap::new, initCapacity);
+    public static <V> Long2ObjectMap<V> newLong2ObjectHashMapWithExpectedSize(int numElement) {
+        return newMapWithExpectedSize(Long2ObjectOpenHashMap::new, numElement);
     }
 
     /**
-     * @see #newEnoughCapacityMap(MapConstructor, int)
+     * @see #newMapWithExpectedSize(MapConstructor, int)
      */
-    public static <V> Int2ObjectMap<V> newEnoughCapacityIntMap(int initCapacity) {
-        return newEnoughCapacityMap(Int2ObjectOpenHashMap::new, initCapacity);
-    }
-
-    /**
-     * @see #newEnoughCapacityMap(MapConstructor, int)
-     */
-    public static <V> Short2ObjectMap<V> newEnoughCapacityShortMap(int initCapacity) {
-        return newEnoughCapacityMap(Short2ObjectOpenHashMap::new, initCapacity);
+    public static <V> Int2ObjectMap<V> newInt2ObjectHashMapWithExpectedSize(int numElement) {
+        return newMapWithExpectedSize(Int2ObjectOpenHashMap::new, numElement);
     }
 
     // endregion

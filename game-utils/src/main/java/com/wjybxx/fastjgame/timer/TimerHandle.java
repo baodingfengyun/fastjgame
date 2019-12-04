@@ -37,6 +37,7 @@ public interface TimerHandle {
      * @param newData 新值
      * @return 之前的值，如果不存在，则返回null
      */
+    @Nullable
     <T> T attach(@Nullable Object newData);
 
     /**

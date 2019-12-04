@@ -16,7 +16,8 @@
 
 package com.wjybxx.fastjgame.utils;
 
-import com.wjybxx.fastjgame.function.MapConstructor;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
@@ -138,6 +139,58 @@ public final class CollectionUtils {
             }
         }
         return false;
+    }
+
+    public static <K> void requireNotContains(Map<K, ?> map, K k, String name) {
+        if (map.containsKey(k)) {
+            throw new IllegalArgumentException("duplicate " + name + " " + k);
+        }
+    }
+
+    /**
+     * 创建足够容量的Map，可减少扩容次数，适合用在能估算最大容量的时候;
+     *
+     * @param expectedSize 期望添加的元素数量
+     * @param <K>          key的类型
+     * @param <V>          value的类型
+     * @return Map
+     */
+    public static <K, V> HashMap<K, V> newHashMapWithExpectedSize(int expectedSize) {
+        return Maps.newHashMapWithExpectedSize(expectedSize);
+    }
+
+    /**
+     * 创建足够容量的Map，可减少扩容次数，适合用在能估算最大容量的时候;
+     *
+     * @param expectedSize 期望添加的元素数量
+     * @param <K>          key的类型
+     * @param <V>          value的类型
+     * @return Map
+     */
+    public static <K, V> LinkedHashMap<K, V> newLinkedHashMapWithExpectedSize(int expectedSize) {
+        return Maps.newLinkedHashMapWithExpectedSize(expectedSize);
+    }
+
+    /**
+     * 创建足够容量的Set，可减少扩容次数，适合用在能估算最大容量的时候;
+     *
+     * @param expectedSize 期望添加的元素数量
+     * @param <E>          the type of element
+     * @return Set
+     */
+    public static <E> HashSet<E> newHashSetWithExpectedSize(int expectedSize) {
+        return Sets.newHashSetWithExpectedSize(expectedSize);
+    }
+
+    /**
+     * 创建足够容量的Set，可减少扩容次数，适合用在能估算最大容量的时候;
+     *
+     * @param expectedSize 期望添加的元素数量
+     * @param <E>          the type of element
+     * @return Set
+     */
+    public static <E> LinkedHashSet<E> newLinkedHashSetWithExpectedSize(int expectedSize) {
+        return Sets.newLinkedHashSetWithExpectedSize(expectedSize);
     }
 
     // -------------------------------------------------- 分割线 ---------------------------------------------------
@@ -277,77 +330,6 @@ public final class CollectionUtils {
         } finally {
             // 返回前恢复中断状态
             ConcurrentUtils.recoveryInterrupted(interrupted);
-        }
-    }
-
-    public static <K> void requireNotContains(Map<K, ?> map, K k, String name) {
-        if (map.containsKey(k)) {
-            throw new IllegalArgumentException("duplicate " + name + " " + k);
-        }
-    }
-
-    /**
-     * 创建足够容量的Map，可减少扩容次数，适合用在能估算最大容量的时候;
-     *
-     * @param constructor  map的构造器函数
-     * @param initCapacity 初始容量 大于0有效
-     * @param <K>          key的类型
-     * @param <V>          value的类型
-     * @return M
-     */
-    public static <K, V, M extends Map<K, V>> M newEnoughCapacityMap(MapConstructor<M> constructor, int initCapacity) {
-        return initCapacity > 0 ? constructor.newMap(initCapacity, 1) : constructor.newMap(16, 0.75f);
-    }
-
-    /**
-     * 创建足够容量的HashMap，可减少扩容次数，适合用在能估算最大容量的时候;
-     *
-     * @param initCapacity 初始容量 大于0有效
-     * @param <K>          key的类型
-     * @param <V>          value的类型
-     */
-    public static <K, V> HashMap<K, V> newEnoughCapacityHashMap(int initCapacity) {
-        return newEnoughCapacityMap(HashMap::new, initCapacity);
-    }
-
-    /**
-     * 创建足够容量的LinkecHashMap，可减少扩容次数，适合用在能估算最大容量的时候;
-     *
-     * @param initCapacity 初始容量 大于0有效
-     * @param <K>          key的类型
-     * @param <V>          value的类型
-     * @return LinkedHashMap
-     */
-    public static <K, V> LinkedHashMap<K, V> newEnoughCapacityLinkedHashMap(int initCapacity) {
-        return newEnoughCapacityMap(LinkedHashMap::new, initCapacity);
-    }
-
-    /**
-     * 创建足够容量的HashSet，可减少扩容次数，适合用在能估算最大容量的时候;
-     *
-     * @param initCapacity 初始容量 大于0有效
-     * @param <E>          the type of element
-     * @return HashSet
-     */
-    public static <E> HashSet<E> newEnoughCapacityHashSet(int initCapacity) {
-        if (initCapacity > 0) {
-            return new HashSet<>(initCapacity, 1);
-        } else {
-            return new HashSet<>();
-        }
-    }
-
-    /**
-     * 创建足够容量的LinkecHashSet，适合用在能估算最大容量的时候;
-     *
-     * @param initCapacity 初始容量 大于0有效
-     * @return LinkedHashSet
-     */
-    public static <E> LinkedHashSet<E> newEnoughCapacityLinkedHashSet(int initCapacity) {
-        if (initCapacity > 0) {
-            return new LinkedHashSet<>(initCapacity, 1);
-        } else {
-            return new LinkedHashSet<>();
         }
     }
 

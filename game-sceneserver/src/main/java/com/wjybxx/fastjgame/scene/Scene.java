@@ -130,11 +130,11 @@ public abstract class Scene {
         MapData mapData = mapDataLoadMgr.loadMapData(sceneConfig.mapId);
         this.viewGridSet = new ViewGridSet(mapData.getMapWidth(),
                 mapData.getMapHeight(),
-                sceneConfig.viewableRange,
-                getViewGridInitCapacityHolder());
+                sceneConfig.viewableRange
+        );
 
         // 创建管理该场景对象的控制器
-        this.sceneGameObjectManager = new SceneGameObjectManager(getGameObjectManagerInitCapacityHolder());
+        this.sceneGameObjectManager = new SceneGameObjectManager();
 
         // 注册各种各样的处理器
         registerNotifyHandlers();
@@ -170,25 +170,6 @@ public abstract class Scene {
         serializerMapper.registerHandler(PLAYER, new PlayerSerializer());
         serializerMapper.registerHandler(NPC, new NpcSerializer());
         serializerMapper.registerHandler(PET, new PetSerializer());
-    }
-
-    /**
-     * 获取创建视野格子的默认容量信息，子类在需要的时候可以覆盖它;
-     *
-     * @return 默认empty
-     */
-    protected InitCapacityHolder getViewGridInitCapacityHolder() {
-        return InitCapacityHolder.EMPTY;
-    }
-
-    /**
-     * 获取SceneGameObjectManager创建时的初始容量信息，子类在需要的时候可以覆盖它;
-     * 名字是长了点...
-     *
-     * @return 默认empty
-     */
-    protected InitCapacityHolder getGameObjectManagerInitCapacityHolder() {
-        return InitCapacityHolder.EMPTY;
     }
 
     public SceneGameObjectManager getSceneGameObjectManager() {

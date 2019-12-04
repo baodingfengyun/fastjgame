@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.utils;
 import com.wjybxx.fastjgame.misc.CenterServerId;
 import com.wjybxx.fastjgame.misc.PortRange;
 import com.wjybxx.fastjgame.misc.RoleType;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,9 +70,6 @@ public class GameUtils {
 
     /**
      * 将int序列化为字符串字节数组，字符串具有更好的可读性
-     *
-     * @param integer
-     * @return
      */
     public static byte[] serializeToStringBytes(int integer) {
         return String.valueOf(integer).getBytes(StandardCharsets.UTF_8);
@@ -79,29 +77,16 @@ public class GameUtils {
 
     /**
      * 从字符串字节数组中解析一个int
-     *
-     * @param bytes
-     * @return
      */
     public static int parseIntFromStringBytes(byte[] bytes) {
         return Integer.parseInt(new String(bytes, StandardCharsets.UTF_8));
     }
 
     /**
-     * 使用UTF-8字符集创建字符串
-     *
-     * @param utf8Bytes 使用UTF-8编码的字节数组
-     * @return
-     */
-    public static String newString(byte[] utf8Bytes) {
-        return new String(utf8Bytes, StandardCharsets.UTF_8);
-    }
-
-    /**
      * 当json对象字节数组表示一个map对象时，返回对应的map对象
      *
      * @param jsonBytes json序列化的对象
-     * @return
+     * @return jsonMap
      */
     @SuppressWarnings("unchecked")
     public static Map<String, String> newJsonMap(byte[] jsonBytes) {
@@ -109,13 +94,13 @@ public class GameUtils {
     }
 
     /**
-     * 是否是null字符串或空字符串
+     * 是否是null字符串或空白字符串
      *
      * @param str 待检查的字符串
      * @return true or false
      */
-    public static boolean isNullOrEmptyString(String str) {
-        return null == str || str.length() == 0 || str.trim().length() == 0;
+    public static boolean isBlank(String str) {
+        return StringUtils.isBlank(str);
     }
 
     // db
@@ -128,7 +113,7 @@ public class GameUtils {
      */
     public static String centerDBName(CenterServerId actualServerId) {
         // platform的名字可能被修改，但是数字标记不可以被修改
-        return RoleType.CENTER + "_" + actualServerId.getPlatformType().getNumber() + "_" + actualServerId.getPlatformServerId();
+        return RoleType.CENTER + "_" + actualServerId.getPlatformType().getNumber() + "_" + actualServerId.getInnerServerId();
     }
 
     /**

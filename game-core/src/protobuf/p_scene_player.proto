@@ -52,6 +52,7 @@ message p_notify_player_others_in {
 	// 进入视野的宠物
 	repeated p_scene_pet_data pets = 3;
 }
+
 // 通知玩家，这些对象离开了视野
 message p_notify_player_others_out {
 	repeated int64 guids = 1;

@@ -71,7 +71,7 @@ public class ZKNodeConfigWrapper extends ConfigWrapper {
     }
 
     private static Map<String, byte[]> getRealMap(Map<String, byte[]> childrenData) {
-        Map<String, byte[]> realChildrenData = CollectionUtils.newEnoughCapacityHashMap(childrenData.size());
+        Map<String, byte[]> realChildrenData = CollectionUtils.newHashMapWithExpectedSize(childrenData.size());
         for (Map.Entry<String, byte[]> entry : childrenData.entrySet()) {
             String childName = ZKPathUtils.findNodeName(entry.getKey());
             byte[] childData = entry.getValue();

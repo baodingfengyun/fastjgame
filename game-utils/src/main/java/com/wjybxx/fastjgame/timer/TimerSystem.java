@@ -47,7 +47,7 @@ public interface TimerSystem extends TimeProvider {
      * 在指定延迟之后执行一次指定任务。
      * 该类型的任务有严格的时序保证！你认为先执行的一定先执行。
      *
-     * @param timeout 过期时间，毫秒，如果参数小于等于0，则表示在下一次{@link #tick()}的时候执行。等效于调用{@link #nextTick(TimerTask)}。
+     * @param timeout 过期时间，毫秒，如果参数小于等于0，等效于调用{@link #nextTick(TimerTask)}。
      * @param task    需要执行的任务
      * @return Timer对应的句柄
      */
@@ -55,7 +55,8 @@ public interface TimerSystem extends TimeProvider {
     TimeoutHandle newTimeout(long timeout, @Nonnull TimerTask task);
 
     /**
-     * 下一次{@link #tick()}的时候执行
+     * 下一次{@link #tick()}的时候执行。
+     * 注意：如果当前正在{@link #tick()}中，则会在当前{@link #tick()}执行。
      *
      * @param task 需要执行的任务
      * @return Timer对应的句柄

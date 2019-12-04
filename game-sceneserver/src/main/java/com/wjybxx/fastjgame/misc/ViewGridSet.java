@@ -88,18 +88,12 @@ public class ViewGridSet implements Grid2DContainer<ViewGrid> {
      */
     private final int colCount;
 
-    public ViewGridSet(int mapWidth, int mapHeight, int viewableRange) {
-        this(mapWidth, mapHeight, viewableRange, InitCapacityHolder.EMPTY);
-    }
-
     /**
-     * new instance
-     *
      * @param mapWidth      地图宽
      * @param mapHeight     地图高
      * @param viewableRange 视野大小（视野半径），最好是地图格子大小的倍数
      */
-    public ViewGridSet(int mapWidth, int mapHeight, int viewableRange, InitCapacityHolder capacityHolder) {
+    public ViewGridSet(int mapWidth, int mapHeight, int viewableRange) {
         this.mapWidth = mapWidth;
         this.mapHeight = mapHeight;
         this.viewableRange = viewableRange;
@@ -119,7 +113,7 @@ public class ViewGridSet implements Grid2DContainer<ViewGrid> {
         // 初始化视野格子
         for (int rowIndex = 0; rowIndex < rowCount; rowIndex++) {
             for (int colIndex = 0; colIndex < colCount; colIndex++) {
-                ViewGrid viewGrid = new ViewGrid(rowIndex, colIndex, viewGridWidth, capacityHolder);
+                ViewGrid viewGrid = new ViewGrid(rowIndex, colIndex, viewGridWidth);
                 allGrids[rowIndex][colIndex] = viewGrid;
             }
         }

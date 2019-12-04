@@ -68,11 +68,6 @@ public class ViewGrid extends GameObjectContainer implements Shape2D, Grid2D {
     private final ArrayList<ViewGrid> viewableGrids = new ArrayList<>(VIEWABLE_GRID_NUM);
 
     public ViewGrid(int rowIndex, int colIndex, int gridWidth) {
-        this(rowIndex, colIndex, gridWidth, InitCapacityHolder.EMPTY);
-    }
-
-    public ViewGrid(int rowIndex, int colIndex, int gridWidth, InitCapacityHolder initCapacityHolder) {
-        super(initCapacityHolder);
         this.rowIndex = rowIndex;
         this.colIndex = colIndex;
         this.gridWidth = gridWidth;

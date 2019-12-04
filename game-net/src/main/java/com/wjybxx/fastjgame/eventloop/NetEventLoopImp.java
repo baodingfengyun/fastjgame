@@ -193,14 +193,6 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         }
     }
 
-    @Subscribe
-    void onUserEventLoopTerminalInternal(EventLoopTerminalEvent event) {
-        final EventLoop userEventLoop = event.getTerminatedEventLoop();
-        acceptorManager.onUserEventLoopTerminal(userEventLoop);
-        connectorManager.onUserEventLoopTerminal(userEventLoop);
-        httpSessionManager.onUserEventLoopTerminal(userEventLoop);
-    }
-
     @Override
     protected void clean() throws Exception {
         super.clean();
@@ -223,13 +215,20 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
             // 监听用户线程关闭
             localEventLoop.terminationFuture().addListener(future -> {
                 if (!isShuttingDown()) {
-                    final EventLoopTerminalEvent terminalEvent = new EventLoopTerminalEvent(localEventLoop);
-                    post(terminalEvent);
+                    post(new EventLoopTerminalEvent(localEventLoop));
                 }
             });
         }
 
         return new DefaultNetContext(localGuid, localEventLoop, this, httpClientManager, nettyThreadManager);
+    }
+
+    @Subscribe
+    void onUserEventLoopTerminalInternal(EventLoopTerminalEvent event) {
+        final EventLoop userEventLoop = event.getTerminatedEventLoop();
+        acceptorManager.onUserEventLoopTerminal(userEventLoop);
+        connectorManager.onUserEventLoopTerminal(userEventLoop);
+        httpSessionManager.onUserEventLoopTerminal(userEventLoop);
     }
 
     // ---------------------------------------------- socket -------------------------------------------------

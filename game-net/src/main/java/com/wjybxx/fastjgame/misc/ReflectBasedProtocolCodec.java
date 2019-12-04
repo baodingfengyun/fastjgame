@@ -1007,7 +1007,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         @Nonnull
         @Override
         protected Set newCollection(int size) {
-            return CollectionUtils.newEnoughCapacityLinkedHashSet(size);
+            return CollectionUtils.newLinkedHashSetWithExpectedSize(size);
         }
     }
 
@@ -1051,7 +1051,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
             if (size == 0) {
                 return new LinkedHashMap();
             }
-            Map<Object, Object> map = CollectionUtils.newEnoughCapacityLinkedHashMap(size);
+            Map<Object, Object> map = CollectionUtils.newLinkedHashMapWithExpectedSize(size);
             for (int index = 0; index < size; index++) {
                 Object key = ReflectBasedProtocolCodec.this.readObject(inputStream);
                 Object value = ReflectBasedProtocolCodec.this.readObject(inputStream);
@@ -1068,7 +1068,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         @SuppressWarnings("unchecked")
         @Override
         public Map clone(Map obj) throws IOException {
-            Map<Object, Object> map = CollectionUtils.newEnoughCapacityLinkedHashMap(obj.size());
+            Map<Object, Object> map = CollectionUtils.newLinkedHashMapWithExpectedSize(obj.size());
             for (Map.Entry entry : ((Map<Object, Object>) obj).entrySet()) {
                 final Object k = ReflectBasedProtocolCodec.this.cloneObject(entry.getKey());
                 final Object v = ReflectBasedProtocolCodec.this.cloneObject(entry.getValue());

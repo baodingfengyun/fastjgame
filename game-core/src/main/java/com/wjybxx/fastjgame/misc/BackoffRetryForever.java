@@ -87,7 +87,7 @@ public class BackoffRetryForever implements RetryPolicy {
         int multiple = 1 << (exponential + 1);
 
         // curator源码有bug，int不可以直接乘得到long，会越界(不过可能等不到越界已经睡死了...)
-        long sleepMs = MathUtils.safeMultiplyInt(baseSleepTimeMs, Math.max(1, random.nextInt(multiple)));
+        long sleepMs = MathUtils.safeMultiplyToLong(baseSleepTimeMs, Math.max(1, random.nextInt(multiple)));
         // 超过最大睡眠时间
         if (sleepMs > maxSleepTimeMs) {
             logger.warn(String.format("Sleep extension too large (%d). Pinning to %d", sleepMs, maxSleepTimeMs));

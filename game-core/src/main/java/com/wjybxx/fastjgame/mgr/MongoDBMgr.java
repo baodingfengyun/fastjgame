@@ -44,7 +44,7 @@ import java.util.*;
 import java.util.function.Consumer;
 
 import static com.mongodb.client.model.Projections.*;
-import static com.wjybxx.fastjgame.utils.GameUtils.isNullOrEmptyString;
+import static com.wjybxx.fastjgame.utils.GameUtils.isBlank;
 
 /**
  * MongoDB驱动封装类。World级别的单例，不同的world有不同的需求
@@ -104,7 +104,7 @@ public abstract class MongoDBMgr {
         String password = zkMongoConfig.getAsString("password");
         String authdb = zkMongoConfig.getAsString("authdb");
         // 判断是否需要验证
-        if (isNullOrEmptyString(userName) || isNullOrEmptyString(password) || isNullOrEmptyString(authdb)) {
+        if (isBlank(userName) || isBlank(password) || isBlank(authdb)) {
             this.mongoClient = new MongoClient(addr, mongoClientOptions);
         } else {
             MongoCredential credential = MongoCredential.createCredential(userName, authdb, password.toCharArray());

@@ -116,7 +116,7 @@ public class TableSheetConfigWrapper extends ConfigWrapper {
      */
     private static Map<String, String> createIndex(TableSheet tableSheet, String keyColName, String valueColName) {
         // 使用LinkedHashMap保持原顺序
-        Map<String, String> result = CollectionUtils.newEnoughCapacityLinkedHashMap(tableSheet.getTotalRowNum());
+        Map<String, String> result = CollectionUtils.newLinkedHashMapWithExpectedSize(tableSheet.getTotalRowNum());
         for (TableRow tableRow : tableSheet.getContentRows()) {
             String key = tableRow.getAsString(keyColName);
             // 不可以有重复键

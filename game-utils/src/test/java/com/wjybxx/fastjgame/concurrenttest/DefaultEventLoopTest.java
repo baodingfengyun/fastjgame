@@ -30,12 +30,13 @@ public class DefaultEventLoopTest {
 
     public static void main(String[] args) {
 
-        ListenableFuture<String> future = eventLoopGroup.submit(() -> {
+        final ListenableFuture<String> future = eventLoopGroup.submit(() -> {
             System.out.println("before task1 return.");
             Thread.sleep(200);
             return "-hello world.";
         });
-        ListenableFuture<String> future2 = eventLoopGroup.submit(() -> {
+
+        final ListenableFuture<String> future2 = eventLoopGroup.submit(() -> {
             System.out.println("before task2  return.");
             Thread.sleep(200);
             return "-java";
@@ -48,7 +49,7 @@ public class DefaultEventLoopTest {
         System.out.println(future.getNow());
         System.out.println(future2.getNow());
 
-        ListenableFuture<String> future3 = eventLoopGroup.submit(() -> {
+        final ListenableFuture<String> future3 = eventLoopGroup.submit(() -> {
             Thread.sleep(500);
             return "500";
         });
@@ -63,7 +64,7 @@ public class DefaultEventLoopTest {
 
         future3.addListener((listenableFuture) -> {
             System.out.println("3 onComplete, thread " + Thread.currentThread().getName() + ",result = " + listenableFuture.getNow());
-            // 已完成到时候添加监听
+            // 已完成的时候添加监听
             future3.addListener(listenableFuture2 -> {
                 System.out.println("4 onComplete, thread " + Thread.currentThread().getName() + ",result = " + listenableFuture2.getNow());
             }, GlobalEventLoop.INSTANCE);

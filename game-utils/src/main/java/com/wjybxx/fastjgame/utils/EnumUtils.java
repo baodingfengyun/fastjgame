@@ -125,7 +125,7 @@ public class EnumUtils {
         }
 
         // 存在一定的浪费，判定重复用
-        Int2ObjectMap<T> result = FastCollectionsUtils.newEnoughCapacityIntMap(values.length);
+        Int2ObjectMap<T> result = FastCollectionsUtils.newInt2ObjectHashMapWithExpectedSize(values.length);
         int minNumber = values[0].getNumber();
         int maxNumber = values[0].getNumber();
 

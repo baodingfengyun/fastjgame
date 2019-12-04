@@ -77,7 +77,7 @@ public final class ArrayConfigWrapper extends ConfigWrapper {
     }
 
     private static Map<String, String> index(String[] pairsArray, String kvDelimiter) {
-        HashMap<String, String> map = CollectionUtils.newEnoughCapacityHashMap(pairsArray.length);
+        HashMap<String, String> map = CollectionUtils.newHashMapWithExpectedSize(pairsArray.length);
         for (String pair : pairsArray) {
             String[] keyValuePair = pair.split(kvDelimiter, 2);
             if (keyValuePair.length == 2) {

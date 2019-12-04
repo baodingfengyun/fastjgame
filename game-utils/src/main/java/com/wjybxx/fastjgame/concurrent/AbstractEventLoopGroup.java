@@ -99,7 +99,8 @@ public abstract class AbstractEventLoopGroup implements EventLoopGroup {
 
     @Nonnull
     @Override
-    public final <T> T invokeAny(@Nonnull Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
+    public final <T> T invokeAny(@Nonnull Collection<? extends Callable<T>> tasks)
+            throws InterruptedException, ExecutionException {
         return next().invokeAny(tasks);
     }
 

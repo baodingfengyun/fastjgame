@@ -16,8 +16,10 @@
 
 package com.wjybxx.fastjgame.function;
 
+import java.util.Map;
+
 /**
- * Map构造器函数
+ * {@link Map}构造器函数
  *
  * @author wjybxx
  * @version 1.0
@@ -25,7 +27,7 @@ package com.wjybxx.fastjgame.function;
  * github - https://github.com/hl845740757
  */
 @FunctionalInterface
-public interface MapConstructor<T> {
+public interface MapConstructor<T extends Map> {
 
     T newMap(final int expected, final float f);
 

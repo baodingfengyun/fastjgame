@@ -23,6 +23,7 @@ import com.wjybxx.fastjgame.gameobject.Player;
 import com.wjybxx.fastjgame.scene.gameobjectdata.GameObjectType;
 import com.wjybxx.fastjgame.utils.FastCollectionsUtils;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectCollection;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -42,7 +43,7 @@ public class GameObjectContainer {
     /**
      * 所有游戏对象
      */
-    private final Long2ObjectMap<GameObject> allGameObjectMap;
+    private final Long2ObjectMap<GameObject> totalGameObjectMap = new Long2ObjectOpenHashMap<>(64);
 
     /**
      * 玩家集合，用于快速访问;
@@ -58,7 +59,6 @@ public class GameObjectContainer {
      */
     private final Long2ObjectMap<Npc> npcMap;
 
-    private int totalInitCapacity = 0;
     /**
      * 辅助map，消除switch case；
      * 能改善代码的可读性，可维护性，但可能降低了速度。
@@ -66,34 +66,27 @@ public class GameObjectContainer {
     private final EnumMap<GameObjectType, Long2ObjectMap<? extends GameObject>> helperMap = new EnumMap<>(GameObjectType.class);
 
     public GameObjectContainer() {
-        this(InitCapacityHolder.EMPTY);
+        playerMap = createMap(GameObjectType.PLAYER);
+        petMap = createMap(GameObjectType.PET);
+        npcMap = createMap(GameObjectType.NPC);
     }
 
-    public GameObjectContainer(InitCapacityHolder capacityHolder) {
-        playerMap = createMap(GameObjectType.PLAYER, capacityHolder.getPlayerSetInitCapacity());
-        petMap = createMap(GameObjectType.PET, capacityHolder.getPetSetInitCapacity());
-        npcMap = createMap(GameObjectType.NPC, capacityHolder.getNpcSetInitCapacity());
-
-        allGameObjectMap = FastCollectionsUtils.newEnoughCapacityLongMap(totalInitCapacity);
-    }
-
-    private <V extends GameObject> Long2ObjectMap<V> createMap(GameObjectType gameObjectType, int initCapacity) {
-        Long2ObjectMap<V> result = FastCollectionsUtils.newEnoughCapacityLongMap(initCapacity);
+    private <V extends GameObject> Long2ObjectMap<V> createMap(GameObjectType gameObjectType) {
+        Long2ObjectMap<V> result = new Long2ObjectOpenHashMap<>();
         helperMap.put(gameObjectType, result);
-        totalInitCapacity += initCapacity;
         return result;
     }
 
     public GameObject getObject(long guid) {
-        return allGameObjectMap.get(guid);
+        return totalGameObjectMap.get(guid);
     }
 
     public int getAllGameObjectNum() {
-        return allGameObjectMap.size();
+        return totalGameObjectMap.size();
     }
 
     public ObjectCollection<GameObject> getAllGameObject() {
-        return allGameObjectMap.values();
+        return totalGameObjectMap.values();
     }
 
     public int getPlayerNum() {
@@ -123,8 +116,8 @@ public class GameObjectContainer {
      * @param <T>        对象的类型
      */
     public <T extends GameObject> void addGameObject(T gameObject) {
-        FastCollectionsUtils.requireNotContains(allGameObjectMap, gameObject.getGuid(), "guid");
-        allGameObjectMap.put(gameObject.getGuid(), gameObject);
+        FastCollectionsUtils.requireNotContains(totalGameObjectMap, gameObject.getGuid(), "guid");
+        totalGameObjectMap.put(gameObject.getGuid(), gameObject);
 
         @SuppressWarnings("unchecked")
         Long2ObjectMap<T> objectMap = (Long2ObjectMap<T>) helperMap.get(gameObject.getObjectType());
@@ -139,7 +132,7 @@ public class GameObjectContainer {
      * @param <T>        对象的类型
      */
     public <T extends GameObject> void removeObject(T gameObject) {
-        GameObject removeObj = allGameObjectMap.remove(gameObject.getGuid());
+        GameObject removeObj = totalGameObjectMap.remove(gameObject.getGuid());
         assert null != removeObj;
 
         @SuppressWarnings("unchecked")

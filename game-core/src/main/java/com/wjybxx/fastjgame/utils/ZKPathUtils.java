@@ -130,7 +130,7 @@ public class ZKPathUtils {
      * @param actualServerId 真实服id，现存的服务器
      */
     public static String actualServerConfigPath(CenterServerId actualServerId) {
-        return platParamPath(actualServerId.getPlatformType()) + "/actualserver/" + actualServerId.getPlatformServerId();
+        return platParamPath(actualServerId.getPlatformType()) + "/actualserver/" + actualServerId.getInnerServerId();
     }
 
     /**
@@ -139,7 +139,7 @@ public class ZKPathUtils {
      * @param originalServerId 逻辑服id(合服前的服id)
      */
     public static String originalServerConfigPath(CenterServerId originalServerId) {
-        return platParamPath(originalServerId.getPlatformType()) + "/originalserver/" + originalServerId.getPlatformServerId();
+        return platParamPath(originalServerId.getPlatformType()) + "/originalserver/" + originalServerId.getInnerServerId();
     }
 
     /**
@@ -235,7 +235,7 @@ public class ZKPathUtils {
      * @return 唯一的有意义的名字
      */
     public static String buildWarzoneNodeName(int warzoneId) {
-        return StringUtils.joinWith("-", RoleType.WARZONE, warzoneId);
+        return StringUtils.joinWith(NODE_NAME_SEPARATOR, RoleType.WARZONE, warzoneId);
     }
 
     /**
@@ -245,7 +245,7 @@ public class ZKPathUtils {
      * @return 战区基本信息
      */
     public static WarzoneNodeName parseWarzoneNodeName(String path) {
-        String[] params = findNodeName(path).split("-");
+        String[] params = findNodeName(path).split(NODE_NAME_SEPARATOR);
         int warzoneId = Integer.parseInt(params[1]);
         return new WarzoneNodeName(warzoneId);
     }
@@ -260,7 +260,7 @@ public class ZKPathUtils {
      * @return 唯一的有意义的名字
      */
     public static String buildCenterNodeName(CenterServerId serverId) {
-        return StringUtils.joinWith("-", RoleType.CENTER, serverId.getPlatformType(), serverId.getPlatformServerId());
+        return StringUtils.joinWith(NODE_NAME_SEPARATOR, RoleType.CENTER, serverId.getPlatformType(), serverId.getInnerServerId());
     }
 
     /**
@@ -270,7 +270,7 @@ public class ZKPathUtils {
      * @return game服的信息
      */
     public static CenterNodeName parseCenterNodeName(String centerPath) {
-        String[] params = findNodeName(centerPath).split("-");
+        String[] params = findNodeName(centerPath).split(NODE_NAME_SEPARATOR);
         PlatformType platformType = PlatformType.valueOf(params[1]);
         int serverId = Integer.parseInt(params[2]);
         return new CenterNodeName(new CenterServerId(platformType, serverId));
@@ -286,7 +286,7 @@ public class ZKPathUtils {
      * @return 唯一的有意义的名字
      */
     public static String buildSceneNodeName(long worldGuid) {
-        return StringUtils.joinWith("-", RoleType.SCENE, worldGuid);
+        return StringUtils.joinWith(NODE_NAME_SEPARATOR, RoleType.SCENE, worldGuid);
     }
 
     /**
@@ -297,7 +297,7 @@ public class ZKPathUtils {
      */
     public static SceneNodeName parseSceneNodeName(String path) {
         int warzoneId = findWarzoneId(path);
-        String[] params = findNodeName(path).split("-");
+        String[] params = findNodeName(path).split(NODE_NAME_SEPARATOR);
         long worldGuid = Long.parseLong(params[1]);
         return new SceneNodeName(warzoneId, worldGuid);
     }
@@ -319,7 +319,7 @@ public class ZKPathUtils {
      * @return 一个唯一的有意义的名字
      */
     public static String buildLoginNodeName(long worldGuid) {
-        return StringUtils.joinWith("-", RoleType.LOGIN, worldGuid);
+        return StringUtils.joinWith(NODE_NAME_SEPARATOR, RoleType.LOGIN, worldGuid);
     }
 
     /**
@@ -329,7 +329,7 @@ public class ZKPathUtils {
      * @return name
      */
     public static LoginNodeName parseLoginNodeName(String path) {
-        final String[] params = findNodeName(path).split("-");
+        final String[] params = findNodeName(path).split(NODE_NAME_SEPARATOR);
         long worldGuid = Long.parseLong(params[1]);
         return new LoginNodeName(worldGuid);
     }
@@ -345,7 +345,8 @@ public class ZKPathUtils {
      * @return nodeName
      */
     public static String buildGateNodeName(CenterServerId serverId, long worldGuid) {
-        return StringUtils.joinWith("-", RoleType.GATE, serverId.getPlatformType(), serverId.getPlatformServerId(), worldGuid);
+        return StringUtils.joinWith(NODE_NAME_SEPARATOR, RoleType.GATE,
+                serverId.getPlatformType(), serverId.getInnerServerId(), worldGuid);
     }
 
     /**
@@ -356,7 +357,7 @@ public class ZKPathUtils {
      */
     public static GateNodeName parseGateNodeName(String path) {
         final int warzoneId = findWarzoneId(path);
-        final String[] params = findNodeName(path).split("-");
+        final String[] params = findNodeName(path).split(NODE_NAME_SEPARATOR);
         final PlatformType platformType = PlatformType.valueOf(params[1]);
         final int serverId = Integer.parseInt(params[2]);
         final long worldGuid = Long.parseLong(params[3]);

@@ -144,7 +144,7 @@ abstract class AbstractTimerHandle implements TimerHandle {
     protected abstract void init();
 
     /**
-     * 任务执行一次之后，更新状态
+     * 任务执行一次之后，更新状态下次执行时间
      *
      * @param curTimeMs 当前系统时间
      */

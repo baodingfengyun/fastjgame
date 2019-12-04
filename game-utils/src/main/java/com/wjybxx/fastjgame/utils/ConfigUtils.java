@@ -255,7 +255,7 @@ public class ConfigUtils {
             return new LinkedHashMap<>();
         }
         String[] kvPairArray = content.split(arrayDelimiter);
-        Map<K, V> result = CollectionUtils.newEnoughCapacityLinkedHashMap(kvPairArray.length);
+        Map<K, V> result = CollectionUtils.newLinkedHashMapWithExpectedSize(kvPairArray.length);
         for (String kvPairStr : kvPairArray) {
             String[] kvPair = kvPairStr.split(kvDelimiter, 2);
             K key = keyParser.apply(kvPair[0]);

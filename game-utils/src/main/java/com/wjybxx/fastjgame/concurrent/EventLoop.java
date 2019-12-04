@@ -66,20 +66,16 @@ public interface EventLoop extends EventLoopGroup {
     EventLoopGroup parent();
 
     /**
-     * 发布一个事件
+     * {@inheritDoc}
      *
-     * @param event 必须是受支持的事件，否则该事件会被默默的丢弃 或 抛出一个异常
      * @apiNote 时序保证：实现必须和{@link #execute(Runnable)}具有相同的时序保证，也就是底层应该是{@link #execute(Runnable)}的一个封装。
      */
     @Override
     <T> void post(@Nonnull T event);
 
     /**
-     * 发布一个事件，并指定触发的事件类型
+     * {@inheritDoc}
      *
-     * @param keyClazz 希望事件以某个类型被处理。手动指定更加灵活，否则每次过滤筛选，效率差还容易造成错误。
-     * @param event    必须是受支持的事件，否则该事件会被默默的丢弃 或 抛出一个异常
-     * @param <T>      事件的类型
      * @apiNote 时序保证：实现必须和{@link #execute(Runnable)}具有相同的时序保证，也就是底层应该是{@link #execute(Runnable)}的一个封装。
      */
     @UnstableApi

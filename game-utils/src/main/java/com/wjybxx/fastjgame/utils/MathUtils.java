@@ -124,7 +124,7 @@ public class MathUtils {
      * @param b int
      * @return long
      */
-    public static long safeMultiplyInt(int a, int b) {
+    public static long safeMultiplyToLong(int a, int b) {
         return (long) a * b;
     }
 
@@ -136,7 +136,7 @@ public class MathUtils {
      * @param b short
      * @return integer
      */
-    public static int safeMultiplyShort(short a, short b) {
+    public static int safeMultiplyToInt(short a, short b) {
         return (int) a * b;
     }
 
