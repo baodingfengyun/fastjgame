@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.eventloop;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Stage;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.MultiThreadEventLoopGroup;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
@@ -74,7 +75,7 @@ class NetEventLoopGroupImp extends MultiThreadEventLoopGroup implements NetEvent
 
     static class GroupConfig {
 
-        private final Injector injector = Guice.createInjector(new NetEventLoopGroupModule());
+        private final Injector injector = Guice.createInjector(Stage.PRODUCTION, new NetEventLoopGroupModule());
         private final int bossGroupThreadNum;
         private final int workerGroupThreadNum;
         private final int httpRequestTimeout;

@@ -18,12 +18,14 @@ package com.wjybxx.fastjgame.world;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Stage;
 import com.wjybxx.fastjgame.concurrent.*;
 import com.wjybxx.fastjgame.configwrapper.ArrayConfigWrapper;
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.mgr.CuratorClientMgr;
 import com.wjybxx.fastjgame.mgr.GlobalExecutorMgr;
+import com.wjybxx.fastjgame.mgr.LogProducerMgr;
 import com.wjybxx.fastjgame.module.WorldGroupModule;
 import com.wjybxx.fastjgame.module.WorldModule;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
@@ -84,12 +86,22 @@ public class GameEventLoopGroupImp extends MultiThreadEventLoopGroup implements 
         return (RealContext) super.getContext();
     }
 
+    private void start() {
+        final Injector groupModule = getContext().groupInjector;
+        // 启动全局资源
+        groupModule.getInstance(LogProducerMgr.class).start();
+
+        // 启动所有WORLD线程
+        forEach(eventLoop -> eventLoop.execute(ConcurrentUtils.NO_OP_TASK));
+    }
+
     /**
      * 清理全局资源，EventLoopGroup级别资源
      */
     @Override
     protected void clean() {
-        Injector groupModule = getContext().groupInjector;
+        final Injector groupModule = getContext().groupInjector;
+        groupModule.getInstance(LogProducerMgr.class).shutdown();
         groupModule.getInstance(GlobalExecutorMgr.class).shutdown();
         groupModule.getInstance(CuratorClientMgr.class).shutdown();
     }
@@ -140,13 +152,15 @@ public class GameEventLoopGroupImp extends MultiThreadEventLoopGroup implements 
             return this;
         }
 
+        // build 也相当于工厂方法
         public GameEventLoopGroupImp build() {
             Objects.requireNonNull(netEventLoopGroup, "netEventLoopGroup");
 
             final RealContext realContext = new RealContext(netEventLoopGroup, children);
             final GameEventLoopGroupImp gameEventLoopGroup = new GameEventLoopGroupImp(threadFactory, rejectedExecutionHandler, chooserFactory, realContext);
-            // 构造完成之后，启动所有线程
-            gameEventLoopGroup.forEach(eventLoop -> eventLoop.execute(ConcurrentUtils.NO_OP_TASK));
+            // 初始化
+            gameEventLoopGroup.start();
+
             // 返回引用
             return gameEventLoopGroup;
         }
@@ -156,7 +170,7 @@ public class GameEventLoopGroupImp extends MultiThreadEventLoopGroup implements 
         /**
          * GameEventLoopGroup级别的单例
          */
-        private final Injector groupInjector = Guice.createInjector(new WorldGroupModule());
+        private final Injector groupInjector = Guice.createInjector(Stage.PRODUCTION, new WorldGroupModule());
         /**
          * 网络模块
          */

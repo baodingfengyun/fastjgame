@@ -72,7 +72,9 @@ public class CuratorClientMgr {
         backgroundExecutor = new ThreadPoolExecutor(1, 1,
                 5, TimeUnit.SECONDS,
                 new LinkedBlockingQueue<>(),
-                new DefaultThreadFactory("curator-backround"));
+                new DefaultThreadFactory("CURATOR-BACKGROUND"));
+        // 后台事件不多，允许自动关闭
+        backgroundExecutor.allowCoreThreadTimeOut(true);
     }
 
     public void shutdown() {
@@ -94,8 +96,9 @@ public class CuratorClientMgr {
      *
      * @return 已调用启动方法的客户端
      */
-    private CuratorFramework newStartedClient(GameConfigMgr gameConfigMgr) throws InterruptedException {
-        CuratorFramework framework = CuratorFrameworkFactory.builder()
+    private static CuratorFramework newStartedClient(GameConfigMgr gameConfigMgr) throws InterruptedException {
+        // WTF ??? CURATOR内部居然使用的是守护线程，如果要绑定线程工厂一定要注意，否则可能导致JVM无法退出。
+        final CuratorFramework framework = CuratorFrameworkFactory.builder()
                 .namespace(gameConfigMgr.getZkNameSpace())
                 .connectString(gameConfigMgr.getZkConnectString())
                 .connectionTimeoutMs(gameConfigMgr.getZkConnectionTimeoutMs())
@@ -114,7 +117,7 @@ public class CuratorClientMgr {
      *
      * @return RetryPolicy
      */
-    public BackoffRetryForever newForeverRetry() {
+    public static BackoffRetryForever newForeverRetry() {
         // 50ms - 5s 默认时间是很难调整和确定的
         return newForeverRetry(200, 5000);
     }
@@ -126,7 +129,7 @@ public class CuratorClientMgr {
      * @param maxSleepTimeMs  最大等待时间(毫秒)
      * @return RetryPolicy
      */
-    public BackoffRetryForever newForeverRetry(int baseSleepTimeMs, int maxSleepTimeMs) {
+    public static BackoffRetryForever newForeverRetry(int baseSleepTimeMs, int maxSleepTimeMs) {
         return new BackoffRetryForever(baseSleepTimeMs, maxSleepTimeMs);
     }
 
