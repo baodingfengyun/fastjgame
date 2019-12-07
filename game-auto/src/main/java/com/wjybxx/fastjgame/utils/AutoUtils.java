@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.utils;
 import com.squareup.javapoet.*;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.lang.model.element.*;
 import javax.lang.model.type.*;
 import javax.lang.model.util.Elements;
@@ -297,13 +298,13 @@ public class AutoUtils {
      * @param propertyName     属性的名字
      * @return object
      */
+    @Nullable
     public static Object getAnnotationValueNotDefault(AnnotationMirror annotationMirror, String propertyName) {
         final Optional<Object> property = annotationMirror.getElementValues().entrySet().stream()
                 .filter(entry -> entry.getKey().getSimpleName().toString().equals(propertyName))
                 .map(entry -> entry.getValue().getValue())
                 .findFirst();
-        assert property.isPresent();
-        return property.get();
+        return property.orElse(null);
     }
 
     /**
@@ -313,6 +314,7 @@ public class AutoUtils {
      * @param propertyName     属性的名字
      * @return object
      */
+    @Nonnull
     public static Object getAnnotationValue(Elements elementUtils, AnnotationMirror annotationMirror, String propertyName) {
         final Optional<Object> property = elementUtils.getElementValuesWithDefaults(annotationMirror).entrySet().stream()
                 .filter(entry -> entry.getKey().getSimpleName().toString().equals(propertyName))

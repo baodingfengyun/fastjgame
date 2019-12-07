@@ -24,10 +24,11 @@ import java.lang.annotation.Target;
 /**
  * 表示订阅一个事件。
  * 注意：
- * 1.使用该注解的方法有且仅有一个参数，参数类型就是自己订阅的事件类型。如果没有参数 或 超过一个参数，那么编译时会报错。
- * 2.参数不可以带泛型，因为泛型是不具备区分度的，如果存在泛型，那么编译时会报错。
- * 3.参数类型不可以是基本类型，因为发布事件的时候会封装为Object，基本类型会被装箱，会导致问题。
- * 4.方法不能是private - 至少是包级访问权限。
+ * 1.使用该注解的方法有且仅有一个参数，该参数的类型就是自己订阅的事件类型。如果没有参数 或 超过一个参数，那么编译时会报错。
+ * 2.如果期望订阅多个事件，请使用{@link #subEvents()}声明关注的其它事件。
+ * 3.参数不可以带泛型，因为泛型是不具备区分度的，如果存在泛型，那么编译时会报错。
+ * 4.参数类型不可以是基本类型，因为发布事件的时候会封装为Object，基本类型会被装箱，会导致问题。
+ * 5.方法不能是private - 至少是包级访问权限。
  * <p>
  * 示例类：{@link com.wjybxx.fastjgame.example.SubscriberExample}
  * <p>
@@ -42,5 +43,11 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.METHOD)
 public @interface Subscribe {
+
+    /**
+     * 声明需要订阅子事件。
+     * 注意：这里声明的类型必须是方法参数的子类型，否则编译错误。
+     */
+    Class[] subEvents() default {};
 
 }

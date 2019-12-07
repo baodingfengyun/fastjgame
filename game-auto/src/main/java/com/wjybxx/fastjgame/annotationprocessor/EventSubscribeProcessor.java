@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.annotationprocessor;
 
 import com.google.auto.service.AutoService;
 import com.squareup.javapoet.*;
+import com.wjybxx.fastjgame.utils.AutoUtils;
 
 import javax.annotation.Generated;
 import javax.annotation.processing.*;
@@ -28,11 +29,9 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.SimpleTypeVisitor8;
+import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -48,10 +47,12 @@ public class EventSubscribeProcessor extends AbstractProcessor {
 
     private static final String HANDLER_REGISTRY_CANONICAL_NAME = "com.wjybxx.fastjgame.eventbus.EventHandlerRegistry";
     private static final String SUBSCRIBE_CANONICAL_NAME = "com.wjybxx.fastjgame.eventbus.Subscribe";
+    private static final String SUB_EVENTS_METHOD_NAME = "subEvents";
 
     // 工具类
     private Messager messager;
     private Elements elementUtils;
+    private Types typeUtils;
 
     /**
      * 生成信息
@@ -69,6 +70,7 @@ public class EventSubscribeProcessor extends AbstractProcessor {
         super.init(processingEnv);
         messager = processingEnv.getMessager();
         elementUtils = processingEnv.getElementUtils();
+        typeUtils = processingEnv.getTypeUtils();
 
         generatedAnnotation = AnnotationSpec.builder(Generated.class)
                 .addMember("value", "$S", EventSubscribeProcessor.class.getCanonicalName())
@@ -148,9 +150,17 @@ public class EventSubscribeProcessor extends AbstractProcessor {
                 messager.printMessage(Diagnostic.Kind.ERROR, "TypeParameter is not allowed here!", method);
                 continue;
             }
-            TypeName typeName = ParameterizedTypeName.get(variableElement.asType());
+            // 注册参数关注的事件类型
+            final TypeName parametersTypeName = ParameterizedTypeName.get(variableElement.asType());
             // registry.register(EventA.class, event -> instance.method(event));
-            methodBuilder.addStatement("registry.register($T.class, event -> instance.$L(event))", typeName, method.getSimpleName().toString());
+            methodBuilder.addStatement("registry.register($T.class, event -> instance.$L(event))", parametersTypeName, method.getSimpleName().toString());
+
+            final Set<TypeMirror> subscribeSubTypes = collectTypes(method, variableElement);
+            for (TypeMirror subType : subscribeSubTypes) {
+                // 注意：这里需要转换为函数参数对应的事件类型（超类型），否则可能会找不到对应的方法，或关联到其它方法
+                final TypeName typeName = TypeName.get(subType);
+                methodBuilder.addStatement("registry.register($T.class, event -> instance.$L(($T)event))", typeName, method.getSimpleName().toString(), parametersTypeName);
+            }
         }
 
         typeBuilder.addMethod(methodBuilder.build());
@@ -168,6 +178,35 @@ public class EventSubscribeProcessor extends AbstractProcessor {
         } catch (Exception e) {
             processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "writeToFile caught exception!", typeElement);
         }
+    }
+
+    /**
+     * 搜集types属性对应的事件类型
+     */
+    private Set<TypeMirror> collectTypes(final ExecutableElement method, final VariableElement variableElement) {
+        final List<?> typeArray = (List<?>) AutoUtils.getAnnotationValueNotDefault(method.getAnnotationMirrors().get(0), SUB_EVENTS_METHOD_NAME);
+        if (null == typeArray) {
+            return Collections.emptySet();
+        }
+
+        final Set<TypeMirror> result = new HashSet<>();
+        for (Object typeBean : typeArray) {
+            final String typeName = typeBean.toString().replace(".class", "");
+            final TypeElement typeElement = elementUtils.getTypeElement(typeName);
+            if (null == typeElement) {
+                // 基本类型为null
+                messager.printMessage(Diagnostic.Kind.ERROR, "Unsupported type " + typeName, method);
+                continue;
+            }
+
+            if (!typeUtils.isSubtype(typeElement.asType(), variableElement.asType())) {
+                // 不是监听参数的子类型
+                messager.printMessage(Diagnostic.Kind.ERROR, SUB_EVENTS_METHOD_NAME + "'s element must be " + variableElement.asType().toString() + "'s subType", method);
+                continue;
+            }
+            result.add(typeElement.asType());
+        }
+        return result;
     }
 
     /**

@@ -21,7 +21,9 @@ import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.eventbus.EventBus;
 import com.wjybxx.fastjgame.eventbus.Subscribe;
 
+import javax.annotation.Nonnull;
 import java.util.HashSet;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * {@link com.wjybxx.fastjgame.eventbus.EventBus}的注册者例子。
@@ -68,13 +70,20 @@ public class SubscriberExample {
 
     }
 
-    @Subscribe
+    @Subscribe(subEvents = {
+            Integer.class,
+            String.class,
+            Boolean.class
+    })
     public void onEvent(Object name) {
 
     }
 
-    @Subscribe
-    public void onEvent(DefaultThreadFactory defaultThreadFactory) {
+    @Subscribe(subEvents = {
+            DefaultThreadFactory.class,
+            InternalThreadFactory.class
+    })
+    public void onEvent(ThreadFactory defaultThreadFactory) {
         System.out.println(defaultThreadFactory);
     }
 
@@ -101,5 +110,13 @@ public class SubscriberExample {
         bus.post(250);
 
         bus.post(new DefaultThreadFactory("bus"));
+    }
+
+    public static class InternalThreadFactory implements ThreadFactory {
+
+        @Override
+        public Thread newThread(@Nonnull Runnable r) {
+            return null;
+        }
     }
 }
