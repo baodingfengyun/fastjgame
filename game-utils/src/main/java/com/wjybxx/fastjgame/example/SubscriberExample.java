@@ -22,7 +22,6 @@ import com.wjybxx.fastjgame.eventbus.EventBus;
 import com.wjybxx.fastjgame.eventbus.Subscribe;
 
 import java.util.HashSet;
-import java.util.concurrent.ThreadFactory;
 
 /**
  * {@link com.wjybxx.fastjgame.eventbus.EventBus}的注册者例子。
@@ -102,6 +101,5 @@ public class SubscriberExample {
         bus.post(250);
 
         bus.post(new DefaultThreadFactory("bus"));
-        bus.post(ThreadFactory.class, new DefaultThreadFactory("bus"));
     }
 }

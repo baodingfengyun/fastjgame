@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.eventbus;
 
-import com.wjybxx.fastjgame.annotation.UnstableApi;
-
 import javax.annotation.Nonnull;
 
 /**
@@ -38,13 +36,4 @@ public interface EventDispatcher {
      */
     <T> void post(@Nonnull T event);
 
-    /**
-     * 发布一个事件，并指定触发的事件类型
-     *
-     * @param keyClazz 希望事件以某个类型被处理。手动指定更加灵活，否则每次过滤筛选，效率差还容易造成错误。
-     * @param event    要发布的事件
-     * @param <T>      事件的类型
-     */
-    @UnstableApi
-    <T> void post(Class<? super T> keyClazz, @Nonnull T event);
 }

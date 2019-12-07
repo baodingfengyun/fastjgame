@@ -38,18 +38,6 @@ import java.util.concurrent.*;
  */
 public abstract class AbstractEventLoopGroup implements EventLoopGroup {
 
-    // ------------------------------------ 发布一个事件 ----------------------------------
-
-    @Override
-    public final <T> void post(@Nonnull T event) {
-        next().post(event);
-    }
-
-    @Override
-    public final <T> void post(Class<? super T> keyClazz, @Nonnull T event) {
-        next().post(keyClazz, event);
-    }
-
     // ----------------------------------- 主要是为了支持 execute和submit -------------------
 
     /**
@@ -109,4 +97,12 @@ public abstract class AbstractEventLoopGroup implements EventLoopGroup {
             throws InterruptedException, ExecutionException, TimeoutException {
         return next().invokeAny(tasks, timeout, unit);
     }
+
+    // ------------------------------------ 发布一个事件 ----------------------------------
+
+    @Override
+    public final <T> void post(@Nonnull T event) {
+        next().post(event);
+    }
+
 }

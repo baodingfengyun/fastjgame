@@ -16,9 +16,7 @@
 
 package com.wjybxx.fastjgame.concurrent;
 
-import com.wjybxx.fastjgame.annotation.UnstableApi;
 import com.wjybxx.fastjgame.concurrent.event.EventDispatchTask;
-import com.wjybxx.fastjgame.concurrent.event.EventDispatchTask2;
 import com.wjybxx.fastjgame.eventbus.EventDispatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,16 +103,6 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
             throw new UnsupportedOperationException("postEvent");
         }
         execute(new EventDispatchTask(dispatcher, event));
-    }
-
-    @UnstableApi
-    @Override
-    public final <T> void post(Class<? super T> keyClazz, @Nonnull T event) {
-        final EventDispatcher dispatcher = dispatcher();
-        if (null == dispatcher) {
-            throw new UnsupportedOperationException("postEvent");
-        }
-        execute(new EventDispatchTask2<>(dispatcher, keyClazz, event));
     }
 
     /**

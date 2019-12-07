@@ -58,18 +58,10 @@ public class EventBus implements EventHandlerRegistry, EventDispatcher {
         handlerMap = new IdentityHashMap<>(initCapacity);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T> void post(@Nonnull T event) {
-        postInternal(event.getClass(), event);
-    }
-
-    @Override
-    public <T> void post(Class<? super T> keyClazz, @Nonnull T event) {
-        postInternal(keyClazz, event);
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> void postInternal(Class<?> keyClazz, @Nonnull T event) {
+        final Class<?> keyClazz = event.getClass();
         final EventHandler<T> eventHandler = (EventHandler<T>) handlerMap.get(keyClazz);
         if (null == eventHandler) {
             // 对应的事件处理器可能忘记了注册
@@ -86,9 +78,10 @@ public class EventBus implements EventHandlerRegistry, EventDispatcher {
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T> void register(@Nonnull Class<T> eventType, @Nonnull EventHandler<T> handler) {
-        @SuppressWarnings("unchecked") final EventHandler<T> existHandler = (EventHandler<T>) handlerMap.get(eventType);
+        final EventHandler<T> existHandler = (EventHandler<T>) handlerMap.get(eventType);
         if (null == existHandler) {
             handlerMap.put(eventType, handler);
         } else {

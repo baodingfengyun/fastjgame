@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.concurrent;
 
 
-import com.wjybxx.fastjgame.annotation.UnstableApi;
 import com.wjybxx.fastjgame.eventbus.EventDispatcher;
 
 import javax.annotation.Nonnull;
@@ -151,10 +150,6 @@ public interface EventLoopGroup extends ExecutorService, EventDispatcher, Iterab
 
     @Override
     <T> void post(@Nonnull T event);
-
-    @UnstableApi
-    @Override
-    <T> void post(Class<? super T> keyClazz, @Nonnull T event);
 
     // --------------------------------- EventLoop管理   --------------------------------
 

@@ -47,11 +47,6 @@ public class NetEventBusManager implements EventHandlerRegistry, EventDispatcher
     }
 
     @Override
-    public <T> void post(Class<? super T> keyClazz, @Nonnull T event) {
-        eventBus.post(keyClazz, event);
-    }
-
-    @Override
     public <T> void register(@Nonnull Class<T> eventType, @Nonnull EventHandler<T> handler) {
         // 避免在错误的时间调用
         ConcurrentUtils.ensureInEventLoop(eventLoopManager.getEventLoop());

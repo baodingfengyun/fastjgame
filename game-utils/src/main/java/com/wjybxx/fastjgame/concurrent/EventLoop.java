@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.concurrent;
 
-import com.wjybxx.fastjgame.annotation.UnstableApi;
 import com.wjybxx.fastjgame.eventbus.EventBus;
 
 import javax.annotation.Nonnull;
@@ -72,15 +71,6 @@ public interface EventLoop extends EventLoopGroup {
      */
     @Override
     <T> void post(@Nonnull T event);
-
-    /**
-     * {@inheritDoc}
-     *
-     * @apiNote 时序保证：实现必须和{@link #execute(Runnable)}具有相同的时序保证，也就是底层应该是{@link #execute(Runnable)}的一个封装。
-     */
-    @UnstableApi
-    @Override
-    <T> void post(Class<? super T> keyClazz, @Nonnull T event);
 
     /**
      * 当前线程是否是EventLoop线程。
