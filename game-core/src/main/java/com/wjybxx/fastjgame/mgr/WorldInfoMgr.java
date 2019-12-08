@@ -59,7 +59,7 @@ public abstract class WorldInfoMgr {
      *
      * @throws Exception 允许抛出异常
      */
-    public void init(ConfigWrapper startArgs) throws Exception {
+    public final void init(ConfigWrapper startArgs) throws Exception {
         this.startArgs = startArgs;
         this.initImp(startArgs);
     }

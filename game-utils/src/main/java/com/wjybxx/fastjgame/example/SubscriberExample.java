@@ -24,6 +24,7 @@ import com.wjybxx.fastjgame.eventbus.Subscribe;
 import javax.annotation.Nonnull;
 import java.util.HashSet;
 import java.util.concurrent.ThreadFactory;
+import java.util.function.BooleanSupplier;
 
 /**
  * {@link com.wjybxx.fastjgame.eventbus.EventBus}的注册者例子。
@@ -70,13 +71,14 @@ public class SubscriberExample {
 
     }
 
-    @Subscribe(subEvents = {
-            Integer.class,
-            String.class,
-            Boolean.class
-    })
-    public void onEvent(Object name) {
-
+    @Subscribe(onlySubEvents = true,
+            subEvents = {
+                    Integer.class,
+                    String.class,
+                    Boolean.class
+            })
+    public void onEvent(Object event) {
+        System.out.println("onEvent - Object " + event);
     }
 
     @Subscribe(subEvents = {
@@ -84,7 +86,7 @@ public class SubscriberExample {
             InternalThreadFactory.class
     })
     public void onEvent(ThreadFactory defaultThreadFactory) {
-        System.out.println(defaultThreadFactory);
+        System.out.println("onEvent - ThreadFactory " + defaultThreadFactory);
     }
 
     //	@Subscribe

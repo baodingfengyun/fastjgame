@@ -45,6 +45,12 @@ import java.lang.annotation.Target;
 public @interface Subscribe {
 
     /**
+     * 是否只订阅子事件类型
+     * (不为方法参数生成事件注册方法)
+     */
+    boolean onlySubEvents() default false;
+
+    /**
      * 声明需要订阅子事件。
      * 注意：这里声明的类型必须是方法参数的子类型，否则编译错误。
      */

@@ -274,8 +274,8 @@ public class RpcServiceProcessor extends AbstractProcessor {
                 continue;
             }
             // 方法id，基本类型会被封装为包装类型，Object并不能直接转换到基本类型
-            final short methodId = (Short) AutoUtils.getAnnotationValueNotDefault(rpcMethodAnnotation.get(), METHOD_ID_METHOD_NAME);
-            if (methodId < 0 || methodId > 9999) {
+            final Short methodId = (Short) AutoUtils.getAnnotationValueNotDefault(rpcMethodAnnotation.get(), METHOD_ID_METHOD_NAME);
+            if (methodId == null || methodId < 0 || methodId > 9999) {
                 messager.printMessage(Diagnostic.Kind.ERROR, " methodId " + methodId + " must between [0,9999]!", method);
                 continue;
             }

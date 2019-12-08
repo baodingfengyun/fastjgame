@@ -74,7 +74,7 @@ public class GameConfigMgr {
     @Inject
     public GameConfigMgr() throws IOException {
         configWrapper = ConfigLoader.loadConfig(GameConfigMgr.class.getClassLoader(), "game_config.properties");
-        globalExecutorThreadNum = configWrapper.getAsInt("globalExecutorThreadNum", 5);
+        globalExecutorThreadNum = configWrapper.getAsInt("globalExecutorThreadNum");
         zkConnectString = configWrapper.getAsString("zkConnectString");
         zkConnectionTimeoutMs = configWrapper.getAsInt("zkConnectionTimeoutMs");
         zkSessionTimeoutMs = configWrapper.getAsInt("zkSessionTimeoutMs");

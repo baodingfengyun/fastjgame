@@ -17,7 +17,10 @@
 package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
+import com.wjybxx.fastjgame.misc.GatePlayerSession;
 import com.wjybxx.fastjgame.rpcservice.IGatePlayerSessionMgr;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import java.util.List;
 
@@ -31,22 +34,33 @@ import java.util.List;
  */
 public class GatePlayerSessionMgr implements IGatePlayerSessionMgr {
 
+    private final Long2ObjectMap<GatePlayerSession> sessionMap = new Long2ObjectOpenHashMap<>();
+
     @Inject
     public GatePlayerSessionMgr() {
     }
 
     @Override
     public void sendToPlayer(long playerGuid, byte[] msg) {
-
+        final GatePlayerSession playerSession = sessionMap.get(playerGuid);
+        if (null != playerSession) {
+            playerSession.getSession().send(msg);
+        }
     }
 
     @Override
     public void broadcast(byte[] msg) {
-
+        sessionMap.values().stream()
+                .filter(gatePlayerSession -> gatePlayerSession.getState() == GatePlayerSession.State.LOGIN_SCENE)
+                .forEach(playerSession -> {
+                    playerSession.getSession().send(msg);
+                });
     }
 
     @Override
     public void broadcast(List<Long> playerGuids, byte[] msg) {
-
+        for (long playerGuid : playerGuids) {
+            sendToPlayer(playerGuid, msg);
+        }
     }
 }

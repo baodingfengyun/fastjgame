@@ -33,7 +33,7 @@ import java.util.stream.LongStream;
  * <p>
  * 参考redis的zset实现了java版的zset，作为该项目将来的排行榜组件。
  * <p>
- * ZSET可能还会添加新特性，因此还未合并到该项目，需要先下载到本地，再注册到本地maven仓库。
+ * ZSET可能还会添加新特性，因此还未合并到该项目，需要先下载到本地，再注册到本地maven仓库(也可以从game-lib模块中安装)。
  * <p>
  * ZSET代码地址：- https://github.com/hl845740757/java-zset
  * <p>

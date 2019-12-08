@@ -128,4 +128,14 @@ public abstract class GameObject<T extends GameObjectData> {
     public FixedRateHandle newFixRate(long period, @Nonnull TimerTask task) {
         return timerSystem.newFixRate(period, task);
     }
+
+    @Override
+    public final int hashCode() {
+        return Long.hashCode(getGuid());
+    }
+
+    @Override
+    public final boolean equals(Object obj) {
+        return this == obj;
+    }
 }
