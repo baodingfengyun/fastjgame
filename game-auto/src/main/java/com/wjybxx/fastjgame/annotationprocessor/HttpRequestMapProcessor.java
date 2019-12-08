@@ -20,7 +20,6 @@ import com.google.auto.service.AutoService;
 import com.squareup.javapoet.*;
 import com.wjybxx.fastjgame.utils.AutoUtils;
 
-import javax.annotation.Generated;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.processing.*;
@@ -59,20 +58,21 @@ public class HttpRequestMapProcessor extends AbstractProcessor {
     private Types typeUtils;
     private Elements elementUtils;
     private Messager messager;
+    private Filer filer;
 
     private TypeElement httpRequestMappingElement;
     private DeclaredType httpRequestMappingDeclaredType;
 
     private DeclaredType sessionDeclaredType;
-    private DeclaredType stringDeclaredType;
-    private DeclaredType paramDeclaredType;
+    private DeclaredType pathDeclaredType;
+    private DeclaredType requestParamDeclaredType;
 
     private TypeName registryTypeName;
 
     /**
      * 注解处理器信息
      */
-    private AnnotationSpec generatedAnnotation;
+    private AnnotationSpec processorInfoAnnotation;
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {
@@ -81,7 +81,7 @@ public class HttpRequestMapProcessor extends AbstractProcessor {
 
     @Override
     public SourceVersion getSupportedSourceVersion() {
-        return SourceVersion.RELEASE_8;
+        return AutoUtils.SOURCE_VERSION;
     }
 
     @Override
@@ -90,10 +90,9 @@ public class HttpRequestMapProcessor extends AbstractProcessor {
         typeUtils = processingEnv.getTypeUtils();
         elementUtils = processingEnv.getElementUtils();
         messager = processingEnv.getMessager();
+        filer = processingEnv.getFiler();
 
-        generatedAnnotation = AnnotationSpec.builder(Generated.class)
-                .addMember("value", "$S", HttpRequestMapProcessor.class.getCanonicalName())
-                .build();
+        processorInfoAnnotation = AutoUtils.newProcessorInfoAnnotation(getClass());
     }
 
     private void ensureInited() {
@@ -104,8 +103,8 @@ public class HttpRequestMapProcessor extends AbstractProcessor {
         httpRequestMappingDeclaredType = typeUtils.getDeclaredType(httpRequestMappingElement);
 
         sessionDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(SESSION_CANONICAL_NAME));
-        stringDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(String.class.getCanonicalName()));
-        paramDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(PARAM_CANONICAL_NAME));
+        pathDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(String.class.getCanonicalName()));
+        requestParamDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(PARAM_CANONICAL_NAME));
 
         registryTypeName = TypeName.get(elementUtils.getTypeElement(REGISTRY_CANONICAL_NAME).asType());
     }
@@ -127,8 +126,7 @@ public class HttpRequestMapProcessor extends AbstractProcessor {
     }
 
     private void genProxyClass(TypeElement typeElement, List<ExecutableElement> methodList) {
-        final Optional<? extends AnnotationMirror> typeAnnotation = AutoUtils.findFirstAnnotationNotInheritance(typeUtils, typeElement, httpRequestMappingDeclaredType);
-        final String parentPath = typeAnnotation
+        final String parentPath = AutoUtils.findFirstAnnotationWithoutInheritance(typeUtils, typeElement, httpRequestMappingDeclaredType)
                 .map(annotationMirror -> (String) AutoUtils.getAnnotationValueNotDefault(annotationMirror, PATH_METHOD_NAME))
                 .orElse(null);
         // 父路径存在时需要校验
@@ -141,7 +139,7 @@ public class HttpRequestMapProcessor extends AbstractProcessor {
 
         TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(proxyClassName)
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                .addAnnotation(generatedAnnotation);
+                .addAnnotation(processorInfoAnnotation);
 
         final MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("register")
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
@@ -149,9 +147,10 @@ public class HttpRequestMapProcessor extends AbstractProcessor {
                 .addParameter(TypeName.get(typeElement.asType()), "instance");
 
         for (ExecutableElement method : methodList) {
-            final Optional<? extends AnnotationMirror> methodAnnotation = AutoUtils.findFirstAnnotationNotInheritance(typeUtils, method, httpRequestMappingDeclaredType);
+            final Optional<? extends AnnotationMirror> methodAnnotation = AutoUtils.findFirstAnnotationWithoutInheritance(typeUtils, method, httpRequestMappingDeclaredType);
             assert methodAnnotation.isPresent();
             final String childPath = (String) AutoUtils.getAnnotationValueNotDefault(methodAnnotation.get(), PATH_METHOD_NAME);
+            assert null != childPath;
             if (!checkPath(method, childPath)) {
                 continue;
             }
@@ -173,41 +172,29 @@ public class HttpRequestMapProcessor extends AbstractProcessor {
             }
             final VariableElement secondVariableElement = method.getParameters().get(1);
             // 第二个参数必须是String
-            if (!AutoUtils.isTargetDeclaredType(secondVariableElement, declaredType -> typeUtils.isSameType(declaredType, stringDeclaredType))) {
+            if (!AutoUtils.isTargetDeclaredType(secondVariableElement, declaredType -> typeUtils.isSameType(declaredType, pathDeclaredType))) {
                 messager.printMessage(Diagnostic.Kind.ERROR, "HttpRequestMapping method second parameter type must be String!", method);
                 continue;
             }
             final VariableElement thirdVariableElement = method.getParameters().get(2);
             // 第三个参数必须是httpRequestParam
-            if (!AutoUtils.isTargetDeclaredType(thirdVariableElement, declaredType -> typeUtils.isSameType(declaredType, paramDeclaredType))) {
+            if (!AutoUtils.isTargetDeclaredType(thirdVariableElement, declaredType -> typeUtils.isSameType(declaredType, requestParamDeclaredType))) {
                 messager.printMessage(Diagnostic.Kind.ERROR, "HttpRequestMapping method third parameter type must be HttpRequestParam!", method);
                 continue;
             }
             // 是否继承父节点路径，如果继承，则使用组合路径，否则使用方法指定的路径
             final boolean inherit = (Boolean) AutoUtils.getAnnotationValue(elementUtils, methodAnnotation.get(), INHERIT_METHOD_NAME);
-            String finalPath = inherit ? makePath(parentPath, childPath) : childPath;
+            final String finalPath = inherit ? makePath(parentPath, childPath) : childPath;
 
             // 生成lambda表达式
             methodBuilder.addStatement("registry.register($S, (httpSession, path, params) -> instance.$L(httpSession, path, params))",
-                    finalPath,
-                    method.getSimpleName().toString());
+                    finalPath, method.getSimpleName().toString());
         }
 
         typeBuilder.addMethod(methodBuilder.build());
 
-        TypeSpec typeSpec = typeBuilder.build();
-        JavaFile javaFile = JavaFile
-                .builder(packageName, typeSpec)
-                // 不用导入java.lang包
-                .skipJavaLangImports(true)
-                // 4空格缩进
-                .indent("    ")
-                .build();
-        try {
-            javaFile.writeTo(processingEnv.getFiler());
-        } catch (Exception e) {
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "writeToFile caught exception!", typeElement);
-        }
+        // 写入文件
+        AutoUtils.writeToFile(typeElement, typeBuilder, typeUtils, elementUtils, messager, filer);
     }
 
     private static String makePath(@Nullable String parentPath, @Nonnull String childPath) {
@@ -221,6 +208,7 @@ public class HttpRequestMapProcessor extends AbstractProcessor {
      * @param element 用于编译器定位
      * @param path    http路径
      */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean checkPath(Element element, String path) {
         if (path.length() == 0) {
             messager.printMessage(Diagnostic.Kind.ERROR, "path is not allowed empty!", element);

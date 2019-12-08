@@ -20,7 +20,6 @@ import com.google.auto.service.AutoService;
 import com.squareup.javapoet.*;
 import com.wjybxx.fastjgame.utils.AutoUtils;
 
-import javax.annotation.Generated;
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
@@ -46,7 +45,6 @@ import java.util.stream.Collectors;
 public class PlayerMessageSubscribeProcessor extends AbstractProcessor {
 
     private static final String SUBSCRIBE_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.PlayerMessageSubscribe";
-    private static final String FUNCTION_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.PlayerMessageFunction";
     private static final String REGISTRY_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.PlayerMessageFunctionRegistry";
     private static final String PLAYER_CANONICAL_NAME = "com.wjybxx.fastjgame.gameobject.Player";
     private static final String MESSAGE_CANONICAL_NAME = "com.google.protobuf.AbstractMessage";
@@ -57,10 +55,9 @@ public class PlayerMessageSubscribeProcessor extends AbstractProcessor {
     private Messager messager;
     private Elements elementUtils;
     private Types typeUtils;
-    /**
-     * 处理器信息
-     */
-    private AnnotationSpec generatedAnnotation;
+    private Filer filer;
+
+    private AnnotationSpec processorInfoAnnotation;
 
     private TypeElement subscribeElement;
 
@@ -75,11 +72,9 @@ public class PlayerMessageSubscribeProcessor extends AbstractProcessor {
         messager = processingEnv.getMessager();
         typeUtils = processingEnv.getTypeUtils();
         elementUtils = processingEnv.getElementUtils();
+        filer = processingEnv.getFiler();
 
-        generatedAnnotation = AnnotationSpec.builder(Generated.class)
-                .addMember("value", "$S", PlayerMessageSubscribeProcessor.class.getCanonicalName())
-                .build();
-        // 不能在这里初始化别的数据，因为可能不存在
+        processorInfoAnnotation = AutoUtils.newProcessorInfoAnnotation(getClass());
     }
 
     @Override
@@ -89,7 +84,7 @@ public class PlayerMessageSubscribeProcessor extends AbstractProcessor {
 
     @Override
     public SourceVersion getSupportedSourceVersion() {
-        return SourceVersion.RELEASE_8;
+        return AutoUtils.SOURCE_VERSION;
     }
 
     private void ensureInited() {
@@ -126,7 +121,7 @@ public class PlayerMessageSubscribeProcessor extends AbstractProcessor {
         final String proxyClassName = typeElement.getSimpleName().toString() + "MsgFunRegister";
         TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(proxyClassName)
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                .addAnnotation(generatedAnnotation);
+                .addAnnotation(processorInfoAnnotation);
 
         final MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("register")
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
@@ -165,19 +160,8 @@ public class PlayerMessageSubscribeProcessor extends AbstractProcessor {
 
         typeBuilder.addMethod(methodBuilder.build());
 
-        TypeSpec typeSpec = typeBuilder.build();
-        JavaFile javaFile = JavaFile
-                .builder(packageName, typeSpec)
-                // 不用导入java.lang包
-                .skipJavaLangImports(true)
-                // 4空格缩进
-                .indent("    ")
-                .build();
-        try {
-            javaFile.writeTo(processingEnv.getFiler());
-        } catch (Exception e) {
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "writeToFile caught exception!", typeElement);
-        }
+        // 写入文件
+        AutoUtils.writeToFile(typeElement, typeBuilder, typeUtils, elementUtils, messager, filer);
     }
 
 }

@@ -18,8 +18,7 @@ package com.wjybxx.fastjgame.annotationprocessor;
 
 import com.google.auto.service.AutoService;
 import com.wjybxx.fastjgame.utils.AutoUtils;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
+import com.wjybxx.fastjgame.utils.BeanUtils;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
@@ -30,6 +29,7 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -48,6 +48,7 @@ public class SerializableNumberProcessor extends AbstractProcessor {
     private static final String SERIALIZABLE_CLASS_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.SerializableClass";
     private static final String SERIALIZABLE_FIELD_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.SerializableField";
     private static final String NUMBER_ENUM_CANONICAL_NAME = "com.wjybxx.fastjgame.enummapper.NumberEnum";
+
     private static final String NUMBER_METHOD_NAME = "number";
     private static final String FOR_NUMBER_METHOD_NAME = "forNumber";
 
@@ -57,7 +58,7 @@ public class SerializableNumberProcessor extends AbstractProcessor {
     private Types typeUtils;
 
     private TypeElement serializableClassElement;
-    private DeclaredType serializableFieldType;
+    private DeclaredType serializableFieldDeclaredType;
     private DeclaredType numberEnumDeclaredType;
 
     @Override
@@ -66,7 +67,6 @@ public class SerializableNumberProcessor extends AbstractProcessor {
         messager = processingEnv.getMessager();
         elementUtils = processingEnv.getElementUtils();
         typeUtils = processingEnv.getTypeUtils();
-        // 不能再这里初始化别的信息，因为对应的注解可能还未存在
     }
 
     @Override
@@ -76,7 +76,7 @@ public class SerializableNumberProcessor extends AbstractProcessor {
 
     @Override
     public SourceVersion getSupportedSourceVersion() {
-        return SourceVersion.RELEASE_8;
+        return AutoUtils.SOURCE_VERSION;
     }
 
     private void ensureInited() {
@@ -84,7 +84,7 @@ public class SerializableNumberProcessor extends AbstractProcessor {
             return;
         }
         serializableClassElement = elementUtils.getTypeElement(SERIALIZABLE_CLASS_CANONICAL_NAME);
-        serializableFieldType = typeUtils.getDeclaredType(elementUtils.getTypeElement(SERIALIZABLE_FIELD_CANONICAL_NAME));
+        serializableFieldDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(SERIALIZABLE_FIELD_CANONICAL_NAME));
         numberEnumDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(NUMBER_ENUM_CANONICAL_NAME));
     }
 
@@ -101,32 +101,34 @@ public class SerializableNumberProcessor extends AbstractProcessor {
     }
 
     private void checkNumber(TypeElement typeElement) {
-        // 只允许枚举和类使用
-        if (typeElement.getKind() == ElementKind.ENUM) {
+        if (typeElement.getKind() == ElementKind.ENUM || isNumberEnum(typeElement)) {
+            // 检查枚举类型 - 查找forNumber静态方法
             checkEnum(typeElement);
         } else if (typeElement.getKind() == ElementKind.CLASS) {
-            if (typeUtils.isSubtype(typeUtils.getDeclaredType(typeElement), numberEnumDeclaredType)) {
-                // numberEnum
-                checkEnum(typeElement);
-            } else {
-                checkClass(typeElement);
-            }
+            // 检查普通类型
+            checkClass(typeElement);
         } else {
+            // 只允许枚举和类使用，其它类型抛出编译错误
             messager.printMessage(Diagnostic.Kind.ERROR, "serializable class does not allow here", typeElement);
         }
     }
 
+    private boolean isNumberEnum(TypeElement typeElement) {
+        return typeElement.getKind() == ElementKind.CLASS
+                && typeUtils.isSubtype(typeUtils.getDeclaredType(typeElement), numberEnumDeclaredType);
+    }
+
     private void checkClass(TypeElement typeElement) {
-        final IntSet numberSet = new IntOpenHashSet(typeElement.getEnclosedElements().size());
+        final Set<Integer> numberSet = new HashSet<>(typeElement.getEnclosedElements().size());
         for (Element element : typeElement.getEnclosedElements()) {
             // 非成员属性
             if (element.getKind() != ElementKind.FIELD) {
                 continue;
             }
             // 该注解只有Field可以使用
-            VariableElement variableElement = (VariableElement) element;
+            final VariableElement variableElement = (VariableElement) element;
             // 查找该字段上的注解
-            final Optional<? extends AnnotationMirror> first = AutoUtils.findFirstAnnotationNotInheritance(typeUtils, variableElement, serializableFieldType);
+            final Optional<? extends AnnotationMirror> first = AutoUtils.findFirstAnnotationWithoutInheritance(typeUtils, variableElement, serializableFieldDeclaredType);
             // 该成员属性没有serializableField注解
             if (!first.isPresent()) {
                 continue;
@@ -137,10 +139,11 @@ public class SerializableNumberProcessor extends AbstractProcessor {
                 continue;
             }
             // value中，基本类型会被封装为包装类型，number是int类型
-            final int number = (Integer) AutoUtils.getAnnotationValueNotDefault(first.get(), NUMBER_METHOD_NAME);
+            final Integer number = (Integer) AutoUtils.getAnnotationValueNotDefault(first.get(), NUMBER_METHOD_NAME);
             // 取值范围检测
-            if (number < 0 || number > 65535) {
+            if (number == null || number < 0 || number > 65535) {
                 messager.printMessage(Diagnostic.Kind.ERROR, "number " + number + " must between [0, 65535]", variableElement);
+                continue;
             }
             // 重复检测
             if (!numberSet.add(number)) {
@@ -149,14 +152,8 @@ public class SerializableNumberProcessor extends AbstractProcessor {
         }
 
         // 无参构造方法检测
-        final ExecutableElement constructor = typeElement.getEnclosedElements().stream()
-                .filter(e -> e.getKind() == ElementKind.CONSTRUCTOR)
-                .map(e -> (ExecutableElement) e)
-                .filter(e -> e.getParameters().size() == 0)
-                .findFirst()
-                .orElse(null);
-        if (null == constructor) {
-            messager.printMessage(Diagnostic.Kind.ERROR, "SerializableClass " + typeElement.getSimpleName() + " must contains no-arg constructor, private is ok", typeElement);
+        if (!BeanUtils.containsNoArgsConstructor(typeElement)) {
+            messager.printMessage(Diagnostic.Kind.ERROR, "SerializableClass " + typeElement.getSimpleName() + " must contains no-args constructor, private is ok", typeElement);
         }
     }
 
@@ -169,27 +166,28 @@ public class SerializableNumberProcessor extends AbstractProcessor {
      * @param typeElement 要检索的类
      */
     private void checkEnum(TypeElement typeElement) {
-        for (Element element : typeElement.getEnclosedElements()) {
+        for (final Element element : typeElement.getEnclosedElements()) {
             if (element.getKind() != ElementKind.METHOD) {
                 continue;
             }
-            ExecutableElement executableElement = (ExecutableElement) element;
+            final ExecutableElement method = (ExecutableElement) element;
             // 要求：静态方法
-            if (!executableElement.getModifiers().contains(Modifier.STATIC)) {
+            if (!method.getModifiers().contains(Modifier.STATIC)) {
                 continue;
             }
             // 要求：名字必须是 "forNumber"
-            if (!executableElement.getSimpleName().toString().equals(FOR_NUMBER_METHOD_NAME)) {
+            if (!method.getSimpleName().toString().equals(FOR_NUMBER_METHOD_NAME)) {
                 continue;
             }
             // 要求：只有一个参数
-            if (executableElement.getParameters().size() != 1) {
+            if (method.getParameters().size() != 1) {
                 continue;
             }
-            // 要求：必须是int
-            final VariableElement variableElement = executableElement.getParameters().get(0);
-            if (AutoUtils.isTargetPrimitiveType(variableElement, TypeKind.INT)) {
-                // OK 其实还有返回值类型校验，这个一般不会错，就不校验了
+            // 要求：参数必须是int
+            final VariableElement variableElement = method.getParameters().get(0);
+            if (variableElement.asType().getKind() == TypeKind.INT) {
+                // 找到目标方法，返回。
+                // 其实还有返回值类型校验，这个一般不会错，就不校验了
                 return;
             }
         }

@@ -19,12 +19,8 @@ package com.wjybxx.fastjgame.annotationprocessor;
 import com.google.auto.service.AutoService;
 import com.squareup.javapoet.*;
 import com.wjybxx.fastjgame.utils.AutoUtils;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
-import it.unimi.dsi.fastutil.shorts.ShortOpenHashSet;
-import it.unimi.dsi.fastutil.shorts.ShortSet;
+import com.wjybxx.fastjgame.utils.BeanUtils;
 
-import javax.annotation.Generated;
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
@@ -33,9 +29,9 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.SimpleTypeVisitor8;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
-import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
+
+import static com.wjybxx.fastjgame.utils.AutoUtils.getClassName;
 
 /**
  * 2019年8月26日15:12:45 第二版<br>
@@ -82,8 +78,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 
     private static final String RPC_SERVICE_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.RpcService";
     private static final String RPC_METHOD_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.RpcMethod";
-    private static final String RPC_SERVICE_PROXY_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.RpcServiceProxy";
-    private static final String RPC_METHOD_PROXY_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.RpcMethodProxy";
+
     private static final String LAZY_SERIALIZABLE_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.LazySerializable";
     private static final String PRE_DESERIALIZE_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.PreDeserializable";
 
@@ -105,23 +100,19 @@ public class RpcServiceProcessor extends AbstractProcessor {
     private Types typeUtils;
     private Elements elementUtils;
     private Messager messager;
+    private Filer filer;
 
     /**
      * 生成信息
      */
-    private AnnotationSpec generatedAnnotation;
+    private AnnotationSpec processorInfoAnnotation;
     /**
-     * unchecked注解
+     * 所有的serviceId集合，判断重复。
+     * 编译是分模块编译的，每一个模块都是一个新的processor，因此只能检测当前模块的重复。
+     * 能在编译期间发现错误就在编译期间发现错误。
      */
-    private AnnotationSpec uncheckedAnnotation;
-    /**
-     * 所有的serviceId集合，判断重复
-     */
-    private final ShortSet serviceIdSet = new ShortOpenHashSet(64);
-    /**
-     * 所有的methodKey集合，判断重复，只能检测当前模块的重复。 编译是分模块编译的，每一个模块都是一个新的processor
-     */
-    private final IntSet methodKeySet = new IntOpenHashSet(256);
+    private final Set<Short> serviceIdSet = new HashSet<>(64);
+
     /**
      * 无界泛型通配符
      */
@@ -134,23 +125,21 @@ public class RpcServiceProcessor extends AbstractProcessor {
     /**
      * {@code RpcResponseChannel}对应的类型
      */
-    private DeclaredType responseChannelType;
+    private DeclaredType responseChannelDeclaredType;
     /**
      * {@code Session}对应的类型
      */
-    private DeclaredType sessionType;
+    private DeclaredType sessionDeclaredType;
     /**
      * {@code LazySerializable}对应的类型
      */
-    private DeclaredType lazySerializeType;
-    private DeclaredType preDeserializeType;
+    private DeclaredType lazySerializableDeclaredType;
+    private DeclaredType preDeserializeDeclaredType;
 
     private TypeElement rpcServiceElement;
     private DeclaredType rpcServiceDeclaredType;
     private DeclaredType rpcMethodDeclaredType;
 
-    private ClassName rpcServiceProxyTypeName;
-    private ClassName rpcMethodProxyTypeName;
     private ClassName rpcResponseTypeName;
 
     private ClassName registryTypeName;
@@ -162,16 +151,12 @@ public class RpcServiceProcessor extends AbstractProcessor {
         typeUtils = processingEnv.getTypeUtils();
         elementUtils = processingEnv.getElementUtils();
         messager = processingEnv.getMessager();
+        filer = processingEnv.getFiler();
 
-        generatedAnnotation = AnnotationSpec.builder(Generated.class)
-                .addMember("value", "$S", RpcServiceProcessor.class.getCanonicalName())
-                .build();
-
-        uncheckedAnnotation = AnnotationSpec.builder(SuppressWarnings.class)
-                .addMember("value", "$S", "unchecked")
-                .build();
+        processorInfoAnnotation = AutoUtils.newProcessorInfoAnnotation(getClass());
 
         wildcardType = typeUtils.getWildcardType(null, null);
+        // 不能再这里初始化别的信息
     }
 
     @Override
@@ -181,7 +166,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 
     @Override
     public SourceVersion getSupportedSourceVersion() {
-        return SourceVersion.RELEASE_8;
+        return AutoUtils.SOURCE_VERSION;
     }
 
     private void ensureInited() {
@@ -193,19 +178,16 @@ public class RpcServiceProcessor extends AbstractProcessor {
         rpcServiceDeclaredType = typeUtils.getDeclaredType(rpcServiceElement);
         rpcMethodDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(RPC_METHOD_CANONICAL_NAME));
 
-        rpcServiceProxyTypeName = ClassName.get(elementUtils.getTypeElement(RPC_SERVICE_PROXY_CANONICAL_NAME));
-        rpcMethodProxyTypeName = ClassName.get(elementUtils.getTypeElement(RPC_METHOD_PROXY_CANONICAL_NAME));
-
         registryTypeName = ClassName.get(elementUtils.getTypeElement(REGISTRY_CANONICAL_NAME));
         rpcResponseTypeName = ClassName.get(elementUtils.getTypeElement(RPC_RESPONSE_CANONICAL_NAME));
 
         builderElement = elementUtils.getTypeElement(BUILDER_CANONICAL_NAME);
 
-        responseChannelType = typeUtils.getDeclaredType(elementUtils.getTypeElement(CHANNEL_CANONICAL_NAME));
-        sessionType = typeUtils.getDeclaredType(elementUtils.getTypeElement(SESSION_CANONICAL_NAME));
+        responseChannelDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(CHANNEL_CANONICAL_NAME));
+        sessionDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(SESSION_CANONICAL_NAME));
 
-        lazySerializeType = typeUtils.getDeclaredType(elementUtils.getTypeElement(LAZY_SERIALIZABLE_CANONICAL_NAME));
-        preDeserializeType = typeUtils.getDeclaredType(elementUtils.getTypeElement(PRE_DESERIALIZE_CANONICAL_NAME));
+        lazySerializableDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(LAZY_SERIALIZABLE_CANONICAL_NAME));
+        preDeserializeDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(PRE_DESERIALIZE_CANONICAL_NAME));
 
         defaultBuilderRawTypeName = TypeName.get(typeUtils.getDeclaredType(elementUtils.getTypeElement(DEFAULT_BUILDER_CANONICAL_NAME)));
     }
@@ -231,129 +213,136 @@ public class RpcServiceProcessor extends AbstractProcessor {
     }
 
     private void genProxyClass(TypeElement typeElement) {
-        final Optional<? extends AnnotationMirror> serviceAnnotationOption = AutoUtils.findFirstAnnotationNotInheritance(typeUtils, typeElement, rpcServiceDeclaredType);
+        final Optional<? extends AnnotationMirror> serviceAnnotationOption = AutoUtils.findFirstAnnotationWithoutInheritance(typeUtils, typeElement, rpcServiceDeclaredType);
         assert serviceAnnotationOption.isPresent();
         // 基本类型会被包装，Object不能直接转short
-        final short serviceId = (Short) AutoUtils.getAnnotationValueNotDefault(serviceAnnotationOption.get(), SERVICE_ID_METHOD_NAME);
-
+        final Short serviceId = (Short) AutoUtils.getAnnotationValueNotDefault(serviceAnnotationOption.get(), SERVICE_ID_METHOD_NAME);
+        assert null != serviceId;
         if (serviceId <= 0) {
+            // serviceId非法
             messager.printMessage(Diagnostic.Kind.ERROR, " serviceId " + serviceId + " must greater than 0!", typeElement);
             return;
         }
 
         if (!serviceIdSet.add(serviceId)) {
-            // 打印重复serviceId
+            // serviceId重复
             messager.printMessage(Diagnostic.Kind.ERROR, " serviceId " + serviceId + " is duplicate!", typeElement);
             return;
         }
 
-        // 筛选rpc方法
-        final List<ExecutableElement> allMethods = typeElement.getEnclosedElements().stream()
-                .filter(element -> element.getKind() == ElementKind.METHOD)
-                .map(element -> (ExecutableElement) element)
-                .collect(Collectors.toList());
+        // rpcMethods.size() == 0 也必须重新生成文件
+        final List<ExecutableElement> rpcMethods = collectRpcMethods(typeElement);
 
-        // allMethods.size() == 0 也必须重新生成文件
-        List<MethodSpec> clientMethodProxyList = new ArrayList<>(allMethods.size());
-        List<MethodSpec> serverMethodProxyList = new ArrayList<>(allMethods.size());
+        // 客户端代理
+        genClientProxy(typeElement, serviceId, rpcMethods);
 
-        // 生成代理方法
-        for (ExecutableElement method : allMethods) {
-            final Optional<? extends AnnotationMirror> rpcMethodAnnotation = AutoUtils.findFirstAnnotationNotInheritance(typeUtils, method, rpcMethodDeclaredType);
+        // 服务器代理
+        genServerProxy(typeElement, serviceId, rpcMethods);
+    }
+
+    private String getPackageName(TypeElement typeElement) {
+        return elementUtils.getPackageOf(typeElement).getQualifiedName().toString();
+    }
+
+    /**
+     * 搜集rpc方法
+     *
+     * @param typeElement rpcService类
+     * @return 所有合法rpc方法
+     */
+    private List<ExecutableElement> collectRpcMethods(TypeElement typeElement) {
+        final List<ExecutableElement> result = new ArrayList<>();
+        final Set<Short> methodIdSet = new HashSet<>();
+
+        for (final Element element : typeElement.getEnclosedElements()) {
+            if (element.getKind() != ElementKind.METHOD) {
+                continue;
+            }
+
+            final ExecutableElement method = (ExecutableElement) element;
+            final Optional<? extends AnnotationMirror> rpcMethodAnnotation = AutoUtils.findFirstAnnotationWithoutInheritance(typeUtils, method, rpcMethodDeclaredType);
             if (!rpcMethodAnnotation.isPresent()) {
                 // 不是rpc方法，跳过
                 continue;
             }
+
             if (method.isVarArgs()) {
+                // 不支持变长参数
                 messager.printMessage(Diagnostic.Kind.ERROR, "RpcMethod is not support varArgs!", method);
                 continue;
             }
-            // 访问权限不可以是private - 因为生成的类和该类属于同一个包，不必public，只要不是private即可
+
+            if (method.getModifiers().contains(Modifier.STATIC)) {
+                // 不可以是静态的
+                messager.printMessage(Diagnostic.Kind.ERROR, "RpcMethod method can't be static！", method);
+                continue;
+            }
+
             if (method.getModifiers().contains(Modifier.PRIVATE)) {
+                // 访问权限不可以是private - 因为生成的类和该类属于同一个包，不必public，只要不是private即可
                 messager.printMessage(Diagnostic.Kind.ERROR, "RpcMethod method can't be private！", method);
                 continue;
             }
+
             // 方法id，基本类型会被封装为包装类型，Object并不能直接转换到基本类型
             final Short methodId = (Short) AutoUtils.getAnnotationValueNotDefault(rpcMethodAnnotation.get(), METHOD_ID_METHOD_NAME);
-            if (methodId == null || methodId < 0 || methodId > 9999) {
+            assert null != methodId;
+            if (methodId < 0 || methodId > 9999) {
+                // 方法id非法
                 messager.printMessage(Diagnostic.Kind.ERROR, " methodId " + methodId + " must between [0,9999]!", method);
                 continue;
             }
-            // 方法的唯一键，乘以1W比位移有更好的可读性
-            final int methodKey = (int) serviceId * 10000 + methodId;
-            // 重复检测
-            if (!methodKeySet.add(methodKey)) {
-                messager.printMessage(Diagnostic.Kind.ERROR, " methodKey " + methodKey + " is duplicate!", method);
+
+            if (!methodIdSet.add(methodId)) {
+                // 同一个类中的方法id不可以重复 - 它保证了本模块中方法id不会重复
+                messager.printMessage(Diagnostic.Kind.ERROR, " methodId " + methodId + " is duplicate!", method);
+                continue;
             }
-            // 生成双方的代理代码
-            clientMethodProxyList.add(genClientMethodProxy(methodKey, method));
-            serverMethodProxyList.add(genServerMethodProxy(methodKey, method));
+
+            result.add(method);
         }
 
-        // 保存serviceId
-        final AnnotationSpec proxyAnnotation = AnnotationSpec.builder(rpcServiceProxyTypeName)
-                .addMember("serviceId", "$L", serviceId).build();
+        return result;
+    }
 
-        final String className = typeElement.getSimpleName().toString();
-        final String packageName = elementUtils.getPackageOf(typeElement).getQualifiedName().toString();
-        // 客户端代理，生成在core包下
-        {
-            // 代理类不可以继承
-            TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(className + "RpcProxy")
-                    .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                    .addAnnotation(generatedAnnotation)
-                    .addAnnotation(proxyAnnotation);
+    private Short getMethodId(ExecutableElement method) {
+        final Optional<? extends AnnotationMirror> annotationMirror = AutoUtils.findFirstAnnotationWithoutInheritance(typeUtils, method, rpcMethodDeclaredType);
+        assert annotationMirror.isPresent();
+        // 方法id，基本类型会被封装为包装类型，Object并不能直接转换到基本类型
+        return (Short) AutoUtils.getAnnotationValueNotDefault(annotationMirror.get(), METHOD_ID_METHOD_NAME);
+    }
 
-            // 添加客户端代理方法，在最上面
-            typeBuilder.addMethods(clientMethodProxyList);
-
-            TypeSpec typeSpec = typeBuilder.build();
-            JavaFile javaFile = JavaFile
-                    .builder(packageName, typeSpec)
-                    // 不用导入java.lang包
-                    .skipJavaLangImports(true)
-                    // 4空格缩进
-                    .indent("    ")
-                    .build();
-
-            try {
-                // 输出到注解处理器配置的路径下，这样才可以在下一轮检测到并进行编译 输出到processingEnv.getFiler()会立即参与编译
-                // 如果自己指定路径，可以生成源码到指定路径，但是可能无法被编译器检测到，本轮无法参与编译，需要再进行一次编译
-                javaFile.writeTo(processingEnv.getFiler());
-            } catch (Exception e) {
-                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "writeToFile caught exception!", typeElement);
-            }
-        }
-
-        // 服务器代理，生成在自己模块
-        {
-            TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(className + "RpcRegister")
-                    .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                    .addAnnotation(generatedAnnotation)
-                    .addAnnotation(proxyAnnotation);
-            // register类涉及大量的类型转换，全部取消警告
-            typeBuilder.addAnnotation(uncheckedAnnotation);
-
-            typeBuilder.addMethod(genRegisterMethod(typeElement, serverMethodProxyList));
-            typeBuilder.addMethods(serverMethodProxyList);
-
-            TypeSpec typeSpec = typeBuilder.build();
-            JavaFile javaFile = JavaFile
-                    .builder(packageName, typeSpec)
-                    // 不用导入java.lang包
-                    .skipJavaLangImports(true)
-                    // 4空格缩进
-                    .indent("    ")
-                    .build();
-            try {
-                javaFile.writeTo(processingEnv.getFiler());
-            } catch (IOException e) {
-                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "writeToFile caught exception!", typeElement);
-            }
-        }
+    /**
+     * 计算方法的唯一键
+     *
+     * @param serviceId 服务id
+     * @param methodId  方法id
+     * @return methodKey
+     */
+    private static int getMethodKey(int serviceId, Short methodId) {
+        return serviceId * 10000 + methodId;
     }
 
     // ----------------------------------------- 为客户端生成代理方法 -------------------------------------------
+
+    /**
+     * 为客户端生成代理文件
+     */
+    private void genClientProxy(final TypeElement typeElement, final Short serviceId, final List<ExecutableElement> rpcMethods) {
+        // 代理类不可以继承
+        final TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(getClassName(typeElement) + "RpcProxy")
+                .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                .addAnnotation(processorInfoAnnotation);
+
+        // 生成代理方法
+        for (final ExecutableElement method : rpcMethods) {
+            final int methodKey = getMethodKey(serviceId, getMethodId(method));
+            typeBuilder.addMethod(genClientMethodProxy(methodKey, method));
+        }
+
+        // 写入文件
+        AutoUtils.writeToFile(typeElement, typeBuilder, typeUtils, elementUtils, messager, filer);
+    }
 
     /**
      * 为客户端生成代理方法
@@ -372,7 +361,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
         MethodSpec.Builder builder = MethodSpec.methodBuilder(method.getSimpleName().toString());
         builder.addModifiers(Modifier.PUBLIC, Modifier.STATIC);
         // 拷贝泛型参数
-        AutoUtils.copyTypeVariableNames(builder, method);
+        AutoUtils.copyTypeVariables(builder, method);
 
         // 解析方法参数 -- 提炼方法是为了减少当前方法的长度
         final ParseResult parseResult = parseParameters(method);
@@ -383,11 +372,6 @@ public class RpcServiceProcessor extends AbstractProcessor {
         builder.returns(ClassName.get(realReturnType));
         // 拷贝参数列表
         builder.addParameters(realParameters);
-        // 注明方法键值
-        AnnotationSpec annotationSpec = AnnotationSpec.builder(rpcMethodProxyTypeName)
-                .addMember("methodKey", "$L", methodKey)
-                .build();
-        builder.addAnnotation(annotationSpec);
 
         // 搜集参数代码块（一个参数时不能使用singleTonList了，因为可能要修改内容）
         if (realParameters.size() == 0) {
@@ -472,14 +456,14 @@ public class RpcServiceProcessor extends AbstractProcessor {
      * (带泛型的和不带泛型的 isSameType返回false)
      */
     private boolean isResponseChannel(VariableElement variableElement) {
-        return AutoUtils.isTargetDeclaredType(variableElement, declaredType -> typeUtils.isAssignable(declaredType, responseChannelType));
+        return AutoUtils.isTargetDeclaredType(variableElement, declaredType -> typeUtils.isAssignable(declaredType, responseChannelDeclaredType));
     }
 
     /**
      * 是否是 {@code Session}类型
      */
     private boolean isSession(VariableElement variableElement) {
-        return AutoUtils.isTargetDeclaredType(variableElement, declaredType -> typeUtils.isSubtype(declaredType, sessionType));
+        return AutoUtils.isTargetDeclaredType(variableElement, declaredType -> typeUtils.isSubtype(declaredType, sessionDeclaredType));
     }
 
     /**
@@ -488,10 +472,10 @@ public class RpcServiceProcessor extends AbstractProcessor {
      * 2. 必须是字节数组
      */
     private boolean isLazySerializeParameter(VariableElement variableElement) {
-        if (!AutoUtils.findFirstAnnotationNotInheritance(typeUtils, variableElement, lazySerializeType).isPresent()) {
+        if (!AutoUtils.findFirstAnnotationWithoutInheritance(typeUtils, variableElement, lazySerializableDeclaredType).isPresent()) {
             return false;
         }
-        if (AutoUtils.isTargetArrayType(variableElement, TypeKind.BYTE)) {
+        if (AutoUtils.isTargetPrimitiveArrayType(variableElement, TypeKind.BYTE)) {
             return true;
         }
         processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Annotation LazySerializable only support byte[]", variableElement);
@@ -504,10 +488,10 @@ public class RpcServiceProcessor extends AbstractProcessor {
      * 2. 不能是字节数组
      */
     private boolean isPreDeserializeParameter(VariableElement variableElement) {
-        if (!AutoUtils.findFirstAnnotationNotInheritance(typeUtils, variableElement, preDeserializeType).isPresent()) {
+        if (!AutoUtils.findFirstAnnotationWithoutInheritance(typeUtils, variableElement, preDeserializeDeclaredType).isPresent()) {
             return false;
         }
-        if (AutoUtils.isTargetArrayType(variableElement, TypeKind.BYTE)) {
+        if (AutoUtils.isTargetPrimitiveArrayType(variableElement, TypeKind.BYTE)) {
             processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Annotation PreDeserializable doesn't support byte[]", variableElement);
             return false;
         }
@@ -536,6 +520,28 @@ public class RpcServiceProcessor extends AbstractProcessor {
 
     // --------------------------------------------- 为服务端生成代理方法 ---------------------------------------
 
+    private void genServerProxy(TypeElement typeElement, Short serviceId, List<ExecutableElement> rpcMethods) {
+        final List<MethodSpec> serverMethodProxyList = new ArrayList<>(rpcMethods.size());
+        // 生成代理方法
+        for (final ExecutableElement method : rpcMethods) {
+            final int methodKey = getMethodKey(serviceId, getMethodId(method));
+            serverMethodProxyList.add(genServerMethodProxy(methodKey, method));
+        }
+
+        final TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(getClassName(typeElement) + "RpcRegister")
+                .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                .addAnnotation(processorInfoAnnotation)
+                .addAnnotation(AutoUtils.SUPPRESS_UNCHECKED_ANNOTATION);
+
+        typeBuilder.addMethods(serverMethodProxyList);
+
+        // 生成注册方法
+        typeBuilder.addMethod(genRegisterMethod(typeElement, serverMethodProxyList));
+
+        // 写入文件
+        AutoUtils.writeToFile(typeElement, typeBuilder, typeUtils, elementUtils, messager, filer);
+    }
+
     /**
      * 生成注册方法
      * {@code
@@ -549,8 +555,8 @@ public class RpcServiceProcessor extends AbstractProcessor {
      * @param serverProxyMethodList 被代理的服务器方法
      */
     private MethodSpec genRegisterMethod(TypeElement typeElement, List<MethodSpec> serverProxyMethodList) {
-        final String className = typeElement.getSimpleName().toString();
-        final String classParamName = AutoUtils.firstCharToLowerCase(className);
+        final String className = getClassName(typeElement);
+        final String classParamName = BeanUtils.firstCharToLowerCase(className);
         MethodSpec.Builder builder = MethodSpec.methodBuilder("register")
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                 .returns(TypeName.VOID)
@@ -618,21 +624,15 @@ public class RpcServiceProcessor extends AbstractProcessor {
      */
     private MethodSpec genServerMethodProxy(int methodKey, ExecutableElement executableElement) {
         final TypeElement typeElement = (TypeElement) executableElement.getEnclosingElement();
-        final String classParamName = AutoUtils.firstCharToLowerCase(typeElement.getSimpleName().toString());
+        final String classParamName = BeanUtils.firstCharToLowerCase(getClassName(typeElement));
 
         // 加上methodKey防止签名重复
-        final String methodName = "_register" + AutoUtils.firstCharToUpperCase(executableElement.getSimpleName().toString()) + "_" + methodKey;
+        final String methodName = "_register" + BeanUtils.firstCharToUpperCase(executableElement.getSimpleName().toString()) + "_" + methodKey;
         MethodSpec.Builder builder = MethodSpec.methodBuilder(methodName)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
                 .returns(TypeName.VOID)
                 .addParameter(registryTypeName, registry)
                 .addParameter(TypeName.get(typeElement.asType()), classParamName);
-
-        // 注明方法键值
-        AnnotationSpec annotationSpec = AnnotationSpec.builder(rpcMethodProxyTypeName)
-                .addMember("methodKey", "$L", methodKey)
-                .build();
-        builder.addAnnotation(annotationSpec);
 
         builder.addCode("$L.register($L, ($L, $L, $L) -> {\n", registry, methodKey,
                 session, methodParams, responseChannel);

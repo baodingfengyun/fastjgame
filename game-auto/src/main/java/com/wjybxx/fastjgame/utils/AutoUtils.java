@@ -18,14 +18,20 @@ package com.wjybxx.fastjgame.utils;
 
 import com.squareup.javapoet.*;
 
+import javax.annotation.Generated;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.Filer;
+import javax.annotation.processing.Messager;
+import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
 import javax.lang.model.type.*;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.SimpleTypeVisitor8;
 import javax.lang.model.util.Types;
-import java.lang.reflect.Field;
+import javax.tools.Diagnostic;
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -41,163 +47,42 @@ import java.util.function.Predicate;
  */
 public class AutoUtils {
 
+    public static final SourceVersion SOURCE_VERSION = SourceVersion.RELEASE_8;
+
+    public static final AnnotationSpec SUPPRESS_UNCHECKED_ANNOTATION = AnnotationSpec.builder(SuppressWarnings.class)
+            .addMember("value", "$S", "unchecked")
+            .build();
+
     private AutoUtils() {
 
     }
 
-
-    // ------------------------------------------ 类顺序 ------------------------------------------
-
     /**
-     * 判断一个字段是否是boolean
-     *
-     * @param field 字段
-     * @return 如果是boolean类型或Boolean类型，则返回true
+     * @param processorType 注解处理器
+     * @return 代码生成信息注解
      */
-    public static boolean isBoolean(Field field) {
-        Class<?> clazz = field.getType();
-        return clazz == boolean.class || clazz == Boolean.class;
-    }
-
-
-    public static String getterMethodName(Field field) {
-        return getterMethodName(field.getName(), isBoolean(field));
-    }
-
-    public static String setterMethodName(Field field) {
-        return setterMethodName(field.getName());
-    }
-
-    // ------------------------------------------ 编译属性 ------------------------------------------
-
-    /**
-     * 是否是boolean或Boolean类型
-     *
-     * @param typeName 类型描述名
-     * @return 如果boolean类型或Boolean则返回true
-     */
-    public static boolean isBoolean(TypeName typeName) {
-        if (typeName == TypeName.BOOLEAN) {
-            return true;
-        }
-        if (typeName.isBoxedPrimitive() && typeName.unbox() == TypeName.BOOLEAN) {
-            return true;
-        }
-        return false;
-    }
-
-    public static String getterMethodName(FieldSpec field) {
-        return getterMethodName(field.name, isBoolean(field.type));
-    }
-
-    public static String setterMethodName(FieldSpec field) {
-        return setterMethodName(field.name);
-    }
-
-    /**
-     * 创建属性的getter方法
-     *
-     * @param field 字段描述符
-     * @return getter方法
-     */
-    public static MethodSpec createGetter(FieldSpec field) {
-        final String methodName = getterMethodName(field);
-        return MethodSpec.methodBuilder(methodName)
-                .addModifiers(Modifier.PUBLIC)
-                .returns(field.type)
-                .addStatement("return this.$L", field.name)
+    public static AnnotationSpec newProcessorInfoAnnotation(Class<? extends AbstractProcessor> processorType) {
+        return AnnotationSpec.builder(Generated.class)
+                .addMember("value", "$S", processorType.getCanonicalName())
                 .build();
     }
 
     /**
-     * 创建属性的setter方法
-     *
-     * @param field 字段描述符
-     * @return setter方法
-     */
-    public static MethodSpec createSetter(FieldSpec field) {
-        final String methodName = setterMethodName(field.name);
-        return MethodSpec.methodBuilder(methodName)
-                .addModifiers(Modifier.PUBLIC)
-                .returns(field.type)
-                .addStatement("return this.$L", field.name)
-                .build();
-    }
-
-    // -------------------------------------------- common -------------------------------------
-
-    /**
-     * 字符串首字符大写
-     *
-     * @param str content
-     * @return 首字符大写的字符串
-     */
-    public static String firstCharToUpperCase(@Nonnull String str) {
-        if (str.length() > 1) {
-            return str.substring(0, 1).toUpperCase() + str.substring(1);
-        } else {
-            return str.toUpperCase();
-        }
-    }
-
-    /**
-     * 首字母小写
-     *
-     * @param str content
-     * @return 首字符小写的字符串
-     */
-    public static String firstCharToLowerCase(@Nonnull String str) {
-        if (str.length() > 1) {
-            return str.substring(0, 1).toLowerCase() + str.substring(1);
-        } else {
-            return str.toLowerCase();
-        }
-    }
-
-    /**
-     * 获取getter方法的名字
-     *
-     * @param filedName 字段名字
-     * @param isBoolean 是否是bool值
-     * @return 方法名
-     */
-    private static String getterMethodName(String filedName, boolean isBoolean) {
-        if (isBoolean) {
-            // bool类型，如果使用is开头，那么会产生些奇怪的问题
-            return filedName.startsWith("is") ? filedName : "is" + firstCharToUpperCase(filedName);
-        } else {
-            return "get" + firstCharToUpperCase(filedName);
-        }
-    }
-
-    /**
-     * 获取setter方法的名字
-     *
-     * @param filedName 字段名字
-     * @return 方法名
-     */
-    private static String setterMethodName(String filedName) {
-        return "set" + firstCharToUpperCase(filedName);
-    }
-
-    // ------------------------------------------ 分割线 ------------------------------------------------
-
-    /**
-     * 复制一个方法，当然不包括代码块。
+     * 复制一个方法信息，当然不包括代码块。
      *
      * @param method 方法信息
      * @return builder
      */
     public static MethodSpec.Builder copyMethod(@Nonnull ExecutableElement method) {
-        String methodName = method.getSimpleName().toString();
-        MethodSpec.Builder builder = MethodSpec.methodBuilder(methodName);
+        final String methodName = method.getSimpleName().toString();
+        final MethodSpec.Builder builder = MethodSpec.methodBuilder(methodName);
 
         // 访问修饰符
         copyModifiers(builder, method);
+        // 泛型变量
+        copyTypeVariables(builder, method);
         // 返回值类型
         copyReturnType(builder, method);
-        // 泛型变量
-        copyTypeVariableNames(builder, method);
         // 方法参数
         copyParameters(builder, method);
         // 异常信息
@@ -206,13 +91,6 @@ public class AutoUtils {
         builder.varargs(method.isVarArgs());
 
         return builder;
-    }
-
-    /**
-     * 拷贝返回值类型
-     */
-    public static void copyReturnType(MethodSpec.Builder builder, @Nonnull ExecutableElement method) {
-        builder.returns(TypeName.get(method.getReturnType()));
     }
 
     /**
@@ -225,11 +103,18 @@ public class AutoUtils {
     /**
      * 拷贝一个方法的所有泛型参数
      */
-    public static void copyTypeVariableNames(MethodSpec.Builder builder, ExecutableElement method) {
+    public static void copyTypeVariables(MethodSpec.Builder builder, ExecutableElement method) {
         for (TypeParameterElement typeParameterElement : method.getTypeParameters()) {
             TypeVariable var = (TypeVariable) typeParameterElement.asType();
             builder.addTypeVariable(TypeVariableName.get(var));
         }
+    }
+
+    /**
+     * 拷贝返回值类型
+     */
+    public static void copyReturnType(MethodSpec.Builder builder, @Nonnull ExecutableElement method) {
+        builder.returns(TypeName.get(method.getReturnType()));
     }
 
     /**
@@ -268,7 +153,7 @@ public class AutoUtils {
      * @param targetType 目标注解类型
      * @return optional
      */
-    public static Optional<? extends AnnotationMirror> findFirstAnnotationNotInheritance(Types typeUtils, Element element, DeclaredType targetType) {
+    public static Optional<? extends AnnotationMirror> findFirstAnnotationWithoutInheritance(Types typeUtils, Element element, DeclaredType targetType) {
         // 查找该字段上的注解
         return element.getAnnotationMirrors().stream()
                 .filter(annotationMirror -> typeUtils.isSameType(annotationMirror.getAnnotationType(), targetType))
@@ -327,11 +212,8 @@ public class AutoUtils {
     /**
      * 检查变量的声明类型是否是指定类型
      * 对于一个Type：
-     * 1. 如果其声明类型是具体类型，eg: {@code String}， 那么会走到{@code visitDeclared}。
-     * 2. 如果其声明类型是泛型类型，eg: {@code E}， 那么会走到{@code visitTypeVariable}
-     * <p>
-     * {@link SimpleTypeVisitor8#visitDeclared(DeclaredType, Object)} 访问类型的声明类型
-     * {@link SimpleTypeVisitor8#visitTypeVariable(TypeVariable, Object)} 访问类型的泛型类型
+     * 1. 如果其声明类型是具体类型，eg: {@code String}， 那么会走到{@link SimpleTypeVisitor8#visitDeclared(DeclaredType, Object)}。
+     * 2. 如果其声明类型是泛型类型，eg: {@code E}， 那么会走到{@link SimpleTypeVisitor8#visitTypeVariable(TypeVariable, Object)}。
      *
      * @param variableElement 变量
      * @param matcher         变量的声明类型匹配器
@@ -341,42 +223,27 @@ public class AutoUtils {
         return variableElement.asType().accept(new SimpleTypeVisitor8<Boolean, Void>() {
 
             @Override
-            public Boolean visitDeclared(DeclaredType t, Void aVoid) {
+            public Boolean visitDeclared(DeclaredType t, Void param) {
                 // 访问声明的类型 eg: String str
                 return matcher.test(t);
             }
 
             @Override
-            public Boolean visitTypeVariable(TypeVariable t, Void aVoid) {
-                // 泛型变量 eg: E element
-                return false;
-            }
-
-            @Override
-            protected Boolean defaultAction(TypeMirror e, Void aVoid) {
+            protected Boolean defaultAction(TypeMirror e, Void param) {
                 return false;
             }
 
         }, null);
     }
 
-    public static boolean isTargetPrimitiveType(VariableElement variableElement, TypeKind primitiveType) {
-        return variableElement.asType().accept(new SimpleTypeVisitor8<Boolean, Void>() {
-
-            @Override
-            public Boolean visitPrimitive(PrimitiveType t, Void aVoid) {
-                return primitiveType == t.getKind();
-            }
-
-            @Override
-            protected Boolean defaultAction(TypeMirror e, Void aVoid) {
-                return false;
-            }
-
-        }, null);
-    }
-
-    public static boolean isTargetArrayType(VariableElement variableElement, TypeKind primitiveType) {
+    /**
+     * 是否是指定基本类型数组
+     *
+     * @param variableElement 变量
+     * @param primitiveType   基本类型
+     * @return true/false
+     */
+    public static boolean isTargetPrimitiveArrayType(VariableElement variableElement, TypeKind primitiveType) {
         return variableElement.asType().accept(new SimpleTypeVisitor8<Boolean, Void>() {
 
             @Override
@@ -391,4 +258,59 @@ public class AutoUtils {
 
         }, null);
     }
+
+    /**
+     * 判断一个类型是否包含泛型
+     */
+    public static boolean containsTypeVariable(final TypeMirror typeMirror) {
+        return typeMirror.accept(new SimpleTypeVisitor8<Boolean, Void>() {
+
+            @Override
+            public Boolean visitDeclared(DeclaredType t, Void aVoid) {
+                // method(Set<String> value)
+                return t.getTypeArguments().size() > 0;
+            }
+
+            @Override
+            public Boolean visitTypeVariable(TypeVariable t, Void aVoid) {
+                // method(T value)
+                return true;
+            }
+
+            @Override
+            protected Boolean defaultAction(TypeMirror e, Void aVoid) {
+                return false;
+            }
+        }, null);
+    }
+
+    // ------------------------------------------ 分割线 ------------------------------------------------
+
+    public static void writeToFile(final TypeElement typeElement, final TypeSpec.Builder typeBuilder,
+                                   final Types typeUtils, final Elements elementUtils, final Messager messager, final Filer filer) {
+        final TypeSpec typeSpec = typeBuilder.build();
+        JavaFile javaFile = JavaFile
+                .builder(getPackageName(typeElement, elementUtils), typeSpec)
+                // 不用导入java.lang包
+                .skipJavaLangImports(true)
+                // 4空格缩进
+                .indent("    ")
+                .build();
+        try {
+            // 输出到processingEnv.getFiler()会立即参与编译
+            // 如果自己指定路径，可以生成源码到指定路径，但是可能无法被编译器检测到，本轮无法参与编译，需要再进行一次编译
+            javaFile.writeTo(filer);
+        } catch (IOException e) {
+            messager.printMessage(Diagnostic.Kind.ERROR, "writeToFile caught exception!", typeElement);
+        }
+    }
+
+    public static String getClassName(TypeElement typeElement) {
+        return typeElement.getSimpleName().toString();
+    }
+
+    public static String getPackageName(TypeElement typeElement, Elements elementUtils) {
+        return elementUtils.getPackageOf(typeElement).getQualifiedName().toString();
+    }
+
 }
