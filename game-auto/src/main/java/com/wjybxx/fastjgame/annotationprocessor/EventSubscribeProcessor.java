@@ -150,7 +150,7 @@ public class EventSubscribeProcessor extends AbstractProcessor {
                 continue;
             }
             // 参数不可以包含泛型
-            if (containsTypeVariable(variableElement)) {
+            if (containsTypeVariable(variableElement.asType())) {
                 messager.printMessage(Diagnostic.Kind.ERROR, "TypeParameter is not allowed here!", method);
                 continue;
             }
@@ -195,19 +195,25 @@ public class EventSubscribeProcessor extends AbstractProcessor {
      * 搜集types属性对应的事件类型
      */
     private Set<TypeMirror> collectTypes(final ExecutableElement method, final VariableElement variableElement, AnnotationMirror annotationMirror) {
-        final List<?> typeArray = (List<?>) AutoUtils.getAnnotationValueNotDefault(annotationMirror, SUB_EVENTS_METHOD_NAME);
-        if (null == typeArray) {
+        final List<?> subEventsList = (List<?>) AutoUtils.getAnnotationValueNotDefault(annotationMirror, SUB_EVENTS_METHOD_NAME);
+        if (null == subEventsList) {
             return Collections.emptySet();
         }
 
         final Set<TypeMirror> result = new HashSet<>();
-        for (Object typeBean : typeArray) {
-            final AnnotationValue annotationValue = (AnnotationValue) typeBean;
+        for (Object subEvent : subEventsList) {
+            final AnnotationValue annotationValue = (AnnotationValue) subEvent;
             final TypeMirror subEventTypeMirror = getSubEventTypeMirror(annotationValue);
 
             if (null == subEventTypeMirror) {
                 // 无法获取参数
                 messager.printMessage(Diagnostic.Kind.ERROR, "Unsupported type " + annotationValue, method);
+                continue;
+            }
+
+            if (subEventTypeMirror.getKind().isPrimitive()) {
+                // 不可以是基本类型
+                messager.printMessage(Diagnostic.Kind.ERROR, "PrimitiveType is not allowed here!", method);
                 continue;
             }
 
@@ -234,8 +240,8 @@ public class EventSubscribeProcessor extends AbstractProcessor {
     /**
      * 判断一个变量的声明类型是否包含泛型
      */
-    private boolean containsTypeVariable(final VariableElement variableElement) {
-        return variableElement.asType().accept(new SimpleTypeVisitor8<Boolean, Void>() {
+    private boolean containsTypeVariable(final TypeMirror typeMirror) {
+        return typeMirror.accept(new SimpleTypeVisitor8<Boolean, Void>() {
 
             @Override
             public Boolean visitDeclared(DeclaredType t, Void aVoid) {

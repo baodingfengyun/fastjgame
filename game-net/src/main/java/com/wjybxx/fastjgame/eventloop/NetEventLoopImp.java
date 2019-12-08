@@ -243,26 +243,12 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         connectorManager.onRcvConnectResponse(event);
     }
 
-    @Subscribe
-    void firePingPongMessage(SocketPingPongEvent event) {
-        if (event.isForAcceptor()) {
-            acceptorManager.onSessionEvent(event);
-        } else {
-            connectorManager.onSessionEvent(event);
-        }
-    }
-
-    @Subscribe
-    void fireSocketMessage(SocketMessageEvent event) {
-        if (event.isForAcceptor()) {
-            acceptorManager.onSessionEvent(event);
-        } else {
-            connectorManager.onSessionEvent(event);
-        }
-    }
-
-    @Subscribe
-    void fireChannelInactive(SocketChannelInactiveEvent event) {
+    @Subscribe(onlySubEvents = true, subEvents = {
+            SocketPingPongEvent.class,
+            SocketMessageEvent.class,
+            SocketChannelInactiveEvent.class
+    })
+    void fireSocketEvent(SocketEvent event) {
         if (event.isForAcceptor()) {
             acceptorManager.onSessionEvent(event);
         } else {
