@@ -49,17 +49,12 @@ public class EventSubscribeProcessor extends AbstractProcessor {
     private static final String SUB_EVENTS_METHOD_NAME = "subEvents";
     private static final String ONLY_SUB_EVENTS_METHOD_NAME = "onlySubEvents";
 
-    private static final String REGISTER_METHOD_NAME = "register";
-
     // 工具类
     private Messager messager;
     private Elements elementUtils;
     private Types typeUtils;
     private Filer filer;
 
-    /**
-     * 生成信息
-     */
     private AnnotationSpec processorInfoAnnotation;
 
     private TypeElement subscribeTypeElement;
@@ -107,11 +102,11 @@ public class EventSubscribeProcessor extends AbstractProcessor {
         ensureInited();
 
         // 只有方法可以带有该注解 METHOD只有普通方法，不包含构造方法， 按照外部类进行分类
-        final Map<Element, ? extends List<? extends Element>> class2MethodMap = roundEnv.getElementsAnnotatedWith(subscribeTypeElement).stream()
+        final Map<Element, ? extends List<? extends Element>> class2MethodsMap = roundEnv.getElementsAnnotatedWith(subscribeTypeElement).stream()
                 .filter(element -> element.getEnclosingElement().getKind() == ElementKind.CLASS)
                 .collect(Collectors.groupingBy(Element::getEnclosingElement));
 
-        class2MethodMap.forEach((element, object) -> {
+        class2MethodsMap.forEach((element, object) -> {
             genProxyClass((TypeElement) element, object);
         });
         return true;
@@ -124,7 +119,7 @@ public class EventSubscribeProcessor extends AbstractProcessor {
                 .addMethod(genRegisterMethod(typeElement, methodList));
 
         // 写入文件
-        AutoUtils.writeToFile(typeElement, typeBuilder, typeUtils, elementUtils, messager, filer);
+        AutoUtils.writeToFile(typeElement, typeBuilder, elementUtils, messager, filer);
     }
 
     private String getProxyClassName(TypeElement typeElement) {
@@ -132,7 +127,7 @@ public class EventSubscribeProcessor extends AbstractProcessor {
     }
 
     private MethodSpec genRegisterMethod(TypeElement typeElement, List<? extends Element> methodList) {
-        final MethodSpec.Builder builder = MethodSpec.methodBuilder(REGISTER_METHOD_NAME)
+        final MethodSpec.Builder builder = MethodSpec.methodBuilder("register")
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                 .addParameter(registryTypeName, "registry")
                 .addParameter(TypeName.get(typeElement.asType()), "instance");
@@ -171,7 +166,7 @@ public class EventSubscribeProcessor extends AbstractProcessor {
             }
 
             // 参数类型是要注册的所有事件类型的超类型
-            final TypeName parametersTypeName = ParameterizedTypeName.get(variableElement.asType());
+            final TypeName parameterTypeName = ParameterizedTypeName.get(variableElement.asType());
             final Optional<? extends AnnotationMirror> annotationMirror = AutoUtils.findFirstAnnotationWithoutInheritance(typeUtils, method, subscribeDeclaredType);
             assert annotationMirror.isPresent();
 
@@ -179,14 +174,16 @@ public class EventSubscribeProcessor extends AbstractProcessor {
             if (!onlySubEvents) {
                 // 注册参数关注的事件类型
                 // registry.register(EventA.class, event -> instance.method(event));
-                builder.addStatement("registry.register($T.class, event -> instance.$L(event))", parametersTypeName, method.getSimpleName().toString());
+                builder.addStatement("registry.register($T.class, event -> instance.$L(event))",
+                        parameterTypeName, method.getSimpleName().toString());
             }
 
-            final Set<TypeMirror> subscribeSubTypes = collectTypes(method, variableElement, annotationMirror.get());
+            final Set<TypeMirror> subscribeSubTypes = collectSubEventTypes(method, variableElement, annotationMirror.get());
             for (TypeMirror subType : subscribeSubTypes) {
                 // 注意：这里需要转换为函数参数对应的事件类型（超类型），否则可能会找不到对应的方法，或关联到其它方法
-                final TypeName typeName = TypeName.get(subType);
-                builder.addStatement("registry.register($T.class, event -> instance.$L(($T)event))", typeName, method.getSimpleName().toString(), parametersTypeName);
+                // registry.register(Child.class, event -> instance.method((Parent)event));
+                builder.addStatement("registry.register($T.class, event -> instance.$L(($T)event))",
+                        TypeName.get(subType), method.getSimpleName().toString(), parameterTypeName);
             }
         }
         return builder.build();
@@ -197,7 +194,7 @@ public class EventSubscribeProcessor extends AbstractProcessor {
      * 注意查看{@link AnnotationValue}的类文档
      */
     @SuppressWarnings("unchecked")
-    private Set<TypeMirror> collectTypes(final ExecutableElement method, final VariableElement variableElement, AnnotationMirror annotationMirror) {
+    private Set<TypeMirror> collectSubEventTypes(final ExecutableElement method, final VariableElement variableElement, AnnotationMirror annotationMirror) {
         final List<? extends AnnotationValue> subEventsList = (List<? extends AnnotationValue>) AutoUtils.getAnnotationValueNotDefault(annotationMirror, SUB_EVENTS_METHOD_NAME);
         if (null == subEventsList) {
             return Collections.emptySet();
@@ -206,7 +203,6 @@ public class EventSubscribeProcessor extends AbstractProcessor {
         final Set<TypeMirror> result = new HashSet<>();
         for (final AnnotationValue annotationValue : subEventsList) {
             final TypeMirror subEventTypeMirror = getSubEventTypeMirror(annotationValue);
-
             if (null == subEventTypeMirror) {
                 // 无法获取参数
                 messager.printMessage(Diagnostic.Kind.ERROR, "Unsupported type " + annotationValue, method);

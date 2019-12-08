@@ -17,7 +17,10 @@
 package com.wjybxx.fastjgame.annotationprocessor;
 
 import com.google.auto.service.AutoService;
-import com.squareup.javapoet.*;
+import com.squareup.javapoet.AnnotationSpec;
+import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.TypeName;
+import com.squareup.javapoet.TypeSpec;
 import com.wjybxx.fastjgame.utils.AutoUtils;
 
 import javax.annotation.Nonnull;
@@ -30,7 +33,6 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -69,9 +71,6 @@ public class HttpRequestMapProcessor extends AbstractProcessor {
 
     private TypeName registryTypeName;
 
-    /**
-     * 注解处理器信息
-     */
     private AnnotationSpec processorInfoAnnotation;
 
     @Override
@@ -115,11 +114,11 @@ public class HttpRequestMapProcessor extends AbstractProcessor {
         ensureInited();
 
         // 该注解可以用在类和方法上，需要注意
-        final Map<Element, ? extends List<? extends Element>> typeElement2MethodsMap = roundEnv.getElementsAnnotatedWith(httpRequestMappingElement).stream()
-                .filter(e -> ((Element) e).getKind() == ElementKind.METHOD)
-                .collect(Collectors.groupingBy((Function<Element, Element>) Element::getEnclosingElement));
+        final Map<Element, ? extends List<? extends Element>> class2MethodsMap = roundEnv.getElementsAnnotatedWith(httpRequestMappingElement).stream()
+                .filter(element -> element.getKind() == ElementKind.METHOD)
+                .collect(Collectors.groupingBy(Element::getEnclosingElement));
 
-        typeElement2MethodsMap.forEach((element, object) -> {
+        class2MethodsMap.forEach((element, object) -> {
             genProxyClass((TypeElement) element, (List<ExecutableElement>) object);
         });
         return false;
@@ -134,14 +133,17 @@ public class HttpRequestMapProcessor extends AbstractProcessor {
             return;
         }
 
-        final String packageName = elementUtils.getPackageOf(typeElement).getQualifiedName().toString();
-        final String proxyClassName = typeElement.getSimpleName().toString() + "HttpRegister";
-
-        TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(proxyClassName)
+        final TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(getProxyClassName(typeElement))
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                .addAnnotation(processorInfoAnnotation);
+                .addAnnotation(processorInfoAnnotation)
+                .addMethod(genRegisterMethod(typeElement, methodList, parentPath));
 
-        final MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("register")
+        // 写入文件
+        AutoUtils.writeToFile(typeElement, typeBuilder, elementUtils, messager, filer);
+    }
+
+    private MethodSpec genRegisterMethod(TypeElement typeElement, List<ExecutableElement> methodList, String parentPath) {
+        final MethodSpec.Builder builder = MethodSpec.methodBuilder("register")
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                 .addParameter(registryTypeName, "registry")
                 .addParameter(TypeName.get(typeElement.asType()), "instance");
@@ -187,14 +189,14 @@ public class HttpRequestMapProcessor extends AbstractProcessor {
             final String finalPath = inherit ? makePath(parentPath, childPath) : childPath;
 
             // 生成lambda表达式
-            methodBuilder.addStatement("registry.register($S, (httpSession, path, params) -> instance.$L(httpSession, path, params))",
+            builder.addStatement("registry.register($S, (httpSession, path, params) -> instance.$L(httpSession, path, params))",
                     finalPath, method.getSimpleName().toString());
         }
+        return builder.build();
+    }
 
-        typeBuilder.addMethod(methodBuilder.build());
-
-        // 写入文件
-        AutoUtils.writeToFile(typeElement, typeBuilder, typeUtils, elementUtils, messager, filer);
+    private String getProxyClassName(TypeElement typeElement) {
+        return typeElement.getSimpleName().toString() + "HttpRegister";
     }
 
     private static String makePath(@Nullable String parentPath, @Nonnull String childPath) {

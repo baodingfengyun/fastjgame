@@ -105,25 +105,28 @@ public class PlayerMessageSubscribeProcessor extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         ensureInited();
 
-        Map<Element, ? extends List<? extends Element>> elementListMap = roundEnv.getElementsAnnotatedWith(subscribeElement)
-                .stream()
-                .filter(element -> ((Element) element).getEnclosingElement().getKind() == ElementKind.CLASS)
-                .collect(Collectors.groupingBy(element -> ((Element) element).getEnclosingElement()));
+        Map<Element, ? extends List<? extends Element>> class2methodsMap = roundEnv.getElementsAnnotatedWith(subscribeElement).stream()
+                .filter(element -> element.getEnclosingElement().getKind() == ElementKind.CLASS)
+                .collect(Collectors.groupingBy(Element::getEnclosingElement));
 
-        elementListMap.forEach((type, methods) -> {
+        class2methodsMap.forEach((type, methods) -> {
             genProxyClass((TypeElement) type, (List<ExecutableElement>) methods);
         });
         return false;
     }
 
     private void genProxyClass(TypeElement typeElement, List<ExecutableElement> subscribeMethods) {
-        final String packageName = elementUtils.getPackageOf(typeElement).getQualifiedName().toString();
-        final String proxyClassName = typeElement.getSimpleName().toString() + "MsgFunRegister";
-        TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(proxyClassName)
+        final TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(getProxyClassName(typeElement))
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                .addAnnotation(processorInfoAnnotation);
+                .addAnnotation(processorInfoAnnotation)
+                .addMethod(genRegisterMethod(typeElement, subscribeMethods));
 
-        final MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("register")
+        // 写入文件
+        AutoUtils.writeToFile(typeElement, typeBuilder, elementUtils, messager, filer);
+    }
+
+    private MethodSpec genRegisterMethod(TypeElement typeElement, List<ExecutableElement> subscribeMethods) {
+        final MethodSpec.Builder builder = MethodSpec.methodBuilder("register")
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                 .addParameter(registryTypeName, "registry")
                 .addParameter(TypeName.get(typeElement.asType()), "instance");
@@ -153,15 +156,15 @@ public class PlayerMessageSubscribeProcessor extends AbstractProcessor {
                 continue;
             }
             // 第二个参数类型是要注册的消息类型，生成lambda表达式
-            TypeName typeName = ParameterizedTypeName.get(secondVariableElement.asType());
-            methodBuilder.addStatement("registry.register($T.class, (player, message) -> instance.$L(player, message))",
-                    typeName, method.getSimpleName().toString());
+            final TypeName messageTypeName = ParameterizedTypeName.get(secondVariableElement.asType());
+            builder.addStatement("registry.register($T.class, (player, message) -> instance.$L(player, message))",
+                    messageTypeName, method.getSimpleName().toString());
         }
+        return builder.build();
+    }
 
-        typeBuilder.addMethod(methodBuilder.build());
-
-        // 写入文件
-        AutoUtils.writeToFile(typeElement, typeBuilder, typeUtils, elementUtils, messager, filer);
+    private String getProxyClassName(TypeElement typeElement) {
+        return typeElement.getSimpleName().toString() + "MsgFunRegister";
     }
 
 }

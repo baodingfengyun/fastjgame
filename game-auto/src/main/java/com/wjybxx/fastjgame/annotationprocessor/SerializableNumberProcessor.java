@@ -153,7 +153,9 @@ public class SerializableNumberProcessor extends AbstractProcessor {
 
         // 无参构造方法检测
         if (!BeanUtils.containsNoArgsConstructor(typeElement)) {
-            messager.printMessage(Diagnostic.Kind.ERROR, "SerializableClass " + typeElement.getSimpleName() + " must contains no-args constructor, private is ok", typeElement);
+            messager.printMessage(Diagnostic.Kind.ERROR,
+                    "SerializableClass " + typeElement.getSimpleName() + " must contains no-args constructor, private is ok!",
+                    typeElement);
         }
     }
 
@@ -166,32 +168,20 @@ public class SerializableNumberProcessor extends AbstractProcessor {
      * @param typeElement 要检索的类
      */
     private void checkEnum(TypeElement typeElement) {
-        for (final Element element : typeElement.getEnclosedElements()) {
-            if (element.getKind() != ElementKind.METHOD) {
-                continue;
-            }
-            final ExecutableElement method = (ExecutableElement) element;
-            // 要求：静态方法
-            if (!method.getModifiers().contains(Modifier.STATIC)) {
-                continue;
-            }
-            // 要求：名字必须是 "forNumber"
-            if (!method.getSimpleName().toString().equals(FOR_NUMBER_METHOD_NAME)) {
-                continue;
-            }
-            // 要求：只有一个参数
-            if (method.getParameters().size() != 1) {
-                continue;
-            }
-            // 要求：参数必须是int
-            final VariableElement variableElement = method.getParameters().get(0);
-            if (variableElement.asType().getKind() == TypeKind.INT) {
-                // 找到目标方法，返回。
-                // 其实还有返回值类型校验，这个一般不会错，就不校验了
-                return;
-            }
+        final boolean anyMatch = typeElement.getEnclosedElements().stream()
+                .filter(e -> e.getKind() == ElementKind.METHOD)
+                .map(e -> (ExecutableElement) e)
+                .filter(method -> method.getModifiers().contains(Modifier.STATIC))
+                .filter(method -> method.getSimpleName().toString().equals(FOR_NUMBER_METHOD_NAME))
+                .filter(method -> method.getParameters().size() == 1)
+                .filter(method -> method.getParameters().get(0).asType().getKind() == TypeKind.INT)
+                .anyMatch(method -> typeUtils.isSameType(method.getReturnType(), typeUtils.getDeclaredType(typeElement)));
+
+        if (!anyMatch) {
+            // 找不到forNumber方法
+            messager.printMessage(Diagnostic.Kind.ERROR,
+                    String.format("%s must contains 'static %s forNumber(int)' method, private is ok!", typeElement.getSimpleName(), typeElement.getSimpleName()),
+                    typeElement);
         }
-        // 找不到forNumber方法
-        messager.printMessage(Diagnostic.Kind.ERROR, "serializable Enum/NumberEnum must contains 'static E forNumber(int)' method!", typeElement);
     }
 }

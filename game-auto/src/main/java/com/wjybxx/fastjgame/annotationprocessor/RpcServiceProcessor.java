@@ -34,13 +34,6 @@ import java.util.*;
 import static com.wjybxx.fastjgame.utils.AutoUtils.getClassName;
 
 /**
- * 2019年8月26日15:12:45 第二版<br>
- * Q: 为什么不直接使用注解的Class写代码了？<br>
- * A: 不再直接依赖net模块。这样，net模块也可以使用该注解了。当然要支持这样的特性，编码就更加间接了，因此可读性可能降低不少，但是是值得的。
- * <p>
- * 为RpcService的注解生成工具类。
- * 我太难了...这套api根本都不熟悉，用着真难受。。。。。
- * <p>
  * 由于类文件结构比较稳定，API都是基于访问者模式的，完全不能直接获取数据，难受的一比。
  * <p>
  * 注意：使用class对象有限制，只可以使用JDK自带的class 和 该jar包（该项目）中所有的class (包括依赖的jar包)
@@ -55,14 +48,16 @@ import static com.wjybxx.fastjgame.utils.AutoUtils.getClassName;
  * {@link Elements} Element工具类
  * <p>
  * 遇见的坑，先记一笔：
- * 1. {@code typeUtils.isSameType(RpcResponseChannel<String>, RpcResponseChannel)  false} 带泛型和不带泛型的不是同一个类型。
+ * 1. 在注解中使用另一个类时，由于引用的类可能尚未编译，因此安全的方式是使用
+ * {@link AnnotationValue#accept(AnnotationValueVisitor, Object)}获取引用的类的{@link TypeMirror}。
+ * 在不熟悉这个api时，谷歌/百度得到的基本都是通过捕获异常获取到未编译的类的{@link TypeMirror}。
+ * <p>
+ * 2. {@link Types#isSameType(TypeMirror, TypeMirror)}、{@link Types#isSubtype(TypeMirror, TypeMirror)} 、
+ * {@link Types#isAssignable(TypeMirror, TypeMirror)} api用于判断类之间的关系。
+ * <p>
+ * 3. {@code typeUtils.isSameType(RpcResponseChannel<String>, RpcResponseChannel)  false}
  * {@code typeUtils.isAssignable(RpcResponseChannel<String>, RpcResponseChannel)  true}
  * {@code typeUtils.isSubType(RpcResponseChannel<String>, RpcResponseChannel)  true}
- * <p>
- * 2. 在注解中引用另一个类时，这个类可能还未被编译，需要通过捕获异常获取到未编译的类的{@link TypeMirror}.
- * <p>
- * 3. {@link Types#isSameType(TypeMirror, TypeMirror)}、{@link Types#isSubtype(TypeMirror, TypeMirror)} 、
- * {@link Types#isAssignable(TypeMirror, TypeMirror)} ，一般使用{@link DeclaredType}，{@link DeclaredType}代表一个类或接口。
  *
  * @author wjybxx
  * @version 1.0
@@ -90,11 +85,13 @@ public class RpcServiceProcessor extends AbstractProcessor {
     private static final String SERVICE_ID_METHOD_NAME = "serviceId";
     private static final String METHOD_ID_METHOD_NAME = "methodId";
 
-    private static final String registry = "registry";
     private static final String session = "session";
     private static final String methodParams = "methodParams";
     private static final String responseChannel = "responseChannel";
     private static final String result = "result";
+
+    private static final String registry = "registry";
+    private static final String instance = "instance";
 
     // 工具类
     private Types typeUtils;
@@ -102,9 +99,6 @@ public class RpcServiceProcessor extends AbstractProcessor {
     private Messager messager;
     private Filer filer;
 
-    /**
-     * 生成信息
-     */
     private AnnotationSpec processorInfoAnnotation;
     /**
      * 所有的serviceId集合，判断重复。
@@ -113,26 +107,12 @@ public class RpcServiceProcessor extends AbstractProcessor {
      */
     private final Set<Short> serviceIdSet = new HashSet<>(64);
 
-    /**
-     * 无界泛型通配符
-     */
     private WildcardType wildcardType;
 
-    /**
-     * {@code RpcBuilder}对应的类型
-     */
-    private TypeElement builderElement;
-    /**
-     * {@code RpcResponseChannel}对应的类型
-     */
     private DeclaredType responseChannelDeclaredType;
-    /**
-     * {@code Session}对应的类型
-     */
     private DeclaredType sessionDeclaredType;
-    /**
-     * {@code LazySerializable}对应的类型
-     */
+    private TypeElement builderElement;
+
     private DeclaredType lazySerializableDeclaredType;
     private DeclaredType preDeserializeDeclaredType;
 
@@ -141,7 +121,6 @@ public class RpcServiceProcessor extends AbstractProcessor {
     private DeclaredType rpcMethodDeclaredType;
 
     private ClassName rpcResponseTypeName;
-
     private ClassName registryTypeName;
     private TypeName defaultBuilderRawTypeName;
 
@@ -240,10 +219,6 @@ public class RpcServiceProcessor extends AbstractProcessor {
         genServerProxy(typeElement, serviceId, rpcMethods);
     }
 
-    private String getPackageName(TypeElement typeElement) {
-        return elementUtils.getPackageOf(typeElement).getQualifiedName().toString();
-    }
-
     /**
      * 搜集rpc方法
      *
@@ -279,7 +254,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
             }
 
             if (method.getModifiers().contains(Modifier.PRIVATE)) {
-                // 访问权限不可以是private - 因为生成的类和该类属于同一个包，不必public，只要不是private即可
+                // 访问权限不可以是private - 由于生成的类和该类属于同一个包，因此不必public，只要不是private即可
                 messager.printMessage(Diagnostic.Kind.ERROR, "RpcMethod method can't be private！", method);
                 continue;
             }
@@ -327,10 +302,11 @@ public class RpcServiceProcessor extends AbstractProcessor {
 
     /**
      * 为客户端生成代理文件
+     * XXXRpcProxy
      */
     private void genClientProxy(final TypeElement typeElement, final Short serviceId, final List<ExecutableElement> rpcMethods) {
         // 代理类不可以继承
-        final TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(getClassName(typeElement) + "RpcProxy")
+        final TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(getClientProxyClassName(typeElement))
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                 .addAnnotation(processorInfoAnnotation);
 
@@ -341,7 +317,11 @@ public class RpcServiceProcessor extends AbstractProcessor {
         }
 
         // 写入文件
-        AutoUtils.writeToFile(typeElement, typeBuilder, typeUtils, elementUtils, messager, filer);
+        AutoUtils.writeToFile(typeElement, typeBuilder, elementUtils, messager, filer);
+    }
+
+    private String getClientProxyClassName(TypeElement typeElement) {
+        return getClassName(typeElement) + "RpcProxy";
     }
 
     /**
@@ -358,8 +338,9 @@ public class RpcServiceProcessor extends AbstractProcessor {
      */
     private MethodSpec genClientMethodProxy(int methodKey, ExecutableElement method) {
         // 工具方法 public static RpcBuilder<V>
-        MethodSpec.Builder builder = MethodSpec.methodBuilder(method.getSimpleName().toString());
-        builder.addModifiers(Modifier.PUBLIC, Modifier.STATIC);
+        final MethodSpec.Builder builder = MethodSpec.methodBuilder(method.getSimpleName().toString())
+                .addModifiers(Modifier.PUBLIC, Modifier.STATIC);
+
         // 拷贝泛型参数
         AutoUtils.copyTypeVariables(builder, method);
 
@@ -368,8 +349,9 @@ public class RpcServiceProcessor extends AbstractProcessor {
         final List<ParameterSpec> realParameters = parseResult.realParameters;
 
         // 添加返回类型-带泛型
-        DeclaredType realReturnType = typeUtils.getDeclaredType(builderElement, parseResult.callReturnType);
+        final DeclaredType realReturnType = typeUtils.getDeclaredType(builderElement, parseResult.callReturnType);
         builder.returns(ClassName.get(realReturnType));
+
         // 拷贝参数列表
         builder.addParameters(realParameters);
 
@@ -397,7 +379,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
         final List<ParameterSpec> realParameters = new ArrayList<>(originParameters.size());
 
         // 返回值类型
-        TypeMirror callReturenType = null;
+        TypeMirror callReturnType = null;
 
         // 需要延迟初始化的参数所在的位置
         int lazyIndexes = 0;
@@ -407,8 +389,8 @@ public class RpcServiceProcessor extends AbstractProcessor {
         // 筛选参数
         for (VariableElement variableElement : originParameters) {
             // rpcResponseChannel需要从参数列表删除，并捕获泛型类型
-            if (callReturenType == null && isResponseChannel(variableElement)) {
-                callReturenType = getResponseChannelReturnType(variableElement);
+            if (callReturnType == null && isResponseChannel(variableElement)) {
+                callReturnType = getResponseChannelTypeArgument(variableElement);
                 continue;
             }
             // session需要从参数列表删除
@@ -416,52 +398,51 @@ public class RpcServiceProcessor extends AbstractProcessor {
                 continue;
             }
             if (isLazySerializeParameter(variableElement)) {
-                // 延迟初始化的参数 - 要替换为Object
+                // 延迟序列化的参数 - 要替换为Object
                 lazyIndexes |= 1 << realParameters.size();
-                final ParameterSpec parameterSpec = ParameterSpec.builder(Object.class, variableElement.getSimpleName().toString()).build();
-                realParameters.add(parameterSpec);
+                realParameters.add(lazySerializableParameterProxy(variableElement));
             } else if (isPreDeserializeParameter(variableElement)) {
                 // 查看是否需要提前反序列化 - 要替换为byte[]
                 preIndexes |= 1 << realParameters.size();
-                final ParameterSpec parameterSpec = ParameterSpec.builder(byte[].class, variableElement.getSimpleName().toString()).build();
-                realParameters.add(parameterSpec);
+                realParameters.add(preDeserializeParameterProxy(variableElement));
             } else {
                 // 普通参数
                 realParameters.add(ParameterSpec.get(variableElement));
             }
         }
-        if (null == callReturenType) {
+        if (null == callReturnType) {
             // 参数列表中不存在responseChannel
-            callReturenType = method.getReturnType();
+            callReturnType = method.getReturnType();
         } else {
             // 如果参数列表中存在responseChannel，那么返回值必须是void
             if (method.getReturnType().getKind() != TypeKind.VOID) {
                 messager.printMessage(Diagnostic.Kind.ERROR, "ReturnType is not void, but parameters contains responseChannel!", method);
             }
         }
-        if (callReturenType.getKind() == TypeKind.VOID) {
+        if (callReturnType.getKind() == TypeKind.VOID) {
             // 返回值类型为void，rpcBuilder泛型参数为泛型通配符
-            callReturenType = wildcardType;
+            callReturnType = wildcardType;
         } else {
             // 基本类型转包装类型
-            if (callReturenType.getKind().isPrimitive()) {
-                callReturenType = typeUtils.boxedClass((PrimitiveType) callReturenType).asType();
+            if (callReturnType.getKind().isPrimitive()) {
+                callReturnType = typeUtils.boxedClass((PrimitiveType) callReturnType).asType();
             }
         }
-        return new ParseResult(realParameters, lazyIndexes, preIndexes, callReturenType);
+        return new ParseResult(realParameters, lazyIndexes, preIndexes, callReturnType);
     }
 
-    /**
-     * 是否是 {@code RpcResponseChannel} 类型。
-     * (带泛型的和不带泛型的 isSameType返回false)
-     */
+    private static ParameterSpec lazySerializableParameterProxy(VariableElement variableElement) {
+        return ParameterSpec.builder(Object.class, variableElement.getSimpleName().toString()).build();
+    }
+
+    private static ParameterSpec preDeserializeParameterProxy(VariableElement variableElement) {
+        return ParameterSpec.builder(byte[].class, variableElement.getSimpleName().toString()).build();
+    }
+
     private boolean isResponseChannel(VariableElement variableElement) {
         return AutoUtils.isTargetDeclaredType(variableElement, declaredType -> typeUtils.isAssignable(declaredType, responseChannelDeclaredType));
     }
 
-    /**
-     * 是否是 {@code Session}类型
-     */
     private boolean isSession(VariableElement variableElement) {
         return AutoUtils.isTargetDeclaredType(variableElement, declaredType -> typeUtils.isSubtype(declaredType, sessionDeclaredType));
     }
@@ -477,9 +458,10 @@ public class RpcServiceProcessor extends AbstractProcessor {
         }
         if (AutoUtils.isTargetPrimitiveArrayType(variableElement, TypeKind.BYTE)) {
             return true;
+        } else {
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Annotation LazySerializable only support byte[]", variableElement);
+            return false;
         }
-        processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Annotation LazySerializable only support byte[]", variableElement);
-        return false;
     }
 
     /**
@@ -498,10 +480,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
         return true;
     }
 
-    /**
-     * 获取RpcResponseChannel的泛型参数
-     */
-    private TypeMirror getResponseChannelReturnType(final VariableElement variableElement) {
+    private TypeMirror getResponseChannelTypeArgument(final VariableElement variableElement) {
         return variableElement.asType().accept(new SimpleTypeVisitor8<TypeMirror, Void>() {
             @Override
             public TypeMirror visitDeclared(DeclaredType t, Void aVoid) {
@@ -509,7 +488,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
                     // 第一个参数就是返回值类型，这里的泛型也可能是'?'
                     return t.getTypeArguments().get(0);
                 } else {
-                    // 声明类型木有泛型参数，返回Object类型，并打印一个警告
+                    // 声明类型木有泛型参数，返回Object类型，并打印一个错误
                     // 2019年8月23日21:13:35 改为编译错误
                     messager.printMessage(Diagnostic.Kind.ERROR, "RpcResponseChannel missing type parameter!", variableElement);
                     return elementUtils.getTypeElement(Object.class.getCanonicalName()).asType();
@@ -520,15 +499,19 @@ public class RpcServiceProcessor extends AbstractProcessor {
 
     // --------------------------------------------- 为服务端生成代理方法 ---------------------------------------
 
+    /**
+     * 为服务器生成代理文件
+     * XXXRpcRegister
+     */
     private void genServerProxy(TypeElement typeElement, Short serviceId, List<ExecutableElement> rpcMethods) {
         final List<MethodSpec> serverMethodProxyList = new ArrayList<>(rpcMethods.size());
         // 生成代理方法
         for (final ExecutableElement method : rpcMethods) {
             final int methodKey = getMethodKey(serviceId, getMethodId(method));
-            serverMethodProxyList.add(genServerMethodProxy(methodKey, method));
+            serverMethodProxyList.add(genServerMethodProxy(typeElement, methodKey, method));
         }
 
-        final TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(getClassName(typeElement) + "RpcRegister")
+        final TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(getServerProxyClassName(typeElement))
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                 .addAnnotation(processorInfoAnnotation)
                 .addAnnotation(AutoUtils.SUPPRESS_UNCHECKED_ANNOTATION);
@@ -539,7 +522,11 @@ public class RpcServiceProcessor extends AbstractProcessor {
         typeBuilder.addMethod(genRegisterMethod(typeElement, serverMethodProxyList));
 
         // 写入文件
-        AutoUtils.writeToFile(typeElement, typeBuilder, typeUtils, elementUtils, messager, filer);
+        AutoUtils.writeToFile(typeElement, typeBuilder, elementUtils, messager, filer);
+    }
+
+    private String getServerProxyClassName(TypeElement typeElement) {
+        return getClassName(typeElement) + "RpcRegister";
     }
 
     /**
@@ -555,18 +542,17 @@ public class RpcServiceProcessor extends AbstractProcessor {
      * @param serverProxyMethodList 被代理的服务器方法
      */
     private MethodSpec genRegisterMethod(TypeElement typeElement, List<MethodSpec> serverProxyMethodList) {
-        final String className = getClassName(typeElement);
-        final String classParamName = BeanUtils.firstCharToLowerCase(className);
         MethodSpec.Builder builder = MethodSpec.methodBuilder("register")
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                 .returns(TypeName.VOID)
                 .addParameter(registryTypeName, registry)
-                .addParameter(TypeName.get(typeElement.asType()), classParamName);
+                .addParameter(TypeName.get(typeElement.asType()), instance);
 
         // 添加调用
         for (MethodSpec method : serverProxyMethodList) {
-            builder.addStatement("$L($L, $L)", method.name, registry, classParamName);
+            builder.addStatement("$L($L, $L)", method.name, registry, instance);
         }
+
         return builder.build();
     }
 
@@ -618,39 +604,31 @@ public class RpcServiceProcessor extends AbstractProcessor {
      *        }
      * }
      * </pre>
-     *
-     * @param executableElement rpcMethod
-     * @return methodName
      */
-    private MethodSpec genServerMethodProxy(int methodKey, ExecutableElement executableElement) {
-        final TypeElement typeElement = (TypeElement) executableElement.getEnclosingElement();
-        final String classParamName = BeanUtils.firstCharToLowerCase(getClassName(typeElement));
-
-        // 加上methodKey防止签名重复
-        final String methodName = "_register" + BeanUtils.firstCharToUpperCase(executableElement.getSimpleName().toString()) + "_" + methodKey;
-        MethodSpec.Builder builder = MethodSpec.methodBuilder(methodName)
+    private MethodSpec genServerMethodProxy(TypeElement typeElement, int methodKey, ExecutableElement method) {
+        final MethodSpec.Builder builder = MethodSpec.methodBuilder(getServerProxyMethodName(methodKey, method))
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
                 .returns(TypeName.VOID)
                 .addParameter(registryTypeName, registry)
-                .addParameter(TypeName.get(typeElement.asType()), classParamName);
+                .addParameter(TypeName.get(typeElement.asType()), instance);
 
         builder.addCode("$L.register($L, ($L, $L, $L) -> {\n", registry, methodKey,
                 session, methodParams, responseChannel);
 
-        if (executableElement.getReturnType().getKind() != TypeKind.VOID) {
+        final InvokeStatement invokeStatement = genInvokeStatement(method);
+        if (method.getReturnType().getKind() != TypeKind.VOID) {
+            // 网络底层返回结果
             builder.addStatement("    $T response = $T.ERROR", rpcResponseTypeName, rpcResponseTypeName);
-            // 同步返回结果
             builder.addCode("    try {\n");
-            final InvokeStatement invokeStatement = genInvokeStatement(executableElement.getReturnType(), classParamName, executableElement);
             builder.addStatement("    " + invokeStatement.format, invokeStatement.params.toArray());
             builder.addStatement("        response = $T.newSucceedResponse($L)", rpcResponseTypeName, result);
             builder.addCode("    } finally {\n");
             builder.addStatement("        $L.write(response)", responseChannel);
             builder.addCode("    }\n");
         } else {
-            // 方法声明的返回值类型为void，可能为异步方法，也可能是真没有返回值，但是没有返回值也需要告知对方是否成功了，如果对方发的是rpc调用。
-            final InvokeStatement invokeStatement = genInvokeStatement(null, classParamName, executableElement);
-            if (invokeStatement.asyncMethod) {
+            // 方法声明的返回值类型为void，可能为异步方法，也可能是真没有返回值。
+            // 如果没有返回值，但是对方发的是rpc调用，也需要告知对方是否成功了。
+            if (invokeStatement.hasResponseChannel) {
                 // 有异步返回值，交给应用层返回结果
                 builder.addStatement(invokeStatement.format, invokeStatement.params.toArray());
             } else {
@@ -670,42 +648,53 @@ public class RpcServiceProcessor extends AbstractProcessor {
     }
 
     /**
-     * 生成方法调用代码，没有分号和换行符。
+     * 加上methodKey防止重复
+     *
+     * @param methodKey rpc方法唯一键
+     * @param method    rpc方法
+     * @return 注册该rpc方法的
      */
-    private InvokeStatement genInvokeStatement(TypeMirror returnType, String classParamName, ExecutableElement executableElement) {
-        // 缩进
-        StringBuilder format = new StringBuilder("    ");
-        List<Object> params = new ArrayList<>(10);
+    private String getServerProxyMethodName(int methodKey, ExecutableElement method) {
+        return "_register" + BeanUtils.firstCharToUpperCase(method.getSimpleName().toString()) + "_" + methodKey;
+    }
 
-        if (null != returnType) {
+    /**
+     * 生成方法调用代码，没有分号和换行符。
+     * {@code Object result = instance.rpcMethod(a, b, c)}
+     */
+    private InvokeStatement genInvokeStatement(ExecutableElement method) {
+        // 缩进
+        final StringBuilder format = new StringBuilder("    ");
+        final List<Object> params = new ArrayList<>(10);
+
+        if (method.getReturnType().getKind() != TypeKind.VOID) {
+            final TypeName typeName = ParameterizedTypeName.get(method.getReturnType());
             format.append("$T $L = ");
-            // 返回值是什么类型就是什么类型，不需要包装
-            TypeName typeName = ParameterizedTypeName.get(returnType);
             params.add(typeName);
             params.add(result);
         }
 
         format.append("$L.$L(");
-        params.add(classParamName);
-        params.add(executableElement.getSimpleName().toString());
+        params.add(instance);
+        params.add(method.getSimpleName().toString());
 
-        boolean asyncMethod = false;
+        boolean hasResponseChannel = false;
         boolean needDelimiter = false;
         int index = 0;
-        for (VariableElement variableElement : executableElement.getParameters()) {
+        for (VariableElement variableElement : method.getParameters()) {
             if (needDelimiter) {
                 format.append(", ");
             } else {
                 needDelimiter = true;
             }
 
-            if (isResponseChannel(variableElement)) {
-                format.append(responseChannel);
-                asyncMethod = true;
-            } else if (isSession(variableElement)) {
+            if (isSession(variableElement)) {
                 format.append(session);
+            } else if (isResponseChannel(variableElement)) {
+                format.append(responseChannel);
+                hasResponseChannel = true;
             } else {
-                TypeName typeName = ParameterizedTypeName.get(variableElement.asType());
+                final TypeName typeName = ParameterizedTypeName.get(variableElement.asType());
                 if (typeName.isPrimitive()) {
                     // 基本类型需要两次转换，否则可能导致重载问题
                     // (int)((Integer)methodParams.get(index))
@@ -726,19 +715,19 @@ public class RpcServiceProcessor extends AbstractProcessor {
             }
         }
         format.append(")");
-        return new InvokeStatement(format.toString(), params, asyncMethod);
+        return new InvokeStatement(format.toString(), params, hasResponseChannel);
     }
 
     private static class InvokeStatement {
 
         private final String format;
         private final List<Object> params;
-        private final boolean asyncMethod;
+        private final boolean hasResponseChannel;
 
-        private InvokeStatement(String format, List<Object> params, boolean asyncMethod) {
+        private InvokeStatement(String format, List<Object> params, boolean hasResponseChannel) {
             this.format = format;
             this.params = params;
-            this.asyncMethod = asyncMethod;
+            this.hasResponseChannel = hasResponseChannel;
         }
     }
 

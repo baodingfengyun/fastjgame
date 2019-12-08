@@ -287,9 +287,9 @@ public class AutoUtils {
     // ------------------------------------------ 分割线 ------------------------------------------------
 
     public static void writeToFile(final TypeElement typeElement, final TypeSpec.Builder typeBuilder,
-                                   final Types typeUtils, final Elements elementUtils, final Messager messager, final Filer filer) {
+                                   final Elements elementUtils, final Messager messager, final Filer filer) {
         final TypeSpec typeSpec = typeBuilder.build();
-        JavaFile javaFile = JavaFile
+        final JavaFile javaFile = JavaFile
                 .builder(getPackageName(typeElement, elementUtils), typeSpec)
                 // 不用导入java.lang包
                 .skipJavaLangImports(true)
