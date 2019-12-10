@@ -28,13 +28,13 @@ import javax.annotation.Nonnull;
  * date - 2019/8/27
  * github - https://github.com/hl845740757
  */
-public interface PlayerMessageDispatcher {
+public interface PlayerEventDispatcher {
     /**
      * 接收到一个玩家发来的消息
      *
-     * @param player  消息所在的会话
-     * @param message 消息内容
-     * @param <T>     消息类型
+     * @param <T>    消息类型
+     * @param player 消息所在的会话
+     * @param event  消息内容
      */
-    <T> void post(@Nonnull Player player, @Nonnull T message);
+    <T> void post(@Nonnull Player player, @Nonnull T event);
 }

@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.mgr;
 import com.google.inject.Inject;
 import com.google.protobuf.AbstractMessage;
 import com.wjybxx.fastjgame.gameobject.Player;
-import com.wjybxx.fastjgame.misc.DefaultPlayerMessageDispatcher;
+import com.wjybxx.fastjgame.misc.DefaultPlayerEventDispatcher;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.rpcservice.IPlayerMessageDispatcherMgr;
 import org.slf4j.Logger;
@@ -34,14 +34,14 @@ import javax.annotation.Nullable;
  * @version 1.0
  * date - 2019/8/26
  */
-public class PlayerMessageDispatcherMgr extends DefaultPlayerMessageDispatcher implements IPlayerMessageDispatcherMgr {
+public class PlayerEventDispatcherMgr extends DefaultPlayerEventDispatcher implements IPlayerMessageDispatcherMgr {
 
-    private static final Logger logger = LoggerFactory.getLogger(PlayerMessageDispatcherMgr.class);
+    private static final Logger logger = LoggerFactory.getLogger(PlayerEventDispatcherMgr.class);
 
     private final PlayerSessionMgr playerSessionMgr;
 
     @Inject
-    public PlayerMessageDispatcherMgr(PlayerSessionMgr playerSessionMgr) {
+    public PlayerEventDispatcherMgr(PlayerSessionMgr playerSessionMgr) {
         this.playerSessionMgr = playerSessionMgr;
     }
 

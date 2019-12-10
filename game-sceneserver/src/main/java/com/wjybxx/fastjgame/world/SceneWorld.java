@@ -35,13 +35,13 @@ public class SceneWorld extends AbstractWorld {
     private final SceneWorldInfoMgr sceneWorldInfoMgr;
     private final SceneSendMgr sendMgr;
     private final SceneMgr sceneMgr;
-    private final PlayerMessageDispatcherMgr playerMessageDispatcherMgr;
+    private final PlayerEventDispatcherMgr playerMessageDispatcherMgr;
 
     @Inject
     public SceneWorld(WorldWrapper worldWrapper, SceneCenterSessionMgr sceneCenterSessionMgr,
                       SceneGateSessionMgr sceneGateSessionMgr, SceneRegionMgr sceneRegionMgr,
                       SceneSendMgr sendMgr, SceneMgr sceneMgr,
-                      PlayerMessageDispatcherMgr playerMessageDispatcherMgr) {
+                      PlayerEventDispatcherMgr playerMessageDispatcherMgr) {
         super(worldWrapper);
         this.sceneCenterSessionMgr = sceneCenterSessionMgr;
         this.sceneGateSessionMgr = sceneGateSessionMgr;

@@ -43,10 +43,10 @@ import java.util.stream.Collectors;
  * github - https://github.com/hl845740757
  */
 @AutoService(Processor.class)
-public class PlayerMessageSubscribeProcessor extends AbstractProcessor {
+public class PlayerEventSubscribeProcessor extends AbstractProcessor {
 
-    private static final String SUBSCRIBE_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.PlayerMessageSubscribe";
-    private static final String REGISTRY_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.PlayerMessageFunctionRegistry";
+    private static final String SUBSCRIBE_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.PlayerEventSubscribe";
+    private static final String REGISTRY_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.PlayerEventHandlerRegistry";
     private static final String PLAYER_CANONICAL_NAME = "com.wjybxx.fastjgame.gameobject.Player";
 
     /**
@@ -177,7 +177,7 @@ public class PlayerMessageSubscribeProcessor extends AbstractProcessor {
 
             final TypeName messageTypeName = ParameterizedTypeName.get(secondVariableElement.asType());
             if (!onlySubEvents) {
-                builder.addStatement("registry.register($T.class, (player, message) -> instance.$L(player, message))",
+                builder.addStatement("registry.register($T.class, (player, event) -> instance.$L(player, event))",
                         messageTypeName, method.getSimpleName().toString());
             }
 
@@ -193,7 +193,7 @@ public class PlayerMessageSubscribeProcessor extends AbstractProcessor {
 
                 // 注意：这里需要转换为函数参数对应的事件类型（超类型），否则可能会找不到对应的方法，或关联到其它方法
                 // registry.register(Child.class, event -> instance.method(player, (Parent)event));
-                builder.addStatement("registry.register($T.class, (player, message) -> instance.$L(player, ($T)message))",
+                builder.addStatement("registry.register($T.class, (player, event) -> instance.$L(player, ($T)event))",
                         TypeName.get(subType), method.getSimpleName().toString(), messageTypeName);
             }
 
@@ -202,7 +202,7 @@ public class PlayerMessageSubscribeProcessor extends AbstractProcessor {
     }
 
     private String getProxyClassName(TypeElement typeElement) {
-        return typeElement.getSimpleName().toString() + "PlayerMsgRegister";
+        return typeElement.getSimpleName().toString() + "PlayerEventRegister";
     }
 
 }

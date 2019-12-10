@@ -31,36 +31,36 @@ import java.util.List;
  * date - 2019/8/25
  * github - https://github.com/hl845740757
  */
-public class CompositePlayerMessageFunction<T> implements PlayerMessageFunction<T> {
+public class CompositePlayerEventHandler<T> implements PlayerEventHandler<T> {
 
-    private static final Logger logger = LoggerFactory.getLogger(CompositePlayerMessageFunction.class);
+    private static final Logger logger = LoggerFactory.getLogger(CompositePlayerEventHandler.class);
 
     /**
      * 一般情况下，玩家的消息都是一对一的，即使出现多个订阅者，也从很小的容量开始扩增。
      */
-    private final List<PlayerMessageFunction<T>> children = new ArrayList<>(2);
+    private final List<PlayerEventHandler<T>> children = new ArrayList<>(2);
 
-    public CompositePlayerMessageFunction() {
+    public CompositePlayerEventHandler() {
     }
 
-    public CompositePlayerMessageFunction(PlayerMessageFunction<T> first, PlayerMessageFunction<T> second) {
+    public CompositePlayerEventHandler(PlayerEventHandler<T> first, PlayerEventHandler<T> second) {
         children.add(first);
         children.add(second);
     }
 
-    public CompositePlayerMessageFunction addHandler(PlayerMessageFunction<T> function) {
+    public CompositePlayerEventHandler addHandler(PlayerEventHandler<T> function) {
         children.add(function);
         return this;
     }
 
     @Override
-    public void onMessage(Player player, T message) {
-        for (PlayerMessageFunction<T> function : children) {
+    public void onEvent(Player player, T event) {
+        for (PlayerEventHandler<T> function : children) {
             try {
-                function.onMessage(player, message);
+                function.onEvent(player, event);
             } catch (Throwable e) {
-                logger.warn("Child onMessage caught exception, playerGuid = {}, message = {}",
-                        player.getGuid(), message.getClass().getName(), e);
+                logger.warn("Child onEvent caught exception, playerGuid = {}, message = {}",
+                        player.getGuid(), event.getClass().getName(), e);
             }
         }
     }

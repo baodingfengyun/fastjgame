@@ -32,29 +32,29 @@ import java.util.Map;
  * date - 2019/8/26
  * github - https://github.com/hl845740757
  */
-public class DefaultPlayerMessageDispatcher implements PlayerMessageFunctionRegistry, PlayerMessageDispatcher {
+public class DefaultPlayerEventDispatcher implements PlayerEventHandlerRegistry, PlayerEventDispatcher {
 
-    private static final Logger logger = LoggerFactory.getLogger(DefaultPlayerMessageDispatcher.class);
+    private static final Logger logger = LoggerFactory.getLogger(DefaultPlayerEventDispatcher.class);
 
     /**
      * 类型到处理器的映射。
      */
-    private final Map<Class<?>, PlayerMessageFunction<?>> handlerMap = new IdentityHashMap<>(512);
+    private final Map<Class<?>, PlayerEventHandler<?>> handlerMap = new IdentityHashMap<>(512);
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> void register(@Nonnull Class<T> clazz, @Nonnull PlayerMessageFunction<T> handler) {
-        final PlayerMessageFunction<?> existHandler = handlerMap.get(clazz);
+    public <T> void register(@Nonnull Class<T> clazz, @Nonnull PlayerEventHandler<T> handler) {
+        final PlayerEventHandler<?> existHandler = handlerMap.get(clazz);
         // 该类型目前还没有被注册
         if (existHandler == null) {
             handlerMap.put(clazz, handler);
             return;
         }
-        if (existHandler instanceof CompositePlayerMessageFunction) {
-            ((CompositePlayerMessageFunction) existHandler).addHandler(handler);
+        if (existHandler instanceof CompositePlayerEventHandler) {
+            ((CompositePlayerEventHandler) existHandler).addHandler(handler);
         } else {
             // 已存在该类型的处理器了，我们提供CompositeMessageHandler将其封装为统一结构
-            handlerMap.put(clazz, new CompositePlayerMessageFunction(existHandler, handler));
+            handlerMap.put(clazz, new CompositePlayerEventHandler(existHandler, handler));
         }
     }
 
@@ -64,17 +64,17 @@ public class DefaultPlayerMessageDispatcher implements PlayerMessageFunctionRegi
     }
 
     @Override
-    public final <T> void post(@Nonnull Player player, @Nonnull T message) {
-        @SuppressWarnings("unchecked") final PlayerMessageFunction<T> messageFunction = (PlayerMessageFunction<T>) handlerMap.get(message.getClass());
+    public final <T> void post(@Nonnull Player player, @Nonnull T event) {
+        @SuppressWarnings("unchecked") final PlayerEventHandler<T> messageFunction = (PlayerEventHandler<T>) handlerMap.get(event.getClass());
         if (null == messageFunction) {
-            logger.warn("{} send unregistered message {}", player.getGuid(), message.getClass().getName());
+            logger.warn("{} send unregistered message {}", player.getGuid(), event.getClass().getName());
             return;
         }
         try {
-            messageFunction.onMessage(player, message);
+            messageFunction.onEvent(player, event);
         } catch (Exception e) {
-            logger.warn("Handler onMessage caught exception!, handler {}, message {}",
-                    messageFunction.getClass().getName(), message.getClass().getName(), e);
+            logger.warn("Handler onEvent caught exception!, handler {}, message {}",
+                    messageFunction.getClass().getName(), event.getClass().getName(), e);
         }
     }
 }

@@ -17,26 +17,28 @@
 package com.wjybxx.fastjgame.example;
 
 import com.google.protobuf.Message;
-import com.wjybxx.fastjgame.annotation.PlayerMessageSubscribe;
+import com.wjybxx.fastjgame.annotation.PlayerEventSubscribe;
 import com.wjybxx.fastjgame.gameobject.Player;
-import com.wjybxx.fastjgame.misc.DefaultPlayerMessageDispatcher;
+import com.wjybxx.fastjgame.misc.DefaultPlayerEventDispatcher;
 
 import static com.wjybxx.fastjgame.protobuffer.p_common.p_player_data;
 import static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data;
 import static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data;
 
 /**
+ * 玩家事件(消息)示例
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/25
  * github - https://github.com/hl845740757
  */
-public class MessageSubscriberExample {
+public class PlayerSubscriberExample {
 
     public static void main(String[] args) {
-        final DefaultPlayerMessageDispatcher dispatcher = new DefaultPlayerMessageDispatcher();
-        MessageSubscriberExamplePlayerMsgRegister.register(dispatcher,
-                new MessageSubscriberExample());
+        final DefaultPlayerEventDispatcher dispatcher = new DefaultPlayerEventDispatcher();
+        PlayerSubscriberExamplePlayerEventRegister.register(dispatcher,
+                new PlayerSubscriberExample());
 
         Player player = new Player(null, null, null, null);
         dispatcher.post(player, p_player_data
@@ -54,17 +56,17 @@ public class MessageSubscriberExample {
                 .setPetGuid(10000).build());
     }
 
-    @PlayerMessageSubscribe
+    @PlayerEventSubscribe
     public void onMessage(Player player, p_player_data data) {
-        System.out.println("onMessage\n" + data.toString());
+        System.out.println("onEvent\n" + data.toString());
     }
 
-    @PlayerMessageSubscribe(onlySubEvents = true, subEvents = {
+    @PlayerEventSubscribe(onlySubEvents = true, subEvents = {
             p_scene_npc_data.class,
             p_scene_pet_data.class
     })
     public void onNpcOrPetMessage(Player player, Message data) {
-        System.out.println("onMessage\n" + data.toString());
+        System.out.println("onEvent\n" + data.toString());
     }
 
 

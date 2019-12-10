@@ -16,24 +16,30 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.gameobject.Player;
+import javax.annotation.Nonnull;
 
 /**
- * 玩家消息处理函数，用于代码生成。
+ * 玩家消息处理器注册表
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/25
  * github - https://github.com/hl845740757
  */
-@FunctionalInterface
-public interface PlayerMessageFunction<T> {
+public interface PlayerEventHandlerRegistry {
 
     /**
-     * 当接收到一个玩家的消息
+     * 注册一个消息对应的处理函数
      *
-     * @param player  发送消息的玩家
-     * @param message 玩家发送的消息
+     * @param clazz   消息类
+     * @param handler 消息对应的处理函数
+     * @param <T>     消息的类型
      */
-    void onMessage(Player player, T message);
+    <T> void register(@Nonnull Class<T> clazz, @Nonnull PlayerEventHandler<T> handler);
+
+    /**
+     * 释放所有的资源，因为{@link #register(Class, PlayerEventHandler)}会捕获太多对象，
+     * 当不再使用{@link PlayerEventHandlerRegistry}时，进行手动释放，避免因为registry对象存在导致内存泄漏。
+     */
+    void release();
 }
