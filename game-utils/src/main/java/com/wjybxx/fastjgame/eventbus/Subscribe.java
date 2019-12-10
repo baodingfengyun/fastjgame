@@ -46,7 +46,7 @@ public @interface Subscribe {
 
     /**
      * 是否只订阅子事件类型
-     * (不为方法参数生成事件注册方法)
+     * (不为方法参数生成事件注册方法，只为{@link #subEvents()}中的事件生成注册方法)
      */
     boolean onlySubEvents() default false;
 

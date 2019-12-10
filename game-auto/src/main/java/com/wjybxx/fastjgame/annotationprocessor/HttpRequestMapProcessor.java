@@ -129,7 +129,8 @@ public class HttpRequestMapProcessor extends AbstractProcessor {
                 .map(annotationMirror -> (String) AutoUtils.getAnnotationValueNotDefault(annotationMirror, PATH_METHOD_NAME))
                 .orElse(null);
         // 父路径存在时需要校验
-        if (parentPath != null && !checkPath(typeElement, parentPath)) {
+        if (parentPath != null && checkPath(parentPath) != null) {
+            messager.printMessage(Diagnostic.Kind.ERROR, checkPath(parentPath), typeElement);
             return;
         }
 
@@ -153,20 +154,31 @@ public class HttpRequestMapProcessor extends AbstractProcessor {
             assert methodAnnotation.isPresent();
             final String childPath = (String) AutoUtils.getAnnotationValueNotDefault(methodAnnotation.get(), PATH_METHOD_NAME);
             assert null != childPath;
-            if (!checkPath(method, childPath)) {
+
+            // 路径检查
+            if (checkPath(childPath) != null) {
+                messager.printMessage(Diagnostic.Kind.ERROR, checkPath(childPath), method);
                 continue;
             }
-            // 访问权限不可以是private - 因为生成的类和该类属于同一个包，不必public，只要不是private即可
+
+            // 不可以是静态方法
+            if (method.getModifiers().contains(Modifier.STATIC)) {
+                messager.printMessage(Diagnostic.Kind.ERROR, "HttpRequestMapping method can't be static！", method);
+                continue;
+            }
+            // 访问权限不可以是private
             if (method.getModifiers().contains(Modifier.PRIVATE)) {
                 messager.printMessage(Diagnostic.Kind.ERROR, "HttpRequestMapping method can't be private！", method);
                 continue;
             }
+
             // 必须是3个参数
             if (method.getParameters().size() != 3) {
                 messager.printMessage(Diagnostic.Kind.ERROR, "HttpRequestMapping method must have three and only three parameter!", method);
                 continue;
             }
             final VariableElement firstVariableElement = method.getParameters().get(0);
+
             // 第一个参数必须是HttpSession
             if (!AutoUtils.isTargetDeclaredType(firstVariableElement, declaredType -> typeUtils.isSameType(declaredType, sessionDeclaredType))) {
                 messager.printMessage(Diagnostic.Kind.ERROR, "HttpRequestMapping method first parameter type must be HttpSession!", method);
@@ -184,6 +196,7 @@ public class HttpRequestMapProcessor extends AbstractProcessor {
                 messager.printMessage(Diagnostic.Kind.ERROR, "HttpRequestMapping method third parameter type must be HttpRequestParam!", method);
                 continue;
             }
+
             // 是否继承父节点路径，如果继承，则使用组合路径，否则使用方法指定的路径
             final boolean inherit = (Boolean) AutoUtils.getAnnotationValue(elementUtils, methodAnnotation.get(), INHERIT_METHOD_NAME);
             final String finalPath = inherit ? makePath(parentPath, childPath) : childPath;
@@ -207,19 +220,17 @@ public class HttpRequestMapProcessor extends AbstractProcessor {
     /**
      * 检查路径是否合法
      *
-     * @param element 用于编译器定位
-     * @param path    http路径
+     * @param path http路径
+     * @return errorMessage
      */
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    private boolean checkPath(Element element, String path) {
+    @Nullable
+    private String checkPath(String path) {
         if (path.length() == 0) {
-            messager.printMessage(Diagnostic.Kind.ERROR, "path is not allowed empty!", element);
-            return false;
+            return "path is not allowed empty!";
         }
         if (path.charAt(0) != PATH_PREFIX) {
-            messager.printMessage(Diagnostic.Kind.ERROR, "path must start with '/' !", element);
-            return false;
+            return "path must start with '/' !";
         }
-        return true;
+        return null;
     }
 }

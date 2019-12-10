@@ -16,12 +16,10 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.google.protobuf.AbstractMessage;
-
 import javax.annotation.Nonnull;
 
 /**
- * 玩家消息处理器登记处
+ * 玩家消息处理器注册表
  *
  * @author wjybxx
  * @version 1.0
@@ -37,7 +35,7 @@ public interface PlayerMessageFunctionRegistry {
      * @param handler 消息对应的处理函数
      * @param <T>     消息的类型
      */
-    <T extends AbstractMessage> void register(@Nonnull Class<T> clazz, @Nonnull PlayerMessageFunction<T> handler);
+    <T> void register(@Nonnull Class<T> clazz, @Nonnull PlayerMessageFunction<T> handler);
 
     /**
      * 释放所有的资源，因为{@link #register(Class, PlayerMessageFunction)}会捕获太多对象，

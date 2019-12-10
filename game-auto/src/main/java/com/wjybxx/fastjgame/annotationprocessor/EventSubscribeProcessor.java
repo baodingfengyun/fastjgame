@@ -134,15 +134,15 @@ public class EventSubscribeProcessor extends AbstractProcessor {
 
         for (Element element : methodList) {
             final ExecutableElement method = (ExecutableElement) element;
+
             if (method.getModifiers().contains(Modifier.STATIC)) {
                 // 不可以是静态方法
-                messager.printMessage(Diagnostic.Kind.ERROR, "Subscriber method can't be static！", method);
+                messager.printMessage(Diagnostic.Kind.ERROR, "Subscribe method can't be static！", method);
                 continue;
             }
-
             if (method.getModifiers().contains(Modifier.PRIVATE)) {
                 // 访问权限不可以是private - 因为生成的类和该类属于同一个包，不必public，只要不是private即可
-                messager.printMessage(Diagnostic.Kind.ERROR, "Subscriber method can't be private！", method);
+                messager.printMessage(Diagnostic.Kind.ERROR, "Subscribe method can't be private！", method);
                 continue;
             }
 
@@ -152,25 +152,23 @@ public class EventSubscribeProcessor extends AbstractProcessor {
                 continue;
             }
 
+            // 参数类型是要注册的所有事件类型的超类型
             final VariableElement variableElement = method.getParameters().get(0);
             if (variableElement.asType().getKind().isPrimitive()) {
                 // 参数不可以是基本类型
                 messager.printMessage(Diagnostic.Kind.ERROR, "PrimitiveType is not allowed here!", method);
                 continue;
             }
-
             if (AutoUtils.containsTypeVariable(variableElement.asType())) {
                 // 参数不可以包含泛型
                 messager.printMessage(Diagnostic.Kind.ERROR, "TypeParameter is not allowed here!", method);
                 continue;
             }
 
-            // 参数类型是要注册的所有事件类型的超类型
-            final TypeName parameterTypeName = ParameterizedTypeName.get(variableElement.asType());
-            final Optional<? extends AnnotationMirror> annotationMirror = AutoUtils.findFirstAnnotationWithoutInheritance(typeUtils, method, subscribeDeclaredType);
-            assert annotationMirror.isPresent();
+            final AnnotationMirror annotationMirror = AutoUtils.findFirstAnnotationWithoutInheritance(typeUtils, method, subscribeDeclaredType).get();
+            final Boolean onlySubEvents = isOnlySubEvents(elementUtils, annotationMirror);
 
-            final Boolean onlySubEvents = (Boolean) AutoUtils.getAnnotationValue(elementUtils, annotationMirror.get(), ONLY_SUB_EVENTS_METHOD_NAME);
+            final TypeName parameterTypeName = ParameterizedTypeName.get(variableElement.asType());
             if (!onlySubEvents) {
                 // 注册参数关注的事件类型
                 // registry.register(EventA.class, event -> instance.method(event));
@@ -178,8 +176,13 @@ public class EventSubscribeProcessor extends AbstractProcessor {
                         parameterTypeName, method.getSimpleName().toString());
             }
 
-            final Set<TypeMirror> subscribeSubTypes = collectSubEventTypes(method, variableElement, annotationMirror.get());
+            final Set<TypeMirror> subscribeSubTypes = collectSubEventTypes(typeUtils, messager, method, variableElement.asType(), annotationMirror);
             for (TypeMirror subType : subscribeSubTypes) {
+                if (!onlySubEvents && typeUtils.isSameType(subType, variableElement.asType())) {
+                    // 去除重复
+                    continue;
+                }
+
                 // 注意：这里需要转换为函数参数对应的事件类型（超类型），否则可能会找不到对应的方法，或关联到其它方法
                 // registry.register(Child.class, event -> instance.method((Parent)event));
                 builder.addStatement("registry.register($T.class, event -> instance.$L(($T)event))",
@@ -190,11 +193,20 @@ public class EventSubscribeProcessor extends AbstractProcessor {
     }
 
     /**
+     * 查询是否只监听子类型参数
+     */
+    static Boolean isOnlySubEvents(Elements elementUtils, AnnotationMirror annotationMirror) {
+        return (Boolean) AutoUtils.getAnnotationValue(elementUtils, annotationMirror, ONLY_SUB_EVENTS_METHOD_NAME);
+    }
+
+    /**
      * 搜集types属性对应的事件类型
      * 注意查看{@link AnnotationValue}的类文档
      */
     @SuppressWarnings("unchecked")
-    private Set<TypeMirror> collectSubEventTypes(final ExecutableElement method, final VariableElement variableElement, AnnotationMirror annotationMirror) {
+    static Set<TypeMirror> collectSubEventTypes(final Types typeUtils, final Messager messager,
+                                                final ExecutableElement method, final TypeMirror variableSuperType,
+                                                final AnnotationMirror annotationMirror) {
         final List<? extends AnnotationValue> subEventsList = (List<? extends AnnotationValue>) AutoUtils.getAnnotationValueNotDefault(annotationMirror, SUB_EVENTS_METHOD_NAME);
         if (null == subEventsList) {
             return Collections.emptySet();
@@ -215,9 +227,9 @@ public class EventSubscribeProcessor extends AbstractProcessor {
                 continue;
             }
 
-            if (!typeUtils.isSubtype(subEventTypeMirror, variableElement.asType())) {
+            if (!typeUtils.isSubtype(subEventTypeMirror, variableSuperType)) {
                 // 不是监听参数的子类型
-                messager.printMessage(Diagnostic.Kind.ERROR, SUB_EVENTS_METHOD_NAME + "'s element must be " + variableElement.asType().toString() + "'s subType", method);
+                messager.printMessage(Diagnostic.Kind.ERROR, SUB_EVENTS_METHOD_NAME + "'s element must be " + variableSuperType.toString() + "'s subType", method);
                 continue;
             }
 
@@ -226,7 +238,7 @@ public class EventSubscribeProcessor extends AbstractProcessor {
         return result;
     }
 
-    private TypeMirror getSubEventTypeMirror(AnnotationValue annotationValue) {
+    private static TypeMirror getSubEventTypeMirror(AnnotationValue annotationValue) {
         return annotationValue.accept(new SimpleAnnotationValueVisitor8<TypeMirror, Object>() {
             @Override
             public TypeMirror visitType(TypeMirror t, Object o) {

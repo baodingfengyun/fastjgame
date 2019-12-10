@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.google.protobuf.AbstractMessage;
 import com.wjybxx.fastjgame.gameobject.Player;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +43,7 @@ public class DefaultPlayerMessageDispatcher implements PlayerMessageFunctionRegi
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends AbstractMessage> void register(@Nonnull Class<T> clazz, @Nonnull PlayerMessageFunction<T> handler) {
+    public <T> void register(@Nonnull Class<T> clazz, @Nonnull PlayerMessageFunction<T> handler) {
         final PlayerMessageFunction<?> existHandler = handlerMap.get(clazz);
         // 该类型目前还没有被注册
         if (existHandler == null) {
@@ -65,7 +64,7 @@ public class DefaultPlayerMessageDispatcher implements PlayerMessageFunctionRegi
     }
 
     @Override
-    public final <T extends AbstractMessage> void post(@Nonnull Player player, @Nonnull T message) {
+    public final <T> void post(@Nonnull Player player, @Nonnull T message) {
         @SuppressWarnings("unchecked") final PlayerMessageFunction<T> messageFunction = (PlayerMessageFunction<T>) handlerMap.get(message.getClass());
         if (null == messageFunction) {
             logger.warn("{} send unregistered message {}", player.getGuid(), message.getClass().getName());

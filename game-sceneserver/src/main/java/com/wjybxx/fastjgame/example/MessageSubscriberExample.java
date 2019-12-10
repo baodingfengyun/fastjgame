@@ -16,10 +16,14 @@
 
 package com.wjybxx.fastjgame.example;
 
+import com.google.protobuf.Message;
 import com.wjybxx.fastjgame.annotation.PlayerMessageSubscribe;
 import com.wjybxx.fastjgame.gameobject.Player;
 import com.wjybxx.fastjgame.misc.DefaultPlayerMessageDispatcher;
-import com.wjybxx.fastjgame.protobuffer.p_common;
+
+import static com.wjybxx.fastjgame.protobuffer.p_common.p_player_data;
+import static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data;
+import static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data;
 
 /**
  * @author wjybxx
@@ -31,17 +35,37 @@ public class MessageSubscriberExample {
 
     public static void main(String[] args) {
         final DefaultPlayerMessageDispatcher dispatcher = new DefaultPlayerMessageDispatcher();
-        MessageSubscriberExampleMsgFunRegister.register(dispatcher,
+        MessageSubscriberExamplePlayerMsgRegister.register(dispatcher,
                 new MessageSubscriberExample());
 
         Player player = new Player(null, null, null, null);
-        final p_common.p_player_data.Builder builder = p_common.p_player_data.newBuilder();
-        builder.setPlayerGuid(10000);
-        dispatcher.post(player, builder.build());
+        dispatcher.post(player, p_player_data
+                .newBuilder()
+                .setPlayerGuid(10000).build());
+
+        dispatcher.post(player, p_scene_npc_data
+                .newBuilder()
+                .setNpcId(1)
+                .setNpcGuid(10000).build());
+
+        dispatcher.post(player, p_scene_pet_data
+                .newBuilder()
+                .setPetId(1)
+                .setPetGuid(10000).build());
     }
 
     @PlayerMessageSubscribe
-    public void onMessage(Player player, p_common.p_player_data data) {
-        System.out.println("onMessage " + data.toString());
+    public void onMessage(Player player, p_player_data data) {
+        System.out.println("onMessage\n" + data.toString());
     }
+
+    @PlayerMessageSubscribe(onlySubEvents = true, subEvents = {
+            p_scene_npc_data.class,
+            p_scene_pet_data.class
+    })
+    public void onNpcOrPetMessage(Player player, Message data) {
+        System.out.println("onMessage\n" + data.toString());
+    }
+
+
 }

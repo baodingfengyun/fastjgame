@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.google.protobuf.AbstractMessage;
 import com.wjybxx.fastjgame.gameobject.Player;
 
 import javax.annotation.Nonnull;
@@ -37,5 +36,5 @@ public interface PlayerMessageDispatcher {
      * @param message 消息内容
      * @param <T>     消息类型
      */
-    <T extends AbstractMessage> void post(@Nonnull Player player, @Nonnull T message);
+    <T> void post(@Nonnull Player player, @Nonnull T message);
 }

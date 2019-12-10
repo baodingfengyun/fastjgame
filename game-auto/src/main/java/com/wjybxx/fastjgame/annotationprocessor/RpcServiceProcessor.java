@@ -252,7 +252,6 @@ public class RpcServiceProcessor extends AbstractProcessor {
                 messager.printMessage(Diagnostic.Kind.ERROR, "RpcMethod method can't be static！", method);
                 continue;
             }
-
             if (method.getModifiers().contains(Modifier.PRIVATE)) {
                 // 访问权限不可以是private - 由于生成的类和该类属于同一个包，因此不必public，只要不是private即可
                 messager.printMessage(Diagnostic.Kind.ERROR, "RpcMethod method can't be private！", method);
@@ -295,6 +294,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
      * @return methodKey
      */
     private static int getMethodKey(int serviceId, Short methodId) {
+        // 乘10000有更好的可读性
         return serviceId * 10000 + methodId;
     }
 
@@ -398,11 +398,11 @@ public class RpcServiceProcessor extends AbstractProcessor {
                 continue;
             }
             if (isLazySerializeParameter(variableElement)) {
-                // 延迟序列化的参数 - 要替换为Object
+                // 延迟序列化的参数(对方可以发送任意数据) - 要替换为Object
                 lazyIndexes |= 1 << realParameters.size();
                 realParameters.add(lazySerializableParameterProxy(variableElement));
             } else if (isPreDeserializeParameter(variableElement)) {
-                // 查看是否需要提前反序列化 - 要替换为byte[]
+                // 查看是否需要提前反序列化(要求对方发来的是byte[]) - 要替换为byte[]
                 preIndexes |= 1 << realParameters.size();
                 realParameters.add(preDeserializeParameterProxy(variableElement));
             } else {

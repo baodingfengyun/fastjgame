@@ -24,6 +24,7 @@ import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
@@ -47,7 +48,6 @@ public class PlayerMessageSubscribeProcessor extends AbstractProcessor {
     private static final String SUBSCRIBE_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.PlayerMessageSubscribe";
     private static final String REGISTRY_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.PlayerMessageFunctionRegistry";
     private static final String PLAYER_CANONICAL_NAME = "com.wjybxx.fastjgame.gameobject.Player";
-    private static final String MESSAGE_CANONICAL_NAME = "com.google.protobuf.AbstractMessage";
 
     /**
      * 输出编译信息
@@ -60,9 +60,9 @@ public class PlayerMessageSubscribeProcessor extends AbstractProcessor {
     private AnnotationSpec processorInfoAnnotation;
 
     private TypeElement subscribeElement;
+    private DeclaredType subscribeDeclaredType;
 
     private DeclaredType playerType;
-    private DeclaredType messageType;
 
     private TypeName registryTypeName;
 
@@ -92,10 +92,11 @@ public class PlayerMessageSubscribeProcessor extends AbstractProcessor {
         if (null != subscribeElement) {
             return;
         }
+
         subscribeElement = elementUtils.getTypeElement(SUBSCRIBE_CANONICAL_NAME);
+        subscribeDeclaredType = typeUtils.getDeclaredType(subscribeElement);
 
         playerType = typeUtils.getDeclaredType(elementUtils.getTypeElement(PLAYER_CANONICAL_NAME));
-        messageType = typeUtils.getDeclaredType(elementUtils.getTypeElement(MESSAGE_CANONICAL_NAME));
 
         registryTypeName = TypeName.get(elementUtils.getTypeElement(REGISTRY_CANONICAL_NAME).asType());
     }
@@ -133,38 +134,75 @@ public class PlayerMessageSubscribeProcessor extends AbstractProcessor {
 
         for (Element element : subscribeMethods) {
             final ExecutableElement method = (ExecutableElement) element;
-            // 访问权限不可以是private - 因为生成的类和该类属于同一个包，不必public，只要不是private即可
-            if (method.getModifiers().contains(Modifier.PRIVATE)) {
-                messager.printMessage(Diagnostic.Kind.ERROR, "RpcMethod method can't be private！", method);
+
+            if (method.getModifiers().contains(Modifier.STATIC)) {
+                // 不可以是静态方法
+                messager.printMessage(Diagnostic.Kind.ERROR, "subscribe method can't be static！", method);
                 continue;
             }
-            // 保证必须是两个参数
+            if (method.getModifiers().contains(Modifier.PRIVATE)) {
+                // 访问权限不可以是private
+                messager.printMessage(Diagnostic.Kind.ERROR, "subscribe method can't be private！", method);
+                continue;
+            }
+
             if (method.getParameters().size() != 2) {
+                // 保证必须是两个参数
                 messager.printMessage(Diagnostic.Kind.ERROR, "subscribe method must have two and only two parameter!", method);
                 continue;
             }
-            // 第一个参数必须是Player类型
+
             final VariableElement firstVariableElement = method.getParameters().get(0);
             if (!AutoUtils.isTargetDeclaredType(firstVariableElement, declaredType -> typeUtils.isSameType(declaredType, playerType))) {
+                // 第一个参数必须是Player类型
                 messager.printMessage(Diagnostic.Kind.ERROR, "subscribe method first parameter type must be player!", method);
                 continue;
             }
-            // 第二个参数必须是具体的消息类型
+
+            // 第二个参数是要注册的所有子消息类型的超类型
             final VariableElement secondVariableElement = method.getParameters().get(1);
-            if (!AutoUtils.isTargetDeclaredType(secondVariableElement, declaredType -> typeUtils.isSubtype(declaredType, messageType))) {
-                messager.printMessage(Diagnostic.Kind.ERROR, "subscribe method second parameter type must be subtype of AbstractMessage!", method);
+            if (secondVariableElement.asType().getKind().isPrimitive()) {
+                // 消息类型不可以是基本类型
+                messager.printMessage(Diagnostic.Kind.ERROR, "PrimitiveType is not allowed here!", method);
                 continue;
             }
-            // 第二个参数类型是要注册的消息类型，生成lambda表达式
+            if (AutoUtils.containsTypeVariable(secondVariableElement.asType())) {
+                // 消息类型不可以包含泛型
+                messager.printMessage(Diagnostic.Kind.ERROR, "TypeParameter is not allowed here!", method);
+                continue;
+            }
+
+            final AnnotationMirror annotationMirror = AutoUtils.findFirstAnnotationWithoutInheritance(typeUtils, method, subscribeDeclaredType).get();
+            final Boolean onlySubEvents = EventSubscribeProcessor.isOnlySubEvents(elementUtils, annotationMirror);
+
             final TypeName messageTypeName = ParameterizedTypeName.get(secondVariableElement.asType());
-            builder.addStatement("registry.register($T.class, (player, message) -> instance.$L(player, message))",
-                    messageTypeName, method.getSimpleName().toString());
+            if (!onlySubEvents) {
+                builder.addStatement("registry.register($T.class, (player, message) -> instance.$L(player, message))",
+                        messageTypeName, method.getSimpleName().toString());
+            }
+
+            // 搜集注册的子事件
+            final Set<TypeMirror> subscribeSubTypes = EventSubscribeProcessor.collectSubEventTypes(typeUtils, messager, method,
+                    secondVariableElement.asType(), annotationMirror);
+
+            for (TypeMirror subType : subscribeSubTypes) {
+                if (!onlySubEvents && typeUtils.isSameType(subType, secondVariableElement.asType())) {
+                    // 去除重复
+                    continue;
+                }
+
+                // 注意：这里需要转换为函数参数对应的事件类型（超类型），否则可能会找不到对应的方法，或关联到其它方法
+                // registry.register(Child.class, event -> instance.method(player, (Parent)event));
+                builder.addStatement("registry.register($T.class, (player, message) -> instance.$L(player, ($T)message))",
+                        TypeName.get(subType), method.getSimpleName().toString(), messageTypeName);
+            }
+
         }
         return builder.build();
     }
 
     private String getProxyClassName(TypeElement typeElement) {
-        return typeElement.getSimpleName().toString() + "MsgFunRegister";
+        return typeElement.getSimpleName().toString() + "PlayerMsgRegister";
     }
 
 }

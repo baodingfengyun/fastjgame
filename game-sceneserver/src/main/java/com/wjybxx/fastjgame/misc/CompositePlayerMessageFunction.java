@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.google.protobuf.AbstractMessage;
 import com.wjybxx.fastjgame.gameobject.Player;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +31,7 @@ import java.util.List;
  * date - 2019/8/25
  * github - https://github.com/hl845740757
  */
-public class CompositePlayerMessageFunction<T extends AbstractMessage> implements PlayerMessageFunction<T> {
+public class CompositePlayerMessageFunction<T> implements PlayerMessageFunction<T> {
 
     private static final Logger logger = LoggerFactory.getLogger(CompositePlayerMessageFunction.class);
 

@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.google.protobuf.AbstractMessage;
 import com.wjybxx.fastjgame.gameobject.Player;
 
 /**
@@ -28,7 +27,7 @@ import com.wjybxx.fastjgame.gameobject.Player;
  * github - https://github.com/hl845740757
  */
 @FunctionalInterface
-public interface PlayerMessageFunction<T extends AbstractMessage> {
+public interface PlayerMessageFunction<T> {
 
     /**
      * 当接收到一个玩家的消息
