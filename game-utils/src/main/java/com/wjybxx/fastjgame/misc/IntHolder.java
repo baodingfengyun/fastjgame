@@ -41,17 +41,13 @@ public class IntHolder {
 
     /**
      * 获取当前值
-     *
-     * @return
      */
     public int get() {
         return value;
     }
 
     /**
-     * 设置序号
-     *
-     * @param value
+     * 设置为指定值
      */
     public void set(int value) {
         this.value = value;
@@ -59,8 +55,6 @@ public class IntHolder {
 
     /**
      * 返回之后+1
-     *
-     * @return
      */
     public int getAndInc() {
         return value++;
@@ -68,18 +62,40 @@ public class IntHolder {
 
     /**
      * +1之后返回
-     *
-     * @return
      */
     public int incAndGet() {
         return ++value;
     }
 
     /**
+     * 返回之后-1
+     */
+    public int getAndDec() {
+        return value--;
+    }
+
+    /**
+     * -1之后返回
+     */
+    public int decAndGet() {
+        return --value;
+    }
+
+    /**
+     * 加上指定增量并返回
+     *
+     * @param delta the value to add
+     * @return the updated value
+     */
+    public int getAndAdd(int delta) {
+        this.value += delta;
+        return this.value;
+    }
+
+    /**
      * 修改当前值，并返回之前的值
      *
-     * @param value
-     * @return
+     * @return old value
      */
     public int getAndSet(int value) {
         int result = this.value;

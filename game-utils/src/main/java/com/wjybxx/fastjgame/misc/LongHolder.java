@@ -43,17 +43,13 @@ public final class LongHolder {
 
     /**
      * 获取当前值
-     *
-     * @return
      */
     public long get() {
         return value;
     }
 
     /**
-     * 设置序号
-     *
-     * @param value 指定值
+     * 设置为指定值
      */
     public void set(long value) {
         this.value = value;
@@ -61,8 +57,6 @@ public final class LongHolder {
 
     /**
      * 返回之后+1
-     *
-     * @return
      */
     public long getAndInc() {
         return value++;
@@ -70,18 +64,40 @@ public final class LongHolder {
 
     /**
      * +1之后返回
-     *
-     * @return
      */
     public long incAndGet() {
         return ++value;
     }
 
     /**
+     * 返回之后-1
+     */
+    public long getAndDec() {
+        return value--;
+    }
+
+    /**
+     * -1之后返回
+     */
+    public long decAndGet() {
+        return --value;
+    }
+
+    /**
+     * 加上指定增量并返回
+     *
+     * @param delta the value to add
+     * @return the updated value
+     */
+    public long getAndAdd(long delta) {
+        this.value += delta;
+        return this.value;
+    }
+
+    /**
      * 修改当前值，并返回之前的值
      *
-     * @param value
-     * @return
+     * @return old value
      */
     public long getAndSet(long value) {
         long result = this.value;

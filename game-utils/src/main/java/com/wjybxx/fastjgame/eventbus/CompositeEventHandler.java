@@ -60,7 +60,7 @@ public class CompositeEventHandler<T> implements EventHandler<T> {
             try {
                 handler.onEvent(event);
             } catch (Throwable e) {
-                logger.warn("Child {} onEvent caught exception!", handler.getClass().getName(), e);
+                logger.warn("Child onEvent caught exception!", e);
             }
         }
     }

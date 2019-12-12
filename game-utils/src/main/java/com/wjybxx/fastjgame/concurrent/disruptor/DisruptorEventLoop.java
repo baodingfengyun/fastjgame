@@ -73,7 +73,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     /**
      * 批量拉取(执行)任务数 - 该值越小{@link #loopOnce()}执行越频繁，响应关闭请求越快。
      */
-    private static final int DEFAULT_BATCH_SIZE = 1024;
+    private static final int DEFAULT_BATCH_EVENT_SIZE = 1024;
 
     // 线程的状态
     /**
@@ -137,7 +137,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
                               @Nonnull ThreadFactory threadFactory,
                               @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
         this(parent, threadFactory, rejectedExecutionHandler,
-                DEFAULT_RING_BUFFER_SIZE, DEFAULT_BATCH_SIZE,
+                DEFAULT_RING_BUFFER_SIZE, DEFAULT_BATCH_EVENT_SIZE,
                 new SleepWaitStrategyFactory());
     }
 
@@ -168,7 +168,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
                               @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
                               @Nonnull WaitStrategyFactory waitStrategyFactory) {
         this(parent, threadFactory, rejectedExecutionHandler,
-                DEFAULT_RING_BUFFER_SIZE, DEFAULT_BATCH_SIZE,
+                DEFAULT_RING_BUFFER_SIZE, DEFAULT_BATCH_EVENT_SIZE,
                 waitStrategyFactory);
     }
 
@@ -291,7 +291,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 
             // 唤醒线程 - 如果线程可能阻塞在其它地方
             if (!inEventLoop()) {
-                weakUp();
+                wakeUp();
             }
         }
     }
@@ -299,7 +299,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     /**
      * 如果子类可能阻塞在其它地方，那么应该重写该方法以唤醒线程
      */
-    protected void weakUp() {
+    protected void wakeUp() {
 
     }
 
@@ -307,7 +307,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
      * 中断消费者线程。
      * 通常用于唤醒线程，如果线程需要通过中断唤醒。
      */
-    protected void interruptThread() {
+    protected final void interruptThread() {
         thread.interrupt();
     }
 

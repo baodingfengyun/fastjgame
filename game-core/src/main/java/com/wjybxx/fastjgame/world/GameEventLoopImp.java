@@ -144,7 +144,7 @@ public class GameEventLoopImp extends DisruptorEventLoop implements GameEventLoo
     }
 
     @Override
-    protected void weakUp() {
+    protected void wakeUp() {
         // 游戏线程可能阻塞在了某个地方 - curator中存在阻塞可能
         interruptThread();
     }

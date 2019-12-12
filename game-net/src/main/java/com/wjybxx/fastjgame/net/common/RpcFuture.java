@@ -46,7 +46,14 @@ public interface RpcFuture extends ListenableFuture<RpcResponse> {
     void addListener(@Nonnull FutureListener<? super RpcResponse> listener);
 
     /**
-     * 添加rpc调用回调，默认执行在发起rpc调用的用户所在的线程。
+     * {@inheritDoc}
+     */
+    @Override
+    void addListener(@Nonnull FutureListener<? super RpcResponse> listener, @Nonnull EventLoop bindExecutor);
+
+    /**
+     * 添加rpc调用回调。
+     * 默认执行在发起rpc调用的用户所在的线程。
      *
      * @param rpcCallback rpc回调逻辑
      */

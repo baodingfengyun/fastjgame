@@ -284,7 +284,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
      * <p>
      * Interrupt the current running {@link Thread}.
      */
-    protected void interruptThread() {
+    protected final void interruptThread() {
         assert !inEventLoop();
         thread.interrupt();
     }
