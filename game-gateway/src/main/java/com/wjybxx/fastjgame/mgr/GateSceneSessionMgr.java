@@ -17,8 +17,8 @@
 package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.core.onlinenode.SceneNodeData;
-import com.wjybxx.fastjgame.core.onlinenode.SceneNodeName;
+import com.wjybxx.fastjgame.node.SceneNodeData;
+import com.wjybxx.fastjgame.node.SceneNodeName;
 import com.wjybxx.fastjgame.misc.GateSceneSession;
 import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.session.Session;

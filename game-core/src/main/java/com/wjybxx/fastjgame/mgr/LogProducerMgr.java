@@ -19,8 +19,8 @@ package com.wjybxx.fastjgame.mgr;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
-import com.wjybxx.fastjgame.misc.log.LogBuilder;
-import com.wjybxx.fastjgame.misc.log.LogProducerEventLoop;
+import com.wjybxx.fastjgame.log.LogBuilder;
+import com.wjybxx.fastjgame.log.LogProducerEventLoop;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
 import javax.annotation.concurrent.ThreadSafe;

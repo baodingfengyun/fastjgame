@@ -14,58 +14,35 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.core.onlinenode;
+package com.wjybxx.fastjgame.node;
 
-import com.wjybxx.fastjgame.misc.PlatformType;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * 网关节点名字(网关节点不互斥)
+ * zookeeper在线WarzoneServer节点信息
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/10/11
+ * date - 2019/5/15 17:22
  * github - https://github.com/hl845740757
  */
-public class GateNodeName {
+public class WarzoneNodeData extends TcpServerNodeData {
 
     /**
-     * 战区id来自父节点
-     */
-    private final int warzoneId;
-    /**
-     * 所属的平台
-     */
-    private final PlatformType platformType;
-    /**
-     * 所属的服
-     */
-    private final int serverId;
-    /**
-     * guid
+     * 战区节点必须互斥，因此guid在data里面，而不在名字里。
      */
     private final long worldGuid;
 
-    public GateNodeName(int warzoneId, PlatformType platformType, int serverId, long worldGuid) {
-        this.warzoneId = warzoneId;
-        this.platformType = platformType;
-        this.serverId = serverId;
+    @JsonCreator
+    public WarzoneNodeData(@JsonProperty("innerHttpAddres") String innerHttpAddress,
+                           @JsonProperty("innerTcpAddress") String innerTcpAddress,
+                           @JsonProperty("worldGuid") long worldGuid) {
+        super(innerHttpAddress, innerTcpAddress);
         this.worldGuid = worldGuid;
-    }
-
-    public int getWarzoneId() {
-        return warzoneId;
-    }
-
-    public PlatformType getPlatformType() {
-        return platformType;
-    }
-
-    public int getServerId() {
-        return serverId;
     }
 
     public long getWorldGuid() {
         return worldGuid;
     }
-
 }

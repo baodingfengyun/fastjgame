@@ -14,26 +14,27 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.misc.log;
-
-import javax.annotation.Nonnull;
+package com.wjybxx.fastjgame.node;
 
 /**
- * 日志建造指挥官，构建最终的日志内容
+ * 登录服务器节点名字（不互斥）
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/11/30
+ * date - 2019/5/17 21:27
  * github - https://github.com/hl845740757
  */
-public interface LogDirector {
-
+public class LoginNodeName {
     /**
-     * @param logBuilder    含有日志内容的builder
-     * @param curTimeMillis 当前时间
-     * @return 传输的内容
+     * 登录服worldGuid
      */
-    @Nonnull
-    String build(LogBuilder logBuilder, long curTimeMillis);
+    private final long loginWorldGuid;
 
+    public LoginNodeName(long loginWorldGuid) {
+        this.loginWorldGuid = loginWorldGuid;
+    }
+
+    public long getLoginWorldGuid() {
+        return loginWorldGuid;
+    }
 }

@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.config;
 
-import com.wjybxx.fastjgame.core.SceneRegion;
+import com.wjybxx.fastjgame.scene.SceneRegion;
 
 /**
  * 游戏场景配置信息，和地图配置信息组合，可以更好的复用地图资源；

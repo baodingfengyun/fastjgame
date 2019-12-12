@@ -17,12 +17,12 @@
 package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.core.onlinenode.SceneNodeData;
-import com.wjybxx.fastjgame.core.onlinenode.SceneNodeName;
-import com.wjybxx.fastjgame.core.onlinenode.WarzoneNodeData;
-import com.wjybxx.fastjgame.core.onlinenode.WarzoneNodeName;
 import com.wjybxx.fastjgame.misc.CloseableHandle;
 import com.wjybxx.fastjgame.misc.RoleType;
+import com.wjybxx.fastjgame.node.SceneNodeData;
+import com.wjybxx.fastjgame.node.SceneNodeName;
+import com.wjybxx.fastjgame.node.WarzoneNodeData;
+import com.wjybxx.fastjgame.node.WarzoneNodeName;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.curator.framework.recipes.cache.ChildData;

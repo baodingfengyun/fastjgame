@@ -14,30 +14,25 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.misc.log;
+package com.wjybxx.fastjgame.node;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * 日志主题
+ * zookeeper上在线SceneServer节点信息
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/11/27
+ * date - 2019/5/15 17:21
  * github - https://github.com/hl845740757
  */
-public enum LogTopic {
-    /**
-     * 测试日志
-     */
-    TEST,
+public class SceneNodeData extends TcpServerNodeData {
 
-    /**
-     * 玩家行为日志
-     */
-    PLAYER,
+    @JsonCreator
+    public SceneNodeData(@JsonProperty("innerHttpAddress") String innerHttpAddress,
+                         @JsonProperty("innerTcpAddress") String innerTcpAddress) {
+        super(innerHttpAddress, innerTcpAddress);
+    }
 
-    /**
-     * 系统日志
-     */
-    SYSTEM,
-    ;
 }

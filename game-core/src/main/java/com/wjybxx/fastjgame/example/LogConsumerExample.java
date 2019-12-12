@@ -14,27 +14,27 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.test;
+package com.wjybxx.fastjgame.example;
 
 import com.google.common.collect.Sets;
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
-import com.wjybxx.fastjgame.misc.log.LogConsumerEventLoop;
-import com.wjybxx.fastjgame.misc.log.LogTopic;
+import com.wjybxx.fastjgame.log.LogConsumerEventLoop;
+import com.wjybxx.fastjgame.log.LogTopic;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 日志消费者事件循环
+ * kafka日志消费者 - 需要启动kafka
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/11/28
  * github - https://github.com/hl845740757
  */
-public class LogConsumerEventLoopTest {
+public class LogConsumerExample {
 
     public static void main(String[] args) {
         final LogConsumerEventLoop consumer = newConsumerEventLoop();
@@ -56,6 +56,6 @@ public class LogConsumerEventLoopTest {
     @Nonnull
     private static LogConsumerEventLoop newConsumerEventLoop() {
         return new LogConsumerEventLoop("localhost:9092", Sets.newHashSet(LogTopic.TEST.name()), "TEST",
-                new DefaultThreadFactory("LOGGER"), RejectedExecutionHandlers.abort());
+                new DefaultThreadFactory("CONSUMER"), RejectedExecutionHandlers.abort());
     }
 }

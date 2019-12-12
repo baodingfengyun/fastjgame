@@ -14,68 +14,30 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.misc.log;
+package com.wjybxx.fastjgame.log;
 
 /**
- * 日志类型 - 可以考虑根据表格生成。
+ * 日志主题
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/11/27
  * github - https://github.com/hl845740757
  */
-public enum LogType {
+public enum LogTopic {
+    /**
+     * 测试日志
+     */
+    TEST,
 
     /**
-     * 测试用
+     * 玩家行为日志
      */
-    TEST(LogTopic.TEST),
+    PLAYER,
 
     /**
-     * 创建角色日志
+     * 系统日志
      */
-    CREATE_ROLE,
-    /**
-     * 删除角色日志
-     */
-    DELETE_ROLE,
-
-    /**
-     * 登录日志
-     */
-    LOGIN,
-    /**
-     * 登出日志
-     */
-    LOGOUT,
-
-    /**
-     * 角色升级
-     */
-    LEVEL_UP,
-
-    /**
-     * 角色重命名
-     */
-    RENAME,
-
-    /**
-     * 聊天日志
-     */
-    CHAT,
+    SYSTEM,
     ;
-
-    /**
-     * 日志关联的topic
-     * 由于角色日志占大多数，因此默认为角色日志
-     */
-    public final LogTopic topic;
-
-    LogType() {
-        this(LogTopic.PLAYER);
-    }
-
-    LogType(LogTopic topic) {
-        this.topic = topic;
-    }
 }

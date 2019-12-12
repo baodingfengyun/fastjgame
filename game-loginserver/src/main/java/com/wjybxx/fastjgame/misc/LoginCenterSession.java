@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.core.onlinenode.CenterNodeData;
-import com.wjybxx.fastjgame.core.onlinenode.CenterNodeName;
+import com.wjybxx.fastjgame.node.CenterNodeData;
+import com.wjybxx.fastjgame.node.CenterNodeName;
 
 /**
  * 中心服在登录服的信息

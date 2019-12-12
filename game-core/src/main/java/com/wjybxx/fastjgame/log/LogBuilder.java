@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.misc.log;
+package com.wjybxx.fastjgame.log;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.LinkedList;

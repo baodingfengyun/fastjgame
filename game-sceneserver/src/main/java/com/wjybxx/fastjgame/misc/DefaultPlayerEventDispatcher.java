@@ -63,9 +63,10 @@ public class DefaultPlayerEventDispatcher implements PlayerEventHandlerRegistry,
         handlerMap.clear();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public final <T> void post(@Nonnull Player player, @Nonnull T event) {
-        @SuppressWarnings("unchecked") final PlayerEventHandler<T> messageFunction = (PlayerEventHandler<T>) handlerMap.get(event.getClass());
+        final PlayerEventHandler<T> messageFunction = (PlayerEventHandler<T>) handlerMap.get(event.getClass());
         if (null == messageFunction) {
             logger.warn("{} send unregistered message {}", player.getGuid(), event.getClass().getName());
             return;

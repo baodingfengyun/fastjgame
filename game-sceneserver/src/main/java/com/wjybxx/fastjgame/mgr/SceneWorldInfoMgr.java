@@ -18,8 +18,8 @@ package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
-import com.wjybxx.fastjgame.core.SceneRegion;
 import com.wjybxx.fastjgame.misc.RoleType;
+import com.wjybxx.fastjgame.scene.SceneRegion;
 
 import java.util.Collections;
 import java.util.EnumSet;

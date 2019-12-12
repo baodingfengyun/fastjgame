@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.world;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.core.onlinenode.GateNodeData;
+import com.wjybxx.fastjgame.node.GateNodeData;
 import com.wjybxx.fastjgame.mgr.GateDiscoverMgr;
 import com.wjybxx.fastjgame.mgr.WorldWrapper;
 import com.wjybxx.fastjgame.misc.HostAndPort;

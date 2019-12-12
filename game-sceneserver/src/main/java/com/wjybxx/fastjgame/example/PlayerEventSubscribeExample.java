@@ -33,12 +33,12 @@ import static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data;
  * date - 2019/8/25
  * github - https://github.com/hl845740757
  */
-public class PlayerSubscriberExample {
+public class PlayerEventSubscribeExample {
 
     public static void main(String[] args) {
         final DefaultPlayerEventDispatcher dispatcher = new DefaultPlayerEventDispatcher();
-        PlayerSubscriberExamplePlayerEventRegister.register(dispatcher,
-                new PlayerSubscriberExample());
+        PlayerEventSubscribeExamplePlayerEventRegister.register(dispatcher,
+                new PlayerEventSubscribeExample());
 
         Player player = new Player(null, null, null, null);
         dispatcher.post(player, p_player_data

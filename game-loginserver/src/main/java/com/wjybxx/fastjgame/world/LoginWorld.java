@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.world;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.core.onlinenode.LoginNodeData;
+import com.wjybxx.fastjgame.node.LoginNodeData;
 import com.wjybxx.fastjgame.mgr.LoginCenterSessionMgr;
 import com.wjybxx.fastjgame.mgr.LoginDiscoverMgr;
 import com.wjybxx.fastjgame.mgr.LoginWorldInfoMgr;

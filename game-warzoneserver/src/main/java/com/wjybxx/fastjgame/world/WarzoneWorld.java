@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.world;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.core.onlinenode.WarzoneNodeData;
+import com.wjybxx.fastjgame.node.WarzoneNodeData;
 import com.wjybxx.fastjgame.mgr.WarzoneCenterSessionMgr;
 import com.wjybxx.fastjgame.mgr.WarzoneWorldInfoMgr;
 import com.wjybxx.fastjgame.mgr.WorldWrapper;

@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.misc.log.LogBuilder;
+import com.wjybxx.fastjgame.log.LogBuilder;
 
 import javax.annotation.concurrent.NotThreadSafe;
 

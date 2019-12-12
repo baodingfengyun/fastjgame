@@ -17,8 +17,8 @@
 package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.core.SceneRegion;
 import com.wjybxx.fastjgame.rpcservice.ISceneRegionMgr;
+import com.wjybxx.fastjgame.scene.SceneRegion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

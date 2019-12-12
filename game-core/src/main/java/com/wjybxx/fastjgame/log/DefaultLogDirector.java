@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.misc.log;
+package com.wjybxx.fastjgame.log;
 
 import javax.annotation.Nonnull;
 import java.util.regex.Pattern;

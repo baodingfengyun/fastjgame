@@ -1,11 +1,11 @@
 package com.wjybxx.fastjgame.world;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.core.onlinenode.SceneNodeData;
 import com.wjybxx.fastjgame.mgr.*;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.session.Session;
+import com.wjybxx.fastjgame.node.SceneNodeData;
 import com.wjybxx.fastjgame.rpcservice.ISceneCenterSessionMgrRpcRegister;
 import com.wjybxx.fastjgame.rpcservice.ISceneGateSessionMgrRpcRegister;
 import com.wjybxx.fastjgame.rpcservice.ISceneRegionMgrRpcRegister;

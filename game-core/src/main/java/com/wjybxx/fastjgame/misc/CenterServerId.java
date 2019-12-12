@@ -36,7 +36,7 @@ import javax.annotation.Nonnull;
  * github - https://github.com/hl845740757
  */
 @SerializableClass
-public class CenterServerId implements Comparable<CenterServerId> {
+public final class CenterServerId implements Comparable<CenterServerId> {
 
     @Nonnull
     @SerializableField(number = 1)

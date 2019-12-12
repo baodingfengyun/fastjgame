@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.core.onlinenode;
+package com.wjybxx.fastjgame.node;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

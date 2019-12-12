@@ -14,14 +14,14 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.test;
+package com.wjybxx.fastjgame.example;
 
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
-import com.wjybxx.fastjgame.misc.log.LogBuilder;
-import com.wjybxx.fastjgame.misc.log.LogKey;
-import com.wjybxx.fastjgame.misc.log.LogProducerEventLoop;
-import com.wjybxx.fastjgame.misc.log.LogType;
+import com.wjybxx.fastjgame.log.LogBuilder;
+import com.wjybxx.fastjgame.log.LogKey;
+import com.wjybxx.fastjgame.log.LogProducerEventLoop;
+import com.wjybxx.fastjgame.log.LogType;
 import com.wjybxx.fastjgame.utils.TimeUtils;
 
 import javax.annotation.Nonnull;
@@ -29,14 +29,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
 
 /**
- * 测试发送消息到kafka
+ * kafka日志生产者 - 需要启动kafka
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/11/28
  * github - https://github.com/hl845740757
  */
-public class LogProducerEventLoopTest {
+public class LogProducerExample {
 
     public static void main(String[] args) {
         final LogProducerEventLoop producer = newProducerEventLoop();
@@ -62,7 +62,7 @@ public class LogProducerEventLoopTest {
     @Nonnull
     private static LogProducerEventLoop newProducerEventLoop() {
         return new LogProducerEventLoop("localhost:9092",
-                new DefaultThreadFactory("LOGGER"),
+                new DefaultThreadFactory("PRODUCER"),
                 RejectedExecutionHandlers.abort());
     }
 

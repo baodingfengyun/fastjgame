@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.start;
 
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
-import com.wjybxx.fastjgame.core.SceneRegion;
+import com.wjybxx.fastjgame.scene.SceneRegion;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupBuilder;
 import com.wjybxx.fastjgame.misc.PlatformType;

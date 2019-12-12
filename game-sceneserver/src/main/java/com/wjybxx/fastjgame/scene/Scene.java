@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.scene;
 
 import com.wjybxx.fastjgame.config.SceneConfig;
-import com.wjybxx.fastjgame.core.SceneRegion;
 import com.wjybxx.fastjgame.gameobject.GameObject;
 import com.wjybxx.fastjgame.gameobject.Npc;
 import com.wjybxx.fastjgame.gameobject.Pet;

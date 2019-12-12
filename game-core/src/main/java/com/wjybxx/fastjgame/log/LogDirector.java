@@ -14,31 +14,26 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.misc.log;
+package com.wjybxx.fastjgame.log;
+
+import javax.annotation.Nonnull;
 
 /**
- * 一个日志键值对，用于将构建日志逻辑从逻辑线程转移到日志线程。
- * <p>
- * 该设计有好处自然也有坏处。
- * 好处：
- * 1. 可以将耗时操作转移到日志线程，但是它的比重大吗？ 耗时操作如：字符过滤替换，Base64编码。
- * 2. 扩展将更为容易。
- * 坏处：
- * 1. 增加内存消耗，不管value使用String还是Object，都会增加内存消耗(产生中间对象)。
+ * 日志建造指挥官，构建最终的日志内容
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/11/30
  * github - https://github.com/hl845740757
  */
-public class LogEntry {
+public interface LogDirector {
 
-    public final LogKey logKey;
-    public final String value;
-
-    public LogEntry(LogKey logKey, String value) {
-        this.logKey = logKey;
-        this.value = value;
-    }
+    /**
+     * @param logBuilder    含有日志内容的builder
+     * @param curTimeMillis 当前时间
+     * @return 传输的内容
+     */
+    @Nonnull
+    String build(LogBuilder logBuilder, long curTimeMillis);
 
 }

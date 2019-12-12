@@ -18,9 +18,9 @@ package com.wjybxx.fastjgame.rpcservice;
 
 import com.wjybxx.fastjgame.annotation.RpcMethod;
 import com.wjybxx.fastjgame.annotation.RpcService;
-import com.wjybxx.fastjgame.core.SceneRegion;
 import com.wjybxx.fastjgame.misc.CenterServerId;
 import com.wjybxx.fastjgame.net.session.Session;
+import com.wjybxx.fastjgame.scene.SceneRegion;
 
 import java.util.List;
 

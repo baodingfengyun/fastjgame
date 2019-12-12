@@ -16,10 +16,10 @@
 
 package com.wjybxx.fastjgame.utils;
 
-import com.wjybxx.fastjgame.core.onlinenode.*;
 import com.wjybxx.fastjgame.misc.CenterServerId;
 import com.wjybxx.fastjgame.misc.PlatformType;
 import com.wjybxx.fastjgame.misc.RoleType;
+import com.wjybxx.fastjgame.node.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.utils.PathUtils;
 

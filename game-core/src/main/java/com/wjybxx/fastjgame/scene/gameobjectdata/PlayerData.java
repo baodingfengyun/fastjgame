@@ -36,7 +36,7 @@ public class PlayerData extends GameObjectData {
     private CenterServerId originalServerId;
 
     /**
-     * 玩家当前真正所属的服务器（合服之后的服）；
+     * 玩家当前真正所属的服务器（合服之后的服）
      */
     private CenterServerId actualServerId;
 
