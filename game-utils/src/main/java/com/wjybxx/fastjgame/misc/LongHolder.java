@@ -89,11 +89,22 @@ public final class LongHolder {
      * @param delta the value to add
      * @return the updated value
      */
-    public long getAndAdd(long delta) {
+    public long addAndGet(long delta) {
         this.value += delta;
         return this.value;
     }
 
+    /**
+     * 返回之后加上指定增量
+     *
+     * @param delta the value to add
+     * @return he previous value
+     */
+    public long getAndAdd(long delta) {
+        long result = this.value;
+        this.value += delta;
+        return result;
+    }
     /**
      * 修改当前值，并返回之前的值
      *

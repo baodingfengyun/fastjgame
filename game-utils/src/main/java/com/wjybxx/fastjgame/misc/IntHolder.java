@@ -87,9 +87,21 @@ public class IntHolder {
      * @param delta the value to add
      * @return the updated value
      */
-    public int getAndAdd(int delta) {
+    public int addAndGet(int delta) {
         this.value += delta;
         return this.value;
+    }
+
+    /**
+     * 返回之后加上指定增量
+     *
+     * @param delta the value to add
+     * @return he previous value
+     */
+    public int getAndAdd(int delta) {
+        int result = this.value;
+        this.value += delta;
+        return result;
     }
 
     /**

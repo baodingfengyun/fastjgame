@@ -68,6 +68,8 @@ public class RedisEventLoopExample {
         final JedisPoolConfig config = new JedisPoolConfig();
         config.setMaxIdle(1);
         config.setMaxTotal(5);
+
+        config.setTestOnBorrow(true);
         config.setTestOnReturn(true);
 
         config.setBlockWhenExhausted(true);
@@ -124,7 +126,7 @@ public class RedisEventLoopExample {
         }
 
         private void sendRedisCommands(IntHolder countdown, int loop) {
-            countdown.getAndAdd(2);
+            countdown.addAndGet(2);
 
             redisPipeline.hset("name", String.valueOf(loop), String.valueOf(loop))
                     .addCallback(response -> {

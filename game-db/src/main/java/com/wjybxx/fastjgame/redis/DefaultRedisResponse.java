@@ -79,7 +79,7 @@ public class DefaultRedisResponse<T> implements RedisResponse<T> {
     }
 
     @Override
-    public RedisResponse<T> addCallback(@Nonnull RedisCallback<T> newCallback) {
+    public final RedisResponse<T> addCallback(@Nonnull RedisCallback<T> newCallback) {
         if (isDone()) {
             notifyListeners(this, newCallback);
             return this;
@@ -102,7 +102,7 @@ public class DefaultRedisResponse<T> implements RedisResponse<T> {
     /**
      * 当{@link Response}对应的操作已真正完成时，该方法将被调用。
      */
-    void onComplete(final T response, final JedisDataException exception) {
+    final void onComplete(final T response, final JedisDataException exception) {
         this.response = response;
         this.exception = exception;
         notifyListeners(this, callback);

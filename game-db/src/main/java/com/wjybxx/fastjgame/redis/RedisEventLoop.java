@@ -118,6 +118,7 @@ public class RedisEventLoop extends SingleThreadEventLoop {
             closeQuietly(jedis);
             jedis = jedisPool.getResource();
         } finally {
+            // pipeline的缺陷：由于多个指令在同一个pipeline中，其中某一个出现异常，将导致后续的指令丢失响应，会抛出未赋值异常。
             JedisTask<?> task;
             while ((task = waitResponseTasks.pollFirst()) != null) {
                 ConcurrentUtils.safeExecute(task.appEventLoop, newCallbackTaskSafely(task));
@@ -160,8 +161,12 @@ public class RedisEventLoop extends SingleThreadEventLoop {
             try {
                 dependency = pipelineCmd.execute(pipeline);
             } catch (JedisException exception) {
+                // 出现异常，手动生成结果
                 dependency = new Response(BuilderFactory.OBJECT);
                 dependency.set(new JedisDataException(exception));
+
+                // 避免在该连接上出现更多的异常
+                sync();
             }
         }
     }
