@@ -42,11 +42,6 @@ public interface RedisResponse<T> {
     T get();
 
     /**
-     * 当且仅当操作成功完成时返回结果，否则返回null
-     */
-    T getNow();
-
-    /**
      * 查询结果是否已完成
      */
     boolean isDone();
@@ -59,7 +54,7 @@ public interface RedisResponse<T> {
     /**
      * 获取造成失败的原因
      */
-    JedisDataException cause();
+    Throwable cause();
 
     /**
      * 添加一个回调，当操作完成时，{@link RedisCallback#onComplete(RedisResponse)}将会被调用。

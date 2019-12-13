@@ -54,6 +54,9 @@ import java.util.concurrent.ThreadFactory;
 public class RedisEventLoop extends SingleThreadEventLoop {
 
     private static final Logger logger = LoggerFactory.getLogger(RedisEventLoop.class);
+    /**
+     * 它决定了最多多少个命令执行一次{@link #sync()}
+     */
     private static final int BATCH_TASK_SIZE = 512;
 
     private final JedisPoolAbstract jedisPool;
@@ -61,7 +64,7 @@ public class RedisEventLoop extends SingleThreadEventLoop {
     private Jedis jedis;
     private Pipeline pipeline;
 
-    private final ArrayDeque<JedisTask<?>> waitResponseTasks = new ArrayDeque<>(BATCH_TASK_SIZE * 2);
+    private final ArrayDeque<JedisPipelineTask<?>> waitResponseTasks = new ArrayDeque<>(BATCH_TASK_SIZE);
 
     public RedisEventLoop(@Nullable EventLoopGroup parent,
                           @Nonnull ThreadFactory threadFactory,
@@ -119,7 +122,7 @@ public class RedisEventLoop extends SingleThreadEventLoop {
             jedis = jedisPool.getResource();
         } finally {
             // pipeline的缺陷：由于多个指令在同一个pipeline中，其中某一个出现异常，将导致后续的指令丢失响应，会抛出未赋值异常。
-            JedisTask<?> task;
+            JedisPipelineTask<?> task;
             while ((task = waitResponseTasks.pollFirst()) != null) {
                 ConcurrentUtils.safeExecute(task.appEventLoop, newCallbackTaskSafely(task));
             }
@@ -127,7 +130,7 @@ public class RedisEventLoop extends SingleThreadEventLoop {
         }
     }
 
-    private <T> JedisCallbackTask<T> newCallbackTaskSafely(JedisTask<T> task) {
+    private <T> JedisCallbackTask<T> newCallbackTaskSafely(JedisPipelineTask<T> task) {
         try {
             final T response = task.dependency.get();
             return new JedisCallbackTask<>(task.redisResponse, response, null);
@@ -138,17 +141,17 @@ public class RedisEventLoop extends SingleThreadEventLoop {
 
     <T> RedisResponse<T> enqueue(EventLoop appEventLoop, RedisPipelineCommand<T> pipelineCmd) {
         final DefaultRedisResponse<T> redisResponse = new DefaultRedisResponse<>();
-        execute(new JedisTask<>(appEventLoop, pipelineCmd, redisResponse));
+        execute(new JedisPipelineTask<>(appEventLoop, pipelineCmd, redisResponse));
         return redisResponse;
     }
 
-    private class JedisTask<T> implements Runnable {
+    private class JedisPipelineTask<T> implements Runnable {
         final EventLoop appEventLoop;
         final RedisPipelineCommand<T> pipelineCmd;
         final DefaultRedisResponse<T> redisResponse;
         Response<T> dependency;
 
-        JedisTask(EventLoop appEventLoop, RedisPipelineCommand<T> pipelineCmd, DefaultRedisResponse<T> redisResponse) {
+        JedisPipelineTask(EventLoop appEventLoop, RedisPipelineCommand<T> pipelineCmd, DefaultRedisResponse<T> redisResponse) {
             this.appEventLoop = appEventLoop;
             this.pipelineCmd = pipelineCmd;
             this.redisResponse = redisResponse;

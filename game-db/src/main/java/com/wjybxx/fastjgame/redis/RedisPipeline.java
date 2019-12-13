@@ -27,8 +27,9 @@ import java.util.Set;
 
 /**
  * 封装{@link redis.clients.jedis.commands.RedisPipeline}，提供回调等支持。
- * 实在是佩服jedis的作者。
- * 咱们按需添加就好。
+ * 实在是佩服jedis的作者，咱们按需添加就好。
+ * <p>
+ * 该封装屏蔽了pipeline的真实执行流程，用户不必关心底层细节，大大降低了使用redis管道的难度。
  *
  * @author wjybxx
  * @version 1.0

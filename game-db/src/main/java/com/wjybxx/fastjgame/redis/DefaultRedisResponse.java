@@ -47,20 +47,15 @@ public class DefaultRedisResponse<T> implements RedisResponse<T> {
 
     @Override
     public final T get() {
-        if (exception != null) {
-            throw exception;
-        }
-
         if (null != response) {
             return response;
         }
 
-        throw new JedisDataException("uncompleted");
-    }
+        if (null != exception) {
+            throw exception;
+        }
 
-    @Override
-    public final T getNow() {
-        return response;
+        throw new JedisDataException("uncompleted");
     }
 
     @Override
@@ -74,8 +69,8 @@ public class DefaultRedisResponse<T> implements RedisResponse<T> {
     }
 
     @Override
-    public final JedisDataException cause() {
-        return exception;
+    public final Throwable cause() {
+        return exception == null ? null : exception.getCause();
     }
 
     @Override
