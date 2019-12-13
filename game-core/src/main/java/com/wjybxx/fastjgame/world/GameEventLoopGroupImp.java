@@ -26,6 +26,7 @@ import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.mgr.CuratorClientMgr;
 import com.wjybxx.fastjgame.mgr.GlobalExecutorMgr;
 import com.wjybxx.fastjgame.mgr.LogProducerMgr;
+import com.wjybxx.fastjgame.mgr.RedisEventLoopMgr;
 import com.wjybxx.fastjgame.module.WorldGroupModule;
 import com.wjybxx.fastjgame.module.WorldModule;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
@@ -88,8 +89,9 @@ public class GameEventLoopGroupImp extends MultiThreadEventLoopGroup implements 
 
     private void start() {
         final Injector groupModule = getContext().groupInjector;
-        // 启动全局资源
+        // 启动全局资源(提前暴露错误)
         groupModule.getInstance(LogProducerMgr.class).start();
+        groupModule.getInstance(RedisEventLoopMgr.class).start();
 
         // 启动所有WORLD线程
         forEach(eventLoop -> eventLoop.execute(ConcurrentUtils.NO_OP_TASK));
@@ -102,6 +104,7 @@ public class GameEventLoopGroupImp extends MultiThreadEventLoopGroup implements 
     protected void clean() {
         final Injector groupModule = getContext().groupInjector;
         groupModule.getInstance(LogProducerMgr.class).shutdown();
+        groupModule.getInstance(RedisEventLoopMgr.class).shutdown();
         groupModule.getInstance(GlobalExecutorMgr.class).shutdown();
         groupModule.getInstance(CuratorClientMgr.class).shutdown();
     }

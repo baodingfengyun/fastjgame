@@ -70,6 +70,14 @@ public class GameConfigMgr {
      * kafka服务器列表
      */
     private final String kafkaBrokerList;
+    /**
+     * redis哨兵列表
+     */
+    private final String redisSentinelList;
+    /**
+     * redis密码
+     */
+    private final String redisPassword;
 
     @Inject
     public GameConfigMgr() throws IOException {
@@ -82,6 +90,8 @@ public class GameConfigMgr {
         mongoConnectionTimeoutMs = configWrapper.getAsInt("mongoConnectionTimeoutMs");
         mongoConnectionsPerHost = configWrapper.getAsInt("mongoConnectionsPerHost");
         kafkaBrokerList = configWrapper.getAsString("kafkaBrokerList");
+        redisSentinelList = configWrapper.getAsString("redisSentinelList");
+        redisPassword = configWrapper.getAsString("redisPassword");
     }
 
     public ConfigWrapper getConfigWrapper() {
@@ -118,5 +128,13 @@ public class GameConfigMgr {
 
     public String getKafkaBrokerList() {
         return kafkaBrokerList;
+    }
+
+    public String getRedisSentinelList() {
+        return redisSentinelList;
+    }
+
+    public String getRedisPassword() {
+        return redisPassword;
     }
 }

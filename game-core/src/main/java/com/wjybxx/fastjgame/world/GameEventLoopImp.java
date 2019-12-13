@@ -127,15 +127,13 @@ public class GameEventLoopImp extends DisruptorEventLoop implements GameEventLoo
 
     @Override
     protected void clean() throws Exception {
-        super.clean();
-
         // 关闭游戏world
         if (world != null) {
-            safeShutdownWorld();
+            shutdownWorldSafely();
         }
     }
 
-    private void safeShutdownWorld() {
+    private void shutdownWorldSafely() {
         try {
             world.shutdown();
         } catch (Throwable ex) {

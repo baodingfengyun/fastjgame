@@ -130,7 +130,6 @@ public abstract class AbstractWorld implements World {
         worldInfoMgr.init(startArgs);
         // 初始化网络上下文
         netContextMgr.start();
-
         // 初始化网络层需要的组件(codec帮助类)
         registerProtocolCodecs();
 
@@ -138,6 +137,9 @@ public abstract class AbstractWorld implements World {
         registerMessageHandlers();
         registerRpcService();
         registerHttpRequestHandlers();
+
+        // 初始化redis
+        worldWrapper.getRedisMgr().createPipeline();
 
         // 子类自己的其它启动逻辑
         startHook();

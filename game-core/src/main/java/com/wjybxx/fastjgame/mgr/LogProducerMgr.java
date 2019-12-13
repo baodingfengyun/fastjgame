@@ -22,7 +22,10 @@ import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.log.LogBuilder;
 import com.wjybxx.fastjgame.log.LogProducerEventLoop;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -36,23 +39,48 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class LogProducerMgr {
 
+    private static final Logger logger = LoggerFactory.getLogger(LogProducerMgr.class);
+
     private final LogProducerEventLoop producer;
+    private volatile boolean shutdown = false;
 
     @Inject
     public LogProducerMgr(GameConfigMgr gameConfigMgr) {
-        producer = new LogProducerEventLoop(gameConfigMgr.getKafkaBrokerList(),
-                new DefaultThreadFactory("LOGGER"),
+        producer = newProducer(gameConfigMgr);
+    }
+
+    @Nonnull
+    private static LogProducerEventLoop newProducer(GameConfigMgr gameConfigMgr) {
+        return new LogProducerEventLoop(gameConfigMgr.getKafkaBrokerList(),
+                new DefaultThreadFactory("LOG-PRODUCER"),
                 RejectedExecutionHandlers.log());
     }
 
+    /**
+     * 启动kafka线程
+     */
     public void start() {
+        producer.terminationFuture().addListener(future -> {
+            if (!shutdown) {
+                logger.error("producer shutdown by mistake");
+            }
+        });
+
         producer.execute(ConcurrentUtils.NO_OP_TASK);
     }
 
+    /**
+     * 关闭kafka线程
+     */
     public void shutdown() {
+        shutdown = true;
         producer.shutdown();
+        logger.info("LogProducer shutdown success");
     }
 
+    /**
+     * 发送消息到kafka
+     */
     public void publish(LogBuilder logBuilder) {
         producer.publish(logBuilder);
     }
