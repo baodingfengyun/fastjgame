@@ -116,9 +116,12 @@ public class RedisEventLoop extends SingleThreadEventLoop {
 
         try {
             pipeline.sync();
-        } catch (JedisException exception) {
+        } catch (Throwable exception) {
+            logger.warn("pipeline.sync caught exception", exception);
+
             closeQuietly(pipeline);
             closeQuietly(jedis);
+
             jedis = jedisPool.getResource();
         } finally {
             // pipeline的缺陷：由于多个指令在同一个pipeline中，其中某一个出现异常，将导致后续的指令丢失响应，会抛出未赋值异常。
@@ -126,6 +129,7 @@ public class RedisEventLoop extends SingleThreadEventLoop {
             while ((task = waitResponseTasks.pollFirst()) != null) {
                 ConcurrentUtils.safeExecute(task.appEventLoop, newCallbackTaskSafely(task));
             }
+
             pipeline = jedis.pipelined();
         }
     }
@@ -163,7 +167,7 @@ public class RedisEventLoop extends SingleThreadEventLoop {
             waitResponseTasks.add(this);
             try {
                 dependency = pipelineCmd.execute(pipeline);
-            } catch (JedisException exception) {
+            } catch (Throwable exception) {
                 // 出现异常，手动生成结果
                 dependency = new Response(BuilderFactory.OBJECT);
                 dependency.set(new JedisDataException(exception));
