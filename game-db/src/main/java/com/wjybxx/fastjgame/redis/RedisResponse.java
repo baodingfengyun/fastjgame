@@ -35,11 +35,26 @@ import javax.annotation.concurrent.NotThreadSafe;
 public interface RedisResponse<T> {
 
     /**
-     * 获取最终结果
+     * 尝试获取任务执行结果
+     * <p>
+     * 1. 如果任务尚未完成，则抛出异常。
+     * 2. 如果任务执行失败，则重新抛出导致失败的异常。
      *
      * @throws JedisDataException 出现任何异常，都将封装为该异常抛出
      */
     T get();
+
+    /**
+     * 当前仅当任务正常完成时返回期望的结果，否则返回null，即：
+     * <p>
+     * 1. 如果任务尚未完成，则返回null。
+     * 2. 如果任务执行失败，则返回null。
+     * <p>
+     * 注意：
+     * 如果关联的操作没有返回值(操作完成返回null)，此时不能根据返回值做任何判断。对于这种情况，
+     * 你可以使用{@link #isSuccess()},作为更好的选择。
+     */
+    T getNow();
 
     /**
      * 查询结果是否已完成
@@ -54,7 +69,7 @@ public interface RedisResponse<T> {
     /**
      * 获取造成失败的原因
      */
-    Throwable cause();
+    JedisDataException cause();
 
     /**
      * 添加一个回调，当操作完成时，{@link RedisCallback#onComplete(RedisResponse)}将会被调用。

@@ -66,7 +66,6 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     private static final int NANO_PER_MILLISECOND = (int) TimeUtils.NANO_PER_MILLISECOND;
 
     /**
-     * 表示任务已成功完成。
      * 如果一个任务成功时没有结果{@link #setSuccess(Object) null}，使用该对象代替。
      */
     private static final Object SUCCESS = new Object();

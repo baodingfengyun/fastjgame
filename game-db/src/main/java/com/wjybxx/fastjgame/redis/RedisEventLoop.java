@@ -130,12 +130,12 @@ public class RedisEventLoop extends SingleThreadEventLoop {
         }
     }
 
-    private <T> JedisCallbackTask<T> newCallbackTaskSafely(JedisPipelineTask<T> task) {
+    private <T> JedisCallbackTask newCallbackTaskSafely(JedisPipelineTask<T> task) {
         try {
             final T response = task.dependency.get();
-            return new JedisCallbackTask<>(task.redisResponse, response, null);
+            return new JedisCallbackTask(task.redisResponse, response);
         } catch (JedisDataException exception) {
-            return new JedisCallbackTask<>(task.redisResponse, null, exception);
+            return new JedisCallbackTask(task.redisResponse, exception);
         }
     }
 
@@ -174,21 +174,19 @@ public class RedisEventLoop extends SingleThreadEventLoop {
         }
     }
 
-    private static class JedisCallbackTask<T> implements Runnable {
+    private static class JedisCallbackTask implements Runnable {
 
-        final DefaultRedisResponse<T> redisResponse;
-        final T response;
-        final JedisDataException exception;
+        final DefaultRedisResponse<?> redisResponse;
+        final Object data;
 
-        JedisCallbackTask(DefaultRedisResponse<T> redisResponse, T response, JedisDataException exception) {
+        JedisCallbackTask(DefaultRedisResponse<?> redisResponse, Object data) {
             this.redisResponse = redisResponse;
-            this.response = response;
-            this.exception = exception;
+            this.data = data;
         }
 
         @Override
         public void run() {
-            redisResponse.onComplete(response, exception);
+            redisResponse.onComplete(data);
         }
     }
 

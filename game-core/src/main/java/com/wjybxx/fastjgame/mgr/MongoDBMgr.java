@@ -67,11 +67,14 @@ public abstract class MongoDBMgr {
      * 批量查询时，每次返回的数据量大小
      */
     private static final int BATCH_SIZE = 500;
+    /**
+     * 索引不存在对应的错误码
+     */
+    private static final int ERROR_CODE_INDEX_NOT_EXIST = 27;
 
     /**
      * A MongoDB client with internal connection pooling. For most applications,
      * you should have one MongoClient instance for the entire JVM.
-     * mongoClient
      */
     private final MongoClient mongoClient;
 
@@ -371,10 +374,10 @@ public abstract class MongoDBMgr {
      * @param tDocument      集合内元素类型
      * @param <T>            集合内元素类型
      */
-    public <T> void replaceOrInsert(MongoDBType databaseType, MongoCollectionName collectionName, Bson filter, T tDocument) {
+    public <T> UpdateResult replaceOrInsert(MongoDBType databaseType, MongoCollectionName collectionName, Bson filter, T tDocument) {
         @SuppressWarnings("unchecked")
         Class<T> documentClass = (Class<T>) tDocument.getClass();
-        getCollection(databaseType, collectionName, documentClass)
+        return getCollection(databaseType, collectionName, documentClass)
                 .replaceOne(filter, tDocument, new ReplaceOptions().upsert(true));
     }
 
@@ -660,7 +663,7 @@ public abstract class MongoDBMgr {
         try {
             getCollection(databaseType, collectionName).dropIndex(indexDocument.getDocument());
         } catch (MongoException e) {
-            if (e.getCode() != 27) {
+            if (e.getCode() != ERROR_CODE_INDEX_NOT_EXIST) {
                 throw e;
             }
             // ignore, may index not exist

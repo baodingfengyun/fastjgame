@@ -39,7 +39,7 @@ public class RedisEventLoopGroup extends MultiThreadEventLoopGroup {
     public RedisEventLoopGroup(int nThreads,
                                @Nonnull ThreadFactory threadFactory,
                                @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
-                               @Nullable JedisPoolAbstract jedisPool) {
+                               @Nonnull JedisPoolAbstract jedisPool) {
         super(nThreads, threadFactory, rejectedExecutionHandler, jedisPool);
     }
 
@@ -47,7 +47,7 @@ public class RedisEventLoopGroup extends MultiThreadEventLoopGroup {
                                @Nonnull ThreadFactory threadFactory,
                                @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
                                @Nullable EventLoopChooserFactory chooserFactory,
-                               @Nullable JedisPoolAbstract jedisPool) {
+                               @Nonnull JedisPoolAbstract jedisPool) {
         super(nThreads, threadFactory, rejectedExecutionHandler, chooserFactory, jedisPool);
     }
 

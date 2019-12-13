@@ -138,30 +138,6 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     // ------------------------------------------------ 线程生命周期 -------------------------------------
 
     /**
-     * 查询运行状态是否还没到指定状态。
-     * (参考自JDK {@link ThreadPoolExecutor})
-     *
-     * @param oldState    看见的状态值
-     * @param targetState 期望的还没到的状态
-     * @return 如果当前状态在指定状态之前，则返回true。
-     */
-    private static boolean runStateLessThan(int oldState, int targetState) {
-        return oldState < targetState;
-    }
-
-    /**
-     * 查询运行状态是否至少已到了指定状态。
-     * (参考自JDK {@link ThreadPoolExecutor})
-     *
-     * @param oldState    看见的状态值
-     * @param targetState 期望的至少到达的状态
-     * @return 如果当前状态为指定状态或指定状态的后续状态，则返回true。
-     */
-    private static boolean runStateAtLeast(int oldState, int targetState) {
-        return oldState >= targetState;
-    }
-
-    /**
      * 确保运行状态至少已到指定状态。
      * 参考自{@code ThreadPoolExecutor#advanceRunState}
      *
@@ -170,7 +146,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     private void advanceRunState(int targetState) {
         for (; ; ) {
             int oldState = stateHolder.get();
-            if (runStateAtLeast(oldState, targetState) || stateHolder.compareAndSet(oldState, targetState))
+            if (oldState >= targetState || stateHolder.compareAndSet(oldState, targetState))
                 break;
         }
     }
@@ -208,7 +184,6 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
         return terminationFuture;
     }
 
-    // 进入正在关闭状态
     @Override
     public final void shutdown() {
         for (; ; ) {

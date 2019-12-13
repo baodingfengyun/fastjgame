@@ -23,6 +23,7 @@ import redis.clients.jedis.Response;
 import redis.clients.jedis.exceptions.JedisDataException;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * redis异步操作结果的默认实现
@@ -36,10 +37,19 @@ public class DefaultRedisResponse<T> implements RedisResponse<T> {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultRedisResponse.class);
 
-    private RedisCallback<T> callback;
+    /**
+     * 如果一个操作成功时没有结果使用该对象代替。{@link #onComplete(Object) null}
+     */
+    private static final Object SUCCESS = new Object();
 
-    private T response;
-    private JedisDataException exception;
+    /**
+     * redis命令执行结果 - 我们使用 null 表示命令尚未执行完成状态。
+     */
+    private Object result;
+    /**
+     * 用户的回调逻辑
+     */
+    private RedisCallback<T> callback;
 
     DefaultRedisResponse() {
 
@@ -47,30 +57,44 @@ public class DefaultRedisResponse<T> implements RedisResponse<T> {
 
     @Override
     public final T get() {
-        if (null != response) {
-            return response;
+        if (!isDone()) {
+            throw new JedisDataException("uncompleted");
         }
 
-        if (null != exception) {
-            throw exception;
+        if (result instanceof JedisDataException) {
+            throw (JedisDataException) result;
         }
 
-        throw new JedisDataException("uncompleted");
+        return getNullableResponse();
+    }
+
+    @SuppressWarnings("unchecked")
+    private T getNullableResponse() {
+        return result == SUCCESS ? null : (T) result;
+    }
+
+    @Override
+    public final T getNow() {
+        if (isSuccess()) {
+            return getNullableResponse();
+        } else {
+            return null;
+        }
     }
 
     @Override
     public final boolean isDone() {
-        return null != response || exception != null;
+        return null != result;
     }
 
     @Override
     public final boolean isSuccess() {
-        return null != response;
+        return isDone() && !(result instanceof JedisDataException);
     }
 
     @Override
-    public final Throwable cause() {
-        return exception == null ? null : exception.getCause();
+    public final JedisDataException cause() {
+        return result instanceof JedisDataException ? (JedisDataException) result : null;
     }
 
     @Override
@@ -97,9 +121,17 @@ public class DefaultRedisResponse<T> implements RedisResponse<T> {
     /**
      * 当{@link Response}对应的操作已真正完成时，该方法将被调用。
      */
-    final void onComplete(final T response, final JedisDataException exception) {
-        this.response = response;
-        this.exception = exception;
+    final void onComplete(@Nullable final Object data) {
+        if (isDone()) {
+            throw new IllegalStateException("completed already");
+        }
+
+        if (data == null) {
+            result = SUCCESS;
+        } else {
+            result = data;
+        }
+
         notifyListeners(this, callback);
     }
 
@@ -112,4 +144,5 @@ public class DefaultRedisResponse<T> implements RedisResponse<T> {
             }
         }
     }
+
 }
