@@ -42,7 +42,6 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.locks.LockSupport;
 
 /**
  * 网络事件循环。
@@ -174,6 +173,10 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     protected void loop() {
         while (true) {
             try {
+                if (confirmShutdown()) {
+                    break;
+                }
+                // 批量执行任务
                 runTasksBatch(BATCH_TASK_SIZE);
 
                 // 更新时间
@@ -181,11 +184,8 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
                 // 检测定时器
                 netTimerManager.tick();
 
-                if (confirmShutdown()) {
-                    break;
-                }
-                // 降低cpu利用率
-                LockSupport.parkNanos(100);
+                // 等待以降低cpu利用率
+                sleepQuietly();
             } catch (Throwable e) {
                 // 避免错误的退出循环
                 logger.warn("loop caught exception", e);
@@ -269,5 +269,13 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     @Subscribe
     void fireHttpRequest(HttpRequestEvent event) {
         httpSessionManager.onRcvHttpRequest(event);
+    }
+
+    private static void sleepQuietly() {
+        try {
+            Thread.sleep(1);
+        } catch (InterruptedException ignore) {
+
+        }
     }
 }

@@ -20,7 +20,7 @@ package com.wjybxx.fastjgame.redis;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Response;
-import redis.clients.jedis.exceptions.JedisException;
+import redis.clients.jedis.exceptions.JedisDataException;
 
 import javax.annotation.Nonnull;
 
@@ -39,7 +39,7 @@ public class DefaultRedisResponse<T> implements RedisResponse<T> {
     private RedisCallback<T> callback;
 
     private T response;
-    private JedisException exception;
+    private JedisDataException exception;
 
     DefaultRedisResponse() {
 
@@ -55,11 +55,27 @@ public class DefaultRedisResponse<T> implements RedisResponse<T> {
             return response;
         }
 
-        throw new IllegalStateException("uncompleted");
+        throw new JedisDataException("uncompleted");
     }
 
-    private boolean isDone() {
+    @Override
+    public final T getNow() {
+        return response;
+    }
+
+    @Override
+    public final boolean isDone() {
         return null != response || exception != null;
+    }
+
+    @Override
+    public final boolean isSuccess() {
+        return null != response;
+    }
+
+    @Override
+    public final JedisDataException cause() {
+        return exception;
     }
 
     @Override
@@ -86,7 +102,7 @@ public class DefaultRedisResponse<T> implements RedisResponse<T> {
     /**
      * 当{@link Response}对应的操作已真正完成时，该方法将被调用。
      */
-    void onComplete(final T response, final JedisException exception) {
+    void onComplete(final T response, final JedisDataException exception) {
         this.response = response;
         this.exception = exception;
         notifyListeners(this, callback);

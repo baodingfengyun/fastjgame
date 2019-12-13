@@ -68,7 +68,10 @@ public class RedisEventLoopExample {
         final JedisPoolConfig config = new JedisPoolConfig();
         config.setMaxIdle(1);
         config.setMaxTotal(5);
-        config.setBlockWhenExhausted(false);
+        config.setTestOnReturn(true);
+
+        config.setBlockWhenExhausted(true);
+        config.setMaxWaitMillis(10);
 
         final HostAndPort sentinel = new HostAndPort("localhost", 16379);
         Set<String> sentinels = Collections.singleton(sentinel.toString());
@@ -84,7 +87,7 @@ public class RedisEventLoopExample {
         private final RedisEventLoop redisEventLoop;
         private RedisPipeline redisPipeline;
 
-        public ClientEventLoop(RedisEventLoop redisEventLoop) {
+        ClientEventLoop(RedisEventLoop redisEventLoop) {
             super(null, new DefaultThreadFactory("REDIS-CLIENT"), RejectedExecutionHandlers.log());
             this.redisEventLoop = redisEventLoop;
         }
@@ -117,11 +120,11 @@ public class RedisEventLoopExample {
                 sendRedisCommands(countdown, loop);
             }
 
-            System.out.println("execute " + (4 * MAX_LOOP_TIMES) + " commands, cost time ms " + (System.currentTimeMillis() - startTimeMS));
+            System.out.println("execute " + (2 * MAX_LOOP_TIMES) + " commands, cost time ms " + (System.currentTimeMillis() - startTimeMS));
         }
 
         private void sendRedisCommands(IntHolder countdown, int loop) {
-            countdown.getAndAdd(4);
+            countdown.getAndAdd(2);
 
             redisPipeline.hset("name", String.valueOf(loop), String.valueOf(loop))
                     .addCallback(response -> {
@@ -130,18 +133,6 @@ public class RedisEventLoopExample {
                     });
 
             redisPipeline.hget("name", String.valueOf(loop))
-                    .addCallback(response -> {
-                        countdown.decAndGet();
-                        System.out.println(response.get());
-                    });
-
-            redisPipeline.zadd("rank", loop, String.valueOf(loop))
-                    .addCallback(response -> {
-                        countdown.decAndGet();
-                        System.out.println(response.get());
-                    });
-
-            redisPipeline.zrank("rank", String.valueOf(loop))
                     .addCallback(response -> {
                         countdown.decAndGet();
                         System.out.println(response.get());

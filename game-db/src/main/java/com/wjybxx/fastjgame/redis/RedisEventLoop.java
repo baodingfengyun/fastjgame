@@ -24,19 +24,15 @@ import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPoolAbstract;
-import redis.clients.jedis.Pipeline;
-import redis.clients.jedis.Response;
-import redis.clients.jedis.exceptions.JedisConnectionException;
+import redis.clients.jedis.*;
+import redis.clients.jedis.exceptions.JedisDataException;
 import redis.clients.jedis.exceptions.JedisException;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Closeable;
-import java.util.LinkedList;
+import java.util.ArrayDeque;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.locks.LockSupport;
 
 /**
  * redis事件循环
@@ -58,13 +54,14 @@ import java.util.concurrent.locks.LockSupport;
 public class RedisEventLoop extends SingleThreadEventLoop {
 
     private static final Logger logger = LoggerFactory.getLogger(RedisEventLoop.class);
-    private static final int BATCH_TASK_SIZE = 8 * 1024;
+    private static final int BATCH_TASK_SIZE = 512;
 
     private final JedisPoolAbstract jedisPool;
 
     private Jedis jedis;
     private Pipeline pipeline;
-    private final LinkedList<JedisPipelineTask<?>> waitResponseTasks = new LinkedList<>();
+
+    private final ArrayDeque<JedisTask<?>> waitResponseTasks = new ArrayDeque<>(BATCH_TASK_SIZE * 2);
 
     public RedisEventLoop(@Nullable EventLoopGroup parent,
                           @Nonnull ThreadFactory threadFactory,
@@ -77,8 +74,8 @@ public class RedisEventLoop extends SingleThreadEventLoop {
     @Override
     protected void init() throws Exception {
         super.init();
-        resetJedis();
-        resetPipeline();
+        jedis = jedisPool.getResource();
+        pipeline = jedis.pipelined();
     }
 
     @Override
@@ -86,33 +83,6 @@ public class RedisEventLoop extends SingleThreadEventLoop {
         // close会进行同步
         closeQuietly(pipeline);
         closeQuietly(jedis);
-    }
-
-    private void resetJedis() {
-        closeQuietly(jedis);
-        try {
-            jedis = jedisPool.getResource();
-        } catch (JedisException e) {
-            logger.warn("get jedis caught exception", e);
-        }
-    }
-
-    private void resetPipeline() {
-        try {
-            pipeline = jedis.pipelined();
-        } catch (JedisException e) {
-            logger.warn("get pipeline caught exception", e);
-        }
-    }
-
-    private static void closeQuietly(Closeable resource) {
-        if (null != resource) {
-            try {
-                resource.close();
-            } catch (Throwable ignore) {
-
-            }
-        }
     }
 
     @Override
@@ -127,8 +97,8 @@ public class RedisEventLoop extends SingleThreadEventLoop {
 
                 sync();
 
-                // 降低cpu利用率
-                LockSupport.parkNanos(100);
+                // 等待以降低cpu利用率
+                sleepQuietly();
             } catch (Throwable e) {
                 // 避免错误的退出循环
                 logger.warn("loop caught exception", e);
@@ -143,62 +113,55 @@ public class RedisEventLoop extends SingleThreadEventLoop {
 
         try {
             pipeline.sync();
-        } catch (JedisConnectionException exception) {
-            logger.warn("pipeline sync caught exception", exception);
-            resetJedis();
+        } catch (JedisException exception) {
+            closeQuietly(pipeline);
+            closeQuietly(jedis);
+            jedis = jedisPool.getResource();
         } finally {
-            JedisPipelineTask<?> task;
+            JedisTask<?> task;
             while ((task = waitResponseTasks.pollFirst()) != null) {
                 ConcurrentUtils.safeExecute(task.appEventLoop, newCallbackTaskSafely(task));
             }
-            resetPipeline();
+            pipeline = jedis.pipelined();
         }
     }
 
-    private <T> JedisCallbackTask<T> newCallbackTaskSafely(JedisPipelineTask<T> task) {
-        if (task.exception != null) {
-            // 压入管道时就失败了
-            return new JedisCallbackTask<>(task.redisResponse, null, task.exception);
-        }
+    private <T> JedisCallbackTask<T> newCallbackTaskSafely(JedisTask<T> task) {
         try {
-            final T response = task.realResponse.get();
+            final T response = task.dependency.get();
             return new JedisCallbackTask<>(task.redisResponse, response, null);
-        } catch (JedisException exception) {
+        } catch (JedisDataException exception) {
             return new JedisCallbackTask<>(task.redisResponse, null, exception);
         }
     }
 
     <T> RedisResponse<T> enqueue(EventLoop appEventLoop, RedisPipelineCommand<T> pipelineCmd) {
         final DefaultRedisResponse<T> redisResponse = new DefaultRedisResponse<>();
-        execute(new JedisPipelineTask<>(appEventLoop, pipelineCmd, redisResponse));
+        execute(new JedisTask<>(appEventLoop, pipelineCmd, redisResponse));
         return redisResponse;
     }
 
-    private class JedisPipelineTask<T> implements Runnable {
+    private class JedisTask<T> implements Runnable {
         final EventLoop appEventLoop;
         final RedisPipelineCommand<T> pipelineCmd;
         final DefaultRedisResponse<T> redisResponse;
-        Response<T> realResponse;
-        JedisException exception;
+        Response<T> dependency;
 
-        JedisPipelineTask(EventLoop appEventLoop, RedisPipelineCommand<T> pipelineCmd, DefaultRedisResponse<T> redisResponse) {
+        JedisTask(EventLoop appEventLoop, RedisPipelineCommand<T> pipelineCmd, DefaultRedisResponse<T> redisResponse) {
             this.appEventLoop = appEventLoop;
-            this.redisResponse = redisResponse;
             this.pipelineCmd = pipelineCmd;
+            this.redisResponse = redisResponse;
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public void run() {
             waitResponseTasks.add(this);
             try {
-                realResponse = pipelineCmd.execute(pipeline);
-            } catch (JedisConnectionException e) {
-                logger.warn("execute command caught exception", e);
-                exception = e;
-                resetJedis();
-                resetPipeline();
-            } catch (JedisException e) {
-                exception = e;
+                dependency = pipelineCmd.execute(pipeline);
+            } catch (JedisException exception) {
+                dependency = new Response(BuilderFactory.OBJECT);
+                dependency.set(new JedisDataException(exception));
             }
         }
     }
@@ -207,9 +170,9 @@ public class RedisEventLoop extends SingleThreadEventLoop {
 
         final DefaultRedisResponse<T> redisResponse;
         final T response;
-        final JedisException exception;
+        final JedisDataException exception;
 
-        JedisCallbackTask(DefaultRedisResponse<T> redisResponse, T response, JedisException exception) {
+        JedisCallbackTask(DefaultRedisResponse<T> redisResponse, T response, JedisDataException exception) {
             this.redisResponse = redisResponse;
             this.response = response;
             this.exception = exception;
@@ -218,6 +181,24 @@ public class RedisEventLoop extends SingleThreadEventLoop {
         @Override
         public void run() {
             redisResponse.onComplete(response, exception);
+        }
+    }
+
+    private static void closeQuietly(Closeable resource) {
+        if (null != resource) {
+            try {
+                resource.close();
+            } catch (Throwable ignore) {
+
+            }
+        }
+    }
+
+    private static void sleepQuietly() {
+        try {
+            Thread.sleep(1);
+        } catch (InterruptedException ignore) {
+
         }
     }
 
