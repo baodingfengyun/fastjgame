@@ -47,11 +47,11 @@ public class DefaultRpcPromise extends DefaultPromise<RpcResponse> implements Rp
 
     /**
      * @param workerEventLoop 创建该promise的EventLoop，禁止等待的线程。
-     * @param userEventLoop   发起rpc调用的用户所在的EventLoop
+     * @param appEventLoop    发起rpc调用的用户所在的EventLoop
      * @param timeoutMs       promise超时时间
      */
-    public DefaultRpcPromise(NetEventLoop workerEventLoop, EventLoop userEventLoop, long timeoutMs) {
-        super(userEventLoop);
+    public DefaultRpcPromise(NetEventLoop workerEventLoop, EventLoop appEventLoop, long timeoutMs) {
+        super(appEventLoop);
         this.workerEventLoop = workerEventLoop;
         this.deadline = System.currentTimeMillis() + timeoutMs;
     }

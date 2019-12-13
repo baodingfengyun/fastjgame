@@ -56,8 +56,8 @@ public class DefaultLocalPort implements LocalPort {
         return netContext.netEventLoopGroup();
     }
 
-    public EventLoop localEventLoop() {
-        return netContext.localEventLoop();
+    public EventLoop appEventLoop() {
+        return netContext.appEventLoop();
     }
 
     public LocalSessionConfig getLocalConfig() {

@@ -44,9 +44,9 @@ public interface HttpSession {
     NetEventLoop netEventLoop();
 
     /**
-     * 该session所在的用户线程，一定是{@link NetContext#localEventLoop()}
+     * 该session所在的用户线程，一定是{@link NetContext#appEventLoop()}
      */
-    EventLoop localEventLoop();
+    EventLoop appEventLoop();
 
     /**
      * 该session关联的netty的{@link Channel}

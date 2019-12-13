@@ -79,8 +79,8 @@ public class AcceptorManager implements SessionRegistry {
     }
 
     @Override
-    public void onUserEventLoopTerminal(EventLoop userEventLoop) {
-        sessionRegistry.onUserEventLoopTerminal(userEventLoop);
+    public void onAppEventLoopTerminal(EventLoop appEventLoop) {
+        sessionRegistry.onAppEventLoopTerminal(appEventLoop);
     }
 
     @Override

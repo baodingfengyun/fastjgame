@@ -62,7 +62,7 @@ public interface NetContext {
      * 用户线程
      * 网络层保证所有的业务逻辑处理最终都会运行在该用户线程。
      */
-    EventLoop localEventLoop();
+    EventLoop appEventLoop();
 
     /**
      * 创建{@link NetContext}的{@link NetEventLoopGroup}.

@@ -77,8 +77,8 @@ abstract class AbstractSessionHandlerContext implements SessionHandlerContext {
     }
 
     @Override
-    public EventLoop localEventLoop() {
-        return pipeline.localEventLoop();
+    public EventLoop appEventLoop() {
+        return pipeline.appEventLoop();
     }
 
     @Override

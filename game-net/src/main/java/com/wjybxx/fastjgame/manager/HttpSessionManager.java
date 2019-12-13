@@ -80,10 +80,10 @@ public class HttpSessionManager {
      *
      * @param eventLoop 用户所在的eventLoop
      */
-    public void onUserEventLoopTerminal(EventLoop eventLoop) {
+    public void onAppEventLoopTerminal(EventLoop eventLoop) {
         assert netEventLoopManager.inEventLoop();
         CollectionUtils.removeIfAndThen(sessionWrapperMap,
-                (channel, sessionWrapper) -> sessionWrapper.getSession().localEventLoop() == eventLoop,
+                (channel, sessionWrapper) -> sessionWrapper.getSession().appEventLoop() == eventLoop,
                 this::afterRemoved);
     }
 
@@ -125,7 +125,7 @@ public class HttpSessionManager {
         final HttpSessionImp httpSession = sessionWrapper.session;
 
         // 处理请求，提交到用户所在的线程，实现线程安全
-        httpSession.localEventLoop().execute(new HttpRequestCommitTask(httpSession, requestEventParam.getPath(),
+        httpSession.appEventLoop().execute(new HttpRequestCommitTask(httpSession, requestEventParam.getPath(),
                 requestEventParam.getParams(), portExtraInfo.getDispatcher()));
     }
 

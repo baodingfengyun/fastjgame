@@ -58,8 +58,8 @@ public class SocketPortContext {
     /**
      * @return session所属的用户线程
      */
-    public EventLoop localEventLoop() {
-        return netContext.localEventLoop();
+    public EventLoop appEventLoop() {
+        return netContext.appEventLoop();
     }
 
     /**

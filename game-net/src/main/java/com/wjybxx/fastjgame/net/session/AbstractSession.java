@@ -114,8 +114,8 @@ public abstract class AbstractSession implements Session {
     }
 
     @Override
-    public final EventLoop localEventLoop() {
-        return netContext.localEventLoop();
+    public final EventLoop appEventLoop() {
+        return netContext.appEventLoop();
     }
 
     @Override
@@ -125,7 +125,7 @@ public abstract class AbstractSession implements Session {
 
     @Override
     public final <T> T attach(@Nullable Object newData) {
-        if (localEventLoop().inEventLoop()) {
+        if (appEventLoop().inEventLoop()) {
             @SuppressWarnings("unchecked")
             T pre = (T) attachment;
             this.attachment = newData;
@@ -139,7 +139,7 @@ public abstract class AbstractSession implements Session {
     @Nullable
     @Override
     public final <T> T attachment() {
-        if (localEventLoop().inEventLoop()) {
+        if (appEventLoop().inEventLoop()) {
             return (T) attachment;
         } else {
             throw new IllegalStateException("Unsafe op");
@@ -173,7 +173,7 @@ public abstract class AbstractSession implements Session {
             // 会话关闭的情况下直接返回
             return RpcResponse.SESSION_CLOSED;
         }
-        final RpcPromise rpcPromise = netEventLoop.newRpcPromise(localEventLoop(), config().getSyncRpcTimeoutMs());
+        final RpcPromise rpcPromise = netEventLoop.newRpcPromise(appEventLoop(), config().getSyncRpcTimeoutMs());
         // 提交到网络层执行
         netEventLoop.execute(new SyncRpcRequestWriteTask(this, request, rpcPromise));
         // RpcPromise保证了不会等待超过限时时间

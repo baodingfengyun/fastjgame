@@ -56,15 +56,15 @@ import java.util.Map;
 public class DefaultNetContext implements NetContext {
 
     private final long localGuid;
-    private final EventLoop localEventLoop;
+    private final EventLoop appEventLoop;
     private final NetEventLoopGroup netEventLoopGroup;
     private final HttpClientManager httpClientManager;
     private final NettyThreadManager nettyThreadManager;
 
-    public DefaultNetContext(long localGuid, EventLoop localEventLoop, NetEventLoopGroup NetEventLoopGroup,
+    public DefaultNetContext(long localGuid, EventLoop appEventLoop, NetEventLoopGroup NetEventLoopGroup,
                              HttpClientManager httpClientManager, NettyThreadManager nettyThreadManager) {
         this.localGuid = localGuid;
-        this.localEventLoop = localEventLoop;
+        this.appEventLoop = appEventLoop;
         this.netEventLoopGroup = NetEventLoopGroup;
         this.httpClientManager = httpClientManager;
         this.nettyThreadManager = nettyThreadManager;
@@ -76,8 +76,8 @@ public class DefaultNetContext implements NetContext {
     }
 
     @Override
-    public EventLoop localEventLoop() {
-        return localEventLoop;
+    public EventLoop appEventLoop() {
+        return appEventLoop;
     }
 
     @Override
@@ -161,7 +161,7 @@ public class DefaultNetContext implements NetContext {
 
     @Override
     public void asyncGet(String url, @Nonnull Map<String, String> params, @Nonnull OkHttpCallback okHttpCallback) {
-        httpClientManager.asyncGet(url, params, localEventLoop, okHttpCallback);
+        httpClientManager.asyncGet(url, params, appEventLoop, okHttpCallback);
     }
 
     @Override
@@ -171,6 +171,6 @@ public class DefaultNetContext implements NetContext {
 
     @Override
     public void asyncPost(String url, @Nonnull Map<String, String> params, @Nonnull OkHttpCallback okHttpCallback) {
-        httpClientManager.asyncPost(url, params, localEventLoop, okHttpCallback);
+        httpClientManager.asyncPost(url, params, appEventLoop, okHttpCallback);
     }
 }

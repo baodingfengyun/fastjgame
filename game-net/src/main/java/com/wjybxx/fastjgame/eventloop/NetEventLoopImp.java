@@ -59,7 +59,7 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     private static final Logger logger = LoggerFactory.getLogger(NetEventLoopImp.class);
     private static final int BATCH_TASK_SIZE = 8 * 1024;
 
-    private final Set<EventLoop> userEventLoopSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private final Set<EventLoop> appEventLoopSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private final NetEventLoopManager netEventLoopManager;
     private final HttpClientManager httpClientManager;
     private final HttpSessionManager httpSessionManager;
@@ -139,14 +139,14 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
 
     @Nonnull
     @Override
-    public RpcPromise newRpcPromise(@Nonnull EventLoop userEventLoop, long timeoutMs) {
-        return new DefaultRpcPromise(this, userEventLoop, timeoutMs);
+    public RpcPromise newRpcPromise(@Nonnull EventLoop appEventLoop, long timeoutMs) {
+        return new DefaultRpcPromise(this, appEventLoop, timeoutMs);
     }
 
     @Nonnull
     @Override
-    public RpcFuture newCompletedRpcFuture(@Nonnull EventLoop userEventLoop, @Nonnull RpcResponse rpcResponse) {
-        return new CompletedRpcFuture(userEventLoop, rpcResponse);
+    public RpcFuture newCompletedRpcFuture(@Nonnull EventLoop appEventLoop, @Nonnull RpcResponse rpcResponse) {
+        return new CompletedRpcFuture(appEventLoop, rpcResponse);
     }
 
     @Override
@@ -206,29 +206,29 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
     }
 
     @Override
-    public NetContext createContext(long localGuid, @Nonnull EventLoop localEventLoop) {
-        if (localEventLoop instanceof NetEventLoop) {
+    public NetContext createContext(long localGuid, @Nonnull EventLoop appEventLoop) {
+        if (appEventLoop instanceof NetEventLoop) {
             throw new IllegalArgumentException("Bad EventLoop");
         }
 
-        if (userEventLoopSet.add(localEventLoop)) {
+        if (appEventLoopSet.add(appEventLoop)) {
             // 监听用户线程关闭
-            localEventLoop.terminationFuture().addListener(future -> {
+            appEventLoop.terminationFuture().addListener(future -> {
                 if (!isShuttingDown()) {
-                    post(new EventLoopTerminalEvent(localEventLoop));
+                    post(new EventLoopTerminalEvent(appEventLoop));
                 }
             });
         }
 
-        return new DefaultNetContext(localGuid, localEventLoop, this, httpClientManager, nettyThreadManager);
+        return new DefaultNetContext(localGuid, appEventLoop, this, httpClientManager, nettyThreadManager);
     }
 
     @Subscribe
-    void onUserEventLoopTerminalInternal(EventLoopTerminalEvent event) {
-        final EventLoop userEventLoop = event.getTerminatedEventLoop();
-        acceptorManager.onUserEventLoopTerminal(userEventLoop);
-        connectorManager.onUserEventLoopTerminal(userEventLoop);
-        httpSessionManager.onUserEventLoopTerminal(userEventLoop);
+    void onAppEventLoopTerminalInternal(EventLoopTerminalEvent event) {
+        final EventLoop appEventLoop = event.getTerminatedEventLoop();
+        acceptorManager.onAppEventLoopTerminal(appEventLoop);
+        connectorManager.onAppEventLoopTerminal(appEventLoop);
+        httpSessionManager.onAppEventLoopTerminal(appEventLoop);
     }
 
     // ---------------------------------------------- socket -------------------------------------------------

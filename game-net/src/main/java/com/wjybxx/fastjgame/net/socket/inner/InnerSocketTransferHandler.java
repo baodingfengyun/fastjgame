@@ -70,13 +70,13 @@ public class InnerSocketTransferHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void onSessionActive(SessionHandlerContext ctx) throws Exception {
-        ConcurrentUtils.safeExecute(ctx.localEventLoop(), new ConnectAwareTask(ctx.session()));
+        ConcurrentUtils.safeExecute(ctx.appEventLoop(), new ConnectAwareTask(ctx.session()));
         ctx.fireSessionActive();
     }
 
     @Override
     public void onSessionInactive(SessionHandlerContext ctx) throws Exception {
-        ConcurrentUtils.safeExecute(ctx.localEventLoop(), new DisconnectAwareTask(ctx.session()));
+        ConcurrentUtils.safeExecute(ctx.appEventLoop(), new DisconnectAwareTask(ctx.session()));
         ctx.fireSessionInactive();
     }
 

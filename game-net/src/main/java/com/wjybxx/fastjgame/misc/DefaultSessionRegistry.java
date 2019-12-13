@@ -62,10 +62,10 @@ public class DefaultSessionRegistry implements SessionRegistry {
     }
 
     @Override
-    public void onUserEventLoopTerminal(EventLoop userEventLoop) {
+    public void onAppEventLoopTerminal(EventLoop appEventLoop) {
         // 不要迭代的时候关闭 - 可以删除之后关闭
         CollectionUtils.removeIfAndThen(sessionMap.values(),
-                abstractSession -> abstractSession.localEventLoop() == userEventLoop,
+                abstractSession -> abstractSession.appEventLoop() == appEventLoop,
                 AbstractSession::closeForcibly);
     }
 

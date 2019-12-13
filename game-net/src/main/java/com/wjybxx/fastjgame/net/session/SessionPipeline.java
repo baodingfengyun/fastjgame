@@ -53,7 +53,7 @@ public interface SessionPipeline extends SessionInboundInvoker, SessionOutboundI
     /**
      * @return session所在的逻辑线程
      */
-    EventLoop localEventLoop();
+    EventLoop appEventLoop();
 
     /**
      * @return pipeline私有的定时器系统，在session关闭后停止运行。

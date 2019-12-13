@@ -40,7 +40,7 @@ public class OneWaySupportHandler extends SessionDuplexHandlerAdapter {
         if (msg instanceof OneWayMessage) {
             // 读取到一个单向消息
             OneWayMessage oneWayMessage = (OneWayMessage) msg;
-            ConcurrentUtils.safeExecute(ctx.localEventLoop(),
+            ConcurrentUtils.safeExecute(ctx.appEventLoop(),
                     new OneWayMessageCommitTask(ctx.session(), oneWayMessage.getMessage()));
         } else {
             ctx.fireRead(msg);

@@ -25,7 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * 协议分发器。
- * 注意：该实现不必是线程安全的，网络层保证所有的逻辑执行都在用户线程 - 即 {@link NetContext#localEventLoop()}。
+ * 注意：该实现不必是线程安全的，网络层保证所有的逻辑执行都在用户线程 - 即 {@link NetContext#appEventLoop()}。
  *
  * @author wjybxx
  * @version 1.0

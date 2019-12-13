@@ -45,7 +45,7 @@ import java.util.concurrent.ThreadFactory;
  */
 class NetEventLoopGroupImp extends MultiThreadEventLoopGroup implements NetEventLoopGroup {
 
-    private final Set<EventLoop> userEventLoopSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private final Set<EventLoop> appEventLoopSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private final NettyThreadManager nettyThreadManager;
     private final HttpClientManager httpClientManager;
 
@@ -124,17 +124,17 @@ class NetEventLoopGroupImp extends MultiThreadEventLoopGroup implements NetEvent
     }
 
     @Override
-    public NetContext createContext(long localGuid, @Nonnull EventLoop localEventLoop) {
-        if (localEventLoop instanceof NetEventLoop) {
+    public NetContext createContext(long localGuid, @Nonnull EventLoop appEventLoop) {
+        if (appEventLoop instanceof NetEventLoop) {
             throw new IllegalArgumentException("Bad EventLoop");
         }
 
-        if (userEventLoopSet.add(localEventLoop)) {
+        if (appEventLoopSet.add(appEventLoop)) {
             // 监听用户线程关闭
-            final EventLoopTerminalEvent terminalEvent = new EventLoopTerminalEvent(localEventLoop);
+            final EventLoopTerminalEvent terminalEvent = new EventLoopTerminalEvent(appEventLoop);
             for (EventLoop eventLoop : this) {
                 // 分开监听 -> 避免某一个出现异常导致其它EventLoop丢失信号
-                localEventLoop.terminationFuture().addListener(future -> {
+                appEventLoop.terminationFuture().addListener(future -> {
                     if (!eventLoop.isShuttingDown()) {
                         eventLoop.post(terminalEvent);
                     }
@@ -142,6 +142,6 @@ class NetEventLoopGroupImp extends MultiThreadEventLoopGroup implements NetEvent
             }
         }
 
-        return new DefaultNetContext(localGuid, localEventLoop, this, httpClientManager, nettyThreadManager);
+        return new DefaultNetContext(localGuid, appEventLoop, this, httpClientManager, nettyThreadManager);
     }
 }

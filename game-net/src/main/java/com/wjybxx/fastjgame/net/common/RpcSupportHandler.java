@@ -89,7 +89,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             rpcTimeoutInfo.rpcPromise.trySuccess(rpcResponse);
         } else {
             // 异步rpc调用
-            ConcurrentUtils.safeExecute(session.localEventLoop(),
+            ConcurrentUtils.safeExecute(session.appEventLoop(),
                     new RpcResponseCommitTask(session, rpcTimeoutInfo.rpcCallback, rpcResponse));
         }
     }
@@ -148,7 +148,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             RpcResponseChannel<?> rpcResponseChannel = new DefaultRpcResponseChannel<>(ctx.session(),
                     requestMessage.getRequestGuid(), requestMessage.isSync());
 
-            ctx.localEventLoop().execute(new RpcRequestCommitTask(ctx.session(), rpcResponseChannel, requestMessage.getRequest()));
+            ctx.appEventLoop().execute(new RpcRequestCommitTask(ctx.session(), rpcResponseChannel, requestMessage.getRequest()));
         } else if (msg instanceof RpcResponseMessage) {
             // 读取到一个Rpc响应消息，提交给应用层
             RpcResponseMessage responseMessage = (RpcResponseMessage) msg;

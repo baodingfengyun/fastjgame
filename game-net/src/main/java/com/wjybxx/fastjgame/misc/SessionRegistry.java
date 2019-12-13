@@ -58,9 +58,9 @@ public interface SessionRegistry {
     /**
      * 当监听到用户线程关闭时，关闭用户的所有session，并且不发送通知
      *
-     * @param userEventLoop 进入终止状态的用户线程
+     * @param appEventLoop 进入终止状态的用户线程
      */
-    void onUserEventLoopTerminal(EventLoop userEventLoop);
+    void onAppEventLoopTerminal(EventLoop appEventLoop);
 
     /**
      * 关闭注册表中的所有session，并且不发送通知

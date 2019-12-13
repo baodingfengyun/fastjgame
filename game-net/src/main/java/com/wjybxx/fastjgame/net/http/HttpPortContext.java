@@ -59,8 +59,8 @@ public class HttpPortContext {
     /**
      * @return 用户线程组
      */
-    public EventLoop localEventLoop() {
-        return netContext.localEventLoop();
+    public EventLoop appEventLoop() {
+        return netContext.appEventLoop();
     }
 
     /**

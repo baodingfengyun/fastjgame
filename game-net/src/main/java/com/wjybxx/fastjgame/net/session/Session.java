@@ -88,7 +88,7 @@ public interface Session extends Comparable<Session> {
     /**
      * session所属的用户线程
      */
-    EventLoop localEventLoop();
+    EventLoop appEventLoop();
 
     /**
      * session所属的网络线程。

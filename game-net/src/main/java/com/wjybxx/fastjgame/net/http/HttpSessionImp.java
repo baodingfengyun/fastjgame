@@ -59,8 +59,8 @@ public final class HttpSessionImp implements HttpSession {
     }
 
     @Override
-    public EventLoop localEventLoop() {
-        return netContext.localEventLoop();
+    public EventLoop appEventLoop() {
+        return netContext.appEventLoop();
     }
 
     @Override
@@ -74,7 +74,7 @@ public final class HttpSessionImp implements HttpSession {
     }
 
     public ListenableFuture<?> writeAndFlush(HttpResponse response) {
-        return new NettyFutureAdapter<>(localEventLoop(), channel.writeAndFlush(response));
+        return new NettyFutureAdapter<>(appEventLoop(), channel.writeAndFlush(response));
     }
 
     public <T extends HttpResponseBuilder<T>> ListenableFuture<?> writeAndFlush(HttpResponseBuilder<T> builder) {

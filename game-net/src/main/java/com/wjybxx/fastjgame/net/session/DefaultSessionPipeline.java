@@ -77,8 +77,8 @@ class DefaultSessionPipeline implements SessionPipeline {
     }
 
     @Override
-    public EventLoop localEventLoop() {
-        return session.localEventLoop();
+    public EventLoop appEventLoop() {
+        return session.appEventLoop();
     }
 
     @Override
