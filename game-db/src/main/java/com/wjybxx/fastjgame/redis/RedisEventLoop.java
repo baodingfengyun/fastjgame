@@ -26,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.*;
 import redis.clients.jedis.exceptions.JedisDataException;
-import redis.clients.jedis.exceptions.JedisException;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -114,8 +113,12 @@ public class RedisEventLoop extends SingleThreadEventLoop {
             return;
         }
 
+
         try {
-            pipeline.sync();
+            // pipeline == null 表示获取连接失败
+            if (pipeline != null) {
+                pipeline.sync();
+            }
         } catch (Throwable exception) {
             logger.warn("pipeline.sync caught exception", exception);
 
@@ -123,23 +126,21 @@ public class RedisEventLoop extends SingleThreadEventLoop {
             closeQuietly(jedis);
 
             jedis = jedisPool.getResource();
+            pipeline = jedis.pipelined();
         } finally {
             // pipeline的缺陷：由于多个指令在同一个pipeline中，其中某一个出现异常，将导致后续的指令丢失响应，会抛出未赋值异常。
             JedisPipelineTask<?> task;
             while ((task = waitResponseTasks.pollFirst()) != null) {
-                ConcurrentUtils.safeExecute(task.appEventLoop, newCallbackTaskSafely(task));
+                ConcurrentUtils.safeExecute(task.appEventLoop, new JedisCallbackTask(task.redisResponse, getData(task.dependency)));
             }
-
-            pipeline = jedis.pipelined();
         }
     }
 
-    private <T> JedisCallbackTask newCallbackTaskSafely(JedisPipelineTask<T> task) {
+    private Object getData(Response<?> dependency) {
         try {
-            final T response = task.dependency.get();
-            return new JedisCallbackTask(task.redisResponse, response);
-        } catch (JedisDataException exception) {
-            return new JedisCallbackTask(task.redisResponse, exception);
+            return dependency.get();
+        } catch (JedisDataException e) {
+            return e;
         }
     }
 
@@ -165,15 +166,20 @@ public class RedisEventLoop extends SingleThreadEventLoop {
         @Override
         public void run() {
             waitResponseTasks.add(this);
+
+            if (null == pipeline) {
+                // 获取资源失败
+                dependency = new Response(BuilderFactory.OBJECT);
+                dependency.set(new JedisDataException("Could not get a resource from the pool"));
+                return;
+            }
+
             try {
                 dependency = pipelineCmd.execute(pipeline);
             } catch (Throwable exception) {
                 // 出现异常，手动生成结果
                 dependency = new Response(BuilderFactory.OBJECT);
                 dependency.set(new JedisDataException(exception));
-
-                // 避免在该连接上出现更多的异常
-                sync();
             }
         }
     }

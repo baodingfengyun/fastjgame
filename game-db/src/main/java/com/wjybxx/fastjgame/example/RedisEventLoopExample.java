@@ -26,12 +26,8 @@ import com.wjybxx.fastjgame.redis.RedisEventLoop;
 import com.wjybxx.fastjgame.redis.RedisPipeline;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.TimeUtils;
-import redis.clients.jedis.HostAndPort;
+import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
-import redis.clients.jedis.JedisSentinelPool;
-
-import java.util.Collections;
-import java.util.Set;
 
 /**
  * redis事件循环示例
@@ -75,13 +71,11 @@ public class RedisEventLoopExample {
         config.setBlockWhenExhausted(true);
         config.setMaxWaitMillis(10);
 
-        final HostAndPort sentinel = new HostAndPort("localhost", 16379);
-        Set<String> sentinels = Collections.singleton(sentinel.toString());
-
-        final JedisSentinelPool jedisSentinelPool = new JedisSentinelPool("mymaster", sentinels, config);
+        // 测试时不使用哨兵
+        JedisPool jedisPool = new JedisPool(config, "localhost", 6379);
         return new RedisEventLoop(null, new DefaultThreadFactory("REDIS"),
                 RejectedExecutionHandlers.abort(),
-                jedisSentinelPool);
+                jedisPool);
     }
 
     private static class ClientEventLoop extends SingleThreadEventLoop {
