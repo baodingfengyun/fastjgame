@@ -19,9 +19,8 @@ package com.wjybxx.fastjgame.misc;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * long类型的序号分配器。
- * 采用递增方式分配。
- * 由于使用的地方还挺多，整合出一个类来。
+ * long值封装。
+ * 主要在lambda表达式中使用。
  *
  * @author wjybxx
  * @version 1.0
@@ -105,6 +104,7 @@ public final class LongHolder {
         this.value += delta;
         return result;
     }
+
     /**
      * 修改当前值，并返回之前的值
      *

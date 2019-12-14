@@ -94,7 +94,7 @@ abstract class AbstractTimerHandle implements TimerHandle {
     }
 
     @Override
-    public long executeDelay() {
+    public long runDelay() {
         if (terminated) {
             return -1;
         }

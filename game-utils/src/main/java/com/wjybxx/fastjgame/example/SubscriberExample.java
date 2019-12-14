@@ -110,6 +110,7 @@ public class SubscriberExample {
         bus.post(250);
 
         bus.post(new DefaultThreadFactory("bus"));
+        bus.post(new InternalThreadFactory());
     }
 
     public static class InternalThreadFactory implements ThreadFactory {

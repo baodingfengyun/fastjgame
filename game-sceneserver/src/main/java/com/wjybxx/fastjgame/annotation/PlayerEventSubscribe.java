@@ -16,7 +16,9 @@
 
 package com.wjybxx.fastjgame.annotation;
 
+import com.wjybxx.fastjgame.eventbus.EventBus;
 import com.wjybxx.fastjgame.misc.PlayerEventHandler;
+import com.wjybxx.fastjgame.misc.PlayerEventHandlerRegistry;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -32,6 +34,13 @@ import java.lang.annotation.Target;
  * <li>3. 参数不可以带泛型，因为泛型是不具备区分度的，如果存在泛型，那么编译时会报错。</li>
  * <li>4. 参数类型不可以是基本类型，因为发布事件的时候会封装为Object，基本类型会被装箱，会导致问题。</li>
  * <li>5. 方法不能是private - 至少是包级访问权限。 </li>
+ * <p>
+ * 注解处理器会为拥有{@link PlayerEventSubscribe}注解的类生成一个代理类，需要手动调用生成的register方法注册到{@link PlayerEventHandlerRegistry}，
+ * 生成的代理类为 xxxPlayerEventRegister 。
+ * <p>
+ * Q: 为什么不直接使用{@link EventBus}?
+ * A: 兼容玩家发来的消息。玩家发来的消息类是不同的，我们不可能再使用相同数量的包装类包装这些消息。
+ * 最好的方式就是直接以消息类抛出事件。
  *
  * @author wjybxx
  * @version 1.0

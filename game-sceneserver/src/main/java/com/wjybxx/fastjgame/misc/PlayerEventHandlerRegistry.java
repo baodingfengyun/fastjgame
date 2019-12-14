@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.misc;
 import javax.annotation.Nonnull;
 
 /**
- * 玩家消息处理器注册表
+ * 玩家事件处理器注册表
  *
  * @author wjybxx
  * @version 1.0
@@ -29,11 +29,11 @@ import javax.annotation.Nonnull;
 public interface PlayerEventHandlerRegistry {
 
     /**
-     * 注册一个消息对应的处理函数
+     * 注册一个事件对应的处理函数
      *
-     * @param clazz   消息类
-     * @param handler 消息对应的处理函数
-     * @param <T>     消息的类型
+     * @param clazz   事件类型
+     * @param handler 事件对应的处理函数
+     * @param <T>     事件类型
      */
     <T> void register(@Nonnull Class<T> clazz, @Nonnull PlayerEventHandler<T> handler);
 

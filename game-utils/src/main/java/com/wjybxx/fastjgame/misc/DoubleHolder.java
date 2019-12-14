@@ -19,7 +19,8 @@ package com.wjybxx.fastjgame.misc;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * double数值holder，用于lambda表达式
+ * double数值封装。
+ * 主要在lambda表达式中使用。
  *
  * @author wjybxx
  * @version 1.0

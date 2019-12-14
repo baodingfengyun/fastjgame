@@ -32,8 +32,8 @@ import java.lang.annotation.Target;
  * <p>
  * 示例类：{@link com.wjybxx.fastjgame.example.SubscriberExample}
  * <p>
- * auto:
- * 会为拥有{@link Subscribe}方法的类生成一个代理文件，需要手动注册到EventBus上。生成的文件名字为 XXXBusRegister
+ * 注解处理器会为拥有{@link Subscribe}方法的类生成一个代理文件，需要手动调用生成的register方法注册到{@link EventHandlerRegistry}。
+ * 生成的代理类为 XXXBusRegister 。
  *
  * @author wjybxx
  * @version 1.0

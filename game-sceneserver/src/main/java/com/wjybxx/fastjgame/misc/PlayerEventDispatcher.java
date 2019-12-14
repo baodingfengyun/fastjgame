@@ -21,7 +21,8 @@ import com.wjybxx.fastjgame.gameobject.Player;
 import javax.annotation.Nonnull;
 
 /**
- * 玩家消息分发器
+ * 玩家事件分发器。
+ * 玩家发来的网络消息是其中的一种。
  *
  * @author wjybxx
  * @version 1.0
@@ -29,12 +30,13 @@ import javax.annotation.Nonnull;
  * github - https://github.com/hl845740757
  */
 public interface PlayerEventDispatcher {
+
     /**
-     * 接收到一个玩家发来的消息
+     * 发布一个玩家事件
      *
-     * @param <T>    消息类型
-     * @param player 消息所在的会话
-     * @param event  消息内容
+     * @param <T>    事件类型
+     * @param player 事件关联的玩家
+     * @param event  事件内容
      */
     <T> void post(@Nonnull Player player, @Nonnull T event);
 }

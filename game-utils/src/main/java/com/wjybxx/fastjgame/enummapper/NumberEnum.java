@@ -21,6 +21,7 @@ import javax.annotation.concurrent.Immutable;
 /**
  * 数字枚举，枚举可以转换为数字，通过数字也可以找到对应的枚举。
  * 注意查看{@link com.wjybxx.fastjgame.utils.EnumUtils#indexNumberEnum(NumberEnum[])}
+ * (注解处理器使用到了该类)
  *
  * @author wjybxx
  * @version 1.0

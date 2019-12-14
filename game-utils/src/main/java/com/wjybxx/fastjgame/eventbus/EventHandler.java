@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.eventbus;
 import javax.annotation.Nonnull;
 
 /**
- * 事件处理器，主要用于实验Lambda表达式代替反射调用，lambda表达式由注解处理器生成
+ * 事件处理器，主要用于Lambda表达式代替反射调用，lambda表达式由注解处理器生成
  *
  * @author wjybxx
  * @version 1.0

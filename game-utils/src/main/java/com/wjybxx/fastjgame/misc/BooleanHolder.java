@@ -19,7 +19,8 @@ package com.wjybxx.fastjgame.misc;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Bool值持对象，用于lambda表达式
+ * Bool值封装。
+ * 主要在lambda表达式中使用。
  *
  * @author wjybxx
  * @version 1.0

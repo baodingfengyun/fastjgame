@@ -54,7 +54,7 @@ public interface TimerHandle {
      *
      * @return -1 表示已停止，否则返回大于等于0的值。
      */
-    long executeDelay();
+    long runDelay();
 
     /**
      * 尝试关闭该handle关联的TimerTask，如果handle关联的timer早已关闭，则该方法什么也不会做。

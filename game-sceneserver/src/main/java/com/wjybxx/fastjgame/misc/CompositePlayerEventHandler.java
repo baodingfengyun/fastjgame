@@ -20,11 +20,12 @@ import com.wjybxx.fastjgame.gameobject.Player;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 为多个同类型的消息处理函数提供一个单一的视图。
+ * 为多个同类型的事件处理函数提供一个单一的视图。
  *
  * @author wjybxx
  * @version 1.0
@@ -54,7 +55,7 @@ public class CompositePlayerEventHandler<T> implements PlayerEventHandler<T> {
     }
 
     @Override
-    public void onEvent(Player player, T event) {
+    public void onEvent(Player player, @Nonnull T event) {
         for (PlayerEventHandler<T> function : children) {
             try {
                 function.onEvent(player, event);

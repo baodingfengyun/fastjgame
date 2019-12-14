@@ -19,7 +19,8 @@ package com.wjybxx.fastjgame.misc;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * int值包装。
+ * int值封装。
+ * 主要在lambda表达式中使用。
  *
  * @author wjybxx
  * @version 1.0

@@ -18,8 +18,11 @@ package com.wjybxx.fastjgame.misc;
 
 import com.wjybxx.fastjgame.gameobject.Player;
 
+import javax.annotation.Nonnull;
+
 /**
- * 玩家消息处理函数，用于代码生成。
+ * 玩家事件处理函数。
+ * 主要用于代码生成，注解处理器生成对应的lambda表达式以代替反射。
  *
  * @author wjybxx
  * @version 1.0
@@ -30,10 +33,8 @@ import com.wjybxx.fastjgame.gameobject.Player;
 public interface PlayerEventHandler<T> {
 
     /**
-     * 当接收到一个玩家的消息
-     *
-     * @param player 发送消息的玩家
-     * @param event  玩家发送的消息
+     * @param player 事件关联的玩家
+     * @param event  事件内容
      */
-    void onEvent(Player player, T event);
+    void onEvent(Player player, @Nonnull T event);
 }

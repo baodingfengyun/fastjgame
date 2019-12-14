@@ -18,7 +18,8 @@ package com.wjybxx.fastjgame.misc;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * 引用类型实例持有者，在lambda表达式中使用
+ * 引用类型实例持有者。
+ * 主要在lambda表达式中使用。
  *
  * @author wjybxx
  * @version 1.0
