@@ -68,11 +68,12 @@ public class RedisEventLoopMgr {
         config.setBlockWhenExhausted(true);
         config.setMaxWaitMillis(10);
 
+        // 使用哨兵机制达成高可用
         final Set<String> sentinels = new HashSet<>(Arrays.asList(gameConfigMgr.getRedisSentinelList().split(",")));
         final String password = StringUtils.isBlank(gameConfigMgr.getRedisPassword()) ? null : gameConfigMgr.getRedisPassword();
 
         final JedisSentinelPool jedisSentinelPool = new JedisSentinelPool("mymaster", sentinels, config, password);
-        return new RedisEventLoop(null, new DefaultThreadFactory("REDIS"),
+        return new RedisEventLoop(null, new DefaultThreadFactory("RedisSEventLoop"),
                 RejectedExecutionHandlers.abort(),
                 jedisSentinelPool);
     }
@@ -95,7 +96,7 @@ public class RedisEventLoopMgr {
      */
     public void shutdown() {
         shutdown = true;
-        redisEventLoop.shutdownNow();
+        redisEventLoop.shutdown();
         logger.info("RedisEventLoop shutdown success");
     }
 

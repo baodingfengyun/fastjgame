@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.test;
 
-import com.wjybxx.fastjgame.configwrapper.ArrayConfigWrapper;
+import com.wjybxx.fastjgame.configwrapper.MapConfigWrapper;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupBuilder;
 import com.wjybxx.fastjgame.module.CenterModule;
@@ -45,7 +45,7 @@ public class CenterWorldTest {
 
         GameEventLoopGroupImp.newBuilder()
                 .setNetEventLoopGroup(netEventLoopGroup)
-                .addWorld(new CenterModule(), new ArrayConfigWrapper(args), 5)
+                .addWorld(new CenterModule(), MapConfigWrapper.mapping(args), 5)
                 .build();
     }
 }

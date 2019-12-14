@@ -20,8 +20,8 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Stage;
 import com.wjybxx.fastjgame.concurrent.*;
-import com.wjybxx.fastjgame.configwrapper.ArrayConfigWrapper;
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
+import com.wjybxx.fastjgame.configwrapper.MapConfigWrapper;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.mgr.CuratorClientMgr;
 import com.wjybxx.fastjgame.mgr.GlobalExecutorMgr;
@@ -146,7 +146,7 @@ public class GameEventLoopGroupImp extends MultiThreadEventLoopGroup implements 
         }
 
         public Builder addWorld(@Nonnull WorldModule worldModule, @Nonnull String[] startArgs, int framesPerSecond) {
-            return addWorld(worldModule, new ArrayConfigWrapper(startArgs), framesPerSecond);
+            return addWorld(worldModule, MapConfigWrapper.mapping(startArgs), framesPerSecond);
         }
 
         public Builder addWorld(@Nonnull WorldModule worldModule, @Nonnull ConfigWrapper startArgs, int framesPerSecond) {

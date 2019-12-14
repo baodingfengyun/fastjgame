@@ -102,10 +102,9 @@ public class TableSheetConfigWrapper extends ConfigWrapper {
      * @param tableSheet   表格
      * @param keyColName   key所在列列名，key列配置必须唯一
      * @param valueColName value所在列列名
-     * @return
      */
     public static TableSheetConfigWrapper create(TableSheet tableSheet, String keyColName, String valueColName) {
-        Map<String, String> indexedContent = createIndex(tableSheet, keyColName, valueColName);
+        Map<String, String> indexedContent = remapping(tableSheet, keyColName, valueColName);
         return new TableSheetConfigWrapper(tableSheet.getFileName(), tableSheet.getSheetIndex(),
                 keyColName, valueColName,
                 indexedContent);
@@ -114,7 +113,7 @@ public class TableSheetConfigWrapper extends ConfigWrapper {
     /**
      * 创建key-value的索引，避免使用时的大量遍历
      */
-    private static Map<String, String> createIndex(TableSheet tableSheet, String keyColName, String valueColName) {
+    private static Map<String, String> remapping(TableSheet tableSheet, String keyColName, String valueColName) {
         // 使用LinkedHashMap保持原顺序
         Map<String, String> result = CollectionUtils.newLinkedHashMapWithExpectedSize(tableSheet.getTotalRowNum());
         for (TableRow tableRow : tableSheet.getContentRows()) {

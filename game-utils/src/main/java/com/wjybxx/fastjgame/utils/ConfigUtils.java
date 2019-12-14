@@ -27,9 +27,6 @@ import java.util.function.Function;
 
 /**
  * 配置工具类。提供一些特定的方法。
- * <p>
- * 如果保持代码的整洁性，可能会产生一些拆装箱。
- * 或者说需要包装类型的时候{@link #parseString(String, Function)}可能很有帮助。
  *
  * @author wjybxx
  * @version 1.0
@@ -52,49 +49,13 @@ public class ConfigUtils {
 
     }
 
-    /**
-     * 解析一个数字类型的字符串，当字符串为null 或 格式错误时，会抛出异常。
-     *
-     * @param content 字符串
-     * @param parser  字符串解析方法
-     * @param <T>     数字类型
-     * @return number
-     */
-    public static <T> T parseString(String content, Function<String, T> parser) {
-        String value = Objects.requireNonNull(content).trim();
-        return parser.apply(value);
-    }
-
-    /**
-     * 解析一个数字类型的字符串，当字符串为null 或 格式错误时，返回默认值。
-     *
-     * @param content      字符串
-     * @param parser       字符串解析方法
-     * @param defaultValue 当字符串为null 或 格式异常的时候返回该默认值
-     * @param <T>          数字类型
-     * @return number
-     */
-    public static <T extends Number> T parseNumber(String content, Function<String, T> parser, T defaultValue) {
-        if (null == content) {
-            return defaultValue;
-        } else {
-            try {
-                return parser.apply(content.trim());
-            } catch (NumberFormatException e) {
-                // 出现异常，返回默认值
-                return defaultValue;
-            }
-        }
-    }
-
     public static String getAsString(String content, String defaultValue) {
         return null != content ? content : defaultValue;
     }
-
     // ------------------------------------------------------- 基本类型支持 ------------------------------------------
 
     /**
-     * 解析一个int值，会自动调用{@link String#trim()}
+     * 解析一个int值
      * {@link org.apache.commons.lang3.math.NumberUtils#toInt(String)}的区别在于不会默认返回0。
      * 在不期望返回默认值的时候返回默认值，可能导致潜在的错误！
      *

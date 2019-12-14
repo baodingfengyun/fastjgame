@@ -38,11 +38,9 @@ public final class PropertiesConfigWrapper extends ConfigWrapper {
         this.properties = properties;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public Set<String> keys() {
-        final Set<?> strings = properties.keySet();
-        return (Set<String>) strings;
+        return properties.stringPropertyNames();
     }
 
     @Override

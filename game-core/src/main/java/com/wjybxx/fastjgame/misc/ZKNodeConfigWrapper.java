@@ -40,7 +40,7 @@ public class ZKNodeConfigWrapper extends ConfigWrapper {
     private final Map<String, byte[]> childrenData;
 
     public ZKNodeConfigWrapper(Map<String, byte[]> childrenData) {
-        this.childrenData = getRealMap(childrenData);
+        this.childrenData = remapping(childrenData);
     }
 
     @Override
@@ -70,7 +70,7 @@ public class ZKNodeConfigWrapper extends ConfigWrapper {
                 '}';
     }
 
-    private static Map<String, byte[]> getRealMap(Map<String, byte[]> childrenData) {
+    private static Map<String, byte[]> remapping(Map<String, byte[]> childrenData) {
         Map<String, byte[]> realChildrenData = CollectionUtils.newHashMapWithExpectedSize(childrenData.size());
         for (Map.Entry<String, byte[]> entry : childrenData.entrySet()) {
             String childName = ZKPathUtils.findNodeName(entry.getKey());

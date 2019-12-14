@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.test;
 
-import com.wjybxx.fastjgame.configwrapper.ArrayConfigWrapper;
+import com.wjybxx.fastjgame.configwrapper.MapConfigWrapper;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupBuilder;
 import com.wjybxx.fastjgame.module.SceneModule;
@@ -46,7 +46,7 @@ public class SceneWorldTest {
         NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupBuilder().build();
         GameEventLoopGroupImp.newBuilder()
                 .setNetEventLoopGroup(netEventLoopGroup)
-                .addWorld(new SceneModule(), new ArrayConfigWrapper(args), 5)
+                .addWorld(new SceneModule(), MapConfigWrapper.mapping(args), 5)
                 .build();
     }
 }

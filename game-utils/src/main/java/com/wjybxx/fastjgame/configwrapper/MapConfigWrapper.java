@@ -16,6 +16,9 @@
 
 package com.wjybxx.fastjgame.configwrapper;
 
+import com.wjybxx.fastjgame.utils.CollectionUtils;
+import com.wjybxx.fastjgame.utils.ConfigUtils;
+
 import javax.annotation.concurrent.Immutable;
 import java.util.Collections;
 import java.util.HashMap;
@@ -82,5 +85,22 @@ public final class MapConfigWrapper extends ConfigWrapper {
         return "MapConfigWrapper{" +
                 "configMap=" + configMap +
                 '}';
+    }
+
+    public static MapConfigWrapper mapping(String[] pairsArray) {
+        return mapping(pairsArray, ConfigUtils.DEFAULT_KEY_VALUE_DELIMITER);
+    }
+
+    public static MapConfigWrapper mapping(String[] pairsArray, String kvDelimiter) {
+        HashMap<String, String> map = CollectionUtils.newHashMapWithExpectedSize(pairsArray.length);
+        for (String pair : pairsArray) {
+            String[] keyValuePair = pair.split(kvDelimiter, 2);
+            if (keyValuePair.length == 2) {
+                map.put(keyValuePair[0], keyValuePair[1]);
+            } else {
+                map.put(keyValuePair[0], null);
+            }
+        }
+        return new MapConfigWrapper(map);
     }
 }
