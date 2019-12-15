@@ -75,7 +75,7 @@ public class LogProducerEventLoop<T extends LogBuilder> extends DisruptorEventLo
         properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerList);
         // 不使用"all"机制是为了提高吞吐量。
         properties.put(ProducerConfig.ACKS_CONFIG, "1");
-        properties.put(ProducerConfig.BATCH_SIZE_CONFIG, 16 * 1024);
+        properties.put(ProducerConfig.BATCH_SIZE_CONFIG, 64 * 1024);
         properties.put(ProducerConfig.LINGER_MS_CONFIG, 100);
         properties.put(ProducerConfig.RETRIES_CONFIG, 3);
         return properties;

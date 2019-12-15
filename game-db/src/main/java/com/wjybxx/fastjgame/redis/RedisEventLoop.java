@@ -57,13 +57,11 @@ public class RedisEventLoop extends SingleThreadEventLoop {
      * 它决定了最多多少个命令执行一次{@link #sync()}
      */
     private static final int BATCH_TASK_SIZE = 512;
+    private final ArrayDeque<JedisPipelineTask<?>> waitResponseTasks = new ArrayDeque<>(BATCH_TASK_SIZE);
 
     private final JedisPoolAbstract jedisPool;
-
     private Jedis jedis;
     private Pipeline pipeline;
-
-    private final ArrayDeque<JedisPipelineTask<?>> waitResponseTasks = new ArrayDeque<>(BATCH_TASK_SIZE);
 
     public RedisEventLoop(@Nullable EventLoopGroup parent,
                           @Nonnull ThreadFactory threadFactory,
@@ -82,7 +80,10 @@ public class RedisEventLoop extends SingleThreadEventLoop {
 
     @Override
     protected void clean() throws Exception {
-        // close会进行同步
+        // 清理未完成的任务
+        sync();
+
+        // 关闭资源
         closeQuietly(pipeline);
         closeQuietly(jedis);
     }

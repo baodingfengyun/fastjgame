@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.redis;
 
-import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.EventLoopChooserFactory;
 import com.wjybxx.fastjgame.concurrent.MultiThreadEventLoopGroup;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
@@ -53,7 +52,19 @@ public class RedisEventLoopGroup extends MultiThreadEventLoopGroup {
 
     @Nonnull
     @Override
-    protected EventLoop newChild(int childIndex, ThreadFactory threadFactory, RejectedExecutionHandler rejectedExecutionHandler, Object context) {
+    public RedisEventLoop next() {
+        return (RedisEventLoop) super.next();
+    }
+
+    @Nonnull
+    @Override
+    public RedisEventLoop select(int key) {
+        return (RedisEventLoop) super.select(key);
+    }
+
+    @Nonnull
+    @Override
+    protected RedisEventLoop newChild(int childIndex, ThreadFactory threadFactory, RejectedExecutionHandler rejectedExecutionHandler, Object context) {
         return new RedisEventLoop(this, threadFactory, rejectedExecutionHandler, (JedisPoolAbstract) context);
     }
 
@@ -61,4 +72,5 @@ public class RedisEventLoopGroup extends MultiThreadEventLoopGroup {
     protected void clean() {
         ((JedisPoolAbstract) context).close();
     }
+
 }

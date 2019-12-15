@@ -73,7 +73,7 @@ public class RedisEventLoopExample {
 
         // 测试时不使用哨兵
         JedisPool jedisPool = new JedisPool(config, "localhost", 6379);
-        return new RedisEventLoop(null, new DefaultThreadFactory("RedisSEventLoop"),
+        return new RedisEventLoop(null, new DefaultThreadFactory("RedisEventLoop"),
                 RejectedExecutionHandlers.abort(),
                 jedisPool);
     }

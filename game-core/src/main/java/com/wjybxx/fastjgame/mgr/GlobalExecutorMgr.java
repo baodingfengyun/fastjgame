@@ -49,7 +49,7 @@ public class GlobalExecutorMgr {
     public GlobalExecutorMgr(GameConfigMgr gameConfigMgr) {
         // 最多创建配置个数的线程
         executorService = new ThreadPoolExecutor(1, gameConfigMgr.getGlobalExecutorThreadNum(),
-                5, TimeUnit.SECONDS,
+                15, TimeUnit.SECONDS,
                 new LinkedBlockingQueue<>(),
                 new DefaultThreadFactory("global_executor"));
     }

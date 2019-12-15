@@ -7,7 +7,7 @@ fastjgame 为 fast java game framework的缩写，如名字一样，该项目的
 5. **基于注解处理器的代码生成**: RpcService、Subscribe等相应代码自动生成。代码生成一时爽，一直生成一直爽。
 6. **异步redis支持**，**支持回调**，一个**RedisEventLoop**hold住全场。
 7. **kafka**支持，可用于游戏打点日志，见**LogProducerEventLoop**。
-8. **java-zset**，参考redis zset实现，进行了java本地化改造，支持**泛型score**，可用于游戏类**排行榜**和**拍卖行**。
+8. **java-zset**，参考redis zset实现，进行了java本地化改造，支持**泛型score**，可用于游戏内**排行榜**和**拍卖行**。
 9. 较高的代码质量，胜于你看见的大多数同类型项目，无论是在**线程安全**方面，还是在**代码设计**方面。
 
 ### 暂不建议fork

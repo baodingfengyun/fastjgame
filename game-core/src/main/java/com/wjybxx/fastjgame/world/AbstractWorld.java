@@ -138,8 +138,8 @@ public abstract class AbstractWorld implements World {
         registerRpcService();
         registerHttpRequestHandlers();
 
-        // 初始化redis
-        worldWrapper.getRedisMgr().createPipeline();
+        // 初始化redis管道
+        worldWrapper.getRedisMgr().pipelined();
 
         // 子类自己的其它启动逻辑
         startHook();

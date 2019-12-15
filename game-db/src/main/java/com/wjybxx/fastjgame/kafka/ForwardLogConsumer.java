@@ -39,7 +39,11 @@ public class ForwardLogConsumer implements LogConsumer {
 
     @Override
     public void consume(ConsumerRecord consumerRecord) {
-        appEventLoop.execute(new ForwardTask(logConsumer, consumerRecord));
+        if (appEventLoop.inEventLoop()) {
+            logConsumer.consume(consumerRecord);
+        } else {
+            appEventLoop.execute(new ForwardTask(logConsumer, consumerRecord));
+        }
     }
 
     private static class ForwardTask implements Runnable {

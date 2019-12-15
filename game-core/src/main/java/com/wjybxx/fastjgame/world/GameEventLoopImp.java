@@ -101,12 +101,12 @@ public class GameEventLoopImp extends DisruptorEventLoop implements GameEventLoo
         super.init();
         final Injector worldInjector = groupInjector.createChildInjector(worldStartInfo.worldModule);
         // 发布自己，使得world内部可以访问 - 现在的模型下使用threadLocal也是可以的。
-        final GameEventLoopMgr gameEventLoopMgr = worldInjector.getInstance(GameEventLoopMgr.class);
-        gameEventLoopMgr.publish(this);
+        worldInjector.getInstance(GameEventLoopMgr.class).publish(this);
 
         // 创建world并尝试启动
-        this.world = worldInjector.getInstance(World.class);
+        world = worldInjector.getInstance(World.class);
         world.startUp(worldStartInfo.startArgs);
+
         // init 出现任何异常，都会导致线程关闭，world会在clean的时候调用shutdown
         timerSystem.newFixedDelay(worldStartInfo.frameInterval, this::safeTickWorld);
     }

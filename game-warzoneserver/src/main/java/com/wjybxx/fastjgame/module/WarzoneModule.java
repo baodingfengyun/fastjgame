@@ -41,6 +41,8 @@ public class WarzoneModule extends WorldModule {
         // 方便子类直接使用
         bind(WarzoneWorldInfoMgr.class).in(Singleton.class);
         bind(WarzoneCenterSessionMgr.class).in(Singleton.class);
+
+        // 数据库支持
         bind(WarzoneMongoDBMgr.class).in(Singleton.class);
     }
 }

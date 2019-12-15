@@ -51,7 +51,10 @@ public class RedisMgr {
         this.gameEventLoopMgr = gameEventLoopMgr;
     }
 
-    public void createPipeline() {
+    /**
+     * 在使用其它方法之前，必须先构建管道
+     */
+    public void pipelined() {
         redisPipeline = redisEventLoopMgr.newPipeline(gameEventLoopMgr.getEventLoop());
     }
 

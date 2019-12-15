@@ -24,6 +24,7 @@ import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.EnsureContainers;
+import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.utils.CloseableExecutorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,7 +71,7 @@ public class CuratorClientMgr {
 
         // 该线程池不要共享的好，它必须是单线程的，如果放在外部容易出问题
         backgroundExecutor = new ThreadPoolExecutor(1, 1,
-                5, TimeUnit.SECONDS,
+                15, TimeUnit.SECONDS,
                 new LinkedBlockingQueue<>(),
                 new DefaultThreadFactory("CURATOR-BACKGROUND"));
         // 后台事件不多，允许自动关闭
@@ -114,11 +115,11 @@ public class CuratorClientMgr {
      * 使用默认的参数创建一个带退避算法的永久尝试策略。
      * 默认最小等待时间200ms;
      * 默认最大等待时间5s;
+     * 默认时间是很难调整和确定的。
      *
      * @return RetryPolicy
      */
     public static BackoffRetryForever newForeverRetry() {
-        // 50ms - 5s 默认时间是很难调整和确定的
         return newForeverRetry(200, 5000);
     }
 
@@ -133,6 +134,9 @@ public class CuratorClientMgr {
         return new BackoffRetryForever(baseSleepTimeMs, maxSleepTimeMs);
     }
 
+    /**
+     * 创建一个用于监听{@link PathChildrenCache}事件和拉取数据的executor
+     */
     public CloseableExecutorService newClosableExecutorService() {
         return new CloseableExecutorService(backgroundExecutor, false);
     }

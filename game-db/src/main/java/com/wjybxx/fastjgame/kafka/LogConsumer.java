@@ -29,7 +29,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 public interface LogConsumer {
 
     /**
-     * 注意；该方法运行在{@link LogConsumerEventLoop}线程，注意线程安全问题。
+     * 注意；该方法由{@link LogConsumerEventLoop}线程调用，注意线程安全问题。
      *
      * @param consumerRecord kafka日志数据
      */

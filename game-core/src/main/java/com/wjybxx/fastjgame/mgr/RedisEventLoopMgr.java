@@ -27,6 +27,7 @@ import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import redis.clients.jedis.JedisPoolAbstract;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.JedisSentinelPool;
 
@@ -61,21 +62,26 @@ public class RedisEventLoopMgr {
 
     private static RedisEventLoop newRedisEventLoop(GameConfigMgr gameConfigMgr) {
         final JedisPoolConfig config = new JedisPoolConfig();
-        config.setMaxIdle(1);
+        config.setMaxIdle(2);
         config.setMaxTotal(5);
         config.setTestOnBorrow(true);
         config.setTestOnReturn(true);
         config.setBlockWhenExhausted(true);
         config.setMaxWaitMillis(10);
 
+        final JedisPoolAbstract jedisPool = newJedisPool(gameConfigMgr, config);
+
+        return new RedisEventLoop(null, new DefaultThreadFactory("RedisEventLoop"),
+                RejectedExecutionHandlers.abort(),
+                jedisPool);
+    }
+
+    @Nonnull
+    private static JedisPoolAbstract newJedisPool(GameConfigMgr gameConfigMgr, JedisPoolConfig config) {
         // 使用哨兵机制达成高可用
         final Set<String> sentinels = new HashSet<>(Arrays.asList(gameConfigMgr.getRedisSentinelList().split(",")));
         final String password = StringUtils.isBlank(gameConfigMgr.getRedisPassword()) ? null : gameConfigMgr.getRedisPassword();
-
-        final JedisSentinelPool jedisSentinelPool = new JedisSentinelPool("mymaster", sentinels, config, password);
-        return new RedisEventLoop(null, new DefaultThreadFactory("RedisSEventLoop"),
-                RejectedExecutionHandlers.abort(),
-                jedisSentinelPool);
+        return new JedisSentinelPool("mymaster", sentinels, config, password);
     }
 
     /**

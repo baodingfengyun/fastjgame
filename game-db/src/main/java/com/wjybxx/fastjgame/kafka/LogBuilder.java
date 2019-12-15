@@ -20,7 +20,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * 日志构建器 - 该对象用于搜集日志数据。
- * 这是一个窄接口，不限制api，kafka线程通过{@link LogDirector}获取日志内容。
+ * 这是一个窄接口(窄视图)，不限制api，kafka线程通过{@link LogDirector}获取日志内容。
  * <p>
  * 注意：
  * 1. 添加完数据之后，调用{@link LogProducerEventLoop#publish(LogBuilder)}发布自己。

@@ -98,7 +98,7 @@ public class LogConsumerEventLoop extends DisruptorEventLoop {
 
         try {
             for (ConsumerRecord<String, String> record : records) {
-                safeConsumer(record);
+                consumeSafely(record);
             }
         } finally {
             // 提交消费记录 - 如果使用自动提交，参数设置不当时，容易导致重复消费。
@@ -111,7 +111,7 @@ public class LogConsumerEventLoop extends DisruptorEventLoop {
         consumer.close();
     }
 
-    private void safeConsumer(ConsumerRecord consumerRecord) {
+    private void consumeSafely(ConsumerRecord consumerRecord) {
         try {
             logConsumer.consume(consumerRecord);
         } catch (Throwable e) {

@@ -39,6 +39,7 @@ public class CenterModule extends WorldModule {
     @Override
     protected void bindOthers() {
         bind(CenterWorldInfoMgr.class).in(Singleton.class);
+        // 数据库支持
         bind(CenterMongoDBMgr.class).in(Singleton.class);
 
         // 节点发现
@@ -47,6 +48,5 @@ public class CenterModule extends WorldModule {
         bind(CenterSceneSessionMgr.class).in(Singleton.class);
         bind(CenterWarzoneSessionMgr.class).in(Singleton.class);
         bind(CenterGateSessionMgr.class).in(Singleton.class);
-
     }
 }
