@@ -19,8 +19,9 @@ package com.wjybxx.fastjgame.mgr;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
-import com.wjybxx.fastjgame.log.LogBuilder;
-import com.wjybxx.fastjgame.log.LogProducerEventLoop;
+import com.wjybxx.fastjgame.kafka.LogProducerEventLoop;
+import com.wjybxx.fastjgame.misc.log.GameLogBuilder;
+import com.wjybxx.fastjgame.misc.log.GameLogDirector;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +42,7 @@ public class LogProducerMgr {
 
     private static final Logger logger = LoggerFactory.getLogger(LogProducerMgr.class);
 
-    private final LogProducerEventLoop producer;
+    private final LogProducerEventLoop<GameLogBuilder> producer;
     private volatile boolean shutdown = false;
 
     @Inject
@@ -50,10 +51,10 @@ public class LogProducerMgr {
     }
 
     @Nonnull
-    private static LogProducerEventLoop newProducer(GameConfigMgr gameConfigMgr) {
-        return new LogProducerEventLoop(gameConfigMgr.getKafkaBrokerList(),
-                new DefaultThreadFactory("LOG-PRODUCER"),
-                RejectedExecutionHandlers.log());
+    private static LogProducerEventLoop<GameLogBuilder> newProducer(GameConfigMgr gameConfigMgr) {
+        return new LogProducerEventLoop<>(new DefaultThreadFactory("LOG-PRODUCER"),
+                RejectedExecutionHandlers.log(),
+                gameConfigMgr.getKafkaBrokerList(), new GameLogDirector());
     }
 
     /**
@@ -81,7 +82,7 @@ public class LogProducerMgr {
     /**
      * 发送消息到kafka
      */
-    public void publish(LogBuilder logBuilder) {
+    public void publish(GameLogBuilder logBuilder) {
         producer.publish(logBuilder);
     }
 }

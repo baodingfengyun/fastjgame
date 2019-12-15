@@ -14,12 +14,24 @@
  *  limitations under the License.
  */
 
+package com.wjybxx.fastjgame.kafka;
+
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+
 /**
- * 游戏日志组件
+ * 日志处理器
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/12/12
+ * date - 2019/12/15
  * github - https://github.com/hl845740757
  */
-package com.wjybxx.fastjgame.log;
+public interface LogConsumer {
+
+    /**
+     * 注意；该方法运行在{@link LogConsumerEventLoop}线程，注意线程安全问题。
+     *
+     * @param consumerRecord kafka日志数据
+     */
+    void consume(ConsumerRecord consumerRecord);
+}

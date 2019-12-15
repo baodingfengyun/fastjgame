@@ -14,13 +14,16 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.log;
+package com.wjybxx.fastjgame.misc.log;
+
+import com.wjybxx.fastjgame.kafka.LogDirector;
+import org.apache.kafka.clients.producer.ProducerRecord;
 
 import javax.annotation.Nonnull;
 import java.util.regex.Pattern;
 
 /**
- * 建造指挥者默认实现
+ * 游戏日志建造指挥官实现。
  * 1. 它通过分隔符的方式组织内容， '='分隔键和值，'&'分隔键值对。
  * 2. 如果有内容是Base64编码的，那么'='可能造成一些问题。
  * 3. 构建为字符串是方便阅读，更安全的方式是序列化为字节数组。
@@ -30,7 +33,12 @@ import java.util.regex.Pattern;
  * date - 2019/11/30
  * github - https://github.com/hl845740757
  */
-public class DefaultLogDirector implements LogDirector {
+public class GameLogDirector implements LogDirector<GameLogBuilder> {
+
+    /**
+     * 由于游戏打点日志并不是太多，可以将日志总是打在同一个partition下（可以获得全局的顺序性）
+     */
+    private static final Integer PARTITION_ID = 0;
 
     /**
      * 替换换行符，回车符，制表符，反斜杠，'&' '='
@@ -62,21 +70,23 @@ public class DefaultLogDirector implements LogDirector {
 
     @Nonnull
     @Override
-    public String build(LogBuilder logBuilder, long curTimeMillis) {
+    public ProducerRecord<String, String> build(GameLogBuilder builder) {
         stringBuilder.setLength(0);
 
         appendKey(LogKey.LOG_TYPE);
-        stringBuilder.append(logBuilder.getLogType().toString());
+        stringBuilder.append(builder.getLogType().toString());
 
         appendKey(LogKey.LOG_TIME);
-        stringBuilder.append(curTimeMillis);
+        stringBuilder.append(System.currentTimeMillis());
 
-        for (LogEntry logEntry : logBuilder.getEntryList()) {
-            appendKey(logEntry.logKey);
-            stringBuilder.append(doFilter(logEntry.logKey, logEntry.value));
+        for (GameLogBuilder.LogEntry logEntry : builder.getEntryList()) {
+            appendKey(logEntry.key);
+            stringBuilder.append(doFilter(logEntry.key, logEntry.value));
         }
 
-        return stringBuilder.toString();
+        // 指定partition
+        return new ProducerRecord<>(builder.getLogTopic().toString(), PARTITION_ID,
+                null, stringBuilder.toString());
     }
 
     private void appendKey(LogKey key) {

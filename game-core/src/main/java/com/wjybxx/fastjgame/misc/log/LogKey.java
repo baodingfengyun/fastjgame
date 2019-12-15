@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.log;
+package com.wjybxx.fastjgame.misc.log;
 
 /**
  * 日志属性 - 可以考虑根据表格生成。

@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.log;
+package com.wjybxx.fastjgame.kafka;
 
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
@@ -24,6 +24,8 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.time.Duration;
@@ -41,6 +43,8 @@ import java.util.concurrent.TimeUnit;
  * github - https://github.com/hl845740757
  */
 public class LogConsumerEventLoop extends DisruptorEventLoop {
+
+    private static final Logger logger = LoggerFactory.getLogger(LogConsumerEventLoop.class);
 
     /**
      * 日志线程任务缓冲区大小
@@ -61,12 +65,18 @@ public class LogConsumerEventLoop extends DisruptorEventLoop {
 
     private final KafkaConsumer<String, String> consumer;
     private final Set<String> subscribedTopics;
+    private final LogConsumer logConsumer;
 
-    public LogConsumerEventLoop(@Nonnull String brokerList, @Nonnull Set<String> subscribedTopics, @Nonnull String groupId,
-                                @Nonnull ThreadFactory threadFactory, @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
+    public LogConsumerEventLoop(@Nonnull ThreadFactory threadFactory,
+                                @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
+                                @Nonnull String brokerList,
+                                @Nonnull Set<String> subscribedTopics,
+                                @Nonnull String groupId,
+                                @Nonnull LogConsumer logConsumer) {
         super(null, threadFactory, rejectedExecutionHandler, CONSUMER_RING_BUFFER_SIZE, CONSUMER_BATCH_EVENT_SIZE, newWaitStrategyFactory());
         consumer = new KafkaConsumer<>(newConfig(brokerList, groupId), new StringDeserializer(), new StringDeserializer());
         this.subscribedTopics = subscribedTopics;
+        this.logConsumer = logConsumer;
     }
 
     @Nonnull
@@ -87,9 +97,8 @@ public class LogConsumerEventLoop extends DisruptorEventLoop {
         }
 
         try {
-            // TODO 日志处理/消费
             for (ConsumerRecord<String, String> record : records) {
-                System.out.println(record.toString());
+                safeConsumer(record);
             }
         } finally {
             // 提交消费记录 - 如果使用自动提交，参数设置不当时，容易导致重复消费。
@@ -100,6 +109,14 @@ public class LogConsumerEventLoop extends DisruptorEventLoop {
     @Override
     protected void clean() throws Exception {
         consumer.close();
+    }
+
+    private void safeConsumer(ConsumerRecord consumerRecord) {
+        try {
+            logConsumer.consume(consumerRecord);
+        } catch (Throwable e) {
+            logger.warn("logConsumer.consume caught exception", e);
+        }
     }
 
     private static Properties newConfig(final String brokerList, final String groupId) {

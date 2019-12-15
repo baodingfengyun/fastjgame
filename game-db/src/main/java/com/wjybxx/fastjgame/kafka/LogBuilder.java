@@ -14,26 +14,25 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.log;
+package com.wjybxx.fastjgame.kafka;
 
-import javax.annotation.Nonnull;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * 日志建造指挥官，构建最终的日志内容
+ * 日志构建器 - 该对象用于搜集日志数据。
+ * 这是一个窄接口，不限制api，kafka线程通过{@link LogDirector}获取日志内容。
+ * <p>
+ * 注意：
+ * 1. 添加完数据之后，调用{@link LogProducerEventLoop#publish(LogBuilder)}发布自己。
+ * 2. 每条日志务必使用新的对象，发布之后再修改会导致线程安全问题。
+ * 3. 该对象内的方法执行在应用线程，而{@link LogDirector}内的方法执行在kafka线程。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/11/30
+ * date - 2019/12/15
  * github - https://github.com/hl845740757
  */
-public interface LogDirector {
-
-    /**
-     * @param logBuilder    含有日志内容的builder
-     * @param curTimeMillis 当前时间
-     * @return 传输的内容
-     */
-    @Nonnull
-    String build(LogBuilder logBuilder, long curTimeMillis);
+@NotThreadSafe
+public interface LogBuilder {
 
 }

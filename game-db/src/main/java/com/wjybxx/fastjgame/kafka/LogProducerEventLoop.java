@@ -14,14 +14,13 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.log;
+package com.wjybxx.fastjgame.kafka;
 
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
 import com.wjybxx.fastjgame.concurrent.disruptor.SleepWaitStrategyFactory;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 
 import javax.annotation.Nonnull;
@@ -36,26 +35,22 @@ import java.util.concurrent.ThreadFactory;
  * date - 2019/11/27
  * github - https://github.com/hl845740757
  */
-public class LogProducerEventLoop extends DisruptorEventLoop {
+public class LogProducerEventLoop<T extends LogBuilder> extends DisruptorEventLoop {
     /**
      * 日志线程任务缓冲区大小，也不需要太大
      */
     private static final int PRODUCER_RING_BUFFER_SIZE = 64 * 1024;
     private static final int PRODUCER_BATCH_EVENT_SIZE = 1024;
 
-    /**
-     * 由于游戏打点日志并不是太多，可以将日志总是打在同一个partition下（可以获得全局的顺序性）
-     */
-    private static final Integer PARTITION_ID = 0;
-
     private final KafkaProducer<String, String> producer;
-    private final LogDirector logDirector = new DefaultLogDirector();
+    private final LogDirector<T> logDirector;
 
-    public LogProducerEventLoop(@Nonnull String brokerList,
-                                @Nonnull ThreadFactory threadFactory,
-                                @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
+    public LogProducerEventLoop(@Nonnull ThreadFactory threadFactory,
+                                @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
+                                @Nonnull String brokerList, @Nonnull LogDirector<T> logDirector) {
         super(null, threadFactory, rejectedExecutionHandler, PRODUCER_RING_BUFFER_SIZE, PRODUCER_BATCH_EVENT_SIZE, new SleepWaitStrategyFactory());
         this.producer = new KafkaProducer<>(newConfig(brokerList), new StringSerializer(), new StringSerializer());
+        this.logDirector = logDirector;
     }
 
     @Override
@@ -71,7 +66,7 @@ public class LogProducerEventLoop extends DisruptorEventLoop {
         producer.close();
     }
 
-    public void publish(LogBuilder logBuilder) {
+    public void publish(T logBuilder) {
         execute(new KafkaLogTask(logBuilder));
     }
 
@@ -88,17 +83,15 @@ public class LogProducerEventLoop extends DisruptorEventLoop {
 
     private class KafkaLogTask implements Runnable {
 
-        private final LogBuilder builder;
+        private final T builder;
 
-        KafkaLogTask(LogBuilder builder) {
+        KafkaLogTask(T builder) {
             this.builder = builder;
         }
 
         @Override
         public void run() {
-            final String content = logDirector.build(builder, System.currentTimeMillis());
-            // 指定partitionId，不通过key分发
-            producer.send(new ProducerRecord<>(builder.getLogTopic().toString(), PARTITION_ID, null, content));
+            producer.send(logDirector.build(builder));
         }
     }
 }

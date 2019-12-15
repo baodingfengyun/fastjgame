@@ -16,14 +16,13 @@
 
 package com.wjybxx.fastjgame.example;
 
-import com.google.common.collect.Sets;
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
-import com.wjybxx.fastjgame.log.LogConsumerEventLoop;
-import com.wjybxx.fastjgame.log.LogTopic;
+import com.wjybxx.fastjgame.kafka.LogConsumerEventLoop;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
 import javax.annotation.Nonnull;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -55,7 +54,10 @@ public class LogConsumerExample {
 
     @Nonnull
     private static LogConsumerEventLoop newConsumerEventLoop() {
-        return new LogConsumerEventLoop("localhost:9092", Sets.newHashSet(LogTopic.TEST.name()), "TEST",
-                new DefaultThreadFactory("CONSUMER"), RejectedExecutionHandlers.abort());
+        return new LogConsumerEventLoop(new DefaultThreadFactory("CONSUMER"),
+                RejectedExecutionHandlers.abort(),
+                "localhost:9092", Collections.singleton("TEST"),
+                "TEST",
+                System.out::println);
     }
 }

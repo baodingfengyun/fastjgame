@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.log.LogBuilder;
+import com.wjybxx.fastjgame.misc.log.GameLogBuilder;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -40,7 +40,7 @@ public class LogMgr {
         this.logProducerMgr = logProducerMgr;
     }
 
-    public void publish(LogBuilder logBuilder) {
+    public void publish(GameLogBuilder logBuilder) {
         logProducerMgr.publish(logBuilder);
     }
 
