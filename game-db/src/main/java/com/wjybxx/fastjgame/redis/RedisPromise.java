@@ -28,5 +28,4 @@ import com.wjybxx.fastjgame.concurrent.Promise;
  */
 public interface RedisPromise<V> extends RedisFuture<V>, Promise<V> {
 
-
 }

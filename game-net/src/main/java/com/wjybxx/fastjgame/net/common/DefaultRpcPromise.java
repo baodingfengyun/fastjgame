@@ -18,8 +18,6 @@ package com.wjybxx.fastjgame.net.common;
 
 import com.wjybxx.fastjgame.concurrent.DefaultPromise;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.concurrent.FutureListener;
-import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
@@ -85,7 +83,7 @@ public class DefaultRpcPromise extends DefaultPromise<RpcResponse> implements Rp
     @Override
     public RpcResponse getNow() {
         // 如果时间到了，还没有结果，那么需要标记为超时
-        if (System.currentTimeMillis() >= deadline && !isDone()) {
+        if (!isDone() && System.currentTimeMillis() >= deadline) {
             trySuccess(RpcResponse.TIMEOUT);
         }
         return super.getNow();
@@ -137,7 +135,7 @@ public class DefaultRpcPromise extends DefaultPromise<RpcResponse> implements Rp
         }
     }
 
-    // ----------------------------------------------- 将失败转移为成功 ----------------------------------------------
+    // ----------------------------------------------- 将失败转换为成功 ----------------------------------------------
 
     @Override
     public void setFailure(@Nonnull Throwable cause) {
@@ -154,19 +152,4 @@ public class DefaultRpcPromise extends DefaultPromise<RpcResponse> implements Rp
         return tryCompleted(RpcResponse.CANCELLED, true);
     }
 
-    // ------------------------------------------------- 监听器管理 ----------------------------------------------------
-
-    private static class RpcFutureListener implements FutureListener<RpcResponse> {
-
-        private final RpcCallback rpcCallback;
-
-        private RpcFutureListener(RpcCallback rpcCallback) {
-            this.rpcCallback = rpcCallback;
-        }
-
-        @Override
-        public void onComplete(ListenableFuture<? extends RpcResponse> future) throws Exception {
-            rpcCallback.onComplete(future.getNow());
-        }
-    }
 }
