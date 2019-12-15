@@ -40,23 +40,23 @@ public interface RedisPipeline {
 
     // region string
 
-    RedisResponse<Long> incr(String key);
+    RedisFuture<Long> incr(String key);
 
-    RedisResponse<Long> incrBy(String key, long increment);
+    RedisFuture<Long> incrBy(String key, long increment);
 
     // endregion
 
     // region list
 
-    RedisResponse<String> lindex(String key, long index);
+    RedisFuture<String> lindex(String key, long index);
 
-    RedisResponse<Long> linsert(String key, ListPosition where, String pivot, String value);
+    RedisFuture<Long> linsert(String key, ListPosition where, String pivot, String value);
 
     /**
      * left pop
      * 移除并且返回 key 对应的 list 的第一个元素。
      */
-    RedisResponse<String> lpop(String key);
+    RedisFuture<String> lpop(String key);
 
     /**
      * left push
@@ -69,20 +69,20 @@ public interface RedisPipeline {
      * 元素是从最左端的到最右端的、一个接一个被插入到 list 的头部。
      * 所以对于这个命令例子 LPUSH mylist a b c，返回的列表是 c 为第一个元素， b 为第二个元素， a 为第三个元素。
      */
-    RedisResponse<Long> lpush(String key, String... string);
+    RedisFuture<Long> lpush(String key, String... string);
 
     /**
      * left pushx
      * 只有当 key 已经存在并且存着一个 list 的时候，在这个 key 下面的 list 的头部插入 value。
      * 与 LPUSH 相反，当 key 不存在的时候不会进行任何操作。
      */
-    RedisResponse<Long> lpushx(String key, String... string);
+    RedisFuture<Long> lpushx(String key, String... string);
 
     /**
      * right pop
      * 移除并返回存于 key 的 list 的最后一个元素。
      */
-    RedisResponse<String> rpop(String key);
+    RedisFuture<String> rpop(String key);
 
     /**
      * right push
@@ -94,97 +94,97 @@ public interface RedisPipeline {
      * 元素是从左到右一个接一个从列表尾部插入。
      * 比如命令 RPUSH mylist a b c 会返回一个列表，其第一个元素是 a ，第二个元素是 b ，第三个元素是 c。
      */
-    RedisResponse<Long> rpush(String key, String... string);
+    RedisFuture<Long> rpush(String key, String... string);
 
     /**
      * right pushx
      * 当且仅当 key 存在并且是一个列表时，将值 value 插入到列表 key 的表尾。
      * 和 RPUSH 命令相反, 当 key 不存在时，RPUSHX 命令什么也不做。
      */
-    RedisResponse<Long> rpushx(String key, String... string);
+    RedisFuture<Long> rpushx(String key, String... string);
 
-    RedisResponse<List<String>> lrange(String key, long start, long stop);
+    RedisFuture<List<String>> lrange(String key, long start, long stop);
 
-    RedisResponse<Long> lrem(String key, long count, String value);
+    RedisFuture<Long> lrem(String key, long count, String value);
 
-    RedisResponse<String> lset(String key, long index, String value);
+    RedisFuture<String> lset(String key, long index, String value);
 
-    RedisResponse<String> ltrim(String key, long start, long stop);
+    RedisFuture<String> ltrim(String key, long start, long stop);
 
-    RedisResponse<Long> llen(String key);
+    RedisFuture<Long> llen(String key);
 
     // endregion
 
     // region hash
-    RedisResponse<Boolean> hexists(String key, String field);
+    RedisFuture<Boolean> hexists(String key, String field);
 
-    RedisResponse<String> hget(String key, String field);
+    RedisFuture<String> hget(String key, String field);
 
-    RedisResponse<Long> hdel(String key, String... field);
+    RedisFuture<Long> hdel(String key, String... field);
 
-    RedisResponse<Long> hincrBy(String key, String field, long value);
+    RedisFuture<Long> hincrBy(String key, String field, long value);
 
-    RedisResponse<Long> hset(String key, String field, String value);
+    RedisFuture<Long> hset(String key, String field, String value);
 
-    RedisResponse<Long> hsetnx(String key, String field, String value);
+    RedisFuture<Long> hsetnx(String key, String field, String value);
 
-    RedisResponse<List<String>> hmget(String key, String... fields);
+    RedisFuture<List<String>> hmget(String key, String... fields);
 
-    RedisResponse<String> hmset(String key, Map<String, String> hash);
+    RedisFuture<String> hmset(String key, Map<String, String> hash);
 
-    RedisResponse<List<String>> hvals(String key);
+    RedisFuture<List<String>> hvals(String key);
 
-    RedisResponse<Long> hlen(String key);
+    RedisFuture<Long> hlen(String key);
 
-    RedisResponse<Set<String>> hkeys(String key);
+    RedisFuture<Set<String>> hkeys(String key);
 
-    RedisResponse<Map<String, String>> hgetAll(String key);
+    RedisFuture<Map<String, String>> hgetAll(String key);
 
     // endregion
 
     // region zset
     // 不再建议使用redis做排行榜，使用自己实现的java-zset做排行榜更合适
 
-    RedisResponse<Long> zadd(String key, double score, String member);
+    RedisFuture<Long> zadd(String key, double score, String member);
 
-    RedisResponse<Long> zadd(String key, double score, String member, ZAddParams params);
+    RedisFuture<Long> zadd(String key, double score, String member, ZAddParams params);
 
-    RedisResponse<Long> zadd(String key, Map<String, Double> scoreMembers);
+    RedisFuture<Long> zadd(String key, Map<String, Double> scoreMembers);
 
-    RedisResponse<Long> zadd(String key, Map<String, Double> scoreMembers, ZAddParams params);
+    RedisFuture<Long> zadd(String key, Map<String, Double> scoreMembers, ZAddParams params);
 
-    RedisResponse<Long> zcard(String key);
+    RedisFuture<Long> zcard(String key);
 
-    RedisResponse<Long> zcount(String key, double min, double max);
+    RedisFuture<Long> zcount(String key, double min, double max);
 
-    RedisResponse<Double> zincrby(String key, double increment, String member);
+    RedisFuture<Double> zincrby(String key, double increment, String member);
 
-    RedisResponse<Double> zincrby(String key, double increment, String member, ZIncrByParams params);
+    RedisFuture<Double> zincrby(String key, double increment, String member, ZIncrByParams params);
 
-    RedisResponse<Long> zrank(String key, String member);
+    RedisFuture<Long> zrank(String key, String member);
 
-    RedisResponse<Long> zrevrank(String key, String member);
+    RedisFuture<Long> zrevrank(String key, String member);
 
-    RedisResponse<Double> zscore(String key, String member);
+    RedisFuture<Double> zscore(String key, String member);
 
     // 总是同时返回分数和member，其实更有意义，老的api着实不好用
-    RedisResponse<Set<Tuple>> zrangeWithScores(String key, long start, long stop);
+    RedisFuture<Set<Tuple>> zrangeWithScores(String key, long start, long stop);
 
-    RedisResponse<Set<Tuple>> zrangeByScoreWithScores(String key, double min, double max);
+    RedisFuture<Set<Tuple>> zrangeByScoreWithScores(String key, double min, double max);
 
-    RedisResponse<Set<Tuple>> zrangeByScoreWithScores(String key, double min, double max, int offset, int count);
+    RedisFuture<Set<Tuple>> zrangeByScoreWithScores(String key, double min, double max, int offset, int count);
 
-    RedisResponse<Set<Tuple>> zrevrangeByScoreWithScores(String key, double max, double min);
+    RedisFuture<Set<Tuple>> zrevrangeByScoreWithScores(String key, double max, double min);
 
-    RedisResponse<Set<Tuple>> zrevrangeByScoreWithScores(String key, double max, double min, int offset, int count);
+    RedisFuture<Set<Tuple>> zrevrangeByScoreWithScores(String key, double max, double min, int offset, int count);
 
-    RedisResponse<Set<Tuple>> zrevrangeWithScores(String key, long start, long stop);
+    RedisFuture<Set<Tuple>> zrevrangeWithScores(String key, long start, long stop);
 
-    RedisResponse<Long> zrem(String key, String... members);
+    RedisFuture<Long> zrem(String key, String... members);
 
-    RedisResponse<Long> zremrangeByRank(String key, long start, long stop);
+    RedisFuture<Long> zremrangeByRank(String key, long start, long stop);
 
-    RedisResponse<Long> zremrangeByScore(String key, double min, double max);
+    RedisFuture<Long> zremrangeByScore(String key, double min, double max);
 
     // endregion
 }

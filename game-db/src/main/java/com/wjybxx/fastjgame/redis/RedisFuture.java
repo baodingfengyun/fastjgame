@@ -14,29 +14,31 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.common;
+package com.wjybxx.fastjgame.redis;
 
-import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.concurrent.SucceededFuture;
+import com.wjybxx.fastjgame.concurrent.FutureListener;
+import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 
 import javax.annotation.Nonnull;
 
 /**
- * 已完成的Rpc调用，在它上面的任何监听都将立即执行。
+ * Redis异步操作获取结果的句柄。
+ * Q: 为什么改为future了？
+ * A: 数据库操作很可能需要同步阻塞式调用，只使用回调的话无法进行支持。
+ * (redis也是数据库啊，很可能需要阻塞式调用)
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/3
+ * date - 2019/12/12
  * github - https://github.com/hl845740757
  */
-public class CompletedRpcFuture extends SucceededFuture<RpcResponse> implements RpcFuture {
+public interface RedisFuture<V> extends ListenableFuture<V> {
 
     /**
-     * @param executor    用户所在EventLoop,为什么可以只使用用户线程？因为不会阻塞。
-     * @param rpcResponse rpc结果
+     * {@inheritDoc}
+     * 回调默认执行在发起请求的用户线程。
      */
-    public CompletedRpcFuture(@Nonnull EventLoop executor, @Nonnull RpcResponse rpcResponse) {
-        super(executor, rpcResponse);
-    }
+    @Override
+    void addListener(@Nonnull FutureListener<? super V> listener);
 
 }

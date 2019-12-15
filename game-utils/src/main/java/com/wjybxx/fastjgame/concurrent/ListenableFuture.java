@@ -230,13 +230,4 @@ public interface ListenableFuture<V> extends Future<V> {
      */
     boolean removeListener(@Nonnull FutureListener<? super V> listener);
 
-    /**
-     * 移除监听器中第一个与Listener与bindExecutor都匹配的监听器，如果不存在完全匹配的，则什么也不会做。
-     * 一般来说{@link #removeListener(FutureListener)}就可满足需求。
-     *
-     * @param listener     要移除的监听器
-     * @param bindExecutor 该监听器注册时关联的Executor
-     * @return 是否删除了一个listener
-     */
-    boolean removeListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor);
 }

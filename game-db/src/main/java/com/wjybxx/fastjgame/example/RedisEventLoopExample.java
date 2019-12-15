@@ -123,15 +123,15 @@ public class RedisEventLoopExample {
             countdown.addAndGet(2);
 
             redisPipeline.hset("name", String.valueOf(loop), String.valueOf(loop))
-                    .addCallback(response -> {
+                    .addListener(future -> {
                         countdown.decAndGet();
-                        System.out.println(response.get());
+                        System.out.println(future.get());
                     });
 
             redisPipeline.hget("name", String.valueOf(loop))
-                    .addCallback(response -> {
+                    .addListener(future -> {
                         countdown.decAndGet();
-                        System.out.println(response.get());
+                        System.out.println(future.get());
                     });
         }
 

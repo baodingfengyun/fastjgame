@@ -21,7 +21,6 @@ import com.wjybxx.fastjgame.concurrent.EventLoopGroup;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.*;
@@ -132,37 +131,36 @@ public class RedisEventLoop extends SingleThreadEventLoop {
             // 某一个出现异常，将导致后续的指令不被执行。
             JedisPipelineTask<?> task;
             while ((task = waitResponseTasks.pollFirst()) != null) {
-                ConcurrentUtils.safeExecute(task.appEventLoop, new JedisCallbackTask(task.redisResponse, getData(task.dependency)));
+                setData(task.redisPromise, task.dependency);
             }
         }
     }
 
-    private Object getData(Response<?> dependency) {
+    @SuppressWarnings("unchecked")
+    private static void setData(RedisPromise redisPromise, Response dependency) {
         try {
-            return dependency.get();
-        } catch (JedisDataException e) {
-            return e;
+            redisPromise.trySuccess(dependency.get());
         } catch (Throwable e) {
-            return new JedisDataException(e);
+            redisPromise.tryFailure(e);
         }
     }
 
-    <T> RedisResponse<T> enqueue(EventLoop appEventLoop, RedisPipelineCommand<T> pipelineCmd) {
-        final DefaultRedisResponse<T> redisResponse = new DefaultRedisResponse<>();
-        execute(new JedisPipelineTask<>(appEventLoop, pipelineCmd, redisResponse));
-        return redisResponse;
+    <T> RedisFuture<T> enqueue(EventLoop appEventLoop, RedisPipelineCommand<T> pipelineCmd) {
+        final DefaultRedisPromise<T> redisPromise = new DefaultRedisPromise<>(this, appEventLoop);
+        execute(new JedisPipelineTask<>(appEventLoop, pipelineCmd, redisPromise));
+        return redisPromise;
     }
 
     private class JedisPipelineTask<T> implements Runnable {
         final EventLoop appEventLoop;
         final RedisPipelineCommand<T> pipelineCmd;
-        final DefaultRedisResponse<T> redisResponse;
+        final DefaultRedisPromise<T> redisPromise;
         Response<T> dependency;
 
-        JedisPipelineTask(EventLoop appEventLoop, RedisPipelineCommand<T> pipelineCmd, DefaultRedisResponse<T> redisResponse) {
+        JedisPipelineTask(EventLoop appEventLoop, RedisPipelineCommand<T> pipelineCmd, DefaultRedisPromise<T> redisPromise) {
             this.appEventLoop = appEventLoop;
             this.pipelineCmd = pipelineCmd;
-            this.redisResponse = redisResponse;
+            this.redisPromise = redisPromise;
         }
 
         @SuppressWarnings("unchecked")
@@ -184,22 +182,6 @@ public class RedisEventLoop extends SingleThreadEventLoop {
                 dependency = new Response(BuilderFactory.OBJECT);
                 dependency.set(new JedisDataException(exception));
             }
-        }
-    }
-
-    private static class JedisCallbackTask implements Runnable {
-
-        final DefaultRedisResponse<?> redisResponse;
-        final Object data;
-
-        JedisCallbackTask(DefaultRedisResponse<?> redisResponse, Object data) {
-            this.redisResponse = redisResponse;
-            this.data = data;
-        }
-
-        @Override
-        public void run() {
-            redisResponse.onComplete(data);
         }
     }
 

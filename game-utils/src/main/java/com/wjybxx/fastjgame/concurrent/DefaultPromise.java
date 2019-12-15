@@ -651,13 +651,6 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         return removeFirstMatchListener(listenerEntry -> listenerEntry.listener == listener);
     }
 
-    @Override
-    public boolean removeListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor) {
-        return removeFirstMatchListener(listenerEntry -> {
-            return listenerEntry.listener == listener && listenerEntry.bindExecutor == bindExecutor;
-        });
-    }
-
     /**
      * 移除第一个匹配的监听器
      *

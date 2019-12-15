@@ -14,29 +14,36 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.common;
+package com.wjybxx.fastjgame.redis;
 
+
+import com.wjybxx.fastjgame.concurrent.DefaultPromise;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.concurrent.SucceededFuture;
-
-import javax.annotation.Nonnull;
+import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
 /**
- * 已完成的Rpc调用，在它上面的任何监听都将立即执行。
+ * redis异步操作结果的默认实现
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/3
+ * date - 2019/12/12
  * github - https://github.com/hl845740757
  */
-public class CompletedRpcFuture extends SucceededFuture<RpcResponse> implements RpcFuture {
+public class DefaultRedisPromise<V> extends DefaultPromise<V> implements RedisPromise<V> {
 
     /**
-     * @param executor    用户所在EventLoop,为什么可以只使用用户线程？因为不会阻塞。
-     * @param rpcResponse rpc结果
+     * 工作线程 - 检查死锁的线程
      */
-    public CompletedRpcFuture(@Nonnull EventLoop executor, @Nonnull RpcResponse rpcResponse) {
-        super(executor, rpcResponse);
+    private final RedisEventLoop workerEventLoop;
+
+    DefaultRedisPromise(RedisEventLoop workerEventLoop, EventLoop appEventLoop) {
+        super(appEventLoop);
+        this.workerEventLoop = workerEventLoop;
+    }
+
+    @Override
+    protected void checkDeadlock() {
+        ConcurrentUtils.checkDeadLock(workerEventLoop);
     }
 
 }

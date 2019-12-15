@@ -156,16 +156,6 @@ public class DefaultRpcPromise extends DefaultPromise<RpcResponse> implements Rp
 
     // ------------------------------------------------- 监听器管理 ----------------------------------------------------
 
-    @Override
-    public void addCallback(RpcCallback rpcCallback) {
-        addListener(new RpcFutureListener(rpcCallback));
-    }
-
-    @Override
-    public void addCallback(RpcCallback rpcCallback, EventLoop eventLoop) {
-        addListener(new RpcFutureListener(rpcCallback), eventLoop);
-    }
-
     private static class RpcFutureListener implements FutureListener<RpcResponse> {
 
         private final RpcCallback rpcCallback;

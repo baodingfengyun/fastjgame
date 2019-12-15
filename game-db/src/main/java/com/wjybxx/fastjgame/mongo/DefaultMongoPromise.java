@@ -14,29 +14,29 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.common;
+package com.wjybxx.fastjgame.mongo;
 
+import com.wjybxx.fastjgame.concurrent.DefaultPromise;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.concurrent.SucceededFuture;
 
 import javax.annotation.Nonnull;
 
 /**
- * 已完成的Rpc调用，在它上面的任何监听都将立即执行。
+ * 默认MongoPromise实现
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/3
+ * date - 2019/12/15
  * github - https://github.com/hl845740757
  */
-public class CompletedRpcFuture extends SucceededFuture<RpcResponse> implements RpcFuture {
+public class DefaultMongoPromise<V> extends DefaultPromise<V> implements MongoPromise<V> {
 
-    /**
-     * @param executor    用户所在EventLoop,为什么可以只使用用户线程？因为不会阻塞。
-     * @param rpcResponse rpc结果
-     */
-    public CompletedRpcFuture(@Nonnull EventLoop executor, @Nonnull RpcResponse rpcResponse) {
-        super(executor, rpcResponse);
+    public DefaultMongoPromise(@Nonnull EventLoop appEventLoop) {
+        super(appEventLoop);
     }
 
+    @Override
+    protected void checkDeadlock() {
+        // TODO 还没定在哪里执行
+    }
 }

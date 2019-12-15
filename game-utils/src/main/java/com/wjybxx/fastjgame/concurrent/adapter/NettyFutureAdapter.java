@@ -130,11 +130,6 @@ public final class NettyFutureAdapter<V> implements ListenableFuture<V> {
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    public boolean removeListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor) {
-        throw new UnsupportedOperationException();
-    }
-
     /**
      * 转发到指定线程下执行回调逻辑
      *

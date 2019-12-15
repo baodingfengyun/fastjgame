@@ -77,12 +77,6 @@ public abstract class CompleteFuture<V> extends AbstractListenableFuture<V> {
         return false;
     }
 
-    @Override
-    public boolean removeListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor) {
-        // NOOP (因为并没有真正添加，因此也不需要移除)
-        return false;
-    }
-
     // 什么时候应该检查中断，不是简单的事，个人觉得这里的操作都已完成，不会造成阻塞(不会执行耗时操作)，因此不需要检查中断
 
     @Override

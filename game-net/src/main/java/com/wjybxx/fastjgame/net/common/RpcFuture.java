@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.net.common;
 
-import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.FutureListener;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 
@@ -38,34 +37,10 @@ public interface RpcFuture extends ListenableFuture<RpcResponse> {
 
     /**
      * {@inheritDoc}
-     * 默认执行在发起rpc调用的用户所在线程
-     *
-     * @param listener 要添加的监听器。PECS Listener作为消费者，可以把生产的结果V 看做V或V的超类型消费，因此需要使用super。
+     * 回调默认执行在发起rpc调用的用户所在线程
      */
     @Override
     void addListener(@Nonnull FutureListener<? super RpcResponse> listener);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    void addListener(@Nonnull FutureListener<? super RpcResponse> listener, @Nonnull EventLoop bindExecutor);
-
-    /**
-     * 添加rpc调用回调。
-     * 默认执行在发起rpc调用的用户所在的线程。
-     *
-     * @param rpcCallback rpc回调逻辑
-     */
-    void addCallback(RpcCallback rpcCallback);
-
-    /**
-     * 添加rpc调用回调，并指定运行环境。
-     *
-     * @param rpcCallback rpc回调逻辑
-     * @param eventLoop   rpc回调的执行环境
-     */
-    void addCallback(RpcCallback rpcCallback, EventLoop eventLoop);
 
     // 1. RPCFuture上不会有执行失败异常，通过错误码来表示
     // 2. 在RpcFuture上不会无限阻塞，一定会在超时时间到了之后就醒来
@@ -86,4 +61,5 @@ public interface RpcFuture extends ListenableFuture<RpcResponse> {
 
     @Override
     boolean awaitUninterruptibly(long timeout, TimeUnit unit);
+
 }

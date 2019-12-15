@@ -16,19 +16,17 @@
 
 package com.wjybxx.fastjgame.redis;
 
+import com.wjybxx.fastjgame.concurrent.Promise;
+
 /**
- * redis操作回调
+ * redis操作对应的promise
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/12/12
+ * date - 2019/12/15
  * github - https://github.com/hl845740757
  */
-public interface RedisCallback<T> {
+public interface RedisPromise<V> extends RedisFuture<V>, Promise<V> {
 
-    /**
-     * 当redis操作完成时，该方法将被调用
-     */
-    void onComplete(RedisResponse<T> response) throws Exception;
 
 }
