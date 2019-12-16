@@ -30,9 +30,11 @@ import redis.clients.jedis.Response;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.Closeable;
 import java.util.ArrayDeque;
 import java.util.concurrent.ThreadFactory;
+
+import static com.wjybxx.fastjgame.utils.CloseableUtils.closeQuietly;
+import static com.wjybxx.fastjgame.utils.ConcurrentUtils.sleepQuietly;
 
 /**
  * redis事件循环
@@ -111,6 +113,9 @@ public class RedisEventLoop extends SingleThreadEventLoop {
         }
     }
 
+    /**
+     * 刷新管道，为未获得结果的redis请求生成结果
+     */
     private void sync() {
         if (waitResponseTasks.isEmpty()) {
             return;
@@ -141,6 +146,24 @@ public class RedisEventLoop extends SingleThreadEventLoop {
         }
     }
 
+    /**
+     * 安全的建立连接 - 不抛出任何异常
+     */
+    private void connectSafely() {
+        try {
+            jedis = jedisPool.getResource();
+            pipeline = jedis.pipelined();
+        } catch (Throwable t) {
+            logger.warn("jedisPool.getResource caught exception", t);
+            // 防止频繁出现异常导致cpu资源利用率过高。
+            // 获取连接失败时，在接下来的一段时间里大概率总是失败。
+            sleepQuietly(1000);
+        }
+    }
+
+    /**
+     * 为未获得结果的redis请求生成结果
+     */
     private void generateResponses() {
         JedisPipelineTask<?> task;
         while ((task = waitResponseTasks.pollFirst()) != null) {
@@ -148,6 +171,9 @@ public class RedisEventLoop extends SingleThreadEventLoop {
         }
     }
 
+    /**
+     * 安全的为promise赋值
+     */
     @SuppressWarnings("unchecked")
     private static void setData(RedisPromise redisPromise, Response dependency, Throwable cause) {
         if (cause != null) {
@@ -200,36 +226,6 @@ public class RedisEventLoop extends SingleThreadEventLoop {
                 // 执行管道命令出现异常
                 cause = t;
             }
-        }
-    }
-
-    private void connectSafely() {
-        try {
-            jedis = jedisPool.getResource();
-            pipeline = jedis.pipelined();
-        } catch (Throwable t) {
-            logger.warn("jedisPool.getResource caught exception", t);
-            // 防止频繁出现异常导致cpu资源利用率过高。
-            // 获取连接失败时，在接下来的一段时间里大概率总是失败。
-            sleepQuietly(1000);
-        }
-    }
-
-    private static void closeQuietly(Closeable resource) {
-        if (null != resource) {
-            try {
-                resource.close();
-            } catch (Throwable ignore) {
-
-            }
-        }
-    }
-
-    private static void sleepQuietly(int sleepMillis) {
-        try {
-            Thread.sleep(sleepMillis);
-        } catch (InterruptedException ignore) {
-
         }
     }
 

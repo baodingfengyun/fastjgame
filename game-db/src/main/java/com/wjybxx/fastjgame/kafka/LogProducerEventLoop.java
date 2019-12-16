@@ -27,6 +27,8 @@ import javax.annotation.Nonnull;
 import java.util.Properties;
 import java.util.concurrent.ThreadFactory;
 
+import static com.wjybxx.fastjgame.utils.CloseableUtils.closeQuietly;
+
 /**
  * 日志线程 - 该线程作为kafka日志生产者。
  *
@@ -63,7 +65,7 @@ public class LogProducerEventLoop<T extends LogBuilder> extends DisruptorEventLo
 
     @Override
     protected void clean() throws Exception {
-        producer.close();
+        closeQuietly(producer);
     }
 
     public void publish(T logBuilder) {

@@ -301,6 +301,23 @@ public class ConcurrentUtils {
         return e instanceof InterruptedException;
     }
 
+    // ------------------------------------------- 等待处理 -------------------------------------
+
+    /**
+     * 安静地睡眠一会儿
+     *
+     * @param sleepMillis 要睡眠的时间(毫秒)
+     */
+    public static void sleepQuietly(int sleepMillis) {
+        try {
+            Thread.sleep(sleepMillis);
+        } catch (InterruptedException ignore) {
+
+        }
+    }
+
+    // ------------------------------------------- 安全地执行 ------------------------------------
+
     /**
      * 将一个可能抛出异常的任务包装为一个不抛出受检异常的runnable。
      *

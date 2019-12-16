@@ -148,13 +148,7 @@ public class NetUtils {
      * 关闭一个资源
      */
     public static void closeQuietly(@Nullable Closeable resource) {
-        if (null != resource) {
-            try {
-                resource.close();
-            } catch (Throwable ignore) {
-
-            }
-        }
+        CloseableUtils.closeQuietly(resource);
     }
 
     /**

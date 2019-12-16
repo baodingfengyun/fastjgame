@@ -43,6 +43,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadFactory;
 
+import static com.wjybxx.fastjgame.utils.ConcurrentUtils.sleepQuietly;
+
 /**
  * 网络事件循环。
  * <p>
@@ -185,7 +187,7 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
                 netTimerManager.tick();
 
                 // 等待以降低cpu利用率
-                sleepQuietly();
+                sleepQuietly(1);
             } catch (Throwable e) {
                 // 避免错误的退出循环
                 logger.warn("loop caught exception", e);
@@ -271,11 +273,4 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
         httpSessionManager.onRcvHttpRequest(event);
     }
 
-    private static void sleepQuietly() {
-        try {
-            Thread.sleep(1);
-        } catch (InterruptedException ignore) {
-
-        }
-    }
 }

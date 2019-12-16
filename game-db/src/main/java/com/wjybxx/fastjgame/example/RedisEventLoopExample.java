@@ -29,6 +29,8 @@ import com.wjybxx.fastjgame.utils.TimeUtils;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
+import java.util.concurrent.ExecutionException;
+
 /**
  * redis事件循环示例
  *
@@ -39,12 +41,13 @@ import redis.clients.jedis.JedisPoolConfig;
  */
 public class RedisEventLoopExample {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
         final RedisEventLoop redisEventLoop = newRedisEventLoop();
-        redisEventLoop.execute(ConcurrentUtils.NO_OP_TASK);
+        // submit一个任务，阻塞到线程启动成功
+        redisEventLoop.submit(ConcurrentUtils.NO_OP_TASK).get();
 
         final EventLoop appEventLoop = newAppEventLoop(redisEventLoop);
-        appEventLoop.execute(ConcurrentUtils.NO_OP_TASK);
+        appEventLoop.submit(ConcurrentUtils.NO_OP_TASK).get();
 
         appEventLoop.terminationFuture().awaitUninterruptibly();
 
