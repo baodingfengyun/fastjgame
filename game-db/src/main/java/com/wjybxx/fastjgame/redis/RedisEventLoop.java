@@ -53,12 +53,19 @@ public class RedisEventLoop extends SingleThreadEventLoop {
 
     private static final Logger logger = LoggerFactory.getLogger(RedisEventLoop.class);
     /**
-     * 它决定了最多多少个命令执行一次{@link #sync()}
+     * 它决定了最多多少个命令执行一次{@link #sync()}。
+     * 不宜太大，太大时，一旦出现异常，破坏太大。
+     * 不宜太小，太小时，无法充分利用网络。
      */
     private static final int BATCH_TASK_SIZE = 512;
     private final ArrayDeque<JedisPipelineTask<?>> waitResponseTasks = new ArrayDeque<>(BATCH_TASK_SIZE);
 
     private final JedisPoolAbstract jedisPool;
+
+    /**
+     * jedis为null时表示{@link #init()}失败，不会处理任何请求。
+     * 只有初始化成功时，才会在后续的IO异常中进行重连
+     */
     private Jedis jedis;
     private Pipeline pipeline;
 
@@ -71,20 +78,22 @@ public class RedisEventLoop extends SingleThreadEventLoop {
     }
 
     @Override
-    protected void init() throws Exception {
-        super.init();
+    protected void init() {
+        // 首次获取资源时如果失败，则退出线程
         jedis = jedisPool.getResource();
         pipeline = jedis.pipelined();
     }
 
     @Override
-    protected void clean() throws Exception {
-        // 清理未完成的任务
-        sync();
-
-        // 关闭资源
-        closeQuietly(pipeline);
-        closeQuietly(jedis);
+    protected void clean() {
+        try {
+            // 执行可能未执行命令
+            sync();
+        } finally {
+            // 关闭资源 - 资源关闭放在finally块是个好习惯
+            closeQuietly(pipeline);
+            closeQuietly(jedis);
+        }
     }
 
     @Override
@@ -101,9 +110,9 @@ public class RedisEventLoop extends SingleThreadEventLoop {
 
                 // 等待以降低cpu利用率
                 sleepQuietly();
-            } catch (Throwable e) {
+            } catch (Throwable t) {
                 // 避免错误的退出循环
-                logger.warn("loop caught exception", e);
+                logger.warn("loop caught exception", t);
             }
         }
     }
@@ -114,18 +123,17 @@ public class RedisEventLoop extends SingleThreadEventLoop {
         }
 
         try {
-            // pipeline == null 表示获取连接失败
             if (pipeline != null) {
                 pipeline.sync();
             }
+            // else 未获取到初始连接，线程即将退出
         } catch (Throwable exception) {
             logger.warn("pipeline.sync caught exception", exception);
 
             closeQuietly(pipeline);
             closeQuietly(jedis);
 
-            jedis = jedisPool.getResource();
-            pipeline = jedis.pipelined();
+            reconnectQuietly();
         } finally {
             // pipeline的缺陷：由于多个指令批量执行，因此命令的执行不是原子的。
             // 某一个出现异常，将导致后续的指令不被执行。
@@ -140,8 +148,8 @@ public class RedisEventLoop extends SingleThreadEventLoop {
     private static void setData(RedisPromise redisPromise, Response dependency) {
         try {
             redisPromise.trySuccess(dependency.get());
-        } catch (Throwable e) {
-            redisPromise.tryFailure(e);
+        } catch (Throwable t) {
+            redisPromise.tryFailure(t);
         }
     }
 
@@ -177,11 +185,20 @@ public class RedisEventLoop extends SingleThreadEventLoop {
 
             try {
                 dependency = pipelineCmd.execute(pipeline);
-            } catch (Throwable exception) {
+            } catch (Throwable t) {
                 // 出现异常，手动生成结果
                 dependency = new Response(BuilderFactory.OBJECT);
-                dependency.set(new JedisDataException(exception));
+                dependency.set(new JedisDataException(t));
             }
+        }
+    }
+
+    private void reconnectQuietly() {
+        try {
+            jedis = jedisPool.getResource();
+            pipeline = jedis.pipelined();
+        } catch (Throwable t) {
+            logger.warn("jedisPool.getResource caught exception", t);
         }
     }
 
