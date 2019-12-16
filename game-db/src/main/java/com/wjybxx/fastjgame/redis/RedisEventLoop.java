@@ -23,8 +23,10 @@ import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import redis.clients.jedis.*;
-import redis.clients.jedis.exceptions.JedisDataException;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPoolAbstract;
+import redis.clients.jedis.Pipeline;
+import redis.clients.jedis.Response;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -61,11 +63,6 @@ public class RedisEventLoop extends SingleThreadEventLoop {
     private final ArrayDeque<JedisPipelineTask<?>> waitResponseTasks = new ArrayDeque<>(BATCH_TASK_SIZE);
 
     private final JedisPoolAbstract jedisPool;
-
-    /**
-     * jedis为null时表示{@link #init()}失败，不会处理任何请求。
-     * 只有初始化成功时，才会在后续的IO异常中进行重连
-     */
     private Jedis jedis;
     private Pipeline pipeline;
 
@@ -79,20 +76,17 @@ public class RedisEventLoop extends SingleThreadEventLoop {
 
     @Override
     protected void init() {
-        // 首次获取资源时如果失败，则退出线程
-        jedis = jedisPool.getResource();
-        pipeline = jedis.pipelined();
+        connectSafely();
     }
 
     @Override
     protected void clean() {
         try {
-            // 执行可能未执行命令
-            sync();
-        } finally {
-            // 关闭资源 - 资源关闭放在finally块是个好习惯
+            // pipeline关闭时会调用sync
             closeQuietly(pipeline);
             closeQuietly(jedis);
+        } finally {
+            generateResponses();
         }
     }
 
@@ -109,7 +103,7 @@ public class RedisEventLoop extends SingleThreadEventLoop {
                 sync();
 
                 // 等待以降低cpu利用率
-                sleepQuietly();
+                sleepQuietly(1);
             } catch (Throwable t) {
                 // 避免错误的退出循环
                 logger.warn("loop caught exception", t);
@@ -125,27 +119,41 @@ public class RedisEventLoop extends SingleThreadEventLoop {
         try {
             if (pipeline != null) {
                 pipeline.sync();
+            } else {
+                // 当前连接不可用，尝试建立连接
+                // 不在执行管道命令的时候进行连接，是为了避免处理任务过慢，导致任务大量堆积，从而产生过高的内存占用
+                connectSafely();
             }
-            // else 未获取到初始连接，线程即将退出
-        } catch (Throwable exception) {
-            logger.warn("pipeline.sync caught exception", exception);
+        } catch (Throwable t) {
+            // pipeline的缺陷：由于多个指令是批量执行的，因此不是原子的。
+            // 出现异常时：可能部分成功，部分失败，部分未执行。
+            logger.warn("pipeline.sync caught exception", t);
 
             closeQuietly(pipeline);
             closeQuietly(jedis);
 
-            reconnectQuietly();
+            jedis = null;
+            pipeline = null;
+
+            connectSafely();
         } finally {
-            // pipeline的缺陷：由于多个指令批量执行，因此命令的执行不是原子的。
-            // 某一个出现异常，将导致后续的指令不被执行。
-            JedisPipelineTask<?> task;
-            while ((task = waitResponseTasks.pollFirst()) != null) {
-                setData(task.redisPromise, task.dependency);
-            }
+            generateResponses();
+        }
+    }
+
+    private void generateResponses() {
+        JedisPipelineTask<?> task;
+        while ((task = waitResponseTasks.pollFirst()) != null) {
+            setData(task.redisPromise, task.dependency, task.cause);
         }
     }
 
     @SuppressWarnings("unchecked")
-    private static void setData(RedisPromise redisPromise, Response dependency) {
+    private static void setData(RedisPromise redisPromise, Response dependency, Throwable cause) {
+        if (cause != null) {
+            redisPromise.tryFailure(cause);
+            return;
+        }
         try {
             redisPromise.trySuccess(dependency.get());
         } catch (Throwable t) {
@@ -163,7 +171,12 @@ public class RedisEventLoop extends SingleThreadEventLoop {
         final EventLoop appEventLoop;
         final RedisPipelineCommand<T> pipelineCmd;
         final DefaultRedisPromise<T> redisPromise;
+
         Response<T> dependency;
+        /**
+         * 用于减少对{@link Response}的依赖 - 过多的依赖其内部实现不太安全。
+         */
+        Throwable cause;
 
         JedisPipelineTask(EventLoop appEventLoop, RedisPipelineCommand<T> pipelineCmd, DefaultRedisPromise<T> redisPromise) {
             this.appEventLoop = appEventLoop;
@@ -171,34 +184,34 @@ public class RedisEventLoop extends SingleThreadEventLoop {
             this.redisPromise = redisPromise;
         }
 
-        @SuppressWarnings("unchecked")
         @Override
         public void run() {
             waitResponseTasks.add(this);
 
             if (null == pipeline) {
-                // 获取资源失败
-                dependency = new Response(BuilderFactory.OBJECT);
-                dependency.set(new JedisDataException("Could not get a resource from the pool"));
+                // 连接不可用，快速失败
+                cause = RedisConnectionException.INSTANCE;
                 return;
             }
 
             try {
                 dependency = pipelineCmd.execute(pipeline);
             } catch (Throwable t) {
-                // 出现异常，手动生成结果
-                dependency = new Response(BuilderFactory.OBJECT);
-                dependency.set(new JedisDataException(t));
+                // 执行管道命令出现异常
+                cause = t;
             }
         }
     }
 
-    private void reconnectQuietly() {
+    private void connectSafely() {
         try {
             jedis = jedisPool.getResource();
             pipeline = jedis.pipelined();
         } catch (Throwable t) {
             logger.warn("jedisPool.getResource caught exception", t);
+            // 防止频繁出现异常导致cpu资源利用率过高。
+            // 获取连接失败时，在接下来的一段时间里大概率总是失败。
+            sleepQuietly(1000);
         }
     }
 
@@ -212,9 +225,9 @@ public class RedisEventLoop extends SingleThreadEventLoop {
         }
     }
 
-    private static void sleepQuietly() {
+    private static void sleepQuietly(int sleepMillis) {
         try {
-            Thread.sleep(1);
+            Thread.sleep(sleepMillis);
         } catch (InterruptedException ignore) {
 
         }

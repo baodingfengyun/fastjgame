@@ -111,8 +111,8 @@ public class NetUtils {
         if (null != channel) {
             try {
                 channel.close();
-            } catch (Throwable e) {
-                logger.info("", e);
+            } catch (Throwable ignore) {
+
             }
         }
     }
@@ -125,8 +125,8 @@ public class NetUtils {
             try {
                 channelFuture.cancel(true);
                 channelFuture.channel().close();
-            } catch (Throwable e) {
-                logger.info("", e);
+            } catch (Throwable ignore) {
+
             }
         }
     }
@@ -138,8 +138,8 @@ public class NetUtils {
         if (null != ctx) {
             try {
                 ctx.close();
-            } catch (Throwable e) {
-                logger.info("", e);
+            } catch (Throwable ignore) {
+
             }
         }
     }
@@ -151,8 +151,8 @@ public class NetUtils {
         if (null != resource) {
             try {
                 resource.close();
-            } catch (Throwable e) {
-                logger.info("", e);
+            } catch (Throwable ignore) {
+
             }
         }
     }

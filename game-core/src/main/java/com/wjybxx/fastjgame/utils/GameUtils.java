@@ -62,8 +62,8 @@ public class GameUtils {
         if (null != closeable) {
             try {
                 closeable.close();
-            } catch (Throwable e) {
-                logger.info("", e);
+            } catch (Throwable ignore) {
+
             }
         }
     }

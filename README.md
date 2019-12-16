@@ -20,13 +20,13 @@ fastjgame 为 fast java game framework的缩写，如名字一样，该项目的
 
 ***
 #### 如何使用注解处理器(编译出现找不到符号问题怎么解决)？
-方式1 - 自己打包安装：  
++ 方式1 - 自己打包安装：  
 > 1. 将game-auto添加到project-structure
 > 2. install game-auto 到本地仓库
 > 3. 将game-auto从项目project-structure中移除，注解处理器必须以jar包形式工作。
 > 4. 在game-parent下clean，再compile，可消除缺少类文件的报错。
 
-方式2 - 安装已有jar包
++ 方式2 - 安装已有jar包
 > 1. 将game-libs下 game-auto.jar 安装安装到本地仓库。
 > 2. 在game-parent下clean，再compile，可消除缺少类文件的报错。
 
@@ -47,7 +47,7 @@ fastjgame 为 fast java game framework的缩写，如名字一样，该项目的
 #### 更新问题 
 + 由于要上班的，而且没有确切的需求，导致了很多东西无法继续进行，所以架构可能会不停的优化更新，但是业务逻辑可能进展很慢。
 
-(Markdown语法不是很熟悉，排版什么的后期有空再优化~)
-
 #### 吐槽
-你在网上可能能看见一些多线程的游戏服务器框架，我也看过部分，基本上看几个类就发现有bug，代码质量也是烂的一塌糊涂。  
++ 你在网上可能能看见一些多线程的游戏服务器框架，我也看过部分，基本上看几个类就发现有bug，代码质量也是烂的一塌糊涂。  
+
+(Markdown语法不是很熟悉，排版什么的后期有空再优化~)

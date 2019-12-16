@@ -46,11 +46,7 @@ public class RedisEventLoopExample {
         final EventLoop appEventLoop = newAppEventLoop(redisEventLoop);
         appEventLoop.execute(ConcurrentUtils.NO_OP_TASK);
 
-        try {
-            Thread.sleep(TimeUtils.MIN);
-        } catch (InterruptedException ignore) {
-
-        }
+        appEventLoop.terminationFuture().awaitUninterruptibly();
 
         redisEventLoop.shutdown();
         appEventLoop.shutdown();
@@ -125,13 +121,21 @@ public class RedisEventLoopExample {
             redisPipeline.hset("name", String.valueOf(loop), String.valueOf(loop))
                     .addListener(future -> {
                         countdown.decAndGet();
-                        System.out.println(future.get());
+                        try {
+                            System.out.println(future.get());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     });
 
             redisPipeline.hget("name", String.valueOf(loop))
                     .addListener(future -> {
                         countdown.decAndGet();
-                        System.out.println(future.get());
+                        try {
+                            System.out.println(future.get());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     });
         }
 
