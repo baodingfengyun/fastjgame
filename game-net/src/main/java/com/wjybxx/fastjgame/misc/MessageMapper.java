@@ -112,8 +112,7 @@ public final class MessageMapper {
             }
             return new MessageMapper(messageClazz2IdMap, messageId2ClazzMap);
         } catch (Exception e) {
-            ConcurrentUtils.rethrow(e);
-            return null;
+            return ConcurrentUtils.rethrow(e);
         }
     }
 }

@@ -46,8 +46,7 @@ public class DefaultLogDirector implements LogDirector<DefaultLogBuilder> {
             final String value = JsonUtils.getMapper().writeValueAsString(builder.getDataMap());
             return new ProducerRecord<>(builder.getTopic(), PARTITION_ID, null, value);
         } catch (IOException e) {
-            ConcurrentUtils.rethrow(e);
-            return null;
+            return ConcurrentUtils.rethrow(e);
         }
     }
 

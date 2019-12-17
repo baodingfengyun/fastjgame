@@ -72,8 +72,7 @@ public class ConcurrentUtils {
      * @param acquireFun 如果在资源上申请资源
      */
     public static void awaitUninterruptibly(AcquireFun acquireFun) {
-        // 清除中断状态，避免无谓的中断
-        boolean interrupted = Thread.interrupted();
+        boolean interrupted = false;
         try {
             while (true) {
                 try {
@@ -119,7 +118,7 @@ public class ConcurrentUtils {
      * @param timeUnit      时间单位
      */
     public static void awaitWithRetry(TryAcquireFun tryAcquireFun, long heartbeat, TimeUnit timeUnit) {
-        boolean interrupted = Thread.interrupted();
+        boolean interrupted = false;
         try {
             while (true) {
                 try {
@@ -155,7 +154,7 @@ public class ConcurrentUtils {
      * @throws Exception error
      */
     public static void awaitRemoteUninterruptibly(RemoteAcquireFun acquireFun) throws Exception {
-        boolean interrupted = Thread.interrupted();
+        boolean interrupted = false;
         try {
             while (true) {
                 try {
@@ -180,7 +179,7 @@ public class ConcurrentUtils {
      */
     public static void awaitRemoteWithRetry(RemoteTryAcquireFun tryAcquireFun, long heartbeat, TimeUnit timeUnit) throws Exception {
         // 虽然是重复代码，但是不好消除
-        boolean interrupted = Thread.interrupted();
+        boolean interrupted = false;
         try {
             while (true) {
                 try {
@@ -426,8 +425,8 @@ public class ConcurrentUtils {
      *
      * @param ex 受检异常
      */
-    public static void rethrow(@Nonnull Throwable ex) {
-        ExceptionUtils.rethrow(ex);
+    public static <R> R rethrow(@Nonnull Throwable ex) {
+        return ExceptionUtils.rethrow(ex);
     }
 
     // ---------------------------------------------- 事件循环相关 ------------------------------------------------

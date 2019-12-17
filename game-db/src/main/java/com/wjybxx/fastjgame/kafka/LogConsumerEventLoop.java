@@ -34,6 +34,8 @@ import java.util.Set;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
+import static com.wjybxx.fastjgame.utils.CloseableUtils.closeQuietly;
+
 /**
  * kafka消费者事件循环
  *
@@ -74,7 +76,7 @@ public class LogConsumerEventLoop extends DisruptorEventLoop {
                                 @Nonnull String groupId,
                                 @Nonnull LogConsumer logConsumer) {
         super(null, threadFactory, rejectedExecutionHandler, CONSUMER_RING_BUFFER_SIZE, CONSUMER_BATCH_EVENT_SIZE, newWaitStrategyFactory());
-        consumer = new KafkaConsumer<>(newConfig(brokerList, groupId), new StringDeserializer(), new StringDeserializer());
+        this.consumer = new KafkaConsumer<>(newConfig(brokerList, groupId), new StringDeserializer(), new StringDeserializer());
         this.subscribedTopics = subscribedTopics;
         this.logConsumer = logConsumer;
     }
@@ -108,7 +110,7 @@ public class LogConsumerEventLoop extends DisruptorEventLoop {
 
     @Override
     protected void clean() throws Exception {
-        consumer.close();
+        closeQuietly(consumer);
     }
 
     private void consumeSafely(ConsumerRecord consumerRecord) {

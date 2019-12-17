@@ -44,6 +44,9 @@ public class LogProducerEventLoop<T extends LogBuilder> extends DisruptorEventLo
     private static final int PRODUCER_RING_BUFFER_SIZE = 64 * 1024;
     private static final int PRODUCER_BATCH_EVENT_SIZE = 1024;
 
+    /**
+     * kafka生产者 - kafka会自动处理网络问题，因此我们不必付出过多精力在上面。
+     */
     private final KafkaProducer<String, String> producer;
     private final LogDirector<T> logDirector;
 

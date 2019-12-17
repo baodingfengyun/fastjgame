@@ -117,9 +117,7 @@ public final class CodecUtils {
         try {
             return URLEncoder.encode(data, DEFAULT_CHARSET_NAME);
         } catch (UnsupportedEncodingException e) {
-            // unreachable
-            ConcurrentUtils.rethrow(e);
-            return data;
+            return ConcurrentUtils.rethrow(e);
         }
     }
 
@@ -133,9 +131,7 @@ public final class CodecUtils {
         try {
             return URLDecoder.decode(urlData, DEFAULT_CHARSET_NAME);
         } catch (UnsupportedEncodingException e) {
-            // unreachable
-            ConcurrentUtils.rethrow(e);
-            return urlData;
+            return ConcurrentUtils.rethrow(e);
         }
     }
     // ---------------------------------  MD5 编码 ------------------------------------------

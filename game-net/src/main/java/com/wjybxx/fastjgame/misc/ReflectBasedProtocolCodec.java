@@ -1645,9 +1645,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
             }
             return new ReflectBasedProtocolCodec(messageMapper, parserMap, classDescriptorMap, enumDescriptorMap);
         } catch (Exception e) {
-            ConcurrentUtils.rethrow(e);
-            // unreachable
-            return null;
+            return ConcurrentUtils.rethrow(e);
         }
     }
 

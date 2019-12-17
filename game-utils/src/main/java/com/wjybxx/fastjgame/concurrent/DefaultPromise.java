@@ -33,6 +33,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
+import static com.wjybxx.fastjgame.utils.ConcurrentUtils.checkInterrupted;
+
 /**
  * 默认的{@link Promise}实现。
  * 去掉了netty中的很多我们不需要使用的东西，以及去除部分优化(降低复杂度)。
@@ -490,7 +492,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         checkDeadlock();
 
         // 检查中断 --- 在执行一个耗时操作之前检查中断是有必要的
-        ConcurrentUtils.checkInterrupted();
+        checkInterrupted();
 
         synchronized (this) {
             while (!isDone()) {
@@ -513,8 +515,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         // 检查死锁可能
         checkDeadlock();
 
-        // 先清除当前中断状态(避免无谓的中断异常)
-        boolean interrupted = Thread.interrupted();
+        boolean interrupted = false;
         try {
             synchronized (this) {
                 while (!isDone()) {
@@ -548,7 +549,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         checkDeadlock();
 
         // 即将等待之前检查中断标记（在耗时操作开始前检查中断是有必要的 -- 要养成习惯）
-        ConcurrentUtils.checkInterrupted();
+        checkInterrupted();
         final long endTime = System.nanoTime() + unit.toNanos(timeout);
         synchronized (this) {
             while (!isDone()) {
@@ -582,8 +583,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         // 检查死锁可能
         checkDeadlock();
 
-        // 先清除当前中断状态(避免无谓的中断异常)
-        boolean interrupted = Thread.interrupted();
+        boolean interrupted = false;
         final long endTime = System.nanoTime() + unit.toNanos(timeout);
         try {
             synchronized (this) {

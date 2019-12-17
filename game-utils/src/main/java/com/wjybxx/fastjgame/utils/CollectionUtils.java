@@ -306,7 +306,7 @@ public final class CollectionUtils {
      * @return 未在限定时间内等到期望的元素，则返回null
      */
     public static <E> E waitElementWithPoll(BlockingQueue<E> blockingQueue, Predicate<E> matcher, int maxWaitTime) {
-        boolean interrupted = Thread.interrupted();
+        boolean interrupted = false;
         long endTime = System.currentTimeMillis() + maxWaitTime;
         try {
             for (long remainTime = maxWaitTime; remainTime > 0; remainTime = endTime - System.currentTimeMillis()) {

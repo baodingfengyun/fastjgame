@@ -37,15 +37,17 @@ public class LogConsumerExample {
 
     public static void main(String[] args) {
         final LogConsumerEventLoop consumer = newConsumerEventLoop();
+        try {
+            weakUp(consumer);
 
-        weakUp(consumer);
-
-        waitTerminate(consumer);
+            waitTerminate(consumer);
+        } finally {
+            consumer.shutdown();
+        }
     }
 
     private static void waitTerminate(LogConsumerEventLoop consumer) {
         consumer.terminationFuture().awaitUninterruptibly(5, TimeUnit.MINUTES);
-        consumer.shutdown();
     }
 
     private static void weakUp(LogConsumerEventLoop consumer) {

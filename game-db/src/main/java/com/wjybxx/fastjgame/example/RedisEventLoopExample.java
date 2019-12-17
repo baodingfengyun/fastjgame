@@ -43,16 +43,15 @@ public class RedisEventLoopExample {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         final RedisEventLoop redisEventLoop = newRedisEventLoop();
-        // submit一个任务，阻塞到线程启动成功
-        redisEventLoop.submit(ConcurrentUtils.NO_OP_TASK).get();
-
         final EventLoop appEventLoop = newAppEventLoop(redisEventLoop);
-        appEventLoop.submit(ConcurrentUtils.NO_OP_TASK).get();
-
-        appEventLoop.terminationFuture().awaitUninterruptibly();
-
-        redisEventLoop.shutdown();
-        appEventLoop.shutdown();
+        try {
+            // submit一个任务，阻塞到线程启动成功
+            appEventLoop.submit(ConcurrentUtils.NO_OP_TASK).get();
+            appEventLoop.terminationFuture().awaitUninterruptibly();
+        } finally {
+            appEventLoop.shutdown();
+            redisEventLoop.shutdown();
+        }
     }
 
     private static EventLoop newAppEventLoop(RedisEventLoop redisEventLoop) {

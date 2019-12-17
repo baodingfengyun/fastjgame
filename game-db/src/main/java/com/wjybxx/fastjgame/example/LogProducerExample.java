@@ -39,10 +39,13 @@ public class LogProducerExample {
 
     public static void main(String[] args) {
         final LogProducerEventLoop<DefaultLogBuilder> producer = newProducerEventLoop();
+        try {
+            doProduce(producer);
 
-        doProduce(producer);
-
-        waitTerminate(producer);
+            waitTerminate(producer);
+        } finally {
+            producer.shutdown();
+        }
     }
 
     private static void doProduce(LogProducerEventLoop<DefaultLogBuilder> producer) {
@@ -55,7 +58,6 @@ public class LogProducerExample {
 
     private static void waitTerminate(LogProducerEventLoop producer) {
         producer.terminationFuture().awaitUninterruptibly(10, TimeUnit.SECONDS);
-        producer.shutdown();
     }
 
     @Nonnull

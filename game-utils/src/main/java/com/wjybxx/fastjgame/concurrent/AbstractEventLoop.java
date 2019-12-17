@@ -84,13 +84,13 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
 
     @Nonnull
     @Override
-    public <V> ListenableFuture<V> newSucceededFuture(V result) {
+    public final <V> ListenableFuture<V> newSucceededFuture(V result) {
         return new SucceededFuture<V>(this, result);
     }
 
     @Nonnull
     @Override
-    public <V> ListenableFuture<V> newFailedFuture(@Nonnull Throwable cause) {
+    public final <V> ListenableFuture<V> newFailedFuture(@Nonnull Throwable cause) {
         return new FailedFuture<V>(this, cause);
     }
 

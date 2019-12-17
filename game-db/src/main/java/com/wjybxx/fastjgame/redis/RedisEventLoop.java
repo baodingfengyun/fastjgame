@@ -16,10 +16,7 @@
 
 package com.wjybxx.fastjgame.redis;
 
-import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.concurrent.EventLoopGroup;
-import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
-import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
+import com.wjybxx.fastjgame.concurrent.*;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,12 +65,30 @@ public class RedisEventLoop extends SingleThreadEventLoop {
     private Jedis jedis;
     private Pipeline pipeline;
 
-    public RedisEventLoop(@Nullable EventLoopGroup parent,
+    public RedisEventLoop(@Nullable RedisEventLoopGroup parent,
                           @Nonnull ThreadFactory threadFactory,
                           @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
                           @Nonnull JedisPoolAbstract jedisPool) {
         super(parent, threadFactory, rejectedExecutionHandler);
         this.jedisPool = jedisPool;
+    }
+
+    @Nullable
+    @Override
+    public RedisEventLoopGroup parent() {
+        return (RedisEventLoopGroup) super.parent();
+    }
+
+    @Nonnull
+    @Override
+    public RedisEventLoop next() {
+        return (RedisEventLoop) super.next();
+    }
+
+    @Nonnull
+    @Override
+    public RedisEventLoop select(int key) {
+        return (RedisEventLoop) super.select(key);
     }
 
     @Override
