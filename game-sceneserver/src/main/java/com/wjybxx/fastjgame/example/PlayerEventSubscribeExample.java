@@ -17,9 +17,9 @@
 package com.wjybxx.fastjgame.example;
 
 import com.google.protobuf.Message;
-import com.wjybxx.fastjgame.annotation.PlayerEventSubscribe;
+import com.wjybxx.fastjgame.eventbus.EventBus;
+import com.wjybxx.fastjgame.eventbus.Subscribe;
 import com.wjybxx.fastjgame.gameobject.Player;
-import com.wjybxx.fastjgame.misc.DefaultPlayerEventDispatcher;
 
 import static com.wjybxx.fastjgame.protobuffer.p_common.p_player_data;
 import static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data;
@@ -36,38 +36,37 @@ import static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data;
 public class PlayerEventSubscribeExample {
 
     public static void main(String[] args) {
-        final DefaultPlayerEventDispatcher dispatcher = new DefaultPlayerEventDispatcher();
-        PlayerEventSubscribeExamplePlayerEventRegister.register(dispatcher,
-                new PlayerEventSubscribeExample());
+        final Player player = new Player(null, null, null, null);
 
-        Player player = new Player(null, null, null, null);
-        dispatcher.post(player, p_player_data
+        final EventBus eventBus = new EventBus();
+        PlayerEventSubscribeExampleBusRegister.register(eventBus, new PlayerEventSubscribeExample());
+
+        eventBus.post(player, p_player_data
                 .newBuilder()
                 .setPlayerGuid(10000).build());
 
-        dispatcher.post(player, p_scene_npc_data
+        eventBus.post(player, p_scene_npc_data
                 .newBuilder()
                 .setNpcId(1)
                 .setNpcGuid(10000).build());
 
-        dispatcher.post(player, p_scene_pet_data
+        eventBus.post(player, p_scene_pet_data
                 .newBuilder()
                 .setPetId(1)
                 .setPetGuid(10000).build());
     }
 
-    @PlayerEventSubscribe
-    public void onMessage(Player player, p_player_data data) {
-        System.out.println("onEvent\n" + data.toString());
+    @Subscribe
+    public void onPlayerIn(Player player, p_player_data data) {
+        System.out.println("onPlayerIn\n" + data.toString());
     }
 
-    @PlayerEventSubscribe(onlySubEvents = true, subEvents = {
+    @Subscribe(onlySubEvents = true, subEvents = {
             p_scene_npc_data.class,
             p_scene_pet_data.class
     })
-    public void onNpcOrPetMessage(Player player, Message data) {
-        System.out.println("onEvent\n" + data.toString());
+    public void onNpcOrPetIn(Player player, Message data) {
+        System.out.println("onNpcOrPetIn\n" + data.toString());
     }
-
 
 }

@@ -14,29 +14,25 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.misc;
-
-import com.wjybxx.fastjgame.gameobject.Player;
+package com.wjybxx.fastjgame.eventbus;
 
 import javax.annotation.Nonnull;
 
 /**
- * 玩家事件分发器。
- * 玩家发来的网络消息是其中的一种。
+ * 该事件处理器表示关心的事件总是没有额外的上下文，或处理器并不关心上下文。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/27
+ * date - 2019/12/17
  * github - https://github.com/hl845740757
  */
-public interface PlayerEventDispatcher {
+@FunctionalInterface
+public interface SimpleEventHandler<E> extends EventHandler<Object, E> {
 
-    /**
-     * 发布一个玩家事件
-     *
-     * @param <T>    事件类型
-     * @param player 事件关联的玩家
-     * @param event  事件内容
-     */
-    <T> void post(@Nonnull Player player, @Nonnull T event);
+    @Override
+    default void onEvent(Object context, @Nonnull E event) throws Exception {
+        onEvent(event);
+    }
+
+    void onEvent(@Nonnull E event);
 }

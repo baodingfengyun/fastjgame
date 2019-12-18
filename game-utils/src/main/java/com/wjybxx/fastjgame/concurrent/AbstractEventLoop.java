@@ -97,12 +97,12 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
     // --------------------------------------- 事件分发 ----------------------------------------
 
     @Override
-    public final <T> void post(@Nonnull T event) {
+    public final <T, E> void post(@Nullable T context, @Nonnull E event) {
         final EventDispatcher dispatcher = dispatcher();
         if (null == dispatcher) {
             throw new UnsupportedOperationException("postEvent");
         }
-        execute(new EventDispatchTask(dispatcher, event));
+        execute(new EventDispatchTask(dispatcher, event, context));
     }
 
     /**

@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,34 +32,35 @@ import java.util.List;
  * date - 2019/8/24
  * github - https://github.com/hl845740757
  */
-public class CompositeEventHandler<T> implements EventHandler<T> {
+public class CompositeEventHandler<T, E> implements EventHandler<T, E> {
 
     private static final Logger logger = LoggerFactory.getLogger(CompositeEventHandler.class);
 
     /**
-     * 该节点管理的所有子节点，一般需要改对象的话，我们认为有大于2个子节点的可能，因此不初始化为2
+     * 该节点管理的所有子节点，一般需要该对象的话，我们认为大于2个子节点的可能性更高，因此不初始化为2
      */
-    private final List<EventHandler<T>> children = new ArrayList<>(4);
+    private final List<EventHandler<? super T, ? super E>> children = new ArrayList<>(4);
 
     public CompositeEventHandler() {
 
     }
 
-    public CompositeEventHandler(@Nonnull EventHandler<T> first, @Nonnull EventHandler<T> second) {
+    public CompositeEventHandler(@Nonnull EventHandler<? super T, ? super E> first,
+                                 @Nonnull EventHandler<? super T, ? super E> second) {
         children.add(first);
         children.add(second);
     }
 
-    public CompositeEventHandler<T> addHandler(@Nonnull EventHandler<T> handler) {
+    public CompositeEventHandler addHandler(@Nonnull EventHandler<? super T, ? super E> handler) {
         children.add(handler);
         return this;
     }
 
     @Override
-    public void onEvent(@Nonnull T event) throws Exception {
-        for (EventHandler<T> handler : children) {
+    public void onEvent(@Nullable T context, @Nonnull E event) throws Exception {
+        for (EventHandler<? super T, ? super E> handler : children) {
             try {
-                handler.onEvent(event);
+                handler.onEvent(context, event);
             } catch (Throwable e) {
                 logger.warn("Child onEvent caught exception!", e);
             }

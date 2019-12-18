@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.eventbus;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * 事件分发器
@@ -29,11 +30,20 @@ import javax.annotation.Nonnull;
 public interface EventDispatcher {
 
     /**
-     * 发布一个事件，以{@code event.getClass()}作为事件类型。
+     * 发布一个事件。
      *
      * @param event 要发布的事件
-     * @param <T>   事件的类型
      */
-    <T> void post(@Nonnull T event);
+    default <E> void post(@Nonnull E event) {
+        post(null, event);
+    }
+
+    /**
+     * 发布一个事件。
+     *
+     * @param context 事件关联的上下文
+     * @param event   要发布的事件
+     */
+    <T, E> void post(@Nullable T context, @Nonnull E event);
 
 }

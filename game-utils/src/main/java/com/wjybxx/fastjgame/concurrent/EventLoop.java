@@ -70,7 +70,7 @@ public interface EventLoop extends EventLoopGroup {
      * @apiNote 时序保证：实现必须和{@link #execute(Runnable)}具有相同的时序保证，也就是底层应该是{@link #execute(Runnable)}的一个封装。
      */
     @Override
-    <T> void post(@Nonnull T event);
+    <T, E> void post(@Nullable T context, @Nonnull E event);
 
     /**
      * 当前线程是否是EventLoop线程。

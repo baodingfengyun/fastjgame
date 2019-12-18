@@ -23,6 +23,7 @@ import com.wjybxx.fastjgame.eventbus.Subscribe;
 
 import javax.annotation.Nonnull;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.concurrent.ThreadFactory;
 
 /**
@@ -83,24 +84,37 @@ public class SubscriberExample {
             DefaultThreadFactory.class,
             InternalThreadFactory.class
     })
-    public void onEvent(ThreadFactory defaultThreadFactory) {
-        System.out.println("onEvent - ThreadFactory " + defaultThreadFactory);
+    public void threadFactoryEvent(ThreadFactory threadFactory) {
+        System.out.println("threadFactoryEvent - ThreadFactory " + threadFactory);
     }
 
-    //	@Subscribe
+    @Subscribe(subEvents = {
+            LinkedHashSet.class,
+    })
+    public void hashSetEvent(HashSet<String> hashSet) {
+
+    }
+
+    @Subscribe
+    public void onEventWithContext(String context, String event) {
+        System.out.println("ctx: " + context + ", evt: " + event);
+    }
+
+    @Subscribe
+    public void onEventWithContext(long context, String event) {
+        System.out.println("ctx: " + context + ", evt: " + event);
+    }
+
+    //    	@Subscribe
     public <T> void illegalMethod() {
         // 如果打开注解，编译会报错
     }
 
-    //	@Subscribe
+    //    	@Subscribe
     public <T> void illegalMethod(T illegal) {
         // 如果打开注解，编译会报错
     }
 
-    //	@Subscribe
-    public void illegalMethod(HashSet<String> illegal) {
-        // 如果打开注解，编译会报错
-    }
 
     public static void main(String[] args) {
         final EventBus bus = new EventBus();
@@ -111,6 +125,10 @@ public class SubscriberExample {
 
         bus.post(new DefaultThreadFactory("bus"));
         bus.post(new InternalThreadFactory());
+
+        // 将抛出类型转换错误，因为多个方法监听了String事件，却使用的不是相同的context类型
+        bus.post("stringContext", "123456");
+        bus.post(998L, "123456");
     }
 
     public static class InternalThreadFactory implements ThreadFactory {

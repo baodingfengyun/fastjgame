@@ -17,9 +17,8 @@
 package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
-import com.google.protobuf.AbstractMessage;
+import com.wjybxx.fastjgame.eventbus.EventBus;
 import com.wjybxx.fastjgame.gameobject.Player;
-import com.wjybxx.fastjgame.misc.DefaultPlayerEventDispatcher;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.rpcservice.IPlayerMessageDispatcherMgr;
 import org.slf4j.Logger;
@@ -34,19 +33,20 @@ import javax.annotation.Nullable;
  * @version 1.0
  * date - 2019/8/26
  */
-public class PlayerEventDispatcherMgr extends DefaultPlayerEventDispatcher implements IPlayerMessageDispatcherMgr {
+public class PlayerMessageDispatcherMgr implements IPlayerMessageDispatcherMgr {
 
-    private static final Logger logger = LoggerFactory.getLogger(PlayerEventDispatcherMgr.class);
+    private static final Logger logger = LoggerFactory.getLogger(PlayerMessageDispatcherMgr.class);
 
     private final PlayerSessionMgr playerSessionMgr;
+    private final EventBus eventBus = new EventBus(1024);
 
     @Inject
-    public PlayerEventDispatcherMgr(PlayerSessionMgr playerSessionMgr) {
+    public PlayerMessageDispatcherMgr(PlayerSessionMgr playerSessionMgr) {
         this.playerSessionMgr = playerSessionMgr;
     }
 
     @Override
-    public void onPlayerMessage(Session session, long playerGuid, @Nullable AbstractMessage message) {
+    public void onPlayerMessage(Session session, long playerGuid, @Nullable Object message) {
         if (null == message) {
             // 发序列化错误
             logger.warn("gateway {} - player {} send null message", session.sessionId(), playerGuid);
@@ -54,9 +54,12 @@ public class PlayerEventDispatcherMgr extends DefaultPlayerEventDispatcher imple
         }
         final Player player = playerSessionMgr.getPlayer(playerGuid);
         if (null != player) {
-            post(player, message);
+            eventBus.post(player, message);
         }
         // else 玩家不在当前场景world
     }
 
+    public void release() {
+        eventBus.release();
+    }
 }

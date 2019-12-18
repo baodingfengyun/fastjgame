@@ -20,6 +20,7 @@ package com.wjybxx.fastjgame.concurrent;
 import io.netty.util.concurrent.EventExecutorGroup;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.*;
@@ -101,8 +102,7 @@ public abstract class AbstractEventLoopGroup implements EventLoopGroup {
     // ------------------------------------ 发布一个事件 ----------------------------------
 
     @Override
-    public final <T> void post(@Nonnull T event) {
-        next().post(event);
+    public final <T, E> void post(@Nullable T context, @Nonnull E event) {
+        next().post(context, event);
     }
-
 }

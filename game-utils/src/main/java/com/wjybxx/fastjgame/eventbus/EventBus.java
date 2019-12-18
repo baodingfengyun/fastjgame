@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -38,7 +39,7 @@ import java.util.Map;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class EventBus implements EventHandlerRegistry, EventDispatcher {
+public final class EventBus implements EventHandlerRegistry, EventDispatcher {
 
     private static final Logger logger = LoggerFactory.getLogger(EventBus.class);
     /**
@@ -48,7 +49,7 @@ public class EventBus implements EventHandlerRegistry, EventDispatcher {
     /**
      * 事件类型到处理器的映射
      */
-    private final Map<Class<?>, EventHandler<?>> handlerMap;
+    private final Map<Class<?>, EventHandler<?, ?>> handlerMap;
 
     public EventBus() {
         this(DEFAULT_INIT_CAPACITY);
@@ -60,18 +61,19 @@ public class EventBus implements EventHandlerRegistry, EventDispatcher {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> void post(@Nonnull T event) {
+    public <T, E> void post(@Nullable T context, @Nonnull E event) {
         final Class<?> keyClazz = event.getClass();
-        final EventHandler<T> eventHandler = (EventHandler<T>) handlerMap.get(keyClazz);
+        final EventHandler<? super T, ? super E> eventHandler = (EventHandler<? super T, ? super E>) handlerMap.get(keyClazz);
         if (null == eventHandler) {
             // 对应的事件处理器可能忘记了注册
             logger.warn("{}'s listeners may forgot register!", keyClazz.getName());
             return;
         }
+
         try {
-            eventHandler.onEvent(event);
+            eventHandler.onEvent(context, event);
         } catch (Exception e) {
-            logger.warn("onEvent caught exception! KeyClassInfo {}, EventInfo {}, handler info {}",
+            logger.warn("threadFactoryEvent caught exception! KeyClassInfo {}, EventInfo {}, handler info {}",
                     keyClazz.getName(),
                     event.getClass().getName(),
                     eventHandler.getClass().getName(), e);
@@ -80,13 +82,13 @@ public class EventBus implements EventHandlerRegistry, EventDispatcher {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> void register(@Nonnull Class<T> eventType, @Nonnull EventHandler<T> handler) {
-        final EventHandler<T> existHandler = (EventHandler<T>) handlerMap.get(eventType);
+    public <T, E> void register(@Nonnull Class<E> eventType, @Nonnull EventHandler<T, ? super E> handler) {
+        final EventHandler<? super T, ? super E> existHandler = (EventHandler<? super T, ? super E>) handlerMap.get(eventType);
         if (null == existHandler) {
             handlerMap.put(eventType, handler);
         } else {
             if (existHandler instanceof CompositeEventHandler) {
-                ((CompositeEventHandler<T>) existHandler).addHandler(handler);
+                ((CompositeEventHandler<T, E>) existHandler).addHandler(handler);
             } else {
                 handlerMap.put(eventType, new CompositeEventHandler<>(existHandler, handler));
             }

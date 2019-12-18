@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.rpcservice;
 
-import com.google.protobuf.AbstractMessage;
 import com.wjybxx.fastjgame.annotation.PreDeserializable;
 import com.wjybxx.fastjgame.annotation.RpcMethod;
 import com.wjybxx.fastjgame.annotation.RpcService;
@@ -43,6 +42,6 @@ public interface IPlayerMessageDispatcherMgr {
      * @param message    玩家发来的消息，使用{@link PreDeserializable}注解，网络层可以提前反序列化
      */
     @RpcMethod(methodId = 1)
-    void onPlayerMessage(Session session, long playerGuid, @Nullable @PreDeserializable AbstractMessage message);
+    void onPlayerMessage(Session session, long playerGuid, @Nullable @PreDeserializable Object message);
 
 }

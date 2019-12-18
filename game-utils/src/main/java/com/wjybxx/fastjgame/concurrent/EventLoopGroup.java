@@ -20,6 +20,7 @@ package com.wjybxx.fastjgame.concurrent;
 import com.wjybxx.fastjgame.eventbus.EventDispatcher;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -149,7 +150,7 @@ public interface EventLoopGroup extends ExecutorService, EventDispatcher, Iterab
     // ---------------------------------- 事件操作 --------------------------------
 
     @Override
-    <T> void post(@Nonnull T event);
+    <T, E> void post(@Nullable T context, @Nonnull E event);
 
     // --------------------------------- EventLoop管理   --------------------------------
 

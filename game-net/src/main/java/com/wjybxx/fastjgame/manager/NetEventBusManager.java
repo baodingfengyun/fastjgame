@@ -24,6 +24,7 @@ import com.wjybxx.fastjgame.eventbus.EventHandlerRegistry;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * @author wjybxx
@@ -42,12 +43,12 @@ public class NetEventBusManager implements EventHandlerRegistry, EventDispatcher
     }
 
     @Override
-    public <T> void post(@Nonnull T event) {
-        eventBus.post(event);
+    public <T, E> void post(@Nullable T context, @Nonnull E event) {
+        eventBus.post(context, event);
     }
 
     @Override
-    public <T> void register(@Nonnull Class<T> eventType, @Nonnull EventHandler<T> handler) {
+    public <T, E> void register(@Nonnull Class<E> eventType, @Nonnull EventHandler<T, ? super E> handler) {
         // 避免在错误的时间调用
         ConcurrentUtils.ensureInEventLoop(eventLoopManager.getEventLoop());
         eventBus.register(eventType, handler);

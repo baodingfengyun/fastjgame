@@ -50,7 +50,7 @@ public class AutoUtils {
     public static final SourceVersion SOURCE_VERSION = SourceVersion.RELEASE_8;
 
     public static final AnnotationSpec SUPPRESS_UNCHECKED_ANNOTATION = AnnotationSpec.builder(SuppressWarnings.class)
-            .addMember("value", "$S", "unchecked")
+            .addMember("value", "$S", "unchecked, rawtypes")
             .build();
 
     private AutoUtils() {

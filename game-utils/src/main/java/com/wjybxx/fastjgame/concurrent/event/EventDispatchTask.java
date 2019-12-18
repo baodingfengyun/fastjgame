@@ -32,14 +32,16 @@ public class EventDispatchTask implements Runnable {
 
     private final EventDispatcher dispatcher;
     private final Object event;
+    private final Object param;
 
-    public EventDispatchTask(@Nonnull EventDispatcher dispatcher, @Nonnull Object event) {
+    public EventDispatchTask(@Nonnull EventDispatcher dispatcher, @Nonnull Object event, Object param) {
         this.dispatcher = dispatcher;
         this.event = event;
+        this.param = param;
     }
 
     @Override
     public void run() {
-        dispatcher.post(event);
+        dispatcher.post(param, event);
     }
 }

@@ -513,8 +513,8 @@ public class RpcServiceProcessor extends AbstractProcessor {
 
         final TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(getServerProxyClassName(typeElement))
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                .addAnnotation(processorInfoAnnotation)
-                .addAnnotation(AutoUtils.SUPPRESS_UNCHECKED_ANNOTATION);
+                .addAnnotation(AutoUtils.SUPPRESS_UNCHECKED_ANNOTATION)
+                .addAnnotation(processorInfoAnnotation);
 
         typeBuilder.addMethods(serverMethodProxyList);
 
