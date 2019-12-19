@@ -45,6 +45,23 @@ public abstract class TypeParameterMatcher {
      */
     public abstract boolean match(@Nonnull Object object);
 
+
+    /**
+     * 查找父类/父接口定义的且被子类声明为具体类型的泛型参数的具体类型。
+     * 查找结果不会加入缓存，适合用在起服/初始化阶段。
+     *
+     * @param instance              superClazzOrInterface的子类实例
+     * @param superClazzOrInterface 泛型参数typeParamName存在的类,class或interface
+     * @param typeParamName         泛型参数名字
+     * @param <T>                   约束必须有继承关系或实现关系
+     * @return 如果定义的泛型存在，则返回对应的泛型clazz
+     */
+    public static <T> Class<?> findTypeParameterNoCache(@Nonnull T instance,
+                                                        @Nonnull Class<? super T> superClazzOrInterface,
+                                                        @Nonnull String typeParamName) throws Exception {
+        return NettyTypeParameterFinderAdapter.DEFAULT_INSTANCE.findTypeParameter(instance, superClazzOrInterface, typeParamName);
+    }
+
     /**
      * 查找父类/父接口定义的且被子类声明为具体类型的泛型参数的具体类型
      *
@@ -54,7 +71,9 @@ public abstract class TypeParameterMatcher {
      * @param <T>                   约束必须有继承关系或实现关系
      * @return 如果定义的泛型存在，则返回对应的泛型clazz
      */
-    public static <T> Class<?> findTypeParameter(@Nonnull T instance, Class<? super T> superClazzOrInterface, String typeParamName) throws Exception {
+    public static <T> Class<?> findTypeParameter(@Nonnull T instance,
+                                                 @Nonnull Class<? super T> superClazzOrInterface,
+                                                 @Nonnull String typeParamName) throws Exception {
         final FindCache findCache = LOCAL_FIND_CACHE.get();
         List<FindResult> findResultList = findCache.instanceFindCache.computeIfAbsent(instance.getClass(), k -> new ArrayList<>());
         for (FindResult findResult : findResultList) {

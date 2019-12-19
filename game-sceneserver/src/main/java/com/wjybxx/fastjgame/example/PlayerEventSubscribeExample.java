@@ -17,9 +17,9 @@
 package com.wjybxx.fastjgame.example;
 
 import com.google.protobuf.Message;
-import com.wjybxx.fastjgame.eventbus.EventBus;
 import com.wjybxx.fastjgame.eventbus.Subscribe;
 import com.wjybxx.fastjgame.gameobject.Player;
+import com.wjybxx.fastjgame.mgr.PlayerEventDispatcherMgr;
 
 import static com.wjybxx.fastjgame.protobuffer.p_common.p_player_data;
 import static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_npc_data;
@@ -36,21 +36,20 @@ import static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data;
 public class PlayerEventSubscribeExample {
 
     public static void main(String[] args) {
+        PlayerEventDispatcherMgr dispatcher = new PlayerEventDispatcherMgr();
+        PlayerEventSubscribeExampleBusRegister.register(dispatcher, new PlayerEventSubscribeExample());
+
         final Player player = new Player(null, null, null, null);
-
-        final EventBus eventBus = new EventBus();
-        PlayerEventSubscribeExampleBusRegister.register(eventBus, new PlayerEventSubscribeExample());
-
-        eventBus.post(player, p_player_data
+        dispatcher.post(player, p_player_data
                 .newBuilder()
                 .setPlayerGuid(10000).build());
 
-        eventBus.post(player, p_scene_npc_data
+        dispatcher.post(player, p_scene_npc_data
                 .newBuilder()
                 .setNpcId(1)
                 .setNpcGuid(10000).build());
 
-        eventBus.post(player, p_scene_pet_data
+        dispatcher.post(player, p_scene_pet_data
                 .newBuilder()
                 .setPetId(1)
                 .setPetGuid(10000).build());

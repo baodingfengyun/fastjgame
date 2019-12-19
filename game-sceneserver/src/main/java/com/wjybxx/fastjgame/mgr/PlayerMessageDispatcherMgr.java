@@ -17,13 +17,15 @@
 package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.eventbus.EventBus;
+import com.wjybxx.fastjgame.eventbus.EventHandler;
+import com.wjybxx.fastjgame.eventbus.EventHandlerRegistry;
 import com.wjybxx.fastjgame.gameobject.Player;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.rpcservice.IPlayerMessageDispatcherMgr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -33,16 +35,17 @@ import javax.annotation.Nullable;
  * @version 1.0
  * date - 2019/8/26
  */
-public class PlayerMessageDispatcherMgr implements IPlayerMessageDispatcherMgr {
+public class PlayerMessageDispatcherMgr implements EventHandlerRegistry, IPlayerMessageDispatcherMgr {
 
     private static final Logger logger = LoggerFactory.getLogger(PlayerMessageDispatcherMgr.class);
 
     private final PlayerSessionMgr playerSessionMgr;
-    private final EventBus eventBus = new EventBus(1024);
+    private final PlayerEventDispatcherMgr playerEventDispatcherMgr;
 
     @Inject
-    public PlayerMessageDispatcherMgr(PlayerSessionMgr playerSessionMgr) {
+    public PlayerMessageDispatcherMgr(PlayerSessionMgr playerSessionMgr, PlayerEventDispatcherMgr playerEventDispatcherMgr) {
         this.playerSessionMgr = playerSessionMgr;
+        this.playerEventDispatcherMgr = playerEventDispatcherMgr;
     }
 
     @Override
@@ -54,12 +57,18 @@ public class PlayerMessageDispatcherMgr implements IPlayerMessageDispatcherMgr {
         }
         final Player player = playerSessionMgr.getPlayer(playerGuid);
         if (null != player) {
-            eventBus.post(player, message);
+            playerEventDispatcherMgr.post(player, message);
         }
         // else 玩家不在当前场景world
     }
 
+    @Override
+    public <T, E> void register(@Nonnull Class<E> eventType, @Nonnull EventHandler<T, ? super E> handler) {
+        playerEventDispatcherMgr.register(eventType, handler);
+    }
+
+    @Override
     public void release() {
-        eventBus.release();
+        // ignore
     }
 }
