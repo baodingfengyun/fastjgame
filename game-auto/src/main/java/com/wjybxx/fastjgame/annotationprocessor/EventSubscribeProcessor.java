@@ -248,7 +248,7 @@ public class EventSubscribeProcessor extends AbstractProcessor {
     /**
      * 查询是否只监听子类型参数
      */
-    private static Boolean isOnlySubEvents(Elements elementUtils, AnnotationMirror annotationMirror) {
+    private Boolean isOnlySubEvents(AnnotationMirror annotationMirror) {
         return (Boolean) AutoUtils.getAnnotationValue(elementUtils, annotationMirror, ONLY_SUB_EVENTS_METHOD_NAME);
     }
 
@@ -262,7 +262,7 @@ public class EventSubscribeProcessor extends AbstractProcessor {
         assert annotationMirror != null;
 
         final Set<TypeMirror> result = new HashSet<>();
-        if (!isOnlySubEvents(elementUtils, annotationMirror)) {
+        if (!isOnlySubEvents(annotationMirror)) {
             result.add(getEventRawType(eventParameter));
         }
 

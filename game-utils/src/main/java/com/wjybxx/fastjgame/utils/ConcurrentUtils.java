@@ -404,23 +404,6 @@ public class ConcurrentUtils {
     }
 
     /**
-     * 重新抛出失败异常。如果cause为null，则什么也不做，否则抛出对应的异常
-     *
-     * @param cause 任务失败的原因
-     * @throws CancellationException 被取消
-     * @throws ExecutionException    执行中出现其它异常
-     */
-    public static void rethrowIfFailed(@Nullable Throwable cause) throws CancellationException, ExecutionException {
-        if (cause == null) {
-            return;
-        }
-        if (cause instanceof CancellationException) {
-            throw (CancellationException) cause;
-        }
-        throw new ExecutionException(cause);
-    }
-
-    /**
      * 重新抛出异常，绕过编译时检查。
      *
      * @param ex 受检异常

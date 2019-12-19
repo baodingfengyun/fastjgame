@@ -37,24 +37,9 @@ public class SucceededFuture<V> extends CompleteFuture<V> {
      */
     private final V result;
 
-    /**
-     * Creates a new instance.
-     *
-     * @param executor the {@link EventLoop} associated with this future
-     */
-    public SucceededFuture(@Nonnull EventLoop executor, @Nullable V result) {
-        super(executor);
+    public SucceededFuture(@Nonnull EventLoop notifyExecutor, @Nullable V result) {
+        super(notifyExecutor);
         this.result = result;
-    }
-
-    @Override
-    public Throwable cause() {
-        return null;
-    }
-
-    @Override
-    public boolean isSuccess() {
-        return true;
     }
 
     @Override
@@ -71,5 +56,15 @@ public class SucceededFuture<V> extends CompleteFuture<V> {
     @Override
     public V getNow() {
         return result;
+    }
+
+    @Override
+    public Throwable cause() {
+        return null;
+    }
+
+    @Override
+    public boolean isSuccess() {
+        return true;
     }
 }

@@ -16,9 +16,8 @@
 
 package com.wjybxx.fastjgame.concurrent;
 
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-
 import javax.annotation.Nonnull;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -38,7 +37,10 @@ public abstract class AbstractListenableFuture<V> implements ListenableFuture<V>
     public V get() throws InterruptedException, ExecutionException {
         await();
 
-        ConcurrentUtils.rethrowIfFailed(cause());
+        final Throwable cause = cause();
+        if (null != cause) {
+            return rethrowCause(cause);
+        }
 
         return getNow();
     }
@@ -47,11 +49,28 @@ public abstract class AbstractListenableFuture<V> implements ListenableFuture<V>
     public V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         if (await(timeout, unit)) {
 
-            ConcurrentUtils.rethrowIfFailed(cause());
+            final Throwable cause = cause();
+            if (null != cause) {
+                return rethrowCause(cause);
+            }
 
             return getNow();
         }
+
         throw new TimeoutException();
     }
 
+    /**
+     * 重新抛出失败异常
+     *
+     * @param cause 任务失败的原因
+     * @throws CancellationException 如果任务被取消，则抛出该异常
+     * @throws ExecutionException    其它原因导致失败
+     */
+    protected static <T> T rethrowCause(@Nonnull Throwable cause) throws CancellationException, ExecutionException {
+        if (cause instanceof CancellationException) {
+            throw (CancellationException) cause;
+        }
+        throw new ExecutionException(cause);
+    }
 }

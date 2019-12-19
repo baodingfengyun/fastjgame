@@ -36,13 +36,13 @@ public abstract class CompleteFuture<V> extends AbstractListenableFuture<V> {
     /**
      * 默认的监听器执行环境
      */
-    private final EventLoop executor;
+    private final EventLoop notifyExecutor;
 
     /**
-     * @param executor 该future用于通知的线程,Listener的执行环境。
+     * @param notifyExecutor 该future用于通知的线程,Listener的执行环境。
      */
-    protected CompleteFuture(@Nonnull EventLoop executor) {
-        this.executor = executor;
+    protected CompleteFuture(@Nonnull EventLoop notifyExecutor) {
+        this.notifyExecutor = notifyExecutor;
     }
 
     /**
@@ -50,7 +50,7 @@ public abstract class CompleteFuture<V> extends AbstractListenableFuture<V> {
      */
     @Nonnull
     protected EventLoop executor() {
-        return executor;
+        return notifyExecutor;
     }
 
     @Override

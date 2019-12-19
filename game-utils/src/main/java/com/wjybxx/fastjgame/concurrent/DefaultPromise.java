@@ -27,9 +27,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
@@ -224,6 +222,48 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         return isInit0(resultHolder.get());
     }
 
+    @Override
+    public V get() throws InterruptedException, ExecutionException {
+        final Object result = resultHolder.get();
+        if (isDone0(result)) {
+            return reportGet(result);
+        }
+
+        await();
+
+        return reportGet(resultHolder.get());
+    }
+
+    @Override
+    public V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        final Object result = resultHolder.get();
+        if (isDone0(result)) {
+            return reportGet(result);
+        }
+
+        if (await(timeout, unit)) {
+            return reportGet(resultHolder.get());
+        }
+
+        throw new TimeoutException();
+    }
+
+    /**
+     * 用于get方法上报结果
+     */
+    @SuppressWarnings("unchecked")
+    protected static <T> T reportGet(final Object r) throws ExecutionException {
+        if (r == SUCCESS) {
+            return null;
+        }
+
+        if (r instanceof CauseHolder) {
+            return rethrowCause(((CauseHolder) r).cause);
+        }
+
+        return (T) r;
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public V getNow() {
@@ -234,6 +274,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
             return null;
         }
     }
+
     // ----------------------------------------------- 更新结果 ------------------------------------------
 
     @Override

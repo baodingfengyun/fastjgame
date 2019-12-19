@@ -20,9 +20,13 @@ import com.wjybxx.fastjgame.concurrent.DefaultPromise;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * RpcPromise基本实现，不论如何，执行结果都是成功，赋值结果必须是RpcResponse对象。
@@ -33,6 +37,8 @@ import java.util.concurrent.TimeUnit;
  * github - https://github.com/hl845740757
  */
 public class DefaultRpcPromise extends DefaultPromise<RpcResponse> implements RpcPromise {
+
+    private static final Logger logger = LoggerFactory.getLogger(DefaultRpcPromise.class);
 
     /**
      * 工作线程 - 检查死锁的线程
@@ -63,14 +69,22 @@ public class DefaultRpcPromise extends DefaultPromise<RpcResponse> implements Rp
 
     @Override
     public RpcResponse get() throws InterruptedException {
-        await();
-        return getNow();
+        try {
+            return super.get();
+        } catch (ExecutionException error) {
+            logger.error("bad imp", error);
+            return new RpcResponse(RpcResultCode.LOCAL_EXCEPTION, error);
+        }
     }
 
     @Override
-    public RpcResponse get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException {
-        await(timeout, unit);
-        return getNow();
+    public RpcResponse get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, TimeoutException {
+        try {
+            return super.get(timeout, unit);
+        } catch (ExecutionException error) {
+            logger.error("bad imp", error);
+            return new RpcResponse(RpcResultCode.LOCAL_EXCEPTION, error);
+        }
     }
 
     @Override

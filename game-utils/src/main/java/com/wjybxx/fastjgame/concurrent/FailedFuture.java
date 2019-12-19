@@ -16,6 +16,8 @@
 package com.wjybxx.fastjgame.concurrent;
 
 import javax.annotation.Nonnull;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 表示Future关联的task早已失败。
@@ -33,17 +35,25 @@ public final class FailedFuture<V> extends CompleteFuture<V> {
      */
     private final Throwable cause;
 
-    /**
-     * Creates a new instance.
-     *
-     * @param executor 该future用于通知的线程池
-     * @param cause    任务失败的原因
-     */
-    public FailedFuture(@Nonnull EventLoop executor, @Nonnull Throwable cause) {
-        super(executor);
+    public FailedFuture(@Nonnull EventLoop notifyExecutor, @Nonnull Throwable cause) {
+        super(notifyExecutor);
         this.cause = cause;
     }
 
+    @Override
+    public V get() throws ExecutionException {
+        return AbstractListenableFuture.rethrowCause(cause);
+    }
+
+    @Override
+    public V get(long timeout, @Nonnull TimeUnit unit) throws ExecutionException {
+        return AbstractListenableFuture.rethrowCause(cause);
+    }
+
+    @Override
+    public V getNow() {
+        return null;
+    }
 
     @Nonnull
     @Override
@@ -54,10 +64,5 @@ public final class FailedFuture<V> extends CompleteFuture<V> {
     @Override
     public boolean isSuccess() {
         return false;
-    }
-
-    @Override
-    public V getNow() {
-        return null;
     }
 }

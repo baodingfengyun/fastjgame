@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Rpc调用的future。
@@ -48,7 +49,7 @@ public interface RpcFuture extends ListenableFuture<RpcResponse> {
     RpcResponse get() throws InterruptedException;
 
     @Override
-    RpcResponse get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException;
+    RpcResponse get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, TimeoutException;
 
     @Override
     void await() throws InterruptedException;
