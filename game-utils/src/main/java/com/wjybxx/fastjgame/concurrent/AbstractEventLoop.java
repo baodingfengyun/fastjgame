@@ -102,7 +102,7 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
         if (null == dispatcher) {
             throw new UnsupportedOperationException("postEvent");
         }
-        execute(new EventDispatchTask(dispatcher, event, context));
+        execute(new EventDispatchTask(dispatcher, context, event));
     }
 
     /**

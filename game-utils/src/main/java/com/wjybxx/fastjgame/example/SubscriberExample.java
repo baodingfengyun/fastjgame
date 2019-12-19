@@ -36,11 +36,6 @@ import java.util.concurrent.ThreadFactory;
  */
 public class SubscriberExample {
 
-    public SubscriberExample(EventBus bus) {
-        // 这里只是示例，最好不要在构造方法中注册，未构造完成就发布自己可能存在问题
-        SubscriberExampleBusRegister.register(bus, this);
-    }
-
     @Subscribe
     public void hello(String name) {
         System.out.println("hello-" + name);
@@ -118,15 +113,14 @@ public class SubscriberExample {
 
     public static void main(String[] args) {
         final EventBus bus = new EventBus();
-        new SubscriberExample(bus);
-
-        bus.post("String");
-        bus.post(250);
+        final SubscriberExample example = new SubscriberExample();
+        SubscriberExampleBusRegister.register(bus, example);
 
         bus.post(new DefaultThreadFactory("bus"));
         bus.post(new InternalThreadFactory());
 
-        // 将抛出类型转换错误，因为多个方法监听了String事件，却使用的不是相同的context类型
+        // 以下调用将抛出类型转换错误，因为多个方法监听了String事件，却使用的不是相同的context类型
+        bus.post("123456");
         bus.post("stringContext", "123456");
         bus.post(998L, "123456");
     }

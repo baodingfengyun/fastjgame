@@ -31,17 +31,17 @@ import javax.annotation.Nonnull;
 public class EventDispatchTask implements Runnable {
 
     private final EventDispatcher dispatcher;
+    private final Object context;
     private final Object event;
-    private final Object param;
 
-    public EventDispatchTask(@Nonnull EventDispatcher dispatcher, @Nonnull Object event, Object param) {
+    public EventDispatchTask(@Nonnull EventDispatcher dispatcher, Object context, @Nonnull Object event) {
         this.dispatcher = dispatcher;
+        this.context = context;
         this.event = event;
-        this.param = param;
     }
 
     @Override
     public void run() {
-        dispatcher.post(param, event);
+        dispatcher.post(context, event);
     }
 }

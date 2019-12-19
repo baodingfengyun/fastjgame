@@ -50,7 +50,7 @@ public interface EventHandlerRegistry {
      * @param <E>       事件的类型
      */
     default <E> void register(@Nonnull Class<E> eventType, @Nonnull SimpleEventHandler<? super E> handler) {
-        register(eventType, (EventHandler<?, ? super E>) handler);
+        register(eventType, (EventHandler<Object, ? super E>) handler);
     }
 
     /**
