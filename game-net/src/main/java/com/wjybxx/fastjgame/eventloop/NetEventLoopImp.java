@@ -250,8 +250,8 @@ public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLo
             SocketMessageEvent.class,
             SocketChannelInactiveEvent.class
     })
-    void fireSocketEvent(SocketEvent event) {
-        if (event.isForAcceptor()) {
+    void fireSocketEvent(boolean acceptor, SocketEvent event) {
+        if (acceptor) {
             acceptorManager.onSessionEvent(event);
         } else {
             connectorManager.onSessionEvent(event);

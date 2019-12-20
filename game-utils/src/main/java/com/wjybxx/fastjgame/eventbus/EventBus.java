@@ -73,8 +73,7 @@ public final class EventBus implements EventHandlerRegistry, EventDispatcher {
         try {
             eventHandler.onEvent(context, event);
         } catch (Exception e) {
-            logger.warn("threadFactoryEvent caught exception! KeyClassInfo {}, EventInfo {}, handler info {}",
-                    keyClazz.getName(),
+            logger.warn("threadFactoryEvent caught exception! EventClassInfo {}, handler info {}",
                     event.getClass().getName(),
                     eventHandler.getClass().getName(), e);
         }

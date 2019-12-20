@@ -65,7 +65,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
-        publish(new SocketChannelInactiveEvent(ctx.channel(), sessionId, false));
+        publish(new SocketChannelInactiveEvent(ctx.channel(), sessionId));
     }
 
     // region 编码消息
@@ -131,7 +131,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
      */
     private void tryReadRpcRequestMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureConnected();
-        publish(readRpcRequestMessage(ctx.channel(), sessionId, false, msg));
+        publish(readRpcRequestMessage(ctx.channel(), sessionId, msg));
     }
 
     /**
@@ -139,7 +139,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
      */
     private void tryReadRpcResponseMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureConnected();
-        publish(readRpcResponseMessage(ctx.channel(), sessionId, false, msg));
+        publish(readRpcResponseMessage(ctx.channel(), sessionId, msg));
     }
 
     /**
@@ -147,7 +147,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
      */
     private void tryReadOneWayMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureConnected();
-        publish(readOneWayMessage(ctx.channel(), sessionId, false, msg));
+        publish(readOneWayMessage(ctx.channel(), sessionId, msg));
     }
 
     /**
@@ -155,7 +155,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
      */
     private void tryReadAckPongMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureConnected();
-        publish(readAckPingPongMessage(ctx.channel(), sessionId, false, msg));
+        publish(readAckPingPongMessage(ctx.channel(), sessionId, msg));
     }
     // endregion
 
@@ -166,6 +166,6 @@ public class ClientSocketCodec extends BaseSocketCodec {
     }
 
     private void publish(@Nonnull Object event) {
-        netEventLoop.post(event);
+        netEventLoop.post(false, event);
     }
 }

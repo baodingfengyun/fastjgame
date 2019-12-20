@@ -67,7 +67,7 @@ public class ServerSocketCodec extends BaseSocketCodec {
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
         if (isInited()) {
-            publish(new SocketChannelInactiveEvent(ctx.channel(), sessionId, true));
+            publish(new SocketChannelInactiveEvent(ctx.channel(), sessionId));
         }
     }
 
@@ -130,7 +130,7 @@ public class ServerSocketCodec extends BaseSocketCodec {
      */
     private void tryReadRpcRequestMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureInited();
-        publish(readRpcRequestMessage(ctx.channel(), sessionId, true, msg));
+        publish(readRpcRequestMessage(ctx.channel(), sessionId, msg));
     }
 
     /**
@@ -138,7 +138,7 @@ public class ServerSocketCodec extends BaseSocketCodec {
      */
     private void tryReadRpcResponseMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureInited();
-        publish(readRpcResponseMessage(ctx.channel(), sessionId, true, msg));
+        publish(readRpcResponseMessage(ctx.channel(), sessionId, msg));
     }
 
     /**
@@ -146,7 +146,7 @@ public class ServerSocketCodec extends BaseSocketCodec {
      */
     private void tryReadOneWayMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureInited();
-        publish(readOneWayMessage(ctx.channel(), sessionId, true, msg));
+        publish(readOneWayMessage(ctx.channel(), sessionId, msg));
     }
 
     /**
@@ -154,7 +154,7 @@ public class ServerSocketCodec extends BaseSocketCodec {
      */
     private void tryReadAckPingMessage(ChannelHandlerContext ctx, ByteBuf msg) {
         ensureInited();
-        publish(readAckPingPongMessage(ctx.channel(), sessionId, true, msg));
+        publish(readAckPingPongMessage(ctx.channel(), sessionId, msg));
     }
 
     // endregion
@@ -166,6 +166,6 @@ public class ServerSocketCodec extends BaseSocketCodec {
     }
 
     private void publish(@Nonnull Object event) {
-        portExtraInfo.netEventLoopGroup().select(sessionId).post(event);
+        portExtraInfo.netEventLoopGroup().select(sessionId).post(true, event);
     }
 }

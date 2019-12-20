@@ -37,8 +37,4 @@ public interface SocketEvent {
      */
     String sessionId();
 
-    /**
-     * 是否是给acceptor的事件
-     */
-    boolean isForAcceptor();
 }

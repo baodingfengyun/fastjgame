@@ -31,12 +31,10 @@ public class SocketChannelInactiveEvent implements SocketEvent {
 
     private final Channel channel;
     private final String sessionId;
-    private final boolean forAcceptor;
 
-    public SocketChannelInactiveEvent(Channel channel, String sessionId, boolean forAcceptor) {
+    public SocketChannelInactiveEvent(Channel channel, String sessionId) {
         this.channel = channel;
         this.sessionId = sessionId;
-        this.forAcceptor = forAcceptor;
     }
 
     @Override
@@ -49,8 +47,4 @@ public class SocketChannelInactiveEvent implements SocketEvent {
         return sessionId;
     }
 
-    @Override
-    public boolean isForAcceptor() {
-        return forAcceptor;
-    }
 }
