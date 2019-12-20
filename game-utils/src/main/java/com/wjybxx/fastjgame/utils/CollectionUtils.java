@@ -30,6 +30,7 @@ import java.util.function.Predicate;
 
 /**
  * 集合帮助类
+ * 注意： JDK的map/set等集合，构造方法传递的是初始容量和负载系数，必须费脑子计算到底多少初始容量恰好合适。
  *
  * @author wjybxx
  * @version 1.0

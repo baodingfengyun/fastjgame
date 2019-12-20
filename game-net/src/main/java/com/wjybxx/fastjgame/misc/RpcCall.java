@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.misc;
 
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.wjybxx.fastjgame.annotation.SerializableClass;
 import com.wjybxx.fastjgame.annotation.SerializableField;
 
@@ -51,7 +50,6 @@ public class RpcCall {
     /**
      * 需要延迟序列化为byte[]的参数位置信息 - 不序列化。
      */
-    @JsonIgnore
     private final int lazyIndexes;
     /**
      * 需要网络层提前反序列化的参数位置信息 - 需要序列化到接收方

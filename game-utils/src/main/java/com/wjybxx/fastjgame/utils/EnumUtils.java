@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.utils;
 
 import com.wjybxx.fastjgame.enummapper.*;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 import javax.annotation.Nullable;
 import java.util.function.ToIntFunction;
@@ -125,7 +126,7 @@ public class EnumUtils {
         }
 
         // 存在一定的浪费，判定重复用
-        Int2ObjectMap<T> result = FastCollectionsUtils.newInt2ObjectHashMapWithExpectedSize(values.length);
+        final Int2ObjectMap<T> result = new Int2ObjectOpenHashMap<>(values.length);
         int minNumber = values[0].getNumber();
         int maxNumber = values[0].getNumber();
 

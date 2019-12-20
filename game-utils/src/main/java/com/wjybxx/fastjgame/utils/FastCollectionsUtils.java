@@ -17,14 +17,10 @@
 package com.wjybxx.fastjgame.utils;
 
 import com.wjybxx.fastjgame.function.*;
-import it.unimi.dsi.fastutil.Hash;
-import it.unimi.dsi.fastutil.HashCommon;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntCollection;
 import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongCollection;
 import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
@@ -41,8 +37,11 @@ import java.util.function.LongPredicate;
 
 /**
  * 针对fastUtil集合的帮助类。
- * 注意：fastUtil的一个大坑！由于fastUtil的map的key-value是分开存放的，因此如果以{@link Map.Entry}的形式遍历会产生大量的对象！！！
+ * 注意：
+ * 1. fastUtil的一个大坑！由于fastUtil的map的key-value是分开存放的，因此如果以{@link Map.Entry}的形式遍历会产生大量的对象！！！
  * 会完全失去它的优势。
+ * 2. fastUtil的map/set等集合，构造方法传的是期望的元素数量和负载系数{@code (expected, loadFactor)}，而不是初始容量和负载系数。
+ * 不必费脑子计算需要多少的初始容量。
  *
  * @author wjybxx
  * @version 1.0
@@ -241,45 +240,6 @@ public class FastCollectionsUtils {
         if (!map.containsKey(key)) {
             throw new IllegalArgumentException("nonexistent " + msg + "-" + key);
         }
-    }
-
-    // endregion
-
-    // region 创建足够容量的Map
-
-    /**
-     * 创建足够容量的Map，在存放指定数量元素之前不会发生扩容；
-     * 如果能预估元素数量，可以提高性能和内存使用率。
-     * FastUtil和JDK的loadFactor有区别：
-     * FastUtil的集合是基于数组的，解决冲突采用的是线性探测法！因此不扩容的情况下能存储的元素个数是确定的；
-     * 而JDK的集合也是基于数组的，但是解决冲突采用的是链表/树，因此能存储大于数组容量的元素。
-     *
-     * @param constructor map的构造器函数
-     * @param numElement  期望添加的元素数量
-     * @param <K>         key的类型
-     * @param <V>         value的类型
-     * @return M
-     */
-    public static <K, V, M extends Map<K, V>> M newMapWithExpectedSize(MapConstructor<M> constructor, int numElement) {
-        if (numElement > 0) {
-            return constructor.newMap(HashCommon.arraySize(numElement, Hash.DEFAULT_LOAD_FACTOR), Hash.DEFAULT_LOAD_FACTOR);
-        } else {
-            return constructor.newMap(Hash.DEFAULT_INITIAL_SIZE, Hash.DEFAULT_LOAD_FACTOR);
-        }
-    }
-
-    /**
-     * @see #newMapWithExpectedSize(MapConstructor, int)
-     */
-    public static <V> Long2ObjectMap<V> newLong2ObjectHashMapWithExpectedSize(int numElement) {
-        return newMapWithExpectedSize(Long2ObjectOpenHashMap::new, numElement);
-    }
-
-    /**
-     * @see #newMapWithExpectedSize(MapConstructor, int)
-     */
-    public static <V> Int2ObjectMap<V> newInt2ObjectHashMapWithExpectedSize(int numElement) {
-        return newMapWithExpectedSize(Int2ObjectOpenHashMap::new, numElement);
     }
 
     // endregion
