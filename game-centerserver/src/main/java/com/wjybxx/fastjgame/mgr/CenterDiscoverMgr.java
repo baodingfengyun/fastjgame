@@ -59,7 +59,7 @@ public class CenterDiscoverMgr {
      */
     private CloseableHandle closeableHandle;
     /**
-     * 当前在先节点信息，只在逻辑线程使用
+     * 当前在线节点信息，只在逻辑线程使用
      */
     private Map<String, ChildData> onlineNodeInfoMap = new HashMap<>();
 

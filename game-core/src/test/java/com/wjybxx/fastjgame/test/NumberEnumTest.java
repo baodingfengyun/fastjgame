@@ -21,7 +21,6 @@ import com.wjybxx.fastjgame.enummapper.NumberEnumMapper;
 import com.wjybxx.fastjgame.misc.RoleType;
 import com.wjybxx.fastjgame.scene.GridObstacle;
 import com.wjybxx.fastjgame.utils.EnumUtils;
-import com.wjybxx.fastjgame.utils.ReflectionUtils;
 
 /**
  * @author wjybxx
@@ -32,9 +31,6 @@ import com.wjybxx.fastjgame.utils.ReflectionUtils;
 public class NumberEnumTest {
 
     public static void main(String[] args) {
-        // 需要排除加载ReflectionUtils的时间了。
-        System.out.println(ReflectionUtils.class.getSimpleName());
-        // 第一次加载的时候有点慢啊
         System.out.println(EEE.forNumber(1));
 
         System.out.println(GridObstacle.forNumber(0));

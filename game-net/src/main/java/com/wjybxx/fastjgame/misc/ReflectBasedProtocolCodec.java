@@ -1622,7 +1622,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
             for (Class<?> messageClazz : messageMapper.getAllMessageClasses()) {
                 // protoBuf消息
                 if (AbstractMessage.class.isAssignableFrom(messageClazz)) {
-                    Parser<?> parser = ReflectionUtils.findParser(messageClazz);
+                    Parser<?> parser = ProtoUtils.findParser(messageClazz);
                     parserMap.put(messageClazz, parser);
                     continue;
                 }

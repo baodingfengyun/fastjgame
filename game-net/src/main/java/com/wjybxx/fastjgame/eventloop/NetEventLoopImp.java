@@ -56,7 +56,7 @@ import static com.wjybxx.fastjgame.utils.ConcurrentUtils.sleepQuietly;
  * date - 2019/8/3
  * github - https://github.com/hl845740757
  */
-public class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLoop {
+class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLoop {
 
     private static final Logger logger = LoggerFactory.getLogger(NetEventLoopImp.class);
     private static final int BATCH_TASK_SIZE = 8 * 1024;

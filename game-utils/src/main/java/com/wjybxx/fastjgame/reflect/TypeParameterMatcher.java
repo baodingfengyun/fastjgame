@@ -17,9 +17,8 @@
 package com.wjybxx.fastjgame.reflect;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.IdentityHashMap;
 import java.util.Map;
 
 /**
@@ -33,9 +32,11 @@ import java.util.Map;
 public abstract class TypeParameterMatcher {
 
     /**
+     * Class -> typeParameterName -> parameterType
+     * <p>
      * 它会导致一定程度的内存泄漏，不过应该不多
      */
-    private static final ThreadLocal<FindCache> LOCAL_FIND_CACHE = ThreadLocal.withInitial(FindCache::new);
+    private static final ThreadLocal<Map<Class<?>, Map<String, Class<?>>>> LOCAL_FIND_CACHE = ThreadLocal.withInitial(IdentityHashMap::new);
 
     /**
      * 查询是否与泛型参数匹配
@@ -45,50 +46,52 @@ public abstract class TypeParameterMatcher {
      */
     public abstract boolean match(@Nonnull Object object);
 
-
     /**
-     * 查找父类/父接口定义的且被子类声明为具体类型的泛型参数的具体类型。
-     * 查找结果不会加入缓存，适合用在起服/初始化阶段。
+     * 查找指定泛型参数对应的类型匹配器。
      *
      * @param instance              superClazzOrInterface的子类实例
      * @param superClazzOrInterface 泛型参数typeParamName存在的类,class或interface
      * @param typeParamName         泛型参数名字
      * @param <T>                   约束必须有继承关系或实现关系
      * @return 如果定义的泛型存在，则返回对应的泛型clazz
+     * @throws Exception error
      */
-    public static <T> Class<?> findTypeParameterNoCache(@Nonnull T instance,
-                                                        @Nonnull Class<? super T> superClazzOrInterface,
-                                                        @Nonnull String typeParamName) throws Exception {
-        return NettyTypeParameterFinderAdapter.DEFAULT_INSTANCE.findTypeParameter(instance, superClazzOrInterface, typeParamName);
+    public static <T> TypeParameterMatcher findTypeMatcher(@Nonnull T instance,
+                                                           @Nonnull Class<? super T> superClazzOrInterface,
+                                                           @Nonnull String typeParamName) throws Exception {
+        final Class<?> type = findTypeParameter(instance, superClazzOrInterface, typeParamName);
+        if (type == Object.class) {
+            return ObjectTypeMatcher.INSTANCE;
+        } else {
+            return new ReflectiveTypeMatcher(type);
+        }
     }
 
     /**
-     * 查找父类/父接口定义的且被子类声明为具体类型的泛型参数的具体类型
+     * 查找指定泛型参数的真实类型。
+     * (如果不希望产生缓存，请自行调用{@link TypeParameterFinder#findTypeParameter(Object, Class, String)})
      *
      * @param instance              superClazzOrInterface的子类实例
      * @param superClazzOrInterface 泛型参数typeParamName存在的类,class或interface
      * @param typeParamName         泛型参数名字
      * @param <T>                   约束必须有继承关系或实现关系
      * @return 如果定义的泛型存在，则返回对应的泛型clazz
+     * @throws Exception error
      */
     public static <T> Class<?> findTypeParameter(@Nonnull T instance,
                                                  @Nonnull Class<? super T> superClazzOrInterface,
                                                  @Nonnull String typeParamName) throws Exception {
-        final FindCache findCache = LOCAL_FIND_CACHE.get();
-        List<FindResult> findResultList = findCache.instanceFindCache.computeIfAbsent(instance.getClass(), k -> new ArrayList<>());
-        for (FindResult findResult : findResultList) {
-            if (findResult.superClazzOrInterface == superClazzOrInterface && findResult.typeParamName.equals(typeParamName)) {
-                return findResult.realType;
-            }
-        }
-        final Class<?> realType = NettyTypeParameterFinderAdapter.DEFAULT_INSTANCE.findTypeParameter(instance, superClazzOrInterface, typeParamName);
-        findResultList.add(new FindResult(superClazzOrInterface, typeParamName, realType));
-        return realType;
-    }
+        final Map<Class<?>, Map<String, Class<?>>> findCache = LOCAL_FIND_CACHE.get();
+        final Map<String, Class<?>> typeParameterMap = findCache.computeIfAbsent(instance.getClass(), k -> new HashMap<>());
 
-    public static <T> TypeParameterMatcher findTypeMatcher(@Nonnull T instance, Class<? super T> superClazzOrInterface, String typeParamName) throws Exception {
-        final Class<?> type = findTypeParameter(instance, superClazzOrInterface, typeParamName);
-        return new ReflectiveTypeMatcher(type);
+        final Class<?> cachedParameterType = typeParameterMap.get(typeParamName);
+        if (cachedParameterType != null) {
+            return cachedParameterType;
+        }
+
+        final Class<?> parameterType = TypeParameterFinder.findTypeParameter(instance, superClazzOrInterface, typeParamName);
+        typeParameterMap.put(typeParamName, parameterType);
+        return parameterType;
     }
 
     private static class ReflectiveTypeMatcher extends TypeParameterMatcher {
@@ -105,24 +108,17 @@ public abstract class TypeParameterMatcher {
         }
     }
 
-    private static class FindCache {
-        /**
-         * 每一个实例类开始的查找结果
-         */
-        private final Map<Class<?>, List<FindResult>> instanceFindCache = new HashMap<>();
+    private static class ObjectTypeMatcher extends TypeParameterMatcher {
 
-    }
+        private static final ObjectTypeMatcher INSTANCE = new ObjectTypeMatcher();
 
-    private static class FindResult {
+        private ObjectTypeMatcher() {
+        }
 
-        private final Class<?> superClazzOrInterface;
-        private final String typeParamName;
-        private final Class<?> realType;
-
-        private FindResult(Class<?> superClazzOrInterface, String typeParamName, Class<?> realType) {
-            this.superClazzOrInterface = superClazzOrInterface;
-            this.typeParamName = typeParamName;
-            this.realType = realType;
+        @Override
+        public boolean match(@Nonnull Object object) {
+            return true;
         }
     }
+
 }

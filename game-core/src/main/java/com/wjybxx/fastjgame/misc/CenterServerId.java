@@ -38,10 +38,16 @@ import javax.annotation.Nonnull;
 @SerializableClass
 public final class CenterServerId implements Comparable<CenterServerId> {
 
+    /**
+     * 平台类型
+     */
     @Nonnull
     @SerializableField(number = 1)
     private final PlatformType platformType;
 
+    /**
+     * 平台内部区服id
+     */
     @SerializableField(number = 2)
     private final int innerServerId;
 
@@ -90,7 +96,8 @@ public final class CenterServerId implements Comparable<CenterServerId> {
         }
 
         final CenterServerId that = (CenterServerId) o;
-        return uniqueId() == that.uniqueId();
+        return platformType == that.platformType &&
+                innerServerId == that.innerServerId;
     }
 
     @Override

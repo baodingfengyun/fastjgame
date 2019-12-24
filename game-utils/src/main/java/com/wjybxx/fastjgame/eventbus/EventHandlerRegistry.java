@@ -28,7 +28,6 @@ import javax.annotation.Nonnull;
  */
 public interface EventHandlerRegistry {
 
-
     /**
      * 注册一个事件的观察者。
      * 注意：由于没有Event接口，因此请手动保证Context类型的一致性，否则可能抛出类型转换错误。

@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.eventbus;
 
+import com.wjybxx.fastjgame.reflect.TypeParameterFinder;
+
 import javax.annotation.Nonnull;
 
 /**
@@ -35,7 +37,7 @@ import javax.annotation.Nonnull;
  * <h3>安全问题</h3>
  * 由于无法对context对象进行约束（无法在编译期间检查），因此存在context不兼容的可能，它提高了编码难度 - 你除了要了解Event对象本身以外，还需要了解它对应的上下文类型。
  * 该设计极大的提高了灵活性，但确实也引入了不安全的因素。如果你担心风险，那么所有监听方法都使用单参数的形式。
- * 另外：{@link com.wjybxx.fastjgame.reflect.TypeParameterFinder}可能对你有所帮助。
+ * 另外：{@link TypeParameterFinder}可能对你有所帮助。
  *
  * @param <T> 这里定义为泛型，有两个好处
  *            1. 子类可以限定context的类型
