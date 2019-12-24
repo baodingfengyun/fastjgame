@@ -64,6 +64,9 @@ public class RedisEventLoop extends SingleThreadEventLoop {
     private final ArrayDeque<JedisPipelineTask<?>> waitResponseTasks = new ArrayDeque<>(BATCH_TASK_SIZE);
 
     private final JedisPoolAbstract jedisPool;
+    /**
+     * 我们使用null表示没有连接可用的状态，在出现异常时，将关闭连接，并将该属性置为null
+     */
     private Jedis jedis;
     private Pipeline pipeline;
 
@@ -102,8 +105,7 @@ public class RedisEventLoop extends SingleThreadEventLoop {
     protected void clean() {
         try {
             // pipeline关闭时会调用sync
-            closeQuietly(pipeline);
-            closeQuietly(jedis);
+            closeConnection();
         } finally {
             generateResponses();
         }
@@ -151,11 +153,7 @@ public class RedisEventLoop extends SingleThreadEventLoop {
             // 出现异常时：可能部分成功，部分失败，部分未执行。
             logger.warn("pipeline.sync caught exception", t);
 
-            closeQuietly(pipeline);
-            closeQuietly(jedis);
-
-            jedis = null;
-            pipeline = null;
+            closeConnection();
 
             connectSafely();
         } finally {
@@ -176,6 +174,17 @@ public class RedisEventLoop extends SingleThreadEventLoop {
             // 获取连接失败时，在接下来的一段时间里大概率总是失败。
             sleepQuietly(1000);
         }
+    }
+
+    /**
+     * 关闭连接
+     */
+    private void closeConnection() {
+        closeQuietly(pipeline);
+        closeQuietly(jedis);
+
+        pipeline = null;
+        jedis = null;
     }
 
     /**
@@ -242,6 +251,9 @@ public class RedisEventLoop extends SingleThreadEventLoop {
             } catch (Throwable t) {
                 // 执行管道命令出现异常
                 cause = t;
+
+                // 关闭连接 - 避免在当前帧连续抛出异常(占用大量CPU资源)
+                closeConnection();
             }
         }
     }
