@@ -17,8 +17,8 @@
 package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.redis.RedisPipeline;
 import com.wjybxx.fastjgame.redis.RedisFuture;
+import com.wjybxx.fastjgame.redis.RedisPipeline;
 import redis.clients.jedis.ListPosition;
 import redis.clients.jedis.Tuple;
 import redis.clients.jedis.params.ZAddParams;

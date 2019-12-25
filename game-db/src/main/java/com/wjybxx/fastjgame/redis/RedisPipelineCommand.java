@@ -30,6 +30,10 @@ import redis.clients.jedis.Response;
 @FunctionalInterface
 public interface RedisPipelineCommand<R> {
 
+    /**
+     * 执行相应的管道命令
+     * @apiNote 该命令执行在redis线程
+     */
     Response<R> execute(Pipeline pipeline);
 
 }

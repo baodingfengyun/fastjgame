@@ -17,9 +17,6 @@
 package com.wjybxx.fastjgame.reflect;
 
 import javax.annotation.Nonnull;
-import java.util.HashMap;
-import java.util.IdentityHashMap;
-import java.util.Map;
 
 /**
  * 类型参数匹配器
@@ -30,13 +27,6 @@ import java.util.Map;
  * github - https://github.com/hl845740757
  */
 public abstract class TypeParameterMatcher {
-
-    /**
-     * Class -> typeParameterName -> parameterType
-     * <p>
-     * 它会导致一定程度的内存泄漏，不过应该不多
-     */
-    private static final ThreadLocal<Map<Class<?>, Map<String, Class<?>>>> LOCAL_FIND_CACHE = ThreadLocal.withInitial(IdentityHashMap::new);
 
     /**
      * 查询是否与泛型参数匹配
@@ -59,39 +49,12 @@ public abstract class TypeParameterMatcher {
     public static <T> TypeParameterMatcher findTypeMatcher(@Nonnull T instance,
                                                            @Nonnull Class<? super T> superClazzOrInterface,
                                                            @Nonnull String typeParamName) throws Exception {
-        final Class<?> type = findTypeParameter(instance, superClazzOrInterface, typeParamName);
+        final Class<?> type = TypeParameterFinder.findTypeParameter(instance, superClazzOrInterface, typeParamName);
         if (type == Object.class) {
             return ObjectTypeMatcher.INSTANCE;
         } else {
             return new ReflectiveTypeMatcher(type);
         }
-    }
-
-    /**
-     * 查找指定泛型参数的真实类型。
-     * (如果不希望产生缓存，请自行调用{@link TypeParameterFinder#findTypeParameter(Object, Class, String)})
-     *
-     * @param instance              superClazzOrInterface的子类实例
-     * @param superClazzOrInterface 泛型参数typeParamName存在的类,class或interface
-     * @param typeParamName         泛型参数名字
-     * @param <T>                   约束必须有继承关系或实现关系
-     * @return 如果定义的泛型存在，则返回对应的泛型clazz
-     * @throws Exception error
-     */
-    public static <T> Class<?> findTypeParameter(@Nonnull T instance,
-                                                 @Nonnull Class<? super T> superClazzOrInterface,
-                                                 @Nonnull String typeParamName) throws Exception {
-        final Map<Class<?>, Map<String, Class<?>>> findCache = LOCAL_FIND_CACHE.get();
-        final Map<String, Class<?>> typeParameterMap = findCache.computeIfAbsent(instance.getClass(), k -> new HashMap<>());
-
-        final Class<?> cachedParameterType = typeParameterMap.get(typeParamName);
-        if (cachedParameterType != null) {
-            return cachedParameterType;
-        }
-
-        final Class<?> parameterType = TypeParameterFinder.findTypeParameter(instance, superClazzOrInterface, typeParamName);
-        typeParameterMap.put(typeParamName, parameterType);
-        return parameterType;
     }
 
     private static class ReflectiveTypeMatcher extends TypeParameterMatcher {

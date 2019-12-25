@@ -18,6 +18,8 @@ package com.wjybxx.fastjgame.test;
 
 import com.wjybxx.fastjgame.reflect.TypeParameterFinder;
 
+import java.util.Set;
+
 /**
  * 泛型参数查找器简单示例
  *
@@ -30,7 +32,10 @@ public class TypeParameterFinderTest {
 
     public static void main(String[] args) throws Exception {
         final Child instance = new Child("hello");
+        System.out.println(TypeParameterFinder.findTypeParameter(instance, SuperInterface.class, "T"));
         System.out.println(TypeParameterFinder.findTypeParameter(instance, SuperInterface.class, "U"));
+
+        System.out.println();
         System.out.println(TypeParameterFinder.findTypeParameter(instance, Parent.class, "E"));
     }
 
@@ -52,14 +57,14 @@ public class TypeParameterFinderTest {
         }
     }
 
-    private static class Child extends Parent<String> implements SuperInterface<String, Integer> {
+    private static class Child extends Parent<String> implements SuperInterface<Set<String>, Integer> {
 
         Child(String element) {
             super(element);
         }
 
         @Override
-        public void onEvent(String context, Integer msg) {
+        public void onEvent(Set<String> context, Integer msg) {
 
         }
     }

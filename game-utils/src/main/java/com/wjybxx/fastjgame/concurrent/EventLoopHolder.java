@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.concurrent;
 import com.wjybxx.fastjgame.exception.InternalApiException;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import java.util.function.Supplier;
 
 /**
  * EventLoop持有对象
@@ -29,7 +30,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class EventLoopHolder<T extends EventLoop> {
+public class EventLoopHolder<T extends EventLoop> implements Supplier<T> {
 
     private T eventLoop;
 
@@ -47,6 +48,11 @@ public class EventLoopHolder<T extends EventLoop> {
             throw new IllegalStateException();
         }
         return eventLoop;
+    }
+
+    @Override
+    public T get() {
+        return getEventLoop();
     }
 
     public final boolean inEventLoop() {
