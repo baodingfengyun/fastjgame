@@ -18,10 +18,18 @@ package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.misc.GatePlayerSession;
+import com.wjybxx.fastjgame.net.common.ProtocolDispatcher;
+import com.wjybxx.fastjgame.net.common.RpcCallback;
+import com.wjybxx.fastjgame.net.common.RpcResponse;
+import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
+import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.rpcservice.IGatePlayerSessionMgr;
+import com.wjybxx.fastjgame.rpcservice.IPlayerMessageDispatcherMgrRpcProxy;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -32,19 +40,21 @@ import java.util.List;
  * date - 2019/11/13
  * github - https://github.com/hl845740757
  */
-public class GatePlayerSessionMgr implements IGatePlayerSessionMgr {
+public class GatePlayerSessionMgr implements IGatePlayerSessionMgr, ProtocolDispatcher {
 
+    private final GateCenterSessionMgr centerSessionMgr;
     private final Long2ObjectMap<GatePlayerSession> sessionMap = new Long2ObjectOpenHashMap<>();
 
     @Inject
-    public GatePlayerSessionMgr() {
+    public GatePlayerSessionMgr(GateCenterSessionMgr centerSessionMgr) {
+        this.centerSessionMgr = centerSessionMgr;
     }
 
     @Override
     public void sendToPlayer(long playerGuid, byte[] msg) {
         final GatePlayerSession playerSession = sessionMap.get(playerGuid);
         if (null != playerSession) {
-            playerSession.getSession().send(msg);
+            playerSession.getPlayerSession().send(msg);
         }
     }
 
@@ -53,7 +63,7 @@ public class GatePlayerSessionMgr implements IGatePlayerSessionMgr {
         sessionMap.values().stream()
                 .filter(gatePlayerSession -> gatePlayerSession.getState() == GatePlayerSession.State.LOGIN_SCENE)
                 .forEach(playerSession -> {
-                    playerSession.getSession().send(msg);
+                    playerSession.getPlayerSession().send(msg);
                 });
     }
 
@@ -62,5 +72,92 @@ public class GatePlayerSessionMgr implements IGatePlayerSessionMgr {
         for (long playerGuid : playerGuids) {
             sendToPlayer(playerGuid, msg);
         }
+    }
+
+    /**
+     * 当监听到玩家建立socket连接
+     *
+     * @param session 玩家的真实连接
+     */
+    public void onSessionConnected(final Session session) {
+        sessionMap.computeIfAbsent(session.remoteGuid(), playerGuid -> new GatePlayerSession(session));
+    }
+
+    /**
+     * 当监听到玩家的socket断开
+     *
+     * @param session 玩家的真实连接
+     */
+    public void onSessionDisconnected(final Session session) {
+        final GatePlayerSession playerSession = sessionMap.remove(session.remoteGuid());
+        if (null != playerSession) {
+            playerSession.setState(GatePlayerSession.State.DISCONNECT);
+        }
+    }
+
+    @Override
+    public void postRpcRequest(Session session, @Nullable Object request, @Nonnull RpcResponseChannel<?> responseChannel) {
+        // 玩家不可以向服务器发起rpc请求
+        throw new UnsupportedOperationException("rpcRequest " + request);
+    }
+
+    @Override
+    public void postOneWayMessage(Session session, @Nullable Object message) {
+        final GatePlayerSession playerSession = sessionMap.get(session.remoteGuid());
+        if (null == playerSession || playerSession.getPlayerSession() != session) {
+            // 非法的session
+            session.close();
+            return;
+        }
+
+        if (message == null) {
+            // ignore - 编解码失败
+            return;
+        }
+
+        // 玩家必须以字节数组格式发送消息 - 这样网关不必进行冗余的编解码操作
+        if (!(message instanceof byte[])) {
+            session.close();
+            return;
+        }
+
+        switch (playerSession.getState()) {
+            case LOGIN_GATE:
+            case LOGIN_CENTER:
+                sendToCenter(playerSession, (byte[]) message);
+                break;
+            case LOGIN_SCENE:
+                sendToScene(playerSession, (byte[]) message);
+                break;
+            case DISCONNECT:
+                session.close();
+                break;
+        }
+    }
+
+    private void sendToCenter(GatePlayerSession playerSession, byte[] message) {
+        final Session centerSession = centerSessionMgr.getCenterSession();
+        if (null == centerSession) {
+            playerSession.getPlayerSession().close();
+            return;
+        }
+        IPlayerMessageDispatcherMgrRpcProxy.onPlayerMessage(playerSession.getPlayerGuid(), message)
+                .send(centerSession);
+    }
+
+    private void sendToScene(GatePlayerSession playerSession, byte[] message) {
+        if (playerSession.getSceneSession() == null) {
+            playerSession.getPlayerSession().close();
+            return;
+        }
+
+        IPlayerMessageDispatcherMgrRpcProxy.onPlayerMessage(playerSession.getPlayerGuid(), message)
+                .send(playerSession.getSceneSession());
+    }
+
+    @Override
+    public void postRpcCallback(Session session, RpcCallback rpcCallback, RpcResponse rpcResponse) {
+        // 网关不可以向玩家发送rpc请求
+        throw new UnsupportedOperationException("Unexpected rpcCallBack: " + rpcCallback.getClass().getName());
     }
 }

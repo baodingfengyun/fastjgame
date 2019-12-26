@@ -44,6 +44,17 @@ public interface TimerSystem extends TimeProvider {
     // ------------------------------------------ 添加定时器的方法 -----------------------------------
 
     /**
+     * 下一次{@link #tick()}的时候执行。
+     * 注意：如果当前正在{@link #tick()}中，则会在当前{@link #tick()}执行。
+     *
+     * @param task 需要执行的任务
+     * @return Timer对应的句柄
+     */
+    default TimeoutHandle nextTick(@Nonnull TimerTask task) {
+        return newTimeout(0, task);
+    }
+
+    /**
      * 在指定延迟之后执行一次指定任务。
      * 该类型的任务有严格的时序保证！你认为先执行的一定先执行。
      *
@@ -55,14 +66,11 @@ public interface TimerSystem extends TimeProvider {
     TimeoutHandle newTimeout(long timeout, @Nonnull TimerTask task);
 
     /**
-     * 下一次{@link #tick()}的时候执行。
-     * 注意：如果当前正在{@link #tick()}中，则会在当前{@link #tick()}执行。
-     *
-     * @param task 需要执行的任务
-     * @return Timer对应的句柄
+     * 首次延迟为delay，如果期望立即执行，请调用{@link #newFixedDelay(long, long, TimerTask)}，并指定首次延迟为0
      */
-    default TimeoutHandle nextTick(@Nonnull TimerTask task) {
-        return newTimeout(0, task);
+    @Nonnull
+    default FixedDelayHandle newFixedDelay(long delay, @Nonnull TimerTask task) {
+        return newFixedDelay(delay, delay, task);
     }
 
     /**
@@ -79,11 +87,11 @@ public interface TimerSystem extends TimeProvider {
     FixedDelayHandle newFixedDelay(long initialDelay, long delay, @Nonnull TimerTask task);
 
     /**
-     * {@link #newFixedDelay(long, long, TimerTask)}的快捷调用方式，首次执行延迟为0，下一次tick的时候就会执行。
+     * 首次延迟为period，如果期望立即执行，请调用{@link #newFixRate(long, long, TimerTask)}，并指定首次延迟为0
      */
     @Nonnull
-    default FixedDelayHandle newFixedDelay(long delay, @Nonnull TimerTask task) {
-        return newFixedDelay(0, delay, task);
+    default FixedRateHandle newFixRate(long period, @Nonnull TimerTask task) {
+        return newFixRate(period, period, task);
     }
 
     /**
@@ -98,14 +106,6 @@ public interface TimerSystem extends TimeProvider {
      */
     @Nonnull
     FixedRateHandle newFixRate(long initialDelay, long period, @Nonnull TimerTask task);
-
-    /**
-     * {@link #newFixRate(long, long, TimerTask)}的快捷调用方式，首次执行延迟为0，下一次tick的时候就会执行。
-     */
-    @Nonnull
-    default FixedRateHandle newFixRate(long period, @Nonnull TimerTask task) {
-        return newFixRate(0, period, task);
-    }
 
     // ------------------------------------------- 生命周期相关 -----------------------------------
 

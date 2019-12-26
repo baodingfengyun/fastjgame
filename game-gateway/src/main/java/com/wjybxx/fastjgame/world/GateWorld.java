@@ -17,16 +17,19 @@
 package com.wjybxx.fastjgame.world;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.node.GateNodeData;
-import com.wjybxx.fastjgame.mgr.GateDiscoverMgr;
-import com.wjybxx.fastjgame.mgr.WorldWrapper;
+import com.wjybxx.fastjgame.mgr.*;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.session.Session;
+import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
+import com.wjybxx.fastjgame.node.GateNodeData;
+import com.wjybxx.fastjgame.utils.GameUtils;
 import com.wjybxx.fastjgame.utils.JsonUtils;
+import com.wjybxx.fastjgame.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
-import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.CreateMode;
+
+import java.net.BindException;
 
 /**
  * 网关服world
@@ -40,12 +43,20 @@ public class GateWorld extends AbstractWorld {
 
     private final GateWorldInfoMgr gateWorldInfoMgr;
     private final GateDiscoverMgr discoverMgr;
+    private final GatePlayerSessionMgr playerSessionMgr;
+    private final NetContextMgr netContextMgr;
+    private final ProtocolCodecMgr protocolCodecMgr;
 
     @Inject
-    public GateWorld(WorldWrapper worldWrapper, GateWorldInfoMgr gateWorldInfoMgr, GateDiscoverMgr discoverMgr) {
+    public GateWorld(WorldWrapper worldWrapper, GateWorldInfoMgr gateWorldInfoMgr, GateDiscoverMgr discoverMgr,
+                     GatePlayerSessionMgr playerSessionMgr, NetContextMgr netContextMgr,
+                     ProtocolCodecMgr protocolCodecMgr) {
         super(worldWrapper);
         this.gateWorldInfoMgr = gateWorldInfoMgr;
         this.discoverMgr = discoverMgr;
+        this.playerSessionMgr = playerSessionMgr;
+        this.netContextMgr = netContextMgr;
+        this.protocolCodecMgr = protocolCodecMgr;
     }
 
     @Override
@@ -68,20 +79,34 @@ public class GateWorld extends AbstractWorld {
         // 绑定内网Http通信
         final HostAndPort innerHttpAddress = gameAcceptorMgr.bindInnerHttpPort();
         // TODO 绑定外网端口
-        final HostAndPort outerTcpPort = gameAcceptorMgr.bindInnerTcpPort(new PlayerLifeAware());
-        final HostAndPort outerWsPort = gameAcceptorMgr.bindInnerTcpPort(new PlayerLifeAware());
-
+        final HostAndPort outerTcpPort = bindOuterTcpPort();
 
         final String nodeName = ZKPathUtils.buildGateNodeName(gateWorldInfoMgr.getServerId(),
                 gateWorldInfoMgr.getWorldGuid());
 
         final GateNodeData nodeData = new GateNodeData(innerHttpAddress.toString(),
                 outerTcpPort.toString(),
-                outerWsPort.toString());
+                outerTcpPort.toString());
 
-        final String path = ZKPaths.makePath(ZKPathUtils.onlineWarzonePath(gateWorldInfoMgr.getWarzoneId()), nodeName);
+        final String path = ZKPathUtils.makePath(ZKPathUtils.onlineWarzonePath(gateWorldInfoMgr.getWarzoneId()), nodeName);
         final byte[] initData = JsonUtils.toJsonBytes(nodeData);
         curatorMgr.createNode(path, CreateMode.EPHEMERAL, initData);
+    }
+
+    private HostAndPort bindOuterTcpPort() throws BindException {
+        return netContextMgr.getNetContext().bindTcpRange(NetUtils.getOuterIp(),
+                GameUtils.OUTER_TCP_PORT_RANGE, newPlayerAcceptorConfig()).getHostAndPort();
+    }
+
+    private SocketSessionConfig newPlayerAcceptorConfig() {
+        return SocketSessionConfig.newBuilder()
+                .setAutoReconnect(true)
+                .setMaxPendingMessages(50)
+                .setMaxCacheMessages(500)
+                .setCodec(protocolCodecMgr.getInnerProtocolCodec())
+                .setLifecycleAware(new PlayerLifeAware())
+                .setDispatcher(playerSessionMgr)
+                .build();
     }
 
     @Override
@@ -98,12 +123,12 @@ public class GateWorld extends AbstractWorld {
 
         @Override
         public void onSessionConnected(Session session) {
-
+            playerSessionMgr.onSessionConnected(session);
         }
 
         @Override
         public void onSessionDisconnected(Session session) {
-
+            playerSessionMgr.onSessionDisconnected(session);
         }
     }
 }

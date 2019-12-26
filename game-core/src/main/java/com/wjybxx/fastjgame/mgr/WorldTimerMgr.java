@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.annotation.EventLoopSingleton;
+import com.wjybxx.fastjgame.timeprovider.TimeProvider;
 import com.wjybxx.fastjgame.timer.*;
 
 import javax.annotation.Nonnull;
@@ -35,12 +36,12 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class WorldTimerMgr {
 
-    private final WorldTimeMgr worldTimeMgr;
+    private final TimeProvider timeProvider;
     private final TimerSystem timerSystem;
 
     @Inject
     public WorldTimerMgr(WorldTimeMgr worldTimeMgr) {
-        this.worldTimeMgr = worldTimeMgr;
+        timeProvider = worldTimeMgr;
         timerSystem = new DefaultTimerSystem(worldTimeMgr);
     }
 
@@ -81,11 +82,19 @@ public class WorldTimerMgr {
         return timerSystem.newFixRate(period, task);
     }
 
+    public long curTimeMillis() {
+        return timeProvider.curTimeMillis();
+    }
+
+    public int curTimeSeconds() {
+        return timeProvider.curTimeSeconds();
+    }
+
     /**
      * @return 一个全新的timerSystem
      */
     public TimerSystem newTimerSystem() {
-        return new DefaultTimerSystem(worldTimeMgr);
+        return new DefaultTimerSystem(timeProvider);
     }
 
     /**
@@ -93,6 +102,6 @@ public class WorldTimerMgr {
      * @return 一个全新的timerSystem
      */
     public TimerSystem newTimerSystem(int initCapacity) {
-        return new DefaultTimerSystem(worldTimeMgr, initCapacity);
+        return new DefaultTimerSystem(timeProvider, initCapacity);
     }
 }

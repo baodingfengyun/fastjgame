@@ -52,6 +52,6 @@ public class SceneModule extends WorldModule {
         bind(SceneMgr.class).in(Singleton.class);
         bind(PlayerSessionMgr.class).in(Singleton.class);
         bind(PlayerEventDispatcherMgr.class).in(Singleton.class);
-        bind(PlayerMessageDispatcherMgr.class).in(Singleton.class);
+        bind(ScenePlayerMessageDispatcherMgr.class).in(Singleton.class);
     }
 }

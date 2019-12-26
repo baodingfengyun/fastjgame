@@ -6,6 +6,7 @@ import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.node.SceneNodeData;
+import com.wjybxx.fastjgame.rpcservice.IPlayerMessageDispatcherMgrRpcRegister;
 import com.wjybxx.fastjgame.rpcservice.ISceneCenterSessionMgrRpcRegister;
 import com.wjybxx.fastjgame.rpcservice.ISceneGateSessionMgrRpcRegister;
 import com.wjybxx.fastjgame.rpcservice.ISceneRegionMgrRpcRegister;
@@ -35,13 +36,13 @@ public class SceneWorld extends AbstractWorld {
     private final SceneWorldInfoMgr sceneWorldInfoMgr;
     private final SceneSendMgr sendMgr;
     private final SceneMgr sceneMgr;
-    private final PlayerMessageDispatcherMgr playerMessageDispatcherMgr;
+    private final ScenePlayerMessageDispatcherMgr playerMessageDispatcherMgr;
 
     @Inject
     public SceneWorld(WorldWrapper worldWrapper, SceneCenterSessionMgr sceneCenterSessionMgr,
                       SceneGateSessionMgr sceneGateSessionMgr, SceneRegionMgr sceneRegionMgr,
                       SceneSendMgr sendMgr, SceneMgr sceneMgr,
-                      PlayerMessageDispatcherMgr playerMessageDispatcherMgr) {
+                      ScenePlayerMessageDispatcherMgr playerMessageDispatcherMgr) {
         super(worldWrapper);
         this.sceneCenterSessionMgr = sceneCenterSessionMgr;
         this.sceneGateSessionMgr = sceneGateSessionMgr;
@@ -70,6 +71,7 @@ public class SceneWorld extends AbstractWorld {
         ISceneRegionMgrRpcRegister.register(protocolDispatcherMgr, sceneRegionMgr);
         ISceneCenterSessionMgrRpcRegister.register(protocolDispatcherMgr, sceneCenterSessionMgr);
         ISceneGateSessionMgrRpcRegister.register(protocolDispatcherMgr, sceneGateSessionMgr);
+        IPlayerMessageDispatcherMgrRpcRegister.register(protocolDispatcherMgr, playerMessageDispatcherMgr);
     }
 
     @Override

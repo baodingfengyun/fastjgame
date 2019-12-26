@@ -170,6 +170,11 @@ public interface EventLoopGroup extends ExecutorService, EventDispatcher, Iterab
     @Nonnull
     EventLoop select(int key);
 
+    /**
+     * 返回{@link EventLoopGroup}管理的{@link EventLoop}数。
+     */
+    int numEventLoop();
+
     @Nonnull
     @Override
     Iterator<EventLoop> iterator();

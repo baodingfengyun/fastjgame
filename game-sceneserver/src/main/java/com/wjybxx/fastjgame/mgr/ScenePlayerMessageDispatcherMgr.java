@@ -35,15 +35,15 @@ import javax.annotation.Nullable;
  * @version 1.0
  * date - 2019/8/26
  */
-public class PlayerMessageDispatcherMgr implements EventHandlerRegistry, IPlayerMessageDispatcherMgr {
+public class ScenePlayerMessageDispatcherMgr implements EventHandlerRegistry, IPlayerMessageDispatcherMgr {
 
-    private static final Logger logger = LoggerFactory.getLogger(PlayerMessageDispatcherMgr.class);
+    private static final Logger logger = LoggerFactory.getLogger(ScenePlayerMessageDispatcherMgr.class);
 
     private final PlayerSessionMgr playerSessionMgr;
     private final PlayerEventDispatcherMgr playerEventDispatcherMgr;
 
     @Inject
-    public PlayerMessageDispatcherMgr(PlayerSessionMgr playerSessionMgr, PlayerEventDispatcherMgr playerEventDispatcherMgr) {
+    public ScenePlayerMessageDispatcherMgr(PlayerSessionMgr playerSessionMgr, PlayerEventDispatcherMgr playerEventDispatcherMgr) {
         this.playerSessionMgr = playerSessionMgr;
         this.playerEventDispatcherMgr = playerEventDispatcherMgr;
     }

@@ -31,35 +31,59 @@ public class GatePlayerSession {
     /**
      * 玩家的真实session
      */
-    private final Session session;
+    private final Session playerSession;
+
+    /**
+     * 需要转发到的scene服务器
+     * 中心服是唯一的，因此不需要保存中心服session引用。
+     */
+    private Session sceneSession;
+
     /**
      * 玩家当前的状态
      */
     private State state = State.LOGIN_GATE;
 
-    public GatePlayerSession(Session session) {
-        this.session = session;
+    public GatePlayerSession(Session playerSession) {
+        this.playerSession = playerSession;
     }
 
-    public Session getSession() {
-        return session;
+    public long getPlayerGuid() {
+        return playerSession.remoteGuid();
+    }
+
+    public Session getPlayerSession() {
+        return playerSession;
+    }
+
+    public Session getSceneSession() {
+        return sceneSession;
+    }
+
+    public void setSceneSession(Session sceneSession) {
+        this.sceneSession = sceneSession;
     }
 
     public State getState() {
         return state;
     }
 
+    public void setState(State state) {
+        this.state = state;
+    }
+
     public enum State {
         /**
-         * 登录到网关服 - 初始状态
+         * 已登录到网关服 - 初始状态
+         * 它表示玩家还未连接到中心服，可能在排队。
          */
         LOGIN_GATE,
         /**
-         * 登录到中心服 - 等待进入游戏(选角)
+         * 已登录到中心服 - 等待进入游戏(选角)
          */
         LOGIN_CENTER,
         /**
-         * 登录到场景服 - 已进入场景(游戏中)
+         * 登录到场景服 - 已选择角色，正在进入场景或已进入场景
          */
         LOGIN_SCENE,
         /**

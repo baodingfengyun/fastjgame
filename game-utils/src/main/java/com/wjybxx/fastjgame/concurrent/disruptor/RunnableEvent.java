@@ -52,11 +52,4 @@ final class RunnableEvent {
         this.task = task;
     }
 
-    /**
-     * 丢弃任务 - help GC
-     */
-    void disCard() {
-        task = null;
-    }
-
 }

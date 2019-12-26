@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.misc;
 
+import com.wjybxx.fastjgame.utils.MathUtils;
+
 /**
  * short值对
  *
@@ -40,6 +42,10 @@ public class ShortPair {
 
     public short getSecond() {
         return second;
+    }
+
+    public int composeToInt() {
+        return MathUtils.composeToInt(first, second);
     }
 
     @Override

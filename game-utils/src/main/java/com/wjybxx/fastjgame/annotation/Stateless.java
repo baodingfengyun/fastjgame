@@ -16,6 +16,11 @@
 
 package com.wjybxx.fastjgame.annotation;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
  * 标记注解，该注解注解的对象必须是无状态的
  *
@@ -24,6 +29,8 @@ package com.wjybxx.fastjgame.annotation;
  * date - 2019/6/2 23:33
  * github - https://github.com/hl845740757
  */
+@Retention(RetentionPolicy.SOURCE)
+@Target(ElementType.TYPE)
 public @interface Stateless {
 
 }

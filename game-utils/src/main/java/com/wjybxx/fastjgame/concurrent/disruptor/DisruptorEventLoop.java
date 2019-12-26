@@ -26,6 +26,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -199,7 +200,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
         ringBuffer.addGatingSequences(worker.sequence);
 
         // 保存线程对象
-        this.thread = threadFactory.newThread(worker);
+        this.thread = Objects.requireNonNull(threadFactory.newThread(worker), "newThread");
         UncaughtExceptionHandlers.logIfAbsent(thread, logger);
     }
 

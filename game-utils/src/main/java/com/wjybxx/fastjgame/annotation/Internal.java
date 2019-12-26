@@ -22,7 +22,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 该注解注解的类表示为内部实现，外部不要使用
+ * 该注解注解的类/方法表示为内部实现，外部不要使用
  *
  * @author wjybxx
  * @version 1.0

@@ -14,45 +14,30 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.misc;
+package com.wjybxx.fastjgame.mgr;
 
-import com.wjybxx.fastjgame.utils.MathUtils;
+import com.google.inject.Inject;
+import com.wjybxx.fastjgame.net.session.Session;
+import com.wjybxx.fastjgame.rpcservice.IPlayerMessageDispatcherMgr;
+
+import javax.annotation.Nullable;
 
 /**
- * int值对
+ * 中心服玩家消息处理器
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/11/2
+ * date - 2019/12/26
  * github - https://github.com/hl845740757
  */
-public class IntPair {
+public class CenterPlayerMessageDispatcherMgr implements IPlayerMessageDispatcherMgr {
 
-    private final int first;
-    private final int second;
-
-    public IntPair(int first, int second) {
-        this.first = first;
-        this.second = second;
-    }
-
-    public int getFirst() {
-        return first;
-    }
-
-    public int getSecond() {
-        return second;
-    }
-
-    public long composeToLong() {
-        return MathUtils.composeToLong(first, second);
+    @Inject
+    public CenterPlayerMessageDispatcherMgr() {
     }
 
     @Override
-    public String toString() {
-        return "IntPair{" +
-                "first=" + first +
-                ", second=" + second +
-                '}';
+    public void onPlayerMessage(Session session, long playerGuid, @Nullable Object message) {
+        // TODO
     }
 }

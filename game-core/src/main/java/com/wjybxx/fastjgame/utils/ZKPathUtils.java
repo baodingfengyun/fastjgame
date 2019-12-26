@@ -22,6 +22,7 @@ import com.wjybxx.fastjgame.misc.RoleType;
 import com.wjybxx.fastjgame.node.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.utils.PathUtils;
+import org.apache.curator.utils.ZKPaths;
 
 import java.io.File;
 
@@ -77,11 +78,11 @@ public class ZKPathUtils {
     /**
      * 构建一个全路径
      *
-     * @param parent   父节点全路径
-     * @param nodeName 属性名字
+     * @param parent 父节点全路径
+     * @param child  属性名字
      */
-    public static String makePath(String parent, String nodeName) {
-        return parent + "/" + nodeName;
+    public static String makePath(String parent, String child) {
+        return ZKPaths.makePath(parent, child);
     }
 
     /**

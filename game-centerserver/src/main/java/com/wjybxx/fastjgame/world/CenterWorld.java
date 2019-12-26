@@ -23,6 +23,7 @@ import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.node.CenterNodeData;
 import com.wjybxx.fastjgame.rpcservice.ICenterGateSessionMgrRpcRegister;
+import com.wjybxx.fastjgame.rpcservice.IPlayerMessageDispatcherMgrRpcRegister;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.curator.utils.ZKPaths;
@@ -46,21 +47,25 @@ public class CenterWorld extends AbstractWorld {
     private final CenterGateSessionMgr centerGateSessionMgr;
     private final CenterWorldInfoMgr centerWorldInfoMgr;
     private final CenterWarzoneSessionMgr centerWarzoneSessionMgr;
+    private final CenterPlayerMessageDispatcherMgr playerMessageDispatcherMgr;
 
     @Inject
     public CenterWorld(WorldWrapper worldWrapper, CenterDiscoverMgr centerDiscoverMgr,
-                       CenterSceneSessionMgr centerSceneSessionMgr, CenterGateSessionMgr centerGateSessionMgr, CenterWarzoneSessionMgr centerWarzoneSessionMgr) {
+                       CenterSceneSessionMgr centerSceneSessionMgr, CenterGateSessionMgr centerGateSessionMgr,
+                       CenterWarzoneSessionMgr centerWarzoneSessionMgr, CenterPlayerMessageDispatcherMgr playerMessageDispatcherMgr) {
         super(worldWrapper);
         this.centerDiscoverMgr = centerDiscoverMgr;
         this.centerSceneSessionMgr = centerSceneSessionMgr;
         centerWorldInfoMgr = (CenterWorldInfoMgr) worldWrapper.getWorldInfoMgr();
         this.centerGateSessionMgr = centerGateSessionMgr;
         this.centerWarzoneSessionMgr = centerWarzoneSessionMgr;
+        this.playerMessageDispatcherMgr = playerMessageDispatcherMgr;
     }
 
     @Override
     protected void registerRpcService() {
         ICenterGateSessionMgrRpcRegister.register(protocolDispatcherMgr, centerGateSessionMgr);
+        IPlayerMessageDispatcherMgrRpcRegister.register(protocolDispatcherMgr, playerMessageDispatcherMgr);
     }
 
     @Override

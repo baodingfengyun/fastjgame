@@ -66,11 +66,11 @@ public class TimerSystemTest {
             System.out.println("two second2 " + System.currentTimeMillis());
         });
 
-        FixedDelayHandle handle4 = timerSystem.newFixedDelay(3 * TimeUtils.SEC, handle -> {
+        FixedDelayHandle handle4 = timerSystem.newFixedDelay(0, 3 * TimeUtils.SEC, handle -> {
             System.out.println("fixDelayTask " + System.currentTimeMillis());
         });
 
-        FixedRateHandle handle5 = timerSystem.newFixRate(3 * TimeUtils.SEC, handle -> {
+        FixedRateHandle handle5 = timerSystem.newFixRate(0, 3 * TimeUtils.SEC, handle -> {
             System.out.println("fixRateTask " + System.currentTimeMillis());
         });
 
