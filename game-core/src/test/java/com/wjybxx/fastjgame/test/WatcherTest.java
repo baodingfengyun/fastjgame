@@ -56,7 +56,7 @@ public class WatcherTest {
         }
 
         // 等待回调完成
-        ConcurrentUtils.awaitWithRetry(countDownLatch, 5, TimeUnit.SECONDS);
+        countDownLatch.await();
     }
 
     private static void existCallBack(WatchedEvent event) {

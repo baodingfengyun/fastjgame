@@ -23,14 +23,12 @@ import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.node.CenterNodeData;
 import com.wjybxx.fastjgame.rpcservice.ICenterGateSessionMgrRpcRegister;
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.CreateMode;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -96,12 +94,11 @@ public class CenterWorld extends AbstractWorld {
                 centerWorldInfoMgr.getWorldGuid());
 
         final String path = ZKPaths.makePath(parentPath, nodeName);
-        curatorMgr.waitForNodeDelete(path);
-
         final byte[] initData = JsonUtils.toJsonBytes(centerNodeData);
-        ConcurrentUtils.awaitRemoteWithSleepingRetry(
-                () -> curatorMgr.createNodeIfAbsent(path, CreateMode.EPHEMERAL, initData),
-                3, TimeUnit.SECONDS);
+
+        // 创建失败则退出
+        curatorMgr.waitForNodeDelete(path);
+        curatorMgr.createNode(path, CreateMode.EPHEMERAL, initData);
     }
 
     @Override

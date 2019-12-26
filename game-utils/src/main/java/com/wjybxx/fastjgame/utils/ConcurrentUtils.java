@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.utils;
 
 import com.wjybxx.fastjgame.concurrent.*;
 import com.wjybxx.fastjgame.exception.InternalApiException;
-import com.wjybxx.fastjgame.function.*;
+import com.wjybxx.fastjgame.function.AcquireFun;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,162 +86,6 @@ public class ConcurrentUtils {
             recoveryInterrupted(interrupted);
         }
     }
-
-    /**
-     * 使用重试的方式等待闭锁打开
-     *
-     * @param countDownLatch 闭锁
-     * @param heartbeat      心跳间隔
-     * @param timeUnit       时间单位
-     */
-    public static void awaitWithRetry(CountDownLatch countDownLatch, long heartbeat, TimeUnit timeUnit) {
-        awaitWithRetry(countDownLatch::await, heartbeat, timeUnit);
-    }
-
-    /**
-     * 使用重试的方式申请信号量
-     *
-     * @param semaphore 信号量
-     * @param heartbeat 心跳间隔
-     * @param timeUnit  时间单位
-     */
-    public static void awaitWithRetry(Semaphore semaphore, long heartbeat, TimeUnit timeUnit) {
-        awaitWithRetry(semaphore::tryAcquire, heartbeat, timeUnit);
-    }
-
-    /**
-     * 使用重试的方式申请资源(可以保持线程的活性)
-     *
-     * @param tryAcquireFun 申请资源的方法
-     * @param heartbeat     心跳间隔
-     * @param timeUnit      时间单位
-     */
-    public static void awaitWithRetry(TryAcquireFun tryAcquireFun, long heartbeat, TimeUnit timeUnit) {
-        boolean interrupted = false;
-        try {
-            while (true) {
-                try {
-                    if (tryAcquireFun.tryAcquire(heartbeat, timeUnit)) {
-                        break;
-                    }
-                } catch (InterruptedException e) {
-                    interrupted = true;
-                }
-            }
-        } finally {
-            recoveryInterrupted(interrupted);
-        }
-    }
-
-    /**
-     * 使用重试的方式申请资源，申请失败则睡眠一定时间。
-     *
-     * @param tryAcquireFun 资源申请函数
-     * @param heartbeat     心跳间隔
-     * @param timeUnit      时间单位
-     */
-    public static void awaitWithSleepingRetry(TryAcquireFun2 tryAcquireFun, long heartbeat, TimeUnit timeUnit) {
-        awaitWithRetry(toAcquireFunWithSleep(tryAcquireFun), heartbeat, timeUnit);
-    }
-
-    // 远程资源申请
-
-    /**
-     * 在等待远程资源期间不响应中断
-     *
-     * @param acquireFun 如果在资源上申请资源
-     * @throws Exception error
-     */
-    public static void awaitRemoteUninterruptibly(RemoteAcquireFun acquireFun) throws Exception {
-        boolean interrupted = false;
-        try {
-            while (true) {
-                try {
-                    acquireFun.acquire();
-                    break;
-                } catch (InterruptedException e) {
-                    interrupted = true;
-                }
-            }
-        } finally {
-            recoveryInterrupted(interrupted);
-        }
-    }
-
-    /**
-     * 使用重试的方式申请远程资源
-     *
-     * @param tryAcquireFun 尝试申请
-     * @param heartbeat     心跳间隔
-     * @param timeUnit      时间单位
-     * @throws Exception error
-     */
-    public static void awaitRemoteWithRetry(RemoteTryAcquireFun tryAcquireFun, long heartbeat, TimeUnit timeUnit) throws Exception {
-        // 虽然是重复代码，但是不好消除
-        boolean interrupted = false;
-        try {
-            while (true) {
-                try {
-                    if (tryAcquireFun.tryAcquire(heartbeat, timeUnit)) {
-                        break;
-                    }
-                } catch (InterruptedException e) {
-                    interrupted = true;
-                }
-            }
-        } finally {
-            recoveryInterrupted(interrupted);
-        }
-    }
-
-    /**
-     * 使用重试的方式申请远程资源，申请失败则睡眠一定时间
-     *
-     * @param tryAcquireFun 资源申请函数
-     * @param heartbeat     心跳间隔
-     * @param timeUnit      时间单位
-     */
-    public static void awaitRemoteWithSleepingRetry(RemoteTryAcquireFun2 tryAcquireFun, long heartbeat, TimeUnit timeUnit) throws Exception {
-        awaitRemoteWithRetry(toAcquireRemoteFunWithSleep(tryAcquireFun), heartbeat, timeUnit);
-    }
-
-    // region 私有实现(辅助方法)
-
-    /**
-     * 使用sleep转换为{@link TryAcquireFun}类型。
-     *
-     * @param tryAcquireFun2 无中断资源申请函数
-     * @return
-     */
-    private static TryAcquireFun toAcquireFunWithSleep(TryAcquireFun2 tryAcquireFun2) {
-        return (timeout, timeUnit) -> {
-            if (tryAcquireFun2.tryAcquire()) {
-                return true;
-            } else {
-                Thread.sleep(timeUnit.toMillis(timeout));
-                return false;
-            }
-        };
-    }
-
-    /**
-     * 使用sleep转换为{@link RemoteTryAcquireFun}类型。
-     *
-     * @param tryAcquireFun2 CAS的尝试函数
-     * @return
-     */
-    private static RemoteTryAcquireFun toAcquireRemoteFunWithSleep(RemoteTryAcquireFun2 tryAcquireFun2) {
-        return (timeout, timeUnit) -> {
-            if (tryAcquireFun2.tryAcquire()) {
-                return true;
-            } else {
-                Thread.sleep(timeUnit.toMillis(timeout));
-                return false;
-            }
-        };
-    }
-
-    // endregion
 
     // ---------------------------------------- 中断处理 ---------------------------
 
@@ -328,17 +172,6 @@ public class ConcurrentUtils {
     }
 
     /**
-     * 将一个可能抛出异常的任务包装为一个不抛出受检异常的runnable。
-     *
-     * @param r                可能抛出异常的任务
-     * @param exceptionHandler 异常处理器
-     * @return Runnable
-     */
-    public static Runnable safeRunnable(AnyRunnable r, ExceptionHandler exceptionHandler) {
-        return new SafeRunnable2(r, exceptionHandler);
-    }
-
-    /**
      * 安全的执行一个任务，只是将错误打印到日志，不抛出异常。
      * 对于不甚频繁的方法调用可以进行封装，如果大量的调用可能会对性能有所影响；
      *
@@ -346,28 +179,6 @@ public class ConcurrentUtils {
      * @return true if is interrupted
      */
     public static boolean safeExecute(Runnable task) {
-        boolean interrupted = false;
-        try {
-            task.run();
-        } catch (Throwable e) {
-            if (e instanceof VirtualMachineError) {
-                logger.error("A task raised an exception. Task: {}", task, e);
-            } else {
-                interrupted = isInterrupted(e);
-                logger.warn("A task raised an exception. Task: {}", task, e);
-            }
-        }
-        return interrupted;
-    }
-
-    /**
-     * 安全的执行一个任务，只是将错误打印到日志，不抛出异常。
-     * 对于不甚频繁的方法调用可以进行封装，如果大量的调用可能会对性能有所影响；
-     *
-     * @param task 要执行的任务，可以将要执行的方法封装为 ()-> safeExecute()
-     * @return true if is interrupted
-     */
-    public static boolean safeExecute(AnyRunnable task) {
         boolean interrupted = false;
         try {
             task.run();
@@ -500,26 +311,6 @@ public class ConcurrentUtils {
         private final ExceptionHandler exceptionHandler;
 
         private SafeRunnable(Runnable task, ExceptionHandler exceptionHandler) {
-            this.task = task;
-            this.exceptionHandler = exceptionHandler;
-        }
-
-        @Override
-        public void run() {
-            try {
-                task.run();
-            } catch (Throwable e) {
-                exceptionHandler.handleException(e);
-            }
-        }
-    }
-
-    private static class SafeRunnable2 implements Runnable {
-
-        private final AnyRunnable task;
-        private final ExceptionHandler exceptionHandler;
-
-        private SafeRunnable2(AnyRunnable task, ExceptionHandler exceptionHandler) {
             this.task = task;
             this.exceptionHandler = exceptionHandler;
         }

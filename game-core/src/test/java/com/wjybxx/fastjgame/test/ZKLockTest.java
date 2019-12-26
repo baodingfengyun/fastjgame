@@ -3,8 +3,6 @@ package com.wjybxx.fastjgame.test;
 import com.wjybxx.fastjgame.mgr.CuratorMgr;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
-import java.util.concurrent.TimeUnit;
-
 /**
  * @author wjybxx
  * @version 1.0
@@ -16,11 +14,8 @@ public class ZKLockTest {
     public static void main(String[] args) throws Exception {
         CuratorMgr curatorMgr = CuratorTest.newCuratorMgr();
 
-        curatorMgr.lock("/mutex/guid");
-
-        // 始终占用锁
-        ConcurrentUtils.awaitRemoteWithRetry((timeout, timeUnit) -> false,
-                500, TimeUnit.MILLISECONDS);
-
+        curatorMgr.actionWhitLock("/mutex/guid", () -> {
+            ConcurrentUtils.sleepQuietly(60 * 1000);
+        });
     }
 }

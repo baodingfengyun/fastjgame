@@ -17,21 +17,18 @@
 package com.wjybxx.fastjgame.world;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.node.WarzoneNodeData;
 import com.wjybxx.fastjgame.mgr.WarzoneCenterSessionMgr;
 import com.wjybxx.fastjgame.mgr.WarzoneWorldInfoMgr;
 import com.wjybxx.fastjgame.mgr.WorldWrapper;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.session.Session;
+import com.wjybxx.fastjgame.node.WarzoneNodeData;
 import com.wjybxx.fastjgame.rpcservice.IWarzoneCenterSessionMgrRpcRegister;
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.CreateMode;
-
-import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -87,12 +84,11 @@ public class WarzoneWorld extends AbstractWorld {
                 warzoneWorldInfoMgr.getWorldGuid());
 
         final String path = ZKPaths.makePath(parentPath, nodeName);
-        curatorMgr.waitForNodeDelete(path);
-
         final byte[] initData = JsonUtils.toJsonBytes(centerNodeData);
-        ConcurrentUtils.awaitRemoteWithSleepingRetry(
-                () -> curatorMgr.createNodeIfAbsent(path, CreateMode.EPHEMERAL, initData),
-                3, TimeUnit.SECONDS);
+
+        // 创建失败则退出
+        curatorMgr.waitForNodeDelete(path);
+        curatorMgr.createNode(path, CreateMode.EPHEMERAL, initData);
     }
 
     @Override
