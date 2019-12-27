@@ -17,10 +17,10 @@
 package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.node.CenterNodeData;
-import com.wjybxx.fastjgame.node.CenterNodeName;
 import com.wjybxx.fastjgame.misc.CenterServerId;
 import com.wjybxx.fastjgame.misc.LoginCenterSession;
+import com.wjybxx.fastjgame.node.CenterNodeData;
+import com.wjybxx.fastjgame.node.CenterNodeName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

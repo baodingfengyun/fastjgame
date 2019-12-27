@@ -18,9 +18,9 @@ package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
+import com.wjybxx.fastjgame.misc.RoleType;
 import com.wjybxx.fastjgame.node.CenterNodeData;
 import com.wjybxx.fastjgame.node.CenterNodeName;
-import com.wjybxx.fastjgame.misc.RoleType;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.curator.framework.recipes.cache.*;

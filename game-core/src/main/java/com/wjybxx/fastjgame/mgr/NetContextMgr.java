@@ -44,14 +44,10 @@ public class NetContextMgr {
         this.gameEventLoopMgr = gameEventLoopMgr;
     }
 
-    public void start() {
+    public void create() {
         // 创建上下文
         netContext = gameEventLoopMgr.getNetEventLoopGroup()
                 .createContext(worldInfoMgr.getWorldGuid(), gameEventLoopMgr.getEventLoop());
-    }
-
-    public void shutdown() {
-
     }
 
     public NetContext getNetContext() {

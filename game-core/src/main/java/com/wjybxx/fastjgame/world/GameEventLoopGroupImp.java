@@ -162,8 +162,13 @@ public class GameEventLoopGroupImp extends MultiThreadEventLoopGroup implements 
             final RealContext realContext = new RealContext(netEventLoopGroup, children);
             final GameEventLoopGroupImp gameEventLoopGroup = new GameEventLoopGroupImp(threadFactory, rejectedExecutionHandler, chooserFactory, realContext);
             // 初始化
-            gameEventLoopGroup.start();
-
+            try {
+                gameEventLoopGroup.start();
+            } catch (Throwable t) {
+                // 出现任何异常都关闭
+                gameEventLoopGroup.shutdownNow();
+                ConcurrentUtils.rethrow(t);
+            }
             // 返回引用
             return gameEventLoopGroup;
         }

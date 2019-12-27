@@ -48,11 +48,13 @@ public class CenterWorld extends AbstractWorld {
     private final CenterWorldInfoMgr centerWorldInfoMgr;
     private final CenterWarzoneSessionMgr centerWarzoneSessionMgr;
     private final CenterPlayerMessageDispatcherMgr playerMessageDispatcherMgr;
+    private final CenterMongoDBMgr mongoDBMgr;
 
     @Inject
     public CenterWorld(WorldWrapper worldWrapper, CenterDiscoverMgr centerDiscoverMgr,
                        CenterSceneSessionMgr centerSceneSessionMgr, CenterGateSessionMgr centerGateSessionMgr,
-                       CenterWarzoneSessionMgr centerWarzoneSessionMgr, CenterPlayerMessageDispatcherMgr playerMessageDispatcherMgr) {
+                       CenterWarzoneSessionMgr centerWarzoneSessionMgr, CenterPlayerMessageDispatcherMgr playerMessageDispatcherMgr,
+                       CenterMongoDBMgr mongoDBMgr) {
         super(worldWrapper);
         this.centerDiscoverMgr = centerDiscoverMgr;
         this.centerSceneSessionMgr = centerSceneSessionMgr;
@@ -60,6 +62,7 @@ public class CenterWorld extends AbstractWorld {
         this.centerGateSessionMgr = centerGateSessionMgr;
         this.centerWarzoneSessionMgr = centerWarzoneSessionMgr;
         this.playerMessageDispatcherMgr = playerMessageDispatcherMgr;
+        this.mongoDBMgr = mongoDBMgr;
     }
 
     @Override
@@ -70,6 +73,11 @@ public class CenterWorld extends AbstractWorld {
 
     @Override
     protected void registerHttpRequestHandlers() {
+
+    }
+
+    @Override
+    protected void registerEventHandlers() {
 
     }
 
@@ -114,6 +122,7 @@ public class CenterWorld extends AbstractWorld {
     @Override
     protected void shutdownHook() throws IOException {
         centerDiscoverMgr.shutdown();
+        mongoDBMgr.close();
     }
 
     private class GateLifeAware implements SessionLifecycleAware {

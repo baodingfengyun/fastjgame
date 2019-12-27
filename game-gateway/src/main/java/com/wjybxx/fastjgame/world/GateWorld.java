@@ -70,6 +70,11 @@ public class GateWorld extends AbstractWorld {
     }
 
     @Override
+    protected void registerEventHandlers() {
+
+    }
+
+    @Override
     protected void startHook() throws Exception {
         discoverMgr.start();
         bindAndregisterToZK();

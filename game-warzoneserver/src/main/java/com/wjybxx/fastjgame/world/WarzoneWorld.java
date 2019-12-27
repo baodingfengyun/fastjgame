@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.world;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.mgr.WarzoneCenterSessionMgr;
+import com.wjybxx.fastjgame.mgr.WarzoneMongoDBMgr;
 import com.wjybxx.fastjgame.mgr.WarzoneWorldInfoMgr;
 import com.wjybxx.fastjgame.mgr.WorldWrapper;
 import com.wjybxx.fastjgame.misc.HostAndPort;
@@ -43,13 +44,15 @@ public class WarzoneWorld extends AbstractWorld {
 
     private final WarzoneWorldInfoMgr warzoneWorldInfoMgr;
     private final WarzoneCenterSessionMgr warzoneCenterSessionMgr;
+    private final WarzoneMongoDBMgr mongoDBMgr;
 
     @Inject
     public WarzoneWorld(WorldWrapper worldWrapper, WarzoneWorldInfoMgr warzoneWorldInfoMgr,
-                        WarzoneCenterSessionMgr warzoneCenterSessionMgr) {
+                        WarzoneCenterSessionMgr warzoneCenterSessionMgr, WarzoneMongoDBMgr mongoDBMgr) {
         super(worldWrapper);
         this.warzoneWorldInfoMgr = warzoneWorldInfoMgr;
         this.warzoneCenterSessionMgr = warzoneCenterSessionMgr;
+        this.mongoDBMgr = mongoDBMgr;
     }
 
     @Override
@@ -59,6 +62,11 @@ public class WarzoneWorld extends AbstractWorld {
 
     @Override
     protected void registerHttpRequestHandlers() {
+
+    }
+
+    @Override
+    protected void registerEventHandlers() {
 
     }
 
@@ -98,7 +106,7 @@ public class WarzoneWorld extends AbstractWorld {
 
     @Override
     protected void shutdownHook() {
-
+        mongoDBMgr.close();
     }
 
     private class CenterLifeAware implements SessionLifecycleAware {

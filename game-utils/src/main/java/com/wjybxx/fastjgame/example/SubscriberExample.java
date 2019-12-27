@@ -113,8 +113,8 @@ public class SubscriberExample {
 
     public static void main(String[] args) {
         final EventBus bus = new EventBus();
-        final SubscriberExample example = new SubscriberExample();
-        SubscriberExampleBusRegister.register(bus, example);
+        SubscriberExampleBusRegister.register(bus, new SubscriberExample());
+        SubscribeInnerExampleBusRegister.register(bus, new SubscribeInnerExample());
 
         bus.post(new DefaultThreadFactory("bus"));
         bus.post(new InternalThreadFactory());
@@ -130,6 +130,17 @@ public class SubscriberExample {
         @Override
         public Thread newThread(@Nonnull Runnable r) {
             return null;
+        }
+    }
+
+    /**
+     * 内部类事件监听
+     */
+    public static class SubscribeInnerExample {
+
+        @Subscribe
+        public void onEvent(String event) {
+            System.out.println("onEvent inner: " + event);
         }
     }
 }

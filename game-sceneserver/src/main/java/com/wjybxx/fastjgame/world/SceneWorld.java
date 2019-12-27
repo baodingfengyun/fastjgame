@@ -61,11 +61,6 @@ public class SceneWorld extends AbstractWorld {
     }
 
     @Override
-    protected void registerMessageHandlers() {
-
-    }
-
-    @Override
     protected void registerRpcService() {
         // 也可以在管理器里进行注册
         ISceneRegionMgrRpcRegister.register(protocolDispatcherMgr, sceneRegionMgr);
@@ -76,6 +71,11 @@ public class SceneWorld extends AbstractWorld {
 
     @Override
     protected void registerHttpRequestHandlers() {
+
+    }
+
+    @Override
+    protected void registerEventHandlers() {
 
     }
 

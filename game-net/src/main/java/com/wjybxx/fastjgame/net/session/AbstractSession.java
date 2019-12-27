@@ -30,6 +30,8 @@ import com.wjybxx.fastjgame.net.task.OneWayMessageWriteTask;
 import com.wjybxx.fastjgame.net.task.SyncRpcRequestWriteTask;
 import com.wjybxx.fastjgame.timer.TimerHandle;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -44,6 +46,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * github - https://github.com/hl845740757
  */
 public abstract class AbstractSession implements Session {
+
+    private static final Logger logger = LoggerFactory.getLogger(AbstractSession.class);
 
     private static final int ST_BOUND = 0;
     private static final int ST_CONNECTED = 1;
@@ -201,17 +205,21 @@ public abstract class AbstractSession implements Session {
         // 可能是网络层关闭
         ConcurrentUtils.executeOrRun(netEventLoop, () -> {
             try {
-                doClose();
+                doCloseSafely();
             } finally {
                 checkNotify(oldState);
             }
         });
     }
 
-    private void doClose() {
-        sessionRegistry.removeSession(sessionId);
-        tickHandle.cancel();
-        pipeline.fireClose();
+    private void doCloseSafely() {
+        try {
+            sessionRegistry.removeSession(sessionId);
+            tickHandle.cancel();
+            pipeline.fireClose();
+        } catch (Throwable t) {
+            logger.warn("doClose caught exception", t);
+        }
     }
 
     private void checkNotify(int oldState) {
@@ -275,7 +283,7 @@ public abstract class AbstractSession implements Session {
             // 已关闭
             return;
         }
-        doClose();
+        doCloseSafely();
     }
 
     /**

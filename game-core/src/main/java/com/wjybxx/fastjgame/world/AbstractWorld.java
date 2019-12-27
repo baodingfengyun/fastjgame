@@ -52,6 +52,7 @@ public abstract class AbstractWorld implements World {
     protected final GuidMgr guidMgr;
     protected final GameAcceptorMgr gameAcceptorMgr;
     protected final NetContextMgr netContextMgr;
+    protected final WorldEventMgr worldEventMgr;
 
     @Inject
     public AbstractWorld(WorldWrapper worldWrapper) {
@@ -69,6 +70,7 @@ public abstract class AbstractWorld implements World {
         guidMgr = worldWrapper.getGuidMgr();
         gameAcceptorMgr = worldWrapper.getGameAcceptorMgr();
         netContextMgr = worldWrapper.getNetContextMgr();
+        worldEventMgr = worldWrapper.getWorldEventMgr();
     }
 
     /**
@@ -92,15 +94,6 @@ public abstract class AbstractWorld implements World {
     // --------------------------------- rpc请求、玩家消息、http请求处理器注册--------------------------
 
     /**
-     * 注册玩家消息处理器，主要是scene服注册
-     * 使用注解处理器生成的{@code xxxMsgFunRegister}进行注册
-     * 也可以在自己的类中使用messageDispatcherMgr自己注册，不一定需要在world中注册。
-     */
-    protected void registerMessageHandlers() {
-
-    }
-
-    /**
      * 注册rpc请求处理器，服务器之间使用rpc进行通信。
      * 使用注解处理生成的{@code xxxRpcRegister}进行注册。
      */
@@ -111,6 +104,12 @@ public abstract class AbstractWorld implements World {
      * 使用注解处理器生成的{@code xxxHttpRegister}进行注册
      */
     protected abstract void registerHttpRequestHandlers();
+
+    /**
+     * 注册事件处理器 - 包含了玩家消息派发。
+     * 使用注解处理器生成的{@code XXXBusRegister}进行注册。
+     */
+    protected abstract void registerEventHandlers();
 
     // ----------------------------------------- 接口模板实现 ------------------------------------
 
@@ -129,14 +128,14 @@ public abstract class AbstractWorld implements World {
         // 必须先初始world信息
         worldInfoMgr.init(startArgs);
         // 初始化网络上下文
-        netContextMgr.start();
+        netContextMgr.create();
+
         // 初始化网络层需要的组件(codec帮助类)
         registerProtocolCodecs();
 
-        // 注册要处理的异步普通消息和http请求和同步rpc请求
-        registerMessageHandlers();
         registerRpcService();
         registerHttpRequestHandlers();
+        registerEventHandlers();
 
         // 初始化redis管道
         worldWrapper.getRedisMgr().pipelined();
@@ -201,7 +200,6 @@ public abstract class AbstractWorld implements World {
      * 关闭公共服务
      */
     private void shutdownCore() {
-        netContextMgr.shutdown();
         curatorMgr.shutdown();
         protocolDispatcherMgr.release();
         httpDispatcherMgr.release();

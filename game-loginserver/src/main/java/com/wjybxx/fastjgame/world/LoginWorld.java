@@ -17,12 +17,9 @@
 package com.wjybxx.fastjgame.world;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.node.LoginNodeData;
-import com.wjybxx.fastjgame.mgr.LoginCenterSessionMgr;
-import com.wjybxx.fastjgame.mgr.LoginDiscoverMgr;
-import com.wjybxx.fastjgame.mgr.LoginWorldInfoMgr;
-import com.wjybxx.fastjgame.mgr.WorldWrapper;
+import com.wjybxx.fastjgame.mgr.*;
 import com.wjybxx.fastjgame.misc.HostAndPort;
+import com.wjybxx.fastjgame.node.LoginNodeData;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.curator.utils.ZKPaths;
@@ -41,14 +38,16 @@ public class LoginWorld extends AbstractWorld {
     private final LoginDiscoverMgr loginDiscoverMgr;
     private final LoginWorldInfoMgr loginWorldInfoMgr;
     private final LoginCenterSessionMgr loginCenterSessionMgr;
+    private final LoginMongoDBMgr mongoDBMgr;
 
     @Inject
     public LoginWorld(WorldWrapper worldWrapper, LoginDiscoverMgr loginDiscoverMgr,
-                      LoginCenterSessionMgr loginCenterSessionMgr) {
+                      LoginCenterSessionMgr loginCenterSessionMgr, LoginMongoDBMgr mongoDBMgr) {
         super(worldWrapper);
         this.loginDiscoverMgr = loginDiscoverMgr;
         this.loginWorldInfoMgr = (LoginWorldInfoMgr) worldWrapper.getWorldInfoMgr();
         this.loginCenterSessionMgr = loginCenterSessionMgr;
+        this.mongoDBMgr = mongoDBMgr;
     }
 
     @Override
@@ -58,6 +57,11 @@ public class LoginWorld extends AbstractWorld {
 
     @Override
     protected void registerHttpRequestHandlers() {
+
+    }
+
+    @Override
+    protected void registerEventHandlers() {
 
     }
 
@@ -89,5 +93,6 @@ public class LoginWorld extends AbstractWorld {
     @Override
     protected void shutdownHook() {
         loginDiscoverMgr.shutdown();
+        mongoDBMgr.close();
     }
 }
