@@ -19,6 +19,8 @@ package com.wjybxx.fastjgame.net.socket;
 import com.wjybxx.fastjgame.net.socket.outer.OuterSocketMessage;
 import org.apache.commons.lang3.RandomUtils;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.LinkedList;
 
 /**
@@ -65,15 +67,13 @@ public final class MessageQueue {
 
     /**
      * 已发送待确认的消息队列，只要发送过就不会再放入{@link #cacheQueue}
-     * Q: 为什么不使用arrayList?
-     * A: 1.存在大量的删除操作 2.ArrayList存在空间浪费。3.遍历很少
      */
-    private LinkedList<OuterSocketMessage> pendingQueue = new LinkedList<>();
+    private Deque<OuterSocketMessage> pendingQueue = new ArrayDeque<>();
 
     /**
      * 未发送的消息队列,还没有尝试过发送的消息
      */
-    private LinkedList<OuterSocketMessage> cacheQueue = new LinkedList<>();
+    private Deque<OuterSocketMessage> cacheQueue = new LinkedList<>();
 
     /**
      * 对方发送过来的ack是否有效。
@@ -157,11 +157,11 @@ public final class MessageQueue {
         this.ack = ack;
     }
 
-    public LinkedList<OuterSocketMessage> getPendingQueue() {
+    public Deque<OuterSocketMessage> getPendingQueue() {
         return pendingQueue;
     }
 
-    public LinkedList<OuterSocketMessage> getCacheQueue() {
+    public Deque<OuterSocketMessage> getCacheQueue() {
         return cacheQueue;
     }
 

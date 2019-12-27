@@ -26,6 +26,8 @@ import java.lang.reflect.Method;
 import java.util.Objects;
 
 /**
+ * protocol buffer工具类
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/12/24

@@ -101,8 +101,8 @@ public class SerializableNumberProcessor extends AbstractProcessor {
     }
 
     private void checkNumber(TypeElement typeElement) {
-        if (typeElement.getKind() == ElementKind.ENUM || isNumberEnum(typeElement)) {
-            // 检查枚举类型 - 查找forNumber静态方法
+        if (isNumberEnum(typeElement)) {
+            // 检查限定‘枚举’类型 - 查找forNumber静态方法
             checkEnum(typeElement);
         } else if (typeElement.getKind() == ElementKind.CLASS) {
             // 检查普通类型
@@ -114,8 +114,7 @@ public class SerializableNumberProcessor extends AbstractProcessor {
     }
 
     private boolean isNumberEnum(TypeElement typeElement) {
-        return typeElement.getKind() == ElementKind.CLASS
-                && typeUtils.isSubtype(typeUtils.getDeclaredType(typeElement), numberEnumDeclaredType);
+        return typeUtils.isSubtype(typeUtils.getDeclaredType(typeElement), numberEnumDeclaredType);
     }
 
     private void checkClass(TypeElement typeElement) {

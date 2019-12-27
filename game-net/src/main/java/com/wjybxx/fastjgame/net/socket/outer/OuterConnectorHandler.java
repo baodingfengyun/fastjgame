@@ -195,6 +195,7 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
             // 无法建立连接
             connectPromise.tryFailure(new IOException("connect failure"));
         }
+
         if (logger.isDebugEnabled()) {
             // 打印关闭原因
             logger.debug("close stacktrace {} ", ExceptionUtils.getStackTrace(new RuntimeException()));

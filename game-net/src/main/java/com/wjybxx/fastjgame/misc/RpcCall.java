@@ -42,13 +42,13 @@ public class RpcCall {
     private final int methodKey;
 
     /**
-     * 方法参数列表，无参时为{@link Collections#emptyList()}
+     * 方法参数列表
      */
     @SerializableField(number = 2)
     private final List<Object> methodParams;
 
     /**
-     * 需要延迟序列化为byte[]的参数位置信息 - 不序列化。
+     * 需要延迟到网络层序列化为byte[]的参数位置信息 - 不序列化。
      */
     private final int lazyIndexes;
     /**

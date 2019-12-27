@@ -43,7 +43,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
      * 缓存队列的大小，不宜过大，但也不能过小。
      * 过大容易造成内存浪费，过小对于性能无太大意义。
      */
-    private static final int CACHE_QUEUE_CAPACITY = 1024;
+    private static final int CACHE_QUEUE_CAPACITY = 256;
 
     /**
      * 用于友好的唤醒当前线程的任务
