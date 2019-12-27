@@ -115,13 +115,15 @@ public class RedisEventLoop extends SingleThreadEventLoop {
     protected void loop() {
         while (true) {
             try {
-                if (confirmShutdown()) {
-                    break;
-                }
-
                 runTasksBatch(BATCH_TASK_SIZE);
 
                 sync();
+
+                checkConnection();
+
+                if (confirmShutdown()) {
+                    break;
+                }
 
                 // 等待以降低cpu利用率
                 sleepQuietly(1);
@@ -133,20 +135,28 @@ public class RedisEventLoop extends SingleThreadEventLoop {
     }
 
     /**
+     * 检查连接是否可用
+     */
+    private void checkConnection() {
+        if (pipeline == null) {
+            // 当前连接不可用，尝试建立连接
+            // 不在执行管道命令的时候进行连接，是为了避免处理任务过慢，导致任务大量堆积，从而产生过高的内存占用
+            connectSafely();
+        }
+    }
+
+    /**
      * 刷新管道，为未获得结果的redis请求生成结果
      */
     private void sync() {
         if (waitResponseTasks.isEmpty()) {
+            // 没有需要生成结果的命令
             return;
         }
 
         try {
             if (pipeline != null) {
                 pipeline.sync();
-            } else {
-                // 当前连接不可用，尝试建立连接
-                // 不在执行管道命令的时候进行连接，是为了避免处理任务过慢，导致任务大量堆积，从而产生过高的内存占用
-                connectSafely();
             }
         } catch (Throwable t) {
             // pipeline的缺陷：由于多个指令是批量执行的，因此不是原子的。
@@ -154,8 +164,6 @@ public class RedisEventLoop extends SingleThreadEventLoop {
             logger.warn("pipeline.sync caught exception", t);
 
             closeConnection();
-
-            connectSafely();
         } finally {
             generateResponses();
         }
@@ -252,8 +260,15 @@ public class RedisEventLoop extends SingleThreadEventLoop {
                 // 执行管道命令出现异常
                 cause = t;
 
-                // 关闭连接 - 避免在当前帧连续抛出异常(占用大量CPU资源)
-                closeConnection();
+                try {
+                    // 关闭连接 - 避免在当前帧连续抛出异常(占用大量CPU资源)
+                    closeConnection();
+
+                    // 尝试一次：如果失败，pipeline 依然为null；如果成功，接下来的命令将可以成功执行
+                    connectSafely();
+                } finally {
+                    generateResponses();
+                }
             }
         }
     }

@@ -94,23 +94,23 @@ public class RedisEventLoopExample {
         protected void loop() {
             final IntHolder countdown = new IntHolder(0);
             final int MAX_LOOP_TIMES = 100_0000;
-            int loop = 0;
             final long startTimeMS = System.currentTimeMillis();
-            while (true) {
 
+            for (int loop = 0; loop < MAX_LOOP_TIMES; loop++) {
                 runAllTasks();
 
-                if (loop++ >= MAX_LOOP_TIMES) {
-                    // 不再继续发送redis请求
-                    if (countdown.get() == 0) {
-                        shutdown();
-                        break;
-                    } else {
-                        continue;
-                    }
+                sendRedisCommands(countdown, loop);
+            }
+
+            while (true) {
+                runAllTasks();
+
+                if (countdown.get() == 0) {
+                    shutdown();
+                    break;
                 }
 
-                sendRedisCommands(countdown, loop);
+                ConcurrentUtils.sleepQuietly(1);
             }
 
             System.out.println("execute " + (2 * MAX_LOOP_TIMES) + " commands, cost time ms " + (System.currentTimeMillis() - startTimeMS));

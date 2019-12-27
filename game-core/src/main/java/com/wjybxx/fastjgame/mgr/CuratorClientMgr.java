@@ -79,7 +79,7 @@ public class CuratorClientMgr {
     }
 
     public void shutdown() {
-        ConcurrentUtils.safeExecute((Runnable) client::close);
+        ConcurrentUtils.safeExecute(client::close);
         backgroundExecutor.shutdownNow();
         logger.info("CuratorClientMgr shutdown success");
     }

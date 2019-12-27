@@ -90,6 +90,16 @@ public class ConcurrentUtils {
     // ---------------------------------------- 中断处理 ---------------------------
 
     /**
+     * 恢复中断。
+     * 如果是中断异常，则恢复线程中断状态。
+     *
+     * @param t 异常
+     */
+    public static void recoveryInterrupted(Throwable t) {
+        recoveryInterrupted(t instanceof InterruptedException);
+    }
+
+    /**
      * 恢复中断
      *
      * @param interrupted 是否出现了中断
@@ -104,25 +114,6 @@ public class ConcurrentUtils {
     }
 
     /**
-     * 恢复中断。
-     * 如果是中断异常，则恢复线程中断状态。
-     *
-     * @param e 异常
-     * @return ture if is InterruptedException
-     */
-    public static boolean recoveryInterrupted(Exception e) {
-        if (isInterrupted(e)) {
-            try {
-                Thread.currentThread().interrupt();
-            } catch (SecurityException ignore) {
-            }
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    /**
      * 检查线程中断状态。
      *
      * @throws InterruptedException 如果线程被中断，则抛出中断异常
@@ -131,16 +122,6 @@ public class ConcurrentUtils {
         if (Thread.interrupted()) {
             throw new InterruptedException();
         }
-    }
-
-    /**
-     * 是否是中断异常
-     *
-     * @param e exception
-     * @return true/false
-     */
-    public static boolean isInterrupted(Throwable e) {
-        return e instanceof InterruptedException;
     }
 
     // ------------------------------------------- 等待处理 -------------------------------------
@@ -176,21 +157,17 @@ public class ConcurrentUtils {
      * 对于不甚频繁的方法调用可以进行封装，如果大量的调用可能会对性能有所影响；
      *
      * @param task 要执行的任务，可以将要执行的方法封装为 ()-> safeExecute()
-     * @return true if is interrupted
      */
-    public static boolean safeExecute(Runnable task) {
-        boolean interrupted = false;
+    public static void safeExecute(Runnable task) {
         try {
             task.run();
-        } catch (Throwable e) {
-            if (e instanceof VirtualMachineError) {
-                logger.error("A task raised an exception. Task: {}", task, e);
+        } catch (Throwable t) {
+            if (t instanceof VirtualMachineError) {
+                logger.error("A task raised an exception. Task: {}", task, t);
             } else {
-                interrupted = isInterrupted(e);
-                logger.warn("A task raised an exception. Task: {}", task, e);
+                logger.warn("A task raised an exception. Task: {}", task, t);
             }
         }
-        return interrupted;
     }
 
     /**

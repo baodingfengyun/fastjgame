@@ -175,9 +175,6 @@ class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLoop {
     protected void loop() {
         while (true) {
             try {
-                if (confirmShutdown()) {
-                    break;
-                }
                 // 批量执行任务
                 runTasksBatch(BATCH_TASK_SIZE);
 
@@ -185,6 +182,10 @@ class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLoop {
                 netTimeManager.update(System.currentTimeMillis());
                 // 检测定时器
                 netTimerManager.tick();
+
+                if (confirmShutdown()) {
+                    break;
+                }
 
                 // 等待以降低cpu利用率
                 sleepQuietly(1);
@@ -202,9 +203,9 @@ class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLoop {
         netTimerManager.close();
 
         // 清理资源
-        ConcurrentUtils.safeExecute((Runnable) acceptorManager::clean);
-        ConcurrentUtils.safeExecute((Runnable) connectorManager::clean);
-        ConcurrentUtils.safeExecute((Runnable) httpSessionManager::clean);
+        ConcurrentUtils.safeExecute(acceptorManager::clean);
+        ConcurrentUtils.safeExecute(connectorManager::clean);
+        ConcurrentUtils.safeExecute(httpSessionManager::clean);
     }
 
     @Override

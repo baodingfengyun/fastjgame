@@ -31,21 +31,15 @@ import java.lang.annotation.Target;
  * 代码生成工具会那么会捕获其泛型参数作为Rpc调用结果。
  * 3. 如果返回值为void或Void，且参数中没有{@link RpcResponseChannel}，那么表示没有返回值。
  * 即：
- * <pre>
- * {@code
- * 		// 1. 可以立即返回结果，代理方法返回值 RpcBuilder<String>
- * 		String rpcMethod(long id);
- * 		// 2. 不能立即返回结果，代理方法返回值 RpcBuilder<String>
- * 		void rpcMethod(RpcResponseChannel<String> channel, ling id);
- * 		// 3. 不返回结果，代理方法返回值 RpcBuilder<?>
- * 		void oneWayMethod(long id);
- * }
- * </pre>
- * <p>
+ * <pre>{@code
+ * 	1. String rpcMethod(long id) -> RpcBuilder<String>
+ * 	2. void rpcMethod(RpcResponseChannel<String> channel, ling id) -> RpcBuilder<String>
+ * 	3. void oneWayMethod(long id) -> RpcBuilder<?>
+ * }</pre>
  * 注意：
  * 1. RpcResponseChannel不参与生成的代理方法的参数列表，因此上面 1，2生成的代理方法签名是一致的！你必须避免这种情况。
  * 2. 方法不能是private - 至少是包级访问权限。
- * 3. methodId必须
+ * 3. methodId必须在[0,9999]区间段。
  *
  * @author wjybxx
  * @version 1.0
