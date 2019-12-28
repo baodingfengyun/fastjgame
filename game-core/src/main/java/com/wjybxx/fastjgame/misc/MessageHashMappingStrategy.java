@@ -27,7 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Set;
 
 /**
- * 所有消息类Hash映射策略。
+ * 基于hash的消息映射方法，由类的简单名计算hash值。
  *
  * @author wjybxx
  * @version 1.0

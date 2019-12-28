@@ -24,6 +24,7 @@ import java.util.Objects;
  * date - 2019/5/9 12:01
  * github - https://github.com/hl845740757
  */
+@FunctionalInterface
 public interface ShortObjPredicate<V> {
 
     boolean test(short k, V v);

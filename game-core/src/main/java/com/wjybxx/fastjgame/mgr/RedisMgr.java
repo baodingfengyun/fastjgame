@@ -55,6 +55,9 @@ public class RedisMgr {
      * 在使用其它方法之前，必须先构建管道
      */
     public void pipelined() {
+        if (redisPipeline != null) {
+            throw new IllegalStateException();
+        }
         redisPipeline = redisEventLoopMgr.newPipeline(gameEventLoopMgr.getEventLoop());
     }
 

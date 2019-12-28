@@ -31,7 +31,7 @@ import com.wjybxx.fastjgame.net.common.*;
 import com.wjybxx.fastjgame.net.http.HttpRequestEvent;
 import com.wjybxx.fastjgame.net.local.ConnectLocalRequest;
 import com.wjybxx.fastjgame.net.socket.*;
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
+import com.wjybxx.fastjgame.utils.CloseableUtils;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -198,14 +198,14 @@ class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLoop {
 
     @Override
     protected void clean() throws Exception {
-        super.clean();
+        appEventLoopSet.clear();
         // 清理定时器
-        netTimerManager.close();
+        CloseableUtils.closeSafely(netTimerManager::close);
 
         // 清理资源
-        ConcurrentUtils.safeExecute(acceptorManager::clean);
-        ConcurrentUtils.safeExecute(connectorManager::clean);
-        ConcurrentUtils.safeExecute(httpSessionManager::clean);
+        CloseableUtils.closeSafely(acceptorManager::clean);
+        CloseableUtils.closeSafely(connectorManager::clean);
+        CloseableUtils.closeSafely(httpSessionManager::clean);
     }
 
     @Override
@@ -227,7 +227,7 @@ class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLoop {
     }
 
     @Subscribe
-    void onAppEventLoopTerminalInternal(EventLoopTerminalEvent event) {
+    void onAppEventLoopTerminal(EventLoopTerminalEvent event) {
         final EventLoop appEventLoop = event.getTerminatedEventLoop();
         acceptorManager.onAppEventLoopTerminal(appEventLoop);
         connectorManager.onAppEventLoopTerminal(appEventLoop);

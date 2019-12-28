@@ -14,7 +14,9 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.misc;
+package com.wjybxx.fastjgame.function;
+
+import javax.annotation.Nonnull;
 
 /**
  * 通用工厂
@@ -24,8 +26,15 @@ package com.wjybxx.fastjgame.misc;
  * date - 2019/12/27
  * github - https://github.com/hl845740757
  */
-public interface GenericFactory<T> {
+@FunctionalInterface
+public interface Factory<T> {
 
+    /**
+     * 创建一个‘新的'对象实例
+     *
+     * @return newInstance
+     */
+    @Nonnull
     T newInstance();
 
 }

@@ -24,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-import java.io.Closeable;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -59,8 +58,17 @@ public class GameUtils {
      *
      * @param closeable 实现了close方法的对象
      */
-    public static void closeQuietly(@Nullable Closeable closeable) {
+    public static void closeQuietly(@Nullable AutoCloseable closeable) {
         CloseableUtils.closeQuietly(closeable);
+    }
+
+    /**
+     * 安全的关闭，仅仅记录出现的异常
+     *
+     * @param closeable 实现了close方法的对象
+     */
+    public static void closeSafely(@Nullable AutoCloseable closeable) {
+        CloseableUtils.closeSafely(closeable);
     }
 
     /**

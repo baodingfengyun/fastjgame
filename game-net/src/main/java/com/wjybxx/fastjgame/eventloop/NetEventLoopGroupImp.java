@@ -68,6 +68,7 @@ class NetEventLoopGroupImp extends MultiThreadEventLoopGroup implements NetEvent
 
     @Override
     protected void clean() {
+        appEventLoopSet.clear();
         // 关闭持有的线程资源
         ConcurrentUtils.safeExecute(nettyThreadManager::shutdown);
         ConcurrentUtils.safeExecute(httpClientManager::shutdown);

@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.timer;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Comparator;
 
@@ -65,7 +66,11 @@ abstract class AbstractTimerHandle implements TimerHandle {
     /**
      * 是否已终止
      */
-    private boolean terminated = false;
+    private boolean closed = false;
+    /**
+     * timer关联的异常处理器
+     */
+    private ExceptionHandler exceptionHandler = ExceptionHandlers.CLOSE;
 
     AbstractTimerHandle(DefaultTimerSystem timerSystem, TimerTask timerTask) {
         this.timerSystem = timerSystem;
@@ -95,23 +100,34 @@ abstract class AbstractTimerHandle implements TimerHandle {
 
     @Override
     public long runDelay() {
-        if (terminated) {
+        if (closed) {
             return -1;
         }
         return Math.max(0, nextExecuteTimeMs - timerSystem.curTimeMillis());
     }
 
     @Override
-    public final void cancel() {
-        if (!terminated) {
-            terminated = true;
+    public void close() {
+        if (!closed) {
+            closed = true;
             timerSystem.remove(this);
         }
     }
 
     @Override
-    public boolean isTerminated() {
-        return terminated;
+    public boolean isClosed() {
+        return closed;
+    }
+
+    @Nonnull
+    @Override
+    public ExceptionHandler getExceptionHandler() {
+        return exceptionHandler;
+    }
+
+    @Override
+    public void setExceptionHandler(@Nonnull ExceptionHandler exceptionHandler) {
+        this.exceptionHandler = exceptionHandler;
     }
 
     DefaultTimerSystem timerSystem() {
@@ -134,8 +150,8 @@ abstract class AbstractTimerHandle implements TimerHandle {
         return nextExecuteTimeMs;
     }
 
-    final void setTerminated() {
-        this.terminated = true;
+    final void setClosed() {
+        this.closed = true;
     }
 
     /**

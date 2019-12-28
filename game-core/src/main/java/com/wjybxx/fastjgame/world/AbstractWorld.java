@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
 import com.wjybxx.fastjgame.mgr.*;
 import com.wjybxx.fastjgame.misc.MessageMappingStrategy;
 import com.wjybxx.fastjgame.misc.RoleType;
+import com.wjybxx.fastjgame.utils.CloseableUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -200,9 +201,9 @@ public abstract class AbstractWorld implements World {
      * 关闭公共服务
      */
     private void shutdownCore() {
-        curatorMgr.shutdown();
         protocolDispatcherMgr.release();
         httpDispatcherMgr.release();
+        CloseableUtils.closeSafely(curatorMgr::shutdown);
     }
 
     /**

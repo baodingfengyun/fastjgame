@@ -14,32 +14,27 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.function;
+package com.wjybxx.fastjgame.timer;
 
-import java.util.Objects;
+import javax.annotation.Nonnull;
 
 /**
+ * timer关联的异常处理器
+ *
  * @author wjybxx
  * @version 1.0
- * date - 2019/9/27
+ * date - 2019/12/28
  * github - https://github.com/hl845740757
  */
 @FunctionalInterface
-public interface ShortPredicate {
+public interface ExceptionHandler {
 
-    boolean test(short value);
+    /**
+     * 当timer出现异常时，该方法将被调用 - 如果在处理异常时抛出了新的异常，那么timer一定会被关闭。
+     *
+     * @param handle timer关联的handle
+     * @param cause  异常
+     */
+    void onExceptionCaught(@Nonnull TimerHandle handle, @Nonnull Throwable cause);
 
-    default ShortPredicate and(ShortPredicate other) {
-        Objects.requireNonNull(other);
-        return (value) -> test(value) && other.test(value);
-    }
-
-    default ShortPredicate negate() {
-        return (value) -> !test(value);
-    }
-
-    default ShortPredicate or(ShortPredicate other) {
-        Objects.requireNonNull(other);
-        return (value) -> test(value) || other.test(value);
-    }
 }

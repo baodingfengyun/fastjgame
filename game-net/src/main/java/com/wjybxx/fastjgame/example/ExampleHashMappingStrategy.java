@@ -27,7 +27,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.Arrays;
 
 /**
- * 基于hash的映射方法，由类的完整名字计算hash值。
+ * 基于hash的消息映射方法，由类的简单名计算hash值。
  *
  * @author wjybxx
  * @version 1.0

@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.timer;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -59,13 +60,27 @@ public interface TimerHandle {
     /**
      * 尝试关闭该handle关联的TimerTask，如果handle关联的timer早已关闭，则该方法什么也不会做。
      */
-    void cancel();
+    void close();
 
     /**
-     * 该handle关联的TimerTask是否已关闭（手动取消，正常结束都属于关闭）。
-     * (这个名字很难取，很难明确的表明语义)
+     * 该handle关联的TimerTask是否已关闭（手动关闭，正常结束都属于关闭）。
      *
      * @return 如果返回true，表示关联的TimerTask再也不会执行。
      */
-    boolean isTerminated();
+    boolean isClosed();
+
+    /**
+     * 获取timer关联的异常处理器。
+     * 注意：默认的异常处理器为{@link ExceptionHandlers#CLOSE}，即记录日志之后关闭timer。
+     */
+    @Nonnull
+    ExceptionHandler getExceptionHandler();
+
+    /**
+     * 设置timer关联的异常处理器
+     *
+     * @param exceptionHandler 异常处理器
+     */
+    void setExceptionHandler(@Nonnull ExceptionHandler exceptionHandler);
+
 }

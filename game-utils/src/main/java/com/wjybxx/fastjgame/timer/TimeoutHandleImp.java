@@ -41,7 +41,7 @@ class TimeoutHandleImp extends AbstractTimerHandle implements TimeoutHandle {
 
     @Override
     public boolean setTimeout(long timeout) {
-        if (isTerminated()) {
+        if (isClosed()) {
             return false;
         }
         this.timeout = timeout;
@@ -57,7 +57,7 @@ class TimeoutHandleImp extends AbstractTimerHandle implements TimeoutHandle {
     @Override
     protected final void afterExecuteOnce(long curTimeMs) {
         // 执行一次之后就结束了。
-        setTerminated();
+        setClosed();
     }
 
     protected void adjustNextExecuteTime() {

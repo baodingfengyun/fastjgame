@@ -215,7 +215,7 @@ public abstract class AbstractSession implements Session {
     private void doCloseSafely() {
         try {
             sessionRegistry.removeSession(sessionId);
-            tickHandle.cancel();
+            tickHandle.close();
             pipeline.fireClose();
         } catch (Throwable t) {
             logger.warn("doClose caught exception", t);

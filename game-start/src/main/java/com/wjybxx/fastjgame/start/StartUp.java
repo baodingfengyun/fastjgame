@@ -75,11 +75,13 @@ public class StartUp {
             "port=" + 12345
     };
 
+    /**
+     * 网关服参数
+     */
     private static final String[] gateArgs = new String[]{
             "platform=" + PlatformType.TEST.name(),
             "serverId=" + 1
     };
-
 
     public static void main(String[] args) throws Exception {
         // 指定一下日志文件

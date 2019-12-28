@@ -16,8 +16,10 @@
 
 package com.wjybxx.fastjgame.utils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.annotation.Nullable;
-import java.io.Closeable;
 
 /**
  * 可关闭资源工具类
@@ -29,6 +31,8 @@ import java.io.Closeable;
  */
 public class CloseableUtils {
 
+    private static final Logger logger = LoggerFactory.getLogger(CloseableUtils.class);
+
 
     private CloseableUtils() {
     }
@@ -36,12 +40,25 @@ public class CloseableUtils {
     /**
      * 安静地关闭一个资源
      */
-    public static void closeQuietly(@Nullable Closeable resource) {
+    public static void closeQuietly(@Nullable AutoCloseable resource) {
         if (null != resource) {
             try {
                 resource.close();
             } catch (Throwable ignore) {
 
+            }
+        }
+    }
+
+    /**
+     * 安全的关闭一个资源 - 出现任何异常仅仅只记录一个日志
+     */
+    public static void closeSafely(@Nullable AutoCloseable resource) {
+        if (null != resource) {
+            try {
+                resource.close();
+            } catch (Throwable t) {
+                logger.warn("close caught exception", t);
             }
         }
     }

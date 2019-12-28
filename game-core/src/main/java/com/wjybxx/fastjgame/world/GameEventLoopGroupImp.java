@@ -29,6 +29,7 @@ import com.wjybxx.fastjgame.mgr.LogProducerMgr;
 import com.wjybxx.fastjgame.mgr.RedisEventLoopMgr;
 import com.wjybxx.fastjgame.module.WorldGroupModule;
 import com.wjybxx.fastjgame.module.WorldModule;
+import com.wjybxx.fastjgame.utils.CloseableUtils;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.MathUtils;
 
@@ -103,10 +104,10 @@ public class GameEventLoopGroupImp extends MultiThreadEventLoopGroup implements 
     @Override
     protected void clean() {
         final Injector groupModule = getContext().groupInjector;
-        groupModule.getInstance(LogProducerMgr.class).shutdown();
-        groupModule.getInstance(RedisEventLoopMgr.class).shutdown();
-        groupModule.getInstance(GlobalExecutorMgr.class).shutdown();
-        groupModule.getInstance(CuratorClientMgr.class).shutdown();
+        CloseableUtils.closeSafely(groupModule.getInstance(LogProducerMgr.class)::shutdown);
+        CloseableUtils.closeSafely(groupModule.getInstance(RedisEventLoopMgr.class)::shutdown);
+        CloseableUtils.closeSafely(groupModule.getInstance(GlobalExecutorMgr.class)::shutdown);
+        CloseableUtils.closeSafely(groupModule.getInstance(CuratorClientMgr.class)::shutdown);
     }
 
     public static Builder newBuilder() {

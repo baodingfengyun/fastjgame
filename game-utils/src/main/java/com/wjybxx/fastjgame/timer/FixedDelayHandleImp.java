@@ -71,7 +71,7 @@ class FixedDelayHandleImp extends AbstractTimerHandle implements FixedDelayHandl
     @Override
     public final boolean setDelayLazy(long delay) {
         ensureDelay(delay);
-        if (isTerminated()) {
+        if (isClosed()) {
             return false;
         } else {
             this.delay = delay;

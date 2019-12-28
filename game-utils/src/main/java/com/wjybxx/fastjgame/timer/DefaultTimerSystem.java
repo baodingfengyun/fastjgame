@@ -130,7 +130,7 @@ public class DefaultTimerSystem implements TimerSystem {
     private <T extends AbstractTimerHandle> T tryAddTimerAndInit(T timerHandle) {
         if (closed) {
             // timer系统已关闭，不压入队列
-            timerHandle.setTerminated();
+            timerHandle.setClosed();
         } else {
             // 先初始化，才能获得首次执行时间
             timerHandle.init();
@@ -164,12 +164,10 @@ public class DefaultTimerSystem implements TimerSystem {
 
             do {
                 callbackSafely(timerHandle, curTimeMillis);
-                // 可能由于延迟导致需要执行多次(可以避免在当前轮反复压入弹出)，也可能在执行回调之后被取消了。do while用的不甚习惯...
-            } while (!timerHandle.isTerminated() && curTimeMillis >= timerHandle.getNextExecuteTimeMs());
+                // 可能由于延迟导致需要执行多次(可以避免在当前轮反复压入弹出)，也可能在执行回调之后被取消了。
+            } while (!timerHandle.isClosed() && curTimeMillis >= timerHandle.getNextExecuteTimeMs());
 
-            // 出现异常的timer会被取消，不再压入队列
-
-            if (!timerHandle.isTerminated()) {
+            if (!timerHandle.isClosed()) {
                 // 如果未取消的话，压入队列稍后执行
                 timerQueue.offer(timerHandle);
             }
@@ -187,11 +185,22 @@ public class DefaultTimerSystem implements TimerSystem {
     private static void callbackSafely(AbstractTimerHandle timerHandle, long curTimeMillis) {
         try {
             timerHandle.run();
+        } catch (final Throwable cause) {
+            try {
+                timerHandle.getExceptionHandler().onExceptionCaught(timerHandle, cause);
+            } catch (final Throwable unExpectedException) {
+                // 判断rethrow
+                if (unExpectedException != cause) {
+                    cause.addSuppressed(unExpectedException);
+                }
+                logger.warn("onExceptionCaught caught exception!", cause);
+                // 在处理异常时再出现异常，一定会关闭timer
+                timerHandle.setClosed();
+            }
+        }
+
+        if (!timerHandle.isClosed()) {
             timerHandle.afterExecuteOnce(curTimeMillis);
-        } catch (Throwable e) {
-            // 取消执行
-            timerHandle.setTerminated();
-            logger.warn("timer callback caught exception!", e);
         }
     }
 
@@ -217,7 +226,7 @@ public class DefaultTimerSystem implements TimerSystem {
     private static void closeQueue(Queue<AbstractTimerHandle> queue) {
         AbstractTimerHandle handle;
         while ((handle = queue.poll()) != null) {
-            handle.setTerminated();
+            handle.setClosed();
         }
     }
 
@@ -225,7 +234,6 @@ public class DefaultTimerSystem implements TimerSystem {
      * 删除一个timer
      */
     void remove(AbstractTimerHandle timerHandle) {
-        // 此时已调用 isTerminated() 为 true， 因此不必再次赋值
         if (timerHandle.getTimerId() != runningTimerId) {
             timerQueue.remove(timerHandle);
         }

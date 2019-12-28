@@ -20,6 +20,7 @@ import com.google.inject.Inject;
 import com.wjybxx.fastjgame.annotation.EventLoopGroupSingleton;
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.misc.BackoffRetryForever;
+import com.wjybxx.fastjgame.utils.CloseableUtils;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -79,7 +80,7 @@ public class CuratorClientMgr {
     }
 
     public void shutdown() {
-        ConcurrentUtils.safeExecute(client::close);
+        CloseableUtils.closeQuietly(client);
         backgroundExecutor.shutdownNow();
         logger.info("CuratorClientMgr shutdown success");
     }

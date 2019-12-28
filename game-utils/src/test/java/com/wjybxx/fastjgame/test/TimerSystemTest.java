@@ -18,7 +18,10 @@
 
 package com.wjybxx.fastjgame.test;
 
-import com.wjybxx.fastjgame.timer.*;
+import com.wjybxx.fastjgame.timer.DefaultTimerSystem;
+import com.wjybxx.fastjgame.timer.ExceptionHandlers;
+import com.wjybxx.fastjgame.timer.TimerHandle;
+import com.wjybxx.fastjgame.timer.TimerSystem;
 import com.wjybxx.fastjgame.utils.TimeUtils;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -53,26 +56,34 @@ public class TimerSystemTest {
     @SuppressWarnings("unused")
     public static void main(String[] args) {
         TimerSystem timerSystem = new DefaultTimerSystem();
-        // 局部变量是为了调试
-        TimeoutHandle handle1 = timerSystem.newTimeout(2 * TimeUtils.SEC, handle -> {
+        // 局部变量是为了调试(debug能获取到引用)
+        final TimerHandle handle1 = timerSystem.newTimeout(2 * TimeUtils.SEC, handle -> {
             System.out.println("two second " + System.currentTimeMillis());
         });
 
-        TimeoutHandle handle2 = timerSystem.newTimeout(TimeUtils.SEC, handle -> {
+        final TimerHandle handle2 = timerSystem.newTimeout(TimeUtils.SEC, handle -> {
             System.out.println("one second " + System.currentTimeMillis());
         });
 
-        TimeoutHandle handle3 = timerSystem.newTimeout(2 * TimeUtils.SEC, handle -> {
+        final TimerHandle handle3 = timerSystem.newTimeout(2 * TimeUtils.SEC, handle -> {
             System.out.println("two second2 " + System.currentTimeMillis());
         });
 
-        FixedDelayHandle handle4 = timerSystem.newFixedDelay(0, 3 * TimeUtils.SEC, handle -> {
+        final TimerHandle handle4 = timerSystem.newFixedDelay(0, 3 * TimeUtils.SEC, handle -> {
             System.out.println("fixDelayTask " + System.currentTimeMillis());
         });
 
-        FixedRateHandle handle5 = timerSystem.newFixRate(0, 3 * TimeUtils.SEC, handle -> {
+        final TimerHandle handle5 = timerSystem.newFixRate(0, 3 * TimeUtils.SEC, handle -> {
             System.out.println("fixRateTask " + System.currentTimeMillis());
         });
+
+        final TimerHandle handle6 = timerSystem.newFixRate(0, 5 * TimeUtils.SEC, handle -> {
+            throw new RuntimeException("timer6 IGNORE");
+        }).setExceptionHandler(ExceptionHandlers.IGNORE);
+
+        final TimerHandle handle7 = timerSystem.newFixRate(0, 5 * TimeUtils.SEC, handle -> {
+            throw new RuntimeException("timer7 AUTO CLOSE");
+        }).setExceptionHandler(ExceptionHandlers.CLOSE);
 
         IntStream.rangeClosed(1, 10).forEach(index -> {
             timerSystem.tick();

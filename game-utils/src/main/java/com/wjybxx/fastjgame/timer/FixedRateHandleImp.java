@@ -70,7 +70,7 @@ class FixedRateHandleImp extends AbstractTimerHandle implements FixedRateHandle 
     @Override
     public final boolean setPeriodLazy(long period) {
         ensurePeriod(period);
-        if (isTerminated()) {
+        if (isClosed()) {
             return false;
         } else {
             this.period = period;

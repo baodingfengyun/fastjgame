@@ -256,17 +256,16 @@ public abstract class CuratorFacade {
      *
      * @param path 路径
      * @param mode 模式
-     * @return 创建成功则返回true，否则返回false
+     * @return 创建成功则返回对应路径，否则返回null
      * @throws Exception zk errors
      */
-    public boolean createNodeIfAbsent(String path, CreateMode mode) throws Exception {
+    public String createNodeIfAbsent(String path, CreateMode mode) throws Exception {
         try {
-            createNode(path, mode);
-            return true;
+            return createNode(path, mode);
         } catch (KeeperException.NodeExistsException ignore) {
             // ignore
         }
-        return false;
+        return null;
     }
 
     /**
@@ -276,17 +275,16 @@ public abstract class CuratorFacade {
      * @param path     路径
      * @param mode     模式
      * @param initData 初始数据
-     * @return 成功创建则返回true，否则返回false
+     * @return 成功创建则返回对应的路径，否则返回null
      * @throws Exception zk errors
      */
-    public boolean createNodeIfAbsent(String path, CreateMode mode, @Nonnull byte[] initData) throws Exception {
+    public String createNodeIfAbsent(String path, CreateMode mode, @Nonnull byte[] initData) throws Exception {
         try {
-            createNode(path, mode, initData);
-            return true;
+            return createNode(path, mode, initData);
         } catch (KeeperException.NodeExistsException ignore) {
             // ignore 等价于cas尝试失败
         }
-        return false;
+        return null;
     }
 
     /**
