@@ -16,39 +16,30 @@
 
 package com.wjybxx.fastjgame.net.http;
 
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.Response;
-
 import javax.annotation.Nonnull;
 import java.io.IOException;
 
 /**
  * http响应处理器。
- * <p>
- * Q: 为何要继承{@link Callback}，而不是直接用{@link Callback}？
- * A: 因为这个名字实在太通用了，不够具体，此外名字容易冲突。
- * <p>
- * 所有响应都发生在用户指定的线程。
- * 注意查看注释：
- * {@link #onFailure(Call, IOException)}
- * {@link #onResponse(Call, Response)}
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/4/28 19:53
  * github - https://github.com/hl845740757
  */
-public interface OkHttpCallback extends Callback {
-    /**
-     * @see Callback#onFailure(Call, IOException)
-     */
-    @Override
-    void onFailure(@Nonnull Call call, @Nonnull IOException cause);
+public interface HttpCallback {
 
     /**
-     * @see Callback#onResponse(Call, Response)
+     * 当http请求失败时该方法将被调用
+     *
+     * @param cause 造成失败的原因
      */
-    @Override
-    void onResponse(@Nonnull Call call, @Nonnull Response response) throws IOException;
+    void onFailure(@Nonnull IOException cause);
+
+    /**
+     * 当http请求成功时该方法将被调用
+     *
+     * @param response 响应内容
+     */
+    void onResponse(@Nonnull byte[] response);
 }

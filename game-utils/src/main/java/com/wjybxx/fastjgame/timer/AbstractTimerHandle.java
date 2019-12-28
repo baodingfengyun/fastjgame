@@ -126,8 +126,9 @@ abstract class AbstractTimerHandle implements TimerHandle {
     }
 
     @Override
-    public void setExceptionHandler(@Nonnull ExceptionHandler exceptionHandler) {
+    public TimerHandle setExceptionHandler(@Nonnull ExceptionHandler exceptionHandler) {
         this.exceptionHandler = exceptionHandler;
+        return this;
     }
 
     DefaultTimerSystem timerSystem() {

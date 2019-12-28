@@ -20,7 +20,6 @@ package com.wjybxx.fastjgame.misc;
 import com.wjybxx.fastjgame.annotation.SerializableClass;
 import com.wjybxx.fastjgame.annotation.SerializableField;
 
-import java.util.Collections;
 import java.util.List;
 
 /**

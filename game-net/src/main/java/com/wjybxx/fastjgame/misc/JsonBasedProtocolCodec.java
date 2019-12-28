@@ -58,7 +58,7 @@ public class JsonBasedProtocolCodec implements ProtocolCodec {
         // wrap会认为bytes中的数据都是可读的，我们需要清空这些标记。
         cacheBuffer.clear();
 
-        try (ByteBufOutputStream byteBufOutputStream = new ByteBufOutputStream(cacheBuffer)){
+        try (ByteBufOutputStream byteBufOutputStream = new ByteBufOutputStream(cacheBuffer)) {
             // 协议classId
             int messageId = messageMapper.getMessageId(obj.getClass());
             byteBufOutputStream.writeInt(messageId);

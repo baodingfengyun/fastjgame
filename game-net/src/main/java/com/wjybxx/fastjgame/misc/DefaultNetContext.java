@@ -24,10 +24,10 @@ import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.manager.HttpClientManager;
 import com.wjybxx.fastjgame.manager.NettyThreadManager;
+import com.wjybxx.fastjgame.net.http.HttpCallback;
 import com.wjybxx.fastjgame.net.http.HttpPortConfig;
 import com.wjybxx.fastjgame.net.http.HttpPortContext;
 import com.wjybxx.fastjgame.net.http.HttpServerInitializer;
-import com.wjybxx.fastjgame.net.http.OkHttpCallback;
 import com.wjybxx.fastjgame.net.local.ConnectLocalRequest;
 import com.wjybxx.fastjgame.net.local.DefaultLocalPort;
 import com.wjybxx.fastjgame.net.local.LocalPort;
@@ -36,7 +36,6 @@ import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.socket.*;
 import com.wjybxx.fastjgame.net.ws.WsClientChannelInitializer;
 import com.wjybxx.fastjgame.net.ws.WsServerChannelInitializer;
-import okhttp3.Response;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
@@ -155,22 +154,22 @@ public class DefaultNetContext implements NetContext {
     }
 
     @Override
-    public Response syncGet(String url, @Nonnull Map<String, String> params) throws IOException {
+    public byte[] syncGet(String url, @Nonnull Map<String, String> params) throws IOException {
         return httpClientManager.syncGet(url, params);
     }
 
     @Override
-    public void asyncGet(String url, @Nonnull Map<String, String> params, @Nonnull OkHttpCallback okHttpCallback) {
-        httpClientManager.asyncGet(url, params, appEventLoop, okHttpCallback);
+    public void asyncGet(String url, @Nonnull Map<String, String> params, @Nonnull HttpCallback httpCallback) {
+        httpClientManager.asyncGet(url, params, appEventLoop, httpCallback);
     }
 
     @Override
-    public Response syncPost(String url, @Nonnull Map<String, String> params) throws IOException {
+    public byte[] syncPost(String url, @Nonnull Map<String, String> params) throws IOException {
         return httpClientManager.syncPost(url, params);
     }
 
     @Override
-    public void asyncPost(String url, @Nonnull Map<String, String> params, @Nonnull OkHttpCallback okHttpCallback) {
-        httpClientManager.asyncPost(url, params, appEventLoop, okHttpCallback);
+    public void asyncPost(String url, @Nonnull Map<String, String> params, @Nonnull HttpCallback httpCallback) {
+        httpClientManager.asyncPost(url, params, appEventLoop, httpCallback);
     }
 }

@@ -18,10 +18,10 @@ package com.wjybxx.fastjgame.manager;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.net.http.OkHttpCallback;
+import com.wjybxx.fastjgame.net.http.HttpCallback;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-import com.wjybxx.fastjgame.utils.NetUtils;
 import okhttp3.*;
+import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,43 +74,43 @@ public class HttpClientManager {
     /**
      * 同步get请求
      */
-    public Response syncGet(String url, Map<String, String> params) throws IOException {
+    public byte[] syncGet(String url, Map<String, String> params) throws IOException {
         Request request = new Request.Builder().get().url(buildGetUrl(url, params)).build();
-        return okHttpClient.newCall(request).execute();
+        return readBody(okHttpClient.newCall(request).execute());
     }
 
     /**
      * 异步get请求
      *
-     * @param url            url
-     * @param params         get参数
-     * @param eventLoop      用户线程，可以实现线程安全
-     * @param okHttpCallback 回调
+     * @param url          url
+     * @param params       get参数
+     * @param eventLoop    用户线程，可以实现线程安全
+     * @param httpCallback 回调
      */
-    public void asyncGet(String url, Map<String, String> params, EventLoop eventLoop, OkHttpCallback okHttpCallback) {
+    public void asyncGet(String url, Map<String, String> params, EventLoop eventLoop, HttpCallback httpCallback) {
         Request request = new Request.Builder().get().url(buildGetUrl(url, params)).build();
-        okHttpClient.newCall(request).enqueue(new DelegateEventCallBack(eventLoop, okHttpCallback));
+        okHttpClient.newCall(request).enqueue(new DelegateEventCallBack(eventLoop, httpCallback));
     }
 
     /**
      * 同步post请求
      */
-    public Response syncPost(String url, Map<String, String> params) throws IOException {
+    public byte[] syncPost(String url, Map<String, String> params) throws IOException {
         Request request = new Request.Builder().url(checkUrl(url)).post(buildPostBody(params)).build();
-        return okHttpClient.newCall(request).execute();
+        return readBody(okHttpClient.newCall(request).execute());
     }
 
     /**
      * 异步post请求
      *
-     * @param url            url
-     * @param params         post参数
-     * @param eventLoop      用户线程，可以实现线程安全
-     * @param okHttpCallback 回调
+     * @param url          url
+     * @param params       post参数
+     * @param eventLoop    用户线程，可以实现线程安全
+     * @param httpCallback 回调
      */
-    public void asyncPost(String url, Map<String, String> params, EventLoop eventLoop, OkHttpCallback okHttpCallback) {
+    public void asyncPost(String url, Map<String, String> params, EventLoop eventLoop, HttpCallback httpCallback) {
         Request request = new Request.Builder().url(checkUrl(url)).post(buildPostBody(params)).build();
-        okHttpClient.newCall(request).enqueue(new DelegateEventCallBack(eventLoop, okHttpCallback));
+        okHttpClient.newCall(request).enqueue(new DelegateEventCallBack(eventLoop, httpCallback));
     }
 
     /**
@@ -175,22 +175,18 @@ public class HttpClientManager {
     private static class DelegateEventCallBack implements Callback {
 
         private final EventLoop eventLoop;
-        private final OkHttpCallback responseCallback;
+        private final HttpCallback httpCallback;
 
-        private DelegateEventCallBack(EventLoop eventLoop, OkHttpCallback responseCallback) {
+        private DelegateEventCallBack(EventLoop eventLoop, HttpCallback httpCallback) {
             this.eventLoop = eventLoop;
-            this.responseCallback = responseCallback;
+            this.httpCallback = httpCallback;
         }
 
         @Override
         public void onFailure(@Nonnull Call call, @Nonnull IOException cause) {
             // 提交到用户所在线程，以保证线程安全
             ConcurrentUtils.safeExecute(eventLoop, () -> {
-                try {
-                    responseCallback.onFailure(call, cause);
-                } catch (Exception e2) {
-                    logger.warn("{} onFailure caught exception", call.request().url(), e2);
-                }
+                httpCallback.onFailure(cause);
             });
         }
 
@@ -198,17 +194,31 @@ public class HttpClientManager {
         public void onResponse(@Nonnull Call call, @Nonnull Response response) throws IOException {
             // 提交到用户所在线程，以保证线程安全
             ConcurrentUtils.safeExecute(eventLoop, () -> {
-                try {
-                    responseCallback.onResponse(call, response);
-                } catch (Exception e) {
-                    logger.warn("{} onResponse caught exception", call.request().url(), e);
-                } finally {
-                    // 必须调用close释放资源
-                    if (response.body() != null) {
-                        NetUtils.closeQuietly(response);
-                    }
-                }
+                httpCallback.onResponse(readBody(response));
             });
+        }
+    }
+
+    /**
+     * 读取okHttp响应内容
+     *
+     * @param response okHttp响应
+     * @return bytes
+     */
+    private static byte[] readBody(Response response) {
+        try {
+            final ResponseBody body = response.body();
+            if (body != null) {
+                try {
+                    return body.bytes();
+                } finally {
+                    body.close();
+                }
+            } else {
+                return ArrayUtils.EMPTY_BYTE_ARRAY;
+            }
+        } catch (IOException e) {
+            return ConcurrentUtils.rethrow(e);
         }
     }
 }

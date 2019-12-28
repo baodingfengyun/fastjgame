@@ -80,7 +80,8 @@ public interface TimerHandle {
      * 设置timer关联的异常处理器
      *
      * @param exceptionHandler 异常处理器
+     * @return this
      */
-    void setExceptionHandler(@Nonnull ExceptionHandler exceptionHandler);
+    TimerHandle setExceptionHandler(@Nonnull ExceptionHandler exceptionHandler);
 
 }

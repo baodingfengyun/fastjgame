@@ -24,14 +24,13 @@ import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupBuilder;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.net.common.*;
-import com.wjybxx.fastjgame.net.http.OkHttpCallback;
+import com.wjybxx.fastjgame.net.http.HttpCallback;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
+import com.wjybxx.fastjgame.utils.CodecUtils;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.TimeUtils;
-import okhttp3.Call;
-import okhttp3.Response;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -115,9 +114,9 @@ public class EchoClientLoop extends SingleThreadEventLoop {
         {
             ExampleMessages.Hello hello = new ExampleMessages.Hello();
             hello.setId(index);
-            hello.setMessage("asyncRpcRequest without future - " + System.currentTimeMillis());
+            hello.setMessage("asyncRpcRequest - " + System.currentTimeMillis());
             session.call(hello, rpcResponse -> {
-                System.out.println("\nasyncRpcResponse without future - " + JsonUtils.toJson(rpcResponse));
+                System.out.println("\nasyncRpcResponse - " + JsonUtils.toJson(rpcResponse));
             });
         }
         // 发送同步rpc请求
@@ -135,15 +134,15 @@ public class EchoClientLoop extends SingleThreadEventLoop {
         {
             HashMap<String, String> params = new HashMap<>();
             params.put("asyncGetIndex", String.valueOf(index));
-            netContext.asyncGet(url, params, new OkHttpCallback() {
+            netContext.asyncGet(url, params, new HttpCallback() {
                 @Override
-                public void onFailure(@Nonnull Call call, @Nonnull IOException cause) {
+                public void onFailure(@Nonnull IOException cause) {
                     System.out.println("asycnGet  failure.");
                 }
 
                 @Override
-                public void onResponse(@Nonnull Call call, @Nonnull Response response) throws IOException {
-                    System.out.println("\nasyncGet  response - " + response.body().string());
+                public void onResponse(@Nonnull byte[] response) {
+                    System.out.println("\nasyncGet  response - " + CodecUtils.newStringUTF8(response));
                 }
             });
         }
@@ -152,8 +151,8 @@ public class EchoClientLoop extends SingleThreadEventLoop {
             HashMap<String, String> params = new HashMap<>();
             params.put("syncGetIndex", String.valueOf(index));
             try {
-                Response response = netContext.syncGet(url, params);
-                System.out.println("\nsyncGet response - " + response.body().string());
+                final byte[] response = netContext.syncGet(url, params);
+                System.out.println("\nsyncGet response - " + CodecUtils.newStringUTF8(response));
             } catch (IOException e) {
                 System.out.println("syncGet caught exception.");
                 e.printStackTrace();

@@ -21,15 +21,14 @@ import com.wjybxx.fastjgame.concurrent.GlobalEventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.PortRange;
+import com.wjybxx.fastjgame.net.http.HttpCallback;
 import com.wjybxx.fastjgame.net.http.HttpPortConfig;
-import com.wjybxx.fastjgame.net.http.OkHttpCallback;
 import com.wjybxx.fastjgame.net.local.LocalPort;
 import com.wjybxx.fastjgame.net.local.LocalSession;
 import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.socket.SocketPort;
 import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
-import okhttp3.Response;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
@@ -197,16 +196,16 @@ public interface NetContext {
      * @param url    url
      * @param params get参数
      */
-    Response syncGet(String url, @Nonnull Map<String, String> params) throws IOException;
+    byte[] syncGet(String url, @Nonnull Map<String, String> params) throws IOException;
 
     /**
      * 异步get请求
      *
-     * @param url            url
-     * @param params         get参数
-     * @param okHttpCallback 回调
+     * @param url          url
+     * @param params       get参数
+     * @param httpCallback 回调
      */
-    void asyncGet(String url, @Nonnull Map<String, String> params, @Nonnull OkHttpCallback okHttpCallback);
+    void asyncGet(String url, @Nonnull Map<String, String> params, @Nonnull HttpCallback httpCallback);
 
     /**
      * 同步post请求
@@ -214,15 +213,15 @@ public interface NetContext {
      * @param url    url
      * @param params post参数
      */
-    Response syncPost(String url, @Nonnull Map<String, String> params) throws IOException;
+    byte[] syncPost(String url, @Nonnull Map<String, String> params) throws IOException;
 
     /**
      * 异步post请求
      *
-     * @param url            url
-     * @param params         post参数
-     * @param okHttpCallback 回调
+     * @param url          url
+     * @param params       post参数
+     * @param httpCallback 回调
      */
-    void asyncPost(String url, @Nonnull Map<String, String> params, @Nonnull OkHttpCallback okHttpCallback);
+    void asyncPost(String url, @Nonnull Map<String, String> params, @Nonnull HttpCallback httpCallback);
 
 }
