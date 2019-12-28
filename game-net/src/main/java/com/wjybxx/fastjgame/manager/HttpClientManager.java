@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.manager;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.net.http.HttpCallback;
+import com.wjybxx.fastjgame.utils.CloseableUtils;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import okhttp3.*;
 import org.apache.commons.lang3.ArrayUtils;
@@ -34,7 +35,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * http客户端控制器。
  * 该控制器负责请求和响应的线程安全。
- * OkHttp 4.x好像用kotlin重写了
+ * OkHttp 4.x用kotlin重写了
  *
  * @author wjybxx
  * @version 1.0
@@ -205,20 +206,18 @@ public class HttpClientManager {
      * @param response okHttp响应
      * @return bytes
      */
-    private static byte[] readBody(Response response) {
+    private static byte[] readBody(final Response response) {
+        final ResponseBody body = response.body();
+        if (body == null) {
+            return ArrayUtils.EMPTY_BYTE_ARRAY;
+        }
+
         try {
-            final ResponseBody body = response.body();
-            if (body != null) {
-                try {
-                    return body.bytes();
-                } finally {
-                    body.close();
-                }
-            } else {
-                return ArrayUtils.EMPTY_BYTE_ARRAY;
-            }
-        } catch (IOException e) {
+            return body.bytes();
+        } catch (Throwable e) {
             return ConcurrentUtils.rethrow(e);
+        } finally {
+            CloseableUtils.closeQuietly(body);
         }
     }
 }

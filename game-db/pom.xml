@@ -64,12 +64,24 @@
             <version>1.0</version>
         </dependency>
 
-        <!-- mongoDB java驱动 -->
+        <!-- MongoDB -->
+        <!-- 官方对象文档映射 morphia，目前最新版本1.5.8 地址：https://morphia.dev/-->
+        <!-- 响应式编程API在java9已纳入jdk，当初对RxJava有点兴趣，但是没有进行学习，现在是个很好的时机学习了 -->
+
+        <!-- mongoDB同步驱动 -->
         <!-- https://mvnrepository.com/artifact/org.mongodb/mongo-java-driver -->
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongo-java-driver</artifactId>
-            <version>3.11.0</version>
+            <version>3.12.0</version>
+        </dependency>
+
+        <!-- MongoDB异步驱动-->
+        <!-- https://mvnrepository.com/artifact/org.mongodb/mongodb-driver-reactivestreams -->
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-driver-reactivestreams</artifactId>
+            <version>1.13.0</version>
         </dependency>
 
         <!-- redis支持 -->
