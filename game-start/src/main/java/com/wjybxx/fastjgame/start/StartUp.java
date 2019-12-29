@@ -17,11 +17,12 @@
 package com.wjybxx.fastjgame.start;
 
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
-import com.wjybxx.fastjgame.scene.SceneRegion;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupBuilder;
 import com.wjybxx.fastjgame.misc.PlatformType;
 import com.wjybxx.fastjgame.module.*;
+import com.wjybxx.fastjgame.scene.SceneRegion;
+import com.wjybxx.fastjgame.utils.DebugUtils;
 import com.wjybxx.fastjgame.world.GameEventLoopGroupImp;
 
 import java.io.File;
@@ -84,6 +85,8 @@ public class StartUp {
     };
 
     public static void main(String[] args) throws Exception {
+        DebugUtils.openDebug();
+
         // 指定一下日志文件
         String logDir = new File("").getAbsolutePath() + File.separator + "log";
         String logPath = logDir + File.separator + "fastjgame";
