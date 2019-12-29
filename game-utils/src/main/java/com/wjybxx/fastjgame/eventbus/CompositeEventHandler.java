@@ -36,14 +36,7 @@ public class CompositeEventHandler<T, E> implements EventHandler<T, E> {
 
     private static final Logger logger = LoggerFactory.getLogger(CompositeEventHandler.class);
 
-    /**
-     * 该节点管理的所有子节点，一般需要该对象的话，我们认为大于2个子节点的可能性更高，因此不初始化为2
-     */
-    private final List<EventHandler<? super T, ? super E>> children = new ArrayList<>(4);
-
-    public CompositeEventHandler() {
-
-    }
+    private final List<EventHandler<? super T, ? super E>> children = new ArrayList<>(2);
 
     public CompositeEventHandler(@Nonnull EventHandler<? super T, ? super E> first,
                                  @Nonnull EventHandler<? super T, ? super E> second) {

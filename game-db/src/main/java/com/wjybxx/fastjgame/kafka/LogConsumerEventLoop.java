@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.kafka;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
 import com.wjybxx.fastjgame.concurrent.disruptor.TimeoutWaitStrategyFactory;
+import com.wjybxx.fastjgame.utils.CollectionUtils;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -29,8 +30,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.time.Duration;
+import java.util.Collection;
+import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
@@ -65,20 +67,24 @@ public class LogConsumerEventLoop extends DisruptorEventLoop {
      */
     private static final Duration CONSUMER_POLL_DURATION = Duration.ofMillis(100);
 
-    private final KafkaConsumer<String, String> consumer;
-    private final Set<String> subscribedTopics;
-    private final LogConsumer logConsumer;
+    /**
+     * topic到日志消费者的映射
+     */
+    private final Map<String, LogConsumer> logConsumerMap;
+    /**
+     * kafka消费者客户端
+     */
+    private final KafkaConsumer<String, String> kafkaConsumer;
 
     public LogConsumerEventLoop(@Nonnull ThreadFactory threadFactory,
                                 @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
                                 @Nonnull String brokerList,
-                                @Nonnull Set<String> subscribedTopics,
                                 @Nonnull String groupId,
-                                @Nonnull LogConsumer logConsumer) {
+                                @Nonnull Collection<LogConsumer> consumers) {
         super(null, threadFactory, rejectedExecutionHandler, CONSUMER_RING_BUFFER_SIZE, CONSUMER_BATCH_EVENT_SIZE, newWaitStrategyFactory());
-        this.consumer = new KafkaConsumer<>(newConfig(brokerList, groupId), new StringDeserializer(), new StringDeserializer());
-        this.subscribedTopics = subscribedTopics;
-        this.logConsumer = logConsumer;
+        this.logConsumerMap = indexConsumers(consumers);
+        this.kafkaConsumer = new KafkaConsumer<>(newConfig(brokerList, groupId), new StringDeserializer(), new StringDeserializer());
+        this.kafkaConsumer.subscribe(logConsumerMap.keySet());
     }
 
     @Nonnull
@@ -88,12 +94,12 @@ public class LogConsumerEventLoop extends DisruptorEventLoop {
 
     @Override
     protected void init() throws Exception {
-        consumer.subscribe(subscribedTopics);
+
     }
 
     @Override
     protected void loopOnce() throws Exception {
-        final ConsumerRecords<String, String> records = consumer.poll(CONSUMER_POLL_DURATION);
+        final ConsumerRecords<String, String> records = kafkaConsumer.poll(CONSUMER_POLL_DURATION);
         if (records.isEmpty()) {
             return;
         }
@@ -104,17 +110,18 @@ public class LogConsumerEventLoop extends DisruptorEventLoop {
             }
         } finally {
             // 提交消费记录 - 如果使用自动提交，参数设置不当时，容易导致重复消费。
-            consumer.commitSync();
+            kafkaConsumer.commitSync();
         }
     }
 
     @Override
     protected void clean() throws Exception {
-        closeQuietly(consumer);
+        closeQuietly(kafkaConsumer);
     }
 
-    private void consumeSafely(ConsumerRecord consumerRecord) {
+    private void consumeSafely(ConsumerRecord<String, String> consumerRecord) {
         try {
+            LogConsumer logConsumer = logConsumerMap.get(consumerRecord.topic());
             logConsumer.consume(consumerRecord);
         } catch (Throwable e) {
             logger.warn("logConsumer.consume caught exception", e);
@@ -129,5 +136,29 @@ public class LogConsumerEventLoop extends DisruptorEventLoop {
         properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
         properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         return properties;
+    }
+
+    private static Map<String, LogConsumer> indexConsumers(Collection<LogConsumer> consumers) {
+        final Map<String, LogConsumer> logConsumerMap = CollectionUtils.newHashMapWithExpectedSize(consumers.size());
+        for (LogConsumer logConsumer : consumers) {
+            addConsumer(logConsumerMap, logConsumer);
+        }
+        return logConsumerMap;
+    }
+
+    private static void addConsumer(Map<String, LogConsumer> logConsumerMap, LogConsumer logConsumer) {
+        for (String topic : logConsumer.subscribedTopics()) {
+            LogConsumer existLogConsumer = logConsumerMap.get(topic);
+            if (existLogConsumer == null) {
+                logConsumerMap.put(topic, logConsumer);
+                continue;
+            }
+
+            if (existLogConsumer instanceof CompositeLogConsumer) {
+                ((CompositeLogConsumer) existLogConsumer).addChild(logConsumer);
+            } else {
+                logConsumerMap.put(topic, new CompositeLogConsumer(topic, existLogConsumer, logConsumer));
+            }
+        }
     }
 }

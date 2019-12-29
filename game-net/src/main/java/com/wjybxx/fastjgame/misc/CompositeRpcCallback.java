@@ -21,7 +21,7 @@ import com.wjybxx.fastjgame.net.common.RpcResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -35,14 +35,8 @@ import java.util.List;
 public final class CompositeRpcCallback<V> implements RpcCallback {
 
     private static final Logger logger = LoggerFactory.getLogger(CompositeRpcCallback.class);
-    /**
-     * 该节点管理的所有子节点。使用linkedList是因为rpcCallback是不会复用的。
-     */
-    private final List<RpcCallback> children = new LinkedList<>();
 
-    public CompositeRpcCallback() {
-
-    }
+    private final List<RpcCallback> children = new ArrayList<>(2);
 
     public CompositeRpcCallback(RpcCallback first, RpcCallback second) {
         children.add(first);

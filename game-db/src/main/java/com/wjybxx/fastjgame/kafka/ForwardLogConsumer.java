@@ -19,6 +19,8 @@ package com.wjybxx.fastjgame.kafka;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
+import java.util.Set;
+
 /**
  * 仅仅转发日志的消费者 - 将消费逻辑转移到应用线程。
  *
@@ -38,7 +40,12 @@ public class ForwardLogConsumer implements LogConsumer {
     }
 
     @Override
-    public void consume(ConsumerRecord consumerRecord) {
+    public Set<String> subscribedTopics() {
+        return logConsumer.subscribedTopics();
+    }
+
+    @Override
+    public void consume(ConsumerRecord<String, String> consumerRecord) {
         if (appEventLoop.inEventLoop()) {
             logConsumer.consume(consumerRecord);
         } else {
@@ -48,9 +55,9 @@ public class ForwardLogConsumer implements LogConsumer {
 
     private static class ForwardTask implements Runnable {
         private final LogConsumer logConsumer;
-        private final ConsumerRecord consumerRecord;
+        private final ConsumerRecord<String, String> consumerRecord;
 
-        ForwardTask(LogConsumer logConsumer, ConsumerRecord consumerRecord) {
+        ForwardTask(LogConsumer logConsumer, ConsumerRecord<String, String> consumerRecord) {
             this.logConsumer = logConsumer;
             this.consumerRecord = consumerRecord;
         }

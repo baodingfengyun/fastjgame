@@ -18,11 +18,14 @@ package com.wjybxx.fastjgame.example;
 
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
+import com.wjybxx.fastjgame.kafka.LogConsumer;
 import com.wjybxx.fastjgame.kafka.LogConsumerEventLoop;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -58,8 +61,21 @@ public class LogConsumerExample {
     private static LogConsumerEventLoop newConsumerEventLoop() {
         return new LogConsumerEventLoop(new DefaultThreadFactory("CONSUMER"),
                 RejectedExecutionHandlers.abort(),
-                "localhost:9092", Collections.singleton("TEST"),
-                "TEST",
-                System.out::println);
+                "localhost:9092",
+                "GROUP-TEST",
+                Collections.singleton(new TestLogConsumer()));
+    }
+
+    private static class TestLogConsumer implements LogConsumer {
+
+        @Override
+        public Set<String> subscribedTopics() {
+            return Collections.singleton("TEST");
+        }
+
+        @Override
+        public void consume(ConsumerRecord<String, String> consumerRecord) {
+            System.out.println(consumerRecord);
+        }
     }
 }

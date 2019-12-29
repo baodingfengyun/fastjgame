@@ -37,10 +37,7 @@ public class CompositeHttpRequestHandler implements HttpRequestHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(CompositeHttpRequestHandler.class);
 
-    private final List<HttpRequestHandler> children = new ArrayList<>(4);
-
-    public CompositeHttpRequestHandler() {
-    }
+    private final List<HttpRequestHandler> children = new ArrayList<>(2);
 
     public CompositeHttpRequestHandler(HttpRequestHandler first, HttpRequestHandler second) {
         children.add(first);

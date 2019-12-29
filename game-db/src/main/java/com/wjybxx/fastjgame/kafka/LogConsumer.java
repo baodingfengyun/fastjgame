@@ -18,6 +18,8 @@ package com.wjybxx.fastjgame.kafka;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
+import java.util.Set;
+
 /**
  * 日志处理器
  *
@@ -29,9 +31,16 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 public interface LogConsumer {
 
     /**
+     * 订阅的topic
+     *
+     * @apiNote 只在初始的时候使用一次，因此不必作为对象的属性，new一个即可。
+     */
+    Set<String> subscribedTopics();
+
+    /**
      * 注意；该方法由{@link LogConsumerEventLoop}线程调用，注意线程安全问题。
      *
      * @param consumerRecord kafka日志数据
      */
-    void consume(ConsumerRecord consumerRecord);
+    void consume(ConsumerRecord<String, String> consumerRecord);
 }
