@@ -46,6 +46,11 @@ public class DefaultRedisPipeline implements RedisPipeline {
     }
 
     @Override
+    public RedisFuture<?> sync() {
+        return redisEventLoop.sync(appEventLoop);
+    }
+
+    @Override
     public RedisFuture<Long> incr(String key) {
         return redisEventLoop.enqueue(appEventLoop, pipeline -> pipeline.incr(key));
     }

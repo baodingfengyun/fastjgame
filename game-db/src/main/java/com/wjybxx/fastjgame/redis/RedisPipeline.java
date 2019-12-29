@@ -38,6 +38,14 @@ import java.util.Set;
  */
 public interface RedisPipeline {
 
+    /**
+     * 等待pipeline中的命令执行完毕。
+     * - 注意：即使不调用该方法，pipeline中的命令也会执行完毕。
+     * - 仅当你需要在前面的redis命令执行完毕后需要执行某个动作时才应该调用。
+     * - 比如：等待redis操作完成后关闭线程。
+     */
+    RedisFuture<?> sync();
+
     // region string
 
     RedisFuture<Long> incr(String key);

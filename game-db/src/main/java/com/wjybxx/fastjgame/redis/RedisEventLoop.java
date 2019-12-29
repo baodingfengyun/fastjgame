@@ -26,6 +26,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPoolAbstract;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
+import redis.clients.jedis.exceptions.JedisConnectionException;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -45,6 +46,9 @@ import static com.wjybxx.fastjgame.utils.ConcurrentUtils.sleepQuietly;
  * Q: 它为什么不继承{@link DisruptorEventLoop}？
  * A: 它属于中间件，应用层与它之间是双向交互，使用{@link DisruptorEventLoop}可能导致死锁。
  * <p>
+ * pipeline的缺陷：由于多个指令是批量执行的，因此不是原子的。
+ * 当{@link #sync()}出现异常时：可能部分成功，部分失败，部分未执行。
+ * <p>
  * 对于大多数游戏而言，单个redis线程应该够用了，不过也很容易扩展为线程池模式(连接池)。
  *
  * @author wjybxx
@@ -55,13 +59,16 @@ import static com.wjybxx.fastjgame.utils.ConcurrentUtils.sleepQuietly;
 public class RedisEventLoop extends SingleThreadEventLoop {
 
     private static final Logger logger = LoggerFactory.getLogger(RedisEventLoop.class);
+
+    private static final int BATCH_TASK_SIZE = 1024;
+
     /**
      * 它决定了最多多少个命令执行一次{@link #sync()}。
      * 不宜太大，太大时，一旦出现异常，破坏太大。
      * 不宜太小，太小时，无法充分利用网络。
      */
-    private static final int BATCH_TASK_SIZE = 512;
-    private final ArrayDeque<JedisPipelineTask<?>> waitResponseTasks = new ArrayDeque<>(BATCH_TASK_SIZE);
+    private static final int MAX_WAIT_RESPONSE_TASK = 512;
+    private final ArrayDeque<JedisPipelineTask<?>> waitResponseTasks = new ArrayDeque<>(MAX_WAIT_RESPONSE_TASK);
 
     private final JedisPoolAbstract jedisPool;
     /**
@@ -128,9 +135,29 @@ public class RedisEventLoop extends SingleThreadEventLoop {
                 // 等待以降低cpu利用率
                 sleepQuietly(1);
             } catch (Throwable t) {
-                // 避免错误的退出循环
                 logger.warn("loop caught exception", t);
             }
+        }
+    }
+
+    /**
+     * 刷新管道，为未获得结果的redis请求生成结果
+     */
+    private void sync() {
+        if (waitResponseTasks.isEmpty()) {
+            return;
+        }
+
+        try {
+            if (pipeline != null) {
+                pipeline.sync();
+            }
+        } catch (Throwable t) {
+            logger.warn("pipeline.sync caught exception", t);
+
+            closeConnection();
+        } finally {
+            generateResponses();
         }
     }
 
@@ -146,31 +173,7 @@ public class RedisEventLoop extends SingleThreadEventLoop {
     }
 
     /**
-     * 刷新管道，为未获得结果的redis请求生成结果
-     */
-    private void sync() {
-        if (waitResponseTasks.isEmpty()) {
-            // 没有需要生成结果的命令
-            return;
-        }
-
-        try {
-            if (pipeline != null) {
-                pipeline.sync();
-            }
-        } catch (Throwable t) {
-            // pipeline的缺陷：由于多个指令是批量执行的，因此不是原子的。
-            // 出现异常时：可能部分成功，部分失败，部分未执行。
-            logger.warn("pipeline.sync caught exception", t);
-
-            closeConnection();
-        } finally {
-            generateResponses();
-        }
-    }
-
-    /**
-     * 安全的建立连接 - 不抛出任何异常
+     * 建立连接(从连接池获取连接)
      */
     private void connectSafely() {
         try {
@@ -188,6 +191,7 @@ public class RedisEventLoop extends SingleThreadEventLoop {
      * 关闭连接
      */
     private void closeConnection() {
+        // pipeline在关闭时会调用sync
         closeQuietly(pipeline);
         closeQuietly(jedis);
 
@@ -221,25 +225,49 @@ public class RedisEventLoop extends SingleThreadEventLoop {
         }
     }
 
+    /**
+     * 压入一个管道命令
+     *
+     * @param appEventLoop 用户线程 - 回调默认执行环境
+     * @param pipelineCmd  管道命令 - 用户要执行的操作
+     * @param <T>          管道执行结果
+     * @return future
+     */
     <T> RedisFuture<T> enqueue(EventLoop appEventLoop, RedisPipelineCommand<T> pipelineCmd) {
-        final DefaultRedisPromise<T> redisPromise = new DefaultRedisPromise<>(this, appEventLoop);
-        execute(new JedisPipelineTask<>(appEventLoop, pipelineCmd, redisPromise));
+        final RedisPromise<T> redisPromise = newRedisPromise(appEventLoop);
+        execute(new JedisPipelineTask<>(pipelineCmd, redisPromise));
         return redisPromise;
     }
 
+    /**
+     * 刷新管道
+     *
+     * @param appEventLoop 用户线程 - 回调默认执行环境
+     * @return future
+     */
+    RedisFuture<?> sync(EventLoop appEventLoop) {
+        final RedisPromise<?> redisPromise = newRedisPromise(appEventLoop);
+        execute(new SyncTask(redisPromise));
+        return redisPromise;
+    }
+
+    private <T> RedisPromise<T> newRedisPromise(EventLoop appEventLoop) {
+        return new DefaultRedisPromise<>(this, appEventLoop);
+    }
+
+    /**
+     * 普通的管道任务
+     *
+     * @param <T>
+     */
     private class JedisPipelineTask<T> implements Runnable {
-        final EventLoop appEventLoop;
-        final RedisPipelineCommand<T> pipelineCmd;
-        final DefaultRedisPromise<T> redisPromise;
+        private final RedisPipelineCommand<T> pipelineCmd;
+        private final RedisPromise<T> redisPromise;
 
-        Response<T> dependency;
-        /**
-         * 用于减少对{@link Response}的依赖 - 过多的依赖其内部实现不太安全。
-         */
-        Throwable cause;
+        private Response<T> dependency;
+        private Throwable cause;
 
-        JedisPipelineTask(EventLoop appEventLoop, RedisPipelineCommand<T> pipelineCmd, DefaultRedisPromise<T> redisPromise) {
-            this.appEventLoop = appEventLoop;
+        JedisPipelineTask(RedisPipelineCommand<T> pipelineCmd, RedisPromise<T> redisPromise) {
             this.pipelineCmd = pipelineCmd;
             this.redisPromise = redisPromise;
         }
@@ -251,26 +279,70 @@ public class RedisEventLoop extends SingleThreadEventLoop {
             if (null == pipeline) {
                 // 连接不可用，快速失败
                 cause = RedisConnectionException.INSTANCE;
+                checkSync();
                 return;
             }
 
             try {
                 dependency = pipelineCmd.execute(pipeline);
+                checkSync();
             } catch (Throwable t) {
-                // 执行管道命令出现异常
                 cause = t;
 
-                try {
-                    // 关闭连接 - 避免在当前帧连续抛出异常(占用大量CPU资源)
-                    closeConnection();
+                handleException(t);
+            }
+        }
 
-                    // 尝试一次：如果失败，pipeline 依然为null；如果成功，接下来的命令将可以成功执行
-                    connectSafely();
-                } finally {
-                    generateResponses();
-                }
+        /**
+         * 检查是否需要调用sync
+         */
+        private void checkSync() {
+            if (waitResponseTasks.size() > MAX_WAIT_RESPONSE_TASK) {
+                logger.warn("unexpected waitResponseTasks.size {}", waitResponseTasks.size());
+            }
+
+            if (waitResponseTasks.size() >= MAX_WAIT_RESPONSE_TASK) {
+                sync();
+            }
+        }
+
+        /**
+         * 处理执行管道命令中出现的异常
+         */
+        private void handleException(Throwable t) {
+            if (t instanceof JedisConnectionException) {
+                // 关闭当前连接
+                closeConnection();
+
+                // 等同于调用sync
+                generateResponses();
+
+                // 尝试一次恢复连接
+                checkConnection();
+            } else {
+                checkSync();
             }
         }
     }
 
+    /**
+     * 刷新管道的任务
+     */
+    private class SyncTask implements Runnable {
+
+        private final RedisPromise<?> redisPromise;
+
+        SyncTask(RedisPromise<?> redisPromise) {
+            this.redisPromise = redisPromise;
+        }
+
+        @Override
+        public void run() {
+            try {
+                sync();
+            } finally {
+                redisPromise.trySuccess(null);
+            }
+        }
+    }
 }
