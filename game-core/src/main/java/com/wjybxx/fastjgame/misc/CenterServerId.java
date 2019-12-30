@@ -21,7 +21,6 @@ import com.wjybxx.fastjgame.annotation.SerializableField;
 import com.wjybxx.fastjgame.protobuffer.p_common;
 import com.wjybxx.fastjgame.utils.MathUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 
@@ -111,7 +110,7 @@ public final class CenterServerId implements Comparable<CenterServerId> {
     }
 
     @Override
-    public int compareTo(@NotNull CenterServerId o) {
+    public int compareTo(@Nonnull CenterServerId o) {
         return Long.compare(uniqueId(), o.uniqueId());
     }
 

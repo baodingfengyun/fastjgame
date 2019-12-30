@@ -38,10 +38,6 @@ public class NetEventLoopGroupBuilder {
 
     private ThreadFactory threadFactory = new DefaultThreadFactory("NetEventLoop");
     private RejectedExecutionHandler rejectedExecutionHandler = RejectedExecutionHandlers.abort();
-    /**
-     * http请求超时时间（秒）
-     */
-    private int httpRequestTimeout = 15;
 
     public NetEventLoopGroupBuilder setNetEventLoopNum(int netEventLoopNum) {
         CheckUtils.checkPositive(netEventLoopNum, "netEventLoopNum");
@@ -71,13 +67,8 @@ public class NetEventLoopGroupBuilder {
         return this;
     }
 
-    public NetEventLoopGroupBuilder setHttpRequestTimeout(int httpRequestTimeout) {
-        this.httpRequestTimeout = httpRequestTimeout;
-        return this;
-    }
-
     public NetEventLoopGroupImp build() {
-        final NetEventLoopGroupImp.GroupConfig groupConfig = new NetEventLoopGroupImp.GroupConfig(bossGroupThreadNum, workerGroupThreadNum, httpRequestTimeout);
+        final NetEventLoopGroupImp.GroupConfig groupConfig = new NetEventLoopGroupImp.GroupConfig(bossGroupThreadNum, workerGroupThreadNum);
         return new NetEventLoopGroupImp(netEventLoopNum, threadFactory, rejectedExecutionHandler, groupConfig);
     }
 }

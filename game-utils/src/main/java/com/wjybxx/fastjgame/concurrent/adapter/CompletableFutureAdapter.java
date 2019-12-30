@@ -1,0 +1,170 @@
+/*
+ *  Copyright 2019 wjybxx
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to iBn writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+package com.wjybxx.fastjgame.concurrent.adapter;
+
+import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.wjybxx.fastjgame.concurrent.FutureListener;
+import com.wjybxx.fastjgame.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.utils.ConcurrentUtils;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+/**
+ * JDK{@link CompletableFuture}的适配器
+ *
+ * @author wjybxx
+ * @version 1.0
+ * date - 2019/12/30
+ * github - https://github.com/hl845740757
+ */
+public class CompletableFutureAdapter<V> implements ListenableFuture<V> {
+
+    private final EventLoop executor;
+    private final CompletableFuture<V> future;
+
+    public CompletableFutureAdapter(EventLoop executor, CompletableFuture<V> future) {
+        this.executor = executor;
+        this.future = future;
+    }
+
+    @Override
+    public boolean isDone() {
+        return future.isDone();
+    }
+
+    @Override
+    public boolean isSuccess() {
+        return !future.isCompletedExceptionally();
+    }
+
+    @Override
+    public boolean isCancelled() {
+        return future.isCancelled();
+    }
+
+    @Override
+    public boolean isCancellable() {
+        return true;
+    }
+
+    @Override
+    public V get() throws InterruptedException, ExecutionException {
+        return future.get();
+    }
+
+    @Override
+    public V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        return future.get(timeout, unit);
+    }
+
+    @Override
+    public V getNow() {
+        // jdk的getNow和自实现的getNow有区别
+        try {
+            return future.getNow(null);
+        } catch (Throwable cause) {
+            return null;
+        }
+    }
+
+    @Nullable
+    @Override
+    public Throwable cause() {
+        try {
+            future.getNow(null);
+            return null;
+        } catch (Throwable cause) {
+            return cause;
+        }
+    }
+
+    @Override
+    public boolean cancel(boolean mayInterruptIfRunning) {
+        return future.cancel(mayInterruptIfRunning);
+    }
+
+    @Override
+    public void await() throws InterruptedException {
+        try {
+            future.get();
+        } catch (InterruptedException e) {
+            throw e;
+        } catch (Throwable ignore) {
+
+        }
+    }
+
+    @Override
+    public void awaitUninterruptibly() {
+        try {
+            future.join();
+        } catch (Throwable ignore) {
+
+        }
+    }
+
+    @Override
+    public boolean await(long timeout, TimeUnit unit) throws InterruptedException {
+        try {
+            future.get(timeout, unit);
+            return true;
+        } catch (InterruptedException e) {
+            throw e;
+        } catch (Throwable ignore) {
+        }
+        return false;
+    }
+
+    @Override
+    public boolean awaitUninterruptibly(long timeout, TimeUnit unit) {
+        try {
+            // JDK不支持限时不中断的方式，暂时先不做处理
+            future.get(timeout, unit);
+            return true;
+        } catch (InterruptedException e) {
+            ConcurrentUtils.recoveryInterrupted(true);
+        } catch (Throwable ignore) {
+        }
+        return false;
+    }
+
+    @Override
+    public void addListener(@Nonnull FutureListener<? super V> listener) {
+        addListener(listener, executor);
+    }
+
+    @Override
+    public void addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor) {
+        future.thenRunAsync(() -> {
+            try {
+                listener.onComplete(this);
+            } catch (Exception e) {
+                ConcurrentUtils.rethrow(e);
+            }
+        }, bindExecutor);
+    }
+
+    @Override
+    public boolean removeListener(@Nonnull FutureListener<? super V> listener) {
+        throw new UnsupportedOperationException();
+    }
+}

@@ -63,7 +63,6 @@ class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLoop {
 
     private final Set<EventLoop> appEventLoopSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private final NetEventLoopManager netEventLoopManager;
-    private final HttpClientManager httpClientManager;
     private final HttpSessionManager httpSessionManager;
     private final AcceptorManager acceptorManager;
     private final ConnectorManager connectorManager;
@@ -98,8 +97,7 @@ class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLoop {
         acceptorManager.setManagerWrapper(managerWrapper);
         connectorManager.setNetManagerWrapper(managerWrapper);
 
-        // 全局httpClient资源
-        httpClientManager = managerWrapper.getHttpClientManager();
+        // 全局资源
         nettyThreadManager = managerWrapper.getNettyThreadManager();
     }
 
@@ -223,7 +221,7 @@ class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLoop {
             });
         }
 
-        return new DefaultNetContext(localGuid, appEventLoop, this, httpClientManager, nettyThreadManager);
+        return new DefaultNetContext(localGuid, appEventLoop, this, nettyThreadManager);
     }
 
     @Subscribe

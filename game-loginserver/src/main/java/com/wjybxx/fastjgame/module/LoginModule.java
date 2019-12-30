@@ -45,5 +45,6 @@ public class LoginModule extends WorldModule {
         bind(LoginDiscoverMgr.class).in(Singleton.class);
         bind(LoginCenterSessionMgr.class).in(Singleton.class);
         bind(LoginMongoDBMgr.class).in(Singleton.class);
+        bind(HttpClientManager.class).in(Singleton.class);
     }
 }

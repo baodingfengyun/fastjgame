@@ -78,6 +78,18 @@ public class GameConfigMgr {
      * redis密码
      */
     private final String redisPassword;
+    /**
+     * http建立连接超时时间-秒
+     */
+    private final int httpConnectTimeout;
+    /**
+     * httpIO线程数
+     */
+    private final int httpWorkerThreadNum;
+    /**
+     * http请求超时时间
+     */
+    private final int httpRequestTimeout;
 
     @Inject
     public GameConfigMgr() throws IOException {
@@ -92,6 +104,9 @@ public class GameConfigMgr {
         kafkaBrokerList = configWrapper.getAsString("kafkaBrokerList");
         redisSentinelList = configWrapper.getAsString("redisSentinelList");
         redisPassword = configWrapper.getAsString("redisPassword");
+        httpConnectTimeout = configWrapper.getAsInt("httpConnectTimeout");
+        httpRequestTimeout = configWrapper.getAsInt("httpRequestTimeout");
+        httpWorkerThreadNum = configWrapper.getAsInt("httpWorkerThreadNum");
     }
 
     public ConfigWrapper getConfigWrapper() {
@@ -136,5 +151,17 @@ public class GameConfigMgr {
 
     public String getRedisPassword() {
         return redisPassword;
+    }
+
+    public int getHttpConnectTimeout() {
+        return httpConnectTimeout;
+    }
+
+    public int getHttpRequestTimeout() {
+        return httpRequestTimeout;
+    }
+
+    public int getHttpWorkerThreadNum() {
+        return httpWorkerThreadNum;
     }
 }

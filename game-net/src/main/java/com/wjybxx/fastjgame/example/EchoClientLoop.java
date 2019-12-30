@@ -15,27 +15,29 @@
  */
 package com.wjybxx.fastjgame.example;
 
-import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
-import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
-import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
-import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
+import com.wjybxx.fastjgame.concurrent.*;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupBuilder;
 import com.wjybxx.fastjgame.misc.HostAndPort;
+import com.wjybxx.fastjgame.misc.HttpClientProxy;
 import com.wjybxx.fastjgame.net.common.*;
-import com.wjybxx.fastjgame.net.http.HttpCallback;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
-import com.wjybxx.fastjgame.utils.CodecUtils;
+import com.wjybxx.fastjgame.utils.HttpUtils;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.TimeUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.locks.LockSupport;
@@ -52,6 +54,7 @@ public class EchoClientLoop extends SingleThreadEventLoop {
 
     private final NetEventLoopGroup netGroup = new NetEventLoopGroupBuilder().build();
     private NetContext netContext;
+    private HttpClientProxy httpClientProxy;
 
     /**
      * 是否已建立tcp连接
@@ -77,6 +80,17 @@ public class EchoClientLoop extends SingleThreadEventLoop {
 
         session = netContext.connectTcp(ExampleConstants.SESSION_ID, ExampleConstants.SERVER_GUID, address, config)
                 .get();
+
+        httpClientProxy = newHttpClientProxy();
+    }
+
+    private HttpClientProxy newHttpClientProxy() {
+        final HttpClient client = HttpClient.newBuilder()
+                .executor(new DefaultEventLoop(null, new DefaultThreadFactory("HTTP-WORKER", true), RejectedExecutionHandlers.abort()))
+                .connectTimeout(Duration.ofSeconds(30))
+                .build();
+
+        return new HttpClientProxy(client, this, 15);
     }
 
     public void loop() {
@@ -129,31 +143,31 @@ public class EchoClientLoop extends SingleThreadEventLoop {
         }
 
         // 发起http请求
-        String url = NetUtils.getLocalIp() + ":" + ExampleConstants.httpPort;
+        final String url = NetUtils.getLocalIp() + ":" + ExampleConstants.httpPort;
         // 异步get
         {
-            HashMap<String, String> params = new HashMap<>();
+            Map<String, String> params = new HashMap<>();
             params.put("asyncGetIndex", String.valueOf(index));
-            netContext.asyncGet(url, params, new HttpCallback() {
-                @Override
-                public void onFailure(@Nonnull IOException cause) {
-                    System.out.println("asycnGet  failure.");
-                }
-
-                @Override
-                public void onResponse(@Nonnull byte[] response) {
-                    System.out.println("\nasyncGet  response - " + CodecUtils.newStringUTF8(response));
-                }
-            });
+            final HttpRequest.Builder builder = HttpRequest.newBuilder()
+                    .uri(URI.create(HttpUtils.buildGetUrl(url, params)));
+            httpClientProxy.sendAsync(builder, HttpResponse.BodyHandlers.ofString())
+                    .addListener(future -> {
+                        final HttpResponse<String> response = future.getNow();
+                        if (null != response) {
+                            System.out.println("\nasyncGet  response - " + response.body());
+                        }
+                    });
         }
         // 同步get
         {
-            HashMap<String, String> params = new HashMap<>();
+            Map<String, String> params = new HashMap<>();
             params.put("syncGetIndex", String.valueOf(index));
+            final HttpRequest.Builder builder = HttpRequest.newBuilder()
+                    .uri(URI.create(HttpUtils.buildGetUrl(url, params)));
+
             try {
-                final byte[] response = netContext.syncGet(url, params);
-                System.out.println("\nsyncGet response - " + CodecUtils.newStringUTF8(response));
-            } catch (IOException e) {
+                System.out.println("\nsyncGet response - " + httpClientProxy.send(builder, HttpResponse.BodyHandlers.ofString()).body());
+            } catch (Exception e) {
                 System.out.println("syncGet caught exception.");
                 e.printStackTrace();
             }

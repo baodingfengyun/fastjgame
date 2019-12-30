@@ -21,7 +21,6 @@ import com.wjybxx.fastjgame.concurrent.GlobalEventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.PortRange;
-import com.wjybxx.fastjgame.net.http.HttpCallback;
 import com.wjybxx.fastjgame.net.http.HttpPortConfig;
 import com.wjybxx.fastjgame.net.local.LocalPort;
 import com.wjybxx.fastjgame.net.local.LocalSession;
@@ -32,9 +31,7 @@ import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
-import java.io.IOException;
 import java.net.BindException;
-import java.util.Map;
 
 /**
  * 逻辑层使用的网络上下文 - 它主要负责用户与{@link NetEventLoop}之间的交互。
@@ -189,39 +186,5 @@ public interface NetContext {
      * @return future 可以等待绑定完成。`
      */
     SocketPort bindHttpRange(String host, PortRange portRange, @Nonnull HttpPortConfig config) throws BindException;
-
-    /**
-     * 同步get请求
-     *
-     * @param url    url
-     * @param params get参数
-     */
-    byte[] syncGet(String url, @Nonnull Map<String, String> params) throws IOException;
-
-    /**
-     * 异步get请求
-     *
-     * @param url          url
-     * @param params       get参数
-     * @param httpCallback 回调
-     */
-    void asyncGet(String url, @Nonnull Map<String, String> params, @Nonnull HttpCallback httpCallback);
-
-    /**
-     * 同步post请求
-     *
-     * @param url    url
-     * @param params post参数
-     */
-    byte[] syncPost(String url, @Nonnull Map<String, String> params) throws IOException;
-
-    /**
-     * 异步post请求
-     *
-     * @param url          url
-     * @param params       post参数
-     * @param httpCallback 回调
-     */
-    void asyncPost(String url, @Nonnull Map<String, String> params, @Nonnull HttpCallback httpCallback);
 
 }

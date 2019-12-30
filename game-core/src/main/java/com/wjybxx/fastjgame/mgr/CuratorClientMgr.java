@@ -21,7 +21,6 @@ import com.wjybxx.fastjgame.annotation.EventLoopGroupSingleton;
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.misc.BackoffRetryForever;
 import com.wjybxx.fastjgame.utils.CloseableUtils;
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.EnsureContainers;

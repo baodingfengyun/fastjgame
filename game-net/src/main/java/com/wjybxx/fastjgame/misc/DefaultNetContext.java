@@ -22,9 +22,7 @@ import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
-import com.wjybxx.fastjgame.manager.HttpClientManager;
 import com.wjybxx.fastjgame.manager.NettyThreadManager;
-import com.wjybxx.fastjgame.net.http.HttpCallback;
 import com.wjybxx.fastjgame.net.http.HttpPortConfig;
 import com.wjybxx.fastjgame.net.http.HttpPortContext;
 import com.wjybxx.fastjgame.net.http.HttpServerInitializer;
@@ -39,9 +37,7 @@ import com.wjybxx.fastjgame.net.ws.WsServerChannelInitializer;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
-import java.io.IOException;
 import java.net.BindException;
-import java.util.Map;
 
 /**
  * NetContext的基本实现
@@ -57,15 +53,13 @@ public class DefaultNetContext implements NetContext {
     private final long localGuid;
     private final EventLoop appEventLoop;
     private final NetEventLoopGroup netEventLoopGroup;
-    private final HttpClientManager httpClientManager;
     private final NettyThreadManager nettyThreadManager;
 
     public DefaultNetContext(long localGuid, EventLoop appEventLoop, NetEventLoopGroup NetEventLoopGroup,
-                             HttpClientManager httpClientManager, NettyThreadManager nettyThreadManager) {
+                             NettyThreadManager nettyThreadManager) {
         this.localGuid = localGuid;
         this.appEventLoop = appEventLoop;
         this.netEventLoopGroup = NetEventLoopGroup;
-        this.httpClientManager = httpClientManager;
         this.nettyThreadManager = nettyThreadManager;
     }
 
@@ -153,23 +147,4 @@ public class DefaultNetContext implements NetContext {
         return nettyThreadManager.bindRange(host, portRange, 8192, 8192, initializer);
     }
 
-    @Override
-    public byte[] syncGet(String url, @Nonnull Map<String, String> params) throws IOException {
-        return httpClientManager.syncGet(url, params);
-    }
-
-    @Override
-    public void asyncGet(String url, @Nonnull Map<String, String> params, @Nonnull HttpCallback httpCallback) {
-        httpClientManager.asyncGet(url, params, appEventLoop, httpCallback);
-    }
-
-    @Override
-    public byte[] syncPost(String url, @Nonnull Map<String, String> params) throws IOException {
-        return httpClientManager.syncPost(url, params);
-    }
-
-    @Override
-    public void asyncPost(String url, @Nonnull Map<String, String> params, @Nonnull HttpCallback httpCallback) {
-        httpClientManager.asyncPost(url, params, appEventLoop, httpCallback);
-    }
 }

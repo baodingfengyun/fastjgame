@@ -23,7 +23,6 @@ import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.MultiThreadEventLoopGroup;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.event.EventLoopTerminalEvent;
-import com.wjybxx.fastjgame.manager.HttpClientManager;
 import com.wjybxx.fastjgame.manager.NettyThreadManager;
 import com.wjybxx.fastjgame.misc.DefaultNetContext;
 import com.wjybxx.fastjgame.module.NetEventLoopGroupModule;
@@ -47,7 +46,6 @@ class NetEventLoopGroupImp extends MultiThreadEventLoopGroup implements NetEvent
 
     private final Set<EventLoop> appEventLoopSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private final NettyThreadManager nettyThreadManager;
-    private final HttpClientManager httpClientManager;
 
     NetEventLoopGroupImp(int nThreads, @Nonnull ThreadFactory threadFactory,
                          @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
@@ -58,12 +56,8 @@ class NetEventLoopGroupImp extends MultiThreadEventLoopGroup implements NetEvent
         final NettyThreadManager nettyThreadManager = groupConfig.injector.getInstance(NettyThreadManager.class);
         nettyThreadManager.init(groupConfig.bossGroupThreadNum, groupConfig.workerGroupThreadNum);
 
-        final HttpClientManager httpClientManager = groupConfig.injector.getInstance(HttpClientManager.class);
-        httpClientManager.init(groupConfig.httpRequestTimeout);
-
         // 这里使用final可以保证初始化完成
         this.nettyThreadManager = nettyThreadManager;
-        this.httpClientManager = httpClientManager;
     }
 
     @Override
@@ -71,7 +65,6 @@ class NetEventLoopGroupImp extends MultiThreadEventLoopGroup implements NetEvent
         appEventLoopSet.clear();
         // 关闭持有的线程资源
         ConcurrentUtils.safeExecute(nettyThreadManager::shutdown);
-        ConcurrentUtils.safeExecute(httpClientManager::shutdown);
     }
 
     static class GroupConfig {
@@ -79,12 +72,10 @@ class NetEventLoopGroupImp extends MultiThreadEventLoopGroup implements NetEvent
         private final Injector injector = Guice.createInjector(Stage.PRODUCTION, new NetEventLoopGroupModule());
         private final int bossGroupThreadNum;
         private final int workerGroupThreadNum;
-        private final int httpRequestTimeout;
 
-        GroupConfig(int bossGroupThreadNum, int workerGroupThreadNum, int httpRequestTimeout) {
+        GroupConfig(int bossGroupThreadNum, int workerGroupThreadNum) {
             this.bossGroupThreadNum = bossGroupThreadNum;
             this.workerGroupThreadNum = workerGroupThreadNum;
-            this.httpRequestTimeout = httpRequestTimeout;
         }
     }
 
@@ -143,6 +134,6 @@ class NetEventLoopGroupImp extends MultiThreadEventLoopGroup implements NetEvent
             }
         }
 
-        return new DefaultNetContext(localGuid, appEventLoop, this, httpClientManager, nettyThreadManager);
+        return new DefaultNetContext(localGuid, appEventLoop, this, nettyThreadManager);
     }
 }

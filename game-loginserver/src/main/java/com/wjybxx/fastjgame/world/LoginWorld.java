@@ -39,15 +39,17 @@ public class LoginWorld extends AbstractWorld {
     private final LoginWorldInfoMgr loginWorldInfoMgr;
     private final LoginCenterSessionMgr loginCenterSessionMgr;
     private final LoginMongoDBMgr mongoDBMgr;
+    private final HttpClientManager httpClientManager;
 
     @Inject
     public LoginWorld(WorldWrapper worldWrapper, LoginDiscoverMgr loginDiscoverMgr,
-                      LoginCenterSessionMgr loginCenterSessionMgr, LoginMongoDBMgr mongoDBMgr) {
+                      LoginCenterSessionMgr loginCenterSessionMgr, LoginMongoDBMgr mongoDBMgr, HttpClientManager httpClientManager) {
         super(worldWrapper);
         this.loginDiscoverMgr = loginDiscoverMgr;
         this.loginWorldInfoMgr = (LoginWorldInfoMgr) worldWrapper.getWorldInfoMgr();
         this.loginCenterSessionMgr = loginCenterSessionMgr;
         this.mongoDBMgr = mongoDBMgr;
+        this.httpClientManager = httpClientManager;
     }
 
     @Override
@@ -67,8 +69,9 @@ public class LoginWorld extends AbstractWorld {
 
     @Override
     protected void startHook() throws Exception {
-        loginDiscoverMgr.start();
         bindAndregisterToZK();
+        loginDiscoverMgr.start();
+        httpClientManager.start();
     }
 
     private void bindAndregisterToZK() throws Exception {
