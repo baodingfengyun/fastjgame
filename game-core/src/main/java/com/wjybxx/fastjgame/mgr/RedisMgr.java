@@ -61,6 +61,10 @@ public class RedisMgr {
         redisPipeline = redisEventLoopMgr.newPipeline(gameEventLoopMgr.getEventLoop());
     }
 
+    public RedisFuture<?> sync() {
+        return redisPipeline.sync();
+    }
+
     public RedisFuture<Long> incr(String key) {
         return redisPipeline.incr(key);
     }

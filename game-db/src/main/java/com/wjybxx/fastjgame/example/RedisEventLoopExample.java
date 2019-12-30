@@ -20,7 +20,6 @@ import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
-import com.wjybxx.fastjgame.misc.IntHolder;
 import com.wjybxx.fastjgame.redis.DefaultRedisPipeline;
 import com.wjybxx.fastjgame.redis.RedisEventLoop;
 import com.wjybxx.fastjgame.redis.RedisPipeline;
@@ -92,21 +91,22 @@ public class RedisEventLoopExample {
 
         @Override
         protected void loop() {
-            final IntHolder countdown = new IntHolder(0);
             final int MAX_LOOP_TIMES = 100_0000;
             final long startTimeMS = System.currentTimeMillis();
 
             for (int loop = 0; loop < MAX_LOOP_TIMES; loop++) {
                 runAllTasks();
 
-                sendRedisCommands(countdown, loop);
+                sendRedisCommands(loop);
             }
+
+            // 监听前面的redis命令完成
+            redisPipeline.sync().addListener(future -> shutdown());
 
             while (true) {
                 runAllTasks();
 
-                if (countdown.get() == 0) {
-                    shutdown();
+                if (confirmShutdown()) {
                     break;
                 }
 
@@ -116,12 +116,9 @@ public class RedisEventLoopExample {
             System.out.println("execute " + (2 * MAX_LOOP_TIMES) + " commands, cost time ms " + (System.currentTimeMillis() - startTimeMS));
         }
 
-        private void sendRedisCommands(IntHolder countdown, int loop) {
-            countdown.addAndGet(2);
-
+        private void sendRedisCommands(int loop) {
             redisPipeline.hset("name", String.valueOf(loop), String.valueOf(loop))
                     .addListener(future -> {
-                        countdown.decAndGet();
                         try {
                             System.out.println(future.get());
                         } catch (Exception e) {
@@ -131,7 +128,6 @@ public class RedisEventLoopExample {
 
             redisPipeline.hget("name", String.valueOf(loop))
                     .addListener(future -> {
-                        countdown.decAndGet();
                         try {
                             System.out.println(future.get());
                         } catch (Exception e) {
