@@ -121,7 +121,7 @@ public class DefaultRpcPromise extends DefaultPromise<RpcResponse> implements Rp
     }
 
     @Override
-    public boolean await(long timeout, TimeUnit unit) throws InterruptedException {
+    public boolean await(long timeout, @Nonnull TimeUnit unit) throws InterruptedException {
         final long expectMillis = unit.toMillis(timeout);
         final long remainMillis = deadline - System.currentTimeMillis();
         //  如果期望的时间超过剩余时间，那么必须有结果
@@ -137,7 +137,7 @@ public class DefaultRpcPromise extends DefaultPromise<RpcResponse> implements Rp
     }
 
     @Override
-    public boolean awaitUninterruptibly(long timeout, TimeUnit unit) {
+    public boolean awaitUninterruptibly(long timeout, @Nonnull TimeUnit unit) {
         final long expectMillis = unit.toMillis(timeout);
         final long remainMillis = deadline - System.currentTimeMillis();
         //  如果期望的时间超过剩余时间，那么必须有结果

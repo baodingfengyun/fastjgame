@@ -87,7 +87,7 @@ public class GameEventLoopImp extends DisruptorEventLoop implements GameEventLoo
     @Nonnull
     @Override
     public GameEventLoop next() {
-        return (GameEventLoop) super.next();
+        return this;
     }
 
     @Nonnull

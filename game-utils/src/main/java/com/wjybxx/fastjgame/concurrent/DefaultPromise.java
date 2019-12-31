@@ -123,10 +123,6 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         this._notifyExecutor = null;
     }
 
-    private Object getResult() {
-        return resultHolder.get();
-    }
-
     /**
      * 返回最新的用于通知的EventLoop
      *
@@ -579,7 +575,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     }
 
     @Override
-    public boolean await(long timeout, TimeUnit unit) throws InterruptedException {
+    public boolean await(long timeout, @Nonnull TimeUnit unit) throws InterruptedException {
         // 小于等于0，则不阻塞
         if (timeout <= 0) {
             return isDone();
@@ -614,7 +610,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     }
 
     @Override
-    public boolean awaitUninterruptibly(long timeout, TimeUnit unit) {
+    public boolean awaitUninterruptibly(long timeout, @Nonnull TimeUnit unit) {
         // 小于等于0，则不阻塞
         if (timeout <= 0) {
             return isDone();
@@ -728,6 +724,20 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
 
         private CauseHolder(Throwable cause) {
             this.cause = cause;
+        }
+    }
+
+    /**
+     * 单个监听器的执行信息.
+     */
+    private static class ListenerEntry<V> {
+
+        private final FutureListener<V> listener;
+        private final EventLoop bindExecutor;
+
+        private ListenerEntry(@Nonnull FutureListener<V> listener, @Nullable EventLoop bindExecutor) {
+            this.listener = listener;
+            this.bindExecutor = bindExecutor;
         }
     }
 }

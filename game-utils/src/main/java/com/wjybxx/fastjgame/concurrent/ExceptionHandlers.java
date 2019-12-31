@@ -17,24 +17,31 @@
 package com.wjybxx.fastjgame.concurrent;
 
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * 重新抛出异常的异常处理器
+ * 常用的异常处理器
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/9/23
+ * date - 2019/12/31
  * github - https://github.com/hl845740757
  */
-public class RethrowExceptionHandler implements ExceptionHandler {
+public class ExceptionHandlers {
 
-    public static final RethrowExceptionHandler INSTANCE = new RethrowExceptionHandler();
+    private static final Logger logger = LoggerFactory.getLogger(ExceptionHandlers.class);
 
-    private RethrowExceptionHandler() {
-    }
+    /**
+     * 重新抛出异常
+     */
+    public static final ExceptionHandler RETHROW = ConcurrentUtils::rethrow;
 
-    @Override
-    public void handleException(Throwable e) {
-        ConcurrentUtils.rethrow(e);
-    }
+    /**
+     * 将异常记录下来
+     */
+    public static final ExceptionHandler LOG = e -> {
+        logger.warn("", e);
+    };
+
 }

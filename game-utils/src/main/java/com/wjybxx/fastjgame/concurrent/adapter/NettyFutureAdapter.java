@@ -84,12 +84,12 @@ public final class NettyFutureAdapter<V> implements ListenableFuture<V> {
     }
 
     @Override
-    public boolean await(long timeout, TimeUnit unit) throws InterruptedException {
+    public boolean await(long timeout, @Nonnull TimeUnit unit) throws InterruptedException {
         return future.await(timeout, unit);
     }
 
     @Override
-    public boolean awaitUninterruptibly(long timeout, TimeUnit unit) {
+    public boolean awaitUninterruptibly(long timeout, @Nonnull TimeUnit unit) {
         return future.awaitUninterruptibly(timeout, unit);
     }
 

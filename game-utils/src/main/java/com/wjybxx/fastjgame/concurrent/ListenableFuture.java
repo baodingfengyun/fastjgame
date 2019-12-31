@@ -116,7 +116,7 @@ public interface ListenableFuture<V> extends Future<V> {
     V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException;
 
     /**
-     * 尝试非阻塞的获取当前结果，当前仅当任务正常完成时返回期望的结果，否则返回null，即：
+     * 尝试非阻塞的获取当前结果，当且仅当任务正常完成时返回期望的结果，否则返回null，即：
      * 1. 如果future关联的task还未完成 {@link #isDone() false}，则返回null。
      * 2. 如果任务被取消或失败，则返回null。
      * <p>
@@ -177,7 +177,7 @@ public interface ListenableFuture<V> extends Future<V> {
      * @return 当且仅当future关联的task在指定时间内进入了完成状态，返回true。也就是接下来的{@link #isDone() true} 。
      * @throws InterruptedException 如果当前线程在等待期间被中断
      */
-    boolean await(long timeout, TimeUnit unit) throws InterruptedException;
+    boolean await(long timeout, @Nonnull TimeUnit unit) throws InterruptedException;
 
     /**
      * 在指定的时间范围内等待，直到future关联的任务进入完成状态，并且在等待期间不响应中断。
@@ -187,7 +187,7 @@ public interface ListenableFuture<V> extends Future<V> {
      * @param unit    时间单位
      * @return 当且仅当future关联的任务，在特定时间范围内进入完成状态时返回true。也就是接下来的{@link #isDone() true}。
      */
-    boolean awaitUninterruptibly(long timeout, TimeUnit unit);
+    boolean awaitUninterruptibly(long timeout, @Nonnull TimeUnit unit);
 
     // ------------------------------------- 监听 --------------------------------------
 

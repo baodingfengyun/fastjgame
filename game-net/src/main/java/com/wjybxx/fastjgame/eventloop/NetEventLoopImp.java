@@ -101,16 +101,16 @@ class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLoop {
         nettyThreadManager = managerWrapper.getNettyThreadManager();
     }
 
-    @Nonnull
-    @Override
-    public NetEventLoop next() {
-        return (NetEventLoop) super.next();
-    }
-
     @Nullable
     @Override
     public NetEventLoopGroup parent() {
         return (NetEventLoopGroup) super.parent();
+    }
+
+    @Nonnull
+    @Override
+    public NetEventLoop next() {
+        return this;
     }
 
     @Nonnull

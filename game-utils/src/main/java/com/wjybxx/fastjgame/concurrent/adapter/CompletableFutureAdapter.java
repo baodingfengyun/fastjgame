@@ -137,7 +137,7 @@ public class CompletableFutureAdapter<V> implements ListenableFuture<V> {
     }
 
     @Override
-    public boolean await(long timeout, TimeUnit unit) throws InterruptedException {
+    public boolean await(long timeout, @Nonnull TimeUnit unit) throws InterruptedException {
         try {
             future.get(timeout, unit);
             return true;
@@ -149,7 +149,7 @@ public class CompletableFutureAdapter<V> implements ListenableFuture<V> {
     }
 
     @Override
-    public boolean awaitUninterruptibly(long timeout, TimeUnit unit) {
+    public boolean awaitUninterruptibly(long timeout, @Nonnull TimeUnit unit) {
         try {
             // JDK不支持限时不中断的方式，暂时先不做额外处理
             future.get(timeout, unit);

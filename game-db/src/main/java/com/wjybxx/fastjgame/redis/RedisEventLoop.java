@@ -94,13 +94,13 @@ public class RedisEventLoop extends SingleThreadEventLoop {
     @Nonnull
     @Override
     public RedisEventLoop next() {
-        return (RedisEventLoop) super.next();
+        return this;
     }
 
     @Nonnull
     @Override
     public RedisEventLoop select(int key) {
-        return (RedisEventLoop) super.select(key);
+        return this;
     }
 
     @Override

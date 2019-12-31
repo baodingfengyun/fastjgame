@@ -92,12 +92,12 @@ public abstract class CompleteFuture<V> extends AbstractListenableFuture<V> {
     }
 
     @Override
-    public boolean await(long timeout, TimeUnit unit) {
+    public boolean await(long timeout, @Nonnull TimeUnit unit) {
         return true;
     }
 
     @Override
-    public boolean awaitUninterruptibly(long timeout, TimeUnit unit) {
+    public boolean awaitUninterruptibly(long timeout, @Nonnull TimeUnit unit) {
         return true;
     }
 

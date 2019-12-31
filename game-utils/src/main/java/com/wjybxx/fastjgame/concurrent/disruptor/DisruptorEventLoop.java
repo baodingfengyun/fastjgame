@@ -67,10 +67,10 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 
     /**
      * 默认ringBuffer大小 - 大一点可以减少降低阻塞概率
-     * 1024 * 1024 个{@link RunnableEvent}对象大概16M。
+     * 64 * 1024 个{@link RunnableEvent}对象大概1M。
      * 如果提交的任务较大，那么内存占用可能较大，用户请根据实际情况调整。
      */
-    private static final int DEFAULT_RING_BUFFER_SIZE = 1024 * 1024;
+    private static final int DEFAULT_RING_BUFFER_SIZE = 64 * 1024;
     /**
      * 批量拉取(执行)任务数 - 该值越小{@link #loopOnce()}执行越频繁，响应关闭请求越快。
      */

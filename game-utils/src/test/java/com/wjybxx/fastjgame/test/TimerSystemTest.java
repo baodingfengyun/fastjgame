@@ -78,8 +78,8 @@ public class TimerSystemTest {
         });
 
         final TimerHandle handle6 = timerSystem.newFixRate(0, 5 * TimeUtils.SEC, handle -> {
-            throw new RuntimeException("timer6 IGNORE");
-        }).setExceptionHandler(ExceptionHandlers.IGNORE);
+            throw new RuntimeException("timer6 LOG");
+        }).setExceptionHandler(ExceptionHandlers.LOG);
 
         final TimerHandle handle7 = timerSystem.newFixRate(0, 5 * TimeUtils.SEC, handle -> {
             throw new RuntimeException("timer7 AUTO CLOSE");

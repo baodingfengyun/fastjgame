@@ -42,7 +42,7 @@ public class ExceptionHandlers {
     /**
      * 仅仅记录一个日常，不影响接下来的执行
      */
-    public static final ExceptionHandler IGNORE = (handle, cause) -> {
+    public static final ExceptionHandler LOG = (handle, cause) -> {
         logger.warn("timer callback caught exception", cause);
     };
 
