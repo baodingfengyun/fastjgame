@@ -172,16 +172,19 @@ public class DefaultRpcPromise extends DefaultPromise<RpcResponse> implements Rp
     // ------------------------------------------------ 支持流式语法 ------------------------------------
     @Override
     public RpcPromise addListener(@Nonnull FutureListener<? super RpcResponse> listener) {
-        return (RpcPromise) super.addListener(listener);
+        super.addListener(listener);
+        return this;
     }
 
     @Override
     public RpcPromise addListener(@Nonnull FutureListener<? super RpcResponse> listener, @Nonnull EventLoop bindExecutor) {
-        return (RpcPromise) super.addListener(listener, bindExecutor);
+        super.addListener(listener, bindExecutor);
+        return this;
     }
 
     @Override
     public RpcPromise removeListener(@Nonnull FutureListener<? super RpcResponse> listener) {
-        return (RpcPromise) super.removeListener(listener);
+        super.removeListener(listener);
+        return this;
     }
 }

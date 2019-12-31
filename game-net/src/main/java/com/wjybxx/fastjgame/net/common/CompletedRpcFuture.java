@@ -44,27 +44,30 @@ public class CompletedRpcFuture extends SucceededFuture<RpcResponse> implements 
 
     @Override
     public RpcFuture await() {
-        return (CompletedRpcFuture) super.await();
+        return this;
     }
 
     @Override
     public RpcFuture awaitUninterruptibly() {
-        return (RpcFuture) super.awaitUninterruptibly();
+        return this;
     }
 
     @Override
     public RpcFuture addListener(@Nonnull FutureListener<? super RpcResponse> listener) {
-        return (RpcFuture) super.addListener(listener);
+        super.addListener(listener);
+        return this;
     }
 
     @Override
     public RpcFuture addListener(@Nonnull FutureListener<? super RpcResponse> listener, @Nonnull EventLoop bindExecutor) {
-        return (RpcFuture) super.addListener(listener, bindExecutor);
+        super.addListener(listener, bindExecutor);
+        return this;
     }
 
     @Override
     public RpcFuture removeListener(@Nonnull FutureListener<? super RpcResponse> listener) {
-        return (RpcFuture) super.removeListener(listener);
+        super.removeListener(listener);
+        return this;
     }
 
 }

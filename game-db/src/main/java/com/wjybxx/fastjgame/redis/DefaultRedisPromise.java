@@ -53,26 +53,31 @@ public class DefaultRedisPromise<V> extends DefaultPromise<V> implements RedisPr
 
     @Override
     public RedisPromise<V> await() throws InterruptedException {
-        return (RedisPromise<V>) super.await();
+        super.await();
+        return this;
     }
 
     @Override
     public RedisPromise<V> awaitUninterruptibly() {
-        return (RedisPromise<V>) super.awaitUninterruptibly();
+        super.awaitUninterruptibly();
+        return this;
     }
 
     @Override
     public RedisPromise<V> addListener(@Nonnull FutureListener<? super V> listener) {
-        return (RedisPromise<V>) super.addListener(listener);
+        super.addListener(listener);
+        return this;
     }
 
     @Override
     public RedisPromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor) {
-        return (RedisPromise<V>) super.addListener(listener, bindExecutor);
+        super.addListener(listener, bindExecutor);
+        return this;
     }
 
     @Override
     public RedisPromise<V> removeListener(@Nonnull FutureListener<? super V> listener) {
-        return (RedisPromise<V>) super.removeListener(listener);
+        super.removeListener(listener);
+        return this;
     }
 }
