@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.net.common;
 
+import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.FutureListener;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 
@@ -36,13 +37,6 @@ import java.util.concurrent.TimeoutException;
  */
 public interface RpcFuture extends ListenableFuture<RpcResponse> {
 
-    /**
-     * {@inheritDoc}
-     * 回调默认执行在发起rpc调用的用户所在线程
-     */
-    @Override
-    void addListener(@Nonnull FutureListener<? super RpcResponse> listener);
-
     // 1. RPCFuture上不会有执行失败异常，通过错误码来表示
     // 2. 在RpcFuture上不会无限阻塞，一定会在超时时间到了之后就醒来
     @Override
@@ -52,15 +46,17 @@ public interface RpcFuture extends ListenableFuture<RpcResponse> {
     RpcResponse get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, TimeoutException;
 
     @Override
-    void await() throws InterruptedException;
+    RpcFuture await() throws InterruptedException;
 
     @Override
-    void awaitUninterruptibly();
+    RpcFuture awaitUninterruptibly();
 
     @Override
-    boolean await(long timeout, TimeUnit unit) throws InterruptedException;
+    RpcFuture addListener(@Nonnull FutureListener<? super RpcResponse> listener);
 
     @Override
-    boolean awaitUninterruptibly(long timeout, TimeUnit unit);
+    RpcFuture addListener(@Nonnull FutureListener<? super RpcResponse> listener, @Nonnull EventLoop bindExecutor);
 
+    @Override
+    RpcFuture removeListener(@Nonnull FutureListener<? super RpcResponse> listener);
 }

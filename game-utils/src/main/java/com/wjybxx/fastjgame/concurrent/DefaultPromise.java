@@ -524,10 +524,10 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
      * </pre>
      */
     @Override
-    public void await() throws InterruptedException {
+    public Promise<V> await() throws InterruptedException {
         // 先检查一次是否已完成，减小锁竞争，同时在完成的情况下，等待不会死锁。
         if (isDone()) {
-            return;
+            return this;
         }
         // 检查死锁可能
         checkDeadlock();
@@ -545,13 +545,14 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
                 }
             }
         }
+        return this;
     }
 
     @Override
-    public void awaitUninterruptibly() {
+    public Promise<V> awaitUninterruptibly() {
         // 先检查一次是否已完成，减小锁竞争，同时在完成的情况下，等待不会死锁。
         if (isDone()) {
-            return;
+            return this;
         }
         // 检查死锁可能
         checkDeadlock();
@@ -574,6 +575,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
             // 恢复中断
             ConcurrentUtils.recoveryInterrupted(interrupted);
         }
+        return this;
     }
 
     @Override
@@ -655,14 +657,16 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     // ------------------------------------------------- 监听器 ------------------------------------------
 
     @Override
-    public final void addListener(@Nonnull FutureListener<? super V> listener) {
+    public Promise<V> addListener(@Nonnull FutureListener<? super V> listener) {
         // null is safe
         addListener0(listener, null);
+        return this;
     }
 
     @Override
-    public final void addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor) {
+    public Promise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor) {
         addListener0(listener, bindExecutor);
+        return this;
     }
 
     /**
@@ -688,8 +692,9 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     }
 
     @Override
-    public boolean removeListener(@Nonnull FutureListener<? super V> listener) {
-        return removeFirstMatchListener(listenerEntry -> listenerEntry.listener == listener);
+    public Promise<V> removeListener(@Nonnull FutureListener<? super V> listener) {
+        removeFirstMatchListener(listenerEntry -> listenerEntry.listener == listener);
+        return this;
     }
 
     /**

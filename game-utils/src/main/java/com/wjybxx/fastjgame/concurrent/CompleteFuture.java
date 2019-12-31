@@ -54,14 +54,16 @@ public abstract class CompleteFuture<V> extends AbstractListenableFuture<V> {
     }
 
     @Override
-    public void addListener(@Nonnull FutureListener<? super V> listener) {
+    public ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener) {
         notifyListener(listener, executor());
+        return this;
     }
 
     @Override
-    public void addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor) {
+    public ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor) {
         // notify
         notifyListener(listener, bindExecutor);
+        return this;
     }
 
     /**
@@ -72,21 +74,21 @@ public abstract class CompleteFuture<V> extends AbstractListenableFuture<V> {
     }
 
     @Override
-    public boolean removeListener(@Nonnull FutureListener<? super V> listener) {
+    public ListenableFuture<V> removeListener(@Nonnull FutureListener<? super V> listener) {
         // NOOP (因为并没有真正添加，因此也不需要移除)
-        return false;
+        return this;
     }
 
     // 什么时候应该检查中断，不是简单的事，个人觉得这里的操作都已完成，不会造成阻塞(不会执行耗时操作)，因此不需要检查中断
 
     @Override
-    public void await() {
-
+    public ListenableFuture<V> await() {
+        return this;
     }
 
     @Override
-    public void awaitUninterruptibly() {
-
+    public ListenableFuture<V> awaitUninterruptibly() {
+        return this;
     }
 
     @Override

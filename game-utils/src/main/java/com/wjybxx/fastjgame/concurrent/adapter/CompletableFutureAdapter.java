@@ -107,7 +107,7 @@ public class CompletableFutureAdapter<V> implements ListenableFuture<V> {
     }
 
     @Override
-    public void await() throws InterruptedException {
+    public ListenableFuture<V> await() throws InterruptedException {
         try {
             future.get();
         } catch (InterruptedException e) {
@@ -115,15 +115,17 @@ public class CompletableFutureAdapter<V> implements ListenableFuture<V> {
         } catch (Throwable ignore) {
 
         }
+        return this;
     }
 
     @Override
-    public void awaitUninterruptibly() {
+    public ListenableFuture<V> awaitUninterruptibly() {
         try {
             future.join();
         } catch (Throwable ignore) {
 
         }
+        return this;
     }
 
     @Override
@@ -152,12 +154,12 @@ public class CompletableFutureAdapter<V> implements ListenableFuture<V> {
     }
 
     @Override
-    public void addListener(@Nonnull FutureListener<? super V> listener) {
-        addListener(listener, executor);
+    public ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener) {
+        return addListener(listener, executor);
     }
 
     @Override
-    public void addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor) {
+    public ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor) {
         future.thenRunAsync(() -> {
             try {
                 listener.onComplete(this);
@@ -165,10 +167,11 @@ public class CompletableFutureAdapter<V> implements ListenableFuture<V> {
                 ConcurrentUtils.rethrow(e);
             }
         }, bindExecutor);
+        return this;
     }
 
     @Override
-    public boolean removeListener(@Nonnull FutureListener<? super V> listener) {
+    public ListenableFuture<V> removeListener(@Nonnull FutureListener<? super V> listener) {
         throw new UnsupportedOperationException();
     }
 }

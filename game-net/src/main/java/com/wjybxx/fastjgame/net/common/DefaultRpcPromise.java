@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.net.common;
 
 import com.wjybxx.fastjgame.concurrent.DefaultPromise;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.wjybxx.fastjgame.concurrent.FutureListener;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import org.slf4j.Logger;
@@ -104,17 +105,19 @@ public class DefaultRpcPromise extends DefaultPromise<RpcResponse> implements Rp
     }
 
     @Override
-    public void await() throws InterruptedException {
+    public RpcPromise await() throws InterruptedException {
         // 有限的等待
         await(deadline - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
         assert isDone();
+        return this;
     }
 
     @Override
-    public void awaitUninterruptibly() {
+    public RpcPromise awaitUninterruptibly() {
         // 有限的等待
         awaitUninterruptibly(deadline - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
         assert isDone();
+        return this;
     }
 
     @Override
@@ -166,4 +169,19 @@ public class DefaultRpcPromise extends DefaultPromise<RpcResponse> implements Rp
         return tryCompleted(RpcResponse.CANCELLED, true);
     }
 
+    // ------------------------------------------------ 支持流式语法 ------------------------------------
+    @Override
+    public RpcPromise addListener(@Nonnull FutureListener<? super RpcResponse> listener) {
+        return (RpcPromise) super.addListener(listener);
+    }
+
+    @Override
+    public RpcPromise addListener(@Nonnull FutureListener<? super RpcResponse> listener, @Nonnull EventLoop bindExecutor) {
+        return (RpcPromise) super.addListener(listener, bindExecutor);
+    }
+
+    @Override
+    public RpcPromise removeListener(@Nonnull FutureListener<? super RpcResponse> listener) {
+        return (RpcPromise) super.removeListener(listener);
+    }
 }

@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.redis;
 
+import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.FutureListener;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 
@@ -34,11 +35,18 @@ import javax.annotation.Nonnull;
  */
 public interface RedisFuture<V> extends ListenableFuture<V> {
 
-    /**
-     * {@inheritDoc}
-     * 回调默认执行在发起请求的用户线程。
-     */
     @Override
-    void addListener(@Nonnull FutureListener<? super V> listener);
+    ListenableFuture<V> await() throws InterruptedException;
 
+    @Override
+    ListenableFuture<V> awaitUninterruptibly();
+
+    @Override
+    RedisFuture<V> addListener(@Nonnull FutureListener<? super V> listener);
+
+    @Override
+    RedisFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor);
+
+    @Override
+    RedisFuture<V> removeListener(@Nonnull FutureListener<? super V> listener);
 }

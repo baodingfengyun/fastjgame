@@ -159,15 +159,18 @@ public interface ListenableFuture<V> extends Future<V> {
      * 等待future进入完成状态。
      * await()不会查询任务的结果，在Future进入完成状态之后就返回，方法返回后，接下来的{@link #isDone()}调用都将返回true。
      *
+     * @return this
      * @throws InterruptedException 如果在等待期间线程被中断，则抛出中断异常。
      */
-    void await() throws InterruptedException;
+    ListenableFuture<V> await() throws InterruptedException;
 
     /**
      * 等待future进入完成状态，等待期间不响应中断，并默默的丢弃，在方法返回前会重置中断状态。
      * 在方法返回之后，接下来的{@link #isDone()}调用都将返回true。
+     *
+     * @return this
      */
-    void awaitUninterruptibly();
+    ListenableFuture<V> awaitUninterruptibly();
 
     /**
      * 在指定的时间范围内等待，直到future关联的任务进入完成状态。
@@ -200,8 +203,9 @@ public interface ListenableFuture<V> extends Future<V> {
      * 2. 同一个listener反复添加会共存。
      *
      * @param listener 要添加的监听器。PECS Listener作为消费者，可以把生产的结果V 看做V或V的超类型消费，因此需要使用super。
+     * @return this
      */
-    void addListener(@Nonnull FutureListener<? super V> listener);
+    ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener);
 
     /**
      * 添加一个监听者到当前Future。传入的特定的Listener将会在Future计算完成时{@link #isDone() true}被通知。
@@ -219,15 +223,16 @@ public interface ListenableFuture<V> extends Future<V> {
      *
      * @param listener     要添加的监听器
      * @param bindExecutor 监听器执行的线程
+     * @return this
      */
-    void addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor);
+    ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor);
 
     /**
      * 移除监听器中第一个与指定Listener匹配的监听器，如果该Listener没有进行注册，那么什么也不会做。
      *
      * @param listener 要移除的监听器
-     * @return 是否删除了一个listener
+     * @return this
      */
-    boolean removeListener(@Nonnull FutureListener<? super V> listener);
+    ListenableFuture<V> removeListener(@Nonnull FutureListener<? super V> listener);
 
 }

@@ -16,7 +16,11 @@
 
 package com.wjybxx.fastjgame.net.common;
 
+import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.wjybxx.fastjgame.concurrent.FutureListener;
 import com.wjybxx.fastjgame.concurrent.Promise;
+
+import javax.annotation.Nonnull;
 
 /**
  * RpcPromise
@@ -34,4 +38,20 @@ public interface RpcPromise extends RpcFuture, Promise<RpcResponse> {
      * @return 超时时间
      */
     long deadline();
+
+    @Override
+    RpcPromise await() throws InterruptedException;
+
+    @Override
+    RpcPromise awaitUninterruptibly();
+
+    @Override
+    RpcPromise addListener(@Nonnull FutureListener<? super RpcResponse> listener, @Nonnull EventLoop bindExecutor);
+
+    @Override
+    RpcPromise addListener(@Nonnull FutureListener<? super RpcResponse> listener);
+
+    @Override
+    RpcPromise removeListener(@Nonnull FutureListener<? super RpcResponse> listener);
+
 }

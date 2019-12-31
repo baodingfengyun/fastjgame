@@ -19,7 +19,10 @@ package com.wjybxx.fastjgame.redis;
 
 import com.wjybxx.fastjgame.concurrent.DefaultPromise;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.wjybxx.fastjgame.concurrent.FutureListener;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
+
+import javax.annotation.Nonnull;
 
 /**
  * redis异步操作结果的默认实现
@@ -46,4 +49,30 @@ public class DefaultRedisPromise<V> extends DefaultPromise<V> implements RedisPr
         ConcurrentUtils.checkDeadLock(workerEventLoop);
     }
 
+    // ------------------------------------------------ 支持流式语法 ------------------------------------
+
+    @Override
+    public RedisPromise<V> await() throws InterruptedException {
+        return (RedisPromise<V>) super.await();
+    }
+
+    @Override
+    public RedisPromise<V> awaitUninterruptibly() {
+        return (RedisPromise<V>) super.awaitUninterruptibly();
+    }
+
+    @Override
+    public RedisPromise<V> addListener(@Nonnull FutureListener<? super V> listener) {
+        return (RedisPromise<V>) super.addListener(listener);
+    }
+
+    @Override
+    public RedisPromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor) {
+        return (RedisPromise<V>) super.addListener(listener, bindExecutor);
+    }
+
+    @Override
+    public RedisPromise<V> removeListener(@Nonnull FutureListener<? super V> listener) {
+        return (RedisPromise<V>) super.removeListener(listener);
+    }
 }

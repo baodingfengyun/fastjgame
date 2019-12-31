@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.net.common;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.wjybxx.fastjgame.concurrent.FutureListener;
 import com.wjybxx.fastjgame.concurrent.SucceededFuture;
 
 import javax.annotation.Nonnull;
@@ -37,6 +38,33 @@ public class CompletedRpcFuture extends SucceededFuture<RpcResponse> implements 
      */
     public CompletedRpcFuture(@Nonnull EventLoop executor, @Nonnull RpcResponse rpcResponse) {
         super(executor, rpcResponse);
+    }
+
+    // ------------------------------------------------ 流式语法支持 ------------------------------------
+
+    @Override
+    public RpcFuture await() {
+        return (CompletedRpcFuture) super.await();
+    }
+
+    @Override
+    public RpcFuture awaitUninterruptibly() {
+        return (RpcFuture) super.awaitUninterruptibly();
+    }
+
+    @Override
+    public RpcFuture addListener(@Nonnull FutureListener<? super RpcResponse> listener) {
+        return (RpcFuture) super.addListener(listener);
+    }
+
+    @Override
+    public RpcFuture addListener(@Nonnull FutureListener<? super RpcResponse> listener, @Nonnull EventLoop bindExecutor) {
+        return (RpcFuture) super.addListener(listener, bindExecutor);
+    }
+
+    @Override
+    public RpcFuture removeListener(@Nonnull FutureListener<? super RpcResponse> listener) {
+        return (RpcFuture) super.removeListener(listener);
     }
 
 }

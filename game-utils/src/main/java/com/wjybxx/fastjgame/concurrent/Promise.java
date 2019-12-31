@@ -70,4 +70,20 @@ public interface Promise<V> extends ListenableFuture<V> {
      * 否则返回false（其实也就是被取消返回false）。
      */
     boolean setUncancellable();
+
+    // 以下仅用于实现流式语法
+    @Override
+    Promise<V> await() throws InterruptedException;
+
+    @Override
+    Promise<V> awaitUninterruptibly();
+
+    @Override
+    Promise<V> addListener(@Nonnull FutureListener<? super V> listener);
+
+    @Override
+    Promise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor);
+
+    @Override
+    Promise<V> removeListener(@Nonnull FutureListener<? super V> listener);
 }

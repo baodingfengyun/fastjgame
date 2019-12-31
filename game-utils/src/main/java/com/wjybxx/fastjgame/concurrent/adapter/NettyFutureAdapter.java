@@ -63,13 +63,15 @@ public final class NettyFutureAdapter<V> implements ListenableFuture<V> {
     }
 
     @Override
-    public void await() throws InterruptedException {
+    public ListenableFuture<V> await() throws InterruptedException {
         future.await();
+        return this;
     }
 
     @Override
-    public void awaitUninterruptibly() {
+    public ListenableFuture<V> awaitUninterruptibly() {
         future.awaitUninterruptibly();
+        return this;
     }
 
     @Override
@@ -115,17 +117,19 @@ public final class NettyFutureAdapter<V> implements ListenableFuture<V> {
     // ---------------------------------------------------------------------------------------------
 
     @Override
-    public void addListener(@Nonnull FutureListener<? super V> listener) {
+    public ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener) {
         future.addListener(new FutureListenerAdapter<>(this, listener, executor));
+        return this;
     }
 
     @Override
-    public void addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor) {
+    public ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor) {
         future.addListener(new FutureListenerAdapter<>(this, listener, bindExecutor));
+        return this;
     }
 
     @Override
-    public boolean removeListener(@Nonnull FutureListener<? super V> listener) {
+    public ListenableFuture<V> removeListener(@Nonnull FutureListener<? super V> listener) {
         // 需要ConcurrentMap保存映射才能删除，比较麻烦，先不支持
         throw new UnsupportedOperationException();
     }
