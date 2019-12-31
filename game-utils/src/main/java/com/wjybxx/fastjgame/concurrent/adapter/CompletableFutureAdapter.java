@@ -45,6 +45,14 @@ public class CompletableFutureAdapter<V> implements ListenableFuture<V> {
     private final EventLoop executor;
     private final CompletableFuture<V> future;
 
+    public CompletableFutureAdapter(CompletableFuture<V> future) {
+        this.executor = null;
+        this.future = future;
+    }
+
+    /**
+     * @param executor 异步执行的默认executor
+     */
     public CompletableFutureAdapter(EventLoop executor, CompletableFuture<V> future) {
         this.executor = executor;
         this.future = future;
@@ -155,19 +163,30 @@ public class CompletableFutureAdapter<V> implements ListenableFuture<V> {
 
     @Override
     public ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener) {
-        return addListener(listener, executor);
+        addListener0(listener, executor);
+        return this;
     }
 
     @Override
     public ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor) {
-        future.thenRunAsync(() -> {
-            try {
-                listener.onComplete(this);
-            } catch (Exception e) {
-                ConcurrentUtils.rethrow(e);
-            }
-        }, bindExecutor);
+        addListener0(listener, bindExecutor);
         return this;
+    }
+
+    private void addListener0(@Nonnull FutureListener<? super V> listener, @Nullable EventLoop bindExecutor) {
+        if (null == bindExecutor) {
+            future.thenRun(() -> notify(listener));
+        } else {
+            future.thenRunAsync(() -> notify(listener), bindExecutor);
+        }
+    }
+
+    private void notify(@Nonnull FutureListener<? super V> listener) {
+        try {
+            listener.onComplete(this);
+        } catch (Exception e) {
+            ConcurrentUtils.rethrow(e);
+        }
     }
 
     @Override

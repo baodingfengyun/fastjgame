@@ -25,6 +25,7 @@ import io.netty.util.concurrent.Future;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -41,6 +42,14 @@ public final class NettyFutureAdapter<V> implements ListenableFuture<V> {
     private final EventLoop executor;
     private final Future<V> future;
 
+    public NettyFutureAdapter(Future<V> future) {
+        this.executor = null;
+        this.future = future;
+    }
+
+    /**
+     * @param executor 异步执行的默认executor
+     */
     public NettyFutureAdapter(@Nonnull EventLoop executor, Future<V> future) {
         this.executor = executor;
         this.future = future;
@@ -118,48 +127,37 @@ public final class NettyFutureAdapter<V> implements ListenableFuture<V> {
 
     @Override
     public ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener) {
-        future.addListener(new FutureListenerAdapter<>(this, listener, executor));
+        addListener0(listener, executor);
         return this;
     }
 
     @Override
     public ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor) {
-        future.addListener(new FutureListenerAdapter<>(this, listener, bindExecutor));
+        addListener0(listener, bindExecutor);
         return this;
+    }
+
+    private void addListener0(@Nonnull FutureListener<? super V> listener, @Nullable Executor bindExecutor) {
+        if (null == bindExecutor) {
+            future.addListener(future1 -> listener.onComplete(this));
+        } else {
+            future.addListener(future1 -> notifyAsync(listener, bindExecutor));
+        }
+    }
+
+    private void notifyAsync(FutureListener<? super V> listener, Executor bindExecutor) {
+        bindExecutor.execute(() -> {
+            try {
+                listener.onComplete(this);
+            } catch (Exception e) {
+                ConcurrentUtils.rethrow(e);
+            }
+        });
     }
 
     @Override
     public ListenableFuture<V> removeListener(@Nonnull FutureListener<? super V> listener) {
         // 需要ConcurrentMap保存映射才能删除，比较麻烦，先不支持
         throw new UnsupportedOperationException();
-    }
-
-    /**
-     * 转发到指定线程下执行回调逻辑
-     *
-     * @param <V>
-     */
-    private static class FutureListenerAdapter<V> implements io.netty.util.concurrent.FutureListener<V> {
-
-        private final ListenableFuture<V> listenableFuture;
-        private final FutureListener<? super V> futureListener;
-        private final EventLoop bindExecutor;
-
-        private FutureListenerAdapter(ListenableFuture<V> listenableFuture, FutureListener<? super V> futureListener, EventLoop bindExecutor) {
-            this.listenableFuture = listenableFuture;
-            this.futureListener = futureListener;
-            this.bindExecutor = bindExecutor;
-        }
-
-        @Override
-        public void operationComplete(Future<V> future) throws Exception {
-            bindExecutor.execute(() -> {
-                try {
-                    futureListener.onComplete(listenableFuture);
-                } catch (Exception e) {
-                    ConcurrentUtils.rethrow(e);
-                }
-            });
-        }
     }
 }

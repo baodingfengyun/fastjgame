@@ -32,10 +32,7 @@ import java.util.concurrent.*;
  * Q:为什么没有保留netty中的 {@code sync()}系列方法？
  * A:sync方法没有声明任何异常，但是却可能抛出异常！sync的语义更贴近于等待任务完成，但是其实现会在任务失败后抛出异常，一不小心会着道的，
  * 更建议使用{@link #await()} 和 {@link #isSuccess()}进行处理。
- * <p>
- * Q:为什么没有像netty一样支持流式语法？
- * A:基于安全性的考量，因为要实现流式语法，会导致大量的方法被重写，本应该是final的方法也不能声明为final，在重写的过程中，如果疏忽将可能破坏线程安全性。
- * 不支持流式语法有时候是有点不方便，但也不会太麻烦，但是安全性是有保证的。
+ * 其实我本身是想使用sync作为等待任务完成的方法名的，但是会导致和netty的sync不一致，会给阅读的人造成迷惑，因此使用await。
  *
  * @param <V> 值类型
  * @author wjybxx
@@ -117,7 +114,6 @@ public interface ListenableFuture<V> extends Future<V> {
      */
     @Override
     V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException;
-
 
     /**
      * 尝试非阻塞的获取当前结果，当前仅当任务正常完成时返回期望的结果，否则返回null，即：
