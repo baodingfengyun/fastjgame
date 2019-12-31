@@ -29,7 +29,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
- * JDK{@link CompletableFuture}的适配器
+ * JDK{@link CompletableFuture}的适配器。
+ * <p>
+ * 其实在最开始构建并发组件的时候，我就想过是选择{@link ListenableFuture}还是JDK的{@link CompletableFuture}，
+ * 扫一遍{@link CompletableFuture}，它的api实在是太多了，理解和使用成本都太高，不适合暴露给逻辑程序员使用，而对其进行封装的成本更高，
+ * 且游戏内一般并不需要特别多的功能，所以最终选择了{@link ListenableFuture}。
  *
  * @author wjybxx
  * @version 1.0
@@ -137,7 +141,7 @@ public class CompletableFutureAdapter<V> implements ListenableFuture<V> {
     @Override
     public boolean awaitUninterruptibly(long timeout, TimeUnit unit) {
         try {
-            // JDK不支持限时不中断的方式，暂时先不做处理
+            // JDK不支持限时不中断的方式，暂时先不做额外处理
             future.get(timeout, unit);
             return true;
         } catch (InterruptedException e) {

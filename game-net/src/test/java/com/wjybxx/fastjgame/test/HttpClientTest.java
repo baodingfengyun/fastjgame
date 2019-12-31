@@ -20,7 +20,7 @@ import com.wjybxx.fastjgame.concurrent.DefaultEventLoop;
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
-import com.wjybxx.fastjgame.misc.HttpClientProxy;
+import com.wjybxx.fastjgame.net.http.HttpClientProxy;
 
 import java.io.IOException;
 import java.net.URI;

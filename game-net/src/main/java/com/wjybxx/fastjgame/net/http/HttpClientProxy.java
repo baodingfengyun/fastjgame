@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.misc;
+package com.wjybxx.fastjgame.net.http;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
@@ -33,8 +33,8 @@ import java.util.Objects;
  * 新版本httpClient管理器 - 使用JDK11自带的{@link java.net.http.HttpClient}。
  * <p>
  * Q: 为什么值得改动？
- * A: 1. jdk11的{@link java.net.http.HttpClient}是异步非阻塞的，一个IO线程负责所有http请求。而OkHttp3/Apache HttpClient是线程池。
- * 2. 其异步接口更加优秀。
+ * A: jdk11的{@link java.net.http.HttpClient}是reactor模式，1个selector线程 + N工作者线程。线程需求少，吞吐量更好。
+ * 而OkHttp3/Apache HttpClient会创建大量的线程。
  * <p>
  * Q: 为什么要弄个中间对象出来？
  * - 统一管理超时时间。
@@ -52,6 +52,11 @@ public class HttpClientProxy {
     private final EventLoop appEventLoop;
     private final Duration httpRequestTimeout;
 
+    /**
+     * @param httpClient         注意：{@link HttpClient}并没有close方法，其自动关闭依赖于守护线程，因此制定executor时请注意。
+     * @param appEventLoop       异步http请求回调的默认执行环境
+     * @param httpRequestTimeout http请求默认超时时间
+     */
     public HttpClientProxy(@Nonnull HttpClient httpClient, @Nonnull EventLoop appEventLoop, long httpRequestTimeout) {
         this.httpClient = Objects.requireNonNull(httpClient);
         this.appEventLoop = Objects.requireNonNull(appEventLoop);
@@ -73,7 +78,7 @@ public class HttpClientProxy {
     }
 
     /**
-     * @param builder             http请求内容，之所以使用builder而不是构建完成的request是为了检查是否设置了超时时间。
+     * @param builder             http请求内容，之所以使用builder而不是构建完成的request是为了统一设置超时时间。
      * @param responseBodyHandler 响应解析器
      * @param <T>                 响应内容的类型
      * @return 响应的内容
@@ -85,10 +90,10 @@ public class HttpClientProxy {
     }
 
     /**
-     * @param builder             http请求内容，之所以使用builder而不是构建完成的request是为了检查是否设置了超时时间。
+     * @param builder             http请求内容，之所以使用builder而不是构建完成的request是为了统一设置超时时间。
      * @param responseBodyHandler 响应解析器
      * @param <T>                 响应内容的类型
-     * @return Future - 注意：该future的执行关键就在游戏逻辑线程。
+     * @return Future - 注意：该future回调的执行环境为{@link #appEventLoop}
      */
     public <T> ListenableFuture<HttpResponse<T>> sendAsync(HttpRequest.Builder builder, HttpResponse.BodyHandler<T> responseBodyHandler) {
         return new CompletableFutureAdapter<>(appEventLoop, httpClient.sendAsync(appendTimeout(builder), responseBodyHandler));
@@ -101,7 +106,43 @@ public class HttpClientProxy {
      * @return httpRequest
      */
     private HttpRequest appendTimeout(HttpRequest.Builder builder) {
-        return builder.timeout(httpRequestTimeout)
-                .build();
+        return builder.timeout(httpRequestTimeout).build();
+    }
+
+    /**
+     * @param request             http请求内容
+     * @param responseBodyHandler 响应解析器
+     * @param <T>                 响应内容的类型
+     * @return 响应的内容
+     * @throws IOException              if an I/O error occurs when sending or receiving
+     * @throws InterruptedException     if the operation is interrupted
+     * @throws IllegalArgumentException if timeout is empty
+     */
+    public <T> HttpResponse<T> send(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler) throws IOException, InterruptedException {
+        ensureTimeoutIsPresent(request);
+        return httpClient.send(request, responseBodyHandler);
+    }
+
+    /**
+     * @param request             http请求内容
+     * @param responseBodyHandler 响应解析器
+     * @param <T>                 响应内容的类型
+     * @return Future - 注意：该future回调的执行环境为{@link #appEventLoop}
+     * @throws IllegalArgumentException if timeout is empty
+     */
+    public <T> ListenableFuture<HttpResponse<T>> sendAsync(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler) {
+        ensureTimeoutIsPresent(request);
+        return new CompletableFutureAdapter<>(appEventLoop, httpClient.sendAsync(request, responseBodyHandler));
+    }
+
+    /**
+     * 确保超时时间存在
+     *
+     * @param request http请求内容
+     */
+    private void ensureTimeoutIsPresent(HttpRequest request) {
+        if (request.timeout().isEmpty()) {
+            throw new IllegalArgumentException("request timeout is empty");
+        }
     }
 }

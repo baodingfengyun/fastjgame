@@ -318,7 +318,7 @@ public class RedisEventLoop extends SingleThreadEventLoop {
                 generateResponses();
 
                 // 尝试一次恢复连接
-                checkConnection();
+                connectSafely();
             } else {
                 checkSync();
             }

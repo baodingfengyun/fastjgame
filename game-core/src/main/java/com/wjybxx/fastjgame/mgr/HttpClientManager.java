@@ -21,7 +21,7 @@ import com.wjybxx.fastjgame.concurrent.DefaultEventLoopGroup;
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
-import com.wjybxx.fastjgame.misc.HttpClientProxy;
+import com.wjybxx.fastjgame.net.http.HttpClientProxy;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
@@ -75,8 +75,9 @@ public class HttpClientManager {
      * @param responseBodyHandler 响应解析器
      * @param <T>                 响应内容的类型
      * @return 响应的内容
-     * @throws IOException          if an I/O error occurs when sending or receiving
-     * @throws InterruptedException if the operation is interrupted
+     * @throws IOException              if an I/O error occurs when sending or receiving
+     * @throws InterruptedException     if the operation is interrupted
+     * @throws IllegalArgumentException if timeout is empty
      */
     public <T> HttpResponse<T> send(HttpRequest.Builder builder, HttpResponse.BodyHandler<T> responseBodyHandler) throws IOException, InterruptedException {
         return httpClientProxy.send(builder, responseBodyHandler);
@@ -86,10 +87,34 @@ public class HttpClientManager {
      * @param builder             http请求内容，之所以使用builder而不是构建完成的request是为了检查是否设置了超时时间。
      * @param responseBodyHandler 响应解析器
      * @param <T>                 响应内容的类型
-     * @return Future - 注意：该future的执行关键就在游戏逻辑线程。
+     * @return Future - 注意：该future回调的执行就在游戏逻辑线程。
+     * @throws IllegalArgumentException if timeout is empty
      */
     public <T> ListenableFuture<HttpResponse<T>> sendAsync(HttpRequest.Builder builder, HttpResponse.BodyHandler<T> responseBodyHandler) {
         return httpClientProxy.sendAsync(builder, responseBodyHandler);
     }
 
+    /**
+     * @param request             http请求内容
+     * @param responseBodyHandler 响应解析器
+     * @param <T>                 响应内容的类型
+     * @return 响应的内容
+     * @throws IOException              if an I/O error occurs when sending or receiving
+     * @throws InterruptedException     if the operation is interrupted
+     * @throws IllegalArgumentException if timeout is empty
+     */
+    public <T> HttpResponse<T> send(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler) throws IOException, InterruptedException {
+        return httpClientProxy.send(request, responseBodyHandler);
+    }
+
+    /**
+     * @param request             http请求内容
+     * @param responseBodyHandler 响应解析器
+     * @param <T>                 响应内容的类型
+     * @return Future - 注意：该future回调的执行就在游戏逻辑线程
+     * @throws IllegalArgumentException if timeout is empty
+     */
+    public <T> ListenableFuture<HttpResponse<T>> sendAsync(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler) {
+        return httpClientProxy.sendAsync(request, responseBodyHandler);
+    }
 }
