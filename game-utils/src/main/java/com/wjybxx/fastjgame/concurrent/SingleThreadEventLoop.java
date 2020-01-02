@@ -446,12 +446,13 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
             return true;
         }
         // shuttingDown状态下，已不会接收新的任务，执行完当前所有未执行的任务就可以退出了。
-        // 由于shutdownNow，可能任务没有完全执行完毕，需要进行清理
         runAllTasks();
-        taskQueue.clear();
 
         // 切换至SHUTDOWN状态，准备执行最后的清理动作
         advanceRunState(ST_SHUTDOWN);
+
+        // 由于shutdownNow，可能任务没有完全执行完毕，需要进行清理
+        taskQueue.clear();
         return true;
     }
 

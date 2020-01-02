@@ -137,8 +137,7 @@ public class SessionConfig {
         }
 
         public T setSessionTimeoutMs(int sessionTimeoutMs) {
-            CheckUtils.checkPositive(sessionTimeoutMs, "sessionTimeoutMs");
-            this.sessionTimeoutMs = sessionTimeoutMs;
+            this.sessionTimeoutMs = CheckUtils.requirePositive(sessionTimeoutMs, "sessionTimeoutMs");
             return self();
         }
 
@@ -148,14 +147,12 @@ public class SessionConfig {
         }
 
         public T setRpcCallbackTimeoutMs(int rpcCallbackTimeoutMs) {
-            CheckUtils.checkPositive(rpcCallbackTimeoutMs, "rpcCallbackTimeoutMs");
-            this.rpcCallbackTimeoutMs = rpcCallbackTimeoutMs;
+            this.rpcCallbackTimeoutMs = CheckUtils.requirePositive(rpcCallbackTimeoutMs, "rpcCallbackTimeoutMs");
             return self();
         }
 
         public T setSyncRpcTimeoutMs(int syncRpcTimeoutMs) {
-            CheckUtils.checkPositive(rpcCallbackTimeoutMs, "syncRpcTimeoutMs");
-            this.syncRpcTimeoutMs = syncRpcTimeoutMs;
+            this.syncRpcTimeoutMs = CheckUtils.requirePositive(rpcCallbackTimeoutMs, "syncRpcTimeoutMs");
             return self();
         }
 

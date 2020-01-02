@@ -40,20 +40,17 @@ public class NetEventLoopGroupBuilder {
     private RejectedExecutionHandler rejectedExecutionHandler = RejectedExecutionHandlers.abort();
 
     public NetEventLoopGroupBuilder setNetEventLoopNum(int netEventLoopNum) {
-        CheckUtils.checkPositive(netEventLoopNum, "netEventLoopNum");
-        this.netEventLoopNum = netEventLoopNum;
+        this.netEventLoopNum = CheckUtils.requirePositive(netEventLoopNum, "netEventLoopNum");
         return this;
     }
 
     public NetEventLoopGroupBuilder setBossGroupThreadNum(int bossGroupThreadNum) {
-        CheckUtils.checkPositive(bossGroupThreadNum, "bossGroupThreadNum");
-        this.bossGroupThreadNum = bossGroupThreadNum;
+        this.bossGroupThreadNum = CheckUtils.requirePositive(bossGroupThreadNum, "bossGroupThreadNum");
         return this;
     }
 
     public NetEventLoopGroupBuilder setWorkerGroupThreadNum(int workerGroupThreadNum) {
-        CheckUtils.checkPositive(workerGroupThreadNum, "workerGroupThreadNum");
-        this.workerGroupThreadNum = workerGroupThreadNum;
+        this.workerGroupThreadNum = CheckUtils.requirePositive(workerGroupThreadNum, "workerGroupThreadNum");
         return this;
     }
 

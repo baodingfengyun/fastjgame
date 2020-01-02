@@ -113,7 +113,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     /**
      * 批量拉取任务的大小
      */
-    private final int batchSize;
+    private final int taskBatchSize;
 
     /**
      * 线程状态
@@ -147,14 +147,14 @@ public class DisruptorEventLoop extends AbstractEventLoop {
      * @param threadFactory            线程工厂
      * @param rejectedExecutionHandler 拒绝策略
      * @param ringBufferSize           环形缓冲区大小
-     * @param batchSize                批量拉取(执行)任务数(小于等于0则不限制)
+     * @param taskBatchSize            批量拉取(执行)任务数(小于等于0则不限制)
      */
     public DisruptorEventLoop(@Nullable EventLoopGroup parent,
                               @Nonnull ThreadFactory threadFactory,
                               @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
-                              int ringBufferSize, int batchSize) {
+                              int ringBufferSize, int taskBatchSize) {
         this(parent, threadFactory, rejectedExecutionHandler,
-                ringBufferSize, batchSize,
+                ringBufferSize, taskBatchSize,
                 new SleepWaitStrategyFactory());
     }
 
@@ -178,13 +178,13 @@ public class DisruptorEventLoop extends AbstractEventLoop {
      * @param threadFactory            线程工厂
      * @param rejectedExecutionHandler 拒绝策略
      * @param ringBufferSize           环形缓冲区大小
-     * @param batchSize                批量拉取(执行)任务数(小于等于0则不限制)
+     * @param taskBatchSize            批量拉取(执行)任务数(小于等于0则不限制)
      * @param waitStrategyFactory      等待策略工厂
      */
     public DisruptorEventLoop(@Nullable EventLoopGroup parent,
                               @Nonnull ThreadFactory threadFactory,
                               @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
-                              int ringBufferSize, int batchSize,
+                              int ringBufferSize, int taskBatchSize,
                               @Nonnull WaitStrategyFactory waitStrategyFactory) {
 
         super(parent);
@@ -192,7 +192,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
         this.ringBuffer = RingBuffer.createMultiProducer(RunnableEvent::new,
                 ringBufferSize,
                 waitStrategyFactory.newWaitStrategy(this));
-        this.batchSize = batchSize;
+        this.taskBatchSize = taskBatchSize;
 
         // 它不依赖于其它消费者，只依赖生产者的sequence
         worker = new Worker(ringBuffer.newBarrier());
@@ -513,10 +513,10 @@ public class DisruptorEventLoop extends AbstractEventLoop {
         }
 
         private long waitFor(long nextSequence) throws AlertException, InterruptedException, TimeoutException {
-            if (batchSize < 1) {
+            if (taskBatchSize < 1) {
                 return sequenceBarrier.waitFor(nextSequence);
             } else {
-                return Math.min(nextSequence + batchSize - 1, sequenceBarrier.waitFor(nextSequence));
+                return Math.min(nextSequence + taskBatchSize - 1, sequenceBarrier.waitFor(nextSequence));
             }
         }
 

@@ -107,7 +107,7 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
 
     /**
      * @return 该eventLoop拥有的事件分发器
-     * @apiNote 线程安全，请确保该方法不会看见未完成构造的对象 - (尽量是final的)
+     * @apiNote 请确保该方法不会看见未完成构造的对象 - (尽量是final的)
      */
     @Nullable
     protected EventDispatcher dispatcher() {

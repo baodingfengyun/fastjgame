@@ -60,8 +60,7 @@ public class HttpPortConfig {
         private HttpRequestDispatcher dispatcher;
 
         public Builder setHttpSessionTimeout(int httpSessionTimeout) {
-            CheckUtils.checkPositive(httpSessionTimeout, "httpSessionTimeout");
-            this.httpSessionTimeout = httpSessionTimeout;
+            this.httpSessionTimeout = CheckUtils.requirePositive(httpSessionTimeout, "httpSessionTimeout");
             return this;
         }
 

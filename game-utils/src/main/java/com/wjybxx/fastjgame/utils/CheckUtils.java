@@ -37,16 +37,18 @@ public class CheckUtils {
      * @param param 参数
      * @param name  属性的名字
      */
-    public static void checkPositive(final int param, String name) {
+    public static int requirePositive(final int param, String name) {
         if (param <= 0) {
             throw new IllegalArgumentException(name + ": " + param + " (expected: > 0)");
         }
+        return param;
     }
 
-    public static void checkPositive(final long param, String name) {
+    public static long requirePositive(final long param, String name) {
         if (param <= 0) {
             throw new IllegalArgumentException(name + ": " + param + " (expected: > 0)");
         }
+        return param;
     }
 
     /**

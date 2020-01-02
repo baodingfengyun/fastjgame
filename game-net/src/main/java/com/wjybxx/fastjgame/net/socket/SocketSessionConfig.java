@@ -197,38 +197,32 @@ public final class SocketSessionConfig extends SessionConfig {
         }
 
         public SocketSessionConfigBuilder setSndBuffer(int sndBuffer) {
-            CheckUtils.checkPositive(sndBuffer, "sndBuffer");
-            this.sndBuffer = sndBuffer;
+            this.sndBuffer = CheckUtils.requirePositive(sndBuffer, "sndBuffer");
             return this;
         }
 
         public SocketSessionConfigBuilder setRcvBuffer(int rcvBuffer) {
-            CheckUtils.checkPositive(rcvBuffer, "rcvBuffer");
-            this.rcvBuffer = rcvBuffer;
+            this.rcvBuffer = CheckUtils.requirePositive(rcvBuffer, "rcvBuffer");
             return this;
         }
 
         public SocketSessionConfigBuilder setMaxFrameLength(int maxFrameLength) {
-            CheckUtils.checkPositive(maxFrameLength, "maxFrameLength");
-            this.maxFrameLength = maxFrameLength;
+            this.maxFrameLength = CheckUtils.requirePositive(maxFrameLength, "maxFrameLength");
             return this;
         }
 
         public SocketSessionConfigBuilder setPingIntervalMs(int pingIntervalMs) {
-            CheckUtils.checkPositive(pingIntervalMs, "pingIntervalMs");
-            this.pingIntervalMs = pingIntervalMs;
+            this.pingIntervalMs = CheckUtils.requirePositive(pingIntervalMs, "pingIntervalMs");
             return this;
         }
 
         public SocketSessionConfigBuilder setReadTimeout(int readTimeout) {
-            CheckUtils.checkPositive(readTimeout, "readTimeout");
-            this.readTimeout = readTimeout;
+            this.readTimeout = CheckUtils.requirePositive(readTimeout, "readTimeout");
             return this;
         }
 
         public SocketSessionConfigBuilder setConnectTimeoutMs(int connectTimeoutMs) {
-            CheckUtils.checkPositive(connectTimeoutMs, "connectTimeoutMs");
-            this.connectTimeoutMs = connectTimeoutMs;
+            this.connectTimeoutMs = CheckUtils.requirePositive(connectTimeoutMs, "connectTimeoutMs");
             return this;
         }
 
@@ -238,36 +232,32 @@ public final class SocketSessionConfig extends SessionConfig {
         }
 
         public SocketSessionConfigBuilder setVerifyTimeoutMs(int verifyTimeoutMs) {
-            this.verifyTimeoutMs = verifyTimeoutMs;
+            this.verifyTimeoutMs = CheckUtils.requirePositive(verifyTimeoutMs, "verifyTimeoutMs");
             return this;
         }
 
         public SocketSessionConfigBuilder setMaxVerifyTimes(int maxVerifyTimes) {
-            this.maxVerifyTimes = maxVerifyTimes;
+            this.maxVerifyTimes = CheckUtils.requirePositive(maxVerifyTimes, "maxVerifyTimes");
             return this;
         }
 
         public SocketSessionConfigBuilder setMaxPendingMessages(int maxPendingMessages) {
-            CheckUtils.checkPositive(maxPendingMessages, "maxPendingMessages");
-            this.maxPendingMessages = Math.max(MIN_PENDING_MESSAGES, maxPendingMessages);
+            this.maxPendingMessages = Math.max(MIN_PENDING_MESSAGES, CheckUtils.requirePositive(maxPendingMessages, "maxPendingMessages"));
             return this;
         }
 
         public SocketSessionConfigBuilder setMaxCacheMessages(int maxCacheMessages) {
-            CheckUtils.checkPositive(maxCacheMessages, "maxCacheMessages");
-            this.maxCacheMessages = Math.max(MIN_CACHE_MESSAGE, maxCacheMessages);
+            this.maxCacheMessages = Math.max(MIN_CACHE_MESSAGE, CheckUtils.requirePositive(maxCacheMessages, "maxCacheMessages"));
             return this;
         }
 
         public SocketSessionConfigBuilder setMaxConnectTimes(int maxConnectTimes) {
-            CheckUtils.checkPositive(maxConnectTimes, "maxConnectTimes");
-            this.maxConnectTimes = maxConnectTimes;
+            this.maxConnectTimes = CheckUtils.requirePositive(maxConnectTimes, "maxConnectTimes");
             return this;
         }
 
         public SocketSessionConfigBuilder setAckTimeoutMs(int ackTimeoutMs) {
-            CheckUtils.checkPositive(ackTimeoutMs, "ackTimeoutMs");
-            this.ackTimeoutMs = ackTimeoutMs;
+            this.ackTimeoutMs = CheckUtils.requirePositive(ackTimeoutMs, "ackTimeoutMs");
             return this;
         }
 
