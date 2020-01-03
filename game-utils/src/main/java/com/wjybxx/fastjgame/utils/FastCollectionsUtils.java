@@ -150,6 +150,14 @@ public class FastCollectionsUtils {
         return removeNum;
     }
 
+    /**
+     * 移除map中符合条件的元素，并对删除的元素执行后续的操作。
+     *
+     * @param collection 必须是可修改的集合
+     * @param predicate  过滤条件，为真的删除
+     * @param then       元素删除之后执行的逻辑
+     * @return 删除的元素数量
+     */
     public static int removeIfAndThen(LongCollection collection, LongPredicate predicate, LongConsumer then) {
         if (collection.size() == 0) {
             return 0;
@@ -168,6 +176,14 @@ public class FastCollectionsUtils {
         return removeNum;
     }
 
+    /**
+     * 移除map中符合条件的元素，并对删除的元素执行后续的操作。
+     *
+     * @param collection 必须是可修改的集合
+     * @param predicate  过滤条件，为真的删除
+     * @param then       元素删除之后执行的逻辑
+     * @return 删除的元素数量
+     */
     public static int removeIfAndThen(IntCollection collection, IntPredicate predicate, IntConsumer then) {
         if (collection.size() == 0) {
             return 0;
@@ -186,6 +202,14 @@ public class FastCollectionsUtils {
         return removeNum;
     }
 
+    /**
+     * 移除map中符合条件的元素，并对删除的元素执行后续的操作。
+     *
+     * @param collection 必须是可修改的集合
+     * @param predicate  过滤条件，为真的删除
+     * @param then       元素删除之后执行的逻辑
+     * @return 删除的元素数量
+     */
     public static int removeIfAndThen(ShortCollection collection, ShortPredicate predicate, ShortConsumer then) {
         if (collection.size() == 0) {
             return 0;

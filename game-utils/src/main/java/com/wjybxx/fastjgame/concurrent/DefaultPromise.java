@@ -134,23 +134,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         return _notifyExecutor;
     }
 
-    // ----------------------------------------- state begin --------------------------------------------
-
-    /**
-     * 判断result是否表示初始状态
-     */
-    private static boolean isInit0(Object result) {
-        // 当且仅当result为null的时候为初始状态
-        return result == null;
-    }
-
-    /**
-     * 判断result是否表示不可取消状态
-     */
-    private static boolean isUncancellable0(Object result) {
-        // 当result是不可取消占位符的时候表示不可取消状态
-        return result == UNCANCELLABLE;
-    }
+    // --------------------------------------------  查询 ----------------------------------------------
 
     /**
      * 判断result是否表示已完成状态
@@ -159,8 +143,6 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         // 当result不为null，且不是不可取消占位符的时候表示已进入完成状态
         return result != null && result != UNCANCELLABLE;
     }
-
-    // --------------------------------------------  查询 ----------------------------------------------
 
     /**
      * 判断结果是否表示执行成功（已进入完成状态，且是正常完成的）。
@@ -189,6 +171,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         // null instanceOf 总是返回false
         return getCause0(result) instanceof CancellationException;
     }
+
     // --------------------------------------------- 查询2 --------------------------------------------------
 
     @Override
@@ -214,8 +197,8 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
 
     @Override
     public final boolean isCancellable() {
-        // 只有初始状态才可以取消
-        return isInit0(resultHolder.get());
+        // 当且仅当result为null的时候可取消
+        return resultHolder.get() == null;
     }
 
     @Override
@@ -310,12 +293,8 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
      */
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
-        if (!isDone()) {
-            // 检查一次状态，减少异常生成(填充堆栈)
-            return tryCompleted(new CauseHolder(new CancellationException()), true);
-        } else {
-            return false;
-        }
+        final boolean cancelled = isCancellable() && tryCompleted(new CauseHolder(new CancellationException()), true);
+        return cancelled || isCancelled();
     }
 
     /**
@@ -460,15 +439,9 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         if (resultHolder.compareAndSet(null, UNCANCELLABLE)) {
             return true;
         } else {
-            Object result = resultHolder.get();
+            final Object result = resultHolder.get();
             // 到这里result一定不为null，当前为不可取消状态 或 结束状态
-            if (result == UNCANCELLABLE) {
-                // 已经是不可取消状态
-                return true;
-            } else {
-                // 到这里表示已经进入完成状态了，非取消进入完成状态，则返回true
-                return !isCancelled0(result);
-            }
+            return result == UNCANCELLABLE || !isCancelled0(result);
         }
     }
 

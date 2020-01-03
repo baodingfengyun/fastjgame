@@ -32,10 +32,11 @@ public class CheckUtils {
     }
 
     /**
-     * 检查一个数是否是正数
+     * 检查一个数是否为正数。如果是，则返回它；否则抛出异常。
      *
      * @param param 参数
      * @param name  属性的名字
+     * @return param
      */
     public static int requirePositive(final int param, String name) {
         if (param <= 0) {
@@ -44,6 +45,13 @@ public class CheckUtils {
         return param;
     }
 
+    /**
+     * 检查一个数是否为正数。如果是，则返回它；否则抛出异常。
+     *
+     * @param param 参数
+     * @param name  属性的名字
+     * @return param
+     */
     public static long requirePositive(final long param, String name) {
         if (param <= 0) {
             throw new IllegalArgumentException(name + ": " + param + " (expected: > 0)");
@@ -56,8 +64,9 @@ public class CheckUtils {
      *
      * @param param 参数
      * @param name  属性的名字
+     * @return param
      */
-    public static void checkNonNull(final Object param, String name) {
-        Objects.requireNonNull(param, name);
+    public static <T> T requireNonNull(final T param, String name) {
+        return Objects.requireNonNull(param, name);
     }
 }
