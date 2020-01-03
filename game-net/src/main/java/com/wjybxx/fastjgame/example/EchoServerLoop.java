@@ -15,7 +15,10 @@
  */
 package com.wjybxx.fastjgame.example;
 
-import com.wjybxx.fastjgame.concurrent.*;
+import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
+import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
+import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
+import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupBuilder;
@@ -44,8 +47,8 @@ public class EchoServerLoop extends SingleThreadEventLoop {
 
     private final NetEventLoopGroup netGroup = new NetEventLoopGroupBuilder().build();
 
-    public EchoServerLoop(@Nullable EventLoopGroup parent, @Nonnull ThreadFactory threadFactory, @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
-        super(parent, threadFactory, rejectedExecutionHandler);
+    public EchoServerLoop(@Nonnull ThreadFactory threadFactory, @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
+        super(null, threadFactory, rejectedExecutionHandler);
     }
 
     @Override
@@ -138,7 +141,7 @@ public class EchoServerLoop extends SingleThreadEventLoop {
     }
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-        EchoServerLoop echoServerLoop = new EchoServerLoop(null, new DefaultThreadFactory("SERVER"), RejectedExecutionHandlers.log());
+        EchoServerLoop echoServerLoop = new EchoServerLoop(new DefaultThreadFactory("SERVER"), RejectedExecutionHandlers.log());
         // 唤醒线程
         echoServerLoop.execute(() -> {
         });

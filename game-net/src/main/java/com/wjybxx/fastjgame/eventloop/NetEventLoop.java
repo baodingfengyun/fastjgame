@@ -17,11 +17,13 @@
 package com.wjybxx.fastjgame.eventloop;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.wjybxx.fastjgame.eventbus.EventDispatcher;
 import com.wjybxx.fastjgame.net.common.RpcFuture;
 import com.wjybxx.fastjgame.net.common.RpcPromise;
 import com.wjybxx.fastjgame.net.common.RpcResponse;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * 网络循环。
@@ -33,7 +35,7 @@ import javax.annotation.Nonnull;
  * date - 2019/8/3
  * github - https://github.com/hl845740757
  */
-public interface NetEventLoop extends EventLoop, NetEventLoopGroup {
+public interface NetEventLoop extends EventLoop, NetEventLoopGroup, EventDispatcher {
 
     /**
      * 创建一个RpcPromise
@@ -54,5 +56,13 @@ public interface NetEventLoop extends EventLoop, NetEventLoopGroup {
      */
     @Nonnull
     RpcFuture newCompletedRpcFuture(@Nonnull EventLoop appEventLoop, @Nonnull RpcResponse rpcResponse);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @apiNote 时序保证：实现必须和{@link #execute(Runnable)}具有相同的时序保证，也就是底层是{@link #execute(Runnable)}的一个封装。
+     */
+    @Override
+    <T, E> void post(@Nullable T context, @Nonnull E event);
 
 }

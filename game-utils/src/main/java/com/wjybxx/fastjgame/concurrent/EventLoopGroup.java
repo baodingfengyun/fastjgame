@@ -17,10 +17,7 @@
 package com.wjybxx.fastjgame.concurrent;
 
 
-import com.wjybxx.fastjgame.eventbus.EventDispatcher;
-
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -38,7 +35,7 @@ import java.util.concurrent.*;
  * date - 2019/7/14
  * github - https://github.com/hl845740757
  */
-public interface EventLoopGroup extends ExecutorService, EventDispatcher, Iterable<EventLoop> {
+public interface EventLoopGroup extends ExecutorService, Iterable<EventLoop> {
 
     // ------------------------------ 生命周期相关方法 ----------------------------
 
@@ -146,11 +143,6 @@ public interface EventLoopGroup extends ExecutorService, EventDispatcher, Iterab
 
     @Override
     <T> T invokeAny(@Nonnull Collection<? extends Callable<T>> tasks, long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException;
-
-    // ---------------------------------- 事件操作 --------------------------------
-
-    @Override
-    <T, E> void post(@Nullable T context, @Nonnull E event);
 
     // --------------------------------- EventLoop管理   --------------------------------
 

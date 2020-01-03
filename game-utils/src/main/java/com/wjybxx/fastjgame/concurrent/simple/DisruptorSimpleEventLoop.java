@@ -22,7 +22,6 @@ import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
 import com.wjybxx.fastjgame.concurrent.disruptor.WaitStrategyFactory;
 import com.wjybxx.fastjgame.concurrent.disruptor.YieldWaitStrategyFactory;
-import com.wjybxx.fastjgame.eventbus.EventDispatcher;
 import com.wjybxx.fastjgame.utils.CheckUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,12 +100,6 @@ public class DisruptorSimpleEventLoop extends DisruptorEventLoop implements Simp
     @Override
     protected void wakeUp() {
         eventLoopHandler.wakeUpEventLoop(this, this::interruptThread);
-    }
-
-    @Nullable
-    @Override
-    protected EventDispatcher dispatcher() {
-        return eventLoopHandler.dispatcher();
     }
 
     public static Builder newBuilder() {

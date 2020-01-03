@@ -30,7 +30,7 @@ import java.util.concurrent.ThreadFactory;
  */
 public class DefaultEventLoop extends SingleThreadEventLoop {
 
-    public DefaultEventLoop(@Nullable EventLoopGroup parent,
+    public DefaultEventLoop(@Nullable DefaultEventLoopGroup parent,
                             @Nonnull ThreadFactory threadFactory,
                             @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
         super(parent, threadFactory, rejectedExecutionHandler);

@@ -60,7 +60,7 @@ public class RedisEventLoop extends SingleThreadEventLoop {
 
     private static final Logger logger = LoggerFactory.getLogger(RedisEventLoop.class);
 
-    private static final int BATCH_TASK_SIZE = 1024;
+    private static final int TASK_BATCH_SIZE = 1024;
 
     /**
      * 它决定了最多多少个命令执行一次{@link #sync()}。
@@ -122,7 +122,7 @@ public class RedisEventLoop extends SingleThreadEventLoop {
     protected void loop() {
         while (true) {
             try {
-                runTasksBatch(BATCH_TASK_SIZE);
+                runTasksBatch(TASK_BATCH_SIZE);
 
                 sync();
 

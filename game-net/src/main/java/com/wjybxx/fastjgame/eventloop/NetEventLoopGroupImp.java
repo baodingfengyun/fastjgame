@@ -128,7 +128,7 @@ class NetEventLoopGroupImp extends MultiThreadEventLoopGroup implements NetEvent
                 // 分开监听 -> 避免某一个出现异常导致其它EventLoop丢失信号
                 appEventLoop.terminationFuture().addListener(future -> {
                     if (!eventLoop.isShuttingDown()) {
-                        eventLoop.post(terminalEvent);
+                        ((NetEventLoop) eventLoop).post(terminalEvent);
                     }
                 });
             }

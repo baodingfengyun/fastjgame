@@ -21,8 +21,8 @@ import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
+import com.wjybxx.fastjgame.concurrent.event.EventDispatchTask;
 import com.wjybxx.fastjgame.concurrent.event.EventLoopTerminalEvent;
-import com.wjybxx.fastjgame.eventbus.EventDispatcher;
 import com.wjybxx.fastjgame.eventbus.Subscribe;
 import com.wjybxx.fastjgame.manager.*;
 import com.wjybxx.fastjgame.misc.DefaultNetContext;
@@ -59,7 +59,7 @@ import static com.wjybxx.fastjgame.utils.ConcurrentUtils.sleepQuietly;
 class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLoop {
 
     private static final Logger logger = LoggerFactory.getLogger(NetEventLoopImp.class);
-    private static final int BATCH_TASK_SIZE = 8 * 1024;
+    private static final int TASK_BATCH_SIZE = 8 * 1024;
 
     private final Set<EventLoop> appEventLoopSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private final NetEventLoopManager netEventLoopManager;
@@ -131,10 +131,11 @@ class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLoop {
         return this;
     }
 
-    @Nullable
+    // --------------------------------------- 事件分发 ----------------------------------------
+
     @Override
-    protected EventDispatcher dispatcher() {
-        return netEventBusManager;
+    public final <T, E> void post(@Nullable T context, @Nonnull E event) {
+        execute(new EventDispatchTask(netEventBusManager, context, event));
     }
 
     @Nonnull
@@ -174,7 +175,7 @@ class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLoop {
         while (true) {
             try {
                 // 批量执行任务
-                runTasksBatch(BATCH_TASK_SIZE);
+                runTasksBatch(TASK_BATCH_SIZE);
 
                 // 更新时间
                 netTimeManager.update(System.currentTimeMillis());

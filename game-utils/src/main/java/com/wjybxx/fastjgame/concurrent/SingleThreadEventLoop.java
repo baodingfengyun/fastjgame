@@ -378,14 +378,14 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     /**
      * 尝试批量运行任务队列中的任务。
      *
-     * @param batchSize 执行的最大任务数，小于等于0表示不限制，设定限制数可避免执行任务耗费太多时间。
+     * @param taskBatchSize 执行的最大任务数，小于等于0表示不限制，设定限制数可避免执行任务耗费太多时间。
      * @return 至少有一个任务执行时返回true。
      */
-    protected final boolean runTasksBatch(final int batchSize) {
+    protected final boolean runTasksBatch(final int taskBatchSize) {
         // 不能出现负数
         long runTaskNum = 0;
         while (!isShutdown()) {
-            final int maxDrainTasks = batchSize <= 0 ? CACHE_QUEUE_CAPACITY : (int) (batchSize - runTaskNum);
+            final int maxDrainTasks = taskBatchSize <= 0 ? CACHE_QUEUE_CAPACITY : (int) (taskBatchSize - runTaskNum);
             if (maxDrainTasks <= 0) {
                 break;
             }

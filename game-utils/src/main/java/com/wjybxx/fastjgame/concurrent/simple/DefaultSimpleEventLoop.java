@@ -20,7 +20,6 @@ import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
-import com.wjybxx.fastjgame.eventbus.EventDispatcher;
 import com.wjybxx.fastjgame.utils.CheckUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,12 +113,6 @@ public class DefaultSimpleEventLoop extends SingleThreadEventLoop implements Sim
     @Override
     protected void wakeUp() {
         eventLoopHandler.wakeUpEventLoop(this, this::interruptThread);
-    }
-
-    @Nullable
-    @Override
-    protected EventDispatcher dispatcher() {
-        return eventLoopHandler.dispatcher();
     }
 
     public static Builder newBuilder() {

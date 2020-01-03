@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.concurrent;
 
-import com.wjybxx.fastjgame.eventbus.EventBus;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -27,12 +25,8 @@ import javax.annotation.Nullable;
  * <h>它是单线程的，提供以下保证：</h>
  * <li>保证任务不会并发执行。</li>
  * <li>还保证任务的执行顺序和提交顺序一致！{@link #execute(Runnable)}{@link #submit(Runnable)}</li>
- *
  * <p>
  * EventLoop架构属于<b>多生产者单消费者模型</b>，请避免其它线程消费数据。
- *
- * <p>
- * 2019年10月26日新增{@link #post(Object)} 接口，搭配{@link EventBus}可消除强耦合关系，简化接口。
  *
  * @author wjybxx
  * @version 1.0
@@ -63,14 +57,6 @@ public interface EventLoop extends EventLoopGroup {
      */
     @Nullable
     EventLoopGroup parent();
-
-    /**
-     * {@inheritDoc}
-     *
-     * @apiNote 时序保证：实现必须和{@link #execute(Runnable)}具有相同的时序保证，也就是底层是{@link #execute(Runnable)}的一个封装。
-     */
-    @Override
-    <T, E> void post(@Nullable T context, @Nonnull E event);
 
     /**
      * 当前线程是否是EventLoop线程。

@@ -17,9 +17,6 @@
 package com.wjybxx.fastjgame.concurrent.simple;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.eventbus.EventDispatcher;
-
-import javax.annotation.Nullable;
 
 /**
  * 事件循环策略 - 将线程管理代理与非线程代码分隔。
@@ -56,17 +53,6 @@ public interface EventLoopHandler {
      * @throws Exception error
      */
     void clean() throws Exception;
-
-    /**
-     * 如果{@link EventLoopHandler}支持EventBus机制的话，可以返回持有的事件派发器。
-     * 事件分发{@link EventDispatcher#post(Object, Object)}仍然执行在{@link EventLoop}线程。
-     *
-     * @apiNote 请确保该方法不会看见未完成构造的对象 - (尽量是final的)
-     */
-    @Nullable
-    default EventDispatcher dispatcher() {
-        return null;
-    }
 
     /**
      * 唤醒EventLoop线程，

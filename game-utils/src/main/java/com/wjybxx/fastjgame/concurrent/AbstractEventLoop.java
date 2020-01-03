@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.concurrent;
 
-import com.wjybxx.fastjgame.concurrent.event.EventDispatchTask;
-import com.wjybxx.fastjgame.eventbus.EventDispatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,26 +90,6 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
     @Override
     public final <V> ListenableFuture<V> newFailedFuture(@Nonnull Throwable cause) {
         return new FailedFuture<V>(this, cause);
-    }
-
-    // --------------------------------------- 事件分发 ----------------------------------------
-
-    @Override
-    public final <T, E> void post(@Nullable T context, @Nonnull E event) {
-        final EventDispatcher dispatcher = dispatcher();
-        if (null == dispatcher) {
-            throw new UnsupportedOperationException("postEvent");
-        }
-        execute(new EventDispatchTask(dispatcher, context, event));
-    }
-
-    /**
-     * @return 该eventLoop拥有的事件分发器
-     * @apiNote 请确保该方法不会看见未完成构造的对象 - (尽量是final的)
-     */
-    @Nullable
-    protected EventDispatcher dispatcher() {
-        return null;
     }
 
     // --------------------------------------- 任务提交 ----------------------------------------
