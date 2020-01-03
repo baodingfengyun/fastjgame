@@ -55,6 +55,14 @@ public class SleepWaitStrategyFactory implements WaitStrategyFactory {
     }
 
     /**
+     * @param sleepTimeout  睡眠时间
+     * @param sleepTimeUnit 时间单位
+     */
+    public SleepWaitStrategyFactory(long sleepTimeout, TimeUnit sleepTimeUnit) {
+        this(DEFAULT_RETRIES, sleepTimeout, sleepTimeUnit, DEFAULT_WAIT_TIMES_THRESHOLD);
+    }
+
+    /**
      * @param retries            尝试多少次空循环后开始睡眠
      * @param sleepTimeout       睡眠时间
      * @param sleepTimeUnit      时间单位

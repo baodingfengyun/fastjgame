@@ -58,11 +58,11 @@ public interface EventLoopHandler {
      * 唤醒EventLoop线程，
      *
      * @param eventLoop   EventHandler所在的EventLoop，使用该参数可避免你保证EventLoop的可见性。
-     * @param interrupter 如果需要中断唤醒EventLoop的话，可用于中断{@link EventLoop}线程。
+     * @param interrupter 线程中断器，如果需要中断唤醒EventLoop的话，可用于中断{@link EventLoop}线程。
      *                    如果线程阻塞在别的地方，你必须实现自己的唤醒策略。
      * @apiNote 该方法由其它线程调用，需要注意线程安全问题。
      */
-    void wakeUpEventLoop(EventLoop eventLoop, EventLoopThreadInterrupter interrupter);
+    void wakeUpEventLoop(EventLoop eventLoop, ThreadInterrupter interrupter);
 
     /**
      * 当在刷帧时抛出异常该方法将被调用。

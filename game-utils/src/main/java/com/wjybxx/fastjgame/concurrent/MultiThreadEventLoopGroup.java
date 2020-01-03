@@ -101,7 +101,7 @@ public abstract class MultiThreadEventLoopGroup extends AbstractEventLoopGroup {
         children = new EventLoop[nThreads];
         for (int i = 0; i < nThreads; i++) {
             // 创建newChild的时候有NPE的风险，不过为了制定模板，在这里创建是有必要的，只是子类实现newChild的时候要小心点
-            children[i] = newChild(i, threadFactory, rejectedExecutionHandler, context);
+            children[i] = Objects.requireNonNull(newChild(i, threadFactory, rejectedExecutionHandler, context));
         }
 
         // 负载均衡算法

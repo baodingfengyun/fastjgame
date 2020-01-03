@@ -24,10 +24,10 @@ package com.wjybxx.fastjgame.concurrent.simple;
  * date - 2020/1/2
  * github - https://github.com/hl845740757
  */
-public interface EventLoopThreadInterrupter {
+public interface ThreadInterrupter {
 
     /**
-     * 中断事件循环线程
+     * 中断关联的线程
      */
     void interrupt();
 

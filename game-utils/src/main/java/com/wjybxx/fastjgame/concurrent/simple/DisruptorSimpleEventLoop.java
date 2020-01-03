@@ -52,7 +52,7 @@ public class DisruptorSimpleEventLoop extends DisruptorEventLoop implements Simp
                                      @Nonnull WaitStrategyFactory waitStrategyFactory,
                                      @Nonnull EventLoopHandler eventLoopHandler) {
         super(parent, threadFactory, rejectedExecutionHandler, ringBufferSize, taskBatchSize, waitStrategyFactory);
-        this.eventLoopHandler = eventLoopHandler;
+        this.eventLoopHandler = Objects.requireNonNull(eventLoopHandler);
     }
 
     @Nonnull

@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
 import com.wjybxx.fastjgame.utils.CheckUtils;
+import com.wjybxx.fastjgame.utils.TimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,7 +56,7 @@ public class DefaultSimpleEventLoop extends SingleThreadEventLoop implements Sim
         super(parent, threadFactory, rejectedExecutionHandler);
         this.taskBatchSize = taskBatchSize;
         this.sleepTimeNs = sleepTimeNs;
-        this.eventLoopHandler = eventLoopHandler;
+        this.eventLoopHandler = Objects.requireNonNull(eventLoopHandler);
     }
 
     @Nonnull
@@ -126,7 +127,7 @@ public class DefaultSimpleEventLoop extends SingleThreadEventLoop implements Sim
         private RejectedExecutionHandler rejectedExecutionHandler = RejectedExecutionHandlers.abort();
 
         private int taskBatchSize = 1024;
-        private long sleepTimeNs;
+        private long sleepTimeNs = TimeUtils.NANO_PER_MILLISECOND;
 
         private EventLoopHandler eventLoopHandler;
 
