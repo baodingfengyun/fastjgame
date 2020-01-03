@@ -80,7 +80,7 @@ public class RedisEventLoopMgr {
 
     @Nonnull
     private static JedisPoolAbstract newJedisPool(GameConfigMgr gameConfigMgr, JedisPoolConfig config) {
-        if (DebugUtils.isDebug()) {
+        if (DebugUtils.isDebugOpen()) {
             // debug模式从简
             return new JedisPool(config, "localhost", 6379);
         } else {

@@ -74,6 +74,12 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public interface RpcBuilder<V> {
 
+    /**
+     * 获取该方法包含的调用信息。
+     * 警告：仅可用于转发，不可修改对象的内容，否则可能引发bug。
+     */
+    RpcCall getCall();
+
     // ------------------------------------------- 添加回调 ----------------------------------------------
 
     /**

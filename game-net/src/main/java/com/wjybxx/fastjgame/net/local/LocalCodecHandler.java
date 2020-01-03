@@ -84,7 +84,7 @@ public class LocalCodecHandler extends SessionOutboundHandlerAdapter {
             final int lazyIndexes = rpcCall.getLazyIndexes();
             final int preIndexes = rpcCall.getPreIndexes();
 
-            final RpcCall newCall = new RpcCall(rpcCall.getMethodKey(), newMethodParams, lazyIndexes, preIndexes);
+            final RpcCall newCall = new RpcCall(rpcCall.getMethodKey(), newMethodParams, 0, 0);
             for (int index = 0, end = methodParams.size(); index < end; index++) {
                 final Object parameter = methodParams.get(index);
                 final Object newParameter;

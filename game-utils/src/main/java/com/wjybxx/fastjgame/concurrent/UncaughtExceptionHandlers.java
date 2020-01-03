@@ -17,9 +17,6 @@
 package com.wjybxx.fastjgame.concurrent;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nonnull;
 
 /**
  * 常用的线程未处理异常处理器
@@ -31,19 +28,8 @@ import javax.annotation.Nonnull;
  */
 public class UncaughtExceptionHandlers {
 
-    private static final Logger logger = LoggerFactory.getLogger(UncaughtExceptionHandlers.class);
-
     private UncaughtExceptionHandlers() {
 
-    }
-
-    /**
-     * 如果线程缺少 {@link java.lang.Thread.UncaughtExceptionHandler},则将未捕获的异常计入日志。
-     *
-     * @param thread 待检测的线程
-     */
-    public static void logIfAbsent(Thread thread) {
-        logIfAbsent(thread, logger);
     }
 
     /**
@@ -55,33 +41,13 @@ public class UncaughtExceptionHandlers {
     public static void logIfAbsent(Thread thread, Logger logger) {
         if (thread.getUncaughtExceptionHandler() == null) {
             try {
-                thread.setUncaughtExceptionHandler(justLog(logger));
+                thread.setUncaughtExceptionHandler((Thread t, Throwable e) -> {
+                    logger.error("thread {} exit due to uncaughtException.", t.toString(), e);
+                });
             } catch (SecurityException ignore) {
 
             }
         }
     }
 
-    /**
-     * 仅仅记录日志的UncaughtExceptionHandler
-     *
-     * @return UncaughtExceptionHandler
-     */
-    @Nonnull
-    public static Thread.UncaughtExceptionHandler justLog() {
-        return justLog(logger);
-    }
-
-    /**
-     * 仅仅记录日志的UncaughtExceptionHandler (使用指定的logger)
-     *
-     * @param logger 指定的用于记录日志的logger
-     * @return UncaughtExceptionHandler
-     */
-    @Nonnull
-    public static Thread.UncaughtExceptionHandler justLog(Logger logger) {
-        return (Thread t, Throwable e) -> {
-            logger.error("thread {} exit due to uncaughtException.", t.toString(), e);
-        };
-    }
 }

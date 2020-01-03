@@ -539,7 +539,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
                     // Q: 这里可能为null吗？
                     // A: 这里可能为null - 因为是多生产者模式，关闭前发布的数据可能是不连续的
                     // 如果已进入shutdown阶段，则直接丢弃任务，而不是执行
-                    if (!isShutdown() && null != task) {
+                    if (null != task && !isShutdown()) {
                         safeExecute(task);
                     }
                 }

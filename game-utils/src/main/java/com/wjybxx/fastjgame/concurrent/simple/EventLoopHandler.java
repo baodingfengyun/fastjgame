@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.concurrent.simple;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 
 /**
- * 事件循环策略 - 将线程管理代理与非线程代码分隔。
+ * 事件循环策略 - 将线程管理代理与非线程代码分离。
  *
  * @author wjybxx
  * @version 1.0
@@ -40,7 +40,7 @@ public interface EventLoopHandler {
 
     /**
      * 执行一次循环。
-     * 调用时机：EventLoop线程会在每帧调用该方法 - 注意，帧间隔由{@link EventLoopHandler}自己控制。
+     * 调用时机：EventLoop线程会在每帧调用该方法。
      *
      * @throws Exception error
      */

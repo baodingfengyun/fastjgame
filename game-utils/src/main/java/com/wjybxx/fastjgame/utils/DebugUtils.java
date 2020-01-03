@@ -34,7 +34,7 @@ public class DebugUtils {
     /**
      * 是否开启了debug模式
      */
-    public static boolean isDebug() {
+    public static boolean isDebugOpen() {
         return debug;
     }
 

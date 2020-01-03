@@ -101,7 +101,7 @@ public class DefaultThreadFactory implements ThreadFactory {
             // Doesn't matter even if failed to set.
         }
         // 记录异常
-        t.setUncaughtExceptionHandler(UncaughtExceptionHandlers.justLog(logger));
+        UncaughtExceptionHandlers.logIfAbsent(t, logger);
         return t;
     }
 

@@ -20,17 +20,20 @@ package com.wjybxx.fastjgame.misc;
 import com.wjybxx.fastjgame.annotation.SerializableClass;
 import com.wjybxx.fastjgame.annotation.SerializableField;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.util.List;
 
 /**
  * 较为标准的rpc调用，推荐格式，但是仍然不限制rpc调用的形式！
  * 注意：如果使用该形式的rpc调用，请保证{@link RpcCall}在{@link MessageMapper}中存在。
+ * 警告：不要手动修改对象的内容，否则可能引发bug。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/19
  * github - https://github.com/hl845740757
  */
+@NotThreadSafe
 @SerializableClass
 public class RpcCall {
 

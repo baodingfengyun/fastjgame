@@ -100,7 +100,7 @@ public final class NettyFutureAdapter<V> implements ListenableFuture<V> {
 
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
-        return future.cancel(mayInterruptIfRunning);
+        return future.cancel(mayInterruptIfRunning) || future.isCancelled();
     }
 
     @Override
