@@ -156,21 +156,9 @@ public class EventSubscribeProcessor extends AbstractProcessor {
 
             // 最后一个参数是事件参数
             final VariableElement eventParameter = method.getParameters().get(method.getParameters().size() - 1);
-            if (!isDeclaredType(eventParameter.asType())) {
-                // 事件参数必须是类或接口
-                messager.printMessage(Diagnostic.Kind.ERROR, "EventType can't be PrimitiveType!", method);
-                continue;
-            }
-
-            if (isPrimitiveVariable(eventParameter)) {
-                // 事件参数不可以是基本类型
-                messager.printMessage(Diagnostic.Kind.ERROR, "EventType can't be PrimitiveType!", method);
-                continue;
-            }
-
-            if (isTypeVariable(eventParameter)) {
-                // 事件参数不可以是泛型变量 - 可以包含泛型，但不能是泛型： E is error, Set<E> is right。
-                messager.printMessage(Diagnostic.Kind.ERROR, "EventType can't be TypeVariable!", method);
+            if (!isClassOrInterface(eventParameter)) {
+                // 事件参数必须是类或接口 (就不会是基本类型或泛型参数了，也排除了数组类型)
+                messager.printMessage(Diagnostic.Kind.ERROR, "EventType must be class or interface!", method);
                 continue;
             }
 
@@ -202,8 +190,8 @@ public class EventSubscribeProcessor extends AbstractProcessor {
     /**
      * 判断是否是接口或类型
      */
-    private boolean isDeclaredType(TypeMirror typeMirror) {
-        return typeMirror.getKind() == TypeKind.DECLARED;
+    private boolean isClassOrInterface(VariableElement variableElement) {
+        return variableElement.asType().getKind() == TypeKind.DECLARED;
     }
 
     private void appendContextParam(final StringBuilder formatBuilder, final List<Object> params, final VariableElement contextParameter) {
@@ -220,43 +208,28 @@ public class EventSubscribeProcessor extends AbstractProcessor {
     }
 
     private void appendEventParam(final StringBuilder formatBuilder, final List<Object> params,
-                                  final VariableElement eventParameter, final TypeMirror eventTypeMirror) {
-        if (isSameTypeIgnoreTypeParameter(eventParameter.asType(), eventTypeMirror)) {
+                                  final VariableElement parentEventType, final TypeMirror subEventType) {
+        if (isSameTypeIgnoreTypeParameter(parentEventType.asType(), subEventType)) {
             formatBuilder.append("event");
         } else {
             // 子类型需要显示转为超类型 - 否则可能导致重载问题
-            final TypeName eventRawTypeName = TypeName.get(getEventRawType(eventParameter));
+            final TypeName eventRawTypeName = TypeName.get(getEventRawType(parentEventType));
             formatBuilder.append("($T)event");
             params.add(eventRawTypeName);
         }
     }
 
     /**
-     * 是否是基本类型变量
-     */
-    private static boolean isPrimitiveVariable(VariableElement paramParameter) {
-        return paramParameter.asType().getKind().isPrimitive();
-    }
-
-    /**
-     * 是否是泛型类型变量
-     */
-    private static boolean isTypeVariable(VariableElement paramParameter) {
-        return paramParameter.asType().getKind() == TypeKind.TYPEVAR;
-    }
-
-    /**
      * 查询是否只监听子类型参数
      */
     private Boolean isOnlySubEvents(AnnotationMirror annotationMirror) {
-        return (Boolean) AutoUtils.getAnnotationValue(elementUtils, annotationMirror, ONLY_SUB_EVENTS_METHOD_NAME);
+        return AutoUtils.getAnnotationValue(elementUtils, annotationMirror, ONLY_SUB_EVENTS_METHOD_NAME);
     }
 
     /**
      * 搜集types属性对应的事件类型
      * 注意查看{@link AnnotationValue}的类文档
      */
-    @SuppressWarnings("unchecked")
     private Set<TypeMirror> collectEventTypes(final ExecutableElement method, final VariableElement eventParameter) {
         final AnnotationMirror annotationMirror = AutoUtils.findFirstAnnotationWithoutInheritance(typeUtils, method, subscribeDeclaredType).orElse(null);
         assert annotationMirror != null;
@@ -266,7 +239,7 @@ public class EventSubscribeProcessor extends AbstractProcessor {
             result.add(getEventRawType(eventParameter));
         }
 
-        final List<? extends AnnotationValue> subEventsList = (List<? extends AnnotationValue>) AutoUtils.getAnnotationValueNotDefault(annotationMirror, SUB_EVENTS_METHOD_NAME);
+        final List<? extends AnnotationValue> subEventsList = AutoUtils.getAnnotationValueNotDefault(annotationMirror, SUB_EVENTS_METHOD_NAME);
         if (null == subEventsList) {
             return result;
         }

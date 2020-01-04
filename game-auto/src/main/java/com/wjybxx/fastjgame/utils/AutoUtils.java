@@ -183,13 +183,14 @@ public class AutoUtils {
      * @param propertyName     属性的名字
      * @return object
      */
+    @SuppressWarnings("unchecked")
     @Nullable
-    public static Object getAnnotationValueNotDefault(AnnotationMirror annotationMirror, String propertyName) {
+    public static <T> T getAnnotationValueNotDefault(AnnotationMirror annotationMirror, String propertyName) {
         final Optional<Object> property = annotationMirror.getElementValues().entrySet().stream()
                 .filter(entry -> entry.getKey().getSimpleName().toString().equals(propertyName))
                 .map(entry -> entry.getValue().getValue())
                 .findFirst();
-        return property.orElse(null);
+        return (T) property.orElse(null);
     }
 
     /**
@@ -199,14 +200,15 @@ public class AutoUtils {
      * @param propertyName     属性的名字
      * @return object
      */
+    @SuppressWarnings("unchecked")
     @Nonnull
-    public static Object getAnnotationValue(Elements elementUtils, AnnotationMirror annotationMirror, String propertyName) {
+    public static <T> T getAnnotationValue(Elements elementUtils, AnnotationMirror annotationMirror, String propertyName) {
         final Optional<Object> property = elementUtils.getElementValuesWithDefaults(annotationMirror).entrySet().stream()
                 .filter(entry -> entry.getKey().getSimpleName().toString().equals(propertyName))
                 .map(entry -> entry.getValue().getValue())
                 .findFirst();
         assert property.isPresent();
-        return property.get();
+        return (T) property.get();
     }
 
     /**

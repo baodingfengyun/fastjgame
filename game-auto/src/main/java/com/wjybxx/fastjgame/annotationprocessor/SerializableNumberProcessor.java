@@ -34,7 +34,7 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * 分析{@code SerializableField#number()}是否重复，以及是否在 [0,127之间]
+ * 分析{@code SerializableField#number()}是否重复，以及是否在 [0,65535之间]
  *
  * @author wjybxx
  * @version 1.0
@@ -101,8 +101,8 @@ public class SerializableNumberProcessor extends AbstractProcessor {
     }
 
     private void checkNumber(TypeElement typeElement) {
-        if (isNumberEnum(typeElement)) {
-            // 检查限定‘枚举’类型 - 查找forNumber静态方法
+        if (typeElement.getKind() == ElementKind.ENUM || isNumberEnum(typeElement)) {
+            // 检查枚举类型 - 查找forNumber静态方法
             checkEnum(typeElement);
         } else if (typeElement.getKind() == ElementKind.CLASS) {
             // 检查普通类型
@@ -138,7 +138,7 @@ public class SerializableNumberProcessor extends AbstractProcessor {
                 continue;
             }
             // value中，基本类型会被封装为包装类型，number是int类型
-            final Integer number = (Integer) AutoUtils.getAnnotationValueNotDefault(first.get(), NUMBER_METHOD_NAME);
+            final Integer number = AutoUtils.getAnnotationValueNotDefault(first.get(), NUMBER_METHOD_NAME);
             // 取值范围检测
             if (number == null || number < 0 || number > 65535) {
                 messager.printMessage(Diagnostic.Kind.ERROR, "number " + number + " must between [0, 65535]", variableElement);
@@ -159,15 +159,22 @@ public class SerializableNumberProcessor extends AbstractProcessor {
     }
 
     /**
-     * 查找方法{@code
-     * static T forNumber(int) {
-     * }
-     * }
-     *
      * @param typeElement 要检索的类
      */
     private void checkEnum(TypeElement typeElement) {
-        final boolean anyMatch = typeElement.getEnclosedElements().stream()
+        if (!isContainStaticForNumberMethod(typeElement)) {
+            // 找不到forNumber方法
+            messager.printMessage(Diagnostic.Kind.ERROR,
+                    String.format("%s must contains 'static %s forNumber(int)' method, private is ok!", typeElement.getSimpleName(), typeElement.getSimpleName()),
+                    typeElement);
+        }
+    }
+
+    /**
+     * 是否包含静态的forNumber方法 - static T forNumber(int)
+     */
+    private boolean isContainStaticForNumberMethod(TypeElement typeElement) {
+        return typeElement.getEnclosedElements().stream()
                 .filter(e -> e.getKind() == ElementKind.METHOD)
                 .map(e -> (ExecutableElement) e)
                 .filter(method -> method.getModifiers().contains(Modifier.STATIC))
@@ -175,12 +182,5 @@ public class SerializableNumberProcessor extends AbstractProcessor {
                 .filter(method -> method.getParameters().size() == 1)
                 .filter(method -> method.getParameters().get(0).asType().getKind() == TypeKind.INT)
                 .anyMatch(method -> typeUtils.isSameType(method.getReturnType(), typeUtils.getDeclaredType(typeElement)));
-
-        if (!anyMatch) {
-            // 找不到forNumber方法
-            messager.printMessage(Diagnostic.Kind.ERROR,
-                    String.format("%s must contains 'static %s forNumber(int)' method, private is ok!", typeElement.getSimpleName(), typeElement.getSimpleName()),
-                    typeElement);
-        }
     }
 }

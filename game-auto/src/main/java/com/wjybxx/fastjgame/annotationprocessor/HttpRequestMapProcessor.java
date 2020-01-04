@@ -152,7 +152,7 @@ public class HttpRequestMapProcessor extends AbstractProcessor {
         for (ExecutableElement method : methodList) {
             final Optional<? extends AnnotationMirror> methodAnnotation = AutoUtils.findFirstAnnotationWithoutInheritance(typeUtils, method, httpRequestMappingDeclaredType);
             assert methodAnnotation.isPresent();
-            final String childPath = (String) AutoUtils.getAnnotationValueNotDefault(methodAnnotation.get(), PATH_METHOD_NAME);
+            final String childPath = AutoUtils.getAnnotationValueNotDefault(methodAnnotation.get(), PATH_METHOD_NAME);
             assert null != childPath;
 
             // 路径检查
@@ -198,7 +198,7 @@ public class HttpRequestMapProcessor extends AbstractProcessor {
             }
 
             // 是否继承父节点路径，如果继承，则使用组合路径，否则使用方法指定的路径
-            final boolean inherit = (Boolean) AutoUtils.getAnnotationValue(elementUtils, methodAnnotation.get(), INHERIT_METHOD_NAME);
+            final Boolean inherit = AutoUtils.getAnnotationValue(elementUtils, methodAnnotation.get(), INHERIT_METHOD_NAME);
             final String finalPath = inherit ? makePath(parentPath, childPath) : childPath;
 
             // 生成lambda表达式

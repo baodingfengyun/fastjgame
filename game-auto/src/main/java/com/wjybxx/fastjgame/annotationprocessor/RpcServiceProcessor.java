@@ -88,7 +88,6 @@ public class RpcServiceProcessor extends AbstractProcessor {
     private static final String session = "session";
     private static final String methodParams = "methodParams";
     private static final String responseChannel = "responseChannel";
-    private static final String result = "result";
 
     private static final String registry = "registry";
     private static final String instance = "instance";
@@ -195,7 +194,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
         final Optional<? extends AnnotationMirror> serviceAnnotationOption = AutoUtils.findFirstAnnotationWithoutInheritance(typeUtils, typeElement, rpcServiceDeclaredType);
         assert serviceAnnotationOption.isPresent();
         // 基本类型会被包装，Object不能直接转short
-        final Short serviceId = (Short) AutoUtils.getAnnotationValueNotDefault(serviceAnnotationOption.get(), SERVICE_ID_METHOD_NAME);
+        final Short serviceId = AutoUtils.getAnnotationValueNotDefault(serviceAnnotationOption.get(), SERVICE_ID_METHOD_NAME);
         assert null != serviceId;
         if (serviceId <= 0) {
             // serviceId非法
@@ -259,7 +258,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
             }
 
             // 方法id，基本类型会被封装为包装类型，Object并不能直接转换到基本类型
-            final Short methodId = (Short) AutoUtils.getAnnotationValueNotDefault(rpcMethodAnnotation.get(), METHOD_ID_METHOD_NAME);
+            final Short methodId = AutoUtils.getAnnotationValueNotDefault(rpcMethodAnnotation.get(), METHOD_ID_METHOD_NAME);
             assert null != methodId;
             if (methodId < 0 || methodId > 9999) {
                 // 方法id非法
@@ -283,7 +282,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
         final Optional<? extends AnnotationMirror> annotationMirror = AutoUtils.findFirstAnnotationWithoutInheritance(typeUtils, method, rpcMethodDeclaredType);
         assert annotationMirror.isPresent();
         // 方法id，基本类型会被封装为包装类型，Object并不能直接转换到基本类型
-        return (Short) AutoUtils.getAnnotationValueNotDefault(annotationMirror.get(), METHOD_ID_METHOD_NAME);
+        return AutoUtils.getAnnotationValueNotDefault(annotationMirror.get(), METHOD_ID_METHOD_NAME);
     }
 
     /**
@@ -619,32 +618,24 @@ public class RpcServiceProcessor extends AbstractProcessor {
                 session, methodParams, responseChannel);
 
         final InvokeStatement invokeStatement = genInvokeStatement(method);
-        if (method.getReturnType().getKind() != TypeKind.VOID) {
-            // 网络底层返回结果
+        if (invokeStatement.hasResponseChannel) {
+            // 异步返回值，交给应用层返回结果
+            builder.addStatement(invokeStatement.format, invokeStatement.params.toArray());
+        } else {
+            // 同步返回结果 - 底层返回结果
             builder.addStatement("    $T response = $T.ERROR", rpcResponseTypeName, rpcResponseTypeName);
             builder.addCode("    try {\n");
             builder.addStatement("    " + invokeStatement.format, invokeStatement.params.toArray());
-            builder.addStatement("        response = $T.newSucceedResponse($L)", rpcResponseTypeName, result);
+
+            if (method.getReturnType().getKind() == TypeKind.VOID) {
+                builder.addStatement("        response = $T.SUCCESS", rpcResponseTypeName);
+            } else {
+                builder.addStatement("        response = $T.newSucceedResponse(result)", rpcResponseTypeName);
+            }
+
             builder.addCode("    } finally {\n");
             builder.addStatement("        $L.write(response)", responseChannel);
             builder.addCode("    }\n");
-        } else {
-            // 方法声明的返回值类型为void，可能为异步方法，也可能是真没有返回值。
-            // 如果没有返回值，但是对方发的是rpc调用，也需要告知对方是否成功了。
-            if (invokeStatement.hasResponseChannel) {
-                // 有异步返回值，交给应用层返回结果
-                builder.addStatement(invokeStatement.format, invokeStatement.params.toArray());
-            } else {
-                // 确实没有结果，返回null给远程
-                builder.addStatement("    $T response = $T.ERROR", rpcResponseTypeName, rpcResponseTypeName);
-                // 同步返回结果
-                builder.addCode("    try {\n");
-                builder.addStatement("    " + invokeStatement.format, invokeStatement.params.toArray());
-                builder.addStatement("        response = $T.SUCCESS", rpcResponseTypeName);
-                builder.addCode("    } finally {\n");
-                builder.addStatement("        $L.write(response)", responseChannel);
-                builder.addCode("    }\n");
-            }
         }
         builder.addStatement("})");
         return builder.build();
@@ -671,12 +662,13 @@ public class RpcServiceProcessor extends AbstractProcessor {
         final List<Object> params = new ArrayList<>(10);
 
         if (method.getReturnType().getKind() != TypeKind.VOID) {
-            final TypeName typeName = ParameterizedTypeName.get(method.getReturnType());
-            format.append("$T $L = ");
-            params.add(typeName);
-            params.add(result);
+            // 声明返回值
+            final TypeName returnTypeName = ParameterizedTypeName.get(method.getReturnType());
+            format.append("$T result = ");
+            params.add(returnTypeName);
         }
 
+        // 调用方法
         format.append("$L.$L(");
         params.add(instance);
         params.add(method.getSimpleName().toString());
@@ -697,20 +689,19 @@ public class RpcServiceProcessor extends AbstractProcessor {
                 format.append(responseChannel);
                 hasResponseChannel = true;
             } else {
-                final TypeName typeName = ParameterizedTypeName.get(variableElement.asType());
-                if (typeName.isPrimitive()) {
+                final TypeName parameterTypeName = ParameterizedTypeName.get(variableElement.asType());
+                if (parameterTypeName.isPrimitive()) {
                     // 基本类型需要两次转换，否则可能导致重载问题
                     // (int)((Integer)methodParams.get(index))
                     // eg:
                     // getName(int age);
                     // getName(Integer age);
                     format.append("($T)(($T)$L.get($L))");
-                    params.add(typeName);
-                    params.add(typeName.box());
+                    params.add(parameterTypeName);
+                    params.add(parameterTypeName.box());
                 } else {
                     format.append("($T)$L.get($L)");
-                    params.add(typeName);
-
+                    params.add(parameterTypeName);
                 }
                 params.add(methodParams);
                 params.add(index);
