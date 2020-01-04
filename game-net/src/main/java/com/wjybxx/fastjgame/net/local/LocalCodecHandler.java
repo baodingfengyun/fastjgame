@@ -75,8 +75,8 @@ public class LocalCodecHandler extends SessionOutboundHandlerAdapter {
     private Object cloneBody(Object body) throws IOException {
         if (body instanceof RpcCall) {
             // 检查延迟序列化和预反序列化
-            final RpcCall rpcCall0 = NetUtils.checkLazySerialize((RpcCall) body, codec);
-            final RpcCall rpcCall1 = NetUtils.checkPreDeserialize(rpcCall0, codec);
+            final RpcCall<?> rpcCall0 = NetUtils.checkLazySerialize((RpcCall<?>) body, codec);
+            final RpcCall<?> rpcCall1 = NetUtils.checkPreDeserialize(rpcCall0, codec);
             return codec.cloneObject(rpcCall1);
         } else {
             return codec.cloneObject(body);

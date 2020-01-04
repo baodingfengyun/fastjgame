@@ -413,7 +413,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
         try {
             if (bodyData instanceof RpcCall) {
                 // 检查延迟序列化参数
-                final RpcCall rpcCall = NetUtils.checkLazySerialize((RpcCall) bodyData, codec);
+                final RpcCall<?> rpcCall = NetUtils.checkLazySerialize((RpcCall<?>) bodyData, codec);
                 return codec.writeObject(allocator, rpcCall);
             } else {
                 return codec.writeObject(allocator, bodyData);
@@ -437,7 +437,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
             final Object body = codec.readObject(data);
             if (body instanceof RpcCall) {
                 // 检查提前反序列化参数
-                return NetUtils.checkPreDeserialize((RpcCall) body, codec);
+                return NetUtils.checkPreDeserialize((RpcCall<?>) body, codec);
             } else {
                 return body;
             }

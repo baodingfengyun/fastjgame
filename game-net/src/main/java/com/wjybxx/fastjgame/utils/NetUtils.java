@@ -319,7 +319,7 @@ public class NetUtils {
      * @return newCall or the same call
      * @throws IOException error
      */
-    public static RpcCall checkLazySerialize(RpcCall rpcCall, ProtocolCodec codec) throws IOException {
+    public static RpcCall<?> checkLazySerialize(RpcCall<?> rpcCall, ProtocolCodec codec) throws IOException {
         final int lazyIndexes = rpcCall.getLazyIndexes();
         if (lazyIndexes <= 0) {
             return rpcCall;
@@ -344,7 +344,7 @@ public class NetUtils {
             newMethodParams.add(newParameter);
         }
 
-        return new RpcCall(rpcCall.getMethodKey(), newMethodParams, 0, rpcCall.getPreIndexes());
+        return new RpcCall<>(rpcCall.getMethodKey(), newMethodParams, 0, rpcCall.getPreIndexes());
     }
 
     /**
@@ -355,7 +355,7 @@ public class NetUtils {
      * @return newCall or the same call
      * @throws IOException error
      */
-    public static RpcCall checkPreDeserialize(RpcCall rpcCall, ProtocolCodec codec) throws IOException {
+    public static RpcCall<?> checkPreDeserialize(RpcCall<?> rpcCall, ProtocolCodec codec) throws IOException {
         final int preIndexes = rpcCall.getPreIndexes();
         if (preIndexes <= 0) {
             return rpcCall;
@@ -376,7 +376,7 @@ public class NetUtils {
             newMethodParams.add(newParameter);
         }
 
-        return new RpcCall(rpcCall.getMethodKey(), newMethodParams, rpcCall.getLazyIndexes(), 0);
+        return new RpcCall<>(rpcCall.getMethodKey(), newMethodParams, rpcCall.getLazyIndexes(), 0);
     }
 
     /**
