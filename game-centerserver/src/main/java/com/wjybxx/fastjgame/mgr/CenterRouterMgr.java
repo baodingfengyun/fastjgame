@@ -43,7 +43,7 @@ public class CenterRouterMgr implements ICenterRouterMgr {
     }
 
     @Override
-    public void sendToWarzone(RpcCall rpcCall, RpcResponseChannel<?> rpcResponseChannel) {
+    public <V> void sendToWarzone(RpcCall<V> rpcCall, RpcResponseChannel<V> rpcResponseChannel) {
         final Session warzoneSession = warzoneSessionMgr.getWarzoneSession();
         if (null == warzoneSession) {
             rpcResponseChannel.writeFailure(RpcResultCode.ROUTER_SESSION_NULL);
@@ -54,7 +54,7 @@ public class CenterRouterMgr implements ICenterRouterMgr {
     }
 
     @Override
-    public void sendToScene(long sceneWorldGuid, RpcCall rpcCall, RpcResponseChannel<?> rpcResponseChannel) {
+    public <V> void sendToScene(long sceneWorldGuid, RpcCall<V> rpcCall, RpcResponseChannel<V> rpcResponseChannel) {
         final Session sceneSession = sceneSessionMgr.getSceneSession(sceneWorldGuid);
         if (null == sceneSession) {
             rpcResponseChannel.writeFailure(RpcResultCode.ROUTER_SESSION_NULL);
@@ -64,7 +64,7 @@ public class CenterRouterMgr implements ICenterRouterMgr {
     }
 
     @Override
-    public void sendToPlayerScene(long playerGuid, RpcCall rpcCall, RpcResponseChannel<?> rpcResponseChannel) {
+    public <V> void sendToPlayerScene(long playerGuid, RpcCall<V> rpcCall, RpcResponseChannel<V> rpcResponseChannel) {
         // TODO 根据玩家id查询所在scene服务器
     }
 }

@@ -612,6 +612,9 @@ public class RpcServiceProcessor extends AbstractProcessor {
                 .addParameter(registryTypeName, registry)
                 .addParameter(TypeName.get(typeElement.asType()), instance);
 
+        // 双方都必须拷贝泛型变量
+        AutoUtils.copyTypeVariables(builder, method);
+
         builder.addCode("$L.register($L, ($L, $L, $L) -> {\n", registry, methodKey,
                 session, methodParams, responseChannel);
 

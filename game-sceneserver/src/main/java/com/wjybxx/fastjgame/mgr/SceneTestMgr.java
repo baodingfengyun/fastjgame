@@ -55,7 +55,7 @@ public class SceneTestMgr implements ISceneTestMgr {
 
     private void callWarzone(TimerHandle timerHandle) {
         // 获取要调用的战区方法信息
-        final RpcCall call = IWarzoneTestMgrRpcProxy.hello(RoleType.SCENE, worldInfoMgr.getWorldGuid())
+        final RpcCall<String> call = IWarzoneTestMgrRpcProxy.hello(RoleType.SCENE, worldInfoMgr.getWorldGuid())
                 .getCall();
 
         // 通过Center转发(成功之后关闭定时器)

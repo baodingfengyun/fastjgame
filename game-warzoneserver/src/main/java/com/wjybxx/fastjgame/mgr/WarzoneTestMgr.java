@@ -57,7 +57,7 @@ public class WarzoneTestMgr implements IWarzoneTestMgr {
 
     private void callScene(Session centerSession, long sceneWorldGuid) {
         // 获取要调用的方法信息
-        final RpcCall call = ISceneTestMgrRpcProxy.hello(RoleType.WARZONE, worldInfoMgr.getWorldGuid())
+        final RpcCall<String> call = ISceneTestMgrRpcProxy.hello(RoleType.WARZONE, worldInfoMgr.getWorldGuid())
                 .getCall();
 
         // 通过center转发

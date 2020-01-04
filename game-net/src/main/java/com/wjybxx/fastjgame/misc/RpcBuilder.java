@@ -82,7 +82,7 @@ public interface RpcBuilder<V> {
      * 2. 直接{@link Session#call(Object, RpcCallback)}
      * 参考实现{@code ICenterRouterMgr}
      */
-    RpcCall getCall();
+    RpcCall<V> getCall();
 
     // ------------------------------------------- 添加回调 ----------------------------------------------
 

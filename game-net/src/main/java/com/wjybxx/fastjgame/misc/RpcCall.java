@@ -28,14 +28,16 @@ import java.util.List;
  * 注意：如果使用该形式的rpc调用，请保证{@link RpcCall}在{@link MessageMapper}中存在。
  * 警告：不要手动修改对象的内容，否则可能引发bug。
  *
+ * @param <V> the type of return type
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/19
  * github - https://github.com/hl845740757
  */
+@SuppressWarnings("unused")
 @NotThreadSafe
 @SerializableClass
-public class RpcCall {
+public class RpcCall<V> {
 
     /**
      * 调用的远程方法，用于确定一个唯一的方法。不使用 服务名 + 方法名 + 方法具体参数信息，传输的内容量过于庞大，性能不好。

@@ -41,7 +41,7 @@ public interface ICenterRouterMgr {
      * @param rpcResponseChannel 用于向scene返回调用结果
      */
     @RpcMethod(methodId = 1)
-    void sendToWarzone(RpcCall rpcCall, RpcResponseChannel<?> rpcResponseChannel);
+    <V> void sendToWarzone(RpcCall<V> rpcCall, RpcResponseChannel<V> rpcResponseChannel);
 
     /**
      * 请求发送消息到某个指定scene服务器
@@ -51,7 +51,7 @@ public interface ICenterRouterMgr {
      * @param rpcResponseChannel 用于向战区服务器返回调用结果
      */
     @RpcMethod(methodId = 2)
-    void sendToScene(long sceneWorldGuid, RpcCall rpcCall, RpcResponseChannel<?> rpcResponseChannel);
+    <V> void sendToScene(long sceneWorldGuid, RpcCall<V> rpcCall, RpcResponseChannel<V> rpcResponseChannel);
 
     /**
      * 请求发送消息到玩家所在场景服务器
@@ -61,5 +61,5 @@ public interface ICenterRouterMgr {
      * @param rpcResponseChannel 用于向战区服务器返回调用结果
      */
     @RpcMethod(methodId = 3)
-    void sendToPlayerScene(long playerGuid, RpcCall rpcCall, RpcResponseChannel<?> rpcResponseChannel);
+    <V> void sendToPlayerScene(long playerGuid, RpcCall<V> rpcCall, RpcResponseChannel<V> rpcResponseChannel);
 }

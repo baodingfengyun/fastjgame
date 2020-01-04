@@ -52,7 +52,7 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V> {
     /**
      * 远程方法信息
      */
-    private final RpcCall call;
+    private final RpcCall<V> call;
     /**
      * 添加的回调
      */
@@ -65,7 +65,7 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V> {
     /**
      * @param call 一般来讲，是用于转发的RpcCall
      */
-    public DefaultRpcBuilder(RpcCall call) {
+    public DefaultRpcBuilder(RpcCall<V> call) {
         this.call = call;
     }
 
@@ -73,11 +73,11 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V> {
      * 该方法是生成的代码调用的。
      */
     public DefaultRpcBuilder(int methodKey, List<Object> methodParams, int lazyIndexes, int preIndexes) {
-        this.call = new RpcCall(methodKey, methodParams, lazyIndexes, preIndexes);
+        this.call = new RpcCall<>(methodKey, methodParams, lazyIndexes, preIndexes);
     }
 
     @Override
-    public RpcCall getCall() {
+    public RpcCall<V> getCall() {
         return call;
     }
 
