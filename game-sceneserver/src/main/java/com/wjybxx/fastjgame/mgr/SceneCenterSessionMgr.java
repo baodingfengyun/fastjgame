@@ -23,8 +23,7 @@ import com.wjybxx.fastjgame.misc.SceneCenterSession;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.rpcservice.ISceneCenterSessionMgr;
 import com.wjybxx.fastjgame.scene.SceneRegion;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +46,7 @@ public class SceneCenterSessionMgr implements ISceneCenterSessionMgr {
     /**
      * wolrdguid到信息的映射
      */
-    private final Long2ObjectMap<SceneCenterSession> guid2InfoMap = new Long2ObjectOpenHashMap<>();
+    private final Long2ObjectLinkedOpenHashMap<SceneCenterSession> guid2InfoMap = new Long2ObjectLinkedOpenHashMap<>();
     /**
      * serverId到信息的映射
      */
@@ -135,6 +134,19 @@ public class SceneCenterSessionMgr implements ISceneCenterSessionMgr {
     public Session getCenterSession(long worldGuid) {
         final SceneCenterSession sceneCenterSession = guid2InfoMap.get(worldGuid);
         return null == sceneCenterSession ? null : sceneCenterSession.getSession();
+    }
+
+    /**
+     * 获取当前第一个session
+     *
+     * @return session
+     */
+    @Nullable
+    public Session getFirstCenterSession() {
+        if (guid2InfoMap.isEmpty()) {
+            return null;
+        }
+        return guid2InfoMap.get(guid2InfoMap.firstLongKey()).getSession();
     }
 
 }

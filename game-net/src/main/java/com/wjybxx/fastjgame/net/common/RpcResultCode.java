@@ -66,6 +66,10 @@ public enum RpcResultCode implements NumberEnum {
      * 请求错误
      */
     BAD_REQUEST(42),
+    /**
+     * 路由转发时找不到session
+     */
+    ROUTER_SESSION_NULL(43),
 
     /**
      * 错误(对方执行请求时发生错误)，现阶段不返回额外信息。

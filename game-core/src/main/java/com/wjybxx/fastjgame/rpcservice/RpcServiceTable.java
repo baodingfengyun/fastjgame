@@ -27,6 +27,15 @@ package com.wjybxx.fastjgame.rpcservice;
 public final class RpcServiceTable {
 
     /**
+     * 战区服测试组件
+     */
+    public static final short WARZONE_TEST = 32001;
+    /**
+     * 场景服测试组件
+     */
+    public static final short SCENE_TEST = 32002;
+
+    /**
      * 中心服在战区服的信息管理
      */
     public static final short WARZONE_CENTER_SESSION_MGR = 1;
@@ -60,4 +69,9 @@ public final class RpcServiceTable {
      * 玩家在网关服的会话管理器
      */
     public static final short GATE_PLAYER_SESSION_MGR = 7;
+
+    /**
+     * 中心服路由管理器(负责 scene到warzone的转发 和 warzone到scene的转发)
+     */
+    public static final short CENTER_ROUTER_MGR = 8;
 }

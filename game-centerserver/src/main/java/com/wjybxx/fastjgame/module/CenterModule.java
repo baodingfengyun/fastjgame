@@ -48,6 +48,7 @@ public class CenterModule extends WorldModule {
         bind(CenterSceneSessionMgr.class).in(Singleton.class);
         bind(CenterWarzoneSessionMgr.class).in(Singleton.class);
         bind(CenterGateSessionMgr.class).in(Singleton.class);
+        bind(CenterRouterMgr.class).in(Singleton.class);
 
         bind(CenterPlayerMessageDispatcherMgr.class).in(Singleton.class);
     }

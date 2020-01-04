@@ -23,6 +23,7 @@ import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.node.CenterNodeData;
 import com.wjybxx.fastjgame.rpcservice.ICenterGateSessionMgrRpcRegister;
+import com.wjybxx.fastjgame.rpcservice.ICenterRouterMgrRpcRegister;
 import com.wjybxx.fastjgame.rpcservice.IPlayerMessageDispatcherMgrRpcRegister;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
@@ -49,12 +50,13 @@ public class CenterWorld extends AbstractWorld {
     private final CenterWarzoneSessionMgr centerWarzoneSessionMgr;
     private final CenterPlayerMessageDispatcherMgr playerMessageDispatcherMgr;
     private final CenterMongoDBMgr mongoDBMgr;
+    private final CenterRouterMgr routerMgr;
 
     @Inject
     public CenterWorld(WorldWrapper worldWrapper, CenterDiscoverMgr centerDiscoverMgr,
                        CenterSceneSessionMgr centerSceneSessionMgr, CenterGateSessionMgr centerGateSessionMgr,
                        CenterWarzoneSessionMgr centerWarzoneSessionMgr, CenterPlayerMessageDispatcherMgr playerMessageDispatcherMgr,
-                       CenterMongoDBMgr mongoDBMgr) {
+                       CenterMongoDBMgr mongoDBMgr, CenterRouterMgr routerMgr) {
         super(worldWrapper);
         this.centerDiscoverMgr = centerDiscoverMgr;
         this.centerSceneSessionMgr = centerSceneSessionMgr;
@@ -63,12 +65,14 @@ public class CenterWorld extends AbstractWorld {
         this.centerWarzoneSessionMgr = centerWarzoneSessionMgr;
         this.playerMessageDispatcherMgr = playerMessageDispatcherMgr;
         this.mongoDBMgr = mongoDBMgr;
+        this.routerMgr = routerMgr;
     }
 
     @Override
     protected void registerRpcService() {
         ICenterGateSessionMgrRpcRegister.register(protocolDispatcherMgr, centerGateSessionMgr);
         IPlayerMessageDispatcherMgrRpcRegister.register(protocolDispatcherMgr, playerMessageDispatcherMgr);
+        ICenterRouterMgrRpcRegister.register(protocolDispatcherMgr, routerMgr);
     }
 
     @Override

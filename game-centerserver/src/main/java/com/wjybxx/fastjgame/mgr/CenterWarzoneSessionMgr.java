@@ -26,6 +26,8 @@ import com.wjybxx.fastjgame.rpcservice.IWarzoneCenterSessionMgrRpcProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
+
 
 /**
  * Warzone在Game中的连接管理等控制器
@@ -52,8 +54,14 @@ public class CenterWarzoneSessionMgr {
         this.gameAcceptorMgr = gameAcceptorMgr;
     }
 
-    public CenterWarzoneSession getWarzoneSession() {
+    @Nullable
+    public CenterWarzoneSession getWarzoneInfo() {
         return warzoneSession;
+    }
+
+    @Nullable
+    public Session getWarzoneSession() {
+        return warzoneSession == null ? null : warzoneSession.getSession();
     }
 
     /**

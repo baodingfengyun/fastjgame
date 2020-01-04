@@ -44,6 +44,7 @@ public class SceneModule extends WorldModule {
 
         bind(SceneCenterSessionMgr.class).in(Singleton.class);
         bind(SceneGateSessionMgr.class).in(Singleton.class);
+        bind(SceneTestMgr.class).in(Singleton.class);
 
         bind(SceneRegionMgr.class).in(Singleton.class);
         bind(SceneSendMgr.class).in(Singleton.class);

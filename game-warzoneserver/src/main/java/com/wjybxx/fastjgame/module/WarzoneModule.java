@@ -22,6 +22,8 @@ import com.wjybxx.fastjgame.world.WarzoneWorld;
 import com.wjybxx.fastjgame.world.World;
 
 /**
+ * 战区服模块
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/17 15:38
@@ -41,6 +43,7 @@ public class WarzoneModule extends WorldModule {
         // 方便子类直接使用
         bind(WarzoneWorldInfoMgr.class).in(Singleton.class);
         bind(WarzoneCenterSessionMgr.class).in(Singleton.class);
+        bind(WarzoneTestMgr.class).in(Singleton.class);
 
         // 数据库支持
         bind(WarzoneMongoDBMgr.class).in(Singleton.class);

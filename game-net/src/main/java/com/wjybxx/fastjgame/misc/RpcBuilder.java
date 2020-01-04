@@ -77,7 +77,9 @@ public interface RpcBuilder<V> {
     /**
      * 获取该方法包含的调用信息。
      * 警告：仅可用于转发，不可修改对象的内容，否则可能引发bug。
-     * 转发的方式: 代理层使用RpcCall创建新的{@link RpcBuilder}，再发送出去。
+     * 转发的方式:
+     * 1. {@link DefaultRpcBuilder#DefaultRpcBuilder(RpcCall)}，然后调用需要的方法。
+     * 2. 直接{@link Session#call(Object, RpcCallback)}
      * 参考实现{@code ICenterRouterMgr}
      */
     RpcCall getCall();

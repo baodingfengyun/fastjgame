@@ -35,6 +35,7 @@ import it.unimi.dsi.fastutil.objects.ObjectCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -84,12 +85,19 @@ public class CenterSceneSessionMgr {
         guid2InfoMap.remove(centerSceneSession.getWorldGuid());
     }
 
+    @Nullable
     public CenterSceneSession getSceneInfo(long worldGuid) {
         return guid2InfoMap.get(worldGuid);
     }
 
     public ObjectCollection<CenterSceneSession> getAllSceneInfo() {
         return guid2InfoMap.values();
+    }
+
+    @Nullable
+    public Session getSceneSession(long worldGuid) {
+        final CenterSceneSession sceneSession = guid2InfoMap.get(worldGuid);
+        return null == sceneSession ? null : sceneSession.getSession();
     }
 
     /**

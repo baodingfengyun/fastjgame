@@ -6,10 +6,7 @@ import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.node.SceneNodeData;
-import com.wjybxx.fastjgame.rpcservice.IPlayerMessageDispatcherMgrRpcRegister;
-import com.wjybxx.fastjgame.rpcservice.ISceneCenterSessionMgrRpcRegister;
-import com.wjybxx.fastjgame.rpcservice.ISceneGateSessionMgrRpcRegister;
-import com.wjybxx.fastjgame.rpcservice.ISceneRegionMgrRpcRegister;
+import com.wjybxx.fastjgame.rpcservice.*;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.curator.utils.ZKPaths;
@@ -37,12 +34,13 @@ public class SceneWorld extends AbstractWorld {
     private final SceneSendMgr sendMgr;
     private final SceneMgr sceneMgr;
     private final ScenePlayerMessageDispatcherMgr playerMessageDispatcherMgr;
+    private final SceneTestMgr sceneTestMgr;
 
     @Inject
     public SceneWorld(WorldWrapper worldWrapper, SceneCenterSessionMgr sceneCenterSessionMgr,
                       SceneGateSessionMgr sceneGateSessionMgr, SceneRegionMgr sceneRegionMgr,
                       SceneSendMgr sendMgr, SceneMgr sceneMgr,
-                      ScenePlayerMessageDispatcherMgr playerMessageDispatcherMgr) {
+                      ScenePlayerMessageDispatcherMgr playerMessageDispatcherMgr, SceneTestMgr sceneTestMgr) {
         super(worldWrapper);
         this.sceneCenterSessionMgr = sceneCenterSessionMgr;
         this.sceneGateSessionMgr = sceneGateSessionMgr;
@@ -51,6 +49,7 @@ public class SceneWorld extends AbstractWorld {
         this.sendMgr = sendMgr;
         this.sceneMgr = sceneMgr;
         this.playerMessageDispatcherMgr = playerMessageDispatcherMgr;
+        this.sceneTestMgr = sceneTestMgr;
     }
 
     @Override
@@ -67,6 +66,7 @@ public class SceneWorld extends AbstractWorld {
         ISceneCenterSessionMgrRpcRegister.register(protocolDispatcherMgr, sceneCenterSessionMgr);
         ISceneGateSessionMgrRpcRegister.register(protocolDispatcherMgr, sceneGateSessionMgr);
         IPlayerMessageDispatcherMgrRpcRegister.register(protocolDispatcherMgr, playerMessageDispatcherMgr);
+        ISceneTestMgrRpcRegister.register(protocolDispatcherMgr, sceneTestMgr);
     }
 
     @Override

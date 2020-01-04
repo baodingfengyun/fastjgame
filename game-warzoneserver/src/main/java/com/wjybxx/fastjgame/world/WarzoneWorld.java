@@ -17,15 +17,13 @@
 package com.wjybxx.fastjgame.world;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.mgr.WarzoneCenterSessionMgr;
-import com.wjybxx.fastjgame.mgr.WarzoneMongoDBMgr;
-import com.wjybxx.fastjgame.mgr.WarzoneWorldInfoMgr;
-import com.wjybxx.fastjgame.mgr.WorldWrapper;
+import com.wjybxx.fastjgame.mgr.*;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.node.WarzoneNodeData;
 import com.wjybxx.fastjgame.rpcservice.IWarzoneCenterSessionMgrRpcRegister;
+import com.wjybxx.fastjgame.rpcservice.IWarzoneTestMgrRpcRegister;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.curator.utils.ZKPaths;
@@ -45,19 +43,22 @@ public class WarzoneWorld extends AbstractWorld {
     private final WarzoneWorldInfoMgr warzoneWorldInfoMgr;
     private final WarzoneCenterSessionMgr warzoneCenterSessionMgr;
     private final WarzoneMongoDBMgr mongoDBMgr;
+    private final WarzoneTestMgr warzoneTestMgr;
 
     @Inject
     public WarzoneWorld(WorldWrapper worldWrapper, WarzoneWorldInfoMgr warzoneWorldInfoMgr,
-                        WarzoneCenterSessionMgr warzoneCenterSessionMgr, WarzoneMongoDBMgr mongoDBMgr) {
+                        WarzoneCenterSessionMgr warzoneCenterSessionMgr, WarzoneMongoDBMgr mongoDBMgr, WarzoneTestMgr warzoneTestMgr) {
         super(worldWrapper);
         this.warzoneWorldInfoMgr = warzoneWorldInfoMgr;
         this.warzoneCenterSessionMgr = warzoneCenterSessionMgr;
         this.mongoDBMgr = mongoDBMgr;
+        this.warzoneTestMgr = warzoneTestMgr;
     }
 
     @Override
     protected void registerRpcService() {
         IWarzoneCenterSessionMgrRpcRegister.register(protocolDispatcherMgr, warzoneCenterSessionMgr);
+        IWarzoneTestMgrRpcRegister.register(protocolDispatcherMgr, warzoneTestMgr);
     }
 
     @Override
