@@ -96,7 +96,7 @@ public enum RpcResultCode implements NumberEnum {
     /**
      * number到枚举的映射
      */
-    private static final NumberEnumMapper<RpcResultCode> mapper = EnumUtils.indexNumberEnum(values());
+    private static final NumberEnumMapper<RpcResultCode> mapper = EnumUtils.mapping(values());
 
     public static RpcResultCode forNumber(int number) {
         return mapper.forNumber(number);

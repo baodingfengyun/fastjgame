@@ -49,7 +49,7 @@ public class NumberEnumTest {
             return ordinal() + 1;
         }
 
-        private static final NumberEnumMapper<EEE> mapping = EnumUtils.indexNumberEnum(values());
+        private static final NumberEnumMapper<EEE> mapping = EnumUtils.mapping(values());
 
         public static EEE forNumber(int number) {
             return mapping.forNumber(number);

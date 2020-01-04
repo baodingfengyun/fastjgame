@@ -108,7 +108,7 @@ public enum RoleType implements NumberEnum {
         this.number = roleType;
     }
 
-    private static final NumberEnumMapper<RoleType> mapper = EnumUtils.indexNumberEnum(values());
+    private static final NumberEnumMapper<RoleType> mapper = EnumUtils.mapping(values());
 
     public static RoleType forNumber(int number) {
         RoleType roleType = mapper.forNumber(number);

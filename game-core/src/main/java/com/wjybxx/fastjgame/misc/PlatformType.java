@@ -57,7 +57,7 @@ public enum PlatformType implements NumberEnum {
         return number;
     }
 
-    private static final NumberEnumMapper<PlatformType> mapper = EnumUtils.indexNumberEnum(values());
+    private static final NumberEnumMapper<PlatformType> mapper = EnumUtils.mapping(values());
 
     public static PlatformType forNumber(int number) {
         PlatformType platformType = mapper.forNumber(number);

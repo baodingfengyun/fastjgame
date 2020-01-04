@@ -77,8 +77,9 @@ public class ReflectBasedProtoCodecTest {
         fullMessage.setName("wjybxx");
         fullMessage.setProfession(ExampleMessages.Profession.CODER);
 
-        fullMessage.setStringList(new ArrayList<>(Arrays.asList("张三", "lisi", "55")));
-        fullMessage.setStringSet(new LinkedHashSet<>(Arrays.asList("张三", "lisi", "55")));
+        fullMessage.setStringList(new ArrayList<>(Arrays.asList("张三", "李四", "王五")));
+        fullMessage.setStringSet(new LinkedHashSet<>(Arrays.asList("zhangsan", "li", "wangwu")));
+        fullMessage.setStringQueue(new LinkedList<>(Arrays.asList("first", "second")));
 
         Map<String, String> params = new LinkedHashMap<>();
         params.put("first", "abc");

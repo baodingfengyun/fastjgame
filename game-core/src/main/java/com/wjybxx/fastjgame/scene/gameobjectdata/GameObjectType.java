@@ -51,7 +51,7 @@ public enum GameObjectType implements NumberEnum {
         return ordinal();
     }
 
-    private static final NumberEnumMapper<GameObjectType> mapper = EnumUtils.indexNumberEnum(values());
+    private static final NumberEnumMapper<GameObjectType> mapper = EnumUtils.mapping(values());
 
     public static GameObjectType forNumber(int number) {
         return mapper.forNumber(number);

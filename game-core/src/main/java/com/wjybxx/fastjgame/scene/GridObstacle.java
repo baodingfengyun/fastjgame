@@ -54,7 +54,7 @@ public enum GridObstacle implements NumberEnum {
         return number;
     }
 
-    private static final NumberEnumMapper<GridObstacle> mapper = EnumUtils.indexNumberEnum(values());
+    private static final NumberEnumMapper<GridObstacle> mapper = EnumUtils.mapping(values());
 
     public static GridObstacle forNumber(int number) {
         return mapper.forNumber(number);

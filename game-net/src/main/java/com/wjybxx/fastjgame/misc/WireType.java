@@ -25,6 +25,7 @@ import com.wjybxx.fastjgame.enummapper.NumberEnum;
 import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 
 /**
@@ -75,10 +76,12 @@ public class WireType {
      * 字符串 LENGTH_DELIMITED
      */
     public static final byte STRING = 9;
+
     /**
      * protobuf LENGTH_DELIMITED
      */
     public static final byte MESSAGE = 10;
+
     /**
      * protoBuf的枚举
      */
@@ -90,37 +93,37 @@ public class WireType {
      */
     public static final byte NUMBER_ENUM = 12;
 
-    // -- 基本集合
+    // -- 基本集合，注意：在rpc方法中时不要使用具体类型，请使用顶层接口类型 List/Set/Map/Queue，否则可能调用失败。
     /**
-     * List，解析时使用{@link java.util.ArrayList}，Repeatable
+     * List，解析时使用{@link java.util.ArrayList}，保持顺序
      */
     public static final byte LIST = 13;
-
     /**
      * Set，解析时使用{@link java.util.LinkedHashSet}，保持顺序
      */
     public static final byte SET = 14;
-
+    /**
+     * 队列 -解析时使用{@link java.util.ArrayDeque}，保持顺序
+     */
+    public static final byte QUEUE = 15;
     /**
      * Map，解析时使用{@link java.util.LinkedHashMap}，保持顺序
      */
-    public static final byte MAP = 15;
+    public static final byte MAP = 16;
+
     /**
      * NULL
      */
-    public static final byte NULL = 16;
+    public static final byte NULL = 17;
 
     /**
      * 可序列化的普通对象，最好是简单的Bean -- POJO，必须带有{@link SerializableClass}注解。
      * 必须有无参构造方法，可以是private。
      */
-    public static final byte REFERENCE = 17;
+    public static final byte REFERENCE = 18;
+
     /**
-     * 它不代表内容，仅仅表示一个分隔符
-     */
-    public static final byte REFERENCE_END = 18;
-    /**
-     * 动态类型 - 运行时才能确定的类型（它是也标记类型）
+     * 动态类型 - 运行时才能确定的类型（它是标记类型）
      */
     public static final byte RUN_TIME = 19;
 
@@ -133,7 +136,6 @@ public class WireType {
      * short数组
      */
     public static final byte SHORT_ARRAY = 21;
-
     /**
      * int数组
      */
@@ -222,6 +224,10 @@ public class WireType {
         // Map
         if (Map.class.isAssignableFrom(type)) {
             return WireType.MAP;
+        }
+        // Queue
+        if (Queue.class.isAssignableFrom(type)) {
+            return WireType.QUEUE;
         }
         // 自定义类型
         if (type.isAnnotationPresent(SerializableClass.class)) {

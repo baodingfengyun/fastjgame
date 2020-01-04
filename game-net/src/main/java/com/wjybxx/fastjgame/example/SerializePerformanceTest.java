@@ -30,7 +30,7 @@ import java.io.IOException;
  * date - 2019/10/10
  * github - https://github.com/hl845740757
  */
-public class SerializePerformanceTesting {
+public class SerializePerformanceTest {
 
     public static void main(String[] args) throws IOException {
         ExampleMessages.FullMessage fullMessage = ReflectBasedProtoCodecTest.newFullMessage();

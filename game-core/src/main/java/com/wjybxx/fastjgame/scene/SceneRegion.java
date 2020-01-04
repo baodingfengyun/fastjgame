@@ -75,7 +75,7 @@ public enum SceneRegion implements NumberEnum {
     /**
      * 数字id到枚举的映射
      */
-    private static final NumberEnumMapper<SceneRegion> mapper = EnumUtils.indexNumberEnum(values());
+    private static final NumberEnumMapper<SceneRegion> mapper = EnumUtils.mapping(values());
 
     public static SceneRegion forNumber(int number) {
         SceneRegion sceneRegion = mapper.forNumber(number);

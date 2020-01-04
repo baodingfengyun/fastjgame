@@ -120,7 +120,7 @@ public class EnumUtils {
      * @return unmodifiable
      */
     @SuppressWarnings("unchecked")
-    public static <T extends NumberEnum> NumberEnumMapper<T> indexNumberEnum(T[] values) {
+    public static <T extends NumberEnum> NumberEnumMapper<T> mapping(T[] values) {
         if (values.length == 0) {
             return (NumberEnumMapper<T>) EmptyMapper.INSTANCE;
         }

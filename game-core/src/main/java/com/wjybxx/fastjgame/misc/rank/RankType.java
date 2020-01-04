@@ -46,7 +46,7 @@ public enum RankType implements NumberEnum {
         return number;
     }
 
-    private static final NumberEnumMapper<RankType> mapper = EnumUtils.indexNumberEnum(values());
+    private static final NumberEnumMapper<RankType> mapper = EnumUtils.mapping(values());
 
     /**
      * 通过排行榜类型数字查找对应的类型
