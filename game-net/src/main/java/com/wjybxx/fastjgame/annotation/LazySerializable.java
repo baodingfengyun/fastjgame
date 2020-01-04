@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.annotation;
 
+import com.wjybxx.fastjgame.misc.RpcCall;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -33,9 +35,11 @@ import java.lang.annotation.Target;
  * 网络之前，将所有带该注解的参数序列化为字节数组。该解决方案更加通用。
  * <p>
  * 对代码生成产生的影响：
- * 1. 不可以使用{@link java.util.Collections#singletonList(Object)}，因为无法修改数据。
- * 2. 对{@link byte[]}类型且带有{@link LazySerializable} 的参数替换为{@link Object}类型。
- * 3. 为提高编码速度，必须进行索引，避免不必要的遍历。
+ * 1. 对{@link byte[]}类型且带有{@link LazySerializable} 的参数替换为{@link Object}类型。
+ * 2. 为提高编码速度，必须进行索引，避免不必要的遍历。
+ * <p>
+ * 2020年1月3日 还发现一个并发bug
+ * 如果使用{@link RpcCall}进行广播，可能出现并发修改{@link RpcCall}，则可能产生并发bug - 使用保护性拷贝解决（防御性拷贝）。
  *
  * <p>
  * 注意：

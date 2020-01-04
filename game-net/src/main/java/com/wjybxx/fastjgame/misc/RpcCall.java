@@ -50,13 +50,16 @@ public class RpcCall {
     private final List<Object> methodParams;
 
     /**
-     * 需要延迟到网络层序列化为byte[]的参数位置信息 - 不序列化。
-     */
-    private final int lazyIndexes;
-    /**
-     * 需要网络层提前反序列化的参数位置信息 - 需要序列化到接收方
+     * 需要延迟到网络层序列化为byte[]的参数位置信息。
+     * <p>
+     * 2020年1月4日修改为需要序列化，原因：我们希望可以转发rpcCall对象，中间的代理需要有原始的rpcCall信息。
      */
     @SerializableField(number = 3)
+    private final int lazyIndexes;
+    /**
+     * 需要网络层提前反序列化的参数位置信息 - 需要序列化到接收方。
+     */
+    @SerializableField(number = 4)
     private final int preIndexes;
 
     // 反射创建对象

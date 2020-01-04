@@ -409,13 +409,15 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
      * @param bodyData  待编码的body
      * @return 编码后的数据
      */
-    private ByteBuf tryEncodeBody(ByteBufAllocator allocator, Object bodyData) {
+    private ByteBuf tryEncodeBody(final ByteBufAllocator allocator, final Object bodyData) {
         try {
-            // 检查延迟序列化
             if (bodyData instanceof RpcCall) {
-                NetUtils.checkLazySerialize((RpcCall) bodyData, codec);
+                // 检查延迟序列化参数
+                final RpcCall rpcCall = NetUtils.checkLazySerialize((RpcCall) bodyData, codec);
+                return codec.writeObject(allocator, rpcCall);
+            } else {
+                return codec.writeObject(allocator, bodyData);
             }
-            return codec.writeObject(allocator, bodyData);
         } catch (Exception e) {
             // 为了不影响该连接上的其它消息，需要捕获异常
             logger.warn("serialize body {} caught exception.", bodyData.getClass().getName(), e);
@@ -430,14 +432,15 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
      * @return 为了不引用该连接上的其它消息，如果解码失败返回null。
      */
     @Nullable
-    private Object tryDecodeBody(ByteBuf data) {
+    private Object tryDecodeBody(final ByteBuf data) {
         try {
             final Object body = codec.readObject(data);
-            // 检查预反序列化
             if (body instanceof RpcCall) {
-                NetUtils.checkPreDeserialize((RpcCall) body, codec);
+                // 检查提前反序列化参数
+                return NetUtils.checkPreDeserialize((RpcCall) body, codec);
+            } else {
+                return body;
             }
-            return body;
         } catch (Exception e) {
             // 为了不影响该连接上的其它消息，需要捕获异常
             logger.warn("deserialize body caught exception", e);

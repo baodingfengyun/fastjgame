@@ -62,6 +62,16 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V> {
      */
     private int shareMode = SHARE_MODE_ANY;
 
+    /**
+     * @param call 一般来讲，是用于转发的RpcCall
+     */
+    public DefaultRpcBuilder(RpcCall call) {
+        this.call = call;
+    }
+
+    /**
+     * 该方法是生成的代码调用的。
+     */
     public DefaultRpcBuilder(int methodKey, List<Object> methodParams, int lazyIndexes, int preIndexes) {
         this.call = new RpcCall(methodKey, methodParams, lazyIndexes, preIndexes);
     }

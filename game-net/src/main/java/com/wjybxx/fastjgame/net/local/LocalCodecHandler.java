@@ -20,10 +20,9 @@ import com.wjybxx.fastjgame.misc.RpcCall;
 import com.wjybxx.fastjgame.net.common.*;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 import com.wjybxx.fastjgame.net.session.SessionOutboundHandlerAdapter;
+import com.wjybxx.fastjgame.utils.NetUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * 对于在JVM内传输的数据，进行保护性拷贝。
@@ -71,44 +70,14 @@ public class LocalCodecHandler extends SessionOutboundHandlerAdapter {
     }
 
     /**
-     * 这里是为了解决一件事情：一个非字节数组对象，序列化为字节数组后，再进行拷贝是冗余的，序列化已经实现了拷贝。
-     * 不过增加了复杂度，降低了可维护性。
+     * 拷贝消息内容
      */
-    @SuppressWarnings({"SuspiciousSystemArraycopy"})
     private Object cloneBody(Object body) throws IOException {
-        // 检查延迟序列化的属性
         if (body instanceof RpcCall) {
-            final RpcCall rpcCall = (RpcCall) body;
-            final List<Object> methodParams = rpcCall.getMethodParams();
-            final ArrayList<Object> newMethodParams = new ArrayList<>(methodParams.size());
-            final int lazyIndexes = rpcCall.getLazyIndexes();
-            final int preIndexes = rpcCall.getPreIndexes();
-
-            final RpcCall newCall = new RpcCall(rpcCall.getMethodKey(), newMethodParams, 0, 0);
-            for (int index = 0, end = methodParams.size(); index < end; index++) {
-                final Object parameter = methodParams.get(index);
-                final Object newParameter;
-                if (lazyIndexes > 0 && (lazyIndexes & (1L << index)) != 0) {
-                    // 需要延迟序列化的参数
-                    if (parameter instanceof byte[]) {
-                        // 已经是字节数组了，拷贝一下即可
-                        byte[] bytesParameter = (byte[]) parameter;
-                        newParameter = new byte[bytesParameter.length];
-                        System.arraycopy(bytesParameter, 0, newParameter, 0, bytesParameter.length);
-                    } else {
-                        // 还不是字节数组，执行序列化，减少不必要的拷贝
-                        newParameter = codec.serializeToBytes(parameter);
-                    }
-                } else if (preIndexes > 0 && (preIndexes & (1L << index)) != 0) {
-                    // 需要网络层反序列化的参数 - 由于代理方法是bytes[]，所有这里一定是byte[]
-                    newParameter = codec.deserializeFromBytes((byte[]) parameter);
-                } else {
-                    // 普通参数
-                    newParameter = codec.cloneObject(parameter);
-                }
-                newMethodParams.add(newParameter);
-            }
-            return newCall;
+            // 检查延迟序列化和预反序列化
+            final RpcCall rpcCall0 = NetUtils.checkLazySerialize((RpcCall) body, codec);
+            final RpcCall rpcCall1 = NetUtils.checkPreDeserialize(rpcCall0, codec);
+            return codec.cloneObject(rpcCall1);
         } else {
             return codec.cloneObject(body);
         }
