@@ -18,10 +18,14 @@ package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.misc.RpcCall;
+import com.wjybxx.fastjgame.net.common.RpcResponse;
 import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
 import com.wjybxx.fastjgame.net.common.RpcResultCode;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.rpcservice.ICenterRouterMgr;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * 中心服路由管理器。
@@ -43,28 +47,30 @@ public class CenterRouterMgr implements ICenterRouterMgr {
     }
 
     @Override
-    public <V> void sendToWarzone(RpcCall<V> rpcCall, RpcResponseChannel<V> rpcResponseChannel) {
-        final Session warzoneSession = warzoneSessionMgr.getWarzoneSession();
-        if (null == warzoneSession) {
-            rpcResponseChannel.writeFailure(RpcResultCode.ROUTER_SESSION_NULL);
-            return;
-        }
-        // 也可以使用DefaultRpcBuilder
-        warzoneSession.call(rpcCall, rpcResponseChannel::write);
+    public <V> void routeToWarzone(RpcCall<V> rpcCall, RpcResponseChannel<V> rpcResponseChannel) {
+        routeImp(warzoneSessionMgr.getWarzoneSession(), rpcCall, rpcResponseChannel);
     }
 
     @Override
-    public <V> void sendToScene(long sceneWorldGuid, RpcCall<V> rpcCall, RpcResponseChannel<V> rpcResponseChannel) {
-        final Session sceneSession = sceneSessionMgr.getSceneSession(sceneWorldGuid);
-        if (null == sceneSession) {
-            rpcResponseChannel.writeFailure(RpcResultCode.ROUTER_SESSION_NULL);
-            return;
-        }
-        sceneSession.call(rpcCall, rpcResponseChannel::write);
+    public <V> void routeToScene(long sceneWorldGuid, RpcCall<V> rpcCall, RpcResponseChannel<V> rpcResponseChannel) {
+        routeImp(sceneSessionMgr.getSceneSession(sceneWorldGuid), rpcCall, rpcResponseChannel);
     }
 
     @Override
-    public <V> void sendToPlayerScene(long playerGuid, RpcCall<V> rpcCall, RpcResponseChannel<V> rpcResponseChannel) {
+    public <V> void routeToPlayerScene(long playerGuid, RpcCall<V> rpcCall, RpcResponseChannel<V> rpcResponseChannel) {
         // TODO 根据玩家id查询所在scene服务器
+    }
+
+    private static <V> void routeImp(@Nullable Session routerSession, @Nonnull RpcCall<V> rpcCall, @Nonnull RpcResponseChannel<V> rpcResponseChannel) {
+        if (routerSession == null) {
+            rpcResponseChannel.write(RpcResponse.ROUTER_SESSION_NULL);
+            return;
+        }
+
+        if (rpcResponseChannel.isVoid()) {
+            routerSession.send(rpcCall);
+        } else {
+            routerSession.call(rpcCall, rpcResponseChannel::write);
+        }
     }
 }

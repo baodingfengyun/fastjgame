@@ -329,7 +329,7 @@ public class NetUtils {
         // 解决方案有：①防御性拷贝 ②对RpcCall对象加锁
         // 选择防御性拷贝的理由：①使用延迟序列化和提前反序列化的比例并不高 ②方法方法参数个数偏小，创建一个小list的成本较低。
         final List<Object> methodParams = rpcCall.getMethodParams();
-        final ArrayList<Object> newMethodParams = new ArrayList<>(rpcCall.getMethodParams().size());
+        final ArrayList<Object> newMethodParams = new ArrayList<>(methodParams.size());
 
         for (int index = 0, end = methodParams.size(); index < end; index++) {
             final Object parameter = methodParams.get(index);
@@ -363,7 +363,7 @@ public class NetUtils {
 
         // 线程安全问题同上面
         final List<Object> methodParams = rpcCall.getMethodParams();
-        final ArrayList<Object> newMethodParams = new ArrayList<>(rpcCall.getMethodParams().size());
+        final ArrayList<Object> newMethodParams = new ArrayList<>(methodParams.size());
 
         for (int index = 0, end = methodParams.size(); index < end; index++) {
             final Object parameter = methodParams.get(index);

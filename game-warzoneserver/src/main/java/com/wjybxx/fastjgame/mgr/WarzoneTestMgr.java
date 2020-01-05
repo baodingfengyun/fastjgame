@@ -18,7 +18,6 @@ package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.misc.RoleType;
-import com.wjybxx.fastjgame.misc.RpcCall;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.rpcservice.ICenterRouterMgrRpcProxy;
 import com.wjybxx.fastjgame.rpcservice.ISceneTestMgrRpcProxy;
@@ -52,17 +51,14 @@ public class WarzoneTestMgr implements IWarzoneTestMgr {
         if (caller == RoleType.SCENE) {
             worldTimerMgr.nextTick(handle -> callScene(centerSession, worldGuid));
         }
-        return "Caller: " + caller + ", worldGuid:" + worldGuid;
+        return "Return by warzone, caller: " + caller + ", worldGuid:" + worldGuid;
     }
 
     private void callScene(Session centerSession, long sceneWorldGuid) {
-        // 获取要调用的方法信息
-        final RpcCall<String> call = ISceneTestMgrRpcProxy.hello(RoleType.WARZONE, worldInfoMgr.getWorldGuid())
-                .getCall();
-
-        // 通过center转发
-        ICenterRouterMgrRpcProxy.sendToScene(sceneWorldGuid, call)
-                .onComplete(rpcResponse -> logger.info("Rcv scene response : {}", rpcResponse))
+        ISceneTestMgrRpcProxy.hello(RoleType.WARZONE, worldInfoMgr.getWorldGuid())
+                .onSuccess(result -> logger.info("Rcv scene response: {}", result))
+                .onFailure(rpcResponse -> logger.info("Failure response: {}", rpcResponse))
+                .router(rpcCall -> ICenterRouterMgrRpcProxy.routeToScene(sceneWorldGuid, rpcCall))
                 .call(centerSession);
     }
 }

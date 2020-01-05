@@ -47,6 +47,7 @@ public final class RpcResponse {
 
     public static final RpcResponse FORBID = newFailResponse(RpcResultCode.FORBID);
     public static final RpcResponse BAD_REQUEST = newFailResponse(RpcResultCode.BAD_REQUEST);
+    public static final RpcResponse ROUTER_SESSION_NULL = newFailResponse(RpcResultCode.ROUTER_SESSION_NULL);
 
     public static final RpcResponse ERROR = newFailResponse(RpcResultCode.ERROR);
 

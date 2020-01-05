@@ -75,14 +75,12 @@ import javax.annotation.concurrent.NotThreadSafe;
 public interface RpcBuilder<V> {
 
     /**
-     * 获取该方法包含的调用信息。
-     * 警告：仅可用于转发，不可修改对象的内容，否则可能引发bug。
-     * 转发的方式:
-     * 1. {@link DefaultRpcBuilder#DefaultRpcBuilder(RpcCall)}，然后调用需要的方法。
-     * 2. 直接{@link Session#call(Object, RpcCallback)}
-     * 参考实现{@code ICenterRouterMgr}
+     * 设置路由器。
+     *
+     * @param router 路由器
+     * @return this
      */
-    RpcCall<V> getCall();
+    RpcBuilder<V> router(RpcRouter<V> router);
 
     // ------------------------------------------- 添加回调 ----------------------------------------------
 

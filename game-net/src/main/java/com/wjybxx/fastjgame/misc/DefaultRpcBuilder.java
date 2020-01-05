@@ -52,7 +52,7 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V> {
     /**
      * 远程方法信息
      */
-    private final RpcCall<V> call;
+    private RpcCall<V> call;
     /**
      * 添加的回调
      */
@@ -77,8 +77,10 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V> {
     }
 
     @Override
-    public RpcCall<V> getCall() {
-        return call;
+    public RpcBuilder<V> router(RpcRouter<V> router) {
+        DefaultRpcBuilder<V> other = (DefaultRpcBuilder<V>) router.route(call);
+        this.call = other.call;
+        return this;
     }
 
     @Override
