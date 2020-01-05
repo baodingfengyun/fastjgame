@@ -77,13 +77,6 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V> {
     }
 
     @Override
-    public RpcBuilder<V> router(RpcRouter<V> router) {
-        DefaultRpcBuilder<V> other = (DefaultRpcBuilder<V>) router.route(call);
-        this.call = other.call;
-        return this;
-    }
-
-    @Override
     public final RpcBuilder<V> onSuccess(@Nonnull SucceedRpcCallback<V> callback) {
         addCallback(callback);
         return this;
@@ -223,4 +216,14 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V> {
         }
     }
 
+    @Override
+    public RpcCall<V> getCall() {
+        return call;
+    }
+
+    @Override
+    public RpcBuilder<V> router(RpcRouter<V> router) {
+        this.call = router.route(call).getCall();
+        return this;
+    }
 }

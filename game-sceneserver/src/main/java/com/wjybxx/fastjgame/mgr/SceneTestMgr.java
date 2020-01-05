@@ -53,7 +53,6 @@ public class SceneTestMgr implements ISceneTestMgr {
     }
 
     private void callWarzone(TimerHandle timerHandle) {
-        // 获取要调用的战区方法信息
         IWarzoneTestMgrRpcProxy.hello(RoleType.SCENE, worldInfoMgr.getWorldGuid())
                 .onSuccess(result -> timerHandle.close())
                 .onSuccess(result -> logger.info("Rcv warzone response: {}", result))

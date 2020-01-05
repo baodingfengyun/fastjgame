@@ -74,14 +74,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public interface RpcBuilder<V> {
 
-    /**
-     * 设置路由器。
-     *
-     * @param router 路由器
-     * @return this
-     */
-    RpcBuilder<V> router(RpcRouter<V> router);
-
     // ------------------------------------------- 添加回调 ----------------------------------------------
 
     /**
@@ -206,5 +198,21 @@ public interface RpcBuilder<V> {
      */
     @Nullable
     V syncCall(@Nullable Session session) throws IllegalStateException;
+
+    // ------------------------------------------  路由/转发 ------------------------------------------
+
+    /**
+     * 获取该方法包含的调用信息，可用于二次封装。
+     * 警告：不可修改对象的内容，否则可能引发bug。
+     */
+    RpcCall<V> getCall();
+
+    /**
+     * 设置路由策略。
+     *
+     * @param router 路由器
+     * @return this
+     */
+    RpcBuilder<V> router(RpcRouter<V> router);
 
 }

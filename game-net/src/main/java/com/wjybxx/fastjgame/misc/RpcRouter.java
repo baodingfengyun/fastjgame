@@ -28,7 +28,7 @@ public interface RpcRouter<V> {
      * 路由实现(将原始请求封装到另一个请求中)
      *
      * @param rpcCall 原始方法调用信息
-     * @return newBuilder
+     * @return newBuilder，该builder中包含新封装后的调用信息。
      */
     RpcBuilder<V> route(RpcCall<V> rpcCall);
 

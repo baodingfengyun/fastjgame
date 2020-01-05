@@ -119,7 +119,7 @@ public class HttpClientProxy {
      * @throws IllegalArgumentException if timeout is empty
      */
     public <T> HttpResponse<T> send(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler) throws IOException, InterruptedException {
-        ensureTimeoutIsPresent(request);
+        ensureTimeoutPresent(request);
         return httpClient.send(request, responseBodyHandler);
     }
 
@@ -131,7 +131,7 @@ public class HttpClientProxy {
      * @throws IllegalArgumentException if timeout is empty
      */
     public <T> ListenableFuture<HttpResponse<T>> sendAsync(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler) {
-        ensureTimeoutIsPresent(request);
+        ensureTimeoutPresent(request);
         return new CompletableFutureAdapter<>(appEventLoop, httpClient.sendAsync(request, responseBodyHandler));
     }
 
@@ -140,7 +140,7 @@ public class HttpClientProxy {
      *
      * @param request http请求内容
      */
-    private void ensureTimeoutIsPresent(HttpRequest request) {
+    private void ensureTimeoutPresent(HttpRequest request) {
         if (request.timeout().isEmpty()) {
             throw new IllegalArgumentException("request timeout is empty");
         }

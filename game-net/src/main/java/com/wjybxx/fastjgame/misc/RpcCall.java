@@ -24,9 +24,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 import java.util.List;
 
 /**
- * 较为标准的rpc调用，推荐格式，但是仍然不限制rpc调用的形式！
+ * 较为标准的rpc调用。
+ * 推荐使用该方式，但并不限制rpc调用的形式！
  * 注意：如果使用该形式的rpc调用，请保证{@link RpcCall}在{@link MessageMapper}中存在。
- * 警告：不要手动修改对象的内容，否则可能引发bug。
+ * 警告：不要修改对象的内容，否则可能引发bug(并发错误)。
  *
  * @param <V> the type of return type
  * @author wjybxx

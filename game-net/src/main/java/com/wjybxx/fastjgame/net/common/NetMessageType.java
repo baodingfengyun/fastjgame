@@ -41,7 +41,7 @@ public enum NetMessageType {
     PING_PONG(3),
 
     /**
-     * Rpc请求包，必须有一个响应。 -- Rpc消息使用protoBuf编解码，内部使用。
+     * Rpc请求包。
      */
     RPC_REQUEST(4),
     /**
