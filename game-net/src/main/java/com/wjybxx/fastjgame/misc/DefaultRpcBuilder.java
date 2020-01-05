@@ -77,7 +77,7 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V> {
     }
 
     @Override
-    public final RpcBuilder<V> onSuccess(@Nonnull SucceedRpcCallback<V> callback) {
+    public final RpcBuilder<V> onSuccess(@Nonnull SucceededRpcCallback<V> callback) {
         addCallback(callback);
         return this;
     }

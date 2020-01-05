@@ -59,7 +59,7 @@ public final class CompositeRpcCallback<V> implements RpcCallback {
      *
      * @return this
      */
-    public CompositeRpcCallback<V> onSuccess(SucceedRpcCallback<V> rpcCallback) {
+    public CompositeRpcCallback<V> onSuccess(SucceededRpcCallback<V> rpcCallback) {
         children.add(rpcCallback);
         return this;
     }

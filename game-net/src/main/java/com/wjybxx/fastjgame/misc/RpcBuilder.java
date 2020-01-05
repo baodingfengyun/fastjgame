@@ -83,7 +83,7 @@ public interface RpcBuilder<V> {
      * @param callback 回调逻辑
      * @return this
      */
-    RpcBuilder<V> onSuccess(@Nonnull SucceedRpcCallback<V> callback);
+    RpcBuilder<V> onSuccess(@Nonnull SucceededRpcCallback<V> callback);
 
     /**
      * 设置成功时执行的回调。

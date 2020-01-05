@@ -29,7 +29,7 @@ import com.wjybxx.fastjgame.net.common.RpcResponse;
  * github - https://github.com/hl845740757
  */
 @FunctionalInterface
-public interface SucceedRpcCallback<V> extends RpcCallback {
+public interface SucceededRpcCallback<V> extends RpcCallback {
 
     @SuppressWarnings("unchecked")
     @Override
