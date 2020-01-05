@@ -40,8 +40,8 @@ public interface RpcMethodHandle<V> extends AsyncMethodHandle<Session, V> {
     V syncCall(Session session) throws AsyncMethodException;
 
     @Override
-    void invoke(Session session);
+    RpcMethodHandle<V> invoke(Session session);
 
     @Override
-    void invoke(Collection<Session> sessionCollection);
+    RpcMethodHandle<V> invoke(Collection<Session> sessionCollection);
 }
