@@ -16,7 +16,9 @@
 
 package com.wjybxx.fastjgame.concurrent.async;
 
-import java.util.Collection;
+import com.wjybxx.fastjgame.concurrent.ListenableFuture;
+
+import javax.annotation.Nonnull;
 
 /**
  * 异步方法的句柄。
@@ -31,38 +33,19 @@ import java.util.Collection;
 public interface AsyncMethodHandle<T, V> {
 
     /**
-     * 在指定对象上异步执行对应的方法。
-     * call是不是很好记住？那就多用它。
+     * 在指定对象上执行对应的方法，但不监听方法的执行结果。
+     *
+     * @param typeObj 方法的执行对象
+     */
+    void execute(@Nonnull T typeObj);
+
+    /**
+     * 在指定对象上执行对应的方法，并返回可监听结果的future。
      *
      * @param typeObj 方法的执行对象
      * @return listener，可用于监听本次call调用的结果。
      */
-    AsyncMethodListenable<V> call(T typeObj);
+    @Nonnull
+    ListenableFuture<V> call(@Nonnull T typeObj);
 
-    /**
-     * 在指定对象上同步执行对应的方法。
-     * 如果执行成功，则返回对应的执行结果。
-     * 如果执行失败，则抛出{@link AsyncMethodException}，可以通过{@link AsyncMethodException#getCause()}获取真实失败的原因。。
-     * 建议在异步方法上少使用同步调用，必要的时候使用同步调用可以降低编程复杂度，但是大量使用会大大降低吞吐量。
-     *
-     * @param typeObj 方法的执行对象
-     * @return result
-     */
-    V syncCall(T typeObj) throws AsyncMethodException;
-
-    /**
-     * 在指定对象上异步执行对应的方法，并不监听方法的执行结果。
-     *
-     * @param typeObj 方法的执行对象
-     * @return this
-     */
-    AsyncMethodHandle<T, V> invoke(T typeObj);
-
-    /**
-     * 在一组对象上异步执行对应的方法，并不监听方法的执行结果。
-     *
-     * @param typeObjeCollection 方法的执行对象
-     * @return this
-     */
-    AsyncMethodHandle<T, V> invoke(Collection<T> typeObjeCollection);
 }

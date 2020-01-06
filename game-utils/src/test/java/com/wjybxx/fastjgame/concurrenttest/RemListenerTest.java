@@ -33,7 +33,7 @@ public class RemListenerTest {
         DefaultPromise<Object> defaultPromise = new DefaultPromise<>(defaultEventLoopGroup.next());
 
         final FutureListener<Object> futureListener = future -> {
-            System.out.println(future.getNow());
+            System.out.println(future.getIfSuccess());
         };
 
         // debug追踪

@@ -42,7 +42,7 @@ public class LogProducerEventLoop<T extends LogBuilder> extends DisruptorEventLo
      * 日志线程任务缓冲区大小，也不需要太大
      */
     private static final int PRODUCER_RING_BUFFER_SIZE = 64 * 1024;
-    private static final int PRODUCER_BATCH_EVENT_SIZE = 1024;
+    private static final int PRODUCER_TASK_BATCH_SIZE = 1024;
 
     /**
      * kafka生产者 - kafka会自动处理网络问题，因此我们不必付出过多精力在上面。
@@ -53,7 +53,7 @@ public class LogProducerEventLoop<T extends LogBuilder> extends DisruptorEventLo
     public LogProducerEventLoop(@Nonnull ThreadFactory threadFactory,
                                 @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
                                 @Nonnull String brokerList, @Nonnull LogDirector<T> logDirector) {
-        super(null, threadFactory, rejectedExecutionHandler, PRODUCER_RING_BUFFER_SIZE, PRODUCER_BATCH_EVENT_SIZE, new SleepWaitStrategyFactory());
+        super(null, threadFactory, rejectedExecutionHandler, PRODUCER_RING_BUFFER_SIZE, PRODUCER_TASK_BATCH_SIZE, new SleepWaitStrategyFactory());
         this.producer = new KafkaProducer<>(newConfig(brokerList), new StringSerializer(), new StringSerializer());
         this.logDirector = logDirector;
     }

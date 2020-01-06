@@ -94,7 +94,7 @@ public final class NettyFutureAdapter<V> implements ListenableFuture<V> {
     }
 
     @Override
-    public V getNow() {
+    public V getIfSuccess() {
         return future.getNow();
     }
 

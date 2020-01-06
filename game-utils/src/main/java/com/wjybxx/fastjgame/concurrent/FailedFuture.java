@@ -51,7 +51,7 @@ public final class FailedFuture<V> extends CompleteFuture<V> {
     }
 
     @Override
-    public V getNow() {
+    public V getIfSuccess() {
         return null;
     }
 

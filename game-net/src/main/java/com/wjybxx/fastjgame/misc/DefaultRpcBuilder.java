@@ -128,27 +128,25 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V> {
     }
 
     @Override
-    public RpcBuilder<V> send(@Nullable Session session) throws IllegalStateException {
+    public void send(@Nullable Session session) throws IllegalStateException {
         ensureSendAvailable();
         if (session != null) {
             session.send(call);
         }
         // else do nothing
-        return this;
     }
 
     @Override
-    public RpcBuilder<V> broadcast(@Nullable Iterable<Session> sessionIterable) throws IllegalStateException {
+    public void broadcast(@Nullable Iterable<Session> sessionGroup) throws IllegalStateException {
         ensureSendAvailable();
-        if (sessionIterable == null) {
-            return this;
+        if (sessionGroup == null) {
+            return;
         }
-        for (Session session : sessionIterable) {
+        for (Session session : sessionGroup) {
             if (session != null) {
                 session.send(call);
             }
         }
-        return this;
     }
 
     /**

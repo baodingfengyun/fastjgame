@@ -84,11 +84,11 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     /**
      * 默认的通知用的executor。
      *
-     * @apiNote 1. 如果在创建promise时不能确定，那么需要重写{@link #notifyExecutor()}，以返回最新的executor。
+     * @apiNote 1. 如果在创建promise时不能确定，那么需要重写{@link #defaultExecutor()}，以返回默认的executor。
      * 2. 默认情况下：认为该executor就是执行任务的executor，因此检查死锁时也是检查该executor；
      * 如果该executor不是任务的执行环境，你还需要重写{@link #checkDeadlock()}确保检查死锁的正确性。
      */
-    private final EventLoop _notifyExecutor;
+    private final EventLoop defaultExecutor;
 
     /**
      * 该future上注册的监听器们。
@@ -110,17 +110,17 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     private int waiters = 0;
 
     /**
-     * @param notifyExecutor 默认的事件通知线程
+     * @param defaultExecutor 默认的事件通知线程
      */
-    public DefaultPromise(@Nonnull EventLoop notifyExecutor) {
-        this._notifyExecutor = notifyExecutor;
+    public DefaultPromise(@Nonnull EventLoop defaultExecutor) {
+        this.defaultExecutor = defaultExecutor;
     }
 
     /**
-     * 供子类使用的构造方法。如果使用该构造方法，必须重写{@link #notifyExecutor()}方法
+     * 供子类使用的构造方法。如果使用该构造方法，必须重写{@link #defaultExecutor()}方法
      */
     protected DefaultPromise() {
-        this._notifyExecutor = null;
+        this.defaultExecutor = null;
     }
 
     /**
@@ -128,10 +128,10 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
      *
      * @return nonnull
      */
-    @SuppressWarnings("ConstantConditions")
     @Nonnull
-    protected EventLoop notifyExecutor() {
-        return _notifyExecutor;
+    protected EventLoop defaultExecutor() {
+        // noinspection ConstantConditions (屏蔽null警告)
+        return defaultExecutor;
     }
 
     // --------------------------------------------  查询 ----------------------------------------------
@@ -245,7 +245,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
 
     @SuppressWarnings("unchecked")
     @Override
-    public V getNow() {
+    public V getIfSuccess() {
         Object result = resultHolder.get();
         if (isSuccess0(result)) {
             return result == SUCCESS ? null : (V) result;
@@ -400,7 +400,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
      */
     private void notifyListener(FutureListener<? super V> listener, @Nullable EventLoop bindExecutor) {
         // 如果注册监听器时没有绑定执行环境(执行线程)，则使用当前最新的executor
-        EventLoop executor = null == bindExecutor ? notifyExecutor() : bindExecutor;
+        EventLoop executor = null == bindExecutor ? defaultExecutor() : bindExecutor;
         notifyListenerSafely(this, listener, executor);
     }
 
@@ -411,8 +411,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
      * @param listener 监听器
      * @param executor 监听器的执行环境
      */
-    @SuppressWarnings("unchecked")
-    protected static void notifyListenerSafely(@Nonnull ListenableFuture future, @Nonnull FutureListener listener, @Nonnull EventLoop executor) {
+    protected static <V> void notifyListenerSafely(@Nonnull ListenableFuture<V> future, @Nonnull FutureListener<? super V> listener, @Nonnull EventLoop executor) {
         try {
             if (executor.inEventLoop()) {
                 listener.onComplete(future);
@@ -451,7 +450,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
      * 检查死锁可能。
      */
     protected void checkDeadlock() {
-        ConcurrentUtils.checkDeadLock(notifyExecutor());
+        ConcurrentUtils.checkDeadLock(defaultExecutor());
     }
 
     /**
@@ -705,10 +704,10 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
      */
     private static class ListenerEntry<V> {
 
-        private final FutureListener<V> listener;
+        private final FutureListener<? super V> listener;
         private final EventLoop bindExecutor;
 
-        private ListenerEntry(@Nonnull FutureListener<V> listener, @Nullable EventLoop bindExecutor) {
+        private ListenerEntry(@Nonnull FutureListener<? super V> listener, @Nullable EventLoop bindExecutor) {
             this.listener = listener;
             this.bindExecutor = bindExecutor;
         }

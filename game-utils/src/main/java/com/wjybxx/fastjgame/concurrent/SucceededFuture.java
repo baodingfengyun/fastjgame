@@ -54,7 +54,7 @@ public class SucceededFuture<V> extends CompleteFuture<V> {
 
     @Nullable
     @Override
-    public V getNow() {
+    public V getIfSuccess() {
         return result;
     }
 

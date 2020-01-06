@@ -139,10 +139,9 @@ public interface RpcBuilder<V> {
      * 发送一个单向通知 - 它也可以调用rpc方法，不过结果不会被传输回来。
      *
      * @param session 要通知的session
-     * @return this 可以继续发送
      * @throws IllegalStateException 如果调用过send、broadcast以外的请求方法，则会抛出异常
      */
-    RpcBuilder<V> send(@Nullable Session session) throws IllegalStateException;
+    void send(@Nullable Session session) throws IllegalStateException;
 
     /**
      * 广播一个通知，它是对{@link #send(Session)}的一个包装。
@@ -150,11 +149,10 @@ public interface RpcBuilder<V> {
      * 1. 一旦调用了send方法，那么便不可以调用<b>send、broadcast</b>以外的请求方法。
      * 2. 即使添加了回调，这些回调也会被忽略。
      *
-     * @param sessionIterable 要广播的所有session
-     * @return this 可以继续发送
+     * @param sessionGroup 要广播的所有session
      * @throws IllegalStateException 如果调用过send、broadcast以外的请求方法，则会抛出异常。
      */
-    RpcBuilder<V> broadcast(@Nullable Iterable<Session> sessionIterable) throws IllegalStateException;
+    void broadcast(@Nullable Iterable<Session> sessionGroup) throws IllegalStateException;
 
     /**
      * 执行异步rpc调用，无论如何对方都会返回一个结果。

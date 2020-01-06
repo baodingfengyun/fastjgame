@@ -126,7 +126,7 @@ public interface ListenableFuture<V> extends Future<V> {
      *
      * @return task执行结果
      */
-    V getNow();
+    V getIfSuccess();
 
     /**
      * 非阻塞获取导致任务失败的原因。

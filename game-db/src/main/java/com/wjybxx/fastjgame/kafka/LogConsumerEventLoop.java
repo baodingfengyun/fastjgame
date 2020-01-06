@@ -55,7 +55,7 @@ public class LogConsumerEventLoop extends DisruptorEventLoop {
      * 消费者需要响应的事件不多，因此较小
      */
     private static final int CONSUMER_RING_BUFFER_SIZE = 8192;
-    private static final int CONSUMER_BATCH_EVENT_SIZE = 1024;
+    private static final int CONSUMER_TASK_BATCH_SIZE = 1024;
 
     /**
      * 无事件消费时阻塞等待时间
@@ -81,7 +81,7 @@ public class LogConsumerEventLoop extends DisruptorEventLoop {
                                 @Nonnull String brokerList,
                                 @Nonnull String groupId,
                                 @Nonnull Collection<LogConsumer> consumers) {
-        super(null, threadFactory, rejectedExecutionHandler, CONSUMER_RING_BUFFER_SIZE, CONSUMER_BATCH_EVENT_SIZE, newWaitStrategyFactory());
+        super(null, threadFactory, rejectedExecutionHandler, CONSUMER_RING_BUFFER_SIZE, CONSUMER_TASK_BATCH_SIZE, newWaitStrategyFactory());
         this.logConsumerMap = indexConsumers(consumers);
         this.kafkaConsumer = new KafkaConsumer<>(newConfig(brokerList, groupId), new StringDeserializer(), new StringDeserializer());
         this.kafkaConsumer.subscribe(logConsumerMap.keySet());

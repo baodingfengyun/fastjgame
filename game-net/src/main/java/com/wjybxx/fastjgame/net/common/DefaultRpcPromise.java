@@ -96,12 +96,12 @@ public class DefaultRpcPromise extends DefaultPromise<RpcResponse> implements Rp
     // ---------------------------------------------- 超时检测 ------------------------------------------------
 
     @Override
-    public RpcResponse getNow() {
+    public RpcResponse getIfSuccess() {
         // 如果时间到了，还没有结果，那么需要标记为超时
         if (!isDone() && System.currentTimeMillis() >= deadline) {
             trySuccess(RpcResponse.TIMEOUT);
         }
-        return super.getNow();
+        return super.getIfSuccess();
     }
 
     @Override

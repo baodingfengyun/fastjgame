@@ -182,7 +182,7 @@ public abstract class AbstractSession implements Session {
         netEventLoop.execute(new SyncRpcRequestWriteTask(this, request, rpcPromise));
         // RpcPromise保证了不会等待超过限时时间
         rpcPromise.awaitUninterruptibly();
-        return rpcPromise.getNow();
+        return rpcPromise.getIfSuccess();
     }
 
     @Override

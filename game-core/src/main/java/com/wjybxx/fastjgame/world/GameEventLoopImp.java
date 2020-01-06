@@ -71,7 +71,6 @@ public class GameEventLoopImp extends DisruptorEventLoop implements GameEventLoo
                      @Nonnull NetEventLoopGroup netEventLoopGroup,
                      @Nonnull Injector groupInjector,
                      @Nonnull WorldStartInfo worldStartInfo) {
-
         super(parent, threadFactory, rejectedExecutionHandler);
         this.netEventLoopGroup = netEventLoopGroup;
         this.groupInjector = groupInjector;

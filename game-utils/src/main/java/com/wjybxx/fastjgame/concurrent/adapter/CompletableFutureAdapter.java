@@ -89,7 +89,7 @@ public class CompletableFutureAdapter<V> implements ListenableFuture<V> {
     }
 
     @Override
-    public V getNow() {
+    public V getIfSuccess() {
         // jdk的getNow和自实现的getNow有区别
         try {
             return future.getNow(null);
