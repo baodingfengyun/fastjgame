@@ -52,12 +52,12 @@ public enum RpcResultCode implements NumberEnum {
      * 请求超时
      */
     TIMEOUT(22),
+
     /**
      * 出现异常(本地异常)，有body，body在本地赋值，不序列化。
      * 如果需要查看异常，可以获取body。
      */
     LOCAL_EXCEPTION(23),
-
     /**
      * 请求被禁止
      */
@@ -75,7 +75,7 @@ public enum RpcResultCode implements NumberEnum {
      * 错误(对方执行请求时发生错误)，现阶段不返回额外信息。
      * (注解处理器使用了该对象，不要轻易重命名)
      */
-    ERROR(51),
+    SERVER_EXCEPTION(51),
 
     ;
 

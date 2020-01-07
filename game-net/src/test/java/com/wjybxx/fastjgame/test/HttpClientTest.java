@@ -79,7 +79,7 @@ public class HttpClientTest {
         httpClientProxy.sendAsync(builder, HttpResponse.BodyHandlers.ofString())
                 .addListener(future -> {
                     System.out.println("Thread: " + Thread.currentThread());
-                    final HttpResponse<String> response = future.getIfSuccess();
+                    final HttpResponse<String> response = future.getNow();
                     if (null != response) {
                         System.out.println(response.body());
                     }

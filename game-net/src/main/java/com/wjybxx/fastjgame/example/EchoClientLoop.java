@@ -152,7 +152,7 @@ public class EchoClientLoop extends SingleThreadEventLoop {
                     .uri(URI.create(HttpUtils.buildGetUrl(url, params)));
             httpClientProxy.sendAsync(builder, HttpResponse.BodyHandlers.ofString())
                     .addListener(future -> {
-                        final HttpResponse<String> response = future.getIfSuccess();
+                        final HttpResponse<String> response = future.getNow();
                         if (null != response) {
                             System.out.println("\nasyncGet  response - " + response.body());
                         }

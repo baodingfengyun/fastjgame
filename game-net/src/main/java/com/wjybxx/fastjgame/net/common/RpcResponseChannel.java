@@ -16,6 +16,9 @@
 
 package com.wjybxx.fastjgame.net.common;
 
+import com.wjybxx.fastjgame.utils.DebugUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -47,18 +50,24 @@ public interface RpcResponseChannel<T> {
      *
      * @param errorCode rpc调用错误码，能使用静态常量的使用常量{@link RpcResponse}
      */
-    default void writeFailure(@Nonnull RpcResultCode errorCode) {
-        write(RpcResponse.newFailResponse(errorCode));
+    default void writeFailure(@Nonnull RpcResultCode errorCode, @Nonnull Throwable cause) {
+        final String message;
+        if (DebugUtils.isDebugOpen()) {
+            // debug开启情况下，返回详细信息
+            message = ExceptionUtils.getStackTrace(cause);
+        } else {
+            message = ExceptionUtils.getRootCauseMessage(cause);
+        }
+        writeFailure(errorCode, message);
     }
 
     /**
-     * 返回rpc调用结果，{@link #write(RpcResponse)}的快捷方式
+     * 返回rpc调用结果，表示调用失败，{@link #write(RpcResponse)}的快捷方式。
      *
-     * @param resultCode rpc调用结果码
-     * @param body       调用结果/额外信息
+     * @param errorCode rpc调用错误码，能使用静态常量的使用常量{@link RpcResponse}
      */
-    default void write(@Nonnull RpcResultCode resultCode, @Nullable Object body) {
-        write(new RpcResponse(resultCode, body));
+    default void writeFailure(@Nonnull RpcResultCode errorCode, @Nonnull String message) {
+        write(RpcResponse.newFailResponse(errorCode, message));
     }
 
     /**

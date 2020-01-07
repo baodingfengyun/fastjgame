@@ -42,7 +42,7 @@ public abstract class AbstractListenableFuture<V> implements ListenableFuture<V>
             return rethrowCause(cause);
         }
 
-        return getIfSuccess();
+        return getNow();
     }
 
     @Override
@@ -54,7 +54,7 @@ public abstract class AbstractListenableFuture<V> implements ListenableFuture<V>
                 return rethrowCause(cause);
             }
 
-            return getIfSuccess();
+            return getNow();
         }
 
         throw new TimeoutException();

@@ -46,8 +46,8 @@ public class DefaultEventLoopTest {
         future.awaitUninterruptibly();
         future2.awaitUninterruptibly();
 
-        System.out.println(future.getIfSuccess());
-        System.out.println(future2.getIfSuccess());
+        System.out.println(future.getNow());
+        System.out.println(future2.getNow());
 
         final ListenableFuture<String> future3 = eventLoopGroup.submit(() -> {
             Thread.sleep(500);
@@ -55,18 +55,18 @@ public class DefaultEventLoopTest {
         });
 
         future3.addListener((listenableFuture) -> {
-            System.out.println("1 onComplete, thread " + Thread.currentThread().getName() + ",result = " + listenableFuture.getIfSuccess());
+            System.out.println("1 onComplete, thread " + Thread.currentThread().getName() + ",result = " + listenableFuture.getNow());
         }, GlobalEventLoop.INSTANCE);
 
         future3.addListener((listenableFuture) -> {
-            System.out.println("2 onComplete, thread " + Thread.currentThread().getName() + ",result = " + listenableFuture.getIfSuccess());
+            System.out.println("2 onComplete, thread " + Thread.currentThread().getName() + ",result = " + listenableFuture.getNow());
         });
 
         future3.addListener((listenableFuture) -> {
-            System.out.println("3 onComplete, thread " + Thread.currentThread().getName() + ",result = " + listenableFuture.getIfSuccess());
+            System.out.println("3 onComplete, thread " + Thread.currentThread().getName() + ",result = " + listenableFuture.getNow());
             // 已完成的时候添加监听
             future3.addListener(listenableFuture2 -> {
-                System.out.println("4 onComplete, thread " + Thread.currentThread().getName() + ",result = " + listenableFuture2.getIfSuccess());
+                System.out.println("4 onComplete, thread " + Thread.currentThread().getName() + ",result = " + listenableFuture2.getNow());
             }, GlobalEventLoop.INSTANCE);
         });
 

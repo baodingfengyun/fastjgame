@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.common;
 
-import com.wjybxx.fastjgame.concurrent.DefaultPromise;
+import com.wjybxx.fastjgame.concurrent.DefaultTimeoutPromise;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.FutureListener;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -37,7 +38,7 @@ import java.util.concurrent.TimeoutException;
  * date - 2019/8/3
  * github - https://github.com/hl845740757
  */
-public class DefaultRpcPromise extends DefaultPromise<RpcResponse> implements RpcPromise {
+public class DefaultRpcPromise extends DefaultTimeoutPromise<RpcResponse> implements RpcPromise {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultRpcPromise.class);
 
@@ -45,10 +46,6 @@ public class DefaultRpcPromise extends DefaultPromise<RpcResponse> implements Rp
      * 工作线程 - 检查死锁的线程
      */
     private final NetEventLoop workerEventLoop;
-    /**
-     * 最终过期时间(毫秒)
-     */
-    private final long deadline;
 
     /**
      * @param workerEventLoop 创建该promise的EventLoop，禁止等待的线程。
@@ -56,9 +53,8 @@ public class DefaultRpcPromise extends DefaultPromise<RpcResponse> implements Rp
      * @param timeoutMs       promise超时时间
      */
     public DefaultRpcPromise(NetEventLoop workerEventLoop, EventLoop appEventLoop, long timeoutMs) {
-        super(appEventLoop);
+        super(appEventLoop, timeoutMs, TimeUnit.MILLISECONDS);
         this.workerEventLoop = workerEventLoop;
-        this.deadline = System.currentTimeMillis() + timeoutMs;
     }
 
     @Override
@@ -88,70 +84,6 @@ public class DefaultRpcPromise extends DefaultPromise<RpcResponse> implements Rp
         }
     }
 
-    @Override
-    public long deadline() {
-        return deadline;
-    }
-
-    // ---------------------------------------------- 超时检测 ------------------------------------------------
-
-    @Override
-    public RpcResponse getIfSuccess() {
-        // 如果时间到了，还没有结果，那么需要标记为超时
-        if (!isDone() && System.currentTimeMillis() >= deadline) {
-            trySuccess(RpcResponse.TIMEOUT);
-        }
-        return super.getIfSuccess();
-    }
-
-    @Override
-    public RpcPromise await() throws InterruptedException {
-        // 有限的等待
-        await(deadline - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
-        assert isDone();
-        return this;
-    }
-
-    @Override
-    public RpcPromise awaitUninterruptibly() {
-        // 有限的等待
-        awaitUninterruptibly(deadline - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
-        assert isDone();
-        return this;
-    }
-
-    @Override
-    public boolean await(long timeout, @Nonnull TimeUnit unit) throws InterruptedException {
-        final long expectMillis = unit.toMillis(timeout);
-        final long remainMillis = deadline - System.currentTimeMillis();
-        //  如果期望的时间超过剩余时间，那么必须有结果
-        if (expectMillis >= remainMillis) {
-            if (super.await(remainMillis, TimeUnit.MILLISECONDS)) {
-                return true;
-            }
-            trySuccess(RpcResponse.TIMEOUT);
-            return true;
-        } else {
-            return super.await(expectMillis, TimeUnit.MILLISECONDS);
-        }
-    }
-
-    @Override
-    public boolean awaitUninterruptibly(long timeout, @Nonnull TimeUnit unit) {
-        final long expectMillis = unit.toMillis(timeout);
-        final long remainMillis = deadline - System.currentTimeMillis();
-        //  如果期望的时间超过剩余时间，那么必须有结果
-        if (expectMillis >= remainMillis) {
-            if (super.awaitUninterruptibly(remainMillis, TimeUnit.MILLISECONDS)) {
-                return true;
-            }
-            trySuccess(RpcResponse.TIMEOUT);
-            return true;
-        } else {
-            return super.awaitUninterruptibly(expectMillis, TimeUnit.MILLISECONDS);
-        }
-    }
-
     // ----------------------------------------------- 将失败转换为成功 ----------------------------------------------
 
     @Override
@@ -169,7 +101,24 @@ public class DefaultRpcPromise extends DefaultPromise<RpcResponse> implements Rp
         return tryCompleted(RpcResponse.CANCELLED, true);
     }
 
+    @Override
+    protected void onTimeout() {
+        super.trySuccess(RpcResponse.TIMEOUT);
+    }
+
     // ------------------------------------------------ 支持流式语法 ------------------------------------
+    @Override
+    public RpcPromise await() throws InterruptedException {
+        super.await();
+        return this;
+    }
+
+    @Override
+    public RpcPromise awaitUninterruptibly() {
+        super.awaitUninterruptibly();
+        return this;
+    }
+
     @Override
     public RpcPromise addListener(@Nonnull FutureListener<? super RpcResponse> listener) {
         super.addListener(listener);

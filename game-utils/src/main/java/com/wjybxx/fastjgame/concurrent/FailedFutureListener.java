@@ -16,32 +16,30 @@
 
 package com.wjybxx.fastjgame.concurrent;
 
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
- * 常用的异常处理器
+ * 只有失败才执行的回调。
+ * 声明为接口而不是抽象类，是为了方便使用lambda表达式。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/12/31
+ * date - 2019/8/19
  * github - https://github.com/hl845740757
  */
-public class ExceptionHandlers {
+@FunctionalInterface
+public interface FailedFutureListener<V> extends FutureListener<V> {
 
-    private static final Logger logger = LoggerFactory.getLogger(ExceptionHandlers.class);
+    @Override
+    default void onComplete(ListenableFuture<? extends V> future) throws Exception {
+        final Throwable cause = future.cause();
+        if (cause != null) {
+            onFailure(cause);
+        }
+    }
 
     /**
-     * 重新抛出异常
+     * 当调用失败时
+     *
+     * @param cause 造成失败的原因
      */
-    public static final ExceptionHandler RETHROW = ConcurrentUtils::rethrow;
-
-    /**
-     * 将异常记录下来
-     */
-    public static final ExceptionHandler LOG = e -> {
-        logger.warn("", e);
-    };
-
+    void onFailure(Throwable cause);
 }

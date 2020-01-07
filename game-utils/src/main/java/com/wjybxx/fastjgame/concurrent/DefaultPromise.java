@@ -243,9 +243,10 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         return (T) r;
     }
 
+    @Nullable
     @SuppressWarnings("unchecked")
     @Override
-    public V getIfSuccess() {
+    public V getNow() {
         Object result = resultHolder.get();
         if (isSuccess0(result)) {
             return result == SUCCESS ? null : (V) result;

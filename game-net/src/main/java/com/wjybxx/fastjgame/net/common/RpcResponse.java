@@ -49,14 +49,16 @@ public final class RpcResponse {
     public static final RpcResponse BAD_REQUEST = newFailResponse(RpcResultCode.BAD_REQUEST);
     public static final RpcResponse ROUTER_SESSION_NULL = newFailResponse(RpcResultCode.ROUTER_SESSION_NULL);
 
-    public static final RpcResponse ERROR = newFailResponse(RpcResultCode.ERROR);
+    public static final RpcResponse ERROR = newFailResponse(RpcResultCode.SERVER_EXCEPTION);
 
     /**
-     * 结果标识
+     * 结果标识 - 错误码
      */
     private final RpcResultCode resultCode;
     /**
-     * rpc响应结果，可能为null
+     * rpc响应结果。
+     * 如果{@link #resultCode}为{@link RpcResultCode#SUCCESS}，则body为对应的结果(null可能是个正常的结果)。
+     * 否则body为对应的错误信息(String)(应该非null)。
      */
     private final Object body;
 
@@ -69,7 +71,6 @@ public final class RpcResponse {
         return resultCode;
     }
 
-    @Nullable
     public Object getBody() {
         return body;
     }
@@ -82,8 +83,12 @@ public final class RpcResponse {
         return resultCode != RpcResultCode.SUCCESS;
     }
 
-    public static RpcResponse newFailResponse(@Nonnull RpcResultCode resultCode) {
-        return new RpcResponse(resultCode, null);
+    public static RpcResponse newFailResponse(@Nonnull RpcResultCode errorCode) {
+        return new RpcResponse(errorCode, errorCode.name());
+    }
+
+    public static RpcResponse newFailResponse(@Nonnull RpcResultCode errorCode, @Nonnull String message) {
+        return new RpcResponse(errorCode, message);
     }
 
     public static RpcResponse newSucceedResponse(@Nullable Object body) {

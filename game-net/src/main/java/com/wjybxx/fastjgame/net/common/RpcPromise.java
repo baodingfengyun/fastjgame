@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.net.common;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.FutureListener;
-import com.wjybxx.fastjgame.concurrent.Promise;
+import com.wjybxx.fastjgame.concurrent.TimeoutPromise;
 
 import javax.annotation.Nonnull;
 
@@ -30,14 +30,7 @@ import javax.annotation.Nonnull;
  * date - 2019/8/3
  * github - https://github.com/hl845740757
  */
-public interface RpcPromise extends RpcFuture, Promise<RpcResponse> {
-
-    /**
-     * 获取rpcPromise的超时时间。
-     *
-     * @return 超时时间
-     */
-    long deadline();
+public interface RpcPromise extends RpcFuture, TimeoutPromise<RpcResponse> {
 
     @Override
     RpcPromise await() throws InterruptedException;

@@ -14,25 +14,32 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.misc;
+package com.wjybxx.fastjgame.concurrent;
 
-import com.wjybxx.fastjgame.net.common.RpcCallback;
-import com.wjybxx.fastjgame.net.common.RpcResponse;
+import javax.annotation.Nonnull;
 
 /**
- * 什么也不做的rpc回调
+ * 具有时效性的Promise
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/23
+ * date - 2020/1/6
  * github - https://github.com/hl845740757
  */
-public class EmptyRpcCallback implements RpcCallback {
-
-    public static final EmptyRpcCallback INSTANCE = new EmptyRpcCallback();
+public interface TimeoutPromise<V> extends TimeoutFuture<V>, Promise<V> {
 
     @Override
-    public void onComplete(RpcResponse rpcResponse) {
-        // ignore
-    }
+    TimeoutPromise<V> await() throws InterruptedException;
+
+    @Override
+    TimeoutPromise<V> awaitUninterruptibly();
+
+    @Override
+    TimeoutPromise<V> addListener(@Nonnull FutureListener<? super V> listener);
+
+    @Override
+    TimeoutPromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor);
+
+    @Override
+    TimeoutPromise<V> removeListener(@Nonnull FutureListener<? super V> listener);
 }

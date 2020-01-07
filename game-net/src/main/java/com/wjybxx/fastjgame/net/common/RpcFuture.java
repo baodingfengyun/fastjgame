@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.net.common;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.FutureListener;
-import com.wjybxx.fastjgame.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.concurrent.TimeoutFuture;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.TimeUnit;
@@ -27,7 +27,7 @@ import java.util.concurrent.TimeoutException;
 /**
  * Rpc调用的future。
  * 注意：在该Future上<b>主动获取结果</b>会打乱对方发送的消息之间的处理时序，你必须清除它可能带来的影响，否则不要轻易的主动获取结果！
- * 方法：{@link #get()}{@link #get(long, TimeUnit)} {@link #getIfSuccess()}
+ * 方法：{@link #get()}{@link #get(long, TimeUnit)} {@link #getNow()}
  *
  * @author wjybxx
  * @version 1.0
@@ -35,7 +35,7 @@ import java.util.concurrent.TimeoutException;
  * github - https://github.com/hl845740757
  * @apiNote Rpc请求具有时效性，因此{@link #get()},{@link #await()}系列方法，不会无限阻塞，都会在超时时间到达后醒来。
  */
-public interface RpcFuture extends ListenableFuture<RpcResponse> {
+public interface RpcFuture extends TimeoutFuture<RpcResponse> {
 
     // 1. RPCFuture上不会有执行失败异常，通过错误码来表示
     // 2. 在RpcFuture上不会无限阻塞，一定会在超时时间到了之后就醒来

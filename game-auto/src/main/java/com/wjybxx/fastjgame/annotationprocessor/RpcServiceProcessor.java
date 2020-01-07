@@ -78,7 +78,8 @@ public class RpcServiceProcessor extends AbstractProcessor {
     private static final String PRE_DESERIALIZE_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.PreDeserializable";
 
     private static final String CHANNEL_CANONICAL_NAME = "com.wjybxx.fastjgame.net.common.RpcResponseChannel";
-    private static final String RPC_RESPONSE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.common.RpcResponse";
+    private static final String RESULT_CODE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.common.RpcResultCode";
+    private static final String EXCEPTION_UTILS_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.ConcurrentUtils";
 
     private static final String REGISTRY_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.RpcFunctionRegistry";
 
@@ -119,8 +120,9 @@ public class RpcServiceProcessor extends AbstractProcessor {
     private DeclaredType rpcServiceDeclaredType;
     private DeclaredType rpcMethodDeclaredType;
 
-    private ClassName rpcResponseTypeName;
+    private ClassName resultCodeTypeName;
     private ClassName registryTypeName;
+    private ClassName exceptionUtilsTypeName;
     private TypeName defaultBuilderRawTypeName;
 
     @Override
@@ -157,8 +159,8 @@ public class RpcServiceProcessor extends AbstractProcessor {
         rpcMethodDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(RPC_METHOD_CANONICAL_NAME));
 
         registryTypeName = ClassName.get(elementUtils.getTypeElement(REGISTRY_CANONICAL_NAME));
-        rpcResponseTypeName = ClassName.get(elementUtils.getTypeElement(RPC_RESPONSE_CANONICAL_NAME));
-
+        resultCodeTypeName = ClassName.get(elementUtils.getTypeElement(RESULT_CODE_CANONICAL_NAME));
+        exceptionUtilsTypeName = ClassName.get(elementUtils.getTypeElement(EXCEPTION_UTILS_CANONICAL_NAME));
         builderElement = elementUtils.getTypeElement(BUILDER_CANONICAL_NAME);
 
         responseChannelDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(CHANNEL_CANONICAL_NAME));
@@ -576,12 +578,12 @@ public class RpcServiceProcessor extends AbstractProcessor {
      * {@code
      * 		private static void registerGetMethod2(RpcFunctionRegistry registry, T instance) {
      * 		    registry.register(10002, (session, methodParams, responseChannel) -> {
-     * 		       RpcResponse response = RpcResponse.ERROR;
      * 		       try {
      * 		     		V result = instance.method2(methodParams.get(0), methodParams.get(1));
-     * 					response = RpcResponse.newSucceedResponse(result);
-     *               } finally {
-     * 		           responseChannel.write(response);
+     * 		     	    responseChannel.writeSuccess(result);
+     *               } catch(Throwable cause){
+     *                  responseChannel.writeFailure(RpcResultCode.SERVER_EXCEPTION, cause)
+     *                  ConcurrentUtils.rethrow(cause);
      *               }
      *            });
      *        }
@@ -592,12 +594,12 @@ public class RpcServiceProcessor extends AbstractProcessor {
      * {@code
      * 		private static void registerGetMethod2(RpcFunctionRegistry registry, T instance) {
      * 		    registry.register(10002, (session, methodParams, responseChannel) -> {
-     * 		       RpcResponse response = RpcResponse.ERROR;
      * 		       try {
      * 		       		instance.method1(methodParams.get(0), methodParams.get(1), responseChannel);
-     * 					response = RpcResponse.SUCCESS;
-     *               } finally {
-     * 		           responseChannel.write(response);
+     * 		       	    responseChannel.writeSuccess(null);
+     *               } catch(Throwable cause) {
+     *                   responseChannel.writeFailure(RpcResultCode.SERVER_EXCEPTION, cause)
+     *                   ConcurrentUtils.rethrow(cause);
      *               }
      *            });
      *        }
@@ -623,18 +625,17 @@ public class RpcServiceProcessor extends AbstractProcessor {
             builder.addStatement(invokeStatement.format, invokeStatement.params.toArray());
         } else {
             // 同步返回结果 - 底层返回结果
-            builder.addStatement("    $T response = $T.ERROR", rpcResponseTypeName, rpcResponseTypeName);
             builder.addCode("    try {\n");
             builder.addStatement("    " + invokeStatement.format, invokeStatement.params.toArray());
-
             if (method.getReturnType().getKind() == TypeKind.VOID) {
-                builder.addStatement("        response = $T.SUCCESS", rpcResponseTypeName);
+                builder.addStatement("        $L.writeSuccess(null)", responseChannel);
             } else {
-                builder.addStatement("        response = $T.newSucceedResponse(result)", rpcResponseTypeName);
+                builder.addStatement("        $L.writeSuccess(result)", responseChannel);
             }
+            builder.addCode("    } catch (Throwable cause) {\n");
+            builder.addStatement("        $L.writeFailure($T.SERVER_EXCEPTION, cause)", responseChannel, resultCodeTypeName);
+            builder.addStatement("        $T.rethrow(cause)", exceptionUtilsTypeName);
 
-            builder.addCode("    } finally {\n");
-            builder.addStatement("        $L.write(response)", responseChannel);
             builder.addCode("    }\n");
         }
         builder.addStatement("})");

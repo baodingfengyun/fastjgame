@@ -93,8 +93,9 @@ public final class NettyFutureAdapter<V> implements ListenableFuture<V> {
         return future.awaitUninterruptibly(timeout, unit);
     }
 
+    @Nullable
     @Override
-    public V getIfSuccess() {
+    public V getNow() {
         return future.getNow();
     }
 

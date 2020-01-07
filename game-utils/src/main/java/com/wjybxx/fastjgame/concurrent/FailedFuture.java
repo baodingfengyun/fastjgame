@@ -16,6 +16,7 @@
 package com.wjybxx.fastjgame.concurrent;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -28,7 +29,7 @@ import java.util.concurrent.TimeUnit;
  * date - 2019/7/14
  * github - https://github.com/hl845740757
  */
-public final class FailedFuture<V> extends CompleteFuture<V> {
+public class FailedFuture<V> extends CompleteFuture<V> {
 
     /**
      * 造成失败的原因
@@ -50,8 +51,9 @@ public final class FailedFuture<V> extends CompleteFuture<V> {
         return AbstractListenableFuture.rethrowCause(cause);
     }
 
+    @Nullable
     @Override
-    public V getIfSuccess() {
+    public V getNow() {
         return null;
     }
 

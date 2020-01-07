@@ -142,17 +142,6 @@ public class ConcurrentUtils {
     // ------------------------------------------- 安全地执行 ------------------------------------
 
     /**
-     * 将一个可能抛出异常的任务包装为一个不抛出受检异常的runnable。
-     *
-     * @param r                可能抛出异常的任务
-     * @param exceptionHandler 异常处理器
-     * @return Runnable
-     */
-    public static Runnable safeRunnable(Runnable r, ExceptionHandler exceptionHandler) {
-        return new SafeRunnable(r, exceptionHandler);
-    }
-
-    /**
      * 安全的执行一个任务，只是将错误打印到日志，不抛出异常。
      * 对于不甚频繁的方法调用可以进行封装，如果大量的调用可能会对性能有所影响；
      *
@@ -277,28 +266,6 @@ public class ConcurrentUtils {
             }
         } else {
             return eventLoop.submit(task);
-        }
-    }
-
-    //  ------------------------------------ 内部的一些封装，指不定什么时候可能就换成lambda表达式 --------------------
-
-    private static class SafeRunnable implements Runnable {
-
-        private final Runnable task;
-        private final ExceptionHandler exceptionHandler;
-
-        private SafeRunnable(Runnable task, ExceptionHandler exceptionHandler) {
-            this.task = task;
-            this.exceptionHandler = exceptionHandler;
-        }
-
-        @Override
-        public void run() {
-            try {
-                task.run();
-            } catch (Throwable e) {
-                exceptionHandler.handleException(e);
-            }
         }
     }
 

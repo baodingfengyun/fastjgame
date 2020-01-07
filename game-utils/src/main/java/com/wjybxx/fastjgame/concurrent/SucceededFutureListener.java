@@ -17,17 +17,35 @@
 package com.wjybxx.fastjgame.concurrent;
 
 /**
- * 异常处理器
+ * 调用成功才执行的Rpc回调。
+ * 声明为接口而不是抽象类，是为了方便使用lambda表达式。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/7/13 23:47
+ * date - 2019/8/19
  * github - https://github.com/hl845740757
  */
-public interface ExceptionHandler {
+@FunctionalInterface
+public interface SucceededFutureListener<V> extends FutureListener<V> {
+
+    @Override
+    default void onComplete(ListenableFuture<? extends V> future) throws Exception {
+        final V result = future.getNow();
+        if (result != null) {
+            // 有结果的几率比没有结果的几率更高一些
+            onSuccess(result);
+            return;
+        }
+
+        if (future.isSuccess()) {
+            onSuccess(null);
+        }
+    }
 
     /**
-     * @param e 对不信任的代码保持怀疑 - 因此使用{@link Throwable}。
+     * 当执行成功时
+     *
+     * @param result 调用结果
      */
-    void handleException(Throwable e);
+    void onSuccess(V result);
 }
