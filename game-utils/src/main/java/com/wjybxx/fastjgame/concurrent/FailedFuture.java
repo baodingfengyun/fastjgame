@@ -51,15 +51,21 @@ public class FailedFuture<V> extends CompleteFuture<V> {
         return AbstractListenableFuture.rethrowCause(cause);
     }
 
-    @Override
-    public V join() throws ExecutionException {
-        return AbstractListenableFuture.rethrowCause(cause);
-    }
-
     @Nullable
     @Override
     public V getNow() {
         return null;
+    }
+
+    @Nullable
+    @Override
+    public FutureResult<V> getAsResult() {
+        return new DefaultFutureResult<>(null, cause);
+    }
+
+    @Override
+    public V join() throws ExecutionException {
+        return AbstractListenableFuture.rethrowCause(cause);
     }
 
     @Nonnull

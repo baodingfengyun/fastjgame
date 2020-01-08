@@ -14,7 +14,11 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.concurrent;
+package com.wjybxx.fastjgame.concurrent.timeout;
+
+import com.wjybxx.fastjgame.concurrent.DefaultPromise;
+import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.wjybxx.fastjgame.concurrent.FutureListener;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -49,6 +53,17 @@ public class DefaultTimeoutPromise<V> extends DefaultPromise<V> implements Timeo
     @Override
     public final boolean isTimeout() {
         return cause() instanceof TimeoutException;
+    }
+
+    @Nullable
+    @Override
+    public TimeoutFutureResult<V> getAsResult() {
+        return (TimeoutFutureResult<V>) super.getAsResult();
+    }
+
+    @Override
+    protected TimeoutFutureResult<V> newResult(V result, Throwable cause) {
+        return new DefaultTimeoutFutureResult<>(result, cause);
     }
 
     // ---------------------------------------------- 超时检测 ------------------------------------------------

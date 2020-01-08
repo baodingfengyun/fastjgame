@@ -52,14 +52,20 @@ public class SucceededFuture<V> extends CompleteFuture<V> {
         return result;
     }
 
+    @Nullable
     @Override
-    public V join() {
+    public V getNow() {
         return result;
     }
 
     @Nullable
     @Override
-    public V getNow() {
+    public FutureResult<V> getAsResult() {
+        return new DefaultFutureResult<>(result, null);
+    }
+
+    @Override
+    public V join() {
         return result;
     }
 

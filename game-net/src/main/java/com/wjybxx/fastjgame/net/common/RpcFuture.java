@@ -18,9 +18,10 @@ package com.wjybxx.fastjgame.net.common;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.FutureListener;
-import com.wjybxx.fastjgame.concurrent.TimeoutFuture;
+import com.wjybxx.fastjgame.concurrent.timeout.TimeoutFuture;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Rpc调用的future。
@@ -32,6 +33,10 @@ import javax.annotation.Nonnull;
  * @apiNote Rpc请求具有时效性，因此{@link #get()},{@link #await()}系列方法，不会无限阻塞，都会在超时时间到达后醒来。
  */
 public interface RpcFuture<V> extends TimeoutFuture<V> {
+
+    @Nullable
+    @Override
+    RpcFutureResult<V> getAsResult();
 
     @Override
     RpcFuture<V> await() throws InterruptedException;

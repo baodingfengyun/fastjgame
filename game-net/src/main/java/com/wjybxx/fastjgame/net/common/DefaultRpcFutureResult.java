@@ -16,35 +16,31 @@
 
 package com.wjybxx.fastjgame.net.common;
 
-import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.concurrent.FutureListener;
-import com.wjybxx.fastjgame.concurrent.timeout.TimeoutPromise;
-
-import javax.annotation.Nonnull;
+import com.wjybxx.fastjgame.concurrent.timeout.DefaultTimeoutFutureResult;
+import com.wjybxx.fastjgame.net.exception.RpcException;
 
 /**
- * RpcPromise
- *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/3
+ * date - 2020/1/8
  * github - https://github.com/hl845740757
  */
-public interface RpcPromise<V> extends RpcFuture<V>, TimeoutPromise<V> {
+public class DefaultRpcFutureResult<V> extends DefaultTimeoutFutureResult<V> implements RpcFutureResult<V> {
+
+    public DefaultRpcFutureResult(V result, Throwable cause) {
+        super(result, cause);
+    }
 
     @Override
-    RpcPromise<V> await() throws InterruptedException;
+    public boolean isRpcException() {
+        return cause() instanceof RpcException;
+    }
 
     @Override
-    RpcPromise<V> awaitUninterruptibly();
-
-    @Override
-    RpcPromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor);
-
-    @Override
-    RpcPromise<V> addListener(@Nonnull FutureListener<? super V> listener);
-
-    @Override
-    RpcPromise<V> removeListener(@Nonnull FutureListener<? super V> listener);
-
+    public RpcErrorCode errorCode() {
+        if (isRpcException()) {
+            return ((RpcException) cause()).getErrorCode();
+        }
+        throw new IllegalStateException();
+    }
 }

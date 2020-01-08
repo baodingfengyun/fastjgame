@@ -14,32 +14,29 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.concurrent;
+package com.wjybxx.fastjgame.net.common;
 
-import javax.annotation.Nonnull;
+import com.wjybxx.fastjgame.concurrent.timeout.TimeoutFutureResult;
 
 /**
- * 具有时效性的Promise
- *
  * @author wjybxx
  * @version 1.0
- * date - 2020/1/6
+ * date - 2020/1/8
  * github - https://github.com/hl845740757
  */
-public interface TimeoutPromise<V> extends TimeoutFuture<V>, Promise<V> {
+public interface RpcFutureResult<V> extends TimeoutFutureResult<V> {
 
-    @Override
-    TimeoutPromise<V> await() throws InterruptedException;
+    /**
+     * 查询是否是rpc执行异常
+     *
+     * @return 如果为{@link com.wjybxx.fastjgame.net.exception.RpcException}，则返回true
+     */
+    boolean isRpcException();
 
-    @Override
-    TimeoutPromise<V> awaitUninterruptibly();
-
-    @Override
-    TimeoutPromise<V> addListener(@Nonnull FutureListener<? super V> listener);
-
-    @Override
-    TimeoutPromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor);
-
-    @Override
-    TimeoutPromise<V> removeListener(@Nonnull FutureListener<? super V> listener);
+    /**
+     * {@link #isRpcException()}为true的时候，可以查询，否则抛出异常。
+     *
+     * @return errorCode
+     */
+    RpcErrorCode errorCode();
 }

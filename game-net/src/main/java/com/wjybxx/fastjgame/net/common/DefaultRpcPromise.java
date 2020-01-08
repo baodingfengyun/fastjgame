@@ -16,13 +16,14 @@
 
 package com.wjybxx.fastjgame.net.common;
 
-import com.wjybxx.fastjgame.concurrent.DefaultTimeoutPromise;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.FutureListener;
+import com.wjybxx.fastjgame.concurrent.timeout.DefaultTimeoutPromise;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -54,6 +55,19 @@ public class DefaultRpcPromise<V> extends DefaultTimeoutPromise<V> implements Rp
     protected void checkDeadlock() {
         ConcurrentUtils.checkDeadLock(workerEventLoop);
     }
+
+    @Nullable
+    @Override
+    public RpcFutureResult<V> getAsResult() {
+        return (RpcFutureResult<V>) super.getAsResult();
+    }
+
+    @Override
+    protected RpcFutureResult<V> newResult(V result, Throwable cause) {
+        return new DefaultRpcFutureResult<>(result, cause);
+    }
+
+    // --------------------------------- 流式语法支持 ------------------------------
 
     @Override
     public RpcPromise<V> await() throws InterruptedException {

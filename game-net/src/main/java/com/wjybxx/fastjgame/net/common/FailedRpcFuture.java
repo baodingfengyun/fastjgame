@@ -21,7 +21,7 @@ import com.wjybxx.fastjgame.concurrent.FailedFuture;
 import com.wjybxx.fastjgame.concurrent.FutureListener;
 
 import javax.annotation.Nonnull;
-import java.util.concurrent.TimeoutException;
+import javax.annotation.Nullable;
 
 /**
  * 已完成的Rpc调用，在它上面的任何监听都将立即执行。
@@ -39,7 +39,14 @@ public class FailedRpcFuture<V> extends FailedFuture<V> implements RpcFuture<V> 
 
     @Override
     public boolean isTimeout() {
-        return cause() instanceof TimeoutException;
+        // 早已失败，不是超时失败
+        return false;
+    }
+
+    @Nullable
+    @Override
+    public RpcFutureResult<V> getAsResult() {
+        return new DefaultRpcFutureResult<>(null, cause());
     }
 
     // ------------------------------------------------ 流式语法支持 ------------------------------------

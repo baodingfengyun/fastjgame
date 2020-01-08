@@ -243,7 +243,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
      * 用于get方法上报结果
      */
     @SuppressWarnings("unchecked")
-    protected static <T> T reportGet(final Object r) throws ExecutionException {
+    private static <T> T reportGet(final Object r) throws ExecutionException {
         if (r == SUCCESS) {
             return null;
         }
@@ -256,15 +256,42 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     }
 
     @Nullable
-    @SuppressWarnings("unchecked")
     @Override
     public V getNow() {
-        Object result = resultHolder.get();
+        final Object result = resultHolder.get();
         if (isSuccess0(result)) {
-            return result == SUCCESS ? null : (V) result;
+            return getSuccessResult(result);
         } else {
             return null;
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <V> V getSuccessResult(Object result) {
+        return result == SUCCESS ? null : (V) result;
+    }
+
+    /**
+     * 注意：该方法必须和{@link #newResult(Object, Throwable)}同时重写。
+     */
+    @Nullable
+    @Override
+    public FutureResult<V> getAsResult() {
+        final Object result = resultHolder.get();
+
+        if (!isDone0(result)) {
+            return null;
+        }
+
+        if (result instanceof CauseHolder) {
+            return newResult(null, ((CauseHolder) result).cause);
+        }
+
+        return newResult(getSuccessResult(result), null);
+    }
+
+    protected FutureResult<V> newResult(V result, Throwable cause) {
+        return new DefaultFutureResult<>(result, cause);
     }
 
     // ----------------------------------------------- 更新结果 ------------------------------------------

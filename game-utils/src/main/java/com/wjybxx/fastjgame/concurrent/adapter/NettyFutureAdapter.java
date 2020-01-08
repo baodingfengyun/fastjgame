@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.concurrent.adapter;
 
+import com.wjybxx.fastjgame.concurrent.AbstractListenableFuture;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.FutureListener;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
@@ -37,7 +38,7 @@ import java.util.concurrent.TimeoutException;
  * date - 2019/10/1
  * github - https://github.com/hl845740757
  */
-public final class NettyFutureAdapter<V> implements ListenableFuture<V> {
+public final class NettyFutureAdapter<V> extends AbstractListenableFuture<V> {
 
     private final EventLoop executor;
     private final Future<V> future;
@@ -79,16 +80,6 @@ public final class NettyFutureAdapter<V> implements ListenableFuture<V> {
     @Override
     public V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         return future.get(timeout, unit);
-    }
-
-    @Override
-    public V join() throws ExecutionException {
-        try {
-            return future.awaitUninterruptibly().get();
-        } catch (InterruptedException e) {
-            // Should not be raised at all.
-            throw new InternalError();
-        }
     }
 
     @Nullable

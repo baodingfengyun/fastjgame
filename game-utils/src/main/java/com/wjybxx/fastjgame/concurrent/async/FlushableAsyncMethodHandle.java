@@ -22,7 +22,7 @@ import javax.annotation.Nonnull;
 
 /**
  * 可刷新缓冲区的异步方法句柄。
- * 由于异步异步方法可能在某个对方排队，使用带有{@code flush}的执行方法时，将会尝试刷新缓冲区，以尽快执行。
+ * 由于异步方法可能在某个对方排队，使用带有{@code flush}的执行方法时，将会尝试刷新缓冲区，以尽快执行。
  *
  * @author wjybxx
  * @version 1.0

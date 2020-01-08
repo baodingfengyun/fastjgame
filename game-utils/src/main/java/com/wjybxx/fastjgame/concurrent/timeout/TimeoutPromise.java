@@ -14,37 +14,36 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.common;
+package com.wjybxx.fastjgame.concurrent.timeout;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.FutureListener;
-import com.wjybxx.fastjgame.concurrent.timeout.TimeoutPromise;
+import com.wjybxx.fastjgame.concurrent.Promise;
 
 import javax.annotation.Nonnull;
 
 /**
- * RpcPromise
+ * 具有时效性的Promise
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/3
+ * date - 2020/1/6
  * github - https://github.com/hl845740757
  */
-public interface RpcPromise<V> extends RpcFuture<V>, TimeoutPromise<V> {
+public interface TimeoutPromise<V> extends TimeoutFuture<V>, Promise<V> {
 
     @Override
-    RpcPromise<V> await() throws InterruptedException;
+    TimeoutPromise<V> await() throws InterruptedException;
 
     @Override
-    RpcPromise<V> awaitUninterruptibly();
+    TimeoutPromise<V> awaitUninterruptibly();
 
     @Override
-    RpcPromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor);
+    TimeoutPromise<V> addListener(@Nonnull FutureListener<? super V> listener);
 
     @Override
-    RpcPromise<V> addListener(@Nonnull FutureListener<? super V> listener);
+    TimeoutPromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor);
 
     @Override
-    RpcPromise<V> removeListener(@Nonnull FutureListener<? super V> listener);
-
+    TimeoutPromise<V> removeListener(@Nonnull FutureListener<? super V> listener);
 }

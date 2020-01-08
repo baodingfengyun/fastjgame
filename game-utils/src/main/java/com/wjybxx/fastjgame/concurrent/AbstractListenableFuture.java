@@ -17,10 +17,9 @@
 package com.wjybxx.fastjgame.concurrent;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * ListenableFuture的抽象实现
@@ -33,31 +32,25 @@ import java.util.concurrent.TimeoutException;
  */
 public abstract class AbstractListenableFuture<V> implements ListenableFuture<V> {
 
+    @Nullable
     @Override
-    public V get() throws InterruptedException, ExecutionException {
-        await();
-
-        final Throwable cause = cause();
-        if (null != cause) {
-            return rethrowCause(cause);
+    public FutureResult<V> getAsResult() {
+        if (isDone()) {
+            return new DefaultFutureResult<>(getNow(), cause());
+        } else {
+            return null;
         }
-
-        return getNow();
     }
 
     @Override
-    public V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        if (await(timeout, unit)) {
-
-            final Throwable cause = cause();
-            if (null != cause) {
-                return rethrowCause(cause);
-            }
-
-            return getNow();
+    public V join() throws ExecutionException {
+        awaitUninterruptibly();
+        try {
+            return get();
+        } catch (InterruptedException e) {
+            // Should not be raised at all.
+            throw new InternalError();
         }
-
-        throw new TimeoutException();
     }
 
     /**

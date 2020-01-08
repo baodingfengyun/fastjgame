@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.concurrent.adapter;
 
+import com.wjybxx.fastjgame.concurrent.AbstractListenableFuture;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.FutureListener;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
@@ -37,7 +38,7 @@ import java.util.concurrent.*;
  * date - 2019/12/30
  * github - https://github.com/hl845740757
  */
-public class CompletableFutureAdapter<V> implements ListenableFuture<V> {
+public class CompletableFutureAdapter<V> extends AbstractListenableFuture<V> {
 
     private final EventLoop executor;
     private final CompletableFuture<V> future;
@@ -100,7 +101,7 @@ public class CompletableFutureAdapter<V> implements ListenableFuture<V> {
         // jdk的getNow和自实现的getNow有区别
         try {
             return future.getNow(null);
-        } catch (Throwable cause) {
+        } catch (Throwable ignore) {
             return null;
         }
     }
@@ -111,8 +112,10 @@ public class CompletableFutureAdapter<V> implements ListenableFuture<V> {
         try {
             future.getNow(null);
             return null;
-        } catch (Throwable cause) {
-            return cause;
+        } catch (CompletionException e) {
+            return e.getCause();
+        } catch (Throwable e) {
+            return e;
         }
     }
 

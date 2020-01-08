@@ -14,11 +14,15 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.concurrent;
+package com.wjybxx.fastjgame.concurrent.timeout;
+
+import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.wjybxx.fastjgame.concurrent.FutureListener;
+import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -40,11 +44,9 @@ public interface TimeoutFuture<V> extends ListenableFuture<V> {
      */
     boolean isTimeout();
 
+    @Nullable
     @Override
-    V get() throws InterruptedException, ExecutionException;
-
-    @Override
-    V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException;
+    TimeoutFutureResult<V> getAsResult();
 
     @Override
     TimeoutFuture<V> await() throws InterruptedException;

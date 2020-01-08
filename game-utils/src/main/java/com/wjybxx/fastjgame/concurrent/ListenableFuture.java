@@ -131,7 +131,7 @@ public interface ListenableFuture<V> extends Future<V> {
     V join() throws ExecutionException;
 
     /**
-     * 尝试非阻塞的获取当前结果，当且仅当任务正常完成时返回期望的结果，否则返回null，即：
+     * 尝试非阻塞的获取当前结果，当且仅当任务正常完成时返回期望的结果，否则返回null。即：
      * 1. 如果future关联的task还未完成 {@link #isDone() false}，则返回null。
      * 2. 如果任务被取消或失败，则返回null。
      * <p>
@@ -143,6 +143,13 @@ public interface ListenableFuture<V> extends Future<V> {
      */
     @Nullable
     V getNow();
+
+    /**
+     * 尝试非阻塞的获取当前结果。
+     * 如果future关联的task还未完成 {@link #isDone() false}，则返回null。
+     */
+    @Nullable
+    FutureResult<V> getAsResult();
 
     /**
      * 非阻塞获取导致任务失败的原因。
