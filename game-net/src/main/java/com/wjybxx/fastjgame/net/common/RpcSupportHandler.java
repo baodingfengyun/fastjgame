@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.net.common;
 
+import com.wjybxx.fastjgame.async.GenericFutureResultListener;
 import com.wjybxx.fastjgame.net.exception.DefaultRpcServerException;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionConfig;
@@ -101,7 +102,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
         } else {
             // 异步rpc调用
             ConcurrentUtils.safeExecute(session.appEventLoop(),
-                    new RpcResponseCommitTask<>(session, rpcTimeoutInfo.rpcCallback, null, cause));
+                    new RpcResponseCommitTask<>(session, new DefaultRpcFutureResult<>(null, cause), rpcTimeoutInfo.listener));
         }
     }
 
@@ -122,7 +123,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
 
             // 保存rpc请求上下文
             long deadline = ctx.timerSystem().curTimeMillis() + rpcCallbackTimeoutMs;
-            RpcTimeoutInfo rpcTimeoutInfo = new RpcTimeoutInfo(writeTask.getRpcPromise(), writeTask.getRpcCallback(), deadline);
+            RpcTimeoutInfo<?> rpcTimeoutInfo = new RpcTimeoutInfo(writeTask.getRpcPromise(), writeTask.getListener(), deadline);
             long requestGuid = ++requestGuidSequencer;
             rpcTimeoutInfoMap.put(requestGuid, rpcTimeoutInfo);
 
@@ -148,7 +149,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             // 读取到一个Rpc请求消息，提交给应用层
             RpcRequestMessage requestMessage = (RpcRequestMessage) msg;
             RpcResponseChannel<?> rpcResponseChannel = new DefaultRpcResponseChannel<>(ctx.session(),
-                    requestMessage.getRequestGuid(), requestMessage.isSync());
+                    requestMessage.getRequestGuid(), requestMessage.isFlush());
 
             // 检查提前反序列化字段
             final Object body = checkPreDeserialize(requestMessage.getBody());
@@ -156,7 +157,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
         } else if (msg instanceof RpcResponseMessage) {
             // 读取到一个Rpc响应消息，提交给应用层
             RpcResponseMessage responseMessage = (RpcResponseMessage) msg;
-            final RpcTimeoutInfo rpcTimeoutInfo = rpcTimeoutInfoMap.remove(responseMessage.getRequestGuid());
+            final RpcTimeoutInfo<?> rpcTimeoutInfo = rpcTimeoutInfoMap.remove(responseMessage.getRequestGuid());
             if (null != rpcTimeoutInfo) {
                 commitRpcResponse(ctx.session(), rpcTimeoutInfo, (RpcResponse) responseMessage.getBody());
             }
@@ -171,7 +172,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
      * @param rpcResponse    期望提交的rpc调用结果。
      */
     @SuppressWarnings("unchecked, rawtypes")
-    private <V> void commitRpcResponse(Session session, RpcTimeoutInfo rpcTimeoutInfo, RpcResponse rpcResponse) {
+    private <V> void commitRpcResponse(Session session, RpcTimeoutInfo<V> rpcTimeoutInfo, RpcResponse rpcResponse) {
         final V result;
         final Throwable cause;
         if (rpcResponse.isSuccess()) {
@@ -182,7 +183,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             cause = new DefaultRpcServerException(rpcResponse);
         }
 
-        final RpcPromise<V> rpcPromise = (RpcPromise<V>) rpcTimeoutInfo.rpcPromise;
+        final RpcPromise<V> rpcPromise = rpcTimeoutInfo.rpcPromise;
         if (rpcPromise != null) {
             // 同步rpc调用
             if (cause != null) {
@@ -192,8 +193,8 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             }
         } else {
             // 异步rpc调用
-            final RpcCallback<V> rpcCallback = (RpcCallback<V>) rpcTimeoutInfo.rpcCallback;
-            ConcurrentUtils.safeExecute(session.appEventLoop(), new RpcResponseCommitTask<>(session, rpcCallback, result, cause));
+            ConcurrentUtils.safeExecute(session.appEventLoop(),
+                    new RpcResponseCommitTask<>(session, new DefaultRpcFutureResult<>(result, cause), rpcTimeoutInfo.listener));
         }
     }
 
@@ -279,33 +280,32 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
 
         private final Session session;
         private final long requestGuid;
-        private final boolean sync;
+        private final boolean flush;
 
-        private DefaultRpcResponseChannel(Session session, long requestGuid, boolean sync) {
+        private DefaultRpcResponseChannel(Session session, long requestGuid, boolean flush) {
             this.session = session;
             this.requestGuid = requestGuid;
-            this.sync = sync;
+            this.flush = flush;
         }
 
         @Override
         protected void doWrite(RpcResponse rpcResponse) {
             if (!session.isClosed()) {
-                session.netEventLoop().execute(new RpcResponseWriteTask(session, requestGuid, sync, rpcResponse));
+                session.netEventLoop().execute(new RpcResponseWriteTask(session, requestGuid, flush, rpcResponse));
             }
         }
     }
 
-    private static class RpcTimeoutInfo {
+    private static class RpcTimeoutInfo<V> {
 
         // promise与callback二者存一
-        final RpcPromise<?> rpcPromise;
-        final RpcCallback<?> rpcCallback;
-
+        final RpcPromise<V> rpcPromise;
+        final GenericFutureResultListener<RpcFutureResult<V>, ? super V> listener;
         final long deadline;
 
-        RpcTimeoutInfo(RpcPromise<?> rpcPromise, RpcCallback<?> rpcCallback, long deadline) {
+        RpcTimeoutInfo(RpcPromise<V> rpcPromise, GenericFutureResultListener<RpcFutureResult<V>, ? super V> listener, long deadline) {
             this.rpcPromise = rpcPromise;
-            this.rpcCallback = rpcCallback;
+            this.listener = listener;
             this.deadline = deadline;
         }
     }

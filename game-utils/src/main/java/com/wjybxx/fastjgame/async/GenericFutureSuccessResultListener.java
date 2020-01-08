@@ -14,32 +14,27 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.concurrent;
+package com.wjybxx.fastjgame.async;
+
+import com.wjybxx.fastjgame.concurrent.FutureResult;
 
 /**
- * 只有失败才执行的回调。
- * 声明为接口而不是抽象类，是为了方便使用lambda表达式。
+ * 执行成功才执行的监听器
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/19
+ * date - 2020/1/8
  * github - https://github.com/hl845740757
  */
 @FunctionalInterface
-public interface FailedFutureListener<V> extends FutureListener<V> {
+public interface GenericFutureSuccessResultListener<F extends FutureResult<V>, V> extends GenericFutureResultListener<F, V> {
 
     @Override
-    default void onComplete(ListenableFuture<? extends V> future) throws Exception {
-        final Throwable cause = future.cause();
-        if (cause != null) {
-            onFailure(cause);
+    default void onComplete(F futureResult) {
+        if (futureResult.isSuccess()) {
+            onSuccess(futureResult.get());
         }
     }
 
-    /**
-     * 当调用失败时
-     *
-     * @param cause 造成失败的原因
-     */
-    void onFailure(Throwable cause);
+    void onSuccess(V result);
 }

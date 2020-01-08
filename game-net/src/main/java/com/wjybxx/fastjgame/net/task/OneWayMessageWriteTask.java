@@ -30,10 +30,12 @@ public class OneWayMessageWriteTask implements WriteTask {
 
     private final Session session;
     private final Object message;
+    private final boolean flush;
 
-    public OneWayMessageWriteTask(Session session, Object message) {
+    public OneWayMessageWriteTask(Session session, Object message, boolean flush) {
         this.session = session;
         this.message = message;
+        this.flush = flush;
     }
 
     public Object getMessage() {
@@ -42,8 +44,11 @@ public class OneWayMessageWriteTask implements WriteTask {
 
     @Override
     public void run() {
-        // 单向通知无需刷新缓冲区
-        session.fireWrite(this);
+        if (flush) {
+            session.fireWriteAndFlush(this);
+        } else {
+            session.fireWrite(this);
+        }
     }
 
 }

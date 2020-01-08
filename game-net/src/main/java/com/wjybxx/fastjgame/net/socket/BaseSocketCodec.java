@@ -281,7 +281,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
 
         // rpc请求头
         head.writeLong(requestMessage.getRequestGuid());
-        head.writeByte(requestMessage.isSync() ? 1 : 0);
+        head.writeByte(requestMessage.isFlush() ? 1 : 0);
 
         // rpc请求内容 - 合并之后发送
         writeLogicMessageCommon(ctx, head, requestMessage.getBody(), promise);
@@ -298,11 +298,11 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
 
         // rpc请求头
         long requestGuid = msg.readLong();
-        boolean sync = msg.readByte() == 1;
+        boolean flush = msg.readByte() == 1;
         // 请求内容
         Object request = tryDecodeBody(msg);
 
-        RpcRequestMessage rpcRequestMessage = new RpcRequestMessage(requestGuid, sync, request);
+        RpcRequestMessage rpcRequestMessage = new RpcRequestMessage(requestGuid, flush, request);
         return new SocketMessageEvent(channel, sessionId, sequence, ack, endOfBatch, rpcRequestMessage);
     }
 

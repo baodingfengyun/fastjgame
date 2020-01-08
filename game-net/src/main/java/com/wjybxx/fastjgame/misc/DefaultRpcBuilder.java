@@ -16,14 +16,17 @@
 
 package com.wjybxx.fastjgame.misc;
 
+import com.wjybxx.fastjgame.async.AbstractAsyncMethodHandle;
+import com.wjybxx.fastjgame.async.GenericFutureFailureResultListener;
+import com.wjybxx.fastjgame.async.GenericFutureResultListener;
+import com.wjybxx.fastjgame.async.GenericFutureSuccessResultListener;
 import com.wjybxx.fastjgame.net.common.RpcCall;
-import com.wjybxx.fastjgame.net.common.RpcCallback;
+import com.wjybxx.fastjgame.net.common.RpcFutureResult;
 import com.wjybxx.fastjgame.net.session.Session;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -35,16 +38,12 @@ import java.util.concurrent.ExecutionException;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class DefaultRpcBuilder<V> implements RpcBuilder<V> {
+public class DefaultRpcBuilder<V> extends AbstractAsyncMethodHandle<V, Session, RpcFutureResult<V>> implements RpcBuilder<V> {
 
     /**
      * 远程方法信息
      */
     private RpcCall<V> call;
-    /**
-     * 添加的回调
-     */
-    private RpcCallback<V> callback = null;
 
     /**
      * @param call 一般来讲，是用于转发的RpcCall
@@ -61,75 +60,6 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V> {
     }
 
     @Override
-    public final RpcBuilder<V> onSuccess(@Nonnull SucceededRpcCallback<V> callback) {
-        addCallback(callback);
-        return this;
-    }
-
-    @Override
-    public final RpcBuilder<V> onFailure(@Nonnull FailedRpcCallback<V> callback) {
-        addCallback(callback);
-        return this;
-    }
-
-    @Override
-    public final RpcBuilder<V> onComplete(@Nonnull RpcCallback<V> callback) {
-        addCallback(callback);
-        return this;
-    }
-
-    private void addCallback(final RpcCallback<V> newCallback) {
-        // 多数情况下我们都只有一个回调
-        if (callback == null) {
-            callback = newCallback;
-            return;
-        }
-        // 添加超过两次
-        if (callback instanceof CompositeRpcCallback) {
-            ((CompositeRpcCallback<V>) this.callback).addChild(newCallback);
-        } else {
-            // 添加的第二个回调
-            callback = new CompositeRpcCallback<>(callback, newCallback);
-        }
-    }
-
-    @Override
-    public void send(@Nonnull Session session) throws IllegalStateException {
-        Objects.requireNonNull(session, "session");
-        session.send(call);
-    }
-
-    @Override
-    public void broadcast(@Nonnull Iterable<Session> sessionGroup) throws IllegalStateException {
-        Objects.requireNonNull(sessionGroup, "sessionGroup");
-        for (Session session : sessionGroup) {
-            Objects.requireNonNull(session, "session").send(call);
-        }
-    }
-
-    @Override
-    public final void call(@Nonnull Session session) {
-        Objects.requireNonNull(session, "session");
-        if (callback == null) {
-            // 没有设置回调，使用通知代替rpc调用，对方不会返回结果
-            session.send(call);
-        } else {
-            try {
-                session.call(call, callback);
-            } finally {
-                // 一旦调用call，清除回调
-                callback = null;
-            }
-        }
-    }
-
-    @Override
-    public V syncCall(@Nonnull Session session) throws ExecutionException {
-        Objects.requireNonNull(session, "session");
-        return session.syncCall(call);
-    }
-
-    @Override
     public RpcCall<V> getCall() {
         return call;
     }
@@ -137,6 +67,66 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V> {
     @Override
     public RpcBuilder<V> router(RpcRouter<V> router) {
         this.call = router.route(call).getCall();
+        return this;
+    }
+
+    @Override
+    public void send(@Nonnull Session session) throws IllegalStateException {
+        session.send(call);
+    }
+
+    @Override
+    public void sendAndFlush(Session session) {
+        session.sendAndFlush(call);
+    }
+
+    @Override
+    public void broadcast(@Nonnull Iterable<Session> sessionGroup) throws IllegalStateException {
+        for (Session session : sessionGroup) {
+            session.send(call);
+        }
+    }
+
+    @Override
+    public final void call(@Nonnull Session session) {
+        final GenericFutureResultListener<RpcFutureResult<V>, ? super V> listener = detachListener();
+        if (listener == null) {
+            session.send(call);
+        } else {
+            session.call(call, listener);
+        }
+    }
+
+    @Override
+    public void callAndFlush(@Nonnull Session session) {
+        final GenericFutureResultListener<RpcFutureResult<V>, ? super V> listener = detachListener();
+        if (listener == null) {
+            session.sendAndFlush(call);
+        } else {
+            session.callAndFlush(call, listener);
+        }
+    }
+
+    @Override
+    public V syncCall(@Nonnull Session session) throws ExecutionException {
+        return session.syncCall(call);
+    }
+
+    @Override
+    public RpcBuilder<V> onSuccess(GenericFutureSuccessResultListener<RpcFutureResult<V>, ? super V> listener) {
+        super.onSuccess(listener);
+        return this;
+    }
+
+    @Override
+    public RpcBuilder<V> onFailure(GenericFutureFailureResultListener<RpcFutureResult<V>, ? super V> listener) {
+        super.onFailure(listener);
+        return this;
+    }
+
+    @Override
+    public RpcBuilder<V> onComplete(GenericFutureResultListener<RpcFutureResult<V>, ? super V> listener) {
+        super.onComplete(listener);
         return this;
     }
 }

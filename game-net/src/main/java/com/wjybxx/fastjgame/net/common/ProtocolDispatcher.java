@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.net.common;
 
+import com.wjybxx.fastjgame.async.GenericFutureResultListener;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.net.session.Session;
 
@@ -54,16 +55,15 @@ public interface ProtocolDispatcher {
 
     /**
      * 处理会话对方发来的rpc响应。
-     * 如果允许执行，你应该调用{@link RpcCallback#onComplete(Object, Throwable)}方法。
+     * 如果允许执行，你应该调用{@link RpcFutureResultListener#onComplete(RpcFutureResult)}方法。
      * <p>
      * Q: 为什么回调还要走这里？
      * A: 如果回调不在用户的监控范围内，回调悄悄的执行的话会导致一些问题 - 允许用户控制哪些回调执行，哪些不执行（过滤拦截）。
      *
-     * @param session     会话信息
-     * @param rpcCallback 回调逻辑
-     * @param result      rpc调用结果
-     * @param cause       执行失败的原因
+     * @param session      会话信息
+     * @param listener     回调逻辑
+     * @param futureResult rpc执行结果
      */
-    <V> void postRpcCallback(Session session, RpcCallback<V> rpcCallback, V result, Throwable cause);
+    <V> void postRpcCallback(Session session, GenericFutureResultListener<RpcFutureResult<V>, ? super V> listener, RpcFutureResult<V> futureResult);
 
 }

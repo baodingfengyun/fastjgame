@@ -16,7 +16,8 @@
 
 package com.wjybxx.fastjgame.net.task;
 
-import com.wjybxx.fastjgame.net.common.RpcCallback;
+import com.wjybxx.fastjgame.async.GenericFutureResultListener;
+import com.wjybxx.fastjgame.net.common.RpcFutureResult;
 import com.wjybxx.fastjgame.net.common.RpcPromise;
 import com.wjybxx.fastjgame.net.session.Session;
 
@@ -32,14 +33,17 @@ public class RpcRequestWriteTask<V> implements WriteTask {
 
     private final Session session;
     private final Object request;
+    private final boolean flush;
     private final RpcPromise<V> rpcPromise;
-    private final RpcCallback<V> rpcCallback;
+    private final GenericFutureResultListener<RpcFutureResult<V>, ? super V> listener;
 
-    public RpcRequestWriteTask(Session session, Object request, RpcPromise<V> rpcPromise, RpcCallback<V> rpcCallback) {
+    public RpcRequestWriteTask(Session session, Object request, boolean flush, RpcPromise<V> rpcPromise,
+                               GenericFutureResultListener<RpcFutureResult<V>, ? super V> listener) {
         this.session = session;
         this.request = request;
+        this.flush = flush;
         this.rpcPromise = rpcPromise;
-        this.rpcCallback = rpcCallback;
+        this.listener = listener;
     }
 
     public Object getRequest() {
@@ -50,14 +54,13 @@ public class RpcRequestWriteTask<V> implements WriteTask {
         return rpcPromise;
     }
 
-    public RpcCallback<V> getRpcCallback() {
-        return rpcCallback;
+    public GenericFutureResultListener<RpcFutureResult<V>, ? super V> getListener() {
+        return listener;
     }
 
     @Override
     public void run() {
-        if (rpcPromise != null) {
-            // 同步rpc调用，需要刷新缓冲区，尽快的发送出去，异步调用的则无需着急刷新缓冲区
+        if (flush) {
             session.fireWriteAndFlush(this);
         } else {
             session.fireWrite(this);

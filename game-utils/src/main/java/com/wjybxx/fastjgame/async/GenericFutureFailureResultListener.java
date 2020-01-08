@@ -14,24 +14,29 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.common;
+package com.wjybxx.fastjgame.async;
+
+import com.wjybxx.fastjgame.concurrent.FutureResult;
+
+import javax.annotation.Nonnull;
 
 /**
- * Rpc调用完成回调
+ * 执行失败才执行的监听器
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/3
+ * date - 2020/1/8
  * github - https://github.com/hl845740757
  */
-public interface RpcCallback<V> {
+@FunctionalInterface
+public interface GenericFutureFailureResultListener<F extends FutureResult<V>, V> extends GenericFutureResultListener<F, V> {
 
-    /**
-     * 当rpc调用完成时，无论超时，异常，任何原因导致失败，该方法皆会被调用。
-     *
-     * @param result rpc执行结果。
-     * @param cause  执行失败的原因
-     */
-    void onComplete(V result, Throwable cause);
+    @Override
+    default void onComplete(F futureResult) {
+        if (!futureResult.isSuccess()) {
+            onFailure(futureResult.cause());
+        }
+    }
 
+    void onFailure(@Nonnull Throwable cause);
 }

@@ -14,38 +14,26 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.concurrent;
+package com.wjybxx.fastjgame.async;
+
+import com.wjybxx.fastjgame.concurrent.FutureResult;
 
 /**
- * 调用成功才执行的Rpc回调。
- * 声明为接口而不是抽象类，是为了方便使用lambda表达式。
+ * {@link FutureResult}的监听器
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/19
+ * date - 2020/1/8
  * github - https://github.com/hl845740757
  */
 @FunctionalInterface
-public interface SucceededFutureListener<V> extends FutureListener<V> {
-
-    @Override
-    default void onComplete(ListenableFuture<? extends V> future) throws Exception {
-        final V result = future.getNow();
-        if (result != null) {
-            // 有结果的几率比没有结果的几率更高一些
-            onSuccess(result);
-            return;
-        }
-
-        if (future.isSuccess()) {
-            onSuccess(null);
-        }
-    }
+public interface GenericFutureResultListener<F extends FutureResult<V>, V> {
 
     /**
-     * 当执行成功时
+     * 当future对应的操作完成时，该方法将被调用。
      *
-     * @param result 调用结果
+     * @param futureResult 执行结果
      */
-    void onSuccess(V result);
+    void onComplete(F futureResult);
+
 }

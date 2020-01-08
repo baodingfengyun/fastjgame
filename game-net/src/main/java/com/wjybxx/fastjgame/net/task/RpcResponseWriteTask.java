@@ -31,13 +31,13 @@ public class RpcResponseWriteTask implements WriteTask {
 
     private final Session session;
     private final long requestGuid;
-    private final boolean sync;
+    private final boolean flush;
     private final RpcResponse response;
 
-    public RpcResponseWriteTask(Session session, long requestGuid, boolean sync, RpcResponse response) {
+    public RpcResponseWriteTask(Session session, long requestGuid, boolean flush, RpcResponse response) {
         this.session = session;
         this.requestGuid = requestGuid;
-        this.sync = sync;
+        this.flush = flush;
         this.response = response;
     }
 
@@ -45,8 +45,8 @@ public class RpcResponseWriteTask implements WriteTask {
         return requestGuid;
     }
 
-    public boolean isSync() {
-        return sync;
+    public boolean isFlush() {
+        return flush;
     }
 
     public RpcResponse getResponse() {
@@ -55,8 +55,7 @@ public class RpcResponseWriteTask implements WriteTask {
 
     @Override
     public void run() {
-        if (sync) {
-            // 同步调用的结果，需要刷新缓冲区，尽快的返回结果，异步的则无需着急刷新缓冲区
+        if (flush) {
             session.fireWriteAndFlush(this);
         } else {
             session.fireWrite(this);

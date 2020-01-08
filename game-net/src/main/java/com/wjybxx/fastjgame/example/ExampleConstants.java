@@ -52,10 +52,6 @@ public final class ExampleConstants {
      * tcp端口
      */
     public static final int tcpPort = 23333;
-    /**
-     * http端口
-     */
-    public static final int httpPort = 54321;
 
     private ExampleConstants() {
 

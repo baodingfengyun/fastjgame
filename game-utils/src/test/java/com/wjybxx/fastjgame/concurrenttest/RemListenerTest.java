@@ -19,6 +19,7 @@
 package com.wjybxx.fastjgame.concurrenttest;
 
 import com.wjybxx.fastjgame.concurrent.*;
+import com.wjybxx.fastjgame.concurrent.FutureListener;
 
 /**
  * @author wjybxx

@@ -14,11 +14,13 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.concurrent.async;
+package com.wjybxx.fastjgame.async;
 
-import com.wjybxx.fastjgame.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.concurrent.FutureResult;
 
 import javax.annotation.Nonnull;
+import javax.annotation.concurrent.NotThreadSafe;
+import java.util.concurrent.ExecutionException;
 
 /**
  * 可刷新缓冲区的异步方法句柄。
@@ -29,7 +31,8 @@ import javax.annotation.Nonnull;
  * date - 2020/1/7
  * github - https://github.com/hl845740757
  */
-public interface FlushableAsyncMethodHandle<T, V> extends AsyncMethodHandle<T, V> {
+@NotThreadSafe
+public interface FlushableAsyncMethodHandle<V, T, F extends FutureResult<V>> extends AsyncMethodHandle<V, T, F> {
 
     /**
      * 在指定对象上执行对应的方法，但不监听方法的执行结果。
@@ -40,12 +43,28 @@ public interface FlushableAsyncMethodHandle<T, V> extends AsyncMethodHandle<T, V
     void executeAndFlush(@Nonnull T typeObj);
 
     /**
-     * 在指定对象上执行对应的方法，并返回可监听结果的future。
+     * 在指定对象上执行对应的方法，并监听执行结果。
      * 且如果方法在某个缓冲区排队，那么会尝试刷新缓冲区，以尽快执行。
      *
      * @param typeObj 方法的执行对象
-     * @return future，可用于监听本次call调用的结果。
      */
-    @Nonnull
-    ListenableFuture<V> callAndFlush(@Nonnull T typeObj);
+    void callAndFlush(@Nonnull T typeObj);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @apiNote 同步调用是很紧急的，因此该方法实现类必须刷新缓冲区，以尽快执行同步调用。
+     */
+    @Override
+    V syncCall(@Nonnull T typeObj) throws ExecutionException;
+
+    @Override
+    FlushableAsyncMethodHandle<V, T, F> onSuccess(GenericFutureSuccessResultListener<F, ? super V> listener);
+
+    @Override
+    FlushableAsyncMethodHandle<V, T, F> onFailure(GenericFutureFailureResultListener<F, ? super V> listener);
+
+    @Override
+    FlushableAsyncMethodHandle<V, T, F> onComplete(GenericFutureResultListener<F, ? super V> listener);
+
 }

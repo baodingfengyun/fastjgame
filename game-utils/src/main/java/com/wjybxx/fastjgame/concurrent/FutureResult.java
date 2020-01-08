@@ -33,7 +33,7 @@ public interface FutureResult<V> {
      * 如果future关联的task没有返回值(操作完成返回null)，此时不能根据返回值做任何判断。对于这种情况，
      * 你可以使用{@link #isSuccess()},作为更好的选择。
      */
-    V getNow();
+    V get();
 
     /**
      * 如果执行失败，则返回执行失败的原因，否则返回null。

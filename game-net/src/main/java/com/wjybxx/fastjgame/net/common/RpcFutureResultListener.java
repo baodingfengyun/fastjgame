@@ -14,43 +14,21 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.concurrent;
+package com.wjybxx.fastjgame.net.common;
 
-import java.util.concurrent.CancellationException;
+import com.wjybxx.fastjgame.async.GenericFutureResultListener;
 
 /**
+ * Rpc调用完成回调
+ *
  * @author wjybxx
  * @version 1.0
- * date - 2020/1/8
+ * date - 2019/8/3
  * github - https://github.com/hl845740757
  */
-public class DefaultFutureResult<V> implements FutureResult<V> {
-
-    private final V result;
-    private final Throwable cause;
-
-    public DefaultFutureResult(V result, Throwable cause) {
-        this.result = result;
-        this.cause = cause;
-    }
+public interface RpcFutureResultListener<V> extends GenericFutureResultListener<RpcFutureResult<V>, V> {
 
     @Override
-    public final V get() {
-        return result;
-    }
+    void onComplete(RpcFutureResult<V> futureResult);
 
-    @Override
-    public final Throwable cause() {
-        return cause;
-    }
-
-    @Override
-    public final boolean isSuccess() {
-        return cause == null;
-    }
-
-    @Override
-    public final boolean isCancelled() {
-        return cause instanceof CancellationException;
-    }
 }

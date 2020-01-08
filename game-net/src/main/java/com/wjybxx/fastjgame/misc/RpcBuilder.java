@@ -16,8 +16,12 @@
 
 package com.wjybxx.fastjgame.misc;
 
+import com.wjybxx.fastjgame.async.FlushableAsyncMethodHandle;
+import com.wjybxx.fastjgame.async.GenericFutureFailureResultListener;
+import com.wjybxx.fastjgame.async.GenericFutureResultListener;
+import com.wjybxx.fastjgame.async.GenericFutureSuccessResultListener;
 import com.wjybxx.fastjgame.net.common.RpcCall;
-import com.wjybxx.fastjgame.net.common.RpcCallback;
+import com.wjybxx.fastjgame.net.common.RpcFutureResult;
 import com.wjybxx.fastjgame.net.session.Session;
 
 import javax.annotation.Nonnull;
@@ -38,21 +42,17 @@ import java.util.concurrent.ExecutionException;
  * 对于游戏而言，每一个请求，每一个消息都是要发给确定的服务提供者的（另一个确定的服务器），因此你要获得一个正确的proxy并不容易，
  * 你必定需要指定一些额外参数才能获得正确的proxy。由于要获得正确的proxy，必定要获取正确的session，因此干脆不创建proxy，而是指定session。
  * <p>
- * Q: 为什么指定Session的时候可以为null？
- * A: 可以省却外部的检查。
- * <p>
  * 使用示例：
  * <pre>
- * 1. rpc调用：
+ * 1. 单向通知：
  * {@code
  *      Proxy.methodName(a, b, c)
- *          .onSuccess(result -> onSuccess(result))
- *          .call(session);
+ *          .send(session);
  * }
  * </pre>
  *
  * <pre>
- * 2.广播:
+ * 2. 广播:
  * {@code
  *     Proxy.methodName(a, b, c)
  *          .broadcast(sessionCollection);
@@ -66,88 +66,23 @@ import java.util.concurrent.ExecutionException;
  * }
  * </pre>
  *
+ * <pre>
+ * 3. rpc调用：
+ * {@code
+ *      Proxy.methodName(a, b, c)
+ *          .onSuccess(result -> onSuccess(result))
+ *          .onFailure(cause -> session.close())
+ *          .call(session);
+ * }
+ * </pre>
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/22
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public interface RpcBuilder<V> {
-
-    // ------------------------------------------- 添加回调 ----------------------------------------------
-
-    /**
-     * 设置成功时执行的回调。
-     * 注意：只有当后续调用的是{@link #call(Session)}时才会有效。
-     *
-     * @param callback 回调逻辑
-     * @return this
-     */
-    RpcBuilder<V> onSuccess(@Nonnull SucceededRpcCallback<V> callback);
-
-    /**
-     * 设置失败时执行的回调。
-     * 注意：只有当后续调用的是{@link #call(Session)}时才会有效。
-     *
-     * @param callback 回调逻辑
-     * @return this
-     */
-    RpcBuilder<V> onFailure(@Nonnull FailedRpcCallback<V> callback);
-
-    /**
-     * 设置无论成功还是失败都会执行的回调。
-     * 注意：只有当后续调用的是{@link #call(Session)}时才会有效。
-     *
-     * @param callback 回调逻辑
-     * @return this
-     */
-    RpcBuilder<V> onComplete(@Nonnull RpcCallback<V> callback);
-
-    // --------------------------------------------- 真正执行 --------------------------------------------------
-
-    /**
-     * 发送一个单向消息 - 它表示不需要方法的执行结果。
-     * 注意:
-     * 1. 即使添加了回调，这些回调也会被忽略。
-     *
-     * @param session 要通知的session
-     */
-    void send(@Nonnull Session session);
-
-    /**
-     * 广播一个消息，它是对{@link #send(Session)}的一个包装。
-     * 注意:
-     * 1. 即使添加了回调，这些回调也会被忽略。
-     *
-     * @param sessionGroup 要广播的所有session
-     */
-    void broadcast(@Nonnull Iterable<Session> sessionGroup);
-
-    /**
-     * 执行异步rpc调用，无论如何对方都会返回一个结果。
-     * call是不是很好记住？那就多用它。
-     * <p>
-     * 注意：
-     * 1. 一旦调用了call方法，回调信息将被重置。
-     * 2. 没有设置回调，则表示不关心结果。
-     *
-     * @param session rpc请求的目的地
-     */
-    void call(@Nonnull Session session);
-
-    /**
-     * 执行同步rpc调用，如果执行成功，则返回对应的调用结果，否则返回null。
-     * <p>
-     * 注意：
-     * 1. 少使用同步调用，必要的时候使用同步可以降低编程复杂度，但是大量使用会大大降低吞吐量。
-     * 2. 即使添加了回调，这些回调也会被忽略。
-     *
-     * @param session rpc请求的目的地
-     * @return result
-     */
-    V syncCall(@Nonnull Session session) throws ExecutionException;
-
-    // ------------------------------------------  路由/转发 ------------------------------------------
+public interface RpcBuilder<V> extends FlushableAsyncMethodHandle<V, Session, RpcFutureResult<V>> {
 
     /**
      * 获取该方法包含的调用信息，可用于二次封装。
@@ -162,5 +97,67 @@ public interface RpcBuilder<V> {
      * @return this
      */
     RpcBuilder<V> router(RpcRouter<V> router);
+
+    /**
+     * 发送一个单向消息 - 它表示不需要方法的执行结果。
+     * 注意:
+     * 1. 即使添加了回调，这些回调也会被忽略。
+     *
+     * @param session 要通知的session
+     */
+    void send(@Nonnull Session session);
+
+    /**
+     * 发送一个单向消息 - 它表示不需要方法的执行结果。
+     * 且如果方法在缓冲区，则会尝试刷新缓冲区。
+     * 注意:
+     * 1. 即使添加了回调，这些回调也会被忽略。
+     *
+     * @param session 要通知的session
+     */
+    void sendAndFlush(Session session);
+
+    /**
+     * 广播一个消息，它是对{@link #send(Session)}的一个包装。
+     * 注意:
+     * 1. 即使添加了回调，这些回调也会被忽略。
+     *
+     * @param sessionGroup 要广播的所有session
+     */
+    void broadcast(@Nonnull Iterable<Session> sessionGroup);
+
+    void call(@Nonnull Session session);
+
+    @Override
+    void callAndFlush(@Nonnull Session session);
+
+    V syncCall(@Nonnull Session session) throws ExecutionException;
+
+    /**
+     * @deprecated 使用更具表达力的 {@link #send(Session)}代替。
+     */
+    @Deprecated
+    @Override
+    default void execute(@Nonnull Session session) {
+        send(session);
+    }
+
+    /**
+     * @deprecated 使用更具表达力的 {@link #sendAndFlush(Session)}代替。
+     */
+    @Deprecated
+    @Override
+    default void executeAndFlush(@Nonnull Session session) {
+        sendAndFlush(session);
+    }
+
+    @Override
+    RpcBuilder<V> onSuccess(GenericFutureSuccessResultListener<RpcFutureResult<V>, ? super V> listener);
+
+    @Override
+    RpcBuilder<V> onFailure(GenericFutureFailureResultListener<RpcFutureResult<V>, ? super V> listener);
+
+    @Override
+    RpcBuilder<V> onComplete(GenericFutureResultListener<RpcFutureResult<V>, ? super V> listener);
 
 }
