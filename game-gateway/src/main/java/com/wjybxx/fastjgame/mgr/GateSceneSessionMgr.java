@@ -103,7 +103,7 @@ public class GateSceneSessionMgr {
         public void onSessionConnected(Session session) {
             ISceneGateSessionMgrRpcProxy.register(worldInfoMgr.getServerId())
                     .onSuccess(result -> onRegisterSceneResult(session, result))
-                    .onFailure(rpcResponse -> session.close())
+                    .onFailure(failureResult -> session.close())
                     .call(session);
         }
 

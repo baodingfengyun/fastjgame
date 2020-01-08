@@ -38,15 +38,11 @@ import java.util.concurrent.ExecutionException;
  * <p>
  * 而我们如果仅仅是想异步执行的话，以上有太多冗余。我们对其封装之后，可以进行一些优化。
  * 最基本的优化就是，我们将提前设置好的回调整合为一个回调，放置到{@link ListenableFuture}中。
- * 更进一步的话，我们可以去掉{@link ListenableFuture}，完全基于线程间传递消息完成异步。
- *
- * <p>
- * 高在哪？
- * 1. 如果想实现{@link }
+ * 更进一步的话，我们甚至可以去掉{@link ListenableFuture}，完全基于线程间传递消息完成异步。
  *
  * @param <V> the type of return type
  * @param <T> the type of method owner
- * @param <F> the type of listener
+ * @param <F> the type of future result
  * @author wjybxx
  * @version 1.0
  * date - 2020/1/5 18:52

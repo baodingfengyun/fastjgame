@@ -34,9 +34,12 @@ public interface GenericFutureFailureResultListener<F extends FutureResult<V>, V
     @Override
     default void onComplete(F futureResult) {
         if (!futureResult.isSuccess()) {
-            onFailure(futureResult.cause());
+            onFailure(futureResult);
         }
     }
 
-    void onFailure(@Nonnull Throwable cause);
+    /**
+     * @param failureResult 失败的结果，可以获得更多信息
+     */
+    void onFailure(@Nonnull F failureResult);
 }

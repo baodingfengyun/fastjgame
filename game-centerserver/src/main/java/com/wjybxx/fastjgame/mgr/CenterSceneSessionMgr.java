@@ -167,7 +167,7 @@ public class CenterSceneSessionMgr {
         public void onSessionConnected(Session session) {
             ISceneCenterSessionMgrRpcProxy.register(worldInfoMgr.getServerId())
                     .onSuccess(result -> onRegisterSceneResult(session, result))
-                    .onFailure(rpcResponse -> session.close())
+                    .onFailure(failureResult -> session.close())
                     .call(session);
         }
 

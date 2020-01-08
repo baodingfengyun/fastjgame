@@ -69,5 +69,4 @@ public abstract class AbstractAsyncMethodHandle<V, T, F extends FutureResult<V>>
         this.listener = null;
         return result;
     }
-
 }

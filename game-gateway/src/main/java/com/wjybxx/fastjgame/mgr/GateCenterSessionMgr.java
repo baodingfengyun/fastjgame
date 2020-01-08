@@ -87,7 +87,7 @@ public class GateCenterSessionMgr {
         public void onSessionConnected(Session session) {
             ICenterGateSessionMgrRpcProxy.register()
                     .onSuccess(result -> onRegisterCenterResult(session, result))
-                    .onFailure(rpcResponse -> session.close())
+                    .onFailure(failureResult -> session.close())
                     .call(session);
         }
 
