@@ -51,6 +51,11 @@ public class FailedFuture<V> extends CompleteFuture<V> {
         return AbstractListenableFuture.rethrowCause(cause);
     }
 
+    @Override
+    public V join() throws ExecutionException {
+        return AbstractListenableFuture.rethrowCause(cause);
+    }
+
     @Nullable
     @Override
     public V getNow() {

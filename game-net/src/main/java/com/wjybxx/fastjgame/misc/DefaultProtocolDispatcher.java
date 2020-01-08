@@ -17,8 +17,8 @@
 package com.wjybxx.fastjgame.misc;
 
 import com.wjybxx.fastjgame.net.common.ProtocolDispatcher;
+import com.wjybxx.fastjgame.net.common.RpcCall;
 import com.wjybxx.fastjgame.net.common.RpcCallback;
-import com.wjybxx.fastjgame.net.common.RpcResponse;
 import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
 import com.wjybxx.fastjgame.net.session.Session;
 import org.slf4j.Logger;
@@ -75,7 +75,7 @@ public class DefaultProtocolDispatcher implements RpcFunctionRegistry, ProtocolD
     }
 
     @Override
-    public void postRpcCallback(Session session, RpcCallback rpcCallback, RpcResponse rpcResponse) {
-        rpcCallback.onComplete(rpcResponse);
+    public <V> void postRpcCallback(Session session, RpcCallback<V> rpcCallback, V result, Throwable cause) {
+        rpcCallback.onComplete(result, cause);
     }
 }

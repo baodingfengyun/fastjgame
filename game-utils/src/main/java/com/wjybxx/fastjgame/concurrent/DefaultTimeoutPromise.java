@@ -46,8 +46,9 @@ public class DefaultTimeoutPromise<V> extends DefaultPromise<V> implements Timeo
         deadline = System.currentTimeMillis() + timeUnit.toMillis(timeout);
     }
 
-    private long remainTimeMillis() {
-        return deadline - System.currentTimeMillis();
+    @Override
+    public final boolean isTimeout() {
+        return cause() instanceof TimeoutException;
     }
 
     // ---------------------------------------------- 超时检测 ------------------------------------------------
@@ -111,10 +112,11 @@ public class DefaultTimeoutPromise<V> extends DefaultPromise<V> implements Timeo
         }
     }
 
-    /**
-     * 触发超时逻辑
-     */
-    protected void onTimeout() {
+    private long remainTimeMillis() {
+        return deadline - System.currentTimeMillis();
+    }
+
+    private void onTimeout() {
         tryFailure(new TimeoutException());
     }
     // ---------------------------------------------- 流式语法 ------------------------------------------------

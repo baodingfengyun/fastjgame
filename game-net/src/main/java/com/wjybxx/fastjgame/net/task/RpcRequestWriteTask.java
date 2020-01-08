@@ -17,25 +17,28 @@
 package com.wjybxx.fastjgame.net.task;
 
 import com.wjybxx.fastjgame.net.common.RpcCallback;
+import com.wjybxx.fastjgame.net.common.RpcPromise;
 import com.wjybxx.fastjgame.net.session.Session;
 
 /**
- * 异步Rpc发送任务
+ * 同步Rpc请求发送任务
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/9/26
  * github - https://github.com/hl845740757
  */
-public class AsyncRpcRequestWriteTask implements WriteTask {
+public class RpcRequestWriteTask<V> implements WriteTask {
 
     private final Session session;
     private final Object request;
-    private final RpcCallback rpcCallback;
+    private final RpcPromise<V> rpcPromise;
+    private final RpcCallback<V> rpcCallback;
 
-    public AsyncRpcRequestWriteTask(Session session, Object request, RpcCallback rpcCallback) {
+    public RpcRequestWriteTask(Session session, Object request, RpcPromise<V> rpcPromise, RpcCallback<V> rpcCallback) {
         this.session = session;
         this.request = request;
+        this.rpcPromise = rpcPromise;
         this.rpcCallback = rpcCallback;
     }
 
@@ -43,14 +46,22 @@ public class AsyncRpcRequestWriteTask implements WriteTask {
         return request;
     }
 
-    public RpcCallback getRpcCallback() {
+    public RpcPromise<V> getRpcPromise() {
+        return rpcPromise;
+    }
+
+    public RpcCallback<V> getRpcCallback() {
         return rpcCallback;
     }
 
     @Override
     public void run() {
-        // 异步rpc调用无需刷新缓冲区
-        session.fireWrite(this);
+        if (rpcPromise != null) {
+            // 同步rpc调用，需要刷新缓冲区，尽快的发送出去，异步调用的则无需着急刷新缓冲区
+            session.fireWriteAndFlush(this);
+        } else {
+            session.fireWrite(this);
+        }
     }
 
 }

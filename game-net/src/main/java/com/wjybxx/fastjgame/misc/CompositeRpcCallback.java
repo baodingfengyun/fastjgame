@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.misc;
 
 import com.wjybxx.fastjgame.net.common.RpcCallback;
-import com.wjybxx.fastjgame.net.common.RpcResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,64 +31,29 @@ import java.util.List;
  * date - 2019/8/19
  * github - https://github.com/hl845740757
  */
-public final class CompositeRpcCallback<V> implements RpcCallback {
+public final class CompositeRpcCallback<V> implements RpcCallback<V> {
 
     private static final Logger logger = LoggerFactory.getLogger(CompositeRpcCallback.class);
 
-    private final List<RpcCallback> children = new ArrayList<>(2);
+    private final List<RpcCallback<V>> children = new ArrayList<>(2);
 
-    public CompositeRpcCallback(RpcCallback first, RpcCallback second) {
+    CompositeRpcCallback(RpcCallback<V> first, RpcCallback<V> second) {
         children.add(first);
         children.add(second);
     }
 
     @Override
-    public void onComplete(RpcResponse rpcResponse) {
-        for (RpcCallback rpcCallback : children) {
+    public void onComplete(V result, Throwable cause) {
+        for (RpcCallback<V> rpcCallback : children) {
             try {
-                rpcCallback.onComplete(rpcResponse);
+                rpcCallback.onComplete(result, cause);
             } catch (Throwable e) {
                 logger.warn("Child onComplete caught exception!", e);
             }
         }
     }
 
-    /**
-     * 只有成功才执行该方法
-     *
-     * @return this
-     */
-    public CompositeRpcCallback<V> onSuccess(SucceededRpcCallback<V> rpcCallback) {
+    void addChild(RpcCallback<V> rpcCallback) {
         children.add(rpcCallback);
-        return this;
-    }
-
-    /**
-     * 只有失败才执行该方法
-     *
-     * @return this
-     */
-    public CompositeRpcCallback<V> onFailure(FailedRpcCallback rpcCallback) {
-        children.add(rpcCallback);
-        return this;
-    }
-
-    /**
-     * 无论成功失败都会执行该方法
-     *
-     * @return this
-     */
-    public CompositeRpcCallback<V> onComplete(RpcCallback rpcCallback) {
-        children.add(rpcCallback);
-        return this;
-    }
-
-    /**
-     * 删除第一个匹配的回调
-     *
-     * @param callback 回调
-     */
-    public boolean remove(RpcCallback callback) {
-        return children.remove(callback);
     }
 }

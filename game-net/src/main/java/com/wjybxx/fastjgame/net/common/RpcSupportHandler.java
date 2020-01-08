@@ -16,20 +16,34 @@
 
 package com.wjybxx.fastjgame.net.common;
 
+import com.wjybxx.fastjgame.net.exception.RpcServerException;
 import com.wjybxx.fastjgame.net.session.Session;
+import com.wjybxx.fastjgame.net.session.SessionConfig;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
-import com.wjybxx.fastjgame.net.task.*;
+import com.wjybxx.fastjgame.net.task.RpcRequestCommitTask;
+import com.wjybxx.fastjgame.net.task.RpcRequestWriteTask;
+import com.wjybxx.fastjgame.net.task.RpcResponseCommitTask;
+import com.wjybxx.fastjgame.net.task.RpcResponseWriteTask;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.TimeoutException;
 
 /**
  * 提供Rpc调用支持的handler。
  * 收发{@link RpcRequestMessage}
+ * <p>
+ * 实现需要注意：
+ * 1.rpc响应在应用线程未关闭的情况下必须执行 - 否则可能造成逻辑错误(信号丢失 - 该执行的没执行)
+ * 2.目前的rpc支持为{@link RpcCall} 和 {@link RpcResponse}
  *
  * @author wjybxx
  * @version 1.0
@@ -39,6 +53,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
 
+    private ProtocolCodec codec;
     private long rpcCallbackTimeoutMs;
     /**
      * RpcRequestId分配器
@@ -58,7 +73,9 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void handlerAdded(SessionHandlerContext ctx) throws Exception {
-        rpcCallbackTimeoutMs = ctx.session().config().getRpcCallbackTimeoutMs();
+        final SessionConfig config = ctx.session().config();
+        rpcCallbackTimeoutMs = config.getRpcCallbackTimeoutMs();
+        codec = config.codec();
     }
 
     @Override
@@ -72,25 +89,19 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             RpcTimeoutInfo rpcTimeoutInfo = iterator.next();
             if (curTimeMillis >= rpcTimeoutInfo.deadline) {
                 iterator.remove();
-                commitRpcResponse(ctx.session(), rpcTimeoutInfo, RpcResponse.TIMEOUT);
+                commitCause(ctx.session(), rpcTimeoutInfo, RpcTimeoutException.INSTANCE);
             }
         }
     }
 
-    /**
-     * rpc回调必须执行 - 否则可能造成逻辑错误(信号丢失 - 该执行的没执行)
-     *
-     * @param rpcTimeoutInfo rpc请求时的一些信息
-     * @param rpcResponse    期望提交的rpc调用结果。
-     */
-    private void commitRpcResponse(Session session, RpcTimeoutInfo rpcTimeoutInfo, RpcResponse rpcResponse) {
+    private void commitCause(Session session, RpcTimeoutInfo rpcTimeoutInfo, Throwable cause) {
         if (rpcTimeoutInfo.rpcPromise != null) {
             // 同步rpc调用
-            rpcTimeoutInfo.rpcPromise.trySuccess(rpcResponse);
+            rpcTimeoutInfo.rpcPromise.tryFailure(cause);
         } else {
             // 异步rpc调用
             ConcurrentUtils.safeExecute(session.appEventLoop(),
-                    new RpcResponseCommitTask(session, rpcTimeoutInfo.rpcCallback, rpcResponse));
+                    new RpcResponseCommitTask<>(session, rpcTimeoutInfo.rpcCallback, null, cause));
         }
     }
 
@@ -105,30 +116,20 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void write(SessionHandlerContext ctx, Object msg) throws Exception {
-        if (msg instanceof AsyncRpcRequestWriteTask) {
-            // 异步rpc请求
-            AsyncRpcRequestWriteTask writeTask = (AsyncRpcRequestWriteTask) msg;
+        if (msg instanceof RpcRequestWriteTask) {
+            // rpc请求
+            RpcRequestWriteTask<?> writeTask = (RpcRequestWriteTask<?>) msg;
 
             // 保存rpc请求上下文
             long deadline = ctx.timerSystem().curTimeMillis() + rpcCallbackTimeoutMs;
-            RpcTimeoutInfo rpcTimeoutInfo = RpcTimeoutInfo.newInstance(writeTask.getRpcCallback(), deadline);
+            RpcTimeoutInfo rpcTimeoutInfo = new RpcTimeoutInfo(writeTask.getRpcPromise(), writeTask.getRpcCallback(), deadline);
             long requestGuid = ++requestGuidSequencer;
             rpcTimeoutInfoMap.put(requestGuid, rpcTimeoutInfo);
 
+            // 检查延迟序列化字段
+            final Object body = checkLazySerialize((RpcCall<?>) writeTask.getRequest());
             // 执行发送
-            ctx.fireWrite(new RpcRequestMessage(requestGuid, false, writeTask.getRequest()));
-        } else if (msg instanceof SyncRpcRequestWriteTask) {
-            // 同步rpc请求
-            SyncRpcRequestWriteTask writeTask = (SyncRpcRequestWriteTask) msg;
-
-            // 保存rpc请求上下文
-            long deadline = ctx.timerSystem().curTimeMillis() + rpcCallbackTimeoutMs;
-            RpcTimeoutInfo rpcTimeoutInfo = RpcTimeoutInfo.newInstance(writeTask.getRpcPromise(), deadline);
-            long requestGuid = ++requestGuidSequencer;
-            rpcTimeoutInfoMap.put(requestGuid, rpcTimeoutInfo);
-
-            // 执行发送
-            ctx.fireWrite(new RpcRequestMessage(requestGuid, true, writeTask.getRequest()));
+            ctx.fireWrite(new RpcRequestMessage(requestGuid, true, body));
         } else if (msg instanceof RpcResponseWriteTask) {
             // rpc调用结果
             RpcResponseWriteTask writeTask = (RpcResponseWriteTask) msg;
@@ -142,20 +143,22 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
     }
 
     @Override
-    public void read(SessionHandlerContext ctx, Object msg) {
+    public void read(SessionHandlerContext ctx, Object msg) throws IOException {
         if (msg instanceof RpcRequestMessage) {
             // 读取到一个Rpc请求消息，提交给应用层
             RpcRequestMessage requestMessage = (RpcRequestMessage) msg;
             RpcResponseChannel<?> rpcResponseChannel = new DefaultRpcResponseChannel<>(ctx.session(),
                     requestMessage.getRequestGuid(), requestMessage.isSync());
 
-            ctx.appEventLoop().execute(new RpcRequestCommitTask(ctx.session(), rpcResponseChannel, requestMessage.getRequest()));
+            // 检查提前反序列化字段
+            final Object body = checkPreDeserialize(requestMessage.getBody());
+            ctx.appEventLoop().execute(new RpcRequestCommitTask(ctx.session(), body, rpcResponseChannel));
         } else if (msg instanceof RpcResponseMessage) {
             // 读取到一个Rpc响应消息，提交给应用层
             RpcResponseMessage responseMessage = (RpcResponseMessage) msg;
             final RpcTimeoutInfo rpcTimeoutInfo = rpcTimeoutInfoMap.remove(responseMessage.getRequestGuid());
             if (null != rpcTimeoutInfo) {
-                commitRpcResponse(ctx.session(), rpcTimeoutInfo, responseMessage.getRpcResponse());
+                commitRpcResponse(ctx.session(), rpcTimeoutInfo, (RpcResponse) responseMessage.getBody());
             }
             // else 可能超时了
         } else {
@@ -164,12 +167,112 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
     }
 
     /**
+     * @param rpcTimeoutInfo rpc请求时的一些信息
+     * @param rpcResponse    期望提交的rpc调用结果。
+     */
+    @SuppressWarnings("unchecked, rawtypes")
+    private <V> void commitRpcResponse(Session session, RpcTimeoutInfo rpcTimeoutInfo, RpcResponse rpcResponse) {
+        final V result;
+        final Throwable cause;
+        if (rpcResponse.isSuccess()) {
+            result = (V) rpcResponse.getBody();
+            cause = null;
+        } else {
+            result = null;
+            cause = new RpcServerException(rpcResponse);
+        }
+
+        final RpcPromise<V> rpcPromise = (RpcPromise<V>) rpcTimeoutInfo.rpcPromise;
+        if (rpcPromise != null) {
+            // 同步rpc调用
+            if (cause != null) {
+                rpcPromise.tryFailure(cause);
+            } else {
+                rpcPromise.trySuccess(result);
+            }
+        } else {
+            // 异步rpc调用
+            final RpcCallback<V> rpcCallback = (RpcCallback<V>) rpcTimeoutInfo.rpcCallback;
+            ConcurrentUtils.safeExecute(session.appEventLoop(), new RpcResponseCommitTask<>(session, rpcCallback, result, cause));
+        }
+    }
+
+    /**
      * 取消所有的rpc请求
      */
     private void cancelAllRpcRequest(SessionHandlerContext ctx) {
         for (RpcTimeoutInfo rpcTimeoutInfo : rpcTimeoutInfoMap.values()) {
-            commitRpcResponse(ctx.session(), rpcTimeoutInfo, RpcResponse.SESSION_CLOSED);
+            commitCause(ctx.session(), rpcTimeoutInfo, RpcCancelledException.INSTANCE);
         }
+    }
+
+    /**
+     * 检查延迟初始化参数
+     *
+     * @return newCall or the same call
+     * @throws IOException error
+     */
+    private Object checkLazySerialize(RpcCall<?> rpcCall) throws IOException {
+        final int lazyIndexes = rpcCall.getLazyIndexes();
+        if (lazyIndexes <= 0) {
+            return rpcCall;
+        }
+
+        // bugs: 如果不创建新的list，则可能出现并发set的情况，可能导致部分线程看见错误的数据
+        // 解决方案有：①防御性拷贝 ②对RpcCall对象加锁
+        // 选择防御性拷贝的理由：①使用延迟序列化和提前反序列化的比例并不高 ②方法方法参数个数偏小，创建一个小list的成本较低。
+        final List<Object> methodParams = rpcCall.getMethodParams();
+        final ArrayList<Object> newMethodParams = new ArrayList<>(methodParams.size());
+
+        for (int index = 0, end = methodParams.size(); index < end; index++) {
+            final Object parameter = methodParams.get(index);
+            final Object newParameter;
+
+            if ((lazyIndexes & (1L << index)) != 0 && !(parameter instanceof byte[])) {
+                newParameter = codec.serializeToBytes(parameter);
+            } else {
+                newParameter = parameter;
+            }
+
+            newMethodParams.add(newParameter);
+        }
+
+        return new RpcCall<>(rpcCall.getMethodKey(), newMethodParams, 0, rpcCall.getPreIndexes());
+    }
+
+    /**
+     * 检查提前反序列化参数
+     *
+     * @return newCall or the same call
+     * @throws IOException error
+     */
+    private Object checkPreDeserialize(Object body) throws IOException {
+        if (!(body instanceof RpcCall)) {
+            return body;
+        }
+
+        final RpcCall<?> rpcCall = (RpcCall<?>) body;
+        final int preIndexes = rpcCall.getPreIndexes();
+        if (preIndexes <= 0) {
+            return rpcCall;
+        }
+
+        // 线程安全问题同上面
+        final List<Object> methodParams = rpcCall.getMethodParams();
+        final ArrayList<Object> newMethodParams = new ArrayList<>(methodParams.size());
+
+        for (int index = 0, end = methodParams.size(); index < end; index++) {
+            final Object parameter = methodParams.get(index);
+            final Object newParameter;
+            if ((preIndexes & (1L << index)) != 0 && parameter instanceof byte[]) {
+                newParameter = codec.deserializeFromBytes((byte[]) parameter);
+            } else {
+                newParameter = parameter;
+            }
+            newMethodParams.add(newParameter);
+        }
+
+        return new RpcCall<>(rpcCall.getMethodKey(), newMethodParams, rpcCall.getLazyIndexes(), 0);
     }
 
     private static class DefaultRpcResponseChannel<T> extends AbstractRpcResponseChannel<T> {
@@ -189,6 +292,47 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             if (!session.isClosed()) {
                 session.netEventLoop().execute(new RpcResponseWriteTask(session, requestGuid, sync, rpcResponse));
             }
+        }
+    }
+
+    private static class RpcTimeoutInfo {
+
+        // promise与callback二者存一
+        final RpcPromise<?> rpcPromise;
+        final RpcCallback<?> rpcCallback;
+
+        final long deadline;
+
+        RpcTimeoutInfo(RpcPromise<?> rpcPromise, RpcCallback<?> rpcCallback, long deadline) {
+            this.rpcPromise = rpcPromise;
+            this.rpcCallback = rpcCallback;
+            this.deadline = deadline;
+        }
+    }
+
+    private static class RpcTimeoutException extends TimeoutException {
+
+        private static final RpcTimeoutException INSTANCE = new RpcTimeoutException();
+
+        RpcTimeoutException() {
+        }
+
+        @Override
+        public synchronized Throwable fillInStackTrace() {
+            return this;
+        }
+    }
+
+    private static class RpcCancelledException extends CancellationException {
+
+        private static final RpcCancelledException INSTANCE = new RpcCancelledException();
+
+        RpcCancelledException() {
+        }
+
+        @Override
+        public synchronized Throwable fillInStackTrace() {
+            return this;
         }
     }
 }

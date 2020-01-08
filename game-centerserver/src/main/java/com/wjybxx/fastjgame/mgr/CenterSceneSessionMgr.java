@@ -21,7 +21,6 @@ import com.wjybxx.fastjgame.config.SceneConfig;
 import com.wjybxx.fastjgame.misc.CenterSceneSession;
 import com.wjybxx.fastjgame.misc.LeastPlayerWorldChooser;
 import com.wjybxx.fastjgame.misc.SceneWorldChooser;
-import com.wjybxx.fastjgame.net.common.RpcResponse;
 import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.node.SceneNodeData;
@@ -40,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 
 /**
@@ -208,13 +208,13 @@ public class CenterSceneSessionMgr {
         // TODO 检查该场景可以启动哪些互斥场景
         // TODO 这里现在是测试的
         // 这里使用同步方法调用，会大大简化逻辑
-        final RpcResponse rpcResponse = ISceneRegionMgrRpcProxy.startMutexRegion(Collections.singletonList(SceneRegion.LOCAL_PKC.getNumber()))
-                .sync(session);
-        if (rpcResponse.isSuccess()) {
+        try {
+            ISceneRegionMgrRpcProxy.startMutexRegion(Collections.singletonList(SceneRegion.LOCAL_PKC.getNumber()))
+                    .syncCall(session);
             activeRegions.add(SceneRegion.LOCAL_PKC);
-        } else {
+        } catch (ExecutionException e) {
             // 遇见这个需要好好处理(适当增加超时时间)，尽量不能失败
-            logger.error("active region failed, code={}", rpcResponse.getResultCode());
+            logger.error("active region failed, code={}", e.getCause());
         }
     }
 

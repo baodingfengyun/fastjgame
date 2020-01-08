@@ -14,33 +14,29 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.misc;
+package com.wjybxx.fastjgame.net.exception;
 
-import com.wjybxx.fastjgame.net.common.RpcCallback;
-import com.wjybxx.fastjgame.net.common.RpcResponse;
+import com.wjybxx.fastjgame.net.common.RpcErrorCode;
 
 /**
- * Rpc回调适配器。
- * (适配器模式)
+ * Session不存在
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/9/21
+ * date - 2020/1/8
  * github - https://github.com/hl845740757
  */
-public class RpcCallbackAdapter<T> implements RpcCallback {
+public class RpcSessionNullException extends RpcException {
 
-    private final SaferRpcCallback<T> saferRpcCallback;
+    public static final RpcSessionNullException INSTANCE = new RpcSessionNullException();
 
-    private final T context;
-
-    public RpcCallbackAdapter(SaferRpcCallback<T> saferRpcCallback, T context) {
-        this.saferRpcCallback = saferRpcCallback;
-        this.context = context;
+    private RpcSessionNullException() {
+        // 不填充堆栈
+        super(null, null, false, false);
     }
 
     @Override
-    public void onComplete(RpcResponse rpcResponse) {
-        saferRpcCallback.onComplete(rpcResponse, context);
+    public RpcErrorCode getErrorCode() {
+        return RpcErrorCode.SESSION_NULL;
     }
 }

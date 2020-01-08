@@ -36,7 +36,7 @@ import java.lang.annotation.Target;
  * <p>
  * eg:
  * <pre>{@code
- *        @HttpRequestMapping
+ *        @HttpRequestMapping(path = "/main")
  *        public void onRequest(HttpSession session, String path, HttpRequestParam param) {
  * 			// do something
  *        }

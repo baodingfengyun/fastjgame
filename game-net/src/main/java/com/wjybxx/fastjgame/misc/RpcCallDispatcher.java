@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.misc;
 
+import com.wjybxx.fastjgame.net.common.RpcCall;
 import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
 import com.wjybxx.fastjgame.net.session.Session;
 

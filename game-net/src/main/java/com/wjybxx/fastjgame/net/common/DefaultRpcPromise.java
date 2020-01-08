@@ -21,26 +21,19 @@ import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.FutureListener;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
- * RpcPromise基本实现，不论如何，执行结果都是成功，赋值结果必须是RpcResponse对象。
+ * RpcPromise基本实现。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/3
  * github - https://github.com/hl845740757
  */
-public class DefaultRpcPromise extends DefaultTimeoutPromise<RpcResponse> implements RpcPromise {
-
-    private static final Logger logger = LoggerFactory.getLogger(DefaultRpcPromise.class);
+public class DefaultRpcPromise<V> extends DefaultTimeoutPromise<V> implements RpcPromise<V> {
 
     /**
      * 工作线程 - 检查死锁的线程
@@ -62,77 +55,32 @@ public class DefaultRpcPromise extends DefaultTimeoutPromise<RpcResponse> implem
         ConcurrentUtils.checkDeadLock(workerEventLoop);
     }
 
-    // ------------------------------------------- get不抛出中断以外异常 ----------------------------------------
-
     @Override
-    public RpcResponse get() throws InterruptedException {
-        try {
-            return super.get();
-        } catch (ExecutionException error) {
-            logger.error("bad imp", error);
-            return new RpcResponse(RpcResultCode.LOCAL_EXCEPTION, error);
-        }
-    }
-
-    @Override
-    public RpcResponse get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, TimeoutException {
-        try {
-            return super.get(timeout, unit);
-        } catch (ExecutionException error) {
-            logger.error("bad imp", error);
-            return new RpcResponse(RpcResultCode.LOCAL_EXCEPTION, error);
-        }
-    }
-
-    // ----------------------------------------------- 将失败转换为成功 ----------------------------------------------
-
-    @Override
-    public void setFailure(@Nonnull Throwable cause) {
-        super.setSuccess(new RpcResponse(RpcResultCode.LOCAL_EXCEPTION, cause));
-    }
-
-    @Override
-    public boolean tryFailure(@Nonnull Throwable cause) {
-        return super.trySuccess(new RpcResponse(RpcResultCode.LOCAL_EXCEPTION, cause));
-    }
-
-    @Override
-    public boolean cancel(boolean mayInterruptIfRunning) {
-        return tryCompleted(RpcResponse.CANCELLED, true);
-    }
-
-    @Override
-    protected void onTimeout() {
-        super.trySuccess(RpcResponse.TIMEOUT);
-    }
-
-    // ------------------------------------------------ 支持流式语法 ------------------------------------
-    @Override
-    public RpcPromise await() throws InterruptedException {
+    public RpcPromise<V> await() throws InterruptedException {
         super.await();
         return this;
     }
 
     @Override
-    public RpcPromise awaitUninterruptibly() {
+    public RpcPromise<V> awaitUninterruptibly() {
         super.awaitUninterruptibly();
         return this;
     }
 
     @Override
-    public RpcPromise addListener(@Nonnull FutureListener<? super RpcResponse> listener) {
+    public RpcPromise<V> addListener(@Nonnull FutureListener<? super V> listener) {
         super.addListener(listener);
         return this;
     }
 
     @Override
-    public RpcPromise addListener(@Nonnull FutureListener<? super RpcResponse> listener, @Nonnull EventLoop bindExecutor) {
+    public RpcPromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor) {
         super.addListener(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public RpcPromise removeListener(@Nonnull FutureListener<? super RpcResponse> listener) {
+    public RpcPromise<V> removeListener(@Nonnull FutureListener<? super V> listener) {
         super.removeListener(listener);
         return this;
     }

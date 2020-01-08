@@ -116,6 +116,22 @@ public interface ListenableFuture<V> extends Future<V> {
     V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException;
 
     /**
+     * /**
+     * 获取task的结果。
+     * 如果future关联的task尚未完成，则阻塞等待至任务完成，并返回计算的结果。
+     * 如果future关联的task已完成，则立即返回结果。
+     * <p>
+     * 注意：
+     * 如果future关联的task没有返回值(操作完成返回null)，此时不能根据返回值做任何判断。对于这种情况，
+     * 你可以使用{@link #isSuccess()},作为更好的选择。
+     *
+     * @return task的结果
+     * @throws CancellationException 如果任务被取消了，则抛出该异常
+     * @throws ExecutionException    如果在计算过程中出现了其它异常导致任务失败，则抛出该异常。
+     */
+    V join() throws ExecutionException;
+
+    /**
      * 尝试非阻塞的获取当前结果，当且仅当任务正常完成时返回期望的结果，否则返回null，即：
      * 1. 如果future关联的task还未完成 {@link #isDone() false}，则返回null。
      * 2. 如果任务被取消或失败，则返回null。

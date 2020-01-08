@@ -14,34 +14,30 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.misc;
+package com.wjybxx.fastjgame.net.exception;
 
+import com.wjybxx.fastjgame.net.common.RpcErrorCode;
 import com.wjybxx.fastjgame.net.common.RpcResponse;
 
 /**
- * 更安全的成功时才回调的rpc回调
+ * 服务器执行调用时出现异常 - 通过{@link com.wjybxx.fastjgame.net.common.RpcResponse}解析得到。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/9/21
+ * date - 2020/1/8
  * github - https://github.com/hl845740757
  */
-@FunctionalInterface
-public interface SaferSucceedRpcCallback<V, T> extends SaferRpcCallback<T> {
+public class RpcServerException extends RpcException {
 
-    @SuppressWarnings("unchecked")
-    @Override
-    default void onComplete(RpcResponse rpcResponse, T context) {
-        if (rpcResponse.isSuccess()) {
-            onSuccess((V) rpcResponse.getBody(), context);
-        }
+    private final RpcErrorCode errorCode;
+
+    public RpcServerException(RpcResponse rpcResponse) {
+        super((String) rpcResponse.getBody());
+        this.errorCode = rpcResponse.getErrorCode();
     }
 
-    /**
-     * 当执行成功时
-     *
-     * @param result 调用结果
-     */
-    void onSuccess(V result, T context);
-
+    @Override
+    public RpcErrorCode getErrorCode() {
+        return errorCode;
+    }
 }

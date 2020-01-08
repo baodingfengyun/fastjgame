@@ -17,7 +17,8 @@
 package com.wjybxx.fastjgame.misc;
 
 import com.wjybxx.fastjgame.net.common.RpcCallback;
-import com.wjybxx.fastjgame.net.common.RpcResponse;
+
+import javax.annotation.Nonnull;
 
 /**
  * 只有失败才执行的回调。
@@ -29,19 +30,19 @@ import com.wjybxx.fastjgame.net.common.RpcResponse;
  * github - https://github.com/hl845740757
  */
 @FunctionalInterface
-public interface FailedRpcCallback extends RpcCallback {
+public interface FailedRpcCallback<V> extends RpcCallback<V> {
 
     @Override
-    default void onComplete(RpcResponse rpcResponse) {
-        if (!rpcResponse.isSuccess()) {
-            onFailure(rpcResponse);
+    default void onComplete(V result, Throwable cause) {
+        if (cause != null) {
+            onFailure(cause);
         }
     }
 
     /**
      * 当调用失败时
      *
-     * @param rpcResponse rpc调用结果
+     * @param cause rpc调用结果
      */
-    void onFailure(RpcResponse rpcResponse);
+    void onFailure(@Nonnull Throwable cause);
 }

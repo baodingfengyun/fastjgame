@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.rpcservice;
 
 import com.wjybxx.fastjgame.annotation.RpcMethod;
 import com.wjybxx.fastjgame.annotation.RpcService;
-import com.wjybxx.fastjgame.misc.RpcCall;
+import com.wjybxx.fastjgame.net.common.RpcCall;
 import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
 
 /**

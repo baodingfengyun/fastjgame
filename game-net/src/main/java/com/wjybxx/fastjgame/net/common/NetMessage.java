@@ -16,14 +16,17 @@
 
 package com.wjybxx.fastjgame.net.common;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
- * “网络层”传输的消息
+ * “网络层”传输的消息 - 不共享的
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/9/28
  * github - https://github.com/hl845740757
  */
+@NotThreadSafe
 public interface NetMessage {
 
     /**

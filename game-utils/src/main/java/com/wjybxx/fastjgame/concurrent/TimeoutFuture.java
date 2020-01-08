@@ -35,6 +35,11 @@ import java.util.concurrent.TimeoutException;
  */
 public interface TimeoutFuture<V> extends ListenableFuture<V> {
 
+    /**
+     * 是否已超时
+     */
+    boolean isTimeout();
+
     @Override
     V get() throws InterruptedException, ExecutionException;
 

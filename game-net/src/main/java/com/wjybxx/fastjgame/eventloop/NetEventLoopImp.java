@@ -27,7 +27,10 @@ import com.wjybxx.fastjgame.eventbus.Subscribe;
 import com.wjybxx.fastjgame.manager.*;
 import com.wjybxx.fastjgame.misc.DefaultNetContext;
 import com.wjybxx.fastjgame.module.NetEventLoopModule;
-import com.wjybxx.fastjgame.net.common.*;
+import com.wjybxx.fastjgame.net.common.DefaultRpcPromise;
+import com.wjybxx.fastjgame.net.common.FailedRpcFuture;
+import com.wjybxx.fastjgame.net.common.RpcFuture;
+import com.wjybxx.fastjgame.net.common.RpcPromise;
 import com.wjybxx.fastjgame.net.http.HttpRequestEvent;
 import com.wjybxx.fastjgame.net.local.ConnectLocalRequest;
 import com.wjybxx.fastjgame.net.socket.*;
@@ -131,23 +134,21 @@ class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLoop {
         return this;
     }
 
-    // --------------------------------------- 事件分发 ----------------------------------------
+    @Nonnull
+    @Override
+    public <V> RpcPromise<V> newRpcPromise(@Nonnull EventLoop appEventLoop, long timeoutMs) {
+        return new DefaultRpcPromise<>(this, appEventLoop, timeoutMs);
+    }
+
+    @Nonnull
+    @Override
+    public <V> RpcFuture<V> newFailedRpcFuture(@Nonnull EventLoop appEventLoop, @Nonnull Throwable cause) {
+        return new FailedRpcFuture<>(appEventLoop, cause);
+    }
 
     @Override
     public final <T, E> void post(@Nullable T context, @Nonnull E event) {
         execute(new EventDispatchTask(netEventBusManager, context, event));
-    }
-
-    @Nonnull
-    @Override
-    public RpcPromise newRpcPromise(@Nonnull EventLoop appEventLoop, long timeoutMs) {
-        return new DefaultRpcPromise(this, appEventLoop, timeoutMs);
-    }
-
-    @Nonnull
-    @Override
-    public RpcFuture newCompletedRpcFuture(@Nonnull EventLoop appEventLoop, @Nonnull RpcResponse rpcResponse) {
-        return new CompletedRpcFuture(appEventLoop, rpcResponse);
     }
 
     @Override

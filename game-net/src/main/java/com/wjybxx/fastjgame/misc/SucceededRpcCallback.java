@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.misc;
 
 import com.wjybxx.fastjgame.net.common.RpcCallback;
-import com.wjybxx.fastjgame.net.common.RpcResponse;
 
 /**
  * 调用成功才执行的Rpc回调。
@@ -29,13 +28,12 @@ import com.wjybxx.fastjgame.net.common.RpcResponse;
  * github - https://github.com/hl845740757
  */
 @FunctionalInterface
-public interface SucceededRpcCallback<V> extends RpcCallback {
+public interface SucceededRpcCallback<V> extends RpcCallback<V> {
 
-    @SuppressWarnings("unchecked")
     @Override
-    default void onComplete(RpcResponse rpcResponse) {
-        if (rpcResponse.isSuccess()) {
-            onSuccess((V) rpcResponse.getBody());
+    default void onComplete(V result, Throwable cause) {
+        if (cause == null) {
+            onSuccess(result);
         }
     }
 

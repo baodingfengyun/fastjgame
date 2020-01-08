@@ -23,10 +23,7 @@ import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 /**
  * JDK{@link CompletableFuture}的适配器。
@@ -86,6 +83,15 @@ public class CompletableFutureAdapter<V> implements ListenableFuture<V> {
     @Override
     public V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         return future.get(timeout, unit);
+    }
+
+    @Override
+    public V join() throws ExecutionException {
+        try {
+            return future.join();
+        } catch (CompletionException e) {
+            throw new ExecutionException(e.getCause());
+        }
     }
 
     @Nullable

@@ -36,6 +36,7 @@ import com.wjybxx.fastjgame.utils.TimeUtils;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadFactory;
 import java.util.stream.IntStream;
 
@@ -95,7 +96,7 @@ class ExampleRpcClientLoop extends DisruptorEventLoop {
     }
 
     @Override
-    protected void loopOnce() {
+    protected void loopOnce() throws ExecutionException {
         if (session == null || System.currentTimeMillis() - startTime > 5 * TimeUtils.MIN) {
             shutdown();
             return;
@@ -103,7 +104,7 @@ class ExampleRpcClientLoop extends DisruptorEventLoop {
         sendRequest(index++);
     }
 
-    private void sendRequest(final int index) {
+    private void sendRequest(final int index) throws ExecutionException {
         final long start = System.nanoTime();
         final String callResult = ExampleRpcServiceRpcProxy.combine("wjybxx", String.valueOf(index)).syncCall(session);
         final long costTimeMs = System.nanoTime() - start;
@@ -116,11 +117,6 @@ class ExampleRpcClientLoop extends DisruptorEventLoop {
 
         ExampleRpcServiceRpcProxy.queryId("wjybxx-" + index)
                 .onSuccess(result -> System.out.println("queryId - " + index + " - " + result))
-                .call(session);
-
-        // - SaferRpcCallback
-        ExampleRpcServiceRpcProxy.queryId("wjybxx-" + index)
-                .onSuccess(this::afterQueryId, index)
                 .call(session);
 
         ExampleRpcServiceRpcProxy.inc(index)
@@ -161,7 +157,7 @@ class ExampleRpcClientLoop extends DisruptorEventLoop {
 
         // 阻塞到前面的rpc都返回，使得每次combine调用不被其它rpc调用影响
         // 因为调用的是sync(Session),对方的网络底层一定会返回一个结果，如果方法本身为void，那么返回的就是null。
-        ExampleRpcServiceRpcProxy.sync().sync(session);
+        ExampleRpcServiceRpcProxy.sync().syncCall(session);
     }
 
     /**

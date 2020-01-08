@@ -30,21 +30,21 @@ import javax.annotation.Nonnull;
  * date - 2019/8/3
  * github - https://github.com/hl845740757
  */
-public interface RpcPromise extends RpcFuture, TimeoutPromise<RpcResponse> {
+public interface RpcPromise<V> extends RpcFuture<V>, TimeoutPromise<V> {
 
     @Override
-    RpcPromise await() throws InterruptedException;
+    RpcPromise<V> await() throws InterruptedException;
 
     @Override
-    RpcPromise awaitUninterruptibly();
+    RpcPromise<V> awaitUninterruptibly();
 
     @Override
-    RpcPromise addListener(@Nonnull FutureListener<? super RpcResponse> listener, @Nonnull EventLoop bindExecutor);
+    RpcPromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor);
 
     @Override
-    RpcPromise addListener(@Nonnull FutureListener<? super RpcResponse> listener);
+    RpcPromise<V> addListener(@Nonnull FutureListener<? super V> listener);
 
     @Override
-    RpcPromise removeListener(@Nonnull FutureListener<? super RpcResponse> listener);
+    RpcPromise<V> removeListener(@Nonnull FutureListener<? super V> listener);
 
 }

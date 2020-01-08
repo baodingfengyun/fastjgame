@@ -26,7 +26,7 @@ import javax.annotation.concurrent.Immutable;
 import java.util.Objects;
 
 /**
- * sesion的一些配置。
+ * session的一些配置。
  * 目前决定使用不可变对象，可以减少对象数量。
  *
  * @author wjybxx

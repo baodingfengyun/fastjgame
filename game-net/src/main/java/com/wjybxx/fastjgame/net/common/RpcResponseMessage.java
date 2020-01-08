@@ -27,32 +27,20 @@ import javax.annotation.concurrent.NotThreadSafe;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class RpcResponseMessage implements NetMessage {
+public class RpcResponseMessage extends NetLogicMessage {
 
     /**
      * 客户端的哪一个请求
      */
     private final long requestGuid;
-    /**
-     * rpc响应结果
-     */
-    private RpcResponse rpcResponse;
 
-    public RpcResponseMessage(long requestGuid, RpcResponse rpcResponse) {
-        this.rpcResponse = rpcResponse;
+    public RpcResponseMessage(long requestGuid, Object responseBody) {
+        super(responseBody);
         this.requestGuid = requestGuid;
     }
 
     public long getRequestGuid() {
         return requestGuid;
-    }
-
-    public RpcResponse getRpcResponse() {
-        return rpcResponse;
-    }
-
-    public void setRpcResponse(RpcResponse rpcResponse) {
-        this.rpcResponse = rpcResponse;
     }
 
     @Override

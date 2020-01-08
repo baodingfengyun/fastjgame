@@ -16,13 +16,10 @@
 
 package com.wjybxx.fastjgame.net.local;
 
-import com.wjybxx.fastjgame.misc.RpcCall;
-import com.wjybxx.fastjgame.net.common.*;
+import com.wjybxx.fastjgame.net.common.NetLogicMessage;
+import com.wjybxx.fastjgame.net.common.ProtocolCodec;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 import com.wjybxx.fastjgame.net.session.SessionOutboundHandlerAdapter;
-import com.wjybxx.fastjgame.utils.NetUtils;
-
-import java.io.IOException;
 
 /**
  * 对于在JVM内传输的数据，进行保护性拷贝。
@@ -47,39 +44,13 @@ public class LocalCodecHandler extends SessionOutboundHandlerAdapter {
 
     @Override
     public void write(SessionHandlerContext ctx, Object msg) throws Exception {
-        // msg 是根据writeTask创建的对象，不是共享的
-        if (msg instanceof RpcRequestMessage) {
-            // rpc请求
-            RpcRequestMessage rpcRequestMessage = (RpcRequestMessage) msg;
-            // 拷贝body
-            rpcRequestMessage.setRequest(cloneBody(rpcRequestMessage.getRequest()));
-        } else if (msg instanceof RpcResponseMessage) {
-            // rpc响应
-            RpcResponseMessage responseMessage = (RpcResponseMessage) msg;
-            final RpcResponse rpcResponse = responseMessage.getRpcResponse();
-            final RpcResponse copiedRpcResponse = new RpcResponse(rpcResponse.getResultCode(), codec.cloneObject(rpcResponse.getBody()));
-            responseMessage.setRpcResponse(copiedRpcResponse);
-        } else if (msg instanceof OneWayMessage) {
-            // 单向消息
-            OneWayMessage oneWayMessage = (OneWayMessage) msg;
-            // 拷贝body
-            oneWayMessage.setMessage(cloneBody(oneWayMessage.getMessage()));
+        // msg 是根据writeTask创建的对象，不是共享的，但它持有的内容是共享的
+        if (msg instanceof NetLogicMessage) {
+            NetLogicMessage logicMessage = (NetLogicMessage) msg;
+            logicMessage.setBody(codec.cloneObject(logicMessage.getBody()));
         }
         // 传递给下一个handler
         ctx.fireWrite(msg);
     }
 
-    /**
-     * 拷贝消息内容
-     */
-    private Object cloneBody(Object body) throws IOException {
-        if (body instanceof RpcCall) {
-            // 检查延迟序列化和预反序列化
-            final RpcCall<?> rpcCall0 = NetUtils.checkLazySerialize((RpcCall<?>) body, codec);
-            final RpcCall<?> rpcCall1 = NetUtils.checkPreDeserialize(rpcCall0, codec);
-            return codec.cloneObject(rpcCall1);
-        } else {
-            return codec.cloneObject(body);
-        }
-    }
 }

@@ -42,36 +42,54 @@ public interface RpcResponseChannel<T> {
      * @param body rpc调用结果/可能为null
      */
     default void writeSuccess(@Nullable T body) {
-        write(RpcResponse.newSucceedResponse(body));
+        if (null == body) {
+            write(RpcResponse.SUCCESS);
+        } else {
+            write(RpcResponse.newSucceedResponse(body));
+        }
     }
 
     /**
      * 返回rpc调用结果，表示调用失败，{@link #write(RpcResponse)}的快捷方式。
      *
-     * @param errorCode rpc调用错误码，能使用静态常量的使用常量{@link RpcResponse}
+     * @param errorCode rpc调用错误码
+     * @param cause     造成失败的异常
      */
-    default void writeFailure(@Nonnull RpcResultCode errorCode, @Nonnull Throwable cause) {
-        final String message;
-        if (DebugUtils.isDebugOpen()) {
-            // debug开启情况下，返回详细信息
-            message = ExceptionUtils.getStackTrace(cause);
-        } else {
-            message = ExceptionUtils.getRootCauseMessage(cause);
-        }
+    default void writeFailure(@Nonnull RpcErrorCode errorCode, @Nonnull Throwable cause) {
+        final String message = getCauseMessage(cause);
         writeFailure(errorCode, message);
     }
 
     /**
      * 返回rpc调用结果，表示调用失败，{@link #write(RpcResponse)}的快捷方式。
      *
-     * @param errorCode rpc调用错误码，能使用静态常量的使用常量{@link RpcResponse}
+     * @param errorCode rpc调用错误码
+     * @param message   错误信息
      */
-    default void writeFailure(@Nonnull RpcResultCode errorCode, @Nonnull String message) {
+    default void writeFailure(@Nonnull RpcErrorCode errorCode, @Nonnull String message) {
         write(RpcResponse.newFailResponse(errorCode, message));
     }
 
     /**
-     * 返回rpc调用结果，如果是返回错误结果，能使用静态常量的使用常量{@link RpcResponse}
+     * 返回rpc调用结果，表示调用失败，{@link #write(RpcResponse)}的快捷方式。
+     *
+     * @param cause 造成失败的异常
+     */
+    default void writeFailure(@Nonnull Throwable cause) {
+        write(RpcResponse.newFailResponse(RpcErrorCode.SERVER_EXCEPTION, getCauseMessage(cause)));
+    }
+
+    /**
+     * 返回rpc调用结果，表示调用失败，{@link #write(RpcResponse)}的快捷方式。
+     *
+     * @param message 错误信息
+     */
+    default void writeFailure(@Nonnull String message) {
+        write(RpcResponse.newFailResponse(RpcErrorCode.SERVER_EXCEPTION, message));
+    }
+
+    /**
+     * 返回rpc调用结果。
      *
      * @param rpcResponse rpc调用结果
      */
@@ -83,4 +101,15 @@ public interface RpcResponseChannel<T> {
      * @return true/false
      */
     boolean isVoid();
+
+    static String getCauseMessage(@Nonnull Throwable cause) {
+        final String message;
+        if (DebugUtils.isDebugOpen()) {
+            // debug开启情况下，返回详细信息
+            message = ExceptionUtils.getStackTrace(cause);
+        } else {
+            message = ExceptionUtils.getRootCauseMessage(cause);
+        }
+        return message;
+    }
 }

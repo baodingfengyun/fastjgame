@@ -72,25 +72,23 @@ public final class NettyFutureAdapter<V> implements ListenableFuture<V> {
     }
 
     @Override
-    public ListenableFuture<V> await() throws InterruptedException {
-        future.await();
-        return this;
+    public V get() throws InterruptedException, ExecutionException {
+        return future.get();
     }
 
     @Override
-    public ListenableFuture<V> awaitUninterruptibly() {
-        future.awaitUninterruptibly();
-        return this;
+    public V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        return future.get(timeout, unit);
     }
 
     @Override
-    public boolean await(long timeout, @Nonnull TimeUnit unit) throws InterruptedException {
-        return future.await(timeout, unit);
-    }
-
-    @Override
-    public boolean awaitUninterruptibly(long timeout, @Nonnull TimeUnit unit) {
-        return future.awaitUninterruptibly(timeout, unit);
+    public V join() throws ExecutionException {
+        try {
+            return future.awaitUninterruptibly().get();
+        } catch (InterruptedException e) {
+            // Should not be raised at all.
+            throw new InternalError();
+        }
     }
 
     @Nullable
@@ -114,17 +112,28 @@ public final class NettyFutureAdapter<V> implements ListenableFuture<V> {
         return future.isDone();
     }
 
-    @Override
-    public V get() throws InterruptedException, ExecutionException {
-        return future.get();
-    }
-
-    @Override
-    public V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        return future.get(timeout, unit);
-    }
-
     // ---------------------------------------------------------------------------------------------
+    @Override
+    public ListenableFuture<V> await() throws InterruptedException {
+        future.await();
+        return this;
+    }
+
+    @Override
+    public ListenableFuture<V> awaitUninterruptibly() {
+        future.awaitUninterruptibly();
+        return this;
+    }
+
+    @Override
+    public boolean await(long timeout, @Nonnull TimeUnit unit) throws InterruptedException {
+        return future.await(timeout, unit);
+    }
+
+    @Override
+    public boolean awaitUninterruptibly(long timeout, @Nonnull TimeUnit unit) {
+        return future.awaitUninterruptibly(timeout, unit);
+    }
 
     @Override
     public ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener) {

@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.misc.RpcCall;
 import com.wjybxx.fastjgame.net.common.*;
 import com.wjybxx.fastjgame.utils.CodecUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
@@ -30,7 +29,6 @@ import io.netty.channel.ChannelPromise;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Iterator;
@@ -273,7 +271,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
      * 编码rpc请求包
      */
     private void writeRpcRequestMessage(ChannelHandlerContext ctx, long ack, boolean endOfBatch, SocketMessage socketMessage, ChannelPromise promise) {
-        RpcRequestMessage rpcRequest = (RpcRequestMessage) socketMessage.getWrappedMessage();
+        RpcRequestMessage requestMessage = (RpcRequestMessage) socketMessage.getWrappedMessage();
         ByteBuf head = newHeadByteBuf(ctx, 8 + 8 + 1 + 8 + 1, NetMessageType.RPC_REQUEST);
 
         // 捎带确认消息
@@ -282,11 +280,11 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
         head.writeByte(endOfBatch ? 1 : 0);
 
         // rpc请求头
-        head.writeLong(rpcRequest.getRequestGuid());
-        head.writeByte(rpcRequest.isSync() ? 1 : 0);
+        head.writeLong(requestMessage.getRequestGuid());
+        head.writeByte(requestMessage.isSync() ? 1 : 0);
 
-        // 合并之后发送
-        appendSumAndWrite(ctx, tryEncodeAndMergeBody(ctx.alloc(), head, rpcRequest.getRequest()), promise);
+        // rpc请求内容 - 合并之后发送
+        writeLogicMessageCommon(ctx, head, requestMessage.getBody(), promise);
     }
 
     /**
@@ -312,25 +310,18 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
      * 编码rpc响应包
      */
     private void writeRpcResponseMessage(ChannelHandlerContext ctx, long ack, boolean endOfBatch, SocketMessage socketMessage, ChannelPromise promise) {
-        RpcResponseMessage rpcResponseMessage = (RpcResponseMessage) socketMessage.getWrappedMessage();
-        ByteBuf head = newHeadByteBuf(ctx, 8 + 8 + 1 + 8 + 4, NetMessageType.RPC_RESPONSE);
+        RpcResponseMessage responseMessage = (RpcResponseMessage) socketMessage.getWrappedMessage();
+        ByteBuf head = newHeadByteBuf(ctx, 8 + 8 + 1 + 8, NetMessageType.RPC_RESPONSE);
 
         // 捎带确认信息
         head.writeLong(socketMessage.getSequence());
         head.writeLong(ack);
         head.writeByte(endOfBatch ? 1 : 0);
 
-        // 响应内容
-        head.writeLong(rpcResponseMessage.getRequestGuid());
-        final RpcResponse rpcResponse = rpcResponseMessage.getRpcResponse();
-        head.writeInt(rpcResponse.getResultCode().getNumber());
-
-        if (rpcResponse.getBody() != null) {
-            appendSumAndWrite(ctx, tryEncodeAndMergeBody(ctx.alloc(), head, rpcResponse.getBody()), promise);
-        } else {
-            appendSumAndWrite(ctx, head, promise);
-        }
-
+        // rpc响应头
+        head.writeLong(responseMessage.getRequestGuid());
+        // rpc响应内容 - 合并之后发送
+        writeLogicMessageCommon(ctx, head, responseMessage.getBody(), promise);
     }
 
     /**
@@ -342,14 +333,12 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
         long ack = msg.readLong();
         boolean endOfBatch = msg.readByte() == 1;
 
-        // 响应内容
+        // 响应头
         long requestGuid = msg.readLong();
-        RpcResultCode resultCode = RpcResultCode.forNumber(msg.readInt());
-
-        // 响应body
+        // 响应内容
         final Object body = msg.readableBytes() > 0 ? tryDecodeBody(msg) : null;
 
-        RpcResponseMessage rpcResponseMessage = new RpcResponseMessage(requestGuid, new RpcResponse(resultCode, body));
+        RpcResponseMessage rpcResponseMessage = new RpcResponseMessage(requestGuid, body);
         return new SocketMessageEvent(channel, sessionId, sequence, ack, endOfBatch, rpcResponseMessage);
     }
 
@@ -368,7 +357,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
         head.writeByte(endOfBatch ? 1 : 0);
 
         // 合并之后发送
-        appendSumAndWrite(ctx, tryEncodeAndMergeBody(ctx.alloc(), head, oneWayMessage.getMessage()), promise);
+        writeLogicMessageCommon(ctx, head, oneWayMessage.getBody(), promise);
     }
 
     /**
@@ -392,14 +381,12 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
     /**
      * 尝试合并协议头和身体
      *
-     * @param allocator byteBuf分配器
-     * @param head      协议头
-     * @param bodyData  待编码的body
-     * @return 合并后的byteBuf
+     * @param head 协议头
+     * @param body 待编码的body
      */
-    @Nonnull
-    private ByteBuf tryEncodeAndMergeBody(ByteBufAllocator allocator, ByteBuf head, Object bodyData) {
-        return Unpooled.wrappedBuffer(head, tryEncodeBody(allocator, bodyData));
+    private void writeLogicMessageCommon(ChannelHandlerContext ctx, ByteBuf head, Object body, ChannelPromise promise) {
+        final ByteBuf bodyByteBuf = tryEncodeBody(ctx.alloc(), body);
+        appendSumAndWrite(ctx, Unpooled.wrappedBuffer(head, bodyByteBuf), promise);
     }
 
     /**
@@ -411,13 +398,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
      */
     private ByteBuf tryEncodeBody(final ByteBufAllocator allocator, final Object bodyData) {
         try {
-            if (bodyData instanceof RpcCall) {
-                // 检查延迟序列化参数
-                final RpcCall<?> rpcCall = NetUtils.checkLazySerialize((RpcCall<?>) bodyData, codec);
-                return codec.writeObject(allocator, rpcCall);
-            } else {
-                return codec.writeObject(allocator, bodyData);
-            }
+            return codec.writeObject(allocator, bodyData);
         } catch (Exception e) {
             // 为了不影响该连接上的其它消息，需要捕获异常
             logger.warn("serialize body {} caught exception.", bodyData.getClass().getName(), e);
@@ -434,13 +415,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
     @Nullable
     private Object tryDecodeBody(final ByteBuf data) {
         try {
-            final Object body = codec.readObject(data);
-            if (body instanceof RpcCall) {
-                // 检查提前反序列化参数
-                return NetUtils.checkPreDeserialize((RpcCall<?>) body, codec);
-            } else {
-                return body;
-            }
+            return codec.readObject(data);
         } catch (Exception e) {
             // 为了不影响该连接上的其它消息，需要捕获异常
             logger.warn("deserialize body caught exception", e);

@@ -1196,15 +1196,16 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
 
         @Override
         public Object readData(CodedInputStream inputStream, boolean ignore) throws IOException {
-            int messageId = inputStream.readSInt32();
-            int fieldNum = inputStream.readUInt32();
+            final int messageId = inputStream.readSInt32();
+            final int fieldNum = inputStream.readUInt32();
 
             Class<?> messageClass = messageMapper.getMessageClazz(messageId);
             ClassDescriptor descriptor = descriptorMap.get(messageClass);
 
+            int index = 1;
             try {
                 Object instance = descriptor.constructor.newInstance();
-                for (int index = 0; index < fieldNum; index++) {
+                for (; index <= fieldNum; index++) {
                     int number = inputStream.readUInt32();
                     // 兼容性限定：可以少发过来字段，但是不能多发字段
                     FieldDescriptor fieldDescriptor = descriptor.fieldDescriptorMapper.forNumber(number);
@@ -1219,7 +1220,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
                 }
                 return instance;
             } catch (Exception e) {
-                throw new IOException(messageClass.getName(), e);
+                throw new IOException(messageClass.getName() + ", fieldNumber " + index, e);
             }
         }
 

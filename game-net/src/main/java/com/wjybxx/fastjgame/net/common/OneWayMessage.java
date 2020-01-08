@@ -27,23 +27,10 @@ import javax.annotation.concurrent.NotThreadSafe;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class OneWayMessage implements NetMessage {
+public class OneWayMessage extends NetLogicMessage {
 
-    /**
-     * 消息内容
-     */
-    private Object message;
-
-    public OneWayMessage(Object message) {
-        this.message = message;
-    }
-
-    public Object getMessage() {
-        return message;
-    }
-
-    public void setMessage(Object message) {
-        this.message = message;
+    public OneWayMessage(Object messageBody) {
+        super(messageBody);
     }
 
     @Override

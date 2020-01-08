@@ -20,7 +20,9 @@ import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.ProtocolMessageEnum;
 import com.wjybxx.fastjgame.annotation.SerializableClass;
 import com.wjybxx.fastjgame.misc.MessageMappingStrategy;
-import com.wjybxx.fastjgame.misc.RpcCall;
+import com.wjybxx.fastjgame.net.common.RpcCall;
+import com.wjybxx.fastjgame.net.common.RpcErrorCode;
+import com.wjybxx.fastjgame.net.common.RpcResponse;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
@@ -43,8 +45,11 @@ public class ExampleHashMappingStrategy implements MessageMappingStrategy {
         for (Class<?> messageClass : allClass) {
             result.put(messageClass, getUniqueId(messageClass));
         }
-        // rpc调用必须放里面
+        // rpcCall和rpcResponse必须放里面
         result.put(RpcCall.class, getUniqueId(RpcCall.class));
+        result.put(RpcResponse.class, getUniqueId(RpcResponse.class));
+        result.put(RpcErrorCode.class, getUniqueId(RpcErrorCode.class));
+
         // 测试协议文件
         Arrays.stream(p_test.class.getDeclaredClasses())
                 .filter(ExampleHashMappingStrategy::isSerializable)

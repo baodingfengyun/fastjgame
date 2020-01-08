@@ -20,7 +20,6 @@ import com.google.inject.Inject;
 import com.wjybxx.fastjgame.misc.GatePlayerSession;
 import com.wjybxx.fastjgame.net.common.ProtocolDispatcher;
 import com.wjybxx.fastjgame.net.common.RpcCallback;
-import com.wjybxx.fastjgame.net.common.RpcResponse;
 import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.rpcservice.IGatePlayerSessionMgr;
@@ -102,6 +101,12 @@ public class GatePlayerSessionMgr implements IGatePlayerSessionMgr, ProtocolDisp
     }
 
     @Override
+    public <V> void postRpcCallback(Session session, RpcCallback<V> rpcCallback, V result, Throwable cause) {
+        // 网关不可以向玩家发送rpc请求
+        throw new UnsupportedOperationException("Unexpected rpcCallBack: " + rpcCallback.getClass().getName());
+    }
+
+    @Override
     public void postOneWayMessage(Session session, @Nullable Object message) {
         final GatePlayerSession playerSession = sessionMap.get(session.remoteGuid());
         if (null == playerSession || playerSession.getPlayerSession() != session) {
@@ -155,9 +160,5 @@ public class GatePlayerSessionMgr implements IGatePlayerSessionMgr, ProtocolDisp
                 .send(playerSession.getSceneSession());
     }
 
-    @Override
-    public void postRpcCallback(Session session, RpcCallback rpcCallback, RpcResponse rpcResponse) {
-        // 网关不可以向玩家发送rpc请求
-        throw new UnsupportedOperationException("Unexpected rpcCallBack: " + rpcCallback.getClass().getName());
-    }
+
 }

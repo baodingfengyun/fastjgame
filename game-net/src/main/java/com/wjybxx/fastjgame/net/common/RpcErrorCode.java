@@ -16,19 +16,21 @@
 
 package com.wjybxx.fastjgame.net.common;
 
+import com.wjybxx.fastjgame.annotation.SerializableClass;
 import com.wjybxx.fastjgame.enummapper.NumberEnum;
 import com.wjybxx.fastjgame.enummapper.NumberEnumMapper;
 import com.wjybxx.fastjgame.utils.EnumUtils;
 
 /**
- * RPC结果码。
+ * RPC错误码。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/7/31
  * github - https://github.com/hl845740757
  */
-public enum RpcResultCode implements NumberEnum {
+@SerializableClass
+public enum RpcErrorCode implements NumberEnum {
 
     /**
      * 成功
@@ -38,45 +40,27 @@ public enum RpcResultCode implements NumberEnum {
     /**
      * Session不存在
      */
-    SESSION_NULL(10),
+    SESSION_NULL(1),
     /**
      * 会话已关闭
      */
-    SESSION_CLOSED(11),
+    SESSION_CLOSED(2),
 
     /**
-     * 用户取消了rpc调用
-     */
-    CANCELLED(21),
-    /**
-     * 请求超时
-     */
-    TIMEOUT(22),
-
-    /**
-     * 出现异常(本地异常)，有body，body在本地赋值，不序列化。
+     * 出现异常(本地异常)。
      * 如果需要查看异常，可以获取body。
      */
-    LOCAL_EXCEPTION(23),
+    LOCAL_EXCEPTION(3),
     /**
-     * 请求被禁止
+     * 服务器处理请求失败时失败。
+     * (注解处理器使用了该对象，不要轻易重命名)
      */
-    FORBID(41),
-    /**
-     * 请求错误
-     */
-    BAD_REQUEST(42),
+    SERVER_EXCEPTION(4),
+
     /**
      * 路由转发时找不到session
      */
-    ROUTER_SESSION_NULL(43),
-
-    /**
-     * 错误(对方执行请求时发生错误)，现阶段不返回额外信息。
-     * (注解处理器使用了该对象，不要轻易重命名)
-     */
-    SERVER_EXCEPTION(51),
-
+    ROUTER_SESSION_NULL(5),
     ;
 
     /**
@@ -84,7 +68,7 @@ public enum RpcResultCode implements NumberEnum {
      */
     private final int number;
 
-    RpcResultCode(int number) {
+    RpcErrorCode(int number) {
         this.number = number;
     }
 
@@ -96,9 +80,9 @@ public enum RpcResultCode implements NumberEnum {
     /**
      * number到枚举的映射
      */
-    private static final NumberEnumMapper<RpcResultCode> mapper = EnumUtils.mapping(values());
+    private static final NumberEnumMapper<RpcErrorCode> mapper = EnumUtils.mapping(values());
 
-    public static RpcResultCode forNumber(int number) {
+    public static RpcErrorCode forNumber(int number) {
         return mapper.forNumber(number);
     }
 }

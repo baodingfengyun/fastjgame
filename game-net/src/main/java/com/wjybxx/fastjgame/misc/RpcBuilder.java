@@ -16,13 +16,13 @@
 
 package com.wjybxx.fastjgame.misc;
 
+import com.wjybxx.fastjgame.net.common.RpcCall;
 import com.wjybxx.fastjgame.net.common.RpcCallback;
-import com.wjybxx.fastjgame.net.common.RpcResponse;
 import com.wjybxx.fastjgame.net.session.Session;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
+import java.util.concurrent.ExecutionException;
 
 /**
  * 封装Rpc请求的一些细节，方便实现统一管控。其实把rpc调用看做多线程调用，就很容易理顺这些东西了。
@@ -78,7 +78,7 @@ public interface RpcBuilder<V> {
 
     /**
      * 设置成功时执行的回调。
-     * 注意：如果你最后调用的是{@link #send(Session)}方法，那么该回调会被忽略。
+     * 注意：只有当后续调用的是{@link #call(Session)}时才会有效。
      *
      * @param callback 回调逻辑
      * @return this
@@ -86,116 +86,66 @@ public interface RpcBuilder<V> {
     RpcBuilder<V> onSuccess(@Nonnull SucceededRpcCallback<V> callback);
 
     /**
-     * 设置成功时执行的回调。
-     * 注意：如果你最后调用的是{@link #send(Session)}方法，那么该回调会被忽略。
-     *
-     * @param callback 回调逻辑 - 方法引用 {@code this::method}
-     * @param context  存储的上下文
-     * @return this
-     */
-    <T> RpcBuilder<V> onSuccess(@Nonnull SaferSucceedRpcCallback<V, T> callback, @Nonnull T context);
-
-    /**
      * 设置失败时执行的回调。
-     * 注意：如果你最后调用的是{@link #send(Session)}方法，那么该回调会被忽略。
+     * 注意：只有当后续调用的是{@link #call(Session)}时才会有效。
      *
      * @param callback 回调逻辑
      * @return this
      */
-    RpcBuilder<V> onFailure(@Nonnull FailedRpcCallback callback);
-
-    /**
-     * 设置失败时执行的回调。
-     * 注意：如果你最后调用的是{@link #send(Session)}方法，那么该回调会被忽略。
-     *
-     * @param callback 回调逻辑 - 方法引用 {@code this::method}
-     * @param context  存储的上下文
-     * @return this
-     */
-    <T> RpcBuilder<V> onFailure(@Nonnull SaferFailedRpcCallback<T> callback, @Nonnull T context);
+    RpcBuilder<V> onFailure(@Nonnull FailedRpcCallback<V> callback);
 
     /**
      * 设置无论成功还是失败都会执行的回调。
-     * 注意：如果你最后调用的是{@link #send(Session)}方法，那么该回调会被忽略。
+     * 注意：只有当后续调用的是{@link #call(Session)}时才会有效。
      *
      * @param callback 回调逻辑
      * @return this
      */
-    RpcBuilder<V> onComplete(@Nonnull RpcCallback callback);
-
-    /**
-     * 设置无论成功还是失败都会执行的回调。
-     * 注意：如果你最后调用的是{@link #send(Session)}方法，那么该回调会被忽略。
-     *
-     * @param callback 回调逻辑 - 方法引用 {@code this::method}
-     * @param context  存储的上下文
-     * @return this
-     */
-    <T> RpcBuilder<V> onComplete(@Nonnull SaferRpcCallback<T> callback, @Nonnull T context);
+    RpcBuilder<V> onComplete(@Nonnull RpcCallback<V> callback);
 
     // --------------------------------------------- 真正执行 --------------------------------------------------
 
     /**
-     * 发送一个单向通知 - 它也可以调用rpc方法，不过结果不会被传输回来。
+     * 发送一个单向消息 - 它表示不需要方法的执行结果。
+     * 注意:
+     * 1. 即使添加了回调，这些回调也会被忽略。
      *
      * @param session 要通知的session
-     * @throws IllegalStateException 如果调用过send、broadcast以外的请求方法，则会抛出异常
      */
-    void send(@Nullable Session session) throws IllegalStateException;
+    void send(@Nonnull Session session);
 
     /**
-     * 广播一个通知，它是对{@link #send(Session)}的一个包装。
+     * 广播一个消息，它是对{@link #send(Session)}的一个包装。
      * 注意:
-     * 1. 一旦调用了send方法，那么便不可以调用<b>send、broadcast</b>以外的请求方法。
-     * 2. 即使添加了回调，这些回调也会被忽略。
+     * 1. 即使添加了回调，这些回调也会被忽略。
      *
      * @param sessionGroup 要广播的所有session
-     * @throws IllegalStateException 如果调用过send、broadcast以外的请求方法，则会抛出异常。
      */
-    void broadcast(@Nullable Iterable<Session> sessionGroup) throws IllegalStateException;
+    void broadcast(@Nonnull Iterable<Session> sessionGroup);
 
     /**
      * 执行异步rpc调用，无论如何对方都会返回一个结果。
      * call是不是很好记住？那就多用它。
      * <p>
-     * 注意：一旦调用了call方法，那么该builder便不可以再使用。
-     *
-     * @param session rpc请求的目的地，可以为null，以省却调用时的外部检查。
-     * @throws IllegalStateException 如果重用一个可监听的rpcBuilder，则会抛出异常！
-     */
-    void call(@Nullable Session session) throws IllegalStateException;
-
-    /**
-     * 执行同步rpc调用，并直接获得结果。如果添加了回调，回调会在返回前执行。
-     * <p>
      * 注意：
-     * 1. 一旦调用了sync方法，那么该builder便不可以再使用。
-     * 2. 少使用同步调用，必要的时候使用同步可以降低编程复杂度，但是大量使用会大大降低吞吐量。
-     * 3. 一旦调用了syncCall方法，那么该builder便不可以再使用。
-     * 4. 即使添加了回调，这些回调也会被忽略。
+     * 1. 一旦调用了call方法，回调信息将被重置。
+     * 2. 没有设置回调，则表示不关心结果。
      *
-     * @param session rpc请求的目的地，可以为null，以省却调用时的外部检查。
-     * @return result
-     * @throws IllegalStateException 如果重用一个可监听的rpcBuilder，则会抛出异常！
+     * @param session rpc请求的目的地
      */
-    @Nonnull
-    RpcResponse sync(@Nullable Session session) throws IllegalStateException;
+    void call(@Nonnull Session session);
 
     /**
      * 执行同步rpc调用，如果执行成功，则返回对应的调用结果，否则返回null。
      * <p>
      * 注意：
-     * 1. 如果null是一个合理的返回值，那么你不能基于调用结果做出任何判断。这种情况下，建议你使用{@link #sync(Session)}，可以获得调用的结果码。
-     * 2. 少使用同步调用，必要的时候使用同步可以降低编程复杂度，但是大量使用会大大降低吞吐量。
-     * 3. 一旦调用了syncCall方法，那么该builder便不可以再使用。
-     * 4. 即使添加了回调，这些回调也会被忽略。
+     * 1. 少使用同步调用，必要的时候使用同步可以降低编程复杂度，但是大量使用会大大降低吞吐量。
+     * 2. 即使添加了回调，这些回调也会被忽略。
      *
-     * @param session rpc请求的目的地，可以为null，以省却调用时的外部检查。
+     * @param session rpc请求的目的地
      * @return result
-     * @throws IllegalStateException 如果重用一个可监听的rpcBuilder，则会抛出异常！
      */
-    @Nullable
-    V syncCall(@Nullable Session session) throws IllegalStateException;
+    V syncCall(@Nonnull Session session) throws ExecutionException;
 
     // ------------------------------------------  路由/转发 ------------------------------------------
 

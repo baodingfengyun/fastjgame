@@ -16,7 +16,8 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.net.common.RpcResponse;
+import com.wjybxx.fastjgame.net.common.RpcCall;
+import com.wjybxx.fastjgame.net.common.RpcErrorCode;
 import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
 import com.wjybxx.fastjgame.net.session.Session;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -62,7 +63,7 @@ public class DefaultRpcCallDispatcher implements RpcFunctionRegistry, RpcCallDis
         final List<Object> params = rpcCall.getMethodParams();
         final RpcFunction rpcFunction = functionInfoMap.get(methodKey);
         if (null == rpcFunction) {
-            rpcResponseChannel.write(RpcResponse.BAD_REQUEST);
+            rpcResponseChannel.writeFailure(RpcErrorCode.SERVER_EXCEPTION, "methodKey " + methodKey);
             logger.warn("{} send unregistered request, methodKey={}, parameters={}",
                     session.sessionId(), methodKey, params);
             return;

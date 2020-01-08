@@ -17,10 +17,11 @@
 package com.wjybxx.fastjgame.net.common;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.wjybxx.fastjgame.concurrent.FailedFuture;
 import com.wjybxx.fastjgame.concurrent.FutureListener;
-import com.wjybxx.fastjgame.concurrent.SucceededFuture;
 
 import javax.annotation.Nonnull;
+import java.util.concurrent.TimeoutException;
 
 /**
  * 已完成的Rpc调用，在它上面的任何监听都将立即执行。
@@ -30,42 +31,43 @@ import javax.annotation.Nonnull;
  * date - 2019/8/3
  * github - https://github.com/hl845740757
  */
-public class CompletedRpcFuture extends SucceededFuture<RpcResponse> implements RpcFuture {
+public class FailedRpcFuture<V> extends FailedFuture<V> implements RpcFuture<V> {
 
-    /**
-     * @param executor    用户所在EventLoop,为什么可以只使用用户线程？因为不会阻塞。
-     * @param rpcResponse rpc结果
-     */
-    public CompletedRpcFuture(@Nonnull EventLoop executor, @Nonnull RpcResponse rpcResponse) {
-        super(executor, rpcResponse);
+    public FailedRpcFuture(@Nonnull EventLoop notifyExecutor, @Nonnull Throwable cause) {
+        super(notifyExecutor, cause);
+    }
+
+    @Override
+    public boolean isTimeout() {
+        return cause() instanceof TimeoutException;
     }
 
     // ------------------------------------------------ 流式语法支持 ------------------------------------
 
     @Override
-    public RpcFuture await() {
+    public RpcFuture<V> await() {
         return this;
     }
 
     @Override
-    public RpcFuture awaitUninterruptibly() {
+    public RpcFuture<V> awaitUninterruptibly() {
         return this;
     }
 
     @Override
-    public RpcFuture addListener(@Nonnull FutureListener<? super RpcResponse> listener) {
+    public RpcFuture<V> addListener(@Nonnull FutureListener<? super V> listener) {
         super.addListener(listener);
         return this;
     }
 
     @Override
-    public RpcFuture addListener(@Nonnull FutureListener<? super RpcResponse> listener, @Nonnull EventLoop bindExecutor) {
+    public RpcFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor) {
         super.addListener(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public RpcFuture removeListener(@Nonnull FutureListener<? super RpcResponse> listener) {
+    public RpcFuture<V> removeListener(@Nonnull FutureListener<? super V> listener) {
         super.removeListener(listener);
         return this;
     }

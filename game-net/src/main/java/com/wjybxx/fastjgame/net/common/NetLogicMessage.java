@@ -14,24 +14,33 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.misc;
-
-import com.wjybxx.fastjgame.net.common.RpcCall;
+package com.wjybxx.fastjgame.net.common;
 
 /**
- * rpc路由器
+ * 网络层逻辑消息包。
  *
- * @param <V>
+ * @author wjybxx
+ * @version 1.0
+ * date - 2020/1/7
+ * github - https://github.com/hl845740757
  */
-@FunctionalInterface
-public interface RpcRouter<V> {
+public abstract class NetLogicMessage implements NetMessage {
 
     /**
-     * 路由实现(将原始请求封装到另一个请求中)
-     *
-     * @param rpcCall 原始方法调用信息
-     * @return newBuilder，该builder中包含新封装后的调用信息。
+     * 消息的内如，限定为Object类型，分离协议规范和实现。
+     * 子类只保留控制信息(各自的协议头信息)。
      */
-    RpcBuilder<V> route(RpcCall<V> rpcCall);
+    private Object body;
 
+    protected NetLogicMessage(Object body) {
+        this.body = body;
+    }
+
+    public final Object getBody() {
+        return body;
+    }
+
+    public final void setBody(Object body) {
+        this.body = body;
+    }
 }

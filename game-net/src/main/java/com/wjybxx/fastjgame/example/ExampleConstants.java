@@ -37,10 +37,6 @@ public final class ExampleConstants {
      * sessionId
      */
     public static final String SESSION_ID = "10001-20001";
-    /**
-     * 空的token
-     */
-    public static final byte[] EMPTY_TOKEN = new byte[0];
 
     /**
      * 测试用例使用的codec

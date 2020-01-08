@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.net.common;
 
+import com.wjybxx.fastjgame.annotation.SerializableClass;
+import com.wjybxx.fastjgame.annotation.SerializableField;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -31,6 +33,7 @@ import javax.annotation.Nullable;
  * date - 2019/8/1
  * github - https://github.com/hl845740757
  */
+@SerializableClass
 public final class RpcResponse {
 
     // 这些常量仅仅是为了减少对象创建，但是你需要谨记：这是RPC调用的结果，一定不能使用 == 判断相等！！！
@@ -39,36 +42,32 @@ public final class RpcResponse {
      */
     public static final RpcResponse SUCCESS = newSucceedResponse(null);
 
-    public static final RpcResponse SESSION_NULL = newFailResponse(RpcResultCode.SESSION_NULL);
-    public static final RpcResponse SESSION_CLOSED = newFailResponse(RpcResultCode.SESSION_CLOSED);
-
-    public static final RpcResponse CANCELLED = newFailResponse(RpcResultCode.CANCELLED);
-    public static final RpcResponse TIMEOUT = newFailResponse(RpcResultCode.TIMEOUT);
-
-    public static final RpcResponse FORBID = newFailResponse(RpcResultCode.FORBID);
-    public static final RpcResponse BAD_REQUEST = newFailResponse(RpcResultCode.BAD_REQUEST);
-    public static final RpcResponse ROUTER_SESSION_NULL = newFailResponse(RpcResultCode.ROUTER_SESSION_NULL);
-
-    public static final RpcResponse ERROR = newFailResponse(RpcResultCode.SERVER_EXCEPTION);
-
     /**
      * 结果标识 - 错误码
      */
-    private final RpcResultCode resultCode;
+    @SerializableField(number = 1)
+    private final RpcErrorCode errorCode;
     /**
      * rpc响应结果。
-     * 如果{@link #resultCode}为{@link RpcResultCode#SUCCESS}，则body为对应的结果(null可能是个正常的结果)。
+     * 如果{@link #errorCode}为{@link RpcErrorCode#SUCCESS}，则body为对应的结果(null可能是个正常的结果)。
      * 否则body为对应的错误信息(String)(应该非null)。
      */
+    @SerializableField(number = 2)
     private final Object body;
 
-    public RpcResponse(@Nonnull RpcResultCode resultCode, @Nullable Object body) {
-        this.resultCode = resultCode;
+    // 反射创建对象
+    private RpcResponse() {
+        errorCode = null;
+        body = null;
+    }
+
+    public RpcResponse(@Nonnull RpcErrorCode errorCode, @Nullable Object body) {
+        this.errorCode = errorCode;
         this.body = body;
     }
 
-    public RpcResultCode getResultCode() {
-        return resultCode;
+    public RpcErrorCode getErrorCode() {
+        return errorCode;
     }
 
     public Object getBody() {
@@ -76,23 +75,19 @@ public final class RpcResponse {
     }
 
     public boolean isSuccess() {
-        return resultCode == RpcResultCode.SUCCESS;
+        return errorCode == RpcErrorCode.SUCCESS;
     }
 
     public boolean isFailure() {
-        return resultCode != RpcResultCode.SUCCESS;
+        return errorCode != RpcErrorCode.SUCCESS;
     }
 
-    public static RpcResponse newFailResponse(@Nonnull RpcResultCode errorCode) {
-        return new RpcResponse(errorCode, errorCode.name());
-    }
-
-    public static RpcResponse newFailResponse(@Nonnull RpcResultCode errorCode, @Nonnull String message) {
+    public static RpcResponse newFailResponse(@Nonnull RpcErrorCode errorCode, @Nonnull String message) {
         return new RpcResponse(errorCode, message);
     }
 
     public static RpcResponse newSucceedResponse(@Nullable Object body) {
-        return new RpcResponse(RpcResultCode.SUCCESS, body);
+        return new RpcResponse(RpcErrorCode.SUCCESS, body);
     }
 
     @Override
@@ -108,7 +103,7 @@ public final class RpcResponse {
         RpcResponse that = (RpcResponse) object;
 
         return new EqualsBuilder()
-                .append(resultCode, that.resultCode)
+                .append(errorCode, that.errorCode)
                 .append(body, that.body)
                 .isEquals();
     }
@@ -116,7 +111,7 @@ public final class RpcResponse {
     @Override
     public int hashCode() {
         return new HashCodeBuilder(17, 37)
-                .append(resultCode)
+                .append(errorCode)
                 .append(body)
                 .toHashCode();
     }
@@ -124,7 +119,7 @@ public final class RpcResponse {
     @Override
     public String toString() {
         return "RpcResponse{" +
-                "resultCode=" + resultCode +
+                "errorCode=" + errorCode +
                 ", body=" + body +
                 '}';
     }

@@ -14,11 +14,12 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.misc;
+package com.wjybxx.fastjgame.net.common;
 
 
 import com.wjybxx.fastjgame.annotation.SerializableClass;
 import com.wjybxx.fastjgame.annotation.SerializableField;
+import com.wjybxx.fastjgame.misc.MessageMapper;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.List;

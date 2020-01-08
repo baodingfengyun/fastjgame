@@ -17,8 +17,8 @@
 package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.misc.RpcCall;
-import com.wjybxx.fastjgame.net.common.RpcResponse;
+import com.wjybxx.fastjgame.misc.DefaultRpcBuilder;
+import com.wjybxx.fastjgame.net.common.RpcCall;
 import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.rpcservice.ICenterRouterMgr;
@@ -60,16 +60,20 @@ public class CenterRouterMgr implements ICenterRouterMgr {
         // TODO 根据玩家id查询所在scene服务器
     }
 
-    private static <V> void routeImp(@Nullable Session routerSession, @Nonnull RpcCall<V> rpcCall, @Nonnull RpcResponseChannel<V> rpcResponseChannel) {
-        if (routerSession == null) {
-            rpcResponseChannel.write(RpcResponse.ROUTER_SESSION_NULL);
+    private static <V> void routeImp(@Nullable Session targetSession, @Nonnull RpcCall<V> rpcCall, @Nonnull RpcResponseChannel<V> rpcResponseChannel) {
+        if (targetSession == null) {
+            rpcResponseChannel.writeFailure("can't find target session");
             return;
         }
 
         if (rpcResponseChannel.isVoid()) {
-            routerSession.send(rpcCall);
-        } else {
-            routerSession.call(rpcCall, rpcResponseChannel::write);
+            targetSession.send(rpcCall);
+            return;
         }
+
+        new DefaultRpcBuilder<>(rpcCall)
+                .onFailure(rpcResponseChannel::writeFailure)
+                .onSuccess(rpcResponseChannel::writeSuccess)
+                .call(targetSession);
     }
 }

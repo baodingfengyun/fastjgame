@@ -16,7 +16,6 @@
 package com.wjybxx.fastjgame.net.task;
 
 import com.wjybxx.fastjgame.net.common.RpcCallback;
-import com.wjybxx.fastjgame.net.common.RpcResponse;
 import com.wjybxx.fastjgame.net.session.Session;
 
 /**
@@ -27,20 +26,22 @@ import com.wjybxx.fastjgame.net.session.Session;
  * date - 2019/8/13
  * github - https://github.com/hl845740757
  */
-public class RpcResponseCommitTask implements CommitTask {
+public class RpcResponseCommitTask<V> implements CommitTask {
 
     private final Session session;
-    private final RpcCallback rpcCallback;
-    private final RpcResponse rpcResponse;
+    private final RpcCallback<V> rpcCallback;
+    private final V result;
+    private final Throwable cause;
 
-    public RpcResponseCommitTask(Session session, RpcCallback rpcCallback, RpcResponse rpcResponse) {
+    public RpcResponseCommitTask(Session session, RpcCallback<V> rpcCallback, V result, Throwable cause) {
         this.session = session;
-        this.rpcResponse = rpcResponse;
         this.rpcCallback = rpcCallback;
+        this.result = result;
+        this.cause = cause;
     }
 
     @Override
     public void run() {
-        session.config().dispatcher().postRpcCallback(session, rpcCallback, rpcResponse);
+        session.config().dispatcher().postRpcCallback(session, rpcCallback, result, cause);
     }
 }

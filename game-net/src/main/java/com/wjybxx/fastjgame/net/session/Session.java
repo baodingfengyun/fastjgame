@@ -26,15 +26,16 @@ import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
+import java.util.concurrent.ExecutionException;
 
 /**
  * 一个连接的抽象，它可能是一个socket连接，也可能是JVM内的线程之间内的连接，不论它真的是什么，你都可以以相同的方式使用它们发送消息。
  *
  * <h3>时序问题</h3>
- * 1. {@link #send(Object)}、{@link #call(Object, RpcCallback)}、{@link #sync(Object)}、{@link RpcResponseChannel#write(RpcResponse)}
+ * 1. {@link #send(Object)}、{@link #call(Object, RpcCallback)}、{@link #syncCall(Object)}、{@link RpcResponseChannel#write(RpcResponse)}
  * 之间都满足先发送的必然先到。这样的好处是编程更简单，缺点是同步rpc调用响应会变慢，如果真的需要插队的处理机制，未来再进行拓展（很容易）。
  * <p>
- * 2. 但是要注意一个问题：{@link #sync(Object)}会打乱处理的顺序！同步Rpc调用的结果会被你提前处理，其它消息可能先到，但是由于你处于阻塞状态，而导致被延迟处理。
+ * 2. 但是要注意一个问题：{@link #syncCall(Object)}会打乱处理的顺序！同步Rpc调用的结果会被你提前处理，其它消息可能先到，但是由于你处于阻塞状态，而导致被延迟处理。
  * <p>
  * 3. 先发送的请求不一定先获得结果！对方什么时候返回给你结果是不确定的！
  *
@@ -144,7 +145,7 @@ public interface Session extends Comparable<Session> {
      * @param request  rpc请求对象
      * @param callback 回调函数
      */
-    void call(@Nonnull Object request, @Nonnull RpcCallback callback);
+    <V> void call(@Nonnull Object request, @Nonnull RpcCallback<V> callback);
 
     /**
      * 发送一个rpc请求给对方，并阻塞到结果返回或超时。
@@ -152,8 +153,8 @@ public interface Session extends Comparable<Session> {
      * @param request rpc请求对象
      * @return rpc返回结果
      */
-    @Nonnull
-    RpcResponse sync(@Nonnull Object request);
+    @Nullable
+    <V> V syncCall(@Nonnull Object request) throws ExecutionException;
 
     // ----------------------------------------------- 生命周期 ----------------------------------------------
 

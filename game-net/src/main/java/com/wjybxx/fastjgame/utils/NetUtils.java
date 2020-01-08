@@ -17,8 +17,6 @@
 package com.wjybxx.fastjgame.utils;
 
 import com.wjybxx.fastjgame.annotation.UnstableApi;
-import com.wjybxx.fastjgame.misc.RpcCall;
-import com.wjybxx.fastjgame.net.common.ProtocolCodec;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelConfig;
@@ -32,11 +30,8 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Closeable;
-import java.io.IOException;
 import java.net.*;
-import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.List;
 
 /**
  * 网络包工具类
@@ -309,74 +304,6 @@ public class NetUtils {
         byte[] result = new byte[byteBuf.readableBytes()];
         byteBuf.readBytes(result);
         return result;
-    }
-
-    /**
-     * 检查延迟初始化参数
-     *
-     * @param rpcCall 方法调用信息
-     * @param codec   序列化实现
-     * @return newCall or the same call
-     * @throws IOException error
-     */
-    public static RpcCall<?> checkLazySerialize(RpcCall<?> rpcCall, ProtocolCodec codec) throws IOException {
-        final int lazyIndexes = rpcCall.getLazyIndexes();
-        if (lazyIndexes <= 0) {
-            return rpcCall;
-        }
-
-        // bugs: 如果不创建新的list，则在广播时，可能出现并发set的情况，可能导致部分线程看见错误的数据
-        // 解决方案有：①防御性拷贝 ②对RpcCall对象加锁
-        // 选择防御性拷贝的理由：①使用延迟序列化和提前反序列化的比例并不高 ②方法方法参数个数偏小，创建一个小list的成本较低。
-        final List<Object> methodParams = rpcCall.getMethodParams();
-        final ArrayList<Object> newMethodParams = new ArrayList<>(methodParams.size());
-
-        for (int index = 0, end = methodParams.size(); index < end; index++) {
-            final Object parameter = methodParams.get(index);
-            final Object newParameter;
-
-            if ((lazyIndexes & (1L << index)) != 0 && !(parameter instanceof byte[])) {
-                newParameter = codec.serializeToBytes(parameter);
-            } else {
-                newParameter = parameter;
-            }
-
-            newMethodParams.add(newParameter);
-        }
-
-        return new RpcCall<>(rpcCall.getMethodKey(), newMethodParams, 0, rpcCall.getPreIndexes());
-    }
-
-    /**
-     * 检查提前反序列化参数
-     *
-     * @param rpcCall 方法调用信息
-     * @param codec   反序列化实现
-     * @return newCall or the same call
-     * @throws IOException error
-     */
-    public static RpcCall<?> checkPreDeserialize(RpcCall<?> rpcCall, ProtocolCodec codec) throws IOException {
-        final int preIndexes = rpcCall.getPreIndexes();
-        if (preIndexes <= 0) {
-            return rpcCall;
-        }
-
-        // 线程安全问题同上面
-        final List<Object> methodParams = rpcCall.getMethodParams();
-        final ArrayList<Object> newMethodParams = new ArrayList<>(methodParams.size());
-
-        for (int index = 0, end = methodParams.size(); index < end; index++) {
-            final Object parameter = methodParams.get(index);
-            final Object newParameter;
-            if ((preIndexes & (1L << index)) != 0 && parameter instanceof byte[]) {
-                newParameter = codec.deserializeFromBytes((byte[]) parameter);
-            } else {
-                newParameter = parameter;
-            }
-            newMethodParams.add(newParameter);
-        }
-
-        return new RpcCall<>(rpcCall.getMethodKey(), newMethodParams, rpcCall.getLazyIndexes(), 0);
     }
 
     /**

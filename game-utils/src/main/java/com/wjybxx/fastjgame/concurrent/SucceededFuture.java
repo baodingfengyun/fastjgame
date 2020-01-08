@@ -52,6 +52,11 @@ public class SucceededFuture<V> extends CompleteFuture<V> {
         return result;
     }
 
+    @Override
+    public V join() {
+        return result;
+    }
+
     @Nullable
     @Override
     public V getNow() {

@@ -14,24 +14,30 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.misc;
+package com.wjybxx.fastjgame.net.exception;
 
-import com.wjybxx.fastjgame.net.common.RpcCall;
+import com.wjybxx.fastjgame.net.common.RpcErrorCode;
 
 /**
- * rpc路由器
+ * Session已关闭
  *
- * @param <V>
+ * @author wjybxx
+ * @version 1.0
+ * date - 2020/1/8
+ * github - https://github.com/hl845740757
  */
-@FunctionalInterface
-public interface RpcRouter<V> {
+public class RpcSessionClosedException extends RpcException {
 
-    /**
-     * 路由实现(将原始请求封装到另一个请求中)
-     *
-     * @param rpcCall 原始方法调用信息
-     * @return newBuilder，该builder中包含新封装后的调用信息。
-     */
-    RpcBuilder<V> route(RpcCall<V> rpcCall);
+    public static final RpcSessionClosedException INSTANCE = new RpcSessionClosedException();
+
+    private RpcSessionClosedException() {
+        // 不填充堆栈
+        super(null, null, false, false);
+    }
+
+    @Override
+    public RpcErrorCode getErrorCode() {
+        return RpcErrorCode.SESSION_CLOSED;
+    }
 
 }

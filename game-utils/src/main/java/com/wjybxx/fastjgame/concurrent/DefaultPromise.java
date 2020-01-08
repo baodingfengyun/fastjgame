@@ -227,6 +227,18 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         throw new TimeoutException();
     }
 
+    @Override
+    public V join() throws ExecutionException {
+        final Object result = resultHolder.get();
+        if (isDone0(result)) {
+            return reportGet(result);
+        }
+
+        awaitUninterruptibly();
+
+        return reportGet(resultHolder.get());
+    }
+
     /**
      * 用于get方法上报结果
      */

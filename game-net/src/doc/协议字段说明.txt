@@ -38,12 +38,11 @@
 4. Rpc请求包                      （用户数据）
  long  8字节     requestGuid      请求id
  byte  1字节     sync             是否是同步rpc调用
- bytes 字节数组   bytes            请求的内容
+ bytes 字节数组   bytes            请求的内容(自定义格式) - 协议规范与实现分离
 
 5. Rpc响应包                     （用户数据）
  long  8字节     requestGuid      请求id
- int   4字节     resultCode       错误码
- bytes 字节数组   bytes            响应结果
+ bytes 字节数组   bytes            响应内容(自定义格式) - 协议规范与实现分离
 
 6. 单向消息包                      （用户数据）
  bytes 字节数组   bytes            消息的内容

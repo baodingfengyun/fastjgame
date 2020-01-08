@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.annotation;
 
-import com.wjybxx.fastjgame.misc.RpcCall;
+import com.wjybxx.fastjgame.net.common.RpcCall;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
