@@ -17,26 +17,27 @@
 package com.wjybxx.fastjgame.net.exception;
 
 import com.wjybxx.fastjgame.net.common.RpcErrorCode;
+import com.wjybxx.fastjgame.net.common.RpcResponse;
 
 /**
- * Session不存在
+ * 服务器执行调用时出现异常 - 通过{@link com.wjybxx.fastjgame.net.common.RpcResponse}解析得到。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2020/1/8
  * github - https://github.com/hl845740757
  */
-public class RpcSessionNullException extends RpcException {
+public class DefaultRpcServerException extends RpcServerException {
 
-    public static final RpcSessionNullException INSTANCE = new RpcSessionNullException();
+    private final RpcErrorCode errorCode;
 
-    private RpcSessionNullException() {
-        // 不填充堆栈
-        super(null, null, false, false);
+    public DefaultRpcServerException(RpcResponse rpcResponse) {
+        super((String) rpcResponse.getBody());
+        this.errorCode = rpcResponse.getErrorCode();
     }
 
     @Override
     public RpcErrorCode getErrorCode() {
-        return RpcErrorCode.SESSION_NULL;
+        return errorCode;
     }
 }

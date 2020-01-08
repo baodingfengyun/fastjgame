@@ -26,7 +26,7 @@ import com.wjybxx.fastjgame.net.common.RpcErrorCode;
  * date - 2020/1/8
  * github - https://github.com/hl845740757
  */
-public class RpcSessionClosedException extends RpcException {
+public class RpcSessionClosedException extends RpcLocalException {
 
     public static final RpcSessionClosedException INSTANCE = new RpcSessionClosedException();
 
@@ -37,7 +37,7 @@ public class RpcSessionClosedException extends RpcException {
 
     @Override
     public RpcErrorCode getErrorCode() {
-        return RpcErrorCode.SESSION_CLOSED;
+        return RpcErrorCode.LOCAL_SESSION_CLOSED;
     }
 
 }

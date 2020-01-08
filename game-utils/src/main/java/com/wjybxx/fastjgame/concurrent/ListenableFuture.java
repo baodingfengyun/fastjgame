@@ -116,8 +116,7 @@ public interface ListenableFuture<V> extends Future<V> {
     V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException;
 
     /**
-     * /**
-     * 获取task的结果。
+     * 阻塞式获取task的结果。
      * 如果future关联的task尚未完成，则阻塞等待至任务完成，并返回计算的结果。
      * 如果future关联的task已完成，则立即返回结果。
      * <p>

@@ -16,28 +16,32 @@
 
 package com.wjybxx.fastjgame.net.exception;
 
-import com.wjybxx.fastjgame.net.common.RpcErrorCode;
-import com.wjybxx.fastjgame.net.common.RpcResponse;
-
 /**
- * 服务器执行调用时出现异常 - 通过{@link com.wjybxx.fastjgame.net.common.RpcResponse}解析得到。
+ * rpc远程执行异常。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2020/1/8
  * github - https://github.com/hl845740757
  */
-public class RpcServerException extends RpcException {
+public abstract class RpcServerException extends RpcException {
 
-    private final RpcErrorCode errorCode;
-
-    public RpcServerException(RpcResponse rpcResponse) {
-        super((String) rpcResponse.getBody());
-        this.errorCode = rpcResponse.getErrorCode();
+    public RpcServerException() {
     }
 
-    @Override
-    public RpcErrorCode getErrorCode() {
-        return errorCode;
+    public RpcServerException(String message) {
+        super(message);
+    }
+
+    public RpcServerException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public RpcServerException(Throwable cause) {
+        super(cause);
+    }
+
+    public RpcServerException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
     }
 }

@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.net.exception;
 
-import com.wjybxx.fastjgame.net.common.RpcErrorCode;
-
 /**
  * 本地执行时出现异常
  *
@@ -26,18 +24,24 @@ import com.wjybxx.fastjgame.net.common.RpcErrorCode;
  * date - 2020/1/8
  * github - https://github.com/hl845740757
  */
-public class RpcLocalException extends RpcException {
+public abstract class RpcLocalException extends RpcException {
 
-    public RpcLocalException(Throwable cause) {
-        super(cause);
+    public RpcLocalException() {
+    }
+
+    public RpcLocalException(String message) {
+        super(message);
     }
 
     public RpcLocalException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    @Override
-    public RpcErrorCode getErrorCode() {
-        return RpcErrorCode.LOCAL_EXCEPTION;
+    public RpcLocalException(Throwable cause) {
+        super(cause);
+    }
+
+    public RpcLocalException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
     }
 }

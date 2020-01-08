@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.mgr;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.misc.DefaultRpcBuilder;
 import com.wjybxx.fastjgame.net.common.RpcCall;
+import com.wjybxx.fastjgame.net.common.RpcErrorCode;
 import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.rpcservice.ICenterRouterMgr;
@@ -62,7 +63,7 @@ public class CenterRouterMgr implements ICenterRouterMgr {
 
     private static <V> void routeImp(@Nullable Session targetSession, @Nonnull RpcCall<V> rpcCall, @Nonnull RpcResponseChannel<V> rpcResponseChannel) {
         if (targetSession == null) {
-            rpcResponseChannel.writeFailure("can't find target session");
+            rpcResponseChannel.writeFailure(RpcErrorCode.SERVER_ROUTER_SESSION_NULL, "can't find target session");
             return;
         }
 

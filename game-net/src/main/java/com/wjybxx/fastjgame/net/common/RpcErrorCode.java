@@ -22,7 +22,7 @@ import com.wjybxx.fastjgame.enummapper.NumberEnumMapper;
 import com.wjybxx.fastjgame.utils.EnumUtils;
 
 /**
- * RPC错误码。
+ * RPC错误码 - 慢慢扩展
  *
  * @author wjybxx
  * @version 1.0
@@ -38,29 +38,26 @@ public enum RpcErrorCode implements NumberEnum {
     SUCCESS(0),
 
     /**
-     * Session不存在
+     * 本地处理请求异常。
+     * 本地处理默认返回码，如果可以更细化，则应该细化。
      */
-    SESSION_NULL(1),
+    LOCAL_EXCEPTION(10),
+
     /**
      * 会话已关闭
      */
-    SESSION_CLOSED(2),
+    LOCAL_SESSION_CLOSED(11),
 
     /**
-     * 出现异常(本地异常)。
-     * 如果需要查看异常，可以获取body。
+     * 服务器处理请求失败。
+     * 远程默认返回码，如果可以更细化，则应该细化。
      */
-    LOCAL_EXCEPTION(3),
-    /**
-     * 服务器处理请求失败时失败。
-     * (注解处理器使用了该对象，不要轻易重命名)
-     */
-    SERVER_EXCEPTION(4),
+    SERVER_EXCEPTION(20),
 
     /**
      * 路由转发时找不到session
      */
-    ROUTER_SESSION_NULL(5),
+    SERVER_ROUTER_SESSION_NULL(21),
     ;
 
     /**

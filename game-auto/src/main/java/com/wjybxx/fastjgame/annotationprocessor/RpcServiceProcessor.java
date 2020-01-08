@@ -120,7 +120,6 @@ public class RpcServiceProcessor extends AbstractProcessor {
     private DeclaredType rpcServiceDeclaredType;
     private DeclaredType rpcMethodDeclaredType;
 
-    private ClassName resultCodeTypeName;
     private ClassName registryTypeName;
     private ClassName exceptionUtilsTypeName;
     private TypeName defaultBuilderRawTypeName;
@@ -159,7 +158,6 @@ public class RpcServiceProcessor extends AbstractProcessor {
         rpcMethodDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(RPC_METHOD_CANONICAL_NAME));
 
         registryTypeName = ClassName.get(elementUtils.getTypeElement(REGISTRY_CANONICAL_NAME));
-        resultCodeTypeName = ClassName.get(elementUtils.getTypeElement(RESULT_CODE_CANONICAL_NAME));
         exceptionUtilsTypeName = ClassName.get(elementUtils.getTypeElement(EXCEPTION_UTILS_CANONICAL_NAME));
         builderElement = elementUtils.getTypeElement(BUILDER_CANONICAL_NAME);
 
@@ -582,7 +580,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
      * 		     		V result = instance.method2(methodParams.get(0), methodParams.get(1));
      * 		     	    responseChannel.writeSuccess(result);
      *               } catch(Throwable cause){
-     *                  responseChannel.writeFailure(RpcResultCode.SERVER_EXCEPTION, cause)
+     *                  responseChannel.writeFailure(cause)
      *                  ConcurrentUtils.rethrow(cause);
      *               }
      *            });
@@ -598,7 +596,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
      * 		       		instance.method1(methodParams.get(0), methodParams.get(1), responseChannel);
      * 		       	    responseChannel.writeSuccess(null);
      *               } catch(Throwable cause) {
-     *                   responseChannel.writeFailure(RpcResultCode.SERVER_EXCEPTION, cause)
+     *                   responseChannel.writeFailure(cause)
      *                   ConcurrentUtils.rethrow(cause);
      *               }
      *            });
@@ -633,7 +631,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
                 builder.addStatement("        $L.writeSuccess(result)", responseChannel);
             }
             builder.addCode("    } catch (Throwable cause) {\n");
-            builder.addStatement("        $L.writeFailure($T.SERVER_EXCEPTION, cause)", responseChannel, resultCodeTypeName);
+            builder.addStatement("        $L.writeFailure(cause)", responseChannel);
             builder.addStatement("        $T.rethrow(cause)", exceptionUtilsTypeName);
 
             builder.addCode("    }\n");

@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.common;
 
-import com.wjybxx.fastjgame.net.exception.RpcServerException;
+import com.wjybxx.fastjgame.net.exception.DefaultRpcServerException;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionConfig;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
@@ -179,7 +179,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             cause = null;
         } else {
             result = null;
-            cause = new RpcServerException(rpcResponse);
+            cause = new DefaultRpcServerException(rpcResponse);
         }
 
         final RpcPromise<V> rpcPromise = (RpcPromise<V>) rpcTimeoutInfo.rpcPromise;
