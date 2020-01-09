@@ -18,8 +18,6 @@ package com.wjybxx.fastjgame.concurrent.timeout;
 
 import com.wjybxx.fastjgame.concurrent.DefaultFutureResult;
 
-import java.util.concurrent.TimeoutException;
-
 /**
  * @author wjybxx
  * @version 1.0
@@ -34,6 +32,6 @@ public class DefaultTimeoutFutureResult<V> extends DefaultFutureResult<V> implem
 
     @Override
     public final boolean isTimeout() {
-        return cause() instanceof TimeoutException;
+        return DefaultTimeoutPromise.isTimeout0(cause());
     }
 }

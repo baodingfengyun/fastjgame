@@ -52,7 +52,11 @@ public class DefaultTimeoutPromise<V> extends DefaultPromise<V> implements Timeo
 
     @Override
     public final boolean isTimeout() {
-        return cause() instanceof TimeoutException;
+        return isTimeout0(cause());
+    }
+
+    static boolean isTimeout0(Throwable cause) {
+        return cause instanceof TimeoutException;
     }
 
     @Nullable

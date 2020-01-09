@@ -29,7 +29,7 @@ import com.wjybxx.fastjgame.concurrent.FutureResult;
 public interface TimeoutFutureResult<V> extends FutureResult<V> {
 
     /**
-     * 是否是超时结果
+     * @see TimeoutFuture#isTimeout()
      */
     boolean isTimeout();
 

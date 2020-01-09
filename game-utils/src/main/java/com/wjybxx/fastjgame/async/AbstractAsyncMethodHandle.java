@@ -51,7 +51,7 @@ public abstract class AbstractAsyncMethodHandle<T, FR extends FutureResult<V>, V
         return this;
     }
 
-    private void addListener(GenericFutureResultListener<FR> child) {
+    protected final void addListener(GenericFutureResultListener<FR> child) {
         if (this.listener == null) {
             this.listener = child;
             return;

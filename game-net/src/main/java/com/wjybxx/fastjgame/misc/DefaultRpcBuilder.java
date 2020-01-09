@@ -20,6 +20,7 @@ import com.wjybxx.fastjgame.async.AbstractAsyncMethodHandle;
 import com.wjybxx.fastjgame.concurrent.GenericFutureFailureResultListener;
 import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
 import com.wjybxx.fastjgame.concurrent.GenericFutureSuccessResultListener;
+import com.wjybxx.fastjgame.concurrent.timeout.GenericFutureTimeoutResultListener;
 import com.wjybxx.fastjgame.net.common.RpcCall;
 import com.wjybxx.fastjgame.net.common.RpcFutureResult;
 import com.wjybxx.fastjgame.net.session.Session;
@@ -127,6 +128,12 @@ public class DefaultRpcBuilder<V> extends AbstractAsyncMethodHandle<Session, Rpc
     @Override
     public RpcBuilder<V> onComplete(GenericFutureResultListener<RpcFutureResult<V>> listener) {
         super.onComplete(listener);
+        return this;
+    }
+
+    @Override
+    public RpcBuilder<V> onTimeout(GenericFutureTimeoutResultListener<RpcFutureResult<V>> listener) {
+        addListener(listener);
         return this;
     }
 }

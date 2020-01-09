@@ -54,27 +54,38 @@ public abstract class CompleteFuture<V> extends AbstractListenableFuture<V> {
     }
 
     @Override
-    public boolean isDone() {
+    public final boolean isDone() {
         return true;
     }
 
     @Override
-    public boolean isCancelled() {
+    public final boolean isCancelled() {
         return false;
     }
 
     @Override
-    public boolean isCancellable() {
+    public final boolean isCancellable() {
         return false;
     }
 
     @Override
-    public boolean cancel(boolean mayInterruptIfRunning) {
+    public final boolean cancel(boolean mayInterruptIfRunning) {
         return false;
     }
 
     // 什么时候应该检查中断，个人觉得这里的操作都已完成，不会造成阻塞(不会执行耗时操作)，因此不检查中断
 
+    @Override
+    public final boolean await(long timeout, @Nonnull TimeUnit unit) {
+        return true;
+    }
+
+    @Override
+    public final boolean awaitUninterruptibly(long timeout, @Nonnull TimeUnit unit) {
+        return true;
+    }
+
+    // 流式语法支持(允许重写)
     @Override
     public ListenableFuture<V> await() {
         return this;
@@ -83,16 +94,6 @@ public abstract class CompleteFuture<V> extends AbstractListenableFuture<V> {
     @Override
     public ListenableFuture<V> awaitUninterruptibly() {
         return this;
-    }
-
-    @Override
-    public boolean await(long timeout, @Nonnull TimeUnit unit) {
-        return true;
-    }
-
-    @Override
-    public boolean awaitUninterruptibly(long timeout, @Nonnull TimeUnit unit) {
-        return true;
     }
 
     @Override

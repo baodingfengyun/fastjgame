@@ -35,7 +35,7 @@ public class DefaultFutureResult<V> implements FutureResult<V> {
     }
 
     @Override
-    public final V get() {
+    public final V getNow() {
         return result;
     }
 

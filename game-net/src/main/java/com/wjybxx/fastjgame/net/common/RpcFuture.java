@@ -34,6 +34,21 @@ import javax.annotation.Nullable;
  */
 public interface RpcFuture<V> extends TimeoutFuture<V> {
 
+    /**
+     * 查询是否是rpc执行异常
+     *
+     * @return 如果为异常信息为：{@link com.wjybxx.fastjgame.net.exception.RpcException}，则返回true
+     */
+    boolean isRpcException();
+
+    /**
+     * {@link #isRpcException()}为true的时候，则返回对应的错误码。
+     * 否则返回null。
+     *
+     * @return errorCode
+     */
+    RpcErrorCode errorCode();
+
     @Nullable
     @Override
     RpcFutureResult<V> getAsResult();

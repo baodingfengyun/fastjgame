@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.net.common;
 
 import com.wjybxx.fastjgame.concurrent.timeout.DefaultTimeoutFutureResult;
-import com.wjybxx.fastjgame.net.exception.RpcException;
 
 /**
  * @author wjybxx
@@ -33,14 +32,11 @@ public class DefaultRpcFutureResult<V> extends DefaultTimeoutFutureResult<V> imp
 
     @Override
     public boolean isRpcException() {
-        return cause() instanceof RpcException;
+        return DefaultRpcPromise.isRpcException0(cause());
     }
 
     @Override
     public RpcErrorCode errorCode() {
-        if (isRpcException()) {
-            return ((RpcException) cause()).getErrorCode();
-        }
-        throw new IllegalStateException();
+        return DefaultRpcPromise.getErrorCode0(cause());
     }
 }

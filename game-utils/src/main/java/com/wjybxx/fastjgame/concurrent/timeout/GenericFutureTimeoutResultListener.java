@@ -14,25 +14,30 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.common;
+package com.wjybxx.fastjgame.concurrent.timeout;
 
-import com.wjybxx.fastjgame.concurrent.timeout.TimeoutFutureResult;
+import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
 
 /**
+ * 超时结果监听器
+ *
  * @author wjybxx
  * @version 1.0
- * date - 2020/1/8
+ * date - 2020/1/9
  * github - https://github.com/hl845740757
  */
-public interface RpcFutureResult<V> extends TimeoutFutureResult<V> {
+@FunctionalInterface
+public interface GenericFutureTimeoutResultListener<FR extends TimeoutFutureResult<?>> extends GenericFutureResultListener<FR> {
+
+    @Override
+    default void onComplete(FR futureResult) {
+        if (futureResult.isTimeout()) {
+            onTimeout();
+        }
+    }
 
     /**
-     * @see RpcFuture#isRpcException()
+     * 执行超时逻辑
      */
-    boolean isRpcException();
-
-    /**
-     * @see RpcFuture#errorCode()
-     */
-    RpcErrorCode errorCode();
+    void onTimeout();
 }

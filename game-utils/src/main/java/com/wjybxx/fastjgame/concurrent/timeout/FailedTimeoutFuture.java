@@ -14,73 +14,66 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.common;
+package com.wjybxx.fastjgame.concurrent.timeout;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.wjybxx.fastjgame.concurrent.FailedFuture;
 import com.wjybxx.fastjgame.concurrent.FutureListener;
-import com.wjybxx.fastjgame.concurrent.timeout.FailedTimeoutFuture;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * 已完成的Rpc调用，在它上面的任何监听都将立即执行。
+ * 已失败的{@link TimeoutFuture}
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/3
+ * date - 2020/1/9
  * github - https://github.com/hl845740757
  */
-public class FailedRpcFuture<V> extends FailedTimeoutFuture<V> implements RpcFuture<V> {
+public class FailedTimeoutFuture<V> extends FailedFuture<V> implements TimeoutFuture<V> {
 
-    public FailedRpcFuture(@Nonnull EventLoop notifyExecutor, @Nonnull Throwable cause) {
+    public FailedTimeoutFuture(@Nonnull EventLoop notifyExecutor, @Nonnull Throwable cause) {
         super(notifyExecutor, cause);
     }
 
     @Override
-    public final boolean isRpcException() {
-        return DefaultRpcPromise.isRpcException0(cause());
-    }
-
-    @Override
-    public final RpcErrorCode errorCode() {
-        return DefaultRpcPromise.getErrorCode0(cause());
+    public final boolean isTimeout() {
+        // 早已失败，一定不是超时
+        return false;
     }
 
     @Nullable
     @Override
-    public RpcFutureResult<V> getAsResult() {
-        return new DefaultRpcFutureResult<>(null, cause());
+    public TimeoutFutureResult<V> getAsResult() {
+        return new DefaultTimeoutFutureResult<>(null, cause());
     }
 
-    // ------------------------------------------------ 流式语法支持 ------------------------------------
-
     @Override
-    public RpcFuture<V> await() {
+    public TimeoutFuture<V> await() {
         return this;
     }
 
     @Override
-    public RpcFuture<V> awaitUninterruptibly() {
+    public TimeoutFuture<V> awaitUninterruptibly() {
         return this;
     }
 
     @Override
-    public RpcFuture<V> addListener(@Nonnull FutureListener<? super V> listener) {
+    public TimeoutFuture<V> addListener(@Nonnull FutureListener<? super V> listener) {
         super.addListener(listener);
         return this;
     }
 
     @Override
-    public RpcFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor) {
+    public TimeoutFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor) {
         super.addListener(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public RpcFuture<V> removeListener(@Nonnull FutureListener<? super V> listener) {
+    public TimeoutFuture<V> removeListener(@Nonnull FutureListener<? super V> listener) {
         super.removeListener(listener);
         return this;
     }
-
 }

@@ -20,6 +20,7 @@ import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.FutureListener;
 import com.wjybxx.fastjgame.concurrent.timeout.DefaultTimeoutPromise;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
+import com.wjybxx.fastjgame.net.exception.RpcException;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
 import javax.annotation.Nonnull;
@@ -54,6 +55,27 @@ public class DefaultRpcPromise<V> extends DefaultTimeoutPromise<V> implements Rp
     @Override
     protected void checkDeadlock() {
         ConcurrentUtils.checkDeadLock(workerEventLoop);
+    }
+
+    @Override
+    public boolean isRpcException() {
+        return isRpcException0(cause());
+    }
+
+    @Override
+    public RpcErrorCode errorCode() {
+        return getErrorCode0(cause());
+    }
+
+    static boolean isRpcException0(Throwable cause) {
+        return cause instanceof RpcException;
+    }
+
+    static RpcErrorCode getErrorCode0(Throwable cause) {
+        if (cause instanceof RpcException) {
+            return ((RpcException) cause).getErrorCode();
+        }
+        return null;
     }
 
     @Nullable

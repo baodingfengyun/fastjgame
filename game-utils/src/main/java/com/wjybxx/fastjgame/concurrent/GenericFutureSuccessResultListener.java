@@ -30,7 +30,7 @@ public interface GenericFutureSuccessResultListener<FR extends FutureResult<V>, 
     @Override
     default void onComplete(FR futureResult) {
         if (futureResult.isSuccess()) {
-            onSuccess(futureResult.get());
+            onSuccess(futureResult.getNow());
         }
     }
 
