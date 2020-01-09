@@ -15,7 +15,7 @@
  */
 package com.wjybxx.fastjgame.net.task;
 
-import com.wjybxx.fastjgame.async.GenericFutureResultListener;
+import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
 import com.wjybxx.fastjgame.net.common.RpcFutureResult;
 import com.wjybxx.fastjgame.net.session.Session;
 
@@ -31,10 +31,10 @@ public class RpcResponseCommitTask<V> implements CommitTask {
 
     private final Session session;
     private final RpcFutureResult<V> futureResult;
-    private final GenericFutureResultListener<RpcFutureResult<V>, ? super V> listener;
+    private final GenericFutureResultListener<RpcFutureResult<V>> listener;
 
     public RpcResponseCommitTask(Session session, RpcFutureResult<V> futureResult,
-                                 GenericFutureResultListener<RpcFutureResult<V>, ? super V> listener) {
+                                 GenericFutureResultListener<RpcFutureResult<V>> listener) {
         this.session = session;
         this.listener = listener;
         this.futureResult = futureResult;

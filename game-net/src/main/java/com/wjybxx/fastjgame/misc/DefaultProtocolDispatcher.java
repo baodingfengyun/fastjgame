@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.async.GenericFutureResultListener;
+import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
 import com.wjybxx.fastjgame.net.common.ProtocolDispatcher;
 import com.wjybxx.fastjgame.net.common.RpcCall;
 import com.wjybxx.fastjgame.net.common.RpcFutureResult;
@@ -76,7 +76,7 @@ public class DefaultProtocolDispatcher implements RpcFunctionRegistry, ProtocolD
     }
 
     @Override
-    public <V> void postRpcCallback(Session session, GenericFutureResultListener<RpcFutureResult<V>, ? super V> listener, RpcFutureResult<V> futureResult) {
+    public <V> void postRpcCallback(Session session, GenericFutureResultListener<RpcFutureResult<V>> listener, RpcFutureResult<V> futureResult) {
         listener.onComplete(futureResult);
     }
 

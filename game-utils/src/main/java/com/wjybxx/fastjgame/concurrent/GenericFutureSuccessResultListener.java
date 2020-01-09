@@ -14,14 +14,10 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.async;
-
-import com.wjybxx.fastjgame.concurrent.FutureResult;
-
-import javax.annotation.Nonnull;
+package com.wjybxx.fastjgame.concurrent;
 
 /**
- * 执行失败才执行的监听器
+ * 执行成功才执行的监听器
  *
  * @author wjybxx
  * @version 1.0
@@ -29,17 +25,14 @@ import javax.annotation.Nonnull;
  * github - https://github.com/hl845740757
  */
 @FunctionalInterface
-public interface GenericFutureFailureResultListener<F extends FutureResult<V>, V> extends GenericFutureResultListener<F, V> {
+public interface GenericFutureSuccessResultListener<FR extends FutureResult<V>, V> extends GenericFutureResultListener<FR> {
 
     @Override
-    default void onComplete(F futureResult) {
-        if (!futureResult.isSuccess()) {
-            onFailure(futureResult);
+    default void onComplete(FR futureResult) {
+        if (futureResult.isSuccess()) {
+            onSuccess(futureResult.get());
         }
     }
 
-    /**
-     * @param failureResult 失败的结果，可以获得更多信息
-     */
-    void onFailure(@Nonnull F failureResult);
+    void onSuccess(V result);
 }

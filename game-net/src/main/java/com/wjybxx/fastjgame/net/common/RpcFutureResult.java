@@ -29,7 +29,7 @@ public interface RpcFutureResult<V> extends TimeoutFutureResult<V> {
     /**
      * 查询是否是rpc执行异常
      *
-     * @return 如果为{@link com.wjybxx.fastjgame.net.exception.RpcException}，则返回true
+     * @return 如果为异常信息为：{@link com.wjybxx.fastjgame.net.exception.RpcException}，则返回true
      */
     boolean isRpcException();
 

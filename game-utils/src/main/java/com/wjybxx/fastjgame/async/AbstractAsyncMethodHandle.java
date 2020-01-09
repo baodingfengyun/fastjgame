@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.async;
 
-import com.wjybxx.fastjgame.concurrent.FutureResult;
+import com.wjybxx.fastjgame.concurrent.*;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -29,43 +29,42 @@ import javax.annotation.concurrent.NotThreadSafe;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public abstract class AbstractAsyncMethodHandle<V, T, F extends FutureResult<V>> implements AsyncMethodHandle<V, T, F> {
+public abstract class AbstractAsyncMethodHandle<T, FR extends FutureResult<V>, V> implements AsyncMethodHandle<T, FR, V> {
 
-    private GenericFutureResultListener<F, ? super V> listener;
+    private GenericFutureResultListener<FR> listener;
 
     @Override
-    public AsyncMethodHandle<V, T, F> onSuccess(GenericFutureSuccessResultListener<F, ? super V> listener) {
+    public AsyncMethodHandle<T, FR, V> onSuccess(GenericFutureSuccessResultListener<FR, V> listener) {
         addListener(listener);
         return this;
     }
 
     @Override
-    public AsyncMethodHandle<V, T, F> onFailure(GenericFutureFailureResultListener<F, ? super V> listener) {
+    public AsyncMethodHandle<T, FR, V> onFailure(GenericFutureFailureResultListener<FR> listener) {
         addListener(listener);
         return this;
     }
 
     @Override
-    public AsyncMethodHandle<V, T, F> onComplete(GenericFutureResultListener<F, ? super V> listener) {
+    public AsyncMethodHandle<T, FR, V> onComplete(GenericFutureResultListener<FR> listener) {
         addListener(listener);
         return this;
     }
 
-    private void addListener(GenericFutureResultListener<F, ? super V> child) {
+    private void addListener(GenericFutureResultListener<FR> child) {
         if (this.listener == null) {
             this.listener = child;
             return;
         }
         if (this.listener instanceof FutureResultListenerContainer) {
-            @SuppressWarnings("unchecked") final FutureResultListenerContainer<F, V> container = (FutureResultListenerContainer<F, V>) this.listener;
-            container.addChild(this.listener);
+            ((FutureResultListenerContainer<FR, V>) this.listener).addChild(child);
         } else {
             this.listener = new FutureResultListenerContainer<>(this.listener, child);
         }
     }
 
-    protected final GenericFutureResultListener<F, ? super V> detachListener() {
-        GenericFutureResultListener<F, ? super V> result = this.listener;
+    protected final GenericFutureResultListener<FR> detachListener() {
+        GenericFutureResultListener<FR> result = this.listener;
         this.listener = null;
         return result;
     }

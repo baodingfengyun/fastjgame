@@ -18,7 +18,10 @@ package com.wjybxx.fastjgame.concurrent;
 
 /**
  * {@link ListenableFuture}对应的执行结果。
- * 在执行完毕后，可以获取该结果，从而代替传递future对象。
+ * Q: 这样有什么好处？
+ * A:
+ * 1. 在执行完毕后，可以获取该结果，从而代替传递future对象。
+ * 2. 封装对象可以提供更多的方法，从而可以代替大量的条件判断语句(eg: cause() == null)。
  *
  * @author wjybxx
  * @version 1.0

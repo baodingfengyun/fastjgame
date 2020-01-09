@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.common;
 
-import com.wjybxx.fastjgame.async.GenericFutureResultListener;
+import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
 import com.wjybxx.fastjgame.net.exception.DefaultRpcServerException;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionConfig;
@@ -123,6 +123,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
 
             // 保存rpc请求上下文
             long deadline = ctx.timerSystem().curTimeMillis() + rpcCallbackTimeoutMs;
+            @SuppressWarnings({"unchecked", "rawtypes"})
             RpcTimeoutInfo<?> rpcTimeoutInfo = new RpcTimeoutInfo(writeTask.getRpcPromise(), writeTask.getListener(), deadline);
             long requestGuid = ++requestGuidSequencer;
             rpcTimeoutInfoMap.put(requestGuid, rpcTimeoutInfo);
@@ -298,12 +299,12 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
 
     private static class RpcTimeoutInfo<V> {
 
-        // promise与callback二者存一
+        // promise与listener二者存一
         final RpcPromise<V> rpcPromise;
-        final GenericFutureResultListener<RpcFutureResult<V>, ? super V> listener;
+        final GenericFutureResultListener<RpcFutureResult<V>> listener;
         final long deadline;
 
-        RpcTimeoutInfo(RpcPromise<V> rpcPromise, GenericFutureResultListener<RpcFutureResult<V>, ? super V> listener, long deadline) {
+        RpcTimeoutInfo(RpcPromise<V> rpcPromise, GenericFutureResultListener<RpcFutureResult<V>> listener, long deadline) {
             this.rpcPromise = rpcPromise;
             this.listener = listener;
             this.deadline = deadline;

@@ -17,9 +17,9 @@
 package com.wjybxx.fastjgame.misc;
 
 import com.wjybxx.fastjgame.async.FlushableAsyncMethodHandle;
-import com.wjybxx.fastjgame.async.GenericFutureFailureResultListener;
-import com.wjybxx.fastjgame.async.GenericFutureResultListener;
-import com.wjybxx.fastjgame.async.GenericFutureSuccessResultListener;
+import com.wjybxx.fastjgame.concurrent.GenericFutureFailureResultListener;
+import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
+import com.wjybxx.fastjgame.concurrent.GenericFutureSuccessResultListener;
 import com.wjybxx.fastjgame.net.common.RpcCall;
 import com.wjybxx.fastjgame.net.common.RpcFutureResult;
 import com.wjybxx.fastjgame.net.session.Session;
@@ -82,7 +82,7 @@ import java.util.concurrent.ExecutionException;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public interface RpcBuilder<V> extends FlushableAsyncMethodHandle<V, Session, RpcFutureResult<V>> {
+public interface RpcBuilder<V> extends FlushableAsyncMethodHandle<Session, RpcFutureResult<V>, V> {
 
     /**
      * 获取该方法包含的调用信息，可用于二次封装。
@@ -152,12 +152,12 @@ public interface RpcBuilder<V> extends FlushableAsyncMethodHandle<V, Session, Rp
     }
 
     @Override
-    RpcBuilder<V> onSuccess(GenericFutureSuccessResultListener<RpcFutureResult<V>, ? super V> listener);
+    RpcBuilder<V> onSuccess(GenericFutureSuccessResultListener<RpcFutureResult<V>, V> listener);
 
     @Override
-    RpcBuilder<V> onFailure(GenericFutureFailureResultListener<RpcFutureResult<V>, ? super V> listener);
+    RpcBuilder<V> onFailure(GenericFutureFailureResultListener<RpcFutureResult<V>> listener);
 
     @Override
-    RpcBuilder<V> onComplete(GenericFutureResultListener<RpcFutureResult<V>, ? super V> listener);
+    RpcBuilder<V> onComplete(GenericFutureResultListener<RpcFutureResult<V>> listener);
 
 }

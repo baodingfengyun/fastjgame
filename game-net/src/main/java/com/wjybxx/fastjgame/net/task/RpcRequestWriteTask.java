@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.task;
 
-import com.wjybxx.fastjgame.async.GenericFutureResultListener;
+import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
 import com.wjybxx.fastjgame.net.common.RpcFutureResult;
 import com.wjybxx.fastjgame.net.common.RpcPromise;
 import com.wjybxx.fastjgame.net.session.Session;
@@ -35,10 +35,10 @@ public class RpcRequestWriteTask<V> implements WriteTask {
     private final Object request;
     private final boolean flush;
     private final RpcPromise<V> rpcPromise;
-    private final GenericFutureResultListener<RpcFutureResult<V>, ? super V> listener;
+    private final GenericFutureResultListener<RpcFutureResult<V>> listener;
 
     public RpcRequestWriteTask(Session session, Object request, boolean flush, RpcPromise<V> rpcPromise,
-                               GenericFutureResultListener<RpcFutureResult<V>, ? super V> listener) {
+                               GenericFutureResultListener<RpcFutureResult<V>> listener) {
         this.session = session;
         this.request = request;
         this.flush = flush;
@@ -54,7 +54,7 @@ public class RpcRequestWriteTask<V> implements WriteTask {
         return rpcPromise;
     }
 
-    public GenericFutureResultListener<RpcFutureResult<V>, ? super V> getListener() {
+    public GenericFutureResultListener<RpcFutureResult<V>> getListener() {
         return listener;
     }
 

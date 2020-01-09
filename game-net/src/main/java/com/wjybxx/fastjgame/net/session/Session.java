@@ -17,8 +17,8 @@
 package com.wjybxx.fastjgame.net.session;
 
 import com.wjybxx.fastjgame.annotation.Internal;
-import com.wjybxx.fastjgame.async.GenericFutureResultListener;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.net.common.RpcFutureResult;
 
@@ -147,7 +147,7 @@ public interface Session extends Comparable<Session> {
      * @param request  rpc请求对象
      * @param listener 回调函数
      */
-    <V> void call(@Nonnull Object request, @Nonnull GenericFutureResultListener<RpcFutureResult<V>, ? super V> listener);
+    <V> void call(@Nonnull Object request, @Nonnull GenericFutureResultListener<RpcFutureResult<V>> listener);
 
     /**
      * 发送一个rpc请求给对方，并立即刷新缓冲区。
@@ -155,7 +155,7 @@ public interface Session extends Comparable<Session> {
      * @param request  rpc请求对象
      * @param listener 回调函数
      */
-    <V> void callAndFlush(@Nonnull Object request, @Nonnull GenericFutureResultListener<RpcFutureResult<V>, ? super V> listener);
+    <V> void callAndFlush(@Nonnull Object request, @Nonnull GenericFutureResultListener<RpcFutureResult<V>> listener);
 
     /**
      * 发送一个rpc请求给对方，会立即刷新缓冲区，并阻塞到结果返回或超时。

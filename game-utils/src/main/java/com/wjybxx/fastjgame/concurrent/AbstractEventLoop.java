@@ -164,11 +164,6 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
 
     // ---------------------------------------- 迭代 ---------------------------------------
 
-    @Override
-    public int numEventLoop() {
-        return 1;
-    }
-
     @Nonnull
     @Override
     public final Iterator<EventLoop> iterator() {

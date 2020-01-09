@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.net.common;
 
-import com.wjybxx.fastjgame.async.GenericFutureResultListener;
 import com.wjybxx.fastjgame.concurrent.FutureResult;
+import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.net.session.Session;
 
@@ -65,6 +65,6 @@ public interface ProtocolDispatcher {
      * @param listener     回调逻辑
      * @param futureResult rpc执行结果
      */
-    <V> void postRpcCallback(Session session, GenericFutureResultListener<RpcFutureResult<V>, ? super V> listener, RpcFutureResult<V> futureResult);
+    <V> void postRpcCallback(Session session, GenericFutureResultListener<RpcFutureResult<V>> listener, RpcFutureResult<V> futureResult);
 
 }

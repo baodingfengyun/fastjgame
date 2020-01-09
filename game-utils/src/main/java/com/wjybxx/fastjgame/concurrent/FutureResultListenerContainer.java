@@ -14,9 +14,8 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.async;
+package com.wjybxx.fastjgame.concurrent;
 
-import com.wjybxx.fastjgame.concurrent.FutureResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,29 +30,29 @@ import java.util.List;
  * date - 2020/1/8
  * github - https://github.com/hl845740757
  */
-class FutureResultListenerContainer<F extends FutureResult<V>, V> implements GenericFutureResultListener<F, V> {
+public class FutureResultListenerContainer<FR extends FutureResult<V>, V> implements GenericFutureResultListener<FR> {
 
     private static final Logger logger = LoggerFactory.getLogger(FutureResultListenerContainer.class);
 
-    private final List<GenericFutureResultListener<F, ? super V>> children = new ArrayList<>(2);
+    private final List<GenericFutureResultListener<FR>> children = new ArrayList<>(2);
 
-    FutureResultListenerContainer(GenericFutureResultListener<F, ? super V> first, GenericFutureResultListener<F, ? super V> second) {
+    public FutureResultListenerContainer(GenericFutureResultListener<FR> first, GenericFutureResultListener<FR> second) {
         children.add(first);
         children.add(second);
     }
 
-    void addChild(GenericFutureResultListener<F, ? super V> child) {
+    public void addChild(GenericFutureResultListener<FR> child) {
         children.add(child);
     }
 
     @Override
-    public void onComplete(F futureResult) {
-        for (GenericFutureResultListener<F, ? super V> child : children) {
+    public void onComplete(FR futureResult) {
+        for (GenericFutureResultListener<FR> child : children) {
             notifySafely(child, futureResult);
         }
     }
 
-    private void notifySafely(GenericFutureResultListener<F, ? super V> child, F futureResult) {
+    private void notifySafely(GenericFutureResultListener<FR> child, FR futureResult) {
         try {
             child.onComplete(futureResult);
         } catch (Throwable e) {

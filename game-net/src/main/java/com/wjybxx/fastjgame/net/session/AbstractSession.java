@@ -17,8 +17,8 @@
 package com.wjybxx.fastjgame.net.session;
 
 import com.wjybxx.fastjgame.annotation.Internal;
-import com.wjybxx.fastjgame.async.GenericFutureResultListener;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
@@ -172,17 +172,17 @@ public abstract class AbstractSession implements Session {
     }
 
     @Override
-    public <V> void call(@Nonnull Object request, @Nonnull GenericFutureResultListener<RpcFutureResult<V>, ? super V> listener) {
+    public <V> void call(@Nonnull Object request, @Nonnull GenericFutureResultListener<RpcFutureResult<V>> listener) {
         callImp(request, false, listener);
     }
 
     @Override
-    public <V> void callAndFlush(@Nonnull Object request, @Nonnull GenericFutureResultListener<RpcFutureResult<V>, ? super V> listener) {
+    public <V> void callAndFlush(@Nonnull Object request, @Nonnull GenericFutureResultListener<RpcFutureResult<V>> listener) {
         callImp(request, true, listener);
     }
 
     private <V> void callImp(@Nonnull Object request, boolean flush,
-                             @Nonnull GenericFutureResultListener<RpcFutureResult<V>, ? super V> listener) {
+                             @Nonnull GenericFutureResultListener<RpcFutureResult<V>> listener) {
         if (isClosed()) {
             // 会话关闭的情况下直接执行回调
             listener.onComplete(new DefaultRpcFutureResult<>(null, RpcSessionClosedException.INSTANCE));

@@ -17,9 +17,9 @@
 package com.wjybxx.fastjgame.misc;
 
 import com.wjybxx.fastjgame.async.AbstractAsyncMethodHandle;
-import com.wjybxx.fastjgame.async.GenericFutureFailureResultListener;
-import com.wjybxx.fastjgame.async.GenericFutureResultListener;
-import com.wjybxx.fastjgame.async.GenericFutureSuccessResultListener;
+import com.wjybxx.fastjgame.concurrent.GenericFutureFailureResultListener;
+import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
+import com.wjybxx.fastjgame.concurrent.GenericFutureSuccessResultListener;
 import com.wjybxx.fastjgame.net.common.RpcCall;
 import com.wjybxx.fastjgame.net.common.RpcFutureResult;
 import com.wjybxx.fastjgame.net.session.Session;
@@ -38,7 +38,7 @@ import java.util.concurrent.ExecutionException;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class DefaultRpcBuilder<V> extends AbstractAsyncMethodHandle<V, Session, RpcFutureResult<V>> implements RpcBuilder<V> {
+public class DefaultRpcBuilder<V> extends AbstractAsyncMethodHandle<Session, RpcFutureResult<V>, V> implements RpcBuilder<V> {
 
     /**
      * 远程方法信息
@@ -89,7 +89,7 @@ public class DefaultRpcBuilder<V> extends AbstractAsyncMethodHandle<V, Session, 
 
     @Override
     public final void call(@Nonnull Session session) {
-        final GenericFutureResultListener<RpcFutureResult<V>, ? super V> listener = detachListener();
+        final GenericFutureResultListener<RpcFutureResult<V>> listener = detachListener();
         if (listener == null) {
             session.send(call);
         } else {
@@ -99,7 +99,7 @@ public class DefaultRpcBuilder<V> extends AbstractAsyncMethodHandle<V, Session, 
 
     @Override
     public void callAndFlush(@Nonnull Session session) {
-        final GenericFutureResultListener<RpcFutureResult<V>, ? super V> listener = detachListener();
+        final GenericFutureResultListener<RpcFutureResult<V>> listener = detachListener();
         if (listener == null) {
             session.sendAndFlush(call);
         } else {
@@ -113,19 +113,19 @@ public class DefaultRpcBuilder<V> extends AbstractAsyncMethodHandle<V, Session, 
     }
 
     @Override
-    public RpcBuilder<V> onSuccess(GenericFutureSuccessResultListener<RpcFutureResult<V>, ? super V> listener) {
+    public RpcBuilder<V> onSuccess(GenericFutureSuccessResultListener<RpcFutureResult<V>, V> listener) {
         super.onSuccess(listener);
         return this;
     }
 
     @Override
-    public RpcBuilder<V> onFailure(GenericFutureFailureResultListener<RpcFutureResult<V>, ? super V> listener) {
+    public RpcBuilder<V> onFailure(GenericFutureFailureResultListener<RpcFutureResult<V>> listener) {
         super.onFailure(listener);
         return this;
     }
 
     @Override
-    public RpcBuilder<V> onComplete(GenericFutureResultListener<RpcFutureResult<V>, ? super V> listener) {
+    public RpcBuilder<V> onComplete(GenericFutureResultListener<RpcFutureResult<V>> listener) {
         super.onComplete(listener);
         return this;
     }

@@ -17,6 +17,9 @@
 package com.wjybxx.fastjgame.async;
 
 import com.wjybxx.fastjgame.concurrent.FutureResult;
+import com.wjybxx.fastjgame.concurrent.GenericFutureFailureResultListener;
+import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
+import com.wjybxx.fastjgame.concurrent.GenericFutureSuccessResultListener;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -32,7 +35,7 @@ import java.util.concurrent.ExecutionException;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public interface FlushableAsyncMethodHandle<V, T, F extends FutureResult<V>> extends AsyncMethodHandle<V, T, F> {
+public interface FlushableAsyncMethodHandle<T, FR extends FutureResult<V>, V> extends AsyncMethodHandle<T, FR, V> {
 
     /**
      * 在指定对象上执行对应的方法，但不监听方法的执行结果。
@@ -59,12 +62,12 @@ public interface FlushableAsyncMethodHandle<V, T, F extends FutureResult<V>> ext
     V syncCall(@Nonnull T typeObj) throws ExecutionException;
 
     @Override
-    FlushableAsyncMethodHandle<V, T, F> onSuccess(GenericFutureSuccessResultListener<F, ? super V> listener);
+    FlushableAsyncMethodHandle<T, FR, V> onSuccess(GenericFutureSuccessResultListener<FR, V> listener);
 
     @Override
-    FlushableAsyncMethodHandle<V, T, F> onFailure(GenericFutureFailureResultListener<F, ? super V> listener);
+    FlushableAsyncMethodHandle<T, FR, V> onFailure(GenericFutureFailureResultListener<FR> listener);
 
     @Override
-    FlushableAsyncMethodHandle<V, T, F> onComplete(GenericFutureResultListener<F, ? super V> listener);
+    FlushableAsyncMethodHandle<T, FR, V> onComplete(GenericFutureResultListener<FR> listener);
 
 }

@@ -16,9 +16,7 @@
 
 package com.wjybxx.fastjgame.async;
 
-import com.wjybxx.fastjgame.concurrent.FutureListener;
-import com.wjybxx.fastjgame.concurrent.FutureResult;
-import com.wjybxx.fastjgame.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.concurrent.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -39,17 +37,20 @@ import java.util.concurrent.ExecutionException;
  * 而我们如果仅仅是想异步执行的话，以上有太多冗余。我们对其封装之后，可以进行一些优化。
  * 最基本的优化就是，我们将提前设置好的回调整合为一个回调，放置到{@link ListenableFuture}中。
  * 更进一步的话，我们甚至可以去掉{@link ListenableFuture}，完全基于线程间传递消息完成异步。
+ * <p>
+ * Q: 为什么要有{@code onSuccess()} {@code onFailure()}{@code onComplete()}这样的方法？不能在一个回调里面做完吗？
+ * A: 确实可以在一个回调里面完成所有事情。但是会造成大量的样板代码（重复代码），在lambda表达式里写条件语句会显得更糟糕，代码会变得越来越烂，必须要防止这样的代码出现。
  *
- * @param <V> the type of return type
- * @param <T> the type of method owner
- * @param <F> the type of future result
+ * @param <T>  the type of method owner
+ * @param <FR> the type of future result
+ * @param <V>  the type of return type
  * @author wjybxx
  * @version 1.0
  * date - 2020/1/5 18:52
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public interface AsyncMethodHandle<V, T, F extends FutureResult<V>> {
+public interface AsyncMethodHandle<T, FR extends FutureResult<V>, V> {
 
     /**
      * 在指定对象上执行对应的方法，但不监听方法的执行结果。
@@ -90,7 +91,7 @@ public interface AsyncMethodHandle<V, T, F extends FutureResult<V>> {
      * @param listener 回调逻辑
      * @return this
      */
-    AsyncMethodHandle<V, T, F> onSuccess(GenericFutureSuccessResultListener<F, ? super V> listener);
+    AsyncMethodHandle<T, FR, V> onSuccess(GenericFutureSuccessResultListener<FR, V> listener);
 
     /**
      * 设置成功时执行的回调。
@@ -99,7 +100,7 @@ public interface AsyncMethodHandle<V, T, F extends FutureResult<V>> {
      * @param listener 回调逻辑
      * @return this
      */
-    AsyncMethodHandle<V, T, F> onFailure(GenericFutureFailureResultListener<F, ? super V> listener);
+    AsyncMethodHandle<T, FR, V> onFailure(GenericFutureFailureResultListener<FR> listener);
 
     /**
      * 设置成功时执行的回调。
@@ -108,5 +109,5 @@ public interface AsyncMethodHandle<V, T, F extends FutureResult<V>> {
      * @param listener 回调逻辑
      * @return this
      */
-    AsyncMethodHandle<V, T, F> onComplete(GenericFutureResultListener<F, ? super V> listener);
+    AsyncMethodHandle<T, FR, V> onComplete(GenericFutureResultListener<FR> listener);
 }
