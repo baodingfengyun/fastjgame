@@ -29,8 +29,8 @@ import java.util.concurrent.ExecutionException;
  * 如果直接在 {@link ListenableFuture}上实现
  * {@code onSuccess(FutureListener)}
  * {@code onFailure(FutureListener)}
- * {@code onComplete(FutureListener)}三个api。
- * 1. 可能会添加三次回调(三次获取锁，读取volatile变量)，这个成本其实可能很低，因此此时一般是无竞争锁，但也可能较高。
+ * {@code onComplete(FutureListener)}三个api，存在以下问题：
+ * 1. 可能会添加三次回调(多次获取锁，多次读取volatile变量)，这个成本可能很低，因此此时一般是无竞争锁，但也可能较高。
  * 2. future完成时，可能会提交三个回调任务到逻辑线程。
  * 3. 回调执行时，可能又会读取好几次volatile数据。
  * <p>

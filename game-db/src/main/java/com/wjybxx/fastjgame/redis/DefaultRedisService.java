@@ -14,68 +14,50 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.mgr;
+package com.wjybxx.fastjgame.redis;
 
-import com.google.inject.Inject;
+import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.FutureResult;
 import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
-import com.wjybxx.fastjgame.redis.RedisFuture;
-import com.wjybxx.fastjgame.redis.RedisCommand;
-import com.wjybxx.fastjgame.redis.RedisService;
 
 import javax.annotation.Nonnull;
-import javax.annotation.concurrent.NotThreadSafe;
 import java.util.concurrent.ExecutionException;
 
 /**
- * redis管理器
+ * redisService的默认实现，它是一个本地service，其回调默认环境为用户所在线程{@link #appEventLoop}
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/12/12
  * github - https://github.com/hl845740757
  */
-@NotThreadSafe
-public class RedisMgr implements RedisService {
+public class DefaultRedisService implements RedisService {
 
-    private final RedisEventLoopMgr redisEventLoopMgr;
-    private final GameEventLoopMgr gameEventLoopMgr;
-    private RedisService redisService;
+    private final RedisEventLoop redisEventLoop;
+    private final EventLoop appEventLoop;
 
-    @Inject
-    public RedisMgr(RedisEventLoopMgr redisEventLoopMgr, GameEventLoopMgr gameEventLoopMgr) {
-        this.redisEventLoopMgr = redisEventLoopMgr;
-        this.gameEventLoopMgr = gameEventLoopMgr;
-    }
-
-    /**
-     * 在使用其它方法之前，必须先构建服务
-     * 在构造的时候无法确保gameEventLoop存在，所以在这里初始化
-     */
-    public void initService() {
-        if (redisService != null) {
-            throw new IllegalStateException();
-        }
-        redisService = redisEventLoopMgr.newService(gameEventLoopMgr.getEventLoop());
+    public DefaultRedisService(RedisEventLoop redisEventLoop, EventLoop appEventLoop) {
+        this.redisEventLoop = redisEventLoop;
+        this.appEventLoop = appEventLoop;
     }
 
     @Override
     public void execute(@Nonnull RedisCommand<?> command) {
-        redisService.execute(command);
+        redisEventLoop.execute(command);
     }
 
     @Override
     public <V> void call(@Nonnull RedisCommand<V> command, GenericFutureResultListener<FutureResult<V>> listener) {
-        redisService.call(command, listener);
+        redisEventLoop.call(command, listener, appEventLoop);
     }
 
     @Override
     public <V> V syncCall(@Nonnull RedisCommand<V> command) throws ExecutionException {
-        return redisService.syncCall(command);
+        return redisEventLoop.syncCall(command, appEventLoop);
     }
 
     @Override
     public RedisFuture<?> newWaitFuture() {
-        return redisService.newWaitFuture();
+        return redisEventLoop.newWaitFuture(appEventLoop);
     }
 }

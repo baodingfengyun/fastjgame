@@ -20,9 +20,10 @@ import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
-import com.wjybxx.fastjgame.redis.DefaultRedisPipeline;
+import com.wjybxx.fastjgame.redis.DefaultRedisService;
 import com.wjybxx.fastjgame.redis.RedisEventLoop;
-import com.wjybxx.fastjgame.redis.RedisPipeline;
+import com.wjybxx.fastjgame.redis.RedisMethodHandleFactory;
+import com.wjybxx.fastjgame.redis.RedisService;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -77,7 +78,7 @@ public class RedisEventLoopExample {
     private static class ClientEventLoop extends SingleThreadEventLoop {
 
         private final RedisEventLoop redisEventLoop;
-        private RedisPipeline redisPipeline;
+        private RedisService redisService;
 
         ClientEventLoop(RedisEventLoop redisEventLoop) {
             super(null, new DefaultThreadFactory("REDIS-CLIENT"), RejectedExecutionHandlers.log());
@@ -86,7 +87,7 @@ public class RedisEventLoopExample {
 
         @Override
         protected void init() throws Exception {
-            redisPipeline = new DefaultRedisPipeline(redisEventLoop, this);
+            redisService = new DefaultRedisService(redisEventLoop, this);
         }
 
         @Override
@@ -101,7 +102,7 @@ public class RedisEventLoopExample {
             }
 
             // 监听前面的redis命令完成
-            redisPipeline.sync().addListener(future -> shutdown());
+            redisService.newWaitFuture().addListener(future -> shutdown());
 
             while (true) {
                 runAllTasks();
@@ -117,23 +118,13 @@ public class RedisEventLoopExample {
         }
 
         private void sendRedisCommands(int loop) {
-            redisPipeline.hset("name", String.valueOf(loop), String.valueOf(loop))
-                    .addListener(future -> {
-                        try {
-                            System.out.println(future.get());
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    });
+            RedisMethodHandleFactory.hset("name", String.valueOf(loop), String.valueOf(loop))
+                    .onSuccess(System.out::println)
+                    .call(redisService);
 
-            redisPipeline.hget("name", String.valueOf(loop))
-                    .addListener(future -> {
-                        try {
-                            System.out.println(future.get());
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    });
+            RedisMethodHandleFactory.hget("name", String.valueOf(loop))
+                    .onSuccess(System.out::println)
+                    .call(redisService);
         }
 
         @Override

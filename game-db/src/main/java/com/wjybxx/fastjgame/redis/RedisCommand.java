@@ -20,7 +20,8 @@ import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
 
 /**
- * redis管道命令
+ * redis命令
+ * (目前是基于{@link Pipeline}的命令)
  *
  * @author wjybxx
  * @version 1.0
@@ -28,13 +29,13 @@ import redis.clients.jedis.Response;
  * github - https://github.com/hl845740757
  */
 @FunctionalInterface
-public interface RedisPipelineCommand<R> {
+public interface RedisCommand<V> {
 
     /**
      * 执行相应的管道命令
      *
      * @apiNote 该命令执行在redis线程
      */
-    Response<R> execute(Pipeline pipeline);
+    Response<V> execute(Pipeline pipeline);
 
 }

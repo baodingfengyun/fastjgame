@@ -16,9 +16,8 @@
 
 package com.wjybxx.fastjgame.redis;
 
-import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
-import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
+import com.wjybxx.fastjgame.concurrent.*;
+import com.wjybxx.fastjgame.concurrent.adapter.FutureListenerAdapter;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +30,7 @@ import redis.clients.jedis.exceptions.JedisConnectionException;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadFactory;
 
 import static com.wjybxx.fastjgame.utils.CloseableUtils.closeQuietly;
@@ -47,7 +47,7 @@ import static com.wjybxx.fastjgame.utils.ConcurrentUtils.sleepQuietly;
  * A: 它属于中间件，应用层与它之间是双向交互，使用{@link DisruptorEventLoop}可能导致死锁。
  * <p>
  * pipeline的缺陷：由于多个指令是批量执行的，因此不是原子的。
- * 当{@link #sync()}出现异常时：可能部分成功，部分失败，部分未执行。
+ * 当{@link #newWaitFuture()}出现异常时：可能部分成功，部分失败，部分未执行。
  * <p>
  * 对于大多数游戏而言，单个redis线程应该够用了，不过也很容易扩展为线程池模式(连接池)。
  *
@@ -63,7 +63,7 @@ public class RedisEventLoop extends SingleThreadEventLoop {
     private static final int TASK_BATCH_SIZE = 1024;
 
     /**
-     * 它决定了最多多少个命令执行一次{@link #sync()}。
+     * 它决定了最多多少个命令执行一次{@link #newWaitFuture()}。
      * 不宜太大，太大时，一旦出现异常，破坏太大。
      * 不宜太小，太小时，无法充分利用网络。
      */
@@ -124,7 +124,7 @@ public class RedisEventLoop extends SingleThreadEventLoop {
             try {
                 runTasksBatch(TASK_BATCH_SIZE);
 
-                sync();
+                newWaitFuture();
 
                 checkConnection();
 
@@ -143,7 +143,7 @@ public class RedisEventLoop extends SingleThreadEventLoop {
     /**
      * 刷新管道，为未获得结果的redis请求生成结果
      */
-    private void sync() {
+    private void newWaitFuture() {
         if (waitResponseTasks.isEmpty()) {
             return;
         }
@@ -225,18 +225,27 @@ public class RedisEventLoop extends SingleThreadEventLoop {
         }
     }
 
-    /**
-     * 压入一个管道命令
-     *
-     * @param appEventLoop 用户线程 - 回调默认执行环境
-     * @param pipelineCmd  管道命令 - 用户要执行的操作
-     * @param <T>          管道执行结果
-     * @return future
-     */
-    <T> RedisFuture<T> enqueue(EventLoop appEventLoop, RedisPipelineCommand<T> pipelineCmd) {
-        final RedisPromise<T> redisPromise = newRedisPromise(appEventLoop);
-        execute(new JedisPipelineTask<>(pipelineCmd, redisPromise));
-        return redisPromise;
+    public <V> void execute(RedisCommand<V> command) {
+        // TODO 无promise实现
+        final RedisPromise<V> redisPromise = newRedisPromise(this);
+        execute(new JedisPipelineTask<>(command, redisPromise));
+    }
+
+    public <V> void call(RedisCommand<V> command, GenericFutureResultListener<FutureResult<V>> listener, EventLoop appEventLoop) {
+        // TODO 无promise实现
+        final RedisPromise<V> redisPromise = newRedisPromise(appEventLoop);
+        redisPromise.addListener(new FutureListenerAdapter<>(listener));
+        execute(new JedisPipelineTask<>(command, redisPromise));
+    }
+
+    public <V> V syncCall(RedisCommand<V> command, EventLoop appEventLoop) throws ExecutionException {
+        final RedisPromise<V> redisPromise = newRedisPromise(appEventLoop);
+        execute(new JedisPipelineTask<>(command, redisPromise));
+        return redisPromise.join();
+    }
+
+    private <T> RedisPromise<T> newRedisPromise(EventLoop appEventLoop) {
+        return new DefaultRedisPromise<>(this, appEventLoop);
     }
 
     /**
@@ -245,29 +254,25 @@ public class RedisEventLoop extends SingleThreadEventLoop {
      * @param appEventLoop 用户线程 - 回调默认执行环境
      * @return future
      */
-    RedisFuture<?> sync(EventLoop appEventLoop) {
+    RedisFuture<?> newWaitFuture(EventLoop appEventLoop) {
         final RedisPromise<?> redisPromise = newRedisPromise(appEventLoop);
         execute(new SyncTask(redisPromise));
         return redisPromise;
     }
 
-    private <T> RedisPromise<T> newRedisPromise(EventLoop appEventLoop) {
-        return new DefaultRedisPromise<>(this, appEventLoop);
-    }
-
     /**
      * 普通的管道任务
      *
-     * @param <T>
+     * @param <V>
      */
-    private class JedisPipelineTask<T> implements Runnable {
-        private final RedisPipelineCommand<T> pipelineCmd;
-        private final RedisPromise<T> redisPromise;
+    private class JedisPipelineTask<V> implements Runnable {
+        private final RedisCommand<V> pipelineCmd;
+        private final RedisPromise<V> redisPromise;
 
-        private Response<T> dependency;
+        private Response<V> dependency;
         private Throwable cause;
 
-        JedisPipelineTask(RedisPipelineCommand<T> pipelineCmd, RedisPromise<T> redisPromise) {
+        JedisPipelineTask(RedisCommand<V> pipelineCmd, RedisPromise<V> redisPromise) {
             this.pipelineCmd = pipelineCmd;
             this.redisPromise = redisPromise;
         }
@@ -302,7 +307,7 @@ public class RedisEventLoop extends SingleThreadEventLoop {
             }
 
             if (waitResponseTasks.size() >= MAX_WAIT_RESPONSE_TASK) {
-                sync();
+                newWaitFuture();
             }
         }
 
@@ -339,7 +344,7 @@ public class RedisEventLoop extends SingleThreadEventLoop {
         @Override
         public void run() {
             try {
-                sync();
+                newWaitFuture();
             } finally {
                 redisPromise.trySuccess(null);
             }

@@ -20,9 +20,9 @@ import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
-import com.wjybxx.fastjgame.redis.DefaultRedisPipeline;
+import com.wjybxx.fastjgame.redis.DefaultRedisService;
 import com.wjybxx.fastjgame.redis.RedisEventLoop;
-import com.wjybxx.fastjgame.redis.RedisPipeline;
+import com.wjybxx.fastjgame.redis.RedisService;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.DebugUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -114,9 +114,9 @@ public class RedisEventLoopMgr {
     }
 
     /**
-     * 创建一个新的管道
+     * 创建一个新的service
      */
-    public RedisPipeline newPipeline(@Nonnull final EventLoop appEventLoop) {
-        return new DefaultRedisPipeline(redisEventLoop, Objects.requireNonNull(appEventLoop));
+    public RedisService newService(@Nonnull final EventLoop appEventLoop) {
+        return new DefaultRedisService(redisEventLoop, Objects.requireNonNull(appEventLoop));
     }
 }
