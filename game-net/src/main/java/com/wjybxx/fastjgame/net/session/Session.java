@@ -18,25 +18,15 @@ package com.wjybxx.fastjgame.net.session;
 
 import com.wjybxx.fastjgame.annotation.Internal;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
-import com.wjybxx.fastjgame.net.common.RpcFutureResult;
+import com.wjybxx.fastjgame.net.common.RpcService;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
-import java.util.concurrent.ExecutionException;
 
 /**
- * 一个连接的抽象，它可能是一个socket连接，也可能是JVM内的线程之间内的连接，不论它真的是什么，你都可以以相同的方式使用它们发送消息。
- *
- * <h3>时序问题</h3>
- * 1. {@code send} {@code call}之间都满足先发送的必然先到。这样的好处是编程更简单，缺点是同步rpc调用响应会变慢，如果真的需要插队的处理机制，未来再进行拓展（很容易）。
- * <p>
- * 2. 但是要注意一个问题：{@link #syncCall(Object)}会打乱处理的顺序！同步Rpc调用的结果会被你提前处理，其它消息可能先到，但是由于你处于阻塞状态，而导致被延迟处理。
- * <p>
- * 3. 先发送的请求不一定先获得结果！对方什么时候返回给你结果是不确定的！
- *
+ * 一个连接的抽象，它可能是一个socket连接，也可能是JVM内的线程之间内的连接。
  * <p>
  * 暂时并不提供完全的线程安全性保障，如果不是那么有必要的话，便不添加，我的意识里需要session是完全的线程安全的情况并不多。
  *
@@ -52,7 +42,7 @@ import java.util.concurrent.ExecutionException;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public interface Session extends Comparable<Session> {
+public interface Session extends RpcService, Comparable<Session> {
 
     /**
      * 用户为session分配的sessionId。
@@ -124,47 +114,6 @@ public interface Session extends Comparable<Session> {
      */
     @Nullable
     <T> T attachment();
-
-    // -----------------------------------------------发送消息API ---------------------------------------------
-
-    /**
-     * 发送一个单向消息给对方
-     *
-     * @param message 单向消息
-     */
-    void send(@Nonnull Object message);
-
-    /**
-     * 发送一个单向消息给对方，并立即刷新缓冲区。
-     *
-     * @param message 单向消息
-     */
-    void sendAndFlush(@Nonnull Object message);
-
-    /**
-     * 发送一个rpc请求给对方。
-     *
-     * @param request  rpc请求对象
-     * @param listener 回调函数
-     */
-    <V> void call(@Nonnull Object request, @Nonnull GenericFutureResultListener<RpcFutureResult<V>> listener);
-
-    /**
-     * 发送一个rpc请求给对方，并立即刷新缓冲区。
-     *
-     * @param request  rpc请求对象
-     * @param listener 回调函数
-     */
-    <V> void callAndFlush(@Nonnull Object request, @Nonnull GenericFutureResultListener<RpcFutureResult<V>> listener);
-
-    /**
-     * 发送一个rpc请求给对方，会立即刷新缓冲区，并阻塞到结果返回或超时。
-     *
-     * @param request rpc请求对象
-     * @return rpc返回结果
-     */
-    @Nullable
-    <V> V syncCall(@Nonnull Object request) throws ExecutionException;
 
     // ----------------------------------------------- 生命周期 ----------------------------------------------
 

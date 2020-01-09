@@ -47,5 +47,11 @@ public class BooleanHolder {
     public void setValue(boolean value) {
         this.value = value;
     }
+
+    public boolean getAndSet(boolean value) {
+        boolean result = this.value;
+        this.value = value;
+        return result;
+    }
 }
 

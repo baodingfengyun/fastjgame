@@ -46,6 +46,13 @@ public interface RedisService {
     void execute(@Nonnull RedisCommand<?> command);
 
     /**
+     * 异步执行一个命令，同时刷新命令队列，并不监听结果。
+     *
+     * @param command 待执行的命令
+     */
+    void executeAndFlush(@Nonnull RedisCommand<?> command);
+
+    /**
      * 异步执行一个redis命令，并在完成时通知指定的监听器。
      *
      * @param command  待执行的命令
@@ -55,7 +62,16 @@ public interface RedisService {
     <V> void call(@Nonnull RedisCommand<V> command, GenericFutureResultListener<FutureResult<V>> listener);
 
     /**
-     * 执行一个redis命令，并阻塞到命令完成。
+     * 异步执行一个redis命令，同时刷新命令队列，并在完成时通知指定的监听器。
+     *
+     * @param command  待执行的命令
+     * @param listener 监听器(回调执行线程根据实现而定)
+     * @param <V>      the type of result
+     */
+    <V> void callAndFlush(@Nonnull RedisCommand<V> command, GenericFutureResultListener<FutureResult<V>> listener);
+
+    /**
+     * 执行一个redis命令，同时刷新缓冲区，并阻塞到命令完成。
      *
      * @param command 待执行的命令
      * @param <V>     the type of result
@@ -63,7 +79,7 @@ public interface RedisService {
     <V> V syncCall(@Nonnull RedisCommand<V> command) throws ExecutionException;
 
     /**
-     * 返回一个future，该future会在service当前所有命令执行完毕后会得到一个通知。
+     * 返回一个future，该future会在service<b>当前</b>所有命令执行完毕后会得到一个通知。
      * - 当你需要在前面的redis命令执行完毕后需要执行某个动作时可以使用该方法。
      * - 比如：等待redis操作完成后关闭线程。
      */

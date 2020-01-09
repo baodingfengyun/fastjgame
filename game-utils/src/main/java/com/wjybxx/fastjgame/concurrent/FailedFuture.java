@@ -42,19 +42,29 @@ public class FailedFuture<V> extends CompleteFuture<V> {
     }
 
     @Override
-    public V get() throws ExecutionException {
+    public final boolean isSuccess() {
+        return false;
+    }
+
+    @Override
+    public final V get() throws ExecutionException {
         return AbstractListenableFuture.rethrowCause(cause);
     }
 
     @Override
-    public V get(long timeout, @Nonnull TimeUnit unit) throws ExecutionException {
+    public final V get(long timeout, @Nonnull TimeUnit unit) throws ExecutionException {
         return AbstractListenableFuture.rethrowCause(cause);
     }
 
     @Nullable
     @Override
-    public V getNow() {
+    public final V getNow() {
         return null;
+    }
+
+    @Override
+    public final V join() throws ExecutionException {
+        return AbstractListenableFuture.rethrowCause(cause);
     }
 
     @Nullable
@@ -63,19 +73,9 @@ public class FailedFuture<V> extends CompleteFuture<V> {
         return new DefaultFutureResult<>(null, cause);
     }
 
-    @Override
-    public V join() throws ExecutionException {
-        return AbstractListenableFuture.rethrowCause(cause);
-    }
-
     @Nonnull
     @Override
-    public Throwable cause() {
+    public final Throwable cause() {
         return cause;
-    }
-
-    @Override
-    public boolean isSuccess() {
-        return false;
     }
 }

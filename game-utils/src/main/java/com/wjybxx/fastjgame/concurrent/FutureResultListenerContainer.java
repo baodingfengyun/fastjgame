@@ -30,7 +30,7 @@ import java.util.List;
  * date - 2020/1/8
  * github - https://github.com/hl845740757
  */
-public class FutureResultListenerContainer<FR extends FutureResult<V>, V> implements GenericFutureResultListener<FR> {
+public class FutureResultListenerContainer<FR extends FutureResult<?>> implements GenericFutureResultListener<FR> {
 
     private static final Logger logger = LoggerFactory.getLogger(FutureResultListenerContainer.class);
 

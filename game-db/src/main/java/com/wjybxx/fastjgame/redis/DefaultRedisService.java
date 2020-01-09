@@ -47,8 +47,18 @@ public class DefaultRedisService implements RedisService {
     }
 
     @Override
+    public void executeAndFlush(@Nonnull RedisCommand<?> command) {
+
+    }
+
+    @Override
     public <V> void call(@Nonnull RedisCommand<V> command, GenericFutureResultListener<FutureResult<V>> listener) {
         redisEventLoop.call(command, listener, appEventLoop);
+    }
+
+    @Override
+    public <V> void callAndFlush(@Nonnull RedisCommand<V> command, GenericFutureResultListener<FutureResult<V>> listener) {
+
     }
 
     @Override

@@ -65,8 +65,18 @@ public class RedisMgr implements RedisService {
     }
 
     @Override
+    public void executeAndFlush(@Nonnull RedisCommand<?> command) {
+        redisService.executeAndFlush(command);
+    }
+
+    @Override
     public <V> void call(@Nonnull RedisCommand<V> command, GenericFutureResultListener<FutureResult<V>> listener) {
         redisService.call(command, listener);
+    }
+
+    @Override
+    public <V> void callAndFlush(@Nonnull RedisCommand<V> command, GenericFutureResultListener<FutureResult<V>> listener) {
+        redisService.callAndFlush(command, listener);
     }
 
     @Override

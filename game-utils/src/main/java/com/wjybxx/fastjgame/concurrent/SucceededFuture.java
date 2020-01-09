@@ -43,18 +43,23 @@ public class SucceededFuture<V> extends CompleteFuture<V> {
     }
 
     @Override
-    public V get() {
+    public final boolean isSuccess() {
+        return true;
+    }
+
+    @Override
+    public final V get() {
         return result;
     }
 
     @Override
-    public V get(long timeout, @Nonnull TimeUnit unit) {
+    public final V get(long timeout, @Nonnull TimeUnit unit) {
         return result;
     }
 
     @Nullable
     @Override
-    public V getNow() {
+    public final V getNow() {
         return result;
     }
 
@@ -65,17 +70,13 @@ public class SucceededFuture<V> extends CompleteFuture<V> {
     }
 
     @Override
-    public V join() {
+    public final V join() {
         return result;
     }
 
     @Override
-    public Throwable cause() {
+    public final Throwable cause() {
         return null;
     }
 
-    @Override
-    public boolean isSuccess() {
-        return true;
-    }
 }

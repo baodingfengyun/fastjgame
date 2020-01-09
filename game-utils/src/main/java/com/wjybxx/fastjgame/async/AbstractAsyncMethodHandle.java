@@ -57,7 +57,7 @@ public abstract class AbstractAsyncMethodHandle<T, FR extends FutureResult<V>, V
             return;
         }
         if (this.listener instanceof FutureResultListenerContainer) {
-            ((FutureResultListenerContainer<FR, V>) this.listener).addChild(child);
+            ((FutureResultListenerContainer<FR>) this.listener).addChild(child);
         } else {
             this.listener = new FutureResultListenerContainer<>(this.listener, child);
         }
