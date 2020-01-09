@@ -38,7 +38,7 @@ import java.util.concurrent.ExecutionException;
  * date - 2020/1/9
  * github - https://github.com/hl845740757
  */
-public interface RpcService {
+public interface RpcServiceHandle {
 
     /**
      * 发送一个单向消息给对方。

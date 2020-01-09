@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.net.common;
 
 import com.wjybxx.fastjgame.annotation.SerializableClass;
 import com.wjybxx.fastjgame.annotation.SerializableField;
+import com.wjybxx.fastjgame.async.MethodSpec;
 import com.wjybxx.fastjgame.misc.MessageMapper;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -36,10 +37,9 @@ import java.util.List;
  * date - 2019/8/19
  * github - https://github.com/hl845740757
  */
-@SuppressWarnings("unused")
 @NotThreadSafe
 @SerializableClass
-public class RpcCall<V> {
+public class RpcCall<V> implements MethodSpec<V> {
 
     /**
      * 调用的远程方法，用于确定一个唯一的方法。不使用 服务名 + 方法名 + 方法具体参数信息，传输的内容量过于庞大，性能不好。

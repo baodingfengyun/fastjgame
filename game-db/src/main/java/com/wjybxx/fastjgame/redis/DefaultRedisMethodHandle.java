@@ -34,7 +34,7 @@ import java.util.concurrent.ExecutionException;
  * date - 2020/1/9
  * github - https://github.com/hl845740757
  */
-public class DefaultRedisMethodHandle<V> extends AbstractAsyncMethodHandle<RedisService, FutureResult<V>, V>
+public class DefaultRedisMethodHandle<V> extends AbstractAsyncMethodHandle<RedisServiceHandle, FutureResult<V>, V>
         implements RedisMethodHandle<V> {
 
     private final RedisCommand<V> command;
@@ -62,22 +62,22 @@ public class DefaultRedisMethodHandle<V> extends AbstractAsyncMethodHandle<Redis
     }
 
     @Override
-    public void execute(@Nonnull RedisService redisService) {
-        redisService.execute(command);
+    public void execute(@Nonnull RedisServiceHandle redisServiceHandle) {
+        redisServiceHandle.execute(command);
     }
 
     @Override
-    public void call(@Nonnull RedisService redisService) {
+    public void call(@Nonnull RedisServiceHandle redisServiceHandle) {
         final GenericFutureResultListener<FutureResult<V>> listener = detachListener();
         if (listener == null) {
-            redisService.execute(command);
+            redisServiceHandle.execute(command);
         } else {
-            redisService.call(command, listener);
+            redisServiceHandle.call(command, listener);
         }
     }
 
     @Override
-    public V syncCall(@Nonnull RedisService redisService) throws ExecutionException {
-        return redisService.syncCall(command);
+    public V syncCall(@Nonnull RedisServiceHandle redisServiceHandle) throws ExecutionException {
+        return redisServiceHandle.syncCall(command);
     }
 }

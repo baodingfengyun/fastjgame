@@ -14,29 +14,18 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.redis;
-
-import com.wjybxx.fastjgame.async.MethodSpec;
-import redis.clients.jedis.Pipeline;
-import redis.clients.jedis.Response;
+package com.wjybxx.fastjgame.async;
 
 /**
- * redis命令
- * (目前是基于{@link Pipeline}的命令)
+ * 方法描述信息。
+ * 该类仅仅是一个标记接口，子类自己决定如何定位调用的方法。
  *
+ * @param <V> the type of return value
  * @author wjybxx
  * @version 1.0
- * date - 2019/12/12
+ * date - 2020/1/10
  * github - https://github.com/hl845740757
  */
-@FunctionalInterface
-public interface RedisCommand<V> extends MethodSpec<V> {
-
-    /**
-     * 执行相应的管道命令
-     *
-     * @apiNote 该命令执行在redis线程
-     */
-    Response<V> execute(Pipeline pipeline);
+public interface MethodSpec<V> {
 
 }

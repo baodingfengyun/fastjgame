@@ -41,25 +41,26 @@ public interface FlushableAsyncMethodHandle<T, FR extends FutureResult<V>, V> ex
      * 在指定对象上执行对应的方法，但不监听方法的执行结果。
      * 且如果方法在某个缓冲区排队，那么会尝试刷新缓冲区，以尽快执行。
      *
-     * @param typeObj 方法的执行对象
+     * @param serviceHandle 方法的执行对象
      */
-    void executeAndFlush(@Nonnull T typeObj);
+    void executeAndFlush(@Nonnull T serviceHandle);
 
     /**
      * 在指定对象上执行对应的方法，并监听执行结果。
      * 且如果方法在某个缓冲区排队，那么会尝试刷新缓冲区，以尽快执行。
      *
-     * @param typeObj 方法的执行对象
+     * @param serviceHandle 方法的执行对象
      */
-    void callAndFlush(@Nonnull T typeObj);
+    void callAndFlush(@Nonnull T serviceHandle);
 
     /**
      * {@inheritDoc}
      *
+     * @param serviceHandle
      * @apiNote 同步调用是很紧急的，因此该方法实现类必须刷新缓冲区，以尽快执行同步调用。
      */
     @Override
-    V syncCall(@Nonnull T typeObj) throws ExecutionException;
+    V syncCall(@Nonnull T serviceHandle) throws ExecutionException;
 
     @Override
     FlushableAsyncMethodHandle<T, FR, V> onSuccess(GenericFutureSuccessResultListener<FR, V> listener);

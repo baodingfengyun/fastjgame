@@ -23,7 +23,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 import java.util.concurrent.ExecutionException;
 
 /**
- * 异步方法的句柄。
+ * 异步(远程)方法的句柄。
  * Q: {@link ListenableFuture}搭配{@link FutureListener}不就可以实现吗异步操作和同步操作吗，为何还要有这么一个抽象？
  * A: @link ListenableFuture}确实可以实现异步操作和同步操作，但是它的异步api成本有点高。原因如下:
  * 如果直接在 {@link ListenableFuture}上实现
@@ -55,9 +55,9 @@ public interface AsyncMethodHandle<T, FR extends FutureResult<V>, V> {
     /**
      * 在指定对象上执行对应的方法，但不监听方法的执行结果。
      *
-     * @param typeObj 方法的执行对象
+     * @param serviceHandle 方法的执行对象
      */
-    void execute(@Nonnull T typeObj);
+    void execute(@Nonnull T serviceHandle);
 
     /**
      * 在指定对象上执行对应的方法，并监听执行结果。
@@ -67,9 +67,9 @@ public interface AsyncMethodHandle<T, FR extends FutureResult<V>, V> {
      * 1. 一旦调用了call方法，回调信息将被重置。
      * 2. 没有设置回调，则表示不关心结果。
      *
-     * @param typeObj 方法的执行对象
+     * @param serviceHandle 方法的执行对象
      */
-    void call(@Nonnull T typeObj);
+    void call(@Nonnull T serviceHandle);
 
     /**
      * 执行同步调用，如果执行成功，则返回对应的调用结果。
@@ -78,11 +78,11 @@ public interface AsyncMethodHandle<T, FR extends FutureResult<V>, V> {
      * 1. 少使用同步调用，必要的时候使用同步可以降低编程复杂度，但是大量使用会大大降低吞吐量。
      * 2. 即使添加了回调，这些回调也会被忽略。
      *
-     * @param typeObj 方法的执行对象
+     * @param serviceHandle 方法的执行对象
      * @return result 执行结果
      * @throws ExecutionException 方法的执行异常将封装为{@link ExecutionException}
      */
-    V syncCall(@Nonnull T typeObj) throws ExecutionException;
+    V syncCall(@Nonnull T serviceHandle) throws ExecutionException;
 
     /**
      * 设置成功时执行的回调。

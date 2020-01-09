@@ -36,7 +36,7 @@ import java.util.concurrent.ExecutionException;
  * date - 2020/1/9
  * github - https://github.com/hl845740757
  */
-public interface RedisService {
+public interface RedisServiceHandle {
 
     /**
      * 异步执行一个命令，并不监听结果
