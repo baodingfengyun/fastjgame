@@ -17,10 +17,8 @@
 package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.concurrent.FutureResult;
-import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
-import com.wjybxx.fastjgame.redis.RedisFuture;
 import com.wjybxx.fastjgame.redis.RedisCommand;
+import com.wjybxx.fastjgame.redis.RedisFuture;
 import com.wjybxx.fastjgame.redis.RedisServiceHandle;
 
 import javax.annotation.Nonnull;
@@ -70,13 +68,13 @@ public class RedisMgr implements RedisServiceHandle {
     }
 
     @Override
-    public <V> void call(@Nonnull RedisCommand<V> command, GenericFutureResultListener<FutureResult<V>> listener) {
-        redisServiceHandle.call(command, listener);
+    public <V> RedisFuture<V> call(@Nonnull RedisCommand<V> command) {
+        return redisServiceHandle.call(command);
     }
 
     @Override
-    public <V> void callAndFlush(@Nonnull RedisCommand<V> command, GenericFutureResultListener<FutureResult<V>> listener) {
-        redisServiceHandle.callAndFlush(command, listener);
+    public <V> RedisFuture<V> callAndFlush(@Nonnull RedisCommand<V> command) {
+        return redisServiceHandle.callAndFlush(command);
     }
 
     @Override

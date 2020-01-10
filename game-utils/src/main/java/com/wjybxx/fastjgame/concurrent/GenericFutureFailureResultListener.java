@@ -27,7 +27,7 @@ import javax.annotation.Nonnull;
  * github - https://github.com/hl845740757
  */
 @FunctionalInterface
-public interface GenericFutureFailureResultListener<FR extends FutureResult<?>> extends GenericFutureResultListener<FR> {
+public interface GenericFutureFailureResultListener<FR extends FutureResult<V>, V> extends GenericFutureResultListener<FR, V> {
 
     @Override
     default void onComplete(FR futureResult) {

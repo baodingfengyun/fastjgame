@@ -25,7 +25,7 @@ package com.wjybxx.fastjgame.concurrent;
  * github - https://github.com/hl845740757
  */
 @FunctionalInterface
-public interface GenericFutureSuccessResultListener<FR extends FutureResult<V>, V> extends GenericFutureResultListener<FR> {
+public interface GenericFutureSuccessResultListener<FR extends FutureResult<V>, V> extends GenericFutureResultListener<FR, V> {
 
     @Override
     default void onComplete(FR futureResult) {

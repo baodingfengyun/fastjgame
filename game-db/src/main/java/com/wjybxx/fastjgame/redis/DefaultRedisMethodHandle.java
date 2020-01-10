@@ -50,13 +50,13 @@ public class DefaultRedisMethodHandle<V> extends AbstractMethodHandle<RedisServi
     }
 
     @Override
-    public RedisMethodHandle<V> onFailure(GenericFutureFailureResultListener<FutureResult<V>> listener) {
+    public RedisMethodHandle<V> onFailure(GenericFutureFailureResultListener<FutureResult<V>, V> listener) {
         super.onFailure(listener);
         return this;
     }
 
     @Override
-    public RedisMethodHandle<V> onComplete(GenericFutureResultListener<FutureResult<V>> listener) {
+    public RedisMethodHandle<V> onComplete(GenericFutureResultListener<FutureResult<V>, V> listener) {
         super.onComplete(listener);
         return this;
     }
@@ -68,11 +68,11 @@ public class DefaultRedisMethodHandle<V> extends AbstractMethodHandle<RedisServi
 
     @Override
     public void call(@Nonnull RedisServiceHandle redisServiceHandle) {
-        final GenericFutureResultListener<FutureResult<V>> listener = detachListener();
+        final GenericFutureResultListener<FutureResult<V>, V> listener = detachListener();
         if (listener == null) {
             redisServiceHandle.execute(command);
         } else {
-            redisServiceHandle.call(command, listener);
+            redisServiceHandle.call(command).addListener(listener);
         }
     }
 

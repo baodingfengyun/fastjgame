@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.net.common;
 
-import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.concurrent.ExecutionException;
@@ -57,18 +55,16 @@ public interface RpcServiceHandle {
     /**
      * 发送一个rpc请求给对方。
      *
-     * @param request  rpc请求对象
-     * @param listener 回调函数
+     * @param request rpc请求对象
      */
-    <V> void call(@Nonnull Object request, @Nonnull GenericFutureResultListener<RpcFutureResult<V>> listener);
+    <V> RpcFuture<V> call(@Nonnull Object request);
 
     /**
      * 发送一个rpc请求给对方，并立即刷新缓冲区。
      *
-     * @param request  rpc请求对象
-     * @param listener 回调函数
+     * @param request rpc请求对象
      */
-    <V> void callAndFlush(@Nonnull Object request, @Nonnull GenericFutureResultListener<RpcFutureResult<V>> listener);
+    <V> RpcFuture<V> callAndFlush(@Nonnull Object request);
 
     /**
      * 发送一个rpc请求给对方，会立即刷新缓冲区，并阻塞到结果返回或超时。

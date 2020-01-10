@@ -27,7 +27,7 @@ import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
  * github - https://github.com/hl845740757
  */
 @FunctionalInterface
-public interface GenericFutureTimeoutResultListener<FR extends TimeoutFutureResult<?>> extends GenericFutureResultListener<FR> {
+public interface GenericFutureTimeoutResultListener<FR extends TimeoutFutureResult<V>, V> extends GenericFutureResultListener<FR, V> {
 
     @Override
     default void onComplete(FR futureResult) {

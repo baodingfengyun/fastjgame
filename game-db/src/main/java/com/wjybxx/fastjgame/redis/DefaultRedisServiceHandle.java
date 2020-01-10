@@ -17,8 +17,6 @@
 package com.wjybxx.fastjgame.redis;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.concurrent.FutureResult;
-import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.ExecutionException;
@@ -43,22 +41,22 @@ public class DefaultRedisServiceHandle implements RedisServiceHandle {
 
     @Override
     public void execute(@Nonnull RedisCommand<?> command) {
-        redisEventLoop.execute(command);
+        redisEventLoop.execute(command, false);
     }
 
     @Override
     public void executeAndFlush(@Nonnull RedisCommand<?> command) {
-        redisEventLoop.execute(command);
+        redisEventLoop.execute(command, true);
     }
 
     @Override
-    public <V> void call(@Nonnull RedisCommand<V> command, GenericFutureResultListener<FutureResult<V>> listener) {
-        redisEventLoop.call(command, listener, appEventLoop);
+    public <V> RedisFuture<V> call(@Nonnull RedisCommand<V> command) {
+        return redisEventLoop.call(command, false, appEventLoop);
     }
 
     @Override
-    public <V> void callAndFlush(@Nonnull RedisCommand<V> command, GenericFutureResultListener<FutureResult<V>> listener) {
-        redisEventLoop.call(command, listener, appEventLoop);
+    public <V> RedisFuture<V> callAndFlush(@Nonnull RedisCommand<V> command) {
+        return redisEventLoop.call(command, true, appEventLoop);
     }
 
     @Override

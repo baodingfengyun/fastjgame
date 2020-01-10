@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.net.common;
 
-import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
 import com.wjybxx.fastjgame.net.exception.DefaultRpcServerException;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionConfig;
@@ -24,9 +23,7 @@ import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 import com.wjybxx.fastjgame.net.task.RpcRequestCommitTask;
 import com.wjybxx.fastjgame.net.task.RpcRequestWriteTask;
-import com.wjybxx.fastjgame.net.task.RpcResponseCommitTask;
 import com.wjybxx.fastjgame.net.task.RpcResponseWriteTask;
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
@@ -90,20 +87,13 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             RpcTimeoutInfo<?> rpcTimeoutInfo = iterator.next();
             if (curTimeMillis >= rpcTimeoutInfo.deadline) {
                 iterator.remove();
-                commitCause(ctx.session(), rpcTimeoutInfo, RpcTimeoutException.INSTANCE);
+                commitCause(rpcTimeoutInfo, RpcTimeoutException.INSTANCE);
             }
         }
     }
 
-    private <V> void commitCause(Session session, RpcTimeoutInfo<V> rpcTimeoutInfo, Throwable cause) {
-        if (rpcTimeoutInfo.rpcPromise != null) {
-            // 同步rpc调用
-            rpcTimeoutInfo.rpcPromise.tryFailure(cause);
-        } else {
-            // 异步rpc调用
-            ConcurrentUtils.safeExecute(session.appEventLoop(),
-                    new RpcResponseCommitTask<>(session, new DefaultRpcFutureResult<>(null, cause), rpcTimeoutInfo.listener));
-        }
+    private void commitCause(RpcTimeoutInfo<?> rpcTimeoutInfo, Throwable cause) {
+        rpcTimeoutInfo.rpcPromise.tryFailure(cause);
     }
 
     @Override
@@ -124,7 +114,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             // 保存rpc请求上下文
             long deadline = ctx.timerSystem().curTimeMillis() + rpcCallbackTimeoutMs;
             @SuppressWarnings({"unchecked", "rawtypes"})
-            RpcTimeoutInfo<?> rpcTimeoutInfo = new RpcTimeoutInfo(writeTask.getRpcPromise(), writeTask.getListener(), deadline);
+            RpcTimeoutInfo<?> rpcTimeoutInfo = new RpcTimeoutInfo(writeTask.getRpcPromise(), deadline);
             long requestGuid = ++requestGuidSequencer;
             rpcTimeoutInfoMap.put(requestGuid, rpcTimeoutInfo);
 
@@ -160,7 +150,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             RpcResponseMessage responseMessage = (RpcResponseMessage) msg;
             final RpcTimeoutInfo<?> rpcTimeoutInfo = rpcTimeoutInfoMap.remove(responseMessage.getRequestGuid());
             if (null != rpcTimeoutInfo) {
-                commitRpcResponse(ctx.session(), rpcTimeoutInfo, (RpcResponse) responseMessage.getBody());
+                commitRpcResponse(rpcTimeoutInfo, (RpcResponse) responseMessage.getBody());
             }
             // else 可能超时了
         } else {
@@ -172,8 +162,8 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
      * @param rpcTimeoutInfo rpc请求时的一些信息
      * @param rpcResponse    期望提交的rpc调用结果。
      */
-    @SuppressWarnings("unchecked, rawtypes")
-    private <V> void commitRpcResponse(Session session, RpcTimeoutInfo<V> rpcTimeoutInfo, RpcResponse rpcResponse) {
+    @SuppressWarnings("unchecked")
+    private <V> void commitRpcResponse(RpcTimeoutInfo<V> rpcTimeoutInfo, RpcResponse rpcResponse) {
         final V result;
         final Throwable cause;
         if (rpcResponse.isSuccess()) {
@@ -184,15 +174,10 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             cause = new DefaultRpcServerException(rpcResponse);
         }
 
-        if (rpcTimeoutInfo.rpcPromise != null) {
-            if (cause != null) {
-                rpcTimeoutInfo.rpcPromise.tryFailure(cause);
-            } else {
-                rpcTimeoutInfo.rpcPromise.trySuccess(result);
-            }
+        if (cause != null) {
+            rpcTimeoutInfo.rpcPromise.tryFailure(cause);
         } else {
-            ConcurrentUtils.safeExecute(session.appEventLoop(),
-                    new RpcResponseCommitTask<>(session, new DefaultRpcFutureResult<>(result, cause), rpcTimeoutInfo.listener));
+            rpcTimeoutInfo.rpcPromise.trySuccess(result);
         }
     }
 
@@ -201,7 +186,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
      */
     private void cancelAllRpcRequest(SessionHandlerContext ctx) {
         for (RpcTimeoutInfo<?> rpcTimeoutInfo : rpcTimeoutInfoMap.values()) {
-            commitCause(ctx.session(), rpcTimeoutInfo, RpcCancelledException.INSTANCE);
+            commitCause(rpcTimeoutInfo, RpcCancelledException.INSTANCE);
         }
     }
 
@@ -296,14 +281,11 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
 
     private static class RpcTimeoutInfo<V> {
 
-        // promise与listener二者存一
         final RpcPromise<V> rpcPromise;
-        final GenericFutureResultListener<RpcFutureResult<V>> listener;
         final long deadline;
 
-        RpcTimeoutInfo(RpcPromise<V> rpcPromise, GenericFutureResultListener<RpcFutureResult<V>> listener, long deadline) {
+        RpcTimeoutInfo(RpcPromise<V> rpcPromise, long deadline) {
             this.rpcPromise = rpcPromise;
-            this.listener = listener;
             this.deadline = deadline;
         }
     }

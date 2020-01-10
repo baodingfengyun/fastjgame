@@ -90,21 +90,21 @@ public class DefaultRpcBuilder<V> extends AbstractMethodHandle<Session, RpcFutur
 
     @Override
     public final void call(@Nonnull Session session) {
-        final GenericFutureResultListener<RpcFutureResult<V>> listener = detachListener();
+        final GenericFutureResultListener<RpcFutureResult<V>, V> listener = detachListener();
         if (listener == null) {
             session.send(call);
         } else {
-            session.call(call, listener);
+            session.<V>call(this.call).addListener(listener);
         }
     }
 
     @Override
     public void callAndFlush(@Nonnull Session session) {
-        final GenericFutureResultListener<RpcFutureResult<V>> listener = detachListener();
+        final GenericFutureResultListener<RpcFutureResult<V>, V> listener = detachListener();
         if (listener == null) {
             session.sendAndFlush(call);
         } else {
-            session.callAndFlush(call, listener);
+            session.<V>callAndFlush(call).addListener(listener);
         }
     }
 
@@ -120,19 +120,19 @@ public class DefaultRpcBuilder<V> extends AbstractMethodHandle<Session, RpcFutur
     }
 
     @Override
-    public RpcBuilder<V> onFailure(GenericFutureFailureResultListener<RpcFutureResult<V>> listener) {
+    public RpcBuilder<V> onFailure(GenericFutureFailureResultListener<RpcFutureResult<V>, V> listener) {
         super.onFailure(listener);
         return this;
     }
 
     @Override
-    public RpcBuilder<V> onComplete(GenericFutureResultListener<RpcFutureResult<V>> listener) {
+    public RpcBuilder<V> onComplete(GenericFutureResultListener<RpcFutureResult<V>, V> listener) {
         super.onComplete(listener);
         return this;
     }
 
     @Override
-    public RpcBuilder<V> onTimeout(GenericFutureTimeoutResultListener<RpcFutureResult<V>> listener) {
+    public RpcBuilder<V> onTimeout(GenericFutureTimeoutResultListener<RpcFutureResult<V>, V> listener) {
         addListener(listener);
         return this;
     }

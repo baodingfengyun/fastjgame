@@ -40,4 +40,10 @@ public class DefaultRpcServerException extends RpcServerException {
     public RpcErrorCode getErrorCode() {
         return errorCode;
     }
+
+    @Override
+    public synchronized Throwable fillInStackTrace() {
+        // 本地堆栈没有意义
+        return this;
+    }
 }

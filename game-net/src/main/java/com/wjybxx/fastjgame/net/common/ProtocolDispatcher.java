@@ -65,6 +65,6 @@ public interface ProtocolDispatcher {
      * @param listener     回调逻辑
      * @param futureResult rpc执行结果
      */
-    <V> void postRpcCallback(Session session, GenericFutureResultListener<RpcFutureResult<V>> listener, RpcFutureResult<V> futureResult);
+    <V> void postRpcCallback(Session session, GenericFutureResultListener<RpcFutureResult<V>, V> listener, RpcFutureResult<V> futureResult);
 
 }

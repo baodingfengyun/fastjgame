@@ -36,10 +36,10 @@ public interface TimeoutMethodHandle<T, FR extends TimeoutFutureResult<V>, V> ex
     TimeoutMethodHandle<T, FR, V> onSuccess(GenericFutureSuccessResultListener<FR, V> listener);
 
     @Override
-    TimeoutMethodHandle<T, FR, V> onFailure(GenericFutureFailureResultListener<FR> listener);
+    TimeoutMethodHandle<T, FR, V> onFailure(GenericFutureFailureResultListener<FR, V> listener);
 
     @Override
-    TimeoutMethodHandle<T, FR, V> onComplete(GenericFutureResultListener<FR> listener);
+    TimeoutMethodHandle<T, FR, V> onComplete(GenericFutureResultListener<FR, V> listener);
 
     /**
      * 设置超时失败时执行的回调。
@@ -48,5 +48,5 @@ public interface TimeoutMethodHandle<T, FR extends TimeoutFutureResult<V>, V> ex
      * @param listener 回调逻辑
      * @return this
      */
-    TimeoutMethodHandle<T, FR, V> onTimeout(GenericFutureTimeoutResultListener<FR> listener);
+    TimeoutMethodHandle<T, FR, V> onTimeout(GenericFutureTimeoutResultListener<FR, V> listener);
 }

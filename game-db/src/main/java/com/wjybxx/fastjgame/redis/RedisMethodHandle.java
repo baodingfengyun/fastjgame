@@ -48,8 +48,8 @@ public interface RedisMethodHandle<V> extends MethodHandle<RedisServiceHandle, F
     RedisMethodHandle<V> onSuccess(GenericFutureSuccessResultListener<FutureResult<V>, V> listener);
 
     @Override
-    RedisMethodHandle<V> onFailure(GenericFutureFailureResultListener<FutureResult<V>> listener);
+    RedisMethodHandle<V> onFailure(GenericFutureFailureResultListener<FutureResult<V>, V> listener);
 
     @Override
-    RedisMethodHandle<V> onComplete(GenericFutureResultListener<FutureResult<V>> listener);
+    RedisMethodHandle<V> onComplete(GenericFutureResultListener<FutureResult<V>, V> listener);
 }

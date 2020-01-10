@@ -16,7 +16,9 @@
 
 package com.wjybxx.fastjgame.redis;
 
-import com.wjybxx.fastjgame.concurrent.*;
+import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
+import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -203,15 +205,24 @@ public class RedisEventLoop extends SingleThreadEventLoop {
     private void generateResponses() {
         JedisPipelineTask<?> task;
         while ((task = waitResponseTasks.pollFirst()) != null) {
-            setData(task.redisPromise, task.dependency, task.cause);
+            setData(task);
         }
+    }
+
+    /**
+     * 为任务赋值结果
+     */
+    private static <V> void setData(JedisPipelineTask<V> task) {
+        if (task.redisPromise == null) {
+            return;
+        }
+        setData(task.redisPromise, task.dependency, task.cause);
     }
 
     /**
      * 安全的为promise赋值
      */
-    @SuppressWarnings("unchecked")
-    private static void setData(RedisPromise redisPromise, Response dependency, Throwable cause) {
+    private static <V> void setData(RedisPromise<V> redisPromise, Response<V> dependency, Throwable cause) {
         if (cause != null) {
             redisPromise.tryFailure(cause);
             return;
@@ -224,30 +235,38 @@ public class RedisEventLoop extends SingleThreadEventLoop {
     }
 
     /**
-     * 执行一个redis命令
+     * 执行一个redis命令，并忽略执行结果
+     *
+     * @param command 待执行的命令
+     * @param flush   是否刷新管道
      */
-    public <V> void execute(RedisCommand<V> command) {
-        // TODO 无promise实现
-        final RedisPromise<V> redisPromise = newRedisPromise(this);
-        execute(new JedisPipelineTask<>(command, redisPromise));
+    public <V> void execute(RedisCommand<V> command, boolean flush) {
+        execute(new JedisPipelineTask<>(command, flush, null));
     }
 
     /**
      * 执行一个管道命令，并在完成之后，在指定线程中执行回调逻辑
+     *
+     * @param command      待执行的命令
+     * @param appEventLoop 用户线程 - 执行回调的线程
+     * @param flush        是否刷新管道
      */
-    public <V> void call(RedisCommand<V> command, GenericFutureResultListener<FutureResult<V>> listener, EventLoop appEventLoop) {
-        // TODO 无promise实现
-        final RedisPromise<V> redisPromise = newRedisPromise(appEventLoop);
-        redisPromise.addListener(listener);
-        execute(new JedisPipelineTask<>(command, redisPromise));
+    public <V> RedisFuture<V> call(RedisCommand<V> command, boolean flush, EventLoop appEventLoop) {
+        final RedisPromise<V> promise = newRedisPromise(appEventLoop);
+        execute(new JedisPipelineTask<>(command, flush, promise));
+        return promise;
     }
 
     /**
      * 执行一个管道命令，并阻塞到执行完成。
+     * 由于同步调用较为紧急，因此一定会刷新缓冲区。
+     *
+     * @param command      待执行的命令
+     * @param appEventLoop 用户线程 - 执行回调的线程
      */
     public <V> V syncCall(RedisCommand<V> command, EventLoop appEventLoop) throws ExecutionException {
         final RedisPromise<V> redisPromise = newRedisPromise(appEventLoop);
-        execute(new JedisPipelineTask<>(command, redisPromise));
+        execute(new JedisPipelineTask<>(command, true, redisPromise));
         return redisPromise.join();
     }
 
@@ -255,7 +274,7 @@ public class RedisEventLoop extends SingleThreadEventLoop {
      * 创建一个用于等待当前所有命令执行完毕的future。
      * 创建的future会在这之前的命令执行完毕之后得到通知。
      */
-    RedisFuture<?> newWaitFuture(EventLoop appEventLoop) {
+    public RedisFuture<?> newWaitFuture(EventLoop appEventLoop) {
         final RedisPromise<?> redisPromise = newRedisPromise(appEventLoop);
         execute(new SyncTask(redisPromise));
         return redisPromise;
@@ -272,14 +291,16 @@ public class RedisEventLoop extends SingleThreadEventLoop {
      */
     private class JedisPipelineTask<V> implements Runnable {
         private final RedisCommand<V> pipelineCmd;
+        private final boolean pipelineSync;
         private final RedisPromise<V> redisPromise;
 
         private Response<V> dependency;
         private Throwable cause;
 
-        JedisPipelineTask(RedisCommand<V> pipelineCmd, RedisPromise<V> redisPromise) {
+        JedisPipelineTask(RedisCommand<V> pipelineCmd, boolean pipelineSync, RedisPromise<V> redisPromise) {
             this.pipelineCmd = pipelineCmd;
             this.redisPromise = redisPromise;
+            this.pipelineSync = pipelineSync;
         }
 
         @Override
@@ -311,7 +332,7 @@ public class RedisEventLoop extends SingleThreadEventLoop {
                 logger.warn("unexpected waitResponseTasks.size {}", waitResponseTasks.size());
             }
 
-            if (waitResponseTasks.size() >= MAX_WAIT_RESPONSE_TASK) {
+            if (pipelineSync || waitResponseTasks.size() >= MAX_WAIT_RESPONSE_TASK) {
                 pipelineSync();
             }
         }

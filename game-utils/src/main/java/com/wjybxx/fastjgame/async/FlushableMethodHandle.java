@@ -66,9 +66,9 @@ public interface FlushableMethodHandle<T, FR extends FutureResult<V>, V> extends
     FlushableMethodHandle<T, FR, V> onSuccess(GenericFutureSuccessResultListener<FR, V> listener);
 
     @Override
-    FlushableMethodHandle<T, FR, V> onFailure(GenericFutureFailureResultListener<FR> listener);
+    FlushableMethodHandle<T, FR, V> onFailure(GenericFutureFailureResultListener<FR, V> listener);
 
     @Override
-    FlushableMethodHandle<T, FR, V> onComplete(GenericFutureResultListener<FR> listener);
+    FlushableMethodHandle<T, FR, V> onComplete(GenericFutureResultListener<FR, V> listener);
 
 }

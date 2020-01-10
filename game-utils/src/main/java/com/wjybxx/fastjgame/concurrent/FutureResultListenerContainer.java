@@ -30,29 +30,29 @@ import java.util.List;
  * date - 2020/1/8
  * github - https://github.com/hl845740757
  */
-public class FutureResultListenerContainer<FR extends FutureResult<?>> implements GenericFutureResultListener<FR> {
+public class FutureResultListenerContainer<FR extends FutureResult<V>, V> implements GenericFutureResultListener<FR, V> {
 
     private static final Logger logger = LoggerFactory.getLogger(FutureResultListenerContainer.class);
 
-    private final List<GenericFutureResultListener<? super FR>> children = new ArrayList<>(2);
+    private final List<GenericFutureResultListener<? super FR, V>> children = new ArrayList<>(2);
 
-    public FutureResultListenerContainer(GenericFutureResultListener<? super FR> first, GenericFutureResultListener<? super FR> second) {
+    public FutureResultListenerContainer(GenericFutureResultListener<? super FR, V> first, GenericFutureResultListener<? super FR, V> second) {
         children.add(first);
         children.add(second);
     }
 
-    public void addChild(GenericFutureResultListener<? super FR> child) {
+    public void addChild(GenericFutureResultListener<? super FR, V> child) {
         children.add(child);
     }
 
     @Override
     public void onComplete(FR futureResult) {
-        for (GenericFutureResultListener<? super FR> child : children) {
+        for (GenericFutureResultListener<? super FR, V> child : children) {
             notifySafely(child, futureResult);
         }
     }
 
-    private void notifySafely(GenericFutureResultListener<? super FR> child, FR futureResult) {
+    private void notifySafely(GenericFutureResultListener<? super FR, V> child, FR futureResult) {
         try {
             child.onComplete(futureResult);
         } catch (Throwable e) {

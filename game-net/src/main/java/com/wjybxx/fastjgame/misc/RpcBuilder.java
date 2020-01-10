@@ -159,11 +159,11 @@ public interface RpcBuilder<V> extends
     RpcBuilder<V> onSuccess(GenericFutureSuccessResultListener<RpcFutureResult<V>, V> listener);
 
     @Override
-    RpcBuilder<V> onFailure(GenericFutureFailureResultListener<RpcFutureResult<V>> listener);
+    RpcBuilder<V> onFailure(GenericFutureFailureResultListener<RpcFutureResult<V>, V> listener);
 
     @Override
-    RpcBuilder<V> onComplete(GenericFutureResultListener<RpcFutureResult<V>> listener);
+    RpcBuilder<V> onComplete(GenericFutureResultListener<RpcFutureResult<V>, V> listener);
 
     @Override
-    RpcBuilder<V> onTimeout(GenericFutureTimeoutResultListener<RpcFutureResult<V>> listener);
+    RpcBuilder<V> onTimeout(GenericFutureTimeoutResultListener<RpcFutureResult<V>, V> listener);
 }

@@ -76,7 +76,7 @@ public class DefaultProtocolDispatcher implements RpcFunctionRegistry, ProtocolD
     }
 
     @Override
-    public <V> void postRpcCallback(Session session, GenericFutureResultListener<RpcFutureResult<V>> listener, RpcFutureResult<V> futureResult) {
+    public <V> void postRpcCallback(Session session, GenericFutureResultListener<RpcFutureResult<V>, V> listener, RpcFutureResult<V> futureResult) {
         listener.onComplete(futureResult);
     }
 

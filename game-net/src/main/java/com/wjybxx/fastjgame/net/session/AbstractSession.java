@@ -18,14 +18,12 @@ package com.wjybxx.fastjgame.net.session;
 
 import com.wjybxx.fastjgame.annotation.Internal;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.manager.NetManagerWrapper;
 import com.wjybxx.fastjgame.misc.SessionRegistry;
-import com.wjybxx.fastjgame.net.common.DefaultRpcFutureResult;
+import com.wjybxx.fastjgame.net.common.FailedRpcFuture;
 import com.wjybxx.fastjgame.net.common.RpcFuture;
-import com.wjybxx.fastjgame.net.common.RpcFutureResult;
 import com.wjybxx.fastjgame.net.common.RpcPromise;
 import com.wjybxx.fastjgame.net.exception.RpcSessionClosedException;
 import com.wjybxx.fastjgame.net.task.OneWayMessageWriteTask;
@@ -172,23 +170,24 @@ public abstract class AbstractSession implements Session {
     }
 
     @Override
-    public <V> void call(@Nonnull Object request, @Nonnull GenericFutureResultListener<RpcFutureResult<V>> listener) {
-        callImp(request, false, listener);
+    public <V> RpcFuture<V> call(@Nonnull Object request) {
+        return callImp(request, false);
     }
 
     @Override
-    public <V> void callAndFlush(@Nonnull Object request, @Nonnull GenericFutureResultListener<RpcFutureResult<V>> listener) {
-        callImp(request, true, listener);
+    public <V> RpcFuture<V> callAndFlush(@Nonnull Object request) {
+        return callImp(request, true);
     }
 
-    private <V> void callImp(@Nonnull Object request, boolean flush,
-                             @Nonnull GenericFutureResultListener<RpcFutureResult<V>> listener) {
+    private <V> RpcFuture<V> callImp(@Nonnull Object request, boolean flush) {
         if (isClosed()) {
-            // 会话关闭的情况下直接执行回调
-            listener.onComplete(new DefaultRpcFutureResult<>(null, RpcSessionClosedException.INSTANCE));
+            // session关闭状态下直接返回
+            return new FailedRpcFuture<>(appEventLoop(), RpcSessionClosedException.INSTANCE);
         } else {
             // 会话活动的状态下才会发送
-            netEventLoop.execute(new RpcRequestWriteTask<>(this, request, flush, null, listener));
+            final RpcPromise<V> rpcPromise = netEventLoop.newRpcPromise(appEventLoop(), config().getSyncRpcTimeoutMs());
+            netEventLoop.execute(new RpcRequestWriteTask<>(this, request, false, rpcPromise, flush));
+            return rpcPromise;
         }
     }
 
@@ -202,7 +201,7 @@ public abstract class AbstractSession implements Session {
         }
         final RpcPromise<V> rpcPromise = netEventLoop.newRpcPromise(appEventLoop(), config().getSyncRpcTimeoutMs());
         // 提交到网络层执行
-        netEventLoop.execute(new RpcRequestWriteTask<>(this, request, true, rpcPromise, null));
+        netEventLoop.execute(new RpcRequestWriteTask<>(this, request, true, rpcPromise, true));
         // RpcPromise保证了不会等待超过限时时间
         rpcPromise.awaitUninterruptibly();
         return rpcPromise.join();

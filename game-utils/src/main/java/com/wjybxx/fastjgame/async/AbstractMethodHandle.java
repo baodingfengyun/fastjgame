@@ -31,7 +31,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public abstract class AbstractMethodHandle<T, FR extends FutureResult<V>, V> implements MethodHandle<T, FR, V> {
 
-    private GenericFutureResultListener<FR> listener;
+    private GenericFutureResultListener<FR, V> listener;
 
     @Override
     public MethodHandle<T, FR, V> onSuccess(GenericFutureSuccessResultListener<FR, V> listener) {
@@ -40,31 +40,31 @@ public abstract class AbstractMethodHandle<T, FR extends FutureResult<V>, V> imp
     }
 
     @Override
-    public MethodHandle<T, FR, V> onFailure(GenericFutureFailureResultListener<FR> listener) {
+    public MethodHandle<T, FR, V> onFailure(GenericFutureFailureResultListener<FR, V> listener) {
         addListener(listener);
         return this;
     }
 
     @Override
-    public MethodHandle<T, FR, V> onComplete(GenericFutureResultListener<FR> listener) {
+    public MethodHandle<T, FR, V> onComplete(GenericFutureResultListener<FR, V> listener) {
         addListener(listener);
         return this;
     }
 
-    protected final void addListener(GenericFutureResultListener<FR> child) {
+    protected final void addListener(GenericFutureResultListener<FR, V> child) {
         if (this.listener == null) {
             this.listener = child;
             return;
         }
         if (this.listener instanceof FutureResultListenerContainer) {
-            ((FutureResultListenerContainer<FR>) this.listener).addChild(child);
+            ((FutureResultListenerContainer<FR, V>) this.listener).addChild(child);
         } else {
             this.listener = new FutureResultListenerContainer<>(this.listener, child);
         }
     }
 
-    protected final GenericFutureResultListener<FR> detachListener() {
-        GenericFutureResultListener<FR> result = this.listener;
+    protected final GenericFutureResultListener<FR, V> detachListener() {
+        GenericFutureResultListener<FR, V> result = this.listener;
         this.listener = null;
         return result;
     }

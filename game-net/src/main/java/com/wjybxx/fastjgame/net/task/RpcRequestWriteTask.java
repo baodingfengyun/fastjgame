@@ -16,10 +16,10 @@
 
 package com.wjybxx.fastjgame.net.task;
 
-import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
-import com.wjybxx.fastjgame.net.common.RpcFutureResult;
 import com.wjybxx.fastjgame.net.common.RpcPromise;
 import com.wjybxx.fastjgame.net.session.Session;
+
+import javax.annotation.Nonnull;
 
 /**
  * 同步Rpc请求发送任务
@@ -33,19 +33,17 @@ public class RpcRequestWriteTask<V> implements WriteTask {
 
     private final Session session;
     private final Object request;
+    private final boolean sync;
+    private final RpcPromise<V> rpcPromise;
     private final boolean flush;
 
-    private final RpcPromise<V> rpcPromise;
-    private final GenericFutureResultListener<RpcFutureResult<V>> listener;
-
-    public RpcRequestWriteTask(Session session, Object request, boolean flush,
-                               RpcPromise<V> rpcPromise,
-                               GenericFutureResultListener<RpcFutureResult<V>> listener) {
+    public RpcRequestWriteTask(Session session, Object request, boolean sync,
+                               @Nonnull RpcPromise<V> rpcPromise, boolean flush) {
         this.session = session;
         this.request = request;
+        this.sync = sync;
         this.flush = flush;
         this.rpcPromise = rpcPromise;
-        this.listener = listener;
     }
 
     public Object getRequest() {
@@ -53,20 +51,16 @@ public class RpcRequestWriteTask<V> implements WriteTask {
     }
 
     public boolean isSync() {
-        return rpcPromise != null;
+        return sync;
     }
 
     public RpcPromise<V> getRpcPromise() {
         return rpcPromise;
     }
 
-    public GenericFutureResultListener<RpcFutureResult<V>> getListener() {
-        return listener;
-    }
-
     @Override
     public void run() {
-        if (flush || isSync()) {
+        if (flush) {
             session.fireWriteAndFlush(this);
         } else {
             session.fireWrite(this);

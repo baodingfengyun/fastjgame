@@ -16,9 +16,6 @@
 
 package com.wjybxx.fastjgame.redis;
 
-import com.wjybxx.fastjgame.concurrent.FutureResult;
-import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
-
 import javax.annotation.Nonnull;
 import java.util.concurrent.ExecutionException;
 
@@ -55,20 +52,18 @@ public interface RedisServiceHandle {
     /**
      * 异步执行一个redis命令，并在完成时通知指定的监听器。
      *
-     * @param command  待执行的命令
-     * @param listener 监听器(回调执行线程根据实现而定)
-     * @param <V>      the type of result
+     * @param <V>     the type of result
+     * @param command 待执行的命令
      */
-    <V> void call(@Nonnull RedisCommand<V> command, GenericFutureResultListener<FutureResult<V>> listener);
+    <V> RedisFuture<V> call(@Nonnull RedisCommand<V> command);
 
     /**
      * 异步执行一个redis命令，同时刷新命令队列，并在完成时通知指定的监听器。
      *
-     * @param command  待执行的命令
-     * @param listener 监听器(回调执行线程根据实现而定)
-     * @param <V>      the type of result
+     * @param <V>     the type of result
+     * @param command 待执行的命令
      */
-    <V> void callAndFlush(@Nonnull RedisCommand<V> command, GenericFutureResultListener<FutureResult<V>> listener);
+    <V> RedisFuture<V> callAndFlush(@Nonnull RedisCommand<V> command);
 
     /**
      * 执行一个redis命令，同时刷新缓冲区，并阻塞到命令完成。

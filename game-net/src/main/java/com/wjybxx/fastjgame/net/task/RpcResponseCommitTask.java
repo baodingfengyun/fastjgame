@@ -31,10 +31,10 @@ public class RpcResponseCommitTask<V> implements CommitTask {
 
     private final Session session;
     private final RpcFutureResult<V> futureResult;
-    private final GenericFutureResultListener<RpcFutureResult<V>> listener;
+    private final GenericFutureResultListener<RpcFutureResult<V>, V> listener;
 
     public RpcResponseCommitTask(Session session, RpcFutureResult<V> futureResult,
-                                 GenericFutureResultListener<RpcFutureResult<V>> listener) {
+                                 GenericFutureResultListener<RpcFutureResult<V>, V> listener) {
         this.session = session;
         this.listener = listener;
         this.futureResult = futureResult;
