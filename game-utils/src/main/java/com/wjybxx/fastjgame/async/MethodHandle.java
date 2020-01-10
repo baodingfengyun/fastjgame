@@ -65,7 +65,7 @@ public interface MethodHandle<T, FR extends FutureResult<V>, V> {
      * <p>
      * 注意：
      * 1. 一旦调用了call方法，回调信息将被重置。
-     * 2. 没有设置回调，则表示不关心结果。
+     * 2. 如果没有设置回调，则表示不关心结果。等价于{@link #execute(Object)}
      *
      * @param serviceHandle 方法的执行对象
      */

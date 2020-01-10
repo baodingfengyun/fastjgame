@@ -291,16 +291,16 @@ public class RedisEventLoop extends SingleThreadEventLoop {
      */
     private class JedisPipelineTask<V> implements Runnable {
         private final RedisCommand<V> pipelineCmd;
-        private final boolean pipelineSync;
+        private final boolean flush;
         private final RedisPromise<V> redisPromise;
 
         private Response<V> dependency;
         private Throwable cause;
 
-        JedisPipelineTask(RedisCommand<V> pipelineCmd, boolean pipelineSync, RedisPromise<V> redisPromise) {
+        JedisPipelineTask(RedisCommand<V> pipelineCmd, boolean flush, RedisPromise<V> redisPromise) {
             this.pipelineCmd = pipelineCmd;
             this.redisPromise = redisPromise;
-            this.pipelineSync = pipelineSync;
+            this.flush = flush;
         }
 
         @Override
@@ -332,7 +332,7 @@ public class RedisEventLoop extends SingleThreadEventLoop {
                 logger.warn("unexpected waitResponseTasks.size {}", waitResponseTasks.size());
             }
 
-            if (pipelineSync || waitResponseTasks.size() >= MAX_WAIT_RESPONSE_TASK) {
+            if (flush || waitResponseTasks.size() >= MAX_WAIT_RESPONSE_TASK) {
                 pipelineSync();
             }
         }

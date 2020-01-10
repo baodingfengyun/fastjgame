@@ -67,12 +67,27 @@ public class DefaultRedisMethodHandle<V> extends AbstractMethodHandle<RedisServi
     }
 
     @Override
+    public void executeAndFlush(@Nonnull RedisServiceHandle redisServiceHandle) {
+        redisServiceHandle.executeAndFlush(command);
+    }
+
+    @Override
     public void call(@Nonnull RedisServiceHandle redisServiceHandle) {
         final GenericFutureResultListener<FutureResult<V>, V> listener = detachListener();
         if (listener == null) {
             redisServiceHandle.execute(command);
         } else {
             redisServiceHandle.call(command).addListener(listener);
+        }
+    }
+
+    @Override
+    public void callAndFlush(@Nonnull RedisServiceHandle redisServiceHandle) {
+        final GenericFutureResultListener<FutureResult<V>, V> listener = detachListener();
+        if (listener == null) {
+            redisServiceHandle.executeAndFlush(command);
+        } else {
+            redisServiceHandle.callAndFlush(command).addListener(listener);
         }
     }
 

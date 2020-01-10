@@ -29,16 +29,16 @@ import javax.annotation.Nonnull;
  * date - 2019/9/26
  * github - https://github.com/hl845740757
  */
-public class RpcRequestWriteTask<V> implements WriteTask {
+public class RpcRequestWriteTask implements WriteTask {
 
     private final Session session;
     private final Object request;
     private final boolean sync;
-    private final RpcPromise<V> rpcPromise;
+    private final RpcPromise<?> rpcPromise;
     private final boolean flush;
 
     public RpcRequestWriteTask(Session session, Object request, boolean sync,
-                               @Nonnull RpcPromise<V> rpcPromise, boolean flush) {
+                               @Nonnull RpcPromise<?> rpcPromise, boolean flush) {
         this.session = session;
         this.request = request;
         this.sync = sync;
@@ -54,7 +54,7 @@ public class RpcRequestWriteTask<V> implements WriteTask {
         return sync;
     }
 
-    public RpcPromise<V> getRpcPromise() {
+    public RpcPromise<?> getRpcPromise() {
         return rpcPromise;
     }
 

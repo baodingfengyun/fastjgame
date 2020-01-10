@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.net.common;
 
 import com.wjybxx.fastjgame.net.exception.DefaultRpcServerException;
+import com.wjybxx.fastjgame.net.exception.RpcSessionClosedException;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionConfig;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
@@ -24,15 +25,14 @@ import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 import com.wjybxx.fastjgame.net.task.RpcRequestCommitTask;
 import com.wjybxx.fastjgame.net.task.RpcRequestWriteTask;
 import com.wjybxx.fastjgame.net.task.RpcResponseWriteTask;
+import com.wjybxx.fastjgame.utils.CollectionUtils;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectIterator;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -63,7 +63,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
      * - 在现在的设计中，只有服务器之间有rpc支持，与玩家之间是没有该handler的，因此不会浪费资源。
      * - 避免频繁的扩容，扩容和重新计算hash值是非常消耗资源的。
      */
-    private final Long2ObjectMap<RpcTimeoutInfo<?>> rpcTimeoutInfoMap = new Long2ObjectOpenHashMap<>(1024);
+    private final Long2ObjectMap<RpcTimeoutInfo> rpcTimeoutInfoMap = new Long2ObjectOpenHashMap<>(1024);
 
     public RpcSupportHandler() {
 
@@ -81,25 +81,17 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
         if (rpcTimeoutInfoMap.size() == 0) {
             return;
         }
-        long curTimeMillis = ctx.timerSystem().curTimeMillis();
-        ObjectIterator<RpcTimeoutInfo<?>> iterator = rpcTimeoutInfoMap.values().iterator();
-        while (iterator.hasNext()) {
-            RpcTimeoutInfo<?> rpcTimeoutInfo = iterator.next();
-            if (curTimeMillis >= rpcTimeoutInfo.deadline) {
-                iterator.remove();
-                commitCause(rpcTimeoutInfo, RpcTimeoutException.INSTANCE);
-            }
-        }
-    }
 
-    private void commitCause(RpcTimeoutInfo<?> rpcTimeoutInfo, Throwable cause) {
-        rpcTimeoutInfo.rpcPromise.tryFailure(cause);
+        final long curTimeMillis = ctx.timerSystem().curTimeMillis();
+        CollectionUtils.removeIfAndThen(rpcTimeoutInfoMap.values(),
+                rpcTimeoutInfo -> curTimeMillis >= rpcTimeoutInfo.deadline,
+                rpcTimeoutInfo -> rpcTimeoutInfo.rpcPromise.tryFailure(RpcTimeoutException.INSTANCE));
     }
 
     @Override
     public void onSessionInactive(SessionHandlerContext ctx) throws Exception {
         try {
-            cancelAllRpcRequest(ctx);
+            cancelAllRpcRequest();
         } finally {
             ctx.fireSessionInactive();
         }
@@ -109,17 +101,16 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
     public void write(SessionHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof RpcRequestWriteTask) {
             // rpc请求
-            RpcRequestWriteTask<?> writeTask = (RpcRequestWriteTask<?>) msg;
+            RpcRequestWriteTask writeTask = (RpcRequestWriteTask) msg;
 
             // 保存rpc请求上下文
             long deadline = ctx.timerSystem().curTimeMillis() + rpcCallbackTimeoutMs;
-            @SuppressWarnings({"unchecked", "rawtypes"})
-            RpcTimeoutInfo<?> rpcTimeoutInfo = new RpcTimeoutInfo(writeTask.getRpcPromise(), deadline);
+            RpcTimeoutInfo rpcTimeoutInfo = new RpcTimeoutInfo(writeTask.getRpcPromise(), deadline);
             long requestGuid = ++requestGuidSequencer;
             rpcTimeoutInfoMap.put(requestGuid, rpcTimeoutInfo);
 
             // 检查延迟序列化字段
-            final Object body = checkLazySerialize((RpcCall<?>) writeTask.getRequest());
+            final Object body = checkLazySerialize(writeTask.getRequest());
             // 执行发送
             ctx.fireWrite(new RpcRequestMessage(requestGuid, writeTask.isSync(), body));
         } else if (msg instanceof RpcResponseWriteTask) {
@@ -148,7 +139,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
         } else if (msg instanceof RpcResponseMessage) {
             // 读取到一个Rpc响应消息，提交给应用层
             RpcResponseMessage responseMessage = (RpcResponseMessage) msg;
-            final RpcTimeoutInfo<?> rpcTimeoutInfo = rpcTimeoutInfoMap.remove(responseMessage.getRequestGuid());
+            final RpcTimeoutInfo rpcTimeoutInfo = rpcTimeoutInfoMap.remove(responseMessage.getRequestGuid());
             if (null != rpcTimeoutInfo) {
                 commitRpcResponse(rpcTimeoutInfo, (RpcResponse) responseMessage.getBody());
             }
@@ -163,7 +154,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
      * @param rpcResponse    期望提交的rpc调用结果。
      */
     @SuppressWarnings("unchecked")
-    private <V> void commitRpcResponse(RpcTimeoutInfo<V> rpcTimeoutInfo, RpcResponse rpcResponse) {
+    private <V> void commitRpcResponse(RpcTimeoutInfo rpcTimeoutInfo, RpcResponse rpcResponse) {
         final V result;
         final Throwable cause;
         if (rpcResponse.isSuccess()) {
@@ -177,16 +168,17 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
         if (cause != null) {
             rpcTimeoutInfo.rpcPromise.tryFailure(cause);
         } else {
-            rpcTimeoutInfo.rpcPromise.trySuccess(result);
+            final RpcPromise<V> rpcPromise = (RpcPromise<V>) rpcTimeoutInfo.rpcPromise;
+            rpcPromise.trySuccess(result);
         }
     }
 
     /**
      * 取消所有的rpc请求
      */
-    private void cancelAllRpcRequest(SessionHandlerContext ctx) {
-        for (RpcTimeoutInfo<?> rpcTimeoutInfo : rpcTimeoutInfoMap.values()) {
-            commitCause(rpcTimeoutInfo, RpcCancelledException.INSTANCE);
+    private void cancelAllRpcRequest() {
+        for (RpcTimeoutInfo rpcTimeoutInfo : rpcTimeoutInfoMap.values()) {
+            rpcTimeoutInfo.rpcPromise.tryFailure(RpcSessionClosedException.INSTANCE);
         }
     }
 
@@ -196,7 +188,12 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
      * @return newCall or the same call
      * @throws IOException error
      */
-    private Object checkLazySerialize(RpcCall<?> rpcCall) throws IOException {
+    private Object checkLazySerialize(Object body) throws IOException {
+        if (!(body instanceof RpcCall)) {
+            return body;
+        }
+
+        final RpcCall<?> rpcCall = (RpcCall<?>) body;
         final int lazyIndexes = rpcCall.getLazyIndexes();
         if (lazyIndexes <= 0) {
             return rpcCall;
@@ -279,12 +276,12 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
         }
     }
 
-    private static class RpcTimeoutInfo<V> {
+    private static class RpcTimeoutInfo {
 
-        final RpcPromise<V> rpcPromise;
+        final RpcPromise<?> rpcPromise;
         final long deadline;
 
-        RpcTimeoutInfo(RpcPromise<V> rpcPromise, long deadline) {
+        RpcTimeoutInfo(RpcPromise<?> rpcPromise, long deadline) {
             this.rpcPromise = rpcPromise;
             this.deadline = deadline;
         }
@@ -295,19 +292,6 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
         private static final RpcTimeoutException INSTANCE = new RpcTimeoutException();
 
         RpcTimeoutException() {
-        }
-
-        @Override
-        public synchronized Throwable fillInStackTrace() {
-            return this;
-        }
-    }
-
-    private static class RpcCancelledException extends CancellationException {
-
-        private static final RpcCancelledException INSTANCE = new RpcCancelledException();
-
-        RpcCancelledException() {
         }
 
         @Override

@@ -27,7 +27,7 @@ package com.wjybxx.fastjgame.net.common;
 public abstract class NetLogicMessage implements NetMessage {
 
     /**
-     * 消息的内如，限定为Object类型，分离协议规范和实现。
+     * 消息的内容，限定为Object类型，分离协议规范和实现。
      * 子类只保留控制信息(各自的协议头信息)。
      */
     private Object body;
