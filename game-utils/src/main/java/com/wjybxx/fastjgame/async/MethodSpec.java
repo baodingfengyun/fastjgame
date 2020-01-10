@@ -26,6 +26,7 @@ package com.wjybxx.fastjgame.async;
  * date - 2020/1/10
  * github - https://github.com/hl845740757
  */
+@SuppressWarnings("unused")
 public interface MethodSpec<V> {
 
 }

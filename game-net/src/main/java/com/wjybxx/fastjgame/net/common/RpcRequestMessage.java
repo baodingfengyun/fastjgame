@@ -34,22 +34,22 @@ public class RpcRequestMessage extends NetLogicMessage {
      */
     private final long requestGuid;
     /**
-     * 是否立即发送(刷新缓冲区)
+     * 是否是同步调用
      */
-    private final boolean flush;
+    private final boolean sync;
 
-    public RpcRequestMessage(long requestGuid, boolean flush, Object requestBody) {
+    public RpcRequestMessage(long requestGuid, boolean sync, Object requestBody) {
         super(requestBody);
         this.requestGuid = requestGuid;
-        this.flush = flush;
+        this.sync = sync;
     }
 
     public long getRequestGuid() {
         return requestGuid;
     }
 
-    public boolean isFlush() {
-        return flush;
+    public boolean isSync() {
+        return sync;
     }
 
     @Override

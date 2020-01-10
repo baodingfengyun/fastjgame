@@ -34,25 +34,25 @@ public class FutureResultListenerContainer<FR extends FutureResult<?>> implement
 
     private static final Logger logger = LoggerFactory.getLogger(FutureResultListenerContainer.class);
 
-    private final List<GenericFutureResultListener<FR>> children = new ArrayList<>(2);
+    private final List<GenericFutureResultListener<? super FR>> children = new ArrayList<>(2);
 
-    public FutureResultListenerContainer(GenericFutureResultListener<FR> first, GenericFutureResultListener<FR> second) {
+    public FutureResultListenerContainer(GenericFutureResultListener<? super FR> first, GenericFutureResultListener<? super FR> second) {
         children.add(first);
         children.add(second);
     }
 
-    public void addChild(GenericFutureResultListener<FR> child) {
+    public void addChild(GenericFutureResultListener<? super FR> child) {
         children.add(child);
     }
 
     @Override
     public void onComplete(FR futureResult) {
-        for (GenericFutureResultListener<FR> child : children) {
+        for (GenericFutureResultListener<? super FR> child : children) {
             notifySafely(child, futureResult);
         }
     }
 
-    private void notifySafely(GenericFutureResultListener<FR> child, FR futureResult) {
+    private void notifySafely(GenericFutureResultListener<? super FR> child, FR futureResult) {
         try {
             child.onComplete(futureResult);
         } catch (Throwable e) {

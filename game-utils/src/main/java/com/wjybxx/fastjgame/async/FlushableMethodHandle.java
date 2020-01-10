@@ -35,7 +35,7 @@ import java.util.concurrent.ExecutionException;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public interface FlushableAsyncMethodHandle<T, FR extends FutureResult<V>, V> extends AsyncMethodHandle<T, FR, V> {
+public interface FlushableMethodHandle<T, FR extends FutureResult<V>, V> extends MethodHandle<T, FR, V> {
 
     /**
      * 在指定对象上执行对应的方法，但不监听方法的执行结果。
@@ -63,12 +63,12 @@ public interface FlushableAsyncMethodHandle<T, FR extends FutureResult<V>, V> ex
     V syncCall(@Nonnull T serviceHandle) throws ExecutionException;
 
     @Override
-    FlushableAsyncMethodHandle<T, FR, V> onSuccess(GenericFutureSuccessResultListener<FR, V> listener);
+    FlushableMethodHandle<T, FR, V> onSuccess(GenericFutureSuccessResultListener<FR, V> listener);
 
     @Override
-    FlushableAsyncMethodHandle<T, FR, V> onFailure(GenericFutureFailureResultListener<FR> listener);
+    FlushableMethodHandle<T, FR, V> onFailure(GenericFutureFailureResultListener<FR> listener);
 
     @Override
-    FlushableAsyncMethodHandle<T, FR, V> onComplete(GenericFutureResultListener<FR> listener);
+    FlushableMethodHandle<T, FR, V> onComplete(GenericFutureResultListener<FR> listener);
 
 }

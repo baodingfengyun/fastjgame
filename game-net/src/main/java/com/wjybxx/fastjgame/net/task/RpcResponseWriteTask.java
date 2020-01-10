@@ -31,13 +31,13 @@ public class RpcResponseWriteTask implements WriteTask {
 
     private final Session session;
     private final long requestGuid;
-    private final boolean flush;
+    private final boolean sync;
     private final RpcResponse response;
 
-    public RpcResponseWriteTask(Session session, long requestGuid, boolean flush, RpcResponse response) {
+    public RpcResponseWriteTask(Session session, long requestGuid, boolean sync, RpcResponse response) {
         this.session = session;
         this.requestGuid = requestGuid;
-        this.flush = flush;
+        this.sync = sync;
         this.response = response;
     }
 
@@ -45,8 +45,8 @@ public class RpcResponseWriteTask implements WriteTask {
         return requestGuid;
     }
 
-    public boolean isFlush() {
-        return flush;
+    public boolean isSync() {
+        return sync;
     }
 
     public RpcResponse getResponse() {
@@ -55,7 +55,7 @@ public class RpcResponseWriteTask implements WriteTask {
 
     @Override
     public void run() {
-        if (flush) {
+        if (sync) {
             session.fireWriteAndFlush(this);
         } else {
             session.fireWrite(this);

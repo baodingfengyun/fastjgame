@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.redis;
 
-import com.wjybxx.fastjgame.async.AbstractAsyncMethodHandle;
+import com.wjybxx.fastjgame.async.AbstractMethodHandle;
 import com.wjybxx.fastjgame.concurrent.FutureResult;
 import com.wjybxx.fastjgame.concurrent.GenericFutureFailureResultListener;
 import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
@@ -34,7 +34,7 @@ import java.util.concurrent.ExecutionException;
  * date - 2020/1/9
  * github - https://github.com/hl845740757
  */
-public class DefaultRedisMethodHandle<V> extends AbstractAsyncMethodHandle<RedisServiceHandle, FutureResult<V>, V>
+public class DefaultRedisMethodHandle<V> extends AbstractMethodHandle<RedisServiceHandle, FutureResult<V>, V>
         implements RedisMethodHandle<V> {
 
     private final RedisCommand<V> command;

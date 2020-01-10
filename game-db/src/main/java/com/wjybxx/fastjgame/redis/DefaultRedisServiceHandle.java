@@ -48,7 +48,7 @@ public class DefaultRedisServiceHandle implements RedisServiceHandle {
 
     @Override
     public void executeAndFlush(@Nonnull RedisCommand<?> command) {
-
+        redisEventLoop.execute(command);
     }
 
     @Override
@@ -58,7 +58,7 @@ public class DefaultRedisServiceHandle implements RedisServiceHandle {
 
     @Override
     public <V> void callAndFlush(@Nonnull RedisCommand<V> command, GenericFutureResultListener<FutureResult<V>> listener) {
-
+        redisEventLoop.call(command, listener, appEventLoop);
     }
 
     @Override

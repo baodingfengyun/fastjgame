@@ -37,7 +37,7 @@
 
 4. Rpc请求包                      （用户数据）
  long  8字节     requestGuid      请求id
- byte  1字节     flush            是否立即发送(返回)
+ byte  1字节     sync             是否是同步调用(立即返回，返回时强制刷新缓冲区)
  bytes 字节数组   bytes            请求的内容(自定义格式) - 协议规范与实现分离
 
 5. Rpc响应包                     （用户数据）

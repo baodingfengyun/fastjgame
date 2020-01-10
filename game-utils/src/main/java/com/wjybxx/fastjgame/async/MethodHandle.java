@@ -50,7 +50,7 @@ import java.util.concurrent.ExecutionException;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public interface AsyncMethodHandle<T, FR extends FutureResult<V>, V> {
+public interface MethodHandle<T, FR extends FutureResult<V>, V> {
 
     /**
      * 在指定对象上执行对应的方法，但不监听方法的执行结果。
@@ -91,7 +91,7 @@ public interface AsyncMethodHandle<T, FR extends FutureResult<V>, V> {
      * @param listener 回调逻辑
      * @return this
      */
-    AsyncMethodHandle<T, FR, V> onSuccess(GenericFutureSuccessResultListener<FR, V> listener);
+    MethodHandle<T, FR, V> onSuccess(GenericFutureSuccessResultListener<FR, V> listener);
 
     /**
      * 设置成功时执行的回调。
@@ -100,7 +100,7 @@ public interface AsyncMethodHandle<T, FR extends FutureResult<V>, V> {
      * @param listener 回调逻辑
      * @return this
      */
-    AsyncMethodHandle<T, FR, V> onFailure(GenericFutureFailureResultListener<FR> listener);
+    MethodHandle<T, FR, V> onFailure(GenericFutureFailureResultListener<FR> listener);
 
     /**
      * 设置成功时执行的回调。
@@ -109,5 +109,5 @@ public interface AsyncMethodHandle<T, FR extends FutureResult<V>, V> {
      * @param listener 回调逻辑
      * @return this
      */
-    AsyncMethodHandle<T, FR, V> onComplete(GenericFutureResultListener<FR> listener);
+    MethodHandle<T, FR, V> onComplete(GenericFutureResultListener<FR> listener);
 }

@@ -34,10 +34,12 @@ public class RpcRequestWriteTask<V> implements WriteTask {
     private final Session session;
     private final Object request;
     private final boolean flush;
+
     private final RpcPromise<V> rpcPromise;
     private final GenericFutureResultListener<RpcFutureResult<V>> listener;
 
-    public RpcRequestWriteTask(Session session, Object request, boolean flush, RpcPromise<V> rpcPromise,
+    public RpcRequestWriteTask(Session session, Object request, boolean flush,
+                               RpcPromise<V> rpcPromise,
                                GenericFutureResultListener<RpcFutureResult<V>> listener) {
         this.session = session;
         this.request = request;
@@ -50,6 +52,10 @@ public class RpcRequestWriteTask<V> implements WriteTask {
         return request;
     }
 
+    public boolean isSync() {
+        return rpcPromise != null;
+    }
+
     public RpcPromise<V> getRpcPromise() {
         return rpcPromise;
     }
@@ -60,11 +66,12 @@ public class RpcRequestWriteTask<V> implements WriteTask {
 
     @Override
     public void run() {
-        if (flush) {
+        if (flush || isSync()) {
             session.fireWriteAndFlush(this);
         } else {
             session.fireWrite(this);
         }
     }
+
 
 }

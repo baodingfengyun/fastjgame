@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.async.AbstractAsyncMethodHandle;
+import com.wjybxx.fastjgame.async.AbstractMethodHandle;
 import com.wjybxx.fastjgame.concurrent.GenericFutureFailureResultListener;
 import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
 import com.wjybxx.fastjgame.concurrent.GenericFutureSuccessResultListener;
@@ -39,7 +39,7 @@ import java.util.concurrent.ExecutionException;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class DefaultRpcBuilder<V> extends AbstractAsyncMethodHandle<Session, RpcFutureResult<V>, V> implements RpcBuilder<V> {
+public class DefaultRpcBuilder<V> extends AbstractMethodHandle<Session, RpcFutureResult<V>, V> implements RpcBuilder<V> {
 
     /**
      * 远程方法信息

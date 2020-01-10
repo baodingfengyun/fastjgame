@@ -29,24 +29,24 @@ import javax.annotation.concurrent.NotThreadSafe;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public abstract class AbstractAsyncMethodHandle<T, FR extends FutureResult<V>, V> implements AsyncMethodHandle<T, FR, V> {
+public abstract class AbstractMethodHandle<T, FR extends FutureResult<V>, V> implements MethodHandle<T, FR, V> {
 
     private GenericFutureResultListener<FR> listener;
 
     @Override
-    public AsyncMethodHandle<T, FR, V> onSuccess(GenericFutureSuccessResultListener<FR, V> listener) {
+    public MethodHandle<T, FR, V> onSuccess(GenericFutureSuccessResultListener<FR, V> listener) {
         addListener(listener);
         return this;
     }
 
     @Override
-    public AsyncMethodHandle<T, FR, V> onFailure(GenericFutureFailureResultListener<FR> listener) {
+    public MethodHandle<T, FR, V> onFailure(GenericFutureFailureResultListener<FR> listener) {
         addListener(listener);
         return this;
     }
 
     @Override
-    public AsyncMethodHandle<T, FR, V> onComplete(GenericFutureResultListener<FR> listener) {
+    public MethodHandle<T, FR, V> onComplete(GenericFutureResultListener<FR> listener) {
         addListener(listener);
         return this;
     }

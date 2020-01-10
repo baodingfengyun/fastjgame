@@ -66,7 +66,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
      * - 在现在的设计中，只有服务器之间有rpc支持，与玩家之间是没有该handler的，因此不会浪费资源。
      * - 避免频繁的扩容，扩容和重新计算hash值是非常消耗资源的。
      */
-    private final Long2ObjectMap<RpcTimeoutInfo> rpcTimeoutInfoMap = new Long2ObjectOpenHashMap<>(1024);
+    private final Long2ObjectMap<RpcTimeoutInfo<?>> rpcTimeoutInfoMap = new Long2ObjectOpenHashMap<>(1024);
 
     public RpcSupportHandler() {
 
@@ -85,9 +85,9 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             return;
         }
         long curTimeMillis = ctx.timerSystem().curTimeMillis();
-        ObjectIterator<RpcTimeoutInfo> iterator = rpcTimeoutInfoMap.values().iterator();
+        ObjectIterator<RpcTimeoutInfo<?>> iterator = rpcTimeoutInfoMap.values().iterator();
         while (iterator.hasNext()) {
-            RpcTimeoutInfo rpcTimeoutInfo = iterator.next();
+            RpcTimeoutInfo<?> rpcTimeoutInfo = iterator.next();
             if (curTimeMillis >= rpcTimeoutInfo.deadline) {
                 iterator.remove();
                 commitCause(ctx.session(), rpcTimeoutInfo, RpcTimeoutException.INSTANCE);
@@ -95,7 +95,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
         }
     }
 
-    private void commitCause(Session session, RpcTimeoutInfo rpcTimeoutInfo, Throwable cause) {
+    private <V> void commitCause(Session session, RpcTimeoutInfo<V> rpcTimeoutInfo, Throwable cause) {
         if (rpcTimeoutInfo.rpcPromise != null) {
             // 同步rpc调用
             rpcTimeoutInfo.rpcPromise.tryFailure(cause);
@@ -131,7 +131,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             // 检查延迟序列化字段
             final Object body = checkLazySerialize((RpcCall<?>) writeTask.getRequest());
             // 执行发送
-            ctx.fireWrite(new RpcRequestMessage(requestGuid, true, body));
+            ctx.fireWrite(new RpcRequestMessage(requestGuid, writeTask.isSync(), body));
         } else if (msg instanceof RpcResponseWriteTask) {
             // rpc调用结果
             RpcResponseWriteTask writeTask = (RpcResponseWriteTask) msg;
@@ -150,7 +150,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             // 读取到一个Rpc请求消息，提交给应用层
             RpcRequestMessage requestMessage = (RpcRequestMessage) msg;
             RpcResponseChannel<?> rpcResponseChannel = new DefaultRpcResponseChannel<>(ctx.session(),
-                    requestMessage.getRequestGuid(), requestMessage.isFlush());
+                    requestMessage.getRequestGuid(), requestMessage.isSync());
 
             // 检查提前反序列化字段
             final Object body = checkPreDeserialize(requestMessage.getBody());
@@ -184,16 +184,13 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             cause = new DefaultRpcServerException(rpcResponse);
         }
 
-        final RpcPromise<V> rpcPromise = rpcTimeoutInfo.rpcPromise;
-        if (rpcPromise != null) {
-            // 同步rpc调用
+        if (rpcTimeoutInfo.rpcPromise != null) {
             if (cause != null) {
-                rpcPromise.tryFailure(cause);
+                rpcTimeoutInfo.rpcPromise.tryFailure(cause);
             } else {
-                rpcPromise.trySuccess(result);
+                rpcTimeoutInfo.rpcPromise.trySuccess(result);
             }
         } else {
-            // 异步rpc调用
             ConcurrentUtils.safeExecute(session.appEventLoop(),
                     new RpcResponseCommitTask<>(session, new DefaultRpcFutureResult<>(result, cause), rpcTimeoutInfo.listener));
         }
@@ -203,7 +200,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
      * 取消所有的rpc请求
      */
     private void cancelAllRpcRequest(SessionHandlerContext ctx) {
-        for (RpcTimeoutInfo rpcTimeoutInfo : rpcTimeoutInfoMap.values()) {
+        for (RpcTimeoutInfo<?> rpcTimeoutInfo : rpcTimeoutInfoMap.values()) {
             commitCause(ctx.session(), rpcTimeoutInfo, RpcCancelledException.INSTANCE);
         }
     }
@@ -281,18 +278,18 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
 
         private final Session session;
         private final long requestGuid;
-        private final boolean flush;
+        private final boolean sync;
 
-        private DefaultRpcResponseChannel(Session session, long requestGuid, boolean flush) {
+        private DefaultRpcResponseChannel(Session session, long requestGuid, boolean sync) {
             this.session = session;
             this.requestGuid = requestGuid;
-            this.flush = flush;
+            this.sync = sync;
         }
 
         @Override
         protected void doWrite(RpcResponse rpcResponse) {
             if (!session.isClosed()) {
-                session.netEventLoop().execute(new RpcResponseWriteTask(session, requestGuid, flush, rpcResponse));
+                session.netEventLoop().execute(new RpcResponseWriteTask(session, requestGuid, sync, rpcResponse));
             }
         }
     }
