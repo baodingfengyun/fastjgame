@@ -17,8 +17,8 @@
 package com.wjybxx.fastjgame.misc;
 
 import com.wjybxx.fastjgame.annotation.SerializableClass;
-import com.wjybxx.fastjgame.enummapper.NumberEnum;
-import com.wjybxx.fastjgame.enummapper.NumberEnumMapper;
+import com.wjybxx.fastjgame.enummapper.NumericalEnum;
+import com.wjybxx.fastjgame.enummapper.NumericalEnumMapper;
 import com.wjybxx.fastjgame.utils.EnumUtils;
 
 
@@ -34,7 +34,7 @@ import com.wjybxx.fastjgame.utils.EnumUtils;
  * github - https://github.com/hl845740757
  */
 @SerializableClass
-public enum PlatformType implements NumberEnum {
+public enum PlatformType implements NumericalEnum {
 
     /**
      * 测试用的平台
@@ -57,7 +57,7 @@ public enum PlatformType implements NumberEnum {
         return number;
     }
 
-    private static final NumberEnumMapper<PlatformType> mapper = EnumUtils.mapping(values());
+    private static final NumericalEnumMapper<PlatformType> mapper = EnumUtils.mapping(values());
 
     public static PlatformType forNumber(int number) {
         PlatformType platformType = mapper.forNumber(number);

@@ -17,8 +17,8 @@
 package com.wjybxx.fastjgame.misc;
 
 import com.wjybxx.fastjgame.annotation.SerializableClass;
-import com.wjybxx.fastjgame.enummapper.NumberEnum;
-import com.wjybxx.fastjgame.enummapper.NumberEnumMapper;
+import com.wjybxx.fastjgame.enummapper.NumericalEnum;
+import com.wjybxx.fastjgame.enummapper.NumericalEnumMapper;
 import com.wjybxx.fastjgame.utils.EnumUtils;
 
 /**
@@ -30,7 +30,7 @@ import com.wjybxx.fastjgame.utils.EnumUtils;
  * github - https://github.com/hl845740757
  */
 @SerializableClass
-public enum RoleType implements NumberEnum {
+public enum RoleType implements NumericalEnum {
     /**
      * 无效的
      */
@@ -108,7 +108,7 @@ public enum RoleType implements NumberEnum {
         this.number = roleType;
     }
 
-    private static final NumberEnumMapper<RoleType> mapper = EnumUtils.mapping(values());
+    private static final NumericalEnumMapper<RoleType> mapper = EnumUtils.mapping(values());
 
     public static RoleType forNumber(int number) {
         RoleType roleType = mapper.forNumber(number);

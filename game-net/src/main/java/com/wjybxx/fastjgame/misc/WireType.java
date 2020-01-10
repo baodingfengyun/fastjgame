@@ -20,17 +20,18 @@ package com.wjybxx.fastjgame.misc;
 import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.ProtocolMessageEnum;
 import com.wjybxx.fastjgame.annotation.SerializableClass;
-import com.wjybxx.fastjgame.enummapper.NumberEnum;
+import com.wjybxx.fastjgame.enummapper.NumericalEnum;
 
 import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
 
 /**
  * 序列化的数据类型。
- * 数组类型只进行了部分支持，完全的支持的话比较难受，请使用list代替。
+ * <p>
+ * 1. 数组类型只进行了部分支持，完全的支持的话比较难受，请使用list代替。
+ * 2. 取消了Queue类型支持，因为{@link java.util.LinkedList}这种实现多接口的类会造成解析混乱。
  *
  * @author wjybxx
  * @version 1.0
@@ -73,89 +74,85 @@ public class WireType {
     public static final byte BOOLEAN = 8;
 
     /**
+     * NULL
+     */
+    public static final byte NULL = 9;
+
+    /**
      * 字符串 LENGTH_DELIMITED
      */
-    public static final byte STRING = 9;
+    public static final byte STRING = 10;
 
     /**
      * protobuf LENGTH_DELIMITED
      */
-    public static final byte MESSAGE = 10;
+    public static final byte MESSAGE = 11;
 
     /**
      * protoBuf的枚举
      */
-    public static final byte PROTO_ENUM = 11;
+    public static final byte PROTO_ENUM = 12;
     /**
-     * 枚举支持，自定义枚举必须实现{@link com.wjybxx.fastjgame.enummapper.NumberEnum}接口，
+     * 枚举支持，自定义枚举必须实现{@link NumericalEnum}接口，
      * 且必须定义 forNumber(int) 获取枚举值的静态方法，以使得和protoBuf一样解析。
      * 拆分为两个枚举是为了避免编码时的反射调用。
      */
-    public static final byte NUMBER_ENUM = 12;
+    public static final byte NUMBER_ENUM = 13;
 
-    // -- 基本集合，注意：在rpc方法中时不要使用具体类型，请使用顶层接口类型 List/Set/Map/Queue，否则可能调用失败。
+    // -- 基本集合，注意：在rpc方法中时不要使用具体类型，请使用顶层接口类型 List/Set/Map，否则可能调用失败。
     /**
      * List，解析时使用{@link java.util.ArrayList}，保持顺序
      */
-    public static final byte LIST = 13;
+    public static final byte LIST = 14;
     /**
      * Set，解析时使用{@link java.util.LinkedHashSet}，保持顺序
      */
-    public static final byte SET = 14;
-    /**
-     * 队列 -解析时使用{@link java.util.ArrayDeque}，保持顺序
-     */
-    public static final byte QUEUE = 15;
+    public static final byte SET = 15;
     /**
      * Map，解析时使用{@link java.util.LinkedHashMap}，保持顺序
      */
     public static final byte MAP = 16;
 
     /**
-     * NULL
-     */
-    public static final byte NULL = 17;
-
-    /**
      * 可序列化的普通对象，最好是简单的Bean -- POJO，必须带有{@link SerializableClass}注解。
      * 必须有无参构造方法，可以是private。
      */
-    public static final byte REFERENCE = 18;
+    public static final byte REFERENCE = 17;
 
     /**
      * 动态类型 - 运行时才能确定的类型（它是标记类型）
      */
-    public static final byte RUN_TIME = 19;
+    public static final byte RUN_TIME = 18;
 
     // -- 常用数组
     /**
      * 字节数组
      */
-    public static final byte BYTE_ARRAY = 20;
+    public static final byte BYTE_ARRAY = 19;
     /**
      * short数组
      */
-    public static final byte SHORT_ARRAY = 21;
+    public static final byte SHORT_ARRAY = 20;
     /**
      * int数组
      */
-    public static final byte INT_ARRAY = 22;
+    public static final byte INT_ARRAY = 21;
     /**
      * long数组
      */
-    public static final byte LONG_ARRAY = 23;
+    public static final byte LONG_ARRAY = 22;
     /**
      * float数组
      */
-    public static final byte FLOAT_ARRAY = 24;
+    public static final byte FLOAT_ARRAY = 23;
     /**
      * double数组
      */
-    public static final byte DOUBLE_ARRAY = 25;
+    public static final byte DOUBLE_ARRAY = 24;
     /**
      * char数组
      */
-    public static final byte CHAR_ARRAY = 26;
+    public static final byte CHAR_ARRAY = 25;
 
     /**
      * 查找一个class对应的wireType
@@ -168,34 +165,28 @@ public class WireType {
         if (type == byte.class || type == Byte.class) {
             return WireType.BYTE;
         }
-
         if (type == char.class || type == Character.class) {
             return WireType.CHAR;
         }
-
         if (type == short.class || type == Short.class) {
             return WireType.SHORT;
         }
-
         if (type == int.class || type == Integer.class) {
             return WireType.INT;
         }
-
         if (type == long.class || type == Long.class) {
             return WireType.LONG;
         }
-
         if (type == float.class || type == Float.class) {
             return WireType.FLOAT;
         }
-
         if (type == double.class || type == Double.class) {
             return WireType.DOUBLE;
         }
-
         if (type == boolean.class || type == Boolean.class) {
             return WireType.BOOLEAN;
         }
+
         // 字符串
         if (type == String.class) {
             return WireType.STRING;
@@ -204,8 +195,9 @@ public class WireType {
         if (AbstractMessage.class.isAssignableFrom(type)) {
             return WireType.MESSAGE;
         }
-        // NumberEnum枚举 -- 不一定真的是枚举
-        if (NumberEnum.class.isAssignableFrom(type)) {
+
+        // NumericalEnum枚举 -- 不一定真的是枚举
+        if (NumericalEnum.class.isAssignableFrom(type)) {
             return WireType.NUMBER_ENUM;
         }
         // protoBuf的枚举
@@ -225,14 +217,12 @@ public class WireType {
         if (Map.class.isAssignableFrom(type)) {
             return WireType.MAP;
         }
-        // Queue
-        if (Queue.class.isAssignableFrom(type)) {
-            return WireType.QUEUE;
-        }
+
         // 自定义类型
         if (type.isAnnotationPresent(SerializableClass.class)) {
             return WireType.REFERENCE;
         }
+
         // ----数组类型
         if (type == byte[].class) {
             return WireType.BYTE_ARRAY;
@@ -255,6 +245,8 @@ public class WireType {
         if (type == char[].class) {
             return WireType.CHAR_ARRAY;
         }
+
+        // 动态类型
         return WireType.RUN_TIME;
     }
 }

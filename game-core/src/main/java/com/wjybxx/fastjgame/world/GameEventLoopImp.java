@@ -125,7 +125,7 @@ public class GameEventLoopImp extends SingleThreadEventLoop implements GameEvent
 
                 timerSystem.tick();
 
-                if (!confirmShutdown()) {
+                if (confirmShutdown()) {
                     break;
                 }
 

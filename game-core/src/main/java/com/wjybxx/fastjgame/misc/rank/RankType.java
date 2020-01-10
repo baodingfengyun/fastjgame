@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.misc.rank;
 
-import com.wjybxx.fastjgame.enummapper.NumberEnum;
-import com.wjybxx.fastjgame.enummapper.NumberEnumMapper;
+import com.wjybxx.fastjgame.enummapper.NumericalEnum;
+import com.wjybxx.fastjgame.enummapper.NumericalEnumMapper;
 import com.wjybxx.fastjgame.utils.EnumUtils;
 
 /**
@@ -28,7 +28,7 @@ import com.wjybxx.fastjgame.utils.EnumUtils;
  * date - 2019/11/7
  * github - https://github.com/hl845740757
  */
-public enum RankType implements NumberEnum {
+public enum RankType implements NumericalEnum {
 
     /**
      * 角色等级榜
@@ -46,7 +46,7 @@ public enum RankType implements NumberEnum {
         return number;
     }
 
-    private static final NumberEnumMapper<RankType> mapper = EnumUtils.mapping(values());
+    private static final NumericalEnumMapper<RankType> mapper = EnumUtils.mapping(values());
 
     /**
      * 通过排行榜类型数字查找对应的类型

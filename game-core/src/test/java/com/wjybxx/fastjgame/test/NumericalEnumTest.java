@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.test;
 
-import com.wjybxx.fastjgame.enummapper.NumberEnum;
-import com.wjybxx.fastjgame.enummapper.NumberEnumMapper;
+import com.wjybxx.fastjgame.enummapper.NumericalEnum;
+import com.wjybxx.fastjgame.enummapper.NumericalEnumMapper;
 import com.wjybxx.fastjgame.misc.RoleType;
 import com.wjybxx.fastjgame.scene.GridObstacle;
 import com.wjybxx.fastjgame.utils.EnumUtils;
@@ -28,7 +28,7 @@ import com.wjybxx.fastjgame.utils.EnumUtils;
  * date - 2019/6/4 13:54
  * github - https://github.com/hl845740757
  */
-public class NumberEnumTest {
+public class NumericalEnumTest {
 
     public static void main(String[] args) {
         System.out.println(EEE.forNumber(1));
@@ -40,7 +40,7 @@ public class NumberEnumTest {
         System.out.println(RoleType.forNumber(1));
     }
 
-    private static enum EEE implements NumberEnum {
+    private static enum EEE implements NumericalEnum {
 
         A, B, C, D;
 
@@ -49,7 +49,7 @@ public class NumberEnumTest {
             return ordinal() + 1;
         }
 
-        private static final NumberEnumMapper<EEE> mapping = EnumUtils.mapping(values());
+        private static final NumericalEnumMapper<EEE> mapping = EnumUtils.mapping(values());
 
         public static EEE forNumber(int number) {
             return mapping.forNumber(number);

@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.net.common;
 
 import com.google.protobuf.AbstractMessage;
-import com.wjybxx.fastjgame.enummapper.NumberEnum;
+import com.wjybxx.fastjgame.enummapper.NumericalEnum;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 
@@ -32,7 +32,7 @@ import java.io.IOException;
  * 因此建议的实现方式：在传递给网络层之前完成所有的初始化工作，并且所有的编解码工作都不会修改对象的状态。
  * <p>
  * Q: 如何减少{@link #cloneObject(Object)} 消耗？<br>
- * A: 网络层提供最小保证： 基本类型的包装类型、{@link String}、{@link AbstractMessage}、{@link Enum}、{@link NumberEnum}不进行拷贝，因为它们都是不可变对象，可以安全的共享。
+ * A: 网络层提供最小保证： 基本类型的包装类型、{@link String}、{@link AbstractMessage}、{@link Enum}、{@link NumericalEnum}不进行拷贝，因为它们都是不可变对象，可以安全的共享。
  * 不过使用者也需要注意，这些对象是共享的，你不能用它们来加锁。<br>
  * PS: 多线程下对包装类型和字符串加锁是非常危险的，缓存池、常量池的存在可能导致非常严重的问题。
  *

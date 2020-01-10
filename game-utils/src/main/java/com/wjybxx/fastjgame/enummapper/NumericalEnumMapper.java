@@ -16,22 +16,31 @@
 
 package com.wjybxx.fastjgame.enummapper;
 
-import javax.annotation.concurrent.Immutable;
+import javax.annotation.Nullable;
 
 /**
- * 数字枚举，枚举可以转换为数字，通过数字也可以找到对应的枚举。
- * 注意查看{@link com.wjybxx.fastjgame.utils.EnumUtils#mapping(NumberEnum[])}
- * (注解处理器使用到了该类)
+ * 数字枚举映射，主要用于在运行期间提高查找效率；
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/6/4 13:35
+ * date - 2019/6/4 15:08
  * github - https://github.com/hl845740757
- * @apiNote 子类实现必须是不可变对象
  */
-@Immutable
-public interface NumberEnum {
+public interface NumericalEnumMapper<T extends NumericalEnum> {
 
-    int getNumber();
+    /**
+     * 通过数字找到对应的枚举
+     *
+     * @param number 枚举的唯一编号
+     * @return T 如果不存在，则返回null，而不是抛出异常
+     */
+    @Nullable
+    T forNumber(int number);
 
+    /**
+     * 获取映射的所有枚举实例，顺序可以和原始枚举不一致。
+     *
+     * @return array
+     */
+    T[] values();
 }

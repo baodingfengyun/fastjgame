@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.scene;
 
-import com.wjybxx.fastjgame.enummapper.NumberEnum;
-import com.wjybxx.fastjgame.enummapper.NumberEnumMapper;
+import com.wjybxx.fastjgame.enummapper.NumericalEnum;
+import com.wjybxx.fastjgame.enummapper.NumericalEnumMapper;
 import com.wjybxx.fastjgame.utils.EnumUtils;
 
 /**
@@ -29,7 +29,7 @@ import com.wjybxx.fastjgame.utils.EnumUtils;
  * date - 2019/6/4 13:30
  * github - https://github.com/hl845740757
  */
-public enum GridObstacle implements NumberEnum {
+public enum GridObstacle implements NumericalEnum {
 
     /**
      * 遮挡，玩家和NPC都不可以走动
@@ -54,7 +54,7 @@ public enum GridObstacle implements NumberEnum {
         return number;
     }
 
-    private static final NumberEnumMapper<GridObstacle> mapper = EnumUtils.mapping(values());
+    private static final NumericalEnumMapper<GridObstacle> mapper = EnumUtils.mapping(values());
 
     public static GridObstacle forNumber(int number) {
         return mapper.forNumber(number);

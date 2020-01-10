@@ -30,7 +30,7 @@ import javax.annotation.Nullable;
  * date - 2019/6/4 15:49
  * github - https://github.com/hl845740757
  */
-public class MapBasedMapper<T extends NumberEnum> implements NumberEnumMapper<T> {
+public class MapBasedMapper<T extends NumericalEnum> implements NumericalEnumMapper<T> {
 
     private final T[] values;
     private final Int2ObjectMap<T> mapping;

@@ -46,7 +46,7 @@ public class EnumUtils {
      * @return T
      */
     @Nullable
-    public static <T extends NumberEnum> T forNumber(T[] values, int number) {
+    public static <T extends NumericalEnum> T forNumber(T[] values, int number) {
         for (T t : values) {
             if (t.getNumber() == number) {
                 return t;
@@ -120,9 +120,9 @@ public class EnumUtils {
      * @return unmodifiable
      */
     @SuppressWarnings("unchecked")
-    public static <T extends NumberEnum> NumberEnumMapper<T> mapping(T[] values) {
+    public static <T extends NumericalEnum> NumericalEnumMapper<T> mapping(T[] values) {
         if (values.length == 0) {
-            return (NumberEnumMapper<T>) EmptyMapper.INSTANCE;
+            return (NumericalEnumMapper<T>) EmptyMapper.INSTANCE;
         }
 
         // 存在一定的浪费，判定重复用

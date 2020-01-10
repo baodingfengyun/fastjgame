@@ -17,8 +17,8 @@ package com.wjybxx.fastjgame.example;
 
 import com.wjybxx.fastjgame.annotation.SerializableClass;
 import com.wjybxx.fastjgame.annotation.SerializableField;
-import com.wjybxx.fastjgame.enummapper.NumberEnum;
-import com.wjybxx.fastjgame.enummapper.NumberEnumMapper;
+import com.wjybxx.fastjgame.enummapper.NumericalEnum;
+import com.wjybxx.fastjgame.enummapper.NumericalEnumMapper;
 import com.wjybxx.fastjgame.utils.EnumUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -456,7 +456,7 @@ public final class ExampleMessages {
     }
 
     @SerializableClass
-    public enum Profession implements NumberEnum {
+    public enum Profession implements NumericalEnum {
         CODER(1),
         TEACHER(2),
         ;
@@ -467,7 +467,7 @@ public final class ExampleMessages {
             this.number = number;
         }
 
-        private static NumberEnumMapper<Profession> mapper = EnumUtils.mapping(values());
+        private static NumericalEnumMapper<Profession> mapper = EnumUtils.mapping(values());
 
         @Override
         public int getNumber() {

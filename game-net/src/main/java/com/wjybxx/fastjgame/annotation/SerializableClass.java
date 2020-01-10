@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.annotation;
 
+import com.wjybxx.fastjgame.enummapper.NumericalEnum;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -24,10 +26,10 @@ import java.lang.annotation.Target;
 /**
  * 用该注解注解的类表示是一个需要序列化的类。
  * <p>
- * 注意：
- * 1. 必须提供无参构造方法，可以是private。
- * 2. 如果是枚举类型，必须实现{@link com.wjybxx.fastjgame.enummapper.NumberEnum}接口和
- * 提供静态方法{@code forNumber(int)}。 -- 也就是按照protoBuf的枚举格式来。
+ * 对于带有该注解的类，注解处理器需要提供以下保证：
+ * 1. 如果是枚举，必须实现{@link NumericalEnum}，并提供forNumber方法 - 也就是按照protoBuf的枚举格式来。
+ * 2. 如果是实现了{@link NumericalEnum}的类，必须提供提供forNumber方法。
+ * 3. 如果是普通类，必须提供无参构造方法，可以是private。
  *
  * @author wjybxx
  * @version 1.0

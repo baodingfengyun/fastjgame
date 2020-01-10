@@ -19,8 +19,8 @@ package com.wjybxx.fastjgame.misc;
 import com.google.protobuf.*;
 import com.wjybxx.fastjgame.annotation.SerializableClass;
 import com.wjybxx.fastjgame.annotation.SerializableField;
-import com.wjybxx.fastjgame.enummapper.NumberEnum;
-import com.wjybxx.fastjgame.enummapper.NumberEnumMapper;
+import com.wjybxx.fastjgame.enummapper.NumericalEnum;
+import com.wjybxx.fastjgame.enummapper.NumericalEnumMapper;
 import com.wjybxx.fastjgame.net.common.ProtocolCodec;
 import com.wjybxx.fastjgame.utils.*;
 import io.netty.buffer.ByteBuf;
@@ -99,7 +99,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
     /**
      * 所有codec映射
      */
-    private final NumberEnumMapper<Codec<?>> codecMapper;
+    private final NumericalEnumMapper<Codec<?>> codecMapper;
 
     private ReflectBasedProtocolCodec(MessageMapper messageMapper,
                                       Map<Class<?>, Parser<?>> parserMap,
@@ -134,10 +134,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
 
                 // 枚举
                 new ProtoEnumCodec(),
-                new NumberEnumCodec(),
-
-                // Queue也很少用
-                new QueueCodec(),
+                new NumericalEnumCodec(),
 
                 new BoolCodec(),
                 new ByteCodec(),
@@ -324,7 +321,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         /**
          * 要序列化的字段的映射
          */
-        private final NumberEnumMapper<FieldDescriptor> fieldDescriptorMapper;
+        private final NumericalEnumMapper<FieldDescriptor> fieldDescriptorMapper;
 
         private ClassDescriptor(FieldDescriptor[] serializableFields, Constructor constructor) {
             this.constructor = constructor;
@@ -336,7 +333,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
     }
 
-    private static class FieldDescriptor implements NumberEnum {
+    private static class FieldDescriptor implements NumericalEnum {
         /**
          * 用于反射赋值
          */
@@ -380,7 +377,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
     }
 
-    private interface Codec<T> extends NumberEnum {
+    private interface Codec<T> extends NumericalEnum {
 
         /**
          * 是否支持编码该对象
@@ -901,11 +898,11 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
     }
 
-    private class NumberEnumCodec extends EnumCodec<NumberEnum> {
+    private class NumericalEnumCodec extends EnumCodec<NumericalEnum> {
 
         @Override
         public boolean isSupport(Class<?> type) {
-            return NumberEnum.class.isAssignableFrom(type);
+            return NumericalEnum.class.isAssignableFrom(type);
         }
 
         @Override
@@ -914,7 +911,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        protected int getNumber(NumberEnum obj) {
+        protected int getNumber(NumericalEnum obj) {
             return obj.getNumber();
         }
 
@@ -1014,25 +1011,6 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         @Override
         protected Set newCollection(int size) {
             return CollectionUtils.newLinkedHashSetWithExpectedSize(size);
-        }
-    }
-
-    private class QueueCodec extends CollectionCodec<Queue> {
-
-        @Override
-        public boolean isSupport(Class<?> type) {
-            return Queue.class.isAssignableFrom(type);
-        }
-
-        @Override
-        public byte getWireType() {
-            return WireType.QUEUE;
-        }
-
-        @Nonnull
-        @Override
-        protected Queue newCollection(int size) {
-            return new ArrayDeque(size);
         }
     }
 
@@ -1656,8 +1634,8 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
                     indexEnumDescriptor(enumDescriptorMap, messageClazz);
                     continue;
                 }
-                // NumberEnum
-                if (NumberEnum.class.isAssignableFrom(messageClazz)) {
+                // NumericalEnum
+                if (NumericalEnum.class.isAssignableFrom(messageClazz)) {
                     if (messageClazz.isAnnotationPresent(SerializableClass.class)) {
                         indexEnumDescriptor(enumDescriptorMap, messageClazz);
                     }

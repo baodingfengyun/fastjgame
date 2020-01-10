@@ -47,7 +47,7 @@ public class SerializableNumberProcessor extends AbstractProcessor {
     // 使用这种方式可以脱离对utils，net包的依赖
     private static final String SERIALIZABLE_CLASS_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.SerializableClass";
     private static final String SERIALIZABLE_FIELD_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.SerializableField";
-    private static final String NUMBER_ENUM_CANONICAL_NAME = "com.wjybxx.fastjgame.enummapper.NumberEnum";
+    private static final String NUMBER_ENUM_CANONICAL_NAME = "com.wjybxx.fastjgame.enummapper.NumericalEnum";
 
     private static final String NUMBER_METHOD_NAME = "number";
     private static final String FOR_NUMBER_METHOD_NAME = "forNumber";
@@ -59,7 +59,7 @@ public class SerializableNumberProcessor extends AbstractProcessor {
 
     private TypeElement serializableClassElement;
     private DeclaredType serializableFieldDeclaredType;
-    private DeclaredType numberEnumDeclaredType;
+    private DeclaredType numericalEnumDeclaredType;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
@@ -85,7 +85,7 @@ public class SerializableNumberProcessor extends AbstractProcessor {
         }
         serializableClassElement = elementUtils.getTypeElement(SERIALIZABLE_CLASS_CANONICAL_NAME);
         serializableFieldDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(SERIALIZABLE_FIELD_CANONICAL_NAME));
-        numberEnumDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(NUMBER_ENUM_CANONICAL_NAME));
+        numericalEnumDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(NUMBER_ENUM_CANONICAL_NAME));
     }
 
     @Override
@@ -101,20 +101,25 @@ public class SerializableNumberProcessor extends AbstractProcessor {
     }
 
     private void checkNumber(TypeElement typeElement) {
-        if (typeElement.getKind() == ElementKind.ENUM || isNumberEnum(typeElement)) {
-            // 检查枚举类型 - 查找forNumber静态方法
+        if (typeElement.getKind() == ElementKind.ENUM) {
+            // 检查真正的枚举
             checkEnum(typeElement);
         } else if (typeElement.getKind() == ElementKind.CLASS) {
-            // 检查普通类型
-            checkClass(typeElement);
+            if (isNumericalEnum(typeElement)) {
+                // 检查伪枚举
+                checkForNumberMethod(typeElement);
+            } else {
+                // 检查普通类型
+                checkClass(typeElement);
+            }
         } else {
             // 只允许枚举和类使用，其它类型抛出编译错误
             messager.printMessage(Diagnostic.Kind.ERROR, "serializable class does not allow here", typeElement);
         }
     }
 
-    private boolean isNumberEnum(TypeElement typeElement) {
-        return typeUtils.isSubtype(typeUtils.getDeclaredType(typeElement), numberEnumDeclaredType);
+    private boolean isNumericalEnum(TypeElement typeElement) {
+        return typeUtils.isSubtype(typeUtils.getDeclaredType(typeElement), numericalEnumDeclaredType);
     }
 
     private void checkClass(TypeElement typeElement) {
@@ -158,12 +163,20 @@ public class SerializableNumberProcessor extends AbstractProcessor {
         }
     }
 
-    /**
-     * @param typeElement 要检索的类
-     */
+
     private void checkEnum(TypeElement typeElement) {
+        // 要序列化的枚举必须实现 NumericalEnum 接口
+        if (!isNumericalEnum(typeElement)) {
+            messager.printMessage(Diagnostic.Kind.ERROR, typeElement.getSimpleName() + " must implements NumericalEnum!", typeElement);
+        }
+        checkForNumberMethod(typeElement);
+    }
+
+    /**
+     * 检查forNumber静态方法
+     */
+    private void checkForNumberMethod(TypeElement typeElement) {
         if (!isContainStaticForNumberMethod(typeElement)) {
-            // 找不到forNumber方法
             messager.printMessage(Diagnostic.Kind.ERROR,
                     String.format("%s must contains 'static %s forNumber(int)' method, private is ok!", typeElement.getSimpleName(), typeElement.getSimpleName()),
                     typeElement);

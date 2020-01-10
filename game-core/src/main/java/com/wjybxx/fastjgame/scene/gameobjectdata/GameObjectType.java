@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.scene.gameobjectdata;
 
-import com.wjybxx.fastjgame.enummapper.NumberEnum;
-import com.wjybxx.fastjgame.enummapper.NumberEnumMapper;
+import com.wjybxx.fastjgame.enummapper.NumericalEnum;
+import com.wjybxx.fastjgame.enummapper.NumericalEnumMapper;
 import com.wjybxx.fastjgame.utils.EnumUtils;
 
 /**
@@ -28,7 +28,7 @@ import com.wjybxx.fastjgame.utils.EnumUtils;
  * date - 2019/6/2 22:59
  * github - https://github.com/hl845740757
  */
-public enum GameObjectType implements NumberEnum {
+public enum GameObjectType implements NumericalEnum {
 
     /**
      * 玩家
@@ -51,7 +51,7 @@ public enum GameObjectType implements NumberEnum {
         return ordinal();
     }
 
-    private static final NumberEnumMapper<GameObjectType> mapper = EnumUtils.mapping(values());
+    private static final NumericalEnumMapper<GameObjectType> mapper = EnumUtils.mapping(values());
 
     public static GameObjectType forNumber(int number) {
         return mapper.forNumber(number);

@@ -29,7 +29,7 @@ import java.lang.reflect.Array;
  * date - 2019/6/4 15:48
  * github - https://github.com/hl845740757
  */
-public class ArrayBasedMapper<T extends NumberEnum> implements NumberEnumMapper<T> {
+public class ArrayBasedMapper<T extends NumericalEnum> implements NumericalEnumMapper<T> {
 
     /**
      * 最小空间资源利用率，小于该值空间浪费太大

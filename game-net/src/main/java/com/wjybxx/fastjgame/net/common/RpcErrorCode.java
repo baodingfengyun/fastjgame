@@ -17,8 +17,8 @@
 package com.wjybxx.fastjgame.net.common;
 
 import com.wjybxx.fastjgame.annotation.SerializableClass;
-import com.wjybxx.fastjgame.enummapper.NumberEnum;
-import com.wjybxx.fastjgame.enummapper.NumberEnumMapper;
+import com.wjybxx.fastjgame.enummapper.NumericalEnum;
+import com.wjybxx.fastjgame.enummapper.NumericalEnumMapper;
 import com.wjybxx.fastjgame.utils.EnumUtils;
 
 /**
@@ -30,7 +30,7 @@ import com.wjybxx.fastjgame.utils.EnumUtils;
  * github - https://github.com/hl845740757
  */
 @SerializableClass
-public enum RpcErrorCode implements NumberEnum {
+public enum RpcErrorCode implements NumericalEnum {
 
     /**
      * 成功
@@ -82,7 +82,7 @@ public enum RpcErrorCode implements NumberEnum {
     /**
      * number到枚举的映射
      */
-    private static final NumberEnumMapper<RpcErrorCode> mapper = EnumUtils.mapping(values());
+    private static final NumericalEnumMapper<RpcErrorCode> mapper = EnumUtils.mapping(values());
 
     public static RpcErrorCode forNumber(int number) {
         return mapper.forNumber(number);

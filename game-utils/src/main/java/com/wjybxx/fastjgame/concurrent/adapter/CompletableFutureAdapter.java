@@ -16,10 +16,7 @@
 
 package com.wjybxx.fastjgame.concurrent.adapter;
 
-import com.wjybxx.fastjgame.concurrent.AbstractListenableFuture;
-import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.concurrent.FutureListener;
-import com.wjybxx.fastjgame.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.concurrent.*;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
 import javax.annotation.Nonnull;
@@ -103,6 +100,18 @@ public class CompletableFutureAdapter<V> extends AbstractListenableFuture<V> {
             return future.getNow(null);
         } catch (Throwable ignore) {
             return null;
+        }
+    }
+
+    @Nullable
+    @Override
+    public FutureResult<V> getAsResult() {
+        try {
+            return new DefaultFutureResult<>(future.getNow(null), null);
+        } catch (CompletionException e) {
+            return new DefaultFutureResult<>(null, e.getCause());
+        } catch (Throwable e) {
+            return new DefaultFutureResult<>(null, e);
         }
     }
 

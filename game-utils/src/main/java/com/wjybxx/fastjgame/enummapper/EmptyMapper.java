@@ -27,7 +27,7 @@ import javax.annotation.Nullable;
  * date - 2019/6/4 15:49
  * github - https://github.com/hl845740757
  */
-public class EmptyMapper<T extends NumberEnum> implements NumberEnumMapper<T> {
+public class EmptyMapper<T extends NumericalEnum> implements NumericalEnumMapper<T> {
 
     public static final EmptyMapper<?> INSTANCE = new EmptyMapper<>();
     private static final Object[] EMPTY_ARRAY = new Object[0];
