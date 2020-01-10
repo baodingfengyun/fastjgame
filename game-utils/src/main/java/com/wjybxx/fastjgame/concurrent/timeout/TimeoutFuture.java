@@ -22,15 +22,11 @@ import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
 
 /**
  * 具有时效性的future，在限定时间内必定必须进入完成状态。
  * 因此{@link #get()} 和 {@link #await()} 系列方法不会长时间阻塞，都会在超时时间到达后醒来。
- * 默认实现为：
- * 如果在指定时间之内未完成，会以{@link TimeoutException}结束，即{@link ExecutionException#getCause()}为{@link TimeoutException}。
- * 注意：超时后。
+ * 请使用{@link #isTimeout()}查询是否是超时完成，而不要对cause处理判断是否是超时。
  *
  * @author wjybxx
  * @version 1.0
@@ -40,7 +36,8 @@ import java.util.concurrent.TimeoutException;
 public interface TimeoutFuture<V> extends ListenableFuture<V> {
 
     /**
-     * 是否已超时
+     * 是否已超时。
+     * 注意：超时的异常不一定是{@link java.util.concurrent.TimeoutException}，因此不要使用 instanceof 来判断。
      */
     boolean isTimeout();
 

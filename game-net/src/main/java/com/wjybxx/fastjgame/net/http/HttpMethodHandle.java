@@ -14,39 +14,43 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.async;
+package com.wjybxx.fastjgame.net.http;
 
+import com.wjybxx.fastjgame.async.TimeoutMethodHandle;
 import com.wjybxx.fastjgame.concurrent.GenericFailureFutureResultListener;
 import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
 import com.wjybxx.fastjgame.concurrent.GenericSuccessFutureResultListener;
 import com.wjybxx.fastjgame.concurrent.timeout.GenericTimeoutFutureResultListener;
-import com.wjybxx.fastjgame.concurrent.timeout.TimeoutFutureResult;
+
+import javax.annotation.Nonnull;
+import java.util.concurrent.ExecutionException;
 
 /**
- * 具有超时时间的异步方法句柄
- *
  * @author wjybxx
  * @version 1.0
- * date - 2020/1/9
+ * date - 2020/1/10
  * github - https://github.com/hl845740757
  */
-public interface TimeoutMethodHandle<T, FR extends TimeoutFutureResult<V>, V> extends MethodHandle<T, FR, V> {
+public interface HttpMethodHandle<V> extends TimeoutMethodHandle<HttpClientProxy, HttpFutureResult<V>, V> {
 
     @Override
-    TimeoutMethodHandle<T, FR, V> onSuccess(GenericSuccessFutureResultListener<FR, V> listener);
+    void execute(@Nonnull HttpClientProxy serviceHandle);
 
     @Override
-    TimeoutMethodHandle<T, FR, V> onFailure(GenericFailureFutureResultListener<FR, V> listener);
+    void call(@Nonnull HttpClientProxy serviceHandle);
 
     @Override
-    TimeoutMethodHandle<T, FR, V> onComplete(GenericFutureResultListener<FR, V> listener);
+    V syncCall(@Nonnull HttpClientProxy serviceHandle) throws ExecutionException;
 
-    /**
-     * 设置超时失败时执行的回调。
-     * 注意：只有当后续调用的是{@link #call(Object)}系列方法时才会有效。
-     *
-     * @param listener 回调逻辑
-     * @return this
-     */
-    TimeoutMethodHandle<T, FR, V> onTimeout(GenericTimeoutFutureResultListener<FR, V> listener);
+    @Override
+    HttpMethodHandle<V> onSuccess(GenericSuccessFutureResultListener<HttpFutureResult<V>, V> listener);
+
+    @Override
+    HttpMethodHandle<V> onFailure(GenericFailureFutureResultListener<HttpFutureResult<V>, V> listener);
+
+    @Override
+    HttpMethodHandle<V> onComplete(GenericFutureResultListener<HttpFutureResult<V>, V> listener);
+
+    @Override
+    HttpMethodHandle<V> onTimeout(GenericTimeoutFutureResultListener<HttpFutureResult<V>, V> listener);
 }

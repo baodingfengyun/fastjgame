@@ -14,24 +14,25 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.concurrent.timeout;
-
-import com.wjybxx.fastjgame.concurrent.DefaultFutureResult;
+package com.wjybxx.fastjgame.concurrent;
 
 /**
+ * 执行成功才执行的监听器
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2020/1/8
  * github - https://github.com/hl845740757
  */
-public class DefaultTimeoutFutureResult<V> extends DefaultFutureResult<V> implements TimeoutFutureResult<V> {
-
-    public DefaultTimeoutFutureResult(V result, Throwable cause) {
-        super(result, cause);
-    }
+@FunctionalInterface
+public interface GenericSuccessFutureResultListener<FR extends FutureResult<V>, V> extends GenericFutureResultListener<FR, V> {
 
     @Override
-    public final boolean isTimeout() {
-        return DefaultTimeoutPromise.isDefaultTimeout(cause());
+    default void onComplete(FR futureResult) {
+        if (futureResult.isSuccess()) {
+            onSuccess(futureResult.getNow());
+        }
     }
+
+    void onSuccess(V result);
 }

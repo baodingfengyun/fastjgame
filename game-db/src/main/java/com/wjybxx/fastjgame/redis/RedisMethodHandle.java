@@ -18,9 +18,9 @@ package com.wjybxx.fastjgame.redis;
 
 import com.wjybxx.fastjgame.async.FlushableMethodHandle;
 import com.wjybxx.fastjgame.concurrent.FutureResult;
-import com.wjybxx.fastjgame.concurrent.GenericFutureFailureResultListener;
+import com.wjybxx.fastjgame.concurrent.GenericFailureFutureResultListener;
 import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
-import com.wjybxx.fastjgame.concurrent.GenericFutureSuccessResultListener;
+import com.wjybxx.fastjgame.concurrent.GenericSuccessFutureResultListener;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.ExecutionException;
@@ -51,10 +51,10 @@ public interface RedisMethodHandle<V> extends FlushableMethodHandle<RedisService
     V syncCall(@Nonnull RedisServiceHandle serviceHandle) throws ExecutionException;
 
     @Override
-    RedisMethodHandle<V> onSuccess(GenericFutureSuccessResultListener<FutureResult<V>, V> listener);
+    RedisMethodHandle<V> onSuccess(GenericSuccessFutureResultListener<FutureResult<V>, V> listener);
 
     @Override
-    RedisMethodHandle<V> onFailure(GenericFutureFailureResultListener<FutureResult<V>, V> listener);
+    RedisMethodHandle<V> onFailure(GenericFailureFutureResultListener<FutureResult<V>, V> listener);
 
     @Override
     RedisMethodHandle<V> onComplete(GenericFutureResultListener<FutureResult<V>, V> listener);

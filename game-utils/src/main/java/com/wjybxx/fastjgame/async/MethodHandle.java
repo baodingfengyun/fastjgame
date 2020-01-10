@@ -91,7 +91,7 @@ public interface MethodHandle<T, FR extends FutureResult<V>, V> {
      * @param listener 回调逻辑
      * @return this
      */
-    MethodHandle<T, FR, V> onSuccess(GenericFutureSuccessResultListener<FR, V> listener);
+    MethodHandle<T, FR, V> onSuccess(GenericSuccessFutureResultListener<FR, V> listener);
 
     /**
      * 设置成功时执行的回调。
@@ -100,7 +100,7 @@ public interface MethodHandle<T, FR extends FutureResult<V>, V> {
      * @param listener 回调逻辑
      * @return this
      */
-    MethodHandle<T, FR, V> onFailure(GenericFutureFailureResultListener<FR, V> listener);
+    MethodHandle<T, FR, V> onFailure(GenericFailureFutureResultListener<FR, V> listener);
 
     /**
      * 设置成功时执行的回调。

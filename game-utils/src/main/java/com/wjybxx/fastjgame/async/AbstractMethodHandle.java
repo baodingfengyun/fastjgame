@@ -34,13 +34,13 @@ public abstract class AbstractMethodHandle<T, FR extends FutureResult<V>, V> imp
     private GenericFutureResultListener<FR, V> listener;
 
     @Override
-    public MethodHandle<T, FR, V> onSuccess(GenericFutureSuccessResultListener<FR, V> listener) {
+    public MethodHandle<T, FR, V> onSuccess(GenericSuccessFutureResultListener<FR, V> listener) {
         addListener(listener);
         return this;
     }
 
     @Override
-    public MethodHandle<T, FR, V> onFailure(GenericFutureFailureResultListener<FR, V> listener) {
+    public MethodHandle<T, FR, V> onFailure(GenericFailureFutureResultListener<FR, V> listener) {
         addListener(listener);
         return this;
     }

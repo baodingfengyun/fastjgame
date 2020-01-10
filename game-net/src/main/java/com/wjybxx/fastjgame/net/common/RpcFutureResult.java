@@ -27,6 +27,12 @@ import com.wjybxx.fastjgame.concurrent.timeout.TimeoutFutureResult;
 public interface RpcFutureResult<V> extends TimeoutFutureResult<V> {
 
     /**
+     * @see RpcFuture#isTimeout()
+     */
+    @Override
+    boolean isTimeout();
+
+    /**
      * @see RpcFuture#isRpcException()
      */
     boolean isRpcException();

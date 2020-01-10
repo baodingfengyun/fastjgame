@@ -14,24 +14,30 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.concurrent.timeout;
+package com.wjybxx.fastjgame.net.exception;
 
-import com.wjybxx.fastjgame.concurrent.DefaultFutureResult;
+import com.wjybxx.fastjgame.net.common.RpcErrorCode;
 
 /**
+ * rpc超时异常
+ *
  * @author wjybxx
  * @version 1.0
- * date - 2020/1/8
+ * date - 2020/1/10
  * github - https://github.com/hl845740757
  */
-public class DefaultTimeoutFutureResult<V> extends DefaultFutureResult<V> implements TimeoutFutureResult<V> {
+public class RpcTimeoutException extends RpcLocalException {
 
-    public DefaultTimeoutFutureResult(V result, Throwable cause) {
-        super(result, cause);
+    public static final RpcTimeoutException INSTANCE = new RpcTimeoutException();
+
+    private RpcTimeoutException() {
+        // 不填充堆栈
+        super(null, null, false, false);
     }
 
     @Override
-    public final boolean isTimeout() {
-        return DefaultTimeoutPromise.isDefaultTimeout(cause());
+    public RpcErrorCode getErrorCode() {
+        return RpcErrorCode.LOCAL_TIMEOUT;
     }
+
 }

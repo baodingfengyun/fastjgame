@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.common;
 
-import com.wjybxx.fastjgame.concurrent.timeout.DefaultTimeoutFutureResult;
+import com.wjybxx.fastjgame.concurrent.DefaultFutureResult;
 
 /**
  * @author wjybxx
@@ -24,10 +24,15 @@ import com.wjybxx.fastjgame.concurrent.timeout.DefaultTimeoutFutureResult;
  * date - 2020/1/8
  * github - https://github.com/hl845740757
  */
-public class DefaultRpcFutureResult<V> extends DefaultTimeoutFutureResult<V> implements RpcFutureResult<V> {
+public class DefaultRpcFutureResult<V> extends DefaultFutureResult<V> implements RpcFutureResult<V> {
 
     public DefaultRpcFutureResult(V result, Throwable cause) {
         super(result, cause);
+    }
+
+    @Override
+    public boolean isTimeout() {
+        return DefaultRpcPromise.isRpcTimeout(cause());
     }
 
     @Override

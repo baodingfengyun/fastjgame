@@ -27,6 +27,7 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * TimeoutPromise的默认实现。
+ * 默认实现以{@link TimeoutException}表示超时。
  *
  * @author wjybxx
  * @version 1.0
@@ -51,11 +52,11 @@ public class DefaultTimeoutPromise<V> extends DefaultPromise<V> implements Timeo
     }
 
     @Override
-    public final boolean isTimeout() {
-        return isTimeout0(cause());
+    public boolean isTimeout() {
+        return isDefaultTimeout(cause());
     }
 
-    static boolean isTimeout0(Throwable cause) {
+    static boolean isDefaultTimeout(Throwable cause) {
         return cause instanceof TimeoutException;
     }
 

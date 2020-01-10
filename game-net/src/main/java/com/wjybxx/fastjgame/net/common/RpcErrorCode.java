@@ -49,6 +49,11 @@ public enum RpcErrorCode implements NumberEnum {
     LOCAL_SESSION_CLOSED(11),
 
     /**
+     * 超时
+     */
+    LOCAL_TIMEOUT(12),
+
+    /**
      * 服务器处理请求失败。
      * 远程默认返回码，如果可以更细化，则应该细化。
      */

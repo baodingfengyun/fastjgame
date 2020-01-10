@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.concurrent.FutureListener;
 import com.wjybxx.fastjgame.concurrent.timeout.DefaultTimeoutPromise;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.net.exception.RpcException;
+import com.wjybxx.fastjgame.net.exception.RpcTimeoutException;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
 import javax.annotation.Nonnull;
@@ -58,6 +59,11 @@ public class DefaultRpcPromise<V> extends DefaultTimeoutPromise<V> implements Rp
     }
 
     @Override
+    public final boolean isTimeout() {
+        return isRpcTimeout(cause());
+    }
+
+    @Override
     public boolean isRpcException() {
         return isRpcException0(cause());
     }
@@ -65,6 +71,10 @@ public class DefaultRpcPromise<V> extends DefaultTimeoutPromise<V> implements Rp
     @Override
     public RpcErrorCode errorCode() {
         return getErrorCode0(cause());
+    }
+
+    static boolean isRpcTimeout(Throwable cause) {
+        return cause instanceof RpcTimeoutException;
     }
 
     static boolean isRpcException0(Throwable cause) {

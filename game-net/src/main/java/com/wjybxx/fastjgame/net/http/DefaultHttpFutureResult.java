@@ -14,30 +14,24 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.concurrent.timeout;
+package com.wjybxx.fastjgame.net.http;
 
-import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
+import com.wjybxx.fastjgame.concurrent.DefaultFutureResult;
 
 /**
- * 超时结果监听器
- *
  * @author wjybxx
  * @version 1.0
- * date - 2020/1/9
+ * date - 2020/1/10
  * github - https://github.com/hl845740757
  */
-@FunctionalInterface
-public interface GenericFutureTimeoutResultListener<FR extends TimeoutFutureResult<V>, V> extends GenericFutureResultListener<FR, V> {
+public class DefaultHttpFutureResult<V> extends DefaultFutureResult<V> implements HttpFutureResult<V> {
 
-    @Override
-    default void onComplete(FR futureResult) {
-        if (futureResult.isTimeout()) {
-            onTimeout();
-        }
+    public DefaultHttpFutureResult(V result, Throwable cause) {
+        super(result, cause);
     }
 
-    /**
-     * 执行超时逻辑
-     */
-    void onTimeout();
+    @Override
+    public boolean isTimeout() {
+        return DefaultHttpFuture.isTimeout0(cause());
+    }
 }

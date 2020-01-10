@@ -17,9 +17,9 @@
 package com.wjybxx.fastjgame.async;
 
 import com.wjybxx.fastjgame.concurrent.FutureResult;
-import com.wjybxx.fastjgame.concurrent.GenericFutureFailureResultListener;
+import com.wjybxx.fastjgame.concurrent.GenericFailureFutureResultListener;
 import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
-import com.wjybxx.fastjgame.concurrent.GenericFutureSuccessResultListener;
+import com.wjybxx.fastjgame.concurrent.GenericSuccessFutureResultListener;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -66,10 +66,10 @@ public interface FlushableMethodHandle<T, FR extends FutureResult<V>, V> extends
     V syncCall(@Nonnull T serviceHandle) throws ExecutionException;
 
     @Override
-    FlushableMethodHandle<T, FR, V> onSuccess(GenericFutureSuccessResultListener<FR, V> listener);
+    FlushableMethodHandle<T, FR, V> onSuccess(GenericSuccessFutureResultListener<FR, V> listener);
 
     @Override
-    FlushableMethodHandle<T, FR, V> onFailure(GenericFutureFailureResultListener<FR, V> listener);
+    FlushableMethodHandle<T, FR, V> onFailure(GenericFailureFutureResultListener<FR, V> listener);
 
     @Override
     FlushableMethodHandle<T, FR, V> onComplete(GenericFutureResultListener<FR, V> listener);

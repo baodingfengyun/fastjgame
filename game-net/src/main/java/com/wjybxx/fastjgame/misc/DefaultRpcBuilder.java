@@ -17,10 +17,10 @@
 package com.wjybxx.fastjgame.misc;
 
 import com.wjybxx.fastjgame.async.AbstractMethodHandle;
-import com.wjybxx.fastjgame.concurrent.GenericFutureFailureResultListener;
+import com.wjybxx.fastjgame.concurrent.GenericFailureFutureResultListener;
 import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
-import com.wjybxx.fastjgame.concurrent.GenericFutureSuccessResultListener;
-import com.wjybxx.fastjgame.concurrent.timeout.GenericFutureTimeoutResultListener;
+import com.wjybxx.fastjgame.concurrent.GenericSuccessFutureResultListener;
+import com.wjybxx.fastjgame.concurrent.timeout.GenericTimeoutFutureResultListener;
 import com.wjybxx.fastjgame.net.common.RpcCall;
 import com.wjybxx.fastjgame.net.common.RpcFutureResult;
 import com.wjybxx.fastjgame.net.session.Session;
@@ -114,13 +114,13 @@ public class DefaultRpcBuilder<V> extends AbstractMethodHandle<Session, RpcFutur
     }
 
     @Override
-    public RpcBuilder<V> onSuccess(GenericFutureSuccessResultListener<RpcFutureResult<V>, V> listener) {
+    public RpcBuilder<V> onSuccess(GenericSuccessFutureResultListener<RpcFutureResult<V>, V> listener) {
         super.onSuccess(listener);
         return this;
     }
 
     @Override
-    public RpcBuilder<V> onFailure(GenericFutureFailureResultListener<RpcFutureResult<V>, V> listener) {
+    public RpcBuilder<V> onFailure(GenericFailureFutureResultListener<RpcFutureResult<V>, V> listener) {
         super.onFailure(listener);
         return this;
     }
@@ -132,7 +132,7 @@ public class DefaultRpcBuilder<V> extends AbstractMethodHandle<Session, RpcFutur
     }
 
     @Override
-    public RpcBuilder<V> onTimeout(GenericFutureTimeoutResultListener<RpcFutureResult<V>, V> listener) {
+    public RpcBuilder<V> onTimeout(GenericTimeoutFutureResultListener<RpcFutureResult<V>, V> listener) {
         addListener(listener);
         return this;
     }

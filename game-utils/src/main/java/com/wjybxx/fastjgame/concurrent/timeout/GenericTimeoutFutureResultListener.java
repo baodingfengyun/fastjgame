@@ -14,25 +14,30 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.concurrent;
+package com.wjybxx.fastjgame.concurrent.timeout;
+
+import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
 
 /**
- * 执行成功才执行的监听器
+ * 超时结果监听器
  *
  * @author wjybxx
  * @version 1.0
- * date - 2020/1/8
+ * date - 2020/1/9
  * github - https://github.com/hl845740757
  */
 @FunctionalInterface
-public interface GenericFutureSuccessResultListener<FR extends FutureResult<V>, V> extends GenericFutureResultListener<FR, V> {
+public interface GenericTimeoutFutureResultListener<FR extends TimeoutFutureResult<V>, V> extends GenericFutureResultListener<FR, V> {
 
     @Override
     default void onComplete(FR futureResult) {
-        if (futureResult.isSuccess()) {
-            onSuccess(futureResult.getNow());
+        if (futureResult.isTimeout()) {
+            onTimeout();
         }
     }
 
-    void onSuccess(V result);
+    /**
+     * 执行超时逻辑
+     */
+    void onTimeout();
 }

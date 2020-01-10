@@ -35,6 +35,12 @@ import javax.annotation.Nullable;
 public interface RpcFuture<V> extends TimeoutFuture<V> {
 
     /**
+     * 当cause为{@link com.wjybxx.fastjgame.net.exception.RpcTimeoutException}时表示超时
+     */
+    @Override
+    boolean isTimeout();
+
+    /**
      * 查询是否是rpc执行异常
      *
      * @return 如果为异常信息为：{@link com.wjybxx.fastjgame.net.exception.RpcException}，则返回true

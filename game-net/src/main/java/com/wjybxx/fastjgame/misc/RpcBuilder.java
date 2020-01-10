@@ -18,10 +18,10 @@ package com.wjybxx.fastjgame.misc;
 
 import com.wjybxx.fastjgame.async.FlushableMethodHandle;
 import com.wjybxx.fastjgame.async.TimeoutMethodHandle;
-import com.wjybxx.fastjgame.concurrent.GenericFutureFailureResultListener;
+import com.wjybxx.fastjgame.concurrent.GenericFailureFutureResultListener;
 import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
-import com.wjybxx.fastjgame.concurrent.GenericFutureSuccessResultListener;
-import com.wjybxx.fastjgame.concurrent.timeout.GenericFutureTimeoutResultListener;
+import com.wjybxx.fastjgame.concurrent.GenericSuccessFutureResultListener;
+import com.wjybxx.fastjgame.concurrent.timeout.GenericTimeoutFutureResultListener;
 import com.wjybxx.fastjgame.net.common.RpcCall;
 import com.wjybxx.fastjgame.net.common.RpcFutureResult;
 import com.wjybxx.fastjgame.net.session.Session;
@@ -156,14 +156,14 @@ public interface RpcBuilder<V> extends
     }
 
     @Override
-    RpcBuilder<V> onSuccess(GenericFutureSuccessResultListener<RpcFutureResult<V>, V> listener);
+    RpcBuilder<V> onSuccess(GenericSuccessFutureResultListener<RpcFutureResult<V>, V> listener);
 
     @Override
-    RpcBuilder<V> onFailure(GenericFutureFailureResultListener<RpcFutureResult<V>, V> listener);
+    RpcBuilder<V> onFailure(GenericFailureFutureResultListener<RpcFutureResult<V>, V> listener);
 
     @Override
     RpcBuilder<V> onComplete(GenericFutureResultListener<RpcFutureResult<V>, V> listener);
 
     @Override
-    RpcBuilder<V> onTimeout(GenericFutureTimeoutResultListener<RpcFutureResult<V>, V> listener);
+    RpcBuilder<V> onTimeout(GenericTimeoutFutureResultListener<RpcFutureResult<V>, V> listener);
 }

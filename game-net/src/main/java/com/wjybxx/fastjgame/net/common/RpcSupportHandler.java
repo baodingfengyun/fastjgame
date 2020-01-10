@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.net.common;
 
 import com.wjybxx.fastjgame.net.exception.DefaultRpcServerException;
 import com.wjybxx.fastjgame.net.exception.RpcSessionClosedException;
+import com.wjybxx.fastjgame.net.exception.RpcTimeoutException;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionConfig;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
@@ -33,7 +34,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeoutException;
 
 /**
  * 提供Rpc调用支持的handler。
@@ -287,16 +287,4 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
         }
     }
 
-    private static class RpcTimeoutException extends TimeoutException {
-
-        private static final RpcTimeoutException INSTANCE = new RpcTimeoutException();
-
-        RpcTimeoutException() {
-        }
-
-        @Override
-        public synchronized Throwable fillInStackTrace() {
-            return this;
-        }
-    }
 }
