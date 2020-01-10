@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.redis;
 
 import com.wjybxx.fastjgame.concurrent.*;
-import com.wjybxx.fastjgame.concurrent.adapter.FutureListenerAdapter;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -239,7 +238,7 @@ public class RedisEventLoop extends SingleThreadEventLoop {
     public <V> void call(RedisCommand<V> command, GenericFutureResultListener<FutureResult<V>> listener, EventLoop appEventLoop) {
         // TODO 无promise实现
         final RedisPromise<V> redisPromise = newRedisPromise(appEventLoop);
-        redisPromise.addListener(new FutureListenerAdapter<>(listener));
+        redisPromise.addListener(listener);
         execute(new JedisPipelineTask<>(command, redisPromise));
     }
 
