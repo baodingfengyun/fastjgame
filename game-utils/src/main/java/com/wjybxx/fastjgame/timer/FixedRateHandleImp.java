@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.timer;
 
+import javax.annotation.Nonnull;
+
 /**
  * 固定频率的定时器的句柄。
  * {@link TimerSystem#newFixRate(long, long, TimerTask)}
@@ -103,5 +105,11 @@ class FixedRateHandleImp extends AbstractTimerHandle implements FixedRateHandle 
         if (period <= 0) {
             throw new IllegalArgumentException("period " + period);
         }
+    }
+
+    @Override
+    public FixedRateHandle setExceptionHandler(@Nonnull ExceptionHandler exceptionHandler) {
+        super.setExceptionHandler(exceptionHandler);
+        return this;
     }
 }

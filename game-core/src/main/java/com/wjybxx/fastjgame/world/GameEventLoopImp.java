@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.world;
 
 import com.google.inject.Injector;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
-import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
+import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.mgr.GameEventLoopMgr;
 import com.wjybxx.fastjgame.module.WorldGroupModule;
@@ -33,17 +33,24 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.concurrent.ThreadFactory;
 
+import static com.wjybxx.fastjgame.utils.ConcurrentUtils.sleepQuietly;
+
 /**
- * 游戏事件循环基本实现
+ * 游戏事件循环基本实现。
+ * <p>
+ * 修改为继承{@link SingleThreadEventLoop}。
+ * 避免死锁可能，或同步rpc调用时超时(同时阻塞网络线程)。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/4
  * github - https://github.com/hl845740757
  */
-public class GameEventLoopImp extends DisruptorEventLoop implements GameEventLoop {
+public class GameEventLoopImp extends SingleThreadEventLoop implements GameEventLoop {
 
     private static final Logger logger = LoggerFactory.getLogger(GameEventLoopImp.class);
+
+    private static final int TASK_BATCH_SIZE = 8192;
 
     /**
      * 游戏世界需要的网络模块
@@ -111,11 +118,27 @@ public class GameEventLoopImp extends DisruptorEventLoop implements GameEventLoo
     }
 
     @Override
-    protected void loopOnce() {
-        // 游戏世界刷帧
-        timerSystem.tick();
+    protected void loop() {
+        while (true) {
+            try {
+                runTasksBatch(TASK_BATCH_SIZE);
+
+                timerSystem.tick();
+
+                if (!confirmShutdown()) {
+                    break;
+                }
+
+                sleepQuietly(1);
+            } catch (Throwable e) {
+                logger.warn("", e);
+            }
+        }
     }
 
+    /**
+     * 游戏世界刷帧
+     */
     private void safeTickWorld(TimerHandle handle) {
         try {
             world.tick(System.currentTimeMillis());

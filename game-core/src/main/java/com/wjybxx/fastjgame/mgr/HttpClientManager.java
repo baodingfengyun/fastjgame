@@ -19,9 +19,9 @@ package com.wjybxx.fastjgame.mgr;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.DefaultEventLoopGroup;
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
-import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.net.http.HttpClientProxy;
+import com.wjybxx.fastjgame.net.http.HttpFuture;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
@@ -90,7 +90,7 @@ public class HttpClientManager {
      * @return Future - 注意：该future回调的执行就在游戏逻辑线程。
      * @throws IllegalArgumentException if timeout is empty
      */
-    public <T> ListenableFuture<HttpResponse<T>> sendAsync(HttpRequest.Builder builder, HttpResponse.BodyHandler<T> responseBodyHandler) {
+    public <T> HttpFuture<HttpResponse<T>> sendAsync(HttpRequest.Builder builder, HttpResponse.BodyHandler<T> responseBodyHandler) {
         return httpClientProxy.sendAsync(builder, responseBodyHandler);
     }
 
@@ -114,7 +114,7 @@ public class HttpClientManager {
      * @return Future - 注意：该future回调的执行就在游戏逻辑线程
      * @throws IllegalArgumentException if timeout is empty
      */
-    public <T> ListenableFuture<HttpResponse<T>> sendAsync(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler) {
+    public <T> HttpFuture<HttpResponse<T>> sendAsync(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler) {
         return httpClientProxy.sendAsync(request, responseBodyHandler);
     }
 }

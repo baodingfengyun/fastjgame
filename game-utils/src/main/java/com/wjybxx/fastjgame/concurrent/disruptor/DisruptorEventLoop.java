@@ -52,6 +52,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>
  * 警告：由于{@link EventLoop}都是单线程的，如果两个{@link EventLoop}都使用有界队列，如果互相通信，如果超过负载，则可能死锁！
  * - eg: 网络层尝试向应用层提交任务，应用层尝试向网络层提交任务。
+ * （其实两个EventLoop中只要有一个使用有界队列，且有阻塞式操作，则可能死锁或阻塞较长时间）
  * <b>
  * 而{@link DisruptorEventLoop}使用的就是有界队列。
  * </b>

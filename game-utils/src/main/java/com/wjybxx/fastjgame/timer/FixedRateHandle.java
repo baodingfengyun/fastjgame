@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.timer;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -60,4 +61,6 @@ public interface FixedRateHandle extends TimerHandle {
      */
     boolean setPeriodLazy(long period);
 
+    @Override
+    FixedRateHandle setExceptionHandler(@Nonnull ExceptionHandler exceptionHandler);
 }

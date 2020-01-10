@@ -62,7 +62,7 @@ import static com.wjybxx.fastjgame.utils.ConcurrentUtils.sleepQuietly;
 class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLoop {
 
     private static final Logger logger = LoggerFactory.getLogger(NetEventLoopImp.class);
-    private static final int TASK_BATCH_SIZE = 8 * 1024;
+    private static final int TASK_BATCH_SIZE = 8192;
 
     private final Set<EventLoop> appEventLoopSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private final NetEventLoopManager netEventLoopManager;

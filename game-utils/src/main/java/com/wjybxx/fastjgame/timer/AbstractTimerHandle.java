@@ -70,7 +70,7 @@ abstract class AbstractTimerHandle implements TimerHandle {
     /**
      * timer关联的异常处理器
      */
-    private ExceptionHandler exceptionHandler = ExceptionHandlers.CLOSE;
+    private ExceptionHandler exceptionHandler = ExceptionHandlers.LOG;
 
     AbstractTimerHandle(DefaultTimerSystem timerSystem, TimerTask timerTask) {
         this.timerSystem = timerSystem;

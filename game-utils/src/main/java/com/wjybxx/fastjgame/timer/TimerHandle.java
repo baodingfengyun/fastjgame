@@ -71,7 +71,7 @@ public interface TimerHandle {
 
     /**
      * 获取timer关联的异常处理器。
-     * 注意：默认的异常处理器为{@link ExceptionHandlers#CLOSE}，即记录日志之后关闭timer。
+     * 注意：默认的异常处理器为{@link ExceptionHandlers#LOG}，仅仅记录一个日志。
      */
     @Nonnull
     ExceptionHandler getExceptionHandler();

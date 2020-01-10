@@ -17,8 +17,6 @@
 package com.wjybxx.fastjgame.net.http;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.concurrent.ListenableFuture;
-import com.wjybxx.fastjgame.concurrent.adapter.CompletableFutureAdapter;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -86,7 +84,7 @@ public class HttpClientProxy {
      * @throws InterruptedException if the operation is interrupted
      */
     public <T> HttpResponse<T> send(HttpRequest.Builder builder, HttpResponse.BodyHandler<T> responseBodyHandler) throws IOException, InterruptedException {
-        return httpClient.send(appendTimeout(builder), responseBodyHandler);
+        return httpClient.send(setTimeoutAndBuild(builder), responseBodyHandler);
     }
 
     /**
@@ -95,8 +93,8 @@ public class HttpClientProxy {
      * @param <T>                 响应内容的类型
      * @return Future - 注意：该future回调的执行环境为{@link #appEventLoop}
      */
-    public <T> ListenableFuture<HttpResponse<T>> sendAsync(HttpRequest.Builder builder, HttpResponse.BodyHandler<T> responseBodyHandler) {
-        return new CompletableFutureAdapter<>(appEventLoop, httpClient.sendAsync(appendTimeout(builder), responseBodyHandler));
+    public <T> HttpFuture<HttpResponse<T>> sendAsync(HttpRequest.Builder builder, HttpResponse.BodyHandler<T> responseBodyHandler) {
+        return new DefaultHttpFuture<>(appEventLoop, httpClient.sendAsync(setTimeoutAndBuild(builder), responseBodyHandler));
     }
 
     /**
@@ -105,7 +103,7 @@ public class HttpClientProxy {
      * @param builder http请求内容的builder
      * @return httpRequest
      */
-    private HttpRequest appendTimeout(HttpRequest.Builder builder) {
+    private HttpRequest setTimeoutAndBuild(HttpRequest.Builder builder) {
         return builder.timeout(httpRequestTimeout).build();
     }
 
@@ -130,9 +128,9 @@ public class HttpClientProxy {
      * @return Future - 注意：该future回调的执行环境为{@link #appEventLoop}
      * @throws IllegalArgumentException if timeout is empty
      */
-    public <T> ListenableFuture<HttpResponse<T>> sendAsync(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler) {
+    public <T> HttpFuture<HttpResponse<T>> sendAsync(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler) {
         ensureTimeoutPresent(request);
-        return new CompletableFutureAdapter<>(appEventLoop, httpClient.sendAsync(request, responseBodyHandler));
+        return new DefaultHttpFuture<>(appEventLoop, httpClient.sendAsync(request, responseBodyHandler));
     }
 
     /**

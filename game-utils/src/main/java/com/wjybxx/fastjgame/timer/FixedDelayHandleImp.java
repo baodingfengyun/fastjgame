@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.timer;
 
+import javax.annotation.Nonnull;
+
 /**
  * 固定时间间隔的timer对应的handle。
  * {@link TimerSystem#newFixedDelay(long, long, TimerTask)}
@@ -107,5 +109,11 @@ class FixedDelayHandleImp extends AbstractTimerHandle implements FixedDelayHandl
         if (delay <= 0) {
             throw new IllegalArgumentException("delay " + delay);
         }
+    }
+
+    @Override
+    public FixedDelayHandle setExceptionHandler(@Nonnull ExceptionHandler exceptionHandler) {
+        super.setExceptionHandler(exceptionHandler);
+        return this;
     }
 }
