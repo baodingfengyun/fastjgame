@@ -19,18 +19,21 @@ package com.wjybxx.fastjgame.test;
 import com.wjybxx.fastjgame.agent.ClassReloadAgent;
 
 /**
- * 热更新测试
- * 注意：需要指定javaagent参数。
+ * 测试输出(把jar包和当前文件放在同一目录)：
+ * java -javaagent:game-classreloadagent-1.0.jar=test -cp game-classreloadagent-1.0.jar PremainTest.java
+ * premain invoked, agentArgs: test
+ * true
+ * true
  *
  * @author wjybxx
  * @version 1.0
  * date - 2020/1/11
  * github - https://github.com/hl845740757
  */
-public class ClassReloadTest {
+public class PremainTest {
 
     public static void main(String[] args) {
         System.out.println(ClassReloadAgent.isRedefineClassesSupported());
-        System.out.println(ClassReloadAgent.isModifiableClass(ClassReloadTest.class));
+        System.out.println(ClassReloadAgent.isModifiableClass(PremainTest.class));
     }
 }

@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.agent;
 
+import com.sun.tools.attach.VirtualMachine;
+
 import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
@@ -23,12 +25,11 @@ import java.util.Objects;
 import java.util.jar.JarFile;
 
 /**
- * Instrumentation开发指南
- * - https://www.ibm.com/developerworks/cn/java/j-lo-jse61/index.html
- * - 使用premain的方式，是因为所有jvm都支持，而动态attach-agent存在部分jvm不支持。
- * 注意：
- * 1. 在启动参数中指定 javaagent
- * 2. 文件检测，执行更新等逻辑，请写在自己的业务逻辑包中，不要写在这里，方便扩展。
+ * Instrumentation开发指南 - https://www.ibm.com/developerworks/cn/java/j-lo-jse61/index.html
+ * 类热更新代理。
+ * 1. 由于代理必须以jar包形式存在，因此文件检测，执行更新等逻辑，请写在自己的业务逻辑包中，不要写在这里，方便扩展。
+ * 2. 务必使用JDK11。
+ * 3. 热更新时不要一次更新太多类。
  *
  * @author wjybxx
  * @version 1.0
@@ -37,21 +38,44 @@ import java.util.jar.JarFile;
  */
 public class ClassReloadAgent {
 
-    private static Instrumentation instrumentation;
+    private static volatile Instrumentation instrumentation;
 
-    public ClassReloadAgent() {
+    private static void setInstrumentation(Instrumentation instrumentation) {
+        ClassReloadAgent.instrumentation = Objects.requireNonNull(instrumentation);
     }
 
     /**
      * 这是instrument开发规范规定的固定格式的方法，当java程序启动时，会自动调用到这个方法
+     * premain的方式，所有jvm都支持，而动态attach-agent存在部分jvm不支持。
+     * 注意需要在启动参数中指定 javaagent参数。
+     * eg: -javaagent:game-classreloadagent-1.0.jar=test
+     * 则agentArgs收到的参数为test
      *
      * @param agentArgs       启动参数
      * @param instrumentation 我们需要的实例，需要将其保存下来
      */
     public static void premain(String agentArgs, Instrumentation instrumentation) {
         System.out.println("premain invoked, agentArgs: " + agentArgs);
-        // 避免错误的调用
-        ClassReloadAgent.instrumentation = Objects.requireNonNull(instrumentation);
+        ClassReloadAgent.setInstrumentation(instrumentation);
+    }
+
+    /**
+     * 使用动态attach的方式获取{@link Instrumentation}。
+     * 这是instrument开发规范规定的固定格式的方法,
+     * 当使用{@link VirtualMachine#loadAgent(String, String)}连接到JVM时，会触发该方法。
+     * <p>
+     * 注意
+     * 1. 需要在启动参数中指定 javaagent参数。
+     * eg: -javaagent:game-classreloadagent-1.0.jar
+     * 2. 如果要attach到自身所在JVM，还需要设置参数 -Djdk.attach.allowAttachSelf=true 否则会抛出异常。
+     * 3. 它的参数来自{@link VirtualMachine#loadAgent(String, String)}的第二个参数(options)
+     *
+     * @param agentArgs       {@link VirtualMachine#loadAgent(String, String)}中的options
+     * @param instrumentation 我们需要的实例，需要将其保存下来
+     */
+    public static void agentmain(String agentArgs, Instrumentation instrumentation) {
+        System.out.println("agentmain invoked, agentArgs: " + agentArgs);
+        ClassReloadAgent.setInstrumentation(instrumentation);
     }
 
     /**

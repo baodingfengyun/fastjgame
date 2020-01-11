@@ -16,6 +16,11 @@
 
 package com.wjybxx.fastjgame.start;
 
+import com.sun.tools.attach.AgentInitializationException;
+import com.sun.tools.attach.AgentLoadException;
+import com.sun.tools.attach.AttachNotSupportedException;
+import com.sun.tools.attach.VirtualMachine;
+import com.wjybxx.fastjgame.agent.ClassReloadAgent;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupBuilder;
@@ -26,6 +31,8 @@ import com.wjybxx.fastjgame.utils.DebugUtils;
 import com.wjybxx.fastjgame.world.GameEventLoopGroupImp;
 
 import java.io.File;
+import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -86,6 +93,8 @@ public class StartUp {
 
     public static void main(String[] args) throws Exception {
         DebugUtils.openDebug();
+        // 请在启动参数中添加 -Djdk.attach.allowAttachSelf=true
+        startHotSwap();
 
         // 指定一下日志文件
         String logDir = new File("").getAbsolutePath() + File.separator + "log";
@@ -121,4 +130,19 @@ public class StartUp {
         netEventLoopGroup.shutdown();
         System.out.println(" ******* invoked shutdown *******");
     }
+
+    private static void startHotSwap() throws IOException, AttachNotSupportedException,
+            AgentLoadException, AgentInitializationException {
+        String pid = getPid();
+        VirtualMachine vm = VirtualMachine.attach(pid);
+        vm.loadAgent("game-classreloadagent-1.0.jar");
+
+        System.out.println(ClassReloadAgent.isRedefineClassesSupported());
+        System.out.println(ClassReloadAgent.isModifiableClass(StartUp.class));
+    }
+
+    private static String getPid() {
+        return ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
+    }
+
 }
