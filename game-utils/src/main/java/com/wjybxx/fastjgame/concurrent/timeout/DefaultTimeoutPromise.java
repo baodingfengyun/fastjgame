@@ -60,9 +60,30 @@ public class DefaultTimeoutPromise<V> extends DefaultPromise<V> implements Timeo
         return cause instanceof TimeoutException;
     }
 
+    // ---------------------------------------------- 非阻塞式获取结果超时检测 ------------------------------------------------
+
+    private void checkTimeout() {
+        // 如果时间到了，还没有结果，那么需要标记为超时
+        if (!isDone() && System.currentTimeMillis() >= deadline) {
+            onTimeout();
+        }
+    }
+
+    protected void onTimeout() {
+        tryFailure(new TimeoutException());
+    }
+
+    @Nullable
+    @Override
+    public final V getNow() {
+        checkTimeout();
+        return super.getNow();
+    }
+
     @Nullable
     @Override
     public TimeoutFutureResult<V> getAsResult() {
+        checkTimeout();
         return (TimeoutFutureResult<V>) super.getAsResult();
     }
 
@@ -71,18 +92,14 @@ public class DefaultTimeoutPromise<V> extends DefaultPromise<V> implements Timeo
         return new DefaultTimeoutFutureResult<>(result, cause);
     }
 
-    // ---------------------------------------------- 超时检测 ------------------------------------------------
-    // 大量使用{@link System#currentTimeMillis()}其实性能不好。
-
     @Nullable
     @Override
-    public final V getNow() {
-        // 如果时间到了，还没有结果，那么需要标记为超时
-        if (!isDone() && System.currentTimeMillis() >= deadline) {
-            onTimeout();
-        }
-        return super.getNow();
+    public Throwable cause() {
+        checkTimeout();
+        return super.cause();
     }
+
+    // -------------------------------------------------- 阻塞式等待超时检测 --------------------------------
 
     @Override
     public TimeoutPromise<V> await() throws InterruptedException {
@@ -136,9 +153,6 @@ public class DefaultTimeoutPromise<V> extends DefaultPromise<V> implements Timeo
         return deadline - System.currentTimeMillis();
     }
 
-    private void onTimeout() {
-        tryFailure(new TimeoutException());
-    }
     // ---------------------------------------------- 流式语法 ------------------------------------------------
 
     @Override

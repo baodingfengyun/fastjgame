@@ -78,7 +78,6 @@ public class RpcServiceProcessor extends AbstractProcessor {
     private static final String PRE_DESERIALIZE_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.PreDeserializable";
 
     private static final String CHANNEL_CANONICAL_NAME = "com.wjybxx.fastjgame.net.common.RpcResponseChannel";
-    private static final String RESULT_CODE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.common.RpcErrorCode";
     private static final String EXCEPTION_UTILS_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.ConcurrentUtils";
 
     private static final String REGISTRY_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.RpcFunctionRegistry";

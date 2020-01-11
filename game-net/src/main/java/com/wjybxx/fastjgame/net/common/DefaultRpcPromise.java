@@ -88,6 +88,11 @@ public class DefaultRpcPromise<V> extends DefaultTimeoutPromise<V> implements Rp
         return null;
     }
 
+    @Override
+    protected void onTimeout() {
+        tryFailure(RpcTimeoutException.INSTANCE);
+    }
+
     @Nullable
     @Override
     public RpcFutureResult<V> getAsResult() {

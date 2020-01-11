@@ -52,12 +52,11 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
     private final Promise<LocalPort> localPortPromise;
 
     private long startTime;
-    private Session session;
 
     public ExampleRpcServerLoop(@Nonnull ThreadFactory threadFactory,
                                 @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
                                 @Nullable Promise<LocalPort> localPortPromise) {
-        super(null, threadFactory, rejectedExecutionHandler, new YieldWaitStrategyFactory());
+        super(null, threadFactory, rejectedExecutionHandler, 1024 * 1024, 8192, new YieldWaitStrategyFactory());
         this.localPortPromise = localPortPromise;
     }
 
@@ -89,7 +88,7 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
                     .setCodec(ExampleConstants.reflectBasedCodec)
                     .setLifecycleAware(new ClientLifeAware())
                     .setDispatcher(protocolDispatcher)
-                    .setAutoReconnect(true)
+//                    .setAutoReconnect(true)
                     .setRpcCallbackTimeoutMs((int) TimeUtils.MIN)
                     .setMaxPendingMessages(100)
                     .setMaxCacheMessages(10000)
@@ -117,14 +116,12 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
 
         @Override
         public void onSessionConnected(Session session) {
-            System.out.println("-----------------onSessionConnected----------------------");
-            ExampleRpcServerLoop.this.session = session;
+            System.out.println("session : " + session.sessionId() + " connect");
         }
 
         @Override
         public void onSessionDisconnected(Session session) {
-            System.out.println("----------------onSessionDisconnected---------------------");
-            ExampleRpcServerLoop.this.session = null;
+            System.out.println("session : " + session.sessionId() + " disconnect");
         }
     }
 

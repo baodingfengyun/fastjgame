@@ -240,7 +240,7 @@ public class RedisEventLoop extends SingleThreadEventLoop {
      * @param command 待执行的命令
      * @param flush   是否刷新管道
      */
-    public <V> void execute(RedisCommand<V> command, boolean flush) {
+    public void execute(RedisCommand<?> command, boolean flush) {
         execute(new JedisPipelineTask<>(command, flush, null));
     }
 

@@ -189,12 +189,6 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         return isCancelled0(resultHolder.get());
     }
 
-    @Nullable
-    @Override
-    public final Throwable cause() {
-        return getCause0(resultHolder.get());
-    }
-
     @Override
     public final boolean isCancellable() {
         // 当且仅当result为null的时候可取消
@@ -292,6 +286,12 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
 
     protected FutureResult<V> newResult(V result, Throwable cause) {
         return new DefaultFutureResult<>(result, cause);
+    }
+
+    @Nullable
+    @Override
+    public Throwable cause() {
+        return getCause0(resultHolder.get());
     }
 
     // ----------------------------------------------- 更新结果 ------------------------------------------

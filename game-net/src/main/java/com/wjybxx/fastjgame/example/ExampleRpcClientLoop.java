@@ -59,14 +59,19 @@ class ExampleRpcClientLoop extends DisruptorEventLoop {
     public ExampleRpcClientLoop(@Nonnull ThreadFactory threadFactory,
                                 @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
                                 @Nullable LocalPort localPort) {
-        super(null, threadFactory, rejectedExecutionHandler, new YieldWaitStrategyFactory());
+        super(null, threadFactory, rejectedExecutionHandler, 1024 * 1024, 1024, new YieldWaitStrategyFactory());
         this.localPort = localPort;
     }
 
     @Override
     protected void init() throws Exception {
         super.init();
-        NetContext netContext = ExampleConstants.netEventLoop.createContext(ExampleConstants.CLIENT_GUID, this);
+
+        final long localGuid = System.nanoTime();
+        final long serverGuid = ExampleConstants.SERVER_GUID;
+        final String sessionId = "client:server=" + localGuid + ":" + serverGuid;
+
+        NetContext netContext = ExampleConstants.netEventLoop.createContext(localGuid, this);
 
         if (localPort != null) {
             LocalSessionConfig config = LocalSessionConfig.newBuilder()
@@ -75,21 +80,21 @@ class ExampleRpcClientLoop extends DisruptorEventLoop {
                     .setDispatcher(new DefaultProtocolDispatcher())
                     .build();
 
-            session = netContext.connectLocal(ExampleConstants.SESSION_ID, ExampleConstants.SERVER_GUID, localPort, config).get();
+            session = netContext.connectLocal(sessionId, serverGuid, localPort, config).get();
         } else {
             // 必须先启动服务器
             SocketSessionConfig config = SocketSessionConfig.newBuilder()
                     .setCodec(ExampleConstants.reflectBasedCodec)
                     .setLifecycleAware(new ServerDisconnectAward())
                     .setDispatcher(new DefaultProtocolDispatcher())
-                    .setAutoReconnect(true)
+//                    .setAutoReconnect(true)
                     .setRpcCallbackTimeoutMs((int) (15 * TimeUtils.SEC))
                     .setMaxPendingMessages(100)
                     .setMaxCacheMessages(20000)
                     .build();
 
             final HostAndPort address = new HostAndPort(NetUtils.getLocalIp(), ExampleConstants.tcpPort);
-            session = netContext.connectTcp(ExampleConstants.SESSION_ID, ExampleConstants.SERVER_GUID, address, config)
+            session = netContext.connectTcp(sessionId, serverGuid, address, config)
                     .get();
         }
         startTime = System.currentTimeMillis();
