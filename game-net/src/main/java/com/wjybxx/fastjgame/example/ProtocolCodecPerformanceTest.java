@@ -33,7 +33,7 @@ import java.io.IOException;
  * date - 2019/8/21
  * github - https://github.com/hl845740757
  */
-public class ProtocolCodecPerformanceTesting {
+public class ProtocolCodecPerformanceTest {
 
     public static void main(String[] args) throws IOException {
         ByteBufAllocator byteBufAllocator = PooledByteBufAllocator.DEFAULT;

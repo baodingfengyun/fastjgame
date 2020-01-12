@@ -222,7 +222,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         for (Codec codec : codecMapper.values()) {
             if (codec.isSupport(type)) {
                 writeTag(outputStream, codec.getWireType());
-                codec.writeData(outputStream, object, true);
+                codec.writeData(outputStream, object);
                 return;
             }
         }
@@ -242,7 +242,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         if (wireType == WireType.NULL) {
             return null;
         }
-        return getCodec(wireType).readData(inputStream, true);
+        return getCodec(wireType).readData(inputStream);
     }
 
     @Nonnull
@@ -269,7 +269,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         final Class<?> type = object.getClass();
         for (Codec codec : codecMapper.values()) {
             if (codec.isSupport(type)) {
-                return calTagSize(codec.getWireType()) + codec.calSerializeDataSize(object, true);
+                return calTagSize(codec.getWireType()) + codec.calSerializeDataSize(object);
             }
         }
         throw new UnsupportedOperationException("un support type " + object.getClass().getName());
@@ -342,20 +342,14 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
          * 字段对应的number，用于兼容性支持，认为一般不会出现负数
          */
         private final int number;
-
-        /**
-         * 如果是数字的话，是否可能负数
-         */
-        private final boolean mayNegative;
         /**
          * 数据类型缓存 - 可大幅提高编解码速度
          */
         private final byte wireType;
 
-        private FieldDescriptor(Field field, int number, boolean mayNegative, byte wireType) {
+        private FieldDescriptor(Field field, int number, byte wireType) {
             this.field = field;
             this.number = number;
-            this.mayNegative = mayNegative;
             this.wireType = wireType;
         }
 
@@ -390,31 +384,28 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         /**
          * 计算序列化后的大小，不包含wireType
          *
-         * @param obj         待计算的对象
-         * @param mayNegative 是否可能为负数，在没有额外信息的情况下，默认为true，可能为负数
+         * @param obj 待计算的对象
          * @return size
          */
-        int calSerializeDataSize(@Nonnull T obj, boolean mayNegative) throws IOException;
+        int calSerializeDataSize(@Nonnull T obj) throws IOException;
 
         /**
          * 编码协议内容，不包含wireType
          *
          * @param outputStream 输出流
          * @param obj          待编码的对象
-         * @param mayNegative  是否可能为负数，在没有额外信息的情况下，默认为true，可能为负数
          * @throws IOException error，
          */
-        void writeData(CodedOutputStream outputStream, @Nonnull T obj, boolean mayNegative) throws IOException;
+        void writeData(CodedOutputStream outputStream, @Nonnull T obj) throws IOException;
 
         /**
          * 解码字段协议内容，不包含wireType
          *
          * @param inputStream 输入流
-         * @param mayNegative 是否可能为负数，在没有额外信息的情况下，默认为true，可能为负数
          * @return data
          * @throws IOException error
          */
-        T readData(CodedInputStream inputStream, boolean mayNegative) throws IOException;
+        T readData(CodedInputStream inputStream) throws IOException;
 
         @Override
         default int getNumber() {
@@ -448,17 +439,17 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int calSerializeDataSize(@Nonnull Byte obj, boolean mayNegative) throws IOException {
+        public int calSerializeDataSize(@Nonnull Byte obj) throws IOException {
             return 1;
         }
 
         @Override
-        public void writeData(CodedOutputStream outputStream, @Nonnull Byte obj, boolean mayNegative) throws IOException {
+        public void writeData(CodedOutputStream outputStream, @Nonnull Byte obj) throws IOException {
             outputStream.writeRawByte(obj);
         }
 
         @Override
-        public Byte readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
+        public Byte readData(CodedInputStream inputStream) throws IOException {
             return inputStream.readRawByte();
         }
 
@@ -475,63 +466,16 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
 
     // -------------------------------------------- int32 -----------------------------------------------
 
-    /**
-     * 计算int值占用的空间大小
-     *
-     * @param value       要编码的值
-     * @param mayNegative 是否可能为负数？如果可能为负，使用sint32编码，否则使用普通Int32编码(负数固定5字节)
-     * @return size
-     */
-    private static int calInt32Size(int value, boolean mayNegative) {
-        if (mayNegative) {
-            return CodedOutputStream.computeSInt32SizeNoTag(value);
-        } else {
-            return CodedOutputStream.computeInt32SizeNoTag(value);
-        }
-    }
-
-    /**
-     * 写入一个整数
-     *
-     * @param outputStream 输出流
-     * @param value        要编码的值
-     * @param mayNegative  是否可能为负数？如果可能为负，使用sint32编码，否则使用普通Int32编码(负数固定5字节)
-     * @throws IOException error
-     */
-    private static void writeInt32(CodedOutputStream outputStream, int value, boolean mayNegative) throws IOException {
-        if (mayNegative) {
-            outputStream.writeSInt32NoTag(value);
-        } else {
-            outputStream.writeInt32NoTag(value);
-        }
-    }
-
-    /**
-     * 读取一个整数
-     *
-     * @param inputStream 输入流
-     * @param mayNegative 是否可能为负数？如果可能为负，使用sint32解码，否则使用普通Int32解码(负数固定5字节)
-     * @return value
-     * @throws IOException error
-     */
-    private static int readInt32(CodedInputStream inputStream, boolean mayNegative) throws IOException {
-        if (mayNegative) {
-            return inputStream.readSInt32();
-        } else {
-            return inputStream.readInt32();
-        }
-    }
-
     private static abstract class Int32Codec<T extends Number> implements Codec<T> {
 
         @Override
-        public final int calSerializeDataSize(@Nonnull T obj, boolean mayNegative) {
-            return calInt32Size(obj.intValue(), mayNegative);
+        public final int calSerializeDataSize(@Nonnull T obj) {
+            return CodedOutputStream.computeInt32SizeNoTag(obj.intValue());
         }
 
         @Override
-        public final void writeData(CodedOutputStream outputStream, @Nonnull T obj, boolean mayNegative) throws IOException {
-            writeInt32(outputStream, obj.intValue(), mayNegative);
+        public final void writeData(CodedOutputStream outputStream, @Nonnull T obj) throws IOException {
+            outputStream.writeInt32NoTag(obj.intValue());
         }
 
     }
@@ -544,8 +488,8 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public Integer readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
-            return readInt32(inputStream, mayNegative);
+        public Integer readData(CodedInputStream inputStream) throws IOException {
+            return inputStream.readInt32();
         }
 
         @Override
@@ -567,8 +511,8 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public Short readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
-            return (short) readInt32(inputStream, mayNegative);
+        public Short readData(CodedInputStream inputStream) throws IOException {
+            return (short) inputStream.readInt32();
         }
 
         @Override
@@ -590,18 +534,18 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int calSerializeDataSize(@Nonnull Character obj, boolean mayNegative) {
+        public int calSerializeDataSize(@Nonnull Character obj) {
             // char 是无符号整形
             return CodedOutputStream.computeUInt32SizeNoTag(obj);
         }
 
         @Override
-        public void writeData(CodedOutputStream outputStream, @Nonnull Character obj, boolean mayNegative) throws IOException {
+        public void writeData(CodedOutputStream outputStream, @Nonnull Character obj) throws IOException {
             outputStream.writeUInt32NoTag(obj);
         }
 
         @Override
-        public Character readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
+        public Character readData(CodedInputStream inputStream) throws IOException {
             return (char) inputStream.readUInt32();
         }
 
@@ -624,30 +568,18 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int calSerializeDataSize(@Nonnull Long obj, boolean mayNegative) {
-            if (mayNegative) {
-                return CodedOutputStream.computeSInt64SizeNoTag(obj);
-            } else {
-                return CodedOutputStream.computeInt64SizeNoTag(obj);
-            }
+        public int calSerializeDataSize(@Nonnull Long obj) {
+            return CodedOutputStream.computeInt64SizeNoTag(obj);
         }
 
         @Override
-        public void writeData(CodedOutputStream outputStream, @Nonnull Long obj, boolean mayNegative) throws IOException {
-            if (mayNegative) {
-                outputStream.writeSInt64NoTag(obj);
-            } else {
-                outputStream.writeInt64NoTag(obj);
-            }
+        public void writeData(CodedOutputStream outputStream, @Nonnull Long obj) throws IOException {
+            outputStream.writeInt64NoTag(obj);
         }
 
         @Override
-        public Long readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
-            if (mayNegative) {
-                return inputStream.readSInt64();
-            } else {
-                return inputStream.readInt64();
-            }
+        public Long readData(CodedInputStream inputStream) throws IOException {
+            return inputStream.readInt64();
         }
 
         @Override
@@ -669,17 +601,17 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int calSerializeDataSize(@Nonnull Float obj, boolean mayNegative) {
+        public int calSerializeDataSize(@Nonnull Float obj) {
             return CodedOutputStream.computeFloatSizeNoTag(obj);
         }
 
         @Override
-        public void writeData(CodedOutputStream outputStream, @Nonnull Float obj, boolean mayNegative) throws IOException {
+        public void writeData(CodedOutputStream outputStream, @Nonnull Float obj) throws IOException {
             outputStream.writeFloatNoTag(obj);
         }
 
         @Override
-        public Float readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
+        public Float readData(CodedInputStream inputStream) throws IOException {
             return inputStream.readFloat();
         }
 
@@ -702,17 +634,17 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int calSerializeDataSize(@Nonnull Double obj, boolean mayNegative) {
+        public int calSerializeDataSize(@Nonnull Double obj) {
             return CodedOutputStream.computeDoubleSizeNoTag(obj);
         }
 
         @Override
-        public void writeData(CodedOutputStream outputStream, @Nonnull Double obj, boolean mayNegative) throws IOException {
+        public void writeData(CodedOutputStream outputStream, @Nonnull Double obj) throws IOException {
             outputStream.writeDoubleNoTag(obj);
         }
 
         @Override
-        public Double readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
+        public Double readData(CodedInputStream inputStream) throws IOException {
             return inputStream.readDouble();
         }
 
@@ -735,17 +667,17 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int calSerializeDataSize(@Nonnull Boolean obj, boolean mayNegative) {
+        public int calSerializeDataSize(@Nonnull Boolean obj) {
             return CodedOutputStream.computeBoolSizeNoTag(obj);
         }
 
         @Override
-        public void writeData(CodedOutputStream outputStream, @Nonnull Boolean obj, boolean mayNegative) throws IOException {
+        public void writeData(CodedOutputStream outputStream, @Nonnull Boolean obj) throws IOException {
             outputStream.writeBoolNoTag(obj);
         }
 
         @Override
-        public Boolean readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
+        public Boolean readData(CodedInputStream inputStream) throws IOException {
             return inputStream.readBool();
         }
 
@@ -768,17 +700,17 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int calSerializeDataSize(@Nonnull String obj, boolean mayNegative) {
+        public int calSerializeDataSize(@Nonnull String obj) {
             return CodedOutputStream.computeStringSizeNoTag(obj);
         }
 
         @Override
-        public void writeData(CodedOutputStream outputStream, @Nonnull String obj, boolean mayNegative) throws IOException {
+        public void writeData(CodedOutputStream outputStream, @Nonnull String obj) throws IOException {
             outputStream.writeStringNoTag(obj);
         }
 
         @Override
-        public String readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
+        public String readData(CodedInputStream inputStream) throws IOException {
             return inputStream.readString();
         }
 
@@ -803,12 +735,12 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int calSerializeDataSize(@Nonnull AbstractMessage obj, boolean mayNegative) {
+        public int calSerializeDataSize(@Nonnull AbstractMessage obj) {
             return 4 + CodedOutputStream.computeMessageSizeNoTag(obj);
         }
 
         @Override
-        public void writeData(CodedOutputStream outputStream, @Nonnull AbstractMessage obj, boolean mayNegative) throws IOException {
+        public void writeData(CodedOutputStream outputStream, @Nonnull AbstractMessage obj) throws IOException {
             int messageId = messageMapper.getMessageId(obj.getClass());
 
             // 大端模式写入一个int
@@ -822,7 +754,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
 
         @SuppressWarnings("unchecked")
         @Override
-        public AbstractMessage readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
+        public AbstractMessage readData(CodedInputStream inputStream) throws IOException {
             // 大端模式读取一个int
             final int messageId = (inputStream.readRawByte() & 0xFF) << 24
                     | (inputStream.readRawByte() & 0xFF) << 16
@@ -850,20 +782,20 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         protected abstract int getNumber(T obj);
 
         @Override
-        public int calSerializeDataSize(@Nonnull T obj, boolean mayNegative) {
+        public int calSerializeDataSize(@Nonnull T obj) {
             return CodedOutputStream.computeSInt32SizeNoTag(messageMapper.getMessageId(obj.getClass())) +
                     CodedOutputStream.computeEnumSizeNoTag(getNumber(obj));
         }
 
         @Override
-        public void writeData(CodedOutputStream outputStream, @Nonnull T obj, boolean mayNegative) throws IOException {
+        public void writeData(CodedOutputStream outputStream, @Nonnull T obj) throws IOException {
             outputStream.writeSInt32NoTag(messageMapper.getMessageId(obj.getClass()));
             outputStream.writeEnumNoTag(getNumber(obj));
         }
 
         @SuppressWarnings("unchecked")
         @Override
-        public T readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
+        public T readData(CodedInputStream inputStream) throws IOException {
             int messageId = inputStream.readSInt32();
             int number = inputStream.readEnum();
             Class<?> enumClass = messageMapper.getMessageClazz(messageId);
@@ -921,7 +853,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
     private abstract class CollectionCodec<T extends Collection> implements Codec<T> {
 
         @Override
-        public int calSerializeDataSize(@Nonnull T obj, boolean mayNegative) throws IOException {
+        public int calSerializeDataSize(@Nonnull T obj) throws IOException {
             int totalSize = CodedOutputStream.computeUInt32SizeNoTag(obj.size());
             if (obj.size() == 0) {
                 return totalSize;
@@ -933,7 +865,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public void writeData(CodedOutputStream outputStream, @Nonnull T obj, boolean mayNegative) throws IOException {
+        public void writeData(CodedOutputStream outputStream, @Nonnull T obj) throws IOException {
             outputStream.writeUInt32NoTag(obj.size());
             if (obj.size() == 0) {
                 return;
@@ -945,7 +877,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
 
         @SuppressWarnings("unchecked")
         @Override
-        public T readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
+        public T readData(CodedInputStream inputStream) throws IOException {
             int size = inputStream.readUInt32();
             if (size == 0) {
                 return newCollection(0);
@@ -1023,7 +955,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
 
         @SuppressWarnings("unchecked")
         @Override
-        public int calSerializeDataSize(@Nonnull Map obj, boolean mayNegative) throws IOException {
+        public int calSerializeDataSize(@Nonnull Map obj) throws IOException {
             int totalSize = CodedOutputStream.computeUInt32SizeNoTag(obj.size());
             if (obj.size() == 0) {
                 return totalSize;
@@ -1037,7 +969,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
 
         @SuppressWarnings("unchecked")
         @Override
-        public void writeData(CodedOutputStream outputStream, @Nonnull Map obj, boolean mayNegative) throws IOException {
+        public void writeData(CodedOutputStream outputStream, @Nonnull Map obj) throws IOException {
             outputStream.writeUInt32NoTag(obj.size());
             if (obj.size() == 0) {
                 return;
@@ -1049,7 +981,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public Map readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
+        public Map readData(CodedInputStream inputStream) throws IOException {
             int size = inputStream.readUInt32();
             if (size == 0) {
                 return new LinkedHashMap();
@@ -1093,7 +1025,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
 
         @SuppressWarnings("unchecked")
         @Override
-        public int calSerializeDataSize(@Nonnull Object obj, boolean ignore) throws IOException {
+        public int calSerializeDataSize(@Nonnull Object obj) throws IOException {
             ClassDescriptor descriptor = descriptorMap.get(obj.getClass());
             int size = CodedOutputStream.computeSInt32SizeNoTag(messageMapper.getMessageId(obj.getClass()));
             size += CodedOutputStream.computeUInt32SizeNoTag(descriptor.filedNum());
@@ -1111,7 +1043,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
                     // 存在索引的
                     if (fieldDescriptor.wireType != WireType.RUN_TIME) {
                         size += calTagSize(fieldDescriptor.wireType);
-                        size += getCodec(fieldDescriptor.wireType).calSerializeDataSize(fieldValue, fieldDescriptor.mayNegative);
+                        size += getCodec(fieldDescriptor.wireType).calSerializeDataSize(fieldValue);
                         continue;
                     }
                     // 运行时才知道的类型
@@ -1119,7 +1051,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
                     for (Codec codec : codecMapper.values()) {
                         if (codec.isSupport(type)) {
                             size += calTagSize(codec.getWireType());
-                            size += codec.calSerializeDataSize(fieldValue, fieldDescriptor.mayNegative);
+                            size += codec.calSerializeDataSize(fieldValue);
                             break;
                         }
                     }
@@ -1131,7 +1063,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public void writeData(CodedOutputStream outputStream, @Nonnull Object obj, boolean ignore) throws IOException {
+        public void writeData(CodedOutputStream outputStream, @Nonnull Object obj) throws IOException {
             ClassDescriptor descriptor = descriptorMap.get(obj.getClass());
             outputStream.writeSInt32NoTag(messageMapper.getMessageId(obj.getClass()));
             outputStream.writeUInt32NoTag(descriptor.filedNum());
@@ -1157,7 +1089,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
             // 存在索引的字段
             if (fieldDescriptor.wireType != WireType.RUN_TIME) {
                 writeTag(outputStream, fieldDescriptor.wireType);
-                getCodec(fieldDescriptor.wireType).writeData(outputStream, fieldValue, fieldDescriptor.mayNegative);
+                getCodec(fieldDescriptor.wireType).writeData(outputStream, fieldValue);
                 return;
             }
             // 运行时才知道的类型
@@ -1165,7 +1097,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
             for (Codec codec : codecMapper.values()) {
                 if (codec.isSupport(type)) {
                     writeTag(outputStream, codec.getWireType());
-                    codec.writeData(outputStream, fieldValue, fieldDescriptor.mayNegative);
+                    codec.writeData(outputStream, fieldValue);
                     return;
                 }
             }
@@ -1173,7 +1105,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public Object readData(CodedInputStream inputStream, boolean ignore) throws IOException {
+        public Object readData(CodedInputStream inputStream) throws IOException {
             final int messageId = inputStream.readSInt32();
             final int fieldNum = inputStream.readUInt32();
 
@@ -1192,7 +1124,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
                     }
 
                     int wireType = readTag(inputStream);
-                    final Object fieldValue = wireType == WireType.NULL ? null : getCodec(wireType).readData(inputStream, fieldDescriptor.mayNegative);
+                    final Object fieldValue = wireType == WireType.NULL ? null : getCodec(wireType).readData(inputStream);
                     // null也需要赋值，默认值不一定是null
                     fieldDescriptor.field.set(instance, fieldValue);
                 }
@@ -1245,12 +1177,12 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int calSerializeDataSize(@Nonnull byte[] obj, boolean mayNegative) throws IOException {
+        public int calSerializeDataSize(@Nonnull byte[] obj) throws IOException {
             return CodedOutputStream.computeUInt32SizeNoTag(obj.length) + obj.length;
         }
 
         @Override
-        public void writeData(CodedOutputStream outputStream, @Nonnull byte[] obj, boolean mayNegative) throws IOException {
+        public void writeData(CodedOutputStream outputStream, @Nonnull byte[] obj) throws IOException {
             outputStream.writeUInt32NoTag(obj.length);
             if (obj.length > 0) {
                 outputStream.writeRawBytes(obj);
@@ -1258,7 +1190,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public byte[] readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
+        public byte[] readData(CodedInputStream inputStream) throws IOException {
             final int length = inputStream.readUInt32();
             if (length == 0) {
                 return new byte[0];
@@ -1287,7 +1219,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int calSerializeDataSize(@Nonnull int[] obj, boolean mayNegative) throws IOException {
+        public int calSerializeDataSize(@Nonnull int[] obj) throws IOException {
             int totalSize = CodedOutputStream.computeUInt32SizeNoTag(obj.length);
             if (obj.length == 0) {
                 return totalSize;
@@ -1299,7 +1231,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public void writeData(CodedOutputStream outputStream, @Nonnull int[] obj, boolean mayNegative) throws IOException {
+        public void writeData(CodedOutputStream outputStream, @Nonnull int[] obj) throws IOException {
             outputStream.writeUInt32NoTag(obj.length);
             if (obj.length == 0) {
                 return;
@@ -1310,7 +1242,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int[] readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
+        public int[] readData(CodedInputStream inputStream) throws IOException {
             final int length = inputStream.readUInt32();
             if (length == 0) {
                 return new int[0];
@@ -1343,7 +1275,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int calSerializeDataSize(@Nonnull short[] obj, boolean mayNegative) throws IOException {
+        public int calSerializeDataSize(@Nonnull short[] obj) throws IOException {
             int totalSize = CodedOutputStream.computeUInt32SizeNoTag(obj.length);
             if (obj.length == 0) {
                 return totalSize;
@@ -1355,7 +1287,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public void writeData(CodedOutputStream outputStream, @Nonnull short[] obj, boolean mayNegative) throws IOException {
+        public void writeData(CodedOutputStream outputStream, @Nonnull short[] obj) throws IOException {
             outputStream.writeUInt32NoTag(obj.length);
             if (obj.length == 0) {
                 return;
@@ -1366,7 +1298,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public short[] readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
+        public short[] readData(CodedInputStream inputStream) throws IOException {
             final int length = inputStream.readUInt32();
             if (length == 0) {
                 return new short[0];
@@ -1398,7 +1330,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int calSerializeDataSize(@Nonnull long[] obj, boolean mayNegative) throws IOException {
+        public int calSerializeDataSize(@Nonnull long[] obj) throws IOException {
             int totalSize = CodedOutputStream.computeUInt32SizeNoTag(obj.length);
             if (obj.length == 0) {
                 return totalSize;
@@ -1410,7 +1342,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public void writeData(CodedOutputStream outputStream, @Nonnull long[] obj, boolean mayNegative) throws IOException {
+        public void writeData(CodedOutputStream outputStream, @Nonnull long[] obj) throws IOException {
             outputStream.writeUInt32NoTag(obj.length);
             if (obj.length == 0) {
                 return;
@@ -1421,7 +1353,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public long[] readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
+        public long[] readData(CodedInputStream inputStream) throws IOException {
             final int length = inputStream.readUInt32();
             if (length == 0) {
                 return new long[0];
@@ -1454,7 +1386,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int calSerializeDataSize(@Nonnull float[] obj, boolean mayNegative) throws IOException {
+        public int calSerializeDataSize(@Nonnull float[] obj) throws IOException {
             int totalSize = CodedOutputStream.computeUInt32SizeNoTag(obj.length);
             if (obj.length == 0) {
                 return totalSize;
@@ -1466,7 +1398,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public void writeData(CodedOutputStream outputStream, @Nonnull float[] obj, boolean mayNegative) throws IOException {
+        public void writeData(CodedOutputStream outputStream, @Nonnull float[] obj) throws IOException {
             outputStream.writeUInt32NoTag(obj.length);
             if (obj.length == 0) {
                 return;
@@ -1477,7 +1409,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public float[] readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
+        public float[] readData(CodedInputStream inputStream) throws IOException {
             final int length = inputStream.readUInt32();
             if (length == 0) {
                 return new float[0];
@@ -1509,7 +1441,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int calSerializeDataSize(@Nonnull double[] obj, boolean mayNegative) throws IOException {
+        public int calSerializeDataSize(@Nonnull double[] obj) throws IOException {
             int totalSize = CodedOutputStream.computeUInt32SizeNoTag(obj.length);
             if (obj.length == 0) {
                 return totalSize;
@@ -1521,7 +1453,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public void writeData(CodedOutputStream outputStream, @Nonnull double[] obj, boolean mayNegative) throws IOException {
+        public void writeData(CodedOutputStream outputStream, @Nonnull double[] obj) throws IOException {
             outputStream.writeUInt32NoTag(obj.length);
             if (obj.length == 0) {
                 return;
@@ -1532,7 +1464,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public double[] readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
+        public double[] readData(CodedInputStream inputStream) throws IOException {
             final int length = inputStream.readUInt32();
             if (length == 0) {
                 return new double[0];
@@ -1565,7 +1497,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int calSerializeDataSize(@Nonnull char[] obj, boolean mayNegative) throws IOException {
+        public int calSerializeDataSize(@Nonnull char[] obj) throws IOException {
             int totalSize = CodedOutputStream.computeUInt32SizeNoTag(obj.length);
             if (obj.length == 0) {
                 return totalSize;
@@ -1577,7 +1509,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public void writeData(CodedOutputStream outputStream, @Nonnull char[] obj, boolean mayNegative) throws IOException {
+        public void writeData(CodedOutputStream outputStream, @Nonnull char[] obj) throws IOException {
             outputStream.writeUInt32NoTag(obj.length);
             if (obj.length == 0) {
                 return;
@@ -1588,7 +1520,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public char[] readData(CodedInputStream inputStream, boolean mayNegative) throws IOException {
+        public char[] readData(CodedInputStream inputStream) throws IOException {
             final int length = inputStream.readUInt32();
             if (length == 0) {
                 return new char[0];
@@ -1634,7 +1566,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
                     indexEnumDescriptor(enumDescriptorMap, messageClazz);
                     continue;
                 }
-                // NumericalEnum
+                // NumericalEnum (自定义枚举或伪枚举)
                 if (NumericalEnum.class.isAssignableFrom(messageClazz)) {
                     if (messageClazz.isAnnotationPresent(SerializableClass.class)) {
                         indexEnumDescriptor(enumDescriptorMap, messageClazz);
@@ -1660,7 +1592,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
                     // 取消检测
                     field.setAccessible(true);
                     SerializableField annotation = field.getAnnotation(SerializableField.class);
-                    return new FieldDescriptor(field, annotation.number(), annotation.mayNegative(), WireType.findType(field.getType()));
+                    return new FieldDescriptor(field, annotation.number(), WireType.findType(field.getType()));
                 })
                 .toArray(FieldDescriptor[]::new);
 

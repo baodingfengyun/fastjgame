@@ -23,7 +23,10 @@ import com.wjybxx.fastjgame.utils.EnumUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 示例消息类
@@ -158,9 +161,6 @@ public final class ExampleMessages {
 
         @SerializableField(number = 22)
         private char[] aCharArray;
-
-        @SerializableField(number = 23)
-        private Queue<String> stringQueue;
 
         public FullMessage() {
         }
@@ -350,14 +350,6 @@ public final class ExampleMessages {
             this.aCharArray = aCharArray;
         }
 
-        public Queue<String> getStringQueue() {
-            return stringQueue;
-        }
-
-        public void setStringQueue(Queue<String> stringQueue) {
-            this.stringQueue = stringQueue;
-        }
-
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -390,7 +382,6 @@ public final class ExampleMessages {
                     .append(aFloatArray, that.aFloatArray)
                     .append(aDoubleArray, that.aDoubleArray)
                     .append(aCharArray, that.aCharArray)
-                    .append(stringQueue, that.stringQueue)
                     .isEquals();
         }
 
@@ -420,7 +411,6 @@ public final class ExampleMessages {
                     .append(aFloatArray)
                     .append(aDoubleArray)
                     .append(aCharArray)
-                    .append(stringQueue)
                     .toHashCode();
         }
 
@@ -450,7 +440,6 @@ public final class ExampleMessages {
                     ", aFloatArray=" + Arrays.toString(aFloatArray) +
                     ", aDoubleArray=" + Arrays.toString(aDoubleArray) +
                     ", aCharArray=" + Arrays.toString(aCharArray) +
-                    ", stringQueue=" + stringQueue +
                     '}';
         }
     }
