@@ -19,8 +19,11 @@ package com.wjybxx.fastjgame.test;
 import com.wjybxx.fastjgame.agent.ClassReloadAgent;
 
 /**
- * 测试输出(把jar包和当前文件放在同一目录)：
+ * 测试环境：
+ * 1. 把jar包和当前文件放在同一目录
+ * 2. 在命令行中运行，启动参数
  * java -javaagent:game-classreloadagent-1.0.jar=test -cp game-classreloadagent-1.0.jar PremainTest.java
+ * 测试输出：
  * premain invoked, agentArgs: test
  * true
  * true

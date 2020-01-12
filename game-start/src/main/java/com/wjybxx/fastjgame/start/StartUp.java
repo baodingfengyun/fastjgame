@@ -91,10 +91,13 @@ public class StartUp {
             "serverId=" + 1
     };
 
+    /**
+     * 请在启动参数中添加 -Djdk.attach.allowAttachSelf=true ，
+     * 否则抛出 java.io.IOException: Can not attach to current VM 异常。
+     */
     public static void main(String[] args) throws Exception {
         DebugUtils.openDebug();
-        // 请在启动参数中添加 -Djdk.attach.allowAttachSelf=true
-        startHotSwap();
+        startClassReloadAgent();
 
         // 指定一下日志文件
         String logDir = new File("").getAbsolutePath() + File.separator + "log";
@@ -131,14 +134,14 @@ public class StartUp {
         System.out.println(" ******* invoked shutdown *******");
     }
 
-    private static void startHotSwap() throws IOException, AttachNotSupportedException,
+    private static void startClassReloadAgent() throws IOException, AttachNotSupportedException,
             AgentLoadException, AgentInitializationException {
         String pid = getPid();
         VirtualMachine vm = VirtualMachine.attach(pid);
         vm.loadAgent("game-classreloadagent-1.0.jar");
 
-        System.out.println(ClassReloadAgent.isRedefineClassesSupported());
-        System.out.println(ClassReloadAgent.isModifiableClass(StartUp.class));
+        System.out.println("isRedefineClassesSupported: " + ClassReloadAgent.isRedefineClassesSupported());
+        System.out.println("StartUp isModifiableClass: " + ClassReloadAgent.isModifiableClass(StartUp.class));
     }
 
     private static String getPid() {

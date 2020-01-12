@@ -28,8 +28,11 @@ import java.util.jar.JarFile;
  * Instrumentation开发指南 - https://www.ibm.com/developerworks/cn/java/j-lo-jse61/index.html
  * 类热更新代理。
  * 1. 由于代理必须以jar包形式存在，因此文件检测，执行更新等逻辑，请写在自己的业务逻辑包中，不要写在这里，方便扩展。
- * 2. 务必使用JDK11。
- * 3. 热更新时不要一次更新太多类。
+ * 2. 务必使用JDK11，JDK9之前{@link Instrumentation#redefineClasses(ClassDefinition...)}存在bug，有崩溃风险。
+ * 3. 热更新时不要一次更新太多类，否则可能导致停顿时间过长。
+ * <p>
+ * debug下使用{@link #agentmain(String, Instrumentation)}比较方便，直接在ide中添加启动参数就可以。
+ * 线上使用{@link #premain(String, Instrumentation)}方式比较方便。
  *
  * @author wjybxx
  * @version 1.0
@@ -45,11 +48,12 @@ public class ClassReloadAgent {
     }
 
     /**
-     * 这是instrument开发规范规定的固定格式的方法，当java程序启动时，会自动调用到这个方法
-     * premain的方式，所有jvm都支持，而动态attach-agent存在部分jvm不支持。
-     * 注意需要在启动参数中指定 javaagent参数。
-     * eg: -javaagent:game-classreloadagent-1.0.jar=test
-     * 则agentArgs收到的参数为test
+     * 这是instrument开发规范规定的固定格式的方法，当java程序启动时，如果指定了javaagent参数，则会自动调用到这个方法。
+     * 注意：
+     * 1. 需要在启动参数中指定 javaagent参数。eg:
+     * -javaagent:game-classreloadagent-1.0.jar=test
+     * 则agentArgs为test(若无等号则为null)
+     * 2. 不能方便的调试，必须在命令行中启动。
      *
      * @param agentArgs       启动参数
      * @param instrumentation 我们需要的实例，需要将其保存下来
@@ -61,14 +65,12 @@ public class ClassReloadAgent {
 
     /**
      * 使用动态attach的方式获取{@link Instrumentation}。
-     * 这是instrument开发规范规定的固定格式的方法,
-     * 当使用{@link VirtualMachine#loadAgent(String, String)}连接到JVM时，会触发该方法。
+     * 这是instrument开发规范规定的固定格式的方法，当使用{@link VirtualMachine#loadAgent(String, String)}连接到JVM时，会触发该方法。
      * <p>
      * 注意
-     * 1. 需要在启动参数中指定 javaagent参数。
-     * eg: -javaagent:game-classreloadagent-1.0.jar
-     * 2. 如果要attach到自身所在JVM，还需要设置参数 -Djdk.attach.allowAttachSelf=true 否则会抛出异常。
-     * 3. 它的参数来自{@link VirtualMachine#loadAgent(String, String)}的第二个参数(options)
+     * 1. 如果要attach到自身所在JVM，需要添加启动参数 -Djdk.attach.allowAttachSelf=true 否则会抛出异常。
+     * 2. 它的参数来自{@link VirtualMachine#loadAgent(String, String)}的第二个参数(options)
+     * 3. 可直接在debug环境下使用（在debug参数中指定vm options即可）。
      *
      * @param agentArgs       {@link VirtualMachine#loadAgent(String, String)}中的options
      * @param instrumentation 我们需要的实例，需要将其保存下来

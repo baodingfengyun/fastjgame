@@ -26,15 +26,18 @@ import java.io.IOException;
 import java.lang.management.ManagementFactory;
 
 /**
- * 测试输出(把jar包和当前文件放在同一目录)：
- * java -javaagent:game-classreloadagent-1.0.jar=test -Djdk.attach.allowAttachSelf=true -cp game-classreloadagent-1.0.jar AgentMainTest.java
- * premain invoked, agentArgs: test
+ * 测试环境：
+ * 1. 将jar包安装到本地maven仓库
+ * 2. 在idedebug配置vm options中添加 -Djdk.attach.allowAttachSelf=true
+ * 3. 直接在ide中debug
+ * 测试输出：
+ * Connected to the target VM, address: '127.0.0.1:10876', transport: 'socket'
  * agentmain invoked, agentArgs: null
  * true
  * true
  * <p>
  * 问题：java.lang.RuntimeException: java.io.IOException: Can not attach to current VM
- * 解决方法：run configurations中的vm config 加上 -Djdk.attach.allowAttachSelf=true
+ * 解决方法：run configurations中的vm options中加上 -Djdk.attach.allowAttachSelf=true
  *
  * @author wjybxx
  * @version 1.0
