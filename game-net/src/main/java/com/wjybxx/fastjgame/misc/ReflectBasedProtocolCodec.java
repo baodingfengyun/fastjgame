@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.misc;
 import com.google.protobuf.*;
 import com.wjybxx.fastjgame.annotation.SerializableClass;
 import com.wjybxx.fastjgame.annotation.SerializableField;
+import com.wjybxx.fastjgame.annotationprocessor.SerializableNumberProcessor2;
 import com.wjybxx.fastjgame.enummapper.NumericalEnum;
 import com.wjybxx.fastjgame.enummapper.NumericalEnumMapper;
 import com.wjybxx.fastjgame.net.common.ProtocolCodec;
@@ -315,6 +316,8 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
      * 类文件描述符
      */
     private static class ClassDescriptor {
+
+        private final BeanSerializer serializer;
         /**
          * 构造方法
          */
@@ -324,7 +327,8 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
          */
         private final NumericalEnumMapper<FieldDescriptor> fieldDescriptorMapper;
 
-        private ClassDescriptor(FieldDescriptor[] serializableFields, Constructor constructor) {
+        private ClassDescriptor(BeanSerializer serializer, FieldDescriptor[] serializableFields, Constructor constructor) {
+            this.serializer = serializer;
             this.constructor = constructor;
             this.fieldDescriptorMapper = EnumUtils.mapping(serializableFields);
         }
@@ -1067,6 +1071,12 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         public void writeData(CodedOutputStream outputStream, @Nonnull Object obj) throws IOException {
             ClassDescriptor descriptor = descriptorMap.get(obj.getClass());
             outputStream.writeSInt32NoTag(messageMapper.getMessageId(obj.getClass()));
+
+            if (descriptor.serializer != null) {
+                descriptor.serializer.write(obj, new OutputStreamImp(outputStream));
+                return;
+            }
+
             outputStream.writeUInt32NoTag(descriptor.filedNum());
             try {
                 for (FieldDescriptor fieldDescriptor : descriptor.fieldDescriptorMapper.values()) {
@@ -1108,11 +1118,14 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         @Override
         public Object readData(CodedInputStream inputStream) throws IOException {
             final int messageId = inputStream.readSInt32();
-            final int fieldNum = inputStream.readUInt32();
-
             Class<?> messageClass = messageMapper.getMessageClazz(messageId);
             ClassDescriptor descriptor = descriptorMap.get(messageClass);
 
+            if (descriptor.serializer != null) {
+                return descriptor.serializer.read(new InputStreamImp(inputStream));
+            }
+
+            final int fieldNum = inputStream.readUInt32();
             int index = 1;
             try {
                 Object instance = descriptor.constructor.newInstance(ArrayUtils.EMPTY_OBJECT_ARRAY);
@@ -1600,7 +1613,18 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         // 必须提供无参构造方法
         Constructor constructor = messageClazz.getDeclaredConstructor();
         constructor.setAccessible(true);
-        ClassDescriptor classDescriptor = new ClassDescriptor(fieldDescriptors, constructor);
+
+        BeanSerializer<?> serializer = null;
+        try {
+            final Class<?> serializerClass = Class.forName(messageClazz.getPackageName() + "." + SerializableNumberProcessor2.getSerializerName(messageClazz.getSimpleName()));
+            serializer = (BeanSerializer<?>) serializerClass.getConstructor().newInstance();
+        } catch (ClassNotFoundException ignore) {
+
+        } catch (Throwable e) {
+            ConcurrentUtils.rethrow(e);
+        }
+
+        ClassDescriptor classDescriptor = new ClassDescriptor(serializer, fieldDescriptors, constructor);
         classDescriptorMap.put(messageClazz, classDescriptor);
     }
 
@@ -1612,4 +1636,58 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         enumDescriptorMap.put(messageClazz, enumDescriptor);
     }
 
+    // 分割线
+
+
+    private class InputStreamImp implements GameInputStream {
+
+        private final CodedInputStream inputStream;
+
+        private InputStreamImp(CodedInputStream inputStream) {
+            this.inputStream = inputStream;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public <T> T readObject(byte wireType) throws IOException {
+            final byte tag = readTag(inputStream);
+            if (tag == WireType.NULL) {
+                return null;
+            }
+            return (T) codecMapper.forNumber(wireType).readData(inputStream);
+        }
+    }
+
+    private class OutputStreamImp implements GameOutputStream {
+
+        private final CodedOutputStream outputStream;
+
+        private OutputStreamImp(CodedOutputStream outputStream) {
+            this.outputStream = outputStream;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public void writeObject(byte wireType, @Nullable Object value) throws IOException {
+            if (value == null) {
+                writeTag(outputStream, WireType.NULL);
+                return;
+            }
+
+            if (wireType != WireType.RUN_TIME) {
+                writeTag(outputStream, wireType);
+                getCodec(wireType).writeData(outputStream, value);
+                return;
+            }
+
+            final Class<?> type = value.getClass();
+            for (Codec codec : codecMapper.values()) {
+                if (codec.isSupport(type)) {
+                    writeTag(outputStream, codec.getWireType());
+                    codec.writeData(outputStream, value);
+                    return;
+                }
+            }
+        }
+    }
 }

@@ -184,7 +184,11 @@ public class RpcServiceProcessor extends AbstractProcessor {
         @SuppressWarnings("unchecked")
         Set<TypeElement> typeElementSet = (Set<TypeElement>) roundEnv.getElementsAnnotatedWith(rpcServiceElement);
         for (TypeElement typeElement : typeElementSet) {
-            genProxyClass(typeElement);
+            try {
+                genProxyClass(typeElement);
+            } catch (Throwable e) {
+                messager.printMessage(Diagnostic.Kind.ERROR, e.toString(), typeElement);
+            }
         }
         return true;
     }

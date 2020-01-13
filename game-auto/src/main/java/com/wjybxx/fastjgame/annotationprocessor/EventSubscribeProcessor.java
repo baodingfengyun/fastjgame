@@ -108,7 +108,11 @@ public class EventSubscribeProcessor extends AbstractProcessor {
                 .collect(Collectors.groupingBy(Element::getEnclosingElement));
 
         class2MethodsMap.forEach((element, object) -> {
-            genProxyClass((TypeElement) element, object);
+            try {
+                genProxyClass((TypeElement) element, object);
+            } catch (Throwable e) {
+                messager.printMessage(Diagnostic.Kind.ERROR, e.toString(), element);
+            }
         });
         return true;
     }

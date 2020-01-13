@@ -45,12 +45,12 @@ import java.util.Set;
 public class SerializableNumberProcessor extends AbstractProcessor {
 
     // 使用这种方式可以脱离对utils，net包的依赖
-    private static final String SERIALIZABLE_CLASS_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.SerializableClass";
-    private static final String SERIALIZABLE_FIELD_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.SerializableField";
-    private static final String NUMBER_ENUM_CANONICAL_NAME = "com.wjybxx.fastjgame.enummapper.NumericalEnum";
+    static final String SERIALIZABLE_CLASS_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.SerializableClass";
+    static final String SERIALIZABLE_FIELD_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.SerializableField";
+    static final String NUMBER_ENUM_CANONICAL_NAME = "com.wjybxx.fastjgame.enummapper.NumericalEnum";
 
-    private static final String NUMBER_METHOD_NAME = "number";
-    private static final String FOR_NUMBER_METHOD_NAME = "forNumber";
+    static final String NUMBER_METHOD_NAME = "number";
+    static final String FOR_NUMBER_METHOD_NAME = "forNumber";
 
     // 工具类
     private Messager messager;
@@ -95,7 +95,11 @@ public class SerializableNumberProcessor extends AbstractProcessor {
         @SuppressWarnings("unchecked")
         Set<TypeElement> typeElementSet = (Set<TypeElement>) roundEnv.getElementsAnnotatedWith(serializableClassElement);
         for (TypeElement typeElement : typeElementSet) {
-            checkNumber(typeElement);
+            try {
+                checkNumber(typeElement);
+            } catch (Throwable e) {
+                messager.printMessage(Diagnostic.Kind.ERROR, e.toString(), typeElement);
+            }
         }
         return false;
     }

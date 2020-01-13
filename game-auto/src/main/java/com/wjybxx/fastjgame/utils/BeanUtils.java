@@ -21,11 +21,11 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
-import java.lang.reflect.Field;
 
 /**
  * @author wjybxx
@@ -39,10 +39,20 @@ public class BeanUtils {
      * 判断一个类是否包含无参构造方法
      */
     public static boolean containsNoArgsConstructor(TypeElement typeElement) {
+        return getNoArgsConstructor(typeElement) != null;
+    }
+
+    /**
+     * 查找无参构造方法
+     */
+    @Nullable
+    public static ExecutableElement getNoArgsConstructor(TypeElement typeElement) {
         return typeElement.getEnclosedElements().stream()
                 .filter(e -> e.getKind() == ElementKind.CONSTRUCTOR)
                 .map(e -> (ExecutableElement) e)
-                .anyMatch(e -> e.getParameters().size() == 0);
+                .filter(e -> e.getParameters().size() == 0)
+                .findFirst()
+                .orElse(null);
     }
 
     /**
@@ -76,10 +86,6 @@ public class BeanUtils {
     /**
      * 获取一个字段的getter方法名字
      */
-    public static String getterMethodName(Field field) {
-        return getterMethodName(field.getName(), isBoolean(field));
-    }
-
     public static String getterMethodName(FieldSpec field) {
         return getterMethodName(field.name, isBoolean(field.type));
     }
@@ -91,23 +97,13 @@ public class BeanUtils {
      * @param isBoolean 是否是bool值
      * @return 方法名
      */
-    private static String getterMethodName(String filedName, boolean isBoolean) {
+    public static String getterMethodName(String filedName, boolean isBoolean) {
         if (isBoolean) {
             // bool类型，如果使用is开头，那么会产生些奇怪的问题
             return filedName.startsWith("is") ? filedName : "is" + firstCharToUpperCase(filedName);
         } else {
             return "get" + firstCharToUpperCase(filedName);
         }
-    }
-
-    /**
-     * 判断一个字段是否是boolean
-     *
-     * @return 如果是boolean类型或Boolean类型，则返回true
-     */
-    public static boolean isBoolean(Field field) {
-        Class<?> clazz = field.getType();
-        return clazz == boolean.class || clazz == Boolean.class;
     }
 
     /**
@@ -129,10 +125,6 @@ public class BeanUtils {
     /**
      * 获取一个字段的setter方法名字
      */
-    public static String setterMethodName(Field field) {
-        return setterMethodName(field.getName());
-    }
-
     public static String setterMethodName(FieldSpec field) {
         return setterMethodName(field.name);
     }
@@ -143,7 +135,7 @@ public class BeanUtils {
      * @param filedName 字段名字
      * @return 方法名
      */
-    private static String setterMethodName(String filedName) {
+    public static String setterMethodName(String filedName) {
         return "set" + firstCharToUpperCase(filedName);
     }
 

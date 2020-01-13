@@ -49,6 +49,7 @@ public class ExampleHashMappingStrategy implements MessageMappingStrategy {
         result.put(RpcCall.class, getUniqueId(RpcCall.class));
         result.put(RpcResponse.class, getUniqueId(RpcResponse.class));
         result.put(RpcErrorCode.class, getUniqueId(RpcErrorCode.class));
+        result.put(TestMsg.class, getUniqueId(TestMsg.class));
 
         // 测试协议文件
         Arrays.stream(p_test.class.getDeclaredClasses())

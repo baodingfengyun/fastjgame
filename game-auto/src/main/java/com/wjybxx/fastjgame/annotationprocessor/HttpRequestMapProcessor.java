@@ -119,9 +119,13 @@ public class HttpRequestMapProcessor extends AbstractProcessor {
                 .collect(Collectors.groupingBy(Element::getEnclosingElement));
 
         class2MethodsMap.forEach((element, object) -> {
-            genProxyClass((TypeElement) element, (List<ExecutableElement>) object);
+            try {
+                genProxyClass((TypeElement) element, (List<ExecutableElement>) object);
+            } catch (Throwable e) {
+                messager.printMessage(Diagnostic.Kind.ERROR, e.toString(), element);
+            }
         });
-        return false;
+        return true;
     }
 
     private void genProxyClass(TypeElement typeElement, List<ExecutableElement> methodList) {

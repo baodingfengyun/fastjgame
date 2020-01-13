@@ -140,7 +140,18 @@ public class AutoUtils {
         for (TypeMirror thrownType : method.getThrownTypes()) {
             builder.addException(TypeName.get(thrownType));
         }
-        ;
+    }
+
+    /**
+     * 通过名字查找对应的方法
+     */
+    public static ExecutableElement findMethodByName(TypeElement typeElement, String methodName) {
+        return typeElement.getEnclosedElements()
+                .stream()
+                .filter(e -> e.getKind() == ElementKind.METHOD)
+                .map(e -> (ExecutableElement) e)
+                .filter(e -> e.getSimpleName().toString().equals(methodName))
+                .findFirst().orElse(null);
     }
 
     // ----------------------------------------------------- 分割线 -----------------------------------------------
@@ -288,11 +299,15 @@ public class AutoUtils {
 
     // ------------------------------------------ 分割线 ------------------------------------------------
 
-    public static void writeToFile(final TypeElement typeElement, final TypeSpec.Builder typeBuilder,
+    /**
+     *
+     * @param originTypeElement 原始类文件，用于获取包名，以及打印错误
+     */
+    public static void writeToFile(final TypeElement originTypeElement, final TypeSpec.Builder typeBuilder,
                                    final Elements elementUtils, final Messager messager, final Filer filer) {
         final TypeSpec typeSpec = typeBuilder.build();
         final JavaFile javaFile = JavaFile
-                .builder(getPackageName(typeElement, elementUtils), typeSpec)
+                .builder(getPackageName(originTypeElement, elementUtils), typeSpec)
                 // 不用导入java.lang包
                 .skipJavaLangImports(true)
                 // 4空格缩进
@@ -303,7 +318,7 @@ public class AutoUtils {
             // 如果自己指定路径，可以生成源码到指定路径，但是可能无法被编译器检测到，本轮无法参与编译，需要再进行一次编译
             javaFile.writeTo(filer);
         } catch (IOException e) {
-            messager.printMessage(Diagnostic.Kind.ERROR, "writeToFile caught exception!", typeElement);
+            messager.printMessage(Diagnostic.Kind.ERROR, "writeToFile caught exception!", originTypeElement);
         }
     }
 
