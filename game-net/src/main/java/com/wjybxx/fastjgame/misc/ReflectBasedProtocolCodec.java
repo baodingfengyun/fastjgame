@@ -25,6 +25,7 @@ import com.wjybxx.fastjgame.net.common.ProtocolCodec;
 import com.wjybxx.fastjgame.utils.*;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import org.apache.commons.lang3.ArrayUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -1114,7 +1115,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
 
             int index = 1;
             try {
-                Object instance = descriptor.constructor.newInstance();
+                Object instance = descriptor.constructor.newInstance(ArrayUtils.EMPTY_OBJECT_ARRAY);
                 for (; index <= fieldNum; index++) {
                     int number = inputStream.readUInt32();
                     // 兼容性限定：可以少发过来字段，但是不能多发字段
@@ -1144,7 +1145,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         public Object clone(Object obj) throws IOException {
             ClassDescriptor descriptor = descriptorMap.get(obj.getClass());
             try {
-                Object instance = descriptor.constructor.newInstance();
+                Object instance = descriptor.constructor.newInstance(ArrayUtils.EMPTY_OBJECT_ARRAY);
                 for (FieldDescriptor fieldDescriptor : descriptor.fieldDescriptorMapper.values()) {
                     // 逐个拷贝
                     final Object fieldValue = fieldDescriptor.field.get(obj);
