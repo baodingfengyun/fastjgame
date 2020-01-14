@@ -105,7 +105,7 @@ public class ExampleRpcService {
      */
     @RpcMethod(methodId = 10)
     public void sendToPlayer(long playerGuid, @LazySerializable byte[] proto) throws IOException {
-        System.out.println("playerGuid " + playerGuid + ", " + ExampleConstants.reflectBasedCodec.deserializeFromBytes(proto));
+        System.out.println("playerGuid " + playerGuid + ", " + ExampleConstants.binaryCodec.deserializeFromBytes(proto));
     }
 
     /**

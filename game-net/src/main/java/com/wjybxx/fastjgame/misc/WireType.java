@@ -20,6 +20,7 @@ package com.wjybxx.fastjgame.misc;
 import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.ProtocolMessageEnum;
 import com.wjybxx.fastjgame.annotation.SerializableClass;
+import com.wjybxx.fastjgame.annotationprocessor.SerializableNumberProcessor2;
 import com.wjybxx.fastjgame.enummapper.NumericalEnum;
 
 import javax.annotation.Nonnull;
@@ -114,45 +115,48 @@ public class WireType {
     public static final byte MAP = 16;
 
     /**
-     * 可序列化的普通对象，最好是简单的Bean -- POJO，必须带有{@link SerializableClass}注解。
-     * 必须有无参构造方法，可以是private。
+     * 带有{@link SerializableClass}注解，且有非private无参构造方法和对应的getter setter
      */
-    public static final byte REFERENCE = 17;
+    public static final byte NORMAL_BEAN = 17;
+    /**
+     * 带有{@link SerializableClass}注解，但是无参构造方法是private，或没有对应的getter setter方法。
+     */
+    public static final byte REFLECT_BEAN = 18;
 
     /**
      * 动态类型 - 运行时才能确定的类型（它是标记类型）
      */
-    public static final byte RUN_TIME = 18;
+    public static final byte RUN_TIME = 19;
 
     // -- 常用数组
     /**
      * 字节数组
      */
-    public static final byte BYTE_ARRAY = 19;
+    public static final byte BYTE_ARRAY = 20;
     /**
      * short数组
      */
-    public static final byte SHORT_ARRAY = 20;
+    public static final byte SHORT_ARRAY = 21;
     /**
      * int数组
      */
-    public static final byte INT_ARRAY = 21;
+    public static final byte INT_ARRAY = 22;
     /**
      * long数组
      */
-    public static final byte LONG_ARRAY = 22;
+    public static final byte LONG_ARRAY = 23;
     /**
      * float数组
      */
-    public static final byte FLOAT_ARRAY = 23;
+    public static final byte FLOAT_ARRAY = 24;
     /**
      * double数组
      */
-    public static final byte DOUBLE_ARRAY = 24;
+    public static final byte DOUBLE_ARRAY = 25;
     /**
      * char数组
      */
-    public static final byte CHAR_ARRAY = 25;
+    public static final byte CHAR_ARRAY = 26;
 
     /**
      * 查找一个class对应的wireType
@@ -220,7 +224,12 @@ public class WireType {
 
         // 自定义类型
         if (type.isAnnotationPresent(SerializableClass.class)) {
-            return WireType.REFERENCE;
+            try {
+                loadBeanSerializer(type);
+                return WireType.NORMAL_BEAN;
+            } catch (ClassNotFoundException ignore) {
+                return WireType.REFLECT_BEAN;
+            }
         }
 
         // ----数组类型
@@ -249,4 +258,16 @@ public class WireType {
         // 动态类型
         return WireType.RUN_TIME;
     }
+
+    /**
+     * 加载消息类对应的序列化辅助类
+     *
+     * @param messageClazz 消息类
+     * @return 序列化辅助类
+     * @throws ClassNotFoundException 不存在对应的辅助类时抛出该异常
+     */
+    public static Class<?> loadBeanSerializer(Class<?> messageClazz) throws ClassNotFoundException {
+        return Class.forName(messageClazz.getPackageName() + "." + SerializableNumberProcessor2.getSerializerName(messageClazz.getSimpleName()));
+    }
+
 }

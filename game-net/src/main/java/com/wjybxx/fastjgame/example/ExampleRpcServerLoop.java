@@ -72,7 +72,7 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
             // 绑定jvm内部端口
             try {
                 LocalSessionConfig config = LocalSessionConfig.newBuilder()
-                        .setCodec(ExampleConstants.reflectBasedCodec)
+                        .setCodec(ExampleConstants.binaryCodec)
                         .setLifecycleAware(new ClientLifeAware())
                         .setDispatcher(protocolDispatcher)
                         .build();
@@ -85,7 +85,7 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
         } else {
             // 监听tcp端口
             SocketSessionConfig config = SocketSessionConfig.newBuilder()
-                    .setCodec(ExampleConstants.reflectBasedCodec)
+                    .setCodec(ExampleConstants.binaryCodec)
                     .setLifecycleAware(new ClientLifeAware())
                     .setDispatcher(protocolDispatcher)
 //                    .setAutoReconnect(true)

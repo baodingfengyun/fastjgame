@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.misc;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 
 /**
@@ -25,6 +26,7 @@ import java.io.IOException;
  * date - 2020/1/14
  * github - https://github.com/hl845740757
  */
+@ThreadSafe
 public interface BeanCloneUtil {
 
     /**

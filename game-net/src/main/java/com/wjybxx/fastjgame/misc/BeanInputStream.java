@@ -29,8 +29,8 @@ public interface BeanInputStream {
     /**
      * 从输入流中读取一个对象
      *
-     * @param wireType 期望的数据类型，主要用于校验。如果该值不为{@link WireType#RUN_TIME}，则需要和读取到的tag进行比较。
      * @param <T>      返回值类型
+     * @param wireType 期望的数据类型，主要用于校验。如果该值不为{@link WireType#RUN_TIME}，则需要和读取到的tag进行比较。
      * @return data
      * @throws IOException error
      */

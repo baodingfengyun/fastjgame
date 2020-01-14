@@ -17,9 +17,9 @@ package com.wjybxx.fastjgame.example;
 
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupBuilder;
-import com.wjybxx.fastjgame.misc.JsonBasedProtocolCodec;
+import com.wjybxx.fastjgame.misc.BinaryProtocolCodec;
+import com.wjybxx.fastjgame.misc.JsonProtocolCodec;
 import com.wjybxx.fastjgame.misc.MessageMapper;
-import com.wjybxx.fastjgame.misc.ReflectBasedProtocolCodec;
 
 /**
  * 测试用例的常量
@@ -37,8 +37,8 @@ public final class ExampleConstants {
      * 测试用例使用的codec
      */
     public static final MessageMapper messageMapper = MessageMapper.newInstance(new ExampleHashMappingStrategy());
-    public static final JsonBasedProtocolCodec jsonBasedCodec = new JsonBasedProtocolCodec(messageMapper);
-    public static final ReflectBasedProtocolCodec reflectBasedCodec = ReflectBasedProtocolCodec.newInstance(messageMapper);
+    public static final JsonProtocolCodec jsonCodec = new JsonProtocolCodec(messageMapper);
+    public static final BinaryProtocolCodec binaryCodec = BinaryProtocolCodec.newInstance(messageMapper);
 
     public static final NetEventLoopGroup netEventLoop = new NetEventLoopGroupBuilder()
             .setWorkerGroupThreadNum(2)

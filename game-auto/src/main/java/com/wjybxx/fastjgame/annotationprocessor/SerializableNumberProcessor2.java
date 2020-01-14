@@ -130,12 +130,12 @@ public class SerializableNumberProcessor2 extends AbstractProcessor {
     private void generateSerializer(TypeElement typeElement) {
         if (typeElement.getKind() == ElementKind.CLASS) {
             if (isNumericalEnum(typeElement)) {
-
+                genEnumSerializer(typeElement);
             } else {
                 genClassSerializer(typeElement);
             }
         } else if (typeElement.getKind() == ElementKind.ENUM) {
-
+            genEnumSerializer(typeElement);
         }
     }
 
@@ -144,7 +144,7 @@ public class SerializableNumberProcessor2 extends AbstractProcessor {
     }
 
     private void genEnumSerializer(TypeElement typeElement) {
-
+        // 现在还不是很有必要
     }
 
     private void genClassSerializer(final TypeElement typeElement) {

@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.example;
 
-import com.wjybxx.fastjgame.misc.ReflectBasedProtocolCodec;
+import com.wjybxx.fastjgame.misc.BinaryProtocolCodec;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -33,10 +33,10 @@ import java.util.*;
  * date - 2019/8/19
  * github - https://github.com/hl845740757
  */
-public class ReflectBasedProtoCodecTest {
+public class BinaryProtoCodecTest {
 
     public static void main(String[] args) throws IOException {
-        ReflectBasedProtocolCodec codec = ExampleConstants.reflectBasedCodec;
+        BinaryProtocolCodec codec = ExampleConstants.binaryCodec;
         ByteBufAllocator byteBufAllocator = UnpooledByteBufAllocator.DEFAULT;
         // NetUtils初始化，避免输出扰乱视听
         System.out.println(NetUtils.getOuterIp());

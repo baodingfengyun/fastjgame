@@ -16,9 +16,9 @@
 
 package com.wjybxx.fastjgame.test;
 
+import com.wjybxx.fastjgame.example.BinaryProtoCodecTest;
 import com.wjybxx.fastjgame.example.ExampleConstants;
 import com.wjybxx.fastjgame.example.ExampleMessages;
-import com.wjybxx.fastjgame.example.ReflectBasedProtoCodecTest;
 import com.wjybxx.fastjgame.net.common.ProtocolCodec;
 import com.wjybxx.fastjgame.utils.NetUtils;
 
@@ -38,13 +38,13 @@ public class ProtocolCloneTest {
         // 触发NetUtils类加载，避免输出干扰
         System.out.println(NetUtils.getOuterIp());
 
-        cloneTest(ExampleConstants.reflectBasedCodec);
-        cloneTest(ExampleConstants.jsonBasedCodec);
+        cloneTest(ExampleConstants.binaryCodec);
+        cloneTest(ExampleConstants.jsonCodec);
     }
 
     private static void cloneTest(ProtocolCodec codec) throws IOException {
         System.out.println("\n" + codec.getClass().getName());
-        final ExampleMessages.FullMessage fullMessage = ReflectBasedProtoCodecTest.newFullMessage();
+        final ExampleMessages.FullMessage fullMessage = BinaryProtoCodecTest.newFullMessage();
         System.out.println("clone " + codec.cloneObject(fullMessage).equals(fullMessage));
     }
 }

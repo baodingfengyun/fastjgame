@@ -30,7 +30,7 @@ import java.io.OutputStream;
 
 /**
  * 基于Json的编解码器，必须使用简单对象来封装参数。-- POJO
- * 编码后的数据量较多，编解码效率也很低，建议只在测试期间使用。-- 因为json可读性很好，正式编解码时建议使用{@link ReflectBasedProtocolCodec}。
+ * 编码后的数据量较多，编解码效率也很低，建议只在测试期间使用。-- 因为json可读性很好，正式编解码时建议使用{@link BinaryProtocolCodec}。
  *
  * @author wjybxx
  * @version 1.0
@@ -38,13 +38,13 @@ import java.io.OutputStream;
  * github - https://github.com/hl845740757
  */
 @ThreadSafe
-public class JsonBasedProtocolCodec implements ProtocolCodec {
+public class JsonProtocolCodec implements ProtocolCodec {
 
     private static final ThreadLocal<byte[]> LOCAL_BUFFER = ThreadLocal.withInitial(() -> new byte[NetUtils.MAX_BUFFER_SIZE]);
 
     private final MessageMapper messageMapper;
 
-    public JsonBasedProtocolCodec(MessageMapper messageMapper) {
+    public JsonProtocolCodec(MessageMapper messageMapper) {
         this.messageMapper = messageMapper;
     }
 

@@ -16,7 +16,8 @@
 
 package com.wjybxx.fastjgame.example;
 
-import com.wjybxx.fastjgame.misc.ReflectBasedProtocolCodec;
+import com.wjybxx.fastjgame.misc.BinaryProtocolCodec;
+import com.wjybxx.fastjgame.misc.JsonProtocolCodec;
 import com.wjybxx.fastjgame.net.common.ProtocolCodec;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -25,7 +26,7 @@ import io.netty.buffer.PooledByteBufAllocator;
 import java.io.IOException;
 
 /**
- * 一个不太标准的序列化性能测试
+ * 一个不太靠谱的完整编解码性能测试
  *
  * @author wjybxx
  * @version 1.0
@@ -36,32 +37,26 @@ public class ProtocolCodecPerformanceTest {
 
     public static void main(String[] args) throws IOException {
         ByteBufAllocator byteBufAllocator = PooledByteBufAllocator.DEFAULT;
-//        ExampleMessages.FullMessage msg = ReflectBasedProtoCodecTest.newFullMessage();
+        ExampleMessages.FullMessage msg = BinaryProtoCodecTest.newFullMessage();
 
-//        final ExampleMessages.Hello msg = new ExampleMessages.Hello();
-//        msg.setId(456456161613216L);
-////        msg.setMessage("165LKMASNDKLAASNCLKALAS");
-
-        final TestMsg msg = new TestMsg(32116503156L, 5461166513213L, 546541211616512L, false);
-
-//        JsonBasedProtocolCodec jsonBasedCodec = ExampleConstants.jsonBasedCodec;
-        ReflectBasedProtocolCodec reflectBasedCodec = ExampleConstants.reflectBasedCodec;
+        JsonProtocolCodec jsonCodec = ExampleConstants.jsonCodec;
+        BinaryProtocolCodec binaryCodec = ExampleConstants.binaryCodec;
 
         // equals测试，正确性必须要保证
-//        equalsTest(jsonBasedCodec, byteBufAllocator, msg);
-//        System.out.println();
+        equalsTest(jsonCodec, byteBufAllocator, msg);
+        System.out.println();
 
-        equalsTest(reflectBasedCodec, byteBufAllocator, msg);
-//        System.out.println();
+        equalsTest(binaryCodec, byteBufAllocator, msg);
+        System.out.println();
 
         // 预热
-//        codecTest(jsonBasedCodec, byteBufAllocator, msg, 1000);
-        codecTest(reflectBasedCodec, byteBufAllocator, msg, 10_0000);
-//        System.out.println();
+        codecTest(jsonCodec, byteBufAllocator, msg, 1000);
+        codecTest(binaryCodec, byteBufAllocator, msg, 1000);
+        System.out.println();
 
         // 开搞
-//        codecTest(jsonBasedCodec, byteBufAllocator, msg, 10_0000);
-        codecTest(reflectBasedCodec, byteBufAllocator, msg, 100_0000);
+        codecTest(jsonCodec, byteBufAllocator, msg, 10_0000);
+        codecTest(binaryCodec, byteBufAllocator, msg, 10_0000);
     }
 
     private static void equalsTest(ProtocolCodec codec, ByteBufAllocator byteBufAllocator, Object msg) throws IOException {
@@ -76,11 +71,14 @@ public class ProtocolCodecPerformanceTest {
     }
 
     private static void codecTest(ProtocolCodec codec, ByteBufAllocator byteBufAllocator, Object msg, int loopTimes) throws IOException {
+        final String name = codec.getClass().getSimpleName();
         long start = System.currentTimeMillis();
         for (int index = 0; index < loopTimes; index++) {
-            byte[] byteBuf = codec.serializeToBytes(msg);
-            Object decodeMessage = codec.deserializeFromBytes(byteBuf);
+            ByteBuf byteBuf = codec.writeObject(byteBufAllocator, msg);
+            Object decodeMessage = codec.readObject(byteBuf);
+            // 由于没真正发送，显式的进行释放
+            byteBuf.release();
         }
-        System.out.println(" codec " + loopTimes + " times cost timeMs " + (System.currentTimeMillis() - start));
+        System.out.println(name + " codec " + loopTimes + " times cost timeMs " + (System.currentTimeMillis() - start));
     }
 }

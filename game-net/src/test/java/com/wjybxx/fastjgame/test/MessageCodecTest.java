@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.test;
 
 import com.wjybxx.fastjgame.example.ExampleConstants;
 import com.wjybxx.fastjgame.example.p_test;
-import com.wjybxx.fastjgame.misc.ReflectBasedProtocolCodec;
+import com.wjybxx.fastjgame.misc.BinaryProtocolCodec;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.UnpooledByteBufAllocator;
@@ -37,7 +37,7 @@ import java.util.Arrays;
 public class MessageCodecTest {
 
     public static void main(String[] args) throws IOException {
-        ReflectBasedProtocolCodec codec = ExampleConstants.reflectBasedCodec;
+        BinaryProtocolCodec codec = ExampleConstants.binaryCodec;
         ByteBufAllocator byteBufAllocator = UnpooledByteBufAllocator.DEFAULT;
 
         final p_test.p_helloworld hello = p_test.p_helloworld.newBuilder()

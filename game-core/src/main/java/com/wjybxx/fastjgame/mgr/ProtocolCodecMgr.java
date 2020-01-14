@@ -21,7 +21,7 @@ import com.wjybxx.fastjgame.annotation.EventLoopSingleton;
 import com.wjybxx.fastjgame.misc.MessageHashMappingStrategy;
 import com.wjybxx.fastjgame.misc.MessageMapper;
 import com.wjybxx.fastjgame.misc.MessageMappingStrategy;
-import com.wjybxx.fastjgame.misc.ReflectBasedProtocolCodec;
+import com.wjybxx.fastjgame.misc.BinaryProtocolCodec;
 import com.wjybxx.fastjgame.net.common.ProtocolCodec;
 
 import javax.annotation.Nonnull;
@@ -43,7 +43,7 @@ public final class ProtocolCodecMgr {
 
     // 进程内共用数据，不必每个实例一份儿
     private static final MessageMapper INNER_MESSAGE_MAPPER = MessageMapper.newInstance(new MessageHashMappingStrategy());
-    private static final ProtocolCodec INNER_PROTOCOL_CODEC = ReflectBasedProtocolCodec.newInstance(INNER_MESSAGE_MAPPER);
+    private static final ProtocolCodec INNER_PROTOCOL_CODEC = BinaryProtocolCodec.newInstance(INNER_MESSAGE_MAPPER);
 
     private final Map<String, ProtocolCodec> codecMapper = new HashMap<>();
 
@@ -69,7 +69,7 @@ public final class ProtocolCodecMgr {
      * @throws Exception mapping error , or init exception
      */
     public void registerProtocolCodec(String name, MessageMappingStrategy mappingStrategy) throws Exception {
-        registerProtocolCodec(name, ReflectBasedProtocolCodec.newInstance(MessageMapper.newInstance(mappingStrategy)));
+        registerProtocolCodec(name, BinaryProtocolCodec.newInstance(MessageMapper.newInstance(mappingStrategy)));
     }
 
     /**
