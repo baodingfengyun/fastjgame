@@ -104,7 +104,6 @@ public class EventSubscribeProcessor extends AbstractProcessor {
 
         // 只有方法可以带有该注解 METHOD只有普通方法，不包含构造方法， 按照外部类进行分类
         final Map<Element, ? extends List<? extends Element>> class2MethodsMap = roundEnv.getElementsAnnotatedWith(subscribeTypeElement).stream()
-                .filter(element -> element.getEnclosingElement().getKind() == ElementKind.CLASS)
                 .collect(Collectors.groupingBy(Element::getEnclosingElement));
 
         class2MethodsMap.forEach((element, object) -> {
@@ -227,7 +226,7 @@ public class EventSubscribeProcessor extends AbstractProcessor {
      * 查询是否只监听子类型参数
      */
     private Boolean isOnlySubEvents(AnnotationMirror annotationMirror) {
-        return AutoUtils.getAnnotationValue(elementUtils, annotationMirror, ONLY_SUB_EVENTS_METHOD_NAME);
+        return AutoUtils.getAnnotationValueWithDefaults(elementUtils, annotationMirror, ONLY_SUB_EVENTS_METHOD_NAME);
     }
 
     /**

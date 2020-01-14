@@ -38,7 +38,7 @@ import java.util.function.Predicate;
 
 
 /**
- * 代码生成工具类
+ * 代码生成通用工具类
  *
  * @author wjybxx
  * @version 1.0
@@ -47,8 +47,13 @@ import java.util.function.Predicate;
  */
 public class AutoUtils {
 
+    /**
+     * 生成的代码的源码版本
+     */
     public static final SourceVersion SOURCE_VERSION = SourceVersion.RELEASE_11;
-
+    /**
+     * 由于生成的代码不能很好的处理泛型等信息，因此需要抑制警告
+     */
     public static final AnnotationSpec SUPPRESS_UNCHECKED_ANNOTATION = AnnotationSpec.builder(SuppressWarnings.class)
             .addMember("value", "$S", "unchecked, rawtypes")
             .build();
@@ -58,6 +63,8 @@ public class AutoUtils {
     }
 
     /**
+     * 为生成代码的注解处理器创建一个通用注解
+     *
      * @param processorType 注解处理器
      * @return 代码生成信息注解
      */
@@ -180,7 +187,7 @@ public class AutoUtils {
      * @param targetType   目标注解类型
      * @return optional
      */
-    public static Optional<? extends AnnotationMirror> findFirstAnnotation(Types typeUtils, Elements elementUtils, Element element, DeclaredType targetType) {
+    public static Optional<? extends AnnotationMirror> findFirstAnnotationWithDefaults(Types typeUtils, Elements elementUtils, Element element, DeclaredType targetType) {
         // 查找该字段上的注解
         return elementUtils.getAllAnnotationMirrors(element).stream()
                 .filter(annotationMirror -> typeUtils.isSameType(annotationMirror.getAnnotationType(), targetType))
@@ -213,7 +220,7 @@ public class AutoUtils {
      */
     @SuppressWarnings("unchecked")
     @Nonnull
-    public static <T> T getAnnotationValue(Elements elementUtils, AnnotationMirror annotationMirror, String propertyName) {
+    public static <T> T getAnnotationValueWithDefaults(Elements elementUtils, AnnotationMirror annotationMirror, String propertyName) {
         final Optional<Object> property = elementUtils.getElementValuesWithDefaults(annotationMirror).entrySet().stream()
                 .filter(entry -> entry.getKey().getSimpleName().toString().equals(propertyName))
                 .map(entry -> entry.getValue().getValue())
@@ -300,7 +307,6 @@ public class AutoUtils {
     // ------------------------------------------ 分割线 ------------------------------------------------
 
     /**
-     *
      * @param originTypeElement 原始类文件，用于获取包名，以及打印错误
      */
     public static void writeToFile(final TypeElement originTypeElement, final TypeSpec.Builder typeBuilder,

@@ -28,6 +28,8 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 
 /**
+ * JavaBean工具类
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/12/8
@@ -84,20 +86,6 @@ public class BeanUtils {
     }
 
     /**
-     * 获取一个字段的getter方法名字
-     */
-    public static String getterMethodName(FieldSpec field) {
-        return getterMethodName(field.name, isBoolean(field.type));
-    }
-
-    /**
-     * 获取一个字段的setter方法名字
-     */
-    public static String setterMethodName(FieldSpec field) {
-        return setterMethodName(field.name, isBoolean(field.type));
-    }
-
-    /**
      * 获取getter方法的名字
      *
      * @param filedName 字段名字
@@ -116,8 +104,7 @@ public class BeanUtils {
         }
         // 到这里前两个字符都是小写
         if (isBoolean) {
-            // is 还特殊
-            // 如果参数名以 is 开头，则直接返回，否则 is + 首字母大写
+            // 如果参数名以 is 开头，则直接返回，否则 is + 首字母大写 - is 还要特殊处理
             if (filedName.length() > 2 && filedName.startsWith("is")) {
                 return filedName;
             } else {
@@ -141,7 +128,7 @@ public class BeanUtils {
             return "set" + filedName;
 
         }
-        // 到这里前两个字符都是小写 - is 还特殊。
+        // 到这里前两个字符都是小写 - is 还要特殊处理。
         if (isBoolean) {
             if (filedName.length() > 2 && filedName.startsWith("is")) {
                 return "set" + firstCharToUpperCase(filedName.substring(2));
@@ -204,7 +191,7 @@ public class BeanUtils {
      * @return setter方法
      */
     public static MethodSpec createSetter(FieldSpec field) {
-        final String methodName = setterMethodName(field.name, isBoolean(field.type));
+        final String methodName = setterMethodName(field);
         return MethodSpec.methodBuilder(methodName)
                 .addModifiers(Modifier.PUBLIC)
                 .returns(field.type)
@@ -212,4 +199,17 @@ public class BeanUtils {
                 .build();
     }
 
+    /**
+     * 获取一个字段的getter方法名字
+     */
+    public static String getterMethodName(FieldSpec field) {
+        return getterMethodName(field.name, isBoolean(field.type));
+    }
+
+    /**
+     * 获取一个字段的setter方法名字
+     */
+    public static String setterMethodName(FieldSpec field) {
+        return setterMethodName(field.name, isBoolean(field.type));
+    }
 }

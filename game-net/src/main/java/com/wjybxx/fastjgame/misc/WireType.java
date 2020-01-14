@@ -20,7 +20,7 @@ package com.wjybxx.fastjgame.misc;
 import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.ProtocolMessageEnum;
 import com.wjybxx.fastjgame.annotation.SerializableClass;
-import com.wjybxx.fastjgame.annotationprocessor.SerializableNumberProcessor2;
+import com.wjybxx.fastjgame.annotationprocessor.SerializableNumberProcessor;
 import com.wjybxx.fastjgame.enummapper.NumericalEnum;
 
 import javax.annotation.Nonnull;
@@ -267,7 +267,7 @@ public class WireType {
      * @throws ClassNotFoundException 不存在对应的辅助类时抛出该异常
      */
     public static Class<?> loadBeanSerializer(Class<?> messageClazz) throws ClassNotFoundException {
-        return Class.forName(messageClazz.getPackageName() + "." + SerializableNumberProcessor2.getSerializerName(messageClazz.getSimpleName()));
+        return Class.forName(SerializableNumberProcessor.getSerializerBinaryName(messageClazz));
     }
 
 }

@@ -202,7 +202,7 @@ public class HttpRequestMapProcessor extends AbstractProcessor {
             }
 
             // 是否继承父节点路径，如果继承，则使用组合路径，否则使用方法指定的路径
-            final Boolean inherit = AutoUtils.getAnnotationValue(elementUtils, methodAnnotation.get(), INHERIT_METHOD_NAME);
+            final Boolean inherit = AutoUtils.getAnnotationValueWithDefaults(elementUtils, methodAnnotation.get(), INHERIT_METHOD_NAME);
             final String finalPath = inherit ? makePath(parentPath, childPath) : childPath;
 
             // 生成lambda表达式
