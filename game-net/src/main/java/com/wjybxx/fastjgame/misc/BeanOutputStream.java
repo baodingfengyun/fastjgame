@@ -31,5 +31,11 @@ import java.io.IOException;
  */
 public interface BeanOutputStream {
 
+    /**
+     * 向输入流中写入一个对象
+     *
+     * @param wireType value的缓存类型，如果该值为{@link WireType#RUN_TIME}，则需要动态解析。
+     * @throws IOException error
+     */
     void writeObject(byte wireType, @Nullable Object value) throws IOException;
 }

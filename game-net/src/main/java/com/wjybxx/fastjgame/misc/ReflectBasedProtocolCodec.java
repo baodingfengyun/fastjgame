@@ -102,6 +102,10 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
      * 所有codec映射
      */
     private final NumericalEnumMapper<Codec<?>> codecMapper;
+    /**
+     * 克隆工具，提供给bean序列化代理类
+     */
+    private final BeanCloneUtil beanCloneUtil;
 
     private ReflectBasedProtocolCodec(MessageMapper messageMapper,
                                       Map<Class<?>, Parser<?>> parserMap,
@@ -111,6 +115,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         this.parserMap = parserMap;
         this.descriptorMap = descriptorMap;
         this.enumDescriptorMap = enumDescriptorMap;
+        this.beanCloneUtil = new BeanCloneUtilImp();
 
         codecMapper = EnumUtils.mapping(initValues());
     }
@@ -170,56 +175,16 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         return buffer;
     }
 
-    @Override
-    public Object readObject(ByteBuf data) throws IOException {
-        final byte[] localBuffer = LOCAL_BUFFER.get();
-        final int readableBytes = data.readableBytes();
-        data.readBytes(localBuffer, 0, readableBytes);
-        // 减少字节数组创建，即使使用输入流构造，其内部还是做了缓 - 而且编解码速度更快
-        CodedInputStream codedInputStream = CodedInputStream.newInstance(localBuffer, 0, readableBytes);
-        // 真正读取数据
-        return readObject(codedInputStream);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public Object cloneObject(@Nullable Object object) throws IOException {
-        if (object == null) {
-            return null;
-        }
-        final Class<?> type = object.getClass();
-        for (Codec codec : codecMapper.values()) {
-            if (codec.isSupport(type)) {
-                return codec.clone(object);
-            }
-        }
-        throw new IOException("unsupported class " + object.getClass().getName());
-    }
-
-    @Nonnull
-    @Override
-    public byte[] serializeToBytes(@Nullable Object obj) throws IOException {
-        // 这里测试也是拷贝字节数组快于先计算大小（两轮反射）
-        final byte[] localBuffer = LOCAL_BUFFER.get();
-        CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(localBuffer);
-        writeObject(codedOutputStream, obj);
-
-        final byte[] resultBytes = new byte[codedOutputStream.getTotalBytesWritten()];
-        System.arraycopy(localBuffer, 0, resultBytes, 0, resultBytes.length);
-        return resultBytes;
-    }
-
-    @Override
-    public Object deserializeFromBytes(@Nonnull byte[] data) throws IOException {
-        return readObject(CodedInputStream.newInstance(data));
-    }
-
-    @SuppressWarnings("unchecked")
     private void writeObject(CodedOutputStream outputStream, @Nullable Object object) throws IOException {
         if (object == null) {
             writeTag(outputStream, WireType.NULL);
             return;
         }
+        writeRuntimeType(outputStream, object);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void writeRuntimeType(CodedOutputStream outputStream, @Nonnull Object object) throws IOException {
         final Class<?> type = object.getClass();
         for (Codec codec : codecMapper.values()) {
             if (codec.isSupport(type)) {
@@ -229,6 +194,17 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
             }
         }
         throw new IOException("unsupported class " + object.getClass().getName());
+    }
+
+    @Override
+    public Object readObject(ByteBuf data) throws IOException {
+        final byte[] localBuffer = LOCAL_BUFFER.get();
+        final int readableBytes = data.readableBytes();
+        data.readBytes(localBuffer, 0, readableBytes);
+        // 减少字节数组创建，即使使用输入流构造，其内部还是做了缓 - 而且编解码速度更快
+        CodedInputStream codedInputStream = CodedInputStream.newInstance(localBuffer, 0, readableBytes);
+        // 真正读取数据
+        return readObject(codedInputStream);
     }
 
     /**
@@ -256,6 +232,42 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         return codec;
     }
 
+    @Override
+    public Object cloneObject(@Nullable Object object) throws IOException {
+        if (object == null) {
+            return null;
+        }
+        return cloneRuntimeTypes(object);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Object cloneRuntimeTypes(@Nonnull Object object) throws IOException {
+        final Class<?> type = object.getClass();
+        for (Codec codec : codecMapper.values()) {
+            if (codec.isSupport(type)) {
+                return codec.clone(object);
+            }
+        }
+        throw new IOException("unsupported class " + object.getClass().getName());
+    }
+
+    @Nonnull
+    @Override
+    public byte[] serializeToBytes(@Nullable Object obj) throws IOException {
+        // 这里测试也是拷贝字节数组快于先计算大小（两轮反射）
+        final byte[] localBuffer = LOCAL_BUFFER.get();
+        CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(localBuffer);
+        writeObject(codedOutputStream, obj);
+
+        final byte[] resultBytes = new byte[codedOutputStream.getTotalBytesWritten()];
+        System.arraycopy(localBuffer, 0, resultBytes, 0, resultBytes.length);
+        return resultBytes;
+    }
+
+    @Override
+    public Object deserializeFromBytes(@Nonnull byte[] data) throws IOException {
+        return readObject(CodedInputStream.newInstance(data));
+    }
 
     /**
      * 计算对象的大小
@@ -430,7 +442,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
          * @param obj 待克隆的对象
          * @return newInstance or the same object
          */
-        T clone(T obj) throws IOException;
+        T clone(@Nonnull T obj) throws IOException;
     }
 
     /**
@@ -464,7 +476,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public Byte clone(Byte obj) {
+        public Byte clone(@Nonnull Byte obj) {
             return obj;
         }
     }
@@ -503,7 +515,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public Integer clone(Integer obj) {
+        public Integer clone(@Nonnull Integer obj) {
             return obj;
         }
     }
@@ -526,7 +538,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public Short clone(Short obj) {
+        public Short clone(@Nonnull Short obj) {
             return obj;
         }
     }
@@ -560,7 +572,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public Character clone(Character obj) {
+        public Character clone(@Nonnull Character obj) {
             return obj;
         }
     }
@@ -593,7 +605,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public Long clone(Long obj) {
+        public Long clone(@Nonnull Long obj) {
             return obj;
         }
     }
@@ -626,7 +638,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public Float clone(Float obj) {
+        public Float clone(@Nonnull Float obj) {
             return obj;
         }
     }
@@ -659,7 +671,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public Double clone(Double obj) {
+        public Double clone(@Nonnull Double obj) {
             return obj;
         }
     }
@@ -692,7 +704,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public Boolean clone(Boolean obj) {
+        public Boolean clone(@Nonnull Boolean obj) {
             return obj;
         }
     }
@@ -725,7 +737,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public String clone(String obj) {
+        public String clone(@Nonnull String obj) {
             return obj;
         }
     }
@@ -777,7 +789,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public AbstractMessage clone(AbstractMessage obj) {
+        public AbstractMessage clone(@Nonnull AbstractMessage obj) {
             return obj;
         }
     }
@@ -812,7 +824,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public T clone(T obj) {
+        public T clone(@Nonnull T obj) {
             return obj;
         }
     }
@@ -904,7 +916,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
 
         @SuppressWarnings("unchecked")
         @Override
-        public T clone(T obj) throws IOException {
+        public T clone(@Nonnull T obj) throws IOException {
             T collection = newCollection(obj.size());
             for (Object element : obj) {
                 collection.add(ReflectBasedProtocolCodec.this.cloneObject(element));
@@ -1007,7 +1019,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
 
         @SuppressWarnings("unchecked")
         @Override
-        public Map clone(Map obj) throws IOException {
+        public Map clone(@Nonnull Map obj) throws IOException {
             Map<Object, Object> map = CollectionUtils.newLinkedHashMapWithExpectedSize(obj.size());
             for (Map.Entry entry : ((Map<Object, Object>) obj).entrySet()) {
                 final Object k = ReflectBasedProtocolCodec.this.cloneObject(entry.getKey());
@@ -1067,6 +1079,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
             return size;
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public void writeData(CodedOutputStream outputStream, @Nonnull Object obj) throws IOException {
             ClassDescriptor descriptor = descriptorMap.get(obj.getClass());
@@ -1074,9 +1087,12 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
 
             if (descriptor.serializer != null) {
                 descriptor.serializer.write(obj, new OutputStreamImp(outputStream));
-                return;
+            } else {
+                writeByReflect(outputStream, obj, descriptor);
             }
+        }
 
+        private void writeByReflect(CodedOutputStream outputStream, @Nonnull Object obj, ClassDescriptor descriptor) throws IOException {
             outputStream.writeUInt32NoTag(descriptor.filedNum());
             try {
                 for (FieldDescriptor fieldDescriptor : descriptor.fieldDescriptorMapper.values()) {
@@ -1123,8 +1139,12 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
 
             if (descriptor.serializer != null) {
                 return descriptor.serializer.read(new InputStreamImp(inputStream));
+            } else {
+                return readByReflect(inputStream, messageClass, descriptor);
             }
+        }
 
+        private Object readByReflect(CodedInputStream inputStream, Class<?> messageClass, ClassDescriptor descriptor) throws IOException {
             final int fieldNum = inputStream.readUInt32();
             int index = 1;
             try {
@@ -1155,8 +1175,16 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
 
         @SuppressWarnings("unchecked")
         @Override
-        public Object clone(Object obj) throws IOException {
+        public Object clone(@Nonnull Object obj) throws IOException {
             ClassDescriptor descriptor = descriptorMap.get(obj.getClass());
+            if (descriptor.serializer != null) {
+                return descriptor.serializer.clone(obj, beanCloneUtil);
+            } else {
+                return cloneByReflect(obj, descriptor);
+            }
+        }
+
+        private Object cloneByReflect(@Nonnull Object obj, ClassDescriptor descriptor) throws IOException {
             try {
                 Object instance = descriptor.constructor.newInstance(ArrayUtils.EMPTY_OBJECT_ARRAY);
                 for (FieldDescriptor fieldDescriptor : descriptor.fieldDescriptorMapper.values()) {
@@ -1167,7 +1195,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
                         fieldDescriptor.field.set(instance, null);
                     } else if (fieldDescriptor.wireType != WireType.RUN_TIME) {
                         // 存在类型缓存
-                        final Object newValue = getCodec(fieldDescriptor.wireType).clone(fieldValue);
+                        @SuppressWarnings("unchecked") final Object newValue = getCodec(fieldDescriptor.wireType).clone(fieldValue);
                         fieldDescriptor.field.set(instance, newValue);
                     } else {
                         // 运行时类型
@@ -1218,7 +1246,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public byte[] clone(byte[] obj) throws IOException {
+        public byte[] clone(@Nonnull byte[] obj) throws IOException {
             final byte[] result = new byte[obj.length];
             System.arraycopy(obj, 0, result, 0, obj.length);
             return result;
@@ -1274,7 +1302,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int[] clone(int[] obj) throws IOException {
+        public int[] clone(@Nonnull int[] obj) throws IOException {
             final int[] result = new int[obj.length];
             System.arraycopy(obj, 0, result, 0, obj.length);
             return result;
@@ -1330,7 +1358,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public short[] clone(short[] obj) throws IOException {
+        public short[] clone(@Nonnull short[] obj) throws IOException {
             final short[] result = new short[obj.length];
             System.arraycopy(obj, 0, result, 0, obj.length);
             return result;
@@ -1385,7 +1413,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public long[] clone(long[] obj) throws IOException {
+        public long[] clone(@Nonnull long[] obj) throws IOException {
             final long[] result = new long[obj.length];
             System.arraycopy(obj, 0, result, 0, obj.length);
             return result;
@@ -1441,7 +1469,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public float[] clone(float[] obj) throws IOException {
+        public float[] clone(@Nonnull float[] obj) throws IOException {
             final float[] result = new float[obj.length];
             System.arraycopy(obj, 0, result, 0, obj.length);
             return result;
@@ -1496,7 +1524,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public double[] clone(double[] obj) throws IOException {
+        public double[] clone(@Nonnull double[] obj) throws IOException {
             final double[] result = new double[obj.length];
             System.arraycopy(obj, 0, result, 0, obj.length);
             return result;
@@ -1552,10 +1580,82 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public char[] clone(char[] obj) throws IOException {
+        public char[] clone(@Nonnull char[] obj) throws IOException {
             final char[] result = new char[obj.length];
             System.arraycopy(obj, 0, result, 0, obj.length);
             return result;
+        }
+    }
+
+    // --------------------------------------------------------------javaBean处理 -----------------------------------------------
+    private class InputStreamImp implements BeanInputStream {
+
+        private final CodedInputStream inputStream;
+
+        private InputStreamImp(CodedInputStream inputStream) {
+            this.inputStream = inputStream;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public <T> T readObject(byte wireType) throws IOException {
+            final byte tag = readTag(inputStream);
+            if (tag == WireType.NULL) {
+                return null;
+            }
+
+            if (wireType != WireType.RUN_TIME) {
+                if (wireType != tag) {
+                    throw new IOException("Incompatible type, expected: " + wireType + ", but read: " + tag);
+                }
+            }
+
+            return (T) getCodec(wireType).readData(inputStream);
+        }
+    }
+
+    private class OutputStreamImp implements BeanOutputStream {
+
+        private final CodedOutputStream outputStream;
+
+        private OutputStreamImp(CodedOutputStream outputStream) {
+            this.outputStream = outputStream;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public void writeObject(byte wireType, @Nullable Object value) throws IOException {
+            if (value == null) {
+                writeTag(outputStream, WireType.NULL);
+                return;
+            }
+
+            if (wireType != WireType.RUN_TIME) {
+                writeTag(outputStream, wireType);
+                getCodec(wireType).writeData(outputStream, value);
+                return;
+            }
+
+            // 极少走到这里
+            writeRuntimeType(outputStream, value);
+        }
+    }
+
+    private class BeanCloneUtilImp implements BeanCloneUtil {
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public <T> T clone(byte wireType, @Nullable T value) throws IOException {
+            if (value == null) {
+                return null;
+            }
+
+            if (wireType != WireType.RUN_TIME) {
+                return (T) getCodec(wireType).clone(value);
+            }
+
+            // 极少走到这里
+            return (T) cloneRuntimeTypes(value);
         }
     }
 
@@ -1599,6 +1699,21 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
     }
 
     private static void indexClassDescriptor(Map<Class<?>, ClassDescriptor> classDescriptorMap, Class<?> messageClazz) throws NoSuchMethodException {
+        try {
+            final Class<?> serializerClass = Class.forName(messageClazz.getPackageName() + "." + SerializableNumberProcessor2.getSerializerName(messageClazz.getSimpleName()));
+            BeanSerializer<?> serializer = (BeanSerializer<?>) serializerClass.getConstructor().newInstance();
+            classDescriptorMap.put(messageClazz, new ClassDescriptor(serializer, null, null));
+            return;
+        } catch (ClassNotFoundException ignore) {
+
+        } catch (Throwable e) {
+            ConcurrentUtils.rethrow(e);
+        }
+
+        indexClassByReflect(classDescriptorMap, messageClazz);
+    }
+
+    private static void indexClassByReflect(Map<Class<?>, ClassDescriptor> classDescriptorMap, Class<?> messageClazz) throws NoSuchMethodException {
         FieldDescriptor[] fieldDescriptors = Arrays.stream(messageClazz.getDeclaredFields())
                 .filter(field -> field.isAnnotationPresent(SerializableField.class))
                 .sorted(Comparator.comparingInt(field -> field.getAnnotation(SerializableField.class).number()))
@@ -1614,17 +1729,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         Constructor constructor = messageClazz.getDeclaredConstructor();
         constructor.setAccessible(true);
 
-        BeanSerializer<?> serializer = null;
-        try {
-            final Class<?> serializerClass = Class.forName(messageClazz.getPackageName() + "." + SerializableNumberProcessor2.getSerializerName(messageClazz.getSimpleName()));
-            serializer = (BeanSerializer<?>) serializerClass.getConstructor().newInstance();
-        } catch (ClassNotFoundException ignore) {
-
-        } catch (Throwable e) {
-            ConcurrentUtils.rethrow(e);
-        }
-
-        ClassDescriptor classDescriptor = new ClassDescriptor(serializer, fieldDescriptors, constructor);
+        ClassDescriptor classDescriptor = new ClassDescriptor(null, fieldDescriptors, constructor);
         classDescriptorMap.put(messageClazz, classDescriptor);
     }
 
@@ -1634,63 +1739,5 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
         forNumberMethod.setAccessible(true);
         EnumDescriptor enumDescriptor = new EnumDescriptor(forNumberMethod);
         enumDescriptorMap.put(messageClazz, enumDescriptor);
-    }
-
-    // 分割线
-
-
-    private class InputStreamImp implements BeanInputStream {
-
-        private final CodedInputStream inputStream;
-
-        private InputStreamImp(CodedInputStream inputStream) {
-            this.inputStream = inputStream;
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public <T> T readObject(byte wireType) throws IOException {
-            final byte tag = readTag(inputStream);
-            if (tag == WireType.NULL) {
-                return null;
-            }
-            if (wireType != WireType.RUN_TIME) {
-                assert tag == wireType;
-            }
-            return (T) codecMapper.forNumber(tag).readData(inputStream);
-        }
-    }
-
-    private class OutputStreamImp implements BeanOutputStream {
-
-        private final CodedOutputStream outputStream;
-
-        private OutputStreamImp(CodedOutputStream outputStream) {
-            this.outputStream = outputStream;
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public void writeObject(byte wireType, @Nullable Object value) throws IOException {
-            if (value == null) {
-                writeTag(outputStream, WireType.NULL);
-                return;
-            }
-
-            if (wireType != WireType.RUN_TIME) {
-                writeTag(outputStream, wireType);
-                getCodec(wireType).writeData(outputStream, value);
-                return;
-            }
-
-            final Class<?> type = value.getClass();
-            for (Codec codec : codecMapper.values()) {
-                if (codec.isSupport(type)) {
-                    writeTag(outputStream, codec.getWireType());
-                    codec.writeData(outputStream, value);
-                    return;
-                }
-            }
-        }
     }
 }

@@ -39,4 +39,12 @@ public interface BeanSerializer<T> {
      */
     T read(BeanInputStream inputStream) throws IOException;
 
+    /**
+     * 克隆一个对象
+     *
+     * @param instance 期望克隆的对象
+     * @param util     真正实现clone的工具类
+     * @return newInstance
+     */
+    T clone(T instance, BeanCloneUtil util) throws IOException;
 }

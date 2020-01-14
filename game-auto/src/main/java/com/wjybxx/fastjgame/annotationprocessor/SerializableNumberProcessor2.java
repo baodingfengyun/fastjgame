@@ -45,13 +45,15 @@ import static com.wjybxx.fastjgame.utils.AutoUtils.getClassName;
 @AutoService(Processor.class)
 public class SerializableNumberProcessor2 extends AbstractProcessor {
 
+    private static final String WIRETYPE_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.WireType";
     private static final String SERIALIZER_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.BeanSerializer";
     private static final String OUTPUT_STREAM_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.BeanOutputStream";
     private static final String INPUT_STREAM_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.BeanInputStream";
-    private static final String WIRETYPE_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.WireType";
+    private static final String CLONE_UTIL_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.BeanCloneUtil";
 
     private static final String WRITE_METHOD_NAME = "write";
     private static final String READ_METHOD_NAME = "read";
+    private static final String CLONE_METHOD_NAME = "clone";
     private static final String FINDTYPE_METHOD_NAME = "findType";
 
 
@@ -63,14 +65,11 @@ public class SerializableNumberProcessor2 extends AbstractProcessor {
 
     private AnnotationSpec processorInfoAnnotation;
 
+    private TypeName wireTypeTypeName;
     private TypeElement serializerTypeElement;
     private TypeElement outputStreamTypeElement;
     private TypeElement inputStreamTypeElement;
-
-    private DeclaredType serializerDeclaredType;
-    private ExecutableElement superWriteMethod;
-    private ExecutableElement superReadMethod;
-    private TypeName wireTypeTypeName;
+    private TypeElement cloneUtilTypeElement;
 
     private TypeElement serializableClassElement;
     private DeclaredType serializableFieldDeclaredType;
@@ -98,17 +97,14 @@ public class SerializableNumberProcessor2 extends AbstractProcessor {
     }
 
     private void ensureInited() {
-        if (serializableClassElement != null) {
+        if (wireTypeTypeName != null) {
             return;
         }
+        wireTypeTypeName = TypeName.get(elementUtils.getTypeElement(WIRETYPE_CANONICAL_NAME).asType());
         serializerTypeElement = elementUtils.getTypeElement(SERIALIZER_CANONICAL_NAME);
         outputStreamTypeElement = elementUtils.getTypeElement(OUTPUT_STREAM_CANONICAL_NAME);
         inputStreamTypeElement = elementUtils.getTypeElement(INPUT_STREAM_CANONICAL_NAME);
-
-        serializerDeclaredType = typeUtils.getDeclaredType(serializerTypeElement);
-        superWriteMethod = AutoUtils.findMethodByName(serializerTypeElement, WRITE_METHOD_NAME);
-        superReadMethod = AutoUtils.findMethodByName(serializerTypeElement, READ_METHOD_NAME);
-        wireTypeTypeName = TypeName.get(elementUtils.getTypeElement(WIRETYPE_CANONICAL_NAME).asType());
+        cloneUtilTypeElement = elementUtils.getTypeElement(CLONE_UTIL_CANONICAL_NAME);
 
         serializableClassElement = elementUtils.getTypeElement(SerializableNumberProcessor.SERIALIZABLE_CLASS_CANONICAL_NAME);
         serializableFieldDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(SerializableNumberProcessor.SERIALIZABLE_FIELD_CANONICAL_NAME));
@@ -159,11 +155,14 @@ public class SerializableNumberProcessor2 extends AbstractProcessor {
         final TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(getSerializerClassName(typeElement));
         final CodeBlock.Builder wireTypeStaticCodeBlock = CodeBlock.builder();
 
-        final TypeName instanceTypeName = TypeName.get(typeUtils.erasure(typeElement.asType()));
-        final MethodSpec.Builder writeMethodBuilder = getWriteMethodBuilder(instanceTypeName);
+        final TypeName instanceRawTypeName = TypeName.get(typeUtils.erasure(typeElement.asType()));
+        final MethodSpec.Builder writeMethodBuilder = newWriteMethodBuilder(instanceRawTypeName);
 
-        final MethodSpec.Builder readMethodBuilder = getReadMethodBuilder(instanceTypeName);
-        readMethodBuilder.addStatement("$T instance = new $T()", instanceTypeName, instanceTypeName);
+        final MethodSpec.Builder readMethodBuilder = newReadMethodBuilder(instanceRawTypeName);
+        readMethodBuilder.addStatement("$T instance = new $T()", instanceRawTypeName, instanceRawTypeName);
+
+        final MethodSpec.Builder cloneMethodBuilder = newCloneMethodBuilder(instanceRawTypeName);
+        cloneMethodBuilder.addStatement("$T result = new $T()", instanceRawTypeName, instanceRawTypeName);
 
         for (Element element : typeElement.getEnclosedElements()) {
             // 非成员属性
@@ -195,17 +194,20 @@ public class SerializableNumberProcessor2 extends AbstractProcessor {
 
             writeMethodBuilder.addStatement("outputStream.writeObject(wireType$L, instance.$L())", number, getterName);
             readMethodBuilder.addStatement("instance.$L(inputStream.readObject(wireType$L))", setterName, number);
+            cloneMethodBuilder.addStatement("result.$L(util.clone(wireType$L, instance.$L()))", setterName, number, getterName);
         }
 
         readMethodBuilder.addStatement("return instance");
+        cloneMethodBuilder.addStatement("return result");
 
         typeBuilder.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                 .addAnnotation(AutoUtils.SUPPRESS_UNCHECKED_ANNOTATION)
                 .addAnnotation(processorInfoAnnotation)
+                .addSuperinterface(TypeName.get(typeUtils.getDeclaredType(serializerTypeElement, typeUtils.erasure(typeElement.asType()))))
                 .addStaticBlock(wireTypeStaticCodeBlock.build())
                 .addMethod(writeMethodBuilder.build())
-                .addSuperinterface(TypeName.get(typeUtils.getDeclaredType(serializerTypeElement, typeUtils.erasure(typeElement.asType()))))
-                .addMethod(readMethodBuilder.build());
+                .addMethod(readMethodBuilder.build())
+                .addMethod(cloneMethodBuilder.build());
 
         // 写入文件
         AutoUtils.writeToFile(typeElement, typeBuilder, elementUtils, messager, filer);
@@ -256,22 +258,32 @@ public class SerializableNumberProcessor2 extends AbstractProcessor {
         return true;
     }
 
-    private MethodSpec.Builder getWriteMethodBuilder(TypeName instanceTypeName) {
+    private MethodSpec.Builder newWriteMethodBuilder(TypeName instanceRawTypeName) {
         return MethodSpec.methodBuilder(WRITE_METHOD_NAME)
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
                 .addException(IOException.class)
-                .addParameter(instanceTypeName, "instance")
+                .addParameter(instanceRawTypeName, "instance")
                 .addParameter(TypeName.get(outputStreamTypeElement.asType()), "outputStream");
     }
 
-    private MethodSpec.Builder getReadMethodBuilder(TypeName instanceTypeName) {
+    private MethodSpec.Builder newReadMethodBuilder(TypeName instanceRawTypeName) {
         return MethodSpec.methodBuilder(READ_METHOD_NAME)
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
                 .addException(IOException.class)
-                .returns(instanceTypeName)
+                .returns(instanceRawTypeName)
                 .addParameter(TypeName.get(inputStreamTypeElement.asType()), "inputStream");
+    }
+
+    private MethodSpec.Builder newCloneMethodBuilder(TypeName instanceRawTypeName) {
+        return MethodSpec.methodBuilder(CLONE_METHOD_NAME)
+                .returns(instanceRawTypeName)
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Override.class)
+                .addException(IOException.class)
+                .addParameter(instanceRawTypeName, "instance")
+                .addParameter(TypeName.get(cloneUtilTypeElement.asType()), "util");
     }
 
     /**

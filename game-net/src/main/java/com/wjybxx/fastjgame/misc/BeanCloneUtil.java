@@ -16,23 +16,25 @@
 
 package com.wjybxx.fastjgame.misc;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 
 /**
  * @author wjybxx
  * @version 1.0
- * date - 2020/1/13
+ * date - 2020/1/14
  * github - https://github.com/hl845740757
  */
-public interface BeanInputStream {
+public interface BeanCloneUtil {
 
     /**
-     * 从输入流中读取一个对象
+     * 克隆一个对象
      *
-     * @param wireType 期望的数据类型，主要用于校验。如果该值不为{@link WireType#RUN_TIME}，则需要和读取到的tag进行比较。
-     * @param <T>      返回值类型
-     * @return data
-     * @throws IOException error
+     * @param wireType value的缓存类型，如果为{@link WireType#RUN_TIME}，则需要动态处理。
+     * @param value    要clone的对象
+     * @param <T>      要clone的对象的类型
+     * @return 返回值
      */
-    <T> T readObject(byte wireType) throws IOException;
+    <T> T clone(byte wireType, @Nullable T value) throws IOException;
+
 }
