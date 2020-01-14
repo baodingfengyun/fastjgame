@@ -67,7 +67,8 @@ import java.util.*;
  * 		List/Set 		tag + size + element,element....              element 编解码 -- 递归
  * 		Map      		tag + size + key,value,key,value.....         key/Value 编解码 -- 递归
  * 		Message  		tag + messageId + length + bytes
- * 	    Serializable	tag + messageId + fieldNum + field,field....       field 构成: number + tag + data
+ * 	    JavaBean        tag + messageId + field,field....              field 构成: tag + data
+ * 	    ReflectBean	    tag + messageId + fieldNum + field,field....       field 构成: number + tag + data
  * 	    枚举				tag + messageId + number
  * 	    基本类型数组      tag + size + value,value......
  * </pre>
