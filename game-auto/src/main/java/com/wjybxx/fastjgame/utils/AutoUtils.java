@@ -34,7 +34,9 @@ import javax.tools.Diagnostic;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 
 /**
@@ -72,6 +74,28 @@ public class AutoUtils {
         return AnnotationSpec.builder(Generated.class)
                 .addMember("value", "$S", processorType.getCanonicalName())
                 .build();
+    }
+
+    /**
+     * 筛选出java源文件 - 去除带有注解的class文件
+     *
+     * @param typeElementSet 带有注解的所有元素
+     * @param elementUtils   用于获取元素的完整类名
+     * @return 过滤后只有java源文件的元素
+     */
+    public static Set<TypeElement> selectSourceFile(Set<TypeElement> typeElementSet, Elements elementUtils) {
+        return typeElementSet.stream()
+                .filter(e -> {
+                    try {
+                        // 如果注解的保留策略是runtime，则会把已经编译成class的文件再统计进来，这里需要过滤。
+                        // 不能使用getSystemClassLoader()，会加载不到。
+                        Class.forName(elementUtils.getBinaryName(e).toString());
+                        return false;
+                    } catch (Exception ignore) {
+                        return true;
+                    }
+                })
+                .collect(Collectors.toSet());
     }
 
     /**

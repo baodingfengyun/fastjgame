@@ -128,9 +128,10 @@ public class SerializableNumberProcessor extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         ensureInited();
         // 该注解只有类可以使用
-        @SuppressWarnings("unchecked")
-        Set<TypeElement> typeElementSet = (Set<TypeElement>) roundEnv.getElementsAnnotatedWith(serializableClassElement);
-        for (TypeElement typeElement : typeElementSet) {
+        @SuppressWarnings("unchecked") final Set<TypeElement> allTypeElements = (Set<TypeElement>) roundEnv.getElementsAnnotatedWith(serializableClassElement);
+        Set<TypeElement> sourceFileTypeElementSet = AutoUtils.selectSourceFile(allTypeElements, elementUtils);
+
+        for (TypeElement typeElement : sourceFileTypeElementSet) {
             try {
                 checkBase(typeElement);
                 generateSerializer(typeElement);
