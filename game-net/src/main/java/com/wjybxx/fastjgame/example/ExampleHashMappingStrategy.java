@@ -60,7 +60,7 @@ public class ExampleHashMappingStrategy implements MessageMappingStrategy {
         return result;
     }
 
-    private int getUniqueId(Class<?> messageClass) {
+    public static int getUniqueId(Class<?> messageClass) {
         // 为什么要simple Name? protoBuf的消息的名字就是java的类名
         return messageClass.getSimpleName().hashCode();
     }

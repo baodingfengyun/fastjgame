@@ -3,26 +3,26 @@ syntax = "proto3";
 package fastjgame;
 
 // optimize_for (file option): Can be set to SPEED, CODE_SIZE, or LITE_RUNTIME.
-option optimize_for=SPEED;
+option optimize_for = SPEED;
 
 // package属性是为了支持多语言的，在其他语言里，可能就是命名空间，因此建议定义清晰的java包名
-option java_package="com.wjybxx.fastjgame.protobuffer";
-option java_outer_classname="p_common";
+option java_package = "com.wjybxx.fastjgame.protobuffer";
+option java_outer_classname = "p_common";
 
 // 玩家需要序列化的数据
-message p_player_data{
-	// 玩家唯一id
-	int64 playerGuid = 1;
-	// 玩家原始服务器id
-	PCenterServerId originalServerId = 2;
-	// 玩家当前服务器id
-	PCenterServerId actualServerId = 3;
+message p_player_data {
+    // 玩家唯一id
+    int64 playerGuid = 1;
+    // 玩家原始服务器id
+    PCenterServerId originalServerId = 2;
+    // 玩家当前服务器id
+    PCenterServerId actualServerId = 3;
 }
 
 // 中心服服务器id
 message PCenterServerId {
-	// 所属的平台号
-	int32 platformTypeNumber = 1;
-	// 平台内服务器id
-	int32 innerServerId = 2;
+    // 所属的平台号
+    int32 platformTypeNumber = 1;
+    // 平台内服务器id
+    int32 innerServerId = 2;
 }

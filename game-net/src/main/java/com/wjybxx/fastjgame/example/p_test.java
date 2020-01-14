@@ -2473,6 +2473,837 @@ public final class p_test {
 
   }
 
+  public interface p_testMsgOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:fastjgame.p_testMsg)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>int64 sceneId = 1;</code>
+     * @return The sceneId.
+     */
+    long getSceneId();
+
+    /**
+     * <code>int64 factionId = 2;</code>
+     * @return The factionId.
+     */
+    long getFactionId();
+
+    /**
+     * <code>int64 ownerId = 3;</code>
+     * @return The ownerId.
+     */
+    long getOwnerId();
+
+    /**
+     * <code>bool ownerSupportAR = 4;</code>
+     * @return The ownerSupportAR.
+     */
+    boolean getOwnerSupportAR();
+
+    /**
+     * <code>int32 playerNum = 5;</code>
+     * @return The playerNum.
+     */
+    int getPlayerNum();
+
+    /**
+     * <code>bool racing = 6;</code>
+     * @return The racing.
+     */
+    boolean getRacing();
+  }
+  /**
+   * Protobuf type {@code fastjgame.p_testMsg}
+   */
+  public  static final class p_testMsg extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:fastjgame.p_testMsg)
+      p_testMsgOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use p_testMsg.newBuilder() to construct.
+    private p_testMsg(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private p_testMsg() {
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new p_testMsg();
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private p_testMsg(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            case 8: {
+
+              sceneId_ = input.readInt64();
+              break;
+            }
+            case 16: {
+
+              factionId_ = input.readInt64();
+              break;
+            }
+            case 24: {
+
+              ownerId_ = input.readInt64();
+              break;
+            }
+            case 32: {
+
+              ownerSupportAR_ = input.readBool();
+              break;
+            }
+            case 40: {
+
+              playerNum_ = input.readInt32();
+              break;
+            }
+            case 48: {
+
+              racing_ = input.readBool();
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return com.wjybxx.fastjgame.example.p_test.internal_static_fastjgame_p_testMsg_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return com.wjybxx.fastjgame.example.p_test.internal_static_fastjgame_p_testMsg_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              com.wjybxx.fastjgame.example.p_test.p_testMsg.class, com.wjybxx.fastjgame.example.p_test.p_testMsg.Builder.class);
+    }
+
+    public static final int SCENEID_FIELD_NUMBER = 1;
+    private long sceneId_;
+    /**
+     * <code>int64 sceneId = 1;</code>
+     * @return The sceneId.
+     */
+    public long getSceneId() {
+      return sceneId_;
+    }
+
+    public static final int FACTIONID_FIELD_NUMBER = 2;
+    private long factionId_;
+    /**
+     * <code>int64 factionId = 2;</code>
+     * @return The factionId.
+     */
+    public long getFactionId() {
+      return factionId_;
+    }
+
+    public static final int OWNERID_FIELD_NUMBER = 3;
+    private long ownerId_;
+    /**
+     * <code>int64 ownerId = 3;</code>
+     * @return The ownerId.
+     */
+    public long getOwnerId() {
+      return ownerId_;
+    }
+
+    public static final int OWNERSUPPORTAR_FIELD_NUMBER = 4;
+    private boolean ownerSupportAR_;
+    /**
+     * <code>bool ownerSupportAR = 4;</code>
+     * @return The ownerSupportAR.
+     */
+    public boolean getOwnerSupportAR() {
+      return ownerSupportAR_;
+    }
+
+    public static final int PLAYERNUM_FIELD_NUMBER = 5;
+    private int playerNum_;
+    /**
+     * <code>int32 playerNum = 5;</code>
+     * @return The playerNum.
+     */
+    public int getPlayerNum() {
+      return playerNum_;
+    }
+
+    public static final int RACING_FIELD_NUMBER = 6;
+    private boolean racing_;
+    /**
+     * <code>bool racing = 6;</code>
+     * @return The racing.
+     */
+    public boolean getRacing() {
+      return racing_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (sceneId_ != 0L) {
+        output.writeInt64(1, sceneId_);
+      }
+      if (factionId_ != 0L) {
+        output.writeInt64(2, factionId_);
+      }
+      if (ownerId_ != 0L) {
+        output.writeInt64(3, ownerId_);
+      }
+      if (ownerSupportAR_ != false) {
+        output.writeBool(4, ownerSupportAR_);
+      }
+      if (playerNum_ != 0) {
+        output.writeInt32(5, playerNum_);
+      }
+      if (racing_ != false) {
+        output.writeBool(6, racing_);
+      }
+      unknownFields.writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (sceneId_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(1, sceneId_);
+      }
+      if (factionId_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(2, factionId_);
+      }
+      if (ownerId_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(3, ownerId_);
+      }
+      if (ownerSupportAR_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(4, ownerSupportAR_);
+      }
+      if (playerNum_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(5, playerNum_);
+      }
+      if (racing_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(6, racing_);
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof com.wjybxx.fastjgame.example.p_test.p_testMsg)) {
+        return super.equals(obj);
+      }
+      com.wjybxx.fastjgame.example.p_test.p_testMsg other = (com.wjybxx.fastjgame.example.p_test.p_testMsg) obj;
+
+      if (getSceneId()
+          != other.getSceneId()) return false;
+      if (getFactionId()
+          != other.getFactionId()) return false;
+      if (getOwnerId()
+          != other.getOwnerId()) return false;
+      if (getOwnerSupportAR()
+          != other.getOwnerSupportAR()) return false;
+      if (getPlayerNum()
+          != other.getPlayerNum()) return false;
+      if (getRacing()
+          != other.getRacing()) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + SCENEID_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getSceneId());
+      hash = (37 * hash) + FACTIONID_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getFactionId());
+      hash = (37 * hash) + OWNERID_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getOwnerId());
+      hash = (37 * hash) + OWNERSUPPORTAR_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getOwnerSupportAR());
+      hash = (37 * hash) + PLAYERNUM_FIELD_NUMBER;
+      hash = (53 * hash) + getPlayerNum();
+      hash = (37 * hash) + RACING_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getRacing());
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static com.wjybxx.fastjgame.example.p_test.p_testMsg parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static com.wjybxx.fastjgame.example.p_test.p_testMsg parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static com.wjybxx.fastjgame.example.p_test.p_testMsg parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static com.wjybxx.fastjgame.example.p_test.p_testMsg parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static com.wjybxx.fastjgame.example.p_test.p_testMsg parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static com.wjybxx.fastjgame.example.p_test.p_testMsg parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static com.wjybxx.fastjgame.example.p_test.p_testMsg parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static com.wjybxx.fastjgame.example.p_test.p_testMsg parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static com.wjybxx.fastjgame.example.p_test.p_testMsg parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static com.wjybxx.fastjgame.example.p_test.p_testMsg parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static com.wjybxx.fastjgame.example.p_test.p_testMsg parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static com.wjybxx.fastjgame.example.p_test.p_testMsg parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(com.wjybxx.fastjgame.example.p_test.p_testMsg prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code fastjgame.p_testMsg}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:fastjgame.p_testMsg)
+        com.wjybxx.fastjgame.example.p_test.p_testMsgOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return com.wjybxx.fastjgame.example.p_test.internal_static_fastjgame_p_testMsg_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return com.wjybxx.fastjgame.example.p_test.internal_static_fastjgame_p_testMsg_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                com.wjybxx.fastjgame.example.p_test.p_testMsg.class, com.wjybxx.fastjgame.example.p_test.p_testMsg.Builder.class);
+      }
+
+      // Construct using com.wjybxx.fastjgame.example.p_test.p_testMsg.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        sceneId_ = 0L;
+
+        factionId_ = 0L;
+
+        ownerId_ = 0L;
+
+        ownerSupportAR_ = false;
+
+        playerNum_ = 0;
+
+        racing_ = false;
+
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return com.wjybxx.fastjgame.example.p_test.internal_static_fastjgame_p_testMsg_descriptor;
+      }
+
+      @java.lang.Override
+      public com.wjybxx.fastjgame.example.p_test.p_testMsg getDefaultInstanceForType() {
+        return com.wjybxx.fastjgame.example.p_test.p_testMsg.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public com.wjybxx.fastjgame.example.p_test.p_testMsg build() {
+        com.wjybxx.fastjgame.example.p_test.p_testMsg result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public com.wjybxx.fastjgame.example.p_test.p_testMsg buildPartial() {
+        com.wjybxx.fastjgame.example.p_test.p_testMsg result = new com.wjybxx.fastjgame.example.p_test.p_testMsg(this);
+        result.sceneId_ = sceneId_;
+        result.factionId_ = factionId_;
+        result.ownerId_ = ownerId_;
+        result.ownerSupportAR_ = ownerSupportAR_;
+        result.playerNum_ = playerNum_;
+        result.racing_ = racing_;
+        onBuilt();
+        return result;
+      }
+
+      @java.lang.Override
+      public Builder clone() {
+        return super.clone();
+      }
+      @java.lang.Override
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.setField(field, value);
+      }
+      @java.lang.Override
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return super.clearField(field);
+      }
+      @java.lang.Override
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return super.clearOneof(oneof);
+      }
+      @java.lang.Override
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return super.setRepeatedField(field, index, value);
+      }
+      @java.lang.Override
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.addRepeatedField(field, value);
+      }
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof com.wjybxx.fastjgame.example.p_test.p_testMsg) {
+          return mergeFrom((com.wjybxx.fastjgame.example.p_test.p_testMsg)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(com.wjybxx.fastjgame.example.p_test.p_testMsg other) {
+        if (other == com.wjybxx.fastjgame.example.p_test.p_testMsg.getDefaultInstance()) return this;
+        if (other.getSceneId() != 0L) {
+          setSceneId(other.getSceneId());
+        }
+        if (other.getFactionId() != 0L) {
+          setFactionId(other.getFactionId());
+        }
+        if (other.getOwnerId() != 0L) {
+          setOwnerId(other.getOwnerId());
+        }
+        if (other.getOwnerSupportAR() != false) {
+          setOwnerSupportAR(other.getOwnerSupportAR());
+        }
+        if (other.getPlayerNum() != 0) {
+          setPlayerNum(other.getPlayerNum());
+        }
+        if (other.getRacing() != false) {
+          setRacing(other.getRacing());
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        com.wjybxx.fastjgame.example.p_test.p_testMsg parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (com.wjybxx.fastjgame.example.p_test.p_testMsg) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      private long sceneId_ ;
+      /**
+       * <code>int64 sceneId = 1;</code>
+       * @return The sceneId.
+       */
+      public long getSceneId() {
+        return sceneId_;
+      }
+      /**
+       * <code>int64 sceneId = 1;</code>
+       * @param value The sceneId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSceneId(long value) {
+        
+        sceneId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int64 sceneId = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSceneId() {
+        
+        sceneId_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long factionId_ ;
+      /**
+       * <code>int64 factionId = 2;</code>
+       * @return The factionId.
+       */
+      public long getFactionId() {
+        return factionId_;
+      }
+      /**
+       * <code>int64 factionId = 2;</code>
+       * @param value The factionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setFactionId(long value) {
+        
+        factionId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int64 factionId = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearFactionId() {
+        
+        factionId_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long ownerId_ ;
+      /**
+       * <code>int64 ownerId = 3;</code>
+       * @return The ownerId.
+       */
+      public long getOwnerId() {
+        return ownerId_;
+      }
+      /**
+       * <code>int64 ownerId = 3;</code>
+       * @param value The ownerId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setOwnerId(long value) {
+        
+        ownerId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int64 ownerId = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearOwnerId() {
+        
+        ownerId_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private boolean ownerSupportAR_ ;
+      /**
+       * <code>bool ownerSupportAR = 4;</code>
+       * @return The ownerSupportAR.
+       */
+      public boolean getOwnerSupportAR() {
+        return ownerSupportAR_;
+      }
+      /**
+       * <code>bool ownerSupportAR = 4;</code>
+       * @param value The ownerSupportAR to set.
+       * @return This builder for chaining.
+       */
+      public Builder setOwnerSupportAR(boolean value) {
+        
+        ownerSupportAR_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>bool ownerSupportAR = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearOwnerSupportAR() {
+        
+        ownerSupportAR_ = false;
+        onChanged();
+        return this;
+      }
+
+      private int playerNum_ ;
+      /**
+       * <code>int32 playerNum = 5;</code>
+       * @return The playerNum.
+       */
+      public int getPlayerNum() {
+        return playerNum_;
+      }
+      /**
+       * <code>int32 playerNum = 5;</code>
+       * @param value The playerNum to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPlayerNum(int value) {
+        
+        playerNum_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int32 playerNum = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearPlayerNum() {
+        
+        playerNum_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private boolean racing_ ;
+      /**
+       * <code>bool racing = 6;</code>
+       * @return The racing.
+       */
+      public boolean getRacing() {
+        return racing_;
+      }
+      /**
+       * <code>bool racing = 6;</code>
+       * @param value The racing to set.
+       * @return This builder for chaining.
+       */
+      public Builder setRacing(boolean value) {
+        
+        racing_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>bool racing = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearRacing() {
+        
+        racing_ = false;
+        onChanged();
+        return this;
+      }
+      @java.lang.Override
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      @java.lang.Override
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:fastjgame.p_testMsg)
+    }
+
+    // @@protoc_insertion_point(class_scope:fastjgame.p_testMsg)
+    private static final com.wjybxx.fastjgame.example.p_test.p_testMsg DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new com.wjybxx.fastjgame.example.p_test.p_testMsg();
+    }
+
+    public static com.wjybxx.fastjgame.example.p_test.p_testMsg getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<p_testMsg>
+        PARSER = new com.google.protobuf.AbstractParser<p_testMsg>() {
+      @java.lang.Override
+      public p_testMsg parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new p_testMsg(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<p_testMsg> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<p_testMsg> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.wjybxx.fastjgame.example.p_test.p_testMsg getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_fastjgame_p_helloworld_descriptor;
   private static final 
@@ -2488,6 +3319,11 @@ public final class p_test {
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_fastjgame_p_ss_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_fastjgame_p_testMsg_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_fastjgame_p_testMsg_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -2504,9 +3340,12 @@ public final class p_test {
       "(\001\022\t\n\001i\030\t \001(\014\022\032\n\001j\030\n \001(\0132\017.fastjgame.p_s" +
       "s\022\033\n\001k\030\013 \001(\0162\020.fastjgame.ERole\032(\n\006DEntry" +
       "\022\013\n\003key\030\001 \001(\005\022\r\n\005value\030\002 \001(\003:\0028\001\"\036\n\004p_ss" +
-      "\022\n\n\002sa\030\001 \001(\005\022\n\n\002sb\030\002 \001(\003*\032\n\005ERole\022\010\n\004NAM" +
-      "E\020\000\022\007\n\003AGE\020\001B(\n\034com.wjybxx.fastjgame.exa" +
-      "mpleB\006p_testH\001b\006proto3"
+      "\022\n\n\002sa\030\001 \001(\005\022\n\n\002sb\030\002 \001(\003\"{\n\tp_testMsg\022\017\n" +
+      "\007sceneId\030\001 \001(\003\022\021\n\tfactionId\030\002 \001(\003\022\017\n\007own" +
+      "erId\030\003 \001(\003\022\026\n\016ownerSupportAR\030\004 \001(\010\022\021\n\tpl" +
+      "ayerNum\030\005 \001(\005\022\016\n\006racing\030\006 \001(\010*\032\n\005ERole\022\010" +
+      "\n\004NAME\020\000\022\007\n\003AGE\020\001B(\n\034com.wjybxx.fastjgam" +
+      "e.exampleB\006p_testH\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -2530,6 +3369,12 @@ public final class p_test {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_fastjgame_p_ss_descriptor,
         new java.lang.String[] { "Sa", "Sb", });
+    internal_static_fastjgame_p_testMsg_descriptor =
+      getDescriptor().getMessageTypes().get(2);
+    internal_static_fastjgame_p_testMsg_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_fastjgame_p_testMsg_descriptor,
+        new java.lang.String[] { "SceneId", "FactionId", "OwnerId", "OwnerSupportAR", "PlayerNum", "Racing", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)
