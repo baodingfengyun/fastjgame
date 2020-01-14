@@ -272,25 +272,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         return readObject(CodedInputStream.newInstance(data));
     }
 
-    /**
-     * 计算对象的大小
-     *
-     * @param object 对基本类型进行了装箱操作
-     * @return size
-     */
-    @SuppressWarnings("unchecked")
-    private int calSerializeSize(@Nullable Object object) throws IOException {
-        if (object == null) {
-            return calTagSize(WireType.NULL);
-        }
-        final Class<?> type = object.getClass();
-        for (Codec codec : codecMapper.values()) {
-            if (codec.isSupport(type)) {
-                return calTagSize(codec.getWireType()) + codec.calSerializeDataSize(object);
-            }
-        }
-        throw new UnsupportedOperationException("un support type " + object.getClass().getName());
-    }
 
     // ------------------------------------------- tag相关 ------------------------------------
 
@@ -400,14 +381,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         boolean isSupport(Class<?> type);
 
         /**
-         * 计算序列化后的大小，不包含wireType
-         *
-         * @param obj 待计算的对象
-         * @return size
-         */
-        int calSerializeDataSize(@Nonnull T obj) throws IOException;
-
-        /**
          * 编码协议内容，不包含wireType
          *
          * @param outputStream 输出流
@@ -457,11 +430,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int calSerializeDataSize(@Nonnull Byte obj) throws IOException {
-            return 1;
-        }
-
-        @Override
         public void writeData(CodedOutputStream outputStream, @Nonnull Byte obj) throws IOException {
             outputStream.writeRawByte(obj);
         }
@@ -485,11 +453,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
     // -------------------------------------------- int32 -----------------------------------------------
 
     private static abstract class Int32Codec<T extends Number> implements Codec<T> {
-
-        @Override
-        public final int calSerializeDataSize(@Nonnull T obj) {
-            return CodedOutputStream.computeInt32SizeNoTag(obj.intValue());
-        }
 
         @Override
         public final void writeData(CodedOutputStream outputStream, @Nonnull T obj) throws IOException {
@@ -552,12 +515,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int calSerializeDataSize(@Nonnull Character obj) {
-            // char 是无符号整形
-            return CodedOutputStream.computeUInt32SizeNoTag(obj);
-        }
-
-        @Override
         public void writeData(CodedOutputStream outputStream, @Nonnull Character obj) throws IOException {
             outputStream.writeUInt32NoTag(obj);
         }
@@ -583,11 +540,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         @Override
         public boolean isSupport(Class<?> type) {
             return type == Long.class;
-        }
-
-        @Override
-        public int calSerializeDataSize(@Nonnull Long obj) {
-            return CodedOutputStream.computeInt64SizeNoTag(obj);
         }
 
         @Override
@@ -619,11 +571,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int calSerializeDataSize(@Nonnull Float obj) {
-            return CodedOutputStream.computeFloatSizeNoTag(obj);
-        }
-
-        @Override
         public void writeData(CodedOutputStream outputStream, @Nonnull Float obj) throws IOException {
             outputStream.writeFloatNoTag(obj);
         }
@@ -649,11 +596,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         @Override
         public boolean isSupport(Class<?> type) {
             return type == Double.class;
-        }
-
-        @Override
-        public int calSerializeDataSize(@Nonnull Double obj) {
-            return CodedOutputStream.computeDoubleSizeNoTag(obj);
         }
 
         @Override
@@ -685,11 +627,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int calSerializeDataSize(@Nonnull Boolean obj) {
-            return CodedOutputStream.computeBoolSizeNoTag(obj);
-        }
-
-        @Override
         public void writeData(CodedOutputStream outputStream, @Nonnull Boolean obj) throws IOException {
             outputStream.writeBoolNoTag(obj);
         }
@@ -715,11 +652,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         @Override
         public boolean isSupport(Class<?> type) {
             return String.class == type;
-        }
-
-        @Override
-        public int calSerializeDataSize(@Nonnull String obj) {
-            return CodedOutputStream.computeStringSizeNoTag(obj);
         }
 
         @Override
@@ -750,11 +682,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         @Override
         public boolean isSupport(Class<?> type) {
             return AbstractMessage.class.isAssignableFrom(type);
-        }
-
-        @Override
-        public int calSerializeDataSize(@Nonnull AbstractMessage obj) {
-            return 4 + CodedOutputStream.computeMessageSizeNoTag(obj);
         }
 
         @Override
@@ -798,12 +725,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
     private abstract class EnumCodec<T> implements Codec<T> {
 
         protected abstract int getNumber(T obj);
-
-        @Override
-        public int calSerializeDataSize(@Nonnull T obj) {
-            return CodedOutputStream.computeSInt32SizeNoTag(messageMapper.getMessageId(obj.getClass())) +
-                    CodedOutputStream.computeEnumSizeNoTag(getNumber(obj));
-        }
 
         @Override
         public void writeData(CodedOutputStream outputStream, @Nonnull T obj) throws IOException {
@@ -869,18 +790,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
 
     // 集合支持
     private abstract class CollectionCodec<T extends Collection> implements Codec<T> {
-
-        @Override
-        public int calSerializeDataSize(@Nonnull T obj) throws IOException {
-            int totalSize = CodedOutputStream.computeUInt32SizeNoTag(obj.size());
-            if (obj.size() == 0) {
-                return totalSize;
-            }
-            for (Object element : obj) {
-                totalSize += BinaryProtocolCodec.this.calSerializeSize(element);
-            }
-            return totalSize;
-        }
 
         @Override
         public void writeData(CodedOutputStream outputStream, @Nonnull T obj) throws IOException {
@@ -973,20 +882,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
 
         @SuppressWarnings("unchecked")
         @Override
-        public int calSerializeDataSize(@Nonnull Map obj) throws IOException {
-            int totalSize = CodedOutputStream.computeUInt32SizeNoTag(obj.size());
-            if (obj.size() == 0) {
-                return totalSize;
-            }
-            for (Map.Entry entry : ((Map<Object, Object>) obj).entrySet()) {
-                totalSize += BinaryProtocolCodec.this.calSerializeSize(entry.getKey());
-                totalSize += BinaryProtocolCodec.this.calSerializeSize(entry.getValue());
-            }
-            return totalSize;
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
         public void writeData(CodedOutputStream outputStream, @Nonnull Map obj) throws IOException {
             outputStream.writeUInt32NoTag(obj.size());
             if (obj.size() == 0) {
@@ -1038,11 +933,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
             return beanSerializerMap.containsKey(type);
         }
 
-        @Override
-        public int calSerializeDataSize(@Nonnull Object obj) throws IOException {
-            return 0;
-        }
-
         @SuppressWarnings({"unchecked", "rawTypes"})
         @Override
         public void writeData(CodedOutputStream outputStream, @Nonnull Object obj) throws IOException {
@@ -1080,45 +970,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         @Override
         public boolean isSupport(Class<?> type) {
             return reflectClassDescriptorMap.containsKey(type);
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public int calSerializeDataSize(@Nonnull Object obj) throws IOException {
-            ReflectClassDescriptor descriptor = reflectClassDescriptorMap.get(obj.getClass());
-            int size = CodedOutputStream.computeSInt32SizeNoTag(messageMapper.getMessageId(obj.getClass()));
-            size += CodedOutputStream.computeUInt32SizeNoTag(descriptor.filedNum());
-
-            try {
-                for (FieldDescriptor fieldDescriptor : descriptor.fieldDescriptorMapper.values()) {
-                    size += CodedOutputStream.computeUInt32SizeNoTag(fieldDescriptor.number);
-
-                    Object fieldValue = fieldDescriptor.field.get(obj);
-                    // nullable null也需要序列化
-                    if (null == fieldValue) {
-                        size += calTagSize(WireType.NULL);
-                        continue;
-                    }
-                    // 存在索引的
-                    if (fieldDescriptor.wireType != WireType.RUN_TIME) {
-                        size += calTagSize(fieldDescriptor.wireType);
-                        size += getCodec(fieldDescriptor.wireType).calSerializeDataSize(fieldValue);
-                        continue;
-                    }
-                    // 运行时才知道的类型
-                    final Class<?> type = fieldValue.getClass();
-                    for (Codec codec : codecMapper.values()) {
-                        if (codec.isSupport(type)) {
-                            size += calTagSize(codec.getWireType());
-                            size += codec.calSerializeDataSize(fieldValue);
-                            break;
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                throw new IOException(obj.getClass().getName(), e);
-            }
-            return size;
         }
 
         @Override
@@ -1235,11 +1086,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int calSerializeDataSize(@Nonnull byte[] obj) throws IOException {
-            return CodedOutputStream.computeUInt32SizeNoTag(obj.length) + obj.length;
-        }
-
-        @Override
         public void writeData(CodedOutputStream outputStream, @Nonnull byte[] obj) throws IOException {
             outputStream.writeUInt32NoTag(obj.length);
             if (obj.length > 0) {
@@ -1274,18 +1120,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         @Override
         public boolean isSupport(Class<?> type) {
             return type == int[].class;
-        }
-
-        @Override
-        public int calSerializeDataSize(@Nonnull int[] obj) throws IOException {
-            int totalSize = CodedOutputStream.computeUInt32SizeNoTag(obj.length);
-            if (obj.length == 0) {
-                return totalSize;
-            }
-            for (int value : obj) {
-                totalSize += CodedOutputStream.computeSInt32SizeNoTag(value);
-            }
-            return totalSize;
         }
 
         @Override
@@ -1333,18 +1167,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int calSerializeDataSize(@Nonnull short[] obj) throws IOException {
-            int totalSize = CodedOutputStream.computeUInt32SizeNoTag(obj.length);
-            if (obj.length == 0) {
-                return totalSize;
-            }
-            for (short value : obj) {
-                totalSize += CodedOutputStream.computeSInt32SizeNoTag(value);
-            }
-            return totalSize;
-        }
-
-        @Override
         public void writeData(CodedOutputStream outputStream, @Nonnull short[] obj) throws IOException {
             outputStream.writeUInt32NoTag(obj.length);
             if (obj.length == 0) {
@@ -1385,18 +1207,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         @Override
         public boolean isSupport(Class<?> type) {
             return type == long[].class;
-        }
-
-        @Override
-        public int calSerializeDataSize(@Nonnull long[] obj) throws IOException {
-            int totalSize = CodedOutputStream.computeUInt32SizeNoTag(obj.length);
-            if (obj.length == 0) {
-                return totalSize;
-            }
-            for (long value : obj) {
-                totalSize += CodedOutputStream.computeSInt64SizeNoTag(value);
-            }
-            return totalSize;
         }
 
         @Override
@@ -1444,18 +1254,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         }
 
         @Override
-        public int calSerializeDataSize(@Nonnull float[] obj) throws IOException {
-            int totalSize = CodedOutputStream.computeUInt32SizeNoTag(obj.length);
-            if (obj.length == 0) {
-                return totalSize;
-            }
-            for (float value : obj) {
-                totalSize += CodedOutputStream.computeFloatSizeNoTag(value);
-            }
-            return totalSize;
-        }
-
-        @Override
         public void writeData(CodedOutputStream outputStream, @Nonnull float[] obj) throws IOException {
             outputStream.writeUInt32NoTag(obj.length);
             if (obj.length == 0) {
@@ -1496,18 +1294,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         @Override
         public boolean isSupport(Class<?> type) {
             return type == double[].class;
-        }
-
-        @Override
-        public int calSerializeDataSize(@Nonnull double[] obj) throws IOException {
-            int totalSize = CodedOutputStream.computeUInt32SizeNoTag(obj.length);
-            if (obj.length == 0) {
-                return totalSize;
-            }
-            for (double value : obj) {
-                totalSize += CodedOutputStream.computeDoubleSizeNoTag(value);
-            }
-            return totalSize;
         }
 
         @Override
@@ -1552,18 +1338,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         @Override
         public boolean isSupport(Class<?> type) {
             return type == char[].class;
-        }
-
-        @Override
-        public int calSerializeDataSize(@Nonnull char[] obj) throws IOException {
-            int totalSize = CodedOutputStream.computeUInt32SizeNoTag(obj.length);
-            if (obj.length == 0) {
-                return totalSize;
-            }
-            for (char value : obj) {
-                totalSize += CodedOutputStream.computeUInt32SizeNoTag(value);
-            }
-            return totalSize;
         }
 
         @Override
