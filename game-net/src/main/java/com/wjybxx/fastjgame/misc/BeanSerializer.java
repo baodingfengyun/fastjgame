@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.misc;
 import java.io.IOException;
 
 /**
- * bean序列化工具类
+ * JavaBean序列化工具类超类，生成的代码实现该接口
  *
  * @param <T> 要序列化的bean的类型
  * @author wjybxx

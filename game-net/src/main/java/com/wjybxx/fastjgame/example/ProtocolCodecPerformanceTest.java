@@ -37,7 +37,8 @@ public class ProtocolCodecPerformanceTest {
 
     public static void main(String[] args) throws IOException {
         ByteBufAllocator byteBufAllocator = PooledByteBufAllocator.DEFAULT;
-        ExampleMessages.FullMessage msg = BinaryProtoCodecTest.newFullMessage();
+//        ExampleMessages.FullMessage msg = BinaryProtoCodecTest.newFullMessage();
+        final TestMsg msg = new TestMsg(32116503156L, 5461166513213L, 546541211616512L, false);
 
         JsonProtocolCodec jsonCodec = ExampleConstants.jsonCodec;
         BinaryProtocolCodec binaryCodec = ExampleConstants.binaryCodec;
@@ -50,13 +51,13 @@ public class ProtocolCodecPerformanceTest {
         System.out.println();
 
         // 预热
-        codecTest(jsonCodec, byteBufAllocator, msg, 1000);
-        codecTest(binaryCodec, byteBufAllocator, msg, 1000);
+        codecTest(jsonCodec, byteBufAllocator, msg, 1_0000);
+        codecTest(binaryCodec, byteBufAllocator, msg, 1_0000);
         System.out.println();
 
         // 开搞
-        codecTest(jsonCodec, byteBufAllocator, msg, 10_0000);
-        codecTest(binaryCodec, byteBufAllocator, msg, 10_0000);
+        codecTest(jsonCodec, byteBufAllocator, msg, 100_0000);
+        codecTest(binaryCodec, byteBufAllocator, msg, 100_0000);
     }
 
     private static void equalsTest(ProtocolCodec codec, ByteBufAllocator byteBufAllocator, Object msg) throws IOException {

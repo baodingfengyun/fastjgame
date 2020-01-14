@@ -19,6 +19,8 @@ package com.wjybxx.fastjgame.misc;
 import java.io.IOException;
 
 /**
+ * 普通JavaBean对象输入流
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2020/1/13

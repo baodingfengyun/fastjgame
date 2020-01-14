@@ -69,9 +69,7 @@ public class BinaryProtoCodecTest {
         fullMessage.setaDouble(2.0);
         fullMessage.setaBoolean(true);
 
-        ExampleMessages.Hello hello = new ExampleMessages.Hello();
-        hello.setId(65);
-        hello.setMessage("hello world.");
+        ExampleMessages.Hello hello = new ExampleMessages.Hello(65, "hello world.");
         fullMessage.setHello(hello);
 
         fullMessage.setName("wjybxx");

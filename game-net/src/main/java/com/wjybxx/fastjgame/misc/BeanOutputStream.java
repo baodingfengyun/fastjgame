@@ -20,7 +20,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 
 /**
- * 自定义输出流。
+ * 普通JavaBean对象输出流。
  * Q: 为什么必须使用包装类型？
  * A: 某些时刻需要使用null表示未赋值状态，使用特殊值是不好的。
  *
@@ -34,8 +34,9 @@ public interface BeanOutputStream {
     /**
      * 向输入流中写入一个对象
      *
-     * @param wireType value的缓存类型，如果该值为{@link WireType#RUN_TIME}，则需要动态解析。
+     * @param wireType   字段的缓存类型，如果该值为{@link WireType#RUN_TIME}，则需要动态解析。
+     * @param fieldValue 字段的值
      * @throws IOException error
      */
-    void writeObject(byte wireType, @Nullable Object value) throws IOException;
+    void writeObject(byte wireType, @Nullable Object fieldValue) throws IOException;
 }

@@ -20,6 +20,7 @@ import com.wjybxx.fastjgame.net.common.ProtocolCodec;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import com.wjybxx.fastjgame.utils.NetUtils;
 import io.netty.buffer.*;
+import org.apache.commons.lang3.ArrayUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -75,6 +76,9 @@ public class JsonProtocolCodec implements ProtocolCodec {
 
     @Override
     public Object readObject(ByteBuf data) throws IOException {
+        if (data.readableBytes() == 0) {
+            return null;
+        }
         final Class<?> messageClazz = messageMapper.getMessageClazz(data.readInt());
         final ByteBufInputStream inputStream = new ByteBufInputStream(data);
         return JsonUtils.getMapper().readValue((InputStream) inputStream, messageClazz);
@@ -106,7 +110,7 @@ public class JsonProtocolCodec implements ProtocolCodec {
     @Override
     public byte[] serializeToBytes(@Nullable Object obj) throws IOException {
         if (null == obj) {
-            return new byte[0];
+            return ArrayUtils.EMPTY_BYTE_ARRAY;
         }
         final byte[] localBuffer = LOCAL_BUFFER.get();
         ByteBuf cacheBuffer = Unpooled.wrappedBuffer(localBuffer);

@@ -23,7 +23,11 @@ import com.wjybxx.fastjgame.net.common.ProtocolCodec;
 import java.io.IOException;
 
 /**
- * 一个不太靠谱的序列化反序列化性能测试
+ * 一个不太靠谱的序列化反序列化性能测试。
+ * {@link TestMsg}测试结果大概是这样：
+ * 旧版基于反射100W次编解码： 490 - 510 ms
+ * 新版基于生成的代码100W次编解码： 330 - 350 ms
+ * 差距还是有的，当然这里并不一定是瓶颈，但是游戏IO占的比重还是蛮大的，优化它还是有意义的。
  *
  * @author wjybxx
  * @version 1.0
@@ -32,8 +36,9 @@ import java.io.IOException;
  */
 public class SerializePerformanceTest {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
         ExampleMessages.FullMessage msg = BinaryProtoCodecTest.newFullMessage();
+//        final TestMsg msg = new TestMsg(32116503156L, 5461166513213L, 546541211616512L, false);
 
         JsonProtocolCodec jsonCodec = ExampleConstants.jsonCodec;
         BinaryProtocolCodec binaryCodec = ExampleConstants.binaryCodec;
@@ -46,13 +51,15 @@ public class SerializePerformanceTest {
         System.out.println();
 
         // 预热
-        codecTest(jsonCodec, msg, 1000);
-        codecTest(binaryCodec, msg, 1000);
+        codecTest(jsonCodec, msg, 1_0000);
+        codecTest(binaryCodec, msg, 1_0000);
         System.out.println();
 
         // 开搞
-        codecTest(jsonCodec, msg, 10_0000);
-        codecTest(binaryCodec, msg, 10_0000);
+        codecTest(jsonCodec, msg, 100_0000);
+        codecTest(binaryCodec, msg, 100_0000);
+
+        Thread.sleep(1000);
     }
 
     private static void equalsTest(ProtocolCodec codec, Object msg) throws IOException {

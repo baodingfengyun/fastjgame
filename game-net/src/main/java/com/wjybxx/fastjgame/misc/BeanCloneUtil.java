@@ -21,6 +21,8 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 
 /**
+ * 对象克隆辅助类，用于{@link BeanSerializer}实现克隆。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2020/1/14

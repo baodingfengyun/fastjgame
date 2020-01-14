@@ -44,27 +44,29 @@ public final class ExampleMessages {
          * 消息id
          */
         @SerializableField(number = 1)
-        private long id;
+        private final long id;
         /**
          * 消息内容
          */
         @SerializableField(number = 2)
-        private String message;
+        private final String message;
+
+        private Hello() {
+            id = 0;
+            message = null;
+        }
+
+        public Hello(long id, String message) {
+            this.id = id;
+            this.message = message;
+        }
 
         public long getId() {
             return id;
         }
 
-        public void setId(long id) {
-            this.id = id;
-        }
-
         public String getMessage() {
             return message;
-        }
-
-        public void setMessage(String message) {
-            this.message = message;
         }
 
         @Override

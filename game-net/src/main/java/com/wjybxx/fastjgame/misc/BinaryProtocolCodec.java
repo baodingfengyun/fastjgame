@@ -57,10 +57,7 @@ import java.util.*;
  * 其实我心里还是支持用反射，尤其是在现在的架构下，解码操作可以在Netty的IO线程，也可以在NetEventLoop线程（NetEventLoop线程是非常清闲的），
  * 对应用层的性能降低很有限。
  * <p>
- * 自定义协议，不要使用原生带Tag的方法！
- * 突然发现...计算大小的方法不需要了..............
- * <p>
- * 编码格式：
+ * 自定义协议，编码格式：
  * <pre>
  *     	基本数据类型		tag + value
  *     	String          tag + length + bytes
@@ -68,7 +65,7 @@ import java.util.*;
  * 		Map      		tag + size + key,value,key,value.....         key/Value 编解码 -- 递归
  * 		Message  		tag + messageId + length + bytes
  * 	    JavaBean        tag + messageId + field,field....              field 构成: tag + data
- * 	    ReflectBean	    tag + messageId + fieldNum + field,field....       field 构成: number + tag + data
+ * 	    ReflectBean	    tag + messageId + fieldNum + field,field....   field 构成: number + tag + data
  * 	    枚举				tag + messageId + number
  * 	    基本类型数组      tag + size + value,value......
  * </pre>
@@ -205,7 +202,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         final byte[] localBuffer = LOCAL_BUFFER.get();
         final int readableBytes = data.readableBytes();
         data.readBytes(localBuffer, 0, readableBytes);
-        // 减少字节数组创建，即使使用输入流构造，其内部还是做了缓 - 而且编解码速度更快
+        // 减少字节数组创建，即使使用输入流构造，其内部还是做了缓存(创建了字节数组)
         CodedInputStream codedInputStream = CodedInputStream.newInstance(localBuffer, 0, readableBytes);
         // 真正读取数据
         return readObject(codedInputStream);
@@ -273,19 +270,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         return readObject(CodedInputStream.newInstance(data));
     }
 
-
     // ------------------------------------------- tag相关 ------------------------------------
-
-    /**
-     * 计算tag大小，也就是类型符号的大小，tag都是整数，使用uint32编解码
-     *
-     * @param wireType 类型
-     * @return 序列化后的大小。
-     */
-    private static int calTagSize(byte wireType) {
-        assert wireType >= 0;
-        return 1;
-    }
 
     /**
      * 写入一个tag
@@ -321,9 +306,9 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         /**
          * 要序列化的字段的映射
          */
-        private final NumericalEnumMapper<FieldDescriptor> fieldDescriptorMapper;
+        private final NumericalEnumMapper<ReflectFieldDescriptor> fieldDescriptorMapper;
 
-        private ReflectClassDescriptor(@Nonnull FieldDescriptor[] serializableFields, @Nonnull Constructor constructor) {
+        private ReflectClassDescriptor(@Nonnull ReflectFieldDescriptor[] serializableFields, @Nonnull Constructor constructor) {
             this.constructor = constructor;
             this.fieldDescriptorMapper = EnumUtils.mapping(serializableFields);
         }
@@ -333,7 +318,10 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         }
     }
 
-    private static class FieldDescriptor implements NumericalEnum {
+    /**
+     * 反射字段描述符
+     */
+    private static class ReflectFieldDescriptor implements NumericalEnum {
         /**
          * 用于反射赋值
          */
@@ -347,7 +335,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
          */
         private final byte wireType;
 
-        private FieldDescriptor(Field field, int number, byte wireType) {
+        private ReflectFieldDescriptor(Field field, int number, byte wireType) {
             this.field = field;
             this.number = number;
             this.wireType = wireType;
@@ -359,6 +347,9 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         }
     }
 
+    /**
+     * 枚举描述符 - 枚举出现概率较小，因此暂未为其生成代码
+     */
     private static class EnumDescriptor {
 
         /**
@@ -927,6 +918,9 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         }
     }
 
+    /**
+     * 普通javabean对象 - 通过生成的辅助类进行编解码
+     */
     private class NormalBeanCodec implements Codec<Object> {
 
         @Override
@@ -945,7 +939,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         @Override
         public Object readData(CodedInputStream inputStream) throws IOException {
             final int messageId = inputStream.readSInt32();
-            Class<?> messageClass = messageMapper.getMessageClazz(messageId);
+            final Class<?> messageClass = messageMapper.getMessageClazz(messageId);
             final BeanSerializer beanSerializer = beanSerializerMap.get(messageClass);
             return beanSerializer.read(new InputStreamImp(inputStream));
         }
@@ -963,8 +957,97 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         }
     }
 
+    private class OutputStreamImp implements BeanOutputStream {
+
+        private final CodedOutputStream outputStream;
+
+        private OutputStreamImp(CodedOutputStream outputStream) {
+            this.outputStream = outputStream;
+        }
+
+        @Override
+        public void writeObject(byte wireType, @Nullable Object fieldValue) throws IOException {
+            writeFieldValue(wireType, outputStream, fieldValue);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void writeFieldValue(byte wireType, @Nonnull CodedOutputStream outputStream, @Nullable Object fieldValue) throws IOException {
+        // null也需要写入，因为新对象的属性不一定也是null
+        if (fieldValue == null) {
+            writeTag(outputStream, WireType.NULL);
+            return;
+        }
+
+        // 索引为具体类型的字段
+        if (wireType != WireType.RUN_TIME) {
+            writeTag(outputStream, wireType);
+            getCodec(wireType).writeData(outputStream, fieldValue);
+            return;
+        }
+
+        // 运行时才知道的类型 - 极少走到这里
+        writeRuntimeType(outputStream, fieldValue);
+    }
+
+    private class InputStreamImp implements BeanInputStream {
+
+        private final CodedInputStream inputStream;
+
+        private InputStreamImp(CodedInputStream inputStream) {
+            this.inputStream = inputStream;
+        }
+
+
+        @Override
+        public <T> T readObject(byte wireType) throws IOException {
+            return readFieldValue(wireType, inputStream);
+        }
+    }
+
     /**
-     * 带注解的类的编解码器
+     * @param expectedWireType 期望的类型，用于校验
+     */
+    @SuppressWarnings("unchecked")
+    private <T> T readFieldValue(byte expectedWireType, CodedInputStream inputStream) throws IOException {
+        final byte tag = readTag(inputStream);
+        if (tag == WireType.NULL) {
+            return null;
+        }
+
+        // 类型校验
+        if (expectedWireType != WireType.RUN_TIME && expectedWireType != tag) {
+            throw new IOException("Incompatible wireType, expected: " + expectedWireType + ", but read: " + tag);
+        }
+
+        return (T) getCodec(tag).readData(inputStream);
+    }
+
+    private class BeanCloneUtilImp implements BeanCloneUtil {
+
+        @Override
+        public <T> T clone(byte wireType, @Nullable T value) throws IOException {
+            return cloneFieldValue(wireType, value);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> T cloneFieldValue(byte wireType, @Nullable T value) throws IOException {
+        if (value == null) {
+            return null;
+        }
+
+        // 索引为具体类型的字段
+        if (wireType != WireType.RUN_TIME) {
+            return (T) getCodec(wireType).clone(value);
+        }
+
+        // 运行时才知道的类型 - 极少走到这里
+        return (T) cloneRuntimeTypes(value);
+    }
+
+    /**
+     * 需要反射处理的bean对象
      */
     private class ReflectBeanCodec implements Codec<Object> {
 
@@ -979,68 +1062,40 @@ public class BinaryProtocolCodec implements ProtocolCodec {
             outputStream.writeSInt32NoTag(messageMapper.getMessageId(obj.getClass()));
             outputStream.writeUInt32NoTag(descriptor.filedNum());
             try {
-                for (FieldDescriptor fieldDescriptor : descriptor.fieldDescriptorMapper.values()) {
-                    writeField(outputStream, fieldDescriptor, fieldDescriptor.field.get(obj));
+                for (ReflectFieldDescriptor fieldDescriptor : descriptor.fieldDescriptorMapper.values()) {
+                    outputStream.writeUInt32NoTag(fieldDescriptor.number);
+                    writeFieldValue(fieldDescriptor.wireType, outputStream, fieldDescriptor.field.get(obj));
                 }
             } catch (Exception e) {
                 throw new IOException(obj.getClass().getName(), e);
             }
         }
 
-        // tag 和 number必须写入
-        @SuppressWarnings("unchecked")
-        private void writeField(CodedOutputStream outputStream, FieldDescriptor fieldDescriptor, Object fieldValue) throws IOException {
-            outputStream.writeUInt32NoTag(fieldDescriptor.number);
-
-            // null也需要写入，因为新对象的属性不一定也是null
-            if (fieldValue == null) {
-                writeTag(outputStream, WireType.NULL);
-                return;
-            }
-            // 存在索引的字段
-            if (fieldDescriptor.wireType != WireType.RUN_TIME) {
-                writeTag(outputStream, fieldDescriptor.wireType);
-                getCodec(fieldDescriptor.wireType).writeData(outputStream, fieldValue);
-                return;
-            }
-            // 运行时才知道的类型
-            final Class<?> type = fieldValue.getClass();
-            for (Codec codec : codecMapper.values()) {
-                if (codec.isSupport(type)) {
-                    writeTag(outputStream, codec.getWireType());
-                    codec.writeData(outputStream, fieldValue);
-                    return;
-                }
-            }
-            throw new IOException("unsupported class " + type.getName());
-        }
-
         @Override
         public Object readData(CodedInputStream inputStream) throws IOException {
             final int messageId = inputStream.readSInt32();
-            Class<?> messageClass = messageMapper.getMessageClazz(messageId);
-            ReflectClassDescriptor descriptor = reflectClassDescriptorMap.get(messageClass);
-
             final int fieldNum = inputStream.readUInt32();
-            int index = 1;
+
+            final Class<?> messageClass = messageMapper.getMessageClazz(messageId);
+            final ReflectClassDescriptor descriptor = reflectClassDescriptorMap.get(messageClass);
+
+            int fieldIndex = 1;
             try {
                 Object instance = descriptor.constructor.newInstance(ArrayUtils.EMPTY_OBJECT_ARRAY);
-                for (; index <= fieldNum; index++) {
+                for (; fieldIndex <= fieldNum; fieldIndex++) {
                     int number = inputStream.readUInt32();
                     // 兼容性限定：可以少发过来字段，但是不能多发字段
-                    FieldDescriptor fieldDescriptor = descriptor.fieldDescriptorMapper.forNumber(number);
+                    ReflectFieldDescriptor fieldDescriptor = descriptor.fieldDescriptorMapper.forNumber(number);
                     if (null == fieldDescriptor) {
                         throw new IOException("Incompatible message, field : " + number + " not found");
                     }
 
-                    int wireType = readTag(inputStream);
-                    final Object fieldValue = wireType == WireType.NULL ? null : getCodec(wireType).readData(inputStream);
-                    // null也需要赋值，默认值不一定是null
+                    final Object fieldValue = readFieldValue(fieldDescriptor.wireType, inputStream);
                     fieldDescriptor.field.set(instance, fieldValue);
                 }
                 return instance;
             } catch (Exception e) {
-                throw new IOException(messageClass.getName() + ", fieldNumber " + index, e);
+                throw new IOException(messageClass.getName() + ", fieldIndex " + fieldIndex, e);
             }
         }
 
@@ -1049,27 +1104,15 @@ public class BinaryProtocolCodec implements ProtocolCodec {
             return WireType.REFLECT_BEAN;
         }
 
-        @SuppressWarnings("unchecked")
         @Override
         public Object clone(@Nonnull Object obj) throws IOException {
             ReflectClassDescriptor descriptor = reflectClassDescriptorMap.get(obj.getClass());
             try {
                 Object instance = descriptor.constructor.newInstance(ArrayUtils.EMPTY_OBJECT_ARRAY);
-                for (FieldDescriptor fieldDescriptor : descriptor.fieldDescriptorMapper.values()) {
+                for (ReflectFieldDescriptor fieldDescriptor : descriptor.fieldDescriptorMapper.values()) {
                     // 逐个拷贝
                     final Object fieldValue = fieldDescriptor.field.get(obj);
-                    if (null == fieldValue) {
-                        // null
-                        fieldDescriptor.field.set(instance, null);
-                    } else if (fieldDescriptor.wireType != WireType.RUN_TIME) {
-                        // 存在类型缓存
-                        @SuppressWarnings("unchecked") final Object newValue = getCodec(fieldDescriptor.wireType).clone(fieldValue);
-                        fieldDescriptor.field.set(instance, newValue);
-                    } else {
-                        // 运行时类型
-                        final Object newValue = cloneObject(fieldValue);
-                        fieldDescriptor.field.set(instance, newValue);
-                    }
+                    fieldDescriptor.field.set(instance, cloneFieldValue(fieldDescriptor.wireType, fieldValue));
                 }
                 return instance;
             } catch (Exception e) {
@@ -1378,76 +1421,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         }
     }
 
-    // --------------------------------------------------------------javaBean处理 -----------------------------------------------
-    private class InputStreamImp implements BeanInputStream {
-
-        private final CodedInputStream inputStream;
-
-        private InputStreamImp(CodedInputStream inputStream) {
-            this.inputStream = inputStream;
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public <T> T readObject(byte wireType) throws IOException {
-            final byte tag = readTag(inputStream);
-            if (tag == WireType.NULL) {
-                return null;
-            }
-
-            if (wireType != WireType.RUN_TIME && wireType != tag) {
-                throw new IOException("Incompatible type, expected: " + wireType + ", but read: " + tag);
-            }
-
-            return (T) getCodec(tag).readData(inputStream);
-        }
-    }
-
-    private class OutputStreamImp implements BeanOutputStream {
-
-        private final CodedOutputStream outputStream;
-
-        private OutputStreamImp(CodedOutputStream outputStream) {
-            this.outputStream = outputStream;
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public void writeObject(byte wireType, @Nullable Object value) throws IOException {
-            if (value == null) {
-                writeTag(outputStream, WireType.NULL);
-                return;
-            }
-
-            if (wireType != WireType.RUN_TIME) {
-                writeTag(outputStream, wireType);
-                getCodec(wireType).writeData(outputStream, value);
-                return;
-            }
-
-            // 极少走到这里
-            writeRuntimeType(outputStream, value);
-        }
-    }
-
-    private class BeanCloneUtilImp implements BeanCloneUtil {
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public <T> T clone(byte wireType, @Nullable T value) throws IOException {
-            if (value == null) {
-                return null;
-            }
-
-            if (wireType != WireType.RUN_TIME) {
-                return (T) getCodec(wireType).clone(value);
-            }
-
-            // 极少走到这里
-            return (T) cloneRuntimeTypes(value);
-        }
-    }
-
     // ------------------------------------------------- 工厂方法 ------------------------------------------------------
     @Nonnull
     public static BinaryProtocolCodec newInstance(MessageMapper messageMapper) {
@@ -1490,46 +1463,47 @@ public class BinaryProtocolCodec implements ProtocolCodec {
 
     private static void indexClassDescriptor(Class<?> messageClazz,
                                              Map<Class<?>, BeanSerializer<?>> beanSerializerMap,
-                                             Map<Class<?>, ReflectClassDescriptor> classDescriptorMap) throws NoSuchMethodException {
+                                             Map<Class<?>, ReflectClassDescriptor> classDescriptorMap) throws Exception {
         try {
-            final Class<?> serializerClass = WireType.loadBeanSerializer(messageClazz);
-            BeanSerializer<?> serializer = (BeanSerializer<?>) serializerClass.getConstructor().newInstance();
-            beanSerializerMap.put(messageClazz, serializer);
-            return;
+            indexClassBySerializer(messageClazz, beanSerializerMap);
         } catch (ClassNotFoundException ignore) {
-
+            indexClassByReflect(messageClazz, classDescriptorMap);
         } catch (Throwable e) {
             ConcurrentUtils.rethrow(e);
         }
-
-        indexClassByReflect(classDescriptorMap, messageClazz);
     }
 
-    private static void indexClassByReflect(Map<Class<?>, ReflectClassDescriptor> classDescriptorMap, Class<?> messageClazz) throws NoSuchMethodException {
-        FieldDescriptor[] fieldDescriptors = Arrays.stream(messageClazz.getDeclaredFields())
+    private static void indexClassBySerializer(Class<?> messageClazz, Map<Class<?>, BeanSerializer<?>> beanSerializerMap) throws Exception {
+        final Class<?> serializerClass = WireType.loadBeanSerializer(messageClazz);
+        final BeanSerializer<?> serializer = (BeanSerializer<?>) serializerClass.getConstructor().newInstance();
+        beanSerializerMap.put(messageClazz, serializer);
+    }
+
+    private static void indexClassByReflect(Class<?> messageClazz, Map<Class<?>, ReflectClassDescriptor> classDescriptorMap) throws Exception {
+        final ReflectFieldDescriptor[] fieldDescriptors = Arrays.stream(messageClazz.getDeclaredFields())
                 .filter(field -> field.isAnnotationPresent(SerializableField.class))
                 .sorted(Comparator.comparingInt(field -> field.getAnnotation(SerializableField.class).number()))
                 .map(field -> {
                     // 取消检测
                     field.setAccessible(true);
                     SerializableField annotation = field.getAnnotation(SerializableField.class);
-                    return new FieldDescriptor(field, annotation.number(), WireType.findType(field.getType()));
+                    return new ReflectFieldDescriptor(field, annotation.number(), WireType.findType(field.getType()));
                 })
-                .toArray(FieldDescriptor[]::new);
+                .toArray(ReflectFieldDescriptor[]::new);
 
         // 必须提供无参构造方法
-        Constructor constructor = messageClazz.getDeclaredConstructor();
+        final Constructor constructor = messageClazz.getDeclaredConstructor();
         constructor.setAccessible(true);
 
-        ReflectClassDescriptor reflectClassDescriptor = new ReflectClassDescriptor(fieldDescriptors, constructor);
+        final ReflectClassDescriptor reflectClassDescriptor = new ReflectClassDescriptor(fieldDescriptors, constructor);
         classDescriptorMap.put(messageClazz, reflectClassDescriptor);
     }
 
     private static void indexEnumDescriptor(Map<Class<?>, EnumDescriptor> enumDescriptorMap, Class<?> messageClazz) throws NoSuchMethodException {
-        Method forNumberMethod = messageClazz.getMethod("forNumber", int.class);
+        final Method forNumberMethod = messageClazz.getMethod("forNumber", int.class);
         // 取消检测
         forNumberMethod.setAccessible(true);
-        EnumDescriptor enumDescriptor = new EnumDescriptor(forNumberMethod);
+        final EnumDescriptor enumDescriptor = new EnumDescriptor(forNumberMethod);
         enumDescriptorMap.put(messageClazz, enumDescriptor);
     }
 }
