@@ -24,7 +24,6 @@ import java.lang.annotation.Target;
 /**
  * 用该注解注解的字段表示是一个需要序列化的属性字段。
  * 注意：对于集合类型(List,Map,Set)声明类型必须是List,Map,Set，否则对方无法反序列化。
- * 本地使用时可以使用具体类型，但是对方解析时不看具体类型。
  *
  * @author wjybxx
  * @version 1.0

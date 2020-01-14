@@ -19,7 +19,6 @@ import com.wjybxx.fastjgame.annotation.SerializableClass;
 import com.wjybxx.fastjgame.annotation.SerializableField;
 import com.wjybxx.fastjgame.enummapper.NumericalEnum;
 import com.wjybxx.fastjgame.enummapper.NumericalEnumMapper;
-import com.wjybxx.fastjgame.eventbus.Subscribe;
 import com.wjybxx.fastjgame.utils.EnumUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -471,8 +470,4 @@ public final class ExampleMessages {
         }
     }
 
-    @Subscribe
-    public void onEvent(Hello hello) {
-        System.out.println(hello);
-    }
 }

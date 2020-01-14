@@ -37,8 +37,8 @@ import java.io.IOException;
 public class SerializePerformanceTest {
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        ExampleMessages.FullMessage msg = BinaryProtoCodecTest.newFullMessage();
-//        final TestMsg msg = new TestMsg(32116503156L, 5461166513213L, 546541211616512L, false);
+//        ExampleMessages.FullMessage msg = BinaryProtoCodecTest.newFullMessage();
+        final TestMsg msg = new TestMsg(32116503156L, 5461166513213L, 546541211616512L, false);
 
         JsonProtocolCodec jsonCodec = ExampleConstants.jsonCodec;
         BinaryProtocolCodec binaryCodec = ExampleConstants.binaryCodec;
@@ -51,8 +51,8 @@ public class SerializePerformanceTest {
         System.out.println();
 
         // 预热
-        codecTest(jsonCodec, msg, 1_0000);
-        codecTest(binaryCodec, msg, 1_0000);
+        codecTest(jsonCodec, msg, 10_0000);
+        codecTest(binaryCodec, msg, 10_0000);
         System.out.println();
 
         // 开搞
@@ -64,16 +64,16 @@ public class SerializePerformanceTest {
 
     private static void equalsTest(ProtocolCodec codec, Object msg) throws IOException {
         final String name = codec.getClass().getSimpleName();
-        byte[] byteBuf = codec.serializeToBytes(msg);
-        System.out.println(name + " encode result bytes = " + byteBuf.length);
+        final byte[] bytes = codec.serializeToBytes(msg);
+        System.out.println(name + " encode result bytes = " + bytes.length);
 
-        Object decodeMessage = codec.deserializeFromBytes(byteBuf);
+        final Object decodeMessage = codec.deserializeFromBytes(bytes);
         System.out.println(name + " codec equals result = " + msg.equals(decodeMessage));
     }
 
     private static void codecTest(ProtocolCodec codec, Object msg, int loopTimes) throws IOException {
         final String name = codec.getClass().getSimpleName();
-        long start = System.currentTimeMillis();
+        final long start = System.currentTimeMillis();
         for (int index = 0; index < loopTimes; index++) {
             byte[] byteBuf = codec.serializeToBytes(msg);
             Object decodeMessage = codec.deserializeFromBytes(byteBuf);
