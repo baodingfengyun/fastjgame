@@ -1639,7 +1639,7 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
     // 分割线
 
 
-    private class InputStreamImp implements GameInputStream {
+    private class InputStreamImp implements BeanInputStream {
 
         private final CodedInputStream inputStream;
 
@@ -1654,11 +1654,14 @@ public class ReflectBasedProtocolCodec implements ProtocolCodec {
             if (tag == WireType.NULL) {
                 return null;
             }
-            return (T) codecMapper.forNumber(wireType).readData(inputStream);
+            if (wireType != WireType.RUN_TIME) {
+                assert tag == wireType;
+            }
+            return (T) codecMapper.forNumber(tag).readData(inputStream);
         }
     }
 
-    private class OutputStreamImp implements GameOutputStream {
+    private class OutputStreamImp implements BeanOutputStream {
 
         private final CodedOutputStream outputStream;
 

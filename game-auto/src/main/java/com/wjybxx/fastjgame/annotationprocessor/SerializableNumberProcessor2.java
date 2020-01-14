@@ -46,8 +46,8 @@ import static com.wjybxx.fastjgame.utils.AutoUtils.getClassName;
 public class SerializableNumberProcessor2 extends AbstractProcessor {
 
     private static final String SERIALIZER_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.BeanSerializer";
-    private static final String OUTPUT_STREAM_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.GameOutputStream";
-    private static final String INPUT_STREAM_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.GameInputStream";
+    private static final String OUTPUT_STREAM_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.BeanOutputStream";
+    private static final String INPUT_STREAM_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.BeanInputStream";
     private static final String WIRETYPE_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.WireType";
 
     private static final String WRITE_METHOD_NAME = "write";
@@ -156,16 +156,15 @@ public class SerializableNumberProcessor2 extends AbstractProcessor {
             return;
         }
 
+        final TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(getSerializerClassName(typeElement));
+        final CodeBlock.Builder wireTypeStaticCodeBlock = CodeBlock.builder();
+
         final TypeName instanceTypeName = TypeName.get(typeUtils.erasure(typeElement.asType()));
         final MethodSpec.Builder writeMethodBuilder = getWriteMethodBuilder(instanceTypeName);
 
         final MethodSpec.Builder readMethodBuilder = getReadMethodBuilder(instanceTypeName);
         readMethodBuilder.addStatement("$T instance = new $T()", instanceTypeName, instanceTypeName);
 
-        final CodeBlock.Builder typeIndexesStaticCodeBlock = CodeBlock.builder();
-        typeIndexesStaticCodeBlock.add("typeIndexes = new byte[] {");
-
-        int index = 0;
         for (Element element : typeElement.getEnclosedElements()) {
             // 非成员属性
             if (element.getKind() != ElementKind.FIELD) {
@@ -180,31 +179,30 @@ public class SerializableNumberProcessor2 extends AbstractProcessor {
                 continue;
             }
 
-            TypeName fieldTypeName = ParameterizedTypeName.get(variableElement.asType());
-            if (fieldTypeName.isPrimitive()) {
-                fieldTypeName = fieldTypeName.box();
+            // value中，基本类型会被封装为包装类型，number是int类型
+            final Integer number = AutoUtils.getAnnotationValueNotDefault(first.get(), SerializableNumberProcessor.NUMBER_METHOD_NAME);
+
+            TypeName fieldRawTypeName = ParameterizedTypeName.get(typeUtils.erasure(variableElement.asType()));
+            if (fieldRawTypeName.isPrimitive()) {
+                fieldRawTypeName = fieldRawTypeName.box();
             }
 
-            final String getterName = BeanUtils.getterMethodName(variableElement.getSimpleName().toString(), BeanUtils.isBoolean(fieldTypeName));
-            final String setterName = BeanUtils.setterMethodName(variableElement.getSimpleName().toString());
+            typeBuilder.addField(byte.class, "wireType" + number, Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL);
+            wireTypeStaticCodeBlock.addStatement("wireType$L = $T.$L($T.class)", number, wireTypeTypeName, FINDTYPE_METHOD_NAME, fieldRawTypeName);
 
-            typeIndexesStaticCodeBlock.add("$T.$L($T.class),\n", wireTypeTypeName, FINDTYPE_METHOD_NAME, fieldTypeName);
-            writeMethodBuilder.addStatement("outputStream.writeObject(typeIndexes[$L], instance.$L())", index, getterName);
-            readMethodBuilder.addStatement("instance.$L(inputStream.readObject(typeIndexes[$L]))", setterName, index);
+            final String getterName = BeanUtils.getterMethodName(variableElement.getSimpleName().toString(), BeanUtils.isBoolean(fieldRawTypeName));
+            final String setterName = BeanUtils.setterMethodName(variableElement.getSimpleName().toString(), BeanUtils.isBoolean(fieldRawTypeName));
 
-            index++;
+            writeMethodBuilder.addStatement("outputStream.writeObject(wireType$L, instance.$L())", number, getterName);
+            readMethodBuilder.addStatement("instance.$L(inputStream.readObject(wireType$L))", setterName, number);
         }
 
         readMethodBuilder.addStatement("return instance");
 
-        final TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(getSerializerClassName(typeElement))
-                .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+        typeBuilder.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                 .addAnnotation(AutoUtils.SUPPRESS_UNCHECKED_ANNOTATION)
                 .addAnnotation(processorInfoAnnotation)
-                // 类型索引及静态代码块
-                .addField(byte[].class, "typeIndexes", Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                .addStaticBlock(typeIndexesStaticCodeBlock.add("};\n").build())
-                // 读写方法
+                .addStaticBlock(wireTypeStaticCodeBlock.build())
                 .addMethod(writeMethodBuilder.build())
                 .addSuperinterface(TypeName.get(typeUtils.getDeclaredType(serializerTypeElement, typeUtils.erasure(typeElement.asType()))))
                 .addMethod(readMethodBuilder.build());
@@ -249,7 +247,7 @@ public class SerializableNumberProcessor2 extends AbstractProcessor {
                 return false;
             }
 
-            final String setterMethodName = BeanUtils.setterMethodName(variableElement.getSimpleName().toString());
+            final String setterMethodName = BeanUtils.setterMethodName(variableElement.getSimpleName().toString(), BeanUtils.isBoolean(fieldTypeName));
             final ExecutableElement setterMethod = AutoUtils.findMethodByName(typeElement, setterMethodName);
             if (null == setterMethod || setterMethod.getModifiers().contains(Modifier.PRIVATE)) {
                 return false;

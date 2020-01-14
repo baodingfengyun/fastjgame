@@ -32,11 +32,11 @@ public interface BeanSerializer<T> {
     /**
      * 将对象写入输出流
      */
-    void write(T instance, GameOutputStream outputStream) throws IOException;
+    void write(T instance, BeanOutputStream outputStream) throws IOException;
 
     /**
      * 从输入流中读取一个对象
      */
-    T read(GameInputStream inputStream) throws IOException;
+    T read(BeanInputStream inputStream) throws IOException;
 
 }

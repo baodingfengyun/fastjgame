@@ -91,6 +91,13 @@ public class BeanUtils {
     }
 
     /**
+     * 获取一个字段的setter方法名字
+     */
+    public static String setterMethodName(FieldSpec field) {
+        return setterMethodName(field.name, isBoolean(field.type));
+    }
+
+    /**
      * 获取getter方法的名字
      *
      * @param filedName 字段名字
@@ -98,12 +105,65 @@ public class BeanUtils {
      * @return 方法名
      */
     public static String getterMethodName(String filedName, boolean isBoolean) {
+        if (isFirstOrSecondCharUpperCase(filedName)) {
+            // 这里参数名一定不是is开头
+            // 前两个字符任意一个大写，则参数名直接拼在get/is后面
+            if (isBoolean) {
+                return "is" + filedName;
+            } else {
+                return "get" + filedName;
+            }
+        }
+        // 到这里前两个字符都是小写
         if (isBoolean) {
-            // bool类型，如果使用is开头，那么会产生些奇怪的问题
-            return filedName.startsWith("is") ? filedName : "is" + firstCharToUpperCase(filedName);
+            // is 还特殊
+            // 如果参数名以 is 开头，则直接返回，否则 is + 首字母大写
+            if (filedName.length() > 2 && filedName.startsWith("is")) {
+                return filedName;
+            } else {
+                return "is" + firstCharToUpperCase(filedName);
+            }
         } else {
             return "get" + firstCharToUpperCase(filedName);
         }
+    }
+
+    /**
+     * 获取setter方法的名字
+     *
+     * @param filedName 字段名字
+     * @return 方法名
+     */
+    public static String setterMethodName(String filedName, boolean isBoolean) {
+        if (isFirstOrSecondCharUpperCase(filedName)) {
+            // 这里参数名一定不是is开头
+            // 前两个字符任意一个大写，则参数名直接拼在set后面
+            return "set" + filedName;
+
+        }
+        // 到这里前两个字符都是小写 - is 还特殊。
+        if (isBoolean) {
+            if (filedName.length() > 2 && filedName.startsWith("is")) {
+                return "set" + firstCharToUpperCase(filedName.substring(2));
+            } else {
+                return "set" + firstCharToUpperCase(filedName);
+            }
+        } else {
+            return "set" + firstCharToUpperCase(filedName);
+        }
+    }
+
+    /**
+     * 查询名字的第一个或第二个字符是否是大写
+     */
+    private static boolean isFirstOrSecondCharUpperCase(String name) {
+        if (name.length() > 0 && Character.isUpperCase(name.charAt(0))) {
+            return true;
+        }
+        if (name.length() > 1 && Character.isUpperCase(name.charAt(1))) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -120,23 +180,6 @@ public class BeanUtils {
             return true;
         }
         return false;
-    }
-
-    /**
-     * 获取一个字段的setter方法名字
-     */
-    public static String setterMethodName(FieldSpec field) {
-        return setterMethodName(field.name);
-    }
-
-    /**
-     * 获取setter方法的名字
-     *
-     * @param filedName 字段名字
-     * @return 方法名
-     */
-    public static String setterMethodName(String filedName) {
-        return "set" + firstCharToUpperCase(filedName);
     }
 
     /**
@@ -161,7 +204,7 @@ public class BeanUtils {
      * @return setter方法
      */
     public static MethodSpec createSetter(FieldSpec field) {
-        final String methodName = setterMethodName(field.name);
+        final String methodName = setterMethodName(field.name, isBoolean(field.type));
         return MethodSpec.methodBuilder(methodName)
                 .addModifiers(Modifier.PUBLIC)
                 .returns(field.type)

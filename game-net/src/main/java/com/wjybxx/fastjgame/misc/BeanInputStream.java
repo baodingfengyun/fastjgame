@@ -24,7 +24,7 @@ import java.io.IOException;
  * date - 2020/1/13
  * github - https://github.com/hl845740757
  */
-public interface GameInputStream {
+public interface BeanInputStream {
 
     <T> T readObject(byte wireType) throws IOException;
 }

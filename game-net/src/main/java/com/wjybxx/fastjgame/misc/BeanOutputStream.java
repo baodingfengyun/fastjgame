@@ -29,7 +29,7 @@ import java.io.IOException;
  * date - 2020/1/13
  * github - https://github.com/hl845740757
  */
-public interface GameOutputStream {
+public interface BeanOutputStream {
 
     void writeObject(byte wireType, @Nullable Object value) throws IOException;
 }
