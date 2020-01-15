@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.example;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupBuilder;
 import com.wjybxx.fastjgame.misc.BinaryProtocolCodec;
+import com.wjybxx.fastjgame.misc.HashMessageMappingStrategy;
 import com.wjybxx.fastjgame.misc.JsonProtocolCodec;
 import com.wjybxx.fastjgame.misc.MessageMapper;
 
@@ -36,7 +37,7 @@ public final class ExampleConstants {
     /**
      * 测试用例使用的codec
      */
-    public static final MessageMapper messageMapper = MessageMapper.newInstance(new ExampleHashMappingStrategy());
+    public static final MessageMapper messageMapper = MessageMapper.newInstance(new HashMessageMappingStrategy("com.wjybxx.fastjgame"));
     public static final JsonProtocolCodec jsonCodec = new JsonProtocolCodec(messageMapper);
     public static final BinaryProtocolCodec binaryCodec = BinaryProtocolCodec.newInstance(messageMapper);
 

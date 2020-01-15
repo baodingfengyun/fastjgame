@@ -119,10 +119,10 @@ public class EnumUtils {
      * @param <T>    枚举类型
      * @return unmodifiable
      */
-    @SuppressWarnings("unchecked")
     public static <T extends NumericalEnum> NumericalEnumMapper<T> mapping(T[] values) {
         if (values.length == 0) {
-            return (NumericalEnumMapper<T>) EmptyMapper.INSTANCE;
+            @SuppressWarnings("unchecked") final NumericalEnumMapper<T> mapper = (NumericalEnumMapper<T>) EmptyMapper.INSTANCE;
+            return mapper;
         }
 
         // 存在一定的浪费，判定重复用

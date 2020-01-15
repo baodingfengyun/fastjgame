@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.annotation.EventLoopSingleton;
-import com.wjybxx.fastjgame.misc.MessageHashMappingStrategy;
+import com.wjybxx.fastjgame.misc.HashMessageMappingStrategy;
 import com.wjybxx.fastjgame.misc.MessageMapper;
 import com.wjybxx.fastjgame.misc.MessageMappingStrategy;
 import com.wjybxx.fastjgame.misc.BinaryProtocolCodec;
@@ -42,7 +42,7 @@ import java.util.Map;
 public final class ProtocolCodecMgr {
 
     // 进程内共用数据，不必每个实例一份儿
-    private static final MessageMapper INNER_MESSAGE_MAPPER = MessageMapper.newInstance(new MessageHashMappingStrategy());
+    private static final MessageMapper INNER_MESSAGE_MAPPER = MessageMapper.newInstance(new HashMessageMappingStrategy("com.wjybxx.fastjgame"));
     private static final ProtocolCodec INNER_PROTOCOL_CODEC = BinaryProtocolCodec.newInstance(INNER_MESSAGE_MAPPER);
 
     private final Map<String, ProtocolCodec> codecMapper = new HashMap<>();

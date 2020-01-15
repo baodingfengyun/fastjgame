@@ -20,8 +20,7 @@ package com.wjybxx.fastjgame.misc;
 import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.ProtocolMessageEnum;
 import com.wjybxx.fastjgame.annotation.SerializableClass;
-import com.wjybxx.fastjgame.annotationprocessor.SerializableNumberProcessor;
-import com.wjybxx.fastjgame.enummapper.NumericalEnum;
+import com.wjybxx.fastjgame.annotationprocessor.SerializableClassProcessor;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -85,20 +84,14 @@ public class WireType {
     public static final byte STRING = 10;
 
     /**
-     * protobuf LENGTH_DELIMITED
+     * protobuf的Message LENGTH_DELIMITED
      */
-    public static final byte MESSAGE = 11;
-
+    public static final byte PROTO_MESSAGE = 11;
     /**
      * protoBuf的枚举
      */
     public static final byte PROTO_ENUM = 12;
-    /**
-     * 枚举支持，自定义枚举必须实现{@link NumericalEnum}接口，
-     * 且必须定义 forNumber(int) 获取枚举值的静态方法，以使得和protoBuf一样解析。
-     * 拆分为两个枚举是为了避免编码时的反射调用。
-     */
-    public static final byte NUMBER_ENUM = 13;
+
 
     // -- 基本集合，注意：在rpc方法中时不要使用具体类型，请使用顶层接口类型 List/Set/Map，否则可能调用失败。
     /**
@@ -195,15 +188,12 @@ public class WireType {
         if (type == String.class) {
             return WireType.STRING;
         }
+
         // protoBuf
         if (AbstractMessage.class.isAssignableFrom(type)) {
-            return WireType.MESSAGE;
+            return WireType.PROTO_MESSAGE;
         }
 
-        // NumericalEnum枚举 -- 不一定真的是枚举
-        if (NumericalEnum.class.isAssignableFrom(type)) {
-            return WireType.NUMBER_ENUM;
-        }
         // protoBuf的枚举
         if (ProtocolMessageEnum.class.isAssignableFrom(type)) {
             return WireType.PROTO_ENUM;
@@ -267,7 +257,7 @@ public class WireType {
      * @throws ClassNotFoundException 不存在对应的辅助类时抛出该异常
      */
     public static Class<?> loadBeanSerializer(Class<?> messageClazz) throws ClassNotFoundException {
-        return Class.forName(SerializableNumberProcessor.getSerializerBinaryName(messageClazz));
+        return Class.forName(SerializableClassProcessor.getSerializerBinaryName(messageClazz));
     }
 
 }

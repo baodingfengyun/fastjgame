@@ -38,7 +38,8 @@ import java.util.Set;
 import static com.wjybxx.fastjgame.utils.AutoUtils.getClassName;
 
 /**
- * 分析{@code SerializableField#number()}是否重复，以及是否在 [0,65535之间]
+ * 1. 对于普通类：必须包含无参构造方法，且field注解的number必须在 0-65535之间
+ * 2. 对于枚举：必须实现 NumericalEnum 接口，且提供非private的forNumber方法
  *
  * @author wjybxx
  * @version 1.0
@@ -46,7 +47,7 @@ import static com.wjybxx.fastjgame.utils.AutoUtils.getClassName;
  * github - https://github.com/hl845740757
  */
 @AutoService(Processor.class)
-public class SerializableNumberProcessor extends AbstractProcessor {
+public class SerializableClassProcessor extends AbstractProcessor {
 
     // 使用这种方式可以脱离对utils，net包的依赖
     private static final String SERIALIZABLE_CLASS_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.SerializableClass";
@@ -60,12 +61,16 @@ public class SerializableNumberProcessor extends AbstractProcessor {
     private static final String CLONE_UTIL_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.BeanCloneUtil";
 
     private static final String NUMBER_METHOD_NAME = "number";
+
     private static final String FOR_NUMBER_METHOD_NAME = "forNumber";
+    private static final String GET_NUMBER_METHOD_NAME = "getNumber";
 
     private static final String WRITE_METHOD_NAME = "write";
     private static final String READ_METHOD_NAME = "read";
     private static final String CLONE_METHOD_NAME = "clone";
     private static final String FINDTYPE_METHOD_NAME = "findType";
+    private static final String WIRE_TYPE_INT = "WIRE_TYPE_INT";
+
 
     // 工具类
     private Messager messager;
@@ -229,7 +234,7 @@ public class SerializableNumberProcessor extends AbstractProcessor {
     private void checkForNumberMethod(TypeElement typeElement) {
         if (!isContainStaticForNumberMethod(typeElement)) {
             messager.printMessage(Diagnostic.Kind.ERROR,
-                    String.format("%s must contains 'static %s forNumber(int)' method, private is ok!", typeElement.getSimpleName(), typeElement.getSimpleName()),
+                    String.format("%s must contains a not private 'static %s forNumber(int)' method!", typeElement.getSimpleName(), typeElement.getSimpleName()),
                     typeElement);
         }
     }
@@ -241,11 +246,11 @@ public class SerializableNumberProcessor extends AbstractProcessor {
         return typeElement.getEnclosedElements().stream()
                 .filter(e -> e.getKind() == ElementKind.METHOD)
                 .map(e -> (ExecutableElement) e)
+                .filter(method -> !method.getModifiers().contains(Modifier.PRIVATE))
                 .filter(method -> method.getModifiers().contains(Modifier.STATIC))
                 .filter(method -> method.getSimpleName().toString().equals(FOR_NUMBER_METHOD_NAME))
                 .filter(method -> method.getParameters().size() == 1)
-                .filter(method -> method.getParameters().get(0).asType().getKind() == TypeKind.INT)
-                .anyMatch(method -> typeUtils.isSameType(method.getReturnType(), typeUtils.getDeclaredType(typeElement)));
+                .anyMatch(method -> method.getParameters().get(0).asType().getKind() == TypeKind.INT);
     }
 
     // ----------------------------------------------- 辅助类生成 -------------------------------------------
@@ -260,10 +265,6 @@ public class SerializableNumberProcessor extends AbstractProcessor {
         } else if (typeElement.getKind() == ElementKind.ENUM) {
             genEnumSerializer(typeElement);
         }
-    }
-
-    private void genEnumSerializer(TypeElement typeElement) {
-        // 现在还不是很有必要
     }
 
     private void tryGenClassSerializer(final TypeElement typeElement) {
@@ -316,6 +317,8 @@ public class SerializableNumberProcessor extends AbstractProcessor {
         return true;
     }
 
+    // ---------------------------------------------------------- javaBean代码生成 ---------------------------------------------------
+
     private void genClassSerializerImp(TypeElement typeElement) {
         final TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(getSerializerClassName(typeElement));
         final CodeBlock.Builder wireTypeStaticCodeBlock = CodeBlock.builder();
@@ -344,7 +347,7 @@ public class SerializableNumberProcessor extends AbstractProcessor {
             }
 
             // value中，基本类型会被封装为包装类型，number是int类型
-            final Integer number = AutoUtils.getAnnotationValueNotDefault(fieldAnnotation.get(), SerializableNumberProcessor.NUMBER_METHOD_NAME);
+            final Integer number = AutoUtils.getAnnotationValueNotDefault(fieldAnnotation.get(), SerializableClassProcessor.NUMBER_METHOD_NAME);
 
             TypeName fieldRawTypeName = ParameterizedTypeName.get(typeUtils.erasure(variableElement.asType()));
             if (fieldRawTypeName.isPrimitive()) {
@@ -415,6 +418,36 @@ public class SerializableNumberProcessor extends AbstractProcessor {
 
     private static String getSerializerName(String className) {
         return className + "Serializer";
+    }
+
+    // ---------------------------------------------------------- 枚举序列化生成 ---------------------------------------------------
+
+    private void genEnumSerializer(TypeElement typeElement) {
+        final TypeName instanceRawTypeName = TypeName.get(typeUtils.erasure(typeElement.asType()));
+
+        // 写入number即可 outputStream.writeObject(WireType.INT, instance.getNumber())
+        final MethodSpec.Builder writeMethodBuilder = newWriteMethodBuilder(instanceRawTypeName);
+        writeMethodBuilder.addStatement("outputStream.writeObject($L, instance.$L())", WIRE_TYPE_INT, GET_NUMBER_METHOD_NAME);
+
+        // 读取number即可 return A.forNumber(inputStream.readObject(WireType.INT))
+        final MethodSpec.Builder readMethodBuilder = newReadMethodBuilder(instanceRawTypeName);
+        readMethodBuilder.addStatement("return $T.$L(inputStream.readObject($L))", instanceRawTypeName, FOR_NUMBER_METHOD_NAME, WIRE_TYPE_INT);
+
+        // 枚举，直接返回对象
+        final MethodSpec.Builder cloneMethodBuilder = newCloneMethodBuilder(instanceRawTypeName);
+        cloneMethodBuilder.addStatement("return instance");
+
+        final TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(getSerializerClassName(typeElement));
+        typeBuilder.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                .addAnnotation(AutoUtils.SUPPRESS_UNCHECKED_ANNOTATION)
+                .addAnnotation(processorInfoAnnotation)
+                .addSuperinterface(TypeName.get(typeUtils.getDeclaredType(serializerTypeElement, typeUtils.erasure(typeElement.asType()))))
+                .addMethod(writeMethodBuilder.build())
+                .addMethod(readMethodBuilder.build())
+                .addMethod(cloneMethodBuilder.build());
+
+        // 写入文件
+        AutoUtils.writeToFile(typeElement, typeBuilder, elementUtils, messager, filer);
     }
 
     // ---------------------------------------------------------- 分割线 ---------------------------------------------------

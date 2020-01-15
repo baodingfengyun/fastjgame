@@ -16,12 +16,12 @@
 
 package com.wjybxx.fastjgame.utils;
 
+import com.google.protobuf.Internal;
+import com.google.protobuf.Message;
 import com.google.protobuf.Parser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.google.protobuf.ProtocolMessageEnum;
 
 import javax.annotation.Nonnull;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Objects;
 
@@ -35,8 +35,6 @@ import java.util.Objects;
  */
 public class ProtoUtils {
 
-    private static final Logger logger = LoggerFactory.getLogger(ProtoUtils.class);
-
     /**
      * 寻找protoBuf消息的parser对象
      * 优先尝试protoBuf 3.x版本
@@ -45,27 +43,25 @@ public class ProtoUtils {
      * @param clazz protoBuffer class
      * @return parser
      */
-    @SuppressWarnings("unchecked")
-    public static <T> Parser<T> findParser(@Nonnull Class<T> clazz) {
+    public static Parser<?> findParser(@Nonnull Class<? extends Message> clazz) {
         Objects.requireNonNull(clazz);
         try {
-            // protoBuf3获取parser的静态方法 parser();
-            Method method = clazz.getDeclaredMethod("parser");
-            if (null != method) {
-                method.setAccessible(true);
-                return (Parser<T>) method.invoke(null);
-            }
-        } catch (Exception ignore) {
-            logger.info("not protoBuf 3.x");
+            final Method method = clazz.getDeclaredMethod("getDefaultInstance");
+            method.setAccessible(true);
+            final Message instance = (Message) method.invoke(null);
+            return instance.getParserForType();
+        } catch (Exception e) {
+            throw new IllegalArgumentException("bad class " + clazz.getName(), e);
         }
+    }
+
+    public static Internal.EnumLiteMap<?> findMapper(@Nonnull Class<? extends ProtocolMessageEnum> clazz) {
         try {
-            // proto2 静态parser域,public的
-            Field field = clazz.getDeclaredField("PARSER");
-            field.setAccessible(true);
-            return (Parser<T>) field.get(null);
-        } catch (Exception ignore) {
-            logger.info("not protoBuf 2.x");
+            final Method method = clazz.getDeclaredMethod("internalGetValueMap");
+            method.setAccessible(true);
+            return (Internal.EnumLiteMap<?>) method.invoke(null);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("bad class " + clazz.getName(), e);
         }
-        throw new IllegalArgumentException("bad class " + clazz.getName());
     }
 }

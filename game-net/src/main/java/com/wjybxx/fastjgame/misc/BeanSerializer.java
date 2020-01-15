@@ -30,6 +30,12 @@ import java.io.IOException;
 public interface BeanSerializer<T> {
 
     /**
+     * 整形值对应的编码类型
+     * (定义在这里方便生成的代码使用，减少依赖)
+     */
+    byte WIRE_TYPE_INT = WireType.INT;
+
+    /**
      * 将对象写入输出流
      */
     void write(T instance, BeanOutputStream outputStream) throws IOException;

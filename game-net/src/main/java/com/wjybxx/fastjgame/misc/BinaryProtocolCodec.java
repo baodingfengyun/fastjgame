@@ -34,7 +34,6 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.*;
 
 /**
@@ -84,17 +83,17 @@ public class BinaryProtocolCodec implements ProtocolCodec {
      */
     private final Map<Class<?>, Parser<?>> parserMap;
     /**
-     * 静态代码工具类负责解析的对象
+     * proto enum 解析方法
+     */
+    private final Map<Class<?>, ProtoEnumDescriptor> protoEnumDescriptorMap;
+    /**
+     * 静态代码工具类负责解析的对象(javabean 和 自定义枚举)
      */
     private final Map<Class<?>, BeanSerializer<?>> beanSerializerMap;
     /**
      * 需要反射解析的对象
      */
     private final Map<Class<?>, ReflectClassDescriptor> reflectClassDescriptorMap;
-    /**
-     * 枚举解析方法
-     */
-    private final Map<Class<?>, EnumDescriptor> enumDescriptorMap;
     /**
      * 所有codec映射
      */
@@ -108,12 +107,12 @@ public class BinaryProtocolCodec implements ProtocolCodec {
                                 Map<Class<?>, Parser<?>> parserMap,
                                 Map<Class<?>, BeanSerializer<?>> beanSerializerMap,
                                 Map<Class<?>, ReflectClassDescriptor> reflectClassDescriptorMap,
-                                Map<Class<?>, EnumDescriptor> enumDescriptorMap) {
+                                Map<Class<?>, ProtoEnumDescriptor> protoEnumDescriptorMap) {
         this.messageMapper = messageMapper;
         this.parserMap = parserMap;
+        this.protoEnumDescriptorMap = protoEnumDescriptorMap;
         this.beanSerializerMap = beanSerializerMap;
         this.reflectClassDescriptorMap = reflectClassDescriptorMap;
-        this.enumDescriptorMap = enumDescriptorMap;
         this.beanCloneUtil = new BeanCloneUtilImp();
 
         codecMapper = EnumUtils.mapping(initValues());
@@ -141,7 +140,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
 
                 // 枚举
                 new ProtoEnumCodec(),
-                new NumericalEnumCodec(),
 
                 new BoolCodec(),
                 new ByteCodec(),
@@ -344,17 +342,14 @@ public class BinaryProtocolCodec implements ProtocolCodec {
     }
 
     /**
-     * 枚举描述符 - 枚举出现概率较小，因此暂未为其生成代码
+     * protobuf枚举描述符
      */
-    private static class EnumDescriptor {
+    private static class ProtoEnumDescriptor {
 
-        /**
-         * 解析方法
-         */
-        private final Method forNumberMethod;
+        private final Internal.EnumLiteMap<?> mapper;
 
-        private EnumDescriptor(Method forNumberMethod) {
-            this.forNumberMethod = forNumberMethod;
+        private ProtoEnumDescriptor(Internal.EnumLiteMap<?> mapper) {
+            this.mapper = mapper;
         }
     }
 
@@ -437,8 +432,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
             return obj;
         }
     }
-
-    // -------------------------------------------- int32 -----------------------------------------------
 
     private static abstract class Int32Codec<T extends Number> implements Codec<T> {
 
@@ -701,7 +694,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
 
         @Override
         public byte getWireType() {
-            return WireType.MESSAGE;
+            return WireType.PROTO_MESSAGE;
         }
 
         @Override
@@ -710,36 +703,8 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         }
     }
 
-    private abstract class EnumCodec<T> implements Codec<T> {
 
-        protected abstract int getNumber(T obj);
-
-        @Override
-        public void writeData(CodedOutputStream outputStream, @Nonnull T obj) throws IOException {
-            outputStream.writeSInt32NoTag(messageMapper.getMessageId(obj.getClass()));
-            outputStream.writeEnumNoTag(getNumber(obj));
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public T readData(CodedInputStream inputStream) throws IOException {
-            int messageId = inputStream.readSInt32();
-            int number = inputStream.readEnum();
-            Class<?> enumClass = messageMapper.getMessageClazz(messageId);
-            try {
-                return (T) enumDescriptorMap.get(enumClass).forNumberMethod.invoke(null, number);
-            } catch (Exception e) {
-                throw new IOException(enumClass.getName(), e);
-            }
-        }
-
-        @Override
-        public T clone(@Nonnull T obj) {
-            return obj;
-        }
-    }
-
-    private class ProtoEnumCodec extends EnumCodec<ProtocolMessageEnum> {
+    private class ProtoEnumCodec implements Codec<ProtocolMessageEnum> {
 
         @Override
         public boolean isSupport(Class<?> type) {
@@ -747,31 +712,30 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         }
 
         @Override
+        public void writeData(CodedOutputStream outputStream, @Nonnull ProtocolMessageEnum obj) throws IOException {
+            outputStream.writeSInt32NoTag(messageMapper.getMessageId(obj.getClass()));
+            outputStream.writeEnumNoTag(obj.getNumber());
+        }
+
+        @Override
+        public ProtocolMessageEnum readData(CodedInputStream inputStream) throws IOException {
+            final int messageId = inputStream.readSInt32();
+            final int number = inputStream.readEnum();
+            final Class<?> enumClass = messageMapper.getMessageClazz(messageId);
+            try {
+                return (ProtocolMessageEnum) protoEnumDescriptorMap.get(enumClass).mapper.findValueByNumber(number);
+            } catch (Exception e) {
+                throw new IOException(enumClass.getName(), e);
+            }
+        }
+
+        public ProtocolMessageEnum clone(@Nonnull ProtocolMessageEnum obj) {
+            return obj;
+        }
+
+        @Override
         public byte getWireType() {
             return WireType.PROTO_ENUM;
-        }
-
-        @Override
-        protected int getNumber(ProtocolMessageEnum obj) {
-            return obj.getNumber();
-        }
-    }
-
-    private class NumericalEnumCodec extends EnumCodec<NumericalEnum> {
-
-        @Override
-        public boolean isSupport(Class<?> type) {
-            return NumericalEnum.class.isAssignableFrom(type);
-        }
-
-        @Override
-        public byte getWireType() {
-            return WireType.NUMBER_ENUM;
-        }
-
-        @Override
-        protected int getNumber(NumericalEnum obj) {
-            return obj.getNumber();
         }
 
     }
@@ -1423,35 +1387,32 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         final Map<Class<?>, Parser<?>> parserMap = new IdentityHashMap<>();
         final Map<Class<?>, BeanSerializer<?>> beanSerializerMap = new IdentityHashMap<>();
         final Map<Class<?>, ReflectClassDescriptor> reflectClassDescriptorMap = new IdentityHashMap<>();
-        final Map<Class<?>, EnumDescriptor> enumDescriptorMap = new IdentityHashMap<>();
+        final Map<Class<?>, ProtoEnumDescriptor> protoEnumDescriptorMap = new IdentityHashMap<>();
 
         try {
             // 使用反射一定要setAccessible为true，否则会拖慢性能。
             for (Class<?> messageClazz : messageMapper.getAllMessageClasses()) {
                 // protoBuf消息
-                if (AbstractMessage.class.isAssignableFrom(messageClazz)) {
-                    Parser<?> parser = ProtoUtils.findParser(messageClazz);
+                if (Message.class.isAssignableFrom(messageClazz)) {
+                    @SuppressWarnings("unchecked")
+                    Parser<?> parser = ProtoUtils.findParser((Class<? extends Message>) messageClazz);
                     parserMap.put(messageClazz, parser);
                     continue;
                 }
+
                 // protoBufEnum
                 if (ProtocolMessageEnum.class.isAssignableFrom(messageClazz)) {
-                    indexEnumDescriptor(enumDescriptorMap, messageClazz);
+                    @SuppressWarnings("unchecked") final Internal.EnumLiteMap<?> mapper = ProtoUtils.findMapper((Class<? extends ProtocolMessageEnum>) messageClazz);
+                    protoEnumDescriptorMap.put(messageClazz, new ProtoEnumDescriptor(mapper));
                     continue;
                 }
-                // NumericalEnum (自定义枚举或伪枚举)
-                if (NumericalEnum.class.isAssignableFrom(messageClazz)) {
-                    if (messageClazz.isAnnotationPresent(SerializableClass.class)) {
-                        indexEnumDescriptor(enumDescriptorMap, messageClazz);
-                    }
-                    continue;
-                }
-                // 带有注解的普通类 - 缓存所有的字段描述
+
+                // 带有注解的类（枚举和javabean通过生成的代码编解码，其它反射编解码）
                 if (messageClazz.isAnnotationPresent(SerializableClass.class)) {
                     indexClassDescriptor(messageClazz, beanSerializerMap, reflectClassDescriptorMap);
                 }
             }
-            return new BinaryProtocolCodec(messageMapper, parserMap, beanSerializerMap, reflectClassDescriptorMap, enumDescriptorMap);
+            return new BinaryProtocolCodec(messageMapper, parserMap, beanSerializerMap, reflectClassDescriptorMap, protoEnumDescriptorMap);
         } catch (Exception e) {
             return ConcurrentUtils.rethrow(e);
         }
@@ -1480,7 +1441,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
                 .filter(field -> field.isAnnotationPresent(SerializableField.class))
                 .sorted(Comparator.comparingInt(field -> field.getAnnotation(SerializableField.class).number()))
                 .map(field -> {
-                    // 取消检测
                     field.setAccessible(true);
                     SerializableField annotation = field.getAnnotation(SerializableField.class);
                     return new ReflectFieldDescriptor(field, annotation.number(), WireType.findType(field.getType()));
@@ -1495,11 +1455,4 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         classDescriptorMap.put(messageClazz, reflectClassDescriptor);
     }
 
-    private static void indexEnumDescriptor(Map<Class<?>, EnumDescriptor> enumDescriptorMap, Class<?> messageClazz) throws NoSuchMethodException {
-        final Method forNumberMethod = messageClazz.getMethod("forNumber", int.class);
-        // 取消检测
-        forNumberMethod.setAccessible(true);
-        final EnumDescriptor enumDescriptor = new EnumDescriptor(forNumberMethod);
-        enumDescriptorMap.put(messageClazz, enumDescriptor);
-    }
 }
