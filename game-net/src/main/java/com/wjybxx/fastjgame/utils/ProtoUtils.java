@@ -37,8 +37,6 @@ public class ProtoUtils {
 
     /**
      * 寻找protoBuf消息的parser对象
-     * 优先尝试protoBuf 3.x版本
-     * 其次尝试protoBuf 2.x版本
      *
      * @param clazz protoBuffer class
      * @return parser
@@ -55,6 +53,12 @@ public class ProtoUtils {
         }
     }
 
+    /**
+     * 寻找protobuf枚举的映射信息
+     *
+     * @param clazz protoBuffer enum
+     * @return map
+     */
     public static Internal.EnumLiteMap<?> findMapper(@Nonnull Class<? extends ProtocolMessageEnum> clazz) {
         try {
             final Method method = clazz.getDeclaredMethod("internalGetValueMap");

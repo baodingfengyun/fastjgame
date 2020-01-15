@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.misc.rank;
 
+import com.wjybxx.fastjgame.annotation.SerializableClass;
 import com.wjybxx.fastjgame.enummapper.NumericalEnum;
 import com.wjybxx.fastjgame.enummapper.NumericalEnumMapper;
 import com.wjybxx.fastjgame.utils.EnumUtils;
@@ -28,6 +29,7 @@ import com.wjybxx.fastjgame.utils.EnumUtils;
  * date - 2019/11/7
  * github - https://github.com/hl845740757
  */
+@SerializableClass
 public enum RankType implements NumericalEnum {
 
     /**

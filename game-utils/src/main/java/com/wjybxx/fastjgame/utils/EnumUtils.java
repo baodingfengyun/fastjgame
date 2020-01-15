@@ -16,11 +16,14 @@
 
 package com.wjybxx.fastjgame.utils;
 
-import com.wjybxx.fastjgame.enummapper.*;
+import com.wjybxx.fastjgame.enummapper.NumericalEnum;
+import com.wjybxx.fastjgame.enummapper.NumericalEnumMapper;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.function.ToIntFunction;
 
 /**
@@ -125,23 +128,161 @@ public class EnumUtils {
             return mapper;
         }
 
-        // 存在一定的浪费，判定重复用
+        // 结果不一定用得上，存在一定的浪费，但必须检测重复
         final Int2ObjectMap<T> result = new Int2ObjectOpenHashMap<>(values.length);
-        int minNumber = values[0].getNumber();
-        int maxNumber = values[0].getNumber();
-
         for (T t : values) {
-            FastCollectionsUtils.requireNotContains(result, t.getNumber(), "number");
+            if (result.containsKey(t.getNumber())) {
+                throw new IllegalArgumentException(t.getClass().getSimpleName() + " number:" + t.getNumber() + " is duplicate");
+            }
             result.put(t.getNumber(), t);
-
-            minNumber = Math.min(minNumber, t.getNumber());
-            maxNumber = Math.max(maxNumber, t.getNumber());
         }
 
-        if (ArrayBasedMapper.available(minNumber, maxNumber, values.length)) {
-            return new ArrayBasedMapper<>(values, minNumber, maxNumber);
+        final int minNumber = Arrays.stream(values)
+                .mapToInt(NumericalEnum::getNumber)
+                .min()
+                .getAsInt();
+
+        final int maxNumber = Arrays.stream(values)
+                .mapToInt(NumericalEnum::getNumber)
+                .max()
+                .getAsInt();
+
+        if (ArrayBasedEnumMapper.available(minNumber, maxNumber, values.length)) {
+            return new ArrayBasedEnumMapper<>(values, minNumber, maxNumber);
         } else {
             return new MapBasedMapper<>(values, result);
+        }
+    }
+
+    private static class EmptyMapper<T extends NumericalEnum> implements NumericalEnumMapper<T> {
+
+        private static final EmptyMapper<?> INSTANCE = new EmptyMapper<>();
+        private static final Object[] EMPTY_ARRAY = new Object[0];
+
+        private EmptyMapper() {
+        }
+
+        @Nullable
+        @Override
+        public T forNumber(int number) {
+            return null;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public T[] values() {
+            return (T[]) EMPTY_ARRAY;
+        }
+    }
+
+    /**
+     * 基于数组的映射，对于数量少的枚举效果好；
+     * (可能存在一定空间浪费，空间换时间，如果数字基本连续，那么空间利用率很好)
+     */
+    private static class ArrayBasedEnumMapper<T extends NumericalEnum> implements NumericalEnumMapper<T> {
+
+        /**
+         * 最小空间资源利用率，小于该值空间浪费太大
+         */
+        private static final float THRESHOLD = 0.7f;
+
+        private final T[] values;
+        private final T[] elements;
+
+        private final int minNumber;
+        private final int maxNumber;
+
+        /**
+         * new instance
+         * 构造对象之前必须调用{@link #available(int, int, int)}
+         *
+         * @param values    枚举的所有元素
+         * @param minNumber 枚举中的最小number
+         * @param maxNumber 枚举中的最大number
+         */
+        @SuppressWarnings("unchecked")
+        private ArrayBasedEnumMapper(T[] values, int minNumber, int maxNumber) {
+            assert available(minNumber, maxNumber, values.length);
+
+            this.values = values;
+            this.minNumber = minNumber;
+            this.maxNumber = maxNumber;
+
+            // 数组真实长度
+            int capacity = capacity(minNumber, maxNumber);
+            this.elements = (T[]) Array.newInstance(values.getClass().getComponentType(), capacity);
+
+            // 存入数组
+            for (T e : values) {
+                this.elements[toIndex(e.getNumber())] = e;
+            }
+        }
+
+        @Nullable
+        @Override
+        public T forNumber(int number) {
+            if (number < minNumber || number > maxNumber) {
+                return null;
+            }
+            return elements[toIndex(number)];
+        }
+
+        @Override
+        public T[] values() {
+            return values;
+        }
+
+        private int toIndex(int number) {
+            return number - minNumber;
+        }
+
+        /**
+         * 是否可以使用基于数组的映射
+         *
+         * @param minNumber num的最小值
+         * @param maxNumber num的最大值
+         * @param length    元素个数
+         * @return 如果空间利用率能达到期望的话，返回true。
+         */
+        private static boolean available(int minNumber, int maxNumber, int length) {
+            return length >= Math.ceil(capacity(minNumber, maxNumber) * THRESHOLD);
+        }
+
+        /**
+         * 计算需要的容量
+         *
+         * @param minNumber num的最小值
+         * @param maxNumber num的最大值
+         * @return capacity
+         */
+        private static int capacity(int minNumber, int maxNumber) {
+            return maxNumber - minNumber + 1;
+        }
+    }
+
+    /**
+     * 基于map的映射。
+     * 对于枚举值较多或数字取值范围散乱的枚举适合；
+     */
+    private static class MapBasedMapper<T extends NumericalEnum> implements NumericalEnumMapper<T> {
+
+        private final T[] values;
+        private final Int2ObjectMap<T> mapping;
+
+        private MapBasedMapper(T[] values, Int2ObjectMap<T> mapping) {
+            this.values = values;
+            this.mapping = mapping;
+        }
+
+        @Nullable
+        @Override
+        public T forNumber(int number) {
+            return mapping.get(number);
+        }
+
+        @Override
+        public T[] values() {
+            return values;
         }
     }
 }
