@@ -139,7 +139,7 @@ public class StartUp {
         String pid = getPid();
         VirtualMachine vm = VirtualMachine.attach(pid);
         // jar包必须放在可加载路径
-        vm.loadAgent("game-classreloadagent-1.0.jar");
+        vm.loadAgent("./game-libs/game-classreloadagent-1.0.jar");
 
         System.out.println("isRedefineClassesSupported: " + ClassReloadAgent.isRedefineClassesSupported());
         System.out.println("StartUp isModifiableClass: " + ClassReloadAgent.isModifiableClass(StartUp.class));
