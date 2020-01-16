@@ -19,10 +19,12 @@ import com.wjybxx.fastjgame.annotation.SerializableClass;
 import com.wjybxx.fastjgame.annotation.SerializableField;
 import com.wjybxx.fastjgame.enummapper.NumericalEnum;
 import com.wjybxx.fastjgame.enummapper.NumericalEnumMapper;
+import com.wjybxx.fastjgame.misc.*;
 import com.wjybxx.fastjgame.utils.EnumUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +40,36 @@ import java.util.Set;
  */
 public final class ExampleMessages {
 
+    // 它会被扫描到，并负责hello类的解析
+    public static class HelloSerializer implements BeanSerializer<Hello> {
+
+        public HelloSerializer() {
+            System.out.println("HelloSerializer constructor");
+        }
+
+        @Override
+        public void write(Hello instance, BeanOutputStream outputStream) throws IOException {
+            outputStream.writeObject(WireType.LONG, instance.id);
+            outputStream.writeObject(WireType.STRING, instance.message);
+        }
+
+        @Override
+        public Hello read(BeanInputStream inputStream) throws IOException {
+            final Long id = inputStream.readObject(WireType.LONG);
+            final String message = inputStream.readObject(WireType.STRING);
+            return new Hello(id, message);
+        }
+
+        @Override
+        public Hello clone(Hello instance, BeanCloneUtil util) throws IOException {
+            return new Hello(util.clone(WireType.LONG, instance.id), util.clone(WireType.STRING, instance.message));
+        }
+    }
+
+    /**
+     * 它不是一个标准的javabean，因此不能自动生成对应的编解码类。
+     * 我们可以手动写一个代替反射
+     */
     @SerializableClass
     public static class Hello {
         /**

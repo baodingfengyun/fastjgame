@@ -16,24 +16,24 @@
 
 package com.wjybxx.fastjgame.net.common;
 
-import com.wjybxx.fastjgame.annotation.SerializableClass;
-import com.wjybxx.fastjgame.annotation.SerializableField;
+import com.wjybxx.fastjgame.misc.*;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.IOException;
 
 /**
  * Rpc响应结果。
  * 注意：这是RPC调用的结果，一定不能使用 == 判断相等！！！
+ * {@link RpcResponseSerializer}负责解析该类
  *
  * @author wjybxx
- * @version 1.0
+ * @version 1.1
  * date - 2019/8/1
  * github - https://github.com/hl845740757
  */
-@SerializableClass
 public final class RpcResponse {
 
     // 这些常量仅仅是为了减少对象创建，但是你需要谨记：这是RPC调用的结果，一定不能使用 == 判断相等！！！
@@ -45,21 +45,13 @@ public final class RpcResponse {
     /**
      * 结果标识 - 错误码
      */
-    @SerializableField(number = 1)
     private final RpcErrorCode errorCode;
     /**
      * rpc响应结果。
      * 如果{@link #errorCode}为{@link RpcErrorCode#SUCCESS}，则body为对应的结果(null可能是个正常的结果)。
      * 否则body为对应的错误信息(String)(应该非null)。
      */
-    @SerializableField(number = 2)
     private final Object body;
-
-    // 反射创建对象
-    private RpcResponse() {
-        errorCode = null;
-        body = null;
-    }
 
     public RpcResponse(@Nonnull RpcErrorCode errorCode, @Nullable Object body) {
         this.errorCode = errorCode;
@@ -122,5 +114,29 @@ public final class RpcResponse {
                 "errorCode=" + errorCode +
                 ", body=" + body +
                 '}';
+    }
+
+    /**
+     * 负责编解码{@link RpcResponse}
+     */
+    private static class RpcResponseSerializer implements BeanSerializer<RpcResponse> {
+
+        @Override
+        public void write(RpcResponse instance, BeanOutputStream outputStream) throws IOException {
+            outputStream.writeObject(WireType.NORMAL_BEAN, instance.errorCode);
+            outputStream.writeObject(WireType.RUN_TIME, instance.body);
+        }
+
+        @Override
+        public RpcResponse read(BeanInputStream inputStream) throws IOException {
+            final RpcErrorCode errorCode = inputStream.readObject(WireType.NORMAL_BEAN);
+            final Object body = inputStream.readObject(WireType.RUN_TIME);
+            return new RpcResponse(errorCode, body);
+        }
+
+        @Override
+        public RpcResponse clone(RpcResponse instance, BeanCloneUtil util) throws IOException {
+            return new RpcResponse(instance.errorCode, util.clone(WireType.RUN_TIME, instance.body));
+        }
     }
 }

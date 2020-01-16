@@ -51,8 +51,8 @@ public class ProtocolCodecPerformanceTest {
         System.out.println();
 
         // 预热
-        codecTest(jsonCodec, byteBufAllocator, msg, 1_0000);
-        codecTest(binaryCodec, byteBufAllocator, msg, 1_0000);
+        codecTest(jsonCodec, byteBufAllocator, msg, 10_0000);
+        codecTest(binaryCodec, byteBufAllocator, msg, 10_0000);
         System.out.println();
 
         // 开搞

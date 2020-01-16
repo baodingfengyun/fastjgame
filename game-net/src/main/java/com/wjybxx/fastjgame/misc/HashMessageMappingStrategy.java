@@ -16,9 +16,6 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.google.protobuf.AbstractMessage;
-import com.google.protobuf.ProtocolMessageEnum;
-import com.wjybxx.fastjgame.annotation.SerializableClass;
 import com.wjybxx.fastjgame.utils.ClassScanner;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -52,7 +49,7 @@ public class HashMessageMappingStrategy implements MessageMappingStrategy {
     public Object2IntMap<Class<?>> mapping() throws Exception {
         final Set<Class<?>> allClass = ClassScanner.findClasses(packageName,
                 name -> true,
-                HashMessageMappingStrategy::isSerializable);
+                WireType::isSerializable);
 
         final Object2IntMap<Class<?>> messageClass2IdMap = new Object2IntOpenHashMap<>(allClass.size());
         for (Class<?> messageClass : allClass) {
@@ -60,12 +57,6 @@ public class HashMessageMappingStrategy implements MessageMappingStrategy {
         }
 
         return messageClass2IdMap;
-    }
-
-    public static boolean isSerializable(Class<?> clazz) {
-        return clazz.isAnnotationPresent(SerializableClass.class)
-                || AbstractMessage.class.isAssignableFrom(clazz)
-                || ProtocolMessageEnum.class.isAssignableFrom(clazz);
     }
 
     public static int getUniqueId(Class<?> messageClass) {

@@ -20,9 +20,13 @@ package com.wjybxx.fastjgame.misc;
 import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.ProtocolMessageEnum;
 import com.wjybxx.fastjgame.annotation.SerializableClass;
-import com.wjybxx.fastjgame.annotationprocessor.SerializableClassProcessor;
+import com.wjybxx.fastjgame.reflect.TypeParameterFinder;
+import com.wjybxx.fastjgame.utils.ClassScanner;
+import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,6 +43,40 @@ import java.util.Set;
  * github - https://github.com/hl845740757
  */
 public class WireType {
+
+    /**
+     * bean -> beanSerializer (自动生成的beanSerializer 或 手动实现的)
+     * 缓存起来，避免大量查找。
+     */
+    private static final Map<Class<?>, Class<? extends BeanSerializer<?>>> classBeanSerializerMap;
+
+    static {
+        final Set<Class<?>> allSerializerClass = ClassScanner.findClasses("com.wjybxx.fastjgame", name -> true, WireType::isBeanSerializer);
+        classBeanSerializerMap = new IdentityHashMap<>(allSerializerClass.size());
+
+        for (Class<?> clazz : allSerializerClass) {
+            try {
+                @SuppressWarnings("unchecked") final Class<? extends BeanSerializer<?>> serializerClass = (Class<? extends BeanSerializer<?>>) clazz;
+                final Class<?> beanClass = TypeParameterFinder.findTypeParameter(serializerClass, BeanSerializer.class, "T");
+
+                if (beanClass == Object.class) {
+                    throw new UnsupportedOperationException("BeanSerializer must declare type parameter");
+                }
+
+                if (classBeanSerializerMap.containsKey(beanClass)) {
+                    throw new UnsupportedOperationException(beanClass.getSimpleName() + " has more than one serializer");
+                }
+
+                classBeanSerializerMap.put(beanClass, serializerClass);
+            } catch (Exception e) {
+                ConcurrentUtils.rethrow(e);
+            }
+        }
+    }
+
+    private static boolean isBeanSerializer(Class<?> c) {
+        return c != BeanSerializer.class && BeanSerializer.class.isAssignableFrom(c);
+    }
 
     /**
      * rawByte
@@ -97,16 +135,20 @@ public class WireType {
     /**
      * List，解析时使用{@link java.util.ArrayList}，保持顺序
      */
-    public static final byte LIST = 14;
+    public static final byte LIST = 13;
     /**
      * Set，解析时使用{@link java.util.LinkedHashSet}，保持顺序
      */
-    public static final byte SET = 15;
+    public static final byte SET = 14;
     /**
      * Map，解析时使用{@link java.util.LinkedHashMap}，保持顺序
      */
-    public static final byte MAP = 16;
+    public static final byte MAP = 15;
 
+    /**
+     * 自定义数据块
+     */
+    public static final byte CHUNK = 16;
     /**
      * 带有{@link SerializableClass}注解，且有非private无参构造方法和对应的getter setter
      */
@@ -115,7 +157,6 @@ public class WireType {
      * 带有{@link SerializableClass}注解，但是无参构造方法是private，或没有对应的getter setter方法。
      */
     public static final byte REFLECT_BEAN = 18;
-
     /**
      * 动态类型 - 运行时才能确定的类型（它是标记类型）
      */
@@ -200,6 +241,7 @@ public class WireType {
         }
 
         // 常用集合支持
+        // List
         if (List.class.isAssignableFrom(type)) {
             return WireType.LIST;
         }
@@ -212,17 +254,12 @@ public class WireType {
             return WireType.MAP;
         }
 
-        // 自定义类型
-        if (type.isAnnotationPresent(SerializableClass.class)) {
-            try {
-                loadBeanSerializer(type);
-                return WireType.NORMAL_BEAN;
-            } catch (ClassNotFoundException ignore) {
-                return WireType.REFLECT_BEAN;
-            }
+        // CHUNK
+        if (type == Chunk.class) {
+            return WireType.CHUNK;
         }
+        // ---- 基本类型数组
 
-        // ----数组类型
         if (type == byte[].class) {
             return WireType.BYTE_ARRAY;
         }
@@ -245,19 +282,42 @@ public class WireType {
             return WireType.CHAR_ARRAY;
         }
 
-        // 动态类型
+        // Object
+        if (type == Object.class) {
+            return WireType.RUN_TIME;
+        }
+
+        // ---- 自定义数据类型需要放在最后检测，必须优先检测BeanSerializer
+        if (classBeanSerializerMap.containsKey(type)) {
+            return WireType.NORMAL_BEAN;
+        }
+        if (type.isAnnotationPresent(SerializableClass.class)) {
+            return WireType.REFLECT_BEAN;
+        }
+
+        // 一些接口，超类等等
         return WireType.RUN_TIME;
     }
 
     /**
-     * 加载消息类对应的序列化辅助类
+     * 获取消息类对应的序列化辅助类
      *
      * @param messageClazz 消息类
      * @return 序列化辅助类
-     * @throws ClassNotFoundException 不存在对应的辅助类时抛出该异常
      */
-    public static Class<?> loadBeanSerializer(Class<?> messageClazz) throws ClassNotFoundException {
-        return Class.forName(SerializableClassProcessor.getSerializerBinaryName(messageClazz));
+    @Nullable
+    @SuppressWarnings("unchecked")
+    public static <T> Class<? extends BeanSerializer<T>> getBeanSerializer(Class<T> messageClazz) {
+        return (Class<? extends BeanSerializer<T>>) classBeanSerializerMap.get(messageClazz);
     }
 
+    /**
+     * 判断一个类是否可以被序列化
+     */
+    public static boolean isSerializable(Class<?> messageClazz) {
+        return classBeanSerializerMap.containsKey(messageClazz)
+                || messageClazz.isAnnotationPresent(SerializableClass.class)
+                || AbstractMessage.class.isAssignableFrom(messageClazz)
+                || ProtocolMessageEnum.class.isAssignableFrom(messageClazz);
+    }
 }

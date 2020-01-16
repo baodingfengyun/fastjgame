@@ -63,6 +63,7 @@ import java.util.*;
  * 	    ReflectBean	    tag + messageId + fieldNum + field,field....   field 构成: number + tag + data
  * 	    枚举				tag + messageId + number
  * 	    基本类型数组      tag + size + value,value......
+ * 	    Chunk           tag + length + bytes
  * </pre>
  * 其中messageId用于确定一个唯一的类！也就是{@link MessageMapper}的重要作用。
  *
@@ -125,8 +126,8 @@ public class BinaryProtocolCodec implements ProtocolCodec {
                 new LongCodec(),
                 new FloatCodec(),
                 new DoubleCodec(),
-
                 new StringCodec(),
+
                 new MessageCodec(),
                 new NormalBeanCodec(),
                 new ReflectBeanCodec(),
@@ -135,11 +136,12 @@ public class BinaryProtocolCodec implements ProtocolCodec {
                 new MapCodec(),
                 new SetCodec(),
 
-                // 字节数组比较常见
-                new ByteArrayCodec(),
-
                 // 枚举
                 new ProtoEnumCodec(),
+
+                // 字节数组比较常见
+                new ByteArrayCodec(),
+                new ChunkCodec(),
 
                 new BoolCodec(),
                 new ByteCodec(),
@@ -1381,6 +1383,48 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         }
     }
 
+    private static class ChunkCodec implements Codec<Chunk> {
+
+        @Override
+        public boolean isSupport(Class<?> type) {
+            return type == Chunk.class;
+        }
+
+        @Override
+        public void writeData(CodedOutputStream outputStream, @Nonnull Chunk obj) throws IOException {
+            outputStream.writeUInt32NoTag(obj.getLength());
+            if (obj.getLength() > 0) {
+                outputStream.writeRawBytes(obj.getBuffer(), obj.getOffset(), obj.getLength());
+            }
+        }
+
+        @Override
+        public Chunk readData(CodedInputStream inputStream) throws IOException {
+            final int length = inputStream.readUInt32();
+            if (length == 0) {
+                return Chunk.EMPTY_CHUNK;
+            }
+            final byte[] buffer = inputStream.readRawBytes(length);
+            return Chunk.newInstance(buffer);
+        }
+
+        @Override
+        public byte getWireType() {
+            return WireType.CHUNK;
+        }
+
+        @Override
+        public Chunk clone(@Nonnull Chunk obj) throws IOException {
+            if (obj.getLength() == 0) {
+                return Chunk.EMPTY_CHUNK;
+            }
+
+            final byte[] result = new byte[obj.getLength()];
+            System.arraycopy(obj.getBuffer(), obj.getOffset(), result, 0, obj.getLength());
+            return Chunk.newInstance(result);
+        }
+    }
+
     // ------------------------------------------------- 工厂方法 ------------------------------------------------------
     @Nonnull
     public static BinaryProtocolCodec newInstance(MessageMapper messageMapper) {
@@ -1407,10 +1451,19 @@ public class BinaryProtocolCodec implements ProtocolCodec {
                     continue;
                 }
 
-                // 带有注解的类（枚举和javabean通过生成的代码编解码，其它反射编解码）
-                if (messageClazz.isAnnotationPresent(SerializableClass.class)) {
-                    indexClassDescriptor(messageClazz, beanSerializerMap, reflectClassDescriptorMap);
+                // 自定义枚举和Bean
+                // 尝试加载 BeanSerializer - 包括生成的和手写的代码
+                if (indexClassBySerializer(messageClazz, beanSerializerMap)) {
+                    continue;
                 }
+
+                // 带有注解的类，一定可以通过反射处理，但是要优先查找BeanSerializer
+                if (messageClazz.isAnnotationPresent(SerializableClass.class)) {
+                    indexClassByReflect(messageClazz, reflectClassDescriptorMap);
+                    continue;
+                }
+
+                throw new RuntimeException("unsupportted message " + messageClazz.getName());
             }
             return new BinaryProtocolCodec(messageMapper, parserMap, beanSerializerMap, reflectClassDescriptorMap, protoEnumDescriptorMap);
         } catch (Exception e) {
@@ -1418,25 +1471,19 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         }
     }
 
-    private static void indexClassDescriptor(Class<?> messageClazz,
-                                             Map<Class<?>, BeanSerializer<?>> beanSerializerMap,
-                                             Map<Class<?>, ReflectClassDescriptor> classDescriptorMap) throws Exception {
-        try {
-            indexClassBySerializer(messageClazz, beanSerializerMap);
-        } catch (ClassNotFoundException ignore) {
-            indexClassByReflect(messageClazz, classDescriptorMap);
-        } catch (Throwable e) {
-            ConcurrentUtils.rethrow(e);
+    private static boolean indexClassBySerializer(Class<?> messageClazz, Map<Class<?>, BeanSerializer<?>> beanSerializerMap) throws Exception {
+        final Class<? extends BeanSerializer<?>> serializerClass = WireType.getBeanSerializer(messageClazz);
+        if (serializerClass != null) {
+            final Constructor<? extends BeanSerializer<?>> noArgsConstructor = serializerClass.getDeclaredConstructor();
+            noArgsConstructor.setAccessible(true);
+            beanSerializerMap.put(messageClazz, noArgsConstructor.newInstance());
+            return true;
+        } else {
+            return false;
         }
     }
 
-    private static void indexClassBySerializer(Class<?> messageClazz, Map<Class<?>, BeanSerializer<?>> beanSerializerMap) throws Exception {
-        final Class<?> serializerClass = WireType.loadBeanSerializer(messageClazz);
-        final BeanSerializer<?> serializer = (BeanSerializer<?>) serializerClass.getConstructor().newInstance();
-        beanSerializerMap.put(messageClazz, serializer);
-    }
-
-    private static void indexClassByReflect(Class<?> messageClazz, Map<Class<?>, ReflectClassDescriptor> classDescriptorMap) throws Exception {
+    private static void indexClassByReflect(Class<?> messageClazz, Map<Class<?>, ReflectClassDescriptor> reflectClassDescriptorMap) throws Exception {
         final ReflectFieldDescriptor[] fieldDescriptors = Arrays.stream(messageClazz.getDeclaredFields())
                 .filter(field -> field.isAnnotationPresent(SerializableField.class))
                 .sorted(Comparator.comparingInt(field -> field.getAnnotation(SerializableField.class).number()))
@@ -1452,7 +1499,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         constructor.setAccessible(true);
 
         final ReflectClassDescriptor reflectClassDescriptor = new ReflectClassDescriptor(fieldDescriptors, constructor);
-        classDescriptorMap.put(messageClazz, reflectClassDescriptor);
+        reflectClassDescriptorMap.put(messageClazz, reflectClassDescriptor);
     }
 
 }
