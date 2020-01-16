@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.reflect;
 
-import com.wjybxx.fastjgame.annotation.Internal;
 import io.netty.handler.codec.http.HttpObject;
 
 import java.lang.reflect.*;
@@ -51,6 +50,7 @@ public class TypeParameterFinder {
 
     /**
      * 从instance所属的类开始，查找在superClazzOrInterfaced定义的泛型参数typeParamName的具体类型
+     * (该方法更安全)
      *
      * @param instance              实例对象
      * @param superClazzOrInterface 声明泛型参数typeParamName的类,class或interface
@@ -61,12 +61,12 @@ public class TypeParameterFinder {
     public static <T> Class<?> findTypeParameter(T instance, Class<? super T> superClazzOrInterface, String typeParamName) throws Exception {
         Objects.requireNonNull(instance, "instance");
         @SuppressWarnings("unchecked") final Class<? extends T> thisClass = (Class<? extends T>) instance.getClass();
-        return findTypeParameter(thisClass, superClazzOrInterface, typeParamName);
+        return findTypeParameterUnsafe(thisClass, superClazzOrInterface, typeParamName);
     }
 
     /**
      * 从指定类开始查找在superClazzOrInterfaced定义的泛型参数typeParamName的具体类型。
-     * 请优先使用{@link #findTypeParameter(Object, Class, String)}
+     * 请优先使用{@link #findTypeParameter(Object, Class, String)}。
      *
      * @param thisClass             查找起始类，注意最好是{@code this.getClass()}获取到的class对象。
      * @param superClazzOrInterface 声明泛型参数typeParamName的类,class或interface
@@ -74,8 +74,7 @@ public class TypeParameterFinder {
      * @param <T>                   约束必须有继承关系或实现关系
      * @return 如果定义的泛型存在，则返回对应的泛型clazz
      */
-    @Internal
-    public static <T> Class<?> findTypeParameter(Class<T> thisClass, Class<? super T> superClazzOrInterface, String typeParamName) throws Exception {
+    public static <T> Class<?> findTypeParameterUnsafe(Class<T> thisClass, Class<? super T> superClazzOrInterface, String typeParamName) throws Exception {
         Objects.requireNonNull(thisClass, "thisClass");
         Objects.requireNonNull(superClazzOrInterface, "superClazzOrInterface");
         Objects.requireNonNull(typeParamName, "typeParamName");
@@ -86,6 +85,8 @@ public class TypeParameterFinder {
                     + ", only support find superClassOrInterface typeParam.");
         }
 
+        ensureTypeParameterExist(superClazzOrInterface, typeParamName);
+
         if (superClazzOrInterface.isInterface()) {
             // 自己实现的在接口中查找泛型参数的具体类型
             return findInterfaceTypeParameter(thisClass, superClazzOrInterface, typeParamName);
@@ -93,23 +94,6 @@ public class TypeParameterFinder {
             // netty实现了在超类中进行查找
             return find0(thisClass, superClazzOrInterface, typeParamName);
         }
-    }
-
-
-    /**
-     * 从instance所属的类开始，寻找最近通向泛型接口的通路。
-     *
-     * @param thisClass                  起始查找类
-     * @param parametrizedSuperInterface 定义泛型参数的超类或接口
-     * @param typeParamName              泛型参数的名字
-     * @return 泛型参数的距离类型
-     * @throws Exception error
-     */
-    private static <T> Class<?> findInterfaceTypeParameter(final Class<T> thisClass, Class<? super T> parametrizedSuperInterface, String typeParamName) throws Exception {
-        ensureTypeParameterExist(parametrizedSuperInterface, typeParamName);
-
-        final Class<? super T> directChildClass = findInterfaceDirectChildClass(thisClass, parametrizedSuperInterface);
-        return parseTypeParameter(thisClass, directChildClass, parametrizedSuperInterface, typeParamName);
     }
 
     /**
@@ -127,6 +111,20 @@ public class TypeParameterFinder {
         }
         throw new IllegalArgumentException("typeParamName " + typeParamName +
                 " is not declared in superClazz/interface " + parametrizedSuperInterface.getSimpleName());
+    }
+
+    /**
+     * 从当前类开始，寻找最近通向泛型接口的通路。
+     *
+     * @param thisClass                  起始查找类
+     * @param parametrizedSuperInterface 定义泛型参数的超类或接口
+     * @param typeParamName              泛型参数的名字
+     * @return 泛型参数的距离类型
+     * @throws Exception error
+     */
+    private static <T> Class<?> findInterfaceTypeParameter(final Class<T> thisClass, Class<? super T> parametrizedSuperInterface, String typeParamName) throws Exception {
+        final Class<? super T> directChildClass = findInterfaceDirectChildClass(thisClass, parametrizedSuperInterface);
+        return parseTypeParameter(thisClass, directChildClass, parametrizedSuperInterface, typeParamName);
     }
 
     /**
@@ -174,7 +172,7 @@ public class TypeParameterFinder {
         }
 
         // 这里走不到
-        throw new IllegalStateException();
+        throw new RuntimeException();
     }
 
     /**
@@ -182,12 +180,13 @@ public class TypeParameterFinder {
      * {@code TypeParameterMatcher#find0(Object, Class, String)}
      *
      * @param thisClass                  起始查找类，可能需要递归重新查找
-     * @param currentClass               直接孩子(子接口或实现类)
+     * @param directChildClass           直接孩子(子接口或实现类)
      * @param parametrizedSuperInterface 显示声明指定泛型参数typeParamName的接口
      * @param typeParamName              泛型名字
      * @return actualType
      */
-    private static <T> Class<?> parseTypeParameter(final Class<? extends T> thisClass, Class<? super T> currentClass, final Class<? super T> parametrizedSuperInterface, final String typeParamName) throws Exception {
+    private static <T> Class<?> parseTypeParameter(final Class<? extends T> thisClass, final Class<? super T> directChildClass,
+                                                   final Class<? super T> parametrizedSuperInterface, final String typeParamName) throws Exception {
         int typeParamIndex = -1;
         // 获取的是声明的泛型变量 类名/接口名之后的<>
         TypeVariable<?>[] typeParams = parametrizedSuperInterface.getTypeParameters();
@@ -198,32 +197,29 @@ public class TypeParameterFinder {
             }
         }
 
-        // 这里其实不可达，因为上面有检查，这是netty源码，保持最少改动
-        if (typeParamIndex < 0) {
-            throw new IllegalStateException("unknown type parameter " + typeParamName + " : " + parametrizedSuperInterface);
-        }
+        assert typeParamIndex >= 0;
 
         // 这里的实现是在接口中查找，而netty的实现是在超类中查找
-        Type genericSuperType = null;
-        Class<?>[] extendsInterfaces = currentClass.getInterfaces();
-        for (int index = 0; index < extendsInterfaces.length; index++) {
-            if (extendsInterfaces[index] == parametrizedSuperInterface) {
-                genericSuperType = currentClass.getGenericInterfaces()[index];
+        Type genericSuperInterface = null;
+        Class<?>[] extendsOrImpInterfaces = directChildClass.getInterfaces();
+        for (int index = 0; index < extendsOrImpInterfaces.length; index++) {
+            if (extendsOrImpInterfaces[index] == parametrizedSuperInterface) {
+                genericSuperInterface = directChildClass.getGenericInterfaces()[index];
                 break;
             }
         }
 
-        assert null != genericSuperType : "genericSuperType";
+        assert null != genericSuperInterface : "genericSuperInterface";
 
-        if (!(genericSuperType instanceof ParameterizedType)) {
-            // 1.currentClass忽略了该接口中所有泛型参数，会导致获取到不是 ParameterizedType，而是一个普通的class对象
+        if (!(genericSuperInterface instanceof ParameterizedType)) {
+            // 1. 直接子类忽略了该接口中所有泛型参数，会导致获取到不是 ParameterizedType，而是一个普通的class对象
             // 因为忽略了泛型参数，那么就是Object
             return Object.class;
         }
 
-        // 2.currentClass对父接口中至少一个泛型参数进行了保留或指定了具体类型，会导致获取到的是ParameterizedType
+        // 2. 直接子类对父接口中至少一个泛型参数进行了保留或指定了具体类型，会导致获取到的是ParameterizedType
         // 获取到的信息是一个Type类型，可以进行嵌套，所有需要对其具体类型进行判断
-        Type[] actualTypeParams = ((ParameterizedType) genericSuperType).getActualTypeArguments();
+        Type[] actualTypeParams = ((ParameterizedType) genericSuperInterface).getActualTypeArguments();
         Type actualTypeParam = actualTypeParams[typeParamIndex];
 
         if (actualTypeParam instanceof ParameterizedType) {
@@ -263,7 +259,7 @@ public class TypeParameterFinder {
                 // 8.实例对象的某个超类或接口仍然用泛型参数表示目标泛型参数，则需要重新查找被重新定义的泛型参数
                 @SuppressWarnings("unchecked")
                 Class<? super T> newSuperClazzOrInerface = (Class<? super T>) genericDeclarationClass;
-                return findTypeParameter(thisClass, newSuperClazzOrInerface, v.getName());
+                return findTypeParameterUnsafe(thisClass, newSuperClazzOrInerface, v.getName());
             } else {
                 // 9.泛型参数来自另一个继承体系,停止查找
                 return Object.class;

@@ -57,7 +57,7 @@ public class WireType {
         for (Class<?> clazz : allSerializerClass) {
             try {
                 @SuppressWarnings("unchecked") final Class<? extends BeanSerializer<?>> serializerClass = (Class<? extends BeanSerializer<?>>) clazz;
-                final Class<?> beanClass = TypeParameterFinder.findTypeParameter(serializerClass, BeanSerializer.class, "T");
+                final Class<?> beanClass = TypeParameterFinder.findTypeParameterUnsafe(serializerClass, BeanSerializer.class, "T");
 
                 if (beanClass == Object.class) {
                     throw new UnsupportedOperationException("BeanSerializer must declare type parameter");
@@ -150,11 +150,12 @@ public class WireType {
      */
     public static final byte CHUNK = 16;
     /**
-     * 带有{@link SerializableClass}注解，且有非private无参构造方法和对应的getter setter
+     * 存在对应{@link BeanSerializer}的类型
      */
     public static final byte NORMAL_BEAN = 17;
     /**
-     * 带有{@link SerializableClass}注解，但是无参构造方法是private，或没有对应的getter setter方法。
+     * 带有{@link SerializableClass}注解，但是无对应{@link BeanSerializer}的类，需要通过反射编解码。
+     * eg: 无参构造方法是private，或没有对应的getter setter方法。
      */
     public static final byte REFLECT_BEAN = 18;
     /**
