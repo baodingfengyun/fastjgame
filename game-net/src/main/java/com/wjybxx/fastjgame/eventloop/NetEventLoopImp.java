@@ -147,8 +147,8 @@ class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLoop {
     }
 
     @Override
-    public final <T, E> void post(@Nullable T context, @Nonnull E event) {
-        execute(new EventDispatchTask(netEventBusManager, context, event));
+    public final void post(@Nonnull Object event) {
+        execute(new EventDispatchTask(netEventBusManager, event));
     }
 
     @Override
@@ -237,13 +237,13 @@ class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLoop {
     // ---------------------------------------------- socket -------------------------------------------------
 
     @Subscribe
-    void fireConnectRequest(SocketConnectRequestEvent event) {
-        acceptorManager.onRcvConnectRequest(event);
+    void fireConnectRequest(GenericSocketEvent<SocketConnectRequestEvent> event) {
+        acceptorManager.onRcvConnectRequest(event.child());
     }
 
     @Subscribe
-    void fireConnectResponse(SocketConnectResponseEvent event) {
-        connectorManager.onRcvConnectResponse(event);
+    void fireConnectResponse(GenericSocketEvent<SocketConnectResponseEvent> event) {
+        connectorManager.onRcvConnectResponse(event.child());
     }
 
     @Subscribe(onlySubEvents = true, subEvents = {
@@ -251,11 +251,11 @@ class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLoop {
             SocketMessageEvent.class,
             SocketChannelInactiveEvent.class
     })
-    void fireSocketEvent(boolean acceptor, SocketEvent event) {
-        if (acceptor) {
-            acceptorManager.onSessionEvent(event);
+    void fireSocketEvent(GenericSocketEvent<SocketEvent> event) {
+        if (event.isForAcceptor()) {
+            acceptorManager.onSessionEvent(event.child());
         } else {
-            connectorManager.onSessionEvent(event);
+            connectorManager.onSessionEvent(event.child());
         }
     }
 

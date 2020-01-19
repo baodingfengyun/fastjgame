@@ -21,10 +21,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.IdentityHashMap;
-import java.util.Map;
 
 /**
  * EventBus的一个简单实现。
@@ -43,59 +41,82 @@ public final class EventBus implements EventHandlerRegistry, EventDispatcher {
 
     private static final Logger logger = LoggerFactory.getLogger(EventBus.class);
     /**
-     * 默认的初始容量
-     */
-    private static final int DEFAULT_INIT_CAPACITY = 128;
-    /**
      * 事件类型到处理器的映射
      */
-    private final Map<Class<?>, EventHandler<?, ?>> handlerMap;
+    private final IdentityHashMap<Class<?>, EventHandler<?>> handlerMap = new IdentityHashMap<>(64);
+    /**
+     * 泛型事件处理器的类型
+     */
+    private final IdentityHashMap<Class<?>, IdentityHashMap<Class<?>, EventHandler<?>>> genericHandlerMap = new IdentityHashMap<>(8);
 
     public EventBus() {
-        this(DEFAULT_INIT_CAPACITY);
+
     }
 
-    public EventBus(int initCapacity) {
-        handlerMap = new IdentityHashMap<>(initCapacity);
-    }
-
-    @SuppressWarnings("unchecked")
     @Override
-    public <T, E> void post(@Nullable T context, @Nonnull E event) {
-        final Class<?> keyClazz = event.getClass();
-        final EventHandler<? super T, ? super E> eventHandler = (EventHandler<? super T, ? super E>) handlerMap.get(keyClazz);
-        if (null == eventHandler) {
+    public void post(@Nonnull Object event) {
+        if (event instanceof GenericEvent) {
+            final GenericEvent genericEvent = (GenericEvent) event;
+            final IdentityHashMap<Class<?>, EventHandler<?>> childHandlerMap = genericHandlerMap.get(genericEvent.getClass());
+            if (childHandlerMap == null) {
+                logger.warn("{}'s listeners may forgot register!", genericEvent.getClass().getName());
+                return;
+            }
+            postEventImp(childHandlerMap, genericEvent, genericEvent.child().getClass());
+        } else {
+            postEventImp(handlerMap, event, event.getClass());
+        }
+    }
+
+    private static <T> void postEventImp(IdentityHashMap<Class<?>, EventHandler<?>> handlerMap, @Nonnull T event, @Nonnull Class<?> keyClazz) {
+        @SuppressWarnings("unchecked") final EventHandler<? super T> handler = (EventHandler<? super T>) handlerMap.get(keyClazz);
+        if (null == handler) {
             // 对应的事件处理器可能忘记了注册
             logger.warn("{}'s listeners may forgot register!", keyClazz.getName());
             return;
         }
 
         try {
-            eventHandler.onEvent(context, event);
+            handler.onEvent(event);
         } catch (Exception e) {
             logger.warn("threadFactoryEvent caught exception! EventClassInfo {}, handler info {}",
                     event.getClass().getName(),
-                    eventHandler.getClass().getName(), e);
+                    handler.getClass().getName(), e);
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public <T, E> void register(@Nonnull Class<E> eventType, @Nonnull EventHandler<T, ? super E> handler) {
-        final EventHandler<? super T, ? super E> existHandler = (EventHandler<? super T, ? super E>) handlerMap.get(eventType);
+    public <T> void register(@Nonnull Class<T> eventType, @Nonnull EventHandler<? super T> handler) {
+        if (GenericEvent.class.isAssignableFrom(eventType)) {
+            throw new UnsupportedOperationException();
+        }
+        addHandlerImp(handlerMap, eventType, handler);
+    }
+
+    @Override
+    public <T extends GenericEvent<U>, U> void register(@Nonnull Class<T> genericType, Class<U> childType, @Nonnull EventHandler<? super T> handler) {
+        final IdentityHashMap<Class<?>, EventHandler<?>> childHandlerMap = genericHandlerMap.computeIfAbsent(genericType, k -> new IdentityHashMap<>(64));
+        addHandlerImp(childHandlerMap, childType, handler);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void addHandlerImp(IdentityHashMap<Class<?>, EventHandler<?>> handlerMap, @Nonnull Class<?> keyClass, @Nonnull EventHandler<?> handler) {
+        final EventHandler<?> existHandler = handlerMap.get(keyClass);
         if (null == existHandler) {
-            handlerMap.put(eventType, handler);
+            handlerMap.put(keyClass, handler);
+            return;
+        }
+        if (existHandler instanceof CompositeEventHandler) {
+            ((CompositeEventHandler) existHandler).addHandler(handler);
         } else {
-            if (existHandler instanceof CompositeEventHandler) {
-                ((CompositeEventHandler<T, E>) existHandler).addHandler(handler);
-            } else {
-                handlerMap.put(eventType, new CompositeEventHandler<>(existHandler, handler));
-            }
+            handlerMap.put(keyClass, new CompositeEventHandler(existHandler, handler));
         }
     }
 
     @Override
     public void release() {
         handlerMap.clear();
+        genericHandlerMap.clear();
     }
+
 }

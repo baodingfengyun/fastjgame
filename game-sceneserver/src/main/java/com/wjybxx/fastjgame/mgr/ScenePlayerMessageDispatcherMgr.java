@@ -17,15 +17,14 @@
 package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.eventbus.EventHandler;
-import com.wjybxx.fastjgame.eventbus.EventHandlerRegistry;
+import com.google.protobuf.Message;
 import com.wjybxx.fastjgame.gameobject.Player;
+import com.wjybxx.fastjgame.misc.PlayerMsgEvent;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.rpcservice.IPlayerMessageDispatcherMgr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -35,7 +34,7 @@ import javax.annotation.Nullable;
  * @version 1.0
  * date - 2019/8/26
  */
-public class ScenePlayerMessageDispatcherMgr implements EventHandlerRegistry, IPlayerMessageDispatcherMgr {
+public class ScenePlayerMessageDispatcherMgr implements IPlayerMessageDispatcherMgr {
 
     private static final Logger logger = LoggerFactory.getLogger(ScenePlayerMessageDispatcherMgr.class);
 
@@ -57,18 +56,9 @@ public class ScenePlayerMessageDispatcherMgr implements EventHandlerRegistry, IP
         }
         final Player player = playerSessionMgr.getPlayer(playerGuid);
         if (null != player) {
-            playerEventDispatcherMgr.post(player, message);
+            final PlayerMsgEvent<Message> playerMsgEvent = new PlayerMsgEvent<>(player, (Message) message);
+            playerEventDispatcherMgr.post(playerMsgEvent);
         }
         // else 玩家不在当前场景world
-    }
-
-    @Override
-    public <T, E> void register(@Nonnull Class<E> eventType, @Nonnull EventHandler<T, ? super E> handler) {
-        playerEventDispatcherMgr.register(eventType, handler);
-    }
-
-    @Override
-    public void release() {
-        // ignore
     }
 }

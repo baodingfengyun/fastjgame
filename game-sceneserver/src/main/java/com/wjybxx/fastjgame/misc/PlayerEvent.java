@@ -14,32 +14,23 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.concurrent.event;
+package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.eventbus.EventDispatcher;
-
-import javax.annotation.Nonnull;
+import com.wjybxx.fastjgame.eventbus.GenericEvent;
+import com.wjybxx.fastjgame.gameobject.Player;
 
 /**
- * 提交事件任务
+ * 玩家事件
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/10/26
+ * date - 2020/1/19
  * github - https://github.com/hl845740757
  */
-public class EventDispatchTask implements Runnable {
+public interface PlayerEvent<T> extends GenericEvent<T> {
 
-    private final EventDispatcher dispatcher;
-    private final Object event;
-
-    public EventDispatchTask(@Nonnull EventDispatcher dispatcher, @Nonnull Object event) {
-        this.dispatcher = dispatcher;
-        this.event = event;
-    }
-
-    @Override
-    public void run() {
-        dispatcher.post(event);
-    }
+    /**
+     * 获取事件关联的玩家
+     */
+    Player getPlayer();
 }

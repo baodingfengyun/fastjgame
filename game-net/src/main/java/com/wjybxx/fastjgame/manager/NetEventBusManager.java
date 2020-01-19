@@ -17,14 +17,10 @@
 package com.wjybxx.fastjgame.manager;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.eventbus.EventBus;
-import com.wjybxx.fastjgame.eventbus.EventDispatcher;
-import com.wjybxx.fastjgame.eventbus.EventHandler;
-import com.wjybxx.fastjgame.eventbus.EventHandlerRegistry;
+import com.wjybxx.fastjgame.eventbus.*;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 /**
  * @author wjybxx
@@ -43,15 +39,21 @@ public class NetEventBusManager implements EventHandlerRegistry, EventDispatcher
     }
 
     @Override
-    public <T, E> void post(@Nullable T context, @Nonnull E event) {
-        eventBus.post(context, event);
+    public void post(@Nonnull Object event) {
+        eventBus.post(event);
     }
 
     @Override
-    public <T, E> void register(@Nonnull Class<E> eventType, @Nonnull EventHandler<T, ? super E> handler) {
+    public <T> void register(@Nonnull Class<T> eventType, @Nonnull EventHandler<? super T> handler) {
         // 避免在错误的时间调用
         ConcurrentUtils.ensureInEventLoop(eventLoopManager.getEventLoop());
         eventBus.register(eventType, handler);
+    }
+
+    @Override
+    public <T extends GenericEvent<U>, U> void register(@Nonnull Class<T> genericType, Class<U> childType, @Nonnull EventHandler<? super T> handler) {
+        ConcurrentUtils.ensureInEventLoop(eventLoopManager.getEventLoop());
+        eventBus.register(genericType, childType, handler);
     }
 
     @Override

@@ -57,7 +57,7 @@ public class AutoUtils {
      * 由于生成的代码不能很好的处理泛型等信息，因此需要抑制警告
      */
     public static final AnnotationSpec SUPPRESS_UNCHECKED_ANNOTATION = AnnotationSpec.builder(SuppressWarnings.class)
-            .addMember("value", "$S", "unchecked, rawtypes")
+            .addMember("value", "{\"unchecked\", \"rawtypes\"}")
             .build();
 
     private AutoUtils() {
@@ -304,27 +304,40 @@ public class AutoUtils {
     }
 
     /**
-     * 判断一个类型是否包含泛型
+     * 获取第一个参数的真实类型
      */
-    public static boolean containsTypeVariable(final TypeMirror typeMirror) {
-        return typeMirror.accept(new SimpleTypeVisitor8<Boolean, Void>() {
-
+    @Nullable
+    public static TypeMirror getFirstParameterActualType(TypeMirror typeMirror) {
+        return typeMirror.accept(new SimpleTypeVisitor8<TypeMirror, Void>() {
             @Override
-            public Boolean visitDeclared(DeclaredType t, Void aVoid) {
-                // method(Set<String> value)
-                return t.getTypeArguments().size() > 0;
+            public TypeMirror visitDeclared(DeclaredType t, Void aVoid) {
+                if (t.getTypeArguments().size() == 0) {
+                    return null;
+                }
+
+                final TypeMirror typeArgument = t.getTypeArguments().get(0);
+                if (typeArgument.getKind() == TypeKind.DECLARED) {
+                    return typeArgument;
+                }
+
+                if (typeArgument.getKind() == TypeKind.WILDCARD) {
+                    // may nullable
+                    return ((WildcardType) typeArgument).getSuperBound();
+                }
+
+                if (typeArgument.getKind() == TypeKind.TYPEVAR) {
+                    // may object
+                    return ((TypeVariable) typeArgument).getUpperBound();
+                }
+
+                return null;
             }
 
             @Override
-            public Boolean visitTypeVariable(TypeVariable t, Void aVoid) {
-                // method(T value)
-                return true;
+            protected TypeMirror defaultAction(TypeMirror e, Void aVoid) {
+                return null;
             }
 
-            @Override
-            protected Boolean defaultAction(TypeMirror e, Void aVoid) {
-                return false;
-            }
         }, null);
     }
 
@@ -350,10 +363,6 @@ public class AutoUtils {
         } catch (IOException e) {
             messager.printMessage(Diagnostic.Kind.ERROR, "writeToFile caught exception!", originTypeElement);
         }
-    }
-
-    public static String getClassName(TypeElement typeElement) {
-        return typeElement.getSimpleName().toString();
     }
 
     public static String getPackageName(TypeElement typeElement, Elements elementUtils) {

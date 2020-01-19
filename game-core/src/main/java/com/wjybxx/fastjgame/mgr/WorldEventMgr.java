@@ -17,13 +17,9 @@
 package com.wjybxx.fastjgame.mgr;
 
 import com.wjybxx.fastjgame.annotation.EventLoopSingleton;
-import com.wjybxx.fastjgame.eventbus.EventBus;
-import com.wjybxx.fastjgame.eventbus.EventDispatcher;
-import com.wjybxx.fastjgame.eventbus.EventHandler;
-import com.wjybxx.fastjgame.eventbus.EventHandlerRegistry;
+import com.wjybxx.fastjgame.eventbus.*;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -38,16 +34,21 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class WorldEventMgr implements EventHandlerRegistry, EventDispatcher {
 
-    private final EventBus eventBus = new EventBus(512);
+    private final EventBus eventBus = new EventBus();
 
     @Override
-    public <T, E> void post(@Nullable T context, @Nonnull E event) {
-        eventBus.post(context, event);
+    public void post(@Nonnull Object event) {
+        eventBus.post(event);
     }
 
     @Override
-    public <T, E> void register(@Nonnull Class<E> eventType, @Nonnull EventHandler<T, ? super E> handler) {
+    public <T> void register(@Nonnull Class<T> eventType, @Nonnull EventHandler<? super T> handler) {
         eventBus.register(eventType, handler);
+    }
+
+    @Override
+    public <T extends GenericEvent<U>, U> void register(@Nonnull Class<T> genericType, Class<U> childType, @Nonnull EventHandler<? super T> handler) {
+        eventBus.register(genericType, childType, handler);
     }
 
     @Override

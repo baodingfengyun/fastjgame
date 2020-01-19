@@ -35,8 +35,6 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
-import static com.wjybxx.fastjgame.utils.AutoUtils.getClassName;
-
 /**
  * 1. 对于普通类：必须包含无参构造方法，且field注解的number必须在 0-65535之间
  * 2. 对于枚举：必须实现 NumericalEnum 接口，且提供非private的forNumber方法
@@ -413,7 +411,7 @@ public class SerializableClassProcessor extends AbstractProcessor {
      * 获取class对应的序列化工具类的类名
      */
     private String getSerializerClassName(TypeElement typeElement) {
-        return getSerializerName(getClassName(typeElement));
+        return getSerializerName(typeElement.getSimpleName().toString());
     }
 
     private static String getSerializerName(String className) {

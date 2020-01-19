@@ -30,27 +30,25 @@ public interface EventHandlerRegistry {
 
     /**
      * 注册一个事件的观察者。
-     * 注意：由于没有Event接口，因此请手动保证Context类型的一致性，否则可能抛出类型转换错误。
      * 正常情况下，该方法由生成的代码调用。当然也可以手动注册一些事件，即不使用注解处理器。
      *
      * @param eventType 关注的事件类型
      * @param handler   事件处理器
-     * @param <T>       上下文类型
-     * @param <E>       事件的类型
+     * @param <T>       事件的类型
      */
-    <T, E> void register(@Nonnull Class<E> eventType, @Nonnull EventHandler<T, ? super E> handler);
+    <T> void register(@Nonnull Class<T> eventType, @Nonnull EventHandler<? super T> handler);
 
     /**
-     * 注册一个事件的观察者。
-     * 使用该方法注册时，表示该事件总是没有额外的上下文，或处理器并不关心上下文。
+     * 注册一个泛型事件的观察者。
+     * 正常情况下，该方法由生成的代码调用。当然也可以手动注册一些事件，即不使用注解处理器。
      *
-     * @param eventType 关注的事件类型
-     * @param handler   事件处理器
-     * @param <E>       事件的类型
+     * @param <T>         泛型事件类型
+     * @param <U>         泛型事件的子事件类型
+     * @param genericType 泛型事件类型
+     * @param childType   泛型事件的子事件类型
+     * @param handler     事件处理器
      */
-    default <E> void register(@Nonnull Class<E> eventType, @Nonnull SimpleEventHandler<? super E> handler) {
-        register(eventType, (EventHandler<Object, ? super E>) handler);
-    }
+    <T extends GenericEvent<U>, U> void register(@Nonnull Class<T> genericType, Class<U> childType, @Nonnull EventHandler<? super T> handler);
 
     /**
      * 释放所有的资源，因为{@link #register(Class, EventHandler)} 会捕获太多对象，当不再使用{@link EventHandlerRegistry}时，

@@ -22,7 +22,6 @@ import com.wjybxx.fastjgame.net.common.RpcFuture;
 import com.wjybxx.fastjgame.net.common.RpcPromise;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 /**
  * 网络循环。
@@ -62,6 +61,5 @@ public interface NetEventLoop extends EventLoop, NetEventLoopGroup, EventDispatc
      * @apiNote 时序保证：实现必须和{@link #execute(Runnable)}具有相同的时序保证，也就是底层是{@link #execute(Runnable)}的一个封装。
      */
     @Override
-    <T, E> void post(@Nullable T context, @Nonnull E event);
-
+    void post(@Nonnull Object event);
 }

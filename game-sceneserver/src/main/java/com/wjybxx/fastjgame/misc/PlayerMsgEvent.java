@@ -14,25 +14,45 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.eventbus;
+package com.wjybxx.fastjgame.misc;
+
+import com.google.protobuf.Message;
+import com.wjybxx.fastjgame.gameobject.Player;
 
 import javax.annotation.Nonnull;
 
 /**
- * 该事件处理器表示关心的事件总是没有额外的上下文，或处理器并不关心上下文。
+ * 玩家消息事件
+ * (收到玩家发来的协议)
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/12/17
+ * date - 2020/1/19
  * github - https://github.com/hl845740757
  */
-@FunctionalInterface
-public interface SimpleEventHandler<E> extends EventHandler<Object, E> {
+public class PlayerMsgEvent<T extends Message> implements PlayerEvent<T> {
 
-    @Override
-    default void onEvent(Object context, @Nonnull E event) throws Exception {
-        onEvent(event);
+    private final Player player;
+    private final T msg;
+
+    public PlayerMsgEvent(Player player, T msg) {
+        this.player = player;
+        this.msg = msg;
     }
 
-    void onEvent(@Nonnull E event);
+    @Override
+    public Player getPlayer() {
+        return player;
+    }
+
+    public T getMsg() {
+        return msg;
+    }
+
+    @Deprecated
+    @Nonnull
+    @Override
+    public T child() {
+        return msg;
+    }
 }

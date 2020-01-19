@@ -31,8 +31,6 @@ import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import java.util.*;
 
-import static com.wjybxx.fastjgame.utils.AutoUtils.getClassName;
-
 /**
  * 由于类文件结构比较稳定，API都是基于访问者模式的，完全不能直接获取数据，难受的一比。
  * <p>
@@ -323,7 +321,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
     }
 
     private String getClientProxyClassName(TypeElement typeElement) {
-        return getClassName(typeElement) + "RpcProxy";
+        return typeElement.getSimpleName().toString() + "RpcProxy";
     }
 
     /**
@@ -528,7 +526,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
     }
 
     private String getServerProxyClassName(TypeElement typeElement) {
-        return getClassName(typeElement) + "RpcRegister";
+        return typeElement.getSimpleName().toString() + "RpcRegister";
     }
 
     /**

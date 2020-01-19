@@ -14,32 +14,37 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.concurrent.event;
+package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.eventbus.EventDispatcher;
+import com.wjybxx.fastjgame.eventbus.GenericEvent;
 
 import javax.annotation.Nonnull;
 
 /**
- * 提交事件任务
+ * 泛型socket事件
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/10/26
+ * date - 2020/1/19
  * github - https://github.com/hl845740757
  */
-public class EventDispatchTask implements Runnable {
+public class GenericSocketEvent<T extends SocketEvent> implements GenericEvent<T> {
 
-    private final EventDispatcher dispatcher;
-    private final Object event;
+    private final T child;
+    private final boolean forAcceptor;
 
-    public EventDispatchTask(@Nonnull EventDispatcher dispatcher, @Nonnull Object event) {
-        this.dispatcher = dispatcher;
-        this.event = event;
+    public GenericSocketEvent(T child, boolean forAcceptor) {
+        this.child = child;
+        this.forAcceptor = forAcceptor;
     }
 
+    @Nonnull
     @Override
-    public void run() {
-        dispatcher.post(event);
+    public T child() {
+        return child;
+    }
+
+    public boolean isForAcceptor() {
+        return forAcceptor;
     }
 }

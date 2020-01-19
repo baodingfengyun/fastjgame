@@ -20,7 +20,8 @@ import com.google.inject.Inject;
 import com.wjybxx.fastjgame.eventbus.EventBus;
 import com.wjybxx.fastjgame.eventbus.EventHandler;
 import com.wjybxx.fastjgame.eventbus.EventHandlerRegistry;
-import com.wjybxx.fastjgame.gameobject.Player;
+import com.wjybxx.fastjgame.eventbus.GenericEvent;
+import com.wjybxx.fastjgame.misc.PlayerEvent;
 
 import javax.annotation.Nonnull;
 
@@ -34,19 +35,27 @@ import javax.annotation.Nonnull;
  */
 public class PlayerEventDispatcherMgr implements EventHandlerRegistry {
 
-    private final EventBus eventBus = new EventBus(1024);
+    private final EventBus eventBus = new EventBus();
 
     @Inject
     public PlayerEventDispatcherMgr() {
     }
 
-    public <E> void post(@Nonnull Player player, @Nonnull E event) {
-        eventBus.post(player, event);
+    public <T> void post(PlayerEvent<T> playerEvent) {
+        eventBus.post(playerEvent);
     }
 
     @Override
-    public <T, E> void register(@Nonnull Class<E> eventType, @Nonnull EventHandler<T, ? super E> handler) {
-        eventBus.register(eventType, handler);
+    public <E> void register(@Nonnull Class<E> eventType, @Nonnull EventHandler<? super E> handler) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T extends GenericEvent<U>, U> void register(@Nonnull Class<T> genericType, Class<U> childType, @Nonnull EventHandler<? super T> handler) {
+        if (!PlayerEvent.class.isAssignableFrom(genericType)) {
+            throw new UnsupportedOperationException();
+        }
+        eventBus.register(genericType, childType, handler);
     }
 
     @Override

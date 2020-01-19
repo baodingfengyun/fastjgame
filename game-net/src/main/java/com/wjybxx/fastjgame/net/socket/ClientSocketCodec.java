@@ -165,7 +165,7 @@ public class ClientSocketCodec extends BaseSocketCodec {
         }
     }
 
-    private void publish(@Nonnull Object event) {
-        netEventLoop.post(false, event);
+    private void publish(@Nonnull SocketEvent event) {
+        netEventLoop.post(new GenericSocketEvent<>(event, false));
     }
 }

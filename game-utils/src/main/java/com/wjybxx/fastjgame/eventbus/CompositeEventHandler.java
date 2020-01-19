@@ -20,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,28 +31,27 @@ import java.util.List;
  * date - 2019/8/24
  * github - https://github.com/hl845740757
  */
-public class CompositeEventHandler<T, E> implements EventHandler<T, E> {
+class CompositeEventHandler<T> implements EventHandler<T> {
 
     private static final Logger logger = LoggerFactory.getLogger(CompositeEventHandler.class);
 
-    private final List<EventHandler<? super T, ? super E>> children = new ArrayList<>(2);
+    private final List<EventHandler<? super T>> children = new ArrayList<>(2);
 
-    public CompositeEventHandler(@Nonnull EventHandler<? super T, ? super E> first,
-                                 @Nonnull EventHandler<? super T, ? super E> second) {
+    CompositeEventHandler(@Nonnull EventHandler<? super T> first,
+                          @Nonnull EventHandler<? super T> second) {
         children.add(first);
         children.add(second);
     }
 
-    public CompositeEventHandler addHandler(@Nonnull EventHandler<? super T, ? super E> handler) {
+    void addHandler(@Nonnull EventHandler<? super T> handler) {
         children.add(handler);
-        return this;
     }
 
     @Override
-    public void onEvent(@Nullable T context, @Nonnull E event) throws Exception {
-        for (EventHandler<? super T, ? super E> handler : children) {
+    public void onEvent(@Nonnull T event) throws Exception {
+        for (EventHandler<? super T> handler : children) {
             try {
-                handler.onEvent(context, event);
+                handler.onEvent(event);
             } catch (Throwable e) {
                 logger.warn("Child onEvent caught exception!", e);
             }
