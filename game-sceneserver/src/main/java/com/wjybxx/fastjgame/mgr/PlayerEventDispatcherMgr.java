@@ -35,7 +35,7 @@ import javax.annotation.Nonnull;
  */
 public class PlayerEventDispatcherMgr implements EventHandlerRegistry {
 
-    private final EventBus eventBus = new EventBus();
+    private final EventBus eventBus = new EventBus(1024);
 
     @Inject
     public PlayerEventDispatcherMgr() {

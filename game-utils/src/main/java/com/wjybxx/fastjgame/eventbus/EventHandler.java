@@ -31,7 +31,7 @@ public interface EventHandler<T> {
     /**
      * 当订阅的事件产生时该方法将被调用。
      *
-     * @param event   事件
+     * @param event 事件
      */
     void onEvent(@Nonnull T event) throws Exception;
 
