@@ -22,6 +22,7 @@ import com.wjybxx.fastjgame.eventbus.EventHandler;
 import com.wjybxx.fastjgame.eventbus.EventHandlerRegistry;
 import com.wjybxx.fastjgame.eventbus.GenericEvent;
 import com.wjybxx.fastjgame.misc.PlayerEvent;
+import com.wjybxx.fastjgame.misc.PlayerMsgEvent;
 
 import javax.annotation.Nonnull;
 
@@ -55,6 +56,10 @@ public class PlayerEventDispatcherMgr implements EventHandlerRegistry {
         if (!PlayerEvent.class.isAssignableFrom(genericType)) {
             throw new UnsupportedOperationException();
         }
+        if (PlayerMsgEvent.class.isAssignableFrom(genericType)) {
+            return;
+        }
+        // 注册消息处理器以外的
         eventBus.register(genericType, childType, handler);
     }
 

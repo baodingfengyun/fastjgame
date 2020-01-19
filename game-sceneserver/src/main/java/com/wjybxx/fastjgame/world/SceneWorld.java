@@ -115,6 +115,7 @@ public class SceneWorld extends AbstractWorld {
     @Override
     protected void shutdownHook() {
         playerEventDispatcherMgr.release();
+        playerMessageDispatcherMgr.release();
     }
 
     private class CenterOrGateLifeAware implements SessionLifecycleAware {
