@@ -988,8 +988,8 @@ public class BinaryProtocolCodec implements ProtocolCodec {
     private class BeanCloneUtilImp implements BeanCloneUtil {
 
         @Override
-        public <T> T clone(byte wireType, @Nullable T value) throws IOException {
-            return cloneFieldValue(wireType, value);
+        public <T> T clone(byte wireType, @Nullable T fieldValue) throws IOException {
+            return cloneFieldValue(wireType, fieldValue);
         }
     }
 

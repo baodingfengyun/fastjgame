@@ -29,6 +29,14 @@ import java.io.IOException;
 public interface BeanInputStream {
 
     /**
+     * 从输入流中读取一个对象。
+     * 方便手写实现。
+     */
+    default <T> T readObject() throws IOException {
+        return readObject(WireType.RUN_TIME);
+    }
+
+    /**
      * 从输入流中读取一个对象
      *
      * @param <T>      返回值类型

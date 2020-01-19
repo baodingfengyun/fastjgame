@@ -33,12 +33,19 @@ public interface BeanCloneUtil {
 
     /**
      * 克隆一个对象
+     * 方便手写实现。
+     */
+    default <T> T clone(@Nullable T fieldValue) throws IOException {
+        return clone(WireType.RUN_TIME, fieldValue);
+    }
+
+    /**
+     * 克隆一个对象
      *
-     * @param wireType value的缓存类型，如果为{@link WireType#RUN_TIME}，则需要动态处理。
-     * @param value    要clone的对象
-     * @param <T>      要clone的对象的类型
+     * @param wireType   value的缓存类型，如果为{@link WireType#RUN_TIME}，则需要动态处理。
+     * @param fieldValue 要clone的对象
+     * @param <T>        要clone的对象的类型
      * @return 返回值
      */
-    <T> T clone(byte wireType, @Nullable T value) throws IOException;
-
+    <T> T clone(byte wireType, @Nullable T fieldValue) throws IOException;
 }

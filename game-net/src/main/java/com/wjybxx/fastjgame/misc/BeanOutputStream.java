@@ -32,6 +32,14 @@ import java.io.IOException;
 public interface BeanOutputStream {
 
     /**
+     * 向输入流中写入一个对象。
+     * 方便手写实现。
+     */
+    default void writeObject(@Nullable Object fieldValue) throws IOException {
+        writeObject(WireType.RUN_TIME, fieldValue);
+    }
+
+    /**
      * 向输入流中写入一个对象
      *
      * @param wireType   字段的缓存类型，如果该值为{@link WireType#RUN_TIME}，则需要动态解析。
