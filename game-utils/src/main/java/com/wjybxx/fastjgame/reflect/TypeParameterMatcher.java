@@ -29,12 +29,19 @@ import javax.annotation.Nonnull;
 public abstract class TypeParameterMatcher {
 
     /**
-     * 查询是否与泛型参数匹配
+     * 查询实例是否与泛型参数匹配
      *
-     * @param object 待检测对象
+     * @param instance 待检测对象
      * @return true/false
      */
-    public abstract boolean match(@Nonnull Object object);
+    public abstract boolean matchInstance(@Nonnull Object instance);
+
+    /**
+     * 查询指定类是否是泛型参数的子类
+     *
+     * @param cls 待检查的class对象
+     */
+    public abstract boolean matchClass(Class<?> cls);
 
     /**
      * 查找指定泛型参数对应的类型匹配器。
@@ -44,11 +51,10 @@ public abstract class TypeParameterMatcher {
      * @param typeParamName         泛型参数名字
      * @param <T>                   约束必须有继承关系或实现关系
      * @return 如果定义的泛型存在，则返回对应的泛型clazz
-     * @throws Exception error
      */
     public static <T> TypeParameterMatcher findTypeMatcher(@Nonnull T instance,
                                                            @Nonnull Class<? super T> superClazzOrInterface,
-                                                           @Nonnull String typeParamName) throws Exception {
+                                                           @Nonnull String typeParamName) {
         final Class<?> type = TypeParameterFinder.findTypeParameter(instance, superClazzOrInterface, typeParamName);
         if (type == Object.class) {
             return ObjectTypeMatcher.INSTANCE;
@@ -66,8 +72,13 @@ public abstract class TypeParameterMatcher {
         }
 
         @Override
-        public boolean match(@Nonnull Object object) {
-            return type.isInstance(object);
+        public boolean matchInstance(@Nonnull Object instance) {
+            return type.isInstance(instance);
+        }
+
+        @Override
+        public boolean matchClass(Class<?> cls) {
+            return type.isAssignableFrom(cls);
         }
     }
 
@@ -79,7 +90,12 @@ public abstract class TypeParameterMatcher {
         }
 
         @Override
-        public boolean match(@Nonnull Object object) {
+        public boolean matchInstance(@Nonnull Object instance) {
+            return true;
+        }
+
+        @Override
+        public boolean matchClass(Class<?> cls) {
             return true;
         }
     }

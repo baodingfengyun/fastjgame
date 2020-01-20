@@ -58,7 +58,7 @@ public class TypeParameterFinder {
      * @param <T>                   约束必须有继承关系或实现关系
      * @return 如果定义的泛型存在，则返回对应的泛型clazz
      */
-    public static <T> Class<?> findTypeParameter(T instance, Class<? super T> superClazzOrInterface, String typeParamName) throws Exception {
+    public static <T> Class<?> findTypeParameter(T instance, Class<? super T> superClazzOrInterface, String typeParamName) {
         Objects.requireNonNull(instance, "instance");
         @SuppressWarnings("unchecked") final Class<? extends T> thisClass = (Class<? extends T>) instance.getClass();
         return findTypeParameterUnsafe(thisClass, superClazzOrInterface, typeParamName);
@@ -74,7 +74,7 @@ public class TypeParameterFinder {
      * @param <T>                   约束必须有继承关系或实现关系
      * @return 如果定义的泛型存在，则返回对应的泛型clazz
      */
-    public static <T> Class<?> findTypeParameterUnsafe(Class<T> thisClass, Class<? super T> superClazzOrInterface, String typeParamName) throws Exception {
+    public static <T> Class<?> findTypeParameterUnsafe(Class<T> thisClass, Class<? super T> superClazzOrInterface, String typeParamName) {
         Objects.requireNonNull(thisClass, "thisClass");
         Objects.requireNonNull(superClazzOrInterface, "superClazzOrInterface");
         Objects.requireNonNull(typeParamName, "typeParamName");
@@ -122,7 +122,7 @@ public class TypeParameterFinder {
      * @return 泛型参数的距离类型
      * @throws Exception error
      */
-    private static <T> Class<?> findInterfaceTypeParameter(final Class<T> thisClass, Class<? super T> parametrizedSuperInterface, String typeParamName) throws Exception {
+    private static <T> Class<?> findInterfaceTypeParameter(final Class<T> thisClass, Class<? super T> parametrizedSuperInterface, String typeParamName) {
         final Class<? super T> directChildClass = findInterfaceDirectChildClass(thisClass, parametrizedSuperInterface);
         return parseTypeParameter(thisClass, directChildClass, parametrizedSuperInterface, typeParamName);
     }
@@ -186,7 +186,7 @@ public class TypeParameterFinder {
      * @return actualType
      */
     private static <T> Class<?> parseTypeParameter(final Class<? extends T> thisClass, final Class<? super T> directChildClass,
-                                                   final Class<? super T> parametrizedSuperInterface, final String typeParamName) throws Exception {
+                                                   final Class<? super T> parametrizedSuperInterface, final String typeParamName) {
         int typeParamIndex = -1;
         // 获取的是声明的泛型变量 类名/接口名之后的<>
         TypeVariable<?>[] typeParams = parametrizedSuperInterface.getTypeParameters();

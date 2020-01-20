@@ -22,7 +22,6 @@ import com.google.protobuf.ProtocolMessageEnum;
 import com.wjybxx.fastjgame.annotation.SerializableClass;
 import com.wjybxx.fastjgame.reflect.TypeParameterFinder;
 import com.wjybxx.fastjgame.utils.ClassScanner;
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -55,22 +54,18 @@ public class WireType {
         classBeanSerializerMap = new IdentityHashMap<>(allSerializerClass.size());
 
         for (Class<?> clazz : allSerializerClass) {
-            try {
-                @SuppressWarnings("unchecked") final Class<? extends BeanSerializer<?>> serializerClass = (Class<? extends BeanSerializer<?>>) clazz;
-                final Class<?> beanClass = TypeParameterFinder.findTypeParameterUnsafe(serializerClass, BeanSerializer.class, "T");
+            @SuppressWarnings("unchecked") final Class<? extends BeanSerializer<?>> serializerClass = (Class<? extends BeanSerializer<?>>) clazz;
+            final Class<?> beanClass = TypeParameterFinder.findTypeParameterUnsafe(serializerClass, BeanSerializer.class, "T");
 
-                if (beanClass == Object.class) {
-                    throw new UnsupportedOperationException("BeanSerializer must declare type parameter");
-                }
-
-                if (classBeanSerializerMap.containsKey(beanClass)) {
-                    throw new UnsupportedOperationException(beanClass.getSimpleName() + " has more than one serializer");
-                }
-
-                classBeanSerializerMap.put(beanClass, serializerClass);
-            } catch (Exception e) {
-                ConcurrentUtils.rethrow(e);
+            if (beanClass == Object.class) {
+                throw new UnsupportedOperationException("BeanSerializer must declare type parameter");
             }
+
+            if (classBeanSerializerMap.containsKey(beanClass)) {
+                throw new UnsupportedOperationException(beanClass.getSimpleName() + " has more than one serializer");
+            }
+
+            classBeanSerializerMap.put(beanClass, serializerClass);
         }
     }
 

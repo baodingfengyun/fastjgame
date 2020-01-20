@@ -51,7 +51,7 @@ public class NetEventBusManager implements EventHandlerRegistry, EventDispatcher
     }
 
     @Override
-    public <T extends GenericEvent<U>, U> void register(@Nonnull Class<T> genericType, Class<U> childType, @Nonnull EventHandler<? super T> handler) {
+    public <T extends GenericEvent<?>> void register(@Nonnull Class<T> genericType, @Nonnull Class<?> childType, @Nonnull EventHandler<? super T> handler) {
         ConcurrentUtils.ensureInEventLoop(eventLoopManager.getEventLoop());
         eventBus.register(genericType, childType, handler);
     }

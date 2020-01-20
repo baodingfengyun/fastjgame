@@ -16,12 +16,12 @@
 
 package com.wjybxx.fastjgame.mgr;
 
+import com.google.inject.Inject;
 import com.wjybxx.fastjgame.annotation.EventLoopSingleton;
-import com.wjybxx.fastjgame.eventbus.*;
+import com.wjybxx.fastjgame.eventbus.SpecialEventBus;
 import com.wjybxx.fastjgame.misc.GenericWorldEvent;
 import com.wjybxx.fastjgame.misc.WorldEvent;
 
-import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -34,31 +34,11 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @EventLoopSingleton
 @NotThreadSafe
-public class WorldEventMgr implements EventHandlerRegistry, EventDispatcher {
+public class WorldEventMgr extends SpecialEventBus<WorldEvent, GenericWorldEvent<?>> {
 
-    private final EventBus eventBus = new EventBus();
-
-    @Override
-    public void post(@Nonnull Object event) {
-        eventBus.post(event);
+    @Inject
+    public WorldEventMgr() {
+        super(1024);
     }
 
-    @Override
-    public <T> void register(@Nonnull Class<T> eventType, @Nonnull EventHandler<? super T> handler) {
-        if (WorldEvent.class.isAssignableFrom(eventType)) {
-            eventBus.register(eventType, handler);
-        }
-    }
-
-    @Override
-    public <T extends GenericEvent<U>, U> void register(@Nonnull Class<T> genericType, Class<U> childType, @Nonnull EventHandler<? super T> handler) {
-        if (GenericWorldEvent.class.isAssignableFrom(genericType)) {
-            eventBus.register(genericType, childType, handler);
-        }
-    }
-
-    @Override
-    public void release() {
-        eventBus.release();
-    }
 }

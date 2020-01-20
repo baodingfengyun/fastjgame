@@ -14,32 +14,25 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.mgr;
-
-import com.google.inject.Inject;
-import com.wjybxx.fastjgame.eventbus.SpecialGenericEventBus;
-import com.wjybxx.fastjgame.misc.PlayerEvent;
+package com.wjybxx.fastjgame.eventbus;
 
 /**
- * 玩家事件分发器
+ * EventBus们的工具类
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/12/19
+ * date - 2020/1/20
  * github - https://github.com/hl845740757
  */
-public class PlayerEventDispatcherMgr extends SpecialGenericEventBus<PlayerEvent<?>> {
-
-    @Inject
-    public PlayerEventDispatcherMgr() {
-        super(1024);
-    }
+class EventBusUtils {
 
     /**
-     * @param playerEvent 玩家事件
+     * 默认事件数大小
      */
-    public void post(PlayerEvent<?> playerEvent) {
-        postExplicitly(playerEvent);
+    static final int DEFAULT_EXPECTED_SIZE = 64;
+
+    private EventBusUtils() {
+
     }
 
 }

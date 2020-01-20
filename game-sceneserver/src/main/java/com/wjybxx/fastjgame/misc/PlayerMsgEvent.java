@@ -17,20 +17,21 @@
 package com.wjybxx.fastjgame.misc;
 
 import com.google.protobuf.Message;
+import com.wjybxx.fastjgame.eventbus.GenericEvent;
 import com.wjybxx.fastjgame.gameobject.Player;
 
 import javax.annotation.Nonnull;
 
 /**
- * 玩家消息事件
- * (收到玩家发来的协议)
+ * 玩家消息事件。
+ * 注意：该类没有实现{@link PlayerEvent}接口，是因为要和普通的玩家事件分离，事件分发器也要分离。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2020/1/19
  * github - https://github.com/hl845740757
  */
-public class PlayerMsgEvent<T extends Message> implements PlayerEvent<T> {
+public final class PlayerMsgEvent<T extends Message> implements GenericEvent<T> {
 
     private final Player player;
     private final T msg;
@@ -40,7 +41,6 @@ public class PlayerMsgEvent<T extends Message> implements PlayerEvent<T> {
         this.msg = msg;
     }
 
-    @Override
     public Player getPlayer() {
         return player;
     }
