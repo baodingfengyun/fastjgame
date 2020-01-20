@@ -60,20 +60,30 @@ public class EventBus implements EventHandlerRegistry, EventDispatcher {
     @Override
     public void post(@Nonnull Object event) {
         if (event instanceof GenericEvent) {
-            postEventImp(event, newGenericEventKey((GenericEvent) event));
+            postEventImp(handlerMap, event, newGenericEventKey((GenericEvent) event));
         } else {
-            postEventImp(event, event.getClass());
+            postEventImp(handlerMap, event, event.getClass());
         }
+    }
+
+    /**
+     * 用于子类抛出事件
+     *
+     * @see #postEventImp(Map, Object, Object)
+     */
+    protected final <T> void postEventImp(final @Nonnull T event, final @Nonnull Object eventKey) {
+        postEventImp(handlerMap, event, eventKey);
     }
 
     /**
      * 抛出事件的真正实现
      *
-     * @param event    要抛出的事件
-     * @param eventKey 事件对应的key
-     * @param <T>      事件的类型
+     * @param handlerMap 事件处理器映射
+     * @param event      要抛出的事件
+     * @param eventKey   事件对应的key
+     * @param <T>        事件的类型
      */
-    protected final <T> void postEventImp(final @Nonnull T event, final @Nonnull Object eventKey) {
+    static <T> void postEventImp(Map<Object, EventHandler<?>> handlerMap, @Nonnull T event, @Nonnull Object eventKey) {
         @SuppressWarnings("unchecked") final EventHandler<? super T> handler = (EventHandler<? super T>) handlerMap.get(eventKey);
         if (null == handler) {
             // 对应的事件处理器可能忘记了注册

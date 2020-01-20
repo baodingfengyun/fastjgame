@@ -17,8 +17,6 @@
 package com.wjybxx.fastjgame.eventbus;
 
 import com.wjybxx.fastjgame.reflect.TypeParameterMatcher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.util.IdentityHashMap;
@@ -40,8 +38,6 @@ import java.util.Map;
  * github - https://github.com/hl845740757
  */
 public abstract class SpecialGenericEventBus<G extends GenericEvent<?>> implements EventHandlerRegistry, EventDispatcher {
-
-    private static final Logger logger = LoggerFactory.getLogger(SpecialGenericEventBus.class);
 
     private final TypeParameterMatcher genericMatcher;
 
@@ -71,16 +67,9 @@ public abstract class SpecialGenericEventBus<G extends GenericEvent<?>> implemen
      *
      * @param event 泛型参数约束的事件
      */
+    @SuppressWarnings("unchecked")
     public final void postExplicitly(@Nonnull G event) {
-        final EventHandler<? super G> handler = handlerMap.get(event.child().getClass());
-        if (handler == null) {
-            return;
-        }
-        try {
-            handler.onEvent(event);
-        } catch (Exception e) {
-            logger.warn("handler.onEvent caught exception", e);
-        }
+        EventBus.postEventImp((Map) handlerMap, event, event.child().getClass());
     }
 
     @Override
