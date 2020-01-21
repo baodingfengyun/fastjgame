@@ -78,6 +78,15 @@ import java.util.concurrent.ExecutionException;
  * }
  * </pre>
  *
+ * <pre>
+ * 4. 包含代理/路由节点的单向通知/rpc调用：
+ *     Proxy.methodName(a, b, c)
+ *          .onSuccess(result -> onSuccess(result))
+ *          .onFailure(cause -> session.close())
+ *          .router(rpcCall -> routeById(id, rpcCall))
+ *          .call(routerSession);
+ * </pre>
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/22

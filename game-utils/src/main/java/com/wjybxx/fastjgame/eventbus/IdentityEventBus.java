@@ -36,6 +36,10 @@ import java.util.Map;
  */
 public class IdentityEventBus implements EventBus {
 
+    /**
+     * eventKey -> handler
+     * eventKey：{@link Class}
+     */
     private final Map<Class<?>, EventHandler<?>> handlerMap;
 
     public IdentityEventBus() {
@@ -56,9 +60,8 @@ public class IdentityEventBus implements EventBus {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private void postImp(@Nonnull Object event, Object eventKey) {
-        EventBusUtils.postEventImp((Map) handlerMap, event, eventKey);
+    private void postImp(final @Nonnull Object event, final Class<?> eventKey) {
+        EventBusUtils.postEventImp(handlerMap, event, eventKey);
     }
 
     @Override
@@ -96,9 +99,8 @@ public class IdentityEventBus implements EventBus {
         return true;
     }
 
-    @SuppressWarnings("unchecked")
     private void addHandlerImp(Class<?> keyClass, EventHandler<?> handler) {
-        EventBusUtils.addHandlerImp((Map) handlerMap, keyClass, handler);
+        EventBusUtils.addHandlerImp(handlerMap, keyClass, handler);
     }
 
     @Override

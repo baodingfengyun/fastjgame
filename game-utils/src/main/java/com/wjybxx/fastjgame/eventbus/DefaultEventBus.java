@@ -62,10 +62,7 @@ public class DefaultEventBus implements EventBus {
         }
     }
 
-    /**
-     * 用于子类抛出事件
-     */
-    private <T> void postEventImp(final @Nonnull T event, final @Nonnull Object eventKey) {
+    private void postEventImp(final @Nonnull Object event, final @Nonnull Object eventKey) {
         EventBusUtils.postEventImp(handlerMap, event, eventKey);
     }
 
@@ -104,9 +101,6 @@ public class DefaultEventBus implements EventBus {
         return true;
     }
 
-    /**
-     * @see EventBusUtils#addHandlerImp(Map, Object, EventHandler)
-     */
     private <T> void addHandlerImp(@Nonnull Object eventKey, @Nonnull EventHandler<? super T> handler) {
         EventBusUtils.addHandlerImp(handlerMap, eventKey, handler);
     }

@@ -51,7 +51,7 @@ class EventBusUtils {
      * @param eventKey   事件对应的key
      * @param <T>        事件的类型
      */
-    static <T> void postEventImp(Map<Object, EventHandler<?>> handlerMap, @Nonnull T event, @Nonnull Object eventKey) {
+    static <K, T> void postEventImp(Map<K, EventHandler<?>> handlerMap, @Nonnull T event, @Nonnull K eventKey) {
         @SuppressWarnings("unchecked") final EventHandler<? super T> handler = (EventHandler<? super T>) handlerMap.get(eventKey);
         if (null == handler) {
             // 对应的事件处理器可能忘记了注册
@@ -75,7 +75,7 @@ class EventBusUtils {
      * @param handler    事件处理器
      * @param <T>        事件的类型
      */
-    static <T> void addHandlerImp(Map<Object, EventHandler<?>> handlerMap, @Nonnull Object eventKey, @Nonnull EventHandler<? super T> handler) {
+    static <K, T> void addHandlerImp(Map<K, EventHandler<?>> handlerMap, @Nonnull K eventKey, @Nonnull EventHandler<? super T> handler) {
         @SuppressWarnings("unchecked") final EventHandler<? super T> existHandler = (EventHandler<? super T>) handlerMap.get(eventKey);
         if (null == existHandler) {
             handlerMap.put(eventKey, handler);

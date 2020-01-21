@@ -35,7 +35,7 @@ class CompositeEventHandler<T> implements EventHandler<T> {
 
     private static final Logger logger = LoggerFactory.getLogger(CompositeEventHandler.class);
 
-    private final List<EventHandler<? super T>> children = new ArrayList<>(2);
+    private final List<EventHandler<? super T>> children = new ArrayList<>(4);
 
     CompositeEventHandler(@Nonnull EventHandler<? super T> first,
                           @Nonnull EventHandler<? super T> second) {
