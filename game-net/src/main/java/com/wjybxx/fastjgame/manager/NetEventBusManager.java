@@ -30,7 +30,7 @@ import javax.annotation.Nonnull;
  */
 public class NetEventBusManager implements EventHandlerRegistry, EventDispatcher {
 
-    private final EventBus eventBus = new EventBus(10);
+    private final EventBus eventBus = new IdentityEventBus(10);
     private final NetEventLoopManager eventLoopManager;
 
     @Inject

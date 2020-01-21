@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 复合事件处理器，为多个事件处理器提供一个单一的视图。
+ * 复合事件处理器，为同一个事件的多个处理器提供一个单一的视图。
  *
  * @author wjybxx
  * @version 1.0

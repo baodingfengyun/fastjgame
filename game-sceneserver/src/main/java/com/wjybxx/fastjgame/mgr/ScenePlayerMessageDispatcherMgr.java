@@ -18,7 +18,8 @@ package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
 import com.google.protobuf.Message;
-import com.wjybxx.fastjgame.eventbus.SpecialGenericEventBus;
+import com.wjybxx.fastjgame.eventbus.GenericEvent;
+import com.wjybxx.fastjgame.eventbus.IdentityEventBus;
 import com.wjybxx.fastjgame.gameobject.Player;
 import com.wjybxx.fastjgame.misc.PlayerMsgEvent;
 import com.wjybxx.fastjgame.net.session.Session;
@@ -26,6 +27,7 @@ import com.wjybxx.fastjgame.rpcservice.IPlayerMessageDispatcherMgr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -35,7 +37,7 @@ import javax.annotation.Nullable;
  * @version 1.0
  * date - 2019/8/26
  */
-public class ScenePlayerMessageDispatcherMgr extends SpecialGenericEventBus<PlayerMsgEvent<?>> implements IPlayerMessageDispatcherMgr {
+public class ScenePlayerMessageDispatcherMgr extends IdentityEventBus implements IPlayerMessageDispatcherMgr {
 
     private static final Logger logger = LoggerFactory.getLogger(ScenePlayerMessageDispatcherMgr.class);
 
@@ -57,9 +59,18 @@ public class ScenePlayerMessageDispatcherMgr extends SpecialGenericEventBus<Play
 
         final Player player = playerSessionMgr.getPlayer(playerGuid);
         if (null != player) {
-            postExplicitly(new PlayerMsgEvent<>(player, (Message) message));
+            post(new PlayerMsgEvent<>(player, (Message) message));
         }
         // else 玩家不在当前场景world
     }
 
+    @Override
+    protected boolean accept(@Nonnull Class<?> eventType) {
+        return false;
+    }
+
+    @Override
+    protected boolean acceptGeneric(Class<? extends GenericEvent<?>> genericType) {
+        return PlayerMsgEvent.class.isAssignableFrom(genericType);
+    }
 }

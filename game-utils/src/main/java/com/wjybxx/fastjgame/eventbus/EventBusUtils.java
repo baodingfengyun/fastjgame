@@ -16,6 +16,12 @@
 
 package com.wjybxx.fastjgame.eventbus;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.Nonnull;
+import java.util.Map;
+
 /**
  * EventBus们的工具类
  *
@@ -26,6 +32,8 @@ package com.wjybxx.fastjgame.eventbus;
  */
 class EventBusUtils {
 
+    private static final Logger logger = LoggerFactory.getLogger(EventBusUtils.class);
+
     /**
      * 默认事件数大小
      */
@@ -33,6 +41,52 @@ class EventBusUtils {
 
     private EventBusUtils() {
 
+    }
+
+    /**
+     * 抛出事件的真正实现
+     *
+     * @param handlerMap 事件处理器映射
+     * @param event      要抛出的事件
+     * @param eventKey   事件对应的key
+     * @param <T>        事件的类型
+     */
+    static <T> void postEventImp(Map<Object, EventHandler<?>> handlerMap, @Nonnull T event, @Nonnull Object eventKey) {
+        @SuppressWarnings("unchecked") final EventHandler<? super T> handler = (EventHandler<? super T>) handlerMap.get(eventKey);
+        if (null == handler) {
+            // 对应的事件处理器可能忘记了注册
+            logger.warn("{}'s listeners may forgot register!", eventKey);
+            return;
+        }
+
+        try {
+            handler.onEvent(event);
+        } catch (Exception e) {
+            logger.warn("handler.onEvent caught exception! EventClassInfo {}, EventKey {}, handler info {}",
+                    event.getClass().getName(), eventKey, handler.getClass().getName(), e);
+        }
+    }
+
+    /**
+     * 添加事件处理器的真正实现
+     *
+     * @param handlerMap 保存事件处理器的map
+     * @param eventKey   关注的事件对应的key
+     * @param handler    事件处理器
+     * @param <T>        事件的类型
+     */
+    static <T> void addHandlerImp(Map<Object, EventHandler<?>> handlerMap, @Nonnull Object eventKey, @Nonnull EventHandler<? super T> handler) {
+        @SuppressWarnings("unchecked") final EventHandler<? super T> existHandler = (EventHandler<? super T>) handlerMap.get(eventKey);
+        if (null == existHandler) {
+            handlerMap.put(eventKey, handler);
+            return;
+        }
+        if (existHandler instanceof CompositeEventHandler) {
+            @SuppressWarnings("unchecked") final CompositeEventHandler<T> compositeEventHandler = (CompositeEventHandler<T>) existHandler;
+            compositeEventHandler.addHandler(handler);
+        } else {
+            handlerMap.put(eventKey, new CompositeEventHandler<>(existHandler, handler));
+        }
     }
 
 }

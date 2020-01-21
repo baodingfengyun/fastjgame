@@ -39,9 +39,9 @@ public abstract class TypeParameterMatcher {
     /**
      * 查询指定类是否是泛型参数的子类
      *
-     * @param cls 待检查的class对象
+     * @param type 待检查的类型
      */
-    public abstract boolean matchClass(Class<?> cls);
+    public abstract boolean matchType(Class<?> type);
 
     /**
      * 查找指定泛型参数对应的类型匹配器。
@@ -77,8 +77,8 @@ public abstract class TypeParameterMatcher {
         }
 
         @Override
-        public boolean matchClass(Class<?> cls) {
-            return type.isAssignableFrom(cls);
+        public boolean matchType(Class<?> type) {
+            return this.type.isAssignableFrom(type);
         }
     }
 
@@ -95,7 +95,7 @@ public abstract class TypeParameterMatcher {
         }
 
         @Override
-        public boolean matchClass(Class<?> cls) {
+        public boolean matchType(Class<?> type) {
             return true;
         }
     }

@@ -24,7 +24,6 @@ import javax.annotation.Nonnull;
 
 /**
  * 玩家消息事件。
- * 注意：该类没有实现{@link PlayerEvent}接口，是因为要和普通的玩家事件分离，事件分发器也要分离。
  *
  * @author wjybxx
  * @version 1.0

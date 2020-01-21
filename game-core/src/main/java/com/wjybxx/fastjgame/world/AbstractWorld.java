@@ -53,7 +53,6 @@ public abstract class AbstractWorld implements World {
     protected final GuidMgr guidMgr;
     protected final GameAcceptorMgr gameAcceptorMgr;
     protected final NetContextMgr netContextMgr;
-    protected final WorldEventMgr worldEventMgr;
 
     @Inject
     public AbstractWorld(WorldWrapper worldWrapper) {
@@ -71,7 +70,6 @@ public abstract class AbstractWorld implements World {
         guidMgr = worldWrapper.getGuidMgr();
         gameAcceptorMgr = worldWrapper.getGameAcceptorMgr();
         netContextMgr = worldWrapper.getNetContextMgr();
-        worldEventMgr = worldWrapper.getWorldEventMgr();
     }
 
     /**

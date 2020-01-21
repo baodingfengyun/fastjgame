@@ -18,10 +18,10 @@ package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.annotation.EventLoopSingleton;
+import com.wjybxx.fastjgame.misc.BinaryProtocolCodec;
 import com.wjybxx.fastjgame.misc.HashMessageMappingStrategy;
 import com.wjybxx.fastjgame.misc.MessageMapper;
 import com.wjybxx.fastjgame.misc.MessageMappingStrategy;
-import com.wjybxx.fastjgame.misc.BinaryProtocolCodec;
 import com.wjybxx.fastjgame.net.common.ProtocolCodec;
 
 import javax.annotation.Nonnull;

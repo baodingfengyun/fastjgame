@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.example;
 
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
+import com.wjybxx.fastjgame.eventbus.DefaultEventBus;
 import com.wjybxx.fastjgame.eventbus.EventBus;
 import com.wjybxx.fastjgame.eventbus.GenericEvent;
 import com.wjybxx.fastjgame.eventbus.Subscribe;
@@ -27,7 +28,7 @@ import java.util.LinkedHashSet;
 import java.util.concurrent.ThreadFactory;
 
 /**
- * {@link com.wjybxx.fastjgame.eventbus.EventBus}的注册者例子。
+ * {@link Subscribe}使用例子。
  *
  * @author wjybxx
  * @version 1.0
@@ -93,7 +94,7 @@ public class SubscriberExample {
     }
 
     public static void main(String[] args) {
-        final EventBus bus = new EventBus();
+        final EventBus bus = new DefaultEventBus();
         SubscriberExampleBusRegister.register(bus, new SubscriberExample());
         SubscribeInnerExampleBusRegister.register(bus, new SubscribeInnerExample());
 

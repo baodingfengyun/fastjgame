@@ -60,7 +60,6 @@ public abstract class WorldModule extends AbstractModule {
         bind(GameEventLoopMgr.class).in(Singleton.class);
         bind(CuratorMgr.class).in(Singleton.class);
         bind(GuidMgr.class).to(ZkGuidMgr.class).in(Singleton.class);
-        bind(WorldEventMgr.class).in(Singleton.class);
 
         // 表格读取 （如果表格全是不可变对象，那么可能是多线程模块中的）
         bind(TemplateMgr.class).in(Singleton.class);

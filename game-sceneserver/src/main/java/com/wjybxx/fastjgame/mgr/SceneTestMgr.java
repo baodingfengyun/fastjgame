@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.misc.RoleType;
+import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.rpcservice.ICenterRouterMgrRpcProxy;
 import com.wjybxx.fastjgame.rpcservice.ISceneTestMgr;
 import com.wjybxx.fastjgame.rpcservice.IWarzoneTestMgrRpcProxy;
@@ -53,12 +54,17 @@ public class SceneTestMgr implements ISceneTestMgr {
     }
 
     private void callWarzone(TimerHandle timerHandle) {
+        final Session centerSession = centerSessionMgr.getFirstCenterSession();
+        if (centerSession == null) {
+            return;
+        }
+
         IWarzoneTestMgrRpcProxy.hello(RoleType.SCENE, worldInfoMgr.getWorldGuid())
                 .onSuccess(result -> timerHandle.close())
                 .onSuccess(result -> logger.info("Rcv warzone response: {}", result))
                 .onFailure(failureResult -> logger.info("Failure Response: {}", failureResult))
                 .router(ICenterRouterMgrRpcProxy::routeToWarzone)
-                .call(centerSessionMgr.getFirstCenterSession());
+                .call(centerSession);
     }
 
     @Override

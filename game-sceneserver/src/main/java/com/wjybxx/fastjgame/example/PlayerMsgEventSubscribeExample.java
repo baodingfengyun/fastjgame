@@ -17,9 +17,10 @@
 package com.wjybxx.fastjgame.example;
 
 import com.google.protobuf.Message;
+import com.wjybxx.fastjgame.eventbus.DefaultEventBus;
+import com.wjybxx.fastjgame.eventbus.EventBus;
 import com.wjybxx.fastjgame.eventbus.Subscribe;
 import com.wjybxx.fastjgame.gameobject.Player;
-import com.wjybxx.fastjgame.mgr.PlayerEventDispatcherMgr;
 import com.wjybxx.fastjgame.misc.PlayerMsgEvent;
 
 import static com.wjybxx.fastjgame.protobuffer.p_common.p_player_data;
@@ -34,11 +35,11 @@ import static com.wjybxx.fastjgame.protobuffer.p_scene_player.p_scene_pet_data;
  * date - 2019/8/25
  * github - https://github.com/hl845740757
  */
-public class PlayerEventSubscribeExample {
+public class PlayerMsgEventSubscribeExample {
 
     public static void main(String[] args) {
-        PlayerEventDispatcherMgr dispatcher = new PlayerEventDispatcherMgr();
-        PlayerEventSubscribeExampleBusRegister.register(dispatcher, new PlayerEventSubscribeExample());
+        final EventBus dispatcher = new DefaultEventBus();
+        PlayerMsgEventSubscribeExampleBusRegister.register(dispatcher, new PlayerMsgEventSubscribeExample());
 
         final Player player = new Player(null, null, null, null);
         dispatcher.post(new PlayerMsgEvent<>(player, p_player_data
@@ -57,16 +58,16 @@ public class PlayerEventSubscribeExample {
     }
 
     @Subscribe
-    public void onPlayerIn(PlayerMsgEvent<p_player_data> playerMsgEvent) {
-        System.out.println("onPlayerIn\n" + playerMsgEvent.getMsg().toString());
+    public void onPlayerIn(PlayerMsgEvent<p_player_data> playerEvent) {
+        System.out.println("onPlayerIn\n" + playerEvent.getMsg().toString());
     }
 
     @Subscribe(onlySubEvents = true, subEvents = {
             p_scene_npc_data.class,
             p_scene_pet_data.class
     })
-    public void onNpcOrPetIn(PlayerMsgEvent<Message> playerMsgEvent) {
-        System.out.println("onNpcOrPetIn\n" + playerMsgEvent.getMsg().toString());
+    public void onNpcOrPetIn(PlayerMsgEvent<Message> playerEvent) {
+        System.out.println("onNpcOrPetIn\n" + playerEvent.getMsg().toString());
     }
 
 }

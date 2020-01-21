@@ -33,7 +33,6 @@ public class SceneWorld extends AbstractWorld {
     private final SceneWorldInfoMgr sceneWorldInfoMgr;
     private final SceneSendMgr sendMgr;
     private final SceneMgr sceneMgr;
-    private final PlayerEventDispatcherMgr playerEventDispatcherMgr;
     private final ScenePlayerMessageDispatcherMgr playerMessageDispatcherMgr;
     private final SceneTestMgr sceneTestMgr;
 
@@ -41,7 +40,7 @@ public class SceneWorld extends AbstractWorld {
     public SceneWorld(WorldWrapper worldWrapper, SceneCenterSessionMgr sceneCenterSessionMgr,
                       SceneGateSessionMgr sceneGateSessionMgr, SceneRegionMgr sceneRegionMgr,
                       SceneSendMgr sendMgr, SceneMgr sceneMgr,
-                      PlayerEventDispatcherMgr playerEventDispatcherMgr, ScenePlayerMessageDispatcherMgr playerMessageDispatcherMgr,
+                      ScenePlayerMessageDispatcherMgr playerMessageDispatcherMgr,
                       SceneTestMgr sceneTestMgr) {
         super(worldWrapper);
         this.sceneCenterSessionMgr = sceneCenterSessionMgr;
@@ -50,7 +49,6 @@ public class SceneWorld extends AbstractWorld {
         this.sceneWorldInfoMgr = (SceneWorldInfoMgr) worldWrapper.getWorldInfoMgr();
         this.sendMgr = sendMgr;
         this.sceneMgr = sceneMgr;
-        this.playerEventDispatcherMgr = playerEventDispatcherMgr;
         this.playerMessageDispatcherMgr = playerMessageDispatcherMgr;
         this.sceneTestMgr = sceneTestMgr;
     }
@@ -114,7 +112,6 @@ public class SceneWorld extends AbstractWorld {
 
     @Override
     protected void shutdownHook() {
-        playerEventDispatcherMgr.release();
         playerMessageDispatcherMgr.release();
     }
 
