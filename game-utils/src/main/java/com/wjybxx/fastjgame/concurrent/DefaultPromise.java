@@ -172,6 +172,14 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         return getCause0(result) instanceof CancellationException;
     }
 
+    /**
+     * 判断result是否表示可取消状态
+     */
+    private static boolean isCancellable0(Object result) {
+        // 当且仅当result为null的时候可取消
+        return result == null;
+    }
+
     // --------------------------------------------- 查询2 --------------------------------------------------
 
     @Override
@@ -191,8 +199,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
 
     @Override
     public final boolean isCancellable() {
-        // 当且仅当result为null的时候可取消
-        return resultHolder.get() == null;
+        return isCancellable0(resultHolder.get());
     }
 
     @Override
@@ -323,66 +330,48 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     }
 
     /**
-     * {@inheritDoc}
-     *
-     * @param mayInterruptIfRunning 该参数对该promise而言是无效的。
-     *                              对该promise而言，在它定义的抽象中，它只是获取结果的凭据，它并不真正执行任务，因此也不能真正取消任务。
-     *                              因此该参数对该promise而言是无效的。
-     *                              这里的取消并不是真正意义上的取消，它不能取消过程，只能取消结果。
-     * @return true if succeed
-     */
-    @Override
-    public boolean cancel(boolean mayInterruptIfRunning) {
-        final boolean cancelled = isCancellable() && tryCompleted(new CauseHolder(new CancellationException()), true);
-        return cancelled || isCancelled();
-    }
-
-    /**
      * Q:为什么要这么写？
      * A:为了支持子类重写 {@link #setSuccess(Object)} {@link #setFailure(Throwable)}
      * {@link #trySuccess(Object)} {@link #tryFailure(Throwable)}
      */
     private boolean setSuccess0(V result) {
         // 当future关联的task成功，但是没有返回值时，使用SUCCESS代替
-        return tryCompleted(result == null ? SUCCESS : result, false);
+        return completeSuccessOrFailure(result == null ? SUCCESS : result);
     }
 
     private boolean setFailure0(@Nonnull Throwable cause) {
-        return tryCompleted(new CauseHolder(cause), false);
+        return completeSuccessOrFailure(new CauseHolder(cause));
     }
 
     /**
-     * 尝试赋值结果(从未完成状态进入完成状态)
+     * 执行成功进入完成状态或执行失败进入完成状态
      *
-     * @param value  要赋的值，一定不为null
-     * @param cancel 是否是取消执行
+     * @param value 要赋的值，一定不为null
      * @return 如果赋值成功，则返回true，否则返回false。
      */
-    protected final boolean tryCompleted(@Nonnull Object value, boolean cancel) {
-        boolean success;
-        if (cancel) {
-            // 执行取消操作，只能由初始状态切换为完成状态
-            success = resultHolder.compareAndSet(null, value);
-        } else {
-            // 正常完成，可能由初始状态或不可取消状态切换为结束状态
-            success = resultHolder.compareAndSet(null, value) || resultHolder.compareAndSet(UNCANCELLABLE, value);
-        }
-
-        if (success) {
-            // 检查是否需要通知监听器
-            if (checkNotifyWaiters()) {
-                // 有需要广播的监听器，尝试进行广播
-                notifyListeners();
-            }
+    private boolean completeSuccessOrFailure(@Nonnull Object value) {
+        // 正常完成可以有初始状态或不可取消状态进入完成状态
+        if (resultHolder.compareAndSet(null, value)
+                || resultHolder.compareAndSet(UNCANCELLABLE, value)) {
+            postComplete();
             return true;
         } else {
-            // 赋值操作无效，已被赋值过了
             return false;
         }
     }
 
     /**
-     * 检查需要通知的等待线程。
+     * 提交完成事件
+     */
+    private void postComplete() {
+        if (checkNotifyWaiters()) {
+            // 有需要广播的监听器，尝试进行广播
+            notifyListeners();
+        }
+    }
+
+    /**
+     * 通知在该对象上等待的线程，并检查是否存在监听对象
      * <p>
      * Q:为什么可以先检查listener是否为null，再通知监听器？
      * A:代码执行到这里的时候，结果(volatile)已经对其它线程可见。如果这里认为没有监听器，那么新加入的监听器一定会在添加完之后进行通知。
@@ -390,7 +379,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
      * Q: 为什么不在checkNotifyWaiters里面进行通知呢？
      * A: 那会使得{@link #notifyListeners()}整个方法都处于同步代码块中！
      *
-     * @return 如果返回true，表示有在该对象上的回调，那么需要进行通知
+     * @return 如果返回true，表示有在该对象上的监听器，那么需要进行通知
      */
     private synchronized boolean checkNotifyWaiters() {
         if (waiters > 0) {
@@ -470,6 +459,39 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
             } else {
                 logger.warn("An exception was thrown by " + listener.getClass().getName() + ".onComplete()", e);
             }
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @param mayInterruptIfRunning 该参数对该promise而言是无效的。
+     *                              对该promise而言，在它定义的抽象中，它只是获取结果的凭据，它并不真正执行任务，因此也不能真正取消任务。
+     *                              因此该参数对该promise而言是无效的。
+     *                              这里的取消并不是真正意义上的取消，它不能取消过程，只能取消结果。
+     * @return true if succeed
+     */
+    @Override
+    public boolean cancel(boolean mayInterruptIfRunning) {
+        final Object result = resultHolder.get();
+        if (isCancelled0(result)) {
+            return true;
+        }
+        return isCancellable0(result) && completeCancellation();
+    }
+
+    /**
+     * 由取消进入完成状态
+     *
+     * @return 成功取消则返回true
+     */
+    private boolean completeCancellation() {
+        // 取消只能由初始状态(null)切换为完成状态
+        if (resultHolder.compareAndSet(null, new CauseHolder(new CancellationException()))) {
+            postComplete();
+            return true;
+        } else {
+            return false;
         }
     }
 
