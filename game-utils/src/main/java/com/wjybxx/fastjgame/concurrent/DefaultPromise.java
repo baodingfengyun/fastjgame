@@ -364,7 +364,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
      * 提交完成事件
      */
     private void postComplete() {
-        if (checkNotifyWaiters()) {
+        if (notifyWaitersAndCheckListeners()) {
             // 有需要广播的监听器，尝试进行广播
             notifyListeners();
         }
@@ -381,7 +381,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
      *
      * @return 如果返回true，表示有在该对象上的监听器，那么需要进行通知
      */
-    private synchronized boolean checkNotifyWaiters() {
+    private synchronized boolean notifyWaitersAndCheckListeners() {
         if (waiters > 0) {
             notifyAll();
         }
