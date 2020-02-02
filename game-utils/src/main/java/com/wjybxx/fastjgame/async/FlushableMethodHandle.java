@@ -41,9 +41,9 @@ public interface FlushableMethodHandle<T, FR extends FutureResult<V>, V> extends
      * 在指定对象上执行对应的方法，但不监听方法的执行结果。
      * 且如果方法在某个缓冲区排队，那么会尝试刷新缓冲区，以尽快执行。
      *
-     * @param serviceHandle 方法的执行对象
+     * @param client 方法的执行对象
      */
-    void executeAndFlush(@Nonnull T serviceHandle);
+    void executeAndFlush(@Nonnull T client);
 
     /**
      * 在指定对象上执行对应的方法，并监听执行结果。
@@ -52,18 +52,18 @@ public interface FlushableMethodHandle<T, FR extends FutureResult<V>, V> extends
      * 1. 一旦调用了call方法，回调信息将被重置。
      * 2. 如果没有设置回调，则表示不关心结果。等价于{@link #executeAndFlush(Object)}
      *
-     * @param serviceHandle 方法的执行对象
+     * @param client 方法的执行对象
      */
-    void callAndFlush(@Nonnull T serviceHandle);
+    void callAndFlush(@Nonnull T client);
 
     /**
      * {@inheritDoc}
      *
-     * @param serviceHandle
+     * @param client
      * @apiNote 同步调用是很紧急的，因此该方法实现类必须刷新缓冲区，以尽快执行同步调用。
      */
     @Override
-    V syncCall(@Nonnull T serviceHandle) throws ExecutionException;
+    V syncCall(@Nonnull T client) throws ExecutionException;
 
     @Override
     FlushableMethodHandle<T, FR, V> onSuccess(GenericSuccessFutureResultListener<FR, V> listener);

@@ -26,29 +26,29 @@ import javax.annotation.Nonnull;
 import java.util.concurrent.ExecutionException;
 
 /**
- * redis方法句柄，执行主体为{@link RedisServiceHandle}
+ * redis方法句柄，执行主体为{@link RedisClient}
  *
  * @author wjybxx
  * @version 1.0
  * date - 2020/1/9
  * github - https://github.com/hl845740757
  */
-public interface RedisMethodHandle<V> extends FlushableMethodHandle<RedisServiceHandle, FutureResult<V>, V> {
+public interface RedisMethodHandle<V> extends FlushableMethodHandle<RedisClient, FutureResult<V>, V> {
 
     @Override
-    void execute(@Nonnull RedisServiceHandle serviceHandle);
+    void execute(@Nonnull RedisClient client);
 
     @Override
-    void executeAndFlush(@Nonnull RedisServiceHandle serviceHandle);
+    void executeAndFlush(@Nonnull RedisClient client);
 
     @Override
-    void call(@Nonnull RedisServiceHandle serviceHandle);
+    void call(@Nonnull RedisClient client);
 
     @Override
-    void callAndFlush(@Nonnull RedisServiceHandle serviceHandle);
+    void callAndFlush(@Nonnull RedisClient client);
 
     @Override
-    V syncCall(@Nonnull RedisServiceHandle serviceHandle) throws ExecutionException;
+    V syncCall(@Nonnull RedisClient client) throws ExecutionException;
 
     @Override
     RedisMethodHandle<V> onSuccess(GenericSuccessFutureResultListener<FutureResult<V>, V> listener);

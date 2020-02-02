@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.mgr;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.redis.RedisCommand;
 import com.wjybxx.fastjgame.redis.RedisFuture;
-import com.wjybxx.fastjgame.redis.RedisServiceHandle;
+import com.wjybxx.fastjgame.redis.RedisClient;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -34,14 +34,14 @@ import java.util.concurrent.ExecutionException;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class RedisMgr implements RedisServiceHandle {
+public class RedisClientMgr implements RedisClient {
 
     private final RedisEventLoopMgr redisEventLoopMgr;
     private final GameEventLoopMgr gameEventLoopMgr;
-    private RedisServiceHandle redisServiceHandle;
+    private RedisClient redisClient;
 
     @Inject
-    public RedisMgr(RedisEventLoopMgr redisEventLoopMgr, GameEventLoopMgr gameEventLoopMgr) {
+    public RedisClientMgr(RedisEventLoopMgr redisEventLoopMgr, GameEventLoopMgr gameEventLoopMgr) {
         this.redisEventLoopMgr = redisEventLoopMgr;
         this.gameEventLoopMgr = gameEventLoopMgr;
     }
@@ -50,40 +50,40 @@ public class RedisMgr implements RedisServiceHandle {
      * 在使用其它方法之前，必须先构建服务
      * 在构造的时候无法确保gameEventLoop存在，所以在这里初始化
      */
-    public void initService() {
-        if (redisServiceHandle != null) {
+    public void createClient() {
+        if (redisClient != null) {
             throw new IllegalStateException();
         }
-        redisServiceHandle = redisEventLoopMgr.newServiceHandle(gameEventLoopMgr.getEventLoop());
+        redisClient = redisEventLoopMgr.newRedisClient(gameEventLoopMgr.getEventLoop());
     }
 
     @Override
     public void execute(@Nonnull RedisCommand<?> command) {
-        redisServiceHandle.execute(command);
+        redisClient.execute(command);
     }
 
     @Override
     public void executeAndFlush(@Nonnull RedisCommand<?> command) {
-        redisServiceHandle.executeAndFlush(command);
+        redisClient.executeAndFlush(command);
     }
 
     @Override
     public <V> RedisFuture<V> call(@Nonnull RedisCommand<V> command) {
-        return redisServiceHandle.call(command);
+        return redisClient.call(command);
     }
 
     @Override
     public <V> RedisFuture<V> callAndFlush(@Nonnull RedisCommand<V> command) {
-        return redisServiceHandle.callAndFlush(command);
+        return redisClient.callAndFlush(command);
     }
 
     @Override
     public <V> V syncCall(@Nonnull RedisCommand<V> command) throws ExecutionException {
-        return redisServiceHandle.syncCall(command);
+        return redisClient.syncCall(command);
     }
 
     @Override
     public RedisFuture<?> newWaitFuture() {
-        return redisServiceHandle.newWaitFuture();
+        return redisClient.newWaitFuture();
     }
 }

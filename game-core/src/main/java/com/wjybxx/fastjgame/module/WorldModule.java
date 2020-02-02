@@ -65,7 +65,7 @@ public abstract class WorldModule extends AbstractModule {
         bind(TemplateMgr.class).in(Singleton.class);
 
         // redis支持
-        bind(RedisMgr.class).in(Singleton.class);
+        bind(RedisClientMgr.class).in(Singleton.class);
     }
 
     /**

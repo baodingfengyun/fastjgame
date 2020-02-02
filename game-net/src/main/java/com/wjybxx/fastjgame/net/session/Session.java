@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.net.session;
 import com.wjybxx.fastjgame.annotation.Internal;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
-import com.wjybxx.fastjgame.net.common.RpcServiceHandle;
+import com.wjybxx.fastjgame.net.common.RpcClient;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -42,7 +42,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public interface Session extends RpcServiceHandle, Comparable<Session> {
+public interface Session extends RpcClient, Comparable<Session> {
 
     /**
      * 用户为session分配的sessionId。

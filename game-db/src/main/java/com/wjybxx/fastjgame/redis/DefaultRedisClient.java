@@ -29,12 +29,12 @@ import java.util.concurrent.ExecutionException;
  * date - 2019/12/12
  * github - https://github.com/hl845740757
  */
-public class DefaultRedisServiceHandle implements RedisServiceHandle {
+public class DefaultRedisClient implements RedisClient {
 
     private final RedisEventLoop redisEventLoop;
     private final EventLoop appEventLoop;
 
-    public DefaultRedisServiceHandle(RedisEventLoop redisEventLoop, EventLoop appEventLoop) {
+    public DefaultRedisClient(RedisEventLoop redisEventLoop, EventLoop appEventLoop) {
         this.redisEventLoop = redisEventLoop;
         this.appEventLoop = appEventLoop;
     }

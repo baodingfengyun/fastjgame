@@ -20,10 +20,10 @@ import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
-import com.wjybxx.fastjgame.redis.DefaultRedisServiceHandle;
+import com.wjybxx.fastjgame.redis.DefaultRedisClient;
 import com.wjybxx.fastjgame.redis.RedisEventLoop;
 import com.wjybxx.fastjgame.redis.RedisMethodHandleFactory;
-import com.wjybxx.fastjgame.redis.RedisServiceHandle;
+import com.wjybxx.fastjgame.redis.RedisClient;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -78,7 +78,7 @@ public class RedisEventLoopExample {
     private static class ClientEventLoop extends SingleThreadEventLoop {
 
         private final RedisEventLoop redisEventLoop;
-        private RedisServiceHandle redisServiceHandle;
+        private RedisClient redisClient;
 
         ClientEventLoop(RedisEventLoop redisEventLoop) {
             super(null, new DefaultThreadFactory("REDIS-CLIENT"), RejectedExecutionHandlers.log());
@@ -87,7 +87,7 @@ public class RedisEventLoopExample {
 
         @Override
         protected void init() throws Exception {
-            redisServiceHandle = new DefaultRedisServiceHandle(redisEventLoop, this);
+            redisClient = new DefaultRedisClient(redisEventLoop, this);
         }
 
         @Override
@@ -102,7 +102,7 @@ public class RedisEventLoopExample {
             }
 
             // 监听前面的redis命令完成
-            redisServiceHandle.newWaitFuture().addListener(future -> shutdown());
+            redisClient.newWaitFuture().addListener(future -> shutdown());
 
             while (true) {
                 runAllTasks();
@@ -120,11 +120,11 @@ public class RedisEventLoopExample {
         private void sendRedisCommands(int loop) {
             RedisMethodHandleFactory.hset("name", String.valueOf(loop), String.valueOf(loop))
                     .onSuccess(System.out::println)
-                    .call(redisServiceHandle);
+                    .call(redisClient);
 
             RedisMethodHandleFactory.hget("name", String.valueOf(loop))
                     .onSuccess(System.out::println)
-                    .call(redisServiceHandle);
+                    .call(redisClient);
         }
 
         @Override

@@ -20,7 +20,7 @@ import javax.annotation.Nonnull;
 import java.util.concurrent.ExecutionException;
 
 /**
- * redis服务。
+ * redis客户端。
  * 使用{@link RedisCommand}有许多好处。
  * 1. 扩展更为方便。
  * 2. api更加简洁。
@@ -33,7 +33,7 @@ import java.util.concurrent.ExecutionException;
  * date - 2020/1/9
  * github - https://github.com/hl845740757
  */
-public interface RedisServiceHandle {
+public interface RedisClient {
 
     /**
      * 异步执行一个命令，并不监听结果

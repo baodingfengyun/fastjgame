@@ -34,7 +34,7 @@ import java.util.concurrent.ExecutionException;
  * date - 2020/1/9
  * github - https://github.com/hl845740757
  */
-public class DefaultRedisMethodHandle<V> extends AbstractMethodHandle<RedisServiceHandle, FutureResult<V>, V>
+public class DefaultRedisMethodHandle<V> extends AbstractMethodHandle<RedisClient, FutureResult<V>, V>
         implements RedisMethodHandle<V> {
 
     private final RedisCommand<V> command;
@@ -62,37 +62,37 @@ public class DefaultRedisMethodHandle<V> extends AbstractMethodHandle<RedisServi
     }
 
     @Override
-    public void execute(@Nonnull RedisServiceHandle redisServiceHandle) {
-        redisServiceHandle.execute(command);
+    public void execute(@Nonnull RedisClient redisClient) {
+        redisClient.execute(command);
     }
 
     @Override
-    public void executeAndFlush(@Nonnull RedisServiceHandle redisServiceHandle) {
-        redisServiceHandle.executeAndFlush(command);
+    public void executeAndFlush(@Nonnull RedisClient redisClient) {
+        redisClient.executeAndFlush(command);
     }
 
     @Override
-    public void call(@Nonnull RedisServiceHandle redisServiceHandle) {
+    public void call(@Nonnull RedisClient redisClient) {
         final GenericFutureResultListener<FutureResult<V>, V> listener = detachListener();
         if (listener == null) {
-            redisServiceHandle.execute(command);
+            redisClient.execute(command);
         } else {
-            redisServiceHandle.call(command).addListener(listener);
+            redisClient.call(command).addListener(listener);
         }
     }
 
     @Override
-    public void callAndFlush(@Nonnull RedisServiceHandle redisServiceHandle) {
+    public void callAndFlush(@Nonnull RedisClient redisClient) {
         final GenericFutureResultListener<FutureResult<V>, V> listener = detachListener();
         if (listener == null) {
-            redisServiceHandle.executeAndFlush(command);
+            redisClient.executeAndFlush(command);
         } else {
-            redisServiceHandle.callAndFlush(command).addListener(listener);
+            redisClient.callAndFlush(command).addListener(listener);
         }
     }
 
     @Override
-    public V syncCall(@Nonnull RedisServiceHandle redisServiceHandle) throws ExecutionException {
-        return redisServiceHandle.syncCall(command);
+    public V syncCall(@Nonnull RedisClient redisClient) throws ExecutionException {
+        return redisClient.syncCall(command);
     }
 }

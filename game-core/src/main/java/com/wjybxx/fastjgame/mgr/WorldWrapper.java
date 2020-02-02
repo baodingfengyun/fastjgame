@@ -48,7 +48,7 @@ public class WorldWrapper {
     private final WorldTimerMgr worldTimerMgr;
     private final WorldInfoMgr worldInfoMgr;
     private final GuidMgr guidMgr;
-    private final RedisMgr redisMgr;
+    private final RedisClientMgr redisClientMgr;
 
     @Inject
     public WorldWrapper(GameEventLoopMgr gameEventLoopMgr, WorldInfoMgr worldInfoMgr, WorldTimeMgr worldTimeMgr,
@@ -56,7 +56,7 @@ public class WorldWrapper {
                         ProtocolCodecMgr protocolCodecMgr, WorldTimerMgr worldTimerMgr, GlobalExecutorMgr globalExecutorMgr,
                         CuratorMgr curatorMgr, GuidMgr guidMgr, GameConfigMgr gameConfigMgr, NetContextMgr netContextMgr,
                         CuratorClientMgr curatorClientMgr, TemplateMgr templateMgr, GameAcceptorMgr gameAcceptorMgr,
-                        RedisMgr redisMgr) {
+                        RedisClientMgr redisClientMgr) {
         this.gameEventLoopMgr = gameEventLoopMgr;
         this.worldInfoMgr = worldInfoMgr;
         this.worldTimeMgr = worldTimeMgr;
@@ -72,7 +72,7 @@ public class WorldWrapper {
         this.curatorClientMgr = curatorClientMgr;
         this.templateMgr = templateMgr;
         this.gameAcceptorMgr = gameAcceptorMgr;
-        this.redisMgr = redisMgr;
+        this.redisClientMgr = redisClientMgr;
     }
 
     public GameEventLoopMgr getGameEventLoopMgr() {
@@ -135,8 +135,8 @@ public class WorldWrapper {
         return gameAcceptorMgr;
     }
 
-    public RedisMgr getRedisMgr() {
-        return redisMgr;
+    public RedisClientMgr getRedisClientMgr() {
+        return redisClientMgr;
     }
 
 }

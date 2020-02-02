@@ -21,8 +21,9 @@ import javax.annotation.Nullable;
 import java.util.concurrent.ExecutionException;
 
 /**
- * Rpc服务
+ * Rpc客户端
  * <h3>使用者注意</h3>
+ * 1. 所有的消息都满足先发的先到。
  * 2. 但是要注意一个问题：{@link #syncCall(Object)}会打乱处理的顺序！同步Rpc调用的结果会被你提前处理，其它消息可能先到，但是由于你处于阻塞状态，而导致被延迟处理。<br>
  * 3. 先发送的请求不一定先获得结果！对方什么时候返回给你结果是不确定的！<br>
  *
@@ -36,7 +37,7 @@ import java.util.concurrent.ExecutionException;
  * date - 2020/1/9
  * github - https://github.com/hl845740757
  */
-public interface RpcServiceHandle {
+public interface RpcClient {
 
     /**
      * 发送一个单向消息给对方。

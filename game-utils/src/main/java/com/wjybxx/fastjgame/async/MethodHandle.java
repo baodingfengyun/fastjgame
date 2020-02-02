@@ -55,9 +55,9 @@ public interface MethodHandle<T, FR extends FutureResult<V>, V> {
     /**
      * 在指定对象上执行对应的方法，但不监听方法的执行结果。
      *
-     * @param serviceHandle 方法的执行对象
+     * @param client 方法的执行对象
      */
-    void execute(@Nonnull T serviceHandle);
+    void execute(@Nonnull T client);
 
     /**
      * 在指定对象上执行对应的方法，并监听执行结果。
@@ -67,9 +67,9 @@ public interface MethodHandle<T, FR extends FutureResult<V>, V> {
      * 1. 一旦调用了call方法，回调信息将被重置。
      * 2. 如果没有设置回调，则表示不关心结果。等价于{@link #execute(Object)}
      *
-     * @param serviceHandle 方法的执行对象
+     * @param client 方法的执行对象
      */
-    void call(@Nonnull T serviceHandle);
+    void call(@Nonnull T client);
 
     /**
      * 执行同步调用，如果执行成功，则返回对应的调用结果。
@@ -78,11 +78,11 @@ public interface MethodHandle<T, FR extends FutureResult<V>, V> {
      * 1. 少使用同步调用，必要的时候使用同步可以降低编程复杂度，但是大量使用会大大降低吞吐量。
      * 2. 即使添加了回调，这些回调也会被忽略。
      *
-     * @param serviceHandle 方法的执行对象
+     * @param client 方法的执行对象
      * @return result 执行结果
      * @throws ExecutionException 方法的执行异常将封装为{@link ExecutionException}
      */
-    V syncCall(@Nonnull T serviceHandle) throws ExecutionException;
+    V syncCall(@Nonnull T client) throws ExecutionException;
 
     /**
      * 设置成功时执行的回调。
