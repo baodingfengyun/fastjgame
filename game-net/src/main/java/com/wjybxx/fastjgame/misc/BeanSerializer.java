@@ -32,7 +32,7 @@ import java.io.IOException;
  * 1. 必须保证线程安全，最好是无状态的。
  * 2. 最好实现为目标类的静态内部类，且最好是private级别，不要暴露给外层。
  * 3. 必须有一个无参构造方法(可以private)。
- * 4. 目标对象最好不要再带有注解，可参考{@link com.wjybxx.fastjgame.net.common.RpcCall}
+ * 4. 扫描器通过泛型参数获取负责序列化的类型。
  *
  * @param <T> 要序列化的bean的类型
  * @author wjybxx
@@ -42,12 +42,6 @@ import java.io.IOException;
  */
 @ThreadSafe
 public interface BeanSerializer<T> {
-
-    /**
-     * 整形值对应的编码类型
-     * (定义在这里方便生成的代码使用，减少依赖)
-     */
-    byte WIRE_TYPE_INT = WireType.INT;
 
     /**
      * 将对象写入输出流

@@ -67,8 +67,7 @@ public class SerializableClassProcessor extends AbstractProcessor {
     private static final String READ_METHOD_NAME = "read";
     private static final String CLONE_METHOD_NAME = "clone";
     private static final String FINDTYPE_METHOD_NAME = "findType";
-    private static final String WIRE_TYPE_INT = "WIRE_TYPE_INT";
-
+    private static final String WIRE_TYPE_INT = "INT";
 
     // 工具类
     private Messager messager;
@@ -425,11 +424,11 @@ public class SerializableClassProcessor extends AbstractProcessor {
 
         // 写入number即可 outputStream.writeObject(WireType.INT, instance.getNumber())
         final MethodSpec.Builder writeMethodBuilder = newWriteMethodBuilder(instanceRawTypeName);
-        writeMethodBuilder.addStatement("outputStream.writeObject($L, instance.$L())", WIRE_TYPE_INT, GET_NUMBER_METHOD_NAME);
+        writeMethodBuilder.addStatement("outputStream.writeObject($T.$L, instance.$L())", wireTypeTypeName, WIRE_TYPE_INT, GET_NUMBER_METHOD_NAME);
 
         // 读取number即可 return A.forNumber(inputStream.readObject(WireType.INT))
         final MethodSpec.Builder readMethodBuilder = newReadMethodBuilder(instanceRawTypeName);
-        readMethodBuilder.addStatement("return $T.$L(inputStream.readObject($L))", instanceRawTypeName, FOR_NUMBER_METHOD_NAME, WIRE_TYPE_INT);
+        readMethodBuilder.addStatement("return $T.$L(inputStream.readObject($T.$L))", instanceRawTypeName, FOR_NUMBER_METHOD_NAME, wireTypeTypeName, WIRE_TYPE_INT);
 
         // 枚举，直接返回对象
         final MethodSpec.Builder cloneMethodBuilder = newCloneMethodBuilder(instanceRawTypeName);
