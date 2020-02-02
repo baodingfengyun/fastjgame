@@ -44,7 +44,7 @@ import java.util.Objects;
  * date - 2019/12/30
  * github - https://github.com/hl845740757
  */
-public class HttpClientProxy {
+public class DefaultTimeoutHttpClient implements TimeoutHttpClient{
 
     private final HttpClient httpClient;
     private final EventLoop appEventLoop;
@@ -55,7 +55,7 @@ public class HttpClientProxy {
      * @param appEventLoop       异步http请求回调的默认执行环境
      * @param httpRequestTimeout http请求默认超时时间
      */
-    public HttpClientProxy(@Nonnull HttpClient httpClient, @Nonnull EventLoop appEventLoop, long httpRequestTimeout) {
+    public DefaultTimeoutHttpClient(@Nonnull HttpClient httpClient, @Nonnull EventLoop appEventLoop, long httpRequestTimeout) {
         this.httpClient = Objects.requireNonNull(httpClient);
         this.appEventLoop = Objects.requireNonNull(appEventLoop);
         this.httpRequestTimeout = Duration.ofSeconds(httpRequestTimeout);
@@ -83,6 +83,7 @@ public class HttpClientProxy {
      * @throws IOException          if an I/O error occurs when sending or receiving
      * @throws InterruptedException if the operation is interrupted
      */
+    @Override
     public <T> HttpResponse<T> send(HttpRequest.Builder builder, HttpResponse.BodyHandler<T> responseBodyHandler) throws IOException, InterruptedException {
         return httpClient.send(setTimeoutAndBuild(builder), responseBodyHandler);
     }
@@ -93,6 +94,7 @@ public class HttpClientProxy {
      * @param <T>                 响应内容的类型
      * @return Future - 注意：该future回调的执行环境为{@link #appEventLoop}
      */
+    @Override
     public <T> HttpFuture<HttpResponse<T>> sendAsync(HttpRequest.Builder builder, HttpResponse.BodyHandler<T> responseBodyHandler) {
         return new DefaultHttpFuture<>(appEventLoop, httpClient.sendAsync(setTimeoutAndBuild(builder), responseBodyHandler));
     }
@@ -116,6 +118,7 @@ public class HttpClientProxy {
      * @throws InterruptedException     if the operation is interrupted
      * @throws IllegalArgumentException if timeout is empty
      */
+    @Override
     public <T> HttpResponse<T> send(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler) throws IOException, InterruptedException {
         ensureTimeoutPresent(request);
         return httpClient.send(request, responseBodyHandler);
@@ -128,6 +131,7 @@ public class HttpClientProxy {
      * @return Future - 注意：该future回调的执行环境为{@link #appEventLoop}
      * @throws IllegalArgumentException if timeout is empty
      */
+    @Override
     public <T> HttpFuture<HttpResponse<T>> sendAsync(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler) {
         ensureTimeoutPresent(request);
         return new DefaultHttpFuture<>(appEventLoop, httpClient.sendAsync(request, responseBodyHandler));

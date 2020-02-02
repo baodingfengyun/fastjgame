@@ -20,8 +20,9 @@ import com.google.inject.Inject;
 import com.wjybxx.fastjgame.concurrent.DefaultEventLoopGroup;
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
-import com.wjybxx.fastjgame.net.http.HttpClientProxy;
+import com.wjybxx.fastjgame.net.http.DefaultTimeoutHttpClient;
 import com.wjybxx.fastjgame.net.http.HttpFuture;
+import com.wjybxx.fastjgame.net.http.TimeoutHttpClient;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
@@ -31,7 +32,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 
 /**
- * <p>
+ * HttpClient管理器，将回调绑定到world线程。
  * 它不是线程安全的，需要的world绑定该管理器即可。
  *
  * @author wjybxx
@@ -40,11 +41,11 @@ import java.time.Duration;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class HttpClientManager {
+public class HttpClientManager implements TimeoutHttpClient {
 
     private final GameConfigMgr gameConfigMgr;
     private final GameEventLoopMgr gameEventLoopMgr;
-    private HttpClientProxy httpClientProxy;
+    private DefaultTimeoutHttpClient delegated;
 
     @Inject
     public HttpClientManager(GameConfigMgr gameConfigMgr, GameEventLoopMgr gameEventLoopMgr) {
@@ -57,64 +58,36 @@ public class HttpClientManager {
                 .connectTimeout(Duration.ofSeconds(gameConfigMgr.getHttpConnectTimeout()))
                 .executor(new DefaultEventLoopGroup(gameConfigMgr.getHttpWorkerThreadNum(), new DefaultThreadFactory("HTTP-WORKER", true), RejectedExecutionHandlers.abort()))
                 .build();
-        httpClientProxy = new HttpClientProxy(httpClient, gameEventLoopMgr.getEventLoop(), gameConfigMgr.getHttpRequestTimeout());
+        this.delegated = new DefaultTimeoutHttpClient(httpClient, gameEventLoopMgr.getEventLoop(), gameConfigMgr.getHttpRequestTimeout());
     }
 
     /**
      * 如果你需要更多的灵活性 - 你可以通过httpClient来操作
      */
     public HttpClient getHttpClient() {
-        if (null == httpClientProxy) {
+        if (null == delegated) {
             throw new IllegalStateException();
         }
-        return httpClientProxy.getHttpClient();
+        return delegated.getHttpClient();
     }
 
-    /**
-     * @param builder             http请求内容，之所以使用builder而不是构建完成的request是为了检查是否设置了超时时间。
-     * @param responseBodyHandler 响应解析器
-     * @param <T>                 响应内容的类型
-     * @return 响应的内容
-     * @throws IOException              if an I/O error occurs when sending or receiving
-     * @throws InterruptedException     if the operation is interrupted
-     * @throws IllegalArgumentException if timeout is empty
-     */
+    @Override
     public <T> HttpResponse<T> send(HttpRequest.Builder builder, HttpResponse.BodyHandler<T> responseBodyHandler) throws IOException, InterruptedException {
-        return httpClientProxy.send(builder, responseBodyHandler);
+        return delegated.send(builder, responseBodyHandler);
     }
 
-    /**
-     * @param builder             http请求内容，之所以使用builder而不是构建完成的request是为了检查是否设置了超时时间。
-     * @param responseBodyHandler 响应解析器
-     * @param <T>                 响应内容的类型
-     * @return Future - 注意：该future回调的执行就在游戏逻辑线程。
-     * @throws IllegalArgumentException if timeout is empty
-     */
+    @Override
     public <T> HttpFuture<HttpResponse<T>> sendAsync(HttpRequest.Builder builder, HttpResponse.BodyHandler<T> responseBodyHandler) {
-        return httpClientProxy.sendAsync(builder, responseBodyHandler);
+        return delegated.sendAsync(builder, responseBodyHandler);
     }
 
-    /**
-     * @param request             http请求内容
-     * @param responseBodyHandler 响应解析器
-     * @param <T>                 响应内容的类型
-     * @return 响应的内容
-     * @throws IOException              if an I/O error occurs when sending or receiving
-     * @throws InterruptedException     if the operation is interrupted
-     * @throws IllegalArgumentException if timeout is empty
-     */
+    @Override
     public <T> HttpResponse<T> send(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler) throws IOException, InterruptedException {
-        return httpClientProxy.send(request, responseBodyHandler);
+        return delegated.send(request, responseBodyHandler);
     }
 
-    /**
-     * @param request             http请求内容
-     * @param responseBodyHandler 响应解析器
-     * @param <T>                 响应内容的类型
-     * @return Future - 注意：该future回调的执行就在游戏逻辑线程
-     * @throws IllegalArgumentException if timeout is empty
-     */
+    @Override
     public <T> HttpFuture<HttpResponse<T>> sendAsync(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler) {
-        return httpClientProxy.sendAsync(request, responseBodyHandler);
+        return delegated.sendAsync(request, responseBodyHandler);
     }
 }

@@ -20,7 +20,7 @@ import com.wjybxx.fastjgame.concurrent.DefaultEventLoop;
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
-import com.wjybxx.fastjgame.net.http.HttpClientProxy;
+import com.wjybxx.fastjgame.net.http.DefaultTimeoutHttpClient;
 
 import java.io.IOException;
 import java.net.URI;
@@ -42,12 +42,12 @@ public class HttpClientTest {
 
     public static void main(String[] args) throws IOException, InterruptedException {
         final DefaultEventLoop appEventLoop = new DefaultEventLoop(null, new DefaultThreadFactory("APP"), RejectedExecutionHandlers.abort());
-        final HttpClientProxy httpClientProxy = newHttpClientProxy(appEventLoop);
+        final DefaultTimeoutHttpClient httpClient = newHttpClientProxy(appEventLoop);
 
         try {
-            syncGet(httpClientProxy);
+            syncGet(httpClient);
 
-            asycGet(httpClientProxy);
+            asycGet(httpClient);
 
             appEventLoop.awaitTermination(1, TimeUnit.MINUTES);
         } finally {
@@ -55,35 +55,35 @@ public class HttpClientTest {
         }
     }
 
-    private static HttpClientProxy newHttpClientProxy(final EventLoop appEventLoop) {
+    private static DefaultTimeoutHttpClient newHttpClientProxy(final EventLoop appEventLoop) {
         final HttpClient client = HttpClient.newBuilder()
                 .executor(new DefaultEventLoop(null, new DefaultThreadFactory("HTTP-WORKER", true), RejectedExecutionHandlers.abort()))
                 .connectTimeout(Duration.ofSeconds(30))
                 .build();
 
-        return new HttpClientProxy(client, appEventLoop, 15);
+        return new DefaultTimeoutHttpClient(client, appEventLoop, 15);
     }
 
-    private static void syncGet(HttpClientProxy httpClientProxy) throws IOException, InterruptedException {
+    private static void syncGet(DefaultTimeoutHttpClient httpClient) throws IOException, InterruptedException {
         final HttpRequest.Builder builder = HttpRequest.newBuilder()
                 .uri(URI.create("https://www.baidu.com/"));
 
-        final HttpResponse<String> response = httpClientProxy.send(builder, HttpResponse.BodyHandlers.ofString());
+        final HttpResponse<String> response = httpClient.send(builder, HttpResponse.BodyHandlers.ofString());
         System.out.println(response.body());
     }
 
-    private static void asycGet(HttpClientProxy httpClientProxy) {
+    private static void asycGet(DefaultTimeoutHttpClient httpClient) {
         final HttpRequest.Builder builder = HttpRequest.newBuilder()
                 .uri(URI.create("https://www.baidu.com/"));
 
-        httpClientProxy.sendAsync(builder, HttpResponse.BodyHandlers.ofString())
+        httpClient.sendAsync(builder, HttpResponse.BodyHandlers.ofString())
                 .addListener(future -> {
                     System.out.println("Thread: " + Thread.currentThread());
                     final HttpResponse<String> response = future.getNow();
                     if (null != response) {
                         System.out.println(response.body());
                     }
-                    httpClientProxy.getAppEventLoop().shutdown();
+                    httpClient.getAppEventLoop().shutdown();
                 });
     }
 }
