@@ -165,10 +165,16 @@ public class RedisEventLoop extends SingleThreadEventLoop {
      * 检查连接是否可用
      */
     private void checkConnection() {
-        if (pipeline == null) {
-            // 当前连接不可用，尝试建立连接
+        if (jedis == null) {
+            // 当前连接不可用，尝试获取新的连接
             // 不在执行管道命令的时候进行连接，是为了避免处理任务过慢，导致任务大量堆积，从而产生过高的内存占用
             connectSafely();
+
+            if (jedis == null) {
+                // 获取连接失败时，在接下来的一段时间里大概率总是失败，
+                // 因此等待一段时间，防止频繁出现异常导致cpu资源利用率过高。
+                sleepQuietly(1000);
+            }
         }
     }
 
@@ -181,9 +187,6 @@ public class RedisEventLoop extends SingleThreadEventLoop {
             pipeline = jedis.pipelined();
         } catch (Throwable t) {
             logger.warn("jedisPool.getResource caught exception", t);
-            // 防止频繁出现异常导致cpu资源利用率过高。
-            // 获取连接失败时，在接下来的一段时间里大概率总是失败。
-            sleepQuietly(1000);
         }
     }
 
@@ -240,7 +243,7 @@ public class RedisEventLoop extends SingleThreadEventLoop {
      * @param command 待执行的命令
      * @param flush   是否刷新管道
      */
-    public void execute(RedisCommand<?> command, boolean flush) {
+    void execute(RedisCommand<?> command, boolean flush) {
         execute(new JedisPipelineTask<>(command, flush, null));
     }
 
@@ -251,7 +254,7 @@ public class RedisEventLoop extends SingleThreadEventLoop {
      * @param appEventLoop 用户线程 - 执行回调的线程
      * @param flush        是否刷新管道
      */
-    public <V> RedisFuture<V> call(RedisCommand<V> command, boolean flush, EventLoop appEventLoop) {
+    <V> RedisFuture<V> call(RedisCommand<V> command, boolean flush, EventLoop appEventLoop) {
         final RedisPromise<V> promise = newRedisPromise(appEventLoop);
         execute(new JedisPipelineTask<>(command, flush, promise));
         return promise;
@@ -264,7 +267,7 @@ public class RedisEventLoop extends SingleThreadEventLoop {
      * @param command      待执行的命令
      * @param appEventLoop 用户线程 - 执行回调的线程
      */
-    public <V> V syncCall(RedisCommand<V> command, EventLoop appEventLoop) throws ExecutionException {
+    <V> V syncCall(RedisCommand<V> command, EventLoop appEventLoop) throws ExecutionException {
         final RedisPromise<V> redisPromise = newRedisPromise(appEventLoop);
         execute(new JedisPipelineTask<>(command, true, redisPromise));
         return redisPromise.join();
