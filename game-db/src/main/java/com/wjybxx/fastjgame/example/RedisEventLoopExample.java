@@ -102,7 +102,9 @@ public class RedisEventLoopExample {
             }
 
             // 监听前面的redis命令完成
-            redisClient.newWaitFuture().addListener(future -> shutdown());
+            RedisMethodHandleFactory.hset("test-monitor", "monitor", "1")
+                    .onComplete(futureResult -> shutdown())
+                    .call(redisClient);
 
             while (true) {
                 runAllTasks();

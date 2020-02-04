@@ -73,10 +73,4 @@ public interface RedisClient {
      */
     <V> V syncCall(@Nonnull RedisCommand<V> command) throws ExecutionException;
 
-    /**
-     * 返回一个future，该future会在service<b>当前</b>所有命令执行完毕后会得到一个通知。
-     * - 当你需要在前面的redis命令执行完毕后需要执行某个动作时可以使用该方法。
-     * - 比如：等待redis操作完成后关闭线程。
-     */
-    RedisFuture<?> newWaitFuture();
 }

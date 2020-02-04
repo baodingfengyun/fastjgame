@@ -82,8 +82,4 @@ public class RedisClientMgr implements RedisClient {
         return redisClient.syncCall(command);
     }
 
-    @Override
-    public RedisFuture<?> newWaitFuture() {
-        return redisClient.newWaitFuture();
-    }
 }

@@ -64,8 +64,4 @@ public class DefaultRedisClient implements RedisClient {
         return redisEventLoop.syncCall(command, appEventLoop);
     }
 
-    @Override
-    public RedisFuture<?> newWaitFuture() {
-        return redisEventLoop.newWaitFuture(appEventLoop);
-    }
 }

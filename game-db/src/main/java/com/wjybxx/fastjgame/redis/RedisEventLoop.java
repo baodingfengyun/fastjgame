@@ -270,16 +270,6 @@ public class RedisEventLoop extends SingleThreadEventLoop {
         return redisPromise.join();
     }
 
-    /**
-     * 创建一个用于等待当前所有命令执行完毕的future。
-     * 创建的future会在这之前的命令执行完毕之后得到通知。
-     */
-    public RedisFuture<?> newWaitFuture(EventLoop appEventLoop) {
-        final RedisPromise<?> redisPromise = newRedisPromise(appEventLoop);
-        execute(new SyncTask(redisPromise));
-        return redisPromise;
-    }
-
     private <T> RedisPromise<T> newRedisPromise(EventLoop appEventLoop) {
         return new DefaultRedisPromise<>(this, appEventLoop);
     }
@@ -356,24 +346,4 @@ public class RedisEventLoop extends SingleThreadEventLoop {
         }
     }
 
-    /**
-     * 刷新管道的任务
-     */
-    private class SyncTask implements Runnable {
-
-        private final RedisPromise<?> redisPromise;
-
-        SyncTask(RedisPromise<?> redisPromise) {
-            this.redisPromise = redisPromise;
-        }
-
-        @Override
-        public void run() {
-            try {
-                pipelineSync();
-            } finally {
-                redisPromise.trySuccess(null);
-            }
-        }
-    }
 }
