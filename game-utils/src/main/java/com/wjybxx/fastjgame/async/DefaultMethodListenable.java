@@ -30,7 +30,7 @@ import javax.annotation.Nonnull;
  * date - 2020/2/6
  * github - https://github.com/hl845740757
  */
-public class DefaultMethodListenable<FR extends FutureResult<V>, V> implements MethodListenable<FR, V>, FutureListener<V> {
+public class DefaultMethodListenable<FR extends FutureResult<V>, V> implements MethodListenable<FR, V> {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultMethodListenable.class);
 
@@ -77,7 +77,7 @@ public class DefaultMethodListenable<FR extends FutureResult<V>, V> implements M
 
     @SuppressWarnings("unchecked")
     @Override
-    public void onComplete(ListenableFuture<? extends V> future) throws Exception {
+    public final void onComplete(ListenableFuture<? extends V> future) throws Exception {
         futureResult = (FR) future.getAsResult();
         assert null != futureResult;
         if (null != listener) {

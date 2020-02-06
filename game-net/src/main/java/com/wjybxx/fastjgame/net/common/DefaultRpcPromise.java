@@ -98,12 +98,7 @@ public class DefaultRpcPromise<V> extends DefaultTimeoutPromise<V> implements Rp
     @Nullable
     @Override
     public RpcFutureResult<V> getAsResult() {
-        return (RpcFutureResult<V>) super.getAsResult();
-    }
-
-    @Override
-    protected RpcFutureResult<V> newResult(V result, Throwable cause) {
-        return new DefaultRpcFutureResult<>(result, cause);
+        return getAsResultImp(DefaultRpcFutureResult::new);
     }
 
     // --------------------------------- 流式语法支持 ------------------------------

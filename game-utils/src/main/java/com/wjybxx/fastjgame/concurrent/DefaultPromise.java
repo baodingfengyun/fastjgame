@@ -30,6 +30,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
 import static com.wjybxx.fastjgame.utils.ConcurrentUtils.checkInterrupted;
@@ -274,12 +275,21 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     }
 
     /**
-     * 注意：该方法必须和{@link #newResult(Object, Throwable)}同时重写。
+     * 重写时调用{@link #getAsResultImp(BiFunction)}
      */
     @UnstableApi
     @Nullable
     @Override
     public FutureResult<V> getAsResult() {
+        return getAsResultImp(DefaultFutureResult::new);
+    }
+
+    /**
+     * 获取结果的真正实现
+     *
+     * @param factory 创建结果的工厂，可以考虑单例
+     */
+    protected final <FR extends FutureResult<V>> FR getAsResultImp(BiFunction<V, Throwable, FR> factory) {
         final Object result = resultHolder.get();
 
         if (!isDone0(result)) {
@@ -287,14 +297,10 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         }
 
         if (result instanceof CauseHolder) {
-            return newResult(null, ((CauseHolder) result).cause);
+            return factory.apply(null, ((CauseHolder) result).cause);
         }
 
-        return newResult(getSuccessResult(result), null);
-    }
-
-    protected FutureResult<V> newResult(V result, Throwable cause) {
-        return new DefaultFutureResult<>(result, cause);
+        return factory.apply(getSuccessResult(result), null);
     }
 
     @Nullable

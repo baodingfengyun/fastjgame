@@ -16,31 +16,24 @@
 
 package com.wjybxx.fastjgame.async;
 
-import com.wjybxx.fastjgame.concurrent.timeout.TimeoutFutureResult;
+import com.wjybxx.fastjgame.concurrent.FutureResult;
 
 /**
+ * {@link FutureResult}的监听器
+ *
  * @author wjybxx
  * @version 1.0
- * date - 2020/2/6
+ * date - 2020/1/8
  * github - https://github.com/hl845740757
  */
-public interface TimeoutMethodListenable<FR extends TimeoutFutureResult<V>, V> extends MethodListenable<FR, V> {
+@FunctionalInterface
+public interface GenericFutureResultListener<FR extends FutureResult<V>, V> {
 
     /**
-     * 设置超时执行的逻辑
+     * 当future对应的操作完成时，该方法将被调用。
      *
-     * @param listener 回调逻辑
-     * @return this
+     * @param futureResult 执行结果
      */
-    TimeoutMethodListenable<FR, V> onTimeout(GenericTimeoutFutureResultListener<FR, V> listener);
-
-    @Override
-    TimeoutMethodListenable<FR, V> onSuccess(GenericSuccessFutureResultListener<FR, V> listener);
-
-    @Override
-    TimeoutMethodListenable<FR, V> onFailure(GenericFailureFutureResultListener<FR, V> listener);
-
-    @Override
-    TimeoutMethodListenable<FR, V> onComplete(GenericFutureResultListener<FR, V> listener);
+    void onComplete(FR futureResult);
 
 }

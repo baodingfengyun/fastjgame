@@ -49,10 +49,16 @@ public class NetUtils {
      * 最大缓冲区大小1M,一个消息如果超过1M不能忍。
      */
     public static final int MAX_BUFFER_SIZE = 1024 * 1024;
+
     /**
      * 读超时handler的名字
      */
     public static final String READ_TIMEOUT_HANDLER_NAME = "readTimeoutHandler";
+    /**
+     * 默认读超时时间
+     */
+    public static final int DEFAULT_READ_TIMEOUT = 45;
+
     /**
      * 本机内网地址
      */

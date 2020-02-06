@@ -16,10 +16,7 @@
 
 package com.wjybxx.fastjgame.async;
 
-import com.wjybxx.fastjgame.concurrent.FutureResult;
-import com.wjybxx.fastjgame.concurrent.GenericFailureFutureResultListener;
-import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
-import com.wjybxx.fastjgame.concurrent.GenericSuccessFutureResultListener;
+import com.wjybxx.fastjgame.concurrent.*;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -32,7 +29,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public interface MethodListenable<FR extends FutureResult<V>, V> {
+public interface MethodListenable<FR extends FutureResult<V>, V> extends FutureListener<V> {
 
     /**
      * 设置成功时执行的回调。

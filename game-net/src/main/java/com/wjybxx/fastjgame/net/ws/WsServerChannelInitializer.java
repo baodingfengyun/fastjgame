@@ -57,7 +57,7 @@ public class WsServerChannelInitializer extends ChannelInitializer<SocketChannel
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
-        pipeline.addLast(NetUtils.READ_TIMEOUT_HANDLER_NAME, new ReadTimeoutHandler(45));
+        pipeline.addLast(NetUtils.READ_TIMEOUT_HANDLER_NAME, new ReadTimeoutHandler(NetUtils.DEFAULT_READ_TIMEOUT));
 
         appendHttpCodec(pipeline);
 

@@ -29,6 +29,7 @@ public interface HttpFutureResult<V> extends TimeoutFutureResult<V> {
     /**
      * @see HttpFuture#isTimeout()
      */
+    @Override
     boolean isTimeout();
 
 }

@@ -24,10 +24,8 @@ package com.wjybxx.fastjgame.concurrent;
  * future上关联的异步操作完成时，就会收到通知。
  *
  * <pre>{@code
- * ListenableFuture f = submit(task);
- * f.addListener(new FutureListener() {
- *      public void onComplete(ListenableFuture f) { .. }
- * });
+ * ListenableFuture f = submit(task)
+ * f.addListener(future -> doSomething());
  * }</pre>
  *
  * @param <V> Listener期望消费的类型，也是Future生产的类型。

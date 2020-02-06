@@ -87,16 +87,16 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V> {
 
     @Override
     public final TimeoutMethodListenable<RpcFutureResult<V>, V> call(@Nonnull Session session) {
-        final DefaultTimeoutMethodListenable<RpcFutureResult<V>, V> listener = new DefaultTimeoutMethodListenable<>();
-        session.<V>call(this.call).addListener(listener);
-        return listener;
+        final TimeoutMethodListenable<RpcFutureResult<V>, V> listenable = new DefaultTimeoutMethodListenable<>();
+        session.<V>call(this.call).addListener(listenable);
+        return listenable;
     }
 
     @Override
     public TimeoutMethodListenable<RpcFutureResult<V>, V> callAndFlush(@Nonnull Session session) {
-        final DefaultTimeoutMethodListenable<RpcFutureResult<V>, V> listener = new DefaultTimeoutMethodListenable<>();
-        session.<V>callAndFlush(call).addListener(listener);
-        return listener;
+        final TimeoutMethodListenable<RpcFutureResult<V>, V> listenable = new DefaultTimeoutMethodListenable<>();
+        session.<V>callAndFlush(call).addListener(listenable);
+        return listenable;
     }
 
     @Override

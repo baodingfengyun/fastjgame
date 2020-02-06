@@ -17,10 +17,8 @@
 package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
 import com.wjybxx.fastjgame.misc.GatePlayerSession;
 import com.wjybxx.fastjgame.net.common.ProtocolDispatcher;
-import com.wjybxx.fastjgame.net.common.RpcFutureResult;
 import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.rpcservice.IGatePlayerSessionMgr;
@@ -99,12 +97,6 @@ public class GatePlayerSessionMgr implements IGatePlayerSessionMgr, ProtocolDisp
     public void postRpcRequest(Session session, @Nullable Object request, @Nonnull RpcResponseChannel<?> responseChannel) {
         // 玩家不可以向服务器发起rpc请求
         throw new UnsupportedOperationException("rpcRequest " + request);
-    }
-
-    @Override
-    public <V> void postRpcCallback(Session session, GenericFutureResultListener<RpcFutureResult<V>, V> listener, RpcFutureResult<V> futureResult) {
-        // 网关不可以向玩家发送rpc请求
-        throw new UnsupportedOperationException("Unexpected rpcCallBack: " + listener.getClass().getName());
     }
 
     @Override

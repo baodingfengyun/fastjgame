@@ -16,31 +16,29 @@
 
 package com.wjybxx.fastjgame.async;
 
+import com.wjybxx.fastjgame.async.GenericFutureResultListener;
 import com.wjybxx.fastjgame.concurrent.timeout.TimeoutFutureResult;
 
 /**
+ * 超时结果监听器
+ *
  * @author wjybxx
  * @version 1.0
- * date - 2020/2/6
+ * date - 2020/1/9
  * github - https://github.com/hl845740757
  */
-public interface TimeoutMethodListenable<FR extends TimeoutFutureResult<V>, V> extends MethodListenable<FR, V> {
+@FunctionalInterface
+public interface GenericTimeoutFutureResultListener<FR extends TimeoutFutureResult<V>, V> extends GenericFutureResultListener<FR, V> {
+
+    @Override
+    default void onComplete(FR futureResult) {
+        if (futureResult.isTimeout()) {
+            onTimeout(futureResult);
+        }
+    }
 
     /**
-     * 设置超时执行的逻辑
-     *
-     * @param listener 回调逻辑
-     * @return this
+     * 执行超时逻辑
      */
-    TimeoutMethodListenable<FR, V> onTimeout(GenericTimeoutFutureResultListener<FR, V> listener);
-
-    @Override
-    TimeoutMethodListenable<FR, V> onSuccess(GenericSuccessFutureResultListener<FR, V> listener);
-
-    @Override
-    TimeoutMethodListenable<FR, V> onFailure(GenericFailureFutureResultListener<FR, V> listener);
-
-    @Override
-    TimeoutMethodListenable<FR, V> onComplete(GenericFutureResultListener<FR, V> listener);
-
+    void onTimeout(FR timeoutResult);
 }

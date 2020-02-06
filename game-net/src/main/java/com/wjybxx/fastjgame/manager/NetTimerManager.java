@@ -33,11 +33,13 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class NetTimerManager {
 
+    private static final int INIT_TIMER_CAPACITY = 1024;
+
     private final TimerSystem timerSystem;
 
     @Inject
     public NetTimerManager(NetTimeManager netTimeManager) {
-        timerSystem = new DefaultTimerSystem(netTimeManager, 1023);
+        timerSystem = new DefaultTimerSystem(netTimeManager, INIT_TIMER_CAPACITY);
     }
 
     public void tick() {

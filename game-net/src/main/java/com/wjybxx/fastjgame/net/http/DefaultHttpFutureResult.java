@@ -32,6 +32,6 @@ public class DefaultHttpFutureResult<V> extends DefaultFutureResult<V> implement
 
     @Override
     public boolean isTimeout() {
-        return DefaultHttpFuture.isTimeout0(cause());
+        return DefaultHttpFuture.isHttpTimeout(cause());
     }
 }

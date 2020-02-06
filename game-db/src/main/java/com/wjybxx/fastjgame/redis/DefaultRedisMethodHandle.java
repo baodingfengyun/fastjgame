@@ -53,16 +53,16 @@ public class DefaultRedisMethodHandle<V> implements RedisMethodHandle<V> {
 
     @Override
     public MethodListenable<FutureResult<V>, V> call(@Nonnull RedisClient redisClient) {
-        final DefaultMethodListenable<FutureResult<V>, V> listener = new DefaultMethodListenable<>();
-        redisClient.call(command).addListener(listener);
-        return listener;
+        final MethodListenable<FutureResult<V>, V> listenable = new DefaultMethodListenable<>();
+        redisClient.call(command).addListener(listenable);
+        return listenable;
     }
 
     @Override
     public MethodListenable<FutureResult<V>, V> callAndFlush(@Nonnull RedisClient redisClient) {
-        final DefaultMethodListenable<FutureResult<V>, V> listener = new DefaultMethodListenable<>();
-        redisClient.callAndFlush(command).addListener(listener);
-        return listener;
+        final MethodListenable<FutureResult<V>, V> listenable = new DefaultMethodListenable<>();
+        redisClient.callAndFlush(command).addListener(listenable);
+        return listenable;
     }
 
     @Override

@@ -86,12 +86,7 @@ public class DefaultTimeoutPromise<V> extends DefaultPromise<V> implements Timeo
     @Override
     public TimeoutFutureResult<V> getAsResult() {
         checkTimeout();
-        return (TimeoutFutureResult<V>) super.getAsResult();
-    }
-
-    @Override
-    protected TimeoutFutureResult<V> newResult(V result, Throwable cause) {
-        return new DefaultTimeoutFutureResult<>(result, cause);
+        return getAsResultImp(DefaultTimeoutFutureResult::new);
     }
 
     @Nullable

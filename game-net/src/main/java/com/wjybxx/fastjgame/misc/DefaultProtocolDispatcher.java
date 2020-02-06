@@ -16,10 +16,8 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
 import com.wjybxx.fastjgame.net.common.ProtocolDispatcher;
 import com.wjybxx.fastjgame.net.common.RpcCall;
-import com.wjybxx.fastjgame.net.common.RpcFutureResult;
 import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
 import com.wjybxx.fastjgame.net.session.Session;
 import org.slf4j.Logger;
@@ -73,11 +71,6 @@ public class DefaultProtocolDispatcher implements RpcFunctionRegistry, ProtocolD
         }
         // 这是可以使用send代替无回调的call调用的关键
         rpcCallDispatcher.post(session, (RpcCall) message, VoidRpcResponseChannel.INSTANCE);
-    }
-
-    @Override
-    public <V> void postRpcCallback(Session session, GenericFutureResultListener<RpcFutureResult<V>, V> listener, RpcFutureResult<V> futureResult) {
-        listener.onComplete(futureResult);
     }
 
 }
