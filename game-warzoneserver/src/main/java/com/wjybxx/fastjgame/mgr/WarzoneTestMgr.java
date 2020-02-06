@@ -56,9 +56,9 @@ public class WarzoneTestMgr implements IWarzoneTestMgr {
 
     private void callScene(Session centerSession, long sceneWorldGuid) {
         ISceneTestMgrRpcProxy.hello(RoleType.WARZONE, worldInfoMgr.getWorldGuid())
-                .onSuccess(result -> logger.info("Rcv scene response: {}", result))
-                .onFailure(failureResult -> logger.info("Failure response: {}", failureResult))
                 .router(rpcCall -> ICenterRouterMgrRpcProxy.routeToScene(sceneWorldGuid, rpcCall))
-                .call(centerSession);
+                .call(centerSession)
+                .onSuccess(result -> logger.info("Rcv scene response: {}", result))
+                .onFailure(failureResult -> logger.info("Failure response: {}", failureResult));
     }
 }

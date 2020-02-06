@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.concurrent.timeout;
 
+import com.wjybxx.fastjgame.annotation.UnstableApi;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.FailedFuture;
 import com.wjybxx.fastjgame.concurrent.FutureListener;
@@ -43,6 +44,7 @@ public class FailedTimeoutFuture<V> extends FailedFuture<V> implements TimeoutFu
         return false;
     }
 
+    @UnstableApi
     @Nullable
     @Override
     public TimeoutFutureResult<V> getAsResult() {

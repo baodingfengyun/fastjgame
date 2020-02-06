@@ -102,9 +102,9 @@ public class GateSceneSessionMgr {
         @Override
         public void onSessionConnected(Session session) {
             ISceneGateSessionMgrRpcProxy.register(worldInfoMgr.getServerId())
+                    .call(session)
                     .onSuccess(result -> onRegisterSceneResult(session, result))
-                    .onFailure(failureResult -> session.close())
-                    .call(session);
+                    .onFailure(failureResult -> session.close());
         }
 
         @Override

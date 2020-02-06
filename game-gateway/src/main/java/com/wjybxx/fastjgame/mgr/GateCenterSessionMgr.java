@@ -86,9 +86,9 @@ public class GateCenterSessionMgr {
         @Override
         public void onSessionConnected(Session session) {
             ICenterGateSessionMgrRpcProxy.register()
+                    .call(session)
                     .onSuccess(result -> onRegisterCenterResult(session, result))
-                    .onFailure(failureResult -> session.close())
-                    .call(session);
+                    .onFailure(failureResult -> session.close());
         }
 
         public void onSessionDisconnected(Session session) {

@@ -16,11 +16,9 @@
 
 package com.wjybxx.fastjgame.redis;
 
-import com.wjybxx.fastjgame.async.AbstractMethodHandle;
+import com.wjybxx.fastjgame.async.DefaultMethodListenable;
+import com.wjybxx.fastjgame.async.MethodListenable;
 import com.wjybxx.fastjgame.concurrent.FutureResult;
-import com.wjybxx.fastjgame.concurrent.GenericFailureFutureResultListener;
-import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
-import com.wjybxx.fastjgame.concurrent.GenericSuccessFutureResultListener;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.ExecutionException;
@@ -34,8 +32,7 @@ import java.util.concurrent.ExecutionException;
  * date - 2020/1/9
  * github - https://github.com/hl845740757
  */
-public class DefaultRedisMethodHandle<V> extends AbstractMethodHandle<RedisClient, FutureResult<V>, V>
-        implements RedisMethodHandle<V> {
+public class DefaultRedisMethodHandle<V> implements RedisMethodHandle<V> {
 
     private final RedisCommand<V> command;
 
@@ -43,23 +40,6 @@ public class DefaultRedisMethodHandle<V> extends AbstractMethodHandle<RedisClien
         this.command = command;
     }
 
-    @Override
-    public RedisMethodHandle<V> onSuccess(GenericSuccessFutureResultListener<FutureResult<V>, V> listener) {
-        super.onSuccess(listener);
-        return this;
-    }
-
-    @Override
-    public RedisMethodHandle<V> onFailure(GenericFailureFutureResultListener<FutureResult<V>, V> listener) {
-        super.onFailure(listener);
-        return this;
-    }
-
-    @Override
-    public RedisMethodHandle<V> onComplete(GenericFutureResultListener<FutureResult<V>, V> listener) {
-        super.onComplete(listener);
-        return this;
-    }
 
     @Override
     public void execute(@Nonnull RedisClient redisClient) {
@@ -72,23 +52,17 @@ public class DefaultRedisMethodHandle<V> extends AbstractMethodHandle<RedisClien
     }
 
     @Override
-    public void call(@Nonnull RedisClient redisClient) {
-        final GenericFutureResultListener<FutureResult<V>, V> listener = detachListener();
-        if (listener == null) {
-            redisClient.execute(command);
-        } else {
-            redisClient.call(command).addListener(listener);
-        }
+    public MethodListenable<FutureResult<V>, V> call(@Nonnull RedisClient redisClient) {
+        final DefaultMethodListenable<FutureResult<V>, V> listener = new DefaultMethodListenable<>();
+        redisClient.call(command).addListener(listener);
+        return listener;
     }
 
     @Override
-    public void callAndFlush(@Nonnull RedisClient redisClient) {
-        final GenericFutureResultListener<FutureResult<V>, V> listener = detachListener();
-        if (listener == null) {
-            redisClient.executeAndFlush(command);
-        } else {
-            redisClient.callAndFlush(command).addListener(listener);
-        }
+    public MethodListenable<FutureResult<V>, V> callAndFlush(@Nonnull RedisClient redisClient) {
+        final DefaultMethodListenable<FutureResult<V>, V> listener = new DefaultMethodListenable<>();
+        redisClient.callAndFlush(command).addListener(listener);
+        return listener;
     }
 
     @Override

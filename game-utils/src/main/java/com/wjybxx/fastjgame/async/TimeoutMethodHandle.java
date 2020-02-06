@@ -16,11 +16,9 @@
 
 package com.wjybxx.fastjgame.async;
 
-import com.wjybxx.fastjgame.concurrent.GenericFailureFutureResultListener;
-import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
-import com.wjybxx.fastjgame.concurrent.GenericSuccessFutureResultListener;
-import com.wjybxx.fastjgame.concurrent.timeout.GenericTimeoutFutureResultListener;
 import com.wjybxx.fastjgame.concurrent.timeout.TimeoutFutureResult;
+
+import javax.annotation.Nonnull;
 
 /**
  * 具有超时时间的异步方法句柄
@@ -33,20 +31,6 @@ import com.wjybxx.fastjgame.concurrent.timeout.TimeoutFutureResult;
 public interface TimeoutMethodHandle<T, FR extends TimeoutFutureResult<V>, V> extends MethodHandle<T, FR, V> {
 
     @Override
-    TimeoutMethodHandle<T, FR, V> onSuccess(GenericSuccessFutureResultListener<FR, V> listener);
+    TimeoutMethodListenable<FR, V> call(@Nonnull T client);
 
-    @Override
-    TimeoutMethodHandle<T, FR, V> onFailure(GenericFailureFutureResultListener<FR, V> listener);
-
-    @Override
-    TimeoutMethodHandle<T, FR, V> onComplete(GenericFutureResultListener<FR, V> listener);
-
-    /**
-     * 设置超时失败时执行的回调。
-     * 注意：只有当后续调用的是{@link #call(Object)}系列方法时才会有效。
-     *
-     * @param listener 回调逻辑
-     * @return this
-     */
-    TimeoutMethodHandle<T, FR, V> onTimeout(GenericTimeoutFutureResultListener<FR, V> listener);
 }

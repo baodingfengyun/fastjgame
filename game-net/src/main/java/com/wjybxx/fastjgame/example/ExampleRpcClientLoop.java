@@ -117,39 +117,39 @@ class ExampleRpcClientLoop extends DisruptorEventLoop {
 
         // 方法无返回值，也可以监听，只要调用的是call, sync, syncCall都可以获知调用结果，就像future
         ExampleRpcServiceRpcProxy.hello("wjybxx- " + index)
-                .onSuccess(result -> System.out.println("hello - " + index + " - " + result))
-                .call(session);
+                .call(session)
+                .onSuccess(result -> System.out.println("hello - " + index + " - " + result));
 
         ExampleRpcServiceRpcProxy.queryId("wjybxx-" + index)
-                .onSuccess(result -> System.out.println("queryId - " + index + " - " + result))
-                .call(session);
+                .call(session)
+                .onSuccess(result -> System.out.println("queryId - " + index + " - " + result));
 
         ExampleRpcServiceRpcProxy.inc(index)
-                .onSuccess(result -> System.out.println("inc - " + index + " - " + result))
-                .call(session);
+                .call(session)
+                .onSuccess(result -> System.out.println("inc - " + index + " - " + result));
 
         ExampleRpcServiceRpcProxy.incWithSession(index)
-                .onSuccess(result -> System.out.println("incWithSession - " + index + " - " + result))
-                .call(session);
+                .call(session)
+                .onSuccess(result -> System.out.println("incWithSession - " + index + " - " + result));
 
         ExampleRpcServiceRpcProxy.incWithChannel(index)
-                .onSuccess(result -> System.out.println("incWithChannel - " + index + " - " + result))
-                .call(session);
+                .call(session)
+                .onSuccess(result -> System.out.println("incWithChannel - " + index + " - " + result));
 
         ExampleRpcServiceRpcProxy.incWithSessionAndChannel(index)
-                .onSuccess(result -> System.out.println("incWithSessionAndChannel - " + index + " - " + result))
-                .call(session);
+                .call(session)
+                .onSuccess(result -> System.out.println("incWithSessionAndChannel - " + index + " - " + result));
 
         // 模拟场景服务器通过网关发送给玩家 - 注意：序列化方式必须一致。
         ExampleRpcServiceRpcProxy.sendToPlayer(12345, "这里后期替换为protoBuf消息")
-                .onSuccess(result -> System.out.println("sendToPlayer - " + index + " - invoke success"))
-                .call(session);
+                .call(session)
+                .onSuccess(result -> System.out.println("sendToPlayer - " + index + " - invoke success"));
 
         // 模拟玩家通过网关发送给场景服务器 - 注意：序列化方式必须一致。
         try {
             ExampleRpcServiceRpcProxy.sendToScene(13245, ExampleConstants.binaryCodec.serializeToBytes("这里后期替换为protoBuf消息"))
-                    .onSuccess(result -> System.out.println("sendToScene - " + index + " - invoke success"))
-                    .call(session);
+                    .call(session)
+                    .onSuccess(result -> System.out.println("sendToScene - " + index + " - invoke success"));
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -60,11 +60,11 @@ public class SceneTestMgr implements ISceneTestMgr {
         }
 
         IWarzoneTestMgrRpcProxy.hello(RoleType.SCENE, worldInfoMgr.getWorldGuid())
+                .router(ICenterRouterMgrRpcProxy::routeToWarzone)
+                .call(centerSession)
                 .onSuccess(result -> timerHandle.close())
                 .onSuccess(result -> logger.info("Rcv warzone response: {}", result))
-                .onFailure(failureResult -> logger.info("Failure Response: {}", failureResult))
-                .router(ICenterRouterMgrRpcProxy::routeToWarzone)
-                .call(centerSession);
+                .onFailure(failureResult -> logger.info("Failure Response: {}", failureResult));
     }
 
     @Override

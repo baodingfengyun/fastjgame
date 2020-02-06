@@ -44,7 +44,7 @@ import java.util.Objects;
  * date - 2019/12/30
  * github - https://github.com/hl845740757
  */
-public class DefaultTimeoutHttpClient implements TimeoutHttpClient{
+public class DefaultTimeoutHttpClient implements TimeoutHttpClient {
 
     private final HttpClient httpClient;
     private final EventLoop appEventLoop;

@@ -32,12 +32,12 @@ public interface GenericTimeoutFutureResultListener<FR extends TimeoutFutureResu
     @Override
     default void onComplete(FR futureResult) {
         if (futureResult.isTimeout()) {
-            onTimeout();
+            onTimeout(futureResult);
         }
     }
 
     /**
      * 执行超时逻辑
      */
-    void onTimeout();
+    void onTimeout(FR timeoutResult);
 }

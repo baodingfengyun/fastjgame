@@ -87,9 +87,9 @@ public class CenterWarzoneSessionMgr {
         @Override
         public void onSessionConnected(Session session) {
             IWarzoneCenterSessionMgrRpcProxy.register(centerWorldInfoMgr.getServerId())
+                    .call(session)
                     .onSuccess(result -> onRegisterWarzoneResult(session, result))
-                    .onFailure(failureResult -> session.close())
-                    .call(session);
+                    .onFailure(failureResult -> session.close());
         }
 
         @Override

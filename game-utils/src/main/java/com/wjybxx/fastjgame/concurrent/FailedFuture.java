@@ -15,6 +15,8 @@
  */
 package com.wjybxx.fastjgame.concurrent;
 
+import com.wjybxx.fastjgame.annotation.UnstableApi;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.concurrent.ExecutionException;
@@ -67,6 +69,7 @@ public class FailedFuture<V> extends CompleteFuture<V> {
         return AbstractListenableFuture.rethrowCause(cause);
     }
 
+    @UnstableApi
     @Nullable
     @Override
     public FutureResult<V> getAsResult() {

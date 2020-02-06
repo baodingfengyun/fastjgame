@@ -17,6 +17,8 @@
 package com.wjybxx.fastjgame.concurrent;
 
 
+import com.wjybxx.fastjgame.annotation.UnstableApi;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.concurrent.*;
@@ -148,6 +150,7 @@ public interface ListenableFuture<V> extends Future<V> {
      * 尝试非阻塞的获取当前结果。
      * 如果future关联的task还未完成 {@link #isDone() false}，则返回null。
      */
+    @UnstableApi
     @Nullable
     FutureResult<V> getAsResult();
 

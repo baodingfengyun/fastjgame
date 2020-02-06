@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.net.common;
 
+import com.wjybxx.fastjgame.annotation.UnstableApi;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.FutureListener;
 import com.wjybxx.fastjgame.concurrent.timeout.TimeoutFuture;
@@ -55,6 +56,7 @@ public interface RpcFuture<V> extends TimeoutFuture<V> {
      */
     RpcErrorCode errorCode();
 
+    @UnstableApi
     @Nullable
     @Override
     RpcFutureResult<V> getAsResult();

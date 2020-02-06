@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.concurrent.timeout;
 
+import com.wjybxx.fastjgame.annotation.UnstableApi;
 import com.wjybxx.fastjgame.concurrent.DefaultPromise;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.FutureListener;
@@ -80,6 +81,7 @@ public class DefaultTimeoutPromise<V> extends DefaultPromise<V> implements Timeo
         return super.getNow();
     }
 
+    @UnstableApi
     @Nullable
     @Override
     public TimeoutFutureResult<V> getAsResult() {

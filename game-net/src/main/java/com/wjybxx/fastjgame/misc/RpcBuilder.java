@@ -18,10 +18,7 @@ package com.wjybxx.fastjgame.misc;
 
 import com.wjybxx.fastjgame.async.FlushableMethodHandle;
 import com.wjybxx.fastjgame.async.TimeoutMethodHandle;
-import com.wjybxx.fastjgame.concurrent.GenericFailureFutureResultListener;
-import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
-import com.wjybxx.fastjgame.concurrent.GenericSuccessFutureResultListener;
-import com.wjybxx.fastjgame.concurrent.timeout.GenericTimeoutFutureResultListener;
+import com.wjybxx.fastjgame.async.TimeoutMethodListenable;
 import com.wjybxx.fastjgame.net.common.RpcCall;
 import com.wjybxx.fastjgame.net.common.RpcFutureResult;
 import com.wjybxx.fastjgame.net.session.Session;
@@ -72,19 +69,19 @@ import java.util.concurrent.ExecutionException;
  * 3. rpc调用：
  * {@code
  *      Proxy.methodName(a, b, c)
+ *          .call(session)
  *          .onSuccess(result -> onSuccess(result))
- *          .onFailure(cause -> session.close())
- *          .call(session);
+ *          .onFailure(cause -> session.close());
  * }
  * </pre>
  *
  * <pre>
  * 4. 包含代理/路由节点的单向通知/rpc调用：
  *     Proxy.methodName(a, b, c)
- *          .onSuccess(result -> onSuccess(result))
- *          .onFailure(cause -> session.close())
  *          .router(rpcCall -> routeById(id, rpcCall))
- *          .call(routerSession);
+ *          .call(routerSession)
+ *          .onSuccess(result -> onSuccess(result))
+ *          .onFailure(cause -> session.close());
  * </pre>
  *
  * @author wjybxx
@@ -139,10 +136,11 @@ public interface RpcBuilder<V> extends
      */
     void broadcast(@Nonnull Iterable<Session> sessionGroup);
 
-    void call(@Nonnull Session session);
+    @Override
+    TimeoutMethodListenable<RpcFutureResult<V>, V> call(@Nonnull Session session);
 
     @Override
-    void callAndFlush(@Nonnull Session session);
+    TimeoutMethodListenable<RpcFutureResult<V>, V> callAndFlush(@Nonnull Session session);
 
     V syncCall(@Nonnull Session session) throws ExecutionException;
 
@@ -163,16 +161,4 @@ public interface RpcBuilder<V> extends
     default void executeAndFlush(@Nonnull Session session) {
         sendAndFlush(session);
     }
-
-    @Override
-    RpcBuilder<V> onSuccess(GenericSuccessFutureResultListener<RpcFutureResult<V>, V> listener);
-
-    @Override
-    RpcBuilder<V> onFailure(GenericFailureFutureResultListener<RpcFutureResult<V>, V> listener);
-
-    @Override
-    RpcBuilder<V> onComplete(GenericFutureResultListener<RpcFutureResult<V>, V> listener);
-
-    @Override
-    RpcBuilder<V> onTimeout(GenericTimeoutFutureResultListener<RpcFutureResult<V>, V> listener);
 }

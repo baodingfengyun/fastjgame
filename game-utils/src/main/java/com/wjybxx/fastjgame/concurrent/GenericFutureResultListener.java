@@ -25,13 +25,7 @@ package com.wjybxx.fastjgame.concurrent;
  * github - https://github.com/hl845740757
  */
 @FunctionalInterface
-public interface GenericFutureResultListener<FR extends FutureResult<V>, V> extends FutureListener<V> {
-
-    @Override
-    default void onComplete(ListenableFuture<? extends V> future) throws Exception {
-        @SuppressWarnings("unchecked") final FR futureResult = (FR) future.getAsResult();
-        onComplete(futureResult);
-    }
+public interface GenericFutureResultListener<FR extends FutureResult<V>, V> {
 
     /**
      * 当future对应的操作完成时，该方法将被调用。

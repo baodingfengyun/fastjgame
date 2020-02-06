@@ -73,6 +73,7 @@ public class CenterRouterMgr implements ICenterRouterMgr {
         }
 
         new DefaultRpcBuilder<>(rpcCall)
+                .call(targetSession)
                 .onSuccess(rpcResponseChannel::writeSuccess)
                 .onFailure(failureResult -> {
                     if (failureResult.isRpcException()) {
@@ -80,6 +81,6 @@ public class CenterRouterMgr implements ICenterRouterMgr {
                     } else {
                         rpcResponseChannel.writeFailure(failureResult.cause());
                     }
-                }).call(targetSession);
+                });
     }
 }

@@ -48,11 +48,11 @@ public class FutureResultListenerContainer<FR extends FutureResult<V>, V> implem
     @Override
     public void onComplete(FR futureResult) {
         for (GenericFutureResultListener<? super FR, V> child : children) {
-            notifySafely(child, futureResult);
+            notifyChildSafely(futureResult, child);
         }
     }
 
-    private void notifySafely(GenericFutureResultListener<? super FR, V> child, FR futureResult) {
+    private void notifyChildSafely(FR futureResult, GenericFutureResultListener<? super FR, V> child) {
         try {
             child.onComplete(futureResult);
         } catch (Throwable e) {

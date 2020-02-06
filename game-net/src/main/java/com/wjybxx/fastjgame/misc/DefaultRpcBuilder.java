@@ -16,11 +16,8 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.async.AbstractMethodHandle;
-import com.wjybxx.fastjgame.concurrent.GenericFailureFutureResultListener;
-import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
-import com.wjybxx.fastjgame.concurrent.GenericSuccessFutureResultListener;
-import com.wjybxx.fastjgame.concurrent.timeout.GenericTimeoutFutureResultListener;
+import com.wjybxx.fastjgame.async.DefaultTimeoutMethodListenable;
+import com.wjybxx.fastjgame.async.TimeoutMethodListenable;
 import com.wjybxx.fastjgame.net.common.RpcCall;
 import com.wjybxx.fastjgame.net.common.RpcFutureResult;
 import com.wjybxx.fastjgame.net.session.Session;
@@ -39,7 +36,7 @@ import java.util.concurrent.ExecutionException;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class DefaultRpcBuilder<V> extends AbstractMethodHandle<Session, RpcFutureResult<V>, V> implements RpcBuilder<V> {
+public class DefaultRpcBuilder<V> implements RpcBuilder<V> {
 
     /**
      * 远程方法信息
@@ -89,23 +86,17 @@ public class DefaultRpcBuilder<V> extends AbstractMethodHandle<Session, RpcFutur
     }
 
     @Override
-    public final void call(@Nonnull Session session) {
-        final GenericFutureResultListener<RpcFutureResult<V>, V> listener = detachListener();
-        if (listener == null) {
-            session.send(call);
-        } else {
-            session.<V>call(this.call).addListener(listener);
-        }
+    public final TimeoutMethodListenable<RpcFutureResult<V>, V> call(@Nonnull Session session) {
+        final DefaultTimeoutMethodListenable<RpcFutureResult<V>, V> listener = new DefaultTimeoutMethodListenable<>();
+        session.<V>call(this.call).addListener(listener);
+        return listener;
     }
 
     @Override
-    public void callAndFlush(@Nonnull Session session) {
-        final GenericFutureResultListener<RpcFutureResult<V>, V> listener = detachListener();
-        if (listener == null) {
-            session.sendAndFlush(call);
-        } else {
-            session.<V>callAndFlush(call).addListener(listener);
-        }
+    public TimeoutMethodListenable<RpcFutureResult<V>, V> callAndFlush(@Nonnull Session session) {
+        final DefaultTimeoutMethodListenable<RpcFutureResult<V>, V> listener = new DefaultTimeoutMethodListenable<>();
+        session.<V>callAndFlush(call).addListener(listener);
+        return listener;
     }
 
     @Override
@@ -113,27 +104,4 @@ public class DefaultRpcBuilder<V> extends AbstractMethodHandle<Session, RpcFutur
         return session.syncCall(call);
     }
 
-    @Override
-    public RpcBuilder<V> onSuccess(GenericSuccessFutureResultListener<RpcFutureResult<V>, V> listener) {
-        super.onSuccess(listener);
-        return this;
-    }
-
-    @Override
-    public RpcBuilder<V> onFailure(GenericFailureFutureResultListener<RpcFutureResult<V>, V> listener) {
-        super.onFailure(listener);
-        return this;
-    }
-
-    @Override
-    public RpcBuilder<V> onComplete(GenericFutureResultListener<RpcFutureResult<V>, V> listener) {
-        super.onComplete(listener);
-        return this;
-    }
-
-    @Override
-    public RpcBuilder<V> onTimeout(GenericTimeoutFutureResultListener<RpcFutureResult<V>, V> listener) {
-        addListener(listener);
-        return this;
-    }
 }

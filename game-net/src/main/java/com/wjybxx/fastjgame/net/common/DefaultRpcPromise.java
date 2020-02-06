@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.net.common;
 
+import com.wjybxx.fastjgame.annotation.UnstableApi;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.FutureListener;
 import com.wjybxx.fastjgame.concurrent.timeout.DefaultTimeoutPromise;
@@ -93,6 +94,7 @@ public class DefaultRpcPromise<V> extends DefaultTimeoutPromise<V> implements Rp
         tryFailure(RpcTimeoutException.INSTANCE);
     }
 
+    @UnstableApi
     @Nullable
     @Override
     public RpcFutureResult<V> getAsResult() {

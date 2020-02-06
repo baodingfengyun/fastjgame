@@ -16,7 +16,9 @@
 
 package com.wjybxx.fastjgame.async;
 
-import com.wjybxx.fastjgame.concurrent.*;
+import com.wjybxx.fastjgame.concurrent.FutureListener;
+import com.wjybxx.fastjgame.concurrent.FutureResult;
+import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -62,14 +64,11 @@ public interface MethodHandle<T, FR extends FutureResult<V>, V> {
     /**
      * 在指定对象上执行对应的方法，并监听执行结果。
      * call是不是很好记住？那就多用它。
-     * <p>
-     * 注意：
-     * 1. 一旦调用了call方法，回调信息将被重置。
-     * 2. 如果没有设置回调，则表示不关心结果。等价于{@link #execute(Object)}
      *
      * @param client 方法的执行对象
+     * @return 用于监听结果的监听管理器
      */
-    void call(@Nonnull T client);
+    MethodListenable<FR, V> call(@Nonnull T client);
 
     /**
      * 执行同步调用，如果执行成功，则返回对应的调用结果。
@@ -84,30 +83,4 @@ public interface MethodHandle<T, FR extends FutureResult<V>, V> {
      */
     V syncCall(@Nonnull T client) throws ExecutionException;
 
-    /**
-     * 设置成功时执行的回调。
-     * 注意：只有当后续调用的是{@link #call(Object)}系列方法时才会有效。
-     *
-     * @param listener 回调逻辑
-     * @return this
-     */
-    MethodHandle<T, FR, V> onSuccess(GenericSuccessFutureResultListener<FR, V> listener);
-
-    /**
-     * 设置成功时执行的回调。
-     * 注意：只有当后续调用的是{@link #call(Object)}系列方法时才会有效。
-     *
-     * @param listener 回调逻辑
-     * @return this
-     */
-    MethodHandle<T, FR, V> onFailure(GenericFailureFutureResultListener<FR, V> listener);
-
-    /**
-     * 设置成功时执行的回调。
-     * 注意：只有当后续调用的是{@link #call(Object)}系列方法时才会有效。
-     *
-     * @param listener 回调逻辑
-     * @return this
-     */
-    MethodHandle<T, FR, V> onComplete(GenericFutureResultListener<FR, V> listener);
 }

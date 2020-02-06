@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.net.http;
 
+import com.wjybxx.fastjgame.annotation.UnstableApi;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.FutureListener;
 import com.wjybxx.fastjgame.concurrent.adapter.CompletableFutureAdapter;
@@ -46,6 +47,7 @@ public class DefaultHttpFuture<V> extends CompletableFutureAdapter<V> implements
         return cause instanceof HttpTimeoutException;
     }
 
+    @UnstableApi
     @Nullable
     @Override
     public HttpFutureResult<V> getAsResult() {

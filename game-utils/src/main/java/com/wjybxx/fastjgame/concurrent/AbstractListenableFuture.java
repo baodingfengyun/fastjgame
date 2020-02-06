@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.concurrent;
 
+import com.wjybxx.fastjgame.annotation.UnstableApi;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.concurrent.CancellationException;
@@ -32,6 +34,7 @@ import java.util.concurrent.ExecutionException;
  */
 public abstract class AbstractListenableFuture<V> implements ListenableFuture<V> {
 
+    @UnstableApi
     @Nullable
     @Override
     public FutureResult<V> getAsResult() {

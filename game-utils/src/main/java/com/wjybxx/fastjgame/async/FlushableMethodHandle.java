@@ -17,9 +17,6 @@
 package com.wjybxx.fastjgame.async;
 
 import com.wjybxx.fastjgame.concurrent.FutureResult;
-import com.wjybxx.fastjgame.concurrent.GenericFailureFutureResultListener;
-import com.wjybxx.fastjgame.concurrent.GenericFutureResultListener;
-import com.wjybxx.fastjgame.concurrent.GenericSuccessFutureResultListener;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -53,8 +50,9 @@ public interface FlushableMethodHandle<T, FR extends FutureResult<V>, V> extends
      * 2. 如果没有设置回调，则表示不关心结果。等价于{@link #executeAndFlush(Object)}
      *
      * @param client 方法的执行对象
+     * @return 监听结果的管理器
      */
-    void callAndFlush(@Nonnull T client);
+    MethodListenable<FR, V> callAndFlush(@Nonnull T client);
 
     /**
      * {@inheritDoc}
@@ -64,14 +62,5 @@ public interface FlushableMethodHandle<T, FR extends FutureResult<V>, V> extends
      */
     @Override
     V syncCall(@Nonnull T client) throws ExecutionException;
-
-    @Override
-    FlushableMethodHandle<T, FR, V> onSuccess(GenericSuccessFutureResultListener<FR, V> listener);
-
-    @Override
-    FlushableMethodHandle<T, FR, V> onFailure(GenericFailureFutureResultListener<FR, V> listener);
-
-    @Override
-    FlushableMethodHandle<T, FR, V> onComplete(GenericFutureResultListener<FR, V> listener);
 
 }

@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.concurrent;
 
+import com.wjybxx.fastjgame.annotation.UnstableApi;
 import com.wjybxx.fastjgame.utils.CollectionUtils;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.TimeUtils;
@@ -275,6 +276,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     /**
      * 注意：该方法必须和{@link #newResult(Object, Throwable)}同时重写。
      */
+    @UnstableApi
     @Nullable
     @Override
     public FutureResult<V> getAsResult() {

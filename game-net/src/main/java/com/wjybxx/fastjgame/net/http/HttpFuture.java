@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.net.http;
 
+import com.wjybxx.fastjgame.annotation.UnstableApi;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.FutureListener;
 import com.wjybxx.fastjgame.concurrent.timeout.TimeoutFuture;
@@ -36,6 +37,7 @@ public interface HttpFuture<V> extends TimeoutFuture<V> {
      */
     boolean isTimeout();
 
+    @UnstableApi
     @Nullable
     @Override
     HttpFutureResult<V> getAsResult();

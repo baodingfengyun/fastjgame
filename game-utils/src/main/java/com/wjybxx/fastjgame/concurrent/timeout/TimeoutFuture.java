@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.concurrent.timeout;
 
+import com.wjybxx.fastjgame.annotation.UnstableApi;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.FutureListener;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
@@ -41,6 +42,7 @@ public interface TimeoutFuture<V> extends ListenableFuture<V> {
      */
     boolean isTimeout();
 
+    @UnstableApi
     @Nullable
     @Override
     TimeoutFutureResult<V> getAsResult();

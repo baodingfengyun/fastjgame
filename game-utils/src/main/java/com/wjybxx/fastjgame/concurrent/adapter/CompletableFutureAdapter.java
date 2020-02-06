@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.concurrent.adapter;
 
+import com.wjybxx.fastjgame.annotation.UnstableApi;
 import com.wjybxx.fastjgame.concurrent.*;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
@@ -103,6 +104,7 @@ public class CompletableFutureAdapter<V> extends AbstractListenableFuture<V> {
         }
     }
 
+    @UnstableApi
     @Nullable
     @Override
     public FutureResult<V> getAsResult() {

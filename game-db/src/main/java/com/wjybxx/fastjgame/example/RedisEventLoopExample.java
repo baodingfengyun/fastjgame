@@ -21,9 +21,9 @@ import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
 import com.wjybxx.fastjgame.redis.DefaultRedisClient;
+import com.wjybxx.fastjgame.redis.RedisClient;
 import com.wjybxx.fastjgame.redis.RedisEventLoop;
 import com.wjybxx.fastjgame.redis.RedisMethodHandleFactory;
-import com.wjybxx.fastjgame.redis.RedisClient;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -103,8 +103,8 @@ public class RedisEventLoopExample {
 
             // 监听前面的redis命令完成
             RedisMethodHandleFactory.hset("test-monitor", "monitor", "1")
-                    .onComplete(futureResult -> shutdown())
-                    .call(redisClient);
+                    .call(redisClient)
+                    .onComplete(futureResult -> shutdown());
 
             while (true) {
                 runAllTasks();
@@ -121,12 +121,13 @@ public class RedisEventLoopExample {
 
         private void sendRedisCommands(int loop) {
             RedisMethodHandleFactory.hset("name", String.valueOf(loop), String.valueOf(loop))
+                    .call(redisClient)
                     .onSuccess(System.out::println)
-                    .call(redisClient);
+            ;
 
             RedisMethodHandleFactory.hget("name", String.valueOf(loop))
-                    .onSuccess(System.out::println)
-                    .call(redisClient);
+                    .call(redisClient)
+                    .onSuccess(System.out::println);
         }
 
         @Override
