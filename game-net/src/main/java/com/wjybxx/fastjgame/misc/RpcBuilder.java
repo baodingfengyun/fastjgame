@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.misc;
 
 import com.wjybxx.fastjgame.async.FlushableMethodHandle;
-import com.wjybxx.fastjgame.async.TimeoutMethodHandle;
 import com.wjybxx.fastjgame.async.TimeoutMethodListenable;
 import com.wjybxx.fastjgame.net.common.RpcCall;
 import com.wjybxx.fastjgame.net.common.RpcFutureResult;
@@ -90,9 +89,7 @@ import java.util.concurrent.ExecutionException;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public interface RpcBuilder<V> extends
-        FlushableMethodHandle<Session, RpcFutureResult<V>, V>,
-        TimeoutMethodHandle<Session, RpcFutureResult<V>, V> {
+public interface RpcBuilder<V> extends FlushableMethodHandle<Session, RpcFutureResult<V>, V> {
 
     /**
      * 获取该方法包含的调用信息，可用于二次封装。

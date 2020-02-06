@@ -42,6 +42,9 @@ import java.util.concurrent.ExecutionException;
  * <p>
  * Q: 为什么要有{@code onSuccess()} {@code onFailure()}{@code onComplete()}这样的方法？不能在一个回调里面做完吗？
  * A: 确实可以在一个回调里面完成所有事情。但是会造成大量的样板代码（重复代码），在lambda表达式里写条件语句会显得更糟糕，代码会变得越来越烂，必须要防止这样的代码出现。
+ * <p>
+ * Q: 为什么没有对{@code client}进行抽象？
+ * A: 因为{@link MethodSpec}既是抽象的，又是泛型的，client中定义方法无法很好的约束其类型或泛型参数。
  *
  * @param <T>  the type of method owner
  * @param <FR> the type of future result
@@ -72,10 +75,6 @@ public interface MethodHandle<T, FR extends FutureResult<V>, V> {
 
     /**
      * 执行同步调用，如果执行成功，则返回对应的调用结果。
-     * <p>
-     * 注意：
-     * 1. 少使用同步调用，必要的时候使用同步可以降低编程复杂度，但是大量使用会大大降低吞吐量。
-     * 2. 即使添加了回调，这些回调也会被忽略。
      *
      * @param client 方法的执行对象
      * @return result 执行结果
