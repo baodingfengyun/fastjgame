@@ -32,6 +32,6 @@ public interface RpcRouter<V> {
      * @param rpcCall 原始方法调用信息
      * @return newBuilder，该builder中包含新封装后的调用信息。
      */
-    RpcBuilder<V> route(RpcCall<V> rpcCall);
+    RpcMethodHandle<V> route(RpcCall<V> rpcCall);
 
 }

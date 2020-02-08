@@ -65,9 +65,8 @@ import java.util.*;
 @AutoService(Processor.class)
 public class RpcServiceProcessor extends AbstractProcessor {
 
-    private static final String BUILDER_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.RpcBuilder";
-    private static final String DEFAULT_BUILDER_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.DefaultRpcBuilder";
-    private static final String SESSION_CANONICAL_NAME = "com.wjybxx.fastjgame.net.session.Session";
+    private static final String METHOD_HANDLE_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.RpcMethodHandle";
+    private static final String DEFAULT_METHOD_HANDLE_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.DefaultRpcMethodHandle";
 
     private static final String RPC_SERVICE_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.RpcService";
     private static final String RPC_METHOD_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.RpcMethod";
@@ -75,10 +74,11 @@ public class RpcServiceProcessor extends AbstractProcessor {
     private static final String LAZY_SERIALIZABLE_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.LazySerializable";
     private static final String PRE_DESERIALIZE_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.PreDeserializable";
 
-    private static final String CHANNEL_CANONICAL_NAME = "com.wjybxx.fastjgame.net.common.RpcResponseChannel";
-    private static final String EXCEPTION_UTILS_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.ConcurrentUtils";
-
     private static final String REGISTRY_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.RpcFunctionRegistry";
+    private static final String SESSION_CANONICAL_NAME = "com.wjybxx.fastjgame.net.session.Session";
+    private static final String CHANNEL_CANONICAL_NAME = "com.wjybxx.fastjgame.net.common.RpcResponseChannel";
+
+    private static final String EXCEPTION_UTILS_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.ConcurrentUtils";
 
     private static final String SERVICE_ID_METHOD_NAME = "serviceId";
     private static final String METHOD_ID_METHOD_NAME = "methodId";
@@ -108,7 +108,9 @@ public class RpcServiceProcessor extends AbstractProcessor {
 
     private DeclaredType responseChannelDeclaredType;
     private DeclaredType sessionDeclaredType;
-    private TypeElement builderElement;
+
+    private TypeElement methodHandleElement;
+    private TypeName defaultMethodHandleRawTypeName;
 
     private DeclaredType lazySerializableDeclaredType;
     private DeclaredType preDeserializeDeclaredType;
@@ -119,7 +121,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 
     private ClassName registryTypeName;
     private ClassName exceptionUtilsTypeName;
-    private TypeName defaultBuilderRawTypeName;
+
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
@@ -155,16 +157,16 @@ public class RpcServiceProcessor extends AbstractProcessor {
         rpcMethodDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(RPC_METHOD_CANONICAL_NAME));
 
         registryTypeName = ClassName.get(elementUtils.getTypeElement(REGISTRY_CANONICAL_NAME));
-        exceptionUtilsTypeName = ClassName.get(elementUtils.getTypeElement(EXCEPTION_UTILS_CANONICAL_NAME));
-        builderElement = elementUtils.getTypeElement(BUILDER_CANONICAL_NAME);
-
-        responseChannelDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(CHANNEL_CANONICAL_NAME));
         sessionDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(SESSION_CANONICAL_NAME));
+        responseChannelDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(CHANNEL_CANONICAL_NAME));
+
+        exceptionUtilsTypeName = ClassName.get(elementUtils.getTypeElement(EXCEPTION_UTILS_CANONICAL_NAME));
+
+        methodHandleElement = elementUtils.getTypeElement(METHOD_HANDLE_CANONICAL_NAME);
+        defaultMethodHandleRawTypeName = TypeName.get(typeUtils.getDeclaredType(elementUtils.getTypeElement(DEFAULT_METHOD_HANDLE_CANONICAL_NAME)));
 
         lazySerializableDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(LAZY_SERIALIZABLE_CANONICAL_NAME));
         preDeserializeDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(PRE_DESERIALIZE_CANONICAL_NAME));
-
-        defaultBuilderRawTypeName = TypeName.get(typeUtils.getDeclaredType(elementUtils.getTypeElement(DEFAULT_BUILDER_CANONICAL_NAME)));
     }
 
 
@@ -243,7 +245,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
 
             if (method.isVarArgs()) {
                 // 不支持变长参数
-                messager.printMessage(Diagnostic.Kind.ERROR, "RpcMethod is not support varArgs!", method);
+                messager.printMessage(Diagnostic.Kind.ERROR, "RpcMethod not support varArgs!", method);
                 continue;
             }
 
@@ -349,7 +351,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
         final List<ParameterSpec> realParameters = parseResult.realParameters;
 
         // 添加返回类型-带泛型
-        final DeclaredType realReturnType = typeUtils.getDeclaredType(builderElement, parseResult.callReturnType);
+        final DeclaredType realReturnType = typeUtils.getDeclaredType(methodHandleElement, parseResult.callReturnType);
         builder.returns(ClassName.get(realReturnType));
 
         // 拷贝参数列表
@@ -358,14 +360,14 @@ public class RpcServiceProcessor extends AbstractProcessor {
         // 搜集参数代码块（一个参数时不能使用singleTonList了，因为可能要修改内容）
         if (realParameters.size() == 0) {
             // 无参时，使用 Collections.emptyList();
-            builder.addStatement("return new $T<>($L, $T.emptyList(), $L, $L)", defaultBuilderRawTypeName, methodKey, Collections.class,
+            builder.addStatement("return new $T<>($L, $T.emptyList(), $L, $L)", defaultMethodHandleRawTypeName, methodKey, Collections.class,
                     parseResult.lazyIndexes, parseResult.preIndexes);
         } else {
             builder.addStatement("$T<Object> $L = new $T<>($L)", ArrayList.class, methodParams, ArrayList.class, realParameters.size());
             for (ParameterSpec parameterSpec : realParameters) {
                 builder.addStatement("$L.add($L)", methodParams, parameterSpec.name);
             }
-            builder.addStatement("return new $T<>($L, $L, $L, $L)", defaultBuilderRawTypeName, methodKey, methodParams,
+            builder.addStatement("return new $T<>($L, $L, $L, $L)", defaultMethodHandleRawTypeName, methodKey, methodParams,
                     parseResult.lazyIndexes, parseResult.preIndexes);
         }
         return builder.build();

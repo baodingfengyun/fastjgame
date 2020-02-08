@@ -214,7 +214,7 @@ public class CenterSceneSessionMgr {
             activeRegions.add(SceneRegion.LOCAL_PKC);
         } catch (ExecutionException e) {
             // 遇见这个需要好好处理(适当增加超时时间)，尽量不能失败
-            logger.error("active region failed, code={}", e.getCause());
+            logger.error("active region failed", e.getCause());
         }
     }
 

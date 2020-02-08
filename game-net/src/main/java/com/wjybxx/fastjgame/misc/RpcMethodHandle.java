@@ -19,8 +19,8 @@ package com.wjybxx.fastjgame.misc;
 import com.wjybxx.fastjgame.async.FlushableMethodHandle;
 import com.wjybxx.fastjgame.async.TimeoutMethodListenable;
 import com.wjybxx.fastjgame.net.common.RpcCall;
+import com.wjybxx.fastjgame.net.common.RpcClient;
 import com.wjybxx.fastjgame.net.common.RpcFutureResult;
-import com.wjybxx.fastjgame.net.session.Session;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -31,21 +31,21 @@ import java.util.concurrent.ExecutionException;
  * <p>
  * Q: 为何提供该对象？
  * A: Net包提供的Rpc过于底层，很多接口并不为某一个具体的应用设计，虽然可以推荐某些使用方式，
- * 但仍然保留用户自定义的方式。{@link RpcBuilder}提供了一套更良好的api.
+ * 但仍然保留用户自定义的方式。{@link RpcMethodHandle}提供了一套更良好的api.
  * <p>
  * 注意：它并不是线程安全的，而只是提供更加容易使用的接口而已。
  * <p>
- * Q: 为何需要手动指定session？不能像常见的rpc那样直接获得一个proxy就行吗？
+ * Q: 为何需要手动指定client？不能像常见的rpc那样直接获得一个proxy就行吗？
  * A: 对于一般应用而言，当出现多个服务提供者的时候，可以使用任意一个服务提供者，这样可以实现负载均衡。但是对于游戏而言，不行！
  * 对于游戏而言，每一个请求，每一个消息都是要发给确定的服务提供者的（另一个确定的服务器），因此你要获得一个正确的proxy并不容易，
- * 你必定需要指定一些额外参数才能获得正确的proxy。由于要获得正确的proxy，必定要获取正确的session，因此干脆不创建proxy，而是指定session。
+ * 你必定需要指定一些额外参数才能获得正确的proxy。由于要获得正确的proxy，必定要获取正确的client，因此干脆不创建proxy，而是指定client。
  * <p>
  * 使用示例：
  * <pre>
  * 1. 单向通知：
  * {@code
  *      Proxy.methodName(a, b, c)
- *          .send(session);
+ *          .send(client);
  * }
  * </pre>
  *
@@ -53,13 +53,13 @@ import java.util.concurrent.ExecutionException;
  * 2. 广播:
  * {@code
  *     Proxy.methodName(a, b, c)
- *          .broadcast(sessionCollection);
+ *          .broadcast(clientGroup);
  * }
  * 等价于
  * {@code
  *      RpcBuilder builder = Proxy.methodName(a, b, c);
- *      for(Session session:sessionCollection) {
- *          builder.send(session);
+ *      for(RpcClient client:clientGroup) {
+ *          builder.send(client);
  *      }
  * }
  * </pre>
@@ -68,9 +68,9 @@ import java.util.concurrent.ExecutionException;
  * 3. rpc调用：
  * {@code
  *      Proxy.methodName(a, b, c)
- *          .call(session)
+ *          .call(client)
  *          .onSuccess(result -> onSuccess(result))
- *          .onFailure(cause -> session.close());
+ *          .onFailure(cause -> client.close());
  * }
  * </pre>
  *
@@ -78,9 +78,9 @@ import java.util.concurrent.ExecutionException;
  * 4. 包含代理/路由节点的单向通知/rpc调用：
  *     Proxy.methodName(a, b, c)
  *          .router(rpcCall -> routeById(id, rpcCall))
- *          .call(routerSession)
+ *          .call(routerClient)
  *          .onSuccess(result -> onSuccess(result))
- *          .onFailure(cause -> session.close());
+ *          .onFailure(cause -> client.close());
  * </pre>
  *
  * @author wjybxx
@@ -89,7 +89,7 @@ import java.util.concurrent.ExecutionException;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public interface RpcBuilder<V> extends FlushableMethodHandle<Session, RpcFutureResult<V>, V> {
+public interface RpcMethodHandle<V> extends FlushableMethodHandle<RpcClient, RpcFutureResult<V>, V> {
 
     /**
      * 获取该方法包含的调用信息，可用于二次封装。
@@ -103,59 +103,53 @@ public interface RpcBuilder<V> extends FlushableMethodHandle<Session, RpcFutureR
      * @param router 路由器
      * @return this
      */
-    RpcBuilder<V> router(RpcRouter<V> router);
+    RpcMethodHandle<V> router(RpcRouter<V> router);
 
     /**
      * 发送一个单向消息 - 它表示不需要方法的执行结果。
-     * 注意:
-     * 1. 即使添加了回调，这些回调也会被忽略。
      *
-     * @param session 要通知的session
+     * @param client 执行调用的客户端
      */
-    void send(@Nonnull Session session);
+    void send(@Nonnull RpcClient client);
 
     /**
      * 发送一个单向消息 - 它表示不需要方法的执行结果。
-     * 且如果方法在缓冲区，则会尝试刷新缓冲区。
-     * 注意:
-     * 1. 即使添加了回调，这些回调也会被忽略。
+     * 如果存在缓冲区，则会尝试刷新缓冲区。
      *
-     * @param session 要通知的session
+     * @param client 执行调用的客户端
      */
-    void sendAndFlush(Session session);
+    void sendAndFlush(RpcClient client);
 
     /**
-     * 广播一个消息，它是对{@link #send(Session)}的一个包装。
-     * 注意:
-     * 1. 即使添加了回调，这些回调也会被忽略。
+     * 广播一个消息，它是对{@link #send(RpcClient)}的一个包装。
      *
-     * @param sessionGroup 要广播的所有session
+     * @param clientGroup 要广播的所有用户
      */
-    void broadcast(@Nonnull Iterable<Session> sessionGroup);
+    void broadcast(@Nonnull Iterable<RpcClient> clientGroup);
 
     @Override
-    TimeoutMethodListenable<RpcFutureResult<V>, V> call(@Nonnull Session session);
+    TimeoutMethodListenable<RpcFutureResult<V>, V> call(@Nonnull RpcClient client);
 
     @Override
-    TimeoutMethodListenable<RpcFutureResult<V>, V> callAndFlush(@Nonnull Session session);
+    TimeoutMethodListenable<RpcFutureResult<V>, V> callAndFlush(@Nonnull RpcClient client);
 
-    V syncCall(@Nonnull Session session) throws ExecutionException;
+    V syncCall(@Nonnull RpcClient client) throws ExecutionException;
 
     /**
-     * @deprecated 使用更具表达力的 {@link #send(Session)}代替。
+     * @deprecated 使用更具表达力的 {@link #send(RpcClient)}代替。
      */
     @Deprecated
     @Override
-    default void execute(@Nonnull Session session) {
-        send(session);
+    default void execute(@Nonnull RpcClient client) {
+        send(client);
     }
 
     /**
-     * @deprecated 使用更具表达力的 {@link #sendAndFlush(Session)}代替。
+     * @deprecated 使用更具表达力的 {@link #sendAndFlush(RpcClient)}代替。
      */
     @Deprecated
     @Override
-    default void executeAndFlush(@Nonnull Session session) {
-        sendAndFlush(session);
+    default void executeAndFlush(@Nonnull RpcClient client) {
+        sendAndFlush(client);
     }
 }

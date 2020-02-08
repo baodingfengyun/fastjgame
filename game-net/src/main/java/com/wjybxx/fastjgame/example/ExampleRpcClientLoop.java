@@ -24,7 +24,7 @@ import com.wjybxx.fastjgame.concurrent.disruptor.YieldWaitStrategyFactory;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.misc.DefaultProtocolDispatcher;
 import com.wjybxx.fastjgame.misc.HostAndPort;
-import com.wjybxx.fastjgame.misc.RpcBuilder;
+import com.wjybxx.fastjgame.misc.RpcMethodHandle;
 import com.wjybxx.fastjgame.net.common.SessionDisconnectAware;
 import com.wjybxx.fastjgame.net.local.LocalPort;
 import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
@@ -155,7 +155,7 @@ class ExampleRpcClientLoop extends DisruptorEventLoop {
         }
 
         // 模拟广播X次
-        final RpcBuilder<?> builder = ExampleRpcServiceRpcProxy.notifySuccess(index);
+        final RpcMethodHandle<?> builder = ExampleRpcServiceRpcProxy.notifySuccess(index);
         IntStream.rangeClosed(1, 3).forEach(i -> builder.send(session));
         // 上面等同于下面
         builder.broadcast(Arrays.asList(session, session, session));

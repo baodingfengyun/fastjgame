@@ -19,8 +19,8 @@ package com.wjybxx.fastjgame.misc;
 import com.wjybxx.fastjgame.async.DefaultTimeoutMethodListenable;
 import com.wjybxx.fastjgame.async.TimeoutMethodListenable;
 import com.wjybxx.fastjgame.net.common.RpcCall;
+import com.wjybxx.fastjgame.net.common.RpcClient;
 import com.wjybxx.fastjgame.net.common.RpcFutureResult;
-import com.wjybxx.fastjgame.net.session.Session;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 /**
- * {@link RpcBuilder}的默认实现
+ * {@link RpcMethodHandle}的默认实现
  *
  * @author wjybxx
  * @version 1.0
@@ -36,7 +36,7 @@ import java.util.concurrent.ExecutionException;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class DefaultRpcBuilder<V> implements RpcBuilder<V> {
+public class DefaultRpcMethodHandle<V> implements RpcMethodHandle<V> {
 
     /**
      * 远程方法信息
@@ -46,14 +46,14 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V> {
     /**
      * @param call 一般来讲，是用于转发的RpcCall
      */
-    public DefaultRpcBuilder(RpcCall<V> call) {
+    public DefaultRpcMethodHandle(RpcCall<V> call) {
         this.call = call;
     }
 
     /**
      * 该方法是生成的代码调用的。
      */
-    public DefaultRpcBuilder(int methodKey, List<Object> methodParams, int lazyIndexes, int preIndexes) {
+    public DefaultRpcMethodHandle(int methodKey, List<Object> methodParams, int lazyIndexes, int preIndexes) {
         this.call = new RpcCall<>(methodKey, methodParams, lazyIndexes, preIndexes);
     }
 
@@ -63,45 +63,45 @@ public class DefaultRpcBuilder<V> implements RpcBuilder<V> {
     }
 
     @Override
-    public RpcBuilder<V> router(RpcRouter<V> router) {
+    public RpcMethodHandle<V> router(RpcRouter<V> router) {
         this.call = router.route(call).getCall();
         return this;
     }
 
     @Override
-    public void send(@Nonnull Session session) throws IllegalStateException {
-        session.send(call);
+    public void send(@Nonnull RpcClient client) throws IllegalStateException {
+        client.send(call);
     }
 
     @Override
-    public void sendAndFlush(Session session) {
-        session.sendAndFlush(call);
+    public void sendAndFlush(RpcClient client) {
+        client.sendAndFlush(call);
     }
 
     @Override
-    public void broadcast(@Nonnull Iterable<Session> sessionGroup) throws IllegalStateException {
-        for (Session session : sessionGroup) {
-            session.send(call);
+    public void broadcast(@Nonnull Iterable<RpcClient> clientGroup) throws IllegalStateException {
+        for (RpcClient client : clientGroup) {
+            client.send(call);
         }
     }
 
     @Override
-    public final TimeoutMethodListenable<RpcFutureResult<V>, V> call(@Nonnull Session session) {
+    public final TimeoutMethodListenable<RpcFutureResult<V>, V> call(@Nonnull RpcClient client) {
         final TimeoutMethodListenable<RpcFutureResult<V>, V> listenable = new DefaultTimeoutMethodListenable<>();
-        session.<V>call(this.call).addListener(listenable);
+        client.<V>call(this.call).addListener(listenable);
         return listenable;
     }
 
     @Override
-    public TimeoutMethodListenable<RpcFutureResult<V>, V> callAndFlush(@Nonnull Session session) {
+    public TimeoutMethodListenable<RpcFutureResult<V>, V> callAndFlush(@Nonnull RpcClient client) {
         final TimeoutMethodListenable<RpcFutureResult<V>, V> listenable = new DefaultTimeoutMethodListenable<>();
-        session.<V>callAndFlush(call).addListener(listenable);
+        client.<V>callAndFlush(call).addListener(listenable);
         return listenable;
     }
 
     @Override
-    public V syncCall(@Nonnull Session session) throws ExecutionException {
-        return session.syncCall(call);
+    public V syncCall(@Nonnull RpcClient client) throws ExecutionException {
+        return client.syncCall(call);
     }
 
 }

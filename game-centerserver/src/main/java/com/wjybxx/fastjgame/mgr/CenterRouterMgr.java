@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.misc.DefaultRpcBuilder;
+import com.wjybxx.fastjgame.misc.DefaultRpcMethodHandle;
 import com.wjybxx.fastjgame.net.common.RpcCall;
 import com.wjybxx.fastjgame.net.common.RpcErrorCode;
 import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
@@ -72,7 +72,7 @@ public class CenterRouterMgr implements ICenterRouterMgr {
             return;
         }
 
-        new DefaultRpcBuilder<>(rpcCall)
+        new DefaultRpcMethodHandle<>(rpcCall)
                 .call(targetSession)
                 .onSuccess(rpcResponseChannel::writeSuccess)
                 .onFailure(failureResult -> {
