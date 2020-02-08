@@ -483,6 +483,7 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
                     session.tryActive();
                     session.pipeline()
                             .addLast(new PingPingSupportHandler())
+                            .addLast(new LazySerializeSupportHandler())
                             .addLast(new OneWaySupportHandler());
 
                     // 判断是否支持rpc

@@ -20,7 +20,6 @@ import com.wjybxx.fastjgame.net.exception.DefaultRpcServerException;
 import com.wjybxx.fastjgame.net.exception.RpcSessionClosedException;
 import com.wjybxx.fastjgame.net.exception.RpcTimeoutException;
 import com.wjybxx.fastjgame.net.session.Session;
-import com.wjybxx.fastjgame.net.session.SessionConfig;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 import com.wjybxx.fastjgame.net.task.RpcRequestCommitTask;
@@ -32,8 +31,6 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * 提供Rpc调用支持的handler。
@@ -51,7 +48,6 @@ import java.util.List;
 @NotThreadSafe
 public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
 
-    private ProtocolCodec codec;
     private long rpcCallbackTimeoutMs;
     /**
      * RpcRequestId分配器
@@ -71,9 +67,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void handlerAdded(SessionHandlerContext ctx) throws Exception {
-        final SessionConfig config = ctx.session().config();
-        rpcCallbackTimeoutMs = config.getRpcCallbackTimeoutMs();
-        codec = config.codec();
+        rpcCallbackTimeoutMs = ctx.session().config().getRpcCallbackTimeoutMs();
     }
 
     @Override
@@ -109,16 +103,14 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             long requestGuid = ++requestGuidSequencer;
             rpcTimeoutInfoMap.put(requestGuid, rpcTimeoutInfo);
 
-            // 检查延迟序列化字段
-            final Object body = checkLazySerialize(writeTask.getRequest());
-            // 执行发送
-            ctx.fireWrite(new RpcRequestMessage(requestGuid, writeTask.isSync(), body));
+            // 发送
+            ctx.fireWrite(new RpcRequestMessage(requestGuid, writeTask.isSync(), writeTask.getRequest()));
         } else if (msg instanceof RpcResponseWriteTask) {
             // rpc调用结果
             RpcResponseWriteTask writeTask = (RpcResponseWriteTask) msg;
             final RpcResponseMessage responseMessage = new RpcResponseMessage(writeTask.getRequestGuid(), writeTask.getResponse());
 
-            // 执行发送
+            // 发送
             ctx.fireWrite(responseMessage);
         } else {
             ctx.fireWrite(msg);
@@ -134,8 +126,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
                     requestMessage.getRequestGuid(), requestMessage.isSync());
 
             // 检查提前反序列化字段
-            final Object body = checkPreDeserialize(requestMessage.getBody());
-            ctx.appEventLoop().execute(new RpcRequestCommitTask(ctx.session(), body, rpcResponseChannel));
+            ctx.appEventLoop().execute(new RpcRequestCommitTask(ctx.session(), requestMessage.getBody(), rpcResponseChannel));
         } else if (msg instanceof RpcResponseMessage) {
             // 读取到一个Rpc响应消息，提交给应用层
             RpcResponseMessage responseMessage = (RpcResponseMessage) msg;
@@ -180,80 +171,6 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
         for (RpcTimeoutInfo rpcTimeoutInfo : rpcTimeoutInfoMap.values()) {
             rpcTimeoutInfo.rpcPromise.tryFailure(RpcSessionClosedException.INSTANCE);
         }
-    }
-
-    /**
-     * 检查延迟初始化参数
-     *
-     * @return newCall or the same call
-     * @throws IOException error
-     */
-    private Object checkLazySerialize(Object body) throws IOException {
-        if (!(body instanceof RpcCall)) {
-            return body;
-        }
-
-        final RpcCall<?> rpcCall = (RpcCall<?>) body;
-        final int lazyIndexes = rpcCall.getLazyIndexes();
-        if (lazyIndexes <= 0) {
-            return rpcCall;
-        }
-
-        // bugs: 如果不创建新的list，则可能出现并发set的情况，可能导致部分线程看见错误的数据
-        // 解决方案有：①防御性拷贝 ②对RpcCall对象加锁
-        // 选择防御性拷贝的理由：①使用延迟序列化和提前反序列化的比例并不高 ②方法方法参数个数偏小，创建一个小list的成本较低。
-        final List<Object> methodParams = rpcCall.getMethodParams();
-        final ArrayList<Object> newMethodParams = new ArrayList<>(methodParams.size());
-
-        for (int index = 0, end = methodParams.size(); index < end; index++) {
-            final Object parameter = methodParams.get(index);
-            final Object newParameter;
-
-            if ((lazyIndexes & (1L << index)) != 0 && !(parameter instanceof byte[])) {
-                newParameter = codec.serializeToBytes(parameter);
-            } else {
-                newParameter = parameter;
-            }
-
-            newMethodParams.add(newParameter);
-        }
-
-        return new RpcCall<>(rpcCall.getMethodKey(), newMethodParams, 0, rpcCall.getPreIndexes());
-    }
-
-    /**
-     * 检查提前反序列化参数
-     *
-     * @return newCall or the same call
-     * @throws IOException error
-     */
-    private Object checkPreDeserialize(Object body) throws IOException {
-        if (!(body instanceof RpcCall)) {
-            return body;
-        }
-
-        final RpcCall<?> rpcCall = (RpcCall<?>) body;
-        final int preIndexes = rpcCall.getPreIndexes();
-        if (preIndexes <= 0) {
-            return rpcCall;
-        }
-
-        // 线程安全问题同上面
-        final List<Object> methodParams = rpcCall.getMethodParams();
-        final ArrayList<Object> newMethodParams = new ArrayList<>(methodParams.size());
-
-        for (int index = 0, end = methodParams.size(); index < end; index++) {
-            final Object parameter = methodParams.get(index);
-            final Object newParameter;
-            if ((preIndexes & (1L << index)) != 0 && parameter instanceof byte[]) {
-                newParameter = codec.deserializeFromBytes((byte[]) parameter);
-            } else {
-                newParameter = parameter;
-            }
-            newMethodParams.add(newParameter);
-        }
-
-        return new RpcCall<>(rpcCall.getMethodKey(), newMethodParams, rpcCall.getLazyIndexes(), 0);
     }
 
     private static class DefaultRpcResponseChannel<T> extends AbstractRpcResponseChannel<T> {

@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.annotation;
 
-import com.wjybxx.fastjgame.net.common.RpcCall;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -31,16 +29,12 @@ import java.lang.annotation.Target;
  * 1. 其实最简单的办法就是应用层直接序列化为字节数组，然后发送单向消息或rpc发给网关服。但是它致命的一点是应用层要进行序列化。这个在消息量大的时候会很影响应用层性能。<b>
  * 2. 另一种就是新增协议，但是新增协议的最大问题是无法很好的和单向消息和rpc调用配合，当期望监听调用结果的时候，也不好搞，要加的东西很多。<b>
  * <p>
- * 思考了2-3个小时，没着急下手，最后想到这个注解，如果目标方法的参数是{@link byte[]}，且带有该注解，那么生成的代理将该类型替换为{@link Object}，并在写入
+ * 思考了2-3个小时，没着急下手，最后想到这个注解，如果目标方法的参数是{@link byte[]}，且带有该注解，那么生成的代理将该参数类型替换为{@link Object}，并在写入
  * 网络之前，将所有带该注解的参数序列化为字节数组。该解决方案更加通用。
  * <p>
  * 对代码生成产生的影响：
  * 1. 对{@link byte[]}类型且带有{@link LazySerializable} 的参数替换为{@link Object}类型。
  * 2. 为提高编码速度，必须进行索引，避免不必要的遍历。
- * <p>
- * 2020年1月3日 还发现一个并发bug
- * 如果使用{@link RpcCall}进行广播，可能出现并发修改{@link RpcCall}，则可能产生并发bug - 使用保护性拷贝解决（防御性拷贝）。
- *
  * <p>
  * 注意：
  * 1. 该注解只能用在{@link byte[]}上，否则编译报错

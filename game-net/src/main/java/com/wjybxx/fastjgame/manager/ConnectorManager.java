@@ -23,6 +23,7 @@ import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.misc.DefaultSessionRegistry;
 import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.misc.SessionRegistry;
+import com.wjybxx.fastjgame.net.common.LazySerializeSupportHandler;
 import com.wjybxx.fastjgame.net.common.OneWaySupportHandler;
 import com.wjybxx.fastjgame.net.common.RpcSupportHandler;
 import com.wjybxx.fastjgame.net.local.*;
@@ -212,6 +213,7 @@ public class ConnectorManager implements SessionRegistry {
             session.pipeline()
                     .addLast(new LocalTransferHandler())
                     .addLast(new LocalCodecHandler())
+                    .addLast(new LazySerializeSupportHandler())
                     .addLast(new OneWaySupportHandler());
 
             // 是否开启rpc

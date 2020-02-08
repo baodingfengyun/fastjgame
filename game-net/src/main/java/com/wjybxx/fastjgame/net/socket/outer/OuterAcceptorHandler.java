@@ -288,6 +288,7 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
             session.pipeline()
                     .addLast(acceptorHandler)
                     .addLast(new PingPingSupportHandler())
+                    .addLast(new LazySerializeSupportHandler())
                     .addLast(new OneWaySupportHandler());
 
             // 判断是否支持rpc
