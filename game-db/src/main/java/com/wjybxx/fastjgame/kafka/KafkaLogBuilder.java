@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.kafka;
 
+import com.wjybxx.fastjgame.logcore.LogBuilder;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -27,56 +29,56 @@ import java.util.Map;
  * date - 2019/12/15
  * github - https://github.com/hl845740757
  */
-public class DefaultLogBuilder implements LogBuilder {
+public class KafkaLogBuilder implements LogBuilder {
 
     private final String topic;
     private final Map<String, Object> dataMap = new LinkedHashMap<>();
 
-    public DefaultLogBuilder(String topic) {
+    public KafkaLogBuilder(String topic) {
         this.topic = topic;
     }
 
-    public DefaultLogBuilder append(String key, final String value) {
+    public KafkaLogBuilder append(final String key, final String value) {
         dataMap.put(key, value);
         return this;
     }
 
-    public DefaultLogBuilder append(String key, final int value) {
+    public KafkaLogBuilder append(final String key, final int value) {
         dataMap.put(key, value);
         return this;
     }
 
-    public DefaultLogBuilder append(String key, final long value) {
+    public KafkaLogBuilder append(final String key, final long value) {
         dataMap.put(key, value);
         return this;
     }
 
-    public DefaultLogBuilder append(String key, final float value) {
+    public KafkaLogBuilder append(final String key, final float value) {
         dataMap.put(key, value);
         return this;
     }
 
-    public DefaultLogBuilder append(String key, final double value) {
+    public KafkaLogBuilder append(final String key, final double value) {
         dataMap.put(key, value);
         return this;
     }
 
-    public DefaultLogBuilder append(String key, final Enum value) {
+    public KafkaLogBuilder append(final String key, final boolean value) {
         dataMap.put(key, value);
         return this;
     }
 
-    public DefaultLogBuilder append(String key, final boolean value) {
+    public KafkaLogBuilder append(final String key, final byte value) {
         dataMap.put(key, value);
         return this;
     }
 
-    public DefaultLogBuilder append(String key, byte value) {
+    public KafkaLogBuilder append(final String key, final short value) {
         dataMap.put(key, value);
         return this;
     }
 
-    public DefaultLogBuilder append(String key, short value) {
+    public KafkaLogBuilder append(final String key, final Object value) {
         dataMap.put(key, value);
         return this;
     }

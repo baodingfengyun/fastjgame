@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.misc.log;
 
-import com.wjybxx.fastjgame.kafka.LogDirector;
+import com.wjybxx.fastjgame.kafka.KafkaLogDirector;
 import org.apache.kafka.clients.producer.ProducerRecord;
 
 import javax.annotation.Nonnull;
@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
  * date - 2019/11/30
  * github - https://github.com/hl845740757
  */
-public class GameLogDirector implements LogDirector<GameLogBuilder> {
+public class GameLogDirector implements KafkaLogDirector<GameLogBuilder> {
 
     /**
      * 由于游戏打点日志并不是太多，可以将日志总是打在同一个partition下（可以获得全局的顺序性）

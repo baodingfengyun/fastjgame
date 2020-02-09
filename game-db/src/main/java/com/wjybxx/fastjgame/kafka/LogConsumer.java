@@ -21,7 +21,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import java.util.Set;
 
 /**
- * 日志处理器
+ * 日志处理器(后期也可能将该接口改为与kafka无关)
  *
  * @author wjybxx
  * @version 1.0

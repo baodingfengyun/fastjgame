@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.kafka;
 
+import com.wjybxx.fastjgame.logcore.LogDirector;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -24,7 +25,7 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 
 /**
- * {@link LogDirector}的简单实现，配合{@link DefaultLogBuilder}工作。
+ * {@link LogDirector}的简单实现，配合{@link KafkaLogBuilder}工作。
  * 该实现将日志转换为json字符串传输，仅仅是为了提高可读性，实际应用中还需要考虑传输量的问题。
  *
  * @author wjybxx
@@ -32,7 +33,7 @@ import java.io.IOException;
  * date - 2019/12/15
  * github - https://github.com/hl845740757
  */
-public class DefaultLogDirector implements LogDirector<DefaultLogBuilder> {
+public class DefaultKafkaLogDirector implements KafkaLogDirector<KafkaLogBuilder> {
 
     /**
      * 默认将日志总是打在同一个partition下（可以获得全局的顺序性）
@@ -41,7 +42,7 @@ public class DefaultLogDirector implements LogDirector<DefaultLogBuilder> {
 
     @Nonnull
     @Override
-    public ProducerRecord<String, String> build(DefaultLogBuilder builder) {
+    public ProducerRecord<String, String> build(KafkaLogBuilder builder) {
         try {
             final String value = JsonUtils.getMapper().writeValueAsString(builder.getDataMap());
             return new ProducerRecord<>(builder.getTopic(), PARTITION_ID, null, value);

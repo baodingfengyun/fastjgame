@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.misc.log;
 
-import com.wjybxx.fastjgame.kafka.LogBuilder;
+import com.wjybxx.fastjgame.logcore.LogBuilder;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.LinkedList;
@@ -90,12 +90,12 @@ public class GameLogBuilder implements LogBuilder {
         return this;
     }
 
-    public LogType getLogType() {
-        return logType;
+    LogTopic getLogTopic() {
+        return logType.topic;
     }
 
-    public LogTopic getLogTopic() {
-        return logType.topic;
+    LogType getLogType() {
+        return logType;
     }
 
     List<LogEntry> getEntryList() {
