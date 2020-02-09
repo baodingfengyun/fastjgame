@@ -27,6 +27,7 @@ import java.util.concurrent.ThreadFactory;
 
 /**
  * redis线程池
+ * 注意：jedis连接池为外部资源，并不会主动释放，用户如果需要关闭，请监听线程池终止事件，在回调逻辑中关闭连接池。
  *
  * @author wjybxx
  * @version 1.0
@@ -66,11 +67,6 @@ public class RedisEventLoopGroup extends MultiThreadEventLoopGroup {
     @Override
     protected RedisEventLoop newChild(int childIndex, ThreadFactory threadFactory, RejectedExecutionHandler rejectedExecutionHandler, Object context) {
         return new RedisEventLoop(this, threadFactory, rejectedExecutionHandler, (JedisPoolAbstract) context);
-    }
-
-    @Override
-    protected void clean() {
-        ((JedisPoolAbstract) context).close();
     }
 
 }

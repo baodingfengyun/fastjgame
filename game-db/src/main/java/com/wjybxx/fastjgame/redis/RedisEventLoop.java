@@ -51,6 +51,8 @@ import static com.wjybxx.fastjgame.utils.ConcurrentUtils.sleepQuietly;
  * 当{@link #pipelineSync()}出现异常时：可能部分成功，部分失败，部分未执行。
  * <p>
  * 对于大多数游戏而言，单个redis线程应该够用了，不过也很容易扩展为线程池模式(连接池)。
+ * <p>
+ * 注意：jedis连接池为外部资源，并不会主动释放，用户如果需要关闭，请监听线程池终止事件，在回调逻辑中关闭连接池。
  *
  * @author wjybxx
  * @version 1.0
