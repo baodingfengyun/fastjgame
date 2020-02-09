@@ -62,14 +62,6 @@ public class RpcCall<V> implements MethodSpec<V> {
      */
     private final int preIndexes;
 
-    // 反射创建对象
-    private RpcCall() {
-        methodKey = -1;
-        methodParams = null;
-        lazyIndexes = 0;
-        preIndexes = 0;
-    }
-
     public RpcCall(int methodKey, List<Object> methodParams, int lazyIndexes, int preIndexes) {
         this.methodKey = methodKey;
         this.methodParams = methodParams;

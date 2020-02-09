@@ -66,9 +66,9 @@ public class PlayerLevelRankScore {
         @Override
         public int compare(PlayerLevelRankScore o1, PlayerLevelRankScore o2) {
             // 等级逆序(等级高的排前面)
-            final int levelCompareR = Integer.compare(o2.level, o1.level);
-            if (levelCompareR != 0) {
-                return levelCompareR;
+            final int levelCompareResult = Integer.compare(o2.level, o1.level);
+            if (levelCompareResult != 0) {
+                return levelCompareResult;
             }
             // 时间戳升序(时间戳小的排前面)
             return Long.compare(o1.timestamp, o2.timestamp);

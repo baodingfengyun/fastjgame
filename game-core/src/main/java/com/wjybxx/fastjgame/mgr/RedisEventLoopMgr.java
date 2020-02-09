@@ -21,8 +21,8 @@ import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.redis.DefaultRedisClient;
-import com.wjybxx.fastjgame.redis.RedisEventLoop;
 import com.wjybxx.fastjgame.redis.RedisClient;
+import com.wjybxx.fastjgame.redis.RedisEventLoop;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.DebugUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -66,16 +66,17 @@ public class RedisEventLoopMgr {
         final JedisPoolConfig config = new JedisPoolConfig();
         config.setMaxIdle(2);
         config.setMaxTotal(5);
+
         config.setTestOnBorrow(true);
         config.setTestOnReturn(true);
+
         config.setBlockWhenExhausted(true);
         config.setMaxWaitMillis(10);
 
         final JedisPoolAbstract jedisPool = newJedisPool(gameConfigMgr, config);
-
-        return new RedisEventLoop(null, new DefaultThreadFactory("RedisEventLoop"),
-                RejectedExecutionHandlers.abort(),
-                jedisPool);
+        final RedisEventLoop redisEventLoop = new RedisEventLoop(null, new DefaultThreadFactory("RedisEventLoop"), RejectedExecutionHandlers.abort(), jedisPool);
+        redisEventLoop.terminationFuture().addListener(future -> jedisPool.close());
+        return redisEventLoop;
     }
 
     @Nonnull

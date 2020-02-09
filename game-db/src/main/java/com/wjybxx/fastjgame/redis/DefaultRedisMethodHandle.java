@@ -40,7 +40,6 @@ public class DefaultRedisMethodHandle<V> implements RedisMethodHandle<V> {
         this.command = command;
     }
 
-
     @Override
     public void execute(@Nonnull RedisClient redisClient) {
         redisClient.execute(command);

@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.mgr;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.misc.rank.PlayerLevelRankScore;
 import com.wjybxx.fastjgame.misc.rank.RankType;
-import com.wjybxx.zset.long2obj.Long2ObjZSet;
+import com.wjybxx.zset.long2object.Long2ObjectZSet;
 
 import java.util.EnumMap;
 import java.util.concurrent.ThreadLocalRandom;
@@ -48,7 +48,7 @@ public class RankMgr {
     /**
      * 排行榜信息
      */
-    private final EnumMap<RankType, Long2ObjZSet<Object>> rankInfo = new EnumMap<>(RankType.class);
+    private final EnumMap<RankType, Long2ObjectZSet<Object>> rankInfo = new EnumMap<>(RankType.class);
 
     @Inject
     public RankMgr() {
@@ -57,7 +57,7 @@ public class RankMgr {
 
     // 等级等级排行榜测试
     public static void main(String[] args) {
-        final Long2ObjZSet<PlayerLevelRankScore> playerLevelRankZSet = Long2ObjZSet.newZSet(PlayerLevelRankScore.handler());
+        final Long2ObjectZSet<PlayerLevelRankScore> playerLevelRankZSet = Long2ObjectZSet.newZSet(PlayerLevelRankScore.handler());
 
         // 插入数据
         LongStream.range(1, 10000).forEach(playerGuid -> {

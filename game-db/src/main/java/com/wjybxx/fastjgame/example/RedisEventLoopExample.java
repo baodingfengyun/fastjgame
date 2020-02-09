@@ -69,10 +69,10 @@ public class RedisEventLoopExample {
         config.setMaxWaitMillis(10);
 
         // 测试时不使用哨兵
-        JedisPool jedisPool = new JedisPool(config, "localhost", 6379);
-        return new RedisEventLoop(null, new DefaultThreadFactory("RedisEventLoop"),
-                RejectedExecutionHandlers.abort(),
-                jedisPool);
+        final JedisPool jedisPool = new JedisPool(config, "localhost", 6379);
+        final RedisEventLoop redisEventLoop = new RedisEventLoop(null, new DefaultThreadFactory("RedisEventLoop"), RejectedExecutionHandlers.abort(), jedisPool);
+        redisEventLoop.terminationFuture().addListener(future -> jedisPool.close());
+        return redisEventLoop;
     }
 
     private static class ClientEventLoop extends SingleThreadEventLoop {
