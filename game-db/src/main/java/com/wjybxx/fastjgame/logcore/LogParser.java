@@ -17,22 +17,22 @@
 package com.wjybxx.fastjgame.logcore;
 
 /**
- * 日志发布器，它负责将日志发布到<b>某个地方</b>，如：kafka，本地文件，数据库，flume。
- * 定义该接口，可以使我们延迟做选择，并可以在不同的实现之间进行切换。
- * 此外，建议实现类使用{@link LogDirector}获取最终要发布的日志内容，以实现解耦(构建最终内容的业务逻辑是多变的)。
+ * 日志解析器。
+ * {@link #parse(Object)}负责将存储在'仓库'中存储的日志转换为应用程序使用的私有日志类，以去除对存储细节的依赖。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2020/2/9
+ * date - 2020/2/10
  * github - https://github.com/hl845740757
  */
-public interface LogPublisher<T extends LogBuilder> {
+public interface LogParser<T, R> {
 
     /**
-     * 发布一条日志
+     * 将拉取到的日志数据解析为适合应用程序处理的日志记录类。
      *
-     * @param logBuilder 含有日志内容的builder
+     * @param storedData 仓库存储的数据
+     * @return 适合应用程序处理的日志记录类
      */
-    void publish(T logBuilder);
+    R parse(T storedData);
 
 }

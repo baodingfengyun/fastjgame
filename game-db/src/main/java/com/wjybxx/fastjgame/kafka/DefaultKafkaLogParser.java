@@ -14,25 +14,27 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.logcore;
+package com.wjybxx.fastjgame.kafka;
+
+import com.wjybxx.fastjgame.utils.JsonUtils;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
- * 日志发布器，它负责将日志发布到<b>某个地方</b>，如：kafka，本地文件，数据库，flume。
- * 定义该接口，可以使我们延迟做选择，并可以在不同的实现之间进行切换。
- * 此外，建议实现类使用{@link LogDirector}获取最终要发布的日志内容，以实现解耦(构建最终内容的业务逻辑是多变的)。
+ * 默认的kafka日志解析器
  *
  * @author wjybxx
  * @version 1.0
- * date - 2020/2/9
+ * date - 2020/2/10
  * github - https://github.com/hl845740757
  */
-public interface LogPublisher<T extends LogBuilder> {
+public class DefaultKafkaLogParser implements KafkaLogParser<DefaultKafkaLogRecord> {
 
-    /**
-     * 发布一条日志
-     *
-     * @param logBuilder 含有日志内容的builder
-     */
-    void publish(T logBuilder);
-
+    @Override
+    public DefaultKafkaLogRecord parse(ConsumerRecord<String, String> storedData) {
+        @SuppressWarnings("unchecked") final Map<String, Object> dataMap = JsonUtils.parseJsonToMap(storedData.value(), LinkedHashMap.class, String.class, Object.class);
+        return new DefaultKafkaLogRecord(storedData.topic(), dataMap);
+    }
 }

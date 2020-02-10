@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.kafka;
 
 import com.wjybxx.fastjgame.concurrent.EventLoop;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 
 import java.util.Set;
 
@@ -29,12 +28,12 @@ import java.util.Set;
  * date - 2019/12/15
  * github - https://github.com/hl845740757
  */
-public class ForwardLogConsumer implements LogConsumer {
+public class ForwardKafkaLogConsumer<T> implements KafkaLogConsumer<T> {
 
     private final EventLoop appEventLoop;
-    private final LogConsumer logConsumer;
+    private final KafkaLogConsumer<T> logConsumer;
 
-    public ForwardLogConsumer(EventLoop appEventLoop, LogConsumer logConsumer) {
+    public ForwardKafkaLogConsumer(EventLoop appEventLoop, KafkaLogConsumer<T> logConsumer) {
         this.appEventLoop = appEventLoop;
         this.logConsumer = logConsumer;
     }
@@ -45,19 +44,19 @@ public class ForwardLogConsumer implements LogConsumer {
     }
 
     @Override
-    public void consume(ConsumerRecord<String, String> consumerRecord) {
+    public void consume(T record) {
         if (appEventLoop.inEventLoop()) {
-            logConsumer.consume(consumerRecord);
+            logConsumer.consume(record);
         } else {
-            appEventLoop.execute(new ForwardTask(logConsumer, consumerRecord));
+            appEventLoop.execute(new ForwardTask<>(logConsumer, record));
         }
     }
 
-    private static class ForwardTask implements Runnable {
-        private final LogConsumer logConsumer;
-        private final ConsumerRecord<String, String> consumerRecord;
+    private static class ForwardTask<T> implements Runnable {
+        private final KafkaLogConsumer<T> logConsumer;
+        private final T consumerRecord;
 
-        ForwardTask(LogConsumer logConsumer, ConsumerRecord<String, String> consumerRecord) {
+        ForwardTask(KafkaLogConsumer<T> logConsumer, T consumerRecord) {
             this.logConsumer = logConsumer;
             this.consumerRecord = consumerRecord;
         }

@@ -14,25 +14,34 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.logcore;
+package com.wjybxx.fastjgame.kafka;
+
+import com.wjybxx.fastjgame.logcore.LogConsumer;
+
+import java.util.Set;
 
 /**
- * 日志发布器，它负责将日志发布到<b>某个地方</b>，如：kafka，本地文件，数据库，flume。
- * 定义该接口，可以使我们延迟做选择，并可以在不同的实现之间进行切换。
- * 此外，建议实现类使用{@link LogDirector}获取最终要发布的日志内容，以实现解耦(构建最终内容的业务逻辑是多变的)。
+ * kafka日志消费者
  *
  * @author wjybxx
  * @version 1.0
- * date - 2020/2/9
+ * date - 2019/12/15
  * github - https://github.com/hl845740757
  */
-public interface LogPublisher<T extends LogBuilder> {
+public interface KafkaLogConsumer<T> extends LogConsumer<T> {
 
     /**
-     * 发布一条日志
+     * 订阅的topic
      *
-     * @param logBuilder 含有日志内容的builder
+     * @apiNote 只在初始的时候使用一次，因此不必作为对象的属性，new一个即可。
      */
-    void publish(T logBuilder);
+    Set<String> subscribedTopics();
 
+    /**
+     * 注意；该方法由{@link LogConsumerEventLoop}线程调用，注意线程安全问题。
+     *
+     * @param record kafka中解析出来的日志数据
+     */
+    @Override
+    void consume(T record);
 }

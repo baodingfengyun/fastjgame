@@ -46,7 +46,7 @@ import static com.wjybxx.fastjgame.utils.CloseableUtils.closeQuietly;
  * date - 2019/11/28
  * github - https://github.com/hl845740757
  */
-public class LogConsumerEventLoop extends DisruptorEventLoop {
+public class LogConsumerEventLoop<T> extends DisruptorEventLoop {
 
     private static final Logger logger = LoggerFactory.getLogger(LogConsumerEventLoop.class);
 
@@ -68,9 +68,14 @@ public class LogConsumerEventLoop extends DisruptorEventLoop {
     private static final Duration CONSUMER_POLL_DURATION = Duration.ofMillis(100);
 
     /**
+     * 日志解析器
+     */
+    private final KafkaLogParser<T> kafkaLogParser;
+    /**
      * topic到日志消费者的映射
      */
-    private final Map<String, LogConsumer> logConsumerMap;
+    private final Map<String, KafkaLogConsumer<T>> logConsumerMap;
+
     /**
      * kafka消费者客户端
      */
@@ -80,8 +85,10 @@ public class LogConsumerEventLoop extends DisruptorEventLoop {
                                 @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
                                 @Nonnull String brokerList,
                                 @Nonnull String groupId,
-                                @Nonnull Collection<LogConsumer> consumers) {
+                                @Nonnull KafkaLogParser<T> logParser,
+                                @Nonnull Collection<KafkaLogConsumer<T>> consumers) {
         super(null, threadFactory, rejectedExecutionHandler, CONSUMER_RING_BUFFER_SIZE, CONSUMER_TASK_BATCH_SIZE, newWaitStrategyFactory());
+        this.kafkaLogParser = logParser;
         this.logConsumerMap = indexConsumers(consumers);
         this.kafkaConsumer = new KafkaConsumer<>(newConfig(brokerList, groupId), new StringDeserializer(), new StringDeserializer());
         this.kafkaConsumer.subscribe(logConsumerMap.keySet());
@@ -121,8 +128,9 @@ public class LogConsumerEventLoop extends DisruptorEventLoop {
 
     private void consumeSafely(ConsumerRecord<String, String> consumerRecord) {
         try {
-            LogConsumer logConsumer = logConsumerMap.get(consumerRecord.topic());
-            logConsumer.consume(consumerRecord);
+            final T record = kafkaLogParser.parse(consumerRecord);
+            final KafkaLogConsumer<T> logConsumer = logConsumerMap.get(consumerRecord.topic());
+            logConsumer.consume(record);
         } catch (Throwable e) {
             logger.warn("logConsumer.consume caught exception", e);
         }
@@ -138,26 +146,26 @@ public class LogConsumerEventLoop extends DisruptorEventLoop {
         return properties;
     }
 
-    private static Map<String, LogConsumer> indexConsumers(Collection<LogConsumer> consumers) {
-        final Map<String, LogConsumer> logConsumerMap = CollectionUtils.newHashMapWithExpectedSize(consumers.size());
-        for (LogConsumer logConsumer : consumers) {
+    private static <T> Map<String, KafkaLogConsumer<T>> indexConsumers(Collection<KafkaLogConsumer<T>> consumers) {
+        final Map<String, KafkaLogConsumer<T>> logConsumerMap = CollectionUtils.newHashMapWithExpectedSize(consumers.size());
+        for (KafkaLogConsumer<T> logConsumer : consumers) {
             addConsumer(logConsumerMap, logConsumer);
         }
         return logConsumerMap;
     }
 
-    private static void addConsumer(Map<String, LogConsumer> logConsumerMap, LogConsumer logConsumer) {
+    private static <T> void addConsumer(Map<String, KafkaLogConsumer<T>> logConsumerMap, KafkaLogConsumer<T> logConsumer) {
         for (String topic : logConsumer.subscribedTopics()) {
-            LogConsumer existLogConsumer = logConsumerMap.get(topic);
+            KafkaLogConsumer<T> existLogConsumer = logConsumerMap.get(topic);
             if (existLogConsumer == null) {
                 logConsumerMap.put(topic, logConsumer);
                 continue;
             }
 
-            if (existLogConsumer instanceof CompositeLogConsumer) {
-                ((CompositeLogConsumer) existLogConsumer).addChild(logConsumer);
+            if (existLogConsumer instanceof CompositeKafkaLogConsumer) {
+                ((CompositeKafkaLogConsumer<T>) existLogConsumer).addChild(logConsumer);
             } else {
-                logConsumerMap.put(topic, new CompositeLogConsumer(topic, existLogConsumer, logConsumer));
+                logConsumerMap.put(topic, new CompositeKafkaLogConsumer<>(topic, existLogConsumer, logConsumer));
             }
         }
     }

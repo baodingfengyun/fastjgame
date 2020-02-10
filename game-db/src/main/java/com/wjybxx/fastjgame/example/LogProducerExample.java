@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.example;
 
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
-import com.wjybxx.fastjgame.kafka.KafkaLogBuilder;
+import com.wjybxx.fastjgame.kafka.DefaultKafkaLogBuilder;
 import com.wjybxx.fastjgame.kafka.DefaultKafkaLogDirector;
 import com.wjybxx.fastjgame.kafka.LogProducerEventLoop;
 import com.wjybxx.fastjgame.utils.TimeUtils;
@@ -38,7 +38,7 @@ import java.util.concurrent.locks.LockSupport;
 public class LogProducerExample {
 
     public static void main(String[] args) {
-        final LogProducerEventLoop<KafkaLogBuilder> producer = newProducerEventLoop();
+        final LogProducerEventLoop<DefaultKafkaLogBuilder> producer = newProducerEventLoop();
         try {
             doProduce(producer);
 
@@ -48,7 +48,7 @@ public class LogProducerExample {
         }
     }
 
-    private static void doProduce(LogProducerEventLoop<KafkaLogBuilder> producer) {
+    private static void doProduce(LogProducerEventLoop<DefaultKafkaLogBuilder> producer) {
         final long endTime = System.currentTimeMillis() + TimeUtils.MIN * 5;
         for (int playerGuid = 1; System.currentTimeMillis() < endTime; playerGuid++) {
             producer.publish(newLog(playerGuid));
@@ -61,7 +61,7 @@ public class LogProducerExample {
     }
 
     @Nonnull
-    private static LogProducerEventLoop<KafkaLogBuilder> newProducerEventLoop() {
+    private static LogProducerEventLoop<DefaultKafkaLogBuilder> newProducerEventLoop() {
         return new LogProducerEventLoop<>(
                 new DefaultThreadFactory("PRODUCER"),
                 RejectedExecutionHandlers.abort(),
@@ -69,8 +69,8 @@ public class LogProducerExample {
                 new DefaultKafkaLogDirector());
     }
 
-    private static KafkaLogBuilder newLog(long playerGuid) {
-        return new KafkaLogBuilder("TEST")
+    private static DefaultKafkaLogBuilder newLog(long playerGuid) {
+        return new DefaultKafkaLogBuilder("TEST")
                 .append("playerGuid", playerGuid)
                 .append("playerName", "wjybxx")
                 .append("chatContent", "\r\n\t\f\\这是一句没什么用的胡话&=，\r\n\t\f\\只不过带了点特殊字符=&");

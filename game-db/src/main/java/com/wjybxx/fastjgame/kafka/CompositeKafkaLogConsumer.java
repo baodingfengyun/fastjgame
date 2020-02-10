@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.kafka;
 
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,9 +33,9 @@ import java.util.Set;
  * date - 2019/12/29
  * github - https://github.com/hl845740757
  */
-class CompositeLogConsumer implements LogConsumer {
+class CompositeKafkaLogConsumer<T> implements KafkaLogConsumer<T> {
 
-    private static final Logger logger = LoggerFactory.getLogger(CompositeLogConsumer.class);
+    private static final Logger logger = LoggerFactory.getLogger(CompositeKafkaLogConsumer.class);
 
     /**
      * 订阅的共同的topic
@@ -45,9 +44,11 @@ class CompositeLogConsumer implements LogConsumer {
     /**
      * 这些子节点订阅了相同的topic
      */
-    private final List<LogConsumer> children = new ArrayList<>(2);
+    private final List<KafkaLogConsumer<T>> children = new ArrayList<>(2);
 
-    CompositeLogConsumer(final String topic, @Nonnull LogConsumer first, @Nonnull LogConsumer second) {
+    CompositeKafkaLogConsumer(final String topic,
+                              @Nonnull KafkaLogConsumer<T> first,
+                              @Nonnull KafkaLogConsumer<T> second) {
         this.topic = topic;
         children.add(first);
         children.add(second);
@@ -58,15 +59,15 @@ class CompositeLogConsumer implements LogConsumer {
         return Collections.singleton(topic);
     }
 
-    void addChild(@Nonnull LogConsumer child) {
+    void addChild(@Nonnull KafkaLogConsumer<T> child) {
         children.add(child);
     }
 
     @Override
-    public void consume(ConsumerRecord<String, String> consumerRecord) {
-        for (LogConsumer child : children) {
+    public void consume(T record) {
+        for (KafkaLogConsumer<T> child : children) {
             try {
-                child.consume(consumerRecord);
+                child.consume(record);
             } catch (Throwable e) {
                 logger.warn("child.consume caught exception", e);
             }

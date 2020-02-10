@@ -14,33 +14,18 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.kafka;
-
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-
-import java.util.Set;
-
 /**
- * 日志处理器(后期也可能将该接口改为与kafka无关)
+ * 对于逻辑用户而言：
+ * 发布一条日志，使用{@link com.wjybxx.fastjgame.logcore.LogBuilder} 和 {@link com.wjybxx.fastjgame.logcore.LogPublisher}。
+ * 消费一条日志，使用{@link com.wjybxx.fastjgame.logcore.LogConsumer}。
+ * <p>
+ * 对于架构程序员：
+ * 需要设计应用私有的日志格式，并通过{@link com.wjybxx.fastjgame.logcore.LogParser} 和 {@link com.wjybxx.fastjgame.logcore.LogDirector}进行转换，
+ * 以使得逻辑程序员脱离对具体日志组件的依赖。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/12/15
+ * date - 2020/2/10
  * github - https://github.com/hl845740757
  */
-public interface LogConsumer {
-
-    /**
-     * 订阅的topic
-     *
-     * @apiNote 只在初始的时候使用一次，因此不必作为对象的属性，new一个即可。
-     */
-    Set<String> subscribedTopics();
-
-    /**
-     * 注意；该方法由{@link LogConsumerEventLoop}线程调用，注意线程安全问题。
-     *
-     * @param consumerRecord kafka日志数据
-     */
-    void consume(ConsumerRecord<String, String> consumerRecord);
-}
+package com.wjybxx.fastjgame.logcore;

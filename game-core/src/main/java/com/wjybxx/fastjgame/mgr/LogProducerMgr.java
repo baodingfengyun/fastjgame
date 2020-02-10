@@ -21,7 +21,7 @@ import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.kafka.LogProducerEventLoop;
 import com.wjybxx.fastjgame.misc.log.GameLogBuilder;
-import com.wjybxx.fastjgame.misc.log.GameLogDirector;
+import com.wjybxx.fastjgame.misc.log.GameKafkaLogDirector;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +54,7 @@ public class LogProducerMgr {
     private static LogProducerEventLoop<GameLogBuilder> newProducer(GameConfigMgr gameConfigMgr) {
         return new LogProducerEventLoop<>(new DefaultThreadFactory("LOG-PRODUCER"),
                 RejectedExecutionHandlers.log(),
-                gameConfigMgr.getKafkaBrokerList(), new GameLogDirector());
+                gameConfigMgr.getKafkaBrokerList(), new GameKafkaLogDirector());
     }
 
     /**

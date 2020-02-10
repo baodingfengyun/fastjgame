@@ -16,93 +16,22 @@
 
 package com.wjybxx.fastjgame.misc.log;
 
-import com.wjybxx.fastjgame.kafka.KafkaLogDirector;
-import org.apache.kafka.clients.producer.ProducerRecord;
+import com.wjybxx.fastjgame.logcore.LogDirector;
 
 import javax.annotation.Nonnull;
-import java.util.regex.Pattern;
 
 /**
- * 游戏日志建造指挥官实现。
- * 1. 它通过分隔符的方式组织内容， '='分隔键和值，'&'分隔键值对。
- * 2. 如果有内容是Base64编码的，那么'='可能造成一些问题。
- * 3. 构建为字符串是方便阅读(也方便检索)，序列化为字节数组虽然安全性好，但是不方便阅读和检索。
+ * 游戏日志建造指挥官。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/11/30
+ * date - 2020/2/10
  * github - https://github.com/hl845740757
  */
-public class GameLogDirector implements KafkaLogDirector<GameLogBuilder> {
-
-    /**
-     * 由于游戏打点日志并不是太多，可以将日志总是打在同一个partition下（可以获得全局的顺序性）
-     */
-    private static final Integer PARTITION_ID = 0;
-
-    /**
-     * 替换换行符，回车符，制表符，反斜杠，'&' '='
-     */
-    private static final Pattern PATTERN = Pattern.compile("[\\r\\n\\t\\v\\f\\\\&=]");
-
-    /**
-     * 键与值之间的分隔符
-     */
-    private static final char KV_SEPARATOR = '=';
-    /**
-     * 键值对与键值对之间的分隔符
-     */
-    private static final char ENTRY_SEPARATOR = '&';
-    /**
-     * 替换字符
-     */
-    private static final String REPLACEMENT = "_";
-
-    /**
-     * 游戏日志一般较长，合适的初始容量可以减少扩容操作。
-     * 这个值可以在使用一段时间之后修正的更贴近。
-     */
-    private static final int BUILDER_INIT_CAPACITY = 300;
-    /**
-     * 存放日志内容的builder
-     */
-    private final StringBuilder stringBuilder = new StringBuilder(BUILDER_INIT_CAPACITY);
+public interface GameLogDirector<R> extends LogDirector<GameLogBuilder, R> {
 
     @Nonnull
     @Override
-    public ProducerRecord<String, String> build(GameLogBuilder builder) {
-        stringBuilder.setLength(0);
+    R build(GameLogBuilder builder);
 
-        appendKey(LogKey.LOG_TYPE);
-        stringBuilder.append(builder.getLogType().toString());
-
-        appendKey(LogKey.LOG_TIME);
-        stringBuilder.append(System.currentTimeMillis());
-
-        for (GameLogBuilder.LogEntry logEntry : builder.getEntryList()) {
-            appendKey(logEntry.key);
-            stringBuilder.append(doFilter(logEntry.key, logEntry.value));
-        }
-
-        // 指定partition
-        return new ProducerRecord<>(builder.getLogTopic().toString(), PARTITION_ID,
-                null, stringBuilder.toString());
-    }
-
-    private void appendKey(LogKey key) {
-        if (stringBuilder.length() > 0) {
-            stringBuilder.append(ENTRY_SEPARATOR);
-        }
-
-        stringBuilder.append(key.name());
-        stringBuilder.append(KV_SEPARATOR);
-    }
-
-    private String doFilter(LogKey key, String value) {
-        if (key.doFilter) {
-            return PATTERN.matcher(value).replaceAll(REPLACEMENT);
-        } else {
-            return value;
-        }
-    }
 }
