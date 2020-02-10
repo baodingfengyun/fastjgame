@@ -60,7 +60,6 @@
             <version>2.7.0</version>
         </dependency>
 
-
         <!-- 依赖注入框架 -->
         <!-- https://mvnrepository.com/artifact/com.google.inject/guice -->
         <dependency>

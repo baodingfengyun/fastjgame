@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.misc.log;
 
-import com.wjybxx.fastjgame.logcore.LogBuilder;
+import com.wjybxx.fastjgame.core.LogBuilder;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.LinkedList;

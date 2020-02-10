@@ -17,9 +17,9 @@
 package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
+import com.wjybxx.fastjgame.redis.RedisClient;
 import com.wjybxx.fastjgame.redis.RedisCommand;
 import com.wjybxx.fastjgame.redis.RedisFuture;
-import com.wjybxx.fastjgame.redis.RedisClient;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;

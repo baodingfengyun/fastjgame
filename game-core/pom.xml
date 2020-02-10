@@ -28,6 +28,14 @@
             <version>1.0</version>
         </dependency>
 
+        <!-- 日志组件依赖 -->
+        <!-- 基于kafka的日志实现 -->
+        <dependency>
+            <groupId>com.wjybxx.fastjgame</groupId>
+            <artifactId>game-log-kafka</artifactId>
+            <version>1.0</version>
+        </dependency>
+
         <!-- java-zset组件，可用于游戏内的排行榜和拍卖行-->
         <!-- 可以从 game-libs 文件夹下安装，也可以从github上下载-->
         <!-- https://github.com/hl845740757/java-zset -->

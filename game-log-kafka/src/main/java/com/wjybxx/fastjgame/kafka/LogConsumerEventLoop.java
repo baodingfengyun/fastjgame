@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.kafka;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
 import com.wjybxx.fastjgame.concurrent.disruptor.TimeoutWaitStrategyFactory;
+import com.wjybxx.fastjgame.utils.CloseableUtils;
 import com.wjybxx.fastjgame.utils.CollectionUtils;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -35,8 +36,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-
-import static com.wjybxx.fastjgame.utils.CloseableUtils.closeQuietly;
 
 /**
  * kafka消费者事件循环
@@ -123,7 +122,7 @@ public class LogConsumerEventLoop<T> extends DisruptorEventLoop {
 
     @Override
     protected void clean() throws Exception {
-        closeQuietly(kafkaConsumer);
+        CloseableUtils.closeQuietly(kafkaConsumer);
     }
 
     private void consumeSafely(ConsumerRecord<String, String> consumerRecord) {

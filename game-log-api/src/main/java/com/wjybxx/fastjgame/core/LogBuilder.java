@@ -14,25 +14,24 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.kafka;
+package com.wjybxx.fastjgame.core;
 
-import com.wjybxx.fastjgame.logcore.LogBuilder;
-import com.wjybxx.fastjgame.logcore.LogDirector;
-import org.apache.kafka.clients.producer.ProducerRecord;
-
-import javax.annotation.Nonnull;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * 用于发布到kafka的日志建造指挥官
+ * 日志建造者 - 这是一个窄接口(窄视图)，不限制api，仅用于搜集日志数据。
+ * <p>
+ * 注意：
+ * 1. 添加完数据之后，调用{@link LogPublisher#publish(LogBuilder)}发布自己。
+ * 2. 每条日志务必使用新的对象，发布之后再修改可能导致线程安全问题。
+ * 3. 实现类尽量保持数据的顺序。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2020/2/9
+ * date - 2019/12/15
  * github - https://github.com/hl845740757
  */
-public interface KafkaLogDirector<T extends LogBuilder> extends LogDirector<T, ProducerRecord<String, String>> {
-
-    @Nonnull
-    ProducerRecord<String, String> build(T builder);
+@NotThreadSafe
+public interface LogBuilder {
 
 }

@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.misc.log;
 
-import com.wjybxx.fastjgame.logcore.LogDirector;
+import com.wjybxx.fastjgame.core.LogDirector;
 
 import javax.annotation.Nonnull;
 

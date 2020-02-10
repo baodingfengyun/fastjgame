@@ -1,17 +1,17 @@
 /*
- *  Copyright 2019 wjybxx
+ * Copyright 2019 wjybxx
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to iBn writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.wjybxx.fastjgame.kafka;
@@ -19,8 +19,9 @@ package com.wjybxx.fastjgame.kafka;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.concurrent.disruptor.DisruptorEventLoop;
 import com.wjybxx.fastjgame.concurrent.disruptor.SleepWaitStrategyFactory;
-import com.wjybxx.fastjgame.logcore.LogBuilder;
-import com.wjybxx.fastjgame.logcore.LogPublisher;
+import com.wjybxx.fastjgame.core.LogBuilder;
+import com.wjybxx.fastjgame.core.LogPublisher;
+import com.wjybxx.fastjgame.utils.CloseableUtils;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -28,8 +29,6 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import javax.annotation.Nonnull;
 import java.util.Properties;
 import java.util.concurrent.ThreadFactory;
-
-import static com.wjybxx.fastjgame.utils.CloseableUtils.closeQuietly;
 
 /**
  * 日志线程 - 该线程作为kafka日志生产者。
@@ -82,7 +81,7 @@ public class LogProducerEventLoop<T extends LogBuilder> extends DisruptorEventLo
 
     @Override
     protected void clean() throws Exception {
-        closeQuietly(producer);
+        CloseableUtils.closeQuietly(producer);
     }
 
     @Override
