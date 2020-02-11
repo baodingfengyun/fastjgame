@@ -32,7 +32,7 @@ import java.util.Set;
 public interface LogConsumer<T> {
 
     /**
-     * 日志消费者的运行环境
+     * 日志消费者的运行环境 - {@link #consume(Object)}的执行环境。
      * <NOTE>使用{@link ImmediateEventLoop}可实现在{@code Puller线程消费}</NOTE>
      */
     EventLoop appEventLoop();

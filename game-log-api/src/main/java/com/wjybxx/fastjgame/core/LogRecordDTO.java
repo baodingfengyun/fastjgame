@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.core;
 
 /**
  * 日志数据传输对象。
- * 应用程序需要仓库提供的日志的数据结构
+ * 应用程序与{@link LogPublisher}和{@link LogPuller}交互的数据结构。
  *
  * @author wjybxx
  * @version 1.0

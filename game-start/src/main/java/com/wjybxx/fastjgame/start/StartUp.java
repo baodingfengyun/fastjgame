@@ -27,11 +27,11 @@ import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
 import com.wjybxx.fastjgame.core.LogPublisherFactory;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupBuilder;
-import com.wjybxx.fastjgame.kafka.LogProducerEventLoop;
+import com.wjybxx.fastjgame.imp.DefaultGameLogDirector;
+import com.wjybxx.fastjgame.kafka.KafkaLogPublisher;
 import com.wjybxx.fastjgame.mgr.GameConfigMgr;
 import com.wjybxx.fastjgame.misc.PlatformType;
 import com.wjybxx.fastjgame.misc.log.GameLogBuilder;
-import com.wjybxx.fastjgame.misc.log.GameLogDirector;
 import com.wjybxx.fastjgame.module.*;
 import com.wjybxx.fastjgame.scene.SceneRegion;
 import com.wjybxx.fastjgame.utils.DebugUtils;
@@ -175,10 +175,10 @@ public class StartUp {
         final String kafkaBrokerList = gameConfig.getAsString("kafkaBrokerList");
         assert null != kafkaBrokerList;
 
-        final LogPublisherFactory<GameLogBuilder> factory = logDirector -> {
-            return new LogProducerEventLoop<>(new DefaultThreadFactory("LOG-PRODUCER"),
+        final LogPublisherFactory<GameLogBuilder> factory = () -> {
+            return new KafkaLogPublisher<>(new DefaultThreadFactory("LOG-PUBLISHER"),
                     RejectedExecutionHandlers.log(),
-                    kafkaBrokerList, new GameLogDirector());
+                    kafkaBrokerList, new DefaultGameLogDirector());
         };
 
         GameConfigMgr.setLogPublisherFactory(factory);

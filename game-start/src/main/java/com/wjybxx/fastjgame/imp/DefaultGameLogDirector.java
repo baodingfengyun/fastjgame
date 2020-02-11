@@ -14,10 +14,12 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.misc.log;
+package com.wjybxx.fastjgame.imp;
 
 import com.wjybxx.fastjgame.core.LogDirector;
 import com.wjybxx.fastjgame.core.LogRecordDTO;
+import com.wjybxx.fastjgame.misc.log.GameLogBuilder;
+import com.wjybxx.fastjgame.misc.log.LogKey;
 
 import javax.annotation.Nonnull;
 import java.util.regex.Pattern;
@@ -33,7 +35,7 @@ import java.util.regex.Pattern;
  * date - 2019/11/30
  * github - https://github.com/hl845740757
  */
-public class GameLogDirector implements LogDirector<GameLogBuilder> {
+public class DefaultGameLogDirector implements LogDirector<GameLogBuilder> {
 
     /**
      * 替换换行符，回车符，制表符，反斜杠，'&' '='

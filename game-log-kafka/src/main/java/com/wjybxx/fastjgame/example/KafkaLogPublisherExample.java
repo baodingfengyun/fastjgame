@@ -18,9 +18,10 @@ package com.wjybxx.fastjgame.example;
 
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
+import com.wjybxx.fastjgame.core.LogPublisher;
 import com.wjybxx.fastjgame.imp.DefaultLogBuilder;
 import com.wjybxx.fastjgame.imp.DefaultLogDirector;
-import com.wjybxx.fastjgame.kafka.LogProducerEventLoop;
+import com.wjybxx.fastjgame.kafka.KafkaLogPublisher;
 import com.wjybxx.fastjgame.utils.TimeUtils;
 
 import javax.annotation.Nonnull;
@@ -35,35 +36,35 @@ import java.util.concurrent.locks.LockSupport;
  * date - 2019/11/28
  * github - https://github.com/hl845740757
  */
-public class LogProducerExample {
+public class KafkaLogPublisherExample {
 
     public static void main(String[] args) {
-        final LogProducerEventLoop<DefaultLogBuilder> producer = newProducerEventLoop();
+        final LogPublisher<DefaultLogBuilder> publisher = newProducerEventLoop();
         try {
-            doProduce(producer);
+            doProduce(publisher);
 
-            waitTerminate(producer);
+            waitTerminate(publisher);
         } finally {
-            producer.shutdown();
+            publisher.shutdown();
         }
     }
 
-    private static void doProduce(LogProducerEventLoop<DefaultLogBuilder> producer) {
+    private static void doProduce(LogPublisher<DefaultLogBuilder> publisher) {
         final long endTime = System.currentTimeMillis() + TimeUtils.MIN * 5;
         for (int playerGuid = 1; System.currentTimeMillis() < endTime; playerGuid++) {
-            producer.publish(newLog(playerGuid));
+            publisher.publish(newLog(playerGuid));
             LockSupport.parkNanos(TimeUtils.NANO_PER_MILLISECOND);
         }
     }
 
-    private static void waitTerminate(LogProducerEventLoop producer) {
-        producer.terminationFuture().awaitUninterruptibly(10, TimeUnit.SECONDS);
+    private static void waitTerminate(LogPublisher publisher) {
+        publisher.terminationFuture().awaitUninterruptibly(10, TimeUnit.SECONDS);
     }
 
     @Nonnull
-    private static LogProducerEventLoop<DefaultLogBuilder> newProducerEventLoop() {
-        return new LogProducerEventLoop<>(
-                new DefaultThreadFactory("PRODUCER"),
+    private static LogPublisher<DefaultLogBuilder> newProducerEventLoop() {
+        return new KafkaLogPublisher<>(
+                new DefaultThreadFactory("PUBLISHER"),
                 RejectedExecutionHandlers.abort(),
                 "localhost:9092",
                 new DefaultLogDirector());

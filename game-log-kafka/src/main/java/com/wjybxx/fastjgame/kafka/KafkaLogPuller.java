@@ -26,6 +26,7 @@ import com.wjybxx.fastjgame.core.LogRecordDTO;
 import com.wjybxx.fastjgame.imp.CompositeLogConsumer;
 import com.wjybxx.fastjgame.utils.CloseableUtils;
 import com.wjybxx.fastjgame.utils.CollectionUtils;
+import com.wjybxx.fastjgame.utils.LogConsumerUtils;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -50,9 +51,9 @@ import java.util.concurrent.TimeUnit;
  * date - 2019/11/28
  * github - https://github.com/hl845740757
  */
-public class LogConsumerEventLoop<T> extends DisruptorEventLoop implements LogPuller {
+public class KafkaLogPuller<T> extends DisruptorEventLoop implements LogPuller {
 
-    private static final Logger logger = LoggerFactory.getLogger(LogConsumerEventLoop.class);
+    private static final Logger logger = LoggerFactory.getLogger(KafkaLogPuller.class);
 
     /**
      * 日志线程任务缓冲区大小
@@ -70,27 +71,20 @@ public class LogConsumerEventLoop<T> extends DisruptorEventLoop implements LogPu
      * 消费者拉取数据最长阻塞时间
      */
     private static final Duration CONSUMER_POLL_DURATION = Duration.ofMillis(100);
-
-    /**
-     * 日志解析器
-     */
-    private final LogParser<T> kafkaLogParser;
-    /**
-     * topic到日志消费者的映射
-     */
-    private final Map<String, LogConsumer<T>> logConsumerMap;
-
     /**
      * kafka消费者客户端
      */
     private final KafkaConsumer<String, String> kafkaConsumer;
 
-    public LogConsumerEventLoop(@Nonnull ThreadFactory threadFactory,
-                                @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
-                                @Nonnull String brokerList,
-                                @Nonnull String groupId,
-                                @Nonnull LogParser<T> logParser,
-                                @Nonnull Collection<LogConsumer<T>> consumers) {
+    private final LogParser<T> kafkaLogParser;
+    private final Map<String, LogConsumer<T>> logConsumerMap;
+
+    public KafkaLogPuller(@Nonnull ThreadFactory threadFactory,
+                          @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
+                          @Nonnull String brokerList,
+                          @Nonnull String groupId,
+                          @Nonnull LogParser<T> logParser,
+                          @Nonnull Collection<LogConsumer<T>> consumers) {
         super(null, threadFactory, rejectedExecutionHandler, CONSUMER_RING_BUFFER_SIZE, CONSUMER_TASK_BATCH_SIZE, newWaitStrategyFactory());
         this.kafkaLogParser = logParser;
         this.logConsumerMap = indexConsumers(consumers);
@@ -134,9 +128,9 @@ public class LogConsumerEventLoop<T> extends DisruptorEventLoop implements LogPu
         try {
             final T record = kafkaLogParser.parse(new LogRecordDTO(consumerRecord.topic(), consumerRecord.value()));
             final LogConsumer<T> logConsumer = logConsumerMap.get(consumerRecord.topic());
-            logConsumer.consume(record);
+            LogConsumerUtils.consumeSafely(logConsumer, record);
         } catch (Throwable e) {
-            logger.warn("logConsumer.consume caught exception", e);
+            logger.warn("consume caught exception, record {}", consumerRecord, e);
         }
     }
 

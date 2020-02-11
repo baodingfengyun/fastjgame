@@ -37,7 +37,7 @@ public class GameLogRecord extends Params {
 
     private final Map<String, String> dataMap;
 
-    GameLogRecord(LogType logType, Map<String, String> dataMap) {
+    public GameLogRecord(LogType logType, Map<String, String> dataMap) {
         this.logType = logType;
         this.dataMap = dataMap;
     }

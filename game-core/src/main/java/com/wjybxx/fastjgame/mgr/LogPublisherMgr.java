@@ -19,7 +19,6 @@ package com.wjybxx.fastjgame.mgr;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.LogPublisher;
 import com.wjybxx.fastjgame.misc.log.GameLogBuilder;
-import com.wjybxx.fastjgame.misc.log.GameLogDirector;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +49,7 @@ public class LogPublisherMgr {
 
     @Nonnull
     private static LogPublisher<GameLogBuilder> newProducer() {
-        return GameConfigMgr.getLogPublisherFactory().newPublisher(new GameLogDirector());
+        return GameConfigMgr.getLogPublisherFactory().newPublisher();
     }
 
     /**

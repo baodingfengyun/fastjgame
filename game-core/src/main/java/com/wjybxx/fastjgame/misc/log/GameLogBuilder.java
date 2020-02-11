@@ -90,15 +90,15 @@ public class GameLogBuilder implements LogBuilder {
         return this;
     }
 
-    LogTopic getLogTopic() {
+    public LogTopic getLogTopic() {
         return logType.topic;
     }
 
-    LogType getLogType() {
+    public LogType getLogType() {
         return logType;
     }
 
-    List<LogEntry> getEntryList() {
+    public List<LogEntry> getEntryList() {
         return entryList;
     }
 
@@ -112,15 +112,30 @@ public class GameLogBuilder implements LogBuilder {
      * 坏处：
      * 1. 增加内存消耗，不管value使用String还是Object，都会增加内存消耗(产生中间对象)。
      */
-    static class LogEntry {
+    public static class LogEntry {
 
-        final LogKey key;
-        final String value;
+        public final LogKey key;
+        public final String value;
 
         LogEntry(LogKey key, String value) {
             this.key = key;
             this.value = value;
         }
 
+        @Override
+        public String toString() {
+            return "LogEntry{" +
+                    "key=" + key +
+                    ", value='" + value + '\'' +
+                    '}';
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "GameLogBuilder{" +
+                "logType=" + logType +
+                ", entryList=" + entryList +
+                '}';
     }
 }

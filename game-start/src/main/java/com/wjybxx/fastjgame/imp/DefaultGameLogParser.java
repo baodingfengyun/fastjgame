@@ -14,10 +14,13 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.misc.log;
+package com.wjybxx.fastjgame.imp;
 
 import com.wjybxx.fastjgame.core.LogParser;
 import com.wjybxx.fastjgame.core.LogRecordDTO;
+import com.wjybxx.fastjgame.misc.log.GameLogRecord;
+import com.wjybxx.fastjgame.misc.log.LogKey;
+import com.wjybxx.fastjgame.misc.log.LogType;
 import com.wjybxx.fastjgame.utils.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -31,14 +34,14 @@ import java.util.LinkedHashMap;
  * date - 2020/2/11
  * github - https://github.com/hl845740757
  */
-public class GameLogParser implements LogParser<GameLogRecord> {
+public class DefaultGameLogParser implements LogParser<GameLogRecord> {
 
     @Override
     public GameLogRecord parse(LogRecordDTO recordDTO) {
-        final String[] kvPairs = StringUtils.split(recordDTO.data(), GameLogDirector.ENTRY_SEPARATOR);
+        final String[] kvPairs = StringUtils.split(recordDTO.data(), DefaultGameLogDirector.ENTRY_SEPARATOR);
         final LinkedHashMap<String, String> dataMap = CollectionUtils.newLinkedHashMapWithExpectedSize(kvPairs.length);
         for (String pair : kvPairs) {
-            final String[] keyAndValue = StringUtils.split(pair, GameLogDirector.KV_SEPARATOR);
+            final String[] keyAndValue = StringUtils.split(pair, DefaultGameLogDirector.KV_SEPARATOR);
             assert keyAndValue.length == 2;
             dataMap.put(keyAndValue[0], keyAndValue[1]);
         }

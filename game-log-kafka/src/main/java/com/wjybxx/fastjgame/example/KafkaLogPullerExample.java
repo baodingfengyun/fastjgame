@@ -21,8 +21,9 @@ import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ImmediateEventLoop;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.core.LogConsumer;
+import com.wjybxx.fastjgame.core.LogPuller;
 import com.wjybxx.fastjgame.imp.DefaultLogParser;
-import com.wjybxx.fastjgame.kafka.LogConsumerEventLoop;
+import com.wjybxx.fastjgame.kafka.KafkaLogPuller;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
 import javax.annotation.Nonnull;
@@ -38,30 +39,30 @@ import java.util.concurrent.TimeUnit;
  * date - 2019/11/28
  * github - https://github.com/hl845740757
  */
-public class LogConsumerExample {
+public class KafkaLogPullerExample {
 
     public static void main(String[] args) {
-        final LogConsumerEventLoop<?> consumer = newConsumerEventLoop();
+        final LogPuller puller = newKafkaLogPuller();
         try {
-            weakUp(consumer);
+            weakUp(puller);
 
-            waitTerminate(consumer);
+            waitTerminate(puller);
         } finally {
-            consumer.shutdown();
+            puller.shutdown();
         }
     }
 
-    private static void waitTerminate(LogConsumerEventLoop<?> consumer) {
-        consumer.terminationFuture().awaitUninterruptibly(5, TimeUnit.MINUTES);
+    private static void waitTerminate(LogPuller puller) {
+        puller.terminationFuture().awaitUninterruptibly(5, TimeUnit.MINUTES);
     }
 
-    private static void weakUp(LogConsumerEventLoop<?> consumer) {
-        consumer.execute(ConcurrentUtils.NO_OP_TASK);
+    private static void weakUp(LogPuller puller) {
+        puller.execute(ConcurrentUtils.NO_OP_TASK);
     }
 
     @Nonnull
-    private static LogConsumerEventLoop<?> newConsumerEventLoop() {
-        return new LogConsumerEventLoop<>(new DefaultThreadFactory("CONSUMER"),
+    private static LogPuller newKafkaLogPuller() {
+        return new KafkaLogPuller<>(new DefaultThreadFactory("PULLER"),
                 RejectedExecutionHandlers.abort(),
                 "localhost:9092",
                 "GROUP-TEST",

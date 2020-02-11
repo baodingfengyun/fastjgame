@@ -97,4 +97,12 @@ public class DefaultLogBuilder implements LogBuilder {
     Map<String, Object> getDataMap() {
         return dataMap;
     }
+
+    @Override
+    public String toString() {
+        return "DefaultLogBuilder{" +
+                "topic='" + topic + '\'' +
+                ", dataMap=" + dataMap +
+                '}';
+    }
 }

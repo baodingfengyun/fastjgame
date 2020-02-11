@@ -149,7 +149,7 @@ public class ImmediateEventLoop extends AbstractEventLoop {
     @Nonnull
     @Override
     public <V> Promise<V> newPromise() {
-        return new ImmediatePromise<V>(this);
+        return new ImmediatePromise<>(this);
     }
 
     private static class ImmediatePromise<V> extends DefaultPromise<V> {

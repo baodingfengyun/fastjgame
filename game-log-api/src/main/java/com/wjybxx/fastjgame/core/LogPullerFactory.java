@@ -29,6 +29,10 @@ import java.util.Collection;
  */
 public interface LogPullerFactory<T> {
 
-    LogPuller newPuller(@Nonnull LogParser<T> logParser, @Nonnull Collection<LogConsumer<T>> logConsumers);
+    /**
+     * 应用层只关心消费逻辑，不关心解析逻辑，
+     * 因此{@link LogConsumer}是业务逻辑指定的，而{@link LogParser}是启动类指定的。
+     */
+    LogPuller newPuller(@Nonnull Collection<LogConsumer<T>> logConsumers);
 
 }

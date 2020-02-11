@@ -26,6 +26,10 @@ package com.wjybxx.fastjgame.core;
  */
 public interface LogPublisherFactory<T extends LogBuilder> {
 
-    LogPublisher<T> newPublisher(LogDirector<T> logDirector);
+    /**
+     * 应用层只关心发布逻辑，不关心构建相关逻辑。
+     * 因此{@link LogDirector}是启动类指定的。
+     */
+    LogPublisher<T> newPublisher();
 
 }

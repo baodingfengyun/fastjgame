@@ -28,20 +28,24 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.util.Properties;
 import java.util.concurrent.ThreadFactory;
 
 /**
- * 日志线程 - 该线程作为kafka日志生产者。
+ * kafka日志生产者线程 - 将应用程序的日志存储到kafka中。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/11/27
  * github - https://github.com/hl845740757
  */
-public class LogProducerEventLoop<T extends LogBuilder> extends DisruptorEventLoop implements LogPublisher<T> {
+public class KafkaLogPublisher<T extends LogBuilder> extends DisruptorEventLoop implements LogPublisher<T> {
+
+    private static final Logger logger = LoggerFactory.getLogger(KafkaLogPublisher.class);
 
     /**
      * 日志线程任务缓冲区大小，也不需要太大
@@ -58,12 +62,13 @@ public class LogProducerEventLoop<T extends LogBuilder> extends DisruptorEventLo
      * kafka生产者 - kafka会自动处理网络问题，因此我们不必付出过多精力在上面。
      */
     private final KafkaProducer<String, String> producer;
+
     private final LogDirector<T> logDirector;
 
-    public LogProducerEventLoop(@Nonnull ThreadFactory threadFactory,
-                                @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
-                                @Nonnull String brokerList,
-                                @Nonnull LogDirector<T> logDirector) {
+    public KafkaLogPublisher(@Nonnull ThreadFactory threadFactory,
+                             @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
+                             @Nonnull String brokerList,
+                             @Nonnull LogDirector<T> logDirector) {
         super(null, threadFactory, rejectedExecutionHandler, PRODUCER_RING_BUFFER_SIZE, PRODUCER_TASK_BATCH_SIZE, new SleepWaitStrategyFactory());
         this.producer = new KafkaProducer<>(newConfig(brokerList), new StringSerializer(), new StringSerializer());
         this.logDirector = logDirector;
@@ -108,10 +113,14 @@ public class LogProducerEventLoop<T extends LogBuilder> extends DisruptorEventLo
 
         @Override
         public void run() {
-            final LogRecordDTO logRecordDTO = logDirector.build(builder);
-            final ProducerRecord<String, String> producerRecord = new ProducerRecord<>(logRecordDTO.topic(), PARTITION_ID,
-                    null, logRecordDTO.data());
-            producer.send(producerRecord);
+            try {
+                final LogRecordDTO logRecordDTO = logDirector.build(builder);
+                final ProducerRecord<String, String> producerRecord = new ProducerRecord<>(logRecordDTO.topic(), PARTITION_ID,
+                        null, logRecordDTO.data());
+                producer.send(producerRecord);
+            } catch (Throwable e) {
+                logger.warn("publish caught exception, builder {}", builder, e);
+            }
         }
     }
 }
