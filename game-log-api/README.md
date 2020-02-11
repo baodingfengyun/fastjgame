@@ -1,2 +1,1 @@
-### fastjgame项目 kafka日志组件
-基于kafka实现的日志打点实现。
+### fastjgame项目 日志搜集和日志消费组件核心api

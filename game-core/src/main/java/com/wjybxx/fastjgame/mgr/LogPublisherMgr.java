@@ -19,6 +19,8 @@ package com.wjybxx.fastjgame.mgr;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.core.LogPublisher;
 import com.wjybxx.fastjgame.misc.log.GameLogBuilder;
+import com.wjybxx.fastjgame.misc.log.LogKey;
+import com.wjybxx.fastjgame.misc.log.LogType;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,6 +65,15 @@ public class LogPublisherMgr {
         });
 
         publisher.execute(ConcurrentUtils.NO_OP_TASK);
+
+        publishTest();
+    }
+
+    private void publishTest() {
+        final GameLogBuilder builder = new GameLogBuilder(LogType.TEST)
+                .append(LogKey.playerName, "wjybxx")
+                .append(LogKey.playerGuid, 123456L);
+        publish(builder);
     }
 
     /**

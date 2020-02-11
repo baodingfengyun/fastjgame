@@ -117,7 +117,7 @@ public class GameLogBuilder implements LogBuilder {
         public final LogKey key;
         public final String value;
 
-        LogEntry(LogKey key, String value) {
+        private LogEntry(LogKey key, String value) {
             this.key = key;
             this.value = value;
         }
