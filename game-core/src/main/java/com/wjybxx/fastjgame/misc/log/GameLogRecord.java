@@ -64,4 +64,12 @@ public class GameLogRecord extends Params {
     public Set<String> keys() {
         return Collections.unmodifiableSet(dataMap.keySet());
     }
+
+    @Override
+    public String toString() {
+        return "GameLogRecord{" +
+                "logType=" + logType +
+                ", dataMap=" + dataMap +
+                '}';
+    }
 }

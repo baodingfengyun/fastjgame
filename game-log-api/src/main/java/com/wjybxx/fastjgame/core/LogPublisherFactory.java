@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.core;
 
 /**
- * 日志发布器工厂，应用层依赖该接口创建日志拉取器。
+ * 日志发布器工厂，应用层依赖该接口创建{@link LogPublisher},以去除对具体实现的依赖。
  *
  * @author wjybxx
  * @version 1.0

@@ -20,7 +20,7 @@ import javax.annotation.Nonnull;
 import java.util.Collection;
 
 /**
- * 日志拉取器工厂，应用层依赖该接口创建日志发布器。
+ * 日志拉取器工厂，应用层依赖该接口创建{@link LogPuller}，以去除对具体实现的依赖。
  *
  * @author wjybxx
  * @version 1.0
