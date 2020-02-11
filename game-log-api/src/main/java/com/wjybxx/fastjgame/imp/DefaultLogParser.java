@@ -14,33 +14,28 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.mgr;
+package com.wjybxx.fastjgame.imp;
 
-import com.wjybxx.fastjgame.misc.log.GameLogBuilder;
+import com.wjybxx.fastjgame.core.LogParser;
+import com.wjybxx.fastjgame.core.LogRecordDTO;
+import com.wjybxx.fastjgame.utils.JsonUtils;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
- * 日志管理器 - 打点什么的在这里进行。
- * 该类的存在是为了提炼公共代码的，每个World一个。
+ * 默认的日志解析器(解析json字符串)
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/11/27
+ * date - 2020/2/10
  * github - https://github.com/hl845740757
  */
-@NotThreadSafe
-public abstract class LogMgr {
+public class DefaultLogParser implements LogParser<DefaultLogRecord> {
 
-    private final LogPublisherMgr logPublisherMgr;
-
-    public LogMgr(LogPublisherMgr logPublisherMgr) {
-        this.logPublisherMgr = logPublisherMgr;
+    @Override
+    public DefaultLogRecord parse(LogRecordDTO recordDTO) {
+        @SuppressWarnings("unchecked") final Map<String, Object> dataMap = JsonUtils.parseJsonToMap(recordDTO.data(), LinkedHashMap.class, String.class, Object.class);
+        return new DefaultLogRecord(recordDTO.topic(), dataMap);
     }
-
-    public void publish(GameLogBuilder logBuilder) {
-        logPublisherMgr.publish(logBuilder);
-    }
-
-    // TODO 日志代码在这里添加
 }

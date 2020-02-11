@@ -14,33 +14,18 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.mgr;
-
-import com.wjybxx.fastjgame.misc.log.GameLogBuilder;
-
-import javax.annotation.concurrent.NotThreadSafe;
+package com.wjybxx.fastjgame.core;
 
 /**
- * 日志管理器 - 打点什么的在这里进行。
- * 该类的存在是为了提炼公共代码的，每个World一个。
+ * 日志发布器工厂，应用层依赖该接口创建日志拉取器。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/11/27
+ * date - 2020/2/11
  * github - https://github.com/hl845740757
  */
-@NotThreadSafe
-public abstract class LogMgr {
+public interface LogPublisherFactory<T extends LogBuilder> {
 
-    private final LogPublisherMgr logPublisherMgr;
+    LogPublisher<T> newPublisher(LogDirector<T> logDirector);
 
-    public LogMgr(LogPublisherMgr logPublisherMgr) {
-        this.logPublisherMgr = logPublisherMgr;
-    }
-
-    public void publish(GameLogBuilder logBuilder) {
-        logPublisherMgr.publish(logBuilder);
-    }
-
-    // TODO 日志代码在这里添加
 }

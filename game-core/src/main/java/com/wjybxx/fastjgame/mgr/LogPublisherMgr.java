@@ -17,11 +17,9 @@
 package com.wjybxx.fastjgame.mgr;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
-import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
-import com.wjybxx.fastjgame.kafka.LogProducerEventLoop;
-import com.wjybxx.fastjgame.misc.log.GameKafkaLogDirector;
+import com.wjybxx.fastjgame.core.LogPublisher;
 import com.wjybxx.fastjgame.misc.log.GameLogBuilder;
+import com.wjybxx.fastjgame.misc.log.GameLogDirector;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,36 +36,34 @@ import javax.annotation.concurrent.ThreadSafe;
  * github - https://github.com/hl845740757
  */
 @ThreadSafe
-public class LogProducerMgr {
+public class LogPublisherMgr {
 
-    private static final Logger logger = LoggerFactory.getLogger(LogProducerMgr.class);
+    private static final Logger logger = LoggerFactory.getLogger(LogPublisherMgr.class);
 
-    private final LogProducerEventLoop<GameLogBuilder> producer;
+    private final LogPublisher<GameLogBuilder> publisher;
     private volatile boolean shutdown = false;
 
     @Inject
-    public LogProducerMgr(GameConfigMgr gameConfigMgr) {
-        producer = newProducer(gameConfigMgr);
+    public LogPublisherMgr() {
+        publisher = newProducer();
     }
 
     @Nonnull
-    private static LogProducerEventLoop<GameLogBuilder> newProducer(GameConfigMgr gameConfigMgr) {
-        return new LogProducerEventLoop<>(new DefaultThreadFactory("LOG-PRODUCER"),
-                RejectedExecutionHandlers.log(),
-                gameConfigMgr.getKafkaBrokerList(), new GameKafkaLogDirector());
+    private static LogPublisher<GameLogBuilder> newProducer() {
+        return GameConfigMgr.getLogPublisherFactory().newPublisher(new GameLogDirector());
     }
 
     /**
-     * 启动kafka线程
+     * 启动日志发布器
      */
     public void start() {
-        producer.terminationFuture().addListener(future -> {
+        publisher.terminationFuture().addListener(future -> {
             if (!shutdown) {
-                logger.error("producer shutdown by mistake");
+                logger.error("publisher shutdown by mistake");
             }
         });
 
-        producer.execute(ConcurrentUtils.NO_OP_TASK);
+        publisher.execute(ConcurrentUtils.NO_OP_TASK);
     }
 
     /**
@@ -75,7 +71,7 @@ public class LogProducerMgr {
      */
     public void shutdown() {
         shutdown = true;
-        producer.shutdown();
+        publisher.shutdown();
         logger.info("LogProducer shutdown success");
     }
 
@@ -83,6 +79,6 @@ public class LogProducerMgr {
      * 发送消息到kafka
      */
     public void publish(GameLogBuilder logBuilder) {
-        producer.publish(logBuilder);
+        publisher.publish(logBuilder);
     }
 }

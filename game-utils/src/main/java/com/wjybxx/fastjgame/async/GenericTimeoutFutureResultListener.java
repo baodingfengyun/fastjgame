@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.async;
 
-import com.wjybxx.fastjgame.async.GenericFutureResultListener;
 import com.wjybxx.fastjgame.concurrent.timeout.TimeoutFutureResult;
 
 /**

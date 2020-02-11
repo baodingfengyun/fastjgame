@@ -32,7 +32,7 @@
         <!-- 基于kafka的日志实现 -->
         <dependency>
             <groupId>com.wjybxx.fastjgame</groupId>
-            <artifactId>game-log-kafka</artifactId>
+            <artifactId>game-log-api</artifactId>
             <version>1.0</version>
         </dependency>
 

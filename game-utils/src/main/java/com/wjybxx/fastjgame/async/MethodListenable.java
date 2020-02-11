@@ -16,7 +16,8 @@
 
 package com.wjybxx.fastjgame.async;
 
-import com.wjybxx.fastjgame.concurrent.*;
+import com.wjybxx.fastjgame.concurrent.FutureListener;
+import com.wjybxx.fastjgame.concurrent.FutureResult;
 
 import javax.annotation.concurrent.NotThreadSafe;
 

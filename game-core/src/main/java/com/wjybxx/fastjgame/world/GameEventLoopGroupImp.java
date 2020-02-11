@@ -25,7 +25,7 @@ import com.wjybxx.fastjgame.configwrapper.MapConfigWrapper;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.mgr.CuratorClientMgr;
 import com.wjybxx.fastjgame.mgr.GlobalExecutorMgr;
-import com.wjybxx.fastjgame.mgr.LogProducerMgr;
+import com.wjybxx.fastjgame.mgr.LogPublisherMgr;
 import com.wjybxx.fastjgame.mgr.RedisEventLoopMgr;
 import com.wjybxx.fastjgame.module.WorldGroupModule;
 import com.wjybxx.fastjgame.module.WorldModule;
@@ -91,7 +91,7 @@ public class GameEventLoopGroupImp extends MultiThreadEventLoopGroup implements 
     private void start() {
         final Injector groupModule = getContext().groupInjector;
         // 启动全局资源(提前暴露错误)
-        groupModule.getInstance(LogProducerMgr.class).start();
+        groupModule.getInstance(LogPublisherMgr.class).start();
         groupModule.getInstance(RedisEventLoopMgr.class).start();
 
         // 启动所有WORLD线程
@@ -104,7 +104,7 @@ public class GameEventLoopGroupImp extends MultiThreadEventLoopGroup implements 
     @Override
     protected void clean() {
         final Injector groupModule = getContext().groupInjector;
-        CloseableUtils.closeSafely(groupModule.getInstance(LogProducerMgr.class)::shutdown);
+        CloseableUtils.closeSafely(groupModule.getInstance(LogPublisherMgr.class)::shutdown);
         CloseableUtils.closeSafely(groupModule.getInstance(RedisEventLoopMgr.class)::shutdown);
         CloseableUtils.closeSafely(groupModule.getInstance(GlobalExecutorMgr.class)::shutdown);
         CloseableUtils.closeSafely(groupModule.getInstance(CuratorClientMgr.class)::shutdown);

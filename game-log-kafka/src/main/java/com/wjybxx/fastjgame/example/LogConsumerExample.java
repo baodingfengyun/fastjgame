@@ -17,9 +17,11 @@
 package com.wjybxx.fastjgame.example;
 
 import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
+import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.wjybxx.fastjgame.concurrent.ImmediateEventLoop;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
-import com.wjybxx.fastjgame.kafka.DefaultKafkaLogParser;
-import com.wjybxx.fastjgame.kafka.KafkaLogConsumer;
+import com.wjybxx.fastjgame.core.LogConsumer;
+import com.wjybxx.fastjgame.imp.DefaultLogParser;
 import com.wjybxx.fastjgame.kafka.LogConsumerEventLoop;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 
@@ -63,11 +65,16 @@ public class LogConsumerExample {
                 RejectedExecutionHandlers.abort(),
                 "localhost:9092",
                 "GROUP-TEST",
-                new DefaultKafkaLogParser(),
+                new DefaultLogParser(),
                 Collections.singleton(new TestLogConsumer<>()));
     }
 
-    private static class TestLogConsumer<T> implements KafkaLogConsumer<T> {
+    private static class TestLogConsumer<T> implements LogConsumer<T> {
+
+        @Override
+        public EventLoop appEventLoop() {
+            return ImmediateEventLoop.INSTANCE;
+        }
 
         @Override
         public Set<String> subscribedTopics() {
@@ -76,7 +83,7 @@ public class LogConsumerExample {
 
         @Override
         public void consume(T record) {
-            System.out.println(record);
+            System.out.println("Thread: " + Thread.currentThread().getName() + ", record: " + record);
         }
     }
 }

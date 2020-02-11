@@ -21,10 +21,17 @@ import com.sun.tools.attach.AgentLoadException;
 import com.sun.tools.attach.AttachNotSupportedException;
 import com.sun.tools.attach.VirtualMachine;
 import com.wjybxx.fastjgame.agent.ClassReloadAgent;
+import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
+import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
+import com.wjybxx.fastjgame.core.LogPublisherFactory;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.eventloop.NetEventLoopGroupBuilder;
+import com.wjybxx.fastjgame.kafka.LogProducerEventLoop;
+import com.wjybxx.fastjgame.mgr.GameConfigMgr;
 import com.wjybxx.fastjgame.misc.PlatformType;
+import com.wjybxx.fastjgame.misc.log.GameLogBuilder;
+import com.wjybxx.fastjgame.misc.log.GameLogDirector;
 import com.wjybxx.fastjgame.module.*;
 import com.wjybxx.fastjgame.scene.SceneRegion;
 import com.wjybxx.fastjgame.utils.DebugUtils;
@@ -97,15 +104,13 @@ public class StartUp {
      */
     public static void main(String[] args) throws Exception {
         DebugUtils.openDebug();
+
         startClassReloadAgent();
 
-        // 指定一下日志文件
-        String logDir = new File("").getAbsolutePath() + File.separator + "log";
-        String logPath = logDir + File.separator + "fastjgame";
-        System.out.println("logPath " + logPath);
-        System.setProperty("logPath", logPath);
+        initSlfLoggerConfig();
 
-        // 试一试ALL IN ONE
+        initLogPublisherFactory();
+
         // NET线程数最少1个
         NetEventLoopGroup netEventLoopGroup = new NetEventLoopGroupBuilder()
                 .setNetEventLoopNum(2)
@@ -134,6 +139,9 @@ public class StartUp {
         System.out.println(" ******* invoked shutdown *******");
     }
 
+    /**
+     * 启动热更新代理组件
+     */
     private static void startClassReloadAgent() throws IOException, AttachNotSupportedException,
             AgentLoadException, AgentInitializationException {
         String pid = getPid();
@@ -149,4 +157,30 @@ public class StartUp {
         return ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
     }
 
+    /**
+     * 初始化日志组件
+     */
+    private static void initSlfLoggerConfig() {
+        String logDir = new File("").getAbsolutePath() + File.separator + "log";
+        String logPath = logDir + File.separator + "fastjgame";
+        System.out.println("logPath " + logPath);
+        System.setProperty("logPath", logPath);
+    }
+
+    /**
+     * 初始化日志发布组件(日志搜集组件)
+     */
+    private static void initLogPublisherFactory() throws IOException {
+        final ConfigWrapper gameConfig = GameConfigMgr.loadGameConfig();
+        final String kafkaBrokerList = gameConfig.getAsString("kafkaBrokerList");
+        assert null != kafkaBrokerList;
+
+        final LogPublisherFactory<GameLogBuilder> factory = logDirector -> {
+            return new LogProducerEventLoop<>(new DefaultThreadFactory("LOG-PRODUCER"),
+                    RejectedExecutionHandlers.log(),
+                    kafkaBrokerList, new GameLogDirector());
+        };
+
+        GameConfigMgr.setLogPublisherFactory(factory);
+    }
 }

@@ -63,13 +63,6 @@
             <version>1.0</version>
         </dependency>
 
-        <!-- 基础工具包 -->
-        <dependency>
-            <groupId>com.wjybxx.fastjgame</groupId>
-            <artifactId>game-utils</artifactId>
-            <version>1.0</version>
-        </dependency>
-
         <!-- kafka日志组件，用于游戏日志打点 -->
         <!-- https://mvnrepository.com/artifact/org.apache.kafka/kafka -->
         <dependency>

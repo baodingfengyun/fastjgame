@@ -19,6 +19,10 @@ package com.wjybxx.fastjgame.mgr;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.annotation.EventLoopGroupSingleton;
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
+import com.wjybxx.fastjgame.core.LogPublisherFactory;
+import com.wjybxx.fastjgame.core.LogPullerFactory;
+import com.wjybxx.fastjgame.misc.log.GameLogBuilder;
+import com.wjybxx.fastjgame.misc.log.GameLogRecord;
 import com.wjybxx.fastjgame.utils.ConfigLoader;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -35,6 +39,9 @@ import java.io.IOException;
 @EventLoopGroupSingleton
 @ThreadSafe
 public class GameConfigMgr {
+
+    private static volatile LogPublisherFactory<GameLogBuilder> logPublisherFactory;
+    private static volatile LogPullerFactory<GameLogRecord> logPullerFactory;
 
     private final ConfigWrapper configWrapper;
     /**
@@ -67,10 +74,6 @@ public class GameConfigMgr {
     private final int mongoConnectionsPerHost;
 
     /**
-     * kafka服务器列表
-     */
-    private final String kafkaBrokerList;
-    /**
      * redis哨兵列表
      */
     private final String redisSentinelList;
@@ -93,7 +96,7 @@ public class GameConfigMgr {
 
     @Inject
     public GameConfigMgr() throws IOException {
-        configWrapper = ConfigLoader.loadConfig(GameConfigMgr.class.getClassLoader(), "game_config.properties");
+        configWrapper = loadGameConfig();
         globalExecutorThreadNum = configWrapper.getAsInt("globalExecutorThreadNum");
         zkConnectString = configWrapper.getAsString("zkConnectString");
         zkConnectionTimeoutMs = configWrapper.getAsInt("zkConnectionTimeoutMs");
@@ -101,12 +104,15 @@ public class GameConfigMgr {
         zkNameSpace = configWrapper.getAsString("zkNameSpace");
         mongoConnectionTimeoutMs = configWrapper.getAsInt("mongoConnectionTimeoutMs");
         mongoConnectionsPerHost = configWrapper.getAsInt("mongoConnectionsPerHost");
-        kafkaBrokerList = configWrapper.getAsString("kafkaBrokerList");
         redisSentinelList = configWrapper.getAsString("redisSentinelList");
         redisPassword = configWrapper.getAsString("redisPassword");
         httpConnectTimeout = configWrapper.getAsInt("httpConnectTimeout");
         httpRequestTimeout = configWrapper.getAsInt("httpRequestTimeout");
         httpWorkerThreadNum = configWrapper.getAsInt("httpWorkerThreadNum");
+    }
+
+    public static ConfigWrapper loadGameConfig() throws IOException {
+        return ConfigLoader.loadConfig(GameConfigMgr.class.getClassLoader(), "game_config.properties");
     }
 
     public ConfigWrapper getConfigWrapper() {
@@ -141,10 +147,6 @@ public class GameConfigMgr {
         return globalExecutorThreadNum;
     }
 
-    public String getKafkaBrokerList() {
-        return kafkaBrokerList;
-    }
-
     public String getRedisSentinelList() {
         return redisSentinelList;
     }
@@ -163,5 +165,21 @@ public class GameConfigMgr {
 
     public int getHttpWorkerThreadNum() {
         return httpWorkerThreadNum;
+    }
+
+    public static LogPublisherFactory<GameLogBuilder> getLogPublisherFactory() {
+        return logPublisherFactory;
+    }
+
+    public static void setLogPublisherFactory(LogPublisherFactory<GameLogBuilder> logPublisherFactory) {
+        GameConfigMgr.logPublisherFactory = logPublisherFactory;
+    }
+
+    public static LogPullerFactory<GameLogRecord> getLogPullerFactory() {
+        return logPullerFactory;
+    }
+
+    public static void setLogPullerFactory(LogPullerFactory<GameLogRecord> logPullerFactory) {
+        GameConfigMgr.logPullerFactory = logPullerFactory;
     }
 }

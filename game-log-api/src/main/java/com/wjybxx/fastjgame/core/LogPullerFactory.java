@@ -14,27 +14,21 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.kafka;
+package com.wjybxx.fastjgame.core;
 
-import com.wjybxx.fastjgame.utils.JsonUtils;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
+import javax.annotation.Nonnull;
+import java.util.Collection;
 
 /**
- * 默认的kafka日志解析器
+ * 日志拉取器工厂，应用层依赖该接口创建日志发布器。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2020/2/10
+ * date - 2020/2/11
  * github - https://github.com/hl845740757
  */
-public class DefaultKafkaLogParser implements KafkaLogParser<DefaultKafkaLogRecord> {
+public interface LogPullerFactory<T> {
 
-    @Override
-    public DefaultKafkaLogRecord parse(ConsumerRecord<String, String> storedData) {
-        @SuppressWarnings("unchecked") final Map<String, Object> dataMap = JsonUtils.parseJsonToMap(storedData.value(), LinkedHashMap.class, String.class, Object.class);
-        return new DefaultKafkaLogRecord(storedData.topic(), dataMap);
-    }
+    LogPuller newPuller(@Nonnull LogParser<T> logParser, @Nonnull Collection<LogConsumer<T>> logConsumers);
+
 }

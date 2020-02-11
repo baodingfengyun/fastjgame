@@ -43,7 +43,7 @@ public class WorldGroupModule extends AbstractModule {
         bind(GlobalExecutorMgr.class).in(Singleton.class);
         bind(CuratorClientMgr.class).in(Singleton.class);
         bind(LocalPortMgr.class).in(Singleton.class);
-        bind(LogProducerMgr.class).in(Singleton.class);
+        bind(LogPublisherMgr.class).in(Singleton.class);
         bind(RedisEventLoopMgr.class).in(Singleton.class);
     }
 }

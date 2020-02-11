@@ -33,7 +33,7 @@ import javax.annotation.Nonnull;
  * date - 2019/11/30
  * github - https://github.com/hl845740757
  */
-public interface LogDirector<T extends LogBuilder, R> {
+public interface LogDirector<T extends LogBuilder> {
 
     /**
      * 构建日志内容
@@ -42,6 +42,6 @@ public interface LogDirector<T extends LogBuilder, R> {
      * @return 用于发布或存储的数据
      */
     @Nonnull
-    R build(T builder);
+    LogRecordDTO build(T builder);
 
 }

@@ -16,6 +16,11 @@
 
 package com.wjybxx.fastjgame.core;
 
+import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.wjybxx.fastjgame.concurrent.ImmediateEventLoop;
+
+import java.util.Set;
+
 /**
  * 日志消费者。
  *
@@ -25,6 +30,19 @@ package com.wjybxx.fastjgame.core;
  * github - https://github.com/hl845740757
  */
 public interface LogConsumer<T> {
+
+    /**
+     * 日志消费者的运行环境
+     * <NOTE>使用{@link ImmediateEventLoop}可实现在{@code Puller线程消费}</NOTE>
+     */
+    EventLoop appEventLoop();
+
+    /**
+     * 订阅的topic
+     *
+     * @apiNote 只在初始的时候使用一次，因此不必作为对象的属性，new一个即可。
+     */
+    Set<String> subscribedTopics();
 
     /**
      * 消费一条日志。

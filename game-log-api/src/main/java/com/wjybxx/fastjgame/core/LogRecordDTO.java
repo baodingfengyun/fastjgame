@@ -14,46 +14,40 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.kafka;
-
-import java.util.Map;
+package com.wjybxx.fastjgame.core;
 
 /**
- * 默认的kafka日志记录格式
+ * 日志数据传输对象。
+ * 应用程序需要仓库提供的日志的数据结构
  *
  * @author wjybxx
  * @version 1.0
- * date - 2020/2/10
+ * date - 2020/2/11
  * github - https://github.com/hl845740757
  */
-public class DefaultKafkaLogRecord {
+public class LogRecordDTO {
 
+    /**
+     * 日志主题 - 主类型
+     */
     private final String topic;
-    private final Map<String, Object> dataMap;
+    /**
+     * 日志内容
+     * Q: 为什么是String?
+     * A: 我们希望仓库中存储的日志是可读的。
+     */
+    private final String data;
 
-    DefaultKafkaLogRecord(String topic, Map<String, Object> dataMap) {
+    public LogRecordDTO(String topic, String data) {
         this.topic = topic;
-        this.dataMap = dataMap;
+        this.data = data;
     }
 
-    @SuppressWarnings("unchecked")
-    public <T> T get(String key) {
-        return (T) dataMap.get(key);
-    }
-
-    public String getTopic() {
+    public String topic() {
         return topic;
     }
 
-    public Map<String, Object> getDataMap() {
-        return dataMap;
-    }
-
-    @Override
-    public String toString() {
-        return "DefaultKafkaLogRecord{" +
-                "topic='" + topic + '\'' +
-                ", dataMap=" + dataMap +
-                '}';
+    public String data() {
+        return data;
     }
 }

@@ -50,6 +50,15 @@
             <version>1.0</version>
         </dependency>
 
+        <!-- 插件级别组件 -->
+
+        <!-- kafka日志组件 -->
+        <dependency>
+            <groupId>com.wjybxx.fastjgame</groupId>
+            <artifactId>game-log-kafka</artifactId>
+            <version>1.0</version>
+        </dependency>
+
     </dependencies>
 
 </project>

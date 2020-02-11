@@ -55,17 +55,11 @@
     </build>
 
     <dependencies>
-        <!-- findBugs -->
-        <dependency>
-            <groupId>com.google.code.findbugs</groupId>
-            <artifactId>jsr305</artifactId>
-            <version>3.0.2</version>
-        </dependency>
 
-        <!-- jsr250 -->
+        <!-- 基础工具包 -->
         <dependency>
-            <groupId>javax.annotation</groupId>
-            <artifactId>jsr250-api</artifactId>
+            <groupId>com.wjybxx.fastjgame</groupId>
+            <artifactId>game-utils</artifactId>
             <version>1.0</version>
         </dependency>
 

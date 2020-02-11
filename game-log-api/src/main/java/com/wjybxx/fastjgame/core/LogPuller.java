@@ -14,33 +14,22 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.mgr;
+package com.wjybxx.fastjgame.core;
 
-import com.wjybxx.fastjgame.misc.log.GameLogBuilder;
-
-import javax.annotation.concurrent.NotThreadSafe;
+import com.wjybxx.fastjgame.concurrent.EventLoop;
 
 /**
- * 日志管理器 - 打点什么的在这里进行。
- * 该类的存在是为了提炼公共代码的，每个World一个。
+ * 日志拉取工具。
+ * 它负责从'仓库'拉取消费者们感兴趣的日志。
+ * <p>
+ * Q: 为什么继承{@link EventLoop}？
+ * A: 主要原因：我们需要能管理它的生命周期。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/11/27
+ * date - 2020/2/11
  * github - https://github.com/hl845740757
  */
-@NotThreadSafe
-public abstract class LogMgr {
+public interface LogPuller extends EventLoop {
 
-    private final LogPublisherMgr logPublisherMgr;
-
-    public LogMgr(LogPublisherMgr logPublisherMgr) {
-        this.logPublisherMgr = logPublisherMgr;
-    }
-
-    public void publish(GameLogBuilder logBuilder) {
-        logPublisherMgr.publish(logBuilder);
-    }
-
-    // TODO 日志代码在这里添加
 }

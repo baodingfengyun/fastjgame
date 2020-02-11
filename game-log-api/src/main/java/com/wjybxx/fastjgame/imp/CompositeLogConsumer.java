@@ -14,10 +14,12 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.kafka;
+package com.wjybxx.fastjgame.imp;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.wjybxx.fastjgame.concurrent.ImmediateEventLoop;
+import com.wjybxx.fastjgame.core.LogConsumer;
+import com.wjybxx.fastjgame.utils.LogConsumerUtils;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -33,9 +35,7 @@ import java.util.Set;
  * date - 2019/12/29
  * github - https://github.com/hl845740757
  */
-class CompositeKafkaLogConsumer<T> implements KafkaLogConsumer<T> {
-
-    private static final Logger logger = LoggerFactory.getLogger(CompositeKafkaLogConsumer.class);
+public final class CompositeLogConsumer<T> implements LogConsumer<T> {
 
     /**
      * 订阅的共同的topic
@@ -44,14 +44,21 @@ class CompositeKafkaLogConsumer<T> implements KafkaLogConsumer<T> {
     /**
      * 这些子节点订阅了相同的topic
      */
-    private final List<KafkaLogConsumer<T>> children = new ArrayList<>(2);
+    private final List<LogConsumer<T>> children = new ArrayList<>(2);
 
-    CompositeKafkaLogConsumer(final String topic,
-                              @Nonnull KafkaLogConsumer<T> first,
-                              @Nonnull KafkaLogConsumer<T> second) {
+    public CompositeLogConsumer(final String topic, @Nonnull LogConsumer<T> first, @Nonnull LogConsumer<T> second) {
         this.topic = topic;
         children.add(first);
         children.add(second);
+    }
+
+    public void addChild(@Nonnull LogConsumer<T> child) {
+        children.add(child);
+    }
+
+    @Override
+    public EventLoop appEventLoop() {
+        return ImmediateEventLoop.INSTANCE;
     }
 
     @Override
@@ -59,18 +66,10 @@ class CompositeKafkaLogConsumer<T> implements KafkaLogConsumer<T> {
         return Collections.singleton(topic);
     }
 
-    void addChild(@Nonnull KafkaLogConsumer<T> child) {
-        children.add(child);
-    }
-
     @Override
     public void consume(T record) {
-        for (KafkaLogConsumer<T> child : children) {
-            try {
-                child.consume(record);
-            } catch (Throwable e) {
-                logger.warn("child.consume caught exception", e);
-            }
+        for (LogConsumer<T> child : children) {
+            LogConsumerUtils.consumeSafely(child, record);
         }
     }
 
