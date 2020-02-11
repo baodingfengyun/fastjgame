@@ -146,7 +146,6 @@ public class ImmediateEventLoop extends AbstractEventLoop {
         }
     }
 
-
     @Nonnull
     @Override
     public <V> Promise<V> newPromise() {

@@ -33,7 +33,7 @@ import java.util.concurrent.ExecutionException;
  * {@code onFailure(FutureListener)}
  * {@code onComplete(FutureListener)}三个api，存在以下问题：
  * 1. 可能会添加三次回调(多次获取锁，多次读取volatile变量)，这个成本可能很低，因此此时一般是无竞争锁，但也可能较高。
- * 2. future完成时，可能会提交三个回调任务到逻辑线程。
+ * 2. future完成时，可能会提交三个回调任务到逻辑线程(这个是关键)。
  * 3. 回调执行时，可能又会读取好几次volatile数据。
  * <p>
  * 而我们如果仅仅是想异步执行的话，以上有太多冗余。我们对其封装之后，可以进行一些优化。

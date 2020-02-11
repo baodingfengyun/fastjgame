@@ -120,7 +120,6 @@ public class TypeParameterFinder {
      * @param parametrizedSuperInterface 定义泛型参数的超类或接口
      * @param typeParamName              泛型参数的名字
      * @return 泛型参数的距离类型
-     * @throws Exception error
      */
     private static <T> Class<?> findInterfaceTypeParameter(final Class<T> thisClass, Class<? super T> parametrizedSuperInterface, String typeParamName) {
         final Class<? super T> directChildClass = findInterfaceDirectChildClass(thisClass, parametrizedSuperInterface);

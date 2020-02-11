@@ -33,35 +33,20 @@ public class RejectedExecutionHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(RejectedExecutionHandlers.class);
 
-    /**
-     * 中止 - 抛出异常
-     */
     private static final RejectedExecutionHandler ABORT_POLICY = (r, eventLoop) -> {
         throw new RejectedExecutionException();
     };
 
-    /**
-     * 调用者执行
-     */
     private static final RejectedExecutionHandler CALLER_RUNS_POLICY = (r, eventLoop) -> {
         r.run();
     };
 
-    /**
-     * 忽略
-     */
     private static final RejectedExecutionHandler DISCARD_POLICY = (r, eventLoop) -> {
-        // do nothing
     };
 
-
-    /**
-     * 仅仅记录一条日志
-     */
     private static final RejectedExecutionHandler LOG_POLICY = (r, eventLoop) -> {
         logger.info("task {} is reject by {}.", r.getClass().getCanonicalName(), eventLoop.getClass().getCanonicalName());
     };
-
 
     private RejectedExecutionHandlers() {
 
@@ -83,14 +68,14 @@ public class RejectedExecutionHandlers {
     }
 
     /**
-     * 丢弃异常/忽略异常
+     * 丢弃任务
      */
     public static RejectedExecutionHandler discard() {
         return DISCARD_POLICY;
     }
 
     /**
-     * 仅仅是记录一条日志
+     * 仅仅是记录一条错误日志
      */
     public static RejectedExecutionHandler log() {
         return LOG_POLICY;

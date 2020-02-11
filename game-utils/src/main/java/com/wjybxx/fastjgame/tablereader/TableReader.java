@@ -43,7 +43,7 @@ public abstract class TableReader<T> implements AutoCloseable {
      * @param sheetIndex   表格页索引(0开始)
      * @param nameRowIndex 属性名索引(0开始) 前面的行表示注释行或者标记行
      * @return {@link TableSheet}
-     * @throws Exception
+     * @throws Exception error
      */
     public final TableSheet readCfg(File file, int sheetIndex, int nameRowIndex) throws Exception {
         String fileName = file.getName();
@@ -112,7 +112,7 @@ public abstract class TableReader<T> implements AutoCloseable {
      * @param fileName 文件名，用于打印更详细的错误原因
      * @param rowIndex 行索引
      * @param row      行内容
-     * @return
+     * @return 命名行
      */
     private ColNameRow readColNameRow(String fileName, int rowIndex, T row) {
         // 使用LinkedHashMap以保持读入顺序
@@ -145,7 +145,7 @@ public abstract class TableReader<T> implements AutoCloseable {
      * @param colNameRow 属性列信息
      * @param rowIndex   行索引
      * @param row        行内容
-     * @return
+     * @return 内容行
      */
     private TableRow readContentRow(ColNameRow colNameRow, int rowIndex, T row) {
         // 使用LinkedHashMap以保持读入顺序

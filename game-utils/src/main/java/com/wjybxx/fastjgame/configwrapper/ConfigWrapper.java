@@ -33,12 +33,6 @@ import javax.annotation.concurrent.Immutable;
 public abstract class ConfigWrapper extends Params {
 
     /**
-     * @see Params#getAsString(String)
-     */
-    @Override
-    public abstract String getAsString(String key);
-
-    /**
      * 基于map的配置是最容易理解的，最容易使用的，需要提供转换方法。
      *
      * @return MapConfigWrapper

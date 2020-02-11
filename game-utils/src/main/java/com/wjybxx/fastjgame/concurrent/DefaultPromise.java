@@ -358,7 +358,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
      * @return 如果赋值成功，则返回true，否则返回false。
      */
     private boolean completeSuccessOrFailure(@Nonnull Object value) {
-        // 正常完成可以有初始状态或不可取消状态进入完成状态
+        // 正常完成可以由初始状态或不可取消状态进入完成状态
         if (resultHolder.compareAndSet(null, value)
                 || resultHolder.compareAndSet(UNCANCELLABLE, value)) {
             postComplete();
