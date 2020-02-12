@@ -144,7 +144,7 @@
         </dependency>
 
         <!-- 热更新支持 -->
-        <!-- 可以从 game-libs 文件夹下安装，也可以将game-auto单独编译安装到本地仓库 -->
+        <!-- 可以从 game-libs 文件夹下安装，也可以将game-apt单独编译安装到本地仓库 -->
         <dependency>
             <groupId>com.wjybxx.fastjgame</groupId>
             <artifactId>game-classreloadagent</artifactId>
