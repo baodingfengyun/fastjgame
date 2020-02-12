@@ -17,15 +17,13 @@
 package com.wjybxx.fastjgame.concurrent;
 
 
-import io.netty.util.concurrent.EventExecutorGroup;
-
 import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.*;
 
 /**
- * 一个{@link EventExecutorGroup}的抽象实现，实现一些基础的方法。
+ * 一个{@link EventLoopGroup }的抽象实现，实现一些基础的方法。
  * 它是容器类型节点的顶层超类。
  * <p>
  * 因为它是一个容器节点，自身并不真正的处理逻辑，而是简单的将任务分配到每一个EventLoop。

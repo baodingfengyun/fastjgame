@@ -27,7 +27,6 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 
 /**
  * 基于Json的编解码器，必须使用简单对象来封装参数。-- POJO
@@ -64,7 +63,7 @@ public class JsonProtocolCodec implements ProtocolCodec {
             int messageId = messageMapper.getMessageId(obj.getClass());
             byteBufOutputStream.writeInt(messageId);
             // 写入序列化的内容
-            JsonUtils.getMapper().writeValue((OutputStream) byteBufOutputStream, obj);
+            JsonUtils.writeValue(byteBufOutputStream, obj);
             // 写入byteBuf
             ByteBuf byteBuf = bufAllocator.buffer(cacheBuffer.readableBytes());
             byteBuf.writeBytes(cacheBuffer);
@@ -81,7 +80,7 @@ public class JsonProtocolCodec implements ProtocolCodec {
         }
         final Class<?> messageClazz = messageMapper.getMessageClazz(data.readInt());
         final ByteBufInputStream inputStream = new ByteBufInputStream(data);
-        return JsonUtils.getMapper().readValue((InputStream) inputStream, messageClazz);
+        return JsonUtils.readValue((InputStream) inputStream, messageClazz);
     }
 
     @Override
@@ -96,11 +95,11 @@ public class JsonProtocolCodec implements ProtocolCodec {
 
             // 写入序列化的内容
             ByteBufOutputStream byteBufOutputStream = new ByteBufOutputStream(cacheBuffer);
-            JsonUtils.getMapper().writeValue((OutputStream) byteBufOutputStream, obj);
+            JsonUtils.writeValue(byteBufOutputStream, obj);
 
             // 再读出来
             ByteBufInputStream byteBufInputStream = new ByteBufInputStream(cacheBuffer);
-            return JsonUtils.getMapper().readValue((InputStream) byteBufInputStream, obj.getClass());
+            return JsonUtils.readValue((InputStream) byteBufInputStream, obj.getClass());
         } finally {
             cacheBuffer.release();
         }
@@ -123,7 +122,7 @@ public class JsonProtocolCodec implements ProtocolCodec {
             int messageId = messageMapper.getMessageId(obj.getClass());
             byteBufOutputStream.writeInt(messageId);
             // 写入序列化的内容
-            JsonUtils.getMapper().writeValue((OutputStream) byteBufOutputStream, obj);
+            JsonUtils.writeValue(byteBufOutputStream, obj);
 
             // 拷贝结果
             byte[] result = new byte[cacheBuffer.readableBytes()];

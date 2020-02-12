@@ -24,6 +24,8 @@ import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Map;
 
 /**
@@ -57,11 +59,9 @@ public class JsonUtils {
     private static final ThreadLocal<ObjectMapper> MAPPER_THREAD_LOCAL = ThreadLocal.withInitial(ObjectMapper::new);
 
     /**
-     * 如果提供的现有的方法，不能满足方法，可以获取mapper对象。
-     *
-     * @return ObjectMapper
+     * 一定要私有，不可以暴露给外层，否则会导致应用程序对{@code Jackson}产生强依赖
      */
-    public static ObjectMapper getMapper() {
+    private static ObjectMapper getMapper() {
         return MAPPER_THREAD_LOCAL.get();
     }
 
@@ -83,21 +83,6 @@ public class JsonUtils {
     }
 
     /**
-     * 将一般bean转换为json对应的字节数组
-     *
-     * @param obj bean
-     * @return bytes
-     */
-    public static byte[] toJsonBytes(Object obj) {
-        try {
-            return getMapper().writeValueAsBytes(obj);
-        } catch (JsonProcessingException e) {
-            // 之所以捕获，是因为，出现异常的地方应该是非常少的
-            return ConcurrentUtils.rethrow(e);
-        }
-    }
-
-    /**
      * 解析json字符串为java对象。
      *
      * @param json  json字符串
@@ -109,6 +94,21 @@ public class JsonUtils {
         try {
             return getMapper().readValue(json, clazz);
         } catch (IOException e) {
+            return ConcurrentUtils.rethrow(e);
+        }
+    }
+
+    /**
+     * 将一般bean转换为json对应的字节数组
+     *
+     * @param obj bean
+     * @return bytes
+     */
+    public static byte[] toJsonBytes(Object obj) {
+        try {
+            return getMapper().writeValueAsBytes(obj);
+        } catch (JsonProcessingException e) {
+            // 之所以捕获，是因为，出现异常的地方应该是非常少的
             return ConcurrentUtils.rethrow(e);
         }
     }
@@ -166,6 +166,24 @@ public class JsonUtils {
         MapType mapType = mapper.getTypeFactory().constructMapType(mapClass, keyClass, valueClass);
         try {
             return mapper.readValue(jsonBytes, mapType);
+        } catch (IOException e) {
+            return ConcurrentUtils.rethrow(e);
+        }
+    }
+
+    // ---------------------------------------- 输入输出流支持 -------------------------------
+
+    public static void writeValue(OutputStream out, Object value) {
+        try {
+            getMapper().writeValue(out, value);
+        } catch (IOException e) {
+            ConcurrentUtils.rethrow(e);
+        }
+    }
+
+    public static <T> T readValue(InputStream in, Class<T> clazz) {
+        try {
+            return getMapper().readValue(in, clazz);
         } catch (IOException e) {
             return ConcurrentUtils.rethrow(e);
         }

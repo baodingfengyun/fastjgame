@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.concurrent.adapter;
 import com.wjybxx.fastjgame.annotation.UnstableApi;
 import com.wjybxx.fastjgame.concurrent.*;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
+import com.wjybxx.fastjgame.utils.ThreadUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -176,7 +177,7 @@ public class CompletableFutureAdapter<V> extends AbstractListenableFuture<V> {
             future.get(timeout, unit);
             return true;
         } catch (InterruptedException e) {
-            ConcurrentUtils.recoveryInterrupted(true);
+            ThreadUtils.recoveryInterrupted(true);
         } catch (Throwable ignore) {
         }
         return false;

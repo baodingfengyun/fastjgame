@@ -25,6 +25,7 @@ import com.wjybxx.fastjgame.redis.RedisClient;
 import com.wjybxx.fastjgame.redis.RedisEventLoop;
 import com.wjybxx.fastjgame.redis.RedisMethodHandleFactory;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
+import com.wjybxx.fastjgame.utils.ThreadUtils;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
@@ -113,7 +114,7 @@ public class RedisEventLoopExample {
                     break;
                 }
 
-                ConcurrentUtils.sleepQuietly(1);
+                ThreadUtils.sleepQuietly(1);
             }
 
             System.out.println("execute " + (2 * MAX_LOOP_TIMES) + " commands, cost time ms " + (System.currentTimeMillis() - startTimeMS));

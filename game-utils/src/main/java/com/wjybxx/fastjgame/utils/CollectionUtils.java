@@ -43,7 +43,6 @@ public final class CollectionUtils {
     /**
      * 删除集合中满足条件的元素，并对删除的元素执行后续逻辑。
      * 建议map使用{@link #removeIfAndThen(Map, BiPredicate, BiConsumer)}进行删除
-     * 保留entry对象有潜在风险
      *
      * @param collection 可修改的集合
      * @param filter     什么样的元素需要删除
@@ -137,12 +136,6 @@ public final class CollectionUtils {
             }
         }
         return false;
-    }
-
-    public static <K> void requireNotContains(Map<K, ?> map, K k, String name) {
-        if (map.containsKey(k)) {
-            throw new IllegalArgumentException("duplicate " + name + " " + k);
-        }
     }
 
     /**

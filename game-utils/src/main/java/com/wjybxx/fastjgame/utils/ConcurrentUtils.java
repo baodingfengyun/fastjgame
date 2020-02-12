@@ -83,59 +83,7 @@ public class ConcurrentUtils {
             }
         } finally {
             // 恢复中断状态
-            recoveryInterrupted(interrupted);
-        }
-    }
-
-    // ---------------------------------------- 中断处理 ---------------------------
-
-    /**
-     * 恢复中断。
-     * 如果是中断异常，则恢复线程中断状态。
-     *
-     * @param t 异常
-     */
-    public static void recoveryInterrupted(Throwable t) {
-        recoveryInterrupted(t instanceof InterruptedException);
-    }
-
-    /**
-     * 恢复中断
-     *
-     * @param interrupted 是否出现了中断
-     */
-    public static void recoveryInterrupted(boolean interrupted) {
-        if (interrupted) {
-            try {
-                Thread.currentThread().interrupt();
-            } catch (SecurityException ignore) {
-            }
-        }
-    }
-
-    /**
-     * 检查线程中断状态。
-     *
-     * @throws InterruptedException 如果线程被中断，则抛出中断异常
-     */
-    public static void checkInterrupted() throws InterruptedException {
-        if (Thread.interrupted()) {
-            throw new InterruptedException();
-        }
-    }
-
-    // ------------------------------------------- 等待处理 -------------------------------------
-
-    /**
-     * 安静地睡眠一会儿
-     *
-     * @param sleepMillis 要睡眠的时间(毫秒)
-     */
-    public static void sleepQuietly(int sleepMillis) {
-        try {
-            Thread.sleep(sleepMillis);
-        } catch (InterruptedException ignore) {
-
+            ThreadUtils.recoveryInterrupted(interrupted);
         }
     }
 

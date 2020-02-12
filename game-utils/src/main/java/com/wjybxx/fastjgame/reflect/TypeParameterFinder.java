@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.reflect;
 
-import io.netty.handler.codec.http.HttpObject;
-
 import java.lang.reflect.*;
 import java.util.Objects;
 
@@ -29,8 +27,8 @@ import java.util.Objects;
  * 2.在定义该泛型参数的类/接口的下层被具体化了。
  * <p>
  * 举个栗子：
- * 在{@link io.netty.handler.codec.MessageToMessageDecoder}中定义了泛型参数I，
- * 而其子类 {@link io.netty.handler.codec.http.HttpContentDecoder}将其指定为{@link HttpObject},
+ * 在{@code io.netty.handler.codec.MessageToMessageDecoder}中定义了泛型参数I，
+ * 而其子类 {@code io.netty.handler.codec.http.HttpContentDecoder}将其指定为{@code HttpObject},
  * 那么可以通过HttpContentDecoder的实例查找到MessageToMessageDecoder上的泛型参数I为HttpObject类型。
  * <p>
  * 反面栗子：

@@ -24,13 +24,6 @@
         <module>game-db</module>
         <module>game-log-api</module>
         <module>game-log-kafka</module>
-        <module>game-core</module>
-        <module>game-centerserver</module>
-        <module>game-sceneserver</module>
-        <module>game-warzoneserver</module>
-        <module>game-loginserver</module>
-        <module>game-gateway</module>
-        <module>game-start</module>
     </modules>
 
     <build>

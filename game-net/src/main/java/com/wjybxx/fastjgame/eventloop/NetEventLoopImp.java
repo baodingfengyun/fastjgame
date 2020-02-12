@@ -46,7 +46,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadFactory;
 
-import static com.wjybxx.fastjgame.utils.ConcurrentUtils.sleepQuietly;
+import static com.wjybxx.fastjgame.utils.ThreadUtils.sleepQuietly;
 
 /**
  * 网络事件循环。

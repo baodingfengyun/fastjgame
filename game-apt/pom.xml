@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.wjybxx.fastjgame</groupId>
-    <artifactId>game-net</artifactId>
+    <artifactId>game-apt</artifactId>
     <version>1.0</version>
 
     <properties>
@@ -16,7 +16,7 @@
 
     <build>
         <plugins>
-            <!-- 编译插件 -->
+            <!-- 编译插件-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -27,7 +27,7 @@
                 </configuration>
             </plugin>
 
-            <!-- 源码插件 -->
+            <!--配置生成源码包-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
@@ -45,43 +45,27 @@
     </build>
 
     <dependencies>
-
-        <!-- 基础工具包 -->
+        <!-- 自动注册processor -->
+        <!-- https://mvnrepository.com/artifact/com.google.auto.service/auto-service -->
         <dependency>
-            <groupId>com.wjybxx.fastjgame</groupId>
-            <artifactId>game-utils</artifactId>
+            <groupId>com.google.auto.service</groupId>
+            <artifactId>auto-service</artifactId>
+            <version>1.0-rc5</version>
+        </dependency>
+
+        <!-- 生成java代码的工具 -->
+        <!-- https://mvnrepository.com/artifact/com.squareup/javapoet -->
+        <dependency>
+            <groupId>com.squareup</groupId>
+            <artifactId>javapoet</artifactId>
+            <version>1.11.1</version>
+        </dependency>
+
+        <!-- jsr250 -->
+        <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>jsr250-api</artifactId>
             <version>1.0</version>
-        </dependency>
-
-        <!-- 依赖注入框架 -->
-        <!-- https://mvnrepository.com/artifact/com.google.inject/guice -->
-        <dependency>
-            <groupId>com.google.inject</groupId>
-            <artifactId>guice</artifactId>
-            <version>4.2.2</version>
-            <!-- 如果引入高版本的guava最好去除低版本guava -->
-            <exclusions>
-                <exclusion>
-                    <groupId>com.google.guava</groupId>
-                    <artifactId>guava</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <!--netty -->
-        <!-- https://mvnrepository.com/artifact/io.netty/netty-all -->
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-all</artifactId>
-            <version>4.1.42.Final</version>
-        </dependency>
-
-        <!--protoBuf支持-->
-        <!-- https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java -->
-        <dependency>
-            <groupId>com.google.protobuf</groupId>
-            <artifactId>protobuf-java</artifactId>
-            <version>3.11.1</version>
         </dependency>
 
     </dependencies>

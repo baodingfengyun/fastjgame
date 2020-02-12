@@ -15,8 +15,6 @@
  */
 package com.wjybxx.fastjgame.tablereader;
 
-import com.wjybxx.fastjgame.configwrapper.TableSheetConfigWrapper;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collections;

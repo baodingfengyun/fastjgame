@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.concurrent;
 import com.wjybxx.fastjgame.annotation.UnstableApi;
 import com.wjybxx.fastjgame.utils.CollectionUtils;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
+import com.wjybxx.fastjgame.utils.ThreadUtils;
 import com.wjybxx.fastjgame.utils.TimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +34,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
-import static com.wjybxx.fastjgame.utils.ConcurrentUtils.checkInterrupted;
+import static com.wjybxx.fastjgame.utils.ThreadUtils.checkInterrupted;
 
 /**
  * 默认的{@link Promise}实现。
@@ -611,7 +612,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
             }
         } finally {
             // 恢复中断
-            ConcurrentUtils.recoveryInterrupted(interrupted);
+            ThreadUtils.recoveryInterrupted(interrupted);
         }
         return this;
     }
@@ -688,7 +689,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
             }
         } finally {
             // 恢复中断状态
-            ConcurrentUtils.recoveryInterrupted(interrupted);
+            ThreadUtils.recoveryInterrupted(interrupted);
         }
     }
 

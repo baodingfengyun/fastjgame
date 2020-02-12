@@ -18,8 +18,6 @@ package com.wjybxx.fastjgame.utils;
 
 import com.wjybxx.fastjgame.configwrapper.ConfigWrapper;
 import com.wjybxx.fastjgame.configwrapper.PropertiesConfigWrapper;
-import io.netty.util.internal.MacAddressUtil;
-import io.netty.util.internal.PlatformDependent;
 
 /**
  * 系统属性工具类
@@ -36,16 +34,6 @@ public class SystemUtils {
      */
     private static final ConfigWrapper properties = new PropertiesConfigWrapper(System.getProperties());
 
-    /**
-     * 是否是windows系统
-     */
-    private static final boolean IS_WINDOWS = PlatformDependent.isWindows();
-    /**
-     * 机器MAC地址，这里存在的问题是，可能有多个网卡。
-     * Netty在IPV4的Mac地址中间插入了 FF:FE
-     */
-    private static final String MAC = MacAddressUtil.formatAddress(MacAddressUtil.bestAvailableMac()).toUpperCase();
-
     private SystemUtils() {
 
     }
@@ -55,14 +43,7 @@ public class SystemUtils {
     }
 
     public static boolean isWindows() {
-        return IS_WINDOWS;
+        return org.apache.commons.lang3.SystemUtils.IS_OS_WINDOWS;
     }
 
-    public static String getMAC() {
-        return MAC;
-    }
-
-    public static void main(String[] args) {
-        System.out.println("MAC\n" + getMAC());
-    }
 }

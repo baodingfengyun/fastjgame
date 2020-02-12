@@ -89,15 +89,13 @@ public final class TimeProviders {
     private static class UnsharableCachedTimeProvider implements CachedTimeProvider {
 
         private long curTimeMillis;
-        private int curTimeSeconds;
 
-        UnsharableCachedTimeProvider(long curTimeMillis) {
+        private UnsharableCachedTimeProvider(long curTimeMillis) {
             update(curTimeMillis);
         }
 
         public boolean update(long curTimeMillis) {
             this.curTimeMillis = curTimeMillis;
-            this.curTimeSeconds = (int) (curTimeMillis / 1000);
             return true;
         }
 
@@ -108,14 +106,13 @@ public final class TimeProviders {
 
         @Override
         public int curTimeSeconds() {
-            return curTimeSeconds;
+            return (int) (curTimeMillis / 1000);
         }
 
         @Override
         public String toString() {
             return "UnsharableCachedTimeProvider{" +
                     "curTimeMillis=" + curTimeMillis +
-                    ", curTimeSeconds=" + curTimeSeconds +
                     '}';
         }
     }
@@ -129,7 +126,7 @@ public final class TimeProviders {
          */
         private volatile long curTimeMillis;
 
-        ThreadSafeCachedTimeProvider(long curTimeMillis) {
+        private ThreadSafeCachedTimeProvider(long curTimeMillis) {
             update(curTimeMillis);
         }
 

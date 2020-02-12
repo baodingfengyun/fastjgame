@@ -35,7 +35,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadFactory;
 
 import static com.wjybxx.fastjgame.utils.CloseableUtils.closeQuietly;
-import static com.wjybxx.fastjgame.utils.ConcurrentUtils.sleepQuietly;
+import static com.wjybxx.fastjgame.utils.ThreadUtils.sleepQuietly;
 
 /**
  * redis事件循环

@@ -85,14 +85,6 @@
             <version>3.4.2</version>
         </dependency>
 
-        <!-- 之所以在Utils引入netty，是因为对netty的部分代码做了增强 -->
-        <!-- https://mvnrepository.com/artifact/io.netty/netty-all -->
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-all</artifactId>
-            <version>4.1.42.Final</version>
-        </dependency>
-
         <!-- 流式读取Excel实现 -->
         <!-- https://mvnrepository.com/artifact/com.monitorjbl/xlsx-streamer -->
         <dependency>
@@ -144,11 +136,11 @@
         </dependency>
 
         <!-- 注解处理器 - 代码生成工具 -->
-        <!-- 可以从 game-libs 文件夹下安装，也可以将game-auto单独编译安装到本地仓库 -->
+        <!-- 可以从 game-libs 文件夹下安装，也可以将game-apt单独编译安装到本地仓库 -->
         <dependency>
             <groupId>com.wjybxx.fastjgame</groupId>
-            <artifactId>game-auto</artifactId>
-            <version>1.2</version>
+            <artifactId>game-apt</artifactId>
+            <version>1.0</version>
         </dependency>
 
         <!-- 热更新支持 -->
