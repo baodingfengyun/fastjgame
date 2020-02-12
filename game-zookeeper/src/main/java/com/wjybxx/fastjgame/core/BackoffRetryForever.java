@@ -41,6 +41,9 @@ public class BackoffRetryForever implements RetryPolicy {
 
     private static final Logger logger = LoggerFactory.getLogger(BackoffRetryForever.class);
 
+    private static final int DEFAULT_BASE_SLEEP_TIME_MS = 200;
+    private static final int DEFAULT_MAX_SLEEP_TIME_MS = 5000;
+
     private final Random random = new Random();
     /**
      * 基础睡眠时间(毫秒)(最小值)
@@ -50,6 +53,10 @@ public class BackoffRetryForever implements RetryPolicy {
      * 最大睡眠时间(毫秒)(最大值)
      */
     private final int maxSleepTimeMs;
+
+    public BackoffRetryForever() {
+        this(DEFAULT_BASE_SLEEP_TIME_MS, DEFAULT_MAX_SLEEP_TIME_MS);
+    }
 
     public BackoffRetryForever(int baseSleepTimeMs, int maxSleepTimeMs) {
         if (baseSleepTimeMs <= 0) {

@@ -97,6 +97,10 @@ public final class CuratorFacade {
         this.appEventLoop = appEventLoop;
     }
 
+    public CuratorFramework getClient() {
+        return client;
+    }
+
     /**
      * 关闭该门面持有的资源
      */

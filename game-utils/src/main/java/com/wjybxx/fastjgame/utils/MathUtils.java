@@ -41,6 +41,7 @@ public class MathUtils {
      * 二分之一 PI
      */
     public static final float HALF_PI = PI / 2;
+
     /**
      * float类型可忽略误差值
      * 当两个float的差值小于该值的时候，我们可以认为两个float相等
@@ -59,13 +60,13 @@ public class MathUtils {
     /**
      * 将两个int聚合为long
      *
-     * @param a 高32位
-     * @param b 低32位
+     * @param higher 高32位
+     * @param lower  低32位
      * @return long
      */
-    public static long composeIntToLong(int a, int b) {
+    public static long composeIntToLong(int higher, int lower) {
         // 保留b符号扩充以后的低32位
-        return ((long) a << 32) | ((long) b & 0xFF_FF_FF_FFL);
+        return ((long) higher << 32) | ((long) lower & 0xFF_FF_FF_FFL);
     }
 
     public static int higherIntOfLong(long value) {
@@ -86,13 +87,13 @@ public class MathUtils {
     /**
      * 将两个short聚合为int
      *
-     * @param a 高16位
-     * @param b 低16位
+     * @param higher 高16位
+     * @param lower  低16位
      * @return int
      */
-    public static int composeShortToInt(short a, short b) {
+    public static int composeShortToInt(short higher, short lower) {
         // 保留b符号扩充以后的低16位
-        return ((int) a << 16) | ((int) b & 0xFF_FF);
+        return ((int) higher << 16) | ((int) lower & 0xFF_FF);
     }
 
     public static short higherShortOfInt(int value) {
@@ -161,8 +162,8 @@ public class MathUtils {
     /**
      * 判断一个值是否是2的整次幂
      */
-    public static boolean isPowerOfTwo(int val) {
-        return IntMath.isPowerOfTwo(val);
+    public static boolean isPowerOfTwo(int value) {
+        return IntMath.isPowerOfTwo(value);
     }
 
     // region 范围

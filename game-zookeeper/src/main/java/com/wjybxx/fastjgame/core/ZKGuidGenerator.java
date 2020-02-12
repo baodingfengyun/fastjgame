@@ -15,6 +15,7 @@
  */
 package com.wjybxx.fastjgame.core;
 
+import com.wjybxx.fastjgame.concurrent.ImmediateEventLoop;
 import com.wjybxx.fastjgame.utils.CodecUtils;
 import com.wjybxx.fastjgame.utils.ZKPathUtils;
 import org.apache.curator.framework.recipes.atomic.DistributedAtomicLong;
@@ -22,6 +23,8 @@ import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * 基于zookeeper实现的guid生成器。
@@ -38,28 +41,28 @@ import org.slf4j.LoggerFactory;
  * date - 2019/5/12 11:59
  * github - https://github.com/hl845740757
  */
+@NotThreadSafe
 public class ZKGuidGenerator implements GuidGenerator {
 
     private static final Logger logger = LoggerFactory.getLogger(ZKGuidGenerator.class);
+    private static final int DEFAULT_CACHE_SIZE = 1000_000;
 
-    private final String name;
     private final CuratorFacade curatorFacade;
+    private final String name;
+    private final int cacheSize;
 
-    /**
-     * guid区间索引
-     * (32位好像有点多哈)
-     */
-    private int guidIndex = 0;
-    /**
-     * guid本地缓存
-     */
-    private int guidSequence = 0;
+    private long curGuid = 0;
+    private long curBarrier = 0;
 
-    public ZKGuidGenerator(final String name, CuratorClientMgr clientMgr) {
-        this.name = name;
-        this.curatorFacade = clientMgr.getFacade();
+    public ZKGuidGenerator(CuratorClientMgr curatorClientMgr, final String name) {
+        this(curatorClientMgr, name, DEFAULT_CACHE_SIZE);
     }
 
+    public ZKGuidGenerator(CuratorClientMgr curatorClientMgr, final String name, final int cacheSize) {
+        this.curatorFacade = new CuratorFacade(curatorClientMgr, ImmediateEventLoop.INSTANCE);
+        this.name = name;
+        this.cacheSize = cacheSize;
+    }
 
     @Override
     public String name() {
@@ -70,10 +73,8 @@ public class ZKGuidGenerator implements GuidGenerator {
     public long next() {
         try {
             checkCache();
-            // 这种方式的guid不是很方便查看规律(如果是乘以10的N次方可能方便查看使用情况)
-            long high = ((long) guidIndex) << 32;
-            int low = guidSequence++;
-            return high + low;
+
+            return curGuid++;
         } catch (Exception e) {
             throw new IllegalStateException("may lose zk connect", e);
         }
@@ -85,56 +86,13 @@ public class ZKGuidGenerator implements GuidGenerator {
      * @throws Exception zk error
      */
     private void checkCache() throws Exception {
-        // 还未初始化
-        if (guidIndex == 0) {
-            init();
+        if (curGuid > 0 && curGuid <= curBarrier) {
             return;
         }
+
         // 本地缓存用完了
-        if (guidSequence == Integer.MAX_VALUE) {
-            final String lockPath = getGuidLockPath();
-            curatorFacade.actionWhitLock(lockPath, this::incGuidIndex);
-        }
-    }
-
-    /**
-     * 缓存真正更新的地方
-     *
-     * @param guidIndex 新的guid区间
-     */
-    private void updateCache(int guidIndex) {
-        this.guidIndex = guidIndex;
-        this.guidSequence = 1;
-        logger.info("guidIndex={}", guidIndex);
-    }
-
-    /**
-     * 完成guid缓存区间的初始化
-     *
-     * @throws Exception zk errors
-     */
-    private void init() throws Exception {
-        final String guidIndexPath = getGuidPath();
-        final String lockPath = getGuidLockPath();
-
-        curatorFacade.actionWhitLock(lockPath, () -> {
-            if (!curatorFacade.isPathExist(guidIndexPath)) {
-                // 初始化为1 并据为己有，序列化为字符串字节数组具有更好的可读性
-                final byte[] initData = CodecUtils.getBytesUTF8("1");
-                curatorFacade.createNode(guidIndexPath, CreateMode.PERSISTENT, initData);
-                updateCache(1);
-            } else {
-                incGuidIndex();
-            }
-        });
-    }
-
-    private String getGuidPath() {
-        return ZKPathUtils.makePath(ZKPathUtils.GUID_PATH_ROOT, name);
-    }
-
-    private String getGuidLockPath() {
-        return ZKPathUtils.makePath(ZKPathUtils.GUID_PATH_ROOT, name + "_lock");
+        final String lockPath = getLockPath();
+        curatorFacade.actionWhitLock(lockPath, this::refreshCache);
     }
 
     /**
@@ -142,24 +100,45 @@ public class ZKGuidGenerator implements GuidGenerator {
      *
      * @throws Exception zk errors
      */
-    private void incGuidIndex() throws Exception {
-        final byte[] oldData = curatorFacade.getData(getGuidPath());
-        final int oldIndex = parseIntFromStringBytes(oldData);
+    private void refreshCache() throws Exception {
+        final String guidPath = getGuidPath();
+        final byte[] curData = curatorFacade.getDataIfPresent(guidPath);
+        final long currentValue = curData == null ? 0 : parseIntFromStringBytes(curData);
 
-        final int nextGuidIndex = oldIndex + 1;
-        byte[] newData = serializeToStringBytes(nextGuidIndex);
+        this.curGuid = currentValue + 1;
+        this.curBarrier = currentValue + cacheSize;
 
-        curatorFacade.setData(getGuidPath(), newData);
+        final byte[] newData = serializeToStringBytes(curBarrier);
+        if (null == curData) {
+            curatorFacade.createNode(guidPath, CreateMode.PERSISTENT, newData);
+        } else {
+            curatorFacade.setData(guidPath, newData);
+        }
 
-        updateCache(nextGuidIndex);
+        logger.info("update guid cache, curGuid={}, curBarrier={}", curGuid, curBarrier);
     }
 
-    private byte[] serializeToStringBytes(int nextGuidIndex) {
-        return CodecUtils.getBytesUTF8("" + nextGuidIndex);
+    private String getGuidPath() {
+        return ZKPathUtils.makePath(ZKPathUtils.GUID_PATH_ROOT, name);
     }
 
-    private int parseIntFromStringBytes(byte[] oldData) {
-        return Integer.parseInt(CodecUtils.newStringUTF8(oldData));
+    private String getLockPath() {
+        return ZKPathUtils.makePath(ZKPathUtils.GUID_PATH_ROOT, name + "_lock");
     }
 
+    /**
+     * 序列化为字符串字节数组具有更好的可读性
+     */
+    private static byte[] serializeToStringBytes(long guidIndex) {
+        return CodecUtils.getBytesUTF8(Long.toString(guidIndex));
+    }
+
+    private static long parseIntFromStringBytes(byte[] guidData) {
+        return Long.parseLong(CodecUtils.newStringUTF8(guidData));
+    }
+
+    @Override
+    public void close() {
+        curatorFacade.shutdown();
+    }
 }

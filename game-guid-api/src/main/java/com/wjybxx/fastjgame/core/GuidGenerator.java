@@ -16,11 +16,16 @@
 
 package com.wjybxx.fastjgame.core;
 
+import java.io.Closeable;
+
 /**
  * 64位的GUID生成器。
  * GUID，Globally Unique Identifier，全局唯一标识符。
  * <p>
  * 它只要求相同命名空间下{@link #next()}分配的id不重复，而不同命名空间的id是可以重复的。
+ * Q：为什么需要命名空间？
+ * A：因为业务之间的独立性。
+ * eg：我们可以为每条日志分配一个唯一id，它不需要占用玩家的guid资源。
  * <p>
  * 具体的策略由自己决定，数据库，Zookeeper，Redis等等都是可以的。
  * <p>
@@ -36,10 +41,10 @@ package com.wjybxx.fastjgame.core;
  * date - 2020/2/12
  * github - https://github.com/hl845740757
  */
-public interface GuidGenerator {
+public interface GuidGenerator extends Closeable {
 
     /**
-     * 该生成器的名字(命名空间)
+     * 该生成器的名字(或者说命名空间)
      */
     String name();
 
@@ -50,4 +55,8 @@ public interface GuidGenerator {
      */
     long next();
 
+    /**
+     * 关闭它持有的资源
+     */
+    void close();
 }

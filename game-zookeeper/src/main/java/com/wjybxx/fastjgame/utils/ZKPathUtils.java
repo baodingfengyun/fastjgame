@@ -35,8 +35,8 @@ import java.util.List;
  */
 public class ZKPathUtils {
 
-    public static final String GUID_PATH_ROOT = "/mutex/guid/";
-    public static final String GLOBAL_LOCK_PATH = "/globalLock";
+    public static final String GUID_PATH_ROOT = "/_guid/";
+    public static final String GLOBAL_LOCK_PATH = "/_globalLock";
 
     /**
      * 给定一个全路径，返回节点名字。
@@ -67,6 +67,7 @@ public class ZKPathUtils {
 
     /**
      * 给定一个全路径，返回各个独立的节点名字。
+     * i.e. "/one/two/three" will return "one, two, three"
      * 根节点返回空集合。
      */
     public static List<String> split(String fullPath) {
@@ -111,4 +112,7 @@ public class ZKPathUtils {
         return Integer.parseInt(ZKPaths.extractSequentialSuffix(path));
     }
 
+    public static void main(String[] args) {
+        System.out.println(split("/one/two/three"));
+    }
 }

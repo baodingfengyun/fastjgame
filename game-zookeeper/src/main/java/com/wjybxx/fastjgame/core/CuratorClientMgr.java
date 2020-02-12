@@ -16,12 +16,11 @@
 
 package com.wjybxx.fastjgame.core;
 
-import com.wjybxx.fastjgame.annotation.EventLoopGroupSingleton;
-import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.wjybxx.fastjgame.utils.CloseableUtils;
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.EnsureContainers;
-import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.utils.CloseableExecutorService;
 import org.slf4j.Logger;
@@ -35,14 +34,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * 管理curator的全局客户端
+ * 管理curator的全局客户端。
+ * 用户必须在最后调用{@link #shutdown()}关闭创建的资源。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/4
  * github - https://github.com/hl845740757
  */
-@EventLoopGroupSingleton
 @ThreadSafe
 public class CuratorClientMgr {
 
@@ -58,34 +57,15 @@ public class CuratorClientMgr {
     private final CuratorFramework client;
 
     /**
-     * 一个全局的门面工具
-     */
-    private final CuratorFacade curatorFacade;
-
-    /**
      * 用于curator后台拉取数据的执行线程;
      * 不可共享，因为它必须是单线程的，以保持事件顺序。
      * 如果共享，如果有人修改线程数将出现问题。
      */
     private final ThreadPoolExecutor backgroundExecutor;
 
-    /**
-     * 应用程序所在线程，用于接收事件
-     */
-    private final EventLoop appEventLoop;
-
-    public CuratorClientMgr(final CuratorFramework client,
-                            final ThreadFactory backgroundThreadFactory,
-                            final EventLoop appEventLoop) throws InterruptedException {
-
-        if (client.getState() == CuratorFrameworkState.LATENT) {
-            client.start();
-            client.blockUntilConnected();
-        }
-
-        this.client = client;
-        this.curatorFacade = new CuratorFacade(this, appEventLoop);
-        this.appEventLoop = appEventLoop;
+    public CuratorClientMgr(final CuratorFrameworkFactory.Builder builder,
+                            final ThreadFactory backgroundThreadFactory) throws InterruptedException {
+        this.client = newStartedClient(builder);
 
         // 该线程池不要共享的好，它必须是单线程的，如果放在外部容易出问题
         backgroundExecutor = new ThreadPoolExecutor(1, 1,
@@ -97,10 +77,35 @@ public class CuratorClientMgr {
         backgroundExecutor.allowCoreThreadTimeOut(true);
     }
 
+    private static CuratorFramework newStartedClient(final CuratorFrameworkFactory.Builder builder) throws InterruptedException {
+        checkThreadFactory(builder);
+
+        final CuratorFramework client = builder.build();
+        client.start();
+        client.blockUntilConnected();
+        return client;
+    }
+
+    private static void checkThreadFactory(CuratorFrameworkFactory.Builder builder) {
+        if (builder.getThreadFactory() == null) {
+            return;
+        }
+
+        // Curator有一点非常坑爹
+        // 内部使用的是守护线程，如果用户指定了线程工厂，设置错误的化，则可能导致JVM无法退出。
+        // 我们在此拦截，以保证安全性
+        final ThreadFactory daemonThreadFactory = new ThreadFactoryBuilder()
+                .setThreadFactory(builder.getThreadFactory())
+                .setDaemon(true)
+                .build();
+
+        builder.threadFactory(daemonThreadFactory);
+    }
+
     public void shutdown() {
         CloseableUtils.closeQuietly(client);
         backgroundExecutor.shutdownNow();
-        logger.info("com.wjybxx.fastjgame.core.CuratorClientMgr shutdown success");
+        logger.info("CuratorClientMgr shutdown success");
     }
 
     /**
@@ -111,39 +116,10 @@ public class CuratorClientMgr {
     }
 
     /**
-     * 使用默认的参数创建一个带退避算法的永久尝试策略。
-     * 默认最小等待时间200ms;
-     * 默认最大等待时间5s;
-     * 默认时间是很难调整和确定的。
-     *
-     * @return RetryPolicy
-     */
-    public static BackoffRetryForever newForeverRetry() {
-        return newForeverRetry(200, 5000);
-    }
-
-    /**
-     * 使用指定参数创建一个带退避算法的永久尝试策略
-     *
-     * @param baseSleepTimeMs 起始等待时间(最小等待时间)(毫秒)
-     * @param maxSleepTimeMs  最大等待时间(毫秒)
-     * @return RetryPolicy
-     */
-    public static BackoffRetryForever newForeverRetry(int baseSleepTimeMs, int maxSleepTimeMs) {
-        return new BackoffRetryForever(baseSleepTimeMs, maxSleepTimeMs);
-    }
-
-    /**
      * 创建一个用于监听{@link PathChildrenCache}事件和拉取数据的executor
      */
     public CloseableExecutorService newClosableExecutorService() {
         return new CloseableExecutorService(backgroundExecutor, false);
     }
 
-    /**
-     * 获取门面工具类
-     */
-    public CuratorFacade getFacade() {
-        return curatorFacade;
-    }
 }
