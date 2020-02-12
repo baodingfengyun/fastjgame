@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.configwrapper.PropertiesConfigWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -63,10 +64,6 @@ public final class ConfigLoader {
     /**
      * 优先在当前运行环境目录下寻找，如果当前运行环境不存在，则在jar环境下寻找。
      * 该方法仅仅是一个简便方法，使用ConfigLoader的classLoader来加载文件。
-     *
-     * @param fileName 配置文件名字
-     * @return 如果成功加载，则返回其包装对象
-     * @throws IOException 找不到文件或加载文件错误
      */
     public static ConfigWrapper loadConfig(String fileName) throws IOException {
         return loadConfig(Thread.currentThread().getContextClassLoader(), fileName);
@@ -75,38 +72,21 @@ public final class ConfigLoader {
     /**
      * 会在 本地文件夹(GameConfigDir) 和 classPath(resources文件夹)尝试加载配置文件。
      * 当一个参数在两个配置文件都存在时，本地文件夹中的参数生效。
-     *
-     * @param classLoader 指定classLoader
-     * @param fileName    配置文件名字
-     * @return 如果成功加载，则返回其包装对象
-     * @throws IOException 找不到文件或加载文件错误
      */
     public static ConfigWrapper loadConfig(ClassLoader classLoader, String fileName) throws IOException {
-        // 当前运行环境目录下寻找
-        ConfigWrapper cfgFromGameConfigDir = null;
-        try {
-            cfgFromGameConfigDir = loadCfgFromGameConfigDir(fileName);
-            logger.info("load {} from gameConfigDir success!", fileName);
-        } catch (IOException e) {
-            // ignore e
-            logger.info("load {} from gameConfigDir failed", fileName);
-        }
-        // jar包环境下寻找
-        ConfigWrapper cfgFromJarResources = null;
-        try {
-            cfgFromJarResources = loadCfgFromJarResources(classLoader, fileName);
-            logger.info("load {} from jarResources success!", fileName);
-        } catch (IOException e) {
-            logger.info("load {} from jarResources failed", fileName);
-        }
+        final ConfigWrapper cfgFromGameConfigDir = tryLoadCfgFromGameConfigDir(fileName);
+        final ConfigWrapper cfgFromJarResources = tryLoadCfgFromJarResources(classLoader, fileName);
+
         // 两个配置文件都不存在
         if (cfgFromGameConfigDir == null && cfgFromJarResources == null) {
             throw new FileNotFoundException(fileName);
         }
+
         // 两个都存在，需要合并(gameConfig下的替换jar包中的)
         if (cfgFromGameConfigDir != null && cfgFromJarResources != null) {
             return cfgFromJarResources.convert2MapWrapper().merge(cfgFromGameConfigDir.convert2MapWrapper());
         }
+
         // 哪个存在返回哪个
         if (cfgFromGameConfigDir != null) {
             return cfgFromGameConfigDir;
@@ -116,14 +96,26 @@ public final class ConfigLoader {
     }
 
     /**
-     * 优先在游戏配置文件夹中寻找
-     *
-     * @param fileName 配置文件名字
-     * @return nullable
-     * @throws IOException 找不到文件或加载文件错误
+     * 尝试在游戏配置文件夹中寻找，找不到则返回null
+     */
+    @Nullable
+    public static ConfigWrapper tryLoadCfgFromGameConfigDir(String fileName) {
+        try {
+            final ConfigWrapper cfgFromGameConfigDir = loadCfgFromGameConfigDir(fileName);
+            logger.info("load {} from gameConfigDir success!", fileName);
+            return cfgFromGameConfigDir;
+        } catch (IOException e) {
+            // ignore e
+            logger.info("load {} from gameConfigDir failed", fileName);
+            return null;
+        }
+    }
+
+    /**
+     * 在游戏配置文件夹中寻找
      */
     public static ConfigWrapper loadCfgFromGameConfigDir(String fileName) throws IOException {
-        String path = GAME_CONFIG_DIR + File.separator + fileName;
+        final String path = GAME_CONFIG_DIR + File.separator + fileName;
         logger.info("loadCfgFromGameConfigDir {}", path);
 
         File file = new File(path);
@@ -139,19 +131,33 @@ public final class ConfigLoader {
     }
 
     /**
-     * 在jar包resources下环境中寻找
+     * 尝试在jar包resources下环境中寻找，找不到则返回null
      *
      * @param classLoader 运行环境根路径
      * @param fileName    配置文件名字
-     * @return nullable
-     * @throws IOException 找不到文件或加载文件错误
+     */
+    @Nullable
+    public static ConfigWrapper tryLoadCfgFromJarResources(ClassLoader classLoader, String fileName) {
+        try {
+            final ConfigWrapper cfgFromJarResources = loadCfgFromJarResources(classLoader, fileName);
+            logger.info("load {} from jarResources success!", fileName);
+            return cfgFromJarResources;
+        } catch (IOException e) {
+            logger.info("load {} from jarResources failed", fileName);
+            return null;
+        }
+    }
+
+    /**
+     * 在jar包resources下环境中寻找
      */
     public static ConfigWrapper loadCfgFromJarResources(ClassLoader classLoader, String fileName) throws IOException {
         logger.info("-Step1 loadCfgFromJarResources {}", fileName);
-        URL resource = classLoader.getResource(fileName);
+        final URL resource = classLoader.getResource(fileName);
         if (resource == null) {
             throw new FileNotFoundException(fileName);
         }
+
         logger.info("-Step2 loadCfgFromJarResources {}", resource.getPath());
         try (InputStream inputStream = resource.openStream()) {
             Properties properties = new Properties();
