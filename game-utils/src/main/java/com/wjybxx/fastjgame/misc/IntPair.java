@@ -45,7 +45,7 @@ public class IntPair {
     }
 
     public long composeToLong() {
-        return MathUtils.composeToLong(first, second);
+        return MathUtils.composeIntToLong(first, second);
     }
 
     @Override

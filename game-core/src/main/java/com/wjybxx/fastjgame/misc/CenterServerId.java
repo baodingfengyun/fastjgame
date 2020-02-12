@@ -66,7 +66,7 @@ public final class CenterServerId implements Comparable<CenterServerId> {
      * @return 唯一标识
      */
     public long uniqueId() {
-        return MathUtils.composeToLong(platformType.getNumber(), innerServerId);
+        return MathUtils.composeIntToLong(platformType.getNumber(), innerServerId);
     }
 
     /**

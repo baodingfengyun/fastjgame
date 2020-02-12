@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.shape.shape2d;
 import com.wjybxx.fastjgame.dsl.CoordinateSystem2D;
 import com.wjybxx.fastjgame.shape.Point2D;
 import com.wjybxx.fastjgame.shape.RedrawShape;
-import com.wjybxx.fastjgame.utils.MathUtils;
+import com.wjybxx.fastjgame.utils.ShapeUtils;
 
 import javax.annotation.Nonnull;
 
@@ -58,7 +58,7 @@ public class Sector implements Shape2D, RedrawShape {
     public Sector(Point2D center, float radius, float radiansDirection, float centralAngle) {
         this.circle = new Circle(center, radius);
         this.direction = radiansDirection;
-        this.angle = MathUtils.radAngle(centralAngle);
+        this.angle = ShapeUtils.radAngle(centralAngle);
         refreshCache();
     }
 
@@ -72,7 +72,7 @@ public class Sector implements Shape2D, RedrawShape {
      * @return
      */
     public static Sector newSector(Point2D center, float radius, float centralDirection, float centralAngle) {
-        float radiansDirection = MathUtils.radAngle(centralDirection);
+        float radiansDirection = ShapeUtils.radAngle(centralDirection);
         return new Sector(center, radius, radiansDirection, centralAngle);
     }
 
@@ -104,7 +104,7 @@ public class Sector implements Shape2D, RedrawShape {
             return false;
         }
         // 转换为以center为起点的向量
-        Point2D p = MathUtils.sub(point2D, getCenter());
+        Point2D p = ShapeUtils.sub(point2D, getCenter());
         // 同向法，start到p为逆时针，p到end也为逆时针
         return CoordinateSystem2D.isCounterClockwiseOrOrCollinear(startVector, p) &&
                 CoordinateSystem2D.isCounterClockwiseOrOrCollinear(p, endVector);
@@ -122,7 +122,7 @@ public class Sector implements Shape2D, RedrawShape {
     public Sector redraw(Point2D center, float ratio, float direction, float centralAngle) {
         this.circle.redraw(center, ratio);
         this.direction = direction;
-        this.angle = MathUtils.radAngle(centralAngle);
+        this.angle = ShapeUtils.radAngle(centralAngle);
         refreshCache();
         return this;
     }
@@ -130,14 +130,14 @@ public class Sector implements Shape2D, RedrawShape {
     private void refreshCache() {
         float delta = this.angle / 2;
         // 顺时针旋转
-        Point2D startPoint = MathUtils.directionPoint(getCenter(), CoordinateSystem2D.clockwise(direction, delta), getRadius());
+        Point2D startPoint = ShapeUtils.directionPoint(getCenter(), CoordinateSystem2D.clockwise(direction, delta), getRadius());
         // 转换为以center为起点的向量
-        MathUtils.sub(startPoint, getCenter(), startVector);
+        ShapeUtils.sub(startPoint, getCenter(), startVector);
 
         // 逆时针旋转
-        Point2D endPoint = MathUtils.directionPoint(getCenter(), CoordinateSystem2D.counterClockwise(direction, delta), getRadius());
+        Point2D endPoint = ShapeUtils.directionPoint(getCenter(), CoordinateSystem2D.counterClockwise(direction, delta), getRadius());
         // 转换为以center为起点的向量
-        MathUtils.sub(endPoint, getCenter(), endVector);
+        ShapeUtils.sub(endPoint, getCenter(), endVector);
     }
 
     public Point2D getCenter() {

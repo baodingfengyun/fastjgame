@@ -19,7 +19,9 @@ package com.wjybxx.fastjgame.dsl;
 import com.wjybxx.fastjgame.shape.Point2D;
 import com.wjybxx.fastjgame.shape.RectangleVertexHolder;
 import com.wjybxx.fastjgame.shape.shape2d.Rectangle;
+import com.wjybxx.fastjgame.utils.GridUtils;
 import com.wjybxx.fastjgame.utils.MathUtils;
+import com.wjybxx.fastjgame.utils.ShapeUtils;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -84,7 +86,7 @@ public final class CoordinateSystem2D {
      * @return true/false
      */
     public static boolean isClockwise(Point2D a, Point2D b) {
-        return MathUtils.crossProductValue(a, b) < 0;
+        return ShapeUtils.crossProductValue(a, b) < 0;
     }
 
     /**
@@ -95,7 +97,7 @@ public final class CoordinateSystem2D {
      * @return
      */
     public static boolean isClockwiseOrCollinear(Point2D a, Point2D b) {
-        return MathUtils.crossProductValue(a, b) <= 0;
+        return ShapeUtils.crossProductValue(a, b) <= 0;
     }
 
     /**
@@ -106,7 +108,7 @@ public final class CoordinateSystem2D {
      * @return true/false
      */
     public static boolean isCounterClockwise(Point2D a, Point2D b) {
-        return MathUtils.crossProductValue(a, b) > 0;
+        return ShapeUtils.crossProductValue(a, b) > 0;
     }
 
     /**
@@ -117,7 +119,7 @@ public final class CoordinateSystem2D {
      * @return
      */
     public static boolean isCounterClockwiseOrOrCollinear(Point2D a, Point2D b) {
-        return MathUtils.crossProductValue(a, b) >= 0;
+        return ShapeUtils.crossProductValue(a, b) >= 0;
     }
 
     /**
@@ -183,7 +185,7 @@ public final class CoordinateSystem2D {
      * @return
      */
     public static float clockwise(float angle, float delta) {
-        return MathUtils.radAngleSub(angle, delta);
+        return ShapeUtils.radAngleSub(angle, delta);
     }
 
     /**
@@ -195,7 +197,7 @@ public final class CoordinateSystem2D {
      * @return float (-PI,PI]
      */
     public static float counterClockwise(float angle, float delta) {
-        return MathUtils.radAngleAdd(angle, delta);
+        return ShapeUtils.radAngleAdd(angle, delta);
     }
 
     /**
@@ -259,7 +261,7 @@ public final class CoordinateSystem2D {
      * @return Rectangle
      */
     public static Rectangle buildGridRegion(int rowIndex, int colIndex, int gridWidth) {
-        Point2D a = MathUtils.gridVertexLocation(rowIndex, colIndex, gridWidth);
+        Point2D a = GridUtils.gridVertexLocation(rowIndex, colIndex, gridWidth);
         // ab 同y
         Point2D b = Point2D.newPoint2D(a.getX() + gridWidth, a.getY());
         // bc 同x

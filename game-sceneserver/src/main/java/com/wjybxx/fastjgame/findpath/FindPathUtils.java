@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.findpath;
 
 import com.wjybxx.fastjgame.scene.MapGrid;
 import com.wjybxx.fastjgame.shape.Point2D;
-import com.wjybxx.fastjgame.utils.MathUtils;
+import com.wjybxx.fastjgame.utils.ShapeUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -208,7 +208,7 @@ public class FindPathUtils {
             b = context.getGrid(midNode.getX(), midNode.getY()).getCenter();
             c = context.getGrid(tempNode.getX(), tempNode.getY()).getCenter();
 
-            if (MathUtils.isOneLine(a, b, c) || isNoObstacle(context, a, c)) {
+            if (ShapeUtils.isOneLine(a, b, c) || isNoObstacle(context, a, c)) {
                 // 如果三点共线，或者a可以跳过b直达c
                 // delete mid node
                 startNode.setParent(tempNode);

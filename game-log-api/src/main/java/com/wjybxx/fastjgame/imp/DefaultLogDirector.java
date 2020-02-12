@@ -18,11 +18,9 @@ package com.wjybxx.fastjgame.imp;
 
 import com.wjybxx.fastjgame.core.LogDirector;
 import com.wjybxx.fastjgame.core.LogRecordDTO;
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 
 /**
  * {@link LogDirector}的简单实现，配合{@link DefaultLogBuilder}工作。
@@ -38,12 +36,8 @@ public class DefaultLogDirector implements LogDirector<DefaultLogBuilder> {
     @Nonnull
     @Override
     public LogRecordDTO build(DefaultLogBuilder builder) {
-        try {
-            final String data = JsonUtils.getMapper().writeValueAsString(builder.getDataMap());
-            return new LogRecordDTO(builder.getTopic(), data);
-        } catch (IOException e) {
-            return ConcurrentUtils.rethrow(e);
-        }
+        final String data = JsonUtils.toJson(builder.getDataMap());
+        return new LogRecordDTO(builder.getTopic(), data);
     }
 
 }

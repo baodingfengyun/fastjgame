@@ -50,8 +50,8 @@ public class MathTest {
     }
 
     private static void testImp(int a, int b) {
-        final long value = MathUtils.composeToLong(a, b);
-        final IntPair pair = MathUtils.decomposeToInt(value);
+        final long value = MathUtils.composeIntToLong(a, b);
+        final IntPair pair = MathUtils.decomposeLongToIntPair(value);
         assert a == pair.getFirst() && b == pair.getSecond();
 
         System.out.println("\na = " + a + ", b = " + b + ", value " + value);

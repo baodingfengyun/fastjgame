@@ -22,6 +22,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.Arrays;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 /**
  * 使用时建议静态导入该类中的所有方法。
@@ -111,6 +112,7 @@ public class ClassScannerFilters {
      * @return Predicate
      */
     public static Predicate<String> exceptRegex(String regex) {
-        return className -> !className.matches(regex);
+        final Pattern p = Pattern.compile(regex);
+        return className -> !p.matcher(className).matches();
     }
 }

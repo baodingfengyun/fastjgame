@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.scene;
 import com.wjybxx.fastjgame.shape.Grid2D;
 import com.wjybxx.fastjgame.shape.Point2D;
 import com.wjybxx.fastjgame.utils.GameConstant;
-import com.wjybxx.fastjgame.utils.MathUtils;
+import com.wjybxx.fastjgame.utils.GridUtils;
 
 import javax.annotation.concurrent.Immutable;
 
@@ -77,7 +77,7 @@ public class MapGrid implements Grid2D {
         this.obstacleValue = obstacleValue;
         this.safeArea = safeArea;
 
-        this.center = MathUtils.gridCenterLocation(rowIndex, colIndex, GameConstant.MAP_GRID_WIDTH)
+        this.center = GridUtils.gridCenterLocation(rowIndex, colIndex, GameConstant.MAP_GRID_WIDTH)
                 .unmodifiable();
     }
 

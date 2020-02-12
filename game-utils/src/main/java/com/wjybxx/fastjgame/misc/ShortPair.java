@@ -45,7 +45,7 @@ public class ShortPair {
     }
 
     public int composeToInt() {
-        return MathUtils.composeToInt(first, second);
+        return MathUtils.composeShortToInt(first, second);
     }
 
     @Override

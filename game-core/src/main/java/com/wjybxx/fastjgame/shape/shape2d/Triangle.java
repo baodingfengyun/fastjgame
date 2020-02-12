@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.shape.shape2d;
 import com.wjybxx.fastjgame.shape.Point2D;
 import com.wjybxx.fastjgame.shape.Point3D;
 import com.wjybxx.fastjgame.shape.RedrawShape;
-import com.wjybxx.fastjgame.utils.MathUtils;
+import com.wjybxx.fastjgame.utils.ShapeUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -114,15 +114,15 @@ public class Triangle implements Shape2D, RedrawShape {
     public boolean hasPoint(@Nonnull Point2D p) {
         TriangleCache cache = localCache.get();
         // Compute vectors
-        Point2D v0 = MathUtils.sub(c, a, cache.cacheV0);
-        Point2D v1 = MathUtils.sub(b, a, cache.cacheV1);
-        Point2D v2 = MathUtils.sub(p, a, cache.cacheV2);
+        Point2D v0 = ShapeUtils.sub(c, a, cache.cacheV0);
+        Point2D v1 = ShapeUtils.sub(b, a, cache.cacheV1);
+        Point2D v2 = ShapeUtils.sub(p, a, cache.cacheV2);
 
-        float dot00 = MathUtils.dotProduct(v0, v0);
-        float dot01 = MathUtils.dotProduct(v0, v1);
-        float dot02 = MathUtils.dotProduct(v0, v2);
-        float dot11 = MathUtils.dotProduct(v1, v1);
-        float dot12 = MathUtils.dotProduct(v1, v2);
+        float dot00 = ShapeUtils.dotProduct(v0, v0);
+        float dot01 = ShapeUtils.dotProduct(v0, v1);
+        float dot02 = ShapeUtils.dotProduct(v0, v2);
+        float dot11 = ShapeUtils.dotProduct(v1, v1);
+        float dot12 = ShapeUtils.dotProduct(v1, v2);
 
         // Compute barycentric coordinates
         float invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
@@ -167,13 +167,13 @@ public class Triangle implements Shape2D, RedrawShape {
     private static boolean sameSide(Point2D p1, Point2D p2, Point2D a, Point2D b) {
         TriangleCache cache = localCache.get();
 
-        Point2D ab = MathUtils.sub(b, a, cache.cacheV0);
-        Point2D ap1 = MathUtils.sub(p1, a, cache.cacheV1);
-        Point2D ap2 = MathUtils.sub(p2, a, cache.cacheV2);
+        Point2D ab = ShapeUtils.sub(b, a, cache.cacheV0);
+        Point2D ap1 = ShapeUtils.sub(p1, a, cache.cacheV1);
+        Point2D ap2 = ShapeUtils.sub(p2, a, cache.cacheV2);
 
-        Point3D cp1 = MathUtils.crossProduct(ab, ap1, cache.cacheV4);
-        Point3D cp2 = MathUtils.crossProduct(ab, ap2, cache.cacheV5);
-        return MathUtils.dotProduct(cp1, cp2) >= 0;
+        Point3D cp1 = ShapeUtils.crossProduct(ab, ap1, cache.cacheV4);
+        Point3D cp2 = ShapeUtils.crossProduct(ab, ap2, cache.cacheV5);
+        return ShapeUtils.dotProduct(cp1, cp2) >= 0;
     }
 
     /**

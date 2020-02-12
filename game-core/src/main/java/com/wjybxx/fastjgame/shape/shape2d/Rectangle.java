@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.shape.shape2d;
 import com.wjybxx.fastjgame.dsl.CoordinateSystem2D;
 import com.wjybxx.fastjgame.shape.Point2D;
 import com.wjybxx.fastjgame.shape.RectangleVertexHolder;
-import com.wjybxx.fastjgame.utils.MathUtils;
+import com.wjybxx.fastjgame.utils.ShapeUtils;
 
 /**
  * 矩形(逆时针)，不一定是平行于坐标轴。
@@ -69,7 +69,7 @@ public class Rectangle extends Quadrilateral {
      * @return
      */
     public static Rectangle newRectangleByCentralAngle(Point2D bottomCenter, float centralAngle, float width, float height) {
-        return newRectangle(bottomCenter, MathUtils.radAngle(centralAngle), width, height);
+        return newRectangle(bottomCenter, ShapeUtils.radAngle(centralAngle), width, height);
     }
 
     @Override
@@ -96,8 +96,8 @@ public class Rectangle extends Quadrilateral {
     }
 
     private void refreshCache() {
-        float a = MathUtils.distance(getPointA(), getPointD());
-        float b = MathUtils.distance(getPointA(), getPointB());
+        float a = ShapeUtils.distance(getPointA(), getPointD());
+        float b = ShapeUtils.distance(getPointA(), getPointB());
         if (a >= b) {
             this.width = a;
             this.height = b;

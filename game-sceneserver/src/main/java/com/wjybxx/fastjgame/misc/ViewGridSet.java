@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.misc;
 import com.wjybxx.fastjgame.shape.Grid2DContainer;
 import com.wjybxx.fastjgame.shape.Point2D;
 import com.wjybxx.fastjgame.utils.GameConstant;
+import com.wjybxx.fastjgame.utils.GridUtils;
 import com.wjybxx.fastjgame.utils.MathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,8 +106,8 @@ public class ViewGridSet implements Grid2DContainer<ViewGrid> {
         }
 
         // 行数由高度决定，列由宽度决定 (格子宽高一致)
-        rowCount = MathUtils.rowCount(mapHeight, viewGridWidth);
-        colCount = MathUtils.colCount(mapWidth, viewGridWidth);
+        rowCount = GridUtils.rowCount(mapHeight, viewGridWidth);
+        colCount = GridUtils.colCount(mapWidth, viewGridWidth);
 
         allGrids = new ViewGrid[rowCount][colCount];
 
@@ -204,8 +205,8 @@ public class ViewGridSet implements Grid2DContainer<ViewGrid> {
      * @return 视野格子
      */
     public ViewGrid getGrid(Point2D point2D) {
-        int rowIndex = MathUtils.rowIndex(rowCount, viewGridWidth, point2D.getY());
-        int colIndex = MathUtils.colIndex(colCount, viewGridWidth, point2D.getX());
+        int rowIndex = GridUtils.rowIndex(rowCount, viewGridWidth, point2D.getY());
+        int colIndex = GridUtils.colIndex(colCount, viewGridWidth, point2D.getX());
         return allGrids[rowIndex][colIndex];
     }
 

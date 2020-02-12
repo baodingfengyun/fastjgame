@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.utils;
 
-import java.util.Objects;
-
 /**
  * 检查工具类
  *
@@ -59,14 +57,4 @@ public class CheckUtils {
         return param;
     }
 
-    /**
-     * 检查一个参数是否不为null
-     *
-     * @param param 参数
-     * @param name  属性的名字
-     * @return param
-     */
-    public static <T> T requireNonNull(final T param, String name) {
-        return Objects.requireNonNull(param, name);
-    }
 }

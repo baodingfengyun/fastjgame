@@ -16,10 +16,10 @@
 
 package com.wjybxx.fastjgame.dsl;
 
-import com.wjybxx.fastjgame.utils.MathUtils;
+import com.wjybxx.fastjgame.utils.ShapeUtils;
 
 /**
- * 圆心角 [0,360)；
+ * 弧度角 (-PI,PI]； 也可写为 RadAngle
  * <p>
  * 一般没有额外说明时都是弧度角。
  *
@@ -28,16 +28,16 @@ import com.wjybxx.fastjgame.utils.MathUtils;
  * date - 2019/6/2 15:01
  * github - https://github.com/hl845740757
  */
-public class CentralAngle {
+public final class RadiansAngle {
 
     /**
-     * [0,360)
-     * 0 inclusive
-     * 360 exclusive
+     * (-PI,PI]
+     * -PI exclusive
+     * PI inclusive
      */
     private float angle;
 
-    public CentralAngle(float angle) {
+    public RadiansAngle(float angle) {
         this.angle = angle;
     }
 
@@ -49,7 +49,7 @@ public class CentralAngle {
         this.angle = angle;
     }
 
-    public RadiansAngle toRadAngle() {
-        return new RadiansAngle(MathUtils.radAngle(angle));
+    public CentralAngle toCentralAngle() {
+        return new CentralAngle(ShapeUtils.centralAngle(angle));
     }
 }

@@ -78,7 +78,7 @@ public class JsonUtils {
             return getMapper().writeValueAsString(obj);
         } catch (JsonProcessingException e) {
             // 之所以捕获，是因为，出现异常的地方应该是非常少的
-            throw new RuntimeException(e);
+            return ConcurrentUtils.rethrow(e);
         }
     }
 
@@ -93,7 +93,7 @@ public class JsonUtils {
             return getMapper().writeValueAsBytes(obj);
         } catch (JsonProcessingException e) {
             // 之所以捕获，是因为，出现异常的地方应该是非常少的
-            throw new RuntimeException(e);
+            return ConcurrentUtils.rethrow(e);
         }
     }
 
@@ -109,7 +109,7 @@ public class JsonUtils {
         try {
             return getMapper().readValue(json, clazz);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            return ConcurrentUtils.rethrow(e);
         }
     }
 
@@ -125,7 +125,7 @@ public class JsonUtils {
         try {
             return getMapper().readValue(jsonBytes, clazz);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            return ConcurrentUtils.rethrow(e);
         }
     }
 
@@ -147,7 +147,7 @@ public class JsonUtils {
         try {
             return mapper.readValue(json, mapType);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            return ConcurrentUtils.rethrow(e);
         }
     }
 
@@ -167,7 +167,7 @@ public class JsonUtils {
         try {
             return mapper.readValue(jsonBytes, mapType);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            return ConcurrentUtils.rethrow(e);
         }
     }
 

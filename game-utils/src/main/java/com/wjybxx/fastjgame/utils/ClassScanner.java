@@ -218,7 +218,7 @@ public class ClassScanner {
                     classes.add(clazz);
                 }
             } catch (ClassNotFoundException | NoClassDefFoundError e) {
-                // jdk 1.7的新语法还没用过...
+                // jdk 1.7的语法
                 logger.error("load class {} from jar {} caught exception", className, jar.getName(), e);
             }
         }

@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.scene;
 import com.wjybxx.fastjgame.shape.Grid2DContainer;
 import com.wjybxx.fastjgame.shape.Point2D;
 import com.wjybxx.fastjgame.utils.GameConstant;
+import com.wjybxx.fastjgame.utils.GridUtils;
 import com.wjybxx.fastjgame.utils.MathUtils;
 
 /**
@@ -108,8 +109,8 @@ public class MapData implements Grid2DContainer<MapGrid> {
      * @return
      */
     public MapGrid getGrid(Point2D point2D) {
-        int rowIndex = MathUtils.rowIndex(rowCount, GameConstant.MAP_GRID_WIDTH, point2D.getY());
-        int colIndex = MathUtils.colIndex(colCount, GameConstant.MAP_GRID_WIDTH, point2D.getX());
+        int rowIndex = GridUtils.rowIndex(rowCount, GameConstant.MAP_GRID_WIDTH, point2D.getY());
+        int colIndex = GridUtils.colIndex(colCount, GameConstant.MAP_GRID_WIDTH, point2D.getX());
         return allGrids[rowIndex][colIndex];
     }
 

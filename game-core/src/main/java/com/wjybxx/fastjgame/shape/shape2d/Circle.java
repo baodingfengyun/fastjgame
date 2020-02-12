@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.shape.shape2d;
 
 import com.wjybxx.fastjgame.shape.Point2D;
 import com.wjybxx.fastjgame.shape.RedrawShape;
-import com.wjybxx.fastjgame.utils.MathUtils;
+import com.wjybxx.fastjgame.utils.ShapeUtils;
 
 import javax.annotation.Nonnull;
 
@@ -54,7 +54,7 @@ public class Circle implements Shape2D, RedrawShape {
 
     @Override
     public boolean hasPoint(@Nonnull Point2D point2D) {
-        return MathUtils.distanceWithoutSqrt(center, point2D) <= rr;
+        return ShapeUtils.distanceWithoutSqrt(center, point2D) <= rr;
     }
 
     /**
