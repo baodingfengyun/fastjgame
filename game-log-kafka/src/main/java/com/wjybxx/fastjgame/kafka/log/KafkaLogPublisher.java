@@ -22,7 +22,7 @@ import com.wjybxx.fastjgame.concurrent.disruptor.SleepWaitStrategyFactory;
 import com.wjybxx.fastjgame.log.core.LogBuilder;
 import com.wjybxx.fastjgame.log.core.LogDirector;
 import com.wjybxx.fastjgame.log.core.LogPublisher;
-import com.wjybxx.fastjgame.log.core.LogRecordDTO;
+import com.wjybxx.fastjgame.log.imp.DefaultLogRecord;
 import com.wjybxx.fastjgame.utils.CloseableUtils;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -63,12 +63,12 @@ public class KafkaLogPublisher<T extends LogBuilder> extends DisruptorEventLoop 
      */
     private final KafkaProducer<String, String> producer;
 
-    private final LogDirector<T> logDirector;
+    private final LogDirector<T, DefaultLogRecord> logDirector;
 
     public KafkaLogPublisher(@Nonnull ThreadFactory threadFactory,
                              @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
                              @Nonnull String brokerList,
-                             @Nonnull LogDirector<T> logDirector) {
+                             @Nonnull LogDirector<T, DefaultLogRecord> logDirector) {
         super(null, threadFactory, rejectedExecutionHandler, PRODUCER_RING_BUFFER_SIZE, PRODUCER_TASK_BATCH_SIZE, new SleepWaitStrategyFactory());
         this.producer = new KafkaProducer<>(newConfig(brokerList), new StringSerializer(), new StringSerializer());
         this.logDirector = logDirector;
@@ -114,7 +114,7 @@ public class KafkaLogPublisher<T extends LogBuilder> extends DisruptorEventLoop 
         @Override
         public void run() {
             try {
-                final LogRecordDTO logRecordDTO = logDirector.build(builder);
+                final DefaultLogRecord logRecordDTO = logDirector.build(builder);
                 final ProducerRecord<String, String> producerRecord = new ProducerRecord<>(logRecordDTO.topic(), PARTITION_ID,
                         null, logRecordDTO.data());
                 producer.send(producerRecord);

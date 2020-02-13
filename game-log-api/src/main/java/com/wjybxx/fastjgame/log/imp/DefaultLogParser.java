@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.log.imp;
 
 import com.wjybxx.fastjgame.log.core.LogParser;
-import com.wjybxx.fastjgame.log.core.LogRecordDTO;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 
 import java.util.LinkedHashMap;
@@ -31,11 +30,11 @@ import java.util.Map;
  * date - 2020/2/10
  * github - https://github.com/hl845740757
  */
-public class DefaultLogParser implements LogParser<DefaultLogRecord> {
+public class DefaultLogParser implements LogParser<DefaultLogRecord, DefaultLogVO> {
 
     @Override
-    public DefaultLogRecord parse(LogRecordDTO recordDTO) {
-        @SuppressWarnings("unchecked") final Map<String, Object> dataMap = JsonUtils.readMapFromJson(recordDTO.data(), LinkedHashMap.class, String.class, Object.class);
-        return new DefaultLogRecord(recordDTO.topic(), dataMap);
+    public DefaultLogVO parse(DefaultLogRecord record) {
+        @SuppressWarnings("unchecked") final Map<String, Object> dataMap = JsonUtils.readMapFromJson(record.data(), LinkedHashMap.class, String.class, Object.class);
+        return new DefaultLogVO(record.topic(), dataMap);
     }
 }

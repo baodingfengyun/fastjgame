@@ -22,8 +22,9 @@ import com.wjybxx.fastjgame.concurrent.disruptor.TimeoutWaitStrategyFactory;
 import com.wjybxx.fastjgame.log.core.LogConsumer;
 import com.wjybxx.fastjgame.log.core.LogParser;
 import com.wjybxx.fastjgame.log.core.LogPuller;
-import com.wjybxx.fastjgame.log.core.LogRecordDTO;
+import com.wjybxx.fastjgame.log.core.LogVO;
 import com.wjybxx.fastjgame.log.imp.CompositeLogConsumer;
+import com.wjybxx.fastjgame.log.imp.DefaultLogRecord;
 import com.wjybxx.fastjgame.log.utils.LogConsumerUtils;
 import com.wjybxx.fastjgame.utils.CloseableUtils;
 import com.wjybxx.fastjgame.utils.CollectionUtils;
@@ -51,7 +52,7 @@ import java.util.concurrent.TimeUnit;
  * date - 2019/11/28
  * github - https://github.com/hl845740757
  */
-public class KafkaLogPuller<T> extends DisruptorEventLoop implements LogPuller {
+public class KafkaLogPuller<T extends LogVO> extends DisruptorEventLoop implements LogPuller {
 
     private static final Logger logger = LoggerFactory.getLogger(KafkaLogPuller.class);
 
@@ -76,14 +77,14 @@ public class KafkaLogPuller<T> extends DisruptorEventLoop implements LogPuller {
      */
     private final KafkaConsumer<String, String> kafkaConsumer;
 
-    private final LogParser<T> kafkaLogParser;
+    private final LogParser<DefaultLogRecord, T> kafkaLogParser;
     private final Map<String, LogConsumer<T>> logConsumerMap;
 
     public KafkaLogPuller(@Nonnull ThreadFactory threadFactory,
                           @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
                           @Nonnull String brokerList,
                           @Nonnull String groupId,
-                          @Nonnull LogParser<T> logParser,
+                          @Nonnull LogParser<DefaultLogRecord, T> logParser,
                           @Nonnull Collection<LogConsumer<T>> consumers) {
         super(null, threadFactory, rejectedExecutionHandler, CONSUMER_RING_BUFFER_SIZE, CONSUMER_TASK_BATCH_SIZE, newWaitStrategyFactory());
         this.kafkaLogParser = logParser;
@@ -126,7 +127,7 @@ public class KafkaLogPuller<T> extends DisruptorEventLoop implements LogPuller {
 
     private void consumeSafely(ConsumerRecord<String, String> consumerRecord) {
         try {
-            final T record = kafkaLogParser.parse(new LogRecordDTO(consumerRecord.topic(), consumerRecord.value()));
+            final T record = kafkaLogParser.parse(new DefaultLogRecord(consumerRecord.topic(), consumerRecord.value()));
             final LogConsumer<T> logConsumer = logConsumerMap.get(consumerRecord.topic());
             LogConsumerUtils.consumeSafely(logConsumer, record);
         } catch (Throwable e) {

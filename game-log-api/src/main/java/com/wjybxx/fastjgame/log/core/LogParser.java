@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.log.core;
 
 /**
  * 日志解析器。
- * {@link #parse(LogRecordDTO)}负责将存储在'仓库'中存储的日志转换为应用程序使用的私有日志类，以去除对存储细节的依赖。
+ * {@link #parse(Object)}负责将存储在'仓库'中存储的日志转换为应用程序使用的私有日志类，以去除对存储细节的依赖。
  * <p>
  * 日志解析是细节，业务逻辑应该不关心该实现。
  * <p>
@@ -34,14 +34,14 @@ package com.wjybxx.fastjgame.log.core;
  * date - 2020/2/10
  * github - https://github.com/hl845740757
  */
-public interface LogParser<VO> {
+public interface LogParser<T, R extends LogVO> {
 
     /**
      * 解析{@link LogPuller}拉取的日志，用于{@link LogConsumer}消费。
      *
-     * @param recordDTO 仓库存储的数据（DTO）
+     * @param record 仓库存储的数据
      * @return 适合应用程序处理的日志记录类（VO）
      */
-    VO parse(LogRecordDTO recordDTO);
+    R parse(T record);
 
 }

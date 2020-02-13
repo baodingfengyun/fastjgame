@@ -21,6 +21,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * 日志建造者 - 这是一个窄接口(窄视图)，不限制api，仅用于搜集日志数据。
  * <p>
+ * Q: 为什么要有{@link LogBuilder}接口？
+ * A: 因为搜集日志的过程中一般是不会出现太多的bean的，都是散数据，因此推荐 builder模式，就像{@link StringBuilder}。
+ * <p>
  * 注意：
  * 1. 添加完数据之后，调用{@link LogPublisher#publish(LogBuilder)}发布自己。
  * 2. 每条日志务必使用新的对象，发布之后再修改可能导致线程安全问题。

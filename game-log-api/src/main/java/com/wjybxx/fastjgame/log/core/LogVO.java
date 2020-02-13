@@ -14,40 +14,18 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.log.imp;
+package com.wjybxx.fastjgame.log.core;
 
 /**
- * 默认日志存储格式。
- * 该格式较为通用，可以考虑使用该对象进行中转。
+ * 日志视图对象(标记接口)。
+ * Q: 为什么要有视图对象？
+ * A: 应用的业务逻辑不可以依赖存储细节(record)，必须完成解析过程。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2020/2/11
+ * date - 2020/2/13
  * github - https://github.com/hl845740757
  */
-public class DefaultLogRecord {
+public interface LogVO {
 
-    /**
-     * 日志主题 - 主类型
-     */
-    private final String topic;
-    /**
-     * 日志内容
-     * Q: 为什么是String?
-     * A: 我们希望仓库中存储的日志是可读的。
-     */
-    private final String data;
-
-    public DefaultLogRecord(String topic, String data) {
-        this.topic = topic;
-        this.data = data;
-    }
-
-    public String topic() {
-        return topic;
-    }
-
-    public String data() {
-        return data;
-    }
 }

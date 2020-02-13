@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.log.imp;
 
 import com.wjybxx.fastjgame.log.core.LogDirector;
-import com.wjybxx.fastjgame.log.core.LogRecordDTO;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 
 import javax.annotation.Nonnull;
@@ -31,13 +30,13 @@ import javax.annotation.Nonnull;
  * date - 2019/12/15
  * github - https://github.com/hl845740757
  */
-public class DefaultLogDirector implements LogDirector<DefaultLogBuilder> {
+public class DefaultLogDirector implements LogDirector<DefaultLogBuilder, DefaultLogRecord> {
 
     @Nonnull
     @Override
-    public LogRecordDTO build(DefaultLogBuilder builder) {
+    public DefaultLogRecord build(DefaultLogBuilder builder) {
         final String data = JsonUtils.writeAsJson(builder.getDataMap());
-        return new LogRecordDTO(builder.getTopic(), data);
+        return new DefaultLogRecord(builder.getTopic(), data);
     }
 
 }

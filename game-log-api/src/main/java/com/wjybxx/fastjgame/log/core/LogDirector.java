@@ -37,15 +37,15 @@ import javax.annotation.Nonnull;
  * date - 2019/11/30
  * github - https://github.com/hl845740757
  */
-public interface LogDirector<T extends LogBuilder> {
+public interface LogDirector<T extends LogBuilder, R> {
 
     /**
      * 构建日志内容，用于{@link LogPublisher}保存。
      *
      * @param builder 含有日志内容的builder
-     * @return 用于存储的数据
+     * @return 方便仓库存储的记录格式
      */
     @Nonnull
-    LogRecordDTO build(T builder);
+    R build(T builder);
 
 }

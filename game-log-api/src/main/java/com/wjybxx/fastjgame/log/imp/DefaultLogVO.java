@@ -14,40 +14,48 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.log.core;
+package com.wjybxx.fastjgame.log.imp;
+
+import com.wjybxx.fastjgame.log.core.LogVO;
+
+import java.util.Map;
 
 /**
- * 日志数据传输对象。
- * 应用程序与{@link LogPublisher}和{@link LogPuller}交互的数据结构。
+ * 默认的日志记录视图对象
  *
  * @author wjybxx
  * @version 1.0
- * date - 2020/2/11
+ * date - 2020/2/10
  * github - https://github.com/hl845740757
  */
-public class LogRecordDTO {
+public class DefaultLogVO implements LogVO {
 
-    /**
-     * 日志主题 - 主类型
-     */
     private final String topic;
-    /**
-     * 日志内容
-     * Q: 为什么是String?
-     * A: 我们希望仓库中存储的日志是可读的。
-     */
-    private final String data;
+    private final Map<String, Object> dataMap;
 
-    public LogRecordDTO(String topic, String data) {
+    DefaultLogVO(String topic, Map<String, Object> dataMap) {
         this.topic = topic;
-        this.data = data;
+        this.dataMap = dataMap;
     }
 
-    public String topic() {
+    @SuppressWarnings("unchecked")
+    public <T> T get(String key) {
+        return (T) dataMap.get(key);
+    }
+
+    public String getTopic() {
         return topic;
     }
 
-    public String data() {
-        return data;
+    public Map<String, Object> getDataMap() {
+        return dataMap;
+    }
+
+    @Override
+    public String toString() {
+        return "DefaultLogRecord{" +
+                "topic='" + topic + '\'' +
+                ", dataMap=" + dataMap +
+                '}';
     }
 }
