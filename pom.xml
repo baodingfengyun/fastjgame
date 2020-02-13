@@ -25,6 +25,7 @@
         <module>game-guid-api</module>
         <module>game-zookeeper</module>
         <module>game-discover-api</module>
+        <module>game-guid-redis</module>
     </modules>
 
     <build>
