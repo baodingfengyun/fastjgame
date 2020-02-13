@@ -19,7 +19,6 @@ package com.wjybxx.fastjgame.utils;
 import com.wjybxx.fastjgame.concurrent.*;
 import com.wjybxx.fastjgame.exception.InternalApiException;
 import com.wjybxx.fastjgame.function.AcquireFun;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,15 +115,6 @@ public class ConcurrentUtils {
                 logger.warn("execute caught exception!", e);
             }
         }
-    }
-
-    /**
-     * 重新抛出异常，绕过编译时检查。
-     *
-     * @param ex 受检异常
-     */
-    public static <R> R rethrow(@Nonnull Throwable ex) {
-        return ExceptionUtils.rethrow(ex);
     }
 
     // ---------------------------------------------- 事件循环相关 ------------------------------------------------

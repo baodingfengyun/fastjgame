@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.utils;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.Nonnull;
 import java.io.*;
@@ -117,7 +118,7 @@ public final class CodecUtils {
         try {
             return URLEncoder.encode(data, DEFAULT_CHARSET_NAME);
         } catch (UnsupportedEncodingException e) {
-            return ConcurrentUtils.rethrow(e);
+            return ExceptionUtils.rethrow(e);
         }
     }
 
@@ -131,7 +132,7 @@ public final class CodecUtils {
         try {
             return URLDecoder.decode(urlData, DEFAULT_CHARSET_NAME);
         } catch (UnsupportedEncodingException e) {
-            return ConcurrentUtils.rethrow(e);
+            return ExceptionUtils.rethrow(e);
         }
     }
     // ---------------------------------  MD5 编码 ------------------------------------------

@@ -14,12 +14,12 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.annotationprocessor;
+package com.wjybxx.fastjgame.apt.processor;
 
 import com.google.auto.service.AutoService;
 import com.squareup.javapoet.*;
-import com.wjybxx.fastjgame.utils.AutoUtils;
-import com.wjybxx.fastjgame.utils.BeanUtils;
+import com.wjybxx.fastjgame.apt.utils.AutoUtils;
+import com.wjybxx.fastjgame.apt.utils.BeanUtils;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
@@ -410,11 +410,7 @@ public class SerializableClassProcessor extends AbstractProcessor {
      * 获取class对应的序列化工具类的类名
      */
     private String getSerializerClassName(TypeElement typeElement) {
-        return getSerializerName(typeElement.getSimpleName().toString());
-    }
-
-    private static String getSerializerName(String className) {
-        return className + "Serializer";
+        return typeElement.getSimpleName().toString() + "Serializer";
     }
 
     // ---------------------------------------------------------- 枚举序列化生成 ---------------------------------------------------
@@ -445,16 +441,6 @@ public class SerializableClassProcessor extends AbstractProcessor {
 
         // 写入文件
         AutoUtils.writeToFile(typeElement, typeBuilder, elementUtils, messager, filer);
-    }
-
-    // ---------------------------------------------------------- 分割线 ---------------------------------------------------
-
-    /**
-     * 获取序列化工具类的完整类型
-     * 暴露给应用层的接口
-     */
-    public static String getSerializerBinaryName(Class<?> messageClass) {
-        return messageClass.getPackageName() + "." + getSerializerName(messageClass.getSimpleName());
     }
 
 }

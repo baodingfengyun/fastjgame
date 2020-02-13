@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.net.socket.inner;
 
-import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.adapter.NettyFutureAdapter;
+import com.wjybxx.fastjgame.concurrent.Promise;
 import com.wjybxx.fastjgame.net.common.LazySerializeSupportHandler;
 import com.wjybxx.fastjgame.net.common.OneWaySupportHandler;
 import com.wjybxx.fastjgame.net.common.RpcSupportHandler;

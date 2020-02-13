@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.type.MapType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -76,7 +77,7 @@ public class JsonUtils {
             return getMapper().writeValueAsString(bean);
         } catch (JsonProcessingException e) {
             // 之所以捕获，是因为，出现异常的地方应该是非常少的
-            return ConcurrentUtils.rethrow(e);
+            return ExceptionUtils.rethrow(e);
         }
     }
 
@@ -87,7 +88,7 @@ public class JsonUtils {
         try {
             return getMapper().readValue(json, clazz);
         } catch (IOException e) {
-            return ConcurrentUtils.rethrow(e);
+            return ExceptionUtils.rethrow(e);
         }
     }
 
@@ -98,7 +99,7 @@ public class JsonUtils {
         try {
             return getMapper().writeValueAsBytes(bean);
         } catch (JsonProcessingException e) {
-            return ConcurrentUtils.rethrow(e);
+            return ExceptionUtils.rethrow(e);
         }
     }
 
@@ -109,7 +110,7 @@ public class JsonUtils {
         try {
             return getMapper().readValue(jsonBytes, clazz);
         } catch (IOException e) {
-            return ConcurrentUtils.rethrow(e);
+            return ExceptionUtils.rethrow(e);
         }
     }
 
@@ -127,7 +128,7 @@ public class JsonUtils {
         try {
             return mapper.readValue(json, mapType);
         } catch (IOException e) {
-            return ConcurrentUtils.rethrow(e);
+            return ExceptionUtils.rethrow(e);
         }
     }
 
@@ -143,7 +144,7 @@ public class JsonUtils {
         try {
             return mapper.readValue(jsonBytes, mapType);
         } catch (IOException e) {
-            return ConcurrentUtils.rethrow(e);
+            return ExceptionUtils.rethrow(e);
         }
     }
 
@@ -153,7 +154,7 @@ public class JsonUtils {
         try {
             getMapper().writeValue(out, value);
         } catch (IOException e) {
-            ConcurrentUtils.rethrow(e);
+            ExceptionUtils.rethrow(e);
         }
     }
 
@@ -161,7 +162,7 @@ public class JsonUtils {
         try {
             return getMapper().readValue(in, clazz);
         } catch (IOException e) {
-            return ConcurrentUtils.rethrow(e);
+            return ExceptionUtils.rethrow(e);
         }
     }
 

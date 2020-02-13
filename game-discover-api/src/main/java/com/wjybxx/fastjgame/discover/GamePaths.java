@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.path;
+package com.wjybxx.fastjgame.discover;
 
 /**
  * 游戏路径的一些规范

@@ -7,19 +7,19 @@
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
+ *  Unless required by applicable law or agreed to iBn writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.annotationprocessor;
+package com.wjybxx.fastjgame.apt.processor;
 
 import com.google.auto.service.AutoService;
 import com.squareup.javapoet.*;
-import com.wjybxx.fastjgame.utils.AutoUtils;
-import com.wjybxx.fastjgame.utils.BeanUtils;
+import com.wjybxx.fastjgame.apt.utils.AutoUtils;
+import com.wjybxx.fastjgame.apt.utils.BeanUtils;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
@@ -78,7 +78,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
     private static final String SESSION_CANONICAL_NAME = "com.wjybxx.fastjgame.net.session.Session";
     private static final String CHANNEL_CANONICAL_NAME = "com.wjybxx.fastjgame.net.common.RpcResponseChannel";
 
-    private static final String EXCEPTION_UTILS_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.ConcurrentUtils";
+    private static final String EXCEPTION_UTILS_CANONICAL_NAME = "org.apache.commons.lang3.exception.ExceptionUtils";
 
     private static final String SERVICE_ID_METHOD_NAME = "serviceId";
     private static final String METHOD_ID_METHOD_NAME = "methodId";

@@ -14,14 +14,14 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.annotationprocessor;
+package com.wjybxx.fastjgame.apt.processor;
 
 import com.google.auto.service.AutoService;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
-import com.wjybxx.fastjgame.utils.AutoUtils;
+import com.wjybxx.fastjgame.apt.utils.AutoUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

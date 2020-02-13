@@ -19,7 +19,6 @@ import com.wjybxx.fastjgame.concurrent.ImmediateEventLoop;
 import com.wjybxx.fastjgame.guid.core.GuidGenerator;
 import com.wjybxx.fastjgame.utils.CheckUtils;
 import com.wjybxx.fastjgame.utils.CodecUtils;
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.zk.core.CuratorClientMgr;
 import com.wjybxx.fastjgame.zk.core.CuratorFacade;
 import com.wjybxx.fastjgame.zk.utils.ZKPathUtils;
@@ -82,7 +81,7 @@ public class ZKGuidGenerator implements GuidGenerator {
 
             return curGuid++;
         } catch (Exception e) {
-            return ConcurrentUtils.rethrow(e);
+            return ExceptionUtils.rethrow(e);
         }
     }
 

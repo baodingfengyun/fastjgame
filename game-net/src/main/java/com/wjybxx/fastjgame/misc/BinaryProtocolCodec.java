@@ -22,10 +22,14 @@ import com.wjybxx.fastjgame.annotation.SerializableField;
 import com.wjybxx.fastjgame.enummapper.NumericalEnum;
 import com.wjybxx.fastjgame.enummapper.NumericalEnumMapper;
 import com.wjybxx.fastjgame.net.common.ProtocolCodec;
-import com.wjybxx.fastjgame.utils.*;
+import com.wjybxx.fastjgame.utils.CollectionUtils;
+import com.wjybxx.fastjgame.utils.EnumUtils;
+import com.wjybxx.fastjgame.utils.NetUtils;
+import com.wjybxx.fastjgame.utils.ProtoUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -1467,7 +1471,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
             }
             return new BinaryProtocolCodec(messageMapper, parserMap, beanSerializerMap, reflectClassDescriptorMap, protoEnumDescriptorMap);
         } catch (Exception e) {
-            return ConcurrentUtils.rethrow(e);
+            return ExceptionUtils.rethrow(e);
         }
     }
 

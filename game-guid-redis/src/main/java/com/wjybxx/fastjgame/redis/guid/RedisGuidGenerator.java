@@ -54,6 +54,9 @@ public class RedisGuidGenerator implements GuidGenerator {
      * @param cacheSize 每次缓存大小
      */
     public RedisGuidGenerator(JedisPoolAbstract jedisPool, String name, int cacheSize) {
+        if (cacheSize <= 0) {
+            throw new IllegalArgumentException("cacheSize: " + cacheSize + " (expected: > 0)");
+        }
         this.jedisPool = jedisPool;
         this.name = name;
         this.cacheSize = cacheSize;

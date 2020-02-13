@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.utils.CollectionUtils;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.ThreadUtils;
 import com.wjybxx.fastjgame.utils.TimeUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -458,7 +459,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
                     try {
                         listener.onComplete(future);
                     } catch (Exception e) {
-                        ConcurrentUtils.rethrow(e);
+                        ExceptionUtils.rethrow(e);
                     }
                 });
             }

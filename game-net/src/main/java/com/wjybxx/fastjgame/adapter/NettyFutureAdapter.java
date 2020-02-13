@@ -20,8 +20,8 @@ import com.wjybxx.fastjgame.concurrent.AbstractListenableFuture;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.FutureListener;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import io.netty.util.concurrent.Future;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -151,7 +151,7 @@ public final class NettyFutureAdapter<V> extends AbstractListenableFuture<V> {
             try {
                 listener.onComplete(this);
             } catch (Exception e) {
-                ConcurrentUtils.rethrow(e);
+                ExceptionUtils.rethrow(e);
             }
         });
     }

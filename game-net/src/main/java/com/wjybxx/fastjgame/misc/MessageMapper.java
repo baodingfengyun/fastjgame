@@ -16,12 +16,12 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMaps;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -112,7 +112,7 @@ public final class MessageMapper {
             }
             return new MessageMapper(messageClazz2IdMap, messageId2ClazzMap);
         } catch (Exception e) {
-            return ConcurrentUtils.rethrow(e);
+            return ExceptionUtils.rethrow(e);
         }
     }
 }

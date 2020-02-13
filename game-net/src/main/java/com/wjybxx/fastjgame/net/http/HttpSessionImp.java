@@ -16,9 +16,9 @@
 
 package com.wjybxx.fastjgame.net.http;
 
+import com.wjybxx.fastjgame.adapter.NettyFutureAdapter;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 import com.wjybxx.fastjgame.concurrent.ListenableFuture;
-import com.wjybxx.fastjgame.adapter.NettyFutureAdapter;
 import com.wjybxx.fastjgame.eventloop.NetContext;
 import com.wjybxx.fastjgame.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.manager.HttpSessionManager;
