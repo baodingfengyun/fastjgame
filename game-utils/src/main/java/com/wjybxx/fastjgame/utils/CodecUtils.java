@@ -19,10 +19,12 @@ package com.wjybxx.fastjgame.utils;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.Nonnull;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
@@ -48,7 +50,7 @@ public final class CodecUtils {
     /**
      * 是否对MD5结果小写
      */
-    public static final boolean MD5_TO_LOWERCASE = false;
+    private static final boolean MD5_TO_LOWERCASE = false;
 
     private CodecUtils() {
 
@@ -115,11 +117,7 @@ public final class CodecUtils {
      * @return URL编码后的字符串
      */
     public static String urlEncode(String data) {
-        try {
-            return URLEncoder.encode(data, DEFAULT_CHARSET_NAME);
-        } catch (UnsupportedEncodingException e) {
-            return ExceptionUtils.rethrow(e);
-        }
+        return URLEncoder.encode(data, DEFAULT_CHARSET);
     }
 
     /**
@@ -129,11 +127,7 @@ public final class CodecUtils {
      * @return 解码后的字符串
      */
     public static String urlDecode(String urlData) {
-        try {
-            return URLDecoder.decode(urlData, DEFAULT_CHARSET_NAME);
-        } catch (UnsupportedEncodingException e) {
-            return ExceptionUtils.rethrow(e);
-        }
+        return URLDecoder.decode(urlData, DEFAULT_CHARSET);
     }
     // ---------------------------------  MD5 编码 ------------------------------------------
 

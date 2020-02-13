@@ -207,7 +207,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     }
 
     @Override
-    public V get() throws InterruptedException, ExecutionException {
+    public V get() throws InterruptedException, CompletionException {
         final Object result = resultHolder.get();
         if (isDone0(result)) {
             return reportGet(result);
@@ -219,7 +219,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     }
 
     @Override
-    public V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+    public V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, CompletionException, TimeoutException {
         final Object result = resultHolder.get();
         if (isDone0(result)) {
             return reportGet(result);
@@ -233,7 +233,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     }
 
     @Override
-    public V join() throws ExecutionException {
+    public V join() throws CompletionException {
         final Object result = resultHolder.get();
         if (isDone0(result)) {
             return reportGet(result);
@@ -248,7 +248,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
      * 用于get方法上报结果
      */
     @SuppressWarnings("unchecked")
-    private static <T> T reportGet(final Object r) throws ExecutionException {
+    private static <T> T reportGet(final Object r) throws CompletionException {
         if (r == SUCCESS) {
             return null;
         }

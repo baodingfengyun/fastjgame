@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.db.redis;
 import com.wjybxx.fastjgame.concurrent.EventLoop;
 
 import javax.annotation.Nonnull;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletionException;
 
 /**
  * redisService的默认实现，它是一个本地service，其回调默认环境为用户所在线程{@link #appEventLoop}
@@ -60,7 +60,7 @@ public class DefaultRedisClient implements RedisClient {
     }
 
     @Override
-    public <V> V syncCall(@Nonnull RedisCommand<V> command) throws ExecutionException {
+    public <V> V syncCall(@Nonnull RedisCommand<V> command) throws CompletionException {
         return redisEventLoop.syncCall(command, appEventLoop);
     }
 

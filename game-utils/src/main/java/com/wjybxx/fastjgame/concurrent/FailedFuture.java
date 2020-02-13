@@ -19,8 +19,9 @@ import com.wjybxx.fastjgame.annotation.UnstableApi;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * 表示Future关联的task早已失败。
@@ -49,12 +50,12 @@ public class FailedFuture<V> extends CompleteFuture<V> {
     }
 
     @Override
-    public final V get() throws ExecutionException {
+    public final V get() throws InterruptedException, CompletionException {
         return AbstractListenableFuture.rethrowCause(cause);
     }
 
     @Override
-    public final V get(long timeout, @Nonnull TimeUnit unit) throws ExecutionException {
+    public final V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, CompletionException, TimeoutException {
         return AbstractListenableFuture.rethrowCause(cause);
     }
 
@@ -65,7 +66,7 @@ public class FailedFuture<V> extends CompleteFuture<V> {
     }
 
     @Override
-    public final V join() throws ExecutionException {
+    public final V join() throws CompletionException {
         return AbstractListenableFuture.rethrowCause(cause);
     }
 

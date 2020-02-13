@@ -25,7 +25,7 @@ import com.wjybxx.fastjgame.net.common.RpcFutureResult;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletionException;
 
 /**
  * {@link RpcMethodHandle}的默认实现
@@ -100,7 +100,7 @@ public class DefaultRpcMethodHandle<V> implements RpcMethodHandle<V> {
     }
 
     @Override
-    public V syncCall(@Nonnull RpcClient client) throws ExecutionException {
+    public V syncCall(@Nonnull RpcClient client) throws CompletionException {
         return client.syncCall(call);
     }
 

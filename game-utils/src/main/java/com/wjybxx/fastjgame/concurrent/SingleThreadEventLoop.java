@@ -28,8 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 /**
- * 单线程的事件循环，该类负责线程的生命周期管理
- * 事件循环架构如果不是单线程的将没有意义。
+ * 事件循环的模板实现
  *
  * @author wjybxx
  * @version 1.0

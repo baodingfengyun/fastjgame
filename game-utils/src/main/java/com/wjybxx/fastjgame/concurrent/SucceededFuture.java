@@ -20,7 +20,9 @@ import com.wjybxx.fastjgame.annotation.UnstableApi;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * 表示Future关联的操作早已<b>正常完成</b>。
@@ -50,12 +52,12 @@ public class SucceededFuture<V> extends CompleteFuture<V> {
     }
 
     @Override
-    public final V get() {
+    public final V get() throws InterruptedException, CompletionException {
         return result;
     }
 
     @Override
-    public final V get(long timeout, @Nonnull TimeUnit unit) {
+    public final V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, CompletionException, TimeoutException {
         return result;
     }
 
@@ -73,7 +75,7 @@ public class SucceededFuture<V> extends CompleteFuture<V> {
     }
 
     @Override
-    public final V join() {
+    public final V join() throws CompletionException {
         return result;
     }
 

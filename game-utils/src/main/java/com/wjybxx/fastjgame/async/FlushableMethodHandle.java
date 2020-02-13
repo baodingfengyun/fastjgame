@@ -20,7 +20,7 @@ import com.wjybxx.fastjgame.concurrent.FutureResult;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletionException;
 
 /**
  * 可刷新缓冲区的异步方法句柄。
@@ -58,6 +58,6 @@ public interface FlushableMethodHandle<T, FR extends FutureResult<V>, V> extends
      * @apiNote 同步调用是很紧急的，因此该方法实现类必须刷新缓冲区，以尽快执行同步调用。
      */
     @Override
-    V syncCall(@Nonnull T client) throws ExecutionException;
+    V syncCall(@Nonnull T client) throws CompletionException;
 
 }

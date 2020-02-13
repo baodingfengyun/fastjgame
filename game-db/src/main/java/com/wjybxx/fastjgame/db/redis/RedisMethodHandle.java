@@ -21,7 +21,7 @@ import com.wjybxx.fastjgame.async.MethodListenable;
 import com.wjybxx.fastjgame.concurrent.FutureResult;
 
 import javax.annotation.Nonnull;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletionException;
 
 /**
  * redis方法句柄，执行主体为{@link RedisClient}
@@ -46,6 +46,6 @@ public interface RedisMethodHandle<V> extends FlushableMethodHandle<RedisClient,
     MethodListenable<FutureResult<V>, V> callAndFlush(@Nonnull RedisClient client);
 
     @Override
-    V syncCall(@Nonnull RedisClient client) throws ExecutionException;
+    V syncCall(@Nonnull RedisClient client) throws CompletionException;
 
 }

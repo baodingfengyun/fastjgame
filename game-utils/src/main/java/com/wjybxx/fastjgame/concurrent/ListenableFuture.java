@@ -31,10 +31,9 @@ import java.util.concurrent.*;
  * Q: Listener的通知顺序是否和添加顺序一致？
  * A: 是的。
  * <p>
- * Q:为什么没有保留netty中的 {@code sync()}系列方法？
- * A:sync方法没有声明任何异常，但是却可能抛出异常！sync的语义更贴近于等待任务完成，但是其实现会在任务失败后抛出异常，一不小心会着道的，
- * 更建议使用{@link #await()} 和 {@link #isSuccess()}进行处理。
- * 其实我本身是想使用sync作为等待任务完成的方法名的，但是会导致和netty的sync不一致，会给阅读的人造成迷惑，因此使用await。
+ * Q: 为什么使用非受检{@link CompletionException}异常代替了{@link ExecutionException}？
+ * A: <NOTE>非受检异常更好，受检异常并不能提升软件的健壮性，而且受检异常对封装破坏极大，用非受检异常代替受检异常</NOTE>，
+ * 这话不是我说的，但是我这几年的编程经验也告诉我，确实是这样。
  *
  * @param <V> 值类型
  * @author wjybxx
@@ -90,12 +89,12 @@ public interface ListenableFuture<V> extends Future<V> {
      * 你可以使用{@link #isSuccess()},作为更好的选择。
      *
      * @return task的结果
-     * @throws CancellationException 如果任务被取消了，则抛出该异常
-     * @throws ExecutionException    如果在计算过程中出现了其它异常导致任务失败，则抛出该异常。
      * @throws InterruptedException  如果当前线程在等待过程中被中断，则抛出该异常。
+     * @throws CancellationException 如果任务被取消了，则抛出该异常
+     * @throws CompletionException   如果在计算过程中出现了其它异常导致任务失败，则抛出该异常。
      */
     @Override
-    V get() throws InterruptedException, ExecutionException;
+    V get() throws InterruptedException, CompletionException;
 
     /**
      * 在限定时间内获取task的结果。
@@ -109,16 +108,16 @@ public interface ListenableFuture<V> extends Future<V> {
      * @param timeout 最大等待时间
      * @param unit    timeout的时间单位
      * @return future关联的task的计算结果
-     * @throws CancellationException 如果任务被取消了，则抛出该异常
-     * @throws ExecutionException    如果在计算过程中出现了其它异常导致任务失败，则抛出该异常。
      * @throws InterruptedException  如果当前线程在等待过程中被中断，则抛出该异常。
+     * @throws CancellationException 如果任务被取消了，则抛出该异常
      * @throws TimeoutException      在限定时间内task未完成(等待超时)，则抛出该异常。
+     * @throws CompletionException   如果在计算过程中出现了其它异常导致任务失败，则抛出该异常。
      */
     @Override
-    V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException;
+    V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, CompletionException, TimeoutException;
 
     /**
-     * 阻塞式获取task的结果。
+     * 阻塞式获取task的结果，阻塞期间不响应中断。
      * 如果future关联的task尚未完成，则阻塞等待至任务完成，并返回计算的结果。
      * 如果future关联的task已完成，则立即返回结果。
      * <p>
@@ -128,9 +127,9 @@ public interface ListenableFuture<V> extends Future<V> {
      *
      * @return task的结果
      * @throws CancellationException 如果任务被取消了，则抛出该异常
-     * @throws ExecutionException    如果在计算过程中出现了其它异常导致任务失败，则抛出该异常。
+     * @throws CompletionException   如果在计算过程中出现了其它异常导致任务失败，则抛出该异常。
      */
-    V join() throws ExecutionException;
+    V join() throws CompletionException;
 
     /**
      * 尝试非阻塞的获取当前结果，当且仅当任务正常完成时返回期望的结果，否则返回null。即：
@@ -158,7 +157,7 @@ public interface ListenableFuture<V> extends Future<V> {
      * 非阻塞获取导致任务失败的原因。
      * 当future关联的任务被取消或由于异常进入完成状态后，该方法将返回操作失败的原因。
      *
-     * @return 失败的原因。原始原因，而不是被包装后的{@link ExecutionException}
+     * @return 失败的原因。原始原因，而不是被包装后的{@link CompletionException}
      * 如果future关联的task已正常完成，则返回null。
      * 如果future关联的task还未进入完成状态，则返回null。
      */

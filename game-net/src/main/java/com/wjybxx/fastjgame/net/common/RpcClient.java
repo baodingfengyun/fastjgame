@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.net.common;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletionException;
 
 /**
  * Rpc客户端
@@ -74,6 +74,6 @@ public interface RpcClient {
      * @return rpc返回结果
      */
     @Nullable
-    <V> V syncCall(@Nonnull Object request) throws ExecutionException;
+    <V> V syncCall(@Nonnull Object request) throws CompletionException;
 
 }

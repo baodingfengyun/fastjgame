@@ -25,10 +25,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 /**
  * 对Netty的{@link Future}进行适配 - 主要是适配监听器。
@@ -73,13 +70,21 @@ public final class NettyFutureAdapter<V> extends AbstractListenableFuture<V> {
     }
 
     @Override
-    public V get() throws InterruptedException, ExecutionException {
-        return future.get();
+    public V get() throws InterruptedException, CompletionException {
+        try {
+            return future.get();
+        } catch (ExecutionException e) {
+            throw new CompletionException(e.getCause());
+        }
     }
 
     @Override
-    public V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        return future.get(timeout, unit);
+    public V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, CompletionException, TimeoutException {
+        try {
+            return future.get(timeout, unit);
+        } catch (ExecutionException e) {
+            throw new CompletionException(e.getCause());
+        }
     }
 
     @Nullable

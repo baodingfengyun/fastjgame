@@ -31,7 +31,7 @@ import redis.clients.jedis.exceptions.JedisConnectionException;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ThreadFactory;
 
 import static com.wjybxx.fastjgame.utils.CloseableUtils.closeQuietly;
@@ -269,7 +269,7 @@ public class RedisEventLoop extends SingleThreadEventLoop {
      * @param command      待执行的命令
      * @param appEventLoop 用户线程 - 执行回调的线程
      */
-    <V> V syncCall(RedisCommand<V> command, EventLoop appEventLoop) throws ExecutionException {
+    <V> V syncCall(RedisCommand<V> command, EventLoop appEventLoop) throws CompletionException {
         final RedisPromise<V> redisPromise = newRedisPromise(appEventLoop);
         execute(new JedisPipelineTask<>(command, true, redisPromise));
         return redisPromise.join();

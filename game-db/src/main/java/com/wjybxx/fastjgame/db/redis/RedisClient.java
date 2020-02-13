@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.db.redis;
 
 import javax.annotation.Nonnull;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletionException;
 
 /**
  * redis客户端。
@@ -68,9 +68,9 @@ public interface RedisClient {
     /**
      * 执行一个redis命令，同时刷新缓冲区，并阻塞到命令完成。
      *
-     * @param command 待执行的命令
      * @param <V>     the type of result
+     * @param command 待执行的命令
      */
-    <V> V syncCall(@Nonnull RedisCommand<V> command) throws ExecutionException;
+    <V> V syncCall(@Nonnull RedisCommand<V> command) throws CompletionException;
 
 }

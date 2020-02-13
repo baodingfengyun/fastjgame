@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -193,7 +193,7 @@ public abstract class AbstractSession implements Session {
 
     @Nullable
     @Override
-    public final <V> V syncCall(@Nonnull Object request) throws ExecutionException {
+    public final <V> V syncCall(@Nonnull Object request) throws CompletionException {
         if (isClosed()) {
             // 会话关闭的情况下直接返回
             final RpcFuture<V> failedRpcFuture = netEventLoop.newFailedRpcFuture(appEventLoop(), RpcSessionClosedException.INSTANCE);

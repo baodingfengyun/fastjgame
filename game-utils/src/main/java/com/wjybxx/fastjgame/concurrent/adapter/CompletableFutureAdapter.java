@@ -76,22 +76,26 @@ public class CompletableFutureAdapter<V> extends AbstractListenableFuture<V> {
     }
 
     @Override
-    public V get() throws InterruptedException, ExecutionException {
-        return future.get();
-    }
-
-    @Override
-    public V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        return future.get(timeout, unit);
-    }
-
-    @Override
-    public V join() throws ExecutionException {
+    public V get() throws InterruptedException, CompletionException {
         try {
-            return future.join();
-        } catch (CompletionException e) {
-            throw new ExecutionException(e.getCause());
+            return future.get();
+        } catch (ExecutionException e) {
+            throw new CompletionException(e.getCause());
         }
+    }
+
+    @Override
+    public V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, CompletionException, TimeoutException {
+        try {
+            return future.get(timeout, unit);
+        } catch (ExecutionException e) {
+            throw new CompletionException(e.getCause());
+        }
+    }
+
+    @Override
+    public V join() throws CompletionException {
+        return future.join();
     }
 
     @Nullable

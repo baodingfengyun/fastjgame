@@ -24,7 +24,7 @@ import com.wjybxx.fastjgame.net.common.RpcFutureResult;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletionException;
 
 /**
  * 封装Rpc请求的一些细节，方便实现统一管控。其实把rpc调用看做多线程调用，就很容易理顺这些东西了。
@@ -133,7 +133,7 @@ public interface RpcMethodHandle<V> extends FlushableMethodHandle<RpcClient, Rpc
     @Override
     TimeoutMethodListenable<RpcFutureResult<V>, V> callAndFlush(@Nonnull RpcClient client);
 
-    V syncCall(@Nonnull RpcClient client) throws ExecutionException;
+    V syncCall(@Nonnull RpcClient client) throws CompletionException;
 
     /**
      * @deprecated 使用更具表达力的 {@link #send(RpcClient)}代替。

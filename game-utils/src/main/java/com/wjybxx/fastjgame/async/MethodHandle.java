@@ -22,7 +22,7 @@ import com.wjybxx.fastjgame.concurrent.ListenableFuture;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletionException;
 
 /**
  * 异步(远程)方法的句柄。
@@ -78,8 +78,8 @@ public interface MethodHandle<T, FR extends FutureResult<V>, V> {
      *
      * @param client 方法的执行对象
      * @return result 执行结果
-     * @throws ExecutionException 方法的执行异常将封装为{@link ExecutionException}
+     * @throws CompletionException 方法的执行异常将封装为{@link CompletionException}
      */
-    V syncCall(@Nonnull T client) throws ExecutionException;
+    V syncCall(@Nonnull T client) throws CompletionException;
 
 }

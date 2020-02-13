@@ -21,7 +21,7 @@ import com.wjybxx.fastjgame.annotation.UnstableApi;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletionException;
 
 /**
  * ListenableFuture的抽象实现
@@ -46,7 +46,7 @@ public abstract class AbstractListenableFuture<V> implements ListenableFuture<V>
     }
 
     @Override
-    public V join() throws ExecutionException {
+    public V join() throws CompletionException {
         awaitUninterruptibly();
         try {
             return get();
@@ -61,12 +61,12 @@ public abstract class AbstractListenableFuture<V> implements ListenableFuture<V>
      *
      * @param cause 任务失败的原因
      * @throws CancellationException 如果任务被取消，则抛出该异常
-     * @throws ExecutionException    其它原因导致失败
+     * @throws CompletionException   其它原因导致失败
      */
-    protected static <T> T rethrowCause(@Nonnull Throwable cause) throws CancellationException, ExecutionException {
+    protected static <T> T rethrowCause(@Nonnull Throwable cause) throws CancellationException, CompletionException {
         if (cause instanceof CancellationException) {
             throw (CancellationException) cause;
         }
-        throw new ExecutionException(cause);
+        throw new CompletionException(cause);
     }
 }

@@ -36,7 +36,6 @@ import com.wjybxx.fastjgame.utils.TimeUtils;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadFactory;
 import java.util.stream.IntStream;
 
@@ -101,7 +100,7 @@ class ExampleRpcClientLoop extends DisruptorEventLoop {
     }
 
     @Override
-    protected void loopOnce() throws ExecutionException {
+    protected void loopOnce() {
         if (session == null || System.currentTimeMillis() - startTime > 5 * TimeUtils.MIN) {
             shutdown();
             return;
@@ -109,7 +108,7 @@ class ExampleRpcClientLoop extends DisruptorEventLoop {
         sendRequest(index++);
     }
 
-    private void sendRequest(final int index) throws ExecutionException {
+    private void sendRequest(final int index) {
         final long start = System.nanoTime();
         final String callResult = ExampleRpcServiceRpcProxy.combine("wjybxx", String.valueOf(index)).syncCall(session);
         final long costTimeMs = System.nanoTime() - start;

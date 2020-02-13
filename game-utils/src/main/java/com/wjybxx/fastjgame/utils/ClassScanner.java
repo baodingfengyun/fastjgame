@@ -100,7 +100,6 @@ public class ClassScanner {
                     findClassesByFile(classLoader, pkgName, filePath, classes, classNameFilter, classFilter);
                 } else if ("jar".equals(protocol)) {
                     // 如果是jar包文件 jar:
-                    // 获取jar
                     JarFile jar = ((JarURLConnection) url.openConnection()).getJarFile();
                     //扫描jar包文件 并添加到集合中
                     findClassesByJar(classLoader, pkgName, jar, classes, classNameFilter, classFilter);
