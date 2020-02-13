@@ -36,7 +36,7 @@ public class DefaultLogDirector implements LogDirector<DefaultLogBuilder> {
     @Nonnull
     @Override
     public LogRecordDTO build(DefaultLogBuilder builder) {
-        final String data = JsonUtils.toJson(builder.getDataMap());
+        final String data = JsonUtils.writeAsJson(builder.getDataMap());
         return new LogRecordDTO(builder.getTopic(), data);
     }
 

@@ -19,9 +19,11 @@ import com.wjybxx.fastjgame.concurrent.ImmediateEventLoop;
 import com.wjybxx.fastjgame.guid.core.GuidGenerator;
 import com.wjybxx.fastjgame.utils.CheckUtils;
 import com.wjybxx.fastjgame.utils.CodecUtils;
+import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.zk.core.CuratorClientMgr;
 import com.wjybxx.fastjgame.zk.core.CuratorFacade;
 import com.wjybxx.fastjgame.zk.utils.ZKPathUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.curator.framework.recipes.atomic.DistributedAtomicLong;
 import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 import org.apache.zookeeper.CreateMode;
@@ -80,7 +82,7 @@ public class ZKGuidGenerator implements GuidGenerator {
 
             return curGuid++;
         } catch (Exception e) {
-            throw new IllegalStateException("may lose zk connect", e);
+            return ConcurrentUtils.rethrow(e);
         }
     }
 

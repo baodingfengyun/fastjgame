@@ -63,7 +63,7 @@ public class JsonProtocolCodec implements ProtocolCodec {
             int messageId = messageMapper.getMessageId(obj.getClass());
             byteBufOutputStream.writeInt(messageId);
             // 写入序列化的内容
-            JsonUtils.writeValue(byteBufOutputStream, obj);
+            JsonUtils.writeToOutputStream(byteBufOutputStream, obj);
             // 写入byteBuf
             ByteBuf byteBuf = bufAllocator.buffer(cacheBuffer.readableBytes());
             byteBuf.writeBytes(cacheBuffer);
@@ -80,7 +80,7 @@ public class JsonProtocolCodec implements ProtocolCodec {
         }
         final Class<?> messageClazz = messageMapper.getMessageClazz(data.readInt());
         final ByteBufInputStream inputStream = new ByteBufInputStream(data);
-        return JsonUtils.readValue((InputStream) inputStream, messageClazz);
+        return JsonUtils.readFromInputStream((InputStream) inputStream, messageClazz);
     }
 
     @Override
@@ -95,11 +95,11 @@ public class JsonProtocolCodec implements ProtocolCodec {
 
             // 写入序列化的内容
             ByteBufOutputStream byteBufOutputStream = new ByteBufOutputStream(cacheBuffer);
-            JsonUtils.writeValue(byteBufOutputStream, obj);
+            JsonUtils.writeToOutputStream(byteBufOutputStream, obj);
 
             // 再读出来
             ByteBufInputStream byteBufInputStream = new ByteBufInputStream(cacheBuffer);
-            return JsonUtils.readValue((InputStream) byteBufInputStream, obj.getClass());
+            return JsonUtils.readFromInputStream((InputStream) byteBufInputStream, obj.getClass());
         } finally {
             cacheBuffer.release();
         }
@@ -122,7 +122,7 @@ public class JsonProtocolCodec implements ProtocolCodec {
             int messageId = messageMapper.getMessageId(obj.getClass());
             byteBufOutputStream.writeInt(messageId);
             // 写入序列化的内容
-            JsonUtils.writeValue(byteBufOutputStream, obj);
+            JsonUtils.writeToOutputStream(byteBufOutputStream, obj);
 
             // 拷贝结果
             byte[] result = new byte[cacheBuffer.readableBytes()];

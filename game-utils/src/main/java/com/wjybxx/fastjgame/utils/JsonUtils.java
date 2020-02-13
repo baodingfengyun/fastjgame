@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -44,7 +45,7 @@ import java.util.Map;
  * {@link TypeFactory#constructCollectionType(Class, Class)}
  * <p>
  * 简单运用：
- * {@link #parseJsonToMap(String, Class, Class, Class)}
+ * {@link #readMapFromJson(String, Class, Class, Class)}
  *
  * @author wjybxx
  * @version 1.0
@@ -68,14 +69,11 @@ public class JsonUtils {
     // ---------------------------------- 基本支持 ---------------------------
 
     /**
-     * 将一般bean转换为json字符串
-     *
-     * @param obj bean
-     * @return String
+     * 将bean转换为json字符串
      */
-    public static String toJson(Object obj) {
+    public static String writeAsJson(@Nonnull Object bean) {
         try {
-            return getMapper().writeValueAsString(obj);
+            return getMapper().writeValueAsString(bean);
         } catch (JsonProcessingException e) {
             // 之所以捕获，是因为，出现异常的地方应该是非常少的
             return ConcurrentUtils.rethrow(e);
@@ -84,13 +82,8 @@ public class JsonUtils {
 
     /**
      * 解析json字符串为java对象。
-     *
-     * @param json  json字符串
-     * @param clazz json字节数组对应的类
-     * @param <T>   对象类型
-     * @return 反序列化得到的对象
      */
-    public static <T> T parseJson(String json, Class<T> clazz) {
+    public static <T> T readFromJson(@Nonnull String json, @Nonnull Class<T> clazz) {
         try {
             return getMapper().readValue(json, clazz);
         } catch (IOException e) {
@@ -99,29 +92,20 @@ public class JsonUtils {
     }
 
     /**
-     * 将一般bean转换为json对应的字节数组
-     *
-     * @param obj bean
-     * @return bytes
+     * 将bean转换为json对应的字节数组
      */
-    public static byte[] toJsonBytes(Object obj) {
+    public static byte[] writeAsJsonBytes(@Nonnull Object bean) {
         try {
-            return getMapper().writeValueAsBytes(obj);
+            return getMapper().writeValueAsBytes(bean);
         } catch (JsonProcessingException e) {
-            // 之所以捕获，是因为，出现异常的地方应该是非常少的
             return ConcurrentUtils.rethrow(e);
         }
     }
 
     /**
      * 解析json字符串对应的字节数组为java对象。
-     *
-     * @param jsonBytes json字符串UTF-8编码后的字节数组
-     * @param clazz     json字节数组对应的类
-     * @param <T>       对象类型
-     * @return 反序列化得到的对象
      */
-    public static <T> T parseJsonBytes(byte[] jsonBytes, Class<T> clazz) {
+    public static <T> T readFromJsonBytes(@Nonnull byte[] jsonBytes, @Nonnull Class<T> clazz) {
         try {
             return getMapper().readValue(jsonBytes, clazz);
         } catch (IOException e) {
@@ -133,15 +117,11 @@ public class JsonUtils {
 
     /**
      * 解析json字符串为map对象。
-     *
-     * @param json       json字符串
-     * @param mapClass   map的具体类型
-     * @param keyClass   key的具体类型
-     * @param valueClass value的具体类型
-     * @param <M>        map类型
-     * @return map
      */
-    public static <M extends Map> M parseJsonToMap(String json, Class<M> mapClass, Class<?> keyClass, Class<?> valueClass) {
+    public static <M extends Map> M readMapFromJson(@Nonnull String json,
+                                                    @Nonnull Class<M> mapClass,
+                                                    @Nonnull Class<?> keyClass,
+                                                    @Nonnull Class<?> valueClass) {
         ObjectMapper mapper = getMapper();
         MapType mapType = mapper.getTypeFactory().constructMapType(mapClass, keyClass, valueClass);
         try {
@@ -153,15 +133,11 @@ public class JsonUtils {
 
     /**
      * 解析json字符串的字节数组为map对象。
-     *
-     * @param jsonBytes  json字符串对应的字节数组
-     * @param mapClass   map的具体类型
-     * @param keyClass   key的具体类型
-     * @param valueClass value的具体类型
-     * @param <M>        map类型
-     * @return map
      */
-    public static <M extends Map> M parseJsonBytesToMap(byte[] jsonBytes, Class<M> mapClass, Class<?> keyClass, Class<?> valueClass) {
+    public static <M extends Map<?, ?>> M readMapFromJsonBytes(@Nonnull byte[] jsonBytes,
+                                                               @Nonnull Class<M> mapClass,
+                                                               @Nonnull Class<?> keyClass,
+                                                               @Nonnull Class<?> valueClass) {
         ObjectMapper mapper = getMapper();
         MapType mapType = mapper.getTypeFactory().constructMapType(mapClass, keyClass, valueClass);
         try {
@@ -173,7 +149,7 @@ public class JsonUtils {
 
     // ---------------------------------------- 输入输出流支持 -------------------------------
 
-    public static void writeValue(OutputStream out, Object value) {
+    public static void writeToOutputStream(OutputStream out, Object value) {
         try {
             getMapper().writeValue(out, value);
         } catch (IOException e) {
@@ -181,7 +157,7 @@ public class JsonUtils {
         }
     }
 
-    public static <T> T readValue(InputStream in, Class<T> clazz) {
+    public static <T> T readFromInputStream(InputStream in, Class<T> clazz) {
         try {
             return getMapper().readValue(in, clazz);
         } catch (IOException e) {
@@ -194,10 +170,10 @@ public class JsonUtils {
         data.put(1, 5);
         data.put(6, 7);
 
-        String json = toJson(data);
+        String json = writeAsJson(data);
         System.out.println("json = " + json);
 
-        Int2IntMap rData = parseJsonToMap(json, Int2IntOpenHashMap.class, Integer.class, Integer.class);
+        Int2IntMap rData = readMapFromJson(json, Int2IntOpenHashMap.class, Integer.class, Integer.class);
         System.out.println("map = " + rData);
 
         System.out.println("equals = " + data.equals(rData));

@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.wjybxx.fastjgame</groupId>
-    <artifactId>game-guid-redis</artifactId>
+    <artifactId>game-guid-zk</artifactId>
     <version>1.0</version>
 
     <build>
@@ -46,12 +46,10 @@
             <version>1.0</version>
         </dependency>
 
-        <!-- redis支持 -->
-        <!-- https://mvnrepository.com/artifact/redis.clients/jedis -->
         <dependency>
-            <groupId>redis.clients</groupId>
-            <artifactId>jedis</artifactId>
-            <version>3.2.0</version>
+            <groupId>com.wjybxx.fastjgame</groupId>
+            <artifactId>game-zookeeper</artifactId>
+            <version>1.0</version>
         </dependency>
 
     </dependencies>

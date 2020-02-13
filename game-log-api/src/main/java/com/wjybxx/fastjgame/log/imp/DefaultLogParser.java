@@ -35,7 +35,7 @@ public class DefaultLogParser implements LogParser<DefaultLogRecord> {
 
     @Override
     public DefaultLogRecord parse(LogRecordDTO recordDTO) {
-        @SuppressWarnings("unchecked") final Map<String, Object> dataMap = JsonUtils.parseJsonToMap(recordDTO.data(), LinkedHashMap.class, String.class, Object.class);
+        @SuppressWarnings("unchecked") final Map<String, Object> dataMap = JsonUtils.readMapFromJson(recordDTO.data(), LinkedHashMap.class, String.class, Object.class);
         return new DefaultLogRecord(recordDTO.topic(), dataMap);
     }
 }

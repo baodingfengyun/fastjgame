@@ -57,15 +57,6 @@ public class ConcurrentUtils {
     }
 
     /**
-     * 在{@link Semaphore#acquire()}上等待，等待期间不响应中断
-     *
-     * @param semaphore 信号量
-     */
-    public static void awaitUninterruptibly(Semaphore semaphore) {
-        awaitUninterruptibly(semaphore::acquire);
-    }
-
-    /**
      * 在等待期间不响应中断
      *
      * @param acquireFun 如果在资源上申请资源

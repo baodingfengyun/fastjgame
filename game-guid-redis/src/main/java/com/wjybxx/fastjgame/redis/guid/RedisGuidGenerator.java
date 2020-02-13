@@ -17,6 +17,8 @@
 package com.wjybxx.fastjgame.redis.guid;
 
 import com.wjybxx.fastjgame.guid.core.GuidGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPoolAbstract;
 
@@ -29,6 +31,8 @@ import redis.clients.jedis.JedisPoolAbstract;
  * github - https://github.com/hl845740757
  */
 public class RedisGuidGenerator implements GuidGenerator {
+
+    private static final Logger logger = LoggerFactory.getLogger(RedisGuidGenerator.class);
 
     private static final String GUID_HASH_KEY = "_guid";
     private static final int DEFAULT_CACHE_SIZ = 1000_000;
@@ -78,6 +82,7 @@ public class RedisGuidGenerator implements GuidGenerator {
         try (Jedis jedis = jedisPool.getResource()) {
             curBarrier = jedis.hincrBy(GUID_HASH_KEY, name, cacheSize);
             curGuid = curBarrier - cacheSize + 1;
+            logger.info("update guid cache, curGuid={}, curBarrier={}", curGuid, curBarrier);
         }
     }
 

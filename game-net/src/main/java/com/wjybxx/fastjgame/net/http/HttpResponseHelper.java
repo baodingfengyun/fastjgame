@@ -102,7 +102,7 @@ public final class HttpResponseHelper {
      * @return HttpResponse
      */
     public static DefaultFullHttpResponse newJsonResponse(Object jsonObj) {
-        String json = JsonUtils.toJson(jsonObj);
+        String json = JsonUtils.writeAsJson(jsonObj);
         return newTextResponse(TEXT_JSON, json);
     }
 
