@@ -23,6 +23,8 @@ package com.wjybxx.fastjgame.concurrent;
  * 死锁分析：
  * EventLoop是单线程的，线程一次只能执行一个任务，如果在执行任务的时候等待该线程上的另一个任务完成，将死锁。
  * <p>
+ * 与{@link GuardedOperationException}为一对，一个只允许当前线程访问，一个不允许当前线程访问。
+ * <p>
  * copy from netty，在这里并不希望依赖netty。
  *
  * @author wjybxx

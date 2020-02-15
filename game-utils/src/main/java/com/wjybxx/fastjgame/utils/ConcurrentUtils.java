@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.utils;
 
 import com.wjybxx.fastjgame.concurrent.*;
-import com.wjybxx.fastjgame.exception.InternalApiException;
 import com.wjybxx.fastjgame.function.AcquireFun;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -120,37 +119,33 @@ public class ConcurrentUtils {
     // ---------------------------------------------- 事件循环相关 ------------------------------------------------
 
     /**
-     * 线程保护
+     * 检查是否在指定线程内，达成数据保护。
      *
-     * @param eventLoop 事件循环
+     * @param msg 造成不安全的原因，尽量少拼接字符串
      */
-    public static void ensureInEventLoop(EventLoop eventLoop) {
+    public static void ensureInEventLoop(EventLoop eventLoop, String msg) {
         if (!eventLoop.inEventLoop()) {
-            throw new InternalApiException();
+            throw new GuardedOperationException(msg);
         }
+    }
+
+    public static void ensureInEventLoop(EventLoop eventLoop) {
+        ensureInEventLoop(eventLoop, "Must be called from EventLoop thread");
     }
 
     /**
      * 检查死锁，由于EventLoop是单线程的，因此不能在当前EventLoop上等待另一个任务完成，很可能导致死锁。
      *
-     * @param e executor
-     */
-    public static void checkDeadLock(EventLoop e) {
-        if (e != null && e.inEventLoop()) {
-            throw new BlockingOperationException();
-        }
-    }
-
-    /**
-     * 检查死锁，由于EventLoop是单线程的，因此不能在当前EventLoop上等待另一个任务完成，很可能导致死锁。
-     *
-     * @param e   executor
      * @param msg 造成死锁的信息，尽量少拼接字符串。
      */
     public static void checkDeadLock(EventLoop e, String msg) {
         if (e != null && e.inEventLoop()) {
             throw new BlockingOperationException(msg);
         }
+    }
+
+    public static void checkDeadLock(EventLoop e) {
+        checkDeadLock(e, "Can't call from EventLoop thread");
     }
 
     /**

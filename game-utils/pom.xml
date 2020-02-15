@@ -113,13 +113,6 @@
             <version>3.0.2</version>
         </dependency>
 
-        <!-- jsr250 -->
-        <dependency>
-            <groupId>javax.annotation</groupId>
-            <artifactId>jsr250-api</artifactId>
-            <version>1.0</version>
-        </dependency>
-
         <!-- apache开源工具 -->
         <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
         <dependency>
