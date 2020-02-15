@@ -16,16 +16,16 @@
 
 package com.wjybxx.fastjgame.net.socket.outer;
 
-import com.wjybxx.fastjgame.concurrent.Promise;
-import com.wjybxx.fastjgame.manager.NettyThreadManager;
-import com.wjybxx.fastjgame.misc.HostAndPort;
 import com.wjybxx.fastjgame.net.common.*;
+import com.wjybxx.fastjgame.net.manager.NettyThreadManager;
+import com.wjybxx.fastjgame.net.misc.HostAndPort;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 import com.wjybxx.fastjgame.net.socket.*;
+import com.wjybxx.fastjgame.net.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-import com.wjybxx.fastjgame.utils.NetUtils;
+import com.wjybxx.fastjgame.utils.concurrent.Promise;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;

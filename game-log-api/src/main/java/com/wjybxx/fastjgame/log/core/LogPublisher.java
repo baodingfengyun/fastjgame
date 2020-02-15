@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.log.core;
 
-import com.wjybxx.fastjgame.concurrent.EventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 
 /**
  * 日志发布器，它负责将日志发布到<b>某个地方</b>，如：kafka，本地文件，数据库，flume。

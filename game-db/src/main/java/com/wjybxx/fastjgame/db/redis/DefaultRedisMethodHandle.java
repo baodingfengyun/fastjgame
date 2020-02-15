@@ -16,9 +16,9 @@
 
 package com.wjybxx.fastjgame.db.redis;
 
-import com.wjybxx.fastjgame.async.DefaultMethodListenable;
-import com.wjybxx.fastjgame.async.MethodListenable;
-import com.wjybxx.fastjgame.concurrent.FutureResult;
+import com.wjybxx.fastjgame.utils.async.DefaultMethodListenable;
+import com.wjybxx.fastjgame.utils.async.MethodListenable;
+import com.wjybxx.fastjgame.utils.concurrent.FutureResult;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.CompletionException;

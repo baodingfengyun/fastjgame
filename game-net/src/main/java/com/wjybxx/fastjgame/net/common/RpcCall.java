@@ -17,8 +17,8 @@
 package com.wjybxx.fastjgame.net.common;
 
 
-import com.wjybxx.fastjgame.async.MethodSpec;
-import com.wjybxx.fastjgame.misc.*;
+import com.wjybxx.fastjgame.net.misc.*;
+import com.wjybxx.fastjgame.utils.async.MethodSpec;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;

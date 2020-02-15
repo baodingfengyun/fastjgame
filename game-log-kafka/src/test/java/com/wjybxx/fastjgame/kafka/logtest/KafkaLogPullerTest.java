@@ -16,10 +16,10 @@
 
 package com.wjybxx.fastjgame.kafka.logtest;
 
-import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
-import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.concurrent.ImmediateEventLoop;
-import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
+import com.wjybxx.fastjgame.utils.concurrent.DefaultThreadFactory;
+import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.ImmediateEventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.log.core.LogConsumer;
 import com.wjybxx.fastjgame.log.core.LogPuller;
 import com.wjybxx.fastjgame.log.imp.DefaultLogParser;

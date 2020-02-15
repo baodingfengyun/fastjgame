@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.log.core;
 
-import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.concurrent.ImmediateEventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.ImmediateEventLoop;
 
 import java.util.Set;
 

@@ -18,10 +18,10 @@
 
 package com.wjybxx.fastjgame.test;
 
-import com.wjybxx.fastjgame.timer.DefaultTimerSystem;
-import com.wjybxx.fastjgame.timer.ExceptionHandlers;
-import com.wjybxx.fastjgame.timer.TimerHandle;
-import com.wjybxx.fastjgame.timer.TimerSystem;
+import com.wjybxx.fastjgame.utils.timer.DefaultTimerSystem;
+import com.wjybxx.fastjgame.utils.timer.ExceptionHandlers;
+import com.wjybxx.fastjgame.utils.timer.TimerHandle;
+import com.wjybxx.fastjgame.utils.timer.TimerSystem;
 import com.wjybxx.fastjgame.utils.TimeUtils;
 
 import java.util.concurrent.ThreadLocalRandom;

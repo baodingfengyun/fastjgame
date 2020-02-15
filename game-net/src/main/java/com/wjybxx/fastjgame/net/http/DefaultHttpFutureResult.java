@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.http;
 
-import com.wjybxx.fastjgame.concurrent.DefaultFutureResult;
+import com.wjybxx.fastjgame.utils.concurrent.DefaultFutureResult;
 
 /**
  * @author wjybxx

@@ -16,10 +16,10 @@
 
 package com.wjybxx.fastjgame.net.common;
 
-import com.wjybxx.fastjgame.annotation.SerializableClass;
-import com.wjybxx.fastjgame.enummapper.NumericalEnum;
-import com.wjybxx.fastjgame.enummapper.NumericalEnumMapper;
+import com.wjybxx.fastjgame.net.annotation.SerializableClass;
 import com.wjybxx.fastjgame.utils.EnumUtils;
+import com.wjybxx.fastjgame.utils.enummapper.NumericalEnum;
+import com.wjybxx.fastjgame.utils.enummapper.NumericalEnumMapper;
 
 /**
  * RPC错误码 - 慢慢扩展

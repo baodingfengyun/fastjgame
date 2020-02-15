@@ -16,8 +16,7 @@
 
 package com.wjybxx.fastjgame.net.socket.inner;
 
-import com.wjybxx.fastjgame.adapter.NettyFutureAdapter;
-import com.wjybxx.fastjgame.concurrent.Promise;
+import com.wjybxx.fastjgame.net.adapter.NettyFutureAdapter;
 import com.wjybxx.fastjgame.net.common.LazySerializeSupportHandler;
 import com.wjybxx.fastjgame.net.common.OneWaySupportHandler;
 import com.wjybxx.fastjgame.net.common.RpcSupportHandler;
@@ -25,7 +24,8 @@ import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 import com.wjybxx.fastjgame.net.socket.*;
-import com.wjybxx.fastjgame.utils.NetUtils;
+import com.wjybxx.fastjgame.net.utils.NetUtils;
+import com.wjybxx.fastjgame.utils.concurrent.Promise;
 import io.netty.channel.ChannelFuture;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;

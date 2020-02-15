@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.net.common;
 
 import com.google.protobuf.AbstractMessage;
-import com.wjybxx.fastjgame.enummapper.NumericalEnum;
+import com.wjybxx.fastjgame.utils.enummapper.NumericalEnum;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 

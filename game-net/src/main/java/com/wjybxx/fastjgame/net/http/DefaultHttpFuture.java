@@ -16,10 +16,10 @@
 
 package com.wjybxx.fastjgame.net.http;
 
-import com.wjybxx.fastjgame.annotation.UnstableApi;
-import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.concurrent.FutureListener;
-import com.wjybxx.fastjgame.concurrent.adapter.CompletableFutureAdapter;
+import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
+import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
+import com.wjybxx.fastjgame.utils.concurrent.adapter.CompletableFutureAdapter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

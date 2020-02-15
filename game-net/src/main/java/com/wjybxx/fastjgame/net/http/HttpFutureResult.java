@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.http;
 
-import com.wjybxx.fastjgame.concurrent.timeout.TimeoutFutureResult;
+import com.wjybxx.fastjgame.utils.concurrent.timeout.TimeoutFutureResult;
 
 /**
  * @author wjybxx

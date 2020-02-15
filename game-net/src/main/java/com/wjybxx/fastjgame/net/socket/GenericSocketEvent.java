@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.eventbus.GenericEvent;
+import com.wjybxx.fastjgame.utils.eventbus.GenericEvent;
 
 import javax.annotation.Nonnull;
 

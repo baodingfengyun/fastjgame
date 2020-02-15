@@ -18,8 +18,8 @@
 
 package com.wjybxx.fastjgame.concurrenttest;
 
-import com.wjybxx.fastjgame.concurrent.ImmediateEventLoop;
-import com.wjybxx.fastjgame.concurrent.Promise;
+import com.wjybxx.fastjgame.utils.concurrent.ImmediateEventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.Promise;
 
 /**
  * @author wjybxx

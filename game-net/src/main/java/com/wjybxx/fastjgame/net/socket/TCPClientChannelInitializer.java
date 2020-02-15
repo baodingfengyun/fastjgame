@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.eventloop.NetEventLoop;
-import com.wjybxx.fastjgame.utils.NetUtils;
+import com.wjybxx.fastjgame.net.eventloop.NetEventLoop;
+import com.wjybxx.fastjgame.net.utils.NetUtils;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;

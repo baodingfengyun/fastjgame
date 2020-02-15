@@ -16,10 +16,10 @@
 
 package com.wjybxx.fastjgame.net.http;
 
-import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.concurrent.ListenableFuture;
-import com.wjybxx.fastjgame.eventloop.NetContext;
-import com.wjybxx.fastjgame.eventloop.NetEventLoop;
+import com.wjybxx.fastjgame.net.eventloop.NetContext;
+import com.wjybxx.fastjgame.net.eventloop.NetEventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http.HttpResponse;
 

@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.utils;
 
-import com.wjybxx.fastjgame.concurrent.*;
-import com.wjybxx.fastjgame.function.AcquireFun;
+import com.wjybxx.fastjgame.utils.concurrent.*;
+import com.wjybxx.fastjgame.utils.function.AcquireFun;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

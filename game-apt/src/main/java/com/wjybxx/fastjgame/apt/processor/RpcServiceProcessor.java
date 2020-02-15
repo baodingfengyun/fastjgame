@@ -65,16 +65,16 @@ import java.util.*;
 @AutoService(Processor.class)
 public class RpcServiceProcessor extends AbstractProcessor {
 
-    private static final String METHOD_HANDLE_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.RpcMethodHandle";
-    private static final String DEFAULT_METHOD_HANDLE_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.DefaultRpcMethodHandle";
+    private static final String METHOD_HANDLE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.misc.RpcMethodHandle";
+    private static final String DEFAULT_METHOD_HANDLE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.misc.DefaultRpcMethodHandle";
 
-    private static final String RPC_SERVICE_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.RpcService";
-    private static final String RPC_METHOD_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.RpcMethod";
+    private static final String RPC_SERVICE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.annotation.RpcService";
+    private static final String RPC_METHOD_CANONICAL_NAME = "com.wjybxx.fastjgame.net.annotation.RpcMethod";
 
-    private static final String LAZY_SERIALIZABLE_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.LazySerializable";
-    private static final String PRE_DESERIALIZE_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.PreDeserializable";
+    private static final String LAZY_SERIALIZABLE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.annotation.LazySerializable";
+    private static final String PRE_DESERIALIZE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.annotation.PreDeserializable";
 
-    private static final String REGISTRY_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.RpcFunctionRegistry";
+    private static final String REGISTRY_CANONICAL_NAME = "com.wjybxx.fastjgame.net.misc.RpcFunctionRegistry";
     private static final String SESSION_CANONICAL_NAME = "com.wjybxx.fastjgame.net.session.Session";
     private static final String CHANNEL_CANONICAL_NAME = "com.wjybxx.fastjgame.net.common.RpcResponseChannel";
 

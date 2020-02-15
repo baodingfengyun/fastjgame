@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.zk.guidtest;
 
-import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
+import com.wjybxx.fastjgame.utils.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.zk.core.BackoffRetryForever;
 import com.wjybxx.fastjgame.zk.core.CuratorClientMgr;
 import com.wjybxx.fastjgame.zk.guid.ZKGuidGenerator;

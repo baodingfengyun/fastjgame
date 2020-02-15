@@ -48,15 +48,15 @@ import java.util.Set;
 public class SerializableClassProcessor extends AbstractProcessor {
 
     // 使用这种方式可以脱离对utils，net包的依赖
-    private static final String SERIALIZABLE_CLASS_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.SerializableClass";
-    private static final String SERIALIZABLE_FIELD_CANONICAL_NAME = "com.wjybxx.fastjgame.annotation.SerializableField";
-    private static final String NUMBER_ENUM_CANONICAL_NAME = "com.wjybxx.fastjgame.enummapper.NumericalEnum";
+    private static final String SERIALIZABLE_CLASS_CANONICAL_NAME = "com.wjybxx.fastjgame.net.annotation.SerializableClass";
+    private static final String SERIALIZABLE_FIELD_CANONICAL_NAME = "com.wjybxx.fastjgame.net.annotation.SerializableField";
+    private static final String NUMBER_ENUM_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.enummapper.NumericalEnum";
 
-    private static final String WIRETYPE_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.WireType";
-    private static final String SERIALIZER_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.BeanSerializer";
-    private static final String OUTPUT_STREAM_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.BeanOutputStream";
-    private static final String INPUT_STREAM_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.BeanInputStream";
-    private static final String CLONE_UTIL_CANONICAL_NAME = "com.wjybxx.fastjgame.misc.BeanCloneUtil";
+    private static final String WIRETYPE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.misc.WireType";
+    private static final String SERIALIZER_CANONICAL_NAME = "com.wjybxx.fastjgame.net.misc.BeanSerializer";
+    private static final String OUTPUT_STREAM_CANONICAL_NAME = "com.wjybxx.fastjgame.net.misc.BeanOutputStream";
+    private static final String INPUT_STREAM_CANONICAL_NAME = "com.wjybxx.fastjgame.net.misc.BeanInputStream";
+    private static final String CLONE_UTIL_CANONICAL_NAME = "com.wjybxx.fastjgame.net.misc.BeanCloneUtil";
 
     private static final String NUMBER_METHOD_NAME = "number";
 

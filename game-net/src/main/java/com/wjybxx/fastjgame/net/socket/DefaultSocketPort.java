@@ -15,7 +15,7 @@
  */
 package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.misc.HostAndPort;
+import com.wjybxx.fastjgame.net.misc.HostAndPort;
 import io.netty.channel.Channel;
 
 /**

@@ -17,8 +17,8 @@
 package com.wjybxx.fastjgame.utils;
 
 import com.google.common.math.IntMath;
-import com.wjybxx.fastjgame.misc.IntPair;
-import com.wjybxx.fastjgame.misc.ShortPair;
+import com.wjybxx.fastjgame.utils.misc.IntPair;
+import com.wjybxx.fastjgame.utils.misc.ShortPair;
 
 import java.math.RoundingMode;
 

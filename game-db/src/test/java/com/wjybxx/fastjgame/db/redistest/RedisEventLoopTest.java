@@ -16,10 +16,10 @@
 
 package com.wjybxx.fastjgame.db.redistest;
 
-import com.wjybxx.fastjgame.concurrent.DefaultThreadFactory;
-import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.concurrent.RejectedExecutionHandlers;
-import com.wjybxx.fastjgame.concurrent.SingleThreadEventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.DefaultThreadFactory;
+import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandlers;
+import com.wjybxx.fastjgame.utils.concurrent.SingleThreadEventLoop;
 import com.wjybxx.fastjgame.db.redis.DefaultRedisClient;
 import com.wjybxx.fastjgame.db.redis.RedisClient;
 import com.wjybxx.fastjgame.db.redis.RedisEventLoop;

@@ -16,10 +16,10 @@
 
 package com.wjybxx.fastjgame.log.imp;
 
-import com.wjybxx.fastjgame.concurrent.EventLoop;
-import com.wjybxx.fastjgame.concurrent.ImmediateEventLoop;
 import com.wjybxx.fastjgame.log.core.LogConsumer;
 import com.wjybxx.fastjgame.log.utils.LogConsumerUtils;
+import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.ImmediateEventLoop;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;

@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.utils;
 
-import com.wjybxx.fastjgame.enummapper.NumericalEnum;
-import com.wjybxx.fastjgame.enummapper.NumericalEnumMapper;
+import com.wjybxx.fastjgame.utils.enummapper.NumericalEnum;
+import com.wjybxx.fastjgame.utils.enummapper.NumericalEnumMapper;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 

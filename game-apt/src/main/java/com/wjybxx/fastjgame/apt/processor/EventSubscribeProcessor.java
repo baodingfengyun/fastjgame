@@ -48,9 +48,9 @@ import java.util.stream.Collectors;
 @AutoService(Processor.class)
 public class EventSubscribeProcessor extends AbstractProcessor {
 
-    private static final String REGISTRY_CANONICAL_NAME = "com.wjybxx.fastjgame.eventbus.EventHandlerRegistry";
-    private static final String SUBSCRIBE_CANONICAL_NAME = "com.wjybxx.fastjgame.eventbus.Subscribe";
-    private static final String GENERIC_EVENT_CANONICAL_NAME = "com.wjybxx.fastjgame.eventbus.GenericEvent";
+    private static final String REGISTRY_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.eventbus.EventHandlerRegistry";
+    private static final String SUBSCRIBE_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.eventbus.Subscribe";
+    private static final String GENERIC_EVENT_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.eventbus.GenericEvent";
 
     private static final String SUB_EVENTS_METHOD_NAME = "subEvents";
     private static final String ONLY_SUB_EVENTS_METHOD_NAME = "onlySubEvents";

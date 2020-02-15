@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.net.ws;
 
 import com.wjybxx.fastjgame.net.socket.ServerSocketCodec;
 import com.wjybxx.fastjgame.net.socket.SocketPortContext;
-import com.wjybxx.fastjgame.utils.NetUtils;
+import com.wjybxx.fastjgame.net.utils.NetUtils;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
