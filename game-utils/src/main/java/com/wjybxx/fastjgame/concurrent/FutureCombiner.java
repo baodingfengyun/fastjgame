@@ -73,6 +73,9 @@ public class FutureCombiner {
     private Throwable cause;
 
     public FutureCombiner(EventLoop appEventLoop) {
+        if (appEventLoop == ImmediateEventLoop.INSTANCE) {
+            throw new IllegalArgumentException();
+        }
         this.appEventLoop = appEventLoop;
     }
 

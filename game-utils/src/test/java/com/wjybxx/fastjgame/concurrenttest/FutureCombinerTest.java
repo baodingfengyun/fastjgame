@@ -16,10 +16,7 @@
 
 package com.wjybxx.fastjgame.concurrenttest;
 
-import com.wjybxx.fastjgame.concurrent.FutureCombiner;
-import com.wjybxx.fastjgame.concurrent.ImmediateEventLoop;
-import com.wjybxx.fastjgame.concurrent.ListenableFuture;
-import com.wjybxx.fastjgame.concurrent.Promise;
+import com.wjybxx.fastjgame.concurrent.*;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 /**
@@ -31,30 +28,47 @@ public class FutureCombinerTest {
 
     public static void main(String[] args) {
         // 测试可以使用ImmediateEventLoop.INSTANCE，其它时候不要使用
-        final Promise<String> aFuture = ImmediateEventLoop.INSTANCE.newPromise();
+        final DefaultEventLoop eventLoopA = new DefaultEventLoop(null, new DefaultThreadFactory("AAAAA"), RejectedExecutionHandlers.abort());
+        final ListenableFuture<String> aFuture = eventLoopA.submit(() -> "success");
+
 
         aFuture.addListener(future -> {
             System.out.println("CallbackA, Thread : " + Thread.currentThread().getName());
             System.out.println("a result " + getResultAsStringSafely(future));
         });
 
-        final Promise<String> bFuture = ImmediateEventLoop.INSTANCE.newPromise();
+        final DefaultEventLoop eventLoopB = new DefaultEventLoop(null, new DefaultThreadFactory("BBBBBB"), RejectedExecutionHandlers.abort());
+        final ListenableFuture<String> bFuture = eventLoopB.submit(() -> {
+            throw new Exception("failure");
+        });
+
         bFuture.addListener(future -> {
             System.out.println("CallbackB, Thread : " + Thread.currentThread().getName());
             System.out.println("b result " + getResultAsStringSafely(future));
         });
 
-        new FutureCombiner(ImmediateEventLoop.INSTANCE)
+        final DefaultEventLoop appEventLoop = new DefaultEventLoop(null, new DefaultThreadFactory("APP"), RejectedExecutionHandlers.abort());
+
+        try {
+            appEventLoop.execute(() -> {
+                doCombine(aFuture, bFuture, appEventLoop);
+            });
+        } finally {
+            eventLoopA.shutdown();
+            eventLoopB.shutdown();
+            appEventLoop.shutdown();
+        }
+    }
+
+    private static void doCombine(ListenableFuture<String> aFuture, ListenableFuture<String> bFuture, DefaultEventLoop appEventLoop) {
+        new FutureCombiner(appEventLoop)
                 .add(aFuture)
                 .add(bFuture)
-                .finish(ImmediateEventLoop.INSTANCE.newPromise())
+                .finish(appEventLoop.newPromise())
                 .addListener(future -> {
                     System.out.println("Callback Combine, Thread : " + Thread.currentThread().getName());
                     System.out.println("result " + getResultAsStringSafely(future));
                 });
-
-        aFuture.trySuccess("success");
-        bFuture.tryFailure(new Exception("failure"));
     }
 
     private static String getResultAsStringSafely(ListenableFuture<?> future) {
