@@ -31,7 +31,7 @@ import java.util.Map;
  * date - 2020/1/13
  * github - https://github.com/hl845740757
  */
-public interface BeanInputStream {
+public interface EntityInputStream {
 
     /**
      * 从输入流中读取一个字段。

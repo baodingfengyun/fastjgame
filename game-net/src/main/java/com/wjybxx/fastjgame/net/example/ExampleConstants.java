@@ -37,7 +37,7 @@ public final class ExampleConstants {
     /**
      * 测试用例使用的codec
      */
-    public static final MessageMapper messageMapper = MessageMapper.newInstance(new HashMessageMappingStrategy("com.wjybxx.fastjgame"));
+    public static final MessageMapper messageMapper = MessageMapper.newInstance(new HashMessageMappingStrategy());
     public static final JsonProtocolCodec jsonCodec = new JsonProtocolCodec(messageMapper);
     public static final BinaryProtocolCodec binaryCodec = BinaryProtocolCodec.newInstance(messageMapper);
 

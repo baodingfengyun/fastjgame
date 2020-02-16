@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.annotation;
 
-import com.wjybxx.fastjgame.net.serializer.BeanSerializer;
+import com.wjybxx.fastjgame.net.serializer.EntitySerializer;
 import com.wjybxx.fastjgame.utils.entity.NumericalEntity;
 
 import java.lang.annotation.ElementType;
@@ -32,7 +32,7 @@ import java.lang.annotation.Target;
  * 2. 如果是实现了{@link NumericalEntity}的类，也必须提供提供非private的{@code forNumber(int)}方法。
  * 3. 如果是普通类，必须提供无参构造方法，可以是private。
  * <p>
- * 如果对象是一个普通的javabean，则会在编译时生成对应的{@link BeanSerializer}类，可以代替反射(编解码性能提升巨大)。
+ * 如果对象是一个普通的javabean，则会在编译时生成对应的{@link EntitySerializer}类，可以代替反射(编解码性能提升巨大)。
  * 虽然如此，但不强制所有对象都要安装javaBean的格式，有额外需要也相当正常(eg:不可变对象)，对于非javabean类，则会使用反射进行编解码。
  * <p>
  * javaBean:
@@ -40,8 +40,8 @@ import java.lang.annotation.Target;
  * 2. 要序列化的字段存在对应的getter 和 setter方法。
  * <p>
  * 注意：
- * 1. 一般而言，建议使用注解{@link SerializableClass}，并遵循相关规范，由注解处理器生成的类负责解析，而不是实现{@link BeanSerializer}。
- * 2. 仅当反射编解码的类存在性能瓶颈时，才应该考虑实现{@link BeanSerializer}负责编解码相关的类，那么不需要该注解。
+ * 1. 一般而言，建议使用注解{@link SerializableClass}，并遵循相关规范，由注解处理器生成的类负责解析，而不是实现{@link EntitySerializer}。
+ * 2. 仅当反射编解码的类存在性能瓶颈时，才应该考虑实现{@link EntitySerializer}负责编解码相关的类，那么不需要该注解。
  *
  * @author wjybxx
  * @version 1.0

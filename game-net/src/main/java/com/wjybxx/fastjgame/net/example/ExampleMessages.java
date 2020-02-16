@@ -18,9 +18,9 @@ package com.wjybxx.fastjgame.net.example;
 import com.wjybxx.fastjgame.net.annotation.SerializableClass;
 import com.wjybxx.fastjgame.net.annotation.SerializableField;
 import com.wjybxx.fastjgame.net.misc.*;
-import com.wjybxx.fastjgame.net.serializer.BeanInputStream;
-import com.wjybxx.fastjgame.net.serializer.BeanOutputStream;
-import com.wjybxx.fastjgame.net.serializer.BeanSerializer;
+import com.wjybxx.fastjgame.net.serializer.EntityInputStream;
+import com.wjybxx.fastjgame.net.serializer.EntityOutputStream;
+import com.wjybxx.fastjgame.net.serializer.EntitySerializer;
 import com.wjybxx.fastjgame.utils.EnumUtils;
 import com.wjybxx.fastjgame.utils.entity.NumericalEntity;
 import com.wjybxx.fastjgame.utils.entity.NumericalEntityMapper;
@@ -41,28 +41,23 @@ import java.util.*;
 public final class ExampleMessages {
 
     // 它会被扫描到，并负责hello类的解析
-    public static class HelloSerializer implements BeanSerializer<Hello> {
+    public static class HelloSerializer implements EntitySerializer<Hello> {
 
         public HelloSerializer() {
             System.out.println("HelloSerializer constructor");
         }
 
         @Override
-        public void writeFields(Hello instance, BeanOutputStream outputStream) throws IOException {
+        public void writeFields(Hello instance, EntityOutputStream outputStream) throws IOException {
             outputStream.writeField(WireType.LONG, instance.id);
             outputStream.writeField(WireType.STRING, instance.message);
         }
 
         @Override
-        public Hello read(BeanInputStream inputStream) throws IOException {
+        public void readFields(Hello instance,EntityInputStream inputStream) throws IOException {
             final Long id = inputStream.readField(WireType.LONG);
             final String message = inputStream.readField(WireType.STRING);
             return new Hello(id, message);
-        }
-
-        @Override
-        public Hello clone(Hello instance, BeanCloneUtil util) throws IOException {
-            return new Hello(util.cloneField(WireType.LONG, instance.id), util.cloneField(WireType.STRING, instance.message));
         }
     }
 

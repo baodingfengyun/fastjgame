@@ -17,9 +17,9 @@
 package com.wjybxx.fastjgame.net.common;
 
 import com.wjybxx.fastjgame.net.misc.*;
-import com.wjybxx.fastjgame.net.serializer.BeanInputStream;
-import com.wjybxx.fastjgame.net.serializer.BeanOutputStream;
-import com.wjybxx.fastjgame.net.serializer.BeanSerializer;
+import com.wjybxx.fastjgame.net.serializer.EntityInputStream;
+import com.wjybxx.fastjgame.net.serializer.EntityOutputStream;
+import com.wjybxx.fastjgame.net.serializer.EntitySerializer;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -122,16 +122,21 @@ public final class RpcResponse {
     /**
      * 负责编解码{@link RpcResponse}
      */
-    private static class RpcResponseSerializer implements BeanSerializer<RpcResponse> {
+    private static class RpcResponseSerializer implements EntitySerializer<RpcResponse> {
 
         @Override
-        public void writeFields(RpcResponse instance, BeanOutputStream outputStream) throws IOException {
+        public RpcResponse newInstance() {
+            return null;
+        }
+
+        @Override
+        public void writeFields(RpcResponse instance, EntityOutputStream outputStream) throws IOException {
             outputStream.writeField(WireType.CUSTOM_ENTITY, instance.errorCode);
             outputStream.writeField(WireType.RUN_TIME, instance.body);
         }
 
         @Override
-        public RpcResponse read(BeanInputStream inputStream) throws IOException {
+        public RpcResponse readFields(EntityInputStream inputStream) throws IOException {
             final RpcErrorCode errorCode = inputStream.readField(WireType.CUSTOM_ENTITY);
             final Object body = inputStream.readField(WireType.RUN_TIME);
             return new RpcResponse(errorCode, body);

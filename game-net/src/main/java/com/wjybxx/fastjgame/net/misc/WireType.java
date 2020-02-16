@@ -20,7 +20,7 @@ package com.wjybxx.fastjgame.net.misc;
 import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.ProtocolMessageEnum;
 import com.wjybxx.fastjgame.net.annotation.SerializableClass;
-import com.wjybxx.fastjgame.net.serializer.BeanSerializer;
+import com.wjybxx.fastjgame.net.serializer.EntitySerializer;
 import com.wjybxx.fastjgame.utils.ClassScanner;
 import com.wjybxx.fastjgame.utils.entity.IndexableEntity;
 import com.wjybxx.fastjgame.utils.entity.NumericalEntity;
@@ -46,15 +46,15 @@ public class WireType {
      * bean -> beanSerializer (自动生成的beanSerializer 或 手动实现的)
      * 缓存起来，避免大量查找。
      */
-    private static final Map<Class<?>, Class<? extends BeanSerializer<?>>> classBeanSerializerMap;
+    private static final Map<Class<?>, Class<? extends EntitySerializer<?>>> classBeanSerializerMap;
 
     static {
         final Set<Class<?>> allSerializerClass = ClassScanner.findClasses("com.wjybxx.fastjgame", name -> true, WireType::isBeanSerializer);
         classBeanSerializerMap = new IdentityHashMap<>(allSerializerClass.size());
 
         for (Class<?> clazz : allSerializerClass) {
-            @SuppressWarnings("unchecked") final Class<? extends BeanSerializer<?>> serializerClass = (Class<? extends BeanSerializer<?>>) clazz;
-            final Class<?> beanClass = TypeParameterFinder.findTypeParameterUnsafe(serializerClass, BeanSerializer.class, "T");
+            @SuppressWarnings("unchecked") final Class<? extends EntitySerializer<?>> serializerClass = (Class<? extends EntitySerializer<?>>) clazz;
+            final Class<?> beanClass = TypeParameterFinder.findTypeParameterUnsafe(serializerClass, EntitySerializer.class, "T");
 
             if (beanClass == Object.class) {
                 throw new UnsupportedOperationException("BeanSerializer must declare type parameter");
@@ -69,7 +69,7 @@ public class WireType {
     }
 
     private static boolean isBeanSerializer(Class<?> c) {
-        return c != BeanSerializer.class && BeanSerializer.class.isAssignableFrom(c);
+        return c != EntitySerializer.class && EntitySerializer.class.isAssignableFrom(c);
     }
 
     /**
@@ -292,8 +292,8 @@ public class WireType {
      */
     @Nullable
     @SuppressWarnings("unchecked")
-    public static <T> Class<? extends BeanSerializer<T>> getBeanSerializer(Class<T> messageClazz) {
-        return (Class<? extends BeanSerializer<T>>) classBeanSerializerMap.get(messageClazz);
+    public static <T> Class<? extends EntitySerializer<T>> getBeanSerializer(Class<T> messageClazz) {
+        return (Class<? extends EntitySerializer<T>>) classBeanSerializerMap.get(messageClazz);
     }
 
     /**

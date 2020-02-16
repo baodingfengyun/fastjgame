@@ -18,13 +18,14 @@ package com.wjybxx.fastjgame.net.common;
 
 
 import com.wjybxx.fastjgame.net.misc.*;
-import com.wjybxx.fastjgame.net.serializer.BeanInputStream;
-import com.wjybxx.fastjgame.net.serializer.BeanOutputStream;
-import com.wjybxx.fastjgame.net.serializer.BeanSerializer;
+import com.wjybxx.fastjgame.net.serializer.EntityInputStream;
+import com.wjybxx.fastjgame.net.serializer.EntityOutputStream;
+import com.wjybxx.fastjgame.net.serializer.EntitySerializer;
 import com.wjybxx.fastjgame.utils.async.MethodSpec;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -91,29 +92,26 @@ public class RpcCall<V> implements MethodSpec<V> {
     /**
      * 负责rpcCall的解析 - 会被扫描到
      */
-    private static class RpcCallSerializer implements BeanSerializer<RpcCall<?>> {
+    private static class RpcCallSerializer implements EntitySerializer<RpcCall<?>> {
 
         @Override
-        public void writeFields(RpcCall<?> instance, BeanOutputStream outputStream) throws IOException {
+        public void writeFields(RpcCall<?> instance, EntityOutputStream outputStream) throws IOException {
             outputStream.writeField(WireType.INT, instance.methodKey);
-            outputStream.writeField(WireType.LIST, instance.methodParams);
+            outputStream.writeCollection(instance.methodParams);
             outputStream.writeField(WireType.INT, instance.lazyIndexes);
             outputStream.writeField(WireType.INT, instance.preIndexes);
         }
 
         @Override
-        public RpcCall<?> read(BeanInputStream inputStream) throws IOException {
+        public RpcCall<?> readFields(RpcCall<?> instance,EntityInputStream inputStream) throws IOException {
             final Integer methodKey = inputStream.readField(WireType.INT);
-            final List<Object> methodParams = inputStream.readField(WireType.LIST);
+
+            final ArrayList<Object> methodParams = new ArrayList<>();
+            inputStream.readCollection(methodParams);
+
             final Integer lazyIndexes = inputStream.readField(WireType.INT);
             final Integer preIndexes = inputStream.readField(WireType.INT);
             return new RpcCall<>(methodKey, methodParams, lazyIndexes, preIndexes);
-        }
-
-        @Override
-        public RpcCall<?> clone(RpcCall<?> instance, BeanCloneUtil util) throws IOException {
-            final List<Object> methodParams = util.cloneField(WireType.LIST, instance.methodParams);
-            return new RpcCall<>(instance.methodKey, methodParams, instance.lazyIndexes, instance.preIndexes);
         }
     }
 }

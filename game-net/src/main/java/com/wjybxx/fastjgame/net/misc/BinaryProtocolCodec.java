@@ -19,9 +19,9 @@ package com.wjybxx.fastjgame.net.misc;
 import com.google.protobuf.*;
 import com.wjybxx.fastjgame.net.annotation.SerializableClass;
 import com.wjybxx.fastjgame.net.common.ProtocolCodec;
-import com.wjybxx.fastjgame.net.serializer.BeanInputStream;
-import com.wjybxx.fastjgame.net.serializer.BeanOutputStream;
-import com.wjybxx.fastjgame.net.serializer.BeanSerializer;
+import com.wjybxx.fastjgame.net.serializer.EntityInputStream;
+import com.wjybxx.fastjgame.net.serializer.EntityOutputStream;
+import com.wjybxx.fastjgame.net.serializer.EntitySerializer;
 import com.wjybxx.fastjgame.net.utils.NetUtils;
 import com.wjybxx.fastjgame.net.utils.ProtoUtils;
 import com.wjybxx.fastjgame.utils.EnumUtils;
@@ -83,7 +83,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
     /**
      * 其它普通类型bean
      */
-    private final Map<Class<?>, BeanSerializer<?>> beanSerializerMap;
+    private final Map<Class<?>, EntitySerializer<?>> beanSerializerMap;
     /**
      * 所有codec映射
      */
@@ -94,7 +94,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
                                 Map<Class<?>, ProtoEnumDescriptor> protoEnumDescriptorMap,
                                 Map<Class<?>, IntFunction<? extends NumericalEntity>> forNumberMethodMap,
                                 Map<Class<?>, Function<?, ? extends IndexableEntity<?>>> forIndexMethodMap,
-                                Map<Class<?>, BeanSerializer<?>> beanSerializerMap
+                                Map<Class<?>, EntitySerializer<?>> beanSerializerMap
     ) {
         this.messageMapper = messageMapper;
         this.parserMap = parserMap;
@@ -618,15 +618,15 @@ public class BinaryProtocolCodec implements ProtocolCodec {
             final Class<?> messageClass = obj.getClass();
             outputStream.writeSInt32NoTag(messageMapper.getMessageId(messageClass));
 
-            final BeanSerializer beanSerializer = beanSerializerMap.get(messageClass);
-            final BeanOutputStreamImp beanOutputStreamImp = new BeanOutputStreamImp(outputStream);
+            final EntitySerializer entitySerializer = beanSerializerMap.get(messageClass);
+            final EntityOutputStreamImp beanOutputStreamImp = new EntityOutputStreamImp(outputStream);
 
             // 先写入自身定义的字段
-            beanSerializer.writeFields(obj, beanOutputStreamImp);
+            entitySerializer.writeFields(obj, beanOutputStreamImp);
 
             // 递归写入父类定义字段
             for (Class<?> parent = messageClass.getSuperclass(); parent != Object.class; parent = parent.getSuperclass()) {
-                final BeanSerializer parentSerializer = beanSerializerMap.get(parent);
+                final EntitySerializer parentSerializer = beanSerializerMap.get(parent);
                 if (parentSerializer != null) {
                     parentSerializer.writeFields(obj, beanOutputStreamImp);
                 }
@@ -639,16 +639,16 @@ public class BinaryProtocolCodec implements ProtocolCodec {
             final int messageId = inputStream.readSInt32();
             final Class<?> messageClass = messageMapper.getMessageClazz(messageId);
 
-            final BeanSerializer beanSerializer = beanSerializerMap.get(messageClass);
-            final Object instance = beanSerializer.newInstance();
-            final BeanInputStreamImp beanInputStreamImp = new BeanInputStreamImp(inputStream);
+            final EntitySerializer entitySerializer = beanSerializerMap.get(messageClass);
+            final Object instance = entitySerializer.newInstance();
+            final EntityInputStreamImp beanInputStreamImp = new EntityInputStreamImp(inputStream);
 
             // 先读取当前类定义的字段
-            beanSerializer.readFields(instance, beanInputStreamImp);
+            entitySerializer.readFields(instance, beanInputStreamImp);
 
             // 递归读取父类字段
             for (Class<?> parent = messageClass.getSuperclass(); parent != Object.class; parent = parent.getSuperclass()) {
-                final BeanSerializer parentSerializer = beanSerializerMap.get(parent);
+                final EntitySerializer parentSerializer = beanSerializerMap.get(parent);
                 if (parentSerializer != null) {
                     parentSerializer.readFields(instance, beanInputStreamImp);
                 }
@@ -663,11 +663,11 @@ public class BinaryProtocolCodec implements ProtocolCodec {
 
     }
 
-    private class BeanOutputStreamImp implements BeanOutputStream {
+    private class EntityOutputStreamImp implements EntityOutputStream {
 
         private final CodedOutputStream outputStream;
 
-        private BeanOutputStreamImp(CodedOutputStream outputStream) {
+        private EntityOutputStreamImp(CodedOutputStream outputStream) {
             this.outputStream = outputStream;
         }
 
@@ -719,11 +719,11 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         writeRuntimeType(outputStream, fieldValue);
     }
 
-    private class BeanInputStreamImp implements BeanInputStream {
+    private class EntityInputStreamImp implements EntityInputStream {
 
         private final CodedInputStream inputStream;
 
-        private BeanInputStreamImp(CodedInputStream inputStream) {
+        private EntityInputStreamImp(CodedInputStream inputStream) {
             this.inputStream = inputStream;
         }
 
@@ -1107,7 +1107,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
 
         final Map<Class<?>, IntFunction<? extends NumericalEntity>> forNumberMethodMap = new IdentityHashMap<>();
         final Map<Class<?>, Function<?, ? extends IndexableEntity<?>>> forIndexMethodMap = new IdentityHashMap<>();
-        final Map<Class<?>, BeanSerializer<?>> beanSerializerMap = new IdentityHashMap<>();
+        final Map<Class<?>, EntitySerializer<?>> beanSerializerMap = new IdentityHashMap<>();
         try {
             for (Class<?> messageClazz : messageMapper.getAllMessageClasses()) {
                 // protoBuf消息
@@ -1142,10 +1142,10 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         }
     }
 
-    private static boolean indexClassBySerializer(Class<?> messageClazz, Map<Class<?>, BeanSerializer<?>> beanSerializerMap) throws Exception {
-        final Class<? extends BeanSerializer<?>> serializerClass = WireType.getBeanSerializer(messageClazz);
+    private static boolean indexClassBySerializer(Class<?> messageClazz, Map<Class<?>, EntitySerializer<?>> beanSerializerMap) throws Exception {
+        final Class<? extends EntitySerializer<?>> serializerClass = WireType.getBeanSerializer(messageClazz);
         if (serializerClass != null) {
-            final Constructor<? extends BeanSerializer<?>> noArgsConstructor = serializerClass.getDeclaredConstructor();
+            final Constructor<? extends EntitySerializer<?>> noArgsConstructor = serializerClass.getDeclaredConstructor();
             noArgsConstructor.setAccessible(true);
             beanSerializerMap.put(messageClazz, noArgsConstructor.newInstance());
             return true;

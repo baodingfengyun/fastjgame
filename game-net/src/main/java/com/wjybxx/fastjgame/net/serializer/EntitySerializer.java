@@ -25,8 +25,8 @@ import java.io.IOException;
  * JavaBean序列化工具类超类，生成的代码实现该接口。
  * <p>
  * 注意：
- * 1. 一般而言，建议使用注解{@link SerializableClass}，并遵循相关规范，由注解处理器生成的类负责解析，而不是实现{@link BeanSerializer}。
- * 2. 仅当反射编解码的类存在性能瓶颈时，才应该考虑实现{@link BeanSerializer}负责编解码相关的类。
+ * 1. 一般而言，建议使用注解{@link SerializableClass}，并遵循相关规范，由注解处理器生成的类负责解析，而不是实现{@link EntitySerializer}。
+ * 2. 仅当反射编解码的类存在性能瓶颈时，才应该考虑实现{@link EntitySerializer}负责编解码相关的类。
  * <p>
  * 如果手动实现该接口：
  * 1. 必须保证线程安全，最好是无状态的。
@@ -41,7 +41,7 @@ import java.io.IOException;
  * github - https://github.com/hl845740757
  */
 @ThreadSafe
-public interface BeanSerializer<T> {
+public interface EntitySerializer<T> {
 
     /**
      * 创建一个对象
@@ -52,11 +52,11 @@ public interface BeanSerializer<T> {
     /**
      * 从输入流中读取实例类定义的字段
      */
-    void readFields(T instance, BeanInputStream inputStream) throws IOException;
+    void readFields(T instance, EntityInputStream inputStream) throws IOException;
 
     /**
      * 将对象中要序列化的字段写入输出流
      */
-    void writeFields(T instance, BeanOutputStream outputStream) throws IOException;
+    void writeFields(T instance, EntityOutputStream outputStream) throws IOException;
 
 }

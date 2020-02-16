@@ -34,7 +34,7 @@ import java.util.Map;
  * date - 2020/1/13
  * github - https://github.com/hl845740757
  */
-public interface BeanOutputStream {
+public interface EntityOutputStream {
 
     /**
      * 向输入流中写入一个对象
