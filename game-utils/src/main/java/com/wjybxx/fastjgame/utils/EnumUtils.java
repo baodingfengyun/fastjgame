@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.utils;
 
-import com.wjybxx.fastjgame.utils.enummapper.NumericalEnum;
-import com.wjybxx.fastjgame.utils.enummapper.NumericalEnumMapper;
+import com.wjybxx.fastjgame.utils.entity.NumericalEntity;
+import com.wjybxx.fastjgame.utils.entity.NumericalEntityMapper;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
@@ -49,7 +49,7 @@ public class EnumUtils {
      * @return T
      */
     @Nullable
-    public static <T extends NumericalEnum> T forNumber(T[] values, int number) {
+    public static <T extends NumericalEntity> T forNumber(T[] values, int number) {
         for (T t : values) {
             if (t.getNumber() == number) {
                 return t;
@@ -122,9 +122,9 @@ public class EnumUtils {
      * @param <T>    枚举类型
      * @return unmodifiable
      */
-    public static <T extends NumericalEnum> NumericalEnumMapper<T> mapping(T[] values) {
+    public static <T extends NumericalEntity> NumericalEntityMapper<T> mapping(T[] values) {
         if (values.length == 0) {
-            @SuppressWarnings("unchecked") final NumericalEnumMapper<T> mapper = (NumericalEnumMapper<T>) EmptyMapper.INSTANCE;
+            @SuppressWarnings("unchecked") final NumericalEntityMapper<T> mapper = (NumericalEntityMapper<T>) EmptyMapper.INSTANCE;
             return mapper;
         }
 
@@ -138,12 +138,12 @@ public class EnumUtils {
         }
 
         final int minNumber = Arrays.stream(values)
-                .mapToInt(NumericalEnum::getNumber)
+                .mapToInt(NumericalEntity::getNumber)
                 .min()
                 .getAsInt();
 
         final int maxNumber = Arrays.stream(values)
-                .mapToInt(NumericalEnum::getNumber)
+                .mapToInt(NumericalEntity::getNumber)
                 .max()
                 .getAsInt();
 
@@ -154,7 +154,7 @@ public class EnumUtils {
         }
     }
 
-    private static class EmptyMapper<T extends NumericalEnum> implements NumericalEnumMapper<T> {
+    private static class EmptyMapper<T extends NumericalEntity> implements NumericalEntityMapper<T> {
 
         private static final EmptyMapper<?> INSTANCE = new EmptyMapper<>();
         private static final Object[] EMPTY_ARRAY = new Object[0];
@@ -179,7 +179,7 @@ public class EnumUtils {
      * 基于数组的映射，对于数量少的枚举效果好；
      * (可能存在一定空间浪费，空间换时间，如果数字基本连续，那么空间利用率很好)
      */
-    private static class ArrayBasedEnumMapper<T extends NumericalEnum> implements NumericalEnumMapper<T> {
+    private static class ArrayBasedEnumMapper<T extends NumericalEntity> implements NumericalEntityMapper<T> {
 
         /**
          * 最小空间资源利用率，小于该值空间浪费太大
@@ -264,7 +264,7 @@ public class EnumUtils {
      * 基于map的映射。
      * 对于枚举值较多或数字取值范围散乱的枚举适合；
      */
-    private static class MapBasedMapper<T extends NumericalEnum> implements NumericalEnumMapper<T> {
+    private static class MapBasedMapper<T extends NumericalEntity> implements NumericalEntityMapper<T> {
 
         private final T[] values;
         private final Int2ObjectMap<T> mapping;

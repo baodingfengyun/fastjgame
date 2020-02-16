@@ -179,7 +179,12 @@ public class RpcServiceProcessor extends AbstractProcessor {
      */
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        ensureInited();
+        try {
+            ensureInited();
+        } catch (Throwable e) {
+            messager.printMessage(Diagnostic.Kind.ERROR, AutoUtils.getStackTrace(e));
+        }
+
         // 该注解只有类才可以使用
         @SuppressWarnings("unchecked")
         Set<TypeElement> typeElementSet = (Set<TypeElement>) roundEnv.getElementsAnnotatedWith(rpcServiceElement);
@@ -442,11 +447,11 @@ public class RpcServiceProcessor extends AbstractProcessor {
     }
 
     private boolean isResponseChannel(VariableElement variableElement) {
-        return AutoUtils.isTargetDeclaredType(variableElement, declaredType -> typeUtils.isAssignable(declaredType, responseChannelDeclaredType));
+        return AutoUtils.isSameTypeIgnoreTypeParameter(typeUtils, variableElement.asType(), responseChannelDeclaredType);
     }
 
     private boolean isSession(VariableElement variableElement) {
-        return AutoUtils.isTargetDeclaredType(variableElement, declaredType -> typeUtils.isSubtype(declaredType, sessionDeclaredType));
+        return AutoUtils.isSameTypeIgnoreTypeParameter(typeUtils, variableElement.asType(), sessionDeclaredType);
     }
 
     /**

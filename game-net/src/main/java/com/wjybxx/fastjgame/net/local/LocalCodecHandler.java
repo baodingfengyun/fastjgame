@@ -47,7 +47,9 @@ public class LocalCodecHandler extends SessionOutboundHandlerAdapter {
         // msg 是根据writeTask创建的对象，不是共享的，但它持有的内容是共享的
         if (msg instanceof NetLogicMessage) {
             NetLogicMessage logicMessage = (NetLogicMessage) msg;
-            logicMessage.setBody(codec.cloneObject(logicMessage.getBody()));
+            final byte[] bodyBytes = codec.serializeToBytes(logicMessage.getBody());
+            final Object newBody = codec.deserializeFromBytes(bodyBytes);
+            logicMessage.setBody(newBody);
         }
         // 传递给下一个handler
         ctx.fireWrite(msg);

@@ -17,6 +17,9 @@
 package com.wjybxx.fastjgame.net.common;
 
 import com.wjybxx.fastjgame.net.misc.*;
+import com.wjybxx.fastjgame.net.serializer.BeanInputStream;
+import com.wjybxx.fastjgame.net.serializer.BeanOutputStream;
+import com.wjybxx.fastjgame.net.serializer.BeanSerializer;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -122,21 +125,21 @@ public final class RpcResponse {
     private static class RpcResponseSerializer implements BeanSerializer<RpcResponse> {
 
         @Override
-        public void write(RpcResponse instance, BeanOutputStream outputStream) throws IOException {
-            outputStream.writeObject(WireType.NORMAL_BEAN, instance.errorCode);
-            outputStream.writeObject(WireType.RUN_TIME, instance.body);
+        public void writeFields(RpcResponse instance, BeanOutputStream outputStream) throws IOException {
+            outputStream.writeField(WireType.CUSTOM_ENTITY, instance.errorCode);
+            outputStream.writeField(WireType.RUN_TIME, instance.body);
         }
 
         @Override
         public RpcResponse read(BeanInputStream inputStream) throws IOException {
-            final RpcErrorCode errorCode = inputStream.readObject(WireType.NORMAL_BEAN);
-            final Object body = inputStream.readObject(WireType.RUN_TIME);
+            final RpcErrorCode errorCode = inputStream.readField(WireType.CUSTOM_ENTITY);
+            final Object body = inputStream.readField(WireType.RUN_TIME);
             return new RpcResponse(errorCode, body);
         }
 
         @Override
         public RpcResponse clone(RpcResponse instance, BeanCloneUtil util) throws IOException {
-            return new RpcResponse(instance.errorCode, util.clone(WireType.RUN_TIME, instance.body));
+            return new RpcResponse(instance.errorCode, util.cloneField(WireType.RUN_TIME, instance.body));
         }
     }
 }

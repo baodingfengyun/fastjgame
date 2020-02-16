@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.misc;
+package com.wjybxx.fastjgame.net.serializer;
 
+import com.wjybxx.fastjgame.net.misc.WireType;
+
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * 普通JavaBean对象输出流。
@@ -32,19 +37,20 @@ import java.io.IOException;
 public interface BeanOutputStream {
 
     /**
-     * 向输入流中写入一个对象。
-     * 方便手写实现。
-     */
-    default void writeObject(@Nullable Object fieldValue) throws IOException {
-        writeObject(WireType.RUN_TIME, fieldValue);
-    }
-
-    /**
      * 向输入流中写入一个对象
      *
      * @param wireType   字段的缓存类型，如果该值为{@link WireType#RUN_TIME}，则需要动态解析。
      * @param fieldValue 字段的值
-     * @throws IOException error
      */
-    void writeObject(byte wireType, @Nullable Object fieldValue) throws IOException;
+    void writeField(byte wireType, @Nullable Object fieldValue) throws IOException;
+
+    /**
+     * 向输入流中写入一个map
+     */
+    <K, V> void writeMap(@Nonnull Map<K, V> map) throws IOException;
+
+    /**
+     * 像输入流中写一个collection
+     */
+    <E> void writeCollection(@Nonnull Collection<E> collection) throws IOException;
 }

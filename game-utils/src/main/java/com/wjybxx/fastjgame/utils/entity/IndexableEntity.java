@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.utils.indexable;
+package com.wjybxx.fastjgame.utils.entity;
 
 import javax.annotation.Nonnull;
 
 /**
- * 可索引的实体。
+ * 可索引的实体 - 类似枚举值。
  * <p>
  * Q: 什么是可索引的实体？
  * A: 举个例子，策划的配置表格，我们总是根据某些列的值或某些行的值去确定一条配置，如：物品表，我们一般通过物品id去获取配置。
@@ -31,8 +31,9 @@ import javax.annotation.Nonnull;
  * Q: 我们不是可以在实体里面只存储索引，不存储完整对象的吗，为什么还要设计该对象？
  * A: 我们要尽可能的<b>减少对业务实体的限制</b>！业务实体可能需要引用完整的实体对象，以方便业务逻辑，或减少大量查询等，
  * 不能因为要序列化或要持久化就要求业务实体必须是简单的bean。
- * <p>
  * 注意：如果想要序列化或持久化，请确保索引是可以序列化或持久化的
+ * <h3>限制</h3>
+ * 1. 实现类必须是可共享的(线程安全的)。
  *
  * @author wjybxx
  * @version 1.0

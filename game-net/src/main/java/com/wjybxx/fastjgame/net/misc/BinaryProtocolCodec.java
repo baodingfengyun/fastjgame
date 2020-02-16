@@ -18,17 +18,18 @@ package com.wjybxx.fastjgame.net.misc;
 
 import com.google.protobuf.*;
 import com.wjybxx.fastjgame.net.annotation.SerializableClass;
-import com.wjybxx.fastjgame.net.annotation.SerializableField;
 import com.wjybxx.fastjgame.net.common.ProtocolCodec;
+import com.wjybxx.fastjgame.net.serializer.BeanInputStream;
+import com.wjybxx.fastjgame.net.serializer.BeanOutputStream;
+import com.wjybxx.fastjgame.net.serializer.BeanSerializer;
 import com.wjybxx.fastjgame.net.utils.NetUtils;
 import com.wjybxx.fastjgame.net.utils.ProtoUtils;
-import com.wjybxx.fastjgame.utils.CollectionUtils;
 import com.wjybxx.fastjgame.utils.EnumUtils;
-import com.wjybxx.fastjgame.utils.enummapper.NumericalEnum;
-import com.wjybxx.fastjgame.utils.enummapper.NumericalEnumMapper;
+import com.wjybxx.fastjgame.utils.entity.IndexableEntity;
+import com.wjybxx.fastjgame.utils.entity.NumericalEntity;
+import com.wjybxx.fastjgame.utils.entity.NumericalEntityMapper;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.Nonnull;
@@ -37,8 +38,11 @@ import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.util.*;
+import java.util.Collection;
+import java.util.IdentityHashMap;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.function.IntFunction;
 
 /**
  * 基于protoBuf的二进制格式编解码器。
@@ -46,30 +50,6 @@ import java.util.*;
  * 加上网络传输的影响，差距会被放大。
  * <p>
  * 建议能单例就单例，能减少内存占用。
- * <p>
- * 反射的好处：
- * 1. 代码量少，功能强大。
- * 2. 可扩展性好。
- * 3. 可理解性更好。
- * <p>
- * 反射的缺点：反射比正常方法调用性能要差(大致会降低15%-20%的编解码速度，反射只占编解码的一部分)。
- * <p>
- * 为了解决反射的缺点，对普通的javabean生成静态序列化代码{@link BeanSerializer}，大幅度降低反射使用，只有特殊要求的对象才使用反射，编解码速度提升达30%。
- * <p>
- * 编码格式：
- * <pre>
- *     	基本数据类型		tag + value
- *     	String          tag + length + bytes
- * 		List/Set 		tag + size + element,element....              element 编解码 -- 递归
- * 		Map      		tag + size + key,value,key,value.....         key/Value 编解码 -- 递归
- * 		Message  		tag + messageId + length + bytes
- * 	    JavaBean        tag + messageId + field,field....              field 构成: tag + data
- * 	    ReflectBean	    tag + messageId + fieldNum + field,field....   field 构成: number + tag + data
- * 	    枚举				tag + messageId + number
- * 	    基本类型数组      tag + size + value,value......
- * 	    Chunk           tag + length + bytes
- * </pre>
- * 其中messageId用于确定一个唯一的类！也就是{@link MessageMapper}的重要作用。
  *
  * @author wjybxx
  * @version 1.0
@@ -91,34 +71,37 @@ public class BinaryProtocolCodec implements ProtocolCodec {
      * proto enum 解析方法
      */
     private final Map<Class<?>, ProtoEnumDescriptor> protoEnumDescriptorMap;
+
     /**
-     * 静态代码工具类负责解析的对象(javabean 和 自定义枚举)
+     * {@link NumericalEntity}类型解析器
+     */
+    private final Map<Class<?>, IntFunction<? extends NumericalEntity>> forNumberMethodMap;
+    /**
+     * {@link IndexableEntity}类型解析器
+     */
+    private final Map<Class<?>, Function<?, ? extends IndexableEntity<?>>> forIndexMethodMap;
+    /**
+     * 其它普通类型bean
      */
     private final Map<Class<?>, BeanSerializer<?>> beanSerializerMap;
     /**
-     * 需要反射解析的对象
-     */
-    private final Map<Class<?>, ReflectClassDescriptor> reflectClassDescriptorMap;
-    /**
      * 所有codec映射
      */
-    private final NumericalEnumMapper<Codec<?>> codecMapper;
-    /**
-     * 克隆工具，提供给bean序列化代理类
-     */
-    private final BeanCloneUtil beanCloneUtil;
+    private final NumericalEntityMapper<Codec<?>> codecMapper;
 
     private BinaryProtocolCodec(MessageMapper messageMapper,
                                 Map<Class<?>, Parser<?>> parserMap,
-                                Map<Class<?>, BeanSerializer<?>> beanSerializerMap,
-                                Map<Class<?>, ReflectClassDescriptor> reflectClassDescriptorMap,
-                                Map<Class<?>, ProtoEnumDescriptor> protoEnumDescriptorMap) {
+                                Map<Class<?>, ProtoEnumDescriptor> protoEnumDescriptorMap,
+                                Map<Class<?>, IntFunction<? extends NumericalEntity>> forNumberMethodMap,
+                                Map<Class<?>, Function<?, ? extends IndexableEntity<?>>> forIndexMethodMap,
+                                Map<Class<?>, BeanSerializer<?>> beanSerializerMap
+    ) {
         this.messageMapper = messageMapper;
         this.parserMap = parserMap;
         this.protoEnumDescriptorMap = protoEnumDescriptorMap;
+        this.forNumberMethodMap = forNumberMethodMap;
+        this.forIndexMethodMap = forIndexMethodMap;
         this.beanSerializerMap = beanSerializerMap;
-        this.reflectClassDescriptorMap = reflectClassDescriptorMap;
-        this.beanCloneUtil = new BeanCloneUtilImp();
 
         codecMapper = EnumUtils.mapping(initValues());
     }
@@ -133,19 +116,13 @@ public class BinaryProtocolCodec implements ProtocolCodec {
                 new StringCodec(),
 
                 new MessageCodec(),
-                new NormalBeanCodec(),
-                new ReflectBeanCodec(),
-
-                new ListCodec(),
-                new MapCodec(),
-                new SetCodec(),
-
-                // 枚举
                 new ProtoEnumCodec(),
+                new ChunkCodec(),
+
+                new NormalBeanCodec(),
 
                 // 字节数组比较常见
                 new ByteArrayCodec(),
-                new ChunkCodec(),
 
                 new BoolCodec(),
                 new ByteCodec(),
@@ -159,6 +136,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
                 new DoubleArrayCodec(),
                 new CharArrayCodec(),
                 new ShortArrayCodec(),
+                new BooleanArrayCodec()
         };
     }
 
@@ -233,24 +211,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         return codec;
     }
 
-    @Override
-    public Object cloneObject(@Nullable Object object) throws IOException {
-        if (object == null) {
-            return null;
-        }
-        return cloneRuntimeTypes(object);
-    }
-
-    @SuppressWarnings("unchecked")
-    private Object cloneRuntimeTypes(@Nonnull Object object) throws IOException {
-        final Class<?> type = object.getClass();
-        for (Codec codec : codecMapper.values()) {
-            if (codec.isSupport(type)) {
-                return codec.clone(object);
-            }
-        }
-        throw new IOException("unsupported class " + object.getClass().getName());
-    }
 
     @Nonnull
     @Override
@@ -295,59 +255,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
     }
 
     /**
-     * 反射类文件描述符
-     */
-    private static class ReflectClassDescriptor {
-
-        /**
-         * 构造方法
-         */
-        private final Constructor constructor;
-        /**
-         * 要序列化的字段的映射
-         */
-        private final NumericalEnumMapper<ReflectFieldDescriptor> fieldDescriptorMapper;
-
-        private ReflectClassDescriptor(@Nonnull ReflectFieldDescriptor[] serializableFields, @Nonnull Constructor constructor) {
-            this.constructor = constructor;
-            this.fieldDescriptorMapper = EnumUtils.mapping(serializableFields);
-        }
-
-        private int filedNum() {
-            return fieldDescriptorMapper.values().length;
-        }
-    }
-
-    /**
-     * 反射字段描述符
-     */
-    private static class ReflectFieldDescriptor implements NumericalEnum {
-        /**
-         * 用于反射赋值
-         */
-        private final Field field;
-        /**
-         * 字段对应的number，用于兼容性支持，认为一般不会出现负数
-         */
-        private final int number;
-        /**
-         * 数据类型缓存 - 可大幅提高编解码速度
-         */
-        private final byte wireType;
-
-        private ReflectFieldDescriptor(Field field, int number, byte wireType) {
-            this.field = field;
-            this.number = number;
-            this.wireType = wireType;
-        }
-
-        @Override
-        public int getNumber() {
-            return number;
-        }
-    }
-
-    /**
      * protobuf枚举描述符
      */
     private static class ProtoEnumDescriptor {
@@ -359,7 +266,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         }
     }
 
-    private interface Codec<T> extends NumericalEnum {
+    private interface Codec<T> extends NumericalEntity {
 
         /**
          * 是否支持编码该对象
@@ -399,13 +306,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
          */
         byte getWireType();
 
-        /**
-         * 克隆一个对象
-         *
-         * @param obj 待克隆的对象
-         * @return newInstance or the same object
-         */
-        T clone(@Nonnull T obj) throws IOException;
     }
 
     /**
@@ -433,10 +333,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
             return WireType.BYTE;
         }
 
-        @Override
-        public Byte clone(@Nonnull Byte obj) {
-            return obj;
-        }
     }
 
     private static abstract class Int32Codec<T extends Number> implements Codec<T> {
@@ -465,10 +361,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
             return WireType.INT;
         }
 
-        @Override
-        public Integer clone(@Nonnull Integer obj) {
-            return obj;
-        }
     }
 
     private static class ShortCodec extends Int32Codec<Short> {
@@ -488,10 +380,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
             return WireType.SHORT;
         }
 
-        @Override
-        public Short clone(@Nonnull Short obj) {
-            return obj;
-        }
     }
 
     private static class CharCodec implements Codec<Character> {
@@ -516,10 +404,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
             return WireType.CHAR;
         }
 
-        @Override
-        public Character clone(@Nonnull Character obj) {
-            return obj;
-        }
     }
 
     private static class LongCodec implements Codec<Long> {
@@ -544,10 +428,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
             return WireType.LONG;
         }
 
-        @Override
-        public Long clone(@Nonnull Long obj) {
-            return obj;
-        }
     }
 
     private static class FloatCodec implements Codec<Float> {
@@ -572,10 +452,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
             return WireType.FLOAT;
         }
 
-        @Override
-        public Float clone(@Nonnull Float obj) {
-            return obj;
-        }
     }
 
     private static class DoubleCodec implements Codec<Double> {
@@ -600,10 +476,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
             return WireType.DOUBLE;
         }
 
-        @Override
-        public Double clone(@Nonnull Double obj) {
-            return obj;
-        }
     }
 
     private static class BoolCodec implements Codec<Boolean> {
@@ -628,10 +500,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
             return WireType.BOOLEAN;
         }
 
-        @Override
-        public Boolean clone(@Nonnull Boolean obj) {
-            return obj;
-        }
     }
 
     private static class StringCodec implements Codec<String> {
@@ -656,10 +524,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
             return WireType.STRING;
         }
 
-        @Override
-        public String clone(@Nonnull String obj) {
-            return obj;
-        }
     }
 
     // protoBuf消息编解码支持
@@ -703,10 +567,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
             return WireType.PROTO_MESSAGE;
         }
 
-        @Override
-        public AbstractMessage clone(@Nonnull AbstractMessage obj) {
-            return obj;
-        }
     }
 
 
@@ -735,153 +595,11 @@ public class BinaryProtocolCodec implements ProtocolCodec {
             }
         }
 
-        public ProtocolMessageEnum clone(@Nonnull ProtocolMessageEnum obj) {
-            return obj;
-        }
-
         @Override
         public byte getWireType() {
             return WireType.PROTO_ENUM;
         }
 
-    }
-
-    // 集合支持
-    private abstract class CollectionCodec<T extends Collection> implements Codec<T> {
-
-        @Override
-        public void writeData(CodedOutputStream outputStream, @Nonnull T obj) throws IOException {
-            outputStream.writeUInt32NoTag(obj.size());
-            if (obj.size() == 0) {
-                return;
-            }
-            for (Object element : obj) {
-                BinaryProtocolCodec.this.writeObject(outputStream, element);
-            }
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public T readData(CodedInputStream inputStream) throws IOException {
-            int size = inputStream.readUInt32();
-            if (size == 0) {
-                return newCollection(0);
-            }
-            T collection = newCollection(size);
-            for (int index = 0; index < size; index++) {
-                collection.add(BinaryProtocolCodec.this.readObject(inputStream));
-            }
-            return collection;
-        }
-
-        /**
-         * 当size大于0时，尝试返回一个足够容量的集合
-         *
-         * @param size 需要的大小
-         */
-        @Nonnull
-        protected abstract T newCollection(int size);
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public T clone(@Nonnull T obj) throws IOException {
-            T collection = newCollection(obj.size());
-            for (Object element : obj) {
-                collection.add(BinaryProtocolCodec.this.cloneObject(element));
-            }
-            return collection;
-        }
-    }
-
-    private class ListCodec extends CollectionCodec<List> {
-
-        @Override
-        public boolean isSupport(Class<?> type) {
-            return List.class.isAssignableFrom(type);
-        }
-
-        @Override
-        public byte getWireType() {
-            return WireType.LIST;
-        }
-
-        @Nonnull
-        @Override
-        protected List newCollection(int size) {
-            return new ArrayList(size);
-        }
-    }
-
-    private class SetCodec extends CollectionCodec<Set> {
-
-        @Override
-        public boolean isSupport(Class<?> type) {
-            return Set.class.isAssignableFrom(type);
-        }
-
-        @Override
-        public byte getWireType() {
-            return WireType.SET;
-        }
-
-        @Nonnull
-        @Override
-        protected Set newCollection(int size) {
-            return CollectionUtils.newLinkedHashSetWithExpectedSize(size);
-        }
-    }
-
-    private class MapCodec implements Codec<Map> {
-
-        @Override
-        public boolean isSupport(Class<?> type) {
-            return Map.class.isAssignableFrom(type);
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public void writeData(CodedOutputStream outputStream, @Nonnull Map obj) throws IOException {
-            outputStream.writeUInt32NoTag(obj.size());
-            if (obj.size() == 0) {
-                return;
-            }
-            for (Map.Entry entry : ((Map<Object, Object>) obj).entrySet()) {
-                BinaryProtocolCodec.this.writeObject(outputStream, entry.getKey());
-                BinaryProtocolCodec.this.writeObject(outputStream, entry.getValue());
-            }
-        }
-
-        @Override
-        public Map readData(CodedInputStream inputStream) throws IOException {
-            int size = inputStream.readUInt32();
-            if (size == 0) {
-                return new LinkedHashMap();
-            }
-            Map<Object, Object> map = CollectionUtils.newLinkedHashMapWithExpectedSize(size);
-            for (int index = 0; index < size; index++) {
-                Object key = BinaryProtocolCodec.this.readObject(inputStream);
-                Object value = BinaryProtocolCodec.this.readObject(inputStream);
-                map.put(key, value);
-            }
-            return map;
-        }
-
-        @Override
-        public byte getWireType() {
-            return WireType.MAP;
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public Map clone(@Nonnull Map obj) throws IOException {
-            Map<Object, Object> map = CollectionUtils.newLinkedHashMapWithExpectedSize(obj.size());
-            for (Map.Entry entry : ((Map<Object, Object>) obj).entrySet()) {
-                final Object k = BinaryProtocolCodec.this.cloneObject(entry.getKey());
-                final Object v = BinaryProtocolCodec.this.cloneObject(entry.getValue());
-                map.put(k, v);
-            }
-            return map;
-        }
     }
 
     /**
@@ -897,43 +615,88 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         @SuppressWarnings({"unchecked", "rawTypes"})
         @Override
         public void writeData(CodedOutputStream outputStream, @Nonnull Object obj) throws IOException {
-            outputStream.writeSInt32NoTag(messageMapper.getMessageId(obj.getClass()));
-            final BeanSerializer beanSerializer = beanSerializerMap.get(obj.getClass());
-            beanSerializer.write(obj, new OutputStreamImp(outputStream));
+            final Class<?> messageClass = obj.getClass();
+            outputStream.writeSInt32NoTag(messageMapper.getMessageId(messageClass));
+
+            final BeanSerializer beanSerializer = beanSerializerMap.get(messageClass);
+            final BeanOutputStreamImp beanOutputStreamImp = new BeanOutputStreamImp(outputStream);
+
+            // 先写入自身定义的字段
+            beanSerializer.writeFields(obj, beanOutputStreamImp);
+
+            // 递归写入父类定义字段
+            for (Class<?> parent = messageClass.getSuperclass(); parent != Object.class; parent = parent.getSuperclass()) {
+                final BeanSerializer parentSerializer = beanSerializerMap.get(parent);
+                if (parentSerializer != null) {
+                    parentSerializer.writeFields(obj, beanOutputStreamImp);
+                }
+            }
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public Object readData(CodedInputStream inputStream) throws IOException {
             final int messageId = inputStream.readSInt32();
             final Class<?> messageClass = messageMapper.getMessageClazz(messageId);
+
             final BeanSerializer beanSerializer = beanSerializerMap.get(messageClass);
-            return beanSerializer.read(new InputStreamImp(inputStream));
+            final Object instance = beanSerializer.newInstance();
+            final BeanInputStreamImp beanInputStreamImp = new BeanInputStreamImp(inputStream);
+
+            // 先读取当前类定义的字段
+            beanSerializer.readFields(instance, beanInputStreamImp);
+
+            // 递归读取父类字段
+            for (Class<?> parent = messageClass.getSuperclass(); parent != Object.class; parent = parent.getSuperclass()) {
+                final BeanSerializer parentSerializer = beanSerializerMap.get(parent);
+                if (parentSerializer != null) {
+                    parentSerializer.readFields(instance, beanInputStreamImp);
+                }
+            }
+            return instance;
         }
 
         @Override
         public byte getWireType() {
-            return WireType.NORMAL_BEAN;
+            return WireType.CUSTOM_ENTITY;
         }
 
-        @SuppressWarnings({"unchecked"})
-        @Override
-        public Object clone(@Nonnull Object obj) throws IOException {
-            final BeanSerializer beanSerializer = beanSerializerMap.get(obj.getClass());
-            return beanSerializer.clone(obj, beanCloneUtil);
-        }
     }
 
-    private class OutputStreamImp implements BeanOutputStream {
+    private class BeanOutputStreamImp implements BeanOutputStream {
 
         private final CodedOutputStream outputStream;
 
-        private OutputStreamImp(CodedOutputStream outputStream) {
+        private BeanOutputStreamImp(CodedOutputStream outputStream) {
             this.outputStream = outputStream;
         }
 
         @Override
-        public void writeObject(byte wireType, @Nullable Object fieldValue) throws IOException {
+        public void writeField(byte wireType, @Nullable Object fieldValue) throws IOException {
             writeFieldValue(wireType, outputStream, fieldValue);
+        }
+
+        @Override
+        public <K, V> void writeMap(@Nonnull Map<K, V> map) throws IOException {
+            outputStream.writeUInt32NoTag(map.size());
+            if (map.size() == 0) {
+                return;
+            }
+            for (Map.Entry<K, V> entry : map.entrySet()) {
+                BinaryProtocolCodec.this.writeObject(outputStream, entry.getKey());
+                BinaryProtocolCodec.this.writeObject(outputStream, entry.getValue());
+            }
+        }
+
+        @Override
+        public <E> void writeCollection(@Nonnull Collection<E> collection) throws IOException {
+            outputStream.writeUInt32NoTag(collection.size());
+            if (collection.size() == 0) {
+                return;
+            }
+            for (E element : collection) {
+                BinaryProtocolCodec.this.writeObject(outputStream, element);
+            }
         }
     }
 
@@ -956,136 +719,56 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         writeRuntimeType(outputStream, fieldValue);
     }
 
-    private class InputStreamImp implements BeanInputStream {
+    private class BeanInputStreamImp implements BeanInputStream {
 
         private final CodedInputStream inputStream;
 
-        private InputStreamImp(CodedInputStream inputStream) {
+        private BeanInputStreamImp(CodedInputStream inputStream) {
             this.inputStream = inputStream;
         }
 
-
         @Override
-        public <T> T readObject(byte wireType) throws IOException {
-            return readFieldValue(wireType, inputStream);
-        }
-    }
+        public <T> T readField(byte wireType) throws IOException {
+            final byte tag = readTag(inputStream);
+            if (tag == WireType.NULL) {
+                return null;
+            }
 
-    /**
-     * @param expectedWireType 期望的类型，用于校验
-     */
-    @SuppressWarnings("unchecked")
-    private <T> T readFieldValue(byte expectedWireType, CodedInputStream inputStream) throws IOException {
-        final byte tag = readTag(inputStream);
-        if (tag == WireType.NULL) {
-            return null;
-        }
+            // 类型校验
+            if (wireType != WireType.RUN_TIME && wireType != tag) {
+                throw new IOException("Incompatible wireType, expected: " + wireType + ", but read: " + tag);
+            }
 
-        // 类型校验
-        if (expectedWireType != WireType.RUN_TIME && expectedWireType != tag) {
-            throw new IOException("Incompatible wireType, expected: " + expectedWireType + ", but read: " + tag);
-        }
-
-        return (T) getCodec(tag).readData(inputStream);
-    }
-
-    private class BeanCloneUtilImp implements BeanCloneUtil {
-
-        @Override
-        public <T> T clone(byte wireType, @Nullable T fieldValue) throws IOException {
-            return cloneFieldValue(wireType, fieldValue);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> T cloneFieldValue(byte wireType, @Nullable T value) throws IOException {
-        if (value == null) {
-            return null;
-        }
-
-        // 索引为具体类型的字段
-        if (wireType != WireType.RUN_TIME) {
-            return (T) getCodec(wireType).clone(value);
-        }
-
-        // 运行时才知道的类型 - 极少走到这里
-        return (T) cloneRuntimeTypes(value);
-    }
-
-    /**
-     * 需要反射处理的bean对象
-     */
-    private class ReflectBeanCodec implements Codec<Object> {
-
-        @Override
-        public boolean isSupport(Class<?> type) {
-            return reflectClassDescriptorMap.containsKey(type);
+            @SuppressWarnings("unchecked") final T value = (T) getCodec(tag).readData(inputStream);
+            return value;
         }
 
         @Override
-        public void writeData(CodedOutputStream outputStream, @Nonnull Object obj) throws IOException {
-            ReflectClassDescriptor descriptor = reflectClassDescriptorMap.get(obj.getClass());
-            outputStream.writeSInt32NoTag(messageMapper.getMessageId(obj.getClass()));
-            outputStream.writeUInt32NoTag(descriptor.filedNum());
-            try {
-                for (ReflectFieldDescriptor fieldDescriptor : descriptor.fieldDescriptorMapper.values()) {
-                    outputStream.writeUInt32NoTag(fieldDescriptor.number);
-                    writeFieldValue(fieldDescriptor.wireType, outputStream, fieldDescriptor.field.get(obj));
-                }
-            } catch (Exception e) {
-                throw new IOException(obj.getClass().getName(), e);
+        public <K, V> void readMap(@Nonnull Map<K, V> map) throws IOException {
+            int size = inputStream.readUInt32();
+            if (size == 0) {
+                return;
+            }
+            for (int index = 0; index < size; index++) {
+                @SuppressWarnings("unchecked") K key = (K) BinaryProtocolCodec.this.readObject(inputStream);
+                @SuppressWarnings("unchecked") V value = (V) BinaryProtocolCodec.this.readObject(inputStream);
+                map.put(key, value);
             }
         }
 
         @Override
-        public Object readData(CodedInputStream inputStream) throws IOException {
-            final int messageId = inputStream.readSInt32();
-            final int fieldNum = inputStream.readUInt32();
-
-            final Class<?> messageClass = messageMapper.getMessageClazz(messageId);
-            final ReflectClassDescriptor descriptor = reflectClassDescriptorMap.get(messageClass);
-
-            int fieldIndex = 1;
-            try {
-                Object instance = descriptor.constructor.newInstance(ArrayUtils.EMPTY_OBJECT_ARRAY);
-                for (; fieldIndex <= fieldNum; fieldIndex++) {
-                    int number = inputStream.readUInt32();
-                    // 兼容性限定：可以少发过来字段，但是不能多发字段
-                    ReflectFieldDescriptor fieldDescriptor = descriptor.fieldDescriptorMapper.forNumber(number);
-                    if (null == fieldDescriptor) {
-                        throw new IOException("Incompatible message, field : " + number + " not found");
-                    }
-
-                    final Object fieldValue = readFieldValue(fieldDescriptor.wireType, inputStream);
-                    fieldDescriptor.field.set(instance, fieldValue);
-                }
-                return instance;
-            } catch (Exception e) {
-                throw new IOException(messageClass.getName() + ", fieldIndex " + fieldIndex, e);
+        public <E> void readCollection(@Nonnull Collection<E> collection) throws IOException {
+            int size = inputStream.readUInt32();
+            if (size == 0) {
+                return;
             }
-        }
-
-        @Override
-        public byte getWireType() {
-            return WireType.REFLECT_BEAN;
-        }
-
-        @Override
-        public Object clone(@Nonnull Object obj) throws IOException {
-            ReflectClassDescriptor descriptor = reflectClassDescriptorMap.get(obj.getClass());
-            try {
-                Object instance = descriptor.constructor.newInstance(ArrayUtils.EMPTY_OBJECT_ARRAY);
-                for (ReflectFieldDescriptor fieldDescriptor : descriptor.fieldDescriptorMapper.values()) {
-                    // 逐个拷贝
-                    final Object fieldValue = fieldDescriptor.field.get(obj);
-                    fieldDescriptor.field.set(instance, cloneFieldValue(fieldDescriptor.wireType, fieldValue));
-                }
-                return instance;
-            } catch (Exception e) {
-                throw new IOException(obj.getClass().getName(), e);
+            for (int index = 0; index < size; index++) {
+                @SuppressWarnings("unchecked") final E e = (E) BinaryProtocolCodec.this.readObject(inputStream);
+                collection.add(e);
             }
         }
     }
+
 
     // ------------------------------------------------- 基本数组支持 ---------------------------------------------
 
@@ -1117,230 +800,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
             return WireType.BYTE_ARRAY;
         }
 
-        @Override
-        public byte[] clone(@Nonnull byte[] obj) throws IOException {
-            final byte[] result = new byte[obj.length];
-            System.arraycopy(obj, 0, result, 0, obj.length);
-            return result;
-        }
-    }
-
-    private static class IntArrayCodec implements Codec<int[]> {
-
-        @Override
-        public boolean isSupport(Class<?> type) {
-            return type == int[].class;
-        }
-
-        @Override
-        public void writeData(CodedOutputStream outputStream, @Nonnull int[] obj) throws IOException {
-            outputStream.writeUInt32NoTag(obj.length);
-            if (obj.length == 0) {
-                return;
-            }
-            for (int value : obj) {
-                outputStream.writeSInt32NoTag(value);
-            }
-        }
-
-        @Override
-        public int[] readData(CodedInputStream inputStream) throws IOException {
-            final int length = inputStream.readUInt32();
-            if (length == 0) {
-                return new int[0];
-            }
-            int[] result = new int[length];
-            for (int index = 0; index < length; index++) {
-                result[index] = inputStream.readSInt32();
-            }
-            return result;
-        }
-
-        @Override
-        public byte getWireType() {
-            return WireType.INT_ARRAY;
-        }
-
-        @Override
-        public int[] clone(@Nonnull int[] obj) throws IOException {
-            final int[] result = new int[obj.length];
-            System.arraycopy(obj, 0, result, 0, obj.length);
-            return result;
-        }
-    }
-
-    private static class ShortArrayCodec implements Codec<short[]> {
-
-        @Override
-        public boolean isSupport(Class<?> type) {
-            return type == short[].class;
-        }
-
-        @Override
-        public void writeData(CodedOutputStream outputStream, @Nonnull short[] obj) throws IOException {
-            outputStream.writeUInt32NoTag(obj.length);
-            if (obj.length == 0) {
-                return;
-            }
-            for (short value : obj) {
-                outputStream.writeSInt32NoTag(value);
-            }
-        }
-
-        @Override
-        public short[] readData(CodedInputStream inputStream) throws IOException {
-            final int length = inputStream.readUInt32();
-            if (length == 0) {
-                return new short[0];
-            }
-            short[] result = new short[length];
-            for (int index = 0; index < length; index++) {
-                result[index] = (short) inputStream.readSInt32();
-            }
-            return result;
-        }
-
-        @Override
-        public byte getWireType() {
-            return WireType.SHORT_ARRAY;
-        }
-
-        @Override
-        public short[] clone(@Nonnull short[] obj) throws IOException {
-            final short[] result = new short[obj.length];
-            System.arraycopy(obj, 0, result, 0, obj.length);
-            return result;
-        }
-    }
-
-    private static class LongArrayCodec implements Codec<long[]> {
-        @Override
-        public boolean isSupport(Class<?> type) {
-            return type == long[].class;
-        }
-
-        @Override
-        public void writeData(CodedOutputStream outputStream, @Nonnull long[] obj) throws IOException {
-            outputStream.writeUInt32NoTag(obj.length);
-            if (obj.length == 0) {
-                return;
-            }
-            for (long value : obj) {
-                outputStream.writeSInt64NoTag(value);
-            }
-        }
-
-        @Override
-        public long[] readData(CodedInputStream inputStream) throws IOException {
-            final int length = inputStream.readUInt32();
-            if (length == 0) {
-                return new long[0];
-            }
-            long[] result = new long[length];
-            for (int index = 0; index < length; index++) {
-                result[index] = inputStream.readSInt64();
-            }
-            return result;
-        }
-
-        @Override
-        public byte getWireType() {
-            return WireType.LONG_ARRAY;
-        }
-
-        @Override
-        public long[] clone(@Nonnull long[] obj) throws IOException {
-            final long[] result = new long[obj.length];
-            System.arraycopy(obj, 0, result, 0, obj.length);
-            return result;
-        }
-    }
-
-    private static class FloatArrayCodec implements Codec<float[]> {
-
-        @Override
-        public boolean isSupport(Class<?> type) {
-            return type == float[].class;
-        }
-
-        @Override
-        public void writeData(CodedOutputStream outputStream, @Nonnull float[] obj) throws IOException {
-            outputStream.writeUInt32NoTag(obj.length);
-            if (obj.length == 0) {
-                return;
-            }
-            for (float value : obj) {
-                outputStream.writeFloatNoTag(value);
-            }
-        }
-
-        @Override
-        public float[] readData(CodedInputStream inputStream) throws IOException {
-            final int length = inputStream.readUInt32();
-            if (length == 0) {
-                return new float[0];
-            }
-            float[] result = new float[length];
-            for (int index = 0; index < length; index++) {
-                result[index] = inputStream.readFloat();
-            }
-            return result;
-        }
-
-        @Override
-        public byte getWireType() {
-            return WireType.FLOAT_ARRAY;
-        }
-
-        @Override
-        public float[] clone(@Nonnull float[] obj) throws IOException {
-            final float[] result = new float[obj.length];
-            System.arraycopy(obj, 0, result, 0, obj.length);
-            return result;
-        }
-    }
-
-    private static class DoubleArrayCodec implements Codec<double[]> {
-        @Override
-        public boolean isSupport(Class<?> type) {
-            return type == double[].class;
-        }
-
-        @Override
-        public void writeData(CodedOutputStream outputStream, @Nonnull double[] obj) throws IOException {
-            outputStream.writeUInt32NoTag(obj.length);
-            if (obj.length == 0) {
-                return;
-            }
-            for (double value : obj) {
-                outputStream.writeDoubleNoTag(value);
-            }
-        }
-
-        @Override
-        public double[] readData(CodedInputStream inputStream) throws IOException {
-            final int length = inputStream.readUInt32();
-            if (length == 0) {
-                return new double[0];
-            }
-            double[] result = new double[length];
-            for (int index = 0; index < length; index++) {
-                result[index] = inputStream.readDouble();
-            }
-            return result;
-        }
-
-        @Override
-        public byte getWireType() {
-            return WireType.DOUBLE_ARRAY;
-        }
-
-        @Override
-        public double[] clone(@Nonnull double[] obj) throws IOException {
-            final double[] result = new double[obj.length];
-            System.arraycopy(obj, 0, result, 0, obj.length);
-            return result;
-        }
     }
 
     private static class CharArrayCodec implements Codec<char[]> {
@@ -1379,13 +838,234 @@ public class BinaryProtocolCodec implements ProtocolCodec {
             return WireType.CHAR_ARRAY;
         }
 
+    }
+
+    private static class ShortArrayCodec implements Codec<short[]> {
+
         @Override
-        public char[] clone(@Nonnull char[] obj) throws IOException {
-            final char[] result = new char[obj.length];
-            System.arraycopy(obj, 0, result, 0, obj.length);
+        public boolean isSupport(Class<?> type) {
+            return type == short[].class;
+        }
+
+        @Override
+        public void writeData(CodedOutputStream outputStream, @Nonnull short[] obj) throws IOException {
+            outputStream.writeUInt32NoTag(obj.length);
+            if (obj.length == 0) {
+                return;
+            }
+            for (short value : obj) {
+                outputStream.writeSInt32NoTag(value);
+            }
+        }
+
+        @Override
+        public short[] readData(CodedInputStream inputStream) throws IOException {
+            final int length = inputStream.readUInt32();
+            if (length == 0) {
+                return new short[0];
+            }
+            short[] result = new short[length];
+            for (int index = 0; index < length; index++) {
+                result[index] = (short) inputStream.readSInt32();
+            }
             return result;
         }
+
+        @Override
+        public byte getWireType() {
+            return WireType.SHORT_ARRAY;
+        }
+
     }
+
+    private static class IntArrayCodec implements Codec<int[]> {
+
+        @Override
+        public boolean isSupport(Class<?> type) {
+            return type == int[].class;
+        }
+
+        @Override
+        public void writeData(CodedOutputStream outputStream, @Nonnull int[] obj) throws IOException {
+            outputStream.writeUInt32NoTag(obj.length);
+            if (obj.length == 0) {
+                return;
+            }
+            for (int value : obj) {
+                outputStream.writeSInt32NoTag(value);
+            }
+        }
+
+        @Override
+        public int[] readData(CodedInputStream inputStream) throws IOException {
+            final int length = inputStream.readUInt32();
+            if (length == 0) {
+                return new int[0];
+            }
+            int[] result = new int[length];
+            for (int index = 0; index < length; index++) {
+                result[index] = inputStream.readSInt32();
+            }
+            return result;
+        }
+
+        @Override
+        public byte getWireType() {
+            return WireType.INT_ARRAY;
+        }
+
+    }
+
+    private static class LongArrayCodec implements Codec<long[]> {
+        @Override
+        public boolean isSupport(Class<?> type) {
+            return type == long[].class;
+        }
+
+        @Override
+        public void writeData(CodedOutputStream outputStream, @Nonnull long[] obj) throws IOException {
+            outputStream.writeUInt32NoTag(obj.length);
+            if (obj.length == 0) {
+                return;
+            }
+            for (long value : obj) {
+                outputStream.writeSInt64NoTag(value);
+            }
+        }
+
+        @Override
+        public long[] readData(CodedInputStream inputStream) throws IOException {
+            final int length = inputStream.readUInt32();
+            if (length == 0) {
+                return new long[0];
+            }
+            long[] result = new long[length];
+            for (int index = 0; index < length; index++) {
+                result[index] = inputStream.readSInt64();
+            }
+            return result;
+        }
+
+        @Override
+        public byte getWireType() {
+            return WireType.LONG_ARRAY;
+        }
+
+    }
+
+    private static class FloatArrayCodec implements Codec<float[]> {
+
+        @Override
+        public boolean isSupport(Class<?> type) {
+            return type == float[].class;
+        }
+
+        @Override
+        public void writeData(CodedOutputStream outputStream, @Nonnull float[] obj) throws IOException {
+            outputStream.writeUInt32NoTag(obj.length);
+            if (obj.length == 0) {
+                return;
+            }
+            for (float value : obj) {
+                outputStream.writeFloatNoTag(value);
+            }
+        }
+
+        @Override
+        public float[] readData(CodedInputStream inputStream) throws IOException {
+            final int length = inputStream.readUInt32();
+            if (length == 0) {
+                return new float[0];
+            }
+            float[] result = new float[length];
+            for (int index = 0; index < length; index++) {
+                result[index] = inputStream.readFloat();
+            }
+            return result;
+        }
+
+        @Override
+        public byte getWireType() {
+            return WireType.FLOAT_ARRAY;
+        }
+
+    }
+
+    private static class DoubleArrayCodec implements Codec<double[]> {
+        @Override
+        public boolean isSupport(Class<?> type) {
+            return type == double[].class;
+        }
+
+        @Override
+        public void writeData(CodedOutputStream outputStream, @Nonnull double[] obj) throws IOException {
+            outputStream.writeUInt32NoTag(obj.length);
+            if (obj.length == 0) {
+                return;
+            }
+            for (double value : obj) {
+                outputStream.writeDoubleNoTag(value);
+            }
+        }
+
+        @Override
+        public double[] readData(CodedInputStream inputStream) throws IOException {
+            final int length = inputStream.readUInt32();
+            if (length == 0) {
+                return new double[0];
+            }
+            double[] result = new double[length];
+            for (int index = 0; index < length; index++) {
+                result[index] = inputStream.readDouble();
+            }
+            return result;
+        }
+
+        @Override
+        public byte getWireType() {
+            return WireType.DOUBLE_ARRAY;
+        }
+
+    }
+
+    private static class BooleanArrayCodec implements Codec<boolean[]> {
+
+        @Override
+        public boolean isSupport(Class<?> type) {
+            return type == boolean[].class;
+        }
+
+        @Override
+        public void writeData(CodedOutputStream outputStream, @Nonnull boolean[] obj) throws IOException {
+            outputStream.writeUInt32NoTag(obj.length);
+            if (obj.length == 0) {
+                return;
+            }
+            for (boolean value : obj) {
+                outputStream.writeBoolNoTag(value);
+            }
+        }
+
+        @Override
+        public boolean[] readData(CodedInputStream inputStream) throws IOException {
+            final int length = inputStream.readUInt32();
+            if (length == 0) {
+                return new boolean[0];
+            }
+            boolean[] result = new boolean[length];
+            for (int index = 0; index < length; index++) {
+                result[index] = inputStream.readBool();
+            }
+            return result;
+        }
+
+        @Override
+        public byte getWireType() {
+            return WireType.BOOLEAN_ARRAY;
+        }
+
+    }
+
 
     private static class ChunkCodec implements Codec<Chunk> {
 
@@ -1417,28 +1097,18 @@ public class BinaryProtocolCodec implements ProtocolCodec {
             return WireType.CHUNK;
         }
 
-        @Override
-        public Chunk clone(@Nonnull Chunk obj) throws IOException {
-            if (obj.getLength() == 0) {
-                return Chunk.EMPTY_CHUNK;
-            }
-
-            final byte[] result = new byte[obj.getLength()];
-            System.arraycopy(obj.getBuffer(), obj.getOffset(), result, 0, obj.getLength());
-            return Chunk.newInstance(result);
-        }
     }
 
     // ------------------------------------------------- 工厂方法 ------------------------------------------------------
     @Nonnull
     public static BinaryProtocolCodec newInstance(MessageMapper messageMapper) {
         final Map<Class<?>, Parser<?>> parserMap = new IdentityHashMap<>();
-        final Map<Class<?>, BeanSerializer<?>> beanSerializerMap = new IdentityHashMap<>();
-        final Map<Class<?>, ReflectClassDescriptor> reflectClassDescriptorMap = new IdentityHashMap<>();
         final Map<Class<?>, ProtoEnumDescriptor> protoEnumDescriptorMap = new IdentityHashMap<>();
 
+        final Map<Class<?>, IntFunction<? extends NumericalEntity>> forNumberMethodMap = new IdentityHashMap<>();
+        final Map<Class<?>, Function<?, ? extends IndexableEntity<?>>> forIndexMethodMap = new IdentityHashMap<>();
+        final Map<Class<?>, BeanSerializer<?>> beanSerializerMap = new IdentityHashMap<>();
         try {
-            // 使用反射一定要setAccessible为true，否则会拖慢性能。
             for (Class<?> messageClazz : messageMapper.getAllMessageClasses()) {
                 // protoBuf消息
                 if (Message.class.isAssignableFrom(messageClazz)) {
@@ -1455,21 +1125,18 @@ public class BinaryProtocolCodec implements ProtocolCodec {
                     continue;
                 }
 
-                // 自定义枚举和Bean
                 // 尝试加载 BeanSerializer - 包括生成的和手写的代码
                 if (indexClassBySerializer(messageClazz, beanSerializerMap)) {
                     continue;
                 }
 
-                // 带有注解的类，一定可以通过反射处理，但是要优先查找BeanSerializer
-                if (messageClazz.isAnnotationPresent(SerializableClass.class)) {
-                    indexClassByReflect(messageClazz, reflectClassDescriptorMap);
-                    continue;
+                // 其它不带注解的一律不支持
+                if (!messageClazz.isAnnotationPresent(SerializableClass.class)) {
+                    throw new RuntimeException("unsupportted message " + messageClazz.getName());
                 }
 
-                throw new RuntimeException("unsupportted message " + messageClazz.getName());
             }
-            return new BinaryProtocolCodec(messageMapper, parserMap, beanSerializerMap, reflectClassDescriptorMap, protoEnumDescriptorMap);
+            return new BinaryProtocolCodec(messageMapper, parserMap, protoEnumDescriptorMap, forNumberMethodMap, forIndexMethodMap, beanSerializerMap);
         } catch (Exception e) {
             return ExceptionUtils.rethrow(e);
         }
@@ -1485,25 +1152,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         } else {
             return false;
         }
-    }
-
-    private static void indexClassByReflect(Class<?> messageClazz, Map<Class<?>, ReflectClassDescriptor> reflectClassDescriptorMap) throws Exception {
-        final ReflectFieldDescriptor[] fieldDescriptors = Arrays.stream(messageClazz.getDeclaredFields())
-                .filter(field -> field.isAnnotationPresent(SerializableField.class))
-                .sorted(Comparator.comparingInt(field -> field.getAnnotation(SerializableField.class).number()))
-                .map(field -> {
-                    field.setAccessible(true);
-                    SerializableField annotation = field.getAnnotation(SerializableField.class);
-                    return new ReflectFieldDescriptor(field, annotation.number(), WireType.findType(field.getType()));
-                })
-                .toArray(ReflectFieldDescriptor[]::new);
-
-        // 必须提供无参构造方法
-        final Constructor constructor = messageClazz.getDeclaredConstructor();
-        constructor.setAccessible(true);
-
-        final ReflectClassDescriptor reflectClassDescriptor = new ReflectClassDescriptor(fieldDescriptors, constructor);
-        reflectClassDescriptorMap.put(messageClazz, reflectClassDescriptor);
     }
 
 }

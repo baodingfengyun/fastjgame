@@ -30,7 +30,6 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
-import javax.lang.model.util.SimpleAnnotationValueVisitor8;
 import javax.lang.model.util.SimpleTypeVisitor8;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
@@ -108,7 +107,11 @@ public class EventSubscribeProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        ensureInited();
+        try {
+            ensureInited();
+        } catch (Throwable e) {
+            messager.printMessage(Diagnostic.Kind.ERROR, AutoUtils.getStackTrace(e));
+        }
 
         // 只有方法可以带有该注解 METHOD只有普通方法，不包含构造方法， 按照外部类进行分类
         final Map<Element, ? extends List<? extends Element>> class2MethodsMap = roundEnv.getElementsAnnotatedWith(subscribeTypeElement).stream()
@@ -193,7 +196,7 @@ public class EventSubscribeProcessor extends AbstractProcessor {
      * 判断监听的是否是泛型事件类型
      */
     private boolean isGenericEvent(VariableElement eventParameter) {
-        return AutoUtils.isTargetDeclaredType(eventParameter, declaredType -> typeUtils.isSubtype(declaredType, genericEventDeclaredType));
+        return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, eventParameter.asType(), genericEventDeclaredType);
     }
 
     /**
@@ -303,20 +306,15 @@ public class EventSubscribeProcessor extends AbstractProcessor {
     }
 
     private static TypeMirror getSubEventTypeMirror(AnnotationValue annotationValue) {
-        return annotationValue.accept(new SimpleAnnotationValueVisitor8<TypeMirror, Object>() {
-            @Override
-            public TypeMirror visitType(TypeMirror t, Object o) {
-                return t;
-            }
-        }, null);
+        return AutoUtils.getAnnotationValueTypeMirror(annotationValue);
     }
 
     private boolean isSubTypeIgnoreTypeParameter(TypeMirror a, TypeMirror b) {
-        return typeUtils.isSubtype(typeUtils.erasure(a), typeUtils.erasure(b));
+        return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, a, b);
     }
 
     private boolean isSameTypeIgnoreTypeParameter(TypeMirror a, TypeMirror b) {
-        return typeUtils.isSameType(typeUtils.erasure(a), typeUtils.erasure(b));
+        return AutoUtils.isSameTypeIgnoreTypeParameter(typeUtils, a, b);
     }
 
     /**

@@ -20,21 +20,20 @@ package com.wjybxx.fastjgame.net.misc;
 import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.ProtocolMessageEnum;
 import com.wjybxx.fastjgame.net.annotation.SerializableClass;
+import com.wjybxx.fastjgame.net.serializer.BeanSerializer;
 import com.wjybxx.fastjgame.utils.ClassScanner;
+import com.wjybxx.fastjgame.utils.entity.IndexableEntity;
+import com.wjybxx.fastjgame.utils.entity.NumericalEntity;
 import com.wjybxx.fastjgame.utils.reflect.TypeParameterFinder;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 /**
- * 序列化的数据类型。
- * <p>
- * 1. 数组类型只进行了部分支持，完全的支持的话比较难受，请使用list代替。
- * 2. 取消了Queue类型支持，因为{@link java.util.LinkedList}这种实现多接口的类会造成解析混乱。
+ * 数据类型
  *
  * @author wjybxx
  * @version 1.0
@@ -74,6 +73,12 @@ public class WireType {
     }
 
     /**
+     * NULL
+     */
+    public static final byte NULL = 0;
+
+    // ------------------------------------------- 基本类型 -----------------------------
+    /**
      * rawByte
      */
     public static final byte BYTE = 1;
@@ -82,15 +87,15 @@ public class WireType {
      */
     public static final byte CHAR = 2;
     /**
-     * varInt, sInt
+     * varInt
      */
     public static final byte SHORT = 3;
     /**
-     * varInt, sInt
+     * varInt
      */
     public static final byte INT = 4;
     /**
-     * varInt64, sInt64
+     * varInt64
      */
     public static final byte LONG = 5;
     /**
@@ -102,91 +107,82 @@ public class WireType {
      */
     public static final byte DOUBLE = 7;
     /**
-     * uInt
+     * rawByte
      */
     public static final byte BOOLEAN = 8;
 
+    // ------------------------------------------- 基本类型数组 -----------------------------
     /**
-     * NULL
+     * 字节数组
      */
-    public static final byte NULL = 9;
+    public static final byte BYTE_ARRAY = 9;
+    /**
+     * char数组
+     */
+    public static final byte CHAR_ARRAY = 10;
+    /**
+     * short数组
+     */
+    public static final byte SHORT_ARRAY = 11;
+    /**
+     * int数组
+     */
+    public static final byte INT_ARRAY = 12;
+    /**
+     * long数组
+     */
+    public static final byte LONG_ARRAY = 13;
+    /**
+     * float数组
+     */
+    public static final byte FLOAT_ARRAY = 14;
+    /**
+     * double数组
+     */
+    public static final byte DOUBLE_ARRAY = 15;
+    /**
+     * boolean数组
+     */
+    public static final byte BOOLEAN_ARRAY = 16;
 
+    // --------------------------------------------- 对象 ------------------------------
     /**
      * 字符串 LENGTH_DELIMITED
      */
-    public static final byte STRING = 10;
+    public static final byte STRING = 17;
 
     /**
      * protobuf的Message LENGTH_DELIMITED
      */
-    public static final byte PROTO_MESSAGE = 11;
+    public static final byte PROTO_MESSAGE = 18;
     /**
      * protoBuf的枚举
      */
-    public static final byte PROTO_ENUM = 12;
-
-
-    // -- 基本集合，注意：在rpc方法中时不要使用具体类型，请使用顶层接口类型 List/Set/Map，否则可能调用失败。
-    /**
-     * List，解析时使用{@link java.util.ArrayList}，保持顺序
-     */
-    public static final byte LIST = 13;
-    /**
-     * Set，解析时使用{@link java.util.LinkedHashSet}，保持顺序
-     */
-    public static final byte SET = 14;
-    /**
-     * Map，解析时使用{@link java.util.LinkedHashMap}，保持顺序
-     */
-    public static final byte MAP = 15;
-
+    public static final byte PROTO_ENUM = 19;
     /**
      * 自定义数据块
      */
-    public static final byte CHUNK = 16;
+    public static final byte CHUNK = 20;
+
+    // -------------------------------------------- 带有注解的类 -----------------------------
+
     /**
-     * 存在对应{@link BeanSerializer}的类型
+     * {@link com.wjybxx.fastjgame.utils.entity.NumericalEntity}的子类
      */
-    public static final byte NORMAL_BEAN = 17;
+    public static final byte NUMERICAL_ENTITY = 21;
     /**
-     * 带有{@link SerializableClass}注解，但是无对应{@link BeanSerializer}的类，需要通过反射编解码。
-     * eg: 无参构造方法是private，或没有对应的getter setter方法。
+     * {@link com.wjybxx.fastjgame.utils.entity.IndexableEntity}的子类
      */
-    public static final byte REFLECT_BEAN = 18;
+    public static final byte INDEXABLE_ENTITY = 22;
+    /**
+     * 其它对象
+     */
+    public static final byte CUSTOM_ENTITY = 23;
+
     /**
      * 动态类型 - 运行时才能确定的类型（它是标记类型）
      */
-    public static final byte RUN_TIME = 19;
-
-    // -- 常用数组
-    /**
-     * 字节数组
-     */
-    public static final byte BYTE_ARRAY = 20;
-    /**
-     * short数组
-     */
-    public static final byte SHORT_ARRAY = 21;
-    /**
-     * int数组
-     */
-    public static final byte INT_ARRAY = 22;
-    /**
-     * long数组
-     */
-    public static final byte LONG_ARRAY = 23;
-    /**
-     * float数组
-     */
-    public static final byte FLOAT_ARRAY = 24;
-    /**
-     * double数组
-     */
-    public static final byte DOUBLE_ARRAY = 25;
-    /**
-     * char数组
-     */
-    public static final byte CHAR_ARRAY = 26;
+    public static final byte RUN_TIME = 24;
 
     /**
      * 查找一个class对应的wireType
@@ -221,39 +217,6 @@ public class WireType {
             return WireType.BOOLEAN;
         }
 
-        // 字符串
-        if (type == String.class) {
-            return WireType.STRING;
-        }
-
-        // protoBuf
-        if (AbstractMessage.class.isAssignableFrom(type)) {
-            return WireType.PROTO_MESSAGE;
-        }
-
-        // protoBuf的枚举
-        if (ProtocolMessageEnum.class.isAssignableFrom(type)) {
-            return WireType.PROTO_ENUM;
-        }
-
-        // 常用集合支持
-        // List
-        if (List.class.isAssignableFrom(type)) {
-            return WireType.LIST;
-        }
-        // Set
-        if (Set.class.isAssignableFrom(type)) {
-            return WireType.SET;
-        }
-        // Map
-        if (Map.class.isAssignableFrom(type)) {
-            return WireType.MAP;
-        }
-
-        // CHUNK
-        if (type == Chunk.class) {
-            return WireType.CHUNK;
-        }
         // ---- 基本类型数组
 
         if (type == byte[].class) {
@@ -278,17 +241,43 @@ public class WireType {
             return WireType.CHAR_ARRAY;
         }
 
+        // 字符串
+        if (type == String.class) {
+            return WireType.STRING;
+        }
+
+        // protoBuf
+        if (AbstractMessage.class.isAssignableFrom(type)) {
+            return WireType.PROTO_MESSAGE;
+        }
+
+        // protoBuf的枚举
+        if (ProtocolMessageEnum.class.isAssignableFrom(type)) {
+            return WireType.PROTO_ENUM;
+        }
+
+        // CHUNK
+        if (type == Chunk.class) {
+            return WireType.CHUNK;
+        }
+
         // Object
         if (type == Object.class) {
             return WireType.RUN_TIME;
         }
 
-        // ---- 自定义数据类型需要放在最后检测，必须优先检测BeanSerializer
-        if (classBeanSerializerMap.containsKey(type)) {
-            return WireType.NORMAL_BEAN;
-        }
         if (type.isAnnotationPresent(SerializableClass.class)) {
-            return WireType.REFLECT_BEAN;
+            if (NumericalEntity.class.isAssignableFrom(type)) {
+                return WireType.NUMERICAL_ENTITY;
+            }
+            if (IndexableEntity.class.isAssignableFrom(type)) {
+                return WireType.INDEXABLE_ENTITY;
+            }
+        }
+
+        // 需要处理手写的实现，因此放在这里
+        if (classBeanSerializerMap.containsKey(type)) {
+            return WireType.CUSTOM_ENTITY;
         }
 
         // 一些接口，超类等等

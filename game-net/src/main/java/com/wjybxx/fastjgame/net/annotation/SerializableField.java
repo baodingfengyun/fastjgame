@@ -23,7 +23,6 @@ import java.lang.annotation.Target;
 
 /**
  * 用该注解注解的字段表示是一个需要序列化的属性字段。
- * 注意：对于集合类型(List,Map,Set)声明类型必须是List,Map,Set，否则对方无法反序列化。
  *
  * @author wjybxx
  * @version 1.0
@@ -35,15 +34,9 @@ import java.lang.annotation.Target;
 public @interface SerializableField {
 
     /**
-     * 该属性对应的number，在同一个类中不可以重复，尽量不要进行修改。
-     * 取值范围：[0, 65535]，正常情况完全够用，超过该范围编译会报错。
-     *
-     * @return >= 0
-     */
-    int number();
-
-    /**
-     * 当一个字段是{@link java.util.Map} 或 {@link java.util.Collection}时，必须指定其实现类型。
+     * 字段的具体类型，该属性用于实现精确解析。
+     * <p>
+     * 当一个字段是抽象的@link java.util.Map} 或 {@link java.util.Collection}时，必须指定其实现类型。
      * 并且确保其实现包含一个public的无参构造方法，注解处理器会在编译时检查。
      *
      * <h3>嵌套集合</h3>

@@ -111,7 +111,11 @@ public class HttpRequestMapProcessor extends AbstractProcessor {
     @SuppressWarnings("unchecked")
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        ensureInited();
+        try {
+            ensureInited();
+        } catch (Throwable e) {
+            messager.printMessage(Diagnostic.Kind.ERROR, AutoUtils.getStackTrace(e));
+        }
 
         // 该注解可以用在类和方法上，需要注意
         final Map<Element, ? extends List<? extends Element>> class2MethodsMap = roundEnv.getElementsAnnotatedWith(httpRequestMappingElement).stream()
@@ -184,19 +188,19 @@ public class HttpRequestMapProcessor extends AbstractProcessor {
             final VariableElement firstVariableElement = method.getParameters().get(0);
 
             // 第一个参数必须是HttpSession
-            if (!AutoUtils.isTargetDeclaredType(firstVariableElement, declaredType -> typeUtils.isSameType(declaredType, sessionDeclaredType))) {
+            if (!AutoUtils.isSameTypeIgnoreTypeParameter(typeUtils, firstVariableElement.asType(), sessionDeclaredType)) {
                 messager.printMessage(Diagnostic.Kind.ERROR, "HttpRequestMapping method first parameter type must be HttpSession!", method);
                 continue;
             }
             final VariableElement secondVariableElement = method.getParameters().get(1);
             // 第二个参数必须是String
-            if (!AutoUtils.isTargetDeclaredType(secondVariableElement, declaredType -> typeUtils.isSameType(declaredType, pathDeclaredType))) {
+            if (!AutoUtils.isSameTypeIgnoreTypeParameter(typeUtils, secondVariableElement.asType(), pathDeclaredType)) {
                 messager.printMessage(Diagnostic.Kind.ERROR, "HttpRequestMapping method second parameter type must be String!", method);
                 continue;
             }
             final VariableElement thirdVariableElement = method.getParameters().get(2);
             // 第三个参数必须是httpRequestParam
-            if (!AutoUtils.isTargetDeclaredType(thirdVariableElement, declaredType -> typeUtils.isSameType(declaredType, requestParamDeclaredType))) {
+            if (!AutoUtils.isSameTypeIgnoreTypeParameter(typeUtils, thirdVariableElement.asType(), requestParamDeclaredType)) {
                 messager.printMessage(Diagnostic.Kind.ERROR, "HttpRequestMapping method third parameter type must be HttpRequestParam!", method);
                 continue;
             }

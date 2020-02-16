@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.utils.enummapper;
-
-import com.wjybxx.fastjgame.utils.indexable.IndexableEntity;
+package com.wjybxx.fastjgame.utils.entity;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
 
 /**
- * 数字枚举，枚举可以转换为数字，通过数字也可以找到对应的枚举。
- * 注意查看{@link com.wjybxx.fastjgame.utils.EnumUtils#mapping(NumericalEnum[])}
+ * 数值型实体，实体可以转换为数字，通过数字也可以找到对应的实体。
+ * 注意查看{@link com.wjybxx.fastjgame.utils.EnumUtils#mapping(NumericalEntity[])}
  * (注解处理器使用到了该类)
  *
  * @author wjybxx
@@ -33,7 +31,7 @@ import javax.annotation.concurrent.Immutable;
  * @apiNote 子类实现必须是不可变对象
  */
 @Immutable
-public interface NumericalEnum extends IndexableEntity<Integer> {
+public interface NumericalEntity extends IndexableEntity<Integer> {
 
     int getNumber();
 

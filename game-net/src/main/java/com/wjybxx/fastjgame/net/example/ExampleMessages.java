@@ -18,17 +18,17 @@ package com.wjybxx.fastjgame.net.example;
 import com.wjybxx.fastjgame.net.annotation.SerializableClass;
 import com.wjybxx.fastjgame.net.annotation.SerializableField;
 import com.wjybxx.fastjgame.net.misc.*;
+import com.wjybxx.fastjgame.net.serializer.BeanInputStream;
+import com.wjybxx.fastjgame.net.serializer.BeanOutputStream;
+import com.wjybxx.fastjgame.net.serializer.BeanSerializer;
 import com.wjybxx.fastjgame.utils.EnumUtils;
-import com.wjybxx.fastjgame.utils.enummapper.NumericalEnum;
-import com.wjybxx.fastjgame.utils.enummapper.NumericalEnumMapper;
+import com.wjybxx.fastjgame.utils.entity.NumericalEntity;
+import com.wjybxx.fastjgame.utils.entity.NumericalEntityMapper;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 示例消息类
@@ -48,21 +48,21 @@ public final class ExampleMessages {
         }
 
         @Override
-        public void write(Hello instance, BeanOutputStream outputStream) throws IOException {
-            outputStream.writeObject(WireType.LONG, instance.id);
-            outputStream.writeObject(WireType.STRING, instance.message);
+        public void writeFields(Hello instance, BeanOutputStream outputStream) throws IOException {
+            outputStream.writeField(WireType.LONG, instance.id);
+            outputStream.writeField(WireType.STRING, instance.message);
         }
 
         @Override
         public Hello read(BeanInputStream inputStream) throws IOException {
-            final Long id = inputStream.readObject(WireType.LONG);
-            final String message = inputStream.readObject(WireType.STRING);
+            final Long id = inputStream.readField(WireType.LONG);
+            final String message = inputStream.readField(WireType.STRING);
             return new Hello(id, message);
         }
 
         @Override
         public Hello clone(Hello instance, BeanCloneUtil util) throws IOException {
-            return new Hello(util.clone(WireType.LONG, instance.id), util.clone(WireType.STRING, instance.message));
+            return new Hello(util.cloneField(WireType.LONG, instance.id), util.cloneField(WireType.STRING, instance.message));
         }
     }
 
@@ -75,12 +75,12 @@ public final class ExampleMessages {
         /**
          * 消息id
          */
-        @SerializableField(number = 1)
+        @SerializableField
         private final long id;
         /**
          * 消息内容
          */
-        @SerializableField(number = 2)
+        @SerializableField
         private final String message;
 
         private Hello() {
@@ -127,73 +127,73 @@ public final class ExampleMessages {
     @SerializableClass
     public static class FullMessage {
 
-        @SerializableField(number = 0)
+        @SerializableField
         private Object any;
 
-        @SerializableField(number = 1)
+        @SerializableField
         private byte aByte;
 
-        @SerializableField(number = 2)
+        @SerializableField
         private char aChar;
 
-        @SerializableField(number = 3)
+        @SerializableField
         private short aShort;
 
-        @SerializableField(number = 4)
+        @SerializableField
         private int anInt;
 
-        @SerializableField(number = 5)
+        @SerializableField
         private long aLong;
 
-        @SerializableField(number = 6)
+        @SerializableField
         private float aFloat;
 
-        @SerializableField(number = 7)
+        @SerializableField
         private double aDouble;
 
-        @SerializableField(number = 8)
+        @SerializableField
         private boolean aBoolean;
 
-        @SerializableField(number = 9)
+        @SerializableField
         private String name;
 
-        @SerializableField(number = 10)
+        @SerializableField
         private Profession profession;
 
-        @SerializableField(number = 11)
+        @SerializableField(impl = ArrayList.class)
         private List<String> stringList;
 
-        @SerializableField(number = 12)
+        @SerializableField(impl = HashSet.class)
         private Set<String> stringSet;
 
-        @SerializableField(number = 13)
+        @SerializableField(impl = LinkedHashMap.class)
         private Map<String, String> stringStringMap;
 
-        @SerializableField(number = 14)
+        @SerializableField
         private Hello hello;
 
-        @SerializableField(number = 15)
+        @SerializableField
         private String aNull;
 
-        @SerializableField(number = 16)
+        @SerializableField
         private byte[] aByteArray;
 
-        @SerializableField(number = 17)
+        @SerializableField
         private short[] aShortArray;
 
-        @SerializableField(number = 18)
+        @SerializableField
         private int[] aIntArray;
 
-        @SerializableField(number = 19)
+        @SerializableField
         private long[] aLongArrray;
 
-        @SerializableField(number = 20)
+        @SerializableField
         private float[] aFloatArray;
 
-        @SerializableField(number = 21)
+        @SerializableField
         private double[] aDoubleArray;
 
-        @SerializableField(number = 22)
+        @SerializableField
         private char[] aCharArray;
 
         public FullMessage() {
@@ -479,7 +479,7 @@ public final class ExampleMessages {
     }
 
     @SerializableClass
-    public enum Profession implements NumericalEnum {
+    public enum Profession implements NumericalEntity {
         CODER(1),
         TEACHER(2),
         ;
@@ -490,7 +490,7 @@ public final class ExampleMessages {
             this.number = number;
         }
 
-        private static NumericalEnumMapper<Profession> mapper = EnumUtils.mapping(values());
+        private static NumericalEntityMapper<Profession> mapper = EnumUtils.mapping(values());
 
         @Override
         public int getNumber() {

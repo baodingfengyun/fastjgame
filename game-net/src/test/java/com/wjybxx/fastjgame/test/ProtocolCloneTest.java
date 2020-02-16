@@ -45,6 +45,6 @@ public class ProtocolCloneTest {
     private static void cloneTest(ProtocolCodec codec) throws IOException {
         System.out.println("\n" + codec.getClass().getName());
         final ExampleMessages.FullMessage fullMessage = BinaryProtoCodecTest.newFullMessage();
-        System.out.println("clone " + codec.cloneObject(fullMessage).equals(fullMessage));
+        System.out.println("cloneField " + codec.cloneObject(fullMessage).equals(fullMessage));
     }
 }

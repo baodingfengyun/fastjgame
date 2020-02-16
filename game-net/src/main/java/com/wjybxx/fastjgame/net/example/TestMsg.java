@@ -25,22 +25,22 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 @SerializableClass
 public class TestMsg {
 
-    @SerializableField(number = 1)
+    @SerializableField
     private long sceneId;
 
-    @SerializableField(number = 2)
+    @SerializableField
     private long factionId;
 
-    @SerializableField(number = 3)
+    @SerializableField
     private long ownerId;
 
-    @SerializableField(number = 4)
+    @SerializableField
     private boolean ownerSupportAR;
 
-    @SerializableField(number = 5)
+    @SerializableField
     private int playerNum = 1;
 
-    @SerializableField(number = 6)
+    @SerializableField
     private boolean racing = false;
 
     public TestMsg() {

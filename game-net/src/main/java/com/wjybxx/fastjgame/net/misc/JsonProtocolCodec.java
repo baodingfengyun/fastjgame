@@ -83,8 +83,7 @@ public class JsonProtocolCodec implements ProtocolCodec {
         return JsonUtils.readFromInputStream((InputStream) inputStream, messageClazz);
     }
 
-    @Override
-    public Object cloneObject(@Nullable Object obj) throws IOException {
+    private Object cloneObject(@Nullable Object obj) throws IOException {
         if (null == obj) {
             return null;
         }

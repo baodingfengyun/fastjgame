@@ -14,28 +14,43 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.utils.indexable;
+package com.wjybxx.fastjgame.utils.entity;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * 可索引实体映射，一个辅助类，提供一些默认的实现。
+ * 数值型实体映射，主要用于在运行期间提高查找效率；
  *
  * @author wjybxx
  * @version 1.0
- * date - 2020/2/16
+ * date - 2019/6/4 15:08
  * github - https://github.com/hl845740757
  */
-public interface IndexableEntityMapper<T, R> {
+public interface NumericalEntityMapper<T extends NumericalEntity> extends IndexableEntityMapper<Integer, T> {
 
     /**
-     * 通过实体的索引获取实体对象。
+     * 通过数字找到对应的枚举
      *
-     * @param index 实体的索引对象
-     * @return 实体对象，如果不存在则返回null
+     * @param number 枚举的唯一编号
+     * @return T 如果不存在，则返回null，而不是抛出异常
      */
     @Nullable
-    R forIndex(@Nonnull T index);
+    T forNumber(int number);
 
+    /**
+     * 获取映射的所有枚举实例，顺序可以和原始枚举不一致。
+     *
+     * @return array
+     */
+    T[] values();
+
+    /**
+     * @deprecated use {@link #forNumber(int)} instead
+     */
+    @Deprecated
+    @Override
+    default T forIndex(@Nonnull Integer index) {
+        return forNumber(index);
+    }
 }

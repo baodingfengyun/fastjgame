@@ -14,9 +14,14 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.misc;
+package com.wjybxx.fastjgame.net.serializer;
 
+import com.wjybxx.fastjgame.net.misc.WireType;
+
+import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * 普通JavaBean对象输入流
@@ -29,20 +34,22 @@ import java.io.IOException;
 public interface BeanInputStream {
 
     /**
-     * 从输入流中读取一个对象。
-     * 方便手写实现。
-     */
-    default <T> T readObject() throws IOException {
-        return readObject(WireType.RUN_TIME);
-    }
-
-    /**
-     * 从输入流中读取一个对象
+     * 从输入流中读取一个字段。
      *
      * @param <T>      返回值类型
      * @param wireType 期望的数据类型，主要用于校验。如果该值不为{@link WireType#RUN_TIME}，则需要和读取到的tag进行比较。
      * @return data
      * @throws IOException error
      */
-    <T> T readObject(byte wireType) throws IOException;
+    <T> T readField(byte wireType) throws IOException;
+
+    /**
+     * 从输入流中读取数据到map中
+     */
+    <K, V> void readMap(@Nonnull Map<K, V> map) throws IOException;
+
+    /**
+     * 从输入流中读取数据到collection中
+     */
+    <E> void readCollection(@Nonnull Collection<E> collection) throws IOException;
 }

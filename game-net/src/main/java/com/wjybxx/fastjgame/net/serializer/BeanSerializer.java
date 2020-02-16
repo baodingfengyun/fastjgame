@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.misc;
+package com.wjybxx.fastjgame.net.serializer;
 
 import com.wjybxx.fastjgame.net.annotation.SerializableClass;
 
@@ -44,21 +44,19 @@ import java.io.IOException;
 public interface BeanSerializer<T> {
 
     /**
-     * 将对象写入输出流
+     * 创建一个对象
+     * 该工厂方法的必要性: 要支持继承必须如此。
      */
-    void write(T instance, BeanOutputStream outputStream) throws IOException;
+    T newInstance();
 
     /**
-     * 从输入流中读取一个对象
+     * 从输入流中读取实例类定义的字段
      */
-    T read(BeanInputStream inputStream) throws IOException;
+    void readFields(T instance, BeanInputStream inputStream) throws IOException;
 
     /**
-     * 克隆一个对象
-     *
-     * @param instance 期望克隆的对象
-     * @param util     真正实现clone的工具类
-     * @return newInstance
+     * 将对象中要序列化的字段写入输出流
      */
-    T clone(T instance, BeanCloneUtil util) throws IOException;
+    void writeFields(T instance, BeanOutputStream outputStream) throws IOException;
+
 }

@@ -28,14 +28,16 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
 import javax.lang.model.type.*;
 import javax.lang.model.util.Elements;
+import javax.lang.model.util.SimpleAnnotationValueVisitor8;
 import javax.lang.model.util.SimpleTypeVisitor8;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 
@@ -254,29 +256,42 @@ public class AutoUtils {
     }
 
     /**
-     * 检查变量的声明类型是否是指定类型
-     * 对于一个Type：
-     * 1. 如果其声明类型是具体类型，eg: {@code String}， 那么会走到{@link SimpleTypeVisitor8#visitDeclared(DeclaredType, Object)}。
-     * 2. 如果其声明类型是泛型类型，eg: {@code E}， 那么会走到{@link SimpleTypeVisitor8#visitTypeVariable(TypeVariable, Object)}。
-     *
-     * @param variableElement 变量
-     * @param matcher         变量的声明类型匹配器
-     * @return 满足条件则返回true
+     * 忽略两个类型的泛型参数，判断第一个是否是第二个的子类型。
+     * 如果考虑泛型的话，会存在区别
      */
-    public static boolean isTargetDeclaredType(VariableElement variableElement, Predicate<DeclaredType> matcher) {
-        return variableElement.asType().accept(new SimpleTypeVisitor8<Boolean, Void>() {
+    public static boolean isSubTypeIgnoreTypeParameter(Types typeUtil, TypeMirror first, TypeMirror second) {
+        return typeUtil.isSubtype(typeUtil.erasure(first), typeUtil.erasure(second));
+    }
 
+    /**
+     * 忽略两个类型的泛型参数，判断第一个和第二个类型是否相同
+     * 如果考虑泛型的话，会存在区别
+     */
+    public static boolean isSameTypeIgnoreTypeParameter(Types typeUtil, TypeMirror first, TypeMirror second) {
+        return typeUtil.isSameType(typeUtil.erasure(first), typeUtil.erasure(second));
+    }
+
+    /**
+     * 获取一个元素的声明类型
+     */
+    public static DeclaredType getDeclaredType(TypeMirror typeMirror) {
+        return typeMirror.accept(new SimpleTypeVisitor8<>() {
             @Override
-            public Boolean visitDeclared(DeclaredType t, Void param) {
-                // 访问声明的类型 eg: String str
-                return matcher.test(t);
+            public DeclaredType visitDeclared(DeclaredType t, Object o) {
+                return t;
             }
+        }, null);
+    }
 
+    /**
+     * 获取注解中引用的class对象的类型
+     */
+    public static TypeMirror getAnnotationValueTypeMirror(AnnotationValue annotationValue) {
+        return annotationValue.accept(new SimpleAnnotationValueVisitor8<>() {
             @Override
-            protected Boolean defaultAction(TypeMirror e, Void param) {
-                return false;
+            public TypeMirror visitType(TypeMirror t, Object o) {
+                return t;
             }
-
         }, null);
     }
 
@@ -367,6 +382,16 @@ public class AutoUtils {
 
     public static String getPackageName(TypeElement typeElement, Elements elementUtils) {
         return elementUtils.getPackageOf(typeElement).getQualifiedName().toString();
+    }
+
+    /**
+     * 获取堆栈信息，避免引入commons-lang3
+     */
+    public static String getStackTrace(Throwable throwable) {
+        final StringWriter sw = new StringWriter();
+        final PrintWriter pw = new PrintWriter(sw, true);
+        throwable.printStackTrace(pw);
+        return sw.getBuffer().toString();
     }
 
 }
