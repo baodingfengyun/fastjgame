@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.annotation;
+package com.wjybxx.fastjgame.db.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -22,41 +22,27 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 用该注解注解的字段表示是一个需要序列化的属性字段。
- * 注意：对于集合类型(List,Map,Set)声明类型必须是List,Map,Set，否则对方无法反序列化。
+ * 数据库实体字段
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/17
+ * date - 2020/2/16
  * github - https://github.com/hl845740757
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface SerializableField {
+public @interface DBField {
 
     /**
-     * 该属性对应的number，在同一个类中不可以重复，尽量不要进行修改。
-     * 取值范围：[0, 65535]，正常情况完全够用，超过该范围编译会报错。
-     *
-     * @return >= 0
+     * 字段持久化时的名字
      */
-    int number();
+    String name();
 
     /**
      * 当一个字段是{@link java.util.Map} 或 {@link java.util.Collection}时，必须指定其实现类型。
-     * 并且确保其实现包含一个public的无参构造方法，注解处理器会在编译时检查。
-     *
-     * <h3>嵌套集合</h3>
-     * 对于多重嵌套类型集合，编译期间无法提供很好的检查，因此不建议使用多重嵌套的集合。
-     * 另外，{@code Map<Integer,Map<String,Integer>> }这种代码本身的可读性就较差，为其建立一些类吧。
+     * 并且确保其实现包含一个public的无参构造方法。
      */
     Class<?> impl() default Object.class;
-
-    /**
-     * 如果实现层兼容性做的好的话，那么指定名字有助于提升兼容性。
-     * 如果实现层未处理兼容性问题的话，那么指定名字并没有什么用。
-     */
-    String name() default "";
 
     /**
      * 一些注释信息

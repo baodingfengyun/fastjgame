@@ -16,6 +16,9 @@
 
 package com.wjybxx.fastjgame.utils.enummapper;
 
+import com.wjybxx.fastjgame.utils.indexable.IndexableEntityMapper;
+
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -26,7 +29,7 @@ import javax.annotation.Nullable;
  * date - 2019/6/4 15:08
  * github - https://github.com/hl845740757
  */
-public interface NumericalEnumMapper<T extends NumericalEnum> {
+public interface NumericalEnumMapper<T extends NumericalEnum> extends IndexableEntityMapper<Integer, T> {
 
     /**
      * 通过数字找到对应的枚举
@@ -43,4 +46,13 @@ public interface NumericalEnumMapper<T extends NumericalEnum> {
      * @return array
      */
     T[] values();
+
+    /**
+     * @deprecated use {@link #forNumber(int)} instead
+     */
+    @Deprecated
+    @Override
+    default T forIndex(@Nonnull Integer index) {
+        return forNumber(index);
+    }
 }

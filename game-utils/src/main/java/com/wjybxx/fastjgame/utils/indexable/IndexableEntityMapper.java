@@ -14,37 +14,28 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.utils.enummapper;
-
-import com.wjybxx.fastjgame.utils.indexable.IndexableEntity;
+package com.wjybxx.fastjgame.utils.indexable;
 
 import javax.annotation.Nonnull;
-import javax.annotation.concurrent.Immutable;
+import javax.annotation.Nullable;
 
 /**
- * 数字枚举，枚举可以转换为数字，通过数字也可以找到对应的枚举。
- * 注意查看{@link com.wjybxx.fastjgame.utils.EnumUtils#mapping(NumericalEnum[])}
- * (注解处理器使用到了该类)
+ * 可索引实体映射，一个辅助类，提供一些默认的实现。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/6/4 13:35
+ * date - 2020/2/16
  * github - https://github.com/hl845740757
- * @apiNote 子类实现必须是不可变对象
  */
-@Immutable
-public interface NumericalEnum extends IndexableEntity<Integer> {
-
-    int getNumber();
+public interface IndexableEntityMapper<T, R> {
 
     /**
-     * @deprecated use {@link #getNumber()} instead
+     * 通过实体的索引获取实体对象。
+     *
+     * @param index 实体的索引对象
+     * @return 实体对象，如果不存在则返回null
      */
-    @Nonnull
-    @Deprecated
-    @Override
-    default Integer getIndex() {
-        return getNumber();
-    }
+    @Nullable
+    R forIndex(@Nonnull T index);
 
 }

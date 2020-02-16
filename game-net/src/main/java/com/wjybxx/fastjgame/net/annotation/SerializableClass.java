@@ -52,4 +52,16 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface SerializableClass {
 
+    /**
+     * 为该对象指定一个唯一的名字，如果为空字符串，则表示使用类的简单名作为名字(可能重复)
+     * Q: 为什么不使用全路径？
+     * A: 全路径确实可以实现唯一，但是全路径太长! 不利于传输，定位性能也不好。
+     * 此外，显式指定名字可以减少重构(重命名、包挪动)带来的影响。
+     */
+    String name() default "";
+
+    /**
+     * 一些注释信息
+     */
+    String comment() default "";
 }

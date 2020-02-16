@@ -27,6 +27,7 @@
         <module>game-discover-api</module>
         <module>game-guid-redis</module>
         <module>game-guid-zk</module>
+        <module>game-db-api</module>
     </modules>
 
     <build>
