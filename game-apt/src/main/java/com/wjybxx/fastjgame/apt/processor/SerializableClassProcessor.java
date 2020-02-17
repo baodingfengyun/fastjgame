@@ -161,16 +161,31 @@ public class SerializableClassProcessor extends AbstractProcessor {
      * 基础信息检查
      */
     private void checkBase(TypeElement typeElement) {
-        if (isNumericalEnum(typeElement)) {
-            checkNumericalEnum(typeElement);
-        } else if (isIndexableEntity(typeElement)) {
-            checkIndexableEntity(typeElement);
-        } else if (typeElement.getKind() == ElementKind.CLASS) {
-            // 检查普通类
-            checkClass(typeElement);
+        if (typeElement.getKind() == ElementKind.ENUM) {
+            checkEnum(typeElement);
         } else {
-            // 其它类型抛出编译错误
-            messager.printMessage(Diagnostic.Kind.ERROR, "unsupported class", typeElement);
+            if (isNumericalEnum(typeElement)) {
+                checkNumericalEnum(typeElement);
+            } else if (isIndexableEntity(typeElement)) {
+                checkIndexableEntity(typeElement);
+            } else if (typeElement.getKind() == ElementKind.CLASS) {
+                // 检查普通类
+                checkClass(typeElement);
+            } else {
+                // 其它类型抛出编译错误
+                messager.printMessage(Diagnostic.Kind.ERROR, "unsupported class", typeElement);
+            }
+        }
+    }
+
+    /**
+     * 检查枚举 - 要序列化的枚举，必须实现 NumericalEnum 接口，否则无法序列化，或自己手写serializer。
+     */
+    private void checkEnum(TypeElement typeElement) {
+        if (!isNumericalEnum(typeElement)) {
+            messager.printMessage(Diagnostic.Kind.ERROR,
+                    "serializable enum must implement " + numericalEnumDeclaredType.asElement().getSimpleName(),
+                    typeElement);
         }
     }
 
@@ -179,7 +194,7 @@ public class SerializableClassProcessor extends AbstractProcessor {
     }
 
     /**
-     * 检查 NumericalEnum的子类是否有forNumber方法
+     * 检查 NumericalEnum 的子类是否有forNumber方法
      */
     private void checkNumericalEnum(TypeElement typeElement) {
         if (!isContainStaticForNumberMethod(typeElement)) {

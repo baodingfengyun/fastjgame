@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.net.annotation;
 
 import com.wjybxx.fastjgame.net.binary.EntitySerializer;
+import com.wjybxx.fastjgame.utils.entity.IndexableEntity;
 import com.wjybxx.fastjgame.utils.entity.NumericalEntity;
 
 import java.lang.annotation.ElementType;
@@ -26,22 +27,25 @@ import java.lang.annotation.Target;
 
 /**
  * 用该注解注解的类表示是一个需要序列化的类。
- * <p>
+ * <h3>注解处理器</h3>
  * 对于带有该注解的类，注解处理器需要提供以下保证：
  * 1. 如果是枚举，必须实现{@link NumericalEntity}，并提供非private的{@code forNumber(int)}方法 - 也就是按照protoBuf的枚举格式来。
  * 2. 如果是实现了{@link NumericalEntity}的类，也必须提供提供非private的{@code forNumber(int)}方法。
- * 3. 如果是普通类，必须提供无参构造方法，可以是private。
- * <p>
- * 如果对象是一个普通的javabean，则会在编译时生成对应的{@link EntitySerializer}类，可以代替反射(编解码性能提升巨大)。
- * 虽然如此，但不强制所有对象都要安装javaBean的格式，有额外需要也相当正常(eg:不可变对象)，对于非javabean类，则会使用反射进行编解码。
- * <p>
- * javaBean:
- * 1. 无参构造方法非private
- * 2. 要序列化的字段存在对应的getter 和 setter方法。
- * <p>
- * 注意：
+ * 3. 如果是实现了{@link IndexableEntity}的类，比需提供非private的{@code forIndex(Object)}方法。
+ * 4. 如果是普通类，必须提供<b>无参构造方法</b>，可以是private。
+ *
+ * <h3>扩展</h3>
+ * Q: 是否可以不使用注解，也能序列化？
+ * A: 所有带有该注解的类，注解处理器都会生成对应的编解码器。如果不使用注解，但是为指定类手动实现了{@link EntitySerializer}，那么对应的类就可以序列化。
+ *
+ * <h3>性能</h3>
+ * 生成的类中，能使用普通方法调用的，就会使用普通方法调用(构造方法、取值、设值方法)，如果字段是final的，或没有响应的取值、设值方法，就会使用反射。
+ * 应用代码最好不要考虑这里的细节问题，并不建议对象所有要序列化的字段都是可修改的，该是final的还是final，eg:不可变对象/值对象。
+ *
+ * <h3>一些建议</h3>
  * 1. 一般而言，建议使用注解{@link SerializableClass}，并遵循相关规范，由注解处理器生成的类负责解析，而不是实现{@link EntitySerializer}。
- * 2. 仅当反射编解码的类存在性能瓶颈时，才应该考虑实现{@link EntitySerializer}负责编解码相关的类，那么不需要该注解。
+ * 仅当某些类使用大量的反射调用进行编解码导致性能瓶颈时，才应该考虑实现{@link EntitySerializer}负责编解码相关的类，那么不需要该注解。
+ * 2. 并不建议都实现为javabean格式。
  *
  * @author wjybxx
  * @version 1.0
