@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.apt.processor;
 
 import com.google.auto.service.AutoService;
 import com.squareup.javapoet.*;
+import com.wjybxx.fastjgame.apt.utils.AptReflectUtils;
 import com.wjybxx.fastjgame.apt.utils.AutoUtils;
 import com.wjybxx.fastjgame.apt.utils.BeanUtils;
 
@@ -29,7 +30,8 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
-import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -207,7 +209,7 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
      */
     private void checkIndexableEntity(TypeElement typeElement) {
         final TypeMirror indexTypeMirror = getIndexTypeMirror(typeElement);
-        if (!isContainsStaticForIndexMethod(typeElement, indexTypeMirror)) {
+        if (!isContainsStaticNotPrivateForIndexMethod(typeElement, indexTypeMirror)) {
             messager.printMessage(Diagnostic.Kind.ERROR,
                     String.format("%s must contains a not private 'static %s forIndex(%s)' method!",
                             typeElement.getSimpleName(), typeElement.getSimpleName(), indexTypeMirror.toString()),
@@ -233,10 +235,12 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
     }
 
     /**
+     * 是否包含配私有的静态forIndex方法
+     *
      * @param typeElement     方法的返回值类型
      * @param indexTypeMirror 方法的参数类型
      */
-    private boolean isContainsStaticForIndexMethod(final TypeElement typeElement, final TypeMirror indexTypeMirror) {
+    private boolean isContainsStaticNotPrivateForIndexMethod(final TypeElement typeElement, final TypeMirror indexTypeMirror) {
         return typeElement.getEnclosedElements().stream()
                 .filter(e -> e.getKind() == ElementKind.METHOD)
                 .map(e -> (ExecutableElement) e)
@@ -270,7 +274,7 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
             }
 
             // 必须包含非private的getter方法
-            if (!containerNotPrivateGetterMethod(variableElement, allFieldsAndMethodWithInherit)) {
+            if (!isContainerNotPrivateGetterMethod(variableElement, allFieldsAndMethodWithInherit)) {
                 messager.printMessage(Diagnostic.Kind.ERROR, "serializable field must contains a not private getter", variableElement);
                 continue;
             }
@@ -312,13 +316,12 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
                 .collect(Collectors.toList());
     }
 
-
     /**
      * 是否包含非private的getter方法
      *
      * @param allFieldsAndMethodWithInherit 所有的字段和方法，可能在父类中
      */
-    private boolean containerNotPrivateGetterMethod(final VariableElement variableElement, final List<? extends Element> allFieldsAndMethodWithInherit) {
+    private boolean isContainerNotPrivateGetterMethod(final VariableElement variableElement, final List<? extends Element> allFieldsAndMethodWithInherit) {
         final String fieldName = variableElement.getSimpleName().toString();
         final boolean isBoolean = BeanUtils.isBoolean(typeUtils, variableElement.asType());
         final String getterMethodName = BeanUtils.getterMethodName(fieldName, isBoolean);
@@ -403,13 +406,13 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
 
     private void genBeanSerializer(TypeElement typeElement) {
         final TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(getSerializerClassName(typeElement));
-        final CodeBlock.Builder wireTypeStaticCodeBlock = CodeBlock.builder();
+        final CodeBlock.Builder staticCodeBlockBuilder = CodeBlock.builder();
 
         final TypeName instanceRawTypeName = TypeName.get(typeUtils.erasure(typeElement.asType()));
         final MethodSpec.Builder writeMethodBuilder = newWriteMethodBuilder(instanceRawTypeName);
 
         final MethodSpec.Builder readMethodBuilder = newReadMethodBuilder(instanceRawTypeName);
-        readMethodBuilder.addStatement("$T instance = new $T()", instanceRawTypeName, instanceRawTypeName);
+        addCreateInstanceStatement(typeElement, instanceRawTypeName, typeBuilder, readMethodBuilder, staticCodeBlockBuilder);
 
         // 必须包含超类字段
         final List<? extends Element> allFieldsAndMethodWithInherit = getAllFieldsAndMethodsWithInherit(typeElement);
@@ -430,16 +433,14 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
                 fieldRawTypeName = fieldRawTypeName.box();
             }
 
-            final String wireTypeFieldName = "wireType_" + variableElement.getSimpleName().toString();
+            final String filedWireTypeFieldName = "wireType_" + variableElement.getSimpleName().toString();
 
-            typeBuilder.addField(byte.class, wireTypeFieldName, Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL);
-            wireTypeStaticCodeBlock.addStatement("$L = $T.$L($T.class)", wireTypeFieldName, wireTypeTypeName, FINDTYPE_METHOD_NAME, fieldRawTypeName);
+            typeBuilder.addField(byte.class, filedWireTypeFieldName, Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL);
+            staticCodeBlockBuilder.addStatement("$L = $T.$L($T.class)", filedWireTypeFieldName, wireTypeTypeName, FINDTYPE_METHOD_NAME, fieldRawTypeName);
 
-            final String getterName = BeanUtils.getterMethodName(variableElement.getSimpleName().toString(), BeanUtils.isBoolean(fieldRawTypeName));
-            final String setterName = BeanUtils.setterMethodName(variableElement.getSimpleName().toString(), BeanUtils.isBoolean(fieldRawTypeName));
+            addReadStatement(variableElement, allFieldsAndMethodWithInherit, fieldRawTypeName, typeBuilder, readMethodBuilder, filedWireTypeFieldName, staticCodeBlockBuilder);
 
-            writeMethodBuilder.addStatement("outputStream.$L($L, instance.$L())", WRITE_FIELD_METHOD_NAME, wireTypeFieldName, getterName);
-            readMethodBuilder.addStatement("instance.$L(inputStream.$L($L))", setterName, READ_FIELD_METHOD_NAME, wireTypeFieldName);
+            addWriteStatement(writeMethodBuilder, variableElement, fieldRawTypeName, filedWireTypeFieldName);
         }
 
         readMethodBuilder.addStatement("return instance");
@@ -448,7 +449,7 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
                 .addAnnotation(AutoUtils.SUPPRESS_UNCHECKED_ANNOTATION)
                 .addAnnotation(processorInfoAnnotation)
                 .addSuperinterface(TypeName.get(typeUtils.getDeclaredType(serializerTypeElement, typeUtils.erasure(typeElement.asType()))))
-                .addStaticBlock(wireTypeStaticCodeBlock.build())
+                .addStaticBlock(staticCodeBlockBuilder.build())
                 .addMethod(writeMethodBuilder.build())
                 .addMethod(readMethodBuilder.build());
 
@@ -456,11 +457,80 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
         AutoUtils.writeToFile(typeElement, typeBuilder, elementUtils, messager, filer);
     }
 
+    private void addCreateInstanceStatement(TypeElement typeElement, TypeName instanceRawTypeName,
+                                            TypeSpec.Builder typeBuilder, MethodSpec.Builder readMethodBuilder, CodeBlock.Builder staticCodeBlockBuilder) {
+        final ExecutableElement noArgsConstructor = BeanUtils.getNoArgsConstructor(typeElement);
+        assert null != noArgsConstructor;
+        if (!noArgsConstructor.getModifiers().contains(Modifier.PRIVATE)) {
+            // 非private，直接new
+            readMethodBuilder.addStatement("$T instance = new $T()", instanceRawTypeName, instanceRawTypeName);
+        } else {
+            // 需要定义反射构造方法
+            final String constructorFieldName = "r_constructor";
+            typeBuilder.addField(Constructor.class, constructorFieldName, Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL);
+            staticCodeBlockBuilder.addStatement("$L = $T.getNoArgsConstructor($T.class)", constructorFieldName, AptReflectUtils.class, instanceRawTypeName);
+            // 反射创建对象
+            readMethodBuilder.addStatement("$T instance = ($T) $L.newInstance()", instanceRawTypeName, instanceRawTypeName, constructorFieldName);
+        }
+    }
+
+    /**
+     * 写对象用的getter方法
+     */
+    private void addWriteStatement(MethodSpec.Builder writeMethodBuilder, VariableElement variableElement, TypeName fieldRawTypeName, String filedWireTypeFieldName) {
+        final String getterName = BeanUtils.getterMethodName(variableElement.getSimpleName().toString(), BeanUtils.isBoolean(fieldRawTypeName));
+        writeMethodBuilder.addStatement("outputStream.$L($L, instance.$L())", WRITE_FIELD_METHOD_NAME, filedWireTypeFieldName, getterName);
+    }
+
+    /**
+     * 读对象用的setter
+     */
+    private void addReadStatement(VariableElement variableElement, final List<? extends Element> allFieldsAndMethodWithInherit,
+                                  TypeName fieldRawTypeName,
+                                  TypeSpec.Builder typeBuilder, MethodSpec.Builder readMethodBuilder,
+                                  final String filedWireTypeFieldName,
+                                  CodeBlock.Builder staticCodeBlockBuilder) {
+        final String fieldName = variableElement.getSimpleName().toString();
+        if (isContainerNotPrivateSetterMethod(variableElement, allFieldsAndMethodWithInherit)) {
+            // 包含非private的setter方法
+            final String setterName = BeanUtils.setterMethodName(variableElement.getSimpleName().toString(), BeanUtils.isBoolean(fieldRawTypeName));
+            readMethodBuilder.addStatement("instance.$L(inputStream.$L($L))", setterName, READ_FIELD_METHOD_NAME, filedWireTypeFieldName);
+        } else {
+            // 需要定义反射构造方法
+            final String reflectFieldName = "r_field_" + fieldName;
+            typeBuilder.addField(Field.class, reflectFieldName, Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL);
+            // 这里需要使用getEnclosingElement获取真正定义该字段的类
+            final TypeName fieldDeclaredClassTypeName = TypeName.get(typeUtils.erasure(variableElement.getEnclosingElement().asType()));
+            staticCodeBlockBuilder.addStatement("$L = $T.getDeclaredField($T.class ,$S)", reflectFieldName, AptReflectUtils.class,
+                    fieldDeclaredClassTypeName, fieldName);
+            // 反射赋值
+            readMethodBuilder.addStatement("$L.set(instance, inputStream.$L($L))", reflectFieldName, READ_FIELD_METHOD_NAME, filedWireTypeFieldName);
+        }
+    }
+
+    private boolean isContainerNotPrivateSetterMethod(final VariableElement variableElement, final List<? extends Element> allFieldsAndMethodWithInherit) {
+        final String fieldName = variableElement.getSimpleName().toString();
+        final boolean isBoolean = BeanUtils.isBoolean(typeUtils, variableElement.asType());
+        final String setterMethodName = BeanUtils.setterMethodName(fieldName, isBoolean);
+
+        // 非private的
+        return allFieldsAndMethodWithInherit.stream()
+                .filter(e -> e.getKind() == ElementKind.METHOD)
+                .filter(e -> !e.getModifiers().contains(Modifier.PRIVATE))
+                .map(e -> (ExecutableElement) e)
+                .filter(e -> e.getParameters().size() == 1)
+                .filter(e -> typeUtils.isSameType(variableElement.asType(), e.getParameters().get(0).asType()))
+                .anyMatch(e -> {
+                    final String methodName = e.getSimpleName().toString();
+                    return methodName.equals(setterMethodName);
+                });
+    }
+
     private MethodSpec.Builder newWriteMethodBuilder(TypeName instanceRawTypeName) {
         return MethodSpec.methodBuilder(WRITE_OBJECT_METHOD_NAME)
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
-                .addException(IOException.class)
+                .addException(Exception.class)
                 .addParameter(instanceRawTypeName, "instance")
                 .addParameter(TypeName.get(outputStreamTypeElement.asType()), "outputStream");
     }
@@ -469,7 +539,7 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
         return MethodSpec.methodBuilder(READ_OBJECT_METHOD_NAME)
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
-                .addException(IOException.class)
+                .addException(Exception.class)
                 .returns(instanceRawTypeName)
                 .addParameter(TypeName.get(inputStreamTypeElement.asType()), "inputStream");
     }

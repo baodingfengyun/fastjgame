@@ -391,6 +391,7 @@ public final class ExampleMessages {
             FullMessage that = (FullMessage) o;
 
             return new EqualsBuilder()
+                    .appendSuper(super.equals(o))
                     .append(aByte, that.aByte)
                     .append(aChar, that.aChar)
                     .append(aShort, that.aShort)
@@ -420,6 +421,7 @@ public final class ExampleMessages {
         @Override
         public int hashCode() {
             return new HashCodeBuilder(17, 37)
+                    .appendSuper(super.hashCode())
                     .append(any)
                     .append(aByte)
                     .append(aChar)
@@ -458,7 +460,7 @@ public final class ExampleMessages {
                     ", aFloat=" + aFloat +
                     ", aDouble=" + aDouble +
                     ", aBoolean=" + aBoolean +
-                    ", name='" + aString + '\'' +
+                    ", aString='" + aString + '\'' +
                     ", profession=" + profession +
                     ", stringList=" + stringList +
                     ", stringSet=" + stringSet +

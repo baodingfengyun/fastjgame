@@ -57,7 +57,6 @@ public interface EntitySerializer<T> {
     /**
      * 从输入流中读取富姐解析的对象
      */
-    @Nonnull
     T readObject(EntityInputStream inputStream) throws Exception;
 
     void writeObject(T instance, EntityOutputStream outputStream) throws Exception;
