@@ -21,8 +21,10 @@ import com.squareup.javapoet.*;
 import com.wjybxx.fastjgame.apt.utils.AutoUtils;
 import com.wjybxx.fastjgame.apt.utils.BeanUtils;
 
-import javax.annotation.processing.*;
-import javax.lang.model.SourceVersion;
+import javax.annotation.processing.Filer;
+import javax.annotation.processing.Messager;
+import javax.annotation.processing.Processor;
+import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.*;
 import javax.lang.model.type.*;
 import javax.lang.model.util.Elements;
@@ -55,7 +57,9 @@ import java.util.*;
  * <p>
  * 3. {@code typeUtils.isSameType(RpcResponseChannel<String>, RpcResponseChannel)  false}
  * {@code typeUtils.isAssignable(RpcResponseChannel<String>, RpcResponseChannel)  true}
+ * {@code typeUtils.isAssignable(RpcResponseChannel<String>, RpcResponseChannel<Integer>)  false}
  * {@code typeUtils.isSubType(RpcResponseChannel<String>, RpcResponseChannel)  true}
+ * {@code typeUtils.isSubType(RpcResponseChannel<String>, RpcResponseChannel<Integer>)  false}
  *
  * @author wjybxx
  * @version 1.0
@@ -63,7 +67,7 @@ import java.util.*;
  * github - https://github.com/hl845740757
  */
 @AutoService(Processor.class)
-public class RpcServiceProcessor extends AbstractProcessor {
+public class RpcServiceProcessor extends MyAbstractProcessor {
 
     private static final String METHOD_HANDLE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.misc.RpcMethodHandle";
     private static final String DEFAULT_METHOD_HANDLE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.misc.DefaultRpcMethodHandle";
@@ -90,13 +94,6 @@ public class RpcServiceProcessor extends AbstractProcessor {
     private static final String registry = "registry";
     private static final String instance = "instance";
 
-    // 工具类
-    private Types typeUtils;
-    private Elements elementUtils;
-    private Messager messager;
-    private Filer filer;
-
-    private AnnotationSpec processorInfoAnnotation;
     /**
      * 所有的serviceId集合，判断重复。
      * 编译是分模块编译的，每一个模块都是一个新的processor，因此只能检测当前模块的重复。
@@ -122,36 +119,19 @@ public class RpcServiceProcessor extends AbstractProcessor {
     private ClassName registryTypeName;
     private ClassName exceptionUtilsTypeName;
 
-
-    @Override
-    public synchronized void init(ProcessingEnvironment processingEnv) {
-        super.init(processingEnv);
-        typeUtils = processingEnv.getTypeUtils();
-        elementUtils = processingEnv.getElementUtils();
-        messager = processingEnv.getMessager();
-        filer = processingEnv.getFiler();
-
-        processorInfoAnnotation = AutoUtils.newProcessorInfoAnnotation(getClass());
-
-        wildcardType = typeUtils.getWildcardType(null, null);
-        // 不能再这里初始化别的信息
-    }
-
     @Override
     public Set<String> getSupportedAnnotationTypes() {
         return Collections.singleton(RPC_SERVICE_CANONICAL_NAME);
     }
 
     @Override
-    public SourceVersion getSupportedSourceVersion() {
-        return AutoUtils.SOURCE_VERSION;
-    }
-
-    private void ensureInited() {
+    protected void ensureInited() {
         if (rpcServiceElement != null) {
             // 已初始化
             return;
         }
+        wildcardType = typeUtils.getWildcardType(null, null);
+
         rpcServiceElement = elementUtils.getTypeElement(RPC_SERVICE_CANONICAL_NAME);
         rpcServiceDeclaredType = typeUtils.getDeclaredType(rpcServiceElement);
         rpcMethodDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(RPC_METHOD_CANONICAL_NAME));
@@ -170,21 +150,8 @@ public class RpcServiceProcessor extends AbstractProcessor {
     }
 
 
-    /**
-     * 只有代码中出现指定的注解时才会走到该方法，而{@link #init(ProcessingEnvironment)}每次编译都会执行，不论是否出现指定注解。
-     * <p>
-     * 处理源自前一轮的类型元素的一组注解类型，并返回此处理器是否声明了这些注解类型。
-     * 如果返回true，则声明注释类型，并且不会要求后续处理器处理它们;
-     * 如果返回false，则注释类型无人认领，并且可能要求后续处理器处理它们。 处理器可以始终返回相同的布尔值，或者可以基于所选择的标准改变结果。
-     */
     @Override
-    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        try {
-            ensureInited();
-        } catch (Throwable e) {
-            messager.printMessage(Diagnostic.Kind.ERROR, AutoUtils.getStackTrace(e));
-        }
-
+    protected boolean doProcess(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         // 该注解只有类才可以使用
         @SuppressWarnings("unchecked")
         Set<TypeElement> typeElementSet = (Set<TypeElement>) roundEnv.getElementsAnnotatedWith(rpcServiceElement);
@@ -202,7 +169,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
         final Optional<? extends AnnotationMirror> serviceAnnotationOption = AutoUtils.findFirstAnnotationWithoutInheritance(typeUtils, typeElement, rpcServiceDeclaredType);
         assert serviceAnnotationOption.isPresent();
         // 基本类型会被包装，Object不能直接转short
-        final Short serviceId = AutoUtils.getAnnotationValueNotDefault(serviceAnnotationOption.get(), SERVICE_ID_METHOD_NAME);
+        final Short serviceId = AutoUtils.getAnnotationValueValueNotDefault(serviceAnnotationOption.get(), SERVICE_ID_METHOD_NAME);
         assert null != serviceId;
         if (serviceId <= 0) {
             // serviceId非法
@@ -266,7 +233,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
             }
 
             // 方法id，基本类型会被封装为包装类型，Object并不能直接转换到基本类型
-            final Short methodId = AutoUtils.getAnnotationValueNotDefault(rpcMethodAnnotation.get(), METHOD_ID_METHOD_NAME);
+            final Short methodId = AutoUtils.getAnnotationValueValueNotDefault(rpcMethodAnnotation.get(), METHOD_ID_METHOD_NAME);
             assert null != methodId;
             if (methodId < 0 || methodId > 9999) {
                 // 方法id非法
@@ -290,7 +257,7 @@ public class RpcServiceProcessor extends AbstractProcessor {
         final Optional<? extends AnnotationMirror> annotationMirror = AutoUtils.findFirstAnnotationWithoutInheritance(typeUtils, method, rpcMethodDeclaredType);
         assert annotationMirror.isPresent();
         // 方法id，基本类型会被封装为包装类型，Object并不能直接转换到基本类型
-        return AutoUtils.getAnnotationValueNotDefault(annotationMirror.get(), METHOD_ID_METHOD_NAME);
+        return AutoUtils.getAnnotationValueValueNotDefault(annotationMirror.get(), METHOD_ID_METHOD_NAME);
     }
 
     /**

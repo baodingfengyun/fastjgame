@@ -15,6 +15,8 @@
  */
 package com.wjybxx.fastjgame.net.example;
 
+import com.wjybxx.fastjgame.db.annotation.DBEntity;
+import com.wjybxx.fastjgame.db.annotation.DBField;
 import com.wjybxx.fastjgame.db.annotation.Impl;
 import com.wjybxx.fastjgame.net.annotation.SerializableClass;
 import com.wjybxx.fastjgame.net.annotation.SerializableField;
@@ -36,10 +38,33 @@ import java.util.*;
  */
 public final class ExampleMessages {
 
-    /**
-     * 它不是一个标准的javabean，因此不能自动生成对应的编解码类。
-     * 我们可以手动写一个代替反射
-     */
+    @DBEntity(name = "db_bean")
+    public static class DBBean {
+
+        @DBField(name = "guid")
+        private long guid;
+
+        @DBField(name = "name")
+        private String name;
+
+        public long getGuid() {
+            return guid;
+        }
+
+        public void setGuid(long guid) {
+            this.guid = guid;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+    }
+
+
     @SerializableClass
     public static class Hello {
         /**
@@ -95,7 +120,7 @@ public final class ExampleMessages {
     }
 
     @SerializableClass
-    public static class FullMessage extends Hello{
+    public static class FullMessage extends Hello {
 
         @SerializableField
         private Object any;

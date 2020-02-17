@@ -35,10 +35,7 @@ import javax.tools.Diagnostic;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -197,7 +194,7 @@ public class AutoUtils {
         final List<TypeElement> result = new LinkedList<>();
         result.add(typeElement);
 
-        for (TypeMirror typeMirror = typeElement.getSuperclass(); typeMirror.getKind()!=TypeKind.NONE; ) {
+        for (TypeMirror typeMirror = typeElement.getSuperclass(); typeMirror.getKind() != TypeKind.NONE; ) {
             final TypeElement parentTypeElement = (TypeElement) (getDeclaredType(typeMirror).asElement());
             result.add(parentTypeElement);
             typeMirror = parentTypeElement.getSuperclass();
@@ -216,7 +213,7 @@ public class AutoUtils {
      * @param targetType 目标注解类型
      * @return optional
      */
-    public static Optional<? extends AnnotationMirror> findFirstAnnotationWithoutInheritance(Types typeUtils, Element element, DeclaredType targetType) {
+    public static Optional<? extends AnnotationMirror> findFirstAnnotationWithoutInheritance(Types typeUtils, Element element, TypeMirror targetType) {
         // 查找该字段上的注解
         return element.getAnnotationMirrors().stream()
                 .filter(annotationMirror -> typeUtils.isSameType(annotationMirror.getAnnotationType(), targetType))
@@ -232,11 +229,37 @@ public class AutoUtils {
      * @param targetType   目标注解类型
      * @return optional
      */
-    public static Optional<? extends AnnotationMirror> findFirstAnnotationWithDefaults(Types typeUtils, Elements elementUtils, Element element, DeclaredType targetType) {
+    public static Optional<? extends AnnotationMirror> findFirstAnnotationWithDefaults(Types typeUtils, Elements elementUtils, Element element, TypeMirror targetType) {
         // 查找该字段上的注解
         return elementUtils.getAllAnnotationMirrors(element).stream()
                 .filter(annotationMirror -> typeUtils.isSameType(annotationMirror.getAnnotationType(), targetType))
                 .findFirst();
+    }
+
+    @Nullable
+    public static AnnotationValue getAnnotationValueNotDefault(AnnotationMirror annotationMirror, String propertyName) {
+        return annotationMirror.getElementValues().entrySet().stream()
+                .filter(entry -> entry.getKey().getSimpleName().toString().equals(propertyName))
+                .map(Map.Entry::getValue)
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * 获取注解上的某一个属性的值，包含default值
+     *
+     * @param annotationMirror 注解编译信息
+     * @param propertyName     属性的名字
+     * @return object
+     */
+    @Nonnull
+    public static AnnotationValue getAnnotationValueWithDefaults(Elements elementUtils, AnnotationMirror annotationMirror, String propertyName) {
+        final Optional<? extends AnnotationValue> first = elementUtils.getElementValuesWithDefaults(annotationMirror).entrySet().stream()
+                .filter(entry -> entry.getKey().getSimpleName().toString().equals(propertyName))
+                .map(Map.Entry::getValue)
+                .findFirst();
+        assert first.isPresent();
+        return first.get();
     }
 
     /**
@@ -248,12 +271,10 @@ public class AutoUtils {
      */
     @SuppressWarnings("unchecked")
     @Nullable
-    public static <T> T getAnnotationValueNotDefault(AnnotationMirror annotationMirror, String propertyName) {
-        final Optional<Object> property = annotationMirror.getElementValues().entrySet().stream()
-                .filter(entry -> entry.getKey().getSimpleName().toString().equals(propertyName))
-                .map(entry -> entry.getValue().getValue())
-                .findFirst();
-        return (T) property.orElse(null);
+    public static <T> T getAnnotationValueValueNotDefault(AnnotationMirror annotationMirror, String propertyName) {
+        return (T) Optional.ofNullable(getAnnotationValueNotDefault(annotationMirror, propertyName))
+                .map(AnnotationValue::getValue)
+                .orElse(null);
     }
 
     /**
@@ -265,14 +286,24 @@ public class AutoUtils {
      */
     @SuppressWarnings("unchecked")
     @Nonnull
-    public static <T> T getAnnotationValueWithDefaults(Elements elementUtils, AnnotationMirror annotationMirror, String propertyName) {
-        final Optional<Object> property = elementUtils.getElementValuesWithDefaults(annotationMirror).entrySet().stream()
-                .filter(entry -> entry.getKey().getSimpleName().toString().equals(propertyName))
-                .map(entry -> entry.getValue().getValue())
-                .findFirst();
-        assert property.isPresent();
-        return (T) property.get();
+    public static <T> T getAnnotationValueValueWithDefaults(Elements elementUtils, AnnotationMirror annotationMirror, String propertyName) {
+        return (T) Optional.of(getAnnotationValueWithDefaults(elementUtils, annotationMirror, propertyName))
+                .map(AnnotationValue::getValue)
+                .get();
     }
+
+    /**
+     * 获取注解中引用的class对象的类型
+     */
+    public static TypeMirror getAnnotationValueTypeMirror(AnnotationValue annotationValue) {
+        return annotationValue.accept(new SimpleAnnotationValueVisitor8<>() {
+            @Override
+            public TypeMirror visitType(TypeMirror t, Object o) {
+                return t;
+            }
+        }, null);
+    }
+
 
     /**
      * 忽略两个类型的泛型参数，判断第一个是否是第二个的子类型。
@@ -297,18 +328,6 @@ public class AutoUtils {
         return typeMirror.accept(new SimpleTypeVisitor8<>() {
             @Override
             public DeclaredType visitDeclared(DeclaredType t, Object o) {
-                return t;
-            }
-        }, null);
-    }
-
-    /**
-     * 获取注解中引用的class对象的类型
-     */
-    public static TypeMirror getAnnotationValueTypeMirror(AnnotationValue annotationValue) {
-        return annotationValue.accept(new SimpleAnnotationValueVisitor8<>() {
-            @Override
-            public TypeMirror visitType(TypeMirror t, Object o) {
                 return t;
             }
         }, null);

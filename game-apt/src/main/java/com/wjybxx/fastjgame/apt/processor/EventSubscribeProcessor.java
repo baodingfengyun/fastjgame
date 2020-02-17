@@ -17,21 +17,18 @@
 package com.wjybxx.fastjgame.apt.processor;
 
 import com.google.auto.service.AutoService;
-import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.wjybxx.fastjgame.apt.utils.AutoUtils;
 
-import javax.annotation.processing.*;
-import javax.lang.model.SourceVersion;
+import javax.annotation.processing.Processor;
+import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.Elements;
 import javax.lang.model.util.SimpleTypeVisitor8;
-import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -45,7 +42,7 @@ import java.util.stream.Collectors;
  * github - https://github.com/hl845740757
  */
 @AutoService(Processor.class)
-public class EventSubscribeProcessor extends AbstractProcessor {
+public class EventSubscribeProcessor extends MyAbstractProcessor {
 
     private static final String REGISTRY_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.eventbus.EventHandlerRegistry";
     private static final String SUBSCRIBE_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.eventbus.Subscribe";
@@ -54,14 +51,6 @@ public class EventSubscribeProcessor extends AbstractProcessor {
     private static final String SUB_EVENTS_METHOD_NAME = "subEvents";
     private static final String ONLY_SUB_EVENTS_METHOD_NAME = "onlySubEvents";
 
-    // 工具类
-    private Messager messager;
-    private Elements elementUtils;
-    private Types typeUtils;
-    private Filer filer;
-
-    private AnnotationSpec processorInfoAnnotation;
-
     private TypeElement subscribeTypeElement;
     private DeclaredType subscribeDeclaredType;
     private DeclaredType genericEventDeclaredType;
@@ -69,30 +58,15 @@ public class EventSubscribeProcessor extends AbstractProcessor {
     private TypeName registryTypeName;
 
     @Override
-    public synchronized void init(ProcessingEnvironment processingEnv) {
-        super.init(processingEnv);
-        messager = processingEnv.getMessager();
-        elementUtils = processingEnv.getElementUtils();
-        typeUtils = processingEnv.getTypeUtils();
-        filer = processingEnv.getFiler();
-
-        processorInfoAnnotation = AutoUtils.newProcessorInfoAnnotation(getClass());
-    }
-
-    @Override
     public Set<String> getSupportedAnnotationTypes() {
         return Collections.singleton(SUBSCRIBE_CANONICAL_NAME);
-    }
-
-    @Override
-    public SourceVersion getSupportedSourceVersion() {
-        return AutoUtils.SOURCE_VERSION;
     }
 
     /**
      * 尝试初始化环境，也就是依赖的类都已经出现
      */
-    private void ensureInited() {
+    @Override
+    protected void ensureInited() {
         if (subscribeTypeElement != null) {
             // 已初始化
             return;
@@ -106,13 +80,7 @@ public class EventSubscribeProcessor extends AbstractProcessor {
     }
 
     @Override
-    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        try {
-            ensureInited();
-        } catch (Throwable e) {
-            messager.printMessage(Diagnostic.Kind.ERROR, AutoUtils.getStackTrace(e));
-        }
-
+    protected boolean doProcess(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         // 只有方法可以带有该注解 METHOD只有普通方法，不包含构造方法， 按照外部类进行分类
         final Map<Element, ? extends List<? extends Element>> class2MethodsMap = roundEnv.getElementsAnnotatedWith(subscribeTypeElement).stream()
                 .collect(Collectors.groupingBy(Element::getEnclosingElement));
@@ -255,7 +223,7 @@ public class EventSubscribeProcessor extends AbstractProcessor {
      * 查询是否只监听子类型参数
      */
     private Boolean isOnlySubEvents(AnnotationMirror annotationMirror) {
-        return AutoUtils.getAnnotationValueWithDefaults(elementUtils, annotationMirror, ONLY_SUB_EVENTS_METHOD_NAME);
+        return AutoUtils.getAnnotationValueValueWithDefaults(elementUtils, annotationMirror, ONLY_SUB_EVENTS_METHOD_NAME);
     }
 
     /**
@@ -271,7 +239,7 @@ public class EventSubscribeProcessor extends AbstractProcessor {
             result.add(getEventRawType(parentTypeMirror));
         }
 
-        final List<? extends AnnotationValue> subEventsList = AutoUtils.getAnnotationValueNotDefault(annotationMirror, SUB_EVENTS_METHOD_NAME);
+        final List<? extends AnnotationValue> subEventsList = AutoUtils.getAnnotationValueValueNotDefault(annotationMirror, SUB_EVENTS_METHOD_NAME);
         if (null == subEventsList) {
             return result;
         }

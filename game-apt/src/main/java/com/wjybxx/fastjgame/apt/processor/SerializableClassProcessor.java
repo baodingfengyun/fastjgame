@@ -21,14 +21,13 @@ import com.squareup.javapoet.*;
 import com.wjybxx.fastjgame.apt.utils.AutoUtils;
 import com.wjybxx.fastjgame.apt.utils.BeanUtils;
 
-import javax.annotation.processing.*;
-import javax.lang.model.SourceVersion;
+import javax.annotation.processing.Processor;
+import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import java.io.IOException;
 import java.util.*;
@@ -44,12 +43,11 @@ import java.util.stream.Collectors;
  * github - https://github.com/hl845740757
  */
 @AutoService(Processor.class)
-public class SerializableClassProcessor extends AbstractProcessor {
+public class SerializableClassProcessor extends MyAbstractProcessor {
 
     // 使用这种方式可以脱离对utils，net包的依赖
     private static final String SERIALIZABLE_CLASS_CANONICAL_NAME = "com.wjybxx.fastjgame.net.annotation.SerializableClass";
     private static final String SERIALIZABLE_FIELD_CANONICAL_NAME = "com.wjybxx.fastjgame.net.annotation.SerializableField";
-    private static final String IMPL_CANONICAL_NAME = "com.wjybxx.fastjgame.db.annotation.Impl";
 
     private static final String NUMBER_ENUM_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.entity.NumericalEntity";
     private static final String FOR_NUMBER_METHOD_NAME = "forNumber";
@@ -72,50 +70,31 @@ public class SerializableClassProcessor extends AbstractProcessor {
     private static final String WRITE_FIELD_METHOD_NAME = "writeField";
     private static final String READ_FIELD_METHOD_NAME = "readField";
 
-    // 工具类
-    private Messager messager;
-    private Elements elementUtils;
-    private Types typeUtils;
-    private Filer filer;
-
     private TypeMirror mapTypeMirror;
     private TypeMirror collectionTypeMirror;
 
     private TypeElement serializableClassElement;
     private DeclaredType serializableFieldDeclaredType;
+
+    private TypeElement dbEntityTypeElement;
+    private DeclaredType dbFieldDeclaredType;
     private DeclaredType impDeclaredType;
 
     private DeclaredType numericalEnumDeclaredType;
     private DeclaredType indexableEntityDeclaredType;
 
-    private AnnotationSpec processorInfoAnnotation;
     private TypeName wireTypeTypeName;
     private TypeElement serializerTypeElement;
     private TypeElement outputStreamTypeElement;
     private TypeElement inputStreamTypeElement;
 
     @Override
-    public synchronized void init(ProcessingEnvironment processingEnv) {
-        super.init(processingEnv);
-        messager = processingEnv.getMessager();
-        elementUtils = processingEnv.getElementUtils();
-        typeUtils = processingEnv.getTypeUtils();
-        filer = processingEnv.getFiler();
-
-        processorInfoAnnotation = AutoUtils.newProcessorInfoAnnotation(getClass());
-    }
-
-    @Override
     public Set<String> getSupportedAnnotationTypes() {
-        return Collections.singleton(SERIALIZABLE_CLASS_CANONICAL_NAME);
+        return Set.of(SERIALIZABLE_CLASS_CANONICAL_NAME, DBEntityProcessor.DB_ENTITY_CANONICAL_NAME);
     }
 
     @Override
-    public SourceVersion getSupportedSourceVersion() {
-        return AutoUtils.SOURCE_VERSION;
-    }
-
-    private void ensureInited() {
+    protected void ensureInited() {
         if (serializableClassElement != null) {
             return;
         }
@@ -125,7 +104,10 @@ public class SerializableClassProcessor extends AbstractProcessor {
 
         serializableClassElement = elementUtils.getTypeElement(SERIALIZABLE_CLASS_CANONICAL_NAME);
         serializableFieldDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(SERIALIZABLE_FIELD_CANONICAL_NAME));
-        impDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(IMPL_CANONICAL_NAME));
+
+        dbEntityTypeElement = elementUtils.getTypeElement(DBEntityProcessor.DB_ENTITY_CANONICAL_NAME);
+        dbFieldDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(DBEntityProcessor.DB_FIELD_CANONICAL_NAME));
+        impDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(DBEntityProcessor.IMPL_CANONICAL_NAME));
 
         numericalEnumDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(NUMBER_ENUM_CANONICAL_NAME));
         indexableEntityDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(INDEXABLE_ENTITY_CANONICAL_NAME));
@@ -137,16 +119,10 @@ public class SerializableClassProcessor extends AbstractProcessor {
     }
 
     @Override
-    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        try {
-            ensureInited();
-        } catch (Throwable e) {
-            messager.printMessage(Diagnostic.Kind.ERROR, AutoUtils.getStackTrace(e));
-        }
-
+    protected boolean doProcess(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         // 该注解只有类可以使用
-        @SuppressWarnings("unchecked") final Set<TypeElement> allTypeElements = (Set<TypeElement>) roundEnv.getElementsAnnotatedWith(serializableClassElement);
-        Set<TypeElement> sourceFileTypeElementSet = AutoUtils.selectSourceFile(allTypeElements, elementUtils);
+        @SuppressWarnings("unchecked") final Set<TypeElement> allTypeElements = (Set<TypeElement>) roundEnv.getElementsAnnotatedWithAny(serializableClassElement, dbEntityTypeElement);
+        final Set<TypeElement> sourceFileTypeElementSet = AutoUtils.selectSourceFile(allTypeElements, elementUtils);
 
         for (TypeElement typeElement : sourceFileTypeElementSet) {
             try {
@@ -189,17 +165,18 @@ public class SerializableClassProcessor extends AbstractProcessor {
                     "serializable enum must implement " + numericalEnumDeclaredType.asElement().getSimpleName(),
                     typeElement);
         }
+        checkNumericalEnum(typeElement);
     }
 
     private boolean isNumericalEnum(TypeElement typeElement) {
-        return typeUtils.isSubtype(typeElement.asType(), numericalEnumDeclaredType);
+        return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, typeElement.asType(), numericalEnumDeclaredType);
     }
 
     /**
      * 检查 NumericalEnum 的子类是否有forNumber方法
      */
     private void checkNumericalEnum(TypeElement typeElement) {
-        if (!isContainStaticForNumberMethod(typeElement)) {
+        if (!isContainStaticNotPrivateForNumberMethod(typeElement)) {
             messager.printMessage(Diagnostic.Kind.ERROR,
                     String.format("%s must contains a not private 'static %s forNumber(int)' method!", typeElement.getSimpleName(), typeElement.getSimpleName()),
                     typeElement);
@@ -207,10 +184,10 @@ public class SerializableClassProcessor extends AbstractProcessor {
     }
 
     /**
-     * 是否包含静态的forNumber方法 - static T forNumber(int)
+     * 是否包含静态的非private的forNumber方法 - static T forNumber(int)
      * (一定有getNumber方法)
      */
-    private boolean isContainStaticForNumberMethod(TypeElement typeElement) {
+    private boolean isContainStaticNotPrivateForNumberMethod(TypeElement typeElement) {
         return typeElement.getEnclosedElements().stream()
                 .filter(e -> e.getKind() == ElementKind.METHOD)
                 .map(e -> (ExecutableElement) e)
@@ -222,7 +199,7 @@ public class SerializableClassProcessor extends AbstractProcessor {
     }
 
     private boolean isIndexableEntity(TypeElement typeElement) {
-        return typeUtils.isSubtype(typeElement.asType(), indexableEntityDeclaredType);
+        return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, typeElement.asType(), indexableEntityDeclaredType);
     }
 
     /**
@@ -238,6 +215,9 @@ public class SerializableClassProcessor extends AbstractProcessor {
         }
     }
 
+    /**
+     * 获取索引类型
+     */
     private TypeMirror getIndexTypeMirror(TypeElement typeElement) {
         final ExecutableElement getIndexMethod = typeElement.getEnclosedElements().stream()
                 .filter(e -> e.getKind() == ElementKind.METHOD)
@@ -249,15 +229,19 @@ public class SerializableClassProcessor extends AbstractProcessor {
         if (getIndexMethod == null) {
             throw new IllegalArgumentException("can't find getIndex method");
         }
-
         return getIndexMethod.getReturnType();
     }
 
+    /**
+     * @param typeElement     方法的返回值类型
+     * @param indexTypeMirror 方法的参数类型
+     */
     private boolean isContainsStaticForIndexMethod(final TypeElement typeElement, final TypeMirror indexTypeMirror) {
         return typeElement.getEnclosedElements().stream()
                 .filter(e -> e.getKind() == ElementKind.METHOD)
                 .map(e -> (ExecutableElement) e)
                 .filter(method -> !method.getModifiers().contains(Modifier.PRIVATE))
+                .filter(method -> AutoUtils.isSameTypeIgnoreTypeParameter(typeUtils, method.getReturnType(), typeElement.asType()))
                 .filter(method -> method.getModifiers().contains(Modifier.STATIC))
                 .filter(method -> method.getSimpleName().toString().equals(FOR_INDEX_METHOD_NAME))
                 .filter(method -> method.getParameters().size() == 1)
@@ -272,13 +256,10 @@ public class SerializableClassProcessor extends AbstractProcessor {
             if (element.getKind() != ElementKind.FIELD) {
                 continue;
             }
-            // 该注解只有Field可以使用
-            final VariableElement variableElement = (VariableElement) element;
 
-            // 查找该字段上的注解
-            final Optional<? extends AnnotationMirror> serializableFieldAnnotationOptional = getFieldAnnotation(variableElement);
-            // 该成员属性没有serializableField注解
-            if (serializableFieldAnnotationOptional.isEmpty()) {
+            final VariableElement variableElement = (VariableElement) element;
+            // 不需要序列化
+            if (!isSerializableField(variableElement)) {
                 continue;
             }
 
@@ -306,6 +287,18 @@ public class SerializableClassProcessor extends AbstractProcessor {
                     "SerializableClass " + typeElement.getSimpleName() + " must contains no-args constructor, private is ok!",
                     typeElement);
         }
+    }
+
+    /**
+     * 用于 {@link DBEntityProcessor#DB_FIELD_CANONICAL_NAME}注解和{@link #SERIALIZABLE_FIELD_CANONICAL_NAME}注解的字段是可以序列化的
+     */
+    private boolean isSerializableField(VariableElement variableElement) {
+        final Optional<? extends AnnotationMirror> a = AutoUtils.findFirstAnnotationWithoutInheritance(typeUtils, variableElement, serializableFieldDeclaredType);
+        if (a.isPresent()) {
+            return true;
+        }
+        final Optional<? extends AnnotationMirror> b = AutoUtils.findFirstAnnotationWithoutInheritance(typeUtils, variableElement, dbFieldDeclaredType);
+        return b.isPresent();
     }
 
     /**
@@ -349,21 +342,21 @@ public class SerializableClassProcessor extends AbstractProcessor {
             return;
         }
 
-        final TypeMirror implMirror = getFieldImpl(variableElement);
-        if (implMirror == null) {
+        final TypeMirror implTypeMirror = getFieldImplType(variableElement);
+        if (implTypeMirror == null) {
             messager.printMessage(Diagnostic.Kind.ERROR,
-                    "Abstract MapOrCollection must contains impl annotation " + IMPL_CANONICAL_NAME,
+                    "Abstract MapOrCollection must contains impl annotation " + DBEntityProcessor.IMPL_CANONICAL_NAME,
                     variableElement);
             return;
         }
 
-        if (!AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, implMirror, variableElement.asType())) {
+        if (!AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, implTypeMirror, variableElement.asType())) {
             messager.printMessage(Diagnostic.Kind.ERROR, "MapOrCollectionImpl must be field sub type", variableElement);
             return;
         }
 
         // 子类型一定是个class，一定是DeclaredType
-        final DeclaredType impDeclaredType = (DeclaredType) implMirror;
+        final DeclaredType impDeclaredType = (DeclaredType) implTypeMirror;
         if (impDeclaredType.asElement().getModifiers().contains(Modifier.ABSTRACT)) {
             messager.printMessage(Diagnostic.Kind.ERROR, "MapOrCollectionImpl must can't be abstract class", variableElement);
             return;
@@ -375,16 +368,12 @@ public class SerializableClassProcessor extends AbstractProcessor {
         }
     }
 
-    private Optional<? extends AnnotationMirror> getFieldAnnotation(VariableElement variableElement) {
-        return AutoUtils.findFirstAnnotationWithoutInheritance(typeUtils, variableElement, serializableFieldDeclaredType);
-    }
-
     private boolean isMapOrCollection(VariableElement variableElement) {
         return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, variableElement.asType(), mapTypeMirror)
                 || AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, variableElement.asType(), collectionTypeMirror);
     }
 
-    private TypeMirror getFieldImpl(VariableElement variableElement) {
+    private TypeMirror getFieldImplType(VariableElement variableElement) {
         final AnnotationMirror impAnnotationMirror = AutoUtils
                 .findFirstAnnotationWithoutInheritance(typeUtils, variableElement, impDeclaredType)
                 .orElse(null);
@@ -393,12 +382,9 @@ public class SerializableClassProcessor extends AbstractProcessor {
             return null;
         }
 
-        final Object value = AutoUtils.getAnnotationValueWithDefaults(elementUtils, impAnnotationMirror, "value");
-        if (value instanceof TypeMirror) {
-            return (TypeMirror) value;
-        }
-        // 已编译的class
-        return elementUtils.getTypeElement(((Class) value).getCanonicalName()).asType();
+        final AnnotationValue annotationValue = AutoUtils.getAnnotationValueNotDefault(impAnnotationMirror, "value");
+        assert null != annotationValue;
+        return AutoUtils.getAnnotationValueTypeMirror(annotationValue);
     }
 
     // ----------------------------------------------- 辅助类生成 -------------------------------------------
@@ -435,9 +421,7 @@ public class SerializableClassProcessor extends AbstractProcessor {
             // 该注解只有Field可以使用
             final VariableElement variableElement = (VariableElement) element;
             // 查找该字段上的注解
-            final Optional<? extends AnnotationMirror> fieldAnnotation = getFieldAnnotation(variableElement);
-            // 该成员属性没有serializableField注解
-            if (fieldAnnotation.isEmpty()) {
+            if (!isSerializableField(variableElement)) {
                 continue;
             }
 

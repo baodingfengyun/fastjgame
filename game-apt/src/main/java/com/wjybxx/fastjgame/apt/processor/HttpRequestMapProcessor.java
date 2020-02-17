@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.apt.processor;
 
 import com.google.auto.service.AutoService;
-import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
@@ -25,12 +24,10 @@ import com.wjybxx.fastjgame.apt.utils.AutoUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.annotation.processing.*;
-import javax.lang.model.SourceVersion;
+import javax.annotation.processing.Processor;
+import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
-import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -45,7 +42,7 @@ import java.util.stream.Collectors;
  * github - https://github.com/hl845740757
  */
 @AutoService(Processor.class)
-public class HttpRequestMapProcessor extends AbstractProcessor {
+public class HttpRequestMapProcessor extends MyAbstractProcessor {
 
     private static final String HTTP_REQUEST_MAPPING_CANONICAL_NAME = "com.wjybxx.fastjgame.net.annotation.HttpRequestMapping";
     private static final String PARAM_CANONICAL_NAME = "com.wjybxx.fastjgame.net.http.HttpRequestParam";
@@ -57,11 +54,6 @@ public class HttpRequestMapProcessor extends AbstractProcessor {
 
     private static final char PATH_PREFIX = '/';
 
-    private Types typeUtils;
-    private Elements elementUtils;
-    private Messager messager;
-    private Filer filer;
-
     private TypeElement httpRequestMappingElement;
     private DeclaredType httpRequestMappingDeclaredType;
 
@@ -71,30 +63,13 @@ public class HttpRequestMapProcessor extends AbstractProcessor {
 
     private TypeName registryTypeName;
 
-    private AnnotationSpec processorInfoAnnotation;
-
     @Override
     public Set<String> getSupportedAnnotationTypes() {
         return Collections.singleton(HTTP_REQUEST_MAPPING_CANONICAL_NAME);
     }
 
     @Override
-    public SourceVersion getSupportedSourceVersion() {
-        return AutoUtils.SOURCE_VERSION;
-    }
-
-    @Override
-    public synchronized void init(ProcessingEnvironment processingEnv) {
-        super.init(processingEnv);
-        typeUtils = processingEnv.getTypeUtils();
-        elementUtils = processingEnv.getElementUtils();
-        messager = processingEnv.getMessager();
-        filer = processingEnv.getFiler();
-
-        processorInfoAnnotation = AutoUtils.newProcessorInfoAnnotation(getClass());
-    }
-
-    private void ensureInited() {
+    protected void ensureInited() {
         if (null != httpRequestMappingElement) {
             return;
         }
@@ -110,13 +85,7 @@ public class HttpRequestMapProcessor extends AbstractProcessor {
 
     @SuppressWarnings("unchecked")
     @Override
-    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        try {
-            ensureInited();
-        } catch (Throwable e) {
-            messager.printMessage(Diagnostic.Kind.ERROR, AutoUtils.getStackTrace(e));
-        }
-
+    protected boolean doProcess(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         // 该注解可以用在类和方法上，需要注意
         final Map<Element, ? extends List<? extends Element>> class2MethodsMap = roundEnv.getElementsAnnotatedWith(httpRequestMappingElement).stream()
                 .filter(element -> element.getKind() == ElementKind.METHOD)
@@ -134,7 +103,7 @@ public class HttpRequestMapProcessor extends AbstractProcessor {
 
     private void genProxyClass(TypeElement typeElement, List<ExecutableElement> methodList) {
         final String parentPath = AutoUtils.findFirstAnnotationWithoutInheritance(typeUtils, typeElement, httpRequestMappingDeclaredType)
-                .map(annotationMirror -> (String) AutoUtils.getAnnotationValueNotDefault(annotationMirror, PATH_METHOD_NAME))
+                .map(annotationMirror -> (String) AutoUtils.getAnnotationValueValueNotDefault(annotationMirror, PATH_METHOD_NAME))
                 .orElse(null);
         // 父路径存在时需要校验
         if (parentPath != null && checkPath(parentPath) != null) {
@@ -160,7 +129,7 @@ public class HttpRequestMapProcessor extends AbstractProcessor {
         for (ExecutableElement method : methodList) {
             final Optional<? extends AnnotationMirror> methodAnnotation = AutoUtils.findFirstAnnotationWithoutInheritance(typeUtils, method, httpRequestMappingDeclaredType);
             assert methodAnnotation.isPresent();
-            final String childPath = AutoUtils.getAnnotationValueNotDefault(methodAnnotation.get(), PATH_METHOD_NAME);
+            final String childPath = AutoUtils.getAnnotationValueValueNotDefault(methodAnnotation.get(), PATH_METHOD_NAME);
             assert null != childPath;
 
             // 路径检查
@@ -206,7 +175,7 @@ public class HttpRequestMapProcessor extends AbstractProcessor {
             }
 
             // 是否继承父节点路径，如果继承，则使用组合路径，否则使用方法指定的路径
-            final Boolean inherit = AutoUtils.getAnnotationValueWithDefaults(elementUtils, methodAnnotation.get(), INHERIT_METHOD_NAME);
+            final Boolean inherit = AutoUtils.getAnnotationValueValueWithDefaults(elementUtils, methodAnnotation.get(), INHERIT_METHOD_NAME);
             final String finalPath = inherit ? makePath(parentPath, childPath) : childPath;
 
             // 生成lambda表达式

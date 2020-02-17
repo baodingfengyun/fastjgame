@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.net.binary;
 
 import com.wjybxx.fastjgame.net.annotation.SerializableClass;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.function.IntFunction;
 
@@ -53,6 +54,10 @@ import java.util.function.IntFunction;
 @ThreadSafe
 public interface EntitySerializer<T> {
 
+    /**
+     * 从输入流中读取富姐解析的对象
+     */
+    @Nonnull
     T readObject(EntityInputStream inputStream) throws Exception;
 
     void writeObject(T instance, EntityOutputStream outputStream) throws Exception;
