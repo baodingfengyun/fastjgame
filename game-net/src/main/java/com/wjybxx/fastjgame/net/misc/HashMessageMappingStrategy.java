@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.net.misc;
 
+import com.wjybxx.fastjgame.net.binary.WireType;
 import com.wjybxx.fastjgame.utils.ClassScanner;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;

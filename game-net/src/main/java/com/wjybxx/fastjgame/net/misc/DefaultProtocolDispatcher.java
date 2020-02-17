@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.net.misc;
 import com.wjybxx.fastjgame.net.common.ProtocolDispatcher;
 import com.wjybxx.fastjgame.net.common.RpcCall;
 import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
+import com.wjybxx.fastjgame.net.common.VoidRpcResponseChannel;
 import com.wjybxx.fastjgame.net.session.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

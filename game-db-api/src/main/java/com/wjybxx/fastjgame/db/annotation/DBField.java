@@ -34,15 +34,10 @@ import java.lang.annotation.Target;
 public @interface DBField {
 
     /**
-     * 字段持久化时的名字
+     * 字段持久化时的名字。
+     * 持久化结果中尽量包含字段名字信息，尽量直观可读。
      */
     String name();
-
-    /**
-     * 当一个字段是{@link java.util.Map} 或 {@link java.util.Collection}时，必须指定其实现类型。
-     * 并且确保其实现包含一个public的无参构造方法。
-     */
-    Class<?> impl() default Object.class;
 
     /**
      * 一些注释信息

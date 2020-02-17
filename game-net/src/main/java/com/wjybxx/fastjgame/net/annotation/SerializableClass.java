@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.annotation;
 
-import com.wjybxx.fastjgame.net.serializer.EntitySerializer;
+import com.wjybxx.fastjgame.net.binary.EntitySerializer;
 import com.wjybxx.fastjgame.utils.entity.NumericalEntity;
 
 import java.lang.annotation.ElementType;

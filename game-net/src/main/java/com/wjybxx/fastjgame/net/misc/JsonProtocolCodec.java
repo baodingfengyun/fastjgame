@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.net.misc;
 
+import com.wjybxx.fastjgame.net.binary.BinaryProtocolCodec;
 import com.wjybxx.fastjgame.net.common.ProtocolCodec;
 import com.wjybxx.fastjgame.net.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.JsonUtils;
@@ -46,62 +47,6 @@ public class JsonProtocolCodec implements ProtocolCodec {
 
     public JsonProtocolCodec(MessageMapper messageMapper) {
         this.messageMapper = messageMapper;
-    }
-
-    @Nonnull
-    @Override
-    public ByteBuf writeObject(ByteBufAllocator bufAllocator, @Nullable Object obj) throws IOException {
-        if (null == obj) {
-            return bufAllocator.buffer(0);
-        }
-        ByteBuf cacheBuffer = Unpooled.wrappedBuffer(LOCAL_BUFFER.get());
-        // wrap会认为bytes中的数据都是可读的，我们需要清空这些标记。
-        cacheBuffer.clear();
-
-        try (ByteBufOutputStream byteBufOutputStream = new ByteBufOutputStream(cacheBuffer)) {
-            // 协议classId
-            int messageId = messageMapper.getMessageId(obj.getClass());
-            byteBufOutputStream.writeInt(messageId);
-            // 写入序列化的内容
-            JsonUtils.writeToOutputStream(byteBufOutputStream, obj);
-            // 写入byteBuf
-            ByteBuf byteBuf = bufAllocator.buffer(cacheBuffer.readableBytes());
-            byteBuf.writeBytes(cacheBuffer);
-            return byteBuf;
-        } finally {
-            cacheBuffer.release();
-        }
-    }
-
-    @Override
-    public Object readObject(ByteBuf data) throws IOException {
-        if (data.readableBytes() == 0) {
-            return null;
-        }
-        final Class<?> messageClazz = messageMapper.getMessageClazz(data.readInt());
-        final ByteBufInputStream inputStream = new ByteBufInputStream(data);
-        return JsonUtils.readFromInputStream((InputStream) inputStream, messageClazz);
-    }
-
-    private Object cloneObject(@Nullable Object obj) throws IOException {
-        if (null == obj) {
-            return null;
-        }
-        ByteBuf cacheBuffer = Unpooled.wrappedBuffer(LOCAL_BUFFER.get());
-        try {
-            // wrap会认为bytes中的数据都是可读的，我们需要清空这些标记。
-            cacheBuffer.clear();
-
-            // 写入序列化的内容
-            ByteBufOutputStream byteBufOutputStream = new ByteBufOutputStream(cacheBuffer);
-            JsonUtils.writeToOutputStream(byteBufOutputStream, obj);
-
-            // 再读出来
-            ByteBufInputStream byteBufInputStream = new ByteBufInputStream(cacheBuffer);
-            return JsonUtils.readFromInputStream((InputStream) byteBufInputStream, obj.getClass());
-        } finally {
-            cacheBuffer.release();
-        }
     }
 
     @Nonnull
@@ -143,5 +88,63 @@ public class JsonProtocolCodec implements ProtocolCodec {
         } finally {
             byteBuf.release();
         }
+    }
+
+    @Override
+    public Object cloneObject(@Nullable Object obj) throws IOException {
+        if (null == obj) {
+            return null;
+        }
+        ByteBuf cacheBuffer = Unpooled.wrappedBuffer(LOCAL_BUFFER.get());
+        try {
+            // wrap会认为bytes中的数据都是可读的，我们需要清空这些标记。
+            cacheBuffer.clear();
+
+            // 写入序列化的内容
+            ByteBufOutputStream byteBufOutputStream = new ByteBufOutputStream(cacheBuffer);
+            JsonUtils.writeToOutputStream(byteBufOutputStream, obj);
+
+            // 再读出来
+            ByteBufInputStream byteBufInputStream = new ByteBufInputStream(cacheBuffer);
+            return JsonUtils.readFromInputStream((InputStream) byteBufInputStream, obj.getClass());
+        } finally {
+            cacheBuffer.release();
+        }
+    }
+
+    @Nonnull
+    @Override
+    public ByteBuf writeObject(ByteBufAllocator bufAllocator, @Nullable Object obj) throws IOException {
+        if (null == obj) {
+            return bufAllocator.buffer(0);
+        }
+        ByteBuf cacheBuffer = Unpooled.wrappedBuffer(LOCAL_BUFFER.get());
+        // wrap会认为bytes中的数据都是可读的，我们需要清空这些标记。
+        cacheBuffer.clear();
+
+        try (ByteBufOutputStream byteBufOutputStream = new ByteBufOutputStream(cacheBuffer)) {
+            // 协议classId
+            int messageId = messageMapper.getMessageId(obj.getClass());
+            byteBufOutputStream.writeInt(messageId);
+            // 写入序列化的内容
+            JsonUtils.writeToOutputStream(byteBufOutputStream, obj);
+            // 写入byteBuf
+            ByteBuf byteBuf = bufAllocator.buffer(cacheBuffer.readableBytes());
+            byteBuf.writeBytes(cacheBuffer);
+            return byteBuf;
+        } finally {
+            cacheBuffer.release();
+        }
+    }
+
+
+    @Override
+    public Object readObject(ByteBuf data) throws IOException {
+        if (data.readableBytes() == 0) {
+            return null;
+        }
+        final Class<?> messageClazz = messageMapper.getMessageClazz(data.readInt());
+        final ByteBufInputStream inputStream = new ByteBufInputStream(data);
+        return JsonUtils.readFromInputStream((InputStream) inputStream, messageClazz);
     }
 }

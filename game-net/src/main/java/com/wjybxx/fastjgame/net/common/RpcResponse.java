@@ -16,27 +16,24 @@
 
 package com.wjybxx.fastjgame.net.common;
 
-import com.wjybxx.fastjgame.net.misc.*;
-import com.wjybxx.fastjgame.net.serializer.EntityInputStream;
-import com.wjybxx.fastjgame.net.serializer.EntityOutputStream;
-import com.wjybxx.fastjgame.net.serializer.EntitySerializer;
+import com.wjybxx.fastjgame.net.annotation.SerializableClass;
+import com.wjybxx.fastjgame.net.annotation.SerializableField;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.IOException;
 
 /**
  * Rpc响应结果。
  * 注意：这是RPC调用的结果，一定不能使用 == 判断相等！！！
- * {@link RpcResponseSerializer}负责解析该类
  *
  * @author wjybxx
  * @version 1.1
  * date - 2019/8/1
  * github - https://github.com/hl845740757
  */
+@SerializableClass
 public final class RpcResponse {
 
     // 这些常量仅仅是为了减少对象创建，但是你需要谨记：这是RPC调用的结果，一定不能使用 == 判断相等！！！
@@ -48,12 +45,14 @@ public final class RpcResponse {
     /**
      * 结果标识 - 错误码
      */
+    @SerializableField
     private final RpcErrorCode errorCode;
     /**
      * rpc响应结果。
      * 如果{@link #errorCode}为{@link RpcErrorCode#SUCCESS}，则body为对应的结果(null可能是个正常的结果)。
      * 否则body为对应的错误信息(String)(应该非null)。
      */
+    @SerializableField
     private final Object body;
 
     public RpcResponse(@Nonnull RpcErrorCode errorCode, @Nullable Object body) {
@@ -119,32 +118,4 @@ public final class RpcResponse {
                 '}';
     }
 
-    /**
-     * 负责编解码{@link RpcResponse}
-     */
-    private static class RpcResponseSerializer implements EntitySerializer<RpcResponse> {
-
-        @Override
-        public RpcResponse newInstance() {
-            return null;
-        }
-
-        @Override
-        public void writeFields(RpcResponse instance, EntityOutputStream outputStream) throws IOException {
-            outputStream.writeField(WireType.CUSTOM_ENTITY, instance.errorCode);
-            outputStream.writeField(WireType.RUN_TIME, instance.body);
-        }
-
-        @Override
-        public RpcResponse readFields(EntityInputStream inputStream) throws IOException {
-            final RpcErrorCode errorCode = inputStream.readField(WireType.CUSTOM_ENTITY);
-            final Object body = inputStream.readField(WireType.RUN_TIME);
-            return new RpcResponse(errorCode, body);
-        }
-
-        @Override
-        public RpcResponse clone(RpcResponse instance, BeanCloneUtil util) throws IOException {
-            return new RpcResponse(instance.errorCode, util.cloneField(WireType.RUN_TIME, instance.body));
-        }
-    }
 }

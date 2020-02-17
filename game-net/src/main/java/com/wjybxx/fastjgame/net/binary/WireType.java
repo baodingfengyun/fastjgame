@@ -1,36 +1,34 @@
 /*
- * Copyright 2019 wjybxx
+ *  Copyright 2019 wjybxx
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to iBn writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.misc;
+package com.wjybxx.fastjgame.net.binary;
 
 
 import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.ProtocolMessageEnum;
+import com.wjybxx.fastjgame.db.annotation.DBEntity;
 import com.wjybxx.fastjgame.net.annotation.SerializableClass;
-import com.wjybxx.fastjgame.net.serializer.EntitySerializer;
+import com.wjybxx.fastjgame.net.exception.BadCollectionDeclarationTypeException;
 import com.wjybxx.fastjgame.utils.ClassScanner;
-import com.wjybxx.fastjgame.utils.entity.IndexableEntity;
-import com.wjybxx.fastjgame.utils.entity.NumericalEntity;
+import com.wjybxx.fastjgame.utils.misc.Chunk;
 import com.wjybxx.fastjgame.utils.reflect.TypeParameterFinder;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.IdentityHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 数据类型
@@ -41,6 +39,19 @@ import java.util.Set;
  * github - https://github.com/hl845740757
  */
 public class WireType {
+
+    /**
+     * 默认{@link Map}的解析类型
+     * Q: 为什么要使用{@link LinkedHashMap}？
+     * A: 键值对的顺序必须保持和发送方一致。
+     */
+    public static final Class<?> DEFAULT_MAP_IMPL_CLASS = LinkedHashMap.class;
+    /**
+     * 默认{@link Collection}的类型
+     * Q: 为什么要使用{@link ArrayList}？
+     * A: 元素的顺序必须保持和发送方一致，其它类似实现也是可以的。
+     */
+    public static final Class<?> DEFAULT_COLLECTION_IMPL_CLASS = ArrayList.class;
 
     /**
      * bean -> beanSerializer (自动生成的beanSerializer 或 手动实现的)
@@ -57,7 +68,7 @@ public class WireType {
             final Class<?> beanClass = TypeParameterFinder.findTypeParameterUnsafe(serializerClass, EntitySerializer.class, "T");
 
             if (beanClass == Object.class) {
-                throw new UnsupportedOperationException("BeanSerializer must declare type parameter");
+                throw new UnsupportedOperationException("BeanSerializer, must declare type parameter");
             }
 
             if (classBeanSerializerMap.containsKey(beanClass)) {
@@ -91,7 +102,7 @@ public class WireType {
      */
     public static final byte SHORT = 3;
     /**
-     * varInt
+     * varInt(不要修改名字)
      */
     public static final byte INT = 4;
     /**
@@ -145,7 +156,7 @@ public class WireType {
      */
     public static final byte BOOLEAN_ARRAY = 16;
 
-    // --------------------------------------------- 对象 ------------------------------
+    // ------------------------------------------ 特定对象支持 ------------------------------
     /**
      * 字符串 LENGTH_DELIMITED
      */
@@ -164,20 +175,28 @@ public class WireType {
      */
     public static final byte CHUNK = 20;
 
-    // -------------------------------------------- 带有注解的类 -----------------------------
+    // ------------------------------------------ 默认集合支持 ---------------------------------
 
     /**
-     * {@link com.wjybxx.fastjgame.utils.entity.NumericalEntity}的子类
+     * 默认Map支持
+     * 如果一个字段/参数的声明类型是{@link Map}，那么适用该类型
      */
-    public static final byte NUMERICAL_ENTITY = 21;
+    public static final byte DEFAULT_MAP = 21;
+
     /**
-     * {@link com.wjybxx.fastjgame.utils.entity.IndexableEntity}的子类
+     * 默认集合支持
+     * 如果一个字段/参数的声明类型是{@link Collection}，那么那么适用该类型。
      */
-    public static final byte INDEXABLE_ENTITY = 22;
+    public static final byte DEFAULT_COLLECTION = 22;
+
+    // ------------------------------------------- 带有注解的类 -----------------------------
+
     /**
-     * 其它对象
+     * 带有{@link DBEntity} 或 {@link SerializableClass}注解的类，
+     * 或手动实现{@link EntitySerializer}负责解析的类。
      */
     public static final byte CUSTOM_ENTITY = 23;
+
 
     /**
      * 动态类型 - 运行时才能确定的类型（它是标记类型）
@@ -187,100 +206,104 @@ public class WireType {
     /**
      * 查找一个class对应的wireType
      *
-     * @param type class
+     * @param declaredType 字段的声明类型
      * @return wireType
      */
-    public static byte findType(@Nonnull final Class<?> type) {
+    public static byte findType(@Nonnull final Class<?> declaredType) {
         // --- 基本类型
-        if (type == byte.class || type == Byte.class) {
+        if (declaredType == byte.class || declaredType == Byte.class) {
             return WireType.BYTE;
         }
-        if (type == char.class || type == Character.class) {
+        if (declaredType == char.class || declaredType == Character.class) {
             return WireType.CHAR;
         }
-        if (type == short.class || type == Short.class) {
+        if (declaredType == short.class || declaredType == Short.class) {
             return WireType.SHORT;
         }
-        if (type == int.class || type == Integer.class) {
+        if (declaredType == int.class || declaredType == Integer.class) {
             return WireType.INT;
         }
-        if (type == long.class || type == Long.class) {
+        if (declaredType == long.class || declaredType == Long.class) {
             return WireType.LONG;
         }
-        if (type == float.class || type == Float.class) {
+        if (declaredType == float.class || declaredType == Float.class) {
             return WireType.FLOAT;
         }
-        if (type == double.class || type == Double.class) {
+        if (declaredType == double.class || declaredType == Double.class) {
             return WireType.DOUBLE;
         }
-        if (type == boolean.class || type == Boolean.class) {
+        if (declaredType == boolean.class || declaredType == Boolean.class) {
             return WireType.BOOLEAN;
         }
 
         // ---- 基本类型数组
-
-        if (type == byte[].class) {
+        if (declaredType == byte[].class) {
             return WireType.BYTE_ARRAY;
         }
-        if (type == short[].class) {
+        if (declaredType == char[].class) {
+            return WireType.CHAR_ARRAY;
+        }
+        if (declaredType == short[].class) {
             return WireType.SHORT_ARRAY;
         }
-        if (type == int[].class) {
+        if (declaredType == int[].class) {
             return WireType.INT_ARRAY;
         }
-        if (type == long[].class) {
+        if (declaredType == long[].class) {
             return WireType.LONG_ARRAY;
         }
-        if (type == float[].class) {
+        if (declaredType == float[].class) {
             return WireType.FLOAT_ARRAY;
         }
-        if (type == double[].class) {
+        if (declaredType == double[].class) {
             return WireType.DOUBLE_ARRAY;
         }
-        if (type == char[].class) {
-            return WireType.CHAR_ARRAY;
+        if (declaredType == boolean[].class) {
+            return WireType.BOOLEAN_ARRAY;
         }
 
         // 字符串
-        if (type == String.class) {
+        if (declaredType == String.class) {
             return WireType.STRING;
         }
 
         // protoBuf
-        if (AbstractMessage.class.isAssignableFrom(type)) {
+        if (AbstractMessage.class.isAssignableFrom(declaredType)) {
             return WireType.PROTO_MESSAGE;
         }
 
         // protoBuf的枚举
-        if (ProtocolMessageEnum.class.isAssignableFrom(type)) {
+        if (ProtocolMessageEnum.class.isAssignableFrom(declaredType)) {
             return WireType.PROTO_ENUM;
         }
 
         // CHUNK
-        if (type == Chunk.class) {
+        if (declaredType == Chunk.class) {
             return WireType.CHUNK;
         }
 
-        // Object
-        if (type == Object.class) {
-            return WireType.RUN_TIME;
+        // Map
+        if (Map.class.isAssignableFrom(declaredType)) {
+            if (declaredType == Map.class) {
+                return WireType.DEFAULT_MAP;
+            }
+            throw new BadCollectionDeclarationTypeException();
         }
 
-        if (type.isAnnotationPresent(SerializableClass.class)) {
-            if (NumericalEntity.class.isAssignableFrom(type)) {
-                return WireType.NUMERICAL_ENTITY;
+        // Collection
+        if (Collection.class.isAssignableFrom(declaredType)) {
+            if (declaredType == Collection.class) {
+                return WireType.DEFAULT_COLLECTION;
             }
-            if (IndexableEntity.class.isAssignableFrom(type)) {
-                return WireType.INDEXABLE_ENTITY;
-            }
+            throw new BadCollectionDeclarationTypeException();
         }
 
-        // 需要处理手写的实现，因此放在这里
-        if (classBeanSerializerMap.containsKey(type)) {
+        // 有serializer的类型，无论手写的还是自动生成的
+        if (classBeanSerializerMap.containsKey(declaredType)) {
             return WireType.CUSTOM_ENTITY;
         }
 
-        // 一些接口，超类等等
+        // Object，或一些接口，超类等等
         return WireType.RUN_TIME;
     }
 
@@ -292,7 +315,7 @@ public class WireType {
      */
     @Nullable
     @SuppressWarnings("unchecked")
-    public static <T> Class<? extends EntitySerializer<T>> getBeanSerializer(Class<T> messageClazz) {
+    static <T> Class<? extends EntitySerializer<T>> getBeanSerializer(Class<T> messageClazz) {
         return (Class<? extends EntitySerializer<T>>) classBeanSerializerMap.get(messageClazz);
     }
 
@@ -301,7 +324,6 @@ public class WireType {
      */
     public static boolean isSerializable(Class<?> messageClazz) {
         return classBeanSerializerMap.containsKey(messageClazz)
-                || messageClazz.isAnnotationPresent(SerializableClass.class)
                 || AbstractMessage.class.isAssignableFrom(messageClazz)
                 || ProtocolMessageEnum.class.isAssignableFrom(messageClazz);
     }

@@ -15,9 +15,9 @@
  */
 package com.wjybxx.fastjgame.net.example;
 
+import com.wjybxx.fastjgame.net.binary.BinaryProtocolCodec;
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoopGroupBuilder;
-import com.wjybxx.fastjgame.net.misc.BinaryProtocolCodec;
 import com.wjybxx.fastjgame.net.misc.HashMessageMappingStrategy;
 import com.wjybxx.fastjgame.net.misc.JsonProtocolCodec;
 import com.wjybxx.fastjgame.net.misc.MessageMapper;

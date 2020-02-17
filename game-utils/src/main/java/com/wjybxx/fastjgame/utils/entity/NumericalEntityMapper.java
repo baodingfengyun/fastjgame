@@ -39,7 +39,8 @@ public interface NumericalEntityMapper<T extends NumericalEntity> extends Indexa
     T forNumber(int number);
 
     /**
-     * 获取映射的所有枚举实例，顺序可以和原始枚举不一致。
+     * 获取映射的所有枚举实例。
+     * (不可以修改数组内容，否则可能导致并发错误)
      *
      * @return array
      */

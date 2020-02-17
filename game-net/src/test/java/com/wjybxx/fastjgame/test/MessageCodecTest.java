@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.test;
 
 import com.wjybxx.fastjgame.net.example.ExampleConstants;
 import com.wjybxx.fastjgame.net.example.p_test;
-import com.wjybxx.fastjgame.net.misc.BinaryProtocolCodec;
+import com.wjybxx.fastjgame.net.binary.BinaryProtocolCodec;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.UnpooledByteBufAllocator;

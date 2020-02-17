@@ -57,6 +57,17 @@ public interface ProtocolCodec {
     Object deserializeFromBytes(@Nonnull byte[] data) throws IOException;
 
     /**
+     * 克隆一个对象。
+     * 该方法的主要目的是消除调用{@link #serializeToBytes(Object)}和{@link #deserializeFromBytes(byte[])}实现克隆产生的中间数组。
+     *
+     * @param obj 待克隆的对象
+     * @return 深度克隆的对象
+     * @throws IOException error
+     */
+    @Nullable
+    Object cloneObject(@Nullable Object obj) throws IOException;
+
+    /**
      * 写入一个对象
      *
      * @param bufAllocator buf分配器，为了减少中间数据创建

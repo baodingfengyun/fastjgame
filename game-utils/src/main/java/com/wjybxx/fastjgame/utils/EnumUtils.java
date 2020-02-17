@@ -122,7 +122,7 @@ public class EnumUtils {
      * @param <T>    枚举类型
      * @return unmodifiable
      */
-    public static <T extends NumericalEntity> NumericalEntityMapper<T> mapping(T[] values) {
+    public static <T extends NumericalEntity> NumericalEntityMapper<T> mapping(final T[] values) {
         if (values.length == 0) {
             @SuppressWarnings("unchecked") final NumericalEntityMapper<T> mapper = (NumericalEntityMapper<T>) EmptyMapper.INSTANCE;
             return mapper;
@@ -147,10 +147,13 @@ public class EnumUtils {
                 .max()
                 .getAsInt();
 
-        if (ArrayBasedEnumMapper.available(minNumber, maxNumber, values.length)) {
-            return new ArrayBasedEnumMapper<>(values, minNumber, maxNumber);
+        // 保护性拷贝，避免出现并发问题 - 不确定values()是否会被修改
+        final T[] copiedValues = Arrays.copyOf(values, values.length);
+
+        if (ArrayBasedEnumMapper.available(minNumber, maxNumber, copiedValues.length)) {
+            return new ArrayBasedEnumMapper<>(copiedValues, minNumber, maxNumber);
         } else {
-            return new MapBasedMapper<>(values, result);
+            return new MapBasedMapper<>(copiedValues, result);
         }
     }
 
