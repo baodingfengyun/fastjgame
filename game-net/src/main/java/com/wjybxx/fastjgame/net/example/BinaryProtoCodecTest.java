@@ -72,7 +72,7 @@ public class BinaryProtoCodecTest {
         ExampleMessages.Hello hello = new ExampleMessages.Hello(65, "hello world.");
         fullMessage.setHello(hello);
 
-        fullMessage.setName("wjybxx");
+        fullMessage.setaString("wjybxx");
         fullMessage.setProfession(ExampleMessages.Profession.CODER);
 
         fullMessage.setStringList(new ArrayList<>(Arrays.asList("张三", "李四", "王五")));

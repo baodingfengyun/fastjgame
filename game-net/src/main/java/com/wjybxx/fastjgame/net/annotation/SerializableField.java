@@ -34,18 +34,6 @@ import java.lang.annotation.Target;
 public @interface SerializableField {
 
     /**
-     * 字段的具体类型，该属性用于实现精确解析。
-     * <p>
-     * 当一个字段是抽象的@link java.util.Map} 或 {@link java.util.Collection}时，必须指定其实现类型。
-     * 并且确保其实现包含一个public的无参构造方法，注解处理器会在编译时检查。
-     *
-     * <h3>嵌套集合</h3>
-     * 对于多重嵌套类型集合，编译期间无法提供很好的检查，因此不建议使用多重嵌套的集合。
-     * 另外，{@code Map<Integer,Map<String,Integer>> }这种代码本身的可读性就较差，为其建立一些类吧。
-     */
-    Class<?> impl() default Object.class;
-
-    /**
      * 如果实现层兼容性做的好的话，那么指定名字有助于提升兼容性。
      * 如果实现层未处理兼容性问题的话，那么指定名字并没有什么用。
      */

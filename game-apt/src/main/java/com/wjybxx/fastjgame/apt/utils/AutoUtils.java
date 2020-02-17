@@ -35,6 +35,7 @@ import javax.tools.Diagnostic;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -175,6 +176,8 @@ public class AutoUtils {
         }
     }
 
+    // ----------------------------------------------------- 分割线 -----------------------------------------------
+
     /**
      * 通过名字查找对应的方法
      */
@@ -186,6 +189,22 @@ public class AutoUtils {
                 .filter(e -> e.getSimpleName().toString().equals(methodName))
                 .findFirst().orElse(null);
     }
+
+    /**
+     * 将继承体系展开，不包含实现的接口。
+     */
+    public static List<TypeElement> flatInherit(TypeElement typeElement) {
+        final List<TypeElement> result = new LinkedList<>();
+        result.add(typeElement);
+
+        for (TypeMirror typeMirror = typeElement.getSuperclass(); typeMirror.getKind()!=TypeKind.NONE; ) {
+            final TypeElement parentTypeElement = (TypeElement) (getDeclaredType(typeMirror).asElement());
+            result.add(parentTypeElement);
+            typeMirror = parentTypeElement.getSuperclass();
+        }
+        return result;
+    }
+
 
     // ----------------------------------------------------- 分割线 -----------------------------------------------
 

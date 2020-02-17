@@ -55,6 +55,11 @@ public final class RpcResponse {
     @SerializableField
     private final Object body;
 
+    private RpcResponse() {
+        errorCode = null;
+        body = null;
+    }
+
     public RpcResponse(@Nonnull RpcErrorCode errorCode, @Nullable Object body) {
         this.errorCode = errorCode;
         this.body = body;

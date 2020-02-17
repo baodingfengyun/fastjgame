@@ -15,6 +15,7 @@
  */
 package com.wjybxx.fastjgame.net.example;
 
+import com.wjybxx.fastjgame.db.annotation.Impl;
 import com.wjybxx.fastjgame.net.annotation.SerializableClass;
 import com.wjybxx.fastjgame.net.annotation.SerializableField;
 import com.wjybxx.fastjgame.utils.EnumUtils;
@@ -94,7 +95,7 @@ public final class ExampleMessages {
     }
 
     @SerializableClass
-    public static class FullMessage {
+    public static class FullMessage extends Hello{
 
         @SerializableField
         private Object any;
@@ -124,18 +125,21 @@ public final class ExampleMessages {
         private boolean aBoolean;
 
         @SerializableField
-        private String name;
+        private String aString;
 
         @SerializableField
         private Profession profession;
 
-        @SerializableField(impl = ArrayList.class)
+        @Impl(ArrayList.class)
+        @SerializableField
         private List<String> stringList;
 
-        @SerializableField(impl = HashSet.class)
+        @Impl(HashSet.class)
+        @SerializableField
         private Set<String> stringSet;
 
-        @SerializableField(impl = LinkedHashMap.class)
+        @Impl(LinkedHashMap.class)
+        @SerializableField
         private Map<String, String> stringStringMap;
 
         @SerializableField
@@ -240,12 +244,12 @@ public final class ExampleMessages {
             this.aBoolean = aBoolean;
         }
 
-        public String getName() {
-            return name;
+        public String getaString() {
+            return aString;
         }
 
-        public void setName(String name) {
-            this.name = name;
+        public void setaString(String aString) {
+            this.aString = aString;
         }
 
         public Profession getProfession() {
@@ -371,7 +375,7 @@ public final class ExampleMessages {
                     .append(aDouble, that.aDouble)
                     .append(aBoolean, that.aBoolean)
                     .append(any, that.any)
-                    .append(name, that.name)
+                    .append(aString, that.aString)
                     .append(profession, that.profession)
                     .append(stringList, that.stringList)
                     .append(stringSet, that.stringSet)
@@ -400,7 +404,7 @@ public final class ExampleMessages {
                     .append(aFloat)
                     .append(aDouble)
                     .append(aBoolean)
-                    .append(name)
+                    .append(aString)
                     .append(profession)
                     .append(stringList)
                     .append(stringSet)
@@ -429,7 +433,7 @@ public final class ExampleMessages {
                     ", aFloat=" + aFloat +
                     ", aDouble=" + aDouble +
                     ", aBoolean=" + aBoolean +
-                    ", name='" + name + '\'' +
+                    ", name='" + aString + '\'' +
                     ", profession=" + profession +
                     ", stringList=" + stringList +
                     ", stringSet=" + stringSet +

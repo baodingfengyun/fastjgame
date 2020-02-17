@@ -22,10 +22,13 @@ import com.squareup.javapoet.TypeName;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.*;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.PrimitiveType;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.SimpleTypeVisitor8;
+import javax.lang.model.util.Types;
 
 /**
  * JavaBean工具类
@@ -56,6 +59,28 @@ public class BeanUtils {
                 .findFirst()
                 .orElse(null);
     }
+
+    public static boolean isBoolean(Types typeUtil, TypeMirror typeMirror) {
+        return typeMirror.accept(new SimpleTypeVisitor8<>() {
+
+            @Override
+            public Boolean visitPrimitive(PrimitiveType t, Object o) {
+                return t.getKind() == TypeKind.BOOLEAN;
+            }
+
+            @Override
+            public Boolean visitDeclared(DeclaredType t, Object o) {
+                final TypeElement boxedBoolean = typeUtil.boxedClass(typeUtil.getPrimitiveType(TypeKind.BOOLEAN));
+                return typeUtil.isSameType(t, boxedBoolean.asType());
+            }
+
+            @Override
+            protected Boolean defaultAction(TypeMirror e, Object o) {
+                return false;
+            }
+        }, null);
+    }
+
 
     /**
      * 首字符大写
@@ -212,4 +237,5 @@ public class BeanUtils {
     public static String setterMethodName(FieldSpec field) {
         return setterMethodName(field.name, isBoolean(field.type));
     }
+
 }

@@ -32,7 +32,7 @@ import java.lang.annotation.Target;
  * 1. 如果是枚举，必须实现{@link NumericalEntity}，并提供非private的{@code forNumber(int)}方法 - 也就是按照protoBuf的枚举格式来。
  * 2. 如果是实现了{@link NumericalEntity}的类，也必须提供提供非private的{@code forNumber(int)}方法。
  * 3. 如果是实现了{@link IndexableEntity}的类，比需提供非private的{@code forIndex(Object)}方法。
- * 4. 如果是普通类，必须提供<b>无参构造方法</b>，可以是private。
+ * 4. 如果是普通类，必须提供<b>无参构造方法</b>，可以是private，且要序列化的字段必须提供非private的getter方法，setter方法根据自己需求决定是否提供。
  *
  * <h3>扩展</h3>
  * Q: 是否可以不使用注解，也能序列化？
