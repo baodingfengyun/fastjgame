@@ -346,12 +346,6 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
     }
 
     private void checkMapAndCollectionField(VariableElement variableElement) {
-        final DeclaredType declaredType = AutoUtils.getDeclaredType(variableElement.asType());
-        if (!declaredType.asElement().getModifiers().contains(Modifier.ABSTRACT)) {
-            // 声明类型是具体类型
-            return;
-        }
-
         final TypeMirror implTypeMirror = getFieldImplType(variableElement);
         if (implTypeMirror == null) {
             messager.printMessage(Diagnostic.Kind.ERROR,
@@ -378,12 +372,25 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
         }
     }
 
-    private boolean isMapOrCollection(VariableElement variableElement) {
-        return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, variableElement.asType(), mapTypeMirror)
-                || AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, variableElement.asType(), collectionTypeMirror);
+    boolean isMapOrCollection(VariableElement variableElement) {
+        return isMap(variableElement) || isCollection(variableElement);
     }
 
-    private TypeMirror getFieldImplType(VariableElement variableElement) {
+    boolean isMap(VariableElement variableElement) {
+        return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, variableElement.asType(), mapTypeMirror);
+    }
+
+    boolean isCollection(VariableElement variableElement) {
+        return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, variableElement.asType(), collectionTypeMirror);
+    }
+
+    TypeMirror getFieldImplType(VariableElement variableElement) {
+        final DeclaredType declaredType = AutoUtils.getDeclaredType(variableElement.asType());
+        if (!declaredType.asElement().getModifiers().contains(Modifier.ABSTRACT)) {
+            // 声明类型是具体类型
+            return declaredType;
+        }
+
         final AnnotationMirror impAnnotationMirror = AutoUtils
                 .findFirstAnnotationWithoutInheritance(typeUtils, variableElement, impDeclaredType)
                 .orElse(null);
@@ -409,8 +416,9 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
         }
     }
 
-    // ---------------------------------------------------------- javaBean代码生成 ---------------------------------------------------
-
+    /**
+     * 创建writeObject方法
+     */
     MethodSpec.Builder newWriteMethodBuilder(TypeName instanceRawTypeName) {
         return MethodSpec.methodBuilder(WRITE_OBJECT_METHOD_NAME)
                 .addModifiers(Modifier.PUBLIC)
@@ -420,6 +428,9 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
                 .addParameter(TypeName.get(outputStreamTypeElement.asType()), "outputStream");
     }
 
+    /**
+     * 创建readObject方法
+     */
     MethodSpec.Builder newReadObjectMethodBuilder(TypeName instanceRawTypeName) {
         return MethodSpec.methodBuilder(READ_OBJECT_METHOD_NAME)
                 .addModifiers(Modifier.PUBLIC)
@@ -430,15 +441,8 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
     }
 
     /**
-     * 获取class对应的序列化工具类的类名
+     * 创建返回负责被序列化的类对象的方法
      */
-    static String getSerializerClassName(TypeElement typeElement) {
-        return typeElement.getSimpleName().toString() + "Serializer";
-    }
-
-    // ---------------------------------------------------------- 枚举序列化生成 ---------------------------------------------------
-
-
     MethodSpec newGetEntityMethod(TypeName instanceRawTypeName) {
         final ClassName className = ClassName.get(Class.class);
         final ParameterizedTypeName returnType = ParameterizedTypeName.get(className, instanceRawTypeName);
@@ -449,5 +453,12 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
                 .returns(returnType)
                 .addStatement("return $T.class", instanceRawTypeName)
                 .build();
+    }
+
+    /**
+     * 获取class对应的序列化工具类的类名
+     */
+    static String getSerializerClassName(TypeElement typeElement) {
+        return typeElement.getSimpleName().toString() + "Serializer";
     }
 }
