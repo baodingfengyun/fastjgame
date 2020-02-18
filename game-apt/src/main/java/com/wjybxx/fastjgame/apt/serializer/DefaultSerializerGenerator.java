@@ -45,6 +45,7 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
 
     private static final String WRITE_MAP_METHOD_NAME = "writeMap";
     private static final String WRITE_COLLECTION_METHOD_NAME = "writeCollection";
+    private static final String CONSTRUCTOR_FIELD_NAME = "r_constructor";
 
     private TypeName instanceRawTypeName;
 
@@ -140,20 +141,19 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
             factoryMethodBuilder.addStatement("return new $T()", instanceRawTypeName);
         } else {
             // 创建构造函数反射字段
-            final String constructorFieldName = "r_constructor";
-            final FieldSpec constructorFieldSpec = getConstructorFieldSpec(constructorFieldName);
+            final FieldSpec constructorFieldSpec = getConstructorFieldSpec();
 
             typeBuilder.addField(constructorFieldSpec);
-            staticCodeBlockBuilder.addStatement("$L = $T.getNoArgsConstructor($T.class)", constructorFieldName, AptReflectUtils.class, instanceRawTypeName);
+            staticCodeBlockBuilder.addStatement("$L = $T.getNoArgsConstructor($T.class)", CONSTRUCTOR_FIELD_NAME, AptReflectUtils.class, instanceRawTypeName);
             // 反射创建对象
-            factoryMethodBuilder.addStatement("return $L.newInstance()", constructorFieldName);
+            factoryMethodBuilder.addStatement("return $L.newInstance($T.EMPTY_OBJECT_ARRAY)", CONSTRUCTOR_FIELD_NAME, AptReflectUtils.class);
         }
     }
 
-    private FieldSpec getConstructorFieldSpec(String constructorFieldName) {
+    private FieldSpec getConstructorFieldSpec() {
         final ClassName className = ClassName.get(Constructor.class);
         final ParameterizedTypeName fieldTypeName = ParameterizedTypeName.get(className, instanceRawTypeName);
-        return FieldSpec.builder(fieldTypeName, constructorFieldName, Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+        return FieldSpec.builder(fieldTypeName, CONSTRUCTOR_FIELD_NAME, Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
                 .build();
     }
 

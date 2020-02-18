@@ -51,9 +51,9 @@ class CustomEntityCodec implements BinaryCodec<Object> {
 
     @SuppressWarnings({"unchecked"})
     @Override
-    public void writeData(CodedOutputStream outputStream, @Nonnull Object instance) throws IOException {
+    public void writeData(CodedOutputStream outputStream, @Nonnull Object instance) throws Exception {
         final Class<?> messageClass = instance.getClass();
-        outputStream.writeSInt32NoTag(messageMapper.getMessageId(messageClass));
+        outputStream.writeInt32NoTag(messageMapper.getMessageId(messageClass));
 
         final EntitySerializer entitySerializer = beanSerializerMap.get(messageClass);
         final EntityOutputStreamImp beanOutputStreamImp = new EntityOutputStreamImp(outputStream);
@@ -61,22 +61,27 @@ class CustomEntityCodec implements BinaryCodec<Object> {
         try {
             entitySerializer.writeObject(instance, beanOutputStreamImp);
         } catch (Exception e) {
-            throw new IOException(e);
+            throw new IOException(messageClass.getName(), e);
         }
     }
 
     @Nonnull
     @Override
-    public Object readData(CodedInputStream inputStream) throws IOException {
-        final int messageId = inputStream.readSInt32();
+    public Object readData(CodedInputStream inputStream) throws Exception {
+        final int messageId = inputStream.readInt32();
         final Class<?> messageClass = messageMapper.getMessageClazz(messageId);
+
+        if (null == messageClass) {
+            throw new IOException("unknown message id " + messageId);
+        }
 
         final EntitySerializer<?> entitySerializer = beanSerializerMap.get(messageClass);
         final EntityInputStreamImp beanInputStreamImp = new EntityInputStreamImp(inputStream);
+
         try {
             return entitySerializer.readObject(beanInputStreamImp);
         } catch (Exception e) {
-            throw new IOException(e);
+            throw new IOException(messageClass.getName(), e);
         }
     }
 
@@ -94,7 +99,7 @@ class CustomEntityCodec implements BinaryCodec<Object> {
         }
 
         @Override
-        public <T> void writeField(byte wireType, @Nullable T fieldValue) throws IOException {
+        public <T> void writeField(byte wireType, @Nullable T fieldValue) throws Exception {
             // null也需要写入，因为新对象的属性不一定也是null
             if (fieldValue == null) {
                 BinaryProtocolCodec.writeTag(outputStream, WireType.NULL);
@@ -117,7 +122,7 @@ class CustomEntityCodec implements BinaryCodec<Object> {
          * 读写格式仍然要与{@link CustomEntityCodec}保持一致
          */
         @Override
-        public <E> void writeEntity(@Nullable E entity, EntitySerializer<? super E> entitySerializer) throws IOException {
+        public <E> void writeEntity(@Nullable E entity, EntitySerializer<? super E> entitySerializer) throws Exception {
             if (null == entity) {
                 BinaryProtocolCodec.writeTag(outputStream, WireType.NULL);
                 return;
@@ -125,38 +130,35 @@ class CustomEntityCodec implements BinaryCodec<Object> {
 
             writeSuperClassMessageId(entitySerializer);
 
-            try {
-                entitySerializer.writeObject(entity, this);
-            } catch (Exception e) {
-                throw new IOException(e);
-            }
+            // 这里是生成的代码走进来的，因此即使异常，也能定位
+            entitySerializer.writeObject(entity, this);
         }
 
         private <E> void writeSuperClassMessageId(EntitySerializer<? super E> entitySerializer) throws IOException {
             final Class<?> messageClass = entitySerializer.getEntityClass();
             final int messageId = messageMapper.getMessageId(messageClass);
-            outputStream.writeSInt32NoTag(messageId);
+            outputStream.writeInt32NoTag(messageId);
         }
 
         @Override
-        public <K, V> void writeMap(@Nullable Map<K, V> map) throws IOException {
+        public <K, V> void writeMap(@Nullable Map<K, V> map) throws Exception {
             if (null == map) {
                 BinaryProtocolCodec.writeTag(outputStream, WireType.NULL);
                 return;
             }
 
-            BinaryProtocolCodec.writeTag(outputStream, WireType.DEFAULT_MAP);
+            BinaryProtocolCodec.writeTag(outputStream, WireType.MAP);
             binaryProtocolCodec.writeMapImp(outputStream, map);
         }
 
         @Override
-        public <E> void writeCollection(@Nullable Collection<E> collection) throws IOException {
+        public <E> void writeCollection(@Nullable Collection<E> collection) throws Exception {
             if (null == collection) {
                 BinaryProtocolCodec.writeTag(outputStream, WireType.NULL);
                 return;
             }
 
-            BinaryProtocolCodec.writeTag(outputStream, WireType.DEFAULT_COLLECTION);
+            BinaryProtocolCodec.writeTag(outputStream, WireType.COLLECTION);
             binaryProtocolCodec.writeCollectionImp(outputStream, collection);
         }
     }
@@ -170,7 +172,7 @@ class CustomEntityCodec implements BinaryCodec<Object> {
         }
 
         @Override
-        public <T> T readField(byte wireType) throws IOException {
+        public <T> T readField(byte wireType) throws Exception {
             final byte tag = BinaryProtocolCodec.readTag(inputStream);
             if (tag == WireType.NULL) {
                 return null;
@@ -188,7 +190,7 @@ class CustomEntityCodec implements BinaryCodec<Object> {
         /**
          * 读写格式仍然要与{@link CustomEntityCodec}保持一致
          */
-        public <E> E readEntity(EntityFactory<E> entityFactory, AbstractEntitySerializer<? super E> entitySerializer) throws IOException {
+        public <E> E readEntity(EntityFactory<E> entityFactory, AbstractEntitySerializer<? super E> entitySerializer) throws Exception {
             final byte tag = BinaryProtocolCodec.readTag(inputStream);
             if (tag == WireType.NULL) {
                 return null;
@@ -200,18 +202,14 @@ class CustomEntityCodec implements BinaryCodec<Object> {
 
             checkMessageId(entitySerializer);
 
-            try {
-                final E instance = entityFactory.newInstance();
-                entitySerializer.readFields(instance, this);
-                return instance;
-            } catch (Exception e) {
-                throw new IOException(e);
-            }
+            final E instance = entityFactory.newInstance();
+            entitySerializer.readFields(instance, this);
+            return instance;
         }
 
         private void checkMessageId(AbstractEntitySerializer<?> entitySerializer) throws IOException {
             final int messageIdExpected = messageMapper.getMessageId(entitySerializer.getEntityClass());
-            final int messageId = inputStream.readSInt32();
+            final int messageId = inputStream.readInt32();
             if (messageId != messageIdExpected) {
                 throw new IOException("Incompatible message, expected: " + messageIdExpected + ", but read: " + messageId);
             }
@@ -219,14 +217,14 @@ class CustomEntityCodec implements BinaryCodec<Object> {
 
         @Nullable
         @Override
-        public <M extends Map<K, V>, K, V> M readMap(@Nonnull IntFunction<M> mapFactory) throws IOException {
+        public <M extends Map<K, V>, K, V> M readMap(@Nonnull IntFunction<M> mapFactory) throws Exception {
             final byte tag = BinaryProtocolCodec.readTag(inputStream);
             if (tag == WireType.NULL) {
                 return null;
             }
 
-            if (tag != WireType.DEFAULT_MAP) {
-                throw new IOException("Incompatible wireType, expected: " + WireType.DEFAULT_MAP + ", but read: " + tag);
+            if (tag != WireType.MAP) {
+                throw new IOException("Incompatible wireType, expected: " + WireType.MAP + ", but read: " + tag);
             }
 
             return binaryProtocolCodec.readMapImp(inputStream, mapFactory);
@@ -234,14 +232,14 @@ class CustomEntityCodec implements BinaryCodec<Object> {
 
         @Nullable
         @Override
-        public <C extends Collection<E>, E> C readCollection(@Nonnull IntFunction<C> collectionFactory) throws IOException {
+        public <C extends Collection<E>, E> C readCollection(@Nonnull IntFunction<C> collectionFactory) throws Exception {
             final byte tag = BinaryProtocolCodec.readTag(inputStream);
             if (tag == WireType.NULL) {
                 return null;
             }
 
-            if (tag != WireType.DEFAULT_COLLECTION) {
-                throw new IOException("Incompatible wireType, expected: " + WireType.DEFAULT_COLLECTION + ", but read: " + tag);
+            if (tag != WireType.COLLECTION) {
+                throw new IOException("Incompatible wireType, expected: " + WireType.COLLECTION + ", but read: " + tag);
             }
 
             return binaryProtocolCodec.readCollectionImp(inputStream, collectionFactory);

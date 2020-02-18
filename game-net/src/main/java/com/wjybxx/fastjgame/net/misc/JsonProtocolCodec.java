@@ -26,7 +26,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
-import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -51,7 +50,7 @@ public class JsonProtocolCodec implements ProtocolCodec {
 
     @Nonnull
     @Override
-    public byte[] serializeToBytes(@Nullable Object obj) throws IOException {
+    public byte[] serializeToBytes(@Nullable Object obj) throws Exception {
         if (null == obj) {
             return ArrayUtils.EMPTY_BYTE_ARRAY;
         }
@@ -78,7 +77,7 @@ public class JsonProtocolCodec implements ProtocolCodec {
     }
 
     @Override
-    public Object deserializeFromBytes(@Nonnull byte[] data) throws IOException {
+    public Object deserializeFromBytes(@Nonnull byte[] data) throws Exception {
         if (data.length == 0) {
             return null;
         }
@@ -91,7 +90,7 @@ public class JsonProtocolCodec implements ProtocolCodec {
     }
 
     @Override
-    public Object cloneObject(@Nullable Object obj) throws IOException {
+    public Object cloneObject(@Nullable Object obj) throws Exception {
         if (null == obj) {
             return null;
         }
@@ -114,7 +113,7 @@ public class JsonProtocolCodec implements ProtocolCodec {
 
     @Nonnull
     @Override
-    public ByteBuf writeObject(ByteBufAllocator bufAllocator, @Nullable Object obj) throws IOException {
+    public ByteBuf writeObject(ByteBufAllocator bufAllocator, @Nullable Object obj) throws Exception {
         if (null == obj) {
             return bufAllocator.buffer(0);
         }
@@ -139,7 +138,7 @@ public class JsonProtocolCodec implements ProtocolCodec {
 
 
     @Override
-    public Object readObject(ByteBuf data) throws IOException {
+    public Object readObject(ByteBuf data) throws Exception {
         if (data.readableBytes() == 0) {
             return null;
         }

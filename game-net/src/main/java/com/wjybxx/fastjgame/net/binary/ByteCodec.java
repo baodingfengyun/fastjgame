@@ -20,7 +20,6 @@ import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.CodedOutputStream;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 
 /**
  * 一个字节就占用一个字节 - 不需要使用int32的格式
@@ -33,13 +32,13 @@ class ByteCodec implements BinaryCodec<Byte> {
     }
 
     @Override
-    public void writeData(CodedOutputStream outputStream, @Nonnull Byte instance) throws IOException {
+    public void writeData(CodedOutputStream outputStream, @Nonnull Byte instance) throws Exception {
         outputStream.writeRawByte(instance);
     }
 
     @Nonnull
     @Override
-    public Byte readData(CodedInputStream inputStream) throws IOException {
+    public Byte readData(CodedInputStream inputStream) throws Exception {
         return inputStream.readRawByte();
     }
 

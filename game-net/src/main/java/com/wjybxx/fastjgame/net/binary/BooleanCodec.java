@@ -20,7 +20,6 @@ import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.CodedOutputStream;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 
 /**
  * @author wjybxx
@@ -35,13 +34,13 @@ class BooleanCodec implements BinaryCodec<Boolean> {
     }
 
     @Override
-    public void writeData(CodedOutputStream outputStream, @Nonnull Boolean instance) throws IOException {
+    public void writeData(CodedOutputStream outputStream, @Nonnull Boolean instance) throws Exception {
         outputStream.writeBoolNoTag(instance);
     }
 
     @Nonnull
     @Override
-    public Boolean readData(CodedInputStream inputStream) throws IOException {
+    public Boolean readData(CodedInputStream inputStream) throws Exception {
         return inputStream.readBool();
     }
 

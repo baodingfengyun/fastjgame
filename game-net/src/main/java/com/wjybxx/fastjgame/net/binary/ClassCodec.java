@@ -18,49 +18,45 @@ package com.wjybxx.fastjgame.net.binary;
 
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.CodedOutputStream;
-import org.apache.commons.lang3.ArrayUtils;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
 
 /**
  * @author wjybxx
  * @version 1.0
- * date - 2020/2/17
+ * date - 2020/2/18
+ * github - https://github.com/hl845740757
  */
-class LongArrayCodec implements BinaryCodec<long[]> {
+public class ClassCodec implements BinaryCodec<Class> {
+
     @Override
     public boolean isSupport(Class<?> runtimeType) {
-        return runtimeType == long[].class;
+        return false;
     }
 
     @Override
-    public void writeData(CodedOutputStream outputStream, @Nonnull long[] instance) throws Exception {
-        outputStream.writeUInt32NoTag(instance.length);
-        if (instance.length == 0) {
-            return;
-        }
-        for (long value : instance) {
-            outputStream.writeInt64NoTag(value);
-        }
+    public void writeData(CodedOutputStream outputStream, @Nonnull Class instance) throws Exception {
+        writeClass(outputStream, instance);
+    }
+
+    static void writeClass(CodedOutputStream outputStream, @Nonnull Class instance) throws IOException {
+        outputStream.writeStringNoTag(instance.getCanonicalName());
     }
 
     @Nonnull
     @Override
-    public long[] readData(CodedInputStream inputStream) throws Exception {
-        final int length = inputStream.readUInt32();
-        if (length == 0) {
-            return ArrayUtils.EMPTY_LONG_ARRAY;
-        }
-        long[] result = new long[length];
-        for (int index = 0; index < length; index++) {
-            result[index] = inputStream.readInt64();
-        }
-        return result;
+    public Class readData(CodedInputStream inputStream) throws Exception {
+        return readClass(inputStream);
+    }
+
+    static Class readClass(CodedInputStream inputStream) throws IOException, ClassNotFoundException {
+        final String canonicalName = inputStream.readString();
+        return BinaryCodec.class.getClassLoader().loadClass(canonicalName);
     }
 
     @Override
     public byte getWireType() {
-        return WireType.LONG_ARRAY;
+        return WireType.CLASS;
     }
-
 }

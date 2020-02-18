@@ -20,11 +20,14 @@ import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.CodedOutputStream;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
 /**
+ * 集合编解码器。
+ * 这里仅仅保证有序存储读取的数据，如果出现转型异常或有更具体的序列化需求，请将集合对象放入bean中，
+ * 并使用{@link com.wjybxx.fastjgame.db.annotation.Impl}注解提供信息。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2020/2/17
@@ -43,18 +46,18 @@ class DefaultCollectionCodec implements BinaryCodec<Collection<?>> {
     }
 
     @Override
-    public void writeData(CodedOutputStream outputStream, @Nonnull Collection<?> instance) throws IOException {
+    public void writeData(CodedOutputStream outputStream, @Nonnull Collection<?> instance) throws Exception {
         binaryProtocolCodec.writeCollectionImp(outputStream, instance);
     }
 
     @Nonnull
     @Override
-    public Collection<?> readData(CodedInputStream inputStream) throws IOException {
+    public Collection<?> readData(CodedInputStream inputStream) throws Exception {
         return binaryProtocolCodec.readCollectionImp(inputStream, ArrayList::new);
     }
 
     @Override
     public byte getWireType() {
-        return WireType.DEFAULT_COLLECTION;
+        return WireType.COLLECTION;
     }
 }

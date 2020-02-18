@@ -23,8 +23,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
 
-import java.io.IOException;
-
 /**
  * 一个不太靠谱的完整编解码性能测试
  *
@@ -35,10 +33,10 @@ import java.io.IOException;
  */
 public class ProtocolCodecPerformanceTest {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
         ByteBufAllocator byteBufAllocator = PooledByteBufAllocator.DEFAULT;
-        ExampleMessages.FullMessage msg = BinaryProtoCodecTest.newFullMessage();
-//        final TestMsg msg = new TestMsg(32116503156L, 5461166513213L, 546541211616512L, false);
+//        ExampleMessages.FullMessage msg = BinaryProtoCodecTest.newFullMessage();
+        final TestMsg msg = new TestMsg(32116503156L, 5461166513213L, 546541211616512L, false);
 
         JsonProtocolCodec jsonCodec = ExampleConstants.jsonCodec;
         BinaryProtocolCodec binaryCodec = ExampleConstants.binaryCodec;
@@ -60,7 +58,7 @@ public class ProtocolCodecPerformanceTest {
         codecTest(binaryCodec, byteBufAllocator, msg, 100_0000);
     }
 
-    private static void equalsTest(ProtocolCodec codec, ByteBufAllocator byteBufAllocator, Object msg) throws IOException {
+    private static void equalsTest(ProtocolCodec codec, ByteBufAllocator byteBufAllocator, Object msg) throws Exception {
         final String name = codec.getClass().getSimpleName();
         ByteBuf byteBuf = codec.writeObject(byteBufAllocator, msg);
         System.out.println(name + " encode result bytes = " + byteBuf.readableBytes());
@@ -71,7 +69,7 @@ public class ProtocolCodecPerformanceTest {
         byteBuf.release();
     }
 
-    private static void codecTest(ProtocolCodec codec, ByteBufAllocator byteBufAllocator, Object msg, int loopTimes) throws IOException {
+    private static void codecTest(ProtocolCodec codec, ByteBufAllocator byteBufAllocator, Object msg, int loopTimes) throws Exception {
         final String name = codec.getClass().getSimpleName();
         long start = System.currentTimeMillis();
         for (int index = 0; index < loopTimes; index++) {

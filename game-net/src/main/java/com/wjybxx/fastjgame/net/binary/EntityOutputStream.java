@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.net.binary;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 
@@ -39,7 +38,7 @@ public interface EntityOutputStream {
      *
      * @param fieldValue 字段的值
      */
-    default <T> void writeField(@Nullable T fieldValue) throws IOException {
+    default <T> void writeField(@Nullable T fieldValue) throws Exception {
         writeField(WireType.RUN_TIME, fieldValue);
     }
 
@@ -50,7 +49,7 @@ public interface EntityOutputStream {
      * @param wireType   字段的缓存类型，如果该值为{@link WireType#RUN_TIME}，则需要动态解析。
      * @param fieldValue 字段的值
      */
-    <T> void writeField(byte wireType, @Nullable T fieldValue) throws IOException;
+    <T> void writeField(byte wireType, @Nullable T fieldValue) throws Exception;
 
     // ----------------------------------------- 处理多态问题 ----------------------------------
 
@@ -58,15 +57,15 @@ public interface EntityOutputStream {
      * 向输入流中写一个多态实体对象
      * （按照超类格式写入数据，并忽略子类字段）
      */
-    <E> void writeEntity(@Nullable E entity, EntitySerializer<? super E> entitySerializer) throws IOException;
+    <E> void writeEntity(@Nullable E entity, EntitySerializer<? super E> entitySerializer) throws Exception;
 
     /**
      * 向输入流中写入一个map
      */
-    <K, V> void writeMap(@Nullable Map<K, V> map) throws IOException;
+    <K, V> void writeMap(@Nullable Map<K, V> map) throws Exception;
 
     /**
      * 像输入流中写一个collection
      */
-    <E> void writeCollection(@Nullable Collection<E> collection) throws IOException;
+    <E> void writeCollection(@Nullable Collection<E> collection) throws Exception;
 }

@@ -20,7 +20,6 @@ import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.CodedOutputStream;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 
 /**
  * @author wjybxx
@@ -35,13 +34,13 @@ class ShortCodec implements BinaryCodec<Short> {
     }
 
     @Override
-    public final void writeData(CodedOutputStream outputStream, @Nonnull Short instance) throws IOException {
+    public final void writeData(CodedOutputStream outputStream, @Nonnull Short instance) throws Exception {
         outputStream.writeInt32NoTag(instance.intValue());
     }
 
     @Nonnull
     @Override
-    public Short readData(CodedInputStream inputStream) throws IOException {
+    public Short readData(CodedInputStream inputStream) throws Exception {
         return (short) inputStream.readInt32();
     }
 

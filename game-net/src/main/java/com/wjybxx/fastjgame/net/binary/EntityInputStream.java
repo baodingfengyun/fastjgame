@@ -18,7 +18,6 @@ package com.wjybxx.fastjgame.net.binary;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.function.IntFunction;
@@ -37,7 +36,7 @@ public interface EntityInputStream {
      * 从输入流中读取一个字段
      * (方便手写实现)
      */
-    default <T> T readField() throws IOException {
+    default <T> T readField() throws Exception {
         return readField(WireType.RUN_TIME);
     }
 
@@ -47,10 +46,9 @@ public interface EntityInputStream {
      *
      * @param wireType 期望的数据类型，主要用于校验。如果该值不为{@link WireType#RUN_TIME}，则需要和读取到的tag进行比较。
      * @return data
-     * @throws IOException error
      */
     @Nullable
-    <T> T readField(byte wireType) throws IOException;
+    <T> T readField(byte wireType) throws Exception;
 
     // ----------------------------------------- 处理多态问题 ----------------------------------
 
@@ -61,7 +59,7 @@ public interface EntityInputStream {
      * @param entityFactory    真正的实体创建工厂
      * @param entitySerializer 实体对象的序列化实现
      */
-    <E> E readEntity(EntityFactory<E> entityFactory, AbstractEntitySerializer<? super E> entitySerializer) throws IOException;
+    <E> E readEntity(EntityFactory<E> entityFactory, AbstractEntitySerializer<? super E> entitySerializer) throws Exception;
 
     /**
      * 从输入流中读取数据到map中
@@ -69,7 +67,7 @@ public interface EntityInputStream {
      * @param mapFactory 创建map的工厂 - 参数为元素个数，可能为0
      */
     @Nullable
-    <M extends Map<K, V>, K, V> M readMap(@Nonnull IntFunction<M> mapFactory) throws IOException;
+    <M extends Map<K, V>, K, V> M readMap(@Nonnull IntFunction<M> mapFactory) throws Exception;
 
     /**
      * 从输入流中读取数据到collection中
@@ -77,6 +75,6 @@ public interface EntityInputStream {
      * @param collectionFactory 创建集合的工厂 - 参数为元素个数，可能为0
      */
     @Nullable
-    <C extends Collection<E>, E> C readCollection(@Nonnull IntFunction<C> collectionFactory) throws IOException;
+    <C extends Collection<E>, E> C readCollection(@Nonnull IntFunction<C> collectionFactory) throws Exception;
 
 }

@@ -20,7 +20,6 @@ import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.CodedOutputStream;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 
 /**
  * @author wjybxx
@@ -36,7 +35,7 @@ class IntegerCodec implements BinaryCodec<Integer> {
 
     @Nonnull
     @Override
-    public Integer readData(CodedInputStream inputStream) throws IOException {
+    public Integer readData(CodedInputStream inputStream) throws Exception {
         return inputStream.readInt32();
     }
 
@@ -46,7 +45,7 @@ class IntegerCodec implements BinaryCodec<Integer> {
     }
 
     @Override
-    public final void writeData(CodedOutputStream outputStream, @Nonnull Integer instance) throws IOException {
+    public final void writeData(CodedOutputStream outputStream, @Nonnull Integer instance) throws Exception {
         outputStream.writeInt32NoTag(instance);
     }
 }

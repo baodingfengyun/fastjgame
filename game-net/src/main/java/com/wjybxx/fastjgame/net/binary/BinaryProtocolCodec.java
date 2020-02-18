@@ -65,7 +65,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
                                 Map<Class<?>, Parser<?>> parserMap,
                                 Map<Class<?>, ProtoEnumCodec.ProtoEnumDescriptor> protoEnumDescriptorMap,
                                 Map<Class<?>, EntitySerializer<?>> beanSerializerMap) {
-        codecMapper = EnumUtils.mapping(initValues(messageMapper, parserMap, protoEnumDescriptorMap, beanSerializerMap));
+        codecMapper = EnumUtils.mapping(initValues(messageMapper, parserMap, protoEnumDescriptorMap, beanSerializerMap), true);
     }
 
     private BinaryCodec<?>[] initValues(MessageMapper messageMapper,
@@ -74,18 +74,16 @@ public class BinaryProtocolCodec implements ProtocolCodec {
                                         Map<Class<?>, EntitySerializer<?>> beanSerializerMap) {
         // 预估出现的频率排个序
         return new BinaryCodec[]{
+                // 存在Serializer的类
+                new CustomEntityCodec(messageMapper, beanSerializerMap, this),
+                // protoBuf支持
+                new ProtoMessageCodec(messageMapper, parserMap),
+
                 new IntegerCodec(),
                 new LongCodec(),
                 new FloatCodec(),
                 new DoubleCodec(),
                 new StringCodec(),
-
-                new ProtoMessageCodec(messageMapper, parserMap),
-                new ProtoEnumCodec(messageMapper, protoEnumDescriptorMap),
-                new ChunkCodec(),
-
-                // 带有Serializer的类
-                new CustomEntityCodec(messageMapper, beanSerializerMap, this),
 
                 // 默认集合支持
                 new DefaultMapCodec(this),
@@ -98,6 +96,12 @@ public class BinaryProtocolCodec implements ProtocolCodec {
                 new ByteCodec(),
                 new ShortCodec(),
                 new CharCodec(),
+                new ChunkCodec(),
+                new ProtoEnumCodec(messageMapper, protoEnumDescriptorMap),
+                new ClassCodec(),
+
+                new StringArrayCodec(),
+                new ClassArrayCodec(),
 
                 // 其它数组使用较少
                 new IntegerArrayCodec(),
@@ -112,7 +116,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
 
     @Nonnull
     @Override
-    public ByteBuf writeObject(ByteBufAllocator bufAllocator, @Nullable Object object) throws IOException {
+    public ByteBuf writeObject(ByteBufAllocator bufAllocator, @Nullable Object object) throws Exception {
         // 这里的测试结果是：拷贝字节数组，比先计算一次大小，再写入ByteBuf快，而且快很多。
         // 此外，即使使用输入输出流构造，其内部还是做了缓存(创建了字节数组)，因此一定要有自己的缓冲字节数组
         final byte[] localBuffer = LOCAL_BUFFER.get();
@@ -127,7 +131,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         return buffer;
     }
 
-    private void writeObject(CodedOutputStream outputStream, @Nullable Object object) throws IOException {
+    private void writeObject(CodedOutputStream outputStream, @Nullable Object object) throws Exception {
         if (object == null) {
             writeTag(outputStream, WireType.NULL);
             return;
@@ -136,7 +140,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
     }
 
     @SuppressWarnings("unchecked")
-    void writeRuntimeType(CodedOutputStream outputStream, @Nonnull Object object) throws IOException {
+    void writeRuntimeType(CodedOutputStream outputStream, @Nonnull Object object) throws Exception {
         final Class<?> type = object.getClass();
         for (BinaryCodec codec : codecMapper.values()) {
             if (codec.isSupport(type)) {
@@ -149,7 +153,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
     }
 
     @Override
-    public Object readObject(ByteBuf data) throws IOException {
+    public Object readObject(ByteBuf data) throws Exception {
         final byte[] localBuffer = LOCAL_BUFFER.get();
 
         // 读入缓存数组
@@ -169,7 +173,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
      * @throws IOException error
      */
     @Nullable
-    private Object readObject(CodedInputStream inputStream) throws IOException {
+    private Object readObject(CodedInputStream inputStream) throws Exception {
         final byte wireType = readTag(inputStream);
         if (wireType == WireType.NULL) {
             return null;
@@ -188,7 +192,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
 
     @Nonnull
     @Override
-    public byte[] serializeToBytes(@Nullable Object obj) throws IOException {
+    public byte[] serializeToBytes(@Nullable Object obj) throws Exception {
         // 这里测试也是拷贝字节数组快于先计算大小（两轮反射）
         final byte[] localBuffer = LOCAL_BUFFER.get();
         CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(localBuffer);
@@ -201,13 +205,13 @@ public class BinaryProtocolCodec implements ProtocolCodec {
     }
 
     @Override
-    public Object deserializeFromBytes(@Nonnull byte[] data) throws IOException {
+    public Object deserializeFromBytes(@Nonnull byte[] data) throws Exception {
         return readObject(CodedInputStream.newInstance(data));
     }
 
     @Nullable
     @Override
-    public Object cloneObject(@Nullable Object obj) throws IOException {
+    public Object cloneObject(@Nullable Object obj) throws Exception {
         if (obj == null) {
             return null;
         }
@@ -250,7 +254,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
     /**
      * 将map的所有键值对写入输出流
      */
-    <K, V> void writeMapImp(@Nonnull CodedOutputStream outputStream, @Nonnull Map<K, V> map) throws IOException {
+    <K, V> void writeMapImp(@Nonnull CodedOutputStream outputStream, @Nonnull Map<K, V> map) throws Exception {
         outputStream.writeUInt32NoTag(map.size());
         if (map.size() == 0) {
             return;
@@ -265,7 +269,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
      * 从输入流中读取指定个数元素到map中
      */
     @Nonnull
-    <M extends Map<K, V>, K, V> M readMapImp(@Nonnull CodedInputStream inputStream, @Nonnull IntFunction<M> mapFactory) throws IOException {
+    <M extends Map<K, V>, K, V> M readMapImp(@Nonnull CodedInputStream inputStream, @Nonnull IntFunction<M> mapFactory) throws Exception {
         final int size = inputStream.readUInt32();
         if (size == 0) {
             return mapFactory.apply(0);
@@ -284,7 +288,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
     /**
      * 将collection的所有元素写入输出流
      */
-    <E> void writeCollectionImp(@Nonnull CodedOutputStream outputStream, @Nonnull Collection<E> collection) throws IOException {
+    <E> void writeCollectionImp(@Nonnull CodedOutputStream outputStream, @Nonnull Collection<E> collection) throws Exception {
         outputStream.writeUInt32NoTag(collection.size());
         if (collection.size() == 0) {
             return;
@@ -298,7 +302,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
      * 从输入流中读取指定元素到集合中
      */
     @Nonnull
-    <C extends Collection<E>, E> C readCollectionImp(@Nonnull CodedInputStream inputStream, @Nonnull IntFunction<C> collectionFactory) throws IOException {
+    <C extends Collection<E>, E> C readCollectionImp(@Nonnull CodedInputStream inputStream, @Nonnull IntFunction<C> collectionFactory) throws Exception {
         final int size = inputStream.readUInt32();
         if (size == 0) {
             return collectionFactory.apply(0);

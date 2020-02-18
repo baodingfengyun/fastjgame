@@ -22,7 +22,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.UnpooledByteBufAllocator;
 
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -35,7 +34,7 @@ import java.util.*;
  */
 public class BinaryProtoCodecTest {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
         BinaryProtocolCodec codec = ExampleConstants.binaryCodec;
         ByteBufAllocator byteBufAllocator = UnpooledByteBufAllocator.DEFAULT;
         // NetUtils初始化，避免输出扰乱视听

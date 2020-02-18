@@ -41,6 +41,35 @@ import java.util.*;
  */
 public final class ExampleMessages {
 
+    /**
+     * 测试抽象类的生成代码
+     */
+    @SerializableClass
+    public static abstract class AbstractMsg {
+
+        @SerializableField
+        private int type;
+
+        @SerializableField
+        private int id;
+
+        public int getType() {
+            return type;
+        }
+
+        public void setType(int type) {
+            this.type = type;
+        }
+
+        public int getId() {
+            return id;
+        }
+
+        public void setId(int id) {
+            this.id = id;
+        }
+    }
+
     @SerializableClass
     public static class SceneConfig implements IndexableEntity<IntPair> {
 
@@ -79,6 +108,9 @@ public final class ExampleMessages {
         @DBField(name = "name")
         private String name;
 
+        @SerializableField
+        private String sex;
+
         public long getGuid() {
             return guid;
         }
@@ -93,6 +125,14 @@ public final class ExampleMessages {
 
         public void setName(String name) {
             this.name = name;
+        }
+
+        public String getSex() {
+            return sex;
+        }
+
+        public void setSex(String sex) {
+            this.sex = sex;
         }
     }
 

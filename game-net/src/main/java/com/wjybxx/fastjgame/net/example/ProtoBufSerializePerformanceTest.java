@@ -32,7 +32,7 @@ import java.util.Map;
 /**
  * 一个不太靠谱的protoBuf编解码测试。
  * 编解码速度：
- * 100W次： 210 - 240ms
+ * 100W次： 170ms左右(新电脑)
  * 确实很快！但是在服务器内部之间，使用protobuf的话也很有限制，比如包装类型，复杂数据结构(Map)，null等。
  *
  * @author wjybxx

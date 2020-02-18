@@ -21,7 +21,6 @@ import com.google.protobuf.CodedOutputStream;
 import com.wjybxx.fastjgame.utils.misc.Chunk;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 
 /**
  * @author wjybxx
@@ -36,7 +35,7 @@ class ChunkCodec implements BinaryCodec<Chunk> {
     }
 
     @Override
-    public void writeData(CodedOutputStream outputStream, @Nonnull Chunk instance) throws IOException {
+    public void writeData(CodedOutputStream outputStream, @Nonnull Chunk instance) throws Exception {
         outputStream.writeUInt32NoTag(instance.getLength());
         if (instance.getLength() > 0) {
             outputStream.writeRawBytes(instance.getBuffer(), instance.getOffset(), instance.getLength());
@@ -45,7 +44,7 @@ class ChunkCodec implements BinaryCodec<Chunk> {
 
     @Nonnull
     @Override
-    public Chunk readData(CodedInputStream inputStream) throws IOException {
+    public Chunk readData(CodedInputStream inputStream) throws Exception {
         final int length = inputStream.readUInt32();
         if (length == 0) {
             return Chunk.EMPTY_CHUNK;

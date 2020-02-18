@@ -18,9 +18,9 @@ package com.wjybxx.fastjgame.net.binary;
 
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.CodedOutputStream;
+import org.apache.commons.lang3.ArrayUtils;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 
 /**
  * @author wjybxx
@@ -35,7 +35,7 @@ class CharArrayCodec implements BinaryCodec<char[]> {
     }
 
     @Override
-    public void writeData(CodedOutputStream outputStream, @Nonnull char[] instance) throws IOException {
+    public void writeData(CodedOutputStream outputStream, @Nonnull char[] instance) throws Exception {
         outputStream.writeUInt32NoTag(instance.length);
         if (instance.length == 0) {
             return;
@@ -47,10 +47,10 @@ class CharArrayCodec implements BinaryCodec<char[]> {
 
     @Nonnull
     @Override
-    public char[] readData(CodedInputStream inputStream) throws IOException {
+    public char[] readData(CodedInputStream inputStream) throws Exception {
         final int length = inputStream.readUInt32();
         if (length == 0) {
-            return new char[0];
+            return ArrayUtils.EMPTY_CHAR_ARRAY;
         }
         char[] result = new char[length];
         for (int index = 0; index < length; index++) {

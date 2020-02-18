@@ -21,14 +21,17 @@ import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.ProtocolMessageEnum;
 import com.wjybxx.fastjgame.db.annotation.DBEntity;
 import com.wjybxx.fastjgame.net.annotation.SerializableClass;
-import com.wjybxx.fastjgame.net.exception.BadCollectionDeclarationTypeException;
 import com.wjybxx.fastjgame.utils.ClassScanner;
 import com.wjybxx.fastjgame.utils.misc.Chunk;
 import com.wjybxx.fastjgame.utils.reflect.TypeParameterFinder;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.lang.reflect.Modifier;
+import java.util.Collection;
+import java.util.IdentityHashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 数据类型
@@ -39,19 +42,6 @@ import java.util.*;
  * github - https://github.com/hl845740757
  */
 public class WireType {
-
-    /**
-     * 默认{@link Map}的解析类型
-     * Q: 为什么要使用{@link LinkedHashMap}？
-     * A: 键值对的顺序必须保持和发送方一致。
-     */
-    public static final Class<?> DEFAULT_MAP_IMPL_CLASS = LinkedHashMap.class;
-    /**
-     * 默认{@link Collection}的类型
-     * Q: 为什么要使用{@link ArrayList}？
-     * A: 元素的顺序必须保持和发送方一致，其它类似实现也是可以的。
-     */
-    public static final Class<?> DEFAULT_COLLECTION_IMPL_CLASS = ArrayList.class;
 
     /**
      * bean -> beanSerializer (自动生成的beanSerializer 或 手动实现的)
@@ -83,7 +73,7 @@ public class WireType {
     }
 
     private static boolean isBeanSerializer(Class<?> c) {
-        return c != EntitySerializer.class && EntitySerializer.class.isAssignableFrom(c);
+        return !Modifier.isAbstract(c.getModifiers()) && EntitySerializer.class.isAssignableFrom(c);
     }
 
     /**
@@ -91,7 +81,7 @@ public class WireType {
      */
     public static final byte NULL = 0;
 
-    // ------------------------------------------- 基本类型 -----------------------------
+    // ------------------------------------------- 基本类型及其数组 -----------------------------
     /**
      * rawByte
      */
@@ -125,7 +115,6 @@ public class WireType {
      */
     public static final byte BOOLEAN = 8;
 
-    // ------------------------------------------- 基本类型数组 -----------------------------
     /**
      * 字节数组
      */
@@ -164,60 +153,61 @@ public class WireType {
      * 字符串 LENGTH_DELIMITED
      */
     public static final byte STRING = 17;
+    /**
+     * 字符串数组
+     */
+    public static final byte STRING_ARRAY = 18;
+
+    /**
+     * {@link Class}对象
+     */
+    public static final byte CLASS = 19;
+
+    /**
+     * {@link Class}数组
+     */
+    public static final byte CLASS_ARRAY = 20;
+
+    // ----------------------------------------- protoBuffer 支持 ---------------------------------
 
     /**
      * protobuf的Message LENGTH_DELIMITED
      */
-    public static final byte PROTO_MESSAGE = 18;
+    public static final byte PROTO_MESSAGE = 21;
     /**
      * protoBuf的枚举
      */
-    public static final byte PROTO_ENUM = 19;
+    public static final byte PROTO_ENUM = 22;
     /**
      * 自定义数据块
      */
-    public static final byte CHUNK = 20;
+    public static final byte CHUNK = 23;
 
-    // ------------------------------------------ 默认集合支持 ---------------------------------
-
+    // ------------------------------------------ 集合支持 ---------------------------------
     /**
-     * 默认Map支持
-     * 如果一个字段/参数的声明类型是{@link Map}的子类，且是{@link LinkedHashMap}的超类时，那么适用该类型
+     * Map支持
+     * 如果一个字段/参数的声明类型是{@link Map}，那么适用该类型。
+     * 如果需要更细化的map需求，请了解{@link com.wjybxx.fastjgame.db.annotation.Impl}注解
      */
-    public static final byte DEFAULT_MAP = 21;
-
+    public static final byte MAP = 24;
     /**
-     * 如果一个字段的声明类型是{@link List}的子类，且是{@link ArrayList}的超类时，那么适用该字段。
-     */
-    public static final byte DEFAULT_LIST = 22;
-    /**
-     * 如果一个字段的声明类型是{@link Set}的子类时，那么适用该类型。
-     */
-    public static final byte DEFAULT_SET = 23;
-    /**
-     * 如果一个字段的声明类型是{@link Queue}的子类时时，将默认适用
-     */
-    public static final byte DEFAULT_QUEUE = 24;
-
-    /**
-     * 默认集合支持
+     * 集合支持
      * 如果一个字段/参数的声明类型是{@link Collection}，那么那么适用该类型。
+     * 如果需要更细化的集合需求，请了解{@link com.wjybxx.fastjgame.db.annotation.Impl}注解
      */
-    public static final byte DEFAULT_COLLECTION = 25;
+    public static final byte COLLECTION = 25;
 
     // ------------------------------------------- 带有注解的类 -----------------------------
-
     /**
      * 带有{@link DBEntity} 或 {@link SerializableClass}注解的类，
      * 或手动实现{@link EntitySerializer}负责解析的类。
      */
-    public static final byte CUSTOM_ENTITY = 28;
-
+    public static final byte CUSTOM_ENTITY = 26;
 
     /**
      * 动态类型 - 运行时才能确定的类型（它是标记类型）
      */
-    public static final byte RUN_TIME = 29;
+    public static final byte RUN_TIME = 27;
 
     /**
      * 查找一个class对应的wireType
@@ -282,17 +272,26 @@ public class WireType {
         if (declaredType == String.class) {
             return WireType.STRING;
         }
+        if (declaredType == String[].class) {
+            return WireType.STRING_ARRAY;
+        }
+
+        // CLASS
+        if (declaredType == Class.class) {
+            return WireType.CLASS;
+        }
+        if (declaredType == Class[].class) {
+            return WireType.CLASS_ARRAY;
+        }
 
         // protoBuf
         if (AbstractMessage.class.isAssignableFrom(declaredType)) {
             return WireType.PROTO_MESSAGE;
         }
-
         // protoBuf的枚举
         if (ProtocolMessageEnum.class.isAssignableFrom(declaredType)) {
             return WireType.PROTO_ENUM;
         }
-
         // CHUNK
         if (declaredType == Chunk.class) {
             return WireType.CHUNK;
@@ -300,18 +299,11 @@ public class WireType {
 
         // Map
         if (Map.class.isAssignableFrom(declaredType)) {
-            if (declaredType == Map.class) {
-                return WireType.DEFAULT_MAP;
-            }
-            throw new BadCollectionDeclarationTypeException();
+            return WireType.MAP;
         }
-
         // Collection
         if (Collection.class.isAssignableFrom(declaredType)) {
-            if (declaredType == Collection.class) {
-                return WireType.DEFAULT_COLLECTION;
-            }
-            throw new BadCollectionDeclarationTypeException();
+            return WireType.COLLECTION;
         }
 
         // 有serializer的类型，无论手写的还是自动生成的

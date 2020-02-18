@@ -25,42 +25,40 @@ import javax.annotation.Nonnull;
 /**
  * @author wjybxx
  * @version 1.0
- * date - 2020/2/17
+ * date - 2020/2/18
+ * github - https://github.com/hl845740757
  */
-class LongArrayCodec implements BinaryCodec<long[]> {
+public class ClassArrayCodec implements BinaryCodec<Class[]> {
+
     @Override
     public boolean isSupport(Class<?> runtimeType) {
-        return runtimeType == long[].class;
+        return false;
     }
 
     @Override
-    public void writeData(CodedOutputStream outputStream, @Nonnull long[] instance) throws Exception {
+    public void writeData(CodedOutputStream outputStream, @Nonnull Class[] instance) throws Exception {
         outputStream.writeUInt32NoTag(instance.length);
-        if (instance.length == 0) {
-            return;
-        }
-        for (long value : instance) {
-            outputStream.writeInt64NoTag(value);
+        for (Class clazz : instance) {
+            ClassCodec.writeClass(outputStream, clazz);
         }
     }
 
     @Nonnull
     @Override
-    public long[] readData(CodedInputStream inputStream) throws Exception {
+    public Class[] readData(CodedInputStream inputStream) throws Exception {
         final int length = inputStream.readUInt32();
         if (length == 0) {
-            return ArrayUtils.EMPTY_LONG_ARRAY;
+            return ArrayUtils.EMPTY_CLASS_ARRAY;
         }
-        long[] result = new long[length];
+        final Class[] result = new Class[length];
         for (int index = 0; index < length; index++) {
-            result[index] = inputStream.readInt64();
+            result[index] = ClassCodec.readClass(inputStream);
         }
         return result;
     }
 
     @Override
     public byte getWireType() {
-        return WireType.LONG_ARRAY;
+        return WireType.CLASS_ARRAY;
     }
-
 }

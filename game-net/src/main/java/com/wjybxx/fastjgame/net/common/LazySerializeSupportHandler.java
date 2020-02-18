@@ -59,7 +59,7 @@ public class LazySerializeSupportHandler extends SessionDuplexHandlerAdapter {
      * @return newCall or the same call
      * @throws IOException error
      */
-    private Object checkLazySerialize(Object body) throws IOException {
+    private Object checkLazySerialize(Object body) throws Exception {
         if (!(body instanceof RpcCall)) {
             return body;
         }
@@ -107,7 +107,7 @@ public class LazySerializeSupportHandler extends SessionDuplexHandlerAdapter {
      * @return newCall or the same call
      * @throws IOException error
      */
-    private Object checkPreDeserialize(Object body) throws IOException {
+    private Object checkPreDeserialize(Object body) throws Exception {
         if (!(body instanceof RpcCall)) {
             return body;
         }

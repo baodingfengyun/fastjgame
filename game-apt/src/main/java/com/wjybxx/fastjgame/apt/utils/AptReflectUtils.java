@@ -30,6 +30,11 @@ import java.lang.reflect.Field;
 public class AptReflectUtils {
 
     /**
+     * An empty immutable {@code Object} array.
+     */
+    public static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
+
+    /**
      * 获取对的无参构造方法
      * 生成的代码调用
      */

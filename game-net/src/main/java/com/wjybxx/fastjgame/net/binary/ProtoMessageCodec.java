@@ -20,7 +20,6 @@ import com.google.protobuf.*;
 import com.wjybxx.fastjgame.net.misc.MessageMapper;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -48,7 +47,7 @@ class ProtoMessageCodec implements BinaryCodec<AbstractMessage> {
     }
 
     @Override
-    public void writeData(CodedOutputStream outputStream, @Nonnull AbstractMessage instance) throws IOException {
+    public void writeData(CodedOutputStream outputStream, @Nonnull AbstractMessage instance) throws Exception {
         int messageId = messageMapper.getMessageId(instance.getClass());
 
         // 大端模式写入一个int
@@ -63,7 +62,7 @@ class ProtoMessageCodec implements BinaryCodec<AbstractMessage> {
 
     @Nonnull
     @Override
-    public AbstractMessage readData(CodedInputStream inputStream) throws IOException {
+    public AbstractMessage readData(CodedInputStream inputStream) throws Exception {
         // 大端模式读取一个int
         final int messageId = (inputStream.readRawByte() & 0xFF) << 24
                 | (inputStream.readRawByte() & 0xFF) << 16

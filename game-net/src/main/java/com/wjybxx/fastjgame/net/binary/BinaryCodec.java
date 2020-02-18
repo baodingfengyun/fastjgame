@@ -21,7 +21,6 @@ import com.google.protobuf.CodedOutputStream;
 import com.wjybxx.fastjgame.utils.entity.NumericalEntity;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 
 /**
  * 二进制编解码方案
@@ -45,19 +44,17 @@ interface BinaryCodec<T> extends NumericalEntity {
      *
      * @param outputStream 输出流
      * @param instance     待编码的对象
-     * @throws IOException error，
      */
-    void writeData(CodedOutputStream outputStream, @Nonnull T instance) throws IOException;
+    void writeData(CodedOutputStream outputStream, @Nonnull T instance) throws Exception;
 
     /**
      * 解码字段协议内容，不包含wireType
      *
      * @param inputStream 输入流
      * @return data，只有非null的tag才会走到这里
-     * @throws IOException error
      */
     @Nonnull
-    T readData(CodedInputStream inputStream) throws IOException;
+    T readData(CodedInputStream inputStream) throws Exception;
 
     @Override
     default int getNumber() {

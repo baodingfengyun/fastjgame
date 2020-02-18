@@ -45,7 +45,7 @@ public interface ProtocolCodec {
      * @return 字节数组
      */
     @Nonnull
-    byte[] serializeToBytes(@Nullable Object obj) throws IOException;
+    byte[] serializeToBytes(@Nullable Object obj) throws Exception;
 
     /**
      * 将一个对象反序列化。
@@ -54,7 +54,7 @@ public interface ProtocolCodec {
      * @param data 序列化后的数组
      * @return 反序列化的结果
      */
-    Object deserializeFromBytes(@Nonnull byte[] data) throws IOException;
+    Object deserializeFromBytes(@Nonnull byte[] data) throws Exception;
 
     /**
      * 克隆一个对象。
@@ -65,7 +65,7 @@ public interface ProtocolCodec {
      * @throws IOException error
      */
     @Nullable
-    Object cloneObject(@Nullable Object obj) throws IOException;
+    Object cloneObject(@Nullable Object obj) throws Exception;
 
     /**
      * 写入一个对象
@@ -76,7 +76,7 @@ public interface ProtocolCodec {
      * @throws IOException error
      */
     @Nonnull
-    ByteBuf writeObject(ByteBufAllocator bufAllocator, @Nullable Object object) throws IOException;
+    ByteBuf writeObject(ByteBufAllocator bufAllocator, @Nullable Object object) throws Exception;
 
     /**
      * 读取一个对象
@@ -85,6 +85,6 @@ public interface ProtocolCodec {
      * @return instance
      * @throws IOException error
      */
-    Object readObject(ByteBuf data) throws IOException;
+    Object readObject(ByteBuf data) throws Exception;
 
 }

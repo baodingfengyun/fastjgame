@@ -20,7 +20,6 @@ import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.CodedOutputStream;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 
 /**
  * @author wjybxx
@@ -35,13 +34,13 @@ class StringCodec implements BinaryCodec<String> {
     }
 
     @Override
-    public void writeData(CodedOutputStream outputStream, @Nonnull String instance) throws IOException {
+    public void writeData(CodedOutputStream outputStream, @Nonnull String instance) throws Exception {
         outputStream.writeStringNoTag(instance);
     }
 
     @Nonnull
     @Override
-    public String readData(CodedInputStream inputStream) throws IOException {
+    public String readData(CodedInputStream inputStream) throws Exception {
         return inputStream.readString();
     }
 

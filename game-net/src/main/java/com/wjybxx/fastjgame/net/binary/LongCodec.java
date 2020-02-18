@@ -20,7 +20,6 @@ import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.CodedOutputStream;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 
 /**
  * @author wjybxx
@@ -35,13 +34,13 @@ class LongCodec implements BinaryCodec<Long> {
     }
 
     @Override
-    public void writeData(CodedOutputStream outputStream, @Nonnull Long instance) throws IOException {
+    public void writeData(CodedOutputStream outputStream, @Nonnull Long instance) throws Exception {
         outputStream.writeInt64NoTag(instance);
     }
 
     @Nonnull
     @Override
-    public Long readData(CodedInputStream inputStream) throws IOException {
+    public Long readData(CodedInputStream inputStream) throws Exception {
         return inputStream.readInt64();
     }
 

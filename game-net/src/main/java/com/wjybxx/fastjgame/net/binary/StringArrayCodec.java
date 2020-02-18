@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
+
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.CodedOutputStream;
 import org.apache.commons.lang3.ArrayUtils;
@@ -25,42 +26,44 @@ import javax.annotation.Nonnull;
 /**
  * @author wjybxx
  * @version 1.0
- * date - 2020/2/17
+ * date - 2020/2/18
+ * github - https://github.com/hl845740757
  */
-class LongArrayCodec implements BinaryCodec<long[]> {
+public class StringArrayCodec implements BinaryCodec<String[]> {
+
     @Override
     public boolean isSupport(Class<?> runtimeType) {
-        return runtimeType == long[].class;
+        return runtimeType == String[].class;
     }
 
     @Override
-    public void writeData(CodedOutputStream outputStream, @Nonnull long[] instance) throws Exception {
+    public void writeData(CodedOutputStream outputStream, @Nonnull String[] instance) throws Exception {
         outputStream.writeUInt32NoTag(instance.length);
         if (instance.length == 0) {
             return;
         }
-        for (long value : instance) {
-            outputStream.writeInt64NoTag(value);
+        for (String e : instance) {
+            outputStream.writeStringNoTag(e);
         }
     }
 
     @Nonnull
     @Override
-    public long[] readData(CodedInputStream inputStream) throws Exception {
+    public String[] readData(CodedInputStream inputStream) throws Exception {
         final int length = inputStream.readUInt32();
         if (length == 0) {
-            return ArrayUtils.EMPTY_LONG_ARRAY;
+            return ArrayUtils.EMPTY_STRING_ARRAY;
         }
-        long[] result = new long[length];
+
+        final String[] result = new String[length];
         for (int index = 0; index < length; index++) {
-            result[index] = inputStream.readInt64();
+            result[index] = inputStream.readString();
         }
         return result;
     }
 
     @Override
     public byte getWireType() {
-        return WireType.LONG_ARRAY;
+        return WireType.STRING_ARRAY;
     }
-
 }

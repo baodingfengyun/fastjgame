@@ -23,7 +23,6 @@ import com.google.protobuf.ProtocolMessageEnum;
 import com.wjybxx.fastjgame.net.misc.MessageMapper;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -53,22 +52,18 @@ class ProtoEnumCodec implements BinaryCodec<ProtocolMessageEnum> {
     }
 
     @Override
-    public void writeData(CodedOutputStream outputStream, @Nonnull ProtocolMessageEnum instance) throws IOException {
-        outputStream.writeSInt32NoTag(messageMapper.getMessageId(instance.getClass()));
+    public void writeData(CodedOutputStream outputStream, @Nonnull ProtocolMessageEnum instance) throws Exception {
+        outputStream.writeInt32NoTag(messageMapper.getMessageId(instance.getClass()));
         outputStream.writeEnumNoTag(instance.getNumber());
     }
 
     @Nonnull
     @Override
-    public ProtocolMessageEnum readData(CodedInputStream inputStream) throws IOException {
-        final int messageId = inputStream.readSInt32();
+    public ProtocolMessageEnum readData(CodedInputStream inputStream) throws Exception {
+        final int messageId = inputStream.readInt32();
         final int number = inputStream.readEnum();
         final Class<?> enumClass = messageMapper.getMessageClazz(messageId);
-        try {
-            return (ProtocolMessageEnum) protoEnumDescriptorMap.get(enumClass).mapper.findValueByNumber(number);
-        } catch (Exception e) {
-            throw new IOException(enumClass.getName(), e);
-        }
+        return (ProtocolMessageEnum) protoEnumDescriptorMap.get(enumClass).mapper.findValueByNumber(number);
     }
 
     @Override

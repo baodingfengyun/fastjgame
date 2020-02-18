@@ -20,7 +20,6 @@ import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.CodedOutputStream;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 
 /**
  * @author wjybxx
@@ -35,13 +34,13 @@ class CharCodec implements BinaryCodec<Character> {
     }
 
     @Override
-    public void writeData(CodedOutputStream outputStream, @Nonnull Character instance) throws IOException {
+    public void writeData(CodedOutputStream outputStream, @Nonnull Character instance) throws Exception {
         outputStream.writeUInt32NoTag(instance);
     }
 
     @Nonnull
     @Override
-    public Character readData(CodedInputStream inputStream) throws IOException {
+    public Character readData(CodedInputStream inputStream) throws Exception {
         return (char) inputStream.readUInt32();
     }
 

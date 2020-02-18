@@ -116,13 +116,24 @@ public class EnumUtils {
 
     /**
      * 根据枚举的values建立索引；
-     * 该方法的开销相对小，代码量也能省下；
      *
      * @param values 枚举数组
      * @param <T>    枚举类型
      * @return unmodifiable
      */
     public static <T extends NumericalEntity> NumericalEntityMapper<T> mapping(final T[] values) {
+        return mapping(values, false);
+    }
+
+    /**
+     * 根据枚举的values建立索引；
+     *
+     * @param values    枚举数组
+     * @param fastQuery 是否追求极致的查询性能
+     * @param <T>       枚举类型
+     * @return unmodifiable
+     */
+    public static <T extends NumericalEntity> NumericalEntityMapper<T> mapping(final T[] values, final boolean fastQuery) {
         if (values.length == 0) {
             @SuppressWarnings("unchecked") final NumericalEntityMapper<T> mapper = (NumericalEntityMapper<T>) EmptyMapper.INSTANCE;
             return mapper;
@@ -150,7 +161,11 @@ public class EnumUtils {
         // 保护性拷贝，避免出现并发问题 - 不确定values()是否会被修改
         final T[] copiedValues = Arrays.copyOf(values, values.length);
 
-        if (ArrayBasedEnumMapper.available(minNumber, maxNumber, copiedValues.length)) {
+        if (fastQuery && !ArrayBasedEnumMapper.forceAvailable(minNumber, maxNumber, copiedValues.length)) {
+            throw new IllegalArgumentException("Bad resource utilization!");
+        }
+
+        if (fastQuery || ArrayBasedEnumMapper.available(minNumber, maxNumber, copiedValues.length)) {
             return new ArrayBasedEnumMapper<>(copiedValues, minNumber, maxNumber);
         } else {
             return new MapBasedMapper<>(copiedValues, result);
@@ -184,10 +199,8 @@ public class EnumUtils {
      */
     private static class ArrayBasedEnumMapper<T extends NumericalEntity> implements NumericalEntityMapper<T> {
 
-        /**
-         * 最小空间资源利用率，小于该值空间浪费太大
-         */
-        private static final float THRESHOLD = 0.7f;
+        private static final float DEFAULT_FACTOR = 0.5f;
+        private static final float MIN_FACTOR = 0.25f;
 
         private final T[] values;
         private final T[] elements;
@@ -196,23 +209,18 @@ public class EnumUtils {
         private final int maxNumber;
 
         /**
-         * new instance
-         * 构造对象之前必须调用{@link #available(int, int, int)}
-         *
          * @param values    枚举的所有元素
          * @param minNumber 枚举中的最小number
          * @param maxNumber 枚举中的最大number
          */
         @SuppressWarnings("unchecked")
         private ArrayBasedEnumMapper(T[] values, int minNumber, int maxNumber) {
-            assert available(minNumber, maxNumber, values.length);
-
             this.values = values;
             this.minNumber = minNumber;
             this.maxNumber = maxNumber;
 
             // 数组真实长度
-            int capacity = capacity(minNumber, maxNumber);
+            final int capacity = capacity(minNumber, maxNumber);
             this.elements = (T[]) Array.newInstance(values.getClass().getComponentType(), capacity);
 
             // 存入数组
@@ -239,25 +247,14 @@ public class EnumUtils {
             return number - minNumber;
         }
 
-        /**
-         * 是否可以使用基于数组的映射
-         *
-         * @param minNumber num的最小值
-         * @param maxNumber num的最大值
-         * @param length    元素个数
-         * @return 如果空间利用率能达到期望的话，返回true。
-         */
         private static boolean available(int minNumber, int maxNumber, int length) {
-            return length >= Math.ceil(capacity(minNumber, maxNumber) * THRESHOLD);
+            return length >= Math.ceil(capacity(minNumber, maxNumber) * DEFAULT_FACTOR);
         }
 
-        /**
-         * 计算需要的容量
-         *
-         * @param minNumber num的最小值
-         * @param maxNumber num的最大值
-         * @return capacity
-         */
+        private static boolean forceAvailable(int minNumber, int maxNumber, int length) {
+            return length >= Math.ceil(capacity(minNumber, maxNumber) * MIN_FACTOR);
+        }
+
         private static int capacity(int minNumber, int maxNumber) {
             return maxNumber - minNumber + 1;
         }
@@ -265,7 +262,7 @@ public class EnumUtils {
 
     /**
      * 基于map的映射。
-     * 对于枚举值较多或数字取值范围散乱的枚举适合；
+     * 对于枚举值较多或数字取值范围散乱的枚举适合。
      */
     private static class MapBasedMapper<T extends NumericalEntity> implements NumericalEntityMapper<T> {
 

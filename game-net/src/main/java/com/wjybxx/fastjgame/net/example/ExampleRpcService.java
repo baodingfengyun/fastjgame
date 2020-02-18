@@ -23,8 +23,6 @@ import com.wjybxx.fastjgame.net.annotation.RpcService;
 import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
 import com.wjybxx.fastjgame.net.session.Session;
 
-import java.io.IOException;
-
 /**
  * 示例rpcService
  *
@@ -104,7 +102,7 @@ public class ExampleRpcService {
      * @param proto      生成的代理方法类型为Object
      */
     @RpcMethod(methodId = 10)
-    public void sendToPlayer(long playerGuid, @LazySerializable byte[] proto) throws IOException {
+    public void sendToPlayer(long playerGuid, @LazySerializable byte[] proto) throws Exception {
         System.out.println("playerGuid " + playerGuid + ", " + ExampleConstants.binaryCodec.deserializeFromBytes(proto));
     }
 
