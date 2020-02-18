@@ -52,6 +52,14 @@ public interface EntityOutputStream {
      */
     <T> void writeField(byte wireType, @Nullable T fieldValue) throws IOException;
 
+    // ----------------------------------------- 处理多态问题 ----------------------------------
+
+    /**
+     * 向输入流中写一个多态实体对象
+     * （按照超类格式写入数据，并忽略子类字段）
+     */
+    <E> void writeEntity(@Nullable E entity, EntitySerializer<? super E> entitySerializer) throws IOException;
+
     /**
      * 向输入流中写入一个map
      */

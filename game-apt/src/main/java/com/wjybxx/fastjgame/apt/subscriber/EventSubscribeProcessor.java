@@ -14,12 +14,13 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.apt.processor;
+package com.wjybxx.fastjgame.apt.subscriber;
 
 import com.google.auto.service.AutoService;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import com.wjybxx.fastjgame.apt.core.MyAbstractProcessor;
 import com.wjybxx.fastjgame.apt.utils.AutoUtils;
 
 import javax.annotation.processing.Processor;

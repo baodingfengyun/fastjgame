@@ -65,17 +65,20 @@ public class WireType {
 
         for (Class<?> clazz : allSerializerClass) {
             @SuppressWarnings("unchecked") final Class<? extends EntitySerializer<?>> serializerClass = (Class<? extends EntitySerializer<?>>) clazz;
-            final Class<?> beanClass = TypeParameterFinder.findTypeParameterUnsafe(serializerClass, EntitySerializer.class, "T");
 
-            if (beanClass == Object.class) {
-                throw new UnsupportedOperationException("BeanSerializer, must declare type parameter");
+            try {
+                final Class<?> beanClass = TypeParameterFinder.findTypeParameterUnsafe(serializerClass, EntitySerializer.class, "T");
+                if (beanClass == Object.class) {
+                    throw new UnsupportedOperationException("BeanSerializer, must declare type parameter");
+                }
+                if (classBeanSerializerMap.containsKey(beanClass)) {
+                    throw new UnsupportedOperationException(beanClass.getSimpleName() + " has more than one serializer");
+                }
+
+                classBeanSerializerMap.put(beanClass, serializerClass);
+            } catch (Exception ignore) {
+
             }
-
-            if (classBeanSerializerMap.containsKey(beanClass)) {
-                throw new UnsupportedOperationException(beanClass.getSimpleName() + " has more than one serializer");
-            }
-
-            classBeanSerializerMap.put(beanClass, serializerClass);
         }
     }
 
@@ -179,15 +182,28 @@ public class WireType {
 
     /**
      * 默认Map支持
-     * 如果一个字段/参数的声明类型是{@link Map}，那么适用该类型
+     * 如果一个字段/参数的声明类型是{@link Map}的子类，且是{@link LinkedHashMap}的超类时，那么适用该类型
      */
     public static final byte DEFAULT_MAP = 21;
+
+    /**
+     * 如果一个字段的声明类型是{@link List}的子类，且是{@link ArrayList}的超类时，那么适用该字段。
+     */
+    public static final byte DEFAULT_LIST = 22;
+    /**
+     * 如果一个字段的声明类型是{@link Set}的子类时，那么适用该类型。
+     */
+    public static final byte DEFAULT_SET = 23;
+    /**
+     * 如果一个字段的声明类型是{@link Queue}的子类时时，将默认适用
+     */
+    public static final byte DEFAULT_QUEUE = 24;
 
     /**
      * 默认集合支持
      * 如果一个字段/参数的声明类型是{@link Collection}，那么那么适用该类型。
      */
-    public static final byte DEFAULT_COLLECTION = 22;
+    public static final byte DEFAULT_COLLECTION = 25;
 
     // ------------------------------------------- 带有注解的类 -----------------------------
 
@@ -195,13 +211,13 @@ public class WireType {
      * 带有{@link DBEntity} 或 {@link SerializableClass}注解的类，
      * 或手动实现{@link EntitySerializer}负责解析的类。
      */
-    public static final byte CUSTOM_ENTITY = 23;
+    public static final byte CUSTOM_ENTITY = 28;
 
 
     /**
      * 动态类型 - 运行时才能确定的类型（它是标记类型）
      */
-    public static final byte RUN_TIME = 24;
+    public static final byte RUN_TIME = 29;
 
     /**
      * 查找一个class对应的wireType

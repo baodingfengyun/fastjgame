@@ -33,6 +33,7 @@ public class AptReflectUtils {
      * 获取对的无参构造方法
      * 生成的代码调用
      */
+    @SuppressWarnings("unused")
     public static <T> Constructor<T> getNoArgsConstructor(Class<T> clazz) {
         try {
             final Constructor<T> constructor = clazz.getDeclaredConstructor();
@@ -51,6 +52,7 @@ public class AptReflectUtils {
     /**
      * 生成的代码调用
      */
+    @SuppressWarnings("unused")
     public static Field getDeclaredField(Class<?> clazz, String fieldName) {
         try {
             final Field field = clazz.getDeclaredField(fieldName);

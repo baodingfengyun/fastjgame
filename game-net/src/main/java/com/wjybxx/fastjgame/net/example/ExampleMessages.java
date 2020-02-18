@@ -21,11 +21,14 @@ import com.wjybxx.fastjgame.db.annotation.Impl;
 import com.wjybxx.fastjgame.net.annotation.SerializableClass;
 import com.wjybxx.fastjgame.net.annotation.SerializableField;
 import com.wjybxx.fastjgame.utils.EnumUtils;
+import com.wjybxx.fastjgame.utils.entity.IndexableEntity;
 import com.wjybxx.fastjgame.utils.entity.NumericalEntity;
 import com.wjybxx.fastjgame.utils.entity.NumericalEntityMapper;
+import com.wjybxx.fastjgame.utils.misc.IntPair;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 
 /**
@@ -37,6 +40,35 @@ import java.util.*;
  * github - https://github.com/hl845740757
  */
 public final class ExampleMessages {
+
+    @SerializableClass
+    public static class SceneConfig implements IndexableEntity<IntPair> {
+
+        private final int type;
+        private final int id;
+
+        private SceneConfig() {
+            type = 0;
+            id = 0;
+        }
+
+        public SceneConfig(int type, int id) {
+            this.type = type;
+            this.id = id;
+        }
+
+        @Nonnull
+        @Override
+        public IntPair getIndex() {
+            return new IntPair(type, id);
+        }
+
+        static SceneConfig forIndex(IntPair key) {
+            // 当做查询就好
+            return new SceneConfig(key.getFirst(), key.getSecond());
+        }
+    }
+
 
     @DBEntity(name = "db_bean")
     public static class DBBean {

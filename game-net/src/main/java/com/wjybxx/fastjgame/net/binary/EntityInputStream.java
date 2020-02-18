@@ -42,7 +42,7 @@ public interface EntityInputStream {
     }
 
     /**
-     * 从输入流中读取一个字段
+     * 从输入流中读取一个字段，如果该字段
      * (给生成代码使用的)。
      *
      * @param wireType 期望的数据类型，主要用于校验。如果该值不为{@link WireType#RUN_TIME}，则需要和读取到的tag进行比较。
@@ -51,6 +51,17 @@ public interface EntityInputStream {
      */
     @Nullable
     <T> T readField(byte wireType) throws IOException;
+
+    // ----------------------------------------- 处理多态问题 ----------------------------------
+
+    /**
+     * 读取一个多态实体对象
+     * (读取超类数据赋予子类实例)
+     *
+     * @param entityFactory    真正的实体创建工厂
+     * @param entitySerializer 实体对象的序列化实现
+     */
+    <E> E readEntity(EntityFactory<E> entityFactory, AbstractEntitySerializer<? super E> entitySerializer) throws IOException;
 
     /**
      * 从输入流中读取数据到map中

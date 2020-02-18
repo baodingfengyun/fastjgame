@@ -18,32 +18,34 @@ package com.wjybxx.fastjgame.net.binary;
 
 import com.wjybxx.fastjgame.net.annotation.SerializableClass;
 
-import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.function.IntFunction;
 
 /**
  * 实体类序列化工具类，生成的代码会实现该接口。
- * <br>---------------------------------------------------------<br>
- * 注意：
- * 1. 一般而言，建议使用注解{@link SerializableClass}，并遵循相关规范，由注解处理器生成的类负责解析，而不是实现{@link EntitySerializer}。
- * 2. 仅当反射编解码的类存在性能瓶颈时，才应该考虑手动实现{@link EntitySerializer}负责编解码相关的类。
- * 3. 扫描器通过泛型参数获取负责序列化的类型，因此只要进行了实现，就可以被自动加入。
- * <br>---------------------------------------------------------<br>
- * 如果手动实现该接口：
+ * <br>---------------------------------如何扩展------------------------<br>
+ * 1. 序列化实现会通过泛型参数获取负责序列化的类型，因此只要进行了实现，就可以被自动加入。
+ * 2. 一般而言，建议使用注解{@link SerializableClass}，并遵循相关规范，由注解处理器生成的类负责解析，而不是手写实现{@link EntitySerializer}。
+ * 一旦手写实现，必须持久的进行维护。
+ *
+ * <br>-------------------------------什么时候手写实现？-----------------------<br>
+ * 1. 当一个对象存在大量的反射解析导致性能瓶颈时，可以考虑手动实现。
+ * 2. 如果对象存在复杂的构造过程的时候，可以考虑手动实现。 (解析构造方法会增加双方的复杂度)
+ *
+ * <br>-------------------------------实现时要注意什么？----------------------<br>
  * 1. 必须保证线程安全，最好是无状态的。
  * 2. 最好实现为目标类的静态内部类，且最好是private级别，不要暴露给外层。
  * 3. 必须有一个无参构造方法(可以private)。
- * 4. 必须{@link EntityInputStream#readMap(IntFunction)} {@link EntityInputStream#readCollection(IntFunction)} 去读取map
- * <br>---------------------------------------------------------<br>
- * 本来我的想法是这样的：
- * 1. 有这样三个api {@code newInstance()} {@code readDeclaredFields(Object, EntityInputStream)}
- * {@code writeDeclaredFields(Object, EntityOutputStream)}
- * 2. 读的时候：先用工厂方法创建一个对象，然后每个{@link EntitySerializer}只负责读当前类定义的字段，然后一直递归到{@link Object}类型。
- * 3. 写的时候，每个{@link EntitySerializer}只负责写当前类定义的字段，然后一直递归到{@link Object}类型。
- * 这样的话逻辑简单且清晰，但是这将导致手动实现很痛苦，生成的代码和手写的代码也不能很好的兼容，
- * 要支持手写代码和生成代码之间兼容的话，只能将继承关系在实现类中处理，每个类不依赖其它类。
- * 所以又给生成代码增加了一层难度。
+ * 4. 必须{@link EntityInputStream#readMap(IntFunction)} {@link EntityInputStream#readCollection(IntFunction)} 去读取map和collection。
+ *
+ * <br>-------------------------------如何实现多态解析----------------------<br>
+ * 举个栗子：child1 -> parent -> parent或child2
+ * 1. 必须手写实现。
+ * 2. 必须采用组合方式，将要多态处理的类作为成员字段。
+ * 3. 使用特定方法进行读写
+ * {@link EntityInputStream#readEntity(EntityFactory, AbstractEntitySerializer)}
+ * {@link EntityOutputStream#writeEntity(Object, EntitySerializer)}
+ * PS: 其实Map和Collection的处理就是例子。
  *
  * @param <T> 要序列化的bean的类型
  * @author wjybxx
@@ -55,10 +57,22 @@ import java.util.function.IntFunction;
 public interface EntitySerializer<T> {
 
     /**
-     * 从输入流中读取富姐解析的对象
+     * 获取负责编解码的类对象
+     */
+    Class<T> getEntityClass();
+
+    /**
+     * 从输入流中解析指定对象。
+     * 它应该创建对象，并反序列化该类及其所有超类定义的所有要序列化的字段。
      */
     T readObject(EntityInputStream inputStream) throws Exception;
 
+    /**
+     * 将对象写入输出流。
+     * 将对象及其所有超类定义的所有要序列化的字段写入输出流。
+     *
+     * @param instance 支持子类型
+     */
     void writeObject(T instance, EntityOutputStream outputStream) throws Exception;
 
 }

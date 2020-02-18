@@ -13,7 +13,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.wjybxx.fastjgame.apt.processor;
+package com.wjybxx.fastjgame.apt.db;
+
+import com.wjybxx.fastjgame.apt.core.MyAbstractProcessor;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.TypeElement;
@@ -30,11 +32,13 @@ import java.util.Set;
  */
 public class DBEntityProcessor extends MyAbstractProcessor {
 
-    static final String DB_ENTITY_CANONICAL_NAME = "com.wjybxx.fastjgame.db.annotation.DBEntity";
-    static final String DB_FIELD_CANONICAL_NAME = "com.wjybxx.fastjgame.db.annotation.DBField";
+    public static final String DB_ENTITY_CANONICAL_NAME = "com.wjybxx.fastjgame.db.annotation.DBEntity";
+    public static final String DB_FIELD_CANONICAL_NAME = "com.wjybxx.fastjgame.db.annotation.DBField";
+
     private static final String DB_ID_CANONICAL_NAME = "com.wjybxx.fastjgame.db.annotation.DBId";
     private static final String DB_INDEX_CANONICAL_NAME = "com.wjybxx.fastjgame.db.annotation.DBIndex";
-    static final String IMPL_CANONICAL_NAME = "com.wjybxx.fastjgame.db.annotation.Impl";
+
+    public static final String IMPL_CANONICAL_NAME = "com.wjybxx.fastjgame.db.annotation.Impl";
 
     private TypeElement dbEntityTypeElement;
     private DeclaredType dbFieldDeclaredType;

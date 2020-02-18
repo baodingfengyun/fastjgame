@@ -35,8 +35,6 @@ import javax.tools.Diagnostic;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -204,6 +202,15 @@ public class AutoUtils {
         return result;
     }
 
+    /**
+     * 将继承体系展开，不包含实现的接口。
+     * 并逆序返回。
+     */
+    public static List<TypeElement> flatInheritAndReverse(TypeElement typeElement) {
+        final List<TypeElement> result = flatInherit(typeElement);
+        Collections.reverse(result);
+        return result;
+    }
 
     // ----------------------------------------------------- 分割线 -----------------------------------------------
 

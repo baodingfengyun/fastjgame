@@ -49,7 +49,7 @@ class CustomEntityCodec implements BinaryCodec<Object> {
         return beanSerializerMap.containsKey(runtimeType);
     }
 
-    @SuppressWarnings({"unchecked", "rawTypes"})
+    @SuppressWarnings({"unchecked"})
     @Override
     public void writeData(CodedOutputStream outputStream, @Nonnull Object instance) throws IOException {
         final Class<?> messageClass = instance.getClass();
@@ -100,7 +100,6 @@ class CustomEntityCodec implements BinaryCodec<Object> {
                 BinaryProtocolCodec.writeTag(outputStream, WireType.NULL);
                 return;
             }
-            // 写的时候不需要检查是否是map或collection，因为编码不存在问题
 
             // 索引为具体类型的字段
             if (wireType != WireType.RUN_TIME) {
@@ -112,6 +111,31 @@ class CustomEntityCodec implements BinaryCodec<Object> {
 
             // 运行时才知道的类型 - 极少走到这里
             binaryProtocolCodec.writeRuntimeType(outputStream, fieldValue);
+        }
+
+        /**
+         * 读写格式仍然要与{@link CustomEntityCodec}保持一致
+         */
+        @Override
+        public <E> void writeEntity(@Nullable E entity, EntitySerializer<? super E> entitySerializer) throws IOException {
+            if (null == entity) {
+                BinaryProtocolCodec.writeTag(outputStream, WireType.NULL);
+                return;
+            }
+
+            writeSuperClassMessageId(entitySerializer);
+
+            try {
+                entitySerializer.writeObject(entity, this);
+            } catch (Exception e) {
+                throw new IOException(e);
+            }
+        }
+
+        private <E> void writeSuperClassMessageId(EntitySerializer<? super E> entitySerializer) throws IOException {
+            final Class<?> messageClass = entitySerializer.getEntityClass();
+            final int messageId = messageMapper.getMessageId(messageClass);
+            outputStream.writeSInt32NoTag(messageId);
         }
 
         @Override
@@ -152,10 +176,6 @@ class CustomEntityCodec implements BinaryCodec<Object> {
                 return null;
             }
 
-            if (tag == WireType.DEFAULT_MAP || tag == WireType.DEFAULT_COLLECTION) {
-                throw new IOException("please use readCollection and readMap methods to read collection and map");
-            }
-
             // 类型校验
             if (wireType != WireType.RUN_TIME && wireType != tag) {
                 throw new IOException("Incompatible wireType, expected: " + wireType + ", but read: " + tag);
@@ -163,6 +183,38 @@ class CustomEntityCodec implements BinaryCodec<Object> {
 
             final BinaryCodec<T> codec = binaryProtocolCodec.getCodec(tag);
             return codec.readData(inputStream);
+        }
+
+        /**
+         * 读写格式仍然要与{@link CustomEntityCodec}保持一致
+         */
+        public <E> E readEntity(EntityFactory<E> entityFactory, AbstractEntitySerializer<? super E> entitySerializer) throws IOException {
+            final byte tag = BinaryProtocolCodec.readTag(inputStream);
+            if (tag == WireType.NULL) {
+                return null;
+            }
+
+            if (tag != WireType.CUSTOM_ENTITY) {
+                throw new IOException("Incompatible wireType, expected: " + WireType.CUSTOM_ENTITY + ", but read: " + tag);
+            }
+
+            checkMessageId(entitySerializer);
+
+            try {
+                final E instance = entityFactory.newInstance();
+                entitySerializer.readFields(instance, this);
+                return instance;
+            } catch (Exception e) {
+                throw new IOException(e);
+            }
+        }
+
+        private void checkMessageId(AbstractEntitySerializer<?> entitySerializer) throws IOException {
+            final int messageIdExpected = messageMapper.getMessageId(entitySerializer.getEntityClass());
+            final int messageId = inputStream.readSInt32();
+            if (messageId != messageIdExpected) {
+                throw new IOException("Incompatible message, expected: " + messageIdExpected + ", but read: " + messageId);
+            }
         }
 
         @Nullable
