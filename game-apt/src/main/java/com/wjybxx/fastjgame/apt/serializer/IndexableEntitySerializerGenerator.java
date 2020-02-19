@@ -46,7 +46,6 @@ class IndexableEntitySerializerGenerator extends AbstractGenerator<SerializableC
     private TypeSpec.Builder typeBuilder;
     private CodeBlock.Builder staticCodeBlockBuilder;
 
-
     IndexableEntitySerializerGenerator(SerializableClassProcessor processor, TypeElement typeElement) {
         super(processor, typeElement);
     }
@@ -57,6 +56,28 @@ class IndexableEntitySerializerGenerator extends AbstractGenerator<SerializableC
 
         createIndexField();
 
+        gen();
+
+    }
+
+    private void init() {
+        instanceRawTypeName = TypeName.get(typeUtils.erasure(typeElement.asType()));
+        superDeclaredType = typeUtils.getDeclaredType(processor.serializerTypeElement, typeUtils.erasure(typeElement.asType()));
+
+        typeBuilder = TypeSpec.classBuilder(getSerializerClassName(typeElement));
+        staticCodeBlockBuilder = CodeBlock.builder();
+    }
+
+    private void createIndexField() {
+        typeBuilder.addField(byte.class, INDEX_FIELD_NAME, Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL);
+
+        final TypeMirror indexTypeMirror = SerializableClassProcessor.getIndexTypeMirror(typeElement);
+        // fieldA = WireType.findType(int.class);
+        staticCodeBlockBuilder.addStatement("$L = $T.$L($T.class)",
+                INDEX_FIELD_NAME, processor.wireTypeTypeName, FINDTYPE_METHOD_NAME, typeUtils.erasure(indexTypeMirror));
+    }
+
+    private void gen() {
         // 获取实例方法
         final MethodSpec getEntityMethod = processor.newGetEntityMethod(superDeclaredType);
 
@@ -74,29 +95,12 @@ class IndexableEntitySerializerGenerator extends AbstractGenerator<SerializableC
                 .addAnnotation(AutoUtils.SUPPRESS_UNCHECKED_ANNOTATION)
                 .addAnnotation(processorInfoAnnotation)
                 .addStaticBlock(staticCodeBlockBuilder.build())
-                .addSuperinterface(TypeName.get(typeUtils.getDeclaredType(processor.serializerTypeElement, typeUtils.erasure(typeElement.asType()))))
+                .addSuperinterface(TypeName.get(superDeclaredType))
                 .addMethod(getEntityMethod)
                 .addMethod(writeMethodBuilder.build())
                 .addMethod(readMethodBuilder.build());
 
         // 写入文件
         AutoUtils.writeToFile(typeElement, typeBuilder, elementUtils, messager, filer);
-    }
-
-    private void init() {
-        instanceRawTypeName = TypeName.get(typeUtils.erasure(typeElement.asType()));
-        superDeclaredType = typeUtils.getDeclaredType(processor.abstractSerializerElement, typeUtils.erasure(typeElement.asType()));
-
-        typeBuilder = TypeSpec.classBuilder(getSerializerClassName(typeElement));
-        staticCodeBlockBuilder = CodeBlock.builder();
-    }
-
-    private void createIndexField() {
-        typeBuilder.addField(byte.class, INDEX_FIELD_NAME, Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL);
-
-        final TypeMirror indexTypeMirror = processor.getIndexTypeMirror(typeElement);
-        // fieldA = WireType.findType(int.class);
-        staticCodeBlockBuilder.addStatement("$L = $T.$L($T.class)",
-                INDEX_FIELD_NAME, processor.wireTypeTypeName, FINDTYPE_METHOD_NAME, typeUtils.erasure(indexTypeMirror));
     }
 }

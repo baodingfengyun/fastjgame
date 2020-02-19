@@ -46,7 +46,7 @@ class NumericalEntitySerializerGenerator extends AbstractGenerator<SerializableC
     @Override
     public void execute() {
         final TypeName instanceRawTypeName = TypeName.get(typeUtils.erasure(typeElement.asType()));
-        final DeclaredType superDeclaredType = typeUtils.getDeclaredType(processor.abstractSerializerElement, typeUtils.erasure(typeElement.asType()));
+        final DeclaredType superDeclaredType = typeUtils.getDeclaredType(processor.serializerTypeElement, typeUtils.erasure(typeElement.asType()));
 
         // 获取实例方法
         final MethodSpec getEntityMethod = processor.newGetEntityMethod(superDeclaredType);
@@ -65,7 +65,7 @@ class NumericalEntitySerializerGenerator extends AbstractGenerator<SerializableC
         typeBuilder.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                 .addAnnotation(AutoUtils.SUPPRESS_UNCHECKED_ANNOTATION)
                 .addAnnotation(processorInfoAnnotation)
-                .addSuperinterface(TypeName.get(typeUtils.getDeclaredType(processor.serializerTypeElement, typeUtils.erasure(typeElement.asType()))))
+                .addSuperinterface(TypeName.get(superDeclaredType))
                 .addMethod(getEntityMethod)
                 .addMethod(writeMethodBuilder.build())
                 .addMethod(readMethodBuilder.build());

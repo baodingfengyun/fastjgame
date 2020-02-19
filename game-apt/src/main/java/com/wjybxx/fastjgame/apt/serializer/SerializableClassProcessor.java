@@ -88,7 +88,7 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
     private ExecutableElement writeObjectMethod;
     private ExecutableElement readObjectMethod;
 
-    TypeElement abstractSerializerElement;
+    TypeElement abstractSerializerTypeElement;
     ExecutableElement newInstanceMethod;
     ExecutableElement readFieldsMethod;
 
@@ -123,9 +123,9 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
         writeObjectMethod = AutoUtils.findMethodByName(serializerTypeElement, WRITE_OBJECT_METHOD_NAME);
         readObjectMethod = AutoUtils.findMethodByName(serializerTypeElement, READ_OBJECT_METHOD_NAME);
 
-        abstractSerializerElement = elementUtils.getTypeElement(ABSTRACT_SERIALIZER_CANONICAL_NAME);
-        newInstanceMethod = AutoUtils.findMethodByName(abstractSerializerElement, NEW_INSTANCE_METHOD_NAME);
-        readFieldsMethod = AutoUtils.findMethodByName(abstractSerializerElement, READ_FIELDS_METHOD_NAME);
+        abstractSerializerTypeElement = elementUtils.getTypeElement(ABSTRACT_SERIALIZER_CANONICAL_NAME);
+        newInstanceMethod = AutoUtils.findMethodByName(abstractSerializerTypeElement, NEW_INSTANCE_METHOD_NAME);
+        readFieldsMethod = AutoUtils.findMethodByName(abstractSerializerTypeElement, READ_FIELDS_METHOD_NAME);
 
     }
 
@@ -229,7 +229,7 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
     /**
      * 获取索引类型
      */
-    public static TypeMirror getIndexTypeMirror(TypeElement typeElement) {
+    static TypeMirror getIndexTypeMirror(TypeElement typeElement) {
         final ExecutableElement getIndexMethod = typeElement.getEnclosedElements().stream()
                 .filter(e -> e.getKind() == ElementKind.METHOD)
                 .map(e -> (ExecutableElement) e)
