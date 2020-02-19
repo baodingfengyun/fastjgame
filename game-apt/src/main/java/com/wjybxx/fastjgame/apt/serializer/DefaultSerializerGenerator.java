@@ -23,6 +23,7 @@ import com.wjybxx.fastjgame.apt.utils.AutoUtils;
 import com.wjybxx.fastjgame.apt.utils.BeanUtils;
 
 import javax.lang.model.element.*;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -37,9 +38,6 @@ import static com.wjybxx.fastjgame.apt.serializer.SerializableClassProcessor.*;
  */
 class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProcessor> {
 
-    private static final String FACTORY_METHOD_NAME = "newInstance";
-    private static final String READ_FIELDS_METHOD_NAME = "readFields";
-
     private static final String READ_MAP_METHOD_NAME = "readMap";
     private static final String READ_COLLECTION = "readCollection";
 
@@ -48,12 +46,13 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
     private static final String CONSTRUCTOR_FIELD_NAME = "r_constructor";
 
     private TypeName instanceRawTypeName;
+    private DeclaredType superDeclaredType;
 
     private TypeSpec.Builder typeBuilder;
     private CodeBlock.Builder staticCodeBlockBuilder;
 
     private MethodSpec getEntityMethod;
-    private MethodSpec.Builder factoryMethodBuilder;
+    private MethodSpec.Builder newInstanceMethodBuilder;
     private MethodSpec.Builder readFieldsMethodBuilder;
     private MethodSpec.Builder writeObjectMethodBuilder;
 
@@ -72,17 +71,18 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
 
     private void init() {
         instanceRawTypeName = TypeName.get(typeUtils.erasure(typeElement.asType()));
+        superDeclaredType = typeUtils.getDeclaredType(processor.abstractSerializerElement, typeUtils.erasure(typeElement.asType()));
 
         typeBuilder = TypeSpec.classBuilder(SerializableClassProcessor.getSerializerClassName(typeElement));
         staticCodeBlockBuilder = CodeBlock.builder();
 
-        getEntityMethod = newGetEntityMethodBuilder(instanceRawTypeName);
-        factoryMethodBuilder = newFactoryMethodBuilder(instanceRawTypeName);
-        readFieldsMethodBuilder = newReadFieldsMethodBuilder(instanceRawTypeName);
-        writeObjectMethodBuilder = newWriteObjectMethodBuilder(instanceRawTypeName);
+        getEntityMethod = newGetEntityMethodBuilder();
+        newInstanceMethodBuilder = newInstanceMethodBuilder();
+        readFieldsMethodBuilder = newReadFieldsMethodBuilder();
+        writeObjectMethodBuilder = newWriteObjectMethodBuilder();
 
         // 必须包含超类字段
-        allFieldsAndMethodWithInherit = processor.getAllFieldsAndMethodsWithInherit(typeElement);
+        allFieldsAndMethodWithInherit = BeanUtils.getAllFieldsAndMethodsWithInherit(typeElement);
     }
 
     private void gen() {
@@ -119,7 +119,7 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
                 .superclass(TypeName.get(typeUtils.getDeclaredType(processor.abstractSerializerElement, typeUtils.erasure(typeElement.asType()))))
                 .addStaticBlock(staticCodeBlockBuilder.build())
                 .addMethod(getEntityMethod)
-                .addMethod(factoryMethodBuilder.build())
+                .addMethod(newInstanceMethodBuilder.build())
                 .addMethod(writeObjectMethodBuilder.build())
                 .addMethod(readFieldsMethodBuilder.build());
 
@@ -130,7 +130,7 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
     private void genFactoryMethod() {
         if (typeElement.getModifiers().contains(Modifier.ABSTRACT)) {
             // 抽象类或接口
-            factoryMethodBuilder.addStatement("throw new $T()", UnsupportedOperationException.class);
+            newInstanceMethodBuilder.addStatement("throw new $T()", UnsupportedOperationException.class);
             return;
         }
 
@@ -138,7 +138,7 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
         assert null != noArgsConstructor;
         if (!noArgsConstructor.getModifiers().contains(Modifier.PRIVATE)) {
             // 非private，直接new
-            factoryMethodBuilder.addStatement("return new $T()", instanceRawTypeName);
+            newInstanceMethodBuilder.addStatement("return new $T()", instanceRawTypeName);
         } else {
             // 创建构造函数反射字段
             final FieldSpec constructorFieldSpec = getConstructorFieldSpec();
@@ -146,7 +146,7 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
             typeBuilder.addField(constructorFieldSpec);
             staticCodeBlockBuilder.addStatement("$L = $T.getNoArgsConstructor($T.class)", CONSTRUCTOR_FIELD_NAME, AptReflectUtils.class, instanceRawTypeName);
             // 反射创建对象
-            factoryMethodBuilder.addStatement("return $L.newInstance($T.EMPTY_OBJECT_ARRAY)", CONSTRUCTOR_FIELD_NAME, AptReflectUtils.class);
+            newInstanceMethodBuilder.addStatement("return $L.newInstance($T.EMPTY_OBJECT_ARRAY)", CONSTRUCTOR_FIELD_NAME, AptReflectUtils.class);
         }
     }
 
@@ -161,7 +161,7 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
      * 写对象用的getter方法(一定有get方法)
      */
     private void addWriteStatement(VariableElement variableElement, TypeName fieldRawTypeName, String filedWireTypeFieldName) {
-        final String getterName = BeanUtils.getterMethodName(variableElement.getSimpleName().toString(), BeanUtils.isBoolean(fieldRawTypeName));
+        final String getterName = BeanUtils.getterMethodName(variableElement.getSimpleName().toString(), BeanUtils.isPrimitiveBoolean(fieldRawTypeName));
 
         if (processor.isMap(variableElement)) {
             writeObjectMethodBuilder.addStatement("outputStream.$L(instance.$L())", WRITE_MAP_METHOD_NAME, getterName);
@@ -179,7 +179,7 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
         final String fieldName = variableElement.getSimpleName().toString();
         if (isContainerNotPrivateSetterMethod(variableElement)) {
             // 包含非private的setter方法
-            final String setterName = BeanUtils.setterMethodName(variableElement.getSimpleName().toString(), BeanUtils.isBoolean(fieldRawTypeName));
+            final String setterName = BeanUtils.setterMethodName(variableElement.getSimpleName().toString(), BeanUtils.isPrimitiveBoolean(fieldRawTypeName));
 
             if (processor.isMap(variableElement)) {
                 final TypeName impTypeName = getFieldImpTypeName(variableElement);
@@ -211,7 +211,6 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
             } else {
                 readFieldsMethodBuilder.addStatement("$L.set(instance, inputStream.$L($L))", reflectFieldName, READ_FIELD_METHOD_NAME, filedWireTypeFieldName);
             }
-
         }
     }
 
@@ -221,46 +220,23 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
     }
 
     private boolean isContainerNotPrivateSetterMethod(final VariableElement variableElement) {
-        final String fieldName = variableElement.getSimpleName().toString();
-        final boolean isBoolean = BeanUtils.isBoolean(typeUtils, variableElement.asType());
-        final String setterMethodName = BeanUtils.setterMethodName(fieldName, isBoolean);
-
-        // 非private的
-        return allFieldsAndMethodWithInherit.stream()
-                .filter(e -> e.getKind() == ElementKind.METHOD)
-                .filter(e -> !e.getModifiers().contains(Modifier.PRIVATE))
-                .map(e -> (ExecutableElement) e)
-                .filter(e -> e.getParameters().size() == 1)
-                .filter(e -> typeUtils.isSameType(variableElement.asType(), e.getParameters().get(0).asType()))
-                .anyMatch(e -> {
-                    final String methodName = e.getSimpleName().toString();
-                    return methodName.equals(setterMethodName);
-                });
+        return BeanUtils.isContainerNotPrivateSetterMethod(typeUtils, variableElement, allFieldsAndMethodWithInherit);
     }
 
-    private MethodSpec.Builder newFactoryMethodBuilder(TypeName instanceRawTypeName) {
-        return MethodSpec.methodBuilder(FACTORY_METHOD_NAME)
-                .addModifiers(Modifier.PROTECTED)
-                .addAnnotation(Override.class)
-                .addException(Exception.class)
-                .returns(instanceRawTypeName);
+    private MethodSpec newGetEntityMethodBuilder() {
+        return processor.newGetEntityMethod(superDeclaredType);
     }
 
-    private MethodSpec newGetEntityMethodBuilder(TypeName instanceRawTypeName) {
-        return processor.newGetEntityMethod(instanceRawTypeName);
+    private MethodSpec.Builder newInstanceMethodBuilder() {
+        return MethodSpec.overriding(processor.newInstanceMethod, superDeclaredType, typeUtils);
     }
 
-    private MethodSpec.Builder newWriteObjectMethodBuilder(TypeName instanceRawTypeName) {
-        return processor.newWriteMethodBuilder(instanceRawTypeName);
+    private MethodSpec.Builder newWriteObjectMethodBuilder() {
+        return processor.newWriteMethodBuilder(superDeclaredType);
     }
 
-    private MethodSpec.Builder newReadFieldsMethodBuilder(TypeName instanceRawTypeName) {
-        return MethodSpec.methodBuilder(READ_FIELDS_METHOD_NAME)
-                .addModifiers(Modifier.PUBLIC)
-                .addAnnotation(Override.class)
-                .addException(Exception.class)
-                .addParameter(instanceRawTypeName, "instance")
-                .addParameter(TypeName.get(processor.inputStreamTypeElement.asType()), "inputStream");
+    private MethodSpec.Builder newReadFieldsMethodBuilder() {
+        return MethodSpec.overriding(processor.readFieldsMethod, superDeclaredType, typeUtils);
     }
 
 }

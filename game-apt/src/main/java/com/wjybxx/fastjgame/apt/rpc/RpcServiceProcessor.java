@@ -119,6 +119,12 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
     private ClassName registryTypeName;
     private ClassName exceptionUtilsTypeName;
 
+    private TypeMirror mapTypeMirror;
+    private TypeMirror linkedHashMapTypeMirror;
+
+    private TypeMirror collectionTypeMirror;
+    private TypeMirror arrayListTypeMirror;
+
     @Override
     public Set<String> getSupportedAnnotationTypes() {
         return Collections.singleton(RPC_SERVICE_CANONICAL_NAME);
@@ -147,6 +153,12 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
 
         lazySerializableDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(LAZY_SERIALIZABLE_CANONICAL_NAME));
         preDeserializeDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(PRE_DESERIALIZE_CANONICAL_NAME));
+
+        mapTypeMirror = elementUtils.getTypeElement(Map.class.getCanonicalName()).asType();
+        linkedHashMapTypeMirror = elementUtils.getTypeElement(LinkedHashMap.class.getCanonicalName()).asType();
+
+        collectionTypeMirror = elementUtils.getTypeElement(Collection.class.getCanonicalName()).asType();
+        arrayListTypeMirror = elementUtils.getTypeElement(ArrayList.class.getCanonicalName()).asType();
     }
 
 
@@ -210,14 +222,8 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
 
             final ExecutableElement method = (ExecutableElement) element;
             final Optional<? extends AnnotationMirror> rpcMethodAnnotation = AutoUtils.findFirstAnnotationWithoutInheritance(typeUtils, method, rpcMethodDeclaredType);
-            if (!rpcMethodAnnotation.isPresent()) {
+            if (rpcMethodAnnotation.isEmpty()) {
                 // 不是rpc方法，跳过
-                continue;
-            }
-
-            if (method.isVarArgs()) {
-                // 不支持变长参数
-                messager.printMessage(Diagnostic.Kind.ERROR, "RpcMethod not support varArgs!", method);
                 continue;
             }
 
@@ -226,6 +232,7 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
                 messager.printMessage(Diagnostic.Kind.ERROR, "RpcMethod method can't be static！", method);
                 continue;
             }
+
             if (method.getModifiers().contains(Modifier.PRIVATE)) {
                 // 访问权限不可以是private - 由于生成的类和该类属于同一个包，因此不必public，只要不是private即可
                 messager.printMessage(Diagnostic.Kind.ERROR, "RpcMethod method can't be private！", method);
@@ -328,6 +335,8 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
 
         // 拷贝参数列表
         builder.addParameters(realParameters);
+        // 是否是变长参数类型
+        builder.varargs(method.isVarArgs());
 
         // 搜集参数代码块（一个参数时不能使用singleTonList了，因为可能要修改内容）
         if (realParameters.size() == 0) {
@@ -342,6 +351,7 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
             builder.addStatement("return new $T<>($L, $L, $L, $L)", defaultMethodHandleRawTypeName, methodKey, methodParams,
                     parseResult.lazyIndexes, parseResult.preIndexes);
         }
+
         return builder.build();
     }
 
@@ -362,6 +372,8 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
 
         // 筛选参数
         for (VariableElement variableElement : originParameters) {
+            checkMapOrCollectionParameter(variableElement);
+
             // rpcResponseChannel需要从参数列表删除，并捕获泛型类型
             if (callReturnType == null && isResponseChannel(variableElement)) {
                 callReturnType = getResponseChannelTypeArgument(variableElement);
@@ -405,6 +417,40 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
         return new ParseResult(realParameters, lazyIndexes, preIndexes, callReturnType);
     }
 
+    private void checkMapOrCollectionParameter(VariableElement variableElement) {
+        if (isMap(variableElement)) {
+            if (!isAssignableFromLinkedHashMap(variableElement)) {
+                messager.printMessage(Diagnostic.Kind.ERROR,
+                        "Unsupported map type, Map parameter only support LinkedHashMap's parent, " +
+                                "\ntoo see the annotation '@Impl', then, you will know how to use any map type",
+                        variableElement);
+            }
+        } else if (isCollection(variableElement)) {
+            if (!isAssignableFormArrayList(variableElement)) {
+                messager.printMessage(Diagnostic.Kind.ERROR,
+                        "Unsupported collection type, Collection parameter only support ArrayList's parent, " +
+                                "\ntoo see the annotation '@Impl', then, you will know how to use any collection type",
+                        variableElement);
+            }
+        }
+    }
+
+    private boolean isMap(VariableElement variableElement) {
+        return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, variableElement.asType(), mapTypeMirror);
+    }
+
+    private boolean isAssignableFromLinkedHashMap(VariableElement variableElement) {
+        return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, linkedHashMapTypeMirror, variableElement.asType());
+    }
+
+    private boolean isCollection(VariableElement variableElement) {
+        return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, variableElement.asType(), collectionTypeMirror);
+    }
+
+    private boolean isAssignableFormArrayList(VariableElement variableElement) {
+        return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, arrayListTypeMirror, variableElement.asType());
+    }
+
     private static ParameterSpec lazySerializableParameterProxy(VariableElement variableElement) {
         return ParameterSpec.builder(Object.class, variableElement.getSimpleName().toString()).build();
     }
@@ -433,7 +479,7 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
         if (AutoUtils.isTargetPrimitiveArrayType(variableElement, TypeKind.BYTE)) {
             return true;
         } else {
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Annotation LazySerializable only support byte[]", variableElement);
+            messager.printMessage(Diagnostic.Kind.ERROR, "Annotation LazySerializable only support byte[]", variableElement);
             return false;
         }
     }

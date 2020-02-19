@@ -32,6 +32,7 @@ public class AptReflectUtils {
     /**
      * An empty immutable {@code Object} array.
      */
+    @SuppressWarnings("unused")
     public static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
 
     /**

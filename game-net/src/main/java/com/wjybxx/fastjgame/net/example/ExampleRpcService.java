@@ -23,6 +23,10 @@ import com.wjybxx.fastjgame.net.annotation.RpcService;
 import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
 import com.wjybxx.fastjgame.net.session.Session;
 
+import java.util.HashSet;
+import java.util.Map;
+import java.util.TreeMap;
+
 /**
  * 示例rpcService
  *
@@ -115,5 +119,35 @@ public class ExampleRpcService {
     @RpcMethod(methodId = 11)
     public void sendToScene(long playerGuid, @PreDeserializable String msg) {
         System.out.println("playerGuid " + playerGuid + ", " + msg);
+    }
+
+    @RpcMethod(methodId = 12)
+    public void sendToScene222(long playerGuid, RpcResponseChannel<String> channel) {
+        System.out.println("playerGuid " + playerGuid);
+    }
+
+    @RpcMethod(methodId = 13)
+    public void sendToScene2233(long playerGuid, RpcResponseChannel<?> channel) {
+        System.out.println("playerGuid " + playerGuid);
+    }
+
+    @RpcMethod(methodId = 1001)
+    public void sendToScene2233(RpcResponseChannel<?> channel, long... playerGuids) {
+        System.out.println("playerGuid " + playerGuids);
+    }
+
+    @RpcMethod(methodId = 1002)
+    public void sendToScene2234(RpcResponseChannel<?> channel, Map<String, String> params) {
+        System.out.println("playerGuid " + params);
+    }
+
+    @RpcMethod(methodId = 1003)
+    public void sendToScene2235(RpcResponseChannel<?> channel, TreeMap<String, String> params) {
+        System.out.println("playerGuid " + params);
+    }
+
+    @RpcMethod(methodId = 1004)
+    public void sendToScene223666(RpcResponseChannel<?> channel, HashSet<String> params) {
+        System.out.println("playerGuid " + params);
     }
 }

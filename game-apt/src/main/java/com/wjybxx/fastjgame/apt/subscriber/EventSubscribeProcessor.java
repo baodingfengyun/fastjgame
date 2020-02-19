@@ -290,7 +290,7 @@ public class EventSubscribeProcessor extends MyAbstractProcessor {
      * 获取泛型事件的泛型参数
      */
     private TypeMirror getGenericEventTypeArgument(final VariableElement genericEventVariableElement) {
-        final TypeMirror result = AutoUtils.getFirstParameterActualType(genericEventVariableElement.asType());
+        final TypeMirror result = AutoUtils.findFirstParameterActualType(genericEventVariableElement.asType());
         if (result == null || result.getKind() != TypeKind.DECLARED) {
             messager.printMessage(Diagnostic.Kind.ERROR, "GenericEvent has a bad type parameter!", genericEventVariableElement);
         }

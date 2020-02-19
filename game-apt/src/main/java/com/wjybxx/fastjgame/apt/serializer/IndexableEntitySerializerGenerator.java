@@ -22,9 +22,11 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.wjybxx.fastjgame.apt.core.AbstractGenerator;
 import com.wjybxx.fastjgame.apt.utils.AutoUtils;
+import com.wjybxx.fastjgame.apt.utils.BeanUtils;
 
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 
 import static com.wjybxx.fastjgame.apt.serializer.SerializableClassProcessor.*;
@@ -38,9 +40,12 @@ class IndexableEntitySerializerGenerator extends AbstractGenerator<SerializableC
 
     private static final String INDEX_FIELD_NAME = "wireType_index";
 
+    private TypeName instanceRawTypeName;
+    private DeclaredType superDeclaredType;
+
     private TypeSpec.Builder typeBuilder;
     private CodeBlock.Builder staticCodeBlockBuilder;
-    private TypeName instanceRawTypeName;
+
 
     IndexableEntitySerializerGenerator(SerializableClassProcessor processor, TypeElement typeElement) {
         super(processor, typeElement);
@@ -53,17 +58,17 @@ class IndexableEntitySerializerGenerator extends AbstractGenerator<SerializableC
         createIndexField();
 
         // 获取实例方法
-        final MethodSpec getEntityMethod = processor.newGetEntityMethod(instanceRawTypeName);
+        final MethodSpec getEntityMethod = processor.newGetEntityMethod(superDeclaredType);
 
         // 写入索引即可 outputStream.writeField(wireTye_index, instance.getIndex())
-        final MethodSpec.Builder writeMethodBuilder = processor.newWriteMethodBuilder(instanceRawTypeName);
+        final MethodSpec.Builder writeMethodBuilder = processor.newWriteMethodBuilder(superDeclaredType);
         writeMethodBuilder.addStatement("outputStream.$L($L, instance.$L())",
-                WRITE_FIELD_METHOD_NAME, INDEX_FIELD_NAME, GET_INDEX_METHOD_NAME);
+                WRITE_FIELD_METHOD_NAME, INDEX_FIELD_NAME, BeanUtils.GET_INDEX_METHOD_NAME);
 
         // 读取索引即可 return A.forIndex(InputStream.readField(wireTye_index));
-        final MethodSpec.Builder readMethodBuilder = processor.newReadObjectMethodBuilder(instanceRawTypeName);
+        final MethodSpec.Builder readMethodBuilder = processor.newReadObjectMethodBuilder(superDeclaredType);
         readMethodBuilder.addStatement("return $T.$L(inputStream.$L($L))",
-                instanceRawTypeName, FOR_INDEX_METHOD_NAME, READ_FIELD_METHOD_NAME, INDEX_FIELD_NAME);
+                instanceRawTypeName, BeanUtils.FOR_INDEX_METHOD_NAME, READ_FIELD_METHOD_NAME, INDEX_FIELD_NAME);
 
         typeBuilder.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                 .addAnnotation(AutoUtils.SUPPRESS_UNCHECKED_ANNOTATION)
@@ -79,9 +84,11 @@ class IndexableEntitySerializerGenerator extends AbstractGenerator<SerializableC
     }
 
     private void init() {
+        instanceRawTypeName = TypeName.get(typeUtils.erasure(typeElement.asType()));
+        superDeclaredType = typeUtils.getDeclaredType(processor.abstractSerializerElement, typeUtils.erasure(typeElement.asType()));
+
         typeBuilder = TypeSpec.classBuilder(getSerializerClassName(typeElement));
         staticCodeBlockBuilder = CodeBlock.builder();
-        instanceRawTypeName = TypeName.get(typeUtils.erasure(typeElement.asType()));
     }
 
     private void createIndexField() {

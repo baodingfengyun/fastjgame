@@ -184,7 +184,8 @@ public class AutoUtils {
                 .filter(e -> e.getKind() == ElementKind.METHOD)
                 .map(e -> (ExecutableElement) e)
                 .filter(e -> e.getSimpleName().toString().equals(methodName))
-                .findFirst().orElse(null);
+                .findFirst()
+                .orElse(null);
     }
 
     /**
@@ -203,8 +204,7 @@ public class AutoUtils {
     }
 
     /**
-     * 将继承体系展开，不包含实现的接口。
-     * 并逆序返回。
+     * 将继承体系展开，并逆序返回，不包含实现的接口。
      */
     public static List<TypeElement> flatInheritAndReverse(TypeElement typeElement) {
         final List<TypeElement> result = flatInherit(typeElement);
@@ -366,14 +366,15 @@ public class AutoUtils {
     }
 
     /**
-     * 获取第一个参数的真实类型
+     * 获取第一个参数的真实类型，如果没有显示声明，则为null
      */
     @Nullable
-    public static TypeMirror getFirstParameterActualType(TypeMirror typeMirror) {
+    public static TypeMirror findFirstParameterActualType(TypeMirror typeMirror) {
         return typeMirror.accept(new SimpleTypeVisitor8<TypeMirror, Void>() {
             @Override
             public TypeMirror visitDeclared(DeclaredType t, Void aVoid) {
                 if (t.getTypeArguments().size() == 0) {
+                    // 未声明泛型参数
                     return null;
                 }
 
@@ -383,8 +384,8 @@ public class AutoUtils {
                 }
 
                 if (typeArgument.getKind() == TypeKind.WILDCARD) {
-                    // may nullable
-                    return ((WildcardType) typeArgument).getSuperBound();
+                    // may nullable - 继承是上界
+                    return ((WildcardType) typeArgument).getExtendsBound();
                 }
 
                 if (typeArgument.getKind() == TypeKind.TYPEVAR) {
@@ -427,6 +428,9 @@ public class AutoUtils {
         }
     }
 
+    /**
+     * 获取一个类或接口所属的包名
+     */
     public static String getPackageName(TypeElement typeElement, Elements elementUtils) {
         return elementUtils.getPackageOf(typeElement).getQualifiedName().toString();
     }

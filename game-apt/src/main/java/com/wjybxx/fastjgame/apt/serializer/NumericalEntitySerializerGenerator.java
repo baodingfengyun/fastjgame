@@ -21,9 +21,11 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.wjybxx.fastjgame.apt.core.AbstractGenerator;
 import com.wjybxx.fastjgame.apt.utils.AutoUtils;
+import com.wjybxx.fastjgame.apt.utils.BeanUtils;
 
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.DeclaredType;
 
 import static com.wjybxx.fastjgame.apt.serializer.SerializableClassProcessor.*;
 
@@ -36,6 +38,7 @@ import static com.wjybxx.fastjgame.apt.serializer.SerializableClassProcessor.*;
  */
 class NumericalEntitySerializerGenerator extends AbstractGenerator<SerializableClassProcessor> {
 
+
     NumericalEntitySerializerGenerator(SerializableClassProcessor processor, TypeElement typeElement) {
         super(processor, typeElement);
     }
@@ -43,19 +46,20 @@ class NumericalEntitySerializerGenerator extends AbstractGenerator<SerializableC
     @Override
     public void execute() {
         final TypeName instanceRawTypeName = TypeName.get(typeUtils.erasure(typeElement.asType()));
+        final DeclaredType superDeclaredType = typeUtils.getDeclaredType(processor.abstractSerializerElement, typeUtils.erasure(typeElement.asType()));
 
         // 获取实例方法
-        final MethodSpec getEntityMethod = processor.newGetEntityMethod(instanceRawTypeName);
+        final MethodSpec getEntityMethod = processor.newGetEntityMethod(superDeclaredType);
 
         // 写入number即可 outputStream.writeObject(WireType.INT, instance.getNumber())
-        final MethodSpec.Builder writeMethodBuilder = processor.newWriteMethodBuilder(instanceRawTypeName);
+        final MethodSpec.Builder writeMethodBuilder = processor.newWriteMethodBuilder(superDeclaredType);
         writeMethodBuilder.addStatement("outputStream.$L($T.$L, instance.$L())",
-                WRITE_FIELD_METHOD_NAME, processor.wireTypeTypeName, WIRE_TYPE_INT, GET_NUMBER_METHOD_NAME);
+                WRITE_FIELD_METHOD_NAME, processor.wireTypeTypeName, WIRE_TYPE_INT, BeanUtils.GET_NUMBER_METHOD_NAME);
 
         // 读取number即可 return A.forNumber(inputStream.readObject(WireType.INT))
-        final MethodSpec.Builder readMethodBuilder = processor.newReadObjectMethodBuilder(instanceRawTypeName);
+        final MethodSpec.Builder readMethodBuilder = processor.newReadObjectMethodBuilder(superDeclaredType);
         readMethodBuilder.addStatement("return $T.$L(inputStream.$L($T.$L))",
-                instanceRawTypeName, FOR_NUMBER_METHOD_NAME, READ_FIELD_METHOD_NAME, processor.wireTypeTypeName, WIRE_TYPE_INT);
+                instanceRawTypeName, BeanUtils.FOR_NUMBER_METHOD_NAME, READ_FIELD_METHOD_NAME, processor.wireTypeTypeName, WIRE_TYPE_INT);
 
         final TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(getSerializerClassName(typeElement));
         typeBuilder.addModifiers(Modifier.PUBLIC, Modifier.FINAL)

@@ -16,22 +16,17 @@
 
 package com.wjybxx.fastjgame.apt.utils;
 
-import com.squareup.javapoet.FieldSpec;
-import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.PrimitiveType;
+import javax.lang.model.element.*;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.SimpleTypeVisitor8;
+import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * JavaBean工具类
@@ -42,6 +37,14 @@ import javax.lang.model.util.Types;
  * github - https://github.com/hl845740757
  */
 public class BeanUtils {
+
+    public static final String INDEXABLE_ENTITY_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.entity.IndexableEntity";
+    public static final String FOR_INDEX_METHOD_NAME = "forIndex";
+    public static final String GET_INDEX_METHOD_NAME = "getIndex";
+
+    public static final String NUMBER_ENUM_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.entity.NumericalEntity";
+    public static final String FOR_NUMBER_METHOD_NAME = "forNumber";
+    public static final String GET_NUMBER_METHOD_NAME = "getNumber";
 
     /**
      * 判断一个类是否包含无参构造方法
@@ -63,27 +66,60 @@ public class BeanUtils {
                 .orElse(null);
     }
 
-    public static boolean isBoolean(Types typeUtil, TypeMirror typeMirror) {
-        return typeMirror.accept(new SimpleTypeVisitor8<>() {
-
-            @Override
-            public Boolean visitPrimitive(PrimitiveType t, Object o) {
-                return t.getKind() == TypeKind.BOOLEAN;
-            }
-
-            @Override
-            public Boolean visitDeclared(DeclaredType t, Object o) {
-                final TypeElement boxedBoolean = typeUtil.boxedClass(typeUtil.getPrimitiveType(TypeKind.BOOLEAN));
-                return typeUtil.isSameType(t, boxedBoolean.asType());
-            }
-
-            @Override
-            protected Boolean defaultAction(TypeMirror e, Object o) {
-                return false;
-            }
-        }, null);
+    /**
+     * 获取类的所有字段和方法，包含继承得到的字段和方法
+     * {@link Elements#getAllMembers(TypeElement)}只包含父类的公共属性，不包含私有的东西。
+     */
+    public static List<Element> getAllFieldsAndMethodsWithInherit(TypeElement typeElement) {
+        final List<TypeElement> flatInherit = AutoUtils.flatInheritAndReverse(typeElement);
+        return flatInherit.stream()
+                .flatMap(e -> e.getEnclosedElements().stream())
+                .filter(e -> e.getKind() == ElementKind.METHOD || e.getKind() == ElementKind.FIELD)
+                .collect(Collectors.toList());
     }
 
+    /**
+     * 是否包含非private的setter方法
+     */
+    public static boolean isContainerNotPrivateSetterMethod(Types typeUtils, VariableElement variableElement, List<? extends Element> allFieldsAndMethodWithInherit) {
+        final String fieldName = variableElement.getSimpleName().toString();
+        final String setterMethodName = BeanUtils.setterMethodName(fieldName, BeanUtils.isPrimitiveBoolean(variableElement.asType()));
+
+        return allFieldsAndMethodWithInherit.stream()
+                .filter(e -> e.getKind() == ElementKind.METHOD)
+                .filter(e -> !e.getModifiers().contains(Modifier.PRIVATE))
+                .map(e -> (ExecutableElement) e)
+                .filter(e -> e.getParameters().size() == 1)
+                .filter(e -> typeUtils.isSameType(variableElement.asType(), e.getParameters().get(0).asType()))
+                .anyMatch(e -> {
+                    final String methodName = e.getSimpleName().toString();
+                    return methodName.equals(setterMethodName);
+                });
+    }
+
+    /**
+     * 是否包含非private的getter方法
+     */
+    public static boolean isContainerNotPrivateGetterMethod(Types typeUtils, VariableElement variableElement, List<? extends Element> allFieldsAndMethodWithInherit) {
+        final String fieldName = variableElement.getSimpleName().toString();
+        final String getterMethodName = BeanUtils.getterMethodName(fieldName, BeanUtils.isPrimitiveBoolean(variableElement.asType()));
+        return allFieldsAndMethodWithInherit.stream()
+                .filter(e -> e.getKind() == ElementKind.METHOD)
+                .filter(e -> !e.getModifiers().contains(Modifier.PRIVATE))
+                .map(e -> (ExecutableElement) e)
+                .filter(e -> typeUtils.isSameType(variableElement.asType(), e.getReturnType()))
+                .anyMatch(e -> {
+                    final String methodName = e.getSimpleName().toString();
+                    return methodName.equals(getterMethodName);
+                });
+    }
+
+    /**
+     * 是否是基本类型的boolean
+     */
+    public static boolean isPrimitiveBoolean(TypeMirror typeMirror) {
+        return typeMirror.getKind() == TypeKind.BOOLEAN;
+    }
 
     /**
      * 首字符大写
@@ -116,22 +152,22 @@ public class BeanUtils {
     /**
      * 获取getter方法的名字
      *
-     * @param filedName 字段名字
-     * @param isBoolean 是否是bool值
+     * @param filedName          字段名字
+     * @param isPrimitiveBoolean 是否是bool值 - 坑太多了，只有基本类型的boolean才会变成is，包装类型的不会
      * @return 方法名
      */
-    public static String getterMethodName(String filedName, boolean isBoolean) {
+    public static String getterMethodName(String filedName, boolean isPrimitiveBoolean) {
         if (isFirstOrSecondCharUpperCase(filedName)) {
             // 这里参数名一定不是is开头
             // 前两个字符任意一个大写，则参数名直接拼在get/is后面
-            if (isBoolean) {
+            if (isPrimitiveBoolean) {
                 return "is" + filedName;
             } else {
                 return "get" + filedName;
             }
         }
         // 到这里前两个字符都是小写
-        if (isBoolean) {
+        if (isPrimitiveBoolean) {
             // 如果参数名以 is 开头，则直接返回，否则 is + 首字母大写 - is 还要特殊处理
             if (filedName.length() > 2 && filedName.startsWith("is")) {
                 return filedName;
@@ -149,7 +185,7 @@ public class BeanUtils {
      * @param filedName 字段名字
      * @return 方法名
      */
-    public static String setterMethodName(String filedName, boolean isBoolean) {
+    public static String setterMethodName(String filedName, boolean isPrimitiveBoolean) {
         if (isFirstOrSecondCharUpperCase(filedName)) {
             // 这里参数名一定不是is开头
             // 前两个字符任意一个大写，则参数名直接拼在set后面
@@ -157,7 +193,7 @@ public class BeanUtils {
 
         }
         // 到这里前两个字符都是小写 - is 还要特殊处理。
-        if (isBoolean) {
+        if (isPrimitiveBoolean) {
             if (filedName.length() > 2 && filedName.startsWith("is")) {
                 return "set" + firstCharToUpperCase(filedName.substring(2));
             } else {
@@ -166,6 +202,16 @@ public class BeanUtils {
         } else {
             return "set" + firstCharToUpperCase(filedName);
         }
+    }
+
+    /**
+     * 是否是boolean或Boolean类型
+     *
+     * @param typeName 类型描述名
+     * @return 如果boolean类型或Boolean则返回true
+     */
+    public static boolean isPrimitiveBoolean(TypeName typeName) {
+        return typeName == TypeName.BOOLEAN;
     }
 
     /**
@@ -179,66 +225,6 @@ public class BeanUtils {
             return true;
         }
         return false;
-    }
-
-    /**
-     * 是否是boolean或Boolean类型
-     *
-     * @param typeName 类型描述名
-     * @return 如果boolean类型或Boolean则返回true
-     */
-    public static boolean isBoolean(TypeName typeName) {
-        if (typeName == TypeName.BOOLEAN) {
-            return true;
-        }
-        if (typeName.isBoxedPrimitive() && typeName.unbox() == TypeName.BOOLEAN) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * 创建属性的getter方法
-     *
-     * @param field 字段描述符
-     * @return getter方法
-     */
-    public static MethodSpec createGetter(FieldSpec field) {
-        final String methodName = getterMethodName(field);
-        return MethodSpec.methodBuilder(methodName)
-                .addModifiers(Modifier.PUBLIC)
-                .returns(field.type)
-                .addStatement("return this.$L", field.name)
-                .build();
-    }
-
-    /**
-     * 创建属性的setter方法
-     *
-     * @param field 字段描述符
-     * @return setter方法
-     */
-    public static MethodSpec createSetter(FieldSpec field) {
-        final String methodName = setterMethodName(field);
-        return MethodSpec.methodBuilder(methodName)
-                .addModifiers(Modifier.PUBLIC)
-                .returns(field.type)
-                .addStatement("return this.$L", field.name)
-                .build();
-    }
-
-    /**
-     * 获取一个字段的getter方法名字
-     */
-    public static String getterMethodName(FieldSpec field) {
-        return getterMethodName(field.name, isBoolean(field.type));
-    }
-
-    /**
-     * 获取一个字段的setter方法名字
-     */
-    public static String setterMethodName(FieldSpec field) {
-        return setterMethodName(field.name, isBoolean(field.type));
     }
 
 }

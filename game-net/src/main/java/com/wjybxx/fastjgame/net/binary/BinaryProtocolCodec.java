@@ -34,10 +34,8 @@ import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.util.Collection;
 import java.util.IdentityHashMap;
 import java.util.Map;
-import java.util.function.IntFunction;
 
 /**
  * 基于protoBuf的二进制格式编解码器。
@@ -86,8 +84,8 @@ public class BinaryProtocolCodec implements ProtocolCodec {
                 new StringCodec(),
 
                 // 默认集合支持
-                new DefaultMapCodec(this),
-                new DefaultCollectionCodec(this),
+                new MapCodec(this),
+                new CollectionCodec(this),
 
                 // 字节数组比较常见
                 new ByteArrayCodec(),
@@ -131,7 +129,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         return buffer;
     }
 
-    private void writeObject(CodedOutputStream outputStream, @Nullable Object object) throws Exception {
+    void writeObject(CodedOutputStream outputStream, @Nullable Object object) throws Exception {
         if (object == null) {
             writeTag(outputStream, WireType.NULL);
             return;
@@ -173,7 +171,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
      * @throws IOException error
      */
     @Nullable
-    private Object readObject(CodedInputStream inputStream) throws Exception {
+    Object readObject(CodedInputStream inputStream) throws Exception {
         final byte wireType = readTag(inputStream);
         if (wireType == WireType.NULL) {
             return null;
@@ -247,73 +245,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
      */
     static byte readTag(CodedInputStream inputStream) throws IOException {
         return inputStream.readRawByte();
-    }
-
-    // ------------------------------------------- map相关 ------------------------------------
-
-    /**
-     * 将map的所有键值对写入输出流
-     */
-    <K, V> void writeMapImp(@Nonnull CodedOutputStream outputStream, @Nonnull Map<K, V> map) throws Exception {
-        outputStream.writeUInt32NoTag(map.size());
-        if (map.size() == 0) {
-            return;
-        }
-        for (Map.Entry<K, V> entry : map.entrySet()) {
-            writeObject(outputStream, entry.getKey());
-            writeObject(outputStream, entry.getValue());
-        }
-    }
-
-    /**
-     * 从输入流中读取指定个数元素到map中
-     */
-    @Nonnull
-    <M extends Map<K, V>, K, V> M readMapImp(@Nonnull CodedInputStream inputStream, @Nonnull IntFunction<M> mapFactory) throws Exception {
-        final int size = inputStream.readUInt32();
-        if (size == 0) {
-            return mapFactory.apply(0);
-        }
-        final M result = mapFactory.apply(size);
-        for (int index = 0; index < size; index++) {
-            @SuppressWarnings("unchecked") K key = (K) readObject(inputStream);
-            @SuppressWarnings("unchecked") V value = (V) readObject(inputStream);
-            result.put(key, value);
-        }
-        return result;
-    }
-
-    // ------------------------------------------- collection相关 ------------------------------------
-
-    /**
-     * 将collection的所有元素写入输出流
-     */
-    <E> void writeCollectionImp(@Nonnull CodedOutputStream outputStream, @Nonnull Collection<E> collection) throws Exception {
-        outputStream.writeUInt32NoTag(collection.size());
-        if (collection.size() == 0) {
-            return;
-        }
-        for (E element : collection) {
-            BinaryProtocolCodec.this.writeObject(outputStream, element);
-        }
-    }
-
-    /**
-     * 从输入流中读取指定元素到集合中
-     */
-    @Nonnull
-    <C extends Collection<E>, E> C readCollectionImp(@Nonnull CodedInputStream inputStream, @Nonnull IntFunction<C> collectionFactory) throws Exception {
-        final int size = inputStream.readUInt32();
-        if (size == 0) {
-            return collectionFactory.apply(0);
-        }
-
-        final C result = collectionFactory.apply(size);
-        for (int index = 0; index < size; index++) {
-            @SuppressWarnings("unchecked") final E e = (E) readObject(inputStream);
-            result.add(e);
-        }
-        return result;
     }
 
     // ------------------------------------------------- 工厂方法 ------------------------------------------------------

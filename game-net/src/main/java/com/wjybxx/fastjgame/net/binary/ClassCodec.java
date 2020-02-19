@@ -32,7 +32,7 @@ public class ClassCodec implements BinaryCodec<Class> {
 
     @Override
     public boolean isSupport(Class<?> runtimeType) {
-        return false;
+        return runtimeType == Class.class;
     }
 
     @Override

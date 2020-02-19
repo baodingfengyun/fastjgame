@@ -148,7 +148,7 @@ class CustomEntityCodec implements BinaryCodec<Object> {
             }
 
             BinaryProtocolCodec.writeTag(outputStream, WireType.MAP);
-            binaryProtocolCodec.writeMapImp(outputStream, map);
+            MapCodec.writeMapImp(binaryProtocolCodec, outputStream, map);
         }
 
         @Override
@@ -159,7 +159,7 @@ class CustomEntityCodec implements BinaryCodec<Object> {
             }
 
             BinaryProtocolCodec.writeTag(outputStream, WireType.COLLECTION);
-            binaryProtocolCodec.writeCollectionImp(outputStream, collection);
+            CollectionCodec.writeCollectionImp(binaryProtocolCodec, outputStream, collection);
         }
     }
 
@@ -227,7 +227,7 @@ class CustomEntityCodec implements BinaryCodec<Object> {
                 throw new IOException("Incompatible wireType, expected: " + WireType.MAP + ", but read: " + tag);
             }
 
-            return binaryProtocolCodec.readMapImp(inputStream, mapFactory);
+            return MapCodec.readMapImp(binaryProtocolCodec, inputStream, mapFactory);
         }
 
         @Nullable
@@ -242,7 +242,7 @@ class CustomEntityCodec implements BinaryCodec<Object> {
                 throw new IOException("Incompatible wireType, expected: " + WireType.COLLECTION + ", but read: " + tag);
             }
 
-            return binaryProtocolCodec.readCollectionImp(inputStream, collectionFactory);
+            return CollectionCodec.readCollectionImp(binaryProtocolCodec, inputStream, collectionFactory);
         }
 
     }

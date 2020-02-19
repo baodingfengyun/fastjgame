@@ -17,25 +17,22 @@
 package com.wjybxx.fastjgame.apt.serializer;
 
 import com.google.auto.service.AutoService;
-import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.wjybxx.fastjgame.apt.core.MyAbstractProcessor;
 import com.wjybxx.fastjgame.apt.db.DBEntityProcessor;
 import com.wjybxx.fastjgame.apt.utils.AutoUtils;
 import com.wjybxx.fastjgame.apt.utils.BeanUtils;
 
+import javax.annotation.Nullable;
 import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * 1. 对于普通类：必须包含无参构造方法，且field注解的number必须在 0-65535之间
@@ -53,26 +50,19 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
     private static final String SERIALIZABLE_CLASS_CANONICAL_NAME = "com.wjybxx.fastjgame.net.annotation.SerializableClass";
     private static final String SERIALIZABLE_FIELD_CANONICAL_NAME = "com.wjybxx.fastjgame.net.annotation.SerializableField";
 
-    private static final String NUMBER_ENUM_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.entity.NumericalEntity";
-    static final String FOR_NUMBER_METHOD_NAME = "forNumber";
-    static final String GET_NUMBER_METHOD_NAME = "getNumber";
-
-    private static final String INDEXABLE_ENTITY_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.entity.IndexableEntity";
-    static final String FOR_INDEX_METHOD_NAME = "forIndex";
-    static final String GET_INDEX_METHOD_NAME = "getIndex";
-
     private static final String WIRETYPE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.binary.WireType";
     static final String WIRE_TYPE_INT = "INT";
     static final String FINDTYPE_METHOD_NAME = "findType";
 
     private static final String SERIALIZER_CANONICAL_NAME = "com.wjybxx.fastjgame.net.binary.EntitySerializer";
     private static final String ABSTRACT_SERIALIZER_CANONICAL_NAME = "com.wjybxx.fastjgame.net.binary.AbstractEntitySerializer";
-    private static final String OUTPUT_STREAM_CANONICAL_NAME = "com.wjybxx.fastjgame.net.binary.EntityOutputStream";
-    private static final String INPUT_STREAM_CANONICAL_NAME = "com.wjybxx.fastjgame.net.binary.EntityInputStream";
 
     private static final String GET_ENTITY_CLASS_METHOD_NAME = "getEntityClass";
     private static final String WRITE_OBJECT_METHOD_NAME = "writeObject";
     private static final String READ_OBJECT_METHOD_NAME = "readObject";
+
+    private static final String NEW_INSTANCE_METHOD_NAME = "newInstance";
+    private static final String READ_FIELDS_METHOD_NAME = "readFields";
 
     static final String WRITE_FIELD_METHOD_NAME = "writeField";
     static final String READ_FIELD_METHOD_NAME = "readField";
@@ -91,10 +81,16 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
     private DeclaredType indexableEntityDeclaredType;
 
     TypeName wireTypeTypeName;
+
     TypeElement serializerTypeElement;
+    // 要覆盖的方法缓存，减少大量查询
+    private ExecutableElement getEntityClassMethod;
+    private ExecutableElement writeObjectMethod;
+    private ExecutableElement readObjectMethod;
+
     TypeElement abstractSerializerElement;
-    TypeElement outputStreamTypeElement;
-    TypeElement inputStreamTypeElement;
+    ExecutableElement newInstanceMethod;
+    ExecutableElement readFieldsMethod;
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {
@@ -117,14 +113,20 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
         dbFieldDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(DBEntityProcessor.DB_FIELD_CANONICAL_NAME));
         impDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(DBEntityProcessor.IMPL_CANONICAL_NAME));
 
-        numericalEnumDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(NUMBER_ENUM_CANONICAL_NAME));
-        indexableEntityDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(INDEXABLE_ENTITY_CANONICAL_NAME));
+        numericalEnumDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(BeanUtils.NUMBER_ENUM_CANONICAL_NAME));
+        indexableEntityDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(BeanUtils.INDEXABLE_ENTITY_CANONICAL_NAME));
 
         wireTypeTypeName = TypeName.get(elementUtils.getTypeElement(WIRETYPE_CANONICAL_NAME).asType());
+
         serializerTypeElement = elementUtils.getTypeElement(SERIALIZER_CANONICAL_NAME);
+        getEntityClassMethod = AutoUtils.findMethodByName(serializerTypeElement, GET_ENTITY_CLASS_METHOD_NAME);
+        writeObjectMethod = AutoUtils.findMethodByName(serializerTypeElement, WRITE_OBJECT_METHOD_NAME);
+        readObjectMethod = AutoUtils.findMethodByName(serializerTypeElement, READ_OBJECT_METHOD_NAME);
+
         abstractSerializerElement = elementUtils.getTypeElement(ABSTRACT_SERIALIZER_CANONICAL_NAME);
-        outputStreamTypeElement = elementUtils.getTypeElement(OUTPUT_STREAM_CANONICAL_NAME);
-        inputStreamTypeElement = elementUtils.getTypeElement(INPUT_STREAM_CANONICAL_NAME);
+        newInstanceMethod = AutoUtils.findMethodByName(abstractSerializerElement, NEW_INSTANCE_METHOD_NAME);
+        readFieldsMethod = AutoUtils.findMethodByName(abstractSerializerElement, READ_FIELDS_METHOD_NAME);
+
     }
 
     @Override
@@ -202,7 +204,7 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
                 .map(e -> (ExecutableElement) e)
                 .filter(method -> !method.getModifiers().contains(Modifier.PRIVATE))
                 .filter(method -> method.getModifiers().contains(Modifier.STATIC))
-                .filter(method -> method.getSimpleName().toString().equals(FOR_NUMBER_METHOD_NAME))
+                .filter(method -> method.getSimpleName().toString().equals(BeanUtils.FOR_NUMBER_METHOD_NAME))
                 .filter(method -> method.getParameters().size() == 1)
                 .anyMatch(method -> method.getParameters().get(0).asType().getKind() == TypeKind.INT);
     }
@@ -227,11 +229,11 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
     /**
      * 获取索引类型
      */
-    TypeMirror getIndexTypeMirror(TypeElement typeElement) {
+    public static TypeMirror getIndexTypeMirror(TypeElement typeElement) {
         final ExecutableElement getIndexMethod = typeElement.getEnclosedElements().stream()
                 .filter(e -> e.getKind() == ElementKind.METHOD)
                 .map(e -> (ExecutableElement) e)
-                .filter(e -> ((Element) e).getSimpleName().toString().equals(GET_INDEX_METHOD_NAME))
+                .filter(e -> ((Element) e).getSimpleName().toString().equals(BeanUtils.GET_INDEX_METHOD_NAME))
                 .filter(e -> e.getParameters().isEmpty())
                 .findFirst()
                 .orElse(null);
@@ -254,14 +256,14 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
                 .filter(method -> !method.getModifiers().contains(Modifier.PRIVATE))
                 .filter(method -> AutoUtils.isSameTypeIgnoreTypeParameter(typeUtils, method.getReturnType(), typeElement.asType()))
                 .filter(method -> method.getModifiers().contains(Modifier.STATIC))
-                .filter(method -> method.getSimpleName().toString().equals(FOR_INDEX_METHOD_NAME))
+                .filter(method -> method.getSimpleName().toString().equals(BeanUtils.FOR_INDEX_METHOD_NAME))
                 .filter(method -> method.getParameters().size() == 1)
                 .anyMatch(method -> typeUtils.isSameType(method.getParameters().get(0).asType(), indexTypeMirror));
     }
 
     private void checkClass(TypeElement typeElement) {
         // 父类可能是不序列化的，但是有字段要序列化
-        final List<? extends Element> allFieldsAndMethodWithInherit = getAllFieldsAndMethodsWithInherit(typeElement);
+        final List<? extends Element> allFieldsAndMethodWithInherit = BeanUtils.getAllFieldsAndMethodsWithInherit(typeElement);
         for (Element element : allFieldsAndMethodWithInherit) {
             // 非成员属性
             if (element.getKind() != ElementKind.FIELD) {
@@ -313,36 +315,12 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
     }
 
     /**
-     * {@link Elements#getAllMembers(TypeElement)}只包含父类的公共属性，不包含私有的东西。
-     */
-    List<Element> getAllFieldsAndMethodsWithInherit(TypeElement typeElement) {
-        final List<TypeElement> flatInherit = AutoUtils.flatInheritAndReverse(typeElement);
-        return flatInherit.stream()
-                .flatMap(e -> e.getEnclosedElements().stream())
-                .filter(e -> e.getKind() == ElementKind.METHOD || e.getKind() == ElementKind.FIELD)
-                .collect(Collectors.toList());
-    }
-
-    /**
      * 是否包含非private的getter方法
      *
      * @param allFieldsAndMethodWithInherit 所有的字段和方法，可能在父类中
      */
     private boolean isContainerNotPrivateGetterMethod(final VariableElement variableElement, final List<? extends Element> allFieldsAndMethodWithInherit) {
-        final String fieldName = variableElement.getSimpleName().toString();
-        final boolean isBoolean = BeanUtils.isBoolean(typeUtils, variableElement.asType());
-        final String getterMethodName = BeanUtils.getterMethodName(fieldName, isBoolean);
-
-        // 非private的
-        return allFieldsAndMethodWithInherit.stream()
-                .filter(e -> e.getKind() == ElementKind.METHOD)
-                .filter(e -> !e.getModifiers().contains(Modifier.PRIVATE))
-                .map(e -> (ExecutableElement) e)
-                .filter(e -> typeUtils.isSameType(variableElement.asType(), e.getReturnType()))
-                .anyMatch(e -> {
-                    final String methodName = e.getSimpleName().toString();
-                    return methodName.equals(getterMethodName);
-                });
+        return BeanUtils.isContainerNotPrivateGetterMethod(typeUtils, variableElement, allFieldsAndMethodWithInherit);
     }
 
     private void checkMapAndCollectionField(VariableElement variableElement) {
@@ -366,9 +344,9 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
             return;
         }
 
-        final ExecutableElement noArgsConstructor = BeanUtils.getNoArgsConstructor((TypeElement) impDeclaredType.asElement());
+        final ExecutableElement noArgsConstructor = getOneIntArgsConstructor((TypeElement) impDeclaredType.asElement());
         if (noArgsConstructor == null || !noArgsConstructor.getModifiers().contains(Modifier.PUBLIC)) {
-            messager.printMessage(Diagnostic.Kind.ERROR, "MapOrCollectionImpl must contains public no args constructor", variableElement);
+            messager.printMessage(Diagnostic.Kind.ERROR, "MapOrCollectionImpl must contains public one int arg constructor", variableElement);
         }
     }
 
@@ -404,6 +382,17 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
         return AutoUtils.getAnnotationValueTypeMirror(annotationValue);
     }
 
+    @Nullable
+    private static ExecutableElement getOneIntArgsConstructor(TypeElement typeElement) {
+        return typeElement.getEnclosedElements().stream()
+                .filter(e -> e.getKind() == ElementKind.CONSTRUCTOR)
+                .map(e -> (ExecutableElement) e)
+                .filter(e -> e.getParameters().size() == 1)
+                .filter(e -> e.getParameters().get(0).asType().getKind() == TypeKind.INT)
+                .findFirst()
+                .orElse(null);
+    }
+
     // ----------------------------------------------- 辅助类生成 -------------------------------------------
 
     private void generateSerializer(TypeElement typeElement) {
@@ -419,39 +408,23 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
     /**
      * 创建writeObject方法
      */
-    MethodSpec.Builder newWriteMethodBuilder(TypeName instanceRawTypeName) {
-        return MethodSpec.methodBuilder(WRITE_OBJECT_METHOD_NAME)
-                .addModifiers(Modifier.PUBLIC)
-                .addAnnotation(Override.class)
-                .addException(Exception.class)
-                .addParameter(instanceRawTypeName, "instance")
-                .addParameter(TypeName.get(outputStreamTypeElement.asType()), "outputStream");
+    MethodSpec.Builder newWriteMethodBuilder(DeclaredType superDeclaredType) {
+        return MethodSpec.overriding(writeObjectMethod, superDeclaredType, typeUtils);
     }
 
     /**
      * 创建readObject方法
      */
-    MethodSpec.Builder newReadObjectMethodBuilder(TypeName instanceRawTypeName) {
-        return MethodSpec.methodBuilder(READ_OBJECT_METHOD_NAME)
-                .addModifiers(Modifier.PUBLIC)
-                .addAnnotation(Override.class)
-                .addException(Exception.class)
-                .returns(instanceRawTypeName)
-                .addParameter(TypeName.get(inputStreamTypeElement.asType()), "inputStream");
+    MethodSpec.Builder newReadObjectMethodBuilder(DeclaredType superDeclaredType) {
+        return MethodSpec.overriding(readObjectMethod, superDeclaredType, typeUtils);
     }
 
     /**
      * 创建返回负责被序列化的类对象的方法
      */
-    MethodSpec newGetEntityMethod(TypeName instanceRawTypeName) {
-        final ClassName className = ClassName.get(Class.class);
-        final ParameterizedTypeName returnType = ParameterizedTypeName.get(className, instanceRawTypeName);
-
-        return MethodSpec.methodBuilder(GET_ENTITY_CLASS_METHOD_NAME)
-                .addModifiers(Modifier.PUBLIC)
-                .addAnnotation(Override.class)
-                .returns(returnType)
-                .addStatement("return $T.class", instanceRawTypeName)
+    MethodSpec newGetEntityMethod(DeclaredType superDeclaredType) {
+        return MethodSpec.overriding(getEntityClassMethod, superDeclaredType, typeUtils)
+                .addStatement("return $T.class", TypeName.get(superDeclaredType.getTypeArguments().get(0)))
                 .build();
     }
 

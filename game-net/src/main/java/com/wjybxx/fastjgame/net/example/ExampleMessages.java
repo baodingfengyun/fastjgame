@@ -111,6 +111,12 @@ public final class ExampleMessages {
         @SerializableField
         private String sex;
 
+        @SerializableField
+        private boolean success;
+
+        @SerializableField
+        private Boolean ok;
+
         public long getGuid() {
             return guid;
         }
@@ -133,6 +139,22 @@ public final class ExampleMessages {
 
         public void setSex(String sex) {
             this.sex = sex;
+        }
+
+        public boolean isSuccess() {
+            return success;
+        }
+
+        public void setSuccess(boolean success) {
+            this.success = success;
+        }
+
+        public Boolean getOk() {
+            return ok;
+        }
+
+        public void setOk(Boolean ok) {
+            this.ok = ok;
         }
     }
 

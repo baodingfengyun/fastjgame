@@ -35,6 +35,7 @@ import java.util.Set;
 
 /**
  * 数据类型
+ * 不建议大量使用数组类型，建议使用集合，这里并不对数组做完全的支持。
  *
  * @author wjybxx
  * @version 1.0
@@ -81,7 +82,7 @@ public class WireType {
      */
     public static final byte NULL = 0;
 
-    // ------------------------------------------- 基本类型及其数组 -----------------------------
+    // ------------------------------------------- 基本类型 -----------------------------
     /**
      * rawByte
      */
@@ -114,6 +115,8 @@ public class WireType {
      * rawByte
      */
     public static final byte BOOLEAN = 8;
+
+    // -------------------------------------- 基本类型数组，主要为减少拆装箱操作 --------------------------
 
     /**
      * 字节数组
@@ -148,11 +151,13 @@ public class WireType {
      */
     public static final byte BOOLEAN_ARRAY = 16;
 
-    // ------------------------------------------ 特定对象支持 ------------------------------
+    // ---------------------------------------- 常用对象支持 ----------------------------------
+
     /**
      * 字符串 LENGTH_DELIMITED
      */
     public static final byte STRING = 17;
+
     /**
      * 字符串数组
      */
@@ -168,7 +173,7 @@ public class WireType {
      */
     public static final byte CLASS_ARRAY = 20;
 
-    // ----------------------------------------- protoBuffer 支持 ---------------------------------
+    // --------------------------------------- protoBuffer 支持 ---------------------------------
 
     /**
      * protobuf的Message LENGTH_DELIMITED
@@ -178,10 +183,6 @@ public class WireType {
      * protoBuf的枚举
      */
     public static final byte PROTO_ENUM = 22;
-    /**
-     * 自定义数据块
-     */
-    public static final byte CHUNK = 23;
 
     // ------------------------------------------ 集合支持 ---------------------------------
     /**
@@ -189,21 +190,29 @@ public class WireType {
      * 如果一个字段/参数的声明类型是{@link Map}，那么适用该类型。
      * 如果需要更细化的map需求，请了解{@link com.wjybxx.fastjgame.db.annotation.Impl}注解
      */
-    public static final byte MAP = 24;
+    public static final byte MAP = 23;
     /**
      * 集合支持
      * 如果一个字段/参数的声明类型是{@link Collection}，那么那么适用该类型。
      * 如果需要更细化的集合需求，请了解{@link com.wjybxx.fastjgame.db.annotation.Impl}注解
      */
-    public static final byte COLLECTION = 25;
+    public static final byte COLLECTION = 24;
 
-    // ------------------------------------------- 带有注解的类 -----------------------------
+
+    // ------------------------------------------ 自定义类型 ---------------------------------
+
+    /**
+     * 自定义数据块
+     */
+    public static final byte CHUNK = 25;
+
     /**
      * 带有{@link DBEntity} 或 {@link SerializableClass}注解的类，
      * 或手动实现{@link EntitySerializer}负责解析的类。
      */
     public static final byte CUSTOM_ENTITY = 26;
 
+    // ------------------------------------------ 运行时才知道的 -----------------------------
     /**
      * 动态类型 - 运行时才能确定的类型（它是标记类型）
      */
@@ -292,10 +301,6 @@ public class WireType {
         if (ProtocolMessageEnum.class.isAssignableFrom(declaredType)) {
             return WireType.PROTO_ENUM;
         }
-        // CHUNK
-        if (declaredType == Chunk.class) {
-            return WireType.CHUNK;
-        }
 
         // Map
         if (Map.class.isAssignableFrom(declaredType)) {
@@ -306,7 +311,12 @@ public class WireType {
             return WireType.COLLECTION;
         }
 
-        // 有serializer的类型，无论手写的还是自动生成的
+        // CHUNK - 自定义数据块
+        if (declaredType == Chunk.class) {
+            return WireType.CHUNK;
+        }
+
+        // 自定义实体 - 有serializer的类型，无论手写的还是自动生成的
         if (classBeanSerializerMap.containsKey(declaredType)) {
             return WireType.CUSTOM_ENTITY;
         }

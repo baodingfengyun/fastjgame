@@ -22,6 +22,7 @@ import com.google.protobuf.CodedOutputStream;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.function.IntFunction;
 
 /**
  * 集合编解码器。
@@ -32,11 +33,11 @@ import java.util.Collection;
  * @version 1.0
  * date - 2020/2/17
  */
-class DefaultCollectionCodec implements BinaryCodec<Collection<?>> {
+class CollectionCodec implements BinaryCodec<Collection<?>> {
 
     private BinaryProtocolCodec binaryProtocolCodec;
 
-    DefaultCollectionCodec(BinaryProtocolCodec binaryProtocolCodec) {
+    CollectionCodec(BinaryProtocolCodec binaryProtocolCodec) {
         this.binaryProtocolCodec = binaryProtocolCodec;
     }
 
@@ -47,17 +48,51 @@ class DefaultCollectionCodec implements BinaryCodec<Collection<?>> {
 
     @Override
     public void writeData(CodedOutputStream outputStream, @Nonnull Collection<?> instance) throws Exception {
-        binaryProtocolCodec.writeCollectionImp(outputStream, instance);
+        writeCollectionImp(binaryProtocolCodec, outputStream, instance);
     }
 
     @Nonnull
     @Override
     public Collection<?> readData(CodedInputStream inputStream) throws Exception {
-        return binaryProtocolCodec.readCollectionImp(inputStream, ArrayList::new);
+        return readCollectionImp(binaryProtocolCodec, inputStream, ArrayList::new);
     }
 
     @Override
     public byte getWireType() {
         return WireType.COLLECTION;
     }
+
+    /**
+     * 将collection的所有元素写入输出流
+     */
+    static <E> void writeCollectionImp(@Nonnull BinaryProtocolCodec binaryProtocolCodec,
+                                       @Nonnull CodedOutputStream outputStream, @Nonnull Collection<E> collection) throws Exception {
+        outputStream.writeUInt32NoTag(collection.size());
+        if (collection.size() == 0) {
+            return;
+        }
+        for (E element : collection) {
+            binaryProtocolCodec.writeObject(outputStream, element);
+        }
+    }
+
+    /**
+     * 从输入流中读取指定元素到集合中
+     */
+    @Nonnull
+    static <C extends Collection<E>, E> C readCollectionImp(@Nonnull BinaryProtocolCodec binaryProtocolCodec,
+                                                            @Nonnull CodedInputStream inputStream, @Nonnull IntFunction<C> collectionFactory) throws Exception {
+        final int size = inputStream.readUInt32();
+        if (size == 0) {
+            return collectionFactory.apply(0);
+        }
+
+        final C result = collectionFactory.apply(size);
+        for (int index = 0; index < size; index++) {
+            @SuppressWarnings("unchecked") final E e = (E) binaryProtocolCodec.readObject(inputStream);
+            result.add(e);
+        }
+        return result;
+    }
+
 }
