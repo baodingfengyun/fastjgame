@@ -36,9 +36,6 @@ class DoubleArrayCodec implements BinaryCodec<double[]> {
     @Override
     public void writeData(CodedOutputStream outputStream, @Nonnull double[] instance) throws Exception {
         outputStream.writeUInt32NoTag(instance.length);
-        if (instance.length == 0) {
-            return;
-        }
         for (double value : instance) {
             outputStream.writeDoubleNoTag(value);
         }

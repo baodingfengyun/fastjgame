@@ -37,9 +37,6 @@ class CharArrayCodec implements BinaryCodec<char[]> {
     @Override
     public void writeData(CodedOutputStream outputStream, @Nonnull char[] instance) throws Exception {
         outputStream.writeUInt32NoTag(instance.length);
-        if (instance.length == 0) {
-            return;
-        }
         for (char value : instance) {
             outputStream.writeUInt32NoTag(value);
         }

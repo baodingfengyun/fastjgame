@@ -43,7 +43,7 @@ class ProtoMessageCodec implements BinaryCodec<AbstractMessage> {
 
     @Override
     public boolean isSupport(Class<?> runtimeType) {
-        return AbstractMessage.class.isAssignableFrom(runtimeType);
+        return parserMap.containsKey(runtimeType);
     }
 
     @Override

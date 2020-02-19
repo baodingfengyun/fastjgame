@@ -144,6 +144,10 @@ class ExampleRpcClientLoop extends DisruptorEventLoop {
                 .call(session)
                 .onSuccess(result -> System.out.println("sendToPlayer - " + index + " - invoke success"));
 
+        ExampleRpcServiceRpcProxy.join("hello", "world")
+                .call(session)
+                .onSuccess(result -> System.out.println("joinResult " + result));
+
         // 模拟玩家通过网关发送给场景服务器 - 注意：序列化方式必须一致。
         try {
             ExampleRpcServiceRpcProxy.sendToScene(13245, ExampleConstants.binaryCodec.serializeToBytes("这里后期替换为protoBuf消息"))

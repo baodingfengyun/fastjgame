@@ -36,9 +36,6 @@ class LongArrayCodec implements BinaryCodec<long[]> {
     @Override
     public void writeData(CodedOutputStream outputStream, @Nonnull long[] instance) throws Exception {
         outputStream.writeUInt32NoTag(instance.length);
-        if (instance.length == 0) {
-            return;
-        }
         for (long value : instance) {
             outputStream.writeInt64NoTag(value);
         }

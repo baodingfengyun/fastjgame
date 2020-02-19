@@ -37,9 +37,6 @@ class ShortArrayCodec implements BinaryCodec<short[]> {
     @Override
     public void writeData(CodedOutputStream outputStream, @Nonnull short[] instance) throws Exception {
         outputStream.writeUInt32NoTag(instance.length);
-        if (instance.length == 0) {
-            return;
-        }
         for (short value : instance) {
             outputStream.writeInt32NoTag(value);
         }

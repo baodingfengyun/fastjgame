@@ -37,9 +37,6 @@ class BooleanArrayCodec implements BinaryCodec<boolean[]> {
     @Override
     public void writeData(CodedOutputStream outputStream, @Nonnull boolean[] instance) throws Exception {
         outputStream.writeUInt32NoTag(instance.length);
-        if (instance.length == 0) {
-            return;
-        }
         for (boolean value : instance) {
             outputStream.writeBoolNoTag(value);
         }

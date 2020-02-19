@@ -25,6 +25,8 @@ import com.wjybxx.fastjgame.utils.entity.IndexableEntity;
 import com.wjybxx.fastjgame.utils.entity.NumericalEntity;
 import com.wjybxx.fastjgame.utils.entity.NumericalEntityMapper;
 import com.wjybxx.fastjgame.utils.misc.IntPair;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -288,6 +290,10 @@ public final class ExampleMessages {
         @SerializableField
         private char[] aCharArray;
 
+        @Impl(Int2ObjectOpenHashMap.class)
+        @SerializableField
+        private Int2ObjectMap<String> int2ObjectMap;
+
         public FullMessage() {
         }
 
@@ -476,6 +482,14 @@ public final class ExampleMessages {
             this.aCharArray = aCharArray;
         }
 
+        public Int2ObjectMap<String> getInt2ObjectMap() {
+            return int2ObjectMap;
+        }
+
+        public void setInt2ObjectMap(Int2ObjectMap<String> int2ObjectMap) {
+            this.int2ObjectMap = int2ObjectMap;
+        }
+
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -509,6 +523,7 @@ public final class ExampleMessages {
                     .append(aFloatArray, that.aFloatArray)
                     .append(aDoubleArray, that.aDoubleArray)
                     .append(aCharArray, that.aCharArray)
+                    .append(int2ObjectMap, that.int2ObjectMap)
                     .isEquals();
         }
 
@@ -539,6 +554,7 @@ public final class ExampleMessages {
                     .append(aFloatArray)
                     .append(aDoubleArray)
                     .append(aCharArray)
+                    .append(int2ObjectMap)
                     .toHashCode();
         }
 
@@ -568,6 +584,7 @@ public final class ExampleMessages {
                     ", aFloatArray=" + Arrays.toString(aFloatArray) +
                     ", aDoubleArray=" + Arrays.toString(aDoubleArray) +
                     ", aCharArray=" + Arrays.toString(aCharArray) +
+                    ", int2ObjectMap=" + int2ObjectMap +
                     '}';
         }
     }

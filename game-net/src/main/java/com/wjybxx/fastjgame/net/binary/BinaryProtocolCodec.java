@@ -73,42 +73,46 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         // 预估出现的频率排个序
         return new BinaryCodec[]{
                 // 存在Serializer的类
+                // 它为什么放最前面？
+                // 服务器内部通信时，一定是自定义实体开始，基本是有索引的，它放前面收益较大。
                 new CustomEntityCodec(messageMapper, beanSerializerMap, this),
-                // protoBuf支持
-                new ProtoMessageCodec(messageMapper, parserMap),
 
                 new IntegerCodec(),
                 new LongCodec(),
-                new FloatCodec(),
-                new DoubleCodec(),
                 new StringCodec(),
 
-                // 默认集合支持
-                new MapCodec(this),
                 new CollectionCodec(this),
+                new MapCodec(this),
 
-                // 字节数组比较常见
-                new ByteArrayCodec(),
+                // protoBuffer消息
+                new ProtoMessageCodec(messageMapper, parserMap),
 
                 new BooleanCodec(),
-                new ByteCodec(),
+                new FloatCodec(),
+                new DoubleCodec(),
                 new ShortCodec(),
-                new CharCodec(),
-                new ChunkCodec(),
-                new ProtoEnumCodec(messageMapper, protoEnumDescriptorMap),
-                new ClassCodec(),
 
+                new ByteArrayCodec(),
+                new ChunkCodec(),
                 new StringArrayCodec(),
+
+                new ProtoEnumCodec(messageMapper, protoEnumDescriptorMap),
+
+                new ClassCodec(),
                 new ClassArrayCodec(),
+
+                new ByteCodec(),
 
                 // 其它数组使用较少
                 new IntegerArrayCodec(),
                 new LongArrayCodec(),
                 new FloatArrayCodec(),
                 new DoubleArrayCodec(),
-                new CharArrayCodec(),
                 new ShortArrayCodec(),
-                new BooleanArrayCodec()
+
+                new CharArrayCodec(),
+                new BooleanArrayCodec(),
+                new CharCodec(),
         };
     }
 

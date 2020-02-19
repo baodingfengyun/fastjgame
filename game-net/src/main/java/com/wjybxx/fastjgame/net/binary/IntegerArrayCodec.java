@@ -37,9 +37,6 @@ class IntegerArrayCodec implements BinaryCodec<int[]> {
     @Override
     public void writeData(CodedOutputStream outputStream, @Nonnull int[] instance) throws Exception {
         outputStream.writeUInt32NoTag(instance.length);
-        if (instance.length == 0) {
-            return;
-        }
         for (int value : instance) {
             outputStream.writeInt32NoTag(value);
         }

@@ -39,9 +39,6 @@ public class StringArrayCodec implements BinaryCodec<String[]> {
     @Override
     public void writeData(CodedOutputStream outputStream, @Nonnull String[] instance) throws Exception {
         outputStream.writeUInt32NoTag(instance.length);
-        if (instance.length == 0) {
-            return;
-        }
         for (String e : instance) {
             outputStream.writeStringNoTag(e);
         }

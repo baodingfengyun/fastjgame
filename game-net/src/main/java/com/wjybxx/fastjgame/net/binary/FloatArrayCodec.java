@@ -37,9 +37,6 @@ class FloatArrayCodec implements BinaryCodec<float[]> {
     @Override
     public void writeData(CodedOutputStream outputStream, @Nonnull float[] instance) throws Exception {
         outputStream.writeUInt32NoTag(instance.length);
-        if (instance.length == 0) {
-            return;
-        }
         for (float value : instance) {
             outputStream.writeFloatNoTag(value);
         }
