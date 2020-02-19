@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.net.misc;
 
+import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -98,8 +99,8 @@ public final class MessageMapper {
         try {
             Object2IntMap<Class<?>> mappingResult = mappingStrategy.mapping();
 
-            Object2IntMap<Class<?>> messageClazz2IdMap = new Object2IntOpenHashMap<>();
-            Int2ObjectMap<Class<?>> messageId2ClazzMap = new Int2ObjectOpenHashMap<>();
+            Object2IntMap<Class<?>> messageClazz2IdMap = new Object2IntOpenHashMap<>(mappingResult.size(), Hash.FAST_LOAD_FACTOR);
+            Int2ObjectMap<Class<?>> messageId2ClazzMap = new Int2ObjectOpenHashMap<>(mappingResult.size(), Hash.FAST_LOAD_FACTOR);
 
             for (Object2IntMap.Entry<Class<?>> entry : mappingResult.object2IntEntrySet()) {
                 Class<?> existClazz = messageId2ClazzMap.get(entry.getIntValue());

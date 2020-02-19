@@ -71,7 +71,6 @@ class ProtoEnumCodec implements BinaryCodec<ProtocolMessageEnum> {
         return WireType.PROTO_ENUM;
     }
 
-
     static class ProtoEnumDescriptor {
 
         private final Internal.EnumLiteMap<?> mapper;

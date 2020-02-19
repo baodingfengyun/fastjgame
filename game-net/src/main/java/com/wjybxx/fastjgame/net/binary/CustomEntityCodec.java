@@ -161,6 +161,28 @@ class CustomEntityCodec implements BinaryCodec<Object> {
             BinaryProtocolCodec.writeTag(outputStream, WireType.COLLECTION);
             CollectionCodec.writeCollectionImp(binaryProtocolCodec, outputStream, collection);
         }
+
+        @Override
+        public void writeBytes(@Nullable byte[] bytes) throws Exception {
+            if (null == bytes) {
+                BinaryProtocolCodec.writeTag(outputStream, WireType.NULL);
+                return;
+            }
+
+            BinaryProtocolCodec.writeTag(outputStream, WireType.BYTE_ARRAY);
+            ByteArrayCodec.writeBytesImp(outputStream, bytes);
+        }
+
+        @Override
+        public void writeBytes(@Nullable byte[] bytes, int offset, int length) throws Exception {
+            if (null == bytes) {
+                BinaryProtocolCodec.writeTag(outputStream, WireType.NULL);
+                return;
+            }
+
+            BinaryProtocolCodec.writeTag(outputStream, WireType.BYTE_ARRAY);
+            ByteArrayCodec.writeBytesImp(outputStream, bytes, offset, length);
+        }
     }
 
     class EntityInputStreamImp implements EntityInputStream {
@@ -245,5 +267,18 @@ class CustomEntityCodec implements BinaryCodec<Object> {
             return CollectionCodec.readCollectionImp(binaryProtocolCodec, inputStream, collectionFactory);
         }
 
+        @Override
+        public byte[] readBytes() throws Exception {
+            final byte tag = BinaryProtocolCodec.readTag(inputStream);
+            if (tag == WireType.NULL) {
+                return null;
+            }
+
+            if (tag != WireType.BYTE_ARRAY) {
+                throw new IOException("Incompatible wireType, expected: " + WireType.BYTE_ARRAY + ", but read: " + tag);
+            }
+
+            return ByteArrayCodec.readBytesImp(inputStream);
+        }
     }
 }

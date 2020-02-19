@@ -68,4 +68,8 @@ public interface EntityOutputStream {
      * 像输入流中写一个collection
      */
     <E> void writeCollection(@Nullable Collection<E> collection) throws Exception;
+    // ----------------------------------------- 方便手动实现扩展 ----------------------------------
+    void writeBytes(@Nullable byte[] bytes) throws Exception;
+
+    void writeBytes(@Nullable byte[] bytes, int offset, int length) throws Exception;
 }

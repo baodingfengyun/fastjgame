@@ -22,7 +22,6 @@ import com.google.protobuf.ProtocolMessageEnum;
 import com.wjybxx.fastjgame.db.annotation.DBEntity;
 import com.wjybxx.fastjgame.net.annotation.SerializableClass;
 import com.wjybxx.fastjgame.utils.ClassScanner;
-import com.wjybxx.fastjgame.utils.misc.Chunk;
 import com.wjybxx.fastjgame.utils.reflect.TypeParameterFinder;
 
 import javax.annotation.Nonnull;
@@ -198,25 +197,19 @@ public class WireType {
      */
     public static final byte COLLECTION = 24;
 
-
     // ------------------------------------------ 自定义类型 ---------------------------------
-
-    /**
-     * 自定义数据块
-     */
-    public static final byte CHUNK = 25;
 
     /**
      * 带有{@link DBEntity} 或 {@link SerializableClass}注解的类，
      * 或手动实现{@link EntitySerializer}负责解析的类。
      */
-    public static final byte CUSTOM_ENTITY = 26;
+    public static final byte CUSTOM_ENTITY = 25;
 
     // ------------------------------------------ 运行时才知道的 -----------------------------
     /**
      * 动态类型 - 运行时才能确定的类型（它是标记类型）
      */
-    public static final byte RUN_TIME = 27;
+    public static final byte RUN_TIME = 26;
 
     /**
      * 查找一个class对应的wireType
@@ -309,11 +302,6 @@ public class WireType {
         // Collection
         if (Collection.class.isAssignableFrom(declaredType)) {
             return WireType.COLLECTION;
-        }
-
-        // CHUNK - 自定义数据块
-        if (declaredType == Chunk.class) {
-            return WireType.CHUNK;
         }
 
         // 自定义实体 - 有serializer的类型，无论手写的还是自动生成的

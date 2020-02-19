@@ -90,18 +90,16 @@ public class BinaryProtocolCodec implements ProtocolCodec {
                 new BooleanCodec(),
                 new FloatCodec(),
                 new DoubleCodec(),
-                new ShortCodec(),
 
                 new ByteArrayCodec(),
-                new ChunkCodec(),
                 new StringArrayCodec(),
 
+                new ShortCodec(),
+                new ByteCodec(),
                 new ProtoEnumCodec(messageMapper, protoEnumDescriptorMap),
 
                 new ClassCodec(),
                 new ClassArrayCodec(),
-
-                new ByteCodec(),
 
                 // 其它数组使用较少
                 new IntegerArrayCodec(),

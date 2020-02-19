@@ -77,4 +77,6 @@ public interface EntityInputStream {
     @Nullable
     <C extends Collection<E>, E> C readCollection(@Nonnull IntFunction<C> collectionFactory) throws Exception;
 
+    // ----------------------------------------- 方便手动实现扩展 ----------------------------------
+    byte[] readBytes() throws Exception;
 }
