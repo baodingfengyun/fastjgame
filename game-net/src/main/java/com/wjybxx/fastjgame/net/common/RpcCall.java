@@ -17,10 +17,9 @@
 package com.wjybxx.fastjgame.net.common;
 
 
-import com.wjybxx.fastjgame.db.annotation.Impl;
-import com.wjybxx.fastjgame.net.annotation.SerializableClass;
-import com.wjybxx.fastjgame.net.annotation.SerializableField;
-import com.wjybxx.fastjgame.net.misc.MessageMapper;
+import com.wjybxx.fastjgame.net.binary.EntityInputStream;
+import com.wjybxx.fastjgame.net.binary.EntityOutputStream;
+import com.wjybxx.fastjgame.net.binary.EntitySerializer;
 import com.wjybxx.fastjgame.utils.async.MethodSpec;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -30,8 +29,9 @@ import java.util.List;
 /**
  * 较为标准的rpc调用。
  * 推荐使用该方式，但并不限制rpc调用的形式！
- * 注意：如果使用该形式的rpc调用，请保证{@link RpcCall}在{@link MessageMapper}中存在。
  * 警告：不要修改对象的内容，否则可能引发bug(并发错误)。
+ * -
+ * 由{@link RpcCallSerializer}负责序列化
  *
  * @param <V> the type of return type
  * @author wjybxx
@@ -39,21 +39,17 @@ import java.util.List;
  * date - 2019/8/19
  * github - https://github.com/hl845740757
  */
-@SerializableClass
 @NotThreadSafe
 public class RpcCall<V> implements MethodSpec<V> {
 
     /**
      * 调用的远程方法，用于确定一个唯一的方法。不使用 服务名 + 方法名 + 方法具体参数信息，传输的内容量过于庞大，性能不好。
      */
-    @SerializableField
     private final int methodKey;
 
     /**
      * 方法参数列表
      */
-    @Impl(ArrayList.class)
-    @SerializableField
     private final List<Object> methodParams;
 
     /**
@@ -62,20 +58,11 @@ public class RpcCall<V> implements MethodSpec<V> {
      * Q: 为什么要序列化？
      * A: 我们希望可以转发rpcCall对象，中间的代理需要有原始的rpcCall信息。
      */
-    @SerializableField
     private final int lazyIndexes;
     /**
      * 需要网络层提前反序列化的参数位置信息 - 需要序列化到接收方。
      */
-    @SerializableField
     private final int preIndexes;
-
-    private RpcCall() {
-        methodKey = 0;
-        methodParams = null;
-        lazyIndexes = 0;
-        preIndexes = 0;
-    }
 
     public RpcCall(int methodKey, List<Object> methodParams, int lazyIndexes, int preIndexes) {
         this.methodKey = methodKey;
@@ -100,4 +87,28 @@ public class RpcCall<V> implements MethodSpec<V> {
         return preIndexes;
     }
 
+    private static class RpcCallSerializer implements EntitySerializer<RpcCall> {
+
+        @Override
+        public Class<RpcCall> getEntityClass() {
+            return RpcCall.class;
+        }
+
+        @Override
+        public RpcCall readObject(EntityInputStream inputStream) throws Exception {
+            final int methodKey = inputStream.readInt();
+            final List<Object> methodParams = inputStream.readCollection(ArrayList::new);
+            final int lazyIndexes = inputStream.readInt();
+            final int preIndexes = inputStream.readInt();
+            return new RpcCall(methodKey, methodParams, lazyIndexes, preIndexes);
+        }
+
+        @Override
+        public void writeObject(RpcCall instance, EntityOutputStream outputStream) throws Exception {
+            outputStream.writeInt(instance.getMethodKey());
+            outputStream.writeCollection(instance.getMethodParams());
+            outputStream.writeInt(instance.getLazyIndexes());
+            outputStream.writeInt(instance.getPreIndexes());
+        }
+    }
 }

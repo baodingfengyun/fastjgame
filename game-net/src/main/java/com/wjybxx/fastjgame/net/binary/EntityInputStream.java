@@ -33,16 +33,7 @@ import java.util.function.IntFunction;
 public interface EntityInputStream {
 
     /**
-     * 从输入流中读取一个字段
-     * (方便手写实现)
-     */
-    default <T> T readField() throws Exception {
-        return readField(WireType.RUN_TIME);
-    }
-
-    /**
-     * 从输入流中读取一个字段，如果该字段
-     * (给生成代码使用的)。
+     * 从输入流中读取一个字段。
      *
      * @param wireType 期望的数据类型，主要用于校验。如果该值不为{@link WireType#RUN_TIME}，则需要和读取到的tag进行比较。
      * @return data
@@ -59,6 +50,7 @@ public interface EntityInputStream {
      * @param entityFactory    真正的实体创建工厂
      * @param entitySerializer 实体对象的序列化实现
      */
+    @Nullable
     <E> E readEntity(EntityFactory<E> entityFactory, AbstractEntitySerializer<? super E> entitySerializer) throws Exception;
 
     /**
@@ -78,5 +70,51 @@ public interface EntityInputStream {
     <C extends Collection<E>, E> C readCollection(@Nonnull IntFunction<C> collectionFactory) throws Exception;
 
     // ----------------------------------------- 方便手动实现扩展 ----------------------------------
-    byte[] readBytes() throws Exception;
+
+    default Integer readInt() throws Exception {
+        return readField(WireType.INT);
+    }
+
+    default Long readLong() throws Exception {
+        return readField(WireType.LONG);
+    }
+
+    default Float readFloat() throws Exception {
+        return readField(WireType.FLOAT);
+    }
+
+    default Double readDouble() throws Exception {
+        return readField(WireType.DOUBLE);
+    }
+
+    default Short readShort() throws Exception {
+        return readField(WireType.SHORT);
+    }
+
+    default Boolean readBoolean() throws Exception {
+        return readField(WireType.BOOLEAN);
+    }
+
+    default Byte readByte() throws Exception {
+        return readField(WireType.BYTE);
+    }
+
+    default Character readChar() throws Exception {
+        return readField(WireType.CHAR);
+    }
+
+    default String readString() throws Exception {
+        return readField(WireType.STRING);
+    }
+
+    default byte[] readBytes() throws Exception {
+        return readField(WireType.BYTE_ARRAY);
+    }
+
+    /**
+     * 从输入流中读取一个字段，如果没有对应的简便方法，可以使用该方法。
+     */
+    default <T> T readRuntime() throws Exception {
+        return readField(WireType.RUN_TIME);
+    }
 }

@@ -66,11 +66,13 @@ class CollectionCodec implements BinaryCodec<Collection<?>> {
      * 将collection的所有元素写入输出流
      */
     static <E> void writeCollectionImp(@Nonnull BinaryProtocolCodec binaryProtocolCodec,
-                                       @Nonnull CodedOutputStream outputStream, @Nonnull Collection<E> collection) throws Exception {
+                                       @Nonnull CodedOutputStream outputStream,
+                                       @Nonnull Collection<E> collection) throws Exception {
         outputStream.writeUInt32NoTag(collection.size());
         if (collection.size() == 0) {
             return;
         }
+
         for (E element : collection) {
             binaryProtocolCodec.writeObject(outputStream, element);
         }
@@ -81,7 +83,8 @@ class CollectionCodec implements BinaryCodec<Collection<?>> {
      */
     @Nonnull
     static <C extends Collection<E>, E> C readCollectionImp(@Nonnull BinaryProtocolCodec binaryProtocolCodec,
-                                                            @Nonnull CodedInputStream inputStream, @Nonnull IntFunction<C> collectionFactory) throws Exception {
+                                                            @Nonnull CodedInputStream inputStream,
+                                                            @Nonnull IntFunction<C> collectionFactory) throws Exception {
         final int size = inputStream.readUInt32();
         if (size == 0) {
             return collectionFactory.apply(0);

@@ -59,7 +59,6 @@ class ProtoMessageCodec implements BinaryCodec<AbstractMessage> {
         outputStream.writeMessageNoTag(instance);
     }
 
-
     @Nonnull
     @Override
     public AbstractMessage readData(CodedInputStream inputStream) throws Exception {

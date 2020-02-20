@@ -35,7 +35,7 @@ class ByteArrayCodec implements BinaryCodec<byte[]> {
 
     @Override
     public void writeData(CodedOutputStream outputStream, @Nonnull byte[] instance) throws Exception {
-        writeBytesImp(outputStream, instance);
+        writeBytesImp(outputStream, instance, 0, instance.length);
     }
 
     @Nonnull
@@ -47,10 +47,6 @@ class ByteArrayCodec implements BinaryCodec<byte[]> {
     @Override
     public byte getWireType() {
         return WireType.BYTE_ARRAY;
-    }
-
-    static void writeBytesImp(CodedOutputStream outputStream, @Nonnull byte[] bytes) throws Exception {
-        writeBytesImp(outputStream, bytes, 0, bytes.length);
     }
 
     static void writeBytesImp(CodedOutputStream outputStream, @Nonnull byte[] bytes, int offset, int length) throws Exception {

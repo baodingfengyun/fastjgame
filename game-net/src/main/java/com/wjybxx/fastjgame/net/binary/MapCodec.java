@@ -65,11 +65,13 @@ class MapCodec implements BinaryCodec<Map<?, ?>> {
      * 将map的所有键值对写入输出流
      */
     static <K, V> void writeMapImp(@Nonnull BinaryProtocolCodec binaryProtocolCodec,
-                                   @Nonnull CodedOutputStream outputStream, @Nonnull Map<K, V> map) throws Exception {
+                                   @Nonnull CodedOutputStream outputStream,
+                                   @Nonnull Map<K, V> map) throws Exception {
         outputStream.writeUInt32NoTag(map.size());
         if (map.size() == 0) {
             return;
         }
+
         for (Map.Entry<K, V> entry : map.entrySet()) {
             binaryProtocolCodec.writeObject(outputStream, entry.getKey());
             binaryProtocolCodec.writeObject(outputStream, entry.getValue());
@@ -81,11 +83,13 @@ class MapCodec implements BinaryCodec<Map<?, ?>> {
      */
     @Nonnull
     static <M extends Map<K, V>, K, V> M readMapImp(@Nonnull BinaryProtocolCodec binaryProtocolCodec,
-                                                    @Nonnull CodedInputStream inputStream, @Nonnull IntFunction<M> mapFactory) throws Exception {
+                                                    @Nonnull CodedInputStream inputStream,
+                                                    @Nonnull IntFunction<M> mapFactory) throws Exception {
         final int size = inputStream.readUInt32();
         if (size == 0) {
             return mapFactory.apply(0);
         }
+
         final M result = mapFactory.apply(size);
         for (int index = 0; index < size; index++) {
             @SuppressWarnings("unchecked") K key = (K) binaryProtocolCodec.readObject(inputStream);

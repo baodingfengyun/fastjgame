@@ -14,19 +14,25 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.utils.misc;
+package com.wjybxx.fastjgame.net.misc;
 
+import com.wjybxx.fastjgame.net.binary.EntityInputStream;
+import com.wjybxx.fastjgame.net.binary.EntityOutputStream;
+import com.wjybxx.fastjgame.net.binary.EntitySerializer;
 import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * 数据块
- * 序列化时，只序列化有效负荷部分
+ * 序列化时，只序列化有效负荷部分。
+ * -
+ * 由手动实现的{@link ChunkSerializer}负责序列化。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2020/1/16
  * github - https://github.com/hl845740757
  */
+@SuppressWarnings("unused")
 public class Chunk {
 
     public static final Chunk EMPTY_CHUNK = newInstance(ArrayUtils.EMPTY_BYTE_ARRAY);
@@ -66,5 +72,23 @@ public class Chunk {
                     buffer.length, offset, length));
         }
         return new Chunk(buffer, offset, length);
+    }
+
+    private static class ChunkSerializer implements EntitySerializer<Chunk> {
+
+        @Override
+        public Class<Chunk> getEntityClass() {
+            return Chunk.class;
+        }
+
+        @Override
+        public Chunk readObject(EntityInputStream inputStream) throws Exception {
+            return newInstance(inputStream.readBytes());
+        }
+
+        @Override
+        public void writeObject(Chunk instance, EntityOutputStream outputStream) throws Exception {
+            outputStream.writeBytes(instance.getBuffer(), instance.getOffset(), instance.getLength());
+        }
     }
 }

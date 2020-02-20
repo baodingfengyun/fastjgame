@@ -34,17 +34,6 @@ public interface EntityOutputStream {
 
     /**
      * 向输入流中写入一个字段
-     * (方便手写实现)
-     *
-     * @param fieldValue 字段的值
-     */
-    default <T> void writeField(@Nullable T fieldValue) throws Exception {
-        writeField(WireType.RUN_TIME, fieldValue);
-    }
-
-    /**
-     * 向输入流中写入一个字段
-     * (给生成代码使用的)。
      *
      * @param wireType   字段的缓存类型，如果该值为{@link WireType#RUN_TIME}，则需要动态解析。
      * @param fieldValue 字段的值
@@ -67,9 +56,63 @@ public interface EntityOutputStream {
     /**
      * 像输入流中写一个collection
      */
-    <E> void writeCollection(@Nullable Collection<E> collection) throws Exception;
-    // ----------------------------------------- 方便手动实现扩展 ----------------------------------
-    void writeBytes(@Nullable byte[] bytes) throws Exception;
+    <E> void writeCollection(@Nullable Collection<? extends E> collection) throws Exception;
 
+    // ---------------------------------------- 字节数组特殊写入需求 ----------------------------------
+
+    /**
+     * 向输入流中写入一个字节数组，并可以指定偏移量和长度
+     */
     void writeBytes(@Nullable byte[] bytes, int offset, int length) throws Exception;
+
+    // ----------------------------------------- 方便手动实现扩展 --------------------------------------
+
+    default void writeInt(@Nullable Integer value) throws Exception {
+        writeField(WireType.INT, value);
+    }
+
+    default void writeLong(@Nullable Long value) throws Exception {
+        writeField(WireType.LONG, value);
+    }
+
+    default void writeFloat(@Nullable Float value) throws Exception {
+        writeField(WireType.FLOAT, value);
+    }
+
+    default void writeDouble(@Nullable Double value) throws Exception {
+        writeField(WireType.DOUBLE, value);
+    }
+
+    default void writeShort(@Nullable Short value) throws Exception {
+        writeField(WireType.SHORT, value);
+    }
+
+    default void writeBoolean(@Nullable Boolean value) throws Exception {
+        writeField(WireType.BOOLEAN, value);
+    }
+
+    default void writeByte(@Nullable Byte value) throws Exception {
+        writeField(WireType.BYTE, value);
+    }
+
+    default void writeChar(@Nullable Character value) throws Exception {
+        writeField(WireType.CHAR, value);
+    }
+
+    default void writeString(@Nullable String value) throws Exception {
+        writeField(WireType.STRING, value);
+    }
+
+    default void writeBytes(@Nullable byte[] value) throws Exception {
+        writeField(WireType.BYTE_ARRAY, value);
+    }
+
+    /**
+     * 向输入流中写入一个字段，如果没有对应的简便方法，可以使用该方法
+     *
+     * @param value 字段的值
+     */
+    default <T> void writeRuntime(@Nullable T value) throws Exception {
+        writeField(WireType.RUN_TIME, value);
+    }
 }

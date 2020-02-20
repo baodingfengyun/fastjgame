@@ -16,8 +16,9 @@
 
 package com.wjybxx.fastjgame.net.common;
 
-import com.wjybxx.fastjgame.net.annotation.SerializableClass;
-import com.wjybxx.fastjgame.net.annotation.SerializableField;
+import com.wjybxx.fastjgame.net.binary.EntityInputStream;
+import com.wjybxx.fastjgame.net.binary.EntityOutputStream;
+import com.wjybxx.fastjgame.net.binary.EntitySerializer;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -27,13 +28,14 @@ import javax.annotation.Nullable;
 /**
  * Rpc响应结果。
  * 注意：这是RPC调用的结果，一定不能使用 == 判断相等！！！
+ * -
+ * 由{@link RpcResponseSerializer}负责编解码
  *
  * @author wjybxx
  * @version 1.1
  * date - 2019/8/1
  * github - https://github.com/hl845740757
  */
-@SerializableClass
 public final class RpcResponse {
 
     // 这些常量仅仅是为了减少对象创建，但是你需要谨记：这是RPC调用的结果，一定不能使用 == 判断相等！！！
@@ -45,14 +47,12 @@ public final class RpcResponse {
     /**
      * 结果标识 - 错误码
      */
-    @SerializableField
     private final RpcErrorCode errorCode;
     /**
      * rpc响应结果。
      * 如果{@link #errorCode}为{@link RpcErrorCode#SUCCESS}，则body为对应的结果(null可能是个正常的结果)。
      * 否则body为对应的错误信息(String)(应该非null)。
      */
-    @SerializableField
     private final Object body;
 
     private RpcResponse() {
@@ -123,4 +123,24 @@ public final class RpcResponse {
                 '}';
     }
 
+    private static class RpcResponseSerializer implements EntitySerializer<RpcResponse> {
+
+        @Override
+        public Class<RpcResponse> getEntityClass() {
+            return RpcResponse.class;
+        }
+
+        @Override
+        public RpcResponse readObject(EntityInputStream inputStream) throws Exception {
+            final RpcErrorCode errorCode = RpcErrorCode.forNumber(inputStream.readInt());
+            final Object body = inputStream.readRuntime();
+            return new RpcResponse(errorCode, body);
+        }
+
+        @Override
+        public void writeObject(RpcResponse instance, EntityOutputStream outputStream) throws Exception {
+            outputStream.writeInt(instance.getErrorCode().getNumber());
+            outputStream.writeRuntime(instance.getBody());
+        }
+    }
 }

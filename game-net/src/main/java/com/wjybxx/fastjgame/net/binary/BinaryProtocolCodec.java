@@ -26,6 +26,7 @@ import com.wjybxx.fastjgame.utils.EnumUtils;
 import com.wjybxx.fastjgame.utils.entity.NumericalEntityMapper;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.Nonnull;
@@ -273,11 +274,10 @@ public class BinaryProtocolCodec implements ProtocolCodec {
                 }
 
                 // 带有DBEntity和SerializableClass注解的所有类，和手写Serializer的类
-                final Class<? extends EntitySerializer<?>> serializerClass = WireType.getBeanSerializer(messageClazz);
+                final Class<? extends EntitySerializer<?>> serializerClass = EntitySerializerScanner.getSerializerClass(messageClazz);
                 if (serializerClass != null) {
-                    final Constructor<? extends EntitySerializer<?>> noArgsConstructor = serializerClass.getDeclaredConstructor();
-                    noArgsConstructor.setAccessible(true);
-                    beanSerializerMap.put(messageClazz, noArgsConstructor.newInstance());
+                    final EntitySerializer<?> serializer = createSerializerInstance(serializerClass);
+                    beanSerializerMap.put(messageClazz, serializer);
                     continue;
                 }
 
@@ -289,6 +289,12 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         } catch (Exception e) {
             return ExceptionUtils.rethrow(e);
         }
+    }
+
+    private static EntitySerializer<?> createSerializerInstance(Class<? extends EntitySerializer<?>> serializerClass) throws Exception {
+        final Constructor<? extends EntitySerializer<?>> noArgsConstructor = serializerClass.getDeclaredConstructor(ArrayUtils.EMPTY_CLASS_ARRAY);
+        noArgsConstructor.setAccessible(true);
+        return noArgsConstructor.newInstance(ArrayUtils.EMPTY_OBJECT_ARRAY);
     }
 
 }

@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.net.common;
 
-import com.wjybxx.fastjgame.net.annotation.SerializableClass;
 import com.wjybxx.fastjgame.utils.EnumUtils;
 import com.wjybxx.fastjgame.utils.entity.NumericalEntity;
 import com.wjybxx.fastjgame.utils.entity.NumericalEntityMapper;
@@ -29,7 +28,6 @@ import com.wjybxx.fastjgame.utils.entity.NumericalEntityMapper;
  * date - 2019/7/31
  * github - https://github.com/hl845740757
  */
-@SerializableClass
 public enum RpcErrorCode implements NumericalEntity {
 
     /**
