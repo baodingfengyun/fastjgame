@@ -16,15 +16,6 @@
 
 package com.wjybxx.fastjgame.net.misc;
 
-import com.google.protobuf.AbstractMessage;
-import com.google.protobuf.ProtocolMessageEnum;
-import com.wjybxx.fastjgame.net.binary.EntitySerializerScanner;
-import com.wjybxx.fastjgame.utils.ClassScanner;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-
-import java.util.Set;
-
 /**
  * 基于hash的消息映射方法，由类的简单名计算hash值。
  *
@@ -35,46 +26,19 @@ import java.util.Set;
  */
 public class HashMessageMappingStrategy implements MessageMappingStrategy {
 
-    /**
-     * 扫描的包名
-     */
-    private final String packageName;
-
     public HashMessageMappingStrategy() {
-        this("com.wjybxx.fastjgame");
-    }
 
-    public HashMessageMappingStrategy(String packageName) {
-        this.packageName = packageName;
     }
 
     @Override
-    public Object2IntMap<Class<?>> mapping() throws Exception {
-        final Set<Class<?>> allClass = ClassScanner.findClasses(packageName,
-                name -> true,
-                HashMessageMappingStrategy::isSerializable);
-
-        final Object2IntMap<Class<?>> messageClass2IdMap = new Object2IntOpenHashMap<>(allClass.size());
-        for (Class<?> messageClass : allClass) {
-            messageClass2IdMap.put(messageClass, getUniqueId(messageClass));
-        }
-
-        return messageClass2IdMap;
+    public int mapping(Class<?> messageClass) {
+        return hash(messageClass);
     }
 
     /**
-     * 判断一个类是否可以被序列化
+     * 计算一个消息类的唯一hash值
      */
-    public static boolean isSerializable(Class<?> messageClazz) {
-        return EntitySerializerScanner.hasSerializer(messageClazz)
-                || AbstractMessage.class.isAssignableFrom(messageClazz)
-                || ProtocolMessageEnum.class.isAssignableFrom(messageClazz);
-    }
-
-    /**
-     * 获取一个消息类的唯一id
-     */
-    public static int getUniqueId(Class<?> messageClass) {
+    public static int hash(Class<?> messageClass) {
         // 不能直接使用hashCode，直接使用hashCode，在不同的进程的值是不一样的
         // 为什么要simple Name? protoBuf的消息的名字就是java的类名，也方便前端计算该值 - 相同的hash算法即可
         return messageClass.getSimpleName().hashCode();

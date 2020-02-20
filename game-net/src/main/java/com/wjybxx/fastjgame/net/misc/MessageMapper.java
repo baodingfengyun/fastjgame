@@ -95,22 +95,24 @@ public final class MessageMapper {
         return Object2IntMaps.unmodifiable(messageClazz2IdMap);
     }
 
-    public static MessageMapper newInstance(MessageMappingStrategy mappingStrategy) {
+    public static MessageMapper newInstance(Set<Class<?>> messageClassSet, MessageMappingStrategy mappingStrategy) {
         try {
-            Object2IntMap<Class<?>> mappingResult = mappingStrategy.mapping();
+            Object2IntMap<Class<?>> messageClazz2IdMap = new Object2IntOpenHashMap<>(messageClassSet.size(), Hash.FAST_LOAD_FACTOR);
+            Int2ObjectMap<Class<?>> messageId2ClazzMap = new Int2ObjectOpenHashMap<>(messageClassSet.size(), Hash.FAST_LOAD_FACTOR);
 
-            Object2IntMap<Class<?>> messageClazz2IdMap = new Object2IntOpenHashMap<>(mappingResult.size(), Hash.FAST_LOAD_FACTOR);
-            Int2ObjectMap<Class<?>> messageId2ClazzMap = new Int2ObjectOpenHashMap<>(mappingResult.size(), Hash.FAST_LOAD_FACTOR);
+            for (Class<?> messageClass : messageClassSet) {
+                final int messageId = mappingStrategy.mapping(messageClass);
 
-            for (Object2IntMap.Entry<Class<?>> entry : mappingResult.object2IntEntrySet()) {
-                Class<?> existClazz = messageId2ClazzMap.get(entry.getIntValue());
+                final Class<?> existClazz = messageId2ClazzMap.get(messageId);
                 if (null != existClazz) {
-                    throw new IllegalArgumentException(entry.getKey().getCanonicalName() +
-                            " messageId " + entry.getIntValue() + " is equals to " + existClazz.getCanonicalName());
+                    throw new IllegalArgumentException(messageClass.getCanonicalName() + " and " + existClazz.getCanonicalName() +
+                            " has the same messageId: " + messageId);
                 }
-                messageClazz2IdMap.put(entry.getKey(), entry.getIntValue());
-                messageId2ClazzMap.put(entry.getIntValue(), entry.getKey());
+
+                messageClazz2IdMap.put(messageClass, messageId);
+                messageId2ClazzMap.put(messageId, messageClass);
             }
+
             return new MessageMapper(messageClazz2IdMap, messageId2ClazzMap);
         } catch (Exception e) {
             return ExceptionUtils.rethrow(e);

@@ -16,11 +16,11 @@
 package com.wjybxx.fastjgame.net.example;
 
 import com.wjybxx.fastjgame.net.binary.BinaryProtocolCodec;
+import com.wjybxx.fastjgame.net.binary.EntitySerializerScanner;
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoopGroupBuilder;
 import com.wjybxx.fastjgame.net.misc.HashMessageMappingStrategy;
 import com.wjybxx.fastjgame.net.misc.JsonProtocolCodec;
-import com.wjybxx.fastjgame.net.misc.MessageMapper;
 
 /**
  * 测试用例的常量
@@ -37,9 +37,8 @@ public final class ExampleConstants {
     /**
      * 测试用例使用的codec
      */
-    public static final MessageMapper messageMapper = MessageMapper.newInstance(new HashMessageMappingStrategy());
-    public static final JsonProtocolCodec jsonCodec = new JsonProtocolCodec(messageMapper);
-    public static final BinaryProtocolCodec binaryCodec = BinaryProtocolCodec.newInstance(messageMapper);
+    public static final JsonProtocolCodec jsonCodec = JsonProtocolCodec.newInstance(EntitySerializerScanner.getAllCustomEntityClasses(), new HashMessageMappingStrategy());
+    public static final BinaryProtocolCodec binaryCodec = BinaryProtocolCodec.newInstance(new HashMessageMappingStrategy());
 
     public static final NetEventLoopGroup netEventLoop = new NetEventLoopGroupBuilder()
             .setWorkerGroupThreadNum(2)

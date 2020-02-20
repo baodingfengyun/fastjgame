@@ -27,6 +27,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.InputStream;
+import java.util.Set;
 
 /**
  * 基于Json的编解码器，必须使用简单对象来封装参数。-- POJO
@@ -44,7 +45,7 @@ public class JsonProtocolCodec implements ProtocolCodec {
 
     private final MessageMapper messageMapper;
 
-    public JsonProtocolCodec(MessageMapper messageMapper) {
+    private JsonProtocolCodec(MessageMapper messageMapper) {
         this.messageMapper = messageMapper;
     }
 
@@ -145,5 +146,10 @@ public class JsonProtocolCodec implements ProtocolCodec {
         final Class<?> messageClazz = messageMapper.getMessageClazz(data.readInt());
         final ByteBufInputStream inputStream = new ByteBufInputStream(data);
         return JsonUtils.readFromInputStream((InputStream) inputStream, messageClazz);
+    }
+
+    public static JsonProtocolCodec newInstance(Set<Class<?>> entityClasses, MessageMappingStrategy mappingStrategy) {
+        final MessageMapper messageMapper = MessageMapper.newInstance(entityClasses, mappingStrategy);
+        return new JsonProtocolCodec(messageMapper);
     }
 }

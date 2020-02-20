@@ -21,18 +21,19 @@ import com.wjybxx.fastjgame.utils.reflect.TypeParameterFinder;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Modifier;
-import java.util.IdentityHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
- * {@link EntitySerializer}的扫描器，会扫描包下所有的serializer并加入集合。
+ * {@link EntitySerializer}的扫描器，会扫描指定包下所有的serializer并加入集合。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2020/2/20
  */
 public class EntitySerializerScanner {
+
+    private static final Set<String> SCAN_PACKAGES = Set.of("com.wjybxx.fastjgame");
 
     /**
      * bean -> beanSerializer (自动生成的beanSerializer 或 手动实现的)
@@ -41,27 +42,43 @@ public class EntitySerializerScanner {
     private static final Map<Class<?>, Class<? extends EntitySerializer<?>>> classBeanSerializerMap;
 
     static {
-        final Set<Class<?>> allSerializerClass = ClassScanner.findClasses("com.wjybxx.fastjgame", name -> true, EntitySerializerScanner::isBeanSerializer);
+        final Set<Class<?>> allSerializerClass = scan();
+
         classBeanSerializerMap = new IdentityHashMap<>(allSerializerClass.size());
 
-        for (Class<?> clazz : allSerializerClass) {
-            @SuppressWarnings("unchecked") final Class<? extends EntitySerializer<?>> serializerClass = (Class<? extends EntitySerializer<?>>) clazz;
+        mapping(allSerializerClass);
+    }
 
+    private static Set<Class<?>> scan() {
+        return SCAN_PACKAGES.stream()
+                .map(scanPackage -> ClassScanner.findClasses(scanPackage,
+                        name -> true,
+                        EntitySerializerScanner::isEntitySerializer))
+                .flatMap(Collection::stream)
+                .collect(Collectors.toUnmodifiableSet());
+    }
+
+    private static boolean isEntitySerializer(Class<?> c) {
+        return !Modifier.isAbstract(c.getModifiers()) && EntitySerializer.class.isAssignableFrom(c);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void mapping(Set<Class<?>> allSerializerClass) {
+        for (Class<?> clazz : allSerializerClass) {
+            final Class<? extends EntitySerializer<?>> serializerClass = (Class<? extends EntitySerializer<?>>) clazz;
             final Class<?> entityClass = TypeParameterFinder.findTypeParameterUnsafe(serializerClass, EntitySerializer.class, "T");
+
             if (entityClass == Object.class) {
                 throw new UnsupportedOperationException("SerializerImpl must declare type parameter");
             }
 
+            // 需要检测重复，如果出现两个serializer负责一个类的序列化，则用户应该解决
             if (classBeanSerializerMap.containsKey(entityClass)) {
                 throw new UnsupportedOperationException(entityClass.getSimpleName() + " has more than one serializer");
             }
 
             classBeanSerializerMap.put(entityClass, serializerClass);
         }
-    }
-
-    private static boolean isBeanSerializer(Class<?> c) {
-        return !Modifier.isAbstract(c.getModifiers()) && EntitySerializer.class.isAssignableFrom(c);
     }
 
     /**
@@ -76,9 +93,17 @@ public class EntitySerializerScanner {
      *
      * @return 序列化辅助类
      */
-    @Nullable
     @SuppressWarnings("unchecked")
-    public static <T> Class<EntitySerializer<T>> getSerializerClass(Class<T> messageClass) {
-        return (Class<EntitySerializer<T>>) classBeanSerializerMap.get(messageClass);
+    @Nullable
+    public static <T> Class<? extends EntitySerializer<T>> getSerializerClass(Class<T> messageClass) {
+        return (Class<? extends EntitySerializer<T>>) classBeanSerializerMap.get(messageClass);
     }
+
+    /**
+     * 返回所有的自定义实体类
+     */
+    public static Set<Class<?>> getAllCustomEntityClasses() {
+        return Collections.unmodifiableSet(classBeanSerializerMap.keySet());
+    }
+
 }

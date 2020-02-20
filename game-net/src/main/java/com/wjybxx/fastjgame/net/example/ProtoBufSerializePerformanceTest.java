@@ -22,10 +22,9 @@ import com.google.protobuf.Message;
 import com.google.protobuf.Parser;
 import com.wjybxx.fastjgame.net.misc.HashMessageMappingStrategy;
 import com.wjybxx.fastjgame.net.misc.MessageMapper;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
@@ -43,11 +42,13 @@ import java.util.Map;
 public class ProtoBufSerializePerformanceTest {
 
     private static final byte[] buffer = new byte[8192];
-    private static final MessageMapper messageMapper = MessageMapper.newInstance(() -> {
-        final Object2IntMap<Class<?>> result = new Object2IntOpenHashMap<>();
-        result.put(p_test.p_testMsg.class, HashMessageMappingStrategy.getUniqueId(TestMsg.class));
-        return result;
-    });
+
+    /**
+     * {@link p_test.p_testMsg}映射为和{@link TestMsg}相同的消息id
+     */
+    private static final MessageMapper messageMapper = MessageMapper.newInstance(
+            Collections.singleton(p_test.p_testMsg.class),
+            c -> HashMessageMappingStrategy.hash(TestMsg.class));
 
     public static void main(String[] args) throws IOException, InterruptedException {
         // 默认值不会被序列化(0, false)，因此我们要避免默认值

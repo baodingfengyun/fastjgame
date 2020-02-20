@@ -16,10 +16,12 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
+import com.google.common.collect.Sets;
 import com.google.protobuf.*;
 import com.wjybxx.fastjgame.net.common.ProtocolCodec;
 import com.wjybxx.fastjgame.net.misc.JsonProtocolCodec;
 import com.wjybxx.fastjgame.net.misc.MessageMapper;
+import com.wjybxx.fastjgame.net.misc.MessageMappingStrategy;
 import com.wjybxx.fastjgame.net.utils.NetUtils;
 import com.wjybxx.fastjgame.net.utils.ProtoUtils;
 import com.wjybxx.fastjgame.utils.EnumUtils;
@@ -37,6 +39,9 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 /**
  * 基于protoBuf的二进制格式编解码器。
@@ -251,8 +256,18 @@ public class BinaryProtocolCodec implements ProtocolCodec {
     }
 
     // ------------------------------------------------- 工厂方法 ------------------------------------------------------
-    @Nonnull
-    public static BinaryProtocolCodec newInstance(MessageMapper messageMapper) {
+
+    public static BinaryProtocolCodec newInstance(MessageMappingStrategy mappingStrategy) {
+        return newInstance(mappingStrategy, c -> true);
+    }
+
+    /**
+     * @param filter 由于{@link BinaryProtocolCodec}支持的消息类是确定的，不能加入，但是允许过滤删除
+     */
+    public static BinaryProtocolCodec newInstance(MessageMappingStrategy mappingStrategy, Predicate<Class<?>> filter) {
+        final Set<Class<?>> supportedClassSet = getFilteredSupportedClasses(filter);
+        final MessageMapper messageMapper = MessageMapper.newInstance(supportedClassSet, mappingStrategy);
+
         final Map<Class<?>, Parser<?>> parserMap = new IdentityHashMap<>();
         final Map<Class<?>, ProtoEnumCodec.ProtoEnumDescriptor> protoEnumDescriptorMap = new IdentityHashMap<>();
         final Map<Class<?>, EntitySerializer<?>> beanSerializerMap = new IdentityHashMap<>();
@@ -278,17 +293,23 @@ public class BinaryProtocolCodec implements ProtocolCodec {
                 if (serializerClass != null) {
                     final EntitySerializer<?> serializer = createSerializerInstance(serializerClass);
                     beanSerializerMap.put(messageClazz, serializer);
-                    continue;
                 }
-
-                // 其它不带注解的一律不支持
-                throw new RuntimeException("Unsupported message " + messageClazz.getName());
-
             }
             return new BinaryProtocolCodec(messageMapper, parserMap, protoEnumDescriptorMap, beanSerializerMap);
         } catch (Exception e) {
             return ExceptionUtils.rethrow(e);
         }
+    }
+
+    private static Set<Class<?>> getFilteredSupportedClasses(Predicate<Class<?>> filter) {
+        final Set<Class<?>> allCustomEntityClasses = EntitySerializerScanner.getAllCustomEntityClasses();
+        final Set<Class<?>> allProtoBufferClasses = ProtoBufferScanner.getAllProtoBufferClasses();
+        final Set<Class<?>> supportedClassSet = Sets.newHashSetWithExpectedSize(allCustomEntityClasses.size() + allProtoBufferClasses.size());
+
+        Stream.concat(allCustomEntityClasses.stream(), allProtoBufferClasses.stream())
+                .filter(filter)
+                .forEach(supportedClassSet::add);
+        return supportedClassSet;
     }
 
     private static EntitySerializer<?> createSerializerInstance(Class<? extends EntitySerializer<?>> serializerClass) throws Exception {
