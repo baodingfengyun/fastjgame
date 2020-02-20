@@ -38,10 +38,19 @@ class ByteArrayCodec implements BinaryCodec<byte[]> {
         writeBytesImp(outputStream, instance, 0, instance.length);
     }
 
+    static void writeBytesImp(CodedOutputStream outputStream, @Nonnull byte[] bytes, int offset, int length) throws Exception {
+        outputStream.writeUInt32NoTag(length);
+        outputStream.writeRawBytes(bytes, offset, length);
+    }
+
     @Nonnull
     @Override
     public byte[] readData(CodedInputStream inputStream) throws Exception {
-        return readBytesImp(inputStream);
+        final int length = inputStream.readUInt32();
+        if (length == 0) {
+            return ArrayUtils.EMPTY_BYTE_ARRAY;
+        }
+        return inputStream.readRawBytes(length);
     }
 
     @Override
@@ -49,16 +58,4 @@ class ByteArrayCodec implements BinaryCodec<byte[]> {
         return WireType.BYTE_ARRAY;
     }
 
-    static void writeBytesImp(CodedOutputStream outputStream, @Nonnull byte[] bytes, int offset, int length) throws Exception {
-        outputStream.writeUInt32NoTag(bytes.length);
-        outputStream.writeRawBytes(bytes, offset, length);
-    }
-
-    static byte[] readBytesImp(CodedInputStream inputStream) throws Exception {
-        final int length = inputStream.readUInt32();
-        if (length == 0) {
-            return ArrayUtils.EMPTY_BYTE_ARRAY;
-        }
-        return inputStream.readRawBytes(length);
-    }
 }
