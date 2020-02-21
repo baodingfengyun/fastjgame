@@ -19,41 +19,32 @@ package com.wjybxx.fastjgame.net.serializer;
 import com.wjybxx.fastjgame.net.binary.EntityInputStream;
 import com.wjybxx.fastjgame.net.binary.EntityOutputStream;
 import com.wjybxx.fastjgame.net.binary.EntitySerializer;
-import org.apache.commons.lang3.ArrayUtils;
 
 /**
- * 它负责Object数组的解析 - 它会被扫描到
+ * {@link Class}对象序列化工具类
  *
  * @author wjybxx
  * @version 1.0
- * date - 2020/2/20
+ * date - 2020/2/18
+ * github - https://github.com/hl845740757
  */
 @SuppressWarnings("unused")
-public class ObjectArraySerializer implements EntitySerializer<Object[]> {
+public class ClassSerializer implements EntitySerializer<Class> {
 
     @Override
-    public Class<Object[]> getEntityClass() {
-        return Object[].class;
+    public Class<Class> getEntityClass() {
+        return Class.class;
     }
 
     @Override
-    public Object[] readObject(EntityInputStream inputStream) throws Exception {
-        final int length = inputStream.readInt();
-        if (length == 0) {
-            return ArrayUtils.EMPTY_OBJECT_ARRAY;
-        }
-        final Object[] result = new Object[length];
-        for (int index = 0; index < length; index++) {
-            result[index] = inputStream.readRuntime();
-        }
-        return result;
+    public Class readObject(EntityInputStream inputStream) throws Exception {
+        final String canonicalName = inputStream.readString();
+        return ClassSerializer.class.getClassLoader().loadClass(canonicalName);
     }
 
     @Override
-    public void writeObject(Object[] instance, EntityOutputStream outputStream) throws Exception {
-        outputStream.writeInt(instance.length);
-        for (Object object : instance) {
-            outputStream.writeRuntime(object);
-        }
+    public void writeObject(Class instance, EntityOutputStream outputStream) throws Exception {
+        outputStream.writeString(instance.getCanonicalName());
     }
+
 }

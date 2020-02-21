@@ -33,7 +33,7 @@ import java.util.Map;
 public interface EntityOutputStream {
 
     /**
-     * 向输入流中写入一个字段
+     * 向输出流中写入一个字段
      *
      * @param wireType   字段的缓存类型，如果该值为{@link WireType#RUN_TIME}，则需要动态解析。
      * @param fieldValue 字段的值
@@ -43,25 +43,31 @@ public interface EntityOutputStream {
     // ----------------------------------------- 处理多态问题 ----------------------------------
 
     /**
-     * 向输入流中写一个多态实体对象
+     * 向输出流中写一个多态实体对象
      * （按照超类格式写入数据，并忽略子类字段）
      */
     <E> void writeEntity(@Nullable E entity, EntitySerializer<? super E> entitySerializer) throws Exception;
 
     /**
-     * 向输入流中写入一个map
+     * 向输出流中写入一个map
      */
     <K, V> void writeMap(@Nullable Map<K, V> map) throws Exception;
 
     /**
-     * 像输入流中写一个collection
+     * 向输出流中写一个collection
      */
     <E> void writeCollection(@Nullable Collection<? extends E> collection) throws Exception;
 
+    /**
+     * 向输出流中写入一个数组
+     *
+     * @param array 要支持基本类型数组，因此为{@link Object}而不是泛型数组+
+     */
+    void writeArray(@Nullable Object array) throws Exception;
     // ---------------------------------------- 字节数组特殊写入需求 ----------------------------------
 
     /**
-     * 向输入流中写入一个字节数组，并可以指定偏移量和长度
+     * 向输出流中写入一个字节数组，并可以指定偏移量和长度
      */
     void writeBytes(@Nullable byte[] bytes, int offset, int length) throws Exception;
 
@@ -104,15 +110,15 @@ public interface EntityOutputStream {
     }
 
     default void writeBytes(@Nullable byte[] value) throws Exception {
-        writeField(WireType.BYTE_ARRAY, value);
+        writeField(WireType.ARRAY, value);
     }
 
     /**
-     * 向输入流中写入一个字段，如果没有对应的简便方法，可以使用该方法
+     * 向输出流中写入一个字段，如果没有对应的简便方法，可以使用该方法
      *
      * @param value 字段的值
      */
-    default <T> void writeRuntime(@Nullable T value) throws Exception {
+    default <T> void writeObject(@Nullable T value) throws Exception {
         writeField(WireType.RUN_TIME, value);
     }
 }

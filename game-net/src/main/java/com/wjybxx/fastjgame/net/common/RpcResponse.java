@@ -133,14 +133,14 @@ public final class RpcResponse {
         @Override
         public RpcResponse readObject(EntityInputStream inputStream) throws Exception {
             final RpcErrorCode errorCode = RpcErrorCode.forNumber(inputStream.readInt());
-            final Object body = inputStream.readRuntime();
+            final Object body = inputStream.readObject();
             return new RpcResponse(errorCode, body);
         }
 
         @Override
         public void writeObject(RpcResponse instance, EntityOutputStream outputStream) throws Exception {
             outputStream.writeInt(instance.getErrorCode().getNumber());
-            outputStream.writeRuntime(instance.getBody());
+            outputStream.writeObject(instance.getBody());
         }
     }
 }

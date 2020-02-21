@@ -69,6 +69,14 @@ public interface EntityInputStream {
     @Nullable
     <C extends Collection<E>, E> C readCollection(@Nonnull IntFunction<C> collectionFactory) throws Exception;
 
+    /**
+     * 从输入流中读取数据到数组中
+     *
+     * @param componentType 数组元素类型，支持基本类型（因此未定义为泛型参数）
+     */
+    @Nullable
+    <T> T readArray(@Nonnull Class<?> componentType) throws Exception;
+
     // ----------------------------------------- 方便手动实现扩展 ----------------------------------
 
     default Integer readInt() throws Exception {
@@ -108,13 +116,13 @@ public interface EntityInputStream {
     }
 
     default byte[] readBytes() throws Exception {
-        return readField(WireType.BYTE_ARRAY);
+        return readField(WireType.ARRAY);
     }
 
     /**
      * 从输入流中读取一个字段，如果没有对应的简便方法，可以使用该方法。
      */
-    default <T> T readRuntime() throws Exception {
+    default <T> T readObject() throws Exception {
         return readField(WireType.RUN_TIME);
     }
 }

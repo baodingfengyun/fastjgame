@@ -58,6 +58,15 @@ public final class MessageMapper {
     }
 
     /**
+     * 判断一个类是否在消息映射中
+     *
+     * @param messageClass 消息对应的class
+     */
+    public final boolean contains(Class<?> messageClass) {
+        return messageClazz2IdMap.containsKey(messageClass);
+    }
+
+    /**
      * 通过协议id获取到对应的协议类。
      *
      * @param messageId 消息id
@@ -70,11 +79,11 @@ public final class MessageMapper {
     /**
      * 通过协议类获取它对应的协议id。
      *
-     * @param messageClazz 消息对应的class
+     * @param messageClass 消息对应的class
      * @return messageId
      */
-    public final int getMessageId(Class<?> messageClazz) {
-        return messageClazz2IdMap.getInt(messageClazz);
+    public final int getMessageId(Class<?> messageClass) {
+        return messageClazz2IdMap.getInt(messageClass);
     }
 
     /**

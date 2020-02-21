@@ -19,8 +19,6 @@ package com.wjybxx.fastjgame.net.binary;
 
 import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.ProtocolMessageEnum;
-import com.wjybxx.fastjgame.db.annotation.DBEntity;
-import com.wjybxx.fastjgame.net.annotation.SerializableClass;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -42,7 +40,7 @@ public class WireType {
      */
     static final byte NULL = 0;
 
-    // ------------------------------------------- 基本类型 -----------------------------
+    // ------------------------------------------- 基础类型 -----------------------------
     /**
      * rawByte
      */
@@ -76,101 +74,53 @@ public class WireType {
      */
     static final byte BOOLEAN = 8;
 
-    // -------------------------------------- 基本类型数组，主要为减少拆装箱操作 --------------------------
-
-    /**
-     * 字节数组
-     */
-    static final byte BYTE_ARRAY = 9;
-    /**
-     * char数组
-     */
-    static final byte CHAR_ARRAY = 10;
-    /**
-     * short数组
-     */
-    static final byte SHORT_ARRAY = 11;
-    /**
-     * int数组
-     */
-    static final byte INT_ARRAY = 12;
-    /**
-     * long数组
-     */
-    static final byte LONG_ARRAY = 13;
-    /**
-     * float数组
-     */
-    static final byte FLOAT_ARRAY = 14;
-    /**
-     * double数组
-     */
-    static final byte DOUBLE_ARRAY = 15;
-    /**
-     * boolean数组
-     */
-    static final byte BOOLEAN_ARRAY = 16;
-
-    // ---------------------------------------- 常用对象支持 ----------------------------------
-
     /**
      * 字符串 LENGTH_DELIMITED
      */
-    static final byte STRING = 17;
+    static final byte STRING = 9;
+
+    // ---------------------------------------- 容器 ----------------------------------
 
     /**
-     * 字符串数组
+     * 数组
      */
-    static final byte STRING_ARRAY = 18;
+    static final byte ARRAY = 10;
 
-    /**
-     * {@link Class}对象
-     */
-    static final byte CLASS = 19;
-
-    /**
-     * {@link Class}数组
-     */
-    static final byte CLASS_ARRAY = 20;
-
-    // ------------------------------------------ 集合支持 ---------------------------------
-    /**
-     * Map支持
-     * 如果一个字段/参数的声明类型是{@link Map}，那么适用该类型。
-     * 如果需要更细化的map需求，请了解{@link com.wjybxx.fastjgame.db.annotation.Impl}注解
-     */
-    static final byte MAP = 21;
     /**
      * 集合支持
      * 如果一个字段/参数的声明类型是{@link Collection}，那么那么适用该类型。
      * 如果需要更细化的集合需求，请了解{@link com.wjybxx.fastjgame.db.annotation.Impl}注解
      */
-    static final byte COLLECTION = 22;
+    static final byte COLLECTION = 11;
+    /**
+     * Map支持
+     * 如果一个字段/参数的声明类型是{@link Map}，那么适用该类型。
+     * 如果需要更细化的map需求，请了解{@link com.wjybxx.fastjgame.db.annotation.Impl}注解
+     */
+    static final byte MAP = 12;
 
-    // --------------------------------------- protoBuffer 支持 ---------------------------------
+    // -------------------------------------- 应用扩展类型 ----------------------------------
 
     /**
      * protobuf的Message LENGTH_DELIMITED
      */
-    static final byte PROTO_MESSAGE = 23;
+    static final byte PROTO_MESSAGE = 13;
     /**
      * protoBuf的枚举
      */
-    static final byte PROTO_ENUM = 24;
-
-    // ------------------------------------------ 自定义类型 ---------------------------------
+    static final byte PROTO_ENUM = 14;
 
     /**
-     * 带有{@link DBEntity} 或 {@link SerializableClass}注解的类，
-     * 或手动实现{@link EntitySerializer}负责解析的类。
+     * 存在对应的{@link EntitySerializer}的类型。
+     * 可能是通过注解处理器生成的，也可能是手动实现的。
      */
-    static final byte CUSTOM_ENTITY = 25;
+    static final byte CUSTOM_ENTITY = 15;
 
-    // ------------------------------------------ 运行时才知道的 -----------------------------
+    // ------------------------------------ 运行时才知道的 -----------------------------
     /**
      * 动态类型 - 运行时才能确定的类型（它是标记类型）
      */
-    static final byte RUN_TIME = 26;
+    static final byte RUN_TIME = 16;
 
     /**
      * 查找一个class对应的wireType(用于缓存，可大幅提高性能)
@@ -179,7 +129,7 @@ public class WireType {
      * @return wireType
      */
     public static byte findType(@Nonnull final Class<?> declaredType) {
-        // --- 基本类型
+        // ---------------------------- 基础类型 -------------------------------
         if (declaredType == byte.class || declaredType == Byte.class) {
             return WireType.BYTE;
         }
@@ -204,65 +154,31 @@ public class WireType {
         if (declaredType == boolean.class || declaredType == Boolean.class) {
             return WireType.BOOLEAN;
         }
-
-        // ---- 基本类型数组
-        if (declaredType == byte[].class) {
-            return WireType.BYTE_ARRAY;
-        }
-        if (declaredType == char[].class) {
-            return WireType.CHAR_ARRAY;
-        }
-        if (declaredType == short[].class) {
-            return WireType.SHORT_ARRAY;
-        }
-        if (declaredType == int[].class) {
-            return WireType.INT_ARRAY;
-        }
-        if (declaredType == long[].class) {
-            return WireType.LONG_ARRAY;
-        }
-        if (declaredType == float[].class) {
-            return WireType.FLOAT_ARRAY;
-        }
-        if (declaredType == double[].class) {
-            return WireType.DOUBLE_ARRAY;
-        }
-        if (declaredType == boolean[].class) {
-            return WireType.BOOLEAN_ARRAY;
-        }
-
-        // 字符串
         if (declaredType == String.class) {
             return WireType.STRING;
         }
-        if (declaredType == String[].class) {
-            return WireType.STRING_ARRAY;
-        }
-
-        // CLASS
-        if (declaredType == Class.class) {
-            return WireType.CLASS;
-        }
-        if (declaredType == Class[].class) {
-            return WireType.CLASS_ARRAY;
-        }
-
-        // protoBuf
-        if (AbstractMessage.class.isAssignableFrom(declaredType)) {
-            return WireType.PROTO_MESSAGE;
-        }
-        // protoBuf的枚举
-        if (ProtocolMessageEnum.class.isAssignableFrom(declaredType)) {
-            return WireType.PROTO_ENUM;
-        }
-
-        // Map
-        if (Map.class.isAssignableFrom(declaredType)) {
-            return WireType.MAP;
+        // ------------------------------- 容器 --------------------------------
+        // 数组
+        if (declaredType.isArray()) {
+            return WireType.ARRAY;
         }
         // Collection
         if (Collection.class.isAssignableFrom(declaredType)) {
             return WireType.COLLECTION;
+        }
+        // Map
+        if (Map.class.isAssignableFrom(declaredType)) {
+            return WireType.MAP;
+        }
+        // ------------------------------ 应用扩展类型 ------------------------------
+        // protoBuf
+        if (AbstractMessage.class.isAssignableFrom(declaredType)) {
+            return WireType.PROTO_MESSAGE;
+        }
+
+        // protoBuf的枚举
+        if (ProtocolMessageEnum.class.isAssignableFrom(declaredType)) {
+            return WireType.PROTO_ENUM;
         }
 
         // 自定义实体 - 有serializer的类型，无论手写的还是自动生成的

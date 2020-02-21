@@ -163,14 +163,29 @@ class CustomEntityCodec implements BinaryCodec<Object> {
         }
 
         @Override
+        public void writeArray(@Nullable Object array) throws Exception {
+            if (null == array) {
+                BinaryProtocolCodec.writeTag(outputStream, WireType.NULL);
+                return;
+            }
+
+            if (!array.getClass().isArray()) {
+                throw new IllegalArgumentException(array.getClass().getSimpleName() + " is not array!");
+            }
+
+            BinaryProtocolCodec.writeTag(outputStream, WireType.ARRAY);
+            binaryProtocolCodec.getCodec(WireType.ARRAY).writeData(outputStream, array);
+        }
+
+        @Override
         public void writeBytes(@Nullable byte[] bytes, int offset, int length) throws Exception {
             if (null == bytes) {
                 BinaryProtocolCodec.writeTag(outputStream, WireType.NULL);
                 return;
             }
 
-            BinaryProtocolCodec.writeTag(outputStream, WireType.BYTE_ARRAY);
-            ByteArrayCodec.writeBytesImp(outputStream, bytes, offset, length);
+            BinaryProtocolCodec.writeTag(outputStream, WireType.ARRAY);
+            ArrayCodec.writeBytesArray(outputStream, bytes, offset, length);
         }
     }
 
@@ -256,5 +271,21 @@ class CustomEntityCodec implements BinaryCodec<Object> {
             return CollectionCodec.readCollectionImp(binaryProtocolCodec, inputStream, collectionFactory);
         }
 
+        @Nullable
+        @Override
+        public <T> T readArray(@Nonnull Class<?> componentType) throws Exception {
+            final byte tag = BinaryProtocolCodec.readTag(inputStream);
+            if (tag == WireType.NULL) {
+                return null;
+            }
+
+            if (tag != WireType.ARRAY) {
+                throw new IOException("Incompatible wireType, expected: " + WireType.ARRAY + ", but read: " + tag);
+            }
+
+            final ArrayCodec arrayCodec = (ArrayCodec) binaryProtocolCodec.getCodec(WireType.ARRAY);
+            @SuppressWarnings("unchecked") final T array = (T) arrayCodec.readArray(inputStream, componentType);
+            return array;
+        }
     }
 }

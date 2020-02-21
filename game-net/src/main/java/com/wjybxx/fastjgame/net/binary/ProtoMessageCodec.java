@@ -23,11 +23,14 @@ import javax.annotation.Nonnull;
 import java.util.Map;
 
 /**
+ * protoBuf消息编解码支持
+ * <p>
+ * messageId 使用大端模式写入，和json序列化方式一致，也方便客户端解析
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2020/2/17
- */ // protoBuf消息编解码支持
-// messageId 使用大端模式写入，和json序列化方式一致，也方便客户端解析
+ */
 class ProtoMessageCodec implements BinaryCodec<AbstractMessage> {
 
     private final MessageMapper messageMapper;
