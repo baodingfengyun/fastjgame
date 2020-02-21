@@ -83,7 +83,7 @@ public class KafkaLogPullerTest {
         }
 
         @Override
-        public void consume(T record) {
+        public void consume(T record) throws Exception {
             System.out.println("Thread: " + Thread.currentThread().getName() + ", record: " + record);
         }
     }

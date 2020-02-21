@@ -16,15 +16,17 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.CodedOutputStream;
+import it.unimi.dsi.fastutil.Hash;
+import it.unimi.dsi.fastutil.bytes.Byte2ObjectMap;
+import it.unimi.dsi.fastutil.bytes.Byte2ObjectOpenHashMap;
 import org.apache.commons.lang3.ArrayUtils;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.util.IdentityHashMap;
 
 /**
  * 数组编解码器
@@ -35,25 +37,26 @@ import java.lang.reflect.Array;
  */
 class ArrayCodec implements BinaryCodec<Object> {
 
-    private static final BiMap<Class<?>, Byte> component2TypeMapping;
-    private static final BiMap<Byte, Class<?>> type2ComponentMapping;
-
+    private static final int CHILD_SIZE = 9;
+    private static final IdentityHashMap<Class<?>, Byte> component2TypeMapping = new IdentityHashMap<>(CHILD_SIZE);
+    private static final Byte2ObjectMap<Class<?>> type2ComponentMapping = new Byte2ObjectOpenHashMap<>(CHILD_SIZE, Hash.FAST_LOAD_FACTOR);
 
     static {
-        component2TypeMapping = HashBiMap.create(9);
+        register(byte.class, WireType.BYTE);
+        register(char.class, WireType.CHAR);
+        register(short.class, WireType.SHORT);
+        register(int.class, WireType.INT);
+        register(long.class, WireType.LONG);
+        register(float.class, WireType.FLOAT);
+        register(double.class, WireType.DOUBLE);
+        register(boolean.class, WireType.BOOLEAN);
 
-        component2TypeMapping.put(byte.class, WireType.BYTE);
-        component2TypeMapping.put(char.class, WireType.CHAR);
-        component2TypeMapping.put(short.class, WireType.SHORT);
-        component2TypeMapping.put(int.class, WireType.INT);
-        component2TypeMapping.put(long.class, WireType.LONG);
-        component2TypeMapping.put(float.class, WireType.FLOAT);
-        component2TypeMapping.put(double.class, WireType.DOUBLE);
-        component2TypeMapping.put(boolean.class, WireType.BOOLEAN);
+        register(String.class, WireType.STRING);
+    }
 
-        component2TypeMapping.put(String.class, WireType.STRING);
-
-        type2ComponentMapping = component2TypeMapping.inverse();
+    private static void register(Class<?> component, byte type) {
+        component2TypeMapping.put(component, type);
+        type2ComponentMapping.put(type, component);
     }
 
     private final BinaryProtocolCodec binaryProtocolCodec;

@@ -108,12 +108,12 @@ public class ZKGuidGenerator implements GuidGenerator {
     private void refreshCache() throws Exception {
         final String guidPath = getGuidPath();
         final byte[] curData = curatorFacade.getDataIfPresent(guidPath);
-        final long currentValue = curData == null ? 0 : parseIntFromStringBytes(curData);
+        final long currentValue = curData == null ? 0 : decode(curData);
 
         this.curGuid = currentValue + 1;
         this.curBarrier = currentValue + cacheSize;
 
-        final byte[] newData = serializeToStringBytes(curBarrier);
+        final byte[] newData = encode(curBarrier);
         if (null == curData) {
             curatorFacade.createNode(guidPath, CreateMode.PERSISTENT, newData);
         } else {
@@ -134,11 +134,11 @@ public class ZKGuidGenerator implements GuidGenerator {
     /**
      * 序列化为字符串字节数组具有更好的可读性
      */
-    private static byte[] serializeToStringBytes(long guidIndex) {
+    private static byte[] encode(long guidIndex) {
         return CodecUtils.getBytesUTF8(Long.toString(guidIndex));
     }
 
-    private static long parseIntFromStringBytes(byte[] guidData) {
+    private static long decode(byte[] guidData) {
         return Long.parseLong(CodecUtils.newStringUTF8(guidData));
     }
 

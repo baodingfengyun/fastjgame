@@ -21,6 +21,8 @@ import com.wjybxx.fastjgame.net.utils.NetUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.UnpooledByteBufAllocator;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 import java.util.*;
 
@@ -90,6 +92,12 @@ public class BinaryProtoCodecTest {
         fullMessage.setaDoubleArray(new double[]{-6.6, 0.1f, 6.6});
 
         fullMessage.setaCharArray("hello world".toCharArray());
+
+        final Int2ObjectMap<String> int2ObjectMap = new Int2ObjectOpenHashMap<>(3);
+        int2ObjectMap.put(1, "a");
+        int2ObjectMap.put(2, "b");
+        int2ObjectMap.put(3, "c");
+        fullMessage.setInt2ObjectMap(int2ObjectMap);
 
         return fullMessage;
     }

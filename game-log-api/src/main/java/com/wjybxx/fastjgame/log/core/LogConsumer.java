@@ -49,6 +49,6 @@ public interface LogConsumer<T> {
      *
      * @param record 日志数据
      */
-    void consume(T record);
+    void consume(T record) throws Exception;
 
 }

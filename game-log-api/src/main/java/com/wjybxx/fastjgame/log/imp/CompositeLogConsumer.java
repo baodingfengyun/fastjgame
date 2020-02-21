@@ -67,7 +67,7 @@ public final class CompositeLogConsumer<T> implements LogConsumer<T> {
     }
 
     @Override
-    public void consume(T record) {
+    public void consume(T record) throws Exception {
         for (LogConsumer<T> child : children) {
             LogConsumerUtils.consumeSafely(child, record);
         }

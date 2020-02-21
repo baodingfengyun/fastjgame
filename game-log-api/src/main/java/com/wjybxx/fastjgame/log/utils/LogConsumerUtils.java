@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.log.utils;
 
 import com.wjybxx.fastjgame.log.core.LogConsumer;
 import com.wjybxx.fastjgame.log.imp.CompositeLogConsumer;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +40,11 @@ public class LogConsumerUtils {
                 consumer.consume(record);
             } else {
                 consumer.appEventLoop().execute(() -> {
-                    consumer.consume(record);
+                    try {
+                        consumer.consume(record);
+                    } catch (Throwable e) {
+                        ExceptionUtils.rethrow(e);
+                    }
                 });
             }
         } catch (Throwable e) {
