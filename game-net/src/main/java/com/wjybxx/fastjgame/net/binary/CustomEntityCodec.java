@@ -141,43 +141,6 @@ class CustomEntityCodec implements BinaryCodec<Object> {
         }
 
         @Override
-        public <K, V> void writeMap(@Nullable Map<K, V> map) throws Exception {
-            if (null == map) {
-                BinaryProtocolCodec.writeTag(outputStream, WireType.NULL);
-                return;
-            }
-
-            BinaryProtocolCodec.writeTag(outputStream, WireType.MAP);
-            MapCodec.writeMapImp(binaryProtocolCodec, outputStream, map);
-        }
-
-        @Override
-        public <E> void writeCollection(@Nullable Collection<? extends E> collection) throws Exception {
-            if (null == collection) {
-                BinaryProtocolCodec.writeTag(outputStream, WireType.NULL);
-                return;
-            }
-
-            BinaryProtocolCodec.writeTag(outputStream, WireType.COLLECTION);
-            CollectionCodec.writeCollectionImp(binaryProtocolCodec, outputStream, collection);
-        }
-
-        @Override
-        public void writeArray(@Nullable Object array) throws Exception {
-            if (null == array) {
-                BinaryProtocolCodec.writeTag(outputStream, WireType.NULL);
-                return;
-            }
-
-            if (!array.getClass().isArray()) {
-                throw new IllegalArgumentException(array.getClass().getSimpleName() + " is not array!");
-            }
-
-            BinaryProtocolCodec.writeTag(outputStream, WireType.ARRAY);
-            binaryProtocolCodec.getCodec(WireType.ARRAY).writeData(outputStream, array);
-        }
-
-        @Override
         public void writeBytes(@Nullable byte[] bytes, int offset, int length) throws Exception {
             if (null == bytes) {
                 BinaryProtocolCodec.writeTag(outputStream, WireType.NULL);
@@ -185,7 +148,7 @@ class CustomEntityCodec implements BinaryCodec<Object> {
             }
 
             BinaryProtocolCodec.writeTag(outputStream, WireType.ARRAY);
-            ArrayCodec.writeBytesArray(outputStream, bytes, offset, length);
+            ArrayCodec.writeByteArray(outputStream, bytes, offset, length);
         }
     }
 

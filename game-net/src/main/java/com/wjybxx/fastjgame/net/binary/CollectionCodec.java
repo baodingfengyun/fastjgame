@@ -48,7 +48,14 @@ class CollectionCodec implements BinaryCodec<Collection<?>> {
 
     @Override
     public void writeData(CodedOutputStream outputStream, @Nonnull Collection<?> instance) throws Exception {
-        writeCollectionImp(binaryProtocolCodec, outputStream, instance);
+        outputStream.writeUInt32NoTag(instance.size());
+        if (instance.size() == 0) {
+            return;
+        }
+
+        for (Object element : instance) {
+            binaryProtocolCodec.writeObject(outputStream, element);
+        }
     }
 
     @Nonnull
@@ -60,22 +67,6 @@ class CollectionCodec implements BinaryCodec<Collection<?>> {
     @Override
     public byte getWireType() {
         return WireType.COLLECTION;
-    }
-
-    /**
-     * 将collection的所有元素写入输出流
-     */
-    static <E> void writeCollectionImp(@Nonnull BinaryProtocolCodec binaryProtocolCodec,
-                                       @Nonnull CodedOutputStream outputStream,
-                                       @Nonnull Collection<E> collection) throws Exception {
-        outputStream.writeUInt32NoTag(collection.size());
-        if (collection.size() == 0) {
-            return;
-        }
-
-        for (E element : collection) {
-            binaryProtocolCodec.writeObject(outputStream, element);
-        }
     }
 
     /**

@@ -74,13 +74,13 @@ class ArrayCodec implements BinaryCodec<Object> {
     public void writeData(CodedOutputStream outputStream, @Nonnull Object instance) throws Exception {
         if (instance instanceof byte[]) {
             final byte[] bytes = (byte[]) instance;
-            writeBytesArray(outputStream, bytes, 0, bytes.length);
+            writeByteArray(outputStream, bytes, 0, bytes.length);
         } else {
             writeOtherArray(outputStream, instance);
         }
     }
 
-    static void writeBytesArray(CodedOutputStream outputStream, @Nonnull byte[] bytes, int offset, int length) throws Exception {
+    static void writeByteArray(CodedOutputStream outputStream, @Nonnull byte[] bytes, int offset, int length) throws Exception {
         writeChildTypeAndLength(outputStream, WireType.BYTE, length);
         outputStream.writeRawBytes(bytes, offset, length);
     }
@@ -97,7 +97,7 @@ class ArrayCodec implements BinaryCodec<Object> {
 
         for (int index = 0; index < length; index++) {
             Object value = Array.get(instance, index);
-            binaryProtocolCodec.writeRuntimeType(outputStream, value);
+            binaryProtocolCodec.writeObject(outputStream, value);
         }
     }
 
@@ -105,15 +105,11 @@ class ArrayCodec implements BinaryCodec<Object> {
     @Override
     public Object readData(CodedInputStream inputStream) throws Exception {
         final byte childType = BinaryProtocolCodec.readTag(inputStream);
-        // 默认使用Object数组
-        final Class<?> componentType = type2ComponentMapping.getOrDefault(childType, Object.class);
-        return readArray(inputStream, componentType);
-    }
-
-    Object readArray(CodedInputStream inputStream, Class<?> componentType) throws Exception {
-        if (componentType == byte.class) {
+        if (childType == WireType.BYTE) {
             return readByteArray(inputStream);
         } else {
+            // 默认使用Object数组
+            final Class<?> componentType = type2ComponentMapping.getOrDefault(childType, Object.class);
             return readOtherArray(inputStream, componentType);
         }
     }
@@ -140,4 +136,18 @@ class ArrayCodec implements BinaryCodec<Object> {
         return WireType.ARRAY;
     }
 
+    Object readArray(CodedInputStream inputStream, Class<?> componentType) throws Exception {
+        final byte childType = BinaryProtocolCodec.readTag(inputStream);
+        final Class<?> defaultComponentType = type2ComponentMapping.getOrDefault(childType, Object.class);
+
+        if (componentType == defaultComponentType || defaultComponentType == Object.class) {
+            if (componentType == byte.class) {
+                return readByteArray(inputStream);
+            } else {
+                return readOtherArray(inputStream, componentType);
+            }
+        }
+        throw new IOException("Incompatible componentType, defaultType: " + defaultComponentType.getCanonicalName() +
+                ", but specified : " + componentType.getCanonicalName());
+    }
 }

@@ -51,19 +51,26 @@ public interface EntityOutputStream {
     /**
      * 向输出流中写入一个map
      */
-    <K, V> void writeMap(@Nullable Map<K, V> map) throws Exception;
+    default <K, V> void writeMap(@Nullable Map<K, V> map) throws Exception {
+        writeField(WireType.MAP, map);
+    }
 
     /**
      * 向输出流中写一个collection
      */
-    <E> void writeCollection(@Nullable Collection<? extends E> collection) throws Exception;
+    default <E> void writeCollection(@Nullable Collection<? extends E> collection) throws Exception {
+        writeField(WireType.COLLECTION, collection);
+    }
 
     /**
      * 向输出流中写入一个数组
      *
      * @param array 要支持基本类型数组，因此为{@link Object}而不是泛型数组+
      */
-    void writeArray(@Nullable Object array) throws Exception;
+    default void writeArray(@Nullable Object array) throws Exception {
+        writeField(WireType.ARRAY, array);
+    }
+
     // ---------------------------------------- 字节数组特殊写入需求 ----------------------------------
 
     /**

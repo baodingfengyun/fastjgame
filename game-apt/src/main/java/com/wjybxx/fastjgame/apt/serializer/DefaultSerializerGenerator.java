@@ -40,9 +40,8 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
 
     private static final String READ_MAP_METHOD_NAME = "readMap";
     private static final String READ_COLLECTION = "readCollection";
+    private static final String READ_ARRAY = "readArray";
 
-    private static final String WRITE_MAP_METHOD_NAME = "writeMap";
-    private static final String WRITE_COLLECTION_METHOD_NAME = "writeCollection";
     private static final String CONSTRUCTOR_FIELD_NAME = "r_constructor";
 
     private TypeName instanceRawTypeName;
@@ -103,10 +102,8 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
             final TypeName fieldRawTypeName = ParameterizedTypeName.get(typeUtils.erasure(variableElement.asType()));
             final String filedWireTypeFieldName = "wireType_" + variableElement.getSimpleName().toString();
 
-            if (!processor.isMapOrCollection(variableElement)) {
-                typeBuilder.addField(byte.class, filedWireTypeFieldName, Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL);
-                staticCodeBlockBuilder.addStatement("$L = $T.$L($T.class)", filedWireTypeFieldName, processor.wireTypeTypeName, FINDTYPE_METHOD_NAME, fieldRawTypeName);
-            }
+            typeBuilder.addField(byte.class, filedWireTypeFieldName, Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL);
+            staticCodeBlockBuilder.addStatement("$L = $T.$L($T.class)", filedWireTypeFieldName, processor.wireTypeTypeName, FINDTYPE_METHOD_NAME, fieldRawTypeName);
 
             addReadStatement(variableElement, fieldRawTypeName, filedWireTypeFieldName);
 
@@ -165,15 +162,9 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
     }
 
     private void writeByGetter(VariableElement variableElement, TypeName fieldRawTypeName, String filedWireTypeFieldName) {
-        // (一定有get方法)
+        // 一定有getter方法
         final String getterName = BeanUtils.getterMethodName(variableElement.getSimpleName().toString(), BeanUtils.isPrimitiveBoolean(fieldRawTypeName));
-        if (processor.isMap(variableElement)) {
-            writeObjectMethodBuilder.addStatement("outputStream.$L(instance.$L())", WRITE_MAP_METHOD_NAME, getterName);
-        } else if (processor.isCollection(variableElement)) {
-            writeObjectMethodBuilder.addStatement("outputStream.$L(instance.$L())", WRITE_COLLECTION_METHOD_NAME, getterName);
-        } else {
-            writeObjectMethodBuilder.addStatement("outputStream.$L($L, instance.$L())", WRITE_FIELD_METHOD_NAME, filedWireTypeFieldName, getterName);
-        }
+        writeObjectMethodBuilder.addStatement("outputStream.$L($L, instance.$L())", WRITE_FIELD_METHOD_NAME, filedWireTypeFieldName, getterName);
     }
 
     /**
@@ -201,6 +192,9 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
         } else if (processor.isCollection(variableElement)) {
             final TypeName impTypeName = getFieldImpTypeName(variableElement);
             readFieldsMethodBuilder.addStatement("instance.$L(inputStream.$L($T::new))", setterName, READ_COLLECTION, impTypeName);
+        } else if (AutoUtils.isArrayType(variableElement.asType())) {
+            final TypeName componentTypeName = TypeName.get(AutoUtils.getComponentType(variableElement.asType()));
+            readFieldsMethodBuilder.addStatement("instance.$L(inputStream.$L($T.class))", setterName, READ_ARRAY, componentTypeName);
         } else {
             readFieldsMethodBuilder.addStatement("instance.$L(inputStream.$L($L))", setterName, READ_FIELD_METHOD_NAME, filedWireTypeFieldName);
         }
@@ -223,6 +217,9 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
         } else if (processor.isCollection(variableElement)) {
             final TypeName impTypeName = getFieldImpTypeName(variableElement);
             readFieldsMethodBuilder.addStatement("$L.set(instance, inputStream.$L($T::new))", reflectFieldName, READ_COLLECTION, impTypeName);
+        } else if (AutoUtils.isArrayType(variableElement.asType())) {
+            final TypeName componentTypeName = TypeName.get(AutoUtils.getComponentType(variableElement.asType()));
+            readFieldsMethodBuilder.addStatement("$L.set(instance, inputStream.$L($T.class))", reflectFieldName, READ_ARRAY, componentTypeName);
         } else {
             readFieldsMethodBuilder.addStatement("$L.set(instance, inputStream.$L($L))", reflectFieldName, READ_FIELD_METHOD_NAME, filedWireTypeFieldName);
         }

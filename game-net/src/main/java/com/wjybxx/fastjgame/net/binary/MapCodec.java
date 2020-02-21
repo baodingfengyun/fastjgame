@@ -47,35 +47,21 @@ class MapCodec implements BinaryCodec<Map<?, ?>> {
 
     @Override
     public void writeData(CodedOutputStream outputStream, @Nonnull Map<?, ?> instance) throws Exception {
-        writeMapImp(binaryProtocolCodec, outputStream, instance);
+        outputStream.writeUInt32NoTag(instance.size());
+        if (instance.size() == 0) {
+            return;
+        }
+
+        for (Map.Entry<?, ?> entry : instance.entrySet()) {
+            binaryProtocolCodec.writeObject(outputStream, entry.getKey());
+            binaryProtocolCodec.writeObject(outputStream, entry.getValue());
+        }
     }
 
     @Nonnull
     @Override
     public Map<?, ?> readData(CodedInputStream inputStream) throws Exception {
         return readMapImp(binaryProtocolCodec, inputStream, Maps::newLinkedHashMapWithExpectedSize);
-    }
-
-    @Override
-    public byte getWireType() {
-        return WireType.MAP;
-    }
-
-    /**
-     * 将map的所有键值对写入输出流
-     */
-    static <K, V> void writeMapImp(@Nonnull BinaryProtocolCodec binaryProtocolCodec,
-                                   @Nonnull CodedOutputStream outputStream,
-                                   @Nonnull Map<K, V> map) throws Exception {
-        outputStream.writeUInt32NoTag(map.size());
-        if (map.size() == 0) {
-            return;
-        }
-
-        for (Map.Entry<K, V> entry : map.entrySet()) {
-            binaryProtocolCodec.writeObject(outputStream, entry.getKey());
-            binaryProtocolCodec.writeObject(outputStream, entry.getValue());
-        }
     }
 
     /**
@@ -97,5 +83,10 @@ class MapCodec implements BinaryCodec<Map<?, ?>> {
             result.put(key, value);
         }
         return result;
+    }
+
+    @Override
+    public byte getWireType() {
+        return WireType.MAP;
     }
 }

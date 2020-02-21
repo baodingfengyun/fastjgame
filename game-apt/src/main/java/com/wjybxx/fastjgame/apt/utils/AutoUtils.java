@@ -365,6 +365,15 @@ public class AutoUtils {
         }, null);
     }
 
+    public static boolean isArrayType(TypeMirror typeMirror) {
+        return typeMirror.getKind() == TypeKind.ARRAY;
+    }
+
+    public static TypeMirror getComponentType(TypeMirror typeMirror) {
+        ArrayType arrayType = (ArrayType) typeMirror;
+        return arrayType.getComponentType();
+    }
+
     /**
      * 获取第一个参数的真实类型，如果没有显示声明，则为null
      */
