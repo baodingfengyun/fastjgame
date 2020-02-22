@@ -15,8 +15,10 @@
  */
 
 /**
- * 能实现为静态内部类的强烈建议使用静态内部类，避免对外开放，除非有开放需求，否则不要写在外部。
- * 以后新增自定义类型都使用{@link com.wjybxx.fastjgame.net.binary.EntitySerializer}实现编解码，不在新增codec类。
+ * 这里是对常用类编解码的支持。
+ * 非基础类型，都在这里进行扩展。
+ *
+ * 以后新增自定义类型都使用{@link com.wjybxx.fastjgame.net.binary.EntitySerializer}实现编解码，不再新增codec类。
  *
  * @author wjybxx
  * @version 1.0

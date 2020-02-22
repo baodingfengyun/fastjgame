@@ -16,10 +16,7 @@
 
 package com.wjybxx.fastjgame.utils;
 
-import java.time.DayOfWeek;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneOffset;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 
 /**
@@ -37,9 +34,10 @@ public class TimeUtils {
     }
 
     /**
-     * 时区偏移量
+     * 系统时区偏移量
      */
-    public static final ZoneOffset ZONE_OFFSET = ZoneOffset.ofHours(8);
+    public static final ZoneOffset ZONE_OFFSET = ZoneOffset.systemDefault().getRules().getOffset(LocalDateTime.now());
+
     /**
      * 一秒的毫秒数
      */
@@ -207,7 +205,11 @@ public class TimeUtils {
      * @return true/false，如果是同一天则返回true，否则返回false。
      */
     public static boolean isSameDay(long time1, long time2) {
-        return getTimeBeginOfToday(time1) == getTimeBeginOfToday(time2);
+        return toEpochDay(time1) - toEpochDay(time2) == 0;
+    }
+
+    public static int toEpochDay(long millis) {
+        return (int) LocalDate.ofInstant(Instant.ofEpochMilli(millis), ZONE_OFFSET).toEpochDay();
     }
 
     /**
@@ -218,7 +220,7 @@ public class TimeUtils {
      * @return >=0,同一天返回0，否则返回值大于0
      */
     public static int differDays(long time1, long time2) {
-        return (int) (Math.abs(getTimeBeginOfToday(time1) - getTimeBeginOfToday(time2)) / DAY);
+        return Math.abs(toEpochDay(time1) - toEpochDay(time2));
     }
 
     /**

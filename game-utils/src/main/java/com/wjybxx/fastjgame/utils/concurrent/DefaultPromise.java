@@ -639,8 +639,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
                 // 获取锁需要时间，因此应该在获取锁之后计算剩余时间
                 final long remainNano = endTime - System.nanoTime();
                 if (remainNano <= 0) {
-                    // 再尝试一下
-                    return isDone();
+                    return false;
                 }
                 incWaiters();
                 try {
@@ -674,8 +673,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
                     // 获取锁需要时间，因此应该在获取锁之后计算剩余时间
                     final long remainNano = endTime - System.nanoTime();
                     if (remainNano <= 0) {
-                        // 再尝试一下
-                        return isDone();
+                        return false;
                     }
                     incWaiters();
                     try {

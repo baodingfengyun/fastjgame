@@ -37,7 +37,8 @@ import java.util.function.IntFunction;
  * 1. 必须保证线程安全，最好是无状态的。
  * 2. 最好实现为目标类的静态内部类，且最好是private级别，不要暴露给外层。
  * 3. 必须有一个无参构造方法(可以private)。
- * 4. 必须{@link EntityInputStream#readMap(IntFunction)} {@link EntityInputStream#readCollection(IntFunction)} 去读取map和collection。
+ * 4. 必须使用{@link EntityInputStream#readMap(IntFunction)}{@link EntityInputStream#readCollection(IntFunction)}
+ * 去读取map和collection，否则可能由于多态问题赋值失败。
  *
  * <br>-------------------------------如何实现多态解析----------------------<br>
  * 举个栗子：child1 -> parent -> parent或child2

@@ -553,4 +553,23 @@ public class DisruptorEventLoop extends AbstractEventLoop {
         }
     }
 
+    static final class RunnableEvent {
+
+        private Runnable task;
+
+        RunnableEvent() {
+
+        }
+
+        Runnable detachTask() {
+            Runnable r = task;
+            task = null;
+            return r;
+        }
+
+        void setTask(@Nonnull Runnable task) {
+            this.task = task;
+        }
+
+    }
 }
