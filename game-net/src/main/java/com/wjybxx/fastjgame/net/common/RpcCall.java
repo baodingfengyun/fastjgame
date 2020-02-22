@@ -43,9 +43,14 @@ import java.util.List;
 public class RpcCall<V> implements MethodSpec<V> {
 
     /**
-     * 调用的远程方法，用于确定一个唯一的方法。不使用 服务名 + 方法名 + 方法具体参数信息，传输的内容量过于庞大，性能不好。
+     * 远程服务id
+     * 不使用 服务名 + 方法名 + 方法具体参数信息，传输的内容量过于庞大，性能不好。
      */
-    private final int methodKey;
+    private final short serviceId;
+    /**
+     * 远程方法id
+     */
+    private final short methodId;
 
     /**
      * 方法参数列表
@@ -64,15 +69,20 @@ public class RpcCall<V> implements MethodSpec<V> {
      */
     private final int preIndexes;
 
-    public RpcCall(int methodKey, List<Object> methodParams, int lazyIndexes, int preIndexes) {
-        this.methodKey = methodKey;
+    public RpcCall(short serviceId, short methodId, List<Object> methodParams, int lazyIndexes, int preIndexes) {
+        this.serviceId = serviceId;
+        this.methodId = methodId;
         this.methodParams = methodParams;
         this.lazyIndexes = lazyIndexes;
         this.preIndexes = preIndexes;
     }
 
-    public int getMethodKey() {
-        return methodKey;
+    public short getServiceId() {
+        return serviceId;
+    }
+
+    public short getMethodId() {
+        return methodId;
     }
 
     public List<Object> getMethodParams() {
@@ -96,16 +106,18 @@ public class RpcCall<V> implements MethodSpec<V> {
 
         @Override
         public RpcCall readObject(EntityInputStream inputStream) throws Exception {
-            final int methodKey = inputStream.readInt();
+            final short serviceId = inputStream.readShort();
+            final short methodId = inputStream.readShort();
             final List<Object> methodParams = inputStream.readCollection(ArrayList::new);
             final int lazyIndexes = inputStream.readInt();
             final int preIndexes = inputStream.readInt();
-            return new RpcCall(methodKey, methodParams, lazyIndexes, preIndexes);
+            return new RpcCall(serviceId, methodId, methodParams, lazyIndexes, preIndexes);
         }
 
         @Override
         public void writeObject(RpcCall instance, EntityOutputStream outputStream) throws Exception {
-            outputStream.writeInt(instance.getMethodKey());
+            outputStream.writeShort(instance.getServiceId());
+            outputStream.writeShort(instance.getMethodId());
             outputStream.writeCollection(instance.getMethodParams());
             outputStream.writeInt(instance.getLazyIndexes());
             outputStream.writeInt(instance.getPreIndexes());

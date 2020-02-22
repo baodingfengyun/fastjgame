@@ -88,7 +88,7 @@ public class LazySerializeSupportHandler extends SessionDuplexHandlerAdapter {
 
             newMethodParams.add(newParameter);
         }
-        return new RpcCall<>(rpcCall.getMethodKey(), newMethodParams, 0, rpcCall.getPreIndexes());
+        return new RpcCall<>(rpcCall.getServiceId(), rpcCall.getMethodId(), newMethodParams, 0, rpcCall.getPreIndexes());
     }
 
     @Override
@@ -132,6 +132,6 @@ public class LazySerializeSupportHandler extends SessionDuplexHandlerAdapter {
             }
             newMethodParams.add(newParameter);
         }
-        return new RpcCall<>(rpcCall.getMethodKey(), newMethodParams, rpcCall.getLazyIndexes(), 0);
+        return new RpcCall<>(rpcCall.getServiceId(), rpcCall.getMethodId(), newMethodParams, rpcCall.getLazyIndexes(), 0);
     }
 }

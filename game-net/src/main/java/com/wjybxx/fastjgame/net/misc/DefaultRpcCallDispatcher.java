@@ -48,8 +48,9 @@ public class DefaultRpcCallDispatcher implements RpcFunctionRegistry, RpcCallDis
     private final Int2ObjectMap<RpcFunction> functionInfoMap = new Int2ObjectOpenHashMap<>(512);
 
     @Override
-    public final void register(int methodKey, @Nonnull RpcFunction function) {
+    public final void register(short serviceId, short methodId, @Nonnull RpcFunction function) {
         // rpc请求id不可以重复
+        final int methodKey = calMethodKey(serviceId, methodId);
         if (functionInfoMap.containsKey(methodKey)) {
             throw new IllegalArgumentException("methodKey " + methodKey + " is already registered!");
         }
@@ -59,7 +60,7 @@ public class DefaultRpcCallDispatcher implements RpcFunctionRegistry, RpcCallDis
     @SuppressWarnings("unchecked")
     @Override
     public final void post(@Nonnull Session session, @Nonnull RpcCall rpcCall, @Nonnull RpcResponseChannel<?> rpcResponseChannel) {
-        final int methodKey = rpcCall.getMethodKey();
+        final int methodKey = calMethodKey(rpcCall.getServiceId(), rpcCall.getMethodId());
         final List<Object> params = rpcCall.getMethodParams();
         final RpcFunction rpcFunction = functionInfoMap.get(methodKey);
         if (null == rpcFunction) {
@@ -81,5 +82,9 @@ public class DefaultRpcCallDispatcher implements RpcFunctionRegistry, RpcCallDis
      */
     public final void release() {
         functionInfoMap.clear();
+    }
+
+    private static int calMethodKey(short serviceId, short methodId) {
+        return serviceId * 10000 + methodId;
     }
 }

@@ -53,8 +53,8 @@ public class DefaultRpcMethodHandle<V> implements RpcMethodHandle<V> {
     /**
      * 该方法是生成的代码调用的。
      */
-    public DefaultRpcMethodHandle(int methodKey, List<Object> methodParams, int lazyIndexes, int preIndexes) {
-        this.call = new RpcCall<>(methodKey, methodParams, lazyIndexes, preIndexes);
+    public DefaultRpcMethodHandle(short serviceId, short methodId, List<Object> methodParams, int lazyIndexes, int preIndexes) {
+        this.call = new RpcCall<>(serviceId, methodId, methodParams, lazyIndexes, preIndexes);
     }
 
     @Override

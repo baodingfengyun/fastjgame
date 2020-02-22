@@ -267,18 +267,6 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
         return AutoUtils.getAnnotationValueValueNotDefault(annotationMirror.get(), METHOD_ID_METHOD_NAME);
     }
 
-    /**
-     * 计算方法的唯一键
-     *
-     * @param serviceId 服务id
-     * @param methodId  方法id
-     * @return methodKey
-     */
-    private static int getMethodKey(int serviceId, Short methodId) {
-        // 乘10000有更好的可读性
-        return serviceId * 10000 + methodId;
-    }
-
     // ----------------------------------------- 为客户端生成代理方法 -------------------------------------------
 
     /**
@@ -293,8 +281,7 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
 
         // 生成代理方法
         for (final ExecutableElement method : rpcMethods) {
-            final int methodKey = getMethodKey(serviceId, getMethodId(method));
-            typeBuilder.addMethod(genClientMethodProxy(methodKey, method));
+            typeBuilder.addMethod(genClientMethodProxy(serviceId, method));
         }
 
         // 写入文件
@@ -317,7 +304,7 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
      * }
      * </pre>
      */
-    private MethodSpec genClientMethodProxy(int methodKey, ExecutableElement method) {
+    private MethodSpec genClientMethodProxy(short serviceId, ExecutableElement method) {
         // 工具方法 public static RpcBuilder<V>
         final MethodSpec.Builder builder = MethodSpec.methodBuilder(method.getSimpleName().toString())
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC);
@@ -341,14 +328,16 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
         // 搜集参数代码块（一个参数时不能使用singleTonList了，因为可能要修改内容）
         if (realParameters.size() == 0) {
             // 无参时，使用 Collections.emptyList();
-            builder.addStatement("return new $T<>($L, $T.emptyList(), $L, $L)", defaultMethodHandleRawTypeName, methodKey, Collections.class,
+            builder.addStatement("return new $T<>((short)$L, (short)$L, $T.emptyList(), $L, $L)", defaultMethodHandleRawTypeName,
+                    serviceId, getMethodId(method), Collections.class,
                     parseResult.lazyIndexes, parseResult.preIndexes);
         } else {
             builder.addStatement("$T<Object> $L = new $T<>($L)", ArrayList.class, methodParams, ArrayList.class, realParameters.size());
             for (ParameterSpec parameterSpec : realParameters) {
                 builder.addStatement("$L.add($L)", methodParams, parameterSpec.name);
             }
-            builder.addStatement("return new $T<>($L, $L, $L, $L)", defaultMethodHandleRawTypeName, methodKey, methodParams,
+            builder.addStatement("return new $T<>((short)$L, (short)$L, $L, $L, $L)", defaultMethodHandleRawTypeName,
+                    serviceId, getMethodId(method), methodParams,
                     parseResult.lazyIndexes, parseResult.preIndexes);
         }
 
@@ -527,8 +516,7 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
         final List<MethodSpec> serverMethodProxyList = new ArrayList<>(rpcMethods.size());
         // 生成代理方法
         for (final ExecutableElement method : rpcMethods) {
-            final int methodKey = getMethodKey(serviceId, getMethodId(method));
-            serverMethodProxyList.add(genServerMethodProxy(typeElement, methodKey, method));
+            serverMethodProxyList.add(genServerMethodProxy(typeElement, serviceId, method));
         }
 
         final TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(getServerProxyClassName(typeElement))
@@ -625,8 +613,9 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
      * }
      * </pre>
      */
-    private MethodSpec genServerMethodProxy(TypeElement typeElement, int methodKey, ExecutableElement method) {
-        final MethodSpec.Builder builder = MethodSpec.methodBuilder(getServerProxyMethodName(methodKey, method))
+    private MethodSpec genServerMethodProxy(TypeElement typeElement, short serviceId, ExecutableElement method) {
+        final Short methodId = getMethodId(method);
+        final MethodSpec.Builder builder = MethodSpec.methodBuilder(getServerProxyMethodName(methodId, method))
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
                 .returns(TypeName.VOID)
                 .addParameter(registryTypeName, registry)
@@ -635,7 +624,8 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
         // 双方都必须拷贝泛型变量
         AutoUtils.copyTypeVariables(builder, method);
 
-        builder.addCode("$L.register($L, ($L, $L, $L) -> {\n", registry, methodKey,
+        builder.addCode("$L.register((short)$L, (short)$L, ($L, $L, $L) -> {\n", registry,
+                serviceId, methodId,
                 session, methodParams, responseChannel);
 
         final InvokeStatement invokeStatement = genInvokeStatement(method);
@@ -662,14 +652,14 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
     }
 
     /**
-     * 加上methodKey防止重复
+     * 加上methodId防止重复
      *
-     * @param methodKey rpc方法唯一键
-     * @param method    rpc方法
+     * @param methodId rpc方法唯一键
+     * @param method   rpc方法
      * @return 注册该rpc方法的
      */
-    private String getServerProxyMethodName(int methodKey, ExecutableElement method) {
-        return "_register" + BeanUtils.firstCharToUpperCase(method.getSimpleName().toString()) + "_" + methodKey;
+    private String getServerProxyMethodName(short methodId, ExecutableElement method) {
+        return "_register" + BeanUtils.firstCharToUpperCase(method.getSimpleName().toString()) + "_" + methodId;
     }
 
     /**

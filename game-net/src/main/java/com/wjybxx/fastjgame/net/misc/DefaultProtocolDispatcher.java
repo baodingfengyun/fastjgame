@@ -46,8 +46,8 @@ public class DefaultProtocolDispatcher implements RpcFunctionRegistry, ProtocolD
     }
 
     @Override
-    public void register(int methodKey, @Nonnull RpcFunction function) {
-        rpcCallDispatcher.register(methodKey, function);
+    public void register(short serviceId, short methodId, @Nonnull RpcFunction function) {
+        rpcCallDispatcher.register(serviceId, methodId, function);
     }
 
     @Override

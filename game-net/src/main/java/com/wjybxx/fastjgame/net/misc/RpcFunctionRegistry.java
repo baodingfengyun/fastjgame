@@ -31,13 +31,14 @@ public interface RpcFunctionRegistry {
     /**
      * 注册一个rpc请求处理函数
      *
-     * @param methodKey 方法唯一键
+     * @param serviceId 服务id
+     * @param methodId  方法id
      * @param function  处理函数，该函数由代理代码生成工具自动生成，当然你也可以闲得蛋疼自己写。
      */
-    void register(int methodKey, @Nonnull RpcFunction function);
+    void register(short serviceId, short methodId, @Nonnull RpcFunction function);
 
     /**
-     * 释放所有的资源，因为{@link #register(int, RpcFunction)}会捕获太多对象，当不再使用{@link RpcFunctionRegistry}时，
+     * 释放所有的资源，因为{@link #register(short, short, RpcFunction)}会捕获太多对象，当不再使用{@link RpcFunctionRegistry}时，
      * 手动的释放，避免因为registry对象存在导致内存泄漏。
      */
     void release();
