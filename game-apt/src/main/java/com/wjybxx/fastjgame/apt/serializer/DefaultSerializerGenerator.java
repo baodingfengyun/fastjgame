@@ -105,9 +105,9 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
             typeBuilder.addField(byte.class, filedWireTypeFieldName, Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL);
             staticCodeBlockBuilder.addStatement("$L = $T.$L($T.class)", filedWireTypeFieldName, processor.wireTypeTypeName, FINDTYPE_METHOD_NAME, fieldRawTypeName);
 
-            addReadStatement(variableElement, fieldRawTypeName, filedWireTypeFieldName);
-
             addWriteStatement(variableElement, fieldRawTypeName, filedWireTypeFieldName);
+
+            addReadStatement(variableElement, fieldRawTypeName, filedWireTypeFieldName);
         }
 
         typeBuilder.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
@@ -156,15 +156,15 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
 
     /**
      * 写对象用的getter方法
+     * 且要求了一定有getter方法
      */
     private void addWriteStatement(VariableElement variableElement, TypeName fieldRawTypeName, String filedWireTypeFieldName) {
-        writeByGetter(variableElement, fieldRawTypeName, filedWireTypeFieldName);
-    }
-
-    private void writeByGetter(VariableElement variableElement, TypeName fieldRawTypeName, String filedWireTypeFieldName) {
-        // 一定有getter方法
         final String getterName = BeanUtils.getterMethodName(variableElement.getSimpleName().toString(), BeanUtils.isPrimitiveBoolean(fieldRawTypeName));
-        writeObjectMethodBuilder.addStatement("outputStream.$L($L, instance.$L())", WRITE_FIELD_METHOD_NAME, filedWireTypeFieldName, getterName);
+        if (isPrimitiveType(variableElement)){
+            writeObjectMethodBuilder.addStatement("outputStream.$L(instance.$L())", getWritePrimitiveType(variableElement), getterName);
+        } else {
+            writeObjectMethodBuilder.addStatement("outputStream.$L($L, instance.$L())", WRITE_FIELD_METHOD_NAME, filedWireTypeFieldName, getterName);
+        }
     }
 
     /**
@@ -186,7 +186,9 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
     private void readBySetter(VariableElement variableElement, TypeName fieldRawTypeName, String filedWireTypeFieldName) {
         // 包含非private的setter方法
         final String setterName = BeanUtils.setterMethodName(variableElement.getSimpleName().toString(), BeanUtils.isPrimitiveBoolean(fieldRawTypeName));
-        if (processor.isMap(variableElement)) {
+        if (isPrimitiveType(variableElement)) {
+            readFieldsMethodBuilder.addStatement("instance.$L(inputStream.$L())", setterName, getReadPrimitiveMethodName(variableElement));
+        } else if (processor.isMap(variableElement)) {
             final TypeName impTypeName = getFieldImpTypeName(variableElement);
             readFieldsMethodBuilder.addStatement("instance.$L(inputStream.$L($T::new))", setterName, READ_MAP_METHOD_NAME, impTypeName);
         } else if (processor.isCollection(variableElement)) {
@@ -228,6 +230,22 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
     private TypeName getFieldImpTypeName(VariableElement variableElement) {
         final TypeMirror fieldImplType = processor.getFieldImplType(variableElement);
         return TypeName.get(typeUtils.erasure(fieldImplType));
+    }
+
+    private static String getWritePrimitiveType(VariableElement variableElement) {
+        return "write" + primitiveTypeName(variableElement);
+    }
+
+    private static String primitiveTypeName(VariableElement variableElement) {
+        return BeanUtils.firstCharToUpperCase(variableElement.asType().getKind().name().toLowerCase());
+    }
+
+    private static String getReadPrimitiveMethodName(VariableElement variableElement) {
+        return "read" + primitiveTypeName(variableElement);
+    }
+
+    private static boolean isPrimitiveType(VariableElement variableElement) {
+        return variableElement.asType().getKind().isPrimitive();
     }
 
     private MethodSpec newGetEntityMethodBuilder() {

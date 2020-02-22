@@ -150,6 +150,54 @@ class CustomEntityCodec implements BinaryCodec<Object> {
             BinaryProtocolCodec.writeTag(outputStream, WireType.ARRAY);
             ArrayCodec.writeByteArray(outputStream, bytes, offset, length);
         }
+
+        @Override
+        public void writeInt(int value) throws Exception {
+            BinaryProtocolCodec.writeTag(outputStream, WireType.INT);
+            outputStream.writeInt32NoTag(value);
+        }
+
+        @Override
+        public void writeLong(long value) throws Exception {
+            BinaryProtocolCodec.writeTag(outputStream, WireType.LONG);
+            outputStream.writeInt64NoTag(value);
+        }
+
+        @Override
+        public void writeFloat(float value) throws Exception {
+            BinaryProtocolCodec.writeTag(outputStream, WireType.FLOAT);
+            outputStream.writeFloatNoTag(value);
+        }
+
+        @Override
+        public void writeDouble(double value) throws Exception {
+            BinaryProtocolCodec.writeTag(outputStream, WireType.DOUBLE);
+            outputStream.writeDoubleNoTag(value);
+        }
+
+        @Override
+        public void writeShort(short value) throws Exception {
+            BinaryProtocolCodec.writeTag(outputStream, WireType.SHORT);
+            outputStream.writeInt32NoTag(value);
+        }
+
+        @Override
+        public void writeBoolean(boolean value) throws Exception {
+            BinaryProtocolCodec.writeTag(outputStream, WireType.BOOLEAN);
+            outputStream.writeBoolNoTag(value);
+        }
+
+        @Override
+        public void writeByte(byte value) throws Exception {
+            BinaryProtocolCodec.writeTag(outputStream, WireType.BYTE);
+            outputStream.writeRawByte(value);
+        }
+
+        @Override
+        public void writeChar(char value) throws Exception {
+            BinaryProtocolCodec.writeTag(outputStream, WireType.CHAR);
+            outputStream.writeUInt32NoTag(value);
+        }
     }
 
     class EntityInputStreamImp implements EntityInputStream {
@@ -249,6 +297,61 @@ class CustomEntityCodec implements BinaryCodec<Object> {
             final ArrayCodec arrayCodec = (ArrayCodec) binaryProtocolCodec.getCodec(WireType.ARRAY);
             @SuppressWarnings("unchecked") final T array = (T) arrayCodec.readArray(inputStream, componentType);
             return array;
+        }
+
+        private void readTagAndCheck(byte expectedTag) throws Exception {
+            final byte tag = BinaryProtocolCodec.readTag(inputStream);
+            if (tag != expectedTag) {
+                throw new IOException("Incompatible wireType, expected: " + expectedTag + ", but read: " + tag);
+            }
+        }
+
+        @Override
+        public int readInt() throws Exception {
+            readTagAndCheck(WireType.INT);
+            return inputStream.readInt32();
+        }
+
+        @Override
+        public long readLong() throws Exception {
+            readTagAndCheck(WireType.LONG);
+            return inputStream.readInt64();
+        }
+
+        @Override
+        public float readFloat() throws Exception {
+            readTagAndCheck(WireType.FLOAT);
+            return inputStream.readFloat();
+        }
+
+        @Override
+        public double readDouble() throws Exception {
+            readTagAndCheck(WireType.DOUBLE);
+            return inputStream.readDouble();
+        }
+
+        @Override
+        public short readShort() throws Exception {
+            readTagAndCheck(WireType.SHORT);
+            return (short) inputStream.readInt32();
+        }
+
+        @Override
+        public boolean readBoolean() throws Exception {
+            readTagAndCheck(WireType.BOOLEAN);
+            return inputStream.readBool();
+        }
+
+        @Override
+        public byte readByte() throws Exception {
+            readTagAndCheck(WireType.BYTE);
+            return inputStream.readRawByte();
+        }
+
+        @Override
+        public char readChar() throws Exception {
+            readTagAndCheck(WireType.CHAR);
+            return (char) inputStream.readUInt32();
         }
     }
 }

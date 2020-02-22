@@ -77,39 +77,23 @@ public interface EntityInputStream {
     @Nullable
     <T> T readArray(@Nonnull Class<?> componentType) throws Exception;
 
-    // ----------------------------------------- 方便手动实现扩展 ----------------------------------
+    // ----------------------------------------- 消除基本类型的拆装箱，也方便扩展 ----------------------------------
 
-    default Integer readInt() throws Exception {
-        return readField(WireType.INT);
-    }
+    int readInt() throws Exception;
 
-    default Long readLong() throws Exception {
-        return readField(WireType.LONG);
-    }
+    long readLong() throws Exception;
 
-    default Float readFloat() throws Exception {
-        return readField(WireType.FLOAT);
-    }
+    float readFloat() throws Exception;
 
-    default Double readDouble() throws Exception {
-        return readField(WireType.DOUBLE);
-    }
+    double readDouble() throws Exception;
 
-    default Short readShort() throws Exception {
-        return readField(WireType.SHORT);
-    }
+    short readShort() throws Exception;
 
-    default Boolean readBoolean() throws Exception {
-        return readField(WireType.BOOLEAN);
-    }
+    boolean readBoolean() throws Exception;
 
-    default Byte readByte() throws Exception {
-        return readField(WireType.BYTE);
-    }
+    byte readByte() throws Exception;
 
-    default Character readChar() throws Exception {
-        return readField(WireType.CHAR);
-    }
+    char readChar() throws Exception;
 
     default String readString() throws Exception {
         return readField(WireType.STRING);

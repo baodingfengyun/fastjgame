@@ -80,37 +80,21 @@ public interface EntityOutputStream {
 
     // ----------------------------------------- 方便手动实现扩展 --------------------------------------
 
-    default void writeInt(@Nullable Integer value) throws Exception {
-        writeField(WireType.INT, value);
-    }
+    void writeInt(int value) throws Exception;
 
-    default void writeLong(@Nullable Long value) throws Exception {
-        writeField(WireType.LONG, value);
-    }
+    void writeLong(long value) throws Exception;
 
-    default void writeFloat(@Nullable Float value) throws Exception {
-        writeField(WireType.FLOAT, value);
-    }
+    void writeFloat(float value) throws Exception;
 
-    default void writeDouble(@Nullable Double value) throws Exception {
-        writeField(WireType.DOUBLE, value);
-    }
+    void writeDouble(double value) throws Exception;
 
-    default void writeShort(@Nullable Short value) throws Exception {
-        writeField(WireType.SHORT, value);
-    }
+    void writeShort(short value) throws Exception;
 
-    default void writeBoolean(@Nullable Boolean value) throws Exception {
-        writeField(WireType.BOOLEAN, value);
-    }
+    void writeBoolean(boolean value) throws Exception;
 
-    default void writeByte(@Nullable Byte value) throws Exception {
-        writeField(WireType.BYTE, value);
-    }
+    void writeByte(byte value) throws Exception;
 
-    default void writeChar(@Nullable Character value) throws Exception {
-        writeField(WireType.CHAR, value);
-    }
+    void writeChar(char value) throws Exception;
 
     default void writeString(@Nullable String value) throws Exception {
         writeField(WireType.STRING, value);

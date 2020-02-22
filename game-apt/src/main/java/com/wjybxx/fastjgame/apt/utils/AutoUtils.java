@@ -24,6 +24,7 @@ import javax.annotation.Nullable;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
+import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
 import javax.lang.model.type.*;
@@ -41,6 +42,25 @@ import java.util.stream.Collectors;
 
 /**
  * 代码生成通用工具类
+ * <p>
+ * {@link RoundEnvironment} 运行环境，编译器环境。（他是一个独立的编译器，无法直接调试，需要远程调试）
+ * {@link Types} 类型工具类
+ * {@link Filer} 文件读写util
+ * {@link Elements} Element工具类
+ * <p>
+ * 遇见的坑，先记一笔：
+ * 1. 在注解中使用另一个类时，由于引用的类可能尚未编译，因此安全的方式是使用
+ * {@link AnnotationValue#accept(AnnotationValueVisitor, Object)}获取引用的类的{@link TypeMirror}。
+ * 在不熟悉这个api时，谷歌/百度得到的基本都是通过捕获异常获取到未编译的类的{@link TypeMirror}。
+ * <p>
+ * 2. {@link Types#isSameType(TypeMirror, TypeMirror)}、{@link Types#isSubtype(TypeMirror, TypeMirror)} 、
+ * {@link Types#isAssignable(TypeMirror, TypeMirror)} api用于判断类之间的关系。
+ * <p>
+ * 3. {@code typeUtils.isSameType(RpcResponseChannel<String>, RpcResponseChannel)  false}
+ * {@code typeUtils.isAssignable(RpcResponseChannel<String>, RpcResponseChannel)  true}
+ * {@code typeUtils.isAssignable(RpcResponseChannel<String>, RpcResponseChannel<Integer>)  false}
+ * {@code typeUtils.isSubType(RpcResponseChannel<String>, RpcResponseChannel)  true}
+ * {@code typeUtils.isSubType(RpcResponseChannel<String>, RpcResponseChannel<Integer>)  false}
  *
  * @author wjybxx
  * @version 1.0
@@ -433,14 +453,14 @@ public class AutoUtils {
             // 如果自己指定路径，可以生成源码到指定路径，但是可能无法被编译器检测到，本轮无法参与编译，需要再进行一次编译
             javaFile.writeTo(filer);
         } catch (IOException e) {
-            messager.printMessage(Diagnostic.Kind.ERROR, "writeToFile caught exception!", originTypeElement);
+            messager.printMessage(Diagnostic.Kind.ERROR, getStackTrace(e), originTypeElement);
         }
     }
 
     /**
      * 获取一个类或接口所属的包名
      */
-    public static String getPackageName(TypeElement typeElement, Elements elementUtils) {
+    private static String getPackageName(TypeElement typeElement, Elements elementUtils) {
         return elementUtils.getPackageOf(typeElement).getQualifiedName().toString();
     }
 
