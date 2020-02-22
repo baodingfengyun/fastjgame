@@ -43,11 +43,16 @@ public class BinaryProtoCodecTest {
         System.out.println(NetUtils.getOuterIp());
 
         ExampleMessages.FullMessage fullMessage = newFullMessage();
-        System.out.println(fullMessage);
-
         ByteBuf encodeResult = codec.writeObject(byteBufAllocator, fullMessage);
 
+        System.out.println("--------------------encode length-------------------");
+        System.out.println(encodeResult.readableBytes());
+
+        System.out.println("-----------------------origin---------------------");
+        System.out.println(fullMessage);
+
         Object decodeResult = codec.readObject(encodeResult);
+        System.out.println("-----------------------decode--------------------");
         System.out.println(decodeResult);
 
         System.out.println("equals = " + fullMessage.equals(decodeResult));

@@ -18,10 +18,6 @@ package com.wjybxx.fastjgame.net.binary;
 
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.CodedOutputStream;
-import it.unimi.dsi.fastutil.Hash;
-import it.unimi.dsi.fastutil.bytes.Byte2ObjectMap;
-import it.unimi.dsi.fastutil.bytes.Byte2ObjectOpenHashMap;
-import org.apache.commons.lang3.ArrayUtils;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -37,9 +33,8 @@ import java.util.IdentityHashMap;
  */
 class ArrayCodec implements BinaryCodec<Object> {
 
-    private static final int CHILD_SIZE = 9;
-    private static final IdentityHashMap<Class<?>, Byte> component2TypeMapping = new IdentityHashMap<>(CHILD_SIZE);
-    private static final Byte2ObjectMap<Class<?>> type2ComponentMapping = new Byte2ObjectOpenHashMap<>(CHILD_SIZE, Hash.FAST_LOAD_FACTOR);
+    private static final int CHILD_SIZE = 8;
+    private static final IdentityHashMap<Class<?>, Byte> primitiveType2TagMapping = new IdentityHashMap<>(CHILD_SIZE);
 
     static {
         register(byte.class, WireType.BYTE);
@@ -50,13 +45,10 @@ class ArrayCodec implements BinaryCodec<Object> {
         register(float.class, WireType.FLOAT);
         register(double.class, WireType.DOUBLE);
         register(boolean.class, WireType.BOOLEAN);
-
-        register(String.class, WireType.STRING);
     }
 
     private static void register(Class<?> component, byte type) {
-        component2TypeMapping.put(component, type);
-        type2ComponentMapping.put(type, component);
+        primitiveType2TagMapping.put(component, type);
     }
 
     private final BinaryProtocolCodec binaryProtocolCodec;
@@ -72,17 +64,17 @@ class ArrayCodec implements BinaryCodec<Object> {
 
     @Override
     public void writeData(CodedOutputStream outputStream, @Nonnull Object instance) throws Exception {
-        if (instance instanceof byte[]) {
-            final byte[] bytes = (byte[]) instance;
-            writeByteArray(outputStream, bytes, 0, bytes.length);
-        } else {
-            writeOtherArray(outputStream, instance);
-        }
-    }
+        final Byte childType = primitiveType2TagMapping.get(instance.getClass().getComponentType());
+        final int length = Array.getLength(instance);
 
-    static void writeByteArray(CodedOutputStream outputStream, @Nonnull byte[] bytes, int offset, int length) throws Exception {
-        writeChildTypeAndLength(outputStream, WireType.BYTE, length);
-        outputStream.writeRawBytes(bytes, offset, length);
+        if (null != childType) {
+            writeChildTypeAndLength(outputStream, childType, length);
+            final PrimitiveCodec<?, Object> primitiveCodec = (PrimitiveCodec<?, Object>) binaryProtocolCodec.getCodec(childType);
+            primitiveCodec.writeArray(outputStream, instance);
+        } else {
+            writeChildTypeAndLength(outputStream, WireType.RUN_TIME, length);
+            writeObjectArray(outputStream, instance, length);
+        }
     }
 
     private static void writeChildTypeAndLength(CodedOutputStream outputStream, byte childType, int length) throws IOException {
@@ -90,11 +82,7 @@ class ArrayCodec implements BinaryCodec<Object> {
         outputStream.writeUInt32NoTag(length);
     }
 
-    private void writeOtherArray(CodedOutputStream outputStream, @Nonnull Object instance) throws Exception {
-        final byte childType = component2TypeMapping.getOrDefault(instance.getClass().getComponentType(), WireType.RUN_TIME);
-        final int length = Array.getLength(instance);
-        writeChildTypeAndLength(outputStream, childType, length);
-
+    private void writeObjectArray(CodedOutputStream outputStream, @Nonnull Object instance, int length) throws Exception {
         for (int index = 0; index < length; index++) {
             Object value = Array.get(instance, index);
             binaryProtocolCodec.writeObject(outputStream, value);
@@ -104,26 +92,23 @@ class ArrayCodec implements BinaryCodec<Object> {
     @Nonnull
     @Override
     public Object readData(CodedInputStream inputStream) throws Exception {
+        return readArray(inputStream, Object.class);
+    }
+
+    Object readArray(CodedInputStream inputStream, Class<?> objectArrayComponentType) throws Exception {
         final byte childType = BinaryProtocolCodec.readTag(inputStream);
-        if (childType == WireType.BYTE) {
-            return readByteArray(inputStream);
+        final int length = inputStream.readUInt32();
+
+        if (childType != WireType.RUN_TIME) {
+            final PrimitiveCodec<?, ?> primitiveCodec = (PrimitiveCodec<?, ?>) binaryProtocolCodec.getCodec(childType);
+            return primitiveCodec.readArray(inputStream, length);
         } else {
             // 默认使用Object数组
-            final Class<?> componentType = type2ComponentMapping.getOrDefault(childType, Object.class);
-            return readOtherArray(inputStream, componentType);
+            return readObjectArray(inputStream, objectArrayComponentType, length);
         }
     }
 
-    private static byte[] readByteArray(CodedInputStream inputStream) throws IOException {
-        final int length = inputStream.readUInt32();
-        if (length == 0) {
-            return ArrayUtils.EMPTY_BYTE_ARRAY;
-        }
-        return inputStream.readRawBytes(length);
-    }
-
-    private Object readOtherArray(CodedInputStream inputStream, Class<?> componentType) throws Exception {
-        final int length = inputStream.readUInt32();
+    private Object readObjectArray(CodedInputStream inputStream, Class<?> componentType, int length) throws Exception {
         final Object array = Array.newInstance(componentType, length);
         for (int index = 0; index < length; index++) {
             Array.set(array, index, binaryProtocolCodec.readObject(inputStream));
@@ -136,18 +121,9 @@ class ArrayCodec implements BinaryCodec<Object> {
         return WireType.ARRAY;
     }
 
-    Object readArray(CodedInputStream inputStream, Class<?> componentType) throws Exception {
-        final byte childType = BinaryProtocolCodec.readTag(inputStream);
-        final Class<?> defaultComponentType = type2ComponentMapping.getOrDefault(childType, Object.class);
-
-        if (componentType == defaultComponentType || defaultComponentType == Object.class) {
-            if (componentType == byte.class) {
-                return readByteArray(inputStream);
-            } else {
-                return readOtherArray(inputStream, componentType);
-            }
-        }
-        throw new IOException("Incompatible componentType, defaultType: " + defaultComponentType.getCanonicalName() +
-                ", but specified : " + componentType.getCanonicalName());
+    static void writeByteArray(CodedOutputStream outputStream, @Nonnull byte[] bytes, int offset, int length) throws Exception {
+        writeChildTypeAndLength(outputStream, WireType.BYTE, length);
+        ByteCodec.writeArray(outputStream, bytes, offset, length);
     }
+
 }

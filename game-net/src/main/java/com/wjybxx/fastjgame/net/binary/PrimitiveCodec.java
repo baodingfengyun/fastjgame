@@ -14,13 +14,32 @@
  * limitations under the License.
  */
 
+package com.wjybxx.fastjgame.net.binary;
+
+import com.google.protobuf.CodedInputStream;
+import com.google.protobuf.CodedOutputStream;
+
+import javax.annotation.Nonnull;
+
 /**
- * 这里是对常用底层类编解码的支持。
- * 以后新增自定义类型都使用{@link com.wjybxx.fastjgame.net.binary.EntitySerializer}实现编解码，不再新增codec类。
+ * 基础类型编解码器
  *
  * @author wjybxx
  * @version 1.0
- * date - 2020/2/20
+ * date - 2020/2/22
  * github - https://github.com/hl845740757
  */
-package com.wjybxx.fastjgame.net.serializer;
+public interface PrimitiveCodec<T, U> extends BinaryCodec<T> {
+
+    /**
+     * 写入数组的内容
+     * 注意：数组的长度已经写入
+     */
+    void writeArray(CodedOutputStream outputStream, @Nonnull U array) throws Exception;
+
+    /**
+     * 读取指定长度的数组
+     */
+    U readArray(CodedInputStream inputStream, int length) throws Exception;
+
+}

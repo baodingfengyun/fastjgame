@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-class FloatCodec implements BinaryCodec<Float> {
+class FloatCodec implements PrimitiveCodec<Float, float[]> {
 
     @Override
     public boolean isSupport(Class<?> runtimeType) {
@@ -49,4 +49,19 @@ class FloatCodec implements BinaryCodec<Float> {
         return WireType.FLOAT;
     }
 
+    @Override
+    public void writeArray(CodedOutputStream outputStream, @Nonnull float[] array) throws Exception {
+        for (float value : array) {
+            outputStream.writeFloatNoTag(value);
+        }
+    }
+
+    @Override
+    public float[] readArray(CodedInputStream inputStream, int length) throws Exception {
+        float[] result = new float[length];
+        for (int index = 0; index < length; index++) {
+            result[index] = inputStream.readFloat();
+        }
+        return result;
+    }
 }

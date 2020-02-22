@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-class CharCodec implements BinaryCodec<Character> {
+class CharCodec implements PrimitiveCodec<Character, char[]> {
 
     @Override
     public boolean isSupport(Class<?> runtimeType) {
@@ -47,6 +47,22 @@ class CharCodec implements BinaryCodec<Character> {
     @Override
     public byte getWireType() {
         return WireType.CHAR;
+    }
+
+    @Override
+    public void writeArray(CodedOutputStream outputStream, @Nonnull char[] array) throws Exception {
+        for (char value : array) {
+            outputStream.writeUInt32NoTag(value);
+        }
+    }
+
+    @Override
+    public char[] readArray(CodedInputStream inputStream, int length) throws Exception {
+        char[] result = new char[length];
+        for (int index = 0; index < length; index++) {
+            result[index] = (char) inputStream.readUInt32();
+        }
+        return result;
     }
 
 }

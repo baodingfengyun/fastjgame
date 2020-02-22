@@ -24,7 +24,7 @@ import javax.annotation.Nonnull;
 /**
  * 一个字节就占用一个字节 - 不需要使用int32的格式
  */
-class ByteCodec implements BinaryCodec<Byte> {
+class ByteCodec implements PrimitiveCodec<Byte, byte[]> {
 
     @Override
     public boolean isSupport(Class<?> runtimeType) {
@@ -47,4 +47,17 @@ class ByteCodec implements BinaryCodec<Byte> {
         return WireType.BYTE;
     }
 
+    @Override
+    public void writeArray(CodedOutputStream outputStream, @Nonnull byte[] array) throws Exception {
+        outputStream.writeRawBytes(array, 0, array.length);
+    }
+
+    @Override
+    public byte[] readArray(CodedInputStream inputStream, int length) throws Exception {
+        return inputStream.readRawBytes(length);
+    }
+
+    static void writeArray(CodedOutputStream outputStream, @Nonnull byte[] array, int offset, int length) throws Exception {
+        outputStream.writeRawBytes(array, offset, length);
+    }
 }

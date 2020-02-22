@@ -174,8 +174,8 @@ public class BinaryProtocolCodec implements ProtocolCodec {
     }
 
     @Nonnull
-    <T> BinaryCodec<T> getCodec(int wireType) throws IOException {
-        @SuppressWarnings("unchecked") BinaryCodec<T> codec = (BinaryCodec<T>) codecMapper.forNumber(wireType);
+    <T extends BinaryCodec<U>, U> T getCodec(int wireType) throws IOException {
+        @SuppressWarnings("unchecked") T codec = (T) codecMapper.forNumber(wireType);
         if (null == codec) {
             throw new IOException("unsupported wireType " + wireType);
         }

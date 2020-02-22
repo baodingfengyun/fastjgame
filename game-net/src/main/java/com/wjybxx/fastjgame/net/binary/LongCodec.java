@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-class LongCodec implements BinaryCodec<Long> {
+class LongCodec implements PrimitiveCodec<Long, long[]> {
 
     @Override
     public boolean isSupport(Class<?> runtimeType) {
@@ -49,4 +49,19 @@ class LongCodec implements BinaryCodec<Long> {
         return WireType.LONG;
     }
 
+    @Override
+    public void writeArray(CodedOutputStream outputStream, @Nonnull long[] array) throws Exception {
+        for (long value : array) {
+            outputStream.writeInt64NoTag(value);
+        }
+    }
+
+    @Override
+    public long[] readArray(CodedInputStream inputStream, int length) throws Exception {
+        long[] result = new long[length];
+        for (int index = 0; index < length; index++) {
+            result[index] = inputStream.readInt64();
+        }
+        return result;
+    }
 }

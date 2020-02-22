@@ -294,7 +294,7 @@ class CustomEntityCodec implements BinaryCodec<Object> {
                 throw new IOException("Incompatible wireType, expected: " + WireType.ARRAY + ", but read: " + tag);
             }
 
-            final ArrayCodec arrayCodec = (ArrayCodec) binaryProtocolCodec.getCodec(WireType.ARRAY);
+            final ArrayCodec arrayCodec = binaryProtocolCodec.getCodec(WireType.ARRAY);
             @SuppressWarnings("unchecked") final T array = (T) arrayCodec.readArray(inputStream, componentType);
             return array;
         }
