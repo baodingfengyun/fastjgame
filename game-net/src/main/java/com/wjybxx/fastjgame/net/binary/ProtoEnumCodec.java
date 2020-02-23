@@ -52,7 +52,7 @@ class ProtoEnumCodec implements BinaryCodec<ProtocolMessageEnum> {
     }
 
     @Override
-    public void writeData(CodedOutputStream outputStream, @Nonnull ProtocolMessageEnum instance) throws Exception {
+    public void writeDataNoTag(CodedOutputStream outputStream, @Nonnull ProtocolMessageEnum instance) throws Exception {
         outputStream.writeInt32NoTag(messageMapper.getMessageId(instance.getClass()));
         outputStream.writeEnumNoTag(instance.getNumber());
     }
@@ -62,7 +62,7 @@ class ProtoEnumCodec implements BinaryCodec<ProtocolMessageEnum> {
     public ProtocolMessageEnum readData(CodedInputStream inputStream) throws Exception {
         final int messageId = inputStream.readInt32();
         final int number = inputStream.readEnum();
-        final Class<?> enumClass = messageMapper.getMessageClazz(messageId);
+        final Class<?> enumClass = messageMapper.getMessageClass(messageId);
         return (ProtocolMessageEnum) protoEnumDescriptorMap.get(enumClass).mapper.findValueByNumber(number);
     }
 

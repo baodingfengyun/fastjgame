@@ -45,7 +45,7 @@ interface BinaryCodec<T> extends NumericalEntity {
      * @param outputStream 输出流
      * @param instance     待编码的对象
      */
-    void writeData(CodedOutputStream outputStream, @Nonnull T instance) throws Exception;
+    void writeDataNoTag(CodedOutputStream outputStream, @Nonnull T instance) throws Exception;
 
     /**
      * 解码字段协议内容，不包含wireType

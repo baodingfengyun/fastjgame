@@ -72,7 +72,7 @@ public final class MessageMapper {
      * @param messageId 消息id
      * @return 消息id对应的class
      */
-    public final Class<?> getMessageClazz(int messageId) {
+    public final Class<?> getMessageClass(int messageId) {
         return messageId2ClazzMap.get(messageId);
     }
 
@@ -100,7 +100,7 @@ public final class MessageMapper {
      *
      * @return unmodifiableMap
      */
-    public final Object2IntMap<Class<?>> getMessageClazz2IdMap() {
+    public final Object2IntMap<Class<?>> getMessageClass2IdMap() {
         return Object2IntMaps.unmodifiable(messageClazz2IdMap);
     }
 

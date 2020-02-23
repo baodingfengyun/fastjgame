@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
@@ -31,54 +32,6 @@ import java.util.Map;
  * github - https://github.com/hl845740757
  */
 public interface EntityOutputStream {
-
-    /**
-     * 向输出流中写入一个字段
-     *
-     * @param wireType   字段的缓存类型，如果该值为{@link WireType#RUN_TIME}，则需要动态解析。
-     * @param fieldValue 字段的值
-     */
-    <T> void writeField(byte wireType, @Nullable T fieldValue) throws Exception;
-
-    // ----------------------------------------- 处理多态问题 ----------------------------------
-
-    /**
-     * 向输出流中写一个多态实体对象
-     * （按照超类格式写入数据，并忽略子类字段）
-     */
-    <E> void writeEntity(@Nullable E entity, EntitySerializer<? super E> entitySerializer) throws Exception;
-
-    /**
-     * 向输出流中写入一个map
-     */
-    default <K, V> void writeMap(@Nullable Map<K, V> map) throws Exception {
-        writeField(WireType.MAP, map);
-    }
-
-    /**
-     * 向输出流中写一个collection
-     */
-    default <E> void writeCollection(@Nullable Collection<? extends E> collection) throws Exception {
-        writeField(WireType.COLLECTION, collection);
-    }
-
-    /**
-     * 向输出流中写入一个数组
-     *
-     * @param array 要支持基本类型数组，因此为{@link Object}而不是泛型数组+
-     */
-    default void writeArray(@Nullable Object array) throws Exception {
-        writeField(WireType.ARRAY, array);
-    }
-
-    // ---------------------------------------- 字节数组特殊写入需求 ----------------------------------
-
-    /**
-     * 向输出流中写入一个字节数组，并可以指定偏移量和长度
-     */
-    void writeBytes(@Nullable byte[] bytes, int offset, int length) throws Exception;
-
-    // ----------------------------------------- 方便手动实现扩展 --------------------------------------
 
     void writeInt(int value) throws Exception;
 
@@ -112,4 +65,51 @@ public interface EntityOutputStream {
     default <T> void writeObject(@Nullable T value) throws Exception {
         writeField(WireType.RUN_TIME, value);
     }
+
+    /**
+     * 向输出流中写入一个字节数组，并可以指定偏移量和长度
+     */
+    void writeBytes(@Nonnull byte[] bytes, int offset, int length) throws Exception;
+
+    // ----------------------------------------- 处理多态问题 ----------------------------------
+
+    /**
+     * 向输出流中写一个collection
+     */
+    default <E> void writeCollection(@Nullable Collection<? extends E> collection) throws Exception {
+        writeField(WireType.COLLECTION, collection);
+    }
+
+    /**
+     * 向输出流中写入一个map
+     */
+    default <K, V> void writeMap(@Nullable Map<K, V> map) throws Exception {
+        writeField(WireType.MAP, map);
+    }
+
+    /**
+     * 向输出流中写入一个数组
+     *
+     * @param array 要支持基本类型数组，因此为{@link Object}而不是泛型数组+
+     */
+    default void writeArray(@Nullable Object array) throws Exception {
+        writeField(WireType.ARRAY, array);
+    }
+
+    /**
+     * 向输出流中写一个多态实体对象（按照超类格式写入数据，并忽略子类字段）
+     * 注意：必须保证和{@link EntityInputStream#readEntity(EntityFactory, AbstractEntitySerializer)} 使用相同的serializer
+     */
+    <E> void writeEntity(@Nullable E entity, EntitySerializer<? super E> entitySerializer) throws Exception;
+
+    // ----------------------------------------- 生成代码调用 --------------------------------------
+
+    /**
+     * 向输出流中写入一个字段
+     *
+     * @param wireType   字段的缓存类型，如果该值为{@link WireType#RUN_TIME}，则需要动态解析。
+     * @param fieldValue 字段的值
+     */
+    <T> void writeField(byte wireType, @Nullable T fieldValue) throws Exception;
+
 }

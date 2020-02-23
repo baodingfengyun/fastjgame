@@ -51,8 +51,8 @@ public class JsonProtocolCodec implements ProtocolCodec {
 
     @Nonnull
     @Override
-    public byte[] serializeToBytes(@Nullable Object obj) throws Exception {
-        if (null == obj) {
+    public byte[] serializeToBytes(@Nullable Object object) throws Exception {
+        if (null == object) {
             return ArrayUtils.EMPTY_BYTE_ARRAY;
         }
         final byte[] localBuffer = LOCAL_BUFFER.get();
@@ -63,10 +63,10 @@ public class JsonProtocolCodec implements ProtocolCodec {
 
             ByteBufOutputStream byteBufOutputStream = new ByteBufOutputStream(cacheBuffer);
             // 协议classId
-            int messageId = messageMapper.getMessageId(obj.getClass());
+            int messageId = messageMapper.getMessageId(object.getClass());
             byteBufOutputStream.writeInt(messageId);
             // 写入序列化的内容
-            JsonUtils.writeToOutputStream(byteBufOutputStream, obj);
+            JsonUtils.writeToOutputStream(byteBufOutputStream, object);
 
             // 拷贝结果
             byte[] result = new byte[cacheBuffer.readableBytes()];
@@ -91,8 +91,8 @@ public class JsonProtocolCodec implements ProtocolCodec {
     }
 
     @Override
-    public Object cloneObject(@Nullable Object obj) throws Exception {
-        if (null == obj) {
+    public Object cloneObject(@Nullable Object object) throws Exception {
+        if (null == object) {
             return null;
         }
         ByteBuf cacheBuffer = Unpooled.wrappedBuffer(LOCAL_BUFFER.get());
@@ -102,11 +102,11 @@ public class JsonProtocolCodec implements ProtocolCodec {
 
             // 写入序列化的内容
             ByteBufOutputStream byteBufOutputStream = new ByteBufOutputStream(cacheBuffer);
-            JsonUtils.writeToOutputStream(byteBufOutputStream, obj);
+            JsonUtils.writeToOutputStream(byteBufOutputStream, object);
 
             // 再读出来
             ByteBufInputStream byteBufInputStream = new ByteBufInputStream(cacheBuffer);
-            return JsonUtils.readFromInputStream((InputStream) byteBufInputStream, obj.getClass());
+            return JsonUtils.readFromInputStream((InputStream) byteBufInputStream, object.getClass());
         } finally {
             cacheBuffer.release();
         }
@@ -137,13 +137,12 @@ public class JsonProtocolCodec implements ProtocolCodec {
         }
     }
 
-
     @Override
     public Object readObject(ByteBuf data) throws Exception {
         if (data.readableBytes() == 0) {
             return null;
         }
-        final Class<?> messageClazz = messageMapper.getMessageClazz(data.readInt());
+        final Class<?> messageClazz = messageMapper.getMessageClass(data.readInt());
         final ByteBufInputStream inputStream = new ByteBufInputStream(data);
         return JsonUtils.readFromInputStream((InputStream) inputStream, messageClazz);
     }

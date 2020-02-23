@@ -41,11 +41,11 @@ public interface ProtocolCodec {
      * 将一个对象序列化为字节数组，为了直接转发到玩家，该格式应当是兼容的。
      * (服务器之间、玩家与服务器之间对于protoBuf的编码格式应当是相同的)
      *
-     * @param obj 待序列化的对象 - 当前不是字节数组
+     * @param object 待序列化的对象 - 当前不是字节数组
      * @return 字节数组
      */
     @Nonnull
-    byte[] serializeToBytes(@Nullable Object obj) throws Exception;
+    byte[] serializeToBytes(@Nullable Object object) throws Exception;
 
     /**
      * 将一个对象反序列化。
@@ -60,12 +60,12 @@ public interface ProtocolCodec {
      * 克隆一个对象。
      * 该方法的主要目的是消除调用{@link #serializeToBytes(Object)}和{@link #deserializeFromBytes(byte[])}实现克隆产生的中间数组。
      *
-     * @param obj 待克隆的对象
+     * @param object 待克隆的对象
      * @return 深度克隆的对象
      * @throws IOException error
      */
     @Nullable
-    Object cloneObject(@Nullable Object obj) throws Exception;
+    Object cloneObject(@Nullable Object object) throws Exception;
 
     /**
      * 写入一个对象

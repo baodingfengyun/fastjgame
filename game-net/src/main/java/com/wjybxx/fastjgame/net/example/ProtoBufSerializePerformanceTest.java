@@ -101,7 +101,7 @@ public class ProtoBufSerializePerformanceTest {
             // 这里需要简单模拟下解码过程
             final CodedInputStream inputStream = CodedInputStream.newInstance(buffer, 0, codedOutputStream.getTotalBytesWritten());
             final int messageId = inputStream.readSInt32();
-            final Class<?> messageClass = messageMapper.getMessageClazz(messageId);
+            final Class<?> messageClass = messageMapper.getMessageClass(messageId);
             final Parser<?> parser = parserMap.get(messageClass);
             final Object decodeMsg = parser.parseFrom(inputStream);
         }

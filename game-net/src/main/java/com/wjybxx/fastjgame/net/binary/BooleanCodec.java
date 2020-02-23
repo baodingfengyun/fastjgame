@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-class BooleanCodec implements PrimitiveCodec<Boolean, boolean[]> {
+class BooleanCodec implements BinaryCodec<Boolean> {
 
     @Override
     public boolean isSupport(Class<?> runtimeType) {
@@ -34,7 +34,7 @@ class BooleanCodec implements PrimitiveCodec<Boolean, boolean[]> {
     }
 
     @Override
-    public void writeData(CodedOutputStream outputStream, @Nonnull Boolean instance) throws Exception {
+    public void writeDataNoTag(CodedOutputStream outputStream, @Nonnull Boolean instance) throws Exception {
         outputStream.writeBoolNoTag(instance);
     }
 
@@ -49,19 +49,4 @@ class BooleanCodec implements PrimitiveCodec<Boolean, boolean[]> {
         return WireType.BOOLEAN;
     }
 
-    @Override
-    public void writeArray(CodedOutputStream outputStream, @Nonnull boolean[] array) throws Exception {
-        for (boolean value : array) {
-            outputStream.writeBoolNoTag(value);
-        }
-    }
-
-    @Override
-    public boolean[] readArray(CodedInputStream inputStream, int length) throws Exception {
-        boolean[] result = new boolean[length];
-        for (int index = 0; index < length; index++) {
-            result[index] = inputStream.readBool();
-        }
-        return result;
-    }
 }

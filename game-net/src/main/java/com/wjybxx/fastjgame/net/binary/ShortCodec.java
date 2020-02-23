@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-class ShortCodec implements PrimitiveCodec<Short, short[]> {
+class ShortCodec implements BinaryCodec<Short> {
 
     @Override
     public boolean isSupport(Class<?> runtimeType) {
@@ -34,7 +34,7 @@ class ShortCodec implements PrimitiveCodec<Short, short[]> {
     }
 
     @Override
-    public final void writeData(CodedOutputStream outputStream, @Nonnull Short instance) throws Exception {
+    public final void writeDataNoTag(CodedOutputStream outputStream, @Nonnull Short instance) throws Exception {
         outputStream.writeInt32NoTag(instance.intValue());
     }
 
@@ -49,19 +49,4 @@ class ShortCodec implements PrimitiveCodec<Short, short[]> {
         return WireType.SHORT;
     }
 
-    @Override
-    public void writeArray(CodedOutputStream outputStream, @Nonnull short[] array) throws Exception {
-        for (short value : array) {
-            outputStream.writeInt32NoTag(value);
-        }
-    }
-
-    @Override
-    public short[] readArray(CodedInputStream inputStream, int length) throws Exception {
-        short[] result = new short[length];
-        for (int index = 0; index < length; index++) {
-            result[index] = (short) inputStream.readInt32();
-        }
-        return result;
-    }
 }

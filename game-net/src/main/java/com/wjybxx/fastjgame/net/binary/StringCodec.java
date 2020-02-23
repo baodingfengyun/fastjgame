@@ -34,7 +34,7 @@ class StringCodec implements BinaryCodec<String> {
     }
 
     @Override
-    public void writeData(CodedOutputStream outputStream, @Nonnull String instance) throws Exception {
+    public void writeDataNoTag(CodedOutputStream outputStream, @Nonnull String instance) throws Exception {
         outputStream.writeStringNoTag(instance);
     }
 

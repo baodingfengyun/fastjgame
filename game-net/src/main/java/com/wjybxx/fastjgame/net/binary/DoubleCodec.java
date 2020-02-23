@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-class DoubleCodec implements PrimitiveCodec<Double, double[]> {
+class DoubleCodec implements BinaryCodec<Double> {
 
     @Override
     public boolean isSupport(Class<?> runtimeType) {
@@ -34,7 +34,7 @@ class DoubleCodec implements PrimitiveCodec<Double, double[]> {
     }
 
     @Override
-    public void writeData(CodedOutputStream outputStream, @Nonnull Double instance) throws Exception {
+    public void writeDataNoTag(CodedOutputStream outputStream, @Nonnull Double instance) throws Exception {
         outputStream.writeDoubleNoTag(instance);
     }
 
@@ -49,19 +49,4 @@ class DoubleCodec implements PrimitiveCodec<Double, double[]> {
         return WireType.DOUBLE;
     }
 
-    @Override
-    public void writeArray(CodedOutputStream outputStream, @Nonnull double[] array) throws Exception {
-        for (double value : array) {
-            outputStream.writeDoubleNoTag(value);
-        }
-    }
-
-    @Override
-    public double[] readArray(CodedInputStream inputStream, int length) throws Exception {
-        double[] result = new double[length];
-        for (int index = 0; index < length; index++) {
-            result[index] = inputStream.readDouble();
-        }
-        return result;
-    }
 }

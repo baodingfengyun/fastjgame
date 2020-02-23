@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-class IntegerCodec implements PrimitiveCodec<Integer, int[]> {
+class IntegerCodec implements BinaryCodec<Integer> {
 
     @Override
     public boolean isSupport(Class<?> runtimeType) {
@@ -40,29 +40,13 @@ class IntegerCodec implements PrimitiveCodec<Integer, int[]> {
     }
 
     @Override
-    public byte getWireType() {
-        return WireType.INT;
-    }
-
-    @Override
-    public final void writeData(CodedOutputStream outputStream, @Nonnull Integer instance) throws Exception {
+    public final void writeDataNoTag(CodedOutputStream outputStream, @Nonnull Integer instance) throws Exception {
         outputStream.writeInt32NoTag(instance);
     }
 
     @Override
-    public void writeArray(CodedOutputStream outputStream, @Nonnull int[] array) throws Exception {
-        for (int value : array) {
-            outputStream.writeInt32NoTag(value);
-        }
-    }
-
-    @Override
-    public int[] readArray(CodedInputStream inputStream, int length) throws Exception {
-        int[] result = new int[length];
-        for (int index = 0; index < length; index++) {
-            result[index] = inputStream.readInt32();
-        }
-        return result;
+    public byte getWireType() {
+        return WireType.INT;
     }
 
 }

@@ -32,53 +32,6 @@ import java.util.function.IntFunction;
  */
 public interface EntityInputStream {
 
-    /**
-     * 从输入流中读取一个字段。
-     *
-     * @param wireType 期望的数据类型，主要用于校验。如果该值不为{@link WireType#RUN_TIME}，则需要和读取到的tag进行比较。
-     * @return data
-     */
-    @Nullable
-    <T> T readField(byte wireType) throws Exception;
-
-    // ----------------------------------------- 处理多态问题 ----------------------------------
-
-    /**
-     * 读取一个多态实体对象
-     * (读取超类数据赋予子类实例)
-     *
-     * @param entityFactory    真正的实体创建工厂
-     * @param entitySerializer 实体对象的序列化实现
-     */
-    @Nullable
-    <E> E readEntity(EntityFactory<E> entityFactory, AbstractEntitySerializer<? super E> entitySerializer) throws Exception;
-
-    /**
-     * 从输入流中读取数据到map中
-     *
-     * @param mapFactory 创建map的工厂 - 参数为元素个数，可能为0
-     */
-    @Nullable
-    <M extends Map<K, V>, K, V> M readMap(@Nonnull IntFunction<M> mapFactory) throws Exception;
-
-    /**
-     * 从输入流中读取数据到collection中
-     *
-     * @param collectionFactory 创建集合的工厂 - 参数为元素个数，可能为0
-     */
-    @Nullable
-    <C extends Collection<E>, E> C readCollection(@Nonnull IntFunction<C> collectionFactory) throws Exception;
-
-    /**
-     * 从输入流中读取数据到数组中
-     *
-     * @param componentType 数组元素类型，支持基本类型（因此未定义为泛型参数）
-     */
-    @Nullable
-    <T> T readArray(@Nonnull Class<?> componentType) throws Exception;
-
-    // ----------------------------------------- 消除基本类型的拆装箱，也方便扩展 ----------------------------------
-
     int readInt() throws Exception;
 
     long readLong() throws Exception;
@@ -109,4 +62,51 @@ public interface EntityInputStream {
     default <T> T readObject() throws Exception {
         return readField(WireType.RUN_TIME);
     }
+
+    // ----------------------------------------- 处理多态问题 ----------------------------------
+
+    /**
+     * 从输入流中读取数据到collection中
+     *
+     * @param collectionFactory 创建集合的工厂 - 参数为元素个数，可能为0
+     */
+    @Nullable
+    <C extends Collection<E>, E> C readCollection(@Nonnull IntFunction<C> collectionFactory) throws Exception;
+
+    /**
+     * 从输入流中读取数据到map中
+     *
+     * @param mapFactory 创建map的工厂 - 参数为元素个数，可能为0
+     */
+    @Nullable
+    <M extends Map<K, V>, K, V> M readMap(@Nonnull IntFunction<M> mapFactory) throws Exception;
+
+    /**
+     * 从输入流中读取数据到数组中
+     *
+     * @param componentType 数组元素类型，支持基本类型（因此未定义为泛型参数）
+     */
+    @Nullable
+    <T> T readArray(@Nonnull Class<?> componentType) throws Exception;
+
+    /**
+     * 读取一个多态实体对象(读取超类数据赋予子类实例)
+     * 注意：必须保证和{@link EntityOutputStream#writeEntity(Object, EntitySerializer)}写入时使用相同的serializer
+     *
+     * @param entityFactory    真正的实体创建工厂
+     * @param entitySerializer 实体对象的序列化实现
+     */
+    @Nullable
+    <E> E readEntity(EntityFactory<E> entityFactory, AbstractEntitySerializer<? super E> entitySerializer) throws Exception;
+
+    // ------------------------------------------- 生成代码调用 ----------------------------------------------
+
+    /**
+     * 从输入流中读取一个字段。
+     *
+     * @param wireType 期望的数据类型，主要用于校验。如果该值不为{@link WireType#RUN_TIME}，则需要和读取到的tag进行比较。
+     * @return data
+     */
+    @Nullable
+    <T> T readField(byte wireType) throws Exception;
 }

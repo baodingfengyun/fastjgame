@@ -137,7 +137,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         for (BinaryCodec codec : codecMapper.values()) {
             if (codec.isSupport(type)) {
                 writeTag(outputStream, codec.getWireType());
-                codec.writeData(outputStream, object);
+                codec.writeDataNoTag(outputStream, object);
                 return;
             }
         }
@@ -174,7 +174,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
     }
 
     @Nonnull
-    <T extends BinaryCodec<U>, U> T getCodec(int wireType) throws IOException {
+    <T extends BinaryCodec<?>> T getCodec(int wireType) throws IOException {
         @SuppressWarnings("unchecked") T codec = (T) codecMapper.forNumber(wireType);
         if (null == codec) {
             throw new IOException("unsupported wireType " + wireType);
@@ -184,11 +184,11 @@ public class BinaryProtocolCodec implements ProtocolCodec {
 
     @Nonnull
     @Override
-    public byte[] serializeToBytes(@Nullable Object obj) throws Exception {
+    public byte[] serializeToBytes(@Nullable Object object) throws Exception {
         // 这里测试也是拷贝字节数组快于先计算大小（两轮反射）
         final byte[] localBuffer = LOCAL_BUFFER.get();
         CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(localBuffer);
-        writeObject(codedOutputStream, obj);
+        writeObject(codedOutputStream, object);
 
         // 拷贝序列化结果
         final byte[] resultBytes = new byte[codedOutputStream.getTotalBytesWritten()];
@@ -203,14 +203,14 @@ public class BinaryProtocolCodec implements ProtocolCodec {
 
     @Nullable
     @Override
-    public Object cloneObject(@Nullable Object obj) throws Exception {
-        if (obj == null) {
+    public Object cloneObject(@Nullable Object object) throws Exception {
+        if (object == null) {
             return null;
         }
         final byte[] localBuffer = LOCAL_BUFFER.get();
         // 写入缓冲区
         final CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(localBuffer);
-        writeObject(codedOutputStream, obj);
+        writeObject(codedOutputStream, object);
 
         // 读出
         final CodedInputStream codedInputStream = CodedInputStream.newInstance(localBuffer, 0, codedOutputStream.getTotalBytesWritten());

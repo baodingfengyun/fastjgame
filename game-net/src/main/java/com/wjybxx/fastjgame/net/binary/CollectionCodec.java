@@ -47,7 +47,7 @@ class CollectionCodec implements BinaryCodec<Collection<?>> {
     }
 
     @Override
-    public void writeData(CodedOutputStream outputStream, @Nonnull Collection<?> instance) throws Exception {
+    public void writeDataNoTag(CodedOutputStream outputStream, @Nonnull Collection<?> instance) throws Exception {
         outputStream.writeUInt32NoTag(instance.size());
         if (instance.size() == 0) {
             return;
