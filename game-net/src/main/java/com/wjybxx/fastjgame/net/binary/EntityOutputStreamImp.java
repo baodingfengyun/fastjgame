@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.net.binary;
 
 import com.google.protobuf.CodedOutputStream;
-import com.wjybxx.fastjgame.net.misc.MessageMapper;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -30,13 +29,11 @@ import java.io.IOException;
  */
 class EntityOutputStreamImp implements EntityOutputStream {
 
-    private final BinaryProtocolCodec binaryProtocolCodec;
-    private final MessageMapper messageMapper;
+    private final CodecRegistry codecRegistry;
     private final CodedOutputStream outputStream;
 
-    EntityOutputStreamImp(BinaryProtocolCodec binaryProtocolCodec, MessageMapper messageMapper, CodedOutputStream outputStream) {
-        this.binaryProtocolCodec = binaryProtocolCodec;
-        this.messageMapper = messageMapper;
+    EntityOutputStreamImp(CodecRegistry codecRegistry, CodedOutputStream outputStream) {
+        this.codecRegistry = codecRegistry;
         this.outputStream = outputStream;
     }
 
@@ -89,33 +86,18 @@ class EntityOutputStreamImp implements EntityOutputStream {
     }
 
     @Override
+    public <T> void writeObject(@Nullable T value) throws Exception {
+        BinaryProtocolCodec.encodeObject(outputStream, value, codecRegistry);
+    }
+
+    @Override
     public void writeBytes(@Nonnull byte[] bytes, int offset, int length) throws Exception {
         BinaryProtocolCodec.writeTag(outputStream, WireType.ARRAY);
         ArrayCodec.writeByteArray(outputStream, bytes, offset, length);
     }
 
-    @Override
-    public <T> void writeField(byte wireType, @Nullable T fieldValue) throws Exception {
-        // null也需要写入，因为新对象的属性不一定也是null
-        if (fieldValue == null) {
-            BinaryProtocolCodec.writeTag(outputStream, WireType.NULL);
-            return;
-        }
-
-        // 索引为具体类型的字段
-        if (wireType != WireType.RUN_TIME) {
-            BinaryProtocolCodec.writeTag(outputStream, wireType);
-            final BinaryCodec<T> codec = binaryProtocolCodec.getCodec(wireType);
-            codec.writeDataNoTag(outputStream, fieldValue);
-            return;
-        }
-
-        // 运行时才知道的类型 - 极少走到这里
-        binaryProtocolCodec.writeRuntimeType(outputStream, fieldValue);
-    }
-
     /**
-     * 读写格式仍然要与{@link CustomEntityCodec}保持一致
+     * 读写格式仍然要与{@link SerializerBasedCodec}保持一致
      */
     @Override
     public <E> void writeEntity(@Nullable E entity, EntitySerializer<? super E> entitySerializer) throws Exception {
@@ -131,9 +113,9 @@ class EntityOutputStreamImp implements EntityOutputStream {
     }
 
     private <E> void writeSuperClassMessageId(EntitySerializer<? super E> entitySerializer) throws IOException {
-        final Class<?> messageClass = entitySerializer.getEntityClass();
-        final int messageId = messageMapper.getMessageId(messageClass);
-        outputStream.writeInt32NoTag(messageId);
+//        final Class<?> messageClass = entitySerializer.getEntityClass();
+//        final int messageId = messageMapper.getMessageId(messageClass);
+//        outputStream.writeInt32NoTag(messageId);
     }
 
 }

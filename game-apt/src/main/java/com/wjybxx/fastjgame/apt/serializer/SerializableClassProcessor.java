@@ -62,6 +62,7 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
 
     private TypeMirror mapTypeMirror;
     private TypeMirror collectionTypeMirror;
+    private TypeMirror stringTypeMirror;
 
     private TypeElement serializableClassElement;
     private DeclaredType serializableFieldDeclaredType;
@@ -96,6 +97,7 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
 
         mapTypeMirror = elementUtils.getTypeElement(Map.class.getCanonicalName()).asType();
         collectionTypeMirror = elementUtils.getTypeElement(Collection.class.getCanonicalName()).asType();
+        stringTypeMirror = elementUtils.getTypeElement(String.class.getCanonicalName()).asType();
 
         serializableClassElement = elementUtils.getTypeElement(SERIALIZABLE_CLASS_CANONICAL_NAME);
         serializableFieldDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(SERIALIZABLE_FIELD_CANONICAL_NAME));
@@ -337,6 +339,10 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
         if (noArgsConstructor == null || !noArgsConstructor.getModifiers().contains(Modifier.PUBLIC)) {
             messager.printMessage(Diagnostic.Kind.ERROR, "MapOrCollectionImpl must contains public one int arg constructor", variableElement);
         }
+    }
+
+    boolean isString(VariableElement variableElement) {
+        return typeUtils.isSameType(variableElement.asType(), stringTypeMirror);
     }
 
     boolean isMapOrCollection(VariableElement variableElement) {

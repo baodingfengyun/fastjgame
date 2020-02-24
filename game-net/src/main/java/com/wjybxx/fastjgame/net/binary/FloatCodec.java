@@ -26,27 +26,25 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-class FloatCodec implements BinaryCodec<Float> {
+class FloatCodec extends JDKObjectCodec<Float> {
 
-    @Override
-    public boolean isSupport(Class<?> runtimeType) {
-        return runtimeType == Float.class;
+    FloatCodec(int classId) {
+        super(classId);
     }
 
     @Override
-    public void writeDataNoTag(CodedOutputStream outputStream, @Nonnull Float instance) throws Exception {
-        outputStream.writeFloatNoTag(instance);
+    public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Float value, CodecRegistry codecRegistry) throws Exception {
+        outputStream.writeFloatNoTag(value);
     }
 
     @Nonnull
     @Override
-    public Float readData(CodedInputStream inputStream) throws Exception {
+    public Float decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
         return inputStream.readFloat();
     }
 
     @Override
-    public byte getWireType() {
-        return WireType.FLOAT;
+    public Class<Float> getEncoderClass() {
+        return Float.class;
     }
-
 }

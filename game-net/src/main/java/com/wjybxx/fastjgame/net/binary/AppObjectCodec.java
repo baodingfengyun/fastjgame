@@ -16,35 +16,36 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.CodedOutputStream;
-
-import javax.annotation.Nonnull;
-
 /**
+ * 应用自定义对象编解码器
+ * 它的主要特征包括：
+ * 1. 它的{@link #classId}是用户计算的
+ * 2. 会有大量生成的{@link EntitySerializer}
+ *
  * @author wjybxx
  * @version 1.0
- * date - 2020/2/17
+ * date - 2020/2/24
  */
-class DoubleCodec extends JDKObjectCodec<Double> {
+public abstract class AppObjectCodec<T> implements Codec<T> {
 
-    DoubleCodec(int classId) {
-        super(classId);
+    private final int classId;
+
+    protected AppObjectCodec(int classId) {
+        this.classId = classId;
     }
 
     @Override
-    public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Double value, CodecRegistry codecRegistry) throws Exception {
-        outputStream.writeDoubleNoTag(value);
-    }
-
-    @Nonnull
-    @Override
-    public Double decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
-        return inputStream.readDouble();
+    public int getProviderId() {
+        return CodecProviderConst.APP_PROVIDER_ID;
     }
 
     @Override
-    public Class<Double> getEncoderClass() {
-        return Double.class;
+    public int getClassId() {
+        return classId;
+    }
+
+    @Override
+    public WireType wireType() {
+        return WireType.POJO;
     }
 }

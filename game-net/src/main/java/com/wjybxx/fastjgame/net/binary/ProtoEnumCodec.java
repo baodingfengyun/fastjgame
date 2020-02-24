@@ -20,55 +20,39 @@ import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.CodedOutputStream;
 import com.google.protobuf.Internal;
 import com.google.protobuf.ProtocolMessageEnum;
-import com.wjybxx.fastjgame.net.misc.MessageMapper;
 
 import javax.annotation.Nonnull;
-import java.util.Map;
 
 /**
  * @author wjybxx
  * @version 1.0
  * date - 2020/2/17
  */
-class ProtoEnumCodec implements BinaryCodec<ProtocolMessageEnum> {
+class ProtoEnumCodec<T extends ProtocolMessageEnum> extends AppObjectCodec<T> {
 
-    /**
-     * 实体映射
-     */
-    private final MessageMapper messageMapper;
-    /**
-     * proto enum 解析方法
-     */
-    private final Map<Class<?>, ProtoEnumDescriptor> protoEnumDescriptorMap;
+    private final Class<T> enumClass;
+    private final Internal.EnumLiteMap<T> mapper;
 
-    ProtoEnumCodec(MessageMapper messageMapper, Map<Class<?>, ProtoEnumDescriptor> protoEnumDescriptorMap) {
-        this.messageMapper = messageMapper;
-        this.protoEnumDescriptorMap = protoEnumDescriptorMap;
+    ProtoEnumCodec(int classId, Class<T> enumClass, Internal.EnumLiteMap<T> mapper) {
+        super(classId);
+        this.enumClass = enumClass;
+        this.mapper = mapper;
     }
 
     @Override
-    public boolean isSupport(Class<?> runtimeType) {
-        return protoEnumDescriptorMap.containsKey(runtimeType);
-    }
-
-    @Override
-    public void writeDataNoTag(CodedOutputStream outputStream, @Nonnull ProtocolMessageEnum instance) throws Exception {
-        outputStream.writeInt32NoTag(messageMapper.getMessageId(instance.getClass()));
-        outputStream.writeEnumNoTag(instance.getNumber());
+    public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull T value, CodecRegistry codecRegistry) throws Exception {
+        outputStream.writeInt32NoTag(value.getNumber());
     }
 
     @Nonnull
     @Override
-    public ProtocolMessageEnum readData(CodedInputStream inputStream) throws Exception {
-        final int messageId = inputStream.readInt32();
-        final int number = inputStream.readEnum();
-        final Class<?> enumClass = messageMapper.getMessageClass(messageId);
-        return (ProtocolMessageEnum) protoEnumDescriptorMap.get(enumClass).mapper.findValueByNumber(number);
+    public T decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
+        return mapper.findValueByNumber(inputStream.readInt32());
     }
 
     @Override
-    public byte getWireType() {
-        return WireType.PROTO_ENUM;
+    public Class<T> getEncoderClass() {
+        return enumClass;
     }
 
     static class ProtoEnumDescriptor {

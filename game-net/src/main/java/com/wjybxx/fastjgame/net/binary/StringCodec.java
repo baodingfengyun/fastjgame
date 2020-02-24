@@ -26,27 +26,25 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-class StringCodec implements BinaryCodec<String> {
+class StringCodec extends JDKObjectCodec<String> {
 
-    @Override
-    public boolean isSupport(Class<?> runtimeType) {
-        return String.class == runtimeType;
+    StringCodec(int classId) {
+        super(classId);
     }
 
     @Override
-    public void writeDataNoTag(CodedOutputStream outputStream, @Nonnull String instance) throws Exception {
-        outputStream.writeStringNoTag(instance);
+    public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull String value, CodecRegistry codecRegistry) throws Exception {
+        outputStream.writeStringNoTag(value);
     }
 
     @Nonnull
     @Override
-    public String readData(CodedInputStream inputStream) throws Exception {
+    public String decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
         return inputStream.readString();
     }
 
     @Override
-    public byte getWireType() {
-        return WireType.STRING;
+    public Class<String> getEncoderClass() {
+        return String.class;
     }
-
 }

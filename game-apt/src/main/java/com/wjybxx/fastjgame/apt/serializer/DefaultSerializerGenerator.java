@@ -24,6 +24,7 @@ import com.wjybxx.fastjgame.apt.utils.BeanUtils;
 
 import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -36,13 +37,19 @@ import java.util.List;
  */
 class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProcessor> {
 
-    private static final String READ_MAP_METHOD_NAME = "readMap";
+    private static final String READ_STRING_METHOD_NAME = "readString";
+    private static final String READ_BYTES_METHOD_NAME = "readBytes";
     private static final String READ_COLLECTION_METHOD_NAME = "readCollection";
+    private static final String READ_MAP_METHOD_NAME = "readMap";
     private static final String READ_ARRAY_METHOD_NAME = "readArray";
+    private static final String READ_OBJECT_METHOD_NAME = "readObject";
 
-    private static final String WRITE_MAP_METHOD_NAME = "writeMap";
+    private static final String WRITE_STRING_METHOD_NAME = "writeString";
+    private static final String WRITE_BYTES_METHOD_NAME = "writeBytes";
     private static final String WRITE_COLLECTION_METHOD_NAME = "writeCollection";
+    private static final String WRITE_MAP_METHOD_NAME = "writeMap";
     private static final String WRITE_ARRAY_METHOD_NAME = "writeArray";
+    private static final String WRITE_OBJECT_METHOD_NAME = "writeObject";
 
     private static final String CONSTRUCTOR_FIELD_NAME = "r_constructor";
 
@@ -155,19 +162,44 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
      * 且要求了一定有getter方法
      */
     private void addWriteStatement(VariableElement variableElement) {
-        final String getterName = BeanUtils.getterMethodName(variableElement.getSimpleName().toString(),
+        final String getterName = getGetterName(variableElement);
+        final String writeMethodName = getWriteMethodName(variableElement);
+        writeObjectMethodBuilder.addStatement("outputStream.$L(instance.$L())", writeMethodName, getterName);
+    }
+
+    private String getGetterName(VariableElement variableElement) {
+        return BeanUtils.getterMethodName(variableElement.getSimpleName().toString(),
                 BeanUtils.isPrimitiveBoolean(variableElement.asType()));
+    }
+
+    private String getWriteMethodName(VariableElement variableElement) {
         if (isPrimitiveType(variableElement)) {
-            writeObjectMethodBuilder.addStatement("outputStream.$L(instance.$L())", getWritePrimitiveType(variableElement), getterName);
-        } else if (processor.isMap(variableElement)) {
-            writeObjectMethodBuilder.addStatement("outputStream.$L(instance.$L())", WRITE_MAP_METHOD_NAME, getterName);
-        } else if (processor.isCollection(variableElement)) {
-            writeObjectMethodBuilder.addStatement("outputStream.$L(instance.$L())", WRITE_COLLECTION_METHOD_NAME, getterName);
-        } else if (AutoUtils.isArrayType(variableElement.asType())) {
-            writeObjectMethodBuilder.addStatement("outputStream.$L(instance.$L())", WRITE_ARRAY_METHOD_NAME, getterName);
-        } else {
-            writeObjectMethodBuilder.addStatement("outputStream.writeObject(instance.$L())", getterName);
+            return getWritePrimitiveTypeMethodName(variableElement);
         }
+        if (processor.isString(variableElement)) {
+            return WRITE_STRING_METHOD_NAME;
+        }
+        if (isByteArray(variableElement)) {
+            return WRITE_BYTES_METHOD_NAME;
+        }
+        if (processor.isCollection(variableElement)) {
+            return WRITE_COLLECTION_METHOD_NAME;
+        }
+        if (processor.isMap(variableElement)) {
+            return WRITE_MAP_METHOD_NAME;
+        }
+        if (AutoUtils.isArrayType(variableElement.asType())) {
+            return WRITE_ARRAY_METHOD_NAME;
+        }
+        return WRITE_OBJECT_METHOD_NAME;
+    }
+
+    private static boolean isPrimitiveType(VariableElement variableElement) {
+        return variableElement.asType().getKind().isPrimitive();
+    }
+
+    private boolean isByteArray(VariableElement variableElement) {
+        return AutoUtils.isTargetPrimitiveArrayType(variableElement, TypeKind.BYTE);
     }
 
     /**
@@ -187,23 +219,39 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
 
     private void readBySetter(VariableElement variableElement) {
         // 包含非private的setter方法
-        final String setterName = BeanUtils.setterMethodName(variableElement.getSimpleName().toString(),
-                BeanUtils.isPrimitiveBoolean(variableElement.asType()));
+        final String setterName = getSetterName(variableElement);
 
-        if (isPrimitiveType(variableElement)) {
-            readFieldsMethodBuilder.addStatement("instance.$L(inputStream.$L())", setterName, getReadPrimitiveMethodName(variableElement));
+        if (processor.isCollection(variableElement)) {
+            final TypeName impTypeName = getFieldImpTypeName(variableElement);
+            readFieldsMethodBuilder.addStatement("instance.$L(inputStream.$L($T::new))", setterName, READ_COLLECTION_METHOD_NAME, impTypeName);
         } else if (processor.isMap(variableElement)) {
             final TypeName impTypeName = getFieldImpTypeName(variableElement);
             readFieldsMethodBuilder.addStatement("instance.$L(inputStream.$L($T::new))", setterName, READ_MAP_METHOD_NAME, impTypeName);
-        } else if (processor.isCollection(variableElement)) {
-            final TypeName impTypeName = getFieldImpTypeName(variableElement);
-            readFieldsMethodBuilder.addStatement("instance.$L(inputStream.$L($T::new))", setterName, READ_COLLECTION_METHOD_NAME, impTypeName);
         } else if (AutoUtils.isArrayType(variableElement.asType())) {
             final TypeName componentTypeName = TypeName.get(AutoUtils.getComponentType(variableElement.asType()));
             readFieldsMethodBuilder.addStatement("instance.$L(inputStream.$L($T.class))", setterName, READ_ARRAY_METHOD_NAME, componentTypeName);
         } else {
-            readFieldsMethodBuilder.addStatement("instance.$L(inputStream.readObject())", setterName);
+            final String readMethodName = getReadMethodName(variableElement);
+            readFieldsMethodBuilder.addStatement("instance.$L(inputStream.$L())", setterName, readMethodName);
         }
+    }
+
+    private String getSetterName(VariableElement variableElement) {
+        return BeanUtils.setterMethodName(variableElement.getSimpleName().toString(),
+                BeanUtils.isPrimitiveBoolean(variableElement.asType()));
+    }
+
+    private String getReadMethodName(VariableElement variableElement) {
+        if (isPrimitiveType(variableElement)) {
+            return getReadPrimitiveMethodName(variableElement);
+        }
+        if (processor.isString(variableElement)) {
+            return READ_STRING_METHOD_NAME;
+        }
+        if (isByteArray(variableElement)) {
+            return READ_BYTES_METHOD_NAME;
+        }
+        return READ_OBJECT_METHOD_NAME;
     }
 
     private void readByReflect(VariableElement variableElement) {
@@ -239,7 +287,7 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
         return TypeName.get(typeUtils.erasure(fieldImplType));
     }
 
-    private static String getWritePrimitiveType(VariableElement variableElement) {
+    private static String getWritePrimitiveTypeMethodName(VariableElement variableElement) {
         return "write" + primitiveTypeName(variableElement);
     }
 
@@ -251,9 +299,6 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
         return "read" + primitiveTypeName(variableElement);
     }
 
-    private static boolean isPrimitiveType(VariableElement variableElement) {
-        return variableElement.asType().getKind().isPrimitive();
-    }
 
     private MethodSpec newGetEntityMethodBuilder() {
         return processor.newGetEntityMethod(superDeclaredType);

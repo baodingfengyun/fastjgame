@@ -26,27 +26,25 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-class ShortCodec implements BinaryCodec<Short> {
+class ShortCodec extends JDKObjectCodec<Short> {
 
-    @Override
-    public boolean isSupport(Class<?> runtimeType) {
-        return runtimeType == Short.class;
+    ShortCodec(int classId) {
+        super(classId);
     }
 
     @Override
-    public final void writeDataNoTag(CodedOutputStream outputStream, @Nonnull Short instance) throws Exception {
-        outputStream.writeInt32NoTag(instance.intValue());
+    public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Short value, CodecRegistry codecRegistry) throws Exception {
+        outputStream.writeInt32NoTag(value);
     }
 
     @Nonnull
     @Override
-    public Short readData(CodedInputStream inputStream) throws Exception {
+    public Short decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
         return (short) inputStream.readInt32();
     }
 
     @Override
-    public byte getWireType() {
-        return WireType.SHORT;
+    public Class<Short> getEncoderClass() {
+        return Short.class;
     }
-
 }

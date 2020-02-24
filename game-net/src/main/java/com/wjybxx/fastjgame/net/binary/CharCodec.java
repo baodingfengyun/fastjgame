@@ -26,27 +26,26 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-class CharCodec implements BinaryCodec<Character> {
+class CharCodec extends JDKObjectCodec<Character> {
 
-    @Override
-    public boolean isSupport(Class<?> runtimeType) {
-        return runtimeType == Character.class;
+    CharCodec(int classId) {
+        super(classId);
     }
 
     @Override
-    public void writeDataNoTag(CodedOutputStream outputStream, @Nonnull Character instance) throws Exception {
-        outputStream.writeUInt32NoTag(instance);
+    public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Character value, CodecRegistry codecRegistry) throws Exception {
+        outputStream.writeUInt32NoTag(value);
     }
 
     @Nonnull
     @Override
-    public Character readData(CodedInputStream inputStream) throws Exception {
+    public Character decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
         return (char) inputStream.readUInt32();
     }
 
     @Override
-    public byte getWireType() {
-        return WireType.CHAR;
+    public Class<Character> getEncoderClass() {
+        return Character.class;
     }
 
 }

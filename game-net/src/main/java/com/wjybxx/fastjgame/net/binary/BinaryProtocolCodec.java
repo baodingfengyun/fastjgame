@@ -24,8 +24,6 @@ import com.wjybxx.fastjgame.net.misc.MessageMapper;
 import com.wjybxx.fastjgame.net.misc.MessageMappingStrategy;
 import com.wjybxx.fastjgame.net.utils.NetUtils;
 import com.wjybxx.fastjgame.net.utils.ProtoUtils;
-import com.wjybxx.fastjgame.utils.EnumUtils;
-import com.wjybxx.fastjgame.utils.entity.NumericalEntityMapper;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import org.apache.commons.lang3.ArrayUtils;
@@ -37,8 +35,8 @@ import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.util.IdentityHashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -60,50 +58,11 @@ import java.util.stream.Stream;
 public class BinaryProtocolCodec implements ProtocolCodec {
 
     private static final ThreadLocal<byte[]> LOCAL_BUFFER = ThreadLocal.withInitial(() -> new byte[NetUtils.MAX_BUFFER_SIZE]);
-    /**
-     * 所有codec映射
-     */
-    private final NumericalEntityMapper<BinaryCodec<?>> codecMapper;
 
-    private BinaryProtocolCodec(MessageMapper messageMapper,
-                                Map<Class<?>, Parser<?>> parserMap,
-                                Map<Class<?>, ProtoEnumCodec.ProtoEnumDescriptor> protoEnumDescriptorMap,
-                                Map<Class<?>, EntitySerializer<?>> beanSerializerMap) {
-        codecMapper = EnumUtils.mapping(initValues(messageMapper, parserMap, protoEnumDescriptorMap, beanSerializerMap), true);
-    }
+    private final CodecRegistry codecRegistry;
 
-    private BinaryCodec<?>[] initValues(MessageMapper messageMapper,
-                                        Map<Class<?>, Parser<?>> parserMap,
-                                        Map<Class<?>, ProtoEnumCodec.ProtoEnumDescriptor> protoEnumDescriptorMap,
-                                        Map<Class<?>, EntitySerializer<?>> beanSerializerMap) {
-        // 预估出现的频率排个序
-        return new BinaryCodec[]{
-                // 存在Serializer的类
-                // 它为什么放最前面？
-                // 服务器内部通信时，一定是自定义实体开始，基本是有索引的，它放前面收益较大。
-                new CustomEntityCodec(messageMapper, beanSerializerMap, this),
-
-                new IntegerCodec(),
-                new LongCodec(),
-                new StringCodec(),
-
-                new CollectionCodec(this),
-                new MapCodec(this),
-
-                new ProtoMessageCodec(messageMapper, parserMap),
-
-                new BooleanCodec(),
-                new FloatCodec(),
-                new DoubleCodec(),
-                new ShortCodec(),
-
-                new ArrayCodec(this),
-
-                new ProtoEnumCodec(messageMapper, protoEnumDescriptorMap),
-
-                new ByteCodec(),
-                new CharCodec(),
-        };
+    public BinaryProtocolCodec(CodecRegistry codecRegistry) {
+        this.codecRegistry = codecRegistry;
     }
 
     @Nonnull
@@ -114,34 +73,13 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         final byte[] localBuffer = LOCAL_BUFFER.get();
 
         // 写入字节数组缓存
-        CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(localBuffer);
-        writeObject(codedOutputStream, object);
+        final CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(localBuffer);
+        encodeObject(codedOutputStream, object, codecRegistry);
 
         // 写入byteBuf
         final ByteBuf buffer = bufAllocator.buffer(codedOutputStream.getTotalBytesWritten());
         buffer.writeBytes(localBuffer, 0, codedOutputStream.getTotalBytesWritten());
         return buffer;
-    }
-
-    void writeObject(CodedOutputStream outputStream, @Nullable Object object) throws Exception {
-        if (object == null) {
-            writeTag(outputStream, WireType.NULL);
-            return;
-        }
-        writeRuntimeType(outputStream, object);
-    }
-
-    @SuppressWarnings("unchecked")
-    void writeRuntimeType(CodedOutputStream outputStream, @Nonnull Object object) throws Exception {
-        final Class<?> type = object.getClass();
-        for (BinaryCodec codec : codecMapper.values()) {
-            if (codec.isSupport(type)) {
-                writeTag(outputStream, codec.getWireType());
-                codec.writeDataNoTag(outputStream, object);
-                return;
-            }
-        }
-        throw new IOException("unsupported class " + object.getClass().getName());
     }
 
     @Override
@@ -153,33 +91,8 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         data.readBytes(localBuffer, 0, readableBytes);
 
         // 解析对象
-        CodedInputStream codedInputStream = CodedInputStream.newInstance(localBuffer, 0, readableBytes);
-        return readObject(codedInputStream);
-    }
-
-    /**
-     * 读取一个对象，先读取一个标记，在读取数据
-     *
-     * @param inputStream 输入流
-     * @return obj
-     * @throws IOException error
-     */
-    @Nullable
-    Object readObject(CodedInputStream inputStream) throws Exception {
-        final byte wireType = readTag(inputStream);
-        if (wireType == WireType.NULL) {
-            return null;
-        }
-        return getCodec(wireType).readData(inputStream);
-    }
-
-    @Nonnull
-    <T extends BinaryCodec<?>> T getCodec(int wireType) throws IOException {
-        @SuppressWarnings("unchecked") T codec = (T) codecMapper.forNumber(wireType);
-        if (null == codec) {
-            throw new IOException("unsupported wireType " + wireType);
-        }
-        return codec;
+        final CodedInputStream codedInputStream = CodedInputStream.newInstance(localBuffer, 0, readableBytes);
+        return decodeObject(codedInputStream, codecRegistry);
     }
 
     @Nonnull
@@ -187,8 +100,8 @@ public class BinaryProtocolCodec implements ProtocolCodec {
     public byte[] serializeToBytes(@Nullable Object object) throws Exception {
         // 这里测试也是拷贝字节数组快于先计算大小（两轮反射）
         final byte[] localBuffer = LOCAL_BUFFER.get();
-        CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(localBuffer);
-        writeObject(codedOutputStream, object);
+        final CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(localBuffer);
+        encodeObject(codedOutputStream, object, codecRegistry);
 
         // 拷贝序列化结果
         final byte[] resultBytes = new byte[codedOutputStream.getTotalBytesWritten()];
@@ -198,7 +111,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
 
     @Override
     public Object deserializeFromBytes(@Nonnull byte[] data) throws Exception {
-        return readObject(CodedInputStream.newInstance(data));
+        return decodeObject(CodedInputStream.newInstance(data), codecRegistry);
     }
 
     @Nullable
@@ -210,11 +123,11 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         final byte[] localBuffer = LOCAL_BUFFER.get();
         // 写入缓冲区
         final CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(localBuffer);
-        writeObject(codedOutputStream, object);
+        encodeObject(codedOutputStream, object, codecRegistry);
 
         // 读出
         final CodedInputStream codedInputStream = CodedInputStream.newInstance(localBuffer, 0, codedOutputStream.getTotalBytesWritten());
-        return readObject(codedInputStream);
+        return decodeObject(codedInputStream, codecRegistry);
     }
 
     // ------------------------------------------- tag相关 ------------------------------------
@@ -226,8 +139,8 @@ public class BinaryProtocolCodec implements ProtocolCodec {
      * @param wireType     tag
      * @throws IOException error
      */
-    static void writeTag(CodedOutputStream outputStream, byte wireType) throws IOException {
-        outputStream.writeRawByte(wireType);
+    static void writeTag(CodedOutputStream outputStream, WireType wireType) throws IOException {
+        outputStream.writeRawByte(wireType.getNumber());
     }
 
     /**
@@ -237,8 +150,31 @@ public class BinaryProtocolCodec implements ProtocolCodec {
      * @return tag
      * @throws IOException error
      */
-    static byte readTag(CodedInputStream inputStream) throws IOException {
-        return inputStream.readRawByte();
+    static WireType readTag(CodedInputStream inputStream) throws IOException {
+        return WireType.forNumber(inputStream.readRawByte());
+    }
+
+    static <T> void encodeObject(CodedOutputStream outputStream, @Nullable T value, CodecRegistry codecRegistry) throws Exception {
+        if (null == value) {
+            writeTag(outputStream, WireType.NULL);
+        } else {
+            @SuppressWarnings("unchecked") final Codec<T> codec = (Codec<T>) codecRegistry.get(value.getClass());
+            writeTag(outputStream, codec.wireType());
+            outputStream.writeInt32NoTag(codec.getProviderId());
+            outputStream.writeInt32NoTag(codec.getClassId());
+            codec.encode(outputStream, value, codecRegistry);
+        }
+    }
+
+    static <T> T decodeObject(CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
+        final WireType tag = readTag(inputStream);
+        if (tag == WireType.NULL) {
+            return null;
+        }
+        final int providerId = inputStream.readInt32();
+        final int classId = inputStream.readInt32();
+        @SuppressWarnings("unchecked") final Codec<T> codec = (Codec<T>) codecRegistry.get(providerId, classId);
+        return codec.decode(inputStream, codecRegistry);
     }
 
     // ------------------------------------------------- 工厂方法 ------------------------------------------------------
@@ -250,27 +186,25 @@ public class BinaryProtocolCodec implements ProtocolCodec {
     /**
      * @param filter 由于{@link BinaryProtocolCodec}支持的消息类是确定的，不能加入，但是允许过滤删除
      */
+    @SuppressWarnings("unchecked")
     public static BinaryProtocolCodec newInstance(MessageMappingStrategy mappingStrategy, Predicate<Class<?>> filter) {
         final Set<Class<?>> supportedClassSet = getFilteredSupportedClasses(filter);
         final MessageMapper messageMapper = MessageMapper.newInstance(supportedClassSet, mappingStrategy);
+        final List<AppObjectCodec<?>> codecList = new ArrayList<>(supportedClassSet.size());
 
-        final Map<Class<?>, Parser<?>> parserMap = new IdentityHashMap<>();
-        final Map<Class<?>, ProtoEnumCodec.ProtoEnumDescriptor> protoEnumDescriptorMap = new IdentityHashMap<>();
-        final Map<Class<?>, EntitySerializer<?>> beanSerializerMap = new IdentityHashMap<>();
         try {
             for (Class<?> messageClazz : messageMapper.getAllMessageClasses()) {
                 // protoBuf消息
                 if (Message.class.isAssignableFrom(messageClazz)) {
-                    @SuppressWarnings("unchecked")
                     Parser<?> parser = ProtoUtils.findParser((Class<? extends Message>) messageClazz);
-                    parserMap.put(messageClazz, parser);
+                    codecList.add(new ProtoMessageCodec(messageMapper.getMessageId(messageClazz), messageClazz, parser));
                     continue;
                 }
 
                 // protoBufEnum
                 if (ProtocolMessageEnum.class.isAssignableFrom(messageClazz)) {
-                    @SuppressWarnings("unchecked") final Internal.EnumLiteMap<?> mapper = ProtoUtils.findMapper((Class<? extends ProtocolMessageEnum>) messageClazz);
-                    protoEnumDescriptorMap.put(messageClazz, new ProtoEnumCodec.ProtoEnumDescriptor(mapper));
+                    final Internal.EnumLiteMap<?> mapper = ProtoUtils.findMapper((Class<? extends ProtocolMessageEnum>) messageClazz);
+                    codecList.add(new ProtoEnumCodec(messageMapper.getMessageId(messageClazz), messageClazz, mapper));
                     continue;
                 }
 
@@ -278,10 +212,15 @@ public class BinaryProtocolCodec implements ProtocolCodec {
                 final Class<? extends EntitySerializer<?>> serializerClass = EntitySerializerScanner.getSerializerClass(messageClazz);
                 if (serializerClass != null) {
                     final EntitySerializer<?> serializer = createSerializerInstance(serializerClass);
-                    beanSerializerMap.put(messageClazz, serializer);
+                    codecList.add(new SerializerBasedCodec(messageMapper.getMessageId(messageClazz), serializer));
+                    continue;
                 }
+
+                throw new IllegalArgumentException("Unsupported class " + messageClazz.getName());
             }
-            return new BinaryProtocolCodec(messageMapper, parserMap, protoEnumDescriptorMap, beanSerializerMap);
+
+            final CodecRegistry codecRegistry = new CodecRegistryImp(AppCodecProvider.newInstance(codecList));
+            return new BinaryProtocolCodec(codecRegistry);
         } catch (Exception e) {
             return ExceptionUtils.rethrow(e);
         }

@@ -24,27 +24,25 @@ import javax.annotation.Nonnull;
 /**
  * 一个字节就占用一个字节 - 不需要使用int32的格式
  */
-class ByteCodec implements BinaryCodec<Byte> {
+class ByteCodec extends JDKObjectCodec<Byte> {
 
-    @Override
-    public boolean isSupport(Class<?> runtimeType) {
-        return runtimeType == Byte.class;
+    ByteCodec(int classId) {
+        super(classId);
     }
 
     @Override
-    public void writeDataNoTag(CodedOutputStream outputStream, @Nonnull Byte instance) throws Exception {
-        outputStream.writeRawByte(instance);
+    public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Byte value, CodecRegistry codecRegistry) throws Exception {
+        outputStream.writeRawByte(value);
     }
 
     @Nonnull
     @Override
-    public Byte readData(CodedInputStream inputStream) throws Exception {
+    public Byte decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
         return inputStream.readRawByte();
     }
 
     @Override
-    public byte getWireType() {
-        return WireType.BYTE;
+    public Class<Byte> getEncoderClass() {
+        return Byte.class;
     }
-
 }

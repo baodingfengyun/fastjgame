@@ -33,49 +33,35 @@ import java.util.function.IntFunction;
  * @version 1.0
  * date - 2020/2/17
  */
-class CollectionCodec implements BinaryCodec<Collection<?>> {
+class CollectionCodec extends ContainerCodec<Collection<?>> {
 
-    private BinaryProtocolCodec binaryProtocolCodec;
-
-    CollectionCodec(BinaryProtocolCodec binaryProtocolCodec) {
-        this.binaryProtocolCodec = binaryProtocolCodec;
+    CollectionCodec(int classId) {
+        super(classId);
     }
 
     @Override
-    public boolean isSupport(Class<?> runtimeType) {
-        return Collection.class.isAssignableFrom(runtimeType);
-    }
-
-    @Override
-    public void writeDataNoTag(CodedOutputStream outputStream, @Nonnull Collection<?> instance) throws Exception {
-        outputStream.writeUInt32NoTag(instance.size());
-        if (instance.size() == 0) {
+    public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Collection<?> value, CodecRegistry codecRegistry) throws Exception {
+        outputStream.writeUInt32NoTag(value.size());
+        if (value.size() == 0) {
             return;
         }
 
-        for (Object element : instance) {
-            binaryProtocolCodec.writeObject(outputStream, element);
+        for (Object element : value) {
+            BinaryProtocolCodec.encodeObject(outputStream, element, codecRegistry);
         }
     }
 
     @Nonnull
     @Override
-    public Collection<?> readData(CodedInputStream inputStream) throws Exception {
-        return readCollectionImp(binaryProtocolCodec, inputStream, ArrayList::new);
-    }
-
-    @Override
-    public byte getWireType() {
-        return WireType.COLLECTION;
+    public Collection<?> decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
+        return readCollectionImp(inputStream, ArrayList::new, codecRegistry);
     }
 
     /**
      * 从输入流中读取指定元素到集合中
      */
     @Nonnull
-    static <C extends Collection<E>, E> C readCollectionImp(@Nonnull BinaryProtocolCodec binaryProtocolCodec,
-                                                            @Nonnull CodedInputStream inputStream,
-                                                            @Nonnull IntFunction<C> collectionFactory) throws Exception {
+    static <C extends Collection<E>, E> C readCollectionImp(@Nonnull CodedInputStream inputStream, @Nonnull IntFunction<C> collectionFactory, @Nonnull CodecRegistry codecRegistry) throws Exception {
         final int size = inputStream.readUInt32();
         if (size == 0) {
             return collectionFactory.apply(0);
@@ -83,10 +69,20 @@ class CollectionCodec implements BinaryCodec<Collection<?>> {
 
         final C result = collectionFactory.apply(size);
         for (int index = 0; index < size; index++) {
-            @SuppressWarnings("unchecked") final E e = (E) binaryProtocolCodec.readObject(inputStream);
+            final E e = BinaryProtocolCodec.decodeObject(inputStream, codecRegistry);
             result.add(e);
         }
         return result;
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public Class<Collection<?>> getEncoderClass() {
+        return (Class) Collection.class;
+    }
+
+    @Override
+    public WireType wireType() {
+        return WireType.COLLECTION;
+    }
 }

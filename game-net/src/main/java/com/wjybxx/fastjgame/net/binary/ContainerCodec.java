@@ -16,35 +16,26 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.CodedOutputStream;
-
-import javax.annotation.Nonnull;
-
 /**
  * @author wjybxx
  * @version 1.0
- * date - 2020/2/17
+ * date - 2020/2/24
  */
-class DoubleCodec extends JDKObjectCodec<Double> {
+public abstract class ContainerCodec<T> implements Codec<T> {
 
-    DoubleCodec(int classId) {
-        super(classId);
+    private final int classId;
+
+    protected ContainerCodec(int classId) {
+        this.classId = classId;
     }
 
     @Override
-    public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Double value, CodecRegistry codecRegistry) throws Exception {
-        outputStream.writeDoubleNoTag(value);
-    }
-
-    @Nonnull
-    @Override
-    public Double decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
-        return inputStream.readDouble();
+    public int getProviderId() {
+        return CodecProviderConst.CONTAINER_PROVIDER_ID;
     }
 
     @Override
-    public Class<Double> getEncoderClass() {
-        return Double.class;
+    public int getClassId() {
+        return classId;
     }
 }

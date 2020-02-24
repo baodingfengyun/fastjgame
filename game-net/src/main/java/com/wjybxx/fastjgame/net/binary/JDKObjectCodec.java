@@ -16,35 +16,44 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.CodedOutputStream;
-
-import javax.annotation.Nonnull;
+import com.wjybxx.fastjgame.utils.entity.NumericalEntity;
 
 /**
+ * JDK对象的编解码器，它的主要特征是：{@link #classId}是固定值。
+ *
  * @author wjybxx
  * @version 1.0
- * date - 2020/2/17
+ * date - 2020/2/24
  */
-class DoubleCodec extends JDKObjectCodec<Double> {
+public abstract class JDKObjectCodec<T> implements Codec<T>, NumericalEntity {
 
-    DoubleCodec(int classId) {
-        super(classId);
+    /**
+     * classId统一分配，每一个Codec得到的值是固定值
+     */
+    private final int classId;
+
+    protected JDKObjectCodec(int classId) {
+        this.classId = classId;
+    }
+
+
+    @Override
+    public int getProviderId() {
+        return CodecProviderConst.JDK_PROVIDER_ID;
     }
 
     @Override
-    public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Double value, CodecRegistry codecRegistry) throws Exception {
-        outputStream.writeDoubleNoTag(value);
-    }
-
-    @Nonnull
-    @Override
-    public Double decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
-        return inputStream.readDouble();
+    public int getClassId() {
+        return classId;
     }
 
     @Override
-    public Class<Double> getEncoderClass() {
-        return Double.class;
+    public int getNumber() {
+        return classId;
+    }
+
+    @Override
+    public WireType wireType() {
+        return WireType.POJO;
     }
 }

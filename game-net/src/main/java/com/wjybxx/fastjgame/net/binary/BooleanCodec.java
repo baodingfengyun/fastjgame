@@ -26,27 +26,26 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-class BooleanCodec implements BinaryCodec<Boolean> {
+class BooleanCodec extends JDKObjectCodec<Boolean> {
 
-    @Override
-    public boolean isSupport(Class<?> runtimeType) {
-        return runtimeType == Boolean.class;
+    BooleanCodec(int classId) {
+        super(classId);
     }
 
     @Override
-    public void writeDataNoTag(CodedOutputStream outputStream, @Nonnull Boolean instance) throws Exception {
-        outputStream.writeBoolNoTag(instance);
+    public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Boolean value, CodecRegistry codecRegistry) throws Exception {
+        outputStream.writeBoolNoTag(value);
     }
 
     @Nonnull
     @Override
-    public Boolean readData(CodedInputStream inputStream) throws Exception {
+    public Boolean decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
         return inputStream.readBool();
     }
 
     @Override
-    public byte getWireType() {
-        return WireType.BOOLEAN;
+    public Class<Boolean> getEncoderClass() {
+        return Boolean.class;
     }
 
 }

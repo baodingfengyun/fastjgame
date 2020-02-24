@@ -48,20 +48,14 @@ public interface EntityInputStream {
 
     char readChar() throws Exception;
 
-    default String readString() throws Exception {
-        return readField(WireType.STRING);
-    }
+    String readString() throws Exception;
 
-    default byte[] readBytes() throws Exception {
-        return readField(WireType.ARRAY);
-    }
+    byte[] readBytes() throws Exception;
 
     /**
      * 从输入流中读取一个字段，如果没有对应的简便方法，可以使用该方法。
      */
-    default <T> T readObject() throws Exception {
-        return readField(WireType.RUN_TIME);
-    }
+    <T> T readObject() throws Exception;
 
     // ----------------------------------------- 处理多态问题 ----------------------------------
 
@@ -99,14 +93,4 @@ public interface EntityInputStream {
     @Nullable
     <E> E readEntity(EntityFactory<E> entityFactory, AbstractEntitySerializer<? super E> entitySerializer) throws Exception;
 
-    // ------------------------------------------- 生成代码调用 ----------------------------------------------
-
-    /**
-     * 从输入流中读取一个字段。
-     *
-     * @param wireType 期望的数据类型，主要用于校验。如果该值不为{@link WireType#RUN_TIME}，则需要和读取到的tag进行比较。
-     * @return data
-     */
-    @Nullable
-    <T> T readField(byte wireType) throws Exception;
 }

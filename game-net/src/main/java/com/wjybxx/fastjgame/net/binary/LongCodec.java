@@ -26,27 +26,25 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-class LongCodec implements BinaryCodec<Long> {
+class LongCodec extends JDKObjectCodec<Long> {
 
-    @Override
-    public boolean isSupport(Class<?> runtimeType) {
-        return runtimeType == Long.class;
+    LongCodec(int classId) {
+        super(classId);
     }
 
     @Override
-    public void writeDataNoTag(CodedOutputStream outputStream, @Nonnull Long instance) throws Exception {
-        outputStream.writeInt64NoTag(instance);
+    public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Long value, CodecRegistry codecRegistry) throws Exception {
+        outputStream.writeInt64NoTag(value);
     }
 
     @Nonnull
     @Override
-    public Long readData(CodedInputStream inputStream) throws Exception {
+    public Long decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
         return inputStream.readInt64();
     }
 
     @Override
-    public byte getWireType() {
-        return WireType.LONG;
+    public Class<Long> getEncoderClass() {
+        return Long.class;
     }
-
 }

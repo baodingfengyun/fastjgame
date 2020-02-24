@@ -50,11 +50,11 @@ public interface EntityOutputStream {
     void writeChar(char value) throws Exception;
 
     default void writeString(@Nullable String value) throws Exception {
-        writeField(WireType.STRING, value);
+        writeObject(value);
     }
 
     default void writeBytes(@Nullable byte[] value) throws Exception {
-        writeField(WireType.ARRAY, value);
+        writeObject(value);
     }
 
     /**
@@ -62,9 +62,7 @@ public interface EntityOutputStream {
      *
      * @param value 字段的值
      */
-    default <T> void writeObject(@Nullable T value) throws Exception {
-        writeField(WireType.RUN_TIME, value);
-    }
+    <T> void writeObject(@Nullable T value) throws Exception;
 
     /**
      * 向输出流中写入一个字节数组，并可以指定偏移量和长度
@@ -77,14 +75,14 @@ public interface EntityOutputStream {
      * 向输出流中写一个collection
      */
     default <E> void writeCollection(@Nullable Collection<? extends E> collection) throws Exception {
-        writeField(WireType.COLLECTION, collection);
+        writeObject(collection);
     }
 
     /**
      * 向输出流中写入一个map
      */
     default <K, V> void writeMap(@Nullable Map<K, V> map) throws Exception {
-        writeField(WireType.MAP, map);
+        writeObject(map);
     }
 
     /**
@@ -93,7 +91,7 @@ public interface EntityOutputStream {
      * @param array 要支持基本类型数组，因此为{@link Object}而不是泛型数组+
      */
     default void writeArray(@Nullable Object array) throws Exception {
-        writeField(WireType.ARRAY, array);
+        writeObject(array);
     }
 
     /**
@@ -101,15 +99,5 @@ public interface EntityOutputStream {
      * 注意：必须保证和{@link EntityInputStream#readEntity(EntityFactory, AbstractEntitySerializer)} 使用相同的serializer
      */
     <E> void writeEntity(@Nullable E entity, EntitySerializer<? super E> entitySerializer) throws Exception;
-
-    // ----------------------------------------- 生成代码调用 --------------------------------------
-
-    /**
-     * 向输出流中写入一个字段
-     *
-     * @param wireType   字段的缓存类型，如果该值为{@link WireType#RUN_TIME}，则需要动态解析。
-     * @param fieldValue 字段的值
-     */
-    <T> void writeField(byte wireType, @Nullable T fieldValue) throws Exception;
 
 }

@@ -41,13 +41,14 @@ public class ProtoUtils {
      * @param clazz protoBuffer class
      * @return parser
      */
-    public static Parser<?> findParser(@Nonnull Class<? extends Message> clazz) {
+    public static <T extends Message> Parser<T> findParser(@Nonnull Class<T> clazz) {
         Objects.requireNonNull(clazz);
         try {
             final Method method = clazz.getDeclaredMethod("getDefaultInstance");
             method.setAccessible(true);
             final Message instance = (Message) method.invoke(null);
-            return instance.getParserForType();
+            @SuppressWarnings("unchecked") final Parser<T> parserForType = (Parser<T>) instance.getParserForType();
+            return parserForType;
         } catch (Exception e) {
             throw new IllegalArgumentException("bad class " + clazz.getName(), e);
         }
@@ -59,11 +60,12 @@ public class ProtoUtils {
      * @param clazz protoBuffer enum
      * @return map
      */
-    public static Internal.EnumLiteMap<?> findMapper(@Nonnull Class<? extends ProtocolMessageEnum> clazz) {
+    public static <T extends ProtocolMessageEnum> Internal.EnumLiteMap<T> findMapper(@Nonnull Class<T> clazz) {
         try {
             final Method method = clazz.getDeclaredMethod("internalGetValueMap");
             method.setAccessible(true);
-            return (Internal.EnumLiteMap<?>) method.invoke(null);
+            @SuppressWarnings("unchecked") final Internal.EnumLiteMap<T> mapper = (Internal.EnumLiteMap<T>) method.invoke(null);
+            return mapper;
         } catch (Exception e) {
             throw new IllegalArgumentException("bad class " + clazz.getName(), e);
         }

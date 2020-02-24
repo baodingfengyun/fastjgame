@@ -32,45 +32,38 @@ import java.util.function.IntFunction;
  * @version 1.0
  * date - 2020/2/17
  */
-class MapCodec implements BinaryCodec<Map<?, ?>> {
+class MapCodec extends ContainerCodec<Map<?, ?>> {
 
-    private BinaryProtocolCodec binaryProtocolCodec;
-
-    MapCodec(BinaryProtocolCodec binaryProtocolCodec) {
-        this.binaryProtocolCodec = binaryProtocolCodec;
+    MapCodec(int classId) {
+        super(classId);
     }
 
     @Override
-    public boolean isSupport(Class<?> runtimeType) {
-        return Map.class.isAssignableFrom(runtimeType);
-    }
-
-    @Override
-    public void writeDataNoTag(CodedOutputStream outputStream, @Nonnull Map<?, ?> instance) throws Exception {
-        outputStream.writeUInt32NoTag(instance.size());
-        if (instance.size() == 0) {
+    public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Map<?, ?> value, CodecRegistry codecRegistry) throws Exception {
+        outputStream.writeUInt32NoTag(value.size());
+        if (value.size() == 0) {
             return;
         }
 
-        for (Map.Entry<?, ?> entry : instance.entrySet()) {
-            binaryProtocolCodec.writeObject(outputStream, entry.getKey());
-            binaryProtocolCodec.writeObject(outputStream, entry.getValue());
+        for (Map.Entry<?, ?> entry : value.entrySet()) {
+            BinaryProtocolCodec.encodeObject(outputStream, entry.getKey(), codecRegistry);
+            BinaryProtocolCodec.encodeObject(outputStream, entry.getValue(), codecRegistry);
         }
     }
 
     @Nonnull
     @Override
-    public Map<?, ?> readData(CodedInputStream inputStream) throws Exception {
-        return readMapImp(binaryProtocolCodec, inputStream, Maps::newLinkedHashMapWithExpectedSize);
+    public Map<?, ?> decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
+        return readMapImp(inputStream, Maps::newLinkedHashMapWithExpectedSize, codecRegistry);
     }
 
     /**
      * 从输入流中读取指定个数元素到map中
      */
     @Nonnull
-    static <M extends Map<K, V>, K, V> M readMapImp(@Nonnull BinaryProtocolCodec binaryProtocolCodec,
-                                                    @Nonnull CodedInputStream inputStream,
-                                                    @Nonnull IntFunction<M> mapFactory) throws Exception {
+    static <M extends Map<K, V>, K, V> M readMapImp(@Nonnull CodedInputStream inputStream,
+                                                    @Nonnull IntFunction<M> mapFactory,
+                                                    @Nonnull CodecRegistry codecRegistry) throws Exception {
         final int size = inputStream.readUInt32();
         if (size == 0) {
             return mapFactory.apply(0);
@@ -78,15 +71,21 @@ class MapCodec implements BinaryCodec<Map<?, ?>> {
 
         final M result = mapFactory.apply(size);
         for (int index = 0; index < size; index++) {
-            @SuppressWarnings("unchecked") K key = (K) binaryProtocolCodec.readObject(inputStream);
-            @SuppressWarnings("unchecked") V value = (V) binaryProtocolCodec.readObject(inputStream);
+            final K key = BinaryProtocolCodec.decodeObject(inputStream, codecRegistry);
+            final V value = BinaryProtocolCodec.decodeObject(inputStream, codecRegistry);
             result.put(key, value);
         }
         return result;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public byte getWireType() {
+    public Class<Map<?, ?>> getEncoderClass() {
+        return ((Class) Map.class);
+    }
+
+    @Override
+    public WireType wireType() {
         return WireType.MAP;
     }
 }

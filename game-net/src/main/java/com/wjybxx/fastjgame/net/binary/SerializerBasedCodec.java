@@ -16,44 +16,42 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.google.protobuf.*;
+import com.google.protobuf.CodedInputStream;
+import com.google.protobuf.CodedOutputStream;
 
 import javax.annotation.Nonnull;
 
 /**
- * protoBuf消息编解码支持
- * <p>
- * messageId 使用大端模式写入，和json序列化方式一致，也方便客户端解析
+ * 封装{@link EntitySerializer}
  *
  * @author wjybxx
  * @version 1.0
- * date - 2020/2/17
+ * date - 2020/2/24
  */
-class ProtoMessageCodec<T extends AbstractMessage> extends AppObjectCodec<T> {
+public class SerializerBasedCodec<T> extends AppObjectCodec<T> {
 
-    private final Class<T> messageClass;
-    private final Parser<T> parser;
+    private final EntitySerializer<T> serializer;
 
-    ProtoMessageCodec(int classId, Class<T> messageClass, Parser<T> parser) {
+    public SerializerBasedCodec(int classId, EntitySerializer<T> serializer) {
         super(classId);
-        this.messageClass = messageClass;
-        this.parser = parser;
+        this.serializer = serializer;
     }
 
     @Override
     public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull T value, CodecRegistry codecRegistry) throws Exception {
-        outputStream.writeMessageNoTag(value);
+        final EntityOutputStream entityOutputStream = new EntityOutputStreamImp(codecRegistry, outputStream);
+        serializer.writeObject(value, entityOutputStream);
     }
 
     @Nonnull
     @Override
     public T decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
-        return inputStream.readMessage(parser, ExtensionRegistryLite.getEmptyRegistry());
+        final EntityInputStream entityInputStream = new EntityInputStreamImp(codecRegistry, inputStream);
+        return serializer.readObject(entityInputStream);
     }
 
     @Override
     public Class<T> getEncoderClass() {
-        return messageClass;
+        return serializer.getEntityClass();
     }
-
 }

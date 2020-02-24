@@ -18,15 +18,13 @@ package com.wjybxx.fastjgame.net.binary;
 
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.CodedOutputStream;
-import com.wjybxx.fastjgame.net.serializer.ClassSerializer;
-import com.wjybxx.fastjgame.utils.EnumUtils;
 import com.wjybxx.fastjgame.utils.entity.NumericalEntity;
-import com.wjybxx.fastjgame.utils.entity.NumericalEntityMapper;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.util.EnumMap;
 import java.util.IdentityHashMap;
 
 /**
@@ -36,12 +34,17 @@ import java.util.IdentityHashMap;
  * @version 1.0
  * date - 2020/2/17
  */
-class ArrayCodec implements BinaryCodec<Object> {
+class ArrayCodec extends ContainerCodec<Object> {
+
+    /**
+     * 数组没有公共的数组超类 - 这个就有点伤心了
+     */
+    static final Class<?> ARRAY_CLASS_KEY = Array.class;
 
     private static final int CHILD_SIZE = 8;
 
     private static final IdentityHashMap<Class<?>, PrimitiveTypeArrayCodec<?>> primitiveType2CodecMapping = new IdentityHashMap<>(CHILD_SIZE);
-    private static final NumericalEntityMapper<PrimitiveTypeArrayCodec<?>> tag2CodecMapping;
+    private static final EnumMap<WireType, PrimitiveTypeArrayCodec<?>> tag2CodecMapping = new EnumMap<>(WireType.class);
 
     static {
         register(byte.class, new ByteArrayCodec());
@@ -52,42 +55,33 @@ class ArrayCodec implements BinaryCodec<Object> {
         register(float.class, new FloatArrayCodec());
         register(double.class, new DoubleArrayCodec());
         register(boolean.class, new BooleanArrayCodec());
-
-        PrimitiveTypeArrayCodec<?>[] codecs = primitiveType2CodecMapping.values().toArray(PrimitiveTypeArrayCodec<?>[]::new);
-        tag2CodecMapping = EnumUtils.mapping(codecs, true);
     }
 
     private static void register(Class<?> component, PrimitiveTypeArrayCodec<?> codec) {
         primitiveType2CodecMapping.put(component, codec);
+        tag2CodecMapping.put(codec.childType(), codec);
     }
 
-    private final BinaryProtocolCodec binaryProtocolCodec;
-
-    ArrayCodec(BinaryProtocolCodec binaryProtocolCodec) {
-        this.binaryProtocolCodec = binaryProtocolCodec;
-    }
-
-    @Override
-    public boolean isSupport(Class<?> runtimeType) {
-        return runtimeType.isArray();
+    ArrayCodec(int classId) {
+        super(classId);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public void writeDataNoTag(CodedOutputStream outputStream, @Nonnull Object instance) throws Exception {
-        final PrimitiveTypeArrayCodec codec = primitiveType2CodecMapping.get(instance.getClass().getComponentType());
-        final int length = Array.getLength(instance);
+    public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Object value, CodecRegistry codecRegistry) throws Exception {
+        final PrimitiveTypeArrayCodec codec = primitiveType2CodecMapping.get(value.getClass().getComponentType());
+        final int length = Array.getLength(value);
 
         if (null != codec) {
             writeChildTypeAndLength(outputStream, codec.childType(), length);
-            codec.writeArray(outputStream, instance);
+            codec.writeArray(outputStream, value);
         } else {
-            writeChildTypeAndLength(outputStream, WireType.RUN_TIME, length);
-            writeObjectArray(outputStream, instance, length);
+            writeChildTypeAndLength(outputStream, WireType.UNKNOWN, length);
+            writeObjectArray(outputStream, value, length, codecRegistry);
         }
     }
 
-    private static void writeChildTypeAndLength(CodedOutputStream outputStream, byte childType, int length) throws IOException {
+    private static void writeChildTypeAndLength(CodedOutputStream outputStream, WireType childType, int length) throws IOException {
         BinaryProtocolCodec.writeTag(outputStream, childType);
         outputStream.writeUInt32NoTag(length);
     }
@@ -95,50 +89,60 @@ class ArrayCodec implements BinaryCodec<Object> {
     /**
      * 写对象数组，对象数组主要存在Null等处理
      */
-    private void writeObjectArray(CodedOutputStream outputStream, @Nonnull Object instance, int length) throws Exception {
-        outputStream.writeStringNoTag(instance.getClass().getComponentType().getName());
+    private void writeObjectArray(CodedOutputStream outputStream, @Nonnull Object instance, int length,
+                                  CodecRegistry codecRegistry) throws Exception {
+        ClassCodec.encodeClass(outputStream, instance.getClass().getComponentType());
+
         for (int index = 0; index < length; index++) {
             Object value = Array.get(instance, index);
-            binaryProtocolCodec.writeObject(outputStream, value);
+            BinaryProtocolCodec.encodeObject(outputStream, value, codecRegistry);
         }
     }
 
     @Nonnull
     @Override
-    public Object readData(CodedInputStream inputStream) throws Exception {
-        return readArray(inputStream, null);
+    public Object decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
+        return readArray(inputStream, null, codecRegistry);
     }
 
-    Object readArray(CodedInputStream inputStream, Class<?> objectArrayComponentType) throws Exception {
-        final byte childType = BinaryProtocolCodec.readTag(inputStream);
+    Object readArray(CodedInputStream inputStream, Class<?> objectArrayComponentType, CodecRegistry codecRegistry) throws Exception {
+        final WireType childType = BinaryProtocolCodec.readTag(inputStream);
         final int length = inputStream.readUInt32();
 
-        if (childType != WireType.RUN_TIME) {
-            final PrimitiveTypeArrayCodec<?> codec = tag2CodecMapping.forNumber(childType);
+        if (childType != WireType.UNKNOWN) {
+            final PrimitiveTypeArrayCodec<?> codec = tag2CodecMapping.get(childType);
             assert null != codec;
             return codec.readArray(inputStream, length);
         } else {
-            return readObjectArray(inputStream, objectArrayComponentType, length);
+            return readObjectArray(inputStream, objectArrayComponentType, length, codecRegistry);
         }
     }
 
     private Object readObjectArray(CodedInputStream inputStream,
-                                   @Nullable Class<?> objectArrayComponentType,
-                                   int length) throws Exception {
+                                   @Nullable Class<?> objectArrayComponentType, int length,
+                                   CodecRegistry codecRegistry) throws Exception {
         final String componentClassName = inputStream.readString();
         if (null == objectArrayComponentType) {
-            objectArrayComponentType = ClassSerializer.findClass(componentClassName);
+            // 查找类性能不好
+            objectArrayComponentType = ClassCodec.decodeClass(componentClassName);
         }
 
         final Object array = Array.newInstance(objectArrayComponentType, length);
         for (int index = 0; index < length; index++) {
-            Array.set(array, index, binaryProtocolCodec.readObject(inputStream));
+            Array.set(array, index, BinaryProtocolCodec.decodeObject(inputStream, codecRegistry));
         }
+
         return array;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public byte getWireType() {
+    public Class getEncoderClass() {
+        return ARRAY_CLASS_KEY;
+    }
+
+    @Override
+    public WireType wireType() {
         return WireType.ARRAY;
     }
 
@@ -152,7 +156,7 @@ class ArrayCodec implements BinaryCodec<Object> {
         /**
          * 子类标识
          */
-        byte childType();
+        WireType childType();
 
         /**
          * 写入数组的内容
@@ -167,15 +171,15 @@ class ArrayCodec implements BinaryCodec<Object> {
 
         @Override
         default int getNumber() {
-            return childType();
+            return childType().getNumber();
         }
     }
 
     private static class ByteArrayCodec implements PrimitiveTypeArrayCodec<byte[]> {
 
         @Override
-        public byte childType() {
-            return WireType.BYTE;
+        public WireType childType() {
+            return WireType.BOOLEAN;
         }
 
         @Override
@@ -196,7 +200,7 @@ class ArrayCodec implements BinaryCodec<Object> {
     private static class IntArrayCodec implements PrimitiveTypeArrayCodec<int[]> {
 
         @Override
-        public byte childType() {
+        public WireType childType() {
             return WireType.INT;
         }
 
@@ -221,7 +225,7 @@ class ArrayCodec implements BinaryCodec<Object> {
     private static class FloatArrayCodec implements PrimitiveTypeArrayCodec<float[]> {
 
         @Override
-        public byte childType() {
+        public WireType childType() {
             return WireType.FLOAT;
         }
 
@@ -245,7 +249,7 @@ class ArrayCodec implements BinaryCodec<Object> {
     private static class DoubleArrayCodec implements PrimitiveTypeArrayCodec<double[]> {
 
         @Override
-        public byte childType() {
+        public WireType childType() {
             return WireType.DOUBLE;
         }
 
@@ -269,7 +273,7 @@ class ArrayCodec implements BinaryCodec<Object> {
     private static class LongArrayCodec implements PrimitiveTypeArrayCodec<long[]> {
 
         @Override
-        public byte childType() {
+        public WireType childType() {
             return WireType.LONG;
         }
 
@@ -293,7 +297,7 @@ class ArrayCodec implements BinaryCodec<Object> {
     private static class ShortArrayCodec implements PrimitiveTypeArrayCodec<short[]> {
 
         @Override
-        public byte childType() {
+        public WireType childType() {
             return WireType.SHORT;
         }
 
@@ -317,7 +321,7 @@ class ArrayCodec implements BinaryCodec<Object> {
     private static class CharArrayCodec implements PrimitiveTypeArrayCodec<char[]> {
 
         @Override
-        public byte childType() {
+        public WireType childType() {
             return WireType.CHAR;
         }
 
@@ -341,7 +345,7 @@ class ArrayCodec implements BinaryCodec<Object> {
     private static class BooleanArrayCodec implements PrimitiveTypeArrayCodec<boolean[]> {
 
         @Override
-        public byte childType() {
+        public WireType childType() {
             return WireType.BOOLEAN;
         }
 
@@ -361,4 +365,5 @@ class ArrayCodec implements BinaryCodec<Object> {
             return result;
         }
     }
+
 }
