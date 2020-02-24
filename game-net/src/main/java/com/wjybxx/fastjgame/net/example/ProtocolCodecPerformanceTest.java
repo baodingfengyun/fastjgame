@@ -35,8 +35,8 @@ public class ProtocolCodecPerformanceTest {
 
     public static void main(String[] args) throws Exception {
         ByteBufAllocator byteBufAllocator = PooledByteBufAllocator.DEFAULT;
-//        ExampleMessages.FullMessage msg = BinaryProtoCodecTest.newFullMessage();
-        final TestMsg msg = new TestMsg(32116503156L, 5461166513213L, 546541211616512L, false);
+        ExampleMessages.FullMessage msg = BinaryProtoCodecTest.newFullMessage();
+//        final TestMsg msg = new TestMsg(32116503156L, 5461166513213L, 546541211616512L, false);
 
         JsonProtocolCodec jsonCodec = ExampleConstants.jsonCodec;
         BinaryProtocolCodec binaryCodec = ExampleConstants.binaryCodec;

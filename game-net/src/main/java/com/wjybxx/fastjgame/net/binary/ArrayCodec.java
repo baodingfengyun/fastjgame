@@ -18,11 +18,13 @@ package com.wjybxx.fastjgame.net.binary;
 
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.CodedOutputStream;
+import com.wjybxx.fastjgame.net.serializer.ClassSerializer;
 import com.wjybxx.fastjgame.utils.EnumUtils;
 import com.wjybxx.fastjgame.utils.entity.NumericalEntity;
 import com.wjybxx.fastjgame.utils.entity.NumericalEntityMapper;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.IdentityHashMap;
@@ -94,6 +96,7 @@ class ArrayCodec implements BinaryCodec<Object> {
      * 写对象数组，对象数组主要存在Null等处理
      */
     private void writeObjectArray(CodedOutputStream outputStream, @Nonnull Object instance, int length) throws Exception {
+        outputStream.writeStringNoTag(instance.getClass().getComponentType().getName());
         for (int index = 0; index < length; index++) {
             Object value = Array.get(instance, index);
             binaryProtocolCodec.writeObject(outputStream, value);
@@ -103,8 +106,7 @@ class ArrayCodec implements BinaryCodec<Object> {
     @Nonnull
     @Override
     public Object readData(CodedInputStream inputStream) throws Exception {
-        // 默认使用Object最为对象类型数组
-        return readArray(inputStream, Object.class);
+        return readArray(inputStream, null);
     }
 
     Object readArray(CodedInputStream inputStream, Class<?> objectArrayComponentType) throws Exception {
@@ -120,8 +122,15 @@ class ArrayCodec implements BinaryCodec<Object> {
         }
     }
 
-    private Object readObjectArray(CodedInputStream inputStream, Class<?> componentType, int length) throws Exception {
-        final Object array = Array.newInstance(componentType, length);
+    private Object readObjectArray(CodedInputStream inputStream,
+                                   @Nullable Class<?> objectArrayComponentType,
+                                   int length) throws Exception {
+        final String componentClassName = inputStream.readString();
+        if (null == objectArrayComponentType) {
+            objectArrayComponentType = ClassSerializer.findClass(componentClassName);
+        }
+
+        final Object array = Array.newInstance(objectArrayComponentType, length);
         for (int index = 0; index < length; index++) {
             Array.set(array, index, binaryProtocolCodec.readObject(inputStream));
         }

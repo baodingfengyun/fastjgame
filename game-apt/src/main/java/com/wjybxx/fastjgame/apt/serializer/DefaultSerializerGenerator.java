@@ -29,8 +29,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.List;
 
-import static com.wjybxx.fastjgame.apt.serializer.SerializableClassProcessor.*;
-
 /**
  * @author wjybxx
  * @version 1.0
@@ -39,8 +37,12 @@ import static com.wjybxx.fastjgame.apt.serializer.SerializableClassProcessor.*;
 class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProcessor> {
 
     private static final String READ_MAP_METHOD_NAME = "readMap";
-    private static final String READ_COLLECTION = "readCollection";
-    private static final String READ_ARRAY = "readArray";
+    private static final String READ_COLLECTION_METHOD_NAME = "readCollection";
+    private static final String READ_ARRAY_METHOD_NAME = "readArray";
+
+    private static final String WRITE_MAP_METHOD_NAME = "writeMap";
+    private static final String WRITE_COLLECTION_METHOD_NAME = "writeCollection";
+    private static final String WRITE_ARRAY_METHOD_NAME = "writeArray";
 
     private static final String CONSTRUCTOR_FIELD_NAME = "r_constructor";
 
@@ -99,15 +101,9 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
                 continue;
             }
 
-            final TypeName fieldRawTypeName = ParameterizedTypeName.get(typeUtils.erasure(variableElement.asType()));
-            final String filedWireTypeFieldName = "wireType_" + variableElement.getSimpleName().toString();
+            addWriteStatement(variableElement);
 
-            typeBuilder.addField(byte.class, filedWireTypeFieldName, Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL);
-            staticCodeBlockBuilder.addStatement("$L = $T.$L($T.class)", filedWireTypeFieldName, processor.wireTypeTypeName, FINDTYPE_METHOD_NAME, fieldRawTypeName);
-
-            addWriteStatement(variableElement, fieldRawTypeName, filedWireTypeFieldName);
-
-            addReadStatement(variableElement, fieldRawTypeName, filedWireTypeFieldName);
+            addReadStatement(variableElement);
         }
 
         typeBuilder.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
@@ -158,24 +154,30 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
      * 写对象用的getter方法
      * 且要求了一定有getter方法
      */
-    private void addWriteStatement(VariableElement variableElement, TypeName fieldRawTypeName, String filedWireTypeFieldName) {
-        final String getterName = BeanUtils.getterMethodName(variableElement.getSimpleName().toString(), BeanUtils.isPrimitiveBoolean(fieldRawTypeName));
-        if (isPrimitiveType(variableElement)){
+    private void addWriteStatement(VariableElement variableElement) {
+        final String getterName = BeanUtils.getterMethodName(variableElement.getSimpleName().toString(),
+                BeanUtils.isPrimitiveBoolean(variableElement.asType()));
+        if (isPrimitiveType(variableElement)) {
             writeObjectMethodBuilder.addStatement("outputStream.$L(instance.$L())", getWritePrimitiveType(variableElement), getterName);
+        } else if (processor.isMap(variableElement)) {
+            writeObjectMethodBuilder.addStatement("outputStream.$L(instance.$L())", WRITE_MAP_METHOD_NAME, getterName);
+        } else if (processor.isCollection(variableElement)) {
+            writeObjectMethodBuilder.addStatement("outputStream.$L(instance.$L())", WRITE_COLLECTION_METHOD_NAME, getterName);
+        } else if (AutoUtils.isArrayType(variableElement.asType())) {
+            writeObjectMethodBuilder.addStatement("outputStream.$L(instance.$L())", WRITE_ARRAY_METHOD_NAME, getterName);
         } else {
-            writeObjectMethodBuilder.addStatement("outputStream.$L($L, instance.$L())", WRITE_FIELD_METHOD_NAME, filedWireTypeFieldName, getterName);
+            writeObjectMethodBuilder.addStatement("outputStream.writeObject(instance.$L())", getterName);
         }
     }
 
     /**
      * 读对象用的setter
      */
-    private void addReadStatement(VariableElement variableElement, TypeName fieldRawTypeName, final String filedWireTypeFieldName) {
-        final String fieldName = variableElement.getSimpleName().toString();
+    private void addReadStatement(VariableElement variableElement) {
         if (isContainerNotPrivateSetterMethod(variableElement)) {
-            readBySetter(variableElement, fieldRawTypeName, filedWireTypeFieldName);
+            readBySetter(variableElement);
         } else {
-            readByReflect(variableElement, filedWireTypeFieldName, fieldName);
+            readByReflect(variableElement);
         }
     }
 
@@ -183,9 +185,11 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
         return BeanUtils.isContainerNotPrivateSetterMethod(typeUtils, variableElement, allFieldsAndMethodWithInherit);
     }
 
-    private void readBySetter(VariableElement variableElement, TypeName fieldRawTypeName, String filedWireTypeFieldName) {
+    private void readBySetter(VariableElement variableElement) {
         // 包含非private的setter方法
-        final String setterName = BeanUtils.setterMethodName(variableElement.getSimpleName().toString(), BeanUtils.isPrimitiveBoolean(fieldRawTypeName));
+        final String setterName = BeanUtils.setterMethodName(variableElement.getSimpleName().toString(),
+                BeanUtils.isPrimitiveBoolean(variableElement.asType()));
+
         if (isPrimitiveType(variableElement)) {
             readFieldsMethodBuilder.addStatement("instance.$L(inputStream.$L())", setterName, getReadPrimitiveMethodName(variableElement));
         } else if (processor.isMap(variableElement)) {
@@ -193,17 +197,18 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
             readFieldsMethodBuilder.addStatement("instance.$L(inputStream.$L($T::new))", setterName, READ_MAP_METHOD_NAME, impTypeName);
         } else if (processor.isCollection(variableElement)) {
             final TypeName impTypeName = getFieldImpTypeName(variableElement);
-            readFieldsMethodBuilder.addStatement("instance.$L(inputStream.$L($T::new))", setterName, READ_COLLECTION, impTypeName);
+            readFieldsMethodBuilder.addStatement("instance.$L(inputStream.$L($T::new))", setterName, READ_COLLECTION_METHOD_NAME, impTypeName);
         } else if (AutoUtils.isArrayType(variableElement.asType())) {
             final TypeName componentTypeName = TypeName.get(AutoUtils.getComponentType(variableElement.asType()));
-            readFieldsMethodBuilder.addStatement("instance.$L(inputStream.$L($T.class))", setterName, READ_ARRAY, componentTypeName);
+            readFieldsMethodBuilder.addStatement("instance.$L(inputStream.$L($T.class))", setterName, READ_ARRAY_METHOD_NAME, componentTypeName);
         } else {
-            readFieldsMethodBuilder.addStatement("instance.$L(inputStream.$L($L))", setterName, READ_FIELD_METHOD_NAME, filedWireTypeFieldName);
+            readFieldsMethodBuilder.addStatement("instance.$L(inputStream.readObject())", setterName);
         }
     }
 
-    private void readByReflect(VariableElement variableElement, String filedWireTypeFieldName, String fieldName) {
+    private void readByReflect(VariableElement variableElement) {
         // 需要定义反射构造方法字段
+        final String fieldName = variableElement.getSimpleName().toString();
         final String reflectFieldName = "r_field_" + fieldName;
         typeBuilder.addField(Field.class, reflectFieldName, Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL);
 
@@ -213,17 +218,19 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
                 fieldDeclaredClassTypeName, fieldName);
 
         // 反射赋值
-        if (processor.isMap(variableElement)) {
+        if (isPrimitiveType(variableElement)) {
+            readFieldsMethodBuilder.addStatement("$L.set(instance, inputStream.$L())", reflectFieldName, getReadPrimitiveMethodName(variableElement));
+        } else if (processor.isMap(variableElement)) {
             final TypeName impTypeName = getFieldImpTypeName(variableElement);
             readFieldsMethodBuilder.addStatement("$L.set(instance, inputStream.$L($T::new))", reflectFieldName, READ_MAP_METHOD_NAME, impTypeName);
         } else if (processor.isCollection(variableElement)) {
             final TypeName impTypeName = getFieldImpTypeName(variableElement);
-            readFieldsMethodBuilder.addStatement("$L.set(instance, inputStream.$L($T::new))", reflectFieldName, READ_COLLECTION, impTypeName);
+            readFieldsMethodBuilder.addStatement("$L.set(instance, inputStream.$L($T::new))", reflectFieldName, READ_COLLECTION_METHOD_NAME, impTypeName);
         } else if (AutoUtils.isArrayType(variableElement.asType())) {
             final TypeName componentTypeName = TypeName.get(AutoUtils.getComponentType(variableElement.asType()));
-            readFieldsMethodBuilder.addStatement("$L.set(instance, inputStream.$L($T.class))", reflectFieldName, READ_ARRAY, componentTypeName);
+            readFieldsMethodBuilder.addStatement("$L.set(instance, inputStream.$L($T.class))", reflectFieldName, READ_ARRAY_METHOD_NAME, componentTypeName);
         } else {
-            readFieldsMethodBuilder.addStatement("$L.set(instance, inputStream.$L($L))", reflectFieldName, READ_FIELD_METHOD_NAME, filedWireTypeFieldName);
+            readFieldsMethodBuilder.addStatement("$L.set(instance, inputStream.readObject())", reflectFieldName);
         }
     }
 

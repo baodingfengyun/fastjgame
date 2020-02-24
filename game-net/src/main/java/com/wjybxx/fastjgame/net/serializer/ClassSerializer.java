@@ -20,6 +20,10 @@ import com.wjybxx.fastjgame.net.binary.EntityInputStream;
 import com.wjybxx.fastjgame.net.binary.EntityOutputStream;
 import com.wjybxx.fastjgame.net.binary.EntitySerializer;
 
+import javax.annotation.Nonnull;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * {@link Class}对象序列化工具类
  *
@@ -31,20 +35,34 @@ import com.wjybxx.fastjgame.net.binary.EntitySerializer;
 @SuppressWarnings("unused")
 public class ClassSerializer implements EntitySerializer<Class> {
 
+    private static final ThreadLocal<Map<String, Class<?>>> LOAD_CACHE = ThreadLocal.withInitial(HashMap::new);
+
     @Override
     public Class<Class> getEntityClass() {
         return Class.class;
     }
 
     @Override
-    public Class readObject(EntityInputStream inputStream) throws Exception {
-        final String canonicalName = inputStream.readString();
-        return ClassSerializer.class.getClassLoader().loadClass(canonicalName);
+    public void writeObject(Class instance, EntityOutputStream outputStream) throws Exception {
+        outputStream.writeString(instance.getName());
     }
 
     @Override
-    public void writeObject(Class instance, EntityOutputStream outputStream) throws Exception {
-        outputStream.writeString(instance.getCanonicalName());
+    public Class readObject(EntityInputStream inputStream) throws Exception {
+        final String className = inputStream.readString();
+        return findClass(className);
     }
 
+    @Nonnull
+    public static Class findClass(String className) throws ClassNotFoundException {
+        final Map<String, Class<?>> cacheMap = LOAD_CACHE.get();
+        final Class<?> cacheClass = cacheMap.get(className);
+        if (cacheClass != null) {
+            return cacheClass;
+        }
+
+        final Class<?> newClass = Class.forName(className);
+        cacheMap.put(className, newClass);
+        return newClass;
+    }
 }

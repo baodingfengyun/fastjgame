@@ -21,13 +21,14 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.wjybxx.fastjgame.apt.core.AbstractGenerator;
 import com.wjybxx.fastjgame.apt.utils.AutoUtils;
-import com.wjybxx.fastjgame.apt.utils.BeanUtils;
 
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 
-import static com.wjybxx.fastjgame.apt.serializer.SerializableClassProcessor.*;
+import static com.wjybxx.fastjgame.apt.serializer.SerializableClassProcessor.getSerializerClassName;
+import static com.wjybxx.fastjgame.apt.utils.BeanUtils.FOR_NUMBER_METHOD_NAME;
+import static com.wjybxx.fastjgame.apt.utils.BeanUtils.GET_NUMBER_METHOD_NAME;
 
 /**
  * 可数值化的实体serializer实现
@@ -53,13 +54,11 @@ class NumericalEntitySerializerGenerator extends AbstractGenerator<SerializableC
 
         // 写入number即可 outputStream.writeObject(WireType.INT, instance.getNumber())
         final MethodSpec.Builder writeMethodBuilder = processor.newWriteMethodBuilder(superDeclaredType);
-        writeMethodBuilder.addStatement("outputStream.$L($T.$L, instance.$L())",
-                WRITE_FIELD_METHOD_NAME, processor.wireTypeTypeName, WIRE_TYPE_INT, BeanUtils.GET_NUMBER_METHOD_NAME);
+        writeMethodBuilder.addStatement("outputStream.writeInt(instance.$L())", GET_NUMBER_METHOD_NAME);
 
         // 读取number即可 return A.forNumber(inputStream.readObject(WireType.INT))
         final MethodSpec.Builder readMethodBuilder = processor.newReadObjectMethodBuilder(superDeclaredType);
-        readMethodBuilder.addStatement("return $T.$L(inputStream.$L($T.$L))",
-                instanceRawTypeName, BeanUtils.FOR_NUMBER_METHOD_NAME, READ_FIELD_METHOD_NAME, processor.wireTypeTypeName, WIRE_TYPE_INT);
+        readMethodBuilder.addStatement("return $T.$L(inputStream.readInt())", instanceRawTypeName, FOR_NUMBER_METHOD_NAME);
 
         final TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(getSerializerClassName(typeElement));
         typeBuilder.addModifiers(Modifier.PUBLIC, Modifier.FINAL)

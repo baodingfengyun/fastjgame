@@ -56,7 +56,7 @@ public class WireType {
     /**
      * varInt(不要修改名字) - INT开放给了许多地方
      */
-    public static final byte INT = 4;
+    static final byte INT = 4;
     /**
      * varInt64
      */
@@ -121,73 +121,5 @@ public class WireType {
      * 动态类型 - 运行时才能确定的类型（它是标记类型）
      */
     static final byte RUN_TIME = 16;
-
-    /**
-     * 查找一个class对应的wireType(用于缓存，可大幅提高性能)
-     *
-     * @param declaredType 字段的声明类型
-     * @return wireType
-     */
-    public static byte findType(@Nonnull final Class<?> declaredType) {
-        // ---------------------------- 基础类型 -------------------------------
-        if (declaredType == byte.class || declaredType == Byte.class) {
-            return WireType.BYTE;
-        }
-        if (declaredType == char.class || declaredType == Character.class) {
-            return WireType.CHAR;
-        }
-        if (declaredType == short.class || declaredType == Short.class) {
-            return WireType.SHORT;
-        }
-        if (declaredType == int.class || declaredType == Integer.class) {
-            return WireType.INT;
-        }
-        if (declaredType == long.class || declaredType == Long.class) {
-            return WireType.LONG;
-        }
-        if (declaredType == float.class || declaredType == Float.class) {
-            return WireType.FLOAT;
-        }
-        if (declaredType == double.class || declaredType == Double.class) {
-            return WireType.DOUBLE;
-        }
-        if (declaredType == boolean.class || declaredType == Boolean.class) {
-            return WireType.BOOLEAN;
-        }
-        if (declaredType == String.class) {
-            return WireType.STRING;
-        }
-        // ------------------------------- 容器 --------------------------------
-        // 数组
-        if (declaredType.isArray()) {
-            return WireType.ARRAY;
-        }
-        // Collection
-        if (Collection.class.isAssignableFrom(declaredType)) {
-            return WireType.COLLECTION;
-        }
-        // Map
-        if (Map.class.isAssignableFrom(declaredType)) {
-            return WireType.MAP;
-        }
-        // ------------------------------ 应用扩展类型 ------------------------------
-        // protoBuf
-        if (AbstractMessage.class.isAssignableFrom(declaredType)) {
-            return WireType.PROTO_MESSAGE;
-        }
-
-        // protoBuf的枚举
-        if (ProtocolMessageEnum.class.isAssignableFrom(declaredType)) {
-            return WireType.PROTO_ENUM;
-        }
-
-        // 自定义实体 - 有serializer的类型，无论手写的还是自动生成的
-        if (EntitySerializerScanner.hasSerializer(declaredType)) {
-            return WireType.CUSTOM_ENTITY;
-        }
-
-        // Object，或一些接口，超类等等
-        return WireType.RUN_TIME;
-    }
 
 }

@@ -50,10 +50,6 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
     private static final String SERIALIZABLE_CLASS_CANONICAL_NAME = "com.wjybxx.fastjgame.net.annotation.SerializableClass";
     private static final String SERIALIZABLE_FIELD_CANONICAL_NAME = "com.wjybxx.fastjgame.net.annotation.SerializableField";
 
-    private static final String WIRETYPE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.binary.WireType";
-    static final String WIRE_TYPE_INT = "INT";
-    static final String FINDTYPE_METHOD_NAME = "findType";
-
     private static final String SERIALIZER_CANONICAL_NAME = "com.wjybxx.fastjgame.net.binary.EntitySerializer";
     private static final String ABSTRACT_SERIALIZER_CANONICAL_NAME = "com.wjybxx.fastjgame.net.binary.AbstractEntitySerializer";
 
@@ -63,9 +59,6 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
 
     private static final String NEW_INSTANCE_METHOD_NAME = "newInstance";
     private static final String READ_FIELDS_METHOD_NAME = "readFields";
-
-    static final String WRITE_FIELD_METHOD_NAME = "writeField";
-    static final String READ_FIELD_METHOD_NAME = "readField";
 
     private TypeMirror mapTypeMirror;
     private TypeMirror collectionTypeMirror;
@@ -79,8 +72,6 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
 
     private DeclaredType numericalEnumDeclaredType;
     private DeclaredType indexableEntityDeclaredType;
-
-    TypeName wireTypeTypeName;
 
     TypeElement serializerTypeElement;
     // 要覆盖的方法缓存，减少大量查询
@@ -115,8 +106,6 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
 
         numericalEnumDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(BeanUtils.NUMBER_ENUM_CANONICAL_NAME));
         indexableEntityDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(BeanUtils.INDEXABLE_ENTITY_CANONICAL_NAME));
-
-        wireTypeTypeName = TypeName.get(elementUtils.getTypeElement(WIRETYPE_CANONICAL_NAME).asType());
 
         serializerTypeElement = elementUtils.getTypeElement(SERIALIZER_CANONICAL_NAME);
         getEntityClassMethod = AutoUtils.findMethodByName(serializerTypeElement, GET_ENTITY_CLASS_METHOD_NAME);

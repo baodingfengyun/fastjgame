@@ -29,6 +29,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -290,6 +291,15 @@ public final class ExampleMessages {
         @SerializableField
         private char[] aCharArray;
 
+        @SerializableField
+        private String[] aStringArray;
+
+        @SerializableField
+        private Class[] aClassArray;
+
+        @SerializableField
+        private String[][] twoDimensionsStringArray;
+
         @Impl(Int2ObjectOpenHashMap.class)
         @SerializableField
         private Int2ObjectMap<String> int2ObjectMap;
@@ -490,6 +500,63 @@ public final class ExampleMessages {
             this.int2ObjectMap = int2ObjectMap;
         }
 
+        public String[] getaStringArray() {
+            return aStringArray;
+        }
+
+        public void setaStringArray(String[] aStringArray) {
+            this.aStringArray = aStringArray;
+        }
+
+        public Class[] getaClassArray() {
+            return aClassArray;
+        }
+
+        public void setaClassArray(Class[] aClassArray) {
+            this.aClassArray = aClassArray;
+        }
+
+        public String[][] getTwoDimensionsStringArray() {
+            return twoDimensionsStringArray;
+        }
+
+        public void setTwoDimensionsStringArray(String[][] twoDimensionsStringArray) {
+            this.twoDimensionsStringArray = twoDimensionsStringArray;
+        }
+
+        @Override
+        public String toString() {
+            return new ToStringBuilder(this)
+                    .append("any", any)
+                    .append("aByte", aByte)
+                    .append("aChar", aChar)
+                    .append("aShort", aShort)
+                    .append("anInt", anInt)
+                    .append("aLong", aLong)
+                    .append("aFloat", aFloat)
+                    .append("aDouble", aDouble)
+                    .append("aBoolean", aBoolean)
+                    .append("aString", aString)
+                    .append("profession", profession)
+                    .append("stringList", stringList)
+                    .append("stringSet", stringSet)
+                    .append("stringStringMap", stringStringMap)
+                    .append("hello", hello)
+                    .append("aNull", aNull)
+                    .append("aByteArray", aByteArray)
+                    .append("aShortArray", aShortArray)
+                    .append("aIntArray", aIntArray)
+                    .append("aLongArrray", aLongArrray)
+                    .append("aFloatArray", aFloatArray)
+                    .append("aDoubleArray", aDoubleArray)
+                    .append("aCharArray", aCharArray)
+                    .append("aStringArray", aStringArray)
+                    .append("aClassArray", aClassArray)
+                    .append("twoDimensionsStringArray", twoDimensionsStringArray)
+                    .append("int2ObjectMap", int2ObjectMap)
+                    .toString();
+        }
+
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -523,6 +590,9 @@ public final class ExampleMessages {
                     .append(aFloatArray, that.aFloatArray)
                     .append(aDoubleArray, that.aDoubleArray)
                     .append(aCharArray, that.aCharArray)
+                    .append(aStringArray, that.aStringArray)
+                    .append(aClassArray, that.aClassArray)
+                    .append(twoDimensionsStringArray, that.twoDimensionsStringArray)
                     .append(int2ObjectMap, that.int2ObjectMap)
                     .isEquals();
         }
@@ -554,38 +624,11 @@ public final class ExampleMessages {
                     .append(aFloatArray)
                     .append(aDoubleArray)
                     .append(aCharArray)
+                    .append(aStringArray)
+                    .append(aClassArray)
+                    .append(twoDimensionsStringArray)
                     .append(int2ObjectMap)
                     .toHashCode();
-        }
-
-        @Override
-        public String toString() {
-            return "FullMessage{" +
-                    "any=" + any +
-                    ", aByte=" + aByte +
-                    ", aChar=" + aChar +
-                    ", aShort=" + aShort +
-                    ", anInt=" + anInt +
-                    ", aLong=" + aLong +
-                    ", aFloat=" + aFloat +
-                    ", aDouble=" + aDouble +
-                    ", aBoolean=" + aBoolean +
-                    ", aString='" + aString + '\'' +
-                    ", profession=" + profession +
-                    ", stringList=" + stringList +
-                    ", stringSet=" + stringSet +
-                    ", stringStringMap=" + stringStringMap +
-                    ", hello=" + hello +
-                    ", aNull='" + aNull + '\'' +
-                    ", aByteArray=" + Arrays.toString(aByteArray) +
-                    ", aShortArray=" + Arrays.toString(aShortArray) +
-                    ", aIntArray=" + Arrays.toString(aIntArray) +
-                    ", aLongArrray=" + Arrays.toString(aLongArrray) +
-                    ", aFloatArray=" + Arrays.toString(aFloatArray) +
-                    ", aDoubleArray=" + Arrays.toString(aDoubleArray) +
-                    ", aCharArray=" + Arrays.toString(aCharArray) +
-                    ", int2ObjectMap=" + int2ObjectMap +
-                    '}';
         }
     }
 

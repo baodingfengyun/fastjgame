@@ -97,6 +97,13 @@ public class BinaryProtoCodecTest {
         fullMessage.setaDoubleArray(new double[]{-6.6, 0.1f, 6.6});
 
         fullMessage.setaCharArray("hello world".toCharArray());
+        fullMessage.setaStringArray(new String[]{"zhang", "wang", "zhao"});
+        fullMessage.setaClassArray(new Class[]{Object.class, LinkedHashMap.class, Set.class});
+
+        fullMessage.setTwoDimensionsStringArray(new String[][]{
+                {"1,0", "1,1", "1,2"},
+                {"2.0", "2,2", "2,2"}
+        });
 
         final Int2ObjectMap<String> int2ObjectMap = new Int2ObjectOpenHashMap<>(3);
         int2ObjectMap.put(1, "a");
