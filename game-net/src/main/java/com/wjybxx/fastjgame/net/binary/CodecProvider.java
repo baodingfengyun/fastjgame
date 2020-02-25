@@ -31,7 +31,7 @@ public interface CodecProvider {
      * 获取指定类class对应的编解码器
      *
      * @param clazz 注意：某些作为键的类可能不是实际被编解码的类，如：{@link java.util.Map}
-     * @return codec，如果不存在，则返回null
+     * @return codec，如果不存在，则返回null (类似于之前设计的isSupport(Class))
      */
     @Nullable
     <T> Codec<T> getCodec(Class<T> clazz);

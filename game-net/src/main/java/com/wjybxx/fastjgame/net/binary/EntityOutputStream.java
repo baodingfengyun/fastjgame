@@ -49,13 +49,17 @@ public interface EntityOutputStream {
 
     void writeChar(char value) throws Exception;
 
-    default void writeString(@Nullable String value) throws Exception {
-        writeObject(value);
-    }
+    void writeString(@Nullable String value) throws Exception;
 
-    default void writeBytes(@Nullable byte[] value) throws Exception {
-        writeObject(value);
-    }
+    /**
+     * 向输出流中写入一个字节数组
+     */
+    void writeBytes(@Nullable byte[] value) throws Exception;
+
+    /**
+     * 向输出流中写入一个字节数组，并可以指定偏移量和长度
+     */
+    void writeBytes(@Nonnull byte[] bytes, int offset, int length) throws Exception;
 
     /**
      * 向输出流中写入一个字段，如果没有对应的简便方法，可以使用该方法
@@ -64,40 +68,29 @@ public interface EntityOutputStream {
      */
     <T> void writeObject(@Nullable T value) throws Exception;
 
-    /**
-     * 向输出流中写入一个字节数组，并可以指定偏移量和长度
-     */
-    void writeBytes(@Nonnull byte[] bytes, int offset, int length) throws Exception;
-
     // ----------------------------------------- 处理多态问题 ----------------------------------
 
     /**
      * 向输出流中写一个collection
      */
-    default <E> void writeCollection(@Nullable Collection<? extends E> collection) throws Exception {
-        writeObject(collection);
-    }
+    <E> void writeCollection(@Nullable Collection<? extends E> collection) throws Exception;
 
     /**
      * 向输出流中写入一个map
      */
-    default <K, V> void writeMap(@Nullable Map<K, V> map) throws Exception {
-        writeObject(map);
-    }
+    <K, V> void writeMap(@Nullable Map<K, V> map) throws Exception;
 
     /**
      * 向输出流中写入一个数组
      *
      * @param array 要支持基本类型数组，因此为{@link Object}而不是泛型数组+
      */
-    default void writeArray(@Nullable Object array) throws Exception {
-        writeObject(array);
-    }
+    void writeArray(@Nullable Object array) throws Exception;
 
     /**
      * 向输出流中写一个多态实体对象（按照超类格式写入数据，并忽略子类字段）
-     * 注意：必须保证和{@link EntityInputStream#readEntity(EntityFactory, AbstractEntitySerializer)} 使用相同的serializer
+     * 注意：必须和读取时使用相同的serializer
      */
-    <E> void writeEntity(@Nullable E entity, EntitySerializer<? super E> entitySerializer) throws Exception;
+    <E> void writeEntity(@Nullable E entity, AbstractEntitySerializer<? super E> serializer) throws Exception;
 
 }

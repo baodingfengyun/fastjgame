@@ -21,7 +21,7 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 
 /**
- * 它对应于{@link Tag}中的9种基础数据类型们
+ * 它对应于{@link Tag}中的9种基础数据类型
  *
  * @author wjybxx
  * @version 1.0
@@ -29,11 +29,9 @@ import java.util.Map;
  */
 public class ValueCodecProvider implements CodecProvider {
 
-    public static final ValueCodecProvider INSTANCE = new ValueCodecProvider();
-
     private final Map<Class<?>, Codec<?>> codecMap = new IdentityHashMap<>(9);
 
-    private ValueCodecProvider() {
+    ValueCodecProvider() {
         addCodecs();
     }
 

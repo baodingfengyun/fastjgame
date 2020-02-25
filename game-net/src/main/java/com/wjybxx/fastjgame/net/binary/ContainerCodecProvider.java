@@ -29,13 +29,12 @@ import java.util.Map;
  */
 public class ContainerCodecProvider implements CodecProvider {
 
-    public static final ContainerCodecProvider INSTANCE = new ContainerCodecProvider();
-
     private final CollectionCodec collectionCodec = new CollectionCodec();
     private final MapCodec mapCodec = new MapCodec();
     private final ArrayCodec arrayCodec = new ArrayCodec();
 
-    private ContainerCodecProvider() {
+    ContainerCodecProvider() {
+
     }
 
     @SuppressWarnings("unchecked")
@@ -50,9 +49,21 @@ public class ContainerCodecProvider implements CodecProvider {
             return (Codec<T>) mapCodec;
         }
 
-        if (clazz.isArray() || clazz == ArrayCodec.ARRAY_ENCODER_CLASS) {
+        if (clazz.isArray()) {
             return (Codec<T>) arrayCodec;
         }
         return null;
+    }
+
+    public CollectionCodec getCollectionCodec() {
+        return collectionCodec;
+    }
+
+    public MapCodec getMapCodec() {
+        return mapCodec;
+    }
+
+    public ArrayCodec getArrayCodec() {
+        return arrayCodec;
     }
 }

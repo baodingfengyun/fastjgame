@@ -28,13 +28,13 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-class ProtoEnumCodec<T extends ProtocolMessageEnum> extends AppPojoCodec<T> {
+public class ProtoEnumCodec<T extends ProtocolMessageEnum> extends PojoCodec<T> {
 
     private final Class<T> enumClass;
     private final Internal.EnumLiteMap<T> mapper;
 
-    ProtoEnumCodec(int classId, Class<T> enumClass, Internal.EnumLiteMap<T> mapper) {
-        super(classId);
+    public ProtoEnumCodec(int providerId, int classId, Class<T> enumClass, Internal.EnumLiteMap<T> mapper) {
+        super(providerId, classId);
         this.enumClass = enumClass;
         this.mapper = mapper;
     }

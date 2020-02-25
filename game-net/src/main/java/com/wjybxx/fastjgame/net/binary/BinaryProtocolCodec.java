@@ -35,7 +35,9 @@ import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -173,11 +175,11 @@ public class BinaryProtocolCodec implements ProtocolCodec {
     private static Object decodeObjectImp(Tag tag, CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
         switch (tag) {
             case ARRAY:
-                return codecRegistry.get(ArrayCodec.ARRAY_ENCODER_CLASS).decode(inputStream, codecRegistry);
+                return codecRegistry.getArrayCodec().decode(inputStream, codecRegistry);
             case MAP:
-                return codecRegistry.get(Map.class).decode(inputStream, codecRegistry);
+                return codecRegistry.getMapCodec().decode(inputStream, codecRegistry);
             case COLLECTION:
-                return codecRegistry.get(Collection.class).decode(inputStream, codecRegistry);
+                return codecRegistry.getCollectionCodec().decode(inputStream, codecRegistry);
 
             case BYTE:
                 return inputStream.readRawByte();
@@ -199,12 +201,16 @@ public class BinaryProtocolCodec implements ProtocolCodec {
                 return inputStream.readString();
 
             case POJO:
-                final int providerId = inputStream.readInt32();
-                final int classId = inputStream.readInt32();
-                return codecRegistry.getPojoCodec(providerId, classId).decode(inputStream, codecRegistry);
+                return decodePojo(inputStream, codecRegistry);
             default:
                 throw new IOException("unexpected tag : " + tag);
         }
+    }
+
+    private static Object decodePojo(CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
+        final int providerId = inputStream.readInt32();
+        final int classId = inputStream.readInt32();
+        return codecRegistry.getPojoCodec(providerId, classId).decode(inputStream, codecRegistry);
     }
 
     // ------------------------------------------------- 工厂方法 ------------------------------------------------------
@@ -214,27 +220,28 @@ public class BinaryProtocolCodec implements ProtocolCodec {
     }
 
     /**
-     * @param filter 由于{@link BinaryProtocolCodec}支持的消息类是确定的，不能加入，但是允许过滤删除
+     * @param mappingStrategy 未来会改为不同的消息来源使用不同的映射策略，以减少冲突。
+     * @param filter          由于{@link BinaryProtocolCodec}支持的消息类是确定的，不能加入，但是允许过滤删除
      */
     @SuppressWarnings("unchecked")
     public static BinaryProtocolCodec newInstance(MessageMappingStrategy mappingStrategy, Predicate<Class<?>> filter) {
         final Set<Class<?>> supportedClassSet = getFilteredSupportedClasses(filter);
         final MessageMapper messageMapper = MessageMapper.newInstance(supportedClassSet, mappingStrategy);
-        final List<AppPojoCodec<?>> codecList = new ArrayList<>(supportedClassSet.size());
+        final List<PojoCodec<?>> codecList = new ArrayList<>(supportedClassSet.size());
 
         try {
             for (Class<?> messageClazz : messageMapper.getAllMessageClasses()) {
                 // protoBuf消息
                 if (Message.class.isAssignableFrom(messageClazz)) {
                     Parser<?> parser = ProtoUtils.findParser((Class<? extends Message>) messageClazz);
-                    codecList.add(new ProtoMessageCodec(messageMapper.getMessageId(messageClazz), messageClazz, parser));
+                    codecList.add(new ProtoMessageCodec(11, messageMapper.getMessageId(messageClazz), messageClazz, parser));
                     continue;
                 }
 
                 // protoBufEnum
                 if (ProtocolMessageEnum.class.isAssignableFrom(messageClazz)) {
                     final Internal.EnumLiteMap<?> mapper = ProtoUtils.findMapper((Class<? extends ProtocolMessageEnum>) messageClazz);
-                    codecList.add(new ProtoEnumCodec(messageMapper.getMessageId(messageClazz), messageClazz, mapper));
+                    codecList.add(new ProtoEnumCodec(11, messageMapper.getMessageId(messageClazz), messageClazz, mapper));
                     continue;
                 }
 
@@ -242,19 +249,14 @@ public class BinaryProtocolCodec implements ProtocolCodec {
                 final Class<? extends EntitySerializer<?>> serializerClass = EntitySerializerScanner.getSerializerClass(messageClazz);
                 if (serializerClass != null) {
                     final EntitySerializer<?> serializer = createSerializerInstance(serializerClass);
-                    codecList.add(new SerializerBasedCodec(messageMapper.getMessageId(messageClazz), serializer));
+                    codecList.add(new SerializerBasedCodec(11, messageMapper.getMessageId(messageClazz), serializer));
                     continue;
                 }
 
                 throw new IllegalArgumentException("Unsupported class " + messageClazz.getName());
             }
 
-            final List<CodecProvider> codecProviders = List.of(AppCodecProvider.newInstance(codecList),
-                    ValueCodecProvider.INSTANCE,
-                    ContainerCodecProvider.INSTANCE,
-                    JdkCodecProvider.INSTANCE);
-
-            final CodecRegistry codecRegistry = new CodecRegistryImp(codecProviders);
+            final CodecRegistry codecRegistry = CodecRegistrys.fromAppPojoCodecs(codecList);
             return new BinaryProtocolCodec(codecRegistry);
         } catch (Exception e) {
             return ExceptionUtils.rethrow(e);

@@ -21,6 +21,8 @@ import com.google.protobuf.CodedOutputStream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * @author wjybxx
@@ -86,8 +88,22 @@ class EntityOutputStreamImp implements EntityOutputStream {
     }
 
     @Override
-    public <T> void writeObject(@Nullable T value) throws Exception {
-        BinaryProtocolCodec.encodeObject(outputStream, value, codecRegistry);
+    public void writeString(@Nullable String value) throws Exception {
+        if (value == null) {
+            BinaryProtocolCodec.writeTag(outputStream, Tag.NULL);
+            return;
+        }
+        BinaryProtocolCodec.writeTag(outputStream, Tag.STRING);
+        outputStream.writeStringNoTag(value);
+    }
+
+    @Override
+    public void writeBytes(@Nullable byte[] value) throws Exception {
+        if (value == null) {
+            BinaryProtocolCodec.writeTag(outputStream, Tag.NULL);
+            return;
+        }
+        ArrayCodec.writeByteArray(outputStream, value, 0, value.length);
     }
 
     @Override
@@ -96,26 +112,55 @@ class EntityOutputStreamImp implements EntityOutputStream {
         ArrayCodec.writeByteArray(outputStream, bytes, offset, length);
     }
 
-    /**
-     * 读写格式仍然要与{@link SerializerBasedCodec}保持一致
-     */
     @Override
-    public <E> void writeEntity(@Nullable E entity, EntitySerializer<? super E> entitySerializer) throws Exception {
-        if (null == entity) {
+    public <T> void writeObject(@Nullable T value) throws Exception {
+        BinaryProtocolCodec.encodeObject(outputStream, value, codecRegistry);
+    }
+
+    @Override
+    public <E> void writeCollection(@Nullable Collection<? extends E> collection) throws Exception {
+        if (collection == null) {
+            BinaryProtocolCodec.writeTag(outputStream, Tag.NULL);
+            return;
+        }
+        CollectionCodec.encodeCollection(outputStream, collection, codecRegistry);
+    }
+
+    @Override
+    public <K, V> void writeMap(@Nullable Map<K, V> map) throws Exception {
+        if (map == null) {
+            BinaryProtocolCodec.writeTag(outputStream, Tag.NULL);
+            return;
+        }
+        MapCodec.encodeMap(outputStream, map, codecRegistry);
+    }
+
+    @Override
+    public void writeArray(@Nullable Object array) throws Exception {
+        if (array == null) {
             BinaryProtocolCodec.writeTag(outputStream, Tag.NULL);
             return;
         }
 
-        writeSuperClassMessageId(entitySerializer);
+        if (!array.getClass().isArray()) {
+            throw new IOException();
+        }
+
+        ArrayCodec.encodeArray(outputStream, array, codecRegistry);
+    }
+
+    /**
+     * 读写格式仍然要与{@link SerializerBasedCodec}保持一致
+     */
+    @Override
+    public <E> void writeEntity(@Nullable E entity, AbstractEntitySerializer<? super E> serializer) throws Exception {
+        if (null == entity) {
+            BinaryProtocolCodec.writeTag(outputStream, Tag.NULL);
+            return;
+        }
+        @SuppressWarnings("unchecked") final PojoCodec<? super E> codec = (PojoCodec<? super E>) codecRegistry.get(serializer.getEntityClass());
 
         // 这里是生成的代码走进来的，因此即使异常，也能定位
-        entitySerializer.writeObject(entity, this);
+        codec.encode(outputStream, entity, codecRegistry);
     }
-
-    private <E> void writeSuperClassMessageId(EntitySerializer<? super E> entitySerializer) throws IOException {
-//        final Class<?> messageClass = entitySerializer.getEntityClass();
-//        final int messageId = messageMapper.getMessageId(messageClass);
-//        outputStream.writeInt32NoTag(messageId);
-    }
-
 }

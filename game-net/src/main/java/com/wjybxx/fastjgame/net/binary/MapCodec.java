@@ -39,6 +39,16 @@ class MapCodec implements Codec<Map<?, ?>> {
 
     @Override
     public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Map<?, ?> value, CodecRegistry codecRegistry) throws Exception {
+        encodeMap(outputStream, value, codecRegistry);
+    }
+
+    @Nonnull
+    @Override
+    public Map<?, ?> decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
+        return readMapImp(inputStream, Maps::newLinkedHashMapWithExpectedSize, codecRegistry);
+    }
+
+    static void encodeMap(@Nonnull CodedOutputStream outputStream, @Nonnull Map<?, ?> value, CodecRegistry codecRegistry) throws Exception {
         BinaryProtocolCodec.writeTag(outputStream, Tag.MAP);
         outputStream.writeUInt32NoTag(value.size());
         if (value.size() == 0) {
@@ -51,15 +61,6 @@ class MapCodec implements Codec<Map<?, ?>> {
         }
     }
 
-    @Nonnull
-    @Override
-    public Map<?, ?> decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
-        return readMapImp(inputStream, Maps::newLinkedHashMapWithExpectedSize, codecRegistry);
-    }
-
-    /**
-     * 从输入流中读取指定个数元素到map中
-     */
     @Nonnull
     static <M extends Map<K, V>, K, V> M readMapImp(@Nonnull CodedInputStream inputStream,
                                                     @Nonnull IntFunction<M> mapFactory,

@@ -150,12 +150,11 @@ class EntityInputStreamImp implements EntityInputStream {
 
         checkTag(tag, Tag.ARRAY);
 
-        final ArrayCodec arrayCodec = (ArrayCodec) codecRegistry.get(ArrayCodec.ARRAY_ENCODER_CLASS);
-        @SuppressWarnings("unchecked") final T array = (T) arrayCodec.readArray(inputStream, componentType, codecRegistry);
+        @SuppressWarnings("unchecked") final T array = (T) ArrayCodec.readArray(inputStream, componentType, codecRegistry);
         return array;
     }
 
-    public <E> E readEntity(EntityFactory<E> entityFactory, AbstractEntitySerializer<? super E> entitySerializer) throws Exception {
+    public <E> E readEntity(EntityFactory<E> entityFactory, AbstractEntitySerializer<? super E> serializer) throws Exception {
         final Tag tag = BinaryProtocolCodec.readTag(inputStream);
         if (tag == Tag.NULL) {
             return null;
@@ -163,19 +162,23 @@ class EntityInputStreamImp implements EntityInputStream {
 
         checkTag(tag, Tag.POJO);
 
-        checkMessageId(entitySerializer);
+        checkMessageId(serializer);
 
         final E instance = entityFactory.newInstance();
-        entitySerializer.readFields(instance, this);
+        serializer.readFields(instance, this);
         return instance;
     }
 
     private void checkMessageId(AbstractEntitySerializer<?> entitySerializer) throws IOException {
-//        final int messageIdExpected = messageMapper.getMessageId(entitySerializer.getEntityClass());
-//        final int messageId = inputStream.readInt32();
-//        if (messageId != messageIdExpected) {
-//            throw new IOException("Incompatible message, expected: " + messageIdExpected + ", but read: " + messageId);
-//        }
+        final int providerId = inputStream.readInt32();
+        final int classId = inputStream.readInt32();
+        final Codec<?> pojoCodec = codecRegistry.getPojoCodec(providerId, classId);
+
+        if (entitySerializer.getEntityClass() != pojoCodec.getEncoderClass()) {
+            throw new IOException(String.format("Incompatible class, expected: %s, but read %s ",
+                    entitySerializer.getEntityClass().getName(),
+                    pojoCodec.getEncoderClass().getName()));
+        }
     }
 
     private void checkTag(final Tag readTag, final Tag expectedTag) throws Exception {

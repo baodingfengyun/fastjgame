@@ -31,15 +31,15 @@ import java.util.Map;
  * date - 2020/2/18
  * github - https://github.com/hl845740757
  */
-public class ClassCodec extends JDKPojoCodec<Class> {
+public class ClassCodec extends PojoCodec<Class> {
 
     /**
      * 加载类的缓存 - 寻找类消耗较大，每个线程一份儿缓存
      */
     private static final ThreadLocal<Map<String, Class<?>>> LOAD_CACHE = ThreadLocal.withInitial(HashMap::new);
 
-    ClassCodec(int classId) {
-        super(classId);
+    ClassCodec(int providerId, int classId) {
+        super(providerId, classId);
     }
 
     @Override

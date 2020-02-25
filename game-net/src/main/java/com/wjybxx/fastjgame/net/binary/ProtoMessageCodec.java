@@ -29,13 +29,13 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-class ProtoMessageCodec<T extends AbstractMessage> extends AppPojoCodec<T> {
+public class ProtoMessageCodec<T extends AbstractMessage> extends PojoCodec<T> {
 
     private final Class<T> messageClass;
     private final Parser<T> parser;
 
-    ProtoMessageCodec(int classId, Class<T> messageClass, Parser<T> parser) {
-        super(classId);
+    public ProtoMessageCodec(int providerId, int classId, Class<T> messageClass, Parser<T> parser) {
+        super(providerId, classId);
         this.messageClass = messageClass;
         this.parser = parser;
     }

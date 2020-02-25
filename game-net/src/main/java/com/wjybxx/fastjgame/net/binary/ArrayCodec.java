@@ -36,12 +36,12 @@ import java.util.IdentityHashMap;
  */
 class ArrayCodec implements Codec<Object> {
 
-    static final Class<Object[]> ARRAY_ENCODER_CLASS = Object[].class;
+    private static final Class<?> ARRAY_ENCODER_CLASS = Object[].class;
 
     private static final int CHILD_SIZE = 9;
 
-    private static final IdentityHashMap<Class<?>, BasicArrayCodec<?>> componentType2CodecMapping = new IdentityHashMap<>(CHILD_SIZE);
-    private static final EnumMap<Tag, BasicArrayCodec<?>> tag2CodecMapping = new EnumMap<>(Tag.class);
+    private static final IdentityHashMap<Class<?>, ValueArrayCodec<?>> componentType2CodecMapping = new IdentityHashMap<>(CHILD_SIZE);
+    private static final EnumMap<Tag, ValueArrayCodec<?>> tag2CodecMapping = new EnumMap<>(Tag.class);
 
     static {
         register(byte.class, new ByteArrayCodec());
@@ -55,7 +55,7 @@ class ArrayCodec implements Codec<Object> {
         register(String.class, new StringArrayCodec());
     }
 
-    private static void register(Class<?> component, BasicArrayCodec<?> codec) {
+    private static void register(Class<?> component, ValueArrayCodec<?> codec) {
         componentType2CodecMapping.put(component, codec);
         tag2CodecMapping.put(codec.childType(), codec);
     }
@@ -64,15 +64,20 @@ class ArrayCodec implements Codec<Object> {
 
     }
 
-    @SuppressWarnings("unchecked")
+
     @Override
     public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Object value, CodecRegistry codecRegistry) throws Exception {
-        final BasicArrayCodec codec = componentType2CodecMapping.get(value.getClass().getComponentType());
+        encodeArray(outputStream, value, codecRegistry);
+    }
+
+    @SuppressWarnings("unchecked")
+    static void encodeArray(@Nonnull CodedOutputStream outputStream, @Nonnull Object value, CodecRegistry codecRegistry) throws Exception {
+        final ValueArrayCodec codec = componentType2CodecMapping.get(value.getClass().getComponentType());
         final int length = Array.getLength(value);
 
         if (null != codec) {
             writeTagAndChildTypeAndLength(outputStream, codec.childType(), length);
-            codec.writeArray(outputStream, value);
+            codec.writeValueArray(outputStream, value);
         } else {
             writeTagAndChildTypeAndLength(outputStream, Tag.UNKNOWN, length);
             writeObjectArray(outputStream, value, length, codecRegistry);
@@ -88,8 +93,11 @@ class ArrayCodec implements Codec<Object> {
     /**
      * 写对象数组，对象数组主要存在Null等处理
      */
-    private void writeObjectArray(CodedOutputStream outputStream, @Nonnull Object instance, int length,
-                                  CodecRegistry codecRegistry) throws Exception {
+    private static void writeObjectArray(CodedOutputStream outputStream, @Nonnull Object instance, int length,
+                                         CodecRegistry codecRegistry) throws Exception {
+        // Q: 为什么要将component的类型信息编码？
+        // A: 因为元素component的类可能不在编解码范围内，比如接口。
+        // 因此编码类信息才能完整解码，也就导致传输量增加，性能也不见得好。
         ClassCodec.encodeClass(outputStream, instance.getClass().getComponentType());
 
         for (int index = 0; index < length; index++) {
@@ -104,22 +112,22 @@ class ArrayCodec implements Codec<Object> {
         return readArray(inputStream, null, codecRegistry);
     }
 
-    Object readArray(CodedInputStream inputStream, Class<?> objectArrayComponentType, CodecRegistry codecRegistry) throws Exception {
+    static Object readArray(CodedInputStream inputStream, Class<?> objectArrayComponentType, CodecRegistry codecRegistry) throws Exception {
         final Tag childType = BinaryProtocolCodec.readTag(inputStream);
         final int length = inputStream.readUInt32();
 
         if (childType != Tag.UNKNOWN) {
-            final BasicArrayCodec<?> codec = tag2CodecMapping.get(childType);
+            final ValueArrayCodec<?> codec = tag2CodecMapping.get(childType);
             assert null != codec;
-            return codec.readArray(inputStream, length);
+            return codec.readValueArray(inputStream, length);
         } else {
             return readObjectArray(inputStream, objectArrayComponentType, length, codecRegistry);
         }
     }
 
-    private Object readObjectArray(CodedInputStream inputStream,
-                                   @Nullable Class<?> objectArrayComponentType, int length,
-                                   CodecRegistry codecRegistry) throws Exception {
+    private static Object readObjectArray(CodedInputStream inputStream,
+                                          @Nullable Class<?> objectArrayComponentType, int length,
+                                          CodecRegistry codecRegistry) throws Exception {
         final String componentClassName = inputStream.readString();
         if (null == objectArrayComponentType) {
             // 查找类性能不好
@@ -144,7 +152,7 @@ class ArrayCodec implements Codec<Object> {
         return ARRAY_ENCODER_CLASS;
     }
 
-    private interface BasicArrayCodec<U> extends NumericalEntity {
+    private interface ValueArrayCodec<U> extends NumericalEntity {
 
         /**
          * 子类标识
@@ -155,12 +163,12 @@ class ArrayCodec implements Codec<Object> {
          * 写入数组的内容
          * 注意：数组的长度已经写入
          */
-        void writeArray(CodedOutputStream outputStream, @Nonnull U array) throws Exception;
+        void writeValueArray(CodedOutputStream outputStream, @Nonnull U array) throws Exception;
 
         /**
          * 读取指定长度的数组
          */
-        U readArray(CodedInputStream inputStream, int length) throws Exception;
+        U readValueArray(CodedInputStream inputStream, int length) throws Exception;
 
         @Override
         default int getNumber() {
@@ -168,20 +176,20 @@ class ArrayCodec implements Codec<Object> {
         }
     }
 
-    private static class ByteArrayCodec implements BasicArrayCodec<byte[]> {
+    private static class ByteArrayCodec implements ValueArrayCodec<byte[]> {
 
         @Override
         public Tag childType() {
-            return Tag.BOOLEAN;
+            return Tag.BYTE;
         }
 
         @Override
-        public void writeArray(CodedOutputStream outputStream, @Nonnull byte[] array) throws Exception {
+        public void writeValueArray(CodedOutputStream outputStream, @Nonnull byte[] array) throws Exception {
             outputStream.writeRawBytes(array, 0, array.length);
         }
 
         @Override
-        public byte[] readArray(CodedInputStream inputStream, int length) throws Exception {
+        public byte[] readValueArray(CodedInputStream inputStream, int length) throws Exception {
             return inputStream.readRawBytes(length);
         }
 
@@ -190,7 +198,7 @@ class ArrayCodec implements Codec<Object> {
         }
     }
 
-    private static class IntArrayCodec implements BasicArrayCodec<int[]> {
+    private static class IntArrayCodec implements ValueArrayCodec<int[]> {
 
         @Override
         public Tag childType() {
@@ -198,14 +206,14 @@ class ArrayCodec implements Codec<Object> {
         }
 
         @Override
-        public void writeArray(CodedOutputStream outputStream, @Nonnull int[] array) throws Exception {
+        public void writeValueArray(CodedOutputStream outputStream, @Nonnull int[] array) throws Exception {
             for (int value : array) {
                 outputStream.writeInt32NoTag(value);
             }
         }
 
         @Override
-        public int[] readArray(CodedInputStream inputStream, int length) throws Exception {
+        public int[] readValueArray(CodedInputStream inputStream, int length) throws Exception {
             int[] result = new int[length];
             for (int index = 0; index < length; index++) {
                 result[index] = inputStream.readInt32();
@@ -215,7 +223,7 @@ class ArrayCodec implements Codec<Object> {
 
     }
 
-    private static class FloatArrayCodec implements BasicArrayCodec<float[]> {
+    private static class FloatArrayCodec implements ValueArrayCodec<float[]> {
 
         @Override
         public Tag childType() {
@@ -223,14 +231,14 @@ class ArrayCodec implements Codec<Object> {
         }
 
         @Override
-        public void writeArray(CodedOutputStream outputStream, @Nonnull float[] array) throws Exception {
+        public void writeValueArray(CodedOutputStream outputStream, @Nonnull float[] array) throws Exception {
             for (float value : array) {
                 outputStream.writeFloatNoTag(value);
             }
         }
 
         @Override
-        public float[] readArray(CodedInputStream inputStream, int length) throws Exception {
+        public float[] readValueArray(CodedInputStream inputStream, int length) throws Exception {
             float[] result = new float[length];
             for (int index = 0; index < length; index++) {
                 result[index] = inputStream.readFloat();
@@ -239,7 +247,7 @@ class ArrayCodec implements Codec<Object> {
         }
     }
 
-    private static class DoubleArrayCodec implements BasicArrayCodec<double[]> {
+    private static class DoubleArrayCodec implements ValueArrayCodec<double[]> {
 
         @Override
         public Tag childType() {
@@ -247,14 +255,14 @@ class ArrayCodec implements Codec<Object> {
         }
 
         @Override
-        public void writeArray(CodedOutputStream outputStream, @Nonnull double[] array) throws Exception {
+        public void writeValueArray(CodedOutputStream outputStream, @Nonnull double[] array) throws Exception {
             for (double value : array) {
                 outputStream.writeDoubleNoTag(value);
             }
         }
 
         @Override
-        public double[] readArray(CodedInputStream inputStream, int length) throws Exception {
+        public double[] readValueArray(CodedInputStream inputStream, int length) throws Exception {
             double[] result = new double[length];
             for (int index = 0; index < length; index++) {
                 result[index] = inputStream.readDouble();
@@ -263,7 +271,7 @@ class ArrayCodec implements Codec<Object> {
         }
     }
 
-    private static class LongArrayCodec implements BasicArrayCodec<long[]> {
+    private static class LongArrayCodec implements ValueArrayCodec<long[]> {
 
         @Override
         public Tag childType() {
@@ -271,14 +279,14 @@ class ArrayCodec implements Codec<Object> {
         }
 
         @Override
-        public void writeArray(CodedOutputStream outputStream, @Nonnull long[] array) throws Exception {
+        public void writeValueArray(CodedOutputStream outputStream, @Nonnull long[] array) throws Exception {
             for (long value : array) {
                 outputStream.writeInt64NoTag(value);
             }
         }
 
         @Override
-        public long[] readArray(CodedInputStream inputStream, int length) throws Exception {
+        public long[] readValueArray(CodedInputStream inputStream, int length) throws Exception {
             long[] result = new long[length];
             for (int index = 0; index < length; index++) {
                 result[index] = inputStream.readInt64();
@@ -287,7 +295,7 @@ class ArrayCodec implements Codec<Object> {
         }
     }
 
-    private static class ShortArrayCodec implements BasicArrayCodec<short[]> {
+    private static class ShortArrayCodec implements ValueArrayCodec<short[]> {
 
         @Override
         public Tag childType() {
@@ -295,14 +303,14 @@ class ArrayCodec implements Codec<Object> {
         }
 
         @Override
-        public void writeArray(CodedOutputStream outputStream, @Nonnull short[] array) throws Exception {
+        public void writeValueArray(CodedOutputStream outputStream, @Nonnull short[] array) throws Exception {
             for (short value : array) {
                 outputStream.writeInt32NoTag(value);
             }
         }
 
         @Override
-        public short[] readArray(CodedInputStream inputStream, int length) throws Exception {
+        public short[] readValueArray(CodedInputStream inputStream, int length) throws Exception {
             short[] result = new short[length];
             for (int index = 0; index < length; index++) {
                 result[index] = (short) inputStream.readInt32();
@@ -311,7 +319,7 @@ class ArrayCodec implements Codec<Object> {
         }
     }
 
-    private static class CharArrayCodec implements BasicArrayCodec<char[]> {
+    private static class CharArrayCodec implements ValueArrayCodec<char[]> {
 
         @Override
         public Tag childType() {
@@ -319,14 +327,14 @@ class ArrayCodec implements Codec<Object> {
         }
 
         @Override
-        public void writeArray(CodedOutputStream outputStream, @Nonnull char[] array) throws Exception {
+        public void writeValueArray(CodedOutputStream outputStream, @Nonnull char[] array) throws Exception {
             for (char value : array) {
                 outputStream.writeUInt32NoTag(value);
             }
         }
 
         @Override
-        public char[] readArray(CodedInputStream inputStream, int length) throws Exception {
+        public char[] readValueArray(CodedInputStream inputStream, int length) throws Exception {
             char[] result = new char[length];
             for (int index = 0; index < length; index++) {
                 result[index] = (char) inputStream.readUInt32();
@@ -335,7 +343,7 @@ class ArrayCodec implements Codec<Object> {
         }
     }
 
-    private static class BooleanArrayCodec implements BasicArrayCodec<boolean[]> {
+    private static class BooleanArrayCodec implements ValueArrayCodec<boolean[]> {
 
         @Override
         public Tag childType() {
@@ -343,14 +351,14 @@ class ArrayCodec implements Codec<Object> {
         }
 
         @Override
-        public void writeArray(CodedOutputStream outputStream, @Nonnull boolean[] array) throws Exception {
+        public void writeValueArray(CodedOutputStream outputStream, @Nonnull boolean[] array) throws Exception {
             for (boolean value : array) {
                 outputStream.writeBoolNoTag(value);
             }
         }
 
         @Override
-        public boolean[] readArray(CodedInputStream inputStream, int length) throws Exception {
+        public boolean[] readValueArray(CodedInputStream inputStream, int length) throws Exception {
             boolean[] result = new boolean[length];
             for (int index = 0; index < length; index++) {
                 result[index] = inputStream.readBool();
@@ -359,7 +367,7 @@ class ArrayCodec implements Codec<Object> {
         }
     }
 
-    private static class StringArrayCodec implements BasicArrayCodec<String[]> {
+    private static class StringArrayCodec implements ValueArrayCodec<String[]> {
 
         @Override
         public Tag childType() {
@@ -367,7 +375,7 @@ class ArrayCodec implements Codec<Object> {
         }
 
         @Override
-        public void writeArray(CodedOutputStream outputStream, @Nonnull String[] array) throws Exception {
+        public void writeValueArray(CodedOutputStream outputStream, @Nonnull String[] array) throws Exception {
             for (String value : array) {
                 if (value == null) {
                     BinaryProtocolCodec.writeTag(outputStream, Tag.NULL);
@@ -379,7 +387,7 @@ class ArrayCodec implements Codec<Object> {
         }
 
         @Override
-        public String[] readArray(CodedInputStream inputStream, int length) throws Exception {
+        public String[] readValueArray(CodedInputStream inputStream, int length) throws Exception {
             final String[] result = new String[length];
             for (int index = 0; index < length; index++) {
                 if (BinaryProtocolCodec.readTag(inputStream) == Tag.NULL) {

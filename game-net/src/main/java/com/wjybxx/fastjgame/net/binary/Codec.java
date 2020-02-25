@@ -23,6 +23,7 @@ import javax.annotation.Nonnull;
 
 /**
  * 编解码器，一个编解码器负责编码一个确定的类型。
+ * 注意：实现必须是无状态的或不可变对象，以免产生并发错误。
  *
  * @author wjybxx
  * @version 1.0
@@ -46,7 +47,7 @@ public interface Codec<T> {
     T decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception;
 
     /**
-     * 获取负责编解码的类对象或其它代表对象
+     * 获取代表这个codec的class对象
      */
     Class<?> getEncoderClass();
 }

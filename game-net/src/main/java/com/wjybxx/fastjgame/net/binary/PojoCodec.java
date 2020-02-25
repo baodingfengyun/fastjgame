@@ -27,6 +27,14 @@ import javax.annotation.Nonnull;
  */
 public abstract class PojoCodec<T> implements Codec<T> {
 
+    private final int providerId;
+    private final int classId;
+
+    protected PojoCodec(int providerId, int classId) {
+        this.providerId = providerId;
+        this.classId = classId;
+    }
+
     @Override
     public final void encode(@Nonnull CodedOutputStream outputStream, @Nonnull T value, CodecRegistry codecRegistry) throws Exception {
         BinaryProtocolCodec.writeTag(outputStream, Tag.POJO);
@@ -40,12 +48,16 @@ public abstract class PojoCodec<T> implements Codec<T> {
     /**
      * 返回codec所属的{@link CodecProvider}的id
      */
-    protected abstract int getProviderId();
+    public final int getProviderId() {
+        return providerId;
+    }
 
     /**
      * 获取{@link #getEncoderClass()}在{@link CodecProvider}下的唯一id
      */
-    protected abstract int getClassId();
+    public final int getClassId() {
+        return classId;
+    }
 
     @Override
     public abstract Class<T> getEncoderClass();

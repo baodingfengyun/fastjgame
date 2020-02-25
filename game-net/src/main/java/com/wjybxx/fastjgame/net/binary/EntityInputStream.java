@@ -85,12 +85,12 @@ public interface EntityInputStream {
 
     /**
      * 读取一个多态实体对象(读取超类数据赋予子类实例)
-     * 注意：必须保证和{@link EntityOutputStream#writeEntity(Object, EntitySerializer)}写入时使用相同的serializer
+     * 注意：必须保证和写入时使用相同的serializer
      *
-     * @param entityFactory    真正的实体创建工厂
-     * @param entitySerializer 实体对象的序列化实现
+     * @param entityFactory 真正的实体创建工厂
+     * @param serializer    实体对象的序列化实现
      */
     @Nullable
-    <E> E readEntity(EntityFactory<E> entityFactory, AbstractEntitySerializer<? super E> entitySerializer) throws Exception;
+    <E> E readEntity(EntityFactory<E> entityFactory, AbstractEntitySerializer<? super E> serializer) throws Exception;
 
 }

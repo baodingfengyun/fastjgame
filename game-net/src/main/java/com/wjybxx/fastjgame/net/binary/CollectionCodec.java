@@ -40,6 +40,16 @@ class CollectionCodec implements Codec<Collection<?>> {
 
     @Override
     public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Collection<?> value, CodecRegistry codecRegistry) throws Exception {
+        encodeCollection(outputStream, value, codecRegistry);
+    }
+
+    @Nonnull
+    @Override
+    public Collection<?> decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
+        return readCollectionImp(inputStream, ArrayList::new, codecRegistry);
+    }
+
+    static void encodeCollection(@Nonnull CodedOutputStream outputStream, @Nonnull Collection<?> value, CodecRegistry codecRegistry) throws Exception {
         BinaryProtocolCodec.writeTag(outputStream, Tag.COLLECTION);
         outputStream.writeUInt32NoTag(value.size());
         if (value.size() == 0) {
@@ -51,15 +61,6 @@ class CollectionCodec implements Codec<Collection<?>> {
         }
     }
 
-    @Nonnull
-    @Override
-    public Collection<?> decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
-        return readCollectionImp(inputStream, ArrayList::new, codecRegistry);
-    }
-
-    /**
-     * 从输入流中读取指定元素到集合中
-     */
     @Nonnull
     static <C extends Collection<E>, E> C readCollectionImp(@Nonnull CodedInputStream inputStream, @Nonnull IntFunction<C> collectionFactory, @Nonnull CodecRegistry codecRegistry) throws Exception {
         final int size = inputStream.readUInt32();

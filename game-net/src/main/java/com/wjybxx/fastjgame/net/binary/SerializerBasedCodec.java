@@ -28,12 +28,12 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/24
  */
-public class SerializerBasedCodec<T> extends AppPojoCodec<T> {
+public class SerializerBasedCodec<T> extends PojoCodec<T> {
 
     private final EntitySerializer<T> serializer;
 
-    public SerializerBasedCodec(int classId, EntitySerializer<T> serializer) {
-        super(classId);
+    public SerializerBasedCodec(int providerId, int classId, EntitySerializer<T> serializer) {
+        super(providerId, classId);
         this.serializer = serializer;
     }
 
@@ -53,5 +53,14 @@ public class SerializerBasedCodec<T> extends AppPojoCodec<T> {
     @Override
     public Class<T> getEncoderClass() {
         return serializer.getEntityClass();
+    }
+
+    public void tyrDecodeBody(EntityFactory<? extends T> eEntityFactory, @Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
+        if (serializer instanceof AbstractEntitySerializer) {
+            final EntityInputStream entityInputStream = new EntityInputStreamImp(codecRegistry, inputStream);
+            ((AbstractEntitySerializer<T>) serializer).readFields(eEntityFactory.newInstance(), entityInputStream);
+        } else {
+            throw new UnsupportedOperationException();
+        }
     }
 }
