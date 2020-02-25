@@ -54,13 +54,4 @@ public class SerializerBasedCodec<T> extends PojoCodec<T> {
     public Class<T> getEncoderClass() {
         return serializer.getEntityClass();
     }
-
-    public void tyrDecodeBody(EntityFactory<? extends T> eEntityFactory, @Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
-        if (serializer instanceof AbstractEntitySerializer) {
-            final EntityInputStream entityInputStream = new EntityInputStreamImp(codecRegistry, inputStream);
-            ((AbstractEntitySerializer<T>) serializer).readFields(eEntityFactory.newInstance(), entityInputStream);
-        } else {
-            throw new UnsupportedOperationException();
-        }
-    }
 }

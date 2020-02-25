@@ -32,23 +32,14 @@ public class CodecRegistrys {
      * @param appPojoCodecList 用户自定义的编解码器集合
      */
     public static CodecRegistry fromAppPojoCodecs(List<? extends PojoCodec<?>> appPojoCodecList) {
+        // 用户使用自定义的pojo的概率远大于底层支持的pojo，因此要把用户的provider放在默认的provider的前面，加快搜索效率
         final List<CodecProvider> pojoCodecProviders = new ArrayList<>(PojoCodecProviders.fromCodecs(appPojoCodecList));
         pojoCodecProviders.addAll(PojoCodecProviders.getDefaultProviders());
         return new CodecRegistryImp(pojoCodecProviders);
     }
 
-    /**
-     * 其实用户使用的类的概率是不太均匀的，由于原始类型和String和容器等类型生成代码都是直接调用的，因此进入这里的最大可能性是自定义对象。
-     *
-     * @author wjybxx
-     * @version 1.0
-     * date - 2020/2/24
-     */
     private static class CodecRegistryImp implements CodecRegistry {
 
-        /**
-         * provider数量较少，使用数组性能足够好，无需map
-         */
         private final CodecProvider[] codecProviders;
         private final PojoCodecProvider[] pojoCodecProviders;
         private final ContainerCodecProvider containerCodecProvider;
@@ -80,6 +71,7 @@ public class CodecRegistrys {
 
         @Override
         public PojoCodec<?> getPojoCodec(int providerId, int classId) {
+            // 理论上provider数量较少，使用数组性能足够好，无需map
             for (PojoCodecProvider pojoCodecProvider : pojoCodecProviders) {
                 if (pojoCodecProvider.getProviderId() == providerId) {
                     return getCheckedCodec(pojoCodecProvider, classId);

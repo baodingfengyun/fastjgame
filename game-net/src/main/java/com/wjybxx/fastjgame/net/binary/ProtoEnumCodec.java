@@ -54,13 +54,4 @@ public class ProtoEnumCodec<T extends ProtocolMessageEnum> extends PojoCodec<T> 
     public Class<T> getEncoderClass() {
         return enumClass;
     }
-
-    static class ProtoEnumDescriptor {
-
-        private final Internal.EnumLiteMap<?> mapper;
-
-        ProtoEnumDescriptor(Internal.EnumLiteMap<?> mapper) {
-            this.mapper = mapper;
-        }
-    }
 }

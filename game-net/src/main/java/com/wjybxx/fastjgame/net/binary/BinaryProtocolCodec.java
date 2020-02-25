@@ -228,20 +228,21 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         final Set<Class<?>> supportedClassSet = getFilteredSupportedClasses(filter);
         final MessageMapper messageMapper = MessageMapper.newInstance(supportedClassSet, mappingStrategy);
         final List<PojoCodec<?>> codecList = new ArrayList<>(supportedClassSet.size());
+        final int providerId = 11;
 
         try {
             for (Class<?> messageClazz : messageMapper.getAllMessageClasses()) {
                 // protoBuf消息
                 if (Message.class.isAssignableFrom(messageClazz)) {
                     Parser<?> parser = ProtoUtils.findParser((Class<? extends Message>) messageClazz);
-                    codecList.add(new ProtoMessageCodec(11, messageMapper.getMessageId(messageClazz), messageClazz, parser));
+                    codecList.add(new ProtoMessageCodec(providerId, messageMapper.getMessageId(messageClazz), messageClazz, parser));
                     continue;
                 }
 
                 // protoBufEnum
                 if (ProtocolMessageEnum.class.isAssignableFrom(messageClazz)) {
                     final Internal.EnumLiteMap<?> mapper = ProtoUtils.findMapper((Class<? extends ProtocolMessageEnum>) messageClazz);
-                    codecList.add(new ProtoEnumCodec(11, messageMapper.getMessageId(messageClazz), messageClazz, mapper));
+                    codecList.add(new ProtoEnumCodec(providerId, messageMapper.getMessageId(messageClazz), messageClazz, mapper));
                     continue;
                 }
 
@@ -249,7 +250,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
                 final Class<? extends EntitySerializer<?>> serializerClass = EntitySerializerScanner.getSerializerClass(messageClazz);
                 if (serializerClass != null) {
                     final EntitySerializer<?> serializer = createSerializerInstance(serializerClass);
-                    codecList.add(new SerializerBasedCodec(11, messageMapper.getMessageId(messageClazz), serializer));
+                    codecList.add(new SerializerBasedCodec(providerId, messageMapper.getMessageId(messageClazz), serializer));
                     continue;
                 }
 

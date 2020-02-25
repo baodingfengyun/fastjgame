@@ -47,15 +47,15 @@ public class ClassCodec extends PojoCodec<Class> {
         encodeClass(outputStream, value);
     }
 
-    static void encodeClass(CodedOutputStream outputStream, Class<?> value) throws Exception {
-        outputStream.writeStringNoTag(value.getName());
-    }
-
     @Nonnull
     @Override
     public Class decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
         final String className = inputStream.readString();
         return decodeClass(className);
+    }
+
+    static void encodeClass(CodedOutputStream outputStream, Class<?> value) throws Exception {
+        outputStream.writeStringNoTag(value.getName());
     }
 
     @Nonnull
