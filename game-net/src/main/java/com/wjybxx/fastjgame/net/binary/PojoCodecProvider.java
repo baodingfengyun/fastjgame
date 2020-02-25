@@ -16,36 +16,31 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
+import javax.annotation.Nullable;
+
 /**
- * 应用自定义对象编解码器
- * 它的主要特征包括：
- * 1. 它的{@link #classId}是用户计算的
- * 2. 会有大量生成的{@link EntitySerializer}
+ * 该接口同时支持编码和解码。
+ * 它对应{@link Tag}中的POJO类型
  *
  * @author wjybxx
  * @version 1.0
- * date - 2020/2/24
+ * date - 2020/2/25
  */
-public abstract class AppObjectCodec<T> implements Codec<T> {
+public interface PojoCodecProvider extends CodecProvider {
 
-    private final int classId;
+    /**
+     * 它的意义相当于命名空间
+     * Q: 它的意义是什么？
+     * A: 避免用户为默认支持的类分配id
+     */
+    int getProviderId();
 
-    protected AppObjectCodec(int classId) {
-        this.classId = classId;
-    }
-
-    @Override
-    public int getProviderId() {
-        return CodecProviderConst.APP_PROVIDER_ID;
-    }
-
-    @Override
-    public int getClassId() {
-        return classId;
-    }
-
-    @Override
-    public WireType wireType() {
-        return WireType.POJO;
-    }
+    /**
+     * 通过classId获取对应的codec
+     *
+     * @return codec, 如果不存在，则返回null
+     */
+    @Nullable
+    Codec<?> getCodec(int classId);
 }
+

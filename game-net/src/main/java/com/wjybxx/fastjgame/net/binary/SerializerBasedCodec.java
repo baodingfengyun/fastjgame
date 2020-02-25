@@ -28,7 +28,7 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/24
  */
-public class SerializerBasedCodec<T> extends AppObjectCodec<T> {
+public class SerializerBasedCodec<T> extends AppPojoCodec<T> {
 
     private final EntitySerializer<T> serializer;
 
@@ -38,7 +38,7 @@ public class SerializerBasedCodec<T> extends AppObjectCodec<T> {
     }
 
     @Override
-    public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull T value, CodecRegistry codecRegistry) throws Exception {
+    public void encodeBody(@Nonnull CodedOutputStream outputStream, @Nonnull T value, CodecRegistry codecRegistry) throws Exception {
         final EntityOutputStream entityOutputStream = new EntityOutputStreamImp(codecRegistry, outputStream);
         serializer.writeObject(value, entityOutputStream);
     }

@@ -32,14 +32,14 @@ import java.util.function.IntFunction;
  * @version 1.0
  * date - 2020/2/17
  */
-class MapCodec extends ContainerCodec<Map<?, ?>> {
+class MapCodec implements Codec<Map<?, ?>> {
 
-    MapCodec(int classId) {
-        super(classId);
+    MapCodec() {
     }
 
     @Override
     public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Map<?, ?> value, CodecRegistry codecRegistry) throws Exception {
+        BinaryProtocolCodec.writeTag(outputStream, Tag.MAP);
         outputStream.writeUInt32NoTag(value.size());
         if (value.size() == 0) {
             return;
@@ -78,14 +78,8 @@ class MapCodec extends ContainerCodec<Map<?, ?>> {
         return result;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public Class<Map<?, ?>> getEncoderClass() {
-        return ((Class) Map.class);
-    }
-
-    @Override
-    public WireType wireType() {
-        return WireType.MAP;
+    public Class<?> getEncoderClass() {
+        return Map.class;
     }
 }

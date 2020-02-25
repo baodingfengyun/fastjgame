@@ -31,7 +31,7 @@ import java.util.Map;
  * date - 2020/2/18
  * github - https://github.com/hl845740757
  */
-public class ClassCodec extends JDKObjectCodec<Class> {
+public class ClassCodec extends JDKPojoCodec<Class> {
 
     /**
      * 加载类的缓存 - 寻找类消耗较大，每个线程一份儿缓存
@@ -43,7 +43,7 @@ public class ClassCodec extends JDKObjectCodec<Class> {
     }
 
     @Override
-    public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Class value, CodecRegistry codecRegistry) throws Exception {
+    public void encodeBody(@Nonnull CodedOutputStream outputStream, @Nonnull Class value, CodecRegistry codecRegistry) throws Exception {
         encodeClass(outputStream, value);
     }
 

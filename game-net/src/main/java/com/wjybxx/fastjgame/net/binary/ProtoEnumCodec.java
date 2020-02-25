@@ -28,7 +28,7 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-class ProtoEnumCodec<T extends ProtocolMessageEnum> extends AppObjectCodec<T> {
+class ProtoEnumCodec<T extends ProtocolMessageEnum> extends AppPojoCodec<T> {
 
     private final Class<T> enumClass;
     private final Internal.EnumLiteMap<T> mapper;
@@ -40,7 +40,7 @@ class ProtoEnumCodec<T extends ProtocolMessageEnum> extends AppObjectCodec<T> {
     }
 
     @Override
-    public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull T value, CodecRegistry codecRegistry) throws Exception {
+    public void encodeBody(@Nonnull CodedOutputStream outputStream, @Nonnull T value, CodecRegistry codecRegistry) throws Exception {
         outputStream.writeInt32NoTag(value.getNumber());
     }
 

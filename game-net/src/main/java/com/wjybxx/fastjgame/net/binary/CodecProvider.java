@@ -19,28 +19,13 @@ package com.wjybxx.fastjgame.net.binary;
 import javax.annotation.Nullable;
 
 /**
- * 一组codec的注册器
+ * 一组codec的注册器，该接口只服务编码需求
  *
  * @author wjybxx
  * @version 1.0
  * date - 2020/2/24
  */
 public interface CodecProvider {
-
-    /**
-     * 它的意义相当于命名空间
-     * Q: 它的意义是什么？
-     * A: 避免用户为默认支持的类分配id
-     */
-    int getProviderId();
-
-    /**
-     * 通过classId获取对应的codec
-     *
-     * @return codec, 如果不存在，则返回null
-     */
-    @Nullable
-    Codec<?> getCodec(int classId);
 
     /**
      * 获取指定类class对应的编解码器

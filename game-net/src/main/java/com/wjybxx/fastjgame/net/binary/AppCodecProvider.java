@@ -30,12 +30,12 @@ import java.util.Map;
  * @version 1.0
  * date - 2020/2/24
  */
-public class AppCodecProvider implements CodecProvider {
+public class AppCodecProvider implements PojoCodecProvider {
 
-    private final Map<Class<?>, AppObjectCodec<?>> type2CodecMap;
-    private final Int2ObjectMap<AppObjectCodec<?>> classId2CodecMap;
+    private final Map<Class<?>, AppPojoCodec<?>> type2CodecMap;
+    private final Int2ObjectMap<AppPojoCodec<?>> classId2CodecMap;
 
-    private AppCodecProvider(Map<Class<?>, AppObjectCodec<?>> type2CodecMap, Int2ObjectMap<AppObjectCodec<?>> classId2CodecMap) {
+    private AppCodecProvider(Map<Class<?>, AppPojoCodec<?>> type2CodecMap, Int2ObjectMap<AppPojoCodec<?>> classId2CodecMap) {
         this.type2CodecMap = type2CodecMap;
         this.classId2CodecMap = classId2CodecMap;
     }
@@ -58,11 +58,11 @@ public class AppCodecProvider implements CodecProvider {
         return (Codec<T>) type2CodecMap.get(clazz);
     }
 
-    public static AppCodecProvider newInstance(List<AppObjectCodec<?>> codecList) {
-        final Map<Class<?>, AppObjectCodec<?>> type2CodecMap = new IdentityHashMap<>(codecList.size());
-        final Int2ObjectMap<AppObjectCodec<?>> classId2CodecMap = new Int2ObjectOpenHashMap<>(codecList.size(), Hash.FAST_LOAD_FACTOR);
+    public static AppCodecProvider newInstance(List<AppPojoCodec<?>> codecList) {
+        final Map<Class<?>, AppPojoCodec<?>> type2CodecMap = new IdentityHashMap<>(codecList.size());
+        final Int2ObjectMap<AppPojoCodec<?>> classId2CodecMap = new Int2ObjectOpenHashMap<>(codecList.size(), Hash.FAST_LOAD_FACTOR);
 
-        for (AppObjectCodec<?> codec : codecList) {
+        for (AppPojoCodec<?> codec : codecList) {
             type2CodecMap.put(codec.getEncoderClass(), codec);
             classId2CodecMap.put(codec.getClassId(), codec);
         }

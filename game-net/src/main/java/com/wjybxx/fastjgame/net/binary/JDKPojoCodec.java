@@ -19,23 +19,22 @@ package com.wjybxx.fastjgame.net.binary;
 import com.wjybxx.fastjgame.utils.entity.NumericalEntity;
 
 /**
- * JDK对象的编解码器，它的主要特征是：{@link #classId}是固定值。
+ * JDK简单对象的编解码器，它的主要特征：{@link #classId}是固定值。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2020/2/24
  */
-public abstract class JDKObjectCodec<T> implements Codec<T>, NumericalEntity {
+public abstract class JDKPojoCodec<T> extends PojoCodec<T> implements NumericalEntity {
 
     /**
      * classId统一分配，每一个Codec得到的值是固定值
      */
     private final int classId;
 
-    protected JDKObjectCodec(int classId) {
+    protected JDKPojoCodec(int classId) {
         this.classId = classId;
     }
-
 
     @Override
     public int getProviderId() {
@@ -52,8 +51,4 @@ public abstract class JDKObjectCodec<T> implements Codec<T>, NumericalEntity {
         return classId;
     }
 
-    @Override
-    public WireType wireType() {
-        return WireType.POJO;
-    }
 }

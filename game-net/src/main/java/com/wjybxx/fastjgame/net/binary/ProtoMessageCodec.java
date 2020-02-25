@@ -29,7 +29,7 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-class ProtoMessageCodec<T extends AbstractMessage> extends AppObjectCodec<T> {
+class ProtoMessageCodec<T extends AbstractMessage> extends AppPojoCodec<T> {
 
     private final Class<T> messageClass;
     private final Parser<T> parser;
@@ -41,7 +41,7 @@ class ProtoMessageCodec<T extends AbstractMessage> extends AppObjectCodec<T> {
     }
 
     @Override
-    public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull T value, CodecRegistry codecRegistry) throws Exception {
+    public void encodeBody(@Nonnull CodedOutputStream outputStream, @Nonnull T value, CodecRegistry codecRegistry) throws Exception {
         outputStream.writeMessageNoTag(value);
     }
 

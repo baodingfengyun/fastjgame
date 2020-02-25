@@ -21,6 +21,8 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
+ * 它对应于{@link Tag}中的3中容器类型
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2020/2/24
@@ -29,35 +31,11 @@ public class ContainerCodecProvider implements CodecProvider {
 
     public static final ContainerCodecProvider INSTANCE = new ContainerCodecProvider();
 
-    private static final int COLLECTION_CLASS_ID = 1;
-    private static final int MAP_CLASS_ID = 2;
-    private static final int ARRAY_CLASS_ID = 3;
-
-    private final CollectionCodec collectionCodec = new CollectionCodec(COLLECTION_CLASS_ID);
-    private final MapCodec mapCodec = new MapCodec(MAP_CLASS_ID);
-    private final ArrayCodec arrayCodec = new ArrayCodec(ARRAY_CLASS_ID);
+    private final CollectionCodec collectionCodec = new CollectionCodec();
+    private final MapCodec mapCodec = new MapCodec();
+    private final ArrayCodec arrayCodec = new ArrayCodec();
 
     private ContainerCodecProvider() {
-    }
-
-    @Override
-    public int getProviderId() {
-        return CodecProviderConst.CONTAINER_PROVIDER_ID;
-    }
-
-    @Nullable
-    @Override
-    public Codec<?> getCodec(int classId) {
-        if (classId == COLLECTION_CLASS_ID) {
-            return collectionCodec;
-        }
-        if (classId == MAP_CLASS_ID) {
-            return mapCodec;
-        }
-        if (classId == ARRAY_CLASS_ID) {
-            return arrayCodec;
-        }
-        return null;
     }
 
     @SuppressWarnings("unchecked")
@@ -71,7 +49,8 @@ public class ContainerCodecProvider implements CodecProvider {
         if (Map.class.isAssignableFrom(clazz)) {
             return (Codec<T>) mapCodec;
         }
-        if (clazz.isArray() || clazz == ArrayCodec.ARRAY_CLASS_KEY) {
+
+        if (clazz.isArray() || clazz == ArrayCodec.ARRAY_ENCODER_CLASS) {
             return (Codec<T>) arrayCodec;
         }
         return null;

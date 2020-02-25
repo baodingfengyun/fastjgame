@@ -26,14 +26,15 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-class LongCodec extends JDKObjectCodec<Long> {
+class LongCodec implements Codec<Long> {
 
-    LongCodec(int classId) {
-        super(classId);
+    LongCodec() {
+
     }
 
     @Override
     public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Long value, CodecRegistry codecRegistry) throws Exception {
+        BinaryProtocolCodec.writeTag(outputStream, Tag.LONG);
         outputStream.writeInt64NoTag(value);
     }
 
@@ -44,7 +45,7 @@ class LongCodec extends JDKObjectCodec<Long> {
     }
 
     @Override
-    public Class<Long> getEncoderClass() {
+    public Class<?> getEncoderClass() {
         return Long.class;
     }
 }

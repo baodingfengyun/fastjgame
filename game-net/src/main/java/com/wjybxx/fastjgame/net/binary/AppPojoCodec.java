@@ -17,25 +17,31 @@
 package com.wjybxx.fastjgame.net.binary;
 
 /**
+ * 应用自定义对象编解码器
+ * 它的主要特征包括：
+ * 1. 它的{@link #classId}是用户计算的
+ * 2. 会有大量生成的{@link EntitySerializer}
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2020/2/24
  */
-public abstract class ContainerCodec<T> implements Codec<T> {
+public abstract class AppPojoCodec<T> extends PojoCodec<T> {
 
     private final int classId;
 
-    protected ContainerCodec(int classId) {
+    protected AppPojoCodec(int classId) {
         this.classId = classId;
     }
 
     @Override
     public int getProviderId() {
-        return CodecProviderConst.CONTAINER_PROVIDER_ID;
+        return CodecProviderConst.APP_PROVIDER_ID;
     }
 
     @Override
     public int getClassId() {
         return classId;
     }
+
 }

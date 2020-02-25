@@ -39,49 +39,49 @@ class EntityOutputStreamImp implements EntityOutputStream {
 
     @Override
     public void writeInt(int value) throws Exception {
-        BinaryProtocolCodec.writeTag(outputStream, WireType.INT);
+        BinaryProtocolCodec.writeTag(outputStream, Tag.INT);
         outputStream.writeInt32NoTag(value);
     }
 
     @Override
     public void writeLong(long value) throws Exception {
-        BinaryProtocolCodec.writeTag(outputStream, WireType.LONG);
+        BinaryProtocolCodec.writeTag(outputStream, Tag.LONG);
         outputStream.writeInt64NoTag(value);
     }
 
     @Override
     public void writeFloat(float value) throws Exception {
-        BinaryProtocolCodec.writeTag(outputStream, WireType.FLOAT);
+        BinaryProtocolCodec.writeTag(outputStream, Tag.FLOAT);
         outputStream.writeFloatNoTag(value);
     }
 
     @Override
     public void writeDouble(double value) throws Exception {
-        BinaryProtocolCodec.writeTag(outputStream, WireType.DOUBLE);
+        BinaryProtocolCodec.writeTag(outputStream, Tag.DOUBLE);
         outputStream.writeDoubleNoTag(value);
     }
 
     @Override
     public void writeShort(short value) throws Exception {
-        BinaryProtocolCodec.writeTag(outputStream, WireType.SHORT);
+        BinaryProtocolCodec.writeTag(outputStream, Tag.SHORT);
         outputStream.writeInt32NoTag(value);
     }
 
     @Override
     public void writeBoolean(boolean value) throws Exception {
-        BinaryProtocolCodec.writeTag(outputStream, WireType.BOOLEAN);
+        BinaryProtocolCodec.writeTag(outputStream, Tag.BOOLEAN);
         outputStream.writeBoolNoTag(value);
     }
 
     @Override
     public void writeByte(byte value) throws Exception {
-        BinaryProtocolCodec.writeTag(outputStream, WireType.BYTE);
+        BinaryProtocolCodec.writeTag(outputStream, Tag.BYTE);
         outputStream.writeRawByte(value);
     }
 
     @Override
     public void writeChar(char value) throws Exception {
-        BinaryProtocolCodec.writeTag(outputStream, WireType.CHAR);
+        BinaryProtocolCodec.writeTag(outputStream, Tag.CHAR);
         outputStream.writeUInt32NoTag(value);
     }
 
@@ -92,7 +92,7 @@ class EntityOutputStreamImp implements EntityOutputStream {
 
     @Override
     public void writeBytes(@Nonnull byte[] bytes, int offset, int length) throws Exception {
-        BinaryProtocolCodec.writeTag(outputStream, WireType.ARRAY);
+        BinaryProtocolCodec.writeTag(outputStream, Tag.ARRAY);
         ArrayCodec.writeByteArray(outputStream, bytes, offset, length);
     }
 
@@ -102,7 +102,7 @@ class EntityOutputStreamImp implements EntityOutputStream {
     @Override
     public <E> void writeEntity(@Nullable E entity, EntitySerializer<? super E> entitySerializer) throws Exception {
         if (null == entity) {
-            BinaryProtocolCodec.writeTag(outputStream, WireType.NULL);
+            BinaryProtocolCodec.writeTag(outputStream, Tag.NULL);
             return;
         }
 

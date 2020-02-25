@@ -27,10 +27,11 @@ import java.util.Map;
 /**
  * 数据类型
  * <h3>类型</h3>
- * 1. 原始类型
- * 2. NULL
- * 3. 简单对象
- * 4. 容器对象（MAP,COLLECTION,ARRAY），并没有基于{@link Iterable}做支持，而是基于的{@link Collection}
+ * 1. NULL
+ * 2. 原始类型，及其包装类型
+ * 3. String
+ * 4. 简单对象(POJO)
+ * 5. 容器对象（MAP,COLLECTION,ARRAY），并没有基于{@link Iterable}做支持，而是基于的{@link Collection}
  * <h3>展开</h3>
  * 由于原始类型和容器对象的种类是确定的，因此将它们展开
  *
@@ -39,7 +40,7 @@ import java.util.Map;
  * date - 2019/8/17
  * github - https://github.com/hl845740757
  */
-public enum WireType implements NumericalEntity {
+public enum Tag implements NumericalEntity {
 
     /**
      * NULL
@@ -79,52 +80,55 @@ public enum WireType implements NumericalEntity {
      * rawByte
      */
     BOOLEAN(8),
-
+    /**
+     * 字符串
+     */
+    STRING(9),
     // --------------------------------------- 简单对象 -------------------------------
 
     /**
      * 简单对象 - 非容器对象
      * 它必须存在唯一识别码，才能定位到对应的codec
      */
-    POJO(9),
+    POJO(10),
 
     // --------------------------------------- 容器对象 --------------------------------
 
     /**
      * 数组
      */
-    ARRAY(10),
+    ARRAY(11),
 
     /**
      * 集合支持
      * 如果一个字段/参数的声明类型是{@link Collection}，那么那么适用该类型。
      * 如果需要更细化的集合需求，请了解{@link com.wjybxx.fastjgame.db.annotation.Impl}注解
      */
-    COLLECTION(11),
+    COLLECTION(12),
 
     /**
      * Map支持
      * 如果一个字段/参数的声明类型是{@link Map}，那么适用该类型。
      * 如果需要更细化的map需求，请了解{@link com.wjybxx.fastjgame.db.annotation.Impl}注解
      */
-    MAP(12),
+    MAP(13),
 
     // --------------------------------------- 特定标识 --------------------------------
 
     /**
      * 标识编解码时，仅仅代表一个表示，不关心具体类型
      */
-    UNKNOWN(13);
+    UNKNOWN(14);
 
     private final int number;
 
-    WireType(int number) {
+    Tag(int number) {
         this.number = number;
     }
 
-    private static final NumericalEntityMapper<WireType> mapper = EnumUtils.mapping(values(), true);
+    private static final NumericalEntityMapper<Tag> mapper = EnumUtils.mapping(values(), true);
 
-    public static WireType forNumber(int number) {
+    public static Tag forNumber(int number) {
         return mapper.forNumber(number);
     }
 

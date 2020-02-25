@@ -22,7 +22,7 @@ import com.google.protobuf.CodedOutputStream;
 import javax.annotation.Nonnull;
 
 /**
- * 编解码器
+ * 编解码器，一个编解码器负责编码一个确定的类型。
  *
  * @author wjybxx
  * @version 1.0
@@ -46,22 +46,7 @@ public interface Codec<T> {
     T decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception;
 
     /**
-     * 获取负责编解码的类对象
+     * 获取负责编解码的类对象或其它代表对象
      */
-    Class<T> getEncoderClass();
-
-    /**
-     * 返回codec所属的{@link CodecProvider}的id
-     */
-    int getProviderId();
-
-    /**
-     * 获取{@link #getEncoderClass()}在{@link CodecProvider}下的唯一id
-     */
-    int getClassId();
-
-    /**
-     * 编码对象所属格式
-     */
-    WireType wireType();
+    Class<?> getEncoderClass();
 }

@@ -42,55 +42,59 @@ class EntityInputStreamImp implements EntityInputStream {
 
     @Override
     public int readInt() throws Exception {
-        readTagAndCheck(WireType.INT);
+        readTagAndCheck(Tag.INT);
         return inputStream.readInt32();
     }
 
     @Override
     public long readLong() throws Exception {
-        readTagAndCheck(WireType.LONG);
+        readTagAndCheck(Tag.LONG);
         return inputStream.readInt64();
     }
 
     @Override
     public float readFloat() throws Exception {
-        readTagAndCheck(WireType.FLOAT);
+        readTagAndCheck(Tag.FLOAT);
         return inputStream.readFloat();
     }
 
     @Override
     public double readDouble() throws Exception {
-        readTagAndCheck(WireType.DOUBLE);
+        readTagAndCheck(Tag.DOUBLE);
         return inputStream.readDouble();
     }
 
     @Override
     public short readShort() throws Exception {
-        readTagAndCheck(WireType.SHORT);
+        readTagAndCheck(Tag.SHORT);
         return (short) inputStream.readInt32();
     }
 
     @Override
     public boolean readBoolean() throws Exception {
-        readTagAndCheck(WireType.BOOLEAN);
+        readTagAndCheck(Tag.BOOLEAN);
         return inputStream.readBool();
     }
 
     @Override
     public byte readByte() throws Exception {
-        readTagAndCheck(WireType.BYTE);
+        readTagAndCheck(Tag.BYTE);
         return inputStream.readRawByte();
     }
 
     @Override
     public char readChar() throws Exception {
-        readTagAndCheck(WireType.CHAR);
+        readTagAndCheck(Tag.CHAR);
         return (char) inputStream.readUInt32();
     }
 
     @Override
     public String readString() throws Exception {
-        return BinaryProtocolCodec.decodeObject(inputStream, codecRegistry);
+        final Tag tag = BinaryProtocolCodec.readTag(inputStream);
+        if (tag == Tag.NULL) {
+            return null;
+        }
+        return inputStream.readString();
     }
 
     @Override
@@ -103,8 +107,8 @@ class EntityInputStreamImp implements EntityInputStream {
         return BinaryProtocolCodec.decodeObject(inputStream, codecRegistry);
     }
 
-    private void readTagAndCheck(WireType expectedTag) throws Exception {
-        final WireType tag = BinaryProtocolCodec.readTag(inputStream);
+    private void readTagAndCheck(Tag expectedTag) throws Exception {
+        final Tag tag = BinaryProtocolCodec.readTag(inputStream);
         if (tag != expectedTag) {
             throw new IOException("Incompatible wireType, expected: " + expectedTag + ", but read: " + tag);
         }
@@ -113,12 +117,12 @@ class EntityInputStreamImp implements EntityInputStream {
     @Nullable
     @Override
     public <C extends Collection<E>, E> C readCollection(@Nonnull IntFunction<C> collectionFactory) throws Exception {
-        final WireType tag = BinaryProtocolCodec.readTag(inputStream);
-        if (tag == WireType.NULL) {
+        final Tag tag = BinaryProtocolCodec.readTag(inputStream);
+        if (tag == Tag.NULL) {
             return null;
         }
 
-        checkTag(tag, WireType.COLLECTION);
+        checkTag(tag, Tag.COLLECTION);
 
         return CollectionCodec.readCollectionImp(inputStream, collectionFactory, codecRegistry);
     }
@@ -126,12 +130,12 @@ class EntityInputStreamImp implements EntityInputStream {
     @Nullable
     @Override
     public <M extends Map<K, V>, K, V> M readMap(@Nonnull IntFunction<M> mapFactory) throws Exception {
-        final WireType tag = BinaryProtocolCodec.readTag(inputStream);
-        if (tag == WireType.NULL) {
+        final Tag tag = BinaryProtocolCodec.readTag(inputStream);
+        if (tag == Tag.NULL) {
             return null;
         }
 
-        checkTag(tag, WireType.MAP);
+        checkTag(tag, Tag.MAP);
 
         return MapCodec.readMapImp(inputStream, mapFactory, codecRegistry);
     }
@@ -139,25 +143,25 @@ class EntityInputStreamImp implements EntityInputStream {
     @Nullable
     @Override
     public <T> T readArray(@Nonnull Class<?> componentType) throws Exception {
-        final WireType tag = BinaryProtocolCodec.readTag(inputStream);
-        if (tag == WireType.NULL) {
+        final Tag tag = BinaryProtocolCodec.readTag(inputStream);
+        if (tag == Tag.NULL) {
             return null;
         }
 
-        checkTag(tag, WireType.ARRAY);
+        checkTag(tag, Tag.ARRAY);
 
-        final ArrayCodec arrayCodec = (ArrayCodec) codecRegistry.get(ArrayCodec.ARRAY_CLASS_KEY);
+        final ArrayCodec arrayCodec = (ArrayCodec) codecRegistry.get(ArrayCodec.ARRAY_ENCODER_CLASS);
         @SuppressWarnings("unchecked") final T array = (T) arrayCodec.readArray(inputStream, componentType, codecRegistry);
         return array;
     }
 
     public <E> E readEntity(EntityFactory<E> entityFactory, AbstractEntitySerializer<? super E> entitySerializer) throws Exception {
-        final WireType tag = BinaryProtocolCodec.readTag(inputStream);
-        if (tag == WireType.NULL) {
+        final Tag tag = BinaryProtocolCodec.readTag(inputStream);
+        if (tag == Tag.NULL) {
             return null;
         }
 
-        checkTag(tag, WireType.POJO);
+        checkTag(tag, Tag.POJO);
 
         checkMessageId(entitySerializer);
 
@@ -174,7 +178,7 @@ class EntityInputStreamImp implements EntityInputStream {
 //        }
     }
 
-    private void checkTag(final WireType readTag, final WireType expectedTag) throws Exception {
+    private void checkTag(final Tag readTag, final Tag expectedTag) throws Exception {
         if (readTag != expectedTag) {
             throw new IOException("Incompatible wireType, expected: " + expectedTag + ", but read: " + readTag);
         }

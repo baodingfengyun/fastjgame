@@ -26,14 +26,15 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-class BooleanCodec extends JDKObjectCodec<Boolean> {
+class BooleanCodec implements Codec<Boolean> {
 
-    BooleanCodec(int classId) {
-        super(classId);
+    BooleanCodec() {
+
     }
 
     @Override
     public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Boolean value, CodecRegistry codecRegistry) throws Exception {
+        BinaryProtocolCodec.writeTag(outputStream, Tag.BOOLEAN);
         outputStream.writeBoolNoTag(value);
     }
 
@@ -44,8 +45,7 @@ class BooleanCodec extends JDKObjectCodec<Boolean> {
     }
 
     @Override
-    public Class<Boolean> getEncoderClass() {
+    public Class<?> getEncoderClass() {
         return Boolean.class;
     }
-
 }

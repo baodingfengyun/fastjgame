@@ -26,14 +26,14 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-class ShortCodec extends JDKObjectCodec<Short> {
+class ShortCodec implements Codec<Short> {
 
-    ShortCodec(int classId) {
-        super(classId);
+    ShortCodec() {
     }
 
     @Override
     public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Short value, CodecRegistry codecRegistry) throws Exception {
+        BinaryProtocolCodec.writeTag(outputStream, Tag.SHORT);
         outputStream.writeInt32NoTag(value);
     }
 
@@ -44,7 +44,7 @@ class ShortCodec extends JDKObjectCodec<Short> {
     }
 
     @Override
-    public Class<Short> getEncoderClass() {
+    public Class<?> getEncoderClass() {
         return Short.class;
     }
 }

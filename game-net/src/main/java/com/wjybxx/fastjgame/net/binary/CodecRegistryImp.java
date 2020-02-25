@@ -16,6 +16,10 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
+import java.util.List;
+
+import static java.lang.String.format;
+
 /**
  * 其实用户使用的类的概率是不太均匀的，由于原始类型和String和容器等类型生成代码都是直接调用的，因此进入这里的最大可能性是自定义对象。
  *
@@ -25,65 +29,45 @@ package com.wjybxx.fastjgame.net.binary;
  */
 public class CodecRegistryImp implements CodecRegistry {
 
+    private final CodecProvider[] codecProviders;
     /**
-     * 默认受支持的jdk对象编解码器提供者
+     * provider数量较少，使用数组性能足够好，无需map
      */
-    private final CodecProvider jdkObjectCodecProvider;
-    /**
-     * 用户自定义对象编解码提供者
-     */
-    private final CodecProvider appObjectCodecProvider;
-    /**
-     * 容器对象编解码器提供者
-     */
-    private final CodecProvider containerObjectProvider;
+    private final PojoCodecProvider[] pojoCodecProviders;
 
-    CodecRegistryImp(CodecProvider appObjectCodecProvider) {
-        this.jdkObjectCodecProvider = JdkCodecProvider.INSTANCE;
-        this.containerObjectProvider = ContainerCodecProvider.INSTANCE;
-        this.appObjectCodecProvider = appObjectCodecProvider;
+    CodecRegistryImp(List<? extends CodecProvider> codecProviders) {
+        this.codecProviders = codecProviders.toArray(CodecProvider[]::new);
+        this.pojoCodecProviders = codecProviders.stream()
+                .filter(PojoCodecProvider.class::isInstance)
+                .map(e -> (PojoCodecProvider) e)
+                .toArray(PojoCodecProvider[]::new);
     }
 
     @Override
-    public <T> Codec<? extends T> get(Class<T> clazz) {
-        final Codec<T> appCodec = appObjectCodecProvider.getCodec(clazz);
-        if (appCodec != null) {
-            return appCodec;
+    public <T> Codec<? super T> get(Class<T> clazz) {
+        for (CodecProvider codecProvider : codecProviders) {
+            final Codec<T> codec = codecProvider.getCodec(clazz);
+            if (codec != null) {
+                return codec;
+            }
         }
-
-        final Codec<T> jdkCodec = jdkObjectCodecProvider.getCodec(clazz);
-        if (jdkCodec != null) {
-            return jdkCodec;
-        }
-
-        final Codec<T> containerCodec = containerObjectProvider.getCodec(clazz);
-        if (null != containerCodec) {
-            return containerCodec;
-        }
-        throw new CodecConfigurationException("Unsupported class " + clazz.getName());
+        throw new CodecConfigurationException(format("Can't find a codec for %s.", clazz));
     }
 
     @Override
-    public Codec<?> get(int providerId, int classId) {
-        if (providerId == appObjectCodecProvider.getProviderId()) {
-            return getCheckedCodec(appObjectCodecProvider, classId);
+    public Codec<?> getPojoCodec(int providerId, int classId) {
+        for (PojoCodecProvider pojoCodecProvider : pojoCodecProviders) {
+            if (pojoCodecProvider.getProviderId() == providerId) {
+                return getCheckedCodec(pojoCodecProvider, classId);
+            }
         }
-
-        if (providerId == jdkObjectCodecProvider.getProviderId()) {
-            return getCheckedCodec(jdkObjectCodecProvider, classId);
-        }
-
-        if (providerId == containerObjectProvider.getProviderId()) {
-            return getCheckedCodec(containerObjectProvider, classId);
-        }
-
-        throw new CodecConfigurationException("Unknown providerId " + providerId);
+        throw new CodecConfigurationException(format("Can't find a codec for %s:%s.", providerId, classId));
     }
 
-    private static Codec<?> getCheckedCodec(final CodecProvider codecProvider, int classId) {
+    private static Codec<?> getCheckedCodec(final PojoCodecProvider codecProvider, int classId) {
         final Codec<?> codec = codecProvider.getCodec(classId);
         if (null == codec) {
-            throw new CodecConfigurationException("Unknown classId " + classId + ", provider is " + codecProvider.getProviderId());
+            throw new CodecConfigurationException(format("Can't find a codec for %s:%s.", codecProvider.getProviderId(), classId));
         }
         return codec;
     }

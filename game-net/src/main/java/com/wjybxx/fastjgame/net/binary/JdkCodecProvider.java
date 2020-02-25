@@ -28,30 +28,20 @@ import java.util.Map;
  * @version 1.0
  * date - 2020/2/24
  */
-public class JdkCodecProvider implements CodecProvider {
+public class JdkCodecProvider implements PojoCodecProvider {
 
     public static final JdkCodecProvider INSTANCE = new JdkCodecProvider();
 
-    private final Map<Class<?>, JDKObjectCodec<?>> type2CodecMap = new IdentityHashMap<>(16);
-    private final NumericalEntityMapper<JDKObjectCodec<?>> classId2CodecMap;
+    private final Map<Class<?>, JDKPojoCodec<?>> type2CodecMap = new IdentityHashMap<>(8);
+    private final NumericalEntityMapper<JDKPojoCodec<?>> classId2CodecMap;
 
     private JdkCodecProvider() {
-        addCodec(new ByteCodec(1));
-        addCodec(new CharCodec(2));
-        addCodec(new ShortCodec(3));
-        addCodec(new IntegerCodec(4));
-        addCodec(new LongCodec(5));
-        addCodec(new FloatCodec(6));
-        addCodec(new DoubleCodec(7));
-        addCodec(new BooleanCodec(8));
+        addCodec(new ClassCodec(1));
 
-        addCodec(new StringCodec(9));
-        addCodec(new ClassCodec(10));
-
-        classId2CodecMap = EnumUtils.mapping(type2CodecMap.values().toArray(JDKObjectCodec<?>[]::new), true);
+        classId2CodecMap = EnumUtils.mapping(type2CodecMap.values().toArray(JDKPojoCodec<?>[]::new), true);
     }
 
-    private void addCodec(JDKObjectCodec<?> codec) {
+    private void addCodec(JDKPojoCodec<?> codec) {
         type2CodecMap.put(codec.getEncoderClass(), codec);
     }
 

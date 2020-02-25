@@ -34,17 +34,14 @@ import java.util.IdentityHashMap;
  * @version 1.0
  * date - 2020/2/17
  */
-class ArrayCodec extends ContainerCodec<Object> {
+class ArrayCodec implements Codec<Object> {
 
-    /**
-     * 数组没有公共的数组超类 - 这个就有点伤心了
-     */
-    static final Class<?> ARRAY_CLASS_KEY = Array.class;
+    static final Class<Object[]> ARRAY_ENCODER_CLASS = Object[].class;
 
-    private static final int CHILD_SIZE = 8;
+    private static final int CHILD_SIZE = 9;
 
-    private static final IdentityHashMap<Class<?>, PrimitiveTypeArrayCodec<?>> primitiveType2CodecMapping = new IdentityHashMap<>(CHILD_SIZE);
-    private static final EnumMap<WireType, PrimitiveTypeArrayCodec<?>> tag2CodecMapping = new EnumMap<>(WireType.class);
+    private static final IdentityHashMap<Class<?>, BasicArrayCodec<?>> componentType2CodecMapping = new IdentityHashMap<>(CHILD_SIZE);
+    private static final EnumMap<Tag, BasicArrayCodec<?>> tag2CodecMapping = new EnumMap<>(Tag.class);
 
     static {
         register(byte.class, new ByteArrayCodec());
@@ -55,33 +52,35 @@ class ArrayCodec extends ContainerCodec<Object> {
         register(float.class, new FloatArrayCodec());
         register(double.class, new DoubleArrayCodec());
         register(boolean.class, new BooleanArrayCodec());
+        register(String.class, new StringArrayCodec());
     }
 
-    private static void register(Class<?> component, PrimitiveTypeArrayCodec<?> codec) {
-        primitiveType2CodecMapping.put(component, codec);
+    private static void register(Class<?> component, BasicArrayCodec<?> codec) {
+        componentType2CodecMapping.put(component, codec);
         tag2CodecMapping.put(codec.childType(), codec);
     }
 
-    ArrayCodec(int classId) {
-        super(classId);
+    ArrayCodec() {
+
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Object value, CodecRegistry codecRegistry) throws Exception {
-        final PrimitiveTypeArrayCodec codec = primitiveType2CodecMapping.get(value.getClass().getComponentType());
+        final BasicArrayCodec codec = componentType2CodecMapping.get(value.getClass().getComponentType());
         final int length = Array.getLength(value);
 
         if (null != codec) {
-            writeChildTypeAndLength(outputStream, codec.childType(), length);
+            writeTagAndChildTypeAndLength(outputStream, codec.childType(), length);
             codec.writeArray(outputStream, value);
         } else {
-            writeChildTypeAndLength(outputStream, WireType.UNKNOWN, length);
+            writeTagAndChildTypeAndLength(outputStream, Tag.UNKNOWN, length);
             writeObjectArray(outputStream, value, length, codecRegistry);
         }
     }
 
-    private static void writeChildTypeAndLength(CodedOutputStream outputStream, WireType childType, int length) throws IOException {
+    private static void writeTagAndChildTypeAndLength(CodedOutputStream outputStream, Tag childType, int length) throws IOException {
+        BinaryProtocolCodec.writeTag(outputStream, Tag.ARRAY);
         BinaryProtocolCodec.writeTag(outputStream, childType);
         outputStream.writeUInt32NoTag(length);
     }
@@ -106,11 +105,11 @@ class ArrayCodec extends ContainerCodec<Object> {
     }
 
     Object readArray(CodedInputStream inputStream, Class<?> objectArrayComponentType, CodecRegistry codecRegistry) throws Exception {
-        final WireType childType = BinaryProtocolCodec.readTag(inputStream);
+        final Tag childType = BinaryProtocolCodec.readTag(inputStream);
         final int length = inputStream.readUInt32();
 
-        if (childType != WireType.UNKNOWN) {
-            final PrimitiveTypeArrayCodec<?> codec = tag2CodecMapping.get(childType);
+        if (childType != Tag.UNKNOWN) {
+            final BasicArrayCodec<?> codec = tag2CodecMapping.get(childType);
             assert null != codec;
             return codec.readArray(inputStream, length);
         } else {
@@ -135,28 +134,22 @@ class ArrayCodec extends ContainerCodec<Object> {
         return array;
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public Class getEncoderClass() {
-        return ARRAY_CLASS_KEY;
-    }
-
-    @Override
-    public WireType wireType() {
-        return WireType.ARRAY;
-    }
-
     static void writeByteArray(CodedOutputStream outputStream, @Nonnull byte[] bytes, int offset, int length) throws Exception {
-        writeChildTypeAndLength(outputStream, WireType.BYTE, length);
+        writeTagAndChildTypeAndLength(outputStream, Tag.BYTE, length);
         ByteArrayCodec.writeArray(outputStream, bytes, offset, length);
     }
 
-    private interface PrimitiveTypeArrayCodec<U> extends NumericalEntity {
+    @Override
+    public Class<?> getEncoderClass() {
+        return ARRAY_ENCODER_CLASS;
+    }
+
+    private interface BasicArrayCodec<U> extends NumericalEntity {
 
         /**
          * 子类标识
          */
-        WireType childType();
+        Tag childType();
 
         /**
          * 写入数组的内容
@@ -175,11 +168,11 @@ class ArrayCodec extends ContainerCodec<Object> {
         }
     }
 
-    private static class ByteArrayCodec implements PrimitiveTypeArrayCodec<byte[]> {
+    private static class ByteArrayCodec implements BasicArrayCodec<byte[]> {
 
         @Override
-        public WireType childType() {
-            return WireType.BOOLEAN;
+        public Tag childType() {
+            return Tag.BOOLEAN;
         }
 
         @Override
@@ -197,11 +190,11 @@ class ArrayCodec extends ContainerCodec<Object> {
         }
     }
 
-    private static class IntArrayCodec implements PrimitiveTypeArrayCodec<int[]> {
+    private static class IntArrayCodec implements BasicArrayCodec<int[]> {
 
         @Override
-        public WireType childType() {
-            return WireType.INT;
+        public Tag childType() {
+            return Tag.INT;
         }
 
         @Override
@@ -222,11 +215,11 @@ class ArrayCodec extends ContainerCodec<Object> {
 
     }
 
-    private static class FloatArrayCodec implements PrimitiveTypeArrayCodec<float[]> {
+    private static class FloatArrayCodec implements BasicArrayCodec<float[]> {
 
         @Override
-        public WireType childType() {
-            return WireType.FLOAT;
+        public Tag childType() {
+            return Tag.FLOAT;
         }
 
         @Override
@@ -246,11 +239,11 @@ class ArrayCodec extends ContainerCodec<Object> {
         }
     }
 
-    private static class DoubleArrayCodec implements PrimitiveTypeArrayCodec<double[]> {
+    private static class DoubleArrayCodec implements BasicArrayCodec<double[]> {
 
         @Override
-        public WireType childType() {
-            return WireType.DOUBLE;
+        public Tag childType() {
+            return Tag.DOUBLE;
         }
 
         @Override
@@ -270,11 +263,11 @@ class ArrayCodec extends ContainerCodec<Object> {
         }
     }
 
-    private static class LongArrayCodec implements PrimitiveTypeArrayCodec<long[]> {
+    private static class LongArrayCodec implements BasicArrayCodec<long[]> {
 
         @Override
-        public WireType childType() {
-            return WireType.LONG;
+        public Tag childType() {
+            return Tag.LONG;
         }
 
         @Override
@@ -294,11 +287,11 @@ class ArrayCodec extends ContainerCodec<Object> {
         }
     }
 
-    private static class ShortArrayCodec implements PrimitiveTypeArrayCodec<short[]> {
+    private static class ShortArrayCodec implements BasicArrayCodec<short[]> {
 
         @Override
-        public WireType childType() {
-            return WireType.SHORT;
+        public Tag childType() {
+            return Tag.SHORT;
         }
 
         @Override
@@ -318,11 +311,11 @@ class ArrayCodec extends ContainerCodec<Object> {
         }
     }
 
-    private static class CharArrayCodec implements PrimitiveTypeArrayCodec<char[]> {
+    private static class CharArrayCodec implements BasicArrayCodec<char[]> {
 
         @Override
-        public WireType childType() {
-            return WireType.CHAR;
+        public Tag childType() {
+            return Tag.CHAR;
         }
 
         @Override
@@ -342,11 +335,11 @@ class ArrayCodec extends ContainerCodec<Object> {
         }
     }
 
-    private static class BooleanArrayCodec implements PrimitiveTypeArrayCodec<boolean[]> {
+    private static class BooleanArrayCodec implements BasicArrayCodec<boolean[]> {
 
         @Override
-        public WireType childType() {
-            return WireType.BOOLEAN;
+        public Tag childType() {
+            return Tag.BOOLEAN;
         }
 
         @Override
@@ -366,4 +359,36 @@ class ArrayCodec extends ContainerCodec<Object> {
         }
     }
 
+    private static class StringArrayCodec implements BasicArrayCodec<String[]> {
+
+        @Override
+        public Tag childType() {
+            return Tag.STRING;
+        }
+
+        @Override
+        public void writeArray(CodedOutputStream outputStream, @Nonnull String[] array) throws Exception {
+            for (String value : array) {
+                if (value == null) {
+                    BinaryProtocolCodec.writeTag(outputStream, Tag.NULL);
+                } else {
+                    BinaryProtocolCodec.writeTag(outputStream, Tag.STRING);
+                    outputStream.writeStringNoTag(value);
+                }
+            }
+        }
+
+        @Override
+        public String[] readArray(CodedInputStream inputStream, int length) throws Exception {
+            final String[] result = new String[length];
+            for (int index = 0; index < length; index++) {
+                if (BinaryProtocolCodec.readTag(inputStream) == Tag.NULL) {
+                    result[index] = null;
+                } else {
+                    result[index] = inputStream.readString();
+                }
+            }
+            return result;
+        }
+    }
 }

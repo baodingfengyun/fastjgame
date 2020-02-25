@@ -33,14 +33,14 @@ import java.util.function.IntFunction;
  * @version 1.0
  * date - 2020/2/17
  */
-class CollectionCodec extends ContainerCodec<Collection<?>> {
+class CollectionCodec implements Codec<Collection<?>> {
 
-    CollectionCodec(int classId) {
-        super(classId);
+    CollectionCodec() {
     }
 
     @Override
     public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Collection<?> value, CodecRegistry codecRegistry) throws Exception {
+        BinaryProtocolCodec.writeTag(outputStream, Tag.COLLECTION);
         outputStream.writeUInt32NoTag(value.size());
         if (value.size() == 0) {
             return;
@@ -75,14 +75,8 @@ class CollectionCodec extends ContainerCodec<Collection<?>> {
         return result;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public Class<Collection<?>> getEncoderClass() {
-        return (Class) Collection.class;
-    }
-
-    @Override
-    public WireType wireType() {
-        return WireType.COLLECTION;
+    public Class<?> getEncoderClass() {
+        return Collection.class;
     }
 }

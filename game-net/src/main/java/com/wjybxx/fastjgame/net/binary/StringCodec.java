@@ -26,14 +26,15 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-class StringCodec extends JDKObjectCodec<String> {
+class StringCodec implements Codec<String> {
 
-    StringCodec(int classId) {
-        super(classId);
+    StringCodec() {
+
     }
 
     @Override
     public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull String value, CodecRegistry codecRegistry) throws Exception {
+        BinaryProtocolCodec.writeTag(outputStream, Tag.STRING);
         outputStream.writeStringNoTag(value);
     }
 
@@ -44,7 +45,7 @@ class StringCodec extends JDKObjectCodec<String> {
     }
 
     @Override
-    public Class<String> getEncoderClass() {
+    public Class<?> getEncoderClass() {
         return String.class;
     }
 }

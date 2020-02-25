@@ -26,14 +26,14 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-class DoubleCodec extends JDKObjectCodec<Double> {
+class DoubleCodec implements Codec<Double> {
 
-    DoubleCodec(int classId) {
-        super(classId);
+    DoubleCodec() {
     }
 
     @Override
     public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Double value, CodecRegistry codecRegistry) throws Exception {
+        BinaryProtocolCodec.writeTag(outputStream, Tag.DOUBLE);
         outputStream.writeDoubleNoTag(value);
     }
 
@@ -44,7 +44,7 @@ class DoubleCodec extends JDKObjectCodec<Double> {
     }
 
     @Override
-    public Class<Double> getEncoderClass() {
+    public Class<?> getEncoderClass() {
         return Double.class;
     }
 }

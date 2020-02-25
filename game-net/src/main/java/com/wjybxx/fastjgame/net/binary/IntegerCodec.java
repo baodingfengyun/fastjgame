@@ -26,14 +26,15 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-class IntegerCodec extends JDKObjectCodec<Integer> {
+class IntegerCodec implements Codec<Integer> {
 
-    IntegerCodec(int classId) {
-        super(classId);
+    IntegerCodec() {
+
     }
 
     @Override
     public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Integer value, CodecRegistry codecRegistry) throws Exception {
+        BinaryProtocolCodec.writeTag(outputStream, Tag.INT);
         outputStream.writeInt32NoTag(value);
     }
 
@@ -44,7 +45,7 @@ class IntegerCodec extends JDKObjectCodec<Integer> {
     }
 
     @Override
-    public Class<Integer> getEncoderClass() {
+    public Class<?> getEncoderClass() {
         return Integer.class;
     }
 }

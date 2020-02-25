@@ -18,7 +18,6 @@ package com.wjybxx.fastjgame.net.example;
 
 import com.wjybxx.fastjgame.net.binary.BinaryProtocolCodec;
 import com.wjybxx.fastjgame.net.common.ProtocolCodec;
-import com.wjybxx.fastjgame.net.misc.JsonProtocolCodec;
 
 /**
  * 一个不太靠谱的序列化反序列化性能测试。
@@ -38,23 +37,15 @@ public class SerializePerformanceTest {
 //        ExampleMessages.FullMessage msg = BinaryProtoCodecTest.newFullMessage();
         final TestMsg msg = new TestMsg(32116503156L, 5461166513213L, 546541211616512L, false);
 
-        JsonProtocolCodec jsonCodec = ExampleConstants.jsonCodec;
         BinaryProtocolCodec binaryCodec = ExampleConstants.binaryCodec;
-
-        // equals测试，正确性必须要保证
-        equalsTest(jsonCodec, msg);
-        System.out.println();
 
         equalsTest(binaryCodec, msg);
         System.out.println();
 
         // 预热
-        codecTest(jsonCodec, msg, 10_0000);
         codecTest(binaryCodec, msg, 10_0000);
-        System.out.println();
 
         // 开搞
-        codecTest(jsonCodec, msg, 100_0000);
         codecTest(binaryCodec, msg, 100_0000);
 
         Thread.sleep(1000);

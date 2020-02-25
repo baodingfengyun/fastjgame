@@ -35,9 +35,7 @@ import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -136,11 +134,11 @@ public class BinaryProtocolCodec implements ProtocolCodec {
      * 写入一个tag
      *
      * @param outputStream 输出流
-     * @param wireType     tag
+     * @param tag          tag
      * @throws IOException error
      */
-    static void writeTag(CodedOutputStream outputStream, WireType wireType) throws IOException {
-        outputStream.writeRawByte(wireType.getNumber());
+    static void writeTag(CodedOutputStream outputStream, Tag tag) throws IOException {
+        outputStream.writeRawByte(tag.getNumber());
     }
 
     /**
@@ -150,31 +148,63 @@ public class BinaryProtocolCodec implements ProtocolCodec {
      * @return tag
      * @throws IOException error
      */
-    static WireType readTag(CodedInputStream inputStream) throws IOException {
-        return WireType.forNumber(inputStream.readRawByte());
+    static Tag readTag(CodedInputStream inputStream) throws IOException {
+        return Tag.forNumber(inputStream.readRawByte());
     }
 
     static <T> void encodeObject(CodedOutputStream outputStream, @Nullable T value, CodecRegistry codecRegistry) throws Exception {
         if (null == value) {
-            writeTag(outputStream, WireType.NULL);
+            writeTag(outputStream, Tag.NULL);
         } else {
             @SuppressWarnings("unchecked") final Codec<T> codec = (Codec<T>) codecRegistry.get(value.getClass());
-            writeTag(outputStream, codec.wireType());
-            outputStream.writeInt32NoTag(codec.getProviderId());
-            outputStream.writeInt32NoTag(codec.getClassId());
             codec.encode(outputStream, value, codecRegistry);
         }
     }
 
+    @SuppressWarnings("unchecked")
     static <T> T decodeObject(CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
-        final WireType tag = readTag(inputStream);
-        if (tag == WireType.NULL) {
+        final Tag tag = readTag(inputStream);
+        if (tag == Tag.NULL) {
             return null;
         }
-        final int providerId = inputStream.readInt32();
-        final int classId = inputStream.readInt32();
-        @SuppressWarnings("unchecked") final Codec<T> codec = (Codec<T>) codecRegistry.get(providerId, classId);
-        return codec.decode(inputStream, codecRegistry);
+        return (T) decodeObjectImp(tag, inputStream, codecRegistry);
+    }
+
+    private static Object decodeObjectImp(Tag tag, CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
+        switch (tag) {
+            case ARRAY:
+                return codecRegistry.get(ArrayCodec.ARRAY_ENCODER_CLASS).decode(inputStream, codecRegistry);
+            case MAP:
+                return codecRegistry.get(Map.class).decode(inputStream, codecRegistry);
+            case COLLECTION:
+                return codecRegistry.get(Collection.class).decode(inputStream, codecRegistry);
+
+            case BYTE:
+                return inputStream.readRawByte();
+            case CHAR:
+                return (char) inputStream.readUInt32();
+            case SHORT:
+                return (short) inputStream.readInt32();
+            case INT:
+                return inputStream.readInt32();
+            case BOOLEAN:
+                return inputStream.readBool();
+            case LONG:
+                return inputStream.readInt64();
+            case FLOAT:
+                return inputStream.readFloat();
+            case DOUBLE:
+                return inputStream.readDouble();
+            case STRING:
+                return inputStream.readString();
+
+            case POJO:
+                final int providerId = inputStream.readInt32();
+                final int classId = inputStream.readInt32();
+                return codecRegistry.getPojoCodec(providerId, classId).decode(inputStream, codecRegistry);
+            default:
+                throw new IOException("unexpected tag : " + tag);
+        }
     }
 
     // ------------------------------------------------- 工厂方法 ------------------------------------------------------
@@ -190,7 +220,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
     public static BinaryProtocolCodec newInstance(MessageMappingStrategy mappingStrategy, Predicate<Class<?>> filter) {
         final Set<Class<?>> supportedClassSet = getFilteredSupportedClasses(filter);
         final MessageMapper messageMapper = MessageMapper.newInstance(supportedClassSet, mappingStrategy);
-        final List<AppObjectCodec<?>> codecList = new ArrayList<>(supportedClassSet.size());
+        final List<AppPojoCodec<?>> codecList = new ArrayList<>(supportedClassSet.size());
 
         try {
             for (Class<?> messageClazz : messageMapper.getAllMessageClasses()) {
@@ -219,7 +249,12 @@ public class BinaryProtocolCodec implements ProtocolCodec {
                 throw new IllegalArgumentException("Unsupported class " + messageClazz.getName());
             }
 
-            final CodecRegistry codecRegistry = new CodecRegistryImp(AppCodecProvider.newInstance(codecList));
+            final List<CodecProvider> codecProviders = List.of(AppCodecProvider.newInstance(codecList),
+                    ValueCodecProvider.INSTANCE,
+                    ContainerCodecProvider.INSTANCE,
+                    JdkCodecProvider.INSTANCE);
+
+            final CodecRegistry codecRegistry = new CodecRegistryImp(codecProviders);
             return new BinaryProtocolCodec(codecRegistry);
         } catch (Exception e) {
             return ExceptionUtils.rethrow(e);

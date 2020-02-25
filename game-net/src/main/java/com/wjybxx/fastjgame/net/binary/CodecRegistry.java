@@ -32,7 +32,7 @@ public interface CodecRegistry {
      * @return codec
      * @throws CodecConfigurationException 如果不存在对应的编解码器，则抛出异常
      */
-    <T> Codec<? extends T> get(Class<T> clazz);
+    <T> Codec<? super T> get(Class<T> clazz);
 
     /**
      * 通过provider标识和class标识获取对应的codec
@@ -42,5 +42,7 @@ public interface CodecRegistry {
      * @return codec
      * @throws CodecConfigurationException 如果不存在对应的编解码器，则抛出异常
      */
-    <T> Codec<?> get(int providerId, int classId);
+    <T> Codec<?> getPojoCodec(int providerId, int classId);
+
+
 }
