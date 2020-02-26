@@ -63,6 +63,8 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
     private TypeMirror mapTypeMirror;
     private TypeMirror collectionTypeMirror;
     private TypeMirror stringTypeMirror;
+    TypeMirror enumSetRawTypeMirror;
+    TypeMirror enumMapRawTypeMirror;
 
     private TypeElement serializableClassElement;
     private DeclaredType serializableFieldDeclaredType;
@@ -98,6 +100,8 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
         mapTypeMirror = elementUtils.getTypeElement(Map.class.getCanonicalName()).asType();
         collectionTypeMirror = elementUtils.getTypeElement(Collection.class.getCanonicalName()).asType();
         stringTypeMirror = elementUtils.getTypeElement(String.class.getCanonicalName()).asType();
+        enumSetRawTypeMirror = typeUtils.erasure(elementUtils.getTypeElement(EnumSet.class.getCanonicalName()).asType());
+        enumMapRawTypeMirror = typeUtils.erasure(elementUtils.getTypeElement(EnumMap.class.getCanonicalName()).asType());
 
         serializableClassElement = elementUtils.getTypeElement(SERIALIZABLE_CLASS_CANONICAL_NAME);
         serializableFieldDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(SERIALIZABLE_FIELD_CANONICAL_NAME));
@@ -142,20 +146,29 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
      */
     private void checkBase(TypeElement typeElement) {
         if (typeElement.getKind() == ElementKind.ENUM) {
+            // 枚举需要放在最前面检查 - 因为它可能实现后面的特殊接口
             checkEnum(typeElement);
-        } else {
-            if (isNumericalEnum(typeElement)) {
-                checkNumericalEnum(typeElement);
-            } else if (isIndexableEntity(typeElement)) {
-                checkIndexableEntity(typeElement);
-            } else if (typeElement.getKind() == ElementKind.CLASS) {
-                // 检查普通类
-                checkClass(typeElement);
-            } else {
-                // 其它类型抛出编译错误
-                messager.printMessage(Diagnostic.Kind.ERROR, "unsupported class", typeElement);
-            }
+            return;
         }
+
+        if (isNumericalEnum(typeElement)) {
+            // NumericalEnum是IndexableEntity的子类，需要放在前面检查
+            checkNumericalEnum(typeElement);
+            return;
+        }
+
+        if (isIndexableEntity(typeElement)) {
+            checkIndexableEntity(typeElement);
+            return;
+        }
+
+        if (typeElement.getKind() == ElementKind.CLASS) {
+            // 检查普通类
+            checkClass(typeElement);
+            return;
+        }
+        // 其它类型抛出编译错误
+        messager.printMessage(Diagnostic.Kind.ERROR, "unsupported class", typeElement);
     }
 
     /**
@@ -220,7 +233,7 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
     /**
      * 获取索引类型
      */
-    static TypeMirror getIndexTypeMirror(TypeElement typeElement) {
+    private static TypeMirror getIndexTypeMirror(TypeElement typeElement) {
         final ExecutableElement getIndexMethod = typeElement.getEnclosedElements().stream()
                 .filter(e -> e.getKind() == ElementKind.METHOD)
                 .map(e -> (ExecutableElement) e)
@@ -315,7 +328,19 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
     }
 
     private void checkMapAndCollectionField(VariableElement variableElement) {
-        final TypeMirror implTypeMirror = getFieldImplType(variableElement);
+        final DeclaredType declaredType = AutoUtils.getDeclaredType(variableElement.asType());
+        if (!declaredType.asElement().getModifiers().contains(Modifier.ABSTRACT)) {
+            // 声明类型是具体类型
+            return;
+        }
+
+        if (isEnumMap(declaredType) || isEnumSet(declaredType)) {
+            // 声明类型是EnumMap 或 EnumSet (需要特殊处理)
+            return;
+        }
+
+        // 其它抽象类型必须有imp注解
+        final TypeMirror implTypeMirror = getFieldImplAnnotationValue(variableElement);
         if (implTypeMirror == null) {
             messager.printMessage(Diagnostic.Kind.ERROR,
                     "Abstract MapOrCollection must contains impl annotation " + DBEntityProcessor.IMPL_CANONICAL_NAME,
@@ -324,19 +349,26 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
         }
 
         if (!AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, implTypeMirror, variableElement.asType())) {
+            // 实现类型必须是声明类型的子类
             messager.printMessage(Diagnostic.Kind.ERROR, "MapOrCollectionImpl must be field sub type", variableElement);
             return;
         }
 
-        // 子类型一定是个class，一定是DeclaredType
+        if (isEnumMap(implTypeMirror) || isEnumSet(implTypeMirror)) {
+            // 实现类型是EnumMap或EnumSet
+            return;
+        }
+
         final DeclaredType impDeclaredType = (DeclaredType) implTypeMirror;
         if (impDeclaredType.asElement().getModifiers().contains(Modifier.ABSTRACT)) {
+            // 其它实现类型必须是具体类型
             messager.printMessage(Diagnostic.Kind.ERROR, "MapOrCollectionImpl must can't be abstract class", variableElement);
             return;
         }
 
         final ExecutableElement noArgsConstructor = getOneIntArgsConstructor((TypeElement) impDeclaredType.asElement());
         if (noArgsConstructor == null || !noArgsConstructor.getModifiers().contains(Modifier.PUBLIC)) {
+            // 必须包含只有一个int参数的构造方法
             messager.printMessage(Diagnostic.Kind.ERROR, "MapOrCollectionImpl must contains public one int arg constructor", variableElement);
         }
     }
@@ -345,8 +377,16 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
         return typeUtils.isSameType(variableElement.asType(), stringTypeMirror);
     }
 
-    boolean isMapOrCollection(VariableElement variableElement) {
+    private boolean isMapOrCollection(VariableElement variableElement) {
         return isMap(variableElement) || isCollection(variableElement);
+    }
+
+    boolean isEnumSet(TypeMirror typeMirror) {
+        return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, typeMirror, enumSetRawTypeMirror);
+    }
+
+    boolean isEnumMap(TypeMirror typeMirror) {
+        return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, typeMirror, enumMapRawTypeMirror);
     }
 
     boolean isMap(VariableElement variableElement) {
@@ -357,13 +397,7 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
         return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, variableElement.asType(), collectionTypeMirror);
     }
 
-    TypeMirror getFieldImplType(VariableElement variableElement) {
-        final DeclaredType declaredType = AutoUtils.getDeclaredType(variableElement.asType());
-        if (!declaredType.asElement().getModifiers().contains(Modifier.ABSTRACT)) {
-            // 声明类型是具体类型
-            return declaredType;
-        }
-
+    TypeMirror getFieldImplAnnotationValue(VariableElement variableElement) {
         final AnnotationMirror impAnnotationMirror = AutoUtils
                 .findFirstAnnotationWithoutInheritance(typeUtils, variableElement, impDeclaredType)
                 .orElse(null);

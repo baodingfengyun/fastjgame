@@ -44,10 +44,6 @@ class IndexableEntitySerializerGenerator extends AbstractGenerator<SerializableC
 
     @Override
     public void execute() {
-        gen();
-    }
-
-    private void gen() {
         final TypeName instanceRawTypeName = TypeName.get(typeUtils.erasure(typeElement.asType()));
         final DeclaredType superDeclaredType = typeUtils.getDeclaredType(processor.serializerTypeElement, typeUtils.erasure(typeElement.asType()));
 
@@ -77,4 +73,5 @@ class IndexableEntitySerializerGenerator extends AbstractGenerator<SerializableC
         // 写入文件
         AutoUtils.writeToFile(typeElement, typeBuilder, elementUtils, messager, filer);
     }
+
 }

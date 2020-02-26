@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.net.example;
 
 import com.wjybxx.fastjgame.net.binary.BinaryProtocolCodec;
+import com.wjybxx.fastjgame.net.example.ExampleMessages.Profession;
 import com.wjybxx.fastjgame.net.utils.NetUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -79,7 +80,7 @@ public class BinaryProtoCodecTest {
         fullMessage.setHello(hello);
 
         fullMessage.setaString("wjybxx");
-        fullMessage.setProfession(ExampleMessages.Profession.CODER);
+        fullMessage.setProfession(Profession.CODER);
 
         fullMessage.setStringList(new ArrayList<>(Arrays.asList("张三", "李四", "王五")));
         fullMessage.setStringSet(new LinkedHashSet<>(Arrays.asList("zhangsan", "li", "wangwu")));
@@ -110,6 +111,12 @@ public class BinaryProtoCodecTest {
         int2ObjectMap.put(2, "b");
         int2ObjectMap.put(3, "c");
         fullMessage.setInt2ObjectMap(int2ObjectMap);
+
+        fullMessage.setProfessionEnumSet(EnumSet.of(Profession.CODER, Profession.TEACHER));
+
+        final EnumMap<Profession, String> professionEnumMap = new EnumMap<>(Profession.class);
+        professionEnumMap.put(Profession.CODER, " coder");
+        fullMessage.setProfessionEnumMap(professionEnumMap);
 
         return fullMessage;
     }

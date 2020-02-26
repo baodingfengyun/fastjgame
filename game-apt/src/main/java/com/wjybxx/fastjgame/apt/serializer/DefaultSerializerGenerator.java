@@ -26,8 +26,10 @@ import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.tools.Diagnostic;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -198,6 +200,14 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
         return variableElement.asType().getKind().isPrimitive();
     }
 
+    private static String getWritePrimitiveTypeMethodName(VariableElement variableElement) {
+        return "write" + primitiveTypeName(variableElement);
+    }
+
+    private static String primitiveTypeName(VariableElement variableElement) {
+        return BeanUtils.firstCharToUpperCase(variableElement.asType().getKind().name().toLowerCase());
+    }
+
     private boolean isByteArray(VariableElement variableElement) {
         return AutoUtils.isTargetPrimitiveArrayType(variableElement, TypeKind.BYTE);
     }
@@ -220,25 +230,111 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
     private void readBySetter(VariableElement variableElement) {
         // 包含非private的setter方法
         final String setterName = getSetterName(variableElement);
+        List<Object> params = new ArrayList<>(8);
+        StringBuilder readFormat = new StringBuilder("instance.$L(");
+        params.add(setterName);
 
-        if (processor.isCollection(variableElement)) {
-            final TypeName impTypeName = getFieldImpTypeName(variableElement);
-            readFieldsMethodBuilder.addStatement("instance.$L(inputStream.$L($T::new))", setterName, READ_COLLECTION_METHOD_NAME, impTypeName);
-        } else if (processor.isMap(variableElement)) {
-            final TypeName impTypeName = getFieldImpTypeName(variableElement);
-            readFieldsMethodBuilder.addStatement("instance.$L(inputStream.$L($T::new))", setterName, READ_MAP_METHOD_NAME, impTypeName);
-        } else if (AutoUtils.isArrayType(variableElement.asType())) {
-            final TypeName componentTypeName = TypeName.get(AutoUtils.getComponentType(variableElement.asType()));
-            readFieldsMethodBuilder.addStatement("instance.$L(inputStream.$L($T.class))", setterName, READ_ARRAY_METHOD_NAME, componentTypeName);
-        } else {
-            final String readMethodName = getReadMethodName(variableElement);
-            readFieldsMethodBuilder.addStatement("instance.$L(inputStream.$L())", setterName, readMethodName);
-        }
+        appendReadStatement(variableElement, readFormat, params);
+        readFormat.append(")");
+
+        readFieldsMethodBuilder.addStatement(readFormat.toString(), params.toArray());
     }
 
     private String getSetterName(VariableElement variableElement) {
         return BeanUtils.setterMethodName(variableElement.getSimpleName().toString(),
                 BeanUtils.isPrimitiveBoolean(variableElement.asType()));
+    }
+
+    private void appendReadStatement(VariableElement variableElement, StringBuilder readFormat, List<Object> params) {
+        if (processor.isCollection(variableElement)) {
+            appendReadCollectionStatement(variableElement, readFormat, params);
+        } else if (processor.isMap(variableElement)) {
+            appendReadMapStatement(variableElement, readFormat, params);
+        } else if (AutoUtils.isArrayType(variableElement.asType())) {
+            appendReadArrayStatement(variableElement, readFormat, params);
+        } else {
+            final String readMethodName = getReadMethodName(variableElement);
+            readFormat.append("inputStream.$L()");
+            params.add(readMethodName);
+        }
+    }
+
+    private void appendReadCollectionStatement(VariableElement variableElement, StringBuilder readFormat, List<Object> params) {
+        final TypeMirror impTypeMirror = getMapOrCollectionImp(variableElement);
+        if (processor.isEnumSet(impTypeMirror)) {
+            final TypeMirror elementTypeMirror = AutoUtils.findFirstParameterActualType(variableElement.asType());
+            if (null == elementTypeMirror) {
+                messager.printMessage(Diagnostic.Kind.ERROR, "raw types is not allowed here (EnumSet)", variableElement);
+                return;
+            }
+
+            final TypeName elementRawTypeName = TypeName.get(typeUtils.erasure(elementTypeMirror));
+
+            final TypeName enumSetRawTypeName = ClassName.get(processor.enumSetRawTypeMirror);
+
+            readFormat.append("inputStream.$L(size -> $T.noneOf($T.class))");
+            params.add(READ_COLLECTION_METHOD_NAME);
+            params.add(enumSetRawTypeName);
+            params.add(elementRawTypeName);
+        } else {
+            final TypeName impTypeName = TypeName.get(typeUtils.erasure(impTypeMirror));
+
+            readFormat.append("inputStream.$L($T::new)");
+            params.add(READ_COLLECTION_METHOD_NAME);
+            params.add(impTypeName);
+        }
+    }
+
+    /**
+     * 获取参数的具体类型
+     */
+    private TypeMirror getMapOrCollectionImp(VariableElement variableElement) {
+        final DeclaredType declaredType = AutoUtils.getDeclaredType(variableElement.asType());
+        if (!declaredType.asElement().getModifiers().contains(Modifier.ABSTRACT)) {
+            // 声明类型是具体类型
+            return declaredType;
+        }
+
+        if (processor.isEnumMap(declaredType) || processor.isEnumSet(declaredType)) {
+            // 声明类型是EnumMap 或 EnumSet
+            return declaredType;
+        }
+
+        return processor.getFieldImplAnnotationValue(variableElement);
+    }
+
+    private void appendReadMapStatement(VariableElement variableElement, StringBuilder readFormat, List<Object> params) {
+        final TypeMirror impTypeMirror = getMapOrCollectionImp(variableElement);
+        if (processor.isEnumMap(impTypeMirror)) {
+            final TypeMirror keyTypeMirror = AutoUtils.findFirstParameterActualType(variableElement.asType());
+            if (null == keyTypeMirror) {
+                messager.printMessage(Diagnostic.Kind.ERROR, "raw types is not allowed here (EnumMap)", variableElement);
+                return;
+            }
+
+            final TypeName keyRawTypeName = TypeName.get(typeUtils.erasure(keyTypeMirror));
+
+            final TypeName enumMapRawTypeName = ClassName.get(processor.enumMapRawTypeMirror);
+
+            readFormat.append("inputStream.$L(size -> new $T<>($T.class))");
+            params.add(READ_MAP_METHOD_NAME);
+            params.add(enumMapRawTypeName);
+            params.add(keyRawTypeName);
+        } else {
+            final TypeName impTypeName = TypeName.get(typeUtils.erasure(impTypeMirror));
+
+            readFormat.append("inputStream.$L($T::new)");
+            params.add(READ_MAP_METHOD_NAME);
+            params.add(impTypeName);
+        }
+    }
+
+    private void appendReadArrayStatement(VariableElement variableElement, StringBuilder readFormat, List<Object> params) {
+        final TypeName componentTypeName = TypeName.get(AutoUtils.getComponentType(variableElement.asType()));
+
+        readFormat.append("inputStream.$L($T.class)");
+        params.add(READ_ARRAY_METHOD_NAME);
+        params.add(componentTypeName);
     }
 
     private String getReadMethodName(VariableElement variableElement) {
@@ -266,39 +362,18 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
                 fieldDeclaredClassTypeName, fieldName);
 
         // 反射赋值
-        if (isPrimitiveType(variableElement)) {
-            readFieldsMethodBuilder.addStatement("$L.set(instance, inputStream.$L())", reflectFieldName, getReadPrimitiveMethodName(variableElement));
-        } else if (processor.isMap(variableElement)) {
-            final TypeName impTypeName = getFieldImpTypeName(variableElement);
-            readFieldsMethodBuilder.addStatement("$L.set(instance, inputStream.$L($T::new))", reflectFieldName, READ_MAP_METHOD_NAME, impTypeName);
-        } else if (processor.isCollection(variableElement)) {
-            final TypeName impTypeName = getFieldImpTypeName(variableElement);
-            readFieldsMethodBuilder.addStatement("$L.set(instance, inputStream.$L($T::new))", reflectFieldName, READ_COLLECTION_METHOD_NAME, impTypeName);
-        } else if (AutoUtils.isArrayType(variableElement.asType())) {
-            final TypeName componentTypeName = TypeName.get(AutoUtils.getComponentType(variableElement.asType()));
-            readFieldsMethodBuilder.addStatement("$L.set(instance, inputStream.$L($T.class))", reflectFieldName, READ_ARRAY_METHOD_NAME, componentTypeName);
-        } else {
-            readFieldsMethodBuilder.addStatement("$L.set(instance, inputStream.readObject())", reflectFieldName);
-        }
-    }
+        StringBuilder readFormat = new StringBuilder("$L.set(instance, ");
+        List<Object> params = new ArrayList<>(8);
+        params.add(reflectFieldName);
 
-    private TypeName getFieldImpTypeName(VariableElement variableElement) {
-        final TypeMirror fieldImplType = processor.getFieldImplType(variableElement);
-        return TypeName.get(typeUtils.erasure(fieldImplType));
-    }
-
-    private static String getWritePrimitiveTypeMethodName(VariableElement variableElement) {
-        return "write" + primitiveTypeName(variableElement);
-    }
-
-    private static String primitiveTypeName(VariableElement variableElement) {
-        return BeanUtils.firstCharToUpperCase(variableElement.asType().getKind().name().toLowerCase());
+        appendReadStatement(variableElement, readFormat, params);
+        readFormat.append(")");
+        readFieldsMethodBuilder.addStatement(readFormat.toString(), params.toArray());
     }
 
     private static String getReadPrimitiveMethodName(VariableElement variableElement) {
         return "read" + primitiveTypeName(variableElement);
     }
-
 
     private MethodSpec newGetEntityMethodBuilder() {
         return processor.newGetEntityMethod(superDeclaredType);

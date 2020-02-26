@@ -304,6 +304,13 @@ public final class ExampleMessages {
         @SerializableField
         private Int2ObjectMap<String> int2ObjectMap;
 
+        @SerializableField
+        private EnumSet<Profession> professionEnumSet;
+
+        @Impl(EnumMap.class)
+        @SerializableField
+        private Map<Profession, String> professionEnumMap;
+
         public FullMessage() {
         }
 
@@ -524,37 +531,20 @@ public final class ExampleMessages {
             this.twoDimensionsStringArray = twoDimensionsStringArray;
         }
 
-        @Override
-        public String toString() {
-            return new ToStringBuilder(this)
-                    .append("any", any)
-                    .append("aByte", aByte)
-                    .append("aChar", aChar)
-                    .append("aShort", aShort)
-                    .append("anInt", anInt)
-                    .append("aLong", aLong)
-                    .append("aFloat", aFloat)
-                    .append("aDouble", aDouble)
-                    .append("aBoolean", aBoolean)
-                    .append("aString", aString)
-                    .append("profession", profession)
-                    .append("stringList", stringList)
-                    .append("stringSet", stringSet)
-                    .append("stringStringMap", stringStringMap)
-                    .append("hello", hello)
-                    .append("aNull", aNull)
-                    .append("aByteArray", aByteArray)
-                    .append("aShortArray", aShortArray)
-                    .append("aIntArray", aIntArray)
-                    .append("aLongArrray", aLongArrray)
-                    .append("aFloatArray", aFloatArray)
-                    .append("aDoubleArray", aDoubleArray)
-                    .append("aCharArray", aCharArray)
-                    .append("aStringArray", aStringArray)
-                    .append("aClassArray", aClassArray)
-                    .append("twoDimensionsStringArray", twoDimensionsStringArray)
-                    .append("int2ObjectMap", int2ObjectMap)
-                    .toString();
+        public EnumSet<Profession> getProfessionEnumSet() {
+            return professionEnumSet;
+        }
+
+        public void setProfessionEnumSet(EnumSet<Profession> professionEnumSet) {
+            this.professionEnumSet = professionEnumSet;
+        }
+
+        public Map<Profession, String> getProfessionEnumMap() {
+            return professionEnumMap;
+        }
+
+        public void setProfessionEnumMap(Map<Profession, String> professionEnumMap) {
+            this.professionEnumMap = professionEnumMap;
         }
 
         @Override
@@ -594,6 +584,8 @@ public final class ExampleMessages {
                     .append(aClassArray, that.aClassArray)
                     .append(twoDimensionsStringArray, that.twoDimensionsStringArray)
                     .append(int2ObjectMap, that.int2ObjectMap)
+                    .append(professionEnumSet, that.professionEnumSet)
+                    .append(professionEnumMap, that.professionEnumMap)
                     .isEquals();
         }
 
@@ -628,7 +620,44 @@ public final class ExampleMessages {
                     .append(aClassArray)
                     .append(twoDimensionsStringArray)
                     .append(int2ObjectMap)
+                    .append(professionEnumSet)
+                    .append(professionEnumMap)
                     .toHashCode();
+        }
+
+        @Override
+        public String toString() {
+            return new ToStringBuilder(this)
+                    .append("any", any)
+                    .append("aByte", aByte)
+                    .append("aChar", aChar)
+                    .append("aShort", aShort)
+                    .append("anInt", anInt)
+                    .append("aLong", aLong)
+                    .append("aFloat", aFloat)
+                    .append("aDouble", aDouble)
+                    .append("aBoolean", aBoolean)
+                    .append("aString", aString)
+                    .append("profession", profession)
+                    .append("stringList", stringList)
+                    .append("stringSet", stringSet)
+                    .append("stringStringMap", stringStringMap)
+                    .append("hello", hello)
+                    .append("aNull", aNull)
+                    .append("aByteArray", aByteArray)
+                    .append("aShortArray", aShortArray)
+                    .append("aIntArray", aIntArray)
+                    .append("aLongArrray", aLongArrray)
+                    .append("aFloatArray", aFloatArray)
+                    .append("aDoubleArray", aDoubleArray)
+                    .append("aCharArray", aCharArray)
+                    .append("aStringArray", aStringArray)
+                    .append("aClassArray", aClassArray)
+                    .append("twoDimensionsStringArray", twoDimensionsStringArray)
+                    .append("int2ObjectMap", int2ObjectMap)
+                    .append("professionEnumSet", professionEnumSet)
+                    .append("professionEnumMap", professionEnumMap)
+                    .toString();
         }
     }
 
