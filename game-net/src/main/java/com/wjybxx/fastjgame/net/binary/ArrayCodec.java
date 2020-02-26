@@ -34,7 +34,7 @@ import java.util.IdentityHashMap;
  * @version 1.0
  * date - 2020/2/17
  */
-class ArrayCodec implements Codec<Object> {
+public class ArrayCodec implements Codec<Object> {
 
     private static final Class<?> ARRAY_ENCODER_CLASS = Object[].class;
 

@@ -298,6 +298,11 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
             }
         }
 
+        if (typeElement.getModifiers().contains(Modifier.ABSTRACT)) {
+            // 抽象类不检测无参构造方法
+            return;
+        }
+
         // 无参构造方法检测
         if (!BeanUtils.containsNoArgsConstructor(typeElement)) {
             messager.printMessage(Diagnostic.Kind.ERROR,

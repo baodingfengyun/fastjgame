@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-class DoubleCodec implements Codec<Double> {
+public class DoubleCodec implements Codec<Double> {
 
     DoubleCodec() {
     }

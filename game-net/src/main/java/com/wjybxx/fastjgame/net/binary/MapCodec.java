@@ -32,7 +32,7 @@ import java.util.function.IntFunction;
  * @version 1.0
  * date - 2020/2/17
  */
-class MapCodec implements Codec<Map<?, ?>> {
+public class MapCodec implements Codec<Map<?, ?>> {
 
     MapCodec() {
     }

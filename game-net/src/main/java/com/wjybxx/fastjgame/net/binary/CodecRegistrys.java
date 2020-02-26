@@ -17,7 +17,9 @@
 package com.wjybxx.fastjgame.net.binary;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import static java.lang.String.format;
 
@@ -29,10 +31,12 @@ import static java.lang.String.format;
 public class CodecRegistrys {
 
     /**
+     * 用户使用自定义的pojo的概率远大于底层支持的pojo，因此要把用户的provider放在默认的provider的前面，加快搜索效率
+     * 此外，如果底层和应用同时存在对某一个pojo的编解码支持，那么用户的实现将屏蔽底层的实现。
+     *
      * @param appPojoCodecList 用户自定义的编解码器集合
      */
     public static CodecRegistry fromAppPojoCodecs(List<? extends PojoCodec<?>> appPojoCodecList) {
-        // 用户使用自定义的pojo的概率远大于底层支持的pojo，因此要把用户的provider放在默认的provider的前面，加快搜索效率
         final List<CodecProvider> pojoCodecProviders = new ArrayList<>(PojoCodecProviders.fromCodecs(appPojoCodecList));
         pojoCodecProviders.addAll(PojoCodecProviders.getDefaultProviders());
         return new CodecRegistryImp(pojoCodecProviders);
@@ -89,17 +93,17 @@ public class CodecRegistrys {
         }
 
         @Override
-        public ArrayCodec getArrayCodec() {
+        public Codec<Object> getArrayCodec() {
             return containerCodecProvider.getArrayCodec();
         }
 
         @Override
-        public MapCodec getMapCodec() {
+        public Codec<Map<?, ?>> getMapCodec() {
             return containerCodecProvider.getMapCodec();
         }
 
         @Override
-        public CollectionCodec getCollectionCodec() {
+        public Codec<Collection<?>> getCollectionCodec() {
             return containerCodecProvider.getCollectionCodec();
         }
     }

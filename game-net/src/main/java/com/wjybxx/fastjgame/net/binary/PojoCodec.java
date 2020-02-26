@@ -16,9 +16,11 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
+import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.CodedOutputStream;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
 
 /**
  * 简单对象编解码器
@@ -65,4 +67,10 @@ public abstract class PojoCodec<T> implements Codec<T> {
 
     @Override
     public abstract Class<T> getEncoderClass();
+
+    static PojoCodec<?> getPojoCodec(CodedInputStream inputStream, CodecRegistry codecRegistry) throws IOException {
+        final int providerId = inputStream.readInt32();
+        final int classId = inputStream.readInt32();
+        return codecRegistry.getPojoCodec(providerId, classId);
+    }
 }

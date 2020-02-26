@@ -29,6 +29,8 @@ public interface CodecProvider {
 
     /**
      * 获取指定类class对应的编解码器
+     *
+     * @return 如果不支持该类型，则返回null
      */
     @Nullable
     <T> Codec<T> getCodec(Class<T> clazz);

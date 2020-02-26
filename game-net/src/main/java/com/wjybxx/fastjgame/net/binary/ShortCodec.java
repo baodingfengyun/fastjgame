@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-class ShortCodec implements Codec<Short> {
+public class ShortCodec implements Codec<Short> {
 
     ShortCodec() {
     }

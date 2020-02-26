@@ -154,7 +154,7 @@ class EntityInputStreamImp implements EntityInputStream {
         return array;
     }
 
-    public <E> E readEntity(EntityFactory<E> entityFactory, AbstractEntitySerializer<? super E> serializer) throws Exception {
+    public <E> E readEntity(EntityFactory<E> entityFactory, Class<? super E> entitySuperClass) throws Exception {
         final Tag tag = BinaryProtocolCodec.readTag(inputStream);
         if (tag == Tag.NULL) {
             return null;
@@ -162,22 +162,30 @@ class EntityInputStreamImp implements EntityInputStream {
 
         checkTag(tag, Tag.POJO);
 
-        checkEncoderClass(serializer);
+        final PojoCodec<?> pojoCodec = PojoCodec.getPojoCodec(inputStream, codecRegistry);
 
+        checkEntitySuperClass(entitySuperClass, pojoCodec);
+
+        checkSupportReadFields(pojoCodec);
+
+        @SuppressWarnings("unchecked") final SerializerBasedCodec<E> serializerBasedCodec = (SerializerBasedCodec<E>) pojoCodec;
         final E instance = entityFactory.newInstance();
-        serializer.readFields(instance, this);
+        serializerBasedCodec.decodeBody(instance, inputStream, codecRegistry);
         return instance;
     }
 
-    private void checkEncoderClass(AbstractEntitySerializer<?> entitySerializer) throws IOException {
-        final int providerId = inputStream.readInt32();
-        final int classId = inputStream.readInt32();
-        final Codec<?> pojoCodec = codecRegistry.getPojoCodec(providerId, classId);
-
-        if (entitySerializer.getEntityClass() != pojoCodec.getEncoderClass()) {
+    private void checkEntitySuperClass(Class<?> entitySuperClass, Codec<?> pojoCodec) throws IOException {
+        if (entitySuperClass != pojoCodec.getEncoderClass()) {
             throw new IOException(String.format("Incompatible class, expected: %s, but read %s ",
-                    entitySerializer.getEntityClass().getName(),
+                    entitySuperClass.getName(),
                     pojoCodec.getEncoderClass().getName()));
+        }
+    }
+
+    private void checkSupportReadFields(PojoCodec<?> pojoCodec) throws IOException {
+        if (!(pojoCodec instanceof SerializerBasedCodec) || !((SerializerBasedCodec<?>) pojoCodec).isSupportReadFields()) {
+            throw new IOException("Unsupported codec, entitySuperClass serializer must implements " +
+                    AbstractEntitySerializer.class.getName());
         }
     }
 

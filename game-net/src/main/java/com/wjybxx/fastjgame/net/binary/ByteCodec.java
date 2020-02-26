@@ -24,7 +24,7 @@ import javax.annotation.Nonnull;
 /**
  * 一个字节就占用一个字节 - 不需要使用int32的格式
  */
-class ByteCodec implements Codec<Byte> {
+public class ByteCodec implements Codec<Byte> {
 
     ByteCodec() {
 

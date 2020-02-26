@@ -45,8 +45,8 @@ import java.util.function.IntFunction;
  * 1. 必须手写实现。
  * 2. 必须采用组合方式，将要多态处理的类作为成员字段。
  * 3. 使用特定方法进行读写
- * {@link EntityInputStream#readEntity(EntityFactory, AbstractEntitySerializer)}
- * {@link EntityOutputStream#writeEntity(Object, AbstractEntitySerializer)}
+ * {@link EntityInputStream#readEntity(EntityFactory, Class)}
+ * {@link EntityOutputStream#writeEntity(Object, Class)}
  * PS: 其实Map和Collection的处理就是例子。
  *
  * @param <T> 要序列化的bean的类型

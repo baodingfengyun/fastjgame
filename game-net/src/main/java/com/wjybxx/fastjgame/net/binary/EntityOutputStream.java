@@ -87,8 +87,9 @@ public interface EntityOutputStream {
 
     /**
      * 向输出流中写一个多态实体对象（按照超类格式写入数据，并忽略子类字段）
-     * 注意：必须和读取时使用相同的serializer
+     *
+     * @param entitySuperClass 实体对象的指定超类型
      */
-    <E> void writeEntity(@Nullable E entity, AbstractEntitySerializer<? super E> serializer) throws Exception;
+    <E> void writeEntity(@Nullable E entity, Class<? super E> entitySuperClass) throws Exception;
 
 }

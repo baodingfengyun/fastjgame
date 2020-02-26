@@ -151,12 +151,12 @@ class EntityOutputStreamImp implements EntityOutputStream {
      * 读写格式仍然要与{@link SerializerBasedCodec}保持一致
      */
     @Override
-    public <E> void writeEntity(@Nullable E entity, AbstractEntitySerializer<? super E> serializer) throws Exception {
+    public <E> void writeEntity(@Nullable E entity, Class<? super E> entitySuperClass) throws Exception {
         if (null == entity) {
             BinaryProtocolCodec.writeTag(outputStream, Tag.NULL);
             return;
         }
-        @SuppressWarnings("unchecked") final PojoCodec<? super E> codec = (PojoCodec<? super E>) codecRegistry.get(serializer.getEntityClass());
+        @SuppressWarnings("unchecked") final PojoCodec<? super E> codec = (PojoCodec<? super E>) codecRegistry.get(entitySuperClass);
         // 这里是生成的代码走进来的，因此即使异常，也能定位
         codec.encode(outputStream, entity, codecRegistry);
     }

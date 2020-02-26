@@ -16,6 +16,9 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
+import java.util.Collection;
+import java.util.Map;
+
 /**
  * {@link Codec}全局注册表，可以获取所有注册的{@link Codec}。
  * 1. 它是网络层与{@link Codec}交互的中介，也是{@link Codec}与{@link Codec}交互的中介。
@@ -55,10 +58,10 @@ public interface CodecRegistry {
     PojoCodec<?> getPojoCodec(int providerId, int classId);
 
     // 减少查询
-    ArrayCodec getArrayCodec();
+    Codec<Object> getArrayCodec();
 
-    MapCodec getMapCodec();
+    Codec<Map<?, ?>> getMapCodec();
 
-    CollectionCodec getCollectionCodec();
+    Codec<Collection<?>> getCollectionCodec();
 
 }

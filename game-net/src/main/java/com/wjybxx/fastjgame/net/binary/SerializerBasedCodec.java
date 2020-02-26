@@ -38,7 +38,7 @@ public class SerializerBasedCodec<T> extends PojoCodec<T> {
     }
 
     @Override
-    public void encodeBody(@Nonnull CodedOutputStream outputStream, @Nonnull T value, CodecRegistry codecRegistry) throws Exception {
+    protected void encodeBody(@Nonnull CodedOutputStream outputStream, @Nonnull T value, CodecRegistry codecRegistry) throws Exception {
         final EntityOutputStream entityOutputStream = new EntityOutputStreamImp(codecRegistry, outputStream);
         serializer.writeObject(value, entityOutputStream);
     }
@@ -53,5 +53,14 @@ public class SerializerBasedCodec<T> extends PojoCodec<T> {
     @Override
     public Class<T> getEncoderClass() {
         return serializer.getEntityClass();
+    }
+
+    boolean isSupportReadFields() {
+        return serializer instanceof AbstractEntitySerializer;
+    }
+
+    void decodeBody(T instance, @Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
+        final EntityInputStream entityInputStream = new EntityInputStreamImp(codecRegistry, inputStream);
+        ((AbstractEntitySerializer<T>) serializer).readFields(instance, entityInputStream);
     }
 }

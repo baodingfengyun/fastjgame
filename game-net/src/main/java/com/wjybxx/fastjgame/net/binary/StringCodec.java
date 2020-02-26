@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-class StringCodec implements Codec<String> {
+public class StringCodec implements Codec<String> {
 
     StringCodec() {
 

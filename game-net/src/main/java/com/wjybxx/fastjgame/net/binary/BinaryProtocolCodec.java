@@ -114,7 +114,6 @@ public class BinaryProtocolCodec implements ProtocolCodec {
         return decodeObject(CodedInputStream.newInstance(data), codecRegistry);
     }
 
-    @Nullable
     @Override
     public Object cloneObject(@Nullable Object object) throws Exception {
         if (object == null) {
@@ -201,16 +200,10 @@ public class BinaryProtocolCodec implements ProtocolCodec {
                 return inputStream.readString();
 
             case POJO:
-                return decodePojo(inputStream, codecRegistry);
+                return PojoCodec.getPojoCodec(inputStream, codecRegistry).decode(inputStream, codecRegistry);
             default:
                 throw new IOException("unexpected tag : " + tag);
         }
-    }
-
-    private static Object decodePojo(CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
-        final int providerId = inputStream.readInt32();
-        final int classId = inputStream.readInt32();
-        return codecRegistry.getPojoCodec(providerId, classId).decode(inputStream, codecRegistry);
     }
 
     // ------------------------------------------------- 工厂方法 ------------------------------------------------------

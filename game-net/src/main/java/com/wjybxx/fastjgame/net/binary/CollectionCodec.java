@@ -33,7 +33,7 @@ import java.util.function.IntFunction;
  * @version 1.0
  * date - 2020/2/17
  */
-class CollectionCodec implements Codec<Collection<?>> {
+public class CollectionCodec implements Codec<Collection<?>> {
 
     CollectionCodec() {
     }
