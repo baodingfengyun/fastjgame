@@ -21,6 +21,10 @@ import com.google.protobuf.CodedOutputStream;
 import javax.annotation.Nonnull;
 
 /**
+ * 简单对象编解码器
+ * Q: {@link #getProviderId()}{@link #getClassId()}的作用？
+ * A: 实现自解释性，接收方在解码时可以根据这两个值确定唯一的codec，也就知道了如何解码。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2020/2/25

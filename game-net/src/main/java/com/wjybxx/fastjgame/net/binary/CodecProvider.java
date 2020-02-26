@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.net.binary;
 import javax.annotation.Nullable;
 
 /**
- * 一组codec的注册器，该接口只服务编码需求
+ * 一个局部的{@link Codec}注册表，它管理着一组{@link Codec}
  *
  * @author wjybxx
  * @version 1.0
@@ -29,10 +29,8 @@ public interface CodecProvider {
 
     /**
      * 获取指定类class对应的编解码器
-     *
-     * @param clazz 注意：某些作为键的类可能不是实际被编解码的类，如：{@link java.util.Map}
-     * @return codec，如果不存在，则返回null (类似于之前设计的isSupport(Class))
      */
     @Nullable
     <T> Codec<T> getCodec(Class<T> clazz);
+
 }

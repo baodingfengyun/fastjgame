@@ -22,7 +22,7 @@ import com.google.protobuf.CodedOutputStream;
 import javax.annotation.Nonnull;
 
 /**
- * 编解码器，一个编解码器负责编码一个确定的类型。
+ * 编解码器，一个编解码器负责编码某一个或某一类实例。
  * 注意：实现必须是无状态的或不可变对象，以免产生并发错误。
  *
  * @author wjybxx
@@ -34,20 +34,21 @@ public interface Codec<T> {
     /**
      * 将对象写入输出流
      *
-     * @param codecRegistry 如果需要编解码别的类，可以获取对应的codec，但默认建议使用{@link EntityOutputStream#writeObject(Object)}方法
+     * @param codecRegistry 如果需要编解码别的类，可以获取对应的codec
      */
     void encode(@Nonnull CodedOutputStream outputStream, @Nonnull T value, CodecRegistry codecRegistry) throws Exception;
 
     /**
      * 从输入流中读取对象
      *
-     * @param codecRegistry 如果需要编解码别的类，可以获取对应的codec，但默认建议使用{@link EntityInputStream#readObject()}方法
+     * @param codecRegistry 如果需要编解码别的类，可以获取对应的codec
      */
     @Nonnull
     T decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception;
 
     /**
-     * 获取代表这个codec的class对象
+     * 获取代表这个codec的class对象，一般而言，就是{@code T.class}
+     * 但是一个codec可能编码多个类型，那么这里就不一定T.class
      */
     Class<?> getEncoderClass();
 }

@@ -22,9 +22,7 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * 普通JavaBean对象输出流。
- * Q: 为什么必须使用包装类型？
- * A: 某些时刻需要使用null表示未赋值状态，使用特殊值是不好的。
+ * Pojo对象输出流。
  *
  * @author wjybxx
  * @version 1.0

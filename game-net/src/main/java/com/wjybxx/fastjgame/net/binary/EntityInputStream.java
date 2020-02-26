@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.function.IntFunction;
 
 /**
- * 普通JavaBean对象输入流
+ * Pojo对象输入流
  *
  * @author wjybxx
  * @version 1.0

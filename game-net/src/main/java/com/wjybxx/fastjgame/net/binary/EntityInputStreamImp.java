@@ -162,14 +162,14 @@ class EntityInputStreamImp implements EntityInputStream {
 
         checkTag(tag, Tag.POJO);
 
-        checkMessageId(serializer);
+        checkEncoderClass(serializer);
 
         final E instance = entityFactory.newInstance();
         serializer.readFields(instance, this);
         return instance;
     }
 
-    private void checkMessageId(AbstractEntitySerializer<?> entitySerializer) throws IOException {
+    private void checkEncoderClass(AbstractEntitySerializer<?> entitySerializer) throws IOException {
         final int providerId = inputStream.readInt32();
         final int classId = inputStream.readInt32();
         final Codec<?> pojoCodec = codecRegistry.getPojoCodec(providerId, classId);

@@ -26,14 +26,10 @@ import java.util.Map;
 
 /**
  * 数据类型
- * <h3>类型</h3>
  * 1. NULL
- * 2. 原始类型，及其包装类型
- * 3. String
- * 4. 简单对象(POJO)
- * 5. 容器对象（MAP,COLLECTION,ARRAY），并没有基于{@link Iterable}做支持，而是基于的{@link Collection}
- * <h3>展开</h3>
- * 由于原始类型和容器对象的种类是确定的，因此将它们展开
+ * 2. 值类型：原始类型，及其包装类型，String
+ * 3. 简单对象(POJO)
+ * 4. 容器对象：MAP,COLLECTION,ARRAY。并没有基于{@link Iterable}做支持，而是基于的{@link Collection}
  *
  * @author wjybxx
  * @version 1.0
@@ -47,7 +43,7 @@ public enum Tag implements NumericalEntity {
      */
     NULL(0),
 
-    // ------------------------------------------- 基础类型 -----------------------------
+    // ------------------------------------------- 值类型 -----------------------------
     /**
      * rawByte
      */

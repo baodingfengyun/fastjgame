@@ -31,7 +31,7 @@ import java.lang.annotation.Target;
  * 对于带有该注解的类，注解处理器需要提供以下保证：
  * 1. 如果是枚举，必须实现{@link NumericalEntity}，并提供非private的{@code forNumber(int)}方法 - 也就是按照protoBuf的枚举格式来。
  * 2. 如果是实现了{@link NumericalEntity}的类，也必须提供提供非private的{@code forNumber(int)}方法。
- * 3. 如果是实现了{@link IndexableEntity}的类，比需提供非private的{@code forIndex(Object)}方法。
+ * 3. 如果是实现了{@link IndexableEntity}的类，必须提供非private的{@code forIndex(Object)}方法。
  * 4. 如果是普通类，必须提供<b>无参构造方法</b>，可以是private，且要序列化的字段必须提供非private的getter方法，setter方法根据自己需求决定是否提供。
  *
  * <h3>扩展</h3>
@@ -39,7 +39,7 @@ import java.lang.annotation.Target;
  * A: 所有带有该注解的类，注解处理器都会生成对应的编解码器。如果不使用注解，但是为指定类手动实现了{@link EntitySerializer}，那么对应的类就可以序列化。
  *
  * <h3>性能</h3>
- * 生成的类中，能使用普通方法调用的，就会使用普通方法调用(构造方法、取值、设值方法)，如果字段是final的，或没有响应的取值、设值方法，就会使用反射。
+ * 生成的类中，能使用普通方法调用的，就会使用普通方法调用(构造方法、取值、设值方法)，如果字段是final的，或没有相应的取值、设值方法，就会使用反射。
  * 应用代码最好不要考虑这里的细节问题，并不建议对象所有要序列化的字段都是可修改的，该是final的还是final，eg:不可变对象/值对象。
  *
  * <h3>一些建议</h3>

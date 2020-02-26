@@ -141,11 +141,9 @@ class EntityOutputStreamImp implements EntityOutputStream {
             BinaryProtocolCodec.writeTag(outputStream, Tag.NULL);
             return;
         }
-
         if (!array.getClass().isArray()) {
             throw new IOException();
         }
-
         ArrayCodec.encodeArray(outputStream, array, codecRegistry);
     }
 
@@ -159,7 +157,6 @@ class EntityOutputStreamImp implements EntityOutputStream {
             return;
         }
         @SuppressWarnings("unchecked") final PojoCodec<? super E> codec = (PojoCodec<? super E>) codecRegistry.get(serializer.getEntityClass());
-
         // 这里是生成的代码走进来的，因此即使异常，也能定位
         codec.encode(outputStream, entity, codecRegistry);
     }

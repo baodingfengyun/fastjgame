@@ -64,7 +64,6 @@ class ArrayCodec implements Codec<Object> {
 
     }
 
-
     @Override
     public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Object value, CodecRegistry codecRegistry) throws Exception {
         encodeArray(outputStream, value, codecRegistry);
@@ -96,8 +95,8 @@ class ArrayCodec implements Codec<Object> {
     private static void writeObjectArray(CodedOutputStream outputStream, @Nonnull Object instance, int length,
                                          CodecRegistry codecRegistry) throws Exception {
         // Q: 为什么要将component的类型信息编码？
-        // A: 因为元素component的类可能不在编解码范围内，比如接口。
-        // 因此编码类信息才能完整解码，也就导致传输量增加，性能也不见得好。
+        // A: 因为component类型可能不在编解码范围内，比如接口。
+        // 因此编码类信息才能完整解码，它会导致传输量增加，性能降低
         ClassCodec.encodeClass(outputStream, instance.getClass().getComponentType());
 
         for (int index = 0; index < length; index++) {
