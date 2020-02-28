@@ -21,6 +21,7 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.wjybxx.fastjgame.apt.core.AbstractGenerator;
+import com.wjybxx.fastjgame.apt.utils.AptReflectUtils;
 import com.wjybxx.fastjgame.apt.utils.AutoUtils;
 import com.wjybxx.fastjgame.apt.utils.BeanUtils;
 
@@ -40,6 +41,8 @@ import java.util.List;
  * date - 2020/2/22
  */
 class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
+
+    private static final TypeName AptReflectUtilsTypeName = TypeName.get(AptReflectUtils.class);
 
     private static final String registry = "registry";
     private static final String instance = "instance";
@@ -190,7 +193,7 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
             }
             builder.addCode("    } catch (Throwable cause) {\n");
             builder.addStatement("        $L.writeFailure(cause)", responseChannel);
-            builder.addStatement("        $T.rethrow(cause)", processor.exceptionUtilsTypeName);
+            builder.addStatement("        $T.rethrow(cause)", AptReflectUtilsTypeName);
 
             builder.addCode("    }\n");
         }
@@ -205,10 +208,9 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
      * @param method   rpc方法
      * @return 注册该rpc方法的
      */
-    private String getServerProxyMethodName(short methodId, ExecutableElement method) {
+    private static String getServerProxyMethodName(short methodId, ExecutableElement method) {
         return "_register" + BeanUtils.firstCharToUpperCase(method.getSimpleName().toString()) + "_" + methodId;
     }
-
 
     /**
      * 生成方法调用代码，没有分号和换行符。
@@ -269,7 +271,6 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
         format.append(")");
         return new RpcRegisterGenerator.InvokeStatement(format.toString(), params, hasResponseChannel);
     }
-
 
     private static class InvokeStatement {
 

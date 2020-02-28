@@ -26,10 +26,12 @@ import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.WildcardType;
 import javax.tools.Diagnostic;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 由于类文件结构比较稳定，API都是基于访问者模式的，完全不能直接获取数据，难受的一比。
@@ -62,8 +64,6 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
     private static final String SESSION_CANONICAL_NAME = "com.wjybxx.fastjgame.net.session.Session";
     private static final String CHANNEL_CANONICAL_NAME = "com.wjybxx.fastjgame.net.common.RpcResponseChannel";
 
-    private static final String EXCEPTION_UTILS_CANONICAL_NAME = "org.apache.commons.lang3.exception.ExceptionUtils";
-
     private static final String SERVICE_ID_METHOD_NAME = "serviceId";
     private static final String METHOD_ID_METHOD_NAME = "methodId";
 
@@ -90,7 +90,6 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
     private DeclaredType rpcMethodDeclaredType;
 
     ClassName registryTypeName;
-    ClassName exceptionUtilsTypeName;
 
     private TypeMirror mapTypeMirror;
     private TypeMirror linkedHashMapTypeMirror;
@@ -119,8 +118,6 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
         sessionDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(SESSION_CANONICAL_NAME));
         responseChannelDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(CHANNEL_CANONICAL_NAME));
 
-        exceptionUtilsTypeName = ClassName.get(elementUtils.getTypeElement(EXCEPTION_UTILS_CANONICAL_NAME));
-
         methodHandleElement = elementUtils.getTypeElement(METHOD_HANDLE_CANONICAL_NAME);
         defaultMethodHandleRawTypeName = TypeName.get(typeUtils.getDeclaredType(elementUtils.getTypeElement(DEFAULT_METHOD_HANDLE_CANONICAL_NAME)));
 
@@ -141,16 +138,18 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
         Set<TypeElement> typeElementSet = (Set<TypeElement>) roundEnv.getElementsAnnotatedWith(rpcServiceElement);
         for (TypeElement typeElement : typeElementSet) {
             try {
+                checkBase(typeElement);
+
                 genProxyClass(typeElement);
             } catch (Throwable e) {
-                messager.printMessage(Diagnostic.Kind.ERROR, e.toString(), typeElement);
+                messager.printMessage(Diagnostic.Kind.ERROR, AutoUtils.getStackTrace(e), typeElement);
             }
         }
         return true;
     }
 
-    private void genProxyClass(TypeElement typeElement) {
-        final Optional<? extends AnnotationMirror> serviceAnnotationOption = AutoUtils.findFirstAnnotationWithoutInheritance(typeUtils, typeElement, rpcServiceDeclaredType);
+    private void checkBase(TypeElement typeElement) {
+        final Optional<? extends AnnotationMirror> serviceAnnotationOption = AutoUtils.findAnnotationWithoutInheritance(typeUtils, typeElement, rpcServiceDeclaredType);
         assert serviceAnnotationOption.isPresent();
         // 基本类型会被包装，Object不能直接转short
         final Short serviceId = AutoUtils.getAnnotationValueValueNotDefault(serviceAnnotationOption.get(), SERVICE_ID_METHOD_NAME);
@@ -167,33 +166,18 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
             return;
         }
 
-        // rpcMethods.size() == 0 也必须重新生成文件
-        final List<ExecutableElement> rpcMethods = collectRpcMethods(typeElement);
-
-        // 客户端代理
-        genClientProxy(typeElement, serviceId, rpcMethods);
-
-        // 服务器代理
-        genServerProxy(typeElement, serviceId, rpcMethods);
+        checkMethods(typeElement);
     }
 
-    /**
-     * 搜集rpc方法
-     *
-     * @param typeElement rpcService类
-     * @return 所有合法rpc方法
-     */
-    private List<ExecutableElement> collectRpcMethods(TypeElement typeElement) {
-        final List<ExecutableElement> result = new ArrayList<>();
+    private void checkMethods(TypeElement typeElement) {
         final Set<Short> methodIdSet = new HashSet<>();
-
         for (final Element element : typeElement.getEnclosedElements()) {
             if (element.getKind() != ElementKind.METHOD) {
                 continue;
             }
 
             final ExecutableElement method = (ExecutableElement) element;
-            final Optional<? extends AnnotationMirror> rpcMethodAnnotation = AutoUtils.findFirstAnnotationWithoutInheritance(typeUtils, method, rpcMethodDeclaredType);
+            final Optional<? extends AnnotationMirror> rpcMethodAnnotation = AutoUtils.findAnnotationWithoutInheritance(typeUtils, method, rpcMethodDeclaredType);
             if (rpcMethodAnnotation.isEmpty()) {
                 // 不是rpc方法，跳过
                 continue;
@@ -211,6 +195,12 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
                 continue;
             }
 
+            if (method.getReturnType().getKind() != TypeKind.VOID && containsResponseChannel(method)) {
+                // 不可以既有返回值，又有responseChannel
+                messager.printMessage(Diagnostic.Kind.ERROR, "ReturnType is not void, but parameters contains responseChannel!", method);
+                continue;
+            }
+
             // 方法id，基本类型会被封装为包装类型，Object并不能直接转换到基本类型
             final Short methodId = AutoUtils.getAnnotationValueValueNotDefault(rpcMethodAnnotation.get(), METHOD_ID_METHOD_NAME);
             assert null != methodId;
@@ -223,19 +213,45 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
             if (!methodIdSet.add(methodId)) {
                 // 同一个类中的方法id不可以重复 - 它保证了本模块中方法id不会重复
                 messager.printMessage(Diagnostic.Kind.ERROR, " methodId " + methodId + " is duplicate!", method);
-                continue;
             }
-
-            result.add(method);
         }
+    }
 
-        return result;
+    private boolean containsResponseChannel(ExecutableElement method) {
+        return method.getParameters().stream().anyMatch(this::isResponseChannel);
+    }
+
+    private void genProxyClass(TypeElement typeElement) {
+        final Short serviceId = getServiceId(typeElement);
+
+        // rpcMethods.size() == 0 也必须重新生成文件(必须刷新文件)
+        final List<ExecutableElement> rpcMethods = collectRpcMethods(typeElement);
+
+        // 客户端代理
+        genClientProxy(typeElement, serviceId, rpcMethods);
+
+        // 服务器代理
+        genServerProxy(typeElement, serviceId, rpcMethods);
+    }
+
+    private Short getServiceId(TypeElement typeElement) {
+        // 基本类型会被包装，Object不能直接转short
+        return (Short) AutoUtils.findAnnotationWithoutInheritance(typeUtils, typeElement, rpcServiceDeclaredType)
+                .map(annotationMirror -> AutoUtils.getAnnotationValueValueNotDefault(annotationMirror, SERVICE_ID_METHOD_NAME))
+                .get();
+    }
+
+    private List<ExecutableElement> collectRpcMethods(TypeElement typeElement) {
+        return typeElement.getEnclosedElements().stream()
+                .filter(e -> e.getKind() == ElementKind.METHOD)
+                .filter(method -> AutoUtils.findAnnotationWithoutInheritance(typeUtils, method, rpcMethodDeclaredType).isPresent())
+                .map(e -> (ExecutableElement) e)
+                .collect(Collectors.toList());
     }
 
     Short getMethodId(ExecutableElement method) {
-        // 方法id，基本类型会被封装为包装类型，Object并不能直接转换到基本类型
-        return (Short) AutoUtils
-                .findFirstAnnotationWithoutInheritance(typeUtils, method, rpcMethodDeclaredType)
+        // 基本类型会被包装，Object不能直接转short
+        return (Short) AutoUtils.findAnnotationWithoutInheritance(typeUtils, method, rpcMethodDeclaredType)
                 .map(annotationMirror -> AutoUtils.getAnnotationValueValueNotDefault(annotationMirror, METHOD_ID_METHOD_NAME))
                 .get();
     }
@@ -281,6 +297,5 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
     boolean isSession(VariableElement variableElement) {
         return AutoUtils.isSameTypeIgnoreTypeParameter(typeUtils, variableElement.asType(), sessionDeclaredType);
     }
-
 
 }

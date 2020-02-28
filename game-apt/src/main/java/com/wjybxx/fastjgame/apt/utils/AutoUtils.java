@@ -105,17 +105,19 @@ public class AutoUtils {
      */
     public static Set<TypeElement> selectSourceFile(Set<TypeElement> typeElementSet, Elements elementUtils) {
         return typeElementSet.stream()
-                .filter(e -> {
-                    try {
-                        // 如果注解的保留策略是runtime，则会把已经编译成class的文件再统计进来，这里需要过滤。
-                        // 不能使用getSystemClassLoader()，会加载不到。
-                        Class.forName(elementUtils.getBinaryName(e).toString());
-                        return false;
-                    } catch (Exception ignore) {
-                        return true;
-                    }
-                })
+                .filter(e -> isSourceFile(elementUtils, e))
                 .collect(Collectors.toSet());
+    }
+
+    private static boolean isSourceFile(Elements elementUtils, TypeElement typeElement) {
+        try {
+            // 如果注解的保留策略是runtime，则会把已经编译成class的文件再统计进来，这里需要过滤。
+            // 不能使用getSystemClassLoader()，会加载不到。
+            Class.forName(elementUtils.getBinaryName(typeElement).toString());
+            return false;
+        } catch (Exception ignore) {
+            return true;
+        }
     }
 
     /**
@@ -237,15 +239,15 @@ public class AutoUtils {
     /**
      * 查找出现的第一个注解，不包含继承的部分
      *
-     * @param typeUtils  类型工具
-     * @param element    要查询的element
-     * @param targetType 目标注解类型
+     * @param typeUtils              类型工具
+     * @param element                要查询的element
+     * @param targetAnnotationMirror 目标注解类型
      * @return optional
      */
-    public static Optional<? extends AnnotationMirror> findFirstAnnotationWithoutInheritance(Types typeUtils, Element element, TypeMirror targetType) {
+    public static Optional<? extends AnnotationMirror> findAnnotationWithoutInheritance(Types typeUtils, Element element, TypeMirror targetAnnotationMirror) {
         // 查找该字段上的注解
         return element.getAnnotationMirrors().stream()
-                .filter(annotationMirror -> typeUtils.isSameType(annotationMirror.getAnnotationType(), targetType))
+                .filter(annotationMirror -> typeUtils.isSameType(annotationMirror.getAnnotationType(), targetAnnotationMirror))
                 .findFirst();
     }
 
@@ -258,7 +260,7 @@ public class AutoUtils {
      * @param targetType   目标注解类型
      * @return optional
      */
-    public static Optional<? extends AnnotationMirror> findFirstAnnotationWithDefaults(Types typeUtils, Elements elementUtils, Element element, TypeMirror targetType) {
+    public static Optional<? extends AnnotationMirror> findAnnotationWithDefaults(Types typeUtils, Elements elementUtils, Element element, TypeMirror targetType) {
         // 查找该字段上的注解
         return elementUtils.getAllAnnotationMirrors(element).stream()
                 .filter(annotationMirror -> typeUtils.isSameType(annotationMirror.getAnnotationType(), targetType))
@@ -283,12 +285,11 @@ public class AutoUtils {
      */
     @Nonnull
     public static AnnotationValue getAnnotationValueWithDefaults(Elements elementUtils, AnnotationMirror annotationMirror, String propertyName) {
-        final Optional<? extends AnnotationValue> first = elementUtils.getElementValuesWithDefaults(annotationMirror).entrySet().stream()
+        return elementUtils.getElementValuesWithDefaults(annotationMirror).entrySet().stream()
                 .filter(entry -> entry.getKey().getSimpleName().toString().equals(propertyName))
                 .map(Map.Entry::getValue)
-                .findFirst();
-        assert first.isPresent();
-        return first.get();
+                .findFirst()
+                .orElseThrow();
     }
 
     /**
@@ -323,6 +324,9 @@ public class AutoUtils {
 
     /**
      * 获取注解中引用的class对象的类型
+     * eg:
+     * {@code @AutoService(Processor.class)}
+     * 返回的就是{@link javax.annotation.processing.Processor}
      */
     public static TypeMirror getAnnotationValueTypeMirror(AnnotationValue annotationValue) {
         return annotationValue.accept(new SimpleAnnotationValueVisitor8<>() {
@@ -365,12 +369,12 @@ public class AutoUtils {
     /**
      * 是否是指定基本类型数组
      *
-     * @param variableElement 变量
-     * @param primitiveType   基本类型
+     * @param typeMirror    类型信息
+     * @param primitiveType 基本类型
      * @return true/false
      */
-    public static boolean isTargetPrimitiveArrayType(VariableElement variableElement, TypeKind primitiveType) {
-        return variableElement.asType().accept(new SimpleTypeVisitor8<Boolean, Void>() {
+    public static boolean isTargetPrimitiveArrayType(TypeMirror typeMirror, TypeKind primitiveType) {
+        return typeMirror.accept(new SimpleTypeVisitor8<Boolean, Void>() {
 
             @Override
             public Boolean visitArray(ArrayType t, Void aVoid) {

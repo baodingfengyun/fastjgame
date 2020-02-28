@@ -39,7 +39,6 @@ import static com.wjybxx.fastjgame.apt.utils.BeanUtils.GET_NUMBER_METHOD_NAME;
  */
 class NumericalEntitySerializerGenerator extends AbstractGenerator<SerializableClassProcessor> {
 
-
     NumericalEntitySerializerGenerator(SerializableClassProcessor processor, TypeElement typeElement) {
         super(processor, typeElement);
     }

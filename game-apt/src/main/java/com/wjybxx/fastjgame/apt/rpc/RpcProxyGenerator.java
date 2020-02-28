@@ -64,7 +64,7 @@ class RpcProxyGenerator extends AbstractGenerator<RpcServiceProcessor> {
 
         // 生成代理方法
         for (final ExecutableElement method : rpcMethods) {
-            typeBuilder.addMethod(genClientMethodProxy(serviceId, method));
+            typeBuilder.addMethod(genClientMethodProxy(method));
         }
 
         // 写入文件
@@ -74,7 +74,6 @@ class RpcProxyGenerator extends AbstractGenerator<RpcServiceProcessor> {
     private static String getClientProxyClassName(TypeElement typeElement) {
         return typeElement.getSimpleName().toString() + "RpcProxy";
     }
-
 
     /**
      * 为客户端生成代理方法
@@ -88,7 +87,7 @@ class RpcProxyGenerator extends AbstractGenerator<RpcServiceProcessor> {
      * }
      * </pre>
      */
-    private MethodSpec genClientMethodProxy(short serviceId, ExecutableElement method) {
+    private MethodSpec genClientMethodProxy(ExecutableElement method) {
         // 工具方法 public static RpcBuilder<V>
         final MethodSpec.Builder builder = MethodSpec.methodBuilder(method.getSimpleName().toString())
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC);
@@ -100,8 +99,9 @@ class RpcProxyGenerator extends AbstractGenerator<RpcServiceProcessor> {
         final ParseResult parseResult = parseParameters(method);
         final List<ParameterSpec> realParameters = parseResult.realParameters;
 
-        // 添加返回类型-带泛型
-        final DeclaredType realReturnType = typeUtils.getDeclaredType(processor.methodHandleElement, parseResult.callReturnType);
+        // 添加返回类型 - 带泛型
+        final TypeMirror returnType = getNonPrimitiveReturnType(method);
+        final DeclaredType realReturnType = typeUtils.getDeclaredType(processor.methodHandleElement, returnType);
         builder.returns(ClassName.get(realReturnType));
 
         // 拷贝参数列表
@@ -113,7 +113,8 @@ class RpcProxyGenerator extends AbstractGenerator<RpcServiceProcessor> {
             // 无参时，使用 Collections.emptyList();
             builder.addStatement("return new $T<>((short)$L, (short)$L, $T.emptyList(), $L, $L)",
                     processor.defaultMethodHandleRawTypeName,
-                    serviceId, processor.getMethodId(method), Collections.class,
+                    serviceId, processor.getMethodId(method),
+                    Collections.class,
                     parseResult.lazyIndexes, parseResult.preIndexes);
         } else {
             builder.addStatement("$T<Object> methodParams = new $T<>($L)", ArrayList.class,
@@ -138,9 +139,6 @@ class RpcProxyGenerator extends AbstractGenerator<RpcServiceProcessor> {
         // 真实参数列表
         final List<ParameterSpec> realParameters = new ArrayList<>(originParameters.size());
 
-        // 返回值类型
-        TypeMirror callReturnType = null;
-
         // 需要延迟初始化的参数所在的位置
         int lazyIndexes = 0;
         // 需要提前反序列化的参数所在的位置
@@ -148,18 +146,12 @@ class RpcProxyGenerator extends AbstractGenerator<RpcServiceProcessor> {
 
         // 筛选参数
         for (VariableElement variableElement : originParameters) {
+            // session和responseChannel需要从参数列表删除
+            if (processor.isResponseChannel(variableElement) || processor.isSession(variableElement)) {
+                continue;
+            }
+
             checkMapOrCollectionParameter(variableElement);
-
-            // rpcResponseChannel需要从参数列表删除，并捕获泛型类型
-            if (callReturnType == null && processor.isResponseChannel(variableElement)) {
-                callReturnType = getResponseChannelTypeArgument(variableElement);
-                continue;
-            }
-
-            // session需要从参数列表删除
-            if (processor.isSession(variableElement)) {
-                continue;
-            }
 
             if (isLazySerializeParameter(variableElement)) {
                 // 延迟序列化的参数(对方可以发送任意数据) - 要替换为Object
@@ -174,42 +166,35 @@ class RpcProxyGenerator extends AbstractGenerator<RpcServiceProcessor> {
                 realParameters.add(ParameterSpec.get(variableElement));
             }
         }
-        if (null == callReturnType) {
-            // 参数列表中不存在responseChannel
-            callReturnType = method.getReturnType();
-        } else {
-            // 如果参数列表中存在responseChannel，那么返回值必须是void
-            if (method.getReturnType().getKind() != TypeKind.VOID) {
-                messager.printMessage(Diagnostic.Kind.ERROR, "ReturnType is not void, but parameters contains responseChannel!", method);
-            }
-        }
-        if (callReturnType.getKind() == TypeKind.VOID) {
-            // 返回值类型为void，rpcBuilder泛型参数为泛型通配符
-            callReturnType = processor.wildcardType;
-        } else {
-            // 基本类型转包装类型
-            if (callReturnType.getKind().isPrimitive()) {
-                callReturnType = typeUtils.boxedClass((PrimitiveType) callReturnType).asType();
-            }
-        }
-        return new ParseResult(realParameters, lazyIndexes, preIndexes, callReturnType);
+        return new ParseResult(realParameters, lazyIndexes, preIndexes);
     }
 
     private void checkMapOrCollectionParameter(VariableElement variableElement) {
         if (processor.isMap(variableElement)) {
-            if (!processor.isAssignableFromLinkedHashMap(variableElement)) {
-                messager.printMessage(Diagnostic.Kind.ERROR,
-                        "Unsupported map type, Map parameter only support LinkedHashMap's parent, " +
-                                "\ntoo see the annotation '@Impl', then, you will know how to use any map type",
-                        variableElement);
-            }
-        } else if (processor.isCollection(variableElement)) {
-            if (!processor.isAssignableFormArrayList(variableElement)) {
-                messager.printMessage(Diagnostic.Kind.ERROR,
-                        "Unsupported collection type, Collection parameter only support ArrayList's parent, " +
-                                "\ntoo see the annotation '@Impl', then, you will know how to use any collection type",
-                        variableElement);
-            }
+            checkMap(variableElement);
+            return;
+        }
+
+        if (processor.isCollection(variableElement)) {
+            checkCollection(variableElement);
+        }
+    }
+
+    private void checkMap(VariableElement variableElement) {
+        if (!processor.isAssignableFromLinkedHashMap(variableElement)) {
+            messager.printMessage(Diagnostic.Kind.ERROR,
+                    "Unsupported map type, Map parameter only support LinkedHashMap's parent, " +
+                            "\ntoo see the annotation '@Impl', then, you will know how to use any map type",
+                    variableElement);
+        }
+    }
+
+    private void checkCollection(VariableElement variableElement) {
+        if (!processor.isAssignableFormArrayList(variableElement)) {
+            messager.printMessage(Diagnostic.Kind.ERROR,
+                    "Unsupported collection type, Collection parameter only support ArrayList's parent, " +
+                            "\ntoo see the annotation '@Impl', then, you will know how to use any collection type",
+                    variableElement);
         }
     }
 
@@ -221,35 +206,16 @@ class RpcProxyGenerator extends AbstractGenerator<RpcServiceProcessor> {
         return ParameterSpec.builder(byte[].class, variableElement.getSimpleName().toString()).build();
     }
 
-    private static class ParseResult {
-        // 除去特殊参数余下的参数
-        private final List<ParameterSpec> realParameters;
-        // 需要延迟初始化的位置
-        private final int lazyIndexes;
-        // 需要提前反序列化的位置
-        private final int preIndexes;
-        // 远程调用的返回值类型
-        private final TypeMirror callReturnType;
-
-        ParseResult(List<ParameterSpec> realParameters, int lazyIndexes, int preIndexes, TypeMirror callReturnType) {
-            this.realParameters = realParameters;
-            this.lazyIndexes = lazyIndexes;
-            this.preIndexes = preIndexes;
-            this.callReturnType = callReturnType;
-        }
-    }
-
-
     /**
-     * 是否可延迟序列化的参数？
+     * 是否可延迟序列化的参数？（无论对方发送什么，我接收为一个byte[]）
      * 1. 必须带有{@link RpcServiceProcessor#LAZY_SERIALIZABLE_CANONICAL_NAME}注解
      * 2. 必须是字节数组
      */
     private boolean isLazySerializeParameter(VariableElement variableElement) {
-        if (AutoUtils.findFirstAnnotationWithoutInheritance(typeUtils, variableElement, processor.lazySerializableDeclaredType).isEmpty()) {
+        if (!isVariableAnnotationPresent(variableElement, processor.lazySerializableDeclaredType)) {
             return false;
         }
-        if (AutoUtils.isTargetPrimitiveArrayType(variableElement, TypeKind.BYTE)) {
+        if (isByteArrayVariable(variableElement.asType())) {
             return true;
         } else {
             messager.printMessage(Diagnostic.Kind.ERROR, "Annotation LazySerializable only support byte[]", variableElement);
@@ -257,20 +223,65 @@ class RpcProxyGenerator extends AbstractGenerator<RpcServiceProcessor> {
         }
     }
 
+    private boolean isVariableAnnotationPresent(VariableElement variableElement, DeclaredType preDeserializeDeclaredType) {
+        return AutoUtils.findAnnotationWithoutInheritance(typeUtils, variableElement, preDeserializeDeclaredType)
+                .isPresent();
+    }
+
+    private boolean isByteArrayVariable(TypeMirror typeMirror) {
+        return AutoUtils.isTargetPrimitiveArrayType(typeMirror, TypeKind.BYTE);
+    }
+
     /**
-     * 是否是需要提前反序列化的参数？
+     * 是否是需要提前反序列化的参数？（无论对方发送什么，我接收为一个非byte[]对象）
      * 1. 必须带有{@link RpcServiceProcessor#PRE_DESERIALIZE_CANONICAL_NAME}注解
      * 2. 不能是字节数组
      */
     private boolean isPreDeserializeParameter(VariableElement variableElement) {
-        if (AutoUtils.findFirstAnnotationWithoutInheritance(typeUtils, variableElement, processor.preDeserializeDeclaredType).isEmpty()) {
+        if (!isVariableAnnotationPresent(variableElement, processor.preDeserializeDeclaredType)) {
             return false;
         }
-        if (AutoUtils.isTargetPrimitiveArrayType(variableElement, TypeKind.BYTE)) {
+        if (isByteArrayVariable(variableElement.asType())) {
             messager.printMessage(Diagnostic.Kind.ERROR, "Annotation PreDeserializable doesn't support byte[]", variableElement);
             return false;
         }
         return true;
+    }
+
+    private static class ParseResult {
+        // 除去特殊参数余下的参数
+        private final List<ParameterSpec> realParameters;
+        // 需要延迟初始化的位置
+        private final int lazyIndexes;
+        // 需要提前反序列化的位置
+
+        private final int preIndexes;
+
+        ParseResult(List<ParameterSpec> realParameters, int lazyIndexes, int preIndexes) {
+            this.realParameters = realParameters;
+            this.lazyIndexes = lazyIndexes;
+            this.preIndexes = preIndexes;
+        }
+
+    }
+
+    private TypeMirror getNonPrimitiveReturnType(ExecutableElement method) {
+        if (method.getReturnType().getKind() != TypeKind.VOID) {
+            // 方法有返回值
+            if (method.getReturnType().getKind().isPrimitive()) {
+                // 可能是基础类型
+                return typeUtils.boxedClass((PrimitiveType) method.getReturnType()).asType();
+            } else {
+                return method.getReturnType();
+            }
+        }
+
+        // 判断是否有ResponseChannel，如果没有则返回通配符（其实Void也行）
+        return method.getParameters().stream()
+                .filter(processor::isResponseChannel)
+                .findFirst()
+                .map(this::getResponseChannelTypeArgument)
+                .orElse(processor.wildcardType);
     }
 
     private TypeMirror getResponseChannelTypeArgument(final VariableElement variableElement) {

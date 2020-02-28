@@ -135,7 +135,7 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
                 checkBase(typeElement);
                 generateSerializer(typeElement);
             } catch (Throwable e) {
-                messager.printMessage(Diagnostic.Kind.ERROR, e.toString(), typeElement);
+                messager.printMessage(Diagnostic.Kind.ERROR, AutoUtils.getStackTrace(e), typeElement);
             }
         }
         return true;
@@ -168,7 +168,7 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
             return;
         }
         // 其它类型抛出编译错误
-        messager.printMessage(Diagnostic.Kind.ERROR, "unsupported class", typeElement);
+        messager.printMessage(Diagnostic.Kind.ERROR, "unsupported type", typeElement);
     }
 
     /**
@@ -221,8 +221,13 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
      * 检查可索引的实体，检查是否有forIndex方法
      */
     private void checkIndexableEntity(TypeElement typeElement) {
+        if (!containsGetIndexMethod(typeElement)) {
+            messager.printMessage(Diagnostic.Kind.ERROR, "can't find getIndex() method", typeElement);
+            return;
+        }
+
         final TypeMirror indexTypeMirror = getIndexTypeMirror(typeElement);
-        if (!isContainsStaticNotPrivateForIndexMethod(typeElement, indexTypeMirror)) {
+        if (!containsStaticNotPrivateForIndexMethod(typeElement, indexTypeMirror)) {
             messager.printMessage(Diagnostic.Kind.ERROR,
                     String.format("%s must contains a not private 'static %s forIndex(%s)' method!",
                             typeElement.getSimpleName(), typeElement.getSimpleName(), indexTypeMirror.toString()),
@@ -230,20 +235,21 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
         }
     }
 
-    /**
-     * 获取索引类型
-     */
-    private static TypeMirror getIndexTypeMirror(TypeElement typeElement) {
-        final ExecutableElement getIndexMethod = typeElement.getEnclosedElements().stream()
+    private static boolean containsGetIndexMethod(TypeElement typeElement) {
+        return findGetIndexMethod(typeElement).isPresent();
+    }
+
+    private static Optional<ExecutableElement> findGetIndexMethod(TypeElement typeElement) {
+        return typeElement.getEnclosedElements().stream()
                 .filter(e -> e.getKind() == ElementKind.METHOD)
                 .map(e -> (ExecutableElement) e)
+                .filter(e -> e.getParameters().size() == 0)
                 .filter(e -> ((Element) e).getSimpleName().toString().equals(BeanUtils.GET_INDEX_METHOD_NAME))
-                .filter(e -> e.getParameters().isEmpty())
-                .findFirst()
-                .orElse(null);
-        if (getIndexMethod == null) {
-            throw new IllegalArgumentException("can't find getIndex method");
-        }
+                .findFirst();
+    }
+
+    private static TypeMirror getIndexTypeMirror(TypeElement typeElement) {
+        final ExecutableElement getIndexMethod = findGetIndexMethod(typeElement).orElseThrow();
         return getIndexMethod.getReturnType();
     }
 
@@ -253,16 +259,16 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
      * @param typeElement     方法的返回值类型
      * @param indexTypeMirror 方法的参数类型
      */
-    private boolean isContainsStaticNotPrivateForIndexMethod(final TypeElement typeElement, final TypeMirror indexTypeMirror) {
+    private boolean containsStaticNotPrivateForIndexMethod(final TypeElement typeElement, final TypeMirror indexTypeMirror) {
         return typeElement.getEnclosedElements().stream()
                 .filter(e -> e.getKind() == ElementKind.METHOD)
                 .map(e -> (ExecutableElement) e)
                 .filter(method -> !method.getModifiers().contains(Modifier.PRIVATE))
-                .filter(method -> AutoUtils.isSameTypeIgnoreTypeParameter(typeUtils, method.getReturnType(), typeElement.asType()))
                 .filter(method -> method.getModifiers().contains(Modifier.STATIC))
                 .filter(method -> method.getSimpleName().toString().equals(BeanUtils.FOR_INDEX_METHOD_NAME))
                 .filter(method -> method.getParameters().size() == 1)
-                .anyMatch(method -> typeUtils.isSameType(method.getParameters().get(0).asType(), indexTypeMirror));
+                .filter(method -> AutoUtils.isSameTypeIgnoreTypeParameter(typeUtils, method.getParameters().get(0).asType(), indexTypeMirror))
+                .anyMatch(method -> AutoUtils.isSameTypeIgnoreTypeParameter(typeUtils, method.getReturnType(), typeElement.asType()));
     }
 
     private void checkClass(TypeElement typeElement) {
@@ -315,11 +321,11 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
      * 用于 {@link DBEntityProcessor#DB_FIELD_CANONICAL_NAME}注解和{@link #SERIALIZABLE_FIELD_CANONICAL_NAME}注解的字段是可以序列化的
      */
     boolean isSerializableField(VariableElement variableElement) {
-        final Optional<? extends AnnotationMirror> a = AutoUtils.findFirstAnnotationWithoutInheritance(typeUtils, variableElement, serializableFieldDeclaredType);
+        final Optional<? extends AnnotationMirror> a = AutoUtils.findAnnotationWithoutInheritance(typeUtils, variableElement, serializableFieldDeclaredType);
         if (a.isPresent()) {
             return true;
         }
-        final Optional<? extends AnnotationMirror> b = AutoUtils.findFirstAnnotationWithoutInheritance(typeUtils, variableElement, dbFieldDeclaredType);
+        final Optional<? extends AnnotationMirror> b = AutoUtils.findAnnotationWithoutInheritance(typeUtils, variableElement, dbFieldDeclaredType);
         return b.isPresent();
     }
 
@@ -378,12 +384,12 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
         }
     }
 
-    boolean isString(VariableElement variableElement) {
-        return typeUtils.isSameType(variableElement.asType(), stringTypeMirror);
+    boolean isString(TypeMirror typeMirror) {
+        return typeUtils.isSameType(typeMirror, stringTypeMirror);
     }
 
     private boolean isMapOrCollection(VariableElement variableElement) {
-        return isMap(variableElement) || isCollection(variableElement);
+        return isMap(variableElement.asType()) || isCollection(variableElement.asType());
     }
 
     boolean isEnumSet(TypeMirror typeMirror) {
@@ -394,17 +400,17 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
         return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, typeMirror, enumMapRawTypeMirror);
     }
 
-    boolean isMap(VariableElement variableElement) {
-        return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, variableElement.asType(), mapTypeMirror);
+    boolean isMap(TypeMirror typeMirror) {
+        return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, typeMirror, mapTypeMirror);
     }
 
-    boolean isCollection(VariableElement variableElement) {
-        return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, variableElement.asType(), collectionTypeMirror);
+    boolean isCollection(TypeMirror typeMirror) {
+        return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, typeMirror, collectionTypeMirror);
     }
 
     TypeMirror getFieldImplAnnotationValue(VariableElement variableElement) {
         final AnnotationMirror impAnnotationMirror = AutoUtils
-                .findFirstAnnotationWithoutInheritance(typeUtils, variableElement, impDeclaredType)
+                .findAnnotationWithoutInheritance(typeUtils, variableElement, impDeclaredType)
                 .orElse(null);
 
         if (impAnnotationMirror == null) {

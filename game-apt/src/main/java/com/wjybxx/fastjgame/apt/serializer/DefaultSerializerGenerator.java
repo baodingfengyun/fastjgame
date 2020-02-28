@@ -39,14 +39,15 @@ import java.util.List;
  */
 class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProcessor> {
 
-    private static final String READ_STRING_METHOD_NAME = "readString";
     private static final String READ_BYTES_METHOD_NAME = "readBytes";
     private static final String READ_COLLECTION_METHOD_NAME = "readCollection";
     private static final String READ_MAP_METHOD_NAME = "readMap";
     private static final String READ_ARRAY_METHOD_NAME = "readArray";
     private static final String READ_OBJECT_METHOD_NAME = "readObject";
 
+    private static final String READ_STRING_METHOD_NAME = "readString";
     private static final String WRITE_STRING_METHOD_NAME = "writeString";
+
     private static final String WRITE_BYTES_METHOD_NAME = "writeBytes";
     private static final String WRITE_COLLECTION_METHOD_NAME = "writeCollection";
     private static final String WRITE_MAP_METHOD_NAME = "writeMap";
@@ -178,16 +179,16 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
         if (isPrimitiveType(variableElement)) {
             return getWritePrimitiveTypeMethodName(variableElement);
         }
-        if (processor.isString(variableElement)) {
+        if (processor.isString(variableElement.asType())) {
             return WRITE_STRING_METHOD_NAME;
         }
-        if (isByteArray(variableElement)) {
+        if (isByteArray(variableElement.asType())) {
             return WRITE_BYTES_METHOD_NAME;
         }
-        if (processor.isCollection(variableElement)) {
+        if (processor.isCollection(variableElement.asType())) {
             return WRITE_COLLECTION_METHOD_NAME;
         }
-        if (processor.isMap(variableElement)) {
+        if (processor.isMap(variableElement.asType())) {
             return WRITE_MAP_METHOD_NAME;
         }
         if (AutoUtils.isArrayType(variableElement.asType())) {
@@ -208,8 +209,8 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
         return BeanUtils.firstCharToUpperCase(variableElement.asType().getKind().name().toLowerCase());
     }
 
-    private boolean isByteArray(VariableElement variableElement) {
-        return AutoUtils.isTargetPrimitiveArrayType(variableElement, TypeKind.BYTE);
+    private boolean isByteArray(TypeMirror typeMirror) {
+        return AutoUtils.isTargetPrimitiveArrayType(typeMirror, TypeKind.BYTE);
     }
 
     /**
@@ -228,7 +229,7 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
     }
 
     private void readBySetter(VariableElement variableElement) {
-        // 包含非private的setter方法
+        // 包含非private的setter方法 instance.setId(inputStream.readInt())
         final String setterName = getSetterName(variableElement);
         List<Object> params = new ArrayList<>(8);
         StringBuilder readFormat = new StringBuilder("instance.$L(");
@@ -246,9 +247,9 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
     }
 
     private void appendReadStatement(VariableElement variableElement, StringBuilder readFormat, List<Object> params) {
-        if (processor.isCollection(variableElement)) {
+        if (processor.isCollection(variableElement.asType())) {
             appendReadCollectionStatement(variableElement, readFormat, params);
-        } else if (processor.isMap(variableElement)) {
+        } else if (processor.isMap(variableElement.asType())) {
             appendReadMapStatement(variableElement, readFormat, params);
         } else if (AutoUtils.isArrayType(variableElement.asType())) {
             appendReadArrayStatement(variableElement, readFormat, params);
@@ -341,13 +342,17 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
         if (isPrimitiveType(variableElement)) {
             return getReadPrimitiveMethodName(variableElement);
         }
-        if (processor.isString(variableElement)) {
+        if (processor.isString(variableElement.asType())) {
             return READ_STRING_METHOD_NAME;
         }
-        if (isByteArray(variableElement)) {
+        if (isByteArray(variableElement.asType())) {
             return READ_BYTES_METHOD_NAME;
         }
         return READ_OBJECT_METHOD_NAME;
+    }
+
+    private static String getReadPrimitiveMethodName(VariableElement variableElement) {
+        return "read" + primitiveTypeName(variableElement);
     }
 
     private void readByReflect(VariableElement variableElement) {
@@ -361,7 +366,7 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
         staticCodeBlockBuilder.addStatement("$L = $T.getDeclaredField($T.class ,$S)", reflectFieldName, AptReflectUtils.class,
                 fieldDeclaredClassTypeName, fieldName);
 
-        // 反射赋值
+        // 反射赋值 r_field_id.set(instance, inputStream.readInt())
         StringBuilder readFormat = new StringBuilder("$L.set(instance, ");
         List<Object> params = new ArrayList<>(8);
         params.add(reflectFieldName);
@@ -369,10 +374,6 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
         appendReadStatement(variableElement, readFormat, params);
         readFormat.append(")");
         readFieldsMethodBuilder.addStatement(readFormat.toString(), params.toArray());
-    }
-
-    private static String getReadPrimitiveMethodName(VariableElement variableElement) {
-        return "read" + primitiveTypeName(variableElement);
     }
 
     private MethodSpec newGetEntityMethodBuilder() {

@@ -22,24 +22,25 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 
 /**
+ * 为生成代码服务器的注解处理器工具类 - 手写代码最好不要使用该类。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2020/2/18
  * github - https://github.com/hl845740757
  */
+@SuppressWarnings("unused")
 public class AptReflectUtils {
 
     /**
      * An empty immutable {@code Object} array.
      */
-    @SuppressWarnings("unused")
     public static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
 
     /**
      * 获取对的无参构造方法
      * 生成的代码调用
      */
-    @SuppressWarnings("unused")
     public static <T> Constructor<T> getNoArgsConstructor(Class<T> clazz) {
         try {
             final Constructor<T> constructor = clazz.getDeclaredConstructor();
@@ -51,14 +52,13 @@ public class AptReflectUtils {
     }
 
     @SuppressWarnings("unchecked")
-    private static <R, T extends Throwable> R rethrow(final Throwable throwable) throws T {
+    public static <R, T extends Throwable> R rethrow(final Throwable throwable) throws T {
         throw (T) throwable;
     }
 
     /**
      * 生成的代码调用
      */
-    @SuppressWarnings("unused")
     public static Field getDeclaredField(Class<?> clazz, String fieldName) {
         try {
             final Field field = clazz.getDeclaredField(fieldName);

@@ -70,6 +70,7 @@ public abstract class MyAbstractProcessor extends AbstractProcessor {
             ensureInited();
         } catch (Throwable e) {
             messager.printMessage(Diagnostic.Kind.ERROR, AutoUtils.getStackTrace(e));
+            return false;
         }
         try {
             return doProcess(annotations, roundEnv);
@@ -87,6 +88,7 @@ public abstract class MyAbstractProcessor extends AbstractProcessor {
     /**
      * 如果返回true，表示注解已经被认领，并且不会要求后续处理器处理它们;
      * 如果返回false，表示注解类型无人认领，并且可能要求后续处理器处理它们。 处理器可以始终返回相同的布尔值，或者可以基于所选择的标准改变结果。
+     * 建议返回true。
      */
     protected abstract boolean doProcess(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv);
 }

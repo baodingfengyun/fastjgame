@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.apt.serializer;
 
-import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
@@ -48,7 +47,6 @@ class IndexableEntitySerializerGenerator extends AbstractGenerator<SerializableC
         final DeclaredType superDeclaredType = typeUtils.getDeclaredType(processor.serializerTypeElement, typeUtils.erasure(typeElement.asType()));
 
         final TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(getSerializerClassName(typeElement));
-        final CodeBlock.Builder staticCodeBlockBuilder = CodeBlock.builder();
 
         // 获取实例方法
         final MethodSpec getEntityMethod = processor.newGetEntityMethod(superDeclaredType);
@@ -64,7 +62,6 @@ class IndexableEntitySerializerGenerator extends AbstractGenerator<SerializableC
         typeBuilder.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                 .addAnnotation(AutoUtils.SUPPRESS_UNCHECKED_ANNOTATION)
                 .addAnnotation(processorInfoAnnotation)
-                .addStaticBlock(staticCodeBlockBuilder.build())
                 .addSuperinterface(TypeName.get(superDeclaredType))
                 .addMethod(getEntityMethod)
                 .addMethod(writeMethodBuilder.build())
@@ -73,5 +70,4 @@ class IndexableEntitySerializerGenerator extends AbstractGenerator<SerializableC
         // 写入文件
         AutoUtils.writeToFile(typeElement, typeBuilder, elementUtils, messager, filer);
     }
-
 }

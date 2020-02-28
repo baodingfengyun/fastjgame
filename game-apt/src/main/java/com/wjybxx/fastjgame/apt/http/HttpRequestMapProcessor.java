@@ -92,18 +92,18 @@ public class HttpRequestMapProcessor extends MyAbstractProcessor {
                 .filter(element -> element.getKind() == ElementKind.METHOD)
                 .collect(Collectors.groupingBy(Element::getEnclosingElement));
 
-        class2MethodsMap.forEach((element, object) -> {
+        class2MethodsMap.forEach((typeElement, methodElementList) -> {
             try {
-                genProxyClass((TypeElement) element, (List<ExecutableElement>) object);
+                genProxyClass((TypeElement) typeElement, (List<ExecutableElement>) methodElementList);
             } catch (Throwable e) {
-                messager.printMessage(Diagnostic.Kind.ERROR, e.toString(), element);
+                messager.printMessage(Diagnostic.Kind.ERROR, AutoUtils.getStackTrace(e), typeElement);
             }
         });
         return true;
     }
 
     private void genProxyClass(TypeElement typeElement, List<ExecutableElement> methodList) {
-        final String parentPath = AutoUtils.findFirstAnnotationWithoutInheritance(typeUtils, typeElement, httpRequestMappingDeclaredType)
+        final String parentPath = AutoUtils.findAnnotationWithoutInheritance(typeUtils, typeElement, httpRequestMappingDeclaredType)
                 .map(annotationMirror -> (String) AutoUtils.getAnnotationValueValueNotDefault(annotationMirror, PATH_METHOD_NAME))
                 .orElse(null);
         // 父路径存在时需要校验
@@ -128,7 +128,7 @@ public class HttpRequestMapProcessor extends MyAbstractProcessor {
                 .addParameter(TypeName.get(typeElement.asType()), "instance");
 
         for (ExecutableElement method : methodList) {
-            final Optional<? extends AnnotationMirror> methodAnnotation = AutoUtils.findFirstAnnotationWithoutInheritance(typeUtils, method, httpRequestMappingDeclaredType);
+            final Optional<? extends AnnotationMirror> methodAnnotation = AutoUtils.findAnnotationWithoutInheritance(typeUtils, method, httpRequestMappingDeclaredType);
             assert methodAnnotation.isPresent();
             final String childPath = AutoUtils.getAnnotationValueValueNotDefault(methodAnnotation.get(), PATH_METHOD_NAME);
             assert null != childPath;
@@ -155,22 +155,24 @@ public class HttpRequestMapProcessor extends MyAbstractProcessor {
                 messager.printMessage(Diagnostic.Kind.ERROR, "HttpRequestMapping method must have three and only three parameter!", method);
                 continue;
             }
-            final VariableElement firstVariableElement = method.getParameters().get(0);
 
+            final VariableElement firstVariableElement = method.getParameters().get(0);
             // 第一个参数必须是HttpSession
-            if (!AutoUtils.isSameTypeIgnoreTypeParameter(typeUtils, firstVariableElement.asType(), sessionDeclaredType)) {
+            if (!isHttpSessionVariable(firstVariableElement)) {
                 messager.printMessage(Diagnostic.Kind.ERROR, "HttpRequestMapping method first parameter type must be HttpSession!", method);
                 continue;
             }
+
             final VariableElement secondVariableElement = method.getParameters().get(1);
             // 第二个参数必须是String
-            if (!AutoUtils.isSameTypeIgnoreTypeParameter(typeUtils, secondVariableElement.asType(), pathDeclaredType)) {
+            if (!isStringVariable(secondVariableElement)) {
                 messager.printMessage(Diagnostic.Kind.ERROR, "HttpRequestMapping method second parameter type must be String!", method);
                 continue;
             }
+
             final VariableElement thirdVariableElement = method.getParameters().get(2);
             // 第三个参数必须是httpRequestParam
-            if (!AutoUtils.isSameTypeIgnoreTypeParameter(typeUtils, thirdVariableElement.asType(), requestParamDeclaredType)) {
+            if (!isHttpRequestParamVariable(thirdVariableElement)) {
                 messager.printMessage(Diagnostic.Kind.ERROR, "HttpRequestMapping method third parameter type must be HttpRequestParam!", method);
                 continue;
             }
@@ -186,7 +188,19 @@ public class HttpRequestMapProcessor extends MyAbstractProcessor {
         return builder.build();
     }
 
-    private String getProxyClassName(TypeElement typeElement) {
+    private boolean isHttpSessionVariable(VariableElement variableElement) {
+        return AutoUtils.isSameTypeIgnoreTypeParameter(typeUtils, variableElement.asType(), sessionDeclaredType);
+    }
+
+    private boolean isStringVariable(VariableElement variableElement) {
+        return AutoUtils.isSameTypeIgnoreTypeParameter(typeUtils, variableElement.asType(), pathDeclaredType);
+    }
+
+    private boolean isHttpRequestParamVariable(VariableElement variableElement) {
+        return AutoUtils.isSameTypeIgnoreTypeParameter(typeUtils, variableElement.asType(), requestParamDeclaredType);
+    }
+
+    private static String getProxyClassName(TypeElement typeElement) {
         return typeElement.getSimpleName().toString() + "HttpRegister";
     }
 

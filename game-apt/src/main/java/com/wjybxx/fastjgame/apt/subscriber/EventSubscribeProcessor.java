@@ -29,7 +29,6 @@ import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.SimpleTypeVisitor8;
 import javax.tools.Diagnostic;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -90,7 +89,7 @@ public class EventSubscribeProcessor extends MyAbstractProcessor {
             try {
                 genProxyClass((TypeElement) element, object);
             } catch (Throwable e) {
-                messager.printMessage(Diagnostic.Kind.ERROR, e.toString(), element);
+                messager.printMessage(Diagnostic.Kind.ERROR, AutoUtils.getStackTrace(e), element);
             }
         });
         return true;
@@ -173,13 +172,13 @@ public class EventSubscribeProcessor extends MyAbstractProcessor {
      */
     private void registerGenericHandlers(MethodSpec.Builder builder, ExecutableElement method) {
         final VariableElement eventParameter = method.getParameters().get(0);
-        final TypeName parentEventRawTypeName = TypeName.get(getEventParameterRawTypeMirror(eventParameter));
+        final TypeName parentEventRawTypeName = TypeName.get(erasure(eventParameter.asType()));
         final Set<TypeMirror> eventTypes = collectEventTypes(method, getGenericEventTypeArgument(eventParameter));
 
         for (TypeMirror typeMirror : eventTypes) {
             builder.addStatement("registry.register($T.class, $T.class, event -> instance.$L(event))",
                     parentEventRawTypeName,
-                    TypeName.get(typeMirror),
+                    TypeName.get(erasure(typeMirror)),
                     method.getSimpleName().toString());
         }
     }
@@ -189,7 +188,7 @@ public class EventSubscribeProcessor extends MyAbstractProcessor {
      */
     private void registerNormalHandlers(MethodSpec.Builder builder, ExecutableElement method) {
         final VariableElement eventParameter = method.getParameters().get(0);
-        final TypeName parentEventRawTypeName = TypeName.get(getEventParameterRawTypeMirror(eventParameter));
+        final TypeName parentEventRawTypeName = TypeName.get(erasure(eventParameter.asType()));
         final Set<TypeMirror> eventTypes = collectEventTypes(method, eventParameter.asType());
 
         for (TypeMirror typeMirror : eventTypes) {
@@ -201,23 +200,11 @@ public class EventSubscribeProcessor extends MyAbstractProcessor {
             } else {
                 // 子类型需要显示转为超类型 - 否则可能导致重载问题
                 builder.addStatement("registry.register($T.class, event -> instance.$L(($T) event))",
-                        TypeName.get(typeMirror),
+                        TypeName.get(erasure(typeMirror)),
                         method.getSimpleName().toString(),
                         parentEventRawTypeName);
             }
         }
-    }
-
-    /**
-     * 获取事件参数的声明类型
-     */
-    private TypeMirror getEventParameterRawTypeMirror(VariableElement eventParameter) {
-        return eventParameter.asType().accept(new SimpleTypeVisitor8<>() {
-            @Override
-            public TypeMirror visitDeclared(DeclaredType t, Object o) {
-                return typeUtils.erasure(t);
-            }
-        }, null);
     }
 
     /**
@@ -232,12 +219,12 @@ public class EventSubscribeProcessor extends MyAbstractProcessor {
      * 注意查看{@link AnnotationValue}的类文档
      */
     private Set<TypeMirror> collectEventTypes(final ExecutableElement method, final TypeMirror parentTypeMirror) {
-        final AnnotationMirror annotationMirror = AutoUtils.findFirstAnnotationWithoutInheritance(typeUtils, method, subscribeDeclaredType).orElse(null);
-        assert annotationMirror != null;
+        final AnnotationMirror annotationMirror = AutoUtils.findAnnotationWithoutInheritance(typeUtils, method, subscribeDeclaredType)
+                .orElseThrow();
 
         final Set<TypeMirror> result = new HashSet<>();
         if (!isOnlySubEvents(annotationMirror)) {
-            result.add(getEventRawType(parentTypeMirror));
+            result.add(parentTypeMirror);
         }
 
         final List<? extends AnnotationValue> subEventsList = AutoUtils.getAnnotationValueValueNotDefault(annotationMirror, SUB_EVENTS_METHOD_NAME);
@@ -246,40 +233,40 @@ public class EventSubscribeProcessor extends MyAbstractProcessor {
         }
 
         for (final AnnotationValue annotationValue : subEventsList) {
-            final TypeMirror subEventTypeMirror = getSubEventTypeMirror(annotationValue);
+            final TypeMirror subEventTypeMirror = AutoUtils.getAnnotationValueTypeMirror(annotationValue);
             if (null == subEventTypeMirror) {
                 // 无法获取参数
                 messager.printMessage(Diagnostic.Kind.ERROR, "Unsupported type " + annotationValue, method);
                 continue;
             }
 
-            if (!isSubTypeIgnoreTypeParameter(subEventTypeMirror, parentTypeMirror)) {
+            if (!isSubTypeOfEventParent(subEventTypeMirror, parentTypeMirror)) {
                 // 不是监听参数的子类型 - 带有泛型参数的 isSubType为false
-                messager.printMessage(Diagnostic.Kind.ERROR, subEventTypeMirror.toString() + " is not " + getEventRawType(parentTypeMirror).toString() + "'s subType", method);
+                messager.printMessage(Diagnostic.Kind.ERROR, subEventTypeMirror.toString() + " is not " + parentTypeMirror.toString() + "'s subType", method);
                 continue;
             }
 
-            if (result.stream().anyMatch(typeMirror -> isSameTypeIgnoreTypeParameter(typeMirror, subEventTypeMirror))) {
+            if (isResultContains(result, subEventTypeMirror)) {
                 // 重复
                 messager.printMessage(Diagnostic.Kind.ERROR, "Duplicate type " + subEventTypeMirror.toString(), method);
                 continue;
             }
 
-            result.add(typeUtils.erasure(subEventTypeMirror));
+            result.add(subEventTypeMirror);
         }
         return result;
     }
 
-    private TypeMirror getEventRawType(TypeMirror eventTypeMirror) {
+    private boolean isResultContains(Set<TypeMirror> result, TypeMirror subEventTypeMirror) {
+        return result.stream().anyMatch(typeMirror -> isSameTypeIgnoreTypeParameter(typeMirror, subEventTypeMirror));
+    }
+
+    private TypeMirror erasure(TypeMirror eventTypeMirror) {
         return typeUtils.erasure(eventTypeMirror);
     }
 
-    private static TypeMirror getSubEventTypeMirror(AnnotationValue annotationValue) {
-        return AutoUtils.getAnnotationValueTypeMirror(annotationValue);
-    }
-
-    private boolean isSubTypeIgnoreTypeParameter(TypeMirror a, TypeMirror b) {
-        return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, a, b);
+    private boolean isSubTypeOfEventParent(TypeMirror subType, TypeMirror parent) {
+        return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, subType, parent);
     }
 
     private boolean isSameTypeIgnoreTypeParameter(TypeMirror a, TypeMirror b) {

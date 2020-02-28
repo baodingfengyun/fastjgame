@@ -83,7 +83,7 @@ public class BeanUtils {
      */
     public static boolean isContainerNotPrivateSetterMethod(Types typeUtils, VariableElement variableElement, List<? extends Element> allFieldsAndMethodWithInherit) {
         final String fieldName = variableElement.getSimpleName().toString();
-        final String setterMethodName = BeanUtils.setterMethodName(fieldName, BeanUtils.isPrimitiveBoolean(variableElement.asType()));
+        final String setterMethodName = BeanUtils.setterMethodName(fieldName, isPrimitiveBoolean(variableElement.asType()));
 
         return allFieldsAndMethodWithInherit.stream()
                 .filter(e -> e.getKind() == ElementKind.METHOD)
@@ -102,7 +102,7 @@ public class BeanUtils {
      */
     public static boolean isContainerNotPrivateGetterMethod(Types typeUtils, VariableElement variableElement, List<? extends Element> allFieldsAndMethodWithInherit) {
         final String fieldName = variableElement.getSimpleName().toString();
-        final String getterMethodName = BeanUtils.getterMethodName(fieldName, BeanUtils.isPrimitiveBoolean(variableElement.asType()));
+        final String getterMethodName = BeanUtils.getterMethodName(fieldName, isPrimitiveBoolean(variableElement.asType()));
         return allFieldsAndMethodWithInherit.stream()
                 .filter(e -> e.getKind() == ElementKind.METHOD)
                 .filter(e -> !e.getModifiers().contains(Modifier.PRIVATE))
@@ -205,7 +205,7 @@ public class BeanUtils {
     }
 
     /**
-     * 是否是boolean或Boolean类型
+     * 是否是基本类型的boolean
      *
      * @param typeName 类型描述名
      * @return 如果boolean类型或Boolean则返回true
