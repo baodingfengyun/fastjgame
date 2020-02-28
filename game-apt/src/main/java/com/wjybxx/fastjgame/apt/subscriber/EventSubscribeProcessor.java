@@ -219,7 +219,7 @@ public class EventSubscribeProcessor extends MyAbstractProcessor {
      * 注意查看{@link AnnotationValue}的类文档
      */
     private Set<TypeMirror> collectEventTypes(final ExecutableElement method, final TypeMirror parentTypeMirror) {
-        final AnnotationMirror annotationMirror = AutoUtils.findAnnotationWithoutInheritance(typeUtils, method, subscribeDeclaredType)
+        final AnnotationMirror annotationMirror = AutoUtils.findAnnotation(typeUtils, method, subscribeDeclaredType)
                 .orElseThrow();
 
         final Set<TypeMirror> result = new HashSet<>();
@@ -227,7 +227,7 @@ public class EventSubscribeProcessor extends MyAbstractProcessor {
             result.add(parentTypeMirror);
         }
 
-        final List<? extends AnnotationValue> subEventsList = AutoUtils.getAnnotationValueValueNotDefault(annotationMirror, SUB_EVENTS_METHOD_NAME);
+        final List<? extends AnnotationValue> subEventsList = AutoUtils.getAnnotationValueValue(annotationMirror, SUB_EVENTS_METHOD_NAME);
         if (null == subEventsList) {
             return result;
         }

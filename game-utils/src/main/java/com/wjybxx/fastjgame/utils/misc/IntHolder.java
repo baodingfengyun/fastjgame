@@ -97,7 +97,7 @@ public class IntHolder {
      * 返回之后加上指定增量
      *
      * @param delta the value to add
-     * @return he previous value
+     * @return the previous value
      */
     public int getAndAdd(int delta) {
         int result = this.value;

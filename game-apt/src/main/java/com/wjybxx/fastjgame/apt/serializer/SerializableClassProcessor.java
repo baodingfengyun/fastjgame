@@ -145,6 +145,12 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
      * 基础信息检查
      */
     private void checkBase(TypeElement typeElement) {
+        if (!isClassOrEnum(typeElement)) {
+            // 其它类型抛出编译错误
+            messager.printMessage(Diagnostic.Kind.ERROR, "unsupported type", typeElement);
+            return;
+        }
+
         if (typeElement.getKind() == ElementKind.ENUM) {
             // 枚举需要放在最前面检查 - 因为它可能实现后面的特殊接口
             checkEnum(typeElement);
@@ -164,11 +170,13 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
 
         if (typeElement.getKind() == ElementKind.CLASS) {
             // 检查普通类
-            checkClass(typeElement);
-            return;
+            checkNormalClass(typeElement);
         }
-        // 其它类型抛出编译错误
-        messager.printMessage(Diagnostic.Kind.ERROR, "unsupported type", typeElement);
+    }
+
+    private boolean isClassOrEnum(TypeElement typeElement) {
+        return typeElement.getKind() == ElementKind.CLASS
+                || typeElement.getKind() == ElementKind.ENUM;
     }
 
     /**
@@ -191,7 +199,7 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
      * 检查 NumericalEnum 的子类是否有forNumber方法
      */
     private void checkNumericalEnum(TypeElement typeElement) {
-        if (!isContainStaticNotPrivateForNumberMethod(typeElement)) {
+        if (!containStaticNotPrivateForNumberMethod(typeElement)) {
             messager.printMessage(Diagnostic.Kind.ERROR,
                     String.format("%s must contains a not private 'static %s forNumber(int)' method!", typeElement.getSimpleName(), typeElement.getSimpleName()),
                     typeElement);
@@ -202,7 +210,7 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
      * 是否包含静态的非private的forNumber方法 - static T forNumber(int)
      * (一定有getNumber方法)
      */
-    private boolean isContainStaticNotPrivateForNumberMethod(TypeElement typeElement) {
+    private boolean containStaticNotPrivateForNumberMethod(TypeElement typeElement) {
         return typeElement.getEnclosedElements().stream()
                 .filter(e -> e.getKind() == ElementKind.METHOD)
                 .map(e -> (ExecutableElement) e)
@@ -248,7 +256,7 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
                 .findFirst();
     }
 
-    private static TypeMirror getIndexTypeMirror(TypeElement typeElement) {
+    static TypeMirror getIndexTypeMirror(TypeElement typeElement) {
         final ExecutableElement getIndexMethod = findGetIndexMethod(typeElement).orElseThrow();
         return getIndexMethod.getReturnType();
     }
@@ -271,7 +279,7 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
                 .anyMatch(method -> AutoUtils.isSameTypeIgnoreTypeParameter(typeUtils, method.getReturnType(), typeElement.asType()));
     }
 
-    private void checkClass(TypeElement typeElement) {
+    private void checkNormalClass(TypeElement typeElement) {
         // 父类可能是不序列化的，但是有字段要序列化
         final List<? extends Element> allFieldsAndMethodWithInherit = BeanUtils.getAllFieldsAndMethodsWithInherit(typeElement);
         for (Element element : allFieldsAndMethodWithInherit) {
@@ -293,23 +301,24 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
             }
 
             // 必须包含非private的getter方法
-            if (!isContainerNotPrivateGetterMethod(variableElement, allFieldsAndMethodWithInherit)) {
+            if (!containsNotPrivateGetterMethod(variableElement, allFieldsAndMethodWithInherit)) {
                 messager.printMessage(Diagnostic.Kind.ERROR, "serializable field must contains a not private getter", variableElement);
                 continue;
             }
 
             // map和集合类型
-            if (isMapOrCollection(variableElement)) {
+            if (isMapOrCollection(variableElement.asType())) {
                 checkMapAndCollectionField(variableElement);
             }
         }
 
-        if (typeElement.getModifiers().contains(Modifier.ABSTRACT)) {
-            // 抽象类不检测无参构造方法
-            return;
+        if (!typeElement.getModifiers().contains(Modifier.ABSTRACT)) {
+            // 无参构造方法检测
+            checkNoArgsConstructor(typeElement);
         }
+    }
 
-        // 无参构造方法检测
+    private void checkNoArgsConstructor(TypeElement typeElement) {
         if (!BeanUtils.containsNoArgsConstructor(typeElement)) {
             messager.printMessage(Diagnostic.Kind.ERROR,
                     "SerializableClass " + typeElement.getSimpleName() + " must contains no-args constructor, private is ok!",
@@ -321,12 +330,8 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
      * 用于 {@link DBEntityProcessor#DB_FIELD_CANONICAL_NAME}注解和{@link #SERIALIZABLE_FIELD_CANONICAL_NAME}注解的字段是可以序列化的
      */
     boolean isSerializableField(VariableElement variableElement) {
-        final Optional<? extends AnnotationMirror> a = AutoUtils.findAnnotationWithoutInheritance(typeUtils, variableElement, serializableFieldDeclaredType);
-        if (a.isPresent()) {
-            return true;
-        }
-        final Optional<? extends AnnotationMirror> b = AutoUtils.findAnnotationWithoutInheritance(typeUtils, variableElement, dbFieldDeclaredType);
-        return b.isPresent();
+        return AutoUtils.isAnnotationPresent(typeUtils, variableElement, serializableFieldDeclaredType)
+                || AutoUtils.isAnnotationPresent(typeUtils, variableElement, dbFieldDeclaredType);
     }
 
     /**
@@ -334,8 +339,8 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
      *
      * @param allFieldsAndMethodWithInherit 所有的字段和方法，可能在父类中
      */
-    private boolean isContainerNotPrivateGetterMethod(final VariableElement variableElement, final List<? extends Element> allFieldsAndMethodWithInherit) {
-        return BeanUtils.isContainerNotPrivateGetterMethod(typeUtils, variableElement, allFieldsAndMethodWithInherit);
+    private boolean containsNotPrivateGetterMethod(final VariableElement variableElement, final List<? extends Element> allFieldsAndMethodWithInherit) {
+        return BeanUtils.containsNotPrivateGetterMethod(typeUtils, variableElement, allFieldsAndMethodWithInherit);
     }
 
     private void checkMapAndCollectionField(VariableElement variableElement) {
@@ -377,7 +382,7 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
             return;
         }
 
-        final ExecutableElement noArgsConstructor = getOneIntArgsConstructor((TypeElement) impDeclaredType.asElement());
+        final ExecutableElement noArgsConstructor = findOneIntArgsConstructor((TypeElement) impDeclaredType.asElement());
         if (noArgsConstructor == null || !noArgsConstructor.getModifiers().contains(Modifier.PUBLIC)) {
             // 必须包含只有一个int参数的构造方法
             messager.printMessage(Diagnostic.Kind.ERROR, "MapOrCollectionImpl must contains public one int arg constructor", variableElement);
@@ -388,8 +393,8 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
         return typeUtils.isSameType(typeMirror, stringTypeMirror);
     }
 
-    private boolean isMapOrCollection(VariableElement variableElement) {
-        return isMap(variableElement.asType()) || isCollection(variableElement.asType());
+    private boolean isMapOrCollection(TypeMirror typeMirror) {
+        return isMap(typeMirror) || isCollection(typeMirror);
     }
 
     boolean isEnumSet(TypeMirror typeMirror) {
@@ -410,20 +415,20 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
 
     TypeMirror getFieldImplAnnotationValue(VariableElement variableElement) {
         final AnnotationMirror impAnnotationMirror = AutoUtils
-                .findAnnotationWithoutInheritance(typeUtils, variableElement, impDeclaredType)
+                .findAnnotation(typeUtils, variableElement, impDeclaredType)
                 .orElse(null);
 
         if (impAnnotationMirror == null) {
             return null;
         }
 
-        final AnnotationValue annotationValue = AutoUtils.getAnnotationValueNotDefault(impAnnotationMirror, "value");
+        final AnnotationValue annotationValue = AutoUtils.getAnnotationValue(impAnnotationMirror, "value");
         assert null != annotationValue;
         return AutoUtils.getAnnotationValueTypeMirror(annotationValue);
     }
 
     @Nullable
-    private static ExecutableElement getOneIntArgsConstructor(TypeElement typeElement) {
+    private static ExecutableElement findOneIntArgsConstructor(TypeElement typeElement) {
         return typeElement.getEnclosedElements().stream()
                 .filter(e -> e.getKind() == ElementKind.CONSTRUCTOR)
                 .map(e -> (ExecutableElement) e)

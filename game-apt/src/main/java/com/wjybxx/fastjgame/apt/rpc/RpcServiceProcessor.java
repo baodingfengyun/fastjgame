@@ -149,10 +149,10 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
     }
 
     private void checkBase(TypeElement typeElement) {
-        final Optional<? extends AnnotationMirror> serviceAnnotationOption = AutoUtils.findAnnotationWithoutInheritance(typeUtils, typeElement, rpcServiceDeclaredType);
+        final Optional<? extends AnnotationMirror> serviceAnnotationOption = AutoUtils.findAnnotation(typeUtils, typeElement, rpcServiceDeclaredType);
         assert serviceAnnotationOption.isPresent();
         // 基本类型会被包装，Object不能直接转short
-        final Short serviceId = AutoUtils.getAnnotationValueValueNotDefault(serviceAnnotationOption.get(), SERVICE_ID_METHOD_NAME);
+        final Short serviceId = AutoUtils.getAnnotationValueValue(serviceAnnotationOption.get(), SERVICE_ID_METHOD_NAME);
         assert null != serviceId;
         if (serviceId <= 0) {
             // serviceId非法
@@ -177,7 +177,7 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
             }
 
             final ExecutableElement method = (ExecutableElement) element;
-            final Optional<? extends AnnotationMirror> rpcMethodAnnotation = AutoUtils.findAnnotationWithoutInheritance(typeUtils, method, rpcMethodDeclaredType);
+            final Optional<? extends AnnotationMirror> rpcMethodAnnotation = AutoUtils.findAnnotation(typeUtils, method, rpcMethodDeclaredType);
             if (rpcMethodAnnotation.isEmpty()) {
                 // 不是rpc方法，跳过
                 continue;
@@ -202,7 +202,7 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
             }
 
             // 方法id，基本类型会被封装为包装类型，Object并不能直接转换到基本类型
-            final Short methodId = AutoUtils.getAnnotationValueValueNotDefault(rpcMethodAnnotation.get(), METHOD_ID_METHOD_NAME);
+            final Short methodId = AutoUtils.getAnnotationValueValue(rpcMethodAnnotation.get(), METHOD_ID_METHOD_NAME);
             assert null != methodId;
             if (methodId < 0 || methodId > 9999) {
                 // 方法id非法
@@ -236,23 +236,23 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
 
     private Short getServiceId(TypeElement typeElement) {
         // 基本类型会被包装，Object不能直接转short
-        return (Short) AutoUtils.findAnnotationWithoutInheritance(typeUtils, typeElement, rpcServiceDeclaredType)
-                .map(annotationMirror -> AutoUtils.getAnnotationValueValueNotDefault(annotationMirror, SERVICE_ID_METHOD_NAME))
+        return (Short) AutoUtils.findAnnotation(typeUtils, typeElement, rpcServiceDeclaredType)
+                .map(annotationMirror -> AutoUtils.getAnnotationValueValue(annotationMirror, SERVICE_ID_METHOD_NAME))
                 .get();
     }
 
     private List<ExecutableElement> collectRpcMethods(TypeElement typeElement) {
         return typeElement.getEnclosedElements().stream()
                 .filter(e -> e.getKind() == ElementKind.METHOD)
-                .filter(method -> AutoUtils.findAnnotationWithoutInheritance(typeUtils, method, rpcMethodDeclaredType).isPresent())
+                .filter(method -> AutoUtils.findAnnotation(typeUtils, method, rpcMethodDeclaredType).isPresent())
                 .map(e -> (ExecutableElement) e)
                 .collect(Collectors.toList());
     }
 
     Short getMethodId(ExecutableElement method) {
         // 基本类型会被包装，Object不能直接转short
-        return (Short) AutoUtils.findAnnotationWithoutInheritance(typeUtils, method, rpcMethodDeclaredType)
-                .map(annotationMirror -> AutoUtils.getAnnotationValueValueNotDefault(annotationMirror, METHOD_ID_METHOD_NAME))
+        return (Short) AutoUtils.findAnnotation(typeUtils, method, rpcMethodDeclaredType)
+                .map(annotationMirror -> AutoUtils.getAnnotationValueValue(annotationMirror, METHOD_ID_METHOD_NAME))
                 .get();
     }
 

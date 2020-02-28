@@ -23,10 +23,7 @@ import com.squareup.javapoet.TypeSpec;
 import com.wjybxx.fastjgame.apt.core.AbstractGenerator;
 import com.wjybxx.fastjgame.apt.utils.AutoUtils;
 
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
+import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeKind;
@@ -212,7 +209,7 @@ class RpcProxyGenerator extends AbstractGenerator<RpcServiceProcessor> {
      * 2. 必须是字节数组
      */
     private boolean isLazySerializeParameter(VariableElement variableElement) {
-        if (!isVariableAnnotationPresent(variableElement, processor.lazySerializableDeclaredType)) {
+        if (!isAnnotationPresent(variableElement, processor.lazySerializableDeclaredType)) {
             return false;
         }
         if (isByteArrayVariable(variableElement.asType())) {
@@ -223,9 +220,8 @@ class RpcProxyGenerator extends AbstractGenerator<RpcServiceProcessor> {
         }
     }
 
-    private boolean isVariableAnnotationPresent(VariableElement variableElement, DeclaredType preDeserializeDeclaredType) {
-        return AutoUtils.findAnnotationWithoutInheritance(typeUtils, variableElement, preDeserializeDeclaredType)
-                .isPresent();
+    private boolean isAnnotationPresent(Element element, DeclaredType annationMirror) {
+        return AutoUtils.isAnnotationPresent(typeUtils, element, annationMirror);
     }
 
     private boolean isByteArrayVariable(TypeMirror typeMirror) {
@@ -238,7 +234,7 @@ class RpcProxyGenerator extends AbstractGenerator<RpcServiceProcessor> {
      * 2. 不能是字节数组
      */
     private boolean isPreDeserializeParameter(VariableElement variableElement) {
-        if (!isVariableAnnotationPresent(variableElement, processor.preDeserializeDeclaredType)) {
+        if (!isAnnotationPresent(variableElement, processor.preDeserializeDeclaredType)) {
             return false;
         }
         if (isByteArrayVariable(variableElement.asType())) {

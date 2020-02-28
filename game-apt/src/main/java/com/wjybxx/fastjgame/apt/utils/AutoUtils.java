@@ -237,6 +237,14 @@ public class AutoUtils {
     // ----------------------------------------------------- 分割线 -----------------------------------------------
 
     /**
+     * 查找指定注解是否出现
+     */
+    public static boolean isAnnotationPresent(Types typeUtils, Element element, TypeMirror targetAnnotationMirror) {
+        return findAnnotation(typeUtils, element, targetAnnotationMirror)
+                .isPresent();
+    }
+
+    /**
      * 查找出现的第一个注解，不包含继承的部分
      *
      * @param typeUtils              类型工具
@@ -244,7 +252,7 @@ public class AutoUtils {
      * @param targetAnnotationMirror 目标注解类型
      * @return optional
      */
-    public static Optional<? extends AnnotationMirror> findAnnotationWithoutInheritance(Types typeUtils, Element element, TypeMirror targetAnnotationMirror) {
+    public static Optional<? extends AnnotationMirror> findAnnotation(Types typeUtils, Element element, TypeMirror targetAnnotationMirror) {
         // 查找该字段上的注解
         return element.getAnnotationMirrors().stream()
                 .filter(annotationMirror -> typeUtils.isSameType(annotationMirror.getAnnotationType(), targetAnnotationMirror))
@@ -260,15 +268,20 @@ public class AutoUtils {
      * @param targetType   目标注解类型
      * @return optional
      */
-    public static Optional<? extends AnnotationMirror> findAnnotationWithDefaults(Types typeUtils, Elements elementUtils, Element element, TypeMirror targetType) {
+    public static Optional<? extends AnnotationMirror> findAnnotationWithInherit(Types typeUtils, Elements elementUtils, Element element, TypeMirror targetType) {
         // 查找该字段上的注解
         return elementUtils.getAllAnnotationMirrors(element).stream()
                 .filter(annotationMirror -> typeUtils.isSameType(annotationMirror.getAnnotationType(), targetType))
                 .findFirst();
     }
 
+    /**
+     * 获取注解上的某一个属性的值，不包含default值
+     *
+     * @return object，如果字段的值是class的话，应该使用{@link #getAnnotationValueTypeMirror(AnnotationValue)}
+     */
     @Nullable
-    public static AnnotationValue getAnnotationValueNotDefault(AnnotationMirror annotationMirror, String propertyName) {
+    public static AnnotationValue getAnnotationValue(AnnotationMirror annotationMirror, String propertyName) {
         return annotationMirror.getElementValues().entrySet().stream()
                 .filter(entry -> entry.getKey().getSimpleName().toString().equals(propertyName))
                 .map(Map.Entry::getValue)
@@ -279,9 +292,7 @@ public class AutoUtils {
     /**
      * 获取注解上的某一个属性的值，包含default值
      *
-     * @param annotationMirror 注解编译信息
-     * @param propertyName     属性的名字
-     * @return object
+     * @return object，如果字段的值是class的话，应该使用{@link #getAnnotationValueTypeMirror(AnnotationValue)}
      */
     @Nonnull
     public static AnnotationValue getAnnotationValueWithDefaults(Elements elementUtils, AnnotationMirror annotationMirror, String propertyName) {
@@ -301,8 +312,8 @@ public class AutoUtils {
      */
     @SuppressWarnings("unchecked")
     @Nullable
-    public static <T> T getAnnotationValueValueNotDefault(AnnotationMirror annotationMirror, String propertyName) {
-        return (T) Optional.ofNullable(getAnnotationValueNotDefault(annotationMirror, propertyName))
+    public static <T> T getAnnotationValueValue(AnnotationMirror annotationMirror, String propertyName) {
+        return (T) Optional.ofNullable(getAnnotationValue(annotationMirror, propertyName))
                 .map(AnnotationValue::getValue)
                 .orElse(null);
     }
@@ -394,6 +405,7 @@ public class AutoUtils {
     }
 
     public static TypeMirror getComponentType(TypeMirror typeMirror) {
+        assert isArrayType(typeMirror);
         ArrayType arrayType = (ArrayType) typeMirror;
         return arrayType.getComponentType();
     }

@@ -103,8 +103,8 @@ public class HttpRequestMapProcessor extends MyAbstractProcessor {
     }
 
     private void genProxyClass(TypeElement typeElement, List<ExecutableElement> methodList) {
-        final String parentPath = AutoUtils.findAnnotationWithoutInheritance(typeUtils, typeElement, httpRequestMappingDeclaredType)
-                .map(annotationMirror -> (String) AutoUtils.getAnnotationValueValueNotDefault(annotationMirror, PATH_METHOD_NAME))
+        final String parentPath = AutoUtils.findAnnotation(typeUtils, typeElement, httpRequestMappingDeclaredType)
+                .map(annotationMirror -> (String) AutoUtils.getAnnotationValueValue(annotationMirror, PATH_METHOD_NAME))
                 .orElse(null);
         // 父路径存在时需要校验
         if (parentPath != null && checkPath(parentPath) != null) {
@@ -128,9 +128,9 @@ public class HttpRequestMapProcessor extends MyAbstractProcessor {
                 .addParameter(TypeName.get(typeElement.asType()), "instance");
 
         for (ExecutableElement method : methodList) {
-            final Optional<? extends AnnotationMirror> methodAnnotation = AutoUtils.findAnnotationWithoutInheritance(typeUtils, method, httpRequestMappingDeclaredType);
+            final Optional<? extends AnnotationMirror> methodAnnotation = AutoUtils.findAnnotation(typeUtils, method, httpRequestMappingDeclaredType);
             assert methodAnnotation.isPresent();
-            final String childPath = AutoUtils.getAnnotationValueValueNotDefault(methodAnnotation.get(), PATH_METHOD_NAME);
+            final String childPath = AutoUtils.getAnnotationValueValue(methodAnnotation.get(), PATH_METHOD_NAME);
             assert null != childPath;
 
             // 路径检查

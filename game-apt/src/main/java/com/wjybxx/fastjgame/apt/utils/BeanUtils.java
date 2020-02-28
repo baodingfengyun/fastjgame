@@ -81,7 +81,7 @@ public class BeanUtils {
     /**
      * 是否包含非private的setter方法
      */
-    public static boolean isContainerNotPrivateSetterMethod(Types typeUtils, VariableElement variableElement, List<? extends Element> allFieldsAndMethodWithInherit) {
+    public static boolean containsNotPrivateSetterMethod(Types typeUtils, VariableElement variableElement, List<? extends Element> allFieldsAndMethodWithInherit) {
         final String fieldName = variableElement.getSimpleName().toString();
         final String setterMethodName = BeanUtils.setterMethodName(fieldName, isPrimitiveBoolean(variableElement.asType()));
 
@@ -100,7 +100,7 @@ public class BeanUtils {
     /**
      * 是否包含非private的getter方法
      */
-    public static boolean isContainerNotPrivateGetterMethod(Types typeUtils, VariableElement variableElement, List<? extends Element> allFieldsAndMethodWithInherit) {
+    public static boolean containsNotPrivateGetterMethod(Types typeUtils, VariableElement variableElement, List<? extends Element> allFieldsAndMethodWithInherit) {
         final String fieldName = variableElement.getSimpleName().toString();
         final String getterMethodName = BeanUtils.getterMethodName(fieldName, isPrimitiveBoolean(variableElement.asType()));
         return allFieldsAndMethodWithInherit.stream()

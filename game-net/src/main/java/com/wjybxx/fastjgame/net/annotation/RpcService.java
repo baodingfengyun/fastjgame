@@ -22,7 +22,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 该注解表示该类是一个拥有{@link RpcMethod}方法的类，只有拥有该标记，才会为该类生成对应的代理工具类。
+ * 该注解表示该类是可以对外提供服务，只有拥有该标记，才会为该类生成对应的代理工具类。
  *
  * @author wjybxx
  * @version 1.0

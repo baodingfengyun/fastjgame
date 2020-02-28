@@ -31,6 +31,10 @@ import static com.wjybxx.fastjgame.apt.utils.BeanUtils.FOR_INDEX_METHOD_NAME;
 import static com.wjybxx.fastjgame.apt.utils.BeanUtils.GET_INDEX_METHOD_NAME;
 
 /**
+ * Q: 为何没有为该类寻找特定的读写方法，使用{@code readObject} {@code writeObject}
+ * A: 如果索引是一个int值，那么应该实现 {@link com.wjybxx.fastjgame.apt.utils.BeanUtils#NUMBER_ENUM_CANONICAL_NAME}接口。
+ * 如果是多个int值，应该创建一个独立的bean。不推荐使用long和string做索引。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2020/2/18

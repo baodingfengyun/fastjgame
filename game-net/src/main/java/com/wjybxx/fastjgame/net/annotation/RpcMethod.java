@@ -26,10 +26,10 @@ import java.lang.annotation.Target;
 /**
  * 该注解表示该方法是一个Rpc调用。
  * 该注解分三种情况：
- * 1. 当方法返回值类型不为void或Void时，表明可以立即返回结果，代码生成工具会捕获返回值类型。
- * 2. 当返回值为void或Void时，如果参数中有 {@link RpcResponseChannel}，表明需要异步返回结果，
+ * 1. 当方法返回值类型不为void时，表明可以立即返回结果，代码生成工具会捕获返回值类型。
+ * 2. 当返回值为void时，如果参数中有 {@link RpcResponseChannel}，表明需要异步返回结果，
  * 代码生成工具会那么会捕获其泛型参数作为Rpc调用结果。
- * 3. 如果返回值为void或Void，且参数中没有{@link RpcResponseChannel}，那么表示没有返回值。
+ * 3. 如果返回值为void，且参数中没有{@link RpcResponseChannel}，那么表示没有返回值。
  * 即：
  * <pre>{@code
  * 	1. String rpcMethod(long id) -> RpcBuilder<String>

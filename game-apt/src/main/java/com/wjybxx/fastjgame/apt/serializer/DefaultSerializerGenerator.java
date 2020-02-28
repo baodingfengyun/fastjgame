@@ -217,15 +217,15 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
      * 读对象用的setter
      */
     private void addReadStatement(VariableElement variableElement) {
-        if (isContainerNotPrivateSetterMethod(variableElement)) {
+        if (containsNotPrivateSetterMethod(variableElement)) {
             readBySetter(variableElement);
         } else {
             readByReflect(variableElement);
         }
     }
 
-    private boolean isContainerNotPrivateSetterMethod(final VariableElement variableElement) {
-        return BeanUtils.isContainerNotPrivateSetterMethod(typeUtils, variableElement, allFieldsAndMethodWithInherit);
+    private boolean containsNotPrivateSetterMethod(final VariableElement variableElement) {
+        return BeanUtils.containsNotPrivateSetterMethod(typeUtils, variableElement, allFieldsAndMethodWithInherit);
     }
 
     private void readBySetter(VariableElement variableElement) {
