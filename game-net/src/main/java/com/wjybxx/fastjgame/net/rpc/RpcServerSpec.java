@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.net.rpc;
 
+import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
+
 /**
  * Rpc服务器节点描述信息。
  *
@@ -23,6 +25,7 @@ package com.wjybxx.fastjgame.net.rpc;
  * @version 1.0
  * date - 2020/3/2
  */
+@UnstableApi
 public interface RpcServerSpec {
 
 }

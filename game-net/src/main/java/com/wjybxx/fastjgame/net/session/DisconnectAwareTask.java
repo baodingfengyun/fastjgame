@@ -14,23 +14,26 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.local;
-
-import com.wjybxx.fastjgame.net.eventloop.NetContext;
-import com.wjybxx.fastjgame.net.misc.NetPort;
-
-import javax.annotation.concurrent.NotThreadSafe;
+package com.wjybxx.fastjgame.net.session;
 
 /**
- * 用于建立JVM内部session的“端口”，它并非一个真正的端口。
- * 注意：每次调用{@link NetContext#bindLocal(LocalSessionConfig)}都会产生一个新的{@link LocalPort}。
+ * 连接断开通知任务 - 消除lambda表达式
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/9/9
+ * date - 2019/9/18
  * github - https://github.com/hl845740757
  */
-@NotThreadSafe
-public interface LocalPort extends NetPort {
+public class DisconnectAwareTask implements Runnable {
 
+    private final Session session;
+
+    public DisconnectAwareTask(Session session) {
+        this.session = session;
+    }
+
+    @Override
+    public void run() {
+        session.config().lifecycleAware().onSessionDisconnected(session);
+    }
 }

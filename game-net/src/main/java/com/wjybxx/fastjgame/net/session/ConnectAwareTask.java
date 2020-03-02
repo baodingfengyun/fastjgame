@@ -14,22 +14,26 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.rpc;
-
-import java.io.Closeable;
+package com.wjybxx.fastjgame.net.session;
 
 /**
- * 网络端口抽象，允许关闭
+ * 连接建立时的通知任务 - 消lambda表达式
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/9/28
+ * date - 2019/9/18
  * github - https://github.com/hl845740757
  */
-public interface NetPort extends Closeable {
+public class ConnectAwareTask implements Runnable {
 
-    /**
-     * 关闭端口资源
-     */
-    void close();
+    private final Session session;
+
+    public ConnectAwareTask(Session session) {
+        this.session = session;
+    }
+
+    @Override
+    public void run() {
+        session.config().lifecycleAware().onSessionConnected(session);
+    }
 }

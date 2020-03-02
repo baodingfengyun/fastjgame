@@ -16,27 +16,16 @@
 
 package com.wjybxx.fastjgame.net.rpc;
 
-import com.wjybxx.fastjgame.net.session.Session;
+import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
 
 /**
- * session断开连接事件处理器
+ * rpc服务选择器。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/9/10
- * github - https://github.com/hl845740757
+ * date - 2020/3/2
  */
-public interface SessionDisconnectAware extends SessionLifecycleAware {
+@UnstableApi
+public interface RpcServerSelector {
 
-    @Override
-    default void onSessionConnected(Session session) {
-        // ignore
-    }
-
-    /**
-     * 当会话彻底断开连接(无法继续断线重连)时会被调用，只会调用一次
-     *
-     * @param session 注册时的会话信息
-     */
-    void onSessionDisconnected(Session session);
 }

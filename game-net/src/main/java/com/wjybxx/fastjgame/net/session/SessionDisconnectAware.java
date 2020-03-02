@@ -14,28 +14,27 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.rpc;
-
-import com.wjybxx.fastjgame.net.session.Session;
+package com.wjybxx.fastjgame.net.session;
 
 /**
- * 连接断开通知任务 - 消除lambda表达式
+ * session断开连接事件处理器
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/9/18
+ * date - 2019/9/10
  * github - https://github.com/hl845740757
  */
-public class DisconnectAwareTask implements Runnable {
-
-    private final Session session;
-
-    public DisconnectAwareTask(Session session) {
-        this.session = session;
-    }
+public interface SessionDisconnectAware extends SessionLifecycleAware {
 
     @Override
-    public void run() {
-        session.config().lifecycleAware().onSessionDisconnected(session);
+    default void onSessionConnected(Session session) {
+        // ignore
     }
+
+    /**
+     * 当会话彻底断开连接(无法继续断线重连)时会被调用，只会调用一次
+     *
+     * @param session 注册时的会话信息
+     */
+    void onSessionDisconnected(Session session);
 }
