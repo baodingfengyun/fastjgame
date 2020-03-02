@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.net.local;
 
-import com.wjybxx.fastjgame.net.common.ConnectAwareTask;
-import com.wjybxx.fastjgame.net.common.DisconnectAwareTask;
+import com.wjybxx.fastjgame.net.rpc.ConnectAwareTask;
+import com.wjybxx.fastjgame.net.rpc.DisconnectAwareTask;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;

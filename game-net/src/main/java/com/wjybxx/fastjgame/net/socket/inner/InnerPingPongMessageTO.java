@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.socket.inner;
 
-import com.wjybxx.fastjgame.net.common.PingPongMessage;
+import com.wjybxx.fastjgame.net.rpc.PingPongMessage;
 import com.wjybxx.fastjgame.net.socket.SocketPingPongMessageTO;
 
 /**

@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.socket.inner;
 
-import com.wjybxx.fastjgame.net.common.NetMessage;
+import com.wjybxx.fastjgame.net.rpc.NetMessage;
 import com.wjybxx.fastjgame.net.socket.SocketMessage;
 import com.wjybxx.fastjgame.net.socket.SocketMessageTO;
 

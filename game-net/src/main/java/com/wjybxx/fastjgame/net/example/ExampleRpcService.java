@@ -20,7 +20,7 @@ import com.wjybxx.fastjgame.net.annotation.LazySerializable;
 import com.wjybxx.fastjgame.net.annotation.PreDeserializable;
 import com.wjybxx.fastjgame.net.annotation.RpcMethod;
 import com.wjybxx.fastjgame.net.annotation.RpcService;
-import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
+import com.wjybxx.fastjgame.net.rpc.RpcResponseChannel;
 import com.wjybxx.fastjgame.net.session.Session;
 
 /**

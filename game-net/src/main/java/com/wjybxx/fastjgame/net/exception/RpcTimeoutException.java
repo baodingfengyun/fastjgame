@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.exception;
 
-import com.wjybxx.fastjgame.net.common.RpcErrorCode;
+import com.wjybxx.fastjgame.net.rpc.RpcErrorCode;
 
 /**
  * rpc超时异常

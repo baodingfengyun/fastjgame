@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.net.common.NetMessage;
+import com.wjybxx.fastjgame.net.rpc.NetMessage;
 import io.netty.channel.Channel;
 
 /**

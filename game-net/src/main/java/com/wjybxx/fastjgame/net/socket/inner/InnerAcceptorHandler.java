@@ -16,11 +16,11 @@
 
 package com.wjybxx.fastjgame.net.socket.inner;
 
-import com.wjybxx.fastjgame.net.common.LazySerializeSupportHandler;
-import com.wjybxx.fastjgame.net.common.OneWaySupportHandler;
-import com.wjybxx.fastjgame.net.common.RpcSupportHandler;
 import com.wjybxx.fastjgame.net.manager.AcceptorManager;
 import com.wjybxx.fastjgame.net.manager.NetManagerWrapper;
+import com.wjybxx.fastjgame.net.rpc.LazySerializeSupportHandler;
+import com.wjybxx.fastjgame.net.rpc.OneWaySupportHandler;
+import com.wjybxx.fastjgame.net.rpc.RpcSupportHandler;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.socket.*;
 import io.netty.channel.Channel;

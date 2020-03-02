@@ -18,8 +18,8 @@ package com.wjybxx.fastjgame.net.local;
 
 import com.wjybxx.fastjgame.net.eventloop.NetContext;
 import com.wjybxx.fastjgame.net.manager.NetManagerWrapper;
-import com.wjybxx.fastjgame.net.misc.SessionRegistry;
 import com.wjybxx.fastjgame.net.session.AbstractSession;
+import com.wjybxx.fastjgame.net.session.SessionRegistry;
 
 /**
  * JVM内部会话

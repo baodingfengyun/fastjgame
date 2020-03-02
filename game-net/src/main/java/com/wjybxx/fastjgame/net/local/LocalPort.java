@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.net.local;
 
-import com.wjybxx.fastjgame.net.common.NetPort;
 import com.wjybxx.fastjgame.net.eventloop.NetContext;
+import com.wjybxx.fastjgame.net.rpc.NetPort;
 
 import javax.annotation.concurrent.NotThreadSafe;
 

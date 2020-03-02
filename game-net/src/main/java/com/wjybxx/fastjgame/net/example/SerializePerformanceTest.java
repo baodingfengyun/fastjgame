@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.net.example;
 
 import com.wjybxx.fastjgame.net.binary.BinaryProtocolCodec;
-import com.wjybxx.fastjgame.net.common.ProtocolCodec;
+import com.wjybxx.fastjgame.net.rpc.ProtocolCodec;
 
 /**
  * 一个不太靠谱的序列化反序列化性能测试。

@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.net.session;
 
-import com.wjybxx.fastjgame.net.common.RpcClient;
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoop;
+import com.wjybxx.fastjgame.net.rpc.RpcClient;
 import com.wjybxx.fastjgame.utils.annotation.Internal;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 

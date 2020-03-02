@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.net.local;
 
-import com.wjybxx.fastjgame.net.common.NetLogicMessage;
-import com.wjybxx.fastjgame.net.common.ProtocolCodec;
+import com.wjybxx.fastjgame.net.rpc.NetLogicMessage;
+import com.wjybxx.fastjgame.net.rpc.ProtocolCodec;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 import com.wjybxx.fastjgame.net.session.SessionOutboundHandlerAdapter;
 

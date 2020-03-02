@@ -16,10 +16,10 @@
 
 package com.wjybxx.fastjgame.net.socket.inner;
 
-import com.wjybxx.fastjgame.net.common.ConnectAwareTask;
-import com.wjybxx.fastjgame.net.common.DisconnectAwareTask;
-import com.wjybxx.fastjgame.net.common.NetMessage;
-import com.wjybxx.fastjgame.net.common.PingPongMessage;
+import com.wjybxx.fastjgame.net.rpc.ConnectAwareTask;
+import com.wjybxx.fastjgame.net.rpc.DisconnectAwareTask;
+import com.wjybxx.fastjgame.net.rpc.NetMessage;
+import com.wjybxx.fastjgame.net.rpc.PingPongMessage;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 import com.wjybxx.fastjgame.net.socket.*;

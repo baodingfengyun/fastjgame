@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.annotation;
 
-import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
+import com.wjybxx.fastjgame.net.rpc.RpcResponseChannel;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

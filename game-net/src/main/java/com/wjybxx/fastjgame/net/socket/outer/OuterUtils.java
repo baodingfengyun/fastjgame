@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.net.socket.outer;
 
-import com.wjybxx.fastjgame.net.common.NetMessage;
-import com.wjybxx.fastjgame.net.common.PingPongMessage;
+import com.wjybxx.fastjgame.net.rpc.NetMessage;
+import com.wjybxx.fastjgame.net.rpc.PingPongMessage;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 import com.wjybxx.fastjgame.net.socket.*;
 import io.netty.channel.Channel;

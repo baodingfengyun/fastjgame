@@ -51,8 +51,8 @@ import java.util.stream.Collectors;
 @AutoService(Processor.class)
 public class RpcServiceProcessor extends MyAbstractProcessor {
 
-    private static final String METHOD_HANDLE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.misc.RpcMethodHandle";
-    private static final String DEFAULT_METHOD_HANDLE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.misc.DefaultRpcMethodHandle";
+    private static final String METHOD_HANDLE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.RpcMethodHandle";
+    private static final String DEFAULT_METHOD_HANDLE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.DefaultRpcMethodHandle";
 
     private static final String RPC_SERVICE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.annotation.RpcService";
     private static final String RPC_METHOD_CANONICAL_NAME = "com.wjybxx.fastjgame.net.annotation.RpcMethod";
@@ -60,9 +60,9 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
     static final String LAZY_SERIALIZABLE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.annotation.LazySerializable";
     static final String PRE_DESERIALIZE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.annotation.PreDeserializable";
 
-    private static final String REGISTRY_CANONICAL_NAME = "com.wjybxx.fastjgame.net.misc.RpcMethodProxyRegistry";
+    private static final String REGISTRY_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.RpcMethodProxyRegistry";
+    private static final String CHANNEL_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.RpcResponseChannel";
     private static final String SESSION_CANONICAL_NAME = "com.wjybxx.fastjgame.net.session.Session";
-    private static final String CHANNEL_CANONICAL_NAME = "com.wjybxx.fastjgame.net.common.RpcResponseChannel";
 
     private static final String SERVICE_ID_METHOD_NAME = "serviceId";
     private static final String METHOD_ID_METHOD_NAME = "methodId";

@@ -16,10 +16,10 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.net.common.NetMessage;
-import com.wjybxx.fastjgame.net.common.OneWayMessage;
-import com.wjybxx.fastjgame.net.common.RpcRequestMessage;
-import com.wjybxx.fastjgame.net.common.RpcResponseMessage;
+import com.wjybxx.fastjgame.net.rpc.NetMessage;
+import com.wjybxx.fastjgame.net.rpc.OneWayMessage;
+import com.wjybxx.fastjgame.net.rpc.RpcRequestMessage;
+import com.wjybxx.fastjgame.net.rpc.RpcResponseMessage;
 
 import javax.annotation.concurrent.NotThreadSafe;
 

@@ -16,11 +16,11 @@
 
 package com.wjybxx.fastjgame.net.exception;
 
-import com.wjybxx.fastjgame.net.common.RpcErrorCode;
-import com.wjybxx.fastjgame.net.common.RpcResponse;
+import com.wjybxx.fastjgame.net.rpc.RpcErrorCode;
+import com.wjybxx.fastjgame.net.rpc.RpcResponse;
 
 /**
- * 服务器执行调用时出现异常 - 通过{@link com.wjybxx.fastjgame.net.common.RpcResponse}解析得到。
+ * 服务器执行调用时出现异常 - 通过{@link com.wjybxx.fastjgame.net.rpc.RpcResponse}解析得到。
  *
  * @author wjybxx
  * @version 1.0

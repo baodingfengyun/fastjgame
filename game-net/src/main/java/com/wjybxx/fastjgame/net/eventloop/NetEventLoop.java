@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.net.eventloop;
 
-import com.wjybxx.fastjgame.net.common.RpcFuture;
-import com.wjybxx.fastjgame.net.common.RpcPromise;
+import com.wjybxx.fastjgame.net.rpc.RpcFuture;
+import com.wjybxx.fastjgame.net.rpc.RpcPromise;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.eventbus.EventDispatcher;
 

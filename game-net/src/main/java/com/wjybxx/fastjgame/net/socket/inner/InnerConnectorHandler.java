@@ -17,9 +17,9 @@
 package com.wjybxx.fastjgame.net.socket.inner;
 
 import com.wjybxx.fastjgame.net.adapter.NettyFutureAdapter;
-import com.wjybxx.fastjgame.net.common.LazySerializeSupportHandler;
-import com.wjybxx.fastjgame.net.common.OneWaySupportHandler;
-import com.wjybxx.fastjgame.net.common.RpcSupportHandler;
+import com.wjybxx.fastjgame.net.rpc.LazySerializeSupportHandler;
+import com.wjybxx.fastjgame.net.rpc.OneWaySupportHandler;
+import com.wjybxx.fastjgame.net.rpc.RpcSupportHandler;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;

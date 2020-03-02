@@ -22,8 +22,9 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
-                    <release>11</release>
+                    <compilerArgument>-parameters</compilerArgument>
                     <encoding>UTF-8</encoding>
+                    <release>11</release>
                 </configuration>
             </plugin>
 
@@ -57,12 +58,6 @@
         <dependency>
             <groupId>com.wjybxx.fastjgame</groupId>
             <artifactId>game-guid-api</artifactId>
-            <version>1.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.wjybxx.fastjgame</groupId>
-            <artifactId>game-discover-api</artifactId>
             <version>1.0</version>
         </dependency>
 

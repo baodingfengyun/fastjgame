@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.net.common.NetMessage;
-import com.wjybxx.fastjgame.net.common.NetMessageType;
+import com.wjybxx.fastjgame.net.rpc.NetMessage;
+import com.wjybxx.fastjgame.net.rpc.NetMessageType;
 
 /**
  * 建立连接请求

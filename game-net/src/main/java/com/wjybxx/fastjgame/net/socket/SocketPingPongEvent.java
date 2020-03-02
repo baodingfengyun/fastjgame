@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.net.common.PingPongMessage;
+import com.wjybxx.fastjgame.net.rpc.PingPongMessage;
 import io.netty.channel.Channel;
 
 /**

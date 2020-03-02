@@ -18,10 +18,10 @@ package com.wjybxx.fastjgame.net.binary;
 
 import com.google.common.collect.Sets;
 import com.google.protobuf.*;
-import com.wjybxx.fastjgame.net.common.ProtocolCodec;
 import com.wjybxx.fastjgame.net.misc.JsonProtocolCodec;
 import com.wjybxx.fastjgame.net.misc.MessageMapper;
 import com.wjybxx.fastjgame.net.misc.MessageMappingStrategy;
+import com.wjybxx.fastjgame.net.rpc.ProtocolCodec;
 import com.wjybxx.fastjgame.net.utils.NetUtils;
 import com.wjybxx.fastjgame.net.utils.ProtoUtils;
 import io.netty.buffer.ByteBuf;

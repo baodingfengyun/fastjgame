@@ -16,9 +16,9 @@
 
 package com.wjybxx.fastjgame.net.socket.outer;
 
-import com.wjybxx.fastjgame.net.common.*;
 import com.wjybxx.fastjgame.net.manager.AcceptorManager;
 import com.wjybxx.fastjgame.net.manager.NetManagerWrapper;
+import com.wjybxx.fastjgame.net.rpc.*;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;

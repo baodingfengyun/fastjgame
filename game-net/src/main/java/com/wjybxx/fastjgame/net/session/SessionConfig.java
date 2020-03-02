@@ -16,9 +16,9 @@
 
 package com.wjybxx.fastjgame.net.session;
 
-import com.wjybxx.fastjgame.net.common.ProtocolCodec;
-import com.wjybxx.fastjgame.net.common.RpcRequestDispatcher;
-import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
+import com.wjybxx.fastjgame.net.rpc.ProtocolCodec;
+import com.wjybxx.fastjgame.net.rpc.RpcRequestDispatcher;
+import com.wjybxx.fastjgame.net.rpc.SessionLifecycleAware;
 import com.wjybxx.fastjgame.utils.CheckUtils;
 
 import javax.annotation.Nonnull;

@@ -17,15 +17,15 @@
 package com.wjybxx.fastjgame.net.eventloop;
 
 import com.google.inject.Injector;
-import com.wjybxx.fastjgame.net.common.DefaultRpcPromise;
-import com.wjybxx.fastjgame.net.common.FailedRpcFuture;
-import com.wjybxx.fastjgame.net.common.RpcFuture;
-import com.wjybxx.fastjgame.net.common.RpcPromise;
 import com.wjybxx.fastjgame.net.http.HttpRequestEvent;
 import com.wjybxx.fastjgame.net.local.ConnectLocalRequest;
 import com.wjybxx.fastjgame.net.manager.*;
 import com.wjybxx.fastjgame.net.misc.DefaultNetContext;
 import com.wjybxx.fastjgame.net.module.NetEventLoopModule;
+import com.wjybxx.fastjgame.net.rpc.DefaultRpcPromise;
+import com.wjybxx.fastjgame.net.rpc.FailedRpcFuture;
+import com.wjybxx.fastjgame.net.rpc.RpcFuture;
+import com.wjybxx.fastjgame.net.rpc.RpcPromise;
 import com.wjybxx.fastjgame.net.socket.*;
 import com.wjybxx.fastjgame.utils.CloseableUtils;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
