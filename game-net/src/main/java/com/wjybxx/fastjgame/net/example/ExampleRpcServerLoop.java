@@ -20,7 +20,7 @@ import com.wjybxx.fastjgame.net.common.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.eventloop.NetContext;
 import com.wjybxx.fastjgame.net.local.LocalPort;
 import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
-import com.wjybxx.fastjgame.net.misc.DefaultProtocolDispatcher;
+import com.wjybxx.fastjgame.net.misc.DefaultRpcRequestDispatcher;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
 import com.wjybxx.fastjgame.net.utils.NetUtils;
@@ -47,7 +47,7 @@ import java.util.concurrent.ThreadFactory;
  */
 class ExampleRpcServerLoop extends DisruptorEventLoop {
 
-    private final DefaultProtocolDispatcher protocolDispatcher = new DefaultProtocolDispatcher();
+    private final DefaultRpcRequestDispatcher protocolDispatcher = new DefaultRpcRequestDispatcher();
 
     private final Promise<LocalPort> localPortPromise;
 

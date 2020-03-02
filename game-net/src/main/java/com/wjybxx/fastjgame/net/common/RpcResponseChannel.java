@@ -96,7 +96,8 @@ public interface RpcResponseChannel<T> {
     void write(@Nonnull RpcResponse rpcResponse);
 
     /**
-     * 是否不关心结果，true表示不关心结果
+     * 是否不关心结果，true表示不关心结果。
+     * 对于转发较为有用。
      *
      * @return true/false
      */

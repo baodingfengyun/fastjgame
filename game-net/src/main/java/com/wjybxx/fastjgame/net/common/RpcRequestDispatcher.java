@@ -24,8 +24,8 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * 协议分发器。
- * 注意：该实现不必是线程安全的，网络层保证所有的逻辑执行都在用户线程 - 即 {@link NetContext#appEventLoop()}。
+ * rpc请求分发器。
+ * 注意：该接口实现不必是线程安全的，网络层保证所有的逻辑执行都在用户线程 - 即 {@link NetContext#appEventLoop()}。
  *
  * @author wjybxx
  * @version 1.0
@@ -33,23 +33,16 @@ import javax.annotation.concurrent.NotThreadSafe;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public interface ProtocolDispatcher {
+public interface RpcRequestDispatcher {
 
     /**
      * 处理该会话发来的Rpc请求
      *
      * @param session         会话信息
      * @param request         rpc请求，如果编解码异常，则可能为null。
+     *                        此外：这里之所以没有声明为{@link RpcRequest}对象，是为了兼容不同的结构体，比如protoBuffer对象。
      * @param responseChannel 用于返回结果的通道
      */
-    void postRpcRequest(Session session, @Nullable Object request, @Nonnull RpcResponseChannel<?> responseChannel);
-
-    /**
-     * 处理该会话发来单向的消息
-     *
-     * @param session 会话信息
-     * @param message 业务逻辑消息，如果编解码异常，则可能为null。
-     */
-    void postOneWayMessage(Session session, @Nullable Object message);
+    void post(Session session, @Nullable Object request, @Nonnull RpcResponseChannel<?> responseChannel);
 
 }

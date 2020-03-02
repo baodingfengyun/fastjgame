@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 较为标准的rpc调用。
+ * 默认支持的rpc请求结构体。
  * 推荐使用该方式，但并不限制rpc调用的形式！
  * 警告：不要修改对象的内容，否则可能引发bug(并发错误)。
  * -

@@ -16,16 +16,13 @@
 
 package com.wjybxx.fastjgame.net.common;
 
-import com.wjybxx.fastjgame.net.session.Session;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * 没有返回值的Channel，占位符，表示用户不关心返回值或方法本身无返回值
- * 主要是{@link ProtocolDispatcher#postOneWayMessage(Session, Object)}用的，
- * 可以将{@code postOneWayMessage}伪装成 {@code postRpcRequest}，这样应用层可以使用相同的接口对待需要结果和不需要结果的rpc请求。
+ * 没有返回值的Channel，占位符，表示用户不关心返回值或方法本身无返回值。
+ * 主要用于实现单向通知。
  *
  * @author wjybxx
  * @version 1.0
@@ -35,7 +32,12 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class VoidRpcResponseChannel implements RpcResponseChannel<Object> {
 
-    public static final RpcResponseChannel INSTANCE = new VoidRpcResponseChannel();
+    private static final RpcResponseChannel INSTANCE = new VoidRpcResponseChannel();
+
+    @SuppressWarnings("unchecked")
+    public static <T> RpcResponseChannel<T> getInstance() {
+        return INSTANCE;
+    }
 
     @Override
     public void writeSuccess(@Nullable Object body) {

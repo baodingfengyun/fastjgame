@@ -20,7 +20,7 @@ import com.wjybxx.fastjgame.net.common.SessionDisconnectAware;
 import com.wjybxx.fastjgame.net.eventloop.NetContext;
 import com.wjybxx.fastjgame.net.local.LocalPort;
 import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
-import com.wjybxx.fastjgame.net.misc.DefaultProtocolDispatcher;
+import com.wjybxx.fastjgame.net.misc.DefaultRpcRequestDispatcher;
 import com.wjybxx.fastjgame.net.misc.HostAndPort;
 import com.wjybxx.fastjgame.net.misc.RpcMethodHandle;
 import com.wjybxx.fastjgame.net.session.Session;
@@ -76,7 +76,7 @@ class ExampleRpcClientLoop extends DisruptorEventLoop {
             LocalSessionConfig config = LocalSessionConfig.newBuilder()
                     .setCodec(ExampleConstants.binaryCodec)
                     .setLifecycleAware(new ServerDisconnectAward())
-                    .setDispatcher(new DefaultProtocolDispatcher())
+                    .setDispatcher(new DefaultRpcRequestDispatcher())
                     .build();
 
             session = netContext.connectLocal(sessionId, serverGuid, localPort, config).get();
@@ -85,7 +85,7 @@ class ExampleRpcClientLoop extends DisruptorEventLoop {
             SocketSessionConfig config = SocketSessionConfig.newBuilder()
                     .setCodec(ExampleConstants.binaryCodec)
                     .setLifecycleAware(new ServerDisconnectAward())
-                    .setDispatcher(new DefaultProtocolDispatcher())
+                    .setDispatcher(new DefaultRpcRequestDispatcher())
 //                    .setAutoReconnect(true)
                     .setRpcCallbackTimeoutMs((int) (15 * TimeUtils.SEC))
                     .setMaxPendingMessages(100)

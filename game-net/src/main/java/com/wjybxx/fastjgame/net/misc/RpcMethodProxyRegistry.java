@@ -16,28 +16,30 @@
 
 package com.wjybxx.fastjgame.net.misc;
 
-import com.wjybxx.fastjgame.net.common.RpcRequest;
-import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
-import com.wjybxx.fastjgame.net.session.Session;
-
 import javax.annotation.Nonnull;
 
 /**
- * rpc调用分发器
+ * Rpc调用函数注册表，本质是发布订阅/观察者的一种
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/27
+ * date - 2019/8/21
  * github - https://github.com/hl845740757
  */
-public interface RpcRequestDispatcher {
+public interface RpcMethodProxyRegistry {
 
     /**
-     * 分发一个rpc调用
+     * 注册一个rpc请求处理函数
      *
-     * @param session            所在的会话
-     * @param rpcRequest         rpc调用信息
-     * @param rpcResponseChannel 如果需要返回结果的话，使用该对象返回值。
+     * @param serviceId 服务id
+     * @param methodId  方法id
+     * @param proxy     处理函数，该函数由代理代码生成工具自动生成，当然你也可以闲得蛋疼自己写。
      */
-    void post(@Nonnull Session session, @Nonnull RpcRequest rpcRequest, @Nonnull RpcResponseChannel<?> rpcResponseChannel);
+    void register(short serviceId, short methodId, @Nonnull RpcMethodProxy proxy);
+
+    /**
+     * 释放所有的资源，因为{@link #register(short, short, RpcMethodProxy)}会捕获太多对象，当不再使用{@link RpcMethodProxyRegistry}时，
+     * 手动的释放，避免因为registry对象存在导致内存泄漏。
+     */
+    void release();
 }

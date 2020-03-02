@@ -60,7 +60,7 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
     static final String LAZY_SERIALIZABLE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.annotation.LazySerializable";
     static final String PRE_DESERIALIZE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.annotation.PreDeserializable";
 
-    private static final String REGISTRY_CANONICAL_NAME = "com.wjybxx.fastjgame.net.misc.RpcFunctionRegistry";
+    private static final String REGISTRY_CANONICAL_NAME = "com.wjybxx.fastjgame.net.misc.RpcMethodProxyRegistry";
     private static final String SESSION_CANONICAL_NAME = "com.wjybxx.fastjgame.net.session.Session";
     private static final String CHANNEL_CANONICAL_NAME = "com.wjybxx.fastjgame.net.common.RpcResponseChannel";
 

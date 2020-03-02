@@ -15,6 +15,7 @@
  */
 package com.wjybxx.fastjgame.net.task;
 
+import com.wjybxx.fastjgame.net.common.VoidRpcResponseChannel;
 import com.wjybxx.fastjgame.net.session.Session;
 
 /**
@@ -43,6 +44,7 @@ public class OneWayMessageCommitTask implements CommitTask {
 
     @Override
     public void run() {
-        session.config().dispatcher().postOneWayMessage(session, message);
+        // 这里使用voidRpcResponseChannel是实现单向通知的关键
+        session.config().dispatcher().post(session, message, VoidRpcResponseChannel.getInstance());
     }
 }

@@ -49,6 +49,6 @@ public class RpcRequestCommitTask implements CommitTask {
 
     @Override
     public void run() {
-        session.config().dispatcher().postRpcRequest(session, request, rpcResponseChannel);
+        session.config().dispatcher().post(session, request, rpcResponseChannel);
     }
 }

@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.net.misc;
 
 import com.wjybxx.fastjgame.net.common.RpcErrorCode;
 import com.wjybxx.fastjgame.net.common.RpcRequest;
+import com.wjybxx.fastjgame.net.common.RpcRequestDispatcher;
 import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
 import com.wjybxx.fastjgame.net.session.Session;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -26,65 +27,86 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
- * 默认的Rpc函数注册表。
+ * 协议分发的默认实现
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/21
+ * date - 2019/8/26
  * github - https://github.com/hl845740757
  */
-@NotThreadSafe
-public class DefaultRpcRequestDispatcher implements RpcFunctionRegistry, RpcRequestDispatcher {
+public class DefaultRpcRequestDispatcher implements RpcMethodProxyRegistry, RpcRequestDispatcher {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultRpcRequestDispatcher.class);
 
     /**
-     * 所有的Rpc请求处理函数, methodKey -> rpcFunction
+     * 所有的Rpc请求处理函数, methodKey -> methodProxy
      */
-    private final Int2ObjectMap<RpcFunction> functionInfoMap = new Int2ObjectOpenHashMap<>(512);
+    private final Int2ObjectMap<RpcMethodProxy> proxyMapping = new Int2ObjectOpenHashMap<>(512);
 
-    @Override
-    public final void register(short serviceId, short methodId, @Nonnull RpcFunction function) {
-        // rpc请求id不可以重复
-        final int methodKey = calMethodKey(serviceId, methodId);
-        if (functionInfoMap.containsKey(methodKey)) {
-            throw new IllegalArgumentException("methodKey " + methodKey + " is already registered!");
-        }
-        functionInfoMap.put(methodKey, function);
+
+    public DefaultRpcRequestDispatcher() {
+
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public final void post(@Nonnull Session session, @Nonnull RpcRequest rpcRequest, @Nonnull RpcResponseChannel<?> rpcResponseChannel) {
-        final int methodKey = calMethodKey(rpcRequest.getServiceId(), rpcRequest.getMethodId());
-        final List<Object> params = rpcRequest.getMethodParams();
-        final RpcFunction rpcFunction = functionInfoMap.get(methodKey);
-        if (null == rpcFunction) {
-            rpcResponseChannel.writeFailure(RpcErrorCode.SERVER_EXCEPTION, "methodKey " + methodKey);
-            logger.warn("{} send unregistered request, methodKey={}, parameters={}",
-                    session.sessionId(), methodKey, params);
-            return;
+    public final void register(short serviceId, short methodId, @Nonnull RpcMethodProxy proxy) {
+        // rpc请求id不可以重复
+        final int methodKey = calMethodKey(serviceId, methodId);
+        if (proxyMapping.containsKey(methodKey)) {
+            throw new IllegalArgumentException("methodKey " + methodKey + " is already registered!");
         }
-        try {
-            rpcFunction.call(session, params, rpcResponseChannel);
-        } catch (Exception e) {
-            logger.warn("handle {} rpcRequest caught exception, methodKey={}, parameters={}",
-                    session.sessionId(), methodKey, params);
-        }
+        proxyMapping.put(methodKey, proxy);
+    }
+
+    private static int calMethodKey(short serviceId, short methodId) {
+        return serviceId * 10000 + methodId;
     }
 
     /**
      * 释放所有捕获的对象，避免内存泄漏
      */
     public final void release() {
-        functionInfoMap.clear();
+        proxyMapping.clear();
     }
 
-    private static int calMethodKey(short serviceId, short methodId) {
-        return serviceId * 10000 + methodId;
+    @SuppressWarnings("unchecked")
+    @Override
+    public final void post(Session session, @Nullable Object request, @Nonnull RpcResponseChannel<?> responseChannel) {
+        if (null == request) {
+            logger.warn("{} send null request", session.sessionId());
+            return;
+        }
+        if (request instanceof RpcRequest) {
+            post(session, (RpcRequest) request, responseChannel);
+        } else {
+            postRpcRequest0(session, request, responseChannel);
+        }
     }
+
+    protected void postRpcRequest0(Session session, Object request, RpcResponseChannel<?> responseChannel) {
+
+    }
+
+    private <T> void post(@Nonnull Session session, @Nonnull RpcRequest<T> rpcRequest, @Nonnull RpcResponseChannel<T> rpcResponseChannel) {
+        final int methodKey = calMethodKey(rpcRequest.getServiceId(), rpcRequest.getMethodId());
+        final List<Object> params = rpcRequest.getMethodParams();
+        @SuppressWarnings("unchecked") final RpcMethodProxy<T> methodProxy = proxyMapping.get(methodKey);
+        if (null == methodProxy) {
+            rpcResponseChannel.writeFailure(RpcErrorCode.SERVER_EXCEPTION, "methodKey " + methodKey);
+            logger.warn("{} send unregistered request, methodKey={}, parameters={}",
+                    session.sessionId(), methodKey, params);
+            return;
+        }
+        try {
+            methodProxy.invoke(session, params, rpcResponseChannel);
+        } catch (Exception e) {
+            logger.warn("handle {} rpcRequest caught exception, methodKey={}, parameters={}",
+                    session.sessionId(), methodKey, params);
+        }
+    }
+
 }

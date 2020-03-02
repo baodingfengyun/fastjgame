@@ -23,8 +23,9 @@ import com.wjybxx.fastjgame.net.session.Session;
 import java.util.List;
 
 /**
- * rpc请求处理函数。
+ * rpc方法代理。
  * 用于代码生成工具为{@link RpcMethod}生成对应lambda表达式，以代替反射调用。
+ * 当然也可以手写实现。
  *
  * @author wjybxx
  * @version 1.0
@@ -32,7 +33,7 @@ import java.util.List;
  * github - https://github.com/hl845740757
  */
 @FunctionalInterface
-public interface RpcFunction<T> {
+public interface RpcMethodProxy<T> {
 
     /**
      * 执行调用
@@ -41,6 +42,6 @@ public interface RpcFunction<T> {
      * @param methodParams    对应的方法参数，发过来的参数不包含{@link Session} 和 {@link RpcResponseChannel}，如果需要的话，代理方法需要完成该处理。
      * @param responseChannel 返回结果的通道
      */
-    void call(Session session, List<Object> methodParams, RpcResponseChannel<T> responseChannel) throws Exception;
+    void invoke(Session session, List<Object> methodParams, RpcResponseChannel<T> responseChannel) throws Exception;
 
 }
