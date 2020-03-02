@@ -38,7 +38,7 @@ import java.io.IOException;
  * <p>
  * 实现需要注意：
  * 1.rpc响应在应用线程未关闭的情况下必须执行 - 否则可能造成逻辑错误(信号丢失 - 该执行的没执行)
- * 2.目前的rpc支持为{@link RpcCall} 和 {@link RpcResponse}
+ * 2.目前的rpc支持为{@link RpcRequest} 和 {@link RpcResponse}
  *
  * @author wjybxx
  * @version 1.0

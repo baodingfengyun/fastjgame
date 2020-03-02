@@ -60,20 +60,20 @@ public class LazySerializeSupportHandler extends SessionDuplexHandlerAdapter {
      * @throws IOException error
      */
     private Object checkLazySerialize(Object body) throws Exception {
-        if (!(body instanceof RpcCall)) {
+        if (!(body instanceof RpcRequest)) {
             return body;
         }
 
-        final RpcCall<?> rpcCall = (RpcCall<?>) body;
-        final int lazyIndexes = rpcCall.getLazyIndexes();
+        final RpcRequest<?> rpcRequest = (RpcRequest<?>) body;
+        final int lazyIndexes = rpcRequest.getLazyIndexes();
         if (lazyIndexes <= 0) {
-            return rpcCall;
+            return rpcRequest;
         }
 
         // bugs: 如果不创建新的list，则可能出现并发修改的情况，可能导致部分线程看见错误的数据
         // 解决方案有：①copyOnWrite ②对RpcCall对象加锁
         // 选择copyOnWrite的理由：①使用延迟序列化和提前反序列化的比例并不高 ②方法方法参数个数偏小，创建一个小list的成本较低。
-        final List<Object> methodParams = rpcCall.getMethodParams();
+        final List<Object> methodParams = rpcRequest.getMethodParams();
         final ArrayList<Object> newMethodParams = new ArrayList<>(methodParams.size());
 
         for (int index = 0, end = methodParams.size(); index < end; index++) {
@@ -88,7 +88,7 @@ public class LazySerializeSupportHandler extends SessionDuplexHandlerAdapter {
 
             newMethodParams.add(newParameter);
         }
-        return new RpcCall<>(rpcCall.getServiceId(), rpcCall.getMethodId(), newMethodParams, 0, rpcCall.getPreIndexes());
+        return new RpcRequest<>(rpcRequest.getServiceId(), rpcRequest.getMethodId(), newMethodParams, 0, rpcRequest.getPreIndexes());
     }
 
     @Override
@@ -108,18 +108,18 @@ public class LazySerializeSupportHandler extends SessionDuplexHandlerAdapter {
      * @throws IOException error
      */
     private Object checkPreDeserialize(Object body) throws Exception {
-        if (!(body instanceof RpcCall)) {
+        if (!(body instanceof RpcRequest)) {
             return body;
         }
 
-        final RpcCall<?> rpcCall = (RpcCall<?>) body;
-        final int preIndexes = rpcCall.getPreIndexes();
+        final RpcRequest<?> rpcRequest = (RpcRequest<?>) body;
+        final int preIndexes = rpcRequest.getPreIndexes();
         if (preIndexes <= 0) {
-            return rpcCall;
+            return rpcRequest;
         }
 
         // 线程安全问题同write
-        final List<Object> methodParams = rpcCall.getMethodParams();
+        final List<Object> methodParams = rpcRequest.getMethodParams();
         final ArrayList<Object> newMethodParams = new ArrayList<>(methodParams.size());
 
         for (int index = 0, end = methodParams.size(); index < end; index++) {
@@ -132,6 +132,6 @@ public class LazySerializeSupportHandler extends SessionDuplexHandlerAdapter {
             }
             newMethodParams.add(newParameter);
         }
-        return new RpcCall<>(rpcCall.getServiceId(), rpcCall.getMethodId(), newMethodParams, rpcCall.getLazyIndexes(), 0);
+        return new RpcRequest<>(rpcRequest.getServiceId(), rpcRequest.getMethodId(), newMethodParams, rpcRequest.getLazyIndexes(), 0);
     }
 }

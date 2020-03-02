@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.net.misc;
 
-import com.wjybxx.fastjgame.net.common.RpcCall;
 import com.wjybxx.fastjgame.net.common.RpcErrorCode;
+import com.wjybxx.fastjgame.net.common.RpcRequest;
 import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
 import com.wjybxx.fastjgame.net.session.Session;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -38,9 +38,9 @@ import java.util.List;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class DefaultRpcCallDispatcher implements RpcFunctionRegistry, RpcCallDispatcher {
+public class DefaultRpcRequestDispatcher implements RpcFunctionRegistry, RpcRequestDispatcher {
 
-    private static final Logger logger = LoggerFactory.getLogger(DefaultRpcCallDispatcher.class);
+    private static final Logger logger = LoggerFactory.getLogger(DefaultRpcRequestDispatcher.class);
 
     /**
      * 所有的Rpc请求处理函数, methodKey -> rpcFunction
@@ -59,9 +59,9 @@ public class DefaultRpcCallDispatcher implements RpcFunctionRegistry, RpcCallDis
 
     @SuppressWarnings("unchecked")
     @Override
-    public final void post(@Nonnull Session session, @Nonnull RpcCall rpcCall, @Nonnull RpcResponseChannel<?> rpcResponseChannel) {
-        final int methodKey = calMethodKey(rpcCall.getServiceId(), rpcCall.getMethodId());
-        final List<Object> params = rpcCall.getMethodParams();
+    public final void post(@Nonnull Session session, @Nonnull RpcRequest rpcRequest, @Nonnull RpcResponseChannel<?> rpcResponseChannel) {
+        final int methodKey = calMethodKey(rpcRequest.getServiceId(), rpcRequest.getMethodId());
+        final List<Object> params = rpcRequest.getMethodParams();
         final RpcFunction rpcFunction = functionInfoMap.get(methodKey);
         if (null == rpcFunction) {
             rpcResponseChannel.writeFailure(RpcErrorCode.SERVER_EXCEPTION, "methodKey " + methodKey);
@@ -72,7 +72,7 @@ public class DefaultRpcCallDispatcher implements RpcFunctionRegistry, RpcCallDis
         try {
             rpcFunction.call(session, params, rpcResponseChannel);
         } catch (Exception e) {
-            logger.warn("handle {} rpcCall caught exception, methodKey={}, parameters={}",
+            logger.warn("handle {} rpcRequest caught exception, methodKey={}, parameters={}",
                     session.sessionId(), methodKey, params);
         }
     }

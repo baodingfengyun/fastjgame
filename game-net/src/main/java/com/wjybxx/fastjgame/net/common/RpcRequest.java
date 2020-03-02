@@ -31,7 +31,7 @@ import java.util.List;
  * 推荐使用该方式，但并不限制rpc调用的形式！
  * 警告：不要修改对象的内容，否则可能引发bug(并发错误)。
  * -
- * 由{@link RpcCallSerializer}负责序列化
+ * 由{@link RpcRequestSerializer}负责序列化
  *
  * @param <V> the type of return type
  * @author wjybxx
@@ -40,7 +40,7 @@ import java.util.List;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class RpcCall<V> implements MethodSpec<V> {
+public class RpcRequest<V> implements MethodSpec<V> {
 
     /**
      * 远程服务id
@@ -69,7 +69,7 @@ public class RpcCall<V> implements MethodSpec<V> {
      */
     private final int preIndexes;
 
-    public RpcCall(short serviceId, short methodId, List<Object> methodParams, int lazyIndexes, int preIndexes) {
+    public RpcRequest(short serviceId, short methodId, List<Object> methodParams, int lazyIndexes, int preIndexes) {
         this.serviceId = serviceId;
         this.methodId = methodId;
         this.methodParams = methodParams;
@@ -97,25 +97,25 @@ public class RpcCall<V> implements MethodSpec<V> {
         return preIndexes;
     }
 
-    private static class RpcCallSerializer implements EntitySerializer<RpcCall> {
+    private static class RpcRequestSerializer implements EntitySerializer<RpcRequest> {
 
         @Override
-        public Class<RpcCall> getEntityClass() {
-            return RpcCall.class;
+        public Class<RpcRequest> getEntityClass() {
+            return RpcRequest.class;
         }
 
         @Override
-        public RpcCall readObject(EntityInputStream inputStream) throws Exception {
+        public RpcRequest readObject(EntityInputStream inputStream) throws Exception {
             final short serviceId = inputStream.readShort();
             final short methodId = inputStream.readShort();
             final List<Object> methodParams = inputStream.readCollection(ArrayList::new);
             final int lazyIndexes = inputStream.readInt();
             final int preIndexes = inputStream.readInt();
-            return new RpcCall(serviceId, methodId, methodParams, lazyIndexes, preIndexes);
+            return new RpcRequest(serviceId, methodId, methodParams, lazyIndexes, preIndexes);
         }
 
         @Override
-        public void writeObject(RpcCall instance, EntityOutputStream outputStream) throws Exception {
+        public void writeObject(RpcRequest instance, EntityOutputStream outputStream) throws Exception {
             outputStream.writeShort(instance.getServiceId());
             outputStream.writeShort(instance.getMethodId());
             outputStream.writeCollection(instance.getMethodParams());

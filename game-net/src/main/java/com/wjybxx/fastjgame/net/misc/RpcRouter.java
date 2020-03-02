@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.misc;
 
-import com.wjybxx.fastjgame.net.common.RpcCall;
+import com.wjybxx.fastjgame.net.common.RpcRequest;
 
 /**
  * rpc路由器
@@ -29,9 +29,9 @@ public interface RpcRouter<V> {
     /**
      * 路由实现(将原始请求封装到另一个请求中)
      *
-     * @param rpcCall 原始方法调用信息
+     * @param rpcRequest 原始方法调用信息
      * @return newBuilder，该builder中包含新封装后的调用信息。
      */
-    RpcMethodHandle<V> route(RpcCall<V> rpcCall);
+    RpcMethodHandle<V> route(RpcRequest<V> rpcRequest);
 
 }

@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.misc;
 
-import com.wjybxx.fastjgame.net.common.RpcCall;
+import com.wjybxx.fastjgame.net.common.RpcRequest;
 import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
 import com.wjybxx.fastjgame.net.session.Session;
 
@@ -30,14 +30,14 @@ import javax.annotation.Nonnull;
  * date - 2019/8/27
  * github - https://github.com/hl845740757
  */
-public interface RpcCallDispatcher {
+public interface RpcRequestDispatcher {
 
     /**
      * 分发一个rpc调用
      *
      * @param session            所在的会话
-     * @param rpcCall            rpc调用信息
+     * @param rpcRequest         rpc调用信息
      * @param rpcResponseChannel 如果需要返回结果的话，使用该对象返回值。
      */
-    void post(@Nonnull Session session, @Nonnull RpcCall rpcCall, @Nonnull RpcResponseChannel<?> rpcResponseChannel);
+    void post(@Nonnull Session session, @Nonnull RpcRequest rpcRequest, @Nonnull RpcResponseChannel<?> rpcResponseChannel);
 }

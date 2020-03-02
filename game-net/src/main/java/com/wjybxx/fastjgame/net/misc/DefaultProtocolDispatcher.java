@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.net.misc;
 
 import com.wjybxx.fastjgame.net.common.ProtocolDispatcher;
-import com.wjybxx.fastjgame.net.common.RpcCall;
+import com.wjybxx.fastjgame.net.common.RpcRequest;
 import com.wjybxx.fastjgame.net.common.RpcResponseChannel;
 import com.wjybxx.fastjgame.net.common.VoidRpcResponseChannel;
 import com.wjybxx.fastjgame.net.session.Session;
@@ -39,7 +39,7 @@ public class DefaultProtocolDispatcher implements RpcFunctionRegistry, ProtocolD
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultProtocolDispatcher.class);
 
-    private final DefaultRpcCallDispatcher rpcCallDispatcher = new DefaultRpcCallDispatcher();
+    private final DefaultRpcRequestDispatcher rpcCallDispatcher = new DefaultRpcRequestDispatcher();
 
     public DefaultProtocolDispatcher() {
 
@@ -61,7 +61,7 @@ public class DefaultProtocolDispatcher implements RpcFunctionRegistry, ProtocolD
             logger.warn("{} send null request", session.sessionId());
             return;
         }
-        rpcCallDispatcher.post(session, (RpcCall) request, responseChannel);
+        rpcCallDispatcher.post(session, (RpcRequest) request, responseChannel);
     }
 
     @Override
@@ -71,7 +71,7 @@ public class DefaultProtocolDispatcher implements RpcFunctionRegistry, ProtocolD
             return;
         }
         // 这是可以使用send代替无回调的call调用的关键
-        rpcCallDispatcher.post(session, (RpcCall) message, VoidRpcResponseChannel.INSTANCE);
+        rpcCallDispatcher.post(session, (RpcRequest) message, VoidRpcResponseChannel.INSTANCE);
     }
 
 }

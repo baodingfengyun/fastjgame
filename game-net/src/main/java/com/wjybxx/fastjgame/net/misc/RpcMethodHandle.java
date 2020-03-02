@@ -16,9 +16,9 @@
 
 package com.wjybxx.fastjgame.net.misc;
 
-import com.wjybxx.fastjgame.net.common.RpcCall;
 import com.wjybxx.fastjgame.net.common.RpcClient;
 import com.wjybxx.fastjgame.net.common.RpcFutureResult;
+import com.wjybxx.fastjgame.net.common.RpcRequest;
 import com.wjybxx.fastjgame.utils.async.FlushableMethodHandle;
 import com.wjybxx.fastjgame.utils.async.TimeoutMethodListenable;
 
@@ -77,7 +77,7 @@ import java.util.concurrent.CompletionException;
  * <pre>
  * 4. 包含代理/路由节点的单向通知/rpc调用：
  *     Proxy.methodName(a, b, c)
- *          .router(rpcCall -> routeById(id, rpcCall))
+ *          .router(rpcRequest -> routeById(id, rpcRequest))
  *          .call(routerClient)
  *          .onSuccess(result -> onSuccess(result))
  *          .onFailure(cause -> client.close());
@@ -95,7 +95,7 @@ public interface RpcMethodHandle<V> extends FlushableMethodHandle<RpcClient, Rpc
      * 获取该方法包含的调用信息，可用于二次封装。
      * 警告：不可修改对象的内容，否则可能引发bug。
      */
-    RpcCall<V> getCall();
+    RpcRequest<V> getRequest();
 
     /**
      * 设置路由策略。

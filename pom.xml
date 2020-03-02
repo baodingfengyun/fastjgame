@@ -24,7 +24,6 @@
         <module>game-log-kafka</module>
         <module>game-guid-api</module>
         <module>game-zookeeper</module>
-        <module>game-discover-api</module>
         <module>game-guid-redis</module>
         <module>game-guid-zk</module>
         <module>game-db-api</module>
