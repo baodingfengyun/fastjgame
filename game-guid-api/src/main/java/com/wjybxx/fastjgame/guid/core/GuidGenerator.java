@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.guid.core;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Closeable;
 
 /**
@@ -34,13 +35,15 @@ import java.io.Closeable;
  * 如redis的 Incrby 指令: INCRBY guid 100000
  * <p>
  * 缓存越大越安全(对方挂掉的影响越小)，但容易造成资源浪费，缓存过小又降低了缓存的意义；这个全凭自己估量。
- * 并不强求实现为线程安全，根据自己的需要确定为什么级别。
+ * <p>
+ * 非线程安全，每个线程创建独立的对象。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2020/2/12
  * github - https://github.com/hl845740757
  */
+@NotThreadSafe
 public interface GuidGenerator extends Closeable {
 
     /**

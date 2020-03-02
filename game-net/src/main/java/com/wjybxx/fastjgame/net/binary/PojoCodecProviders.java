@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
+import com.wjybxx.fastjgame.net.binaryextend.ClassCodec;
 import com.wjybxx.fastjgame.utils.misc.IntPair;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -48,8 +49,8 @@ public class PojoCodecProviders {
     public static List<CodecProvider> getDefaultProviders() {
         final List<CodecProvider> result = new ArrayList<>(JDK_POJO_CODEC_PROVIDER.size() + 2);
         result.add(new ValueCodecProvider());
-        result.add(new ContainerCodecProvider());
         result.addAll(JDK_POJO_CODEC_PROVIDER);
+        result.add(new ContainerCodecProvider());
         return result;
     }
 

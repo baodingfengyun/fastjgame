@@ -16,7 +16,6 @@
 package com.wjybxx.fastjgame.zk.guid;
 
 import com.wjybxx.fastjgame.guid.core.GuidGenerator;
-import com.wjybxx.fastjgame.utils.CheckUtils;
 import com.wjybxx.fastjgame.utils.CodecUtils;
 import com.wjybxx.fastjgame.utils.concurrent.ImmediateEventLoop;
 import com.wjybxx.fastjgame.zk.core.CuratorClientMgr;
@@ -45,11 +44,13 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class ZKGuidGenerator implements GuidGenerator {
 
     private static final Logger logger = LoggerFactory.getLogger(ZKGuidGenerator.class);
+
+    private static final String GUID_PATH_ROOT = "/_guid/";
     private static final int DEFAULT_CACHE_SIZE = 1000_000;
 
     private final CuratorFacade curatorFacade;
     private final String name;
-    private final int cacheSize;
+    private final long cacheSize;
 
     private long curGuid = 0;
     private long curBarrier = 0;
@@ -62,8 +63,10 @@ public class ZKGuidGenerator implements GuidGenerator {
      * @param name      生成器名字
      * @param cacheSize 每次缓存大小
      */
-    public ZKGuidGenerator(CuratorClientMgr curatorClientMgr, final String name, final int cacheSize) {
-        CheckUtils.requirePositive(cacheSize, "cacheSize");
+    public ZKGuidGenerator(CuratorClientMgr curatorClientMgr, final String name, final long cacheSize) {
+        if (cacheSize <= 0) {
+            throw new IllegalArgumentException("cacheSize: " + cacheSize + " (expected: > 0)");
+        }
         this.curatorFacade = new CuratorFacade(curatorClientMgr, ImmediateEventLoop.INSTANCE);
         this.name = name;
         this.cacheSize = cacheSize;
@@ -124,11 +127,11 @@ public class ZKGuidGenerator implements GuidGenerator {
     }
 
     private String getGuidPath() {
-        return ZKPathUtils.makePath(ZKPathUtils.GUID_PATH_ROOT, name);
+        return ZKPathUtils.makePath(GUID_PATH_ROOT, name);
     }
 
     private String getLockPath() {
-        return ZKPathUtils.makePath(ZKPathUtils.GUID_PATH_ROOT, name + "_lock");
+        return ZKPathUtils.makePath(GUID_PATH_ROOT, name + "_lock");
     }
 
     /**

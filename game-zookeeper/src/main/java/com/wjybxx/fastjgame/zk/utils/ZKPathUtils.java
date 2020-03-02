@@ -35,7 +35,6 @@ import java.util.List;
  */
 public class ZKPathUtils {
 
-    public static final String GUID_PATH_ROOT = "/_guid/";
     public static final String GLOBAL_LOCK_PATH = "/_globalLock";
 
     /**

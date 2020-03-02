@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.net.binary;
 
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.CodedOutputStream;
+import com.wjybxx.fastjgame.net.binaryextend.ClassCodec;
 import com.wjybxx.fastjgame.utils.entity.NumericalEntity;
 
 import javax.annotation.Nonnull;

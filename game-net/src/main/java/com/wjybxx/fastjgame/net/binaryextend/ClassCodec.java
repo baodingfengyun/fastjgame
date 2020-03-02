@@ -14,10 +14,12 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.binary;
+package com.wjybxx.fastjgame.net.binaryextend;
 
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.CodedOutputStream;
+import com.wjybxx.fastjgame.net.binary.CodecRegistry;
+import com.wjybxx.fastjgame.net.binary.PojoCodec;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
@@ -38,7 +40,7 @@ public class ClassCodec extends PojoCodec<Class> {
      */
     private static final ThreadLocal<Map<String, Class<?>>> LOAD_CACHE = ThreadLocal.withInitial(HashMap::new);
 
-    ClassCodec(int providerId, int classId) {
+    public ClassCodec(int providerId, int classId) {
         super(providerId, classId);
     }
 
@@ -54,12 +56,12 @@ public class ClassCodec extends PojoCodec<Class> {
         return decodeClass(className);
     }
 
-    static void encodeClass(CodedOutputStream outputStream, Class<?> value) throws Exception {
+    public static void encodeClass(CodedOutputStream outputStream, Class<?> value) throws Exception {
         outputStream.writeStringNoTag(value.getName());
     }
 
     @Nonnull
-    static Class decodeClass(String className) throws ClassNotFoundException {
+    public static Class decodeClass(String className) throws ClassNotFoundException {
         final Map<String, Class<?>> cacheMap = LOAD_CACHE.get();
         final Class<?> cacheClass = cacheMap.get(className);
         if (cacheClass != null) {

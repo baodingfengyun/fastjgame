@@ -39,7 +39,7 @@ public class RedisGuidGenerator implements GuidGenerator {
 
     private final JedisPoolAbstract jedisPool;
     private final String name;
-    private final int cacheSize;
+    private final long cacheSize;
 
     private long curGuid = 0;
     private long curBarrier = 0;
@@ -53,7 +53,7 @@ public class RedisGuidGenerator implements GuidGenerator {
      * @param name      生成器名字
      * @param cacheSize 每次缓存大小
      */
-    public RedisGuidGenerator(JedisPoolAbstract jedisPool, String name, int cacheSize) {
+    public RedisGuidGenerator(JedisPoolAbstract jedisPool, String name, long cacheSize) {
         if (cacheSize <= 0) {
             throw new IllegalArgumentException("cacheSize: " + cacheSize + " (expected: > 0)");
         }

@@ -275,7 +275,6 @@ public class TypeParameterFinder {
      * 拷贝自netty，需要进行一定修改
      */
     private static Class<?> find0(final Class<?> thisClass, Class<?> parametrizedSuperclass, String typeParamName) {
-
         Class<?> currentClass = thisClass;
         for (; ; ) {
             if (currentClass.getSuperclass() == parametrizedSuperclass) {

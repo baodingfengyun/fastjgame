@@ -14,22 +14,11 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.discover;
-
 /**
- * 游戏路径的一些规范
+ * 后期扩展的{@link com.wjybxx.fastjgame.net.binary.PojoCodec}全放在该包下
  *
  * @author wjybxx
  * @version 1.0
- * date - 2020/2/12
- * github - https://github.com/hl845740757
+ * date - 2020/3/2
  */
-public class GamePaths {
-
-    /**
-     * 路径分隔符
-     */
-    public static final String PATH_SEPARATOR = "/";
-
-    private static final char PATH_SEPARATOR_CHAR = '/';
-}
+package com.wjybxx.fastjgame.net.binaryextend;
