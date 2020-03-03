@@ -14,9 +14,9 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.misc;
+package com.wjybxx.fastjgame.net.serialization;
 
-import com.wjybxx.fastjgame.net.binary.BinaryProtocolCodec;
+import com.wjybxx.fastjgame.net.binary.BinarySerializer;
 import com.wjybxx.fastjgame.net.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import io.netty.buffer.*;
@@ -30,7 +30,7 @@ import java.util.Set;
 
 /**
  * 基于Json的编解码器，必须使用简单对象来封装参数。-- POJO
- * 编码后的数据量较多，编解码效率也很低，建议只在测试期间使用。-- 因为json可读性很好，正式编解码时建议使用{@link BinaryProtocolCodec}。
+ * 编码后的数据量较多，编解码效率也很低，建议只在测试期间使用。-- 因为json可读性很好，正式编解码时建议使用{@link BinarySerializer}。
  *
  * @author wjybxx
  * @version 1.0
@@ -38,13 +38,13 @@ import java.util.Set;
  * github - https://github.com/hl845740757
  */
 @ThreadSafe
-public class JsonProtocolCodec implements ProtocolCodec {
+public class JsonSerializer implements Serializer {
 
     private static final ThreadLocal<byte[]> LOCAL_BUFFER = ThreadLocal.withInitial(() -> new byte[NetUtils.MAX_BUFFER_SIZE]);
 
     private final MessageMapper messageMapper;
 
-    private JsonProtocolCodec(MessageMapper messageMapper) {
+    private JsonSerializer(MessageMapper messageMapper) {
         this.messageMapper = messageMapper;
     }
 
@@ -146,8 +146,8 @@ public class JsonProtocolCodec implements ProtocolCodec {
         return JsonUtils.readFromInputStream((InputStream) inputStream, messageClazz);
     }
 
-    public static JsonProtocolCodec newInstance(Set<Class<?>> entityClasses, MessageMappingStrategy mappingStrategy) {
+    public static JsonSerializer newInstance(Set<Class<?>> entityClasses, MessageMappingStrategy mappingStrategy) {
         final MessageMapper messageMapper = MessageMapper.newInstance(entityClasses, mappingStrategy);
-        return new JsonProtocolCodec(messageMapper);
+        return new JsonSerializer(messageMapper);
     }
 }

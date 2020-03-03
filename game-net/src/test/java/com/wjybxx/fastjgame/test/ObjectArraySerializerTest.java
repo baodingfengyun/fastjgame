@@ -31,7 +31,7 @@ public class ObjectArraySerializerTest {
         final Object[] objects = {"hello", "world", 1, 2, 3, Integer.class};
         System.out.println(Arrays.toString(objects));
 
-        final Object[] cloneObjects = (Object[]) ExampleConstants.binaryCodec.cloneObject(objects);
+        final Object[] cloneObjects = (Object[]) ExampleConstants.BINARY_SERIALIZER.cloneObject(objects);
         System.out.print(Arrays.toString(cloneObjects));
 
         System.out.print(Arrays.equals(objects, cloneObjects));

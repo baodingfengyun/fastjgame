@@ -39,7 +39,7 @@ public class OneWaySupportHandler extends SessionDuplexHandlerAdapter {
             // 读取到一个单向消息
             OneWayMessage oneWayMessage = (OneWayMessage) msg;
             ConcurrentUtils.safeExecute(ctx.appEventLoop(),
-                    new OneWayMessageCommitTask(ctx.session(), oneWayMessage.getBody()));
+                    new OneWayCommitTask(ctx.session(), oneWayMessage.getBody()));
         } else {
             ctx.fireRead(msg);
         }
@@ -47,9 +47,9 @@ public class OneWaySupportHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void write(SessionHandlerContext ctx, Object msg) throws Exception {
-        if (msg instanceof OneWayMessageWriteTask) {
+        if (msg instanceof OneWayWriteTask) {
             // 单向消息
-            OneWayMessageWriteTask writeTask = (OneWayMessageWriteTask) msg;
+            OneWayWriteTask writeTask = (OneWayWriteTask) msg;
             ctx.fireWrite(new OneWayMessage(writeTask.getMessage()));
         } else {
             ctx.fireWrite(msg);

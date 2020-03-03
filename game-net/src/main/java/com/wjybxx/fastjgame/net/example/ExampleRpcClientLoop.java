@@ -74,7 +74,7 @@ class ExampleRpcClientLoop extends DisruptorEventLoop {
 
         if (localPort != null) {
             LocalSessionConfig config = LocalSessionConfig.newBuilder()
-                    .setCodec(ExampleConstants.binaryCodec)
+                    .setSerializer(ExampleConstants.BINARY_SERIALIZER)
                     .setLifecycleAware(new ServerDisconnectAward())
                     .setDispatcher(new DefaultRpcRequestDispatcher())
                     .build();
@@ -83,7 +83,7 @@ class ExampleRpcClientLoop extends DisruptorEventLoop {
         } else {
             // 必须先启动服务器
             SocketSessionConfig config = SocketSessionConfig.newBuilder()
-                    .setCodec(ExampleConstants.binaryCodec)
+                    .setSerializer(ExampleConstants.BINARY_SERIALIZER)
                     .setLifecycleAware(new ServerDisconnectAward())
                     .setDispatcher(new DefaultRpcRequestDispatcher())
 //                    .setAutoReconnect(true)
@@ -150,7 +150,7 @@ class ExampleRpcClientLoop extends DisruptorEventLoop {
 
         // 模拟玩家通过网关发送给场景服务器 - 注意：序列化方式必须一致。
         try {
-            ExampleRpcServiceRpcProxy.sendToScene(13245, ExampleConstants.binaryCodec.toBytes("这里后期替换为protoBuf消息"))
+            ExampleRpcServiceRpcProxy.sendToScene(13245, ExampleConstants.BINARY_SERIALIZER.toBytes("这里后期替换为protoBuf消息"))
                     .call(session)
                     .onSuccess(result -> System.out.println("sendToScene - " + index + " - invoke success"));
         } catch (Exception e) {

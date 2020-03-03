@@ -13,42 +13,37 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
 package com.wjybxx.fastjgame.net.rpc;
 
 import com.wjybxx.fastjgame.net.session.Session;
 
 /**
- * 单向消息发送任务
+ * 单向消息提交任务
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/9/26
+ * date - 2019/8/8
  * github - https://github.com/hl845740757
  */
-public class OneWayMessageWriteTask implements WriteTask {
+public class OneWayCommitTask implements CommitTask {
 
+    /**
+     * session - 包含协议分发器
+     */
     private final Session session;
+    /**
+     * 单向消息的内容
+     */
     private final Object message;
-    private final boolean flush;
 
-    public OneWayMessageWriteTask(Session session, Object message, boolean flush) {
+    public OneWayCommitTask(Session session, Object message) {
         this.session = session;
         this.message = message;
-        this.flush = flush;
-    }
-
-    public Object getMessage() {
-        return message;
     }
 
     @Override
     public void run() {
-        if (flush) {
-            session.fireWriteAndFlush(this);
-        } else {
-            session.fireWrite(this);
-        }
+        // 这里使用voidRpcResponseChannel是实现单向通知的关键
+        session.config().dispatcher().post(session, message, VoidRpcResponseChannel.getInstance());
     }
-
 }

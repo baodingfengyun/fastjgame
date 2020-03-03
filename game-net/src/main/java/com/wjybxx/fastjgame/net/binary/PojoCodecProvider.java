@@ -38,7 +38,7 @@ public interface PojoCodecProvider extends CodecProvider {
      * 1. 必须在[0,127]之间是因为可以固定一个字节传输，减少传输量。
      * 2. 排除内部使用值{@link PojoCodecProviders#INTERNAL_PROVIDER_ID_RANGE}。
      */
-    int getProviderId();
+    byte getProviderId();
 
     /**
      * 通过classId获取对应的codec

@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.misc;
+package com.wjybxx.fastjgame.net.serialization;
 
 /**
  * 消息映射策略，自己决定消息类到消息id的映射。

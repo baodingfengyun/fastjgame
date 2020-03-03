@@ -120,11 +120,14 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
                 .addAnnotation(AutoUtils.SUPPRESS_UNCHECKED_ANNOTATION)
                 .addAnnotation(processorInfoAnnotation)
                 .superclass(TypeName.get(superDeclaredType))
-                .addStaticBlock(staticCodeBlockBuilder.build())
                 .addMethod(getEntityMethod)
                 .addMethod(writeObjectMethodBuilder.build())
                 .addMethod(newInstanceMethodBuilder.build())
                 .addMethod(readFieldsMethodBuilder.build());
+
+        if (!staticCodeBlockBuilder.isEmpty()) {
+            typeBuilder.addStaticBlock(staticCodeBlockBuilder.build());
+        }
 
         // 写入文件
         AutoUtils.writeToFile(typeElement, typeBuilder, elementUtils, messager, filer);

@@ -74,7 +74,7 @@ public class CodecRegistrys {
         }
 
         @Override
-        public PojoCodec<?> getPojoCodec(int providerId, int classId) {
+        public PojoCodec<?> getPojoCodec(byte providerId, int classId) {
             // 理论上provider数量较少，使用数组性能足够好，无需map
             for (PojoCodecProvider pojoCodecProvider : pojoCodecProviders) {
                 if (pojoCodecProvider.getProviderId() == providerId) {

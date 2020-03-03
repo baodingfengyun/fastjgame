@@ -16,7 +16,12 @@
 
 package com.wjybxx.fastjgame.net.example;
 
-import com.wjybxx.fastjgame.net.binary.*;
+import com.wjybxx.fastjgame.net.binary.BinarySerializer;
+import com.wjybxx.fastjgame.net.binary.EntityInputStream;
+import com.wjybxx.fastjgame.net.binary.EntityOutputStream;
+import com.wjybxx.fastjgame.net.binary.EntitySerializer;
+import com.wjybxx.fastjgame.net.binary.SerializableClass;
+import com.wjybxx.fastjgame.net.binary.SerializableField;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /**
@@ -28,7 +33,7 @@ public class EntityExample {
 
 
     public static void main(String[] args) throws Exception {
-        BinaryProtocolCodec binaryCodec = ExampleConstants.binaryCodec;
+        BinarySerializer binaryCodec = ExampleConstants.BINARY_SERIALIZER;
 
         final ChildBean childBean = new ChildBean(new Child1(123456, "wjybxx"), false);
         System.out.println(childBean);

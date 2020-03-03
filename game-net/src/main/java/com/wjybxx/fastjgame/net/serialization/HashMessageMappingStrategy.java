@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.misc;
+package com.wjybxx.fastjgame.net.serialization;
 
 /**
  * 基于hash的消息映射方法，由类的简单名计算hash值。

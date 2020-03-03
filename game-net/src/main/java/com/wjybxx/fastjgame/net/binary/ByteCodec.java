@@ -32,7 +32,7 @@ public class ByteCodec implements Codec<Byte> {
 
     @Override
     public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Byte value, CodecRegistry codecRegistry) throws Exception {
-        BinaryProtocolCodec.writeTag(outputStream, Tag.BYTE);
+        BinarySerializer.writeTag(outputStream, Tag.BYTE);
         outputStream.writeRawByte(value);
     }
 

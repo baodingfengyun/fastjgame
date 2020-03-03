@@ -34,6 +34,9 @@ public class VoidRpcResponseChannel implements RpcResponseChannel<Object> {
 
     private static final RpcResponseChannel INSTANCE = new VoidRpcResponseChannel();
 
+    private VoidRpcResponseChannel() {
+    }
+
     @SuppressWarnings("unchecked")
     public static <T> RpcResponseChannel<T> getInstance() {
         return INSTANCE;

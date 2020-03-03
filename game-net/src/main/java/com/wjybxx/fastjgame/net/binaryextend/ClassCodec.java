@@ -40,7 +40,7 @@ public class ClassCodec extends PojoCodec<Class> {
      */
     private static final ThreadLocal<Map<String, Class<?>>> LOAD_CACHE = ThreadLocal.withInitial(HashMap::new);
 
-    public ClassCodec(int providerId, int classId) {
+    public ClassCodec(byte providerId, int classId) {
         super(providerId, classId);
     }
 

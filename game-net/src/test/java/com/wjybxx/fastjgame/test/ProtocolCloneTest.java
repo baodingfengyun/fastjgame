@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.test;
 import com.wjybxx.fastjgame.net.example.BinaryProtoCodecTest;
 import com.wjybxx.fastjgame.net.example.ExampleConstants;
 import com.wjybxx.fastjgame.net.example.ExampleMessages;
-import com.wjybxx.fastjgame.net.misc.ProtocolCodec;
+import com.wjybxx.fastjgame.net.serialization.Serializer;
 import com.wjybxx.fastjgame.net.utils.NetUtils;
 
 import java.util.Objects;
@@ -38,13 +38,13 @@ public class ProtocolCloneTest {
         // 触发NetUtils类加载，避免输出干扰
         System.out.println(NetUtils.getOuterIp());
 
-        cloneTest(ExampleConstants.binaryCodec);
-        cloneTest(ExampleConstants.jsonCodec);
+        cloneTest(ExampleConstants.BINARY_SERIALIZER);
+        cloneTest(ExampleConstants.JSON_SERIALIZER);
     }
 
-    private static void cloneTest(ProtocolCodec codec) throws Exception {
-        System.out.println("\n" + codec.getClass().getName());
+    private static void cloneTest(Serializer serializer) throws Exception {
+        System.out.println("\n" + serializer.getClass().getName());
         final ExampleMessages.FullMessage fullMessage = BinaryProtoCodecTest.newFullMessage();
-        System.out.println("cloneField " + Objects.equals(codec.cloneObject(fullMessage), fullMessage));
+        System.out.println("cloneField " + Objects.equals(serializer.cloneObject(fullMessage), fullMessage));
     }
 }

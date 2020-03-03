@@ -99,7 +99,7 @@ public class ExampleRpcService {
      */
     @RpcMethod(methodId = 10)
     public void sendToPlayer(long playerGuid, @LazySerializable byte[] proto) throws Exception {
-        System.out.println("playerGuid " + playerGuid + ", " + ExampleConstants.binaryCodec.fromBytes(proto));
+        System.out.println("playerGuid " + playerGuid + ", " + ExampleConstants.BINARY_SERIALIZER.fromBytes(proto));
     }
 
     /**

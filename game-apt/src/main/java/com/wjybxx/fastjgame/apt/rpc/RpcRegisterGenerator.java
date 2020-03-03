@@ -71,8 +71,7 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
         final TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(getServerProxyClassName(typeElement))
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                 .addAnnotation(AutoUtils.SUPPRESS_UNCHECKED_ANNOTATION)
-                .addAnnotation(processorInfoAnnotation)
-                .addSuperinterface(processor.serviceRegisterTypeName);
+                .addAnnotation(processorInfoAnnotation);
 
         typeBuilder.addMethods(serverMethodProxyList);
 

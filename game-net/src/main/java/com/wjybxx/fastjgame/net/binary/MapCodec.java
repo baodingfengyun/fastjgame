@@ -49,15 +49,15 @@ public class MapCodec implements Codec<Map<?, ?>> {
     }
 
     static void encodeMap(@Nonnull CodedOutputStream outputStream, @Nonnull Map<?, ?> value, CodecRegistry codecRegistry) throws Exception {
-        BinaryProtocolCodec.writeTag(outputStream, Tag.MAP);
+        BinarySerializer.writeTag(outputStream, Tag.MAP);
         outputStream.writeUInt32NoTag(value.size());
         if (value.size() == 0) {
             return;
         }
 
         for (Map.Entry<?, ?> entry : value.entrySet()) {
-            BinaryProtocolCodec.encodeObject(outputStream, entry.getKey(), codecRegistry);
-            BinaryProtocolCodec.encodeObject(outputStream, entry.getValue(), codecRegistry);
+            BinarySerializer.encodeObject(outputStream, entry.getKey(), codecRegistry);
+            BinarySerializer.encodeObject(outputStream, entry.getValue(), codecRegistry);
         }
     }
 
@@ -72,8 +72,8 @@ public class MapCodec implements Codec<Map<?, ?>> {
 
         final M result = mapFactory.apply(size);
         for (int index = 0; index < size; index++) {
-            final K key = BinaryProtocolCodec.decodeObject(inputStream, codecRegistry);
-            final V value = BinaryProtocolCodec.decodeObject(inputStream, codecRegistry);
+            final K key = BinarySerializer.decodeObject(inputStream, codecRegistry);
+            final V value = BinarySerializer.decodeObject(inputStream, codecRegistry);
             result.put(key, value);
         }
         return result;

@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.net.misc.ProtocolCodec;
 import com.wjybxx.fastjgame.net.rpc.*;
+import com.wjybxx.fastjgame.net.serialization.Serializer;
 import com.wjybxx.fastjgame.net.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.CodecUtils;
 import io.netty.buffer.ByteBuf;
@@ -49,17 +49,17 @@ import java.util.Iterator;
  * date - 2019/5/7 12:26
  * github - https://github.com/hl845740757
  */
-public abstract class BaseSocketCodec extends ChannelDuplexHandler {
+public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(BaseSocketCodec.class);
+    private static final Logger logger = LoggerFactory.getLogger(AbstractSocketCodec.class);
 
     /**
-     * 协议编解码工具
+     * 序列化工具
      */
-    private final ProtocolCodec codec;
+    private final Serializer serializer;
 
-    protected BaseSocketCodec(ProtocolCodec codec) {
-        this.codec = codec;
+    protected AbstractSocketCodec(Serializer serializer) {
+        this.serializer = serializer;
     }
 
     @Override
@@ -399,7 +399,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
      */
     private ByteBuf tryEncodeBody(final ByteBufAllocator allocator, final Object bodyData) {
         try {
-            return codec.writeObject(allocator, bodyData);
+            return serializer.writeObject(allocator, bodyData);
         } catch (Exception e) {
             // 为了不影响该连接上的其它消息，需要捕获异常
             logger.warn("serialize body {} caught exception.", bodyData.getClass().getName(), e);
@@ -416,7 +416,7 @@ public abstract class BaseSocketCodec extends ChannelDuplexHandler {
     @Nullable
     private Object tryDecodeBody(final ByteBuf data) {
         try {
-            return codec.readObject(data);
+            return serializer.readObject(data);
         } catch (Exception e) {
             // 为了不影响该连接上的其它消息，需要捕获异常
             logger.warn("deserialize body caught exception", e);

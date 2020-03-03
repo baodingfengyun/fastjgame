@@ -161,7 +161,7 @@ public abstract class AbstractSession implements Session {
             // 会话关闭的情况下丢弃消息
             return;
         }
-        netEventLoop.execute(new OneWayMessageWriteTask(this, message, flush));
+        netEventLoop.execute(new OneWayWriteTask(this, message, flush));
     }
 
     @Override

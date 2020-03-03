@@ -33,7 +33,7 @@ public class CharCodec implements Codec<Character> {
 
     @Override
     public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Character value, CodecRegistry codecRegistry) throws Exception {
-        BinaryProtocolCodec.writeTag(outputStream, Tag.CHAR);
+        BinarySerializer.writeTag(outputStream, Tag.CHAR);
         outputStream.writeUInt32NoTag(value);
     }
 

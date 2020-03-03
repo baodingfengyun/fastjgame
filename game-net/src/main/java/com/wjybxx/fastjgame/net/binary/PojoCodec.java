@@ -33,19 +33,19 @@ import java.io.IOException;
  */
 public abstract class PojoCodec<T> implements Codec<T> {
 
-    private final int providerId;
+    private final byte providerId;
     private final int classId;
 
-    protected PojoCodec(int providerId, int classId) {
+    protected PojoCodec(byte providerId, int classId) {
         this.providerId = providerId;
         this.classId = classId;
     }
 
     @Override
     public final void encode(@Nonnull CodedOutputStream outputStream, @Nonnull T value, CodecRegistry codecRegistry) throws Exception {
-        BinaryProtocolCodec.writeTag(outputStream, Tag.POJO);
-        outputStream.writeInt32NoTag(getProviderId());
-        outputStream.writeInt32NoTag(getClassId());
+        BinarySerializer.writeTag(outputStream, Tag.POJO);
+        outputStream.writeRawByte(providerId);
+        outputStream.writeInt32NoTag(classId);
         encodeBody(outputStream, value, codecRegistry);
     }
 
@@ -54,7 +54,7 @@ public abstract class PojoCodec<T> implements Codec<T> {
     /**
      * 返回codec所属的{@link CodecProvider}的id
      */
-    public final int getProviderId() {
+    public final byte getProviderId() {
         return providerId;
     }
 
@@ -69,7 +69,7 @@ public abstract class PojoCodec<T> implements Codec<T> {
     public abstract Class<T> getEncoderClass();
 
     static PojoCodec<?> getPojoCodec(CodedInputStream inputStream, CodecRegistry codecRegistry) throws IOException {
-        final int providerId = inputStream.readInt32();
+        final byte providerId = inputStream.readRawByte();
         final int classId = inputStream.readInt32();
         return codecRegistry.getPojoCodec(providerId, classId);
     }

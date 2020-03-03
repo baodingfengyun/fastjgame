@@ -55,7 +55,7 @@ public interface CodecRegistry {
      * @return codec
      * @throws CodecConfigurationException 如果不存在对应的编解码器，则抛出异常
      */
-    PojoCodec<?> getPojoCodec(int providerId, int classId);
+    PojoCodec<?> getPojoCodec(byte providerId, int classId);
 
     // 减少查询
     Codec<Object> getArrayCodec();

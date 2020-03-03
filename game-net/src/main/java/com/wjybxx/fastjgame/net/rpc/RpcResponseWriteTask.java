@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.net.rpc;
 import com.wjybxx.fastjgame.net.session.Session;
 
 /**
- * rpc响应发送任务
+ * rpc响应消息发送任务
  *
  * @author wjybxx
  * @version 1.0

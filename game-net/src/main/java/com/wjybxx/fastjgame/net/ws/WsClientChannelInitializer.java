@@ -111,6 +111,6 @@ public class WsClientChannelInitializer extends ChannelInitializer<SocketChannel
      */
     private void appendCustomProtocolCodec(ChannelPipeline pipeline) {
         pipeline.addLast(new LengthFieldBasedFrameDecoder(sessionConfig.maxFrameLength(), 0, 4, 0, 4));
-        pipeline.addLast(new ClientSocketCodec(sessionConfig.codec(), sessionId, localGuid, netEventLoop));
+        pipeline.addLast(new ClientSocketCodec(sessionConfig.serializer(), sessionId, localGuid, netEventLoop));
     }
 }

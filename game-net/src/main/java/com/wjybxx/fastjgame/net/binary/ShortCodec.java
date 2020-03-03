@@ -33,7 +33,7 @@ public class ShortCodec implements Codec<Short> {
 
     @Override
     public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Short value, CodecRegistry codecRegistry) throws Exception {
-        BinaryProtocolCodec.writeTag(outputStream, Tag.SHORT);
+        BinarySerializer.writeTag(outputStream, Tag.SHORT);
         outputStream.writeInt32NoTag(value);
     }
 

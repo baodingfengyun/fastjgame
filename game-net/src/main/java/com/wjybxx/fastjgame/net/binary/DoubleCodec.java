@@ -33,7 +33,7 @@ public class DoubleCodec implements Codec<Double> {
 
     @Override
     public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Double value, CodecRegistry codecRegistry) throws Exception {
-        BinaryProtocolCodec.writeTag(outputStream, Tag.DOUBLE);
+        BinarySerializer.writeTag(outputStream, Tag.DOUBLE);
         outputStream.writeDoubleNoTag(value);
     }
 

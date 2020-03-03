@@ -20,8 +20,8 @@ import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.CodedOutputStream;
 import com.google.protobuf.Message;
 import com.google.protobuf.Parser;
-import com.wjybxx.fastjgame.net.misc.HashMessageMappingStrategy;
-import com.wjybxx.fastjgame.net.misc.MessageMapper;
+import com.wjybxx.fastjgame.net.serialization.HashMessageMappingStrategy;
+import com.wjybxx.fastjgame.net.serialization.MessageMapper;
 
 import java.io.IOException;
 import java.util.Collections;

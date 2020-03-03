@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.test;
 
-import com.wjybxx.fastjgame.net.binary.BinaryProtocolCodec;
+import com.wjybxx.fastjgame.net.binary.BinarySerializer;
 import com.wjybxx.fastjgame.net.example.ExampleConstants;
 import com.wjybxx.fastjgame.net.example.p_test;
 import io.netty.buffer.ByteBuf;
@@ -36,7 +36,7 @@ import java.util.Arrays;
 public class MessageCodecTest {
 
     public static void main(String[] args) throws Exception {
-        BinaryProtocolCodec codec = ExampleConstants.binaryCodec;
+        BinarySerializer codec = ExampleConstants.BINARY_SERIALIZER;
         ByteBufAllocator byteBufAllocator = UnpooledByteBufAllocator.DEFAULT;
 
         final p_test.p_helloworld hello = p_test.p_helloworld.newBuilder()

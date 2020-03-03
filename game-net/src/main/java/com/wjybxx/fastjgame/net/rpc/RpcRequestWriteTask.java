@@ -21,7 +21,7 @@ import com.wjybxx.fastjgame.net.session.Session;
 import javax.annotation.Nonnull;
 
 /**
- * 同步Rpc请求发送任务
+ * Rpc请求消息发送任务
  *
  * @author wjybxx
  * @version 1.0

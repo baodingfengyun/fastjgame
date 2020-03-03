@@ -90,7 +90,7 @@ class EntityInputStreamImp implements EntityInputStream {
 
     @Override
     public String readString() throws Exception {
-        final Tag tag = BinaryProtocolCodec.readTag(inputStream);
+        final Tag tag = BinarySerializer.readTag(inputStream);
         if (tag == Tag.NULL) {
             return null;
         }
@@ -104,11 +104,11 @@ class EntityInputStreamImp implements EntityInputStream {
 
     @Override
     public <T> T readObject() throws Exception {
-        return BinaryProtocolCodec.decodeObject(inputStream, codecRegistry);
+        return BinarySerializer.decodeObject(inputStream, codecRegistry);
     }
 
     private void readTagAndCheck(Tag expectedTag) throws Exception {
-        final Tag tag = BinaryProtocolCodec.readTag(inputStream);
+        final Tag tag = BinarySerializer.readTag(inputStream);
         if (tag != expectedTag) {
             throw new IOException("Incompatible wireType, expected: " + expectedTag + ", but read: " + tag);
         }
@@ -117,7 +117,7 @@ class EntityInputStreamImp implements EntityInputStream {
     @Nullable
     @Override
     public <C extends Collection<E>, E> C readCollection(@Nonnull IntFunction<C> collectionFactory) throws Exception {
-        final Tag tag = BinaryProtocolCodec.readTag(inputStream);
+        final Tag tag = BinarySerializer.readTag(inputStream);
         if (tag == Tag.NULL) {
             return null;
         }
@@ -130,7 +130,7 @@ class EntityInputStreamImp implements EntityInputStream {
     @Nullable
     @Override
     public <M extends Map<K, V>, K, V> M readMap(@Nonnull IntFunction<M> mapFactory) throws Exception {
-        final Tag tag = BinaryProtocolCodec.readTag(inputStream);
+        final Tag tag = BinarySerializer.readTag(inputStream);
         if (tag == Tag.NULL) {
             return null;
         }
@@ -143,7 +143,7 @@ class EntityInputStreamImp implements EntityInputStream {
     @Nullable
     @Override
     public <T> T readArray(@Nonnull Class<?> componentType) throws Exception {
-        final Tag tag = BinaryProtocolCodec.readTag(inputStream);
+        final Tag tag = BinarySerializer.readTag(inputStream);
         if (tag == Tag.NULL) {
             return null;
         }
@@ -155,7 +155,7 @@ class EntityInputStreamImp implements EntityInputStream {
     }
 
     public <E> E readEntity(EntityFactory<E> entityFactory, Class<? super E> entitySuperClass) throws Exception {
-        final Tag tag = BinaryProtocolCodec.readTag(inputStream);
+        final Tag tag = BinarySerializer.readTag(inputStream);
         if (tag == Tag.NULL) {
             return null;
         }
@@ -168,9 +168,9 @@ class EntityInputStreamImp implements EntityInputStream {
 
         checkSupportReadFields(pojoCodec);
 
-        @SuppressWarnings("unchecked") final SerializerBasedCodec<E> serializerBasedCodec = (SerializerBasedCodec<E>) pojoCodec;
+        @SuppressWarnings("unchecked") final EntitySerializerBasedCodec<E> entitySerializerBasedCodec = (EntitySerializerBasedCodec<E>) pojoCodec;
         final E instance = entityFactory.newInstance();
-        serializerBasedCodec.decodeBody(instance, inputStream, codecRegistry);
+        entitySerializerBasedCodec.decodeBody(instance, inputStream, codecRegistry);
         return instance;
     }
 
@@ -183,7 +183,7 @@ class EntityInputStreamImp implements EntityInputStream {
     }
 
     private void checkSupportReadFields(PojoCodec<?> pojoCodec) throws IOException {
-        if (!(pojoCodec instanceof SerializerBasedCodec) || !((SerializerBasedCodec<?>) pojoCodec).isSupportReadFields()) {
+        if (!(pojoCodec instanceof EntitySerializerBasedCodec) || !((EntitySerializerBasedCodec<?>) pojoCodec).isSupportReadFields()) {
             throw new IOException("Unsupported codec, entitySuperClass serializer must implements " +
                     AbstractEntitySerializer.class.getName());
         }

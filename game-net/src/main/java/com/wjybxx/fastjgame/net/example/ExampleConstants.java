@@ -15,12 +15,12 @@
  */
 package com.wjybxx.fastjgame.net.example;
 
-import com.wjybxx.fastjgame.net.binary.BinaryProtocolCodec;
+import com.wjybxx.fastjgame.net.binary.BinarySerializer;
 import com.wjybxx.fastjgame.net.binary.EntitySerializerScanner;
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoopGroupBuilder;
-import com.wjybxx.fastjgame.net.misc.HashMessageMappingStrategy;
-import com.wjybxx.fastjgame.net.misc.JsonProtocolCodec;
+import com.wjybxx.fastjgame.net.serialization.HashMessageMappingStrategy;
+import com.wjybxx.fastjgame.net.serialization.JsonSerializer;
 
 /**
  * 测试用例的常量
@@ -37,8 +37,8 @@ public final class ExampleConstants {
     /**
      * 测试用例使用的codec
      */
-    public static final JsonProtocolCodec jsonCodec = JsonProtocolCodec.newInstance(EntitySerializerScanner.getAllCustomEntityClasses(), new HashMessageMappingStrategy());
-    public static final BinaryProtocolCodec binaryCodec = BinaryProtocolCodec.newInstance(new HashMessageMappingStrategy());
+    public static final JsonSerializer JSON_SERIALIZER = JsonSerializer.newInstance(EntitySerializerScanner.getAllCustomEntityClasses(), new HashMessageMappingStrategy());
+    public static final BinarySerializer BINARY_SERIALIZER = BinarySerializer.newInstance(new HashMessageMappingStrategy());
 
     public static final NetEventLoopGroup netEventLoop = new NetEventLoopGroupBuilder()
             .setWorkerGroupThreadNum(2)

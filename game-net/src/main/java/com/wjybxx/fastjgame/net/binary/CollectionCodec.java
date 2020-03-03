@@ -50,14 +50,14 @@ public class CollectionCodec implements Codec<Collection<?>> {
     }
 
     static void encodeCollection(@Nonnull CodedOutputStream outputStream, @Nonnull Collection<?> value, CodecRegistry codecRegistry) throws Exception {
-        BinaryProtocolCodec.writeTag(outputStream, Tag.COLLECTION);
+        BinarySerializer.writeTag(outputStream, Tag.COLLECTION);
         outputStream.writeUInt32NoTag(value.size());
         if (value.size() == 0) {
             return;
         }
 
         for (Object element : value) {
-            BinaryProtocolCodec.encodeObject(outputStream, element, codecRegistry);
+            BinarySerializer.encodeObject(outputStream, element, codecRegistry);
         }
     }
 
@@ -70,7 +70,7 @@ public class CollectionCodec implements Codec<Collection<?>> {
 
         final C result = collectionFactory.apply(size);
         for (int index = 0; index < size; index++) {
-            final E e = BinaryProtocolCodec.decodeObject(inputStream, codecRegistry);
+            final E e = BinarySerializer.decodeObject(inputStream, codecRegistry);
             result.add(e);
         }
         return result;

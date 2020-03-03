@@ -34,7 +34,7 @@ public class FloatCodec implements Codec<Float> {
 
     @Override
     public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Float value, CodecRegistry codecRegistry) throws Exception {
-        BinaryProtocolCodec.writeTag(outputStream, Tag.FLOAT);
+        BinarySerializer.writeTag(outputStream, Tag.FLOAT);
         outputStream.writeFloatNoTag(value);
     }
 

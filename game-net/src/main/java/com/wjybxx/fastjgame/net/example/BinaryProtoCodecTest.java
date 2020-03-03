@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.example;
 
-import com.wjybxx.fastjgame.net.binary.BinaryProtocolCodec;
+import com.wjybxx.fastjgame.net.binary.BinarySerializer;
 import com.wjybxx.fastjgame.net.example.ExampleMessages.Profession;
 import com.wjybxx.fastjgame.net.utils.NetUtils;
 import io.netty.buffer.ByteBuf;
@@ -38,7 +38,7 @@ import java.util.*;
 public class BinaryProtoCodecTest {
 
     public static void main(String[] args) throws Exception {
-        BinaryProtocolCodec codec = ExampleConstants.binaryCodec;
+        BinarySerializer codec = ExampleConstants.BINARY_SERIALIZER;
         ByteBufAllocator byteBufAllocator = UnpooledByteBufAllocator.DEFAULT;
         // NetUtils初始化，避免输出扰乱视听
         System.out.println(NetUtils.getOuterIp());

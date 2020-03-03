@@ -49,7 +49,6 @@ public class EventSubscribeProcessor extends MyAbstractProcessor {
     private static final String GENERIC_EVENT_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.eventbus.GenericEvent";
 
     private static final String HANDLER_REGISTRY_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.eventbus.EventHandlerRegistry";
-    private static final String BUS_REGISTER_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.eventbus.BusRegister";
 
     private static final String SUB_EVENTS_METHOD_NAME = "subEvents";
     private static final String ONLY_SUB_EVENTS_METHOD_NAME = "onlySubEvents";
@@ -58,7 +57,6 @@ public class EventSubscribeProcessor extends MyAbstractProcessor {
     private DeclaredType subscribeDeclaredType;
     private DeclaredType genericEventDeclaredType;
 
-    private TypeName busRegisterTypeName;
     private TypeName handlerRegistryTypeName;
 
     @Override
@@ -80,7 +78,6 @@ public class EventSubscribeProcessor extends MyAbstractProcessor {
         subscribeDeclaredType = typeUtils.getDeclaredType(subscribeTypeElement);
         genericEventDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(GENERIC_EVENT_CANONICAL_NAME));
 
-        busRegisterTypeName = ClassName.get(elementUtils.getTypeElement(BUS_REGISTER_CANONICAL_NAME));
         handlerRegistryTypeName = ClassName.get(elementUtils.getTypeElement(HANDLER_REGISTRY_CANONICAL_NAME));
     }
 
@@ -105,7 +102,6 @@ public class EventSubscribeProcessor extends MyAbstractProcessor {
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                 .addAnnotation(AutoUtils.SUPPRESS_UNCHECKED_ANNOTATION)
                 .addAnnotation(processorInfoAnnotation)
-                .addSuperinterface(busRegisterTypeName)
                 .addMethod(genRegisterMethod(typeElement, methodList));
 
         // 写入文件

@@ -28,11 +28,11 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/24
  */
-public class SerializerBasedCodec<T> extends PojoCodec<T> {
+public class EntitySerializerBasedCodec<T> extends PojoCodec<T> {
 
     private final EntitySerializer<T> serializer;
 
-    public SerializerBasedCodec(int providerId, int classId, EntitySerializer<T> serializer) {
+    public EntitySerializerBasedCodec(byte providerId, int classId, EntitySerializer<T> serializer) {
         super(providerId, classId);
         this.serializer = serializer;
     }

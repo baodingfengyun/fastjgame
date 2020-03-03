@@ -34,7 +34,7 @@ public class BooleanCodec implements Codec<Boolean> {
 
     @Override
     public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Boolean value, CodecRegistry codecRegistry) throws Exception {
-        BinaryProtocolCodec.writeTag(outputStream, Tag.BOOLEAN);
+        BinarySerializer.writeTag(outputStream, Tag.BOOLEAN);
         outputStream.writeBoolNoTag(value);
     }
 

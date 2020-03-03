@@ -60,9 +60,6 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
     private static final String METHOD_HANDLE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.RpcMethodHandle";
     private static final String DEFAULT_METHOD_HANDLE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.DefaultRpcMethodHandle";
 
-    private static final String SERVICE_PROXY_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.RpcServiceProxy";
-    private static final String SERVICE_REGISTER_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.RpcServiceRegister";
-
     private static final String METHOD_REGISTRY_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.RpcMethodProxyRegistry";
     private static final String CHANNEL_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.RpcResponseChannel";
     private static final String SESSION_CANONICAL_NAME = "com.wjybxx.fastjgame.net.session.Session";
@@ -92,9 +89,6 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
     private DeclaredType rpcServiceDeclaredType;
     private DeclaredType rpcMethodDeclaredType;
 
-    ClassName serviceRegisterTypeName;
-    ClassName serviceProxyTypeName;
-
     ClassName methodRegistryTypeName;
 
     private TypeMirror mapTypeMirror;
@@ -119,9 +113,6 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
         rpcServiceElement = elementUtils.getTypeElement(RPC_SERVICE_CANONICAL_NAME);
         rpcServiceDeclaredType = typeUtils.getDeclaredType(rpcServiceElement);
         rpcMethodDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(RPC_METHOD_CANONICAL_NAME));
-
-        serviceProxyTypeName = ClassName.get(elementUtils.getTypeElement(SERVICE_PROXY_CANONICAL_NAME));
-        serviceRegisterTypeName = ClassName.get(elementUtils.getTypeElement(SERVICE_REGISTER_CANONICAL_NAME));
 
         methodRegistryTypeName = ClassName.get(elementUtils.getTypeElement(METHOD_REGISTRY_CANONICAL_NAME));
         sessionDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(SESSION_CANONICAL_NAME));

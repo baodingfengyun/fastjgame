@@ -89,6 +89,6 @@ public class WsServerChannelInitializer extends ChannelInitializer<SocketChannel
 
     private void appendCustomProtocolCodec(ChannelPipeline pipeline) {
         pipeline.addLast(new LengthFieldBasedFrameDecoder(portExtraInfo.getSessionConfig().maxFrameLength(), 0, 4, 0, 4));
-        pipeline.addLast(new ServerSocketCodec(portExtraInfo.getSessionConfig().codec(), portExtraInfo));
+        pipeline.addLast(new ServerSocketCodec(portExtraInfo.getSessionConfig().serializer(), portExtraInfo));
     }
 }

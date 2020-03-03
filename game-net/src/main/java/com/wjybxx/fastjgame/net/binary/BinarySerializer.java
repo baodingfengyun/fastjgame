@@ -18,10 +18,10 @@ package com.wjybxx.fastjgame.net.binary;
 
 import com.google.common.collect.Sets;
 import com.google.protobuf.*;
-import com.wjybxx.fastjgame.net.misc.JsonProtocolCodec;
-import com.wjybxx.fastjgame.net.misc.MessageMapper;
-import com.wjybxx.fastjgame.net.misc.MessageMappingStrategy;
-import com.wjybxx.fastjgame.net.misc.ProtocolCodec;
+import com.wjybxx.fastjgame.net.serialization.JsonSerializer;
+import com.wjybxx.fastjgame.net.serialization.MessageMapper;
+import com.wjybxx.fastjgame.net.serialization.MessageMappingStrategy;
+import com.wjybxx.fastjgame.net.serialization.Serializer;
 import com.wjybxx.fastjgame.net.utils.NetUtils;
 import com.wjybxx.fastjgame.net.utils.ProtoUtils;
 import io.netty.buffer.ByteBuf;
@@ -43,7 +43,7 @@ import java.util.stream.Stream;
 
 /**
  * 基于protoBuf的二进制格式编解码器。
- * 相对于{@link JsonProtocolCodec}传输的数据量要少得多(大致1/2)，更少的数据量当然伴随着更快编码速度(大致4倍)。
+ * 相对于{@link JsonSerializer}传输的数据量要少得多(大致1/2)，更少的数据量当然伴随着更快编码速度(大致4倍)。
  * 加上网络传输的影响，差距会被放大。
  * <p>
  * 建议能单例就单例，能减少内存占用。
@@ -55,13 +55,13 @@ import java.util.stream.Stream;
  */
 @Immutable
 @ThreadSafe
-public class BinaryProtocolCodec implements ProtocolCodec {
+public class BinarySerializer implements Serializer {
 
     private static final ThreadLocal<byte[]> LOCAL_BUFFER = ThreadLocal.withInitial(() -> new byte[NetUtils.MAX_BUFFER_SIZE]);
 
     private final CodecRegistry codecRegistry;
 
-    public BinaryProtocolCodec(CodecRegistry codecRegistry) {
+    public BinarySerializer(CodecRegistry codecRegistry) {
         this.codecRegistry = codecRegistry;
     }
 
@@ -208,20 +208,20 @@ public class BinaryProtocolCodec implements ProtocolCodec {
 
     // ------------------------------------------------- 工厂方法 ------------------------------------------------------
 
-    public static BinaryProtocolCodec newInstance(MessageMappingStrategy mappingStrategy) {
+    public static BinarySerializer newInstance(MessageMappingStrategy mappingStrategy) {
         return newInstance(mappingStrategy, c -> true);
     }
 
     /**
      * @param mappingStrategy 未来会改为不同的消息来源使用不同的映射策略，以减少冲突。
-     * @param filter          由于{@link BinaryProtocolCodec}支持的消息类是确定的，不能加入，但是允许过滤删除
+     * @param filter          由于{@link BinarySerializer}支持的消息类是确定的，不能加入，但是允许过滤删除
      */
     @SuppressWarnings("unchecked")
-    public static BinaryProtocolCodec newInstance(MessageMappingStrategy mappingStrategy, Predicate<Class<?>> filter) {
+    public static BinarySerializer newInstance(MessageMappingStrategy mappingStrategy, Predicate<Class<?>> filter) {
         final Set<Class<?>> supportedClassSet = getFilteredSupportedClasses(filter);
         final MessageMapper messageMapper = MessageMapper.newInstance(supportedClassSet, mappingStrategy);
         final List<PojoCodec<?>> codecList = new ArrayList<>(supportedClassSet.size());
-        final int providerId = 11;
+        final byte providerId = 11;
 
         try {
             for (Class<?> messageClazz : messageMapper.getAllMessageClasses()) {
@@ -243,7 +243,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
                 final Class<? extends EntitySerializer<?>> serializerClass = EntitySerializerScanner.getSerializerClass(messageClazz);
                 if (serializerClass != null) {
                     final EntitySerializer<?> serializer = createSerializerInstance(serializerClass);
-                    codecList.add(new SerializerBasedCodec(providerId, messageMapper.getMessageId(messageClazz), serializer));
+                    codecList.add(new EntitySerializerBasedCodec(providerId, messageMapper.getMessageId(messageClazz), serializer));
                     continue;
                 }
 
@@ -251,7 +251,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
             }
 
             final CodecRegistry codecRegistry = CodecRegistrys.fromAppPojoCodecs(codecList);
-            return new BinaryProtocolCodec(codecRegistry);
+            return new BinarySerializer(codecRegistry);
         } catch (Exception e) {
             return ExceptionUtils.rethrow(e);
         }

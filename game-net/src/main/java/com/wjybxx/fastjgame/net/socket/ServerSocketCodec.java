@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.net.misc.ProtocolCodec;
 import com.wjybxx.fastjgame.net.rpc.NetMessageType;
+import com.wjybxx.fastjgame.net.serialization.Serializer;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
@@ -35,13 +35,13 @@ import java.io.IOException;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class ServerSocketCodec extends BaseSocketCodec {
+public class ServerSocketCodec extends AbstractSocketCodec {
 
     private String sessionId;
     private final SocketPortContext portExtraInfo;
 
-    public ServerSocketCodec(ProtocolCodec codec, SocketPortContext portExtraInfo) {
-        super(codec);
+    public ServerSocketCodec(Serializer serializer, SocketPortContext portExtraInfo) {
+        super(serializer);
         this.portExtraInfo = portExtraInfo;
     }
 

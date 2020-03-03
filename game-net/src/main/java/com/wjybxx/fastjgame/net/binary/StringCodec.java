@@ -34,7 +34,7 @@ public class StringCodec implements Codec<String> {
 
     @Override
     public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull String value, CodecRegistry codecRegistry) throws Exception {
-        BinaryProtocolCodec.writeTag(outputStream, Tag.STRING);
+        BinarySerializer.writeTag(outputStream, Tag.STRING);
         outputStream.writeStringNoTag(value);
     }
 

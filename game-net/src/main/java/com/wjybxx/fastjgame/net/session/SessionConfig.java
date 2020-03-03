@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.net.session;
 
-import com.wjybxx.fastjgame.net.misc.ProtocolCodec;
 import com.wjybxx.fastjgame.net.rpc.RpcRequestDispatcher;
+import com.wjybxx.fastjgame.net.serialization.Serializer;
 import com.wjybxx.fastjgame.utils.CheckUtils;
 
 import javax.annotation.Nonnull;
@@ -37,7 +37,7 @@ import java.util.Objects;
 public class SessionConfig {
 
     private final SessionLifecycleAware lifecycleAware;
-    private final ProtocolCodec codec;
+    private final Serializer serializer;
     private final RpcRequestDispatcher dispatcher;
     private final long sessionTimeoutMs;
 
@@ -47,7 +47,7 @@ public class SessionConfig {
 
     protected SessionConfig(SessionConfigBuilder builder) {
         this.lifecycleAware = builder.lifecycleAware;
-        this.codec = builder.protocolCodec;
+        this.serializer = builder.serializer;
         this.dispatcher = builder.rpcRequestDispatcher;
         this.sessionTimeoutMs = builder.sessionTimeoutMs;
 
@@ -66,8 +66,8 @@ public class SessionConfig {
     /**
      * @return 协议内容编解码器
      */
-    public ProtocolCodec codec() {
-        return codec;
+    public Serializer serializer() {
+        return serializer;
     }
 
     /**
@@ -112,7 +112,7 @@ public class SessionConfig {
     public static class SessionConfigBuilder<T extends SessionConfigBuilder<T, U>, U extends SessionConfig> {
 
         private SessionLifecycleAware lifecycleAware;
-        private ProtocolCodec protocolCodec;
+        private Serializer serializer;
         private RpcRequestDispatcher rpcRequestDispatcher;
         private int sessionTimeoutMs = 60 * 1000;
 
@@ -125,13 +125,13 @@ public class SessionConfig {
             return self();
         }
 
-        public T setCodec(@Nonnull ProtocolCodec protocolCodec) {
-            this.protocolCodec = protocolCodec;
+        public T setSerializer(@Nonnull Serializer serializer) {
+            this.serializer = serializer;
             return self();
         }
 
-        public T setDispatcher(@Nonnull RpcRequestDispatcher rpcRequestDispatcher) {
-            this.rpcRequestDispatcher = rpcRequestDispatcher;
+        public T setDispatcher(@Nonnull RpcRequestDispatcher dispatcher) {
+            this.rpcRequestDispatcher = dispatcher;
             return self();
         }
 
@@ -167,7 +167,7 @@ public class SessionConfig {
 
         protected void checkParams() {
             Objects.requireNonNull(lifecycleAware, "lifecycleAware");
-            Objects.requireNonNull(protocolCodec, "protocolCodec");
+            Objects.requireNonNull(serializer, "serializer");
             Objects.requireNonNull(rpcRequestDispatcher, "rpcRequestDispatcher");
         }
 

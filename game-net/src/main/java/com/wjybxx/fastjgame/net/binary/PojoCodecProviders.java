@@ -40,7 +40,7 @@ public class PojoCodecProviders {
     public static final IntPair INTERNAL_PROVIDER_ID_RANGE = new IntPair(1, 10);
 
     private static final List<PojoCodecProvider> JDK_POJO_CODEC_PROVIDER = fromCodecsInternal(Arrays.asList(
-            new ClassCodec(1, 1)
+            new ClassCodec((byte) 1, 1)
     ));
 
     /**
@@ -62,7 +62,6 @@ public class PojoCodecProviders {
     private static void checkProviderId(List<? extends PojoCodec<?>> pojoCodecs) {
         for (PojoCodec<?> pojoCodec : pojoCodecs) {
             checkMin(pojoCodec);
-            checkMax(pojoCodec);
         }
     }
 
@@ -72,16 +71,6 @@ public class PojoCodecProviders {
                     pojoCodec.getEncoderClass().getSimpleName(),
                     pojoCodec.getProviderId(),
                     INTERNAL_PROVIDER_ID_RANGE.getFirst()
-            ));
-        }
-    }
-
-    private static void checkMax(PojoCodec<?> pojoCodec) {
-        if (pojoCodec.getProviderId() > 127) {
-            throw new IllegalArgumentException(String.format("%s's providerId %s must less than %s",
-                    pojoCodec.getEncoderClass().getSimpleName(),
-                    pojoCodec.getProviderId(),
-                    INTERNAL_PROVIDER_ID_RANGE.getSecond()
             ));
         }
     }
@@ -96,7 +85,7 @@ public class PojoCodecProviders {
         return result;
     }
 
-    private static PojoCodecProvider newPojoCodecProvider(int providerId, List<? extends PojoCodec<?>> codecLiset) {
+    private static PojoCodecProvider newPojoCodecProvider(byte providerId, List<? extends PojoCodec<?>> codecLiset) {
         final Map<Class<?>, PojoCodec<?>> type2CodecMap = new IdentityHashMap<>(codecLiset.size());
         final Int2ObjectMap<PojoCodec<?>> classId2CodecMap = new Int2ObjectOpenHashMap<>(codecLiset.size(), Hash.FAST_LOAD_FACTOR);
         for (PojoCodec<?> pojoCodec : codecLiset) {
@@ -120,11 +109,11 @@ public class PojoCodecProviders {
 
     private static class DefaultPojoCodecProvider implements PojoCodecProvider {
 
-        private final int providerId;
+        private final byte providerId;
         private final Map<Class<?>, PojoCodec<?>> type2CodecMap;
         private final Int2ObjectMap<PojoCodec<?>> classId2CodecMap;
 
-        private DefaultPojoCodecProvider(int providerId,
+        private DefaultPojoCodecProvider(byte providerId,
                                          Map<Class<?>, PojoCodec<?>> type2CodecMap,
                                          Int2ObjectMap<PojoCodec<?>> classId2CodecMap) {
             this.providerId = providerId;
@@ -133,7 +122,7 @@ public class PojoCodecProviders {
         }
 
         @Override
-        public int getProviderId() {
+        public byte getProviderId() {
             return providerId;
         }
 

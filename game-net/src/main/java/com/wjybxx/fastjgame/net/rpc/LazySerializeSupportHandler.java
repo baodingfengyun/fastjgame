@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.rpc;
 
-import com.wjybxx.fastjgame.net.misc.ProtocolCodec;
+import com.wjybxx.fastjgame.net.serialization.Serializer;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 
@@ -34,14 +34,14 @@ import java.util.List;
  */
 public class LazySerializeSupportHandler extends SessionDuplexHandlerAdapter {
 
-    private ProtocolCodec codec;
+    private Serializer serializer;
 
     public LazySerializeSupportHandler() {
     }
 
     @Override
     public void handlerAdded(SessionHandlerContext ctx) throws Exception {
-        codec = ctx.session().config().codec();
+        serializer = ctx.session().config().serializer();
     }
 
     @Override
@@ -82,7 +82,7 @@ public class LazySerializeSupportHandler extends SessionDuplexHandlerAdapter {
             final Object newParameter;
 
             if ((lazyIndexes & (1L << index)) != 0 && !(parameter instanceof byte[])) {
-                newParameter = codec.toBytes(parameter);
+                newParameter = serializer.toBytes(parameter);
             } else {
                 newParameter = parameter;
             }
@@ -127,7 +127,7 @@ public class LazySerializeSupportHandler extends SessionDuplexHandlerAdapter {
             final Object parameter = methodParams.get(index);
             final Object newParameter;
             if ((preIndexes & (1L << index)) != 0 && parameter instanceof byte[]) {
-                newParameter = codec.fromBytes((byte[]) parameter);
+                newParameter = serializer.fromBytes((byte[]) parameter);
             } else {
                 newParameter = parameter;
             }

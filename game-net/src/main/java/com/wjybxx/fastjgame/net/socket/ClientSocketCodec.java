@@ -17,8 +17,8 @@
 package com.wjybxx.fastjgame.net.socket;
 
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoop;
-import com.wjybxx.fastjgame.net.misc.ProtocolCodec;
 import com.wjybxx.fastjgame.net.rpc.NetMessageType;
+import com.wjybxx.fastjgame.net.serialization.Serializer;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
@@ -37,7 +37,7 @@ import java.io.IOException;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class ClientSocketCodec extends BaseSocketCodec {
+public class ClientSocketCodec extends AbstractSocketCodec {
 
     /**
      * channel关联的sessionId
@@ -55,8 +55,8 @@ public class ClientSocketCodec extends BaseSocketCodec {
      */
     private final NetEventLoop netEventLoop;
 
-    public ClientSocketCodec(ProtocolCodec codec, String sessionId, long localGuid, NetEventLoop netEventLoop) {
-        super(codec);
+    public ClientSocketCodec(Serializer serializer, String sessionId, long localGuid, NetEventLoop netEventLoop) {
+        super(serializer);
         this.sessionId = sessionId;
         this.localGuid = localGuid;
         this.netEventLoop = netEventLoop;

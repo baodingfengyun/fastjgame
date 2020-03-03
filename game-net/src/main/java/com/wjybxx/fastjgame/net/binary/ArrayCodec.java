@@ -85,8 +85,8 @@ public class ArrayCodec implements Codec<Object> {
     }
 
     private static void writeTagAndChildTypeAndLength(CodedOutputStream outputStream, Tag childType, int length) throws IOException {
-        BinaryProtocolCodec.writeTag(outputStream, Tag.ARRAY);
-        BinaryProtocolCodec.writeTag(outputStream, childType);
+        BinarySerializer.writeTag(outputStream, Tag.ARRAY);
+        BinarySerializer.writeTag(outputStream, childType);
         outputStream.writeUInt32NoTag(length);
     }
 
@@ -102,7 +102,7 @@ public class ArrayCodec implements Codec<Object> {
 
         for (int index = 0; index < length; index++) {
             Object value = Array.get(instance, index);
-            BinaryProtocolCodec.encodeObject(outputStream, value, codecRegistry);
+            BinarySerializer.encodeObject(outputStream, value, codecRegistry);
         }
     }
 
@@ -113,7 +113,7 @@ public class ArrayCodec implements Codec<Object> {
     }
 
     static Object readArray(CodedInputStream inputStream, Class<?> objectArrayComponentType, CodecRegistry codecRegistry) throws Exception {
-        final Tag childType = BinaryProtocolCodec.readTag(inputStream);
+        final Tag childType = BinarySerializer.readTag(inputStream);
         final int length = inputStream.readUInt32();
 
         if (childType != Tag.UNKNOWN) {
@@ -136,7 +136,7 @@ public class ArrayCodec implements Codec<Object> {
 
         final Object array = Array.newInstance(objectArrayComponentType, length);
         for (int index = 0; index < length; index++) {
-            Array.set(array, index, BinaryProtocolCodec.decodeObject(inputStream, codecRegistry));
+            Array.set(array, index, BinarySerializer.decodeObject(inputStream, codecRegistry));
         }
 
         return array;
@@ -378,9 +378,9 @@ public class ArrayCodec implements Codec<Object> {
         public void writeValueArray(CodedOutputStream outputStream, @Nonnull String[] array) throws Exception {
             for (String value : array) {
                 if (value == null) {
-                    BinaryProtocolCodec.writeTag(outputStream, Tag.NULL);
+                    BinarySerializer.writeTag(outputStream, Tag.NULL);
                 } else {
-                    BinaryProtocolCodec.writeTag(outputStream, Tag.STRING);
+                    BinarySerializer.writeTag(outputStream, Tag.STRING);
                     outputStream.writeStringNoTag(value);
                 }
             }
@@ -390,7 +390,7 @@ public class ArrayCodec implements Codec<Object> {
         public String[] readValueArray(CodedInputStream inputStream, int length) throws Exception {
             final String[] result = new String[length];
             for (int index = 0; index < length; index++) {
-                if (BinaryProtocolCodec.readTag(inputStream) == Tag.NULL) {
+                if (BinarySerializer.readTag(inputStream) == Tag.NULL) {
                     result[index] = null;
                 } else {
                     result[index] = inputStream.readString();

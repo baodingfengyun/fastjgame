@@ -34,7 +34,7 @@ public class IntegerCodec implements Codec<Integer> {
 
     @Override
     public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Integer value, CodecRegistry codecRegistry) throws Exception {
-        BinaryProtocolCodec.writeTag(outputStream, Tag.INT);
+        BinarySerializer.writeTag(outputStream, Tag.INT);
         outputStream.writeInt32NoTag(value);
     }
 

@@ -34,7 +34,7 @@ public class LongCodec implements Codec<Long> {
 
     @Override
     public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Long value, CodecRegistry codecRegistry) throws Exception {
-        BinaryProtocolCodec.writeTag(outputStream, Tag.LONG);
+        BinarySerializer.writeTag(outputStream, Tag.LONG);
         outputStream.writeInt64NoTag(value);
     }
 
