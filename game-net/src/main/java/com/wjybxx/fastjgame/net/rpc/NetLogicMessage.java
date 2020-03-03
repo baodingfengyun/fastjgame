@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.net.rpc;
 
 /**
  * 网络层逻辑消息包。
+ * 除了底层协议头以外，还有逻辑层自定义body。
  *
  * @author wjybxx
  * @version 1.0

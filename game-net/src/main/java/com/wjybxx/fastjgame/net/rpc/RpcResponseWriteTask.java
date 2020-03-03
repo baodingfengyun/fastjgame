@@ -29,37 +29,26 @@ import com.wjybxx.fastjgame.net.session.Session;
 public class RpcResponseWriteTask implements WriteTask {
 
     private final Session session;
-    private final long requestGuid;
-    private final boolean sync;
-    private final RpcResponse response;
+    private final RpcResponseMessage rpcResponseMessage;
+    private final boolean flush;
 
-    public RpcResponseWriteTask(Session session, long requestGuid, boolean sync, RpcResponse response) {
+    public RpcResponseWriteTask(Session session, long requestGuid, RpcErrorCode errorCode, Object body, boolean flush) {
         this.session = session;
-        this.requestGuid = requestGuid;
-        this.sync = sync;
-        this.response = response;
+        this.rpcResponseMessage = new RpcResponseMessage(requestGuid, errorCode, body);
+        this.flush = flush;
     }
 
-    public long getRequestGuid() {
-        return requestGuid;
-    }
-
-    public boolean isSync() {
-        return sync;
-    }
-
-    public RpcResponse getResponse() {
-        return response;
+    public RpcResponseMessage getRpcResponseMessage() {
+        return rpcResponseMessage;
     }
 
     @Override
     public void run() {
-        if (sync) {
+        if (flush) {
             session.fireWriteAndFlush(this);
         } else {
             session.fireWrite(this);
         }
-
     }
 
 }

@@ -92,7 +92,7 @@ public interface RpcMethodHandle<V> extends FlushableMethodHandle<RpcClient, Rpc
      * 获取该方法包含的调用信息，可用于二次封装。
      * 警告：不可修改对象的内容，否则可能引发bug。
      */
-    RpcRequest<V> getRequest();
+    RpcMethodSpec<V> getRpcMethodSpec();
 
     /**
      * 设置路由策略。

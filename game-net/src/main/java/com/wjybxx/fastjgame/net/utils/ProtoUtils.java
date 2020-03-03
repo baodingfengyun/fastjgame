@@ -61,6 +61,7 @@ public class ProtoUtils {
      * @return map
      */
     public static <T extends ProtocolMessageEnum> Internal.EnumLiteMap<T> findMapper(@Nonnull Class<T> clazz) {
+        Objects.requireNonNull(clazz);
         try {
             final Method method = clazz.getDeclaredMethod("internalGetValueMap");
             method.setAccessible(true);

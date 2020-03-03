@@ -33,14 +33,23 @@ public class RpcResponseMessage extends NetLogicMessage {
      * 客户端的哪一个请求
      */
     private final long requestGuid;
+    /**
+     * 错误码
+     */
+    private final RpcErrorCode errorCode;
 
-    public RpcResponseMessage(long requestGuid, Object responseBody) {
-        super(responseBody);
+    public RpcResponseMessage(long requestGuid, RpcErrorCode errorCode, Object body) {
+        super(body);
         this.requestGuid = requestGuid;
+        this.errorCode = errorCode;
     }
 
     public long getRequestGuid() {
         return requestGuid;
+    }
+
+    public RpcErrorCode getErrorCode() {
+        return errorCode;
     }
 
     @Override

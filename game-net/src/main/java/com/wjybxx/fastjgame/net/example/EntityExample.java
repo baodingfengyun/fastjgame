@@ -16,12 +16,7 @@
 
 package com.wjybxx.fastjgame.net.example;
 
-import com.wjybxx.fastjgame.net.binary.BinarySerializer;
-import com.wjybxx.fastjgame.net.binary.EntityInputStream;
-import com.wjybxx.fastjgame.net.binary.EntityOutputStream;
-import com.wjybxx.fastjgame.net.binary.EntitySerializer;
-import com.wjybxx.fastjgame.net.binary.SerializableClass;
-import com.wjybxx.fastjgame.net.binary.SerializableField;
+import com.wjybxx.fastjgame.net.binary.*;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /**

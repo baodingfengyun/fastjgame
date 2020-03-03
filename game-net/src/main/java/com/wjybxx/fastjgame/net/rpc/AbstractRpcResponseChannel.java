@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.net.rpc;
 import com.wjybxx.fastjgame.utils.SystemUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -44,9 +45,21 @@ public abstract class AbstractRpcResponseChannel<T> implements RpcResponseChanne
     }
 
     @Override
-    public final void write(@Nonnull RpcResponse rpcResponse) {
+    public void writeSuccess(@Nullable T result) {
+        write(RpcErrorCode.SUCCESS, result);
+    }
+
+    @Override
+    public void writeFailure(@Nonnull RpcErrorCode errorCode, @Nonnull String message) {
+        if (errorCode == RpcErrorCode.SUCCESS) {
+            throw new IllegalArgumentException("failure error code can't be SUCCESS");
+        }
+        write(errorCode, message);
+    }
+
+    private void write(RpcErrorCode errorCode, Object body) {
         if (writable == null || writable.compareAndSet(true, false)) {
-            doWrite(rpcResponse);
+            doWrite(errorCode, body);
         } else {
             throw new IllegalStateException("ResponseChannel can't be reused!");
         }
@@ -54,10 +67,8 @@ public abstract class AbstractRpcResponseChannel<T> implements RpcResponseChanne
 
     /**
      * 子类真正的进行发送
-     *
-     * @param rpcResponse rpc响应
      */
-    protected abstract void doWrite(RpcResponse rpcResponse);
+    protected abstract void doWrite(RpcErrorCode errorCode, Object body);
 
     @Override
     public final boolean isVoid() {

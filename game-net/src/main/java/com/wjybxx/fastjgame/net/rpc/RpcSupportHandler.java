@@ -35,7 +35,6 @@ import java.io.IOException;
  * <p>
  * 实现需要注意：
  * 1.rpc响应在应用线程未关闭的情况下必须执行 - 否则可能造成逻辑错误(信号丢失 - 该执行的没执行)
- * 2.目前的rpc支持为{@link RpcRequest} 和 {@link RpcResponse}
  *
  * @author wjybxx
  * @version 1.0
@@ -100,15 +99,12 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             long requestGuid = ++requestGuidSequencer;
             rpcTimeoutInfoMap.put(requestGuid, rpcTimeoutInfo);
 
-            // 发送
             ctx.fireWrite(new RpcRequestMessage(requestGuid, writeTask.isSync(), writeTask.getRequest()));
         } else if (msg instanceof RpcResponseWriteTask) {
             // rpc调用结果
             RpcResponseWriteTask writeTask = (RpcResponseWriteTask) msg;
-            final RpcResponseMessage responseMessage = new RpcResponseMessage(writeTask.getRequestGuid(), writeTask.getResponse());
 
-            // 发送
-            ctx.fireWrite(responseMessage);
+            ctx.fireWrite(writeTask.getRpcResponseMessage());
         } else {
             ctx.fireWrite(msg);
         }
@@ -129,7 +125,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             RpcResponseMessage responseMessage = (RpcResponseMessage) msg;
             final RpcTimeoutInfo rpcTimeoutInfo = rpcTimeoutInfoMap.remove(responseMessage.getRequestGuid());
             if (null != rpcTimeoutInfo) {
-                commitRpcResponse(rpcTimeoutInfo, (RpcResponse) responseMessage.getBody());
+                commitRpcResponse(rpcTimeoutInfo, responseMessage.getErrorCode(), responseMessage.getBody());
             }
             // else 可能超时了
         } else {
@@ -139,25 +135,17 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
 
     /**
      * @param rpcTimeoutInfo rpc请求时的一些信息
-     * @param rpcResponse    期望提交的rpc调用结果。
+     * @param body           期望提交的rpc调用结果。
      */
     @SuppressWarnings("unchecked")
-    private <V> void commitRpcResponse(RpcTimeoutInfo rpcTimeoutInfo, RpcResponse rpcResponse) {
-        final V result;
-        final Throwable cause;
-        if (rpcResponse.isSuccess()) {
-            result = (V) rpcResponse.getBody();
-            cause = null;
-        } else {
-            result = null;
-            cause = new DefaultRpcServerException(rpcResponse);
-        }
-
-        if (cause != null) {
-            rpcTimeoutInfo.rpcPromise.tryFailure(cause);
-        } else {
+    private <V> void commitRpcResponse(RpcTimeoutInfo rpcTimeoutInfo, RpcErrorCode errorCode, Object body) {
+        if (errorCode.isSuccess()) {
             final RpcPromise<V> rpcPromise = (RpcPromise<V>) rpcTimeoutInfo.rpcPromise;
+            final V result = (V) body;
             rpcPromise.trySuccess(result);
+        } else {
+            final Throwable cause = new DefaultRpcServerException(errorCode, String.valueOf(body));
+            rpcTimeoutInfo.rpcPromise.tryFailure(cause);
         }
     }
 
@@ -183,9 +171,10 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
         }
 
         @Override
-        protected void doWrite(RpcResponse rpcResponse) {
+        protected void doWrite(RpcErrorCode errorCode, Object body) {
             if (!session.isClosed()) {
-                session.netEventLoop().execute(new RpcResponseWriteTask(session, requestGuid, sync, rpcResponse));
+                // 同步调用的返回需要刷新缓冲区
+                session.netEventLoop().execute(new RpcResponseWriteTask(session, requestGuid, errorCode, body, sync));
             }
         }
     }

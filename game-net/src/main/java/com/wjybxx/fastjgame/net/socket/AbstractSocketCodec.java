@@ -23,15 +23,14 @@ import com.wjybxx.fastjgame.utils.CodecUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelDuplexHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPromise;
+import io.netty.channel.*;
+import io.netty.channel.socket.DefaultSocketChannelConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.net.Socket;
 import java.util.Iterator;
 
 /**
@@ -62,28 +61,41 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
         this.serializer = serializer;
     }
 
+    /**
+     * 设置channel性能偏好.
+     * <p>
+     * 可参考 - https://blog.csdn.net/zero__007/article/details/51723434
+     * <p>
+     * 在 JDK 1.5 中, 还为 Socket 类提供了{@link Socket#setPerformancePreferences(int, int, int)}方法:
+     * 以上方法的 3 个参数表示网络传输数据的 3 选指标.
+     * connectionTime: 表示用最少时间建立连接.
+     * latency: 表示最小延迟.
+     * bandwidth: 表示最高带宽.
+     * setPerformancePreferences() 方法用来设定这 3 项指标之间的相对重要性.
+     * 可以为这些参数赋予任意的整数, 这些整数之间的相对大小就决定了相应参数的相对重要性.
+     * 例如, 如果参数 connectionTime 为 2, 参数 latency 为 1, 而参数bandwidth 为 3,
+     * 就表示最高带宽最重要, 其次是最少连接时间, 最后是最小延迟.
+     */
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        NetUtils.setChannelPerformancePreferences(ctx.channel());
-        super.channelActive(ctx);
+        ChannelConfig channelConfig = ctx.channel().config();
+        if (channelConfig instanceof DefaultSocketChannelConfig) {
+            DefaultSocketChannelConfig socketChannelConfig = (DefaultSocketChannelConfig) channelConfig;
+            socketChannelConfig.setPerformancePreferences(0, 1, 2);
+        }
+        ctx.fireChannelActive();
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object byteBuf) throws Exception {
         ByteBuf msg = (ByteBuf) byteBuf;
         try {
-            long realSum = msg.readLong();
-            long logicSum = NetUtils.calChecksum(msg, msg.readerIndex(), msg.readableBytes());
-            if (realSum != logicSum) {
-                // 校验和不一致
-                throw new IOException("realSum=" + realSum + ", logicSum=" + logicSum);
-            }
             // 任何编解码出现问题都会在上层消息判断哪里出现问题，这里并不处理channel数据是否异常
             byte pkgTypeNumber = msg.readByte();
             NetMessageType netMessageType = NetMessageType.forNumber(pkgTypeNumber);
             if (null == netMessageType) {
                 // 约定之外的包类型
-                throw new IOException("null==netEventType " + pkgTypeNumber);
+                throw new IOException("Unknown pkgTypeNumber: " + pkgTypeNumber);
             }
             readMsg(ctx, netMessageType, msg);
         } finally {
@@ -178,7 +190,7 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
         final byte[] sessionIdBytes = CodecUtils.getBytesUTF8(sessionId);
         head.writeBytes(sessionIdBytes);
 
-        appendSumAndWrite(ctx, head, promise);
+        setLengthAndWrite(ctx, head, promise);
     }
 
     /**
@@ -221,7 +233,7 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
         byteBuf.writeLong(socketConnectResponseTO.getAck());
         byteBuf.writeByte(socketConnectResponseTO.isClose() ? 1 : 0);
 
-        appendSumAndWrite(ctx, byteBuf, promise);
+        setLengthAndWrite(ctx, byteBuf, promise);
     }
 
     /**
@@ -251,7 +263,7 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
         byteBuf.writeLong(pingPongMessageTO.getAck());
         byteBuf.writeByte(pingPongMessageTO.getPingOrPong() == PingPongMessage.PING ? 1 : 0);
 
-        appendSumAndWrite(ctx, byteBuf, promise);
+        setLengthAndWrite(ctx, byteBuf, promise);
     }
 
     /**
@@ -285,7 +297,7 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
         head.writeByte(requestMessage.isSync() ? 1 : 0);
 
         // rpc请求内容 - 合并之后发送
-        writeLogicMessageCommon(ctx, head, requestMessage.getBody(), promise);
+        writeLogicMessageBodyAndWrite(ctx, head, requestMessage.getBody(), promise);
     }
 
     /**
@@ -300,10 +312,10 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
         // rpc请求头
         long requestGuid = msg.readLong();
         boolean sync = msg.readByte() == 1;
-        // 请求内容
-        Object request = tryDecodeBody(msg);
+        // 方法描述信息 - 不限制结构
+        Object rpcMethodSpec = tryDecodeBody(msg);
 
-        RpcRequestMessage rpcRequestMessage = new RpcRequestMessage(requestGuid, sync, request);
+        RpcRequestMessage rpcRequestMessage = new RpcRequestMessage(requestGuid, sync, rpcMethodSpec);
         return new SocketMessageEvent(channel, sessionId, sequence, ack, endOfBatch, rpcRequestMessage);
     }
 
@@ -312,7 +324,7 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
      */
     private void writeRpcResponseMessage(ChannelHandlerContext ctx, long ack, boolean endOfBatch, SocketMessage socketMessage, ChannelPromise promise) {
         RpcResponseMessage responseMessage = (RpcResponseMessage) socketMessage.getWrappedMessage();
-        ByteBuf head = newHeadByteBuf(ctx, 8 + 8 + 1 + 8, NetMessageType.RPC_RESPONSE);
+        ByteBuf head = newHeadByteBuf(ctx, 8 + 8 + 1 + 8 + 4, NetMessageType.RPC_RESPONSE);
 
         // 捎带确认信息
         head.writeLong(socketMessage.getSequence());
@@ -321,8 +333,10 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
 
         // rpc响应头
         head.writeLong(responseMessage.getRequestGuid());
+        head.writeInt(responseMessage.getErrorCode().getNumber());
+
         // rpc响应内容 - 合并之后发送
-        writeLogicMessageCommon(ctx, head, responseMessage.getBody(), promise);
+        writeLogicMessageBodyAndWrite(ctx, head, responseMessage.getBody(), promise);
     }
 
     /**
@@ -336,10 +350,12 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
 
         // 响应头
         long requestGuid = msg.readLong();
+        RpcErrorCode errorCode = RpcErrorCode.forNumber(msg.readInt());
+
         // 响应内容
         final Object body = msg.readableBytes() > 0 ? tryDecodeBody(msg) : null;
 
-        RpcResponseMessage rpcResponseMessage = new RpcResponseMessage(requestGuid, body);
+        RpcResponseMessage rpcResponseMessage = new RpcResponseMessage(requestGuid, errorCode, body);
         return new SocketMessageEvent(channel, sessionId, sequence, ack, endOfBatch, rpcResponseMessage);
     }
 
@@ -358,7 +374,7 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
         head.writeByte(endOfBatch ? 1 : 0);
 
         // 合并之后发送
-        writeLogicMessageCommon(ctx, head, oneWayMessage.getBody(), promise);
+        writeLogicMessageBodyAndWrite(ctx, head, oneWayMessage.getBody(), promise);
     }
 
     /**
@@ -380,14 +396,14 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
     // ---------------------------------------------- 分割线 ----------------------------------------------------
 
     /**
-     * 尝试合并协议头和身体
+     * 写入逻辑消息的内容并发送
      *
      * @param head 协议头
      * @param body 待编码的body
      */
-    private void writeLogicMessageCommon(ChannelHandlerContext ctx, ByteBuf head, Object body, ChannelPromise promise) {
+    private void writeLogicMessageBodyAndWrite(ChannelHandlerContext ctx, ByteBuf head, Object body, ChannelPromise promise) {
         final ByteBuf bodyByteBuf = tryEncodeBody(ctx.alloc(), body);
-        appendSumAndWrite(ctx, Unpooled.wrappedBuffer(head, bodyByteBuf), promise);
+        setLengthAndWrite(ctx, Unpooled.wrappedBuffer(head, bodyByteBuf), promise);
     }
 
     /**
@@ -441,19 +457,24 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
      * @param contentLength 有效内容的长度
      * @return 足够空间的byteBuf可以直接写入内容部分
      */
-    private ByteBuf newHeadByteBuf(ChannelHandlerContext ctx, int contentLength, NetMessageType netNetMessageType) {
-        return NetUtils.newHeadByteBuf(ctx, contentLength, netNetMessageType.pkgType);
+    private static ByteBuf newHeadByteBuf(ChannelHandlerContext ctx, int contentLength, NetMessageType netNetMessageType) {
+        // 消息长度字段 + 包类型
+        ByteBuf byteBuf = ctx.alloc().buffer(4 + 1 + contentLength);
+        byteBuf.writeInt(0);
+        byteBuf.writeByte(netNetMessageType.pkgType);
+        return byteBuf;
     }
 
     /**
-     * 添加校验和并发送
+     * 设置长度字段并发送
      *
      * @param ctx     handlerContext，用于将数据发送出去
      * @param byteBuf 待发送的数据包
      * @param promise 操作回执
      */
-    private void appendSumAndWrite(ChannelHandlerContext ctx, ByteBuf byteBuf, ChannelPromise promise) {
-        NetUtils.appendLengthAndCheckSum(byteBuf);
+    private static void setLengthAndWrite(ChannelHandlerContext ctx, ByteBuf byteBuf, ChannelPromise promise) {
+        byteBuf.setInt(0, byteBuf.readableBytes() - 4);
         ctx.write(byteBuf, promise);
     }
+
 }

@@ -38,67 +38,64 @@ public class DefaultRpcMethodHandle<V> implements RpcMethodHandle<V> {
     /**
      * 远程方法信息
      */
-    private RpcRequest<V> request;
+    private RpcMethodSpec<V> rpcMethodSpec;
 
-    /**
-     * @param request 一般来讲，是用于转发的RpcCall
-     */
-    public DefaultRpcMethodHandle(RpcRequest<V> request) {
-        this.request = request;
+    public DefaultRpcMethodHandle(RpcMethodSpec<V> rpcMethodSpec) {
+        this.rpcMethodSpec = rpcMethodSpec;
     }
 
     /**
      * 该方法是生成的代码调用的。
      */
     public DefaultRpcMethodHandle(short serviceId, short methodId, List<Object> methodParams, int lazyIndexes, int preIndexes) {
-        this.request = new RpcRequest<>(serviceId, methodId, methodParams, lazyIndexes, preIndexes);
+        this.rpcMethodSpec = new RpcMethodSpec<>(serviceId, methodId, methodParams, lazyIndexes, preIndexes);
     }
 
     @Override
-    public RpcRequest<V> getRequest() {
-        return request;
+    public RpcMethodSpec<V> getRpcMethodSpec() {
+        return rpcMethodSpec;
     }
 
     @Override
     public RpcMethodHandle<V> router(RpcRouter<V> router) {
-        this.request = router.route(request).getRequest();
+        this.rpcMethodSpec = router.route(rpcMethodSpec).getRpcMethodSpec();
         return this;
     }
 
     @Override
     public void send(@Nonnull RpcClient client) throws IllegalStateException {
-        client.send(request);
+        client.send(rpcMethodSpec);
     }
 
     @Override
     public void sendAndFlush(RpcClient client) {
-        client.sendAndFlush(request);
+        client.sendAndFlush(rpcMethodSpec);
     }
 
     @Override
     public void broadcast(@Nonnull Iterable<RpcClient> clientGroup) throws IllegalStateException {
         for (RpcClient client : clientGroup) {
-            client.send(request);
+            client.send(rpcMethodSpec);
         }
     }
 
     @Override
     public final TimeoutMethodListenable<RpcFutureResult<V>, V> call(@Nonnull RpcClient client) {
         final TimeoutMethodListenable<RpcFutureResult<V>, V> listenable = new DefaultTimeoutMethodListenable<>();
-        client.<V>call(this.request).addListener(listenable);
+        client.<V>call(this.rpcMethodSpec).addListener(listenable);
         return listenable;
     }
 
     @Override
     public TimeoutMethodListenable<RpcFutureResult<V>, V> callAndFlush(@Nonnull RpcClient client) {
         final TimeoutMethodListenable<RpcFutureResult<V>, V> listenable = new DefaultTimeoutMethodListenable<>();
-        client.<V>callAndFlush(request).addListener(listenable);
+        client.<V>callAndFlush(rpcMethodSpec).addListener(listenable);
         return listenable;
     }
 
     @Override
     public V syncCall(@Nonnull RpcClient client) throws CompletionException {
-        return client.syncCall(request);
+        return client.syncCall(rpcMethodSpec);
     }
 
 }

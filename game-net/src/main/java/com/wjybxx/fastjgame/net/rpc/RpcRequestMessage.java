@@ -34,7 +34,7 @@ public class RpcRequestMessage extends NetLogicMessage {
      */
     private final long requestGuid;
     /**
-     * 是否是同步调用
+     * 是否是同步调用(同步调用表示紧急)
      */
     private final boolean sync;
 

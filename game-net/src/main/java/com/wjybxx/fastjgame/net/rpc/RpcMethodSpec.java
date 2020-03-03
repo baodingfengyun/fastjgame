@@ -20,20 +20,19 @@ package com.wjybxx.fastjgame.net.rpc;
 import com.wjybxx.fastjgame.net.binary.EntityInputStream;
 import com.wjybxx.fastjgame.net.binary.EntityOutputStream;
 import com.wjybxx.fastjgame.net.binary.EntitySerializer;
-import com.wjybxx.fastjgame.net.session.SessionPipeline;
-import com.wjybxx.fastjgame.utils.async.MethodSpec;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 默认的rpc请求结构体。
- * 如果使用其它格式的请求结构体和响应结构体，则需要在{@link SessionPipeline}中添加用于适配的handler。
+ * 默认的rpc方法结构体，可以根据{@link #serviceId} 和{@link #methodId}确定唯一的一个方法。
  * <p>
  * 警告：不要修改对象的内容，否则可能引发bug(并发错误)。
- * <p>
- * 由{@link RpcRequestSerializer}负责序列化
+ *
+ * <h3>实现者需要注意</h3>
+ * 千万不要把{@link RpcSupportHandler}和{@link RpcMethodSpec}对象绑定。
+ * 重命名为{@link RpcMethodSpec}就是为了避免错误的联想！
  *
  * @param <V> the type of return type
  * @author wjybxx
@@ -42,7 +41,7 @@ import java.util.List;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class RpcRequest<V> implements MethodSpec<V> {
+public class RpcMethodSpec<V> implements com.wjybxx.fastjgame.utils.async.MethodSpec<V> {
 
     /**
      * 远程服务id
@@ -71,7 +70,7 @@ public class RpcRequest<V> implements MethodSpec<V> {
      */
     private final int preIndexes;
 
-    public RpcRequest(short serviceId, short methodId, List<Object> methodParams, int lazyIndexes, int preIndexes) {
+    public RpcMethodSpec(short serviceId, short methodId, List<Object> methodParams, int lazyIndexes, int preIndexes) {
         this.serviceId = serviceId;
         this.methodId = methodId;
         this.methodParams = methodParams;
@@ -99,25 +98,29 @@ public class RpcRequest<V> implements MethodSpec<V> {
         return preIndexes;
     }
 
-    private static class RpcRequestSerializer implements EntitySerializer<RpcRequest> {
+    /**
+     * 负责{@link RpcMethodSpec}的序列化工作 - 会被自动扫描到。
+     */
+    @SuppressWarnings("unused")
+    private static class RpcMethodSpecSerializer implements EntitySerializer<RpcMethodSpec> {
 
         @Override
-        public Class<RpcRequest> getEntityClass() {
-            return RpcRequest.class;
+        public Class<RpcMethodSpec> getEntityClass() {
+            return RpcMethodSpec.class;
         }
 
         @Override
-        public RpcRequest readObject(EntityInputStream inputStream) throws Exception {
+        public RpcMethodSpec readObject(EntityInputStream inputStream) throws Exception {
             final short serviceId = inputStream.readShort();
             final short methodId = inputStream.readShort();
             final List<Object> methodParams = inputStream.readCollection(ArrayList::new);
             final int lazyIndexes = inputStream.readInt();
             final int preIndexes = inputStream.readInt();
-            return new RpcRequest(serviceId, methodId, methodParams, lazyIndexes, preIndexes);
+            return new RpcMethodSpec(serviceId, methodId, methodParams, lazyIndexes, preIndexes);
         }
 
         @Override
-        public void writeObject(RpcRequest instance, EntityOutputStream outputStream) throws Exception {
+        public void writeObject(RpcMethodSpec instance, EntityOutputStream outputStream) throws Exception {
             outputStream.writeShort(instance.getServiceId());
             outputStream.writeShort(instance.getMethodId());
             outputStream.writeCollection(instance.getMethodParams());

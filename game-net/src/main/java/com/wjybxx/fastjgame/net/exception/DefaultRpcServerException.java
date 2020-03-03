@@ -17,10 +17,9 @@
 package com.wjybxx.fastjgame.net.exception;
 
 import com.wjybxx.fastjgame.net.rpc.RpcErrorCode;
-import com.wjybxx.fastjgame.net.rpc.RpcResponse;
 
 /**
- * 服务器执行调用时出现异常 - 通过{@link com.wjybxx.fastjgame.net.rpc.RpcResponse}解析得到。
+ * 服务器执行调用时出现异常。
  *
  * @author wjybxx
  * @version 1.0
@@ -31,9 +30,9 @@ public class DefaultRpcServerException extends RpcServerException {
 
     private final RpcErrorCode errorCode;
 
-    public DefaultRpcServerException(RpcResponse rpcResponse) {
-        super((String) rpcResponse.getBody());
-        this.errorCode = rpcResponse.getErrorCode();
+    public DefaultRpcServerException(RpcErrorCode errorCode, String msg) {
+        super(msg);
+        this.errorCode = errorCode;
     }
 
     @Override

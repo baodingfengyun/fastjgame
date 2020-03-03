@@ -20,10 +20,8 @@ import com.wjybxx.fastjgame.utils.CloseableUtils;
 import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelConfig;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.socket.DefaultSocketChannelConfig;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -155,22 +153,6 @@ public class NetUtils {
     }
 
     /**
-     * 计算byteBuf指定区域字节的校验和 - 讲道理，在数据较多的时候，消耗蛮大。
-     *
-     * @param byteBuf byteBuf
-     * @param offset  偏移量
-     * @param length  有效长度，不可越界
-     * @return 校验和
-     */
-    public static long calChecksum(ByteBuf byteBuf, int offset, int length) {
-        long checkSum = 0;
-        for (int index = offset, end = offset + length; index < end; index++) {
-            checkSum += (byteBuf.getByte(index) & 255);
-        }
-        return checkSum;
-    }
-
-    /**
      * 设置内网Ip
      *
      * @param localIp ip
@@ -273,32 +255,6 @@ public class NetUtils {
     }
 
     /**
-     * 创建一个消息头的byteBuf
-     * 预分配消息长度 校验和 和包类型字段
-     *
-     * @param ctx           获取allocator
-     * @param contentLength 有效内容长度
-     * @param pkgType       包类型
-     * @return 已初始化前三个字段
-     */
-    public static ByteBuf newHeadByteBuf(ChannelHandlerContext ctx, int contentLength, byte pkgType) {
-        // 消息长度字段 + 校验和 + 包类型
-        ByteBuf byteBuf = ctx.alloc().buffer(4 + 8 + 1 + contentLength);
-        byteBuf.writeInt(0);
-        byteBuf.writeLong(0);
-        byteBuf.writeByte(pkgType);
-        return byteBuf;
-    }
-
-    /**
-     * 添加长度字段和校验和
-     */
-    public static void appendLengthAndCheckSum(ByteBuf byteBuf) {
-        byteBuf.setInt(0, byteBuf.readableBytes() - 4);
-        byteBuf.setLong(4, NetUtils.calChecksum(byteBuf, 12, byteBuf.readableBytes() - 12));
-    }
-
-    /**
      * 将byteBuf中剩余的字节读取到一个字节数组中。
      *
      * @param byteBuf 方法返回之后 readableBytes == 0
@@ -313,28 +269,6 @@ public class NetUtils {
         return result;
     }
 
-    /**
-     * 设置channel性能偏好.
-     * <p>
-     * 可参考 - https://blog.csdn.net/zero__007/article/details/51723434
-     * <p>
-     * 在 JDK 1.5 中, 还为 Socket 类提供了{@link Socket#setPerformancePreferences(int, int, int)}方法:
-     * 以上方法的 3 个参数表示网络传输数据的 3 选指标.
-     * connectionTime: 表示用最少时间建立连接.
-     * latency: 表示最小延迟.
-     * bandwidth: 表示最高带宽.
-     * setPerformancePreferences() 方法用来设定这 3 项指标之间的相对重要性.
-     * 可以为这些参数赋予任意的整数, 这些整数之间的相对大小就决定了相应参数的相对重要性.
-     * 例如, 如果参数 connectionTime 为 2, 参数 latency 为 1, 而参数bandwidth 为 3,
-     * 就表示最高带宽最重要, 其次是最少连接时间, 最后是最小延迟.
-     */
-    public static void setChannelPerformancePreferences(Channel channel) {
-        ChannelConfig channelConfig = channel.config();
-        if (channelConfig instanceof DefaultSocketChannelConfig) {
-            DefaultSocketChannelConfig socketChannelConfig = (DefaultSocketChannelConfig) channelConfig;
-            socketChannelConfig.setPerformancePreferences(0, 1, 2);
-        }
-    }
 
     public static void main(String[] args) {
         System.out.println("localIp " + localIp);

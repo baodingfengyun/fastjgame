@@ -37,20 +37,22 @@ import javax.annotation.concurrent.ThreadSafe;
 public interface RpcResponseChannel<T> {
 
     /**
-     * 返回rpc调用结果，表示调用成功，{@link #write(RpcResponse)}的快捷方式。
+     * 返回rpc调用结果，表示调用成功。
      *
-     * @param body rpc调用结果/可能为null
+     * @param result rpc调用结果/可能为null
      */
-    default void writeSuccess(@Nullable T body) {
-        if (null == body) {
-            write(RpcResponse.SUCCESS);
-        } else {
-            write(RpcResponse.newSucceedResponse(body));
-        }
-    }
+    void writeSuccess(@Nullable T result);
 
     /**
-     * 返回rpc调用结果，表示调用失败，{@link #write(RpcResponse)}的快捷方式。
+     * 返回rpc调用结果，表示调用失败。
+     *
+     * @param errorCode rpc调用错误码 - 不可以为{@link RpcErrorCode#SUCCESS}
+     * @param message   错误信息
+     */
+    void writeFailure(@Nonnull RpcErrorCode errorCode, @Nonnull String message);
+
+    /**
+     * {@link #writeFailure(RpcErrorCode, String)} 的快捷方式。
      *
      * @param errorCode rpc调用错误码
      * @param cause     造成失败的异常
@@ -61,39 +63,22 @@ public interface RpcResponseChannel<T> {
     }
 
     /**
-     * 返回rpc调用结果，表示调用失败，{@link #write(RpcResponse)}的快捷方式。
-     *
-     * @param errorCode rpc调用错误码
-     * @param message   错误信息
-     */
-    default void writeFailure(@Nonnull RpcErrorCode errorCode, @Nonnull String message) {
-        write(RpcResponse.newFailResponse(errorCode, message));
-    }
-
-    /**
-     * 返回rpc调用结果，表示调用失败，{@link #write(RpcResponse)}的快捷方式。
+     * {@link #writeFailure(RpcErrorCode, String)} 的快捷方式。
      *
      * @param cause 造成失败的异常
      */
     default void writeFailure(@Nonnull Throwable cause) {
-        write(RpcResponse.newFailResponse(RpcErrorCode.SERVER_EXCEPTION, getCauseMessage(cause)));
+        writeFailure(RpcErrorCode.SERVER_EXCEPTION, getCauseMessage(cause));
     }
 
     /**
-     * 返回rpc调用结果，表示调用失败，{@link #write(RpcResponse)}的快捷方式。
+     * {@link #writeFailure(RpcErrorCode, String)} 的快捷方式。
      *
      * @param message 错误信息
      */
     default void writeFailure(@Nonnull String message) {
-        write(RpcResponse.newFailResponse(RpcErrorCode.SERVER_EXCEPTION, message));
+        writeFailure(RpcErrorCode.SERVER_EXCEPTION, message);
     }
-
-    /**
-     * 返回rpc调用结果。
-     *
-     * @param rpcResponse rpc调用结果
-     */
-    void write(@Nonnull RpcResponse rpcResponse);
 
     /**
      * 是否不关心结果，true表示不关心结果。

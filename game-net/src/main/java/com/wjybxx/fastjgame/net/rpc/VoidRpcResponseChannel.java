@@ -43,12 +43,12 @@ public class VoidRpcResponseChannel implements RpcResponseChannel<Object> {
     }
 
     @Override
-    public void writeSuccess(@Nullable Object body) {
-        // do nothing
+    public final boolean isVoid() {
+        return true;
     }
 
     @Override
-    public void writeFailure(@Nonnull RpcErrorCode errorCode, @Nonnull Throwable cause) {
+    public void writeSuccess(@Nullable Object result) {
         // do nothing
     }
 
@@ -58,12 +58,17 @@ public class VoidRpcResponseChannel implements RpcResponseChannel<Object> {
     }
 
     @Override
-    public void write(@Nonnull RpcResponse rpcResponse) {
+    public void writeFailure(@Nonnull RpcErrorCode errorCode, @Nonnull Throwable cause) {
         // do nothing
     }
 
     @Override
-    public boolean isVoid() {
-        return true;
+    public void writeFailure(@Nonnull Throwable cause) {
+        // do nothing
+    }
+
+    @Override
+    public void writeFailure(@Nonnull String message) {
+        // do nothing
     }
 }

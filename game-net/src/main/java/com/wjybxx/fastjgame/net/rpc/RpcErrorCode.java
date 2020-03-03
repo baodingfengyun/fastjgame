@@ -20,6 +20,8 @@ import com.wjybxx.fastjgame.utils.EnumUtils;
 import com.wjybxx.fastjgame.utils.entity.NumericalEntity;
 import com.wjybxx.fastjgame.utils.entity.NumericalEntityMapper;
 
+import javax.annotation.Nonnull;
+
 /**
  * RPC错误码 - 慢慢扩展
  *
@@ -34,6 +36,11 @@ public enum RpcErrorCode implements NumericalEntity {
      * 成功
      */
     SUCCESS(0),
+
+    /**
+     * 无法识别的错误码(当找不到错误码时，返回该值)
+     */
+    UNKNOWN(1),
 
     /**
      * 本地处理请求异常。
@@ -61,6 +68,7 @@ public enum RpcErrorCode implements NumericalEntity {
      * 路由转发时找不到session
      */
     SERVER_ROUTER_SESSION_NULL(21),
+
     ;
 
     /**
@@ -77,12 +85,18 @@ public enum RpcErrorCode implements NumericalEntity {
         return number;
     }
 
+    public boolean isSuccess() {
+        return this == SUCCESS;
+    }
+
     /**
      * number到枚举的映射
      */
     private static final NumericalEntityMapper<RpcErrorCode> mapper = EnumUtils.mapping(values());
 
+    @Nonnull
     public static RpcErrorCode forNumber(int number) {
-        return mapper.forNumber(number);
+        final RpcErrorCode errorCode = mapper.forNumber(number);
+        return errorCode == null ? UNKNOWN : errorCode;
     }
 }

@@ -75,16 +75,16 @@ public class DefaultRpcRequestDispatcher implements RpcMethodProxyRegistry, RpcR
             logger.warn("{} send null request", session.sessionId());
             return;
         }
-        if (request instanceof RpcRequest) {
-            post(session, (RpcRequest) request, responseChannel);
+        if (request instanceof RpcMethodSpec) {
+            post(session, (RpcMethodSpec) request, responseChannel);
         } else {
             post0(session, request, responseChannel);
         }
     }
 
-    private <T> void post(@Nonnull Session session, @Nonnull RpcRequest<T> rpcRequest, @Nonnull RpcResponseChannel<T> rpcResponseChannel) {
-        final int methodKey = calMethodKey(rpcRequest.getServiceId(), rpcRequest.getMethodId());
-        final List<Object> params = rpcRequest.getMethodParams();
+    private <T> void post(@Nonnull Session session, @Nonnull RpcMethodSpec<T> rpcMethodSpec, @Nonnull RpcResponseChannel<T> rpcResponseChannel) {
+        final int methodKey = calMethodKey(rpcMethodSpec.getServiceId(), rpcMethodSpec.getMethodId());
+        final List<Object> params = rpcMethodSpec.getMethodParams();
         @SuppressWarnings("unchecked") final RpcMethodProxy<T> methodProxy = proxyMapping.get(methodKey);
         if (null == methodProxy) {
             rpcResponseChannel.writeFailure(RpcErrorCode.SERVER_EXCEPTION, "methodKey " + methodKey);
@@ -100,6 +100,9 @@ public class DefaultRpcRequestDispatcher implements RpcMethodProxyRegistry, RpcR
         }
     }
 
+    /**
+     * 如果rpc描述信息不是{@link RpcMethodSpec}对象，那么需要自己实现分发操作
+     */
     protected void post0(Session session, Object request, RpcResponseChannel<?> responseChannel) {
 
     }
