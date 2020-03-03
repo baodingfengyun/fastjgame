@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.net.example;
 
 import com.wjybxx.fastjgame.net.binary.BinaryProtocolCodec;
-import com.wjybxx.fastjgame.net.rpc.ProtocolCodec;
+import com.wjybxx.fastjgame.net.misc.ProtocolCodec;
 
 /**
  * 一个不太靠谱的序列化反序列化性能测试。
@@ -53,10 +53,10 @@ public class SerializePerformanceTest {
 
     private static void equalsTest(ProtocolCodec codec, Object msg) throws Exception {
         final String name = codec.getClass().getSimpleName();
-        final byte[] bytes = codec.serializeToBytes(msg);
+        final byte[] bytes = codec.toBytes(msg);
         System.out.println(name + " encode result bytes = " + bytes.length);
 
-        final Object decodeMessage = codec.deserializeFromBytes(bytes);
+        final Object decodeMessage = codec.fromBytes(bytes);
         System.out.println(name + " codec equals result = " + msg.equals(decodeMessage));
     }
 
@@ -64,8 +64,8 @@ public class SerializePerformanceTest {
         final String name = codec.getClass().getSimpleName();
         final long start = System.currentTimeMillis();
         for (int index = 0; index < loopTimes; index++) {
-            byte[] byteBuf = codec.serializeToBytes(msg);
-            Object decodeMessage = codec.deserializeFromBytes(byteBuf);
+            byte[] byteBuf = codec.toBytes(msg);
+            Object decodeMessage = codec.fromBytes(byteBuf);
         }
         System.out.println(name + " codec " + loopTimes + " times cost timeMs " + (System.currentTimeMillis() - start));
     }

@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
 @AutoService(Processor.class)
 public class HttpRequestMapProcessor extends MyAbstractProcessor {
 
-    private static final String HTTP_REQUEST_MAPPING_CANONICAL_NAME = "com.wjybxx.fastjgame.net.annotation.HttpRequestMapping";
+    private static final String HTTP_REQUEST_MAPPING_CANONICAL_NAME = "com.wjybxx.fastjgame.net.http.HttpRequestMapping";
     private static final String PARAM_CANONICAL_NAME = "com.wjybxx.fastjgame.net.http.HttpRequestParam";
     private static final String SESSION_CANONICAL_NAME = "com.wjybxx.fastjgame.net.http.HttpSession";
     private static final String REGISTRY_CANONICAL_NAME = "com.wjybxx.fastjgame.net.http.HttpRequestHandlerRegistry";

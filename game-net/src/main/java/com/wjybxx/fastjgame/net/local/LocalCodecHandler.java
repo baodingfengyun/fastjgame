@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.net.local;
 
+import com.wjybxx.fastjgame.net.misc.ProtocolCodec;
 import com.wjybxx.fastjgame.net.rpc.NetLogicMessage;
-import com.wjybxx.fastjgame.net.rpc.ProtocolCodec;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 import com.wjybxx.fastjgame.net.session.SessionOutboundHandlerAdapter;
 
@@ -47,8 +47,8 @@ public class LocalCodecHandler extends SessionOutboundHandlerAdapter {
         // msg 是根据writeTask创建的对象，不是共享的，但它持有的内容是共享的
         if (msg instanceof NetLogicMessage) {
             NetLogicMessage logicMessage = (NetLogicMessage) msg;
-            final byte[] bodyBytes = codec.serializeToBytes(logicMessage.getBody());
-            final Object newBody = codec.deserializeFromBytes(bodyBytes);
+            final byte[] bodyBytes = codec.toBytes(logicMessage.getBody());
+            final Object newBody = codec.fromBytes(bodyBytes);
             logicMessage.setBody(newBody);
         }
         // 传递给下一个handler

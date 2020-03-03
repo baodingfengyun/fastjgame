@@ -49,7 +49,6 @@ public interface Session extends RpcClient, Comparable<Session> {
      * 注意：
      * 1. 必须是全局唯一
      * 2. 尽量有意义
-     * 3. 不建议重复使用。
      * <p>
      * 它的重要意义：
      * 1. 线程封闭。

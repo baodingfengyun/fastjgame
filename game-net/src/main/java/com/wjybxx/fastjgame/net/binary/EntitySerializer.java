@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.wjybxx.fastjgame.net.annotation.SerializableClass;
-
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.function.IntFunction;
 

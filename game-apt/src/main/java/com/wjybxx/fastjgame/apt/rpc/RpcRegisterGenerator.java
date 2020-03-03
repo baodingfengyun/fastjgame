@@ -71,7 +71,8 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
         final TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(getServerProxyClassName(typeElement))
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                 .addAnnotation(AutoUtils.SUPPRESS_UNCHECKED_ANNOTATION)
-                .addAnnotation(processorInfoAnnotation);
+                .addAnnotation(processorInfoAnnotation)
+                .addSuperinterface(processor.serviceRegisterTypeName);
 
         typeBuilder.addMethods(serverMethodProxyList);
 
@@ -102,7 +103,7 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("register")
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                 .returns(TypeName.VOID)
-                .addParameter(processor.registryTypeName, registry)
+                .addParameter(processor.methodRegistryTypeName, registry)
                 .addParameter(TypeName.get(typeElement.asType()), instance);
 
         // 添加调用
@@ -167,7 +168,7 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
         final MethodSpec.Builder builder = MethodSpec.methodBuilder(getServerProxyMethodName(methodId, method))
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
                 .returns(TypeName.VOID)
-                .addParameter(processor.registryTypeName, registry)
+                .addParameter(processor.methodRegistryTypeName, registry)
                 .addParameter(TypeName.get(typeElement.asType()), instance);
 
         // 双方都必须拷贝泛型变量

@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.rpc;
 
-import com.wjybxx.fastjgame.net.eventloop.NetContext;
+import com.wjybxx.fastjgame.net.misc.NetContext;
 import com.wjybxx.fastjgame.net.session.Session;
 
 import javax.annotation.Nonnull;

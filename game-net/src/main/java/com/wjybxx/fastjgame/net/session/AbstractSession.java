@@ -16,10 +16,10 @@
 
 package com.wjybxx.fastjgame.net.session;
 
-import com.wjybxx.fastjgame.net.eventloop.NetContext;
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.net.exception.RpcSessionClosedException;
 import com.wjybxx.fastjgame.net.manager.NetManagerWrapper;
+import com.wjybxx.fastjgame.net.misc.NetContext;
 import com.wjybxx.fastjgame.net.rpc.*;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.annotation.Internal;

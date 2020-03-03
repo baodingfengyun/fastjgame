@@ -21,6 +21,7 @@ import com.google.inject.Injector;
 import com.google.inject.Stage;
 import com.wjybxx.fastjgame.net.manager.NettyThreadManager;
 import com.wjybxx.fastjgame.net.misc.DefaultNetContext;
+import com.wjybxx.fastjgame.net.misc.NetContext;
 import com.wjybxx.fastjgame.net.module.NetEventLoopGroupModule;
 import com.wjybxx.fastjgame.net.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;

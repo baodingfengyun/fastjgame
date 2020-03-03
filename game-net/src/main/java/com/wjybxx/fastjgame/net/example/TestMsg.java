@@ -17,8 +17,8 @@
 package com.wjybxx.fastjgame.net.example;
 
 
-import com.wjybxx.fastjgame.net.annotation.SerializableClass;
-import com.wjybxx.fastjgame.net.annotation.SerializableField;
+import com.wjybxx.fastjgame.net.binary.SerializableClass;
+import com.wjybxx.fastjgame.net.binary.SerializableField;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 

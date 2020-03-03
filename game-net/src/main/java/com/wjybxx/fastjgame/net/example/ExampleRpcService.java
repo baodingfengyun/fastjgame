@@ -16,11 +16,7 @@
 
 package com.wjybxx.fastjgame.net.example;
 
-import com.wjybxx.fastjgame.net.annotation.LazySerializable;
-import com.wjybxx.fastjgame.net.annotation.PreDeserializable;
-import com.wjybxx.fastjgame.net.annotation.RpcMethod;
-import com.wjybxx.fastjgame.net.annotation.RpcService;
-import com.wjybxx.fastjgame.net.rpc.RpcResponseChannel;
+import com.wjybxx.fastjgame.net.rpc.*;
 import com.wjybxx.fastjgame.net.session.Session;
 
 /**
@@ -103,7 +99,7 @@ public class ExampleRpcService {
      */
     @RpcMethod(methodId = 10)
     public void sendToPlayer(long playerGuid, @LazySerializable byte[] proto) throws Exception {
-        System.out.println("playerGuid " + playerGuid + ", " + ExampleConstants.binaryCodec.deserializeFromBytes(proto));
+        System.out.println("playerGuid " + playerGuid + ", " + ExampleConstants.binaryCodec.fromBytes(proto));
     }
 
     /**

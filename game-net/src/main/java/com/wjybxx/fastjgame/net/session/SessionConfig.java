@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.session;
 
-import com.wjybxx.fastjgame.net.rpc.ProtocolCodec;
+import com.wjybxx.fastjgame.net.misc.ProtocolCodec;
 import com.wjybxx.fastjgame.net.rpc.RpcRequestDispatcher;
 import com.wjybxx.fastjgame.utils.CheckUtils;
 

@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.rpc;
+package com.wjybxx.fastjgame.net.misc;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -47,7 +47,7 @@ public interface ProtocolCodec {
      * @return 字节数组
      */
     @Nonnull
-    byte[] serializeToBytes(@Nullable Object object) throws Exception;
+    byte[] toBytes(@Nullable Object object) throws Exception;
 
     /**
      * 将一个对象反序列化。
@@ -56,14 +56,15 @@ public interface ProtocolCodec {
      * @param data 序列化后的数组
      * @return 反序列化的结果
      */
-    Object deserializeFromBytes(@Nonnull byte[] data) throws Exception;
+    Object fromBytes(@Nonnull byte[] data) throws Exception;
 
     /**
      * 克隆一个对象。
-     * 该方法的主要目的是消除调用{@link #serializeToBytes(Object)}和{@link #deserializeFromBytes(byte[])}实现克隆产生的中间数组。
+     * 该方法的主要目的是消除调用{@link #toBytes(Object)}和{@link #fromBytes(byte[])}实现克隆产生的中间数组。
      *
      * @param object 待克隆的对象
-     * @return 深度克隆的对象，对于多态对象，如果缺少相应信息，可能返回不兼容的对象，只保证实现相同的接口。
+     * @return Q: 为什么不是泛型的？
+     * A:深度克隆的对象，对于多态对象，如果缺少相应信息，可能返回不兼容的对象（map和集合）。
      * @throws IOException error
      */
     Object cloneObject(@Nullable Object object) throws Exception;

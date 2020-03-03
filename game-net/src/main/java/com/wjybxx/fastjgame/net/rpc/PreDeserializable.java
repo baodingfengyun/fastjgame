@@ -14,23 +14,28 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.local;
+package com.wjybxx.fastjgame.net.rpc;
 
-import com.wjybxx.fastjgame.net.misc.NetContext;
-import com.wjybxx.fastjgame.net.misc.NetPort;
-
-import javax.annotation.concurrent.NotThreadSafe;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * 用于建立JVM内部session的“端口”，它并非一个真正的端口。
- * 注意：每次调用{@link NetContext#bindLocal(LocalSessionConfig)}都会产生一个新的{@link LocalPort}。
+ * 表示rpc方法中的某个参数可提前序列化的，与{@link LazySerializable}配对，它表示需要网络层帮我提前反序列化。
+ * 它需要知道被调用的方法的信息，才可以做到。
+ * <p>
+ * 注意：
+ * 1. 该注解只可以用在非byte[]参数，否则编译报错。
+ * 2. 代理方法参数类型为byte[]。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/9/9
+ * date - 2019/10/10
  * github - https://github.com/hl845740757
  */
-@NotThreadSafe
-public interface LocalPort extends NetPort {
+@Retention(RetentionPolicy.SOURCE)
+@Target(ElementType.PARAMETER)
+public @interface PreDeserializable {
 
 }

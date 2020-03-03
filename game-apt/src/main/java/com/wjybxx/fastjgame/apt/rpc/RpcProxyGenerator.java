@@ -57,7 +57,8 @@ class RpcProxyGenerator extends AbstractGenerator<RpcServiceProcessor> {
         // 代理类不可以继承
         final TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(getClientProxyClassName(typeElement))
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                .addAnnotation(processorInfoAnnotation);
+                .addAnnotation(processorInfoAnnotation)
+                .addSuperinterface(processor.serviceProxyTypeName);
 
         // 生成代理方法
         for (final ExecutableElement method : rpcMethods) {

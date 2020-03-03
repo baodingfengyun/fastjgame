@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.net.rpc;
 
-import com.wjybxx.fastjgame.net.annotation.RpcMethod;
 import com.wjybxx.fastjgame.net.session.Session;
 
 import java.util.List;

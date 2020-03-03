@@ -17,9 +17,9 @@
 package com.wjybxx.fastjgame.net.manager;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.net.eventloop.NetContext;
 import com.wjybxx.fastjgame.net.local.*;
 import com.wjybxx.fastjgame.net.misc.HostAndPort;
+import com.wjybxx.fastjgame.net.misc.NetContext;
 import com.wjybxx.fastjgame.net.rpc.LazySerializeSupportHandler;
 import com.wjybxx.fastjgame.net.rpc.OneWaySupportHandler;
 import com.wjybxx.fastjgame.net.rpc.RpcSupportHandler;

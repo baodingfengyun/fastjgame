@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.apt.subscriber;
 
 import com.google.auto.service.AutoService;
+import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
@@ -44,9 +45,11 @@ import java.util.stream.Collectors;
 @AutoService(Processor.class)
 public class EventSubscribeProcessor extends MyAbstractProcessor {
 
-    private static final String REGISTRY_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.eventbus.EventHandlerRegistry";
     private static final String SUBSCRIBE_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.eventbus.Subscribe";
     private static final String GENERIC_EVENT_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.eventbus.GenericEvent";
+
+    private static final String HANDLER_REGISTRY_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.eventbus.EventHandlerRegistry";
+    private static final String BUS_REGISTER_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.eventbus.BusRegister";
 
     private static final String SUB_EVENTS_METHOD_NAME = "subEvents";
     private static final String ONLY_SUB_EVENTS_METHOD_NAME = "onlySubEvents";
@@ -55,7 +58,8 @@ public class EventSubscribeProcessor extends MyAbstractProcessor {
     private DeclaredType subscribeDeclaredType;
     private DeclaredType genericEventDeclaredType;
 
-    private TypeName registryTypeName;
+    private TypeName busRegisterTypeName;
+    private TypeName handlerRegistryTypeName;
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {
@@ -76,7 +80,8 @@ public class EventSubscribeProcessor extends MyAbstractProcessor {
         subscribeDeclaredType = typeUtils.getDeclaredType(subscribeTypeElement);
         genericEventDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(GENERIC_EVENT_CANONICAL_NAME));
 
-        registryTypeName = TypeName.get(elementUtils.getTypeElement(REGISTRY_CANONICAL_NAME).asType());
+        busRegisterTypeName = ClassName.get(elementUtils.getTypeElement(BUS_REGISTER_CANONICAL_NAME));
+        handlerRegistryTypeName = ClassName.get(elementUtils.getTypeElement(HANDLER_REGISTRY_CANONICAL_NAME));
     }
 
     @Override
@@ -100,6 +105,7 @@ public class EventSubscribeProcessor extends MyAbstractProcessor {
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                 .addAnnotation(AutoUtils.SUPPRESS_UNCHECKED_ANNOTATION)
                 .addAnnotation(processorInfoAnnotation)
+                .addSuperinterface(busRegisterTypeName)
                 .addMethod(genRegisterMethod(typeElement, methodList));
 
         // 写入文件
@@ -113,7 +119,7 @@ public class EventSubscribeProcessor extends MyAbstractProcessor {
     private MethodSpec genRegisterMethod(TypeElement typeElement, List<? extends Element> methodList) {
         final MethodSpec.Builder builder = MethodSpec.methodBuilder("register")
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                .addParameter(registryTypeName, "registry")
+                .addParameter(handlerRegistryTypeName, "registry")
                 .addParameter(TypeName.get(typeElement.asType()), "instance");
 
         for (Element element : methodList) {

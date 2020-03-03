@@ -14,23 +14,23 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.local;
+package com.wjybxx.fastjgame.net.binary;
 
-import com.wjybxx.fastjgame.net.misc.NetContext;
-import com.wjybxx.fastjgame.net.misc.NetPort;
-
-import javax.annotation.concurrent.NotThreadSafe;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * 用于建立JVM内部session的“端口”，它并非一个真正的端口。
- * 注意：每次调用{@link NetContext#bindLocal(LocalSessionConfig)}都会产生一个新的{@link LocalPort}。
+ * 用该注解注解的字段表示是一个需要序列化的属性字段。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/9/9
+ * date - 2019/8/17
  * github - https://github.com/hl845740757
  */
-@NotThreadSafe
-public interface LocalPort extends NetPort {
+@Retention(RetentionPolicy.SOURCE)
+@Target(ElementType.FIELD)
+public @interface SerializableField {
 
 }

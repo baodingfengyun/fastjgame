@@ -16,9 +16,9 @@
 
 package com.wjybxx.fastjgame.net.example;
 
-import com.wjybxx.fastjgame.net.eventloop.NetContext;
 import com.wjybxx.fastjgame.net.local.LocalPort;
 import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
+import com.wjybxx.fastjgame.net.misc.NetContext;
 import com.wjybxx.fastjgame.net.rpc.DefaultRpcRequestDispatcher;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionLifecycleAware;

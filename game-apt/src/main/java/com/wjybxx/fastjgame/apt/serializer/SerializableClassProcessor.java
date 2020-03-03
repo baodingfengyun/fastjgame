@@ -31,6 +31,7 @@ import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
 import java.util.*;
 
@@ -47,8 +48,8 @@ import java.util.*;
 public class SerializableClassProcessor extends MyAbstractProcessor {
 
     // 使用这种方式可以脱离对utils，net包的依赖
-    private static final String SERIALIZABLE_CLASS_CANONICAL_NAME = "com.wjybxx.fastjgame.net.annotation.SerializableClass";
-    private static final String SERIALIZABLE_FIELD_CANONICAL_NAME = "com.wjybxx.fastjgame.net.annotation.SerializableField";
+    private static final String SERIALIZABLE_CLASS_CANONICAL_NAME = "com.wjybxx.fastjgame.net.binary.SerializableClass";
+    private static final String SERIALIZABLE_FIELD_CANONICAL_NAME = "com.wjybxx.fastjgame.net.binary.SerializableField";
 
     private static final String SERIALIZER_CANONICAL_NAME = "com.wjybxx.fastjgame.net.binary.EntitySerializer";
     private static final String ABSTRACT_SERIALIZER_CANONICAL_NAME = "com.wjybxx.fastjgame.net.binary.AbstractEntitySerializer";
@@ -124,13 +125,15 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
 
     }
 
+    /**
+     * 如果保留策略修改为runtime，则需要调用进行过滤。
+     * {@link AutoUtils#selectSourceFile(Set, Elements)}
+     */
     @Override
     protected boolean doProcess(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         // 该注解只有类可以使用
         @SuppressWarnings("unchecked") final Set<TypeElement> allTypeElements = (Set<TypeElement>) roundEnv.getElementsAnnotatedWithAny(serializableClassElement, dbEntityTypeElement);
-        final Set<TypeElement> sourceFileTypeElementSet = AutoUtils.selectSourceFile(allTypeElements, elementUtils);
-
-        for (TypeElement typeElement : sourceFileTypeElementSet) {
+        for (TypeElement typeElement : allTypeElements) {
             try {
                 checkBase(typeElement);
                 generateSerializer(typeElement);

@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.net.rpc;
 import javax.annotation.Nonnull;
 
 /**
- * Rpc调用函数注册表，本质是发布订阅/观察者的一种
+ * Rpc调用函数注册表。
  *
  * @author wjybxx
  * @version 1.0

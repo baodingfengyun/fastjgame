@@ -51,16 +51,19 @@ import java.util.stream.Collectors;
 @AutoService(Processor.class)
 public class RpcServiceProcessor extends MyAbstractProcessor {
 
+    private static final String RPC_SERVICE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.RpcService";
+    private static final String RPC_METHOD_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.RpcMethod";
+
+    static final String LAZY_SERIALIZABLE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.LazySerializable";
+    static final String PRE_DESERIALIZE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.PreDeserializable";
+
     private static final String METHOD_HANDLE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.RpcMethodHandle";
     private static final String DEFAULT_METHOD_HANDLE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.DefaultRpcMethodHandle";
 
-    private static final String RPC_SERVICE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.annotation.RpcService";
-    private static final String RPC_METHOD_CANONICAL_NAME = "com.wjybxx.fastjgame.net.annotation.RpcMethod";
+    private static final String SERVICE_PROXY_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.RpcServiceProxy";
+    private static final String SERVICE_REGISTER_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.RpcServiceRegister";
 
-    static final String LAZY_SERIALIZABLE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.annotation.LazySerializable";
-    static final String PRE_DESERIALIZE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.annotation.PreDeserializable";
-
-    private static final String REGISTRY_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.RpcMethodProxyRegistry";
+    private static final String METHOD_REGISTRY_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.RpcMethodProxyRegistry";
     private static final String CHANNEL_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.RpcResponseChannel";
     private static final String SESSION_CANONICAL_NAME = "com.wjybxx.fastjgame.net.session.Session";
 
@@ -89,7 +92,10 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
     private DeclaredType rpcServiceDeclaredType;
     private DeclaredType rpcMethodDeclaredType;
 
-    ClassName registryTypeName;
+    ClassName serviceRegisterTypeName;
+    ClassName serviceProxyTypeName;
+
+    ClassName methodRegistryTypeName;
 
     private TypeMirror mapTypeMirror;
     private TypeMirror linkedHashMapTypeMirror;
@@ -114,7 +120,10 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
         rpcServiceDeclaredType = typeUtils.getDeclaredType(rpcServiceElement);
         rpcMethodDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(RPC_METHOD_CANONICAL_NAME));
 
-        registryTypeName = ClassName.get(elementUtils.getTypeElement(REGISTRY_CANONICAL_NAME));
+        serviceProxyTypeName = ClassName.get(elementUtils.getTypeElement(SERVICE_PROXY_CANONICAL_NAME));
+        serviceRegisterTypeName = ClassName.get(elementUtils.getTypeElement(SERVICE_REGISTER_CANONICAL_NAME));
+
+        methodRegistryTypeName = ClassName.get(elementUtils.getTypeElement(METHOD_REGISTRY_CANONICAL_NAME));
         sessionDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(SESSION_CANONICAL_NAME));
         responseChannelDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(CHANNEL_CANONICAL_NAME));
 

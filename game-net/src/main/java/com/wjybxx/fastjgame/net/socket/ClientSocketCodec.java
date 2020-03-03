@@ -17,8 +17,8 @@
 package com.wjybxx.fastjgame.net.socket;
 
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoop;
+import com.wjybxx.fastjgame.net.misc.ProtocolCodec;
 import com.wjybxx.fastjgame.net.rpc.NetMessageType;
-import com.wjybxx.fastjgame.net.rpc.ProtocolCodec;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;

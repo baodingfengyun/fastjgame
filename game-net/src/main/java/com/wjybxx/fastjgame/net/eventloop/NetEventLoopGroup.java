@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.net.eventloop;
 
+import com.wjybxx.fastjgame.net.misc.NetContext;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoopGroup;

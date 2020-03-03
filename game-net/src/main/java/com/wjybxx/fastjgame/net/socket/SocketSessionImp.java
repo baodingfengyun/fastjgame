@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
-import com.wjybxx.fastjgame.net.eventloop.NetContext;
 import com.wjybxx.fastjgame.net.manager.NetManagerWrapper;
+import com.wjybxx.fastjgame.net.misc.NetContext;
 import com.wjybxx.fastjgame.net.session.AbstractSession;
 import com.wjybxx.fastjgame.net.session.SessionRegistry;
 

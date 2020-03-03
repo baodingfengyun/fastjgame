@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.net.http;
 
-import com.wjybxx.fastjgame.net.eventloop.NetContext;
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoop;
+import com.wjybxx.fastjgame.net.misc.NetContext;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
 import io.netty.channel.Channel;

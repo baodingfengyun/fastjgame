@@ -14,23 +14,16 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.local;
-
-import com.wjybxx.fastjgame.net.misc.NetContext;
-import com.wjybxx.fastjgame.net.misc.NetPort;
-
-import javax.annotation.concurrent.NotThreadSafe;
+package com.wjybxx.fastjgame.utils.eventbus;
 
 /**
- * 用于建立JVM内部session的“端口”，它并非一个真正的端口。
- * 注意：每次调用{@link NetContext#bindLocal(LocalSessionConfig)}都会产生一个新的{@link LocalPort}。
+ * 事件注册器。
+ * 为生成的代码提供一个接口，方便扫描。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/9/9
- * github - https://github.com/hl845740757
+ * date - 2020/3/3
  */
-@NotThreadSafe
-public interface LocalPort extends NetPort {
+public interface BusRegister {
 
 }

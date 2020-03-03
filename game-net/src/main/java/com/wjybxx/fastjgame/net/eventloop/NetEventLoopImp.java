@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.net.http.HttpRequestEvent;
 import com.wjybxx.fastjgame.net.local.ConnectLocalRequest;
 import com.wjybxx.fastjgame.net.manager.*;
 import com.wjybxx.fastjgame.net.misc.DefaultNetContext;
+import com.wjybxx.fastjgame.net.misc.NetContext;
 import com.wjybxx.fastjgame.net.module.NetEventLoopModule;
 import com.wjybxx.fastjgame.net.rpc.DefaultRpcPromise;
 import com.wjybxx.fastjgame.net.rpc.FailedRpcFuture;

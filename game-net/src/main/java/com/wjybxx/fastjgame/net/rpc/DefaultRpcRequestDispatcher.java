@@ -27,7 +27,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 /**
- * 协议分发的默认实现
+ * rpc请求分发的默认实现
  *
  * @author wjybxx
  * @version 1.0
@@ -42,7 +42,6 @@ public class DefaultRpcRequestDispatcher implements RpcMethodProxyRegistry, RpcR
      * 所有的Rpc请求处理函数, methodKey -> methodProxy
      */
     private final Int2ObjectMap<RpcMethodProxy> proxyMapping = new Int2ObjectOpenHashMap<>(512);
-
 
     public DefaultRpcRequestDispatcher() {
 
@@ -79,12 +78,8 @@ public class DefaultRpcRequestDispatcher implements RpcMethodProxyRegistry, RpcR
         if (request instanceof RpcRequest) {
             post(session, (RpcRequest) request, responseChannel);
         } else {
-            postRpcRequest0(session, request, responseChannel);
+            post0(session, request, responseChannel);
         }
-    }
-
-    protected void postRpcRequest0(Session session, Object request, RpcResponseChannel<?> responseChannel) {
-
     }
 
     private <T> void post(@Nonnull Session session, @Nonnull RpcRequest<T> rpcRequest, @Nonnull RpcResponseChannel<T> rpcResponseChannel) {
@@ -103,6 +98,10 @@ public class DefaultRpcRequestDispatcher implements RpcMethodProxyRegistry, RpcR
             logger.warn("handle {} rpcRequest caught exception, methodKey={}, parameters={}",
                     session.sessionId(), methodKey, params);
         }
+    }
+
+    protected void post0(Session session, Object request, RpcResponseChannel<?> responseChannel) {
+
     }
 
 }

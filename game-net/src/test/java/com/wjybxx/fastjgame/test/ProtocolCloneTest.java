@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.test;
 import com.wjybxx.fastjgame.net.example.BinaryProtoCodecTest;
 import com.wjybxx.fastjgame.net.example.ExampleConstants;
 import com.wjybxx.fastjgame.net.example.ExampleMessages;
-import com.wjybxx.fastjgame.net.rpc.ProtocolCodec;
+import com.wjybxx.fastjgame.net.misc.ProtocolCodec;
 import com.wjybxx.fastjgame.net.utils.NetUtils;
 
 import java.util.Objects;

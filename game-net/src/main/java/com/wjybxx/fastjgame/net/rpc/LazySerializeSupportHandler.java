@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.net.rpc;
 
+import com.wjybxx.fastjgame.net.misc.ProtocolCodec;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 
@@ -81,7 +82,7 @@ public class LazySerializeSupportHandler extends SessionDuplexHandlerAdapter {
             final Object newParameter;
 
             if ((lazyIndexes & (1L << index)) != 0 && !(parameter instanceof byte[])) {
-                newParameter = codec.serializeToBytes(parameter);
+                newParameter = codec.toBytes(parameter);
             } else {
                 newParameter = parameter;
             }
@@ -126,7 +127,7 @@ public class LazySerializeSupportHandler extends SessionDuplexHandlerAdapter {
             final Object parameter = methodParams.get(index);
             final Object newParameter;
             if ((preIndexes & (1L << index)) != 0 && parameter instanceof byte[]) {
-                newParameter = codec.deserializeFromBytes((byte[]) parameter);
+                newParameter = codec.fromBytes((byte[]) parameter);
             } else {
                 newParameter = parameter;
             }

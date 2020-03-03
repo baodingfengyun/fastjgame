@@ -21,7 +21,7 @@ import com.google.protobuf.*;
 import com.wjybxx.fastjgame.net.misc.JsonProtocolCodec;
 import com.wjybxx.fastjgame.net.misc.MessageMapper;
 import com.wjybxx.fastjgame.net.misc.MessageMappingStrategy;
-import com.wjybxx.fastjgame.net.rpc.ProtocolCodec;
+import com.wjybxx.fastjgame.net.misc.ProtocolCodec;
 import com.wjybxx.fastjgame.net.utils.NetUtils;
 import com.wjybxx.fastjgame.net.utils.ProtoUtils;
 import io.netty.buffer.ByteBuf;
@@ -97,7 +97,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
 
     @Nonnull
     @Override
-    public byte[] serializeToBytes(@Nullable Object object) throws Exception {
+    public byte[] toBytes(@Nullable Object object) throws Exception {
         // 这里测试也是拷贝字节数组快于先计算大小（两轮反射）
         final byte[] localBuffer = LOCAL_BUFFER.get();
         final CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(localBuffer);
@@ -110,7 +110,7 @@ public class BinaryProtocolCodec implements ProtocolCodec {
     }
 
     @Override
-    public Object deserializeFromBytes(@Nonnull byte[] data) throws Exception {
+    public Object fromBytes(@Nonnull byte[] data) throws Exception {
         return decodeObject(CodedInputStream.newInstance(data), codecRegistry);
     }
 

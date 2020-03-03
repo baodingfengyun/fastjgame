@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.net.socket;
 
+import com.wjybxx.fastjgame.net.misc.ProtocolCodec;
 import com.wjybxx.fastjgame.net.rpc.*;
 import com.wjybxx.fastjgame.net.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.CodecUtils;
