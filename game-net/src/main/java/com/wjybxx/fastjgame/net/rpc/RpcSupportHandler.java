@@ -44,7 +44,6 @@ import java.io.IOException;
 @NotThreadSafe
 public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
 
-    private long rpcCallbackTimeoutMs;
     /**
      * RpcRequestId分配器
      */
@@ -59,11 +58,6 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
 
     public RpcSupportHandler() {
 
-    }
-
-    @Override
-    public void handlerAdded(SessionHandlerContext ctx) throws Exception {
-        rpcCallbackTimeoutMs = ctx.session().config().getRpcCallbackTimeoutMs();
     }
 
     @Override
@@ -94,7 +88,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             RpcRequestWriteTask writeTask = (RpcRequestWriteTask) msg;
 
             // 保存rpc请求上下文
-            long deadline = ctx.timerSystem().curTimeMillis() + rpcCallbackTimeoutMs;
+            long deadline = writeTask.getRpcPromise().getExpireMillis();
             RpcTimeoutInfo rpcTimeoutInfo = new RpcTimeoutInfo(writeTask.getRpcPromise(), deadline);
             long requestGuid = ++requestGuidSequencer;
             rpcTimeoutInfoMap.put(requestGuid, rpcTimeoutInfo);

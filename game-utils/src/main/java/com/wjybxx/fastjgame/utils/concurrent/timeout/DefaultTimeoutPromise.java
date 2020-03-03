@@ -61,6 +61,17 @@ public class DefaultTimeoutPromise<V> extends DefaultPromise<V> implements Timeo
         return cause instanceof TimeoutException;
     }
 
+    // ----------------------------------------------- 获取超时时间信息 ---------------------------------------------------
+    @Override
+    public long getExpireMillis() {
+        return deadline;
+    }
+
+    @Override
+    public long getExpire(TimeUnit timeUnit) {
+        return timeUnit.convert(deadline, TimeUnit.MILLISECONDS);
+    }
+
     // ---------------------------------------------- 非阻塞式获取结果超时检测 ------------------------------------------------
 
     private void checkTimeout() {

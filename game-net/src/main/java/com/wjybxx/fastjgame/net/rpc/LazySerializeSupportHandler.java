@@ -72,7 +72,7 @@ public class LazySerializeSupportHandler extends SessionDuplexHandlerAdapter {
         }
 
         // bugs: 如果不创建新的list，则可能出现并发修改的情况，可能导致部分线程看见错误的数据
-        // 解决方案有：①copyOnWrite ②对RpcCall对象加锁
+        // 解决方案有：①copyOnWrite ②对RpcMethodSpec对象加锁
         // 选择copyOnWrite的理由：①使用延迟序列化和提前反序列化的比例并不高 ②方法方法参数个数偏小，创建一个小list的成本较低。
         final List<Object> methodParams = rpcMethodSpec.getMethodParams();
         final ArrayList<Object> newMethodParams = new ArrayList<>(methodParams.size());

@@ -38,14 +38,15 @@
 4. Rpc请求包                      （用户数据）
  long  8字节     requestGuid      请求id
  byte  1字节     sync             是否是同步调用(立即返回，返回时强制刷新缓冲区)
- bytes 字节数组   bytes            请求的内容(自定义格式) - 协议规范与实现分离
+ bytes 字节数组   rpcMethodSpec    要调用的方法描述信息
 
 5. Rpc响应包                     （用户数据）
  long  8字节     requestGuid      请求id
- bytes 字节数组   bytes            响应内容(自定义格式) - 协议规范与实现分离
+ int   4字节     errorCodec       错误码(0表示成功)
+ bytes 字节数组   body             错误信息或响应内容(失败时应该为，成功时为结果)
 
 6. 单向消息包                      （用户数据）
- bytes 字节数组   bytes            消息的内容
+ bytes 字节数组   rpcMethodSpec    要调用的方法描述信息
 
 本质上讲，协议只有4种：
 1. 建立连接请求

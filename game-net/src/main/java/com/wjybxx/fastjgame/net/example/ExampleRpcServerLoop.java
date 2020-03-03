@@ -89,7 +89,7 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
                     .setLifecycleAware(new ClientLifeAware())
                     .setDispatcher(protocolDispatcher)
 //                    .setAutoReconnect(true)
-                    .setRpcCallbackTimeoutMs((int) TimeUtils.MIN)
+                    .setAsyncRpcTimeoutMs((int) TimeUtils.MIN)
                     .setMaxPendingMessages(100)
                     .setMaxCacheMessages(10000)
                     .build();

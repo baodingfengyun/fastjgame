@@ -27,6 +27,10 @@ import java.util.List;
 
 /**
  * 默认的rpc方法结构体，可以根据{@link #serviceId} 和{@link #methodId}确定唯一的一个方法。
+ * <P>
+ * Q: 为什么不是个接口？
+ * A: 因为某些类并不是我们手写的代码（主要为兼容客户端与服务器不同语言时采用的协议文件）。
+ *
  * <p>
  * 警告：不要修改对象的内容，否则可能引发bug(并发错误)。
  *
@@ -62,7 +66,7 @@ public class RpcMethodSpec<V> implements com.wjybxx.fastjgame.utils.async.Method
      * 需要延迟到网络层序列化为byte[]的参数位置信息。
      * <p>
      * Q: 为什么要序列化？
-     * A: 我们希望可以转发rpcCall对象，中间的代理需要有原始的rpcCall信息。
+     * A: 我们希望可以转发该对象，中间的代理需要有原始的方法描述信息。
      */
     private final int lazyIndexes;
     /**

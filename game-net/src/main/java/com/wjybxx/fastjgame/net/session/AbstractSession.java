@@ -180,7 +180,7 @@ public abstract class AbstractSession implements Session {
             return new FailedRpcFuture<>(appEventLoop(), RpcSessionClosedException.INSTANCE);
         } else {
             // 会话活动的状态下才会发送
-            final RpcPromise<V> rpcPromise = netEventLoop.newRpcPromise(appEventLoop(), config().getSyncRpcTimeoutMs());
+            final RpcPromise<V> rpcPromise = netEventLoop.newRpcPromise(appEventLoop(), config().getAsyncRpcTimeoutMs());
             netEventLoop.execute(new RpcRequestWriteTask(this, request, false, rpcPromise, flush));
             return rpcPromise;
         }

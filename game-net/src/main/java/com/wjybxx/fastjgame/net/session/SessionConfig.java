@@ -42,7 +42,7 @@ public class SessionConfig {
     private final long sessionTimeoutMs;
 
     private final boolean rpcAvailable;
-    private final long rpcCallbackTimeoutMs;
+    private final long asyncRpcTimeoutMs;
     private final long syncRpcTimeoutMs;
 
     protected SessionConfig(SessionConfigBuilder builder) {
@@ -52,7 +52,7 @@ public class SessionConfig {
         this.sessionTimeoutMs = builder.sessionTimeoutMs;
 
         this.rpcAvailable = builder.rpcAvailable;
-        this.rpcCallbackTimeoutMs = builder.rpcCallbackTimeoutMs;
+        this.asyncRpcTimeoutMs = builder.asyncRpcTimeoutMs;
         this.syncRpcTimeoutMs = builder.syncRpcTimeoutMs;
     }
 
@@ -94,8 +94,8 @@ public class SessionConfig {
     /**
      * @return 异步rpc调用超时时间，毫秒
      */
-    public long getRpcCallbackTimeoutMs() {
-        return rpcCallbackTimeoutMs;
+    public long getAsyncRpcTimeoutMs() {
+        return asyncRpcTimeoutMs;
     }
 
     /**
@@ -117,7 +117,7 @@ public class SessionConfig {
         private int sessionTimeoutMs = 60 * 1000;
 
         private boolean rpcAvailable = true;
-        private int rpcCallbackTimeoutMs = 15 * 1000;
+        private int asyncRpcTimeoutMs = 15 * 1000;
         private int syncRpcTimeoutMs = 5 * 1000;
 
         public T setLifecycleAware(@Nonnull SessionLifecycleAware lifecycleAware) {
@@ -145,13 +145,13 @@ public class SessionConfig {
             return this;
         }
 
-        public T setRpcCallbackTimeoutMs(int rpcCallbackTimeoutMs) {
-            this.rpcCallbackTimeoutMs = CheckUtils.requirePositive(rpcCallbackTimeoutMs, "rpcCallbackTimeoutMs");
+        public T setAsyncRpcTimeoutMs(int asyncRpcTimeoutMs) {
+            this.asyncRpcTimeoutMs = CheckUtils.requirePositive(asyncRpcTimeoutMs, "asyncRpcTimeoutMs");
             return self();
         }
 
         public T setSyncRpcTimeoutMs(int syncRpcTimeoutMs) {
-            this.syncRpcTimeoutMs = CheckUtils.requirePositive(rpcCallbackTimeoutMs, "syncRpcTimeoutMs");
+            this.syncRpcTimeoutMs = CheckUtils.requirePositive(asyncRpcTimeoutMs, "syncRpcTimeoutMs");
             return self();
         }
 
