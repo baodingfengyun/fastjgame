@@ -143,7 +143,7 @@ public class DefaultNetContext implements NetContext {
     public SocketPort bindHttpRange(String host, PortRange portRange, @Nonnull HttpPortConfig config) throws BindException {
         final HttpPortContext httpPortContext = new HttpPortContext(this, config);
         final HttpServerInitializer initializer = new HttpServerInitializer(httpPortContext);
-        return nettyThreadManager.bindRange(host, portRange, 8192, 8192, initializer);
+        return nettyThreadManager.bindRange(host, portRange, config.getSndBuffer(), config.getRcvBuffer(), initializer);
     }
 
 }

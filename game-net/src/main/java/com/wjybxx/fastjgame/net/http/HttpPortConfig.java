@@ -31,12 +31,24 @@ import java.util.Objects;
  */
 public class HttpPortConfig {
 
+    private final int sndBuffer;
+    private final int rcvBuffer;
     private final int httpSessionTimeout;
     private final HttpRequestDispatcher dispatcher;
 
     private HttpPortConfig(Builder builder) {
+        this.sndBuffer = builder.sndBuffer;
+        this.rcvBuffer = builder.rcvBuffer;
         this.httpSessionTimeout = builder.httpSessionTimeout;
         this.dispatcher = builder.dispatcher;
+    }
+
+    public int getSndBuffer() {
+        return sndBuffer;
+    }
+
+    public int getRcvBuffer() {
+        return rcvBuffer;
     }
 
     /**
@@ -56,8 +68,20 @@ public class HttpPortConfig {
 
     public static class Builder {
 
+        private int sndBuffer = 8192;
+        private int rcvBuffer = 8192;
         private int httpSessionTimeout = 15;
         private HttpRequestDispatcher dispatcher;
+
+        public Builder setSndBuffer(int sndBuffer) {
+            this.sndBuffer = sndBuffer;
+            return this;
+        }
+
+        public Builder setRcvBuffer(int rcvBuffer) {
+            this.rcvBuffer = rcvBuffer;
+            return this;
+        }
 
         public Builder setHttpSessionTimeout(int httpSessionTimeout) {
             this.httpSessionTimeout = CheckUtils.requirePositive(httpSessionTimeout, "httpSessionTimeout");
