@@ -60,7 +60,7 @@ public class KafkaLogPuller<T extends LogVO> extends DisruptorEventLoop implemen
      * 日志线程任务缓冲区大小
      * 消费者需要响应的事件不多，因此较小
      */
-    private static final int CONSUMER_RING_BUFFER_SIZE = 8192;
+    private static final int CONSUMER_RING_BUFFER_SIZE = 64 * 1024;
     private static final int CONSUMER_TASK_BATCH_SIZE = 1024;
 
     /**

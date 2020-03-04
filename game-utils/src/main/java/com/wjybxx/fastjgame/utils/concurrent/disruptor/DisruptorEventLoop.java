@@ -322,37 +322,30 @@ public class DisruptorEventLoop extends AbstractEventLoop {
      */
     @Override
     public final void execute(@Nonnull Runnable task) {
-        if (inEventLoop()) {
-            // 防止死锁 - 因为是单消费者模型，自己发布事件时，如果没有足够空间，会导致死锁。
-            // 线程内部，请使用TimerSystem延迟执行
+        // 这里不先判断{@code isShuttingDown()}，在申请sequence之后判断是否拒绝任务，可以减小整体开销
+        try {
+            tryPublish(task, ringBuffer.tryNext(1));
+        } catch (InsufficientCapacityException ignore) {
+            rejectedExecutionHandler.rejected(task, this);
+        }
+    }
 
-            // Q: 为什么不使用 tryNext()？
-            // A: 会使得使用的人懵逼的，怎么一会儿能用，一会儿不能用。
+    private void tryPublish(@Nonnull Runnable task, long sequence) {
+        if (isShuttingDown()) {
+            // 如果申请sequence之后发现EventLoop已开始关闭，那么申请到的sequence对应的数据可能未被EventLoop消费，不可以使用(避免破坏数据)
+            // 先发布sequence，避免阻塞，然后处理执行拒绝逻辑
+            ringBuffer.publish(sequence);
 
-            // Q: 这里为什么不直接添加到timerSystem？
-            // A: 因为时序问题，会让让用户以为execute之间有时序保证，而实际上是没有的。
-
-            throw new BlockingOperationException("");
+            rejectedExecutionHandler.rejected(task, this);
         } else {
-            // 1. 这里不再先判断{@code isShuttingDown()}，这里的判断只会在“请求了关闭EventLoop而EventLoop还未响应关闭请求”这段时间内有意义，
-            // 因为一旦EventLoop响应了关闭请求，删除了自己的sequence之后，next是不会阻塞的，可以在申请sequence后拒绝任务。
-            // 乐观执行，降低关闭期间的响应速度以提高运行期间的响应速度，整体看来，这样是划算的。
-
-            // 2. 这里之所以可以安全的调用 next()，是因为我实现了自己的事件处理器(Worker)，否则next()是可能死锁的！
-            final long sequence = ringBuffer.next(1);
-            if (isShuttingDown()) {
-                // 如果申请sequence之后发现EventLoop已开始关闭，则申请到的sequence对应的数据可能未被EventLoop消费，
-                // 需要先放弃申请到的sequence(避免阻塞EventLoop的清理动作，同时避免破坏数据)，再拒绝任务。
+            try {
+                // 发布任务
+                ringBuffer.get(sequence).setTask(task);
+            } finally {
                 ringBuffer.publish(sequence);
 
-                rejectedExecutionHandler.rejected(task, this);
-            } else {
-                try {
-                    // 发布任务
-                    ringBuffer.get(sequence).setTask(task);
-                } finally {
-                    ringBuffer.publish(sequence);
-                    // 确保线程已启动
+                // 确保线程已启动
+                if (!inEventLoop()) {
                     ensureThreadStarted();
                 }
             }
