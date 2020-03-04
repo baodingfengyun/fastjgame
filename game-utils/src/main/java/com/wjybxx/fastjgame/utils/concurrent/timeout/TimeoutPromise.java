@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.Promise;
 
 import javax.annotation.Nonnull;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 具有时效性的Promise
@@ -31,6 +32,16 @@ import javax.annotation.Nonnull;
  * github - https://github.com/hl845740757
  */
 public interface TimeoutPromise<V> extends TimeoutFuture<V>, Promise<V> {
+
+    /**
+     * 获取毫秒级别的过期时间戳
+     */
+    long getExpireMillis();
+
+    /**
+     * 获取超时时间
+     */
+    long getExpire(TimeUnit timeUnit);
 
     @Override
     TimeoutPromise<V> await() throws InterruptedException;

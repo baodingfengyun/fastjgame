@@ -56,6 +56,11 @@ public abstract class AbstractListenableFuture<V> implements ListenableFuture<V>
         }
     }
 
+    @Override
+    public final boolean isVoid() {
+        return false;
+    }
+
     /**
      * 重新抛出失败异常
      *

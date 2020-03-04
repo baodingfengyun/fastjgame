@@ -86,4 +86,11 @@ public interface Promise<V> extends ListenableFuture<V> {
 
     @Override
     Promise<V> removeListener(@Nonnull FutureListener<? super V> listener);
+
+    /**
+     * {@inheritDoc}
+     * 如果该方法返回true，则任何赋值方法都将不造成任何影响。
+     */
+    @Override
+    boolean isVoid();
 }

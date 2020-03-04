@@ -256,4 +256,16 @@ public interface ListenableFuture<V> extends Future<V> {
      */
     ListenableFuture<V> removeListener(@Nonnull FutureListener<? super V> listener);
 
+    // ------------------------------------- 用于支持占位的voidFuture --------------------------------------
+
+    /**
+     * 如果该方法返回true，表示该{@link ListenableFuture}仅仅用于占位。
+     * 任何<b>阻塞式调用</b>和<b>添加监听器</b>都将抛出异常。
+     * <p>
+     * Q: 它的主要目的？
+     * A: 减少开销。其实任何使用{@link VoidFuture}的地方，都可以使用正常的future，
+     * 只是会有额外的开销。在某些场景使用{@link VoidFuture}将节省很多开销。
+     */
+    @UnstableApi
+    boolean isVoid();
 }

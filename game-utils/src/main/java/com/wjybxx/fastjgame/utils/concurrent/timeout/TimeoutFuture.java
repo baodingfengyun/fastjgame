@@ -43,16 +43,6 @@ public interface TimeoutFuture<V> extends ListenableFuture<V> {
      */
     boolean isTimeout();
 
-    /**
-     * 获取毫秒级别的过期时间戳
-     */
-    long getExpireMillis();
-
-    /**
-     * 获取超时时间
-     */
-    long getExpire(TimeUnit timeUnit);
-
     @UnstableApi
     @Nullable
     @Override
