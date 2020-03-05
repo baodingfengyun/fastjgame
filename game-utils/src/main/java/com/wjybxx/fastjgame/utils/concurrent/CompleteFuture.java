@@ -98,22 +98,21 @@ public abstract class CompleteFuture<V> extends AbstractListenableFuture<V> {
 
     @Override
     public ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener) {
-        notifyListener(listener, executor());
+        notifyListener(listener);
         return this;
     }
 
     @Override
-    public ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor) {
-        // notify
-        notifyListener(listener, bindExecutor);
+    public ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        notifyListener(new ExecutorBindListener<>(listener, bindExecutor));
         return this;
     }
 
     /**
      * 通知一个监听器。
      */
-    private void notifyListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop executor) {
-        DefaultPromise.notifyListenerSafely(this, listener, executor);
+    private void notifyListener(@Nonnull FutureListener<? super V> listener) {
+        DefaultPromise.notifyListenerNowSafely(this, listener);
     }
 
     @Override

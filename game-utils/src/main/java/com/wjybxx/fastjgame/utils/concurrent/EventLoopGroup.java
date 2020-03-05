@@ -21,12 +21,12 @@ import com.wjybxx.fastjgame.utils.timer.TimerSystem;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.*;
 
 /**
  * 事件循环线程组，它表示拥有一个或多个事件循环线程。
+ * 它的本质是容器，它负责管理持有的EventLoop的生命周期。
  * <p>
  * 目前来说不需要实现schedule，就游戏而言，用到的地方并不多，可以换别的方式实现。
  * 在线程内部，定时任务建议使用{@link TimerSystem}。
@@ -37,7 +37,13 @@ import java.util.concurrent.*;
  * date - 2019/7/14
  * github - https://github.com/hl845740757
  */
-public interface EventLoopGroup extends ExecutorService, Iterable<EventLoop> {
+public interface EventLoopGroup extends ExecutorService {
+
+    /**
+     * 返回一个EventLoop用于接下来的调度
+     */
+    @Nonnull
+    EventLoop next();
 
     // ------------------------------ 生命周期相关方法 ----------------------------
 
@@ -106,7 +112,7 @@ public interface EventLoopGroup extends ExecutorService, Iterable<EventLoop> {
      * <li>1. 可能无法安全的获取所有的任务(EventLoop架构属于多生产者单消费者模型，会尽量的避免其它线程消费数据)</li>
      * <li>2. 剩余任务数可能过多</li>
      *
-     * @return 当前待执行的任务列表。
+     * @return always empty。
      */
     @Nonnull
     @Override
@@ -146,25 +152,4 @@ public interface EventLoopGroup extends ExecutorService, Iterable<EventLoop> {
     @Override
     <T> T invokeAny(@Nonnull Collection<? extends Callable<T>> tasks, long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException;
 
-    // --------------------------------- EventLoop管理   --------------------------------
-
-    /**
-     * 返回一个EventLoop用于接下来的调度
-     */
-    @Nonnull
-    EventLoop next();
-
-    /**
-     * 给定一个键 - 分配一个{@link EventLoop}。
-     * 目的：这样用户总是可以通过key指定选中某一个线程，消除不必要的同步。
-     *
-     * @param key 计算索引的键
-     * @apiNote 必须保证同一个key分配的结果一定是相同的
-     */
-    @Nonnull
-    EventLoop select(int key);
-
-    @Nonnull
-    @Override
-    Iterator<EventLoop> iterator();
 }

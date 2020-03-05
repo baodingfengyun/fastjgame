@@ -17,12 +17,12 @@
 package com.wjybxx.fastjgame.net.rpc;
 
 import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.timeout.TimeoutFuture;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.concurrent.Executor;
 
 /**
  * Rpc调用的future。
@@ -71,7 +71,7 @@ public interface RpcFuture<V> extends TimeoutFuture<V> {
     RpcFuture<V> addListener(@Nonnull FutureListener<? super V> listener);
 
     @Override
-    RpcFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor);
+    RpcFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
     @Override
     RpcFuture<V> removeListener(@Nonnull FutureListener<? super V> listener);

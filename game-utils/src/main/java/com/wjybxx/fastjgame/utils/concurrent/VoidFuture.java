@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -139,7 +140,7 @@ public class VoidFuture implements ListenableFuture<Object> {
     }
 
     @Override
-    public ListenableFuture<Object> addListener(@Nonnull FutureListener<? super Object> listener, @Nonnull EventLoop bindExecutor) {
+    public ListenableFuture<Object> addListener(@Nonnull FutureListener<? super Object> listener, @Nonnull Executor bindExecutor) {
         fail();
         return this;
     }

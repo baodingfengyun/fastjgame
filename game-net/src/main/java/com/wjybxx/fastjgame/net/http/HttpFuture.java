@@ -17,12 +17,12 @@
 package com.wjybxx.fastjgame.net.http;
 
 import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.timeout.TimeoutFuture;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.concurrent.Executor;
 
 /**
  * @author wjybxx
@@ -52,7 +52,7 @@ public interface HttpFuture<V> extends TimeoutFuture<V> {
     HttpFuture<V> addListener(@Nonnull FutureListener<? super V> listener);
 
     @Override
-    HttpFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor);
+    HttpFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
     @Override
     HttpFuture<V> removeListener(@Nonnull FutureListener<? super V> listener);

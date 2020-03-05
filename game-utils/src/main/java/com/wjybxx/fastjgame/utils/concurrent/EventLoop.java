@@ -22,19 +22,18 @@ import javax.annotation.Nullable;
 /**
  * 事件循环。
  *
- * <h>它是单线程的，提供以下保证：</h>
- * <li>保证任务不会并发执行。</li>
- * <li>还保证任务的执行顺序和提交顺序一致！{@link #execute(Runnable)}{@link #submit(Runnable)}</li>
- * <p>
- * EventLoop架构属于<b>多生产者单消费者模型</b>，请避免其它线程消费数据。
+ * <h3>多生产者单消费者模型</h3>
+ * 1. 它是单线程的: 它保证任务不会并发执行，且任务的执行顺序和提交顺序一致。
+ * 2. 它会组织其它线程消费数据。
+ * 3. 由于{@link EventLoop}都是单线程的，如果两个{@link EventLoop}存在直接交互，
+ * 且某一个{@link EventLoop}有界队列，则可能导致大量的任务拒绝或死锁！
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/7/14
  * github - https://github.com/hl845740757
- * @apiNote 由于{@link EventLoop}都是单线程的，如果两个{@link EventLoop}存在直接交互，且都使用有界队列，则可能死锁！
  */
-public interface EventLoop extends EventLoopGroup {
+public interface EventLoop extends FixedEventLoopGroup {
 
     /**
      * @return this - 由于{@link EventLoop}表示单个线程，因此总是分配自己。

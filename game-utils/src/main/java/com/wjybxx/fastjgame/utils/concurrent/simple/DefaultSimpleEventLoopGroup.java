@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.utils.concurrent.simple;
 
+import com.wjybxx.fastjgame.utils.concurrent.AbstractFixedEventLoopGroup;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoopChooserFactory;
-import com.wjybxx.fastjgame.utils.concurrent.MultiThreadEventLoopGroup;
 import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandler;
 
 import javax.annotation.Nonnull;
@@ -32,7 +32,7 @@ import java.util.concurrent.ThreadFactory;
  * date - 2020/1/3
  * github - https://github.com/hl845740757
  */
-public class DefaultSimpleEventLoopGroup extends MultiThreadEventLoopGroup implements SimpleEventLoopGroup {
+public class DefaultSimpleEventLoopGroup extends AbstractFixedEventLoopGroup implements SimpleEventLoopGroup {
 
     public DefaultSimpleEventLoopGroup(int nThreads,
                                        @Nonnull ThreadFactory threadFactory,

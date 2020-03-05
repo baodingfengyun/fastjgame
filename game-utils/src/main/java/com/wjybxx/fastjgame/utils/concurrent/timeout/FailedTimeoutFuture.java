@@ -23,6 +23,7 @@ import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.concurrent.Executor;
 
 /**
  * 已失败的{@link TimeoutFuture}
@@ -68,7 +69,7 @@ public class FailedTimeoutFuture<V> extends FailedFuture<V> implements TimeoutFu
     }
 
     @Override
-    public TimeoutFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor) {
+    public TimeoutFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         super.addListener(listener, bindExecutor);
         return this;
     }

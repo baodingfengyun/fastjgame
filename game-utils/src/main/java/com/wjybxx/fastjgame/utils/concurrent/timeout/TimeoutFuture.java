@@ -17,13 +17,12 @@
 package com.wjybxx.fastjgame.utils.concurrent.timeout;
 
 import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Executor;
 
 /**
  * 具有时效性的future，在限定时间内必定必须进入完成状态。
@@ -58,7 +57,7 @@ public interface TimeoutFuture<V> extends ListenableFuture<V> {
     TimeoutFuture<V> addListener(@Nonnull FutureListener<? super V> listener);
 
     @Override
-    TimeoutFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor);
+    TimeoutFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
     @Override
     TimeoutFuture<V> removeListener(@Nonnull FutureListener<? super V> listener);

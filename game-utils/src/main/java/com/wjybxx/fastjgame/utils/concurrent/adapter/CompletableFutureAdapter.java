@@ -19,7 +19,6 @@ package com.wjybxx.fastjgame.utils.concurrent.adapter;
 import com.wjybxx.fastjgame.utils.ThreadUtils;
 import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
 import com.wjybxx.fastjgame.utils.concurrent.*;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -194,12 +193,12 @@ public class CompletableFutureAdapter<V> extends AbstractListenableFuture<V> {
     }
 
     @Override
-    public ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor) {
+    public ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         addListener0(listener, bindExecutor);
         return this;
     }
 
-    private void addListener0(@Nonnull FutureListener<? super V> listener, @Nullable EventLoop bindExecutor) {
+    private void addListener0(@Nonnull FutureListener<? super V> listener, @Nullable Executor bindExecutor) {
         if (null == bindExecutor) {
             future.thenRun(() -> notify(listener));
         } else {
@@ -208,11 +207,7 @@ public class CompletableFutureAdapter<V> extends AbstractListenableFuture<V> {
     }
 
     private void notify(@Nonnull FutureListener<? super V> listener) {
-        try {
-            listener.onComplete(this);
-        } catch (Exception e) {
-            ExceptionUtils.rethrow(e);
-        }
+        DefaultPromise.notifyListenerNowSafely(this, listener);
     }
 
     @Override

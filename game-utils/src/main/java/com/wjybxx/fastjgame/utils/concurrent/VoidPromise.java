@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.utils.concurrent;
 
 import javax.annotation.Nonnull;
+import java.util.concurrent.Executor;
 
 /**
  * @author wjybxx
@@ -74,7 +75,7 @@ public class VoidPromise extends VoidFuture implements Promise<Object> {
     }
 
     @Override
-    public Promise<Object> addListener(@Nonnull FutureListener<? super Object> listener, @Nonnull EventLoop bindExecutor) {
+    public Promise<Object> addListener(@Nonnull FutureListener<? super Object> listener, @Nonnull Executor bindExecutor) {
         super.addListener(listener, bindExecutor);
         return this;
     }

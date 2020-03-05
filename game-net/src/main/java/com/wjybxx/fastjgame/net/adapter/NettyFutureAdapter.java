@@ -138,27 +138,27 @@ public final class NettyFutureAdapter<V> extends AbstractListenableFuture<V> {
     }
 
     @Override
-    public ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor) {
+    public ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         addListener0(listener, bindExecutor);
         return this;
     }
 
     private void addListener0(@Nonnull FutureListener<? super V> listener, @Nullable Executor bindExecutor) {
-        if (null == bindExecutor) {
-            future.addListener(future1 -> listener.onComplete(this));
-        } else {
-            future.addListener(future1 -> notifyAsync(listener, bindExecutor));
-        }
+//        if (null == bindExecutor) {
+//            future.addListener(future1 -> listener.onComplete(this));
+//        } else {
+//            future.addListener(future1 -> notifyAsync(listener, bindExecutor));
+//        }
     }
 
     private void notifyAsync(FutureListener<? super V> listener, Executor bindExecutor) {
-        bindExecutor.execute(() -> {
-            try {
-                listener.onComplete(this);
-            } catch (Exception e) {
-                ExceptionUtils.rethrow(e);
-            }
-        });
+//        bindExecutor.execute(() -> {
+//            try {
+//                listener.onComplete(this);
+//            } catch (Exception e) {
+//                ExceptionUtils.rethrow(e);
+//            }
+//        });
     }
 
     @Override

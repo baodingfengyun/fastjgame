@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.utils.concurrent;
 
 import javax.annotation.Nonnull;
+import java.util.concurrent.Executor;
 
 /**
  * 可写结果的FutureListener。
@@ -71,6 +72,13 @@ public interface Promise<V> extends ListenableFuture<V> {
      */
     boolean setUncancellable();
 
+    /**
+     * {@inheritDoc}
+     * 如果该方法返回true，则任何赋值方法都将不造成任何影响。
+     */
+    @Override
+    boolean isVoid();
+
     // 以下仅用于实现流式语法
     @Override
     Promise<V> await() throws InterruptedException;
@@ -82,15 +90,9 @@ public interface Promise<V> extends ListenableFuture<V> {
     Promise<V> addListener(@Nonnull FutureListener<? super V> listener);
 
     @Override
-    Promise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor);
+    Promise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
     @Override
     Promise<V> removeListener(@Nonnull FutureListener<? super V> listener);
 
-    /**
-     * {@inheritDoc}
-     * 如果该方法返回true，则任何赋值方法都将不造成任何影响。
-     */
-    @Override
-    boolean isVoid();
 }

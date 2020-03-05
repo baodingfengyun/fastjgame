@@ -16,11 +16,11 @@
 
 package com.wjybxx.fastjgame.db.redis;
 
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
 
 import javax.annotation.Nonnull;
+import java.util.concurrent.Executor;
 
 /**
  * Redis异步操作获取结果的句柄。
@@ -45,7 +45,7 @@ public interface RedisFuture<V> extends ListenableFuture<V> {
     RedisFuture<V> addListener(@Nonnull FutureListener<? super V> listener);
 
     @Override
-    RedisFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor);
+    RedisFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
     @Override
     RedisFuture<V> removeListener(@Nonnull FutureListener<? super V> listener);

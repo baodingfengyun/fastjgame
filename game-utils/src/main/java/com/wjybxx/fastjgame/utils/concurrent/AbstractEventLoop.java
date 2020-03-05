@@ -72,6 +72,11 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
         return this;
     }
 
+    @Override
+    public int numChildren() {
+        return 1;
+    }
+
     // -------------------------------------- promise --------------------------------------
 
     @Nonnull

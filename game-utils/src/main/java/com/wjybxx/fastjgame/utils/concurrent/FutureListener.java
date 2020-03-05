@@ -43,9 +43,9 @@ public interface FutureListener<V> {
      * 如果有返回值，建议使用{@link ListenableFuture#getNow()}。
      * 如果没有返回值，建议使用{@link ListenableFuture#isSuccess()}。
      *
-     * @param future 监听器监听的future。PECS Future作为生产者，必须生产可供监听器消费的类型（V或V的子类型），因此使用extends。
+     * @param future 监听器监听的future。
      * @throws Exception error
      */
-    void onComplete(ListenableFuture<? extends V> future) throws Exception;
+    void onComplete(ListenableFuture<V> future) throws Exception;
 
 }

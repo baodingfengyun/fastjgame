@@ -28,7 +28,7 @@ import java.util.concurrent.ThreadFactory;
  * date - 2019/7/23
  * github - https://github.com/hl845740757
  */
-public class DefaultEventLoopGroup extends MultiThreadEventLoopGroup {
+public class DefaultEventLoopGroup extends AbstractFixedEventLoopGroup {
 
     public DefaultEventLoopGroup(int nThreads,
                                  @Nonnull ThreadFactory threadFactory,

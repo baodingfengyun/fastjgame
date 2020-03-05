@@ -56,11 +56,6 @@ public abstract class AbstractListenableFuture<V> implements ListenableFuture<V>
         }
     }
 
-    @Override
-    public final boolean isVoid() {
-        return false;
-    }
-
     /**
      * 重新抛出失败异常
      *
@@ -73,5 +68,10 @@ public abstract class AbstractListenableFuture<V> implements ListenableFuture<V>
             throw (CancellationException) cause;
         }
         throw new CompletionException(cause);
+    }
+
+    @Override
+    public final boolean isVoid() {
+        return false;
     }
 }

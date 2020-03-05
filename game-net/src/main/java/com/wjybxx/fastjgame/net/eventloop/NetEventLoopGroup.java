@@ -20,6 +20,7 @@ import com.wjybxx.fastjgame.net.misc.NetContext;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoopGroup;
+import com.wjybxx.fastjgame.utils.concurrent.FixedEventLoopGroup;
 import io.netty.channel.Channel;
 
 import javax.annotation.Nonnull;
@@ -32,7 +33,7 @@ import javax.annotation.Nonnull;
  * date - 2019/10/5
  * github - https://github.com/hl845740757
  */
-public interface NetEventLoopGroup extends EventLoopGroup {
+public interface NetEventLoopGroup extends FixedEventLoopGroup {
 
     @Nonnull
     @Override

@@ -23,6 +23,7 @@ import com.wjybxx.fastjgame.utils.concurrent.timeout.FailedTimeoutFuture;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.concurrent.Executor;
 
 /**
  * 已完成的Rpc调用，在它上面的任何监听都将立即执行。
@@ -74,7 +75,7 @@ public class FailedRpcFuture<V> extends FailedTimeoutFuture<V> implements RpcFut
     }
 
     @Override
-    public RpcFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor) {
+    public RpcFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         super.addListener(listener, bindExecutor);
         return this;
     }

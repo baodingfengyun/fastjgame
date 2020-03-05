@@ -16,19 +16,19 @@
 
 package com.wjybxx.fastjgame.utils.concurrent.simple;
 
-import com.wjybxx.fastjgame.utils.concurrent.EventLoopGroup;
+import com.wjybxx.fastjgame.utils.concurrent.FixedEventLoopGroup;
 
 import javax.annotation.Nonnull;
 
 /**
- * 简单的时间循环组 - 搭配{@link EventLoopHandler}工作。
+ * 简单的事件循环组 - 搭配{@link EventLoopHandler}工作。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2020/1/2
  * github - https://github.com/hl845740757
  */
-public interface SimpleEventLoopGroup extends EventLoopGroup {
+public interface SimpleEventLoopGroup extends FixedEventLoopGroup {
 
     @Nonnull
     @Override

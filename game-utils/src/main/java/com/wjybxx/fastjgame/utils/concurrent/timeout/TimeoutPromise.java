@@ -16,11 +16,11 @@
 
 package com.wjybxx.fastjgame.utils.concurrent.timeout;
 
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.Promise;
 
 import javax.annotation.Nonnull;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -53,7 +53,7 @@ public interface TimeoutPromise<V> extends TimeoutFuture<V>, Promise<V> {
     TimeoutPromise<V> addListener(@Nonnull FutureListener<? super V> listener);
 
     @Override
-    TimeoutPromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor);
+    TimeoutPromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
     @Override
     TimeoutPromise<V> removeListener(@Nonnull FutureListener<? super V> listener);

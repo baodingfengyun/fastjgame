@@ -25,11 +25,6 @@ import java.util.concurrent.*;
 
 /**
  * 可监听的future。
- * 在Netty和Curator里面见着了一些好的设计，但是他们的设计有很多用不上的或易错误使用的东西，进行简化。
- * guava里也有类似的。
- * <p>
- * Q: Listener的通知顺序是否和添加顺序一致？
- * A: 是的。
  * <p>
  * Q: 为什么使用非受检{@link CompletionException}异常代替了{@link ExecutionException}？
  * A: <NOTE>非受检异常更好，受检异常并不能提升软件的健壮性，而且受检异常对封装破坏极大，用非受检异常代替受检异常</NOTE>，
@@ -223,7 +218,7 @@ public interface ListenableFuture<V> extends Future<V> {
      * 1. 该监听器将在默认的事件分发线程中执行。当你的代码支持并发调用的时候，那么使用该方法注册监听器即可。
      * 2. 同一个listener反复添加会共存。
      *
-     * @param listener 要添加的监听器。PECS Listener作为消费者，可以把生产的结果V 看做V或V的超类型消费，因此需要使用super。
+     * @param listener 要添加的监听器。
      * @return this
      */
     ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener);
@@ -243,10 +238,10 @@ public interface ListenableFuture<V> extends Future<V> {
      * </pre>
      *
      * @param listener     要添加的监听器
-     * @param bindExecutor 监听器执行的线程
+     * @param bindExecutor 监听器的最终执行线程
      * @return this
      */
-    ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor);
+    ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
     /**
      * 移除监听器中第一个与指定Listener匹配的监听器，如果该Listener没有进行注册，那么什么也不会做。

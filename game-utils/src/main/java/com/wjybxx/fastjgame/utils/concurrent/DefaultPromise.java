@@ -21,7 +21,6 @@ import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.ThreadUtils;
 import com.wjybxx.fastjgame.utils.TimeUtils;
 import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -99,7 +98,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
      * 我们使用Null表示一个监听器也没有的状态，因此在删除监听器时，如果size==0，我们会置为null。
      */
     @GuardedBy("this")
-    private List<ListenerEntry<? super V>> listeners = null;
+    private List<FutureListener<? super V>> listeners = null;
     /**
      * 当前是否有线程正在通知监听器们。我们必须阻止并发的通知 和 保持监听器的先入先出顺序(先添加的先被通知)。
      */
@@ -395,7 +394,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         if (waiters > 0) {
             notifyAll();
         }
-        return listeners != null;
+        return listeners != null && !notifyingListeners;
     }
 
     /**
@@ -403,7 +402,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
      */
     private void notifyListeners() {
         // 用于拉取最新的监听器，避免长时间的占有锁
-        List<ListenerEntry<? super V>> listeners;
+        List<FutureListener<? super V>> listeners;
         synchronized (this) {
             // 有线程正在进行通知 或当前 没有监听器，则不需要当前线程进行通知
             if (notifyingListeners || null == this.listeners) {
@@ -417,8 +416,8 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
 
         for (; ; ) {
             // 通知当前批次的监听器(此时不需要获得锁) -- 但是这里不能抛出异常，否则可能死锁 -- notifyingListeners无法恢复
-            for (ListenerEntry<? super V> listenerEntry : listeners) {
-                notifyListener(listenerEntry.listener, listenerEntry.bindExecutor);
+            for (FutureListener<? super V> futureListener : listeners) {
+                notifyListenerNowSafely(this, futureListener);
             }
             // 通知完当前批次后，检查是否有新的监听器加入
             synchronized (this) {
@@ -435,40 +434,17 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     }
 
     /**
-     * 通知单个监听器，future上的任务已完成。
-     */
-    private void notifyListener(FutureListener<? super V> listener, @Nullable EventLoop bindExecutor) {
-        // 如果注册监听器时没有绑定执行环境(执行线程)，则使用当前最新的executor
-        EventLoop executor = null == bindExecutor ? defaultExecutor() : bindExecutor;
-        notifyListenerSafely(this, listener, executor);
-    }
-
-    /**
      * 安全的通知一个监听器，不可以抛出异常，否则可能死锁
      *
      * @param future   future
      * @param listener 监听器
-     * @param executor 监听器的执行环境
      */
-    protected static <V> void notifyListenerSafely(@Nonnull ListenableFuture<V> future, @Nonnull FutureListener<? super V> listener, @Nonnull EventLoop executor) {
+    public static <V> void notifyListenerNowSafely(@Nonnull ListenableFuture<V> future, @Nonnull FutureListener<? super V> listener) {
         try {
-            if (executor.inEventLoop()) {
-                listener.onComplete(future);
-            } else {
-                executor.execute(() -> {
-                    try {
-                        listener.onComplete(future);
-                    } catch (Exception e) {
-                        ExceptionUtils.rethrow(e);
-                    }
-                });
-            }
+            @SuppressWarnings("unchecked") FutureListener<V> castListener = (FutureListener<V>) listener;
+            castListener.onComplete(future);
         } catch (Throwable e) {
-            if (e instanceof RejectedExecutionException) {
-                logger.info("Target EventLoop my shutdown. Notify task is rejected.");
-            } else {
-                logger.warn("An exception was thrown by " + listener.getClass().getName() + ".onComplete()", e);
-            }
+            logger.warn("An exception was thrown by " + future.getClass().getName() + ".onComplete()", e);
         }
     }
 
@@ -697,29 +673,23 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     @Override
     public Promise<V> addListener(@Nonnull FutureListener<? super V> listener) {
         // null is safe
-        addListener0(listener, null);
+        addListener0(listener);
         return this;
     }
 
     @Override
-    public Promise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor) {
-        addListener0(listener, bindExecutor);
+    public Promise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        addListener0(new ExecutorBindListener<>(listener, bindExecutor));
         return this;
     }
 
-    /**
-     * 真正的添加监听器，可以不指定executor
-     *
-     * @param listener     监听器
-     * @param bindExecutor 监听器绑定的executor，可能为null
-     */
-    protected final void addListener0(@Nonnull FutureListener<? super V> listener, @Nullable EventLoop bindExecutor) {
+    protected final void addListener0(@Nonnull FutureListener<? super V> listener) {
         // 不管是否已完成，先加入等待通知集合
         synchronized (this) {
             if (listeners == null) {
                 listeners = new LinkedList<>();
             }
-            listeners.add(new ListenerEntry<>(listener, bindExecutor));
+            listeners.add(listener);
         }
 
         // 必须检查完成状态，如果已进入完成状态，通知刚刚加入监听器们（否则可能丢失通知）（早已完成的状态下）
@@ -731,7 +701,16 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
 
     @Override
     public Promise<V> removeListener(@Nonnull FutureListener<? super V> listener) {
-        removeFirstMatchListener(listenerEntry -> listenerEntry.listener == listener);
+        removeFirstMatchListener(existListener -> {
+            if (existListener == listener) {
+                return true;
+            }
+            // 这里只有两种情况
+            if (existListener instanceof ExecutorBindListener) {
+                return ((ExecutorBindListener<?>) existListener).listener == listener;
+            }
+            return false;
+        });
         return this;
     }
 
@@ -741,7 +720,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
      * @param predicate 监听器测试条件
      * @return 是否成功删除了一个监听器
      */
-    protected final boolean removeFirstMatchListener(Predicate<ListenerEntry<?>> predicate) {
+    protected final boolean removeFirstMatchListener(Predicate<FutureListener<?>> predicate) {
         synchronized (this) {
             if (listeners == null) {
                 return false;
@@ -769,17 +748,4 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         }
     }
 
-    /**
-     * 单个监听器的执行信息.
-     */
-    private static class ListenerEntry<V> {
-
-        private final FutureListener<? super V> listener;
-        private final EventLoop bindExecutor;
-
-        private ListenerEntry(@Nonnull FutureListener<? super V> listener, @Nullable EventLoop bindExecutor) {
-            this.listener = listener;
-            this.bindExecutor = bindExecutor;
-        }
-    }
 }

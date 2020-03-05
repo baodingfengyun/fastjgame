@@ -27,6 +27,7 @@ import com.wjybxx.fastjgame.utils.concurrent.timeout.DefaultTimeoutPromise;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -122,7 +123,7 @@ public class DefaultRpcPromise<V> extends DefaultTimeoutPromise<V> implements Rp
     }
 
     @Override
-    public RpcPromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor) {
+    public RpcPromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         super.addListener(listener, bindExecutor);
         return this;
     }

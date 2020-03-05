@@ -23,6 +23,7 @@ import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
 
 import javax.annotation.Nonnull;
+import java.util.concurrent.Executor;
 
 /**
  * redis异步操作结果的默认实现
@@ -70,7 +71,7 @@ public class DefaultRedisPromise<V> extends DefaultPromise<V> implements RedisPr
     }
 
     @Override
-    public RedisPromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor) {
+    public RedisPromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         super.addListener(listener, bindExecutor);
         return this;
     }

@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.db.redis;
 
 import com.wjybxx.fastjgame.utils.concurrent.EventLoopChooserFactory;
-import com.wjybxx.fastjgame.utils.concurrent.MultiThreadEventLoopGroup;
+import com.wjybxx.fastjgame.utils.concurrent.AbstractFixedEventLoopGroup;
 import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandler;
 import redis.clients.jedis.JedisPoolAbstract;
 
@@ -34,7 +34,7 @@ import java.util.concurrent.ThreadFactory;
  * date - 2019/12/12
  * github - https://github.com/hl845740757
  */
-public class RedisEventLoopGroup extends MultiThreadEventLoopGroup {
+public class RedisEventLoopGroup extends AbstractFixedEventLoopGroup {
 
     public RedisEventLoopGroup(int nThreads,
                                @Nonnull ThreadFactory threadFactory,

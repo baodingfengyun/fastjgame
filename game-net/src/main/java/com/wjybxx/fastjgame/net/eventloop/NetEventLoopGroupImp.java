@@ -26,7 +26,7 @@ import com.wjybxx.fastjgame.net.module.NetEventLoopGroupModule;
 import com.wjybxx.fastjgame.net.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.MultiThreadEventLoopGroup;
+import com.wjybxx.fastjgame.utils.concurrent.AbstractFixedEventLoopGroup;
 import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.utils.concurrent.event.EventLoopTerminalEvent;
 import io.netty.channel.Channel;
@@ -43,7 +43,7 @@ import java.util.concurrent.ThreadFactory;
  * date - 2019/10/5
  * github - https://github.com/hl845740757
  */
-class NetEventLoopGroupImp extends MultiThreadEventLoopGroup implements NetEventLoopGroup {
+class NetEventLoopGroupImp extends AbstractFixedEventLoopGroup implements NetEventLoopGroup {
 
     private final Set<EventLoop> appEventLoopSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private final NettyThreadManager nettyThreadManager;

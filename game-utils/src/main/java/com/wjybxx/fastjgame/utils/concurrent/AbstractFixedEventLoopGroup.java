@@ -28,20 +28,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 /**
- * 多线程的EventLoopGroup，它的本质是容器，它负责管理持有的EventLoop的生命周期。
+ * 固定线程的EventLoopGroup
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/7/14
  * github - https://github.com/hl845740757
- * @apiNote 1. 调用{@link #newChild(int, ThreadFactory, RejectedExecutionHandler, Object)}方法时，
- * 子类属性还未被赋值，因此子类创建child需要的属性必须在context中！
- * <p>
- * 2. {@link #clean()} 该方法执行在{@link GlobalEventLoop}线程，因此必须保证线程安全。
  */
-public abstract class MultiThreadEventLoopGroup extends AbstractEventLoopGroup {
+public abstract class AbstractFixedEventLoopGroup extends AbstractEventLoopGroup implements FixedEventLoopGroup {
 
-    private static final Logger logger = LoggerFactory.getLogger(MultiThreadEventLoopGroup.class);
+    private static final Logger logger = LoggerFactory.getLogger(AbstractFixedEventLoopGroup.class);
 
     /**
      * 监听所有子节点关闭的Listener，当所有的子节点关闭时，会收到关闭成功事件
@@ -50,7 +46,7 @@ public abstract class MultiThreadEventLoopGroup extends AbstractEventLoopGroup {
     /**
      * 子类构造时传入的context，由子类自己决定如何解析，父类不做处理。
      */
-    protected final Object context;
+    private final Object context;
 
     /**
      * 包含的子节点们，用数组，方便分配下一个EventExecutor(通过计算索引来分配)
@@ -68,12 +64,12 @@ public abstract class MultiThreadEventLoopGroup extends AbstractEventLoopGroup {
     private final EventLoopChooser chooser;
 
     /**
-     * @see #MultiThreadEventLoopGroup(int, ThreadFactory, RejectedExecutionHandler, EventLoopChooserFactory, Object)
+     * @see #AbstractFixedEventLoopGroup(int, ThreadFactory, RejectedExecutionHandler, EventLoopChooserFactory, Object)
      */
-    protected MultiThreadEventLoopGroup(int nThreads,
-                                        @Nonnull ThreadFactory threadFactory,
-                                        @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
-                                        @Nullable Object context) {
+    protected AbstractFixedEventLoopGroup(int nThreads,
+                                          @Nonnull ThreadFactory threadFactory,
+                                          @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
+                                          @Nullable Object context) {
         this(nThreads, threadFactory, rejectedExecutionHandler, null, context);
     }
 
@@ -83,11 +79,11 @@ public abstract class MultiThreadEventLoopGroup extends AbstractEventLoopGroup {
      * @param chooserFactory EventLoop选择器工厂，负载均衡实现
      * @param context        子类构建时需要的额外信息
      */
-    protected MultiThreadEventLoopGroup(int nThreads,
-                                        @Nonnull ThreadFactory threadFactory,
-                                        @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
-                                        @Nullable EventLoopChooserFactory chooserFactory,
-                                        @Nullable Object context) {
+    protected AbstractFixedEventLoopGroup(int nThreads,
+                                          @Nonnull ThreadFactory threadFactory,
+                                          @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
+                                          @Nullable EventLoopChooserFactory chooserFactory,
+                                          @Nullable Object context) {
         if (nThreads <= 0) {
             throw new IllegalArgumentException("nThreads must greater than 0");
         }
@@ -128,7 +124,7 @@ public abstract class MultiThreadEventLoopGroup extends AbstractEventLoopGroup {
      * @param rejectedExecutionHandler 拒绝任务时的处理器
      * @param context                  构造方法中传入的上下文
      * @return EventLoop
-     * @apiNote 注意：这里是超类构建的时候调用的，此时子类属性都是null，因此newChild需要的数据必须在context中，使用子类的属性会导致NPE。
+     * @apiNote 注意：这里是超类构建的时候调用的，此时子类属性还未被赋值，因此newChild需要的数据必须在context中，使用子类的属性会导致NPE。
      */
     @Nonnull
     protected abstract EventLoop newChild(int childIndex, ThreadFactory threadFactory, RejectedExecutionHandler rejectedExecutionHandler, Object context);
@@ -192,6 +188,11 @@ public abstract class MultiThreadEventLoopGroup extends AbstractEventLoopGroup {
         return chooser.select(key);
     }
 
+    @Override
+    public int numChildren() {
+        return children.length;
+    }
+
     @Nonnull
     @Override
     public Iterator<EventLoop> iterator() {
@@ -223,7 +224,7 @@ public abstract class MultiThreadEventLoopGroup extends AbstractEventLoopGroup {
         }
 
         @Override
-        public void onComplete(ListenableFuture<?> future) throws Exception {
+        public void onComplete(ListenableFuture<Object> future) throws Exception {
             if (terminatedChildren.incrementAndGet() == children.length) {
                 try {
                     clean();

@@ -16,11 +16,11 @@
 
 package com.wjybxx.fastjgame.db.redis;
 
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.Promise;
 
 import javax.annotation.Nonnull;
+import java.util.concurrent.Executor;
 
 /**
  * redis操作对应的promise
@@ -39,7 +39,7 @@ public interface RedisPromise<V> extends RedisFuture<V>, Promise<V> {
     RedisPromise<V> awaitUninterruptibly();
 
     @Override
-    RedisPromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull EventLoop bindExecutor);
+    RedisPromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
     @Override
     RedisPromise<V> addListener(@Nonnull FutureListener<? super V> listener);
