@@ -16,12 +16,10 @@
 
 package com.wjybxx.fastjgame.utils.concurrent.timeout;
 
-import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.concurrent.Executor;
 
 /**
@@ -41,11 +39,6 @@ public interface TimeoutFuture<V> extends ListenableFuture<V> {
      * 注意：超时的异常不一定是{@link java.util.concurrent.TimeoutException}，因此不要使用 instanceof 来判断。
      */
     boolean isTimeout();
-
-    @UnstableApi
-    @Nullable
-    @Override
-    TimeoutFutureResult<V> getAsResult();
 
     @Override
     TimeoutFuture<V> await() throws InterruptedException;

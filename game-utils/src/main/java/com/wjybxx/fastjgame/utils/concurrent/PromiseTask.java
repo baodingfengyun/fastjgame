@@ -18,8 +18,9 @@ package com.wjybxx.fastjgame.utils.concurrent;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Executors;
 import java.util.concurrent.RunnableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * 与{@link java.util.concurrent.FutureTask}相似。
@@ -29,76 +30,50 @@ import java.util.concurrent.RunnableFuture;
  * date - 2019/7/14 20:32
  * github - https://github.com/hl845740757
  */
-public class PromiseTask<V> extends DefaultPromise<V> implements RunnableFuture<V> {
+public class PromiseTask<V> implements RunnableFuture<V> {
 
+    private final Promise<V> promise;
     private final Callable<V> callable;
 
-    public PromiseTask(@Nonnull EventLoop executor, @Nonnull Callable<V> callable) {
-        super(executor);
+    PromiseTask(Promise<V> promise, Callable<V> callable) {
+        this.promise = promise;
         this.callable = callable;
-    }
-
-    public PromiseTask(@Nonnull EventLoop executor, @Nonnull Runnable runnable, V result) {
-        super(executor);
-        this.callable = Executors.callable(runnable, result);
     }
 
     @Override
     public void run() {
         try {
-            if (setUncancellableInternal()) {
+            if (promise.setUncancellable()) {
                 V result = callable.call();
-                setSuccessInternal(result);
+                promise.setSuccess(result);
             }
         } catch (Throwable e) {
-            setFailureInternal(e);
+            promise.setFailure(e);
         }
     }
 
-    // 禁用这些方法，因为PromiseTask既是Promise，也是Task，结果由它自己来赋值，只允许外部尝试进行取消
     @Override
-    public void setSuccess(V result) {
-        throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean trySuccess(V result) {
-        return false;
+    public boolean cancel(boolean mayInterruptIfRunning) {
+        return promise.getFuture().cancel(mayInterruptIfRunning);
     }
 
     @Override
-    public void setFailure(@Nonnull Throwable cause) {
-        throw new IllegalStateException();
+    public boolean isCancelled() {
+        return promise.getFuture().isCancelled();
     }
 
     @Override
-    public boolean tryFailure(@Nonnull Throwable cause) {
-        return false;
+    public boolean isDone() {
+        return promise.getFuture().isDone();
     }
 
     @Override
-    public boolean setUncancellable() {
-        return false;
-    }
-    // 由这些protected方法替代（需要支持子类调用）
-
-    protected final void setSuccessInternal(V result) {
-        super.setSuccess(result);
+    public V get() throws InterruptedException {
+        return promise.getFuture().get();
     }
 
-    protected final boolean trySuccessInternal(V result) {
-        return super.trySuccess(result);
-    }
-
-    protected final void setFailureInternal(Throwable cause) {
-        super.setFailure(cause);
-    }
-
-    protected final boolean tryFailureInternal(Throwable cause) {
-        return super.tryFailure(cause);
-    }
-
-    protected final boolean setUncancellableInternal() {
-        return super.setUncancellable();
+    @Override
+    public V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, TimeoutException {
+        return promise.getFuture().get(timeout, unit);
     }
 }

@@ -79,7 +79,7 @@ public class DefaultMethodListenable<FR extends FutureResult<V>, V> implements M
     @SuppressWarnings("unchecked")
     @Override
     public final void onComplete(ListenableFuture<V> future) throws Exception {
-        futureResult = (FR) future.getAsResult();
+//        futureResult = (FR) future.getAsResult();
         assert null != futureResult;
         if (null != listener) {
             notifyListenerSafely(futureResult, listener);

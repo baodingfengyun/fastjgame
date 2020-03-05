@@ -16,13 +16,11 @@
 
 package com.wjybxx.fastjgame.net.rpc;
 
-import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.timeout.FailedTimeoutFuture;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.concurrent.Executor;
 
 /**
@@ -47,13 +45,6 @@ public class FailedRpcFuture<V> extends FailedTimeoutFuture<V> implements RpcFut
     @Override
     public final RpcErrorCode errorCode() {
         return DefaultRpcPromise.getErrorCode0(cause());
-    }
-
-    @UnstableApi
-    @Nullable
-    @Override
-    public RpcFutureResult<V> getAsResult() {
-        return new DefaultRpcFutureResult<>(null, cause());
     }
 
     // ------------------------------------------------ 流式语法支持 ------------------------------------

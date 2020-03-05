@@ -141,14 +141,6 @@ public interface ListenableFuture<V> extends Future<V> {
     V getNow();
 
     /**
-     * 尝试非阻塞的获取当前结果。
-     * 如果future关联的task还未完成 {@link #isDone() false}，则返回null。
-     */
-    @UnstableApi
-    @Nullable
-    FutureResult<V> getAsResult();
-
-    /**
      * 非阻塞获取导致任务失败的原因。
      * 当future关联的任务被取消或由于异常进入完成状态后，该方法将返回操作失败的原因。
      *

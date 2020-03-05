@@ -16,12 +16,10 @@
 
 package com.wjybxx.fastjgame.net.http;
 
-import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.timeout.TimeoutFuture;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.concurrent.Executor;
 
 /**
@@ -36,11 +34,6 @@ public interface HttpFuture<V> extends TimeoutFuture<V> {
      * 当cause为{@link java.net.http.HttpTimeoutException}时表示超时
      */
     boolean isTimeout();
-
-    @UnstableApi
-    @Nullable
-    @Override
-    HttpFutureResult<V> getAsResult();
 
     @Override
     HttpFuture<V> await() throws InterruptedException;

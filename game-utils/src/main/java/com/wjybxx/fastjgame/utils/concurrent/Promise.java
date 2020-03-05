@@ -17,15 +17,11 @@
 package com.wjybxx.fastjgame.utils.concurrent;
 
 import javax.annotation.Nonnull;
-import java.util.concurrent.Executor;
 
 /**
- * 可写结果的FutureListener。
- * 与JDK的{@link java.util.concurrent.FutureTask}不同的是，可以由外部执行计算，Future仅仅作为传递结果的凭证。
- * 当然{@link java.util.concurrent.FutureTask}虽然有些地方不好用，却不容易出现问题，而采用可写模式的promise，会产生一些额外的风险。
- * (支持的越多越复杂，越容易出现错误)
- * <p>
- * 完成的含义：future关联的任务生命周期已结束。不论操作成功，失败，取消（取消是失败的一种），都表示完成状态。
+ * promise用于为关联的future赋值结果。
+ * --
+ * 新版本的promise与future的关系改为组合关系，旧版本中的继承关系实在是太多坑，过多参考了netty的设计，把坑的也继承过来了。
  *
  * @param <V>
  * @author wjybxx
@@ -33,7 +29,13 @@ import java.util.concurrent.Executor;
  * date - 2019/7/14
  * github - https://github.com/hl845740757
  */
-public interface Promise<V> extends ListenableFuture<V> {
+public interface Promise<V> {
+
+    /**
+     * 获取关联的future
+     */
+    @Nonnull
+    ListenableFuture<V> getFuture();
 
     /**
      * 将future标记为成功完成，并且通知所有的监听器。
@@ -71,28 +73,5 @@ public interface Promise<V> extends ListenableFuture<V> {
      * 否则返回false（其实也就是被取消返回false）。
      */
     boolean setUncancellable();
-
-    /**
-     * {@inheritDoc}
-     * 如果该方法返回true，则任何赋值方法都将不造成任何影响。
-     */
-    @Override
-    boolean isVoid();
-
-    // 以下仅用于实现流式语法
-    @Override
-    Promise<V> await() throws InterruptedException;
-
-    @Override
-    Promise<V> awaitUninterruptibly();
-
-    @Override
-    Promise<V> addListener(@Nonnull FutureListener<? super V> listener);
-
-    @Override
-    Promise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
-
-    @Override
-    Promise<V> removeListener(@Nonnull FutureListener<? super V> listener);
 
 }

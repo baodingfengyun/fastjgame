@@ -16,13 +16,11 @@
 
 package com.wjybxx.fastjgame.net.http;
 
-import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.adapter.CompletableFutureAdapter;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.net.http.HttpTimeoutException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -46,16 +44,6 @@ public class DefaultHttpFuture<V> extends CompletableFutureAdapter<V> implements
 
     static boolean isHttpTimeout(Throwable cause) {
         return cause instanceof HttpTimeoutException;
-    }
-
-    @UnstableApi
-    @Nullable
-    @Override
-    public HttpFutureResult<V> getAsResult() {
-        if (isDone()) {
-            return new DefaultHttpFutureResult<>(getNow(), cause());
-        }
-        return null;
     }
 
     // ---------------------------------------- 流式语法支持 ---------------------------------

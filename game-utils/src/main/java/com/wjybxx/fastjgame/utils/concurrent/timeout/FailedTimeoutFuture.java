@@ -16,13 +16,11 @@
 
 package com.wjybxx.fastjgame.utils.concurrent.timeout;
 
-import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.FailedFuture;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.concurrent.Executor;
 
 /**
@@ -43,13 +41,6 @@ public class FailedTimeoutFuture<V> extends FailedFuture<V> implements TimeoutFu
     public final boolean isTimeout() {
         // 早已失败，一定不是超时
         return false;
-    }
-
-    @UnstableApi
-    @Nullable
-    @Override
-    public TimeoutFutureResult<V> getAsResult() {
-        return new DefaultTimeoutFutureResult<>(null, cause());
     }
 
     @Override

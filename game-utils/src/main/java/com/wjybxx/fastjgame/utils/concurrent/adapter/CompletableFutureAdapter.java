@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.utils.concurrent.adapter;
 
 import com.wjybxx.fastjgame.utils.ThreadUtils;
-import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
 import com.wjybxx.fastjgame.utils.concurrent.*;
 
 import javax.annotation.Nonnull;
@@ -105,19 +104,6 @@ public class CompletableFutureAdapter<V> extends AbstractListenableFuture<V> {
             return future.getNow(null);
         } catch (Throwable ignore) {
             return null;
-        }
-    }
-
-    @UnstableApi
-    @Nullable
-    @Override
-    public FutureResult<V> getAsResult() {
-        try {
-            return new DefaultFutureResult<>(future.getNow(null), null);
-        } catch (CompletionException e) {
-            return new DefaultFutureResult<>(null, e.getCause());
-        } catch (Throwable e) {
-            return new DefaultFutureResult<>(null, e);
         }
     }
 

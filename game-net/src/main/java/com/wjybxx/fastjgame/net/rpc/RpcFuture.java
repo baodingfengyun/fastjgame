@@ -16,12 +16,10 @@
 
 package com.wjybxx.fastjgame.net.rpc;
 
-import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.timeout.TimeoutFuture;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.concurrent.Executor;
 
 /**
@@ -55,11 +53,6 @@ public interface RpcFuture<V> extends TimeoutFuture<V> {
      * @return errorCode
      */
     RpcErrorCode errorCode();
-
-    @UnstableApi
-    @Nullable
-    @Override
-    RpcFutureResult<V> getAsResult();
 
     @Override
     RpcFuture<V> await() throws InterruptedException;

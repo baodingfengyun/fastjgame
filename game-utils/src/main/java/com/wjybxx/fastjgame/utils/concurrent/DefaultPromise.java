@@ -20,7 +20,6 @@ import com.wjybxx.fastjgame.utils.CollectionUtils;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.ThreadUtils;
 import com.wjybxx.fastjgame.utils.TimeUtils;
-import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -135,6 +134,12 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     protected EventLoop defaultExecutor() {
         // noinspection ConstantConditions (屏蔽null警告)
         return defaultExecutor;
+    }
+
+    @Nonnull
+    @Override
+    public ListenableFuture<V> getFuture() {
+        return this;
     }
 
     // --------------------------------------------  查询 ----------------------------------------------
@@ -273,16 +278,6 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     @SuppressWarnings("unchecked")
     private static <V> V getSuccessResult(Object result) {
         return result == SUCCESS ? null : (V) result;
-    }
-
-    /**
-     * 重写时调用{@link #getAsResultImp(BiFunction)}
-     */
-    @UnstableApi
-    @Nullable
-    @Override
-    public FutureResult<V> getAsResult() {
-        return getAsResultImp(DefaultFutureResult::new);
     }
 
     /**

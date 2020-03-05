@@ -24,9 +24,9 @@ import javax.annotation.Nullable;
  *
  * <h3>多生产者单消费者模型</h3>
  * 1. 它是单线程的: 它保证任务不会并发执行，且任务的执行顺序和提交顺序一致。
- * 2. 它会组织其它线程消费数据。
+ * 2. 它会阻止其它线程消费数据。
  * 3. 由于{@link EventLoop}都是单线程的，如果两个{@link EventLoop}存在直接交互，
- * 且某一个{@link EventLoop}有界队列，则可能导致大量的任务拒绝或死锁！
+ * 且某一个{@link EventLoop}使用的是有界队列，则可能导致大量的任务拒绝或死锁！
  *
  * @author wjybxx
  * @version 1.0
@@ -82,13 +82,14 @@ public interface EventLoop extends FixedEventLoopGroup {
      * 例如：有一个全局计数器，每一个线程在执行某个方法之前需要先将计数+1。 如果EventLoop线程也会调用该方法，它可能导致方法内部看见的计数不是顺序的!!!
      * {@code final AtomicInteger counter = new AtomicInteger();}
      * 它有时候是无害的，有时候则是有害的，因此必须想明白是否需要提供全局时序保证！
+     * <p>
+     * 该方法一定要慎用。
      */
     boolean inEventLoop();
 
     /**
      * 创建一个{@link Promise}(一个可写的Future)。
-     * 用户提交一个任务之后，返回给客户端一个Promise，
-     * 使得用户可以获取操作结果和添加监听器。
+     * 用户提交一个任务，执行方持有Promise，用户方持Future，执行方通过Promise赋值，用户通过Future获取结果或监听。
      * <p>
      * 注意：最好不要在自己创建的promise上进行阻塞等待，否则可能导致死锁。建议使用{@link FutureListener}。
      * 在检测死锁时会抛出{@link BlockingOperationException}。

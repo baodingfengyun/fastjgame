@@ -77,12 +77,6 @@ public class VoidFuture implements ListenableFuture<Object> {
         return null;
     }
 
-    @Nullable
-    @Override
-    public FutureResult<Object> getAsResult() {
-        return null;
-    }
-
     // --------------------------------------- 任何阻塞式调用，立即抛出异常 -------------------------------
 
     @Override

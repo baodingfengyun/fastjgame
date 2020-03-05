@@ -16,10 +16,7 @@
 
 package com.wjybxx.fastjgame.utils.concurrent;
 
-import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
-
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletionException;
 
@@ -33,17 +30,6 @@ import java.util.concurrent.CompletionException;
  * github - https://github.com/hl845740757
  */
 public abstract class AbstractListenableFuture<V> implements ListenableFuture<V> {
-
-    @UnstableApi
-    @Nullable
-    @Override
-    public FutureResult<V> getAsResult() {
-        if (isDone()) {
-            return new DefaultFutureResult<>(getNow(), cause());
-        } else {
-            return null;
-        }
-    }
 
     @Override
     public V join() throws CompletionException {

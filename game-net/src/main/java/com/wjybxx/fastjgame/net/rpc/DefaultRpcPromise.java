@@ -20,13 +20,11 @@ import com.wjybxx.fastjgame.net.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.net.exception.RpcException;
 import com.wjybxx.fastjgame.net.exception.RpcTimeoutException;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.timeout.DefaultTimeoutPromise;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
@@ -93,13 +91,6 @@ public class DefaultRpcPromise<V> extends DefaultTimeoutPromise<V> implements Rp
     @Override
     protected void onTimeout() {
         tryFailure(RpcTimeoutException.INSTANCE);
-    }
-
-    @UnstableApi
-    @Nullable
-    @Override
-    public RpcFutureResult<V> getAsResult() {
-        return getAsResultImp(DefaultRpcFutureResult::new);
     }
 
     // --------------------------------- 流式语法支持 ------------------------------
