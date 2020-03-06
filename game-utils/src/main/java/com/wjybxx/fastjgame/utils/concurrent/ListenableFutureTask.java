@@ -140,11 +140,6 @@ public class ListenableFutureTask<V> implements ListenableFuture<V>, RunnableFut
     }
 
     @Override
-    public ListenableFuture<V> removeListener(@Nonnull FutureListener<? super V> listener) {
-        return getFuture().removeListener(listener);
-    }
-
-    @Override
     @UnstableApi
     public boolean isVoid() {
         return getFuture().isVoid();

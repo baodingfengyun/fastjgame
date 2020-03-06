@@ -47,6 +47,4 @@ public interface HttpFuture<V> extends TimeoutFuture<V> {
     @Override
     HttpFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
-    @Override
-    HttpFuture<V> removeListener(@Nonnull FutureListener<? super V> listener);
 }

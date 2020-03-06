@@ -40,11 +40,6 @@ public class CompletableFutureAdapter<V> extends AbstractListenableFuture<V> {
     private final EventLoop executor;
     private final CompletableFuture<V> future;
 
-    public CompletableFutureAdapter(CompletableFuture<V> future) {
-        this.executor = null;
-        this.future = future;
-    }
-
     /**
      * @param executor 异步执行的默认executor
      */
@@ -172,6 +167,14 @@ public class CompletableFutureAdapter<V> extends AbstractListenableFuture<V> {
         return false;
     }
 
+    // ---------------------------------------------------------------------------------------------
+
+    @Nonnull
+    @Override
+    public EventLoop defaultExecutor() {
+        return executor;
+    }
+
     @Override
     public ListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
         addListener0(listener, executor);
@@ -196,8 +199,4 @@ public class CompletableFutureAdapter<V> extends AbstractListenableFuture<V> {
         DefaultPromise.notifyListenerNowSafely(this, listener);
     }
 
-    @Override
-    public ListenableFuture<V> removeListener(@Nonnull FutureListener<? super V> listener) {
-        throw new UnsupportedOperationException();
-    }
 }

@@ -52,6 +52,4 @@ public interface TimeoutFuture<V> extends ListenableFuture<V> {
     @Override
     TimeoutFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
-    @Override
-    TimeoutFuture<V> removeListener(@Nonnull FutureListener<? super V> listener);
 }

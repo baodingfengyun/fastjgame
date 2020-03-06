@@ -33,9 +33,21 @@ import java.util.concurrent.TimeoutException;
 @UnstableApi
 public class VoidFuture implements ListenableFuture<Object> {
 
+    private final EventLoop eventLoop;
+
+    public VoidFuture(EventLoop eventLoop) {
+        this.eventLoop = eventLoop;
+    }
+
     @Override
     public final boolean isVoid() {
         return true;
+    }
+
+    @Nonnull
+    @Override
+    public EventLoop defaultExecutor() {
+        return eventLoop;
     }
 
     // --------------------------------------- 任何状态查询都立即返回 ----------------------------------------
@@ -140,7 +152,14 @@ public class VoidFuture implements ListenableFuture<Object> {
     }
 
     @Override
-    public ListenableFuture<Object> removeListener(@Nonnull FutureListener<? super Object> listener) {
+    public ListenableFuture<Object> onSuccess(@Nonnull SucceededFutureListener<? super Object> listener) {
+        fail();
+        return this;
+    }
+
+    @Override
+    public ListenableFuture<Object> onFailure(@Nonnull FailedFutureListener<? super Object> listener) {
+        fail();
         return this;
     }
 }

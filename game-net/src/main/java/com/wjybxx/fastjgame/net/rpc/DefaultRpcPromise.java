@@ -22,7 +22,6 @@ import com.wjybxx.fastjgame.net.exception.RpcTimeoutException;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
-import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.utils.concurrent.timeout.DefaultTimeoutPromise;
 
 import javax.annotation.Nonnull;
@@ -122,9 +121,4 @@ public class DefaultRpcPromise<V> extends DefaultTimeoutPromise<V> implements Rp
         return this;
     }
 
-    @Override
-    public RpcFuture<V> removeListener(@Nonnull FutureListener<? super V> listener) {
-        super.removeListener(listener);
-        return this;
-    }
 }

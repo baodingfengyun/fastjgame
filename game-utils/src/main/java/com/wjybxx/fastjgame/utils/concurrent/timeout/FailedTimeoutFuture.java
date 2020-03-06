@@ -65,9 +65,4 @@ public class FailedTimeoutFuture<V> extends FailedFuture<V> implements TimeoutFu
         return this;
     }
 
-    @Override
-    public TimeoutFuture<V> removeListener(@Nonnull FutureListener<? super V> listener) {
-        super.removeListener(listener);
-        return this;
-    }
 }

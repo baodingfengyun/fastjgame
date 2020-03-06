@@ -71,10 +71,4 @@ public class FailedRpcFuture<V> extends FailedTimeoutFuture<V> implements RpcFut
         return this;
     }
 
-    @Override
-    public RpcFuture<V> removeListener(@Nonnull FutureListener<? super V> listener) {
-        super.removeListener(listener);
-        return this;
-    }
-
 }

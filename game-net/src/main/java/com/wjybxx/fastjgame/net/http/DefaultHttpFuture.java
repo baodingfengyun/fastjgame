@@ -67,9 +67,4 @@ public class DefaultHttpFuture<V> extends CompletableFutureAdapter<V> implements
         return this;
     }
 
-    @Override
-    public HttpFuture<V> removeListener(@Nonnull FutureListener<? super V> listener) {
-        super.removeListener(listener);
-        return this;
-    }
 }

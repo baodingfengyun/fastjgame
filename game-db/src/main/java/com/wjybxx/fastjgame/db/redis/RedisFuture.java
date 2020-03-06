@@ -47,6 +47,4 @@ public interface RedisFuture<V> extends ListenableFuture<V> {
     @Override
     RedisFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
-    @Override
-    RedisFuture<V> removeListener(@Nonnull FutureListener<? super V> listener);
 }

@@ -82,9 +82,4 @@ public class DefaultRedisPromise<V> extends DefaultPromise<V> implements RedisFu
         return this;
     }
 
-    @Override
-    public RedisFuture<V> removeListener(@Nonnull FutureListener<? super V> listener) {
-        super.removeListener(listener);
-        return this;
-    }
 }

@@ -16,7 +16,10 @@
 
 package com.wjybxx.fastjgame.utils.concurrent;
 
+import javax.annotation.Nonnull;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * ListenableFuture的抽象实现
@@ -30,18 +33,30 @@ import java.util.concurrent.CompletionException;
 public abstract class AbstractListenableFuture<V> implements ListenableFuture<V> {
 
     @Override
+    public V get() throws InterruptedException, CompletionException {
+        await();
+
+        return getNow();
+    }
+
+    @Override
+    public V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, CompletionException, TimeoutException {
+        if (await(timeout, unit)) {
+            return getNow();
+        } else {
+            throw new TimeoutException();
+        }
+    }
+
+    @Override
     public V join() throws CompletionException {
         awaitUninterruptibly();
-        try {
-            return get();
-        } catch (InterruptedException e) {
-            // Should not be raised at all.
-            throw new InternalError();
-        }
+        return getNow();
     }
 
     @Override
     public final boolean isVoid() {
         return false;
     }
+
 }

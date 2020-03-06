@@ -26,6 +26,10 @@ import javax.annotation.Nonnull;
 
 public class VoidPromise extends VoidFuture implements Promise<Object> {
 
+    public VoidPromise() {
+        super(eventLoop);
+    }
+
     @Nonnull
     @Override
     public VoidFuture getFuture() {

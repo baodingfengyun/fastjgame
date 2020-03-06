@@ -47,11 +47,6 @@ public class DefaultTimeoutPromise<V> extends DefaultPromise<V> implements Timeo
         deadline = System.currentTimeMillis() + timeUnit.toMillis(timeout);
     }
 
-    protected DefaultTimeoutPromise(long timeout, TimeUnit timeUnit) {
-        super();
-        deadline = System.currentTimeMillis() + timeUnit.toMillis(timeout);
-    }
-
     @Override
     public boolean isTimeout() {
         return cause() instanceof TimeoutException;
@@ -96,7 +91,7 @@ public class DefaultTimeoutPromise<V> extends DefaultPromise<V> implements Timeo
 
     @Nullable
     @Override
-    public Throwable cause() {
+    public final Throwable cause() {
         checkTimeout();
         return super.cause();
     }
@@ -169,9 +164,4 @@ public class DefaultTimeoutPromise<V> extends DefaultPromise<V> implements Timeo
         return this;
     }
 
-    @Override
-    public TimeoutFuture<V> removeListener(@Nonnull FutureListener<? super V> listener) {
-        super.removeListener(listener);
-        return this;
-    }
 }

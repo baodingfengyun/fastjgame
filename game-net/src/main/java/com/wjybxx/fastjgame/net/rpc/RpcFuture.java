@@ -66,6 +66,4 @@ public interface RpcFuture<V> extends TimeoutFuture<V> {
     @Override
     RpcFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
-    @Override
-    RpcFuture<V> removeListener(@Nonnull FutureListener<? super V> listener);
 }

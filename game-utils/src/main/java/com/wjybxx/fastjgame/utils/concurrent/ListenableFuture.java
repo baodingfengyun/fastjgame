@@ -149,6 +149,4 @@ public interface ListenableFuture<V> extends Future<V>, NonBlockingFuture<V> {
         return null;
     }
 
-    @Override
-    ListenableFuture<V> removeListener(@Nonnull FutureListener<? super V> listener);
 }

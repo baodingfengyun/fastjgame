@@ -45,11 +45,9 @@ public abstract class CompleteFuture<V> extends AbstractListenableFuture<V> {
         this.notifyExecutor = notifyExecutor;
     }
 
-    /**
-     * 返回该 {@link CompleteFuture} 关联的用于通知的默认{@link Executor}。
-     */
     @Nonnull
-    protected EventLoop executor() {
+    @Override
+    public EventLoop defaultExecutor() {
         return notifyExecutor;
     }
 
@@ -115,9 +113,4 @@ public abstract class CompleteFuture<V> extends AbstractListenableFuture<V> {
         DefaultPromise.notifyListenerNowSafely(this, listener);
     }
 
-    @Override
-    public ListenableFuture<V> removeListener(@Nonnull FutureListener<? super V> listener) {
-        // NOOP (因为并没有真正添加，因此也不需要移除)
-        return this;
-    }
 }

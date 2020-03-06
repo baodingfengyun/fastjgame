@@ -28,6 +28,11 @@ import java.util.concurrent.Executor;
  * 非阻塞的future。
  * 它不提供任何的阻塞式接口，只提供异步监听和非阻塞获取结果的api。
  *
+ * <h3>监听器执行时序</h3>
+ * 实现类必须提供最小保证：对于执行环境相同的监听器，必须按照添加顺序执行。即：
+ * 1. 未指定{@link Executor}的监听器，必须按照添加顺序执行。
+ * 2. 指定了相同{@link Executor}的监听器，必须按照添加顺序执行。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2020/3/6
@@ -110,6 +115,13 @@ public interface NonBlockingFuture<V> {
     // ------------------------------------- 监听 --------------------------------------
 
     /**
+     * 所有未指定{@link Executor}的监听器，都将在该{@link EventLoop}下执行。
+     * EventLoop是单线程的，因而能保证执行顺序。
+     */
+    @Nonnull
+    EventLoop defaultExecutor();
+
+    /**
      * 添加一个监听者到当前Future。传入的特定的Listener将会在Future计算完成时{@link #isDone() true}被通知。
      * 如果当前Future已经计算完成，那么将立即被通知。
      * 注意：
@@ -150,14 +162,6 @@ public interface NonBlockingFuture<V> {
         onComplete(listener);
         return this;
     }
-
-    /**
-     * 移除监听器中第一个与指定Listener匹配的监听器，如果该Listener没有进行注册，那么什么也不会做。
-     *
-     * @param listener 要移除的监听器
-     * @return this
-     */
-    NonBlockingFuture<V> removeListener(@Nonnull FutureListener<? super V> listener);
 
     // ------------------------------------- 用于支持占位的voidFuture --------------------------------------
 

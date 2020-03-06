@@ -21,7 +21,6 @@ import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
 import io.netty.util.concurrent.Future;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -39,11 +38,6 @@ public final class NettyFutureAdapter<V> extends AbstractListenableFuture<V> {
 
     private final EventLoop executor;
     private final Future<V> future;
-
-    public NettyFutureAdapter(Future<V> future) {
-        this.executor = null;
-        this.future = future;
-    }
 
     /**
      * @param executor 异步执行的默认executor
@@ -131,6 +125,14 @@ public final class NettyFutureAdapter<V> extends AbstractListenableFuture<V> {
         return future.awaitUninterruptibly(timeout, unit);
     }
 
+    // ---------------------------------------------------------------------------------------------
+
+    @Nonnull
+    @Override
+    public EventLoop defaultExecutor() {
+        return executor;
+    }
+
     @Override
     public ListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
         addListener0(listener, executor);
@@ -161,9 +163,4 @@ public final class NettyFutureAdapter<V> extends AbstractListenableFuture<V> {
 //        });
     }
 
-    @Override
-    public ListenableFuture<V> removeListener(@Nonnull FutureListener<? super V> listener) {
-        // 需要ConcurrentMap保存映射才能删除，比较麻烦，先不支持
-        throw new UnsupportedOperationException();
-    }
 }
