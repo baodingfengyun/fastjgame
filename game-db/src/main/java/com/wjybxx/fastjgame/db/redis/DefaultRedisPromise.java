@@ -33,7 +33,7 @@ import java.util.concurrent.Executor;
  * date - 2019/12/12
  * github - https://github.com/hl845740757
  */
-public class DefaultRedisPromise<V> extends DefaultPromise<V> implements RedisPromise<V> {
+public class DefaultRedisPromise<V> extends DefaultPromise<V> implements RedisFuture<V>, RedisPromise<V> {
 
     /**
      * 工作线程 - 检查死锁的线程
@@ -50,34 +50,40 @@ public class DefaultRedisPromise<V> extends DefaultPromise<V> implements RedisPr
         ConcurrentUtils.checkDeadLock(workerEventLoop);
     }
 
+    @Nonnull
+    @Override
+    public RedisFuture<V> getFuture() {
+        return this;
+    }
+
     // ------------------------------------------------ 支持流式语法 ------------------------------------
 
     @Override
-    public RedisPromise<V> await() throws InterruptedException {
+    public RedisFuture<V> await() throws InterruptedException {
         super.await();
         return this;
     }
 
     @Override
-    public RedisPromise<V> awaitUninterruptibly() {
+    public RedisFuture<V> awaitUninterruptibly() {
         super.awaitUninterruptibly();
         return this;
     }
 
     @Override
-    public RedisPromise<V> onComplete(@Nonnull FutureListener<? super V> listener) {
+    public RedisFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
         super.onComplete(listener);
         return this;
     }
 
     @Override
-    public RedisPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public RedisFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         super.onComplete(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public RedisPromise<V> removeListener(@Nonnull FutureListener<? super V> listener) {
+    public RedisFuture<V> removeListener(@Nonnull FutureListener<? super V> listener) {
         super.removeListener(listener);
         return this;
     }

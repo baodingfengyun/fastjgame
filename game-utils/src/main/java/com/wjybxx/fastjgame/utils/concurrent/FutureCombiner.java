@@ -143,7 +143,7 @@ public class FutureCombiner {
     private class ChildListener implements FutureListener<Object> {
 
         @Override
-        public void onComplete(NonBlockingListenableFuture<Object> future) throws Exception {
+        public void onComplete(NonBlockingFuture<Object> future) throws Exception {
             assert appEventLoop.inEventLoop();
 
             if (!future.isSuccess()) {

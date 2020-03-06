@@ -25,14 +25,14 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 
 /**
- * 非阻塞的可监听future。
- * 它不提供任何的阻塞式接口，只提供监听api。
+ * 非阻塞的future。
+ * 它不提供任何的阻塞式接口，只提供异步监听和非阻塞获取结果的api。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2020/3/6
  */
-public interface NonBlockingListenableFuture<V> {
+public interface NonBlockingFuture<V> {
 
     /**
      * 查询任务是否已完成。
@@ -119,7 +119,7 @@ public interface NonBlockingListenableFuture<V> {
      * @param listener 要添加的监听器。
      * @return this
      */
-    NonBlockingListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener);
+    NonBlockingFuture<V> onComplete(@Nonnull FutureListener<? super V> listener);
 
     /**
      * 添加一个监听者到当前Future。传入的特定的Listener将会在Future计算完成时{@link #isDone() true}被通知。
@@ -139,14 +139,14 @@ public interface NonBlockingListenableFuture<V> {
      * @param bindExecutor 监听器的最终执行线程
      * @return this
      */
-    NonBlockingListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+    NonBlockingFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
-    default NonBlockingListenableFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
+    default NonBlockingFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
         onComplete(listener);
         return this;
     }
 
-    default NonBlockingListenableFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
+    default NonBlockingFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
         onComplete(listener);
         return this;
     }
@@ -157,7 +157,7 @@ public interface NonBlockingListenableFuture<V> {
      * @param listener 要移除的监听器
      * @return this
      */
-    ListenableFuture<V> removeListener(@Nonnull FutureListener<? super V> listener);
+    NonBlockingFuture<V> removeListener(@Nonnull FutureListener<? super V> listener);
 
     // ------------------------------------- 用于支持占位的voidFuture --------------------------------------
 

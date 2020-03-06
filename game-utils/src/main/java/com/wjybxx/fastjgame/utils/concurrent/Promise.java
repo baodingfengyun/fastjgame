@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.utils.concurrent;
 import javax.annotation.Nonnull;
 
 /**
- * promise用于为关联的future赋值结果。
+ * promise用于为关联的{@link ListenableFuture}赋值结果。
  * --
  * 新版本的promise与future的关系改为组合关系，旧版本中的继承关系实在是太多坑，过多参考了netty的设计，把坑的也继承过来了。
  *
@@ -29,49 +29,10 @@ import javax.annotation.Nonnull;
  * date - 2019/7/14
  * github - https://github.com/hl845740757
  */
-public interface Promise<V> {
+public interface Promise<V> extends IPromise<V> {
 
-    /**
-     * 获取关联的future
-     */
     @Nonnull
+    @Override
     ListenableFuture<V> getFuture();
-
-    /**
-     * 将future标记为成功完成，并且通知所有的监听器。
-     * <p>
-     * 如果该future对应的操作早已完成(失败或成功)，将抛出一个{@link IllegalStateException}.
-     */
-    void setSuccess(V result);
-
-    /**
-     * 尝试将future标记为成功完成，标记成功时通知所有的监听器。
-     *
-     * @return 当且仅当成功将future标记为成功完成时返回true，如果future对应的操作已完成(成功或失败)，则返回false，并什么都不改变。
-     */
-    boolean trySuccess(V result);
-
-    /**
-     * 将future标记为失败完成，并且通知所有的监听器。
-     * <p>
-     * 如果future对应的操作早已完成（成功或失败），则抛出一个{@link IllegalStateException}.
-     */
-    void setFailure(@Nonnull Throwable cause);
-
-    /**
-     * 尝试将future标记为失败完成，标记成功时通知所有监听器。
-     *
-     * @return 当前仅当成功将future标记为失败完成时返回true，如果future对应的操作已完成（成功或失败），则返回false，并什么也不改变。
-     */
-    boolean tryFailure(@Nonnull Throwable cause);
-
-    /**
-     * 将future标记为不可取消状态，它表示计算已经开始，不可以被取消。
-     *
-     * @return 1. 如果成功设置为不可取消 或 已经是不可取消状态 则返回true.
-     * 2. 已经进入完成状态(不是被取消进入的完成状态) 返回true。
-     * 否则返回false（其实也就是被取消返回false）。
-     */
-    boolean setUncancellable();
 
 }

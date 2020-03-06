@@ -35,7 +35,7 @@ public class ListenableFutureTask<V> implements ListenableFuture<V>, RunnableFut
     private final Promise<V> promise;
     private final Callable<V> callable;
 
-    ListenableFutureTask(Promise<V> promise, Callable<V> callable) {
+    public ListenableFutureTask(Promise<V> promise, Callable<V> callable) {
         this.promise = promise;
         this.callable = callable;
     }

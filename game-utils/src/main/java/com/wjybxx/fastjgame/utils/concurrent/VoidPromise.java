@@ -28,7 +28,7 @@ public class VoidPromise extends VoidFuture implements Promise<Object> {
 
     @Nonnull
     @Override
-    public ListenableFuture<Object> getFuture() {
+    public VoidFuture getFuture() {
         return this;
     }
 

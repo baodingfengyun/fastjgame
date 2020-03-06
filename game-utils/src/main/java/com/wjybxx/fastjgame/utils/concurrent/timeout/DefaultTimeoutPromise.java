@@ -35,7 +35,7 @@ import java.util.concurrent.TimeoutException;
  * date - 2020/1/6
  * github - https://github.com/hl845740757
  */
-public class DefaultTimeoutPromise<V> extends DefaultPromise<V> implements TimeoutPromise<V> {
+public class DefaultTimeoutPromise<V> extends DefaultPromise<V> implements TimeoutFuture<V>, TimeoutPromise<V> {
 
     /**
      * 最终时间。
@@ -54,11 +54,7 @@ public class DefaultTimeoutPromise<V> extends DefaultPromise<V> implements Timeo
 
     @Override
     public boolean isTimeout() {
-        return isDefaultTimeout(cause());
-    }
-
-    static boolean isDefaultTimeout(Throwable cause) {
-        return cause instanceof TimeoutException;
+        return cause() instanceof TimeoutException;
     }
 
     // ----------------------------------------------- 获取超时时间信息 ---------------------------------------------------
@@ -70,6 +66,12 @@ public class DefaultTimeoutPromise<V> extends DefaultPromise<V> implements Timeo
     @Override
     public long getExpire(TimeUnit timeUnit) {
         return timeUnit.convert(deadline, TimeUnit.MILLISECONDS);
+    }
+
+    @Nonnull
+    @Override
+    public TimeoutFuture<V> getFuture() {
+        return this;
     }
 
     // ---------------------------------------------- 非阻塞式获取结果超时检测 ------------------------------------------------
@@ -102,7 +104,7 @@ public class DefaultTimeoutPromise<V> extends DefaultPromise<V> implements Timeo
     // -------------------------------------------------- 阻塞式等待超时检测 --------------------------------
 
     @Override
-    public TimeoutPromise<V> await() throws InterruptedException {
+    public TimeoutFuture<V> await() throws InterruptedException {
         // 有限的等待
         await(remainTimeMillis(), TimeUnit.MILLISECONDS);
         assert isDone();
@@ -110,7 +112,7 @@ public class DefaultTimeoutPromise<V> extends DefaultPromise<V> implements Timeo
     }
 
     @Override
-    public TimeoutPromise<V> awaitUninterruptibly() {
+    public TimeoutFuture<V> awaitUninterruptibly() {
         // 有限的等待
         awaitUninterruptibly(remainTimeMillis(), TimeUnit.MILLISECONDS);
         assert isDone();
@@ -156,19 +158,19 @@ public class DefaultTimeoutPromise<V> extends DefaultPromise<V> implements Timeo
     // ---------------------------------------------- 流式语法 ------------------------------------------------
 
     @Override
-    public TimeoutPromise<V> onComplete(@Nonnull FutureListener<? super V> listener) {
+    public TimeoutFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
         super.onComplete(listener);
         return this;
     }
 
     @Override
-    public TimeoutPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public TimeoutFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         super.onComplete(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public TimeoutPromise<V> removeListener(@Nonnull FutureListener<? super V> listener) {
+    public TimeoutFuture<V> removeListener(@Nonnull FutureListener<? super V> listener) {
         super.removeListener(listener);
         return this;
     }

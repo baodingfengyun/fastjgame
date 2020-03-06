@@ -30,7 +30,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
 import static com.wjybxx.fastjgame.utils.ThreadUtils.checkInterrupted;
@@ -268,35 +267,10 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     @Override
     public V getNow() {
         final Object result = resultHolder.get();
-        if (isSuccess0(result)) {
-            return getSuccessResult(result);
-        } else {
-            return null;
+        if (isDone0(result)) {
+            return reportGet(result);
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <V> V getSuccessResult(Object result) {
-        return result == SUCCESS ? null : (V) result;
-    }
-
-    /**
-     * 获取结果的真正实现
-     *
-     * @param factory 创建结果的工厂，可以考虑单例
-     */
-    protected final <FR extends FutureResult<V>> FR getAsResultImp(BiFunction<V, Throwable, FR> factory) {
-        final Object result = resultHolder.get();
-
-        if (!isDone0(result)) {
-            return null;
-        }
-
-        if (result instanceof CauseHolder) {
-            return factory.apply(null, ((CauseHolder) result).cause);
-        }
-
-        return factory.apply(getSuccessResult(result), null);
+        return null;
     }
 
     @Nullable
@@ -510,30 +484,6 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         waiters++;
     }
 
-    /**
-     * <pre>
-     * {@code
-     *         // synchronized的标准模式
-     *         synchronized (this) {
-     *             while(!condition()) {
-     *                 this.wait();
-     *             }
-     *             doSomething();
-     *         }
-     *
-     *         // 显式锁的标准模式
-     *         lock.lock();
-     *         try {
-     *             while (!isOK()) {
-     *                 condition.await();
-     *             }
-     *             doSomething();
-     *         } finally {
-     *             lock.unlock();
-     *         }
-     * }
-     * </pre>
-     */
     @Override
     public ListenableFuture<V> await() throws InterruptedException {
         // 先检查一次是否已完成，减小锁竞争，同时在完成的情况下，等待不会死锁。

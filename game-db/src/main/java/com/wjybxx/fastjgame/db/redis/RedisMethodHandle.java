@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.db.redis;
 
 import com.wjybxx.fastjgame.utils.async.FlushableMethodHandle;
-import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.utils.concurrent.NonBlockingFuture;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.CompletionException;
@@ -39,10 +39,10 @@ public interface RedisMethodHandle<V> extends FlushableMethodHandle<RedisClient,
     void executeAndFlush(@Nonnull RedisClient client);
 
     @Override
-    ListenableFuture<V> call(@Nonnull RedisClient client);
+    NonBlockingFuture<V> call(@Nonnull RedisClient client);
 
     @Override
-    ListenableFuture<V> callAndFlush(@Nonnull RedisClient client);
+    NonBlockingFuture<V> callAndFlush(@Nonnull RedisClient client);
 
     @Override
     V syncCall(@Nonnull RedisClient client) throws CompletionException;

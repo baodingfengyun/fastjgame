@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.utils.concurrent;
 
-import javax.annotation.Nonnull;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletionException;
 
 /**

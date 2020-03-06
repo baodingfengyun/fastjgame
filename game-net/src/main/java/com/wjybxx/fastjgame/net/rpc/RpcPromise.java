@@ -16,11 +16,9 @@
 
 package com.wjybxx.fastjgame.net.rpc;
 
-import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.timeout.TimeoutPromise;
 
 import javax.annotation.Nonnull;
-import java.util.concurrent.Executor;
 
 /**
  * RpcPromise
@@ -30,21 +28,9 @@ import java.util.concurrent.Executor;
  * date - 2019/8/3
  * github - https://github.com/hl845740757
  */
-public interface RpcPromise<V> extends RpcFuture<V>, TimeoutPromise<V> {
+public interface RpcPromise<V> extends TimeoutPromise<V> {
 
+    @Nonnull
     @Override
-    RpcPromise<V> await() throws InterruptedException;
-
-    @Override
-    RpcPromise<V> awaitUninterruptibly();
-
-    @Override
-    RpcPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
-
-    @Override
-    RpcPromise<V> onComplete(@Nonnull FutureListener<? super V> listener);
-
-    @Override
-    RpcPromise<V> removeListener(@Nonnull FutureListener<? super V> listener);
-
+    RpcFuture<V> getFuture();
 }

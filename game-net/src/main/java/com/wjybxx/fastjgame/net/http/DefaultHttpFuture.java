@@ -39,11 +39,7 @@ public class DefaultHttpFuture<V> extends CompletableFutureAdapter<V> implements
 
     @Override
     public boolean isTimeout() {
-        return isHttpTimeout(cause());
-    }
-
-    static boolean isHttpTimeout(Throwable cause) {
-        return cause instanceof HttpTimeoutException;
+        return cause() instanceof HttpTimeoutException;
     }
 
     // ---------------------------------------- 流式语法支持 ---------------------------------

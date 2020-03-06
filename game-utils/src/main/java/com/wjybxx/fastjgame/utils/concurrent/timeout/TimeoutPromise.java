@@ -16,11 +16,9 @@
 
 package com.wjybxx.fastjgame.utils.concurrent.timeout;
 
-import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.Promise;
 
 import javax.annotation.Nonnull;
-import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -31,7 +29,11 @@ import java.util.concurrent.TimeUnit;
  * date - 2020/1/6
  * github - https://github.com/hl845740757
  */
-public interface TimeoutPromise<V> extends TimeoutFuture<V>, Promise<V> {
+public interface TimeoutPromise<V> extends Promise<V> {
+
+    @Nonnull
+    @Override
+    TimeoutFuture<V> getFuture();
 
     /**
      * 获取毫秒级别的过期时间戳
@@ -42,19 +44,4 @@ public interface TimeoutPromise<V> extends TimeoutFuture<V>, Promise<V> {
      * 获取超时时间
      */
     long getExpire(TimeUnit timeUnit);
-
-    @Override
-    TimeoutPromise<V> await() throws InterruptedException;
-
-    @Override
-    TimeoutPromise<V> awaitUninterruptibly();
-
-    @Override
-    TimeoutPromise<V> onComplete(@Nonnull FutureListener<? super V> listener);
-
-    @Override
-    TimeoutPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
-
-    @Override
-    TimeoutPromise<V> removeListener(@Nonnull FutureListener<? super V> listener);
 }

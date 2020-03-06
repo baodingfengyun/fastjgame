@@ -71,7 +71,7 @@ public class FutureCombinerTest {
                 });
     }
 
-    private static String getResultAsStringSafely(NonBlockingListenableFuture<?> future) {
+    private static String getResultAsStringSafely(NonBlockingFuture<?> future) {
         if (future.isSuccess()) {
             return String.valueOf(future.getNow());
         } else {

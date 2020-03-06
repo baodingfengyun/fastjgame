@@ -35,7 +35,7 @@ import java.util.concurrent.*;
  * date - 2019/7/14
  * github - https://github.com/hl845740757
  */
-public interface ListenableFuture<V> extends Future<V>, NonBlockingListenableFuture<V> {
+public interface ListenableFuture<V> extends Future<V>, NonBlockingFuture<V> {
 
     // ------------------------------------- 阻塞式获取操作结果 ---------------------------------------
 
@@ -131,4 +131,24 @@ public interface ListenableFuture<V> extends Future<V>, NonBlockingListenableFut
      */
     boolean awaitUninterruptibly(long timeout, @Nonnull TimeUnit unit);
 
+    //
+
+    @Override
+    ListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener);
+
+    @Override
+    ListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+
+    @Override
+    default ListenableFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
+        return null;
+    }
+
+    @Override
+    default ListenableFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
+        return null;
+    }
+
+    @Override
+    ListenableFuture<V> removeListener(@Nonnull FutureListener<? super V> listener);
 }
