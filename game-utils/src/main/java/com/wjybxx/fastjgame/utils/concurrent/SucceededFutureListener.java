@@ -14,24 +14,24 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.http;
-
-import com.wjybxx.fastjgame.utils.concurrent.DefaultFutureResult;
+package com.wjybxx.fastjgame.utils.concurrent;
 
 /**
+ * 当future关联的操作成功完成时，该监听器才会执行。
+ *
  * @author wjybxx
  * @version 1.0
- * date - 2020/1/10
- * github - https://github.com/hl845740757
+ * date - 2020/3/6
  */
-public class DefaultHttpFutureResult<V> extends DefaultFutureResult<V> implements HttpFutureResult<V> {
-
-    public DefaultHttpFutureResult(V result, Throwable cause) {
-        super(result, cause);
-    }
+@FunctionalInterface
+public interface SucceededFutureListener<V> extends FutureListener<V> {
 
     @Override
-    public boolean isTimeout() {
-        return DefaultHttpFuture.isHttpTimeout(cause());
+    default void onComplete(NonBlockingListenableFuture<V> future) throws Exception {
+        if (future.isSuccess()) {
+            onSuccess(future.getNow());
+        }
     }
+
+    void onSuccess(V result);
 }

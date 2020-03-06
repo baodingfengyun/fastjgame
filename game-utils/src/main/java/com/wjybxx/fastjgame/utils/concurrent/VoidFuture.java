@@ -128,13 +128,13 @@ public class VoidFuture implements ListenableFuture<Object> {
     // ---------------------------------------- 禁止添加监听器 -------------------------------------
 
     @Override
-    public ListenableFuture<Object> addListener(@Nonnull FutureListener<? super Object> listener) {
+    public ListenableFuture<Object> onComplete(@Nonnull FutureListener<? super Object> listener) {
         fail();
         return this;
     }
 
     @Override
-    public ListenableFuture<Object> addListener(@Nonnull FutureListener<? super Object> listener, @Nonnull Executor bindExecutor) {
+    public ListenableFuture<Object> onComplete(@Nonnull FutureListener<? super Object> listener, @Nonnull Executor bindExecutor) {
         fail();
         return this;
     }

@@ -20,7 +20,7 @@ package com.wjybxx.fastjgame.utils.concurrent;
 /**
  * Future的监听者。
  * <p>
- * 监听{@link ListenableFuture}的结果。一旦该listener通过{@link ListenableFuture#addListener(FutureListener)}添加到future上，
+ * 监听{@link ListenableFuture}的结果。一旦该listener通过{@link ListenableFuture#onComplete(FutureListener)}添加到future上，
  * future上关联的异步操作完成时，就会收到通知。
  *
  * <pre>{@code
@@ -46,6 +46,6 @@ public interface FutureListener<V> {
      * @param future 监听器监听的future。
      * @throws Exception error
      */
-    void onComplete(ListenableFuture<V> future) throws Exception;
+    void onComplete(NonBlockingListenableFuture<V> future) throws Exception;
 
 }

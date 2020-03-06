@@ -258,7 +258,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
         }
 
         if (r instanceof CauseHolder) {
-            return rethrowCause(((CauseHolder) r).cause);
+            return FutureUtils.rethrowCause(((CauseHolder) r).cause);
         }
 
         return (T) r;
@@ -535,7 +535,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
      * </pre>
      */
     @Override
-    public Promise<V> await() throws InterruptedException {
+    public ListenableFuture<V> await() throws InterruptedException {
         // 先检查一次是否已完成，减小锁竞争，同时在完成的情况下，等待不会死锁。
         if (isDone()) {
             return this;
@@ -560,7 +560,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     }
 
     @Override
-    public Promise<V> awaitUninterruptibly() {
+    public ListenableFuture<V> awaitUninterruptibly() {
         // 先检查一次是否已完成，减小锁竞争，同时在完成的情况下，等待不会死锁。
         if (isDone()) {
             return this;
@@ -666,14 +666,14 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     // ------------------------------------------------- 监听器 ------------------------------------------
 
     @Override
-    public Promise<V> addListener(@Nonnull FutureListener<? super V> listener) {
+    public ListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
         // null is safe
         addListener0(listener);
         return this;
     }
 
     @Override
-    public Promise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public ListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         addListener0(new ExecutorBindListener<>(listener, bindExecutor));
         return this;
     }
@@ -695,7 +695,7 @@ public class DefaultPromise<V> extends AbstractListenableFuture<V> implements Pr
     }
 
     @Override
-    public Promise<V> removeListener(@Nonnull FutureListener<? super V> listener) {
+    public ListenableFuture<V> removeListener(@Nonnull FutureListener<? super V> listener) {
         removeFirstMatchListener(existListener -> {
             if (existListener == listener) {
                 return true;

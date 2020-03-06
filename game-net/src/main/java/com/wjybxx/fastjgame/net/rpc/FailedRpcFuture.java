@@ -60,14 +60,14 @@ public class FailedRpcFuture<V> extends FailedTimeoutFuture<V> implements RpcFut
     }
 
     @Override
-    public RpcFuture<V> addListener(@Nonnull FutureListener<? super V> listener) {
-        super.addListener(listener);
+    public RpcFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
+        super.onComplete(listener);
         return this;
     }
 
     @Override
-    public RpcFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        super.addListener(listener, bindExecutor);
+    public RpcFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        super.onComplete(listener, bindExecutor);
         return this;
     }
 

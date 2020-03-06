@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.utils.async;
 
 import com.wjybxx.fastjgame.utils.concurrent.FutureResult;
+import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -32,7 +33,7 @@ import java.util.concurrent.CompletionException;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public interface FlushableMethodHandle<T, FR extends FutureResult<V>, V> extends MethodHandle<T, FR, V> {
+public interface FlushableMethodHandle<T, V> extends MethodHandle<T, V> {
 
     /**
      * 在指定对象上执行对应的方法，但不监听方法的执行结果。
@@ -49,7 +50,7 @@ public interface FlushableMethodHandle<T, FR extends FutureResult<V>, V> extends
      * @param client 方法的执行对象
      * @return 监听结果的管理器
      */
-    MethodListenable<FR, V> callAndFlush(@Nonnull T client);
+    ListenableFuture<V> callAndFlush(@Nonnull T client);
 
     /**
      * {@inheritDoc}

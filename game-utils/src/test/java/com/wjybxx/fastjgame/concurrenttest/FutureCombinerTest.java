@@ -32,7 +32,7 @@ public class FutureCombinerTest {
         final ListenableFuture<String> aFuture = eventLoopA.submit(() -> "success");
 
 
-        aFuture.addListener(future -> {
+        aFuture.onComplete(future -> {
             System.out.println("CallbackA, Thread : " + Thread.currentThread().getName());
             System.out.println("a result " + getResultAsStringSafely(future));
         });
@@ -42,7 +42,7 @@ public class FutureCombinerTest {
             throw new Exception("failure");
         });
 
-        bFuture.addListener(future -> {
+        bFuture.onComplete(future -> {
             System.out.println("CallbackB, Thread : " + Thread.currentThread().getName());
             System.out.println("b result " + getResultAsStringSafely(future));
         });
@@ -65,13 +65,13 @@ public class FutureCombinerTest {
                 .add(aFuture)
                 .add(bFuture)
                 .finish(appEventLoop.newPromise())
-                .addListener(future -> {
+                .onComplete(future -> {
                     System.out.println("Callback Combine, Thread : " + Thread.currentThread().getName());
                     System.out.println("result " + getResultAsStringSafely(future));
                 });
     }
 
-    private static String getResultAsStringSafely(ListenableFuture<?> future) {
+    private static String getResultAsStringSafely(NonBlockingListenableFuture<?> future) {
         if (future.isSuccess()) {
             return String.valueOf(future.getNow());
         } else {

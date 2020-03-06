@@ -32,7 +32,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import static com.wjybxx.fastjgame.utils.ThreadUtils.checkInterrupted;
 
 /**
- * 未完成的future
+ * 未完成的future。
+ * 模板实现，负责监听器管理以外的实现。
  *
  * @author wjybxx
  * @version 1.0
@@ -199,7 +200,7 @@ public abstract class IncompleteFuture<V> extends AbstractListenableFuture<V> {
         }
 
         if (r instanceof CauseHolder) {
-            return rethrowCause(((CauseHolder) r).cause);
+            return FutureUtils.rethrowCause(((CauseHolder) r).cause);
         }
 
         return (T) r;
@@ -227,131 +228,15 @@ public abstract class IncompleteFuture<V> extends AbstractListenableFuture<V> {
         return getCause0(resultHolder.get());
     }
 
-
-    /**
-     * {@inheritDoc}
-     *
-     * @param mayInterruptIfRunning 该参数对该promise而言是无效的。
-     *                              对该promise而言，在它定义的抽象中，它只是获取结果的凭据，它并不真正执行任务，因此也不能真正取消任务。
-     *                              因此该参数对该promise而言是无效的。
-     *                              这里的取消并不是真正意义上的取消，它不能取消过程，只能取消结果。
-     * @return true if succeed
-     */
-    @Override
-    public final boolean cancel(boolean mayInterruptIfRunning) {
-        final Object result = resultHolder.get();
-        if (isCancelled0(result)) {
-            return true;
-        }
-        return isCancellable0(result) && completeCancellation();
-    }
-
-    /**
-     * 由取消进入完成状态
-     *
-     * @return 成功取消则返回true
-     */
-    private boolean completeCancellation() {
-        // 取消只能由初始状态(null)切换为完成状态
-        if (resultHolder.compareAndSet(null, new CauseHolder(new CancellationException()))) {
-            postComplete();
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    private void postComplete() {
-        final boolean needNotifyListeners;
-
-        synchronized (this) {
-            notifyAllWaiters();
-
-            needNotifyListeners = needNotifyListeners();
-        }
-
-        if (needNotifyListeners) {
-            notifyListeners();
-        }
-    }
-
-    /**
-     * 通知所有的等待线程
-     */
-    private void notifyAllWaiters() {
-        if (waiters > 0) {
-            notifyAll();
-        }
-    }
-
-    /**
-     * 检查是否需要通知监听器。
-     * 该方法运行在锁下，这里是顺带检查一下，可以减少锁的获取次数。
-     * 这里最好不要直接通知，避免长时间的占用锁。
-     *
-     * @return 如果返回true，那么将会尝试调用{@link #notifyListeners()}
-     */
-    protected abstract boolean needNotifyListeners();
-
-    /**
-     * 通知所有的监听器。
-     * 此时尚未获得锁，如果需要的话，可自行获取锁。
-     */
-    protected abstract void notifyListeners();
-
     // ----------------------------------------- 等待 ----------------------------------------------------
 
-    /**
-     * 检查死锁可能。
-     */
-    protected void checkDeadlock() {
-        ConcurrentUtils.checkDeadLock(workerExecutor);
-    }
-
-    /**
-     * 等待线程数+1
-     */
-    private void incWaiters() {
-        waiters++;
-    }
-
-    /**
-     * 等待线程数-1
-     */
-    private void decWaiters() {
-        waiters++;
-    }
-
-    /**
-     * <pre>
-     * {@code
-     *         // synchronized的标准模式
-     *         synchronized (this) {
-     *             while(!condition()) {
-     *                 this.wait();
-     *             }
-     *             doSomething();
-     *         }
-     *
-     *         // 显式锁的标准模式
-     *         lock.lock();
-     *         try {
-     *             while (!isOK()) {
-     *                 condition.await();
-     *             }
-     *             doSomething();
-     *         } finally {
-     *             lock.unlock();
-     *         }
-     * }
-     * </pre>
-     */
     @Override
     public ListenableFuture<V> await() throws InterruptedException {
         // 先检查一次是否已完成，减小锁竞争，同时在完成的情况下，等待不会死锁。
         if (isDone()) {
             return this;
         }
+
         // 检查死锁可能
         checkDeadlock();
 
@@ -476,22 +361,123 @@ public abstract class IncompleteFuture<V> extends AbstractListenableFuture<V> {
     }
 
     /**
-     * 异常holder，只有该类型表示失败。
+     * 检查死锁可能。
+     * 默认检查是否是工作者线程，在工作者线程上等待将导致死锁。
      */
-    private static class CauseHolder {
+    protected void checkDeadlock() {
+        ConcurrentUtils.checkDeadLock(workerExecutor);
+    }
 
-        private final Throwable cause;
+    /**
+     * 等待线程数+1
+     */
+    private void incWaiters() {
+        waiters++;
+    }
 
-        private CauseHolder(Throwable cause) {
-            this.cause = cause;
+    /**
+     * 等待线程数-1
+     */
+    private void decWaiters() {
+        waiters++;
+    }
+    // ------------------------------------------ 改变状态 -------------------------------------
+
+    /**
+     * {@inheritDoc}
+     *
+     * @param mayInterruptIfRunning 该参数对该promise而言是无效的。
+     *                              对该promise而言，在它定义的抽象中，它只是获取结果的凭据，它并不真正执行任务，因此也不能真正取消任务。
+     *                              因此该参数对该promise而言是无效的。
+     *                              这里的取消并不是真正意义上的取消，它不能取消过程，只能取消结果。
+     * @return true if succeed
+     */
+    @Override
+    public final boolean cancel(boolean mayInterruptIfRunning) {
+        final Object result = resultHolder.get();
+        if (isCancelled0(result)) {
+            return true;
+        }
+        return isCancellable0(result) && completeCancellation();
+    }
+
+    /**
+     * 由取消进入完成状态
+     *
+     * @return 成功取消则返回true
+     */
+    private boolean completeCancellation() {
+        // 取消只能由初始状态(null)切换为完成状态
+        if (resultHolder.compareAndSet(null, new CauseHolder(new CancellationException()))) {
+            postComplete();
+            return true;
+        } else {
+            return false;
         }
     }
 
-    private static final class DefaultPromise2<V> implements Promise<V> {
+    private void postComplete() {
+        final boolean needNotifyListeners;
+
+        synchronized (this) {
+            notifyAllWaiters();
+
+            needNotifyListeners = needNotifyListeners();
+        }
+
+        if (needNotifyListeners) {
+            notifyListeners();
+        }
+    }
+
+    /**
+     * 通知所有的等待线程
+     */
+    private void notifyAllWaiters() {
+        if (waiters > 0) {
+            notifyAll();
+        }
+    }
+
+    /**
+     * 检查是否需要通知监听器。
+     * 该方法运行在锁下，这里是顺带检查一下，可以减少锁的获取次数。
+     * 这里最好不要直接通知，避免长时间的占用锁。
+     *
+     * @return 如果返回true，那么将会尝试调用{@link #notifyListeners()}
+     */
+    protected abstract boolean needNotifyListeners();
+
+    /**
+     * 通知所有的监听器。
+     * 此时尚未获得锁，如果需要的话，可自行获取锁。
+     */
+    protected abstract void notifyListeners();
+
+    /**
+     * 执行成功进入完成状态或执行失败进入完成状态
+     *
+     * @param value 要赋的值，一定不为null
+     * @return 如果赋值成功，则返回true，否则返回false。
+     */
+    private boolean completeSuccessOrFailure(@Nonnull Object value) {
+        // 正常完成可以由初始状态或不可取消状态进入完成状态
+        if (resultHolder.compareAndSet(null, value)
+                || resultHolder.compareAndSet(IncompleteFuture.UNCANCELLABLE, value)) {
+            postComplete();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    // ---------------------------------------- 其它 -----------------------------------
+
+    public static final class IncompletePromise<V> implements Promise<V> {
 
         private final IncompleteFuture<V> future;
 
-        public DefaultPromise2(IncompleteFuture<V> future) {
+        public IncompletePromise(IncompleteFuture<V> future) {
             this.future = future;
         }
 
@@ -511,7 +497,7 @@ public abstract class IncompleteFuture<V> extends AbstractListenableFuture<V> {
         @Override
         public final boolean trySuccess(V result) {
             // 当future关联的task成功，但是没有返回值时，使用SUCCESS代替
-            return completeSuccessOrFailure(result == null ? IncompleteFuture.SUCCESS : result);
+            return future.completeSuccessOrFailure(result == null ? IncompleteFuture.SUCCESS : result);
         }
 
         @Override
@@ -523,7 +509,7 @@ public abstract class IncompleteFuture<V> extends AbstractListenableFuture<V> {
 
         @Override
         public final boolean tryFailure(@Nonnull Throwable cause) {
-            return completeSuccessOrFailure(new IncompleteFuture.CauseHolder(cause));
+            return future.completeSuccessOrFailure(new IncompleteFuture.CauseHolder(cause));
         }
 
         @Override
@@ -536,22 +522,17 @@ public abstract class IncompleteFuture<V> extends AbstractListenableFuture<V> {
                 return result == IncompleteFuture.UNCANCELLABLE || !IncompleteFuture.isCancelled0(result);
             }
         }
+    }
 
-        /**
-         * 执行成功进入完成状态或执行失败进入完成状态
-         *
-         * @param value 要赋的值，一定不为null
-         * @return 如果赋值成功，则返回true，否则返回false。
-         */
-        private boolean completeSuccessOrFailure(@Nonnull Object value) {
-            // 正常完成可以由初始状态或不可取消状态进入完成状态
-            if (future.resultHolder.compareAndSet(null, value)
-                    || future.resultHolder.compareAndSet(IncompleteFuture.UNCANCELLABLE, value)) {
-                future.postComplete();
-                return true;
-            } else {
-                return false;
-            }
+    /**
+     * 异常holder，只有该类型表示失败。
+     */
+    private static class CauseHolder {
+
+        private final Throwable cause;
+
+        private CauseHolder(Throwable cause) {
+            this.cause = cause;
         }
     }
 }

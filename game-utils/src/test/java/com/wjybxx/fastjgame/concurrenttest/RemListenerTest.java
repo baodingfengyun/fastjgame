@@ -37,7 +37,7 @@ public class RemListenerTest {
         };
 
         // debug追踪
-        defaultPromise.addListener(futureListener);
+        defaultPromise.onComplete(futureListener);
 
         defaultPromise.removeListener(futureListener);
 

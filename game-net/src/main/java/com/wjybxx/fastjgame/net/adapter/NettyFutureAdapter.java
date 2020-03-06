@@ -132,13 +132,13 @@ public final class NettyFutureAdapter<V> extends AbstractListenableFuture<V> {
     }
 
     @Override
-    public ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener) {
+    public ListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
         addListener0(listener, executor);
         return this;
     }
 
     @Override
-    public ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public ListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         addListener0(listener, bindExecutor);
         return this;
     }

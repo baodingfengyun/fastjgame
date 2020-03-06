@@ -39,10 +39,10 @@ public interface RpcPromise<V> extends RpcFuture<V>, TimeoutPromise<V> {
     RpcPromise<V> awaitUninterruptibly();
 
     @Override
-    RpcPromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+    RpcPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
     @Override
-    RpcPromise<V> addListener(@Nonnull FutureListener<? super V> listener);
+    RpcPromise<V> onComplete(@Nonnull FutureListener<? super V> listener);
 
     @Override
     RpcPromise<V> removeListener(@Nonnull FutureListener<? super V> listener);

@@ -156,14 +156,14 @@ public class DefaultTimeoutPromise<V> extends DefaultPromise<V> implements Timeo
     // ---------------------------------------------- 流式语法 ------------------------------------------------
 
     @Override
-    public TimeoutPromise<V> addListener(@Nonnull FutureListener<? super V> listener) {
-        super.addListener(listener);
+    public TimeoutPromise<V> onComplete(@Nonnull FutureListener<? super V> listener) {
+        super.onComplete(listener);
         return this;
     }
 
     @Override
-    public TimeoutPromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        super.addListener(listener, bindExecutor);
+    public TimeoutPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        super.onComplete(listener, bindExecutor);
         return this;
     }
 

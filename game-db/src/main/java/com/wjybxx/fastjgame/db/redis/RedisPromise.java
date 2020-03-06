@@ -39,10 +39,10 @@ public interface RedisPromise<V> extends RedisFuture<V>, Promise<V> {
     RedisPromise<V> awaitUninterruptibly();
 
     @Override
-    RedisPromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+    RedisPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
     @Override
-    RedisPromise<V> addListener(@Nonnull FutureListener<? super V> listener);
+    RedisPromise<V> onComplete(@Nonnull FutureListener<? super V> listener);
 
     @Override
     RedisPromise<V> removeListener(@Nonnull FutureListener<? super V> listener);

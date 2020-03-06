@@ -50,10 +50,10 @@ public interface TimeoutPromise<V> extends TimeoutFuture<V>, Promise<V> {
     TimeoutPromise<V> awaitUninterruptibly();
 
     @Override
-    TimeoutPromise<V> addListener(@Nonnull FutureListener<? super V> listener);
+    TimeoutPromise<V> onComplete(@Nonnull FutureListener<? super V> listener);
 
     @Override
-    TimeoutPromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+    TimeoutPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
     @Override
     TimeoutPromise<V> removeListener(@Nonnull FutureListener<? super V> listener);

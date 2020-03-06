@@ -42,10 +42,10 @@ public interface RedisFuture<V> extends ListenableFuture<V> {
     ListenableFuture<V> awaitUninterruptibly();
 
     @Override
-    RedisFuture<V> addListener(@Nonnull FutureListener<? super V> listener);
+    RedisFuture<V> onComplete(@Nonnull FutureListener<? super V> listener);
 
     @Override
-    RedisFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+    RedisFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
     @Override
     RedisFuture<V> removeListener(@Nonnull FutureListener<? super V> listener);

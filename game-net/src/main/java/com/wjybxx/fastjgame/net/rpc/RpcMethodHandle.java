@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.net.rpc;
 
 import com.wjybxx.fastjgame.utils.async.FlushableMethodHandle;
-import com.wjybxx.fastjgame.utils.async.TimeoutMethodListenable;
+import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -86,7 +86,7 @@ import java.util.concurrent.CompletionException;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public interface RpcMethodHandle<V> extends FlushableMethodHandle<RpcClient, RpcFutureResult<V>, V> {
+public interface RpcMethodHandle<V> extends FlushableMethodHandle<RpcClient, V> {
 
     /**
      * 获取该方法包含的调用信息，可用于二次封装。
@@ -125,10 +125,10 @@ public interface RpcMethodHandle<V> extends FlushableMethodHandle<RpcClient, Rpc
     void broadcast(@Nonnull Iterable<RpcClient> clientGroup);
 
     @Override
-    TimeoutMethodListenable<RpcFutureResult<V>, V> call(@Nonnull RpcClient client);
+    ListenableFuture<V> call(@Nonnull RpcClient client);
 
     @Override
-    TimeoutMethodListenable<RpcFutureResult<V>, V> callAndFlush(@Nonnull RpcClient client);
+    ListenableFuture<V> callAndFlush(@Nonnull RpcClient client);
 
     V syncCall(@Nonnull RpcClient client) throws CompletionException;
 

@@ -16,8 +16,7 @@
 
 package com.wjybxx.fastjgame.net.rpc;
 
-import com.wjybxx.fastjgame.utils.async.DefaultTimeoutMethodListenable;
-import com.wjybxx.fastjgame.utils.async.TimeoutMethodListenable;
+import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -80,17 +79,13 @@ public class DefaultRpcMethodHandle<V> implements RpcMethodHandle<V> {
     }
 
     @Override
-    public final TimeoutMethodListenable<RpcFutureResult<V>, V> call(@Nonnull RpcClient client) {
-        final TimeoutMethodListenable<RpcFutureResult<V>, V> listenable = new DefaultTimeoutMethodListenable<>();
-        client.<V>call(this.rpcMethodSpec).addListener(listenable);
-        return listenable;
+    public final ListenableFuture<V> call(@Nonnull RpcClient client) {
+        return client.call(this.rpcMethodSpec);
     }
 
     @Override
-    public TimeoutMethodListenable<RpcFutureResult<V>, V> callAndFlush(@Nonnull RpcClient client) {
-        final TimeoutMethodListenable<RpcFutureResult<V>, V> listenable = new DefaultTimeoutMethodListenable<>();
-        client.<V>callAndFlush(rpcMethodSpec).addListener(listenable);
-        return listenable;
+    public ListenableFuture<V> callAndFlush(@Nonnull RpcClient client) {
+        return client.callAndFlush(rpcMethodSpec);
     }
 
     @Override

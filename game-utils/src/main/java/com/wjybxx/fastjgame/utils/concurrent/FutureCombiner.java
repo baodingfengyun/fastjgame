@@ -102,7 +102,7 @@ public class FutureCombiner {
         checkAddFutureAllowed();
 
         ++expectedCount;
-        future.addListener(childrenListener, appEventLoop);
+        future.onComplete(childrenListener, appEventLoop);
         return this;
     }
 
@@ -122,7 +122,7 @@ public class FutureCombiner {
      * @param aggregatePromise 用于监听前面的所有future的完成事件
      * @return 返回给定的参数，方便流式语法添加回调等
      */
-    public Promise<Void> finish(@Nonnull Promise<Void> aggregatePromise) {
+    public ListenableFuture<Void> finish(@Nonnull Promise<Void> aggregatePromise) {
         Objects.requireNonNull(aggregatePromise, "aggregatePromise");
         checkInEventLoop("Finish must be called from EventLoop thread");
         checkFinishAllowed();
@@ -131,7 +131,7 @@ public class FutureCombiner {
         if (doneCount == expectedCount) {
             tryPromise();
         }
-        return aggregatePromise;
+        return aggregatePromise.getFuture();
     }
 
     private void checkFinishAllowed() {
@@ -143,7 +143,7 @@ public class FutureCombiner {
     private class ChildListener implements FutureListener<Object> {
 
         @Override
-        public void onComplete(ListenableFuture<Object> future) throws Exception {
+        public void onComplete(NonBlockingListenableFuture<Object> future) throws Exception {
             assert appEventLoop.inEventLoop();
 
             if (!future.isSuccess()) {

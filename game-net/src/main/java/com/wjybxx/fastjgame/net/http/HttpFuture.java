@@ -42,10 +42,10 @@ public interface HttpFuture<V> extends TimeoutFuture<V> {
     HttpFuture<V> awaitUninterruptibly();
 
     @Override
-    HttpFuture<V> addListener(@Nonnull FutureListener<? super V> listener);
+    HttpFuture<V> onComplete(@Nonnull FutureListener<? super V> listener);
 
     @Override
-    HttpFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+    HttpFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
     @Override
     HttpFuture<V> removeListener(@Nonnull FutureListener<? super V> listener);

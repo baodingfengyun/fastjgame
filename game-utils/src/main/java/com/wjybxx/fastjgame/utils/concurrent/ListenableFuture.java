@@ -17,14 +17,13 @@
 package com.wjybxx.fastjgame.utils.concurrent;
 
 
-import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
-
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.concurrent.*;
 
 /**
  * 可监听的future。
+ * 它除了提供非阻塞的api以外，还继承了JDK的{@link Future}，出现了阻塞式api。
+ *
  * <p>
  * Q: 为什么使用非受检{@link CompletionException}异常代替了{@link ExecutionException}？
  * A: <NOTE>非受检异常更好，受检异常并不能提升软件的健壮性，而且受检异常对封装破坏极大，用非受检异常代替受检异常</NOTE>，
@@ -36,43 +35,9 @@ import java.util.concurrent.*;
  * date - 2019/7/14
  * github - https://github.com/hl845740757
  */
-public interface ListenableFuture<V> extends Future<V> {
+public interface ListenableFuture<V> extends Future<V>, NonBlockingListenableFuture<V> {
 
-    // ----------------------------------------  查询 ----------------------------------------
-
-    /**
-     * 查询任务是否已完成。
-     * 任务可能由于 正常完成，出现异常，或 被取消 进入完成状态 -- 这些情况都会返回true，他们都表示完成状态。
-     *
-     * @return 任务已进入完成状态则返回true。
-     */
-    @Override
-    boolean isDone();
-
-    /**
-     * 查询future关联的操作是否顺利完成了。
-     *
-     * @return 当且仅当该future对应的task顺利完成时返回true。
-     */
-    boolean isSuccess();
-
-    /**
-     * 查询任务是否被取消。
-     *
-     * @return 当且仅当该future关联的task由于取消进入完成状态时返回true。
-     */
-    @Override
-    boolean isCancelled();
-
-    /**
-     * 查询future关联的任务是否可以被取消。
-     * <p>
-     *
-     * @return 当且仅当future关联的任务可以通过{@link #cancel(boolean)}被取消时返回true。
-     */
-    boolean isCancellable();
-
-    // ------------------------------------------ 操作 -------------------------------------------
+    // ------------------------------------- 阻塞式获取操作结果 ---------------------------------------
 
     /**
      * 获取task的结果。
@@ -126,42 +91,7 @@ public interface ListenableFuture<V> extends Future<V> {
      */
     V join() throws CompletionException;
 
-    /**
-     * 尝试非阻塞的获取当前结果，当且仅当任务正常完成时返回期望的结果，否则返回null。即：
-     * 1. 如果future关联的task还未完成 {@link #isDone() false}，则返回null。
-     * 2. 如果任务被取消或失败，则返回null。
-     * <p>
-     * 注意：
-     * 如果future关联的task没有返回值(操作完成返回null)，此时不能根据返回值做任何判断。对于这种情况，
-     * 你可以使用{@link #isSuccess()},作为更好的选择。
-     *
-     * @return task执行结果
-     */
-    @Nullable
-    V getNow();
-
-    /**
-     * 非阻塞获取导致任务失败的原因。
-     * 当future关联的任务被取消或由于异常进入完成状态后，该方法将返回操作失败的原因。
-     *
-     * @return 失败的原因。原始原因，而不是被包装后的{@link CompletionException}
-     * 如果future关联的task已正常完成，则返回null。
-     * 如果future关联的task还未进入完成状态，则返回null。
-     */
-    @Nullable
-    Throwable cause();
-
-    /**
-     * {@inheritDoc}
-     * <p>
-     * 如果取消成功，会使得Future进入完成状态，并且{@link #cause()}将返回{@link CancellationException}。
-     * <p>
-     * If the cancellation was successful it will fail the future with an {@link CancellationException}.
-     */
-    @Override
-    boolean cancel(boolean mayInterruptIfRunning);
-
-    // -------------------------------- 等待进入完成状态  --------------------------------------
+    // -------------------------------- 阻塞式等待future进入完成状态  --------------------------------------
 
     /**
      * 等待future进入完成状态。
@@ -201,58 +131,4 @@ public interface ListenableFuture<V> extends Future<V> {
      */
     boolean awaitUninterruptibly(long timeout, @Nonnull TimeUnit unit);
 
-    // ------------------------------------- 监听 --------------------------------------
-
-    /**
-     * 添加一个监听者到当前Future。传入的特定的Listener将会在Future计算完成时{@link #isDone() true}被通知。
-     * 如果当前Future已经计算完成，那么将立即被通知。
-     * 注意：
-     * 1. 该监听器将在默认的事件分发线程中执行。当你的代码支持并发调用的时候，那么使用该方法注册监听器即可。
-     * 2. 同一个listener反复添加会共存。
-     *
-     * @param listener 要添加的监听器。
-     * @return this
-     */
-    ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener);
-
-    /**
-     * 添加一个监听者到当前Future。传入的特定的Listener将会在Future计算完成时{@link #isDone() true}被通知。
-     * 如果当前Future已经计算完成，那么将立即被通知。
-     * 注意：同一个listener反复添加会共存。
-     * <p>
-     * 当你的执行环境是一个executor的时候，可以直接提交到你所在的线程，从而消除事件处理时的同步逻辑。
-     * eg:
-     * <pre>
-     * {@code
-     * 		// this.executor代表当前线程
-     * 		addListener(listener, this.bindExecutor)
-     * }
-     * </pre>
-     *
-     * @param listener     要添加的监听器
-     * @param bindExecutor 监听器的最终执行线程
-     * @return this
-     */
-    ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
-
-    /**
-     * 移除监听器中第一个与指定Listener匹配的监听器，如果该Listener没有进行注册，那么什么也不会做。
-     *
-     * @param listener 要移除的监听器
-     * @return this
-     */
-    ListenableFuture<V> removeListener(@Nonnull FutureListener<? super V> listener);
-
-    // ------------------------------------- 用于支持占位的voidFuture --------------------------------------
-
-    /**
-     * 如果该方法返回true，表示该{@link ListenableFuture}仅仅用于占位。
-     * 任何<b>阻塞式调用</b>和<b>添加监听器</b>都将抛出异常。
-     * <p>
-     * Q: 它的主要目的？
-     * A: 减少开销。其实任何使用{@link VoidFuture}的地方，都可以使用正常的future，
-     * 只是会有额外的开销。在某些场景使用{@link VoidFuture}将节省很多开销。
-     */
-    @UnstableApi
-    boolean isVoid();
 }

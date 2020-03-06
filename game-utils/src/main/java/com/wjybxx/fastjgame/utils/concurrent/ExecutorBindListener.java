@@ -36,7 +36,7 @@ public class ExecutorBindListener<V> implements FutureListener<V> {
     }
 
     @Override
-    public void onComplete(ListenableFuture<V> future) throws Exception {
+    public void onComplete(NonBlockingListenableFuture<V> future) throws Exception {
         bindExecutor.execute(() -> {
             try {
                 listener.onComplete(future);

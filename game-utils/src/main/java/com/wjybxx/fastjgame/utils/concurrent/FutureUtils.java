@@ -17,46 +17,27 @@
 package com.wjybxx.fastjgame.utils.concurrent;
 
 import javax.annotation.Nonnull;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletionException;
 
 /**
  * @author wjybxx
  * @version 1.0
- * date - 2020/3/4
+ * date - 2020/3/6
  */
+public class FutureUtils {
 
-public class VoidPromise extends VoidFuture implements Promise<Object> {
-
-    @Nonnull
-    @Override
-    public ListenableFuture<Object> getFuture() {
-        return this;
+    /**
+     * 重新抛出失败异常
+     *
+     * @param cause 任务失败的原因
+     * @throws CancellationException 如果任务被取消，则抛出该异常
+     * @throws CompletionException   其它原因导致失败
+     */
+    public static <T> T rethrowCause(@Nonnull Throwable cause) throws CancellationException, CompletionException {
+        if (cause instanceof CancellationException) {
+            throw (CancellationException) cause;
+        }
+        throw new CompletionException(cause);
     }
-
-    // ------------------------------------- 赋值操作不造成任何影响 -----------------------------
-
-    @Override
-    public void setSuccess(Object result) {
-
-    }
-
-    @Override
-    public boolean trySuccess(Object result) {
-        return false;
-    }
-
-    @Override
-    public void setFailure(@Nonnull Throwable cause) {
-
-    }
-
-    @Override
-    public boolean tryFailure(@Nonnull Throwable cause) {
-        return false;
-    }
-
-    @Override
-    public boolean setUncancellable() {
-        return true;
-    }
-
 }

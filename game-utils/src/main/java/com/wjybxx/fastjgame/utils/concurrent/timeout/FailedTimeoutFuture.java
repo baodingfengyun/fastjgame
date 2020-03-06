@@ -54,14 +54,14 @@ public class FailedTimeoutFuture<V> extends FailedFuture<V> implements TimeoutFu
     }
 
     @Override
-    public TimeoutFuture<V> addListener(@Nonnull FutureListener<? super V> listener) {
-        super.addListener(listener);
+    public TimeoutFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
+        super.onComplete(listener);
         return this;
     }
 
     @Override
-    public TimeoutFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        super.addListener(listener, bindExecutor);
+    public TimeoutFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        super.onComplete(listener, bindExecutor);
         return this;
     }
 

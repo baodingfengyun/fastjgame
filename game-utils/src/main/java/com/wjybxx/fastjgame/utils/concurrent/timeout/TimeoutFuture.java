@@ -47,10 +47,10 @@ public interface TimeoutFuture<V> extends ListenableFuture<V> {
     TimeoutFuture<V> awaitUninterruptibly();
 
     @Override
-    TimeoutFuture<V> addListener(@Nonnull FutureListener<? super V> listener);
+    TimeoutFuture<V> onComplete(@Nonnull FutureListener<? super V> listener);
 
     @Override
-    TimeoutFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+    TimeoutFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
     @Override
     TimeoutFuture<V> removeListener(@Nonnull FutureListener<? super V> listener);

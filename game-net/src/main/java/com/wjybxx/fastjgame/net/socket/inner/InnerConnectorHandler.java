@@ -65,7 +65,7 @@ public class InnerConnectorHandler extends SessionDuplexHandlerAdapter {
 
         // 监听操作完成
         new NettyFutureAdapter<>(ctx.netEventLoop(), channelFuture)
-                .addListener(future -> onConnectDone(ctx));
+                .onComplete(future -> onConnectDone(ctx));
     }
 
     private void onConnectDone(SessionHandlerContext ctx) {

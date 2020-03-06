@@ -60,14 +60,14 @@ public class DefaultHttpFuture<V> extends CompletableFutureAdapter<V> implements
     }
 
     @Override
-    public HttpFuture<V> addListener(@Nonnull FutureListener<? super V> listener) {
-        super.addListener(listener);
+    public HttpFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
+        super.onComplete(listener);
         return this;
     }
 
     @Override
-    public HttpFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        super.addListener(listener, bindExecutor);
+    public HttpFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        super.onComplete(listener, bindExecutor);
         return this;
     }
 

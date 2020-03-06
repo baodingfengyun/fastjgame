@@ -42,7 +42,7 @@ public abstract class AbstractFixedEventLoopGroup extends AbstractEventLoopGroup
     /**
      * 监听所有子节点关闭的Listener，当所有的子节点关闭时，会收到关闭成功事件
      */
-    private final Promise<?> terminationFuture = new DefaultPromise(GlobalEventLoop.INSTANCE);
+    private final Promise<?> terminationPromise = new DefaultPromise(GlobalEventLoop.INSTANCE);
     /**
      * 子类构造时传入的context，由子类自己决定如何解析，父类不做处理。
      */
@@ -107,7 +107,7 @@ public abstract class AbstractFixedEventLoopGroup extends AbstractEventLoopGroup
         // 在所有的子节点上监听 它们的关闭事件，当所有的child关闭时，可以获得通知
         final FutureListener<Object> terminationListener = new ChildrenTerminateListener();
         for (EventLoop e : children) {
-            e.terminationFuture().addListener(terminationListener);
+            e.terminationFuture().onComplete(terminationListener);
         }
 
         // 将子节点数组封装为不可变集合，方便迭代(不允许外部改变持有的线程)
@@ -137,7 +137,7 @@ public abstract class AbstractFixedEventLoopGroup extends AbstractEventLoopGroup
 
     @Override
     public ListenableFuture<?> terminationFuture() {
-        return terminationFuture;
+        return terminationPromise.getFuture();
     }
 
     @Override
@@ -157,7 +157,7 @@ public abstract class AbstractFixedEventLoopGroup extends AbstractEventLoopGroup
 
     @Override
     public boolean awaitTermination(long timeout, @Nonnull TimeUnit unit) throws InterruptedException {
-        return terminationFuture.await(timeout, unit);
+        return terminationFuture().await(timeout, unit);
     }
 
     @Override
@@ -224,14 +224,14 @@ public abstract class AbstractFixedEventLoopGroup extends AbstractEventLoopGroup
         }
 
         @Override
-        public void onComplete(ListenableFuture<Object> future) throws Exception {
+        public void onComplete(NonBlockingListenableFuture<Object> future) throws Exception {
             if (terminatedChildren.incrementAndGet() == children.length) {
                 try {
                     clean();
                 } catch (Throwable e) {
                     logger.error("clean caught exception!", e);
                 } finally {
-                    terminationFuture.setSuccess(null);
+                    terminationPromise.setSuccess(null);
                 }
             }
         }

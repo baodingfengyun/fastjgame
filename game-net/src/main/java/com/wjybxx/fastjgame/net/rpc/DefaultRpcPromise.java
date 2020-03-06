@@ -108,14 +108,14 @@ public class DefaultRpcPromise<V> extends DefaultTimeoutPromise<V> implements Rp
     }
 
     @Override
-    public RpcPromise<V> addListener(@Nonnull FutureListener<? super V> listener) {
-        super.addListener(listener);
+    public RpcPromise<V> onComplete(@Nonnull FutureListener<? super V> listener) {
+        super.onComplete(listener);
         return this;
     }
 
     @Override
-    public RpcPromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        super.addListener(listener, bindExecutor);
+    public RpcPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        super.onComplete(listener, bindExecutor);
         return this;
     }
 

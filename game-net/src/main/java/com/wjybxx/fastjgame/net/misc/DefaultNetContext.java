@@ -98,7 +98,7 @@ public class DefaultNetContext implements NetContext {
 
         final Promise<Session> connectPromise = netEventLoop.newPromise();
         netEventLoop.post(new ConnectRemoteRequest(sessionId, remoteGuid, remoteAddress, config, initializer, this, connectPromise));
-        return connectPromise;
+        return connectPromise.getFuture();
     }
 
     @Override
@@ -115,7 +115,7 @@ public class DefaultNetContext implements NetContext {
 
         final Promise<Session> connectPromise = netEventLoop.newPromise();
         netEventLoop.post(new ConnectRemoteRequest(sessionId, remoteGuid, remoteAddress, config, initializer, this, connectPromise));
-        return connectPromise;
+        return connectPromise.getFuture();
     }
 
     // ----------------------------------------------- 本地调用支持 --------------------------------------------
@@ -134,7 +134,7 @@ public class DefaultNetContext implements NetContext {
 
         final Promise<Session> connectPromise = netEventLoop.newPromise();
         netEventLoop.post(new ConnectLocalRequest(sessionId, remoteGuid, (DefaultLocalPort) localPort, config, this, connectPromise));
-        return connectPromise;
+        return connectPromise.getFuture();
     }
 
     // ------------------------------------------------- http 实现 --------------------------------------------

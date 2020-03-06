@@ -217,7 +217,7 @@ class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLoop {
 
         if (appEventLoopSet.add(appEventLoop)) {
             // 监听用户线程关闭
-            appEventLoop.terminationFuture().addListener(future -> {
+            appEventLoop.terminationFuture().onComplete(future -> {
                 if (!isShuttingDown()) {
                     post(new EventLoopTerminalEvent(appEventLoop));
                 }

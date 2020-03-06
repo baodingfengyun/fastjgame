@@ -54,18 +54,18 @@ public class DefaultEventLoopTest {
             return "500";
         });
 
-        future3.addListener((listenableFuture) -> {
+        future3.onComplete((listenableFuture) -> {
             System.out.println("1 onComplete, thread " + Thread.currentThread().getName() + ",result = " + listenableFuture.getNow());
         }, GlobalEventLoop.INSTANCE);
 
-        future3.addListener((listenableFuture) -> {
+        future3.onComplete((listenableFuture) -> {
             System.out.println("2 onComplete, thread " + Thread.currentThread().getName() + ",result = " + listenableFuture.getNow());
         });
 
-        future3.addListener((listenableFuture) -> {
+        future3.onComplete((listenableFuture) -> {
             System.out.println("3 onComplete, thread " + Thread.currentThread().getName() + ",result = " + listenableFuture.getNow());
             // 已完成的时候添加监听
-            future3.addListener(listenableFuture2 -> {
+            future3.onComplete(listenableFuture2 -> {
                 System.out.println("4 onComplete, thread " + Thread.currentThread().getName() + ",result = " + listenableFuture2.getNow());
             }, GlobalEventLoop.INSTANCE);
         });

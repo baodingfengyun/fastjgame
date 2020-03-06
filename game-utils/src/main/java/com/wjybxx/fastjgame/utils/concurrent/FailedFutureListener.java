@@ -14,22 +14,24 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.http;
-
-import com.wjybxx.fastjgame.utils.concurrent.timeout.TimeoutFutureResult;
+package com.wjybxx.fastjgame.utils.concurrent;
 
 /**
+ * 当future关联的操作执行失败时，该监听器才会执行。
+ *
  * @author wjybxx
  * @version 1.0
- * date - 2020/1/10
- * github - https://github.com/hl845740757
+ * date - 2020/3/6
  */
-public interface HttpFutureResult<V> extends TimeoutFutureResult<V> {
+@FunctionalInterface
+public interface FailedFutureListener<V> extends FutureListener<V> {
 
-    /**
-     * @see HttpFuture#isTimeout()
-     */
     @Override
-    boolean isTimeout();
+    default void onComplete(NonBlockingListenableFuture<V> future) throws Exception {
+        if (!future.isSuccess()) {
+            onFailure(future);
+        }
+    }
 
+    void onFailure(NonBlockingListenableFuture<V> future);
 }

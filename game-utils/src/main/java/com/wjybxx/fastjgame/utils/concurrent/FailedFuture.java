@@ -49,12 +49,12 @@ public class FailedFuture<V> extends CompleteFuture<V> {
 
     @Override
     public final V get() throws InterruptedException, CompletionException {
-        return AbstractListenableFuture.rethrowCause(cause);
+        return FutureUtils.rethrowCause(cause);
     }
 
     @Override
     public final V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, CompletionException, TimeoutException {
-        return AbstractListenableFuture.rethrowCause(cause);
+        return FutureUtils.rethrowCause(cause);
     }
 
     @Nullable
@@ -65,7 +65,7 @@ public class FailedFuture<V> extends CompleteFuture<V> {
 
     @Override
     public final V join() throws CompletionException {
-        return AbstractListenableFuture.rethrowCause(cause);
+        return FutureUtils.rethrowCause(cause);
     }
 
     @Nonnull

@@ -42,20 +42,6 @@ public abstract class AbstractListenableFuture<V> implements ListenableFuture<V>
         }
     }
 
-    /**
-     * 重新抛出失败异常
-     *
-     * @param cause 任务失败的原因
-     * @throws CancellationException 如果任务被取消，则抛出该异常
-     * @throws CompletionException   其它原因导致失败
-     */
-    protected static <T> T rethrowCause(@Nonnull Throwable cause) throws CancellationException, CompletionException {
-        if (cause instanceof CancellationException) {
-            throw (CancellationException) cause;
-        }
-        throw new CompletionException(cause);
-    }
-
     @Override
     public final boolean isVoid() {
         return false;

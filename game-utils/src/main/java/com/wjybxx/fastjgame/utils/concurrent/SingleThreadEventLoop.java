@@ -99,7 +99,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     /**
      * 线程终止future
      */
-    private final Promise<?> terminationFuture = new DefaultPromise<>(GlobalEventLoop.INSTANCE);
+    private final Promise<?> terminationPromise = new DefaultPromise<>(GlobalEventLoop.INSTANCE);
 
     /**
      * @param parent                   EventLoop所属的容器，nullable
@@ -175,12 +175,12 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 
     @Override
     public final boolean awaitTermination(long timeout, @Nonnull TimeUnit unit) throws InterruptedException {
-        return terminationFuture.await(timeout, unit);
+        return terminationFuture().await(timeout, unit);
     }
 
     @Override
     public final ListenableFuture<?> terminationFuture() {
-        return terminationFuture;
+        return terminationPromise.getFuture();
     }
 
     @Override
@@ -226,7 +226,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     private void ensureThreadTerminable(int oldState) {
         if (oldState == ST_NOT_STARTED) {
             stateHolder.set(ST_TERMINATED);
-            terminationFuture.setSuccess(null);
+            terminationPromise.setSuccess(null);
         } else if (oldState == ST_STARTED) {
             if (!inEventLoop()) {
                 // 不确定是活跃状态
@@ -497,7 +497,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
                     } finally {
                         // 设置为终止状态
                         stateHolder.set(ST_TERMINATED);
-                        terminationFuture.setSuccess(null);
+                        terminationPromise.setSuccess(null);
                     }
                 }
             }

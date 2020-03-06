@@ -97,13 +97,13 @@ public abstract class CompleteFuture<V> extends AbstractListenableFuture<V> {
     }
 
     @Override
-    public ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener) {
+    public ListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
         notifyListener(listener);
         return this;
     }
 
     @Override
-    public ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public ListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         notifyListener(new ExecutorBindListener<>(listener, bindExecutor));
         return this;
     }
