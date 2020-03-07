@@ -44,12 +44,6 @@ public class VoidFuture implements ListenableFuture<Object> {
         return true;
     }
 
-    @Nonnull
-    @Override
-    public EventLoop defaultExecutor() {
-        return eventLoop;
-    }
-
     // --------------------------------------- 任何状态查询都立即返回 ----------------------------------------
 
     @Override
@@ -158,7 +152,19 @@ public class VoidFuture implements ListenableFuture<Object> {
     }
 
     @Override
+    public ListenableFuture<Object> onSuccess(@Nonnull SucceededFutureListener<? super Object> listener, @Nonnull Executor bindExecutor) {
+        fail();
+        return this;
+    }
+
+    @Override
     public ListenableFuture<Object> onFailure(@Nonnull FailedFutureListener<? super Object> listener) {
+        fail();
+        return this;
+    }
+
+    @Override
+    public ListenableFuture<Object> onFailure(@Nonnull FailedFutureListener<? super Object> listener, @Nonnull Executor bindExecutor) {
         fail();
         return this;
     }

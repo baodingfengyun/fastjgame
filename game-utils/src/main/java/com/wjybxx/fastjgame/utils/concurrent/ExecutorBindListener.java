@@ -36,13 +36,17 @@ public class ExecutorBindListener<V> implements FutureListener<V> {
     }
 
     @Override
-    public void onComplete(NonBlockingFuture<V> future) throws Exception {
-        bindExecutor.execute(() -> {
-            try {
-                listener.onComplete(future);
-            } catch (Exception e) {
-                ExceptionUtils.rethrow(e);
-            }
-        });
+    public void onComplete(NListenableFuture<V> future) throws Exception {
+        if (bindExecutor instanceof EventLoop && ((EventLoop) bindExecutor).inEventLoop()) {
+            listener.onComplete(future);
+        } else {
+            bindExecutor.execute(() -> {
+                try {
+                    listener.onComplete(future);
+                } catch (Exception e) {
+                    ExceptionUtils.rethrow(e);
+                }
+            });
+        }
     }
 }

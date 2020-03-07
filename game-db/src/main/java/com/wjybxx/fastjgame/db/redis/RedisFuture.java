@@ -16,8 +16,10 @@
 
 package com.wjybxx.fastjgame.db.redis;
 
+import com.wjybxx.fastjgame.utils.concurrent.FailedFutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.utils.concurrent.SucceededFutureListener;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.Executor;
@@ -35,11 +37,12 @@ import java.util.concurrent.Executor;
  */
 public interface RedisFuture<V> extends ListenableFuture<V> {
 
+    // 仅仅用于语法支持
     @Override
-    ListenableFuture<V> await() throws InterruptedException;
+    RedisFuture<V> await() throws InterruptedException;
 
     @Override
-    ListenableFuture<V> awaitUninterruptibly();
+    RedisFuture<V> awaitUninterruptibly();
 
     @Override
     RedisFuture<V> onComplete(@Nonnull FutureListener<? super V> listener);
@@ -47,4 +50,15 @@ public interface RedisFuture<V> extends ListenableFuture<V> {
     @Override
     RedisFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
+    @Override
+    RedisFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener);
+
+    @Override
+    RedisFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+
+    @Override
+    RedisFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener);
+
+    @Override
+    RedisFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 }

@@ -61,17 +61,19 @@ public class FutureCombinerTest {
     }
 
     private static void doCombine(ListenableFuture<String> aFuture, ListenableFuture<String> bFuture, DefaultEventLoop appEventLoop) {
+        final Promise<Void> aggregatePromise = appEventLoop.newPromise();
         new FutureCombiner(appEventLoop)
                 .add(aFuture)
                 .add(bFuture)
-                .finish(appEventLoop.newPromise())
-                .onComplete(future -> {
-                    System.out.println("Callback Combine, Thread : " + Thread.currentThread().getName());
-                    System.out.println("result " + getResultAsStringSafely(future));
-                });
+                .finish(aggregatePromise);
+
+        aggregatePromise.getFuture().onComplete(future -> {
+            System.out.println("Callback Combine, Thread : " + Thread.currentThread().getName());
+            System.out.println("result " + getResultAsStringSafely(future));
+        });
     }
 
-    private static String getResultAsStringSafely(NonBlockingFuture<?> future) {
+    private static String getResultAsStringSafely(NListenableFuture<?> future) {
         if (future.isSuccess()) {
             return String.valueOf(future.getNow());
         } else {

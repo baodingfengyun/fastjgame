@@ -17,11 +17,10 @@
 package com.wjybxx.fastjgame.utils.concurrent;
 
 import javax.annotation.Nonnull;
+import java.util.concurrent.Executor;
 
 /**
  * promise用于为关联的{@link ListenableFuture}赋值结果。
- * --
- * 新版本的promise与future的关系改为组合关系，旧版本中的继承关系实在是太多坑，过多参考了netty的设计，把坑的也继承过来了。
  *
  * @param <V>
  * @author wjybxx
@@ -29,10 +28,30 @@ import javax.annotation.Nonnull;
  * date - 2019/7/14
  * github - https://github.com/hl845740757
  */
-public interface Promise<V> extends IPromise<V> {
+public interface Promise<V> extends NPromise<V>, ListenableFuture<V> {
 
-    @Nonnull
+    // 仅用于语法支持
     @Override
-    ListenableFuture<V> getFuture();
+    Promise<V> onComplete(@Nonnull FutureListener<? super V> listener);
 
+    @Override
+    Promise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+
+    @Override
+    Promise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener);
+
+    @Override
+    Promise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+
+    @Override
+    Promise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener);
+
+    @Override
+    Promise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+
+    @Override
+    Promise<V> await() throws InterruptedException;
+
+    @Override
+    Promise<V> awaitUninterruptibly();
 }

@@ -27,6 +27,9 @@ import java.util.concurrent.Executor;
 /**
  * 非阻塞的future。
  * 它不提供任何的阻塞式接口，只提供异步监听和非阻塞获取结果的api。
+ * <h3>命名困难</h3>
+ * 主要由于jdk的future的原因，jdk的future一开始就提供了阻塞式的api。
+ * 这里的N可以参考NIO的N，可以读作 “new” 或者 “non blocking”。
  *
  * <h3>监听器执行时序</h3>
  * 实现类必须提供最小保证：对于执行环境相同的监听器，必须按照添加顺序执行。即：
@@ -37,7 +40,7 @@ import java.util.concurrent.Executor;
  * @version 1.0
  * date - 2020/3/6
  */
-public interface NonBlockingFuture<V> {
+public interface NListenableFuture<V> {
 
     /**
      * 查询任务是否已完成。
@@ -115,23 +118,14 @@ public interface NonBlockingFuture<V> {
     // ------------------------------------- 监听 --------------------------------------
 
     /**
-     * 所有未指定{@link Executor}的监听器，都将在该{@link EventLoop}下执行。
-     * EventLoop是单线程的，因而能保证执行顺序。
-     */
-    @Nonnull
-    EventLoop defaultExecutor();
-
-    /**
      * 添加一个监听者到当前Future。传入的特定的Listener将会在Future计算完成时{@link #isDone() true}被通知。
      * 如果当前Future已经计算完成，那么将立即被通知。
-     * 注意：
-     * 1. 该监听器将在默认的事件分发线程中执行。当你的代码支持并发调用的时候，那么使用该方法注册监听器即可。
-     * 2. 同一个listener反复添加会共存。
+     * 注意：如实现类无特殊说明，该监听器将则可能并发的执行。当你的代码支持并发调用的时候，那么使用该方法注册监听器即可。
      *
      * @param listener 要添加的监听器。
      * @return this
      */
-    NonBlockingFuture<V> onComplete(@Nonnull FutureListener<? super V> listener);
+    NListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener);
 
     /**
      * 添加一个监听者到当前Future。传入的特定的Listener将会在Future计算完成时{@link #isDone() true}被通知。
@@ -151,17 +145,25 @@ public interface NonBlockingFuture<V> {
      * @param bindExecutor 监听器的最终执行线程
      * @return this
      */
-    NonBlockingFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+    NListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
-    default NonBlockingFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
-        onComplete(listener);
-        return this;
-    }
+    /**
+     * 添加一个监听器，该监听器只有在成功的时候执行
+     *
+     * @see #onComplete(FutureListener)
+     */
+    NListenableFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener);
 
-    default NonBlockingFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
-        onComplete(listener);
-        return this;
-    }
+    NListenableFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+
+    /**
+     * 添加一个监听器，该监听器只有在失败的时候执行
+     *
+     * @see #onComplete(FutureListener)
+     */
+    NListenableFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener);
+
+    NListenableFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
     // ------------------------------------- 用于支持占位的voidFuture --------------------------------------
 

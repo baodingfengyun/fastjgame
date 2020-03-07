@@ -17,8 +17,8 @@
 package com.wjybxx.fastjgame.utils.concurrent.internal;
 
 import com.wjybxx.fastjgame.utils.concurrent.FutureUtils;
-import com.wjybxx.fastjgame.utils.concurrent.IPromise;
-import com.wjybxx.fastjgame.utils.concurrent.NonBlockingFuture;
+import com.wjybxx.fastjgame.utils.concurrent.NPromise;
+import com.wjybxx.fastjgame.utils.concurrent.NListenableFuture;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -45,7 +45,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @version 1.0
  * date - 2020/3/6
  */
-public abstract class PromiseBase<V> implements NonBlockingFuture<V>, IPromise<V> {
+public abstract class PromiseBase<V> implements NListenableFuture<V>, NPromise<V> {
 
     /**
      * 如果一个任务成功时没有结果{@link #setSuccess(Object) null}，使用该对象代替。
@@ -61,12 +61,6 @@ public abstract class PromiseBase<V> implements NonBlockingFuture<V>, IPromise<V
      * {@link AtomicReference}用于保证原子性和可见性。
      */
     final AtomicReference<Object> resultHolder = new AtomicReference<>();
-
-    @Nonnull
-    @Override
-    public NonBlockingFuture<V> getFuture() {
-        return this;
-    }
 
     @Override
     public final boolean isVoid() {

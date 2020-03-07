@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.utils.concurrent;
 
 import javax.annotation.Nonnull;
+import java.util.concurrent.Executor;
 
 /**
  * @author wjybxx
@@ -26,14 +27,8 @@ import javax.annotation.Nonnull;
 
 public class VoidPromise extends VoidFuture implements Promise<Object> {
 
-    public VoidPromise() {
+    public VoidPromise(EventLoop eventLoop) {
         super(eventLoop);
-    }
-
-    @Nonnull
-    @Override
-    public VoidFuture getFuture() {
-        return this;
     }
 
     // ------------------------------------- 赋值操作不造成任何影响 -----------------------------
@@ -63,4 +58,54 @@ public class VoidPromise extends VoidFuture implements Promise<Object> {
         return true;
     }
 
+
+    // 语法支持
+
+    @Override
+    public Promise<Object> await() throws InterruptedException {
+        super.await();
+        return this;
+    }
+
+    @Override
+    public Promise<Object> awaitUninterruptibly() {
+        super.awaitUninterruptibly();
+        return this;
+    }
+
+    @Override
+    public Promise<Object> onComplete(@Nonnull FutureListener<? super Object> listener) {
+        super.onComplete(listener);
+        return this;
+    }
+
+    @Override
+    public Promise<Object> onComplete(@Nonnull FutureListener<? super Object> listener, @Nonnull Executor bindExecutor) {
+        super.onComplete(listener, bindExecutor);
+        return this;
+    }
+
+    @Override
+    public Promise<Object> onSuccess(@Nonnull SucceededFutureListener<? super Object> listener) {
+        super.onSuccess(listener);
+        return this;
+    }
+
+    @Override
+    public Promise<Object> onSuccess(@Nonnull SucceededFutureListener<? super Object> listener, @Nonnull Executor bindExecutor) {
+        super.onSuccess(listener, bindExecutor);
+        return this;
+    }
+
+    @Override
+    public Promise<Object> onFailure(@Nonnull FailedFutureListener<? super Object> listener) {
+        super.onFailure(listener);
+        return this;
+    }
+
+    @Override
+    public Promise<Object> onFailure(@Nonnull FailedFutureListener<? super Object> listener, @Nonnull Executor bindExecutor) {
+        super.onFailure(listener, bindExecutor);
+        return this;
+    }
 }

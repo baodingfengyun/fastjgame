@@ -57,12 +57,6 @@ public abstract class AbstractPromise<V> extends PromiseBase<V> implements Liste
 
     }
 
-    @Nonnull
-    @Override
-    public ListenableFuture<V> getFuture() {
-        return this;
-    }
-
     // --------------------------------------------- 阻塞式获取结果 -----------------------------------
 
     @Override
@@ -106,7 +100,7 @@ public abstract class AbstractPromise<V> extends PromiseBase<V> implements Liste
     // --------------------------------------------- 阻塞式等待 -----------------------------------
 
     @Override
-    public ListenableFuture<V> await() throws InterruptedException {
+    public Promise<V> await() throws InterruptedException {
         // 先检查一次是否已完成，减小锁竞争，同时在完成的情况下，等待不会死锁。
         if (isDone()) {
             return this;
@@ -150,7 +144,7 @@ public abstract class AbstractPromise<V> extends PromiseBase<V> implements Liste
     }
 
     @Override
-    public ListenableFuture<V> awaitUninterruptibly() {
+    public Promise<V> awaitUninterruptibly() {
         // 先检查一次是否已完成，减小锁竞争，同时在完成的情况下，等待不会死锁。
         if (isDone()) {
             return this;

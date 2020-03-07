@@ -20,9 +20,10 @@ import com.wjybxx.fastjgame.net.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.net.exception.RpcException;
 import com.wjybxx.fastjgame.net.exception.RpcTimeoutException;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
+import com.wjybxx.fastjgame.utils.concurrent.*;
 import com.wjybxx.fastjgame.utils.concurrent.timeout.DefaultTimeoutPromise;
+import com.wjybxx.fastjgame.utils.concurrent.timeout.TimeoutFuture;
+import com.wjybxx.fastjgame.utils.concurrent.timeout.TimeoutFutureListener;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.Executor;
@@ -36,7 +37,7 @@ import java.util.concurrent.TimeUnit;
  * date - 2019/8/3
  * github - https://github.com/hl845740757
  */
-public class DefaultRpcPromise<V> extends DefaultTimeoutPromise<V> implements RpcFuture<V>, RpcPromise<V> {
+public class DefaultRpcPromise<V> extends DefaultTimeoutPromise<V> implements RpcPromise<V> {
 
     /**
      * 工作线程 - 检查死锁的线程
@@ -89,36 +90,65 @@ public class DefaultRpcPromise<V> extends DefaultTimeoutPromise<V> implements Rp
         tryFailure(RpcTimeoutException.INSTANCE);
     }
 
-    @Nonnull
-    @Override
-    public RpcFuture<V> getFuture() {
-        return this;
-    }
-
     // --------------------------------- 流式语法支持 ------------------------------
 
     @Override
-    public RpcFuture<V> await() throws InterruptedException {
+    public RpcPromise<V> await() throws InterruptedException {
         super.await();
         return this;
     }
 
     @Override
-    public RpcFuture<V> awaitUninterruptibly() {
+    public RpcPromise<V> awaitUninterruptibly() {
         super.awaitUninterruptibly();
         return this;
     }
 
     @Override
-    public RpcFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
+    public RpcPromise<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener) {
+        super.onTimeout(listener);
+        return this;
+    }
+
+    @Override
+    public RpcPromise<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        super.onTimeout(listener, bindExecutor);
+        return this;
+    }
+
+    @Override
+    public RpcPromise<V> onComplete(@Nonnull FutureListener<? super V> listener) {
         super.onComplete(listener);
         return this;
     }
 
     @Override
-    public RpcFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public RpcPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         super.onComplete(listener, bindExecutor);
         return this;
     }
 
+    @Override
+    public RpcPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
+        super.onSuccess(listener);
+        return this;
+    }
+
+    @Override
+    public RpcPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        super.onSuccess(listener, bindExecutor);
+        return this;
+    }
+
+    @Override
+    public RpcPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
+        super.onFailure(listener);
+        return this;
+    }
+
+    @Override
+    public RpcPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        super.onFailure(listener, bindExecutor);
+        return this;
+    }
 }

@@ -182,7 +182,7 @@ public abstract class AbstractSession implements Session {
             // 会话活动的状态下才会发送
             final RpcPromise<V> rpcPromise = netEventLoop.newRpcPromise(appEventLoop(), config().getAsyncRpcTimeoutMs());
             netEventLoop.execute(new RpcRequestWriteTask(this, request, false, rpcPromise, flush));
-            return rpcPromise.getFuture();
+            return rpcPromise;
         }
     }
 
@@ -198,7 +198,7 @@ public abstract class AbstractSession implements Session {
         // 提交到网络层执行
         netEventLoop.execute(new RpcRequestWriteTask(this, request, true, rpcPromise, true));
         // RpcPromise保证了不会等待超过限时时间
-        return rpcPromise.getFuture().join();
+        return rpcPromise.join();
     }
 
     @Override

@@ -16,9 +16,7 @@
 
 package com.wjybxx.fastjgame.utils.concurrent.timeout;
 
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.FailedFuture;
-import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
+import com.wjybxx.fastjgame.utils.concurrent.*;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.Executor;
@@ -65,4 +63,39 @@ public class FailedTimeoutFuture<V> extends FailedFuture<V> implements TimeoutFu
         return this;
     }
 
+    @Override
+    public TimeoutFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
+        super.onSuccess(listener);
+        return this;
+    }
+
+    @Override
+    public TimeoutFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        super.onSuccess(listener, bindExecutor);
+        return this;
+    }
+
+    @Override
+    public TimeoutFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
+        super.onFailure(listener);
+        return this;
+    }
+
+    @Override
+    public TimeoutFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        super.onFailure(listener, bindExecutor);
+        return this;
+    }
+
+    @Override
+    public TimeoutFuture<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener) {
+        super.onComplete(listener);
+        return this;
+    }
+
+    @Override
+    public TimeoutFuture<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        super.onComplete(listener, bindExecutor);
+        return this;
+    }
 }

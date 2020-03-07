@@ -16,9 +16,14 @@
 
 package com.wjybxx.fastjgame.net.rpc;
 
+import com.wjybxx.fastjgame.utils.concurrent.FailedFutureListener;
+import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
+import com.wjybxx.fastjgame.utils.concurrent.SucceededFutureListener;
+import com.wjybxx.fastjgame.utils.concurrent.timeout.TimeoutFutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.timeout.TimeoutPromise;
 
 import javax.annotation.Nonnull;
+import java.util.concurrent.Executor;
 
 /**
  * RpcPromise
@@ -28,9 +33,36 @@ import javax.annotation.Nonnull;
  * date - 2019/8/3
  * github - https://github.com/hl845740757
  */
-public interface RpcPromise<V> extends TimeoutPromise<V> {
+public interface RpcPromise<V> extends TimeoutPromise<V>, RpcFuture<V> {
 
-    @Nonnull
+    // 仅用于语法支持
     @Override
-    RpcFuture<V> getFuture();
+    RpcPromise<V> await() throws InterruptedException;
+
+    @Override
+    RpcPromise<V> awaitUninterruptibly();
+
+    @Override
+    RpcPromise<V> onComplete(@Nonnull FutureListener<? super V> listener);
+
+    @Override
+    RpcPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+
+    @Override
+    RpcPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener);
+
+    @Override
+    RpcPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+
+    @Override
+    RpcPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener);
+
+    @Override
+    RpcPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+
+    @Override
+    RpcPromise<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener);
+
+    @Override
+    RpcPromise<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 }

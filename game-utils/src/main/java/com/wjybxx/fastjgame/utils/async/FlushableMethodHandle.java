@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.utils.async;
 
-import com.wjybxx.fastjgame.utils.concurrent.NonBlockingFuture;
+import com.wjybxx.fastjgame.utils.concurrent.NListenableFuture;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -49,7 +49,7 @@ public interface FlushableMethodHandle<T, V> extends MethodHandle<T, V> {
      * @param client 方法的执行对象
      * @return 监听结果的管理器
      */
-    NonBlockingFuture<V> callAndFlush(@Nonnull T client);
+    NListenableFuture<V> callAndFlush(@Nonnull T client);
 
     /**
      * {@inheritDoc}

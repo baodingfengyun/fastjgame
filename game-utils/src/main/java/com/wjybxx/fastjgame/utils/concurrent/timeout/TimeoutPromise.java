@@ -16,9 +16,13 @@
 
 package com.wjybxx.fastjgame.utils.concurrent.timeout;
 
+import com.wjybxx.fastjgame.utils.concurrent.FailedFutureListener;
+import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.Promise;
+import com.wjybxx.fastjgame.utils.concurrent.SucceededFutureListener;
 
 import javax.annotation.Nonnull;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -29,11 +33,7 @@ import java.util.concurrent.TimeUnit;
  * date - 2020/1/6
  * github - https://github.com/hl845740757
  */
-public interface TimeoutPromise<V> extends Promise<V> {
-
-    @Nonnull
-    @Override
-    TimeoutFuture<V> getFuture();
+public interface TimeoutPromise<V> extends Promise<V>, TimeoutFuture<V> {
 
     /**
      * 获取毫秒级别的过期时间戳
@@ -44,4 +44,35 @@ public interface TimeoutPromise<V> extends Promise<V> {
      * 获取超时时间
      */
     long getExpire(TimeUnit timeUnit);
+
+    // 仅用于语法支持
+    @Override
+    TimeoutPromise<V> await() throws InterruptedException;
+
+    @Override
+    TimeoutPromise<V> awaitUninterruptibly();
+
+    @Override
+    TimeoutPromise<V> onComplete(@Nonnull FutureListener<? super V> listener);
+
+    @Override
+    TimeoutPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+
+    @Override
+    TimeoutPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener);
+
+    @Override
+    TimeoutPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+
+    @Override
+    TimeoutPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener);
+
+    @Override
+    TimeoutPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+
+    @Override
+    TimeoutPromise<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener);
+
+    @Override
+    TimeoutPromise<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 }

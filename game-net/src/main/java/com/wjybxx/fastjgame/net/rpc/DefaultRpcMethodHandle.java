@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.rpc;
 
-import com.wjybxx.fastjgame.utils.concurrent.NonBlockingFuture;
+import com.wjybxx.fastjgame.utils.concurrent.NListenableFuture;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -79,12 +79,12 @@ public class DefaultRpcMethodHandle<V> implements RpcMethodHandle<V> {
     }
 
     @Override
-    public final NonBlockingFuture<V> call(@Nonnull RpcClient client) {
+    public final NListenableFuture<V> call(@Nonnull RpcClient client) {
         return client.call(this.rpcMethodSpec);
     }
 
     @Override
-    public NonBlockingFuture<V> callAndFlush(@Nonnull RpcClient client) {
+    public NListenableFuture<V> callAndFlush(@Nonnull RpcClient client) {
         return client.callAndFlush(rpcMethodSpec);
     }
 

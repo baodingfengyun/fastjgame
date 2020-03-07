@@ -18,9 +18,7 @@ package com.wjybxx.fastjgame.db.redis;
 
 
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-import com.wjybxx.fastjgame.utils.concurrent.DefaultPromise;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
+import com.wjybxx.fastjgame.utils.concurrent.*;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.Executor;
@@ -50,36 +48,53 @@ public class DefaultRedisPromise<V> extends DefaultPromise<V> implements RedisFu
         ConcurrentUtils.checkDeadLock(workerEventLoop);
     }
 
-    @Nonnull
-    @Override
-    public RedisFuture<V> getFuture() {
-        return this;
-    }
-
     // ------------------------------------------------ 支持流式语法 ------------------------------------
 
     @Override
-    public RedisFuture<V> await() throws InterruptedException {
+    public RedisPromise<V> await() throws InterruptedException {
         super.await();
         return this;
     }
 
     @Override
-    public RedisFuture<V> awaitUninterruptibly() {
+    public RedisPromise<V> awaitUninterruptibly() {
         super.awaitUninterruptibly();
         return this;
     }
 
     @Override
-    public RedisFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
+    public RedisPromise<V> onComplete(@Nonnull FutureListener<? super V> listener) {
         super.onComplete(listener);
         return this;
     }
 
     @Override
-    public RedisFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public RedisPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         super.onComplete(listener, bindExecutor);
         return this;
     }
 
+    @Override
+    public RedisPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
+        super.onSuccess(listener);
+        return this;
+    }
+
+    @Override
+    public RedisPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        super.onSuccess(listener, bindExecutor);
+        return this;
+    }
+
+    @Override
+    public RedisPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
+        super.onFailure(listener);
+        return this;
+    }
+
+    @Override
+    public RedisPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        super.onFailure(listener, bindExecutor);
+        return this;
+    }
 }

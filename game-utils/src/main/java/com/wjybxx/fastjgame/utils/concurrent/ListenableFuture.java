@@ -21,8 +21,7 @@ import javax.annotation.Nonnull;
 import java.util.concurrent.*;
 
 /**
- * 可监听的future。
- * 它除了提供非阻塞的api以外，还继承了JDK的{@link Future}，出现了阻塞式api。
+ * 它继承了JDK的{@link Future}，出现了阻塞式api。
  *
  * <p>
  * Q: 为什么使用非受检{@link CompletionException}异常代替了{@link ExecutionException}？
@@ -35,7 +34,7 @@ import java.util.concurrent.*;
  * date - 2019/7/14
  * github - https://github.com/hl845740757
  */
-public interface ListenableFuture<V> extends Future<V>, NonBlockingFuture<V> {
+public interface ListenableFuture<V> extends Future<V>, NListenableFuture<V> {
 
     // ------------------------------------- 阻塞式获取操作结果 ---------------------------------------
 
@@ -131,7 +130,7 @@ public interface ListenableFuture<V> extends Future<V>, NonBlockingFuture<V> {
      */
     boolean awaitUninterruptibly(long timeout, @Nonnull TimeUnit unit);
 
-    //
+    // 仅仅用于支持流式语法
 
     @Override
     ListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener);
@@ -140,13 +139,14 @@ public interface ListenableFuture<V> extends Future<V>, NonBlockingFuture<V> {
     ListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
     @Override
-    default ListenableFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
-        return null;
-    }
+    ListenableFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener);
 
     @Override
-    default ListenableFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
-        return null;
-    }
+    ListenableFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
+    @Override
+    ListenableFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener);
+
+    @Override
+    ListenableFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 }

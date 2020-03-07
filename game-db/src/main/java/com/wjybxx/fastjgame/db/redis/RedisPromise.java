@@ -16,9 +16,13 @@
 
 package com.wjybxx.fastjgame.db.redis;
 
+import com.wjybxx.fastjgame.utils.concurrent.FailedFutureListener;
+import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.Promise;
+import com.wjybxx.fastjgame.utils.concurrent.SucceededFutureListener;
 
 import javax.annotation.Nonnull;
+import java.util.concurrent.Executor;
 
 /**
  * redis操作对应的promise
@@ -28,9 +32,30 @@ import javax.annotation.Nonnull;
  * date - 2019/12/15
  * github - https://github.com/hl845740757
  */
-public interface RedisPromise<V> extends Promise<V> {
+public interface RedisPromise<V> extends Promise<V>,RedisFuture<V> {
 
-    @Nonnull
+    // 仅用于语法支持
     @Override
-    RedisFuture<V> getFuture();
+    RedisPromise<V> onComplete(@Nonnull FutureListener<? super V> listener);
+
+    @Override
+    RedisPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+
+    @Override
+    RedisPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener);
+
+    @Override
+    RedisPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+
+    @Override
+    RedisPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener);
+
+    @Override
+    RedisPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+
+    @Override
+    RedisPromise<V> await() throws InterruptedException;
+
+    @Override
+    RedisPromise<V> awaitUninterruptibly();
 }

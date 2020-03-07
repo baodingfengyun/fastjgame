@@ -43,7 +43,7 @@ public class LocalSessionExample {
             exampleRpcServerLoop.execute(ConcurrentUtils.NO_OP_TASK);
         }
 
-        final LocalPort localPort = promise.getFuture().get();
+        final LocalPort localPort = promise.get();
         {
             ExampleRpcClientLoop echoClientLoop = new ExampleRpcClientLoop(
                     new DefaultThreadFactory("CLIENT"),

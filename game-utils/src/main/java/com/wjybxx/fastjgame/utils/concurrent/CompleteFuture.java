@@ -45,12 +45,6 @@ public abstract class CompleteFuture<V> extends AbstractListenableFuture<V> {
         this.notifyExecutor = notifyExecutor;
     }
 
-    @Nonnull
-    @Override
-    public EventLoop defaultExecutor() {
-        return notifyExecutor;
-    }
-
     @Override
     public final boolean isDone() {
         return true;
@@ -106,11 +100,35 @@ public abstract class CompleteFuture<V> extends AbstractListenableFuture<V> {
         return this;
     }
 
+    @Override
+    public ListenableFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
+        notifyListener(listener);
+        return this;
+    }
+
+    @Override
+    public ListenableFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        notifyListener(new ExecutorBindListener<>(listener, bindExecutor));
+        return this;
+    }
+
+    @Override
+    public ListenableFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
+        notifyListener(listener);
+        return this;
+    }
+
+    @Override
+    public ListenableFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        notifyListener(new ExecutorBindListener<>(listener, bindExecutor));
+        return this;
+    }
+
     /**
      * 通知一个监听器。
      */
     private void notifyListener(@Nonnull FutureListener<? super V> listener) {
-        DefaultPromise.notifyListenerNowSafely(this, listener);
+        DefaultPromise.notifyAllListeners(notifyExecutor, this, listener);
     }
 
 }

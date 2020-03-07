@@ -16,23 +16,20 @@
 
 package com.wjybxx.fastjgame.utils.concurrent;
 
+import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
+
 import javax.annotation.Nonnull;
+import java.util.concurrent.Executor;
 
 /**
- * promise用于为关联的{@link NonBlockingFuture}赋值结果。
- * 这个名字实在不好起。
+ * promise用于为关联的{@link NListenableFuture}赋值结果。
+ *
  *
  * @author wjybxx
  * @version 1.0
  * date - 2020/3/6
  */
-public interface IPromise<V> {
-
-    /**
-     * 获取关联的future
-     */
-    @Nonnull
-    NonBlockingFuture<V> getFuture();
+public interface NPromise<V> extends NListenableFuture<V> {
 
     /**
      * 将future标记为成功完成，并且通知所有的监听器。
@@ -71,4 +68,31 @@ public interface IPromise<V> {
      */
     boolean setUncancellable();
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * 如果该方法返回true，任何赋值操作都将不会造成任何影响。
+     */
+    @UnstableApi
+    @Override
+    boolean isVoid();
+
+    // 仅用于语法支持
+    @Override
+    NPromise<V> onComplete(@Nonnull FutureListener<? super V> listener);
+
+    @Override
+    NPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+
+    @Override
+    NPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener);
+
+    @Override
+    NPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+
+    @Override
+    NPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener);
+
+    @Override
+    NPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 }

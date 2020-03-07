@@ -16,8 +16,10 @@
 
 package com.wjybxx.fastjgame.utils.concurrent.timeout;
 
+import com.wjybxx.fastjgame.utils.concurrent.FailedFutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.utils.concurrent.SucceededFutureListener;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.Executor;
@@ -40,6 +42,14 @@ public interface TimeoutFuture<V> extends ListenableFuture<V> {
      */
     boolean isTimeout();
 
+    /**
+     * 添加一个监听器，该监听器只会在关联的操作超时的情况下执行。
+     */
+    TimeoutFuture<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener);
+
+    TimeoutFuture<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+
+    // 仅用于流式语法支持
     @Override
     TimeoutFuture<V> await() throws InterruptedException;
 
@@ -51,5 +61,17 @@ public interface TimeoutFuture<V> extends ListenableFuture<V> {
 
     @Override
     TimeoutFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+
+    @Override
+    TimeoutFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener);
+
+    @Override
+    TimeoutFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+
+    @Override
+    TimeoutFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener);
+
+    @Override
+    TimeoutFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
 }

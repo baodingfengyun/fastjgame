@@ -35,8 +35,8 @@ public class ListenableFutureTask<V> implements ListenableFuture<V>, RunnableFut
     private final Promise<V> promise;
     private final Callable<V> callable;
 
-    public ListenableFutureTask(Promise<V> promise, Callable<V> callable) {
-        this.promise = promise;
+    public ListenableFutureTask(EventLoop executor, Callable<V> callable) {
+        this.promise = executor.newPromise();
         this.callable = callable;
     }
 
@@ -52,96 +52,111 @@ public class ListenableFutureTask<V> implements ListenableFuture<V>, RunnableFut
         }
     }
 
-    @Nonnull
-    private ListenableFuture<V> getFuture() {
-        return promise.getFuture();
-    }
-
     @Override
     public boolean isDone() {
-        return getFuture().isDone();
+        return promise.isDone();
     }
 
     @Override
     public boolean isSuccess() {
-        return getFuture().isSuccess();
+        return promise.isSuccess();
     }
 
     @Override
     public boolean isCancelled() {
-        return getFuture().isCancelled();
+        return promise.isCancelled();
     }
 
     @Override
     public boolean isCancellable() {
-        return getFuture().isCancellable();
+        return promise.isCancellable();
     }
 
     @Override
     public V get() throws InterruptedException, CompletionException {
-        return getFuture().get();
+        return promise.get();
     }
 
     @Override
     public V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, CompletionException, TimeoutException {
-        return getFuture().get(timeout, unit);
+        return promise.get(timeout, unit);
     }
 
     @Override
     public V join() throws CompletionException {
-        return getFuture().join();
+        return promise.join();
     }
 
     @Override
     @Nullable
     public V getNow() {
-        return getFuture().getNow();
+        return promise.getNow();
     }
 
     @Override
     @Nullable
     public Throwable cause() {
-        return getFuture().cause();
+        return promise.cause();
     }
 
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
-        return getFuture().cancel(mayInterruptIfRunning);
+        return promise.cancel(mayInterruptIfRunning);
     }
 
     @Override
     public ListenableFuture<V> await() throws InterruptedException {
-        return getFuture().await();
+        return promise.await();
     }
 
     @Override
     public ListenableFuture<V> awaitUninterruptibly() {
-        return getFuture().awaitUninterruptibly();
+        return promise.awaitUninterruptibly();
     }
 
     @Override
     public boolean await(long timeout, @Nonnull TimeUnit unit) throws InterruptedException {
-        return getFuture().await(timeout, unit);
+        return promise.await(timeout, unit);
     }
 
     @Override
     public boolean awaitUninterruptibly(long timeout, @Nonnull TimeUnit unit) {
-        return getFuture().awaitUninterruptibly(timeout, unit);
+        return promise.awaitUninterruptibly(timeout, unit);
     }
 
     @Override
     public ListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
-        return getFuture().onComplete(listener);
+        return promise.onComplete(listener);
     }
 
     @Override
     public ListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        return getFuture().onComplete(listener, bindExecutor);
+        return promise.onComplete(listener, bindExecutor);
+    }
+
+    @Override
+    public ListenableFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
+        return promise.onSuccess(listener);
+    }
+
+    @Override
+    public ListenableFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        return promise.onSuccess(listener, bindExecutor);
+    }
+
+    @Override
+    public ListenableFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
+        return promise.onFailure(listener);
+    }
+
+    @Override
+    public ListenableFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        return promise.onFailure(listener, bindExecutor);
     }
 
     @Override
     @UnstableApi
     public boolean isVoid() {
-        return getFuture().isVoid();
+        return promise.isVoid();
     }
 }

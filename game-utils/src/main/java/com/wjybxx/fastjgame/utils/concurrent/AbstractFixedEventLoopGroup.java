@@ -42,7 +42,7 @@ public abstract class AbstractFixedEventLoopGroup extends AbstractEventLoopGroup
     /**
      * 监听所有子节点关闭的Listener，当所有的子节点关闭时，会收到关闭成功事件
      */
-    private final Promise<?> terminationPromise = new DefaultPromise(GlobalEventLoop.INSTANCE);
+    private final Promise<?> terminationFuture = new DefaultPromise(GlobalEventLoop.INSTANCE);
     /**
      * 子类构造时传入的context，由子类自己决定如何解析，父类不做处理。
      */
@@ -137,7 +137,7 @@ public abstract class AbstractFixedEventLoopGroup extends AbstractEventLoopGroup
 
     @Override
     public ListenableFuture<?> terminationFuture() {
-        return terminationPromise.getFuture();
+        return terminationFuture;
     }
 
     @Override
@@ -224,14 +224,14 @@ public abstract class AbstractFixedEventLoopGroup extends AbstractEventLoopGroup
         }
 
         @Override
-        public void onComplete(NonBlockingFuture<Object> future) throws Exception {
+        public void onComplete(NListenableFuture<Object> future) throws Exception {
             if (terminatedChildren.incrementAndGet() == children.length) {
                 try {
                     clean();
                 } catch (Throwable e) {
                     logger.error("clean caught exception!", e);
                 } finally {
-                    terminationPromise.setSuccess(null);
+                    terminationFuture.setSuccess(null);
                 }
             }
         }

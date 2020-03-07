@@ -16,9 +16,7 @@
 
 package com.wjybxx.fastjgame.utils.concurrent.timeout;
 
-import com.wjybxx.fastjgame.utils.concurrent.DefaultPromise;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
+import com.wjybxx.fastjgame.utils.concurrent.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -53,6 +51,7 @@ public class DefaultTimeoutPromise<V> extends DefaultPromise<V> implements Timeo
     }
 
     // ----------------------------------------------- 获取超时时间信息 ---------------------------------------------------
+
     @Override
     public long getExpireMillis() {
         return deadline;
@@ -61,12 +60,6 @@ public class DefaultTimeoutPromise<V> extends DefaultPromise<V> implements Timeo
     @Override
     public long getExpire(TimeUnit timeUnit) {
         return timeUnit.convert(deadline, TimeUnit.MILLISECONDS);
-    }
-
-    @Nonnull
-    @Override
-    public TimeoutFuture<V> getFuture() {
-        return this;
     }
 
     // ---------------------------------------------- 非阻塞式获取结果超时检测 ------------------------------------------------
@@ -99,7 +92,7 @@ public class DefaultTimeoutPromise<V> extends DefaultPromise<V> implements Timeo
     // -------------------------------------------------- 阻塞式等待超时检测 --------------------------------
 
     @Override
-    public TimeoutFuture<V> await() throws InterruptedException {
+    public TimeoutPromise<V> await() throws InterruptedException {
         // 有限的等待
         await(remainTimeMillis(), TimeUnit.MILLISECONDS);
         assert isDone();
@@ -107,7 +100,7 @@ public class DefaultTimeoutPromise<V> extends DefaultPromise<V> implements Timeo
     }
 
     @Override
-    public TimeoutFuture<V> awaitUninterruptibly() {
+    public TimeoutPromise<V> awaitUninterruptibly() {
         // 有限的等待
         awaitUninterruptibly(remainTimeMillis(), TimeUnit.MILLISECONDS);
         assert isDone();
@@ -151,17 +144,51 @@ public class DefaultTimeoutPromise<V> extends DefaultPromise<V> implements Timeo
     }
 
     // ---------------------------------------------- 流式语法 ------------------------------------------------
-
     @Override
-    public TimeoutFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
+    public TimeoutPromise<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener) {
         super.onComplete(listener);
         return this;
     }
 
     @Override
-    public TimeoutFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public TimeoutPromise<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         super.onComplete(listener, bindExecutor);
         return this;
     }
 
+    @Override
+    public TimeoutPromise<V> onComplete(@Nonnull FutureListener<? super V> listener) {
+        super.onComplete(listener);
+        return this;
+    }
+
+    @Override
+    public TimeoutPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        super.onComplete(listener, bindExecutor);
+        return this;
+    }
+
+    @Override
+    public TimeoutPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
+        super.onSuccess(listener);
+        return this;
+    }
+
+    @Override
+    public TimeoutPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        super.onSuccess(listener, bindExecutor);
+        return this;
+    }
+
+    @Override
+    public TimeoutPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
+        super.onFailure(listener);
+        return this;
+    }
+
+    @Override
+    public TimeoutPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        super.onFailure(listener, bindExecutor);
+        return this;
+    }
 }

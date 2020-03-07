@@ -31,7 +31,7 @@ public class ImmediatelyTest {
 
     public static void main(String[] args) {
         Promise<String> promise = ImmediateEventLoop.INSTANCE.newPromise();
-        promise.getFuture().onComplete(future -> {
+        promise.onComplete(future -> {
             System.out.println(future.getNow());
         });
         promise.setSuccess("hello");

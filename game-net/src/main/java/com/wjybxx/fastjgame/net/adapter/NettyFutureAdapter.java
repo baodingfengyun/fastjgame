@@ -127,12 +127,6 @@ public final class NettyFutureAdapter<V> extends AbstractListenableFuture<V> {
 
     // ---------------------------------------------------------------------------------------------
 
-    @Nonnull
-    @Override
-    public EventLoop defaultExecutor() {
-        return executor;
-    }
-
     @Override
     public ListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
         addListener0(listener, executor);

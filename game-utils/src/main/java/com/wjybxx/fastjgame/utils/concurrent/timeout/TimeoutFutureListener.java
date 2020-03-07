@@ -16,21 +16,31 @@
 
 package com.wjybxx.fastjgame.utils.concurrent.timeout;
 
-import com.wjybxx.fastjgame.utils.concurrent.FutureResult;
+import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
+import com.wjybxx.fastjgame.utils.concurrent.NListenableFuture;
 
 /**
- * {@link TimeoutFuture}对应的执行结果
+ * 超时future结果监听
  *
  * @author wjybxx
  * @version 1.0
- * date - 2020/1/8
+ * date - 2020/3/7
  * github - https://github.com/hl845740757
  */
-public interface TimeoutFutureResult<V> extends FutureResult<V> {
+@FunctionalInterface
+public interface TimeoutFutureListener<V> extends FutureListener<V> {
+
+    @Override
+    default void onComplete(NListenableFuture<V> future) throws Exception {
+        final TimeoutFuture<V> timeoutFuture = (TimeoutFuture<V>) future;
+        if (timeoutFuture.isTimeout()) {
+            onTimeout(timeoutFuture);
+        }
+    }
 
     /**
-     * @see TimeoutFuture#isTimeout()
+     * future关联的操作超时
      */
-    boolean isTimeout();
+    void onTimeout(TimeoutFuture<V> future) throws Exception;
 
 }

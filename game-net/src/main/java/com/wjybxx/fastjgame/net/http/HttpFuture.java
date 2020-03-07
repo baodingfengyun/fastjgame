@@ -16,7 +16,9 @@
 
 package com.wjybxx.fastjgame.net.http;
 
+import com.wjybxx.fastjgame.utils.concurrent.FailedFutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
+import com.wjybxx.fastjgame.utils.concurrent.SucceededFutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.timeout.TimeoutFuture;
 
 import javax.annotation.Nonnull;
@@ -35,6 +37,7 @@ public interface HttpFuture<V> extends TimeoutFuture<V> {
      */
     boolean isTimeout();
 
+    // 仅仅用于语法知此
     @Override
     HttpFuture<V> await() throws InterruptedException;
 
@@ -47,4 +50,15 @@ public interface HttpFuture<V> extends TimeoutFuture<V> {
     @Override
     HttpFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
+    @Override
+    HttpFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener);
+
+    @Override
+    HttpFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+
+    @Override
+    HttpFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener);
+
+    @Override
+    HttpFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 }

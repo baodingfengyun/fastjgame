@@ -45,7 +45,7 @@ public class CompositeFutureListener<V> implements FutureListener<V> {
     }
 
     @Override
-    public void onComplete(NonBlockingFuture<V> future) throws Exception {
+    public void onComplete(NListenableFuture<V> future) throws Exception {
         for (FutureListener<? super V> futureListener : children) {
             DefaultPromise.notifyListenerNowSafely(future, futureListener);
         }

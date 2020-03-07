@@ -1,17 +1,17 @@
 /*
- *  Copyright 2019 wjybxx
+ * Copyright 2019 wjybxx
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to iBn writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.wjybxx.fastjgame.utils.concurrent.fast;
@@ -26,7 +26,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.util.concurrent.Executor;
 
 /**
- * 它是一个线程绑定版本的{@link NonBlockingFuture}。
+ * 它是一个线程绑定版本的{@link NPromise}。
  * 用于用户不能在该对象上进行任何阻塞式操作，因此可以做一些激进的处理。
  *
  * <h3>激进优化</h3>
@@ -67,7 +67,7 @@ public class FastPromise<V> extends PromiseBase<V> {
         if (appEventLoop.inEventLoop()) {
             notifyAllListenersNow();
         } else {
-            appEventLoop.execute(this::notifyAllListenersNow);
+            ConcurrentUtils.safeExecute(appEventLoop, this::notifyAllListenersNow);
         }
     }
 
@@ -80,39 +80,49 @@ public class FastPromise<V> extends PromiseBase<V> {
         }
 
         try {
-            DefaultPromise.notifyListenerNowSafely(this, futureListeners);
+            DefaultPromise.notifyAllListeners(appEventLoop, this, futureListeners);
         } finally {
             futureListeners = null;
         }
     }
 
-    @Nonnull
     @Override
-    public EventLoop defaultExecutor() {
-        return appEventLoop;
+    public NPromise<V> onComplete(@Nonnull FutureListener<? super V> listener) {
+        addListener0(listener);
+        return this;
     }
 
     @Override
-    public NonBlockingFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
-        return null;
+    public NPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        addListener0(new ExecutorBindListener<>(listener, bindExecutor));
+        return this;
     }
 
     @Override
-    public NonBlockingFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        return null;
+    public NPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
+        addListener0(listener);
+        return this;
     }
 
     @Override
-    public NonBlockingFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
-        return null;
+    public NPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        addListener0(new ExecutorBindListener<>(listener, bindExecutor));
+        return this;
     }
 
     @Override
-    public NonBlockingFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
-        return null;
+    public NPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
+        addListener0(listener);
+        return this;
     }
 
-    private void addListener(@Nonnull FutureListener<? super V> listener) {
+    @Override
+    public NPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        addListener0(new ExecutorBindListener<>(listener, bindExecutor));
+        return this;
+    }
+
+    private void addListener0(@Nonnull FutureListener<? super V> listener) {
         ensureInAppEventLoop();
 
         _addListener0(listener);
