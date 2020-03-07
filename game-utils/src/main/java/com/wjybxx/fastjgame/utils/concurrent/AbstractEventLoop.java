@@ -59,7 +59,6 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
     @Nonnull
     @Override
     public EventLoop next() {
-        // 因为 EventLoop 是叶子节点，是没有子节点的，因此请求的事件处理器都是自己
         return this;
     }
 

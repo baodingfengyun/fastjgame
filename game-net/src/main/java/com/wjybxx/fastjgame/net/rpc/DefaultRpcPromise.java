@@ -25,7 +25,6 @@ import com.wjybxx.fastjgame.utils.concurrent.timeout.TimeoutFutureListener;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * RpcPromise基本实现。
@@ -45,10 +44,9 @@ public class DefaultRpcPromise<V> extends DefaultTimeoutPromise<V> implements Rp
     /**
      * @param workerEventLoop 创建该promise的EventLoop，禁止等待的线程。
      * @param appEventLoop    发起rpc调用的用户所在的EventLoop
-     * @param timeoutMs       promise超时时间
      */
-    public DefaultRpcPromise(NetEventLoop workerEventLoop, EventLoop appEventLoop, long timeoutMs) {
-        super(appEventLoop, timeoutMs, TimeUnit.MILLISECONDS);
+    public DefaultRpcPromise(NetEventLoop workerEventLoop, EventLoop appEventLoop) {
+        super(appEventLoop);
         this.workerEventLoop = workerEventLoop;
     }
 

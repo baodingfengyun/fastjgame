@@ -28,8 +28,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 /**
- * 固定线程的EventLoopGroup
- *
  * @author wjybxx
  * @version 1.0
  * date - 2019/7/14

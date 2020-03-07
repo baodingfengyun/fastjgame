@@ -65,12 +65,11 @@ public class FutureCombinerTest {
         new FutureCombiner(appEventLoop)
                 .add(aFuture)
                 .add(bFuture)
-                .finish(aggregatePromise);
-
-        aggregatePromise.getFuture().onComplete(future -> {
-            System.out.println("Callback Combine, Thread : " + Thread.currentThread().getName());
-            System.out.println("result " + getResultAsStringSafely(future));
-        });
+                .finish(aggregatePromise)
+                .onComplete(future -> {
+                    System.out.println("Callback Combine, Thread : " + Thread.currentThread().getName());
+                    System.out.println("result " + getResultAsStringSafely(future));
+                });
     }
 
     private static String getResultAsStringSafely(NFuture<?> future) {

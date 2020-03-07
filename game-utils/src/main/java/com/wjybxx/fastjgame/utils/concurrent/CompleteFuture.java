@@ -46,11 +46,6 @@ public abstract class CompleteFuture<V> extends AbstractListenableFuture<V> {
     }
 
     @Override
-    public EventLoop defaultExecutor() {
-        return defaultExecutor;
-    }
-
-    @Override
     public final boolean isDone() {
         return true;
     }
@@ -93,47 +88,51 @@ public abstract class CompleteFuture<V> extends AbstractListenableFuture<V> {
         return this;
     }
 
+    // -------------------------------------------------- 监听器管理 ---------------------------------------------
+
+    @Override
+    public EventLoop defaultExecutor() {
+        return defaultExecutor;
+    }
+
+    private void notifyListenerNow(@Nonnull FutureListener<? super V> listener, @Nonnull Executor executor) {
+        DefaultPromise.notifyListenerNowSafely(this, new FutureListenerEntry<>(listener, executor));
+    }
+
     @Override
     public ListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
-        notifyListener(new FutureListenerEntry<>(listener, defaultExecutor));
+        notifyListenerNow(listener, defaultExecutor);
         return this;
     }
 
     @Override
     public ListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        notifyListener(new FutureListenerEntry<>(listener, bindExecutor));
+        notifyListenerNow(listener, bindExecutor);
         return this;
     }
 
     @Override
     public ListenableFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
-        notifyListener(new FutureListenerEntry<>(listener, defaultExecutor));
+        notifyListenerNow(listener, defaultExecutor);
         return this;
     }
 
     @Override
     public ListenableFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        notifyListener(new FutureListenerEntry<>((FutureListener<? super V>) listener, bindExecutor));
+        notifyListenerNow(listener, bindExecutor);
         return this;
     }
 
     @Override
     public ListenableFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
-        notifyListener(new FutureListenerEntry<>(listener, defaultExecutor));
+        notifyListenerNow(listener, defaultExecutor);
         return this;
     }
 
     @Override
     public ListenableFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        notifyListener(new FutureListenerEntry<>((FutureListener<? super V>) listener, bindExecutor));
+        notifyListenerNow(listener, bindExecutor);
         return this;
-    }
-
-    /**
-     * 通知一个监听器。
-     */
-    private void notifyListener(FutureListenerEntry<? super V> listenerEntry) {
-        DefaultPromise.notifyListenerNowSafely(this, listenerEntry);
     }
 
 }

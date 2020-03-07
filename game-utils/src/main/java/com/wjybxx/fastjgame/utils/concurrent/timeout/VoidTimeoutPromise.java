@@ -27,9 +27,9 @@ import java.util.concurrent.Executor;
  * date - 2020/3/7
  * github - https://github.com/hl845740757
  */
-public class VoidTimeoutFuture extends VoidFuture implements TimeoutFuture<Object> {
+public class VoidTimeoutPromise extends VoidPromise implements TimeoutPromise<Object> {
 
-    public VoidTimeoutFuture(EventLoop eventLoop) {
+    public VoidTimeoutPromise(EventLoop eventLoop) {
         super(eventLoop);
     }
 
@@ -38,63 +38,62 @@ public class VoidTimeoutFuture extends VoidFuture implements TimeoutFuture<Objec
         return false;
     }
 
-
     @Override
-    public TimeoutFuture<Object> await() throws InterruptedException {
+    public VoidTimeoutPromise await() throws InterruptedException {
         super.await();
         return this;
     }
 
     @Override
-    public TimeoutFuture<Object> awaitUninterruptibly() {
+    public VoidTimeoutPromise awaitUninterruptibly() {
         super.awaitUninterruptibly();
         return this;
     }
 
     @Override
-    public TimeoutFuture<Object> onComplete(@Nonnull FutureListener<? super Object> listener) {
+    public VoidTimeoutPromise onComplete(@Nonnull FutureListener<? super Object> listener) {
         super.onComplete(listener);
         return this;
     }
 
     @Override
-    public TimeoutFuture<Object> onComplete(@Nonnull FutureListener<? super Object> listener, @Nonnull Executor bindExecutor) {
+    public VoidTimeoutPromise onComplete(@Nonnull FutureListener<? super Object> listener, @Nonnull Executor bindExecutor) {
         super.onComplete(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public TimeoutFuture<Object> onSuccess(@Nonnull SucceededFutureListener<? super Object> listener) {
+    public VoidTimeoutPromise onSuccess(@Nonnull SucceededFutureListener<? super Object> listener) {
         super.onSuccess(listener);
         return this;
     }
 
     @Override
-    public TimeoutFuture<Object> onSuccess(@Nonnull SucceededFutureListener<? super Object> listener, @Nonnull Executor bindExecutor) {
+    public VoidTimeoutPromise onSuccess(@Nonnull SucceededFutureListener<? super Object> listener, @Nonnull Executor bindExecutor) {
         super.onSuccess(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public TimeoutFuture<Object> onFailure(@Nonnull FailedFutureListener<? super Object> listener) {
+    public VoidTimeoutPromise onFailure(@Nonnull FailedFutureListener<? super Object> listener) {
         super.onFailure(listener);
         return this;
     }
 
     @Override
-    public TimeoutFuture<Object> onFailure(@Nonnull FailedFutureListener<? super Object> listener, @Nonnull Executor bindExecutor) {
+    public VoidTimeoutPromise onFailure(@Nonnull FailedFutureListener<? super Object> listener, @Nonnull Executor bindExecutor) {
         super.onFailure(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public TimeoutFuture<Object> onTimeout(@Nonnull TimeoutFutureListener<? super Object> listener, @Nonnull Executor bindExecutor) {
+    public VoidTimeoutPromise onTimeout(@Nonnull TimeoutFutureListener<? super Object> listener, @Nonnull Executor bindExecutor) {
         super.onComplete(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public TimeoutFuture<Object> onTimeout(@Nonnull TimeoutFutureListener<? super Object> listener) {
+    public VoidTimeoutPromise onTimeout(@Nonnull TimeoutFutureListener<? super Object> listener) {
         super.onComplete(listener);
         return this;
     }

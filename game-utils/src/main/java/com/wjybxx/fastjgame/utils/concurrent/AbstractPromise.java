@@ -1,26 +1,22 @@
 /*
- *  Copyright 2019 wjybxx
+ * Copyright 2019 wjybxx
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to iBn writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.utils.concurrent.internal;
-
-import com.wjybxx.fastjgame.utils.concurrent.FutureUtils;
-import com.wjybxx.fastjgame.utils.concurrent.NPromise;
+package com.wjybxx.fastjgame.utils.concurrent;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -38,13 +34,13 @@ import java.util.concurrent.atomic.AtomicReference;
  *  (未完成)          |--------------------------------------------|
  *                                 (取消/异常/成功)
  *                 (cancel, tryFailure,setFailure,trySuccess,setSuccess)
- *</pre>
+ * </pre>
  *
  * @author wjybxx
  * @version 1.0
  * date - 2020/3/6
  */
-public abstract class AbstractNewPromise<V> implements NPromise<V> {
+abstract class AbstractPromise<V> implements NPromise<V> {
 
     /**
      * 如果一个任务成功时没有结果{@link #setSuccess(Object) null}，使用该对象代替。
@@ -117,7 +113,6 @@ public abstract class AbstractNewPromise<V> implements NPromise<V> {
 
     // ---------------------------------------------- 非阻塞式获取结果 -----------------------------------------------------
 
-    @Nullable
     @Override
     public final V getNow() {
         final Object result = resultHolder.get();
@@ -143,7 +138,6 @@ public abstract class AbstractNewPromise<V> implements NPromise<V> {
         return (T) r;
     }
 
-    @Nullable
     @Override
     public final Throwable cause() {
         return getCause0(resultHolder.get());

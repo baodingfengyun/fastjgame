@@ -16,10 +16,7 @@
 
 package com.wjybxx.fastjgame.net.adapter;
 
-import com.wjybxx.fastjgame.utils.concurrent.AbstractListenableFuture;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
-import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.utils.concurrent.*;
 import io.netty.util.concurrent.Future;
 
 import javax.annotation.Nonnull;
@@ -128,6 +125,17 @@ public final class NettyFutureAdapter<V> extends AbstractListenableFuture<V> {
     // ---------------------------------------------------------------------------------------------
 
     @Override
+    public EventLoop defaultExecutor() {
+        return executor;
+    }
+
+    private void addListener0(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        // 不要内联该对象 - lambda表达式捕获的对象不一样
+        final FutureListenerEntry<? super V> listenerEntry = new FutureListenerEntry<>(listener, bindExecutor);
+        future.addListener(future -> DefaultPromise.notifyListenerNowSafely(this, listenerEntry));
+    }
+
+    @Override
     public ListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
         addListener0(listener, executor);
         return this;
@@ -139,22 +147,27 @@ public final class NettyFutureAdapter<V> extends AbstractListenableFuture<V> {
         return this;
     }
 
-    private void addListener0(@Nonnull FutureListener<? super V> listener, @Nullable Executor bindExecutor) {
-//        if (null == bindExecutor) {
-//            future.addListener(future1 -> listener.onComplete(this));
-//        } else {
-//            future.addListener(future1 -> notifyAsync(listener, bindExecutor));
-//        }
+    @Override
+    public ListenableFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
+        addListener0(listener, executor);
+        return this;
     }
 
-    private void notifyAsync(FutureListener<? super V> listener, Executor bindExecutor) {
-//        bindExecutor.execute(() -> {
-//            try {
-//                listener.onComplete(this);
-//            } catch (Exception e) {
-//                ExceptionUtils.rethrow(e);
-//            }
-//        });
+    @Override
+    public ListenableFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        addListener0(listener, bindExecutor);
+        return this;
     }
 
+    @Override
+    public ListenableFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
+        addListener0(listener, executor);
+        return this;
+    }
+
+    @Override
+    public ListenableFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        addListener0(listener, bindExecutor);
+        return this;
+    }
 }

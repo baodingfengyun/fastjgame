@@ -20,7 +20,6 @@ import com.wjybxx.fastjgame.utils.concurrent.*;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -34,14 +33,8 @@ import java.util.concurrent.TimeoutException;
  */
 public class DefaultTimeoutPromise<V> extends DefaultPromise<V> implements TimeoutFuture<V>, TimeoutPromise<V> {
 
-    /**
-     * 最终时间。
-     */
-    private final long deadline;
-
-    public DefaultTimeoutPromise(@Nonnull EventLoop defaultExecutor, long timeout, TimeUnit timeUnit) {
+    public DefaultTimeoutPromise(@Nonnull EventLoop defaultExecutor) {
         super(defaultExecutor);
-        deadline = System.currentTimeMillis() + timeUnit.toMillis(timeout);
     }
 
     @Override
@@ -50,16 +43,6 @@ public class DefaultTimeoutPromise<V> extends DefaultPromise<V> implements Timeo
     }
 
     // ----------------------------------------------- 获取超时时间信息 ---------------------------------------------------
-
-    @Override
-    public long getExpireMillis() {
-        return deadline;
-    }
-
-    @Override
-    public long getExpire(TimeUnit timeUnit) {
-        return timeUnit.convert(deadline, TimeUnit.MILLISECONDS);
-    }
 
     // ------------------------------------------------ 流式语法支持 ----------------------------------------------------
     @Override

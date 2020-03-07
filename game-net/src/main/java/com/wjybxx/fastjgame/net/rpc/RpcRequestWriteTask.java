@@ -31,16 +31,21 @@ import javax.annotation.Nonnull;
 public class RpcRequestWriteTask implements WriteTask {
 
     private final Session session;
+
     private final Object request;
     private final boolean sync;
+    private final long timeoutMs;
+
     private final RpcPromise<?> rpcPromise;
     private final boolean flush;
 
-    public RpcRequestWriteTask(Session session, Object request, boolean sync,
+    public RpcRequestWriteTask(Session session,
+                               Object request, boolean sync, long timeoutMs,
                                @Nonnull RpcPromise<?> rpcPromise, boolean flush) {
         this.session = session;
         this.request = request;
         this.sync = sync;
+        this.timeoutMs = timeoutMs;
         this.flush = flush;
         this.rpcPromise = rpcPromise;
     }
@@ -51,6 +56,10 @@ public class RpcRequestWriteTask implements WriteTask {
 
     public boolean isSync() {
         return sync;
+    }
+
+    public long getTimeoutMs() {
+        return timeoutMs;
     }
 
     public RpcPromise<?> getRpcPromise() {

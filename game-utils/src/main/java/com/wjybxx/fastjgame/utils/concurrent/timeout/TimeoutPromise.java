@@ -23,7 +23,6 @@ import com.wjybxx.fastjgame.utils.concurrent.SucceededFutureListener;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 具有时效性的Promise
@@ -34,17 +33,6 @@ import java.util.concurrent.TimeUnit;
  * github - https://github.com/hl845740757
  */
 public interface TimeoutPromise<V> extends Promise<V>, TimeoutFuture<V> {
-
-    /**
-     * 获取毫秒级别的过期时间戳
-     * 工作者线程，必须在超时后将{@link TimeoutFuture}置为超时状态。
-     */
-    long getExpireMillis();
-
-    /**
-     * 获取超时时间
-     */
-    long getExpire(TimeUnit timeUnit);
 
     // 仅用于语法支持
     @Override

@@ -115,8 +115,9 @@ public class FutureCombiner {
      * 指定用于监听前面添加的所有future的完成事件的promise，该promise会在监听的所有future进入完成状态之后进入完成状态。
      *
      * @param aggregatePromise 用于监听前面的所有future的完成事件
+     * @return 返回参数，方便直接添加回调。
      */
-    public void finish(@Nonnull Promise<Void> aggregatePromise) {
+    public <T extends Promise<Void>> T finish(@Nonnull T aggregatePromise) {
         Objects.requireNonNull(aggregatePromise, "aggregatePromise");
         checkInEventLoop("Finish must be called from EventLoop thread");
         checkFinishAllowed();
@@ -125,6 +126,8 @@ public class FutureCombiner {
         if (doneCount == expectedCount) {
             tryPromise();
         }
+
+        return aggregatePromise;
     }
 
     private void checkFinishAllowed() {

@@ -39,11 +39,10 @@ public interface NetEventLoop extends EventLoop, NetEventLoopGroup, EventDispatc
      * 创建一个RpcPromise
      *
      * @param appEventLoop 用户所在的EventLoop
-     * @param timeoutMs    指定的过期时间
      * @return promise
      */
     @Nonnull
-    <V> RpcPromise<V> newRpcPromise(@Nonnull EventLoop appEventLoop, long timeoutMs);
+    <V> RpcPromise<V> newRpcPromise(@Nonnull EventLoop appEventLoop);
 
     /**
      * 创建rpcFuture，它关联的rpc操作早已完成。在它上面的监听会立即执行。

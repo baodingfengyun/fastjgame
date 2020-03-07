@@ -88,7 +88,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             RpcRequestWriteTask writeTask = (RpcRequestWriteTask) msg;
 
             // 保存rpc请求上下文
-            long deadline = writeTask.getRpcPromise().getExpireMillis();
+            long deadline = ctx.timerSystem().curTimeMillis() + writeTask.getTimeoutMs();
             RpcTimeoutInfo rpcTimeoutInfo = new RpcTimeoutInfo(writeTask.getRpcPromise(), deadline);
             long requestGuid = ++requestGuidSequencer;
             rpcTimeoutInfoMap.put(requestGuid, rpcTimeoutInfo);

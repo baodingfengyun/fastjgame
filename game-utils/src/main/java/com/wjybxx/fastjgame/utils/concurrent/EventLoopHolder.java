@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.utils.concurrent;
 
-import com.wjybxx.fastjgame.utils.exception.InternalApiException;
-
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.function.Supplier;
 
@@ -39,7 +37,7 @@ public class EventLoopHolder<T extends EventLoop> implements Supplier<T> {
             // 保证线程安全性
             this.eventLoop = eventLoop;
         } else {
-            throw new InternalApiException();
+            throw new GuardedOperationException();
         }
     }
 

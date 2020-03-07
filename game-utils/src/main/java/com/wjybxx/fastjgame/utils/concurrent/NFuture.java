@@ -19,7 +19,6 @@ package com.wjybxx.fastjgame.utils.concurrent;
 import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
@@ -106,7 +105,6 @@ public interface NFuture<V> {
      * @throws CancellationException 如果任务被取消了，则抛出该异常
      * @throws CompletionException   如果在计算过程中出现了其它异常导致任务失败，则抛出该异常。
      */
-    @Nullable
     V getNow();
 
     /**
@@ -117,7 +115,6 @@ public interface NFuture<V> {
      *
      * @return 失败的原因
      */
-    @Nullable
     Throwable cause();
 
     // ------------------------------------- 监听 --------------------------------------
@@ -132,7 +129,7 @@ public interface NFuture<V> {
     EventLoop defaultExecutor();
 
     /**
-     * 添加一个监听者到当前Future。传入的特定的Listener将会在Future计算完成时{@link #isDone() true}被通知。
+     * 添加一个监听器。Listener将会在Future计算完成时{@link #isDone() true}被通知。
      * 如果当前Future已经计算完成，那么将立即被通知（不一定立即执行，取决于当前是否在{@link #defaultExecutor()}线程）。
      *
      * @param listener 要添加的监听器。
@@ -141,20 +138,12 @@ public interface NFuture<V> {
     NFuture<V> onComplete(@Nonnull FutureListener<? super V> listener);
 
     /**
-     * 添加一个监听者到当前Future。传入的特定的Listener将会在Future计算完成时{@link #isDone() true}被通知。
-     * <p>
-     * 当你的执行环境是一个单线程的executor的时候，可以直接提交到你所在的线程，从而消除事件处理时的同步逻辑。
-     * eg:
-     * <pre>
-     * {@code
-     * 		// this.executor 代表当前线程
-     * 		addListener(listener, this.executor)
-     * }
-     * </pre>
+     * 添加一个监听器。Listener将会在Future计算完成时{@link #isDone() true}被通知，并最终运行在指定{@link Executor}下。
      *
      * @param listener     要添加的监听器
      * @param bindExecutor 监听器的最终执行线程
      * @return this
+     * @see #onComplete(FutureListener)
      */
     NFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
@@ -183,8 +172,8 @@ public interface NFuture<V> {
      * 任何<b>阻塞式调用</b>和<b>添加监听器</b>都将抛出异常。
      * <p>
      * Q: 它的主要目的？
-     * A: 减少开销。其实任何使用{@link VoidFuture}的地方，都可以使用正常的future，
-     * 只是会有额外的开销。在某些场景使用{@link VoidFuture}将节省很多开销。
+     * A: 减少开销。其实任何使用VoidFuture的地方，都可以使用正常的future，
+     * 只是会有额外的开销。在某些场景使用VoidFuture将节省很多开销。
      */
     @UnstableApi
     boolean isVoid();

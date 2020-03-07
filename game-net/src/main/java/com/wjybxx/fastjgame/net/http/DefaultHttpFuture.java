@@ -17,8 +17,11 @@
 package com.wjybxx.fastjgame.net.http;
 
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.FailedFutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
+import com.wjybxx.fastjgame.utils.concurrent.SucceededFutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.adapter.CompletableFutureAdapter;
+import com.wjybxx.fastjgame.utils.concurrent.timeout.TimeoutFutureListener;
 
 import javax.annotation.Nonnull;
 import java.net.http.HttpTimeoutException;
@@ -67,4 +70,39 @@ public class DefaultHttpFuture<V> extends CompletableFutureAdapter<V> implements
         return this;
     }
 
+    @Override
+    public HttpFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
+        super.onSuccess(listener);
+        return this;
+    }
+
+    @Override
+    public HttpFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        super.onSuccess(listener, bindExecutor);
+        return this;
+    }
+
+    @Override
+    public HttpFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
+        super.onFailure(listener);
+        return this;
+    }
+
+    @Override
+    public HttpFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        super.onFailure(listener, bindExecutor);
+        return this;
+    }
+
+    @Override
+    public HttpFuture<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener) {
+        super.onComplete(listener);
+        return this;
+    }
+
+    @Override
+    public HttpFuture<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        super.onComplete(listener, bindExecutor);
+        return this;
+    }
 }
