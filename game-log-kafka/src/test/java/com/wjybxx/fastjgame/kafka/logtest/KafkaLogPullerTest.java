@@ -23,10 +23,10 @@ import com.wjybxx.fastjgame.log.imp.DefaultLogParser;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.ImmediateEventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandlers;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -72,9 +72,10 @@ public class KafkaLogPullerTest {
 
     private static class TestLogConsumer<T> implements LogConsumer<T> {
 
+        @Nullable
         @Override
         public EventLoop appEventLoop() {
-            return ImmediateEventLoop.INSTANCE;
+            return null;
         }
 
         @Override

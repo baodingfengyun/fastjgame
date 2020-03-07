@@ -23,11 +23,7 @@ import java.util.List;
 import java.util.concurrent.*;
 
 /**
- * 一个{@link EventLoopGroup }的抽象实现，实现一些基础的方法。
- * 它是容器类型节点的顶层超类。
- * <p>
- * 因为它是一个容器节点，自身并不真正的处理逻辑，而是简单的将任务分配到每一个EventLoop。
- * 其主要作用是管理EventLoop节点的生命周期等等。
+ * {@link EventLoopGroup }的抽象实现，主要实现任务分配。
  *
  * @author wjybxx
  * @version 1.0

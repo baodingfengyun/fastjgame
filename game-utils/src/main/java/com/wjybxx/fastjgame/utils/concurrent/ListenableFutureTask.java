@@ -125,6 +125,11 @@ public class ListenableFutureTask<V> implements ListenableFuture<V>, RunnableFut
     }
 
     @Override
+    public EventLoop defaultExecutor() {
+        return promise.defaultExecutor();
+    }
+
+    @Override
     public ListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
         return promise.onComplete(listener);
     }

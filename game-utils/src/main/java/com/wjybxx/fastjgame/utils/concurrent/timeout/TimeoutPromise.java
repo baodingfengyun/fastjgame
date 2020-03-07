@@ -37,6 +37,7 @@ public interface TimeoutPromise<V> extends Promise<V>, TimeoutFuture<V> {
 
     /**
      * 获取毫秒级别的过期时间戳
+     * 工作者线程，必须在超时后将{@link TimeoutFuture}置为超时状态。
      */
     long getExpireMillis();
 

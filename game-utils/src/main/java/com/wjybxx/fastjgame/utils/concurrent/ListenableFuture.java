@@ -22,6 +22,8 @@ import java.util.concurrent.*;
 
 /**
  * 它继承了JDK的{@link Future}，出现了阻塞式api。
+ * <h3>建议</h3>
+ * 如果不是必须需要阻塞式的API，应当优先选择{@link NFuture}。
  *
  * <p>
  * Q: 为什么使用非受检{@link CompletionException}异常代替了{@link ExecutionException}？
@@ -34,7 +36,7 @@ import java.util.concurrent.*;
  * date - 2019/7/14
  * github - https://github.com/hl845740757
  */
-public interface ListenableFuture<V> extends Future<V>, NListenableFuture<V> {
+public interface ListenableFuture<V> extends Future<V>, NFuture<V> {
 
     // ------------------------------------- 阻塞式获取操作结果 ---------------------------------------
 

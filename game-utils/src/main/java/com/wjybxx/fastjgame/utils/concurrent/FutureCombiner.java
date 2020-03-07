@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.utils.concurrent;
 
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.Collection;
@@ -73,9 +71,6 @@ public class FutureCombiner {
     private Throwable cause;
 
     public FutureCombiner(EventLoop appEventLoop) {
-        if (appEventLoop == ImmediateEventLoop.INSTANCE) {
-            throw new IllegalArgumentException();
-        }
         this.appEventLoop = appEventLoop;
     }
 
@@ -107,7 +102,7 @@ public class FutureCombiner {
     }
 
     private void checkInEventLoop(String msg) {
-        ConcurrentUtils.ensureInEventLoop(appEventLoop, msg);
+        EventLoopUtils.ensureInEventLoop(appEventLoop, msg);
     }
 
     private void checkAddFutureAllowed() {
@@ -141,7 +136,7 @@ public class FutureCombiner {
     private class ChildListener implements FutureListener<Object> {
 
         @Override
-        public void onComplete(NListenableFuture<Object> future) throws Exception {
+        public void onComplete(NFuture<Object> future) throws Exception {
             assert appEventLoop.inEventLoop();
 
             if (!future.isSuccess()) {

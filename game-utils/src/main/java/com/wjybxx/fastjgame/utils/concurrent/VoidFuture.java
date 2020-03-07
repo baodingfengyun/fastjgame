@@ -33,15 +33,20 @@ import java.util.concurrent.TimeoutException;
 @UnstableApi
 public class VoidFuture implements ListenableFuture<Object> {
 
-    private final EventLoop eventLoop;
+    private final EventLoop defaultExecutor;
 
-    public VoidFuture(EventLoop eventLoop) {
-        this.eventLoop = eventLoop;
+    public VoidFuture(EventLoop defaultExecutor) {
+        this.defaultExecutor = defaultExecutor;
     }
 
     @Override
     public final boolean isVoid() {
         return true;
+    }
+
+    @Override
+    public EventLoop defaultExecutor() {
+        return defaultExecutor;
     }
 
     // --------------------------------------- 任何状态查询都立即返回 ----------------------------------------

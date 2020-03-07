@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * {@link AbstractListenableFuture}的一个实现，表示它关联的操作早已完成。
- * 任何添加到上面的监听器将立即收到通知。
+ * 任何添加到上面的监听器将立即被通知。
  *
  * @param <V> the type of value
  * @author wjybxx
@@ -36,13 +36,18 @@ public abstract class CompleteFuture<V> extends AbstractListenableFuture<V> {
     /**
      * 默认的监听器执行环境
      */
-    private final EventLoop notifyExecutor;
+    private final EventLoop defaultExecutor;
 
     /**
-     * @param notifyExecutor 该future用于通知的线程,Listener的执行环境。
+     * @param defaultExecutor 该future用于通知的线程, Listener的执行环境。
      */
-    protected CompleteFuture(@Nonnull EventLoop notifyExecutor) {
-        this.notifyExecutor = notifyExecutor;
+    protected CompleteFuture(@Nonnull EventLoop defaultExecutor) {
+        this.defaultExecutor = defaultExecutor;
+    }
+
+    @Override
+    public EventLoop defaultExecutor() {
+        return defaultExecutor;
     }
 
     @Override
@@ -90,45 +95,45 @@ public abstract class CompleteFuture<V> extends AbstractListenableFuture<V> {
 
     @Override
     public ListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
-        notifyListener(listener);
+        notifyListener(new FutureListenerEntry<>(listener, defaultExecutor));
         return this;
     }
 
     @Override
     public ListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        notifyListener(new ExecutorBindListener<>(listener, bindExecutor));
+        notifyListener(new FutureListenerEntry<>(listener, bindExecutor));
         return this;
     }
 
     @Override
     public ListenableFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
-        notifyListener(listener);
+        notifyListener(new FutureListenerEntry<>(listener, defaultExecutor));
         return this;
     }
 
     @Override
     public ListenableFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        notifyListener(new ExecutorBindListener<>(listener, bindExecutor));
+        notifyListener(new FutureListenerEntry<>((FutureListener<? super V>) listener, bindExecutor));
         return this;
     }
 
     @Override
     public ListenableFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
-        notifyListener(listener);
+        notifyListener(new FutureListenerEntry<>(listener, defaultExecutor));
         return this;
     }
 
     @Override
     public ListenableFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        notifyListener(new ExecutorBindListener<>(listener, bindExecutor));
+        notifyListener(new FutureListenerEntry<>((FutureListener<? super V>) listener, bindExecutor));
         return this;
     }
 
     /**
      * 通知一个监听器。
      */
-    private void notifyListener(@Nonnull FutureListener<? super V> listener) {
-        DefaultPromise.notifyAllListeners(notifyExecutor, this, listener);
+    private void notifyListener(FutureListenerEntry<? super V> listenerEntry) {
+        DefaultPromise.notifyListenerNowSafely(this, listenerEntry);
     }
 
 }

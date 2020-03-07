@@ -28,26 +28,24 @@ public class CompositeFutureListener<V> implements FutureListener<V> {
 
     private static final int DEFAULT_INIT_CAPACITY = 4;
 
-    private final List<FutureListener<? super V>> children;
+    private final List<FutureListenerEntry<? super V>> children;
 
-    public CompositeFutureListener(FutureListener<? super V> first, FutureListener<? super V> second) {
-        this(DEFAULT_INIT_CAPACITY, first, second);
+    public CompositeFutureListener() {
+        this(DEFAULT_INIT_CAPACITY);
     }
 
-    public CompositeFutureListener(int initCapacity, FutureListener<? super V> first, FutureListener<? super V> second) {
+    public CompositeFutureListener(int initCapacity) {
         children = new ArrayList<>(initCapacity);
-        children.add(first);
-        children.add(second);
     }
 
-    public void addChild(FutureListener<? super V> child) {
+    public void addChild(FutureListenerEntry<? super V> child) {
         children.add(child);
     }
 
     @Override
-    public void onComplete(NListenableFuture<V> future) throws Exception {
-        for (FutureListener<? super V> futureListener : children) {
-            DefaultPromise.notifyListenerNowSafely(future, futureListener);
+    public void onComplete(NFuture<V> future) throws Exception {
+        for (FutureListenerEntry<? super V> listenerEntry : children) {
+            DefaultPromise.notifyListenerNowSafely(future, listenerEntry);
         }
     }
 }

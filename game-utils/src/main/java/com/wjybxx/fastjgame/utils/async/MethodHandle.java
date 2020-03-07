@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.utils.async;
 
-import com.wjybxx.fastjgame.utils.concurrent.NListenableFuture;
+import com.wjybxx.fastjgame.utils.concurrent.NFuture;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -52,7 +52,7 @@ public interface MethodHandle<T, V> {
      * @param client 方法的执行对象
      * @return 用于监听结果的监听管理器
      */
-    NListenableFuture<V> call(@Nonnull T client);
+    NFuture<V> call(@Nonnull T client);
 
     /**
      * 执行同步调用，如果执行成功，则返回对应的调用结果。

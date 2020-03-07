@@ -18,11 +18,13 @@ package com.wjybxx.fastjgame.utils.concurrent.fast;
 
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.concurrent.*;
-import com.wjybxx.fastjgame.utils.concurrent.internal.PromiseBase;
+import com.wjybxx.fastjgame.utils.concurrent.internal.AbstractNewPromise;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Executor;
 
 /**
@@ -41,7 +43,7 @@ import java.util.concurrent.Executor;
  * date - 2020/3/6
  */
 @ThreadSafe
-public class FastPromise<V> extends PromiseBase<V> {
+public class FastPromise<V> extends AbstractNewPromise<V> {
 
     /**
      * 用户线程。
@@ -52,10 +54,15 @@ public class FastPromise<V> extends PromiseBase<V> {
      * 非volatile，也未用锁保护，只有{@link #appEventLoop}线程可以访问。
      */
     @GuardedBy("inEventLoop")
-    private FutureListener<? super V> futureListeners;
+    private List<FutureListenerEntry<? super V>> listenerEntries;
 
     public FastPromise(EventLoop appEventLoop) {
         this.appEventLoop = appEventLoop;
+    }
+
+    @Override
+    public EventLoop defaultExecutor() {
+        return appEventLoop;
     }
 
     @Override
@@ -75,57 +82,57 @@ public class FastPromise<V> extends PromiseBase<V> {
         assert appEventLoop.inEventLoop();
 
         // 由于工作者线程可能提交通知任务，因此这里可能为null。
-        if (null == futureListeners) {
+        if (null == listenerEntries) {
             return;
         }
 
         try {
-            DefaultPromise.notifyAllListeners(appEventLoop, this, futureListeners);
+            DefaultPromise.notifyAllListenerNowSafely(this, listenerEntries);
         } finally {
-            futureListeners = null;
+            listenerEntries = null;
         }
     }
 
     @Override
     public NPromise<V> onComplete(@Nonnull FutureListener<? super V> listener) {
-        addListener0(listener);
+        addListener0(new FutureListenerEntry<>(listener, appEventLoop));
         return this;
     }
 
     @Override
     public NPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        addListener0(new ExecutorBindListener<>(listener, bindExecutor));
+        addListener0(new FutureListenerEntry<>(listener, bindExecutor));
         return this;
     }
 
     @Override
     public NPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
-        addListener0(listener);
+        addListener0(new FutureListenerEntry<>(listener, appEventLoop));
         return this;
     }
 
     @Override
     public NPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        addListener0(new ExecutorBindListener<>(listener, bindExecutor));
+        addListener0(new FutureListenerEntry<>((FutureListener<? super V>) listener, bindExecutor));
         return this;
     }
 
     @Override
     public NPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
-        addListener0(listener);
+        addListener0(new FutureListenerEntry<>(listener, appEventLoop));
         return this;
     }
 
     @Override
     public NPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        addListener0(new ExecutorBindListener<>(listener, bindExecutor));
+        addListener0(new FutureListenerEntry<>((FutureListener<? super V>) listener, bindExecutor));
         return this;
     }
 
-    private void addListener0(@Nonnull FutureListener<? super V> listener) {
+    private void addListener0(@Nonnull FutureListenerEntry<? super V> listenerEntry) {
         ensureInAppEventLoop();
 
-        _addListener0(listener);
+        _addListener0(listenerEntry);
 
         if (isDone()) {
             // 由于限定了只有appEventLoop可以添加监听器，因此可以立即执行回调
@@ -134,21 +141,14 @@ public class FastPromise<V> extends PromiseBase<V> {
     }
 
     private void ensureInAppEventLoop() {
-        ConcurrentUtils.ensureInEventLoop(appEventLoop);
+        EventLoopUtils.ensureInEventLoop(appEventLoop);
     }
 
-    private void _addListener0(@Nonnull FutureListener<? super V> listener) {
-        if (futureListeners == null) {
-            futureListeners = listener;
-            return;
+    private void _addListener0(@Nonnull FutureListenerEntry<? super V> listenerEntry) {
+        if (listenerEntries == null) {
+            listenerEntries = new ArrayList<>(4);
         }
-
-        if (futureListeners instanceof CompositeFutureListener) {
-            @SuppressWarnings("unchecked") CompositeFutureListener<V> compositeFutureListener = (CompositeFutureListener<V>) this.futureListeners;
-            compositeFutureListener.addChild(listener);
-        } else {
-            futureListeners = new CompositeFutureListener<>(futureListeners, listener);
-        }
+        listenerEntries.add(listenerEntry);
     }
 
 }

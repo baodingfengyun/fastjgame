@@ -17,7 +17,6 @@ package com.wjybxx.fastjgame.zk.guid;
 
 import com.wjybxx.fastjgame.guid.core.GuidGenerator;
 import com.wjybxx.fastjgame.utils.CodecUtils;
-import com.wjybxx.fastjgame.utils.concurrent.ImmediateEventLoop;
 import com.wjybxx.fastjgame.zk.core.CuratorClientMgr;
 import com.wjybxx.fastjgame.zk.core.CuratorFacade;
 import com.wjybxx.fastjgame.zk.utils.ZKPathUtils;
@@ -67,7 +66,7 @@ public class ZKGuidGenerator implements GuidGenerator {
         if (cacheSize <= 0) {
             throw new IllegalArgumentException("cacheSize: " + cacheSize + " (expected: > 0)");
         }
-        this.curatorFacade = new CuratorFacade(curatorClientMgr, ImmediateEventLoop.INSTANCE);
+        this.curatorFacade = new CuratorFacade(curatorClientMgr, null);
         this.name = name;
         this.cacheSize = cacheSize;
     }

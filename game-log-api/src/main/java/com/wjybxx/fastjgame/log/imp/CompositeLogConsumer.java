@@ -19,9 +19,9 @@ package com.wjybxx.fastjgame.log.imp;
 import com.wjybxx.fastjgame.log.core.LogConsumer;
 import com.wjybxx.fastjgame.log.utils.LogConsumerUtils;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.ImmediateEventLoop;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -56,9 +56,10 @@ public final class CompositeLogConsumer<T> implements LogConsumer<T> {
         children.add(child);
     }
 
+    @Nullable
     @Override
     public EventLoop appEventLoop() {
-        return ImmediateEventLoop.INSTANCE;
+        return null;
     }
 
     @Override

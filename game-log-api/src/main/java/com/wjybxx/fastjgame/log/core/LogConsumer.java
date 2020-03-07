@@ -17,8 +17,8 @@
 package com.wjybxx.fastjgame.log.core;
 
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.ImmediateEventLoop;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 
 /**
@@ -33,8 +33,9 @@ public interface LogConsumer<T> {
 
     /**
      * 日志消费者的运行环境 - {@link #consume(Object)}的执行环境。
-     * <NOTE>使用{@link ImmediateEventLoop}可实现在{@code Puller线程消费}</NOTE>
+     * 如果返回null，表示直接在{@link LogPuller}线程消费。
      */
+    @Nullable
     EventLoop appEventLoop();
 
     /**

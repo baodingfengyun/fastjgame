@@ -39,7 +39,7 @@ import static com.wjybxx.fastjgame.utils.ThreadUtils.checkInterrupted;
  * @version 1.0
  * date - 2020/3/6
  */
-public abstract class AbstractPromise<V> extends PromiseBase<V> implements ListenableFuture<V>, Promise<V> {
+public abstract class AbstractPromise<V> extends AbstractNewPromise<V> implements ListenableFuture<V>, Promise<V> {
 
     /**
      * 1毫秒多少纳秒
@@ -174,7 +174,7 @@ public abstract class AbstractPromise<V> extends PromiseBase<V> implements Liste
     }
 
     @Override
-    public boolean await(long timeout, @Nonnull TimeUnit unit) throws InterruptedException {
+    public final boolean await(long timeout, @Nonnull TimeUnit unit) throws InterruptedException {
         // 小于等于0，则不阻塞
         if (timeout <= 0) {
             return isDone();
@@ -208,7 +208,7 @@ public abstract class AbstractPromise<V> extends PromiseBase<V> implements Liste
     }
 
     @Override
-    public boolean awaitUninterruptibly(long timeout, @Nonnull TimeUnit unit) {
+    public final boolean awaitUninterruptibly(long timeout, @Nonnull TimeUnit unit) {
         // 小于等于0，则不阻塞
         if (timeout <= 0) {
             return isDone();

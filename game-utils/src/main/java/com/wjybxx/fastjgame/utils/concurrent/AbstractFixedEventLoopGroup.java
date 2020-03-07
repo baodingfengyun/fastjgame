@@ -224,7 +224,7 @@ public abstract class AbstractFixedEventLoopGroup extends AbstractEventLoopGroup
         }
 
         @Override
-        public void onComplete(NListenableFuture<Object> future) throws Exception {
+        public void onComplete(NFuture<Object> future) throws Exception {
             if (terminatedChildren.incrementAndGet() == children.length) {
                 try {
                     clean();

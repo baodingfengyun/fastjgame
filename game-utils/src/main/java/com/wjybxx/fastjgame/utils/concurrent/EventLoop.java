@@ -58,15 +58,16 @@ public interface EventLoop extends FixedEventLoopGroup {
     EventLoopGroup parent();
 
     /**
-     * 当前线程是否是EventLoop线程。
-     * 它暗示着：如果当前线程是EventLoop线程，那么可以访问一些线程封闭的数据。
+     * 当前线程是否是{@link EventLoop}所在线程。
+     * 主要作用:
+     * 1. 它暗示着：如果当前线程是{@link EventLoop}线程，那么可以访问一些线程封闭的数据。
+     * 2. 防止死锁。
      *
-     * @return true/false
-     * @apiNote <h3>时序问题</h3>
+     * <h3>时序问题</h3>
      * 以下代码可能产生时序问题:
      * <pre>
      * {@code
-     * 		if(eventLoop.inEventLoop()) {
+     * 		if(eventExecutor.inEventLoop()) {
      * 	    	doSomething();
      *        } else{
      * 			eventLoop.execute(() -> doSomething());
@@ -79,11 +80,11 @@ public interface EventLoop extends FixedEventLoopGroup {
      * 1. 所有的非EventLoop线程的操作会进入同一个队列，因此所有的非EventLoop线程之间的操作是有序的！
      * 2. 但是EventLoop线程是直接执行的，并没有进入队列，因此EventLoop线程 和 任意非EventLoop线程之间都没有顺序保证。
      * <p>
-     * 例如：有一个全局计数器，每一个线程在执行某个方法之前需要先将计数+1。 如果EventLoop线程也会调用该方法，它可能导致方法内部看见的计数不是顺序的!!!
-     * {@code final AtomicInteger counter = new AtomicInteger();}
-     * 它有时候是无害的，有时候则是有害的，因此必须想明白是否需要提供全局时序保证！
+     * 举个例子：去营业厅办理业务时，一般是先拿号，再排队办理业务。但是如果有人拿号之后可以立即办理业务，不需要排队，那么号码可能就失去意义了！
      * <p>
-     * 该方法一定要慎用。
+     * 该方法一定要慎用，它有时候是无害的，有时候则是有害的，因此必须想明白是否需要提供全局时序保证！
+     *
+     * @return true/false
      */
     boolean inEventLoop();
 

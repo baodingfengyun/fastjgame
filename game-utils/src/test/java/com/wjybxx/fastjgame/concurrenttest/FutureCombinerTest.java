@@ -73,7 +73,7 @@ public class FutureCombinerTest {
         });
     }
 
-    private static String getResultAsStringSafely(NListenableFuture<?> future) {
+    private static String getResultAsStringSafely(NFuture<?> future) {
         if (future.isSuccess()) {
             return String.valueOf(future.getNow());
         } else {

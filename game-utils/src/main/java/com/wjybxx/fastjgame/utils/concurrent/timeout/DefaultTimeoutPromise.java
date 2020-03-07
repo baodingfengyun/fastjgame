@@ -19,7 +19,6 @@ package com.wjybxx.fastjgame.utils.concurrent.timeout;
 import com.wjybxx.fastjgame.utils.concurrent.*;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -62,88 +61,19 @@ public class DefaultTimeoutPromise<V> extends DefaultPromise<V> implements Timeo
         return timeUnit.convert(deadline, TimeUnit.MILLISECONDS);
     }
 
-    // ---------------------------------------------- 非阻塞式获取结果超时检测 ------------------------------------------------
-
-    private void checkTimeout() {
-        // 如果时间到了，还没有结果，那么需要标记为超时
-        if (!isDone() && System.currentTimeMillis() >= deadline) {
-            onTimeout();
-        }
-    }
-
-    protected void onTimeout() {
-        tryFailure(new TimeoutException());
-    }
-
-    @Nullable
-    @Override
-    public final V getNow() {
-        checkTimeout();
-        return super.getNow();
-    }
-
-    @Nullable
-    @Override
-    public final Throwable cause() {
-        checkTimeout();
-        return super.cause();
-    }
-
-    // -------------------------------------------------- 阻塞式等待超时检测 --------------------------------
-
+    // ------------------------------------------------ 流式语法支持 ----------------------------------------------------
     @Override
     public TimeoutPromise<V> await() throws InterruptedException {
-        // 有限的等待
-        await(remainTimeMillis(), TimeUnit.MILLISECONDS);
-        assert isDone();
+        super.await();
         return this;
     }
 
     @Override
     public TimeoutPromise<V> awaitUninterruptibly() {
-        // 有限的等待
-        awaitUninterruptibly(remainTimeMillis(), TimeUnit.MILLISECONDS);
-        assert isDone();
+        super.awaitUninterruptibly();
         return this;
     }
 
-    @Override
-    public final boolean await(long timeout, @Nonnull TimeUnit unit) throws InterruptedException {
-        final long waitMillis = unit.toMillis(timeout);
-        final long remainMillis = remainTimeMillis();
-        //  如果等待的时间超过剩余时间，那么必须有结果
-        if (waitMillis >= remainMillis) {
-            if (super.await(remainMillis, TimeUnit.MILLISECONDS)) {
-                return true;
-            }
-            onTimeout();
-            return true;
-        } else {
-            return super.await(waitMillis, TimeUnit.MILLISECONDS);
-        }
-    }
-
-    @Override
-    public final boolean awaitUninterruptibly(long timeout, @Nonnull TimeUnit unit) {
-        final long waitMillis = unit.toMillis(timeout);
-        final long remainMillis = remainTimeMillis();
-        //  如果等待的时间超过剩余时间，那么必须有结果
-        if (waitMillis >= remainMillis) {
-            if (super.awaitUninterruptibly(remainMillis, TimeUnit.MILLISECONDS)) {
-                return true;
-            }
-            onTimeout();
-            return true;
-        } else {
-            return super.awaitUninterruptibly(waitMillis, TimeUnit.MILLISECONDS);
-        }
-    }
-
-    private long remainTimeMillis() {
-        return deadline - System.currentTimeMillis();
-    }
-
-    // ---------------------------------------------- 流式语法 ------------------------------------------------
     @Override
     public TimeoutPromise<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener) {
         super.onComplete(listener);

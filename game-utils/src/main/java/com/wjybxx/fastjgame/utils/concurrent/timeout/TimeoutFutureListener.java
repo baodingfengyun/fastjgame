@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.utils.concurrent.timeout;
 
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
-import com.wjybxx.fastjgame.utils.concurrent.NListenableFuture;
+import com.wjybxx.fastjgame.utils.concurrent.NFuture;
 
 /**
  * 超时future结果监听
@@ -31,7 +31,7 @@ import com.wjybxx.fastjgame.utils.concurrent.NListenableFuture;
 public interface TimeoutFutureListener<V> extends FutureListener<V> {
 
     @Override
-    default void onComplete(NListenableFuture<V> future) throws Exception {
+    default void onComplete(NFuture<V> future) throws Exception {
         final TimeoutFuture<V> timeoutFuture = (TimeoutFuture<V>) future;
         if (timeoutFuture.isTimeout()) {
             onTimeout(timeoutFuture);

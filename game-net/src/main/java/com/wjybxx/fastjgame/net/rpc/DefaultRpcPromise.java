@@ -19,10 +19,8 @@ package com.wjybxx.fastjgame.net.rpc;
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.net.exception.RpcException;
 import com.wjybxx.fastjgame.net.exception.RpcTimeoutException;
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.concurrent.*;
 import com.wjybxx.fastjgame.utils.concurrent.timeout.DefaultTimeoutPromise;
-import com.wjybxx.fastjgame.utils.concurrent.timeout.TimeoutFuture;
 import com.wjybxx.fastjgame.utils.concurrent.timeout.TimeoutFutureListener;
 
 import javax.annotation.Nonnull;
@@ -56,7 +54,7 @@ public class DefaultRpcPromise<V> extends DefaultTimeoutPromise<V> implements Rp
 
     @Override
     protected void checkDeadlock() {
-        ConcurrentUtils.checkDeadLock(workerEventLoop);
+        EventLoopUtils.checkDeadLock(workerEventLoop);
     }
 
     @Override
@@ -83,11 +81,6 @@ public class DefaultRpcPromise<V> extends DefaultTimeoutPromise<V> implements Rp
             return ((RpcException) cause).getErrorCode();
         }
         return null;
-    }
-
-    @Override
-    protected void onTimeout() {
-        tryFailure(RpcTimeoutException.INSTANCE);
     }
 
     // --------------------------------- 流式语法支持 ------------------------------

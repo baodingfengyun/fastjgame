@@ -22,14 +22,13 @@ import javax.annotation.Nonnull;
 import java.util.concurrent.Executor;
 
 /**
- * promise用于为关联的{@link NListenableFuture}赋值结果。
- *
+ * promise用于为关联的{@link NFuture}赋值结果。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2020/3/6
  */
-public interface NPromise<V> extends NListenableFuture<V> {
+public interface NPromise<V> extends NFuture<V> {
 
     /**
      * 将future标记为成功完成，并且通知所有的监听器。

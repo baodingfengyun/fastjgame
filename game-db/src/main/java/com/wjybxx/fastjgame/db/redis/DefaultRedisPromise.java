@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.db.redis;
 
 
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.concurrent.*;
 
 import javax.annotation.Nonnull;
@@ -45,7 +44,7 @@ public class DefaultRedisPromise<V> extends DefaultPromise<V> implements RedisFu
 
     @Override
     protected void checkDeadlock() {
-        ConcurrentUtils.checkDeadLock(workerEventLoop);
+        EventLoopUtils.checkDeadLock(workerEventLoop);
     }
 
     // ------------------------------------------------ 支持流式语法 ------------------------------------

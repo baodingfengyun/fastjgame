@@ -17,21 +17,14 @@
 package com.wjybxx.fastjgame.utils.concurrent;
 
 
-import com.wjybxx.fastjgame.utils.timer.TimerSystem;
-
 import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.*;
 
 /**
- * 事件循环线程组，它表示拥有一个或多个事件循环线程。
- * 它的本质是容器，它负责管理持有的EventLoop的生命周期。
- * <p>
- * 目前来说不需要实现schedule，就游戏而言，用到的地方并不多，可以换别的方式实现。
- * 在线程内部，定时任务建议使用{@link TimerSystem}。
- * <p>
- * 此外，虽然{@link EventLoopGroup}继承自{@link ExecutorService}，其中有些方法并不是很想实现，最好少用。
+ * 事件循环线程组，它管理着一组{@link EventLoop}。
+ * 它的本质是容器，它主要负责管理持有的EventLoop的生命周期。
  *
  * @version 1.0
  * date - 2019/7/14
@@ -40,7 +33,7 @@ import java.util.concurrent.*;
 public interface EventLoopGroup extends ExecutorService {
 
     /**
-     * 返回一个EventLoop用于接下来的调度
+     * 返回一个 {@link EventLoop}用于接下来的调度
      */
     @Nonnull
     EventLoop next();

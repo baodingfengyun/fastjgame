@@ -25,22 +25,27 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 
 /**
- * 非阻塞的future。
+ * 非阻塞的可监听的future。
  * 它不提供任何的阻塞式接口，只提供异步监听和非阻塞获取结果的api。
- * <h3>命名困难</h3>
- * 主要由于jdk的future的原因，jdk的future一开始就提供了阻塞式的api。
+ *
+ * <h3>NFuture优先</h3>
+ * 如果不是必须需要阻塞式的API，应当优先选择{@link NFuture}。
+ *
+ * <h3>"N"的含义"</h3>
  * 这里的N可以参考NIO的N，可以读作 “new” 或者 “non blocking”。
+ * 主要由于jdk的future一开始就提供了阻塞式的api，因此这里不能继承future。
  *
  * <h3>监听器执行时序</h3>
- * 实现类必须提供最小保证：对于执行环境相同的监听器，必须按照添加顺序执行。即：
- * 1. 未指定{@link Executor}的监听器，必须按照添加顺序执行。
- * 2. 指定了相同{@link Executor}的监听器，必须按照添加顺序执行。
+ * 1. 实现类必须保证<b>通知顺序和添加顺序一致</b>，也就是必须禁止并发通知，即：任意时刻至多存在一个通知线程。<br>
+ * 2. 在1的保证下，可以推出:<b>执行环境相同(线程绑定)</b>的监听器，会按照添加顺序执行。而对于执行环境不确定的监听器，则不需要提供任何顺序保证。
+ * 3. 对于未指定{@link Executor}的监听器，执行顺序和添加顺序一致，它们会在{@link #defaultExecutor()}中有序执行。
+ * 4. 对于指定了{@link Executor}的监听器，如果{@link Executor}是单线程的，那么该executor关联的监听会按照添加顺序执行。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2020/3/6
  */
-public interface NListenableFuture<V> {
+public interface NFuture<V> {
 
     /**
      * 查询任务是否已完成。
@@ -118,26 +123,32 @@ public interface NListenableFuture<V> {
     // ------------------------------------- 监听 --------------------------------------
 
     /**
+     * 监听器的默认执行环境，如果在添加监听器时，未指定{@link Executor}，那么一定会在该{@link EventLoop}下执行。
+     * 它声明为{@link EventLoop}，表示强调它是单线程的，也就是说所有未指定{@link Executor}的监听器会按照添加顺序执行。
+     * <p>
+     * 将其限制为单线程的，可能会导致一定的性能损失，但是可以降低编程难度。
+     * 而且如果该{@link EventLoop}就是我们的业务逻辑线程，且只有业务逻辑线程添加回调的话，那么将没有性能损失，这种情况也很常见。
+     */
+    EventLoop defaultExecutor();
+
+    /**
      * 添加一个监听者到当前Future。传入的特定的Listener将会在Future计算完成时{@link #isDone() true}被通知。
-     * 如果当前Future已经计算完成，那么将立即被通知。
-     * 注意：如实现类无特殊说明，该监听器将则可能并发的执行。当你的代码支持并发调用的时候，那么使用该方法注册监听器即可。
+     * 如果当前Future已经计算完成，那么将立即被通知（不一定立即执行，取决于当前是否在{@link #defaultExecutor()}线程）。
      *
      * @param listener 要添加的监听器。
      * @return this
      */
-    NListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener);
+    NFuture<V> onComplete(@Nonnull FutureListener<? super V> listener);
 
     /**
      * 添加一个监听者到当前Future。传入的特定的Listener将会在Future计算完成时{@link #isDone() true}被通知。
-     * 如果当前Future已经计算完成，那么将立即被通知。
-     * 注意：同一个listener反复添加会共存。
      * <p>
-     * 当你的执行环境是一个executor的时候，可以直接提交到你所在的线程，从而消除事件处理时的同步逻辑。
+     * 当你的执行环境是一个单线程的executor的时候，可以直接提交到你所在的线程，从而消除事件处理时的同步逻辑。
      * eg:
      * <pre>
      * {@code
-     * 		// this.executor代表当前线程
-     * 		addListener(listener, this.bindExecutor)
+     * 		// this.executor 代表当前线程
+     * 		addListener(listener, this.executor)
      * }
      * </pre>
      *
@@ -145,25 +156,25 @@ public interface NListenableFuture<V> {
      * @param bindExecutor 监听器的最终执行线程
      * @return this
      */
-    NListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+    NFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
     /**
      * 添加一个监听器，该监听器只有在成功的时候执行
      *
      * @see #onComplete(FutureListener)
      */
-    NListenableFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener);
+    NFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener);
 
-    NListenableFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+    NFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
     /**
      * 添加一个监听器，该监听器只有在失败的时候执行
      *
      * @see #onComplete(FutureListener)
      */
-    NListenableFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener);
+    NFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener);
 
-    NListenableFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+    NFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
     // ------------------------------------- 用于支持占位的voidFuture --------------------------------------
 

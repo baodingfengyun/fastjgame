@@ -27,8 +27,6 @@ import java.util.function.Consumer;
 
 /**
  * {@link EventLoop}的抽象实现。这里负责一些简单的方法实现。
- * <p>
- * Abstract base class for {@link EventLoop} implementations.
  *
  * @author wjybxx
  * @version 1.0
@@ -41,7 +39,6 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
 
     /**
      * 父节点的引用。
-     * 可能为null
      */
     private final EventLoopGroup parent;
     /**
@@ -62,7 +59,7 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
     @Nonnull
     @Override
     public EventLoop next() {
-        // 因为 EventExecutor 是叶子节点，是没有子节点的，因此请求的事件处理器都是自己
+        // 因为 EventLoop 是叶子节点，是没有子节点的，因此请求的事件处理器都是自己
         return this;
     }
 

@@ -18,7 +18,6 @@ package com.wjybxx.fastjgame.utils.concurrent.internal;
 
 import com.wjybxx.fastjgame.utils.concurrent.FutureUtils;
 import com.wjybxx.fastjgame.utils.concurrent.NPromise;
-import com.wjybxx.fastjgame.utils.concurrent.NListenableFuture;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -27,7 +26,7 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * 模板实现，它只负责了结果管理（状态迁移），这部分逻辑与锁无关。
+ * {@link NPromise}的模板实现，它只负责结果管理（状态迁移），这部分逻辑完全无锁。
  * <p>
  * 状态迁移：
  * <pre>
@@ -39,13 +38,13 @@ import java.util.concurrent.atomic.AtomicReference;
  *  (未完成)          |--------------------------------------------|
  *                                 (取消/异常/成功)
  *                 (cancel, tryFailure,setFailure,trySuccess,setSuccess)
- *
+ *</pre>
  *
  * @author wjybxx
  * @version 1.0
  * date - 2020/3/6
  */
-public abstract class PromiseBase<V> implements NListenableFuture<V>, NPromise<V> {
+public abstract class AbstractNewPromise<V> implements NPromise<V> {
 
     /**
      * 如果一个任务成功时没有结果{@link #setSuccess(Object) null}，使用该对象代替。
@@ -120,7 +119,7 @@ public abstract class PromiseBase<V> implements NListenableFuture<V>, NPromise<V
 
     @Nullable
     @Override
-    public V getNow() {
+    public final V getNow() {
         final Object result = resultHolder.get();
         if (isDone0(result)) {
             return reportGet(result);
@@ -146,7 +145,7 @@ public abstract class PromiseBase<V> implements NListenableFuture<V>, NPromise<V
 
     @Nullable
     @Override
-    public Throwable cause() {
+    public final Throwable cause() {
         return getCause0(resultHolder.get());
     }
 

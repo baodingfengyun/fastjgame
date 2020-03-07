@@ -24,6 +24,7 @@ import com.wjybxx.fastjgame.net.rpc.*;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.annotation.Internal;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.EventLoopUtils;
 import com.wjybxx.fastjgame.utils.timer.TimerHandle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -306,7 +307,7 @@ public abstract class AbstractSession implements Session {
      * 线程保护
      */
     private void ensureInNetEventLoop() {
-        ConcurrentUtils.ensureInEventLoop(netEventLoop);
+        EventLoopUtils.ensureInEventLoop(netEventLoop);
     }
 
     @Override

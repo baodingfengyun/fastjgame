@@ -27,12 +27,12 @@ package com.wjybxx.fastjgame.utils.concurrent;
 public interface FailedFutureListener<V> extends FutureListener<V> {
 
     @Override
-    default void onComplete(NListenableFuture<V> future) throws Exception {
+    default void onComplete(NFuture<V> future) throws Exception {
         if (!future.isSuccess()) {
             onFailure(future);
         }
     }
 
-    void onFailure(NListenableFuture<V> future) throws Exception;
+    void onFailure(NFuture<V> future) throws Exception;
 
 }

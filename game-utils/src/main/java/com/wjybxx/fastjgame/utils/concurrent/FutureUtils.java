@@ -27,6 +27,9 @@ import java.util.concurrent.CompletionException;
  */
 public class FutureUtils {
 
+    private FutureUtils() {
+    }
+
     /**
      * 重新抛出失败异常
      *
