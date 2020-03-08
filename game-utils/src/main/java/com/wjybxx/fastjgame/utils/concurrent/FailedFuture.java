@@ -36,8 +36,8 @@ public class FailedFuture<V> extends CompleteFuture<V> {
      */
     private final Throwable cause;
 
-    public FailedFuture(@Nonnull EventLoop notifyExecutor, @Nonnull Throwable cause) {
-        super(notifyExecutor);
+    public FailedFuture(@Nonnull EventLoop defaultExecutor, @Nonnull Throwable cause) {
+        super(defaultExecutor);
         this.cause = cause;
     }
 

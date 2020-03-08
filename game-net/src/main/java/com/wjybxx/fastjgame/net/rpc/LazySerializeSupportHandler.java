@@ -61,11 +61,11 @@ public class LazySerializeSupportHandler extends SessionDuplexHandlerAdapter {
      * @throws IOException error
      */
     private Object checkLazySerialize(Object body) throws Exception {
-        if (!(body instanceof RpcMethodSpec)) {
+        if (!(body instanceof DefaultRpcMethodSpec)) {
             return body;
         }
 
-        final RpcMethodSpec<?> rpcMethodSpec = (RpcMethodSpec<?>) body;
+        final DefaultRpcMethodSpec<?> rpcMethodSpec = (DefaultRpcMethodSpec<?>) body;
         final int lazyIndexes = rpcMethodSpec.getLazyIndexes();
         if (lazyIndexes <= 0) {
             return rpcMethodSpec;
@@ -89,7 +89,7 @@ public class LazySerializeSupportHandler extends SessionDuplexHandlerAdapter {
 
             newMethodParams.add(newParameter);
         }
-        return new RpcMethodSpec<>(rpcMethodSpec.getServiceId(), rpcMethodSpec.getMethodId(), newMethodParams, 0, rpcMethodSpec.getPreIndexes());
+        return new DefaultRpcMethodSpec<>(rpcMethodSpec.getServiceId(), rpcMethodSpec.getMethodId(), newMethodParams, 0, rpcMethodSpec.getPreIndexes());
     }
 
     @Override
@@ -109,11 +109,11 @@ public class LazySerializeSupportHandler extends SessionDuplexHandlerAdapter {
      * @throws IOException error
      */
     private Object checkPreDeserialize(Object body) throws Exception {
-        if (!(body instanceof RpcMethodSpec)) {
+        if (!(body instanceof DefaultRpcMethodSpec)) {
             return body;
         }
 
-        final RpcMethodSpec<?> rpcMethodSpec = (RpcMethodSpec<?>) body;
+        final DefaultRpcMethodSpec<?> rpcMethodSpec = (DefaultRpcMethodSpec<?>) body;
         final int preIndexes = rpcMethodSpec.getPreIndexes();
         if (preIndexes <= 0) {
             return rpcMethodSpec;
@@ -133,6 +133,6 @@ public class LazySerializeSupportHandler extends SessionDuplexHandlerAdapter {
             }
             newMethodParams.add(newParameter);
         }
-        return new RpcMethodSpec<>(rpcMethodSpec.getServiceId(), rpcMethodSpec.getMethodId(), newMethodParams, rpcMethodSpec.getLazyIndexes(), 0);
+        return new DefaultRpcMethodSpec<>(rpcMethodSpec.getServiceId(), rpcMethodSpec.getMethodId(), newMethodParams, rpcMethodSpec.getLazyIndexes(), 0);
     }
 }

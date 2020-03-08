@@ -23,15 +23,13 @@ import com.wjybxx.fastjgame.net.manager.*;
 import com.wjybxx.fastjgame.net.misc.DefaultNetContext;
 import com.wjybxx.fastjgame.net.misc.NetContext;
 import com.wjybxx.fastjgame.net.module.NetEventLoopModule;
-import com.wjybxx.fastjgame.net.rpc.FailedRpcFuture;
 import com.wjybxx.fastjgame.net.rpc.DefaultLocalRpcPromise;
+import com.wjybxx.fastjgame.net.rpc.FailedRpcFuture;
 import com.wjybxx.fastjgame.net.rpc.RpcFuture;
 import com.wjybxx.fastjgame.net.rpc.RpcPromise;
 import com.wjybxx.fastjgame.net.socket.*;
 import com.wjybxx.fastjgame.utils.CloseableUtils;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandler;
-import com.wjybxx.fastjgame.utils.concurrent.SingleThreadEventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.*;
 import com.wjybxx.fastjgame.utils.concurrent.disruptor.DisruptorEventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.event.EventDispatchTask;
 import com.wjybxx.fastjgame.utils.concurrent.event.EventLoopTerminalEvent;
@@ -64,6 +62,8 @@ class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLoop {
 
     private static final Logger logger = LoggerFactory.getLogger(NetEventLoopImp.class);
     private static final int TASK_BATCH_SIZE = 8192;
+
+    private final VoidPromise voidPromise = new VoidPromise(this);
 
     private final Set<EventLoop> appEventLoopSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private final NetEventLoopManager netEventLoopManager;
@@ -145,6 +145,12 @@ class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLoop {
     @Override
     public <V> RpcFuture<V> newFailedRpcFuture(@Nonnull EventLoop appEventLoop, @Nonnull Throwable cause) {
         return new FailedRpcFuture<>(appEventLoop, cause);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <V> Promise<V> voidPromise() {
+        return (Promise<V>) voidPromise;
     }
 
     @Override

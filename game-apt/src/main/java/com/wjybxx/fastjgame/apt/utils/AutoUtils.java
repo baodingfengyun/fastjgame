@@ -56,11 +56,11 @@ import java.util.stream.Collectors;
  * 2. {@link Types#isSameType(TypeMirror, TypeMirror)}、{@link Types#isSubtype(TypeMirror, TypeMirror)} 、
  * {@link Types#isAssignable(TypeMirror, TypeMirror)} api用于判断类之间的关系。
  * <p>
- * 3. {@code typeUtils.isSameType(RpcResponseChannel<String>, RpcResponseChannel)  false}
- * {@code typeUtils.isAssignable(RpcResponseChannel<String>, RpcResponseChannel)  true}
- * {@code typeUtils.isAssignable(RpcResponseChannel<String>, RpcResponseChannel<Integer>)  false}
- * {@code typeUtils.isSubType(RpcResponseChannel<String>, RpcResponseChannel)  true}
- * {@code typeUtils.isSubType(RpcResponseChannel<String>, RpcResponseChannel<Integer>)  false}
+ * 3. {@code typeUtils.isSameType(Promise<String>, Promise)  false}
+ * {@code typeUtils.isAssignable(Promise<String>, Promise)  true}
+ * {@code typeUtils.isAssignable(Promise<String>, Promise<Integer>)  false}
+ * {@code typeUtils.isSubType(Promise<String>, Promise)  true}
+ * {@code typeUtils.isSubType(Promise<String>, Promise<Integer>)  false}
  *
  * @author wjybxx
  * @version 1.0

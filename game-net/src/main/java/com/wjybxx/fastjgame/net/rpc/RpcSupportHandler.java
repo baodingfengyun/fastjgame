@@ -23,13 +23,16 @@ import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 import com.wjybxx.fastjgame.utils.CollectionUtils;
+import com.wjybxx.fastjgame.utils.DebugUtils;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.utils.concurrent.LocalPromise;
 import com.wjybxx.fastjgame.utils.concurrent.Promise;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 
@@ -114,7 +117,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             // 读取到一个Rpc请求消息，提交给应用层
             final RpcRequestMessage requestMessage = (RpcRequestMessage) msg;
             // 这里网络层是监听器的用户，创建LocalPromise没错的
-            final Promise<?> promise = new LocalPromise<>(ctx.netEventLoop());
+            final LocalPromise<?> promise = ctx.netEventLoop().newLocalPromise();
             promise.onComplete(new RpcResultListener(ctx.session(), requestMessage.getRequestGuid(), requestMessage.isSync()));
 
             // 提交给用户执行
@@ -181,26 +184,32 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
 
         @Override
         public void onComplete(ListenableFuture<Object> future) throws Exception {
+            if (session.isClosed()) {
+                return;
+            }
 
+            final RpcErrorCode errorCode;
+            final Object body;
+            if (future.isSuccess()) {
+                errorCode = RpcErrorCode.SUCCESS;
+                body = future.getNow();
+            } else {
+                errorCode = RpcErrorCode.SERVER_EXCEPTION;
+                body = getCauseMessage(future.cause());
+            }
+
+            session.netEventLoop().execute(new RpcResponseWriteTask(session, requestGuid, errorCode, body, sync));
         }
     }
 
-    private static class DefaultRpcResponseChannel<T> extends AbstractRpcResponseChannel<T> {
-
-
-
-        private DefaultRpcResponseChannel(Session session, long requestGuid, boolean sync) {
-            this.session = session;
-            this.requestGuid = requestGuid;
-            this.sync = sync;
+    private static String getCauseMessage(@Nonnull Throwable cause) {
+        final String message;
+        if (DebugUtils.isDebugOpen()) {
+            // debug开启情况下，返回详细信息
+            message = ExceptionUtils.getStackTrace(cause);
+        } else {
+            message = ExceptionUtils.getRootCauseMessage(cause);
         }
-
-        @Override
-        protected void doWrite(RpcErrorCode errorCode, Object body) {
-            if (!session.isClosed()) {
-                // 同步调用的返回需要刷新缓冲区
-                session.netEventLoop().execute(new RpcResponseWriteTask(session, requestGuid, errorCode, body, sync));
-            }
-        }
+        return message;
     }
 }

@@ -41,14 +41,15 @@ public class RpcRequestCommitTask implements CommitTask {
      */
     private final Promise<?> promise;
 
-    public RpcRequestCommitTask(Session session, Object request, RpcResponseChannel<?> promise) {
+    RpcRequestCommitTask(Session session, Object request, Promise<?> promise) {
         this.session = session;
         this.promise = promise;
         this.request = request;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void run() {
-        session.config().dispatcher().post(session, request, promise);
+        session.config().dispatcher().post(session, (RpcMethodSpec)request, promise);
     }
 }

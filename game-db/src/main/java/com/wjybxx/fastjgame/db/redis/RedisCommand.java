@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.db.redis;
 
-import com.wjybxx.fastjgame.utils.async.MethodSpec;
+import com.wjybxx.fastjgame.utils.misc.MethodSpec;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
 

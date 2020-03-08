@@ -36,8 +36,8 @@ import java.util.concurrent.Executor;
  */
 public class FailedRpcFuture<V> extends FailedTimeoutFuture<V> implements RpcFuture<V> {
 
-    public FailedRpcFuture(@Nonnull EventLoop notifyExecutor, @Nonnull Throwable cause) {
-        super(notifyExecutor, cause);
+    public FailedRpcFuture(@Nonnull EventLoop defaultExecutor, @Nonnull Throwable cause) {
+        super(defaultExecutor, cause);
     }
 
     @Override

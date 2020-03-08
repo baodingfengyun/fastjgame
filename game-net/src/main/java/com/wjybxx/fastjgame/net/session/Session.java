@@ -17,7 +17,9 @@
 package com.wjybxx.fastjgame.net.session;
 
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoop;
-import com.wjybxx.fastjgame.net.rpc.RpcClient;
+import com.wjybxx.fastjgame.net.rpc.RpcFuture;
+import com.wjybxx.fastjgame.net.rpc.RpcMethodSpec;
+import com.wjybxx.fastjgame.net.rpc.RpcServerSpec;
 import com.wjybxx.fastjgame.utils.annotation.Internal;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 
@@ -27,14 +29,19 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * 一个连接的抽象，它可能是一个socket连接，也可能是JVM内的线程之间内的连接。
+ *
+ * <h3>使用者注意</h3>
+ * 1. 所有的消息都满足先发的先到。
+ * 2. 但是要注意一个问题：{@link #syncCall(RpcMethodSpec)}会打乱处理的顺序！同步Rpc调用的结果会被你提前处理，其它消息可能先到，但是由于你处于阻塞状态，而导致被延迟处理。<br>
+ * 3. 先发送的请求不一定先获得结果！对方什么时候返回给你结果是不确定的！<br>
+ *
+ * <h3>实现要求</h3>
+ * 1. 单向消息(send系列方法)：无论执行成功还是失败，实现必须忽略调用的方法的执行结果(最好不回传结果，而不是仅仅不上报给调用者)。
+ * 2. Rpc调用(call系列方法)：如果调用的方法执行成功，则返回对应的结果。如果方法本身没有返回值，则返回null。如果执行失败，则应该返回对应的异常信息。
+ * 3. {@code send} {@code call}之间都满足先发送的必然先到。这样的好处是编程更简单，缺点是同步rpc调用响应会变慢。<br>
+ *
  * <p>
  * 暂时并不提供完全的线程安全性保障，如果不是那么有必要的话，便不添加，我的意识里需要session是完全的线程安全的情况并不多。
- *
- * <p>
- * 功能实现都在{@link SessionPipeline}上，session只是一个简单的中介对象。
- *
- * <p>
- * 注意：这里提供的接口并不是那么的清晰易懂，偏原始、偏底层，应用层可以提供更良好的封装。
  *
  * @author wjybxx
  * @version 1.2
@@ -42,7 +49,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public interface Session extends RpcClient, Comparable<Session> {
+public interface Session extends RpcServerSpec, Comparable<Session> {
 
     /**
      * 用户为session分配的sessionId。
@@ -113,6 +120,36 @@ public interface Session extends RpcClient, Comparable<Session> {
      */
     @Nullable
     <T> T attachment();
+
+    // ----------------------------------------------- 生命周期 ----------------------------------------------
+
+    /**
+     * 发送一个单向消息给对方
+     *
+     * @param request 请求信息
+     * @param flush   是否刷新缓冲区
+     */
+    void send(@Nonnull RpcMethodSpec<?> request, boolean flush);
+
+    /**
+     * 发送一个rpc请求给对方
+     *
+     * @param request 请求信息
+     * @param flush   是否刷新缓冲区
+     * @param <V>     方法的返回值类型
+     * @return future 用于获取执行结果
+     */
+    <V> RpcFuture<V> call(@Nonnull RpcMethodSpec<V> request, boolean flush);
+
+    /**
+     * 向远端发起一个同步rpc调用。
+     * 该方法一定会刷新缓冲区，以加快响应速度。
+     *
+     * @param request 请求信息
+     * @param <V>     方法的返回值类型
+     * @return 方法的执行结果
+     */
+    <V> V syncCall(@Nonnull RpcMethodSpec<V> request);
 
     // ----------------------------------------------- 生命周期 ----------------------------------------------
 

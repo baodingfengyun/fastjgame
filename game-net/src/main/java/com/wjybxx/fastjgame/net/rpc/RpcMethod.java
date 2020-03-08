@@ -16,6 +16,9 @@
 
 package com.wjybxx.fastjgame.net.rpc;
 
+import com.wjybxx.fastjgame.net.session.Session;
+import com.wjybxx.fastjgame.utils.concurrent.Promise;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -23,19 +26,14 @@ import java.lang.annotation.Target;
 
 /**
  * 该注解表示该方法是一个Rpc调用。
- * 该注解分三种情况：
- * 1. 当方法返回值类型不为void时，表明可以立即返回结果，代码生成工具会捕获返回值类型。
- * 2. 当返回值为void时，如果参数中有 {@link RpcResponseChannel}，表明需要异步返回结果，
- * 代码生成工具会那么会捕获其泛型参数作为Rpc调用结果。
- * 3. 如果返回值为void，且参数中没有{@link RpcResponseChannel}，那么表示没有返回值。
- * 即：
- * <pre>{@code
- * 	1. String rpcMethod(long id) -> RpcBuilder<String>
- * 	2. void rpcMethod(RpcResponseChannel<String> channel, ling id) -> RpcBuilder<String>
- * 	3. void oneWayMethod(long id) -> RpcBuilder<?>
- * }</pre>
- * 注意：
- * 1. RpcResponseChannel不参与生成的代理方法的参数列表，因此上面 1，2生成的代理方法签名是一致的！你必须避免这种情况。
+ *
+ * <h3>返回值</h3>
+ * 1. 只要方法参数中存在{@link Promise}参数，则表示方法无法立即返回结果，注解处理器会捕获泛型参数作为返回值类型。
+ * 2. 当方法返回值类型不为void时，表示方法可以立即返回结果，其返回值类型就是代理方法的返回值类型。
+ * 3. 当返回值为void时，表明方法没有返回值，代理方法的返回值类型为通配符。
+ *
+ * <h3>限制</h3>
+ * 1. {{@link Session}和{@link Promise}不会出现在客户端的代理方法的中，因此必须避免出现相同签名的代理方法。
  * 2. 方法不能是private - 至少是包级访问权限。
  * 3. methodId必须在[0,9999]区间段。
  *

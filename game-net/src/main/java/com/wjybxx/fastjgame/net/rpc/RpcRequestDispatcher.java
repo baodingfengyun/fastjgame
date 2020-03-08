@@ -41,9 +41,9 @@ public interface RpcRequestDispatcher {
      *
      * @param session 会话信息
      * @param request rpc请求，如果编解码异常，则可能为null。
-     *                此外：这里之所以没有声明为{@link RpcMethodSpec}对象，是为了兼容不同的结构体，比如protoBuffer对象。
+     *                此外：这里之所以没有声明为{@link DefaultRpcMethodSpec}对象，是为了兼容不同的结构体，比如protoBuffer对象。
      * @param promise 用于返回结果
      */
-    void post(Session session, @Nullable Object request, @Nonnull Promise<?> promise);
+    <V> void post(Session session, @Nullable RpcMethodSpec<V> request, @Nonnull Promise<V> promise);
 
 }

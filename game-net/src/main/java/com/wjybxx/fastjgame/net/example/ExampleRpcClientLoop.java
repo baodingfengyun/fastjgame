@@ -21,7 +21,7 @@ import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
 import com.wjybxx.fastjgame.net.misc.HostAndPort;
 import com.wjybxx.fastjgame.net.misc.NetContext;
 import com.wjybxx.fastjgame.net.rpc.DefaultRpcRequestDispatcher;
-import com.wjybxx.fastjgame.net.rpc.RpcMethodHandle;
+import com.wjybxx.fastjgame.net.rpc.RpcClient;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionDisconnectAware;
 import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
@@ -35,9 +35,7 @@ import com.wjybxx.fastjgame.utils.concurrent.disruptor.YieldWaitStrategyFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
 import java.util.concurrent.ThreadFactory;
-import java.util.stream.IntStream;
 
 /**
  * rpc请求客户端示例
@@ -48,12 +46,12 @@ import java.util.stream.IntStream;
 class ExampleRpcClientLoop extends DisruptorEventLoop {
 
     private final LocalPort localPort;
-    /**
-     * 是否已建立tcp连接
-     */
+    private final RpcClient rpcClient = new ExampleRpcClient(this);
+
     private Session session;
     private long startTime;
     private int index;
+
 
     public ExampleRpcClientLoop(@Nonnull ThreadFactory threadFactory,
                                 @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
@@ -110,62 +108,47 @@ class ExampleRpcClientLoop extends DisruptorEventLoop {
 
     private void sendRequest(final int index) {
         final long start = System.nanoTime();
-        final String callResult = ExampleRpcServiceRpcProxy.combine("wjybxx", String.valueOf(index)).syncCall(session);
+        final String callResult = rpcClient.syncCall(session, ExampleRpcServiceRpcProxy.combine("wjybxx", String.valueOf(index)));
         final long costTimeMs = System.nanoTime() - start;
         System.out.println("SyncCall - " + index + " - " + callResult + " , cost time nano " + costTimeMs);
 
         // 方法无返回值，也可以监听，只要调用的是call, sync, syncCall都可以获知调用结果，就像future
-        ExampleRpcServiceRpcProxy.hello("wjybxx- " + index)
-                .call(session)
+        rpcClient.call(session, ExampleRpcServiceRpcProxy.hello("wjybxx- " + index))
                 .onSuccess(result -> System.out.println("hello - " + index + " - " + result));
 
-        ExampleRpcServiceRpcProxy.queryId("wjybxx-" + index)
-                .call(session)
+        rpcClient.call(session, ExampleRpcServiceRpcProxy.queryId("wjybxx-" + index))
                 .onSuccess(result -> System.out.println("queryId - " + index + " - " + result));
 
-        ExampleRpcServiceRpcProxy.inc(index)
-                .call(session)
+        rpcClient.call(session, ExampleRpcServiceRpcProxy.inc(index))
                 .onSuccess(result -> System.out.println("inc - " + index + " - " + result));
 
-        ExampleRpcServiceRpcProxy.incWithSession(index)
-                .call(session)
+        rpcClient.call(session, ExampleRpcServiceRpcProxy.incWithSession(index))
                 .onSuccess(result -> System.out.println("incWithSession - " + index + " - " + result));
 
-        ExampleRpcServiceRpcProxy.incWithChannel(index)
-                .call(session)
-                .onSuccess(result -> System.out.println("incWithChannel - " + index + " - " + result));
+        rpcClient.call(session, ExampleRpcServiceRpcProxy.incWithPromise(index))
+                .onSuccess(result -> System.out.println("incWithPromise - " + index + " - " + result));
 
-        ExampleRpcServiceRpcProxy.incWithSessionAndChannel(index)
-                .call(session)
-                .onSuccess(result -> System.out.println("incWithSessionAndChannel - " + index + " - " + result));
+        rpcClient.call(session, ExampleRpcServiceRpcProxy.incWithSessionAndPromise(index))
+                .onSuccess(result -> System.out.println("incWithSessionAndPromise - " + index + " - " + result));
 
         // 模拟场景服务器通过网关发送给玩家 - 注意：序列化方式必须一致。
-        ExampleRpcServiceRpcProxy.sendToPlayer(12345, "这里后期替换为protoBuf消息")
-                .call(session)
+        rpcClient.call(session, ExampleRpcServiceRpcProxy.sendToPlayer(12345, "这里后期替换为protoBuf消息"))
                 .onSuccess(result -> System.out.println("sendToPlayer - " + index + " - invoke success"));
 
-        ExampleRpcServiceRpcProxy.join("hello", "world")
-                .call(session)
+        rpcClient.call(session, ExampleRpcServiceRpcProxy.join("hello", "world"))
                 .onSuccess(result -> System.out.println("joinResult " + result));
 
         // 模拟玩家通过网关发送给场景服务器 - 注意：序列化方式必须一致。
         try {
-            ExampleRpcServiceRpcProxy.sendToScene(13245, ExampleConstants.BINARY_SERIALIZER.toBytes("这里后期替换为protoBuf消息"))
-                    .call(session)
+            rpcClient.call(session, ExampleRpcServiceRpcProxy.sendToScene(13245, ExampleConstants.BINARY_SERIALIZER.toBytes("这里后期替换为protoBuf消息")))
                     .onSuccess(result -> System.out.println("sendToScene - " + index + " - invoke success"));
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        // 模拟广播X次
-        final RpcMethodHandle<?> builder = ExampleRpcServiceRpcProxy.notifySuccess(index);
-        IntStream.rangeClosed(1, 3).forEach(i -> builder.send(session));
-        // 上面等同于下面
-        builder.broadcast(Arrays.asList(session, session, session));
-
         // 阻塞到前面的rpc都返回，使得每次combine调用不被其它rpc调用影响
         // 因为调用的是sync(Session),对方的网络底层一定会返回一个结果，如果方法本身为void，那么返回的就是null。
-        ExampleRpcServiceRpcProxy.sync().syncCall(session);
+        rpcClient.syncCall(session, ExampleRpcServiceRpcProxy.sync());
     }
 
     /**

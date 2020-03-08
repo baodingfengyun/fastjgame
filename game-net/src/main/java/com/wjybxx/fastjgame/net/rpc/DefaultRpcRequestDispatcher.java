@@ -71,19 +71,19 @@ public class DefaultRpcRequestDispatcher implements RpcMethodProxyRegistry, RpcR
 
     @SuppressWarnings("unchecked")
     @Override
-    public final void post(Session session, @Nullable Object request, @Nonnull Promise<?> promise) {
+    public final <V> void post(Session session, @Nullable RpcMethodSpec<V> request, @Nonnull Promise<V> promise) {
         if (null == request) {
             logger.warn("{} send null request", session.sessionId());
             return;
         }
-        if (request instanceof RpcMethodSpec) {
-            postImp(session, (RpcMethodSpec) request, promise);
+        if (request instanceof DefaultRpcMethodSpec) {
+            postImp(session, (DefaultRpcMethodSpec) request, promise);
         } else {
             post0(session, request, promise);
         }
     }
 
-    private <T> void postImp(@Nonnull Session session, @Nonnull RpcMethodSpec<T> rpcMethodSpec, @Nonnull Promise<T> promise) {
+    private <T> void postImp(@Nonnull Session session, @Nonnull DefaultRpcMethodSpec<T> rpcMethodSpec, @Nonnull Promise<T> promise) {
         final int methodKey = calMethodKey(rpcMethodSpec.getServiceId(), rpcMethodSpec.getMethodId());
         final List<Object> params = rpcMethodSpec.getMethodParams();
         @SuppressWarnings("unchecked") final RpcMethodProxy<T> methodProxy = proxyMapping.get(methodKey);
@@ -102,9 +102,9 @@ public class DefaultRpcRequestDispatcher implements RpcMethodProxyRegistry, RpcR
     }
 
     /**
-     * 如果rpc描述信息不是{@link RpcMethodSpec}对象，那么需要自己实现分发操作
+     * 如果rpc描述信息不是{@link DefaultRpcMethodSpec}对象，那么需要自己实现分发操作
      */
-    protected void post0(Session session, Object request, Promise<?> responseChannel) {
+    protected <V> void post0(Session session, RpcMethodSpec<V> request, Promise<V> promise) {
 
     }
 

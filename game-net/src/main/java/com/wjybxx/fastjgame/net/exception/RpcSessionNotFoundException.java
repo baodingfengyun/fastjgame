@@ -14,18 +14,36 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.rpc;
+package com.wjybxx.fastjgame.net.exception;
 
-import com.wjybxx.fastjgame.utils.misc.MethodSpec;
+import com.wjybxx.fastjgame.net.rpc.RpcErrorCode;
+import com.wjybxx.fastjgame.net.rpc.RpcServerSpec;
 
 /**
- * Rpc方法描述信息
+ * 找不到对于的session异常
  *
  * @author wjybxx
  * @version 1.0
  * date - 2020/3/8
  * github - https://github.com/hl845740757
  */
-public interface RpcMethodSpec<V> extends MethodSpec<V> {
+public class RpcSessionNotFoundException extends RpcLocalException {
 
+    private final RpcServerSpec serverSpec;
+
+    public RpcSessionNotFoundException(RpcServerSpec serverSpec) {
+        this.serverSpec = serverSpec;
+    }
+
+    @Override
+    public RpcErrorCode getErrorCode() {
+        return RpcErrorCode.LOCAL_SESSION_NOT_FOUND;
+    }
+
+    @Override
+    public String toString() {
+        return "RpcSessionNotFoundException{" +
+                "serverSpec=" + serverSpec +
+                '}';
+    }
 }

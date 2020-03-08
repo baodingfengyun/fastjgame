@@ -42,32 +42,32 @@ public class RedisMethodHandleFactory {
 
     // region string
 
-    public static RedisMethodHandle<Long> incr(String key) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.incr(key));
+    public static RedisCommand<Long> incr(String key) {
+        return pipeline -> pipeline.incr(key);
     }
 
-    public static RedisMethodHandle<Long> incrBy(String key, long increment) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.incrBy(key, increment));
+    public static RedisCommand<Long> incrBy(String key, long increment) {
+        return pipeline -> pipeline.incrBy(key, increment);
     }
 
     // endregion
 
     // region list
 
-    public static RedisMethodHandle<String> lindex(String key, long index) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.lindex(key, index));
+    public static RedisCommand<String> lindex(String key, long index) {
+        return pipeline -> pipeline.lindex(key, index);
     }
 
-    public static RedisMethodHandle<Long> linsert(String key, ListPosition where, String pivot, String value) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.linsert(key, where, pivot, value));
+    public static RedisCommand<Long> linsert(String key, ListPosition where, String pivot, String value) {
+        return pipeline -> pipeline.linsert(key, where, pivot, value);
     }
 
     /**
      * left pop
      * 移除并且返回 key 对应的 list 的第一个元素。
      */
-    public static RedisMethodHandle<String> lpop(String key) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.lpop(key));
+    public static RedisCommand<String> lpop(String key) {
+        return pipeline -> pipeline.lpop(key);
     }
 
     /**
@@ -81,8 +81,8 @@ public class RedisMethodHandleFactory {
      * 元素是从最左端的到最右端的、一个接一个被插入到 list 的头部。
      * 所以对于这个命令例子 LPUSH mylist a b c，返回的列表是 c 为第一个元素， b 为第二个元素， a 为第三个元素。
      */
-    public static RedisMethodHandle<Long> lpush(String key, String... string) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.lpush(key, string));
+    public static RedisCommand<Long> lpush(String key, String... string) {
+        return pipeline -> pipeline.lpush(key, string);
     }
 
     /**
@@ -90,16 +90,16 @@ public class RedisMethodHandleFactory {
      * 只有当 key 已经存在并且存着一个 list 的时候，在这个 key 下面的 list 的头部插入 value。
      * 与 LPUSH 相反，当 key 不存在的时候不会进行任何操作。
      */
-    public static RedisMethodHandle<Long> lpushx(String key, String... string) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.lpushx(key, string));
+    public static RedisCommand<Long> lpushx(String key, String... string) {
+        return pipeline -> pipeline.lpushx(key, string);
     }
 
     /**
      * right pop
      * 移除并返回存于 key 的 list 的最后一个元素。
      */
-    public static RedisMethodHandle<String> rpop(String key) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.rpop(key));
+    public static RedisCommand<String> rpop(String key) {
+        return pipeline -> pipeline.rpop(key);
     }
 
     /**
@@ -112,8 +112,8 @@ public class RedisMethodHandleFactory {
      * 元素是从左到右一个接一个从列表尾部插入。
      * 比如命令 RPUSH mylist a b c 会返回一个列表，其第一个元素是 a ，第二个元素是 b ，第三个元素是 c。
      */
-    public static RedisMethodHandle<Long> rpush(String key, String... string) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.rpush(key, string));
+    public static RedisCommand<Long> rpush(String key, String... string) {
+        return pipeline -> pipeline.rpush(key, string);
     }
 
     /**
@@ -121,165 +121,165 @@ public class RedisMethodHandleFactory {
      * 当且仅当 key 存在并且是一个列表时，将值 value 插入到列表 key 的表尾。
      * 和 RPUSH 命令相反, 当 key 不存在时，RPUSHX 命令什么也不做。
      */
-    public static RedisMethodHandle<Long> rpushx(String key, String... string) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.rpushx(key, string));
+    public static RedisCommand<Long> rpushx(String key, String... string) {
+        return pipeline -> pipeline.rpushx(key, string);
     }
 
-    public static RedisMethodHandle<List<String>> lrange(String key, long start, long stop) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.lrange(key, start, stop));
+    public static RedisCommand<List<String>> lrange(String key, long start, long stop) {
+        return pipeline -> pipeline.lrange(key, start, stop);
     }
 
-    public static RedisMethodHandle<Long> lrem(String key, long count, String value) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.lrem(key, count, value));
+    public static RedisCommand<Long> lrem(String key, long count, String value) {
+        return pipeline -> pipeline.lrem(key, count, value);
     }
 
-    public static RedisMethodHandle<String> lset(String key, long index, String value) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.lset(key, index, value));
+    public static RedisCommand<String> lset(String key, long index, String value) {
+        return pipeline -> pipeline.lset(key, index, value);
     }
 
-    public static RedisMethodHandle<String> ltrim(String key, long start, long stop) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.ltrim(key, start, stop));
+    public static RedisCommand<String> ltrim(String key, long start, long stop) {
+        return pipeline -> pipeline.ltrim(key, start, stop);
     }
 
-    public static RedisMethodHandle<Long> llen(String key) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.llen(key));
+    public static RedisCommand<Long> llen(String key) {
+        return pipeline -> pipeline.llen(key);
     }
 
     // endregion
 
     // region hash
 
-    public static RedisMethodHandle<Boolean> hexists(String key, String field) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.hexists(key, field));
+    public static RedisCommand<Boolean> hexists(String key, String field) {
+        return pipeline -> pipeline.hexists(key, field);
     }
 
-    public static RedisMethodHandle<String> hget(String key, String field) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.hget(key, field));
+    public static RedisCommand<String> hget(String key, String field) {
+        return pipeline -> pipeline.hget(key, field);
     }
 
-    public static RedisMethodHandle<Long> hdel(String key, String... field) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.hdel(key, field));
+    public static RedisCommand<Long> hdel(String key, String... field) {
+        return pipeline -> pipeline.hdel(key, field);
     }
 
-    public static RedisMethodHandle<Long> hincrBy(String key, String field, long value) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.hincrBy(key, field, value));
+    public static RedisCommand<Long> hincrBy(String key, String field, long value) {
+        return pipeline -> pipeline.hincrBy(key, field, value);
     }
 
-    public static RedisMethodHandle<Long> hset(String key, String field, String value) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.hset(key, field, value));
+    public static RedisCommand<Long> hset(String key, String field, String value) {
+        return pipeline -> pipeline.hset(key, field, value);
     }
 
-    public static RedisMethodHandle<Long> hsetnx(String key, String field, String value) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.hsetnx(key, field, value));
+    public static RedisCommand<Long> hsetnx(String key, String field, String value) {
+        return pipeline -> pipeline.hsetnx(key, field, value);
     }
 
-    public static RedisMethodHandle<List<String>> hmget(String key, String... fields) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.hmget(key, fields));
+    public static RedisCommand<List<String>> hmget(String key, String... fields) {
+        return pipeline -> pipeline.hmget(key, fields);
     }
 
-    public static RedisMethodHandle<String> hmset(String key, Map<String, String> hash) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.hmset(key, hash));
+    public static RedisCommand<String> hmset(String key, Map<String, String> hash) {
+        return pipeline -> pipeline.hmset(key, hash);
     }
 
-    public static RedisMethodHandle<List<String>> hvals(String key) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.hvals(key));
+    public static RedisCommand<List<String>> hvals(String key) {
+        return pipeline -> pipeline.hvals(key);
     }
 
-    public static RedisMethodHandle<Long> hlen(String key) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.hlen(key));
+    public static RedisCommand<Long> hlen(String key) {
+        return pipeline -> pipeline.hlen(key);
     }
 
-    public static RedisMethodHandle<Set<String>> hkeys(String key) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.hkeys(key));
+    public static RedisCommand<Set<String>> hkeys(String key) {
+        return pipeline -> pipeline.hkeys(key);
     }
 
-    public static RedisMethodHandle<Map<String, String>> hgetAll(String key) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.hgetAll(key));
+    public static RedisCommand<Map<String, String>> hgetAll(String key) {
+        return pipeline -> pipeline.hgetAll(key);
     }
     // endregion
 
     // region zset
     // 不再建议使用redis做排行榜，使用自己实现的java-zset做排行榜更合适
 
-    public static RedisMethodHandle<Long> zadd(String key, double score, String member) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.zadd(key, score, member));
+    public static RedisCommand<Long> zadd(String key, double score, String member) {
+        return pipeline -> pipeline.zadd(key, score, member);
     }
 
-    public static RedisMethodHandle<Long> zadd(String key, double score, String member, ZAddParams params) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.zadd(key, score, member, params));
+    public static RedisCommand<Long> zadd(String key, double score, String member, ZAddParams params) {
+        return pipeline -> pipeline.zadd(key, score, member, params);
     }
 
-    public static RedisMethodHandle<Long> zadd(String key, Map<String, Double> scoreMembers) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.zadd(key, scoreMembers));
+    public static RedisCommand<Long> zadd(String key, Map<String, Double> scoreMembers) {
+        return pipeline -> pipeline.zadd(key, scoreMembers);
     }
 
-    public static RedisMethodHandle<Long> zadd(String key, Map<String, Double> scoreMembers, ZAddParams params) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.zadd(key, scoreMembers, params));
+    public static RedisCommand<Long> zadd(String key, Map<String, Double> scoreMembers, ZAddParams params) {
+        return pipeline -> pipeline.zadd(key, scoreMembers, params);
     }
 
-    public static RedisMethodHandle<Long> zcard(String key) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.zcard(key));
+    public static RedisCommand<Long> zcard(String key) {
+        return pipeline -> pipeline.zcard(key);
     }
 
-    public static RedisMethodHandle<Long> zcount(String key, double min, double max) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.zcount(key, min, max));
+    public static RedisCommand<Long> zcount(String key, double min, double max) {
+        return pipeline -> pipeline.zcount(key, min, max);
     }
 
-    public static RedisMethodHandle<Double> zincrby(String key, double increment, String member) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.zincrby(key, increment, member));
+    public static RedisCommand<Double> zincrby(String key, double increment, String member) {
+        return pipeline -> pipeline.zincrby(key, increment, member);
     }
 
-    public static RedisMethodHandle<Double> zincrby(String key, double increment, String member, ZIncrByParams params) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.zincrby(key, increment, member, params));
+    public static RedisCommand<Double> zincrby(String key, double increment, String member, ZIncrByParams params) {
+        return pipeline -> pipeline.zincrby(key, increment, member, params);
     }
 
-    public static RedisMethodHandle<Long> zrank(String key, String member) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.zrank(key, member));
+    public static RedisCommand<Long> zrank(String key, String member) {
+        return pipeline -> pipeline.zrank(key, member);
     }
 
-    public static RedisMethodHandle<Long> zrevrank(String key, String member) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.zrevrank(key, member));
+    public static RedisCommand<Long> zrevrank(String key, String member) {
+        return pipeline -> pipeline.zrevrank(key, member);
     }
 
-    public static RedisMethodHandle<Double> zscore(String key, String member) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.zscore(key, member));
+    public static RedisCommand<Double> zscore(String key, String member) {
+        return pipeline -> pipeline.zscore(key, member);
     }
 
     // 总是同时返回分数和member，其实更有意义，老的api着实不好用
-    public static RedisMethodHandle<Set<Tuple>> zrangeWithScores(String key, long start, long stop) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.zrangeWithScores(key, start, stop));
+    public static RedisCommand<Set<Tuple>> zrangeWithScores(String key, long start, long stop) {
+        return pipeline -> pipeline.zrangeWithScores(key, start, stop);
     }
 
-    public static RedisMethodHandle<Set<Tuple>> zrangeByScoreWithScores(String key, double min, double max) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.zrangeByScoreWithScores(key, min, max));
+    public static RedisCommand<Set<Tuple>> zrangeByScoreWithScores(String key, double min, double max) {
+        return pipeline -> pipeline.zrangeByScoreWithScores(key, min, max);
     }
 
-    public static RedisMethodHandle<Set<Tuple>> zrangeByScoreWithScores(String key, double min, double max, int offset, int count) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.zrangeByScoreWithScores(key, min, max, offset, count));
+    public static RedisCommand<Set<Tuple>> zrangeByScoreWithScores(String key, double min, double max, int offset, int count) {
+        return pipeline -> pipeline.zrangeByScoreWithScores(key, min, max, offset, count);
     }
 
-    public static RedisMethodHandle<Set<Tuple>> zrevrangeByScoreWithScores(String key, double max, double min) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.zrevrangeByScoreWithScores(key, max, min));
+    public static RedisCommand<Set<Tuple>> zrevrangeByScoreWithScores(String key, double max, double min) {
+        return pipeline -> pipeline.zrevrangeByScoreWithScores(key, max, min);
     }
 
-    public static RedisMethodHandle<Set<Tuple>> zrevrangeByScoreWithScores(String key, double max, double min, int offset, int count) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.zrevrangeByScoreWithScores(key, max, min, offset, count));
+    public static RedisCommand<Set<Tuple>> zrevrangeByScoreWithScores(String key, double max, double min, int offset, int count) {
+        return pipeline -> pipeline.zrevrangeByScoreWithScores(key, max, min, offset, count);
     }
 
-    public static RedisMethodHandle<Set<Tuple>> zrevrangeWithScores(String key, long start, long stop) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.zrevrangeWithScores(key, start, stop));
+    public static RedisCommand<Set<Tuple>> zrevrangeWithScores(String key, long start, long stop) {
+        return pipeline -> pipeline.zrevrangeWithScores(key, start, stop);
     }
 
-    public static RedisMethodHandle<Long> zrem(String key, String... members) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.zrem(key, members));
+    public static RedisCommand<Long> zrem(String key, String... members) {
+        return pipeline -> pipeline.zrem(key, members);
     }
 
-    public static RedisMethodHandle<Long> zremrangeByRank(String key, long start, long stop) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.zremrangeByRank(key, start, stop));
+    public static RedisCommand<Long> zremrangeByRank(String key, long start, long stop) {
+        return pipeline -> pipeline.zremrangeByRank(key, start, stop);
     }
 
-    public static RedisMethodHandle<Long> zremrangeByScore(String key, double min, double max) {
-        return new DefaultRedisMethodHandle<>(pipeline -> pipeline.zremrangeByScore(key, min, max));
+    public static RedisCommand<Long> zremrangeByScore(String key, double min, double max) {
+        return pipeline -> pipeline.zremrangeByScore(key, min, max);
     }
 
     // endregion

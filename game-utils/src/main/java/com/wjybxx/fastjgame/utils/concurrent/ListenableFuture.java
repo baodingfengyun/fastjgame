@@ -30,7 +30,7 @@ import java.util.concurrent.Executor;
  *
  * <h3>{@link ListenableFuture}优先</h3>
  * 如果不是必须需要阻塞式的API，应当优先选择{@link ListenableFuture}。
- * 主要由于jdk的future一开始就提供了阻塞式的api，因此这里不能继承jdk的future。
+ * 由于jdk的future一开始就提供了阻塞式的api，因此这里不能继承jdk的future。
  *
  * <h3>监听器执行时序</h3>
  * 1. 实现类必须保证<b>通知顺序和添加顺序一致</b>，也就是必须禁止并发通知，即：任意时刻至多存在一个通知线程。<br>

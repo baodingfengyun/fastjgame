@@ -16,8 +16,12 @@
 
 package com.wjybxx.fastjgame.net.example;
 
-import com.wjybxx.fastjgame.net.rpc.*;
+import com.wjybxx.fastjgame.net.rpc.LazySerializable;
+import com.wjybxx.fastjgame.net.rpc.PreDeserializable;
+import com.wjybxx.fastjgame.net.rpc.RpcMethod;
+import com.wjybxx.fastjgame.net.rpc.RpcService;
 import com.wjybxx.fastjgame.net.session.Session;
+import com.wjybxx.fastjgame.utils.concurrent.Promise;
 
 /**
  * 示例rpcService
@@ -62,18 +66,18 @@ public class ExampleRpcService {
     }
 
     /**
-     * @param number          待加的数
-     * @param responseChannel 返回结果的通道，表示该方法可能不能立即返回结果，需要持有channel以便在未来返回结果。
-     *                        该参数不会出现在客户端的代理中，Channel参数可以出现在任意位置，注解处理器会处理，不要求在特定位置
+     * @param number  待加的数
+     * @param promise 返回结果的句柄，表示该方法可能不能立即返回结果，需要持有{@link Promise}以便在未来返回结果。
+     *                该参数不会出现在客户端的代理中，{@link Promise}参数可以出现在任意位置，注解处理器会处理，不要求在特定位置
      */
     @RpcMethod(methodId = 5)
-    public void incWithChannel(final int number, RpcResponseChannel<Integer> responseChannel) {
-        responseChannel.trySuccess(number + 3);
+    public void incWithPromise(final int number, Promise<Integer> promise) {
+        promise.trySuccess(number + 3);
     }
 
     @RpcMethod(methodId = 6)
-    public void incWithSessionAndChannel(Session session, final int number, RpcResponseChannel<Integer> responseChannel) {
-        responseChannel.trySuccess(number + 4);
+    public void incWithSessionAndPromise(Session session, final int number, Promise<Integer> promise) {
+        promise.trySuccess(number + 4);
     }
 
     @RpcMethod(methodId = 7)

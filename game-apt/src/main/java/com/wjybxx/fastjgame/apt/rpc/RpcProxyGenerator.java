@@ -79,7 +79,7 @@ class RpcProxyGenerator extends AbstractGenerator<RpcServiceProcessor> {
      * 			List<Object> methodParams = new ArrayList<>(2);
      * 			methodParams.add(id);
      * 			methodParams.add(param);
-     * 			return new RpcBuilder<>(1, methodParams, true);
+     * 			return new DefaultRpcMethodSpec<>(1, 2, methodParams, 0, 0);
      *        }
      * }
      * </pre>
@@ -98,7 +98,7 @@ class RpcProxyGenerator extends AbstractGenerator<RpcServiceProcessor> {
 
         // 添加返回类型 - 带泛型
         final TypeMirror returnType = getNonPrimitiveReturnType(method);
-        final DeclaredType realReturnType = typeUtils.getDeclaredType(processor.methodHandleElement, returnType);
+        final DeclaredType realReturnType = typeUtils.getDeclaredType(processor.methodSpecElement, returnType);
         builder.returns(ClassName.get(realReturnType));
 
         // 拷贝参数列表
@@ -109,7 +109,7 @@ class RpcProxyGenerator extends AbstractGenerator<RpcServiceProcessor> {
         if (realParameters.size() == 0) {
             // 无参时，使用 Collections.emptyList();
             builder.addStatement("return new $T<>((short)$L, (short)$L, $T.emptyList(), $L, $L)",
-                    processor.defaultMethodHandleRawTypeName,
+                    processor.defaultMethodSpecRawTypeName,
                     serviceId, processor.getMethodId(method),
                     Collections.class,
                     parseResult.lazyIndexes, parseResult.preIndexes);
@@ -121,7 +121,7 @@ class RpcProxyGenerator extends AbstractGenerator<RpcServiceProcessor> {
                 builder.addStatement("methodParams.add($L)", parameterSpec.name);
             }
             builder.addStatement("return new $T<>((short)$L, (short)$L, methodParams, $L, $L)",
-                    processor.defaultMethodHandleRawTypeName,
+                    processor.defaultMethodSpecRawTypeName,
                     serviceId, processor.getMethodId(method),
                     parseResult.lazyIndexes, parseResult.preIndexes);
         }
@@ -143,12 +143,10 @@ class RpcProxyGenerator extends AbstractGenerator<RpcServiceProcessor> {
 
         // 筛选参数
         for (VariableElement variableElement : originParameters) {
-            // session和responseChannel需要从参数列表删除
-            if (processor.isResponseChannel(variableElement) || processor.isSession(variableElement)) {
+            // session和promise需要从参数列表删除
+            if (processor.isPromise(variableElement) || processor.isSession(variableElement)) {
                 continue;
             }
-
-            checkMapOrCollectionParameter(variableElement);
 
             if (isLazySerializeParameter(variableElement)) {
                 // 延迟序列化的参数(对方可以发送任意数据) - 要替换为Object
@@ -164,35 +162,6 @@ class RpcProxyGenerator extends AbstractGenerator<RpcServiceProcessor> {
             }
         }
         return new ParseResult(realParameters, lazyIndexes, preIndexes);
-    }
-
-    private void checkMapOrCollectionParameter(VariableElement variableElement) {
-        if (processor.isMap(variableElement)) {
-            checkMap(variableElement);
-            return;
-        }
-
-        if (processor.isCollection(variableElement)) {
-            checkCollection(variableElement);
-        }
-    }
-
-    private void checkMap(VariableElement variableElement) {
-        if (!processor.isAssignableFromLinkedHashMap(variableElement)) {
-            messager.printMessage(Diagnostic.Kind.ERROR,
-                    "Unsupported map type, Map parameter only support LinkedHashMap's parent, " +
-                            "\ntoo see the annotation '@Impl', then, you will know how to use any map type",
-                    variableElement);
-        }
-    }
-
-    private void checkCollection(VariableElement variableElement) {
-        if (!processor.isAssignableFormArrayList(variableElement)) {
-            messager.printMessage(Diagnostic.Kind.ERROR,
-                    "Unsupported collection type, Collection parameter only support ArrayList's parent, " +
-                            "\ntoo see the annotation '@Impl', then, you will know how to use any collection type",
-                    variableElement);
-        }
     }
 
     private static ParameterSpec lazySerializableParameterProxy(VariableElement variableElement) {
@@ -272,15 +241,15 @@ class RpcProxyGenerator extends AbstractGenerator<RpcServiceProcessor> {
             }
         }
 
-        // 判断是否有ResponseChannel，如果没有则返回通配符（其实Void也行）
+        // 判断是否有Promise，如果没有则返回通配符（其实Void也行）
         return method.getParameters().stream()
-                .filter(processor::isResponseChannel)
+                .filter(processor::isPromise)
                 .findFirst()
-                .map(this::getResponseChannelTypeArgument)
+                .map(this::getPromiseTypeArgument)
                 .orElse(processor.wildcardType);
     }
 
-    private TypeMirror getResponseChannelTypeArgument(final VariableElement variableElement) {
+    private TypeMirror getPromiseTypeArgument(final VariableElement variableElement) {
         return variableElement.asType().accept(new SimpleTypeVisitor8<TypeMirror, Void>() {
             @Override
             public TypeMirror visitDeclared(DeclaredType t, Void aVoid) {
@@ -290,7 +259,7 @@ class RpcProxyGenerator extends AbstractGenerator<RpcServiceProcessor> {
                 } else {
                     // 声明类型木有泛型参数，返回Object类型，并打印一个错误
                     // 2019年8月23日21:13:35 改为编译错误
-                    messager.printMessage(Diagnostic.Kind.ERROR, "RpcResponseChannel missing type parameter!", variableElement);
+                    messager.printMessage(Diagnostic.Kind.ERROR, "Promise missing type parameter!", variableElement);
                     return elementUtils.getTypeElement(Object.class.getCanonicalName()).asType();
                 }
             }

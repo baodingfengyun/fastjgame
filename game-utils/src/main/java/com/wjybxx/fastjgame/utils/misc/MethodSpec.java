@@ -14,12 +14,19 @@
  * limitations under the License.
  */
 
+package com.wjybxx.fastjgame.utils.misc;
+
 /**
- * 该包主要负责远程调用相关。
+ * 方法描述信息。
+ * 该类仅仅是一个标记接口，子类自己决定如何定位调用的方法。
  *
+ * @param <V> the type of return value
  * @author wjybxx
  * @version 1.0
- * date - 2020/3/8
+ * date - 2020/1/10
  * github - https://github.com/hl845740757
  */
-package com.wjybxx.fastjgame.utils.async;
+@SuppressWarnings("unused")
+public interface MethodSpec<V> {
+
+}

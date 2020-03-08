@@ -36,14 +36,15 @@ public class OneWayCommitTask implements CommitTask {
      */
     private final Object message;
 
-    public OneWayCommitTask(Session session, Object message) {
+    OneWayCommitTask(Session session, Object message) {
         this.session = session;
         this.message = message;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void run() {
-        // 这里使用voidRpcResponseChannel是实现单向通知的关键
-        session.config().dispatcher().post(session, message, session.netEventLoop().newBlockingPromise());
+        // 使用voidPromise是实现单项通知(无返回值调用)的关键
+        session.config().dispatcher().post(session, (RpcMethodSpec)message, session.netEventLoop().voidPromise());
     }
 }

@@ -49,7 +49,7 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
 
     private static final String session = "session";
     private static final String methodParams = "methodParams";
-    private static final String responseChannel = "responseChannel";
+    private static final String promise = "promise";
 
     private final short serviceId;
     private final List<ExecutableElement> rpcMethods;
@@ -115,15 +115,15 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
 
     /**
      * 为某个具体方法生成注册方法，方法分为两类
-     * 1. 异步方法 -- 异步方法是指需要responseChannel的方法，由应用层代码告知远程执行结果。
-     * 2. 同步方法 -- 同步方法是指不需要responseChannel的方法，由生成的代码告知远程执行结果。
+     * 1. 异步方法 -- 异步方法是指需要 promise 的方法，由应用层代码告知远程执行结果。
+     * 2. 同步方法 -- 同步方法是指不需要 promise 的方法，由生成的代码告知远程执行结果。
      * <p>
      * 1. 异步方法，那么返回结果的职责就完全交给应用层
      * <pre>
      * {@code
      * 		private static void registerGetMethod1(RpcFunctionRegistry registry, T instance) {
-     * 		    registry.register(10001, (session, methodParams, responseChannel) -> {
-     * 		       instance.method1(methodParams.get(0), methodParams.get(1), responseChannel);
+     * 		    registry.register(10001, (session, methodParams, promise) -> {
+     * 		       instance.method1(methodParams.get(0), methodParams.get(1), promise);
      *            });
      *        }
      * }
@@ -133,12 +133,12 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
      * <pre>
      * {@code
      * 		private static void registerGetMethod2(RpcFunctionRegistry registry, T instance) {
-     * 		    registry.register(10002, (session, methodParams, responseChannel) -> {
+     * 		    registry.register(10002, (session, methodParams, promise) -> {
      * 		       try {
      * 		     		V result = instance.method2(methodParams.get(0), methodParams.get(1));
-     * 		     	    responseChannel.writeSuccess(result);
+     * 		     	    promise.trySuccess(result);
      *               } catch(Throwable cause){
-     *                  responseChannel.writeFailure(cause)
+     *                  promise.tryFailure(cause)
      *                  ConcurrentUtils.rethrow(cause);
      *               }
      *            });
@@ -149,12 +149,12 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
      * <pre>
      * {@code
      * 		private static void registerGetMethod2(RpcFunctionRegistry registry, T instance) {
-     * 		    registry.register(10002, (session, methodParams, responseChannel) -> {
+     * 		    registry.register(10002, (session, methodParams, promise) -> {
      * 		       try {
-     * 		       		instance.method1(methodParams.get(0), methodParams.get(1), responseChannel);
-     * 		       	    responseChannel.writeSuccess(null);
+     * 		       		instance.method1(methodParams.get(0), methodParams.get(1), promise);
+     * 		       	    promise.trySuccess(null);
      *               } catch(Throwable cause) {
-     *                   responseChannel.writeFailure(cause)
+     *                   promise.tryFailure(cause)
      *                   ConcurrentUtils.rethrow(cause);
      *               }
      *            });
@@ -176,10 +176,10 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
         builder.addCode("$L.register((short)$L, (short)$L, ($L, $L, $L) -> {\n",
                 registry,
                 serviceId, methodId,
-                session, methodParams, responseChannel);
+                session, methodParams, promise);
 
         final InvokeStatement invokeStatement = genInvokeStatement(method);
-        if (invokeStatement.hasResponseChannel) {
+        if (invokeStatement.hasPromise) {
             // 异步返回值，交给应用层返回结果
             builder.addStatement(invokeStatement.format, invokeStatement.params.toArray());
         } else {
@@ -187,12 +187,12 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
             builder.addCode("    try {\n");
             builder.addStatement("    " + invokeStatement.format, invokeStatement.params.toArray());
             if (method.getReturnType().getKind() == TypeKind.VOID) {
-                builder.addStatement("        $L.writeSuccess(null)", responseChannel);
+                builder.addStatement("        $L.trySuccess(null)", promise);
             } else {
-                builder.addStatement("        $L.writeSuccess(result)", responseChannel);
+                builder.addStatement("        $L.trySuccess(result)", promise);
             }
             builder.addCode("    } catch (Throwable cause) {\n");
-            builder.addStatement("        $L.writeFailure(cause)", responseChannel);
+            builder.addStatement("        $L.tryFailure(cause)", promise);
             builder.addStatement("        $T.rethrow(cause)", AptReflectUtilsTypeName);
 
             builder.addCode("    }\n");
@@ -233,7 +233,7 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
         params.add(instance);
         params.add(method.getSimpleName().toString());
 
-        boolean hasResponseChannel = false;
+        boolean hasPromise = false;
         boolean needDelimiter = false;
         int index = 0;
         for (VariableElement variableElement : method.getParameters()) {
@@ -245,9 +245,9 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
 
             if (processor.isSession(variableElement)) {
                 format.append(session);
-            } else if (processor.isResponseChannel(variableElement)) {
-                format.append(responseChannel);
-                hasResponseChannel = true;
+            } else if (processor.isPromise(variableElement)) {
+                format.append(promise);
+                hasPromise = true;
             } else {
                 final TypeName parameterTypeName = ParameterizedTypeName.get(variableElement.asType());
                 if (parameterTypeName.isPrimitive()) {
@@ -269,19 +269,19 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
             }
         }
         format.append(")");
-        return new RpcRegisterGenerator.InvokeStatement(format.toString(), params, hasResponseChannel);
+        return new RpcRegisterGenerator.InvokeStatement(format.toString(), params, hasPromise);
     }
 
     private static class InvokeStatement {
 
         private final String format;
         private final List<Object> params;
-        private final boolean hasResponseChannel;
+        private final boolean hasPromise;
 
-        private InvokeStatement(String format, List<Object> params, boolean hasResponseChannel) {
+        private InvokeStatement(String format, List<Object> params, boolean hasPromise) {
             this.format = format;
             this.params = params;
-            this.hasResponseChannel = hasResponseChannel;
+            this.hasPromise = hasPromise;
         }
     }
 }

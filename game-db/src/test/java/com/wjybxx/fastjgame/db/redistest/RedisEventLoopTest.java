@@ -103,8 +103,8 @@ public class RedisEventLoopTest {
             }
 
             // 监听前面的redis命令完成
-            RedisMethodHandleFactory.hset("test-monitor", "monitor", "1")
-                    .call(redisClient)
+
+            redisClient.call(RedisMethodHandleFactory.hset("test-monitor", "monitor", "1"))
                     .onComplete(futureResult -> shutdown());
 
             while (true) {
@@ -121,13 +121,11 @@ public class RedisEventLoopTest {
         }
 
         private void sendRedisCommands(int loop) {
-            RedisMethodHandleFactory.hset("name", String.valueOf(loop), String.valueOf(loop))
-                    .call(redisClient)
+            redisClient.call(RedisMethodHandleFactory.hset("name", String.valueOf(loop), String.valueOf(loop)))
                     .onSuccess(System.out::println)
             ;
 
-            RedisMethodHandleFactory.hget("name", String.valueOf(loop))
-                    .call(redisClient)
+            redisClient.call(RedisMethodHandleFactory.hget("name", String.valueOf(loop)))
                     .onSuccess(System.out::println);
         }
 

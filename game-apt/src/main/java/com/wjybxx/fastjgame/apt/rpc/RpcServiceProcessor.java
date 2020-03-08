@@ -26,7 +26,6 @@ import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.WildcardType;
 import javax.tools.Diagnostic;
@@ -57,30 +56,23 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
     static final String LAZY_SERIALIZABLE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.LazySerializable";
     static final String PRE_DESERIALIZE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.PreDeserializable";
 
-    private static final String METHOD_HANDLE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.RpcMethodHandle";
-    private static final String DEFAULT_METHOD_HANDLE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.DefaultRpcMethodHandle";
+    private static final String METHOD_SPEC_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.RpcMethodSpec";
+    private static final String DEFAULT_METHOD_SPEC_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.DefaultRpcMethodSpec";
 
     private static final String METHOD_REGISTRY_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.RpcMethodProxyRegistry";
-    private static final String CHANNEL_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.RpcResponseChannel";
+    private static final String PROMISE_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.concurrent.Promise";
     private static final String SESSION_CANONICAL_NAME = "com.wjybxx.fastjgame.net.session.Session";
 
     private static final String SERVICE_ID_METHOD_NAME = "serviceId";
     private static final String METHOD_ID_METHOD_NAME = "methodId";
 
-    /**
-     * 所有的serviceId集合，判断重复。
-     * 编译是分模块编译的，每一个模块都是一个新的processor，因此只能检测当前模块的重复。
-     * 能在编译期间发现错误就在编译期间发现错误。
-     */
-    private final Set<Short> serviceIdSet = new HashSet<>(64);
-
     WildcardType wildcardType;
 
-    private DeclaredType responseChannelDeclaredType;
+    private DeclaredType promiseDeclaredType;
     private DeclaredType sessionDeclaredType;
 
-    TypeElement methodHandleElement;
-    TypeName defaultMethodHandleRawTypeName;
+    TypeElement methodSpecElement;
+    TypeName defaultMethodSpecRawTypeName;
 
     DeclaredType lazySerializableDeclaredType;
     DeclaredType preDeserializeDeclaredType;
@@ -116,10 +108,10 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
 
         methodRegistryTypeName = ClassName.get(elementUtils.getTypeElement(METHOD_REGISTRY_CANONICAL_NAME));
         sessionDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(SESSION_CANONICAL_NAME));
-        responseChannelDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(CHANNEL_CANONICAL_NAME));
+        promiseDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(PROMISE_CANONICAL_NAME));
 
-        methodHandleElement = elementUtils.getTypeElement(METHOD_HANDLE_CANONICAL_NAME);
-        defaultMethodHandleRawTypeName = TypeName.get(typeUtils.getDeclaredType(elementUtils.getTypeElement(DEFAULT_METHOD_HANDLE_CANONICAL_NAME)));
+        methodSpecElement = elementUtils.getTypeElement(METHOD_SPEC_CANONICAL_NAME);
+        defaultMethodSpecRawTypeName = TypeName.get(typeUtils.getDeclaredType(elementUtils.getTypeElement(DEFAULT_METHOD_SPEC_CANONICAL_NAME)));
 
         lazySerializableDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(LAZY_SERIALIZABLE_CANONICAL_NAME));
         preDeserializeDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(PRE_DESERIALIZE_CANONICAL_NAME));
@@ -160,12 +152,6 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
             return;
         }
 
-        if (!serviceIdSet.add(serviceId)) {
-            // serviceId重复
-            messager.printMessage(Diagnostic.Kind.ERROR, " serviceId " + serviceId + " is duplicate!", typeElement);
-            return;
-        }
-
         checkMethods(typeElement);
     }
 
@@ -195,12 +181,6 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
                 continue;
             }
 
-            if (method.getReturnType().getKind() != TypeKind.VOID && containsResponseChannel(method)) {
-                // 不可以既有返回值，又有responseChannel
-                messager.printMessage(Diagnostic.Kind.ERROR, "ReturnType is not void, but parameters contains responseChannel!", method);
-                continue;
-            }
-
             // 方法id，基本类型会被封装为包装类型，Object并不能直接转换到基本类型
             final Short methodId = AutoUtils.getAnnotationValueValue(rpcMethodAnnotation.get(), METHOD_ID_METHOD_NAME);
             assert null != methodId;
@@ -214,11 +194,51 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
                 // 同一个类中的方法id不可以重复 - 它保证了本模块中方法id不会重复
                 messager.printMessage(Diagnostic.Kind.ERROR, " methodId " + methodId + " is duplicate!", method);
             }
+
+            checkParameters(method);
         }
     }
 
-    private boolean containsResponseChannel(ExecutableElement method) {
-        return method.getParameters().stream().anyMatch(this::isResponseChannel);
+    private void checkParameters(ExecutableElement method) {
+        for (VariableElement variableElement : method.getParameters()) {
+            if (isMap(variableElement)) {
+                checkMap(variableElement);
+                continue;
+            }
+
+            if (isCollection(variableElement)) {
+                checkCollection(variableElement);
+                continue;
+            }
+
+            if (isPromise(variableElement)) {
+                checkPromise(variableElement);
+            }
+        }
+    }
+
+    private void checkMap(VariableElement variableElement) {
+        if (!isAssignableFromLinkedHashMap(variableElement)) {
+            messager.printMessage(Diagnostic.Kind.ERROR,
+                    "Unsupported map type, Map parameter only support LinkedHashMap's parent, " +
+                            "\ntoo see the annotation '@Impl', then, you will know how to use any map type",
+                    variableElement);
+        }
+    }
+
+    private void checkCollection(VariableElement variableElement) {
+        if (!isAssignableFormArrayList(variableElement)) {
+            messager.printMessage(Diagnostic.Kind.ERROR,
+                    "Unsupported collection type, Collection parameter only support ArrayList's parent, " +
+                            "\ntoo see the annotation '@Impl', then, you will know how to use any collection type",
+                    variableElement);
+        }
+    }
+
+    private void checkPromise(VariableElement variableElement) {
+        if (!isDeclaredAsPromise(variableElement)) {
+            messager.printMessage(Diagnostic.Kind.ERROR, "Promise parameter must declared as Promise.", variableElement);
+        }
     }
 
     private void genProxyClass(TypeElement typeElement) {
@@ -274,24 +294,28 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
                 .execute();
     }
 
-    boolean isMap(VariableElement variableElement) {
+    private boolean isMap(VariableElement variableElement) {
         return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, variableElement.asType(), mapTypeMirror);
     }
 
-    boolean isAssignableFromLinkedHashMap(VariableElement variableElement) {
+    private boolean isAssignableFromLinkedHashMap(VariableElement variableElement) {
         return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, linkedHashMapTypeMirror, variableElement.asType());
     }
 
-    boolean isCollection(VariableElement variableElement) {
+    private boolean isCollection(VariableElement variableElement) {
         return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, variableElement.asType(), collectionTypeMirror);
     }
 
-    boolean isAssignableFormArrayList(VariableElement variableElement) {
+    private boolean isAssignableFormArrayList(VariableElement variableElement) {
         return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, arrayListTypeMirror, variableElement.asType());
     }
 
-    boolean isResponseChannel(VariableElement variableElement) {
-        return AutoUtils.isSameTypeIgnoreTypeParameter(typeUtils, variableElement.asType(), responseChannelDeclaredType);
+    boolean isPromise(VariableElement variableElement) {
+        return AutoUtils.isSameTypeIgnoreTypeParameter(typeUtils, variableElement.asType(), promiseDeclaredType);
+    }
+
+    private boolean isDeclaredAsPromise(VariableElement variableElement) {
+        return AutoUtils.isSameTypeIgnoreTypeParameter(typeUtils, promiseDeclaredType, variableElement.asType());
     }
 
     boolean isSession(VariableElement variableElement) {

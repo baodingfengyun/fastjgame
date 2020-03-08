@@ -31,8 +31,8 @@ import java.util.concurrent.Executor;
  */
 public class FailedTimeoutFuture<V> extends FailedFuture<V> implements TimeoutFuture<V> {
 
-    public FailedTimeoutFuture(@Nonnull EventLoop notifyExecutor, @Nonnull Throwable cause) {
-        super(notifyExecutor, cause);
+    public FailedTimeoutFuture(@Nonnull EventLoop defaultExecutor, @Nonnull Throwable cause) {
+        super(defaultExecutor, cause);
     }
 
     @Override

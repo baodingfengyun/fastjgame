@@ -19,6 +19,8 @@ package com.wjybxx.fastjgame.net.eventloop;
 import com.wjybxx.fastjgame.net.rpc.RpcFuture;
 import com.wjybxx.fastjgame.net.rpc.RpcPromise;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.Promise;
+import com.wjybxx.fastjgame.utils.concurrent.VoidPromise;
 import com.wjybxx.fastjgame.utils.eventbus.EventDispatcher;
 
 import javax.annotation.Nonnull;
@@ -53,6 +55,12 @@ public interface NetEventLoop extends EventLoop, NetEventLoopGroup, EventDispatc
      */
     @Nonnull
     <V> RpcFuture<V> newFailedRpcFuture(@Nonnull EventLoop appEventLoop, @Nonnull Throwable cause);
+
+    /**
+     * 获取该{@link NetEventLoop}绑定的{@link VoidPromise}。
+     * 暂时还没有必要提升到{@link EventLoop}所在层次。
+     */
+    <V> Promise<V> voidPromise();
 
     /**
      * {@inheritDoc}

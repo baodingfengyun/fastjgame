@@ -49,27 +49,24 @@ public enum RpcErrorCode implements NumericalEntity {
     LOCAL_EXCEPTION(10),
 
     /**
+     * 找不到对应的session
+     */
+    LOCAL_SESSION_NOT_FOUND(11),
+    /**
      * 会话已关闭
      */
-    LOCAL_SESSION_CLOSED(11),
+    LOCAL_SESSION_CLOSED(12),
 
     /**
      * 超时
      */
-    LOCAL_TIMEOUT(12),
+    LOCAL_TIMEOUT(13),
 
     /**
      * 服务器处理请求失败。
      * 远程默认返回码，如果可以更细化，则应该细化。
      */
-    SERVER_EXCEPTION(20),
-
-    /**
-     * 路由转发时找不到session
-     */
-    SERVER_ROUTER_SESSION_NULL(21),
-
-    ;
+    SERVER_EXCEPTION(20);
 
     /**
      * 唯一标识，不可随意修改

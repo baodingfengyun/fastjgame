@@ -4,17 +4,10 @@ fastjgame 为 fast java game framework的缩写，如名字一样，该项目的
 ### 暂不建议fork，欢迎star和watch
 由于个人经验及能力原因，代码改动频繁，甚至很多设计都会推翻，因此暂时不建议fork，但相信我，一定对得起你的star！
 
-#### 序列化支持全新升级 2020年2月18日
-新增特性:
-1. 支持继承 - 序列化时，会将超类中带有注解的字段一同序列化，即使超类类信息上没有注解。
-2. 支持多态解析 - 举个例子：  
- **child1**以**parent**的方式序列化，解析时创建**child2**的实例，并将**parent**的数据赋予**child2**,
- 其实底层对于map和collection的处理是一样的，只不过是通过注解来获取合适的实现类。  
- 用户需要实现serializer接口，写少量代码即可，更过请查看**EntitySerializer**接口。
-3. 支持db注解序列化生成。
-4. 所有带注解的类，都生成对应的serializer，能调用普通方法的绝不反射调用，进一步提升编解码效率，现在和protoBuffer的序列化性能几乎相近。
-可以运行**SerializePerformanceTest** 和 **ProtoBufSerializePerformanceTest**体验一下，JSON和自定义协议和ProtoBuf自身的性能差异，虽然测试不太规范，但还是能说明问题的。
-[生成代码示例图](https://github.com/hl845740757/fastjgame/blob/master/game-net/src/doc/generatedcode.png)
+### 并发组件和Rpc组件优化 2020/3/8
+并发组件重新优化，**ListenableFuture**不再直接继承JDK的future，使得各种轻量级的future实现变成可能。  
+基于新的ListenableFuture重新实写了Rpc和Redis的部分组件，删除了旧的**MethodHandle**组件。  
+新实现的Rpc组件，更容易理解，更易扩展，更贴近应用本身。  
 PS: 需要重新安装注解处理器。
 
 ***

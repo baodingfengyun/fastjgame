@@ -149,16 +149,7 @@ public abstract class AbstractSession implements Session {
     }
 
     @Override
-    public void send(@Nonnull Object message) {
-        sendImp(message, false);
-    }
-
-    @Override
-    public void sendAndFlush(@Nonnull Object message) {
-        sendImp(message, true);
-    }
-
-    private void sendImp(@Nonnull Object message, boolean flush) {
+    public void send(@Nonnull RpcMethodSpec<?> message, boolean flush) {
         if (isClosed()) {
             // 会话关闭的情况下丢弃消息
             return;
@@ -166,17 +157,9 @@ public abstract class AbstractSession implements Session {
         netEventLoop.execute(new OneWayWriteTask(this, message, flush));
     }
 
+    @Nonnull
     @Override
-    public <V> RpcFuture<V> call(@Nonnull Object request) {
-        return callImp(request, false);
-    }
-
-    @Override
-    public <V> RpcFuture<V> callAndFlush(@Nonnull Object request) {
-        return callImp(request, true);
-    }
-
-    private <V> RpcFuture<V> callImp(@Nonnull Object request, boolean flush) {
+    public <V> RpcFuture<V> call(@Nonnull RpcMethodSpec<V> request, boolean flush) {
         if (isClosed()) {
             // session关闭状态下直接返回
             return new FailedRpcFuture<>(appEventLoop(), RpcSessionClosedException.INSTANCE);
@@ -190,7 +173,7 @@ public abstract class AbstractSession implements Session {
 
     @Nullable
     @Override
-    public final <V> V syncCall(@Nonnull Object request) throws CompletionException {
+    public final <V> V syncCall(@Nonnull RpcMethodSpec<V> request) throws CompletionException {
         if (isClosed()) {
             // 会话关闭的情况下直接返回
             final RpcFuture<V> failedRpcFuture = netEventLoop.newFailedRpcFuture(appEventLoop(), RpcSessionClosedException.INSTANCE);

@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.utils.async;
+package com.wjybxx.fastjgame.net.rpc;
+
+import com.wjybxx.fastjgame.net.session.Session;
 
 /**
- * 方法描述信息。
- * 该类仅仅是一个标记接口，子类自己决定如何定位调用的方法。
+ * Rpc服务器描述信息，用于{@link RpcClient}选择合适的服务器节点，其实就是选择合适的{@link Session}。
+ * 实现类可以实现组播/广播等等，自己根据需要实现。
  *
- * @param <V> the type of return value
  * @author wjybxx
  * @version 1.0
- * date - 2020/1/10
+ * date - 2020/3/8
  * github - https://github.com/hl845740757
  */
-@SuppressWarnings("unused")
-public interface MethodSpec<V> {
+public interface RpcServerSpec {
 
 }

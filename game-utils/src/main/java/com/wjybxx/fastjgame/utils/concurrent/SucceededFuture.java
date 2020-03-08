@@ -37,8 +37,8 @@ public class SucceededFuture<V> extends CompleteFuture<V> {
      */
     private final V result;
 
-    public SucceededFuture(@Nonnull EventLoop notifyExecutor, @Nullable V result) {
-        super(notifyExecutor);
+    public SucceededFuture(@Nonnull EventLoop defaultExecutor, @Nullable V result) {
+        super(defaultExecutor);
         this.result = result;
     }
 
