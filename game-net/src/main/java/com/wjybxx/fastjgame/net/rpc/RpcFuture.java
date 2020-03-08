@@ -53,7 +53,7 @@ public interface RpcFuture<V> extends TimeoutFuture<V> {
      *
      * @return errorCode
      */
-    RpcErrorCode errorCode();
+    RpcErrorCode getErrorCode();
 
     // 仅用于语法支持
     @Override

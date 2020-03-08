@@ -28,7 +28,7 @@ import java.util.concurrent.TimeoutException;
  * @version 1.0
  * date - 2020/3/4
  */
-public class VoidPromise implements Promise<Object> {
+public class VoidPromise implements BlockingPromise<Object> {
 
     private final EventLoop defaultExecutor;
 
@@ -136,37 +136,37 @@ public class VoidPromise implements Promise<Object> {
     // ---------------------------------------- 禁止添加监听器 -------------------------------------
 
     @Override
-    public Promise<Object> onComplete(@Nonnull FutureListener<? super Object> listener) {
+    public BlockingPromise<Object> onComplete(@Nonnull FutureListener<? super Object> listener) {
         fail();
         return this;
     }
 
     @Override
-    public Promise<Object> onComplete(@Nonnull FutureListener<? super Object> listener, @Nonnull Executor bindExecutor) {
+    public BlockingPromise<Object> onComplete(@Nonnull FutureListener<? super Object> listener, @Nonnull Executor bindExecutor) {
         fail();
         return this;
     }
 
     @Override
-    public Promise<Object> onSuccess(@Nonnull SucceededFutureListener<? super Object> listener) {
+    public BlockingPromise<Object> onSuccess(@Nonnull SucceededFutureListener<? super Object> listener) {
         fail();
         return this;
     }
 
     @Override
-    public Promise<Object> onSuccess(@Nonnull SucceededFutureListener<? super Object> listener, @Nonnull Executor bindExecutor) {
+    public BlockingPromise<Object> onSuccess(@Nonnull SucceededFutureListener<? super Object> listener, @Nonnull Executor bindExecutor) {
         fail();
         return this;
     }
 
     @Override
-    public Promise<Object> onFailure(@Nonnull FailedFutureListener<? super Object> listener) {
+    public BlockingPromise<Object> onFailure(@Nonnull FailedFutureListener<? super Object> listener) {
         fail();
         return this;
     }
 
     @Override
-    public Promise<Object> onFailure(@Nonnull FailedFutureListener<? super Object> listener, @Nonnull Executor bindExecutor) {
+    public BlockingPromise<Object> onFailure(@Nonnull FailedFutureListener<? super Object> listener, @Nonnull Executor bindExecutor) {
         fail();
         return this;
     }

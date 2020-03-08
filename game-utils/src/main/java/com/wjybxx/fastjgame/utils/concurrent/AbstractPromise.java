@@ -22,7 +22,7 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * {@link NPromise}的模板实现，它只负责结果管理（状态迁移），这部分逻辑完全无锁。
+ * {@link Promise}的模板实现，它只负责结果管理（状态迁移），这部分逻辑完全无锁。
  * <p>
  * 状态迁移：
  * <pre>
@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @version 1.0
  * date - 2020/3/6
  */
-abstract class AbstractPromise<V> implements NPromise<V> {
+abstract class AbstractPromise<V> implements Promise<V> {
 
     /**
      * 如果一个任务成功时没有结果{@link #setSuccess(Object) null}，使用该对象代替。

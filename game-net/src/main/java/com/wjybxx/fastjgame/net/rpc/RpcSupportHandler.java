@@ -23,6 +23,7 @@ import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 import com.wjybxx.fastjgame.utils.CollectionUtils;
+import com.wjybxx.fastjgame.utils.concurrent.Promise;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
@@ -89,7 +90,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
 
             // 保存rpc请求上下文
             long deadline = ctx.timerSystem().curTimeMillis() + writeTask.getTimeoutMs();
-            RpcTimeoutInfo rpcTimeoutInfo = new RpcTimeoutInfo(writeTask.getRpcPromise(), deadline);
+            RpcTimeoutInfo rpcTimeoutInfo = new RpcTimeoutInfo(writeTask.getPromise(), deadline);
             long requestGuid = ++requestGuidSequencer;
             rpcTimeoutInfoMap.put(requestGuid, rpcTimeoutInfo);
 
@@ -134,7 +135,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
     @SuppressWarnings("unchecked")
     private <V> void commitRpcResponse(RpcTimeoutInfo rpcTimeoutInfo, RpcErrorCode errorCode, Object body) {
         if (errorCode.isSuccess()) {
-            final RpcPromise<V> rpcPromise = (RpcPromise<V>) rpcTimeoutInfo.rpcPromise;
+            final Promise<V> rpcPromise = (Promise<V>) rpcTimeoutInfo.rpcPromise;
             final V result = (V) body;
             rpcPromise.trySuccess(result);
         } else {
@@ -175,10 +176,10 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
 
     private static class RpcTimeoutInfo {
 
-        final RpcPromise<?> rpcPromise;
+        final Promise<?> rpcPromise;
         final long deadline;
 
-        RpcTimeoutInfo(RpcPromise<?> rpcPromise, long deadline) {
+        RpcTimeoutInfo(Promise<?> rpcPromise, long deadline) {
             this.rpcPromise = rpcPromise;
             this.deadline = deadline;
         }

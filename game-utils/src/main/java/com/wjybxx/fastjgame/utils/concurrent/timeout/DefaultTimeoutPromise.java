@@ -31,7 +31,7 @@ import java.util.concurrent.TimeoutException;
  * date - 2020/1/6
  * github - https://github.com/hl845740757
  */
-public class DefaultTimeoutPromise<V> extends DefaultPromise<V> implements TimeoutFuture<V>, TimeoutPromise<V> {
+public class DefaultTimeoutPromise<V> extends DefaultBlockingPromise<V> implements TimeoutFuture<V>, TimeoutPromise<V> {
 
     public DefaultTimeoutPromise(@Nonnull EventLoop defaultExecutor) {
         super(defaultExecutor);

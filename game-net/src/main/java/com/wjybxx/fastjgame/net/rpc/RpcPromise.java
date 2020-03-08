@@ -18,7 +18,6 @@ package com.wjybxx.fastjgame.net.rpc;
 
 import com.wjybxx.fastjgame.utils.concurrent.FailedFutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
-import com.wjybxx.fastjgame.utils.concurrent.Promise;
 import com.wjybxx.fastjgame.utils.concurrent.SucceededFutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.timeout.TimeoutFutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.timeout.TimeoutPromise;
@@ -34,15 +33,9 @@ import java.util.concurrent.Executor;
  * date - 2019/8/3
  * github - https://github.com/hl845740757
  */
-public interface RpcPromise<V> extends Promise<V>, TimeoutPromise<V>, RpcFuture<V> {
+public interface RpcPromise<V> extends TimeoutPromise<V>, RpcFuture<V> {
 
     // 仅用于语法支持
-    @Override
-    RpcPromise<V> await() throws InterruptedException;
-
-    @Override
-    RpcPromise<V> awaitUninterruptibly();
-
     @Override
     RpcPromise<V> onComplete(@Nonnull FutureListener<? super V> listener);
 

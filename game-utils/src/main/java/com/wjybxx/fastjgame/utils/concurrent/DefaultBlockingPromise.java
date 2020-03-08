@@ -33,23 +33,23 @@ import java.util.concurrent.TimeoutException;
 import static com.wjybxx.fastjgame.utils.ThreadUtils.checkInterrupted;
 
 /**
- * 默认的{@link Promise}实现。
+ * 默认的{@link BlockingPromise}实现。
  *
  * <h3>监听器性能</h3>
  * 使用合适的{@link #defaultExecutor}将有助于减小通知监听器的开销。
  * {@link #defaultExecutor}应该为使用监听器最多的线程。
  *
  * <p>
- * 建议使用 {@link EventLoop#newPromise()}代替构造方法。
+ * 建议使用 {@link EventLoop#newBlockingPromise()}代替构造方法。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/7/14
  * github - https://github.com/hl845740757
  */
-public class DefaultPromise<V> extends AbstractPromise<V> implements Promise<V> {
+public class DefaultBlockingPromise<V> extends AbstractPromise<V> implements BlockingPromise<V> {
 
-    private static final Logger logger = LoggerFactory.getLogger(DefaultPromise.class);
+    private static final Logger logger = LoggerFactory.getLogger(DefaultBlockingPromise.class);
     /**
      * 1毫秒多少纳秒
      */
@@ -85,11 +85,11 @@ public class DefaultPromise<V> extends AbstractPromise<V> implements Promise<V> 
      */
     private final boolean isWorkingExecutor;
 
-    public DefaultPromise(@Nonnull EventLoop defaultExecutor) {
+    public DefaultBlockingPromise(@Nonnull EventLoop defaultExecutor) {
         this(defaultExecutor, true);
     }
 
-    public DefaultPromise(@Nonnull EventLoop defaultExecutor, boolean isWorkingExecutor) {
+    public DefaultBlockingPromise(@Nonnull EventLoop defaultExecutor, boolean isWorkingExecutor) {
         this.defaultExecutor = defaultExecutor;
         this.isWorkingExecutor = isWorkingExecutor;
     }
@@ -137,7 +137,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> implements Promise<V> 
     // --------------------------------------------- 阻塞式等待 -----------------------------------
 
     @Override
-    public Promise<V> await() throws InterruptedException {
+    public BlockingPromise<V> await() throws InterruptedException {
         // 先检查一次是否已完成，减小锁竞争，同时在完成的情况下，等待不会死锁。
         if (isDone()) {
             return this;
@@ -185,7 +185,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> implements Promise<V> 
     }
 
     @Override
-    public Promise<V> awaitUninterruptibly() {
+    public BlockingPromise<V> awaitUninterruptibly() {
         // 先检查一次是否已完成，减小锁竞争，同时在完成的情况下，等待不会死锁。
         if (isDone()) {
             return this;
@@ -368,7 +368,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> implements Promise<V> 
         }
     }
 
-    static <V> void notifyAllListenerNowSafely(@Nonnull final NFuture<V> future, @Nonnull final Object listenerEntries) {
+    static <V> void notifyAllListenerNowSafely(@Nonnull final ListenableFuture<V> future, @Nonnull final Object listenerEntries) {
         if (listenerEntries instanceof FutureListenerEntry) {
             notifyListenerNowSafely(future, (FutureListenerEntry) listenerEntries);
         } else {
@@ -384,7 +384,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> implements Promise<V> 
     /**
      * @param listenerEntry 监听器的信息
      */
-    public static <V> void notifyListenerNowSafely(@Nonnull NFuture<V> future, @Nonnull FutureListenerEntry listenerEntry) {
+    public static <V> void notifyListenerNowSafely(@Nonnull ListenableFuture<V> future, @Nonnull FutureListenerEntry listenerEntry) {
         if (EventLoopUtils.inEventLoop(listenerEntry.executor)) {
             notifyListenerNowSafely(future, listenerEntry.listener);
         } else {
@@ -394,7 +394,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> implements Promise<V> 
     }
 
     @SuppressWarnings({"unchecked"})
-    private static <V> void notifyListenerNowSafely(@Nonnull NFuture<V> future, @Nonnull FutureListener listener) {
+    private static <V> void notifyListenerNowSafely(@Nonnull ListenableFuture<V> future, @Nonnull FutureListener listener) {
         try {
             listener.onComplete(future);
         } catch (Throwable e) {
@@ -409,13 +409,13 @@ public class DefaultPromise<V> extends AbstractPromise<V> implements Promise<V> 
     }
 
     @Override
-    public Promise<V> onComplete(@Nonnull FutureListener<? super V> listener) {
+    public BlockingPromise<V> onComplete(@Nonnull FutureListener<? super V> listener) {
         addListener(listener, defaultExecutor);
         return this;
     }
 
     @Override
-    public Promise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public BlockingPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         addListener(listener, bindExecutor);
         return this;
     }
@@ -452,25 +452,25 @@ public class DefaultPromise<V> extends AbstractPromise<V> implements Promise<V> 
     }
 
     @Override
-    public Promise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
+    public BlockingPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
         addListener(listener, defaultExecutor);
         return this;
     }
 
     @Override
-    public Promise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public BlockingPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         addListener(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public Promise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
+    public BlockingPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
         addListener(listener, defaultExecutor);
         return this;
     }
 
     @Override
-    public Promise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public BlockingPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         addListener(listener, bindExecutor);
         return this;
     }

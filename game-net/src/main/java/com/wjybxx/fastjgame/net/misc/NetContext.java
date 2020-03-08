@@ -25,9 +25,9 @@ import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.socket.SocketPort;
 import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
+import com.wjybxx.fastjgame.utils.concurrent.BlockingFuture;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.GlobalEventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
@@ -98,7 +98,7 @@ public interface NetContext {
      * @param config        session配置信息
      * @return future
      */
-    ListenableFuture<Session> connectTcp(String sessionId, long remoteGuid, HostAndPort remoteAddress, @Nonnull SocketSessionConfig config);
+    BlockingFuture<Session> connectTcp(String sessionId, long remoteGuid, HostAndPort remoteAddress, @Nonnull SocketSessionConfig config);
 
     /**
      * 在指定端口监听WebSocket连接
@@ -133,7 +133,7 @@ public interface NetContext {
      * @param config        session配置信息
      * @return future 如果想消除同步，添加监听器时请绑定EventLoop
      */
-    ListenableFuture<Session> connectWS(String sessionId, long remoteGuid, HostAndPort remoteAddress, String websocketUrl, @Nonnull SocketSessionConfig config);
+    BlockingFuture<Session> connectWS(String sessionId, long remoteGuid, HostAndPort remoteAddress, String websocketUrl, @Nonnull SocketSessionConfig config);
 
 
     // -------------------------------------- 用于支持JVM内部通信 -------------------------------
@@ -161,7 +161,7 @@ public interface NetContext {
      * @param config     配置信息
      * @return future 如果想消除同步，添加监听器时请绑定EventLoop
      */
-    ListenableFuture<Session> connectLocal(String sessionId, long remoteGuid, @Nonnull LocalPort localPort, @Nonnull LocalSessionConfig config);
+    BlockingFuture<Session> connectLocal(String sessionId, long remoteGuid, @Nonnull LocalPort localPort, @Nonnull LocalSessionConfig config);
 
     //  --------------------------------------- http支持 -----------------------------------------
 

@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.db.redis;
 
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.NFuture;
+import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.CompletionException;
@@ -51,18 +51,18 @@ public class DefaultRedisClient implements RedisClient {
     }
 
     @Override
-    public <V> NFuture<V> call(@Nonnull RedisCommand<V> command) {
+    public <V> ListenableFuture<V> call(@Nonnull RedisCommand<V> command) {
         return redisEventLoop.call(command, false, appEventLoop);
     }
 
     @Override
-    public <V> NFuture<V> callAndFlush(@Nonnull RedisCommand<V> command) {
+    public <V> ListenableFuture<V> callAndFlush(@Nonnull RedisCommand<V> command) {
         return redisEventLoop.call(command, true, appEventLoop);
     }
 
     @Override
     public <V> V syncCall(@Nonnull RedisCommand<V> command) throws CompletionException {
-        return redisEventLoop.syncCall(command, appEventLoop);
+        return redisEventLoop.syncCall(command);
     }
 
 }

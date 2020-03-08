@@ -16,9 +16,9 @@
 
 package com.wjybxx.fastjgame.utils;
 
+import com.wjybxx.fastjgame.utils.concurrent.BlockingFuture;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.FailedFuture;
-import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.utils.concurrent.SucceededFuture;
 import com.wjybxx.fastjgame.utils.function.AcquireFun;
 import org.slf4j.Logger;
@@ -142,7 +142,7 @@ public class ConcurrentUtils {
      * @param task      任务
      * @return future
      */
-    public static ListenableFuture<?> submitOrRun(@Nonnull EventLoop eventLoop, Runnable task) {
+    public static BlockingFuture<?> submitOrRun(@Nonnull EventLoop eventLoop, Runnable task) {
         return submitOrRun(eventLoop, Executors.callable(task, null));
     }
 
@@ -153,7 +153,7 @@ public class ConcurrentUtils {
      * @param task      任务
      * @return future
      */
-    public static <V> ListenableFuture<V> submitOrRun(@Nonnull EventLoop eventLoop, Callable<V> task) {
+    public static <V> BlockingFuture<V> submitOrRun(@Nonnull EventLoop eventLoop, Callable<V> task) {
         if (eventLoop.inEventLoop()) {
             try {
                 V result = task.call();

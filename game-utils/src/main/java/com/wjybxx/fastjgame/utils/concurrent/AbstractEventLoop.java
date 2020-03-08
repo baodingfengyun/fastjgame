@@ -77,19 +77,19 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
 
     @Nonnull
     @Override
-    public <V> Promise<V> newPromise() {
-        return new DefaultPromise<>(this, true);
+    public <V> BlockingPromise<V> newBlockingPromise() {
+        return new DefaultBlockingPromise<>(this, true);
     }
 
     @Nonnull
     @Override
-    public final <V> ListenableFuture<V> newSucceededFuture(V result) {
+    public final <V> BlockingFuture<V> newSucceededFuture(V result) {
         return new SucceededFuture<>(this, result);
     }
 
     @Nonnull
     @Override
-    public final <V> ListenableFuture<V> newFailedFuture(@Nonnull Throwable cause) {
+    public final <V> BlockingFuture<V> newFailedFuture(@Nonnull Throwable cause) {
         return new FailedFuture<>(this, cause);
     }
 
@@ -97,31 +97,31 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
     // region 重写 AbstractExecutorService中的部分方法,返回特定的Future类型
     @Nonnull
     @Override
-    public final ListenableFuture<?> submit(@Nonnull Runnable task) {
-        return (ListenableFuture<?>) super.submit(task);
+    public final BlockingFuture<?> submit(@Nonnull Runnable task) {
+        return (BlockingFuture<?>) super.submit(task);
     }
 
     @Nonnull
     @Override
-    public final <T> ListenableFuture<T> submit(@Nonnull Runnable task, T result) {
-        return (ListenableFuture<T>) super.submit(task, result);
+    public final <T> BlockingFuture<T> submit(@Nonnull Runnable task, T result) {
+        return (BlockingFuture<T>) super.submit(task, result);
     }
 
     @Nonnull
     @Override
-    public final <T> ListenableFuture<T> submit(@Nonnull Callable<T> task) {
-        return (ListenableFuture<T>) super.submit(task);
+    public final <T> BlockingFuture<T> submit(@Nonnull Callable<T> task) {
+        return (BlockingFuture<T>) super.submit(task);
     }
 
     // 重要，重写newTaskFor方法，返回具体的future类型
     @Override
     protected final <T> RunnableFuture<T> newTaskFor(@Nonnull Runnable runnable, T value) {
-        return new ListenableFutureTask<>(this, Executors.callable(runnable, value));
+        return new BlockingFutureTask<>(this, Executors.callable(runnable, value));
     }
 
     @Override
     protected final <T> RunnableFuture<T> newTaskFor(@Nonnull Callable<T> callable) {
-        return new ListenableFutureTask<>(this, callable);
+        return new BlockingFutureTask<>(this, callable);
     }
     // endregion
 

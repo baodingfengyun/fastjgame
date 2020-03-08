@@ -225,7 +225,7 @@ public class RedisEventLoop extends SingleThreadEventLoop {
     /**
      * 安全的为promise赋值
      */
-    private static <V> void setData(NPromise<V> redisPromise, Response<V> dependency, Throwable cause) {
+    private static <V> void setData(Promise<V> redisPromise, Response<V> dependency, Throwable cause) {
         if (cause != null) {
             redisPromise.tryFailure(cause);
             return;
@@ -254,8 +254,8 @@ public class RedisEventLoop extends SingleThreadEventLoop {
      * @param appEventLoop 用户线程 - 执行回调的线程
      * @param flush        是否刷新管道
      */
-    <V> NFuture<V> call(RedisCommand<V> command, boolean flush, EventLoop appEventLoop) {
-        final Promise<V> promise = newAppPromise(appEventLoop);
+    <V> ListenableFuture<V> call(RedisCommand<V> command, boolean flush, EventLoop appEventLoop) {
+        final Promise<V> promise = new LocalPromise<>(appEventLoop);
         execute(new JedisPipelineTask<>(command, flush, promise));
         return promise;
     }
@@ -264,17 +264,12 @@ public class RedisEventLoop extends SingleThreadEventLoop {
      * 执行一个管道命令，并阻塞到执行完成。
      * 由于同步调用较为紧急，因此一定会刷新缓冲区。
      *
-     * @param command      待执行的命令
-     * @param appEventLoop 用户线程 - 执行回调的线程
+     * @param command 待执行的命令
      */
-    <V> V syncCall(RedisCommand<V> command, EventLoop appEventLoop) throws CompletionException {
-        final Promise<V> redisPromise = newAppPromise(appEventLoop);
-        execute(new JedisPipelineTask<>(command, true, redisPromise));
-        return redisPromise.join();
-    }
-
-    private static <T> Promise<T> newAppPromise(EventLoop appEventLoop) {
-        return new DefaultPromise<>(appEventLoop, false);
+    <V> V syncCall(RedisCommand<V> command) throws CompletionException {
+        final BlockingPromise<V> promise = newBlockingPromise();
+        execute(new JedisPipelineTask<>(command, true, promise));
+        return promise.join();
     }
 
     /**
@@ -285,12 +280,12 @@ public class RedisEventLoop extends SingleThreadEventLoop {
     private class JedisPipelineTask<V> implements Runnable {
         private final RedisCommand<V> pipelineCmd;
         private final boolean flush;
-        private final NPromise<V> promise;
+        private final Promise<V> promise;
 
         private Response<V> dependency;
         private Throwable cause;
 
-        JedisPipelineTask(RedisCommand<V> pipelineCmd, boolean flush, NPromise<V> promise) {
+        JedisPipelineTask(RedisCommand<V> pipelineCmd, boolean flush, Promise<V> promise) {
             this.pipelineCmd = pipelineCmd;
             this.promise = promise;
             this.flush = flush;

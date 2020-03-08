@@ -55,7 +55,7 @@ public class GlobalEventLoop extends AbstractEventLoop {
     /**
      * 不可以在GlobalEventLoop上等待其关闭
      */
-    private final ListenableFuture<?> terminationFuture = new FailedFuture<>(this, new UnsupportedOperationException());
+    private final BlockingFuture<?> terminationFuture = new FailedFuture<>(this, new UnsupportedOperationException());
 
     private GlobalEventLoop() {
         super(null);
@@ -83,7 +83,7 @@ public class GlobalEventLoop extends AbstractEventLoop {
     }
 
     @Override
-    public ListenableFuture<?> terminationFuture() {
+    public BlockingFuture<?> terminationFuture() {
         return terminationFuture;
     }
 

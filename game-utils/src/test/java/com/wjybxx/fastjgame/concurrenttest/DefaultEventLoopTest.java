@@ -30,13 +30,13 @@ public class DefaultEventLoopTest {
 
     public static void main(String[] args) {
 
-        final ListenableFuture<String> future = eventLoopGroup.submit(() -> {
+        final BlockingFuture<String> future = eventLoopGroup.submit(() -> {
             System.out.println("before task1 return.");
             Thread.sleep(200);
             return "-hello world.";
         });
 
-        final ListenableFuture<String> future2 = eventLoopGroup.submit(() -> {
+        final BlockingFuture<String> future2 = eventLoopGroup.submit(() -> {
             System.out.println("before task2  return.");
             Thread.sleep(200);
             return "-java";
@@ -49,7 +49,7 @@ public class DefaultEventLoopTest {
         System.out.println(future.getNow());
         System.out.println(future2.getNow());
 
-        final ListenableFuture<String> future3 = eventLoopGroup.submit(() -> {
+        final BlockingFuture<String> future3 = eventLoopGroup.submit(() -> {
             Thread.sleep(500);
             return "500";
         });

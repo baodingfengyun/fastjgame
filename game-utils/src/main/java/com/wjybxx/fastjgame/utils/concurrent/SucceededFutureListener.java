@@ -27,7 +27,7 @@ package com.wjybxx.fastjgame.utils.concurrent;
 public interface SucceededFutureListener<V> extends FutureListener<V> {
 
     @Override
-    default void onComplete(NFuture<V> future) throws Exception {
+    default void onComplete(ListenableFuture<V> future) throws Exception {
         if (future.isSuccess()) {
             onSuccess(future.getNow());
         }

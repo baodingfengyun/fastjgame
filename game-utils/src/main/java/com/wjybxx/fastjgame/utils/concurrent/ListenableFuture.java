@@ -1,154 +1,179 @@
 /*
- * Copyright 2019 wjybxx
+ *  Copyright 2019 wjybxx
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to iBn writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 
 package com.wjybxx.fastjgame.utils.concurrent;
 
+import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
 
 import javax.annotation.Nonnull;
-import java.util.concurrent.*;
+import javax.annotation.concurrent.ThreadSafe;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executor;
 
 /**
- * 它继承了JDK的{@link Future}，出现了阻塞式api。
- * <h3>建议</h3>
- * 如果不是必须需要阻塞式的API，应当优先选择{@link NFuture}。
+ * 非阻塞的可监听的future。
+ * 它不提供任何的阻塞式接口，只提供异步监听和非阻塞获取结果的api。
  *
- * <p>
- * Q: 为什么使用非受检{@link CompletionException}异常代替了{@link ExecutionException}？
- * A: <NOTE>非受检异常更好，受检异常并不能提升软件的健壮性，而且受检异常对封装破坏极大，用非受检异常代替受检异常</NOTE>，
- * 这话不是我说的，但是我这几年的编程经验也告诉我，确实是这样。
+ * <h3>{@link ListenableFuture}优先</h3>
+ * 如果不是必须需要阻塞式的API，应当优先选择{@link ListenableFuture}。
+ * 主要由于jdk的future一开始就提供了阻塞式的api，因此这里不能继承jdk的future。
  *
- * @param <V> 值类型
+ * <h3>监听器执行时序</h3>
+ * 1. 实现类必须保证<b>通知顺序和添加顺序一致</b>，也就是必须禁止并发通知，即：任意时刻至多存在一个通知线程。<br>
+ * 2. 在1的保证下，可以推出:<b>执行环境相同(线程绑定)</b>的监听器，会按照添加顺序执行。而对于执行环境不确定的监听器，则不需要提供任何顺序保证。
+ * 3. 对于未指定{@link Executor}的监听器，执行顺序和添加顺序一致，它们会在{@link #defaultExecutor()}中有序执行。
+ * 4. 对于指定了{@link Executor}的监听器，如果{@link Executor}是单线程的，那么该executor关联的监听会按照添加顺序执行。
+ *
  * @author wjybxx
  * @version 1.0
- * date - 2019/7/14
- * github - https://github.com/hl845740757
+ * date - 2020/3/6
  */
-public interface ListenableFuture<V> extends Future<V>, NFuture<V> {
-
-    // ------------------------------------- 阻塞式获取操作结果 ---------------------------------------
+@ThreadSafe
+public interface ListenableFuture<V> {
 
     /**
-     * 获取task的结果。
-     * 如果future关联的task尚未完成，则阻塞等待至任务完成，并返回计算的结果。
-     * 如果future关联的task已完成，则立即返回结果。
+     * 查询任务是否已完成。
+     * <h3>完成状态</h3>
+     * <b>正常完成</b>、<b>被取消结束</b>、<b>执行异常而结束</b>都表示完成状态。
+     *
+     * @return 任务已进入完成状态则返回true。
+     */
+    boolean isDone();
+
+    /**
+     * 查询future关联的操作是否顺利完成了。
+     *
+     * @return 当且仅当该future对应的task顺利完成时返回true。
+     */
+    boolean isSuccess();
+
+    // ---------------------------------------- 取消相关 --------------------------------------
+
+    /**
+     * 查询任务是否被取消。
+     *
+     * @return 当且仅当该future关联的task由于取消进入完成状态时返回true。
+     */
+    boolean isCancelled();
+
+    /**
+     * 查询future关联的任务是否可以被取消。
+     *
+     * @return true/false 当且仅当future关联的任务可以通过{@link #cancel(boolean)}被取消时返回true。
+     */
+    boolean isCancellable();
+
+    /**
+     * 尝试取消future关联的任务，如果取消成功，会使得Future进入完成状态，并且{@link #cause()}将返回{@link CancellationException}。
+     * 1. 如果取消成功，则返回true。
+     * 2. 如果任务已经被取消，则返回true。
+     * 3. 如果future关联的任务已完成，则返回false。
+     *
+     * @param mayInterruptIfRunning 是否允许中断工作者线程
+     * @return 是否取消成功
+     */
+    boolean cancel(boolean mayInterruptIfRunning);
+
+    // ------------------------------------- 非阻塞式获取计算结果 --------------------------------------
+
+    /**
+     * 非阻塞的获取当前结果：
+     * 1. 如果future关联的task还未完成{@link #isDone() false}，则返回null。
+     * 2. 如果任务执行成功，则返回对应的结果。
+     * 2. 如果任务被取消或失败，则抛出对应的异常。
      * <p>
      * 注意：
      * 如果future关联的task没有返回值(操作完成返回null)，此时不能根据返回值做任何判断。对于这种情况，
      * 你可以使用{@link #isSuccess()},作为更好的选择。
      *
-     * @return task的结果
-     * @throws InterruptedException  如果当前线程在等待过程中被中断，则抛出该异常。
+     * @return task执行结果
      * @throws CancellationException 如果任务被取消了，则抛出该异常
      * @throws CompletionException   如果在计算过程中出现了其它异常导致任务失败，则抛出该异常。
      */
-    @Override
-    V get() throws InterruptedException, CompletionException;
+    V getNow();
 
     /**
-     * 在限定时间内获取task的结果。
-     * 如果future关联的task尚未完成，则等待一定时间，等待期间如果任务完成，则返回计算的结果。
-     * 如果future关联的task已完成，则立即返回结果。
+     * 非阻塞获取导致任务失败的原因。
+     * 1. 如果future关联的task还未进入完成状态{@link #isDone() false}，则返回null。
+     * 2. 当future关联的任务被取消或由于异常进入完成状态后，该方法将返回操作失败的原因。
+     * 3. 如果future关联的task已正常完成，则返回null。
+     *
+     * @return 失败的原因
+     */
+    Throwable cause();
+
+    // ------------------------------------- 监听 --------------------------------------
+
+    /**
+     * 监听器的默认执行环境，如果在添加监听器时，未指定{@link Executor}，那么一定会在该{@link EventLoop}下执行。
+     * 它声明为{@link EventLoop}，表示强调它是单线程的，也就是说所有未指定{@link Executor}的监听器会按照添加顺序执行。
      * <p>
-     * 注意：
-     * 如果future关联的task没有返回值(操作完成返回null)，此时不能根据返回值做任何判断。对于这种情况，
-     * 你可以使用{@link #isSuccess()},作为更好的选择。
-     *
-     * @param timeout 最大等待时间
-     * @param unit    timeout的时间单位
-     * @return future关联的task的计算结果
-     * @throws InterruptedException  如果当前线程在等待过程中被中断，则抛出该异常。
-     * @throws CancellationException 如果任务被取消了，则抛出该异常
-     * @throws TimeoutException      在限定时间内task未完成(等待超时)，则抛出该异常。
-     * @throws CompletionException   如果在计算过程中出现了其它异常导致任务失败，则抛出该异常。
+     * 将其限制为单线程的，可能会导致一定的性能损失，但是可以降低编程难度。
+     * 而且如果该{@link EventLoop}就是我们的业务逻辑线程，且只有业务逻辑线程添加回调的话，那么将没有性能损失，这种情况也很常见。
      */
-    @Override
-    V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, CompletionException, TimeoutException;
+    EventLoop defaultExecutor();
 
     /**
-     * 阻塞式获取task的结果，阻塞期间不响应中断。
-     * 如果future关联的task尚未完成，则阻塞等待至任务完成，并返回计算的结果。
-     * 如果future关联的task已完成，则立即返回结果。
-     * <p>
-     * 注意：
-     * 如果future关联的task没有返回值(操作完成返回null)，此时不能根据返回值做任何判断。对于这种情况，
-     * 你可以使用{@link #isSuccess()},作为更好的选择。
+     * 添加一个监听器。Listener将会在Future计算完成时{@link #isDone() true}被通知。
+     * 如果当前Future已经计算完成，那么将立即被通知（不一定立即执行，取决于当前是否在{@link #defaultExecutor()}线程）。
      *
-     * @return task的结果
-     * @throws CancellationException 如果任务被取消了，则抛出该异常
-     * @throws CompletionException   如果在计算过程中出现了其它异常导致任务失败，则抛出该异常。
-     */
-    V join() throws CompletionException;
-
-    // -------------------------------- 阻塞式等待future进入完成状态  --------------------------------------
-
-    /**
-     * 等待future进入完成状态。
-     * await()不会查询任务的结果，在Future进入完成状态之后就返回，方法返回后，接下来的{@link #isDone()}调用都将返回true。
-     *
+     * @param listener 要添加的监听器。
      * @return this
-     * @throws InterruptedException 如果在等待期间线程被中断，则抛出中断异常。
      */
-    ListenableFuture<V> await() throws InterruptedException;
-
-    /**
-     * 等待future进入完成状态，等待期间不响应中断，并默默的丢弃，在方法返回前会重置中断状态。
-     * 在方法返回之后，接下来的{@link #isDone()}调用都将返回true。
-     *
-     * @return this
-     */
-    ListenableFuture<V> awaitUninterruptibly();
-
-    /**
-     * 在指定的时间范围内等待，直到future关联的任务进入完成状态。
-     * 如果正常返回，接下来的{@link #isDone()}调用都将返回true。
-     *
-     * @param timeout 等待的最大时间，<b>如果小于等于0，表示不阻塞</b>
-     * @param unit    时间单位
-     * @return 当且仅当future关联的task在指定时间内进入了完成状态，返回true。也就是接下来的{@link #isDone() true} 。
-     * @throws InterruptedException 如果当前线程在等待期间被中断
-     */
-    boolean await(long timeout, @Nonnull TimeUnit unit) throws InterruptedException;
-
-    /**
-     * 在指定的时间范围内等待，直到future关联的任务进入完成状态，并且在等待期间不响应中断。
-     * 在等待期间，会捕获中断，并默默的丢弃，在方法返回前会恢复中断状态。
-     *
-     * @param timeout 等待的最大时间，<b>如果小于等于0，表示不阻塞</b>
-     * @param unit    时间单位
-     * @return 当且仅当future关联的任务，在特定时间范围内进入完成状态时返回true。也就是接下来的{@link #isDone() true}。
-     */
-    boolean awaitUninterruptibly(long timeout, @Nonnull TimeUnit unit);
-
-    // 仅仅用于支持流式语法
-
-    @Override
     ListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener);
 
-    @Override
+    /**
+     * 添加一个监听器。Listener将会在Future计算完成时{@link #isDone() true}被通知，并最终运行在指定{@link Executor}下。
+     *
+     * @param listener     要添加的监听器
+     * @param bindExecutor 监听器的最终执行线程
+     * @return this
+     * @see #onComplete(FutureListener)
+     */
     ListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
-    @Override
+    /**
+     * 添加一个监听器，该监听器只有在成功的时候执行
+     *
+     * @see #onComplete(FutureListener)
+     */
     ListenableFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener);
 
-    @Override
     ListenableFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
-    @Override
+    /**
+     * 添加一个监听器，该监听器只有在失败的时候执行
+     *
+     * @see #onComplete(FutureListener)
+     */
     ListenableFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener);
 
-    @Override
     ListenableFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+
+    // ------------------------------------- 用于支持占位的voidFuture --------------------------------------
+
+    /**
+     * 如果该方法返回true，表示该对象仅仅用于占位。
+     * 任何<b>阻塞式调用</b>和<b>添加监听器</b>都将抛出异常。
+     * <p>
+     * Q: 它的主要目的？
+     * A: 减少开销。其实任何使用VoidFuture的地方，都可以使用正常的future，
+     * 只是会有额外的开销。在某些场景使用VoidFuture将节省很多开销。
+     */
+    @UnstableApi
+    boolean isVoid();
 }

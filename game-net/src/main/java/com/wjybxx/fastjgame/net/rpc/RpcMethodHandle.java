@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.net.rpc;
 
 import com.wjybxx.fastjgame.utils.async.FlushableMethodHandle;
-import com.wjybxx.fastjgame.utils.concurrent.NFuture;
+import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -125,10 +125,10 @@ public interface RpcMethodHandle<V> extends FlushableMethodHandle<RpcClient, V> 
     void broadcast(@Nonnull Iterable<RpcClient> clientGroup);
 
     @Override
-    NFuture<V> call(@Nonnull RpcClient client);
+    ListenableFuture<V> call(@Nonnull RpcClient client);
 
     @Override
-    NFuture<V> callAndFlush(@Nonnull RpcClient client);
+    ListenableFuture<V> callAndFlush(@Nonnull RpcClient client);
 
     V syncCall(@Nonnull RpcClient client) throws CompletionException;
 

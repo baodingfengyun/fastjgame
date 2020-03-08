@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.net.rpc;
 
 import com.wjybxx.fastjgame.net.session.Session;
+import com.wjybxx.fastjgame.utils.concurrent.Promise;
 
 import javax.annotation.Nonnull;
 
@@ -36,12 +37,12 @@ public class RpcRequestWriteTask implements WriteTask {
     private final boolean sync;
     private final long timeoutMs;
 
-    private final RpcPromise<?> rpcPromise;
+    private final Promise<?> rpcPromise;
     private final boolean flush;
 
     public RpcRequestWriteTask(Session session,
                                Object request, boolean sync, long timeoutMs,
-                               @Nonnull RpcPromise<?> rpcPromise, boolean flush) {
+                               @Nonnull Promise<?> rpcPromise, boolean flush) {
         this.session = session;
         this.request = request;
         this.sync = sync;
@@ -62,7 +63,7 @@ public class RpcRequestWriteTask implements WriteTask {
         return timeoutMs;
     }
 
-    public RpcPromise<?> getRpcPromise() {
+    public Promise<?> getPromise() {
         return rpcPromise;
     }
 

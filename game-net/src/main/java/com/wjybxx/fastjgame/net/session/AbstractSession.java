@@ -23,6 +23,7 @@ import com.wjybxx.fastjgame.net.misc.NetContext;
 import com.wjybxx.fastjgame.net.rpc.*;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.annotation.Internal;
+import com.wjybxx.fastjgame.utils.concurrent.BlockingPromise;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoopUtils;
 import com.wjybxx.fastjgame.utils.timer.TimerHandle;
@@ -181,9 +182,9 @@ public abstract class AbstractSession implements Session {
             return new FailedRpcFuture<>(appEventLoop(), RpcSessionClosedException.INSTANCE);
         } else {
             // 会话活动的状态下才会发送
-            final RpcPromise<V> rpcPromise = netEventLoop.newRpcPromise(appEventLoop());
-            netEventLoop.execute(new RpcRequestWriteTask(this, request, false, config().getAsyncRpcTimeoutMs(), rpcPromise, flush));
-            return rpcPromise;
+            final RpcPromise<V> promise = netEventLoop.newRpcPromise(appEventLoop());
+            netEventLoop.execute(new RpcRequestWriteTask(this, request, false, config().getAsyncRpcTimeoutMs(), promise, flush));
+            return promise;
         }
     }
 
@@ -195,11 +196,11 @@ public abstract class AbstractSession implements Session {
             final RpcFuture<V> failedRpcFuture = netEventLoop.newFailedRpcFuture(appEventLoop(), RpcSessionClosedException.INSTANCE);
             return failedRpcFuture.getNow();
         }
-        final RpcPromise<V> rpcPromise = netEventLoop.newRpcPromise(appEventLoop());
+        final BlockingPromise<V> blockingPromise = netEventLoop.newBlockingPromise();
         // 提交到网络层执行
-        netEventLoop.execute(new RpcRequestWriteTask(this, request, true, config().getSyncRpcTimeoutMs(), rpcPromise, true));
+        netEventLoop.execute(new RpcRequestWriteTask(this, request, true, config().getSyncRpcTimeoutMs(), blockingPromise, true));
         // RpcPromise保证了不会等待超过限时时间
-        return rpcPromise.join();
+        return blockingPromise.join();
     }
 
     @Override

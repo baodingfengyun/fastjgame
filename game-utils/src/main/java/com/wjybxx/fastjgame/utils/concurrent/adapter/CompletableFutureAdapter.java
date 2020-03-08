@@ -26,16 +26,16 @@ import java.util.concurrent.*;
 /**
  * JDK{@link CompletableFuture}的适配器。
  * <p>
- * 其实在最开始构建并发组件的时候，我就想过是选择{@link ListenableFuture}还是JDK的{@link CompletableFuture}，
+ * 其实在最开始构建并发组件的时候，我就想过是选择{@link BlockingFuture}还是JDK的{@link CompletableFuture}，
  * 扫一遍{@link CompletableFuture}，它的api实在是太多了，理解和使用成本都太高，不适合暴露给逻辑程序员使用，而对其进行封装的成本更高，
- * 且游戏内一般并不需要特别多的功能，所以最终选择了{@link ListenableFuture}。
+ * 且游戏内一般并不需要特别多的功能，所以最终选择了{@link BlockingFuture}。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/12/30
  * github - https://github.com/hl845740757
  */
-public class CompletableFutureAdapter<V> extends AbstractListenableFuture<V> {
+public class CompletableFutureAdapter<V> extends AbstractBlockingFuture<V> {
 
     private final EventLoop executor;
     private final CompletableFuture<V> future;
@@ -121,7 +121,7 @@ public class CompletableFutureAdapter<V> extends AbstractListenableFuture<V> {
     }
 
     @Override
-    public ListenableFuture<V> await() throws InterruptedException {
+    public BlockingFuture<V> await() throws InterruptedException {
         try {
             future.get();
         } catch (InterruptedException e) {
@@ -133,7 +133,7 @@ public class CompletableFutureAdapter<V> extends AbstractListenableFuture<V> {
     }
 
     @Override
-    public ListenableFuture<V> awaitUninterruptibly() {
+    public BlockingFuture<V> awaitUninterruptibly() {
         try {
             future.join();
         } catch (Throwable ignore) {
@@ -176,41 +176,41 @@ public class CompletableFutureAdapter<V> extends AbstractListenableFuture<V> {
     private void addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         // 不要内联该对象 - lambda表达式捕获的对象不一样
         final FutureListenerEntry<? super V> listenerEntry = new FutureListenerEntry<>(listener, bindExecutor);
-        future.thenRun(() -> DefaultPromise.notifyListenerNowSafely(this, listenerEntry));
+        future.thenRun(() -> DefaultBlockingPromise.notifyListenerNowSafely(this, listenerEntry));
     }
 
     @Override
-    public ListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
+    public BlockingFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
         addListener(listener, executor);
         return this;
     }
 
     @Override
-    public ListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public BlockingFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         addListener(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public ListenableFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
+    public BlockingFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
         addListener(listener, executor);
         return this;
     }
 
     @Override
-    public ListenableFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public BlockingFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         addListener(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public ListenableFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
+    public BlockingFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
         addListener(listener, executor);
         return this;
     }
 
     @Override
-    public ListenableFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public BlockingFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         addListener(listener, bindExecutor);
         return this;
     }

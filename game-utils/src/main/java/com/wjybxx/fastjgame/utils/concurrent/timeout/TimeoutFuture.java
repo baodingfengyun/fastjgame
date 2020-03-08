@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.utils.concurrent.timeout;
 
 import com.wjybxx.fastjgame.utils.concurrent.FailedFutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
-import com.wjybxx.fastjgame.utils.concurrent.NFuture;
+import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.utils.concurrent.SucceededFutureListener;
 
 import javax.annotation.Nonnull;
@@ -33,7 +33,7 @@ import java.util.concurrent.Executor;
  * date - 2020/1/6
  * github - https://github.com/hl845740757
  */
-public interface TimeoutFuture<V> extends NFuture<V> {
+public interface TimeoutFuture<V> extends ListenableFuture<V> {
 
     /**
      * 是否已超时。

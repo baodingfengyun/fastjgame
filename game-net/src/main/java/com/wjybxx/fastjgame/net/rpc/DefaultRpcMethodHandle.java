@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.rpc;
 
-import com.wjybxx.fastjgame.utils.concurrent.NFuture;
+import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -79,12 +79,12 @@ public class DefaultRpcMethodHandle<V> implements RpcMethodHandle<V> {
     }
 
     @Override
-    public final NFuture<V> call(@Nonnull RpcClient client) {
+    public final ListenableFuture<V> call(@Nonnull RpcClient client) {
         return client.call(this.rpcMethodSpec);
     }
 
     @Override
-    public NFuture<V> callAndFlush(@Nonnull RpcClient client) {
+    public ListenableFuture<V> callAndFlush(@Nonnull RpcClient client) {
         return client.callAndFlush(rpcMethodSpec);
     }
 

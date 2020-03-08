@@ -30,7 +30,7 @@ import java.util.concurrent.TimeoutException;
  * date - 2019/7/14 14:53
  * github - https://github.com/hl845740757
  */
-public abstract class AbstractListenableFuture<V> implements ListenableFuture<V> {
+public abstract class AbstractBlockingFuture<V> implements BlockingFuture<V> {
 
     @Override
     public V get() throws InterruptedException, CompletionException {

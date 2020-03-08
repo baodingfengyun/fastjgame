@@ -99,7 +99,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     /**
      * 线程终止future
      */
-    private final Promise<?> terminationFuture = new DefaultPromise<>(GlobalEventLoop.INSTANCE);
+    private final BlockingPromise<?> terminationFuture = new DefaultBlockingPromise<>(GlobalEventLoop.INSTANCE);
 
     /**
      * @param parent                   EventLoop所属的容器，nullable
@@ -179,7 +179,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     }
 
     @Override
-    public final ListenableFuture<?> terminationFuture() {
+    public final BlockingFuture<?> terminationFuture() {
         return terminationFuture;
     }
 

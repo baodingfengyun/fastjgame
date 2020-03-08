@@ -30,13 +30,13 @@ import java.util.concurrent.*;
  * date - 2019/7/14 20:32
  * github - https://github.com/hl845740757
  */
-public class ListenableFutureTask<V> implements ListenableFuture<V>, RunnableFuture<V> {
+public class BlockingFutureTask<V> implements BlockingFuture<V>, RunnableFuture<V> {
 
-    private final Promise<V> promise;
+    private final BlockingPromise<V> promise;
     private final Callable<V> callable;
 
-    public ListenableFutureTask(EventLoop executor, Callable<V> callable) {
-        this.promise = executor.newPromise();
+    public BlockingFutureTask(EventLoop executor, Callable<V> callable) {
+        this.promise = executor.newBlockingPromise();
         this.callable = callable;
     }
 
@@ -105,12 +105,12 @@ public class ListenableFutureTask<V> implements ListenableFuture<V>, RunnableFut
     }
 
     @Override
-    public ListenableFuture<V> await() throws InterruptedException {
+    public BlockingFuture<V> await() throws InterruptedException {
         return promise.await();
     }
 
     @Override
-    public ListenableFuture<V> awaitUninterruptibly() {
+    public BlockingFuture<V> awaitUninterruptibly() {
         return promise.awaitUninterruptibly();
     }
 
@@ -130,32 +130,32 @@ public class ListenableFutureTask<V> implements ListenableFuture<V>, RunnableFut
     }
 
     @Override
-    public ListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
+    public BlockingFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
         return promise.onComplete(listener);
     }
 
     @Override
-    public ListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public BlockingFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         return promise.onComplete(listener, bindExecutor);
     }
 
     @Override
-    public ListenableFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
+    public BlockingFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
         return promise.onSuccess(listener);
     }
 
     @Override
-    public ListenableFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public BlockingFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         return promise.onSuccess(listener, bindExecutor);
     }
 
     @Override
-    public ListenableFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
+    public BlockingFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
         return promise.onFailure(listener);
     }
 
     @Override
-    public ListenableFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public BlockingFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         return promise.onFailure(listener, bindExecutor);
     }
 

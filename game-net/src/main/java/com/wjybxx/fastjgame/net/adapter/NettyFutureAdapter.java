@@ -31,7 +31,7 @@ import java.util.concurrent.*;
  * date - 2019/10/1
  * github - https://github.com/hl845740757
  */
-public final class NettyFutureAdapter<V> extends AbstractListenableFuture<V> {
+public final class NettyFutureAdapter<V> extends AbstractBlockingFuture<V> {
 
     private final EventLoop executor;
     private final Future<V> future;
@@ -101,13 +101,13 @@ public final class NettyFutureAdapter<V> extends AbstractListenableFuture<V> {
 
     // ---------------------------------------------------------------------------------------------
     @Override
-    public ListenableFuture<V> await() throws InterruptedException {
+    public BlockingFuture<V> await() throws InterruptedException {
         future.await();
         return this;
     }
 
     @Override
-    public ListenableFuture<V> awaitUninterruptibly() {
+    public BlockingFuture<V> awaitUninterruptibly() {
         future.awaitUninterruptibly();
         return this;
     }
@@ -132,41 +132,41 @@ public final class NettyFutureAdapter<V> extends AbstractListenableFuture<V> {
     private void addListener0(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         // 不要内联该对象 - lambda表达式捕获的对象不一样
         final FutureListenerEntry<? super V> listenerEntry = new FutureListenerEntry<>(listener, bindExecutor);
-        future.addListener(future -> DefaultPromise.notifyListenerNowSafely(this, listenerEntry));
+        future.addListener(future -> DefaultBlockingPromise.notifyListenerNowSafely(this, listenerEntry));
     }
 
     @Override
-    public ListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
+    public BlockingFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
         addListener0(listener, executor);
         return this;
     }
 
     @Override
-    public ListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public BlockingFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         addListener0(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public ListenableFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
+    public BlockingFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
         addListener0(listener, executor);
         return this;
     }
 
     @Override
-    public ListenableFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public BlockingFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         addListener0(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public ListenableFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
+    public BlockingFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
         addListener0(listener, executor);
         return this;
     }
 
     @Override
-    public ListenableFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public BlockingFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         addListener0(listener, bindExecutor);
         return this;
     }

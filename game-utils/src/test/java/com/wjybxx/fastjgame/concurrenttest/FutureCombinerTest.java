@@ -29,7 +29,7 @@ public class FutureCombinerTest {
     public static void main(String[] args) {
         // 测试可以使用ImmediateEventLoop.INSTANCE，其它时候不要使用
         final DefaultEventLoop eventLoopA = new DefaultEventLoop(null, new DefaultThreadFactory("AAAAA"), RejectedExecutionHandlers.abort());
-        final ListenableFuture<String> aFuture = eventLoopA.submit(() -> "success");
+        final BlockingFuture<String> aFuture = eventLoopA.submit(() -> "success");
 
 
         aFuture.onComplete(future -> {
@@ -38,7 +38,7 @@ public class FutureCombinerTest {
         });
 
         final DefaultEventLoop eventLoopB = new DefaultEventLoop(null, new DefaultThreadFactory("BBBBBB"), RejectedExecutionHandlers.abort());
-        final ListenableFuture<String> bFuture = eventLoopB.submit(() -> {
+        final BlockingFuture<String> bFuture = eventLoopB.submit(() -> {
             throw new Exception("failure");
         });
 
@@ -60,19 +60,18 @@ public class FutureCombinerTest {
         }
     }
 
-    private static void doCombine(ListenableFuture<String> aFuture, ListenableFuture<String> bFuture, DefaultEventLoop appEventLoop) {
-        final Promise<Void> aggregatePromise = appEventLoop.newPromise();
+    private static void doCombine(BlockingFuture<String> aFuture, BlockingFuture<String> bFuture, DefaultEventLoop appEventLoop) {
         new FutureCombiner(appEventLoop)
                 .add(aFuture)
                 .add(bFuture)
-                .finish(aggregatePromise)
+                .finish(appEventLoop.newBlockingPromise())
                 .onComplete(future -> {
                     System.out.println("Callback Combine, Thread : " + Thread.currentThread().getName());
                     System.out.println("result " + getResultAsStringSafely(future));
                 });
     }
 
-    private static String getResultAsStringSafely(NFuture<?> future) {
+    private static String getResultAsStringSafely(ListenableFuture<?> future) {
         if (future.isSuccess()) {
             return String.valueOf(future.getNow());
         } else {

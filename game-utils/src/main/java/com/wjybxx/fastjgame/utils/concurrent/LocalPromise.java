@@ -24,7 +24,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.util.concurrent.Executor;
 
 /**
- * 它是一个线程绑定版本的{@link NPromise}。
+ * 它是一个线程绑定版本的{@link Promise}。
  * 它基于特定的假设，进行了一些激进的优化。
  *
  * <h3>假设</h3>
@@ -38,8 +38,8 @@ import java.util.concurrent.Executor;
  *
  * <p>
  * 上面的假设，其实是很常见的情况，而且应该占多数。
- * 在这之前，因为觉得{@link DefaultPromise}的实现比较重量级，不太想用，老是想着设计一些奇怪的东西，
- * 之前的“MethodListenable”应该就是个代表了，其实是少了{@link NFuture}抽象导致的。
+ * 在这之前，因为觉得{@link DefaultBlockingPromise}的实现比较重量级，不太想用，老是想着设计一些奇怪的东西，
+ * 之前的“MethodListenable”应该就是个代表了，其实是少了{@link ListenableFuture}抽象导致的。
  *
  * @author wjybxx
  * @version 1.0
@@ -85,7 +85,7 @@ public class LocalPromise<V> extends AbstractPromise<V> {
         }
 
         try {
-            DefaultPromise.notifyAllListenerNowSafely(this, listenerEntries);
+            DefaultBlockingPromise.notifyAllListenerNowSafely(this, listenerEntries);
         } finally {
             listenerEntries = null;
         }
@@ -94,42 +94,42 @@ public class LocalPromise<V> extends AbstractPromise<V> {
     // -------------------------------------------------- 监听器管理 ---------------------------------------------
 
     @Override
-    public EventLoop defaultExecutor() {
+    public final EventLoop defaultExecutor() {
         return appEventLoop;
     }
 
     @Override
-    public NPromise<V> onComplete(@Nonnull FutureListener<? super V> listener) {
+    public Promise<V> onComplete(@Nonnull FutureListener<? super V> listener) {
         addListener(listener, appEventLoop);
         return this;
     }
 
     @Override
-    public NPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public Promise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         addListener(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public NPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
+    public Promise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
         addListener(listener, appEventLoop);
         return this;
     }
 
     @Override
-    public NPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public Promise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         addListener(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public NPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
+    public Promise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
         addListener(listener, appEventLoop);
         return this;
     }
 
     @Override
-    public NPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public Promise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         addListener(listener, bindExecutor);
         return this;
     }
@@ -137,7 +137,7 @@ public class LocalPromise<V> extends AbstractPromise<V> {
     private void addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor executor) {
         EventLoopUtils.ensureInEventLoop(appEventLoop, "Must call from appEventLoop");
 
-        listenerEntries = DefaultPromise.aggregateListenerEntry(listenerEntries, new FutureListenerEntry<>(listener, executor));
+        listenerEntries = DefaultBlockingPromise.aggregateListenerEntry(listenerEntries, new FutureListenerEntry<>(listener, executor));
 
         if (isDone()) {
             // 由于限定了只有appEventLoop可以添加监听器，因此可以立即执行回调
