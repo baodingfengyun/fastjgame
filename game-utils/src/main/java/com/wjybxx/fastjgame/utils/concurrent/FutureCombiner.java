@@ -22,13 +22,13 @@ import java.util.Collection;
 import java.util.Objects;
 
 /**
- * {@link ListenableFuture}聚合器，它可以监听多个{@link ListenableFuture}的结果，并当所有监听的future进入完成状态时，
+ * {@link NFuture}聚合器，它可以监听多个{@link NFuture}的结果，并当所有监听的future进入完成状态时，
  * 通知{@link #finish(Promise)}方法指定的{@link Promise}，如果设置了的话。
  * <p>
- * 在调用{@link #finish(Promise)}之前，用户可以通过{@link #add(ListenableFuture)}和{@link #addAll(ListenableFuture[])}方法添加任意数量的{@link ListenableFuture}，
+ * 在调用{@link #finish(Promise)}之前，用户可以通过{@link #add(NFuture)}和{@link #addAll(NFuture[])}方法添加任意数量的{@link NFuture}，
  * 当所有的future添加完毕之后，调用者需要调用{@link #finish(Promise)}方法监听最终的结果，如果需要的话。
  * <h3>失败处理</h3>
- * 注意：当且仅当所有的future关联的操作都<b>成功</b>时{@link ListenableFuture#isSuccess() true}，{@link #aggregatePromise}才会表现为成功。
+ * 注意：当且仅当所有的future关联的操作都<b>成功</b>时{@link NFuture#isSuccess() true}，{@link #aggregatePromise}才会表现为成功。
  * 一旦某一个future执行失败，则{@link #aggregatePromise}表现为失败。此外，如果多个future执行失败，
  * 那么{@link #aggregatePromise}最终接收到的{@link #cause}将是不确定的，并且不保证拥有所有的错误信息。
  *
@@ -67,7 +67,7 @@ public class FutureCombiner {
     private int expectedCount;
     private int doneCount;
 
-    private Promise<Void> aggregatePromise;
+    private NPromise<Void> aggregatePromise;
     private Throwable cause;
 
     public FutureCombiner(EventLoop appEventLoop) {
@@ -75,23 +75,23 @@ public class FutureCombiner {
     }
 
     @SuppressWarnings("rawtypes")
-    public FutureCombiner addAll(@Nonnull ListenableFuture... futures) {
-        for (ListenableFuture future : futures) {
+    public FutureCombiner addAll(@Nonnull NFuture... futures) {
+        for (NFuture future : futures) {
             this.add(future);
         }
         return this;
     }
 
     @SuppressWarnings("rawtypes")
-    public FutureCombiner addAll(@Nonnull Collection<? extends ListenableFuture> futures) {
-        for (ListenableFuture future : futures) {
+    public FutureCombiner addAll(@Nonnull Collection<? extends NFuture> futures) {
+        for (NFuture future : futures) {
             this.add(future);
         }
         return this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public FutureCombiner add(@Nonnull ListenableFuture future) {
+    public FutureCombiner add(@Nonnull NFuture future) {
         Objects.requireNonNull(future, "future");
         checkInEventLoop("Adding future must be called from EventLoop thread");
         checkAddFutureAllowed();
@@ -117,7 +117,7 @@ public class FutureCombiner {
      * @param aggregatePromise 用于监听前面的所有future的完成事件
      * @return 返回参数，方便直接添加回调。
      */
-    public <T extends Promise<Void>> T finish(@Nonnull T aggregatePromise) {
+    public <T extends NPromise<Void>> T finish(@Nonnull T aggregatePromise) {
         Objects.requireNonNull(aggregatePromise, "aggregatePromise");
         checkInEventLoop("Finish must be called from EventLoop thread");
         checkFinishAllowed();
