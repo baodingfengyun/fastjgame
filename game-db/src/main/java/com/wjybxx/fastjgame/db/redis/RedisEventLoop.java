@@ -254,8 +254,8 @@ public class RedisEventLoop extends SingleThreadEventLoop {
      * @param appEventLoop 用户线程 - 执行回调的线程
      * @param flush        是否刷新管道
      */
-    <V> ListenableFuture<V> call(RedisCommand<V> command, boolean flush, EventLoop appEventLoop) {
-        final Promise<V> promise = new LocalPromise<>(appEventLoop);
+    <V> LocalFuture<V> call(RedisCommand<V> command, boolean flush, EventLoop appEventLoop) {
+        final LocalPromise<V> promise = appEventLoop.newLocalPromise();
         execute(new JedisPipelineTask<>(command, flush, promise));
         return promise;
     }

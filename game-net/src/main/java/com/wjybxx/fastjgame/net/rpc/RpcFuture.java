@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.net.rpc;
 
 import com.wjybxx.fastjgame.utils.concurrent.FailedFutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
+import com.wjybxx.fastjgame.utils.concurrent.LocalFuture;
 import com.wjybxx.fastjgame.utils.concurrent.SucceededFutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.timeout.TimeoutFuture;
 
@@ -32,7 +33,7 @@ import java.util.concurrent.Executor;
  * date - 2019/8/3
  * github - https://github.com/hl845740757
  */
-public interface RpcFuture<V> extends TimeoutFuture<V> {
+public interface RpcFuture<V> extends TimeoutFuture<V>, LocalFuture<V> {
 
     /**
      * 当cause为{@link com.wjybxx.fastjgame.net.exception.RpcTimeoutException}时表示超时
