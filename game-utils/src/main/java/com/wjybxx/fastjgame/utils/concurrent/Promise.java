@@ -31,32 +31,49 @@ import java.util.concurrent.Executor;
 public interface Promise<V> extends ListenableFuture<V> {
 
     /**
-     * 将future标记为成功完成，并且通知所有的监听器。
+     * 将future标记为成功完成。
      * <p>
      * 如果该future对应的操作早已完成(失败或成功)，将抛出一个{@link IllegalStateException}.
      */
     void setSuccess(V result);
 
     /**
-     * 尝试将future标记为成功完成，标记成功时通知所有的监听器。
+     * 尝试将future标记为成功完成。
      *
      * @return 当且仅当成功将future标记为成功完成时返回true，如果future对应的操作已完成(成功或失败)，则返回false，并什么都不改变。
      */
     boolean trySuccess(V result);
 
     /**
-     * 将future标记为失败完成，并且通知所有的监听器。
+     * 将future标记为失败完成。
      * <p>
      * 如果future对应的操作早已完成（成功或失败），则抛出一个{@link IllegalStateException}.
      */
     void setFailure(@Nonnull Throwable cause);
 
     /**
-     * 尝试将future标记为失败完成，标记成功时通知所有监听器。
+     * 尝试将future标记为失败完成。
      *
      * @return 当前仅当成功将future标记为失败完成时返回true，如果future对应的操作已完成（成功或失败），则返回false，并什么也不改变。
      */
     boolean tryFailure(@Nonnull Throwable cause);
+
+    /**
+     * 将future标记为失败完成。
+     * 它是{@link #setFailure(Throwable)}的快捷调用，具体默认封装为什么异常，取决与实现类。
+     *
+     * @param msg 失败信息
+     */
+    void setFailure(@Nonnull String msg);
+
+    /**
+     * 将future标记为失败完成。
+     * 它是{@link #tryFailure(Throwable)}的快捷调用，具体默认封装为什么异常，取决与实现类。。
+     *
+     * @param msg 失败信息
+     * @return 当前仅当成功将future标记为失败完成时返回true，如果future对应的操作已完成（成功或失败），则返回false，并什么也不改变。
+     */
+    boolean tryFailure(@Nonnull String msg);
 
     /**
      * 将future标记为不可取消状态，它表示计算已经开始，不可以被取消。

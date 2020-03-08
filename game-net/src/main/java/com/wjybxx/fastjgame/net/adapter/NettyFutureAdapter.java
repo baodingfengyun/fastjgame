@@ -45,23 +45,23 @@ public final class NettyFutureAdapter<V> extends AbstractBlockingFuture<V> {
     }
 
     @Override
-    public boolean isSuccess() {
+    public final boolean isSuccess() {
         return future.isSuccess();
     }
 
     @Override
-    public boolean isCancellable() {
+    public final boolean isCancellable() {
         return future.isCancellable();
     }
 
     @Nullable
     @Override
-    public Throwable cause() {
+    public final Throwable cause() {
         return future.cause();
     }
 
     @Override
-    public V get() throws InterruptedException, CompletionException {
+    public final V get() throws InterruptedException, CompletionException {
         try {
             return future.get();
         } catch (ExecutionException e) {
@@ -70,7 +70,7 @@ public final class NettyFutureAdapter<V> extends AbstractBlockingFuture<V> {
     }
 
     @Override
-    public V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, CompletionException, TimeoutException {
+    public final V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, CompletionException, TimeoutException {
         try {
             return future.get(timeout, unit);
         } catch (ExecutionException e) {
@@ -80,22 +80,33 @@ public final class NettyFutureAdapter<V> extends AbstractBlockingFuture<V> {
 
     @Nullable
     @Override
-    public V getNow() {
-        return future.getNow();
+    public final V getNow() {
+        if (future.isSuccess()) {
+            return future.getNow();
+        }
+
+        final Throwable cause = future.cause();
+        if (null != cause) {
+            // 已失败
+            return FutureUtils.rethrowCause(cause);
+        } else {
+            // 未完成
+            return null;
+        }
     }
 
     @Override
-    public boolean cancel(boolean mayInterruptIfRunning) {
+    public final boolean cancel(boolean mayInterruptIfRunning) {
         return future.cancel(mayInterruptIfRunning) || future.isCancelled();
     }
 
     @Override
-    public boolean isCancelled() {
+    public final boolean isCancelled() {
         return future.isCancelled();
     }
 
     @Override
-    public boolean isDone() {
+    public final boolean isDone() {
         return future.isDone();
     }
 
@@ -125,7 +136,7 @@ public final class NettyFutureAdapter<V> extends AbstractBlockingFuture<V> {
     // ---------------------------------------------------------------------------------------------
 
     @Override
-    public EventLoop defaultExecutor() {
+    public final EventLoop defaultExecutor() {
         return executor;
     }
 

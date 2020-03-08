@@ -19,6 +19,8 @@ package com.wjybxx.fastjgame.concurrenttest;
 import com.wjybxx.fastjgame.utils.concurrent.*;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * @author wjybxx
  * @version 1.0
@@ -29,30 +31,29 @@ public class FutureCombinerTest {
     public static void main(String[] args) {
         // 测试可以使用ImmediateEventLoop.INSTANCE，其它时候不要使用
         final DefaultEventLoop eventLoopA = new DefaultEventLoop(null, new DefaultThreadFactory("AAAAA"), RejectedExecutionHandlers.abort());
+        final DefaultEventLoop eventLoopB = new DefaultEventLoop(null, new DefaultThreadFactory("BBBBBB"), RejectedExecutionHandlers.abort());
+
         final BlockingFuture<String> aFuture = eventLoopA.submit(() -> "success");
-
-
         aFuture.onComplete(future -> {
             System.out.println("CallbackA, Thread : " + Thread.currentThread().getName());
-            System.out.println("a result " + getResultAsStringSafely(future));
+            System.out.println("CallbackA, result " + getResultAsStringSafely(future));
         });
 
-        final DefaultEventLoop eventLoopB = new DefaultEventLoop(null, new DefaultThreadFactory("BBBBBB"), RejectedExecutionHandlers.abort());
         final BlockingFuture<String> bFuture = eventLoopB.submit(() -> {
             throw new Exception("failure");
         });
-
         bFuture.onComplete(future -> {
             System.out.println("CallbackB, Thread : " + Thread.currentThread().getName());
-            System.out.println("b result " + getResultAsStringSafely(future));
+            System.out.println("CallbackB, result " + getResultAsStringSafely(future));
         });
 
         final DefaultEventLoop appEventLoop = new DefaultEventLoop(null, new DefaultThreadFactory("APP"), RejectedExecutionHandlers.abort());
+        appEventLoop.submit(() -> {
+            doCombine(aFuture, bFuture, appEventLoop);
+        });
 
         try {
-            appEventLoop.execute(() -> {
-                doCombine(aFuture, bFuture, appEventLoop);
-            });
+            appEventLoop.terminationFuture().awaitUninterruptibly(3, TimeUnit.SECONDS);
         } finally {
             eventLoopA.shutdown();
             eventLoopB.shutdown();
@@ -67,7 +68,7 @@ public class FutureCombinerTest {
                 .finish(appEventLoop.newBlockingPromise())
                 .onComplete(future -> {
                     System.out.println("Callback Combine, Thread : " + Thread.currentThread().getName());
-                    System.out.println("result " + getResultAsStringSafely(future));
+                    System.out.println("Callback Combine, result " + getResultAsStringSafely(future));
                 });
     }
 

@@ -118,13 +118,13 @@ public class VoidPromise implements BlockingPromise<Object> {
     }
 
     @Override
-    public boolean await(long timeout, @Nonnull TimeUnit unit) throws InterruptedException {
+    public final boolean await(long timeout, @Nonnull TimeUnit unit) throws InterruptedException {
         fail();
         return false;
     }
 
     @Override
-    public boolean awaitUninterruptibly(long timeout, @Nonnull TimeUnit unit) {
+    public final boolean awaitUninterruptibly(long timeout, @Nonnull TimeUnit unit) {
         fail();
         return false;
     }
@@ -174,27 +174,37 @@ public class VoidPromise implements BlockingPromise<Object> {
     // ------------------------------------- 赋值操作不造成任何影响 -----------------------------
 
     @Override
-    public void setSuccess(Object result) {
+    public final void setSuccess(Object result) {
 
     }
 
     @Override
-    public boolean trySuccess(Object result) {
+    public final boolean trySuccess(Object result) {
         return false;
     }
 
     @Override
-    public void setFailure(@Nonnull Throwable cause) {
+    public final void setFailure(@Nonnull Throwable cause) {
 
     }
 
     @Override
-    public boolean tryFailure(@Nonnull Throwable cause) {
+    public final boolean tryFailure(@Nonnull Throwable cause) {
         return false;
     }
 
     @Override
-    public boolean setUncancellable() {
+    public final void setFailure(@Nonnull String msg) {
+
+    }
+
+    @Override
+    public final boolean tryFailure(@Nonnull String msg) {
+        return false;
+    }
+
+    @Override
+    public final boolean setUncancellable() {
         // 这里true更合适 - 因为不可取消
         return true;
     }

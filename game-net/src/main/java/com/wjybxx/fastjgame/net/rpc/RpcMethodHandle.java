@@ -125,10 +125,10 @@ public interface RpcMethodHandle<V> extends FlushableMethodHandle<RpcClient, V> 
     void broadcast(@Nonnull Iterable<RpcClient> clientGroup);
 
     @Override
-    ListenableFuture<V> call(@Nonnull RpcClient client);
+    RpcFuture<V> call(@Nonnull RpcClient client);
 
     @Override
-    ListenableFuture<V> callAndFlush(@Nonnull RpcClient client);
+    RpcFuture<V> callAndFlush(@Nonnull RpcClient client);
 
     V syncCall(@Nonnull RpcClient client) throws CompletionException;
 

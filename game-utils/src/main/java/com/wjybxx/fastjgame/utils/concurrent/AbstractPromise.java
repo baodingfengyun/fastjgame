@@ -164,7 +164,7 @@ abstract class AbstractPromise<V> implements Promise<V> {
         if (isCancelled0(result)) {
             return true;
         }
-        return isCancellable0(result) && completeCancellation();
+        return isCancellable0(result) && tryCompleteCancellation();
     }
 
     /**
@@ -172,7 +172,7 @@ abstract class AbstractPromise<V> implements Promise<V> {
      *
      * @return 成功取消则返回true
      */
-    private boolean completeCancellation() {
+    private boolean tryCompleteCancellation() {
         // 取消只能由初始状态(null)切换为完成状态
         if (resultHolder.compareAndSet(null, new CauseHolder(new CancellationException()))) {
             postComplete();
@@ -199,7 +199,7 @@ abstract class AbstractPromise<V> implements Promise<V> {
     @Override
     public final boolean trySuccess(V result) {
         // 当future关联的task成功，但是没有返回值时，使用SUCCESS代替
-        return completeSuccessOrFailure(result == null ? SUCCESS : result);
+        return tryComplete(result == null ? SUCCESS : result);
     }
 
     /**
@@ -208,7 +208,7 @@ abstract class AbstractPromise<V> implements Promise<V> {
      * @param value 要赋的值，一定不为null
      * @return 如果赋值成功，则返回true，否则返回false。
      */
-    private boolean completeSuccessOrFailure(@Nonnull Object value) {
+    private boolean tryComplete(@Nonnull Object value) {
         // 正常完成可以由初始状态或不可取消状态进入完成状态
         if (resultHolder.compareAndSet(null, value)
                 || resultHolder.compareAndSet(UNCANCELLABLE, value)) {
@@ -228,7 +228,27 @@ abstract class AbstractPromise<V> implements Promise<V> {
 
     @Override
     public final boolean tryFailure(@Nonnull Throwable cause) {
-        return completeSuccessOrFailure(new CauseHolder(cause));
+        return tryComplete(new CauseHolder(cause));
+    }
+
+    @Override
+    public final void setFailure(@Nonnull String msg) {
+        setFailure(newException(msg));
+    }
+
+    @Override
+    public final boolean tryFailure(@Nonnull String msg) {
+        return tryFailure(newException(msg));
+    }
+
+    /**
+     * 利用指定信息创建一个异常。
+     * 服务于{@link #tryFailure(String)}和{@link #setFailure(String)}方法。
+     * 默认实现仅仅是创建一个{@link RuntimeException}
+     */
+    @Nonnull
+    protected Throwable newException(@Nonnull String msg) {
+        return new RuntimeException(msg);
     }
 
     /**

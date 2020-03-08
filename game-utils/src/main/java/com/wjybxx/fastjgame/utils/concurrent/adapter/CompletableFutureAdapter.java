@@ -49,27 +49,27 @@ public class CompletableFutureAdapter<V> extends AbstractBlockingFuture<V> {
     }
 
     @Override
-    public boolean isDone() {
+    public final boolean isDone() {
         return future.isDone();
     }
 
     @Override
-    public boolean isSuccess() {
+    public final boolean isSuccess() {
         return !future.isCompletedExceptionally();
     }
 
     @Override
-    public boolean isCancelled() {
+    public final boolean isCancelled() {
         return future.isCancelled();
     }
 
     @Override
-    public boolean isCancellable() {
+    public final boolean isCancellable() {
         return true;
     }
 
     @Override
-    public V get() throws InterruptedException, CompletionException {
+    public final V get() throws InterruptedException, CompletionException {
         try {
             return future.get();
         } catch (ExecutionException e) {
@@ -78,7 +78,7 @@ public class CompletableFutureAdapter<V> extends AbstractBlockingFuture<V> {
     }
 
     @Override
-    public V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, CompletionException, TimeoutException {
+    public final V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, CompletionException, TimeoutException {
         try {
             return future.get(timeout, unit);
         } catch (ExecutionException e) {
@@ -87,24 +87,19 @@ public class CompletableFutureAdapter<V> extends AbstractBlockingFuture<V> {
     }
 
     @Override
-    public V join() throws CompletionException {
+    public final V join() throws CompletionException {
         return future.join();
     }
 
     @Nullable
     @Override
-    public V getNow() {
-        // jdk的getNow和自实现的getNow有区别
-        try {
-            return future.getNow(null);
-        } catch (Throwable ignore) {
-            return null;
-        }
+    public final V getNow() {
+        return future.getNow(null);
     }
 
     @Nullable
     @Override
-    public Throwable cause() {
+    public final Throwable cause() {
         try {
             future.getNow(null);
             return null;
@@ -116,7 +111,7 @@ public class CompletableFutureAdapter<V> extends AbstractBlockingFuture<V> {
     }
 
     @Override
-    public boolean cancel(boolean mayInterruptIfRunning) {
+    public final boolean cancel(boolean mayInterruptIfRunning) {
         return future.cancel(mayInterruptIfRunning);
     }
 
@@ -169,7 +164,7 @@ public class CompletableFutureAdapter<V> extends AbstractBlockingFuture<V> {
 
     // -------------------------------------------------- 监听器管理 ---------------------------------------------
     @Override
-    public EventLoop defaultExecutor() {
+    public final EventLoop defaultExecutor() {
         return executor;
     }
 
