@@ -37,70 +37,61 @@ public class DefaultTimeoutPromise<V> extends DefaultPromise<V> implements Timeo
         super(defaultExecutor);
     }
 
+    public DefaultTimeoutPromise(@Nonnull EventLoop defaultExecutor, boolean isWorkingExecutor) {
+        super(defaultExecutor, isWorkingExecutor);
+    }
+
     @Override
     public boolean isTimeout() {
         return cause() instanceof TimeoutException;
     }
 
-    // ----------------------------------------------- 获取超时时间信息 ---------------------------------------------------
-
     // ------------------------------------------------ 流式语法支持 ----------------------------------------------------
-    @Override
-    public TimeoutPromise<V> await() throws InterruptedException {
-        super.await();
-        return this;
-    }
 
     @Override
-    public TimeoutPromise<V> awaitUninterruptibly() {
-        super.awaitUninterruptibly();
-        return this;
-    }
-
-    @Override
-    public TimeoutPromise<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener) {
+    public DefaultTimeoutPromise<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener) {
         super.onComplete(listener);
         return this;
     }
 
     @Override
-    public TimeoutPromise<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public DefaultTimeoutPromise<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         super.onComplete(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public TimeoutPromise<V> onComplete(@Nonnull FutureListener<? super V> listener) {
+    public DefaultTimeoutPromise<V> onComplete(@Nonnull FutureListener<? super V> listener) {
         super.onComplete(listener);
         return this;
     }
 
     @Override
-    public TimeoutPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public DefaultTimeoutPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         super.onComplete(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public TimeoutPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
+    public DefaultTimeoutPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
         super.onSuccess(listener);
         return this;
     }
 
     @Override
-    public TimeoutPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public DefaultTimeoutPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         super.onSuccess(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public TimeoutPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
+    public DefaultTimeoutPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
         super.onFailure(listener);
         return this;
     }
 
     @Override
-    public TimeoutPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public DefaultTimeoutPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         super.onFailure(listener, bindExecutor);
         return this;
     }

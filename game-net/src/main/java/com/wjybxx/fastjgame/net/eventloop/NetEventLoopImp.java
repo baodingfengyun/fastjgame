@@ -138,7 +138,7 @@ class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLoop {
     @Nonnull
     @Override
     public <V> RpcPromise<V> newRpcPromise(@Nonnull EventLoop appEventLoop) {
-        return new DefaultRpcPromise<>(this, appEventLoop);
+        return new DefaultRpcPromise<>(appEventLoop, false);
     }
 
     @Nonnull

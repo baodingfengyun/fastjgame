@@ -50,62 +50,51 @@ public class FailedRpcFuture<V> extends FailedTimeoutFuture<V> implements RpcFut
         return DefaultRpcPromise.getErrorCode0(cause());
     }
 
-    // ------------------------------------------------ 流式语法支持 ------------------------------------
-
+    // 语法支持
     @Override
-    public RpcFuture<V> await() {
-        return this;
-    }
-
-    @Override
-    public RpcFuture<V> awaitUninterruptibly() {
-        return this;
-    }
-
-    @Override
-    public RpcFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
+    public FailedRpcFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
         super.onComplete(listener);
         return this;
     }
 
     @Override
-    public RpcFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public FailedRpcFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         super.onComplete(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public RpcFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
+    public FailedRpcFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
         super.onSuccess(listener);
         return this;
     }
 
     @Override
-    public RpcFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public FailedRpcFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         super.onSuccess(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public RpcFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
+    public FailedRpcFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
         super.onFailure(listener);
         return this;
     }
 
     @Override
-    public RpcFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public FailedRpcFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         super.onFailure(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public RpcFuture<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener) {
+    public FailedRpcFuture<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener) {
         super.onTimeout(listener);
         return this;
     }
 
     @Override
-    public RpcFuture<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public FailedRpcFuture<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         super.onTimeout(listener, bindExecutor);
         return this;
     }

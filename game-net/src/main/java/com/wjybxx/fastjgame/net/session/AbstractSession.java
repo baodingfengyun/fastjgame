@@ -193,7 +193,7 @@ public abstract class AbstractSession implements Session {
         if (isClosed()) {
             // 会话关闭的情况下直接返回
             final RpcFuture<V> failedRpcFuture = netEventLoop.newFailedRpcFuture(appEventLoop(), RpcSessionClosedException.INSTANCE);
-            return failedRpcFuture.join();
+            return failedRpcFuture.getNow();
         }
         final RpcPromise<V> rpcPromise = netEventLoop.newRpcPromise(appEventLoop());
         // 提交到网络层执行

@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.db.redis;
 
+import com.wjybxx.fastjgame.utils.concurrent.NFuture;
+
 import javax.annotation.Nonnull;
 import java.util.concurrent.CompletionException;
 
@@ -54,16 +56,17 @@ public interface RedisClient {
      *
      * @param <V>     the type of result
      * @param command 待执行的命令
+     * @return future
      */
-    <V> RedisFuture<V> call(@Nonnull RedisCommand<V> command);
+    <V> NFuture<V> call(@Nonnull RedisCommand<V> command);
 
     /**
      * 异步执行一个redis命令，同时刷新命令队列，并在完成时通知指定的监听器。
-     *
-     * @param <V>     the type of result
+     *  @param <V>     the type of result
      * @param command 待执行的命令
+     * @return future
      */
-    <V> RedisFuture<V> callAndFlush(@Nonnull RedisCommand<V> command);
+    <V> NFuture<V> callAndFlush(@Nonnull RedisCommand<V> command);
 
     /**
      * 执行一个redis命令，同时刷新缓冲区，并阻塞到命令完成。

@@ -16,10 +16,12 @@
 
 package com.wjybxx.fastjgame.net.rpc;
 
-import com.wjybxx.fastjgame.net.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.net.exception.RpcException;
 import com.wjybxx.fastjgame.net.exception.RpcTimeoutException;
-import com.wjybxx.fastjgame.utils.concurrent.*;
+import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.FailedFutureListener;
+import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
+import com.wjybxx.fastjgame.utils.concurrent.SucceededFutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.timeout.DefaultTimeoutPromise;
 import com.wjybxx.fastjgame.utils.concurrent.timeout.TimeoutFutureListener;
 
@@ -36,23 +38,8 @@ import java.util.concurrent.Executor;
  */
 public class DefaultRpcPromise<V> extends DefaultTimeoutPromise<V> implements RpcPromise<V> {
 
-    /**
-     * 工作线程 - 检查死锁的线程
-     */
-    private final NetEventLoop workerEventLoop;
-
-    /**
-     * @param workerEventLoop 创建该promise的EventLoop，禁止等待的线程。
-     * @param appEventLoop    发起rpc调用的用户所在的EventLoop
-     */
-    public DefaultRpcPromise(NetEventLoop workerEventLoop, EventLoop appEventLoop) {
-        super(appEventLoop);
-        this.workerEventLoop = workerEventLoop;
-    }
-
-    @Override
-    protected void checkDeadlock() {
-        EventLoopUtils.checkDeadLock(workerEventLoop);
+    public DefaultRpcPromise(@Nonnull EventLoop defaultExecutor, boolean isWorkingExecutor) {
+        super(defaultExecutor, isWorkingExecutor);
     }
 
     @Override
@@ -84,61 +71,61 @@ public class DefaultRpcPromise<V> extends DefaultTimeoutPromise<V> implements Rp
     // --------------------------------- 流式语法支持 ------------------------------
 
     @Override
-    public RpcPromise<V> await() throws InterruptedException {
+    public DefaultRpcPromise<V> await() throws InterruptedException {
         super.await();
         return this;
     }
 
     @Override
-    public RpcPromise<V> awaitUninterruptibly() {
+    public DefaultRpcPromise<V> awaitUninterruptibly() {
         super.awaitUninterruptibly();
         return this;
     }
 
     @Override
-    public RpcPromise<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener) {
+    public DefaultRpcPromise<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener) {
         super.onTimeout(listener);
         return this;
     }
 
     @Override
-    public RpcPromise<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public DefaultRpcPromise<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         super.onTimeout(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public RpcPromise<V> onComplete(@Nonnull FutureListener<? super V> listener) {
+    public DefaultRpcPromise<V> onComplete(@Nonnull FutureListener<? super V> listener) {
         super.onComplete(listener);
         return this;
     }
 
     @Override
-    public RpcPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public DefaultRpcPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         super.onComplete(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public RpcPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
+    public DefaultRpcPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
         super.onSuccess(listener);
         return this;
     }
 
     @Override
-    public RpcPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public DefaultRpcPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         super.onSuccess(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public RpcPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
+    public DefaultRpcPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
         super.onFailure(listener);
         return this;
     }
 
     @Override
-    public RpcPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public DefaultRpcPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         super.onFailure(listener, bindExecutor);
         return this;
     }

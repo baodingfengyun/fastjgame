@@ -20,6 +20,7 @@ package com.wjybxx.fastjgame.net.rpc;
 import com.wjybxx.fastjgame.net.binary.EntityInputStream;
 import com.wjybxx.fastjgame.net.binary.EntityOutputStream;
 import com.wjybxx.fastjgame.net.binary.EntitySerializer;
+import com.wjybxx.fastjgame.utils.async.MethodSpec;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.ArrayList;
@@ -45,7 +46,7 @@ import java.util.List;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class RpcMethodSpec<V> implements com.wjybxx.fastjgame.utils.async.MethodSpec<V> {
+public class RpcMethodSpec<V> implements MethodSpec<V> {
 
     /**
      * 远程服务id
@@ -105,7 +106,7 @@ public class RpcMethodSpec<V> implements com.wjybxx.fastjgame.utils.async.Method
     /**
      * 负责{@link RpcMethodSpec}的序列化工作 - 会被自动扫描到。
      */
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused"})
     private static class RpcMethodSpecSerializer implements EntitySerializer<RpcMethodSpec> {
 
         @Override

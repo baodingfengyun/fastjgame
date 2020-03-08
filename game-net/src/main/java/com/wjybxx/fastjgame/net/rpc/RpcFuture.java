@@ -31,7 +31,6 @@ import java.util.concurrent.Executor;
  * @version 1.0
  * date - 2019/8/3
  * github - https://github.com/hl845740757
- * @apiNote Rpc请求具有时效性，因此{@link #get()},{@link #await()}系列方法，不会无限阻塞，都会在超时时间到达后醒来。
  */
 public interface RpcFuture<V> extends TimeoutFuture<V> {
 
@@ -56,12 +55,7 @@ public interface RpcFuture<V> extends TimeoutFuture<V> {
      */
     RpcErrorCode errorCode();
 
-    @Override
-    RpcFuture<V> await() throws InterruptedException;
-
-    @Override
-    RpcFuture<V> awaitUninterruptibly();
-
+    // 仅用于语法支持
     @Override
     RpcFuture<V> onComplete(@Nonnull FutureListener<? super V> listener);
 

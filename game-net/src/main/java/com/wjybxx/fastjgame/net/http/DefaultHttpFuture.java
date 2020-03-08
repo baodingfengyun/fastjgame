@@ -45,63 +45,51 @@ public class DefaultHttpFuture<V> extends CompletableFutureAdapter<V> implements
         return cause() instanceof HttpTimeoutException;
     }
 
-    // ---------------------------------------- 流式语法支持 ---------------------------------
+    // 语法支持
     @Override
-    public HttpFuture<V> await() throws InterruptedException {
-        super.await();
-        return this;
-    }
-
-    @Override
-    public HttpFuture<V> awaitUninterruptibly() {
-        super.awaitUninterruptibly();
-        return this;
-    }
-
-    @Override
-    public HttpFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
+    public DefaultHttpFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
         super.onComplete(listener);
         return this;
     }
 
     @Override
-    public HttpFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public DefaultHttpFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         super.onComplete(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public HttpFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
+    public DefaultHttpFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
         super.onSuccess(listener);
         return this;
     }
 
     @Override
-    public HttpFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public DefaultHttpFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         super.onSuccess(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public HttpFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
+    public DefaultHttpFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
         super.onFailure(listener);
         return this;
     }
 
     @Override
-    public HttpFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public DefaultHttpFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         super.onFailure(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public HttpFuture<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener) {
+    public DefaultHttpFuture<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener) {
         super.onComplete(listener);
         return this;
     }
 
     @Override
-    public HttpFuture<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public DefaultHttpFuture<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         super.onComplete(listener, bindExecutor);
         return this;
     }

@@ -41,48 +41,39 @@ public class FailedTimeoutFuture<V> extends FailedFuture<V> implements TimeoutFu
         return false;
     }
 
+    // 语法支持
     @Override
-    public TimeoutFuture<V> await() {
-        return this;
-    }
-
-    @Override
-    public TimeoutFuture<V> awaitUninterruptibly() {
-        return this;
-    }
-
-    @Override
-    public TimeoutFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
+    public FailedTimeoutFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
         super.onComplete(listener);
         return this;
     }
 
     @Override
-    public TimeoutFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public FailedTimeoutFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         super.onComplete(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public TimeoutFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
+    public FailedTimeoutFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
         super.onSuccess(listener);
         return this;
     }
 
     @Override
-    public TimeoutFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public FailedTimeoutFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         super.onSuccess(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public TimeoutFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
+    public FailedTimeoutFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
         super.onFailure(listener);
         return this;
     }
 
     @Override
-    public TimeoutFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public FailedTimeoutFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         super.onFailure(listener, bindExecutor);
         return this;
     }

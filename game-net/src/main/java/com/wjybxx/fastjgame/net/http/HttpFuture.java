@@ -39,12 +39,6 @@ public interface HttpFuture<V> extends TimeoutFuture<V> {
 
     // 仅仅用于语法知此
     @Override
-    HttpFuture<V> await() throws InterruptedException;
-
-    @Override
-    HttpFuture<V> awaitUninterruptibly();
-
-    @Override
     HttpFuture<V> onComplete(@Nonnull FutureListener<? super V> listener);
 
     @Override

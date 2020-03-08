@@ -16,9 +16,7 @@
 
 package com.wjybxx.fastjgame.db.redis;
 
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandler;
-import com.wjybxx.fastjgame.utils.concurrent.SingleThreadEventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.*;
 import com.wjybxx.fastjgame.utils.concurrent.disruptor.DisruptorEventLoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -218,16 +216,16 @@ public class RedisEventLoop extends SingleThreadEventLoop {
      * 为任务赋值结果
      */
     private static <V> void setData(JedisPipelineTask<V> task) {
-        if (task.redisPromise == null) {
+        if (task.promise == null) {
             return;
         }
-        setData(task.redisPromise, task.dependency, task.cause);
+        setData(task.promise, task.dependency, task.cause);
     }
 
     /**
      * 安全的为promise赋值
      */
-    private static <V> void setData(RedisPromise<V> redisPromise, Response<V> dependency, Throwable cause) {
+    private static <V> void setData(NPromise<V> redisPromise, Response<V> dependency, Throwable cause) {
         if (cause != null) {
             redisPromise.tryFailure(cause);
             return;
@@ -256,8 +254,8 @@ public class RedisEventLoop extends SingleThreadEventLoop {
      * @param appEventLoop 用户线程 - 执行回调的线程
      * @param flush        是否刷新管道
      */
-    <V> RedisFuture<V> call(RedisCommand<V> command, boolean flush, EventLoop appEventLoop) {
-        final RedisPromise<V> promise = newRedisPromise(appEventLoop);
+    <V> NFuture<V> call(RedisCommand<V> command, boolean flush, EventLoop appEventLoop) {
+        final Promise<V> promise = newAppPromise(appEventLoop);
         execute(new JedisPipelineTask<>(command, flush, promise));
         return promise;
     }
@@ -270,13 +268,13 @@ public class RedisEventLoop extends SingleThreadEventLoop {
      * @param appEventLoop 用户线程 - 执行回调的线程
      */
     <V> V syncCall(RedisCommand<V> command, EventLoop appEventLoop) throws CompletionException {
-        final RedisPromise<V> redisPromise = newRedisPromise(appEventLoop);
+        final Promise<V> redisPromise = newAppPromise(appEventLoop);
         execute(new JedisPipelineTask<>(command, true, redisPromise));
         return redisPromise.join();
     }
 
-    private <T> RedisPromise<T> newRedisPromise(EventLoop appEventLoop) {
-        return new DefaultRedisPromise<>(this, appEventLoop);
+    private static <T> Promise<T> newAppPromise(EventLoop appEventLoop) {
+        return new DefaultPromise<>(appEventLoop, false);
     }
 
     /**
@@ -287,14 +285,14 @@ public class RedisEventLoop extends SingleThreadEventLoop {
     private class JedisPipelineTask<V> implements Runnable {
         private final RedisCommand<V> pipelineCmd;
         private final boolean flush;
-        private final RedisPromise<V> redisPromise;
+        private final NPromise<V> promise;
 
         private Response<V> dependency;
         private Throwable cause;
 
-        JedisPipelineTask(RedisCommand<V> pipelineCmd, boolean flush, RedisPromise<V> redisPromise) {
+        JedisPipelineTask(RedisCommand<V> pipelineCmd, boolean flush, NPromise<V> promise) {
             this.pipelineCmd = pipelineCmd;
-            this.redisPromise = redisPromise;
+            this.promise = promise;
             this.flush = flush;
         }
 

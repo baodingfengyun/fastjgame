@@ -80,9 +80,18 @@ public class DefaultPromise<V> extends AbstractPromise<V> implements Promise<V> 
      * 该{@link EventLoop}最好是使用监听器最多的线程。
      */
     private final EventLoop defaultExecutor;
+    /**
+     * {@link #defaultExecutor}是否是工作者线程
+     */
+    private final boolean isWorkingExecutor;
 
     public DefaultPromise(@Nonnull EventLoop defaultExecutor) {
+        this(defaultExecutor, true);
+    }
+
+    public DefaultPromise(@Nonnull EventLoop defaultExecutor, boolean isWorkingExecutor) {
         this.defaultExecutor = defaultExecutor;
+        this.isWorkingExecutor = isWorkingExecutor;
     }
 
     // --------------------------------------------- 阻塞式获取结果 -----------------------------------
@@ -155,9 +164,10 @@ public class DefaultPromise<V> extends AbstractPromise<V> implements Promise<V> 
     /**
      * 检查死锁可能。
      */
-    protected void checkDeadlock() {
-        // 基础实现认为默认的通知线程就是工作者线程
-        EventLoopUtils.checkDeadLock(defaultExecutor);
+    private void checkDeadlock() {
+        if (isWorkingExecutor) {
+            EventLoopUtils.checkDeadLock(defaultExecutor);
+        }
     }
 
     /**

@@ -18,23 +18,22 @@ package com.wjybxx.fastjgame.utils.concurrent.timeout;
 
 import com.wjybxx.fastjgame.utils.concurrent.FailedFutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
-import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.utils.concurrent.NFuture;
 import com.wjybxx.fastjgame.utils.concurrent.SucceededFutureListener;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.Executor;
 
 /**
- * 具有时效性的future，在限定时间内必定必须进入完成状态。
- * 因此{@link #get()} 和 {@link #await()} 系列方法不会长时间阻塞，都会在超时时间到达后醒来。
- * 请使用{@link #isTimeout()}查询是否是超时完成，而不要对cause处理判断是否是超时。
+ * 具有时效性的future，在限定时间内必定必须进入完成状态(实际上存在一定的误差)。
+ * 请使用{@link #isTimeout()}查询是否是超时完成，而不要对手动判断异常。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2020/1/6
  * github - https://github.com/hl845740757
  */
-public interface TimeoutFuture<V> extends ListenableFuture<V> {
+public interface TimeoutFuture<V> extends NFuture<V> {
 
     /**
      * 是否已超时。
@@ -50,12 +49,6 @@ public interface TimeoutFuture<V> extends ListenableFuture<V> {
     TimeoutFuture<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
     // 仅用于流式语法支持
-    @Override
-    TimeoutFuture<V> await() throws InterruptedException;
-
-    @Override
-    TimeoutFuture<V> awaitUninterruptibly();
-
     @Override
     TimeoutFuture<V> onComplete(@Nonnull FutureListener<? super V> listener);
 
