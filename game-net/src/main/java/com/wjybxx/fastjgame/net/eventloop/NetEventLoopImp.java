@@ -24,7 +24,7 @@ import com.wjybxx.fastjgame.net.misc.DefaultNetContext;
 import com.wjybxx.fastjgame.net.misc.NetContext;
 import com.wjybxx.fastjgame.net.module.NetEventLoopModule;
 import com.wjybxx.fastjgame.net.rpc.FailedRpcFuture;
-import com.wjybxx.fastjgame.net.rpc.LocalRpcPromise;
+import com.wjybxx.fastjgame.net.rpc.DefaultLocalRpcPromise;
 import com.wjybxx.fastjgame.net.rpc.RpcFuture;
 import com.wjybxx.fastjgame.net.rpc.RpcPromise;
 import com.wjybxx.fastjgame.net.socket.*;
@@ -138,7 +138,7 @@ class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLoop {
     @Nonnull
     @Override
     public <V> RpcPromise<V> newRpcPromise(@Nonnull EventLoop appEventLoop) {
-        return new LocalRpcPromise<>(appEventLoop);
+        return new DefaultLocalRpcPromise<>(appEventLoop);
     }
 
     @Nonnull

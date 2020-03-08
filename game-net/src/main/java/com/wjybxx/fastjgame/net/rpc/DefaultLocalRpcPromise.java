@@ -32,9 +32,9 @@ import java.util.concurrent.Executor;
  * date - 2020/3/8
  * github - https://github.com/hl845740757
  */
-public class LocalRpcPromise<V> extends LocalPromise<V> implements RpcPromise<V> {
+public class DefaultLocalRpcPromise<V> extends DefaultLocalPromise<V> implements RpcPromise<V> {
 
-    public LocalRpcPromise(EventLoop appEventLoop) {
+    public DefaultLocalRpcPromise(EventLoop appEventLoop) {
         super(appEventLoop);
     }
 
@@ -69,49 +69,49 @@ public class LocalRpcPromise<V> extends LocalPromise<V> implements RpcPromise<V>
     }
 
     @Override
-    public LocalRpcPromise<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener) {
+    public DefaultLocalRpcPromise<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener) {
         super.onComplete(listener);
         return this;
     }
 
     @Override
-    public LocalRpcPromise<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public DefaultLocalRpcPromise<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         super.onComplete(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public LocalRpcPromise<V> onComplete(@Nonnull FutureListener<? super V> listener) {
+    public DefaultLocalRpcPromise<V> onComplete(@Nonnull FutureListener<? super V> listener) {
         super.onComplete(listener);
         return this;
     }
 
     @Override
-    public LocalRpcPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public DefaultLocalRpcPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         super.onComplete(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public LocalRpcPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
+    public DefaultLocalRpcPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
         super.onSuccess(listener);
         return this;
     }
 
     @Override
-    public LocalRpcPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public DefaultLocalRpcPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         super.onSuccess(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public LocalRpcPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
+    public DefaultLocalRpcPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
         super.onFailure(listener);
         return this;
     }
 
     @Override
-    public LocalRpcPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public DefaultLocalRpcPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         super.onFailure(listener, bindExecutor);
         return this;
     }

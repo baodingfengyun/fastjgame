@@ -42,12 +42,12 @@ public class FailedRpcFuture<V> extends FailedTimeoutFuture<V> implements RpcFut
 
     @Override
     public final boolean isRpcException() {
-        return LocalRpcPromise.isRpcException0(cause());
+        return DefaultLocalRpcPromise.isRpcException0(cause());
     }
 
     @Override
     public final RpcErrorCode getErrorCode() {
-        return LocalRpcPromise.getErrorCode0(cause());
+        return DefaultLocalRpcPromise.getErrorCode0(cause());
     }
 
     // 语法支持

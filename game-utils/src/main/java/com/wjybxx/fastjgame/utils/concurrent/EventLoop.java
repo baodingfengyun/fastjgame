@@ -89,7 +89,7 @@ public interface EventLoop extends FixedEventLoopGroup {
     boolean inEventLoop();
 
     /**
-     * 创建一个{@link BlockingPromise}(一个可写的Future)。
+     * 创建一个{@link BlockingPromise}。
      * 用户提交一个任务，执行方持有Promise，用户方持Future，执行方通过Promise赋值，用户通过Future获取结果或监听。
      * <p>
      * 注意：最好不要在自己创建的promise上进行阻塞等待，否则可能导致死锁。建议使用{@link FutureListener}。
@@ -100,6 +100,14 @@ public interface EventLoop extends FixedEventLoopGroup {
      */
     @Nonnull
     <V> BlockingPromise<V> newBlockingPromise();
+
+    /**
+     * 创建一个{@link Promise}，该future只有该{@link EventLoop}可以进行监听。
+     *
+     * @param <V> the type of value
+     * @return Promise
+     */
+    <V> LocalPromise<V> newLocalPromise();
 
     /**
      * 创建一个{@link BlockingFuture}，该future表示它关联的任务早已失败。因此{@link BlockingFuture#isSuccess()}总是返回false。
