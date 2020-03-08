@@ -122,4 +122,11 @@ public interface EventLoop extends FixedEventLoopGroup {
      */
     @Nonnull
     <V> BlockingFuture<V> newSucceededFuture(@Nullable V value);
+
+    /**
+     * 创建一个{@link Promise}，该{@link Promise}
+     * @param <V>
+     * @return
+     */
+    <V> Promise<V> newLocalPromise();
 }

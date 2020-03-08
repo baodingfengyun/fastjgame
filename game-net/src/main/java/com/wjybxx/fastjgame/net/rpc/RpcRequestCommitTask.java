@@ -16,6 +16,7 @@
 package com.wjybxx.fastjgame.net.rpc;
 
 import com.wjybxx.fastjgame.net.session.Session;
+import com.wjybxx.fastjgame.utils.concurrent.Promise;
 
 /**
  * rpc请求提交任务
@@ -38,16 +39,16 @@ public class RpcRequestCommitTask implements CommitTask {
     /**
      * 返回结果的通道
      */
-    private final RpcResponseChannel<?> rpcResponseChannel;
+    private final Promise<?> promise;
 
-    public RpcRequestCommitTask(Session session, Object request, RpcResponseChannel<?> rpcResponseChannel) {
+    public RpcRequestCommitTask(Session session, Object request, RpcResponseChannel<?> promise) {
         this.session = session;
-        this.rpcResponseChannel = rpcResponseChannel;
+        this.promise = promise;
         this.request = request;
     }
 
     @Override
     public void run() {
-        session.config().dispatcher().post(session, request, rpcResponseChannel);
+        session.config().dispatcher().post(session, request, promise);
     }
 }

@@ -44,6 +44,6 @@ public class OneWayCommitTask implements CommitTask {
     @Override
     public void run() {
         // 这里使用voidRpcResponseChannel是实现单向通知的关键
-        session.config().dispatcher().post(session, message, VoidRpcResponseChannel.getInstance());
+        session.config().dispatcher().post(session, message, session.netEventLoop().newBlockingPromise());
     }
 }

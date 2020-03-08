@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.net.rpc;
 
 import com.wjybxx.fastjgame.net.session.Session;
+import com.wjybxx.fastjgame.utils.concurrent.Promise;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.slf4j.Logger;
@@ -70,30 +71,30 @@ public class DefaultRpcRequestDispatcher implements RpcMethodProxyRegistry, RpcR
 
     @SuppressWarnings("unchecked")
     @Override
-    public final void post(Session session, @Nullable Object request, @Nonnull RpcResponseChannel<?> responseChannel) {
+    public final void post(Session session, @Nullable Object request, @Nonnull Promise<?> promise) {
         if (null == request) {
             logger.warn("{} send null request", session.sessionId());
             return;
         }
         if (request instanceof RpcMethodSpec) {
-            post(session, (RpcMethodSpec) request, responseChannel);
+            postImp(session, (RpcMethodSpec) request, promise);
         } else {
-            post0(session, request, responseChannel);
+            post0(session, request, promise);
         }
     }
 
-    private <T> void post(@Nonnull Session session, @Nonnull RpcMethodSpec<T> rpcMethodSpec, @Nonnull RpcResponseChannel<T> rpcResponseChannel) {
+    private <T> void postImp(@Nonnull Session session, @Nonnull RpcMethodSpec<T> rpcMethodSpec, @Nonnull Promise<T> promise) {
         final int methodKey = calMethodKey(rpcMethodSpec.getServiceId(), rpcMethodSpec.getMethodId());
         final List<Object> params = rpcMethodSpec.getMethodParams();
         @SuppressWarnings("unchecked") final RpcMethodProxy<T> methodProxy = proxyMapping.get(methodKey);
         if (null == methodProxy) {
-            rpcResponseChannel.writeFailure(RpcErrorCode.SERVER_EXCEPTION, "methodKey " + methodKey);
+            promise.tryFailure("Unknown methodKey " + methodKey);
             logger.warn("{} send unregistered request, methodKey={}, parameters={}",
                     session.sessionId(), methodKey, params);
             return;
         }
         try {
-            methodProxy.invoke(session, params, rpcResponseChannel);
+            methodProxy.invoke(session, params, promise);
         } catch (Exception e) {
             logger.warn("handle {} rpcRequest caught exception, methodKey={}, parameters={}",
                     session.sessionId(), methodKey, params);
@@ -103,7 +104,7 @@ public class DefaultRpcRequestDispatcher implements RpcMethodProxyRegistry, RpcR
     /**
      * 如果rpc描述信息不是{@link RpcMethodSpec}对象，那么需要自己实现分发操作
      */
-    protected void post0(Session session, Object request, RpcResponseChannel<?> responseChannel) {
+    protected void post0(Session session, Object request, Promise<?> responseChannel) {
 
     }
 

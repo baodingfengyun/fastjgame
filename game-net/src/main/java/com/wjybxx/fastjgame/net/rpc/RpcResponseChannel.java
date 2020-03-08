@@ -16,11 +16,8 @@
 
 package com.wjybxx.fastjgame.net.rpc;
 
-import com.wjybxx.fastjgame.utils.DebugUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
+import com.wjybxx.fastjgame.utils.concurrent.Promise;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -34,68 +31,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * github - https://github.com/hl845740757
  */
 @ThreadSafe
-public interface RpcResponseChannel<T> {
+public interface RpcResponseChannel<T> extends Promise<T> {
 
-    /**
-     * 返回rpc调用结果，表示调用成功。
-     *
-     * @param result rpc调用结果/可能为null
-     */
-    void writeSuccess(@Nullable T result);
 
-    /**
-     * 返回rpc调用结果，表示调用失败。
-     *
-     * @param errorCode rpc调用错误码 - 不可以为{@link RpcErrorCode#SUCCESS}
-     * @param message   错误信息
-     */
-    void writeFailure(@Nonnull RpcErrorCode errorCode, @Nonnull String message);
-
-    /**
-     * {@link #writeFailure(RpcErrorCode, String)} 的快捷方式。
-     *
-     * @param errorCode rpc调用错误码
-     * @param cause     造成失败的异常
-     */
-    default void writeFailure(@Nonnull RpcErrorCode errorCode, @Nonnull Throwable cause) {
-        final String message = getCauseMessage(cause);
-        writeFailure(errorCode, message);
-    }
-
-    /**
-     * {@link #writeFailure(RpcErrorCode, String)} 的快捷方式。
-     *
-     * @param cause 造成失败的异常
-     */
-    default void writeFailure(@Nonnull Throwable cause) {
-        writeFailure(RpcErrorCode.SERVER_EXCEPTION, getCauseMessage(cause));
-    }
-
-    /**
-     * {@link #writeFailure(RpcErrorCode, String)} 的快捷方式。
-     *
-     * @param message 错误信息
-     */
-    default void writeFailure(@Nonnull String message) {
-        writeFailure(RpcErrorCode.SERVER_EXCEPTION, message);
-    }
-
-    /**
-     * 是否不关心结果，true表示不关心结果。
-     * 对于转发较为有用。
-     *
-     * @return true/false
-     */
-    boolean isVoid();
-
-    static String getCauseMessage(@Nonnull Throwable cause) {
-        final String message;
-        if (DebugUtils.isDebugOpen()) {
-            // debug开启情况下，返回详细信息
-            message = ExceptionUtils.getStackTrace(cause);
-        } else {
-            message = ExceptionUtils.getRootCauseMessage(cause);
-        }
-        return message;
-    }
 }

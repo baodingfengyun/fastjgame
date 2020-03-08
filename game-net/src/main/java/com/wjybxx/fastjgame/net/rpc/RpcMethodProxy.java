@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.net.rpc;
 
 import com.wjybxx.fastjgame.net.session.Session;
+import com.wjybxx.fastjgame.utils.concurrent.Promise;
 
 import java.util.List;
 
@@ -36,11 +37,11 @@ public interface RpcMethodProxy<T> {
     /**
      * 执行调用
      *
-     * @param session         请求方对应的session
-     * @param methodParams    对应的方法参数，发过来的参数不包含{@link Session} 和 {@link RpcResponseChannel}。
-     *                        如果原始方法需要的话，代理方法需要自动传入。
-     * @param responseChannel 返回结果的通道
+     * @param session      请求方对应的session
+     * @param methodParams 对应的方法参数，发过来的参数不包含{@link Session} 和 {@link Promise}。
+     *                     如果原始方法需要的话，代理方法需要自动传入。
+     * @param promise      用于返回结果
      */
-    void invoke(Session session, List<Object> methodParams, RpcResponseChannel<T> responseChannel) throws Exception;
+    void invoke(Session session, List<Object> methodParams, Promise<T> promise) throws Exception;
 
 }

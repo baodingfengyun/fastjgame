@@ -68,12 +68,12 @@ public class ExampleRpcService {
      */
     @RpcMethod(methodId = 5)
     public void incWithChannel(final int number, RpcResponseChannel<Integer> responseChannel) {
-        responseChannel.writeSuccess(number + 3);
+        responseChannel.trySuccess(number + 3);
     }
 
     @RpcMethod(methodId = 6)
     public void incWithSessionAndChannel(Session session, final int number, RpcResponseChannel<Integer> responseChannel) {
-        responseChannel.writeSuccess(number + 4);
+        responseChannel.trySuccess(number + 4);
     }
 
     @RpcMethod(methodId = 7)

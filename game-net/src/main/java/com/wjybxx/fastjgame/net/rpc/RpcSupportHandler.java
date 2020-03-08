@@ -23,6 +23,9 @@ import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 import com.wjybxx.fastjgame.utils.CollectionUtils;
+import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
+import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.utils.concurrent.LocalPromise;
 import com.wjybxx.fastjgame.utils.concurrent.Promise;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -109,12 +112,13 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
     public void read(SessionHandlerContext ctx, Object msg) throws IOException {
         if (msg instanceof RpcRequestMessage) {
             // 读取到一个Rpc请求消息，提交给应用层
-            RpcRequestMessage requestMessage = (RpcRequestMessage) msg;
-            RpcResponseChannel<?> rpcResponseChannel = new DefaultRpcResponseChannel<>(ctx.session(),
-                    requestMessage.getRequestGuid(), requestMessage.isSync());
+            final RpcRequestMessage requestMessage = (RpcRequestMessage) msg;
+            // 这里网络层是监听器的用户，创建LocalPromise没错的
+            final Promise<?> promise = new LocalPromise<>(ctx.netEventLoop());
+            promise.onComplete(new RpcResultListener(ctx.session(), requestMessage.getRequestGuid(), requestMessage.isSync()));
 
-            // 检查提前反序列化字段
-            ctx.appEventLoop().execute(new RpcRequestCommitTask(ctx.session(), requestMessage.getBody(), rpcResponseChannel));
+            // 提交给用户执行
+            ctx.appEventLoop().execute(new RpcRequestCommitTask(ctx.session(), requestMessage.getBody(), promise));
         } else if (msg instanceof RpcResponseMessage) {
             // 读取到一个Rpc响应消息，提交给应用层
             RpcResponseMessage responseMessage = (RpcResponseMessage) msg;
@@ -153,11 +157,37 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
         }
     }
 
-    private static class DefaultRpcResponseChannel<T> extends AbstractRpcResponseChannel<T> {
+    private static class RpcTimeoutInfo {
 
+        final Promise<?> rpcPromise;
+        final long deadline;
+
+        RpcTimeoutInfo(Promise<?> rpcPromise, long deadline) {
+            this.rpcPromise = rpcPromise;
+            this.deadline = deadline;
+        }
+    }
+
+    private static class RpcResultListener implements FutureListener<Object> {
         private final Session session;
         private final long requestGuid;
         private final boolean sync;
+
+        private RpcResultListener(Session session, long requestGuid, boolean sync) {
+            this.session = session;
+            this.requestGuid = requestGuid;
+            this.sync = sync;
+        }
+
+        @Override
+        public void onComplete(ListenableFuture<Object> future) throws Exception {
+
+        }
+    }
+
+    private static class DefaultRpcResponseChannel<T> extends AbstractRpcResponseChannel<T> {
+
+
 
         private DefaultRpcResponseChannel(Session session, long requestGuid, boolean sync) {
             this.session = session;
@@ -173,16 +203,4 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             }
         }
     }
-
-    private static class RpcTimeoutInfo {
-
-        final Promise<?> rpcPromise;
-        final long deadline;
-
-        RpcTimeoutInfo(Promise<?> rpcPromise, long deadline) {
-            this.rpcPromise = rpcPromise;
-            this.deadline = deadline;
-        }
-    }
-
 }

@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.net.rpc;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import com.wjybxx.fastjgame.utils.concurrent.VoidPromise;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -30,11 +30,12 @@ import javax.annotation.concurrent.ThreadSafe;
  * github - https://github.com/hl845740757
  */
 @ThreadSafe
-public class VoidRpcResponseChannel implements RpcResponseChannel<Object> {
+public class VoidRpcResponseChannel extends VoidPromise implements RpcResponseChannel<Object> {
 
     private static final RpcResponseChannel INSTANCE = new VoidRpcResponseChannel();
 
     private VoidRpcResponseChannel() {
+        super(null);
     }
 
     @SuppressWarnings("unchecked")
@@ -42,33 +43,4 @@ public class VoidRpcResponseChannel implements RpcResponseChannel<Object> {
         return INSTANCE;
     }
 
-    @Override
-    public final boolean isVoid() {
-        return true;
-    }
-
-    @Override
-    public void writeSuccess(@Nullable Object result) {
-        // do nothing
-    }
-
-    @Override
-    public void writeFailure(@Nonnull RpcErrorCode errorCode, @Nonnull String message) {
-        // do nothing
-    }
-
-    @Override
-    public void writeFailure(@Nonnull RpcErrorCode errorCode, @Nonnull Throwable cause) {
-        // do nothing
-    }
-
-    @Override
-    public void writeFailure(@Nonnull Throwable cause) {
-        // do nothing
-    }
-
-    @Override
-    public void writeFailure(@Nonnull String message) {
-        // do nothing
-    }
 }

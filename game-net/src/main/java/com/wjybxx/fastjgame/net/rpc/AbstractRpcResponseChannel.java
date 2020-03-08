@@ -15,7 +15,9 @@
  */
 package com.wjybxx.fastjgame.net.rpc;
 
+import com.wjybxx.fastjgame.utils.DebugUtils;
 import com.wjybxx.fastjgame.utils.SystemUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -31,35 +33,27 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public abstract class AbstractRpcResponseChannel<T> implements RpcResponseChannel<T> {
 
-    /**
-     * 默认检查{@link #writable}标记。<br>
-     * 如果有大量的RPC调用，可以选择关闭检查，以减少volatile带来的内存同步开销。
-     * 其实影响不大，测试期间一定要开着，可以帮助你排除一些错误。
-     */
-    private static final boolean CHECK_WRITABLE = SystemUtils.getProperties().getAsBool("AbstractRpcResponseChannel.CHECK_WRITABLE", true);
-
-    private final AtomicBoolean writable;
-
     protected AbstractRpcResponseChannel() {
-        writable = CHECK_WRITABLE ? new AtomicBoolean(true) : null;
+
     }
 
     @Override
-    public void writeSuccess(@Nullable T result) {
-        write(RpcErrorCode.SUCCESS, result);
+    public boolean trySuccess(@Nullable T result) {
+        return write(RpcErrorCode.SUCCESS, result);
     }
 
     @Override
-    public void writeFailure(@Nonnull RpcErrorCode errorCode, @Nonnull String message) {
+    public void tryFailure(@Nonnull RpcErrorCode errorCode, @Nonnull String message) {
         if (errorCode == RpcErrorCode.SUCCESS) {
             throw new IllegalArgumentException("failure error code can't be SUCCESS");
         }
         write(errorCode, message);
     }
 
-    private void write(RpcErrorCode errorCode, Object body) {
+    private boolean write(RpcErrorCode errorCode, Object body) {
         if (writable == null || writable.compareAndSet(true, false)) {
             doWrite(errorCode, body);
+            return true;
         } else {
             throw new IllegalStateException("ResponseChannel can't be reused!");
         }
@@ -70,8 +64,14 @@ public abstract class AbstractRpcResponseChannel<T> implements RpcResponseChanne
      */
     protected abstract void doWrite(RpcErrorCode errorCode, Object body);
 
-    @Override
-    public final boolean isVoid() {
-        return false;
+    static String getCauseMessage(@Nonnull Throwable cause) {
+        final String message;
+        if (DebugUtils.isDebugOpen()) {
+            // debug开启情况下，返回详细信息
+            message = ExceptionUtils.getStackTrace(cause);
+        } else {
+            message = ExceptionUtils.getRootCauseMessage(cause);
+        }
+        return message;
     }
 }
