@@ -16,7 +16,10 @@
 
 package com.wjybxx.fastjgame.utils.concurrent;
 
+import javax.annotation.Nonnull;
+import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 /**
  * @author wjybxx
@@ -60,5 +63,48 @@ public class EventLoopUtils {
         checkDeadLock(e, "Can't call from EventLoop thread");
     }
 
+    /**
+     * 如果当前线程就是EventLoop线程，则直接执行任务，否则进行提交
+     *
+     * @param eventLoop 事件循环
+     * @param task      任务
+     */
+    public static void executeOrRun(@Nonnull EventLoop eventLoop, Runnable task) {
+        if (eventLoop.inEventLoop()) {
+            task.run();
+        } else {
+            eventLoop.execute(task);
+        }
+    }
 
+    /**
+     * 如果当前线程就是EventLoop线程，则直接执行任务，否则进行提交
+     *
+     * @param eventLoop 事件循环
+     * @param task      任务
+     * @return future
+     */
+    public static BlockingFuture<?> submitOrRun(@Nonnull EventLoop eventLoop, Runnable task) {
+        return submitOrRun(eventLoop, Executors.callable(task, null));
+    }
+
+    /**
+     * 如果当前线程就是EventLoop线程，则直接执行任务，否则进行提交
+     *
+     * @param eventLoop 事件循环
+     * @param task      任务
+     * @return future
+     */
+    public static <V> BlockingFuture<V> submitOrRun(@Nonnull EventLoop eventLoop, Callable<V> task) {
+        if (eventLoop.inEventLoop()) {
+            try {
+                V result = task.call();
+                return new SucceededFuture<>(eventLoop, result);
+            } catch (Throwable e) {
+                return new FailedFuture<>(eventLoop, e);
+            }
+        } else {
+            return eventLoop.submit(task);
+        }
+    }
 }

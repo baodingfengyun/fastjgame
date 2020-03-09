@@ -59,10 +59,14 @@ class EventBusUtils {
             return;
         }
 
+        invokeHandlerSafely(event, handler, eventKey);
+    }
+
+    static <K, T> void invokeHandlerSafely(@Nonnull T event, EventHandler<? super T> handler, @Nonnull K eventKey) {
         try {
             handler.onEvent(event);
         } catch (Exception e) {
-            logger.warn("handler.onEvent caught exception! EventClassInfo {}, EventKey {}, handler info {}",
+            logger.warn("handler.onEvent caught exception! EventClass {}, EventKey {}, handler {}",
                     event.getClass().getName(), eventKey, handler.getClass().getName(), e);
         }
     }
@@ -85,7 +89,7 @@ class EventBusUtils {
             @SuppressWarnings("unchecked") final CompositeEventHandler<T> compositeEventHandler = (CompositeEventHandler<T>) existHandler;
             compositeEventHandler.addHandler(handler);
         } else {
-            handlerMap.put(eventKey, new CompositeEventHandler<>(existHandler, handler));
+            handlerMap.put(eventKey, new CompositeEventHandler<>(eventKey, existHandler, handler));
         }
     }
 

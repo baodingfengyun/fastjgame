@@ -66,6 +66,10 @@ public class DefaultHttpRequestDispatcher implements HttpRequestHandlerRegistry,
             return;
         }
         // 分发请求
+        invokeHandlerSafely(httpSession, path, params, httpRequestHandler);
+    }
+
+    static void invokeHandlerSafely(HttpSession httpSession, String path, HttpRequestParam params, HttpRequestHandler httpRequestHandler) {
         try {
             httpRequestHandler.onHttpRequest(httpSession, path, params);
         } catch (Exception e) {
