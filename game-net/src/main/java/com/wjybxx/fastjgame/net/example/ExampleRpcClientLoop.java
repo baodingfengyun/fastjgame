@@ -65,11 +65,9 @@ class ExampleRpcClientLoop extends DisruptorEventLoop {
     protected void init() throws Exception {
         super.init();
 
-        final long localGuid = System.nanoTime();
-        final long serverGuid = ExampleConstants.SERVER_GUID;
-        final String sessionId = "client:server=" + localGuid + ":" + serverGuid;
+        final String sessionId = "Session - " + System.currentTimeMillis();
 
-        NetContext netContext = ExampleConstants.netEventLoop.createContext(localGuid, this);
+        NetContext netContext = ExampleConstants.netEventLoop.createContext(this);
 
         if (localPort != null) {
             LocalSessionConfig config = LocalSessionConfig.newBuilder()
@@ -78,7 +76,7 @@ class ExampleRpcClientLoop extends DisruptorEventLoop {
                     .setDispatcher(new DefaultRpcRequestDispatcher())
                     .build();
 
-            session = netContext.connectLocal(sessionId, serverGuid, localPort, config).get();
+            session = netContext.connectLocal(sessionId, localPort, config).get();
         } else {
             // 必须先启动服务器
             SocketSessionConfig config = SocketSessionConfig.newBuilder()
@@ -92,7 +90,7 @@ class ExampleRpcClientLoop extends DisruptorEventLoop {
                     .build();
 
             final HostAndPort address = new HostAndPort(NetUtils.getLocalIp(), ExampleConstants.tcpPort);
-            session = netContext.connectTcp(sessionId, serverGuid, address, config)
+            session = netContext.connectTcp(sessionId, address, config)
                     .get();
         }
         startTime = System.currentTimeMillis();

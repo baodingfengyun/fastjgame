@@ -17,8 +17,6 @@
 package com.wjybxx.fastjgame.net.session;
 
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoop;
-import com.wjybxx.fastjgame.net.rpc.RpcFuture;
-import com.wjybxx.fastjgame.net.rpc.RpcMethodSpec;
 import com.wjybxx.fastjgame.net.rpc.RpcServerSpec;
 import com.wjybxx.fastjgame.utils.annotation.Internal;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
@@ -29,17 +27,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * 一个连接的抽象，它可能是一个socket连接，也可能是JVM内的线程之间内的连接。
- *
- * <h3>使用者注意</h3>
- * 1. 所有的消息都满足先发的先到。
- * 2. 但是要注意一个问题：{@link #syncCall(RpcMethodSpec)}会打乱处理的顺序！同步Rpc调用的结果会被你提前处理，其它消息可能先到，但是由于你处于阻塞状态，而导致被延迟处理。<br>
- * 3. 先发送的请求不一定先获得结果！对方什么时候返回给你结果是不确定的！<br>
- *
- * <h3>实现要求</h3>
- * 1. 单向消息(send系列方法)：无论执行成功还是失败，实现必须忽略调用的方法的执行结果(最好不回传结果，而不是仅仅不上报给调用者)。
- * 2. Rpc调用(call系列方法)：如果调用的方法执行成功，则返回对应的结果。如果方法本身没有返回值，则返回null。如果执行失败，则应该返回对应的异常信息。
- * 3. {@code send} {@code call}之间都满足先发送的必然先到。这样的好处是编程更简单，缺点是同步rpc调用响应会变慢。<br>
- *
  * <p>
  * 暂时并不提供完全的线程安全性保障，如果不是那么有必要的话，便不添加，我的意识里需要session是完全的线程安全的情况并不多。
  *
@@ -59,8 +46,7 @@ public interface Session extends RpcServerSpec, Comparable<Session> {
      * <p>
      * 它的重要意义：
      * 1. 线程封闭。
-     * 2. 允许连接池。允许同一个客户端与服务器建立多个连接。
-     * 3. 允许消息确认机制，跨channel断线重连。
+     * 2. 允许断连、重连。
      * <p>
      * Q: 为什么要用户分配？而不是网络层自动分配？
      * A:
@@ -69,16 +55,6 @@ public interface Session extends RpcServerSpec, Comparable<Session> {
      * 3. 用户可以使sessionId更短，你肯定不想每个sessionId都是60个字节 - 比如使用{@link io.netty.channel.ChannelId}<br>
      */
     String sessionId();
-
-    /**
-     * 用户标识
-     */
-    long localGuid();
-
-    /**
-     * session对端唯一标识 - 它还是有必要的
-     */
-    long remoteGuid();
 
     /**
      * session所属的用户线程
@@ -149,7 +125,7 @@ public interface Session extends RpcServerSpec, Comparable<Session> {
     SessionPipeline pipeline();
 
     @Internal
-    void fireRead(@Nullable Object msg);
+    void fireRead(@Nonnull Object msg);
 
     @Internal
     void fireWrite(@Nonnull Object msg);

@@ -31,9 +31,9 @@ import com.wjybxx.fastjgame.net.session.SessionRegistry;
  */
 public class SocketSessionImp extends AbstractSession implements SocketSession {
 
-    public SocketSessionImp(NetContext netContext, String sessionId, long remoteGuid, SocketSessionConfig config,
+    public SocketSessionImp(NetContext netContext, String sessionId, SocketSessionConfig config,
                             NetManagerWrapper managerWrapper, SessionRegistry sessionRegistry) {
-        super(netContext, sessionId, remoteGuid, config, managerWrapper, sessionRegistry);
+        super(netContext, sessionId, config, managerWrapper, sessionRegistry);
     }
 
     @Override

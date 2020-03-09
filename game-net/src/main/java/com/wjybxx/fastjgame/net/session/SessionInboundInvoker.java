@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.session;
 
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 
 /**
  * {@link SessionPipeline}入站事件调度器。
@@ -46,7 +46,7 @@ public interface SessionInboundInvoker {
      *
      * @param msg 消息内容，由于解码可能失败，因此可能null
      */
-    void fireRead(@Nullable Object msg);
+    void fireRead(@Nonnull Object msg);
 
     /**
      * 当当某一个{@link SessionInboundHandler}处理事件出现异常时，向下传递异常。

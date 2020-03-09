@@ -32,8 +32,6 @@ import com.wjybxx.fastjgame.net.serialization.JsonSerializer;
  */
 public final class ExampleConstants {
 
-    public static final long SERVER_GUID = 10001;
-
     /**
      * 测试用例使用的codec
      */

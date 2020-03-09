@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
- * ListenableFuture的抽象实现
+ * {@link BlockingFuture}的抽象实现
  *
  * @param <V>
  * @author wjybxx

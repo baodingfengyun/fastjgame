@@ -273,7 +273,6 @@ public class OuterAcceptorHandler extends SessionDuplexHandlerAdapter {
             final SocketPortContext portExtraInfo = event.getPortExtraInfo();
             final SocketSessionImp session = new SocketSessionImp(portExtraInfo.getNetContext(),
                     event.sessionId(),
-                    event.remoteGuid(),
                     portExtraInfo.getSessionConfig(),
                     netManagerWrapper,
                     acceptorManager);

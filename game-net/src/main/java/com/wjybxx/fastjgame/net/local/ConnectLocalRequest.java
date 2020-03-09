@@ -31,19 +31,17 @@ import com.wjybxx.fastjgame.utils.concurrent.Promise;
 public class ConnectLocalRequest {
 
     private final String sessionId;
-    private final long remoteGuid;
     private final DefaultLocalPort localPort;
     private final LocalSessionConfig config;
     private final NetContext netContext;
     private final Promise<Session> connectPromise;
 
-    public ConnectLocalRequest(String sessionId, long remoteGuid,
+    public ConnectLocalRequest(String sessionId,
                                DefaultLocalPort localPort,
                                LocalSessionConfig config,
                                NetContext netContext,
                                Promise<Session> connectPromise) {
         this.sessionId = sessionId;
-        this.remoteGuid = remoteGuid;
         this.localPort = localPort;
         this.config = config;
         this.netContext = netContext;
@@ -52,10 +50,6 @@ public class ConnectLocalRequest {
 
     public String getSessionId() {
         return sessionId;
-    }
-
-    public long getRemoteGuid() {
-        return remoteGuid;
     }
 
     public DefaultLocalPort getLocalPort() {

@@ -65,10 +65,9 @@ public interface NetEventLoopGroup extends FixedEventLoopGroup {
     /**
      * 创建一个网络上下文，你通过该上下文可以更方便的使用这里提供的方法。
      *
-     * @param localGuid    用户唯一标识
      * @param appEventLoop 方法的调用者所在的eventLoop
      * @return NetContext 创建的context可以用于监听，建立连接，和http请求
      */
-    NetContext createContext(long localGuid, @Nonnull EventLoop appEventLoop);
+    NetContext createContext(@Nonnull EventLoop appEventLoop);
 
 }

@@ -43,7 +43,6 @@ public class ClientSocketCodec extends AbstractSocketCodec {
      * channel关联的sessionId
      */
     private final String sessionId;
-    private final long localGuid;
     /**
      * 是否已建立链接
      */
@@ -55,10 +54,9 @@ public class ClientSocketCodec extends AbstractSocketCodec {
      */
     private final NetEventLoop netEventLoop;
 
-    public ClientSocketCodec(Serializer serializer, String sessionId, long localGuid, NetEventLoop netEventLoop) {
+    public ClientSocketCodec(Serializer serializer, String sessionId, NetEventLoop netEventLoop) {
         super(serializer);
         this.sessionId = sessionId;
-        this.localGuid = localGuid;
         this.netEventLoop = netEventLoop;
     }
 
@@ -82,7 +80,7 @@ public class ClientSocketCodec extends AbstractSocketCodec {
             writeAckPingPongMessage(ctx, (SocketPingPongMessageTO) msgTO, promise);
         } else if (msgTO instanceof SocketConnectRequestTO) {
             // 请求建立连接包
-            writeConnectRequest(ctx, sessionId, localGuid, (SocketConnectRequestTO) msgTO, promise);
+            writeConnectRequest(ctx, sessionId, (SocketConnectRequestTO) msgTO, promise);
         } else {
             super.write(ctx, msgTO, promise);
         }

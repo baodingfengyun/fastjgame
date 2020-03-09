@@ -48,7 +48,6 @@ import java.net.URISyntaxException;
 public class WsClientChannelInitializer extends ChannelInitializer<SocketChannel> {
 
     private final String sessionId;
-    private final long localGuid;
     /**
      * 触发升级为websocket的url (eg: http://localhost:8088/ws)
      */
@@ -56,11 +55,9 @@ public class WsClientChannelInitializer extends ChannelInitializer<SocketChannel
     private final SocketSessionConfig sessionConfig;
     private final NetEventLoop netEventLoop;
 
-    public WsClientChannelInitializer(String sessionId, long localGuid,
-                                      String websocketUrl, SocketSessionConfig sessionConfig,
+    public WsClientChannelInitializer(String sessionId, String websocketUrl, SocketSessionConfig sessionConfig,
                                       NetEventLoop netEventLoop) {
         this.sessionId = sessionId;
-        this.localGuid = localGuid;
         this.websocketUrl = websocketUrl;
         this.sessionConfig = sessionConfig;
         this.netEventLoop = netEventLoop;
@@ -111,6 +108,6 @@ public class WsClientChannelInitializer extends ChannelInitializer<SocketChannel
      */
     private void appendCustomProtocolCodec(ChannelPipeline pipeline) {
         pipeline.addLast(new LengthFieldBasedFrameDecoder(sessionConfig.maxFrameLength(), 0, 4, 0, 4));
-        pipeline.addLast(new ClientSocketCodec(sessionConfig.serializer(), sessionId, localGuid, netEventLoop));
+        pipeline.addLast(new ClientSocketCodec(sessionConfig.serializer(), sessionId, netEventLoop));
     }
 }

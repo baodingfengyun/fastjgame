@@ -170,15 +170,15 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
      *
      * @param ctx                    ctx
      * @param sessionId              channel对应的会话id
-     * @param localGuid              我的标识
      * @param socketConnectRequestTO 请求传输对象
      */
-    final void writeConnectRequest(ChannelHandlerContext ctx, String sessionId, long localGuid, SocketConnectRequestTO socketConnectRequestTO, ChannelPromise promise) {
+    final void writeConnectRequest(ChannelHandlerContext ctx, String sessionId, SocketConnectRequestTO socketConnectRequestTO, ChannelPromise promise) {
         final SocketConnectRequest socketConnectRequest = socketConnectRequestTO.getConnectRequest();
-        final int contentLength = 8 + 4 + 4 + 8 + 8 + 1 + sessionId.length();
+        final byte[] sessionIdBytes = CodecUtils.getBytesUTF8(sessionId);
+
+        final int contentLength = 4 + 4 + 8 + 8 + 1 + sessionIdBytes.length;
         ByteBuf head = newHeadByteBuf(ctx, contentLength, NetMessageType.CONNECT_REQUEST);
 
-        head.writeLong(localGuid);
         head.writeInt(socketConnectRequest.getVerifyingTimes());
         head.writeInt(socketConnectRequest.getVerifiedTimes());
 
@@ -186,8 +186,7 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
         head.writeLong(socketConnectRequestTO.getAck());
         head.writeByte(socketConnectRequestTO.isClose() ? 1 : 0);
 
-        // sessionId
-        final byte[] sessionIdBytes = CodecUtils.getBytesUTF8(sessionId);
+        // sessionId放最后可以省去长度标记
         head.writeBytes(sessionIdBytes);
 
         setLengthAndWrite(ctx, head, promise);
@@ -198,7 +197,6 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
      */
     final SocketConnectRequestEvent readConnectRequest(Channel channel, ByteBuf msg, SocketPortContext portExtraInfo) {
         // 建立连接请求
-        long remoteGuid = msg.readLong();
         int verifyingTimes = msg.readInt();
         int verifiedTimes = msg.readInt();
 
@@ -212,7 +210,7 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
         String sessionId = CodecUtils.newStringUTF8(sessionIdBytes);
 
         SocketConnectRequest socketConnectRequest = new SocketConnectRequest(verifyingTimes, verifiedTimes);
-        return new SocketConnectRequestEvent(channel, sessionId, remoteGuid, initSequence, ack, close, socketConnectRequest, portExtraInfo);
+        return new SocketConnectRequestEvent(channel, sessionId, initSequence, ack, close, socketConnectRequest, portExtraInfo);
     }
 
     /**

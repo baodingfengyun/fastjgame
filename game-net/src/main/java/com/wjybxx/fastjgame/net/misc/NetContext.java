@@ -50,11 +50,6 @@ import java.net.BindException;
 public interface NetContext {
 
     /**
-     * 网络层使用者标识
-     */
-    long localGuid();
-
-    /**
      * 用户线程
      * 网络层保证所有的业务逻辑处理最终都会运行在该用户线程。
      */
@@ -93,12 +88,11 @@ public interface NetContext {
      * 以tcp方式连接远程某个端口
      *
      * @param sessionId     为要建立的session分配一个全局唯一的id，尽量保持有意义。
-     * @param remoteGuid    远程对端标识
      * @param remoteAddress 远程地址
      * @param config        session配置信息
      * @return future
      */
-    BlockingFuture<Session> connectTcp(String sessionId, long remoteGuid, HostAndPort remoteAddress, @Nonnull SocketSessionConfig config);
+    BlockingFuture<Session> connectTcp(String sessionId, HostAndPort remoteAddress, @Nonnull SocketSessionConfig config);
 
     /**
      * 在指定端口监听WebSocket连接
@@ -128,12 +122,11 @@ public interface NetContext {
      * 以websocket方式连接远程某个端口
      *
      * @param sessionId     为要建立的session分配一个全局唯一的id，尽量保持有意义。
-     * @param remoteGuid    远程对端标识
      * @param remoteAddress 远程地址
      * @param config        session配置信息
      * @return future 如果想消除同步，添加监听器时请绑定EventLoop
      */
-    BlockingFuture<Session> connectWS(String sessionId, long remoteGuid, HostAndPort remoteAddress, String websocketUrl, @Nonnull SocketSessionConfig config);
+    BlockingFuture<Session> connectWS(String sessionId, HostAndPort remoteAddress, String websocketUrl, @Nonnull SocketSessionConfig config);
 
 
     // -------------------------------------- 用于支持JVM内部通信 -------------------------------
@@ -155,13 +148,12 @@ public interface NetContext {
      * 与JVM内的另一个线程建立session。
      * 注意：{@link LocalPort}必须是同一个{@link NetEventLoop}创建的。
      *
-     * @param sessionId  为要建立的session分配一个全局唯一的id，尽量保持有意义。
-     * @param remoteGuid 远程对端标识
-     * @param localPort  远程“端口”信息
-     * @param config     配置信息
+     * @param sessionId 为要建立的session分配一个全局唯一的id，尽量保持有意义。
+     * @param localPort 远程“端口”信息
+     * @param config    配置信息
      * @return future 如果想消除同步，添加监听器时请绑定EventLoop
      */
-    BlockingFuture<Session> connectLocal(String sessionId, long remoteGuid, @Nonnull LocalPort localPort, @Nonnull LocalSessionConfig config);
+    BlockingFuture<Session> connectLocal(String sessionId, @Nonnull LocalPort localPort, @Nonnull LocalSessionConfig config);
 
     //  --------------------------------------- http支持 -----------------------------------------
 

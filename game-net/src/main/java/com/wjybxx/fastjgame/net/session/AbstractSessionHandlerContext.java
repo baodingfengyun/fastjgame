@@ -148,7 +148,7 @@ abstract class AbstractSessionHandlerContext implements SessionHandlerContext {
     }
 
     @Override
-    public void fireRead(@Nullable Object msg) {
+    public void fireRead(@Nonnull Object msg) {
         final AbstractSessionHandlerContext nextInboundContext = findNextInboundContext();
         invokeRead(msg, nextInboundContext);
     }

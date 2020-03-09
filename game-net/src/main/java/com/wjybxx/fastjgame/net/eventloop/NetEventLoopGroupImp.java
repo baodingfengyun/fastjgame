@@ -117,7 +117,7 @@ class NetEventLoopGroupImp extends AbstractFixedEventLoopGroup implements NetEve
     }
 
     @Override
-    public NetContext createContext(long localGuid, @Nonnull EventLoop appEventLoop) {
+    public NetContext createContext(@Nonnull EventLoop appEventLoop) {
         if (appEventLoop instanceof NetEventLoop) {
             throw new IllegalArgumentException("Bad EventLoop");
         }
@@ -135,6 +135,6 @@ class NetEventLoopGroupImp extends AbstractFixedEventLoopGroup implements NetEve
             }
         }
 
-        return new DefaultNetContext(localGuid, appEventLoop, this, nettyThreadManager);
+        return new DefaultNetContext(appEventLoop, this, nettyThreadManager);
     }
 }

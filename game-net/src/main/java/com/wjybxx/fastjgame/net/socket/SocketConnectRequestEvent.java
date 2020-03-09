@@ -30,7 +30,6 @@ public class SocketConnectRequestEvent implements SocketEvent {
 
     private final Channel channel;
     private final String sessionId;
-    private final long remoteGuid;
     /**
      * 我的初始sequence
      */
@@ -52,10 +51,9 @@ public class SocketConnectRequestEvent implements SocketEvent {
      */
     private final SocketPortContext portExtraInfo;
 
-    public SocketConnectRequestEvent(Channel channel, String sessionId, long remoteGuid, long initSequence, long ack, boolean close, SocketConnectRequest connectRequest, SocketPortContext portExtraInfo) {
+    public SocketConnectRequestEvent(Channel channel, String sessionId, long initSequence, long ack, boolean close, SocketConnectRequest connectRequest, SocketPortContext portExtraInfo) {
         this.channel = channel;
         this.sessionId = sessionId;
-        this.remoteGuid = remoteGuid;
         this.initSequence = initSequence;
         this.ack = ack;
         this.close = close;
@@ -71,10 +69,6 @@ public class SocketConnectRequestEvent implements SocketEvent {
     @Override
     public String sessionId() {
         return sessionId;
-    }
-
-    public long remoteGuid() {
-        return remoteGuid;
     }
 
     public long getInitSequence() {

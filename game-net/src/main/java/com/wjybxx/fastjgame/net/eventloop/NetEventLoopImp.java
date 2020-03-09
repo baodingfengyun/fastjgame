@@ -216,7 +216,7 @@ class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLoop {
     }
 
     @Override
-    public NetContext createContext(long localGuid, @Nonnull EventLoop appEventLoop) {
+    public NetContext createContext(@Nonnull EventLoop appEventLoop) {
         if (appEventLoop instanceof NetEventLoop) {
             throw new IllegalArgumentException("Bad EventLoop");
         }
@@ -230,7 +230,7 @@ class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLoop {
             });
         }
 
-        return new DefaultNetContext(localGuid, appEventLoop, this, nettyThreadManager);
+        return new DefaultNetContext(appEventLoop, this, nettyThreadManager);
     }
 
     @Subscribe

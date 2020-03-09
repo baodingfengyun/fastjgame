@@ -98,7 +98,6 @@ public class ConnectorManager implements SessionRegistry {
 
     public void connect(final ConnectRemoteRequest request) {
         final String sessionId = request.getSessionId();
-        final long remoteGuid = request.getRemoteGuid();
         final HostAndPort remoteAddress = request.getRemoteAddress();
         final SocketSessionConfig config = request.getConfig();
         final ChannelInitializer<SocketChannel> initializer = request.getInitializer();
@@ -111,7 +110,7 @@ public class ConnectorManager implements SessionRegistry {
             return;
         }
 
-        final SocketSessionImp session = new SocketSessionImp(netContext, sessionId, remoteGuid, config,
+        final SocketSessionImp session = new SocketSessionImp(netContext, sessionId, config,
                 netManagerWrapper, this);
 
         if (config.isAutoReconnect()) {
@@ -187,7 +186,6 @@ public class ConnectorManager implements SessionRegistry {
 
     public void connectLocal(ConnectLocalRequest request) {
         final String sessionId = request.getSessionId();
-        final long remoteGuid = request.getRemoteGuid();
         final DefaultLocalPort localPort = request.getLocalPort();
         final LocalSessionConfig config = request.getConfig();
         final NetContext netContext = request.getNetContext();
@@ -199,10 +197,10 @@ public class ConnectorManager implements SessionRegistry {
             return;
         }
         try {
-            final LocalSessionImp remoteSession = netManagerWrapper.getAcceptorManager().onRcvConnectRequest(localPort, sessionId, netContext.localGuid());
+            final LocalSessionImp remoteSession = netManagerWrapper.getAcceptorManager().onRcvConnectRequest(localPort, sessionId);
 
             // 创建session
-            LocalSessionImp session = new LocalSessionImp(netContext, sessionId, remoteGuid, config,
+            LocalSessionImp session = new LocalSessionImp(netContext, sessionId, config,
                     netManagerWrapper, this);
 
             // 初始化管道，入站 从上到下，出站 从下往上

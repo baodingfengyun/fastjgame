@@ -227,7 +227,7 @@ class DefaultSessionPipeline implements SessionPipeline {
     }
 
     @Override
-    public void fireRead(@Nullable Object msg) {
+    public void fireRead(@Nonnull Object msg) {
         head.fireRead(msg);
     }
 

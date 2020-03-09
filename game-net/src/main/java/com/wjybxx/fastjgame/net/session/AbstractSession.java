@@ -51,7 +51,6 @@ public abstract class AbstractSession implements Session {
 
     private final NetContext netContext;
     private final String sessionId;
-    private final long remoteGuid;
     private final SessionConfig config;
     /**
      * session所属的注册表
@@ -78,11 +77,10 @@ public abstract class AbstractSession implements Session {
      */
     private Object attachment;
 
-    protected AbstractSession(NetContext netContext, String sessionId, long remoteGuid, SessionConfig config,
+    protected AbstractSession(NetContext netContext, String sessionId, SessionConfig config,
                               NetManagerWrapper managerWrapper, SessionRegistry sessionRegistry) {
         this.netContext = netContext;
         this.sessionId = sessionId;
-        this.remoteGuid = remoteGuid;
         this.config = config;
         this.sessionRegistry = sessionRegistry;
         this.pipeline = new DefaultSessionPipeline(this, managerWrapper.getNetTimeManager());
@@ -94,16 +92,6 @@ public abstract class AbstractSession implements Session {
     @Override
     public final String sessionId() {
         return sessionId;
-    }
-
-    @Override
-    public final long localGuid() {
-        return netContext.localGuid();
-    }
-
-    @Override
-    public final long remoteGuid() {
-        return remoteGuid;
     }
 
     @Override
@@ -196,7 +184,7 @@ public abstract class AbstractSession implements Session {
 
     @Internal
     @Override
-    public void fireRead(@Nullable Object msg) {
+    public void fireRead(@Nonnull Object msg) {
         ensureInNetEventLoop();
         pipeline.fireRead(msg);
     }

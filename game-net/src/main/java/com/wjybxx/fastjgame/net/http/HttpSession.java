@@ -34,11 +34,6 @@ import io.netty.handler.codec.http.HttpResponse;
 public interface HttpSession {
 
     /**
-     * {@link HttpSession}所属的本地用户
-     */
-    long localGuid();
-
-    /**
      * 该session所在的NetEventLoop。
      */
     NetEventLoop netEventLoop();

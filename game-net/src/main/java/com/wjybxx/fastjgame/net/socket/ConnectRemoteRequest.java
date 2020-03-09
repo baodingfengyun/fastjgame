@@ -34,21 +34,19 @@ import io.netty.channel.socket.SocketChannel;
 public class ConnectRemoteRequest {
 
     private final String sessionId;
-    private final long remoteGuid;
     private final HostAndPort remoteAddress;
     private final SocketSessionConfig config;
     private final ChannelInitializer<SocketChannel> initializer;
     private final NetContext netContext;
     private final Promise<Session> connectPromise;
 
-    public ConnectRemoteRequest(String sessionId, long remoteGuid,
+    public ConnectRemoteRequest(String sessionId,
                                 HostAndPort remoteAddress,
                                 SocketSessionConfig config,
                                 ChannelInitializer<SocketChannel> initializer,
                                 NetContext netContext,
                                 Promise<Session> connectPromise) {
         this.sessionId = sessionId;
-        this.remoteGuid = remoteGuid;
         this.remoteAddress = remoteAddress;
         this.config = config;
         this.initializer = initializer;
@@ -58,10 +56,6 @@ public class ConnectRemoteRequest {
 
     public String getSessionId() {
         return sessionId;
-    }
-
-    public long getRemoteGuid() {
-        return remoteGuid;
     }
 
     public HostAndPort getRemoteAddress() {

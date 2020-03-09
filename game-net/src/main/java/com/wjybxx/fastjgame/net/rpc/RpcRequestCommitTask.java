@@ -50,6 +50,6 @@ public class RpcRequestCommitTask implements CommitTask {
     @SuppressWarnings("unchecked")
     @Override
     public void run() {
-        session.config().dispatcher().post(session, (RpcMethodSpec)request, promise);
+        session.config().dispatcher().post(session, (RpcMethodSpec) request, promise);
     }
 }

@@ -31,9 +31,9 @@ import com.wjybxx.fastjgame.net.session.SessionRegistry;
  */
 public class LocalSessionImp extends AbstractSession implements LocalSession {
 
-    public LocalSessionImp(NetContext netContext, String sessionId, long remoteGuid, LocalSessionConfig config,
+    public LocalSessionImp(NetContext netContext, String sessionId, LocalSessionConfig config,
                            NetManagerWrapper managerWrapper, SessionRegistry sessionRegistry) {
-        super(netContext, sessionId, remoteGuid, config, managerWrapper, sessionRegistry);
+        super(netContext, sessionId, config, managerWrapper, sessionRegistry);
     }
 
     @Override

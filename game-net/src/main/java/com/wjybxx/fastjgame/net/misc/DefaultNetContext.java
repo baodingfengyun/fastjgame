@@ -49,22 +49,15 @@ import java.net.BindException;
 @ThreadSafe
 public class DefaultNetContext implements NetContext {
 
-    private final long localGuid;
     private final EventLoop appEventLoop;
     private final NetEventLoopGroup netEventLoopGroup;
     private final NettyThreadManager nettyThreadManager;
 
-    public DefaultNetContext(long localGuid, EventLoop appEventLoop, NetEventLoopGroup NetEventLoopGroup,
+    public DefaultNetContext(EventLoop appEventLoop, NetEventLoopGroup NetEventLoopGroup,
                              NettyThreadManager nettyThreadManager) {
-        this.localGuid = localGuid;
         this.appEventLoop = appEventLoop;
         this.netEventLoopGroup = NetEventLoopGroup;
         this.nettyThreadManager = nettyThreadManager;
-    }
-
-    @Override
-    public long localGuid() {
-        return localGuid;
     }
 
     @Override
@@ -92,12 +85,12 @@ public class DefaultNetContext implements NetContext {
     }
 
     @Override
-    public BlockingFuture<Session> connectTcp(String sessionId, long remoteGuid, HostAndPort remoteAddress, @Nonnull SocketSessionConfig config) {
+    public BlockingFuture<Session> connectTcp(String sessionId, HostAndPort remoteAddress, @Nonnull SocketSessionConfig config) {
         final NetEventLoop netEventLoop = selectNetEventLoop(sessionId);
-        final TCPClientChannelInitializer initializer = new TCPClientChannelInitializer(sessionId, localGuid, config, netEventLoop);
+        final TCPClientChannelInitializer initializer = new TCPClientChannelInitializer(sessionId, config, netEventLoop);
 
         final BlockingPromise<Session> connectPromise = netEventLoop.newBlockingPromise();
-        netEventLoop.post(new ConnectRemoteRequest(sessionId, remoteGuid, remoteAddress, config, initializer, this, connectPromise));
+        netEventLoop.post(new ConnectRemoteRequest(sessionId, remoteAddress, config, initializer, this, connectPromise));
         return connectPromise;
     }
 
@@ -109,12 +102,12 @@ public class DefaultNetContext implements NetContext {
     }
 
     @Override
-    public BlockingFuture<Session> connectWS(String sessionId, long remoteGuid, HostAndPort remoteAddress, String websocketUrl, @Nonnull SocketSessionConfig config) {
+    public BlockingFuture<Session> connectWS(String sessionId, HostAndPort remoteAddress, String websocketUrl, @Nonnull SocketSessionConfig config) {
         final NetEventLoop netEventLoop = selectNetEventLoop(sessionId);
-        final WsClientChannelInitializer initializer = new WsClientChannelInitializer(sessionId, remoteGuid, websocketUrl, config, netEventLoop);
+        final WsClientChannelInitializer initializer = new WsClientChannelInitializer(sessionId, websocketUrl, config, netEventLoop);
 
         final BlockingPromise<Session> connectPromise = netEventLoop.newBlockingPromise();
-        netEventLoop.post(new ConnectRemoteRequest(sessionId, remoteGuid, remoteAddress, config, initializer, this, connectPromise));
+        netEventLoop.post(new ConnectRemoteRequest(sessionId, remoteAddress, config, initializer, this, connectPromise));
         return connectPromise;
     }
 
@@ -126,14 +119,14 @@ public class DefaultNetContext implements NetContext {
     }
 
     @Override
-    public BlockingFuture<Session> connectLocal(String sessionId, long remoteGuid, @Nonnull LocalPort localPort, @Nonnull LocalSessionConfig config) {
+    public BlockingFuture<Session> connectLocal(String sessionId, @Nonnull LocalPort localPort, @Nonnull LocalSessionConfig config) {
         final NetEventLoop netEventLoop = selectNetEventLoop(sessionId);
         if (!(localPort instanceof DefaultLocalPort)) {
             throw new UnsupportedOperationException();
         }
 
         final BlockingPromise<Session> connectPromise = netEventLoop.newBlockingPromise();
-        netEventLoop.post(new ConnectLocalRequest(sessionId, remoteGuid, (DefaultLocalPort) localPort, config, this, connectPromise));
+        netEventLoop.post(new ConnectLocalRequest(sessionId, (DefaultLocalPort) localPort, config, this, connectPromise));
         return connectPromise;
     }
 

@@ -131,13 +131,12 @@ public class AcceptorManager implements SessionRegistry {
     /**
      * 接收到一个连接请求
      *
-     * @param localPort  本地“端口”
-     * @param sessionId  session唯一标识
-     * @param remoteGuid 对端唯一标识
+     * @param localPort 本地“端口”
+     * @param sessionId session唯一标识
      * @return session
      * @throws IOException error
      */
-    LocalSessionImp onRcvConnectRequest(DefaultLocalPort localPort, String sessionId, long remoteGuid) throws IOException {
+    LocalSessionImp onRcvConnectRequest(DefaultLocalPort localPort, String sessionId) throws IOException {
         // 端口已关闭
         if (!localPort.isActive()) {
             throw new IOException("local port closed");
@@ -146,7 +145,7 @@ public class AcceptorManager implements SessionRegistry {
             throw new IOException("session " + sessionId + " is already registered");
         }
         // 创建session
-        LocalSessionImp session = new LocalSessionImp(localPort.getNetContext(), sessionId, remoteGuid, localPort.getLocalConfig(),
+        LocalSessionImp session = new LocalSessionImp(localPort.getNetContext(), sessionId, localPort.getLocalConfig(),
                 netManagerWrapper, this);
 
         // 创建管道
