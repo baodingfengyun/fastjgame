@@ -26,15 +26,17 @@ import java.util.concurrent.CompletionException;
  * Rpc客户端
  *
  * <h3>主要职责</h3>：
- * 1. 管理session。
- * 2. 通过{@link RpcServerSpec}选择合适的session，然后调用对应的方法。
+ * 1. 通过{@link RpcServerSpec}选择合适的session，然后调用{@link RpcClientInvoker}中对应的方法。
  *
- * <h3>应用自己实现</h3>
+ * <h3>无默认实现</h3>
  * Q: 为什么要自己实现？
  * A: 只有应用自己实现，才具有最贴近应用的{@link RpcServerSpec}，才有最适合应用的session管理。
  *
+ * <h3>服务发现</h3>
+ * 用户需要自己实现。
+ *
  * <h3>实现约定</h3>
- * 如果找不到对于的session，应该返回{@link FailedRpcFuture},其异常应该为{@link RpcSessionNotFoundException}。
+ * 除单向消息外，如果找不到对应的session，应该返回{@link FailedRpcFuture}，且其异常应该为{@link RpcSessionNotFoundException}。
  *
  * @author wjybxx
  * @version 1.0

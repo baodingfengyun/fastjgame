@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.net.example;
 
-import com.wjybxx.fastjgame.net.exception.RpcSessionNotFoundException;
 import com.wjybxx.fastjgame.net.rpc.*;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
@@ -31,50 +30,49 @@ import java.util.concurrent.CompletionException;
  * date - 2020/3/8
  * github - https://github.com/hl845740757
  */
-public class ExampleRpcClient implements RpcClient {
+public class ExampleRpcClient extends AbstractRpcClient {
 
-    private final EventLoop defaultEventLoop;
-
-    ExampleRpcClient(EventLoop defaultEventLoop) {
-        this.defaultEventLoop = defaultEventLoop;
+    ExampleRpcClient(EventLoop defaultExecutor) {
+        super(defaultExecutor);
     }
 
     @Override
     public void send(@Nonnull RpcServerSpec serverSpec, @Nonnull RpcMethodSpec<?> message) {
         if (serverSpec instanceof Session) {
-            ((Session) serverSpec).send(message, false);
+            invoker.send((Session) serverSpec, message);
         }
     }
 
     @Override
     public void sendAndFlush(@Nonnull RpcServerSpec serverSpec, @Nonnull RpcMethodSpec<?> message) {
         if (serverSpec instanceof Session) {
-            ((Session) serverSpec).send(message, true);
+            invoker.sendAndFlush(((Session) serverSpec), message);
         }
     }
 
     @Override
     public <V> RpcFuture<V> call(@Nonnull RpcServerSpec serverSpec, @Nonnull RpcMethodSpec<V> request) {
         if (serverSpec instanceof Session) {
-            return ((Session) serverSpec).call(request, false);
+            return invoker.call((Session) serverSpec, request);
         }
-        return new FailedRpcFuture<>(defaultEventLoop, new RpcSessionNotFoundException(serverSpec));
+        return newSessionNotFoundFuture(serverSpec);
     }
 
     @Override
     public <V> RpcFuture<V> callAndFlush(@Nonnull RpcServerSpec serverSpec, @Nonnull RpcMethodSpec<V> request) {
         if (serverSpec instanceof Session) {
-            return ((Session) serverSpec).call(request, true);
+            return invoker.callAndFlush((Session) serverSpec, request);
         }
-        return new FailedRpcFuture<>(defaultEventLoop, new RpcSessionNotFoundException(serverSpec));
+        return newSessionNotFoundFuture(serverSpec);
     }
 
     @Nullable
     @Override
     public <V> V syncCall(@Nonnull RpcServerSpec serverSpec, @Nonnull RpcMethodSpec<V> request) throws CompletionException {
         if (serverSpec instanceof Session) {
-            return ((Session) serverSpec).syncCall(request);
+            return invoker.syncCall((Session) serverSpec, request);
         }
-        return new FailedRpcFuture<V>(defaultEventLoop, new RpcSessionNotFoundException(serverSpec)).join();
+        final FailedRpcFuture<V> failedRpcFuture = newSessionNotFoundFuture(serverSpec);
+        return failedRpcFuture.join();
     }
 }

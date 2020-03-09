@@ -32,6 +32,7 @@ import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.utils.concurrent.disruptor.DisruptorEventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.disruptor.YieldWaitStrategyFactory;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -137,6 +138,9 @@ class ExampleRpcClientLoop extends DisruptorEventLoop {
 
         rpcClient.call(session, ExampleRpcServiceRpcProxy.join("hello", "world"))
                 .onSuccess(result -> System.out.println("joinResult " + result));
+
+        rpcClient.call(session, ExampleRpcServiceRpcProxy.newException("这里是异常信息"))
+                .onFailure(future -> System.out.println("newException result:\n" + ExceptionUtils.getMessage(future.cause())));
 
         // 模拟玩家通过网关发送给场景服务器 - 注意：序列化方式必须一致。
         try {

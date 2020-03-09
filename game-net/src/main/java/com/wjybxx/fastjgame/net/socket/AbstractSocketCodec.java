@@ -335,8 +335,18 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
         head.writeLong(responseMessage.getRequestGuid());
         head.writeInt(responseMessage.getErrorCode().getNumber());
 
-        // rpc响应内容 - 合并之后发送
-        writeLogicMessageBodyAndWrite(ctx, head, responseMessage.getBody(), promise);
+        if (responseMessage.getErrorCode().isSuccess()) {
+            // rpc响应内容 - 合并之后发送
+            writeLogicMessageBodyAndWrite(ctx, head, responseMessage.getBody(), promise);
+        } else {
+            // 错误信息直接编码
+            final String errorMsg = (String) responseMessage.getBody();
+            final byte[] errorMsgBytes = CodecUtils.getBytesUTF8(errorMsg);
+            final ByteBuf bodyByteBuf = ctx.alloc().buffer(errorMsgBytes.length);
+            bodyByteBuf.writeBytes(errorMsgBytes);
+            setLengthAndWrite(ctx, Unpooled.wrappedBuffer(head, bodyByteBuf), promise);
+        }
+
     }
 
     /**
@@ -353,7 +363,12 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
         RpcErrorCode errorCode = RpcErrorCode.forNumber(msg.readInt());
 
         // 响应内容
-        final Object body = msg.readableBytes() > 0 ? tryDecodeBody(msg) : null;
+        final Object body;
+        if (errorCode.isSuccess()) {
+            body = tryDecodeBody(msg);
+        } else {
+            body = CodecUtils.newStringUTF8(NetUtils.readRemainBytes(msg));
+        }
 
         RpcResponseMessage rpcResponseMessage = new RpcResponseMessage(requestGuid, errorCode, body);
         return new SocketMessageEvent(channel, sessionId, sequence, ack, endOfBatch, rpcResponseMessage);

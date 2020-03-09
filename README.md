@@ -6,7 +6,7 @@ fastjgame 为 fast java game framework的缩写，如名字一样，该项目的
 
 ### 并发组件和Rpc组件优化 2020/3/8
 并发组件重新优化，**ListenableFuture**不再直接继承JDK的future，使得各种轻量级的future实现变成可能。  
-基于新的ListenableFuture重新实写了Rpc和Redis的部分组件，删除了旧的**MethodHandle**组件。  
+基于新的ListenableFuture重新实现了Rpc和Redis的部分组件，删除了旧的**MethodHandle**组件。  
 新实现的Rpc组件，更容易理解，更易扩展，更贴近应用本身。  
 PS: 需要重新安装注解处理器。
 

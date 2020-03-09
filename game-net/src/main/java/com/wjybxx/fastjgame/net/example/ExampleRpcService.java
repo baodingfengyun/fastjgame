@@ -124,4 +124,12 @@ public class ExampleRpcService {
     public String join(String... params) {
         return String.join(",", params);
     }
+
+    /**
+     * 抛出异常
+     */
+    @RpcMethod(methodId = 13)
+    public String newException(String msg) {
+        throw new RuntimeException(msg);
+    }
 }

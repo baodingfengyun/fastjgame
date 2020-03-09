@@ -260,6 +260,7 @@ public class NetUtils {
      * @param byteBuf 方法返回之后 readableBytes == 0
      * @return new instance
      */
+    @Nonnull
     public static byte[] readRemainBytes(ByteBuf byteBuf) {
         if (byteBuf.readableBytes() == 0) {
             return ArrayUtils.EMPTY_BYTE_ARRAY;

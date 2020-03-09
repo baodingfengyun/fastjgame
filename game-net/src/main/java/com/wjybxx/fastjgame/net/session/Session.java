@@ -124,36 +124,6 @@ public interface Session extends RpcServerSpec, Comparable<Session> {
     // ----------------------------------------------- 生命周期 ----------------------------------------------
 
     /**
-     * 发送一个单向消息给对方
-     *
-     * @param request 请求信息
-     * @param flush   是否刷新缓冲区
-     */
-    void send(@Nonnull RpcMethodSpec<?> request, boolean flush);
-
-    /**
-     * 发送一个rpc请求给对方
-     *
-     * @param request 请求信息
-     * @param flush   是否刷新缓冲区
-     * @param <V>     方法的返回值类型
-     * @return future 用于获取执行结果
-     */
-    <V> RpcFuture<V> call(@Nonnull RpcMethodSpec<V> request, boolean flush);
-
-    /**
-     * 向远端发起一个同步rpc调用。
-     * 该方法一定会刷新缓冲区，以加快响应速度。
-     *
-     * @param request 请求信息
-     * @param <V>     方法的返回值类型
-     * @return 方法的执行结果
-     */
-    <V> V syncCall(@Nonnull RpcMethodSpec<V> request);
-
-    // ----------------------------------------------- 生命周期 ----------------------------------------------
-
-    /**
      * 当且仅当session已成功和对方建立连接，且未断开的情况下返回true。
      */
     boolean isActive();

@@ -17,13 +17,10 @@
 package com.wjybxx.fastjgame.net.session;
 
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoop;
-import com.wjybxx.fastjgame.net.exception.RpcSessionClosedException;
 import com.wjybxx.fastjgame.net.manager.NetManagerWrapper;
 import com.wjybxx.fastjgame.net.misc.NetContext;
-import com.wjybxx.fastjgame.net.rpc.*;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.annotation.Internal;
-import com.wjybxx.fastjgame.utils.concurrent.BlockingPromise;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoopUtils;
 import com.wjybxx.fastjgame.utils.timer.TimerHandle;
@@ -32,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -146,44 +142,6 @@ public abstract class AbstractSession implements Session {
         } else {
             throw new IllegalStateException("Unsafe op");
         }
-    }
-
-    @Override
-    public void send(@Nonnull RpcMethodSpec<?> message, boolean flush) {
-        if (isClosed()) {
-            // 会话关闭的情况下丢弃消息
-            return;
-        }
-        netEventLoop.execute(new OneWayWriteTask(this, message, flush));
-    }
-
-    @Nonnull
-    @Override
-    public <V> RpcFuture<V> call(@Nonnull RpcMethodSpec<V> request, boolean flush) {
-        if (isClosed()) {
-            // session关闭状态下直接返回
-            return new FailedRpcFuture<>(appEventLoop(), RpcSessionClosedException.INSTANCE);
-        } else {
-            // 会话活动的状态下才会发送
-            final RpcPromise<V> promise = netEventLoop.newRpcPromise(appEventLoop());
-            netEventLoop.execute(new RpcRequestWriteTask(this, request, false, config().getAsyncRpcTimeoutMs(), promise, flush));
-            return promise;
-        }
-    }
-
-    @Nullable
-    @Override
-    public final <V> V syncCall(@Nonnull RpcMethodSpec<V> request) throws CompletionException {
-        if (isClosed()) {
-            // 会话关闭的情况下直接返回
-            final RpcFuture<V> failedRpcFuture = netEventLoop.newFailedRpcFuture(appEventLoop(), RpcSessionClosedException.INSTANCE);
-            return failedRpcFuture.getNow();
-        }
-        final BlockingPromise<V> blockingPromise = netEventLoop.newBlockingPromise();
-        // 提交到网络层执行
-        netEventLoop.execute(new RpcRequestWriteTask(this, request, true, config().getSyncRpcTimeoutMs(), blockingPromise, true));
-        // RpcPromise保证了不会等待超过限时时间
-        return blockingPromise.join();
     }
 
     @Override

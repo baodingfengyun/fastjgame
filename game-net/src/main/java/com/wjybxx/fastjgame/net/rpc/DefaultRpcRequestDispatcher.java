@@ -97,7 +97,7 @@ public class DefaultRpcRequestDispatcher implements RpcMethodProxyRegistry, RpcR
             methodProxy.invoke(session, params, promise);
         } catch (Exception e) {
             logger.warn("handle {} rpcRequest caught exception, methodKey={}, parameters={}",
-                    session.sessionId(), methodKey, params);
+                    session.sessionId(), methodKey, params, e);
         }
     }
 
