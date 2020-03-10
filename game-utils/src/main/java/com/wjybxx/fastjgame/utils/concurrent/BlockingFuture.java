@@ -25,11 +25,6 @@ import java.util.concurrent.*;
  * <h3>建议</h3>
  * 如果不是必须需要阻塞式的API，应当优先选择{@link ListenableFuture}。
  *
- * <p>
- * Q: 为什么使用非受检{@link CompletionException}异常代替了{@link ExecutionException}？
- * A: <NOTE>非受检异常更好，受检异常并不能提升软件的健壮性，而且受检异常对封装破坏极大，用非受检异常代替受检异常</NOTE>，
- * 这话不是我说的，但是我这几年的编程经验也告诉我，确实是这样。
- *
  * @param <V> 值类型
  * @author wjybxx
  * @version 1.0
@@ -40,42 +35,11 @@ public interface BlockingFuture<V> extends Future<V>, ListenableFuture<V> {
 
     // ------------------------------------- 阻塞式获取操作结果 ---------------------------------------
 
-    /**
-     * 获取task的结果。
-     * 如果future关联的task尚未完成，则阻塞等待至任务完成，并返回计算的结果。
-     * 如果future关联的task已完成，则立即返回结果。
-     * <p>
-     * 注意：
-     * 如果future关联的task没有返回值(操作完成返回null)，此时不能根据返回值做任何判断。对于这种情况，
-     * 你可以使用{@link #isSuccess()},作为更好的选择。
-     *
-     * @return task的结果
-     * @throws InterruptedException  如果当前线程在等待过程中被中断，则抛出该异常。
-     * @throws CancellationException 如果任务被取消了，则抛出该异常
-     * @throws CompletionException   如果在计算过程中出现了其它异常导致任务失败，则抛出该异常。
-     */
     @Override
-    V get() throws InterruptedException, CompletionException;
+    V get() throws InterruptedException, ExecutionException;
 
-    /**
-     * 在限定时间内获取task的结果。
-     * 如果future关联的task尚未完成，则等待一定时间，等待期间如果任务完成，则返回计算的结果。
-     * 如果future关联的task已完成，则立即返回结果。
-     * <p>
-     * 注意：
-     * 如果future关联的task没有返回值(操作完成返回null)，此时不能根据返回值做任何判断。对于这种情况，
-     * 你可以使用{@link #isSuccess()},作为更好的选择。
-     *
-     * @param timeout 最大等待时间
-     * @param unit    timeout的时间单位
-     * @return future关联的task的计算结果
-     * @throws InterruptedException  如果当前线程在等待过程中被中断，则抛出该异常。
-     * @throws CancellationException 如果任务被取消了，则抛出该异常
-     * @throws TimeoutException      在限定时间内task未完成(等待超时)，则抛出该异常。
-     * @throws CompletionException   如果在计算过程中出现了其它异常导致任务失败，则抛出该异常。
-     */
     @Override
-    V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, CompletionException, TimeoutException;
+    V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException;
 
     /**
      * 阻塞式获取task的结果，阻塞期间不响应中断。
@@ -89,6 +53,7 @@ public interface BlockingFuture<V> extends Future<V>, ListenableFuture<V> {
      * @return task的结果
      * @throws CancellationException 如果任务被取消了，则抛出该异常
      * @throws CompletionException   如果在计算过程中出现了其它异常导致任务失败，则抛出该异常。
+     *                               使用非受检异常更好，这里和{@link CompletableFuture#join()}是一样的。
      */
     V join() throws CompletionException;
 

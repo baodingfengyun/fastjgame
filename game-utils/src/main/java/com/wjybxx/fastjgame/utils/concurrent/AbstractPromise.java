@@ -18,7 +18,6 @@ package com.wjybxx.fastjgame.utils.concurrent;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -45,7 +44,7 @@ abstract class AbstractPromise<V> implements Promise<V> {
     /**
      * 如果一个任务成功时没有结果{@link #setSuccess(Object) null}，使用该对象代替。
      */
-    private static final Object SUCCESS = new Object();
+    static final Object SUCCESS = new Object();
     /**
      * 表示future关联的任务进入不可取消状态。
      */
@@ -117,22 +116,23 @@ abstract class AbstractPromise<V> implements Promise<V> {
     public final V getNow() {
         final Object result = resultHolder.get();
         if (isDone0(result)) {
-            return reportGet(result);
+            return reportJoin(result);
         }
         return null;
     }
 
     /**
-     * 用于get方法上报结果
+     * {@link ListenableFuture#getNow()}和{@link BlockingFuture#join()}方法上报结果。
+     * 不命名为{@code reportGetNow}是为了放大不同之处。
      */
     @SuppressWarnings("unchecked")
-    static <T> T reportGet(final Object r) throws CompletionException {
+    static <T> T reportJoin(final Object r) {
         if (r == SUCCESS) {
             return null;
         }
 
         if (r instanceof CauseHolder) {
-            return FutureUtils.rethrowCause(((CauseHolder) r).cause);
+            return FutureUtils.rethrowJoin(((CauseHolder) r).cause);
         }
 
         return (T) r;
@@ -254,9 +254,9 @@ abstract class AbstractPromise<V> implements Promise<V> {
     /**
      * 异常holder，只有该类型表示失败。
      */
-    private static class CauseHolder {
+    static class CauseHolder {
 
-        private final Throwable cause;
+        final Throwable cause;
 
         private CauseHolder(Throwable cause) {
             this.cause = cause;

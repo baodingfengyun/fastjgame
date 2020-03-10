@@ -19,16 +19,10 @@ package com.wjybxx.fastjgame.utils.concurrent;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.ThreadUtils;
 import com.wjybxx.fastjgame.utils.TimeUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 import static com.wjybxx.fastjgame.utils.ThreadUtils.checkInterrupted;
 
@@ -49,7 +43,6 @@ import static com.wjybxx.fastjgame.utils.ThreadUtils.checkInterrupted;
  */
 public class DefaultBlockingPromise<V> extends AbstractPromise<V> implements BlockingPromise<V> {
 
-    private static final Logger logger = LoggerFactory.getLogger(DefaultBlockingPromise.class);
     /**
      * 1毫秒多少纳秒
      */
@@ -97,7 +90,7 @@ public class DefaultBlockingPromise<V> extends AbstractPromise<V> implements Blo
     // --------------------------------------------- 阻塞式获取结果 -----------------------------------
 
     @Override
-    public final V get() throws InterruptedException, CompletionException {
+    public final V get() throws InterruptedException, ExecutionException {
         final Object result = resultHolder.get();
         if (isDone0(result)) {
             return reportGet(result);
@@ -108,8 +101,24 @@ public class DefaultBlockingPromise<V> extends AbstractPromise<V> implements Blo
         return reportGet(resultHolder.get());
     }
 
+    /**
+     * {@link BlockingFuture#get()} {@link BlockingFuture#get(long, TimeUnit)}
+     */
+    @SuppressWarnings("unchecked")
+    private static <T> T reportGet(Object r) throws ExecutionException {
+        if (r == SUCCESS) {
+            return null;
+        }
+
+        if (r instanceof CauseHolder) {
+            return FutureUtils.rethrowGet(((CauseHolder) r).cause);
+        }
+
+        return (T) r;
+    }
+
     @Override
-    public final V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, CompletionException, TimeoutException {
+    public final V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         final Object result = resultHolder.get();
         if (isDone0(result)) {
             return reportGet(result);
@@ -126,12 +135,12 @@ public class DefaultBlockingPromise<V> extends AbstractPromise<V> implements Blo
     public final V join() throws CompletionException {
         final Object result = resultHolder.get();
         if (isDone0(result)) {
-            return reportGet(result);
+            return reportJoin(result);
         }
 
         awaitUninterruptibly();
 
-        return reportGet(resultHolder.get());
+        return reportJoin(resultHolder.get());
     }
 
     // --------------------------------------------- 阻塞式等待 -----------------------------------
@@ -352,7 +361,7 @@ public class DefaultBlockingPromise<V> extends AbstractPromise<V> implements Blo
 
         for (; ; ) {
             // 通知当前批次的监听器(此时不需要获得锁) -- 但是这里不能抛出异常，否则可能死锁 -- notifyingListeners无法恢复
-            notifyAllListenerNowSafely(this, listenerEntries);
+            FutureUtils.notifyAllListenerNowSafely(this, listenerEntries);
 
             // 通知完当前批次后，检查是否有新的监听器加入
             synchronized (this) {
@@ -365,40 +374,6 @@ public class DefaultBlockingPromise<V> extends AbstractPromise<V> implements Blo
                 listenerEntries = this.listenerEntries;
                 this.listenerEntries = null;
             }
-        }
-    }
-
-    static <V> void notifyAllListenerNowSafely(@Nonnull final ListenableFuture<V> future, @Nonnull final Object listenerEntries) {
-        if (listenerEntries instanceof FutureListenerEntry) {
-            notifyListenerNowSafely(future, (FutureListenerEntry) listenerEntries);
-        } else {
-            final FutureListenerEntries futureListenerEntries = (FutureListenerEntries) listenerEntries;
-            final FutureListenerEntry<?>[] children = futureListenerEntries.getChildren();
-            final int size = futureListenerEntries.getSize();
-            for (int index = 0; index < size; index++) {
-                notifyListenerNowSafely(future, children[index]);
-            }
-        }
-    }
-
-    /**
-     * @param listenerEntry 监听器的信息
-     */
-    public static <V> void notifyListenerNowSafely(@Nonnull ListenableFuture<V> future, @Nonnull FutureListenerEntry listenerEntry) {
-        if (EventLoopUtils.inEventLoop(listenerEntry.executor)) {
-            notifyListenerNowSafely(future, listenerEntry.listener);
-        } else {
-            final FutureListener listener = listenerEntry.listener;
-            ConcurrentUtils.safeExecute(listenerEntry.executor, () -> notifyListenerNowSafely(future, listener));
-        }
-    }
-
-    @SuppressWarnings({"unchecked"})
-    private static <V> void notifyListenerNowSafely(@Nonnull ListenableFuture<V> future, @Nonnull FutureListener listener) {
-        try {
-            listener.onComplete(future);
-        } catch (Throwable e) {
-            logger.warn("An exception was thrown by " + future.getClass().getName() + ".onComplete()", e);
         }
     }
 
@@ -423,31 +398,13 @@ public class DefaultBlockingPromise<V> extends AbstractPromise<V> implements Blo
     private void addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor executor) {
         // 不管是否已完成，先加入等待通知集合
         synchronized (this) {
-            listenerEntries = aggregateListenerEntry(listenerEntries, new FutureListenerEntry<>(listener, executor));
+            listenerEntries = FutureUtils.aggregateListenerEntry(listenerEntries, new FutureListenerEntry<>(listener, executor));
         }
 
         // 必须检查完成状态，如果已进入完成状态，通知刚刚加入监听器们（否则可能丢失通知）
         // 因为状态改变 和 锁没有关系
         if (isDone()) {
             notifyAllListeners();
-        }
-    }
-
-    /**
-     * @param listenerEntries 当前的所有监听器们
-     * @param listenerEntry   新增的监听器
-     * @return 合并后的结果
-     */
-    @Nonnull
-    static Object aggregateListenerEntry(@Nullable Object listenerEntries, @Nonnull FutureListenerEntry<?> listenerEntry) {
-        if (listenerEntries == null) {
-            return listenerEntry;
-        }
-        if (listenerEntries instanceof FutureListenerEntry) {
-            return new FutureListenerEntries((FutureListenerEntry<?>) listenerEntries, listenerEntry);
-        } else {
-            ((FutureListenerEntries) listenerEntries).addChild(listenerEntry);
-            return listenerEntries;
         }
     }
 

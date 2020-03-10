@@ -69,21 +69,13 @@ public class CompletableFutureAdapter<V> extends AbstractBlockingFuture<V> {
     }
 
     @Override
-    public final V get() throws InterruptedException, CompletionException {
-        try {
-            return future.get();
-        } catch (ExecutionException e) {
-            throw new CompletionException(e.getCause());
-        }
+    public final V get() throws InterruptedException, ExecutionException {
+        return future.get();
     }
 
     @Override
-    public final V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, CompletionException, TimeoutException {
-        try {
-            return future.get(timeout, unit);
-        } catch (ExecutionException e) {
-            throw new CompletionException(e.getCause());
-        }
+    public final V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        return future.get(timeout, unit);
     }
 
     @Override
@@ -171,7 +163,7 @@ public class CompletableFutureAdapter<V> extends AbstractBlockingFuture<V> {
     private void addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         // 不要内联该对象 - lambda表达式捕获的对象不一样
         final FutureListenerEntry<? super V> listenerEntry = new FutureListenerEntry<>(listener, bindExecutor);
-        future.thenRun(() -> DefaultBlockingPromise.notifyListenerNowSafely(this, listenerEntry));
+        future.thenRun(() -> FutureUtils.notifyListenerNowSafely(this, listenerEntry));
     }
 
     @Override

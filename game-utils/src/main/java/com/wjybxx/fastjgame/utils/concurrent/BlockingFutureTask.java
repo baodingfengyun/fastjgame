@@ -73,12 +73,17 @@ public class BlockingFutureTask<V> implements BlockingFuture<V>, RunnableFuture<
     }
 
     @Override
-    public V get() throws InterruptedException, CompletionException {
+    public boolean cancel(boolean mayInterruptIfRunning) {
+        return promise.cancel(mayInterruptIfRunning);
+    }
+
+    @Override
+    public V get() throws InterruptedException, ExecutionException {
         return promise.get();
     }
 
     @Override
-    public V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, CompletionException, TimeoutException {
+    public V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         return promise.get(timeout, unit);
     }
 
@@ -100,21 +105,6 @@ public class BlockingFutureTask<V> implements BlockingFuture<V>, RunnableFuture<
     }
 
     @Override
-    public boolean cancel(boolean mayInterruptIfRunning) {
-        return promise.cancel(mayInterruptIfRunning);
-    }
-
-    @Override
-    public BlockingFuture<V> await() throws InterruptedException {
-        return promise.await();
-    }
-
-    @Override
-    public BlockingFuture<V> awaitUninterruptibly() {
-        return promise.awaitUninterruptibly();
-    }
-
-    @Override
     public boolean await(long timeout, @Nonnull TimeUnit unit) throws InterruptedException {
         return promise.await(timeout, unit);
     }
@@ -130,38 +120,57 @@ public class BlockingFutureTask<V> implements BlockingFuture<V>, RunnableFuture<
     }
 
     @Override
+    @UnstableApi
+    public boolean isVoid() {
+        return promise.isVoid();
+    }
+
+    // 不能直接返回promise
+    @Override
+    public BlockingFuture<V> await() throws InterruptedException {
+        promise.await();
+        return this;
+    }
+
+    @Override
+    public BlockingFuture<V> awaitUninterruptibly() {
+        promise.awaitUninterruptibly();
+        return this;
+    }
+
+    @Override
     public BlockingFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
-        return promise.onComplete(listener);
+        promise.onComplete(listener);
+        return this;
     }
 
     @Override
     public BlockingFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        return promise.onComplete(listener, bindExecutor);
+        promise.onComplete(listener, bindExecutor);
+        return this;
     }
 
     @Override
     public BlockingFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
-        return promise.onSuccess(listener);
+        promise.onSuccess(listener);
+        return this;
     }
 
     @Override
     public BlockingFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        return promise.onSuccess(listener, bindExecutor);
+        promise.onSuccess(listener, bindExecutor);
+        return this;
     }
 
     @Override
     public BlockingFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
-        return promise.onFailure(listener);
+        promise.onFailure(listener);
+        return this;
     }
 
     @Override
     public BlockingFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        return promise.onFailure(listener, bindExecutor);
-    }
-
-    @Override
-    @UnstableApi
-    public boolean isVoid() {
-        return promise.isVoid();
+        promise.onFailure(listener, bindExecutor);
+        return this;
     }
 }

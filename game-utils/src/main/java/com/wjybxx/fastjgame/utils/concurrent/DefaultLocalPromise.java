@@ -74,7 +74,7 @@ public class DefaultLocalPromise<V> extends AbstractPromise<V> implements LocalP
         }
 
         try {
-            DefaultBlockingPromise.notifyAllListenerNowSafely(this, listenerEntries);
+            FutureUtils.notifyAllListenerNowSafely(this, listenerEntries);
         } finally {
             listenerEntries = null;
         }
@@ -126,7 +126,7 @@ public class DefaultLocalPromise<V> extends AbstractPromise<V> implements LocalP
     private void addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor executor) {
         EventLoopUtils.ensureInEventLoop(appEventLoop, "Must call from appEventLoop");
 
-        listenerEntries = DefaultBlockingPromise.aggregateListenerEntry(listenerEntries, new FutureListenerEntry<>(listener, executor));
+        listenerEntries = FutureUtils.aggregateListenerEntry(listenerEntries, new FutureListenerEntry<>(listener, executor));
 
         if (isDone()) {
             // 由于限定了只有appEventLoop可以添加监听器，因此可以立即执行回调

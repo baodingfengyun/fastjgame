@@ -16,10 +16,7 @@
 
 package com.wjybxx.fastjgame.utils.concurrent;
 
-import javax.annotation.Nonnull;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * {@link BlockingFuture}的抽象实现
@@ -31,22 +28,6 @@ import java.util.concurrent.TimeoutException;
  * github - https://github.com/hl845740757
  */
 public abstract class AbstractBlockingFuture<V> implements BlockingFuture<V> {
-
-    @Override
-    public V get() throws InterruptedException, CompletionException {
-        await();
-
-        return getNow();
-    }
-
-    @Override
-    public V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, CompletionException, TimeoutException {
-        if (await(timeout, unit)) {
-            return getNow();
-        } else {
-            throw new TimeoutException();
-        }
-    }
 
     @Override
     public V join() throws CompletionException {

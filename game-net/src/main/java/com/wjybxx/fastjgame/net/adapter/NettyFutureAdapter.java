@@ -21,7 +21,10 @@ import io.netty.util.concurrent.Future;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * 对Netty的{@link Future}进行适配 - 主要是适配监听器。
@@ -61,26 +64,19 @@ public final class NettyFutureAdapter<V> extends AbstractBlockingFuture<V> {
     }
 
     @Override
-    public final V get() throws InterruptedException, CompletionException {
-        try {
-            return future.get();
-        } catch (ExecutionException e) {
-            throw new CompletionException(e.getCause());
-        }
+    public final V get() throws InterruptedException, ExecutionException {
+        return future.get();
     }
 
     @Override
-    public final V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, CompletionException, TimeoutException {
-        try {
-            return future.get(timeout, unit);
-        } catch (ExecutionException e) {
-            throw new CompletionException(e.getCause());
-        }
+    public final V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        return future.get(timeout, unit);
     }
 
     @Nullable
     @Override
     public final V getNow() {
+        // netty的future的getNow比较特殊，其真正含义是： getNowIfSuccess
         if (future.isSuccess()) {
             return future.getNow();
         }
@@ -88,7 +84,7 @@ public final class NettyFutureAdapter<V> extends AbstractBlockingFuture<V> {
         final Throwable cause = future.cause();
         if (null != cause) {
             // 已失败
-            return FutureUtils.rethrowCause(cause);
+            return FutureUtils.rethrowJoin(cause);
         } else {
             // 未完成
             return null;
@@ -143,7 +139,7 @@ public final class NettyFutureAdapter<V> extends AbstractBlockingFuture<V> {
     private void addListener0(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         // 不要内联该对象 - lambda表达式捕获的对象不一样
         final FutureListenerEntry<? super V> listenerEntry = new FutureListenerEntry<>(listener, bindExecutor);
-        future.addListener(future -> DefaultBlockingPromise.notifyListenerNowSafely(this, listenerEntry));
+        future.addListener(future -> FutureUtils.notifyListenerNowSafely(this, listenerEntry));
     }
 
     @Override

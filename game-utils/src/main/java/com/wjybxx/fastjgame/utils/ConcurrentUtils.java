@@ -16,16 +16,14 @@
 
 package com.wjybxx.fastjgame.utils;
 
-import com.wjybxx.fastjgame.utils.concurrent.BlockingFuture;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.FailedFuture;
-import com.wjybxx.fastjgame.utils.concurrent.SucceededFuture;
 import com.wjybxx.fastjgame.utils.function.AcquireFun;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import java.util.concurrent.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import java.util.concurrent.RejectedExecutionException;
 
 /**
  * 并发工具包，常用并发工具方法。

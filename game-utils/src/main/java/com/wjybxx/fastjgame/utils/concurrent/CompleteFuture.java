@@ -96,7 +96,7 @@ public abstract class CompleteFuture<V> extends AbstractBlockingFuture<V> {
     }
 
     private void notifyListenerNow(@Nonnull FutureListener<? super V> listener, @Nonnull Executor executor) {
-        DefaultBlockingPromise.notifyListenerNowSafely(this, new FutureListenerEntry<>(listener, executor));
+        FutureUtils.notifyListenerNowSafely(this, new FutureListenerEntry<>(listener, executor));
     }
 
     @Override

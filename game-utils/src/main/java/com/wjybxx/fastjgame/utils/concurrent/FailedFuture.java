@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.utils.concurrent;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -47,24 +48,24 @@ public class FailedFuture<V> extends CompleteFuture<V> {
     }
 
     @Override
-    public final V get() throws CompletionException {
-        return FutureUtils.rethrowCause(cause);
+    public final V get() throws ExecutionException {
+        return FutureUtils.rethrowGet(cause);
     }
 
     @Override
-    public final V get(long timeout, @Nonnull TimeUnit unit) throws CompletionException {
-        return FutureUtils.rethrowCause(cause);
+    public final V get(long timeout, @Nonnull TimeUnit unit) throws ExecutionException {
+        return FutureUtils.rethrowGet(cause);
     }
 
     @Nullable
     @Override
     public final V getNow() {
-        return null;
+        return FutureUtils.rethrowJoin(cause);
     }
 
     @Override
     public final V join() throws CompletionException {
-        return FutureUtils.rethrowCause(cause);
+        return FutureUtils.rethrowJoin(cause);
     }
 
     @Nonnull

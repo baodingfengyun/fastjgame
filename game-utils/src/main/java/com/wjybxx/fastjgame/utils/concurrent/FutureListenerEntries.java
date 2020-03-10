@@ -22,8 +22,9 @@ import java.util.Arrays;
 /**
  * {@link FutureListenerEntry}的容器。
  * Q: 主要解决什么问题？
- * A: 主要解决扩容问题，不使用{@link ArrayList}，是因为@link ArrayList}默认扩容50%，初始容量较小的话，扩容过于频繁 - 2，3，4，6，9。
- * 而这里是扩一倍，对于小容量容器来说，更为友好。
+ * A: 主要解决{@link ArrayList}在初始容量较小时扩容频繁的问题，
+ * {@link ArrayList}默认扩容50%，初始容量为2，那么容量扩充节奏为：2，3，4，6，9， 对于小容量容器非常不友好。
+ * 而如果扩容100%，如果初始容量为2，那么容量扩充节奏为： 2，4，8，对于小容量容器更好。
  *
  * @author wjybxx
  * @version 1.0
