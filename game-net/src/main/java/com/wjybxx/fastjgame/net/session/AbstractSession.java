@@ -19,7 +19,6 @@ package com.wjybxx.fastjgame.net.session;
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.net.manager.NetManagerWrapper;
 import com.wjybxx.fastjgame.net.misc.NetContext;
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.annotation.Internal;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoopUtils;
@@ -150,7 +149,7 @@ public abstract class AbstractSession implements Session {
             return;
         }
         // 可能是网络层关闭
-        ConcurrentUtils.executeOrRun(netEventLoop, () -> {
+        EventLoopUtils.executeOrRun(netEventLoop, () -> {
             try {
                 doCloseSafely();
             } finally {

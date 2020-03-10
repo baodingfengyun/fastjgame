@@ -74,17 +74,15 @@ public class FutureCombiner {
         this.appEventLoop = appEventLoop;
     }
 
-    @SuppressWarnings("rawtypes")
-    public FutureCombiner addAll(@Nonnull ListenableFuture... futures) {
-        for (ListenableFuture future : futures) {
+    public FutureCombiner addAll(@Nonnull ListenableFuture<?>... futures) {
+        for (ListenableFuture<?> future : futures) {
             this.add(future);
         }
         return this;
     }
 
-    @SuppressWarnings("rawtypes")
-    public FutureCombiner addAll(@Nonnull Collection<? extends ListenableFuture> futures) {
-        for (ListenableFuture future : futures) {
+    public FutureCombiner addAll(@Nonnull Collection<? extends ListenableFuture<?>> futures) {
+        for (ListenableFuture<?> future : futures) {
             this.add(future);
         }
         return this;

@@ -16,9 +16,6 @@
 
 package com.wjybxx.fastjgame.net.http;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,8 +28,6 @@ import java.util.List;
  * github - https://github.com/hl845740757
  */
 public class CompositeHttpRequestHandler implements HttpRequestHandler {
-
-    private static final Logger logger = LoggerFactory.getLogger(CompositeHttpRequestHandler.class);
 
     private final List<HttpRequestHandler> children = new ArrayList<>(2);
 
@@ -49,11 +44,7 @@ public class CompositeHttpRequestHandler implements HttpRequestHandler {
     @Override
     public void onHttpRequest(HttpSession httpSession, String path, HttpRequestParam params) throws Exception {
         for (HttpRequestHandler httpRequestHandler : children) {
-            try {
-                httpRequestHandler.onHttpRequest(httpSession, path, params);
-            } catch (Throwable e) {
-                logger.warn("Child onHttpRequest caught exception, path {}", path, e);
-            }
+            DefaultHttpRequestDispatcher.invokeHandlerSafely(httpSession, path, params, httpRequestHandler);
         }
     }
 }

@@ -16,9 +16,6 @@
 
 package com.wjybxx.fastjgame.utils.eventbus;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,12 +30,13 @@ import java.util.List;
  */
 class CompositeEventHandler<T> implements EventHandler<T> {
 
-    private static final Logger logger = LoggerFactory.getLogger(CompositeEventHandler.class);
-
+    private final Object eventKey;
     private final List<EventHandler<? super T>> children = new ArrayList<>(4);
 
-    CompositeEventHandler(@Nonnull EventHandler<? super T> first,
+    CompositeEventHandler(Object eventKey,
+                          @Nonnull EventHandler<? super T> first,
                           @Nonnull EventHandler<? super T> second) {
+        this.eventKey = eventKey;
         children.add(first);
         children.add(second);
     }
@@ -50,11 +48,7 @@ class CompositeEventHandler<T> implements EventHandler<T> {
     @Override
     public void onEvent(@Nonnull T event) throws Exception {
         for (EventHandler<? super T> handler : children) {
-            try {
-                handler.onEvent(event);
-            } catch (Throwable e) {
-                logger.warn("Child onEvent caught exception!", e);
-            }
+            EventBusUtils.invokeHandlerSafely(event, handler, eventKey);
         }
     }
 }
