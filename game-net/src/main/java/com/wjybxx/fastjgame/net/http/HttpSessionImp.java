@@ -16,10 +16,10 @@
 
 package com.wjybxx.fastjgame.net.http;
 
-import com.wjybxx.fastjgame.net.adapter.NettyFutureAdapter;
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.net.manager.HttpSessionManager;
 import com.wjybxx.fastjgame.net.misc.NetContext;
+import com.wjybxx.fastjgame.net.utils.NettyAdapters;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoopUtils;
 import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
@@ -69,7 +69,7 @@ public final class HttpSessionImp implements HttpSession {
     }
 
     public ListenableFuture<?> writeAndFlush(HttpResponse response) {
-        return new NettyFutureAdapter<>(appEventLoop(), channel.writeAndFlush(response));
+        return NettyAdapters.delegateFuture(appEventLoop(), channel.writeAndFlush(response));
     }
 
     public <T extends HttpResponseBuilder<T>> ListenableFuture<?> writeAndFlush(HttpResponseBuilder<T> builder) {

@@ -16,6 +16,9 @@
 
 package com.wjybxx.fastjgame.utils.concurrent;
 
+import javax.annotation.Nonnull;
+import java.util.concurrent.Executor;
+
 /**
  * @author wjybxx
  * @version 1.0
@@ -24,4 +27,22 @@ package com.wjybxx.fastjgame.utils.concurrent;
  */
 public interface LocalPromise<V> extends Promise<V>, LocalFuture<V> {
 
+    // 用于语法支持
+    @Override
+    LocalPromise<V> onComplete(@Nonnull FutureListener<? super V> listener);
+
+    @Override
+    LocalPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+
+    @Override
+    LocalPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener);
+
+    @Override
+    LocalPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+
+    @Override
+    LocalPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener);
+
+    @Override
+    LocalPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 }

@@ -33,10 +33,14 @@ import java.util.concurrent.Executor;
  * 由于jdk的future一开始就提供了阻塞式的api，因此这里不能继承jdk的future。
  *
  * <h3>监听器执行时序</h3>
- * 1. 实现类必须保证<b>通知顺序和添加顺序一致</b>，也就是必须禁止并发通知，即：任意时刻至多存在一个通知线程。<br>
- * 2. 在1的保证下，可以推出:<b>执行环境相同(线程绑定)</b>的监听器，会按照添加顺序执行。而对于执行环境不确定的监听器，则不需要提供任何顺序保证。
- * 3. 对于未指定{@link Executor}的监听器，执行顺序和添加顺序一致，它们会在{@link #defaultExecutor()}中有序执行。
- * 4. 对于指定了{@link Executor}的监听器，如果{@link Executor}是单线程的，那么该executor关联的监听会按照添加顺序执行。
+ * 执行环境相同的监听器，执行顺序和添加顺序相同，也就是说：
+ * 1. 对于未指定{@link Executor}的监听器，执行顺序和添加顺序一致，它们会在{@link #defaultExecutor()}中有序执行。
+ * 2. 对于指定了相同{@link Executor}的监听器，如果{@link Executor}是单线程的，那么该{@link Executor}关联的监听会按照添加顺序执行。
+ * 主要目的是为了降低开发难度，避免用户考虑太多的时序问题！
+ *
+ * <h3>实现要求</h3>
+ * 1. 必须满足监听器的执行时序要求。
+ * 2. 要么是线程安全的，可以多线程使用的；要么能检测到冲突并防止数据被破坏。
  *
  * @author wjybxx
  * @version 1.0
@@ -129,7 +133,7 @@ public interface ListenableFuture<V> {
 
     /**
      * 添加一个监听器。Listener将会在Future计算完成时{@link #isDone() true}被通知。
-     * 如果当前Future已经计算完成，那么将立即被通知（不一定立即执行，取决于当前是否在{@link #defaultExecutor()}线程）。
+     * 如果当前Future已经计算完成，那么将立即被通知（不一定立即执行）。
      *
      * @param listener 要添加的监听器。
      * @return this

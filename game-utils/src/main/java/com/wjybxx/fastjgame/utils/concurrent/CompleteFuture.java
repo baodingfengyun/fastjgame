@@ -17,12 +17,14 @@
 package com.wjybxx.fastjgame.utils.concurrent;
 
 
+import com.wjybxx.fastjgame.utils.ConcurrentUtils;
+
 import javax.annotation.Nonnull;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * {@link AbstractBlockingFuture}的一个实现，表示它关联的操作早已完成。
+ * {@link BlockingFuture}的一个实现，表示它关联的操作早已结束(成功或失败)。
  * 任何添加到上面的监听器将立即被通知。
  *
  * @param <V> the type of value
@@ -31,7 +33,7 @@ import java.util.concurrent.TimeUnit;
  * date - 2019/7/14
  * github - https://github.com/hl845740757
  */
-public abstract class CompleteFuture<V> extends AbstractBlockingFuture<V> {
+public abstract class CompleteFuture<V> implements BlockingFuture<V> {
 
     /**
      * 默认的监听器执行环境
@@ -95,43 +97,48 @@ public abstract class CompleteFuture<V> extends AbstractBlockingFuture<V> {
         return defaultExecutor;
     }
 
-    private void notifyListenerNow(@Nonnull FutureListener<? super V> listener, @Nonnull Executor executor) {
-        FutureUtils.notifyListenerNowSafely(this, new FutureListenerEntry<>(listener, executor));
+    private void notifyListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor executor) {
+        final FutureListenerEntry<? super V> listenerEntry = new FutureListenerEntry<>(listener, executor);
+        if (defaultExecutor.inEventLoop()) {
+            FutureUtils.notifyAllListenerNowSafely(this, listenerEntry);
+        } else {
+            ConcurrentUtils.safeExecute(defaultExecutor, () -> FutureUtils.notifyAllListenerNowSafely(this, listenerEntry));
+        }
     }
 
     @Override
     public BlockingFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
-        notifyListenerNow(listener, defaultExecutor);
+        notifyListener(listener, defaultExecutor);
         return this;
     }
 
     @Override
     public BlockingFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        notifyListenerNow(listener, bindExecutor);
+        notifyListener(listener, bindExecutor);
         return this;
     }
 
     @Override
     public BlockingFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
-        notifyListenerNow(listener, defaultExecutor);
+        notifyListener(listener, defaultExecutor);
         return this;
     }
 
     @Override
     public BlockingFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        notifyListenerNow(listener, bindExecutor);
+        notifyListener(listener, bindExecutor);
         return this;
     }
 
     @Override
     public BlockingFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
-        notifyListenerNow(listener, defaultExecutor);
+        notifyListener(listener, defaultExecutor);
         return this;
     }
 
     @Override
     public BlockingFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        notifyListenerNow(listener, bindExecutor);
+        notifyListener(listener, bindExecutor);
         return this;
     }
 

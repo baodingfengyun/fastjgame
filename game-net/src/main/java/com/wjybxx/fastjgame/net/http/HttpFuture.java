@@ -37,7 +37,7 @@ public interface HttpFuture<V> extends TimeoutFuture<V> {
      */
     boolean isTimeout();
 
-    // 仅仅用于语法知此
+    // 仅仅用于语法支持
     @Override
     HttpFuture<V> onComplete(@Nonnull FutureListener<? super V> listener);
 

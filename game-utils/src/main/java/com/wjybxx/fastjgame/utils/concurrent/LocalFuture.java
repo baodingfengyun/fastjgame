@@ -16,6 +16,9 @@
 
 package com.wjybxx.fastjgame.utils.concurrent;
 
+import javax.annotation.Nonnull;
+import java.util.concurrent.Executor;
+
 /**
  * 只允许特定线程进行监听的future。
  * 它基于特定的假设，进行了一些激进的优化。
@@ -46,4 +49,22 @@ public interface LocalFuture<V> extends ListenableFuture<V> {
     @Override
     EventLoop defaultExecutor();
 
+    // 用于语法支持
+    @Override
+    LocalFuture<V> onComplete(@Nonnull FutureListener<? super V> listener);
+
+    @Override
+    LocalFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+
+    @Override
+    LocalFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener);
+
+    @Override
+    LocalFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+
+    @Override
+    LocalFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener);
+
+    @Override
+    LocalFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 }

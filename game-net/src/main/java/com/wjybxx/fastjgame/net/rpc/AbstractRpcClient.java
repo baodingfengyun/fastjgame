@@ -28,6 +28,9 @@ import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
  */
 public abstract class AbstractRpcClient implements RpcClient {
 
+    /**
+     * 默认的监听器执行环境，建议为应用线程
+     */
     protected final EventLoop defaultExecutor;
     protected final RpcClientInvoker invoker;
 

@@ -16,11 +16,8 @@
 
 package com.wjybxx.fastjgame.utils.concurrent;
 
-import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.RunnableFuture;
 
 /**
  * 与{@link java.util.concurrent.FutureTask}相似。
@@ -30,18 +27,18 @@ import java.util.concurrent.*;
  * date - 2019/7/14 20:32
  * github - https://github.com/hl845740757
  */
-public class BlockingFutureTask<V> implements BlockingFuture<V>, RunnableFuture<V> {
+public class BlockingFutureTask<V> extends DelegateBlockingFuture<V> implements RunnableFuture<V> {
 
-    private final BlockingPromise<V> promise;
     private final Callable<V> callable;
 
-    public BlockingFutureTask(EventLoop executor, Callable<V> callable) {
-        this.promise = executor.newBlockingPromise();
+    BlockingFutureTask(EventLoop executor, Callable<V> callable) {
+        super(executor.newBlockingPromise());
         this.callable = callable;
     }
 
     @Override
     public void run() {
+        final BlockingPromise<V> promise = (BlockingPromise<V>) getDelegate();
         try {
             if (promise.setUncancellable()) {
                 V result = callable.call();
@@ -52,125 +49,4 @@ public class BlockingFutureTask<V> implements BlockingFuture<V>, RunnableFuture<
         }
     }
 
-    @Override
-    public boolean isDone() {
-        return promise.isDone();
-    }
-
-    @Override
-    public boolean isSuccess() {
-        return promise.isSuccess();
-    }
-
-    @Override
-    public boolean isCancelled() {
-        return promise.isCancelled();
-    }
-
-    @Override
-    public boolean isCancellable() {
-        return promise.isCancellable();
-    }
-
-    @Override
-    public boolean cancel(boolean mayInterruptIfRunning) {
-        return promise.cancel(mayInterruptIfRunning);
-    }
-
-    @Override
-    public V get() throws InterruptedException, ExecutionException {
-        return promise.get();
-    }
-
-    @Override
-    public V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        return promise.get(timeout, unit);
-    }
-
-    @Override
-    public V join() throws CompletionException {
-        return promise.join();
-    }
-
-    @Override
-    @Nullable
-    public V getNow() {
-        return promise.getNow();
-    }
-
-    @Override
-    @Nullable
-    public Throwable cause() {
-        return promise.cause();
-    }
-
-    @Override
-    public boolean await(long timeout, @Nonnull TimeUnit unit) throws InterruptedException {
-        return promise.await(timeout, unit);
-    }
-
-    @Override
-    public boolean awaitUninterruptibly(long timeout, @Nonnull TimeUnit unit) {
-        return promise.awaitUninterruptibly(timeout, unit);
-    }
-
-    @Override
-    public EventLoop defaultExecutor() {
-        return promise.defaultExecutor();
-    }
-
-    @Override
-    @UnstableApi
-    public boolean isVoid() {
-        return promise.isVoid();
-    }
-
-    // 不能直接返回promise
-    @Override
-    public BlockingFuture<V> await() throws InterruptedException {
-        promise.await();
-        return this;
-    }
-
-    @Override
-    public BlockingFuture<V> awaitUninterruptibly() {
-        promise.awaitUninterruptibly();
-        return this;
-    }
-
-    @Override
-    public BlockingFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
-        promise.onComplete(listener);
-        return this;
-    }
-
-    @Override
-    public BlockingFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        promise.onComplete(listener, bindExecutor);
-        return this;
-    }
-
-    @Override
-    public BlockingFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
-        promise.onSuccess(listener);
-        return this;
-    }
-
-    @Override
-    public BlockingFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        promise.onSuccess(listener, bindExecutor);
-        return this;
-    }
-
-    @Override
-    public BlockingFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
-        promise.onFailure(listener);
-        return this;
-    }
-
-    @Override
-    public BlockingFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        promise.onFailure(listener, bindExecutor);
-        return this;
-    }
 }

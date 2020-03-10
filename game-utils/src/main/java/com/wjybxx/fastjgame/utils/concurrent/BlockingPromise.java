@@ -32,6 +32,12 @@ public interface BlockingPromise<V> extends Promise<V>, BlockingFuture<V> {
 
     // 仅用于语法支持
     @Override
+    BlockingPromise<V> await() throws InterruptedException;
+
+    @Override
+    BlockingPromise<V> awaitUninterruptibly();
+
+    @Override
     BlockingPromise<V> onComplete(@Nonnull FutureListener<? super V> listener);
 
     @Override
@@ -49,9 +55,4 @@ public interface BlockingPromise<V> extends Promise<V>, BlockingFuture<V> {
     @Override
     BlockingPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
-    @Override
-    BlockingPromise<V> await() throws InterruptedException;
-
-    @Override
-    BlockingPromise<V> awaitUninterruptibly();
 }

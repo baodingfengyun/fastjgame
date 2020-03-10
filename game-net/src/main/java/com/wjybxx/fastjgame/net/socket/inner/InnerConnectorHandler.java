@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.net.socket.inner;
 
-import com.wjybxx.fastjgame.net.adapter.NettyFutureAdapter;
 import com.wjybxx.fastjgame.net.rpc.LazySerializeSupportHandler;
 import com.wjybxx.fastjgame.net.rpc.OneWaySupportHandler;
 import com.wjybxx.fastjgame.net.rpc.RpcSupportHandler;
@@ -25,6 +24,7 @@ import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 import com.wjybxx.fastjgame.net.socket.*;
 import com.wjybxx.fastjgame.net.utils.NetUtils;
+import com.wjybxx.fastjgame.net.utils.NettyAdapters;
 import com.wjybxx.fastjgame.utils.concurrent.Promise;
 import io.netty.channel.ChannelFuture;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -64,7 +64,7 @@ public class InnerConnectorHandler extends SessionDuplexHandlerAdapter {
                 + config.connectTimeoutMs() + config.verifyTimeoutMs();
 
         // 监听操作完成
-        new NettyFutureAdapter<>(ctx.netEventLoop(), channelFuture)
+        NettyAdapters.delegateFuture(ctx.netEventLoop(), channelFuture)
                 .onComplete(future -> onConnectDone(ctx));
     }
 

@@ -60,23 +60,6 @@ public interface BlockingFuture<V> extends Future<V>, ListenableFuture<V> {
     // -------------------------------- 阻塞式等待future进入完成状态  --------------------------------------
 
     /**
-     * 等待future进入完成状态。
-     * await()不会查询任务的结果，在Future进入完成状态之后就返回，方法返回后，接下来的{@link #isDone()}调用都将返回true。
-     *
-     * @return this
-     * @throws InterruptedException 如果在等待期间线程被中断，则抛出中断异常。
-     */
-    BlockingFuture<V> await() throws InterruptedException;
-
-    /**
-     * 等待future进入完成状态，等待期间不响应中断，并默默的丢弃，在方法返回前会重置中断状态。
-     * 在方法返回之后，接下来的{@link #isDone()}调用都将返回true。
-     *
-     * @return this
-     */
-    BlockingFuture<V> awaitUninterruptibly();
-
-    /**
      * 在指定的时间范围内等待，直到future关联的任务进入完成状态。
      * 如果正常返回，接下来的{@link #isDone()}调用都将返回true。
      *
@@ -96,6 +79,23 @@ public interface BlockingFuture<V> extends Future<V>, ListenableFuture<V> {
      * @return 当且仅当future关联的任务，在特定时间范围内进入完成状态时返回true。也就是接下来的{@link #isDone() true}。
      */
     boolean awaitUninterruptibly(long timeout, @Nonnull TimeUnit unit);
+
+    /**
+     * 等待future进入完成状态。
+     * await()不会查询任务的结果，在Future进入完成状态之后就返回，方法返回后，接下来的{@link #isDone()}调用都将返回true。
+     *
+     * @return this
+     * @throws InterruptedException 如果在等待期间线程被中断，则抛出中断异常。
+     */
+    BlockingFuture<V> await() throws InterruptedException;
+
+    /**
+     * 等待future进入完成状态，等待期间不响应中断，并默默的丢弃，在方法返回前会重置中断状态。
+     * 在方法返回之后，接下来的{@link #isDone()}调用都将返回true。
+     *
+     * @return this
+     */
+    BlockingFuture<V> awaitUninterruptibly();
 
     // 仅仅用于支持流式语法
 

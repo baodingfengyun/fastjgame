@@ -36,7 +36,6 @@ public class FutureUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(FutureUtils.class);
 
-
     private FutureUtils() {
     }
 
@@ -92,7 +91,12 @@ public class FutureUtils {
 
     // ------------------------------------------------ 通知监听器 ----------------------------------------
 
+    /**
+     * 通知持有的监听器
+     */
     public static <V> void notifyAllListenerNowSafely(@Nonnull final ListenableFuture<V> future, @Nonnull final Object listenerEntries) {
+        EventLoopUtils.ensureInEventLoop(future.defaultExecutor(), "Notify listeners must call from default executor");
+
         if (listenerEntries instanceof FutureListenerEntry) {
             notifyListenerNowSafely(future, (FutureListenerEntry) listenerEntries);
         } else {
@@ -105,7 +109,10 @@ public class FutureUtils {
         }
     }
 
-    public static <V> void notifyListenerNowSafely(@Nonnull ListenableFuture<V> future, @Nonnull FutureListenerEntry listenerEntry) {
+    /**
+     * 一定不要开放该方法，只允许{@link #notifyAllListenerNowSafely(ListenableFuture, Object)}调用。
+     */
+    private static <V> void notifyListenerNowSafely(@Nonnull ListenableFuture<V> future, @Nonnull FutureListenerEntry listenerEntry) {
         if (EventLoopUtils.inEventLoop(listenerEntry.executor)) {
             notifyListenerNowSafely(future, listenerEntry.listener);
         } else {
@@ -114,6 +121,9 @@ public class FutureUtils {
         }
     }
 
+    /**
+     * 一定不要开放该方法，只允许{@link #notifyListenerNowSafely(ListenableFuture, FutureListenerEntry)}调用。
+     */
     @SuppressWarnings({"unchecked"})
     private static <V> void notifyListenerNowSafely(@Nonnull ListenableFuture<V> future, @Nonnull FutureListener listener) {
         try {

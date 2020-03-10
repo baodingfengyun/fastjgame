@@ -88,37 +88,37 @@ public class DefaultLocalPromise<V> extends AbstractPromise<V> implements LocalP
     }
 
     @Override
-    public Promise<V> onComplete(@Nonnull FutureListener<? super V> listener) {
+    public LocalPromise<V> onComplete(@Nonnull FutureListener<? super V> listener) {
         addListener(listener, appEventLoop);
         return this;
     }
 
     @Override
-    public Promise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public LocalPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         addListener(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public Promise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
+    public LocalPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
         addListener(listener, appEventLoop);
         return this;
     }
 
     @Override
-    public Promise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public LocalPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         addListener(listener, bindExecutor);
         return this;
     }
 
     @Override
-    public Promise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
+    public LocalPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
         addListener(listener, appEventLoop);
         return this;
     }
 
     @Override
-    public Promise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public LocalPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         addListener(listener, bindExecutor);
         return this;
     }

@@ -16,189 +16,49 @@
 
 package com.wjybxx.fastjgame.utils.concurrent.adapter;
 
-import com.wjybxx.fastjgame.utils.ThreadUtils;
-import com.wjybxx.fastjgame.utils.concurrent.*;
+import com.wjybxx.fastjgame.utils.concurrent.BlockingPromise;
+import com.wjybxx.fastjgame.utils.concurrent.DelegateBlockingFuture;
+import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * JDK{@link CompletableFuture}的适配器。
  * <p>
- * 其实在最开始构建并发组件的时候，我就想过是选择{@link BlockingFuture}还是JDK的{@link CompletableFuture}，
+ * 其实在最开始构建并发组件的时候，我就想过是选择{@link ListenableFuture}还是JDK的{@link CompletableFuture}，
  * 扫一遍{@link CompletableFuture}，它的api实在是太多了，理解和使用成本都太高，不适合暴露给逻辑程序员使用，而对其进行封装的成本更高，
- * 且游戏内一般并不需要特别多的功能，所以最终选择了{@link BlockingFuture}。
+ * 且游戏内一般并不需要特别多的功能，所以最终选择了{@link ListenableFuture}。
+ * <p>
+ * 新版本使用代理实现，比较安全，也比较省心，不然老是要研究{@link CompletableFuture}的实现，还不能保证是否满足我的需求。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/12/30
  * github - https://github.com/hl845740757
  */
-public class CompletableFutureAdapter<V> extends AbstractBlockingFuture<V> {
+public class CompletableFutureAdapter<V> extends DelegateBlockingFuture<V> {
 
-    private final EventLoop executor;
-    private final CompletableFuture<V> future;
+    public CompletableFutureAdapter(EventLoop defaultExecutor, CompletableFuture<V> future) {
+        this(future, defaultExecutor.newBlockingPromise());
+    }
+
+    private CompletableFutureAdapter(CompletableFuture<V> future, BlockingPromise<V> promise) {
+        super(promise);
+        listen(future, promise);
+    }
 
     /**
-     * @param executor 异步执行的默认executor
+     * 这里并没有发布自己，而是发布的{@link BlockingPromise}对象
      */
-    public CompletableFutureAdapter(EventLoop executor, CompletableFuture<V> future) {
-        this.executor = executor;
-        this.future = future;
+    private static <V> void listen(CompletableFuture<V> future, BlockingPromise<V> promise) {
+        future.whenComplete((v, throwable) -> {
+            if (throwable != null) {
+                promise.tryFailure(throwable);
+            } else {
+                promise.trySuccess(v);
+            }
+        });
     }
 
-    @Override
-    public final boolean isDone() {
-        return future.isDone();
-    }
-
-    @Override
-    public final boolean isSuccess() {
-        return !future.isCompletedExceptionally();
-    }
-
-    @Override
-    public final boolean isCancelled() {
-        return future.isCancelled();
-    }
-
-    @Override
-    public final boolean isCancellable() {
-        return true;
-    }
-
-    @Override
-    public final V get() throws InterruptedException, ExecutionException {
-        return future.get();
-    }
-
-    @Override
-    public final V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        return future.get(timeout, unit);
-    }
-
-    @Override
-    public final V join() throws CompletionException {
-        return future.join();
-    }
-
-    @Nullable
-    @Override
-    public final V getNow() {
-        return future.getNow(null);
-    }
-
-    @Nullable
-    @Override
-    public final Throwable cause() {
-        try {
-            future.getNow(null);
-            return null;
-        } catch (CompletionException e) {
-            return e.getCause();
-        } catch (Throwable e) {
-            return e;
-        }
-    }
-
-    @Override
-    public final boolean cancel(boolean mayInterruptIfRunning) {
-        return future.cancel(mayInterruptIfRunning);
-    }
-
-    @Override
-    public BlockingFuture<V> await() throws InterruptedException {
-        try {
-            future.get();
-        } catch (InterruptedException e) {
-            throw e;
-        } catch (Throwable ignore) {
-
-        }
-        return this;
-    }
-
-    @Override
-    public BlockingFuture<V> awaitUninterruptibly() {
-        try {
-            future.join();
-        } catch (Throwable ignore) {
-
-        }
-        return this;
-    }
-
-    @Override
-    public boolean await(long timeout, @Nonnull TimeUnit unit) throws InterruptedException {
-        try {
-            future.get(timeout, unit);
-            return true;
-        } catch (InterruptedException e) {
-            throw e;
-        } catch (Throwable ignore) {
-        }
-        return false;
-    }
-
-    @Override
-    public boolean awaitUninterruptibly(long timeout, @Nonnull TimeUnit unit) {
-        try {
-            // JDK不支持限时不中断的方式，暂时先不做额外处理
-            future.get(timeout, unit);
-            return true;
-        } catch (InterruptedException e) {
-            ThreadUtils.recoveryInterrupted(true);
-        } catch (Throwable ignore) {
-        }
-        return false;
-    }
-
-    // -------------------------------------------------- 监听器管理 ---------------------------------------------
-    @Override
-    public final EventLoop defaultExecutor() {
-        return executor;
-    }
-
-    private void addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        // 不要内联该对象 - lambda表达式捕获的对象不一样
-        final FutureListenerEntry<? super V> listenerEntry = new FutureListenerEntry<>(listener, bindExecutor);
-        future.thenRun(() -> FutureUtils.notifyListenerNowSafely(this, listenerEntry));
-    }
-
-    @Override
-    public BlockingFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
-        addListener(listener, executor);
-        return this;
-    }
-
-    @Override
-    public BlockingFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        addListener(listener, bindExecutor);
-        return this;
-    }
-
-    @Override
-    public BlockingFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
-        addListener(listener, executor);
-        return this;
-    }
-
-    @Override
-    public BlockingFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        addListener(listener, bindExecutor);
-        return this;
-    }
-
-    @Override
-    public BlockingFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
-        addListener(listener, executor);
-        return this;
-    }
-
-    @Override
-    public BlockingFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        addListener(listener, bindExecutor);
-        return this;
-    }
 }
