@@ -37,6 +37,8 @@ final class FutureListenerEntries {
 
     FutureListenerEntries(FutureListenerEntry<?> first, FutureListenerEntry<?> second) {
         children = new FutureListenerEntry<?>[2];
+        size = 2;
+
         children[0] = first;
         children[1] = second;
     }
@@ -48,7 +50,7 @@ final class FutureListenerEntries {
 
     private void ensureCapacity() {
         if (size == children.length) {
-            this.children = Arrays.copyOf(children, size << 1);
+            children = Arrays.copyOf(children, size << 1);
         }
     }
 
