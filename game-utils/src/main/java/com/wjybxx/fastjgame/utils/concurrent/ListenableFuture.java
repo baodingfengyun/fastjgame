@@ -33,10 +33,20 @@ import java.util.concurrent.Executor;
  * 由于jdk的future一开始就提供了阻塞式的api，因此这里不能继承jdk的future。
  *
  * <h3>监听器执行时序</h3>
- * 执行环境相同的监听器，执行顺序和添加顺序相同，也就是说：
- * 1. 对于未指定{@link Executor}的监听器，执行顺序和添加顺序一致，它们会在{@link #defaultExecutor()}中有序执行。
- * 2. 对于指定了相同{@link Executor}的监听器，如果{@link Executor}是单线程的，那么该{@link Executor}关联的监听会按照添加顺序执行。
+ * 执行环境相同的监听器，执行顺序和添加顺序相同，也就是说：<br>
+ * 1. 对于未指定{@link Executor}的监听器，执行顺序和添加顺序一致，它们会在{@link #defaultExecutor()}中有序执行。<br>
+ * 2. 对于指定了相同{@link Executor}的监听器，如果{@link Executor}是单线程的，那么该{@link Executor}关联的监听会按照添加顺序执行。<br>
  * 主要目的是为了降低开发难度，避免用户考虑太多的时序问题！
+ *
+ * <p>
+ * Q: 为什么要保证执行环境相同的监听器，先添加的先执行，后添加的后执行？ <br>
+ * A: 执行环境相同的监听器，如果后添加的回调先执行，将非常危险!!!<br>
+ * 举个极端的例子，以下同一个方法体的两句代码,为了更清晰的说明时序问题，没有使用流式语法:
+ * <pre> {@code
+ *      future.onComplete(this::doSomethingA, appEventLoop);
+ *      future.onComplete(this::doSomethingB, appEventLoop);
+ * }</pre>
+ * 如果不提供时序保证，那么 {@code doSomethingB} 方法可能先执行，如果回调B执行的时候，总是认为回调A已经执行了的话，将非常危险。
  *
  * <h3>实现要求</h3>
  * 1. 必须满足监听器的执行时序要求。

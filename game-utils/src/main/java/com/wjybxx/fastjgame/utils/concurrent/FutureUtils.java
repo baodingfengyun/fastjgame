@@ -93,6 +93,26 @@ public class FutureUtils {
 
     /**
      * 通知持有的监听器
+     * <p>
+     * 如果在通知监听器时，使用{@link EventLoop#inEventLoop()}，将可能造成时序问题，例子如下：
+     * 1.线程A添加了监听器A，需要在线程B执行。
+     * 2. 线程C将future置为完成状态，线程C进行通知，在通知监听器A时{@link EventLoop#inEventLoop()}判断false，
+     * 于是提交了任务到线程B，通知结束。
+     * 3. 线程B添加了一个监听器B,需要在线程B执行。由于此时future已经是完成状态了，如果B也可以通知，在通知监听器B时，{@link EventLoop#inEventLoop()}判断为true，
+     * 监听器B将立即执行。
+     * 4. 线程B执行线程C提交的通知任务，执行监听器A。
+     * 在这个例子中：执行环境相同的监听器A和B，先添加的监听器A没有先执行，而后添加的监听器B却先执行了。
+     * <p>
+     * 要解决这个问题，有两种方案:
+     * 1. 去掉{@link EventLoop#inEventLoop()}检测，总是以任务的形式提交，那么A就会先执行。这也是常见架构的方式。
+     * 2. 使用指定线程进行通知。这是{@link EventLoop}架构下特定的通知方式。
+     * <p>
+     * Q: 为什么选择指定线程通知的方式？
+     * A: 这里存在一些假设：我们认为{@link ListenableFuture#defaultExecutor()}下执行的回调是最多的。
+     * 那么使用{@link ListenableFuture#defaultExecutor()}进行通知，将具有最小的任务提交数，最小的开销！
+     * ps:创建future指定合适的eventLoop很有用哦。
+     * <p>
+     * {@link EventLoop#inEventLoop()}是把双刃剑，一旦使用错误，可能导致严重问题。
      */
     public static <V> void notifyAllListenerNowSafely(@Nonnull final ListenableFuture<V> future, @Nonnull final Object listenerEntries) {
         EventLoopUtils.ensureInEventLoop(future.defaultExecutor(), "Notify listeners must call from default executor");
