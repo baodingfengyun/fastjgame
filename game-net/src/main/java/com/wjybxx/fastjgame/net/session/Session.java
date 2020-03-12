@@ -84,7 +84,6 @@ public interface Session extends RpcServerSpec, Comparable<Session> {
      * @param newData 新值
      * @return 之前的值，如果不存在，则返回null
      */
-    @Nullable
     <T> T attach(@Nullable Object newData);
 
     /**
@@ -94,7 +93,6 @@ public interface Session extends RpcServerSpec, Comparable<Session> {
      * @param <T> 结果类型，方便强制类型转换
      * @return nullable，如果未调用过attach，一定为null
      */
-    @Nullable
     <T> T attachment();
 
     // ----------------------------------------------- 生命周期 ----------------------------------------------

@@ -38,6 +38,10 @@ import java.util.concurrent.CompletionException;
  * <h3>实现约定</h3>
  * 除单向消息外，如果找不到对应的session，应该返回{@link FailedRpcFuture}，且其异常应该为{@link RpcSessionNotFoundException}。
  *
+ *<p>
+ * 最新的发现让我有点丧气，我发现{@link RpcClient}和我之前项目的{@code sendMgr}其本质是一样的。
+ * 都是选择合适的session，然后发送消息。{@link RpcServerSpec}其实也不是必须的，因为可以有更具体的{@link RpcClient}。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2020/1/9

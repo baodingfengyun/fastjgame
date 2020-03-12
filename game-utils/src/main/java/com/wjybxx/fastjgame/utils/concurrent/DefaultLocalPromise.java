@@ -26,7 +26,7 @@ import java.util.concurrent.Executor;
 /**
  * {@link LocalPromise}的默认实现。
  * <p>
- * 建议使用{@link EventLoop#newLocalPromise()}代替构造方法，利用如下:
+ * 建议使用{@link EventLoop#newLocalPromise()}代替构造方法，理由如下:
  * 1. 更清晰。
  * 2. 当切换实现时，成本较低。
  *

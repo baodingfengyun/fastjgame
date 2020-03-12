@@ -21,6 +21,8 @@ import com.wjybxx.fastjgame.net.session.Session;
 /**
  * Rpc服务器描述信息，用于{@link RpcClient}选择合适的服务器节点，其实就是选择合适的{@link Session}。
  * 实现类可以实现组播/广播等等，自己根据需要实现。
+ * -
+ * 注意：该接口不是必须的，用户其实可以实现更具体的{@link RpcClient}，但是想更具有可扩展性的话，那么可以使用该接口。
  *
  * @author wjybxx
  * @version 1.0

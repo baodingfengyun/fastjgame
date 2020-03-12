@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
  * @version 1.0
  * date - 2020/3/6
  */
-public class FutureUtils {
+class FutureUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(FutureUtils.class);
 
@@ -46,7 +46,7 @@ public class FutureUtils {
      * @throws CancellationException 如果任务被取消，则抛出该异常
      * @throws ExecutionException    其它原因导致失败
      */
-    public static <T> T rethrowGet(Throwable cause) throws CancellationException, ExecutionException {
+    static <T> T rethrowGet(Throwable cause) throws CancellationException, ExecutionException {
         if (cause instanceof CancellationException) {
             throw (CancellationException) cause;
         }
@@ -62,7 +62,7 @@ public class FutureUtils {
      * @throws CancellationException 如果任务被取消，则抛出该异常
      * @throws CompletionException   其它原因导致失败
      */
-    public static <T> T rethrowJoin(@Nonnull Throwable cause) throws CancellationException, CompletionException {
+    static <T> T rethrowJoin(@Nonnull Throwable cause) throws CancellationException, CompletionException {
         if (cause instanceof CancellationException) {
             throw (CancellationException) cause;
         }
@@ -92,7 +92,7 @@ public class FutureUtils {
     // ------------------------------------------------ 通知监听器 ----------------------------------------
 
     /**
-     * 通知持有的监听器
+     * 通知持有的监听器,必须在{@link ListenableFuture#defaultExecutor()}线程下。
      * <p>
      * 如果在通知监听器时，使用{@link EventLoop#inEventLoop()}，将可能造成时序问题，例子如下：
      * 1.线程A添加了监听器A，需要在线程B执行。
@@ -114,9 +114,9 @@ public class FutureUtils {
      * <p>
      * {@link EventLoop#inEventLoop()}是把双刃剑，一旦使用错误，可能导致严重问题。
      */
-    public static <V> void notifyAllListenerNowSafely(@Nonnull final ListenableFuture<V> future, @Nonnull final Object listenerEntries) {
-        EventLoopUtils.ensureInEventLoop(future.defaultExecutor(), "Notify listeners must call from default executor");
-
+    static <V> void notifyAllListenerNowSafely(@Nonnull final ListenableFuture<V> future, @Nonnull final Object listenerEntries) {
+        assert future.defaultExecutor().inEventLoop() : "Notify listeners must call from default executor";
+        
         if (listenerEntries instanceof FutureListenerEntry) {
             notifyListenerNowSafely(future, (FutureListenerEntry) listenerEntries);
         } else {
@@ -130,9 +130,9 @@ public class FutureUtils {
     }
 
     /**
-     * 一定不要开放该方法，只允许{@link #notifyAllListenerNowSafely(ListenableFuture, Object)}调用。
+     * 通知持有的监听器,必须在{@link ListenableFuture#defaultExecutor()}线程下。
      */
-    private static <V> void notifyListenerNowSafely(@Nonnull ListenableFuture<V> future, @Nonnull FutureListenerEntry listenerEntry) {
+    private static void notifyListenerNowSafely(@Nonnull ListenableFuture<?> future, @Nonnull FutureListenerEntry<?> listenerEntry) {
         if (EventLoopUtils.inEventLoop(listenerEntry.executor)) {
             notifyListenerNowSafely(future, listenerEntry.listener);
         } else {

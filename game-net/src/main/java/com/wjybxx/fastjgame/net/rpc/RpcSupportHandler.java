@@ -22,14 +22,12 @@ import com.wjybxx.fastjgame.net.exception.RpcTimeoutException;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
-import com.wjybxx.fastjgame.utils.CollectionUtils;
 import com.wjybxx.fastjgame.utils.DebugUtils;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.utils.concurrent.LocalPromise;
 import com.wjybxx.fastjgame.utils.concurrent.Promise;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.Nonnull;
@@ -57,11 +55,16 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
     private long requestGuidSequencer = 0;
 
     /**
-     * 当前会话上的rpc请求。
+     * 异步rpc请求超时信息
+     * <p>
      * - 在现在的设计中，只有服务器之间有rpc支持，与玩家之间是没有该handler的，因此不会浪费资源。
      * - 避免频繁的扩容，扩容和重新计算hash值是非常消耗资源的。
      */
-    private final Long2ObjectMap<RpcTimeoutInfo> rpcTimeoutInfoMap = new Long2ObjectOpenHashMap<>(1024);
+    private final Long2ObjectLinkedOpenHashMap<RpcTimeoutInfo> asyncRpcTimeoutInfoMap = new Long2ObjectLinkedOpenHashMap<>(1024);
+    /**
+     * 同步rpc请求超时信息，只有最后一个有效
+     */
+    private SyncRpcTimeoutInfo syncRpcTimeoutInfo = null;
 
     public RpcSupportHandler() {
 
@@ -69,14 +72,39 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void tick(SessionHandlerContext ctx) {
-        if (rpcTimeoutInfoMap.size() == 0) {
+        checkSyncRpcTimeout(ctx);
+
+        checkAsyncRpcTimeout(ctx);
+    }
+
+    private void checkSyncRpcTimeout(SessionHandlerContext ctx) {
+        if (syncRpcTimeoutInfo == null) {
             return;
         }
 
+        if (ctx.timerSystem().curTimeMillis() > syncRpcTimeoutInfo.timeoutInfo.deadline) {
+            syncRpcTimeoutInfo.timeoutInfo.rpcPromise.tryFailure(RpcTimeoutException.INSTANCE);
+            syncRpcTimeoutInfo = null;
+        }
+    }
+
+    /**
+     * 并不需要检查全部的rpc请求，因为rpc请求是有序的，先发送的必定先超时。
+     * 因此总是检查第一个键即可
+     */
+    private void checkAsyncRpcTimeout(SessionHandlerContext ctx) {
         final long curTimeMillis = ctx.timerSystem().curTimeMillis();
-        CollectionUtils.removeIfAndThen(rpcTimeoutInfoMap.values(),
-                rpcTimeoutInfo -> curTimeMillis >= rpcTimeoutInfo.deadline,
-                rpcTimeoutInfo -> rpcTimeoutInfo.rpcPromise.tryFailure(RpcTimeoutException.INSTANCE));
+        while (asyncRpcTimeoutInfoMap.size() > 0) {
+            final long requestGuid = asyncRpcTimeoutInfoMap.firstLongKey();
+            final RpcTimeoutInfo timeoutInfo = asyncRpcTimeoutInfoMap.get(requestGuid);
+
+            if (curTimeMillis < timeoutInfo.deadline) {
+                return;
+            }
+
+            asyncRpcTimeoutInfoMap.removeFirst();
+            timeoutInfo.rpcPromise.tryFailure(RpcTimeoutException.INSTANCE);
+        }
     }
 
     @Override
@@ -94,11 +122,16 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             // rpc请求
             RpcRequestWriteTask writeTask = (RpcRequestWriteTask) msg;
 
-            // 保存rpc请求上下文
             long deadline = ctx.timerSystem().curTimeMillis() + writeTask.getTimeoutMs();
             RpcTimeoutInfo rpcTimeoutInfo = new RpcTimeoutInfo(writeTask.getPromise(), deadline);
             long requestGuid = ++requestGuidSequencer;
-            rpcTimeoutInfoMap.put(requestGuid, rpcTimeoutInfo);
+
+            // 保存rpc请求上下文
+            if (writeTask.isSync()) {
+                syncRpcTimeoutInfo = new SyncRpcTimeoutInfo(requestGuid, rpcTimeoutInfo);
+            } else {
+                asyncRpcTimeoutInfoMap.put(requestGuid, rpcTimeoutInfo);
+            }
 
             ctx.fireWrite(new RpcRequestMessage(requestGuid, writeTask.isSync(), writeTask.getRequest()));
         } else if (msg instanceof RpcResponseWriteTask) {
@@ -124,12 +157,20 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             ctx.appEventLoop().execute(new RpcRequestCommitTask(ctx.session(), requestMessage.getBody(), promise));
         } else if (msg instanceof RpcResponseMessage) {
             // 读取到一个Rpc响应消息，提交给应用层
-            RpcResponseMessage responseMessage = (RpcResponseMessage) msg;
-            final RpcTimeoutInfo rpcTimeoutInfo = rpcTimeoutInfoMap.remove(responseMessage.getRequestGuid());
+            final RpcResponseMessage responseMessage = (RpcResponseMessage) msg;
+            final long requestGuid = responseMessage.getRequestGuid();
+
+            // 异步rpc请求的可能性更大
+            final RpcTimeoutInfo rpcTimeoutInfo = asyncRpcTimeoutInfoMap.remove(requestGuid);
             if (null != rpcTimeoutInfo) {
                 commitRpcResponse(rpcTimeoutInfo, responseMessage.getErrorCode(), responseMessage.getBody());
+            } else {
+                if (syncRpcTimeoutInfo != null && syncRpcTimeoutInfo.requestGuid == requestGuid) {
+                    commitRpcResponse(syncRpcTimeoutInfo.timeoutInfo, responseMessage.getErrorCode(), responseMessage.getBody());
+                    syncRpcTimeoutInfo = null;
+                }
+                // else 可能超时了
             }
-            // else 可能超时了
         } else {
             ctx.fireRead(msg);
         }
@@ -155,9 +196,23 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
      * 取消所有的rpc请求
      */
     private void cancelAllRpcRequest() {
-        for (RpcTimeoutInfo rpcTimeoutInfo : rpcTimeoutInfoMap.values()) {
+        cancelSyncRpc();
+
+        cancelAsyncRpc();
+    }
+
+    private void cancelSyncRpc() {
+        if (syncRpcTimeoutInfo != null) {
+            syncRpcTimeoutInfo.timeoutInfo.rpcPromise.tryFailure(RpcSessionClosedException.INSTANCE);
+            syncRpcTimeoutInfo = null;
+        }
+    }
+
+    private void cancelAsyncRpc() {
+        for (RpcTimeoutInfo rpcTimeoutInfo : asyncRpcTimeoutInfoMap.values()) {
             rpcTimeoutInfo.rpcPromise.tryFailure(RpcSessionClosedException.INSTANCE);
         }
+        asyncRpcTimeoutInfoMap.clear();
     }
 
     private static class RpcTimeoutInfo {
@@ -170,6 +225,18 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             this.deadline = deadline;
         }
     }
+
+    private static class SyncRpcTimeoutInfo {
+
+        private final long requestGuid;
+        private final RpcTimeoutInfo timeoutInfo;
+
+        private SyncRpcTimeoutInfo(long requestGuid, RpcTimeoutInfo timeoutInfo) {
+            this.requestGuid = requestGuid;
+            this.timeoutInfo = timeoutInfo;
+        }
+    }
+
 
     private static class RpcResultListener implements FutureListener<Object> {
         private final Session session;

@@ -121,7 +121,6 @@ public abstract class AbstractSession implements Session {
     }
 
     @SuppressWarnings("unchecked")
-    @Nullable
     @Override
     public final <T> T attachment() {
         if (appEventLoop().inEventLoop()) {
