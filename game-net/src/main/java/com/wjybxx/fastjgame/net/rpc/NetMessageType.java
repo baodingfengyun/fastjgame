@@ -67,6 +67,9 @@ public enum NetMessageType {
      * @return 包类型对应的枚举
      */
     public static NetMessageType forNumber(byte pkgType) {
+        if (pkgType < 0 || pkgType > values().length) {
+            return null;
+        }
         return values()[pkgType - 1];
     }
 }

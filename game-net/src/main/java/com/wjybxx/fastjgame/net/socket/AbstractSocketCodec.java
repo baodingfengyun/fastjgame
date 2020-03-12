@@ -29,25 +29,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Iterator;
 
 /**
- * 最开始时为分离的Encoder和Decoder。
- * 那样的问题是不太容易标记channel双方的guid。
- * (会导致协议冗余字段，或使用不必要的同步{@link io.netty.util.AttributeMap})
- * <p>
- * 使用codec会使得协议更加精炼，性能也更好，此外也方便阅读。
- * 它不是线程安全的，也不可共享。
- * <p>
- * baseCodec作为解码过程的最后一步和编码过程的第一步
+ * 最开始时为分离的Encoder和Decoder，合并为Codec主要是为了方便阅读。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/5/7 12:26
  * github - https://github.com/hl845740757
  */
+@NotThreadSafe
 public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractSocketCodec.class);
@@ -460,6 +455,7 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
      */
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        // 这里不关闭channel，没有必要关闭
         logger.warn("", cause);
     }
 

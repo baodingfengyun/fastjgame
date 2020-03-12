@@ -1,12 +1,10 @@
 协议约定：
 公共部分：
  int  4字节      frameLength       有效帧长度(不包含自身)
- long 8字节      checkSum          消息的内容的校验和(不包含第一个字段和自身)
  byte 1字节      pkgType           协议的类型(每种协议一个固定值)
 
 // -------------------------- 连接控制数据包 --------------------------
 1. 请求建立连接(或重连)               [传输控制协议]
- long  8字节     clientGuid        客户端唯一标识(发起方guid)
  int   4字节     verifyingTimes    这是客户端第几次发起连接请求：用于识别最新请求和客户端追踪结果
  int   4字节     verifiedTimes     客户端验证成功次数(判断是重连还是首次建立连接)
 
@@ -18,8 +16,9 @@
 
 2. 建立连接应答                      [传输控制协议]
  byte  1字节     success           是否允许建立连接
- int   4字节     verifyingTimes    这是客户端第几次发起的连接请求
- int   4字节     verifiedTimes     客户端验证成功次数
+
+ int   4字节     verifyingTimes    这是客户端第几次发起连接请求
+ int   4字节     verifiedTimes     客户端验证成功次数（两个字段主要用于定位请求）
 
  long  8字节     initSequence      服务器的初始sequence - 用于首次建立连接时
  long  8字节     ack               服务器期望的下一个消息号(首次建立连接时就是正式的ack了)
@@ -42,7 +41,7 @@
 
 5. Rpc响应包                     （用户数据）
  long  8字节     requestGuid      请求id
- int   4字节     errorCodec       错误码(0表示成功)
+ int   4字节     errorCode        错误码(0表示成功)
  bytes 字节数组   body             错误信息或响应内容(失败时应该为，成功时为结果)
 
 6. 单向消息包                      （用户数据）
