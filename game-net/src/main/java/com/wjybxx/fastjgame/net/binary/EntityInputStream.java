@@ -93,4 +93,12 @@ public interface EntityInputStream {
     @Nullable
     <E> E readEntity(EntityFactory<E> entityFactory, Class<? super E> entitySuperClass) throws Exception;
 
+    // --------------------------------------- 处理延迟序列化问题 ----------------------------------
+
+    /**
+     * 读取一个需要提前反序列化的对象。
+     * 如果读取到的是bytes，则会对读取到的bytes进行一次解码操作。
+     * 主要目的：使得对象可以在中间节点以bytes形式传输，然后在真正的接收方反序列化。
+     */
+    <T> T readPreDeserializeObject() throws Exception;
 }

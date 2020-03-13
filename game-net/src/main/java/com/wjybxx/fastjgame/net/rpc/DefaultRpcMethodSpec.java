@@ -56,13 +56,12 @@ public class DefaultRpcMethodSpec<V> implements RpcMethodSpec<V> {
 
     /**
      * 需要延迟到网络层序列化为byte[]的参数位置信息。
-     * <p>
-     * Q: 为什么要序列化？
-     * A: 我们希望可以转发该对象，中间的代理需要有原始的方法描述信息。
+     * 该参数不需要序列化，该对象在第一次序列化的时候，就将需要延迟初始化的参数完成了序列化。
      */
     private final int lazyIndexes;
     /**
-     * 需要网络层提前反序列化的参数位置信息 - 需要序列化到接收方。
+     * 需要网络层提前反序列化的参数位置信息。
+     * 需要序列化到接收方，真正的接收方在反序列化该对象的时候，才会使用到。
      */
     private final int preIndexes;
 
@@ -98,30 +97,62 @@ public class DefaultRpcMethodSpec<V> implements RpcMethodSpec<V> {
      * 负责{@link DefaultRpcMethodSpec}的序列化工作 - 会被自动扫描到。
      */
     @SuppressWarnings({"unused"})
-    private static class RpcMethodSpecSerializer implements EntitySerializer<DefaultRpcMethodSpec> {
+    private static class RpcMethodSpecSerializer implements EntitySerializer<DefaultRpcMethodSpec<?>> {
 
+        @SuppressWarnings("unchecked")
         @Override
-        public Class<DefaultRpcMethodSpec> getEntityClass() {
-            return DefaultRpcMethodSpec.class;
+        public Class<DefaultRpcMethodSpec<?>> getEntityClass() {
+            return (Class) DefaultRpcMethodSpec.class;
         }
 
         @Override
-        public DefaultRpcMethodSpec readObject(EntityInputStream inputStream) throws Exception {
+        public DefaultRpcMethodSpec<?> readObject(EntityInputStream inputStream) throws Exception {
             final short serviceId = inputStream.readShort();
             final short methodId = inputStream.readShort();
-            final List<Object> methodParams = inputStream.readCollection(ArrayList::new);
-            final int lazyIndexes = inputStream.readInt();
             final int preIndexes = inputStream.readInt();
-            return new DefaultRpcMethodSpec(serviceId, methodId, methodParams, lazyIndexes, preIndexes);
+
+            final List<Object> methodParams = doPreDeserialize(inputStream, preIndexes);
+
+            return new DefaultRpcMethodSpec<>(serviceId, methodId, methodParams, 0, 0);
+        }
+
+        private List<Object> doPreDeserialize(EntityInputStream inputStream, int preIndexes) throws Exception {
+            final int size = inputStream.readInt();
+            final ArrayList<Object> methodParams = new ArrayList<>(size);
+
+            for (int index = 0; index < size; index++) {
+                final Object newParameter;
+                if ((preIndexes & (1L << index)) != 0) {
+                    newParameter = inputStream.readPreDeserializeObject();
+                } else {
+                    newParameter = inputStream.readObject();
+                }
+                methodParams.add(newParameter);
+            }
+            return methodParams;
         }
 
         @Override
-        public void writeObject(DefaultRpcMethodSpec instance, EntityOutputStream outputStream) throws Exception {
+        public void writeObject(DefaultRpcMethodSpec<?> instance, EntityOutputStream outputStream) throws Exception {
             outputStream.writeShort(instance.getServiceId());
             outputStream.writeShort(instance.getMethodId());
-            outputStream.writeCollection(instance.getMethodParams());
-            outputStream.writeInt(instance.getLazyIndexes());
             outputStream.writeInt(instance.getPreIndexes());
+
+            doLazySerialize(outputStream, instance.getMethodParams(), instance.getLazyIndexes());
+        }
+
+        private void doLazySerialize(EntityOutputStream outputStream, final List<Object> methodParams, final int lazyIndexes) throws Exception {
+            final int size = methodParams.size();
+            outputStream.writeInt(size);
+
+            for (int index = 0; index < size; index++) {
+                final Object parameter = methodParams.get(index);
+                if ((lazyIndexes & (1L << index)) != 0) {
+                    outputStream.writeLazySerializeObject(parameter);
+                } else {
+                    outputStream.writeObject(parameter);
+                }
+            }
         }
     }
 }

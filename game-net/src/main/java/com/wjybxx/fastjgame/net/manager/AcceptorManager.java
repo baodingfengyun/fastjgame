@@ -21,7 +21,6 @@ import com.wjybxx.fastjgame.net.local.DefaultLocalPort;
 import com.wjybxx.fastjgame.net.local.LocalCodecHandler;
 import com.wjybxx.fastjgame.net.local.LocalSessionImp;
 import com.wjybxx.fastjgame.net.local.LocalTransferHandler;
-import com.wjybxx.fastjgame.net.rpc.LazySerializeSupportHandler;
 import com.wjybxx.fastjgame.net.rpc.OneWaySupportHandler;
 import com.wjybxx.fastjgame.net.rpc.RpcSupportHandler;
 import com.wjybxx.fastjgame.net.session.AbstractSession;
@@ -152,7 +151,6 @@ public class AcceptorManager implements SessionRegistry {
         session.pipeline()
                 .addLast(new LocalTransferHandler())
                 .addLast(new LocalCodecHandler())
-                .addLast(new LazySerializeSupportHandler())
                 .addLast(new OneWaySupportHandler());
 
         // 是否开启rpc

@@ -194,4 +194,19 @@ class EntityInputStreamImp implements EntityInputStream {
             throw new IOException("Incompatible wireType, expected: " + expectedTag + ", but read: " + readTag);
         }
     }
+
+    /**
+     * 临时方案
+     * TODO 优化，不产生byte[]对象，最好直接使用当前{@link #inputStream}
+     */
+    @Override
+    public <T> T readPreDeserializeObject() throws Exception {
+        final T object = readObject();
+        if (object instanceof byte[]) {
+            final EntityInputStreamImp inputStreamImp = new EntityInputStreamImp(codecRegistry, CodedInputStream.newInstance((byte[]) object));
+            return inputStreamImp.readObject();
+        } else {
+            return object;
+        }
+    }
 }

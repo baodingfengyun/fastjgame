@@ -22,7 +22,6 @@ import com.wjybxx.fastjgame.net.exception.RpcTimeoutException;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
-import com.wjybxx.fastjgame.utils.DebugUtils;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.utils.concurrent.LocalPromise;
@@ -30,7 +29,6 @@ import com.wjybxx.fastjgame.utils.concurrent.Promise;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 
@@ -262,21 +260,11 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
                 body = future.getNow();
             } else {
                 errorCode = RpcErrorCode.SERVER_EXCEPTION;
-                body = getCauseMessage(future.cause());
+                // 不返回完整信息，意义不大
+                body = ExceptionUtils.getRootCauseMessage(future.cause());
             }
-
             session.netEventLoop().execute(new RpcResponseWriteTask(session, requestGuid, errorCode, body, sync));
         }
     }
 
-    private static String getCauseMessage(@Nonnull Throwable cause) {
-        final String message;
-        if (DebugUtils.isDebugOpen()) {
-            // debug开启情况下，返回详细信息
-            message = ExceptionUtils.getStackTrace(cause);
-        } else {
-            message = ExceptionUtils.getRootCauseMessage(cause);
-        }
-        return message;
-    }
 }

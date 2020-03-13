@@ -18,7 +18,10 @@ package com.wjybxx.fastjgame.net.socket.outer;
 
 import com.wjybxx.fastjgame.net.manager.NettyThreadManager;
 import com.wjybxx.fastjgame.net.misc.HostAndPort;
-import com.wjybxx.fastjgame.net.rpc.*;
+import com.wjybxx.fastjgame.net.rpc.NetMessage;
+import com.wjybxx.fastjgame.net.rpc.OneWaySupportHandler;
+import com.wjybxx.fastjgame.net.rpc.PingPongMessage;
+import com.wjybxx.fastjgame.net.rpc.RpcSupportHandler;
 import com.wjybxx.fastjgame.net.session.*;
 import com.wjybxx.fastjgame.net.socket.*;
 import com.wjybxx.fastjgame.net.utils.NetUtils;
@@ -481,7 +484,6 @@ public class OuterConnectorHandler extends SessionDuplexHandlerAdapter {
                     session.tryActive();
                     session.pipeline()
                             .addLast(new PingPingSupportHandler())
-                            .addLast(new LazySerializeSupportHandler())
                             .addLast(new OneWaySupportHandler());
 
                     // 判断是否支持rpc

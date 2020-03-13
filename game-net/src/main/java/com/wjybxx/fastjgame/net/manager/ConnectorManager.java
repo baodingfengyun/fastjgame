@@ -20,7 +20,6 @@ import com.google.inject.Inject;
 import com.wjybxx.fastjgame.net.local.*;
 import com.wjybxx.fastjgame.net.misc.HostAndPort;
 import com.wjybxx.fastjgame.net.misc.NetContext;
-import com.wjybxx.fastjgame.net.rpc.LazySerializeSupportHandler;
 import com.wjybxx.fastjgame.net.rpc.OneWaySupportHandler;
 import com.wjybxx.fastjgame.net.rpc.RpcSupportHandler;
 import com.wjybxx.fastjgame.net.session.*;
@@ -207,7 +206,6 @@ public class ConnectorManager implements SessionRegistry {
             session.pipeline()
                     .addLast(new LocalTransferHandler())
                     .addLast(new LocalCodecHandler())
-                    .addLast(new LazySerializeSupportHandler())
                     .addLast(new OneWaySupportHandler());
 
             // 是否开启rpc

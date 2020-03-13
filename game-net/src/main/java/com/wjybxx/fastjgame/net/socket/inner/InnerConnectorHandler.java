@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.net.socket.inner;
 
-import com.wjybxx.fastjgame.net.rpc.LazySerializeSupportHandler;
 import com.wjybxx.fastjgame.net.rpc.OneWaySupportHandler;
 import com.wjybxx.fastjgame.net.rpc.RpcSupportHandler;
 import com.wjybxx.fastjgame.net.session.Session;
@@ -159,7 +158,6 @@ public class InnerConnectorHandler extends SessionDuplexHandlerAdapter {
                     .remove(this)
                     .addLast(new InnerSocketTransferHandler(channelFuture.channel()))
                     .addLast(new PingPingSupportHandler())
-                    .addLast(new LazySerializeSupportHandler())
                     .addLast(new OneWaySupportHandler());
 
             // 判断是否支持rpc

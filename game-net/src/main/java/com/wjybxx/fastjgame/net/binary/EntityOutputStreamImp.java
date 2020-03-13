@@ -17,12 +17,15 @@
 package com.wjybxx.fastjgame.net.binary;
 
 import com.google.protobuf.CodedOutputStream;
+import com.wjybxx.fastjgame.net.utils.NetUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Queue;
 
 /**
  * @author wjybxx
@@ -30,6 +33,8 @@ import java.util.Map;
  * date - 2020/2/23
  */
 class EntityOutputStreamImp implements EntityOutputStream {
+
+    private static final ThreadLocal<Queue<byte[]>> LOCAL_BUFFER_QUEUE = ThreadLocal.withInitial(ArrayDeque::new);
 
     private final CodecRegistry codecRegistry;
     private final CodedOutputStream outputStream;
@@ -108,7 +113,6 @@ class EntityOutputStreamImp implements EntityOutputStream {
 
     @Override
     public void writeBytes(@Nonnull byte[] bytes, int offset, int length) throws Exception {
-        BinarySerializer.writeTag(outputStream, Tag.ARRAY);
         ArrayCodec.writeByteArray(outputStream, bytes, offset, length);
     }
 
@@ -159,5 +163,48 @@ class EntityOutputStreamImp implements EntityOutputStream {
         @SuppressWarnings("unchecked") final PojoCodec<? super E> codec = (PojoCodec<? super E>) codecRegistry.get(entitySuperClass);
         // 这里是生成的代码走进来的，因此即使异常，也能定位
         codec.encode(outputStream, entity, codecRegistry);
+    }
+
+    /**
+     * 临时方案
+     * TODO 优化，最好能直接使用当前的{@link #outputStream}
+     */
+    @Override
+    public void writeLazySerializeObject(@Nullable Object value) throws Exception {
+        if (null == value) {
+            BinarySerializer.writeTag(outputStream, Tag.NULL);
+            return;
+        }
+
+        if (value instanceof byte[]) {
+            writeBytes((byte[]) value);
+            return;
+        }
+
+        byte[] buffer = allocateBuffer();
+        try {
+            CodedOutputStream outputStream = CodedOutputStream.newInstance(buffer);
+            EntityOutputStream outputStreamImp = new EntityOutputStreamImp(codecRegistry, outputStream);
+            outputStreamImp.writeObject(value);
+
+            writeBytes(buffer, 0, outputStream.getTotalBytesWritten());
+        } finally {
+            releaseBuffer(buffer);
+        }
+    }
+
+    @Nonnull
+    private static byte[] allocateBuffer() {
+        final Queue<byte[]> bufferQueue = LOCAL_BUFFER_QUEUE.get();
+        byte[] buffer = bufferQueue.poll();
+        if (buffer != null) {
+            return buffer;
+        }
+        return new byte[NetUtils.MAX_BUFFER_SIZE];
+    }
+
+    private static void releaseBuffer(@Nonnull byte[] buffer) {
+        final Queue<byte[]> bufferQueue = LOCAL_BUFFER_QUEUE.get();
+        bufferQueue.offer(buffer);
     }
 }

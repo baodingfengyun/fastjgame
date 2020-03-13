@@ -45,7 +45,7 @@ public class NetUtils {
     private static final Logger logger = LoggerFactory.getLogger(NetUtils.class);
 
     /**
-     * 最大缓冲区大小1M,一个消息如果超过1M不能忍。
+     * 最大缓冲区大小
      */
     public static final int MAX_BUFFER_SIZE = 1024 * 1024;
 

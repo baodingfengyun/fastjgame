@@ -92,4 +92,13 @@ public interface EntityOutputStream {
      */
     <E> void writeEntity(@Nullable E entity, Class<? super E> entitySuperClass) throws Exception;
 
+    // --------------------------------------- 处理延迟序列化问题 ----------------------------------
+
+    /**
+     * 写入一个需要延迟序列化的对象。
+     * 如果该参数不是bytes，则会先序列化为bytes，再以bytes写入输出流。
+     * 主要目的：使得对象在中间节点可以以bytes形式传输，然后在真正的接收方反序列化。
+     */
+    void writeLazySerializeObject(@Nullable Object value) throws Exception;
+
 }
