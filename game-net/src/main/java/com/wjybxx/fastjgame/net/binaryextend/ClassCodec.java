@@ -16,9 +16,9 @@
 
 package com.wjybxx.fastjgame.net.binaryextend;
 
-import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.CodedOutputStream;
 import com.wjybxx.fastjgame.net.binary.CodecRegistry;
+import com.wjybxx.fastjgame.net.binary.DataInputStream;
+import com.wjybxx.fastjgame.net.binary.DataOutputStream;
 import com.wjybxx.fastjgame.net.binary.PojoCodec;
 
 import javax.annotation.Nonnull;
@@ -45,19 +45,19 @@ public class ClassCodec extends PojoCodec<Class> {
     }
 
     @Override
-    public void encodeBody(@Nonnull CodedOutputStream outputStream, @Nonnull Class value, CodecRegistry codecRegistry) throws Exception {
+    public void encodeBody(@Nonnull DataOutputStream outputStream, @Nonnull Class value, CodecRegistry codecRegistry) throws Exception {
         encodeClass(outputStream, value);
     }
 
     @Nonnull
     @Override
-    public Class decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
+    public Class decode(@Nonnull DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
         final String className = inputStream.readString();
         return decodeClass(className);
     }
 
-    public static void encodeClass(CodedOutputStream outputStream, Class<?> value) throws Exception {
-        outputStream.writeStringNoTag(value.getName());
+    public static void encodeClass(DataOutputStream outputStream, Class<?> value) throws Exception {
+        outputStream.writeString(value.getName());
     }
 
     @Nonnull

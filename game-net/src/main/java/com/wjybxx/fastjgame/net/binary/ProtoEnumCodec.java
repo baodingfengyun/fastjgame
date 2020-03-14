@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.CodedOutputStream;
 import com.google.protobuf.Internal;
 import com.google.protobuf.ProtocolMessageEnum;
 
@@ -40,14 +38,14 @@ public class ProtoEnumCodec<T extends ProtocolMessageEnum> extends PojoCodec<T> 
     }
 
     @Override
-    public void encodeBody(@Nonnull CodedOutputStream outputStream, @Nonnull T value, CodecRegistry codecRegistry) throws Exception {
-        outputStream.writeInt32NoTag(value.getNumber());
+    public void encodeBody(@Nonnull DataOutputStream outputStream, @Nonnull T value, CodecRegistry codecRegistry) throws Exception {
+        outputStream.writeIndex(value.getNumber());
     }
 
     @Nonnull
     @Override
-    public T decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
-        return mapper.findValueByNumber(inputStream.readInt32());
+    public T decode(@Nonnull DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
+        return mapper.findValueByNumber(inputStream.readInt());
     }
 
     @Override

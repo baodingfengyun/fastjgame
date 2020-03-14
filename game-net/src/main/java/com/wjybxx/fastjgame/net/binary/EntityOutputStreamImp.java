@@ -16,16 +16,11 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.google.protobuf.CodedOutputStream;
-import com.wjybxx.fastjgame.net.utils.NetUtils;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Queue;
 
 /**
  * @author wjybxx
@@ -34,80 +29,79 @@ import java.util.Queue;
  */
 class EntityOutputStreamImp implements EntityOutputStream {
 
-    private static final ThreadLocal<Queue<byte[]>> LOCAL_BUFFER_QUEUE = ThreadLocal.withInitial(ArrayDeque::new);
-
     private final CodecRegistry codecRegistry;
-    private final CodedOutputStream outputStream;
+    private final DataOutputStream outputStream;
 
-    EntityOutputStreamImp(CodecRegistry codecRegistry, CodedOutputStream outputStream) {
+    EntityOutputStreamImp(CodecRegistry codecRegistry, DataOutputStream outputStream) {
         this.codecRegistry = codecRegistry;
         this.outputStream = outputStream;
     }
 
     @Override
     public void writeInt(int value) throws Exception {
-        BinarySerializer.writeTag(outputStream, Tag.INT);
-        outputStream.writeInt32NoTag(value);
+        outputStream.writeTag(Tag.INT);
+        outputStream.writeInt(value);
     }
 
     @Override
     public void writeLong(long value) throws Exception {
-        BinarySerializer.writeTag(outputStream, Tag.LONG);
-        outputStream.writeInt64NoTag(value);
+        outputStream.writeTag(Tag.LONG);
+        outputStream.writeLong(value);
     }
 
     @Override
     public void writeFloat(float value) throws Exception {
-        BinarySerializer.writeTag(outputStream, Tag.FLOAT);
-        outputStream.writeFloatNoTag(value);
+        outputStream.writeTag(Tag.FLOAT);
+        outputStream.writeFloat(value);
     }
 
     @Override
     public void writeDouble(double value) throws Exception {
-        BinarySerializer.writeTag(outputStream, Tag.DOUBLE);
-        outputStream.writeDoubleNoTag(value);
+        outputStream.writeTag(Tag.DOUBLE);
+        outputStream.writeDouble(value);
     }
 
     @Override
     public void writeShort(short value) throws Exception {
-        BinarySerializer.writeTag(outputStream, Tag.SHORT);
-        outputStream.writeInt32NoTag(value);
+        outputStream.writeTag(Tag.SHORT);
+        outputStream.writeShort(value);
     }
 
     @Override
     public void writeBoolean(boolean value) throws Exception {
-        BinarySerializer.writeTag(outputStream, Tag.BOOLEAN);
-        outputStream.writeBoolNoTag(value);
+        outputStream.writeTag(Tag.BOOLEAN);
+        outputStream.writeBoolean(value);
     }
 
     @Override
     public void writeByte(byte value) throws Exception {
-        BinarySerializer.writeTag(outputStream, Tag.BYTE);
-        outputStream.writeRawByte(value);
+        outputStream.writeTag(Tag.BYTE);
+        outputStream.writeByte(value);
     }
 
     @Override
     public void writeChar(char value) throws Exception {
-        BinarySerializer.writeTag(outputStream, Tag.CHAR);
-        outputStream.writeUInt32NoTag(value);
+        outputStream.writeTag(Tag.CHAR);
+        outputStream.writeChar(value);
     }
 
     @Override
     public void writeString(@Nullable String value) throws Exception {
         if (value == null) {
-            BinarySerializer.writeTag(outputStream, Tag.NULL);
+            outputStream.writeTag(Tag.NULL);
             return;
         }
-        BinarySerializer.writeTag(outputStream, Tag.STRING);
-        outputStream.writeStringNoTag(value);
+        outputStream.writeTag(Tag.STRING);
+        outputStream.writeString(value);
     }
 
     @Override
     public void writeBytes(@Nullable byte[] value) throws Exception {
         if (value == null) {
-            BinarySerializer.writeTag(outputStream, Tag.NULL);
+            outputStream.writeTag(Tag.NULL);
             return;
         }
+
         ArrayCodec.writeByteArray(outputStream, value, 0, value.length);
     }
 
@@ -124,7 +118,7 @@ class EntityOutputStreamImp implements EntityOutputStream {
     @Override
     public <E> void writeCollection(@Nullable Collection<? extends E> collection) throws Exception {
         if (collection == null) {
-            BinarySerializer.writeTag(outputStream, Tag.NULL);
+            outputStream.writeTag(Tag.NULL);
             return;
         }
         CollectionCodec.encodeCollection(outputStream, collection, codecRegistry);
@@ -133,7 +127,7 @@ class EntityOutputStreamImp implements EntityOutputStream {
     @Override
     public <K, V> void writeMap(@Nullable Map<K, V> map) throws Exception {
         if (map == null) {
-            BinarySerializer.writeTag(outputStream, Tag.NULL);
+            outputStream.writeTag(Tag.NULL);
             return;
         }
         MapCodec.encodeMap(outputStream, map, codecRegistry);
@@ -142,7 +136,7 @@ class EntityOutputStreamImp implements EntityOutputStream {
     @Override
     public void writeArray(@Nullable Object array) throws Exception {
         if (array == null) {
-            BinarySerializer.writeTag(outputStream, Tag.NULL);
+            outputStream.writeTag(Tag.NULL);
             return;
         }
         if (!array.getClass().isArray()) {
@@ -157,7 +151,7 @@ class EntityOutputStreamImp implements EntityOutputStream {
     @Override
     public <E> void writeEntity(@Nullable E entity, Class<? super E> entitySuperClass) throws Exception {
         if (null == entity) {
-            BinarySerializer.writeTag(outputStream, Tag.NULL);
+            outputStream.writeTag(Tag.NULL);
             return;
         }
         @SuppressWarnings("unchecked") final PojoCodec<? super E> codec = (PojoCodec<? super E>) codecRegistry.get(entitySuperClass);
@@ -165,14 +159,10 @@ class EntityOutputStreamImp implements EntityOutputStream {
         codec.encode(outputStream, entity, codecRegistry);
     }
 
-    /**
-     * 临时方案
-     * TODO 优化，最好能直接使用当前的{@link #outputStream}
-     */
     @Override
     public void writeLazySerializeObject(@Nullable Object value) throws Exception {
         if (null == value) {
-            BinarySerializer.writeTag(outputStream, Tag.NULL);
+            outputStream.writeTag(Tag.NULL);
             return;
         }
 
@@ -181,30 +171,18 @@ class EntityOutputStreamImp implements EntityOutputStream {
             return;
         }
 
-        byte[] buffer = allocateBuffer();
-        try {
-            CodedOutputStream outputStream = CodedOutputStream.newInstance(buffer);
-            EntityOutputStream outputStreamImp = new EntityOutputStreamImp(codecRegistry, outputStream);
-            outputStreamImp.writeObject(value);
+        // 占位，用于后面填充tag和长度字段
+        final DataOutputStream childOutputStream = outputStream.slice(outputStream.writeIndex() + 1 + 1 + 4);
+        final EntityOutputStream childEntityOutputStream = new EntityOutputStreamImp(codecRegistry, childOutputStream);
+        childEntityOutputStream.writeObject(value);
 
-            writeBytes(buffer, 0, outputStream.getTotalBytesWritten());
-        } finally {
-            releaseBuffer(buffer);
-        }
+        // 设置长度
+        outputStream.writeTag(Tag.ARRAY);
+        outputStream.writeTag(Tag.BYTE);
+        outputStream.writeIntBigEndian(childOutputStream.writeIndex());
+
+        // 更新写索引
+        outputStream.writeIndex(outputStream.writeIndex() + childOutputStream.writeIndex());
     }
 
-    @Nonnull
-    private static byte[] allocateBuffer() {
-        final Queue<byte[]> bufferQueue = LOCAL_BUFFER_QUEUE.get();
-        byte[] buffer = bufferQueue.poll();
-        if (buffer != null) {
-            return buffer;
-        }
-        return new byte[NetUtils.MAX_BUFFER_SIZE];
-    }
-
-    private static void releaseBuffer(@Nonnull byte[] buffer) {
-        final Queue<byte[]> bufferQueue = LOCAL_BUFFER_QUEUE.get();
-        bufferQueue.offer(buffer);
-    }
 }

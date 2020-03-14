@@ -17,8 +17,6 @@
 package com.wjybxx.fastjgame.net.binary;
 
 import com.google.common.collect.Maps;
-import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.CodedOutputStream;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
@@ -38,19 +36,19 @@ public class MapCodec implements Codec<Map<?, ?>> {
     }
 
     @Override
-    public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Map<?, ?> value, CodecRegistry codecRegistry) throws Exception {
+    public void encode(@Nonnull DataOutputStream outputStream, @Nonnull Map<?, ?> value, CodecRegistry codecRegistry) throws Exception {
         encodeMap(outputStream, value, codecRegistry);
     }
 
     @Nonnull
     @Override
-    public Map<?, ?> decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
+    public Map<?, ?> decode(@Nonnull DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
         return readMapImp(inputStream, Maps::newLinkedHashMapWithExpectedSize, codecRegistry);
     }
 
-    static void encodeMap(@Nonnull CodedOutputStream outputStream, @Nonnull Map<?, ?> value, CodecRegistry codecRegistry) throws Exception {
-        BinarySerializer.writeTag(outputStream, Tag.MAP);
-        outputStream.writeUInt32NoTag(value.size());
+    static void encodeMap(@Nonnull DataOutputStream outputStream, @Nonnull Map<?, ?> value, CodecRegistry codecRegistry) throws Exception {
+        outputStream.writeTag(Tag.MAP);
+        outputStream.writeInt(value.size());
         if (value.size() == 0) {
             return;
         }
@@ -62,10 +60,10 @@ public class MapCodec implements Codec<Map<?, ?>> {
     }
 
     @Nonnull
-    static <M extends Map<K, V>, K, V> M readMapImp(@Nonnull CodedInputStream inputStream,
+    static <M extends Map<K, V>, K, V> M readMapImp(@Nonnull DataInputStream inputStream,
                                                     @Nonnull IntFunction<M> mapFactory,
                                                     @Nonnull CodecRegistry codecRegistry) throws Exception {
-        final int size = inputStream.readUInt32();
+        final int size = inputStream.readInt();
         if (size == 0) {
             return mapFactory.apply(0);
         }

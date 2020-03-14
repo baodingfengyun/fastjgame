@@ -16,9 +16,6 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.CodedOutputStream;
-
 import javax.annotation.Nonnull;
 
 /**
@@ -33,15 +30,15 @@ public class BooleanCodec implements Codec<Boolean> {
     }
 
     @Override
-    public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Boolean value, CodecRegistry codecRegistry) throws Exception {
-        BinarySerializer.writeTag(outputStream, Tag.BOOLEAN);
-        outputStream.writeBoolNoTag(value);
+    public void encode(@Nonnull DataOutputStream outputStream, @Nonnull Boolean value, CodecRegistry codecRegistry) throws Exception {
+        outputStream.writeTag(Tag.BOOLEAN);
+        outputStream.writeBoolean(value);
     }
 
     @Nonnull
     @Override
-    public Boolean decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
-        return inputStream.readBool();
+    public Boolean decode(@Nonnull DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
+        return inputStream.readBoolean();
     }
 
     @Override

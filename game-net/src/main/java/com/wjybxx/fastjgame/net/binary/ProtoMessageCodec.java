@@ -16,7 +16,9 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.google.protobuf.*;
+import com.google.protobuf.AbstractMessage;
+import com.google.protobuf.ExtensionRegistryLite;
+import com.google.protobuf.Parser;
 
 import javax.annotation.Nonnull;
 
@@ -41,14 +43,14 @@ public class ProtoMessageCodec<T extends AbstractMessage> extends PojoCodec<T> {
     }
 
     @Override
-    public void encodeBody(@Nonnull CodedOutputStream outputStream, @Nonnull T value, CodecRegistry codecRegistry) throws Exception {
-        outputStream.writeMessageNoTag(value);
+    public void encodeBody(@Nonnull DataOutputStream outputStream, @Nonnull T value, CodecRegistry codecRegistry) throws Exception {
+        outputStream.writeMessage(value);
     }
 
     @Nonnull
     @Override
-    public T decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
-        return inputStream.readMessage(parser, ExtensionRegistryLite.getEmptyRegistry());
+    public T decode(@Nonnull DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
+        return inputStream.readMessage(parser);
     }
 
     @Override

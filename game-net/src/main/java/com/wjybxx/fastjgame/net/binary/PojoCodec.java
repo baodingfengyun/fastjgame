@@ -16,9 +16,6 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.CodedOutputStream;
-
 import javax.annotation.Nonnull;
 import java.io.IOException;
 
@@ -42,14 +39,15 @@ public abstract class PojoCodec<T> implements Codec<T> {
     }
 
     @Override
-    public final void encode(@Nonnull CodedOutputStream outputStream, @Nonnull T value, CodecRegistry codecRegistry) throws Exception {
-        BinarySerializer.writeTag(outputStream, Tag.POJO);
-        outputStream.writeRawByte(providerId);
-        outputStream.writeInt32NoTag(classId);
+    public final void encode(@Nonnull DataOutputStream outputStream, @Nonnull T value, CodecRegistry codecRegistry) throws Exception {
+        outputStream.writeTag(Tag.POJO);
+        outputStream.writeByte(providerId);
+        // 大端模式写入classId，是为了当与客户端之间使用protoBuffer通信时，方便客户端解析，
+        outputStream.writeIntBigEndian(classId);
         encodeBody(outputStream, value, codecRegistry);
     }
 
-    protected abstract void encodeBody(CodedOutputStream outputStream, T value, CodecRegistry codecRegistry) throws Exception;
+    protected abstract void encodeBody(DataOutputStream outputStream, T value, CodecRegistry codecRegistry) throws Exception;
 
     /**
      * 返回codec所属的{@link CodecProvider}的id
@@ -68,9 +66,9 @@ public abstract class PojoCodec<T> implements Codec<T> {
     @Override
     public abstract Class<T> getEncoderClass();
 
-    static PojoCodec<?> getPojoCodec(CodedInputStream inputStream, CodecRegistry codecRegistry) throws IOException {
-        final byte providerId = inputStream.readRawByte();
-        final int classId = inputStream.readInt32();
+    static PojoCodec<?> getPojoCodec(DataInputStream inputStream, CodecRegistry codecRegistry) throws IOException {
+        final byte providerId = inputStream.readByte();
+        final int classId = inputStream.readIntBigEndian();
         return codecRegistry.getPojoCodec(providerId, classId);
     }
 }

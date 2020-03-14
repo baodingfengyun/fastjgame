@@ -16,9 +16,6 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.CodedOutputStream;
-
 import javax.annotation.Nonnull;
 
 /**
@@ -31,15 +28,15 @@ public class ByteCodec implements Codec<Byte> {
     }
 
     @Override
-    public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Byte value, CodecRegistry codecRegistry) throws Exception {
-        BinarySerializer.writeTag(outputStream, Tag.BYTE);
-        outputStream.writeRawByte(value);
+    public void encode(@Nonnull DataOutputStream outputStream, @Nonnull Byte value, CodecRegistry codecRegistry) throws Exception {
+        outputStream.writeTag(Tag.BYTE);
+        outputStream.writeByte(value);
     }
 
     @Nonnull
     @Override
-    public Byte decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
-        return inputStream.readRawByte();
+    public Byte decode(@Nonnull DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
+        return inputStream.readByte();
     }
 
     @Override

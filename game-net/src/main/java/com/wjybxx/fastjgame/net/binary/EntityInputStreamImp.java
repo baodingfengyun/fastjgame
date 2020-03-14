@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.google.protobuf.CodedInputStream;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -33,9 +31,9 @@ import java.util.function.IntFunction;
 class EntityInputStreamImp implements EntityInputStream {
 
     private final CodecRegistry codecRegistry;
-    private final CodedInputStream inputStream;
+    private final DataInputStream inputStream;
 
-    EntityInputStreamImp(CodecRegistry codecRegistry, CodedInputStream inputStream) {
+    EntityInputStreamImp(CodecRegistry codecRegistry, DataInputStream inputStream) {
         this.codecRegistry = codecRegistry;
         this.inputStream = inputStream;
     }
@@ -43,13 +41,13 @@ class EntityInputStreamImp implements EntityInputStream {
     @Override
     public int readInt() throws Exception {
         readTagAndCheck(Tag.INT);
-        return inputStream.readInt32();
+        return inputStream.readInt();
     }
 
     @Override
     public long readLong() throws Exception {
         readTagAndCheck(Tag.LONG);
-        return inputStream.readInt64();
+        return inputStream.readLong();
     }
 
     @Override
@@ -67,30 +65,30 @@ class EntityInputStreamImp implements EntityInputStream {
     @Override
     public short readShort() throws Exception {
         readTagAndCheck(Tag.SHORT);
-        return (short) inputStream.readInt32();
+        return inputStream.readShort();
     }
 
     @Override
     public boolean readBoolean() throws Exception {
         readTagAndCheck(Tag.BOOLEAN);
-        return inputStream.readBool();
+        return inputStream.readBoolean();
     }
 
     @Override
     public byte readByte() throws Exception {
         readTagAndCheck(Tag.BYTE);
-        return inputStream.readRawByte();
+        return inputStream.readByte();
     }
 
     @Override
     public char readChar() throws Exception {
         readTagAndCheck(Tag.CHAR);
-        return (char) inputStream.readUInt32();
+        return inputStream.readChar();
     }
 
     @Override
     public String readString() throws Exception {
-        final Tag tag = BinarySerializer.readTag(inputStream);
+        final Tag tag = inputStream.readTag();
         if (tag == Tag.NULL) {
             return null;
         }
@@ -108,7 +106,7 @@ class EntityInputStreamImp implements EntityInputStream {
     }
 
     private void readTagAndCheck(Tag expectedTag) throws Exception {
-        final Tag tag = BinarySerializer.readTag(inputStream);
+        final Tag tag = inputStream.readTag();
         if (tag != expectedTag) {
             throw new IOException("Incompatible wireType, expected: " + expectedTag + ", but read: " + tag);
         }
@@ -117,7 +115,7 @@ class EntityInputStreamImp implements EntityInputStream {
     @Nullable
     @Override
     public <C extends Collection<E>, E> C readCollection(@Nonnull IntFunction<C> collectionFactory) throws Exception {
-        final Tag tag = BinarySerializer.readTag(inputStream);
+        final Tag tag = inputStream.readTag();
         if (tag == Tag.NULL) {
             return null;
         }
@@ -130,7 +128,7 @@ class EntityInputStreamImp implements EntityInputStream {
     @Nullable
     @Override
     public <M extends Map<K, V>, K, V> M readMap(@Nonnull IntFunction<M> mapFactory) throws Exception {
-        final Tag tag = BinarySerializer.readTag(inputStream);
+        final Tag tag = inputStream.readTag();
         if (tag == Tag.NULL) {
             return null;
         }
@@ -143,7 +141,7 @@ class EntityInputStreamImp implements EntityInputStream {
     @Nullable
     @Override
     public <T> T readArray(@Nonnull Class<?> componentType) throws Exception {
-        final Tag tag = BinarySerializer.readTag(inputStream);
+        final Tag tag = inputStream.readTag();
         if (tag == Tag.NULL) {
             return null;
         }
@@ -155,7 +153,7 @@ class EntityInputStreamImp implements EntityInputStream {
     }
 
     public <E> E readEntity(EntityFactory<E> entityFactory, Class<? super E> entitySuperClass) throws Exception {
-        final Tag tag = BinarySerializer.readTag(inputStream);
+        final Tag tag = inputStream.readTag();
         if (tag == Tag.NULL) {
             return null;
         }
@@ -195,18 +193,32 @@ class EntityInputStreamImp implements EntityInputStream {
         }
     }
 
-    /**
-     * 临时方案
-     * TODO 优化，不产生byte[]对象，最好直接使用当前{@link #inputStream}
-     */
+    @SuppressWarnings("unchecked")
     @Override
     public <T> T readPreDeserializeObject() throws Exception {
-        final T object = readObject();
-        if (object instanceof byte[]) {
-            final EntityInputStreamImp inputStreamImp = new EntityInputStreamImp(codecRegistry, CodedInputStream.newInstance((byte[]) object));
-            return inputStreamImp.readObject();
-        } else {
-            return object;
+        final Tag tag = inputStream.readTag();
+        if (tag == Tag.NULL) {
+            return null;
         }
+
+        if (tag != Tag.ARRAY) {
+            return (T) BinarySerializer.decodeObjectImp(tag, inputStream, codecRegistry);
+        }
+
+        final Tag childTag = inputStream.readTag();
+        final int length = inputStream.readIntBigEndian();
+
+        if (childTag != Tag.BYTE) {
+            return (T) ArrayCodec.readArrayImp(inputStream, null, codecRegistry, childTag, length);
+        }
+
+        final DataInputStream childInputStream = inputStream.slice(length);
+        final EntityInputStreamImp childEntityInputStream = new EntityInputStreamImp(codecRegistry, childInputStream);
+        final T value = childEntityInputStream.readObject();
+
+        // 更新当前输入流的读索引
+        inputStream.readIndex(inputStream.readIndex() + childInputStream.readIndex());
+
+        return value;
     }
 }

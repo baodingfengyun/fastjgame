@@ -49,13 +49,13 @@ public enum Tag implements NumericalEntity {
      */
     BYTE(1),
     /**
-     * uInt32
-     */
-    CHAR(2),
-    /**
      * varInt32
      */
-    SHORT(3),
+    SHORT(2),
+    /**
+     * uInt32
+     */
+    CHAR(3),
     /**
      * varInt32
      */

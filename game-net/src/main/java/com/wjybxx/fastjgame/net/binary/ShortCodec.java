@@ -16,9 +16,6 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.CodedOutputStream;
-
 import javax.annotation.Nonnull;
 
 /**
@@ -32,15 +29,15 @@ public class ShortCodec implements Codec<Short> {
     }
 
     @Override
-    public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Short value, CodecRegistry codecRegistry) throws Exception {
-        BinarySerializer.writeTag(outputStream, Tag.SHORT);
-        outputStream.writeInt32NoTag(value);
+    public void encode(@Nonnull DataOutputStream outputStream, @Nonnull Short value, CodecRegistry codecRegistry) throws Exception {
+        outputStream.writeTag(Tag.SHORT);
+        outputStream.writeShort(value);
     }
 
     @Nonnull
     @Override
-    public Short decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
-        return (short) inputStream.readInt32();
+    public Short decode(@Nonnull DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
+        return inputStream.readShort();
     }
 
     @Override

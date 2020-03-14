@@ -17,7 +17,10 @@
 package com.wjybxx.fastjgame.net.binary;
 
 import com.google.common.collect.Sets;
-import com.google.protobuf.*;
+import com.google.protobuf.Internal;
+import com.google.protobuf.Message;
+import com.google.protobuf.Parser;
+import com.google.protobuf.ProtocolMessageEnum;
 import com.wjybxx.fastjgame.net.serialization.JsonSerializer;
 import com.wjybxx.fastjgame.net.serialization.MessageMapper;
 import com.wjybxx.fastjgame.net.serialization.MessageMappingStrategy;
@@ -73,12 +76,12 @@ public class BinarySerializer implements Serializer {
         final byte[] localBuffer = LOCAL_BUFFER.get();
 
         // 写入字节数组缓存
-        final CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(localBuffer);
-        encodeObject(codedOutputStream, object, codecRegistry);
+        final CodedDataOutputStream outputStream = new CodedDataOutputStream(localBuffer);
+        encodeObject(outputStream, object, codecRegistry);
 
         // 写入byteBuf
-        final ByteBuf buffer = bufAllocator.buffer(codedOutputStream.getTotalBytesWritten());
-        buffer.writeBytes(localBuffer, 0, codedOutputStream.getTotalBytesWritten());
+        final ByteBuf buffer = bufAllocator.buffer(outputStream.writeIndex());
+        buffer.writeBytes(localBuffer, 0, outputStream.writeIndex());
         return buffer;
     }
 
@@ -91,8 +94,8 @@ public class BinarySerializer implements Serializer {
         data.readBytes(localBuffer, 0, readableBytes);
 
         // 解析对象
-        final CodedInputStream codedInputStream = CodedInputStream.newInstance(localBuffer, 0, readableBytes);
-        return decodeObject(codedInputStream, codecRegistry);
+        final CodedDataInputStream inputStream = new CodedDataInputStream(localBuffer, 0, readableBytes);
+        return decodeObject(inputStream, codecRegistry);
     }
 
     @Nonnull
@@ -100,18 +103,18 @@ public class BinarySerializer implements Serializer {
     public byte[] toBytes(@Nullable Object object) throws Exception {
         // 这里测试也是拷贝字节数组快于先计算大小（两轮反射）
         final byte[] localBuffer = LOCAL_BUFFER.get();
-        final CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(localBuffer);
-        encodeObject(codedOutputStream, object, codecRegistry);
+        final CodedDataOutputStream outputStream = new CodedDataOutputStream(localBuffer);
+        encodeObject(outputStream, object, codecRegistry);
 
         // 拷贝序列化结果
-        final byte[] resultBytes = new byte[codedOutputStream.getTotalBytesWritten()];
+        final byte[] resultBytes = new byte[outputStream.writeIndex()];
         System.arraycopy(localBuffer, 0, resultBytes, 0, resultBytes.length);
         return resultBytes;
     }
 
     @Override
     public Object fromBytes(@Nonnull byte[] data) throws Exception {
-        return decodeObject(CodedInputStream.newInstance(data), codecRegistry);
+        return decodeObject(new CodedDataInputStream(data), codecRegistry);
     }
 
     @Override
@@ -120,42 +123,21 @@ public class BinarySerializer implements Serializer {
             return null;
         }
         final byte[] localBuffer = LOCAL_BUFFER.get();
+
         // 写入缓冲区
-        final CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(localBuffer);
-        encodeObject(codedOutputStream, object, codecRegistry);
+        final CodedDataOutputStream outputStream = new CodedDataOutputStream(localBuffer);
+        encodeObject(outputStream, object, codecRegistry);
 
         // 读出
-        final CodedInputStream codedInputStream = CodedInputStream.newInstance(localBuffer, 0, codedOutputStream.getTotalBytesWritten());
-        return decodeObject(codedInputStream, codecRegistry);
+        final CodedDataInputStream inputStream = new CodedDataInputStream(localBuffer, 0, outputStream.writeIndex());
+        return decodeObject(inputStream, codecRegistry);
     }
 
     // ------------------------------------------- tag相关 ------------------------------------
 
-    /**
-     * 写入一个tag
-     *
-     * @param outputStream 输出流
-     * @param tag          tag
-     * @throws IOException error
-     */
-    static void writeTag(CodedOutputStream outputStream, Tag tag) throws IOException {
-        outputStream.writeRawByte(tag.getNumber());
-    }
-
-    /**
-     * 读取一个tag
-     *
-     * @param inputStream 输入流
-     * @return tag
-     * @throws IOException error
-     */
-    static Tag readTag(CodedInputStream inputStream) throws IOException {
-        return Tag.forNumber(inputStream.readRawByte());
-    }
-
-    static <T> void encodeObject(CodedOutputStream outputStream, @Nullable T value, CodecRegistry codecRegistry) throws Exception {
+    static <T> void encodeObject(DataOutputStream outputStream, @Nullable T value, CodecRegistry codecRegistry) throws Exception {
         if (null == value) {
-            writeTag(outputStream, Tag.NULL);
+            outputStream.writeTag(Tag.NULL);
         } else {
             @SuppressWarnings("unchecked") final Codec<T> codec = (Codec<T>) codecRegistry.get(value.getClass());
             codec.encode(outputStream, value, codecRegistry);
@@ -163,35 +145,28 @@ public class BinarySerializer implements Serializer {
     }
 
     @SuppressWarnings("unchecked")
-    static <T> T decodeObject(CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
-        final Tag tag = readTag(inputStream);
-        if (tag == Tag.NULL) {
-            return null;
-        }
+    static <T> T decodeObject(DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
+        final Tag tag = inputStream.readTag();
         return (T) decodeObjectImp(tag, inputStream, codecRegistry);
     }
 
-    private static Object decodeObjectImp(Tag tag, CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
+    static Object decodeObjectImp(Tag tag, DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
         switch (tag) {
-            case ARRAY:
-                return codecRegistry.getArrayCodec().decode(inputStream, codecRegistry);
-            case MAP:
-                return codecRegistry.getMapCodec().decode(inputStream, codecRegistry);
-            case COLLECTION:
-                return codecRegistry.getCollectionCodec().decode(inputStream, codecRegistry);
+            case NULL:
+                return null;
 
             case BYTE:
-                return inputStream.readRawByte();
+                return inputStream.readByte();
             case CHAR:
-                return (char) inputStream.readUInt32();
+                return inputStream.readChar();
             case SHORT:
-                return (short) inputStream.readInt32();
+                return inputStream.readShort();
             case INT:
-                return inputStream.readInt32();
+                return inputStream.readInt();
             case BOOLEAN:
-                return inputStream.readBool();
+                return inputStream.readBoolean();
             case LONG:
-                return inputStream.readInt64();
+                return inputStream.readLong();
             case FLOAT:
                 return inputStream.readFloat();
             case DOUBLE:
@@ -201,6 +176,14 @@ public class BinarySerializer implements Serializer {
 
             case POJO:
                 return PojoCodec.getPojoCodec(inputStream, codecRegistry).decode(inputStream, codecRegistry);
+
+            case ARRAY:
+                return codecRegistry.getArrayCodec().decode(inputStream, codecRegistry);
+            case MAP:
+                return codecRegistry.getMapCodec().decode(inputStream, codecRegistry);
+            case COLLECTION:
+                return codecRegistry.getCollectionCodec().decode(inputStream, codecRegistry);
+
             default:
                 throw new IOException("unexpected tag : " + tag);
         }

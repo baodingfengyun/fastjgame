@@ -16,9 +16,6 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.CodedOutputStream;
-
 import javax.annotation.Nonnull;
 
 /**
@@ -32,14 +29,14 @@ public class DoubleCodec implements Codec<Double> {
     }
 
     @Override
-    public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Double value, CodecRegistry codecRegistry) throws Exception {
-        BinarySerializer.writeTag(outputStream, Tag.DOUBLE);
-        outputStream.writeDoubleNoTag(value);
+    public void encode(@Nonnull DataOutputStream outputStream, @Nonnull Double value, CodecRegistry codecRegistry) throws Exception {
+        outputStream.writeTag(Tag.DOUBLE);
+        outputStream.writeDouble(value);
     }
 
     @Nonnull
     @Override
-    public Double decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
+    public Double decode(@Nonnull DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
         return inputStream.readDouble();
     }
 

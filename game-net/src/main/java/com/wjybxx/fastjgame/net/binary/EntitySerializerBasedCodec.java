@@ -16,9 +16,6 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.CodedOutputStream;
-
 import javax.annotation.Nonnull;
 
 /**
@@ -38,14 +35,14 @@ public class EntitySerializerBasedCodec<T> extends PojoCodec<T> {
     }
 
     @Override
-    protected void encodeBody(@Nonnull CodedOutputStream outputStream, @Nonnull T value, CodecRegistry codecRegistry) throws Exception {
+    protected void encodeBody(@Nonnull DataOutputStream outputStream, @Nonnull T value, CodecRegistry codecRegistry) throws Exception {
         final EntityOutputStream entityOutputStream = new EntityOutputStreamImp(codecRegistry, outputStream);
         serializer.writeObject(value, entityOutputStream);
     }
 
     @Nonnull
     @Override
-    public T decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
+    public T decode(@Nonnull DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
         final EntityInputStream entityInputStream = new EntityInputStreamImp(codecRegistry, inputStream);
         return serializer.readObject(entityInputStream);
     }
@@ -59,7 +56,7 @@ public class EntitySerializerBasedCodec<T> extends PojoCodec<T> {
         return serializer instanceof AbstractEntitySerializer;
     }
 
-    void decodeBody(T instance, @Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
+    void decodeBody(T instance, @Nonnull DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
         final EntityInputStream entityInputStream = new EntityInputStreamImp(codecRegistry, inputStream);
         ((AbstractEntitySerializer<T>) serializer).readFields(instance, entityInputStream);
     }

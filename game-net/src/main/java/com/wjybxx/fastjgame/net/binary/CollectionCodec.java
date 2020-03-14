@@ -16,9 +16,6 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.CodedOutputStream;
-
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,19 +36,19 @@ public class CollectionCodec implements Codec<Collection<?>> {
     }
 
     @Override
-    public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Collection<?> value, CodecRegistry codecRegistry) throws Exception {
+    public void encode(@Nonnull DataOutputStream outputStream, @Nonnull Collection<?> value, CodecRegistry codecRegistry) throws Exception {
         encodeCollection(outputStream, value, codecRegistry);
     }
 
     @Nonnull
     @Override
-    public Collection<?> decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
+    public Collection<?> decode(@Nonnull DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
         return readCollectionImp(inputStream, ArrayList::new, codecRegistry);
     }
 
-    static void encodeCollection(@Nonnull CodedOutputStream outputStream, @Nonnull Collection<?> value, CodecRegistry codecRegistry) throws Exception {
-        BinarySerializer.writeTag(outputStream, Tag.COLLECTION);
-        outputStream.writeUInt32NoTag(value.size());
+    static void encodeCollection(@Nonnull DataOutputStream outputStream, @Nonnull Collection<?> value, CodecRegistry codecRegistry) throws Exception {
+        outputStream.writeTag(Tag.COLLECTION);
+        outputStream.writeInt(value.size());
         if (value.size() == 0) {
             return;
         }
@@ -62,8 +59,8 @@ public class CollectionCodec implements Codec<Collection<?>> {
     }
 
     @Nonnull
-    static <C extends Collection<E>, E> C readCollectionImp(@Nonnull CodedInputStream inputStream, @Nonnull IntFunction<C> collectionFactory, @Nonnull CodecRegistry codecRegistry) throws Exception {
-        final int size = inputStream.readUInt32();
+    static <C extends Collection<E>, E> C readCollectionImp(@Nonnull DataInputStream inputStream, @Nonnull IntFunction<C> collectionFactory, @Nonnull CodecRegistry codecRegistry) throws Exception {
+        final int size = inputStream.readInt();
         if (size == 0) {
             return collectionFactory.apply(0);
         }

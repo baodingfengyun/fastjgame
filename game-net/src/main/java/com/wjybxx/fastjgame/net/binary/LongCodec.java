@@ -16,9 +16,6 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.CodedOutputStream;
-
 import javax.annotation.Nonnull;
 
 /**
@@ -33,15 +30,15 @@ public class LongCodec implements Codec<Long> {
     }
 
     @Override
-    public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Long value, CodecRegistry codecRegistry) throws Exception {
-        BinarySerializer.writeTag(outputStream, Tag.LONG);
-        outputStream.writeInt64NoTag(value);
+    public void encode(@Nonnull DataOutputStream outputStream, @Nonnull Long value, CodecRegistry codecRegistry) throws Exception {
+        outputStream.writeTag(Tag.LONG);
+        outputStream.writeLong(value);
     }
 
     @Nonnull
     @Override
-    public Long decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
-        return inputStream.readInt64();
+    public Long decode(@Nonnull DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
+        return inputStream.readLong();
     }
 
     @Override

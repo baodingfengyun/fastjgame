@@ -16,9 +16,6 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.CodedOutputStream;
-
 import javax.annotation.Nonnull;
 
 /**
@@ -33,14 +30,14 @@ public class FloatCodec implements Codec<Float> {
     }
 
     @Override
-    public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Float value, CodecRegistry codecRegistry) throws Exception {
-        BinarySerializer.writeTag(outputStream, Tag.FLOAT);
-        outputStream.writeFloatNoTag(value);
+    public void encode(@Nonnull DataOutputStream outputStream, @Nonnull Float value, CodecRegistry codecRegistry) throws Exception {
+        outputStream.writeTag(Tag.FLOAT);
+        outputStream.writeFloat(value);
     }
 
     @Nonnull
     @Override
-    public Float decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
+    public Float decode(@Nonnull DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
         return inputStream.readFloat();
     }
 

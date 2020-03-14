@@ -16,9 +16,6 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.CodedOutputStream;
-
 import javax.annotation.Nonnull;
 
 /**
@@ -38,7 +35,7 @@ public interface Codec<T> {
      *
      * @param codecRegistry 如果需要编解码别的类，可以获取对应的codec
      */
-    void encode(@Nonnull CodedOutputStream outputStream, @Nonnull T value, CodecRegistry codecRegistry) throws Exception;
+    void encode(@Nonnull DataOutputStream outputStream, @Nonnull T value, CodecRegistry codecRegistry) throws Exception;
 
     /**
      * 从输入流中读取对象
@@ -46,7 +43,7 @@ public interface Codec<T> {
      * @param codecRegistry 如果需要编解码别的类，可以获取对应的codec
      */
     @Nonnull
-    T decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception;
+    T decode(@Nonnull DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception;
 
     /**
      * 获取代表这个codec的class对象，一般而言，就是{@code T.class}

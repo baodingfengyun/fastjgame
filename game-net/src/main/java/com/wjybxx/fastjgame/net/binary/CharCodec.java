@@ -16,9 +16,6 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.CodedOutputStream;
-
 import javax.annotation.Nonnull;
 
 /**
@@ -32,15 +29,15 @@ public class CharCodec implements Codec<Character> {
     }
 
     @Override
-    public void encode(@Nonnull CodedOutputStream outputStream, @Nonnull Character value, CodecRegistry codecRegistry) throws Exception {
-        BinarySerializer.writeTag(outputStream, Tag.CHAR);
-        outputStream.writeUInt32NoTag(value);
+    public void encode(@Nonnull DataOutputStream outputStream, @Nonnull Character value, CodecRegistry codecRegistry) throws Exception {
+        outputStream.writeTag(Tag.CHAR);
+        outputStream.writeChar(value);
     }
 
     @Nonnull
     @Override
-    public Character decode(@Nonnull CodedInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
-        return (char) inputStream.readUInt32();
+    public Character decode(@Nonnull DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
+        return inputStream.readChar();
     }
 
     @Override
