@@ -101,7 +101,7 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
 
     @Override
     protected void loopOnce() {
-        if (System.currentTimeMillis() - startTime > 3 * TimeUtils.MIN) {
+        if (System.currentTimeMillis() - startTime > TimeUtils.MIN) {
             shutdown();
         }
     }
@@ -112,7 +112,7 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
         ExampleConstants.netEventLoop.shutdown();
     }
 
-    private class ClientLifeAware implements SessionLifecycleAware {
+    private static class ClientLifeAware implements SessionLifecycleAware {
 
         @Override
         public void onSessionConnected(Session session) {

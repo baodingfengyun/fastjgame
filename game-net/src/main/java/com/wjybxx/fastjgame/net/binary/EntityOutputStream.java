@@ -81,7 +81,7 @@ public interface EntityOutputStream {
     /**
      * 向输出流中写入一个数组
      *
-     * @param array 要支持基本类型数组，因此为{@link Object}而不是泛型数组+
+     * @param array 要支持基本类型数组，因此为{@link Object}而不是泛型数组
      */
     void writeArray(@Nullable Object array) throws Exception;
 

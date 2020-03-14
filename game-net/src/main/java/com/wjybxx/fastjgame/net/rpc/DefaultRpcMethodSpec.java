@@ -122,7 +122,7 @@ public class DefaultRpcMethodSpec<V> implements RpcMethodSpec<V> {
 
             for (int index = 0; index < size; index++) {
                 final Object newParameter;
-                if ((preIndexes & (1L << index)) != 0) {
+                if (preIndexes > 0 && (preIndexes & (1L << index)) != 0) {
                     newParameter = inputStream.readPreDeserializeObject();
                 } else {
                     newParameter = inputStream.readObject();
@@ -147,7 +147,7 @@ public class DefaultRpcMethodSpec<V> implements RpcMethodSpec<V> {
 
             for (int index = 0; index < size; index++) {
                 final Object parameter = methodParams.get(index);
-                if ((lazyIndexes & (1L << index)) != 0) {
+                if (lazyIndexes > 0 && (lazyIndexes & (1L << index)) != 0) {
                     outputStream.writeLazySerializeObject(parameter);
                 } else {
                     outputStream.writeObject(parameter);

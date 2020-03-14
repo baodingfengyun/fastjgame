@@ -93,7 +93,7 @@ public interface EntityInputStream {
     @Nullable
     <E> E readEntity(EntityFactory<E> entityFactory, Class<? super E> entitySuperClass) throws Exception;
 
-    // --------------------------------------- 处理延迟序列化问题 ----------------------------------
+    // --------------------------------------- 处理提前反序列化问题 ----------------------------------
 
     /**
      * 读取一个需要提前反序列化的对象。

@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.net.binary;
 
 import com.google.protobuf.AbstractMessage;
-import com.google.protobuf.ExtensionRegistryLite;
 import com.google.protobuf.Parser;
 
 import javax.annotation.Nonnull;

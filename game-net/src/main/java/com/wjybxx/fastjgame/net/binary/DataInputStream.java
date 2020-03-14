@@ -94,8 +94,7 @@ public interface DataInputStream {
     DataInputStream slice(int length);
 
     /**
-     * 从指定位置返回一个数据切片(视图)，该切片拥有独立的索引，但是它们仍然共享底层的数据结构，
-     * 任何在切片上的操作都将反应在原始对象上。
+     * 从指定位置返回一个数据切片(视图)，该切片拥有独立的索引，但是它们仍然共享底层的数据结构。
      */
     DataInputStream slice(int index, int length);
 }
