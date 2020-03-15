@@ -45,11 +45,6 @@ public class NetUtils {
     private static final Logger logger = LoggerFactory.getLogger(NetUtils.class);
 
     /**
-     * 最大缓冲区大小
-     */
-    public static final int MAX_BUFFER_SIZE = 1024 * 1024;
-
-    /**
      * 读超时handler的名字
      */
     public static final String READ_TIMEOUT_HANDLER_NAME = "readTimeoutHandler";

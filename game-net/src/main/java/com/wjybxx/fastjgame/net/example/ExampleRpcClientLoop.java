@@ -149,14 +149,6 @@ class ExampleRpcClientLoop extends DisruptorEventLoop {
         rpcClient.syncCall(session, ExampleRpcServiceRpcProxy.sync());
     }
 
-    /**
-     * @param result rpc调用结果
-     * @param index  保存的索引(一个简单的上下文)
-     */
-    private void afterQueryId(Integer result, int index) {
-        System.out.println("saferQueryId - " + index + " - " + result);
-    }
-
     @Override
     protected void clean() throws Exception {
         super.clean();

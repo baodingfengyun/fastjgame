@@ -21,11 +21,11 @@ import com.google.protobuf.Internal;
 import com.google.protobuf.Message;
 import com.google.protobuf.Parser;
 import com.google.protobuf.ProtocolMessageEnum;
+import com.wjybxx.fastjgame.net.misc.BufferPool;
 import com.wjybxx.fastjgame.net.serialization.JsonSerializer;
 import com.wjybxx.fastjgame.net.serialization.MessageMapper;
 import com.wjybxx.fastjgame.net.serialization.MessageMappingStrategy;
 import com.wjybxx.fastjgame.net.serialization.Serializer;
-import com.wjybxx.fastjgame.net.utils.NetUtils;
 import com.wjybxx.fastjgame.net.utils.ProtoUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -60,8 +60,6 @@ import java.util.stream.Stream;
 @ThreadSafe
 public class BinarySerializer implements Serializer {
 
-    private static final ThreadLocal<byte[]> LOCAL_BUFFER = ThreadLocal.withInitial(() -> new byte[NetUtils.MAX_BUFFER_SIZE]);
-
     private final CodecRegistry codecRegistry;
 
     public BinarySerializer(CodecRegistry codecRegistry) {
@@ -73,43 +71,53 @@ public class BinarySerializer implements Serializer {
     public ByteBuf writeObject(ByteBufAllocator bufAllocator, @Nullable Object object) throws Exception {
         // 这里的测试结果是：拷贝字节数组，比先计算一次大小，再写入ByteBuf快，而且快很多。
         // 此外，即使使用输入输出流构造，其内部还是做了缓存(创建了字节数组)，因此一定要有自己的缓冲字节数组
-        final byte[] localBuffer = LOCAL_BUFFER.get();
+        final byte[] localBuffer = BufferPool.allocateBuffer();
+        try {
+            // 写入字节数组缓存
+            final CodedDataOutputStream outputStream = new CodedDataOutputStream(localBuffer);
+            encodeObject(outputStream, object, codecRegistry);
 
-        // 写入字节数组缓存
-        final CodedDataOutputStream outputStream = new CodedDataOutputStream(localBuffer);
-        encodeObject(outputStream, object, codecRegistry);
-
-        // 写入byteBuf
-        final ByteBuf buffer = bufAllocator.buffer(outputStream.writeIndex());
-        buffer.writeBytes(localBuffer, 0, outputStream.writeIndex());
-        return buffer;
+            // 写入byteBuf
+            final ByteBuf buffer = bufAllocator.buffer(outputStream.writeIndex());
+            buffer.writeBytes(localBuffer, 0, outputStream.writeIndex());
+            return buffer;
+        } finally {
+            BufferPool.releaseBuffer(localBuffer);
+        }
     }
 
     @Override
     public Object readObject(ByteBuf data) throws Exception {
-        final byte[] localBuffer = LOCAL_BUFFER.get();
+        final byte[] localBuffer = BufferPool.allocateBuffer();
+        try {
+            // 读入缓存数组
+            final int readableBytes = data.readableBytes();
+            data.readBytes(localBuffer, 0, readableBytes);
 
-        // 读入缓存数组
-        final int readableBytes = data.readableBytes();
-        data.readBytes(localBuffer, 0, readableBytes);
-
-        // 解析对象
-        final CodedDataInputStream inputStream = new CodedDataInputStream(localBuffer, 0, readableBytes);
-        return decodeObject(inputStream, codecRegistry);
+            // 解析对象
+            final CodedDataInputStream inputStream = new CodedDataInputStream(localBuffer, 0, readableBytes);
+            return decodeObject(inputStream, codecRegistry);
+        } finally {
+            BufferPool.releaseBuffer(localBuffer);
+        }
     }
 
     @Nonnull
     @Override
     public byte[] toBytes(@Nullable Object object) throws Exception {
         // 这里测试也是拷贝字节数组快于先计算大小（两轮反射）
-        final byte[] localBuffer = LOCAL_BUFFER.get();
-        final CodedDataOutputStream outputStream = new CodedDataOutputStream(localBuffer);
-        encodeObject(outputStream, object, codecRegistry);
+        final byte[] localBuffer = BufferPool.allocateBuffer();
+        try {
+            final CodedDataOutputStream outputStream = new CodedDataOutputStream(localBuffer);
+            encodeObject(outputStream, object, codecRegistry);
 
-        // 拷贝序列化结果
-        final byte[] resultBytes = new byte[outputStream.writeIndex()];
-        System.arraycopy(localBuffer, 0, resultBytes, 0, resultBytes.length);
-        return resultBytes;
+            // 拷贝序列化结果
+            final byte[] resultBytes = new byte[outputStream.writeIndex()];
+            System.arraycopy(localBuffer, 0, resultBytes, 0, resultBytes.length);
+            return resultBytes;
+        } finally {
+            BufferPool.releaseBuffer(localBuffer);
+        }
     }
 
     @Override
@@ -122,15 +130,18 @@ public class BinarySerializer implements Serializer {
         if (object == null) {
             return null;
         }
-        final byte[] localBuffer = LOCAL_BUFFER.get();
+        final byte[] localBuffer = BufferPool.allocateBuffer();
+        try {
+            // 写入缓冲区
+            final CodedDataOutputStream outputStream = new CodedDataOutputStream(localBuffer);
+            encodeObject(outputStream, object, codecRegistry);
 
-        // 写入缓冲区
-        final CodedDataOutputStream outputStream = new CodedDataOutputStream(localBuffer);
-        encodeObject(outputStream, object, codecRegistry);
-
-        // 读出
-        final CodedDataInputStream inputStream = new CodedDataInputStream(localBuffer, 0, outputStream.writeIndex());
-        return decodeObject(inputStream, codecRegistry);
+            // 读出
+            final CodedDataInputStream inputStream = new CodedDataInputStream(localBuffer, 0, outputStream.writeIndex());
+            return decodeObject(inputStream, codecRegistry);
+        } finally {
+            BufferPool.releaseBuffer(localBuffer);
+        }
     }
 
     // ------------------------------------------- tag相关 ------------------------------------

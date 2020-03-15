@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.net.serialization;
 
 import com.wjybxx.fastjgame.net.binary.BinarySerializer;
-import com.wjybxx.fastjgame.net.utils.NetUtils;
+import com.wjybxx.fastjgame.net.misc.BufferPool;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import io.netty.buffer.*;
 import org.apache.commons.lang3.ArrayUtils;
@@ -40,8 +40,6 @@ import java.util.Set;
 @ThreadSafe
 public class JsonSerializer implements Serializer {
 
-    private static final ThreadLocal<byte[]> LOCAL_BUFFER = ThreadLocal.withInitial(() -> new byte[NetUtils.MAX_BUFFER_SIZE]);
-
     private final MessageMapper messageMapper;
 
     private JsonSerializer(MessageMapper messageMapper) {
@@ -54,8 +52,9 @@ public class JsonSerializer implements Serializer {
         if (null == object) {
             return ArrayUtils.EMPTY_BYTE_ARRAY;
         }
-        final byte[] localBuffer = LOCAL_BUFFER.get();
-        ByteBuf cacheBuffer = Unpooled.wrappedBuffer(localBuffer);
+
+        final byte[] localBuffer = BufferPool.allocateBuffer();
+        final ByteBuf cacheBuffer = Unpooled.wrappedBuffer(localBuffer);
         try {
             // wrap会认为bytes中的数据都是可读的，我们需要清空这些标记。
             cacheBuffer.clear();
@@ -73,6 +72,7 @@ public class JsonSerializer implements Serializer {
             return result;
         } finally {
             cacheBuffer.release();
+            BufferPool.releaseBuffer(localBuffer);
         }
     }
 
@@ -81,7 +81,8 @@ public class JsonSerializer implements Serializer {
         if (data.length == 0) {
             return null;
         }
-        ByteBuf byteBuf = Unpooled.wrappedBuffer(data);
+
+        final ByteBuf byteBuf = Unpooled.wrappedBuffer(data);
         try {
             return readObject(byteBuf);
         } finally {
@@ -94,7 +95,9 @@ public class JsonSerializer implements Serializer {
         if (null == object) {
             return null;
         }
-        ByteBuf cacheBuffer = Unpooled.wrappedBuffer(LOCAL_BUFFER.get());
+
+        final byte[] localBuffer = BufferPool.allocateBuffer();
+        final ByteBuf cacheBuffer = Unpooled.wrappedBuffer(localBuffer);
         try {
             // wrap会认为bytes中的数据都是可读的，我们需要清空这些标记。
             cacheBuffer.clear();
@@ -108,6 +111,7 @@ public class JsonSerializer implements Serializer {
             return JsonUtils.readFromInputStream((InputStream) byteBufInputStream, object.getClass());
         } finally {
             cacheBuffer.release();
+            BufferPool.releaseBuffer(localBuffer);
         }
     }
 
@@ -117,7 +121,8 @@ public class JsonSerializer implements Serializer {
         if (null == obj) {
             return bufAllocator.buffer(0);
         }
-        ByteBuf cacheBuffer = Unpooled.wrappedBuffer(LOCAL_BUFFER.get());
+        final byte[] localBuffer = BufferPool.allocateBuffer();
+        final ByteBuf cacheBuffer = Unpooled.wrappedBuffer(localBuffer);
         // wrap会认为bytes中的数据都是可读的，我们需要清空这些标记。
         cacheBuffer.clear();
 
@@ -133,6 +138,7 @@ public class JsonSerializer implements Serializer {
             return byteBuf;
         } finally {
             cacheBuffer.release();
+            BufferPool.releaseBuffer(localBuffer);
         }
     }
 
