@@ -88,7 +88,7 @@ public class DefaultRpcRequestDispatcher implements RpcMethodProxyRegistry, RpcR
         final List<Object> params = rpcMethodSpec.getMethodParams();
         @SuppressWarnings("unchecked") final RpcMethodProxy<T> methodProxy = proxyMapping.get(methodKey);
         if (null == methodProxy) {
-            promise.tryFailure("Unknown methodKey " + methodKey);
+            promise.tryFailure(new IllegalArgumentException("Unknown methodKey " + methodKey));
             logger.warn("{} send unregistered request, methodKey={}, parameters={}",
                     session.sessionId(), methodKey, params);
             return;

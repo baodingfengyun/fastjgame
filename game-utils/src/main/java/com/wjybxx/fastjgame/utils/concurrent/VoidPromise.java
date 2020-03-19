@@ -194,16 +194,6 @@ public class VoidPromise implements BlockingPromise<Object> {
     }
 
     @Override
-    public final void setFailure(@Nonnull String msg) {
-
-    }
-
-    @Override
-    public final boolean tryFailure(@Nonnull String msg) {
-        return false;
-    }
-
-    @Override
     public final boolean setUncancellable() {
         // 这里true更合适 - 因为不可取消
         return true;

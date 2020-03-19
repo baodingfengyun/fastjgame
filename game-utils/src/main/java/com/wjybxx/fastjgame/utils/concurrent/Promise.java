@@ -59,23 +59,6 @@ public interface Promise<V> extends ListenableFuture<V> {
     boolean tryFailure(@Nonnull Throwable cause);
 
     /**
-     * 将future标记为失败完成。
-     * 它是{@link #setFailure(Throwable)}的快捷调用，具体默认封装为什么异常，取决与实现类。
-     *
-     * @param msg 失败信息
-     */
-    void setFailure(@Nonnull String msg);
-
-    /**
-     * 将future标记为失败完成。
-     * 它是{@link #tryFailure(Throwable)}的快捷调用，具体默认封装为什么异常，取决与实现类。。
-     *
-     * @param msg 失败信息
-     * @return 当前仅当成功将future标记为失败完成时返回true，如果future对应的操作已完成（成功或失败），则返回false，并什么也不改变。
-     */
-    boolean tryFailure(@Nonnull String msg);
-
-    /**
      * 将future标记为不可取消状态，它表示计算已经开始，不可以被取消。
      *
      * @return 1. 如果成功设置为不可取消 或 已经是不可取消状态 则返回true.

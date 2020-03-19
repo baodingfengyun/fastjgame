@@ -231,26 +231,6 @@ abstract class AbstractPromise<V> implements Promise<V> {
         return tryComplete(new CauseHolder(cause));
     }
 
-    @Override
-    public final void setFailure(@Nonnull String msg) {
-        setFailure(newException(msg));
-    }
-
-    @Override
-    public final boolean tryFailure(@Nonnull String msg) {
-        return tryFailure(newException(msg));
-    }
-
-    /**
-     * 利用指定信息创建一个异常。
-     * 服务于{@link #tryFailure(String)}和{@link #setFailure(String)}方法。
-     * 默认实现仅仅是创建一个{@link RuntimeException}
-     */
-    @Nonnull
-    protected Throwable newException(@Nonnull String msg) {
-        return new RuntimeException(msg);
-    }
-
     /**
      * 异常holder，只有该类型表示失败。
      */
