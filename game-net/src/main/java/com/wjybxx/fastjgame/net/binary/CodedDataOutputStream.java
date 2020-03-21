@@ -124,7 +124,7 @@ public class CodedDataOutputStream implements DataOutputStream {
     }
 
     @Override
-    public void writeIntBigEndian(int value) throws IOException {
+    public void writeFixedInt32(int value) throws IOException {
         codedOutputStream.write((byte) (value >>> 24));
         codedOutputStream.write((byte) (value >>> 16));
         codedOutputStream.write((byte) (value >>> 8));
@@ -132,7 +132,7 @@ public class CodedDataOutputStream implements DataOutputStream {
     }
 
     @Override
-    public void setIntBigEndian(final int index, int value) throws IOException {
+    public void setFixedInt32(final int index, int value) throws IOException {
         int position = offset + index;
         buffer[position++] = (byte) (value >>> 24);
         buffer[position++] = (byte) (value >>> 16);

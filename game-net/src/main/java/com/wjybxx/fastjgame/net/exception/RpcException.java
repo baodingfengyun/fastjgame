@@ -26,7 +26,7 @@ import com.wjybxx.fastjgame.net.rpc.RpcErrorCode;
  * date - 2020/1/8
  * github - https://github.com/hl845740757
  */
-public abstract class RpcException extends Exception {
+public abstract class RpcException extends RuntimeException {
 
     public RpcException() {
     }

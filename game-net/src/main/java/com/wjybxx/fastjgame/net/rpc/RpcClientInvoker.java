@@ -47,32 +47,18 @@ public interface RpcClientInvoker {
      *
      * @param session 服务器描述信息
      * @param message 单向消息
+     * @param flush   是否刷新缓冲区
      */
-    void send(@Nonnull Session session, @Nonnull RpcMethodSpec<?> message);
-
-    /**
-     * 发送一个单向消息给对方，并立即刷新缓冲区。
-     *
-     * @param session 服务器描述信息
-     * @param message 单向消息
-     */
-    void sendAndFlush(@Nonnull Session session, @Nonnull RpcMethodSpec<?> message);
+    void send(@Nonnull Session session, @Nonnull RpcMethodSpec<?> message, boolean flush);
 
     /**
      * 发送一个rpc请求给对方。
      *
      * @param session 服务器描述信息
      * @param request rpc请求对象
+     * @param flush   是否刷新缓冲区
      */
-    <V> RpcFuture<V> call(@Nonnull Session session, @Nonnull RpcMethodSpec<V> request);
-
-    /**
-     * 发送一个rpc请求给对方，并立即刷新缓冲区。
-     *
-     * @param session 服务器描述信息
-     * @param request rpc请求对象
-     */
-    <V> RpcFuture<V> callAndFlush(@Nonnull Session session, @Nonnull RpcMethodSpec<V> request);
+    <V> RpcFuture<V> call(@Nonnull Session session, @Nonnull RpcMethodSpec<V> request, boolean flush);
 
     /**
      * 发送一个rpc请求给对方，会立即刷新缓冲区，并阻塞到结果返回或超时。
@@ -83,5 +69,4 @@ public interface RpcClientInvoker {
      */
     @Nullable
     <V> V syncCall(@Nonnull Session session, @Nonnull RpcMethodSpec<V> request) throws CompletionException;
-
 }

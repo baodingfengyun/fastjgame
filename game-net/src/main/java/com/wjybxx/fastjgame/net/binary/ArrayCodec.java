@@ -89,7 +89,7 @@ public class ArrayCodec implements Codec<Object> {
         outputStream.writeTag(Tag.ARRAY);
         outputStream.writeTag(childType);
         // 大端模式固定长度写入主要为了兼容字节数组的扩展
-        outputStream.writeIntBigEndian(length);
+        outputStream.writeFixedInt32(length);
     }
 
     /**
@@ -116,7 +116,7 @@ public class ArrayCodec implements Codec<Object> {
 
     static Object readArray(DataInputStream inputStream, @Nullable Class<?> objectArrayComponentType, CodecRegistry codecRegistry) throws Exception {
         final Tag childType = inputStream.readTag();
-        final int length = inputStream.readIntBigEndian();
+        final int length = inputStream.readFixedInt32();
 
         return readArrayImp(inputStream, objectArrayComponentType, codecRegistry, childType, length);
     }

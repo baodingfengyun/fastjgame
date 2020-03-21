@@ -206,7 +206,7 @@ class EntityInputStreamImp implements EntityInputStream {
         }
 
         final Tag childTag = inputStream.readTag();
-        final int length = inputStream.readIntBigEndian();
+        final int length = inputStream.readFixedInt32();
 
         if (childTag != Tag.BYTE) {
             return (T) ArrayCodec.readArrayImp(inputStream, null, codecRegistry, childTag, length);

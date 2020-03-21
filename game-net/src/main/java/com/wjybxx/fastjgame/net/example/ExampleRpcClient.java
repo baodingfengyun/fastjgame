@@ -39,21 +39,21 @@ public class ExampleRpcClient extends AbstractRpcClient {
     @Override
     public void send(@Nonnull RpcServerSpec serverSpec, @Nonnull RpcMethodSpec<?> message) {
         if (serverSpec instanceof Session) {
-            invoker.send((Session) serverSpec, message);
+            invoker.send((Session) serverSpec, message, false);
         }
     }
 
     @Override
     public void sendAndFlush(@Nonnull RpcServerSpec serverSpec, @Nonnull RpcMethodSpec<?> message) {
         if (serverSpec instanceof Session) {
-            invoker.sendAndFlush(((Session) serverSpec), message);
+            invoker.send((Session) serverSpec, message, true);
         }
     }
 
     @Override
     public <V> RpcFuture<V> call(@Nonnull RpcServerSpec serverSpec, @Nonnull RpcMethodSpec<V> request) {
         if (serverSpec instanceof Session) {
-            return invoker.call((Session) serverSpec, request);
+            return invoker.call((Session) serverSpec, request, false);
         }
         return newSessionNotFoundFuture(serverSpec);
     }
@@ -61,7 +61,7 @@ public class ExampleRpcClient extends AbstractRpcClient {
     @Override
     public <V> RpcFuture<V> callAndFlush(@Nonnull RpcServerSpec serverSpec, @Nonnull RpcMethodSpec<V> request) {
         if (serverSpec instanceof Session) {
-            return invoker.callAndFlush((Session) serverSpec, request);
+            return invoker.call((Session) serverSpec, request, true);
         }
         return newSessionNotFoundFuture(serverSpec);
     }

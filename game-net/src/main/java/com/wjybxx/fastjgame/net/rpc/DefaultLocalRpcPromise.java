@@ -18,7 +18,9 @@ package com.wjybxx.fastjgame.net.rpc;
 
 import com.wjybxx.fastjgame.net.exception.RpcException;
 import com.wjybxx.fastjgame.net.exception.RpcTimeoutException;
-import com.wjybxx.fastjgame.utils.concurrent.*;
+import com.wjybxx.fastjgame.utils.concurrent.DefaultLocalPromise;
+import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.Executor;
@@ -39,11 +41,7 @@ public class DefaultLocalRpcPromise<V> extends DefaultLocalPromise<V> implements
 
     @Override
     public boolean isTimeout() {
-        return isRpcTimeout(cause());
-    }
-
-    static boolean isRpcTimeout(Throwable cause) {
-        return cause instanceof RpcTimeoutException;
+        return cause() instanceof RpcTimeoutException;
     }
 
     @Override
@@ -64,7 +62,7 @@ public class DefaultLocalRpcPromise<V> extends DefaultLocalPromise<V> implements
         if (cause instanceof RpcException) {
             return ((RpcException) cause).getErrorCode();
         }
-        return null;
+        return RpcErrorCode.UNKNOWN;
     }
 
     @Override

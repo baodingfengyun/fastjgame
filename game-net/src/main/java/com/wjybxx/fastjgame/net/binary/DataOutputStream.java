@@ -27,7 +27,7 @@ import java.io.IOException;
  *
  * <h3>实现约定</h3>
  * <li>1. byte必须固定一个字节。</li>
- * <li>2. 命名包含{@code BigEndian}的方法必定固定字节数，如：short 2字节，int4字节。</li>
+ * <li>2. 命名包含{@code Fixed}的方法必定固定字节数，如：int4字节，long8字节，且按照<b>大端模式</b>写入</li>
  * <li>3. 命名包含{@code set}的方法不修改写{@link #writeIndex()}</li>
  *
  * @author wjybxx
@@ -72,16 +72,15 @@ public interface DataOutputStream {
     void writeTag(Tag tag) throws IOException;
 
     /**
-     * 以大端模式写入int值
+     * 以固定4个字节大端模式写入一个int
      * {@link #writeIndex()}应该加4
      */
-    void writeIntBigEndian(int value) throws IOException;
+    void writeFixedInt32(int value) throws IOException;
 
     /**
-     * 在指定位置以大端模式写入一个int值。
      * {@link #writeIndex()}保持不变
      */
-    void setIntBigEndian(int index, int value) throws IOException;
+    void setFixedInt32(int index, int value) throws IOException;
 
     /**
      * 获取当前的写索引

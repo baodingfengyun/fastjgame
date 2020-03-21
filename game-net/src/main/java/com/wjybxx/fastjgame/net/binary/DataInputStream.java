@@ -26,7 +26,7 @@ import java.io.IOException;
  *
  * <h3>实现约定</h3>
  * <li>1. byte必须固定一个字节。</li>
- * <li>2. 命名包含{@code BigEndian}的方法必定固定字节数，如：short 2字节，int4字节。</li>
+ * <li>2. 命名包含{@code Fixed}的方法必定固定字节数，如：int4字节，long8字节，且必须大端模式读取。</li>
  * <li>3. 命名包含{@code get}的方法不修改写{@link #readIndex()} </li>*
  *
  * @author wjybxx
@@ -67,16 +67,15 @@ public interface DataInputStream {
     Tag readTag() throws IOException;
 
     /**
-     * 以大端模式写入int值
+     * 读取4个字节，并以大端模式读取为int
      * {@link #readIndex()}应该加4
      */
-    int readIntBigEndian() throws IOException;
+    int readFixedInt32() throws IOException;
 
     /**
-     * 在指定位置大端模式读取一个int值。
      * {@link #readIndex()}应该保持不变
      */
-    int getIntBigEndian(int index) throws IOException;
+    int getFixedInt32(int index) throws IOException;
 
     /**
      * 获取当前的读索引

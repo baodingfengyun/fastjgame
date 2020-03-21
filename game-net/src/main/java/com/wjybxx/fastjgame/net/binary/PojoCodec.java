@@ -43,7 +43,7 @@ public abstract class PojoCodec<T> implements Codec<T> {
         outputStream.writeTag(Tag.POJO);
         outputStream.writeByte(providerId);
         // 大端模式写入classId，是为了当与客户端之间使用protoBuffer通信时，方便客户端解析，
-        outputStream.writeIntBigEndian(classId);
+        outputStream.writeFixedInt32(classId);
         encodeBody(outputStream, value, codecRegistry);
     }
 
@@ -68,7 +68,7 @@ public abstract class PojoCodec<T> implements Codec<T> {
 
     static PojoCodec<?> getPojoCodec(DataInputStream inputStream, CodecRegistry codecRegistry) throws IOException {
         final byte providerId = inputStream.readByte();
-        final int classId = inputStream.readIntBigEndian();
+        final int classId = inputStream.readFixedInt32();
         return codecRegistry.getPojoCodec(providerId, classId);
     }
 }

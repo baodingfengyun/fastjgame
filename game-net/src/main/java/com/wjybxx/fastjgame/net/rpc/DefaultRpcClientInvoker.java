@@ -35,16 +35,7 @@ class DefaultRpcClientInvoker implements RpcClientInvoker {
     }
 
     @Override
-    public void send(@Nonnull Session session, @Nonnull RpcMethodSpec<?> message) {
-        sendImpl(session, message, false);
-    }
-
-    @Override
-    public void sendAndFlush(@Nonnull Session session, @Nonnull RpcMethodSpec<?> message) {
-        sendImpl(session, message, true);
-    }
-
-    private void sendImpl(@Nonnull Session session, @Nonnull RpcMethodSpec<?> message, boolean flush) {
+    public void send(@Nonnull Session session, @Nonnull RpcMethodSpec<?> message, boolean flush) {
         if (session.isClosed()) {
             // 会话关闭的情况下丢弃消息
             return;
@@ -53,21 +44,11 @@ class DefaultRpcClientInvoker implements RpcClientInvoker {
     }
 
     @Override
-    public <V> RpcFuture<V> call(@Nonnull Session session, @Nonnull RpcMethodSpec<V> request) {
-        return callImpl(session, request, false);
-    }
-
-    @Override
-    public <V> RpcFuture<V> callAndFlush(@Nonnull Session session, @Nonnull RpcMethodSpec<V> request) {
-        return callImpl(session, request, true);
-    }
-
-    private <V> RpcFuture<V> callImpl(@Nonnull Session session, @Nonnull RpcMethodSpec<V> request, boolean flush) {
+    public <V> RpcFuture<V> call(@Nonnull Session session, @Nonnull RpcMethodSpec<V> request, boolean flush) {
         if (session.isClosed()) {
             // session关闭状态下直接返回
             return session.netEventLoop().newFailedRpcFuture(session.appEventLoop(), RpcSessionClosedException.INSTANCE);
         }
-
         // 会话活动的状态下才会发送
         final RpcPromise<V> promise = session.netEventLoop().newRpcPromise(session.appEventLoop());
         session.netEventLoop().execute(new RpcRequestWriteTask(session, request, false, session.config().getAsyncRpcTimeoutMs(), promise, flush));

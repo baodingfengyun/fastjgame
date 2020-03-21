@@ -179,7 +179,7 @@ class EntityOutputStreamImp implements EntityOutputStream {
         // 设置长度
         outputStream.writeTag(Tag.ARRAY);
         outputStream.writeTag(Tag.BYTE);
-        outputStream.writeIntBigEndian(childOutputStream.writeIndex());
+        outputStream.writeFixedInt32(childOutputStream.writeIndex());
 
         // 更新写索引
         outputStream.writeIndex(outputStream.writeIndex() + childOutputStream.writeIndex());

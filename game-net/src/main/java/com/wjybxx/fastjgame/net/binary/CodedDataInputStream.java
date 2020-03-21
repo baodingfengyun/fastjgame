@@ -112,7 +112,7 @@ public class CodedDataInputStream implements DataInputStream {
     }
 
     @Override
-    public int readIntBigEndian() throws IOException {
+    public int readFixedInt32() throws IOException {
         return (codedInputStream.readRawByte() & 0xff) << 24 |
                 (codedInputStream.readRawByte() & 0xff) << 16 |
                 (codedInputStream.readRawByte() & 0xff) << 8 |
@@ -120,7 +120,7 @@ public class CodedDataInputStream implements DataInputStream {
     }
 
     @Override
-    public int getIntBigEndian(final int index) throws IOException {
+    public int getFixedInt32(final int index) throws IOException {
         int position = offset + index;
         return (buffer[position++] & 0xff) << 24 |
                 (buffer[position++] & 0xff) << 16 |
