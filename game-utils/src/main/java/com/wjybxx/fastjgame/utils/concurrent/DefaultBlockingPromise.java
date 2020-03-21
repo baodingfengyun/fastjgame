@@ -384,18 +384,18 @@ public class DefaultBlockingPromise<V> extends AbstractPromise<V> implements Blo
     }
 
     @Override
-    public BlockingPromise<V> onComplete(@Nonnull FutureListener<? super V> listener) {
-        addListener(listener, defaultExecutor);
+    public BlockingPromise<V> addListener(@Nonnull FutureListener<? super V> listener) {
+        addListener0(listener, defaultExecutor);
         return this;
     }
 
     @Override
-    public BlockingPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        addListener(listener, bindExecutor);
+    public BlockingPromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        addListener0(listener, bindExecutor);
         return this;
     }
 
-    private void addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor executor) {
+    private void addListener0(@Nonnull FutureListener<? super V> listener, @Nonnull Executor executor) {
         // 不管是否已完成，先加入等待通知集合
         synchronized (this) {
             listenerEntries = FutureUtils.aggregateListenerEntry(listenerEntries, new FutureListenerEntry<>(listener, executor));
@@ -408,27 +408,4 @@ public class DefaultBlockingPromise<V> extends AbstractPromise<V> implements Blo
         }
     }
 
-    @Override
-    public BlockingPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
-        addListener(listener, defaultExecutor);
-        return this;
-    }
-
-    @Override
-    public BlockingPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        addListener(listener, bindExecutor);
-        return this;
-    }
-
-    @Override
-    public BlockingPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
-        addListener(listener, defaultExecutor);
-        return this;
-    }
-
-    @Override
-    public BlockingPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        addListener(listener, bindExecutor);
-        return this;
-    }
 }

@@ -149,7 +149,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             final RpcRequestMessage requestMessage = (RpcRequestMessage) msg;
             // 这里网络层是监听器的用户，创建LocalPromise没错的
             final LocalPromise<?> promise = ctx.netEventLoop().newLocalPromise();
-            promise.onComplete(new RpcResultListener(ctx.session(), requestMessage.getRequestGuid(), requestMessage.isSync()));
+            promise.addListener(new RpcResultListener(ctx.session(), requestMessage.getRequestGuid(), requestMessage.isSync()));
 
             // 提交给用户执行
             ctx.appEventLoop().execute(new RpcRequestCommitTask(ctx.session(), requestMessage.getBody(), promise));

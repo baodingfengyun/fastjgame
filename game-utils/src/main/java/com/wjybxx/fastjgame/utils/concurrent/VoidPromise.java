@@ -136,37 +136,13 @@ public class VoidPromise implements BlockingPromise<Object> {
     // ---------------------------------------- 禁止添加监听器 -------------------------------------
 
     @Override
-    public BlockingPromise<Object> onComplete(@Nonnull FutureListener<? super Object> listener) {
+    public BlockingPromise<Object> addListener(@Nonnull FutureListener<? super Object> listener) {
         fail();
         return this;
     }
 
     @Override
-    public BlockingPromise<Object> onComplete(@Nonnull FutureListener<? super Object> listener, @Nonnull Executor bindExecutor) {
-        fail();
-        return this;
-    }
-
-    @Override
-    public BlockingPromise<Object> onSuccess(@Nonnull SucceededFutureListener<? super Object> listener) {
-        fail();
-        return this;
-    }
-
-    @Override
-    public BlockingPromise<Object> onSuccess(@Nonnull SucceededFutureListener<? super Object> listener, @Nonnull Executor bindExecutor) {
-        fail();
-        return this;
-    }
-
-    @Override
-    public BlockingPromise<Object> onFailure(@Nonnull FailedFutureListener<? super Object> listener) {
-        fail();
-        return this;
-    }
-
-    @Override
-    public BlockingPromise<Object> onFailure(@Nonnull FailedFutureListener<? super Object> listener, @Nonnull Executor bindExecutor) {
+    public BlockingPromise<Object> addListener(@Nonnull FutureListener<? super Object> listener, @Nonnull Executor bindExecutor) {
         fail();
         return this;
     }

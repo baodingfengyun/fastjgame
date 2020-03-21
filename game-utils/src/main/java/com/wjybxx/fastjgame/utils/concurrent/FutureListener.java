@@ -20,7 +20,7 @@ package com.wjybxx.fastjgame.utils.concurrent;
 /**
  * Future的监听者。
  * <p>
- * 监听{@link BlockingFuture}的结果。一旦该listener通过{@link BlockingFuture#onComplete(FutureListener)}添加到future上，
+ * 监听{@link BlockingFuture}的结果。一旦该listener通过{@link BlockingFuture#addListener(FutureListener)}添加到future上，
  * future上关联的异步操作完成时，就会收到通知。
  *
  * <pre>{@code

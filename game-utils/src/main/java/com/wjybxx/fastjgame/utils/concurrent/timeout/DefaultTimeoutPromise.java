@@ -16,7 +16,9 @@
 
 package com.wjybxx.fastjgame.utils.concurrent.timeout;
 
-import com.wjybxx.fastjgame.utils.concurrent.*;
+import com.wjybxx.fastjgame.utils.concurrent.DefaultBlockingPromise;
+import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.Executor;
@@ -49,50 +51,15 @@ public class DefaultTimeoutPromise<V> extends DefaultBlockingPromise<V> implemen
     // ------------------------------------------------ 流式语法支持 ----------------------------------------------------
 
     @Override
-    public DefaultTimeoutPromise<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener) {
-        super.onComplete(listener);
+    public DefaultTimeoutPromise<V> addListener(@Nonnull FutureListener<? super V> listener) {
+        super.addListener(listener);
         return this;
     }
 
     @Override
-    public DefaultTimeoutPromise<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        super.onComplete(listener, bindExecutor);
+    public DefaultTimeoutPromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        super.addListener(listener, bindExecutor);
         return this;
     }
 
-    @Override
-    public DefaultTimeoutPromise<V> onComplete(@Nonnull FutureListener<? super V> listener) {
-        super.onComplete(listener);
-        return this;
-    }
-
-    @Override
-    public DefaultTimeoutPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        super.onComplete(listener, bindExecutor);
-        return this;
-    }
-
-    @Override
-    public DefaultTimeoutPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
-        super.onSuccess(listener);
-        return this;
-    }
-
-    @Override
-    public DefaultTimeoutPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        super.onSuccess(listener, bindExecutor);
-        return this;
-    }
-
-    @Override
-    public DefaultTimeoutPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
-        super.onFailure(listener);
-        return this;
-    }
-
-    @Override
-    public DefaultTimeoutPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        super.onFailure(listener, bindExecutor);
-        return this;
-    }
 }

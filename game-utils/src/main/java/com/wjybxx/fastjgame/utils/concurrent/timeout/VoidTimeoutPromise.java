@@ -16,7 +16,9 @@
 
 package com.wjybxx.fastjgame.utils.concurrent.timeout;
 
-import com.wjybxx.fastjgame.utils.concurrent.*;
+import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
+import com.wjybxx.fastjgame.utils.concurrent.VoidPromise;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.Executor;
@@ -51,50 +53,15 @@ public class VoidTimeoutPromise extends VoidPromise implements TimeoutPromise<Ob
     }
 
     @Override
-    public VoidTimeoutPromise onComplete(@Nonnull FutureListener<? super Object> listener) {
-        super.onComplete(listener);
+    public VoidTimeoutPromise addListener(@Nonnull FutureListener<? super Object> listener) {
+        super.addListener(listener);
         return this;
     }
 
     @Override
-    public VoidTimeoutPromise onComplete(@Nonnull FutureListener<? super Object> listener, @Nonnull Executor bindExecutor) {
-        super.onComplete(listener, bindExecutor);
+    public VoidTimeoutPromise addListener(@Nonnull FutureListener<? super Object> listener, @Nonnull Executor bindExecutor) {
+        super.addListener(listener, bindExecutor);
         return this;
     }
 
-    @Override
-    public VoidTimeoutPromise onSuccess(@Nonnull SucceededFutureListener<? super Object> listener) {
-        super.onSuccess(listener);
-        return this;
-    }
-
-    @Override
-    public VoidTimeoutPromise onSuccess(@Nonnull SucceededFutureListener<? super Object> listener, @Nonnull Executor bindExecutor) {
-        super.onSuccess(listener, bindExecutor);
-        return this;
-    }
-
-    @Override
-    public VoidTimeoutPromise onFailure(@Nonnull FailedFutureListener<? super Object> listener) {
-        super.onFailure(listener);
-        return this;
-    }
-
-    @Override
-    public VoidTimeoutPromise onFailure(@Nonnull FailedFutureListener<? super Object> listener, @Nonnull Executor bindExecutor) {
-        super.onFailure(listener, bindExecutor);
-        return this;
-    }
-
-    @Override
-    public VoidTimeoutPromise onTimeout(@Nonnull TimeoutFutureListener<? super Object> listener, @Nonnull Executor bindExecutor) {
-        super.onComplete(listener, bindExecutor);
-        return this;
-    }
-
-    @Override
-    public VoidTimeoutPromise onTimeout(@Nonnull TimeoutFutureListener<? super Object> listener) {
-        super.onComplete(listener);
-        return this;
-    }
 }

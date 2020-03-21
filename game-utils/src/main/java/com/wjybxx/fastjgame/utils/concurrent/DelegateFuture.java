@@ -86,38 +86,14 @@ public class DelegateFuture<V> implements ListenableFuture<V> {
 
     // 必须返回this
     @Override
-    public ListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
-        delegate.onComplete(listener);
+    public ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener) {
+        delegate.addListener(listener);
         return this;
     }
 
     @Override
-    public ListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        delegate.onComplete(listener, bindExecutor);
-        return this;
-    }
-
-    @Override
-    public ListenableFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
-        delegate.onSuccess(listener);
-        return this;
-    }
-
-    @Override
-    public ListenableFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        delegate.onSuccess(listener, bindExecutor);
-        return this;
-    }
-
-    @Override
-    public ListenableFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
-        delegate.onFailure(listener);
-        return this;
-    }
-
-    @Override
-    public ListenableFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        delegate.onFailure(listener, bindExecutor);
+    public ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        delegate.addListener(listener, bindExecutor);
         return this;
     }
 

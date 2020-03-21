@@ -77,7 +77,7 @@ public class HttpClientTest {
                 .uri(URI.create("https://www.baidu.com/"));
 
         httpClient.sendAsync(builder, HttpResponse.BodyHandlers.ofString())
-                .onComplete(future -> {
+                .addListener(future -> {
                     System.out.println("Thread: " + Thread.currentThread());
                     final HttpResponse<String> response = future.getNow();
                     if (null != response) {

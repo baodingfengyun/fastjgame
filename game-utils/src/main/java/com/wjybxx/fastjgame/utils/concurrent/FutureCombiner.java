@@ -95,7 +95,7 @@ public class FutureCombiner {
         checkAddFutureAllowed();
 
         ++expectedCount;
-        future.onComplete(childrenListener, appEventLoop);
+        future.addListener(childrenListener, appEventLoop);
         return this;
     }
 

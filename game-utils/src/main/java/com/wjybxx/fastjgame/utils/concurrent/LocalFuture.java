@@ -51,20 +51,9 @@ public interface LocalFuture<V> extends ListenableFuture<V> {
 
     // 用于语法支持
     @Override
-    LocalFuture<V> onComplete(@Nonnull FutureListener<? super V> listener);
+    LocalFuture<V> addListener(@Nonnull FutureListener<? super V> listener);
 
     @Override
-    LocalFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+    LocalFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
-    @Override
-    LocalFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener);
-
-    @Override
-    LocalFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
-
-    @Override
-    LocalFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener);
-
-    @Override
-    LocalFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 }

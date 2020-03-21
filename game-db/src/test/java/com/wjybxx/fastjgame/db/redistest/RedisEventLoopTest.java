@@ -72,7 +72,7 @@ public class RedisEventLoopTest {
         // 测试时不使用哨兵
         final JedisPool jedisPool = new JedisPool(config, "localhost", 6379);
         final RedisEventLoop redisEventLoop = new RedisEventLoop(null, new DefaultThreadFactory("RedisEventLoop"), RejectedExecutionHandlers.abort(), jedisPool);
-        redisEventLoop.terminationFuture().onComplete(future -> jedisPool.close());
+        redisEventLoop.terminationFuture().addListener(future -> jedisPool.close());
         return redisEventLoop;
     }
 
@@ -105,7 +105,7 @@ public class RedisEventLoopTest {
             // 监听前面的redis命令完成
 
             redisClient.call(RedisMethodHandleFactory.hset("test-monitor", "monitor", "1"))
-                    .onComplete(futureResult -> shutdown());
+                    .addListener(future -> shutdown());
 
             while (true) {
                 runAllTasks();
@@ -122,11 +122,10 @@ public class RedisEventLoopTest {
 
         private void sendRedisCommands(int loop) {
             redisClient.call(RedisMethodHandleFactory.hset("name", String.valueOf(loop), String.valueOf(loop)))
-                    .onSuccess(System.out::println)
-            ;
+                    .addListener(f -> System.out.println(f.getNow()));
 
             redisClient.call(RedisMethodHandleFactory.hget("name", String.valueOf(loop)))
-                    .onSuccess(System.out::println);
+                    .addListener(f -> System.out.println(f.getNow()));
         }
 
         @Override

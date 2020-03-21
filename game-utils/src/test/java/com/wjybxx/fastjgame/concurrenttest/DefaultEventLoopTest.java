@@ -54,19 +54,19 @@ public class DefaultEventLoopTest {
             return "500";
         });
 
-        future3.onComplete((listenableFuture) -> {
-            System.out.println("1 onComplete, thread " + Thread.currentThread().getName() + ",result = " + listenableFuture.getNow());
+        future3.addListener(f -> {
+            System.out.println("1 onComplete, thread " + Thread.currentThread().getName() + ",result = " + f.getNow());
         }, GlobalEventLoop.INSTANCE);
 
-        future3.onComplete((listenableFuture) -> {
-            System.out.println("2 onComplete, thread " + Thread.currentThread().getName() + ",result = " + listenableFuture.getNow());
+        future3.addListener(f -> {
+            System.out.println("2 onComplete, thread " + Thread.currentThread().getName() + ",result = " + f.getNow());
         });
 
-        future3.onComplete((listenableFuture) -> {
-            System.out.println("3 onComplete, thread " + Thread.currentThread().getName() + ",result = " + listenableFuture.getNow());
+        future3.addListener(f -> {
+            System.out.println("3 onComplete, thread " + Thread.currentThread().getName() + ",result = " + f.getNow());
             // 已完成的时候添加监听
-            future3.onComplete(listenableFuture2 -> {
-                System.out.println("4 onComplete, thread " + Thread.currentThread().getName() + ",result = " + listenableFuture2.getNow());
+            future3.addListener(f2 -> {
+                System.out.println("4 onComplete, thread " + Thread.currentThread().getName() + ",result = " + f2.getNow());
             }, GlobalEventLoop.INSTANCE);
         });
 

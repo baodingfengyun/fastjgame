@@ -112,34 +112,34 @@ class ExampleRpcClientLoop extends DisruptorEventLoop {
 
         // 方法无返回值，也可以监听，只要调用的是call, sync, syncCall都可以获知调用结果，就像future
         rpcClient.call(session, ExampleRpcServiceRpcProxy.hello("wjybxx- " + index))
-                .onSuccess(result -> System.out.println("hello - " + index + " - " + result));
+                .addListener(future -> System.out.println("hello - " + index + " - " + future.getNow()));
 
         rpcClient.call(session, ExampleRpcServiceRpcProxy.queryId("wjybxx-" + index))
-                .onSuccess(result -> System.out.println("queryId - " + index + " - " + result));
+                .addListener(future -> System.out.println("queryId - " + index + " - " + future.getNow()));
 
         rpcClient.call(session, ExampleRpcServiceRpcProxy.inc(index))
-                .onSuccess(result -> System.out.println("inc - " + index + " - " + result));
+                .addListener(future -> System.out.println("inc - " + index + " - " + future.getNow()));
 
         rpcClient.call(session, ExampleRpcServiceRpcProxy.incWithSession(index))
-                .onSuccess(result -> System.out.println("incWithSession - " + index + " - " + result));
+                .addListener(future -> System.out.println("incWithSession - " + index + " - " + future.getNow()));
 
         rpcClient.call(session, ExampleRpcServiceRpcProxy.incWithPromise(index))
-                .onSuccess(result -> System.out.println("incWithPromise - " + index + " - " + result));
+                .addListener(future -> System.out.println("incWithPromise - " + index + " - " + future.getNow()));
 
         rpcClient.call(session, ExampleRpcServiceRpcProxy.incWithSessionAndPromise(index))
-                .onSuccess(result -> System.out.println("incWithSessionAndPromise - " + index + " - " + result));
+                .addListener(future -> System.out.println("incWithSessionAndPromise - " + index + " - " + future.getNow()));
 
         // 模拟场景服务器通过网关发送给玩家 - 注意：序列化方式必须一致。
         rpcClient.call(session, ExampleRpcServiceRpcProxy.sendToPlayer(12345, "这里后期替换为protoBuf消息"))
-                .onSuccess(result -> System.out.println("sendToPlayer - " + index + " - invoke success"));
+                .addListener(future -> System.out.println("sendToPlayer - " + index + " - invoke success"));
 
         rpcClient.call(session, ExampleRpcServiceRpcProxy.join("hello", "world"))
-                .onSuccess(result -> System.out.println("joinResult " + result));
+                .addListener(future -> System.out.println("joinResult " + future.getNow()));
 
         // 模拟玩家通过网关发送给场景服务器 - 注意：序列化方式必须一致。
         try {
             rpcClient.call(session, ExampleRpcServiceRpcProxy.sendToScene(13245, ExampleConstants.BINARY_SERIALIZER.toBytes("这里后期替换为protoBuf消息")))
-                    .onSuccess(result -> System.out.println("sendToScene - " + index + " - invoke success"));
+                    .addListener(future -> System.out.println("sendToScene - " + index + " - invoke success"));
         } catch (Exception e) {
             e.printStackTrace();
         }

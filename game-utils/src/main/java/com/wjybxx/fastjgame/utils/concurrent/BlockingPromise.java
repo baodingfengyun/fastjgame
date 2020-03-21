@@ -38,21 +38,9 @@ public interface BlockingPromise<V> extends Promise<V>, BlockingFuture<V> {
     BlockingPromise<V> awaitUninterruptibly();
 
     @Override
-    BlockingPromise<V> onComplete(@Nonnull FutureListener<? super V> listener);
+    BlockingPromise<V> addListener(@Nonnull FutureListener<? super V> listener);
 
     @Override
-    BlockingPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
-
-    @Override
-    BlockingPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener);
-
-    @Override
-    BlockingPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
-
-    @Override
-    BlockingPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener);
-
-    @Override
-    BlockingPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+    BlockingPromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
 }

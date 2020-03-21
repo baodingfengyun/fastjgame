@@ -17,11 +17,8 @@
 package com.wjybxx.fastjgame.net.http;
 
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.FailedFutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
-import com.wjybxx.fastjgame.utils.concurrent.SucceededFutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.adapter.CompletableFutureAdapter;
-import com.wjybxx.fastjgame.utils.concurrent.timeout.TimeoutFutureListener;
 
 import javax.annotation.Nonnull;
 import java.net.http.HttpTimeoutException;
@@ -47,50 +44,15 @@ public class DefaultHttpFuture<V> extends CompletableFutureAdapter<V> implements
 
     // 语法支持
     @Override
-    public DefaultHttpFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
-        super.onComplete(listener);
+    public DefaultHttpFuture<V> addListener(@Nonnull FutureListener<? super V> listener) {
+        super.addListener(listener);
         return this;
     }
 
     @Override
-    public DefaultHttpFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        super.onComplete(listener, bindExecutor);
+    public DefaultHttpFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        super.addListener(listener, bindExecutor);
         return this;
     }
 
-    @Override
-    public DefaultHttpFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
-        super.onSuccess(listener);
-        return this;
-    }
-
-    @Override
-    public DefaultHttpFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        super.onSuccess(listener, bindExecutor);
-        return this;
-    }
-
-    @Override
-    public DefaultHttpFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
-        super.onFailure(listener);
-        return this;
-    }
-
-    @Override
-    public DefaultHttpFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        super.onFailure(listener, bindExecutor);
-        return this;
-    }
-
-    @Override
-    public DefaultHttpFuture<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener) {
-        super.onComplete(listener);
-        return this;
-    }
-
-    @Override
-    public DefaultHttpFuture<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        super.onComplete(listener, bindExecutor);
-        return this;
-    }
 }

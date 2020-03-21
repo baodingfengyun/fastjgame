@@ -112,37 +112,13 @@ public abstract class CompleteFuture<V> implements BlockingFuture<V> {
     }
 
     @Override
-    public BlockingFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
+    public BlockingFuture<V> addListener(@Nonnull FutureListener<? super V> listener) {
         notifyListener(listener, defaultExecutor);
         return this;
     }
 
     @Override
-    public BlockingFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        notifyListener(listener, bindExecutor);
-        return this;
-    }
-
-    @Override
-    public BlockingFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
-        notifyListener(listener, defaultExecutor);
-        return this;
-    }
-
-    @Override
-    public BlockingFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        notifyListener(listener, bindExecutor);
-        return this;
-    }
-
-    @Override
-    public BlockingFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
-        notifyListener(listener, defaultExecutor);
-        return this;
-    }
-
-    @Override
-    public BlockingFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public BlockingFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         notifyListener(listener, bindExecutor);
         return this;
     }

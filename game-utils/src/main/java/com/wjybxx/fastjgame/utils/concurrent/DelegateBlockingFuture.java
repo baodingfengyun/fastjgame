@@ -74,38 +74,15 @@ public class DelegateBlockingFuture<V> extends DelegateFuture<V> implements Bloc
     }
 
     @Override
-    public BlockingFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
-        super.onComplete(listener);
+    public BlockingFuture<V> addListener(@Nonnull FutureListener<? super V> listener) {
+        super.addListener(listener);
         return this;
     }
 
     @Override
-    public BlockingFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        super.onComplete(listener, bindExecutor);
+    public BlockingFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        super.addListener(listener, bindExecutor);
         return this;
     }
 
-    @Override
-    public BlockingFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
-        super.onSuccess(listener);
-        return this;
-    }
-
-    @Override
-    public BlockingFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        super.onSuccess(listener, bindExecutor);
-        return this;
-    }
-
-    @Override
-    public BlockingFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
-        super.onFailure(listener);
-        return this;
-    }
-
-    @Override
-    public BlockingFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        super.onFailure(listener, bindExecutor);
-        return this;
-    }
 }

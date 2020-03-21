@@ -29,20 +29,9 @@ public interface LocalPromise<V> extends Promise<V>, LocalFuture<V> {
 
     // 用于语法支持
     @Override
-    LocalPromise<V> onComplete(@Nonnull FutureListener<? super V> listener);
+    LocalPromise<V> addListener(@Nonnull FutureListener<? super V> listener);
 
     @Override
-    LocalPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+    LocalPromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
-    @Override
-    LocalPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener);
-
-    @Override
-    LocalPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
-
-    @Override
-    LocalPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener);
-
-    @Override
-    LocalPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 }

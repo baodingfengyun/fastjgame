@@ -19,7 +19,6 @@ package com.wjybxx.fastjgame.net.rpc;
 import com.wjybxx.fastjgame.net.exception.RpcException;
 import com.wjybxx.fastjgame.net.exception.RpcTimeoutException;
 import com.wjybxx.fastjgame.utils.concurrent.*;
-import com.wjybxx.fastjgame.utils.concurrent.timeout.TimeoutFutureListener;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.Executor;
@@ -69,50 +68,15 @@ public class DefaultLocalRpcPromise<V> extends DefaultLocalPromise<V> implements
     }
 
     @Override
-    public DefaultLocalRpcPromise<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener) {
-        super.onComplete(listener);
+    public DefaultLocalRpcPromise<V> addListener(@Nonnull FutureListener<? super V> listener) {
+        super.addListener(listener);
         return this;
     }
 
     @Override
-    public DefaultLocalRpcPromise<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        super.onComplete(listener, bindExecutor);
+    public DefaultLocalRpcPromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        super.addListener(listener, bindExecutor);
         return this;
     }
 
-    @Override
-    public DefaultLocalRpcPromise<V> onComplete(@Nonnull FutureListener<? super V> listener) {
-        super.onComplete(listener);
-        return this;
-    }
-
-    @Override
-    public DefaultLocalRpcPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        super.onComplete(listener, bindExecutor);
-        return this;
-    }
-
-    @Override
-    public DefaultLocalRpcPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
-        super.onSuccess(listener);
-        return this;
-    }
-
-    @Override
-    public DefaultLocalRpcPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        super.onSuccess(listener, bindExecutor);
-        return this;
-    }
-
-    @Override
-    public DefaultLocalRpcPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
-        super.onFailure(listener);
-        return this;
-    }
-
-    @Override
-    public DefaultLocalRpcPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        super.onFailure(listener, bindExecutor);
-        return this;
-    }
 }

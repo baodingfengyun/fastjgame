@@ -16,10 +16,8 @@
 
 package com.wjybxx.fastjgame.net.rpc;
 
-import com.wjybxx.fastjgame.utils.concurrent.FailedFutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.LocalFuture;
-import com.wjybxx.fastjgame.utils.concurrent.SucceededFutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.timeout.TimeoutFuture;
 
 import javax.annotation.Nonnull;
@@ -58,20 +56,9 @@ public interface RpcFuture<V> extends TimeoutFuture<V>, LocalFuture<V> {
 
     // 仅用于语法支持
     @Override
-    RpcFuture<V> onComplete(@Nonnull FutureListener<? super V> listener);
+    RpcFuture<V> addListener(@Nonnull FutureListener<? super V> listener);
 
     @Override
-    RpcFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+    RpcFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
-    @Override
-    RpcFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener);
-
-    @Override
-    RpcFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
-
-    @Override
-    RpcFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener);
-
-    @Override
-    RpcFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 }

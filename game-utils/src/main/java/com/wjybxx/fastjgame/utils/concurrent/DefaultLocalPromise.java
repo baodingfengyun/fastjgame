@@ -88,42 +88,18 @@ public class DefaultLocalPromise<V> extends AbstractPromise<V> implements LocalP
     }
 
     @Override
-    public LocalPromise<V> onComplete(@Nonnull FutureListener<? super V> listener) {
-        addListener(listener, appEventLoop);
+    public LocalPromise<V> addListener(@Nonnull FutureListener<? super V> listener) {
+        addListener0(listener, appEventLoop);
         return this;
     }
 
     @Override
-    public LocalPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        addListener(listener, bindExecutor);
+    public LocalPromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        addListener0(listener, bindExecutor);
         return this;
     }
 
-    @Override
-    public LocalPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
-        addListener(listener, appEventLoop);
-        return this;
-    }
-
-    @Override
-    public LocalPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        addListener(listener, bindExecutor);
-        return this;
-    }
-
-    @Override
-    public LocalPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
-        addListener(listener, appEventLoop);
-        return this;
-    }
-
-    @Override
-    public LocalPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        addListener(listener, bindExecutor);
-        return this;
-    }
-
-    private void addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor executor) {
+    private void addListener0(@Nonnull FutureListener<? super V> listener, @Nonnull Executor executor) {
         EventLoopUtils.ensureInEventLoop(appEventLoop, "Must call from appEventLoop");
 
         listenerEntries = FutureUtils.aggregateListenerEntry(listenerEntries, new FutureListenerEntry<>(listener, executor));

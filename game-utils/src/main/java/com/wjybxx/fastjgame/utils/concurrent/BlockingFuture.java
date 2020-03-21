@@ -100,20 +100,9 @@ public interface BlockingFuture<V> extends Future<V>, ListenableFuture<V> {
     // 仅仅用于支持流式语法
 
     @Override
-    BlockingFuture<V> onComplete(@Nonnull FutureListener<? super V> listener);
+    BlockingFuture<V> addListener(@Nonnull FutureListener<? super V> listener);
 
     @Override
-    BlockingFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+    BlockingFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
-    @Override
-    BlockingFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener);
-
-    @Override
-    BlockingFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
-
-    @Override
-    BlockingFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener);
-
-    @Override
-    BlockingFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 }

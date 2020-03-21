@@ -116,7 +116,7 @@ class FutureUtils {
      */
     static <V> void notifyAllListenerNowSafely(@Nonnull final ListenableFuture<V> future, @Nonnull final Object listenerEntries) {
         assert future.defaultExecutor().inEventLoop() : "Notify listeners must call from default executor";
-        
+
         if (listenerEntries instanceof FutureListenerEntry) {
             notifyListenerNowSafely(future, (FutureListenerEntry) listenerEntries);
         } else {

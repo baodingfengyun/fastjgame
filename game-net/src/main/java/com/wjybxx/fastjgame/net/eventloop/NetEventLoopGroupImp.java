@@ -127,7 +127,7 @@ class NetEventLoopGroupImp extends AbstractFixedEventLoopGroup implements NetEve
             final EventLoopTerminalEvent terminalEvent = new EventLoopTerminalEvent(appEventLoop);
             for (EventLoop eventLoop : this) {
                 // 分开监听 -> 避免某一个出现异常导致其它EventLoop丢失信号
-                appEventLoop.terminationFuture().onComplete(future -> {
+                appEventLoop.terminationFuture().addListener(future -> {
                     if (!eventLoop.isShuttingDown()) {
                         ((NetEventLoop) eventLoop).post(terminalEvent);
                     }

@@ -16,10 +16,8 @@
 
 package com.wjybxx.fastjgame.utils.concurrent.timeout;
 
-import com.wjybxx.fastjgame.utils.concurrent.FailedFutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.Promise;
-import com.wjybxx.fastjgame.utils.concurrent.SucceededFutureListener;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.Executor;
@@ -36,26 +34,9 @@ public interface TimeoutPromise<V> extends Promise<V>, TimeoutFuture<V> {
 
     // 仅用于语法支持
     @Override
-    TimeoutPromise<V> onComplete(@Nonnull FutureListener<? super V> listener);
+    TimeoutPromise<V> addListener(@Nonnull FutureListener<? super V> listener);
 
     @Override
-    TimeoutPromise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+    TimeoutPromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
-    @Override
-    TimeoutPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener);
-
-    @Override
-    TimeoutPromise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
-
-    @Override
-    TimeoutPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener);
-
-    @Override
-    TimeoutPromise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
-
-    @Override
-    TimeoutPromise<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener);
-
-    @Override
-    TimeoutPromise<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 }

@@ -105,7 +105,7 @@ public abstract class AbstractFixedEventLoopGroup extends AbstractEventLoopGroup
         // 在所有的子节点上监听 它们的关闭事件，当所有的child关闭时，可以获得通知
         final FutureListener<Object> terminationListener = new ChildrenTerminateListener();
         for (EventLoop e : children) {
-            e.terminationFuture().onComplete(terminationListener);
+            e.terminationFuture().addListener(terminationListener);
         }
 
         // 将子节点数组封装为不可变集合，方便迭代(不允许外部改变持有的线程)

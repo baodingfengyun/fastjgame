@@ -17,11 +17,8 @@
 package com.wjybxx.fastjgame.net.rpc;
 
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.FailedFutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
-import com.wjybxx.fastjgame.utils.concurrent.SucceededFutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.timeout.FailedTimeoutFuture;
-import com.wjybxx.fastjgame.utils.concurrent.timeout.TimeoutFutureListener;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.Executor;
@@ -52,50 +49,15 @@ public class FailedRpcFuture<V> extends FailedTimeoutFuture<V> implements RpcFut
 
     // 语法支持
     @Override
-    public FailedRpcFuture<V> onComplete(@Nonnull FutureListener<? super V> listener) {
-        super.onComplete(listener);
+    public FailedRpcFuture<V> addListener(@Nonnull FutureListener<? super V> listener) {
+        super.addListener(listener);
         return this;
     }
 
     @Override
-    public FailedRpcFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        super.onComplete(listener, bindExecutor);
+    public FailedRpcFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+        super.addListener(listener, bindExecutor);
         return this;
     }
 
-    @Override
-    public FailedRpcFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener) {
-        super.onSuccess(listener);
-        return this;
-    }
-
-    @Override
-    public FailedRpcFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        super.onSuccess(listener, bindExecutor);
-        return this;
-    }
-
-    @Override
-    public FailedRpcFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener) {
-        super.onFailure(listener);
-        return this;
-    }
-
-    @Override
-    public FailedRpcFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        super.onFailure(listener, bindExecutor);
-        return this;
-    }
-
-    @Override
-    public FailedRpcFuture<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener) {
-        super.onTimeout(listener);
-        return this;
-    }
-
-    @Override
-    public FailedRpcFuture<V> onTimeout(@Nonnull TimeoutFutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        super.onTimeout(listener, bindExecutor);
-        return this;
-    }
 }

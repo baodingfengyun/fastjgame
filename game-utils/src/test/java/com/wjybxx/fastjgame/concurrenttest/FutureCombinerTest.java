@@ -34,7 +34,7 @@ public class FutureCombinerTest {
         final DefaultEventLoop eventLoopB = new DefaultEventLoop(null, new DefaultThreadFactory("BBBBBB"), RejectedExecutionHandlers.abort());
 
         final BlockingFuture<String> aFuture = eventLoopA.submit(() -> "success");
-        aFuture.onComplete(future -> {
+        aFuture.addListener(future -> {
             System.out.println("CallbackA, Thread : " + Thread.currentThread().getName());
             System.out.println("CallbackA, result " + getResultAsStringSafely(future));
         });
@@ -42,7 +42,7 @@ public class FutureCombinerTest {
         final BlockingFuture<String> bFuture = eventLoopB.submit(() -> {
             throw new Exception("failure");
         });
-        bFuture.onComplete(future -> {
+        bFuture.addListener(future -> {
             System.out.println("CallbackB, Thread : " + Thread.currentThread().getName());
             System.out.println("CallbackB, result " + getResultAsStringSafely(future));
         });
@@ -66,7 +66,7 @@ public class FutureCombinerTest {
                 .add(aFuture)
                 .add(bFuture)
                 .finish(appEventLoop.newBlockingPromise())
-                .onComplete(future -> {
+                .addListener(future -> {
                     System.out.println("Callback Combine, Thread : " + Thread.currentThread().getName());
                     System.out.println("Callback Combine, result " + getResultAsStringSafely(future));
                 });

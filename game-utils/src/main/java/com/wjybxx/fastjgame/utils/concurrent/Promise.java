@@ -70,7 +70,7 @@ public interface Promise<V> extends ListenableFuture<V> {
     /**
      * {@inheritDoc}
      * <p>
-     * 如果该方法返回true，任何赋值操作都将不会造成任何影响。
+     * 如果该方法返回true，表示用户并不关心结果，任何赋值操作都将不会造成任何影响。
      */
     @UnstableApi
     @Override
@@ -78,20 +78,9 @@ public interface Promise<V> extends ListenableFuture<V> {
 
     // 仅用于语法支持
     @Override
-    Promise<V> onComplete(@Nonnull FutureListener<? super V> listener);
+    Promise<V> addListener(@Nonnull FutureListener<? super V> listener);
 
     @Override
-    Promise<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+    Promise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
-    @Override
-    Promise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener);
-
-    @Override
-    Promise<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
-
-    @Override
-    Promise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener);
-
-    @Override
-    Promise<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 }

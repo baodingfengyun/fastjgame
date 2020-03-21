@@ -43,14 +43,19 @@ import java.util.concurrent.Executor;
  * A: 执行环境相同的监听器，如果后添加的回调先执行，将非常危险!!!<br>
  * 举个极端的例子，以下同一个方法体的两句代码,为了更清晰的说明时序问题，没有使用流式语法:
  * <pre> {@code
- *      future.onComplete(this::doSomethingA, appEventLoop);
- *      future.onComplete(this::doSomethingB, appEventLoop);
+ *      future.addListener(this::doSomethingA, appEventLoop);
+ *      future.addListener(this::doSomethingB, appEventLoop);
  * }</pre>
  * 如果不提供时序保证，那么 {@code doSomethingB} 方法可能先执行，如果回调B执行的时候，总是认为回调A已经执行了的话，将非常危险。
  *
  * <h3>实现要求</h3>
  * 1. 必须满足监听器的执行时序要求。
  * 2. 要么是线程安全的，可以多线程使用的；要么能检测到冲突并防止数据被破坏。
+ * <p>
+ * Q: 为什么删除了{@code onSuccess} {@code onFailure}方法？
+ * A: 我在实践中发现这两个方法带来的问题胜过带来的好处，最主要的问题是：{@code onSuccess}和{@code onFailure}必须成对出现，否则可能导致异常信息丢失！
+ * 异常信息非常重要，即使不处理，也不能随便丢弃！
+ * 如果用户仅仅关心成功时候的逻辑，那么不必判断{@link #isSuccess()}，直接调用{@link #getNow()}即可，重新抛出异常也好过丢弃异常。
  *
  * @author wjybxx
  * @version 1.0
@@ -148,7 +153,7 @@ public interface ListenableFuture<V> {
      * @param listener 要添加的监听器。
      * @return this
      */
-    ListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener);
+    ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener);
 
     /**
      * 添加一个监听器。Listener将会在Future计算完成时{@link #isDone() true}被通知，并最终运行在指定{@link Executor}下。
@@ -156,32 +161,14 @@ public interface ListenableFuture<V> {
      * @param listener     要添加的监听器
      * @param bindExecutor 监听器的最终执行线程
      * @return this
-     * @see #onComplete(FutureListener)
+     * @see #addListener(FutureListener)
      */
-    ListenableFuture<V> onComplete(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
-
-    /**
-     * 添加一个监听器，该监听器只有在成功的时候执行
-     *
-     * @see #onComplete(FutureListener)
-     */
-    ListenableFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener);
-
-    ListenableFuture<V> onSuccess(@Nonnull SucceededFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
-
-    /**
-     * 添加一个监听器，该监听器只有在失败的时候执行
-     *
-     * @see #onComplete(FutureListener)
-     */
-    ListenableFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener);
-
-    ListenableFuture<V> onFailure(@Nonnull FailedFutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+    ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
     // ------------------------------------- 用于支持占位的voidFuture --------------------------------------
 
     /**
-     * 如果该方法返回true，表示该对象仅仅用于占位。
+     * 如果该方法返回true，表示该对象仅仅用于占位，表示用户并不关心结果。
      * 任何<b>阻塞式调用</b>和<b>添加监听器</b>都将抛出异常。
      * <p>
      * Q: 它的主要目的？
