@@ -313,13 +313,6 @@ public class DisruptorEventLoop extends AbstractEventLoop {
         thread.interrupt();
     }
 
-    /**
-     * Q: 如何保证算法的安全性的？
-     * A: 前提：{@link Worker#cleanRingBuffer()}与其它生产者调用{@link RingBuffer#publish(long)}发布事件之间是互斥的！
-     * 1. 如果sequence是在{@link Worker#cleanRingBuffer()}之后申请的sequence，那么一定能检测到{@link #isShuttingDown() true}，
-     * 因此不会发布任务。
-     * 2. 如果是在{@link Worker#cleanRingBuffer()}之前申请的sequence，那么{@link Worker#cleanRingBuffer()}一定能清理掉它！
-     */
     @Override
     public final void execute(@Nonnull Runnable task) {
         // 这里不先判断{@code isShuttingDown()}，在申请sequence之后判断是否拒绝任务，可以减小整体开销
@@ -330,10 +323,21 @@ public class DisruptorEventLoop extends AbstractEventLoop {
         }
     }
 
+    /**
+     * Q: 如何保证算法的安全性的？
+     * A:
+     * 两个关键时序：
+     * 1. {@link #isShuttingDown()}为true一定在{@link Worker#removeGatingSequence()}之前。
+     * 2. {@link RingBuffer#publish(long)}与{@link Worker#cleanRingBuffer()}是互斥的。
+     * <p>
+     * 如果sequence是在{@link Worker#removeGatingSequence()}之后申请到的，那么一定能检测到{@link #isShuttingDown()}为true，因此不会发布任务，不会破坏数据。
+     * 如果sequence是在{@link Worker#removeGatingSequence()}之前申请到的，那么该sequence一定是有效的（它考虑了EventLoop的消费进度）。
+     * 又由于{@link RingBuffer#publish(long)}与{@link Worker#cleanRingBuffer()}是互斥的，那么它的发布操作一定先于{@link Worker#cleanRingBuffer()}。
+     * 即使在发布的过程中EventLoop开始关闭，它发布的任务也一定可以被清理掉。
+     */
     private void tryPublish(@Nonnull Runnable task, long sequence) {
         if (isShuttingDown()) {
-            // 如果申请sequence之后发现EventLoop已开始关闭，那么申请到的sequence对应的数据可能未被EventLoop消费，不可以使用(避免破坏数据)
-            // 先发布sequence，避免阻塞，然后处理执行拒绝逻辑
+            // 先发布sequence，避免拒绝逻辑可能产生的阻塞
             ringBuffer.publish(sequence);
 
             rejectedExecutionHandler.rejected(task, this);
@@ -449,6 +453,10 @@ public class DisruptorEventLoop extends AbstractEventLoop {
                 // 如果是非正常退出，需要切换到正在关闭状态 - 告知其它线程，已经开始关闭
                 advanceRunState(ST_SHUTTING_DOWN);
                 try {
+                    // 从网关sequence中删除自己。
+                    // 这是解决生产者死锁问题的关键：由于此时已经不存在gatingSequence，因此生产者能立刻从ringBuffer.next()方法返回
+                    removeGatingSequence();
+
                     // 清理ringBuffer中的数据
                     cleanRingBuffer();
                 } finally {
@@ -514,11 +522,11 @@ public class DisruptorEventLoop extends AbstractEventLoop {
             }
         }
 
-        private void cleanRingBuffer() {
-            // 删除自己：这是解决生产者死锁问题的关键，生产者一定能从next()方法中醒来
-            // 由于此时已经不存在gatingSequence，因此生产者都能很快的申请到空间，不会阻塞
+        private void removeGatingSequence() {
             ringBuffer.removeGatingSequence(sequence);
+        }
 
+        private void cleanRingBuffer() {
             long startTimeMillis = System.currentTimeMillis();
             // 申请整个空间，因此与真正的生产者之间是互斥的！这是关键
             final long finalSequence = ringBuffer.next(ringBuffer.getBufferSize());
