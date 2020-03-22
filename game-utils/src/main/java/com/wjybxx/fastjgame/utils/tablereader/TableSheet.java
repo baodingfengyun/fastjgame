@@ -48,7 +48,7 @@ import java.util.Set;
  *                |---------------------------|
  * AnnotationRow  |   参数名列  |     值列      |
  *                |---------------------------|
- * ColNameRow     |  paramName |   value      |
+ * ColNameRow     |   name     |   value      |
  *                |----------------------------
  * ColNameRow+1   |   a        |       1      |
  *                -----------------------------

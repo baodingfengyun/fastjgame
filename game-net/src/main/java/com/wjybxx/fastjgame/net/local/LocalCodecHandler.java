@@ -46,9 +46,8 @@ public class LocalCodecHandler extends SessionOutboundHandlerAdapter {
     public void write(SessionHandlerContext ctx, Object msg) throws Exception {
         // msg 是根据writeTask创建的对象，不是共享的，但它持有的内容是共享的
         if (msg instanceof NetLogicMessage) {
-            NetLogicMessage logicMessage = (NetLogicMessage) msg;
-            final byte[] bodyBytes = serializer.toBytes(logicMessage.getBody());
-            final Object newBody = serializer.fromBytes(bodyBytes);
+            final NetLogicMessage logicMessage = (NetLogicMessage) msg;
+            final Object newBody = serializer.cloneObject(logicMessage.getBody());
             logicMessage.setBody(newBody);
         }
         // 传递给下一个handler

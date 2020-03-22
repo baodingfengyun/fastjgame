@@ -240,7 +240,8 @@ public class DefaultTimerSystem implements TimerSystem {
     }
 
     /**
-     * 调整handle在timerSystem中的优先级(暂时先删除再插入，如果切换底层数据结构，那么可能会修改)
+     * 调整handle在timerSystem中的优先级
+     * (这不是个频繁的操作，暂时先删除再插入，先不做优化)
      *
      * @param <T>    定时器句柄类型
      * @param handle 定时器句柄

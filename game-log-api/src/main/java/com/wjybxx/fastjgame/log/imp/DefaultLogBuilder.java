@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.log.imp;
 import com.wjybxx.fastjgame.log.core.LogBuilder;
 import com.wjybxx.fastjgame.utils.CollectionUtils;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -31,13 +32,12 @@ import java.util.Map;
  */
 public class DefaultLogBuilder implements LogBuilder {
 
-    private static final int DEFAULT_EXPECTED_SIZE = (int) (16 * 0.75 - 1);
-
     private final String topic;
     private final Map<String, Object> dataMap;
 
     public DefaultLogBuilder(String topic) {
-        this(topic, DEFAULT_EXPECTED_SIZE);
+        this.topic = topic;
+        this.dataMap = new LinkedHashMap<>();
     }
 
     public DefaultLogBuilder(String topic, int expectedSize) {

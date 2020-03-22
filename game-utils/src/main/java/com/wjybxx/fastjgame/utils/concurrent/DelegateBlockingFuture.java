@@ -74,13 +74,13 @@ public class DelegateBlockingFuture<V> extends DelegateFuture<V> implements Bloc
     }
 
     @Override
-    public BlockingFuture<V> addListener(@Nonnull FutureListener<? super V> listener) {
+    public DelegateBlockingFuture<V> addListener(@Nonnull FutureListener<? super V> listener) {
         super.addListener(listener);
         return this;
     }
 
     @Override
-    public BlockingFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public DelegateBlockingFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         super.addListener(listener, bindExecutor);
         return this;
     }

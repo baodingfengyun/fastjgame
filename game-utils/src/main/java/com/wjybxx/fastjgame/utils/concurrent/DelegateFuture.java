@@ -84,15 +84,17 @@ public class DelegateFuture<V> implements ListenableFuture<V> {
         return delegate.isVoid();
     }
 
-    // 必须返回this
+    /**
+     * @return 必须返回this，声明为{@link DelegateFuture}可以避免错误的返回值
+     */
     @Override
-    public ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener) {
+    public DelegateFuture<V> addListener(@Nonnull FutureListener<? super V> listener) {
         delegate.addListener(listener);
         return this;
     }
 
     @Override
-    public ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
+    public DelegateFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
         delegate.addListener(listener, bindExecutor);
         return this;
     }

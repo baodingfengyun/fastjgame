@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.utils.timeprovider;
 
 /**
  * 系统时间提供者
+ * 线程安全性取决于实现，该接口并不要求所有子类都是线程安全的。
  *
  * @author wjybxx
  * @version 1.0

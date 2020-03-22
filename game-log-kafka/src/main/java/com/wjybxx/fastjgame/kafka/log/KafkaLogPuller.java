@@ -98,53 +98,6 @@ public class KafkaLogPuller<T extends LogVO> extends DisruptorEventLoop implemen
         return new TimeoutWaitStrategyFactory(CONSUMER_BLOCK_TIME_MS, TimeUnit.MILLISECONDS);
     }
 
-    @Override
-    protected void init() throws Exception {
-
-    }
-
-    @Override
-    protected void loopOnce() throws Exception {
-        final ConsumerRecords<String, String> records = kafkaConsumer.poll(CONSUMER_POLL_DURATION);
-        if (records.isEmpty()) {
-            return;
-        }
-
-        try {
-            for (ConsumerRecord<String, String> record : records) {
-                consumeSafely(record);
-            }
-        } finally {
-            // 提交消费记录 - 如果使用自动提交，参数设置不当时，容易导致重复消费。
-            kafkaConsumer.commitSync();
-        }
-    }
-
-    @Override
-    protected void clean() throws Exception {
-        CloseableUtils.closeQuietly(kafkaConsumer);
-    }
-
-    private void consumeSafely(ConsumerRecord<String, String> consumerRecord) {
-        try {
-            final T record = kafkaLogParser.parse(new DefaultLogRecord(consumerRecord.topic(), consumerRecord.value()));
-            final LogConsumer<T> logConsumer = logConsumerMap.get(consumerRecord.topic());
-            LogConsumerUtils.consumeSafely(logConsumer, record);
-        } catch (Throwable e) {
-            logger.warn("consume caught exception, record {}", consumerRecord, e);
-        }
-    }
-
-    private static Properties newConfig(final String brokerList, final String groupId) {
-        Properties properties = new Properties();
-        properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerList);
-        properties.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-        properties.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 500);
-        properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
-        properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        return properties;
-    }
-
     private static <T> Map<String, LogConsumer<T>> indexConsumers(Collection<LogConsumer<T>> consumers) {
         final Map<String, LogConsumer<T>> logConsumerMap = CollectionUtils.newHashMapWithExpectedSize(consumers.size());
         for (LogConsumer<T> logConsumer : consumers) {
@@ -168,4 +121,52 @@ public class KafkaLogPuller<T extends LogVO> extends DisruptorEventLoop implemen
             }
         }
     }
+
+    private static Properties newConfig(final String brokerList, final String groupId) {
+        Properties properties = new Properties();
+        properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerList);
+        properties.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+        properties.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 512);
+        properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
+        properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        return properties;
+    }
+
+    @Override
+    protected void init() throws Exception {
+
+    }
+
+    @Override
+    protected void loopOnce() throws Exception {
+        final ConsumerRecords<String, String> records = kafkaConsumer.poll(CONSUMER_POLL_DURATION);
+        if (records.isEmpty()) {
+            return;
+        }
+
+        try {
+            for (ConsumerRecord<String, String> record : records) {
+                consumeSafely(record);
+            }
+        } finally {
+            // 提交消费记录 - 如果使用自动提交，参数设置不当时，容易导致重复消费。
+            kafkaConsumer.commitSync();
+        }
+    }
+
+    private void consumeSafely(ConsumerRecord<String, String> consumerRecord) {
+        try {
+            final T record = kafkaLogParser.parse(new DefaultLogRecord(consumerRecord.topic(), consumerRecord.value()));
+            final LogConsumer<T> logConsumer = logConsumerMap.get(consumerRecord.topic());
+            LogConsumerUtils.consumeSafely(logConsumer, record);
+        } catch (Throwable e) {
+            logger.warn("consume caught exception, record {}", consumerRecord, e);
+        }
+    }
+
+    @Override
+    protected void clean() throws Exception {
+        CloseableUtils.closeQuietly(kafkaConsumer);
+    }
+
 }

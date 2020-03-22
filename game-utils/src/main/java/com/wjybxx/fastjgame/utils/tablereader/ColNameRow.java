@@ -61,8 +61,6 @@ public class ColNameRow {
 
     /**
      * 获取有效列名集合
-     *
-     * @return
      */
     public Set<String> getColeNameSet() {
         return colName2Index.keySet();

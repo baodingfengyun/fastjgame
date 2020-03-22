@@ -30,13 +30,10 @@ import java.util.List;
  */
 class CompositeEventHandler<T> implements EventHandler<T> {
 
-    private final Object eventKey;
     private final List<EventHandler<? super T>> children = new ArrayList<>(4);
 
-    CompositeEventHandler(Object eventKey,
-                          @Nonnull EventHandler<? super T> first,
+    CompositeEventHandler(@Nonnull EventHandler<? super T> first,
                           @Nonnull EventHandler<? super T> second) {
-        this.eventKey = eventKey;
         children.add(first);
         children.add(second);
     }
@@ -48,7 +45,7 @@ class CompositeEventHandler<T> implements EventHandler<T> {
     @Override
     public void onEvent(@Nonnull T event) throws Exception {
         for (EventHandler<? super T> handler : children) {
-            EventBusUtils.invokeHandlerSafely(event, handler, eventKey);
+            EventBusUtils.invokeHandlerSafely(event, handler);
         }
     }
 }

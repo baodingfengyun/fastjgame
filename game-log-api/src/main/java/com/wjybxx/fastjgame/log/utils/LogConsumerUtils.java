@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.log.utils;
 
 import com.wjybxx.fastjgame.log.core.LogConsumer;
-import com.wjybxx.fastjgame.log.imp.CompositeLogConsumer;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -33,7 +32,7 @@ import org.slf4j.LoggerFactory;
  */
 public class LogConsumerUtils {
 
-    private static final Logger logger = LoggerFactory.getLogger(CompositeLogConsumer.class);
+    private static final Logger logger = LoggerFactory.getLogger(LogConsumerUtils.class);
 
     public static <T> void consumeSafely(LogConsumer<T> consumer, T record) {
         try {

@@ -54,20 +54,18 @@ class EventBusUtils {
     static <K, T> void postEventImp(Map<K, EventHandler<?>> handlerMap, @Nonnull T event, @Nonnull K eventKey) {
         @SuppressWarnings("unchecked") final EventHandler<? super T> handler = (EventHandler<? super T>) handlerMap.get(eventKey);
         if (null == handler) {
-            // 对应的事件处理器可能忘记了注册
-            logger.warn("{}'s listeners may forgot register!", eventKey);
+            // 对应的事件处理器可能忘记了注册，不打印日志，避免过多无用的日志
             return;
         }
 
-        invokeHandlerSafely(event, handler, eventKey);
+        invokeHandlerSafely(event, handler);
     }
 
-    static <K, T> void invokeHandlerSafely(@Nonnull T event, EventHandler<? super T> handler, @Nonnull K eventKey) {
+    static <T> void invokeHandlerSafely(@Nonnull T event, @Nonnull EventHandler<? super T> handler) {
         try {
             handler.onEvent(event);
-        } catch (Exception e) {
-            logger.warn("handler.onEvent caught exception! EventClass {}, EventKey {}, handler {}",
-                    event.getClass().getName(), eventKey, handler.getClass().getName(), e);
+        } catch (Throwable e) {
+            logger.warn("An exception was thrown by " + handler.getClass().getName() + ".onEvent()", e);
         }
     }
 
@@ -89,7 +87,7 @@ class EventBusUtils {
             @SuppressWarnings("unchecked") final CompositeEventHandler<T> compositeEventHandler = (CompositeEventHandler<T>) existHandler;
             compositeEventHandler.addHandler(handler);
         } else {
-            handlerMap.put(eventKey, new CompositeEventHandler<>(eventKey, existHandler, handler));
+            handlerMap.put(eventKey, new CompositeEventHandler<>(existHandler, handler));
         }
     }
 

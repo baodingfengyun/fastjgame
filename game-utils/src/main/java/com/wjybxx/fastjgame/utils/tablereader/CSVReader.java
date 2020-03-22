@@ -71,7 +71,7 @@ public class CSVReader extends TableReader<CSVRecord> {
 
     @Override
     protected Iterator<CSVRecord> toIterator(File file, int sheetIndex) throws IOException {
-        if (sheetIndex > 0) {
+        if (sheetIndex != 0) {
             throw new IllegalArgumentException("csv reader only support sheetIndex 0");
         }
         parser = CSVParser.parse(file, charset, CSVFormat.DEFAULT);

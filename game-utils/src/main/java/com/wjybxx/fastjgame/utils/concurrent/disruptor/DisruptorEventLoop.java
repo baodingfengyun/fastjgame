@@ -515,7 +515,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
         }
 
         private void cleanRingBuffer() {
-            // 删除自己：这是解决生产者死锁问题的关键，生产者一定能从next中醒来
+            // 删除自己：这是解决生产者死锁问题的关键，生产者一定能从next()方法中醒来
             // 由于此时已经不存在gatingSequence，因此生产者都能很快的申请到空间，不会阻塞
             ringBuffer.removeGatingSequence(sequence);
 

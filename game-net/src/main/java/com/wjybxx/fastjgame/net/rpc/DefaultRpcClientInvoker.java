@@ -17,12 +17,14 @@
 package com.wjybxx.fastjgame.net.rpc;
 
 import com.wjybxx.fastjgame.net.exception.RpcSessionClosedException;
+import com.wjybxx.fastjgame.net.exception.RpcTimeoutException;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.utils.concurrent.BlockingPromise;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author wjybxx
@@ -65,8 +67,14 @@ class DefaultRpcClientInvoker implements RpcClientInvoker {
         }
 
         final BlockingPromise<V> blockingPromise = session.netEventLoop().newBlockingPromise();
-        session.netEventLoop().execute(new RpcRequestWriteTask(session, request, true, session.config().getSyncRpcTimeoutMs(), blockingPromise, true));
-        return blockingPromise.join();
+        final long syncRpcTimeoutMs = session.config().getSyncRpcTimeoutMs();
+
+        session.netEventLoop().execute(new RpcRequestWriteTask(session, request, true, syncRpcTimeoutMs, blockingPromise, true));
+
+        if (!blockingPromise.awaitUninterruptibly(syncRpcTimeoutMs, TimeUnit.MILLISECONDS)) {
+            blockingPromise.tryFailure(RpcTimeoutException.INSTANCE);
+        }
+        return blockingPromise.getNow();
     }
 
 }

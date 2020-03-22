@@ -56,14 +56,13 @@ public class HostAndPort {
      */
     @Override
     public String toString() {
-        return host + ":" + port;
+        return toString(host, port);
     }
 
     /**
      * 解析特定格式的address，返回对应的对象
      *
-     * @param address 远端地址信息，格式为  host:port
-     * @return 返回一个对象
+     * @param address 格式为  host:port
      */
     @Nonnull
     public static HostAndPort parseHostAndPort(@Nonnull String address) {
@@ -74,13 +73,10 @@ public class HostAndPort {
     }
 
     /**
-     * 将指定的hostAndPort对象转化为可供以后解析的字符串
-     *
-     * @param hostAndPort 指定实例
-     * @return 特定格式的字符串
+     * 将host和port合并为字符串
      */
     @Nonnull
-    public static String toString(@Nonnull HostAndPort hostAndPort) {
-        return hostAndPort.toString();
+    public static String toString(@Nonnull String host, int port) {
+        return host + ":" + port;
     }
 }

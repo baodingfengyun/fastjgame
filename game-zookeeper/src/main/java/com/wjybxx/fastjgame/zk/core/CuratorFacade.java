@@ -23,7 +23,6 @@ import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.misc.CloseableHandle;
 import com.wjybxx.fastjgame.zk.utils.ZKPathUtils;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.recipes.cache.NodeCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.curator.framework.recipes.locks.InterProcessMutex;
@@ -50,13 +49,8 @@ import java.util.*;
  * 和根节点属性导出之后无法导入的问题。
  * 地址： - https://github.com/hl845740757/zkui
  *
- * <P>
- * Curator控制器，管理Curator客户端和提供一些简便方法。
- * 设计给游戏逻辑线程使用，因此不是线程安全的。
- * </P>
- *
  * <h3>注意事项</h3>
- * <P>
+ * <p>
  * <li>1.如果操作的是私有数据，则先检查后执行是安全的。</li>
  * <li>2.如果操作的是共享数据，则可能导致异常，需要加锁。</li>
  * <li>3.对永久节点的操作，加锁可保证先检查后执行的原子性(防止并发修改)。</li>
@@ -66,10 +60,6 @@ import java.util.*;
  * <p>
  * 加锁时注意：不可以对临时节点加锁(临时节点不能创建子节点，你需要使用另外一个节点加锁，来保护它)。
  * {@link ZKPathUtils#findAppropriateLockPath(String)}可能会有帮助。
- * </p>
- * 警告：
- * 关于Curator的{@link NodeCache} 和 {@link PathChildrenCache}线程安全问题请查看笔记：
- * - http://note.youdao.com/noteshare?id=721ba3029455fac81d8ec19c813423bf&sub=D20C495A90CD4487A909EE6637A788A6
  *
  * @author wjybxx
  * @version 1.0

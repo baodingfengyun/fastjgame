@@ -117,7 +117,7 @@ public abstract class TableReader<T> implements AutoCloseable {
     private ColNameRow readColNameRow(String fileName, int rowIndex, T row) {
         // 使用LinkedHashMap以保持读入顺序
         int totalColNum = getTotalColNum(row);
-        Object2IntMap<String> colName2Index = new Object2IntLinkedOpenHashMap<>(totalColNum + 1, 1);
+        Object2IntMap<String> colName2Index = new Object2IntLinkedOpenHashMap<>(totalColNum + 1);
         for (int colIndex = 0; colIndex < totalColNum; colIndex++) {
             String originalColName = getNullableCell(row, colIndex);
             // 属性名称行，空白属性跳过

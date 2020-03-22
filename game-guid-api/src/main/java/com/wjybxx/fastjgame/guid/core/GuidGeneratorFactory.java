@@ -27,6 +27,9 @@ package com.wjybxx.fastjgame.guid.core;
  */
 public interface GuidGeneratorFactory {
 
+    /**
+     * @param name {@link GuidGenerator}的名字
+     */
     GuidGenerator newInstance(String name);
 
 }

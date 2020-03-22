@@ -44,7 +44,6 @@ public class RedisGuidGenerator implements GuidGenerator {
     private long curGuid = 0;
     private long curBarrier = 0;
 
-
     public RedisGuidGenerator(JedisPoolAbstract jedisPool, String name) {
         this(jedisPool, name, DEFAULT_CACHE_SIZ);
     }
