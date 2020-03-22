@@ -325,15 +325,21 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 
     /**
      * Q: 如何保证算法的安全性的？
-     * A:
+     * A: 我们只需要保证申请到的sequence是有效的，且发布任务在{@link Worker#cleanRingBuffer()}之前即可。
      * 两个关键时序：
      * 1. {@link #isShuttingDown()}为true一定在{@link Worker#removeGatingSequence()}之前。
-     * 2. {@link RingBuffer#publish(long)}与{@link Worker#cleanRingBuffer()}是互斥的。
+     * 2. {@link Worker#removeGatingSequence()}在{@link Worker#cleanRingBuffer()}之前。
+     * 一个互斥：
+     * {@link RingBuffer#publish(long)}与{@link Worker#cleanRingBuffer()}互斥，只要有生产者持有sequence，则{@link Worker#cleanRingBuffer()}必须等待生产者发布sequence。
+     *
      * <p>
-     * 如果sequence是在{@link Worker#removeGatingSequence()}之后申请到的，那么一定能检测到{@link #isShuttingDown()}为true，因此不会发布任务，不会破坏数据。
-     * 如果sequence是在{@link Worker#removeGatingSequence()}之前申请到的，那么该sequence一定是有效的（它考虑了EventLoop的消费进度）。
-     * 又由于{@link RingBuffer#publish(long)}与{@link Worker#cleanRingBuffer()}是互斥的，那么它的发布操作一定先于{@link Worker#cleanRingBuffer()}。
-     * 即使在发布的过程中EventLoop开始关闭，它发布的任务也一定可以被清理掉。
+     * 如果sequence是在{@link Worker#removeGatingSequence()}之前申请到的，那么该sequence就是有效的（它考虑了EventLoop的消费进度）。
+     * 如果sequence是在{@link #isShuttingDown()}为true之前申请到的，那么一定在{@link Worker#removeGatingSequence()}之前，也就是一定是有效的！
+     * 因此：申请到sequence之后，如果{@link #isShuttingDown()}为false，那么sequence一定是有效的。如果{@link #isShuttingDown()}为true，则可能有效，也可能无效。
+     * <p>
+     * 根据上文，如果生产者持有有效的sequence，那么一定在{@link Worker#removeGatingSequence()}之前，也就一定在{@link Worker#cleanRingBuffer()}之前，
+     * 且{@link RingBuffer#publish(long)}与{@link Worker#cleanRingBuffer()}是互斥， 因此{@link Worker#cleanRingBuffer()}必须等待生产者发布该sequence，
+     * 也就保证了发布任务一定在{@link Worker#cleanRingBuffer()}之前。
      */
     private void tryPublish(@Nonnull Runnable task, long sequence) {
         if (isShuttingDown()) {
