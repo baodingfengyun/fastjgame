@@ -20,7 +20,6 @@ import com.lmax.disruptor.AlertException;
 import com.lmax.disruptor.Sequence;
 import com.lmax.disruptor.SequenceBarrier;
 import com.lmax.disruptor.WaitStrategy;
-import com.lmax.disruptor.util.ThreadHints;
 
 import javax.annotation.Nonnull;
 
@@ -90,7 +89,7 @@ public class BusySpinWaitStrategyFactory implements WaitStrategyFactory {
 
             while ((availableSequence = dependentSequence.get()) < sequence) {
                 barrier.checkAlert();
-                ThreadHints.onSpinWait();
+                Thread.onSpinWait();
 
                 if (++waitTimes == waitTimesThreshold) {
                     waitTimes = 0;

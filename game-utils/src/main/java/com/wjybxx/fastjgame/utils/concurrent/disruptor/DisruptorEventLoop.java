@@ -40,22 +40,18 @@ import java.util.concurrent.atomic.AtomicInteger;
  * 2. {@link DisruptorEventLoop}对资源的利用率远胜{@link SingleThreadEventLoop}。
  * <p>
  * Q: 那缺陷在哪呢？
- * A: 1. 最大的缺陷就是它只能是有界的队列。<br>
+ * A: 1. 最大的缺陷就是它只能是有界的队列，某些场景下不能使用有界队列。<br>
  * 2. {@link DisruptorEventLoop}涉及很多额外的知识，涉及到Disruptor框架，而且我为了解决它存在的一些问题，又选择了一些自定义的实现，
  * 导致其阅读难度较大，不像{@link SingleThreadEventLoop}那么清晰易懂。<br>
  * 3. 子类不能控制循环逻辑，无法自己决定什么时候调用{@link #loopOnce()}。<br>
  *
  * <p>
  * Q: 哪些事件循环适合使用{@link DisruptorEventLoop} ?<br>
- * A: 如果你的服务处于终端节点，且需要极低的延迟和极高的吞吐量的时候。{@link DisruptorEventLoop}最好不要用在中间节点，超过负载可能死锁！
+ * A: 如果你的服务处于终端节点，且需要极低的延迟和极高的吞吐量的时候。
  *
  * <p>
- * 警告：由于{@link EventLoop}都是单线程的，如果两个{@link EventLoop}都使用有界队列，如果互相通信，如果超过负载，则可能死锁！
- * - eg: 网络层尝试向应用层提交任务，应用层尝试向网络层提交任务。
- * （其实两个EventLoop中只要有一个使用有界队列，且有阻塞式操作，则可能死锁或阻塞较长时间）
- * <b>
+ * 警告：由于{@link EventLoop}都是单线程的，如果某个EventLoop使用有界队列，且有阻塞式操作，则可能导致死锁或较长时间阻塞。
  * 而{@link DisruptorEventLoop}使用的就是有界队列。
- * </b>
  *
  * @author wjybxx
  * @version 1.0
@@ -285,15 +281,16 @@ public class DisruptorEventLoop extends AbstractEventLoop {
      */
     private void ensureThreadTerminable(int oldState) {
         if (oldState == ST_NOT_STARTED) {
+            // TODO 是否需要启动线程，进行更彻底的清理？
             stateHolder.set(ST_TERMINATED);
             terminationFuture.setSuccess(null);
         } else {
-            // 消费者可能阻塞在等待事件的地方，即使inEventLoop也需要中断，否则可能丢失信号，在waitFor处无法停止
+            // 等待策略的是根据该信号判断EventLoop是否已开始关闭的，因此即使inEventLoop也需要中断，否则可能丢失信号，在waitFor处无法停止
             worker.sequenceBarrier.alert();
 
             // 唤醒线程 - 如果线程可能阻塞在其它地方
             if (!inEventLoop()) {
-                wakeUp();
+                wakeUpForShutdown();
             }
         }
     }
@@ -301,7 +298,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     /**
      * 如果子类可能阻塞在其它地方，那么应该重写该方法以唤醒线程
      */
-    protected void wakeUp() {
+    protected void wakeUpForShutdown() {
 
     }
 
@@ -326,20 +323,17 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     /**
      * Q: 如何保证算法的安全性的？
      * A: 我们只需要保证申请到的sequence是有效的，且发布任务在{@link Worker#cleanRingBuffer()}之前即可。
-     * 两个关键时序：
-     * 1. {@link #isShuttingDown()}为true一定在{@link Worker#removeGatingSequence()}之前。
-     * 2. {@link Worker#removeGatingSequence()}在{@link Worker#cleanRingBuffer()}之前。
-     * 一个互斥：
-     * {@link RingBuffer#publish(long)}与{@link Worker#cleanRingBuffer()}互斥，只要有生产者持有sequence，则{@link Worker#cleanRingBuffer()}必须等待生产者发布sequence。
-     *
+     * 三个关键时序：
+     * 1. {@link #isShuttingDown()}为true一定在{@link Worker#removeFromGatingSequence()}之前。
+     * 2. {@link Worker#removeFromGatingSequence()}在{@link Worker#cleanRingBuffer()}之前。
+     * 3. {@link Worker#cleanRingBuffer()}必须等待在这之前申请到的sequence发布。
      * <p>
-     * 如果sequence是在{@link Worker#removeGatingSequence()}之前申请到的，那么该sequence就是有效的（它考虑了EventLoop的消费进度）。
-     * 如果sequence是在{@link #isShuttingDown()}为true之前申请到的，那么一定在{@link Worker#removeGatingSequence()}之前，也就是一定是有效的！
+     * 如果sequence是在{@link Worker#removeFromGatingSequence()}之前申请到的，那么该sequence就是有效的（它考虑了EventLoop的消费进度）。
+     * 如果sequence是在{@link #isShuttingDown()}为true之前申请到的，那么一定在{@link Worker#removeFromGatingSequence()}之前，也就是一定是有效的！
      * 因此：申请到sequence之后，如果{@link #isShuttingDown()}为false，那么sequence一定是有效的。如果{@link #isShuttingDown()}为true，则可能有效，也可能无效。
      * <p>
-     * 根据上文，如果生产者持有有效的sequence，那么一定在{@link Worker#removeGatingSequence()}之前，也就一定在{@link Worker#cleanRingBuffer()}之前，
-     * 且{@link RingBuffer#publish(long)}与{@link Worker#cleanRingBuffer()}是互斥， 因此{@link Worker#cleanRingBuffer()}必须等待生产者发布该sequence，
-     * 也就保证了发布任务一定在{@link Worker#cleanRingBuffer()}之前。
+     * 根据上文，如果生产者持有有效的sequence，那么一定在{@link Worker#removeFromGatingSequence()}之前，也就一定在{@link Worker#cleanRingBuffer()}之前，
+     * 因此{@link Worker#cleanRingBuffer()}必须等待生产者发布该sequence，也就保证了发布任务一定在{@link Worker#cleanRingBuffer()}之前。
      */
     private void tryPublish(@Nonnull Runnable task, long sequence) {
         if (isShuttingDown()) {
@@ -460,8 +454,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
                 advanceRunState(ST_SHUTTING_DOWN);
                 try {
                     // 从网关sequence中删除自己。
-                    // 这是解决生产者死锁问题的关键：由于此时已经不存在gatingSequence，因此生产者能立刻从ringBuffer.next()方法返回
-                    removeGatingSequence();
+                    removeFromGatingSequence();
 
                     // 清理ringBuffer中的数据
                     cleanRingBuffer();
@@ -489,19 +482,23 @@ public class DisruptorEventLoop extends AbstractEventLoop {
                     // 等待生产者生产数据
                     availableSequence = waitFor(nextSequence);
 
-                    // 处理所有可消费的事件
-                    while (nextSequence <= availableSequence) {
-                        safeExecute(ringBuffer.get(nextSequence).detachTask());
-                        nextSequence++;
+                    if (nextSequence <= availableSequence) {
+
+                        // 处理所有可消费的事件
+                        while (nextSequence <= availableSequence) {
+                            safeExecute(ringBuffer.get(nextSequence).detachTask());
+                            nextSequence++;
+                        }
+
+                        // 标记这批事件已处理
+                        sequence.set(availableSequence);
                     }
 
-                    // 标记这批事件已处理
-                    sequence.set(availableSequence);
-
-                    // 处理完一批事件，执行一次循环
+                    // 执行一次循环
                     safeLoopOnce();
                 } catch (AlertException | InterruptedException e) {
-                    // 请求了关闭 BatchEventProcessor并没有响应中断请求，会导致中断信号丢失。
+                    // 请求了关闭
+                    // BatchEventProcessor实现中并没有处理中断异常
                     if (isShuttingDown()) {
                         break;
                     }
@@ -528,12 +525,12 @@ public class DisruptorEventLoop extends AbstractEventLoop {
             }
         }
 
-        private void removeGatingSequence() {
+        private void removeFromGatingSequence() {
             ringBuffer.removeGatingSequence(sequence);
         }
 
         private void cleanRingBuffer() {
-            long startTimeMillis = System.currentTimeMillis();
+            final long startTimeMillis = System.currentTimeMillis();
             // 申请整个空间，因此与真正的生产者之间是互斥的！这是关键
             final long finalSequence = ringBuffer.next(ringBuffer.getBufferSize());
             final long initialSequence = finalSequence - (ringBuffer.getBufferSize() - 1);
@@ -560,7 +557,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
         }
     }
 
-    static final class RunnableEvent {
+    private static final class RunnableEvent {
 
         private Runnable task;
 

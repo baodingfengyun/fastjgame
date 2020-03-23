@@ -36,18 +36,18 @@ import java.util.concurrent.TimeUnit;
  * date - 2019/11/28
  * github - https://github.com/hl845740757
  */
-public class TimeoutWaitStrategyFactory implements WaitStrategyFactory {
+public class TimeoutBlockingWaitStrategyFactory implements WaitStrategyFactory {
 
     private static final int DEFAULT_TIMEOUT = 1;
 
     private final int timeout;
     private final TimeUnit timeUnit;
 
-    public TimeoutWaitStrategyFactory() {
+    public TimeoutBlockingWaitStrategyFactory() {
         this(DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
     }
 
-    public TimeoutWaitStrategyFactory(int timeout, TimeUnit timeUnit) {
+    public TimeoutBlockingWaitStrategyFactory(int timeout, TimeUnit timeUnit) {
         this.timeout = timeout;
         this.timeUnit = timeUnit;
     }

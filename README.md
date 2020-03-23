@@ -19,6 +19,7 @@ fastjgame 为 fast java game framework的缩写，如名字一样，该项目的
 线程模型从Netty借鉴了许多，但也有稍许区别：
 1. ListenableFuture不继承JDK的Future，只提供非阻塞的api，该设计使得实现一些特定场景的**轻量级的Future**成为可能。
 2. 删除EventExecutor概念，只保留EventLoop概念，EventLoop就是单线程的。如果不需要单线程带来的一些保证，那么使用Executor概念即可。
+3. 提供了基于Disruptor的高性能事件循环**DisruptorEventLoop**。
 
 ### RPC
 这里的rpc设计并未追求所谓的标准，而更追求实用性，主要特点如下：

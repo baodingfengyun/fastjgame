@@ -27,7 +27,7 @@ import com.wjybxx.fastjgame.utils.CloseableUtils;
 import com.wjybxx.fastjgame.utils.CollectionUtils;
 import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.utils.concurrent.disruptor.DisruptorEventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.disruptor.TimeoutWaitStrategyFactory;
+import com.wjybxx.fastjgame.utils.concurrent.disruptor.TimeoutBlockingWaitStrategyFactory;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -94,8 +94,8 @@ public class KafkaLogPuller<T extends LogVO> extends DisruptorEventLoop implemen
     }
 
     @Nonnull
-    private static TimeoutWaitStrategyFactory newWaitStrategyFactory() {
-        return new TimeoutWaitStrategyFactory(CONSUMER_BLOCK_TIME_MS, TimeUnit.MILLISECONDS);
+    private static TimeoutBlockingWaitStrategyFactory newWaitStrategyFactory() {
+        return new TimeoutBlockingWaitStrategyFactory(CONSUMER_BLOCK_TIME_MS, TimeUnit.MILLISECONDS);
     }
 
     private static <T> Map<String, LogConsumer<T>> indexConsumers(Collection<LogConsumer<T>> consumers) {
