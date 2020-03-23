@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.utils.concurrent;
 
 
+import com.wjybxx.fastjgame.utils.concurrent.disruptor.DisruptorEventLoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +29,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 /**
- * 事件循环的模板实现
+ * 事件循环的模板实现。
+ * 它是无界事件循环的超类，如果期望使用有界队列，请使用{@link DisruptorEventLoop}。
  *
  * @author wjybxx
  * @version 1.0
@@ -47,7 +49,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     /**
      * 用于友好的唤醒当前线程的任务
      */
-    protected static final Runnable WAKE_UP_TASK = () -> {
+    private static final Runnable WAKE_UP_TASK = () -> {
     };
 
     // 线程的状态
@@ -120,8 +122,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     }
 
     /**
-     * 我自己测试了好多遍，{@link LinkedBlockingQueue} 和 {@link ConcurrentLinkedQueue}在
-     * EventLoop架构下基本没啥差别。
+     * 我自己测试了好多遍，{@link LinkedBlockingQueue} 和 {@link ConcurrentLinkedQueue}在EventLoop架构下基本没啥差别。
      * (多生产者单消费者)
      *
      * @return queue
@@ -227,19 +228,18 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
         if (oldState == ST_NOT_STARTED) {
             stateHolder.set(ST_TERMINATED);
             terminationFuture.setSuccess(null);
-        } else if (oldState == ST_STARTED) {
+        } else {
             if (!inEventLoop()) {
                 // 不确定是活跃状态
-                wakeUp();
+                wakeUpForShutdown();
             }
             // else 当前是活跃状态(自己调用，当然是活跃状态)
         }
-        // else 其它状态下不应该阻塞，不需要唤醒
     }
 
     /**
      * 用于其它线程友好的唤醒EventLoop线程，默认实现是向taskQueue中填充一个任务。
-     * 如果填充任务不能唤醒线程，则子类需要复写该方法
+     * 如果填充任务不能唤醒线程，则子类需要重写该方法
      * <p>
      * Q: 为什么默认实现是向taskQueue中插入一个任务，而不是中断线程{@link #interruptThread()} ?
      * A: 我先不说这里能不能唤醒线程这个问题。
@@ -247,8 +247,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
      * 因此它并不是一种唤醒/停止目标线程的最佳方式，它可能导致一些需要原子执行的操作失败，也可能导致其它的问题。
      * 因此最好是对症下药，默认实现里认为线程可能阻塞在taskQueue上，因此我们尝试压入一个任务以尝试唤醒它。
      */
-    protected void wakeUp() {
-        assert !inEventLoop();
+    protected void wakeUpForShutdown() {
         taskQueue.offer(WAKE_UP_TASK);
     }
 
@@ -259,7 +258,6 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
      * Interrupt the current running {@link Thread}.
      */
     protected final void interruptThread() {
-        assert !inEventLoop();
         thread.interrupt();
     }
 
@@ -294,13 +292,12 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
         }
     }
 
-    protected final void reject(@Nonnull Runnable task) {
+    private void reject(@Nonnull Runnable task) {
         rejectedExecutionHandler.rejected(task, this);
     }
 
     /**
      * 确保线程已启动。
-     * <p>
      * 外部线程提交任务后需要保证线程已启动。
      */
     private void ensureStarted() {
@@ -331,14 +328,14 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     /**
      * 阻塞式地从阻塞队列中获取一个任务。
      *
-     * @param timeoutMs 超时时间 - 毫秒
+     * @param timeout 超时时间
      * @return 如果executor被唤醒或被中断或实时间到，则返回null
      */
     @Nullable
-    protected final Runnable takeTask(long timeoutMs) {
+    protected final Runnable pollTask(long timeout, TimeUnit timeUnit) {
         assert inEventLoop();
         try {
-            return taskQueue.poll(timeoutMs, TimeUnit.MILLISECONDS);
+            return taskQueue.poll(timeout, timeUnit);
         } catch (InterruptedException ignore) {
             // 被中断唤醒 wake up
             return null;
@@ -371,26 +368,30 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
      * @return 至少有一个任务执行时返回true。
      */
     protected final boolean runAllTasks() {
-        return runTasksBatch(-1);
+        return runTasksBatch(Integer.MAX_VALUE);
     }
 
     /**
      * 尝试批量运行任务队列中的任务。
      *
-     * @param taskBatchSize 执行的最大任务数，小于等于0表示不限制，设定限制数可避免执行任务耗费太多时间。
+     * @param taskBatchSize 执行的最大任务数，设定合理的任务数可避免执行任务耗费太多时间。
      * @return 至少有一个任务执行时返回true。
      */
     protected final boolean runTasksBatch(final int taskBatchSize) {
-        // 不能出现负数
-        long runTaskNum = 0;
-        while (!isShutdown()) {
-            final int maxDrainTasks = taskBatchSize <= 0 ? CACHE_QUEUE_CAPACITY : (int) (taskBatchSize - runTaskNum);
-            if (maxDrainTasks <= 0) {
-                break;
-            }
+        if (taskBatchSize <= 0) {
+            throw new IllegalArgumentException("taskBatchSize expected: > 0");
+        }
+
+        int countDown = taskBatchSize;
+        int maxDrainTasks;
+        int size;
+
+        while (true) {
+            maxDrainTasks = Math.min(CACHE_QUEUE_CAPACITY, countDown);
 
             // drainTo - 批量拉取可执行任务(可减少竞争)
-            final int size = taskQueue.drainTo(cacheQueue, maxDrainTasks);
+            size = taskQueue.drainTo(cacheQueue, maxDrainTasks);
+
             if (size <= 0) {
                 break;
             }
@@ -399,9 +400,14 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
                 safeExecute(cacheQueue.pollFirst());
             }
 
-            runTaskNum += size;
+            countDown -= size;
+
+            if (countDown <= 0) {
+                break;
+            }
         }
-        return runTaskNum > 0;
+
+        return countDown < taskBatchSize;
     }
 
     // --------------------------------------- 线程管理 ----------------------------------------
@@ -435,24 +441,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     protected final boolean confirmShutdown() {
         // 用于EventLoop确认自己是否应该退出，不应该由外部线程调用
         assert inEventLoop();
-        // 它放前面是因为更可能出现
-        if (!isShuttingDown()) {
-            return false;
-        }
-        // 它只在关闭阶段出现
-        if (isShutdown()) {
-            taskQueue.clear();
-            return true;
-        }
-        // shuttingDown状态下，已不会接收新的任务，执行完当前所有未执行的任务就可以退出了。
-        runAllTasks();
-
-        // 切换至SHUTDOWN状态，准备执行最后的清理动作
-        advanceRunState(ST_SHUTDOWN);
-
-        // 由于shutdownNow，可能任务没有完全执行完毕，需要进行清理
-        taskQueue.clear();
-        return true;
+        return isShuttingDown();
     }
 
     /**
@@ -481,13 +470,8 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
                 // 如果是非正常退出，需要切换到正在关闭状态 - 告知其它线程正在关闭
                 advanceRunState(ST_SHUTTING_DOWN);
                 try {
-                    // 非正常退出下也尝试执行完所有的任务 - 当然这也不是很安全
-                    // Run all remaining tasks and shutdown hooks.
-                    for (; ; ) {
-                        if (confirmShutdown()) {
-                            break;
-                        }
-                    }
+                    // 清理任务队列中的数据
+                    cleanTaskQueue();
                 } finally {
                     // 退出前进行必要的清理，释放系统资源
                     try {
@@ -501,6 +485,13 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
                     }
                 }
             }
+        }
+
+        private void cleanTaskQueue() {
+            while (!isShutdown()) {
+                runTasksBatch(CACHE_QUEUE_CAPACITY);
+            }
+            taskQueue.clear();
         }
     }
 }
