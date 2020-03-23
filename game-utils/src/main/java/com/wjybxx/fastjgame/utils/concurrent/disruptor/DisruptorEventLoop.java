@@ -242,7 +242,6 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     @Override
     public final void shutdown() {
         for (; ; ) {
-            // 为何要存为临时变量？表示我们是基于特定的状态执行代码，compareAndSet才有意义
             int oldState = stateHolder.get();
             if (isShuttingDown0(oldState)) {
                 return;

@@ -323,14 +323,11 @@ public class DefaultBlockingPromise<V> extends AbstractPromise<V> implements Blo
         }
     }
 
-    /**
-     * 检查是否需要通知监听器
-     */
     private boolean needNotifyListeners() {
         return listenerEntries != null && !notifyingListeners;
     }
 
-    protected final void notifyAllListeners() {
+    private void notifyAllListeners() {
         if (defaultExecutor.inEventLoop()) {
             notifyAllListenersNow();
         } else {

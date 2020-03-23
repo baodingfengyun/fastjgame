@@ -187,7 +187,6 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     @Override
     public final void shutdown() {
         for (; ; ) {
-            // 为何要存为临时变量？表示我们是基于特定的状态执行代码，compareAndSet才有意义
             int oldState = stateHolder.get();
             if (isShuttingDown0(oldState)) {
                 return;
@@ -439,8 +438,6 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
      * @apiNote 如果返回true，应该立即退出。
      */
     protected final boolean confirmShutdown() {
-        // 用于EventLoop确认自己是否应该退出，不应该由外部线程调用
-        assert inEventLoop();
         return isShuttingDown();
     }
 
@@ -489,7 +486,9 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 
         private void cleanTaskQueue() {
             while (!isShutdown()) {
-                runTasksBatch(CACHE_QUEUE_CAPACITY);
+                if (!runTasksBatch(CACHE_QUEUE_CAPACITY)) {
+                    break;
+                }
             }
             taskQueue.clear();
         }
