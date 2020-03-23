@@ -30,12 +30,10 @@ public class RpcResponseWriteTask implements WriteTask {
 
     private final Session session;
     private final RpcResponseMessage rpcResponseMessage;
-    private final boolean flush;
 
-    public RpcResponseWriteTask(Session session, long requestGuid, RpcErrorCode errorCode, Object body, boolean flush) {
+    public RpcResponseWriteTask(Session session, long requestGuid, RpcErrorCode errorCode, Object body, boolean sync) {
         this.session = session;
-        this.rpcResponseMessage = new RpcResponseMessage(requestGuid, errorCode, body);
-        this.flush = flush;
+        this.rpcResponseMessage = new RpcResponseMessage(requestGuid, sync, errorCode, body);
     }
 
     public RpcResponseMessage getRpcResponseMessage() {
@@ -44,7 +42,7 @@ public class RpcResponseWriteTask implements WriteTask {
 
     @Override
     public void run() {
-        if (flush) {
+        if (rpcResponseMessage.isSync()) {
             session.fireWriteAndFlush(this);
         } else {
             session.fireWrite(this);

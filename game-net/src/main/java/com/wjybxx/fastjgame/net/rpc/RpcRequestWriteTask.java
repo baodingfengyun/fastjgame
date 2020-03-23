@@ -41,7 +41,7 @@ public class RpcRequestWriteTask implements WriteTask {
     private final boolean flush;
 
     public RpcRequestWriteTask(Session session,
-                               Object request, boolean sync, long timeoutMs,
+                               @Nonnull Object request, boolean sync, long timeoutMs,
                                @Nonnull Promise<?> rpcPromise, boolean flush) {
         this.session = session;
         this.request = request;
@@ -69,7 +69,7 @@ public class RpcRequestWriteTask implements WriteTask {
 
     @Override
     public void run() {
-        if (flush) {
+        if (sync || flush) {
             session.fireWriteAndFlush(this);
         } else {
             session.fireWrite(this);

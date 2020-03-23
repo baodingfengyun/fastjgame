@@ -317,7 +317,7 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
      */
     private void writeRpcResponseMessage(ChannelHandlerContext ctx, long ack, boolean endOfBatch, SocketMessage socketMessage, ChannelPromise promise) {
         RpcResponseMessage responseMessage = (RpcResponseMessage) socketMessage.getWrappedMessage();
-        ByteBuf head = newHeadByteBuf(ctx, 8 + 8 + 1 + 8 + 4, NetMessageType.RPC_RESPONSE);
+        ByteBuf head = newHeadByteBuf(ctx, 8 + 8 + 1 + 8 + 1 + 4, NetMessageType.RPC_RESPONSE);
 
         // 捎带确认信息
         head.writeLong(socketMessage.getSequence());
@@ -326,6 +326,7 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
 
         // rpc响应头
         head.writeLong(responseMessage.getRequestGuid());
+        head.writeByte(responseMessage.isSync() ? 1 : 0);
         head.writeInt(responseMessage.getErrorCode().getNumber());
 
         if (responseMessage.getErrorCode().isSuccess()) {
@@ -353,6 +354,7 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
 
         // 响应头
         long requestGuid = msg.readLong();
+        boolean sync = msg.readByte() == 1;
         RpcErrorCode errorCode = RpcErrorCode.forNumber(msg.readInt());
 
         // 响应内容
@@ -363,7 +365,7 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
             body = CodecUtils.newStringUTF8(NetUtils.readRemainBytes(msg));
         }
 
-        RpcResponseMessage rpcResponseMessage = new RpcResponseMessage(requestGuid, errorCode, body);
+        RpcResponseMessage rpcResponseMessage = new RpcResponseMessage(requestGuid, sync, errorCode, body);
         return new SocketMessageEvent(channel, sessionId, sequence, ack, endOfBatch, rpcResponseMessage);
     }
 

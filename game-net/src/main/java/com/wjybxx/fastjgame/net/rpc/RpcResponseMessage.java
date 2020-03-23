@@ -34,18 +34,27 @@ public class RpcResponseMessage extends NetLogicMessage {
      */
     private final long requestGuid;
     /**
+     * 是否是同步调用的结果
+     */
+    private final boolean sync;
+    /**
      * 错误码
      */
     private final RpcErrorCode errorCode;
 
-    public RpcResponseMessage(long requestGuid, RpcErrorCode errorCode, Object body) {
+    public RpcResponseMessage(long requestGuid, boolean sync, RpcErrorCode errorCode, Object body) {
         super(body);
         this.requestGuid = requestGuid;
+        this.sync = sync;
         this.errorCode = errorCode;
     }
 
     public long getRequestGuid() {
         return requestGuid;
+    }
+
+    public boolean isSync() {
+        return sync;
     }
 
     public RpcErrorCode getErrorCode() {
